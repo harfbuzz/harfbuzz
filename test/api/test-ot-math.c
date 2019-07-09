@@ -629,19 +629,19 @@ test_get_glyph_assembly (void)
   g_assert_cmpint(parts[0].start_connector_length, ==, 800);
   g_assert_cmpint(parts[0].end_connector_length, ==, 384);
   g_assert_cmpint(parts[0].full_advance, ==, 2000);
-  g_assert(!(parts[0].flags & HB_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert(!(parts[0].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
   g_assert(hb_font_get_glyph_from_name (hb_font, "horizontal", -1, &glyph));
   g_assert_cmpint(parts[1].glyph, ==, glyph);
   g_assert_cmpint(parts[1].start_connector_length, ==, 524);
   g_assert_cmpint(parts[1].end_connector_length, ==, 800);
   g_assert_cmpint(parts[1].full_advance, ==, 2000);
-  g_assert(parts[1].flags & HB_MATH_GLYPH_PART_FLAG_EXTENDER);
+  g_assert(parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
   g_assert(hb_font_get_glyph_from_name (hb_font, "right", -1, &glyph));
   g_assert_cmpint(parts[2].glyph, ==, glyph);
   g_assert_cmpint(parts[2].start_connector_length, ==, 316);
   g_assert_cmpint(parts[2].end_connector_length, ==, 454);
   g_assert_cmpint(parts[2].full_advance, ==, 2000);
-  g_assert(!(parts[2].flags & HB_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert(!(parts[2].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowdown", -1, &glyph));
   offset = 0;
@@ -662,20 +662,20 @@ test_get_glyph_assembly (void)
   g_assert_cmpint(parts[0].start_connector_length, ==, 365);
   g_assert_cmpint(parts[0].end_connector_length, ==, 158);
   g_assert_cmpint(parts[0].full_advance, ==, 1000);
-  g_assert(!(parts[0].flags & HB_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert(!(parts[0].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
   g_assert(hb_font_get_glyph_from_name (hb_font, "vertical", -1, &glyph));
   g_assert_cmpint(parts[1].glyph, ==, glyph);
   g_assert_cmpint(parts[1].glyph, ==, glyph);
   g_assert_cmpint(parts[1].start_connector_length, ==, 227);
   g_assert_cmpint(parts[1].end_connector_length, ==, 365);
   g_assert_cmpint(parts[1].full_advance, ==, 1000);
-  g_assert(parts[1].flags & HB_MATH_GLYPH_PART_FLAG_EXTENDER);
+  g_assert(parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
   g_assert(hb_font_get_glyph_from_name (hb_font, "center", -1, &glyph));
   g_assert_cmpint(parts[2].glyph, ==, glyph);
   g_assert_cmpint(parts[2].start_connector_length, ==, 54);
   g_assert_cmpint(parts[2].end_connector_length, ==, 158);
   g_assert_cmpint(parts[2].full_advance, ==, 1000);
-  g_assert(!(parts[2].flags & HB_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert(!(parts[2].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
   g_assert(hb_font_get_glyph_from_name (hb_font, "vertical", -1, &glyph));
   g_assert_cmpint(parts[3].glyph, ==, glyph);
   g_assert_cmpint(parts[3].glyph, ==, glyph);
@@ -683,13 +683,13 @@ test_get_glyph_assembly (void)
   g_assert_cmpint(parts[3].start_connector_length, ==, 400);
   g_assert_cmpint(parts[3].end_connector_length, ==, 296);
   g_assert_cmpint(parts[3].full_advance, ==, 1000);
-  g_assert(parts[1].flags & HB_MATH_GLYPH_PART_FLAG_EXTENDER);
+  g_assert(parts[1].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER);
   g_assert(hb_font_get_glyph_from_name (hb_font, "top", -1, &glyph));
   g_assert_cmpint(parts[4].glyph, ==, glyph);
   g_assert_cmpint(parts[4].start_connector_length, ==, 123);
   g_assert_cmpint(parts[4].end_connector_length, ==, 192);
   g_assert_cmpint(parts[4].full_advance, ==, 1000);
-  g_assert(!(parts[4].flags & HB_MATH_GLYPH_PART_FLAG_EXTENDER));
+  g_assert(!(parts[4].flags & HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER));
 
   closeFont();
 

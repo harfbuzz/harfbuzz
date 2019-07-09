@@ -190,7 +190,6 @@ test_ot_tag_script_indic (void)
   test_indic_tags ("ory3", "ory2", "orya", HB_SCRIPT_ORIYA);
   test_indic_tags ("tml3", "tml2", "taml", HB_SCRIPT_TAMIL);
   test_indic_tags ("tel3", "tel2", "telu", HB_SCRIPT_TELUGU);
-  test_indic_tags ("mym3", "mym2", "mymr", HB_SCRIPT_MYANMAR);
 }
 
 
@@ -506,6 +505,7 @@ test_ot_tag_full (void)
   test_tags (HB_SCRIPT_INVALID, "x-hbsc5678-hbot1234", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 1, 1, "5678", "1234");
   test_tags (HB_SCRIPT_MALAYALAM, "ml", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 3, 2, "mlm3", "mlm2", "mlym", "MAL", "MLR");
   test_tags (HB_SCRIPT_MALAYALAM, "ml", 1, 1, 1, 1, "mlm3", "MAL");
+  test_tags (HB_SCRIPT_MYANMAR, "und", HB_OT_MAX_TAGS_PER_SCRIPT, 0, 2, 0, "mym2", "mymr");
   test_tags (HB_SCRIPT_INVALID, "xyz", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 1, "XYZ");
   test_tags (HB_SCRIPT_INVALID, "xy", HB_OT_MAX_TAGS_PER_SCRIPT, HB_OT_MAX_TAGS_PER_LANGUAGE, 0, 0);
 }

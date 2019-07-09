@@ -104,7 +104,7 @@ struct Record
 };
 
 template <typename Type>
-struct RecordArrayOf : SortedArrayOf<Record<Type> >
+struct RecordArrayOf : SortedArrayOf<Record<Type>>
 {
   const OffsetTo<Type>& get_offset (unsigned int i) const
   { return (*this)[i].offset; }
@@ -139,11 +139,11 @@ struct RecordListOf : RecordArrayOf<Type>
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct RecordListOf<Type> *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
-      out->get_offset (i).serialize_subset (c, (*this)[i], out);
+      out->get_offset (i).serialize_subset (c, this->get_offset (i), this, out);
     return_trace (true);
   }
 
@@ -227,13 +227,13 @@ struct LangSys
   {
     if (reqFeatureIndex == 0xFFFFu)
       return Index::NOT_FOUND_INDEX;
-   return reqFeatureIndex;;
+   return reqFeatureIndex;
   }
 
-  bool subset (hb_subset_context_t *c) const
+  LangSys* copy (hb_serialize_context_t *c) const
   {
-    TRACE_SUBSET (this);
-    return_trace (c->serializer->embed (*this));
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (*this));
   }
 
   bool sanitize (hb_sanitize_context_t *c,
@@ -278,12 +278,12 @@ struct Script
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct Script *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
-    out->defaultLangSys.serialize_subset (c, this+defaultLangSys, out);
+    out->defaultLangSys.serialize_copy (c->serializer, defaultLangSys, this, out);
     unsigned int count = langSys.len;
     for (unsigned int i = 0; i < count; i++)
-      out->langSys.arrayZ[i].offset.serialize_subset (c, this+langSys[i].offset, out);
+      out->langSys.arrayZ[i].offset.serialize_copy (c->serializer, langSys[i].offset, this, out);
     return_trace (true);
   }
 
@@ -500,6 +500,9 @@ struct FeatureParams
 {
   bool sanitize (hb_sanitize_context_t *c, hb_tag_t tag) const
   {
+#ifdef HB_NO_LAYOUT_FEATURE_PARAMS
+    return true;
+#endif
     TRACE_SANITIZE (this);
     if (tag == HB_TAG ('s','i','z','e'))
       return_trace (u.size.sanitize (c));
@@ -510,26 +513,26 @@ struct FeatureParams
     return_trace (true);
   }
 
+#ifndef HB_NO_LAYOUT_FEATURE_PARAMS
   const FeatureParamsSize& get_size_params (hb_tag_t tag) const
   {
     if (tag == HB_TAG ('s','i','z','e'))
       return u.size;
     return Null (FeatureParamsSize);
   }
-
   const FeatureParamsStylisticSet& get_stylistic_set_params (hb_tag_t tag) const
   {
     if ((tag & 0xFFFF0000u) == HB_TAG ('s','s','\0','\0')) /* ssXX */
       return u.stylisticSet;
     return Null (FeatureParamsStylisticSet);
   }
-
   const FeatureParamsCharacterVariants& get_character_variants_params (hb_tag_t tag) const
   {
     if ((tag & 0xFFFF0000u) == HB_TAG ('c','v','\0','\0')) /* cvXX */
       return u.characterVariants;
     return Null (FeatureParamsCharacterVariants);
   }
+#endif
 
   private:
   union {
@@ -560,7 +563,7 @@ struct Feature
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct Feature *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
     out->featureParams = 0; /* TODO(subset) FeatureParams. */
     return_trace (true);
@@ -649,15 +652,18 @@ struct Lookup
   unsigned int get_subtable_count () const { return subTable.len; }
 
   template <typename TSubTable>
-  const TSubTable& get_subtable (unsigned int i) const
-  { return this+CastR<OffsetArrayOf<TSubTable> > (subTable)[i]; }
-
-  template <typename TSubTable>
   const OffsetArrayOf<TSubTable>& get_subtables () const
-  { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
+  { return CastR<OffsetArrayOf<TSubTable>> (subTable); }
   template <typename TSubTable>
   OffsetArrayOf<TSubTable>& get_subtables ()
-  { return CastR<OffsetArrayOf<TSubTable> > (subTable); }
+  { return CastR<OffsetArrayOf<TSubTable>> (subTable); }
+
+  template <typename TSubTable>
+  const TSubTable& get_subtable (unsigned int i) const
+  { return this+get_subtables<TSubTable> ()[i]; }
+  template <typename TSubTable>
+  TSubTable& get_subtable (unsigned int i)
+  { return this+get_subtables<TSubTable> ()[i]; }
 
   unsigned int get_size () const
   {
@@ -683,14 +689,14 @@ struct Lookup
     return flag;
   }
 
-  template <typename TSubTable, typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename TSubTable, typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     unsigned int lookup_type = get_type ();
     TRACE_DISPATCH (this, lookup_type);
     unsigned int count = get_subtable_count ();
     for (unsigned int i = 0; i < count; i++) {
-      typename context_t::return_t r = get_subtable<TSubTable> (i).dispatch (c, lookup_type);
+      typename context_t::return_t r = get_subtable<TSubTable> (i).dispatch (c, lookup_type, hb_forward<Ts> (ds)...);
       if (c->stop_sublookup_iteration (r))
 	return_trace (r);
     }
@@ -716,28 +722,11 @@ struct Lookup
     return_trace (true);
   }
 
-  /* Older compilers need this to NOT be locally defined in a function. */
-  template <typename TSubTable>
-  struct SubTableSubsetWrapper
-  {
-    SubTableSubsetWrapper (const TSubTable &subtable_,
-			   unsigned int lookup_type_) :
-			     subtable (subtable_),
-			     lookup_type (lookup_type_) {}
-
-    bool subset (hb_subset_context_t *c) const
-    { return subtable.dispatch (c, lookup_type); }
-
-    private:
-    const TSubTable &subtable;
-    unsigned int lookup_type;
-  };
-
   template <typename TSubTable>
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct Lookup *out = c->serializer->embed (*this);
+    auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
     /* Subset the actual subtables. */
@@ -747,22 +736,10 @@ struct Lookup
     OffsetArrayOf<TSubTable>& out_subtables = out->get_subtables<TSubTable> ();
     unsigned int count = subTable.len;
     for (unsigned int i = 0; i < count; i++)
-    {
-      SubTableSubsetWrapper<TSubTable> wrapper (this+subtables[i], get_type ());
-
-      out_subtables[i].serialize_subset (c, wrapper, out);
-    }
+      out_subtables[i].serialize_subset (c, subtables[i], this, out, get_type ());
 
     return_trace (true);
   }
-
-  /* Older compilers need this to NOT be locally defined in a function. */
-  template <typename TSubTable>
-  struct SubTableSanitizeWrapper : TSubTable
-  {
-    bool sanitize (hb_sanitize_context_t *c, unsigned int lookup_type) const
-    { return this->dispatch (c, lookup_type); }
-  };
 
   template <typename TSubTable>
   bool sanitize (hb_sanitize_context_t *c) const
@@ -775,23 +752,27 @@ struct Lookup
       if (!markFilteringSet.sanitize (c)) return_trace (false);
     }
 
-    if (unlikely (!CastR<OffsetArrayOf<SubTableSanitizeWrapper<TSubTable> > > (subTable)
-		   .sanitize (c, this, get_type ())))
+    if (unlikely (!get_subtables<TSubTable> ().sanitize (c, this, get_type ())))
       return_trace (false);
 
-    if (unlikely (get_type () == TSubTable::Extension))
+    if (unlikely (get_type () == TSubTable::Extension && !c->get_edit_count ()))
     {
       /* The spec says all subtables of an Extension lookup should
        * have the same type, which shall not be the Extension type
        * itself (but we already checked for that).
-       * This is specially important if one has a reverse type! */
+       * This is specially important if one has a reverse type!
+       *
+       * We only do this if sanitizer edit_count is zero.  Otherwise,
+       * some of the subtables might have become insane after they
+       * were sanity-checked by the edits of subsequent subtables.
+       * https://bugs.chromium.org/p/chromium/issues/detail?id=960331
+       */
       unsigned int type = get_subtable<TSubTable> (0).u.extension.get_type ();
       unsigned int count = get_subtable_count ();
       for (unsigned int i = 1; i < count; i++)
 	if (get_subtable<TSubTable> (i).u.extension.get_type () != type)
 	  return_trace (false);
     }
-    return_trace (true);
     return_trace (true);
   }
 
@@ -827,7 +808,7 @@ struct CoverageFormat1
   }
 
   template <typename Iterator,
-	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+      hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -865,6 +846,8 @@ struct CoverageFormat1
     bool more () const { return i < c->glyphArray.len; }
     void next () { i++; }
     hb_codepoint_t get_glyph () const { return c->glyphArray[i]; }
+    bool operator != (const iter_t& o) const
+    { return i != o.i || c != o.c; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -894,7 +877,7 @@ struct CoverageFormat2
   }
 
   template <typename Iterator,
-	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+      hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
@@ -905,30 +888,36 @@ struct CoverageFormat2
       rangeRecord.len = 0;
       return_trace (true);
     }
-    /* TODO(iter) Port to non-random-access iterator interface. */
-    unsigned int count = glyphs.len ();
 
-    unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < count; i++)
-      if (glyphs[i - 1] + 1 != glyphs[i])
-	num_ranges++;
-    rangeRecord.len = num_ranges;
-    if (unlikely (!c->extend (rangeRecord))) return_trace (false);
+    /* TODO(iter) Write more efficiently? */
 
-    unsigned int range = 0;
-    rangeRecord[range].start = glyphs[0];
-    rangeRecord[range].value = 0;
-    for (unsigned int i = 1; i < count; i++)
+    unsigned num_ranges = 0;
+    hb_codepoint_t last = (hb_codepoint_t) -2;
+    for (auto g: glyphs)
     {
-      if (glyphs[i - 1] + 1 != glyphs[i])
-      {
-	rangeRecord[range].end = glyphs[i - 1];
-	range++;
-	rangeRecord[range].start = glyphs[i];
-	rangeRecord[range].value = i;
-      }
+      if (last + 1 != g)
+        num_ranges++;
+      last = g;
     }
-    rangeRecord[range].end = glyphs[count - 1];
+
+    if (unlikely (!rangeRecord.serialize (c, num_ranges))) return_trace (false);
+
+    unsigned count = 0;
+    unsigned range = (unsigned) -1;
+    last = (hb_codepoint_t) -2;
+    for (auto g: glyphs)
+    {
+      if (last + 1 != g)
+      {
+        range++;
+	rangeRecord[range].start = g;
+	rangeRecord[range].value = count;
+      }
+      rangeRecord[range].end = g;
+      last = g;
+      count++;
+    }
+
     return_trace (true);
   }
 
@@ -1017,6 +1006,8 @@ struct CoverageFormat2
       j++;
     }
     hb_codepoint_t get_glyph () const { return j; }
+    bool operator != (const iter_t& o) const
+    { return i != o.i || j != o.j || c != o.c; }
 
     private:
     const struct CoverageFormat2 *c;
@@ -1056,18 +1047,22 @@ struct Coverage
   }
 
   template <typename Iterator,
-	    hb_enable_if (hb_is_sorted_iterator_of (Iterator, const GlyphID))>
+      hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    /* TODO(iter) Port to non-random-access iterator interface. */
-    unsigned int count = glyphs.len ();
-    unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < count; i++)
-      if (glyphs[i - 1] + 1 != glyphs[i])
-	num_ranges++;
+    unsigned count = 0;
+    unsigned num_ranges = 0;
+    hb_codepoint_t last = (hb_codepoint_t) -2;
+    for (auto g: glyphs)
+    {
+      if (last + 1 != g)
+        num_ranges++;
+      last = g;
+      count++;
+    }
     u.format = count * 2 < num_ranges * 3 ? 1 : 2;
 
     switch (u.format)
@@ -1166,6 +1161,16 @@ struct Coverage
       default:return 0;
       }
     }
+    bool operator != (const iter_t& o) const
+    {
+      if (format != o.format) return true;
+      switch (format)
+      {
+      case 1: return u.format1 != o.u.format1;
+      case 2: return u.format2 != o.u.format2;
+      default:return false;
+      }
+    }
 
     private:
     unsigned int format;
@@ -1223,7 +1228,7 @@ struct ClassDefFormat1
     hb_codepoint_t glyph_max = +glyphs | hb_reduce (hb_max, 0u);
 
     startGlyph = glyph_min;
-    classValue.len = glyph_max - glyph_min + 1;
+    c->check_assign (classValue.len, glyph_max - glyph_min + 1);
     if (unlikely (!c->extend (classValue))) return_trace (false);
 
     for (unsigned int i = 0; i < glyphs.length; i++)
@@ -1693,10 +1698,10 @@ struct VarRegionList
     VarRegionList *out = c->allocate_min<VarRegionList> ();
     if (unlikely (!out)) return_trace (false);
     axisCount = src->axisCount;
-    regionCount = region_map.get_count ();
+    regionCount = region_map.get_population ();
     if (unlikely (!c->allocate_size<VarRegionList> (get_size () - min_size))) return_trace (false);
     for (unsigned int r = 0; r < regionCount; r++)
-      memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * region_map.to_old (r)], VarRegionAxis::static_size * axisCount);
+      memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * region_map.backward (r)], VarRegionAxis::static_size * axisCount);
 
     return_trace (true);
   }
@@ -1758,11 +1763,11 @@ struct VarData
                     float *scalars /*OUT */,
                     unsigned int num_scalars) const
   {
-    assert (num_scalars == regionIndices.len);
-   for (unsigned int i = 0; i < num_scalars; i++)
-   {
-     scalars[i] = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count);
-   }
+    unsigned count = hb_min (num_scalars, regionIndices.len);
+    for (unsigned int i = 0; i < count; i++)
+      scalars[i] = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count);
+    for (unsigned int i = count; i < num_scalars; i++)
+      scalars[i] = 0.f;
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1783,7 +1788,7 @@ struct VarData
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    itemCount = inner_map.get_count ();
+    itemCount = inner_map.get_population ();
     
     /* Optimize short count */
     unsigned short ri_count = src->regionIndices.len;
@@ -1797,9 +1802,9 @@ struct VarData
     for (r = 0; r < ri_count; r++)
     {
       delta_sz[r] = kZero;
-      for (unsigned int i = 0; i < inner_map.get_count (); i++)
+      for (unsigned int i = 0; i < inner_map.get_population (); i++)
       {
-	unsigned int old = inner_map.to_old (i);
+	unsigned int old = inner_map.backward (i);
 	int16_t delta = src->get_item_delta (old, r);
 	if (delta < -128 || 127 < delta)
 	{
@@ -1829,11 +1834,11 @@ struct VarData
       return_trace (false);
 
     for (r = 0; r < ri_count; r++)
-      if (delta_sz[r]) regionIndices[ri_map[r]] = region_map.to_new (src->regionIndices[r]);
+      if (delta_sz[r]) regionIndices[ri_map[r]] = region_map[src->regionIndices[r]];
 
     for (unsigned int i = 0; i < itemCount; i++)
     {
-      hb_codepoint_t	old = inner_map.to_old (i);
+      hb_codepoint_t	old = inner_map.backward (i);
       if (unlikely (old >= src->itemCount)) return_trace (false);
       for (unsigned int r = 0; r < ri_count; r++)
 	if (delta_sz[r]) set_item_delta (i, ri_map[r], src->get_item_delta (old, r));
@@ -1842,14 +1847,14 @@ struct VarData
     return_trace (true);
   }
 
-  void collect_region_refs (hb_bimap_t &region_map, const hb_bimap_t &inner_map) const
+  void collect_region_refs (hb_inc_bimap_t &region_map, const hb_bimap_t &inner_map) const
   {
     for (unsigned int r = 0; r < regionIndices.len; r++)
     {
       unsigned int region = regionIndices[r];
       if (region_map.has (region)) continue;
-      for (unsigned int i = 0; i < inner_map.get_count (); i++)
-	if (get_item_delta (inner_map.to_old (i), r) != 0)
+      for (unsigned int i = 0; i < inner_map.get_population (); i++)
+	if (get_item_delta (inner_map.backward (i), r) != 0)
 	{
 	  region_map.add (region);
 	  break;
@@ -1900,8 +1905,12 @@ struct VariationStore
   float get_delta (unsigned int outer, unsigned int inner,
 		   const int *coords, unsigned int coord_count) const
   {
+#ifdef HB_NO_VAR
+    return 0.f;
+#endif
+
     if (unlikely (outer >= dataSets.len))
-      return 0.;
+      return 0.f;
 
     return (this+dataSets[outer]).get_delta (inner,
 					     coords, coord_count,
@@ -1918,6 +1927,10 @@ struct VariationStore
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
+#ifdef HB_NO_VAR
+    return true;
+#endif
+
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  format == 1 &&
@@ -1927,21 +1940,21 @@ struct VariationStore
 
   bool serialize (hb_serialize_context_t *c,
 		  const VariationStore *src,
-  		  const hb_array_t <hb_bimap_t> &inner_remaps)
+  		  const hb_array_t <hb_inc_bimap_t> &inner_remaps)
   {
     TRACE_SERIALIZE (this);
     unsigned int set_count = 0;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
-      if (inner_remaps[i].get_count () > 0) set_count++;
+      if (inner_remaps[i].get_population () > 0) set_count++;
 
     unsigned int size = min_size + HBUINT32::static_size * set_count;
     if (unlikely (!c->allocate_size<HBUINT32> (size))) return_trace (false);
     format = 1;
 
-    hb_bimap_t region_map;
+    hb_inc_bimap_t region_map;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
       (src+src->dataSets[i]).collect_region_refs (region_map, inner_remaps[i]);
-    region_map.reorder ();
+    region_map.sort ();
 
     if (unlikely (!regions.serialize (c, this)
 		  .serialize (c, &(src+src->regions), region_map))) return_trace (false);
@@ -1953,7 +1966,7 @@ struct VariationStore
     unsigned int set_index = 0;
     for (unsigned int i = 0; i < inner_remaps.length; i++)
     {
-      if (inner_remaps[i].get_count () == 0) continue;
+      if (inner_remaps[i].get_population () == 0) continue;
       if (unlikely (!dataSets[set_index++].serialize (c, this)
 		      .serialize (c, &(src+src->dataSets[i]), inner_remaps[i], region_map)))
 	return_trace (false);
@@ -1970,6 +1983,12 @@ struct VariationStore
 		    float *scalars /*OUT*/,
 		    unsigned int num_scalars) const
   {
+#ifdef HB_NO_VAR
+    for (unsigned i = 0; i < num_scalars; i++)
+      scalars[i] = 0.f;
+    return;
+#endif
+
     (this+dataSets[ivs]).get_scalars (coords, coord_count, this+regions,
                                       &scalars[0], num_scalars);
   }
@@ -2163,10 +2182,10 @@ struct FeatureVariations
     return (this+record.substitutions).find_substitute (feature_index);
   }
 
-  bool subset (hb_subset_context_t *c) const
+  FeatureVariations* copy (hb_serialize_context_t *c) const
   {
-    TRACE_SUBSET (this);
-    return_trace (c->serializer->embed (*this));
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (*this));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -2314,10 +2333,14 @@ struct Device
   {
     switch (u.b.format)
     {
+#ifndef HB_NO_HINTING
     case 1: case 2: case 3:
       return u.hinting.get_x_delta (font);
+#endif
+#ifndef HB_NO_VAR
     case 0x8000:
       return u.variation.get_x_delta (font, store);
+#endif
     default:
       return 0;
     }
@@ -2327,9 +2350,13 @@ struct Device
     switch (u.b.format)
     {
     case 1: case 2: case 3:
+#ifndef HB_NO_HINTING
       return u.hinting.get_y_delta (font);
+#endif
+#ifndef HB_NO_VAR
     case 0x8000:
       return u.variation.get_y_delta (font, store);
+#endif
     default:
       return 0;
     }
@@ -2340,10 +2367,14 @@ struct Device
     TRACE_SANITIZE (this);
     if (!u.b.format.sanitize (c)) return_trace (false);
     switch (u.b.format) {
+#ifndef HB_NO_HINTING
     case 1: case 2: case 3:
       return_trace (u.hinting.sanitize (c));
+#endif
+#ifndef HB_NO_VAR
     case 0x8000:
       return_trace (u.variation.sanitize (c));
+#endif
     default:
       return_trace (true);
     }
@@ -2353,7 +2384,9 @@ struct Device
   union {
   DeviceHeader		b;
   HintingDevice		hinting;
+#ifndef HB_NO_VAR
   VariationDevice	variation;
+#endif
   } u;
   public:
   DEFINE_SIZE_UNION (6, b);

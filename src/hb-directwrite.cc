@@ -23,12 +23,22 @@
  */
 
 #include "hb.hh"
+
+#ifdef HAVE_DIRECTWRITE
+
 #include "hb-shaper-impl.hh"
 
-#include <DWrite_1.h>
+#include <dwrite_1.h>
 
 #include "hb-directwrite.h"
 
+
+/* Declare object creator for dynamic support of DWRITE */
+typedef HRESULT (* WINAPI t_DWriteCreateFactory)(
+  DWRITE_FACTORY_TYPE factoryType,
+  REFIID              iid,
+  IUnknown            **factory
+);
 
 /*
  * hb-directwrite uses new/delete syntatically but as we let users
@@ -135,6 +145,7 @@ public:
 
 struct hb_directwrite_face_data_t
 {
+  HMODULE dwrite_dll;
   IDWriteFactory *dwriteFactory;
   IDWriteFontFile *fontFile;
   DWriteFontFileStream *fontFileStream;
@@ -150,12 +161,43 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!data))
     return nullptr;
 
-  // TODO: factory and fontFileLoader should be cached separately
-  IDWriteFactory* dwriteFactory;
-  DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
-		       (IUnknown**) &dwriteFactory);
+#define FAIL(...) \
+  HB_STMT_START { \
+    DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
+    return nullptr; \
+  } HB_STMT_END
+
+  data->dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
+  if (unlikely (!data->dwrite_dll))
+    FAIL ("Cannot find DWrite.DLL");
+
+  t_DWriteCreateFactory p_DWriteCreateFactory;
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
+  p_DWriteCreateFactory = (t_DWriteCreateFactory)
+			  GetProcAddress (data->dwrite_dll, "DWriteCreateFactory");
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
+  if (unlikely (!p_DWriteCreateFactory))
+    FAIL ("Cannot find DWriteCreateFactory().");
 
   HRESULT hr;
+
+  // TODO: factory and fontFileLoader should be cached separately
+  IDWriteFactory* dwriteFactory;
+  hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
+			      (IUnknown**) &dwriteFactory);
+
+  if (unlikely (hr != S_OK))
+    FAIL ("Failed to run DWriteCreateFactory().");
+
   hb_blob_t *blob = hb_face_reference_blob (face);
   DWriteFontFileStream *fontFileStream;
   fontFileStream = new DWriteFontFileStream ((uint8_t *) hb_blob_get_data (blob, nullptr),
@@ -168,12 +210,6 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
   uint64_t fontFileKey = 0;
   hr = dwriteFactory->CreateCustomFontFileReference (&fontFileKey, sizeof (fontFileKey),
 						     fontFileLoader, &fontFile);
-
-#define FAIL(...) \
-  HB_STMT_START { \
-    DEBUG_MSG (DIRECTWRITE, nullptr, __VA_ARGS__); \
-    return nullptr; \
-  } HB_STMT_END;
 
   if (FAILED (hr))
     FAIL ("Failed to load font file from data!");
@@ -221,6 +257,8 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
     delete data->fontFileStream;
   if (data->faceBlob)
     hb_blob_destroy (data->faceBlob);
+  if (data->dwrite_dll)
+    FreeLibrary (data->dwrite_dll);
   if (data)
     delete data;
 }
@@ -501,10 +539,10 @@ protected:
   Run  mRunHead;
 };
 
-static inline uint16_t hb_uint16_swap (const uint16_t v)
+static inline uint16_t hb_dw_uint16_swap (const uint16_t v)
 { return (v >> 8) | (v << 8); }
-static inline uint32_t hb_uint32_swap (const uint32_t v)
-{ return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
+static inline uint32_t hb_dw_uint32_swap (const uint32_t v)
+{ return (hb_dw_uint16_swap (v) << 16) | hb_dw_uint16_swap (v >> 16); }
 
 /*
  * shaper
@@ -530,12 +568,12 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
   hb_buffer_t::scratch_buffer_t *scratch = buffer->get_scratch_buffer (&scratch_size);
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
-  { \
+  do { \
     unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
     assert (_consumed <= scratch_size); \
     scratch += _consumed; \
     scratch_size -= _consumed; \
-  }
+  } while (0)
 
 #define utf16_index() var1.u32
 
@@ -615,7 +653,7 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
     for (unsigned int i = 0; i < num_features; ++i)
     {
       typographic_features.features[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
-						 hb_uint32_swap (features[i].tag);
+						 hb_dw_uint32_swap (features[i].tag);
       typographic_features.features[i].parameter = features[i].value;
     }
   }
@@ -778,7 +816,7 @@ retry_getglyphs:
   {
     uint32_t *p =
       &vis_clusters[log_clusters[buffer->info[i].utf16_index ()]];
-    *p = MIN (*p, buffer->info[i].cluster);
+    *p = hb_min (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < glyphCount; i++)
     if (vis_clusters[i] == (uint32_t) -1)
@@ -896,14 +934,14 @@ _hb_directwrite_table_data_release (void *data)
 }
 
 static hb_blob_t *
-reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+_hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   IDWriteFontFace *dw_face = ((IDWriteFontFace *) user_data);
   const void *data;
   uint32_t length;
   void *table_context;
   BOOL exists;
-  if (!dw_face || FAILED (dw_face->TryGetFontTable (hb_uint32_swap (tag), &data,
+  if (!dw_face || FAILED (dw_face->TryGetFontTable (hb_dw_uint32_swap (tag), &data,
 						    &length, &table_context, &exists)))
     return nullptr;
 
@@ -930,7 +968,9 @@ _hb_directwrite_font_release (void *data)
 
 /**
  * hb_directwrite_face_create:
- * @font_face:
+ * @font_face: a DirectWrite IDWriteFontFace object.
+ *
+ * Return value: #hb_face_t object corresponding to the given input
  *
  * Since: 2.4.0
  **/
@@ -939,18 +979,23 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
 {
   if (font_face)
     font_face->AddRef ();
-  return hb_face_create_for_tables (reference_table, font_face,
+  return hb_face_create_for_tables (_hb_directwrite_reference_table, font_face,
 				    _hb_directwrite_font_release);
 }
 
 /**
 * hb_directwrite_face_get_font_face:
-* @face:
+* @face: a #hb_face_t object
 *
-* Since: REPLACEME
+* Return value: DirectWrite IDWriteFontFace object corresponding to the given input
+*
+* Since: 2.5.0
 **/
 IDWriteFontFace *
 hb_directwrite_face_get_font_face (hb_face_t *face)
 {
   return face->data.directwrite->fontFace;
 }
+
+
+#endif

@@ -453,16 +453,16 @@ struct MathGlyphPartRecord
   }
 
   void extract (hb_ot_math_glyph_part_t &out,
-		int scale,
+		int64_t mult,
 		hb_font_t *font) const
   {
     out.glyph			= glyph;
 
-    out.start_connector_length	= font->em_scale (startConnectorLength, scale);
-    out.end_connector_length	= font->em_scale (endConnectorLength, scale);
-    out.full_advance		= font->em_scale (fullAdvance, scale);
+    out.start_connector_length	= font->em_mult (startConnectorLength, mult);
+    out.end_connector_length	= font->em_mult (endConnectorLength, mult);
+    out.full_advance		= font->em_mult (fullAdvance, mult);
 
-    static_assert ((unsigned int) HB_MATH_GLYPH_PART_FLAG_EXTENDER ==
+    static_assert ((unsigned int) HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER ==
 		   (unsigned int) PartFlags::Extender, "");
 
     out.flags = (hb_ot_math_glyph_part_flags_t)
@@ -508,11 +508,11 @@ struct MathGlyphAssembly
   {
     if (parts_count)
     {
-      int scale = font->dir_scale (direction);
+      int64_t mult = font->dir_mult (direction);
       hb_array_t<const MathGlyphPartRecord> arr = partRecords.sub_array (start_offset, parts_count);
       unsigned int count = arr.length;
       for (unsigned int i = 0; i < count; i++)
-	arr[i].extract (parts[i], scale, font);
+	arr[i].extract (parts[i], mult, font);
     }
 
     if (italics_correction)
@@ -553,13 +553,13 @@ struct MathGlyphConstruction
   {
     if (variants_count)
     {
-      int scale = font->dir_scale (direction);
+      int64_t mult = font->dir_mult (direction);
       hb_array_t<const MathGlyphVariantRecord> arr = mathGlyphVariantRecord.sub_array (start_offset, variants_count);
       unsigned int count = arr.length;
       for (unsigned int i = 0; i < count; i++)
       {
 	variants[i].glyph = arr[i].variantGlyph;
-	variants[i].advance = font->em_scale (arr[i].advanceMeasurement, scale);
+	variants[i].advance = font->em_mult (arr[i].advanceMeasurement, mult);
       }
     }
     return mathGlyphVariantRecord.len;
@@ -664,7 +664,7 @@ struct MathVariants
   /* Array of offsets to MathGlyphConstruction tables - from the beginning of
      the MathVariants table, for shapes growing in vertical/horizontal
      direction. */
-  UnsizedArrayOf<OffsetTo<MathGlyphConstruction> >
+  UnsizedArrayOf<OffsetTo<MathGlyphConstruction>>
  			glyphConstruction;
 
   public:

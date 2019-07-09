@@ -51,6 +51,7 @@ struct NameRecord
 {
   hb_language_t language (hb_face_t *face) const
   {
+#ifndef HB_NO_OT_NAME_LANGUAGE
     unsigned int p = platformID;
     unsigned int l = languageID;
 
@@ -60,11 +61,12 @@ struct NameRecord
     if (p == 1)
       return _hb_ot_name_language_for_mac_code (l);
 
-#if !defined(HB_NO_NAME_TABLE_AAT)
+#ifndef HB_NO_OT_NAME_LANGUAGE_AAT
     if (p == 0)
-      return _hb_aat_language_get (face, l);
+      return face->table.ltag->get_language (l);
 #endif
 
+#endif
     return HB_LANGUAGE_INVALID;
   }
 
@@ -95,11 +97,21 @@ struct NameRecord
     return UNSUPPORTED;
   }
 
+  NameRecord* copy (hb_serialize_context_t *c,
+		    const void *src_base,
+		    const void *dst_base) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->embed (this);
+    if (unlikely (!out)) return_trace (nullptr);
+    out->offset.serialize_copy (c, offset, src_base, dst_base, length);
+    return_trace (out);
+  }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    /* We can check from base all the way up to the end of string... */
-    return_trace (c->check_struct (this) && c->check_range ((char *) base, (unsigned int) length + offset));
+    return_trace (c->check_struct (this) && offset.sanitize (c, base, length));
   }
 
   HBUINT16	platformID;	/* Platform ID. */
@@ -107,7 +119,8 @@ struct NameRecord
   HBUINT16	languageID;	/* Language ID. */
   HBUINT16	nameID;		/* Name ID. */
   HBUINT16	length;		/* String length (in bytes). */
-  HBUINT16	offset;		/* String offset from start of storage area (in bytes). */
+  NNOffsetTo<UnsizedArrayOf<HBUINT8>>
+		offset;		/* String offset from start of storage area (in bytes). */
   public:
   DEFINE_SIZE_STATIC (12);
 };
@@ -158,159 +171,58 @@ struct name
   unsigned int get_size () const
   { return min_size + count * nameRecordZ.item_size; }
 
-  void get_subsetted_ids (const name *source_name,
-                             const hb_subset_plan_t *plan,
-                             hb_vector_t<unsigned int>& name_record_idx_to_retain) const
-  {
-    for(unsigned int i = 0; i < count; i++)
-    {
-      if (format == 0 && (unsigned int) source_name->nameRecordZ[i].nameID > 25)
-        continue;
-      if (!hb_set_is_empty (plan->name_ids) &&
-          !hb_set_has (plan->name_ids, source_name->nameRecordZ[i].nameID))
-        continue;
-      name_record_idx_to_retain.push (i);
-    }
-  }
-
-  bool serialize_name_record (hb_serialize_context_t *c,
-                              const name *source_name,
-                              const hb_vector_t<unsigned int>& name_record_idx_to_retain)
-  {
-    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
-    {
-      unsigned int idx = name_record_idx_to_retain[i];
-      if (unlikely (idx >= source_name->count))
-      {
-        DEBUG_MSG (SUBSET, nullptr, "Invalid index: %d.", idx);
-        return false;
-      }
-
-      c->push<NameRecord> ();
-
-      NameRecord *p = c->embed<NameRecord> (source_name->nameRecordZ[idx]);
-      if (!p)
-        return false;
-      p->offset = 0;
-    }
-
-    return true;
-  }
-
-  bool serialize_strings (hb_serialize_context_t *c,
-                          const name *source_name,
-                          const hb_subset_plan_t *plan,
-                          const hb_vector_t<unsigned int>& name_record_idx_to_retain)
-  {
-    hb_face_t *face = plan->source;
-    accelerator_t acc;
-    acc.init (face);
-
-    for (unsigned int i = 0; i < name_record_idx_to_retain.length; i++)
-    {
-      unsigned int idx = name_record_idx_to_retain[i];
-      unsigned int size = acc.get_name (idx).get_size ();
-
-      c->push<char> ();
-      char *new_pos = c->allocate_size<char> (size);
-      
-      if (unlikely (new_pos == nullptr))
-      {
-        acc.fini ();
-        DEBUG_MSG (SUBSET, nullptr, "Couldn't allocate enough space for Name string: %u.",
-                   size);
-        return false;
-      }
-
-      const HBUINT8* source_string_pool = (source_name + source_name->stringOffset).arrayZ;
-      unsigned int name_record_offset = source_name->nameRecordZ[idx].offset;
-
-      memcpy (new_pos, source_string_pool + name_record_offset, size);
-    }
-
-    acc.fini ();
-    return true;
-  }
-
-  bool pack_record_and_strings (name *dest_name_unpacked,
-                                hb_serialize_context_t *c, 
-                                unsigned length)
-  {
-    hb_hashmap_t<unsigned, unsigned> id_str_idx_map;
-    for (int i = length-1; i >= 0; i--)
-    {
-      unsigned objidx = c->pop_pack ();
-      id_str_idx_map.set ((unsigned)i, objidx);
-    }
-
-    const void *base = & (dest_name_unpacked->nameRecordZ[length]); 
-    for (int i = length-1; i >= 0; i--)
-    {
-      unsigned str_idx = id_str_idx_map.get ((unsigned)i);
-      NameRecord& namerecord = dest_name_unpacked->nameRecordZ[i];
-      c->add_link<HBUINT16> (namerecord.offset, str_idx, base);
-      c->pop_pack ();
-    }
-
-    if (c->in_error ())
-      return false;
-
-    return true;
-  }
-
+  template <typename Iterator,
+	    hb_requires (hb_is_source_of (Iterator, const NameRecord &))>
   bool serialize (hb_serialize_context_t *c,
-                  const name *source_name,
-                  const hb_subset_plan_t *plan,
-                  const hb_vector_t<unsigned int>& name_record_idx_to_retain)
+		  Iterator it,
+		  const void *src_string_pool)
   {
     TRACE_SERIALIZE (this);
 
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
 
-    this->format = source_name->format;
-    this->count = name_record_idx_to_retain.length;
-    this->stringOffset = min_size + name_record_idx_to_retain.length * NameRecord::static_size;
+    this->format = 0;
+    this->count = it.len ();
 
+    auto snap = c->snapshot ();
+    this->nameRecordZ.serialize (c, this->count);
+    if (unlikely (!c->check_assign (this->stringOffset, c->length ()))) return_trace (false);
+    c->revert (snap);
 
-    if (!serialize_name_record (c, source_name, name_record_idx_to_retain))
-      return_trace (false);
+    const void *dst_string_pool = &(this + this->stringOffset);
 
-    if (!serialize_strings (c, source_name, plan, name_record_idx_to_retain))
-      return_trace (false);
+    + it
+    | hb_apply ([=] (const NameRecord& _) { c->copy (_, src_string_pool, dst_string_pool); })
+    ;
 
-    if (!pack_record_and_strings (this, c, name_record_idx_to_retain.length))
-      return_trace (false);
+    if (unlikely (c->ran_out_of_room)) return_trace (false);
+
+    assert (this->stringOffset == c->length ());
 
     return_trace (true);
   }
 
   bool subset (hb_subset_context_t *c) const
   {
-    hb_subset_plan_t *plan = c->plan;
-    hb_vector_t<unsigned int> name_record_idx_to_retain;
+    TRACE_SUBSET (this);
 
-    get_subsetted_ids (this, plan, name_record_idx_to_retain);
+    name *name_prime = c->serializer->start_embed<name> ();
+    if (unlikely (!name_prime)) return_trace (false);
 
-    hb_serialize_context_t *serializer = c->serializer;
-    name *name_prime = serializer->start_embed<name> ();
-    if (!name_prime || !name_prime->serialize (serializer, this, plan, name_record_idx_to_retain))
-    {
-      DEBUG_MSG (SUBSET, nullptr, "Failed to serialize write new name.");
-      return false;
-    }
-    
-    return true;
+    auto it =
+    + nameRecordZ.as_array (count)
+    | hb_filter (c->plan->name_ids, &NameRecord::nameID)
+    ;
+
+    name_prime->serialize (c->serializer, it, hb_addressof (this + stringOffset));
+    return_trace (name_prime->count);
   }
 
   bool sanitize_records (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     const void *string_pool = (this+stringOffset).arrayZ;
-    unsigned int _count = count;
-    /* Move to run-time?! */
-    for (unsigned int i = 0; i < _count; i++)
-      if (!nameRecordZ[i].sanitize (c, string_pool)) return_trace (false);
-    return_trace (true);
+    return_trace (nameRecordZ.sanitize (c, count, string_pool));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -319,7 +231,8 @@ struct name
     return_trace (c->check_struct (this) &&
 		  likely (format == 0 || format == 1) &&
 		  c->check_array (nameRecordZ.arrayZ, count) &&
-		  c->check_range (this, stringOffset));
+		  c->check_range (this, stringOffset) &&
+		  sanitize_records (c));
   }
 
   struct accelerator_t
@@ -409,7 +322,7 @@ struct name
   /* We only implement format 0 for now. */
   HBUINT16	format;			/* Format selector (=0/1). */
   HBUINT16	count;			/* Number of name records. */
-  NNOffsetTo<UnsizedArrayOf<HBUINT8> >
+  NNOffsetTo<UnsizedArrayOf<HBUINT8>>
 		stringOffset;		/* Offset to start of string storage (from start of table). */
   UnsizedArrayOf<NameRecord>
 		nameRecordZ;		/* The name records where count is the number of records. */

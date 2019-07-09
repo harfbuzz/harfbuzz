@@ -28,11 +28,9 @@
 #define HB_BIMAP_HH
 
 #include "hb.hh"
+#include "hb-map.hh"
 
-/* Bi-directional map.
- * new ids are assigned incrementally & contiguously to old ids
- * which may be added randomly & sparsely
- * all mappings are 1-to-1 in both directions */
+/* Bi-directional map */
 struct hb_bimap_t
 {
   hb_bimap_t () { init (); }
@@ -40,70 +38,106 @@ struct hb_bimap_t
 
   void init ()
   {
-    count = 0;
-    old_to_new.init ();
-    new_to_old.init ();
+    forw_map.init ();
+    back_map.init ();
   }
 
   void fini ()
   {
-    old_to_new.fini ();
-    new_to_old.fini ();
+    forw_map.fini ();
+    back_map.fini ();
   }
 
-  bool has (hb_codepoint_t _old) const { return old_to_new.has (_old); }
-
-  hb_codepoint_t add (hb_codepoint_t _old)
+  void reset ()
   {
-    hb_codepoint_t	_new = old_to_new[_old];
-    if (_new == HB_MAP_VALUE_INVALID)
-    {
-      _new = count++;
-      old_to_new.set (_old, _new);
-      new_to_old.resize (count);
-      new_to_old[_new] = _old;
-    }
-    return _new;
+    forw_map.reset ();
+    back_map.reset ();
   }
 
-  /* returns HB_MAP_VALUE_INVALID if unmapped */
-  hb_codepoint_t operator [] (hb_codepoint_t _old) const { return to_new (_old); }
-  hb_codepoint_t to_new (hb_codepoint_t _old) const { return old_to_new[_old]; }
-  hb_codepoint_t to_old (hb_codepoint_t _new) const { return (_new >= count)? HB_MAP_VALUE_INVALID: new_to_old[_new]; }
+  bool in_error () const { return forw_map.in_error () || back_map.in_error (); }
 
+  void set (hb_codepoint_t lhs, hb_codepoint_t rhs)
+  {
+    if (unlikely (lhs == HB_MAP_VALUE_INVALID)) return;
+    if (unlikely (rhs == HB_MAP_VALUE_INVALID)) { del (lhs); return; }
+    forw_map.set (lhs, rhs);
+    back_map.set (rhs, lhs);
+  }
+
+  hb_codepoint_t get (hb_codepoint_t lhs) const { return forw_map.get (lhs); }
+  hb_codepoint_t backward (hb_codepoint_t rhs) const { return back_map.get (rhs); }
+
+  hb_codepoint_t operator [] (hb_codepoint_t lhs) const { return get (lhs); }
+  bool has (hb_codepoint_t lhs, hb_codepoint_t *vp = nullptr) const { return forw_map.has (lhs, vp); }
+
+  void del (hb_codepoint_t lhs)
+  {
+    back_map.del (get (lhs));
+    forw_map.del (lhs);
+  }
+
+  void clear ()
+  {
+    forw_map.clear ();
+    back_map.clear ();
+  }
+
+  bool is_empty () const { return get_population () == 0; }
+
+  unsigned int get_population () const { return forw_map.get_population (); }
+
+  protected:
+  hb_map_t  forw_map;
+  hb_map_t  back_map;
+};
+
+/* Inremental bimap: only lhs is given, rhs is incrementally assigned */
+struct hb_inc_bimap_t : hb_bimap_t
+{
+  /* Add a mapping from lhs to rhs with a unique value if lhs is unknown.
+   * Return the rhs value as the result.
+   */
+  hb_codepoint_t add (hb_codepoint_t lhs)
+  {
+    hb_codepoint_t  rhs = forw_map[lhs];
+    if (rhs == HB_MAP_VALUE_INVALID)
+    {
+      rhs = get_population ();
+      set (lhs, rhs);
+    }
+    return rhs;
+  }
+
+  /* Create an identity map. */
   bool identity (unsigned int size)
   {
-    hb_codepoint_t i;
-    old_to_new.clear ();
-    new_to_old.resize (size);
-    for (i = 0; i < size; i++)
-    {
-      old_to_new.set (i, i);
-      new_to_old[i] = i;
-    }
-    count = i;
-    return old_to_new.successful && !new_to_old.in_error ();
+    clear ();
+    for (hb_codepoint_t i = 0; i < size; i++) set (i, i);
+    return !in_error ();
   }
 
+  protected:
   static int cmp_id (const void* a, const void* b)
   { return (int)*(const hb_codepoint_t *)a - (int)*(const hb_codepoint_t *)b; }
 
+  public:
   /* Optional: after finished adding all mappings in a random order,
-   * reassign new ids to old ids so that both are in the same order. */
-  void reorder ()
+   * reassign rhs to lhs so that they are in the same order. */
+  void sort ()
   {
-    new_to_old.qsort (cmp_id);
-    for (hb_codepoint_t _new = 0; _new < count; _new++)
-      old_to_new.set (to_old (_new), _new);
+    hb_codepoint_t  count = get_population ();
+    hb_vector_t <hb_codepoint_t> work;
+    work.resize (count);
+
+    for (hb_codepoint_t rhs = 0; rhs < count; rhs++)
+      work[rhs] = back_map[rhs];
+
+    work.qsort (cmp_id);
+
+    clear ();
+    for (hb_codepoint_t rhs = 0; rhs < count; rhs++)
+      set (work[rhs], rhs);
   }
-
-  unsigned int get_count () const { return count; }
-
-  protected:
-  unsigned int  count;
-  hb_map_t	old_to_new;
-  hb_vector_t<hb_codepoint_t>
-  		new_to_old;
 };
 
 #endif /* HB_BIMAP_HH */

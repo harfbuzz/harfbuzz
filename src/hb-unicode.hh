@@ -42,19 +42,19 @@ extern HB_INTERNAL const uint8_t _hb_modified_combining_class[256];
 
 #define HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS \
   HB_UNICODE_FUNC_IMPLEMENT (combining_class) \
-  HB_UNICODE_FUNC_IMPLEMENT (eastasian_width) \
+  HB_IF_NOT_DEPRECATED (HB_UNICODE_FUNC_IMPLEMENT (eastasian_width)) \
   HB_UNICODE_FUNC_IMPLEMENT (general_category) \
   HB_UNICODE_FUNC_IMPLEMENT (mirroring) \
   HB_UNICODE_FUNC_IMPLEMENT (script) \
   HB_UNICODE_FUNC_IMPLEMENT (compose) \
   HB_UNICODE_FUNC_IMPLEMENT (decompose) \
-  HB_UNICODE_FUNC_IMPLEMENT (decompose_compatibility) \
+  HB_IF_NOT_DEPRECATED (HB_UNICODE_FUNC_IMPLEMENT (decompose_compatibility)) \
   /* ^--- Add new callbacks here */
 
 /* Simple callbacks are those taking a hb_codepoint_t and returning a hb_codepoint_t */
 #define HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE \
   HB_UNICODE_FUNC_IMPLEMENT (hb_unicode_combining_class_t, combining_class) \
-  HB_UNICODE_FUNC_IMPLEMENT (unsigned int, eastasian_width) \
+  HB_IF_NOT_DEPRECATED (HB_UNICODE_FUNC_IMPLEMENT (unsigned int, eastasian_width)) \
   HB_UNICODE_FUNC_IMPLEMENT (hb_unicode_general_category_t, general_category) \
   HB_UNICODE_FUNC_IMPLEMENT (hb_codepoint_t, mirroring) \
   HB_UNICODE_FUNC_IMPLEMENT (hb_script_t, script) \
@@ -89,7 +89,11 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
   unsigned int decompose_compatibility (hb_codepoint_t  u,
 					hb_codepoint_t *decomposed)
   {
+#ifdef HB_DISABLE_DEPRECATED
+    unsigned int ret  = 0;
+#else
     unsigned int ret = func.decompose_compatibility (this, u, decomposed, user_data.decompose_compatibility);
+#endif
     if (ret == 1 && u == decomposed[0]) {
       decomposed[0] = 0;
       return 0;
@@ -322,11 +326,11 @@ DECLARE_NULL_INSTANCE (hb_unicode_funcs_t);
  *
  * Modify Telugu length marks (ccc=84, ccc=91).
  * These are the only matras in the main Indic scripts range that have
- * a non-zero ccc.  That makes them reorder with the Halant that is
- * ccc=9.  Just zero them, we don't need them in our Indic shaper.
+ * a non-zero ccc.  That makes them reorder with the Halant (ccc=9).
+ * Assign 5 and 6, which are otherwise unassigned.
  */
-#define HB_MODIFIED_COMBINING_CLASS_CCC84 0 /* length mark */
-#define HB_MODIFIED_COMBINING_CLASS_CCC91 0 /* ai length mark */
+#define HB_MODIFIED_COMBINING_CLASS_CCC84 5 /* length mark */
+#define HB_MODIFIED_COMBINING_CLASS_CCC91 6 /* ai length mark */
 
 /* Thai
  *
@@ -389,6 +393,9 @@ struct hb_unicode_range_t
 
 HB_INTERNAL bool
 _hb_unicode_is_emoji_Extended_Pictographic (hb_codepoint_t cp);
+
+
+extern "C" HB_INTERNAL hb_unicode_funcs_t *hb_ucd_get_unicode_funcs ();
 
 
 #endif /* HB_UNICODE_HH */

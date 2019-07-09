@@ -24,12 +24,16 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_OT_FONT_CFF
+
 #include "hb-ot-cff2-table.hh"
 #include "hb-cff2-interp-cs.hh"
 
 using namespace CFF;
 
-struct extents_param_t
+struct cff2_extents_param_t
 {
   void init ()
   {
@@ -59,15 +63,15 @@ struct extents_param_t
   number_t max_y;
 };
 
-struct cff2_path_procs_extents_t : path_procs_t<cff2_path_procs_extents_t, cff2_cs_interp_env_t, extents_param_t>
+struct cff2_path_procs_extents_t : path_procs_t<cff2_path_procs_extents_t, cff2_cs_interp_env_t, cff2_extents_param_t>
 {
-  static void moveto (cff2_cs_interp_env_t &env, extents_param_t& param, const point_t &pt)
+  static void moveto (cff2_cs_interp_env_t &env, cff2_extents_param_t& param, const point_t &pt)
   {
     param.end_path ();
     env.moveto (pt);
   }
 
-  static void line (cff2_cs_interp_env_t &env, extents_param_t& param, const point_t &pt1)
+  static void line (cff2_cs_interp_env_t &env, cff2_extents_param_t& param, const point_t &pt1)
   {
     if (!param.is_path_open ())
     {
@@ -78,7 +82,7 @@ struct cff2_path_procs_extents_t : path_procs_t<cff2_path_procs_extents_t, cff2_
     param.update_bounds (env.get_pt ());
   }
 
-  static void curve (cff2_cs_interp_env_t &env, extents_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
+  static void curve (cff2_cs_interp_env_t &env, cff2_extents_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
   {
     if (!param.is_path_open ())
     {
@@ -93,21 +97,26 @@ struct cff2_path_procs_extents_t : path_procs_t<cff2_path_procs_extents_t, cff2_
   }
 };
 
-struct cff2_cs_opset_extents_t : cff2_cs_opset_t<cff2_cs_opset_extents_t, extents_param_t, cff2_path_procs_extents_t> {};
+struct cff2_cs_opset_extents_t : cff2_cs_opset_t<cff2_cs_opset_extents_t, cff2_extents_param_t, cff2_path_procs_extents_t> {};
 
 bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 					   hb_codepoint_t glyph,
 					   hb_glyph_extents_t *extents) const
 {
+#ifdef HB_NO_OT_FONT_CFF
+  /* XXX Remove check when this code moves to .hh file. */
+  return true;
+#endif
+
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 
   unsigned int num_coords;
   const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
   unsigned int fd = fdSelect->get_fd (glyph);
-  cff2_cs_interpreter_t<cff2_cs_opset_extents_t, extents_param_t> interp;
+  cff2_cs_interpreter_t<cff2_cs_opset_extents_t, cff2_extents_param_t> interp;
   const byte_str_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd, coords, num_coords);
-  extents_param_t  param;
+  cff2_extents_param_t  param;
   param.init ();
   if (unlikely (!interp.interpret (param))) return false;
 
@@ -134,3 +143,6 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
   return true;
 }
+
+
+#endif

@@ -173,6 +173,16 @@ static inline void hb_test_assert_blobs_equal (hb_blob_t *expected_blob, hb_blob
   const char *raw_expected = hb_blob_get_data (expected_blob, &expected_length);
   const char *raw_actual = hb_blob_get_data (actual_blob, &actual_length);
   g_assert_cmpint(expected_length, ==, actual_length);
+  if (memcmp (raw_expected, raw_actual, expected_length) != 0)
+  {
+    for (unsigned int i = 0; i < expected_length; i++)
+    {
+      int expected = *(raw_expected + i);
+      int actual = *(raw_actual + i);
+      if (expected != actual) fprintf(stderr, "+%u %02x != %02x\n", i, expected, actual);
+      else fprintf(stderr, "+%u %02x\n", i, expected);
+    }
+  }
   g_assert_cmpint(0, ==, memcmp(raw_expected, raw_actual, expected_length));
 }
 

@@ -25,11 +25,22 @@
  */
 
 #include "hb.hh"
+
+#ifdef HAVE_UNISCRIBE
+
+#ifdef HB_NO_OT_TAG
+#error "Cannot compile 'uniscribe' shaper with HB_NO_OT_TAG."
+#endif
+
 #include "hb-shaper-impl.hh"
 
 #include <windows.h>
 #include <usp10.h>
 #include <rpc.h>
+
+#ifndef E_NOT_SUFFICIENT_BUFFER
+#define E_NOT_SUFFICIENT_BUFFER HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER)
+#endif
 
 #include "hb-uniscribe.h"
 
@@ -698,7 +709,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
       {
         active_feature_t *feature = active_features.find (&event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ ());
+	  active_features.remove (feature - active_features.arrayZ);
       }
     }
 
@@ -717,7 +728,7 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
   HB_STMT_START { \
     DEBUG_MSG (UNISCRIBE, nullptr, __VA_ARGS__); \
     return false; \
-  } HB_STMT_END;
+  } HB_STMT_END
 
   HRESULT hr;
 
@@ -728,12 +739,12 @@ retry:
 
 #define ALLOCATE_ARRAY(Type, name, len) \
   Type *name = (Type *) scratch; \
-  { \
+  do { \
     unsigned int _consumed = DIV_CEIL ((len) * sizeof (Type), sizeof (*scratch)); \
     assert (_consumed <= scratch_size); \
     scratch += _consumed; \
     scratch_size -= _consumed; \
-  }
+  } while (0)
 
 #define utf16_index() var1.u32
 
@@ -889,8 +900,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ (),
-				     range_properties.arrayZ (),
+				     range_char_counts.arrayZ,
+				     range_properties.arrayZ,
 				     range_properties.length,
 				     pchars + chars_offset,
 				     item_chars_len,
@@ -930,8 +941,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ (),
-				     range_properties.arrayZ (),
+				     range_char_counts.arrayZ,
+				     range_properties.arrayZ,
 				     range_properties.length,
 				     pchars + chars_offset,
 				     log_clusters + chars_offset,
@@ -967,7 +978,7 @@ retry:
     vis_clusters[i] = (uint32_t) -1;
   for (unsigned int i = 0; i < buffer->len; i++) {
     uint32_t *p = &vis_clusters[log_clusters[buffer->info[i].utf16_index()]];
-    *p = MIN (*p, buffer->info[i].cluster);
+    *p = hb_min (*p, buffer->info[i].cluster);
   }
   for (unsigned int i = 1; i < glyphs_len; i++)
     if (vis_clusters[i] == (uint32_t) -1)
@@ -1019,3 +1030,4 @@ retry:
 }
 
 
+#endif

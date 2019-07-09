@@ -24,9 +24,14 @@
  * Adobe Author(s): Michiharu Ariza
  */
 
+#include "hb.hh"
+
+#ifndef HB_NO_SUBSET_CFF
+
 #include "hb-open-type.hh"
 #include "hb-ot-cff1-table.hh"
 #include "hb-set.h"
+#include "hb-bimap.hh"
 #include "hb-subset-cff1.hh"
 #include "hb-subset-plan.hh"
 #include "hb-subset-cff-common.hh"
@@ -34,12 +39,12 @@
 
 using namespace CFF;
 
-struct remap_sid_t : hb_bimap_t
+struct remap_sid_t : hb_inc_bimap_t
 {
   unsigned int add (unsigned int sid)
   {
     if ((sid != CFF_UNDEF_SID) && !is_std_std (sid))
-      return offset_sid (hb_bimap_t::add (unoffset_sid (sid)));
+      return offset_sid (hb_inc_bimap_t::add (unoffset_sid (sid)));
     else
       return sid;
   }
@@ -49,7 +54,7 @@ struct remap_sid_t : hb_bimap_t
     if (is_std_std (sid) || (sid == CFF_UNDEF_SID))
       return sid;
     else
-      return offset_sid (hb_bimap_t::operator [] (unoffset_sid (sid)));
+      return offset_sid (get (unoffset_sid (sid)));
   }
 
   static const unsigned int num_std_strings = 391;
@@ -351,7 +356,7 @@ struct cff1_cs_opset_subr_subset_t : cff1_cs_opset_t<cff1_cs_opset_subr_subset_t
       case OpCode_return:
 	param.current_parsed_str->add_op (op, env.str_ref);
 	param.current_parsed_str->set_parsed ();
-	env.returnFromSubr ();
+	env.return_from_subr ();
 	param.set_current_str (env, false);
 	break;
 
@@ -382,7 +387,7 @@ struct cff1_cs_opset_subr_subset_t : cff1_cs_opset_t<cff1_cs_opset_subr_subset_t
 				 cff1_biased_subrs_t& subrs, hb_set_t *closure)
   {
     byte_str_ref_t    str_ref = env.str_ref;
-    env.callSubr (subrs, type);
+    env.call_subr (subrs, type);
     param.current_parsed_str->add_call_op (op, str_ref, env.context.subr_num);
     hb_set_add (closure, env.context.subr_num);
     param.set_current_str (env, true);
@@ -394,8 +399,8 @@ struct cff1_cs_opset_subr_subset_t : cff1_cs_opset_t<cff1_cs_opset_subr_subset_t
 
 struct cff1_subr_subsetter_t : subr_subsetter_t<cff1_subr_subsetter_t, CFF1Subrs, const OT::cff1::accelerator_subset_t, cff1_cs_interp_env_t, cff1_cs_opset_subr_subset_t, OpCode_endchar>
 {
-  cff1_subr_subsetter_t (const OT::cff1::accelerator_subset_t &acc, const hb_subset_plan_t *plan)
-    : subr_subsetter_t (acc, plan) {}
+  cff1_subr_subsetter_t (const OT::cff1::accelerator_subset_t &acc_, const hb_subset_plan_t *plan_)
+    : subr_subsetter_t (acc_, plan_) {}
 
   static void complete_parsed_str (cff1_cs_interp_env_t &env, subr_subset_param_t& param, parsed_cs_str_t &charstring)
   {
@@ -577,6 +582,8 @@ struct cff_subset_plan {
 
   bool collect_sids_in_dicts (const OT::cff1::accelerator_subset_t &acc)
   {
+    sidmap.reset ();
+
     for (unsigned int i = 0; i < name_dict_values_t::ValCount; i++)
     {
       unsigned int sid = acc.topDict.nameSIDs[i];
@@ -675,7 +682,7 @@ struct cff_subset_plan {
       /* SIDs for name strings in dicts are added before glyph names so they fit in 16-bit int range */
       if (unlikely (!collect_sids_in_dicts (acc)))
 	return false;
-      if (unlikely (sidmap.get_count () > 0x8000))	/* assumption: a dict won't reference that many strings */
+      if (unlikely (sidmap.get_population () > 0x8000))	/* assumption: a dict won't reference that many strings */
       	return false;
       if (subset_charset)
 	offsets.charsetInfo.size = plan_subset_charset (acc, plan);
@@ -850,7 +857,7 @@ struct cff_subset_plan {
 
   /* font dict index remap table from fullset FDArray to subset FDArray.
    * set to CFF_UNDEF_CODE if excluded from subset */
-  hb_bimap_t   fdmap;
+  hb_inc_bimap_t   fdmap;
 
   str_buff_vec_t		subset_charstrings;
   str_buff_vec_t		subset_globalsubrs;
@@ -909,7 +916,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   /* top dict INDEX */
   {
     assert (plan.offsets.topDictInfo.offset == (unsigned) (c.head - c.start));
-    CFF1IndexOf<TopDict> *dest = c.start_embed< CFF1IndexOf<TopDict> > ();
+    CFF1IndexOf<TopDict> *dest = c.start_embed< CFF1IndexOf<TopDict>> ();
     if (dest == nullptr) return false;
     cff1_top_dict_op_serializer_t topSzr;
     top_dict_modifiers_t  modifier (plan.offsets, plan.topDictModSIDs);
@@ -1035,7 +1042,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
       bool result;
       cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
       /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
-      unsigned int  subroffset = (plan.offsets.localSubrsInfos[i].size > 0)? priv_size: 0;
+      unsigned int subroffset = (plan.offsets.localSubrsInfos[i].size > 0) ? priv_size : 0;
       result = pd->serialize (&c, acc.privateDicts[i], privSzr, subroffset);
       if (unlikely (!result))
       {
@@ -1061,7 +1068,7 @@ static inline bool _write_cff1 (const cff_subset_plan &plan,
   return true;
 }
 
-static bool
+static inline bool
 _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
 		const char		*data,
 		hb_subset_plan_t	*plan,
@@ -1115,3 +1122,6 @@ hb_subset_cff1 (hb_subset_plan_t *plan,
 
   return result;
 }
+
+
+#endif

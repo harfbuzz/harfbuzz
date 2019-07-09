@@ -246,7 +246,7 @@
 	  <listitem>
 	    <para>
 	     Use <ulink url="https://developer.gnome.org/glib/">GLib</ulink>. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the GLib
 	      library.  The default setting is to check for the
@@ -297,7 +297,7 @@
 	  <listitem>
 	    <para>
 	      Use <ulink url="https://www.freedesktop.org/wiki/Software/fontconfig/">Fontconfig</ulink>. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the Fontconfig
 	      library, which provides font-matching functions and
@@ -317,7 +317,7 @@
 	  <listitem>
 	    <para>
 	      Use the <ulink url="http://site.icu-project.org/home">ICU</ulink> library. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the
 	      <emphasis>International Components for
@@ -331,29 +331,11 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term><command>--with-ucdn</command></term>
-	  <listitem>
-	    <para>
-	      Use HarfBuzz's <ulink url="https://github.com/harfbuzz/harfbuzz/tree/master/src/hb-ucdn">built-in UCDN library</ulink>. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
-	    <para>
-	      The HarfBuzz source tree includes a <emphasis>Unicode
-	      Database and Normalization</emphasis> (UCDN) library
-	      that provides access to basic character properties in
-	      the Unicode Character Database (UCD) as well as low-level
-	      normalization functions. HarfBuzz can be built without
-	      this UCDN support if the usage of a different UCDN
-	      library is desired.
-	    </para>
-	  </listitem>
-	</varlistentry>
-	
-	<varlistentry>
 	  <term><command>--with-graphite2</command></term>
 	  <listitem>
 	    <para>
 	      Use the <ulink url="http://graphite.sil.org/">Graphite2</ulink> library. <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the Graphite2
 	      library, which provides support for the Graphite shaping
@@ -367,7 +349,7 @@
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://www.freetype.org/">FreeType</ulink> library. <emphasis>(Default = auto)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the FreeType
 	      font-rendering library. The default setting is to check for the
@@ -384,7 +366,7 @@
 	      Use the <ulink
 	      url="https://docs.microsoft.com/en-us/windows/desktop/intl/uniscribe">Uniscribe</ulink>
 	      library (experimental). <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the Uniscribe
 	      font-rendering library. Uniscribe is available on
@@ -400,7 +382,7 @@
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://docs.microsoft.com/en-us/windows/desktop/directwrite/direct-write-portal">DirectWrite</ulink> library (experimental). <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the DirectWrite
 	      font-rendering library. DirectWrite is available on
@@ -416,7 +398,7 @@
 	  <listitem>
 	    <para>
 	      Use the <ulink url="https://developer.apple.com/documentation/coretext">CoreText</ulink> library. <emphasis>(Default = no)</emphasis>
-	    </para>	    
+	    </para>
 	    <para>
 	      This option enables or disables usage of the CoreText
 	      library. CoreText is available on macOS and iOS systems.

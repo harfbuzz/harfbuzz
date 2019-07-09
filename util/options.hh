@@ -28,6 +28,7 @@
 #define OPTIONS_HH
 
 #include "hb.hh"
+#include "hb-subset.h"
 
 #include <stdlib.h>
 #include <stddef.h>
@@ -128,13 +129,13 @@ struct view_options_t : option_group_t
 
     add_options (parser);
   }
-  virtual ~view_options_t ()
+  ~view_options_t () override
   {
     g_free (fore);
     g_free (back);
   }
 
-  void add_options (option_parser_t *parser);
+  void add_options (option_parser_t *parser) override;
 
   hb_bool_t annotate;
   char *fore;
@@ -164,7 +165,7 @@ struct shape_options_t : option_group_t
 
     add_options (parser);
   }
-  virtual ~shape_options_t ()
+  ~shape_options_t () override
   {
     g_free (direction);
     g_free (language);
@@ -173,7 +174,7 @@ struct shape_options_t : option_group_t
     g_strfreev (shapers);
   }
 
-  void add_options (option_parser_t *parser);
+  void add_options (option_parser_t *parser) override;
 
   void setup_buffer (hb_buffer_t *buffer)
   {
@@ -470,7 +471,7 @@ struct font_options_t : option_group_t
 
     add_options (parser);
   }
-  virtual ~font_options_t ()
+  ~font_options_t () override
   {
     g_free (font_file);
     free (variations);
@@ -478,7 +479,7 @@ struct font_options_t : option_group_t
     hb_font_destroy (font);
   }
 
-  void add_options (option_parser_t *parser);
+  void add_options (option_parser_t *parser) override;
 
   hb_font_t *get_font () const;
 
@@ -520,7 +521,7 @@ struct text_options_t : option_group_t
 
     add_options (parser);
   }
-  virtual ~text_options_t ()
+  ~text_options_t () override
   {
     g_free (text_before);
     g_free (text_after);
@@ -532,9 +533,9 @@ struct text_options_t : option_group_t
       fclose (fp);
   }
 
-  void add_options (option_parser_t *parser);
+  void add_options (option_parser_t *parser) override;
 
-  void post_parse (GError **error G_GNUC_UNUSED) {
+  void post_parse (GError **error G_GNUC_UNUSED) override {
     if (text && text_file)
       g_set_error (error,
 		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -571,7 +572,7 @@ struct output_options_t : option_group_t
 
     add_options (parser);
   }
-  virtual ~output_options_t ()
+  ~output_options_t () override
   {
     g_free (output_file);
     g_free (output_format);
@@ -579,9 +580,9 @@ struct output_options_t : option_group_t
       fclose (fp);
   }
 
-  void add_options (option_parser_t *parser);
+  void add_options (option_parser_t *parser) override;
 
-  void post_parse (GError **error G_GNUC_UNUSED)
+  void post_parse (GError **error G_GNUC_UNUSED) override
   {
     if (output_format)
       explicit_output_format = true;
@@ -626,7 +627,7 @@ struct format_options_t : option_group_t
     add_options (parser);
   }
 
-  void add_options (option_parser_t *parser);
+  void add_options (option_parser_t *parser) override;
 
   void serialize_unicode (hb_buffer_t  *buffer,
 			  GString      *gs);
@@ -673,28 +674,18 @@ struct subset_options_t : option_group_t
 {
   subset_options_t (option_parser_t *parser)
   {
-    keep_layout = false;
-    drop_hints = false;
-    retain_gids = false;
-    desubroutinize = false;
-    name_ids = hb_set_create ();
-
+    input = hb_subset_input_create_or_fail ();
     add_options (parser);
   }
 
-  virtual ~subset_options_t ()
+  ~subset_options_t () override
   {
-    hb_set_destroy (name_ids);
+    hb_subset_input_destroy (input);
   }
 
+  void add_options (option_parser_t *parser) override;
 
-  void add_options (option_parser_t *parser);
-
-  hb_bool_t keep_layout;
-  hb_bool_t drop_hints;
-  hb_bool_t retain_gids;
-  hb_bool_t desubroutinize;
-  hb_set_t *name_ids;
+  hb_subset_input_t *input;
 };
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */

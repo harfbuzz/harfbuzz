@@ -63,7 +63,7 @@ extern HB_INTERNAL hb_atomic_int_t _hb_options;
 static inline hb_options_t
 hb_options ()
 {
-#if defined(HB_NO_OPTIONS)
+#ifdef HB_NO_GETENV
   return hb_options_t ();
 #endif
   /* Make a local copy, so we can access bitfield threadsafely. */
@@ -161,7 +161,7 @@ _hb_debug_msg_va (const char *what,
       VBAR VBAR VBAR VBAR VBAR VBAR VBAR VBAR VBAR VBAR;
     fprintf (stderr, "%2u %s" VRBAR "%s",
 	     level,
-	     bars + sizeof (bars) - 1 - MIN ((unsigned int) sizeof (bars) - 1, (unsigned int) (sizeof (VBAR) - 1) * level),
+	     bars + sizeof (bars) - 1 - hb_min ((unsigned int) sizeof (bars) - 1, (unsigned int) (sizeof (VBAR) - 1) * level),
 	     level_dir ? (level_dir > 0 ? DLBAR : ULBAR) : LBAR);
   } else
     fprintf (stderr, "   " VRBAR LBAR);
@@ -249,8 +249,8 @@ struct hb_printer_t<bool> {
 };
 
 template <>
-struct hb_printer_t<hb_void_t> {
-  const char *print (hb_void_t) { return ""; }
+struct hb_printer_t<hb_empty_t> {
+  const char *print (hb_empty_t) { return ""; }
 };
 
 
@@ -266,7 +266,7 @@ static inline void _hb_warn_no_return (bool returned)
   }
 }
 template <>
-/*static*/ inline void _hb_warn_no_return<hb_void_t> (bool returned HB_UNUSED)
+/*static*/ inline void _hb_warn_no_return<hb_empty_t> (bool returned HB_UNUSED)
 {}
 
 template <int max_level, typename ret_t>
@@ -330,18 +330,20 @@ struct hb_auto_trace_t<0, ret_t>
 				   const char *message,
 				   ...) HB_PRINTF_FUNC(6, 7) {}
 
-  ret_t ret (ret_t v,
-	     const char *func HB_UNUSED = nullptr,
-	     unsigned int line HB_UNUSED = 0) { return v; }
+  template <typename T>
+  T ret (T&& v,
+	 const char *func HB_UNUSED = nullptr,
+	 unsigned int line HB_UNUSED = 0) { return hb_forward<T> (v); }
 };
 
 /* For disabled tracing; optimize out everything.
  * https://github.com/harfbuzz/harfbuzz/pull/605 */
 template <typename ret_t>
 struct hb_no_trace_t {
-  ret_t ret (ret_t v,
-	     const char *func HB_UNUSED = "",
-	     unsigned int line HB_UNUSED = 0) { return v; }
+  template <typename T>
+  T ret (T&& v,
+	 const char *func HB_UNUSED = nullptr,
+	 unsigned int line HB_UNUSED = 0) { return hb_forward<T> (v); }
 };
 
 #define return_trace(RET) return trace.ret (RET, HB_FUNC, __LINE__)

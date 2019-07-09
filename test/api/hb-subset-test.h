@@ -70,7 +70,7 @@ hb_subset_test_create_input_from_nameids (const hb_set_t *name_ids)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t * input_name_ids  = hb_subset_input_nameid_set (input);
-  hb_set_union (input_name_ids, name_ids);
+  hb_set_set (input_name_ids, name_ids);
   return input;
 }
 
@@ -91,9 +91,9 @@ hb_subset_test_check (hb_face_t *expected,
                       hb_tag_t   table)
 {
   hb_blob_t *expected_blob, *actual_blob;
-  //fprintf(stderr, "comparing %c%c%c%c ", HB_UNTAG(table));
   expected_blob = hb_face_reference_table (expected, table);
   actual_blob = hb_face_reference_table (actual, table);
+  fprintf(stderr, "comparing %c%c%c%c, expected %d bytes, actual %d bytes\n", HB_UNTAG(table), hb_blob_get_length(expected_blob), hb_blob_get_length (actual_blob));
   hb_test_assert_blobs_equal (expected_blob, actual_blob);
   hb_blob_destroy (expected_blob);
   hb_blob_destroy (actual_blob);
