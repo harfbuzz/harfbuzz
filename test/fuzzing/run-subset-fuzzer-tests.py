@@ -33,7 +33,7 @@ def cmd(command):
 		def timeout(p, is_killed):
 			is_killed['value'] = True
 			p.kill()
-		timer = threading.Timer (5, timeout, [p, is_killed])
+		timer = threading.Timer (6, timeout, [p, is_killed])
 
 		try:
 			timer.start()
