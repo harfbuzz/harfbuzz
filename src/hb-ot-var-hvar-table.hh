@@ -290,7 +290,10 @@ struct hvarvvar_subset_plan_t
     if (retain_adv_map)
     {
       for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
-      	inner_maps[0].add (hb_set_has (inner_sets[0], gid)? gid: HB_MAP_VALUE_INVALID);
+      	if (hb_set_has (inner_sets[0], gid))
+	  inner_maps[0].add (gid);
+	else
+	  inner_maps[0].skip ();
     }
     else
     {
