@@ -1786,13 +1786,13 @@ struct VarData
 
   bool serialize (hb_serialize_context_t *c,
 		  const VarData *src,
-		  const hb_bimap_t &inner_map,
+		  const hb_inc_bimap_t &inner_map,
 		  const hb_bimap_t &region_map)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    itemCount = inner_map.get_population ();
-    
+    itemCount = inner_map.get_next_value ();
+
     /* Optimize short count */
     unsigned short ri_count = src->regionIndices.len;
     enum delta_size_t { kZero=0, kByte, kShort };
@@ -1805,7 +1805,7 @@ struct VarData
     for (r = 0; r < ri_count; r++)
     {
       delta_sz[r] = kZero;
-      for (unsigned int i = 0; i < inner_map.get_population (); i++)
+      for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
       {
 	unsigned int old = inner_map.backward (i);
 	int16_t delta = src->get_item_delta (old, r);
@@ -1849,13 +1849,13 @@ struct VarData
     return_trace (true);
   }
 
-  void collect_region_refs (hb_inc_bimap_t &region_map, const hb_bimap_t &inner_map) const
+  void collect_region_refs (hb_inc_bimap_t &region_map, const hb_inc_bimap_t &inner_map) const
   {
     for (unsigned int r = 0; r < regionIndices.len; r++)
     {
       unsigned int region = regionIndices[r];
       if (region_map.has (region)) continue;
-      for (unsigned int i = 0; i < inner_map.get_population (); i++)
+      for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
 	if (get_item_delta (inner_map.backward (i), r) != 0)
 	{
 	  region_map.add (region);
@@ -1939,7 +1939,7 @@ struct VariationStore
 
   bool serialize (hb_serialize_context_t *c,
 		  const VariationStore *src,
-  		  const hb_array_t <hb_bimap_t> &inner_maps)
+  		  const hb_array_t <hb_inc_bimap_t> &inner_maps)
   {
     TRACE_SERIALIZE (this);
     unsigned int set_count = 0;
