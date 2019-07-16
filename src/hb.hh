@@ -476,6 +476,11 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 /* Size signifying variable-sized array */
 #define VAR 1
 
+/* Endian swap, used in Windows related backends */
+static inline uint16_t hb_uint16_swap (const uint16_t v)
+{ return (v >> 8) | (v << 8); }
+static inline uint32_t hb_uint32_swap (const uint32_t v)
+{ return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
 /*
  * Big-endian integers.  Here because fundamental.

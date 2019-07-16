@@ -539,11 +539,6 @@ protected:
   Run  mRunHead;
 };
 
-static inline uint16_t hb_dw_uint16_swap (const uint16_t v)
-{ return (v >> 8) | (v << 8); }
-static inline uint32_t hb_dw_uint32_swap (const uint32_t v)
-{ return (hb_dw_uint16_swap (v) << 16) | hb_dw_uint16_swap (v >> 16); }
-
 /*
  * shaper
  */
@@ -653,7 +648,7 @@ _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
     for (unsigned int i = 0; i < num_features; ++i)
     {
       typographic_features.features[i].nameTag = (DWRITE_FONT_FEATURE_TAG)
-						 hb_dw_uint32_swap (features[i].tag);
+						 hb_uint32_swap (features[i].tag);
       typographic_features.features[i].parameter = features[i].value;
     }
   }
@@ -941,7 +936,7 @@ _hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *
   uint32_t length;
   void *table_context;
   BOOL exists;
-  if (!dw_face || FAILED (dw_face->TryGetFontTable (hb_dw_uint32_swap (tag), &data,
+  if (!dw_face || FAILED (dw_face->TryGetFontTable (hb_uint32_swap (tag), &data,
 						    &length, &table_context, &exists)))
     return nullptr;
 

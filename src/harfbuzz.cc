@@ -47,5 +47,6 @@
 #include "hb-ft.cc"
 #include "hb-graphite2.cc"
 #include "hb-uniscribe.cc"
+#include "hb-gdi.cc"
 #include "hb-directwrite.cc"
 #include "hb-coretext.cc"
