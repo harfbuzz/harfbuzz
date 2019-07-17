@@ -275,13 +275,13 @@ jobs:
       - run: cmake -Bbuild -H. -GNinja -DCMAKE_CXX_FLAGS="-DHB_TINY" -DHB_BUILD_TESTS=OFF
       - run: ninja -Cbuild
 
-  #crosscompile-cmake-notest-linux-arm64:
-  #  docker:
-  #    - image: dockcross/linux-arm64
-  #  steps:
-  #    - checkout
-  #    - run: cmake -Bbuild -H. -GNinja -DHB_BUILD_TESTS=OFF
-  #    - run: ninja -Cbuild
+  crosscompile-cmake-notest-linux-arm64:
+    docker:
+      - image: dockcross/linux-arm64
+    steps:
+      - checkout
+      - run: cmake -Bbuild -H. -GNinja -DHB_BUILD_TESTS=OFF
+      - run: ninja -Cbuild
 
   crosscompile-cmake-notest-linux-mips:
     docker:
@@ -337,6 +337,6 @@ workflows:
       ## cmake
       - crosscompile-cmake-notest-android-arm
       - crosscompile-cmake-notest-browser-asmjs-hb_tiny
-      #- crosscompile-cmake-notest-linux-arm64
+      - crosscompile-cmake-notest-linux-arm64
       - crosscompile-cmake-notest-linux-mips
       #- crosscompile-cmake-notest-windows-x64
