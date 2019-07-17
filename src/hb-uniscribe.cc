@@ -245,8 +245,9 @@ struct hb_uniscribe_shaper_funcs_t
   }
 };
 
-
+#if HB_USE_ATEXIT
 static void free_static_uniscribe_shaper_funcs ();
+#endif
 
 static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_uniscribe_shaper_funcs_t,
 									 hb_uniscribe_shaper_funcs_lazy_loader_t>
