@@ -119,7 +119,7 @@ struct OS2
 
   bool is_italic () const       { return fsSelection & ITALIC; }
   bool is_oblique () const      { return fsSelection & OBLIQUE; }
-  bool is_typo_metrics () const { return fsSelection & USE_TYPO_METRICS; }
+  bool use_typo_metrics () const { return fsSelection & USE_TYPO_METRICS; }
 
   enum width_class_t {
     FWIDTH_ULTRA_CONDENSED	= 1, /* 50% */

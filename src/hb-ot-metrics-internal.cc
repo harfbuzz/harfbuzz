@@ -55,14 +55,14 @@ hb_ot_metrics_get_position_internal (hb_face_t       *face,
   (face->table.TABLE->has_data () && \
     (position && (*position = face->table.TABLE->ATTR + face->table.MVAR->get_var (metrics_tag, nullptr, 0)), true))
   case HB_OT_METRICS_HORIZONTAL_ASCENDER:
-    return (face->table.OS2->is_typo_metrics () ^ GET_METRIC (hhea, ascender)) ||
-	   GET_METRIC (OS2, sTypoAscender);
+    return face->table.OS2->use_typo_metrics () ?
+	   GET_METRIC (OS2, sTypoAscender) : GET_METRIC (hhea, ascender);
   case HB_OT_METRICS_HORIZONTAL_DESCENDER:
-    return (face->table.OS2->is_typo_metrics () ^ GET_METRIC (hhea, descender)) ||
-	   GET_METRIC (OS2, sTypoDescender);
+    return face->table.OS2->use_typo_metrics () ?
+	   GET_METRIC (OS2, sTypoDescender) : GET_METRIC (hhea, descender);
   case HB_OT_METRICS_HORIZONTAL_LINE_GAP:
-    return (face->table.OS2->is_typo_metrics () ^ GET_METRIC (hhea, lineGap)) ||
-	   GET_METRIC (OS2, sTypoLineGap);
+    return face->table.OS2->use_typo_metrics () ?
+	   GET_METRIC (OS2, sTypoLineGap) : GET_METRIC (hhea, lineGap);
   case HB_OT_METRICS_HORIZONTAL_CLIPPING_ASCENT:  return GET_METRIC (OS2, usWinAscent);
   case HB_OT_METRICS_HORIZONTAL_CLIPPING_DESCENT: return GET_METRIC (OS2, usWinDescent);
   case HB_OT_METRICS_VERTICAL_ASCENDER:           return GET_METRIC (vhea, ascender);
