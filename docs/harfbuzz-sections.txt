@@ -1,6 +1,7 @@
 <SUBSECTION Private>
 HB_H_IN
 HB_OT_H_IN
+HB_AAT_H_IN
 </SECTION>
 
 <SECTION>
@@ -179,6 +180,7 @@ HB_BUFFER_SERIALIZE_FLAGS_DEFAULT
 HB_SCRIPT_CANADIAN_ABORIGINAL
 hb_font_funcs_set_glyph_func
 hb_font_get_glyph_func_t
+HB_MATH_GLYPH_PART_FLAG_EXTENDER
 hb_ot_layout_table_choose_script
 hb_ot_layout_table_find_script
 hb_ot_tag_from_language
