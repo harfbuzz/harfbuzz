@@ -51,9 +51,14 @@ hb_ot_metrics_get_position_internal (hb_face_t       *face,
 {
   switch (metrics_tag)
   {
+#ifndef HB_NO_VAR
+#define GET_VAR hb_ot_metrics_get_variation (face, metrics_tag)
+#else
+#define GET_VAR 0
+#endif
 #define GET_METRIC(TABLE, ATTR) \
   (face->table.TABLE->has_data () && \
-    (position && (*position = face->table.TABLE->ATTR + face->table.MVAR->get_var (metrics_tag, nullptr, 0)), true))
+    (position && (*position = face->table.TABLE->ATTR + GET_VAR), true))
   case HB_OT_METRICS_HORIZONTAL_ASCENDER:
     return face->table.OS2->use_typo_metrics () ?
 	   GET_METRIC (OS2, sTypoAscender) : GET_METRIC (hhea, ascender);
@@ -89,6 +94,7 @@ hb_ot_metrics_get_position_internal (hb_face_t       *face,
   case HB_OT_METRICS_UNDERLINE_SIZE:              return GET_METRIC (post->table, underlineThickness);
   case HB_OT_METRICS_UNDERLINE_OFFSET:            return GET_METRIC (post->table, underlinePosition);
 #undef GET_METRIC
+#undef GET_VAR
   default:                                        return false;
   }
 }

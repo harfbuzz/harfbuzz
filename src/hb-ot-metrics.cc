@@ -24,6 +24,8 @@
 
 #include "hb.hh"
 
+#ifndef HB_NO_METRICS
+
 #include "hb-ot-metrics.hh"
 #include "hb-ot-var-mvar-table.hh"
 #include "hb-ot-face.hh"
@@ -89,6 +91,7 @@ hb_ot_metrics_get_position (hb_font_t       *font,
   }
 }
 
+#ifndef HB_NO_VAR
 /**
  * hb_ot_metrics_get_variation:
  * @face:
@@ -133,3 +136,6 @@ hb_ot_metrics_get_y_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
 {
   return font->em_scalef_y (hb_ot_metrics_get_variation (font->face, metrics_tag));
 }
+#endif
+
+#endif
