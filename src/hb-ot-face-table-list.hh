@@ -53,7 +53,9 @@ HB_OT_ACCELERATOR (OT, cmap)
 HB_OT_TABLE (OT, hhea)
 HB_OT_ACCELERATOR (OT, hmtx)
 HB_OT_TABLE (OT, OS2)
+#if !defined(HB_NO_OT_FONT_GLYPH_NAMES) || !defined(HB_NO_METRICS)
 HB_OT_ACCELERATOR (OT, post)
+#endif
 #ifndef HB_NO_NAME
 HB_OT_ACCELERATOR (OT, name)
 #endif
