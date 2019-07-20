@@ -32,6 +32,19 @@
 #include "hb-ot-metrics.hh"
 #include "hb-ot-face.hh"
 
+
+static float
+_fix_ascender_descender (float value, hb_ot_metrics_t metrics_tag)
+{
+  if (metrics_tag == HB_OT_METRICS_HORIZONTAL_ASCENDER ||
+      metrics_tag == HB_OT_METRICS_VERTICAL_ASCENDER)
+    return fabs ((double) value);
+  if (metrics_tag == HB_OT_METRICS_HORIZONTAL_DESCENDER ||
+      metrics_tag == HB_OT_METRICS_VERTICAL_DESCENDER)
+    return -fabs ((double) value);
+  return value;
+}
+
 /* Common part of _get_position logic needed on hb-ot-font so we
    can have a slim builds using HB_NO_METRICS */
 bool
@@ -45,14 +58,16 @@ hb_ot_metrics_get_position_common (hb_font_t       *font,
 #ifndef HB_NO_VAR
 #define GET_VAR hb_ot_metrics_get_variation (face, metrics_tag)
 #else
-#define GET_VAR 0
+#define GET_VAR .0f
 #endif
 #define GET_METRIC_X(TABLE, ATTR) \
   (face->table.TABLE->has_data () && \
-    (position && (*position = font->em_scalef_x (face->table.TABLE->ATTR + GET_VAR)), true))
+    (position && (*position = font->em_scalef_x (_fix_ascender_descender ( \
+      face->table.TABLE->ATTR + GET_VAR, metrics_tag))), true))
 #define GET_METRIC_Y(TABLE, ATTR) \
   (face->table.TABLE->has_data () && \
-    (position && (*position = font->em_scalef_y (face->table.TABLE->ATTR + GET_VAR)), true))
+    (position && (*position = font->em_scalef_y (_fix_ascender_descender ( \
+      face->table.TABLE->ATTR + GET_VAR, metrics_tag))), true))
   case HB_OT_METRICS_HORIZONTAL_ASCENDER:
     return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, ascender)) ||
 	   GET_METRIC_Y (OS2, sTypoAscender);
