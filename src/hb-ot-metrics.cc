@@ -24,8 +24,6 @@
 
 #include "hb.hh"
 
-#ifndef HB_NO_METRICS
-
 #include "hb-ot-var-mvar-table.hh"
 #include "hb-ot-gasp-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-os2-table.hh"
@@ -33,6 +31,48 @@
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-metrics.hh"
 #include "hb-ot-face.hh"
+
+/* Common part of _get_position logic needed on hb-ot-font so we
+   can have a slim builds using HB_NO_METRICS */
+bool
+hb_ot_metrics_get_position_common (hb_font_t       *font,
+				   hb_ot_metrics_t  metrics_tag,
+				   hb_position_t   *position     /* OUT.  May be NULL. */)
+{
+  hb_face_t *face = font->face;
+  switch ((unsigned int) metrics_tag)
+  {
+#ifndef HB_NO_VAR
+#define GET_VAR hb_ot_metrics_get_variation (face, metrics_tag)
+#else
+#define GET_VAR 0
+#endif
+#define GET_METRIC_X(TABLE, ATTR) \
+  (face->table.TABLE->has_data () && \
+    (position && (*position = font->em_scalef_x (face->table.TABLE->ATTR + GET_VAR)), true))
+#define GET_METRIC_Y(TABLE, ATTR) \
+  (face->table.TABLE->has_data () && \
+    (position && (*position = font->em_scalef_y (face->table.TABLE->ATTR + GET_VAR)), true))
+  case HB_OT_METRICS_HORIZONTAL_ASCENDER:
+    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, ascender)) ||
+	   GET_METRIC_Y (OS2, sTypoAscender);
+  case HB_OT_METRICS_HORIZONTAL_DESCENDER:
+    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, descender)) ||
+	   GET_METRIC_Y (OS2, sTypoDescender);
+  case HB_OT_METRICS_HORIZONTAL_LINE_GAP:
+    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, lineGap)) ||
+	   GET_METRIC_Y (OS2, sTypoLineGap);
+  case HB_OT_METRICS_VERTICAL_ASCENDER:  return GET_METRIC_X (vhea, ascender);
+  case HB_OT_METRICS_VERTICAL_DESCENDER: return GET_METRIC_X (vhea, descender);
+  case HB_OT_METRICS_VERTICAL_LINE_GAP:  return GET_METRIC_X (vhea, lineGap);
+#undef GET_METRIC_Y
+#undef GET_METRIC_X
+#undef GET_VAR
+  default:                               assert (0); return false;
+  }
+}
+
+#ifndef HB_NO_METRICS
 
 #if 0
 static bool
@@ -64,6 +104,12 @@ hb_ot_metrics_get_position (hb_font_t       *font,
   hb_face_t *face = font->face;
   switch (metrics_tag)
   {
+  case HB_OT_METRICS_HORIZONTAL_ASCENDER:
+  case HB_OT_METRICS_HORIZONTAL_DESCENDER:
+  case HB_OT_METRICS_HORIZONTAL_LINE_GAP:
+  case HB_OT_METRICS_VERTICAL_ASCENDER:
+  case HB_OT_METRICS_VERTICAL_DESCENDER:
+  case HB_OT_METRICS_VERTICAL_LINE_GAP:           return hb_ot_metrics_get_position_common (font, metrics_tag, position);
 #ifndef HB_NO_VAR
 #define GET_VAR hb_ot_metrics_get_variation (face, metrics_tag)
 #else
@@ -75,18 +121,6 @@ hb_ot_metrics_get_position (hb_font_t       *font,
 #define GET_METRIC_Y(TABLE, ATTR) \
   (face->table.TABLE->has_data () && \
     (position && (*position = font->em_scalef_y (face->table.TABLE->ATTR + GET_VAR)), true))
-  case HB_OT_METRICS_HORIZONTAL_ASCENDER:
-    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, ascender)) ||
-	   GET_METRIC_Y (OS2, sTypoAscender);
-  case HB_OT_METRICS_HORIZONTAL_DESCENDER:
-    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, descender)) ||
-	   GET_METRIC_Y (OS2, sTypoDescender);
-  case HB_OT_METRICS_HORIZONTAL_LINE_GAP:
-    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, lineGap)) ||
-	   GET_METRIC_Y (OS2, sTypoLineGap);
-  case HB_OT_METRICS_VERTICAL_ASCENDER:           return GET_METRIC_X (vhea, ascender);
-  case HB_OT_METRICS_VERTICAL_DESCENDER:          return GET_METRIC_X (vhea, descender);
-  case HB_OT_METRICS_VERTICAL_LINE_GAP:           return GET_METRIC_X (vhea, lineGap);
   case HB_OT_METRICS_HORIZONTAL_CLIPPING_ASCENT:  return GET_METRIC_Y (OS2, usWinAscent);
   case HB_OT_METRICS_HORIZONTAL_CLIPPING_DESCENT: return GET_METRIC_Y (OS2, usWinDescent);
   case HB_OT_METRICS_HORIZONTAL_CARET_RISE:       return GET_METRIC_Y (hhea, caretSlopeRise);
