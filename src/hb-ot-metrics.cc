@@ -69,14 +69,14 @@ hb_ot_metrics_get_position_common (hb_font_t       *font,
     (position && (*position = font->em_scalef_y (_fix_ascender_descender ( \
       face->table.TABLE->ATTR + GET_VAR, metrics_tag))), true))
   case HB_OT_METRICS_HORIZONTAL_ASCENDER:
-    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, ascender)) ||
-	   GET_METRIC_Y (OS2, sTypoAscender);
+    return (face->table.OS2->use_typo_metrics () && GET_METRIC_Y (OS2, sTypoAscender)) ||
+	   GET_METRIC_Y (hhea, ascender);
   case HB_OT_METRICS_HORIZONTAL_DESCENDER:
-    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, descender)) ||
-	   GET_METRIC_Y (OS2, sTypoDescender);
+    return (face->table.OS2->use_typo_metrics () && GET_METRIC_Y (OS2, sTypoDescender)) ||
+	   GET_METRIC_Y (hhea, descender);
   case HB_OT_METRICS_HORIZONTAL_LINE_GAP:
-    return (!face->table.OS2->use_typo_metrics () && GET_METRIC_Y (hhea, lineGap)) ||
-	   GET_METRIC_Y (OS2, sTypoLineGap);
+    return (face->table.OS2->use_typo_metrics () && GET_METRIC_Y (OS2, sTypoLineGap)) ||
+	   GET_METRIC_Y (hhea, lineGap);
   case HB_OT_METRICS_VERTICAL_ASCENDER:  return GET_METRIC_X (vhea, ascender);
   case HB_OT_METRICS_VERTICAL_DESCENDER: return GET_METRIC_X (vhea, descender);
   case HB_OT_METRICS_VERTICAL_LINE_GAP:  return GET_METRIC_X (vhea, lineGap);
