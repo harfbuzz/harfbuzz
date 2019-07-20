@@ -27,9 +27,4 @@
 
 #include "hb.hh"
 
-HB_INTERNAL bool
-hb_ot_metrics_get_position_internal (hb_face_t       *face,
-				     hb_ot_metrics_t  metrics_tag,
-				     float           *position     /* OUT.  May be NULL. */);
-
 #endif /* HB_OT_METRICS_HH */
