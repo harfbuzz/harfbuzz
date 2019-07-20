@@ -161,14 +161,6 @@ struct hmtxvmtx
                unsigned int default_advance_ = 0)
     {
       default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
-      ascender = 0; descender = 0; line_gap = 0;
-
-      hb_ot_metrics_get_position_internal (face, T::ascenderTag, &ascender);
-      hb_ot_metrics_get_position_internal (face, T::descenderTag, &descender);
-      hb_ot_metrics_get_position_internal (face, T::lineGapTag, &line_gap);
-      ascender = fabs (ascender);
-      descender = -fabs (descender);
-      has_font_extents = ascender != 0 || descender != 0;
 
       num_advances = T::is_horizontal ? face->table.hhea->numberOfLongMetrics : face->table.vhea->numberOfLongMetrics;
 
@@ -264,12 +256,6 @@ struct hmtxvmtx
       return get_advance (old_gid);
     }
 
-    public:
-    bool has_font_extents;
-    float ascender;
-    float descender;
-    float line_gap;
-
     protected:
     unsigned int num_metrics;
     unsigned int num_advances;
@@ -309,17 +295,11 @@ struct hmtxvmtx
 struct hmtx : hmtxvmtx<hmtx, hhea> {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_hmtx;
   static constexpr hb_tag_t variationsTag = HB_OT_TAG_HVAR;
-  static constexpr hb_ot_metrics_t ascenderTag = HB_OT_METRICS_HORIZONTAL_ASCENDER;
-  static constexpr hb_ot_metrics_t descenderTag = HB_OT_METRICS_HORIZONTAL_DESCENDER;
-  static constexpr hb_ot_metrics_t lineGapTag = HB_OT_METRICS_HORIZONTAL_LINE_GAP;
   static constexpr bool is_horizontal = true;
 };
 struct vmtx : hmtxvmtx<vmtx, vhea> {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_vmtx;
   static constexpr hb_tag_t variationsTag = HB_OT_TAG_VVAR;
-  static constexpr hb_ot_metrics_t ascenderTag = HB_OT_METRICS_VERTICAL_ASCENDER;
-  static constexpr hb_ot_metrics_t descenderTag = HB_OT_METRICS_VERTICAL_DESCENDER;
-  static constexpr hb_ot_metrics_t lineGapTag = HB_OT_METRICS_VERTICAL_LINE_GAP;
   static constexpr bool is_horizontal = false;
 };
 
