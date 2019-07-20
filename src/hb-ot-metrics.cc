@@ -33,12 +33,13 @@
 
 /**
  * hb_ot_metrics_get_position:
- * @font:
- * @metrics_tag:
- * @position: (out) (optional):
+ * @font: a #hb_font_t object.
+ * @metrics_tag: tag of metrics value you like to fetch.
+ * @position: (out) (optional): result of metrics value from the font.
  *
- * Returns: Whether found the requested metrics
- *
+ * It fetches metrics value corresponding to a given tag from a font.
+ * 
+ * Returns: Whether found the requested metrics in the font.
  * Since: REPLACEME
  **/
 hb_bool_t
