@@ -56,7 +56,7 @@ hb_ot_metrics_get_position_common (hb_font_t       *font,
   switch ((unsigned int) metrics_tag)
   {
 #ifndef HB_NO_VAR
-#define GET_VAR hb_ot_metrics_get_variation (face, metrics_tag)
+#define GET_VAR face->table.MVAR->get_var (metrics_tag, nullptr, 0)
 #else
 #define GET_VAR .0f
 #endif
