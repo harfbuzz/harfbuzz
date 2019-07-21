@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018  Ebrahim Byagowi
+ * Copyright © 2018-2019  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -45,8 +45,8 @@ _fix_ascender_descender (float value, hb_ot_metrics_t metrics_tag)
   return value;
 }
 
-/* Common part of _get_position logic needed on hb-ot-font so we
-   can have a slim builds using HB_NO_METRICS */
+/* The common part of _get_position logic needed on hb-ot-font and here
+   to be able to have slim builds without the not always needed parts */
 bool
 hb_ot_metrics_get_position_common (hb_font_t       *font,
 				   hb_ot_metrics_t  metrics_tag,
