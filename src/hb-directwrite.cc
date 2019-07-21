@@ -489,24 +489,20 @@ protected:
 	mCurrentRun = run;
 	return;
       }
-    assert (0); // We should always be able to find the text position in one of our runs
+    abort (); // We should always be able to find the text position in one of our runs
   }
 
   void SplitCurrentRun (uint32_t splitPosition)
   {
     if (!mCurrentRun)
-    {
-      assert (0); // SplitCurrentRun called without current run
-      // Shouldn't be calling this when no current run is set!
-      return;
-    }
+      abort (); // Shouldn't be calling this when no current run is set!
+
     // Split the current run.
     if (splitPosition <= mCurrentRun->mTextStart)
-    {
       // No need to split, already the start of a run
       // or before it. Usually the first.
       return;
-    }
+
     Run *newRun = new Run;
 
     *newRun = *mCurrentRun;

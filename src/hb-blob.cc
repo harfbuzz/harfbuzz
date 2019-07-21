@@ -526,7 +526,7 @@ _hb_mapped_file_destroy (void *file_)
   UnmapViewOfFile (file->contents);
   CloseHandle (file->mapping);
 #else
-  assert (0); // If we don't have mmap we shouldn't reach here
+  abort (); // If we don't have mmap we shouldn't reach here
 #endif
 
   free (file);

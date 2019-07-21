@@ -616,7 +616,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     if (unlikely (_consumed > scratch_size)) \
     { \
       on_no_room; \
-      assert (0); \
+      abort (); \
     } \
     scratch += _consumed; \
     scratch_size -= _consumed; \
