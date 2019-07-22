@@ -48,9 +48,9 @@ _fix_ascender_descender (float value, hb_ot_metrics_t metrics_tag)
 /* The common part of _get_position logic needed on hb-ot-font and here
    to be able to have slim builds without the not always needed parts */
 bool
-hb_ot_metrics_get_position_common (hb_font_t       *font,
-				   hb_ot_metrics_t  metrics_tag,
-				   hb_position_t   *position     /* OUT.  May be NULL. */)
+_hb_ot_metrics_get_position_common (hb_font_t       *font,
+				    hb_ot_metrics_t  metrics_tag,
+				    hb_position_t   *position     /* OUT.  May be NULL. */)
 {
   hb_face_t *face = font->face;
   switch ((unsigned int) metrics_tag)
@@ -124,7 +124,7 @@ hb_ot_metrics_get_position (hb_font_t       *font,
   case HB_OT_METRICS_HORIZONTAL_LINE_GAP:
   case HB_OT_METRICS_VERTICAL_ASCENDER:
   case HB_OT_METRICS_VERTICAL_DESCENDER:
-  case HB_OT_METRICS_VERTICAL_LINE_GAP:           return hb_ot_metrics_get_position_common (font, metrics_tag, position);
+  case HB_OT_METRICS_VERTICAL_LINE_GAP:           return _hb_ot_metrics_get_position_common (font, metrics_tag, position);
 #ifndef HB_NO_VAR
 #define GET_VAR hb_ot_metrics_get_variation (face, metrics_tag)
 #else
