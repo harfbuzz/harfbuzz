@@ -79,7 +79,7 @@ hb_ot_metrics_get_position (hb_font_t       *font,
 			    hb_position_t   *position     /* OUT.  May be NULL. */);
 
 HB_EXTERN float
-hb_ot_metrics_get_variation (hb_face_t *face, hb_ot_metrics_t metrics_tag);
+hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag);
 
 HB_EXTERN hb_position_t
 hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag);

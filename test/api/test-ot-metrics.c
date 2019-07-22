@@ -40,7 +40,7 @@ test_ot_metrics_get (void)
   g_assert_cmpint (value, ==, 1000);
   g_assert_cmpint (hb_ot_metrics_get_x_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
   g_assert_cmpint (hb_ot_metrics_get_y_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
-  // g_assert_cmpint ((int) hb_ot_metrics_get_variation (face, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
+  // g_assert_cmpint ((int) hb_ot_metrics_get_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
