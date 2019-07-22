@@ -56,7 +56,7 @@ _hb_ot_metrics_get_position_common (hb_font_t       *font,
   switch ((unsigned int) metrics_tag)
   {
 #ifndef HB_NO_VAR
-#define GET_VAR face->table.MVAR->get_var (metrics_tag, nullptr, 0)
+#define GET_VAR face->table.MVAR->get_var (metrics_tag, font->coords, font->num_coords)
 #else
 #define GET_VAR .0f
 #endif
@@ -95,7 +95,7 @@ _get_gasp (hb_face_t *face, float *result, hb_ot_metrics_t metrics_tag)
 {
   const OT::GaspRange& range = face->table.gasp->get_gasp_range (metrics_tag - HB_TAG ('g','s','p','0'));
   if (&range == &Null (OT::GaspRange)) return false;
-  if (result) *result = range.rangeMaxPPEM + face->table.MVAR->get_var (metrics_tag, nullptr, 0);
+  if (result) *result = range.rangeMaxPPEM + font->face->table.MVAR->get_var (metrics_tag, font->coords, font->num_coords);
   return true;
 }
 #endif
@@ -126,7 +126,7 @@ hb_ot_metrics_get_position (hb_font_t       *font,
   case HB_OT_METRICS_VERTICAL_DESCENDER:
   case HB_OT_METRICS_VERTICAL_LINE_GAP:           return _hb_ot_metrics_get_position_common (font, metrics_tag, position);
 #ifndef HB_NO_VAR
-#define GET_VAR hb_ot_metrics_get_variation (face, metrics_tag)
+#define GET_VAR hb_ot_metrics_get_variation (font, metrics_tag)
 #else
 #define GET_VAR 0
 #endif
@@ -168,7 +168,7 @@ hb_ot_metrics_get_position (hb_font_t       *font,
 #ifndef HB_NO_VAR
 /**
  * hb_ot_metrics_get_variation:
- * @face:
+ * @font:
  * @metrics_tag:
  *
  * Returns:
@@ -176,9 +176,9 @@ hb_ot_metrics_get_position (hb_font_t       *font,
  * Since: REPLACEME
  **/
 float
-hb_ot_metrics_get_variation (hb_face_t *face, hb_ot_metrics_t metrics_tag)
+hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
 {
-  return face->table.MVAR->get_var (metrics_tag, nullptr, 0);
+  return font->face->table.MVAR->get_var (metrics_tag, font->coords, font->num_coords);
 }
 
 /**
@@ -193,7 +193,7 @@ hb_ot_metrics_get_variation (hb_face_t *face, hb_ot_metrics_t metrics_tag)
 hb_position_t
 hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
 {
-  return font->em_scalef_x (hb_ot_metrics_get_variation (font->face, metrics_tag));
+  return font->em_scalef_x (hb_ot_metrics_get_variation (font, metrics_tag));
 }
 
 /**
@@ -208,7 +208,7 @@ hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
 hb_position_t
 hb_ot_metrics_get_y_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
 {
-  return font->em_scalef_y (hb_ot_metrics_get_variation (font->face, metrics_tag));
+  return font->em_scalef_y (hb_ot_metrics_get_variation (font, metrics_tag));
 }
 #endif
 
