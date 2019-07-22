@@ -426,9 +426,9 @@ test_hb_ot_color_png (void)
   g_assert (strncmp (data + 1, "PNG", 3) == 0);
   hb_font_get_glyph_extents (sbix_font, 1, &extents);
   g_assert_cmpint (extents.x_bearing, ==, 0);
-  g_assert_cmpint (extents.y_bearing, ==, 0);
+  g_assert_cmpint (extents.y_bearing, ==, 800);
   g_assert_cmpint (extents.width, ==, 800);
-  g_assert_cmpint (extents.height, ==, 800);
+  g_assert_cmpint (extents.height, ==, -800);
   hb_blob_destroy (blob);
   hb_font_destroy (sbix_font);
 

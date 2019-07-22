@@ -318,7 +318,8 @@ extern "C" void  hb_free_impl(void *ptr);
 #  define HB_FALLTHROUGH /* FALLTHROUGH */
 #endif
 
-#ifdef __clang__
+/* https://github.com/harfbuzz/harfbuzz/issues/1852 */
+#if defined(__clang__) && !(defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__)))
 /* Disable certain sanitizer errors. */
 /* https://github.com/harfbuzz/harfbuzz/issues/1247 */
 #define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
@@ -476,6 +477,11 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 /* Size signifying variable-sized array */
 #define VAR 1
 
+/* Endian swap, used in Windows related backends */
+static inline uint16_t hb_uint16_swap (const uint16_t v)
+{ return (v >> 8) | (v << 8); }
+static inline uint32_t hb_uint32_swap (const uint32_t v)
+{ return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
 /*
  * Big-endian integers.  Here because fundamental.
