@@ -13,8 +13,6 @@ option('graphite', type: 'feature', value: 'disabled',
   description: 'Enable Graphite2 complementary shaper')
 option('freetype', type: 'feature', value: 'auto',
   description: 'Enable freetype interop helpers')
-option('ucdn', type: 'feature', value: 'auto',
-  description: 'Use internal HarfBuzz-provided UCDN library')
 option('uniscribe', type: 'feature', value: 'disabled',
   description: 'Enable Uniscribe shaper backend (Windows only)')
 option('directwrite', type: 'feature', value: 'disabled',
