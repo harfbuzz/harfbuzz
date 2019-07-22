@@ -8,7 +8,6 @@ hb_base_sources = [
   'hb-map.cc',
   'hb-ot-cff1-table.cc',
   'hb-ot-cff2-table.cc',
-  'hb-ot-name-language.cc',
   'hb-ot-name.cc',
   'hb-ot-tag.cc',
   'hb-set.cc',
@@ -17,7 +16,8 @@ hb_base_sources = [
   'hb-shaper.cc',
   'hb-static.cc',
   'hb-unicode.cc',
-  'hb-warning.cc',
+  'hb-ucd.cc',
+  'hb-number.cc'
 ]
 
 hb_base_headers = files([
@@ -34,6 +34,7 @@ hb_base_headers = files([
   'hb-shape-plan.h',
   'hb-unicode.h',
   'hb-version.h',
+  'hb-number.hh'
 ])
 
 hb_base_ragel_sources = [
@@ -50,6 +51,7 @@ hb_ot_sources = [
   'hb-aat-map.cc',
   'hb-ot-face.cc',
   'hb-ot-font.cc',
+  'hb-ot-metrics.cc',
   'hb-ot-layout.cc',
   'hb-ot-color.cc',
   'hb-ot-map.cc',
@@ -76,6 +78,8 @@ hb_ot_sources = [
 
 hb_ot_headers = files([
   'hb-ot.h',
+  'hb-ot-deprecated.h',
+  'hb-ot-metrics.h',
   'hb-ot-color.h',
   'hb-ot-font.h',
   'hb-ot-layout.h',
@@ -132,13 +136,16 @@ hb_subset_sources = [
   'hb-subset-cff1.cc',
   'hb-subset-cff2.cc',
   'hb-subset-cff-common.cc',
-  'hb-subset-glyf.cc',
   'hb-subset-input.cc',
   'hb-subset-plan.cc',
+  'hb-number.cc',
+  'hb-ot-meta.cc'
 ]
 
 hb_subset_headers = files([
   'hb-subset.h',
+  'hb-number.hh',
+  'hb-ot-meta.h'
 ])
 
 hb_gobject_sources = [
@@ -155,12 +162,6 @@ incsrc = include_directories('.')
 
 hb_sources = hb_base_sources + hb_fallback_sources + hb_ot_sources
 hb_headers = hb_base_headers + hb_ot_headers
-
-if not get_option('ucdn').disabled()
-  conf.set('HAVE_UCDN', 1)
-  hb_sources += ['hb-ucdn.cc', 'hb-ucdn/ucdn.c']
-  incucdn = include_directories('hb-ucdn')
-endif
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
