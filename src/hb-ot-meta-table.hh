@@ -40,6 +40,11 @@ namespace OT {
 
 struct DataMap
 {
+  int cmp (hb_tag_t a) const { return tag.cmp (a); }
+
+  hb_blob_t *reference_entry (hb_blob_t *meta_blob) const
+  { return hb_blob_create_sub_blob (meta_blob, dataZ, dataLength); }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -62,6 +67,19 @@ struct meta
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_meta;
 
+  struct accelerator_t
+  {
+    void init (hb_face_t *face)
+    { table = hb_sanitize_context_t ().reference_table<meta> (face); }
+    void fini () { table.destroy (); }
+
+    hb_blob_t *reference_entry (hb_tag_t tag) const
+    { return table->dataMaps.lsearch (tag, Null (DataMap)).reference_entry (table.get_blob ()); }
+
+    private:
+    hb_blob_ptr_t<meta> table;
+  };
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -82,6 +100,8 @@ struct meta
   public:
   DEFINE_SIZE_ARRAY (16, dataMaps);
 };
+
+struct meta_accelerator_t : meta::accelerator_t {};
 
 } /* namespace OT */
 

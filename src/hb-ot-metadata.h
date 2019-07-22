@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2019  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,30 +20,38 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#ifndef HB_OT_H_IN
+#error "Include <hb-ot.h> instead."
+#endif
+
+#ifndef HB_OT_METADATA_H
+#define HB_OT_METADATA_H
 
 #include "hb.h"
 
-#include "hb-ot-color.h"
-#include "hb-ot-deprecated.h"
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-metadata.h"
-#include "hb-ot-metrics.h"
-#include "hb-ot-name.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
-
 HB_BEGIN_DECLS
+
+/**
+ * hb_ot_metadata_t:
+ *
+ * From https://docs.microsoft.com/en-us/typography/opentype/spec/meta
+ *
+ * Since: REPLACEME
+ **/
+typedef enum {
+/*
+   HB_OT_METADATA_APPL			= HB_TAG ('a','p','p','l'),
+   HB_OT_METADATA_BILD			= HB_TAG ('b','i','l','d'),
+*/
+  HB_OT_METADATA_DESIGN_LANGUAGES	= HB_TAG ('d','l','n','g'),
+  HB_OT_METADATA_SUPPORTED_LANGUAGES	= HB_TAG ('s','l','n','g')
+} hb_ot_metadata_t;
+
+HB_EXTERN hb_blob_t *
+hb_ot_metadata_reference_entry (hb_face_t *face, hb_ot_metadata_t tag);
 
 HB_END_DECLS
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#endif /* HB_OT_METADATA_H */

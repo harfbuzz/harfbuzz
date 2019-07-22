@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2019  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,30 +20,38 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#include "hb.hh"
 
-#include "hb.h"
+#ifndef HB_NO_META
 
-#include "hb-ot-color.h"
-#include "hb-ot-deprecated.h"
-#include "hb-ot-font.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-metadata.h"
-#include "hb-ot-metrics.h"
-#include "hb-ot-name.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
+#include "hb-ot-meta-table.hh"
 
-HB_BEGIN_DECLS
+/**
+ * SECTION:hb-ot-metadata
+ * @title: hb-ot-metadata
+ * @short_description: OpenType Metadata
+ * @include: hb-ot.h
+ *
+ * Functions for fetching metadata from fonts.
+ **/
 
-HB_END_DECLS
+/**
+ * hb_ot_meta_reference_entry:
+ * @face: a #hb_face_t object.
+ * @meta_tag: tag of metadata you like to have.
+ *
+ * It fetches metadata entry of a given tag from a font.
+ *
+ * Returns: (transfer full): A blob containing the blob.
+ *
+ * Since: REPLACEME
+ **/
+hb_blob_t *
+hb_ot_metadata_reference_entry (hb_face_t *face, hb_ot_metadata_t meta_tag)
+{
+  return face->table.meta->reference_entry (meta_tag);
+}
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#endif
