@@ -62,7 +62,9 @@ HB_OT_ACCELERATOR (OT, name)
 #ifndef HB_NO_STAT
 HB_OT_TABLE (OT, STAT)
 #endif
-//HB_OT_TABLE (OT, meta)
+#ifndef HB_NO_META
+HB_OT_ACCELERATOR (OT, meta)
+#endif
 
 /* Vertical layout. */
 HB_OT_TABLE (OT, vhea)
