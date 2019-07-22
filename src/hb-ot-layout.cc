@@ -48,6 +48,7 @@
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-layout-base-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-meta-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-name-table.hh"
 #include "hb-ot-os2-table.hh"
 
@@ -108,7 +109,7 @@ hb_ot_layout_has_machine_kerning (hb_face_t *face)
  *
  * Tests whether a face has any cross-stream kerning (i.e., kerns
  * that make adjustments perpendicular to the direction of the text
- * flow: Y adjustments in horizontal text or X adjustments in 
+ * flow: Y adjustments in horizontal text or X adjustments in
  * vertical text) in the 'kern' table.
  *
  * Does NOT examine the GPOS table.
@@ -285,7 +286,7 @@ hb_ot_layout_has_glyph_classes (hb_face_t *face)
  *
  * Fetches the GDEF class of the requested glyph in the specified face.
  *
- * Return value: The #hb_ot_layout_glyph_class_t glyph class of the given code 
+ * Return value: The #hb_ot_layout_glyph_class_t glyph class of the given code
  * point in the GDEF table of the face.
  *
  * Since: 0.9.7
@@ -329,7 +330,7 @@ hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
  * @point_array: (out) (array length=point_count): The array of attachment points found for the query
  *
  * Fetches a list of all attachment points for the specified glyph in the GDEF
- * table of the face. The list returned will begin at the offset provided. 
+ * table of the face. The list returned will begin at the offset provided.
  *
  * Useful if the client program wishes to cache the list.
  *
@@ -979,7 +980,7 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
  * @face: #hb_face_t to work upon
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  *
- * Fetches the total number of lookups enumerated in the specified 
+ * Fetches the total number of lookups enumerated in the specified
  * face's GSUB table or GPOS table.
  *
  * Since: 0.9.22
@@ -1187,7 +1188,7 @@ hb_ot_layout_collect_features (hb_face_t      *face,
  * table or GPOS table, underneath the specified scripts, languages, and
  * features. If no list of scripts is provided, all scripts will be queried.
  * If no list of languages is provided, all languages will be queried. If no
- * list of features is provided, all features will be queried. 
+ * list of features is provided, all features will be queried.
  *
  * Since: 0.9.8
  **/
@@ -1581,7 +1582,7 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  * as used here are defined as pertaining only to fonts within a font family that differ
  * specifically in their respective size ranges; other ways to differentiate fonts within
  * a subfamily are not covered by the `size` feature.
- * 
+ *
  * For more information on this distinction, see the `size` documentation at
  * https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#tag-39size39
  *
@@ -1723,7 +1724,7 @@ hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
  *       returned. This function can be called with incrementally larger start_offset
  *       until the char_count output value is lower than its input value, or the size
  *       of the characters array can be increased.</note>
- * 
+ *
  * Return value: Number of total sample characters in the cvXX feature.
  *
  * Since: 2.0.0
