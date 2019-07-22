@@ -20,6 +20,7 @@ hb_ot_shape_closure_sources = [
 hb_subset_cli_sources = [
   'hb-subset.cc',
   'options.cc',
+  'options-subset.cc',
 ]
 
 if conf.get('HAVE_GLIB', 0) == 1
