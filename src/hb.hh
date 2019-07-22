@@ -318,7 +318,8 @@ extern "C" void  hb_free_impl(void *ptr);
 #  define HB_FALLTHROUGH /* FALLTHROUGH */
 #endif
 
-#ifdef __clang__
+/* https://github.com/harfbuzz/harfbuzz/issues/1852 */
+#if defined(__clang__) && !(defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__)))
 /* Disable certain sanitizer errors. */
 /* https://github.com/harfbuzz/harfbuzz/issues/1247 */
 #define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
