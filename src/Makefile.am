@@ -332,6 +332,7 @@ noinst_PROGRAMS = \
 	main \
 	test \
 	test-buffer-serialize \
+	test-ot-metadata \
 	test-ot-name \
 	test-gpos-size-params \
 	test-gsub-would-substitute \
@@ -349,6 +350,10 @@ test_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
+
+test_ot_metadata_SOURCES = test-ot-metadata.cc
+test_ot_metadata_CPPFLAGS = $(HBCFLAGS)
+test_ot_metadata_LDADD = libharfbuzz.la $(HBLIBS)
 
 test_ot_name_SOURCES = test-ot-name.cc
 test_ot_name_CPPFLAGS = $(HBCFLAGS)
