@@ -29,6 +29,31 @@
 /* Unit tests for hb-ot-metadata.h */
 
 static void
+test_ot_metadata_get_entries (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/meta.ttf");
+  hb_ot_metadata_t entries[2];
+
+  unsigned int entries_count = 2;
+  g_assert_cmpint (hb_ot_metadata_get_entries (face, 0, &entries_count, entries), ==, 5);
+  g_assert_cmpint (entries_count, ==, 2);
+  g_assert_cmpint (entries[0], ==, HB_TAG ('a','p','p','l'));
+  g_assert_cmpint (entries[1], ==, HB_TAG ('b','i','l','d'));
+
+  entries_count = 1;
+  g_assert_cmpint (hb_ot_metadata_get_entries (face, 2, &entries_count, entries), ==, 5);
+  g_assert_cmpint (entries_count, ==, 1);
+  g_assert_cmpint (entries[0], ==, HB_TAG ('d','l','n','g'));
+
+  entries_count = 2;
+  g_assert_cmpint (hb_ot_metadata_get_entries (face, 4, &entries_count, entries), ==, 5);
+  g_assert_cmpint (entries_count, ==, 1);
+  g_assert_cmpint (entries[0], ==, HB_TAG ('s','l','n','g'));
+
+  hb_face_destroy (face);
+}
+
+static void
 test_ot_metadata_reference_entry (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/meta.ttf");
@@ -53,6 +78,7 @@ int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
+  hb_test_add (test_ot_metadata_get_entries);
   hb_test_add (test_ot_metadata_reference_entry);
   return hb_test_run ();
 }

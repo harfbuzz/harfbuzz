@@ -42,6 +42,8 @@ struct DataMap
 {
   int cmp (hb_tag_t a) const { return tag.cmp (a); }
 
+  hb_tag_t get_tag () const { return tag; }
+
   hb_blob_t *reference_entry (hb_blob_t *meta_blob) const
   { return hb_blob_create_sub_blob (meta_blob, dataZ, dataLength); }
 
@@ -75,6 +77,21 @@ struct meta
 
     hb_blob_t *reference_entry (hb_tag_t tag) const
     { return table->dataMaps.lsearch (tag, Null (DataMap)).reference_entry (table.get_blob ()); }
+
+    unsigned int get_entries (unsigned int      start_offset,
+			      unsigned int     *count,
+			      hb_ot_metadata_t *entries) const
+    {
+      unsigned int entries_count = table->dataMaps.len;
+      if (count && *count)
+      {
+	unsigned int len = hb_min (entries_count - start_offset, *count);
+	for (unsigned int i = 0; i < len; i++)
+	  entries[i] = (hb_ot_metadata_t) table->dataMaps[i + start_offset].get_tag ();
+	*count = len;
+      }
+      return table->dataMaps.len;
+    }
 
     private:
     hb_blob_ptr_t<meta> table;
