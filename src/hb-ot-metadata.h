@@ -49,8 +49,14 @@ typedef enum {
   HB_OT_METADATA_SUPPORTED_LANGUAGES	= HB_TAG ('s','l','n','g')
 } hb_ot_metadata_t;
 
+HB_EXTERN unsigned int
+hb_ot_metadata_get_entries (hb_face_t        *face,
+			    unsigned int      start_offset,
+			    unsigned int     *entries_count, /* IN/OUT.  May be NULL. */
+			    hb_ot_metadata_t *entries        /* OUT.     May be NULL. */);
+
 HB_EXTERN hb_blob_t *
-hb_ot_metadata_reference_entry (hb_face_t *face, hb_ot_metadata_t tag);
+hb_ot_metadata_reference_entry (hb_face_t *face, hb_ot_metadata_t metadata_tag);
 
 HB_END_DECLS
 
