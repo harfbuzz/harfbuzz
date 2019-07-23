@@ -53,7 +53,7 @@ _hb_ot_metrics_get_position_common (hb_font_t       *font,
 				    hb_position_t   *position     /* OUT.  May be NULL. */)
 {
   hb_face_t *face = font->face;
-  switch ((unsigned int) metrics_tag)
+  switch ((unsigned) metrics_tag)
   {
 #ifndef HB_NO_VAR
 #define GET_VAR face->table.MVAR->get_var (metrics_tag, font->coords, font->num_coords)
@@ -117,7 +117,7 @@ hb_ot_metrics_get_position (hb_font_t       *font,
 			    hb_position_t   *position     /* OUT.  May be NULL. */)
 {
   hb_face_t *face = font->face;
-  switch (metrics_tag)
+  switch ((unsigned) metrics_tag)
   {
   case HB_OT_METRICS_HORIZONTAL_ASCENDER:
   case HB_OT_METRICS_HORIZONTAL_DESCENDER:
