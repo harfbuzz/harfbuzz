@@ -46,7 +46,9 @@ typedef enum {
    HB_OT_METADATA_BILD			= HB_TAG ('b','i','l','d'),
 */
   HB_OT_METADATA_DESIGN_LANGUAGES	= HB_TAG ('d','l','n','g'),
-  HB_OT_METADATA_SUPPORTED_LANGUAGES	= HB_TAG ('s','l','n','g')
+  HB_OT_METADATA_SUPPORTED_LANGUAGES	= HB_TAG ('s','l','n','g'),
+
+  _HB_OT_METADATA_MAX_VALUE		= HB_TAG_MAX_SIGNED /*< skip >*/
 } hb_ot_metadata_t;
 
 HB_EXTERN unsigned int
