@@ -78,15 +78,15 @@ struct meta
     hb_blob_t *reference_entry (hb_tag_t tag) const
     { return table->dataMaps.lsearch (tag, Null (DataMap)).reference_entry (table.get_blob ()); }
 
-    unsigned int get_entries (unsigned int      start_offset,
-			      unsigned int     *count,
-			      hb_ot_metadata_t *entries) const
+    unsigned int get_entries (unsigned int  start_offset,
+			      unsigned int *count,
+			      hb_ot_meta_t *entries) const
     {
       if (count && *count)
       {
 	hb_array_t<const DataMap> array = table->dataMaps.sub_array (start_offset, count);
 	for (unsigned int i = 0; i < *count; i++)
-	  entries[i] = (hb_ot_metadata_t) array[i].get_tag ();
+	  entries[i] = (hb_ot_meta_t) array[i].get_tag ();
       }
       return table->dataMaps.len;
     }
