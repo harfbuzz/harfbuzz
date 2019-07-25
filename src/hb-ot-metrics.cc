@@ -100,6 +100,14 @@ _get_gasp (hb_face_t *face, float *result, hb_ot_metrics_t metrics_tag)
 }
 #endif
 
+/* Private tags for https://github.com/harfbuzz/harfbuzz/issues/1866 */
+#define _HB_OT_METRICS_HORIZONTAL_ASCENDER_OS2   HB_TAG ('O','a','s','c')
+#define _HB_OT_METRICS_HORIZONTAL_ASCENDER_HHEA  HB_TAG ('H','a','s','c')
+#define _HB_OT_METRICS_HORIZONTAL_DESCENDER_OS2  HB_TAG ('O','d','s','c')
+#define _HB_OT_METRICS_HORIZONTAL_DESCENDER_HHEA HB_TAG ('H','d','s','c')
+#define _HB_OT_METRICS_HORIZONTAL_LINE_GAP_OS2   HB_TAG ('O','l','g','p')
+#define _HB_OT_METRICS_HORIZONTAL_LINE_GAP_HHEA  HB_TAG ('H','l','g','p')
+
 /**
  * hb_ot_metrics_get_position:
  * @font: a #hb_font_t object.
@@ -158,6 +166,14 @@ hb_ot_metrics_get_position (hb_font_t       *font,
   case HB_OT_METRICS_STRIKEOUT_OFFSET:            return GET_METRIC_Y (OS2, yStrikeoutPosition);
   case HB_OT_METRICS_UNDERLINE_SIZE:              return GET_METRIC_Y (post->table, underlineThickness);
   case HB_OT_METRICS_UNDERLINE_OFFSET:            return GET_METRIC_Y (post->table, underlinePosition);
+
+  /* Private tags */
+  case _HB_OT_METRICS_HORIZONTAL_ASCENDER_OS2:    return GET_METRIC_Y (OS2, sTypoAscender);
+  case _HB_OT_METRICS_HORIZONTAL_ASCENDER_HHEA:   return GET_METRIC_Y (hhea, ascender);
+  case _HB_OT_METRICS_HORIZONTAL_DESCENDER_OS2:   return GET_METRIC_Y (OS2, sTypoDescender);
+  case _HB_OT_METRICS_HORIZONTAL_DESCENDER_HHEA:  return GET_METRIC_Y (hhea, descender);
+  case _HB_OT_METRICS_HORIZONTAL_LINE_GAP_OS2:    return GET_METRIC_Y (OS2, sTypoLineGap);
+  case _HB_OT_METRICS_HORIZONTAL_LINE_GAP_HHEA:   return GET_METRIC_Y (hhea, lineGap);
 #undef GET_METRIC_Y
 #undef GET_METRIC_X
 #undef GET_VAR
