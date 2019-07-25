@@ -82,13 +82,11 @@ struct meta
 			      unsigned int     *count,
 			      hb_ot_metadata_t *entries) const
     {
-      unsigned int entries_count = table->dataMaps.len;
       if (count && *count)
       {
-	unsigned int len = hb_min (entries_count - start_offset, *count);
-	for (unsigned int i = 0; i < len; i++)
-	  entries[i] = (hb_ot_metadata_t) table->dataMaps[i + start_offset].get_tag ();
-	*count = len;
+	hb_array_t<const DataMap> array = table->dataMaps.sub_array (start_offset, count);
+	for (unsigned int i = 0; i < *count; i++)
+	  entries[i] = (hb_ot_metadata_t) array[i].get_tag ();
       }
       return table->dataMaps.len;
     }
