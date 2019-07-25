@@ -608,9 +608,10 @@ hb_ot_math_get_glyph_assembly
 </SECTION>
 
 <SECTION>
-<FILE>hb-ot-metadata</FILE>
-hb_ot_metadata_reference_entry
-hb_ot_metadata_t
+<FILE>hb-ot-meta</FILE>
+hb_ot_meta_t
+hb_ot_meta_get_entries
+hb_ot_meta_reference_entry
 </SECTION>
 
 <SECTION>
