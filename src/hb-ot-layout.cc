@@ -1980,7 +1980,9 @@ typedef enum {
   HB_OT_LAYOUT_BASELINE_IDEO = HB_TAG('i','d','e','o'),
   HB_OT_LAYOUT_BASELINE_IDTB = HB_TAG('i','d','t','b'),
   HB_OT_LAYOUT_BASELINE_MATH = HB_TAG('m','a','t','h'),
-  HB_OT_LAYOUT_BASELINE_ROMN = HB_TAG('r','o','m','n')
+  HB_OT_LAYOUT_BASELINE_ROMN = HB_TAG('r','o','m','n'),
+
+	_HB_OT_LAYOUT_BASELINE_MAX_VALUE= HB_TAG_MAX_SIGNED /*< skip >*/
 } hb_ot_layout_baseline_t;
 
 
