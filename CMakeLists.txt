@@ -142,8 +142,8 @@ endif ()
 
 ## Extract variables from Makefile files
 function (extract_make_variable variable makefile_source)
-  string(REGEX MATCH "${variable} = ([^$]+)\\$" temp ${makefile_source})
-  string(REGEX MATCHALL "[^ \n\t\\]+" listVar ${CMAKE_MATCH_1})
+  string(REGEX MATCH "${variable} = ([^$]+)\\$" temp "${makefile_source}")
+  string(REGEX MATCHALL "[^ \n\t\\]+" listVar "${CMAKE_MATCH_1}")
   set (${variable} ${listVar} PARENT_SCOPE)
 endfunction ()
 
