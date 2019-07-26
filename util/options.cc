@@ -370,6 +370,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
       hb_codepoint_t u = strtoul (s, &p, 16);
       if (errno || s == p)
       {
+        g_string_free (gs, TRUE);
         g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
   		   "Failed parsing Unicode values at: '%s'", s);
         return false;
