@@ -195,8 +195,8 @@ struct FeatMinMaxRecord
 struct MinMax
 {
   void get_min_max (hb_tag_t          feature_tag,
-			   const BaseCoord **min,
-			   const BaseCoord **max) const
+		    const BaseCoord **min,
+		    const BaseCoord **max) const
   {
     /* TODO Replace hb_bsearch() with .bsearch(). */
     const FeatMinMaxRecord *minMaxCoord = (const FeatMinMaxRecord *)
@@ -412,9 +412,9 @@ struct BaseScriptList
 struct Axis
 {
   bool get_baseline (hb_ot_layout_baseline_t   baseline,
-			    hb_tag_t                  script_tag,
-			    hb_tag_t                  language_tag,
-			    const BaseCoord         **coord) const
+		     hb_tag_t                  script_tag,
+		     hb_tag_t                  language_tag,
+		     const BaseCoord         **coord) const
   {
     const BaseScript &base_script = (this+baseScriptList).get_base_script (script_tag);
     if (base_script.is_empty ()) return false;
