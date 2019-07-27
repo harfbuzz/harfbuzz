@@ -342,6 +342,7 @@ hb_font_set_user_data
 hb_font_set_variations
 hb_font_set_var_coords_design
 hb_font_set_var_coords_normalized
+hb_font_set_var_named_instance
 hb_font_subtract_glyph_origin_for_direction
 hb_font_t
 hb_reference_table_func_t

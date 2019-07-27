@@ -1861,6 +1861,7 @@ hb_font_set_variations (hb_font_t *font,
 				  normalized, coords_length);
   _hb_font_adopt_var_coords_normalized (font, normalized, coords_length);
 }
+
 /**
  * hb_font_set_var_coords_design:
  *
@@ -1880,6 +1881,33 @@ hb_font_set_var_coords_design (hb_font_t *font,
 
   hb_ot_var_normalize_coords (font->face, coords_length, coords, normalized);
   _hb_font_adopt_var_coords_normalized (font, normalized, coords_length);
+}
+
+/**
+ * hb_font_set_var_named_instance:
+ * @font: a font.
+ * @instance_index: named instance index.
+ *
+ * Sets design coords of a font from a named instance index.
+ *
+ * Since: REPLACEME
+ */
+void
+hb_font_set_var_named_instance (hb_font_t *font,
+				unsigned instance_index)
+{
+  if (hb_object_is_immutable (font))
+    return;
+
+  unsigned int coords_length = hb_ot_var_named_instance_get_design_coords (font->face, instance_index, nullptr, nullptr);
+
+  float *coords = coords_length ? (float *) calloc (coords_length, sizeof (float)) : nullptr;
+  if (unlikely (coords_length && !coords))
+    return;
+
+  hb_ot_var_named_instance_get_design_coords (font->face, instance_index, &coords_length, coords);
+  hb_font_set_var_coords_design (font, coords, coords_length);
+  free (coords);
 }
 #endif
 
