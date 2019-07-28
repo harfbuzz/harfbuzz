@@ -267,8 +267,7 @@ struct BaseLangSysRecord
 
   bool has_data () const { return baseLangSysTag; }
 
-  const MinMax &get_min_max () const
-  { return this+minMax; }
+  const MinMax &get_min_max () const { return this+minMax; }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -450,7 +449,7 @@ struct BASE
 		     hb_tag_t                 language_tag,
 		     hb_position_t           *base) const
   {
-    const BaseCoord *base_coord;
+    const BaseCoord *base_coord = nullptr;
     if (unlikely (!get_axis (direction).get_baseline (baseline, script_tag, language_tag, &base_coord) &&
 		  base_coord && !base_coord->has_data ()))
       return false;
