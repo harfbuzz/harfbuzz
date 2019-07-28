@@ -450,11 +450,11 @@ struct BASE
 		     hb_position_t           *base) const
   {
     const BaseCoord *base_coord = nullptr;
-    if (unlikely (!get_axis (direction).get_baseline (baseline, script_tag, language_tag, &base_coord) &&
-		  base_coord && !base_coord->has_data ()))
+    if (unlikely (!get_axis (direction).get_baseline (baseline, script_tag, language_tag, &base_coord) ||
+		  !base_coord || !base_coord->has_data ()))
       return false;
 
-    if (likely (base && base_coord))
+    if (likely (base))
       *base = base_coord->get_coord (font, get_var_store (), direction);
 
     return true;
