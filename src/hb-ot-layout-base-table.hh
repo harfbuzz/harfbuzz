@@ -116,6 +116,8 @@ struct BaseCoordFormat3
 
 struct BaseCoord
 {
+  bool has_data () const { return u.format; }
+
   hb_position_t get_coord (hb_font_t *font,
 			   const VariationStore &var_store,
 			   hb_direction_t direction) const
@@ -142,10 +144,10 @@ struct BaseCoord
 
   protected:
   union {
-    HBUINT16		format;
-    BaseCoordFormat1	format1;
-    BaseCoordFormat2	format2;
-    BaseCoordFormat3	format3;
+  HBUINT16		format;
+  BaseCoordFormat1	format1;
+  BaseCoordFormat2	format2;
+  BaseCoordFormat3	format3;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
@@ -449,7 +451,8 @@ struct BASE
 		     hb_position_t           *base) const
   {
     const BaseCoord *base_coord;
-    if (!get_axis (direction).get_baseline (baseline, script_tag, language_tag, &base_coord))
+    if (unlikely (!get_axis (direction).get_baseline (baseline, script_tag, language_tag, &base_coord) &&
+		  base_coord && !base_coord->has_data ()))
       return false;
 
     if (likely (base && base_coord))
