@@ -76,7 +76,7 @@ struct meta
     void fini () { table.destroy (); }
 
     hb_blob_t *reference_entry (hb_tag_t tag) const
-    { return table->dataMaps.lsearch (tag, Null (DataMap)).reference_entry (table.get_blob ()); }
+    { return table->dataMaps.lsearch (tag).reference_entry (table.get_blob ()); }
 
     unsigned int get_entries (unsigned int  start_offset,
 			      unsigned int *count,
