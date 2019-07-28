@@ -351,10 +351,8 @@ struct BaseScriptList
   const BaseScript &get_base_script (hb_tag_t script) const
   {
     const BaseScriptRecord *record = &baseScriptRecords.bsearch (script);
-    /* TODO: Or client should handle fallback? */
     if (!record->has_data ()) record = &baseScriptRecords.bsearch (HB_TAG ('D','F','L','T'));
-
-    return record ? record->get_base_script (this) : Null (BaseScript);
+    return record->has_data () ? record->get_base_script (this) : Null (BaseScript);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
