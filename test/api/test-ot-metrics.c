@@ -31,7 +31,7 @@
 /* Unit tests for hb-ot-metrics.h */
 
 static void
-test_ot_metrics_get (void)
+test_ot_metrics_get_no_var (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cpal-v0.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -40,7 +40,30 @@ test_ot_metrics_get (void)
   g_assert_cmpint (value, ==, 1000);
   g_assert_cmpint (hb_ot_metrics_get_x_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
   g_assert_cmpint (hb_ot_metrics_get_y_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
+  g_assert_cmpint (hb_ot_metrics_get_x_variation (font, HB_OT_METRICS_X_HEIGHT), ==, 0);
   // g_assert_cmpint ((int) hb_ot_metrics_get_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_ot_metrics_get_var (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/TestCFF2VF.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_position_t value;
+  g_assert (hb_ot_metrics_get_position (font, HB_OT_METRICS_X_HEIGHT, &value));
+  g_assert_cmpint (value, ==, 486);
+  g_assert_cmpint (hb_ot_metrics_get_x_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
+  g_assert_cmpint (hb_ot_metrics_get_y_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
+  g_assert_cmpint (hb_ot_metrics_get_x_variation (font, HB_OT_METRICS_X_HEIGHT), ==, 0);
+  float coords[] = {100.f};
+  hb_font_set_var_coords_design (font, coords, 1);
+  g_assert (hb_ot_metrics_get_position (font, HB_OT_METRICS_X_HEIGHT, &value));
+  g_assert_cmpint (value, ==,  478);
+  g_assert_cmpint (hb_ot_metrics_get_x_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
+  g_assert_cmpint (hb_ot_metrics_get_y_variation (font, HB_OT_METRICS_HORIZONTAL_ASCENDER), ==, 0);
+  g_assert_cmpint (hb_ot_metrics_get_x_variation (font, HB_OT_METRICS_X_HEIGHT), ==, -8);
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
@@ -49,6 +72,7 @@ int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
-  hb_test_add (test_ot_metrics_get);
+  hb_test_add (test_ot_metrics_get_no_var);
+  hb_test_add (test_ot_metrics_get_var);
   return hb_test_run ();
 }

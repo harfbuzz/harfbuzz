@@ -36,7 +36,7 @@ HB_BEGIN_DECLS
 
 
 /**
- * hb_ot_metrics_t:
+ * hb_ot_metrics_tag_t:
  *
  * From https://docs.microsoft.com/en-us/typography/opentype/spec/mvar#value-tags
  *
@@ -70,22 +70,24 @@ typedef enum {
   HB_OT_METRICS_STRIKEOUT_SIZE			= HB_TAG ('s','t','r','s'),
   HB_OT_METRICS_STRIKEOUT_OFFSET		= HB_TAG ('s','t','r','o'),
   HB_OT_METRICS_UNDERLINE_SIZE			= HB_TAG ('u','n','d','s'),
-  HB_OT_METRICS_UNDERLINE_OFFSET		= HB_TAG ('u','n','d','o')
-} hb_ot_metrics_t;
+  HB_OT_METRICS_UNDERLINE_OFFSET		= HB_TAG ('u','n','d','o'),
+
+  _HB_OT_METRICS_MAX_VALUE = HB_TAG_MAX_SIGNED /*< skip >*/
+} hb_ot_metrics_tag_t;
 
 HB_EXTERN hb_bool_t
-hb_ot_metrics_get_position (hb_font_t       *font,
-			    hb_ot_metrics_t  metrics_tag,
-			    hb_position_t   *position     /* OUT.  May be NULL. */);
+hb_ot_metrics_get_position (hb_font_t           *font,
+			    hb_ot_metrics_tag_t  metrics_tag,
+			    hb_position_t       *position     /* OUT.  May be NULL. */);
 
 HB_EXTERN float
-hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag);
+hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag);
 
 HB_EXTERN hb_position_t
-hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag);
+hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag);
 
 HB_EXTERN hb_position_t
-hb_ot_metrics_get_y_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag);
+hb_ot_metrics_get_y_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag);
 
 HB_END_DECLS
 

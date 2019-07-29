@@ -34,7 +34,7 @@
 
 
 static float
-_fix_ascender_descender (float value, hb_ot_metrics_t metrics_tag)
+_fix_ascender_descender (float value, hb_ot_metrics_tag_t metrics_tag)
 {
   if (metrics_tag == HB_OT_METRICS_HORIZONTAL_ASCENDER ||
       metrics_tag == HB_OT_METRICS_VERTICAL_ASCENDER)
@@ -48,12 +48,12 @@ _fix_ascender_descender (float value, hb_ot_metrics_t metrics_tag)
 /* The common part of _get_position logic needed on hb-ot-font and here
    to be able to have slim builds without the not always needed parts */
 bool
-_hb_ot_metrics_get_position_common (hb_font_t       *font,
-				    hb_ot_metrics_t  metrics_tag,
-				    hb_position_t   *position     /* OUT.  May be NULL. */)
+_hb_ot_metrics_get_position_common (hb_font_t           *font,
+				    hb_ot_metrics_tag_t  metrics_tag,
+				    hb_position_t       *position     /* OUT.  May be NULL. */)
 {
   hb_face_t *face = font->face;
-  switch ((unsigned int) metrics_tag)
+  switch ((unsigned) metrics_tag)
   {
 #ifndef HB_NO_VAR
 #define GET_VAR face->table.MVAR->get_var (metrics_tag, font->coords, font->num_coords)
@@ -91,7 +91,7 @@ _hb_ot_metrics_get_position_common (hb_font_t       *font,
 
 #if 0
 static bool
-_get_gasp (hb_face_t *face, float *result, hb_ot_metrics_t metrics_tag)
+_get_gasp (hb_face_t *face, float *result, hb_ot_metrics_tag_t metrics_tag)
 {
   const OT::GaspRange& range = face->table.gasp->get_gasp_range (metrics_tag - HB_TAG ('g','s','p','0'));
   if (&range == &Null (OT::GaspRange)) return false;
@@ -99,6 +99,14 @@ _get_gasp (hb_face_t *face, float *result, hb_ot_metrics_t metrics_tag)
   return true;
 }
 #endif
+
+/* Private tags for https://github.com/harfbuzz/harfbuzz/issues/1866 */
+#define _HB_OT_METRICS_HORIZONTAL_ASCENDER_OS2   HB_TAG ('O','a','s','c')
+#define _HB_OT_METRICS_HORIZONTAL_ASCENDER_HHEA  HB_TAG ('H','a','s','c')
+#define _HB_OT_METRICS_HORIZONTAL_DESCENDER_OS2  HB_TAG ('O','d','s','c')
+#define _HB_OT_METRICS_HORIZONTAL_DESCENDER_HHEA HB_TAG ('H','d','s','c')
+#define _HB_OT_METRICS_HORIZONTAL_LINE_GAP_OS2   HB_TAG ('O','l','g','p')
+#define _HB_OT_METRICS_HORIZONTAL_LINE_GAP_HHEA  HB_TAG ('H','l','g','p')
 
 /**
  * hb_ot_metrics_get_position:
@@ -112,12 +120,12 @@ _get_gasp (hb_face_t *face, float *result, hb_ot_metrics_t metrics_tag)
  * Since: REPLACEME
  **/
 hb_bool_t
-hb_ot_metrics_get_position (hb_font_t       *font,
-			    hb_ot_metrics_t  metrics_tag,
-			    hb_position_t   *position     /* OUT.  May be NULL. */)
+hb_ot_metrics_get_position (hb_font_t           *font,
+			    hb_ot_metrics_tag_t  metrics_tag,
+			    hb_position_t       *position     /* OUT.  May be NULL. */)
 {
   hb_face_t *face = font->face;
-  switch (metrics_tag)
+  switch ((unsigned) metrics_tag)
   {
   case HB_OT_METRICS_HORIZONTAL_ASCENDER:
   case HB_OT_METRICS_HORIZONTAL_DESCENDER:
@@ -158,6 +166,14 @@ hb_ot_metrics_get_position (hb_font_t       *font,
   case HB_OT_METRICS_STRIKEOUT_OFFSET:            return GET_METRIC_Y (OS2, yStrikeoutPosition);
   case HB_OT_METRICS_UNDERLINE_SIZE:              return GET_METRIC_Y (post->table, underlineThickness);
   case HB_OT_METRICS_UNDERLINE_OFFSET:            return GET_METRIC_Y (post->table, underlinePosition);
+
+  /* Private tags */
+  case _HB_OT_METRICS_HORIZONTAL_ASCENDER_OS2:    return GET_METRIC_Y (OS2, sTypoAscender);
+  case _HB_OT_METRICS_HORIZONTAL_ASCENDER_HHEA:   return GET_METRIC_Y (hhea, ascender);
+  case _HB_OT_METRICS_HORIZONTAL_DESCENDER_OS2:   return GET_METRIC_Y (OS2, sTypoDescender);
+  case _HB_OT_METRICS_HORIZONTAL_DESCENDER_HHEA:  return GET_METRIC_Y (hhea, descender);
+  case _HB_OT_METRICS_HORIZONTAL_LINE_GAP_OS2:    return GET_METRIC_Y (OS2, sTypoLineGap);
+  case _HB_OT_METRICS_HORIZONTAL_LINE_GAP_HHEA:   return GET_METRIC_Y (hhea, lineGap);
 #undef GET_METRIC_Y
 #undef GET_METRIC_X
 #undef GET_VAR
@@ -176,7 +192,7 @@ hb_ot_metrics_get_position (hb_font_t       *font,
  * Since: REPLACEME
  **/
 float
-hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
+hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
 {
   return font->face->table.MVAR->get_var (metrics_tag, font->coords, font->num_coords);
 }
@@ -191,7 +207,7 @@ hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
  * Since: REPLACEME
  **/
 hb_position_t
-hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
+hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
 {
   return font->em_scalef_x (hb_ot_metrics_get_variation (font, metrics_tag));
 }
@@ -206,7 +222,7 @@ hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
  * Since: REPLACEME
  **/
 hb_position_t
-hb_ot_metrics_get_y_variation (hb_font_t *font, hb_ot_metrics_t metrics_tag)
+hb_ot_metrics_get_y_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
 {
   return font->em_scalef_y (hb_ot_metrics_get_variation (font, metrics_tag));
 }

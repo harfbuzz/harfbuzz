@@ -17,6 +17,7 @@
 #include "hb-ot-layout.cc"
 #include "hb-ot-map.cc"
 #include "hb-ot-math.cc"
+#include "hb-ot-meta.cc"
 #include "hb-ot-metrics.cc"
 #include "hb-ot-name.cc"
 #include "hb-ot-shape-complex-arabic.cc"

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018  Ebrahim Byagowi
+ * Copyright © 2019  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,14 +22,44 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_OT_METRICS_HH
-#define HB_OT_METRICS_HH
+#ifndef HB_OT_H_IN
+#error "Include <hb-ot.h> instead."
+#endif
 
-#include "hb.hh"
+#ifndef HB_OT_META_H
+#define HB_OT_META_H
 
-HB_INTERNAL bool
-_hb_ot_metrics_get_position_common (hb_font_t           *font,
-				    hb_ot_metrics_tag_t  metrics_tag,
-				    hb_position_t       *position     /* OUT.  May be NULL. */);
+#include "hb.h"
 
-#endif /* HB_OT_METRICS_HH */
+HB_BEGIN_DECLS
+
+/**
+ * hb_ot_meta_tag_t:
+ *
+ * From https://docs.microsoft.com/en-us/typography/opentype/spec/meta
+ *
+ * Since: REPLACEME
+ **/
+typedef enum {
+/*
+   HB_OT_META_APPL		= HB_TAG ('a','p','p','l'),
+   HB_OT_META_BILD		= HB_TAG ('b','i','l','d'),
+*/
+  HB_OT_META_DESIGN_LANGUAGES	= HB_TAG ('d','l','n','g'),
+  HB_OT_META_SUPPORTED_LANGUAGES= HB_TAG ('s','l','n','g'),
+
+  _HB_OT_META_MAX_VALUE		= HB_TAG_MAX_SIGNED /*< skip >*/
+} hb_ot_meta_tag_t;
+
+HB_EXTERN unsigned int
+hb_ot_meta_get_entries (hb_face_t        *face,
+			unsigned int      start_offset,
+			unsigned int     *entries_count, /* IN/OUT.  May be NULL. */
+			hb_ot_meta_tag_t *entries        /* OUT.     May be NULL. */);
+
+HB_EXTERN hb_blob_t *
+hb_ot_meta_reference_entry (hb_face_t *face, hb_ot_meta_tag_t meta_tag);
+
+HB_END_DECLS
+
+#endif /* HB_OT_META_H */

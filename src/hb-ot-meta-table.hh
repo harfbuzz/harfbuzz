@@ -32,7 +32,7 @@
  * https://docs.microsoft.com/en-us/typography/opentype/spec/meta
  * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6meta.html
  */
-#define HB_OT_TAG_meta HB_TAG('m','e','t','a')
+#define HB_OT_TAG_meta HB_TAG ('m','e','t','a')
 
 
 namespace OT {
@@ -40,6 +40,13 @@ namespace OT {
 
 struct DataMap
 {
+  int cmp (hb_tag_t a) const { return tag.cmp (a); }
+
+  hb_tag_t get_tag () const { return tag; }
+
+  hb_blob_t *reference_entry (hb_blob_t *meta_blob) const
+  { return hb_blob_create_sub_blob (meta_blob, dataZ, dataLength); }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -62,6 +69,32 @@ struct meta
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_meta;
 
+  struct accelerator_t
+  {
+    void init (hb_face_t *face)
+    { table = hb_sanitize_context_t ().reference_table<meta> (face); }
+    void fini () { table.destroy (); }
+
+    hb_blob_t *reference_entry (hb_tag_t tag) const
+    { return table->dataMaps.lsearch (tag).reference_entry (table.get_blob ()); }
+
+    unsigned int get_entries (unsigned int      start_offset,
+			      unsigned int     *count,
+			      hb_ot_meta_tag_t *entries) const
+    {
+      if (count)
+      {
+	hb_array_t<const DataMap> arr = table->dataMaps.sub_array (start_offset, count);
+	for (unsigned int i = 0; i < arr.length; i++)
+	  entries[i] = (hb_ot_meta_tag_t) arr[i].get_tag ();
+      }
+      return table->dataMaps.len;
+    }
+
+    private:
+    hb_blob_ptr_t<meta> table;
+  };
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -82,6 +115,8 @@ struct meta
   public:
   DEFINE_SIZE_ARRAY (16, dataMaps);
 };
+
+struct meta_accelerator_t : meta::accelerator_t {};
 
 } /* namespace OT */
 
