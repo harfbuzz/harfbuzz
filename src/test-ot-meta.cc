@@ -50,8 +50,8 @@ main (int argc, char **argv)
 #ifndef HB_NO_META
   count = hb_ot_meta_get_entries (face, 0, nullptr, nullptr);
 
-  hb_ot_meta_t *tags = (hb_ot_meta_t *)
-		       malloc (sizeof (hb_ot_meta_t) * count);
+  hb_ot_meta_tag_t *tags = (hb_ot_meta_tag_t *)
+			   malloc (sizeof (hb_ot_meta_tag_t) * count);
   hb_ot_meta_get_entries (face, 0, &count, tags);
   for (unsigned i = 0; i < count; ++i)
   {
