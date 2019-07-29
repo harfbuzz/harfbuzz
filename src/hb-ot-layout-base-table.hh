@@ -32,9 +32,6 @@
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
 
-/* To be removed */
-typedef hb_tag_t hb_ot_layout_baseline_t;
-
 namespace OT {
 
 /*
@@ -118,9 +115,9 @@ struct BaseCoord
 {
   bool has_data () const { return u.format; }
 
-  hb_position_t get_coord (hb_font_t *font,
+  hb_position_t get_coord (hb_font_t            *font,
 			   const VariationStore &var_store,
-			   hb_direction_t direction) const
+			   hb_direction_t        direction) const
   {
     switch (u.format) {
     case 1: return u.format1.get_coord ();
@@ -376,10 +373,10 @@ struct BaseScriptList
 
 struct Axis
 {
-  bool get_baseline (hb_ot_layout_baseline_t   baseline,
-		     hb_tag_t                  script_tag,
-		     hb_tag_t                  language_tag,
-		     const BaseCoord         **coord) const
+  bool get_baseline (hb_tag_t          baseline_tag,
+		     hb_tag_t          script_tag,
+		     hb_tag_t          language_tag,
+		     const BaseCoord **coord) const
   {
     const BaseScript &base_script = (this+baseScriptList).get_base_script (script_tag);
     if (!base_script.has_data ()) return false;
@@ -387,7 +384,7 @@ struct Axis
     if (likely (coord))
     {
       unsigned int tag_index = 0;
-      (this+baseTagList).bfind (baseline, &tag_index);
+      (this+baseTagList).bfind (baseline_tag, &tag_index);
       *coord = &base_script.get_base_coord (tag_index);
     }
 
@@ -442,15 +439,15 @@ struct BASE
   const VariationStore &get_var_store () const
   { return version.to_int () < 0x00010001u ? Null (VariationStore) : this+varStore; }
 
-  bool get_baseline (hb_font_t               *font,
-		     hb_ot_layout_baseline_t  baseline,
-		     hb_direction_t           direction,
-		     hb_tag_t                 script_tag,
-		     hb_tag_t                 language_tag,
-		     hb_position_t           *base) const
+  bool get_baseline (hb_font_t      *font,
+		     hb_tag_t        baseline_tag,
+		     hb_direction_t  direction,
+		     hb_tag_t        script_tag,
+		     hb_tag_t        language_tag,
+		     hb_position_t  *base) const
   {
     const BaseCoord *base_coord = nullptr;
-    if (unlikely (!get_axis (direction).get_baseline (baseline, script_tag, language_tag, &base_coord) ||
+    if (unlikely (!get_axis (direction).get_baseline (baseline_tag, script_tag, language_tag, &base_coord) ||
 		  !base_coord || !base_coord->has_data ()))
       return false;
 
