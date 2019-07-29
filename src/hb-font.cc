@@ -1300,6 +1300,8 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
 
   1000, /* x_scale */
   1000, /* y_scale */
+  1<<16, /* x_mult */
+  1<<16, /* y_mult */
 
   0, /* x_ppem */
   0, /* y_ppem */
@@ -1330,6 +1332,7 @@ _hb_font_create (hb_face_t *face)
   font->klass = hb_font_funcs_get_empty ();
   font->data.init0 (font);
   font->x_scale = font->y_scale = hb_face_get_upem (face);
+  font->x_mult = font->y_mult = 1 << 16;
 
   return font;
 }
@@ -1601,7 +1604,9 @@ hb_font_set_face (hb_font_t *font,
 
   hb_face_t *old = font->face;
 
+  hb_face_make_immutable (face);
   font->face = hb_face_reference (face);
+  font->mults_changed ();
 
   hb_face_destroy (old);
 }
@@ -1711,6 +1716,7 @@ hb_font_set_scale (hb_font_t *font,
 
   font->x_scale = x_scale;
   font->y_scale = y_scale;
+  font->mults_changed ();
 }
 
 /**

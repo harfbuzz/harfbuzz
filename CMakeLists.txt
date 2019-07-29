@@ -43,6 +43,7 @@ if (APPLE)
 endif ()
 if (WIN32)
   option(HB_HAVE_UNISCRIBE "Enable Uniscribe shaper backend on Windows" OFF)
+  option(HB_HAVE_GDI "Enable GDI integration helpers on Windows" OFF)
   option(HB_HAVE_DIRECTWRITE "Enable DirectWrite shaper backend on Windows" OFF)
 endif ()
 option(HB_BUILD_UTILS "Build harfbuzz utils, needs cairo, freetype, and glib properly be installed" OFF)
@@ -77,6 +78,7 @@ if (HB_CHECK)
   set (HB_HAVE_GRAPHITE2 ON)
   if (WIN32)
     set (HB_HAVE_UNISCRIBE ON)
+    set (HB_HAVE_GDI ON)
     set (HB_HAVE_DIRECTWRITE ON)
   elseif (APPLE)
     set (HB_HAVE_CORETEXT ON)
@@ -140,8 +142,8 @@ endif ()
 
 ## Extract variables from Makefile files
 function (extract_make_variable variable makefile_source)
-  string(REGEX MATCH "${variable} = ([^$]+)\\$" temp ${makefile_source})
-  string(REGEX MATCHALL "[^ \n\t\\]+" listVar ${CMAKE_MATCH_1})
+  string(REGEX MATCH "${variable} = ([^$]+)\\$" temp "${makefile_source}")
+  string(REGEX MATCHALL "[^ \n\t\\]+" listVar "${CMAKE_MATCH_1}")
   set (${variable} ${listVar} PARENT_SCOPE)
 endfunction ()
 
@@ -157,8 +159,6 @@ endfunction ()
 file(READ ${PROJECT_SOURCE_DIR}/src/Makefile.sources SRCSOURCES)
 file(READ ${PROJECT_SOURCE_DIR}/util/Makefile.sources UTILSOURCES)
 
-extract_make_variable(HB_BASE_sources ${SRCSOURCES})
-add_prefix_to_list(HB_BASE_sources "${PROJECT_SOURCE_DIR}/src/")
 extract_make_variable(HB_BASE_headers ${SRCSOURCES})
 add_prefix_to_list(HB_BASE_headers "${PROJECT_SOURCE_DIR}/src/")
 
@@ -192,59 +192,12 @@ set (HB_VERSION_MAJOR ${CMAKE_MATCH_2})
 set (HB_VERSION_MINOR ${CMAKE_MATCH_3})
 set (HB_VERSION_MICRO ${CMAKE_MATCH_4})
 
-
-## Define ragel tasks
-# if (NOT IN_HB_DIST)
-#  foreach (ragel_output IN ITEMS ${HB_BASE_RAGEL_GENERATED_sources})
-#    string(REGEX MATCH "([^/]+)\\.hh" temp ${ragel_output})
-#    set (target_name ${CMAKE_MATCH_1})
-#    add_custom_command(OUTPUT ${ragel_output}
-#      COMMAND ${RAGEL} -G2 -o ${ragel_output} ${PROJECT_SOURCE_DIR}/src/${target_name}.rl -I ${PROJECT_SOURCE_DIR} ${ARGN}
-#      DEPENDS ${PROJECT_SOURCE_DIR}/src/${target_name}.rl
-#    )
-#    add_custom_target(harfbuzz_${target_name} DEPENDS ${PROJECT_BINARY_DIR}/src/${target_name})
-#  endforeach ()
-
-#  mark_as_advanced(RAGEL)
-# endif ()
-
-
-## Generate hb-version.h
-# if (NOT IN_HB_DIST)
-#  set (HB_VERSION_H_IN "${PROJECT_SOURCE_DIR}/src/hb-version.h.in")
-#  set (HB_VERSION_H "${PROJECT_BINARY_DIR}/src/hb-version.h")
-#  set_source_files_properties("${HB_VERSION_H}" PROPERTIES GENERATED true)
-#  configure_file("${HB_VERSION_H_IN}" "${HB_VERSION_H}.tmp" @ONLY)
-#  execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different
-#    "${HB_VERSION_H}.tmp"
-#    "${HB_VERSION_H}"
-#  )
-#  file(REMOVE "${HB_VERSION_H}.tmp")
-# endif ()
-
-
 ## Define sources and headers of the project
-set (project_sources
-  ${HB_BASE_sources}
-  ${HB_BASE_RAGEL_GENERATED_sources}
-)
-
-set (subset_project_sources
-  ${HB_SUBSET_sources}
-)
-
+set (project_sources ${PROJECT_SOURCE_DIR}/src/harfbuzz.cc) # use amalgam source
+set (subset_project_sources ${HB_SUBSET_sources})
 set (project_extra_sources)
-
-set (project_headers
-  #${HB_VERSION_H}
-
-  ${HB_BASE_headers}
-)
-
-set (subset_project_headers
-  ${HB_SUBSET_headers}
-)
-
+set (project_headers ${HB_BASE_headers})
+set (subset_project_headers ${HB_SUBSET_headers})
 
 ## Find and include needed header folders and libraries
 if (HB_HAVE_FREETYPE)
@@ -257,7 +210,6 @@ if (HB_HAVE_FREETYPE)
   include_directories(AFTER ${FREETYPE_INCLUDE_DIRS})
   add_definitions(-DHAVE_FREETYPE=1)
 
-  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-ft.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-ft.h)
 
   # So check_funcs can find its headers
@@ -275,7 +227,6 @@ if (HB_HAVE_GRAPHITE2)
 
   include_directories(${GRAPHITE2_INCLUDE_DIR})
 
-  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-graphite2.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-graphite2.h)
 
   list(APPEND THIRD_PARTY_LIBS ${GRAPHITE2_LIBRARY})
@@ -296,7 +247,6 @@ if (HB_HAVE_GLIB)
 
   include_directories(${GLIBCONFIG_INCLUDE_DIR} ${GLIB_INCLUDE_DIR})
 
-  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-glib.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-glib.h)
 
   list(APPEND THIRD_PARTY_LIBS ${GLIB_LIBRARIES})
@@ -316,7 +266,6 @@ if (HB_HAVE_ICU)
 
   include_directories(${ICU_INCLUDE_DIR})
 
-  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-icu.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-icu.h)
 
   list(APPEND THIRD_PARTY_LIBS ${ICU_LIBRARY})
@@ -328,7 +277,6 @@ if (APPLE AND HB_HAVE_CORETEXT)
   # Apple Advanced Typography
   add_definitions(-DHAVE_CORETEXT)
 
-  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-coretext.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-coretext.h)
 
   if (HB_IOS)
@@ -359,21 +307,21 @@ if (APPLE AND HB_HAVE_CORETEXT)
   endif ()
 endif ()
 
+if (WIN32 AND HB_HAVE_GDI)
+  add_definitions(-DHAVE_GDI)
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-gdi.h)
+  list(APPEND THIRD_PARTY_LIBS gdi32)
+endif ()
+
 if (WIN32 AND HB_HAVE_UNISCRIBE)
   add_definitions(-DHAVE_UNISCRIBE)
-
-  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-uniscribe.h)
-
   list(APPEND THIRD_PARTY_LIBS usp10 gdi32 rpcrt4)
 endif ()
 
 if (WIN32 AND HB_HAVE_DIRECTWRITE)
   add_definitions(-DHAVE_DIRECTWRITE)
-
-  list(APPEND project_sources ${PROJECT_SOURCE_DIR}/src/hb-directwrite.cc)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
-
   list(APPEND THIRD_PARTY_LIBS dwrite rpcrt4)
 endif ()
 
@@ -480,7 +428,6 @@ if (HB_HAVE_GOBJECT)
       ${project_headers}
   )
 endif ()
-
 
 ## Atomic ops availability detection
 file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
@@ -590,7 +537,6 @@ if (WIN32)
 endif ()
 
 if (HB_HAVE_INTROSPECTION)
-
   find_package(PkgConfig)
   pkg_check_modules(PC_GI QUIET gobject-introspection-1.0)
 
@@ -824,7 +770,7 @@ endif ()
 
 if (HB_BUILD_TESTS)
   ## src/ executables
-  foreach (prog main test test-gsub-would-substitute test-gpos-size-params test-buffer-serialize hb-ot-tag test-unicode-ranges)
+  foreach (prog main test test-gsub-would-substitute test-gpos-size-params test-buffer-serialize test-unicode-ranges) # hb-ot-tag
     set (prog_name ${prog})
     if (${prog_name} STREQUAL "test")
       # test can not be used as a valid executable name on cmake, lets special case it
@@ -833,7 +779,7 @@ if (HB_BUILD_TESTS)
     add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
     target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
   endforeach ()
-  set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
+  # set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
 
   ## Tests
   if (UNIX OR MINGW)

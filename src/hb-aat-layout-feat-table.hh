@@ -174,9 +174,7 @@ struct feat
   }
 
   const FeatureName& get_feature (hb_aat_layout_feature_type_t feature_type) const
-  {
-    return namesZ.bsearch (featureNameCount, feature_type);
-  }
+  { return namesZ.bsearch (featureNameCount, feature_type); }
 
   hb_ot_name_id_t get_feature_name_id (hb_aat_layout_feature_type_t feature) const
   { return get_feature (feature).get_feature_name_id (); }

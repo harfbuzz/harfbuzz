@@ -733,7 +733,7 @@ struct PairPosFormat1
     + hb_zip (this+coverage, pairSet)
     | hb_filter (*glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_map ([=] (const OffsetTo<PairSet> &_)
+    | hb_map ([glyphs, this] (const OffsetTo<PairSet> &_)
 	      { return (this+_).intersects (glyphs, valueFormat); })
     | hb_any
     ;

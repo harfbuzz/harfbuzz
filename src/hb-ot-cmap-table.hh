@@ -878,7 +878,7 @@ struct cmap
     cmap_plan->has_ms_bmp = find_subtable (3, 1);
     cmap_plan->has_ms_ucs4 = find_subtable (3, 10);
     cmap_plan->num_enc_records = cmap_plan->has_unicode_bmp + cmap_plan->has_unicode_ucs4 + cmap_plan->has_ms_bmp + cmap_plan->has_ms_ucs4;
-  
+
     if (unlikely (!CmapSubtableFormat4::create_sub_table_plan (plan, &cmap_plan->format4_segments)))
       return false;
 
@@ -978,6 +978,14 @@ struct cmap
       CmapSubtableFormat12 &format12 = subtable.u.format12;
       if (unlikely (!format12.serialize (&c, cmap_subset_plan.format12_groups)))
 	return false;
+    }
+    else
+    {
+      // FIXME: Merge this with above or, remove and tweak #final_size
+      // and rebase all the tests expectations
+      HBUINT32 empty;
+      empty = 0;
+      for (unsigned int i = 0; i < 4; ++i) c.copy (empty);
     }
 
     c.end_serialize ();

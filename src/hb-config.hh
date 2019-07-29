@@ -66,6 +66,8 @@
 #define HB_NO_LAYOUT_COLLECT_GLYPHS
 #define HB_NO_LAYOUT_UNUSED
 #define HB_NO_MATH
+#define HB_NO_META
+#define HB_NO_METRICS
 #define HB_NO_MMAP
 #define HB_NO_NAME
 #define HB_NO_OPEN

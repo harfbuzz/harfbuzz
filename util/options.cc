@@ -349,28 +349,37 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   }
 
   GString *gs = g_string_new (nullptr);
-  char *s = (char *) arg;
-  char *p;
-
-  while (s && *s)
+  if (0 == strcmp (arg, "*")) 
   {
-    while (*s && strchr (DELIMITERS, *s))
-      s++;
-    if (!*s)
-      break;
+    g_string_append_c (gs, '*');
+  }
+  else
+  {
 
-    errno = 0;
-    hb_codepoint_t u = strtoul (s, &p, 16);
-    if (errno || s == p)
+    char *s = (char *) arg;
+    char *p;
+  
+    while (s && *s)
     {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Failed parsing Unicode values at: '%s'", s);
-      return false;
+      while (*s && strchr (DELIMITERS, *s))
+        s++;
+      if (!*s)
+        break;
+  
+      errno = 0;
+      hb_codepoint_t u = strtoul (s, &p, 16);
+      if (errno || s == p)
+      {
+        g_string_free (gs, TRUE);
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+  		   "Failed parsing Unicode values at: '%s'", s);
+        return false;
+      }
+  
+      g_string_append_unichar (gs, u);
+  
+      s = p;
     }
-
-    g_string_append_unichar (gs, u);
-
-    s = p;
   }
 
   text_opts->text_len = gs->len;

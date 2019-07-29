@@ -248,7 +248,7 @@ struct SingleSubst
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
     unsigned format = 2;
     unsigned delta = 0;
-    if (glyphs.len ())
+    if (glyphs)
     {
       format = 1;
       auto get_delta = [=] (hb_codepoint_pair_t _) {

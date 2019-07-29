@@ -86,7 +86,7 @@
       objects. <function>hb_font_set_ppem(font, x_ppem,
       y_ppem)</function> sets the pixels-per-EM value of the font. You
       can also set the point size of the font with
-      <function>hb_font_set_ppem(font, ptem)</function>. HarfBuzz uses the
+      <function>hb_font_set_ptem(font, ptem)</function>. HarfBuzz uses the
       industry standard 72 points per inch.
     </para>
     <para>

@@ -378,7 +378,7 @@ typedef hb_vector_t<byte_str_t> byte_str_array_t;
 
 /* stack */
 template <typename ELEM, int LIMIT>
-struct stack_t
+struct cff_stack_t
 {
   void init ()
   {
@@ -469,7 +469,7 @@ struct stack_t
 
 /* argument stack */
 template <typename ARG=number_t>
-struct arg_stack_t : stack_t<ARG, 513>
+struct arg_stack_t : cff_stack_t<ARG, 513>
 {
   void push_int (int v)
   {
@@ -523,7 +523,7 @@ struct arg_stack_t : stack_t<ARG, 513>
   { return S::elements.sub_array (start); }
 
   private:
-  typedef stack_t<ARG, 513> S;
+  typedef cff_stack_t<ARG, 513> S;
 };
 
 /* an operator prefixed by its operands in a byte string */

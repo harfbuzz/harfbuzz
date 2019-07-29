@@ -539,11 +539,6 @@ protected:
   Run  mRunHead;
 };
 
-static inline uint16_t hb_uint16_swap (const uint16_t v)
-{ return (v >> 8) | (v << 8); }
-static inline uint32_t hb_uint32_swap (const uint32_t v)
-{ return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
-
 /*
  * shaper
  */
@@ -934,7 +929,7 @@ _hb_directwrite_table_data_release (void *data)
 }
 
 static hb_blob_t *
-reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
+_hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data)
 {
   IDWriteFontFace *dw_face = ((IDWriteFontFace *) user_data);
   const void *data;
@@ -979,7 +974,7 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
 {
   if (font_face)
     font_face->AddRef ();
-  return hb_face_create_for_tables (reference_table, font_face,
+  return hb_face_create_for_tables (_hb_directwrite_reference_table, font_face,
 				    _hb_directwrite_font_release);
 }
 
