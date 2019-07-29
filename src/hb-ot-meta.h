@@ -42,13 +42,13 @@ HB_BEGIN_DECLS
  **/
 typedef enum {
 /*
-   HB_OT_META_APPL		= HB_TAG ('a','p','p','l'),
-   HB_OT_META_BILD		= HB_TAG ('b','i','l','d'),
+   HB_OT_META_TAG_APPL		= HB_TAG ('a','p','p','l'),
+   HB_OT_META_TAG_BILD		= HB_TAG ('b','i','l','d'),
 */
-  HB_OT_META_DESIGN_LANGUAGES	= HB_TAG ('d','l','n','g'),
-  HB_OT_META_SUPPORTED_LANGUAGES= HB_TAG ('s','l','n','g'),
+  HB_OT_META_TAG_DESIGN_LANGUAGES	= HB_TAG ('d','l','n','g'),
+  HB_OT_META_TAG_SUPPORTED_LANGUAGES	= HB_TAG ('s','l','n','g'),
 
-  _HB_OT_META_MAX_VALUE		= HB_TAG_MAX_SIGNED /*< skip >*/
+  _HB_OT_META_TAG_MAX_VALUE = HB_TAG_MAX_SIGNED /*< skip >*/
 } hb_ot_meta_tag_t;
 
 HB_EXTERN unsigned int
