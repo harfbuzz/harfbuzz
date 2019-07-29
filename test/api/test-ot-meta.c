@@ -32,7 +32,7 @@ static void
 test_ot_meta_get_entries (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/meta.ttf");
-  hb_ot_meta_t entries[2];
+  hb_ot_meta_tag_t entries[2];
 
   unsigned int entries_count = 2;
   g_assert_cmpint (hb_ot_meta_get_entries (face, 0, &entries_count, entries), ==, 5);
@@ -61,10 +61,10 @@ test_ot_meta_reference_entry (void)
   g_assert_cmpint (hb_blob_get_length (dlng), ==, 8);
   g_assert_cmpmem (hb_blob_get_data (dlng, NULL), 8, "ar,de,fa", 8);
   hb_blob_destroy (dlng);
-  hb_blob_t *fslf = hb_ot_meta_reference_entry (face, (hb_ot_meta_t) HB_TAG ('f','s','l','f'));
+  hb_blob_t *fslf = hb_ot_meta_reference_entry (face, (hb_ot_meta_tag_t) HB_TAG ('f','s','l','f'));
   g_assert_cmpint (hb_blob_get_length (fslf), ==, 12);
   hb_blob_destroy (fslf);
-  hb_blob_t *nacl = hb_ot_meta_reference_entry (face, (hb_ot_meta_t) HB_TAG ('n','a','c','l'));
+  hb_blob_t *nacl = hb_ot_meta_reference_entry (face, (hb_ot_meta_tag_t) HB_TAG ('n','a','c','l'));
   g_assert_cmpint (hb_blob_get_length (nacl), ==, 0);
   hb_blob_destroy (nacl);
   hb_blob_t *slng = hb_ot_meta_reference_entry (face, HB_OT_META_SUPPORTED_LANGUAGES);

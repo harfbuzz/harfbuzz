@@ -32,7 +32,7 @@
  * https://docs.microsoft.com/en-us/typography/opentype/spec/meta
  * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6meta.html
  */
-#define HB_OT_TAG_meta HB_TAG('m','e','t','a')
+#define HB_OT_TAG_meta HB_TAG ('m','e','t','a')
 
 
 namespace OT {
@@ -78,15 +78,15 @@ struct meta
     hb_blob_t *reference_entry (hb_tag_t tag) const
     { return table->dataMaps.lsearch (tag).reference_entry (table.get_blob ()); }
 
-    unsigned int get_entries (unsigned int  start_offset,
-			      unsigned int *count,
-			      hb_ot_meta_t *entries) const
+    unsigned int get_entries (unsigned int      start_offset,
+			      unsigned int     *count,
+			      hb_ot_meta_tag_t *entries) const
     {
       if (count)
       {
 	hb_array_t<const DataMap> arr = table->dataMaps.sub_array (start_offset, count);
 	for (unsigned int i = 0; i < arr.length; i++)
-	  entries[i] = (hb_ot_meta_t) arr[i].get_tag ();
+	  entries[i] = (hb_ot_meta_tag_t) arr[i].get_tag ();
       }
       return table->dataMaps.len;
     }
