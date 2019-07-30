@@ -146,9 +146,8 @@ struct CPAL
       /* Always return numColors colors per palette even if it has out-of-bounds start index. */
       unsigned int count = hb_min ((unsigned) hb_max ((int) (numColors - start_offset), 0), *color_count);
       *color_count = count;
-      + segment_colors
-      | hb_sink (hb_array (colors, count))
-      ;
+      for (unsigned int i = 0; i < count; i++)
+        colors[i] = segment_colors[i]; /* Bound-checked read. */
     }
     return numColors;
   }
