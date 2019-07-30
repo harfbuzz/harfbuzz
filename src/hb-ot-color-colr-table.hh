@@ -100,7 +100,7 @@ struct COLR
   {
     const BaseGlyphRecord &record = (this+baseGlyphsZ).bsearch (numBaseGlyphs, glyph);
 
-    hb_array_t<const LayerRecord> all_layers ((this+layersZ).arrayZ, numLayers);
+    hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
     hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
 								       record.numLayers);
     if (count)
