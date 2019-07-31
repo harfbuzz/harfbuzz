@@ -57,7 +57,7 @@ static void
 test_ot_meta_reference_entry (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/meta.ttf");
-  hb_blob_t *dlng = hb_ot_meta_reference_entry (face, HB_OT_META_DESIGN_LANGUAGES);
+  hb_blob_t *dlng = hb_ot_meta_reference_entry (face, HB_OT_META_TAG_DESIGN_LANGUAGES);
   g_assert_cmpint (hb_blob_get_length (dlng), ==, 8);
   g_assert_cmpmem (hb_blob_get_data (dlng, NULL), 8, "ar,de,fa", 8);
   hb_blob_destroy (dlng);
@@ -67,7 +67,7 @@ test_ot_meta_reference_entry (void)
   hb_blob_t *nacl = hb_ot_meta_reference_entry (face, (hb_ot_meta_tag_t) HB_TAG ('n','a','c','l'));
   g_assert_cmpint (hb_blob_get_length (nacl), ==, 0);
   hb_blob_destroy (nacl);
-  hb_blob_t *slng = hb_ot_meta_reference_entry (face, HB_OT_META_SUPPORTED_LANGUAGES);
+  hb_blob_t *slng = hb_ot_meta_reference_entry (face, HB_OT_META_TAG_SUPPORTED_LANGUAGES);
   g_assert_cmpint (hb_blob_get_length (slng), ==, 11);
   g_assert_cmpmem (hb_blob_get_data (slng, NULL), 11, "ar,de,en,fa", 11);
   hb_blob_destroy (slng);

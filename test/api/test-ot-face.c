@@ -74,6 +74,8 @@ test_face (hb_face_t *face,
   hb_ot_color_has_png (face);
   hb_blob_destroy (hb_ot_color_glyph_reference_png (font, cp));
 
+  hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_TAG_HANGING, HB_DIRECTION_RTL, HB_SCRIPT_HANGUL, HB_TAG_NONE, NULL);
+
   hb_ot_layout_has_glyph_classes (face);
   hb_ot_layout_has_substitution (face);
   hb_ot_layout_has_positioning (face);
@@ -87,6 +89,14 @@ test_face (hb_face_t *face,
   hb_ot_math_get_glyph_variants (font, cp, HB_DIRECTION_TTB, 0, NULL, NULL);
   hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_RTL);
   hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_BTT, 0, NULL, NULL, NULL);
+
+  hb_ot_meta_get_entries (face, 0, NULL, NULL);
+  hb_blob_destroy (hb_ot_meta_reference_entry (face, HB_OT_META_TAG_DESIGN_LANGUAGES));
+
+  hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, NULL);
+  hb_ot_metrics_get_variation (font, HB_OT_METRICS_TAG_UNDERLINE_OFFSET);
+  hb_ot_metrics_get_x_variation (font, HB_OT_METRICS_TAG_STRIKEOUT_OFFSET);
+  hb_ot_metrics_get_y_variation (font, HB_OT_METRICS_TAG_SUPERSCRIPT_EM_X_OFFSET);
 
   len = sizeof (buf);
   hb_ot_name_list_names (face, NULL);

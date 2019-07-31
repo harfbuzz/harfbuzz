@@ -235,9 +235,9 @@ hb_ot_get_font_h_extents (hb_font_t *font,
 			  hb_font_extents_t *metrics,
 			  void *user_data HB_UNUSED)
 {
-  return _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_HORIZONTAL_ASCENDER, &metrics->ascender) &&
-	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_HORIZONTAL_DESCENDER, &metrics->descender) &&
-	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_HORIZONTAL_LINE_GAP, &metrics->line_gap);
+  return _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &metrics->ascender) &&
+	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER, &metrics->descender) &&
+	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP, &metrics->line_gap);
 }
 
 static hb_bool_t
@@ -246,9 +246,9 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 			  hb_font_extents_t *metrics,
 			  void *user_data HB_UNUSED)
 {
-  return _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_VERTICAL_ASCENDER, &metrics->ascender) &&
-	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_VERTICAL_DESCENDER, &metrics->descender) &&
-	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_VERTICAL_LINE_GAP, &metrics->line_gap);
+  return _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_VERTICAL_ASCENDER, &metrics->ascender) &&
+	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_VERTICAL_DESCENDER, &metrics->descender) &&
+	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_VERTICAL_LINE_GAP, &metrics->line_gap);
 }
 
 #if HB_USE_ATEXIT

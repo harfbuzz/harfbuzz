@@ -342,6 +342,7 @@ hb_font_set_user_data
 hb_font_set_variations
 hb_font_set_var_coords_design
 hb_font_set_var_coords_normalized
+hb_font_set_var_named_instance
 hb_font_subtract_glyph_origin_for_direction
 hb_font_t
 hb_reference_table_func_t
@@ -547,6 +548,7 @@ HB_OT_TAG_GDEF
 HB_OT_TAG_GPOS
 HB_OT_TAG_GSUB
 HB_OT_TAG_JSTF
+hb_ot_layout_baseline_tag_t
 hb_ot_layout_collect_lookups
 hb_ot_layout_collect_features
 hb_ot_layout_feature_get_characters
@@ -554,6 +556,7 @@ hb_ot_layout_feature_get_lookups
 hb_ot_layout_feature_get_name_ids
 hb_ot_layout_feature_with_variations_get_lookups
 hb_ot_layout_get_attach_points
+hb_ot_layout_get_baseline
 hb_ot_layout_get_glyph_class
 hb_ot_layout_get_glyphs_in_class
 hb_ot_layout_get_ligature_carets
