@@ -82,6 +82,13 @@ HBSOURCES += $(HB_DIRECTWRITE_sources)
 HBHEADERS += $(HB_DIRECTWRITE_headers)
 endif
 
+if HAVE_GDI
+HBCFLAGS += $(GDI_CXXFLAGS)
+HBNONPCLIBS += $(GDI_LIBS)
+HBSOURCES += $(HB_GDI_sources)
+HBHEADERS += $(HB_GDI_headers)
+endif
+
 if HAVE_CORETEXT
 HBCFLAGS += $(CORETEXT_CFLAGS)
 HBNONPCLIBS += $(CORETEXT_LIBS)
@@ -313,6 +320,7 @@ harfbuzz.cc: Makefile.sources
 		$(HB_FT_sources) \
 		$(HB_GRAPHITE2_sources) \
 		$(HB_UNISCRIBE_sources) \
+		$(HB_GDI_sources) \
 		$(HB_DIRECTWRITE_sources) \
 		$(HB_CORETEXT_sources) \
 		; do echo '#include "'$$f'"'; done | \
@@ -324,6 +332,7 @@ noinst_PROGRAMS = \
 	main \
 	test \
 	test-buffer-serialize \
+	test-ot-meta \
 	test-ot-name \
 	test-gpos-size-params \
 	test-gsub-would-substitute \
@@ -341,6 +350,10 @@ test_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
+
+test_ot_meta_SOURCES = test-ot-meta.cc
+test_ot_meta_CPPFLAGS = $(HBCFLAGS)
+test_ot_meta_LDADD = libharfbuzz.la $(HBLIBS)
 
 test_ot_name_SOURCES = test-ot-name.cc
 test_ot_name_CPPFLAGS = $(HBCFLAGS)

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "hb-subset.h"
 
@@ -32,6 +33,19 @@ trySubset (hb_face_t *face,
   }
 
   hb_face_t *result = hb_subset (face, input);
+  {
+    hb_blob_t *blob = hb_face_reference_blob (result);
+    unsigned int length;
+    const char *data = hb_blob_get_data (blob, &length);
+
+    // Something not optimizable just to access all the blob data
+    unsigned int bytes_count = 0;
+    for (unsigned int i = 0; i < length; ++i)
+      if (data[i]) ++bytes_count;
+    assert (bytes_count || !length);
+
+    hb_blob_destroy (blob);
+  }
   hb_face_destroy (result);
 
   hb_subset_input_destroy (input);

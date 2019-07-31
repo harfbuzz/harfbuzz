@@ -126,8 +126,12 @@ hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED
 }
 #endif
 
-extern "C" hb_unicode_funcs_t *hb_glib_get_unicode_funcs ();
-extern "C" hb_unicode_funcs_t *hb_icu_get_unicode_funcs ();
+#if !defined(HB_NO_UNICODE_FUNCS) && defined(HAVE_GLIB)
+#include "hb-glib.h"
+#endif
+#if !defined(HB_NO_UNICODE_FUNCS) && defined(HAVE_ICU) && defined(HAVE_ICU_BUILTIN)
+#include "hb-icu.h"
+#endif
 
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default ()
