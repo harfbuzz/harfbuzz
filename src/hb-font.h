@@ -86,8 +86,8 @@ typedef struct hb_font_extents_t
   hb_position_t ascender; /* typographic ascender. */
   hb_position_t descender; /* typographic descender. */
   hb_position_t line_gap; /* suggested line spacing gap. */
+  float italic_angle; /* italic angle */
   /*< private >*/
-  hb_position_t reserved9;
   hb_position_t reserved8;
   hb_position_t reserved7;
   hb_position_t reserved6;

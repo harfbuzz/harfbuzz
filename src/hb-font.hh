@@ -378,6 +378,7 @@ struct hb_font_t
       extents->ascender = y_scale * .8;
       extents->descender = extents->ascender - y_scale;
       extents->line_gap = 0;
+      extents->italic_angle = 0;
     }
   }
   void get_v_extents_with_fallback (hb_font_extents_t *extents)
@@ -387,6 +388,7 @@ struct hb_font_t
       extents->ascender = x_scale / 2;
       extents->descender = extents->ascender - x_scale;
       extents->line_gap = 0;
+      extents->italic_angle = 0;
     }
   }
 

@@ -228,6 +228,32 @@ hb_ot_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 }
 #endif
 
+#define _HB_OT_STYLE_SLANT HB_TAG ('s','l','n','t')
+#define _HB_OT_STYLE_ITALIC HB_TAG ('i','t','a','l')
+
+static float
+hb_ot_get_font_italic_angle (hb_font_t *font)
+{
+#ifndef NO_VAR
+  hb_ot_var_axis_info_t info;
+  /* Check first if is set by variation as
+     https://docs.microsoft.com/en-us/typography/opentype/spec/dvaraxistag_slnt */
+  if (hb_ot_var_find_axis_info (font->face, _HB_OT_STYLE_SLANT, &info) &&
+      info.axis_index < font->num_coords)
+    return (float) font->coords[info.axis_index] / 16384.f;
+
+  if (hb_ot_var_find_axis_info (font->face, _HB_OT_STYLE_ITALIC, &info) &&
+      info.axis_index < font->num_coords)
+    return (float) font->coords[info.axis_index] * -12.f / 16384.f;
+#endif
+  /* TODO: Maybe should be fetched from STAT values first */
+#ifndef HB_NO_METRICS
+  return font->face->table.post->table->italicAngle.to_float ();
+#else
+  return 0;
+#endif
+}
+
 static hb_bool_t
 hb_ot_get_font_h_extents (hb_font_t *font,
 			  void *font_data HB_UNUSED,
@@ -236,7 +262,8 @@ hb_ot_get_font_h_extents (hb_font_t *font,
 {
   return _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, &metrics->ascender) &&
 	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER, &metrics->descender) &&
-	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP, &metrics->line_gap);
+	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP, &metrics->line_gap) &&
+	 (metrics->italic_angle = hb_ot_get_font_italic_angle (font), true);
 }
 
 static hb_bool_t
@@ -247,7 +274,8 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 {
   return _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_VERTICAL_ASCENDER, &metrics->ascender) &&
 	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_VERTICAL_DESCENDER, &metrics->descender) &&
-	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_VERTICAL_LINE_GAP, &metrics->line_gap);
+	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_VERTICAL_LINE_GAP, &metrics->line_gap) &&
+	 (metrics->italic_angle = hb_ot_get_font_italic_angle (font), true);
 }
 
 #if HB_USE_ATEXIT
