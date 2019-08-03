@@ -37,6 +37,34 @@ HB_BEGIN_DECLS
 
 /**
  * hb_ot_metrics_tag_t:
+ * @HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER: horizontal ascender.
+ * @HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER: horizontal descender.
+ * @HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP: horizontal line gap.
+ * @HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_ASCENT: horizontal clipping ascent.
+ * @HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_DESCENT: horizontal clipping descent.
+ * @HB_OT_METRICS_TAG_VERTICAL_ASCENDER: vertical ascender.
+ * @HB_OT_METRICS_TAG_VERTICAL_DESCENDER: vertical descender.
+ * @HB_OT_METRICS_TAG_VERTICAL_LINE_GAP: vertical line gap.
+ * @HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE: horizontal caret rise.
+ * @HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN: horizontal caret run.
+ * @HB_OT_METRICS_TAG_HORIZONTAL_CARET_OFFSET: horizontal caret offset.
+ * @HB_OT_METRICS_TAG_VERTICAL_CARET_RISE: vertical caret rise.
+ * @HB_OT_METRICS_TAG_VERTICAL_CARET_RUN: vertical caret run.
+ * @HB_OT_METRICS_TAG_VERTICAL_CARET_OFFSET: vertical caret offset.
+ * @HB_OT_METRICS_TAG_X_HEIGHT: x height.
+ * @HB_OT_METRICS_TAG_CAP_HEIGHT: cap height.
+ * @HB_OT_METRICS_TAG_SUBSCRIPT_EM_X_SIZE: subscript em x size.
+ * @HB_OT_METRICS_TAG_SUBSCRIPT_EM_Y_SIZE: subscript em y size.
+ * @HB_OT_METRICS_TAG_SUBSCRIPT_EM_X_OFFSET: subscript em x offset.
+ * @HB_OT_METRICS_TAG_SUBSCRIPT_EM_Y_OFFSET: subscript em y offset.
+ * @HB_OT_METRICS_TAG_SUPERSCRIPT_EM_X_SIZE: superscript em x size.
+ * @HB_OT_METRICS_TAG_SUPERSCRIPT_EM_Y_SIZE: superscript em y size.
+ * @HB_OT_METRICS_TAG_SUPERSCRIPT_EM_X_OFFSET: superscript em x offset.
+ * @HB_OT_METRICS_TAG_SUPERSCRIPT_EM_Y_OFFSET: superscript em y offset.
+ * @HB_OT_METRICS_TAG_STRIKEOUT_SIZE: strikeout size.
+ * @HB_OT_METRICS_TAG_STRIKEOUT_OFFSET: strikeout offset.
+ * @HB_OT_METRICS_TAG_UNDERLINE_SIZE: underline size.
+ * @HB_OT_METRICS_TAG_UNDERLINE_OFFSET: underline offset.
  *
  * From https://docs.microsoft.com/en-us/typography/opentype/spec/mvar#value-tags
  *
