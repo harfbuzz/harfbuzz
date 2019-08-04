@@ -39,6 +39,7 @@
 #include "hb-set.h"
 #include "hb-shape.h"
 #include "hb-shape-plan.h"
+#include "hb-style.h"
 #include "hb-unicode.h"
 #include "hb-version.h"
 

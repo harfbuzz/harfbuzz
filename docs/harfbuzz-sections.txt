@@ -715,6 +715,12 @@ hb_shape_plan_t
 </SECTION>
 
 <SECTION>
+<FILE>hb-style</FILE>
+hb_style_tag_t
+hb_style_get_value
+</SECTION>
+
+<SECTION>
 <FILE>hb-unicode</FILE>
 HB_UNICODE_MAX
 hb_unicode_combining_class
