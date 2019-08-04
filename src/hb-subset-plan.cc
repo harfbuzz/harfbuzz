@@ -301,7 +301,7 @@ static void
 _nameid_closure (hb_face_t *face,
 		 hb_set_t  *nameids)
 {
-#ifndef HB_NO_STAT
+#ifndef HB_NO_STYLE
   face->table.STAT->collect_name_ids (nameids);
 #endif
 #ifndef HB_NO_VAR

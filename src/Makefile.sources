@@ -159,6 +159,7 @@ HB_BASE_sources = \
 	hb-shaper.hh \
 	hb-static.cc \
 	hb-string-array.hh \
+	hb-style.cc \
 	hb-ucd-table.hh \
 	hb-ucd.cc \
 	hb-unicode-emoji-table.hh \
@@ -213,6 +214,7 @@ HB_BASE_headers = \
 	hb-set.h \
 	hb-shape-plan.h \
 	hb-shape.h \
+	hb-style.h \
 	hb-unicode.h \
 	hb-version.h \
 	hb.h \
