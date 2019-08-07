@@ -708,6 +708,16 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
       out->add (arrayZ[i].glyphID);
   }
 
+  void closure_glyphs (const hb_set_t      *unicodes,
+                       hb_set_t            *glyphset) const
+  {
+    + as_array ()
+    | hb_filter ([&] (const UVSMapping& _) { return hb_set_has (unicodes, _.unicodeValue); })
+    | hb_map (&UVSMapping::glyphID)
+    | hb_sink (glyphset)
+    ;
+  }
+
   public:
   DEFINE_SIZE_ARRAY (4, *this);
 };
@@ -776,6 +786,17 @@ struct CmapSubtableFormat14
 				   hb_set_t *out) const
   {
     record.bsearch (variation_selector).collect_unicodes (out, this);
+  }
+
+  void closure_glyphs (const hb_set_t      *unicodes,
+                       hb_set_t            *glyphset) const
+  {
+    + hb_iter (record)
+    | hb_filter ([&] (const VariationSelectorRecord& _) { return _.nonDefaultUVS != 0 && hb_set_has (unicodes, _.varSelector); })
+    | hb_map (&VariationSelectorRecord::nonDefaultUVS)
+    | hb_map (hb_add (this))
+    | hb_apply ([=] (const NonDefaultUVS& _) { _.closure_glyphs (unicodes, glyphset); })
+    ;
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -952,6 +973,17 @@ struct cmap
 
   }
 
+  void closure_glyphs (const hb_set_t      *unicodes,
+                       hb_set_t            *glyphset) const
+  {
+    + hb_iter (encodingRecord)
+    | hb_map (&EncodingRecord::subtable)
+    | hb_map (hb_add (this))
+    | hb_filter ([&] (const CmapSubtable& _) { return _.u.format == 14; })
+    | hb_apply ([=] (const CmapSubtable& _) { _.u.format14.closure_glyphs (unicodes, glyphset); })
+    ;
+  }
+
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
@@ -967,7 +999,6 @@ struct cmap
 
     if (unlikely (!unicode_bmp && !ms_bmp)) return_trace (false);
     if (unlikely (has_format12 && (!unicode_ucs4 && !ms_ucs4))) return_trace (false);
-
 
     auto it =
     + hb_iter (c->plan->unicodes)
@@ -1161,6 +1192,7 @@ struct cmap
 
     CmapSubtableFormat4::accelerator_t format4_accel;
 
+    public:
     hb_blob_ptr_t<cmap> table;
   };
 
