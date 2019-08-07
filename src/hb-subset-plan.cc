@@ -88,6 +88,14 @@ _gsub_closure (hb_face_t *face, hb_set_t *gids_to_retain)
 #endif
 
 static inline void
+_cmap_closure (hb_face_t           *face,
+               const hb_set_t      *unicodes,
+               hb_set_t            *glyphset)
+{
+  face->table.cmap->table->closure_glyphs (unicodes, glyphset);
+}
+
+static inline void
 _remove_invalid_gids (hb_set_t *glyphs,
 		      unsigned int num_glyphs)
 {
@@ -128,6 +136,8 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
     plan->codepoint_to_glyph->set (cp, gid);
     plan->_glyphset_gsub->add (gid);
   }
+  
+  _cmap_closure (plan->source, plan->unicodes, plan->_glyphset_gsub);
 
 #ifndef HB_NO_SUBSET_LAYOUT
   if (close_over_gsub)
