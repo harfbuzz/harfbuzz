@@ -59,7 +59,7 @@ struct OS2V1Tail
 
 struct OS2V2Tail
 {
-  bool has_data () const { return this != &Null (OS2V2Tail); }
+  bool has_data () const { return sxHeight || sCapHeight; }
 
   const OS2V2Tail * operator -> () const { return this; }
 
@@ -115,7 +115,7 @@ struct OS2
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_OS2;
 
-  bool has_data () const { return this != &Null (OS2); }
+  bool has_data () const { return usWeightClass || usWidthClass || usFirstCharIndex || usLastCharIndex; }
 
   const OS2V1Tail &v1 () const { return version >= 1 ? v1X : Null (OS2V1Tail); }
   const OS2V2Tail &v2 () const { return version >= 2 ? v2X : Null (OS2V2Tail); }
