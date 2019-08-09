@@ -37,7 +37,7 @@ HB_BEGIN_DECLS
 hb_font_t *
 hb_fc_font_create (FcPattern *font);
 
-hb_bool_t
+bool
 hb_fc_can_render (hb_font_t *font, const char *text);
 
 

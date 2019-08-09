@@ -69,12 +69,12 @@ hb_face_reference (hb_face_t *face);
 HB_EXTERN void
 hb_face_destroy (hb_face_t *face);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_face_set_user_data (hb_face_t          *face,
 		       hb_user_data_key_t *key,
 		       void *              data,
 		       hb_destroy_func_t   destroy,
-		       hb_bool_t           replace);
+		       bool                replace);
 
 HB_EXTERN void *
 hb_face_get_user_data (const hb_face_t    *face,
@@ -83,7 +83,7 @@ hb_face_get_user_data (const hb_face_t    *face,
 HB_EXTERN void
 hb_face_make_immutable (hb_face_t *face);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_face_is_immutable (const hb_face_t *face);
 
 
@@ -147,7 +147,7 @@ hb_face_collect_variation_unicodes (hb_face_t *face,
 HB_EXTERN hb_face_t *
 hb_face_builder_create (void);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_face_builder_add_table (hb_face_t *face,
 			   hb_tag_t   tag,
 			   hb_blob_t *blob);

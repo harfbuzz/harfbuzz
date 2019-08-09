@@ -1077,7 +1077,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 }
 
 
-hb_bool_t
+bool
 _hb_ot_shape (hb_shape_plan_t    *shape_plan,
 	      hb_font_t          *font,
 	      hb_buffer_t        *buffer,
@@ -1109,7 +1109,7 @@ hb_ot_shape_plan_collect_lookups (hb_shape_plan_t *shape_plan,
 static void
 add_char (hb_font_t          *font,
 	  hb_unicode_funcs_t *unicode,
-	  hb_bool_t           mirror,
+	  bool                mirror,
 	  hb_codepoint_t      u,
 	  hb_set_t           *glyphs)
 {

@@ -599,7 +599,7 @@ bool
 hb_user_data_array_t::set (hb_user_data_key_t *key,
 			   void *              data,
 			   hb_destroy_func_t   destroy,
-			   hb_bool_t           replace)
+			   bool                replace)
 {
   if (!key)
     return false;
@@ -687,7 +687,7 @@ hb_version_string ()
  *
  * Since: 0.9.30
  **/
-hb_bool_t
+bool
 hb_version_atleast (unsigned int major,
 		    unsigned int minor,
 		    unsigned int micro)
@@ -1023,7 +1023,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
  *
  * Since: 0.9.5
  **/
-hb_bool_t
+bool
 hb_feature_from_string (const char *str, int len,
 			hb_feature_t *feature)
 {
@@ -1116,7 +1116,7 @@ parse_one_variation (const char **pp, const char *end, hb_variation_t *variation
  *
  * Since: 1.4.2
  */
-hb_bool_t
+bool
 hb_variation_from_string (const char *str, int len,
 			  hb_variation_t *variation)
 {

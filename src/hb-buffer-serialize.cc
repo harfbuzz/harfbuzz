@@ -380,7 +380,7 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 }
 
 
-static hb_bool_t
+static bool
 parse_uint (const char *pp, const char *end, uint32_t *pv)
 {
   char buf[32];
@@ -401,7 +401,7 @@ parse_uint (const char *pp, const char *end, uint32_t *pv)
   return true;
 }
 
-static hb_bool_t
+static bool
 parse_int (const char *pp, const char *end, int32_t *pv)
 {
   char buf[32];
@@ -440,7 +440,7 @@ parse_int (const char *pp, const char *end, int32_t *pv)
  *
  * Since: 0.9.7
  **/
-hb_bool_t
+bool
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
 			      int buf_len, /* -1 means nul-terminated */

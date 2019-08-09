@@ -119,7 +119,7 @@ _get_gasp (hb_face_t *face, float *result, hb_ot_metrics_tag_t metrics_tag)
  * Returns: Whether found the requested metrics in the font.
  * Since: REPLACEME
  **/
-hb_bool_t
+bool
 hb_ot_metrics_get_position (hb_font_t           *font,
 			    hb_ot_metrics_tag_t  metrics_tag,
 			    hb_position_t       *position     /* OUT.  May be NULL. */)

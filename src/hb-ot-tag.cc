@@ -192,7 +192,7 @@ subtag_matches (const char *lang_str,
   } while (true);
 }
 
-static hb_bool_t
+static bool
 lang_matches (const char *lang_str, const char *spec)
 {
   unsigned int len = strlen (spec);

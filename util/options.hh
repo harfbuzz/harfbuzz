@@ -51,7 +51,7 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
+void fail (bool suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
 
 struct option_group_t
 {
@@ -137,7 +137,7 @@ struct view_options_t : option_group_t
 
   void add_options (option_parser_t *parser) override;
 
-  hb_bool_t annotate;
+  gboolean annotate;
   char *fore;
   char *back;
   double line_space;
@@ -230,7 +230,7 @@ struct shape_options_t : option_group_t
     setup_buffer (buffer);
   }
 
-  hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer, const char **error=nullptr)
+  bool shape (hb_font_t *font, hb_buffer_t *buffer, const char **error=nullptr)
   {
     hb_buffer_t *text_buffer = nullptr;
     if (verify)
@@ -430,19 +430,19 @@ struct shape_options_t : option_group_t
   char *script;
 
   /* Buffer flags */
-  hb_bool_t bot;
-  hb_bool_t eot;
-  hb_bool_t preserve_default_ignorables;
-  hb_bool_t remove_default_ignorables;
+  gboolean bot;
+  gboolean eot;
+  gboolean preserve_default_ignorables;
+  gboolean remove_default_ignorables;
 
   hb_feature_t *features;
   unsigned int num_features;
   char **shapers;
-  hb_bool_t utf8_clusters;
+  gboolean utf8_clusters;
   hb_codepoint_t invisible_glyph;
   hb_buffer_cluster_level_t cluster_level;
-  hb_bool_t normalize_glyphs;
-  hb_bool_t verify;
+  gboolean normalize_glyphs;
+  gboolean verify;
   unsigned int num_iterations;
 };
 
@@ -658,16 +658,16 @@ struct format_options_t : option_group_t
 				   GString      *gs);
 
 
-  hb_bool_t show_glyph_names;
-  hb_bool_t show_positions;
-  hb_bool_t show_advances;
-  hb_bool_t show_clusters;
-  hb_bool_t show_text;
-  hb_bool_t show_unicode;
-  hb_bool_t show_line_num;
-  hb_bool_t show_extents;
-  hb_bool_t show_flags;
-  hb_bool_t trace;
+  gboolean show_glyph_names;
+  gboolean show_positions;
+  gboolean show_advances;
+  gboolean show_clusters;
+  gboolean show_text;
+  gboolean show_unicode;
+  gboolean show_line_num;
+  gboolean show_extents;
+  gboolean show_flags;
+  gboolean trace;
 };
 
 struct subset_options_t : option_group_t

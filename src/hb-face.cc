@@ -290,12 +290,12 @@ hb_face_destroy (hb_face_t *face)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_face_set_user_data (hb_face_t          *face,
 		       hb_user_data_key_t *key,
 		       void *              data,
 		       hb_destroy_func_t   destroy,
-		       hb_bool_t           replace)
+		       bool                replace)
 {
   return hb_object_set_user_data (face, key, data, destroy, replace);
 }
@@ -345,7 +345,7 @@ hb_face_make_immutable (hb_face_t *face)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_face_is_immutable (const hb_face_t *face)
 {
   return hb_object_is_immutable (face);
@@ -706,7 +706,7 @@ hb_face_builder_create ()
  *
  * Since: 1.9.0
  **/
-hb_bool_t
+bool
 hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 {
   if (unlikely (face->destroy != (hb_destroy_func_t) _hb_face_builder_data_destroy))

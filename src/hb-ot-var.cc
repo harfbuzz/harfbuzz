@@ -60,7 +60,7 @@
  *
  * Since: 1.4.2
  **/
-hb_bool_t
+bool
 hb_ot_var_has_data (hb_face_t *face)
 {
   return face->table.fvar->has_data ();
@@ -99,7 +99,7 @@ hb_ot_var_get_axes (hb_face_t        *face,
  * Since: 1.4.2
  * Deprecated: 2.2.0
  **/
-hb_bool_t
+bool
 hb_ot_var_find_axis (hb_face_t        *face,
 		     hb_tag_t          axis_tag,
 		     unsigned int     *axis_index,
@@ -128,7 +128,7 @@ hb_ot_var_get_axis_infos (hb_face_t             *face,
  *
  * Since: 2.2.0
  **/
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_ot_var_find_axis_info (hb_face_t             *face,
 			  hb_tag_t               axis_tag,
 			  hb_ot_var_axis_info_t *axis_info)

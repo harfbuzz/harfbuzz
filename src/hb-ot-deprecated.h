@@ -45,14 +45,14 @@ HB_BEGIN_DECLS
 
 
 /* Like hb_ot_layout_table_find_script, but takes zero-terminated array of scripts to test */
-HB_EXTERN HB_DEPRECATED_FOR (hb_ot_layout_table_select_script) hb_bool_t
+HB_EXTERN HB_DEPRECATED_FOR (hb_ot_layout_table_select_script) bool
 hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
 				  const hb_tag_t *script_tags,
 				  unsigned int   *script_index,
 				  hb_tag_t       *chosen_script);
 
-HB_EXTERN HB_DEPRECATED_FOR (hb_ot_layout_script_select_language) hb_bool_t
+HB_EXTERN HB_DEPRECATED_FOR (hb_ot_layout_script_select_language) bool
 hb_ot_layout_script_find_language (hb_face_t    *face,
 				   hb_tag_t      table_tag,
 				   unsigned int  script_index,
@@ -97,7 +97,7 @@ hb_ot_var_get_axes (hb_face_t        *face,
 		    unsigned int     *axes_count /* IN/OUT */,
 		    hb_ot_var_axis_t *axes_array /* OUT */);
 
-HB_EXTERN HB_DEPRECATED_FOR (hb_ot_var_find_axis_info) hb_bool_t
+HB_EXTERN HB_DEPRECATED_FOR (hb_ot_var_find_axis_info) bool
 hb_ot_var_find_axis (hb_face_t        *face,
 		     hb_tag_t          axis_tag,
 		     unsigned int     *axis_index,

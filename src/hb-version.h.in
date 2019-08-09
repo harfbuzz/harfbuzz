@@ -55,7 +55,7 @@ hb_version (unsigned int *major,
 HB_EXTERN const char *
 hb_version_string (void);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_version_atleast (unsigned int major,
 		    unsigned int minor,
 		    unsigned int micro);

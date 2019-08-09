@@ -178,7 +178,7 @@ typedef struct hb_ot_math_glyph_part_t {
 
 /* Methods */
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_ot_math_has_data (hb_face_t *face);
 
 HB_EXTERN hb_position_t
@@ -193,7 +193,7 @@ HB_EXTERN hb_position_t
 hb_ot_math_get_glyph_top_accent_attachment (hb_font_t *font,
 					    hb_codepoint_t glyph);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_ot_math_is_glyph_extended_shape (hb_face_t *face,
 				    hb_codepoint_t glyph);
 

@@ -52,13 +52,13 @@ struct view_cairo_t
   void consume_text (hb_buffer_t  *buffer,
 		     const char   *text,
 		     unsigned int  text_len,
-		     hb_bool_t     utf8_clusters) {}
+		     bool          utf8_clusters) {}
   void error (const char *message)
   { g_printerr ("%s: %s\n", g_get_prgname (), message); }
   void consume_glyphs (hb_buffer_t  *buffer,
 		       const char   *text,
 		       unsigned int  text_len,
-		       hb_bool_t     utf8_clusters)
+		       bool          utf8_clusters)
   {
     direction = hb_buffer_get_direction (buffer);
     helper_cairo_line_t l;

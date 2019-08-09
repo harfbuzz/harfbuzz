@@ -182,7 +182,7 @@ struct hb_user_data_array_t
   HB_INTERNAL bool set (hb_user_data_key_t *key,
 			void *              data,
 			hb_destroy_func_t   destroy,
-			hb_bool_t           replace);
+			bool                replace);
 
   HB_INTERNAL void *get (hb_user_data_key_t *key);
 
@@ -300,7 +300,7 @@ static inline bool hb_object_set_user_data (Type               *obj,
 					    hb_user_data_key_t *key,
 					    void *              data,
 					    hb_destroy_func_t   destroy,
-					    hb_bool_t           replace)
+					    bool                replace)
 {
   if (unlikely (!obj || hb_object_is_inert (obj)))
     return false;

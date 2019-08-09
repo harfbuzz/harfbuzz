@@ -87,7 +87,9 @@ typedef unsigned __int64 uint64_t;
 HB_BEGIN_DECLS
 
 
-typedef int hb_bool_t;
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
 
 typedef uint32_t hb_codepoint_t;
 typedef int32_t hb_position_t;
@@ -430,7 +432,7 @@ typedef struct hb_feature_t {
   unsigned int  end;
 } hb_feature_t;
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_feature_from_string (const char *str, int len,
 			hb_feature_t *feature);
 
@@ -448,7 +450,7 @@ typedef struct hb_variation_t {
   float    value;
 } hb_variation_t;
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_variation_from_string (const char *str, int len,
 			  hb_variation_t *variation);
 

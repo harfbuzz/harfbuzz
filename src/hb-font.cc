@@ -51,7 +51,7 @@
  * hb_font_funcs_t
  */
 
-static hb_bool_t
+static bool
 hb_font_get_font_h_extents_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
 				hb_font_extents_t *extents,
@@ -60,13 +60,13 @@ hb_font_get_font_h_extents_nil (hb_font_t *font HB_UNUSED,
   memset (extents, 0, sizeof (*extents));
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_font_h_extents_default (hb_font_t *font,
 				    void *font_data HB_UNUSED,
 				    hb_font_extents_t *extents,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_h_extents (extents);
+  bool ret = font->parent->get_font_h_extents (extents);
   if (ret) {
     extents->ascender = font->parent_scale_y_distance (extents->ascender);
     extents->descender = font->parent_scale_y_distance (extents->descender);
@@ -75,7 +75,7 @@ hb_font_get_font_h_extents_default (hb_font_t *font,
   return ret;
 }
 
-static hb_bool_t
+static bool
 hb_font_get_font_v_extents_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
 				hb_font_extents_t *extents,
@@ -84,13 +84,13 @@ hb_font_get_font_v_extents_nil (hb_font_t *font HB_UNUSED,
   memset (extents, 0, sizeof (*extents));
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_font_v_extents_default (hb_font_t *font,
 				    void *font_data HB_UNUSED,
 				    hb_font_extents_t *extents,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_v_extents (extents);
+  bool ret = font->parent->get_font_v_extents (extents);
   if (ret) {
     extents->ascender = font->parent_scale_x_distance (extents->ascender);
     extents->descender = font->parent_scale_x_distance (extents->descender);
@@ -99,7 +99,7 @@ hb_font_get_font_v_extents_default (hb_font_t *font,
   return ret;
 }
 
-static hb_bool_t
+static bool
 hb_font_get_nominal_glyph_nil (hb_font_t *font HB_UNUSED,
 			       void *font_data HB_UNUSED,
 			       hb_codepoint_t unicode HB_UNUSED,
@@ -109,7 +109,7 @@ hb_font_get_nominal_glyph_nil (hb_font_t *font HB_UNUSED,
   *glyph = 0;
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_nominal_glyph_default (hb_font_t *font,
 				   void *font_data HB_UNUSED,
 				   hb_codepoint_t unicode,
@@ -152,7 +152,7 @@ hb_font_get_nominal_glyphs_default (hb_font_t *font,
 					   first_glyph, glyph_stride);
 }
 
-static hb_bool_t
+static bool
 hb_font_get_variation_glyph_nil (hb_font_t *font HB_UNUSED,
 				 void *font_data HB_UNUSED,
 				 hb_codepoint_t unicode HB_UNUSED,
@@ -163,7 +163,7 @@ hb_font_get_variation_glyph_nil (hb_font_t *font HB_UNUSED,
   *glyph = 0;
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_variation_glyph_default (hb_font_t *font,
 				     void *font_data HB_UNUSED,
 				     hb_codepoint_t unicode,
@@ -286,7 +286,7 @@ hb_font_get_glyph_v_advances_default (hb_font_t* font,
   }
 }
 
-static hb_bool_t
+static bool
 hb_font_get_glyph_h_origin_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
 				hb_codepoint_t glyph HB_UNUSED,
@@ -297,7 +297,7 @@ hb_font_get_glyph_h_origin_nil (hb_font_t *font HB_UNUSED,
   *x = *y = 0;
   return true;
 }
-static hb_bool_t
+static bool
 hb_font_get_glyph_h_origin_default (hb_font_t *font,
 				    void *font_data HB_UNUSED,
 				    hb_codepoint_t glyph,
@@ -305,13 +305,13 @@ hb_font_get_glyph_h_origin_default (hb_font_t *font,
 				    hb_position_t *y,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_h_origin (glyph, x, y);
+  bool ret = font->parent->get_glyph_h_origin (glyph, x, y);
   if (ret)
     font->parent_scale_position (x, y);
   return ret;
 }
 
-static hb_bool_t
+static bool
 hb_font_get_glyph_v_origin_nil (hb_font_t *font HB_UNUSED,
 				void *font_data HB_UNUSED,
 				hb_codepoint_t glyph HB_UNUSED,
@@ -322,7 +322,7 @@ hb_font_get_glyph_v_origin_nil (hb_font_t *font HB_UNUSED,
   *x = *y = 0;
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_glyph_v_origin_default (hb_font_t *font,
 				    void *font_data HB_UNUSED,
 				    hb_codepoint_t glyph,
@@ -330,7 +330,7 @@ hb_font_get_glyph_v_origin_default (hb_font_t *font,
 				    hb_position_t *y,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_v_origin (glyph, x, y);
+  bool ret = font->parent->get_glyph_v_origin (glyph, x, y);
   if (ret)
     font->parent_scale_position (x, y);
   return ret;
@@ -376,7 +376,7 @@ hb_font_get_glyph_v_kerning_default (hb_font_t *font,
 }
 #endif
 
-static hb_bool_t
+static bool
 hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
 			       void *font_data HB_UNUSED,
 			       hb_codepoint_t glyph HB_UNUSED,
@@ -386,14 +386,14 @@ hb_font_get_glyph_extents_nil (hb_font_t *font HB_UNUSED,
   memset (extents, 0, sizeof (*extents));
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_glyph_extents_default (hb_font_t *font,
 				   void *font_data HB_UNUSED,
 				   hb_codepoint_t glyph,
 				   hb_glyph_extents_t *extents,
 				   void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_extents (glyph, extents);
+  bool ret = font->parent->get_glyph_extents (glyph, extents);
   if (ret) {
     font->parent_scale_position (&extents->x_bearing, &extents->y_bearing);
     font->parent_scale_distance (&extents->width, &extents->height);
@@ -401,7 +401,7 @@ hb_font_get_glyph_extents_default (hb_font_t *font,
   return ret;
 }
 
-static hb_bool_t
+static bool
 hb_font_get_glyph_contour_point_nil (hb_font_t *font HB_UNUSED,
 				     void *font_data HB_UNUSED,
 				     hb_codepoint_t glyph HB_UNUSED,
@@ -413,7 +413,7 @@ hb_font_get_glyph_contour_point_nil (hb_font_t *font HB_UNUSED,
   *x = *y = 0;
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_glyph_contour_point_default (hb_font_t *font,
 					 void *font_data HB_UNUSED,
 					 hb_codepoint_t glyph,
@@ -422,13 +422,13 @@ hb_font_get_glyph_contour_point_default (hb_font_t *font,
 					 hb_position_t *y,
 					 void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_contour_point (glyph, point_index, x, y);
+  bool ret = font->parent->get_glyph_contour_point (glyph, point_index, x, y);
   if (ret)
     font->parent_scale_position (x, y);
   return ret;
 }
 
-static hb_bool_t
+static bool
 hb_font_get_glyph_name_nil (hb_font_t *font HB_UNUSED,
 			    void *font_data HB_UNUSED,
 			    hb_codepoint_t glyph HB_UNUSED,
@@ -438,7 +438,7 @@ hb_font_get_glyph_name_nil (hb_font_t *font HB_UNUSED,
   if (size) *name = '\0';
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_glyph_name_default (hb_font_t *font,
 				void *font_data HB_UNUSED,
 				hb_codepoint_t glyph,
@@ -448,7 +448,7 @@ hb_font_get_glyph_name_default (hb_font_t *font,
   return font->parent->get_glyph_name (glyph, name, size);
 }
 
-static hb_bool_t
+static bool
 hb_font_get_glyph_from_name_nil (hb_font_t *font HB_UNUSED,
 				 void *font_data HB_UNUSED,
 				 const char *name HB_UNUSED,
@@ -459,7 +459,7 @@ hb_font_get_glyph_from_name_nil (hb_font_t *font HB_UNUSED,
   *glyph = 0;
   return false;
 }
-static hb_bool_t
+static bool
 hb_font_get_glyph_from_name_default (hb_font_t *font,
 				     void *font_data HB_UNUSED,
 				     const char *name, int len, /* -1 means nul-terminated */
@@ -603,12 +603,12 @@ hb_font_funcs_destroy (hb_font_funcs_t *ffuncs)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_funcs_set_user_data (hb_font_funcs_t    *ffuncs,
 			     hb_user_data_key_t *key,
 			     void *              data,
 			     hb_destroy_func_t   destroy,
-			     hb_bool_t           replace)
+			     bool                replace)
 {
   return hb_object_set_user_data (ffuncs, key, data, destroy, replace);
 }
@@ -659,7 +659,7 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs)
 {
   return hb_object_is_immutable (ffuncs);
@@ -723,7 +723,7 @@ hb_font_t::has_func (unsigned int i)
  *
  * Since: 1.1.3
  **/
-hb_bool_t
+bool
 hb_font_get_h_extents (hb_font_t *font,
 		       hb_font_extents_t *extents)
 {
@@ -741,7 +741,7 @@ hb_font_get_h_extents (hb_font_t *font,
  *
  * Since: 1.1.3
  **/
-hb_bool_t
+bool
 hb_font_get_v_extents (hb_font_t *font,
 		       hb_font_extents_t *extents)
 {
@@ -761,7 +761,7 @@ hb_font_get_v_extents (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph (hb_font_t *font,
 		   hb_codepoint_t unicode, hb_codepoint_t variation_selector,
 		   hb_codepoint_t *glyph)
@@ -783,7 +783,7 @@ hb_font_get_glyph (hb_font_t *font,
  *
  * Since: 1.2.3
  **/
-hb_bool_t
+bool
 hb_font_get_nominal_glyph (hb_font_t *font,
 			   hb_codepoint_t unicode,
 			   hb_codepoint_t *glyph)
@@ -804,7 +804,7 @@ hb_font_get_nominal_glyph (hb_font_t *font,
  *
  * Since: 1.2.3
  **/
-hb_bool_t
+bool
 hb_font_get_variation_glyph (hb_font_t *font,
 			     hb_codepoint_t unicode, hb_codepoint_t variation_selector,
 			     hb_codepoint_t *glyph)
@@ -898,7 +898,7 @@ hb_font_get_glyph_v_advances (hb_font_t* font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph_h_origin (hb_font_t *font,
 			    hb_codepoint_t glyph,
 			    hb_position_t *x, hb_position_t *y)
@@ -919,7 +919,7 @@ hb_font_get_glyph_h_origin (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph_v_origin (hb_font_t *font,
 			    hb_codepoint_t glyph,
 			    hb_position_t *x, hb_position_t *y)
@@ -980,7 +980,7 @@ hb_font_get_glyph_v_kerning (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph_extents (hb_font_t *font,
 			   hb_codepoint_t glyph,
 			   hb_glyph_extents_t *extents)
@@ -1002,7 +1002,7 @@ hb_font_get_glyph_extents (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph_contour_point (hb_font_t *font,
 				 hb_codepoint_t glyph, unsigned int point_index,
 				 hb_position_t *x, hb_position_t *y)
@@ -1023,7 +1023,7 @@ hb_font_get_glyph_contour_point (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph_name (hb_font_t *font,
 			hb_codepoint_t glyph,
 			char *name, unsigned int size)
@@ -1044,7 +1044,7 @@ hb_font_get_glyph_name (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph_from_name (hb_font_t *font,
 			     const char *name, int len, /* -1 means nul-terminated */
 			     hb_codepoint_t *glyph)
@@ -1211,7 +1211,7 @@ hb_font_get_glyph_kerning_for_direction (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph_extents_for_origin (hb_font_t *font,
 				      hb_codepoint_t glyph,
 				      hb_direction_t direction,
@@ -1235,7 +1235,7 @@ hb_font_get_glyph_extents_for_origin (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_get_glyph_contour_point_for_origin (hb_font_t *font,
 					    hb_codepoint_t glyph, unsigned int point_index,
 					    hb_direction_t direction,
@@ -1278,7 +1278,7 @@ hb_font_glyph_to_string (hb_font_t *font,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_glyph_from_string (hb_font_t *font,
 			   const char *s, int len, /* -1 means nul-terminated */
 			   hb_codepoint_t *glyph)
@@ -1477,12 +1477,12 @@ hb_font_destroy (hb_font_t *font)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_set_user_data (hb_font_t          *font,
 		       hb_user_data_key_t *key,
 		       void *              data,
 		       hb_destroy_func_t   destroy,
-		       hb_bool_t           replace)
+		       bool                replace)
 {
   return hb_object_set_user_data (font, key, data, destroy, replace);
 }
@@ -1535,7 +1535,7 @@ hb_font_make_immutable (hb_font_t *font)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_font_is_immutable (hb_font_t *font)
 {
   return hb_object_is_immutable (font);
@@ -2014,7 +2014,7 @@ trampoline_destroy (void *user_data)
 
 typedef hb_trampoline_t<hb_font_get_glyph_func_t> hb_font_get_glyph_trampoline_t;
 
-static hb_bool_t
+static bool
 hb_font_get_nominal_glyph_trampoline (hb_font_t *font,
 				      void *font_data,
 				      hb_codepoint_t unicode,
@@ -2025,7 +2025,7 @@ hb_font_get_nominal_glyph_trampoline (hb_font_t *font,
   return trampoline->func (font, font_data, unicode, 0, glyph, trampoline->closure.user_data);
 }
 
-static hb_bool_t
+static bool
 hb_font_get_variation_glyph_trampoline (hb_font_t *font,
 					void *font_data,
 					hb_codepoint_t unicode,

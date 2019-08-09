@@ -46,7 +46,7 @@ static struct supported_font_funcs_t {
 
 
 void
-fail (hb_bool_t suggest_help, const char *format, ...)
+fail (bool suggest_help, const char *format, ...)
 {
   const char *msg;
 

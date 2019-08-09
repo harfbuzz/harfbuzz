@@ -124,7 +124,7 @@ _cmp_pair_11_7_14 (const void *_key, const void *_item)
   return a < b ? -1 : a > b ? +1 : 0;
 }
 
-static hb_bool_t
+static bool
 hb_ucd_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 		hb_codepoint_t a, hb_codepoint_t b, hb_codepoint_t *ab,
 		void *user_data HB_UNUSED)
@@ -159,7 +159,7 @@ hb_ucd_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return true;
 }
 
-static hb_bool_t
+static bool
 hb_ucd_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 		  hb_codepoint_t ab, hb_codepoint_t *a, hb_codepoint_t *b,
 		  void *user_data HB_UNUSED)

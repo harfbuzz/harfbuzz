@@ -181,7 +181,7 @@ hb_ft_font_get_face (hb_font_t *font)
 
 
 
-static hb_bool_t
+static bool
 hb_ft_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			 void *font_data,
 			 hb_codepoint_t unicode,
@@ -239,7 +239,7 @@ hb_ft_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 }
 
 
-static hb_bool_t
+static bool
 hb_ft_get_variation_glyph (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t unicode,
@@ -320,7 +320,7 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
   return (-v + (1<<9)) >> 10;
 }
 
-static hb_bool_t
+static bool
 hb_ft_get_glyph_v_origin (hb_font_t *font,
 			  void *font_data,
 			  hb_codepoint_t glyph,
@@ -367,7 +367,7 @@ hb_ft_get_glyph_h_kerning (hb_font_t *font,
 }
 #endif
 
-static hb_bool_t
+static bool
 hb_ft_get_glyph_extents (hb_font_t *font,
 			 void *font_data,
 			 hb_codepoint_t glyph,
@@ -398,7 +398,7 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   return true;
 }
 
-static hb_bool_t
+static bool
 hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
 			       void *font_data,
 			       hb_codepoint_t glyph,
@@ -426,7 +426,7 @@ hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
   return true;
 }
 
-static hb_bool_t
+static bool
 hb_ft_get_glyph_name (hb_font_t *font HB_UNUSED,
 		      void *font_data,
 		      hb_codepoint_t glyph,
@@ -437,14 +437,14 @@ hb_ft_get_glyph_name (hb_font_t *font HB_UNUSED,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
-  hb_bool_t ret = !FT_Get_Glyph_Name (ft_face, glyph, name, size);
+  bool ret = !FT_Get_Glyph_Name (ft_face, glyph, name, size);
   if (ret && (size && !*name))
     ret = false;
 
   return ret;
 }
 
-static hb_bool_t
+static bool
 hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   const char *name, int len, /* -1 means nul-terminated */
@@ -478,7 +478,7 @@ hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
   return *glyph != 0;
 }
 
-static hb_bool_t
+static bool
 hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
 			  void *font_data,
 			  hb_font_extents_t *metrics,

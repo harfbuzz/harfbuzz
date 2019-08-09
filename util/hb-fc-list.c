@@ -185,7 +185,7 @@ main (int argc, char **argv)
 	for (j = 0; j < fs->nfont; j++)
 	{
 	    hb_font_t *font = hb_fc_font_create (fs->fonts[j]);
-	    hb_bool_t can_render = hb_fc_can_render (font, text);
+	    bool can_render = hb_fc_can_render (font, text);
 	    hb_font_destroy (font);
 
 	    if (!can_render)

@@ -315,7 +315,7 @@ static const int deserialize_text_en_main = 1;
 #line 91 "hb-buffer-deserialize-text.rl"
 
 
-static hb_bool_t
+static bool
 _hb_buffer_deserialize_glyphs_text (hb_buffer_t *buffer,
 				    const char *buf,
 				    unsigned int buf_len,

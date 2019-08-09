@@ -68,7 +68,7 @@
  *
  * Since: 2.1.0
  */
-hb_bool_t
+bool
 hb_ot_color_has_palettes (hb_face_t *face)
 {
   return face->table.CPAL->has_data ();
@@ -199,7 +199,7 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
  *
  * Since: 2.1.0
  */
-hb_bool_t
+bool
 hb_ot_color_has_layers (hb_face_t *face)
 {
   return face->table.COLR->has_data ();
@@ -246,7 +246,7 @@ hb_ot_color_glyph_get_layers (hb_face_t           *face,
  *
  * Since: 2.1.0
  */
-hb_bool_t
+bool
 hb_ot_color_has_svg (hb_face_t *face)
 {
   return face->table.SVG->has_data ();
@@ -284,7 +284,7 @@ hb_ot_color_glyph_reference_svg (hb_face_t *face, hb_codepoint_t glyph)
  *
  * Since: 2.1.0
  */
-hb_bool_t
+bool
 hb_ot_color_has_png (hb_face_t *face)
 {
   return face->table.CBDT->has_data () || face->table.sbix->has_data ();

@@ -56,12 +56,12 @@ hb_map_reference (hb_map_t *map);
 HB_EXTERN void
 hb_map_destroy (hb_map_t *map);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_map_set_user_data (hb_map_t           *map,
 		      hb_user_data_key_t *key,
 		      void *              data,
 		      hb_destroy_func_t   destroy,
-		      hb_bool_t           replace);
+		      bool                replace);
 
 HB_EXTERN void *
 hb_map_get_user_data (hb_map_t           *map,
@@ -69,13 +69,13 @@ hb_map_get_user_data (hb_map_t           *map,
 
 
 /* Returns false if allocation has failed before */
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_map_allocation_successful (const hb_map_t *map);
 
 HB_EXTERN void
 hb_map_clear (hb_map_t *map);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_map_is_empty (const hb_map_t *map);
 
 HB_EXTERN unsigned int
@@ -94,7 +94,7 @@ HB_EXTERN void
 hb_map_del (hb_map_t       *map,
 	    hb_codepoint_t  key);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_map_has (const hb_map_t *map,
 	    hb_codepoint_t  key);
 

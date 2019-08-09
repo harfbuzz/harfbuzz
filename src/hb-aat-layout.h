@@ -461,7 +461,7 @@ hb_aat_layout_feature_type_get_selector_infos (hb_face_t                        
  * morx/mort
  */
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_aat_layout_has_substitution (hb_face_t *face);
 
 
@@ -469,7 +469,7 @@ hb_aat_layout_has_substitution (hb_face_t *face);
  * kerx
  */
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_aat_layout_has_positioning (hb_face_t *face);
 
 
@@ -477,7 +477,7 @@ hb_aat_layout_has_positioning (hb_face_t *face);
  * trak
  */
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_aat_layout_has_tracking (hb_face_t *face);
 
 

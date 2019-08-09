@@ -438,7 +438,7 @@ static const int deserialize_json_en_main = 1;
 #line 97 "hb-buffer-deserialize-json.rl"
 
 
-static hb_bool_t
+static bool
 _hb_buffer_deserialize_glyphs_json (hb_buffer_t *buffer,
 				    const char *buf,
 				    unsigned int buf_len,

@@ -30,7 +30,7 @@
 #include "hb.hh"
 #include "hb-machinery.hh"
 
-typedef hb_bool_t hb_shape_func_t (hb_shape_plan_t    *shape_plan,
+typedef bool hb_shape_func_t (hb_shape_plan_t    *shape_plan,
 				   hb_font_t          *font,
 				   hb_buffer_t        *buffer,
 				   const hb_feature_t *features,

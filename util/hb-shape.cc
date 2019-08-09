@@ -87,7 +87,7 @@ struct output_buffer_t
   void consume_text (hb_buffer_t  *buffer,
 		     const char   *text,
 		     unsigned int  text_len,
-		     hb_bool_t     utf8_clusters)
+		     bool          utf8_clusters)
   {
     g_string_set_size (gs, 0);
     format.serialize_buffer_of_text (buffer, line_no, text, text_len, font, gs);
@@ -102,7 +102,7 @@ struct output_buffer_t
   void consume_glyphs (hb_buffer_t  *buffer,
 		       const char   *text,
 		       unsigned int  text_len,
-		       hb_bool_t     utf8_clusters)
+		       bool          utf8_clusters)
   {
     g_string_set_size (gs, 0);
     format.serialize_buffer_of_glyphs (buffer, line_no, text, text_len, font,
@@ -118,7 +118,7 @@ struct output_buffer_t
     font = nullptr;
   }
 
-  static hb_bool_t
+  static bool
   message_func (hb_buffer_t *buffer,
 		hb_font_t *font,
 		const char *message,

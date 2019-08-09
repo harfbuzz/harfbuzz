@@ -29,7 +29,7 @@
 
 #include "hb-fc.h"
 
-static hb_bool_t
+static bool
 hb_fc_get_glyph (hb_font_t *font /*HB_UNUSED*/,
 		 void *font_data,
 		 hb_codepoint_t unicode,
@@ -118,7 +118,7 @@ hb_fc_font_create (FcPattern *fcfont)
   return font;
 }
 
-hb_bool_t
+bool
 hb_fc_can_render (hb_font_t *font, const char *text)
 {
   static const char *ot[] = {"ot", nullptr};

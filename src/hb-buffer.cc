@@ -54,7 +54,7 @@
  *
  * Since: 0.9.7
  **/
-hb_bool_t
+bool
 hb_segment_properties_equal (const hb_segment_properties_t *a,
 			     const hb_segment_properties_t *b)
 {
@@ -796,12 +796,12 @@ hb_buffer_destroy (hb_buffer_t *buffer)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_buffer_set_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key,
 			 void *              data,
 			 hb_destroy_func_t   destroy,
-			 hb_bool_t           replace)
+			 bool                replace)
 {
   return hb_object_set_user_data (buffer, key, data, destroy, replace);
 }
@@ -1263,7 +1263,7 @@ hb_buffer_clear_contents (hb_buffer_t *buffer)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_buffer_pre_allocate (hb_buffer_t *buffer, unsigned int size)
 {
   return buffer->ensure (size);
@@ -1280,7 +1280,7 @@ hb_buffer_pre_allocate (hb_buffer_t *buffer, unsigned int size)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_buffer_allocation_successful (hb_buffer_t  *buffer)
 {
   return buffer->successful;
@@ -1325,7 +1325,7 @@ hb_buffer_add (hb_buffer_t    *buffer,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_buffer_set_length (hb_buffer_t  *buffer,
 		      unsigned int  length)
 {

@@ -47,7 +47,7 @@ HB_BEGIN_DECLS
  * fvar / avar
  */
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_ot_var_has_data (hb_face_t *face);
 
 
@@ -95,7 +95,7 @@ hb_ot_var_get_axis_infos (hb_face_t             *face,
 			  unsigned int          *axes_count /* IN/OUT */,
 			  hb_ot_var_axis_info_t *axes_array /* OUT */);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_ot_var_find_axis_info (hb_face_t             *face,
 			  hb_tag_t               axis_tag,
 			  hb_ot_var_axis_info_t *axis_info);

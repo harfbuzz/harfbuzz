@@ -60,7 +60,7 @@
  *
  * Since: 1.3.3
  **/
-hb_bool_t
+bool
 hb_ot_math_has_data (hb_face_t *face)
 {
   return face->table.MATH->has_data ();
@@ -146,7 +146,7 @@ hb_ot_math_get_glyph_top_accent_attachment (hb_font_t *font,
  *
  * Since: 1.3.3
  **/
-hb_bool_t
+bool
 hb_ot_math_is_glyph_extended_shape (hb_face_t *face,
 				    hb_codepoint_t glyph)
 {

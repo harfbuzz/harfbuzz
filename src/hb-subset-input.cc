@@ -159,12 +159,12 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input)
 
 HB_EXTERN void
 hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
-				hb_bool_t drop_hints)
+				bool drop_hints)
 {
   subset_input->drop_hints = drop_hints;
 }
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_subset_input_get_drop_hints (hb_subset_input_t *subset_input)
 {
   return subset_input->drop_hints;
@@ -172,12 +172,12 @@ hb_subset_input_get_drop_hints (hb_subset_input_t *subset_input)
 
 HB_EXTERN void
 hb_subset_input_set_desubroutinize (hb_subset_input_t *subset_input,
-        hb_bool_t desubroutinize)
+        bool desubroutinize)
 {
   subset_input->desubroutinize = desubroutinize;
 }
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input)
 {
   return subset_input->desubroutinize;
@@ -191,7 +191,7 @@ hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input)
  **/
 HB_EXTERN void
 hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
-				 hb_bool_t retain_gids)
+				 bool retain_gids)
 {
   subset_input->retain_gids = retain_gids;
 }
@@ -201,7 +201,7 @@ hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
  * Returns: value of retain_gids.
  * Since: 2.4.0
  **/
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_subset_input_get_retain_gids (hb_subset_input_t *subset_input)
 {
   return subset_input->retain_gids;

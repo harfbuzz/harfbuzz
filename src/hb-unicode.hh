@@ -71,15 +71,15 @@ struct hb_unicode_funcs_t
 HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
 #undef HB_UNICODE_FUNC_IMPLEMENT
 
-  hb_bool_t compose (hb_codepoint_t a, hb_codepoint_t b,
-		     hb_codepoint_t *ab)
+  bool compose (hb_codepoint_t a, hb_codepoint_t b,
+		hb_codepoint_t *ab)
   {
     *ab = 0;
     if (unlikely (!a || !b)) return false;
     return func.compose (this, a, b, ab, user_data.compose);
   }
 
-  hb_bool_t decompose (hb_codepoint_t ab,
+  bool decompose (hb_codepoint_t ab,
 		       hb_codepoint_t *a, hb_codepoint_t *b)
   {
     *a = ab; *b = 0;
@@ -118,7 +118,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
     return _hb_modified_combining_class[combining_class (u)];
   }
 
-  static hb_bool_t
+  static bool
   is_variation_selector (hb_codepoint_t unicode)
   {
     /* U+180B..180D MONGOLIAN FREE VARIATION SELECTORs are handled in the
@@ -165,7 +165,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
    * E0100..E01EF  # Mn [240] VARIATION SELECTOR-17..VARIATION SELECTOR-256
    * E01F0..E0FFF  # Cn [3600] <reserved-E01F0>..<reserved-E0FFF>
    */
-  static hb_bool_t
+  static bool
   is_default_ignorable (hb_codepoint_t ch)
   {
     hb_codepoint_t plane = ch >> 16;

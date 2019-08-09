@@ -103,7 +103,7 @@ typedef enum {
   _HB_OT_METRICS_TAG_MAX_VALUE = HB_TAG_MAX_SIGNED /*< skip >*/
 } hb_ot_metrics_tag_t;
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_ot_metrics_get_position (hb_font_t           *font,
 			    hb_ot_metrics_tag_t  metrics_tag,
 			    hb_position_t       *position     /* OUT.  May be NULL. */);

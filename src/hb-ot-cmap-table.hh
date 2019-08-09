@@ -1056,8 +1056,7 @@ struct cmap
 
     void fini () { this->table.destroy (); }
 
-    bool get_nominal_glyph (hb_codepoint_t  unicode,
-				   hb_codepoint_t *glyph) const
+    bool get_nominal_glyph (hb_codepoint_t  unicode, hb_codepoint_t *glyph) const
     {
       if (unlikely (!this->get_glyph_funcZ)) return false;
       return this->get_glyph_funcZ (this->get_glyph_data, unicode, glyph);

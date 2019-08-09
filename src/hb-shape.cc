@@ -125,7 +125,7 @@ hb_shape_list_shapers ()
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_shape_full (hb_font_t          *font,
 	       hb_buffer_t        *buffer,
 	       const hb_feature_t *features,
@@ -136,7 +136,7 @@ hb_shape_full (hb_font_t          *font,
 							      features, num_features,
 							      font->coords, font->num_coords,
 							      shaper_list);
-  hb_bool_t res = hb_shape_plan_execute (shape_plan, font, buffer, features, num_features);
+  bool res = hb_shape_plan_execute (shape_plan, font, buffer, features, num_features);
   hb_shape_plan_destroy (shape_plan);
 
   if (res)

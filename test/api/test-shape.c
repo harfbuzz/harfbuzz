@@ -53,7 +53,7 @@ glyph_h_advance_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
   return 0;
 }
 
-static hb_bool_t
+static bool
 glyph_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 	    hb_codepoint_t unicode,
 	    hb_codepoint_t *glyph,

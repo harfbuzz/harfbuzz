@@ -272,7 +272,7 @@ _hb_ot_layout_set_glyph_props (hb_font_t *font,
  * Return value: true if data found, false otherwise
  *
  **/
-hb_bool_t
+bool
 hb_ot_layout_has_glyph_classes (hb_face_t *face)
 {
   return face->table.GDEF->table->has_glyph_classes ();
@@ -480,7 +480,7 @@ hb_ot_layout_table_get_script_tags (hb_face_t    *face,
  * Return value: true if the script is found, false otherwise
  *
  **/
-hb_bool_t
+bool
 hb_ot_layout_table_find_script (hb_face_t    *face,
 				hb_tag_t      table_tag,
 				hb_tag_t      script_tag,
@@ -521,7 +521,7 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
  *
  * Deprecated since 2.0.0
  **/
-hb_bool_t
+bool
 hb_ot_layout_table_choose_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
 				  const hb_tag_t *script_tags,
@@ -545,7 +545,7 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
  *
  * Since: 2.0.0
  **/
-hb_bool_t
+bool
 hb_ot_layout_table_select_script (hb_face_t      *face,
 				  hb_tag_t        table_tag,
 				  unsigned int    script_count,
@@ -701,7 +701,7 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
  * Since: ??
  * Deprecated: ??
  **/
-hb_bool_t
+bool
 hb_ot_layout_script_find_language (hb_face_t    *face,
 				   hb_tag_t      table_tag,
 				   unsigned int  script_index,
@@ -734,7 +734,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
  *
  * Since: 2.0.0
  **/
-hb_bool_t
+bool
 hb_ot_layout_script_select_language (hb_face_t      *face,
 				     hb_tag_t        table_tag,
 				     unsigned int    script_index,
@@ -775,7 +775,7 @@ hb_ot_layout_script_select_language (hb_face_t      *face,
  * Return value: true if the feature is found, false otherwise
  *
  **/
-hb_bool_t
+bool
 hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
 						  hb_tag_t      table_tag,
 						  unsigned int  script_index,
@@ -807,7 +807,7 @@ hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
  *
  * Since: 0.9.30
  **/
-hb_bool_t
+bool
 hb_ot_layout_language_get_required_feature (hb_face_t    *face,
 					    hb_tag_t      table_tag,
 					    unsigned int  script_index,
@@ -913,7 +913,7 @@ hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
  * Return value: true if the feature is found, false otherwise
  *
  **/
-hb_bool_t
+bool
 hb_ot_layout_language_find_feature (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  script_index,
@@ -1275,7 +1275,7 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
  * or GPOS table, at the specified variation coordinates.
  *
  **/
-hb_bool_t
+bool
 hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
 					    hb_tag_t      table_tag,
 					    const int    *coords,
@@ -1336,7 +1336,7 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
  * Return value: true if data found, false otherwise
  *
  **/
-hb_bool_t
+bool
 hb_ot_layout_has_substitution (hb_face_t *face)
 {
   return face->table.GSUB->table->has_data ();
@@ -1349,7 +1349,7 @@ hb_ot_layout_has_substitution (hb_face_t *face)
  * @lookup_index: The index of the lookup to query
  * @glyphs: The sequence of glyphs to query for substitution
  * @glyphs_length: The length of the glyph sequence
- * @zero_context: #hb_bool_t indicating whether substitutions should be context-free
+ * @zero_context: #bool indicating whether substitutions should be context-free
  *
  * Tests whether a specified lookup in the specified face would
  * trigger a substitution on the given glyph sequence.
@@ -1358,12 +1358,12 @@ hb_ot_layout_has_substitution (hb_face_t *face)
  *
  * Since: 0.9.7
  **/
-hb_bool_t
+bool
 hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 				      unsigned int          lookup_index,
 				      const hb_codepoint_t *glyphs,
 				      unsigned int          glyphs_length,
-				      hb_bool_t             zero_context)
+				      bool                  zero_context)
 {
   if (unlikely (lookup_index >= face->table.GSUB->lookup_count)) return false;
   OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, (bool) zero_context);
@@ -1515,7 +1515,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
  * Return value: true if the face has GPOS data, false otherwise
  *
  **/
-hb_bool_t
+bool
 hb_ot_layout_has_positioning (hb_face_t *face)
 {
   return face->table.GPOS->table->has_data ();
@@ -1589,7 +1589,7 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  *
  * Since: 0.9.10
  **/
-hb_bool_t
+bool
 hb_ot_layout_get_size_params (hb_face_t       *face,
 			      unsigned int    *design_size,       /* OUT.  May be NULL */
 			      unsigned int    *subfamily_id,      /* OUT.  May be NULL */
@@ -1653,7 +1653,7 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
  *
  * Since: 2.0.0
  **/
-hb_bool_t
+bool
 hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
 				   hb_tag_t         table_tag,
 				   unsigned int     feature_index,
@@ -1954,7 +1954,7 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
  *
  * Return value: if found baseline value in the the font.
  **/
-hb_bool_t
+bool
 hb_ot_layout_get_baseline (hb_font_t                   *font,
 			   hb_ot_layout_baseline_tag_t  baseline_tag,
 			   hb_direction_t               direction,

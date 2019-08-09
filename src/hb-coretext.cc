@@ -447,7 +447,7 @@ struct range_record_t {
 };
 
 
-hb_bool_t
+bool
 _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 		    hb_font_t          *font,
                     hb_buffer_t        *buffer,

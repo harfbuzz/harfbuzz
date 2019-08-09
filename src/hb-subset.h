@@ -62,20 +62,20 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input);
 
 HB_EXTERN void
 hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
-				hb_bool_t drop_hints);
-HB_EXTERN hb_bool_t
+				bool drop_hints);
+HB_EXTERN bool
 hb_subset_input_get_drop_hints (hb_subset_input_t *subset_input);
 
 HB_EXTERN void
 hb_subset_input_set_desubroutinize (hb_subset_input_t *subset_input,
-        hb_bool_t desubroutinize);
-HB_EXTERN hb_bool_t
+        bool desubroutinize);
+HB_EXTERN bool
 hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input);
 
 HB_EXTERN void
 hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
-				 hb_bool_t retain_gids);
-HB_EXTERN hb_bool_t
+				 bool retain_gids);
+HB_EXTERN bool
 hb_subset_input_get_retain_gids (hb_subset_input_t *subset_input);
 
 /* hb_subset () */

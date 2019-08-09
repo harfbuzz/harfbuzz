@@ -215,7 +215,7 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
  * Returns:
  * Since: 2.3.0
  */
-hb_bool_t
+bool
 hb_aat_layout_has_substitution (hb_face_t *face)
 {
   return face->table.morx->has_data () ||
@@ -276,7 +276,7 @@ hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
  * Returns:
  * Since: 2.3.0
  */
-hb_bool_t
+bool
 hb_aat_layout_has_positioning (hb_face_t *face)
 {
   return face->table.kerx->has_data ();
@@ -303,7 +303,7 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
  * Returns:
  * Since: 2.3.0
  */
-hb_bool_t
+bool
 hb_aat_layout_has_tracking (hb_face_t *face)
 {
   return face->table.trak->has_data ();

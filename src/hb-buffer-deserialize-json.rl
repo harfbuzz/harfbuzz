@@ -96,7 +96,7 @@ main := space* item (comma item)* space* (','|']')?;
 
 }%%
 
-static hb_bool_t
+static bool
 _hb_buffer_deserialize_glyphs_json (hb_buffer_t *buffer,
 				    const char *buf,
 				    unsigned int buf_len,

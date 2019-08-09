@@ -310,12 +310,12 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
  *
  * Since: 0.9.7
  **/
-hb_bool_t
+bool
 hb_shape_plan_set_user_data (hb_shape_plan_t    *shape_plan,
 			     hb_user_data_key_t *key,
 			     void *              data,
 			     hb_destroy_func_t   destroy,
-			     hb_bool_t           replace)
+			     bool                replace)
 {
   return hb_object_set_user_data (shape_plan, key, data, destroy, replace);
 }
@@ -369,7 +369,7 @@ hb_shape_plan_get_shaper (hb_shape_plan_t *shape_plan)
  *
  * Since: 0.9.7
  **/
-hb_bool_t
+bool
 hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 		       hb_font_t          *font,
 		       hb_buffer_t        *buffer,

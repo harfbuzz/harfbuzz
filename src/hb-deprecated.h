@@ -52,16 +52,19 @@ HB_BEGIN_DECLS
 
 #ifndef HB_DISABLE_DEPRECATED
 
+HB_DEPRECATED_FOR(bool)
+typedef int hb_bool_t;
+
 
 #define HB_SCRIPT_CANADIAN_ABORIGINAL		HB_SCRIPT_CANADIAN_SYLLABICS
 
 #define HB_BUFFER_FLAGS_DEFAULT			HB_BUFFER_FLAG_DEFAULT
 #define HB_BUFFER_SERIALIZE_FLAGS_DEFAULT	HB_BUFFER_SERIALIZE_FLAG_DEFAULT
 
-typedef hb_bool_t (*hb_font_get_glyph_func_t) (hb_font_t *font, void *font_data,
-					       hb_codepoint_t unicode, hb_codepoint_t variation_selector,
-					       hb_codepoint_t *glyph,
-					       void *user_data);
+typedef bool (*hb_font_get_glyph_func_t) (hb_font_t *font, void *font_data,
+					  hb_codepoint_t unicode, hb_codepoint_t variation_selector,
+					  hb_codepoint_t *glyph,
+					  void *user_data);
 
 HB_EXTERN HB_DEPRECATED_FOR(hb_font_funcs_set_nominal_glyph_func and hb_font_funcs_set_variation_glyph_func) void
 hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
@@ -87,7 +90,7 @@ typedef unsigned int			(*hb_unicode_eastasian_width_func_t)	(hb_unicode_funcs_t 
  * @user_data:
  * @destroy:
  *
- * 
+ *
  *
  * Since: 0.9.2
  * Deprecated: 2.0.0
@@ -149,7 +152,7 @@ typedef unsigned int			(*hb_unicode_decompose_compatibility_func_t)	(hb_unicode_
  * @user_data:
  * @destroy:
  *
- * 
+ *
  *
  * Since: 0.9.2
  * Deprecated: 2.0.0
@@ -174,7 +177,7 @@ typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_v_kerning_func_t;
  * @user_data:
  * @destroy:
  *
- * 
+ *
  *
  * Since: 0.9.2
  * Deprecated: 2.0.0

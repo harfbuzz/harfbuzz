@@ -892,7 +892,7 @@ hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
   hb_stable_sort (array, len, compar, (int *) nullptr);
 }
 
-static inline hb_bool_t
+static inline bool
 hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *out)
 {
   /* Pain because we don't know whether s is nul-terminated. */

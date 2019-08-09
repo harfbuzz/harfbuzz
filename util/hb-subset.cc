@@ -68,7 +68,7 @@ struct subset_consumer_t
     } while ((c = g_utf8_find_next_char(c, text + text_len)) != nullptr);
   }
 
-  hb_bool_t
+  bool
   write_file (const char *output_file, hb_blob_t *blob) {
     unsigned int data_length;
     const char* data = hb_blob_get_data (blob, &data_length);

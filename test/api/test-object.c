@@ -118,10 +118,10 @@ create_unicode_funcs_from_inert (void)
 typedef void     *(*create_func_t)         (void);
 typedef void     *(*reference_func_t)      (void *obj);
 typedef void      (*destroy_func_t)        (void *obj);
-typedef hb_bool_t (*set_user_data_func_t)  (void *obj, hb_user_data_key_t *key, void *data, hb_destroy_func_t destroy, hb_bool_t replace);
+typedef bool (*set_user_data_func_t)  (void *obj, hb_user_data_key_t *key, void *data, hb_destroy_func_t destroy, bool replace);
 typedef void *    (*get_user_data_func_t)  (void *obj, hb_user_data_key_t *key);
 typedef void      (*make_immutable_func_t) (void *obj);
-typedef hb_bool_t (*is_immutable_func_t)   (void *obj);
+typedef bool (*is_immutable_func_t)   (void *obj);
 
 typedef struct {
   create_func_t          create;

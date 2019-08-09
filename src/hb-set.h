@@ -56,12 +56,12 @@ hb_set_reference (hb_set_t *set);
 HB_EXTERN void
 hb_set_destroy (hb_set_t *set);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_set_user_data (hb_set_t           *set,
 		      hb_user_data_key_t *key,
 		      void *              data,
 		      hb_destroy_func_t   destroy,
-		      hb_bool_t           replace);
+		      bool                replace);
 
 HB_EXTERN void *
 hb_set_get_user_data (hb_set_t           *set,
@@ -69,16 +69,16 @@ hb_set_get_user_data (hb_set_t           *set,
 
 
 /* Returns false if allocation has failed before */
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_allocation_successful (const hb_set_t *set);
 
 HB_EXTERN void
 hb_set_clear (hb_set_t *set);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_is_empty (const hb_set_t *set);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_has (const hb_set_t *set,
 	    hb_codepoint_t  codepoint);
 
@@ -100,11 +100,11 @@ hb_set_del_range (hb_set_t       *set,
 		  hb_codepoint_t  first,
 		  hb_codepoint_t  last);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_is_equal (const hb_set_t *set,
 		 const hb_set_t *other);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_is_subset (const hb_set_t *set,
 		  const hb_set_t *larger_set);
 
@@ -140,23 +140,23 @@ HB_EXTERN hb_codepoint_t
 hb_set_get_max (const hb_set_t *set);
 
 /* Pass HB_SET_VALUE_INVALID in to get started. */
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_next (const hb_set_t *set,
 	     hb_codepoint_t *codepoint);
 
 /* Pass HB_SET_VALUE_INVALID in to get started. */
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_previous (const hb_set_t *set,
 		 hb_codepoint_t *codepoint);
 
 /* Pass HB_SET_VALUE_INVALID for first and last to get started. */
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_next_range (const hb_set_t *set,
 		   hb_codepoint_t *first,
 		   hb_codepoint_t *last);
 
 /* Pass HB_SET_VALUE_INVALID for first and last to get started. */
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_set_previous_range (const hb_set_t *set,
 		       hb_codepoint_t *first,
 		       hb_codepoint_t *last);

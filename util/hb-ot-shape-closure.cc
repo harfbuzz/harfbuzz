@@ -104,7 +104,7 @@ struct shape_closure_consumer_t : option_group_t
 
   protected:
   shape_options_t shaper;
-  hb_bool_t show_glyph_names;
+  gboolean show_glyph_names;
 
   hb_set_t *glyphs;
   hb_font_t *font;

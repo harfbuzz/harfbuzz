@@ -547,7 +547,7 @@ static const property_t properties[] =
 #undef PROPERTY
 
 static void
-test_unicode_properties (gconstpointer user_data, hb_bool_t lenient)
+test_unicode_properties (gconstpointer user_data, bool lenient)
 {
   hb_unicode_funcs_t *uf = (hb_unicode_funcs_t *) user_data;
   unsigned int i, j;

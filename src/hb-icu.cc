@@ -161,7 +161,7 @@ hb_icu_unicode_script (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return hb_icu_script_to_script (scriptCode);
 }
 
-static hb_bool_t
+static bool
 hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			hb_codepoint_t      a,
 			hb_codepoint_t      b,
@@ -183,7 +183,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 
   UChar utf16[4], normalized[5];
   unsigned int len;
-  hb_bool_t ret, err;
+  bool ret, err;
   UErrorCode icu_err;
 
   len = 0;
@@ -207,7 +207,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   return ret;
 }
 
-static hb_bool_t
+static bool
 hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			  hb_codepoint_t      ab,
 			  hb_codepoint_t     *a,
@@ -243,7 +243,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 
   UChar utf16[2], normalized[2 * 19/*HB_UNICODE_MAX_DECOMPOSITION_LEN*/ + 1];
   unsigned int len;
-  hb_bool_t ret, err;
+  bool ret, err;
   UErrorCode icu_err;
 
   /* This function is a monster! Maybe it wasn't a good idea adding a

@@ -543,7 +543,7 @@ protected:
  * shaper
  */
 
-static hb_bool_t
+static bool
 _hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
 			    hb_font_t          *font,
 			    hb_buffer_t        *buffer,
@@ -868,7 +868,7 @@ retry_getglyphs:
   return true;
 }
 
-hb_bool_t
+bool
 _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
 		       hb_font_t          *font,
 		       hb_buffer_t        *buffer,
@@ -896,7 +896,7 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
  *
  * Since: 1.4.2
  **/
-hb_bool_t
+bool
 hb_directwrite_shape_experimental_width (hb_font_t          *font,
 					 hb_buffer_t        *buffer,
 					 const hb_feature_t *features,
@@ -907,8 +907,8 @@ hb_directwrite_shape_experimental_width (hb_font_t          *font,
   hb_shape_plan_t *shape_plan;
   shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props,
 					    features, num_features, &shapers);
-  hb_bool_t res = _hb_directwrite_shape_full (shape_plan, font, buffer,
-					      features, num_features, width);
+  bool res = _hb_directwrite_shape_full (shape_plan, font, buffer,
+					 features, num_features, width);
 
   buffer->unsafe_to_break_all ();
 

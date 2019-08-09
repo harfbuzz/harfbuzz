@@ -43,9 +43,10 @@ struct hb_subset_input_t
   hb_set_t *name_ids;
   hb_set_t *drop_tables;
 
-  bool drop_hints;
-  bool desubroutinize;
-  bool retain_gids;
+  /* XXX: These shouldn't have accessed from util/hb-subset */
+  int drop_hints;
+  int desubroutinize;
+  int retain_gids;
   /* TODO
    *
    * features

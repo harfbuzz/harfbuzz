@@ -157,7 +157,7 @@ typedef struct hb_segment_properties_t {
 				       (void *) 0, \
 				       (void *) 0}
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_segment_properties_equal (const hb_segment_properties_t *a,
 			     const hb_segment_properties_t *b);
 
@@ -187,12 +187,12 @@ hb_buffer_reference (hb_buffer_t *buffer);
 HB_EXTERN void
 hb_buffer_destroy (hb_buffer_t *buffer);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_buffer_set_user_data (hb_buffer_t        *buffer,
 			 hb_user_data_key_t *key,
 			 void *              data,
 			 hb_destroy_func_t   destroy,
-			 hb_bool_t           replace);
+			 bool                replace);
 
 HB_EXTERN void *
 hb_buffer_get_user_data (hb_buffer_t        *buffer,
@@ -363,12 +363,12 @@ hb_buffer_reset (hb_buffer_t *buffer);
 HB_EXTERN void
 hb_buffer_clear_contents (hb_buffer_t *buffer);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_buffer_pre_allocate (hb_buffer_t  *buffer,
 		        unsigned int  size);
 
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_buffer_allocation_successful (hb_buffer_t  *buffer);
 
 HB_EXTERN void
@@ -430,7 +430,7 @@ hb_buffer_append (hb_buffer_t *buffer,
 		  unsigned int start,
 		  unsigned int end);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_buffer_set_length (hb_buffer_t  *buffer,
 		      unsigned int  length);
 
@@ -518,7 +518,7 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 			    hb_buffer_serialize_format_t format,
 			    hb_buffer_serialize_flags_t flags);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
 			      int buf_len,
@@ -570,10 +570,10 @@ hb_buffer_diff (hb_buffer_t *buffer,
  * Debugging.
  */
 
-typedef hb_bool_t	(*hb_buffer_message_func_t)	(hb_buffer_t *buffer,
-							 hb_font_t   *font,
-							 const char  *message,
-							 void        *user_data);
+typedef bool	(*hb_buffer_message_func_t)	(hb_buffer_t *buffer,
+						 hb_font_t   *font,
+						 const char  *message,
+						 void        *user_data);
 
 HB_EXTERN void
 hb_buffer_set_message_func (hb_buffer_t *buffer,

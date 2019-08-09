@@ -68,7 +68,7 @@ _hb_fallback_shaper_font_data_destroy (hb_fallback_font_data_t *data HB_UNUSED)
  * shaper
  */
 
-hb_bool_t
+bool
 _hb_fallback_shape (hb_shape_plan_t    *shape_plan HB_UNUSED,
 		    hb_font_t          *font,
 		    hb_buffer_t        *buffer,

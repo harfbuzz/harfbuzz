@@ -206,7 +206,7 @@ test_fontfuncs_nil (void)
   hb_font_funcs_destroy (ffuncs);
 }
 
-static hb_bool_t
+static bool
 contour_point_func1 (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 		     hb_codepoint_t glyph, unsigned int point_index HB_UNUSED,
 		     hb_position_t *x, hb_position_t *y,
@@ -226,7 +226,7 @@ contour_point_func1 (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
   return FALSE;
 }
 
-static hb_bool_t
+static bool
 contour_point_func2 (hb_font_t *font, void *font_data HB_UNUSED,
 		     hb_codepoint_t glyph, unsigned int point_index,
 		     hb_position_t *x, hb_position_t *y,
@@ -361,7 +361,7 @@ test_fontfuncs_subclassing (void)
   hb_font_destroy (font2);
 }
 
-static hb_bool_t
+static bool
 nominal_glyph_func (hb_font_t *font HB_UNUSED,
 		    void *font_data HB_UNUSED,
 		    hb_codepoint_t unicode HB_UNUSED,

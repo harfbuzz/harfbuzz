@@ -80,19 +80,19 @@ hb_shape_plan_reference (hb_shape_plan_t *shape_plan);
 HB_EXTERN void
 hb_shape_plan_destroy (hb_shape_plan_t *shape_plan);
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_shape_plan_set_user_data (hb_shape_plan_t    *shape_plan,
 			     hb_user_data_key_t *key,
 			     void *              data,
 			     hb_destroy_func_t   destroy,
-			     hb_bool_t           replace);
+			     bool                replace);
 
 HB_EXTERN void *
 hb_shape_plan_get_user_data (hb_shape_plan_t    *shape_plan,
 			     hb_user_data_key_t *key);
 
 
-HB_EXTERN hb_bool_t
+HB_EXTERN bool
 hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 		       hb_font_t          *font,
 		       hb_buffer_t        *buffer,

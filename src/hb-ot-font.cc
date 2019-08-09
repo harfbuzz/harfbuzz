@@ -59,7 +59,7 @@
  **/
 
 
-static hb_bool_t
+static bool
 hb_ot_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 			 void *font_data,
 			 hb_codepoint_t unicode,
@@ -86,7 +86,7 @@ hb_ot_get_nominal_glyphs (hb_font_t *font HB_UNUSED,
 					    first_glyph, glyph_stride);
 }
 
-static hb_bool_t
+static bool
 hb_ot_get_variation_glyph (hb_font_t *font HB_UNUSED,
 			   void *font_data,
 			   hb_codepoint_t unicode,
@@ -138,7 +138,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   }
 }
 
-static hb_bool_t
+static bool
 hb_ot_get_glyph_v_origin (hb_font_t *font,
 			  void *font_data,
 			  hb_codepoint_t glyph,
@@ -175,7 +175,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   return true;
 }
 
-static hb_bool_t
+static bool
 hb_ot_get_glyph_extents (hb_font_t *font,
 			 void *font_data,
 			 hb_codepoint_t glyph,
@@ -206,7 +206,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 }
 
 #ifndef HB_NO_OT_FONT_GLYPH_NAMES
-static hb_bool_t
+static bool
 hb_ot_get_glyph_name (hb_font_t *font HB_UNUSED,
                       void *font_data,
                       hb_codepoint_t glyph,
@@ -216,7 +216,7 @@ hb_ot_get_glyph_name (hb_font_t *font HB_UNUSED,
   const hb_ot_face_t *ot_face = (const hb_ot_face_t *) font_data;
   return ot_face->post->get_glyph_name (glyph, name, size);
 }
-static hb_bool_t
+static bool
 hb_ot_get_glyph_from_name (hb_font_t *font HB_UNUSED,
                            void *font_data,
                            const char *name, int len,
@@ -228,7 +228,7 @@ hb_ot_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 }
 #endif
 
-static hb_bool_t
+static bool
 hb_ot_get_font_h_extents (hb_font_t *font,
 			  void *font_data HB_UNUSED,
 			  hb_font_extents_t *metrics,
@@ -239,7 +239,7 @@ hb_ot_get_font_h_extents (hb_font_t *font,
 	 _hb_ot_metrics_get_position_common (font, HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP, &metrics->line_gap);
 }
 
-static hb_bool_t
+static bool
 hb_ot_get_font_v_extents (hb_font_t *font,
 			  void *font_data HB_UNUSED,
 			  hb_font_extents_t *metrics,

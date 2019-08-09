@@ -94,7 +94,7 @@ hb_unicode_script_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
   return HB_SCRIPT_UNKNOWN;
 }
 
-static hb_bool_t
+static bool
 hb_unicode_compose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 			hb_codepoint_t      a         HB_UNUSED,
 			hb_codepoint_t      b         HB_UNUSED,
@@ -104,7 +104,7 @@ hb_unicode_compose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
   return false;
 }
 
-static hb_bool_t
+static bool
 hb_unicode_decompose_nil (hb_unicode_funcs_t *ufuncs    HB_UNUSED,
 			  hb_codepoint_t      ab        HB_UNUSED,
 			  hb_codepoint_t     *a         HB_UNUSED,
@@ -268,12 +268,12 @@ hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_unicode_funcs_set_user_data (hb_unicode_funcs_t *ufuncs,
 			        hb_user_data_key_t *key,
 			        void *              data,
 			        hb_destroy_func_t   destroy,
-				hb_bool_t           replace)
+				bool                replace)
 {
   return hb_object_set_user_data (ufuncs, key, data, destroy, replace);
 }
@@ -324,7 +324,7 @@ hb_unicode_funcs_make_immutable (hb_unicode_funcs_t *ufuncs)
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_unicode_funcs_is_immutable (hb_unicode_funcs_t *ufuncs)
 {
   return hb_object_is_immutable (ufuncs);
@@ -400,7 +400,7 @@ HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS_SIMPLE
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_unicode_compose (hb_unicode_funcs_t *ufuncs,
 		    hb_codepoint_t      a,
 		    hb_codepoint_t      b,
@@ -422,7 +422,7 @@ hb_unicode_compose (hb_unicode_funcs_t *ufuncs,
  *
  * Since: 0.9.2
  **/
-hb_bool_t
+bool
 hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
 		      hb_codepoint_t      ab,
 		      hb_codepoint_t     *a,

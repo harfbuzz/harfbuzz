@@ -124,8 +124,7 @@ struct post
       table.destroy ();
     }
 
-    bool get_glyph_name (hb_codepoint_t glyph,
-			 char *buf, unsigned int buf_len) const
+    bool get_glyph_name (hb_codepoint_t glyph, char *buf, unsigned int buf_len) const
     {
       hb_bytes_t s = find_glyph_name (glyph);
       if (!s.length) return false;

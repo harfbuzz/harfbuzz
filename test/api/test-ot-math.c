@@ -336,7 +336,7 @@ test_get_glyph_kerning (void)
 static hb_position_t
 get_glyph_assembly_italics_correction (hb_font_t *font,
 				       hb_codepoint_t glyph,
-				       hb_bool_t horizontal)
+				       bool horizontal)
 {
   hb_position_t corr;
   hb_ot_math_get_glyph_assembly (font, glyph,
