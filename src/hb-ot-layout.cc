@@ -54,6 +54,7 @@
 #include "hb-aat-layout-lcar-table.hh"
 #include "hb-aat-layout-morx-table.hh"
 
+#include "hb-aat-layout-opbd-table.hh" // Just so we compile it; unused otherwise.
 
 /**
  * SECTION:hb-ot-layout
