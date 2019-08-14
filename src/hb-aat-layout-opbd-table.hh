@@ -45,10 +45,10 @@ struct OpticalBounds
     return_trace (likely (c->check_struct (this)));
   }
 
-  HBINT16	leftSide;
-  HBINT16	topSide;
-  HBINT16	rightSide;
-  HBINT16	bottomSide;
+  FWORD		leftSide;
+  FWORD		topSide;
+  FWORD		rightSide;
+  FWORD		bottomSide;
   public:
   DEFINE_SIZE_STATIC (8);
 };
