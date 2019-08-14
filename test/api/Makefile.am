@@ -61,6 +61,7 @@ TEST_PROGS = \
 	test-subset-colr \
 	test-subset-cbdt \
 	test-unicode \
+	test-var-coords \
 	test-version \
 	test-subset-nameids \
 	$(NULL)
