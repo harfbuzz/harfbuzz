@@ -35,18 +35,18 @@ test_ot_meta_get_entries (void)
   hb_ot_meta_tag_t entries[2];
 
   unsigned int entries_count = 2;
-  g_assert_cmpint (hb_ot_meta_get_entries (face, 0, &entries_count, entries), ==, 5);
+  g_assert_cmpint (hb_ot_meta_get_entry_tags (face, 0, &entries_count, entries), ==, 5);
   g_assert_cmpint (entries_count, ==, 2);
   g_assert_cmpint (entries[0], ==, HB_TAG ('a','p','p','l'));
   g_assert_cmpint (entries[1], ==, HB_TAG ('b','i','l','d'));
 
   entries_count = 1;
-  g_assert_cmpint (hb_ot_meta_get_entries (face, 2, &entries_count, entries), ==, 5);
+  g_assert_cmpint (hb_ot_meta_get_entry_tags (face, 2, &entries_count, entries), ==, 5);
   g_assert_cmpint (entries_count, ==, 1);
   g_assert_cmpint (entries[0], ==, HB_TAG ('d','l','n','g'));
 
   entries_count = 2;
-  g_assert_cmpint (hb_ot_meta_get_entries (face, 4, &entries_count, entries), ==, 5);
+  g_assert_cmpint (hb_ot_meta_get_entry_tags (face, 4, &entries_count, entries), ==, 5);
   g_assert_cmpint (entries_count, ==, 1);
   g_assert_cmpint (entries[0], ==, HB_TAG ('s','l','n','g'));
 

@@ -90,7 +90,7 @@ test_face (hb_face_t *face,
   hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_RTL);
   hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_BTT, 0, NULL, NULL, NULL);
 
-  hb_ot_meta_get_entries (face, 0, NULL, NULL);
+  hb_ot_meta_get_entry_tags (face, 0, NULL, NULL);
   hb_blob_destroy (hb_ot_meta_reference_entry (face, HB_OT_META_TAG_DESIGN_LANGUAGES));
 
   hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER, NULL);
