@@ -1815,6 +1815,7 @@ hb_font_get_ptem (hb_font_t *font)
   return font->ptem;
 }
 
+#ifndef HB_NO_VAR
 /*
  * Variations
  */
@@ -1830,7 +1831,6 @@ _hb_font_adopt_var_coords_normalized (hb_font_t *font,
   font->num_coords = coords_length;
 }
 
-#ifndef HB_NO_VAR
 /**
  * hb_font_set_variations:
  *
@@ -1909,7 +1909,6 @@ hb_font_set_var_named_instance (hb_font_t *font,
   hb_font_set_var_coords_design (font, coords, coords_length);
   free (coords);
 }
-#endif
 
 /**
  * hb_font_set_var_coords_normalized:
@@ -1951,7 +1950,7 @@ hb_font_get_var_coords_normalized (hb_font_t *font,
 
   return font->coords;
 }
-
+#endif
 
 #ifndef HB_DISABLE_DEPRECATED
 /*
