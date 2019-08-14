@@ -120,6 +120,7 @@ struct hb_font_t
   /* Font variation coordinates. */
   unsigned int num_coords;
   int *coords;
+  float *design_coords;
 
   hb_font_funcs_t   *klass;
   void              *user_data;
