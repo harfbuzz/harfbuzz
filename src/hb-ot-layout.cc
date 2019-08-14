@@ -1954,6 +1954,8 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
  * Fetches a baseline value from the face.
  *
  * Return value: if found baseline value in the the font.
+ *
+ * Since: 2.6.0
  **/
 hb_bool_t
 hb_ot_layout_get_baseline (hb_font_t                   *font,

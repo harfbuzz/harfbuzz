@@ -1890,7 +1890,7 @@ hb_font_set_var_coords_design (hb_font_t *font,
  *
  * Sets design coords of a font from a named instance index.
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  */
 void
 hb_font_set_var_named_instance (hb_font_t *font,

@@ -428,7 +428,7 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
  *
  * Baseline tags from https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  */
 typedef enum {
   HB_OT_LAYOUT_BASELINE_TAG_ROMAN			= HB_TAG ('r','o','m','n'),

@@ -44,7 +44,7 @@ HB_BEGIN_DECLS
  *
  * Known metadata tags from https://docs.microsoft.com/en-us/typography/opentype/spec/meta
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 typedef enum {
 /*

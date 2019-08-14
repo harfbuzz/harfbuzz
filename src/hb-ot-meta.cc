@@ -46,7 +46,7 @@
  *
  * Return value: Number of all available feature types.
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 unsigned int
 hb_ot_meta_get_entry_tags (hb_face_t        *face,
@@ -66,7 +66,7 @@ hb_ot_meta_get_entry_tags (hb_face_t        *face,
  *
  * Returns: (transfer full): A blob containing the blob.
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 hb_blob_t *
 hb_ot_meta_reference_entry (hb_face_t *face, hb_ot_meta_tag_t meta_tag)

@@ -68,7 +68,7 @@ HB_BEGIN_DECLS
  *
  * From https://docs.microsoft.com/en-us/typography/opentype/spec/mvar#value-tags
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 typedef enum {
   HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER		= HB_TAG ('h','a','s','c'),
