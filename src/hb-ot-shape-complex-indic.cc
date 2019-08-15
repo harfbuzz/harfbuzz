@@ -131,12 +131,6 @@ indic_features[] =
   {HB_TAG('b','l','w','s'), F_GLOBAL_MANUAL_JOINERS},
   {HB_TAG('p','s','t','s'), F_GLOBAL_MANUAL_JOINERS},
   {HB_TAG('h','a','l','n'), F_GLOBAL_MANUAL_JOINERS},
-  /*
-   * Positioning features.
-   * We don't care about the types.
-   */
-  {HB_TAG('a','b','v','m'), F_GLOBAL},
-  {HB_TAG('b','l','w','m'), F_GLOBAL},
 };
 
 /*
@@ -161,9 +155,6 @@ enum {
   _INDIC_BLWS,
   _INDIC_PSTS,
   _INDIC_HALN,
-
-  _INDIC_ABVM,
-  _INDIC_BLWM,
 
   INDIC_NUM_FEATURES,
   INDIC_BASIC_FEATURES = INDIC_INIT, /* Don't forget to update this! */
