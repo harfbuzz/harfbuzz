@@ -301,8 +301,8 @@ horizontal_features[] =
   {HB_TAG('c','a','l','t'), F_GLOBAL},
   {HB_TAG('c','l','i','g'), F_GLOBAL},
   {HB_TAG('c','u','r','s'), F_GLOBAL},
-  {HB_TAG('k','e','r','n'), F_GLOBAL_HAS_FALLBACK},
   {HB_TAG('d','i','s','t'), F_GLOBAL},
+  {HB_TAG('k','e','r','n'), F_GLOBAL_HAS_FALLBACK},
   {HB_TAG('l','i','g','a'), F_GLOBAL},
   {HB_TAG('r','c','l','t'), F_GLOBAL},
 };
