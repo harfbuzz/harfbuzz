@@ -60,7 +60,6 @@ khmer_features[] =
    * Positioning features.
    * We don't care about the types.
    */
-  {HB_TAG('d','i','s','t'), F_GLOBAL},
   {HB_TAG('a','b','v','m'), F_GLOBAL},
   {HB_TAG('b','l','w','m'), F_GLOBAL},
 };
@@ -80,7 +79,6 @@ enum {
   _KHMER_BLWS,
   _KHMER_PSTS,
 
-  _KHMER_DIST,
   _KHMER_ABVM,
   _KHMER_BLWM,
 
