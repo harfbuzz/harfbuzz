@@ -66,7 +66,6 @@ myanmar_positioning_features[] =
    * Positioning features.
    * We don't care about the types.
    */
-  HB_TAG('d','i','s','t'),
   /* Pre-release version of Windows 8 Myanmar font had abvm,blwm
    * features.  The released Windows 8 version of the font (as well
    * as the released spec) used 'mark' instead.  The Windows 8

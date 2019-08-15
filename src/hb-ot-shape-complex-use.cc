@@ -95,7 +95,6 @@ use_positioning_features[] =
    * Positioning features.
    * We don't care about the types.
    */
-  HB_TAG('d','i','s','t'),
   HB_TAG('a','b','v','m'),
   HB_TAG('b','l','w','m'),
 };

@@ -135,7 +135,6 @@ indic_features[] =
    * Positioning features.
    * We don't care about the types.
    */
-  {HB_TAG('d','i','s','t'), F_GLOBAL},
   {HB_TAG('a','b','v','m'), F_GLOBAL},
   {HB_TAG('b','l','w','m'), F_GLOBAL},
 };
@@ -163,7 +162,6 @@ enum {
   _INDIC_PSTS,
   _INDIC_HALN,
 
-  _INDIC_DIST,
   _INDIC_ABVM,
   _INDIC_BLWM,
 
