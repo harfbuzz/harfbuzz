@@ -285,6 +285,8 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
 static const hb_ot_map_feature_t
 common_features[] =
 {
+  {HB_TAG('a','b','v','m'), F_GLOBAL},
+  {HB_TAG('b','l','w','m'), F_GLOBAL},
   {HB_TAG('c','c','m','p'), F_GLOBAL},
   {HB_TAG('l','o','c','l'), F_GLOBAL},
   {HB_TAG('m','a','r','k'), F_GLOBAL_MANUAL_JOINERS},
