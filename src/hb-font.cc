@@ -1390,9 +1390,7 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->ptem = parent->ptem;
 
   font->num_coords = parent->num_coords;
-  if (!font->num_coords)
-    font->coords = nullptr;
-  else
+  if (font->num_coords)
   {
     unsigned int size = parent->num_coords * sizeof (parent->coords[0]);
     font->coords = (int *) malloc (size);
