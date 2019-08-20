@@ -26,6 +26,7 @@
 
 #include "hb-test.h"
 #include <hb-ot.h>
+#include <stdbool.h>
 
 /* Unit tests for CFF/CFF2 glyph extents */
 
@@ -40,7 +41,7 @@ test_extents_cff1 (void)
   hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
-  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
+  bool result = hb_font_get_glyph_extents (font, 1, &extents);
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 52);
@@ -57,7 +58,7 @@ test_extents_cff1 (void)
   g_assert (font_j);
   hb_ot_font_set_funcs (font_j);
 
-  hb_bool_t result_j = hb_font_get_glyph_extents (font_j, 3, &extents);
+  bool result_j = hb_font_get_glyph_extents (font_j, 3, &extents);
   g_assert (result_j);
 
   g_assert_cmpint (extents.x_bearing, ==, 34);
@@ -79,7 +80,7 @@ test_extents_cff1_flex (void)
   hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
-  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
+  bool result = hb_font_get_glyph_extents (font, 1, &extents);
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, -20);
@@ -101,7 +102,7 @@ test_extents_cff1_seac (void)
   hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
-  hb_bool_t result = hb_font_get_glyph_extents (font, 3, &extents); /* Agrave */
+  bool result = hb_font_get_glyph_extents (font, 3, &extents); /* Agrave */
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 3);
@@ -131,7 +132,7 @@ test_extents_cff2 (void)
   hb_ot_font_set_funcs (font);
 
   hb_glyph_extents_t  extents;
-  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
+  bool result = hb_font_get_glyph_extents (font, 1, &extents);
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 46);
@@ -165,7 +166,7 @@ test_extents_cff2_vsindex (void)
   hb_glyph_extents_t  extents;
   float coords[2] = { 800.0f, 50.0f };
   hb_font_set_var_coords_design (font, coords, 2);
-  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
+  bool result = hb_font_get_glyph_extents (font, 1, &extents);
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 11);
@@ -196,7 +197,7 @@ test_extents_cff2_vsindex_named_instance (void)
 
   hb_font_set_var_named_instance (font, 6); // 6 (BlackMediumContrast): 900, 50
   hb_glyph_extents_t  extents;
-  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
+  bool result = hb_font_get_glyph_extents (font, 1, &extents);
   g_assert (result);
 
   g_assert_cmpint (extents.x_bearing, ==, 12);

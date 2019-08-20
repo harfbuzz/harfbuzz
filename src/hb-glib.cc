@@ -257,7 +257,7 @@ hb_glib_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   gchar utf8[12];
   gchar *normalized;
   int len;
-  hb_bool_t ret;
+  bool ret;
 
   len = g_unichar_to_utf8 (a, utf8);
   len += g_unichar_to_utf8 (b, utf8 + len);
@@ -294,7 +294,7 @@ hb_glib_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   gchar utf8[6];
   gchar *normalized;
   int len;
-  hb_bool_t ret;
+  bool ret;
 
   len = g_unichar_to_utf8 (ab, utf8);
   normalized = g_utf8_normalize (utf8, len, G_NORMALIZE_NFD);

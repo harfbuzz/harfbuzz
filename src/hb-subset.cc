@@ -135,7 +135,7 @@ _subset (hb_subset_plan_t *plan)
   const TableType *table = source_blob->as<TableType> ();
 
   hb_tag_t tag = TableType::tableTag;
-  hb_bool_t result = false;
+  bool result = false;
   if (source_blob->data)
     result = table->subset (plan);
   else

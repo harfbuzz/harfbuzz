@@ -521,7 +521,7 @@ helper_cairo_line_from_buffer (helper_cairo_line_t *l,
 
   if (l->num_clusters) {
     memset ((void *) l->clusters, 0, l->num_clusters * sizeof (l->clusters[0]));
-    hb_bool_t backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
+    bool backward = HB_DIRECTION_IS_BACKWARD (hb_buffer_get_direction (buffer));
     l->cluster_flags = backward ? CAIRO_TEXT_CLUSTER_FLAG_BACKWARD : (cairo_text_cluster_flags_t) 0;
     unsigned int cluster = 0;
     const char *start = l->utf8, *end;

@@ -437,7 +437,7 @@ hb_ft_get_glyph_name (hb_font_t *font HB_UNUSED,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
-  hb_bool_t ret = !FT_Get_Glyph_Name (ft_face, glyph, name, size);
+  bool ret = !FT_Get_Glyph_Name (ft_face, glyph, name, size);
   if (ret && (size && !*name))
     ret = false;
 

@@ -66,7 +66,7 @@ hb_font_get_font_h_extents_default (hb_font_t *font,
 				    hb_font_extents_t *extents,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_h_extents (extents);
+  bool ret = font->parent->get_font_h_extents (extents);
   if (ret) {
     extents->ascender = font->parent_scale_y_distance (extents->ascender);
     extents->descender = font->parent_scale_y_distance (extents->descender);
@@ -90,7 +90,7 @@ hb_font_get_font_v_extents_default (hb_font_t *font,
 				    hb_font_extents_t *extents,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_font_v_extents (extents);
+  bool ret = font->parent->get_font_v_extents (extents);
   if (ret) {
     extents->ascender = font->parent_scale_x_distance (extents->ascender);
     extents->descender = font->parent_scale_x_distance (extents->descender);
@@ -305,7 +305,7 @@ hb_font_get_glyph_h_origin_default (hb_font_t *font,
 				    hb_position_t *y,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_h_origin (glyph, x, y);
+  bool ret = font->parent->get_glyph_h_origin (glyph, x, y);
   if (ret)
     font->parent_scale_position (x, y);
   return ret;
@@ -330,7 +330,7 @@ hb_font_get_glyph_v_origin_default (hb_font_t *font,
 				    hb_position_t *y,
 				    void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_v_origin (glyph, x, y);
+  bool ret = font->parent->get_glyph_v_origin (glyph, x, y);
   if (ret)
     font->parent_scale_position (x, y);
   return ret;
@@ -393,7 +393,7 @@ hb_font_get_glyph_extents_default (hb_font_t *font,
 				   hb_glyph_extents_t *extents,
 				   void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_extents (glyph, extents);
+  bool ret = font->parent->get_glyph_extents (glyph, extents);
   if (ret) {
     font->parent_scale_position (&extents->x_bearing, &extents->y_bearing);
     font->parent_scale_distance (&extents->width, &extents->height);
@@ -422,7 +422,7 @@ hb_font_get_glyph_contour_point_default (hb_font_t *font,
 					 hb_position_t *y,
 					 void *user_data HB_UNUSED)
 {
-  hb_bool_t ret = font->parent->get_glyph_contour_point (glyph, point_index, x, y);
+  bool ret = font->parent->get_glyph_contour_point (glyph, point_index, x, y);
   if (ret)
     font->parent_scale_position (x, y);
   return ret;
