@@ -82,7 +82,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
   void init (const byte_str_t &str, ACC &acc, unsigned int fd,
 		    const int *coords_=nullptr, unsigned int num_coords_=0)
   {
-    SUPER::init (str, *acc.globalSubrs, *acc.privateDicts[fd].localSubrs);
+    SUPER::init (str, acc.globalSubrs, acc.privateDicts[fd].localSubrs);
 
     coords = coords_;
     num_coords = num_coords_;
@@ -193,7 +193,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
 
   typedef cs_interp_env_t<blend_arg_t, CFF2Subrs> SUPER;
 };
-template <typename OPSET, typename PARAM, typename PATH=path_procs_null_t<cff2_cs_interp_env_t, PARAM> >
+template <typename OPSET, typename PARAM, typename PATH=path_procs_null_t<cff2_cs_interp_env_t, PARAM>>
 struct cff2_cs_opset_t : cs_opset_t<blend_arg_t, OPSET, cff2_cs_interp_env_t, PARAM, PATH>
 {
   static void process_op (op_code_t op, cff2_cs_interp_env_t &env, PARAM& param)

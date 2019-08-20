@@ -1,0 +1,18 @@
+FONTS:
+SourceSansPro-Regular.otf
+
+PROFILES:
+default.txt
+drop-hints.txt
+drop-hints-retain-gids.txt
+retain-gids.txt
+desubroutinize.txt
+desubroutinize-retain-gids.txt
+drop-hints-desubroutinize.txt
+drop-hints-desubroutinize-retain-gids.txt
+
+SUBSETS:
+abc
+Ǽ!A bc
+×ØÙÚÞ
+

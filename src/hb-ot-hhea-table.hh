@@ -45,6 +45,8 @@ namespace OT {
 template <typename T>
 struct _hea
 {
+  bool has_data () const { return version.major; }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -86,10 +88,10 @@ struct _hea
 };
 
 struct hhea : _hea<hhea> {
-  enum { tableTag = HB_OT_TAG_hhea };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_hhea;
 };
 struct vhea : _hea<vhea> {
-  enum { tableTag = HB_OT_TAG_vhea };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_vhea;
 };
 
 

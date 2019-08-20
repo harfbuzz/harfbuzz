@@ -33,6 +33,7 @@
 #define HB_ATOMIC_HH
 
 #include "hb.hh"
+#include "hb-meta.hh"
 
 
 /*
@@ -85,11 +86,11 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 #define hb_atomic_int_impl_add(AI, V)		(reinterpret_cast<std::atomic<int> *> (AI)->fetch_add ((V), std::memory_order_acq_rel))
 #define hb_atomic_int_impl_set_relaxed(AI, V)	(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_relaxed))
 #define hb_atomic_int_impl_set(AI, V)		(reinterpret_cast<std::atomic<int> *> (AI)->store ((V), std::memory_order_release))
-#define hb_atomic_int_impl_get_relaxed(AI)	(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_relaxed))
-#define hb_atomic_int_impl_get(AI)		(reinterpret_cast<std::atomic<int> *> (AI)->load (std::memory_order_acquire))
+#define hb_atomic_int_impl_get_relaxed(AI)	(reinterpret_cast<std::atomic<int> const *> (AI)->load (std::memory_order_relaxed))
+#define hb_atomic_int_impl_get(AI)		(reinterpret_cast<std::atomic<int> const *> (AI)->load (std::memory_order_acquire))
 
 #define hb_atomic_ptr_impl_set_relaxed(P, V)	(reinterpret_cast<std::atomic<void*> *> (P)->store ((V), std::memory_order_relaxed))
-#define hb_atomic_ptr_impl_get_relaxed(P)	(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_relaxed))
+#define hb_atomic_ptr_impl_get_relaxed(P)	(reinterpret_cast<std::atomic<void*> const *> (P)->load (std::memory_order_relaxed))
 #define hb_atomic_ptr_impl_get(P)		(reinterpret_cast<std::atomic<void*> *> (P)->load (std::memory_order_acquire))
 static inline bool
 _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
@@ -106,7 +107,7 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 
 static inline void _hb_memory_barrier ()
 {
-#if !defined(MemoryBarrier)
+#if !defined(MemoryBarrier) && !defined(__MINGW32_VERSION)
   /* MinGW has a convoluted history of supporting MemoryBarrier. */
   LONG dummy = 0;
   InterlockedExchange (&dummy, 1);
@@ -184,7 +185,7 @@ static inline bool _hb_compare_and_swap_ptr (void **P, void *O, void *N)
 #endif
 
 
-#elif !defined(HB_NO_MT) && defined(_AIX) && defined(__IBMCPP__)
+#elif !defined(HB_NO_MT) && defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__))
 
 #include <builtins.h>
 
@@ -215,7 +216,7 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 
 #define HB_ATOMIC_INT_NIL 1 /* Warn that fallback implementation is in use. */
 
-#define _hb_memory_barrier()
+#define _hb_memory_barrier()			do {} while (0)
 
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
@@ -226,7 +227,7 @@ static_assert ((sizeof (long) == sizeof (void *)), "");
 
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
 
-#define _hb_memory_barrier()
+#define _hb_memory_barrier()			do {} while (0)
 
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
 
@@ -282,7 +283,7 @@ struct hb_atomic_int_t
 template <typename P>
 struct hb_atomic_ptr_t
 {
-  typedef typename hb_remove_pointer (P) T;
+  typedef hb_remove_pointer<P> T;
 
   void init (T* v_ = nullptr) { set_relaxed (v_); }
   void set_relaxed (T* v_) { hb_atomic_ptr_impl_set_relaxed (&v, v_); }

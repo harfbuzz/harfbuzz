@@ -20,11 +20,7 @@
 
       <para>
 	The canonical source-code tree is available at
-        <ulink
-	    url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>
-        and is also available at
-        <ulink
-	    url="http://cgit.freedesktop.org/harfbuzz/">cgit.freedesktop.org/harfbuzz</ulink>.
+        <ulink url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>.
 	See <xref linkend="download" endterm="download.title"/> for
 	release tarballs.
       </para>
@@ -37,11 +33,12 @@
       <xi:include href="usermanual-install-harfbuzz.xml"/>
       <xi:include href="usermanual-getting-started.xml"/>
       <xi:include href="usermanual-shaping-concepts.xml"/>
+      <xi:include href="usermanual-object-model.xml"/>
       <xi:include href="usermanual-buffers-language-script-and-direction.xml"/>
       <xi:include href="usermanual-fonts-and-faces.xml"/>
-      <xi:include href="usermanual-clusters.xml"/>
       <xi:include href="usermanual-opentype-features.xml"/>
-      <xi:include href="usermanual-glyph-information.xml"/>
+      <xi:include href="usermanual-clusters.xml"/>
+      <xi:include href="usermanual-utilities.xml"/>
   </part>
 
   <part>
@@ -136,6 +133,11 @@
       <index id="api-index-full"><title>API Index</title><xi:include href="xml/api-index-full.xml"><xi:fallback /></xi:include></index>
       <index id="deprecated-api-index" role="deprecated"><title>Index of deprecated API</title><xi:include href="xml/api-index-deprecated.xml"><xi:fallback /></xi:include></index>
 
+      <index id="api-index-2-6-0" role="2.6.0"><title>Index of new symbols in 2.6.0</title><xi:include href="xml/api-index-2.6.0.xml"><xi:fallback /></xi:include></index>
+      <index id="api-index-2-5-0" role="2.5.0"><title>Index of new symbols in 2.5.0</title><xi:include href="xml/api-index-2.5.0.xml"><xi:fallback /></xi:include></index>
+      <index id="api-index-2-4-0" role="2.4.0"><title>Index of new symbols in 2.4.0</title><xi:include href="xml/api-index-2.4.0.xml"><xi:fallback /></xi:include></index>
+      <index id="api-index-2-3-0" role="2.3.0"><title>Index of new symbols in 2.3.0</title><xi:include href="xml/api-index-2.3.0.xml"><xi:fallback /></xi:include></index>
+      <index id="api-index-2-2-0" role="2.2.0"><title>Index of new symbols in 2.2.0</title><xi:include href="xml/api-index-2.2.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-2-1-0" role="2.1.0"><title>Index of new symbols in 2.1.0</title><xi:include href="xml/api-index-2.1.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-2-0-0" role="2.0.0"><title>Index of new symbols in 2.0.0</title><xi:include href="xml/api-index-2.0.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-9-0" role="1.9.0"><title>Index of new symbols in 1.9.0</title><xi:include href="xml/api-index-1.9.0.xml"><xi:fallback /></xi:include></index>
@@ -149,7 +151,6 @@
       <index id="api-index-1-5-0" role="1.5.0"><title>Index of new symbols in 1.5.0</title><xi:include href="xml/api-index-1.5.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-4-3" role="1.4.3"><title>Index of new symbols in 1.4.3</title><xi:include href="xml/api-index-1.4.3.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-4-2" role="1.4.2"><title>Index of new symbols in 1.4.2</title><xi:include href="xml/api-index-1.4.2.xml"><xi:fallback /></xi:include></index>
-      <index id="api-index-1-4-0" role="1.4.0"><title>Index of new symbols in 1.4.0</title><xi:include href="xml/api-index-1.4.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-3-3" role="1.3.3"><title>Index of new symbols in 1.3.3</title><xi:include href="xml/api-index-1.3.3.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-2-3" role="1.2.3"><title>Index of new symbols in 1.2.3</title><xi:include href="xml/api-index-1.2.3.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-1-3" role="1.1.3"><title>Index of new symbols in 1.1.3</title><xi:include href="xml/api-index-1.1.3.xml"><xi:fallback /></xi:include></index>

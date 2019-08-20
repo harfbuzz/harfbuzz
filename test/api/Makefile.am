@@ -42,6 +42,7 @@ TEST_PROGS = \
 	test-shape \
 	test-subset \
 	test-subset-cmap \
+	test-subset-drop-tables \
 	test-subset-glyf \
 	test-subset-hdmx \
 	test-subset-hmtx \
@@ -52,10 +53,12 @@ TEST_PROGS = \
 	test-subset-cff2 \
 	test-unicode \
 	test-version \
+	test-subset-nameids \
 	$(NULL)
 
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_drop_tables_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_glyf_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_hdmx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_hmtx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
@@ -64,6 +67,7 @@ test_subset_post_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_vmtx_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cff1_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cff2_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_nameids_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 
 test_unicode_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
@@ -80,6 +84,8 @@ TEST_PROGS += \
 	test-ot-color \
 	test-ot-ligature-carets \
 	test-ot-name \
+	test-ot-meta \
+	test-ot-metrics \
 	test-ot-tag \
 	test-ot-extents-cff \
 	$(NULL)

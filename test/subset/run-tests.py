@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Runs a subsetting test suite. Compares the results of subsetting via harfbuz
+# Runs a subsetting test suite. Compares the results of subsetting via harfbuzz
 # to subsetting via fonttools.
 
 from __future__ import print_function, division, absolute_import
@@ -16,27 +16,27 @@ import tempfile
 from subset_test_suite import SubsetTestSuite
 
 # https://stackoverflow.com/a/377028
-def which(program):
-	def is_exe(fpath):
-		return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+def which (program):
+	def is_exe (fpath):
+		return os.path.isfile (fpath) and os.access (fpath, os.X_OK)
 
-	fpath, _ = os.path.split(program)
+	fpath, _ = os.path.split (program)
 	if fpath:
-		if is_exe(program):
+		if is_exe (program):
 			return program
 	else:
-		for path in os.environ["PATH"].split(os.pathsep):
-			exe_file = os.path.join(path, program)
-			if is_exe(exe_file):
+		for path in os.environ["PATH"].split (os.pathsep):
+			exe_file = os.path.join (path, program)
+			if is_exe (exe_file):
 				return exe_file
 
 	return None
 
-ttx = which ("ttx")
+fonttools = which ("fonttools")
 ots_sanitize = which ("ots-sanitize")
 
-if not ttx:
-	print("TTX is not present, skipping test.")
+if not fonttools:
+	print ("fonttools is not present, skipping test.")
 	sys.exit (77)
 
 def cmd(command):
@@ -50,7 +50,7 @@ def read_binary (file_path):
 	with open (file_path, 'rb') as f:
 		return f.read ()
 
-def fail_test(test, cli_args, message):
+def fail_test (test, cli_args, message):
 	print ('ERROR: %s' % message)
 	print ('Test State:')
 	print ('  test.font_path    %s' % os.path.abspath (test.font_path))
@@ -61,12 +61,13 @@ def fail_test(test, cli_args, message):
 	print ('  expected_file	    %s' % os.path.abspath (expected_file))
 	return 1
 
-def run_test(test, should_check_ots):
-	out_file = os.path.join(tempfile.mkdtemp (), test.get_font_name () + '-subset' + test.get_font_extension ())
+def run_test (test, should_check_ots):
+	out_file = os.path.join (tempfile.mkdtemp (), test.get_font_name () + '-subset' + test.get_font_extension ())
 	cli_args = [hb_subset,
 		    "--font-file=" + test.font_path,
 		    "--output-file=" + out_file,
-		    "--unicodes=%s" % test.unicodes ()]
+		    "--unicodes=%s" % test.unicodes (),
+		    "--drop-tables+=DSIG,GPOS,GSUB,GDEF,gvar,avar,MVAR,HVAR"]
 	cli_args.extend (test.get_profile_flags ())
 	print (' '.join (cli_args))
 	_, return_code = cmd (cli_args)
@@ -75,11 +76,11 @@ def run_test(test, should_check_ots):
 		return fail_test (test, cli_args, "%s returned %d" % (' '.join (cli_args), return_code))
 
 	expected_ttx, return_code = run_ttx (os.path.join (test_suite.get_output_directory (),
-					    test.get_font_name ()))
+					     test.get_font_name ()))
 	if return_code:
 		return fail_test (test, cli_args, "ttx (expected) returned %d" % (return_code))
 
-	actual_ttx, return_code = run_ttx(out_file)
+	actual_ttx, return_code = run_ttx (out_file)
 	if return_code:
 		return fail_test (test, cli_args, "ttx (actual) returned %d" % (return_code))
 
@@ -91,7 +92,7 @@ def run_test(test, should_check_ots):
 		for line in unified_diff (expected_ttx.splitlines (1), actual_ttx.splitlines (1)):
 			sys.stdout.write (line)
 		sys.stdout.flush ()
-		return fail_test(test, cli_args, 'ttx for expected and actual does not match.')
+		return fail_test (test, cli_args, 'ttx for expected and actual does not match.')
 
 	if should_check_ots:
 		print ("Checking output with ots-sanitize.")
@@ -101,8 +102,8 @@ def run_test(test, should_check_ots):
 	return 0
 
 def run_ttx (file):
-	print ("ttx %s" % file)
-	return cmd([ttx, "-q", "-o-", file])
+	print ("fonttools ttx %s" % file)
+	return cmd ([fonttools, "ttx", "-q", "-o-", file])
 
 def strip_check_sum (ttx_string):
 	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
@@ -123,7 +124,7 @@ def check_ots (path):
 	return True
 
 args = sys.argv[1:]
-if not args or sys.argv[1].find('hb-subset') == -1 or not os.path.exists (sys.argv[1]):
+if not args or sys.argv[1].find ('hb-subset') == -1 or not os.path.exists (sys.argv[1]):
 	print ("First argument does not seem to point to usable hb-subset.")
 	sys.exit (1)
 hb_subset, args = args[0], args[1:]
@@ -138,7 +139,7 @@ fails = 0
 for path in args:
 	with io.open (path, mode="r", encoding="utf-8") as f:
 		print ("Running tests in " + path)
-		test_suite = SubsetTestSuite (path, f.read())
+		test_suite = SubsetTestSuite (path, f.read ())
 		for test in test_suite.tests ():
 			fails += run_test (test, has_ots)
 

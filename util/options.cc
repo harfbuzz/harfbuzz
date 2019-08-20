@@ -31,6 +31,8 @@
 #endif
 #include <hb-ot.h>
 
+#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
+
 static struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);
@@ -347,28 +349,37 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   }
 
   GString *gs = g_string_new (nullptr);
-  char *s = (char *) arg;
-  char *p;
-
-  while (s && *s)
+  if (0 == strcmp (arg, "*")) 
   {
-    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t\v\f\r ", *s))
-      s++;
-    if (!*s)
-      break;
+    g_string_append_c (gs, '*');
+  }
+  else
+  {
 
-    errno = 0;
-    hb_codepoint_t u = strtoul (s, &p, 16);
-    if (errno || s == p)
+    char *s = (char *) arg;
+    char *p;
+  
+    while (s && *s)
     {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Failed parsing Unicode values at: '%s'", s);
-      return false;
+      while (*s && strchr (DELIMITERS, *s))
+        s++;
+      if (!*s)
+        break;
+  
+      errno = 0;
+      hb_codepoint_t u = strtoul (s, &p, 16);
+      if (errno || s == p)
+      {
+        g_string_free (gs, TRUE);
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+  		   "Failed parsing Unicode values at: '%s'", s);
+        return false;
+      }
+  
+      g_string_append_unichar (gs, u);
+  
+      s = p;
     }
-
-    g_string_append_unichar (gs, u);
-
-    s = p;
   }
 
   text_opts->text_len = gs->len;
@@ -432,7 +443,8 @@ shape_options_t::add_options (option_parser_t *parser)
     "    Features can be enabled or disabled, either globally or limited to\n"
     "    specific character ranges.  The format for specifying feature settings\n"
     "    follows.  All valid CSS font-feature-settings values other than 'normal'\n"
-    "    and 'inherited' are also accepted, though, not documented below.\n"
+    "    and the global values are also accepted, though not documented below.\n"
+    "    CSS string escapes are not supported."
     "\n"
     "    The range indices refer to the positions between Unicode characters,\n"
     "    unless the --utf8-clusters is provided, in which case range indices\n"
@@ -968,22 +980,4 @@ format_options_t::serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
   serialize_line_no (line_no, gs);
   serialize_glyphs (buffer, font, output_format, format_flags, gs);
   g_string_append_c (gs, '\n');
-}
-
-void
-subset_options_t::add_options (option_parser_t *parser)
-{
-  GOptionEntry entries[] =
-  {
-    {"layout", 0, 0, G_OPTION_ARG_NONE,  &this->keep_layout,   "Keep OpenType Layout tables",   nullptr},
-    {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  &this->drop_hints,   "Whether to drop hints",   nullptr},
-    {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->desubroutinize,   "Remove CFF/CFF2 use of subroutines",   nullptr},
-
-    {nullptr}
-  };
-  parser->add_group (entries,
-         "subset",
-         "Subset options:",
-         "Options subsetting",
-         this);
 }

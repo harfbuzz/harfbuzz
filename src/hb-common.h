@@ -67,7 +67,7 @@ typedef unsigned __int64 uint64_t;
 #  include <stdint.h>
 #endif
 
-#if    __GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1)
+#if defined(__GNUC__) && ((__GNUC__ > 3) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
 #define HB_DEPRECATED __attribute__((__deprecated__))
 #elif defined(_MSC_VER) && (_MSC_VER >= 1300)
 #define HB_DEPRECATED __declspec(deprecated)
@@ -75,7 +75,7 @@ typedef unsigned __int64 uint64_t;
 #define HB_DEPRECATED
 #endif
 
-#if    __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+#if defined(__GNUC__) && ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5))
 #define HB_DEPRECATED_FOR(f) __attribute__((__deprecated__("Use '" #f "' instead")))
 #elif defined(_MSC_FULL_VER) && (_MSC_FULL_VER > 140050320)
 #define HB_DEPRECATED_FOR(f) __declspec(deprecated("is deprecated. Use '" #f "' instead"))
@@ -108,7 +108,7 @@ typedef union _hb_var_int_t {
 typedef uint32_t hb_tag_t;
 
 #define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
-#define HB_UNTAG(tag)   (((tag)>>24)&0xFF), (((tag)>>16)&0xFF), (((tag)>>8)&0xFF), ((tag)&0xFF)
+#define HB_UNTAG(tag)   (uint8_t)(((tag)>>24)&0xFF), (uint8_t)(((tag)>>16)&0xFF), (uint8_t)(((tag)>>8)&0xFF), (uint8_t)((tag)&0xFF)
 
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
 #define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
@@ -357,6 +357,14 @@ typedef enum
   /*11.0*/HB_SCRIPT_OLD_SOGDIAN			= HB_TAG ('S','o','g','o'),
   /*11.0*/HB_SCRIPT_SOGDIAN			= HB_TAG ('S','o','g','d'),
 
+  /*
+   * Since 2.4.0
+   */
+  /*12.0*/HB_SCRIPT_ELYMAIC			= HB_TAG ('E','l','y','m'),
+  /*12.0*/HB_SCRIPT_NANDINAGARI			= HB_TAG ('N','a','n','d'),
+  /*12.0*/HB_SCRIPT_NYIAKENG_PUACHUE_HMONG	= HB_TAG ('H','m','n','p'),
+  /*12.0*/HB_SCRIPT_WANCHO			= HB_TAG ('W','c','h','o'),
+
   /* No script set. */
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 
@@ -459,39 +467,21 @@ typedef uint32_t hb_color_t;
 
 #define HB_COLOR(b,g,r,a) ((hb_color_t) HB_TAG ((b),(g),(r),(a)))
 
-/**
- * hb_color_get_alpha:
- *
- *
- *
- * Since: 2.1.0
- */
+HB_EXTERN uint8_t
+hb_color_get_alpha (hb_color_t color);
 #define hb_color_get_alpha(color)	((color) & 0xFF)
-/**
- * hb_color_get_red:
- *
- *
- *
- * Since: 2.1.0
- */
-#define hb_color_get_red(color)		(((color) >> 8) & 0xFF)
-/**
- * hb_color_get_green:
- *
- *
- *
- * Since: 2.1.0
- */
-#define hb_color_get_green(color)	(((color) >> 16) & 0xFF)
-/**
- * hb_color_get_blue:
- *
- *
- *
- * Since: 2.1.0
- */
-#define hb_color_get_blue(color)	(((color) >> 24) & 0xFF)
 
+HB_EXTERN uint8_t
+hb_color_get_red (hb_color_t color);
+#define hb_color_get_red(color)		(((color) >> 8) & 0xFF)
+
+HB_EXTERN uint8_t
+hb_color_get_green (hb_color_t color);
+#define hb_color_get_green(color)	(((color) >> 16) & 0xFF)
+
+HB_EXTERN uint8_t
+hb_color_get_blue (hb_color_t color);
+#define hb_color_get_blue(color)	(((color) >> 24) & 0xFF)
 
 HB_END_DECLS
 

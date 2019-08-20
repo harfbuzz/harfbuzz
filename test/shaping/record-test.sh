@@ -2,6 +2,17 @@
 
 dir=`mktemp -d`
 
+if which sha1sum 2>/dev/null >/dev/null; then
+	SHA1SUM=sha1sum
+elif which shasum 2>/dev/null >/dev/null; then
+	SHA1SUM='shasum -a 1'
+elif which digest 2>/dev/null >/dev/null; then
+	SHA1SUM='digest -a sha1'
+else
+	echo "'sha1sum' not found"
+	exit 2
+fi
+
 out=/dev/stdout
 if test "x$1" == 'x-o'; then
 	shift
@@ -90,7 +101,7 @@ if ! test "x$glyphs" = "x$glyphs_subset"; then
 	glyphs=$glyphs_subset
 fi
 
-sha1sum=`sha1sum "$dir/font.subset.ttf" | cut -d' ' -f1`
+sha1sum=`$SHA1SUM "$dir/font.subset.ttf" | cut -d' ' -f1`
 subset="data/in-house/fonts/$sha1sum.ttf"
 mv "$dir/font.subset.ttf" "$subset"
 

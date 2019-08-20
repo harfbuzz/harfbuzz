@@ -1,9 +1,13 @@
 FONTS:
 Roboto-Regular.abc.ttf
+Comfortaa-Regular-new.ttf
 
 PROFILES:
 default.txt
 drop-hints.txt
+drop-hints-retain-gids.txt
+retain-gids.txt
+name-ids.txt
 
 SUBSETS:
 abc
@@ -11,3 +15,4 @@ b
 c
 ac
 a
+*

@@ -35,6 +35,9 @@
 #include <xlocale.h>
 #endif
 
+#ifdef HB_NO_SETLOCALE
+#define setlocale(Category, Locale) "C"
+#endif
 
 /**
  * SECTION:hb-common
@@ -67,7 +70,7 @@ _hb_options_init ()
         p = c + strlen (c);
 
 #define OPTION(name, symbol) \
-	if (0 == strncmp (c, name, p - c) && strlen (name) == p - c) u.opts.symbol = true;
+	if (0 == strncmp (c, name, p - c) && strlen (name) == static_cast<size_t>(p - c)) do { u.opts.symbol = true; } while (0)
 
       OPTION ("uniscribe-bug-compatible", uniscribe_bug_compatible);
       OPTION ("aat", aat);
@@ -356,7 +359,7 @@ hb_language_from_string (const char *str, int len)
   {
     /* NUL-terminate it. */
     char strbuf[64];
-    len = MIN (len, (int) sizeof (strbuf) - 1);
+    len = hb_min (len, (int) sizeof (strbuf) - 1);
     memcpy (strbuf, str, len);
     strbuf[len] = '\0';
     item = lang_find_or_insert (strbuf);
@@ -488,7 +491,7 @@ hb_script_from_string (const char *str, int len)
 
 /**
  * hb_script_to_iso15924_tag:
- * @script: an #hb_script_ to convert.
+ * @script: an #hb_script_t to convert.
  *
  * See hb_script_from_iso15924_tag().
  *
@@ -720,7 +723,7 @@ static bool
 parse_uint (const char **pp, const char *end, unsigned int *pv)
 {
   char buf[32];
-  unsigned int len = MIN (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
+  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
   strncpy (buf, *pp, len);
   buf[len] = '\0';
 
@@ -731,7 +734,7 @@ parse_uint (const char **pp, const char *end, unsigned int *pv)
   /* Intentionally use strtol instead of strtoul, such that
    * -1 turns into "big number"... */
   errno = 0;
-  v = strtol (p, &pend, 0);
+  v = strtol (p, &pend, 10);
   if (errno || p == pend)
     return false;
 
@@ -744,7 +747,7 @@ static bool
 parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 {
   char buf[32];
-  unsigned int len = MIN (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
+  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
   strncpy (buf, *pp, len);
   buf[len] = '\0';
 
@@ -755,7 +758,7 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
   /* Intentionally use strtol instead of strtoul, such that
    * -1 turns into "big number"... */
   errno = 0;
-  v = strtol (p, &pend, 0);
+  v = strtol (p, &pend, 10);
   if (errno || p == pend)
     return false;
 
@@ -783,7 +786,7 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 static void free_static_C_locale ();
 #endif
 
-static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer (HB_LOCALE_T),
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<HB_LOCALE_T>,
 							  hb_C_locale_lazy_loader_t>
 {
   static HB_LOCALE_T create ()
@@ -825,7 +828,7 @@ static bool
 parse_float (const char **pp, const char *end, float *pv)
 {
   char buf[32];
-  unsigned int len = MIN (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
+  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
   strncpy (buf, *pp, len);
   buf[len] = '\0';
 
@@ -857,9 +860,14 @@ parse_bool (const char **pp, const char *end, uint32_t *pv)
     (*pp)++;
 
   /* CSS allows on/off as aliases 1/0. */
-  if (*pp - p == 2 && 0 == strncmp (p, "on", 2))
+  if (*pp - p == 2
+      && TOLOWER (p[0]) == 'o'
+      && TOLOWER (p[1]) == 'n')
     *pv = 1;
-  else if (*pp - p == 3 && 0 == strncmp (p, "off", 3))
+  else if (*pp - p == 3
+	   && TOLOWER (p[0]) == 'o'
+	   && TOLOWER (p[1]) == 'f'
+	   && TOLOWER (p[2]) == 'f')
     *pv = 0;
   else
     return false;
@@ -974,7 +982,41 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
  *
  * Parses a string into a #hb_feature_t.
  *
- * TODO: document the syntax here.
+ * The format for specifying feature strings follows. All valid CSS
+ * font-feature-settings values other than 'normal' and the global values are
+ * also accepted, though not documented below. CSS string escapes are not
+ * supported.
+ *
+ * The range indices refer to the positions between Unicode characters. The
+ * position before the first character is always 0.
+ *
+ * The format is Python-esque.  Here is how it all works:
+ *
+ * <informaltable pgwide='1' align='left' frame='none'>
+ * <tgroup cols='5'>
+ * <thead>
+ * <row><entry>Syntax</entry>    <entry>Value</entry> <entry>Start</entry> <entry>End</entry></row>
+ * </thead>
+ * <tbody>
+ * <row><entry>Setting value:</entry></row>
+ * <row><entry>kern</entry>      <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>+kern</entry>     <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>-kern</entry>     <entry>0</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature off</entry></row>
+ * <row><entry>kern=0</entry>    <entry>0</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature off</entry></row>
+ * <row><entry>kern=1</entry>    <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>aalt=2</entry>    <entry>2</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Choose 2nd alternate</entry></row>
+ * <row><entry>Setting index:</entry></row>
+ * <row><entry>kern[]</entry>    <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>kern[:]</entry>   <entry>1</entry>     <entry>0</entry>      <entry>∞</entry>   <entry>Turn feature on</entry></row>
+ * <row><entry>kern[5:]</entry>  <entry>1</entry>     <entry>5</entry>      <entry>∞</entry>   <entry>Turn feature on, partial</entry></row>
+ * <row><entry>kern[:5]</entry>  <entry>1</entry>     <entry>0</entry>      <entry>5</entry>   <entry>Turn feature on, partial</entry></row>
+ * <row><entry>kern[3:5]</entry> <entry>1</entry>     <entry>3</entry>      <entry>5</entry>   <entry>Turn feature on, range</entry></row>
+ * <row><entry>kern[3]</entry>   <entry>1</entry>     <entry>3</entry>      <entry>3+1</entry> <entry>Turn feature on, single char</entry></row>
+ * <row><entry>Mixing it all:</entry></row>
+ * <row><entry>aalt[3:5]=2</entry> <entry>2</entry>   <entry>3</entry>      <entry>5</entry>   <entry>Turn 2nd alternate on for range</entry></row>
+ * </tbody>
+ * </tgroup>
+ * </informaltable>
  *
  * Return value:
  * %true if @str is successfully parsed, %false otherwise.
@@ -1032,21 +1074,21 @@ hb_feature_to_string (hb_feature_t *feature,
   {
     s[len++] = '[';
     if (feature->start)
-      len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->start));
+      len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->start));
     if (feature->end != feature->start + 1) {
       s[len++] = ':';
       if (feature->end != (unsigned int) -1)
-	len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->end));
+	len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->end));
     }
     s[len++] = ']';
   }
   if (feature->value > 1)
   {
     s[len++] = '=';
-    len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->value));
+    len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->value));
   }
   assert (len < ARRAY_LENGTH (s));
-  len = MIN (len, size - 1);
+  len = hb_min (len, size - 1);
   memcpy (buf, s, len);
   buf[len] = '\0';
 }
@@ -1113,13 +1155,70 @@ hb_variation_to_string (hb_variation_t *variation,
   while (len && s[len - 1] == ' ')
     len--;
   s[len++] = '=';
-  len += MAX (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
+  len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
 
   assert (len < ARRAY_LENGTH (s));
-  len = MIN (len, size - 1);
+  len = hb_min (len, size - 1);
   memcpy (buf, s, len);
   buf[len] = '\0';
 }
+
+/**
+ * hb_color_get_alpha:
+ * color: a #hb_color_t we are interested in its channels.
+ *
+ * Return value: Alpha channel value of the given color
+ *
+ * Since: 2.1.0
+ */
+uint8_t
+(hb_color_get_alpha) (hb_color_t color)
+{
+  return hb_color_get_alpha (color);
+}
+
+/**
+ * hb_color_get_red:
+ * color: a #hb_color_t we are interested in its channels.
+ *
+ * Return value: Red channel value of the given color
+ *
+ * Since: 2.1.0
+ */
+uint8_t
+(hb_color_get_red) (hb_color_t color)
+{
+  return hb_color_get_red (color);
+}
+
+/**
+ * hb_color_get_green:
+ * color: a #hb_color_t we are interested in its channels.
+ *
+ * Return value: Green channel value of the given color
+ *
+ * Since: 2.1.0
+ */
+uint8_t
+(hb_color_get_green) (hb_color_t color)
+{
+  return hb_color_get_green (color);
+}
+
+/**
+ * hb_color_get_blue:
+ * color: a #hb_color_t we are interested in its channels.
+ *
+ * Return value: Blue channel value of the given color
+ *
+ * Since: 2.1.0
+ */
+uint8_t
+(hb_color_get_blue) (hb_color_t color)
+{
+  return hb_color_get_blue (color);
+}
+
 
 /* If there is no visibility control, then hb-static.cc will NOT
  * define anything.  Instead, we get it to define one set in here

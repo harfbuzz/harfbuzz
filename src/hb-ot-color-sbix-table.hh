@@ -121,7 +121,7 @@ struct SBIXStrike
   HBUINT16	resolution;	/* The device pixel density (in PPI) for which this
 				 * strike was designed. (E.g., 96 PPI, 192 PPI.) */
   protected:
-  UnsizedArrayOf<LOffsetTo<SBIXGlyph> >
+  UnsizedArrayOf<LOffsetTo<SBIXGlyph>>
 		imageOffsetsZ;	/* Offset from the beginning of the strike data header
 				 * to bitmap data for an individual glyph ID. */
   public:
@@ -130,7 +130,7 @@ struct SBIXStrike
 
 struct sbix
 {
-  enum { tableTag = HB_OT_TAG_sbix };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_sbix;
 
   bool has_data () const { return version; }
 
@@ -175,7 +175,7 @@ struct sbix
       if (unlikely (!count))
         return Null(SBIXStrike);
 
-      unsigned int requested_ppem = MAX (font->x_ppem, font->y_ppem);
+      unsigned int requested_ppem = hb_max (font->x_ppem, font->y_ppem);
       if (!requested_ppem)
         requested_ppem = 1<<30; /* Choose largest strike. */
       /* TODO Add DPI sensitivity as well? */
@@ -235,18 +235,18 @@ struct sbix
       const PNGHeader &png = *blob->as<PNGHeader>();
 
       extents->x_bearing = x_offset;
-      extents->y_bearing = y_offset;
+      extents->y_bearing = png.IHDR.height + y_offset;
       extents->width     = png.IHDR.width;
-      extents->height    = png.IHDR.height;
+      extents->height    = -png.IHDR.height;
 
       /* Convert to font units. */
       if (strike_ppem)
       {
-	double scale = font->face->get_upem () / (double) strike_ppem;
-	extents->x_bearing = round (extents->x_bearing * scale);
-	extents->y_bearing = round (extents->y_bearing * scale);
-	extents->width = round (extents->width * scale);
-	extents->height = round (extents->height * scale);
+	float scale = font->face->get_upem () / (float) strike_ppem;
+	extents->x_bearing = roundf (extents->x_bearing * scale);
+	extents->y_bearing = roundf (extents->y_bearing * scale);
+	extents->width = roundf (extents->width * scale);
+	extents->height = roundf (extents->height * scale);
       }
 
       hb_blob_destroy (blob);

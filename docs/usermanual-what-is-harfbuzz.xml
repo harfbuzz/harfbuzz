@@ -151,9 +151,9 @@
         </para>
 	<para>
 	  For example, in Tamil, when the letter &quot;TTA&quot; (ட)
-	  letter is followed by &quot;U&quot; (உ), the pair
+	  letter is followed by the vowel sign &quot;U&quot; (ு), the pair
 	  must be replaced by the single glyph &quot;டு&quot;. The
-	  sequence of Unicode characters &quot;டஉ&quot; needs to be
+	  sequence of Unicode characters &quot;ட,ு&quot; needs to be
 	  substituted with a single &quot;டு&quot; glyph from the
 	  font.
 	</para>

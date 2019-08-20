@@ -58,7 +58,7 @@ struct VariationValueRecord
 
 struct MVAR
 {
-  enum { tableTag = HB_OT_TAG_MVAR };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_MVAR;
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -77,9 +77,9 @@ struct MVAR
 		 const int *coords, unsigned int coord_count) const
   {
     const VariationValueRecord *record;
-    record = (VariationValueRecord *) bsearch (&tag, valuesZ.arrayZ,
-					       valueRecordCount, valueRecordSize,
-					       tag_compare);
+    record = (VariationValueRecord *) hb_bsearch (&tag, valuesZ.arrayZ,
+						  valueRecordCount, valueRecordSize,
+						  tag_compare);
     if (!record)
       return 0.;
 

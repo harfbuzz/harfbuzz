@@ -29,8 +29,8 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-hhea-table.hh"
-#include "hb-ot-os2-table.hh"
 #include "hb-ot-var-hvar-table.hh"
+#include "hb-ot-metrics.hh"
 
 /*
  * hmtx -- Horizontal Metrics
@@ -66,7 +66,7 @@ struct hmtxvmtx
 
 
   bool subset_update_header (hb_subset_plan_t *plan,
-				    unsigned int num_hmetrics) const
+                             unsigned int num_hmetrics) const
   {
     hb_blob_t *src_blob = hb_sanitize_context_t ().reference_table<H> (plan->source, H::tableTag);
     hb_blob_t *dest_blob = hb_blob_copy_writable_or_fail (src_blob);
@@ -78,7 +78,7 @@ struct hmtxvmtx
 
     unsigned int length;
     H *table = (H *) hb_blob_get_data (dest_blob, &length);
-    table->numberOfLongMetrics.set (num_hmetrics);
+    table->numberOfLongMetrics = num_hmetrics;
 
     bool result = plan->add_table (H::tableTag, dest_blob);
     hb_blob_destroy (dest_blob);
@@ -86,100 +86,71 @@ struct hmtxvmtx
     return result;
   }
 
-  bool subset (hb_subset_plan_t *plan) const
+  template<typename Iterator,
+           hb_requires (hb_is_iterator (Iterator))>
+  void serialize (hb_serialize_context_t *c,
+                  Iterator it,
+                  unsigned num_advances)
   {
-    typename T::accelerator_t _mtx;
-    _mtx.init (plan->source);
+    unsigned idx = 0;
+    + it
+    | hb_apply ([c, &idx, num_advances] (const hb_item_type<Iterator>& _)
+                {
+                  if (idx < num_advances)
+                  {
+                    LongMetric lm;
+                    lm.advance = _.first;
+                    lm.sb = _.second;
+                    if (unlikely (!c->embed<LongMetric> (&lm))) return;
+                  }
+                  else
+                  {
+                    FWORD *sb = c->allocate_size<FWORD> (FWORD::static_size);
+                    if (unlikely (!sb)) return;
+                    *sb = _.second;
+                  }
+                  idx++;
+                })
+    ;
+  }
 
-    /* All the trailing glyphs with the same advance can use one LongMetric
-     * and just keep LSB */
-    hb_vector_t<hb_codepoint_t> &gids = plan->glyphs;
-    unsigned int num_advances = gids.length;
-    unsigned int last_advance = _mtx.get_advance (gids[num_advances - 1]);
-    while (num_advances > 1 &&
-	   last_advance == _mtx.get_advance (gids[num_advances - 2]))
-    {
-      num_advances--;
-    }
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
 
-    /* alloc the new table */
-    size_t dest_sz = num_advances * 4
-		  + (gids.length - num_advances) * 2;
-    void *dest = (void *) malloc (dest_sz);
-    if (unlikely (!dest))
-    {
-      return false;
-    }
-    DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in src has %d advances, %d lsbs", HB_UNTAG(T::tableTag), _mtx.num_advances, _mtx.num_metrics - _mtx.num_advances);
-    DEBUG_MSG(SUBSET, nullptr, "%c%c%c%c in dest has %d advances, %d lsbs, %u bytes", HB_UNTAG(T::tableTag), num_advances, gids.length - num_advances, (unsigned int) dest_sz);
+    T *table_prime = c->serializer->start_embed <T> ();
+    if (unlikely (!table_prime)) return_trace (false);
 
-    const char *source_table = hb_blob_get_data (_mtx.table.get_blob (), nullptr);
-    // Copy everything over
-    LongMetric * old_metrics = (LongMetric *) source_table;
-    FWORD *lsbs = (FWORD *) (old_metrics + _mtx.num_advances);
-    char * dest_pos = (char *) dest;
+    accelerator_t _mtx;
+    _mtx.init (c->plan->source);
+    unsigned num_advances = _mtx.num_advances_for_subset (c->plan);
 
-    bool failed = false;
-    for (unsigned int i = 0; i < gids.length; i++)
-    {
-      /* the last metric or the one for gids[i] */
-      LongMetric *src_metric = old_metrics + MIN ((hb_codepoint_t) _mtx.num_advances - 1, gids[i]);
-      if (gids[i] < _mtx.num_advances)
-      {
-        /* src is a LongMetric */
-        if (i < num_advances)
-        {
-          /* dest is a LongMetric, copy it */
-          *((LongMetric *) dest_pos) = *src_metric;
-        }
-        else
-        {
-          /* dest just sb */
-          *((FWORD *) dest_pos) = src_metric->sb;
-        }
-      }
-      else
-      {
-	if (gids[i] >= _mtx.num_metrics)
+    auto it =
+    + hb_range (c->plan->num_output_glyphs ())
+    | hb_map ([c, &_mtx] (unsigned _)
 	{
-	  DEBUG_MSG(SUBSET, nullptr, "gid %d is >= number of source metrics %d",
-		    gids[i], _mtx.num_metrics);
-	  failed = true;
-	  break;
-	}
-	FWORD src_sb = *(lsbs + gids[i] - _mtx.num_advances);
-        if (i < num_advances)
-        {
-          /* dest needs a full LongMetric */
-          LongMetric *metric = (LongMetric *)dest_pos;
-          metric->advance = src_metric->advance;
-          metric->sb = src_sb;
-        }
-        else
-        {
-          /* dest just needs an sb */
-          *((FWORD *) dest_pos) = src_sb;
-        }
-      }
-      dest_pos += (i < num_advances ? 4 : 2);
-    }
+	  hb_codepoint_t old_gid;
+	  if (c->plan->old_gid_for_new_gid (_, &old_gid))
+            return hb_pair (_mtx.get_advance (old_gid), _mtx.get_side_bearing (old_gid));
+          else
+	    return hb_pair (0u, 0u);
+	})
+    ;
+
+    table_prime->serialize (c->serializer, it, num_advances);
+
     _mtx.fini ();
 
+    if (unlikely (c->serializer->ran_out_of_room || c->serializer->in_error ()))
+      return_trace (false);
+
     // Amend header num hmetrics
-    if (failed || unlikely (!subset_update_header (plan, num_advances)))
+    if (unlikely (!subset_update_header (c->plan, num_advances)))
     {
-      free (dest);
-      return false;
+      return_trace (false);
     }
 
-    hb_blob_t *result = hb_blob_create ((const char *)dest,
-                                        dest_sz,
-                                        HB_MEMORY_MODE_READONLY,
-                                        dest,
-                                        free);
-    bool success = plan->add_table (T::tableTag, result);
-    hb_blob_destroy (result);
-    return success;
+    return_trace (true);
   }
 
   struct accelerator_t
@@ -187,32 +158,11 @@ struct hmtxvmtx
     friend struct hmtxvmtx;
 
     void init (hb_face_t *face,
-		      unsigned int default_advance_ = 0)
+               unsigned int default_advance_ = 0)
     {
       default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
 
-      bool got_font_extents = false;
-      if (T::os2Tag != HB_TAG_NONE && face->table.OS2->is_typo_metrics ())
-      {
-	ascender = abs (face->table.OS2->sTypoAscender);
-	descender = -abs (face->table.OS2->sTypoDescender);
-	line_gap = face->table.OS2->sTypoLineGap;
-	got_font_extents = (ascender | descender) != 0;
-      }
-
-      hb_blob_t *_hea_blob = hb_sanitize_context_t().reference_table<H> (face);
-      const H *_hea_table = _hea_blob->as<H> ();
-      num_advances = _hea_table->numberOfLongMetrics;
-      if (!got_font_extents)
-      {
-	ascender = abs (_hea_table->ascender);
-	descender = -abs (_hea_table->descender);
-	line_gap = _hea_table->lineGap;
-	got_font_extents = (ascender | descender) != 0;
-      }
-      hb_blob_destroy (_hea_blob);
-
-      has_font_extents = got_font_extents;
+      num_advances = T::is_horizontal ? face->table.hhea->numberOfLongMetrics : face->table.vhea->numberOfLongMetrics;
 
       table = hb_sanitize_context_t().reference_table<hmtxvmtx> (face, T::tableTag);
 
@@ -266,7 +216,7 @@ struct hmtxvmtx
 	  return default_advance;
       }
 
-      return table->longMetricZ[MIN (glyph, (uint32_t) num_advances - 1)].advance;
+      return table->longMetricZ[hb_min (glyph, (uint32_t) num_advances - 1)].advance;
     }
 
     unsigned int get_advance (hb_codepoint_t  glyph,
@@ -280,11 +230,31 @@ struct hmtxvmtx
       return advance;
     }
 
-    public:
-    bool has_font_extents;
-    int ascender;
-    int descender;
-    int line_gap;
+    unsigned int num_advances_for_subset (const hb_subset_plan_t *plan) const
+    {
+      unsigned int num_advances = plan->num_output_glyphs ();
+      unsigned int last_advance = _advance_for_new_gid (plan,
+                                                        num_advances - 1);
+      while (num_advances > 1 &&
+             last_advance == _advance_for_new_gid (plan,
+                                                   num_advances - 2))
+      {
+        num_advances--;
+      }
+
+      return num_advances;
+    }
+
+    private:
+    unsigned int _advance_for_new_gid (const hb_subset_plan_t *plan,
+                                       hb_codepoint_t new_gid) const
+    {
+      hb_codepoint_t old_gid;
+      if (!plan->old_gid_for_new_gid (new_gid, &old_gid))
+        return 0;
+
+      return get_advance (old_gid);
+    }
 
     protected:
     unsigned int num_metrics;
@@ -323,14 +293,14 @@ struct hmtxvmtx
 };
 
 struct hmtx : hmtxvmtx<hmtx, hhea> {
-  enum { tableTag = HB_OT_TAG_hmtx };
-  enum { variationsTag = HB_OT_TAG_HVAR };
-  enum { os2Tag = HB_OT_TAG_OS2 };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_hmtx;
+  static constexpr hb_tag_t variationsTag = HB_OT_TAG_HVAR;
+  static constexpr bool is_horizontal = true;
 };
 struct vmtx : hmtxvmtx<vmtx, vhea> {
-  enum { tableTag = HB_OT_TAG_vmtx };
-  enum { variationsTag = HB_OT_TAG_VVAR };
-  enum { os2Tag = HB_TAG_NONE };
+  static constexpr hb_tag_t tableTag = HB_OT_TAG_vmtx;
+  static constexpr hb_tag_t variationsTag = HB_OT_TAG_VVAR;
+  static constexpr bool is_horizontal = false;
 };
 
 struct hmtx_accelerator_t : hmtx::accelerator_t {};
