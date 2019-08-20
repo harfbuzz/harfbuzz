@@ -126,8 +126,8 @@ struct TrackData
       if (size_table[size_index].to_float () >= ptem)
         break;
 
-    return round (interpolate_at (size_index ? size_index - 1 : 0, ptem,
-				  *trackTableEntry, base));
+    return roundf (interpolate_at (size_index ? size_index - 1 : 0, ptem,
+				   *trackTableEntry, base));
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
