@@ -1899,17 +1899,20 @@ hb_font_set_variations (hb_font_t *font,
     return;
   }
 
+  const OT::fvar &fvar = *font->face->table.fvar;
   for (unsigned int i = 0; i < variations_length; i++)
   {
     hb_ot_var_axis_info_t info;
     if (hb_ot_var_find_axis_info (font->face, variations[i].tag, &info) &&
 	info.axis_index < coords_length)
-      design_coords[info.axis_index] = variations[i].value;
+    {
+      float v = variations[i].value;
+      design_coords[info.axis_index] = v;
+      normalized[info.axis_index] = fvar.normalize_axis_value (info.axis_index, v);
+    }
   }
+  font->face->table.avar->map_coords (normalized, coords_length);
 
-  hb_ot_var_normalize_variations (font->face,
-				  variations, variations_length,
-				  normalized, coords_length);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
 }
 
