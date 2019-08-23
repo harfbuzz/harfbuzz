@@ -82,6 +82,7 @@ _subset2 (hb_subset_plan_t *plan)
     if (unlikely (!buf.alloc (buf_size)))
     {
       DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c failed to allocate %u bytes.", HB_UNTAG (tag), buf_size);
+      hb_blob_destroy (source_blob);
       return false;
     }
   retry:
@@ -96,6 +97,7 @@ _subset2 (hb_subset_plan_t *plan)
       if (unlikely (!buf.alloc (buf_size)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c failed to reallocate %u bytes.", HB_UNTAG (tag), buf_size);
+	hb_blob_destroy (source_blob);
 	return false;
       }
       goto retry;
