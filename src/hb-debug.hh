@@ -298,8 +298,8 @@ struct hb_auto_trace_t
 
   template <typename T>
   T ret (T&& v,
-	     const char *func = "",
-	     unsigned int line = 0)
+	 const char *func = "",
+	 unsigned int line = 0)
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to return_trace().  This is a bug, please report.\n");
