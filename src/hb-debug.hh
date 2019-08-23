@@ -414,7 +414,7 @@ struct hb_no_trace_t {
 #define TRACE_SANITIZE(this) \
 	hb_auto_trace_t<HB_DEBUG_SANITIZE, bool> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
-	 " ");
+	 " ")
 #else
 #define TRACE_SANITIZE(this) hb_no_trace_t<bool> trace
 #endif
@@ -426,7 +426,7 @@ struct hb_no_trace_t {
 #define TRACE_SERIALIZE(this) \
 	hb_auto_trace_t<HB_DEBUG_SERIALIZE, bool> trace \
 	(&c->debug_depth, "SERIALIZE", c, HB_FUNC, \
-	 " ");
+	 " ")
 #else
 #define TRACE_SERIALIZE(this) hb_no_trace_t<bool> trace
 #endif
@@ -438,7 +438,7 @@ struct hb_no_trace_t {
 #define TRACE_SUBSET(this) \
   hb_auto_trace_t<HB_DEBUG_SUBSET, bool> trace \
   (&c->debug_depth, c->get_name (), this, HB_FUNC, \
-   " ");
+   " ")
 #else
 #define TRACE_SUBSET(this) hb_no_trace_t<bool> trace
 #endif
@@ -455,7 +455,7 @@ struct hb_no_trace_t {
 #define TRACE_DISPATCH(this, format) \
 	hb_auto_trace_t<context_t::max_debug_depth, typename context_t::return_t> trace \
 	(&c->debug_depth, c->get_name (), this, HB_FUNC, \
-	 "format %d", (int) format);
+	 "format %d", (int) format)
 #else
 #define TRACE_DISPATCH(this, format) hb_no_trace_t<typename context_t::return_t> trace
 #endif
