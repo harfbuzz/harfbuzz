@@ -93,6 +93,7 @@ _subset2 (hb_subset_plan_t *plan)
     if (serializer.ran_out_of_room)
     {
       buf_size += (buf_size >> 1) + 32;
+      assert (buf_size <= source_blob->length * 16 + 4096);
       DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c ran out of room; reallocating to %u bytes.", HB_UNTAG (tag), buf_size);
       if (unlikely (!buf.alloc (buf_size)))
       {
