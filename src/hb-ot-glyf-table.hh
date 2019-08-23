@@ -541,6 +541,7 @@ struct glyf
       int16_t num_contours = (int16_t) glyph_header.numberOfContours;
       if (num_contours < 0)
       {
+	// composite glyph
 	unsigned int start = glyph.length;
 	unsigned int end = glyph.length;
 	unsigned int glyph_offset = &glyph - glyf_table;
@@ -562,6 +563,7 @@ struct glyf
       }
       else
       {
+	// simple glyph
 	unsigned int instruction_length_offset = GlyphHeader::static_size + 2 * num_contours;
 	if (unlikely (instruction_length_offset + 2 > glyph.length))
 	{
@@ -570,7 +572,7 @@ struct glyf
 	}
 
 	const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (&glyph, instruction_length_offset);
-	if (unlikely (instruction_length_offset + instruction_length > glyph.length)) // Out of bounds of the current glyph
+	if (unlikely (instruction_length_offset + 2 + instruction_length > glyph.length)) // Out of bounds of the current glyph
 	{
 	  DEBUG_MSG(SUBSET, nullptr, "The instructions array overruns the glyph's boundaries.");
 	  return false;
