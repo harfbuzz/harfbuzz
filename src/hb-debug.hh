@@ -296,7 +296,8 @@ struct hb_auto_trace_t
     if (plevel) --*plevel;
   }
 
-  ret_t ret (ret_t v,
+  template <typename T>
+  T ret (T&& v,
 	     const char *func = "",
 	     unsigned int line = 0)
   {
@@ -307,7 +308,7 @@ struct hb_auto_trace_t
 
     _hb_debug_msg<max_level> (what, obj, func, true, plevel ? *plevel : 1, -1,
 			      "return %s (line %d)",
-			      hb_printer_t<ret_t>().print (v), line);
+			      hb_printer_t<decltype (v)>().print (v), line);
     if (plevel) --*plevel;
     plevel = nullptr;
     returned = true;
