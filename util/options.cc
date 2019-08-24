@@ -196,8 +196,8 @@ parse_shapers (const char *name G_GNUC_UNUSED,
     bool found = false;
     for (const char **hb_shaper = hb_shape_list_shapers (); *hb_shaper; hb_shaper++) {
       if (strcmp (*shaper, *hb_shaper) == 0) {
-        found = true;
-        break;
+	found = true;
+	break;
       }
     }
     if (!found) {
@@ -228,9 +228,9 @@ list_shapers (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_features (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		const char *arg,
+		gpointer    data,
+		GError    **error G_GNUC_UNUSED)
 {
   shape_options_t *shape_opts = (shape_options_t *) data;
   char *s = (char *) arg;
@@ -271,9 +271,9 @@ parse_features (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_variations (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		  const char *arg,
+		  gpointer    data,
+		  GError    **error G_GNUC_UNUSED)
 {
   font_options_t *font_opts = (font_options_t *) data;
   char *s = (char *) arg;
@@ -335,9 +335,9 @@ parse_text (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_unicodes (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		const char *arg,
+		gpointer    data,
+		GError    **error G_GNUC_UNUSED)
 {
   text_options_t *text_opts = (text_options_t *) data;
 
@@ -349,7 +349,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   }
 
   GString *gs = g_string_new (nullptr);
-  if (0 == strcmp (arg, "*")) 
+  if (0 == strcmp (arg, "*"))
   {
     g_string_append_c (gs, '*');
   }
@@ -358,26 +358,26 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 
     char *s = (char *) arg;
     char *p;
-  
+
     while (s && *s)
     {
       while (*s && strchr (DELIMITERS, *s))
-        s++;
+	s++;
       if (!*s)
-        break;
-  
+	break;
+
       errno = 0;
       hb_codepoint_t u = strtoul (s, &p, 16);
       if (errno || s == p)
       {
-        g_string_free (gs, TRUE);
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+	g_string_free (gs, TRUE);
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
   		   "Failed parsing Unicode values at: '%s'", s);
-        return false;
+	return false;
       }
-  
+
       g_string_append_unichar (gs, u);
-  
+
       s = p;
     }
   }
@@ -716,7 +716,7 @@ font_options_t::get_font () const
       GString *s = g_string_new (nullptr);
       for (unsigned int i = 0; i < ARRAY_LENGTH (supported_font_funcs); i++)
       {
-        if (i)
+	if (i)
 	  g_string_append_c (s, '/');
 	g_string_append (s, supported_font_funcs[i].name);
       }
@@ -877,9 +877,9 @@ format_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "output-syntax",
 		     "Output syntax:\n"
-         "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
-         "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
-         "\nOutput syntax options:",
+	 "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
+	 "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
+	 "\nOutput syntax options:",
 		     "Options for the syntax of the output",
 		     this);
 }

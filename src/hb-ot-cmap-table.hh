@@ -76,24 +76,24 @@ struct CmapSubtableFormat4
 {
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   HBUINT16* serialize_endcode_array (hb_serialize_context_t *c,
-                                     Iterator it)
+				     Iterator it)
   {
     HBUINT16 *endCode = c->start_embed<HBUINT16> ();
     hb_codepoint_t prev_endcp = 0xFFFF;
 
     + it
     | hb_apply ([&] (const hb_item_type<Iterator> _)
-                {
-                  if (prev_endcp != 0xFFFF && prev_endcp + 1u != _.first)
-                  {
-                    HBUINT16 end_code;
-                    end_code = prev_endcp;
-                    c->copy<HBUINT16> (end_code);
-                  }
-                  prev_endcp = _.first;
-                })
+		{
+		  if (prev_endcp != 0xFFFF && prev_endcp + 1u != _.first)
+		  {
+		    HBUINT16 end_code;
+		    end_code = prev_endcp;
+		    c->copy<HBUINT16> (end_code);
+		  }
+		  prev_endcp = _.first;
+		})
     ;
 
     {
@@ -104,9 +104,9 @@ struct CmapSubtableFormat4
       // There must be a final entry with end_code == 0xFFFF.
       if (prev_endcp != 0xFFFF)
       {
-        HBUINT16 finalcode;
-        finalcode = 0xFFFF;
-        if (unlikely (!c->copy<HBUINT16> (finalcode))) return nullptr;
+	HBUINT16 finalcode;
+	finalcode = 0xFFFF;
+	if (unlikely (!c->copy<HBUINT16> (finalcode))) return nullptr;
       }
     }
 
@@ -114,25 +114,25 @@ struct CmapSubtableFormat4
   }
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   HBUINT16* serialize_startcode_array (hb_serialize_context_t *c,
-                                       Iterator it)
+				       Iterator it)
   {
     HBUINT16 *startCode = c->start_embed<HBUINT16> ();
     hb_codepoint_t prev_cp = 0xFFFF;
-    
+
     + it
     | hb_apply ([&] (const hb_item_type<Iterator> _)
-                {
-                  if (prev_cp == 0xFFFF || prev_cp + 1u != _.first)
-                  {
-                    HBUINT16 start_code;
-                    start_code = _.first;
-                    c->copy<HBUINT16> (start_code);
-                  }
+		{
+		  if (prev_cp == 0xFFFF || prev_cp + 1u != _.first)
+		  {
+		    HBUINT16 start_code;
+		    start_code = _.first;
+		    c->copy<HBUINT16> (start_code);
+		  }
 
-                  prev_cp = _.first;
-                })
+		  prev_cp = _.first;
+		})
     ;
 
     // There must be a final entry with end_code == 0xFFFF.
@@ -147,44 +147,44 @@ struct CmapSubtableFormat4
   }
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   HBINT16* serialize_idDelta_array (hb_serialize_context_t *c,
-                                     Iterator it,
-                                     HBUINT16 *endCode,
-                                     HBUINT16 *startCode,
-                                     unsigned segcount)
+				     Iterator it,
+				     HBUINT16 *endCode,
+				     HBUINT16 *startCode,
+				     unsigned segcount)
   {
     unsigned i = 0;
     hb_codepoint_t last_gid = 0, start_gid = 0, last_cp = 0xFFFF;
     bool use_delta = true;
-    
+
     HBINT16 *idDelta = c->start_embed<HBINT16> ();
     if ((char *)idDelta - (char *)startCode != (int) segcount * (int) HBINT16::static_size)
       return nullptr;
 
     + it
     | hb_apply ([&] (const hb_item_type<Iterator> _)
-                {
-                  if (_.first == startCode[i])
-                  {
-                    use_delta = true;
-                    start_gid = _.second;
-                  }
-                  else if (_.second != last_gid + 1) use_delta = false;
+		{
+		  if (_.first == startCode[i])
+		  {
+		    use_delta = true;
+		    start_gid = _.second;
+		  }
+		  else if (_.second != last_gid + 1) use_delta = false;
 
-                  if (_.first == endCode[i])
-                  {
-                    HBINT16 delta;
-                    if (use_delta) delta = (int)start_gid - (int)startCode[i];
-                    else delta = 0;
-                    c->copy<HBINT16> (delta);
+		  if (_.first == endCode[i])
+		  {
+		    HBINT16 delta;
+		    if (use_delta) delta = (int)start_gid - (int)startCode[i];
+		    else delta = 0;
+		    c->copy<HBINT16> (delta);
 
-                    i++;
-                  }
+		    i++;
+		  }
 
-                  last_gid = _.second;
-                  last_cp = _.first;
-                })
+		  last_gid = _.second;
+		  last_cp = _.first;
+		})
     ;
 
     if (it.len () == 0 || last_cp != 0xFFFF)
@@ -198,43 +198,43 @@ struct CmapSubtableFormat4
   }
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   HBUINT16* serialize_rangeoffset_glyid (hb_serialize_context_t *c,
-                                     Iterator it,
-                                     HBUINT16 *endCode,
-                                     HBUINT16 *startCode,
-                                     HBINT16 *idDelta,
-                                     unsigned segcount)
+					 Iterator it,
+					 HBUINT16 *endCode,
+					 HBUINT16 *startCode,
+					 HBINT16 *idDelta,
+					 unsigned segcount)
   {
     HBUINT16 *idRangeOffset = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return nullptr;
     if (unlikely ((char *)idRangeOffset - (char *)idDelta != (int) segcount * (int) HBINT16::static_size)) return nullptr;
- 
+
     + hb_range (segcount)
     | hb_filter ([&] (const unsigned _) { return idDelta[_] == 0; })
     | hb_apply ([&] (const unsigned i)
-                {
-                  idRangeOffset[i] = 2 * (c->start_embed<HBUINT16> () - idRangeOffset - i);
+		{
+		  idRangeOffset[i] = 2 * (c->start_embed<HBUINT16> () - idRangeOffset - i);
 
-                  + it
-                  | hb_filter ([&] (const hb_item_type<Iterator> _) { return _.first >= startCode[i] && _.first <= endCode[i]; })
-                  | hb_apply ([&] (const hb_item_type<Iterator> _)
-                              {
-                                HBUINT16 glyID;
-                                glyID = _.second;
-                                c->copy<HBUINT16> (glyID);
-                              })
-                  ;
+		  + it
+		  | hb_filter ([&] (const hb_item_type<Iterator> _) { return _.first >= startCode[i] && _.first <= endCode[i]; })
+		  | hb_apply ([&] (const hb_item_type<Iterator> _)
+			      {
+				HBUINT16 glyID;
+				glyID = _.second;
+				c->copy<HBUINT16> (glyID);
+			      })
+		  ;
 
 
-                })
+		})
     ;
 
     return idRangeOffset;
   }
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it)
   {
@@ -247,21 +247,21 @@ struct CmapSubtableFormat4
     if (unlikely (!endCode)) return;
 
     unsigned segcount = (c->length () - min_size) / HBUINT16::static_size;
-    
+
     // 2 bytes of padding.
     if (unlikely (!c->allocate_size<HBUINT16> (HBUINT16::static_size))) return; // 2 bytes of padding.
 
    // serialize startCode[]
     HBUINT16 *startCode = serialize_startcode_array (c, it);
     if (unlikely (!startCode)) return;
-    
+
     //serialize idDelta[]
     HBINT16 *idDelta = serialize_idDelta_array (c, it, endCode, startCode, segcount);
     if (unlikely (!idDelta)) return;
 
     HBUINT16 *idRangeOffset = serialize_rangeoffset_glyid (c, it, endCode, startCode, idDelta, segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return;
- 
+
     if (unlikely (!c->check_assign(this->length, c->length () - table_initpos))) return;
     this->segCountX2 = segcount * 2;
     this->entrySelector = hb_max (1u, hb_bit_storage (segcount)) - 1;
@@ -557,7 +557,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it)
   {
@@ -570,30 +570,30 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
     + it
     | hb_apply ([&] (const hb_item_type<Iterator> _)
-              {
-                if (startCharCode == 0xFFFF)
-                {
-                  startCharCode = _.first;
-                  endCharCode = _.first;
-                  glyphID = _.second;
-                }
-                else if (!_is_gid_consecutive (endCharCode, startCharCode, glyphID, _.first, _.second))
-                {
-                  CmapSubtableLongGroup  grouprecord;
-                  grouprecord.startCharCode = startCharCode;
-                  grouprecord.endCharCode = endCharCode;
-                  grouprecord.glyphID = glyphID;
-                  c->copy<CmapSubtableLongGroup> (grouprecord);
+	      {
+		if (startCharCode == 0xFFFF)
+		{
+		  startCharCode = _.first;
+		  endCharCode = _.first;
+		  glyphID = _.second;
+		}
+		else if (!_is_gid_consecutive (endCharCode, startCharCode, glyphID, _.first, _.second))
+		{
+		  CmapSubtableLongGroup  grouprecord;
+		  grouprecord.startCharCode = startCharCode;
+		  grouprecord.endCharCode = endCharCode;
+		  grouprecord.glyphID = glyphID;
+		  c->copy<CmapSubtableLongGroup> (grouprecord);
 
-                  startCharCode = _.first;
-                  endCharCode = _.first;
-                  glyphID = _.second;
-                }
-                else
-                {
-                  endCharCode = _.first;
-                }
-              })
+		  startCharCode = _.first;
+		  endCharCode = _.first;
+		  glyphID = _.second;
+		}
+		else
+		{
+		  endCharCode = _.first;
+		}
+	      })
     ;
 
     CmapSubtableLongGroup record;
@@ -615,8 +615,8 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 
  private:
   static bool _is_gid_consecutive (hb_codepoint_t endCharCode,
-                                   hb_codepoint_t startCharCode,
-                                   hb_codepoint_t glyphID,
+				   hb_codepoint_t startCharCode,
+				   hb_codepoint_t glyphID,
 				   hb_codepoint_t cp,
 				   hb_codepoint_t new_gid)
   {
@@ -828,10 +828,10 @@ struct CmapSubtable
   }
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it,
-                  unsigned format)
+		  unsigned format)
   {
     switch (format) {
     case  4: u.format4.serialize (c, it);  return;
@@ -892,12 +892,12 @@ struct EncodingRecord
   }
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   EncodingRecord* copy (hb_serialize_context_t *c,
-                        Iterator it,
-                        unsigned format,
-                        void *base,
-                        /* INOUT */ unsigned *objidx) const
+			Iterator it,
+			unsigned format,
+			void *base,
+			/* INOUT */ unsigned *objidx) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
@@ -930,13 +930,13 @@ struct cmap
   static constexpr hb_tag_t tableTag = HB_OT_TAG_cmap;
 
   template<typename Iterator,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
-                  Iterator it,
-                  const EncodingRecord *unicode_bmp,
-                  const EncodingRecord *unicode_ucs4,
-                  const EncodingRecord *ms_bmp,
-                  const EncodingRecord *ms_ucs4)
+		  Iterator it,
+		  const EncodingRecord *unicode_bmp,
+		  const EncodingRecord *unicode_ucs4,
+		  const EncodingRecord *ms_bmp,
+		  const EncodingRecord *ms_ucs4)
   {
     if (unlikely (!c->extend_min ((*this))))  return;
     this->version = 0;
@@ -972,15 +972,15 @@ struct cmap
     auto it =
     + hb_iter (c->plan->unicodes)
     | hb_map ([&] (hb_codepoint_t _)
-                 {
-                   hb_codepoint_t new_gid = HB_MAP_VALUE_INVALID;
-                   c->plan->new_gid_for_codepoint (_, &new_gid);
-                   return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, new_gid);
-                 })
+		 {
+		   hb_codepoint_t new_gid = HB_MAP_VALUE_INVALID;
+		   c->plan->new_gid_for_codepoint (_, &new_gid);
+		   return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, new_gid);
+		 })
     | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
-              {
-                return (_.second != HB_MAP_VALUE_INVALID);
-              })
+	      {
+		return (_.second != HB_MAP_VALUE_INVALID);
+	      })
     ;
 
     cmap_prime->serialize (c->serializer, it, unicode_bmp, unicode_ucs4, ms_bmp, ms_ucs4);
@@ -1181,7 +1181,7 @@ struct cmap
   }
 
   const EncodingRecord *find_encodingrec (unsigned int platform_id,
-                                    unsigned int encoding_id) const
+				    unsigned int encoding_id) const
   {
     EncodingRecord key;
     key.platformID = platform_id;

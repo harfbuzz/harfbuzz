@@ -30,9 +30,9 @@
 
 static gboolean
 parse_nameids (const char *name,
-               const char *arg,
-               gpointer    data,
-               GError    **error G_GNUC_UNUSED)
+	       const char *arg,
+	       gpointer    data,
+	       GError    **error G_GNUC_UNUSED)
 {
   subset_options_t *subset_opts = (subset_options_t *) data;
   hb_set_t *name_ids = subset_opts->input->name_ids;
@@ -46,7 +46,7 @@ parse_nameids (const char *name,
   {
     if (last_name_char == '-')
       hb_set_del_range (name_ids, 0, 0x7FFF);
-    else 
+    else
       hb_set_add_range (name_ids, 0, 0x7FFF);
     return true;
   }
@@ -67,7 +67,7 @@ parse_nameids (const char *name,
     {
       hb_set_destroy (name_ids);
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing nameID values at: '%s'", s);
+		   "Failed parsing nameID values at: '%s'", s);
       return false;
     }
 
@@ -86,9 +86,9 @@ parse_nameids (const char *name,
 
 static gboolean
 parse_drop_tables (const char *name,
-                   const char *arg,
-                   gpointer    data,
-                   GError    **error G_GNUC_UNUSED)
+		   const char *arg,
+		   gpointer    data,
+		   GError    **error G_GNUC_UNUSED)
 {
   subset_options_t *subset_opts = (subset_options_t *) data;
   hb_set_t *drop_tables = subset_opts->input->drop_tables;
@@ -104,7 +104,7 @@ parse_drop_tables (const char *name,
     if (strlen (s) > 4) // Table tags are at most 4 bytes.
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing table tag values at: '%s'", s);
+		   "Failed parsing table tag values at: '%s'", s);
       return false;
     }
 
@@ -137,8 +137,8 @@ subset_options_t::add_options (option_parser_t *parser)
     {nullptr}
   };
   parser->add_group (entries,
-         "subset",
-         "Subset options:",
-         "Options subsetting",
-         this);
+	 "subset",
+	 "Subset options:",
+	 "Options subsetting",
+	 this);
 }

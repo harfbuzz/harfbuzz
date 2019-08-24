@@ -199,7 +199,7 @@ struct fvar
     for (unsigned int i = 0; i < count; i++)
       if (axes[i].axisTag == tag)
       {
-        if (axis_index)
+	if (axis_index)
 	  *axis_index = i;
 	get_axis_deprecated (i, info);
 	return true;
@@ -280,7 +280,7 @@ struct fvar
     if (unlikely (!instance))
     {
       if (coords_length)
-        *coords_length = 0;
+	*coords_length = 0;
       return 0;
     }
 
@@ -289,7 +289,7 @@ struct fvar
       hb_array_t<const Fixed> instanceCoords = instance->get_coordinates (axisCount)
 							 .sub_array (0, *coords_length);
       for (unsigned int i = 0; i < instanceCoords.length; i++)
-        coords[i] = instanceCoords.arrayZ[i].to_float ();
+	coords[i] = instanceCoords.arrayZ[i].to_float ();
     }
     return axisCount;
   }

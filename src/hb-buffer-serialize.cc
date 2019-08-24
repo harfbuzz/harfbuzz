@@ -135,7 +135,7 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
       hb_font_glyph_to_string (font, info[i].codepoint, g, sizeof (g));
       *p++ = '"';
       for (char *q = g; *q; q++) {
-        if (*q == '"')
+	if (*q == '"')
 	  *p++ = '\\';
 	*p++ = *q;
       }

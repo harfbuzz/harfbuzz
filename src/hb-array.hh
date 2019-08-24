@@ -281,9 +281,9 @@ struct hb_sorted_array_t :
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
       int c = array[mid].cmp (x);
       if (c < 0)
-        max = mid - 1;
+	max = mid - 1;
       else if (c > 0)
-        min = mid + 1;
+	min = mid + 1;
       else
       {
 	if (i)

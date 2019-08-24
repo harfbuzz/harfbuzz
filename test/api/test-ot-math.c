@@ -457,41 +457,41 @@ test_get_glyph_variants (void)
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowleft", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_variants (hb_font,
-                                                 glyph,
-                                                 HB_DIRECTION_BTT,
-                                                 0,
-                                                 NULL,
-                                                 NULL), ==, 0);
+						 glyph,
+						 HB_DIRECTION_BTT,
+						 0,
+						 NULL,
+						 NULL), ==, 0);
   g_assert_cmpint(hb_ot_math_get_glyph_variants (hb_font,
-                                                 glyph,
-                                                 HB_DIRECTION_RTL,
-                                                 0,
-                                                 NULL,
-                                                 NULL), ==, 3);
+						 glyph,
+						 HB_DIRECTION_RTL,
+						 0,
+						 NULL,
+						 NULL), ==, 3);
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowup", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_variants (hb_font,
-                                                 glyph,
-                                                 HB_DIRECTION_BTT,
-                                                 0,
-                                                 NULL,
-                                                 NULL), ==, 4);
+						 glyph,
+						 HB_DIRECTION_BTT,
+						 0,
+						 NULL,
+						 NULL), ==, 4);
   g_assert_cmpint(hb_ot_math_get_glyph_variants (hb_font,
-                                                 glyph,
-                                                 HB_DIRECTION_RTL,
-                                                 0,
-                                                 NULL,
-                                                 NULL), ==, 0);
+						 glyph,
+						 HB_DIRECTION_RTL,
+						 0,
+						 NULL,
+						 NULL), ==, 0);
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowleft", -1, &glyph));
   do {
     count = variantsSize;
     hb_ot_math_get_glyph_variants (hb_font,
-                                   glyph,
-                                   HB_DIRECTION_RTL,
-                                   offset,
-                                   &count,
-                                   variants);
+				   glyph,
+				   HB_DIRECTION_RTL,
+				   offset,
+				   &count,
+				   variants);
     offset += count;
   } while (count == variantsSize);
   g_assert_cmpint(offset, ==, 3);
@@ -510,11 +510,11 @@ test_get_glyph_variants (void)
   do {
     count = variantsSize;
     hb_ot_math_get_glyph_variants (hb_font,
-                                   glyph,
-                                   HB_DIRECTION_BTT,
-                                   offset,
-                                   &count,
-                                   variants);
+				   glyph,
+				   HB_DIRECTION_BTT,
+				   offset,
+				   &count,
+				   variants);
     offset += count;
   } while (count == variantsSize);
   g_assert_cmpint(offset, ==, 4);
@@ -581,46 +581,46 @@ test_get_glyph_assembly (void)
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowright", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_assembly (hb_font,
-                                                 glyph,
-                                                 HB_DIRECTION_BTT,
-                                                 0,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL), ==, 0);
+						 glyph,
+						 HB_DIRECTION_BTT,
+						 0,
+						 NULL,
+						 NULL,
+						 NULL), ==, 0);
   g_assert_cmpint(hb_ot_math_get_glyph_assembly (hb_font,
-                                                 glyph,
-                                                 HB_DIRECTION_RTL,
-                                                 0,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL), ==, 3);
+						 glyph,
+						 HB_DIRECTION_RTL,
+						 0,
+						 NULL,
+						 NULL,
+						 NULL), ==, 3);
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowdown", -1, &glyph));
   g_assert_cmpint(hb_ot_math_get_glyph_assembly (hb_font,
-                                                 glyph,
-                                                 HB_DIRECTION_BTT,
-                                                 0,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL), ==, 5);
+						 glyph,
+						 HB_DIRECTION_BTT,
+						 0,
+						 NULL,
+						 NULL,
+						 NULL), ==, 5);
   g_assert_cmpint(hb_ot_math_get_glyph_assembly (hb_font,
-                                                 glyph,
-                                                 HB_DIRECTION_RTL,
-                                                 0,
-                                                 NULL,
-                                                 NULL,
-                                                 NULL), ==, 0);
+						 glyph,
+						 HB_DIRECTION_RTL,
+						 0,
+						 NULL,
+						 NULL,
+						 NULL), ==, 0);
 
   g_assert(hb_font_get_glyph_from_name (hb_font, "arrowright", -1, &glyph));
   do {
     count = partsSize;
     hb_ot_math_get_glyph_assembly (hb_font,
-                                   glyph,
-                                   HB_DIRECTION_RTL,
-                                   offset,
-                                   &count,
-                                   parts,
-                                   NULL);
+				   glyph,
+				   HB_DIRECTION_RTL,
+				   offset,
+				   &count,
+				   parts,
+				   NULL);
     offset += count;
   } while (count == partsSize);
   g_assert_cmpint(offset, ==, 3);
@@ -648,12 +648,12 @@ test_get_glyph_assembly (void)
   do {
     count = partsSize;
     hb_ot_math_get_glyph_assembly (hb_font,
-                                   glyph,
-                                   HB_DIRECTION_BTT,
-                                   offset,
-                                   &count,
-                                   parts,
-                                   NULL);
+				   glyph,
+				   HB_DIRECTION_BTT,
+				   offset,
+				   &count,
+				   parts,
+				   NULL);
     offset += count;
   } while (count == partsSize);
   g_assert_cmpint(offset, ==, 5);

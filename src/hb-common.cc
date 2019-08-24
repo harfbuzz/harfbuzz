@@ -67,7 +67,7 @@ _hb_options_init ()
     {
       const char *p = strchr (c, ':');
       if (!p)
-        p = c + strlen (c);
+	p = c + strlen (c);
 
 #define OPTION(name, symbol) \
 	if (0 == strncmp (c, name, p - c) && strlen (name) == static_cast<size_t>(p - c)) do { u.opts.symbol = true; } while (0)
@@ -956,7 +956,7 @@ parse_feature_value_postfix (const char **pp, const char *end, hb_feature_t *fea
 {
   bool had_equal = parse_char (pp, end, '=');
   bool had_value = parse_uint32 (pp, end, &feature->value) ||
-                   parse_bool (pp, end, &feature->value);
+		   parse_bool (pp, end, &feature->value);
   /* CSS doesn't use equal-sign between tag and value.
    * If there was an equal-sign, then there *must* be a value.
    * A value without an equal-sign is ok, but not required. */

@@ -251,7 +251,7 @@ struct IndexSubtableArray
       unsigned int firstGlyphIndex = indexSubtablesZ[i].firstGlyphIndex;
       unsigned int lastGlyphIndex = indexSubtablesZ[i].lastGlyphIndex;
       if (firstGlyphIndex <= glyph && glyph <= lastGlyphIndex)
-        return &indexSubtablesZ[i];
+	return &indexSubtablesZ[i];
     }
     return nullptr;
   }
