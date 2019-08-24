@@ -944,7 +944,7 @@ struct VarSizedBinSearchArrayOf
     unsigned int count = Type::TerminationWordCount;
     for (unsigned int i = 0; i < count; i++)
       if (words[i] != 0xFFFFu)
-        return false;
+	return false;
     return true;
   }
 

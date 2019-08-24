@@ -97,7 +97,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 
     if (FT_New_Memory_Face (ft_library,
 			    (const FT_Byte *) blob_data,
-                            blob_length,
+			    blob_length,
 			    font_opts->face_index,
 			    &ft_face))
       fail (false, "FT_New_Memory_Face fail");

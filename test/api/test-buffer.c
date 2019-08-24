@@ -208,7 +208,7 @@ test_buffer_contents (fixture_t *fixture, gconstpointer user_data)
       if (buffer_type == BUFFER_UTF16)
 	cluster++;
       else if (buffer_type == BUFFER_UTF8)
-        cluster += 3;
+	cluster += 3;
     }
     g_assert_cmphex (glyphs[i].codepoint, ==, utf32[1+i]);
     g_assert_cmphex (glyphs[i].cluster,   ==, cluster);

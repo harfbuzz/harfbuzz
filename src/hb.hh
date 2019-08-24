@@ -526,7 +526,7 @@ struct BEInt<Type, 2>
 #endif
 #endif
     return (v[0] <<  8)
-         + (v[1]      );
+	 + (v[1]      );
   }
   private: uint8_t v[2];
 };
@@ -544,8 +544,8 @@ struct BEInt<Type, 3>
   operator Type () const
   {
     return (v[0] << 16)
-         + (v[1] <<  8)
-         + (v[2]      );
+	 + (v[1] <<  8)
+	 + (v[2]      );
   }
   private: uint8_t v[3];
 };
@@ -564,9 +564,9 @@ struct BEInt<Type, 4>
   operator Type () const
   {
     return (v[0] << 24)
-         + (v[1] << 16)
-         + (v[2] <<  8)
-         + (v[3]      );
+	 + (v[1] << 16)
+	 + (v[2] <<  8)
+	 + (v[3]      );
   }
   private: uint8_t v[4];
 };

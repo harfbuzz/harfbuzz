@@ -124,7 +124,7 @@ struct TrackData
     unsigned int size_index;
     for (size_index = 0; size_index < sizes - 1; size_index++)
       if (size_table[size_index].to_float () >= ptem)
-        break;
+	break;
 
     return roundf (interpolate_at (size_index ? size_index - 1 : 0, ptem,
 				   *trackTableEntry, base));
@@ -176,7 +176,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_x (tracking);
       foreach_grapheme (buffer, start, end)
       {
-        if (!(buffer->info[start].mask & trak_mask)) continue;
+	if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].x_advance += advance_to_add;
 	buffer->pos[start].x_offset += offset_to_add;
       }
@@ -189,7 +189,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_y (tracking);
       foreach_grapheme (buffer, start, end)
       {
-        if (!(buffer->info[start].mask & trak_mask)) continue;
+	if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].y_advance += advance_to_add;
 	buffer->pos[start].y_offset += offset_to_add;
       }

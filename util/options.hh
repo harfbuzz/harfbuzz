@@ -242,7 +242,7 @@ struct shape_options_t : option_group_t
     if (!hb_shape_full (font, buffer, features, num_features, shapers))
     {
       if (error)
-        *error = "all shapers failed.";
+	*error = "all shapers failed.";
       goto fail;
     }
 
@@ -341,7 +341,7 @@ struct shape_options_t : option_group_t
       /* Shape segment corresponding to glyphs start..end. */
       if (end == num_glyphs)
       {
-        if (forward)
+	if (forward)
 	  text_end = num_chars;
 	else
 	  text_start = 0;
@@ -372,9 +372,9 @@ struct shape_options_t : option_group_t
       /* TODO: Add pre/post context text. */
       hb_buffer_flags_t flags = hb_buffer_get_flags (fragment);
       if (0 < text_start)
-        flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_BOT);
+	flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_BOT);
       if (text_end < num_chars)
-        flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_EOT);
+	flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_EOT);
       hb_buffer_set_flags (fragment, flags);
 
       hb_buffer_append (fragment, text_buffer, text_start, text_end);

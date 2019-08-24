@@ -238,8 +238,8 @@ struct ValueFormat : HBUINT16
 
 template<typename Iterator>
 static inline void SinglePos_serialize (hb_serialize_context_t *c,
-                                        Iterator it,
-                                        ValueFormat valFormat);
+					Iterator it,
+					ValueFormat valFormat);
 
 
 struct AnchorFormat1
@@ -513,10 +513,7 @@ struct SinglePosFormat1
     auto vals = hb_second (*it);
 
     + vals
-    | hb_apply ([=] (const Value& _)
-                {
-                  c->copy (_);
-                })
+    | hb_apply ([=] (const Value& _) { c->copy (_); })
     ;
 
     auto glyphs =
@@ -539,9 +536,9 @@ struct SinglePosFormat1
     + hb_iter (this+coverage)
     | hb_filter (glyphset)
     | hb_map_retains_sorting ([&] (hb_codepoint_t p)
-                              {
-                                return hb_pair (glyph_map[p], values.as_array (length));
-                              })
+			      {
+				return hb_pair (glyph_map[p], values.as_array (length));
+			      })
     ;
 
     bool ret = bool (it);
@@ -602,30 +599,27 @@ struct SinglePosFormat2
 	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it,
-                  ValueFormat valFormat)
+		  ValueFormat valFormat)
   {
     if (unlikely (!c->extend_min (*this))) return;
     if (unlikely (!c->check_assign (valueFormat, valFormat))) return;
     if (unlikely (!c->check_assign (valueCount, it.len ()))) return;
-    
+
     + it
     | hb_map (hb_second)
     | hb_apply ([=] (hb_array_t<const Value> val_iter)
-                {
-                  + val_iter
-                  | hb_apply ([=] (const Value& _)
-                              {
-                                c->copy (_);
-                              })
-                  ;
-                })
+		{
+		  + val_iter
+		  | hb_apply ([=] (const Value& _) { c->copy (_); })
+		  ;
+		})
     ;
 
     auto glyphs =
     + it
     | hb_map_retains_sorting (hb_first)
     ;
-    
+
     coverage.serialize (c, this).serialize (c, glyphs);
   }
 
@@ -642,9 +636,9 @@ struct SinglePosFormat2
     + hb_zip (this+coverage, hb_range ((unsigned) valueCount))
     | hb_filter (glyphset, hb_first)
     | hb_map_retains_sorting ([&] (const hb_pair_t<hb_codepoint_t, unsigned>& _)
-                              {
-                                return hb_pair (glyph_map[_.first], values.as_array (total_length).sub_array (_.second * sub_length, sub_length));
-                              })
+			      {
+				return hb_pair (glyph_map[_.first], values.as_array (total_length).sub_array (_.second * sub_length, sub_length));
+			      })
     ;
 
     bool ret = bool (it);
@@ -686,18 +680,18 @@ struct SinglePos
     + glyph_val_iter_pairs
     | hb_map (hb_second)
     | hb_apply ([&] (hb_array_t<const Value> val_iter)
-                {
-                  + hb_zip (val_iter, first_val_iter)
-                  | hb_apply ([&] (const hb_pair_t<Value, Value>& _)
-                              {
-                                if (_.first != _.second)
-                                {
-                                  subset_format = 2;
-                                  return;
-                                }
-                              })
-                  ;
-                })
+		{
+		  + hb_zip (val_iter, first_val_iter)
+		  | hb_apply ([&] (const hb_pair_t<Value, Value>& _)
+			      {
+				if (_.first != _.second)
+				{
+				  subset_format = 2;
+				  return;
+				}
+			      })
+		  ;
+		})
     ;
 
     return subset_format;
@@ -708,7 +702,7 @@ struct SinglePos
 	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator glyph_val_iter_pairs,
-                  ValueFormat valFormat)
+		  ValueFormat valFormat)
   {
     if (unlikely (!c->extend_min (u.format))) return;
     unsigned format = 2;
@@ -718,9 +712,9 @@ struct SinglePos
     u.format = format;
     switch (u.format) {
     case 1: u.format1.serialize (c, glyph_val_iter_pairs, valFormat);
-            return;
+	    return;
     case 2: u.format2.serialize (c, glyph_val_iter_pairs, valFormat);
-            return;
+	    return;
     default:return;
     }
   }
@@ -748,8 +742,8 @@ struct SinglePos
 template<typename Iterator>
 static inline void
 SinglePos_serialize (hb_serialize_context_t *c,
-                     Iterator it,
-                     ValueFormat valFormat)
+		     Iterator it,
+		     ValueFormat valFormat)
 { c->start_embed<SinglePos> ()->serialize (c, it, valFormat); }
 
 

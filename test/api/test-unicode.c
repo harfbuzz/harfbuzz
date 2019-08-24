@@ -62,8 +62,8 @@ static void free_up (void *p)
 
 static hb_script_t
 simple_get_script (hb_unicode_funcs_t *ufuncs,
-                   hb_codepoint_t      codepoint,
-                   void               *user_data)
+		   hb_codepoint_t      codepoint,
+		   void               *user_data)
 {
   data_t *data = (data_t *) user_data;
 
@@ -79,8 +79,8 @@ simple_get_script (hb_unicode_funcs_t *ufuncs,
 
 static hb_script_t
 a_is_for_arabic_get_script (hb_unicode_funcs_t *ufuncs,
-                            hb_codepoint_t      codepoint,
-                            void               *user_data)
+			    hb_codepoint_t      codepoint,
+			    void               *user_data)
 {
   data_t *data = (data_t *) user_data;
 
@@ -751,7 +751,7 @@ test_unicode_subclassing_nil (data_fixture_t *f, gconstpointer user_data HB_UNUS
   hb_unicode_funcs_destroy (uf);
 
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
-                                    &f->data[1], free_up);
+				    &f->data[1], free_up);
 
   g_assert_cmphex (hb_unicode_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmphex (hb_unicode_script (aa, 'b'), ==, HB_SCRIPT_UNKNOWN);
@@ -770,7 +770,7 @@ test_unicode_subclassing_default (data_fixture_t *f, gconstpointer user_data HB_
   aa = hb_unicode_funcs_create (uf);
 
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
-                                    &f->data[1], free_up);
+				    &f->data[1], free_up);
 
   g_assert_cmphex (hb_unicode_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmphex (hb_unicode_script (aa, 'b'), ==, HB_SCRIPT_LATIN);
@@ -788,7 +788,7 @@ test_unicode_subclassing_deep (data_fixture_t *f, gconstpointer user_data HB_UNU
   uf = hb_unicode_funcs_create (NULL);
 
   hb_unicode_funcs_set_script_func (uf, simple_get_script,
-                                    &f->data[0], free_up);
+				    &f->data[0], free_up);
 
   aa = hb_unicode_funcs_create (uf);
 
@@ -798,7 +798,7 @@ test_unicode_subclassing_deep (data_fixture_t *f, gconstpointer user_data HB_UNU
   g_assert (!f->data[0].freed);
 
   hb_unicode_funcs_set_script_func (aa, a_is_for_arabic_get_script,
-                                    &f->data[1], free_up);
+				    &f->data[1], free_up);
 
   g_assert_cmphex (hb_unicode_script (aa, 'a'), ==, HB_SCRIPT_ARABIC);
   g_assert_cmphex (hb_unicode_script (aa, 'b'), ==, HB_SCRIPT_LATIN);

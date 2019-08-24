@@ -72,7 +72,7 @@ struct hb_iter_t
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
-        iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
+	iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
   public:
 
   /* TODO:
@@ -183,7 +183,7 @@ struct hb_iter_fallback_mixin_t
   private:
   /* https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern */
   const iter_t* thiz () const { return static_cast<const iter_t *> (this); }
-        iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
+	iter_t* thiz ()       { return static_cast<      iter_t *> (this); }
   public:
 
   /* Access: Implement __item__(), or __item_at__() if random-access. */

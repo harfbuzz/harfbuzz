@@ -40,16 +40,16 @@ struct subset_consumer_t
       : failed (false), options (parser), subset_options (parser), font (nullptr), input (nullptr) {}
 
   void init (hb_buffer_t  *buffer_,
-             const font_options_t *font_opts)
+	     const font_options_t *font_opts)
   {
     font = hb_font_reference (font_opts->get_font ());
     input = hb_subset_input_reference (subset_options.input);
   }
 
   void consume_line (const char   *text,
-                     unsigned int  text_len,
-                     const char   *text_before,
-                     const char   *text_after)
+		     unsigned int  text_len,
+		     const char   *text_before,
+		     const char   *text_after)
   {
     // TODO(Q1) does this only get called with at least 1 codepoint?
     hb_set_t *codepoints = hb_subset_input_unicode_set (input);
@@ -88,7 +88,7 @@ struct subset_consumer_t
     }
     if ((unsigned int) bytes_written != data_length) {
       fprintf(stderr, "Expected %u bytes written, got %d\n", data_length,
-              bytes_written);
+	      bytes_written);
       return false;
     }
     return true;

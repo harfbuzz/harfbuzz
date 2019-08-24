@@ -63,7 +63,7 @@ struct hb_set_t
     bool is_empty () const
     {
       for (unsigned int i = 0; i < len (); i++)
-        if (v[i])
+	if (v[i])
 	  return false;
       return true;
     }
@@ -77,7 +77,7 @@ struct hb_set_t
       elt_t *la = &elt (a);
       elt_t *lb = &elt (b);
       if (la == lb)
-        *la |= (mask (b) << 1) - mask(a);
+	*la |= (mask (b) << 1) - mask(a);
       else
       {
 	*la |= ~(mask (a) - 1);
@@ -98,7 +98,7 @@ struct hb_set_t
     {
       unsigned int pop = 0;
       for (unsigned int i = 0; i < len (); i++)
-        pop += hb_popcount (v[i]);
+	pop += hb_popcount (v[i]);
       return pop;
     }
 
@@ -149,14 +149,14 @@ struct hb_set_t
     hb_codepoint_t get_min () const
     {
       for (unsigned int i = 0; i < len (); i++)
-        if (v[i])
+	if (v[i])
 	  return i * ELT_BITS + elt_get_min (v[i]);
       return INVALID;
     }
     hb_codepoint_t get_max () const
     {
       for (int i = len () - 1; i >= 0; i--)
-        if (v[i])
+	if (v[i])
 	  return i * ELT_BITS + elt_get_max (v[i]);
       return 0;
     }
@@ -249,7 +249,7 @@ struct hb_set_t
     unsigned int count = pages.length;
     for (unsigned int i = 0; i < count; i++)
       if (!pages[i].is_empty ())
-        return false;
+	return false;
     return true;
   }
 
@@ -333,9 +333,9 @@ struct hb_set_t
       unsigned int end = major_start (m + 1);
       do
       {
-        /* If we try harder we can change the following comparison to <=;
+	/* If we try harder we can change the following comparison to <=;
 	 * Not sure if it's worth it. */
-        if (g < last_g) return false;
+	if (g < last_g) return false;
 	last_g = g;
 	page->add (g);
 
@@ -415,7 +415,7 @@ struct hb_set_t
       if (other->page_at (b).is_empty ()) { b++; continue; }
       if (page_map[a].major != other->page_map[b].major ||
 	  !page_at (a).is_equal (&other->page_at (b)))
-        return false;
+	return false;
       a++;
       b++;
     }
@@ -436,7 +436,7 @@ struct hb_set_t
     hb_codepoint_t c = INVALID;
     while (next (&c))
       if (!larger_set->has (c))
-        return false;
+	return false;
 
     return true;
   }
@@ -458,21 +458,21 @@ struct hb_set_t
     {
       if (page_map[a].major == other->page_map[b].major)
       {
-        count++;
+	count++;
 	a++;
 	b++;
       }
       else if (page_map[a].major < other->page_map[b].major)
       {
-        if (Op::passthru_left)
+	if (Op::passthru_left)
 	  count++;
-        a++;
+	a++;
       }
       else
       {
-        if (Op::passthru_right)
+	if (Op::passthru_right)
 	  count++;
-        b++;
+	b++;
       }
     }
     if (Op::passthru_left)
@@ -482,7 +482,7 @@ struct hb_set_t
 
     if (count > pages.length)
       if (!resize (count))
-        return;
+	return;
     newCount = count;
 
     /* Process in-place backward. */
@@ -673,7 +673,7 @@ struct hb_set_t
     unsigned int count = pages.length;
     for (unsigned int i = 0; i < count; i++)
       if (!page_at (i).is_empty ())
-        return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_min ();
+	return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_min ();
     return INVALID;
   }
   hb_codepoint_t get_max () const
@@ -681,7 +681,7 @@ struct hb_set_t
     unsigned int count = pages.length;
     for (int i = count - 1; i >= 0; i++)
       if (!page_at (i).is_empty ())
-        return page_map[(unsigned) i].major * page_t::PAGE_BITS + page_at (i).get_max ();
+	return page_map[(unsigned) i].major * page_t::PAGE_BITS + page_at (i).get_max ();
     return INVALID;
   }
 

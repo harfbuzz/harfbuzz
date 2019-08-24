@@ -76,7 +76,7 @@ hb_subset_test_create_input_from_nameids (const hb_set_t *name_ids)
 
 static inline hb_face_t *
 hb_subset_test_create_subset (hb_face_t *source,
-                              hb_subset_input_t *input)
+			      hb_subset_input_t *input)
 {
   hb_face_t *subset = hb_subset (source, input);
   g_assert (subset);
@@ -87,8 +87,8 @@ hb_subset_test_create_subset (hb_face_t *source,
 
 static inline void
 hb_subset_test_check (hb_face_t *expected,
-                      hb_face_t *actual,
-                      hb_tag_t   table)
+		      hb_face_t *actual,
+		      hb_tag_t   table)
 {
   hb_blob_t *expected_blob, *actual_blob;
   expected_blob = hb_face_reference_table (expected, table);

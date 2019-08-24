@@ -70,10 +70,10 @@ struct VORG
   }
 
   template <typename Iterator,
-            hb_requires (hb_is_iterator (Iterator))>
+	    hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
-                  Iterator it,
-                  FWORD defaultVertOriginY)
+		  Iterator it,
+		  FWORD defaultVertOriginY)
   {
 
     if (unlikely (!c->extend_min ((*this))))  return;
@@ -99,15 +99,15 @@ struct VORG
     + vertYOrigins.as_array ()
     | hb_filter (c->plan->glyphset (), &VertOriginMetric::glyph)
     | hb_map ([&] (const VertOriginMetric& _)
-              {
-                hb_codepoint_t new_glyph = HB_SET_VALUE_INVALID;
-                c->plan->new_gid_for_old_gid (_.glyph, &new_glyph);
+	      {
+		hb_codepoint_t new_glyph = HB_SET_VALUE_INVALID;
+		c->plan->new_gid_for_old_gid (_.glyph, &new_glyph);
 
-                VertOriginMetric metric;
-                metric.glyph = new_glyph;
-                metric.vertOriginY = _.vertOriginY;
-                return metric;
-              })
+		VertOriginMetric metric;
+		metric.glyph = new_glyph;
+		metric.vertOriginY = _.vertOriginY;
+		return metric;
+	      })
     ;
 
     /* serialize the new table */
@@ -119,8 +119,8 @@ struct VORG
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-                  version.major == 1 &&
-                  vertYOrigins.sanitize (c));
+		  version.major == 1 &&
+		  vertYOrigins.sanitize (c));
   }
 
   protected:
