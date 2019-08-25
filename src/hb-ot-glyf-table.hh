@@ -281,9 +281,8 @@ struct glyf
   {
     static const GlyphHeader &from_bytes (hb_bytes_t glyph_bytes)
     {
-      return glyph_bytes.length < GlyphHeader::static_size
-	   ? Null (GlyphHeader)
-	   : StructAtOffset<GlyphHeader> (&glyph_bytes, 0);
+      return likely (glyph_bytes.length >= static_size)
+	   ? StructAtOffset<GlyphHeader> (&glyph_bytes, 0) : Null (GlyphHeader);
     }
 
     unsigned int simple_instruction_len_offset () const
