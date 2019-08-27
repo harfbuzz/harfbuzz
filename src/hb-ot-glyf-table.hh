@@ -230,7 +230,7 @@ struct glyf
   static void
   _zero_instruction_length (hb_bytes_t glyph)
   {
-    auto &glyph_header = GlyphHeader::from_bytes (glyph);
+    const GlyphHeader &glyph_header = *glyph.as<GlyphHeader> ();
     if (!glyph_header.is_simple_glyph ()) return;  // only for simple glyphs
 
     unsigned int instruction_len_offset = glyph_header.simple_instruction_len_offset ();
@@ -241,7 +241,7 @@ struct glyf
 
   static bool _remove_composite_instruction_flag (hb_bytes_t glyph)
   {
-    auto &glyph_header = GlyphHeader::from_bytes (glyph);
+    const GlyphHeader &glyph_header = *glyph.as<GlyphHeader> ();
     if (!glyph_header.is_composite_glyph ()) return true;  // only for composites
 
     /* remove WE_HAVE_INSTRUCTIONS from flags in dest */
@@ -279,12 +279,6 @@ struct glyf
 
   struct GlyphHeader
   {
-    static const GlyphHeader &from_bytes (hb_bytes_t glyph_bytes)
-    {
-      return likely (glyph_bytes.length >= static_size)
-	   ? StructAtOffset<GlyphHeader> (&glyph_bytes, 0) : Null (GlyphHeader);
-    }
-
     unsigned int simple_instruction_len_offset () const
     { return static_size + 2 * numberOfContours; }
 
@@ -389,7 +383,7 @@ struct glyf
 			      unsigned int length,
 			      CompositeGlyphHeader::Iterator *iterator /* OUT */)
     {
-      auto &glyph_header = GlyphHeader::from_bytes (hb_bytes_t (glyph_data, length));
+      const GlyphHeader &glyph_header = *hb_bytes_t (glyph_data, length).as<GlyphHeader> ();
       if (!glyph_header.has_data ()) return false; /* Empty glyph; zero extents. */
 
       if (glyph_header.is_composite_glyph ())
@@ -473,7 +467,7 @@ struct glyf
     {
       const char *glyph = ((const char *) glyf_table) + start_offset;
       unsigned int glyph_length = *end_offset - start_offset;
-      auto &glyph_header = GlyphHeader::from_bytes (hb_bytes_t (glyph, glyph_length));
+      const GlyphHeader &glyph_header = *hb_bytes_t (glyph, glyph_length).as<GlyphHeader> ();
       if (!glyph_header.has_data ()) return true;
 
       const char *glyph_end = glyph + glyph_length;
@@ -570,7 +564,7 @@ struct glyf
     bool get_instruction_length (hb_bytes_t glyph,
 				 unsigned int * length /* OUT */) const
     {
-      auto &glyph_header = GlyphHeader::from_bytes (glyph);
+      const GlyphHeader &glyph_header = *glyph.as<GlyphHeader> ();
       /* Empty glyph; no instructions. */
       if (!glyph_header.has_data ())
       {
@@ -634,8 +628,8 @@ struct glyf
       if (!get_offsets (glyph, &start_offset, &end_offset))
 	return false;
 
-      GlyphHeader::from_bytes (hb_bytes_t ((const char *) glyf_table + start_offset,
-					   end_offset - start_offset)).get_extents (extents);
+      hb_bytes_t ((const char *) glyf_table + start_offset,
+		  end_offset - start_offset).as<GlyphHeader> ()->get_extents (extents);
       return true;
     }
 
@@ -649,7 +643,7 @@ struct glyf
 	return hb_bytes_t ();
       }
       hb_bytes_t glyph_bytes = hb_bytes_t (glyf + start_offset, end_offset - start_offset);
-      if (!GlyphHeader::from_bytes (glyph_bytes).has_data ())
+      if (!glyph_bytes.as<GlyphHeader> ()->has_data ())
       {
 	DEBUG_MSG (SUBSET, nullptr, "Empty or invalid glyph size, %d", gid);
 	return hb_bytes_t ();
@@ -716,7 +710,7 @@ struct glyf
 	return ;
       }
 
-      const GlyphHeader& header = GlyphHeader::from_bytes (source_glyph);
+      const GlyphHeader& header = *source_glyph.as<GlyphHeader> ();
       DEBUG_MSG (SUBSET, nullptr, "new_gid %d drop %d instruction bytes "
 				  "from %d byte source glyph",
 		 new_gid, instruction_len, source_glyph.length);
