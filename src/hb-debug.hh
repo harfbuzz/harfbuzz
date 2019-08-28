@@ -303,7 +303,7 @@ struct hb_auto_trace_t
   {
     if (unlikely (returned)) {
       fprintf (stderr, "OUCH, double calls to return_trace().  This is a bug, please report.\n");
-      return v;
+      return hb_forward<T> (v);
     }
 
     _hb_debug_msg<max_level> (what, obj, func, true, plevel ? *plevel : 1, -1,
@@ -312,7 +312,7 @@ struct hb_auto_trace_t
     if (plevel) --*plevel;
     plevel = nullptr;
     returned = true;
-    return v;
+    return hb_forward<T> (v);
   }
 
   private:
