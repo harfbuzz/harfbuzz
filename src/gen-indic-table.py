@@ -150,6 +150,7 @@ for i in range (2):
 			(what_short[i], s, what[i], v.upper (),
 			'	'* ((48-1 - len (what[i]) - 1 - len (v)) // 8),
 			values[i][v], v))
+print ()
 print ('#pragma GCC diagnostic pop')
 print ()
 print ("#define _(S,M) INDIC_COMBINE_CATEGORIES (ISC_##S, IMC_##M)")
@@ -255,8 +256,8 @@ for i in range (2):
 		print ("#undef %s_%s" %
 			(what_short[i], short[i][v]))
 print ()
-print ()
 print ('#endif')
+print ()
 print ("/* == End of generated table == */")
 
 # Maintain at least 30% occupancy in the table */
