@@ -63,6 +63,14 @@ struct IntType
   operator wide_type () const { return v; }
   bool operator == (const IntType &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType &o) const { return !(*this == o); }
+
+  IntType& operator += (unsigned count) { *this = *this + count; return *this; }
+  IntType& operator -= (unsigned count) { *this = *this - count; return *this; }
+  IntType& operator ++ () { *this += 1; return *this; }
+  IntType& operator -- () { *this -= 1; return *this; }
+  IntType operator ++ (int) { IntType c (*this); ++*this; return c; }
+  IntType operator -- (int) { IntType c (*this); --*this; return c; }
+
   HB_INTERNAL static int cmp (const IntType *a, const IntType *b)
   { return b->cmp (*a); }
   template <typename Type2>
