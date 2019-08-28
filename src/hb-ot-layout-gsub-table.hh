@@ -661,13 +661,7 @@ struct AlternateSubst
 struct Ligature
 {
   bool intersects (const hb_set_t *glyphs) const
-  {
-    unsigned int count = component.lenP1;
-    for (unsigned int i = 1; i < count; i++)
-      if (!glyphs->has (component[i]))
-	return false;
-    return true;
-  }
+  { return hb_all (hb_iter (component), glyphs); }
 
   void closure (hb_closure_context_t *c) const
   {
