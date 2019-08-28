@@ -606,6 +606,18 @@ struct ArrayOf
     return_trace (true);
   }
 
+  Type* serialize_append (hb_serialize_context_t *c)
+  {
+    TRACE_SERIALIZE (this);
+    len++;
+    if (unlikely (!len || !c->extend (*this)))
+    {
+      len--;
+      return_trace (nullptr);
+    }
+    return_trace (&arrayZ[len - 1]);
+  }
+
   ArrayOf* copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
