@@ -735,7 +735,7 @@ struct Ligature
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
-		  GlyphID ligature,
+		  hb_codepoint_t ligature,
 		  Iterator components /* Starting from second */)
   {
     TRACE_SERIALIZE (this);
@@ -743,6 +743,25 @@ struct Ligature
     ligGlyph = ligature;
     if (unlikely (!component.serialize (c, components))) return_trace (false);
     return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    if (!glyphset.has (ligGlyph) || !hb_all (component, glyphset)) return_trace (false);
+
+    auto it =
+      + hb_iter (component)
+      | hb_map (glyph_map)
+      ;
+
+    auto *out = c->serializer->start_embed (*this);
+    return out->serialize (c->serializer,
+			   glyph_map[ligGlyph],
+			   it);
   }
 
   public:
@@ -832,6 +851,31 @@ struct LigatureSet
       component_list += component_count;
     }
     return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    + hb_iter (ligature)
+    | hb_filter ([this, c, out] (const OffsetTo<Ligature>& _)
+		 {
+		   auto *o = out->ligature.serialize_append (c->serializer);
+		   if (unlikely (!o)) return false;
+		   auto snap = c->serializer->snapshot ();
+		   bool ret = o->serialize_subset (c, _, this, out);
+		   if (!ret)
+		   {
+		     out->ligature.pop ();
+		     c->serializer->revert (snap);
+		   }
+		   return ret;
+		 })
+    | hb_drain;
+    ;
+    return_trace (bool (out->ligature));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -932,8 +976,37 @@ struct LigatureSubstFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + hb_zip (this+coverage, ligatureSet)
+    | hb_filter (glyphset, hb_first)
+    | hb_filter ([this, c, out] (const OffsetTo<LigatureSet>& _)
+		 {
+		   auto *o = out->ligatureSet.serialize_append (c->serializer);
+		   if (unlikely (!o)) return false;
+		   auto snap = c->serializer->snapshot ();
+		   bool ret = o->serialize_subset (c, _, this, out);
+		   if (!ret)
+		   {
+		     out->ligatureSet.pop ();
+		     c->serializer->revert (snap);
+		   }
+		   return ret;
+		 },
+		 hb_second)
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage);
+    ;
+    out->coverage.serialize (c->serializer, out)
+		 .serialize (c->serializer, new_coverage.iter ());
+    return_trace (bool (new_coverage));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
