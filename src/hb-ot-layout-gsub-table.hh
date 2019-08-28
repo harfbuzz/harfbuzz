@@ -296,12 +296,11 @@ SingleSubst_serialize (hb_serialize_context_t *c,
 
 struct Sequence
 {
+  bool intersects (const hb_set_t *glyphs) const
+  { return hb_all (substitute, glyphs); }
+
   void closure (hb_closure_context_t *c) const
-  {
-    unsigned int count = substitute.len;
-    for (unsigned int i = 0; i < count; i++)
-      c->output->add (substitute[i]);
-  }
+  { c->output->add_array (substitute.arrayZ, substitute.len); }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   { c->output->add_array (substitute.arrayZ, substitute.len); }
@@ -353,7 +352,7 @@ struct Sequence
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    if (!hb_all (substitute, glyphset)) return_trace (false);
+    if (!intersects (&glyphset)) return_trace (false);
 
     auto it =
       + hb_iter (substitute)
@@ -528,11 +527,7 @@ struct MultipleSubst
 struct AlternateSet
 {
   void closure (hb_closure_context_t *c) const
-  {
-    unsigned int count = alternates.len;
-    for (unsigned int i = 0; i < count; i++)
-      c->output->add (alternates[i]);
-  }
+  { c->output->add_array (alternates.arrayZ, alternates.len); }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   { c->output->add_array (alternates.arrayZ, alternates.len); }
@@ -707,7 +702,7 @@ struct AlternateSubst
 struct Ligature
 {
   bool intersects (const hb_set_t *glyphs) const
-  { return hb_all (hb_iter (component), glyphs); }
+  { return hb_all (component, glyphs); }
 
   void closure (hb_closure_context_t *c) const
   {
@@ -791,7 +786,7 @@ struct Ligature
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    if (!glyphset.has (ligGlyph) || !hb_all (component, glyphset)) return_trace (false);
+    if (!intersects (&glyphset) || !glyphset.has (ligGlyph)) return_trace (false);
 
     auto it =
       + hb_iter (component)
