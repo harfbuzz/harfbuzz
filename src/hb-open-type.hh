@@ -742,12 +742,12 @@ struct HeadlessArrayOf
     return arrayZ[i-1];
   }
   unsigned int get_size () const
-  { return lenP1.static_size + get_count () * Type::static_size; }
+  { return lenP1.static_size + get_length () * Type::static_size; }
 
-  unsigned get_count () const { return lenP1 ? lenP1 - 1 : 0; }
+  unsigned get_length () const { return lenP1 ? lenP1 - 1 : 0; }
 
-  hb_array_t<      Type> as_array ()       { return hb_array (arrayZ, get_count ()); }
-  hb_array_t<const Type> as_array () const { return hb_array (arrayZ, get_count ()); }
+  hb_array_t<      Type> as_array ()       { return hb_array (arrayZ, get_length ()); }
+  hb_array_t<const Type> as_array () const { return hb_array (arrayZ, get_length ()); }
 
   /* Iterator. */
   typedef hb_array_t<const Type>   iter_t;
@@ -785,7 +785,7 @@ struct HeadlessArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
-    unsigned int count = get_count ();
+    unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
