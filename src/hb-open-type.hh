@@ -572,6 +572,8 @@ struct ArrayOf
 
   explicit operator bool () const { return len; }
 
+  void pop () { len--; }
+
   hb_array_t<      Type> as_array ()       { return hb_array (arrayZ, len); }
   hb_array_t<const Type> as_array () const { return hb_array (arrayZ, len); }
 
