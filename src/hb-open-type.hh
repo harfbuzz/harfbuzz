@@ -742,17 +742,40 @@ struct HeadlessArrayOf
     return arrayZ[i-1];
   }
   unsigned int get_size () const
-  { return lenP1.static_size + (lenP1 ? lenP1 - 1 : 0) * Type::static_size; }
+  { return lenP1.static_size + get_count () * Type::static_size; }
 
-  bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const Type> items)
+  unsigned get_count () const { return lenP1 ? lenP1 - 1 : 0; }
+
+  hb_array_t<      Type> as_array ()       { return hb_array (arrayZ, get_count ()); }
+  hb_array_t<const Type> as_array () const { return hb_array (arrayZ, get_count ()); }
+
+  /* Iterator. */
+  typedef hb_array_t<const Type>   iter_t;
+  typedef hb_array_t<      Type> writer_t;
+    iter_t   iter () const { return as_array (); }
+  writer_t writer ()       { return as_array (); }
+  operator   iter_t () const { return   iter (); }
+  operator writer_t ()       { return writer (); }
+
+  bool serialize (hb_serialize_context_t *c, unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    c->check_assign (lenP1, items.length + 1);
+    c->check_assign (lenP1, items_len + 1);
     if (unlikely (!c->extend (*this))) return_trace (false);
-    for (unsigned int i = 0; i < items.length; i++)
-      arrayZ[i] = items[i];
+    return_trace (true);
+  }
+  template <typename Iterator,
+	    hb_requires (hb_is_source_of (Iterator, Type))>
+  bool serialize (hb_serialize_context_t *c, Iterator items)
+  {
+    TRACE_SERIALIZE (this);
+    unsigned count = items.len ();
+    if (unlikely (!serialize (c, count))) return_trace (false);
+    /* TODO Umm. Just exhaust the iterator instead?  Being extra
+     * cautious right now.. */
+    for (unsigned i = 0; i < count; i++, ++items)
+      arrayZ[i] = *items;
     return_trace (true);
   }
 
@@ -762,7 +785,7 @@ struct HeadlessArrayOf
     TRACE_SANITIZE (this);
     if (unlikely (!sanitize_shallow (c))) return_trace (false);
     if (!sizeof... (Ts) && hb_is_trivially_copyable (Type)) return_trace (true);
-    unsigned int count = lenP1 ? lenP1 - 1 : 0;
+    unsigned int count = get_count ();
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
 	return_trace (false);
