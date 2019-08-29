@@ -181,6 +181,8 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   hb_array_t sub_array (unsigned int start_offset, unsigned int seg_count) const
   { return sub_array (start_offset, &seg_count); }
 
+  hb_array_t truncate (unsigned length) const { return sub_array (0, length); }
+
   template <typename T,
 	    unsigned P = sizeof (Type),
 	    hb_enable_if (P == 1)>
@@ -262,6 +264,8 @@ struct hb_sorted_array_t :
   { return hb_sorted_array_t (((const hb_array_t<Type> *) (this))->sub_array (start_offset, seg_count)); }
   hb_sorted_array_t sub_array (unsigned int start_offset, unsigned int seg_count) const
   { return sub_array (start_offset, &seg_count); }
+
+  hb_sorted_array_t truncate (unsigned length) const { return sub_array (0, length); }
 
   template <typename T>
   Type *bsearch (const T &x, Type *not_found = nullptr)
