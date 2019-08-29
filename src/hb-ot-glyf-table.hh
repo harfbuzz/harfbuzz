@@ -247,7 +247,7 @@ struct glyf
   static bool _remove_composite_instruction_flag (hb_bytes_t glyph)
   {
     const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (&glyph, 0);
-    if (glyph_header.numberOfContours >= 0) return true;  // only for composites
+    if (!glyph_header.is_composite_glyph ()) return true;  // only for composites
 
     /* remove WE_HAVE_INSTRUCTIONS from flags in dest */
     OT::glyf::CompositeGlyphHeader::Iterator composite_it;
@@ -284,6 +284,15 @@ struct glyf
 
   struct GlyphHeader
   {
+    unsigned int simple_instruction_len_offset () const
+    { return static_size + 2 * numberOfContours; }
+
+    unsigned int simple_length (unsigned int instruction_len) const
+    { return simple_instruction_len_offset () + 2 + instruction_len; }
+
+    bool is_composite_glyph () const { return numberOfContours < 0; }
+    bool is_simple_glyph () const    { return numberOfContours > 0; }
+
     HBINT16		numberOfContours;	/* If the number of contours is
 						 * greater than or equal to zero,
 						 * this is a simple glyph; if negative,
@@ -456,7 +465,7 @@ struct glyf
 	return false; /* Empty glyph; zero extents. */
 
       const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyph_data, 0);
-      if (glyph_header.numberOfContours < 0)
+      if (glyph_header.is_composite_glyph ())
       {
 	const CompositeGlyphHeader *possible =
 	  &StructAfter<CompositeGlyphHeader, GlyphHeader> (glyph_header);
@@ -867,7 +876,7 @@ struct glyf
       else if (num_contours > 0)
       {
 	/* simple glyph w/contours, possibly trimmable */
-	glyph += GlyphHeader::static_size + 2 * num_contours;
+	glyph += glyph_header.simple_instruction_len_offset ();
 
 	if (unlikely (glyph + 2 >= glyph_end)) return false;
 	uint16_t nCoordinates = (uint16_t) StructAtOffset<HBUINT16> (glyph - 2, 0) + 1;
@@ -998,7 +1007,8 @@ struct glyf
 	}
 
 	const HBUINT16 &instruction_len = StructAtOffset<HBUINT16> (&glyph, instruction_length_offset);
-	if (unlikely (instruction_length_offset + 2 + instruction_len > glyph.length)) // Out of bounds of the current glyph
+	/* Out of bounds of the current glyph */
+	if (unlikely (glyph_header.simple_length (instruction_len) > glyph.length))
 	{
 	  DEBUG_MSG(SUBSET, nullptr, "The instructions array overruns the glyph's boundaries.");
 	  return false;
@@ -1151,19 +1161,16 @@ struct glyf
       }
 
       const GlyphHeader& header = StructAtOffset<GlyphHeader> (&source_glyph, 0);
-      int16_t num_contours = (int16_t) header.numberOfContours;
       DEBUG_MSG (SUBSET, nullptr, "Unable to read instruction length for new_gid %d",
 		 new_gid);
-      if (num_contours < 0)
+      if (header.is_composite_glyph ())
       {
-	// composite, just chop instructions off the end
+	/* just chop instructions off the end for composite glyphs */
 	dest_start = hb_bytes_t (&source_glyph, source_glyph.length - instruction_len);
       }
       else
       {
-	// simple glyph
-	unsigned int glyph_length = GlyphHeader::static_size + 2 * header.numberOfContours
-				  + 2 + instruction_len;
+	unsigned int glyph_length = header.simple_length (instruction_len);
 	dest_start = hb_bytes_t (&source_glyph, glyph_length - instruction_len);
 	dest_end = hb_bytes_t (&source_glyph + glyph_length,
 			       source_glyph.length - glyph_length);
