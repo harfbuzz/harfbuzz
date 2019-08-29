@@ -1062,7 +1062,7 @@ struct Coverage
       last = g;
       count++;
     }
-    u.format = count * 2 < num_ranges * 3 ? 1 : 2;
+    u.format = count <= num_ranges * 3 ? 1 : 2;
 
     switch (u.format)
     {
