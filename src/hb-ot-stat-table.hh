@@ -304,8 +304,8 @@ struct STAT
 
 
   protected:
-  FixedVersion<>version;        /* Version of the stat table
-                                 * initially set to 0x00010002u */
+  FixedVersion<>version;	/* Version of the stat table
+				 * initially set to 0x00010002u */
   HBUINT16	designAxisSize;	/* The size in bytes of each axis record. */
   HBUINT16	designAxisCount;/* The number of design axis records. In a
 				 * font with an 'fvar' table, this value must be

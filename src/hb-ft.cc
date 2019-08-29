@@ -471,7 +471,7 @@ hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
     /* Check whether the given name was actually the name of glyph 0. */
     char buf[128];
     if (!FT_Get_Glyph_Name(ft_face, 0, buf, sizeof (buf)) &&
-        len < 0 ? !strcmp (buf, name) : !strncmp (buf, name, len))
+	len < 0 ? !strcmp (buf, name) : !strncmp (buf, name, len))
       return true;
   }
 

@@ -199,7 +199,7 @@ struct fvar
     for (unsigned int i = 0; i < count; i++)
       if (axes[i].axisTag == tag)
       {
-        if (axis_index)
+	if (axis_index)
 	  *axis_index = i;
 	get_axis_deprecated (i, info);
 	return true;
@@ -237,7 +237,21 @@ struct fvar
       v = (v - axis.default_value) / (axis.default_value - axis.min_value);
     else
       v = (v - axis.default_value) / (axis.max_value - axis.default_value);
-    return (int) (v * 16384.f + (v >= 0.f ? .5f : -.5f));
+    return roundf (v * 16384.f);
+  }
+
+  float unnormalize_axis_value (unsigned int axis_index, float v) const
+  {
+    hb_ot_var_axis_info_t axis;
+    get_axis_info (axis_index, &axis);
+
+    if (v == 0)
+      return axis.default_value;
+    else if (v < 0)
+      v = v * (axis.default_value - axis.min_value) / 16384.f + axis.default_value;
+    else
+      v = v * (axis.max_value - axis.default_value) / 16384.f + axis.default_value;
+    return v;
   }
 
   unsigned int get_instance_count () const { return instanceCount; }
@@ -266,7 +280,7 @@ struct fvar
     if (unlikely (!instance))
     {
       if (coords_length)
-        *coords_length = 0;
+	*coords_length = 0;
       return 0;
     }
 
@@ -275,7 +289,7 @@ struct fvar
       hb_array_t<const Fixed> instanceCoords = instance->get_coordinates (axisCount)
 							 .sub_array (0, *coords_length);
       for (unsigned int i = 0; i < instanceCoords.length; i++)
-        coords[i] = instanceCoords.arrayZ[i].to_float ();
+	coords[i] = instanceCoords.arrayZ[i].to_float ();
     }
     return axisCount;
   }

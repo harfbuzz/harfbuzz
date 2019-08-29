@@ -93,13 +93,6 @@ struct TrackData
 
   int get_tracking (const void *base, float ptem) const
   {
-    /* CoreText points are CSS pixels (96 per inch),
-     * NOT typographic points (72 per inch).
-     *
-     * https://developer.apple.com/library/content/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/Explained/Explained.html
-     */
-    float csspx = ptem * 96.f / 72.f;
-
     /*
      * Choose track.
      */
@@ -130,10 +123,10 @@ struct TrackData
     hb_array_t<const Fixed> size_table ((base+sizeTable).arrayZ, sizes);
     unsigned int size_index;
     for (size_index = 0; size_index < sizes - 1; size_index++)
-      if (size_table[size_index].to_float () >= csspx)
-        break;
+      if (size_table[size_index].to_float () >= ptem)
+	break;
 
-    return roundf (interpolate_at (size_index ? size_index - 1 : 0, csspx,
+    return roundf (interpolate_at (size_index ? size_index - 1 : 0, ptem,
 				   *trackTableEntry, base));
   }
 
@@ -183,7 +176,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_x (tracking);
       foreach_grapheme (buffer, start, end)
       {
-        if (!(buffer->info[start].mask & trak_mask)) continue;
+	if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].x_advance += advance_to_add;
 	buffer->pos[start].x_offset += offset_to_add;
       }
@@ -196,7 +189,7 @@ struct trak
       hb_position_t advance_to_add = c->font->em_scalef_y (tracking);
       foreach_grapheme (buffer, start, end)
       {
-        if (!(buffer->info[start].mask & trak_mask)) continue;
+	if (!(buffer->info[start].mask & trak_mask)) continue;
 	buffer->pos[start].y_advance += advance_to_add;
 	buffer->pos[start].y_offset += offset_to_add;
       }

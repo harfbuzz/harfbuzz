@@ -62,7 +62,7 @@ fail:
  *
  * Return value: #hb_face_t object corresponding to the given input
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 hb_face_t *
 hb_gdi_face_create (HFONT hfont)

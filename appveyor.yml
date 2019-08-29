@@ -3,17 +3,17 @@ platform: x64
 environment:
   matrix:
 
-    - compiler: msvc
-      generator: Visual Studio 14
-      platform: Win32
-      configuration: Debug
-      triplet: x86-windows
+    #- compiler: msvc
+    #  generator: Visual Studio 14
+    #  platform: Win32
+    #  configuration: Debug
+    #  triplet: x86-windows
 
-    - compiler: msvc
-      generator: Visual Studio 14 Win64
-      platform: x64
-      configuration: Debug
-      triplet: x64-windows
+    #- compiler: msvc
+    #  generator: Visual Studio 14 Win64
+    #  platform: x64
+    #  configuration: Debug
+    #  triplet: x64-windows
 
     - compiler: msvc
       generator: Visual Studio 14 ARM

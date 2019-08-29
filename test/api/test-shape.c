@@ -70,29 +70,12 @@ glyph_func (hb_font_t *font HB_UNUSED, void *font_data HB_UNUSED,
 static const char TesT[] = "TesT";
 
 static void
-test_shape (void)
+test_font (hb_font_t *font)
 {
-  hb_blob_t *blob;
-  hb_face_t *face;
-  hb_font_funcs_t *ffuncs;
-  hb_font_t *font;
   hb_buffer_t *buffer;
   unsigned int len;
   hb_glyph_info_t *glyphs;
   hb_glyph_position_t *positions;
-
-  blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
-  face = hb_face_create (blob, 0);
-  hb_blob_destroy (blob);
-  font = hb_font_create (face);
-  hb_face_destroy (face);
-  hb_font_set_scale (font, 10, 10);
-
-  ffuncs = hb_font_funcs_create ();
-  hb_font_funcs_set_glyph_h_advance_func (ffuncs, glyph_h_advance_func, NULL, NULL);
-  hb_font_funcs_set_nominal_glyph_func (ffuncs, glyph_func, malloc (10), free);
-  hb_font_set_funcs (font, ffuncs, NULL, NULL);
-  hb_font_funcs_destroy (ffuncs);
 
   buffer =  hb_buffer_create ();
   hb_buffer_set_direction (buffer, HB_DIRECTION_LTR);
@@ -123,6 +106,35 @@ test_shape (void)
   }
 
   hb_buffer_destroy (buffer);
+}
+
+static void
+test_shape (void)
+{
+  hb_blob_t *blob;
+  hb_face_t *face;
+  hb_font_funcs_t *ffuncs;
+  hb_font_t *font, *sub_font;
+
+  blob = hb_blob_create (test_data, sizeof (test_data), HB_MEMORY_MODE_READONLY, NULL, NULL);
+  face = hb_face_create (blob, 0);
+  hb_blob_destroy (blob);
+  font = hb_font_create (face);
+  hb_face_destroy (face);
+  hb_font_set_scale (font, 10, 10);
+
+  ffuncs = hb_font_funcs_create ();
+  hb_font_funcs_set_glyph_h_advance_func (ffuncs, glyph_h_advance_func, NULL, NULL);
+  hb_font_funcs_set_nominal_glyph_func (ffuncs, glyph_func, malloc (10), free);
+  hb_font_set_funcs (font, ffuncs, NULL, NULL);
+  hb_font_funcs_destroy (ffuncs);
+
+  test_font (font);
+
+  sub_font = hb_font_create_sub_font (font);
+  test_font (sub_font);
+
+  hb_font_destroy (sub_font);
   hb_font_destroy (font);
 }
 

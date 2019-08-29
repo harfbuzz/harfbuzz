@@ -613,7 +613,7 @@ hb_ot_math_get_glyph_assembly
 <SECTION>
 <FILE>hb-ot-meta</FILE>
 hb_ot_meta_t
-hb_ot_meta_get_entries
+hb_ot_meta_get_entry_tags
 hb_ot_meta_reference_entry
 </SECTION>
 

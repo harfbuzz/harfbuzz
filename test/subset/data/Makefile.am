@@ -13,6 +13,7 @@ EXTRA_DIST += \
 	expected/japanese \
 	expected/cff-japanese \
 	expected/layout \
+	expected/layout.gpos \
 	fonts \
 	profiles \
 	$(NULL)

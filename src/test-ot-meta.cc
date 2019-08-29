@@ -48,11 +48,11 @@ main (int argc, char **argv)
   unsigned int count = 0;
 
 #ifndef HB_NO_META
-  count = hb_ot_meta_get_entries (face, 0, nullptr, nullptr);
+  count = hb_ot_meta_get_entry_tags (face, 0, nullptr, nullptr);
 
   hb_ot_meta_tag_t *tags = (hb_ot_meta_tag_t *)
 			   malloc (sizeof (hb_ot_meta_tag_t) * count);
-  hb_ot_meta_get_entries (face, 0, &count, tags);
+  hb_ot_meta_get_entry_tags (face, 0, &count, tags);
   for (unsigned i = 0; i < count; ++i)
   {
     hb_blob_t *entry = hb_ot_meta_reference_entry (face, tags[i]);

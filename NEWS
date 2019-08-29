@@ -1,3 +1,37 @@
+Overview of changes leading to 2.6.1
+Thursday, August 22, 2019
+====================================
+- Fix regression with hb_font_create_sub_font scaling introduced in 2.6.0.
+- Change interpretation of font PTEM size / CoreText font size handling.
+  See https://github.com/harfbuzz/harfbuzz/pull/1484
+- hb-ot-font: Prefer symbol cmap subtable if present.
+- Apply 'dist'/'abvm'/'blwm' features to all scripts.
+- Drop experimental DirectWrite API.
+
+
+Overview of changes leading to 2.6.0
+Tuesday, August 13, 2019
+====================================
+- New OpenType metrics, baseline, and metadata table access APIs.
+- New API to set font variations to a named-instance.
+- New hb-gdi.h header and API for creating hb_face_t from HFONT.
+- Amalgam: Provide a single-file harfbuzz.cc file for easier alternate building.
+- More size-reduction configurable options, enabled by HB_TINY.
+- New API:
++hb_font_set_var_named_instance()
++hb_gdi_face_create()
++hb_ot_layout_baseline_tag_t
++hb_ot_layout_get_baseline()
++hb_ot_meta_tag_t
++hb_ot_meta_get_entry_tags()
++hb_ot_meta_reference_entry()
++hb_ot_metrics_tag_t
++hb_ot_metrics_get_position()
++hb_ot_metrics_get_variation()
++hb_ot_metrics_get_x_variation()
++hb_ot_metrics_get_y_variation()
+
+
 Overview of changes leading to 2.5.3
 Wednesday, June 26, 2019
 ====================================

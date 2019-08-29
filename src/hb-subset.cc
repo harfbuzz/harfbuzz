@@ -84,6 +84,7 @@ _subset2 (hb_subset_plan_t *plan)
     if (unlikely (!buf.alloc (buf_size)))
     {
       DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c failed to allocate %u bytes.", HB_UNTAG (tag), buf_size);
+      hb_blob_destroy (source_blob);
       return false;
     }
   retry:
@@ -98,6 +99,7 @@ _subset2 (hb_subset_plan_t *plan)
       if (unlikely (!buf.alloc (buf_size)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c failed to reallocate %u bytes.", HB_UNTAG (tag), buf_size);
+	hb_blob_destroy (source_blob);
 	return false;
       }
       goto retry;
@@ -189,7 +191,7 @@ _subset_table (hb_subset_plan_t *plan,
       DEBUG_MSG(SUBSET, nullptr, "skip loca handled by glyf");
       return true;
     case HB_OT_TAG_cmap:
-      result = _subset<const OT::cmap> (plan);
+      result = _subset2<const OT::cmap> (plan);
       break;
     case HB_OT_TAG_OS2:
       result = _subset2<const OT::OS2> (plan);
@@ -247,6 +249,11 @@ _subset_table (hb_subset_plan_t *plan,
 static bool
 _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
 {
+  if (!tag)
+    /* Drop tables with no tag as that means table header in
+       _hb_face_builder_reference_table */
+    return true;
+
   if (plan->drop_tables->has (tag))
     return true;
 

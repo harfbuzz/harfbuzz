@@ -181,6 +181,12 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int seg_count) const
   { return sub_array (start_offset, &seg_count); }
 
+  template <typename T,
+	    unsigned P = sizeof (Type),
+	    hb_enable_if (P == 1)>
+  const T *as () const
+  { return length < hb_null_size (T) ? &Null (T) : reinterpret_cast<const T *> (arrayZ); }
+
   /* Only call if you allocated the underlying array using malloc() or similar. */
   void free ()
   { ::free ((void *) arrayZ); arrayZ = nullptr; length = 0; }
@@ -281,9 +287,9 @@ struct hb_sorted_array_t :
       int mid = ((unsigned int) min + (unsigned int) max) / 2;
       int c = array[mid].cmp (x);
       if (c < 0)
-        max = mid - 1;
+	max = mid - 1;
       else if (c > 0)
-        min = mid + 1;
+	min = mid + 1;
       else
       {
 	if (i)

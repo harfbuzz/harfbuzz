@@ -296,12 +296,11 @@ SingleSubst_serialize (hb_serialize_context_t *c,
 
 struct Sequence
 {
+  bool intersects (const hb_set_t *glyphs) const
+  { return hb_all (substitute, glyphs); }
+
   void closure (hb_closure_context_t *c) const
-  {
-    unsigned int count = substitute.len;
-    for (unsigned int i = 0; i < count; i++)
-      c->output->add (substitute[i]);
-  }
+  { c->output->add_array (substitute.arrayZ, substitute.len); }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   { c->output->add_array (substitute.arrayZ, substitute.len); }
@@ -345,6 +344,23 @@ struct Sequence
   {
     TRACE_SERIALIZE (this);
     return_trace (substitute.serialize (c, subst));
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    if (!intersects (&glyphset)) return_trace (false);
+
+    auto it =
+      + hb_iter (substitute)
+      | hb_map (glyph_map)
+      ;
+
+    auto *out = c->serializer->start_embed (*this);
+    return_trace (out->serialize (c->serializer, it));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -422,8 +438,37 @@ struct MultipleSubstFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + hb_zip (this+coverage, sequence)
+    | hb_filter (glyphset, hb_first)
+    | hb_filter ([this, c, out] (const OffsetTo<Sequence>& _)
+		 {
+		   auto *o = out->sequence.serialize_append (c->serializer);
+		   if (unlikely (!o)) return false;
+		   auto snap = c->serializer->snapshot ();
+		   bool ret = o->serialize_subset (c, _, this, out);
+		   if (!ret)
+		   {
+		     out->sequence.pop ();
+		     c->serializer->revert (snap);
+		   }
+		   return ret;
+		 },
+		 hb_second)
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+    out->coverage.serialize (c->serializer, out)
+		 .serialize (c->serializer, new_coverage.iter ());
+    return_trace (bool (new_coverage));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -481,12 +526,11 @@ struct MultipleSubst
 
 struct AlternateSet
 {
+  bool intersects (const hb_set_t *glyphs) const
+  { return hb_any (alternates, glyphs); }
+
   void closure (hb_closure_context_t *c) const
-  {
-    unsigned int count = alternates.len;
-    for (unsigned int i = 0; i < count; i++)
-      c->output->add (alternates[i]);
-  }
+  { c->output->add_array (alternates.arrayZ, alternates.len); }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   { c->output->add_array (alternates.arrayZ, alternates.len); }
@@ -523,6 +567,23 @@ struct AlternateSet
   {
     TRACE_SERIALIZE (this);
     return_trace (alternates.serialize (c, alts));
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto it =
+      + hb_iter (alternates)
+      | hb_filter (glyphset)
+      | hb_map (glyph_map)
+      ;
+
+    auto *out = c->serializer->start_embed (*this);
+    return_trace (out->serialize (c->serializer, it) &&
+		  out->alternates);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -600,8 +661,37 @@ struct AlternateSubstFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + hb_zip (this+coverage, alternateSet)
+    | hb_filter (glyphset, hb_first)
+    | hb_filter ([this, c, out] (const OffsetTo<AlternateSet>& _)
+		 {
+		   auto *o = out->alternateSet.serialize_append (c->serializer);
+		   if (unlikely (!o)) return false;
+		   auto snap = c->serializer->snapshot ();
+		   bool ret = o->serialize_subset (c, _, this, out);
+		   if (!ret)
+		   {
+		     out->alternateSet.pop ();
+		     c->serializer->revert (snap);
+		   }
+		   return ret;
+		 },
+		 hb_second)
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+    out->coverage.serialize (c->serializer, out)
+		 .serialize (c->serializer, new_coverage.iter ());
+    return_trace (bool (new_coverage));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -661,13 +751,7 @@ struct AlternateSubst
 struct Ligature
 {
   bool intersects (const hb_set_t *glyphs) const
-  {
-    unsigned int count = component.lenP1;
-    for (unsigned int i = 1; i < count; i++)
-      if (!glyphs->has (component[i]))
-	return false;
-    return true;
-  }
+  { return hb_all (component, glyphs); }
 
   void closure (hb_closure_context_t *c) const
   {
@@ -677,7 +761,7 @@ struct Ligature
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    c->input->add_array (component.arrayZ, component.lenP1 ? component.lenP1 - 1 : 0);
+    c->input->add_array (component.arrayZ, component.get_length ());
     c->output->add (ligGlyph);
   }
 
@@ -735,7 +819,7 @@ struct Ligature
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
-		  GlyphID ligature,
+		  hb_codepoint_t ligature,
 		  Iterator components /* Starting from second */)
   {
     TRACE_SERIALIZE (this);
@@ -743,6 +827,25 @@ struct Ligature
     ligGlyph = ligature;
     if (unlikely (!component.serialize (c, components))) return_trace (false);
     return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    if (!intersects (&glyphset) || !glyphset.has (ligGlyph)) return_trace (false);
+
+    auto it =
+      + hb_iter (component)
+      | hb_map (glyph_map)
+      ;
+
+    auto *out = c->serializer->start_embed (*this);
+    return_trace (out->serialize (c->serializer,
+				   glyph_map[ligGlyph],
+				   it));
   }
 
   public:
@@ -832,6 +935,31 @@ struct LigatureSet
       component_list += component_count;
     }
     return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    + hb_iter (ligature)
+    | hb_filter ([this, c, out] (const OffsetTo<Ligature>& _)
+		 {
+		   auto *o = out->ligature.serialize_append (c->serializer);
+		   if (unlikely (!o)) return false;
+		   auto snap = c->serializer->snapshot ();
+		   bool ret = o->serialize_subset (c, _, this, out);
+		   if (!ret)
+		   {
+		     out->ligature.pop ();
+		     c->serializer->revert (snap);
+		   }
+		   return ret;
+		 })
+    | hb_drain
+    ;
+    return_trace (bool (out->ligature));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -932,8 +1060,37 @@ struct LigatureSubstFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + hb_zip (this+coverage, ligatureSet)
+    | hb_filter (glyphset, hb_first)
+    | hb_filter ([this, c, out] (const OffsetTo<LigatureSet>& _)
+		 {
+		   auto *o = out->ligatureSet.serialize_append (c->serializer);
+		   if (unlikely (!o)) return false;
+		   auto snap = c->serializer->snapshot ();
+		   bool ret = o->serialize_subset (c, _, this, out);
+		   if (!ret)
+		   {
+		     out->ligatureSet.pop ();
+		     c->serializer->revert (snap);
+		   }
+		   return ret;
+		 },
+		 hb_second)
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+    out->coverage.serialize (c->serializer, out)
+		 .serialize (c->serializer, new_coverage.iter ());
+    return_trace (bool (new_coverage));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

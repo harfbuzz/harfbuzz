@@ -35,10 +35,16 @@ HB_BEGIN_DECLS
 
 /**
  * hb_ot_meta_tag_t:
+ * @HB_OT_META_TAG_DESIGN_LANGUAGES: Design languages. Text, using only
+ * Basic Latin (ASCII) characters. Indicates languages and/or scripts
+ * for the user audiences that the font was primarily designed for.
+ * @HB_OT_META_TAG_SUPPORTED_LANGUAGES: Supported languages. Text, using
+ * only Basic Latin (ASCII) characters. Indicates languages and/or scripts
+ * that the font is declared to be capable of supporting.
  *
- * From https://docs.microsoft.com/en-us/typography/opentype/spec/meta
+ * Known metadata tags from https://docs.microsoft.com/en-us/typography/opentype/spec/meta
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 typedef enum {
 /*
@@ -52,10 +58,10 @@ typedef enum {
 } hb_ot_meta_tag_t;
 
 HB_EXTERN unsigned int
-hb_ot_meta_get_entries (hb_face_t        *face,
-			unsigned int      start_offset,
-			unsigned int     *entries_count, /* IN/OUT.  May be NULL. */
-			hb_ot_meta_tag_t *entries        /* OUT.     May be NULL. */);
+hb_ot_meta_get_entry_tags (hb_face_t        *face,
+			   unsigned int      start_offset,
+			   unsigned int     *entries_count, /* IN/OUT.  May be NULL. */
+			   hb_ot_meta_tag_t *entries        /* OUT.     May be NULL. */);
 
 HB_EXTERN hb_blob_t *
 hb_ot_meta_reference_entry (hb_face_t *face, hb_ot_meta_tag_t meta_tag);

@@ -225,7 +225,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
       if (unlikely (!cmpexch (nullptr, p)))
       {
-        do_destroy (p);
+	do_destroy (p);
 	goto retry;
       }
     }

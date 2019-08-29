@@ -5,6 +5,7 @@ TESTS = \
 	tests/japanese.tests \
 	tests/cff-japanese.tests \
 	tests/layout.tests \
+	tests/layout.gpos.tests \
 	$(NULL)
 
 XFAIL_TESTS = \

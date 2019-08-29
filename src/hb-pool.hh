@@ -77,14 +77,14 @@ struct hb_pool_t
 
   static_assert (ChunkLen > 1, "");
   static_assert (sizeof (T) >= sizeof (void *), "");
-  static_assert (alignof (T) % sizeof (void *) == 0, "");
+  static_assert (alignof (T) % alignof (void *) == 0, "");
 
   struct chunk_t
   {
     T* thread ()
     {
       for (unsigned i = 0; i < ARRAY_LENGTH (arrayZ) - 1; i++)
-        * (T**) &arrayZ[i] = &arrayZ[i + 1];
+	* (T**) &arrayZ[i] = &arrayZ[i + 1];
 
       * (T**) &arrayZ[ARRAY_LENGTH (arrayZ) - 1] = nullptr;
 

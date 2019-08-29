@@ -249,11 +249,11 @@ hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
 
 HB_EXTERN void
 hb_ot_layout_collect_features (hb_face_t      *face,
-                               hb_tag_t        table_tag,
-                               const hb_tag_t *scripts,
-                               const hb_tag_t *languages,
-                               const hb_tag_t *features,
-                               hb_set_t       *feature_indexes /* OUT */);
+			       hb_tag_t        table_tag,
+			       const hb_tag_t *scripts,
+			       const hb_tag_t *languages,
+			       const hb_tag_t *features,
+			       hb_set_t       *feature_indexes /* OUT */);
 
 HB_EXTERN void
 hb_ot_layout_collect_lookups (hb_face_t      *face,
@@ -333,14 +333,14 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 
 HB_EXTERN void
 hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
-				        unsigned int  lookup_index,
-				        hb_set_t     *glyphs
+					unsigned int  lookup_index,
+					hb_set_t     *glyphs
 					/*TODO , hb_bool_t  inclusive */);
 
 HB_EXTERN void
 hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
-                                         const hb_set_t *lookups,
-                                         hb_set_t       *glyphs);
+					 const hb_set_t *lookups,
+					 hb_set_t       *glyphs);
 
 
 #ifdef HB_NOT_IMPLEMENTED
@@ -408,10 +408,27 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 
 /**
  * hb_ot_layout_baseline_tag_t:
+ * @HB_OT_LAYOUT_BASELINE_TAG_ROMAN: The baseline used by alphabetic scripts such as Latin, Cyrillic and Greek.
+ * In vertical writing mode, the alphabetic baseline for characters rotated 90 degrees clockwise.
+ * (This would not apply to alphabetic characters that remain upright in vertical writing mode, since these
+ * characters are not rotated.)
+ * @HB_OT_LAYOUT_BASELINE_TAG_HANGING: The hanging baseline. In horizontal direction, this is the horizontal
+ * line from which syllables seem, to hang in Tibetan and other similar scripts. In vertical writing mode,
+ * for Tibetan (or some other similar script) characters rotated 90 degrees clockwise.
+ * @HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_BOTTOM_OR_LEFT: Ideographic character face bottom or left edge,
+ * if the direction is horizontal or vertical, respectively.
+ * @HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_TOP_OR_RIGHT: Ideographic character face top or right edge,
+ * if the direction is horizontal or vertical, respectively.
+ * @HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_BOTTOM_OR_LEFT: Ideographic em-box bottom or left edge,
+ * if the direction is horizontal or vertical, respectively.
+ * @HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_TOP_OR_RIGHT: Ideographic em-box top or right edge baseline,
+ * if the direction is horizontal or vertical, respectively.
+ * @HB_OT_LAYOUT_BASELINE_TAG_MATH: The baseline about which mathematical characters are centered.
+ * In vertical writing mode when mathematical characters rotated 90 degrees clockwise, are centered.
  *
- * https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags
+ * Baseline tags from https://docs.microsoft.com/en-us/typography/opentype/spec/baselinetags
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  */
 typedef enum {
   HB_OT_LAYOUT_BASELINE_TAG_ROMAN			= HB_TAG ('r','o','m','n'),

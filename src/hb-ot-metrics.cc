@@ -117,7 +117,7 @@ _get_gasp (hb_face_t *face, float *result, hb_ot_metrics_tag_t metrics_tag)
  * It fetches metrics value corresponding to a given tag from a font.
  *
  * Returns: Whether found the requested metrics in the font.
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 hb_bool_t
 hb_ot_metrics_get_position (hb_font_t           *font,
@@ -189,7 +189,7 @@ hb_ot_metrics_get_position (hb_font_t           *font,
  *
  * Returns:
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 float
 hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
@@ -204,7 +204,7 @@ hb_ot_metrics_get_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
  *
  * Returns:
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 hb_position_t
 hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
@@ -219,7 +219,7 @@ hb_ot_metrics_get_x_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)
  *
  * Returns:
  *
- * Since: REPLACEME
+ * Since: 2.6.0
  **/
 hb_position_t
 hb_ot_metrics_get_y_variation (hb_font_t *font, hb_ot_metrics_tag_t metrics_tag)

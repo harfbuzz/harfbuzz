@@ -108,7 +108,7 @@ struct maxp
       if (unlikely (!dest_v1)) return_trace (false);
 
       if (c->plan->drop_hints)
-        drop_hint_fields (dest_v1);
+	drop_hint_fields (dest_v1);
     }
 
     return_trace (true);

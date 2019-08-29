@@ -226,7 +226,7 @@ struct ContextualSubtable
       hb_buffer_t *buffer = driver->buffer;
 
       if (buffer->idx == buffer->len && !mark_set)
-        return false;
+	return false;
 
       return entry.data.markIndex != 0xFFFF || entry.data.currentIndex != 0xFFFF;
     }
@@ -238,7 +238,7 @@ struct ContextualSubtable
       /* Looks like CoreText applies neither mark nor current substitution for
        * end-of-text if mark was not explicitly set. */
       if (buffer->idx == buffer->len && !mark_set)
-        return;
+	return;
 
       const GlyphID *replacement;
 
@@ -488,7 +488,7 @@ struct LigatureSubtable
 
 	unsigned int ligature_idx = 0;
 	unsigned int action;
-        do
+	do
 	{
 	  if (unlikely (!cursor))
 	  {
@@ -976,12 +976,12 @@ struct Chain
       bool reverse;
 
       if (!(subtable->subFeatureFlags & flags))
-        goto skip;
+	goto skip;
 
       if (!(subtable->get_coverage() & ChainSubtable<Types>::AllDirections) &&
 	  HB_DIRECTION_IS_VERTICAL (c->buffer->props.direction) !=
 	  bool (subtable->get_coverage() & ChainSubtable<Types>::Vertical))
-        goto skip;
+	goto skip;
 
       /* Buffer contents is always in logical direction.  Determine if
        * we need to reverse before applying this subtable.  We reverse
@@ -1016,15 +1016,15 @@ struct Chain
 		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start chain subtable %d", c->lookup_index))
-        goto skip;
+	goto skip;
 
       if (reverse)
-        c->buffer->reverse ();
+	c->buffer->reverse ();
 
       subtable->apply (c);
 
       if (reverse)
-        c->buffer->reverse ();
+	c->buffer->reverse ();
 
       (void) c->buffer->message (c->font, "end chain subtable %d", c->lookup_index);
 

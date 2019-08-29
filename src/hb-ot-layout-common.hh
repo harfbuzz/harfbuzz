@@ -896,7 +896,7 @@ struct CoverageFormat2
     for (auto g: glyphs)
     {
       if (last + 1 != g)
-        num_ranges++;
+	num_ranges++;
       last = g;
     }
 
@@ -909,7 +909,7 @@ struct CoverageFormat2
     {
       if (last + 1 != g)
       {
-        range++;
+	range++;
 	rangeRecord[range].start = g;
 	rangeRecord[range].value = count;
       }
@@ -1059,7 +1059,7 @@ struct Coverage
     for (auto g: glyphs)
     {
       if (last + 1 != g)
-        num_ranges++;
+	num_ranges++;
       last = g;
       count++;
     }
@@ -1527,7 +1527,7 @@ struct ClassDef
 	  num_ranges++;
 
       if (1 + (glyph_max - glyph_min + 1) < num_ranges * 3)
-        format = 1;
+	format = 1;
     }
     u.format = format;
 
@@ -1762,9 +1762,9 @@ struct VarData
   }
 
   void get_scalars (int *coords, unsigned int coord_count,
-                    const VarRegionList &regions,
-                    float *scalars /*OUT */,
-                    unsigned int num_scalars) const
+		    const VarRegionList &regions,
+		    float *scalars /*OUT */,
+		    unsigned int num_scalars) const
   {
     unsigned count = hb_min (num_scalars, regionIndices.len);
     for (unsigned int i = 0; i < count; i++)
@@ -1989,7 +1989,7 @@ struct VariationStore
 #endif
 
     (this+dataSets[ivs]).get_scalars (coords, coord_count, this+regions,
-                                      &scalars[0], num_scalars);
+				      &scalars[0], num_scalars);
   }
 
   unsigned int get_sub_table_count () const { return dataSets.len; }

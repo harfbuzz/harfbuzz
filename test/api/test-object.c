@@ -345,7 +345,7 @@ test_object (void)
       if (!obj)
 	continue;
       if (obj == o->get_empty ())
-        continue; /* Tested already */
+	continue; /* Tested already */
 
       g_assert (obj == o->reference (obj));
       o->destroy (obj);
