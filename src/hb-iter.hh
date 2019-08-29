@@ -64,7 +64,7 @@ template <typename iter_t, typename Item = typename iter_t::__item_t__>
 struct hb_iter_t
 {
   typedef Item item_t;
-  static constexpr unsigned item_size = hb_static_size (Item);
+  constexpr unsigned get_item_size () const { return hb_static_size (Item); }
   static constexpr bool is_iterator = true;
   static constexpr bool is_random_access_iterator = false;
   static constexpr bool is_sorted_iterator = false;
@@ -130,7 +130,7 @@ struct hb_iter_t
   using item_t = typename Name::item_t; \
   using Name::begin; \
   using Name::end; \
-  using Name::item_size; \
+  using Name::get_item_size; \
   using Name::is_iterator; \
   using Name::iter; \
   using Name::operator bool; \

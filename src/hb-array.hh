@@ -141,13 +141,13 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   hb_sorted_array_t<Type> qsort (int (*cmp_)(const void*, const void*))
   {
     if (likely (length))
-      hb_qsort (arrayZ, length, this->item_size, cmp_);
+      hb_qsort (arrayZ, length, this->get_item_size (), cmp_);
     return hb_sorted_array_t<Type> (*this);
   }
   hb_sorted_array_t<Type> qsort ()
   {
     if (likely (length))
-      hb_qsort (arrayZ, length, this->item_size, Type::cmp);
+      hb_qsort (arrayZ, length, this->get_item_size (), Type::cmp);
     return hb_sorted_array_t<Type> (*this);
   }
   void qsort (unsigned int start, unsigned int end)
@@ -155,14 +155,14 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     end = hb_min (end, length);
     assert (start <= end);
     if (likely (start < end))
-      hb_qsort (arrayZ + start, end - start, this->item_size, Type::cmp);
+      hb_qsort (arrayZ + start, end - start, this->get_item_size (), Type::cmp);
   }
 
   /*
    * Other methods.
    */
 
-  unsigned int get_size () const { return length * this->item_size; }
+  unsigned int get_size () const { return length * this->get_item_size (); }
 
   hb_array_t sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
   {
