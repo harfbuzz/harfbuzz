@@ -1,5 +1,7 @@
 /*
  * Copyright © 2015  Google, Inc.
+ * Copyright © 2019  Adobe Inc.
+ * Copyright © 2019  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -98,8 +100,9 @@ struct glyf
 
     if (unlikely (!loca_prime_data)) return false;
 
-    DEBUG_MSG(SUBSET, nullptr, "loca entry_size %d num_offsets %d max_offset %d size %d", entry_size, num_offsets, max_offset, entry_size * num_offsets);
-
+    DEBUG_MSG (SUBSET, nullptr, "loca entry_size %d num_offsets %d "
+				"max_offset %d size %d",
+	       entry_size, num_offsets, max_offset, entry_size * num_offsets);
     if (use_short_loca)
       _write_loca (padded_offsets, 1, hb_array ((HBUINT16*) loca_prime_data, num_offsets));
     else
@@ -112,7 +115,7 @@ struct glyf
 					    free);
 
     bool result = plan->add_table (HB_OT_TAG_loca, loca_blob)
-		  && _add_head_and_set_loca_version(plan, use_short_loca);
+		  && _add_head_and_set_loca_version( plan, use_short_loca);
 
     hb_blob_destroy (loca_blob);
     return result;
@@ -127,20 +130,21 @@ struct glyf
     unsigned int offset = 0;
     dest << 0;
     + it
-    | hb_map ([=, &offset] (unsigned int padded_size) {
-      offset += padded_size;
-      DEBUG_MSG(SUBSET, nullptr, "loca entry offset %d", offset);
-      return offset >> right_shift;
-    })
+    | hb_map ([=, &offset] (unsigned int padded_size)
+	      {
+		offset += padded_size;
+		DEBUG_MSG (SUBSET, nullptr, "loca entry offset %d", offset);
+		return offset >> right_shift;
+	      })
     | hb_sink (dest)
     ;
   }
 
   // requires source of SubsetGlyph complains the identifier isn't declared
   template <typename Iterator>
-  bool serialize(hb_serialize_context_t *c,
-		 Iterator it,
-		 const hb_subset_plan_t *plan)
+  bool serialize (hb_serialize_context_t *c,
+		  Iterator it,
+		  const hb_subset_plan_t *plan)
   {
     TRACE_SERIALIZE (this);
 
@@ -172,7 +176,8 @@ struct glyf
     ;
 
     if (c->serializer->in_error ()) return_trace (false);
-    return_trace (c->serializer->check_success (_add_loca_and_head (c->plan, padded_offsets)));
+    return_trace (c->serializer->check_success (_add_loca_and_head (c->plan,
+								    padded_offsets)));
   }
 
   template <typename SubsetGlyph>
@@ -184,23 +189,26 @@ struct glyf
     glyf.init (plan->source);
 
     + hb_range (plan->num_output_glyphs ())
-    | hb_map ([&] (hb_codepoint_t new_gid) {
-      SubsetGlyph subset_glyph = {0};
-      subset_glyph.new_gid = new_gid;
+    | hb_map ([&] (hb_codepoint_t new_gid)
+	      {
+		SubsetGlyph subset_glyph = {0};
+		subset_glyph.new_gid = new_gid;
 
-      // should never fail: all old gids should be mapped
-      if (!plan->old_gid_for_new_gid (new_gid, &subset_glyph.old_gid)) return subset_glyph;
+		// should never fail: all old gids should be mapped
+		if (!plan->old_gid_for_new_gid (new_gid, &subset_glyph.old_gid))
+		  return subset_glyph;
 
-      subset_glyph.source_glyph = glyf.bytes_for_glyph ((const char *) this, subset_glyph.old_gid);
-      if (plan->drop_hints) subset_glyph.drop_hints (glyf);
-      else subset_glyph.dest_start = subset_glyph.source_glyph;
+		subset_glyph.source_glyph = glyf.bytes_for_glyph ((const char *) this,
+								  subset_glyph.old_gid);
+		if (plan->drop_hints) subset_glyph.drop_hints (glyf);
+		else subset_glyph.dest_start = subset_glyph.source_glyph;
 
-      return subset_glyph;
-    })
+		return subset_glyph;
+	      })
     | hb_sink (glyphs)
     ;
 
-    glyf.fini();
+    glyf.fini ();
   }
 
   static void
@@ -230,7 +238,9 @@ struct glyf
     int16_t num_contours = (int16_t) glyph_header.numberOfContours;
     if (num_contours <= 0) return;  // only for simple glyphs
 
-    const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (&glyph, GlyphHeader::static_size + 2 * num_contours);
+    unsigned int contours_length = GlyphHeader::static_size + 2 * num_contours;
+    const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (&glyph,
+								   contours_length);
     (HBUINT16 &) instruction_length = 0;
   }
 
@@ -241,15 +251,18 @@ struct glyf
 
     /* remove WE_HAVE_INSTRUCTIONS from flags in dest */
     OT::glyf::CompositeGlyphHeader::Iterator composite_it;
-    if (unlikely (!OT::glyf::CompositeGlyphHeader::get_iterator (&glyph, glyph.length, &composite_it))) return false;
+    if (unlikely (!OT::glyf::CompositeGlyphHeader::get_iterator (&glyph, glyph.length,
+								 &composite_it)))
+      return false;
     const OT::glyf::CompositeGlyphHeader *composite_header;
-    do {
+    do
+    {
       composite_header = composite_it.current;
       OT::HBUINT16 *flags = const_cast<OT::HBUINT16 *> (&composite_header->flags);
       *flags = (uint16_t) *flags & ~OT::glyf::CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS;
     } while (composite_it.move_to_next ());
     return true;
-}
+  }
 
   static bool
   _add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
@@ -285,7 +298,8 @@ struct glyf
 
   struct CompositeGlyphHeader
   {
-    enum composite_glyph_flag_t {
+    enum composite_glyph_flag_t
+    {
       ARG_1_AND_2_ARE_WORDS =      0x0001,
       ARGS_ARE_XY_VALUES =         0x0002,
       ROUND_XY_TO_GRID =           0x0004,
@@ -429,8 +443,8 @@ struct glyf
       bool in_range (const CompositeGlyphHeader *composite) const
       {
 	return (const char *) composite >= glyph_start
-	  && ((const char *) composite + CompositeGlyphHeader::min_size) <= glyph_end
-	  && ((const char *) composite + composite->get_size ()) <= glyph_end;
+	    && ((const char *) composite + CompositeGlyphHeader::min_size) <= glyph_end
+	    && ((const char *) composite + composite->get_size ()) <= glyph_end;
       }
     };
 
@@ -512,7 +526,8 @@ struct glyf
 						 composite);
     }
 
-    enum simple_glyph_flag_t {
+    enum simple_glyph_flag_t
+    {
       FLAG_ON_CURVE = 0x01,
       FLAG_X_SHORT = 0x02,
       FLAG_Y_SHORT = 0x04,
@@ -873,7 +888,7 @@ struct glyf
 	  {
 	    if (glyph >= glyph_end)
 	    {
-	      DEBUG_MSG(SUBSET, nullptr, "Bad flag");
+	      DEBUG_MSG (SUBSET, nullptr, "Bad flag");
 	      return false;
 	    }
 	    repeat = ((uint8_t) *glyph) + 1;
@@ -896,7 +911,8 @@ struct glyf
 
 	if (coordsWithFlags != nCoordinates)
 	{
-	  DEBUG_MSG(SUBSET, nullptr, "Expect %d coords to have flags, got flags for %d", nCoordinates, coordsWithFlags);
+	  DEBUG_MSG (SUBSET, nullptr, "Expect %d coords to have flags, got flags for %d",
+		     nCoordinates, coordsWithFlags);
 	  return false;
 	}
 	glyph += coordBytes;
@@ -952,17 +968,22 @@ struct glyf
 	unsigned int end = glyph.length;
 	unsigned int glyph_offset = &glyph - glyf_table;
 	CompositeGlyphHeader::Iterator composite_it;
-	if (unlikely (!CompositeGlyphHeader::get_iterator (&glyph, glyph.length, &composite_it))) return false;
+	if (unlikely (!CompositeGlyphHeader::get_iterator (&glyph, glyph.length,
+							   &composite_it)))
+	  return false;
 	const CompositeGlyphHeader *last;
-	do {
+	do
+	{
 	  last = composite_it.current;
 	} while (composite_it.move_to_next ());
 
 	if ((uint16_t) last->flags & CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS)
-	  start = ((char *) last - (char *) glyf_table->dataZ.arrayZ) + last->get_size () - glyph_offset;
+	  start = ((char *) last - (char *) glyf_table->dataZ.arrayZ)
+		+ last->get_size () - glyph_offset;
 	if (unlikely (start > end))
 	{
-	  DEBUG_MSG(SUBSET, nullptr, "Invalid instruction offset, %d is outside %d byte buffer", start, glyph.length);
+	  DEBUG_MSG (SUBSET, nullptr, "Invalid instruction offset, %d is outside "
+				      "%d byte buffer", start, glyph.length);
 	  return false;
 	}
 	*length = end - start;
@@ -976,13 +997,13 @@ struct glyf
 	  return false;
 	}
 
-	const HBUINT16 &instruction_length = StructAtOffset<HBUINT16> (&glyph, instruction_length_offset);
-	if (unlikely (instruction_length_offset + instruction_length > glyph.length)) // Out of bounds of the current glyph
+	const HBUINT16 &instruction_len = StructAtOffset<HBUINT16> (&glyph, instruction_length_offset);
+	if (unlikely (instruction_length_offset + 2 + instruction_len > glyph.length)) // Out of bounds of the current glyph
 	{
 	  DEBUG_MSG(SUBSET, nullptr, "The instructions array overruns the glyph's boundaries.");
 	  return false;
 	}
-	*length = (uint16_t) instruction_length;
+	*length = (uint16_t) instruction_len;
       }
       return true;
     }
@@ -1121,54 +1142,51 @@ struct glyf
     {
       if (source_glyph.length == 0) return;
 
-      unsigned int instruction_length = 0;
-      if (!glyf.get_instruction_length (source_glyph, &instruction_length))
+      unsigned int instruction_len = 0;
+      if (!glyf.get_instruction_length (source_glyph, &instruction_len))
       {
-	 DEBUG_MSG(SUBSET, nullptr, "Unable to read instruction length for new_gid %d", new_gid);
-	return ;
+	DEBUG_MSG (SUBSET, nullptr, "Unable to read instruction length for new_gid %d",
+		   new_gid);
+	return;
       }
 
       const GlyphHeader& header = StructAtOffset<GlyphHeader> (&source_glyph, 0);
       int16_t num_contours = (int16_t) header.numberOfContours;
-      DEBUG_MSG(SUBSET, nullptr, "new_gid %d (%d contours) drop %d instruction bytes from %d byte source glyph", new_gid, num_contours, instruction_length, source_glyph.length);
+      DEBUG_MSG (SUBSET, nullptr, "Unable to read instruction length for new_gid %d",
+		 new_gid);
       if (num_contours < 0)
       {
 	// composite, just chop instructions off the end
-	dest_start = hb_bytes_t (&source_glyph, source_glyph.length - instruction_length);
+	dest_start = hb_bytes_t (&source_glyph, source_glyph.length - instruction_len);
       }
       else
       {
 	// simple glyph
-	dest_start = hb_bytes_t (&source_glyph, GlyphHeader::static_size + 2 * header.numberOfContours + 2);
-	dest_end = hb_bytes_t (&source_glyph + dest_start.length + instruction_length,
-			       source_glyph.length - dest_start.length - instruction_length);
-DEBUG_MSG(SUBSET, nullptr, "source_len %d start len %d instruction_len %d end len %d", source_glyph.length, dest_start.length, instruction_length, dest_end.length);
+	unsigned int glyph_length = GlyphHeader::static_size + 2 * header.numberOfContours
+				  + 2 + instruction_len;
+	dest_start = hb_bytes_t (&source_glyph, glyph_length - instruction_len);
+	dest_end = hb_bytes_t (&source_glyph + glyph_length,
+			       source_glyph.length - glyph_length);
+	DEBUG_MSG (SUBSET, nullptr, "source_len %d start len %d glyph_len %d "
+				    "instruction_len %d end len %d",
+		   source_glyph.length, dest_start.length, glyph_length,
+		   instruction_len, dest_end.length);
       }
     }
 
-    unsigned int length () const
-    {
-      return dest_start.length + dest_end.length;
-    }
-
-    // pad to 2 to ensure 2-byte loca will be ok
-    unsigned int padding () const
-    {
-      return length () % 2;
-    }
-
-    unsigned int padded_size () const
-    {
-      return length () + padding ();
-    }
+    unsigned int length ()      const { return dest_start.length + dest_end.length; }
+    /* pad to 2 to ensure 2-byte loca will be ok */
+    unsigned int padding ()     const { return length () % 2; }
+    unsigned int padded_size () const { return length () + padding (); }
   };
 
   protected:
-  UnsizedArrayOf<HBUINT8>	dataZ;		/* Glyphs data. */
+  UnsizedArrayOf<HBUINT8>
+		dataZ;	/* Glyphs data. */
   public:
-  DEFINE_SIZE_MIN (0); /* In reality, this is UNBOUNDED() type; but since we always
-			* check the size externally, allow Null() object of it by
-			* defining it _MIN instead. */
+  DEFINE_SIZE_MIN (0);	/* In reality, this is UNBOUNDED() type; but since we always
+			 * check the size externally, allow Null() object of it by
+			 * defining it _MIN instead. */
 };
 
 struct glyf_accelerator_t : glyf::accelerator_t {};
