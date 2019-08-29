@@ -238,6 +238,11 @@ _subset_table (hb_subset_plan_t *plan,
 static bool
 _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
 {
+  if (!tag)
+    /* Drop tables with no tag as that means table header in
+       _hb_face_builder_reference_table */
+    return true;
+
   if (plan->drop_tables->has (tag))
     return true;
 
