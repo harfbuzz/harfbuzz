@@ -111,8 +111,11 @@ struct SingleSubstFormat1
     + hb_iter (this+coverage)
     | hb_filter (glyphset)
     | hb_map_retains_sorting ([&] (hb_codepoint_t g) {
-				return hb_codepoint_pair_t (glyph_map[g],
-							    glyph_map[(g + delta) & 0xFFFF]); })
+				return hb_codepoint_pair_t (g,
+							    (g + delta) & 0xFFFF); })
+    | hb_filter (glyphset, hb_second)
+    | hb_map_retains_sorting ([&] (hb_codepoint_pair_t p) -> hb_codepoint_pair_t
+			      { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
     ;
 
     bool ret = bool (it);
@@ -208,6 +211,7 @@ struct SingleSubstFormat2
     auto it =
     + hb_zip (this+coverage, substitute)
     | hb_filter (glyphset, hb_first)
+    | hb_filter (glyphset, hb_second)
     | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const GlyphID &> p) -> hb_codepoint_pair_t
 			      { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
     ;
