@@ -630,14 +630,16 @@ struct SinglePosFormat2
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     unsigned sub_length = valueFormat.get_len ();
-    unsigned total_length = (unsigned)valueCount * sub_length;
+    auto values_array = values.as_array (valueCount * sub_length);
 
     auto it =
     + hb_zip (this+coverage, hb_range ((unsigned) valueCount))
     | hb_filter (glyphset, hb_first)
     | hb_map_retains_sorting ([&] (const hb_pair_t<hb_codepoint_t, unsigned>& _)
 			      {
-				return hb_pair (glyph_map[_.first], values.as_array (total_length).sub_array (_.second * sub_length, sub_length));
+				return hb_pair (glyph_map[_.first],
+						values_array.sub_array (_.second * sub_length,
+									sub_length));
 			      })
     ;
 
