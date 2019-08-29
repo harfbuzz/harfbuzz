@@ -464,7 +464,7 @@ struct MultipleSubstFormat1
 		 hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
-    | hb_sink (new_coverage);
+    | hb_sink (new_coverage)
     ;
     out->coverage.serialize (c->serializer, out)
 		 .serialize (c->serializer, new_coverage.iter ());
@@ -687,7 +687,7 @@ struct AlternateSubstFormat1
 		 hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
-    | hb_sink (new_coverage);
+    | hb_sink (new_coverage)
     ;
     out->coverage.serialize (c->serializer, out)
 		 .serialize (c->serializer, new_coverage.iter ());
@@ -957,7 +957,7 @@ struct LigatureSet
 		   }
 		   return ret;
 		 })
-    | hb_drain;
+    | hb_drain
     ;
     return_trace (bool (out->ligature));
   }
@@ -1086,7 +1086,7 @@ struct LigatureSubstFormat1
 		 hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
-    | hb_sink (new_coverage);
+    | hb_sink (new_coverage)
     ;
     out->coverage.serialize (c->serializer, out)
 		 .serialize (c->serializer, new_coverage.iter ());
