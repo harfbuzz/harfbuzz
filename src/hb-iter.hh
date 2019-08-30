@@ -649,7 +649,7 @@ struct
   { return hb_range_iter_t<T, unsigned> (0, end, 1u); }
 
   template <typename T, typename S = unsigned> hb_range_iter_t<T, S>
-  operator () (T start, T end, S&& step = 1u) const
+  operator () (T start, T end, S step = 1u) const
   { return hb_range_iter_t<T, S> (start, end, step); }
 }
 HB_FUNCOBJ (hb_range);
@@ -682,7 +682,7 @@ struct hb_iota_iter_t :
 struct
 {
   template <typename T = unsigned, typename S = unsigned> hb_iota_iter_t<T, S>
-  operator () (T start = 0u, S&& step = 1u) const
+  operator () (T start = 0u, S step = 1u) const
   { return hb_iota_iter_t<T, S> (start, step); }
 }
 HB_FUNCOBJ (hb_iota);
