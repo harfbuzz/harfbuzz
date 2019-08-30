@@ -75,6 +75,37 @@ struct top_dict_values_t : dict_values_t<OPSTR>
   unsigned int  FDArrayOffset;
 };
 
+/* Compile time calculating 10^n for n = 2^i */
+constexpr double
+pow10_of_2i (unsigned int n)
+{
+  return n == 1 ? 10. : pow10_of_2i (n >> 1) * pow10_of_2i (n >> 1);
+}
+
+static const double powers_of_10[] =
+{
+  pow10_of_2i (0x100),
+  pow10_of_2i (0x80),
+  pow10_of_2i (0x40),
+  pow10_of_2i (0x20),
+  pow10_of_2i (0x10),
+  pow10_of_2i (0x8),
+  pow10_of_2i (0x4),
+  pow10_of_2i (0x2),
+  pow10_of_2i (0x1),
+};
+
+/* Works for x < 512 */
+inline double
+_hb_pow10 (unsigned int x)
+{
+  unsigned int mask = 0x100; /* Should be same with the first element  */
+  unsigned long result = 1;
+  const double *power = powers_of_10;
+  for (; mask; ++power, mask >>= 1) if (mask & x) result *= *power;
+  return result;
+}
+
 struct dict_opset_t : opset_t<number_t>
 {
   static void process_op (op_code_t op, interp_env_t<number_t>& env)
@@ -137,7 +168,7 @@ struct dict_opset_t : opset_t<number_t>
 	  value = (double) (neg ? -int_part : int_part);
 	  if (frac_count > 0)
 	  {
-	    double frac = (frac_part / pow (10.0, (double) frac_count));
+	    double frac = frac_part / _hb_pow10 (frac_count);
 	    if (neg) frac = -frac;
 	    value += frac;
 	  }
@@ -153,9 +184,9 @@ struct dict_opset_t : opset_t<number_t>
 	  if (exp_part != 0)
 	  {
 	    if (exp_neg)
-	      value /= pow (10.0, (double) exp_part);
+	      value /= _hb_pow10 (exp_part);
 	    else
-	      value *= pow (10.0, (double) exp_part);
+	      value *= _hb_pow10 (exp_part);
 	  }
 	  return value;
 
