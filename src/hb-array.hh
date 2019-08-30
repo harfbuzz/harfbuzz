@@ -183,20 +183,6 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 
   hb_array_t truncate (unsigned length) const { return sub_array (0, length); }
 
-  auto chop (unsigned n) const -> decltype
-  (
-    + hb_range (0u, 0u, n)
-    | hb_map (hb_partial<1> (hb_add, *this))
-    | hb_map (hb_partial<2> (&hb_array_t::truncate, n))
-  )
-  {
-    return
-    + hb_range (0u, length, n)
-    | hb_map (hb_partial<1> (hb_add, *this))
-    | hb_map (hb_partial<2> (&hb_array_t::truncate, n))
-    ;
-  }
-
   template <typename T,
 	    unsigned P = sizeof (Type),
 	    hb_enable_if (P == 1)>
