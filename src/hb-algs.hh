@@ -82,6 +82,7 @@ HB_FUNCOBJ (hb_bool);
 struct
 {
   private:
+
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
@@ -997,13 +998,13 @@ HB_FUNCOBJ (hb_neg);
 struct
 {
   template <typename T> constexpr auto
-  operator () (const T &a) const HB_AUTO_RETURN (++a)
+  operator () (T &a) const HB_AUTO_RETURN (++a)
 }
 HB_FUNCOBJ (hb_inc);
 struct
 {
   template <typename T> constexpr auto
-  operator () (const T &a) const HB_AUTO_RETURN (--a)
+  operator () (T &a) const HB_AUTO_RETURN (--a)
 }
 HB_FUNCOBJ (hb_dec);
 
