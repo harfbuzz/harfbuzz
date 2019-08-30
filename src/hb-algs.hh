@@ -994,6 +994,18 @@ struct
   operator () (const T &a) const HB_AUTO_RETURN (-a)
 }
 HB_FUNCOBJ (hb_neg);
+struct
+{
+  template <typename T> constexpr auto
+  operator () (const T &a) const HB_AUTO_RETURN (++a)
+}
+HB_FUNCOBJ (hb_inc);
+struct
+{
+  template <typename T> constexpr auto
+  operator () (const T &a) const HB_AUTO_RETURN (--a)
+}
+HB_FUNCOBJ (hb_dec);
 
 
 /* Compiler-assisted vectorization. */
