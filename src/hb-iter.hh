@@ -774,8 +774,8 @@ struct
 	    hb_requires (hb_is_iterator (Iter))>
   auto operator () (Iter it, unsigned count) const HB_AUTO_RETURN
   (
-    + hb_iota (it, hb_partial<2> (hb_add, count))
-    | hb_map (hb_partial<2> (hb_take, count))
+    + hb_iota (it, hb_add (count))
+    | hb_map (hb_take (count))
     | hb_take ((hb_len (it) + count - 1) / count)
   )
 }
