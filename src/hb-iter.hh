@@ -664,7 +664,7 @@ struct hb_iota_iter_t :
 
   template <typename S2 = S>
   auto
-  inc (S s, hb_priority<1>)
+  inc (hb_type_identity<S2> s, hb_priority<1>)
     -> hb_void_t<decltype (hb_invoke (hb_forward<S2> (s), hb_declval<T&> ()))>
   { v = hb_invoke (hb_forward<S2> (s), v); }
 
@@ -728,7 +728,7 @@ struct
 }
 HB_FUNCOBJ (hb_repeat);
 
-/* hb_enumerate */
+/* hb_enumerate()/hb_take() */
 
 struct
 {
@@ -739,6 +739,14 @@ struct
   ( hb_zip (hb_iota (start), it) )
 }
 HB_FUNCOBJ (hb_enumerate);
+struct
+{ HB_PARTIALIZE(2);
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  auto operator () (Iterable&& it, unsigned count) const HB_AUTO_RETURN
+  ( hb_zip (hb_range (count), it) | hb_map (hb_second) )
+}
+HB_FUNCOBJ (hb_take);
 
 /* hb_sink() */
 

@@ -272,6 +272,7 @@ main (int argc, char **argv)
   hb_repeat (7u);
   hb_repeat (nullptr);
   hb_repeat (vl);
+  assert ((hb_range (10) | hb_take (3)).len () == 3);
   assert (hb_range (9).len () == 9);
   assert (hb_range (2, 9).len () == 7);
   assert (hb_range (2, 9, 3).len () == 3);
