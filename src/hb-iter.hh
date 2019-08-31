@@ -175,6 +175,14 @@ struct
 
 }
 HB_FUNCOBJ (hb_iter);
+struct
+{
+  template <typename T> unsigned
+  operator () (T&& c) const
+  { return c.len (); }
+
+}
+HB_FUNCOBJ (hb_len);
 
 /* Mixin to fill in what the subclass doesn't provide. */
 template <typename iter_t, typename item_t = typename iter_t::__item_t__>
