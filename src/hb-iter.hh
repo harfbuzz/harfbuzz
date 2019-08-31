@@ -156,6 +156,7 @@ using hb_item_type = decltype (*hb_deref (hb_declval (Iterable)).iter ());
 
 
 template <typename> struct hb_array_t;
+template <typename> struct hb_sorted_array_t;
 
 struct
 {
@@ -753,6 +754,16 @@ struct
 	    hb_requires (hb_is_iterable (Iterable))>
   auto operator () (Iterable&& it, unsigned count) const HB_AUTO_RETURN
   ( hb_zip (hb_range (count), it) | hb_map (hb_second) )
+
+  /* Specialization arrays. */
+
+  template <typename Type> inline hb_array_t<Type>
+  operator () (hb_array_t<Type> array, unsigned count) const
+  { return array.sub_array (0, count); }
+
+  template <typename Type> inline hb_sorted_array_t<Type>
+  operator () (hb_sorted_array_t<Type> array, unsigned count) const
+  { return array.sub_array (0, count); }
 }
 HB_FUNCOBJ (hb_take);
 
