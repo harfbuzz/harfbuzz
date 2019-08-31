@@ -748,6 +748,7 @@ struct
   ( hb_zip (hb_iota (start), it) )
 }
 HB_FUNCOBJ (hb_enumerate);
+
 struct
 { HB_PARTIALIZE(2);
   template <typename Iterable,
@@ -766,6 +767,19 @@ struct
   { return array.sub_array (0, count); }
 }
 HB_FUNCOBJ (hb_take);
+
+struct
+{ HB_PARTIALIZE(2);
+  template <typename Iter,
+	    hb_requires (hb_is_iterator (Iter))>
+  auto operator () (Iter it, unsigned count) const HB_AUTO_RETURN
+  (
+    + hb_iota (it, hb_partial<2> (hb_add, count))
+    | hb_map (hb_partial<2> (hb_take, count))
+    | hb_take ((hb_len (it) + count - 1) / count)
+  )
+}
+HB_FUNCOBJ (hb_chop);
 
 /* hb_sink() */
 
