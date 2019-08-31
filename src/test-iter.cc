@@ -267,6 +267,7 @@ main (int argc, char **argv)
   hb_iota ();
   hb_iota (3);
   hb_iota (3, 2);
+  assert ((&vl) + 1 == *++hb_iota (&vl, hb_inc));
   hb_range ();
   hb_repeat (7u);
   hb_repeat (nullptr);

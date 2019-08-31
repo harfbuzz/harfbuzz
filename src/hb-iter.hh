@@ -656,21 +656,32 @@ HB_FUNCOBJ (hb_range);
 
 template <typename T, typename S>
 struct hb_iota_iter_t :
-  hb_iter_t<hb_iota_iter_t<T, S>, T>
+  hb_iter_with_fallback_t<hb_iota_iter_t<T, S>, T>
 {
   hb_iota_iter_t (T start, S step) : v (start), step (step) {}
+
+  private:
+
+  template <typename S2 = S>
+  auto
+  inc (S s, hb_priority<1>)
+    -> hb_void_t<decltype (hb_invoke (hb_forward<S2> (s), hb_declval<T&> ()))>
+  { v = hb_invoke (hb_forward<S2> (s), v); }
+
+  void
+  inc (S s, hb_priority<0>)
+  { v += s; }
+
+  public:
 
   typedef T __item_t__;
   static constexpr bool is_random_access_iterator = true;
   static constexpr bool is_sorted_iterator = true;
   __item_t__ __item__ () const { return hb_ridentity (v); }
-  __item_t__ __item_at__ (unsigned j) const { return v + j * step; }
   bool __more__ () const { return true; }
   unsigned __len__ () const { return UINT_MAX; }
-  void __next__ () { v += step; }
-  void __forward__ (unsigned n) { v += n * step; }
+  void __next__ () { inc (step, hb_prioritize); }
   void __prev__ () { v -= step; }
-  void __rewind__ (unsigned n) { v -= n * step; }
   hb_iota_iter_t __end__ () const { return *this; }
   bool operator != (const hb_iota_iter_t& o) const { return true; }
 
