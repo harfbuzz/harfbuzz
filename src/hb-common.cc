@@ -768,15 +768,17 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 static bool
 parse_float (const char **pp, const char *end, float *pv)
 {
-  float_parser_t parser;
-  const char *cursor = *pp;
-  for (; !parser.is_in_error () && cursor < end; ++cursor)
-    parser.consume (*cursor);
+  if (unlikely (end - *pp > 32)) return false;
 
-  if (parser.is_in_error ()) return false;
+  float_parser_t parser;
+  const char *pend = *pp;
+  for (; !parser.is_in_error () && pend < end; ++pend)
+    parser.consume (*pend);
+
+  if (unlikely (parser.is_in_error () || *pp == pend)) return false;
 
   *pv = parser.end ();
-  *pp = cursor;
+  *pp = pend;
   return true;
 }
 
