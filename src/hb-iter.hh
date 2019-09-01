@@ -572,7 +572,7 @@ struct hb_zip_iter_t :
   B b;
 };
 struct
-{
+{ HB_PARTIALIZE(2);
   template <typename A, typename B,
 	    hb_requires (hb_is_iterable (A) && hb_is_iterable (B))>
   hb_zip_iter_t<hb_iter_type<A>, hb_iter_type<B>>
