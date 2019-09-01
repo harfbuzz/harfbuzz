@@ -840,8 +840,8 @@ hb_ft_font_set_funcs (hb_font_t *font)
     return;
   }
 
-  if (FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE))
-    FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL);
+  if (FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL))
+    FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE);
 
   FT_Set_Char_Size (ft_face,
 		    abs (font->x_scale), abs (font->y_scale),
