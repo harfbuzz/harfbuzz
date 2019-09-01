@@ -99,12 +99,17 @@ struct float_parser_t
       else in_error = true;
       break;
 
+    case '+':
+      if (i != 0 || !exp_start) in_error = true;
+      break;
+
     case '.':
       if (part != INT_PART) in_error = true;
       part = FRAC_PART;
       break;
 
     case 'e':
+    case 'E':
       if (part == EXP_PART) in_error = true;
       part = EXP_PART;
       exp_start = true;
