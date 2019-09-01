@@ -29,6 +29,7 @@
 #include "hb.hh"
 
 #include "hb-machinery.hh"
+#include "hb-number-parser.hh"
 
 #include <locale.h>
 #ifdef HAVE_XLOCALE_H
@@ -817,7 +818,7 @@ void free_static_C_locale ()
 }
 #endif
 
-static HB_LOCALE_T
+HB_UNUSED static HB_LOCALE_T
 get_C_locale ()
 {
   return static_C_locale.get_unconst ();
@@ -827,26 +828,15 @@ get_C_locale ()
 static bool
 parse_float (const char **pp, const char *end, float *pv)
 {
-  char buf[32];
-  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
-  strncpy (buf, *pp, len);
-  buf[len] = '\0';
+  float_parser_t parser;
+  const char *cursor = *pp;
+  for (; !parser.is_in_error () && cursor < end; ++cursor)
+    parser.consume (*cursor);
 
-  char *p = buf;
-  char *pend = p;
-  float v;
+  if (parser.is_in_error ()) return false;
 
-  errno = 0;
-#ifdef USE_XLOCALE
-  v = strtod_l (p, &pend, get_C_locale ());
-#else
-  v = strtod (p, &pend);
-#endif
-  if (errno || p == pend)
-    return false;
-
-  *pv = v;
-  *pp += pend - p;
+  *pv = parser.end ();
+  *pp = cursor;
   return true;
 }
 
