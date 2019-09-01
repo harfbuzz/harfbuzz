@@ -89,7 +89,7 @@ struct float_parser_t
   bool is_in_error () { return in_error; }
   void set_in_error () { in_error = true; }
 
-  void consume (char c)
+  bool consume (char c)
   {
     switch (c)
     {
@@ -116,12 +116,12 @@ struct float_parser_t
       break;
 
     default:
-      int d = c - '0';
-      if (d < 0 || d > 9)
-      {
-	in_error = true;
-	break;
-      }
+      if (c < '0' || c > '9')
+	/* Return gracefully as strtod guarantee */
+	return false;
+
+      unsigned d = c - '0';
+
       switch (part) {
       default:
       case INT_PART:
@@ -131,7 +131,7 @@ struct float_parser_t
       case FRAC_PART:
 	if (likely (frac_part <= MAX_FRACT / 10))
 	{
-	  frac_part = (frac_part * 10) + (unsigned) d;
+	  frac_part = (frac_part * 10) + d;
 	  frac_count++;
 	}
 	break;
@@ -148,6 +148,7 @@ struct float_parser_t
 
     /* if the current isn't 'e', we have passed exp start already */
     if (c != 'e') exp_start = false;
+    return !in_error;
   }
 
   double end ()

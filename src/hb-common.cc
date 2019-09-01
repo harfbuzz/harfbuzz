@@ -774,8 +774,9 @@ parse_float (const char **pp, const char *end, float *pv)
 
   float_parser_t parser;
   const char *pend = *pp;
-  for (; !parser.is_in_error () && pend < end; ++pend)
-    parser.consume (*pend);
+  for (; pend < end; ++pend)
+    if (!parser.consume (*pend))
+      break;
 
   if (unlikely (parser.is_in_error () || *pp == pend)) return false;
 
