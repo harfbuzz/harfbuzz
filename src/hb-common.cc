@@ -768,6 +768,8 @@ parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 static bool
 parse_float (const char **pp, const char *end, float *pv)
 {
+  parse_space (pp, end);
+
   if (unlikely (end - *pp > 32)) return false;
 
   float_parser_t parser;
