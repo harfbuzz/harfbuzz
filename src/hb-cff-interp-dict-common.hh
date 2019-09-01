@@ -95,16 +95,131 @@ static const double powers_of_10[] =
   pow10_of_2i (0x1),
 };
 
-/* Works for x < 512 */
-inline double
-_hb_pow10 (unsigned int x)
+struct float_parser_t
 {
-  unsigned int mask = 0x100; /* Should be same with the first element  */
-  unsigned long result = 1;
-  const double *power = powers_of_10;
-  for (; mask; ++power, mask >>= 1) if (mask & x) result *= *power;
-  return result;
-}
+  const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 1^52-1 */
+  const uint32_t MAX_EXP = 0x7FFu; /* 1^11-1 */
+
+  enum Part { INT_PART=0, FRAC_PART, EXP_PART };
+
+  float_parser_t () : part (INT_PART), value (0), neg (false), int_part (0),
+		      frac_part (0), frac_count (0), exp_neg (0), exp_part (0),
+		      exp_overflow (false), i (0), in_error (false), exp_start (true) {}
+
+  protected:
+  char part;
+  double value;
+  bool neg;
+  double int_part;
+  uint64_t frac_part;
+  uint32_t frac_count;
+  bool exp_neg;
+  uint32_t exp_part;
+  bool exp_overflow;
+  unsigned int i;
+  bool in_error;
+  bool exp_start;
+
+  /* Works for x < 512 */
+  double
+  pow10 (unsigned int x)
+  {
+    unsigned int mask = 0x100; /* Should be same with the first element  */
+    unsigned long result = 1;
+    const double *power = powers_of_10;
+    for (; mask; ++power, mask >>= 1) if (mask & x) result *= *power;
+    return result;
+  }
+
+  public:
+  bool is_in_error () { return in_error; }
+  void set_in_error () { in_error = true; }
+
+  void consume (char c)
+  {
+    switch (c)
+    {
+    case '-':
+      if (i == 0) neg = true;
+      else if (exp_start) exp_neg = true;
+      else in_error = true;
+      break;
+
+    case '.':
+      if (part != INT_PART) in_error = true;
+      part = FRAC_PART;
+      break;
+
+    case 'e':
+      if (part == EXP_PART) in_error = true;
+      part = EXP_PART;
+      exp_start = true;
+      break;
+
+    default:
+      int d = c - '0';
+      if (d < 0 || d > 9)
+      {
+	in_error = true;
+	break;
+      }
+      switch (part) {
+      default:
+      case INT_PART:
+	int_part = (int_part * 10) + d;
+	break;
+
+      case FRAC_PART:
+	if (likely (frac_part <= MAX_FRACT / 10))
+	{
+	  frac_part = (frac_part * 10) + (unsigned)d;
+	  frac_count++;
+	}
+	break;
+
+      case EXP_PART:
+	if (likely (exp_part * 10 + d <= MAX_EXP))
+	  exp_part = (exp_part * 10) + d;
+	else
+	  exp_overflow = true;
+	break;
+      }
+      break;
+    }
+
+    /* if the current isn't 'e', we have passed exp start already */
+    if (c != 'e') exp_start = false;
+  }
+
+  double end ()
+  {
+    if (in_error) return .0;
+    value = neg ? -int_part : int_part;
+    if (frac_count > 0)
+    {
+      double frac = frac_part / pow10 (frac_count);
+      if (neg) frac = -frac;
+	value += frac;
+    }
+    if (unlikely (exp_overflow))
+    {
+      if (value == .0)
+	return value;
+      if (exp_neg)
+	return neg ? -DBL_MIN : DBL_MIN;
+      else
+	return neg ? -DBL_MAX : DBL_MAX;
+    }
+    if (exp_part != 0)
+    {
+      if (exp_neg)
+	value /= pow10 (exp_part);
+      else
+	value *= pow10 (exp_part);
+    }
+    return value;
+  }
+};
 
 struct dict_opset_t : opset_t<number_t>
 {
@@ -127,23 +242,14 @@ struct dict_opset_t : opset_t<number_t>
 
   static double parse_bcd (byte_str_ref_t& str_ref)
   {
-    bool    neg = false;
-    double  int_part = 0;
-    uint64_t frac_part = 0;
-    uint32_t  frac_count = 0;
-    bool    exp_neg = false;
-    uint32_t  exp_part = 0;
-    bool    exp_overflow = false;
-    enum Part { INT_PART=0, FRAC_PART, EXP_PART } part = INT_PART;
-    enum Nibble { DECIMAL=10, EXP_POS, EXP_NEG, RESERVED, NEG, END };
-    const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 1^52-1 */
-    const uint32_t MAX_EXP = 0x7FFu; /* 1^11-1 */
+    float_parser_t parser;
 
-    double  value = 0.0;
+    enum Nibble { DECIMAL=10, EXP_POS, EXP_NEG, RESERVED, NEG, END };
+
     unsigned char byte = 0;
     for (uint32_t i = 0;; i++)
     {
-      char d;
+      char nibble;
       if ((i & 1) == 0)
       {
 	if (!str_ref.avail ())
@@ -153,102 +259,48 @@ struct dict_opset_t : opset_t<number_t>
 	}
 	byte = str_ref[0];
 	str_ref.inc ();
-	d = byte >> 4;
+	nibble = byte >> 4;
       }
       else
-	d = byte & 0x0F;
+	nibble = byte & 0x0F;
 
-      switch (d)
+      switch (nibble)
       {
-	case RESERVED:
-	  str_ref.set_error ();
-	  return value;
+      case RESERVED:
+	parser.set_in_error ();
+	break;
 
-	case END:
-	  value = (double) (neg ? -int_part : int_part);
-	  if (frac_count > 0)
-	  {
-	    double frac = frac_part / _hb_pow10 (frac_count);
-	    if (neg) frac = -frac;
-	    value += frac;
-	  }
-	  if (unlikely (exp_overflow))
-	  {
-	    if (value == 0.0)
-	      return value;
-	    if (exp_neg)
-	      return neg ? -DBL_MIN : DBL_MIN;
-	    else
-	      return neg ? -DBL_MAX : DBL_MAX;
-	  }
-	  if (exp_part != 0)
-	  {
-	    if (exp_neg)
-	      value /= _hb_pow10 (exp_part);
-	    else
-	      value *= _hb_pow10 (exp_part);
-	  }
-	  return value;
+      case END:
+	goto end;
 
-	case NEG:
-	  if (i != 0)
-	  {
-	    str_ref.set_error ();
-	    return 0.0;
-	  }
-	  neg = true;
-	  break;
+      case NEG:
+	parser.consume ('-');
+	break;
 
-	case DECIMAL:
-	  if (part != INT_PART)
-	  {
-	    str_ref.set_error ();
-	    return value;
-	  }
-	  part = FRAC_PART;
-	  break;
+      case DECIMAL:
+	parser.consume ('.');
+	break;
 
-	case EXP_NEG:
-	  exp_neg = true;
-	  HB_FALLTHROUGH;
+      case EXP_POS:
+	parser.consume ('e');
+	break;
 
-	case EXP_POS:
-	  if (part == EXP_PART)
-	  {
-	    str_ref.set_error ();
-	    return value;
-	  }
-	  part = EXP_PART;
-	  break;
+      case EXP_NEG:
+	parser.consume ('e');
+	parser.consume ('-');
+	break;
 
-	default:
-	  switch (part) {
-	    default:
-	    case INT_PART:
-	      int_part = (int_part * 10) + d;
-	      break;
-
-	    case FRAC_PART:
-	      if (likely (frac_part <= MAX_FRACT / 10))
-	      {
-		frac_part = (frac_part * 10) + (unsigned)d;
-		frac_count++;
-	      }
-	      break;
-
-	    case EXP_PART:
-	      if (likely (exp_part * 10 + d <= MAX_EXP))
-	      {
-	      	exp_part = (exp_part * 10) + d;
-	      }
-	      else
-	      	exp_overflow = true;
-	      break;
-	  }
+      default:
+	parser.consume ('0' + nibble);
+	break;
       }
+
+      if (parser.is_in_error ()) break;
     }
 
-    return value;
+end:
+    if (parser.is_in_error ()) str_ref.set_error ();
+    return parser.end ();
   }
 
   static bool is_hint_op (op_code_t op)
