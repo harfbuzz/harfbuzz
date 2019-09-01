@@ -36,7 +36,7 @@ pow10_of_2i (unsigned int n)
   return n == 1 ? 10. : pow10_of_2i (n >> 1) * pow10_of_2i (n >> 1);
 }
 
-constexpr double powers_of_10[] =
+static const double powers_of_10[] =
 {
   pow10_of_2i (0x100),
   pow10_of_2i (0x80),
@@ -51,42 +51,11 @@ constexpr double powers_of_10[] =
 
 struct float_parser_t
 {
-  const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 1^52-1 */
-  const uint32_t MAX_EXP = 0x7FFu; /* 1^11-1 */
-
-  enum Part { INT_PART=0, FRAC_PART, EXP_PART };
-
   float_parser_t () : part (INT_PART), value (0), neg (false), int_part (0),
 		      frac_part (0), frac_count (0), exp_neg (0), exp_part (0),
 		      exp_overflow (false), i (0), in_error (false), exp_start (true) {}
 
-  protected:
-  char part;
-  double value;
-  bool neg;
-  double int_part;
-  uint64_t frac_part;
-  uint32_t frac_count;
-  bool exp_neg;
-  uint32_t exp_part;
-  bool exp_overflow;
-  unsigned int i;
-  bool in_error;
-  bool exp_start;
-
-  /* Works for x < 512 */
-  double
-  pow10 (unsigned int x)
-  {
-    unsigned int mask = 0x100; /* Should be same with the first element  */
-    unsigned long result = 1;
-    const double *power = powers_of_10;
-    for (; mask; ++power, mask >>= 1) if (mask & x) result *= *power;
-    return result;
-  }
-
-  public:
-  bool is_in_error () { return in_error; }
+  bool is_in_error ()  { return in_error; }
   void set_in_error () { in_error = true; }
 
   bool consume (char c)
@@ -146,7 +115,7 @@ struct float_parser_t
       break;
     }
 
-    /* if the current isn't 'e', we have passed exp start already */
+    /* if the current input isn't 'e', we have passed exp start already */
     if (c != 'e') exp_start = false;
     return !in_error;
   }
@@ -179,6 +148,37 @@ struct float_parser_t
     }
     return value;
   }
+
+  private:
+
+  const uint64_t MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 1^52-1 */
+  const uint32_t MAX_EXP = 0x7FFu; /* 1^11-1 */
+
+  enum Part { INT_PART=0, FRAC_PART, EXP_PART };
+
+  /* Works for x < 512 */
+  double
+  pow10 (unsigned int x)
+  {
+    unsigned int mask = 0x100; /* Should be same with the first element  */
+    unsigned long result = 1;
+    const double *power = powers_of_10;
+    for (; mask; ++power, mask >>= 1) if (mask & x) result *= *power;
+    return result;
+  }
+
+  char part;
+  double value;
+  bool neg;
+  double int_part;
+  uint64_t frac_part;
+  uint32_t frac_count;
+  bool exp_neg;
+  uint32_t exp_part;
+  bool exp_overflow;
+  unsigned int i;
+  bool in_error;
+  bool exp_start;
 };
 
 #endif /* HB_NUMBER_PARSER_HH */
