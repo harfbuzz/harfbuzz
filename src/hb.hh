@@ -477,6 +477,15 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 /* Size signifying variable-sized array */
 #define VAR 1
 
+static inline double
+_hb_roundf (float x)
+{
+  return x >= 0 ? floor ((double) x + .5) : ceil ((double) x - .5);
+}
+#ifndef HAVE_ROUNDF
+#define roundf(x) _hb_roundf(x)
+#endif
+
 /* Endian swap, used in Windows related backends */
 static inline uint16_t hb_uint16_swap (const uint16_t v)
 { return (v >> 8) | (v << 8); }
