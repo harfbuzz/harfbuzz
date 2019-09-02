@@ -25,6 +25,7 @@
  */
 
 #include "hb.hh"
+#include "hb-number.hh"
 
 #ifndef HB_NO_BUFFER_SERIALIZE
 
@@ -379,43 +380,27 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
   }
 }
 
-
-static hb_bool_t
-parse_uint (const char *pp, const char *end, uint32_t *pv)
+static bool
+parse_int (const char *pp, const char *end, int32_t *pv)
 {
-  char buf[32];
-  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - pp));
-  strncpy (buf, pp, len);
-  buf[len] = '\0';
+  int v;
+  const char *p = pp;
+  if (!hb_parse_int (&p, end, &v))
+    return false;
 
-  char *p = buf;
-  char *pend = p;
-  uint32_t v;
-
-  errno = 0;
-  v = strtol (p, &pend, 10);
-  if (errno || p == pend || pend - p != end - pp)
+  /* Check if parser consumed all of the buffer */
+  if (p != end)
     return false;
 
   *pv = v;
   return true;
 }
 
-static hb_bool_t
-parse_int (const char *pp, const char *end, int32_t *pv)
+static bool
+parse_uint (const char *pp, const char *end, uint32_t *pv)
 {
-  char buf[32];
-  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - pp));
-  strncpy (buf, pp, len);
-  buf[len] = '\0';
-
-  char *p = buf;
-  char *pend = p;
   int32_t v;
-
-  errno = 0;
-  v = strtol (p, &pend, 10);
-  if (errno || p == pend || pend - p != end - pp)
+  if (!parse_int (pp, end, &v))
     return false;
 
   *pv = v;
