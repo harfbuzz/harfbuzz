@@ -530,15 +530,11 @@ struct SinglePosFormat1
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    unsigned length = valueFormat.get_len ();
-
     auto it =
     + hb_iter (this+coverage)
     | hb_filter (glyphset)
-    | hb_map_retains_sorting ([&] (hb_codepoint_t p)
-			      {
-				return hb_pair (glyph_map[p], values.as_array (length));
-			      })
+    | hb_map_retains_sorting (glyph_map)
+    | hb_zip (hb_repeat (values.as_array (valueFormat.get_len ())))
     ;
 
     bool ret = bool (it);
