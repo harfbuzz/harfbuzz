@@ -38,6 +38,8 @@ HB_BASE_sources = \
 	hb-face.cc \
 	hb-face.hh \
 	hb-fallback-shape.cc \
+	hb-float.cc \
+	hb-float.hh \
 	hb-font.cc \
 	hb-font.hh \
 	hb-iter.hh \
@@ -241,6 +243,8 @@ HB_ICU_headers = hb-icu.h
 
 # Sources for libharfbuzz-subset
 HB_SUBSET_sources = \
+	hb-float.cc \
+	hb-float.hh \
 	hb-ot-cff1-table.cc \
 	hb-ot-cff2-table.cc \
 	hb-static.cc \

@@ -6,6 +6,7 @@
 #include "hb-common.cc"
 #include "hb-face.cc"
 #include "hb-fallback-shape.cc"
+#include "hb-float.cc"
 #include "hb-font.cc"
 #include "hb-map.cc"
 #include "hb-ot-cff1-table.cc"
