@@ -49,6 +49,8 @@ HB_BASE_sources = \
 	hb-meta.hh \
 	hb-mutex.hh \
 	hb-null.hh \
+	hb-number.cc \
+	hb-number.hh \
 	hb-object.hh \
 	hb-open-file.hh \
 	hb-open-type.hh \
