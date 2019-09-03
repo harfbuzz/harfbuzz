@@ -33,10 +33,12 @@
 
 template<typename T, typename Func>
 static bool
-_parse_number (const char **pp, const char *end, T *pv, Func f)
+_parse_number (const char **pp, const char *end, T *pv,
+	       bool whole_buffer, Func f)
 {
   char buf[32];
-  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
+  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1,
+			     (unsigned int) (end - *pp));
   strncpy (buf, *pp, len);
   buf[len] = '\0';
 
@@ -45,24 +47,29 @@ _parse_number (const char **pp, const char *end, T *pv, Func f)
 
   errno = 0;
   *pv = f (p, &pend);
-  if (unlikely (errno || p == pend)) return false;
+  if (unlikely (errno || p == pend ||
+		/* Check if consumed whole buffer if is requested */
+		(whole_buffer && pend - p != end - *pp))) return false;
 
   *pp += pend - p;
   return true;
 }
 
 bool
-hb_parse_int (const char **pp, const char *end, int *pv)
+hb_parse_int (const char **pp, const char *end, int *pv, bool whole_buffer)
 {
-  return _parse_number<int> (pp, end, pv, [] (const char *p, char **end)
-					  { return strtol (p, end, 10); });
+  return _parse_number<int> (pp, end, pv, whole_buffer,
+			     [] (const char *p, char **end)
+			     { return strtol (p, end, 10); });
 }
 
 bool
-hb_parse_uint (const char **pp, const char *end, unsigned int *pv, int base)
+hb_parse_uint (const char **pp, const char *end, unsigned int *pv,
+	       bool whole_buffer, int base)
 {
-  return _parse_number<unsigned int> (pp, end, pv, [base] (const char *p, char **end)
-						   { return strtoul (p, end, base); });
+  return _parse_number<unsigned int> (pp, end, pv, whole_buffer,
+				      [base] (const char *p, char **end)
+				      { return strtoul (p, end, base); });
 }
 
 
@@ -124,14 +131,16 @@ get_C_locale ()
 #endif /* USE_XLOCALE */
 
 bool
-hb_parse_float (const char **pp, const char *end, float *pv)
+hb_parse_float (const char **pp, const char *end, float *pv,
+		bool whole_buffer)
 {
-  return _parse_number<float> (pp, end, pv, [] (const char *p, char **end)
-					    {
+  return _parse_number<float> (pp, end, pv, whole_buffer,
+			       [] (const char *p, char **end)
+			       {
 #ifdef USE_XLOCALE
-					      return strtod_l (p, end, get_C_locale ());
+				 return strtod_l (p, end, get_C_locale ());
 #else
-					      return strtod (p, end);
+				 return strtod (p, end);
 #endif
-					    });
+			       });
 }

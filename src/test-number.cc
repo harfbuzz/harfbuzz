@@ -46,7 +46,7 @@ main (int argc, char **argv)
   {
     const char str[] = "123";
     const char *pp = str;
-    const char *end = str + 3;
+    const char *end = str + strlen (str);
 
     unsigned int pv;
     assert (hb_parse_uint (&pp, end, &pv));
@@ -62,10 +62,24 @@ main (int argc, char **argv)
     const char *end = str + 3;
 
     unsigned int pv;
-    assert (hb_parse_uint (&pp, end, &pv, 16));
+    assert (hb_parse_uint (&pp, end, &pv, true, 16));
     assert (pv == 0x12F);
     assert (pp - str == 3);
     assert (end - pp == 0);
+    assert (!*end);
+  }
+
+  {
+    const char str[] = "12Fq";
+    const char *pp = str;
+    const char *end = str + 4;
+
+    unsigned int pv;
+    assert (!hb_parse_uint (&pp, end, &pv, true, 16));
+    assert (hb_parse_uint (&pp, end, &pv, false, 16));
+    assert (pv == 0x12F);
+    assert (pp - str == 3);
+    assert (end - pp == 1);
     assert (!*end);
   }
 
@@ -93,7 +107,6 @@ main (int argc, char **argv)
     assert (pv == 123);
     assert (pp - str == 3);
     assert (end - pp == 1);
-    assert (!*end);
   }
 
   {

@@ -900,10 +900,8 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
   unsigned int v;
   const char *p = s;
   const char *end = p + len;
-  if (unlikely (!hb_parse_uint (&p, end, &v, base))) return false;
-
-  /* Check if parser consumed all of the buffer */
-  if (unlikely (p != end)) return false;
+  if (unlikely (!hb_parse_uint (&p, end, &v, true/* whole buffer */, base)))
+    return false;
 
   *out = v;
   return true;
