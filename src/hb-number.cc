@@ -31,8 +31,9 @@
 #include <xlocale.h>
 #endif
 
-bool
-hb_parse_int (const char **pp, const char *end, int *pv)
+template<typename T, typename Func>
+static inline bool
+_parse_number (const char **pp, const char *end, T *pv, Func f)
 {
   char buf[32];
   unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
@@ -41,10 +42,10 @@ hb_parse_int (const char **pp, const char *end, int *pv)
 
   char *p = buf;
   char *pend = p;
-  int v;
+  T v;
 
   errno = 0;
-  v = strtol (p, &pend, 10);
+  v = f (p, &pend);
   if (unlikely (errno || p == pend)) return false;
 
   *pv = v;
@@ -53,24 +54,17 @@ hb_parse_int (const char **pp, const char *end, int *pv)
 }
 
 bool
+hb_parse_int (const char **pp, const char *end, int *pv)
+{
+  return _parse_number<int> (pp, end, pv, [] (const char *p, char **end)
+					  { return strtol (p, end, 10); });
+}
+
+bool
 hb_parse_uint (const char **pp, const char *end, unsigned int *pv, int base)
 {
-  char buf[32];
-  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
-  strncpy (buf, *pp, len);
-  buf[len] = '\0';
-
-  char *p = buf;
-  char *pend = p;
-  int v;
-
-  errno = 0;
-  v = strtol (p, &pend, 10);
-  if (unlikely (errno || p == pend)) return false;
-
-  *pv = v;
-  *pp += pend - p;
-  return true;
+  return _parse_number<unsigned int> (pp, end, pv, [base] (const char *p, char **end)
+						   { return strtoul (p, end, base); });
 }
 
 
@@ -134,25 +128,12 @@ get_C_locale ()
 bool
 hb_parse_float (const char **pp, const char *end, float *pv)
 {
-  char buf[32];
-  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
-  strncpy (buf, *pp, len);
-  buf[len] = '\0';
-
-  char *p = buf;
-  char *pend = p;
-  float v;
-
-  errno = 0;
+  return _parse_number<float> (pp, end, pv, [] (const char *p, char **end)
+					    {
 #ifdef USE_XLOCALE
-  v = strtod_l (p, &pend, get_C_locale ());
+					      return strtod_l (p, end, get_C_locale ());
 #else
-  v = strtod (p, &pend);
+					      return strtod (p, end);
 #endif
-  if (errno || p == pend)
-    return false;
-
-  *pv = v;
-  *pp += pend - p;
-  return true;
+					    });
 }
