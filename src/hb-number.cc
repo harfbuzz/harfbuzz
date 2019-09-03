@@ -32,7 +32,7 @@
 #endif
 
 template<typename T, typename Func>
-static inline bool
+static bool
 _parse_number (const char **pp, const char *end, T *pv, Func f)
 {
   char buf[32];
@@ -42,13 +42,11 @@ _parse_number (const char **pp, const char *end, T *pv, Func f)
 
   char *p = buf;
   char *pend = p;
-  T v;
 
   errno = 0;
-  v = f (p, &pend);
+  *pv = f (p, &pend);
   if (unlikely (errno || p == pend)) return false;
 
-  *pv = v;
   *pp += pend - p;
   return true;
 }

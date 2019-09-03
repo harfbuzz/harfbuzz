@@ -384,12 +384,10 @@ parse_int (const char *pp, const char *end, int32_t *pv)
 {
   int v;
   const char *p = pp;
-  if (!hb_parse_int (&p, end, &v))
-    return false;
+  if (unlikely (!hb_parse_int (&p, end, &v))) return false;
 
   /* Check if parser consumed all of the buffer */
-  if (p != end)
-    return false;
+  if (unlikely (p != end)) return false;
 
   *pv = v;
   return true;

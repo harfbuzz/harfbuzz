@@ -900,10 +900,10 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
   unsigned int v;
   const char *p = s;
   const char *end = p + len;
-  if (!hb_parse_uint (&p, p + len, &v, base))
-    return false;
+  if (unlikely (!hb_parse_uint (&p, end, &v, base))) return false;
 
-  if (end != p && *p) return false;
+  /* Pain because we don't know whether s is nul-terminated. */
+  if (unlikely (p != end && *p)) return false;
 
   *out = v;
   return true;
