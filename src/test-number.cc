@@ -140,9 +140,9 @@ main (int argc, char **argv)
     const char *pp = str;
     const char *end = str + ARRAY_LENGTH (str);
 
-    float pv;
-    assert (hb_parse_float (&pp, end, &pv));
-    assert ((int) (pv * 1000.f) == 123);
+    double pv;
+    assert (hb_parse_double (&pp, end, &pv));
+    assert ((int) (pv * 1000.) == 123);
     assert (pp - str == 4);
     assert (end - pp == 1);
   }
@@ -152,9 +152,9 @@ main (int argc, char **argv)
     const char *pp = str;
     const char *end = str + ARRAY_LENGTH (str) - 1;
 
-    float pv;
-    assert (hb_parse_float (&pp, end, &pv));
-    assert ((int) (pv * 1000.f) == 123);
+    double pv;
+    assert (hb_parse_double (&pp, end, &pv));
+    assert ((int) (pv * 1000.) == 123);
     assert (pp - str == 5);
     assert (end - pp == 0);
   }
@@ -164,9 +164,9 @@ main (int argc, char **argv)
     const char *pp = str;
     const char *end = str + ARRAY_LENGTH (str) - 1;
 
-    float pv;
-    assert (hb_parse_float (&pp, end, &pv));
-    assert ((int) (pv * 1000.f) == 123);
+    double pv;
+    assert (hb_parse_double (&pp, end, &pv));
+    assert ((int) (pv * 1000.) == 123);
     assert (pp - str == 7);
     assert (end - pp == 0);
   }
@@ -176,9 +176,9 @@ main (int argc, char **argv)
     const char *pp = str;
     const char *end = str + ARRAY_LENGTH (str) - 1;
 
-    float pv;
-    assert (hb_parse_float (&pp, end, &pv));
-    assert ((int) (pv * 1000.f) == 123);
+    double pv;
+    assert (hb_parse_double (&pp, end, &pv));
+    assert ((int) (pv * 1000.) == 123);
     assert (pp - str == 6);
     assert (end - pp == 0);
   }
@@ -188,9 +188,9 @@ main (int argc, char **argv)
     const char *pp = str;
     const char *end = str + ARRAY_LENGTH (str) - 1;
 
-    float pv;
-    assert (hb_parse_float (&pp, end, &pv));
-    assert ((int) (pv * 1000.f) == 123);
+    double pv;
+    assert (hb_parse_double (&pp, end, &pv));
+    assert ((int) (pv * 1000.) == 123);
     assert (pp - str == 10);
     assert (end - pp == 0);
   }
@@ -200,21 +200,21 @@ main (int argc, char **argv)
     const char *pp = str;
     const char *end = str + ARRAY_LENGTH (str) - 1;
 
-    float pv;
-    assert (hb_parse_float (&pp, end, &pv));
-    assert ((int) (pv * 1000.f) == -123);
+    double pv;
+    assert (hb_parse_double (&pp, end, &pv));
+    assert ((int) (pv * 1000.) == -123);
     assert (pp - str == 13);
     assert (end - pp == 0);
   }
 
   {
-    const char str[] = "-1.23e-1";
+    const char str[] = "-1.23E-1";
     const char *pp = str;
     const char *end = str + ARRAY_LENGTH (str) - 1;
 
-    float pv;
-    assert (hb_parse_float (&pp, end, &pv));
-    assert ((int) (pv * 1000.f) == -123);
+    double pv;
+    assert (hb_parse_double (&pp, end, &pv));
+    assert ((int) (pv * 1000.) == -123);
     assert (pp - str == 8);
     assert (end - pp == 0);
   }
