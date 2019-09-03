@@ -30,6 +30,9 @@ HB_INTERNAL bool
 hb_parse_int (const char **pp, const char *end, int *pv);
 
 HB_INTERNAL bool
+hb_parse_uint (const char **pp, const char *end, unsigned int *pv, int base=10);
+
+HB_INTERNAL bool
 hb_parse_float (const char **pp, const char *end, float *pv);
 
 #endif /* HB_NUMBER_HH */

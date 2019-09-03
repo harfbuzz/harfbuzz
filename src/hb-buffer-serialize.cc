@@ -25,7 +25,6 @@
  */
 
 #include "hb.hh"
-#include "hb-number.hh"
 
 #ifndef HB_NO_BUFFER_SERIALIZE
 

@@ -25,7 +25,6 @@
 
 #include "hb.hh"
 #include "hb-machinery.hh"
-#include "hb-number.hh"
 
 #include <locale.h>
 #ifdef HAVE_XLOCALE_H
@@ -46,13 +45,34 @@ hb_parse_int (const char **pp, const char *end, int *pv)
 
   errno = 0;
   v = strtol (p, &pend, 10);
-  if (errno || p == pend)
-    return false;
+  if (unlikely (errno || p == pend)) return false;
 
   *pv = v;
   *pp += pend - p;
   return true;
 }
+
+bool
+hb_parse_uint (const char **pp, const char *end, unsigned int *pv, int base)
+{
+  char buf[32];
+  unsigned int len = hb_min (ARRAY_LENGTH (buf) - 1, (unsigned int) (end - *pp));
+  strncpy (buf, *pp, len);
+  buf[len] = '\0';
+
+  char *p = buf;
+  char *pend = p;
+  int v;
+
+  errno = 0;
+  v = strtol (p, &pend, 10);
+  if (unlikely (errno || p == pend)) return false;
+
+  *pv = v;
+  *pp += pend - p;
+  return true;
+}
+
 
 #if defined (HAVE_NEWLOCALE) && defined (HAVE_STRTOD_L)
 #define USE_XLOCALE 1
