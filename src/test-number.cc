@@ -40,6 +40,7 @@ main (int argc, char **argv)
     assert (pv == 123);
     assert (pp - str == 3);
     assert (end - pp == 0);
+    assert (!*end);
   }
 
   {
@@ -52,6 +53,20 @@ main (int argc, char **argv)
     assert (pv == 123);
     assert (pp - str == 3);
     assert (end - pp == 0);
+    assert (!*end);
+  }
+
+  {
+    const char str[] = "12F";
+    const char *pp = str;
+    const char *end = str + 3;
+
+    unsigned int pv;
+    assert (hb_parse_uint (&pp, end, &pv, 16));
+    assert (pv == 0x12F);
+    assert (pp - str == 3);
+    assert (end - pp == 0);
+    assert (!*end);
   }
 
   {
@@ -64,6 +79,7 @@ main (int argc, char **argv)
     assert (pv == -123);
     assert (pp - str == 4);
     assert (end - pp == 0);
+    assert (!*end);
   }
 
   {
@@ -77,6 +93,7 @@ main (int argc, char **argv)
     assert (pv == 123);
     assert (pp - str == 3);
     assert (end - pp == 1);
+    assert (!*end);
   }
 
   {
@@ -89,7 +106,20 @@ main (int argc, char **argv)
     assert (hb_parse_uint (&pp, end, &pv));
     assert (pv == 123);
     assert (pp - str == 3);
-    assert (end - pp == 2); /* Similar to what hb_codepoint_parse needs */
+    assert (end - pp == 2);
+  }
+
+  {
+    const char str[] = "123V";
+    const char *pp = str;
+    assert (ARRAY_LENGTH (str) == 5);
+    const char *end = str + ARRAY_LENGTH (str);
+
+    unsigned int pv;
+    assert (hb_parse_uint (&pp, end, &pv));
+    assert (pv == 123);
+    assert (pp - str == 3);
+    assert (end - pp == 2);
   }
 
   {
