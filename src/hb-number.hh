@@ -35,7 +35,7 @@ hb_parse_uint (const char **pp, const char *end, unsigned int *pv,
 	       bool whole_buffer = false, int base = 10);
 
 HB_INTERNAL bool
-hb_parse_float (const char **pp, const char *end, float *pv,
-		bool whole_buffer = false);
+hb_parse_double (const char **pp, const char *end, double *pv,
+		 bool whole_buffer = false);
 
 #endif /* HB_NUMBER_HH */

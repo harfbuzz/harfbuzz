@@ -991,7 +991,11 @@ static bool
 parse_variation_value (const char **pp, const char *end, hb_variation_t *variation)
 {
   parse_char (pp, end, '='); /* Optional. */
-  return hb_parse_float (pp, end, &variation->value);
+  double v;
+  if (unlikely (!hb_parse_double (pp, end, &v))) return false;
+
+  variation->value = v;
+  return true;
 }
 
 static bool

@@ -131,16 +131,16 @@ get_C_locale ()
 #endif /* USE_XLOCALE */
 
 bool
-hb_parse_float (const char **pp, const char *end, float *pv,
-		bool whole_buffer)
+hb_parse_double (const char **pp, const char *end, double *pv,
+		 bool whole_buffer)
 {
-  return _parse_number<float> (pp, end, pv, whole_buffer,
-			       [] (const char *p, char **end)
-			       {
+  return _parse_number<double> (pp, end, pv, whole_buffer,
+				[] (const char *p, char **end)
+				{
 #ifdef USE_XLOCALE
-				 return strtod_l (p, end, get_C_locale ());
+				  return strtod_l (p, end, get_C_locale ());
 #else
-				 return strtod (p, end);
+				  return strtod (p, end);
 #endif
-			       });
+				});
 }
