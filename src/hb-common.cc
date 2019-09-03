@@ -721,11 +721,10 @@ parse_char (const char **pp, const char *end, char c)
 static bool
 parse_uint (const char **pp, const char *end, unsigned int *pv)
 {
-  /* Intentionally use strtol inside instead of strtoul, such that
-   * -1 turns into "big number"... */
+  /* Intentionally use hb_parse_int inside instead of hb_parse_uint,
+   * such that -1 turns into "big number"... */
   int v;
-  if (!hb_parse_int (pp, end, &v))
-    return false;
+  if (unlikely (!hb_parse_int (pp, end, &v))) return false;
 
   *pv = v;
   return true;
@@ -734,11 +733,10 @@ parse_uint (const char **pp, const char *end, unsigned int *pv)
 static bool
 parse_uint32 (const char **pp, const char *end, uint32_t *pv)
 {
-  /* Intentionally use strtol inside instead of strtoul, such that
-   * -1 turns into "big number"... */
+  /* Intentionally use hb_parse_int inside instead of hb_parse_uint,
+   * such that -1 turns into "big number"... */
   int v;
-  if (!hb_parse_int (pp, end, &v))
-    return false;
+  if (unlikely (!hb_parse_int (pp, end, &v))) return false;
 
   *pv = v;
   return true;
