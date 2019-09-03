@@ -384,10 +384,8 @@ parse_int (const char *pp, const char *end, int32_t *pv)
 {
   int v;
   const char *p = pp;
-  if (unlikely (!hb_parse_int (&p, end, &v))) return false;
-
-  /* Check if parser consumed all of the buffer */
-  if (unlikely (p != end)) return false;
+  if (unlikely (!hb_parse_int (&p, end, &v, true/* whole buffer */)))
+    return false;
 
   *pv = v;
   return true;
@@ -398,10 +396,8 @@ parse_uint (const char *pp, const char *end, uint32_t *pv)
 {
   unsigned int v;
   const char *p = pp;
-  if (unlikely (!hb_parse_uint (&p, end, &v))) return false;
-
-  /* Check if parser consumed all of the buffer */
-  if (unlikely (p != end)) return false;
+  if (unlikely (!hb_parse_uint (&p, end, &v, true/* whole buffer */)))
+    return false;
 
   *pv = v;
   return true;
