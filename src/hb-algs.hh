@@ -902,8 +902,8 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
   const char *end = p + len;
   if (unlikely (!hb_parse_uint (&p, end, &v, base))) return false;
 
-  /* Pain because we don't know whether s is nul-terminated. */
-  if (unlikely (p != end && *p)) return false;
+  /* Check if parser consumed all of the buffer */
+  if (unlikely (p != end)) return false;
 
   *out = v;
   return true;
