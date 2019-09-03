@@ -100,7 +100,7 @@ main (int argc, char **argv)
     float pv;
     assert (hb_parse_float (&pp, end, &pv));
     assert ((int) (pv * 1000.f) == 123);
-    assert (pp - str == ARRAY_LENGTH (str) - 1);
+    assert (pp - str == 4);
     assert (end - pp == 1);
   }
 
@@ -112,7 +112,7 @@ main (int argc, char **argv)
     float pv;
     assert (hb_parse_float (&pp, end, &pv));
     assert ((int) (pv * 1000.f) == 123);
-    assert (pp - str == ARRAY_LENGTH (str) - 1);
+    assert (pp - str == 5);
     assert (end - pp == 0);
   }
 
@@ -124,7 +124,7 @@ main (int argc, char **argv)
     float pv;
     assert (hb_parse_float (&pp, end, &pv));
     assert ((int) (pv * 1000.f) == 123);
-    assert (pp - str == ARRAY_LENGTH (str) - 1);
+    assert (pp - str == 7);
     assert (end - pp == 0);
   }
 
@@ -136,7 +136,7 @@ main (int argc, char **argv)
     float pv;
     assert (hb_parse_float (&pp, end, &pv));
     assert ((int) (pv * 1000.f) == 123);
-    assert (pp - str == ARRAY_LENGTH (str) - 1);
+    assert (pp - str == 6);
     assert (end - pp == 0);
   }
 
@@ -148,7 +148,7 @@ main (int argc, char **argv)
     float pv;
     assert (hb_parse_float (&pp, end, &pv));
     assert ((int) (pv * 1000.f) == 123);
-    assert (pp - str == ARRAY_LENGTH (str) - 1);
+    assert (pp - str == 10);
     assert (end - pp == 0);
   }
 
@@ -160,7 +160,7 @@ main (int argc, char **argv)
     float pv;
     assert (hb_parse_float (&pp, end, &pv));
     assert ((int) (pv * 1000.f) == -123);
-    assert (pp - str == ARRAY_LENGTH (str) - 1);
+    assert (pp - str == 13);
     assert (end - pp == 0);
   }
 
@@ -172,7 +172,7 @@ main (int argc, char **argv)
     float pv;
     assert (hb_parse_float (&pp, end, &pv));
     assert ((int) (pv * 1000.f) == -123);
-    assert (pp - str == ARRAY_LENGTH (str) - 1);
+    assert (pp - str == 8);
     assert (end - pp == 0);
   }
 
