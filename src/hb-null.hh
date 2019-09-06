@@ -48,8 +48,14 @@
 
 template <typename T, typename>
 struct _hb_null_size : hb_integral_constant<unsigned, sizeof (T)> {};
+#ifdef HB_TINY
+/* Disabled unless tiny, to avoid undefined-behavior.
+ * Enabling it saves a couple hundred bytes only.
+ * To make https://bugzilla.mozilla.org/show_bug.cgi?id=810823 happy.
+ */
 template <typename T>
 struct _hb_null_size<T, hb_void_t<decltype (T::min_size)>> : hb_integral_constant<unsigned, T::null_size> {};
+#endif
 
 template <typename T>
 using hb_null_size = _hb_null_size<T, void>;
