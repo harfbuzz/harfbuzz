@@ -25,6 +25,7 @@
 
 #include "hb.hh"
 #include "hb-machinery.hh"
+#include "hb-number-parser.hh"
 
 #include <locale.h>
 #ifdef HAVE_XLOCALE_H
@@ -140,7 +141,7 @@ hb_parse_double (const char **pp, const char *end, double *pv,
 #ifdef USE_XLOCALE
 				  return strtod_l (p, end, get_C_locale ());
 #else
-				  return strtod (p, end);
+				  return strtod_rl (p, end);
 #endif
 				});
 }
