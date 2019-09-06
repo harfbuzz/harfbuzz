@@ -516,7 +516,7 @@ struct FDSelect0 {
 
   HBUINT8     fds[VAR];
 
-  DEFINE_SIZE_MIN (1);
+  DEFINE_SIZE_MIN (0);
 };
 
 template <typename GID_TYPE, typename FD_TYPE>

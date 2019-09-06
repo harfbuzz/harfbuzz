@@ -125,7 +125,7 @@ struct SBIXStrike
 		imageOffsetsZ;	/* Offset from the beginning of the strike data header
 				 * to bitmap data for an individual glyph ID. */
   public:
-  DEFINE_SIZE_STATIC (8);
+  DEFINE_SIZE_ARRAY (4, imageOffsetsZ);
 };
 
 struct sbix
