@@ -483,7 +483,7 @@ struct UnsizedArrayOf
   }
 
   public:
-  Type		arrayZ[VAR];
+  Type		arrayZ[HB_VAR_ARRAY];
   public:
   DEFINE_SIZE_UNBOUNDED (0);
 };
@@ -669,7 +669,7 @@ struct ArrayOf
 
   public:
   LenType	len;
-  Type		arrayZ[VAR];
+  Type		arrayZ[HB_VAR_ARRAY];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
@@ -802,7 +802,7 @@ struct HeadlessArrayOf
 
   public:
   LenType	lenP1;
-  Type		arrayZ[VAR];
+  Type		arrayZ[HB_VAR_ARRAY];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
@@ -850,7 +850,7 @@ struct ArrayOfM1
 
   public:
   LenType	lenM1;
-  Type		arrayZ[VAR];
+  Type		arrayZ[HB_VAR_ARRAY];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };

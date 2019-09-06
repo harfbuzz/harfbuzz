@@ -475,7 +475,7 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 
 /* Size signifying variable-sized array */
-#define VAR 1
+#define HB_VAR_ARRAY 1
 
 static inline double
 _hb_roundf (float x)
