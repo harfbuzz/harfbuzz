@@ -36,6 +36,16 @@
 #define HB_DEBUG 0
 #endif
 
+struct errno_wrapper_t
+{
+  int saved_errno;
+  errno_wrapper_t  () { saved_errno = errno; errno = 0; }
+  ~errno_wrapper_t () { errno = saved_errno; }
+
+  int get ()          { return errno; }
+  char *as_string ()  { return strerror (errno); }
+  void reset ()       { errno = 0; }
+};
 
 /*
  * Global runtime options.

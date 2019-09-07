@@ -46,9 +46,9 @@ _parse_number (const char **pp, const char *end, T *pv,
   char *p = buf;
   char *pend = p;
 
-  errno = 0;
+  errno_wrapper_t err;
   *pv = f (p, &pend);
-  if (unlikely (errno || p == pend ||
+  if (unlikely (err.get () || p == pend ||
 		/* Check if consumed whole buffer if is requested */
 		(whole_buffer && pend - p != end - *pp))) return false;
 

@@ -48,7 +48,6 @@
 #endif /* HAVE_SYS_MMAN_H */
 
 #include <stdio.h>
-#include <errno.h>
 #include <stdlib.h>
 
 
@@ -388,7 +387,6 @@ hb_blob_get_data_writable (hb_blob_t *blob, unsigned int *length)
   return const_cast<char *> (blob->data);
 }
 
-
 bool
 hb_blob_t::try_make_writable_inplace_unix ()
 {
@@ -396,6 +394,7 @@ hb_blob_t::try_make_writable_inplace_unix ()
   uintptr_t pagesize = -1, mask, length;
   const char *addr;
 
+  errno_wrapper_t err;
 #if defined(HAVE_SYSCONF) && defined(_SC_PAGE_SIZE)
   pagesize = (uintptr_t) sysconf (_SC_PAGE_SIZE);
 #elif defined(HAVE_SYSCONF) && defined(_SC_PAGESIZE)
@@ -405,10 +404,11 @@ hb_blob_t::try_make_writable_inplace_unix ()
 #endif
 
   if ((uintptr_t) -1L == pagesize) {
-    DEBUG_MSG_FUNC (BLOB, this, "failed to get pagesize: %s", strerror (errno));
+    DEBUG_MSG_FUNC (BLOB, this, "failed to get pagesize: %s", err.as_string ());
     return false;
   }
   DEBUG_MSG_FUNC (BLOB, this, "pagesize is %lu", (unsigned long) pagesize);
+  err.reset ();
 
   mask = ~(pagesize-1);
   addr = (const char *) (((uintptr_t) this->data) & mask);
@@ -417,7 +417,7 @@ hb_blob_t::try_make_writable_inplace_unix ()
 		  "calling mprotect on [%p..%p] (%lu bytes)",
 		  addr, addr+length, (unsigned long) length);
   if (-1 == mprotect ((void *) addr, length, PROT_READ | PROT_WRITE)) {
-    DEBUG_MSG_FUNC (BLOB, this, "mprotect failed: %s", strerror (errno));
+    DEBUG_MSG_FUNC (BLOB, this, "mprotect failed: %s", err.as_string ());
     return false;
   }
 
