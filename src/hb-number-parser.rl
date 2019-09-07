@@ -28,6 +28,8 @@
 
 #include "hb.hh"
 
+#include <float.h>
+
 %%{
 
 machine double_parser;
@@ -37,9 +39,22 @@ write data;
 action see_neg { neg = true; }
 action see_exp_neg { exp_neg = true; }
 
-action add_int  { value = value * 10. + (fc - '0'); }
-action add_frac { frac = frac * 10. + (fc - '0'); ++frac_count; }
-action add_exp  { exp = exp * 10 + (fc - '0'); }
+action add_int  {
+	value = value * 10. + (fc - '0');
+}
+action add_frac {
+	if (likely (frac <= MAX_FRACT / 10))
+	{
+	  frac = frac * 10. + (fc - '0');
+	  ++frac_count;
+	}
+}
+action add_exp  {
+	if (likely (exp * 10 + (fc - '0') <= MAX_EXP))
+	  exp = exp * 10 + (fc - '0');
+	else
+	  exp_overflow = true;
+}
 
 num = [0-9]+;
 
@@ -90,7 +105,9 @@ strtod_rl (const char *buf, char **end_ptr)
   double frac = 0;
   double frac_count = 0;
   unsigned int exp = 0;
-  bool neg = false, exp_neg = false;
+  bool neg = false, exp_neg = false, exp_overflow = false;
+  const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 1^52-1 */
+  const unsigned int MAX_EXP = 0x7FFu; /* 1^11-1 */
   p = buf;
   pe = p + strlen (p);
 
@@ -108,12 +125,17 @@ strtod_rl (const char *buf, char **end_ptr)
   if (frac_count) value += frac / _pow10 (frac_count);
   if (neg) value *= -1.;
 
+  if (unlikely (exp_overflow))
+  {
+    if (value == 0) return value;
+    if (exp_neg)    return neg ? -DBL_MIN : DBL_MIN;
+    else            return neg ? -DBL_MAX : DBL_MAX;
+  }
+
   if (exp)
   {
-    if (exp_neg)
-      value /= _pow10 (exp);
-    else
-      value *= _pow10 (exp);
+    if (exp_neg) value /= _pow10 (exp);
+    else         value *= _pow10 (exp);
   }
 
   return value;
