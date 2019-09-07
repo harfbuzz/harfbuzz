@@ -30,9 +30,6 @@
 #include "hb-machinery.hh"
 
 #include <locale.h>
-#ifdef HAVE_XLOCALE_H
-#include <xlocale.h>
-#endif
 
 #ifdef HB_NO_SETLOCALE
 #define setlocale(Category, Locale) "C"
