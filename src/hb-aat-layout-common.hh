@@ -678,7 +678,7 @@ struct ObsoleteTypes
 				     const void *base,
 				     const T *array)
   {
-    return (offset - ((const char *) array - (const char *) base)) / sizeof (T);
+    return (offset - ((const char *) array - (const char *) base)) / T::static_size;
   }
   template <typename T>
   static unsigned int byteOffsetToIndex (unsigned int offset,
