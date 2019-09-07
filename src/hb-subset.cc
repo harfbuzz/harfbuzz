@@ -68,7 +68,7 @@ static bool
 _subset2 (hb_subset_plan_t *plan)
 {
   bool result = false;
-  hb_blob_t *source_blob = hb_sanitize_context_t ().reference_table<TableType> (plan->source);
+  hb_blob_reference_t source_blob (hb_sanitize_context_t ().reference_table<TableType> (plan->source));
   const TableType *table = source_blob->as<TableType> ();
 
   hb_tag_t tag = TableType::tableTag;
@@ -82,7 +82,6 @@ _subset2 (hb_subset_plan_t *plan)
     if (unlikely (!buf.alloc (buf_size)))
     {
       DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c failed to allocate %u bytes.", HB_UNTAG (tag), buf_size);
-      hb_blob_destroy (source_blob);
       return false;
     }
   retry:
@@ -97,7 +96,6 @@ _subset2 (hb_subset_plan_t *plan)
       if (unlikely (!buf.alloc (buf_size)))
       {
 	DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c failed to reallocate %u bytes.", HB_UNTAG (tag), buf_size);
-	hb_blob_destroy (source_blob);
 	return false;
       }
       goto retry;
@@ -124,7 +122,6 @@ _subset2 (hb_subset_plan_t *plan)
   else
     DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset sanitize failed on source table.", HB_UNTAG (tag));
 
-  hb_blob_destroy (source_blob);
   DEBUG_MSG(SUBSET, nullptr, "OT::%c%c%c%c::subset %s", HB_UNTAG (tag), result ? "success" : "FAILED!");
   return result;
 }

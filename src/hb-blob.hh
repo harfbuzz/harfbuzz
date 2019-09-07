@@ -69,6 +69,15 @@ struct hb_blob_t
   hb_destroy_func_t destroy;
 };
 
+struct hb_blob_reference_t
+{
+  hb_blob_t *blob;
+  hb_blob_reference_t (hb_blob_t *blob_) : blob (blob_) {}
+  ~hb_blob_reference_t () { hb_blob_destroy (blob); }
+  hb_blob_t *get () { return blob; }
+  hb_blob_t *operator -> () { return blob; }
+};
+
 
 /*
  * hb_blob_ptr_t

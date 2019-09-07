@@ -375,7 +375,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
    * full, PS. All of them point to the same name data with our unique name.
    */
 
-  blob = hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (blob);
+  hb_blob_reference_t blob_ref (hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (blob));
 
   unsigned int length, new_length, name_str_len;
   const char *orig_sfnt_data = hb_blob_get_data (blob, &length);
@@ -392,11 +392,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 
   new_length = name_table_offset + padded_name_table_length;
   void *new_sfnt_data = calloc (1, new_length);
-  if (!new_sfnt_data)
-  {
-    hb_blob_destroy (blob);
-    return nullptr;
-  }
+  if (unlikely (!new_sfnt_data)) return nullptr;
 
   memcpy(new_sfnt_data, orig_sfnt_data, length);
 
@@ -442,7 +438,6 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
     else if (face_index == 0) /* Fail if first face doesn't have 'name' table. */
     {
       free (new_sfnt_data);
-      hb_blob_destroy (blob);
       return nullptr;
     }
   }
@@ -451,7 +446,6 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
    * but that doesn't actually seem to cause any problems so we don't
    * bother. */
 
-  hb_blob_destroy (blob);
   return hb_blob_create ((const char *) new_sfnt_data, new_length,
 			 HB_MEMORY_MODE_WRITABLE, nullptr, free);
 }
