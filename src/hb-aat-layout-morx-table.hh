@@ -1080,9 +1080,11 @@ struct Chain
  * The 'mort'/'morx' Table
  */
 
-template <typename Types>
+template <typename Types, hb_tag_t TAG>
 struct mortmorx
 {
+  static constexpr hb_tag_t tableTag = TAG;
+
   bool has_data () const { return version != 0; }
 
   void compile_flags (const hb_aat_map_builder_t *mapper,
@@ -1141,14 +1143,8 @@ struct mortmorx
   DEFINE_SIZE_MIN (8);
 };
 
-struct morx : mortmorx<ExtendedTypes>
-{
-  static constexpr hb_tag_t tableTag = HB_AAT_TAG_morx;
-};
-struct mort : mortmorx<ObsoleteTypes>
-{
-  static constexpr hb_tag_t tableTag = HB_AAT_TAG_mort;
-};
+struct morx : mortmorx<ExtendedTypes, HB_AAT_TAG_morx> {};
+struct mort : mortmorx<ObsoleteTypes, HB_AAT_TAG_mort> {};
 
 
 } /* namespace AAT */
