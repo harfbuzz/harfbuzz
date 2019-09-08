@@ -69,28 +69,23 @@ main := (
 
 }%%
 
-constexpr double _pow2 (double x) { return x * x; }
-constexpr double _pow10_of_2i (unsigned int n)
-{ return n == 1 ? 10. : _pow2 (_pow10_of_2i (n >> 1)); }
-
-static const double _powers_of_10[] =
-{
-  _pow10_of_2i (0x100),
-  _pow10_of_2i (0x80),
-  _pow10_of_2i (0x40),
-  _pow10_of_2i (0x20),
-  _pow10_of_2i (0x10),
-  _pow10_of_2i (0x8),
-  _pow10_of_2i (0x4),
-  _pow10_of_2i (0x2),
-  _pow10_of_2i (0x1),
-};
-
 /* Works only for n < 512 */
 inline double
 _pow10 (unsigned int exponent)
 {
-  unsigned int mask = 0x100; /* Should be same with the first element  */
+  static const double _powers_of_10[] =
+  {
+    1.0e+256,
+    1.0e+128,
+    1.0e+64,
+    1.0e+32,
+    1.0e+16,
+    1.0e+8,
+    10000.,
+    100.,
+    10.
+  };
+  unsigned int mask = 1 << (ARRAY_LENGTH (_powers_of_10) - 1);
   double result = 1;
   for (const double *power = _powers_of_10; mask; ++power, mask >>= 1)
     if (exponent & mask) result *= *power;

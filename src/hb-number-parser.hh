@@ -96,28 +96,23 @@ static const int double_parser_en_main = 1;
 #line 70 "hb-number-parser.rl"
 
 
-constexpr double _pow2 (double x) { return x * x; }
-constexpr double _pow10_of_2i (unsigned int n)
-{ return n == 1 ? 10. : _pow2 (_pow10_of_2i (n >> 1)); }
-
-static const double _powers_of_10[] =
-{
-  _pow10_of_2i (0x100),
-  _pow10_of_2i (0x80),
-  _pow10_of_2i (0x40),
-  _pow10_of_2i (0x20),
-  _pow10_of_2i (0x10),
-  _pow10_of_2i (0x8),
-  _pow10_of_2i (0x4),
-  _pow10_of_2i (0x2),
-  _pow10_of_2i (0x1),
-};
-
 /* Works only for n < 512 */
 inline double
 _pow10 (unsigned int exponent)
 {
-  unsigned int mask = 0x100; /* Should be same with the first element  */
+  static const double _powers_of_10[] =
+  {
+    1.0e+256,
+    1.0e+128,
+    1.0e+64,
+    1.0e+32,
+    1.0e+16,
+    1.0e+8,
+    10000.,
+    100.,
+    10.
+  };
+  unsigned int mask = 1 << (ARRAY_LENGTH (_powers_of_10) - 1);
   double result = 1;
   for (const double *power = _powers_of_10; mask; ++power, mask >>= 1)
     if (exponent & mask) result *= *power;
@@ -143,12 +138,12 @@ strtod_rl (const char *buf, char **end_ptr)
 
   int cs;
   
-#line 147 "hb-number-parser.hh"
+#line 142 "hb-number-parser.hh"
 	{
 	cs = double_parser_start;
 	}
 
-#line 152 "hb-number-parser.hh"
+#line 147 "hb-number-parser.hh"
 	{
 	int _slen;
 	int _trans;
@@ -206,7 +201,7 @@ _resume:
 	  exp_overflow = true;
 }
 	break;
-#line 210 "hb-number-parser.hh"
+#line 205 "hb-number-parser.hh"
 	}
 
 _again:
@@ -218,7 +213,7 @@ _again:
 	_out: {}
 	}
 
-#line 121 "hb-number-parser.rl"
+#line 116 "hb-number-parser.rl"
 
 
   *end_ptr = (char *) p;
@@ -229,8 +224,8 @@ _again:
   if (unlikely (exp_overflow))
   {
     if (value == 0) return value;
-    if (exp_neg) return neg ? -DBL_MIN : DBL_MIN;
-    else         return neg ? -DBL_MAX : DBL_MAX;
+    if (exp_neg)    return neg ? -DBL_MIN : DBL_MIN;
+    else            return neg ? -DBL_MAX : DBL_MAX;
   }
 
   if (exp)
