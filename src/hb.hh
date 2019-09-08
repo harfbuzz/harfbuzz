@@ -476,7 +476,7 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 /* Size signifying variable-sized array */
 #ifndef HB_VAR_ARRAY
-#define HB_VAR_ARRAY 0
+#define HB_VAR_ARRAY 1
 #endif
 
 static inline double
