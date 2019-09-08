@@ -1083,8 +1083,6 @@ struct Chain
 template <typename Types>
 struct mortmorx
 {
-  static constexpr hb_tag_t tableTag = HB_AAT_TAG_morx;
-
   bool has_data () const { return version != 0; }
 
   void compile_flags (const hb_aat_map_builder_t *mapper,
