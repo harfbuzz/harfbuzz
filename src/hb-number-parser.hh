@@ -97,7 +97,7 @@ static const int double_parser_en_main = 1;
 
 
 /* Works only for n < 512 */
-inline double
+static inline double
 _pow10 (unsigned int exponent)
 {
   static const double _powers_of_10[] =
@@ -119,7 +119,7 @@ _pow10 (unsigned int exponent)
   return result;
 }
 
-inline double
+static inline double
 strtod_rl (const char *buf, char **end_ptr)
 {
   const char *p, *pe;
