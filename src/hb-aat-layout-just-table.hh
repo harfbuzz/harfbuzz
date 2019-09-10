@@ -70,9 +70,9 @@ struct DecompositionAction
 
   ActionSubrecordHeader
 		header;
-  Fixed		lowerLimit; 	/* If the distance factor is less than this value,
+  HBFixed		lowerLimit; 	/* If the distance factor is less than this value,
 				 * then the ligature is decomposed. */
-  Fixed		upperLimit; 	/* If the distance factor is greater than this value,
+  HBFixed		upperLimit; 	/* If the distance factor is greater than this value,
 				 * then the ligature is decomposed. */
   HBUINT16 	order;		/* Numerical order in which this ligature will
 				 * be decomposed; you may want infrequent ligatures
@@ -118,7 +118,7 @@ struct ConditionalAddGlyphAction
   protected:
   ActionSubrecordHeader
 		header;
-  Fixed 	substThreshold; /* Distance growth factor (in ems) at which
+  HBFixed 	substThreshold; /* Distance growth factor (in ems) at which
 				 * this glyph is replaced and the growth factor
 				 * recalculated. */
   GlyphID 	addGlyph; 	/* Glyph to be added as kashida. If this value is
@@ -146,13 +146,13 @@ struct DuctileGlyphAction
   HBUINT32 	variationAxis;	/* The 4-byte tag identifying the ductile axis.
 				 * This would normally be 0x64756374 ('duct'),
 				 * but you may use any axis the font contains. */
-  Fixed 	minimumLimit; 	/* The lowest value for the ductility axis tha
+  HBFixed 	minimumLimit; 	/* The lowest value for the ductility axis tha
 				 * still yields an acceptable appearance. Normally
 				 * this will be 1.0. */
-  Fixed 	noStretchValue; /* This is the default value that corresponds to
+  HBFixed 	noStretchValue; /* This is the default value that corresponds to
 				 * no change in appearance. Normally, this will
 				 * be 1.0. */
-  Fixed 	maximumLimit; 	/* The highest value for the ductility axis that
+  HBFixed 	maximumLimit; 	/* The highest value for the ductility axis that
 				 * still yields an acceptable appearance. */
   public:
   DEFINE_SIZE_STATIC (22);
@@ -271,14 +271,14 @@ struct JustWidthDeltaEntry
   };
 
   protected:
-  Fixed		beforeGrowLimit;/* The ratio by which the advance width of the
+  HBFixed		beforeGrowLimit;/* The ratio by which the advance width of the
 				 * glyph is permitted to grow on the left or top side. */
-  Fixed		beforeShrinkLimit;
+  HBFixed		beforeShrinkLimit;
 				/* The ratio by which the advance width of the
 				 * glyph is permitted to shrink on the left or top side. */
-  Fixed		afterGrowLimit;	/* The ratio by which the advance width of the glyph
+  HBFixed		afterGrowLimit;	/* The ratio by which the advance width of the glyph
 				 * is permitted to shrink on the left or top side. */
-  Fixed		afterShrinkLimit;
+  HBFixed		afterShrinkLimit;
 				/* The ratio by which the advance width of the glyph
 				 * is at most permitted to shrink on the right or
 				 * bottom side. */
