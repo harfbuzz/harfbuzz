@@ -330,6 +330,9 @@ struct name
   DEFINE_SIZE_ARRAY (6, nameRecordZ);
 };
 
+#undef entry_index
+#undef entry_score
+
 struct name_accelerator_t : name::accelerator_t {};
 
 } /* namespace OT */
