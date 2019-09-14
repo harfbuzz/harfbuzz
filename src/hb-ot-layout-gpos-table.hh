@@ -750,7 +750,7 @@ struct PairValueRecord
   friend struct PairSet;
 
   protected:
-  GlyphID	secondGlyph;		/* GlyphID of second glyph in the
+  HBGlyphID	secondGlyph;		/* GlyphID of second glyph in the
 					 * pair--first glyph is listed in the
 					 * Coverage table */
   ValueRecord	values;			/* Positioning data for the first glyph
