@@ -1227,7 +1227,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
  * @glyphs_output: (out): Array of glyphs that would be the substitued output of the lookup
  *
  * Fetches a list of all glyphs affected by the specified lookup in the
- * specified face's GSUB table of GPOS table.
+ * specified face's GSUB table or GPOS table.
  *
  * Since: 0.9.7
  **/
