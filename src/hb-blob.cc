@@ -48,7 +48,6 @@
 #endif /* HAVE_SYS_MMAN_H */
 
 #include <stdio.h>
-#include <errno.h>
 #include <stdlib.h>
 
 

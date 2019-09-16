@@ -180,7 +180,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -355,7 +354,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #    endif
 #    if _WIN32_WCE < 0x800
 #      define HB_NO_SETLOCALE
-static int errno = 0; /* Use something better? */
+#      define HB_NO_ERRNO
 #    endif
 #  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
 #    ifndef HB_NO_GETENV
@@ -369,6 +368,12 @@ static int errno = 0; /* Use something better? */
 
 #ifdef HB_NO_GETENV
 #define getenv(Name) nullptr
+#endif
+
+#ifdef HB_NO_ERRNO
+static int errno = 0; /* Use something better? */
+#else
+#include <errno.h>
 #endif
 
 #if defined(HAVE_ATEXIT) && !defined(HB_USE_ATEXIT)
