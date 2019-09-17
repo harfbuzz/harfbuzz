@@ -14,6 +14,7 @@ EXTRA_DIST += \
 	expected/cff-japanese \
 	expected/layout \
 	expected/layout.gpos \
+	expected/layout.gpos2 \
 	expected/layout.gpos3 \
 	expected/layout.gsub6 \
 	expected/cmap14 \
