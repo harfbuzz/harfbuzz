@@ -381,7 +381,8 @@ hb_language_from_string (const char *str, int len)
 const char *
 hb_language_to_string (hb_language_t language)
 {
-  /* This is actually nullptr-safe! */
+  if (!language) return nullptr;
+
   return language->s;
 }
 
