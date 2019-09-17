@@ -866,7 +866,7 @@ hb_ft_font_set_funcs (hb_font_t *font)
     if (ft_coords)
     {
       for (unsigned int i = 0; i < num_coords; i++)
-	ft_coords[i] = coords[i] << 2;
+	ft_coords[i] = coords[i] * 4;
       FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
       free (ft_coords);
     }
