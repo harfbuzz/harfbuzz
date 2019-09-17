@@ -136,12 +136,17 @@ struct hb_set_t
       unsigned int j = m & ELT_MASK;
 
       const elt_t vv = v[i] & ((elt_t (1) << (j + 1)) - 1);
-      for (const elt_t *p = &vv; (int) i >= 0; p = &v[--i])
+      const elt_t *p = &vv;
+      while (true)
+      {
 	if (*p)
 	{
 	  *codepoint = i * ELT_BITS + elt_get_max (*p);
 	  return true;
 	}
+	if ((int) i <= 0) break;
+	p = &v[--i];
+      }
 
       *codepoint = INVALID;
       return false;
