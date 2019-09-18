@@ -191,7 +191,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 	  feature_infos[j].max_value = feature_infos[i].max_value;
 	  feature_infos[j].default_value = feature_infos[i].default_value;
 	} else {
-	  feature_infos[j].flags &= ~F_GLOBAL;
+	  if (feature_infos[j].flags & F_GLOBAL)
+	    feature_infos[j].flags ^= F_GLOBAL;
 	  feature_infos[j].max_value = hb_max (feature_infos[j].max_value, feature_infos[i].max_value);
 	  /* Inherit default_value from j */
 	}
