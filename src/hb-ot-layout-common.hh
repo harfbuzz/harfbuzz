@@ -2057,6 +2057,8 @@ struct HintingDevice
   hb_position_t get_y_delta (hb_font_t *font) const
   { return get_delta (font->y_ppem, font->y_scale); }
 
+  public:
+
   unsigned int get_size () const
   {
     unsigned int f = deltaFormat;
@@ -2068,6 +2070,12 @@ struct HintingDevice
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && c->check_range (this, this->get_size ()));
+  }
+
+  HintingDevice* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed<HintingDevice> (this));
   }
 
   private:
@@ -2130,6 +2138,12 @@ struct VariationDevice
 
   hb_position_t get_y_delta (hb_font_t *font, const VariationStore &store) const
   { return font->em_scalef_y (get_delta (font, store)); }
+
+  VariationDevice* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed<VariationDevice> (this));
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -2213,6 +2227,25 @@ struct Device
 #endif
     default:
       return_trace (true);
+    }
+  }
+
+  Device* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    switch (u.b.format) {
+#ifndef HB_NO_HINTING
+    case 1:
+    case 2:
+    case 3:
+      return_trace (reinterpret_cast<Device *> (u.hinting.copy (c)));
+#endif
+#ifndef HB_NO_VAR
+    case 0x8000:
+      return_trace (reinterpret_cast<Device *> (u.variation.copy (c)));
+#endif
+    default:
+      return_trace (nullptr);
     }
   }
 
