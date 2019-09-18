@@ -381,7 +381,7 @@ hb_language_from_string (const char *str, int len)
 const char *
 hb_language_to_string (hb_language_t language)
 {
-  if (!language) return nullptr;
+  if (unlikely (!language)) return nullptr;
 
   return language->s;
 }
