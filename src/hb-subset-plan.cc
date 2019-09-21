@@ -39,7 +39,7 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 		       hb_codepoint_t gid,
 		       hb_set_t *gids_to_retain)
 {
-  if (hb_set_has (gids_to_retain, gid))
+  if (gids_to_retain->has (gid))
     // Already visited this gid, ignore.
     return;
 
