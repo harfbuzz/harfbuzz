@@ -698,7 +698,7 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
 		  | hb_apply ([&] (const unsigned addcnt)
 			      {
 				unsigned curEntry = (unsigned)_.startUnicodeValue + addcnt;
-				if (!hb_set_has (unicodes, curEntry)) return;
+				if (!unicodes->has (curEntry)) return;
 				count += 1;
 				if (lastCode == HB_MAP_VALUE_INVALID)
 				{
@@ -792,7 +792,7 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
     + as_array ()
     | hb_filter ([&] (const UVSMapping& _)
 		 {
-		   return hb_set_has (unicodes, _.unicodeValue) || hb_set_has (glyphs, _.glyphID);
+		   return unicodes->has (_.unicodeValue) || glyphs->has (_.glyphID);
 		 })
     ;
 
