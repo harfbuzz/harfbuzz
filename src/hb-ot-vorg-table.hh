@@ -84,7 +84,7 @@ struct VORG
     this->defaultVertOriginY = defaultVertOriginY;
     this->vertYOrigins.len = it.len ();
 
-    for (const VertOriginMetric& _ : it)
+    for (const VertOriginMetric _ : it)
       c->copy (_);
   }
 
