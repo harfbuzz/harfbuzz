@@ -84,9 +84,8 @@ struct VORG
     this->defaultVertOriginY = defaultVertOriginY;
     this->vertYOrigins.len = it.len ();
 
-    + it
-    | hb_apply ([c] (const VertOriginMetric& _) { c->copy (_); })
-    ;
+    for (const VertOriginMetric& _ : it)
+      c->copy (_);
   }
 
   bool subset (hb_subset_context_t *c) const

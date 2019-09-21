@@ -144,9 +144,8 @@ struct glyf
   {
     TRACE_SERIALIZE (this);
 
-    + it
-    | hb_apply ([=] (const SubsetGlyph& _) { _.serialize (c, plan); })
-    ;
+    for (const SubsetGlyph& _ : it)
+      _.serialize (c, plan);
 
     return_trace (true);
   }

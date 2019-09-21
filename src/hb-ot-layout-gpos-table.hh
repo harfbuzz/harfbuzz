@@ -512,9 +512,8 @@ struct SinglePosFormat1
 
     auto vals = hb_second (*it);
 
-    + vals
-    | hb_apply ([=] (const Value& _) { c->copy (_); })
-    ;
+    for (const Value& _ : vals)
+      c->copy (_);
 
     auto glyphs =
     + it
@@ -601,15 +600,10 @@ struct SinglePosFormat2
     if (unlikely (!c->check_assign (valueFormat, valFormat))) return;
     if (unlikely (!c->check_assign (valueCount, it.len ()))) return;
 
-    + it
-    | hb_map (hb_second)
-    | hb_apply ([=] (hb_array_t<const Value> val_iter)
-		{
-		  + val_iter
-		  | hb_apply ([=] (const Value& _) { c->copy (_); })
-		  ;
-		})
-    ;
+    for (hb_array_t<const Value> val_iter : + it
+					    | hb_map (hb_second))
+      for (const Value& _ : val_iter)
+	c->copy (_);
 
     auto glyphs =
     + it
@@ -675,22 +669,14 @@ struct SinglePos
     unsigned subset_format = 1;
     hb_array_t<const Value> first_val_iter = hb_second (*glyph_val_iter_pairs);
 
-    + glyph_val_iter_pairs
-    | hb_map (hb_second)
-    | hb_apply ([&] (hb_array_t<const Value> val_iter)
-		{
-		  + hb_zip (val_iter, first_val_iter)
-		  | hb_apply ([&] (const hb_pair_t<Value, Value>& _)
-			      {
-				if (_.first != _.second)
-				{
-				  subset_format = 2;
-				  return;
-				}
-			      })
-		  ;
-		})
-    ;
+    for (hb_array_t<const Value> val_iter : + glyph_val_iter_pairs
+					    | hb_map (hb_second))
+      for (const hb_pair_t<Value, Value>& _ : hb_zip (val_iter, first_val_iter))
+	if (_.first != _.second)
+	{
+	  subset_format = 2;
+	  continue;
+	}
 
     return subset_format;
   }
