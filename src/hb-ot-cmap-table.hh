@@ -83,18 +83,16 @@ struct CmapSubtableFormat4
     HBUINT16 *endCode = c->start_embed<HBUINT16> ();
     hb_codepoint_t prev_endcp = 0xFFFF;
 
-    + it
-    | hb_apply ([&] (const hb_item_type<Iterator> _)
-		{
-		  if (prev_endcp != 0xFFFF && prev_endcp + 1u != _.first)
-		  {
-		    HBUINT16 end_code;
-		    end_code = prev_endcp;
-		    c->copy<HBUINT16> (end_code);
-		  }
-		  prev_endcp = _.first;
-		})
-    ;
+    for (const hb_item_type<Iterator> _ : +it)
+    {
+      if (prev_endcp != 0xFFFF && prev_endcp + 1u != _.first)
+      {
+	HBUINT16 end_code;
+	end_code = prev_endcp;
+	c->copy<HBUINT16> (end_code);
+      }
+      prev_endcp = _.first;
+    }
 
     {
       // last endCode
@@ -121,19 +119,17 @@ struct CmapSubtableFormat4
     HBUINT16 *startCode = c->start_embed<HBUINT16> ();
     hb_codepoint_t prev_cp = 0xFFFF;
 
-    + it
-    | hb_apply ([&] (const hb_item_type<Iterator> _)
-		{
-		  if (prev_cp == 0xFFFF || prev_cp + 1u != _.first)
-		  {
-		    HBUINT16 start_code;
-		    start_code = _.first;
-		    c->copy<HBUINT16> (start_code);
-		  }
+    for (const hb_item_type<Iterator> _ : +it)
+    {
+      if (prev_cp == 0xFFFF || prev_cp + 1u != _.first)
+      {
+        HBUINT16 start_code;
+        start_code = _.first;
+        c->copy<HBUINT16> (start_code);
+      }
 
-		  prev_cp = _.first;
-		})
-    ;
+      prev_cp = _.first;
+    }
 
     // There must be a final entry with end_code == 0xFFFF.
     if (it.len () == 0 || prev_cp != 0xFFFF)
@@ -162,30 +158,28 @@ struct CmapSubtableFormat4
     if ((char *)idDelta - (char *)startCode != (int) segcount * (int) HBINT16::static_size)
       return nullptr;
 
-    + it
-    | hb_apply ([&] (const hb_item_type<Iterator> _)
-		{
-		  if (_.first == startCode[i])
-		  {
-		    use_delta = true;
-		    start_gid = _.second;
-		  }
-		  else if (_.second != last_gid + 1) use_delta = false;
+    for (const hb_item_type<Iterator> _ : +it)
+    {
+      if (_.first == startCode[i])
+      {
+	use_delta = true;
+	start_gid = _.second;
+      }
+      else if (_.second != last_gid + 1) use_delta = false;
 
-		  if (_.first == endCode[i])
-		  {
-		    HBINT16 delta;
-		    if (use_delta) delta = (int)start_gid - (int)startCode[i];
-		    else delta = 0;
-		    c->copy<HBINT16> (delta);
+      if (_.first == endCode[i])
+      {
+	HBINT16 delta;
+	if (use_delta) delta = (int)start_gid - (int)startCode[i];
+	else delta = 0;
+	c->copy<HBINT16> (delta);
 
-		    i++;
-		  }
+	i++;
+      }
 
-		  last_gid = _.second;
-		  last_cp = _.first;
-		})
-    ;
+      last_gid = _.second;
+      last_cp = _.first;
+    }
 
     if (it.len () == 0 || last_cp != 0xFFFF)
     {
@@ -599,33 +593,29 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
     hb_codepoint_t startCharCode = 0xFFFF, endCharCode = 0xFFFF;
     hb_codepoint_t glyphID = 0;
 
-    + it
-    | hb_apply ([&] (const hb_item_type<Iterator> _)
-	      {
-		if (startCharCode == 0xFFFF)
-		{
-		  startCharCode = _.first;
-		  endCharCode = _.first;
-		  glyphID = _.second;
-		}
-		else if (!_is_gid_consecutive (endCharCode, startCharCode, glyphID, _.first, _.second))
-		{
-		  CmapSubtableLongGroup  grouprecord;
-		  grouprecord.startCharCode = startCharCode;
-		  grouprecord.endCharCode = endCharCode;
-		  grouprecord.glyphID = glyphID;
-		  c->copy<CmapSubtableLongGroup> (grouprecord);
+    for (const hb_item_type<Iterator> _ : +it)
+    {
+      if (startCharCode == 0xFFFF)
+      {
+	startCharCode = _.first;
+	endCharCode = _.first;
+	glyphID = _.second;
+      }
+      else if (!_is_gid_consecutive (endCharCode, startCharCode, glyphID, _.first, _.second))
+      {
+	CmapSubtableLongGroup  grouprecord;
+	grouprecord.startCharCode = startCharCode;
+	grouprecord.endCharCode = endCharCode;
+	grouprecord.glyphID = glyphID;
+	c->copy<CmapSubtableLongGroup> (grouprecord);
 
-		  startCharCode = _.first;
-		  endCharCode = _.first;
-		  glyphID = _.second;
-		}
-		else
-		{
-		  endCharCode = _.first;
-		}
-	      })
-    ;
+	startCharCode = _.first;
+	endCharCode = _.first;
+	glyphID = _.second;
+      }
+      else
+	endCharCode = _.first;
+    }
 
     CmapSubtableLongGroup record;
     record.startCharCode = startCharCode;
