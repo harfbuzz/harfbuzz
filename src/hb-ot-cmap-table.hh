@@ -334,9 +334,7 @@ struct CmapSubtableFormat4
       return true;
     }
     HB_INTERNAL static bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
-    {
-      return ((const accelerator_t *) obj)->get_glyph (codepoint, glyph);
-    }
+    { return ((const accelerator_t *) obj)->get_glyph (codepoint, glyph); }
     void collect_unicodes (hb_set_t *out) const
     {
       unsigned int count = this->segCount;
@@ -609,11 +607,9 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
   }
 
   static size_t get_sub_table_size (const hb_sorted_vector_t<CmapSubtableLongGroup> &groups_data)
-  {
-    return 16 + 12 * groups_data.length;
-  }
+  { return 16 + 12 * groups_data.length; }
 
- private:
+  private:
   static bool _is_gid_consecutive (hb_codepoint_t endCharCode,
 				   hb_codepoint_t startCharCode,
 				   hb_codepoint_t glyphID,
@@ -843,9 +839,7 @@ struct VariationSelectorRecord
   }
 
   int cmp (const hb_codepoint_t &variation_selector) const
-  {
-    return varSelector.cmp (variation_selector);
-  }
+  { return varSelector.cmp (variation_selector); }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -915,9 +909,7 @@ struct CmapSubtableFormat14
   glyph_variant_t get_glyph_variant (hb_codepoint_t codepoint,
 				     hb_codepoint_t variation_selector,
 				     hb_codepoint_t *glyph) const
-  {
-    return record.bsearch (variation_selector).get_glyph (codepoint, glyph, this);
-  }
+  { return record.bsearch (variation_selector).get_glyph (codepoint, glyph, this); }
 
   void collect_variation_selectors (hb_set_t *out) const
   {
@@ -927,9 +919,7 @@ struct CmapSubtableFormat14
   }
   void collect_variation_unicodes (hb_codepoint_t variation_selector,
 				   hb_set_t *out) const
-  {
-    record.bsearch (variation_selector).collect_unicodes (out, this);
-  }
+  { record.bsearch (variation_selector).collect_unicodes (out, this); }
 
   void serialize (hb_serialize_context_t *c,
 		  const hb_set_t *unicodes,
@@ -1237,15 +1227,13 @@ struct cmap
     auto it =
     + hb_iter (c->plan->unicodes)
     | hb_map ([&] (hb_codepoint_t _)
-		 {
-		   hb_codepoint_t new_gid = HB_MAP_VALUE_INVALID;
-		   c->plan->new_gid_for_codepoint (_, &new_gid);
-		   return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, new_gid);
-		 })
-    | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
 	      {
-		return (_.second != HB_MAP_VALUE_INVALID);
+		hb_codepoint_t new_gid = HB_MAP_VALUE_INVALID;
+		c->plan->new_gid_for_codepoint (_, &new_gid);
+		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, new_gid);
 	      })
+    | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
+		 { return (_.second != HB_MAP_VALUE_INVALID); })
     ;
 
     cmap_prime->serialize (c->serializer, it, encodingrec_iter, this, c->plan);
@@ -1299,9 +1287,9 @@ struct cmap
 
       this->get_glyph_data = subtable;
       if (unlikely (symbol))
-      {
 	this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable>;
-      } else {
+      else
+      {
 	switch (subtable->u.format) {
 	/* Accelerate format 4 and format 12. */
 	default:
@@ -1311,12 +1299,12 @@ struct cmap
 	  this->get_glyph_funcZ = get_glyph_from<CmapSubtableFormat12>;
 	  break;
 	case  4:
-	  {
-	    this->format4_accel.init (&subtable->u.format4);
-	    this->get_glyph_data = &this->format4_accel;
-	    this->get_glyph_funcZ = this->format4_accel.get_glyph_func;
-	  }
+	{
+	  this->format4_accel.init (&subtable->u.format4);
+	  this->get_glyph_data = &this->format4_accel;
+	  this->get_glyph_funcZ = this->format4_accel.get_glyph_func;
 	  break;
+	}
 	}
       }
     }
@@ -1324,7 +1312,7 @@ struct cmap
     void fini () { this->table.destroy (); }
 
     bool get_nominal_glyph (hb_codepoint_t  unicode,
-				   hb_codepoint_t *glyph) const
+			    hb_codepoint_t *glyph) const
     {
       if (unlikely (!this->get_glyph_funcZ)) return false;
       return this->get_glyph_funcZ (this->get_glyph_data, unicode, glyph);
@@ -1368,18 +1356,12 @@ struct cmap
     }
 
     void collect_unicodes (hb_set_t *out) const
-    {
-      subtable->collect_unicodes (out);
-    }
+    { subtable->collect_unicodes (out); }
     void collect_variation_selectors (hb_set_t *out) const
-    {
-      subtable_uvs->collect_variation_selectors (out);
-    }
+    { subtable_uvs->collect_variation_selectors (out); }
     void collect_variation_unicodes (hb_codepoint_t variation_selector,
 				     hb_set_t *out) const
-    {
-      subtable_uvs->collect_variation_unicodes (variation_selector, out);
-    }
+    { subtable_uvs->collect_variation_unicodes (variation_selector, out); }
 
     protected:
     typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
