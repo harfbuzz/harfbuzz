@@ -671,7 +671,7 @@ struct SinglePos
 
     for (hb_array_t<const Value> val_iter : + glyph_val_iter_pairs
 					    | hb_map (hb_second))
-      for (const hb_pair_t<Value, Value>& _ : hb_zip (val_iter, first_val_iter))
+      for (const hb_pair_t<Value, Value> _ : hb_zip (val_iter, first_val_iter))
 	if (_.first != _.second)
 	{
 	  subset_format = 2;
