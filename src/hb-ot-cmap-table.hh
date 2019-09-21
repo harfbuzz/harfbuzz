@@ -687,32 +687,27 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
     hb_codepoint_t lastCode = HB_MAP_VALUE_INVALID;
     int count = -1;
 
-    + as_array ()
-    | hb_apply ([&] (const UnicodeValueRange& _)
-		{
-		  + hb_range ((unsigned)_.additionalCount + 1)
-		  | hb_apply ([&] (const unsigned addcnt)
-			      {
-				unsigned curEntry = (unsigned)_.startUnicodeValue + addcnt;
-				if (!unicodes->has (curEntry)) return;
-				count += 1;
-				if (lastCode == HB_MAP_VALUE_INVALID)
-				{
-				  lastCode = curEntry;
-				} else if (lastCode + count != curEntry)
-				{
-				  UnicodeValueRange rec;
-				  rec.startUnicodeValue = lastCode;
-				  rec.additionalCount = count - 1;
-				  c->copy<UnicodeValueRange> (rec);
+    for (const UnicodeValueRange& _ : as_array ())
+    {
+      for (const unsigned addcnt : hb_range ((unsigned) _.additionalCount + 1))
+      {
+	unsigned curEntry = (unsigned) _.startUnicodeValue + addcnt;
+	if (!unicodes->has (curEntry)) continue;
+	count += 1;
+	if (lastCode == HB_MAP_VALUE_INVALID)
+	  lastCode = curEntry;
+	else if (lastCode + count != curEntry)
+	{
+	  UnicodeValueRange rec;
+	  rec.startUnicodeValue = lastCode;
+	  rec.additionalCount = count - 1;
+	  c->copy<UnicodeValueRange> (rec);
 
-				  lastCode = curEntry;
-				  count = 0;
-				}
-			      })
-		  ;
-		})
-    ;
+	  lastCode = curEntry;
+	  count = 0;
+	}
+      }
+    }
 
     if (lastCode != HB_MAP_VALUE_INVALID)
     {
@@ -798,15 +793,13 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
     len = it.len ();
     if (unlikely (!c->copy<HBUINT32> (len))) return nullptr;
 
-    + it
-    | hb_apply ([&] (const UVSMapping& _)
-		{
-		  UVSMapping mapping;
-		  mapping.unicodeValue = _.unicodeValue;
-		  mapping.glyphID = glyph_map->get (_.glyphID);
-		  c->copy<UVSMapping> (mapping);
-		})
-    ;
+    for (const UVSMapping& _ : it)
+    {
+      UVSMapping mapping;
+      mapping.unicodeValue = _.unicodeValue;
+      mapping.glyphID = glyph_map->get (_.glyphID);
+      c->copy<UVSMapping> (mapping);
+    }
 
     return out;
   }
@@ -935,17 +928,11 @@ struct CmapSubtableFormat14
     this->format = 14;
 
     const CmapSubtableFormat14 *src_tbl = reinterpret_cast<const CmapSubtableFormat14*> (src_base);
-    + hb_iter (src_tbl->record)
-    | hb_apply ([&] (const VariationSelectorRecord& _)
-		{
-		  c->copy (_, unicodes, glyphs, glyph_map, src_base, this);
-		})
-    ;
+    for (const VariationSelectorRecord& _ : src_tbl->record)
+      c->copy (_, unicodes, glyphs, glyph_map, src_base, this);
 
-    if (c->length () - table_initpos ==  CmapSubtableFormat14::min_size)
-    {
+    if (c->length () - table_initpos == CmapSubtableFormat14::min_size)
       c->revert (snap);
-    }
     else
     {
       int tail_len = init_tail - c->tail;
@@ -1141,16 +1128,14 @@ struct cmap
 
     unsigned format4objidx = 0, format12objidx = 0, format14objidx = 0;
 
-    + encodingrec_iter
-    | hb_apply ([&] (const EncodingRecord& _)
-		{
-		  unsigned format = (src_base+_.subtable).u.format;
+    for (const EncodingRecord& _ : encodingrec_iter)
+    {
+      unsigned format = (src_base+_.subtable).u.format;
 
-		  if (format == 4) c->copy (_, it, 4u, src_base, this, plan, &format4objidx);
-		  else if (format == 12) c->copy (_, it, 12u, src_base, this, plan, &format12objidx);
-		  else if (format == 14) c->copy (_, it, 14u, src_base, this, plan, &format14objidx);
-		})
-    ;
+      if (format == 4) c->copy (_, it, 4u, src_base, this, plan, &format4objidx);
+      else if (format == 12) c->copy (_, it, 12u, src_base, this, plan, &format12objidx);
+      else if (format == 14) c->copy (_, it, 14u, src_base, this, plan, &format14objidx);
+    }
 
     c->check_assign(this->encodingRecord.len, (c->length () - cmap::min_size)/EncodingRecord::static_size);
   }
@@ -1176,50 +1161,36 @@ struct cmap
     auto encodingrec_iter =
     + hb_iter (encodingRecord)
     | hb_filter ([&] (const EncodingRecord& _)
-	      {
-		if ((_.platformID == 0 && _.encodingID == 3) ||
-		   (_.platformID == 0 && _.encodingID == 4) ||
-		   (_.platformID == 3 && _.encodingID == 1) ||
-		   (_.platformID == 3 && _.encodingID == 10) ||
-		   (this + _.subtable).u.format == 14)
-		  return true;
+		{
+		  if ((_.platformID == 0 && _.encodingID == 3) ||
+		      (_.platformID == 0 && _.encodingID == 4) ||
+		      (_.platformID == 3 && _.encodingID == 1) ||
+		      (_.platformID == 3 && _.encodingID == 10) ||
+		      (this + _.subtable).u.format == 14)
+		    return true;
 
-		return false;
-	      })
+		  return false;
+	        })
     ;
 
 
     if (unlikely (!encodingrec_iter.len ())) return_trace (false);
 
     const EncodingRecord *unicode_bmp= nullptr, *unicode_ucs4 = nullptr, *ms_bmp = nullptr, *ms_ucs4 = nullptr;
-    bool has_format12 = false, has_format14 = false;
+    bool has_format12 = false, HB_UNUSED has_format14 = false;
 
-    + encodingrec_iter
-    | hb_apply ([&] (const EncodingRecord& _)
-	      {
-		unsigned format = (this + _.subtable).u.format;
-		if (format == 12) has_format12 = true;
-		if (format == 14) has_format14 = true;
+    for (const EncodingRecord& _ : encodingrec_iter)
+    {
+      unsigned format = (this + _.subtable).u.format;
+      if (format == 12) has_format12 = true;
+      if (format == 14) has_format14 = true;
 
-		const EncodingRecord *table = hb_addressof (_);
-		if (_.platformID == 0 && _.encodingID == 3)
-		{
-		  unicode_bmp = table;
-		}
-		else if (_.platformID == 0 && _.encodingID == 4)
-		{
-		  unicode_ucs4 = table;
-		}
-		else if (_.platformID == 3 && _.encodingID == 1)
-		{
-		  ms_bmp = table;
-		}
-		else if (_.platformID == 3 && _.encodingID == 10)
-		{
-		  ms_ucs4 = table;
-		}
-	      })
-    ;
+      const EncodingRecord *table = hb_addressof (_);
+      if (_.platformID == 0 && _.encodingID == 3)       unicode_bmp = table;
+      else if (_.platformID == 0 && _.encodingID == 4)  unicode_ucs4 = table;
+      else if (_.platformID == 3 && _.encodingID == 1)  ms_bmp = table;
+      else if (_.platformID == 3 && _.encodingID == 10) ms_ucs4 = table;
+    }
 
     if (unlikely (!unicode_bmp && !ms_bmp)) return_trace (false);
     if (unlikely (has_format12 && (!unicode_ucs4 && !ms_ucs4))) return_trace (false);
