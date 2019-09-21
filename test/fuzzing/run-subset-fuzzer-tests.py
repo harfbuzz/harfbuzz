@@ -39,7 +39,12 @@ def cmd(command):
 			timer.start()
 			p.wait ()
 			tempf.seek (0)
-			text = tempf.read().decode ("utf-8").strip ()
+			text = tempf.read ()
+
+			#TODO: Detect debug mode with a better way
+			is_debug_mode = b"SANITIZE" in text
+
+			text = "" if is_debug_mode else text.decode ("utf-8").strip ()
 			returncode = p.returncode
 		finally:
 			timer.cancel()
