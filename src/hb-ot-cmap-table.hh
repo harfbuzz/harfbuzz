@@ -677,7 +677,7 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
   }
 
   DefaultUVS* copy (hb_serialize_context_t *c,
-                    const hb_set_t *unicodes) const
+		    const hb_set_t *unicodes) const
   {
     DefaultUVS *out = c->start_embed<DefaultUVS> ();
     if (unlikely (!out)) return nullptr;
@@ -693,29 +693,29 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
 
     + as_array ()
     | hb_apply ([&] (const UnicodeValueRange& _)
-                {
-                  + hb_range ((unsigned)_.additionalCount + 1)
-                  | hb_apply ([&] (const unsigned addcnt)
-                              {
-                                unsigned curEntry = (unsigned)_.startUnicodeValue + addcnt;
-                                if (!hb_set_has (unicodes, curEntry)) return;
-                                count += 1;
-                                if (lastCode == HB_MAP_VALUE_INVALID)
-                                {
-                                  lastCode = curEntry;
-                                } else if (lastCode + count != curEntry)
-                                {
-                                  UnicodeValueRange rec;
-                                  rec.startUnicodeValue = lastCode;
-                                  rec.additionalCount = count - 1;
-                                  c->copy<UnicodeValueRange> (rec);
-  
-                                  lastCode = curEntry;
-                                  count = 0;
-                                }
-                              })
-                  ;
-                })
+		{
+		  + hb_range ((unsigned)_.additionalCount + 1)
+		  | hb_apply ([&] (const unsigned addcnt)
+			      {
+				unsigned curEntry = (unsigned)_.startUnicodeValue + addcnt;
+				if (!hb_set_has (unicodes, curEntry)) return;
+				count += 1;
+				if (lastCode == HB_MAP_VALUE_INVALID)
+				{
+				  lastCode = curEntry;
+				} else if (lastCode + count != curEntry)
+				{
+				  UnicodeValueRange rec;
+				  rec.startUnicodeValue = lastCode;
+				  rec.additionalCount = count - 1;
+				  c->copy<UnicodeValueRange> (rec);
+
+				  lastCode = curEntry;
+				  count = 0;
+				}
+			      })
+		  ;
+		})
     ;
 
     if (lastCode != HB_MAP_VALUE_INVALID)
@@ -771,7 +771,7 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
   }
 
   void closure_glyphs (const hb_set_t      *unicodes,
-                       hb_set_t            *glyphset) const
+		       hb_set_t            *glyphset) const
   {
     + as_array ()
     | hb_filter (unicodes, &UVSMapping::unicodeValue)
@@ -781,9 +781,9 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
   }
 
   NonDefaultUVS* copy (hb_serialize_context_t *c,
-                       const hb_set_t *unicodes,
-                       const hb_set_t *glyphs,
-                       const hb_map_t *glyph_map) const
+		       const hb_set_t *unicodes,
+		       const hb_set_t *glyphs,
+		       const hb_map_t *glyph_map) const
   {
     NonDefaultUVS *out = c->start_embed<NonDefaultUVS> ();
     if (unlikely (!out)) return nullptr;
@@ -791,9 +791,9 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
     auto it =
     + as_array ()
     | hb_filter ([&] (const UVSMapping& _)
-                 {
-                   return hb_set_has (unicodes, _.unicodeValue) || hb_set_has (glyphs, _.glyphID);
-                 })
+		 {
+		   return hb_set_has (unicodes, _.unicodeValue) || hb_set_has (glyphs, _.glyphID);
+		 })
     ;
 
     if (!it) return nullptr;
@@ -804,12 +804,12 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
 
     + it
     | hb_apply ([&] (const UVSMapping& _)
-                {
-                  UVSMapping mapping;
-                  mapping.unicodeValue = _.unicodeValue;
-                  mapping.glyphID = glyph_map->get (_.glyphID);
-                  c->copy<UVSMapping> (mapping);
-                })
+		{
+		  UVSMapping mapping;
+		  mapping.unicodeValue = _.unicodeValue;
+		  mapping.glyphID = glyph_map->get (_.glyphID);
+		  c->copy<UVSMapping> (mapping);
+		})
     ;
 
     return out;
@@ -856,16 +856,16 @@ struct VariationSelectorRecord
   }
 
   VariationSelectorRecord* copy (hb_serialize_context_t *c,
-                                 const hb_set_t *unicodes,
-                                 const hb_set_t *glyphs,
-                                 const hb_map_t *glyph_map,
-                                 const void *src_base,
-                                 const void *dst_base) const
+				 const hb_set_t *unicodes,
+				 const hb_set_t *glyphs,
+				 const hb_map_t *glyph_map,
+				 const void *src_base,
+				 const void *dst_base) const
   {
     auto snap = c->snapshot ();
     auto *out = c->embed<VariationSelectorRecord> (*this);
     if (unlikely (!out)) return nullptr;
-    
+
     out->defaultUVS = 0;
     out->nonDefaultUVS = 0;
 
@@ -876,8 +876,8 @@ struct VariationSelectorRecord
       c->push ();
       if (c->copy (src_base+defaultUVS, unicodes))
       {
-        c->add_link (out->defaultUVS, c->pop_pack (), dst_base);
-        drop = false;
+	c->add_link (out->defaultUVS, c->pop_pack (), dst_base);
+	drop = false;
       }
       else c->pop_discard ();
     }
@@ -887,8 +887,8 @@ struct VariationSelectorRecord
       c->push ();
       if (c->copy (src_base+nonDefaultUVS, unicodes, glyphs, glyph_map))
       {
-        c->add_link (out->nonDefaultUVS, c->pop_pack (), dst_base);
-        drop = false;
+	c->add_link (out->nonDefaultUVS, c->pop_pack (), dst_base);
+	drop = false;
       }
       else c->pop_discard ();
     }
@@ -932,10 +932,10 @@ struct CmapSubtableFormat14
   }
 
   void serialize (hb_serialize_context_t *c,
-                  const hb_set_t *unicodes,
-                  const hb_set_t *glyphs,
-                  const hb_map_t *glyph_map,
-                  const void *src_base)
+		  const hb_set_t *unicodes,
+		  const hb_set_t *glyphs,
+		  const hb_map_t *glyph_map,
+		  const void *src_base)
   {
     auto snap = c->snapshot ();
     unsigned table_initpos = c->length ();
@@ -947,9 +947,9 @@ struct CmapSubtableFormat14
     const CmapSubtableFormat14 *src_tbl = reinterpret_cast<const CmapSubtableFormat14*> (src_base);
     + hb_iter (src_tbl->record)
     | hb_apply ([&] (const VariationSelectorRecord& _)
-                {
-                  c->copy (_, unicodes, glyphs, glyph_map, src_base, this);
-                })
+		{
+		  c->copy (_, unicodes, glyphs, glyph_map, src_base, this);
+		})
     ;
 
     if (c->length () - table_initpos ==  CmapSubtableFormat14::min_size)
@@ -965,7 +965,7 @@ struct CmapSubtableFormat14
   }
 
   void closure_glyphs (const hb_set_t      *unicodes,
-                       hb_set_t            *glyphset) const
+		       hb_set_t            *glyphset) const
   {
     + hb_iter (record)
     | hb_filter (hb_bool, &VariationSelectorRecord::nonDefaultUVS)
@@ -1028,9 +1028,9 @@ struct CmapSubtable
 	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it,
-                  unsigned format,
-                  const hb_subset_plan_t *plan,
-                  const void *src_base)
+		  unsigned format,
+		  const hb_subset_plan_t *plan,
+		  const void *src_base)
   {
     switch (format) {
     case  4: u.format4.serialize (c, it);  return;
@@ -1094,12 +1094,12 @@ struct EncodingRecord
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
   EncodingRecord* copy (hb_serialize_context_t *c,
-                        Iterator it,
-                        unsigned format,
-                        const void *src_base,
-                        const void *dst_base,
-                        const hb_subset_plan_t *plan,
-                        /* INOUT */ unsigned *objidx) const
+			Iterator it,
+			unsigned format,
+			const void *src_base,
+			const void *dst_base,
+			const hb_subset_plan_t *plan,
+			/* INOUT */ unsigned *objidx) const
   {
     TRACE_SERIALIZE (this);
     auto snap = c->snapshot ();
@@ -1121,7 +1121,7 @@ struct EncodingRecord
       c->revert (snap);
       return_trace (nullptr);
     }
-    
+
     c->add_link (out->subtable, *objidx, dst_base);
     return_trace (out);
   }
@@ -1139,12 +1139,12 @@ struct cmap
   static constexpr hb_tag_t tableTag = HB_OT_TAG_cmap;
 
   template<typename Iterator, typename EncodingRecIter,
-           hb_requires (hb_is_iterator (Iterator))>
+	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
-                  Iterator it,
-                  EncodingRecIter encodingrec_iter,
-                  const void *src_base,
-                  const hb_subset_plan_t *plan)
+		  Iterator it,
+		  EncodingRecIter encodingrec_iter,
+		  const void *src_base,
+		  const hb_subset_plan_t *plan)
   {
     if (unlikely (!c->extend_min ((*this))))  return;
     this->version = 0;
@@ -1153,20 +1153,20 @@ struct cmap
 
     + encodingrec_iter
     | hb_apply ([&] (const EncodingRecord& _)
-                {
-                  unsigned format = (src_base+_.subtable).u.format;
+		{
+		  unsigned format = (src_base+_.subtable).u.format;
 
-                  if (format == 4) c->copy (_, it, 4u, src_base, this, plan, &format4objidx);
-                  else if (format == 12) c->copy (_, it, 12u, src_base, this, plan, &format12objidx);
-                  else if (format == 14) c->copy (_, it, 14u, src_base, this, plan, &format14objidx);
-                })
+		  if (format == 4) c->copy (_, it, 4u, src_base, this, plan, &format4objidx);
+		  else if (format == 12) c->copy (_, it, 12u, src_base, this, plan, &format12objidx);
+		  else if (format == 14) c->copy (_, it, 14u, src_base, this, plan, &format14objidx);
+		})
     ;
 
     c->check_assign(this->encodingRecord.len, (c->length () - cmap::min_size)/EncodingRecord::static_size);
   }
 
   void closure_glyphs (const hb_set_t      *unicodes,
-                       hb_set_t            *glyphset) const
+		       hb_set_t            *glyphset) const
   {
     + hb_iter (encodingRecord)
     | hb_map (&EncodingRecord::subtable)
@@ -1186,51 +1186,51 @@ struct cmap
     auto encodingrec_iter =
     + hb_iter (encodingRecord)
     | hb_filter ([&] (const EncodingRecord& _)
-              {
-                if ((_.platformID == 0 && _.encodingID == 3) ||
-                   (_.platformID == 0 && _.encodingID == 4) ||
-                   (_.platformID == 3 && _.encodingID == 1) ||
-                   (_.platformID == 3 && _.encodingID == 10) ||
-                   (this + _.subtable).u.format == 14)
-                  return true;
+	      {
+		if ((_.platformID == 0 && _.encodingID == 3) ||
+		   (_.platformID == 0 && _.encodingID == 4) ||
+		   (_.platformID == 3 && _.encodingID == 1) ||
+		   (_.platformID == 3 && _.encodingID == 10) ||
+		   (this + _.subtable).u.format == 14)
+		  return true;
 
-                return false;
-              })
+		return false;
+	      })
     ;
-    
-    
+
+
     if (unlikely (!encodingrec_iter.len ())) return_trace (false);
 
     const EncodingRecord *unicode_bmp= nullptr, *unicode_ucs4 = nullptr, *ms_bmp = nullptr, *ms_ucs4 = nullptr;
     bool has_format12 = false, has_format14 = false;
-    
+
     + encodingrec_iter
     | hb_apply ([&] (const EncodingRecord& _)
-              {
-                unsigned format = (this + _.subtable).u.format;
-                if (format == 12) has_format12 = true;
-                if (format == 14) has_format14 = true;
+	      {
+		unsigned format = (this + _.subtable).u.format;
+		if (format == 12) has_format12 = true;
+		if (format == 14) has_format14 = true;
 
-                const EncodingRecord *table = hb_addressof (_);
-                if (_.platformID == 0 && _.encodingID == 3)
-                {
-                  unicode_bmp = table;
-                }
-                else if (_.platformID == 0 && _.encodingID == 4)
-                {
-                  unicode_ucs4 = table;
-                }
-                else if (_.platformID == 3 && _.encodingID == 1)
-                {
-                  ms_bmp = table;
-                }
-                else if (_.platformID == 3 && _.encodingID == 10)
-                {
-                  ms_ucs4 = table;
-                }
-              })
+		const EncodingRecord *table = hb_addressof (_);
+		if (_.platformID == 0 && _.encodingID == 3)
+		{
+		  unicode_bmp = table;
+		}
+		else if (_.platformID == 0 && _.encodingID == 4)
+		{
+		  unicode_ucs4 = table;
+		}
+		else if (_.platformID == 3 && _.encodingID == 1)
+		{
+		  ms_bmp = table;
+		}
+		else if (_.platformID == 3 && _.encodingID == 10)
+		{
+		  ms_ucs4 = table;
+		}
+	      })
     ;
-    
+
     if (unlikely (!unicode_bmp && !ms_bmp)) return_trace (false);
     if (unlikely (has_format12 && (!unicode_ucs4 && !ms_ucs4))) return_trace (false);
 
