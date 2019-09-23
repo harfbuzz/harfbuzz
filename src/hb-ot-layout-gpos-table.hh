@@ -544,8 +544,7 @@ struct SinglePosFormat1
     if (unlikely (!c->extend_min (*this))) return;
     if (unlikely (!c->check_assign (valueFormat, valFormat))) return;
 
-    for (const auto &_ : hb_second (*it))
-      c->copy (_);
+    c->copy_all (hb_second (*it));
 
     auto glyphs =
     + it
@@ -632,9 +631,7 @@ struct SinglePosFormat2
     if (unlikely (!c->check_assign (valueFormat, valFormat))) return;
     if (unlikely (!c->check_assign (valueCount, it.len ()))) return;
 
-    for (const auto iter : it)
-      for (const auto &_ : iter.second)
-	c->copy (_);
+    for (auto iter : it) c->copy_all (iter.second);
 
     auto glyphs =
     + it
