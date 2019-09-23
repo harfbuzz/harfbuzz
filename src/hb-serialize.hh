@@ -194,6 +194,7 @@ struct hb_serialize_context_t
     if (unlikely (!obj)) return;
     current = current->next;
     revert (*obj);
+    obj->fini ();
     object_pool.free (obj);
   }
   objidx_t pop_pack ()
