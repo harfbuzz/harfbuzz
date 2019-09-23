@@ -598,8 +598,8 @@ struct SinglePosFormat2
     if (unlikely (!c->check_assign (valueFormat, valFormat))) return;
     if (unlikely (!c->check_assign (valueCount, it.len ()))) return;
 
-    for (auto val_iter : it)
-      for (const Value& _ : val_iter.second)
+    for (auto iter : it)
+      for (const Value& _ : iter.second)
 	c->copy (_);
 
     auto glyphs =
@@ -665,8 +665,8 @@ struct SinglePos
   {
     hb_array_t<const Value> first_val_iter = hb_second (*glyph_val_iter_pairs);
 
-    for (auto val_iter : glyph_val_iter_pairs)
-      for (const hb_pair_t<Value, Value> _ : hb_zip (val_iter.second, first_val_iter))
+    for (auto iter : glyph_val_iter_pairs)
+      for (const hb_pair_t<Value, Value> _ : hb_zip (iter.second, first_val_iter))
 	if (_.first != _.second)
 	  return 2;
 
