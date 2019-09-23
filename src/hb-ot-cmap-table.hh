@@ -1177,18 +1177,17 @@ struct cmap
     if (unlikely (!encodingrec_iter.len ())) return_trace (false);
 
     const EncodingRecord *unicode_bmp= nullptr, *unicode_ucs4 = nullptr, *ms_bmp = nullptr, *ms_ucs4 = nullptr;
-    bool has_format12 = false, HB_UNUSED has_format14 = false;
+    bool has_format12 = false;
 
     for (const EncodingRecord& _ : encodingrec_iter)
     {
       unsigned format = (this + _.subtable).u.format;
       if (format == 12) has_format12 = true;
-      if (format == 14) has_format14 = true;
 
       const EncodingRecord *table = hb_addressof (_);
-      if (_.platformID == 0 && _.encodingID == 3)       unicode_bmp = table;
-      else if (_.platformID == 0 && _.encodingID == 4)  unicode_ucs4 = table;
-      else if (_.platformID == 3 && _.encodingID == 1)  ms_bmp = table;
+      if      (_.platformID == 0 && _.encodingID ==  3) unicode_bmp = table;
+      else if (_.platformID == 0 && _.encodingID ==  4) unicode_ucs4 = table;
+      else if (_.platformID == 3 && _.encodingID ==  1) ms_bmp = table;
       else if (_.platformID == 3 && _.encodingID == 10) ms_ucs4 = table;
     }
 
