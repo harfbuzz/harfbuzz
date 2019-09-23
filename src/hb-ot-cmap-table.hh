@@ -941,9 +941,9 @@ struct CmapSubtableFormat14
     if (unlikely (!c->extend_min (*this))) return;
     this->format = 14;
 
-    const CmapSubtableFormat14 *src_tbl = reinterpret_cast<const CmapSubtableFormat14*> (src_base);
-    for (const VariationSelectorRecord& _ : src_tbl->record)
-      c->copy (_, unicodes, glyphs, glyph_map, src_base, this);
+    auto src_tbl = reinterpret_cast<const CmapSubtableFormat14*> (src_base);
+    c->copy_all (hb_iter (src_tbl->record),
+		 unicodes, glyphs, glyph_map, src_base, this);
 
     if (c->length () - table_initpos == CmapSubtableFormat14::min_size)
       c->revert (snap);

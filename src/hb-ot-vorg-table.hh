@@ -84,7 +84,7 @@ struct VORG
     this->defaultVertOriginY = defaultVertOriginY;
     this->vertYOrigins.len = it.len ();
 
-    for (const auto _ : it) c->copy (_);
+    c->copy_all (it);
   }
 
   bool subset (hb_subset_context_t *c) const

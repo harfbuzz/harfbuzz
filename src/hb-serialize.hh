@@ -387,6 +387,12 @@ struct hb_serialize_context_t
   Type *copy (const Type *src, Ts&&... ds)
   { return copy (*src, hb_forward<Ts> (ds)...); }
 
+  template<typename Iterator,
+	   hb_requires (hb_is_iterator (Iterator)),
+	   typename ...Ts>
+  void copy_all (Iterator it, Ts&&... ds)
+  { for (decltype (*it) _ : it) copy (_, hb_forward<Ts> (ds)...); }
+
   template <typename Type>
   hb_serialize_context_t& operator << (const Type &obj) & { embed (obj); return *this; }
 
