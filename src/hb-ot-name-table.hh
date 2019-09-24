@@ -191,8 +191,7 @@ struct name
 
     const void *dst_string_pool = &(this + this->stringOffset);
 
-    for (const NameRecord& _ : it)
-      c->copy (_, src_string_pool, dst_string_pool);
+    for (const auto &_ : it) c->copy (_, src_string_pool, dst_string_pool);
 
     if (unlikely (c->ran_out_of_room)) return_trace (false);
 
