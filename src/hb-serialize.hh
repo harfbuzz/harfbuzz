@@ -91,9 +91,7 @@ struct hb_serialize_context_t
 
   void fini ()
   {
-    ++ hb_iter (packed)
-    | hb_apply ([] (object_t *_) { _->fini (); })
-    ;
+    for (object_t *_ : ++hb_iter (packed)) _->fini ();
     packed.fini ();
     this->packed_map.fini ();
 
@@ -292,7 +290,6 @@ struct hb_serialize_context_t
     assert (packed.length > 1);
 
     for (const object_t* parent : ++hb_iter (packed))
-    {
       for (const object_t::link_t &link : parent->links)
       {
 	const object_t* child = packed[link.objidx];
@@ -312,7 +309,6 @@ struct hb_serialize_context_t
 	  check_assign (off, offset);
 	}
       }
-    }
   }
 
   unsigned int length () const { return this->head - current->head; }
@@ -354,9 +350,7 @@ struct hb_serialize_context_t
 
   template <typename Type>
   Type *allocate_min ()
-  {
-    return this->allocate_size<Type> (Type::min_size);
-  }
+  { return this->allocate_size<Type> (Type::min_size); }
 
   template <typename Type>
   Type *embed (const Type *obj)
@@ -428,14 +422,12 @@ struct hb_serialize_context_t
     /* Copy both items from head side and tail side... */
     unsigned int len = (this->head - this->start)
 		     + (this->end  - this->tail);
+
     char *p = (char *) malloc (len);
-    if (p)
-    {
-      memcpy (p, this->start, this->head - this->start);
-      memcpy (p + (this->head - this->start), this->tail, this->end - this->tail);
-    }
-    else
-      return hb_bytes_t ();
+    if (unlikely (!p)) return hb_bytes_t ();
+
+    memcpy (p, this->start, this->head - this->start);
+    memcpy (p + (this->head - this->start), this->tail, this->end - this->tail);
     return hb_bytes_t (p, len);
   }
   template <typename Type>
