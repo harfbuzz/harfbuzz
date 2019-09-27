@@ -73,3 +73,14 @@ sudo python infra/helper.py build_image harfbuzz
 sudo python infra/helper.py build_fuzzers --sanitizer address harfbuzz
 sudo python infra/helper.py run_fuzzer harfbuzz hb-subset-fuzzer
 ```
+
+## Profiling
+
+```
+make clean
+./configure CXXFLAGS="-fno-omit-frame-pointer -g"
+make
+perf record -o <perf output file> -g <command to run>
+perf report -i<perf output file>
+```
+
