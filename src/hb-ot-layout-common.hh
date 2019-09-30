@@ -66,6 +66,23 @@ namespace OT {
 
 #define NOT_COVERED		((unsigned int) -1)
 
+
+template<typename Iterator>
+static inline void Coverage_serialize (hb_serialize_context_t *c,
+				       Iterator it);
+
+template<typename Iterator>
+static inline void ClassDef_serialize (hb_serialize_context_t *c,
+                                       Iterator it);
+
+static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
+                                          const hb_set_t &glyphset,
+                                          const hb_map_t &gid_klass_map,
+                                          hb_sorted_vector_t<HBGlyphID> glyphs,
+                                          hb_sorted_vector_t<unsigned> klasses,
+                                          hb_map_t *klass_map /*INOUT*/);
+
+
 template<typename OutputArray>
 struct subset_offset_array_t
 {
@@ -119,7 +136,6 @@ struct
   }
 }
 HB_FUNCOBJ (subset_offset_array);
-
 
 /*
  *
@@ -1127,6 +1143,23 @@ struct Coverage
     }
   }
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto it =
+    + iter ()
+    | hb_filter (glyphset)
+    | hb_map_retains_sorting (glyph_map)
+    ;
+
+    bool ret = bool (it);
+    Coverage_serialize (c->serializer, it);
+    return_trace (ret);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1245,14 +1278,50 @@ struct Coverage
   DEFINE_SIZE_UNION (2, format);
 };
 
+template<typename Iterator>
+static inline void
+Coverage_serialize (hb_serialize_context_t *c,
+                    Iterator it)
+{ c->start_embed<Coverage> ()->serialize (c, it); }
+
+static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
+                                          const hb_set_t &glyphset,
+                                          const hb_map_t &gid_klass_map,
+                                          hb_sorted_vector_t<HBGlyphID> glyphs,
+                                          hb_sorted_vector_t<unsigned> klasses,
+                                          hb_map_t *klass_map /*INOUT*/)
+{
+  bool has_no_match = glyphset.get_population () > gid_klass_map.get_population ();
+  
+  hb_map_t m;
+  if (!klass_map) klass_map = &m;
+
+  if (has_no_match) klass_map->set (0, 0);
+  unsigned idx = klass_map->has (0) ? 1 : 0;
+  for (const unsigned k: klasses.iter ())
+  {
+    if (klass_map->has (k)) continue;
+    klass_map->set (k, idx);
+    idx++;
+  }
+  
+  auto it =
+  + glyphs.iter ()
+  | hb_map_retains_sorting ([&] (const HBGlyphID& gid) -> hb_pair_t<hb_codepoint_t, HBUINT16>
+                            {
+                              HBUINT16 new_klass;
+                              new_klass = klass_map->get (gid_klass_map[gid]);
+                              return hb_pair ((hb_codepoint_t)gid, new_klass);
+                            })
+  ;
+  
+  c->propagate_error (glyphs, klasses);
+  ClassDef_serialize (c, it);
+}
 
 /*
  * Class Definition Table
  */
-
-static inline void ClassDef_serialize (hb_serialize_context_t *c,
-				       hb_array_t<const HBGlyphID> glyphs,
-				       hb_array_t<const HBUINT16> klasses);
 
 struct ClassDefFormat1
 {
@@ -1264,53 +1333,53 @@ struct ClassDefFormat1
     return classValue[(unsigned int) (glyph_id - startGlyph)];
   }
 
+  template<typename Iterator,
+	   hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const HBGlyphID> glyphs,
-		  hb_array_t<const HBUINT16> klasses)
+                  Iterator it)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    if (unlikely (!glyphs))
+    if (unlikely (!it))
     {
       startGlyph = 0;
       classValue.len = 0;
       return_trace (true);
     }
 
-    hb_codepoint_t glyph_min = +glyphs | hb_reduce (hb_min, 0xFFFFu);
-    hb_codepoint_t glyph_max = +glyphs | hb_reduce (hb_max, 0u);
-
-    startGlyph = glyph_min;
-    c->check_assign (classValue.len, glyph_max - glyph_min + 1);
-    if (unlikely (!c->extend (classValue))) return_trace (false);
-
-    for (unsigned int i = 0; i < glyphs.length; i++)
-      classValue[glyphs[i] - glyph_min] = klasses[i];
-
+    startGlyph = (*it).first;
+    classValue.serialize (c, + it
+                             | hb_map (hb_second));
     return_trace (true);
   }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c,
+               hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
+   
     hb_sorted_vector_t<HBGlyphID> glyphs;
-    hb_vector_t<HBUINT16> klasses;
+    hb_sorted_vector_t<unsigned> orig_klasses;
+    hb_map_t gid_org_klass_map;
 
     hb_codepoint_t start = startGlyph;
     hb_codepoint_t end   = start + classValue.len;
-    for (hb_codepoint_t g = start; g < end; g++)
+    for (const hb_codepoint_t gid : + hb_range (start, end)
+				    | hb_filter (glyphset))
     {
-      if (!glyphset.has (g)) continue;
-      unsigned int value = classValue[g - start];
-      if (!value) continue;
-      glyphs.push(glyph_map[g]);
-      klasses.push(value);
+      unsigned klass = classValue[gid - start];
+      if (!klass) continue;
+
+      glyphs.push (glyph_map[gid]);
+      gid_org_klass_map.set (glyph_map[gid], klass);
+      orig_klasses.push (klass);
     }
-    c->serializer->propagate_error (glyphs, klasses);
-    ClassDef_serialize (c->serializer, glyphs, klasses);
+
+    ClassDef_remap_and_serialize (c->serializer, glyphset, gid_org_klass_map,
+                                  glyphs, orig_klasses, klass_map);
     return_trace ((bool) glyphs);
   }
 
@@ -1400,70 +1469,87 @@ struct ClassDefFormat2
     return rangeRecord.bsearch (glyph_id).value;
   }
 
+  template<typename Iterator,
+	   hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const HBGlyphID> glyphs,
-		  hb_array_t<const HBUINT16> klasses)
+                  Iterator it)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    if (unlikely (!glyphs))
+    if (unlikely (!it))
     {
       rangeRecord.len = 0;
       return_trace (true);
     }
 
-    unsigned int count = glyphs.len ();
-    unsigned int num_ranges = 1;
-    for (unsigned int i = 1; i < count; i++)
-      if (glyphs[i - 1] + 1 != glyphs[i] ||
-	  klasses[i - 1] != klasses[i])
-	num_ranges++;
-    rangeRecord.len = num_ranges;
-    if (unlikely (!c->extend (rangeRecord))) return_trace (false);
+    unsigned num_ranges = 1;
+    hb_codepoint_t prev_gid = (*it).first;
+    unsigned prev_klass = (*it).second;
 
-    unsigned int range = 0;
-    rangeRecord[range].start = glyphs[0];
-    rangeRecord[range].value = klasses[0];
-    for (unsigned int i = 1; i < count; i++)
+    RangeRecord range_rec;
+    range_rec.start = prev_gid;
+    range_rec.end = prev_gid;
+    range_rec.value = prev_klass;
+
+    RangeRecord *record = c->copy (range_rec);
+
+    for (const auto gid_klass_pair : + (++it))
     {
-      if (glyphs[i - 1] + 1 != glyphs[i] ||
-	  klasses[i - 1] != klasses[i])
+      hb_codepoint_t cur_gid = gid_klass_pair.first;
+      unsigned cur_klass = gid_klass_pair.second;
+
+      if (cur_gid != prev_gid + 1 ||
+          cur_klass != prev_klass)
       {
-	rangeRecord[range].end = glyphs[i - 1];
-	range++;
-	rangeRecord[range].start = glyphs[i];
-	rangeRecord[range].value = klasses[i];
+        record->end = prev_gid;
+        num_ranges++;
+
+        range_rec.start = cur_gid;
+        range_rec.end = cur_gid;
+        range_rec.value = cur_klass;
+
+        record = c->copy (range_rec);
       }
+
+      prev_klass = cur_klass;
+      prev_gid = cur_gid;
     }
-    rangeRecord[range].end = glyphs[count - 1];
+
+    record->end = prev_gid;
+    rangeRecord.len = num_ranges;
     return_trace (true);
   }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c,
+               hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
-    hb_vector_t<HBGlyphID> glyphs;
-    hb_vector_t<HBUINT16> klasses;
 
-    unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++)
+    hb_sorted_vector_t<HBGlyphID> glyphs;
+    hb_sorted_vector_t<unsigned> orig_klasses;
+    hb_map_t gid_org_klass_map;
+
+    unsigned count = rangeRecord.len;
+    for (unsigned i = 0; i < count; i++)
     {
-      unsigned int value = rangeRecord[i].value;
-      if (!value) continue;
+      unsigned klass = rangeRecord[i].value;
+      if (!klass) continue;
       hb_codepoint_t start = rangeRecord[i].start;
       hb_codepoint_t end   = rangeRecord[i].end + 1;
       for (hb_codepoint_t g = start; g < end; g++)
       {
 	if (!glyphset.has (g)) continue;
 	glyphs.push (glyph_map[g]);
-	klasses.push (value);
+        gid_org_klass_map.set (glyph_map[g], klass);
+        orig_klasses.push (klass);
       }
     }
-    c->serializer->propagate_error (glyphs, klasses);
-    ClassDef_serialize (c->serializer, glyphs, klasses);
+
+    ClassDef_remap_and_serialize (c->serializer, glyphset, gid_org_klass_map,
+                                  glyphs, orig_klasses, klass_map);
     return_trace ((bool) glyphs);
   }
 
@@ -1560,25 +1646,36 @@ struct ClassDef
     }
   }
 
-  bool serialize (hb_serialize_context_t *c,
-		  hb_array_t<const HBGlyphID> glyphs,
-		  hb_array_t<const HBUINT16> klasses)
+  template<typename Iterator,
+	   hb_requires (hb_is_iterator (Iterator))>
+  bool serialize (hb_serialize_context_t *c, Iterator it)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-    unsigned int format = 2;
-    if (likely (glyphs))
+    unsigned format = 2;
+    if (likely (it))
     {
-      hb_codepoint_t glyph_min = +glyphs | hb_reduce (hb_min, 0xFFFFu);
-      hb_codepoint_t glyph_max = +glyphs | hb_reduce (hb_max, 0u);
+      hb_codepoint_t glyph_min = (*it).first;
+      hb_codepoint_t glyph_max = + it
+				 | hb_map (hb_first)
+                                 | hb_reduce (hb_max, 0u);
 
-      unsigned int count = glyphs.len ();
-      unsigned int num_ranges = 1;
-      for (unsigned int i = 1; i < count; i++)
-	if (glyphs[i - 1] + 1 != glyphs[i] ||
-	    klasses[i - 1] != klasses[i])
-	  num_ranges++;
+      unsigned num_ranges = 1;
+      hb_codepoint_t prev_gid = glyph_min;
+      unsigned prev_klass = (*it).second;
+
+      for (const auto gid_klass_pair : it)
+      {
+        hb_codepoint_t cur_gid = gid_klass_pair.first;
+        unsigned cur_klass = gid_klass_pair.second;
+        if (cur_gid != prev_gid + 1 ||
+            cur_klass != prev_klass)
+          num_ranges++;
+
+        prev_gid = cur_gid;
+        prev_klass = cur_klass;
+      }
 
       if (1 + (glyph_max - glyph_min + 1) < num_ranges * 3)
 	format = 1;
@@ -1587,18 +1684,19 @@ struct ClassDef
 
     switch (u.format)
     {
-    case 1: return_trace (u.format1.serialize (c, glyphs, klasses));
-    case 2: return_trace (u.format2.serialize (c, glyphs, klasses));
+    case 1: return_trace (u.format1.serialize (c, it));
+    case 2: return_trace (u.format2.serialize (c, it));
     default:return_trace (false);
     }
   }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c,
+               hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
     switch (u.format) {
-    case 1: return_trace (u.format1.subset (c));
-    case 2: return_trace (u.format2.subset (c));
+    case 1: return_trace (u.format1.subset (c, klass_map));
+    case 2: return_trace (u.format2.subset (c, klass_map));
     default:return_trace (false);
     }
   }
@@ -1665,10 +1763,10 @@ struct ClassDef
   DEFINE_SIZE_UNION (2, format);
 };
 
+template<typename Iterator>
 static inline void ClassDef_serialize (hb_serialize_context_t *c,
-				       hb_array_t<const HBGlyphID> glyphs,
-				       hb_array_t<const HBUINT16> klasses)
-{ c->start_embed<ClassDef> ()->serialize (c, glyphs, klasses); }
+                                       Iterator it)
+{ c->start_embed<ClassDef> ()->serialize (c, it); }
 
 
 /*
