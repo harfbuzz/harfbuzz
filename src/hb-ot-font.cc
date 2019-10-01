@@ -160,7 +160,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
 #endif
 
   hb_glyph_extents_t extents = {0};
-  if (ot_face->glyf->get_extents (glyph, &extents))
+  if (ot_face->glyf->get_extents (font, glyph, &extents))
   {
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     hb_position_t tsb = vmtx.get_side_bearing (font, glyph);
@@ -188,7 +188,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 #if !defined(HB_NO_OT_FONT_BITMAP) && !defined(HB_NO_COLOR)
   if (!ret) ret = ot_face->sbix->get_extents (font, glyph, extents);
 #endif
-  if (!ret) ret = ot_face->glyf->get_extents (glyph, extents);
+  if (!ret) ret = ot_face->glyf->get_extents (font, glyph, extents);
 #ifndef HB_NO_OT_FONT_CFF
   if (!ret) ret = ot_face->cff1->get_extents (glyph, extents);
   if (!ret) ret = ot_face->cff2->get_extents (font, glyph, extents);

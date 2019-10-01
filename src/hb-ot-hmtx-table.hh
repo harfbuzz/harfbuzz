@@ -55,14 +55,8 @@ struct LongMetric
 
 struct hmtxvmtx_accelerator_base_t
 {
-  static int get_side_bearing_var_tt (hb_font_t *font HB_UNUSED,
-				      hb_codepoint_t glyph HB_UNUSED,
-				      bool is_vertical HB_UNUSED)
-  { return 0; } /* Not implemented yet */
-  static unsigned int get_advance_var_tt (hb_font_t *font HB_UNUSED,
-					  hb_codepoint_t glyph HB_UNUSED,
-					  bool is_vertical HB_UNUSED)
-  { return 0; } /* Not implemented yet */
+  HB_INTERNAL static int get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical);
+  HB_INTERNAL static unsigned int get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical);
 };
 
 template <typename T, typename H>
@@ -140,13 +134,12 @@ struct hmtxvmtx
     auto it =
     + hb_range (c->plan->num_output_glyphs ())
     | hb_map ([c, &_mtx] (unsigned _)
-	{
-	  hb_codepoint_t old_gid;
-	  if (c->plan->old_gid_for_new_gid (_, &old_gid))
-	    return hb_pair (_mtx.get_advance (old_gid), _mtx.get_side_bearing (old_gid));
-	  else
-	    return hb_pair (0u, 0);
-	})
+	      {
+		hb_codepoint_t old_gid;
+		if (!c->plan->old_gid_for_new_gid (_, &old_gid))
+		  return hb_pair (0u, 0);
+		return hb_pair (_mtx.get_advance (old_gid), _mtx.get_side_bearing (old_gid));
+	      })
     ;
 
     table_prime->serialize (c->serializer, it, num_advances);
@@ -158,9 +151,7 @@ struct hmtxvmtx
 
     // Amend header num hmetrics
     if (unlikely (!subset_update_header (c->plan, num_advances)))
-    {
       return_trace (false);
-    }
 
     return_trace (true);
   }
@@ -221,8 +212,8 @@ struct hmtxvmtx
       if (unlikely (glyph >= num_metrics) || !font->num_coords)
 	return side_bearing;
 
-//       if (var_table.get_blob () == &Null (hb_blob_t))
-// 	return get_side_bearing_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+      if (var_table.get_blob () == &Null (hb_blob_t))
+	return get_side_bearing_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 
       return side_bearing + var_table->get_side_bearing_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
     }
@@ -251,8 +242,8 @@ struct hmtxvmtx
       if (unlikely (glyph >= num_metrics) || !font->num_coords)
 	return advance;
 
-//       if (var_table.get_blob () == &Null (hb_blob_t))
-// 	return get_advance_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+      if (var_table.get_blob () == &Null (hb_blob_t))
+	return get_advance_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 
       return advance + roundf (var_table->get_advance_var (glyph, font->coords, font->num_coords)); // TODO Optimize?!
     }

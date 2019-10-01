@@ -75,6 +75,7 @@ HB_BASE_sources = \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
+	hb-ot-hmtx-table.cc \
 	hb-ot-hmtx-table.hh \
 	hb-ot-kern-table.hh \
 	hb-ot-layout-base-table.hh \
@@ -136,6 +137,7 @@ HB_BASE_sources = \
 	hb-ot-tag.cc \
 	hb-ot-var-avar-table.hh \
 	hb-ot-var-fvar-table.hh \
+	hb-ot-var-gvar-table.hh \
 	hb-ot-var-hvar-table.hh \
 	hb-ot-var-mvar-table.hh \
 	hb-ot-var.cc \
