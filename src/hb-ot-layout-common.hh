@@ -137,6 +137,8 @@ struct Record_sanitize_closure_t {
   const void *list_base;
 };
 
+struct RecordList_subset_context_t;
+
 template <typename Type>
 struct Record
 {
@@ -193,11 +195,24 @@ struct RecordListOf : RecordArrayOf<Type>
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    auto *out = c->serializer->embed (*this);
-    if (unlikely (!out)) return_trace (false);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    RecordList_subset_context_t record_list_context;
+
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
-      out->get_offset (i).serialize_subset (c, this->get_offset (i), this, out);
+    {
+      auto snap = c->serializer->snapshot ();
+      auto *record = out->serialize_append (c->serializer);
+      if (likely(record) && record->offset.serialize_subset (c, this->get_offset (i), this, out, &record_list_context))
+      {
+        record->tag = this->get_tag(i);
+        continue;
+      }
+      c->serializer->revert (snap);
+    }
+
     return_trace (true);
   }
 
@@ -262,6 +277,25 @@ struct Script;
 struct LangSys;
 struct Feature;
 
+struct RecordList_subset_context_t {
+
+  RecordList_subset_context_t() : script_count (0), langsys_count (0)
+  {}
+
+  bool visited (const Script& s)
+  {
+    return script_count++ > HB_MAX_SCRIPTS;
+  }
+
+  bool visited (const LangSys& l)
+  {
+    return langsys_count++ > HB_MAX_LANGSYS;
+  }
+
+  private:
+  unsigned int script_count;
+  unsigned int langsys_count;
+};
 
 struct LangSys
 {
@@ -329,9 +363,11 @@ struct Script
   bool has_default_lang_sys () const           { return defaultLangSys != 0; }
   const LangSys& get_default_lang_sys () const { return this+defaultLangSys; }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c, RecordList_subset_context_t *record_list_context) const
   {
     TRACE_SUBSET (this);
+    if (record_list_context->visited (*this)) return_trace (false);
+
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
     out->defaultLangSys.serialize_copy (c->serializer, defaultLangSys, this, out);
@@ -614,7 +650,7 @@ struct Feature
   const FeatureParams &get_feature_params () const
   { return this+featureParams; }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c, RecordList_subset_context_t *r) const
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (*this);
