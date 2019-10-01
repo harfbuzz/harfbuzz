@@ -101,10 +101,10 @@ struct ValueFormat : HBUINT16
   unsigned int get_len () const  { return hb_popcount ((unsigned int) *this); }
   unsigned int get_size () const { return get_len () * Value::static_size; }
 
-  bool apply_value (hb_ot_apply_context_t   *c,
-		    const void           *base,
-		    const Value          *values,
-		    hb_glyph_position_t  &glyph_pos) const
+  bool apply_value (hb_ot_apply_context_t *c,
+		    const void            *base,
+		    const Value           *values,
+		    hb_glyph_position_t   &glyph_pos) const
   {
     bool ret = false;
     unsigned int format = *this;
@@ -257,7 +257,7 @@ struct AnchorFormat1
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
-  
+
   AnchorFormat1* copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
@@ -1242,7 +1242,7 @@ struct CursivePosFormat1
 	    hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it,
-                  const void *src_base)
+		  const void *src_base)
   {
     if (unlikely (!c->extend_min ((*this)))) return;
     this->format = 1;
@@ -1273,7 +1273,7 @@ struct CursivePosFormat1
     + hb_zip (this+coverage, entryExitRecord)
     | hb_filter (glyphset, hb_first)
     | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const EntryExitRecord&> p) -> hb_pair_t<hb_codepoint_t, const EntryExitRecord&>
-                              { return hb_pair (glyph_map[p.first], p.second);})
+			      { return hb_pair (glyph_map[p.first], p.second);})
     ;
 
     bool ret = bool (it);

@@ -736,9 +736,7 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
 struct UVSMapping
 {
   int cmp (const hb_codepoint_t &codepoint) const
-  {
-    return unicodeValue.cmp (codepoint);
-  }
+  { return unicodeValue.cmp (codepoint); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -1170,7 +1168,7 @@ struct cmap
 		    return true;
 
 		  return false;
-	        })
+		})
     ;
 
 

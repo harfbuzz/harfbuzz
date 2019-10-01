@@ -408,8 +408,7 @@ struct hb_buffer_t
       }
   }
 
-  void unsafe_to_break_all ()
-  { unsafe_to_break_impl (0, len); }
+  void unsafe_to_break_all () { unsafe_to_break_impl (0, len); }
   void safe_to_break_all ()
   {
     for (unsigned int i = 0; i < len; i++)

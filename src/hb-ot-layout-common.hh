@@ -1970,7 +1970,7 @@ struct VariationStore
 		      .serialize (c, &(src+src->dataSets[i]), inner_maps[i], region_map)))
 	return_trace (false);
     }
-    
+
     return_trace (true);
   }
 

@@ -203,8 +203,7 @@ struct bounds_t
     }
   }
 
-  bool empty () const
-  { return (min.x >= max.x) || (min.y >= max.y); }
+  bool empty () const { return (min.x >= max.x) || (min.y >= max.y); }
 
   point_t min;
   point_t max;
@@ -219,12 +218,12 @@ struct cff1_extents_param_t
     bounds.init ();
   }
 
-  void start_path ()         { path_open = true; }
-  void end_path ()           { path_open = false; }
+  void start_path   ()       { path_open = true; }
+  void end_path     ()       { path_open = false; }
   bool is_path_open () const { return path_open; }
 
-  bool    path_open;
-  bounds_t  bounds;
+  bool path_open;
+  bounds_t bounds;
 
   const OT::cff1::accelerator_t *cff;
 };

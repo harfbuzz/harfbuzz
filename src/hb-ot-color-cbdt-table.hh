@@ -453,7 +453,7 @@ struct CBDT
     }
 
     hb_blob_t* reference_png (hb_font_t      *font,
-				     hb_codepoint_t  glyph) const
+			      hb_codepoint_t  glyph) const
     {
       const void *base;
       const BitmapSizeTable &strike = this->cblc->choose_strike (font);

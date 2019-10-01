@@ -569,8 +569,8 @@ struct FDSelect3_4
 
   GID_TYPE &nRanges () { return ranges.len; }
   GID_TYPE nRanges () const { return ranges.len; }
-  GID_TYPE &sentinel ()  { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
-  const GID_TYPE &sentinel () const  { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
+  GID_TYPE       &sentinel ()       { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
+  const GID_TYPE &sentinel () const { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
 
   ArrayOf<FDSelect3_4_Range<GID_TYPE, FD_TYPE>, GID_TYPE> ranges;
   /* GID_TYPE sentinel */
