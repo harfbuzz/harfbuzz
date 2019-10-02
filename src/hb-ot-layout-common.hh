@@ -137,7 +137,25 @@ struct Record_sanitize_closure_t {
   const void *list_base;
 };
 
-struct RecordList_subset_context_t;
+struct RecordList_subset_context_t {
+
+  RecordList_subset_context_t() : script_count (0), langsys_count (0)
+  {}
+
+  bool visitScript ()
+  {
+    return script_count++ < HB_MAX_SCRIPTS;
+  }
+
+  bool visitLangSys ()
+  {
+    return langsys_count++ < HB_MAX_LANGSYS;
+  }
+
+  private:
+  unsigned int script_count;
+  unsigned int langsys_count;
+};
 
 template <typename Type>
 struct Record
@@ -277,26 +295,6 @@ struct Script;
 struct LangSys;
 struct Feature;
 
-struct RecordList_subset_context_t {
-
-  RecordList_subset_context_t() : script_count (0), langsys_count (0)
-  {}
-
-  bool visited (const Script& s)
-  {
-    return script_count++ > HB_MAX_SCRIPTS;
-  }
-
-  bool visited (const LangSys& l)
-  {
-    return langsys_count++ > HB_MAX_LANGSYS;
-  }
-
-  private:
-  unsigned int script_count;
-  unsigned int langsys_count;
-};
-
 struct LangSys
 {
   unsigned int get_feature_count () const
@@ -366,14 +364,30 @@ struct Script
   bool subset (hb_subset_context_t *c, RecordList_subset_context_t *record_list_context) const
   {
     TRACE_SUBSET (this);
-    if (record_list_context->visited (*this)) return_trace (false);
+    if (!record_list_context->visitScript ()) return_trace (false);
 
-    auto *out = c->serializer->embed (*this);
-    if (unlikely (!out)) return_trace (false);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
     out->defaultLangSys.serialize_copy (c->serializer, defaultLangSys, this, out);
-    unsigned int count = langSys.len;
-    for (unsigned int i = 0; i < count; i++)
-      out->langSys.arrayZ[i].offset.serialize_copy (c->serializer, langSys[i].offset, this, out);
+
+    for (const auto &src: langSys)
+    {
+      if (!record_list_context->visitLangSys ()) {
+        continue;
+      }
+
+      auto snap = c->serializer->snapshot ();
+      auto *lang_sys = c->serializer->embed (src);
+
+      if (likely(lang_sys)
+          && lang_sys->offset.serialize_copy (c->serializer, src.offset, this, out))
+      {
+        out->langSys.len++;
+        continue;
+      }
+      c->serializer->revert (snap);
+    }
     return_trace (true);
   }
 
