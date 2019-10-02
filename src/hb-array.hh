@@ -332,20 +332,21 @@ hb_sorted_array (T (&array_)[length_])
 template <typename T>
 bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
 {
-  return length == o.length &&
-  + hb_zip (*this, o)
-  | hb_map ([] (hb_pair_t<T&, T&> &&_) { return _.first == _.second; })
-  | hb_all
-  ;
+  if (o.length != this->length) return false;
+  for (unsigned int i = 0; i < this->length; i++) {
+    if (this->arrayZ[i] != o.arrayZ[i]) return false;
+  }
+  return true;
 }
+
 template <typename T>
 uint32_t hb_array_t<T>::hash () const
 {
-  return
-  + hb_iter (*this)
-  | hb_map (hb_hash)
-  | hb_reduce ([] (uint32_t a, uint32_t b) { return a * 31 + b; }, 0)
-  ;
+  uint32_t current = 0;
+  for (unsigned int i = 0; i < this->length; i++) {
+    current = current * 31 + hb_hash (this->arrayZ[i]);
+  }
+  return current;
 }
 
 typedef hb_array_t<const char> hb_bytes_t;
