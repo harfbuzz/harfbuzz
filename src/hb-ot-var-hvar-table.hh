@@ -63,7 +63,7 @@ struct DeltaSetIndexMap
     }
 
     { /* Repack it. */
-      unsigned int n = get_inner_bitcount ();
+      unsigned int n = get_inner_bit_count ();
       unsigned int outer = u >> n;
       unsigned int inner = u & ((1 << n) - 1);
       u = (outer<<16) | inner;
@@ -72,10 +72,9 @@ struct DeltaSetIndexMap
     return u;
   }
 
-  protected:
-  unsigned int get_width () const          { return ((format >> 4) & 3) + 1; }
-
-  unsigned int get_inner_bitcount () const { return (format & 0xF) + 1; }
+  unsigned int get_map_count () const	    { return mapCount; }
+  unsigned int get_width () const           { return ((format >> 4) & 3) + 1; }
+  unsigned int get_inner_bit_count () const { return (format & 0xF) + 1; }
 
   protected:
   HBUINT16	format;		/* A packed field that describes the compressed
@@ -121,7 +120,15 @@ struct HVARVVAR
     return (this+varStore).get_delta (varidx, coords, coord_count);
   }
 
-  bool has_sidebearing_deltas () const { return lsbMap && rsbMap; }
+  float get_side_bearing_var (hb_codepoint_t glyph,
+			      const int *coords, unsigned int coord_count) const
+  {
+    if (!has_side_bearing_deltas ()) return 0.f;
+    unsigned int varidx = (this+lsbMap).map (glyph);
+    return (this+varStore).get_delta (varidx, coords, coord_count);
+  }
+
+  bool has_side_bearing_deltas () const { return lsbMap && rsbMap; }
 
   protected:
   FixedVersion<>version;	/* Version of the metrics variation table
