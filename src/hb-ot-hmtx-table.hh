@@ -55,8 +55,8 @@ struct LongMetric
 
 struct hmtxvmtx_accelerator_base_t
 {
-  HB_INTERNAL static int get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical);
-  HB_INTERNAL static unsigned int get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical);
+  HB_INTERNAL static int get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
+  HB_INTERNAL static unsigned int get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 };
 
 template <typename T, typename H>

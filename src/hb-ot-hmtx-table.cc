@@ -29,26 +29,14 @@
 
 namespace OT {
 
-int hmtxvmtx_accelerator_base_t::get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical)
+int hmtxvmtx_accelerator_base_t::get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
-  glyf::accelerator_t glyf_accel;
-  glyf_accel.init (font->face);
-
-  int side_bearing = glyf_accel.get_side_bearing_var (glyph, font->coords, font->num_coords, vertical);
-  glyf_accel.fini ();
-
-  return side_bearing;
+  return font->face->table.glyf->get_side_bearing_var (glyph, font->coords, font->num_coords, is_vertical);
 }
 
-unsigned int hmtxvmtx_accelerator_base_t::get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool vertical)
+unsigned int hmtxvmtx_accelerator_base_t::get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
-  glyf::accelerator_t glyf_accel;
-  glyf_accel.init (font->face);
-
-  unsigned int advance = glyf_accel.get_advance_var (glyph, font->coords, font->num_coords, vertical);
-  glyf_accel.fini ();
-
-  return advance;
+  return font->face->table.glyf->get_advance_var (glyph, font->coords, font->num_coords, is_vertical);
 }
 
 }
