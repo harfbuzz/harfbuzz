@@ -75,7 +75,6 @@ HB_BASE_sources = \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
-	hb-ot-hmtx-table.cc \
 	hb-ot-hmtx-table.hh \
 	hb-ot-kern-table.hh \
 	hb-ot-layout-base-table.hh \
