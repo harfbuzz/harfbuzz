@@ -1,5 +1,6 @@
 /*
- * Copyright © 2019 Adobe Inc.
+ * Copyright © 2019  Adobe Inc.
+ * Copyright © 2019  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -45,8 +46,8 @@ struct contour_point_t
 
   void translate (const contour_point_t &p) { x += p.x; y += p.y; }
 
-  uint8_t	flag;
-  float		x, y;
+  uint8_t flag;
+  float x, y;
 };
 
 struct contour_point_vector_t : hb_vector_t<contour_point_t>
@@ -80,7 +81,7 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
 struct range_checker_t
 {
   range_checker_t (const void *table_, unsigned int start_offset_, unsigned int end_offset_)
-    : table ((const char*)table_), start_offset (start_offset_), end_offset (end_offset_) {}
+    : table ((const char*) table_), start_offset (start_offset_), end_offset (end_offset_) {}
 
   template <typename T>
   bool in_range (const T *p) const
@@ -100,10 +101,10 @@ struct Tuple : UnsizedArrayOf<F2DOT14> {};
 struct TuppleIndex : HBUINT16
 {
   enum Flags {
-    EmbeddedPeakTuple	= 0x8000u,
-    IntermediateRegion	= 0x4000u,
-    PrivatePointNumbers	= 0x2000u,
-    TupleIndexMask	= 0x0FFFu
+    EmbeddedPeakTuple   = 0x8000u,
+    IntermediateRegion  = 0x4000u,
+    PrivatePointNumbers = 0x2000u,
+    TupleIndexMask      = 0x0FFFu
   };
 
   DEFINE_SIZE_STATIC (2);
@@ -114,9 +115,9 @@ struct TupleVarHeader
   unsigned int get_size (unsigned int axis_count) const
   {
     return min_size +
-    	   (has_peak ()? get_peak_tuple ().get_size (axis_count): 0) +
-    	   (has_intermediate ()? (get_start_tuple (axis_count).get_size (axis_count) +
-				  get_end_tuple (axis_count).get_size (axis_count)): 0);
+	   (has_peak () ? get_peak_tuple ().get_size (axis_count) : 0) +
+	   (has_intermediate () ? (get_start_tuple (axis_count).get_size (axis_count) +
+				   get_end_tuple (axis_count).get_size (axis_count)) : 0);
   }
 
   const TupleVarHeader &get_next (unsigned int axis_count) const
@@ -133,7 +134,7 @@ struct TupleVarHeader
     {
       unsigned int index = get_index ();
       if (unlikely (index * coord_count >= shared_tuples.length))
-      	return 0.f;
+	return 0.f;
       peak_tuple = &shared_tuples[coord_count * index];
     }
 
@@ -215,7 +216,7 @@ struct TupleVarCount : HBUINT16
 struct GlyphVarData
 {
   const TupleVarHeader &get_tuple_var_header (void) const
-  { return StructAfter<TupleVarHeader>(data); }
+  { return StructAfter<TupleVarHeader> (data); }
 
   struct tuple_iterator_t
   {
@@ -266,14 +267,14 @@ struct GlyphVarData
     { return &(var_data+var_data->data) + data_offset; }
 
     private:
-    const GlyphVarData		*var_data;
-    unsigned int		length;
-    unsigned int		index;
-    unsigned int		axis_count;
-    unsigned int		data_offset;
+    const GlyphVarData *var_data;
+    unsigned int length;
+    unsigned int index;
+    unsigned int axis_count;
+    unsigned int data_offset;
 
     public:
-    const TupleVarHeader	*current_tuple;
+    const TupleVarHeader *current_tuple;
   };
 
   static bool get_tuple_iterator (const GlyphVarData *var_data,
@@ -348,8 +349,8 @@ struct GlyphVarData
   {
     enum packed_delta_flag_t
     {
-      DELTAS_ARE_ZERO	= 0x80,
-      DELTAS_ARE_WORDS = 0x40,
+      DELTAS_ARE_ZERO      = 0x80,
+      DELTAS_ARE_WORDS     = 0x40,
       DELTA_RUN_COUNT_MASK = 0x3F
     };
 
@@ -358,16 +359,13 @@ struct GlyphVarData
     while (i < count)
     {
       if (!check.in_range (p)) return false;
-      uint16_t j;
       uint8_t control = *p++;
-      uint16_t run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
+      unsigned int run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
+      unsigned int j;
       if (control & DELTAS_ARE_ZERO)
-      {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	  deltas[i] = 0;
-      }
       else if (control & DELTAS_ARE_WORDS)
-      {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
 	  if (!check.in_range ((const HBUINT16 *)p))
@@ -375,16 +373,13 @@ struct GlyphVarData
 	  deltas[i] = *(const HBINT16 *) p;
 	  p += HBUINT16::static_size;
 	}
-      }
       else
-      {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
 	  if (!check.in_range (p))
 	    return false;
-	  deltas[i] = *(const HBINT8 *)p++;
+	  deltas[i] = *(const HBINT8 *) p++;
 	}
-      }
       if (j < run_count)
 	return false;
     }
@@ -407,13 +402,13 @@ struct gvar
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && (version.major == 1) &&
-    		 (glyphCount == c->get_num_glyphs ()) &&
-    		 c->check_array (&(this+sharedTuples), axisCount * sharedTupleCount) &&
-    		 (is_long_offset ()?
-		    c->check_array (get_long_offset_array (), glyphCount+1):
-		    c->check_array (get_short_offset_array (), glyphCount+1)) &&
-		 c->check_array (((const HBUINT8*)&(this+dataZ)) + get_offset (0),
-				 get_offset (glyphCount) - get_offset (0)));
+		  (glyphCount == c->get_num_glyphs ()) &&
+		  c->check_array (&(this+sharedTuples), axisCount * sharedTupleCount) &&
+		  (is_long_offset ()?
+		     c->check_array (get_long_offset_array (), glyphCount+1):
+		     c->check_array (get_short_offset_array (), glyphCount+1)) &&
+		  c->check_array (((const HBUINT8*)&(this+dataZ)) + get_offset (0),
+				  get_offset (glyphCount) - get_offset (0)));
   }
 
   /* GlyphVarData not sanitized here; must be checked while accessing each glyph varation data */
@@ -457,11 +452,11 @@ struct gvar
       unsigned int shared_tuple_size = F2DOT14::static_size * axisCount * sharedTupleCount;
       F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
       if (!tuples) return_trace (false);
-      out->sharedTuples = (char *)tuples - (char *)out;
+      out->sharedTuples = (char *) tuples - (char *) out;
       memcpy (tuples, &(this+sharedTuples), shared_tuple_size);
     }
 
-    char *subset_data = c->serializer->allocate_size<char>(subset_data_size);
+    char *subset_data = c->serializer->allocate_size<char> (subset_data_size);
     if (!subset_data) return_trace (false);
     out->dataZ = subset_data - (char *)out;
 
@@ -469,7 +464,7 @@ struct gvar
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
       hb_codepoint_t old_gid;
-      unsigned int length = c->plan->old_gid_for_new_gid (gid, &old_gid)? get_glyph_var_data_length (old_gid): 0;
+      unsigned int length = c->plan->old_gid_for_new_gid (gid, &old_gid) ? get_glyph_var_data_length (old_gid) : 0;
 
       if (long_offset)
 	((HBUINT32 *) subset_offsets)[gid] = glyph_offset;
@@ -497,7 +492,7 @@ struct gvar
     if ((start_offset == end_offset) ||
 	unlikely ((start_offset > get_offset (glyphCount)) ||
 		  (start_offset + GlyphVarData::min_size > end_offset)))
-      return &Null(GlyphVarData);
+      return &Null (GlyphVarData);
     return &(((unsigned char *) this + start_offset) + dataZ);
   }
 
@@ -513,15 +508,15 @@ struct gvar
 
   unsigned int get_glyph_var_data_length (unsigned int glyph) const
   {
-    unsigned int end_offset = get_offset (glyph+1);
+    unsigned int end_offset = get_offset (glyph + 1);
     unsigned int start_offset = get_offset (glyph);
-    if (unlikely (start_offset > end_offset || end_offset > get_offset(glyphCount)))
+    if (unlikely (start_offset > end_offset || end_offset > get_offset (glyphCount)))
       return 0;
     return end_offset - start_offset;
   }
 
-  const HBUINT32 * get_long_offset_array () const { return (const HBUINT32 *)&offsetZ; }
-  const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *)&offsetZ; }
+  const HBUINT32 * get_long_offset_array () const { return (const HBUINT32 *) &offsetZ; }
+  const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *) &offsetZ; }
 
   public:
   struct accelerator_t
@@ -567,11 +562,11 @@ struct gvar
       float next_delta = T::get (deltas[next]);
 
       if (prev_val == next_val)
-      	return (prev_delta == next_delta)? prev_delta: 0.f;
+      	return (prev_delta == next_delta) ? prev_delta : 0.f;
       else if (target_val <= hb_min (prev_val, next_val))
-      	return (prev_val < next_val) ? prev_delta: next_delta;
+      	return (prev_val < next_val) ? prev_delta : next_delta;
       else if (target_val >= hb_max (prev_val, next_val))
-      	return (prev_val > next_val)? prev_delta: next_delta;
+      	return (prev_val > next_val) ? prev_delta : next_delta;
 
       /* linear interpolation */
       float r = (target_val - prev_val) / (next_val - prev_val);
@@ -579,7 +574,7 @@ struct gvar
     }
 
     static unsigned int next_index (unsigned int i, unsigned int start, unsigned int end)
-    { return (i >= end)? start: (i + 1); }
+    { return (i >= end) ? start : (i + 1); }
 
     public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
@@ -619,19 +614,19 @@ struct gvar
 	  return false;
 
 	range_checker_t checker (p, 0, length);
-	hb_vector_t <unsigned int>	private_indices;
+	hb_vector_t <unsigned int> private_indices;
 	if (iterator.current_tuple->has_private_points () &&
 	    !GlyphVarData::unpack_points (p, private_indices, checker))
 	  return false;
-	const hb_array_t<unsigned int> &indices = private_indices.length? private_indices: shared_indices;
+	const hb_array_t<unsigned int> &indices = private_indices.length ? private_indices : shared_indices;
 
       	bool apply_to_all = (indices.length == 0);
-	unsigned int num_deltas = apply_to_all? points.length: indices.length;
-	hb_vector_t <int>	x_deltas;
+	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
+	hb_vector_t <int> x_deltas;
 	x_deltas.resize (num_deltas);
 	if (!GlyphVarData::unpack_deltas (p, x_deltas, checker))
 	  return false;
-	hb_vector_t <int>	y_deltas;
+	hb_vector_t <int> y_deltas;
 	y_deltas.resize (num_deltas);
 	if (!GlyphVarData::unpack_deltas (p, y_deltas, checker))
 	  return false;
@@ -667,13 +662,15 @@ struct gvar
 	     * Note that a gap may wrap around at left (start_point) and/or at right (end_point).
 	     */
 	    unsigned int prev, next;
-	    for (;;) {
+	    for (;;)
+	    {
 	      i = j;
 	      j = next_index (i, start_point, end_point);
 	      if (deltas[i].flag && !deltas[j].flag) break;
 	    }
 	    prev = j = i;
-	    for (;;) {
+	    for (;;)
+	    {
 	      i = j;
 	      j = next_index (i, start_point, end_point);
 	      if (!deltas[i].flag && deltas[j].flag) break;
@@ -681,7 +678,8 @@ struct gvar
 	    next = j;
 	    /* Infer deltas for all unref points in the gap between prev and next */
 	    i = prev;
-	    for (;;) {
+	    for (;;)
+	    {
 	      i = next_index (i, start_point, end_point);
 	      if (i == next) break;
 	      deltas[i].x = infer_delta<x_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
@@ -716,15 +714,17 @@ no_more_gaps:
   };
 
   protected:
-  FixedVersion<>		version;		/* Version of gvar table. Set to 0x00010000u. */
-  HBUINT16			axisCount;
-  HBUINT16			sharedTupleCount;
-  LOffsetTo<F2DOT14>		sharedTuples;		/* LOffsetTo<UnsizedArrayOf<Tupple>> */
-  HBUINT16			glyphCount;
-  HBUINT16			flags;
-  LOffsetTo<GlyphVarData>	dataZ;			/* Array of GlyphVarData */
-  UnsizedArrayOf<HBUINT8>	offsetZ;		/* Array of 16-bit or 32-bit (glyphCount+1) offsets */
-
+  FixedVersion<>version;	/* Version of gvar table. Set to 0x00010000u. */
+  HBUINT16	axisCount;
+  HBUINT16	sharedTupleCount;
+  LOffsetTo<F2DOT14>
+		sharedTuples;	/* LOffsetTo<UnsizedArrayOf<Tupple>> */
+  HBUINT16	glyphCount;
+  HBUINT16	flags;
+  LOffsetTo<GlyphVarData>
+		dataZ;		/* Array of GlyphVarData */
+  UnsizedArrayOf<HBUINT8>
+		offsetZ;	/* Array of 16-bit or 32-bit (glyphCount+1) offsets */
   public:
   DEFINE_SIZE_MIN (20);
 };
