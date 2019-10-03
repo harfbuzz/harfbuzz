@@ -63,7 +63,7 @@ struct DeltaSetIndexMap
     }
 
     { /* Repack it. */
-      unsigned int n = get_inner_bit_count ();
+      unsigned int n = get_inner_bitcount ();
       unsigned int outer = u >> n;
       unsigned int inner = u & ((1 << n) - 1);
       u = (outer<<16) | inner;
@@ -72,9 +72,10 @@ struct DeltaSetIndexMap
     return u;
   }
 
-  unsigned int get_map_count () const	    { return mapCount; }
-  unsigned int get_width () const           { return ((format >> 4) & 3) + 1; }
-  unsigned int get_inner_bit_count () const { return (format & 0xF) + 1; }
+  protected:
+  unsigned int get_width () const          { return ((format >> 4) & 3) + 1; }
+
+  unsigned int get_inner_bitcount () const { return (format & 0xF) + 1; }
 
   protected:
   HBUINT16	format;		/* A packed field that describes the compressed
