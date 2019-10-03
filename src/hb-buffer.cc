@@ -324,7 +324,8 @@ hb_buffer_t::clear_positions ()
   out_len = 0;
   out_info = info;
 
-  memset (pos, 0, sizeof (pos[0]) * len);
+  if (likely (len))
+    memset (pos, 0, sizeof (pos[0]) * len);
 }
 
 void

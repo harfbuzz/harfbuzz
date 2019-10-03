@@ -147,11 +147,7 @@ struct glyf
 		  const hb_subset_plan_t *plan)
   {
     TRACE_SERIALIZE (this);
-
-    + it
-    | hb_apply ([=] (const SubsetGlyph& _) { _.serialize (c, plan); })
-    ;
-
+    for (const auto &_ : it) _.serialize (c, plan);
     return_trace (true);
   }
 
@@ -326,7 +322,7 @@ struct glyf
     };
 
     HBUINT16 flags;
-    GlyphID  glyphIndex;
+    HBGlyphID  glyphIndex;
 
     unsigned int get_size () const
     {

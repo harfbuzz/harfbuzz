@@ -82,8 +82,8 @@ struct KernPair
   }
 
   protected:
-  GlyphID	left;
-  GlyphID	right;
+  HBGlyphID	left;
+  HBGlyphID	right;
   FWORD		value;
   public:
   DEFINE_SIZE_STATIC (6);
@@ -392,7 +392,7 @@ struct KerxSubTableFormat2
 
     const UnsizedArrayOf<FWORD> &arrayZ = this+array;
     unsigned int kern_idx = l + r;
-    kern_idx = Types::offsetToIndex (kern_idx, this, &arrayZ);
+    kern_idx = Types::offsetToIndex (kern_idx, this, arrayZ.arrayZ);
     const FWORD *v = &arrayZ[kern_idx];
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
 
@@ -733,8 +733,8 @@ struct KerxSubTableHeader
 {
   typedef ExtendedTypes Types;
 
-  unsigned int tuple_count () const { return tupleCount; }
-  bool is_horizontal () const       { return !(coverage & Vertical); }
+  unsigned   tuple_count () const { return tupleCount; }
+  bool     is_horizontal () const { return !(coverage & Vertical); }
 
   enum Coverage
   {

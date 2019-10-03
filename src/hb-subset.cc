@@ -249,11 +249,6 @@ _subset_table (hb_subset_plan_t *plan,
 static bool
 _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
 {
-  if (!tag)
-    /* Drop tables with no tag as that means table header in
-       _hb_face_builder_reference_table */
-    return true;
-
   if (plan->drop_tables->has (tag))
     return true;
 
@@ -301,17 +296,19 @@ hb_subset (hb_face_t *source,
   hb_tag_t table_tags[32];
   unsigned int offset = 0, count;
   bool success = true;
+  hb_set_t tags_set;
   do {
     count = ARRAY_LENGTH (table_tags);
     hb_face_get_table_tags (source, offset, &count, table_tags);
     for (unsigned int i = 0; i < count; i++)
     {
       hb_tag_t tag = table_tags[i];
-      if (_should_drop_table (plan, tag))
+      if (_should_drop_table (plan, tag) && !tags_set.has (tag))
       {
 	DEBUG_MSG(SUBSET, nullptr, "drop %c%c%c%c", HB_UNTAG (tag));
 	continue;
       }
+      tags_set.add (tag);
       success = success && _subset_table (plan, tag);
     }
     offset += count;

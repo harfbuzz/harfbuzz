@@ -197,8 +197,6 @@ struct hmtxvmtx
       var_table.destroy ();
     }
 
-    bool has_data () const { return table.get () != nullptr; }
-
     int get_side_bearing (hb_codepoint_t glyph) const
     {
       if (glyph < num_advances)
@@ -214,17 +212,14 @@ struct hmtxvmtx
     int get_side_bearing (hb_font_t *font, hb_codepoint_t glyph) const
     {
       int side_bearing = get_side_bearing (glyph);
-      if (likely (glyph < num_metrics))
-      {
-	if (font->num_coords)
-	{
-	  if (var_table.get_blob () != hb_blob_get_empty ())
-	    side_bearing += var_table->get_side_bearing_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
-	  else
-	    side_bearing = get_side_bearing_var_tt (font, glyph, T::tableTag==HB_OT_TAG_vmtx);
-	}
-      }
-      return side_bearing;
+
+      if (unlikely (glyph >= num_metrics) || !font->num_coords)
+	return side_bearing;
+
+      if (var_table.get_blob () == &Null (hb_blob_t))
+	return get_side_bearing_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+
+      return side_bearing + var_table->get_side_bearing_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
     }
 
     unsigned int get_advance (hb_codepoint_t glyph) const
@@ -247,17 +242,14 @@ struct hmtxvmtx
 			      hb_font_t      *font) const
     {
       unsigned int advance = get_advance (glyph);
-      if (likely (glyph < num_metrics))
-      {
-      	if (font->num_coords)
-      	{
-	  if (var_table.get_blob () != hb_blob_get_empty ())
-	    advance += roundf (var_table->get_advance_var (glyph, font->coords, font->num_coords)); // TODO Optimize?!
-	  else
-	    advance = get_advance_var_tt (font, glyph, T::tableTag==HB_OT_TAG_vmtx);
-	}
-      }
-      return advance;
+
+      if (unlikely (glyph >= num_metrics) || !font->num_coords)
+	return advance;
+
+      if (var_table.get_blob () == &Null (hb_blob_t))
+	return get_advance_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+
+      return advance + roundf (var_table->get_advance_var (glyph, font->coords, font->num_coords)); // TODO Optimize?!
     }
 
     unsigned int num_advances_for_subset (const hb_subset_plan_t *plan) const

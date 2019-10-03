@@ -351,9 +351,6 @@ test_ot_tag_language (void)
   test_tag_from_language ("ZHH", "yue-Hant");
   test_tag_from_language ("ZHS", "yue-Hans");
 
-  test_tag_from_language ("ZHS", "zh"); /* Chinese */
-  test_tag_from_language ("ZHS", "zh-xx");
-
   test_language_two_way ("ABC", "abc");
   test_language_two_way ("ABCD", "x-hbotabcd");
   test_tag_from_language ("ABC", "asdf-asdf-wer-x-hbotabc-zxc");

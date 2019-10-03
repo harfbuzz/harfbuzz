@@ -237,8 +237,8 @@ struct CFFIndex
   public:
   COUNT		count;		/* Number of object data. Note there are (count+1) offsets */
   HBUINT8	offSize;	/* The byte size of each offset in the offsets array. */
-  HBUINT8	offsets[VAR];	/* The array of (count + 1) offsets into objects array (1-base). */
-  /* HBUINT8 data[VAR];	Object data */
+  HBUINT8	offsets[HB_VAR_ARRAY];	/* The array of (count + 1) offsets into objects array (1-base). */
+  /* HBUINT8 data[HB_VAR_ARRAY];	Object data */
   public:
   DEFINE_SIZE_ARRAY (COUNT::static_size + HBUINT8::static_size, offsets);
 };
@@ -514,9 +514,9 @@ struct FDSelect0 {
   unsigned int get_size (unsigned int num_glyphs) const
   { return HBUINT8::static_size * num_glyphs; }
 
-  HBUINT8     fds[VAR];
+  HBUINT8     fds[HB_VAR_ARRAY];
 
-  DEFINE_SIZE_MIN (1);
+  DEFINE_SIZE_MIN (0);
 };
 
 template <typename GID_TYPE, typename FD_TYPE>
@@ -564,13 +564,13 @@ struct FDSelect3_4
       if (glyph < ranges[i].first)
 	break;
 
-    return (hb_codepoint_t)ranges[i - 1].fd;
+    return (hb_codepoint_t) ranges[i - 1].fd;
   }
 
-  GID_TYPE &nRanges () { return ranges.len; }
-  GID_TYPE nRanges () const { return ranges.len; }
-  GID_TYPE &sentinel ()  { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
-  const GID_TYPE &sentinel () const  { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
+  GID_TYPE        &nRanges ()       { return ranges.len; }
+  GID_TYPE         nRanges () const { return ranges.len; }
+  GID_TYPE       &sentinel ()       { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
+  const GID_TYPE &sentinel () const { return StructAfter<GID_TYPE> (ranges[nRanges () - 1]); }
 
   ArrayOf<FDSelect3_4_Range<GID_TYPE, FD_TYPE>, GID_TYPE> ranges;
   /* GID_TYPE sentinel */
@@ -608,8 +608,8 @@ struct FDSelect
 
   hb_codepoint_t get_fd (hb_codepoint_t glyph) const
   {
-    if (this == &Null (FDSelect))
-      return 0;
+    if (this == &Null (FDSelect)) return 0;
+
     switch (format)
     {
     case 0: return u.format0.get_fd (glyph);

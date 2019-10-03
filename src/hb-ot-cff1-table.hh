@@ -357,7 +357,7 @@ struct Charset0 {
     return HBUINT16::static_size * (num_glyphs - 1);
   }
 
-  HBUINT16  sids[VAR];
+  HBUINT16  sids[HB_VAR_ARRAY];
 
   DEFINE_SIZE_ARRAY(0, sids);
 };
@@ -439,7 +439,7 @@ struct Charset1_2 {
     return size;
   }
 
-  Charset_Range<TYPE>   ranges[VAR];
+  Charset_Range<TYPE>   ranges[HB_VAR_ARRAY];
 
   DEFINE_SIZE_ARRAY (0, ranges);
 };
@@ -1155,7 +1155,7 @@ struct cff1
     }
 
     bool is_valid () const { return blob != nullptr; }
-    bool is_CID () const { return topDict.is_CID (); }
+    bool   is_CID () const { return topDict.is_CID (); }
 
     bool is_predef_charset () const { return topDict.CharsetOffset <= ExpertSubsetCharset; }
 
@@ -1225,25 +1225,25 @@ struct cff1
 
     bool is_predef_encoding () const { return topDict.EncodingOffset <= ExpertEncoding; }
 
-    hb_codepoint_t  glyph_to_code (hb_codepoint_t glyph) const
+    hb_codepoint_t glyph_to_code (hb_codepoint_t glyph) const
     {
       if (encoding != &Null(Encoding))
 	return encoding->get_code (glyph);
       else
       {
-	hb_codepoint_t  sid = glyph_to_sid (glyph);
+	hb_codepoint_t sid = glyph_to_sid (glyph);
 	if (sid == 0) return 0;
-	hb_codepoint_t  code = 0;
+	hb_codepoint_t code = 0;
 	switch (topDict.EncodingOffset)
 	{
-	  case  StandardEncoding:
-	    code = lookup_standard_encoding_for_code (sid);
-	    break;
-	  case  ExpertEncoding:
-	    code = lookup_expert_encoding_for_code (sid);
-	    break;
-	  default:
-	    break;
+	case StandardEncoding:
+	  code = lookup_standard_encoding_for_code (sid);
+	  break;
+	case ExpertEncoding:
+	  code = lookup_expert_encoding_for_code (sid);
+	  break;
+	default:
+	  break;
 	}
 	return code;
       }

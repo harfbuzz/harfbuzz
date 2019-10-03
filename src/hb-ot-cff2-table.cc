@@ -44,8 +44,8 @@ struct cff2_extents_param_t
     max_y.set_int (INT_MIN);
   }
 
-  void start_path ()         { path_open = true; }
-  void end_path ()           { path_open = false; }
+  void   start_path ()       { path_open = true; }
+  void     end_path ()       { path_open = false; }
   bool is_path_open () const { return path_open; }
 
   void update_bounds (const point_t &pt)

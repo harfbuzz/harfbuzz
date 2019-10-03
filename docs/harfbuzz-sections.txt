@@ -612,14 +612,14 @@ hb_ot_math_get_glyph_assembly
 
 <SECTION>
 <FILE>hb-ot-meta</FILE>
-hb_ot_meta_t
+hb_ot_meta_tag_t
 hb_ot_meta_get_entry_tags
 hb_ot_meta_reference_entry
 </SECTION>
 
 <SECTION>
 <FILE>hb-ot-metrics</FILE>
-hb_ot_metrics_t
+hb_ot_metrics_tag_t
 hb_ot_metrics_get_position
 hb_ot_metrics_get_variation
 hb_ot_metrics_get_x_variation

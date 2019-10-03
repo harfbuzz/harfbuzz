@@ -840,8 +840,8 @@ hb_ft_font_set_funcs (hb_font_t *font)
     return;
   }
 
-  if (FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE))
-    FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL);
+  if (FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL))
+    FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE);
 
   FT_Set_Char_Size (ft_face,
 		    abs (font->x_scale), abs (font->y_scale),
@@ -866,7 +866,7 @@ hb_ft_font_set_funcs (hb_font_t *font)
     if (ft_coords)
     {
       for (unsigned int i = 0; i < num_coords; i++)
-	ft_coords[i] = coords[i] << 2;
+	ft_coords[i] = coords[i] * 4;
       FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
       free (ft_coords);
     }

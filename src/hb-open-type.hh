@@ -124,9 +124,9 @@ struct F2DOT14 : HBINT16
 };
 
 /* 32-bit signed fixed-point number (16.16). */
-struct Fixed : HBINT32
+struct HBFixed : HBINT32
 {
-  Fixed& operator = (uint32_t i) { HBINT32::operator= (i); return *this; }
+  HBFixed& operator = (uint32_t i) { HBINT32::operator= (i); return *this; }
   // 65536 means 1<<16
   float to_float () const  { return ((int32_t) v) / 65536.f; }
   void set_float (float f) { v = roundf (f * 65536.f); }
@@ -163,9 +163,9 @@ struct Tag : HBUINT32
 };
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
-struct GlyphID : HBUINT16
+struct HBGlyphID : HBUINT16
 {
-  GlyphID& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
+  HBGlyphID& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
 };
 
 /* Script/language-system/feature index */
@@ -264,8 +264,8 @@ struct _hb_has_null
 template <typename Type>
 struct _hb_has_null<Type, true>
 {
-  static const Type *get_null () { return &Null(Type); }
-  static Type *get_crap ()       { return &Crap(Type); }
+  static const Type *get_null () { return &Null (Type); }
+  static       Type *get_crap () { return &Crap (Type); }
 };
 
 template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
@@ -423,7 +423,7 @@ struct UnsizedArrayOf
   { return hb_array (arrayZ, len); }
   hb_array_t<const Type> as_array (unsigned int len) const
   { return hb_array (arrayZ, len); }
-  operator hb_array_t<Type> ()             { return as_array (); }
+  operator hb_array_t<      Type> ()       { return as_array (); }
   operator hb_array_t<const Type> () const { return as_array (); }
 
   template <typename T>
@@ -483,7 +483,7 @@ struct UnsizedArrayOf
   }
 
   public:
-  Type		arrayZ[VAR];
+  Type		arrayZ[HB_VAR_ARRAY];
   public:
   DEFINE_SIZE_UNBOUNDED (0);
 };
@@ -669,7 +669,7 @@ struct ArrayOf
 
   public:
   LenType	len;
-  Type		arrayZ[VAR];
+  Type		arrayZ[HB_VAR_ARRAY];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
@@ -802,7 +802,7 @@ struct HeadlessArrayOf
 
   public:
   LenType	lenP1;
-  Type		arrayZ[VAR];
+  Type		arrayZ[HB_VAR_ARRAY];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
@@ -850,7 +850,7 @@ struct ArrayOfM1
 
   public:
   LenType	lenM1;
-  Type		arrayZ[VAR];
+  Type		arrayZ[HB_VAR_ARRAY];
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
@@ -902,8 +902,8 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   { return *as_array ().bsearch (x, &not_found); }
   template <typename T>
   bool bfind (const T &x, unsigned int *i = nullptr,
-		     hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
-		     unsigned int to_store = (unsigned int) -1) const
+	      hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
+	      unsigned int to_store = (unsigned int) -1) const
   { return as_array ().bfind (x, i, not_found, to_store); }
 };
 

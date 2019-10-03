@@ -226,8 +226,8 @@ struct IndexSubtableRecord
 						   offset, length, format);
   }
 
-  GlyphID			firstGlyphIndex;
-  GlyphID			lastGlyphIndex;
+  HBGlyphID			firstGlyphIndex;
+  HBGlyphID			lastGlyphIndex;
   LOffsetTo<IndexSubtable>	offsetToSubtable;
   public:
   DEFINE_SIZE_STATIC(8);
@@ -290,8 +290,8 @@ struct BitmapSizeTable
   HBUINT32		colorRef;
   SBitLineMetrics	horizontal;
   SBitLineMetrics	vertical;
-  GlyphID		startGlyphIndex;
-  GlyphID		endGlyphIndex;
+  HBGlyphID		startGlyphIndex;
+  HBGlyphID		endGlyphIndex;
   HBUINT8		ppemX;
   HBUINT8		ppemY;
   HBUINT8		bitDepth;
@@ -453,7 +453,7 @@ struct CBDT
     }
 
     hb_blob_t* reference_png (hb_font_t      *font,
-				     hb_codepoint_t  glyph) const
+			      hb_codepoint_t  glyph) const
     {
       const void *base;
       const BitmapSizeTable &strike = this->cblc->choose_strike (font);
