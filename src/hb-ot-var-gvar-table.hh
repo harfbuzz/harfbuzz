@@ -154,37 +154,37 @@ struct TupleVarHeader
 
       if (has_intermediate ())
       {
-      	int start = start_tuple[i];
-      	int end = end_tuple[i];
+	int start = start_tuple[i];
+	int end = end_tuple[i];
 	if (unlikely (start > peak || peak > end ||
 		      (start < 0 && end > 0 && peak))) continue;
 	if (v < start || v > end) return 0.f;
 	if (v < peak)
-	{ if (peak != start) scalar *= (float)(v - start) / (peak - start); }
+	{ if (peak != start) scalar *= (float) (v - start) / (peak - start); }
 	else
-	{ if (peak != end) scalar *= (float)(end - v) / (end - peak); }
+	{ if (peak != end) scalar *= (float) (end - v) / (end - peak); }
       }
       else if (!v || v < hb_min (0, peak) || v > hb_max (0, peak)) return 0.f;
       else
-      	scalar *= (float)v / peak;
+	scalar *= (float) v / peak;
     }
     return scalar;
   }
 
   unsigned int get_data_size () const { return varDataSize; }
 
-  bool has_peak () const { return (tupleIndex & TuppleIndex::EmbeddedPeakTuple); }
-  bool has_intermediate () const { return (tupleIndex & TuppleIndex::IntermediateRegion); }
+  bool           has_peak () const { return (tupleIndex & TuppleIndex::EmbeddedPeakTuple); }
+  bool   has_intermediate () const { return (tupleIndex & TuppleIndex::IntermediateRegion); }
   bool has_private_points () const { return (tupleIndex & TuppleIndex::PrivatePointNumbers); }
-  unsigned int get_index () const { return (tupleIndex & TuppleIndex::TupleIndexMask); }
+  unsigned int  get_index () const { return (tupleIndex & TuppleIndex::TupleIndexMask); }
 
   protected:
   const Tuple &get_peak_tuple () const
   { return StructAfter<Tuple> (tupleIndex); }
   const Tuple &get_start_tuple (unsigned int axis_count) const
-  { return *(const Tuple *)&get_peak_tuple ()[has_peak ()? axis_count: 0]; }
+  { return *(const Tuple *) &get_peak_tuple ()[has_peak () ? axis_count : 0]; }
   const Tuple &get_end_tuple (unsigned int axis_count) const
-  { return *(const Tuple *)&get_peak_tuple ()[has_peak ()? (axis_count * 2): axis_count]; }
+  { return *(const Tuple *) &get_peak_tuple ()[has_peak () ? (axis_count * 2) : axis_count]; }
 
   HBUINT16		varDataSize;
   TuppleIndex		tupleIndex;
@@ -202,7 +202,8 @@ struct TupleVarCount : HBUINT16
   unsigned int get_count () const { return (*this) & CountMask; }
 
   protected:
-  enum Flags {
+  enum Flags
+  {
     SharedPointNumbers	= 0x8000u,
     CountMask		= 0x0FFFu
   };
@@ -257,7 +258,7 @@ struct GlyphVarData
     }
 
     bool in_range (const void *p, unsigned int l) const
-    { return (const char*)p >= (const char*)var_data && (const char*)p+l <= (const char*)var_data + length; }
+    { return (const char*) p >= (const char*) var_data && (const char*) p+l <= (const char*) var_data + length; }
 
     template <typename T> bool in_range (const T *p) const { return in_range (p, sizeof (*p)); }
 
@@ -295,11 +296,12 @@ struct GlyphVarData
   {
     enum packed_point_flag_t
     {
-      POINTS_ARE_WORDS = 0x80,
+      POINTS_ARE_WORDS     = 0x80,
       POINT_RUN_COUNT_MASK = 0x7F
     };
 
-    if (!check.in_range (p)) return false;
+    if (unlikely (!check.in_range (p))) return false;
+
     uint16_t count = *p++;
     if (count & POINTS_ARE_WORDS)
     {
@@ -370,7 +372,7 @@ struct GlyphVarData
 	{
 	  if (!check.in_range ((const HBUINT16 *)p))
 	    return false;
-	  deltas[i] = *(const HBINT16 *)p;
+	  deltas[i] = *(const HBINT16 *) p;
 	  p += HBUINT16::static_size;
 	}
       }
@@ -393,7 +395,6 @@ struct GlyphVarData
   TupleVarCount		tupleVarCount;
   OffsetTo<HBUINT8>	data;
   /* TupleVarHeader tupleVarHeaders[] */
-
   public:
   DEFINE_SIZE_MIN (4);
 };
@@ -471,18 +472,18 @@ struct gvar
       unsigned int length = c->plan->old_gid_for_new_gid (gid, &old_gid)? get_glyph_var_data_length (old_gid): 0;
 
       if (long_offset)
-	((HBUINT32 *)subset_offsets)[gid] = glyph_offset;
+	((HBUINT32 *) subset_offsets)[gid] = glyph_offset;
       else
-      	((HBUINT16 *)subset_offsets)[gid] = glyph_offset / 2;
+	((HBUINT16 *) subset_offsets)[gid] = glyph_offset / 2;
 
       if (length > 0) memcpy (subset_data, get_glyph_var_data (old_gid), length);
       subset_data += length;
       glyph_offset += length;
     }
     if (long_offset)
-      ((HBUINT32 *)subset_offsets)[num_glyphs] = glyph_offset;
+      ((HBUINT32 *) subset_offsets)[num_glyphs] = glyph_offset;
     else
-      ((HBUINT16 *)subset_offsets)[num_glyphs] = glyph_offset / 2;
+      ((HBUINT16 *) subset_offsets)[num_glyphs] = glyph_offset / 2;
 
     return_trace (true);
   }
@@ -497,10 +498,10 @@ struct gvar
 	unlikely ((start_offset > get_offset (glyphCount)) ||
 		  (start_offset + GlyphVarData::min_size > end_offset)))
       return &Null(GlyphVarData);
-    return &(((unsigned char *)this+start_offset)+dataZ);
+    return &(((unsigned char *) this + start_offset) + dataZ);
   }
 
-  bool is_long_offset () const { return (flags & 1)!=0; }
+  bool is_long_offset () const { return (flags & 1) != 0; }
 
   unsigned int get_offset (unsigned int i) const
   {
@@ -519,7 +520,7 @@ struct gvar
     return end_offset - start_offset;
   }
 
-  const HBUINT32 *get_long_offset_array () const { return (const HBUINT32 *)&offsetZ; }
+  const HBUINT32 * get_long_offset_array () const { return (const HBUINT32 *)&offsetZ; }
   const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *)&offsetZ; }
 
   public:
@@ -541,7 +542,7 @@ struct gvar
       unsigned int num_shared_coord = gvar_table->sharedTupleCount * gvar_table->axisCount;
       shared_tuples.resize (num_shared_coord);
       for (unsigned int i = 0; i < num_shared_coord; i++)
-      	shared_tuples[i] = (&(gvar_table+gvar_table->sharedTuples))[i];
+	shared_tuples[i] = (&(gvar_table + gvar_table->sharedTuples))[i];
     }
 
     void fini ()
@@ -605,10 +606,11 @@ struct gvar
       for (unsigned int i = 0; i < orig_points.length; i++)
 	orig_points[i] = points[i];
 
-      contour_point_vector_t	deltas;	/* flag is used to indicate referenced point */
+      contour_point_vector_t deltas; /* flag is used to indicate referenced point */
       deltas.resize (points.length);
 
-      do {
+      do
+      {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, coord_count, shared_tuples.as_array ());
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
