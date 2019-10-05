@@ -315,6 +315,7 @@ hb_ot_font_set_funcs (hb_font_t *font)
 		     nullptr);
 }
 
+#ifndef HB_NO_VAR
 int
 hb_ot_get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
@@ -326,6 +327,7 @@ hb_ot_get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertica
 {
   return font->face->table.glyf->get_advance_var (glyph, font->coords, font->num_coords, is_vertical);
 }
+#endif
 
 
 #endif

@@ -726,6 +726,7 @@ struct glyf
       contour_point_t	max;
     };
 
+#ifndef HB_NO_VAR
     /* Note: Recursively calls itself.
      * all_points includes phantom points
      */
@@ -855,6 +856,7 @@ struct glyf
 			  const int *coords, unsigned int coord_count,
 			  hb_glyph_extents_t *extents) const
     { return get_var_extents_and_phantoms (glyph, coords, coord_count, extents); }
+#endif
 
     public:
     /* based on FontTools _g_l_y_f.py::trim */
@@ -1015,6 +1017,7 @@ struct glyf
       return true;
     }
 
+#ifndef HB_NO_VAR
     unsigned int get_advance_var (hb_codepoint_t glyph,
 				  const int *coords, unsigned int coord_count,
 				  bool vertical) const
@@ -1046,13 +1049,16 @@ struct glyf
 
       return vertical ? ceil (phantoms[PHANTOM_TOP].y) - extents.y_bearing : floor (phantoms[PHANTOM_LEFT].x);
     }
+#endif
 
     bool get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
     {
+#ifndef HB_NO_VAR
       unsigned int coord_count;
       const int *coords = hb_font_get_var_coords_normalized (font, &coord_count);
       if (coords && coord_count > 0 && coord_count == face->table.gvar->get_axis_count ())
 	return get_extents_var (glyph, coords, coord_count, extents);
+#endif
 
       unsigned int start_offset, end_offset;
       if (!get_offsets (glyph, &start_offset, &end_offset))
