@@ -306,7 +306,7 @@ struct GlyphVarData
     uint16_t count = *p++;
     if (count & POINTS_ARE_WORDS)
     {
-      if (!check.in_range (p)) return false;
+      if (unlikely (!check.in_range (p))) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
     }
     points.resize (count);
@@ -315,7 +315,7 @@ struct GlyphVarData
     uint16_t i = 0;
     while (i < count)
     {
-      if (!check.in_range (p)) return false;
+      if (unlikely (!check.in_range (p))) return false;
       uint16_t j;
       uint8_t control = *p++;
       uint16_t run_count = (control & POINT_RUN_COUNT_MASK) + 1;
@@ -323,7 +323,8 @@ struct GlyphVarData
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (!check.in_range ((const HBUINT16 *)p)) return false;
+	  if (unlikely (!check.in_range ((const HBUINT16 *) p)))
+	    return false;
 	  n += *(const HBUINT16 *)p;
 	  points[i] = n;
 	  p += HBUINT16::static_size;
@@ -333,7 +334,7 @@ struct GlyphVarData
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (!check.in_range (p)) return false;
+	  if (unlikely (!check.in_range (p))) return false;
 	  n += *p++;
 	  points[i] = n;
 	}
@@ -358,7 +359,7 @@ struct GlyphVarData
     unsigned int count = deltas.length;
     while (i < count)
     {
-      if (!check.in_range (p)) return false;
+      if (unlikely (!check.in_range (p))) return false;
       uint8_t control = *p++;
       unsigned int run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
       unsigned int j;
@@ -368,7 +369,7 @@ struct GlyphVarData
       else if (control & DELTAS_ARE_WORDS)
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (!check.in_range ((const HBUINT16 *)p))
+	  if (unlikely (!check.in_range ((const HBUINT16 *) p)))
 	    return false;
 	  deltas[i] = *(const HBINT16 *) p;
 	  p += HBUINT16::static_size;
@@ -376,7 +377,7 @@ struct GlyphVarData
       else
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (!check.in_range (p))
+	  if (unlikely (!check.in_range (p)))
 	    return false;
 	  deltas[i] = *(const HBINT8 *) p++;
 	}
@@ -404,8 +405,8 @@ struct gvar
     return_trace (c->check_struct (this) && (version.major == 1) &&
 		  (glyphCount == c->get_num_glyphs ()) &&
 		  c->check_array (&(this+sharedTuples), axisCount * sharedTupleCount) &&
-		  (is_long_offset ()?
-		     c->check_array (get_long_offset_array (), glyphCount+1):
+		  (is_long_offset () ?
+		     c->check_array (get_long_offset_array (), glyphCount+1) :
 		     c->check_array (get_short_offset_array (), glyphCount+1)) &&
 		  c->check_array (((const HBUINT8*)&(this+dataZ)) + get_offset (0),
 				  get_offset (glyphCount) - get_offset (0)));
@@ -439,9 +440,9 @@ struct gvar
     }
 
     bool long_offset = subset_data_size & ~0xFFFFu;
-    out->flags = long_offset? 1: 0;
+    out->flags = long_offset ? 1 : 0;
 
-    HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> ((long_offset? 4: 2) * (num_glyphs+1));
+    HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> ((long_offset ? 4 : 2) * (num_glyphs + 1));
     if (!subset_offsets) return_trace (false);
 
     /* shared tuples */
@@ -523,8 +524,6 @@ struct gvar
   {
     void init (hb_face_t *face)
     {
-      memset (this, 0, sizeof (accelerator_t));
-
       gvar_table = hb_sanitize_context_t ().reference_table<gvar> (face);
       hb_blob_ptr_t<fvar> fvar_table = hb_sanitize_context_t ().reference_table<fvar> (face);
       unsigned int axis_count = fvar_table->get_axis_count ();
@@ -585,8 +584,8 @@ struct gvar
       if (unlikely (coord_count != gvar_table->axisCount)) return false;
 
       const GlyphVarData *var_data = gvar_table->get_glyph_var_data (glyph);
-      if (var_data == &Null(GlyphVarData)) return true;
-      hb_vector_t <unsigned int> shared_indices;
+      if (var_data == &Null (GlyphVarData)) return true;
+      hb_vector_t<unsigned int> shared_indices;
       GlyphVarData::tuple_iterator_t iterator;
       if (!GlyphVarData::get_tuple_iterator (var_data,
 					     gvar_table->get_glyph_var_data_length (glyph),
@@ -614,19 +613,19 @@ struct gvar
 	  return false;
 
 	range_checker_t checker (p, 0, length);
-	hb_vector_t <unsigned int> private_indices;
+	hb_vector_t<unsigned int> private_indices;
 	if (iterator.current_tuple->has_private_points () &&
 	    !GlyphVarData::unpack_points (p, private_indices, checker))
 	  return false;
 	const hb_array_t<unsigned int> &indices = private_indices.length ? private_indices : shared_indices;
 
-      	bool apply_to_all = (indices.length == 0);
+	bool apply_to_all = (indices.length == 0);
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
-	hb_vector_t <int> x_deltas;
+	hb_vector_t<int> x_deltas;
 	x_deltas.resize (num_deltas);
 	if (!GlyphVarData::unpack_deltas (p, x_deltas, checker))
 	  return false;
-	hb_vector_t <int> y_deltas;
+	hb_vector_t<int> y_deltas;
 	y_deltas.resize (num_deltas);
 	if (!GlyphVarData::unpack_deltas (p, y_deltas, checker))
 	  return false;
@@ -635,7 +634,7 @@ struct gvar
 	  deltas[i].init ();
 	for (unsigned int i = 0; i < num_deltas; i++)
 	{
-	  unsigned int pt_index = apply_to_all? i: indices[i];
+	  unsigned int pt_index = apply_to_all ? i : indices[i];
 	  deltas[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 	  deltas[pt_index].x += x_deltas[i] * scalar;
 	  deltas[pt_index].y += y_deltas[i] * scalar;
@@ -709,8 +708,8 @@ no_more_gaps:
     { return gvar_table->get_glyph_var_data (glyph); }
 
     private:
-    hb_blob_ptr_t<gvar>		gvar_table;
-    hb_vector_t<F2DOT14>	shared_tuples;
+    hb_blob_ptr_t<gvar> gvar_table;
+    hb_vector_t<F2DOT14> shared_tuples;
   };
 
   protected:
