@@ -45,14 +45,8 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 
   hb_set_add (gids_to_retain, gid);
 
-  OT::glyf::CompositeGlyphHeader::Iterator composite;
-  if (glyf.get_composite (gid, &composite))
-  {
-    do
-    {
-      _add_gid_and_children (glyf, (hb_codepoint_t) composite.current->glyphIndex, gids_to_retain);
-    } while (composite.move_to_next());
-  }
+  for (auto &item : OT::glyf::get_composite_iterator (glyf.bytes_for_glyph (gid)))
+    _add_gid_and_children (glyf, item.glyphIndex, gids_to_retain);
 }
 
 #ifndef HB_NO_SUBSET_CFF
