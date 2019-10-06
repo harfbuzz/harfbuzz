@@ -226,7 +226,7 @@ struct glyf
     const GlyphHeader &glyph_header = *glyph.as<GlyphHeader> ();
     if (!glyph_header.is_simple_glyph ()) return;  // only for simple glyphs
 
-    unsigned int instruction_len_offset = glyph_header.simple_instruction_len_offset ();
+    unsigned int instruction_len_offset = GlyphHeader::SimpleHeader (glyph_header).instruction_len_offset ();
     const HBUINT16 &instruction_len = StructAtOffset<HBUINT16> (&glyph, instruction_len_offset);
     (HBUINT16 &) instruction_len = 0;
   }
@@ -313,12 +313,6 @@ struct glyf
 	return true;
       }
     };
-
-    unsigned int simple_instruction_len_offset () const
-    { return SimpleHeader (*this).instruction_len_offset (); }
-
-    unsigned int simple_length (unsigned int instruction_len) const
-    { return SimpleHeader (*this).length (instruction_len); }
 
     enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE };
 
@@ -889,7 +883,7 @@ struct glyf
       else
       {
 	/* simple glyph w/contours, possibly trimmable */
-	glyph += glyph_header.simple_instruction_len_offset ();
+	glyph += GlyphHeader::SimpleHeader (glyph_header).instruction_len_offset ();
 
 	if (unlikely (glyph + 2 >= glyph_end)) return false;
 	uint16_t nCoordinates = (uint16_t) StructAtOffset<HBUINT16> (glyph - 2, 0) + 1;
@@ -1119,14 +1113,10 @@ struct glyf
 	dest_start = hb_bytes_t (&source_glyph, source_glyph.length - instruction_len);
       else
       {
-	unsigned int glyph_length = header.simple_length (instruction_len);
+	unsigned int glyph_length = GlyphHeader::SimpleHeader (header).length (instruction_len);
 	dest_start = hb_bytes_t (&source_glyph, glyph_length - instruction_len);
 	dest_end = hb_bytes_t (&source_glyph + glyph_length,
 			       source_glyph.length - glyph_length);
-	DEBUG_MSG (SUBSET, nullptr, "source_len %d start len %d glyph_len %d "
-				    "instruction_len %d end len %d",
-		   source_glyph.length, dest_start.length, glyph_length,
-		   instruction_len, dest_end.length);
       }
     }
 
