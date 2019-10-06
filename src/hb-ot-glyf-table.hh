@@ -570,15 +570,6 @@ struct glyf
     };
 
     protected:
-    const GlyphHeader &get_header (hb_codepoint_t glyph) const
-    {
-      unsigned int start_offset, end_offset;
-      if (!get_offsets (glyph, &start_offset, &end_offset) || end_offset - start_offset < GlyphHeader::static_size)
-	return Null (GlyphHeader);
-
-      return StructAtOffset<GlyphHeader> (glyf_table, start_offset);
-    }
-
     struct x_setter_t
     {
       void set (contour_point_t &point, float v) const { point.x = v; }
@@ -627,7 +618,7 @@ struct glyf
 
     void init_phantom_points (hb_codepoint_t glyph, hb_array_t<contour_point_t> &phantoms /* IN/OUT */) const
     {
-      const GlyphHeader &header = get_header (glyph);
+      const GlyphHeader &header = *bytes_for_glyph (glyph).as<GlyphHeader> ();
       int h_delta = (int) header.xMin - face->table.hmtx->get_side_bearing (glyph);
       int v_orig  = (int) header.yMax + face->table.vmtx->get_side_bearing (glyph);
       unsigned int h_adv = face->table.hmtx->get_advance (glyph);
@@ -673,7 +664,7 @@ struct glyf
 
 	points_.resize (num_points + PHANTOM_COUNT);
 	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
-	if (!glyph_header.is_simple_glyph () || phantom_only) return true;
+	if (phantom_only) return true;
 
 	/* Read simple glyph points if !phantom_only */
 	end_points_.resize (num_contours);
@@ -749,10 +740,7 @@ struct glyf
       if (unlikely (!face->table.gvar->apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))) return false;
 
       unsigned int comp_index = 0;
-      unsigned int start_offset, end_offset;
-      if (unlikely (!get_offsets (glyph, &start_offset, &end_offset))) return false;
-      hb_bytes_t bytes ((const char *) this->glyf_table + start_offset,
-			end_offset - start_offset);
+      hb_bytes_t bytes = bytes_for_glyph (glyph);
       const GlyphHeader &glyph_header = *bytes.as<GlyphHeader> ();
       if (glyph_header.is_simple_glyph ())
 	all_points.extend (points.as_array ());
@@ -1004,14 +992,11 @@ struct glyf
 	return get_extents_var (font, glyph, extents);
 #endif
 
-      unsigned int start_offset, end_offset;
-      if (!get_offsets (glyph, &start_offset, &end_offset))
-	return false;
+      if (unlikely (glyph >= num_glyphs)) return false;
 
-      if (end_offset - start_offset < GlyphHeader::static_size)
+      const GlyphHeader &glyph_header = *bytes_for_glyph (glyph).as<GlyphHeader> ();
+      if (unlikely (!glyph_header.has_data ()))
 	return true; /* Empty glyph; zero extents. */
-
-      const GlyphHeader &glyph_header = StructAtOffset<GlyphHeader> (glyf_table, start_offset);
 
       /* Undocumented rasterizer behavior: shift glyph to the left by (lsb - xMin), i.e., xMin = lsb */
       /* extents->x_bearing = hb_min (glyph_header.xMin, glyph_header.xMax); */
@@ -1030,7 +1015,7 @@ struct glyf
       if (unlikely (!get_offsets (gid, &start_offset, &end_offset)))
 	return hb_bytes_t ();
 
-      /* couldn't remove padding, needed for subset */
+      /* Remove padding, needed for subset */
       if (needs_padding_removal)
 	if (unlikely (!remove_padding (start_offset, &end_offset)))
 	  return hb_bytes_t ();
