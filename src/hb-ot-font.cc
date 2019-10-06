@@ -164,7 +164,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   {
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     hb_position_t tsb = vmtx.get_side_bearing (font, glyph);
-    *y = font->em_scale_y (extents.y_bearing + tsb);
+    *y = extents.y_bearing + font->em_scale_y (tsb);
     return true;
   }
 
@@ -190,7 +190,7 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 #endif
   if (!ret) ret = ot_face->glyf->get_extents (font, glyph, extents);
 #ifndef HB_NO_OT_FONT_CFF
-  if (!ret) ret = ot_face->cff1->get_extents (glyph, extents);
+  if (!ret) ret = ot_face->cff1->get_extents (font, glyph, extents);
   if (!ret) ret = ot_face->cff2->get_extents (font, glyph, extents);
 #endif
 #if !defined(HB_NO_OT_FONT_BITMAP) && !defined(HB_NO_COLOR)
@@ -198,10 +198,6 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 #endif
 
   // TODO Hook up side-bearings variations.
-  extents->x_bearing = font->em_scale_x (extents->x_bearing);
-  extents->y_bearing = font->em_scale_y (extents->y_bearing);
-  extents->width     = font->em_scale_x (extents->width);
-  extents->height    = font->em_scale_y (extents->height);
   return ret;
 }
 
@@ -319,13 +315,13 @@ hb_ot_font_set_funcs (hb_font_t *font)
 int
 hb_ot_get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
-  return font->face->table.glyf->get_side_bearing_var (glyph, font->coords, font->num_coords, is_vertical);
+  return font->face->table.glyf->get_side_bearing_var (font, glyph, is_vertical);
 }
 
 unsigned
 hb_ot_get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
-  return font->face->table.glyf->get_advance_var (glyph, font->coords, font->num_coords, is_vertical);
+  return font->face->table.glyf->get_advance_var (font, glyph, is_vertical);
 }
 #endif
 

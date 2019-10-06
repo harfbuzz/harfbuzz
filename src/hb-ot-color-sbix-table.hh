@@ -243,10 +243,10 @@ struct sbix
       if (strike_ppem)
       {
 	float scale = font->face->get_upem () / (float) strike_ppem;
-	extents->x_bearing = roundf (extents->x_bearing * scale);
-	extents->y_bearing = roundf (extents->y_bearing * scale);
-	extents->width = roundf (extents->width * scale);
-	extents->height = roundf (extents->height * scale);
+	extents->x_bearing = font->em_scalef_x (extents->x_bearing * scale);
+	extents->y_bearing = font->em_scalef_y (extents->y_bearing * scale);
+	extents->width = font->em_scalef_x (extents->width * scale);
+	extents->height = font->em_scalef_y (extents->height * scale);
       }
 
       hb_blob_destroy (blob);
