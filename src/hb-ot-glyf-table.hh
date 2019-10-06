@@ -196,8 +196,8 @@ struct glyf
 		if (!plan->old_gid_for_new_gid (new_gid, &subset_glyph.old_gid))
 		  return subset_glyph;
 
-		subset_glyph.source_glyph = glyf.bytes_for_glyph ((const char *) this,
-								  subset_glyph.old_gid);
+		subset_glyph.source_glyph = glyf.bytes_for_glyph (subset_glyph.old_gid,
+								  true);
 		if (plan->drop_hints) subset_glyph.drop_hints (glyf);
 		else subset_glyph.dest_start = subset_glyph.source_glyph;
 
@@ -488,20 +488,6 @@ struct glyf
     {
       loca_table.destroy ();
       glyf_table.destroy ();
-    }
-
-    composite_iter_t get_composite_iter (hb_codepoint_t glyph) const
-    {
-      if (unlikely (!num_glyphs))
-        return composite_iter_t ();
-
-      unsigned int start_offset, end_offset;
-      if (!get_offsets (glyph, &start_offset, &end_offset))
-	return composite_iter_t (); /* glyph not found */
-
-      hb_bytes_t bytes ((const char *) this->glyf_table + start_offset,
-			end_offset - start_offset);
-      return get_composite_iterator (bytes);
     }
 
     enum simple_glyph_flag_t
@@ -1044,21 +1030,25 @@ struct glyf
       return true;
     }
 
-    hb_bytes_t bytes_for_glyph (const char *glyf, hb_codepoint_t gid)
+    hb_bytes_t bytes_for_glyph (hb_codepoint_t gid,
+				bool needs_padding_removal = false) const
     {
       unsigned int start_offset, end_offset;
-      if (unlikely (!(get_offsets (gid, &start_offset, &end_offset) &&
-		      remove_padding (start_offset, &end_offset))))
-      {
-	DEBUG_MSG (SUBSET, nullptr, "Unable to get offset or remove padding for %d", gid);
+      if (unlikely (!get_offsets (gid, &start_offset, &end_offset)))
 	return hb_bytes_t ();
-      }
-      hb_bytes_t glyph_bytes = hb_bytes_t (glyf + start_offset, end_offset - start_offset);
+
+      /* couldn't remove padding, needed for subset */
+      if (needs_padding_removal)
+	if (unlikely (!remove_padding (start_offset, &end_offset)))
+	  return hb_bytes_t ();
+
+      hb_bytes_t glyph_bytes = hb_bytes_t ((const char *) this->glyf_table + start_offset,
+					   end_offset - start_offset);
+
+      /* Glyph size smaller than minimum header */
       if (!glyph_bytes.as<GlyphHeader> ()->has_data ())
-      {
-	DEBUG_MSG (SUBSET, nullptr, "Glyph size smaller than minimum header %d", gid);
 	return hb_bytes_t ();
-      }
+
       return glyph_bytes;
     }
 

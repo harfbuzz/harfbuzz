@@ -45,7 +45,7 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 
   hb_set_add (gids_to_retain, gid);
 
-  for (auto &item : glyf.get_composite_iter (gid))
+  for (auto &item : OT::glyf::get_composite_iterator (glyf.bytes_for_glyph (gid)))
     _add_gid_and_children (glyf, item.glyphIndex, gids_to_retain);
 }
 
