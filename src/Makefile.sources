@@ -139,7 +139,6 @@ HB_BASE_sources = \
 	hb-ot-var-gvar-table.hh \
 	hb-ot-var-hvar-table.hh \
 	hb-ot-var-mvar-table.hh \
-	hb-ot-var-gvar-table.hh \
 	hb-ot-var.cc \
 	hb-ot-vorg-table.hh \
 	hb-pool.hh \

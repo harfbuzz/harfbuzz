@@ -165,7 +165,6 @@ struct hmtxvmtx
     void init (hb_face_t *face,
 	       unsigned int default_advance_ = 0)
     {
-      memset (this, 0, sizeof (*this));
       default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
 
       num_advances = T::is_horizontal ? face->table.hhea->numberOfLongMetrics : face->table.vhea->numberOfLongMetrics;

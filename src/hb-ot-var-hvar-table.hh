@@ -65,7 +65,7 @@ struct DeltaSetIndexMap
       unsigned int v = output_map[i];
       unsigned int outer = v >> 16;
       unsigned int inner = v & 0xFFFF;
-      unsigned int u = (outer << inner_bit_count)|inner;
+      unsigned int u = (outer << inner_bit_count) | inner;
       for (unsigned int w = width; w > 0;)
       {
 	p[--w] = u;
@@ -155,14 +155,14 @@ struct index_map_subset_plan_t
       hb_codepoint_t	old_gid;
       if (!plan->old_gid_for_new_gid (gid - 1, &old_gid))
       {
-      	if (last_gid == (hb_codepoint_t)-1)
+	if (last_gid == (hb_codepoint_t) -1)
 	  continue;
 	else
 	  break;
       }
 
-      unsigned int	v = index_map.map (old_gid);
-      if (last_gid == (hb_codepoint_t)-1)
+      unsigned int v = index_map.map (old_gid);
+      if (last_gid == (hb_codepoint_t) -1)
       {
 	last_val = v;
 	last_gid = gid;
@@ -226,8 +226,8 @@ struct index_map_subset_plan_t
   }
 
   unsigned int get_inner_bit_count () const { return inner_bit_count; }
-  unsigned int get_width () const { return ((outer_bit_count + inner_bit_count + 7) / 8); }
-  unsigned int get_map_count () const { return map_count; }
+  unsigned int get_width ()           const { return ((outer_bit_count + inner_bit_count + 7) / 8); }
+  unsigned int get_map_count ()       const { return map_count; }
 
   unsigned int get_size () const
   { return (map_count? (DeltaSetIndexMap::min_size + get_width () * map_count): 0); }
@@ -236,13 +236,11 @@ struct index_map_subset_plan_t
   hb_array_t<const unsigned int> get_output_map () const { return output_map.as_array (); }
 
   protected:
-  unsigned int	map_count;
-  hb_vector_t<unsigned int>
-  		max_inners;
-  unsigned int	outer_bit_count;
-  unsigned int	inner_bit_count;
-  hb_vector_t<unsigned int>
-		output_map;
+  unsigned int map_count;
+  hb_vector_t<unsigned int> max_inners;
+  unsigned int outer_bit_count;
+  unsigned int inner_bit_count;
+  hb_vector_t<unsigned int> output_map;
 };
 
 struct hvarvvar_subset_plan_t
@@ -318,15 +316,14 @@ struct hvarvvar_subset_plan_t
     index_map_plans.fini_deep ();
   }
 
-  hb_inc_bimap_t		outer_map;
-  hb_vector_t<hb_inc_bimap_t>	inner_maps;
-  hb_vector_t<index_map_subset_plan_t>
-  				index_map_plans;
-  const VariationStore		*var_store;
+  hb_inc_bimap_t outer_map;
+  hb_vector_t<hb_inc_bimap_t> inner_maps;
+  hb_vector_t<index_map_subset_plan_t> index_map_plans;
+  const VariationStore *var_store;
 
   protected:
-  hb_vector_t<hb_set_t *>	inner_sets;
-  hb_set_t			*adv_set;
+  hb_vector_t<hb_set_t *> inner_sets;
+  hb_set_t *adv_set;
 };
 
 /*
