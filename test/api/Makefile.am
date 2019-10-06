@@ -88,6 +88,7 @@ TEST_PROGS += \
 	test-ot-metrics \
 	test-ot-tag \
 	test-ot-extents-cff \
+	test-ot-metrics-tt-var \
 	$(NULL)
 
 
