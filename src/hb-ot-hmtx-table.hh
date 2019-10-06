@@ -252,7 +252,7 @@ struct hmtxvmtx
       if (var_table.get_blob () == &Null (hb_blob_t))
 	return hb_ot_get_advance_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 
-      return advance + roundf (var_table->get_advance_var (glyph, font->coords, font->num_coords)); // TODO Optimize?!
+      return advance + roundf (var_table->get_advance_var (font, glyph)); // TODO Optimize?!
 #else
       return advance;
 #endif
