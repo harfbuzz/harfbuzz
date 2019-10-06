@@ -14,7 +14,6 @@
 #include "hb-ot-color.cc"
 #include "hb-ot-face.cc"
 #include "hb-ot-font.cc"
-#include "hb-ot-hmtx-table.cc"
 #include "hb-ot-layout.cc"
 #include "hb-ot-map.cc"
 #include "hb-ot-math.cc"
