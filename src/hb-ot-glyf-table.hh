@@ -290,6 +290,70 @@ struct glyf
 	*len = instruction_len;
 	return true;
       }
+
+      enum simple_glyph_flag_t
+      {
+	FLAG_ON_CURVE  = 0x01,
+	FLAG_X_SHORT   = 0x02,
+	FLAG_Y_SHORT   = 0x04,
+	FLAG_REPEAT    = 0x08,
+	FLAG_X_SAME    = 0x10,
+	FLAG_Y_SAME    = 0x20,
+	FLAG_RESERVED1 = 0x40,
+	FLAG_RESERVED2 = 0x80
+      };
+
+      hb_bytes_t bytes_without_padding (hb_bytes_t glyph_bytes) const
+      {
+        unsigned int end_offset = glyph_bytes.length;
+        /* based on FontTools _g_l_y_f.py::trim */
+        const char *glyph = glyph_bytes.arrayZ;
+        const char *glyph_end = glyph + glyph_bytes.length;
+	/* simple glyph w/contours, possibly trimmable */
+	glyph += instruction_len_offset ();
+
+	if (unlikely (glyph + 2 >= glyph_end)) return hb_bytes_t ();
+	unsigned int nCoordinates = StructAtOffset<HBUINT16> (glyph - 2, 0) + 1;
+	unsigned int nInstructions = StructAtOffset<HBUINT16> (glyph, 0);
+
+	glyph += 2 + nInstructions;
+	if (unlikely (glyph + 2 >= glyph_end)) return hb_bytes_t ();
+
+	unsigned int coordBytes = 0;
+	unsigned int coordsWithFlags = 0;
+	while (glyph < glyph_end)
+	{
+	  uint8_t flag = *glyph;
+	  glyph++;
+
+	  unsigned int repeat = 1;
+	  if (flag & FLAG_REPEAT)
+	  {
+	    if (unlikely (glyph >= glyph_end)) return hb_bytes_t ();
+	    repeat = *glyph + 1;
+	    glyph++;
+	  }
+
+	  unsigned int xBytes, yBytes;
+	  xBytes = yBytes = 0;
+	  if (flag & FLAG_X_SHORT) xBytes = 1;
+	  else if ((flag & FLAG_X_SAME) == 0) xBytes = 2;
+
+	  if (flag & FLAG_Y_SHORT) yBytes = 1;
+	  else if ((flag & FLAG_Y_SAME) == 0) yBytes = 2;
+
+	  coordBytes += (xBytes + yBytes) * repeat;
+	  coordsWithFlags += repeat;
+	  if (coordsWithFlags >= nCoordinates) break;
+	}
+
+	if (unlikely (coordsWithFlags != nCoordinates)) return hb_bytes_t ();
+	glyph += coordBytes;
+
+	if (glyph < glyph_end)
+	  end_offset -= glyph_end - glyph;
+        return glyph_bytes.sub_array (0, end_offset);
+      }
     };
 
     struct CompositeHeader
@@ -312,6 +376,11 @@ struct glyf
 	*length = end - start;
 	return true;
       }
+
+      /* Trimming for composites not implemented.
+       * If removing hints it falls out of that. */
+      hb_bytes_t bytes_without_padding (hb_bytes_t glyph_bytes) const
+      {	return glyph_bytes; }
     };
 
     const SimpleHeader    as_simple    () const { return SimpleHeader (*this); }
@@ -334,6 +403,17 @@ struct glyf
       case SIMPLE:    return as_simple ().get_instruction_length (glyph, length);
       default:
       case EMPTY:     *length = 0; return glyph.length == 0; /* only 0 byte glyphs are healthy when missing GlyphHeader */
+      }
+    }
+
+    hb_bytes_t bytes_without_padding (hb_bytes_t glyph_bytes) const
+    {
+      switch (get_type ())
+      {
+      case COMPOSITE: return as_composite ().bytes_without_padding (glyph_bytes);
+      case SIMPLE:    return as_simple ().bytes_without_padding (glyph_bytes);
+      default:
+      case EMPTY:     return glyph_bytes;
       }
     }
 
@@ -656,10 +736,7 @@ struct glyf
       else if (glyph_header.is_simple_glyph ())
       {
 	const HBUINT16 *end_pts = &StructAfter<HBUINT16, GlyphHeader> (glyph_header);
-
-	unsigned int start_offset, end_offset;
-	if (unlikely (!get_offsets (glyph, &start_offset, &end_offset))) return false;
-	range_checker_t checker (glyf_table, start_offset, end_offset);
+	range_checker_t checker (bytes.arrayZ, 0, bytes.length);
 	num_points = 0;
 	int num_contours = glyph_header.numberOfContours;
 	if (unlikely (!checker.in_range (&end_pts[num_contours + 1]))) return false;
@@ -854,105 +931,6 @@ struct glyf
 #endif
 
     public:
-    /* based on FontTools _g_l_y_f.py::trim */
-    bool remove_padding (unsigned int start_offset,
-			 unsigned int *end_offset) const
-    {
-      unsigned int glyph_length = *end_offset - start_offset;
-      const char *glyph = ((const char *) glyf_table) + start_offset;
-      const GlyphHeader &glyph_header = *hb_bytes_t (glyph, glyph_length).as<GlyphHeader> ();
-      if (!glyph_header.has_data ()) return true;
-
-      const char *glyph_end = glyph + glyph_length;
-      if (glyph_header.is_composite_glyph ())
-	/* Trimming for composites not implemented.
-	 * If removing hints it falls out of that. */
-	return true;
-      else
-      {
-	/* simple glyph w/contours, possibly trimmable */
-	glyph += glyph_header.as_simple ().instruction_len_offset ();
-
-	if (unlikely (glyph + 2 >= glyph_end)) return false;
-	uint16_t nCoordinates = (uint16_t) StructAtOffset<HBUINT16> (glyph - 2, 0) + 1;
-	uint16_t nInstructions = (uint16_t) StructAtOffset<HBUINT16> (glyph, 0);
-
-	glyph += 2 + nInstructions;
-	if (unlikely (glyph + 2 >= glyph_end)) return false;
-
-	unsigned int coordBytes = 0;
-	unsigned int coordsWithFlags = 0;
-	while (glyph < glyph_end)
-	{
-	  uint8_t flag = (uint8_t) *glyph;
-	  glyph++;
-
-	  unsigned int repeat = 1;
-	  if (flag & FLAG_REPEAT)
-	  {
-	    if (glyph >= glyph_end)
-	    {
-	      DEBUG_MSG (SUBSET, nullptr, "Bad flag");
-	      return false;
-	    }
-	    repeat = ((uint8_t) *glyph) + 1;
-	    glyph++;
-	  }
-
-	  unsigned int xBytes, yBytes;
-	  xBytes = yBytes = 0;
-	  if (flag & FLAG_X_SHORT) xBytes = 1;
-	  else if ((flag & FLAG_X_SAME) == 0) xBytes = 2;
-
-	  if (flag & FLAG_Y_SHORT) yBytes = 1;
-	  else if ((flag & FLAG_Y_SAME) == 0) yBytes = 2;
-
-	  coordBytes += (xBytes + yBytes) * repeat;
-	  coordsWithFlags += repeat;
-	  if (coordsWithFlags >= nCoordinates)
-	    break;
-	}
-
-	if (coordsWithFlags != nCoordinates)
-	{
-	  DEBUG_MSG (SUBSET, nullptr, "Expect %d coords to have flags, got flags for %d",
-		     nCoordinates, coordsWithFlags);
-	  return false;
-	}
-	glyph += coordBytes;
-
-	if (glyph < glyph_end)
-	  *end_offset -= glyph_end - glyph;
-      }
-      return true;
-    }
-
-    bool get_offsets (hb_codepoint_t  glyph,
-		      unsigned int   *start_offset /* OUT */,
-		      unsigned int   *end_offset   /* OUT */) const
-    {
-      if (unlikely (glyph >= num_glyphs)) return false;
-
-      if (short_offset)
-      {
-	const HBUINT16 *offsets = (const HBUINT16 *) loca_table->dataZ.arrayZ;
-	*start_offset = 2 * offsets[glyph];
-	*end_offset   = 2 * offsets[glyph + 1];
-      }
-      else
-      {
-	const HBUINT32 *offsets = (const HBUINT32 *) loca_table->dataZ.arrayZ;
-
-	*start_offset = offsets[glyph];
-	*end_offset   = offsets[glyph + 1];
-      }
-
-      if (*start_offset > *end_offset || *end_offset > glyf_table.get_length ())
-	return false;
-
-      return true;
-    }
-
 #ifndef HB_NO_VAR
     unsigned int get_advance_var (hb_font_t *font, hb_codepoint_t glyph,
 				  bool is_vertical) const
@@ -1015,22 +993,35 @@ struct glyf
 				bool needs_padding_removal = false) const
     {
       unsigned int start_offset, end_offset;
-      if (unlikely (!get_offsets (gid, &start_offset, &end_offset)))
+      if (unlikely (gid >= num_glyphs)) return hb_bytes_t ();
+
+      if (short_offset)
+      {
+	const HBUINT16 *offsets = (const HBUINT16 *) loca_table->dataZ.arrayZ;
+	start_offset = 2 * offsets[gid];
+	end_offset   = 2 * offsets[gid + 1];
+      }
+      else
+      {
+	const HBUINT32 *offsets = (const HBUINT32 *) loca_table->dataZ.arrayZ;
+	start_offset = offsets[gid];
+	end_offset   = offsets[gid + 1];
+      }
+
+      if (unlikely (start_offset > end_offset || end_offset > glyf_table.get_length ()))
 	return hb_bytes_t ();
 
-      /* Remove padding, needed for subset */
-      if (needs_padding_removal)
-	if (unlikely (!remove_padding (start_offset, &end_offset)))
-	  return hb_bytes_t ();
+      hb_bytes_t glyph_bytes ((const char *) this->glyf_table + start_offset,
+			      end_offset - start_offset);
 
-      hb_bytes_t glyph_bytes = hb_bytes_t ((const char *) this->glyf_table + start_offset,
-					   end_offset - start_offset);
+      const GlyphHeader &glyph_header = *glyph_bytes.as<GlyphHeader> ();
 
-      /* Glyph size smaller than minimum header */
-      if (!glyph_bytes.as<GlyphHeader> ()->has_data ())
-	return hb_bytes_t ();
+      /* Empty glyph or its size is smaller than minimum header */
+      if (!glyph_header.has_data ()) return hb_bytes_t ();
 
-      return glyph_bytes;
+      if (!needs_padding_removal) return glyph_bytes;
+
+      return glyph_header.bytes_without_padding (glyph_bytes);
     }
 
     private:
