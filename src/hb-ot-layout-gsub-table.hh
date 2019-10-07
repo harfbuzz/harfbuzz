@@ -1074,20 +1074,7 @@ struct LigatureSubstFormat1
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
     + hb_zip (this+coverage, ligatureSet)
     | hb_filter (glyphset, hb_first)
-    | hb_filter ([this, c, out] (const OffsetTo<LigatureSet>& _)
-		 {
-		   auto *o = out->ligatureSet.serialize_append (c->serializer);
-		   if (unlikely (!o)) return false;
-		   auto snap = c->serializer->snapshot ();
-		   bool ret = o->serialize_subset (c, _, this, out);
-		   if (!ret)
-		   {
-		     out->ligatureSet.pop ();
-		     c->serializer->revert (snap);
-		   }
-		   return ret;
-		 },
-		 hb_second)
+    | hb_filter (subset_offset_array (c, out->ligatureSet, this, out), hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
