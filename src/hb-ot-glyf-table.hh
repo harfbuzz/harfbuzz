@@ -305,22 +305,21 @@ struct glyf
 
       hb_bytes_t bytes_without_padding (hb_bytes_t glyph_bytes) const
       {
-        unsigned int end_offset = glyph_bytes.length;
-        /* based on FontTools _g_l_y_f.py::trim */
-        const char *glyph = glyph_bytes.arrayZ;
-        const char *glyph_end = glyph + glyph_bytes.length;
+	/* based on FontTools _g_l_y_f.py::trim */
+	const char *glyph = glyph_bytes.arrayZ;
+	const char *glyph_end = glyph + glyph_bytes.length;
 	/* simple glyph w/contours, possibly trimmable */
 	glyph += instruction_len_offset ();
 
 	if (unlikely (glyph + 2 >= glyph_end)) return hb_bytes_t ();
-	unsigned int nCoordinates = StructAtOffset<HBUINT16> (glyph - 2, 0) + 1;
-	unsigned int nInstructions = StructAtOffset<HBUINT16> (glyph, 0);
+	unsigned int num_coordinates = StructAtOffset<HBUINT16> (glyph - 2, 0) + 1;
+	unsigned int num_instructions = StructAtOffset<HBUINT16> (glyph, 0);
 
-	glyph += 2 + nInstructions;
+	glyph += 2 + num_instructions;
 	if (unlikely (glyph + 2 >= glyph_end)) return hb_bytes_t ();
 
-	unsigned int coordBytes = 0;
-	unsigned int coordsWithFlags = 0;
+	unsigned int coord_bytes = 0;
+	unsigned int coords_with_flags = 0;
 	while (glyph < glyph_end)
 	{
 	  uint8_t flag = *glyph;
@@ -342,17 +341,13 @@ struct glyf
 	  if (flag & FLAG_Y_SHORT) yBytes = 1;
 	  else if ((flag & FLAG_Y_SAME) == 0) yBytes = 2;
 
-	  coordBytes += (xBytes + yBytes) * repeat;
-	  coordsWithFlags += repeat;
-	  if (coordsWithFlags >= nCoordinates) break;
+	  coord_bytes += (xBytes + yBytes) * repeat;
+	  coords_with_flags += repeat;
+	  if (coords_with_flags >= num_coordinates) break;
 	}
 
-	if (unlikely (coordsWithFlags != nCoordinates)) return hb_bytes_t ();
-	glyph += coordBytes;
-
-	if (glyph < glyph_end)
-	  end_offset -= glyph_end - glyph;
-        return glyph_bytes.sub_array (0, end_offset);
+	if (unlikely (coords_with_flags != num_coordinates)) return hb_bytes_t ();
+	return glyph_bytes.sub_array (0, glyph_bytes.length + coord_bytes - (glyph_end - glyph));
       }
     };
 
@@ -380,7 +375,7 @@ struct glyf
       /* Trimming for composites not implemented.
        * If removing hints it falls out of that. */
       hb_bytes_t bytes_without_padding (hb_bytes_t glyph_bytes) const
-      {	return glyph_bytes; }
+      { return glyph_bytes; }
     };
 
     const SimpleHeader    as_simple    () const { return SimpleHeader (*this); }
@@ -913,11 +908,9 @@ struct glyf
 	  extents->height = font->em_scalef_y (bounds.min.y) - extents->y_bearing;
 	}
       }
-      if (phantoms != nullptr)
-      {
+      if (phantoms)
 	for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	  (*phantoms)[i] = all_points[all_points.length - PHANTOM_COUNT + i];
-      }
       return true;
     }
 
@@ -1031,7 +1024,6 @@ struct glyf
     hb_blob_ptr_t<glyf> glyf_table;
     hb_face_t *face;
   };
-
 
   struct SubsetGlyph
   {
