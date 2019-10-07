@@ -226,7 +226,7 @@ struct glyf
     const GlyphHeader &glyph_header = *glyph.as<GlyphHeader> ();
     if (!glyph_header.is_simple_glyph ()) return;  // only for simple glyphs
 
-    unsigned int instruction_len_offset = GlyphHeader::SimpleHeader (glyph_header).instruction_len_offset ();
+    unsigned int instruction_len_offset = glyph_header.as_simple ().instruction_len_offset ();
     const HBUINT16 &instruction_len = StructAtOffset<HBUINT16> (&glyph, instruction_len_offset);
     (HBUINT16 &) instruction_len = 0;
   }
@@ -297,7 +297,7 @@ struct glyf
       const GlyphHeader &header;
       CompositeHeader (const GlyphHeader &header_) : header (header_) {}
 
-      bool get_instruction_length (hb_bytes_t glyph, unsigned int *length)
+      bool get_instruction_length (hb_bytes_t glyph, unsigned int *length) const
       {
 	unsigned int start = glyph.length;
 	unsigned int end = glyph.length;
@@ -314,6 +314,9 @@ struct glyf
       }
     };
 
+    const SimpleHeader    as_simple    () const { return SimpleHeader (*this); }
+    const CompositeHeader as_composite () const { return CompositeHeader (*this); }
+
     enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE };
 
     glyph_type_t get_type () const
@@ -327,8 +330,8 @@ struct glyf
     {
       switch (get_type ())
       {
-      case COMPOSITE: return CompositeHeader (*this).get_instruction_length (glyph, length);
-      case SIMPLE:    return SimpleHeader (*this).get_instruction_length (glyph, length);
+      case COMPOSITE: return as_composite ().get_instruction_length (glyph, length);
+      case SIMPLE:    return as_simple ().get_instruction_length (glyph, length);
       default:
       case EMPTY:     *length = 0; return glyph.length == 0; /* only 0 byte glyphs are healthy when missing GlyphHeader */
       }
@@ -495,7 +498,7 @@ struct glyf
       if (!(current->flags & CompositeGlyphHeader::MORE_COMPONENTS)) { current = nullptr; return; }
 
       const CompositeGlyphHeader *possible = &StructAfter<CompositeGlyphHeader,
-							    CompositeGlyphHeader> (*current);
+							  CompositeGlyphHeader> (*current);
       if (!in_range (possible)) { current = nullptr; return; }
       current = possible;
     }
@@ -868,7 +871,7 @@ struct glyf
       else
       {
 	/* simple glyph w/contours, possibly trimmable */
-	glyph += GlyphHeader::SimpleHeader (glyph_header).instruction_len_offset ();
+	glyph += glyph_header.as_simple ().instruction_len_offset ();
 
 	if (unlikely (glyph + 2 >= glyph_end)) return false;
 	uint16_t nCoordinates = (uint16_t) StructAtOffset<HBUINT16> (glyph - 2, 0) + 1;
