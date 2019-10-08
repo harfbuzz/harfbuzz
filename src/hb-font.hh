@@ -35,6 +35,15 @@
 #include "hb-shaper.hh"
 
 
+/* Unscaled extents */
+struct hb_glyph_unscaled_extents_t
+{
+  float x_bearing;
+  float y_bearing;
+  float width;
+  float height;
+};
+
 /*
  * hb_font_funcs_t
  */

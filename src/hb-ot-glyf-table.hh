@@ -690,15 +690,15 @@ struct glyf
     void init_phantom_points (hb_codepoint_t glyph, hb_array_t<contour_point_t> &phantoms /* IN/OUT */) const
     {
       const GlyphHeader &header = *bytes_for_glyph (glyph).as<GlyphHeader> ();
-      int h_delta = (int) header.xMin - face->table.hmtx->get_side_bearing (glyph);
-      int v_orig  = (int) header.yMax + face->table.vmtx->get_side_bearing (glyph);
-      unsigned int h_adv = face->table.hmtx->get_advance (glyph);
-      unsigned int v_adv = face->table.vmtx->get_advance (glyph);
+      float h_delta = header.xMin - face->table.hmtx->get_side_bearing (glyph);
+      float v_orig  = header.yMax + face->table.vmtx->get_side_bearing (glyph);
+      float h_adv = face->table.hmtx->get_advance (glyph);
+      float v_adv = face->table.vmtx->get_advance (glyph);
 
       phantoms[PHANTOM_LEFT].x = h_delta;
       phantoms[PHANTOM_RIGHT].x = h_adv + h_delta;
       phantoms[PHANTOM_TOP].y = v_orig;
-      phantoms[PHANTOM_BOTTOM].y = v_orig - (int) v_adv;
+      phantoms[PHANTOM_BOTTOM].y = v_orig - v_adv;
     }
 
     /* for a simple glyph, return contour end points, flags, along with coordinate points
@@ -860,7 +860,7 @@ struct glyf
     }
 
     bool get_var_extents_and_phantoms (hb_font_t *font, hb_codepoint_t glyph,
-				       hb_glyph_extents_t *extents=nullptr /* OUT */,
+				       hb_glyph_unscaled_extents_t *extents=nullptr /* OUT */,
 				       contour_point_vector_t *phantoms=nullptr /* OUT */) const
     {
       contour_point_vector_t all_points;
@@ -874,7 +874,7 @@ struct glyf
       delta.init (-all_points[all_points.length - PHANTOM_COUNT + PHANTOM_LEFT].x, 0.f);
       if (delta.x != 0.f) all_points.translate (delta);
 
-      if (extents != nullptr)
+      if (extents)
       {
 	contour_bounds_t bounds;
 	for (unsigned int i = 0; i + PHANTOM_COUNT < all_points.length; i++)
@@ -887,8 +887,8 @@ struct glyf
 	}
 	else
 	{
-	  extents->x_bearing = font->em_scalef_x (bounds.min.x);
-	  extents->width = font->em_scalef_x (bounds.max.x - bounds.min.x);
+	  extents->x_bearing = bounds.min.x;
+	  extents->width = bounds.max.x - bounds.min.x;
 	}
 	if (bounds.min.y > bounds.max.y)
 	{
@@ -897,8 +897,8 @@ struct glyf
 	}
 	else
 	{
-	  extents->y_bearing = font->em_scalef_y (bounds.max.y);
-	  extents->height = font->em_scalef_y (bounds.min.y - bounds.max.y);
+	  extents->y_bearing = bounds.max.y;
+	  extents->height = bounds.min.y - bounds.max.y;
 	}
       }
       if (phantoms)
@@ -912,14 +912,14 @@ struct glyf
     { return get_var_extents_and_phantoms (font, glyph, nullptr, &phantoms); }
 
     bool get_extents_var (hb_font_t *font, hb_codepoint_t glyph,
-			  hb_glyph_extents_t *extents) const
-    { return get_var_extents_and_phantoms (font, glyph,  extents); }
+			  hb_glyph_unscaled_extents_t *extents) const
+    { return get_var_extents_and_phantoms (font, glyph, extents); }
 #endif
 
     public:
 #ifndef HB_NO_VAR
-    unsigned int get_advance_var (hb_font_t *font, hb_codepoint_t glyph,
-				  bool is_vertical) const
+    float
+    get_advance_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical) const
     {
       bool success = false;
       contour_point_vector_t phantoms;
@@ -932,12 +932,13 @@ struct glyf
 	return is_vertical ? face->table.vmtx->get_advance (glyph) : face->table.hmtx->get_advance (glyph);
 
       if (is_vertical)
-	return roundf (phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y);
+	return phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y;
       else
-	return roundf (phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x);
+	return phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x;
     }
 
-    int get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical) const
+    float
+    get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical) const
     {
       hb_glyph_extents_t extents;
       contour_point_vector_t phantoms;
@@ -946,11 +947,12 @@ struct glyf
       if (unlikely (!get_var_extents_and_phantoms (font, glyph, &extents, &phantoms)))
 	return is_vertical ? face->table.vmtx->get_side_bearing (glyph) : face->table.hmtx->get_side_bearing (glyph);
 
-      return is_vertical ? ceil (phantoms[PHANTOM_TOP].y) - extents.y_bearing : floor (phantoms[PHANTOM_LEFT].x);
+      return is_vertical ? phantoms[PHANTOM_TOP].y - extents.y_bearing : phantoms[PHANTOM_LEFT].x;
     }
 #endif
 
-    bool get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+    bool get_extents (hb_font_t *font, hb_codepoint_t glyph,
+		      hb_glyph_unscaled_extents_t *extents) const
     {
 #ifndef HB_NO_VAR
       unsigned int coord_count;
@@ -967,10 +969,10 @@ struct glyf
 
       /* Undocumented rasterizer behavior: shift glyph to the left by (lsb - xMin), i.e., xMin = lsb */
       /* extents->x_bearing = hb_min (glyph_header.xMin, glyph_header.xMax); */
-      extents->x_bearing = font->em_scale_x (face->table.hmtx->get_side_bearing (glyph));
-      extents->y_bearing = font->em_scale_y (hb_max (glyph_header.yMin, glyph_header.yMax));
-      extents->width     = font->em_scale_x (hb_max (glyph_header.xMin, glyph_header.xMax) - hb_min (glyph_header.xMin, glyph_header.xMax));
-      extents->height    = font->em_scale_y (hb_min (glyph_header.yMin, glyph_header.yMax) - hb_max (glyph_header.yMin, glyph_header.yMax));
+      extents->x_bearing = face->table.hmtx->get_side_bearing (font, glyph);
+      extents->y_bearing = hb_max (glyph_header.yMin, glyph_header.yMax);
+      extents->width     = hb_max (glyph_header.xMin, glyph_header.xMax) - hb_min (glyph_header.xMin, glyph_header.xMax);
+      extents->height    = hb_min (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing;
 
       return true;
     }

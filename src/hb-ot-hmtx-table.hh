@@ -42,10 +42,10 @@
 #define HB_OT_TAG_vmtx HB_TAG('v','m','t','x')
 
 
-HB_INTERNAL int
+HB_INTERNAL float
 _glyf_get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 
-HB_INTERNAL unsigned
+HB_INTERNAL float
 _glyf_get_advance_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 
 
@@ -140,7 +140,8 @@ struct hmtxvmtx
 		hb_codepoint_t old_gid;
 		if (!c->plan->old_gid_for_new_gid (_, &old_gid))
 		  return hb_pair (0u, 0);
-		return hb_pair (_mtx.get_advance (old_gid), _mtx.get_side_bearing (old_gid));
+		return hb_pair ((unsigned) _mtx.get_advance (old_gid),
+				(signed) _mtx.get_side_bearing (old_gid));
 	      })
     ;
 
@@ -207,9 +208,9 @@ struct hmtxvmtx
       return bearings[glyph - num_advances];
     }
 
-    int get_side_bearing (hb_font_t *font, hb_codepoint_t glyph) const
+    float get_side_bearing (hb_font_t *font, hb_codepoint_t glyph) const
     {
-      int side_bearing = get_side_bearing (glyph);
+      float side_bearing = get_side_bearing (glyph);
 
 #ifndef HB_NO_VAR
       if (unlikely (glyph >= num_metrics) || !font->num_coords)
@@ -240,17 +241,16 @@ struct hmtxvmtx
       return table->longMetricZ[hb_min (glyph, (uint32_t) num_advances - 1)].advance;
     }
 
-    unsigned int get_advance (hb_codepoint_t  glyph,
-			      hb_font_t      *font) const
+    float get_advance (hb_codepoint_t glyph, hb_font_t *font) const
     {
-      unsigned int advance = get_advance (glyph);
+      float advance = get_advance (glyph);
 
 #ifndef HB_NO_VAR
       if (unlikely (glyph >= num_metrics) || !font->num_coords)
 	return advance;
 
       if (var_table.get_length ())
-	return advance + roundf (var_table->get_advance_var (font, glyph)); // TODO Optimize?!
+	return advance + var_table->get_advance_var (font, glyph); // TODO Optimize?!
 
       return _glyf_get_advance_var (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 #else
