@@ -34,23 +34,6 @@
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-stat-table.hh"
 
-static inline void
-_add_gid_and_children (const OT::glyf::accelerator_t &glyf,
-		       hb_codepoint_t gid,
-		       hb_set_t *gids_to_retain)
-{
-  if (gids_to_retain->has (gid))
-    // Already visited this gid, ignore.
-    return;
-
-  gids_to_retain->add (gid);
-
-  hb_bytes_t glyph_bytes = glyf.bytes_for_glyph (gid);
-  const OT::glyf::GlyphHeader &glyph_header = *glyph_bytes.as<OT::glyf::GlyphHeader> ();
-  for (auto &item : glyph_header.get_composite_iterator (glyph_bytes))
-    _add_gid_and_children (glyf, item.glyphIndex, gids_to_retain);
-}
-
 #ifndef HB_NO_SUBSET_CFF
 static inline void
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
@@ -147,7 +130,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   hb_codepoint_t gid = HB_SET_VALUE_INVALID;
   while (plan->_glyphset_gsub->next (&gid))
   {
-    _add_gid_and_children (glyf, gid, plan->_glyphset);
+    glyf.add_gid_and_children (gid, plan->_glyphset);
 #ifndef HB_NO_SUBSET_CFF
     if (cff.is_valid ())
       _add_cff_seac_components (cff, gid, plan->_glyphset);
