@@ -43,7 +43,7 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
     // Already visited this gid, ignore.
     return;
 
-  hb_set_add (gids_to_retain, gid);
+  gids_to_retain->add (gid);
 
   hb_bytes_t glyph_bytes = glyf.bytes_for_glyph (gid);
   const OT::glyf::GlyphHeader &glyph_header = *glyph_bytes.as<OT::glyf::GlyphHeader> ();
@@ -54,14 +54,14 @@ _add_gid_and_children (const OT::glyf::accelerator_t &glyf,
 #ifndef HB_NO_SUBSET_CFF
 static inline void
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
-	   hb_codepoint_t gid,
-	   hb_set_t *gids_to_retain)
+			  hb_codepoint_t gid,
+			  hb_set_t *gids_to_retain)
 {
   hb_codepoint_t base_gid, accent_gid;
   if (cff.get_seac_components (gid, &base_gid, &accent_gid))
   {
-    hb_set_add (gids_to_retain, base_gid);
-    hb_set_add (gids_to_retain, accent_gid);
+    gids_to_retain->add (base_gid);
+    gids_to_retain->add (accent_gid);
   }
 }
 #endif
