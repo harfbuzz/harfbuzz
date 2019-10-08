@@ -795,7 +795,7 @@ struct glyf
     bool get_points_var (hb_codepoint_t glyph,
 			 const int *coords, unsigned int coord_count,
 			 contour_point_vector_t &all_points /* OUT */,
-			 unsigned int depth=0) const
+			 unsigned int depth = 0) const
     {
       if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t points;
@@ -1009,8 +1009,10 @@ struct glyf
     }
 
     void
-    add_gid_and_children (hb_codepoint_t gid, hb_set_t *gids_to_retain) const
+    add_gid_and_children (hb_codepoint_t gid, hb_set_t *gids_to_retain,
+			  unsigned int depth = 0) const
     {
+      if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return;
       /* Check if is already visited */
       if (gids_to_retain->has (gid)) return;
 
@@ -1019,7 +1021,7 @@ struct glyf
       hb_bytes_t glyph_bytes = bytes_for_glyph (gid);
       const GlyphHeader &glyph_header = *glyph_bytes.as<GlyphHeader> ();
       for (auto &item : glyph_header.get_composite_iterator (glyph_bytes))
-        add_gid_and_children (item.glyphIndex, gids_to_retain);
+        add_gid_and_children (item.glyphIndex, gids_to_retain, depth);
     }
 
     private:
