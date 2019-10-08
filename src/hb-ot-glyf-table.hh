@@ -197,7 +197,7 @@ struct glyf
 		  return subset_glyph;
 
 		subset_glyph.source_glyph = glyf.bytes_for_glyph (subset_glyph.old_gid, true);
-		if (plan->drop_hints) subset_glyph.drop_hints (glyf);
+		if (plan->drop_hints) subset_glyph.drop_hints_bytes ();
 		else subset_glyph.dest_start = subset_glyph.source_glyph;
 
 		return subset_glyph;
@@ -401,16 +401,15 @@ struct glyf
       unsigned int length (unsigned int instruction_len) const
       { return instruction_len_offset () + 2 + instruction_len; }
 
-      bool get_instruction_length (hb_bytes_t glyph, unsigned int *len) const
+      unsigned int instructions_length (hb_bytes_t glyph) const
       {
 	unsigned int instruction_length_offset = instruction_len_offset ();
-	if (unlikely (instruction_length_offset + 2 > glyph.length)) return false;
+	if (unlikely (instruction_length_offset + 2 > glyph.length)) return 0;
 
 	const HBUINT16 &instructionLength = StructAtOffset<HBUINT16> (&glyph, instruction_length_offset);
 	/* Out of bounds of the current glyph */
-	if (unlikely (length (instructionLength) > glyph.length)) return false;
-	*len = instructionLength;
-	return true;
+	if (unlikely (length (instructionLength) > glyph.length)) return 0;
+	return instructionLength;
       }
 
       enum simple_glyph_flag_t
@@ -478,6 +477,14 @@ struct glyf
 	GlyphHeader &glyph_header = const_cast<GlyphHeader &> (header);
 	(HBUINT16 &) StructAtOffset<HBUINT16> (&glyph_header, instruction_len_offset ()) = 0;
       }
+
+      void drop_hints_bytes (hb_bytes_t source_glyph, hb_bytes_t &dest_start, hb_bytes_t &dest_end) const
+      {
+	unsigned int instructions_len = instructions_length (source_glyph);
+	unsigned int glyph_length = length (instructions_len);
+	dest_start = source_glyph.sub_array (0, glyph_length - instructions_len);
+	dest_end = source_glyph.sub_array (glyph_length, source_glyph.length - glyph_length);
+      }
     };
 
     struct CompositeHeader
@@ -488,20 +495,19 @@ struct glyf
       composite_iter_t get_iterator (hb_bytes_t glyph) const
       { return composite_iter_t (glyph, &StructAfter<CompositeGlyphHeader, GlyphHeader> (header)); }
 
-      bool get_instruction_length (hb_bytes_t glyph, unsigned int *length) const
+      unsigned int instructions_length (hb_bytes_t glyph) const
       {
 	unsigned int start = glyph.length;
 	unsigned int end = glyph.length;
 	const CompositeGlyphHeader *last = nullptr;
 	for (auto &item : get_iterator (glyph))
 	  last = &item;
-	if (unlikely (!last)) return false;
+	if (unlikely (!last)) return 0;
 
 	if ((uint16_t) last->flags & CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS)
 	  start = (char *) last - &glyph + last->get_size ();
-	if (unlikely (start > end)) return false;
-	*length = end - start;
-	return true;
+	if (unlikely (start > end)) return 0;
+	return end - start;
       }
 
       /* Trimming for composites not implemented.
@@ -518,16 +524,15 @@ struct glyf
 	  flags = (uint16_t) flags & ~OT::glyf::CompositeGlyphHeader::WE_HAVE_INSTRUCTIONS;
 	}
       }
-    };
 
-    const SimpleHeader    as_simple    () const { return SimpleHeader (*this); }
-	  SimpleHeader    as_simple    ()       { return SimpleHeader (*this); }
-    const CompositeHeader as_composite () const { return CompositeHeader (*this); }
-	  CompositeHeader as_composite ()       { return CompositeHeader (*this); }
+      /* Chop instructions off the end */
+      void drop_hints_bytes (hb_bytes_t source_glyph, hb_bytes_t &dest_start) const
+      { dest_start = source_glyph.sub_array (0, source_glyph.length - instructions_length (source_glyph)); }
+    };
 
     enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE };
 
-    glyph_type_t get_type () const
+    unsigned get_type () const
     {
       if (is_simple_glyph ()) return SIMPLE;
       else if (is_composite_glyph ()) return COMPOSITE;
@@ -537,28 +542,16 @@ struct glyf
     composite_iter_t get_composite_iterator (hb_bytes_t glyph) const
     {
       if (!is_composite_glyph ()) return composite_iter_t ();
-      return as_composite ().get_iterator (glyph);
-    }
-
-    bool get_instruction_length (hb_bytes_t glyph, unsigned int *length) const
-    {
-      switch (get_type ())
-      {
-      case COMPOSITE: return as_composite ().get_instruction_length (glyph, length);
-      case SIMPLE:    return as_simple ().get_instruction_length (glyph, length);
-      default:
-      case EMPTY:     *length = 0; return glyph.length == 0; /* only 0 byte glyphs are healthy when missing GlyphHeader */
-      }
+      return CompositeHeader (*this).get_iterator (glyph);
     }
 
     hb_bytes_t bytes_without_padding (hb_bytes_t glyph_bytes) const
     {
       switch (get_type ())
       {
-      case COMPOSITE: return as_composite ().bytes_without_padding (glyph_bytes);
-      case SIMPLE:    return as_simple ().bytes_without_padding (glyph_bytes);
-      default:
-      case EMPTY:     return glyph_bytes;
+      case COMPOSITE: return CompositeHeader (*this).bytes_without_padding (glyph_bytes);
+      case SIMPLE:    return SimpleHeader (*this).bytes_without_padding (glyph_bytes);
+      default:        return glyph_bytes;
       }
     }
 
@@ -566,10 +559,19 @@ struct glyf
     {
       switch (get_type ())
       {
-      case COMPOSITE: as_composite ().drop_hints (glyph_bytes); return;
-      case SIMPLE:    as_simple ().drop_hints (); return;
-      default:
-      case EMPTY:     return;
+      case COMPOSITE: CompositeHeader (*this).drop_hints (glyph_bytes); return;
+      case SIMPLE:    SimpleHeader (*this).drop_hints (); return;
+      default:        return;
+      }
+    }
+
+    void drop_hints_bytes (hb_bytes_t source_glyph, hb_bytes_t &dest_start, hb_bytes_t &dest_end) const
+    {
+      switch (get_type ())
+      {
+      case COMPOSITE: CompositeHeader (*this).drop_hints_bytes (source_glyph, dest_start); return;
+      case SIMPLE:    SimpleHeader (*this).drop_hints_bytes (source_glyph, dest_start, dest_end); return;
+      default:        return;
       }
     }
 
@@ -1074,28 +1076,8 @@ struct glyf
       return_trace (true);
     }
 
-    void drop_hints (const OT::glyf::accelerator_t& glyf)
-    {
-      if (source_glyph.length == 0) return;
-
-      unsigned int instruction_len = 0;
-
-      const GlyphHeader& header = *source_glyph.as<GlyphHeader> ();
-      if (!header.get_instruction_length (source_glyph, &instruction_len))
-	/* Unable to read instruction length */
-	return;
-
-      if (header.is_composite_glyph ())
-	/* just chop instructions off the end for composite glyphs */
-	dest_start = hb_bytes_t (&source_glyph, source_glyph.length - instruction_len);
-      else
-      {
-	unsigned int glyph_length = GlyphHeader::SimpleHeader (header).length (instruction_len);
-	dest_start = hb_bytes_t (&source_glyph, glyph_length - instruction_len);
-	dest_end = hb_bytes_t (&source_glyph + glyph_length,
-			       source_glyph.length - glyph_length);
-      }
-    }
+    void drop_hints_bytes ()
+    { source_glyph.as<GlyphHeader> ()->drop_hints_bytes (source_glyph, dest_start, dest_end); }
 
     unsigned int      length () const { return dest_start.length + dest_end.length; }
     /* pad to 2 to ensure 2-byte loca will be ok */
