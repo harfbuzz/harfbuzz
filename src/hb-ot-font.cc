@@ -313,13 +313,13 @@ hb_ot_font_set_funcs (hb_font_t *font)
 
 #ifndef HB_NO_VAR
 int
-hb_ot_get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
+_glyf_get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
   return font->face->table.glyf->get_side_bearing_var (font, glyph, is_vertical);
 }
 
 unsigned
-hb_ot_get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
+_glyf_get_advance_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
   return font->face->table.glyf->get_advance_var (font, glyph, is_vertical);
 }

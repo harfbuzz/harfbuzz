@@ -43,10 +43,10 @@
 
 
 HB_INTERNAL int
-hb_ot_get_side_bearing_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
+_glyf_get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 
 HB_INTERNAL unsigned
-hb_ot_get_advance_var_tt (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
+_glyf_get_advance_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 
 
 namespace OT {
@@ -215,10 +215,10 @@ struct hmtxvmtx
       if (unlikely (glyph >= num_metrics) || !font->num_coords)
 	return side_bearing;
 
-      if (var_table.get_blob () == &Null (hb_blob_t))
-	return hb_ot_get_side_bearing_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+      if (var_table.get_length ())
+        return side_bearing + var_table->get_side_bearing_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
 
-      return side_bearing + var_table->get_side_bearing_var (glyph, font->coords, font->num_coords); // TODO Optimize?!
+      return _glyf_get_side_bearing_var (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 #else
       return side_bearing;
 #endif
@@ -249,10 +249,10 @@ struct hmtxvmtx
       if (unlikely (glyph >= num_metrics) || !font->num_coords)
 	return advance;
 
-      if (var_table.get_blob () == &Null (hb_blob_t))
-	return hb_ot_get_advance_var_tt (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+      if (var_table.get_length ())
+	return advance + roundf (var_table->get_advance_var (font, glyph)); // TODO Optimize?!
 
-      return advance + roundf (var_table->get_advance_var (font, glyph)); // TODO Optimize?!
+      return _glyf_get_advance_var (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 #else
       return advance;
 #endif
