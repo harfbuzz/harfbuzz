@@ -248,6 +248,13 @@ struct sbix
 	extents->width = font->em_scalef_x (extents->width * scale);
 	extents->height = font->em_scalef_y (extents->height * scale);
       }
+      else
+      {
+	extents->x_bearing = font->em_scale_x (extents->x_bearing);
+	extents->y_bearing = font->em_scale_y (extents->y_bearing);
+	extents->width = font->em_scale_x (extents->width);
+	extents->height = font->em_scale_y (extents->height);
+      }
 
       hb_blob_destroy (blob);
 

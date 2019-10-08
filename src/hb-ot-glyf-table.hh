@@ -888,7 +888,7 @@ struct glyf
 	else
 	{
 	  extents->x_bearing = font->em_scalef_x (bounds.min.x);
-	  extents->width = font->em_scalef_x (bounds.max.x) - extents->x_bearing;
+	  extents->width = font->em_scalef_x (bounds.max.x - bounds.min.x);
 	}
 	if (bounds.min.y > bounds.max.y)
 	{
@@ -898,7 +898,7 @@ struct glyf
 	else
 	{
 	  extents->y_bearing = font->em_scalef_y (bounds.max.y);
-	  extents->height = font->em_scalef_y (bounds.min.y) - extents->y_bearing;
+	  extents->height = font->em_scalef_y (bounds.min.y - bounds.max.y);
 	}
       }
       if (phantoms)
@@ -970,7 +970,7 @@ struct glyf
       extents->x_bearing = font->em_scale_x (face->table.hmtx->get_side_bearing (glyph));
       extents->y_bearing = font->em_scale_y (hb_max (glyph_header.yMin, glyph_header.yMax));
       extents->width     = font->em_scale_x (hb_max (glyph_header.xMin, glyph_header.xMax) - hb_min (glyph_header.xMin, glyph_header.xMax));
-      extents->height    = font->em_scale_y (hb_min (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing);
+      extents->height    = font->em_scale_y (hb_min (glyph_header.yMin, glyph_header.yMax) - hb_max (glyph_header.yMin, glyph_header.yMax));
 
       return true;
     }
