@@ -1008,6 +1008,20 @@ struct glyf
       return glyph_header.bytes_without_padding (glyph_bytes);
     }
 
+    void
+    add_gid_and_children (hb_codepoint_t gid, hb_set_t *gids_to_retain) const
+    {
+      /* Check if is already visited */
+      if (gids_to_retain->has (gid)) return;
+
+      gids_to_retain->add (gid);
+
+      hb_bytes_t glyph_bytes = bytes_for_glyph (gid);
+      const GlyphHeader &glyph_header = *glyph_bytes.as<GlyphHeader> ();
+      for (auto &item : glyph_header.get_composite_iterator (glyph_bytes))
+        add_gid_and_children (item.glyphIndex, gids_to_retain);
+    }
+
     private:
     bool short_offset;
     unsigned int num_glyphs;
