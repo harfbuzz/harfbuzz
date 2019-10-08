@@ -968,9 +968,9 @@ struct glyf
       /* Undocumented rasterizer behavior: shift glyph to the left by (lsb - xMin), i.e., xMin = lsb */
       /* extents->x_bearing = hb_min (glyph_header.xMin, glyph_header.xMax); */
       extents->x_bearing = font->em_scale_x (face->table.hmtx->get_side_bearing (glyph));
-      extents->y_bearing = font->em_scale_x (hb_max (glyph_header.yMin, glyph_header.yMax));
+      extents->y_bearing = font->em_scale_y (hb_max (glyph_header.yMin, glyph_header.yMax));
       extents->width     = font->em_scale_x (hb_max (glyph_header.xMin, glyph_header.xMax) - hb_min (glyph_header.xMin, glyph_header.xMax));
-      extents->height    = font->em_scale_x (hb_min (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing);
+      extents->height    = font->em_scale_y (hb_min (glyph_header.yMin, glyph_header.yMax) - extents->y_bearing);
 
       return true;
     }
