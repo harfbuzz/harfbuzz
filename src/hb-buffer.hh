@@ -126,9 +126,9 @@ struct hb_buffer_t
   /* Debugging API */
 #ifndef HB_NO_BUFFER_MESSAGE
   hb_buffer_message_func_t message_func;
-#endif
   void *message_data;
   hb_destroy_func_t message_destroy;
+#endif
 
   /* Internal debugging. */
   /* The bits here reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
