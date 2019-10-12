@@ -485,6 +485,53 @@ struct glyf
 	dest_start = source_glyph.sub_array (0, glyph_length - instructions_len);
 	dest_end = source_glyph.sub_array (glyph_length, source_glyph.length - glyph_length);
       }
+
+      bool get_contour_points (hb_bytes_t bytes,
+			       contour_point_vector_t &points_ /* OUT */,
+			       hb_vector_t<unsigned int> &end_points_ /* OUT */,
+			       const bool phantom_only=false) const
+      {
+        unsigned int num_points = 0;
+	const HBUINT16 *end_pts = &StructAfter<HBUINT16, GlyphHeader> (header);
+	range_checker_t checker (bytes.arrayZ, 0, bytes.length);
+	num_points = 0;
+	int num_contours = header.numberOfContours;
+	if (unlikely (!checker.in_range (&end_pts[num_contours + 1]))) return false;
+	num_points = end_pts[num_contours - 1] + 1;
+
+	points_.resize (num_points + PHANTOM_COUNT);
+	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
+	if (phantom_only) return true;
+
+	/* Read simple glyph points if !phantom_only */
+	end_points_.resize (num_contours);
+
+	for (int i = 0; i < num_contours; i++)
+	  end_points_[i] = end_pts[i];
+
+	/* Skip instructions */
+	const HBUINT8 *p = &StructAtOffset<HBUINT8> (&end_pts[num_contours + 1],
+						     end_pts[num_contours]);
+
+	/* Read flags */
+	for (unsigned int i = 0; i < num_points; i++)
+	{
+	  if (unlikely (!checker.in_range (p))) return false;
+	  uint8_t flag = *p++;
+	  points_[i].flag = flag;
+	  if ((flag & SimpleHeader::FLAG_REPEAT) != 0)
+	  {
+	    if (unlikely (!checker.in_range (p))) return false;
+	    unsigned int repeat_count = *p++;
+	    while ((repeat_count-- > 0) && (++i < num_points))
+	      points_[i].flag = flag;
+	  }
+	}
+
+	/* Read x & y coordinates */
+	return (read_points<x_setter_t> (p, points_, checker) &&
+		read_points<y_setter_t> (p, points_, checker));
+      }
     };
 
     struct CompositeHeader
@@ -528,6 +575,19 @@ struct glyf
       /* Chop instructions off the end */
       void drop_hints_bytes (hb_bytes_t source_glyph, hb_bytes_t &dest_start) const
       { dest_start = source_glyph.sub_array (0, source_glyph.length - instructions_length (source_glyph)); }
+
+      bool get_contour_points (hb_bytes_t bytes,
+			       contour_point_vector_t &points_ /* OUT */,
+			       hb_vector_t<unsigned int> &end_points_ /* OUT */,
+			       const bool phantom_only=false) const
+      {
+        unsigned int num_points = 0;
+	/* add one pseudo point for each component in composite glyph */
+	num_points += hb_len (get_iterator (bytes));
+	points_.resize (num_points + PHANTOM_COUNT);
+	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
+	return true;
+      }
     };
 
     enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE };
@@ -572,6 +632,84 @@ struct glyf
       case COMPOSITE: CompositeHeader (*this).drop_hints_bytes (source_glyph, dest_start); return;
       case SIMPLE:    SimpleHeader (*this).drop_hints_bytes (source_glyph, dest_start, dest_end); return;
       default:        return;
+      }
+    }
+
+    enum phantom_point_index_t
+    {
+      PHANTOM_LEFT   = 0,
+      PHANTOM_RIGHT  = 1,
+      PHANTOM_TOP    = 2,
+      PHANTOM_BOTTOM = 3,
+      PHANTOM_COUNT  = 4
+    };
+
+    struct x_setter_t
+    {
+      void set (contour_point_t &point, float v) const { point.x = v; }
+      bool is_short (uint8_t flag) const { return flag & SimpleHeader::FLAG_X_SHORT; }
+      bool is_same  (uint8_t flag) const { return flag & SimpleHeader::FLAG_X_SAME; }
+    };
+
+    struct y_setter_t
+    {
+      void set (contour_point_t &point, float v) const { point.y = v; }
+      bool is_short (uint8_t flag) const { return flag & SimpleHeader::FLAG_Y_SHORT; }
+      bool is_same  (uint8_t flag) const { return flag & SimpleHeader::FLAG_Y_SAME; }
+    };
+
+    template <typename T>
+    static bool read_points (const HBUINT8 *&p /* IN/OUT */,
+			     contour_point_vector_t &points_ /* IN/OUT */,
+			     const range_checker_t &checker)
+    {
+      T coord_setter;
+      float v = 0;
+      for (unsigned int i = 0; i < points_.length - PHANTOM_COUNT; i++)
+      {
+	uint8_t flag = points_[i].flag;
+	if (coord_setter.is_short (flag))
+	{
+	  if (unlikely (!checker.in_range (p))) return false;
+	  if (coord_setter.is_same (flag))
+	    v += *p++;
+	  else
+	    v -= *p++;
+	}
+	else
+	{
+	  if (!coord_setter.is_same (flag))
+	  {
+	    if (unlikely (!checker.in_range ((const HBUINT16 *) p))) return false;
+	    v += *(const HBINT16 *) p;
+	    p += HBINT16::static_size;
+	  }
+	}
+	coord_setter.set (points_[i], v);
+      }
+      return true;
+    }
+
+    /* for a simple glyph, return contour end points, flags, along with coordinate points
+     * for a composite glyph, return pseudo component points
+     * in both cases points trailed with four phantom points
+     */
+    bool get_contour_points (hb_bytes_t bytes,
+			     contour_point_vector_t &points_ /* OUT */,
+			     hb_vector_t<unsigned int> &end_points_ /* OUT */,
+			     const bool phantom_only=false) const
+    {
+      switch (get_type ())
+      {
+      case COMPOSITE: return CompositeHeader (*this).get_contour_points (bytes, points_, end_points_, phantom_only);
+      case SIMPLE:    return SimpleHeader (*this).get_contour_points (bytes, points_, end_points_, phantom_only);
+      default:
+      {
+	/* empty glyph */
+	points_.resize (PHANTOM_COUNT);
+	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
+	return true;
+      }
       }
     }
 
@@ -641,51 +779,6 @@ struct glyf
     };
 
     protected:
-    struct x_setter_t
-    {
-      void set (contour_point_t &point, float v) const { point.x = v; }
-      bool is_short (uint8_t flag) const { return flag & FLAG_X_SHORT; }
-      bool is_same  (uint8_t flag) const { return flag & FLAG_X_SAME; }
-    };
-
-    struct y_setter_t
-    {
-      void set (contour_point_t &point, float v) const { point.y = v; }
-      bool is_short (uint8_t flag) const { return flag & FLAG_Y_SHORT; }
-      bool is_same  (uint8_t flag) const { return flag & FLAG_Y_SAME; }
-    };
-
-    template <typename T>
-    static bool read_points (const HBUINT8 *&p /* IN/OUT */,
-			     contour_point_vector_t &points_ /* IN/OUT */,
-			     const range_checker_t &checker)
-    {
-      T coord_setter;
-      float v = 0;
-      for (unsigned int i = 0; i < points_.length - PHANTOM_COUNT; i++)
-      {
-	uint8_t flag = points_[i].flag;
-	if (coord_setter.is_short (flag))
-	{
-	  if (unlikely (!checker.in_range (p))) return false;
-	  if (coord_setter.is_same (flag))
-	    v += *p++;
-	  else
-	    v -= *p++;
-	}
-	else
-	{
-	  if (!coord_setter.is_same (flag))
-	  {
-	    if (unlikely (!checker.in_range ((const HBUINT16 *)p))) return false;
-	    v += *(const HBINT16 *) p;
-	    p += HBINT16::static_size;
-	  }
-	}
-	coord_setter.set (points_[i], v);
-      }
-      return true;
-    }
 
     void init_phantom_points (hb_codepoint_t glyph, hb_array_t<contour_point_t> &phantoms /* IN/OUT */) const
     {
@@ -699,77 +792,6 @@ struct glyf
       phantoms[PHANTOM_RIGHT].x = h_adv + h_delta;
       phantoms[PHANTOM_TOP].y = v_orig;
       phantoms[PHANTOM_BOTTOM].y = v_orig - (int) v_adv;
-    }
-
-    /* for a simple glyph, return contour end points, flags, along with coordinate points
-     * for a composite glyph, return pseudo component points
-     * in both cases points trailed with four phantom points
-     */
-    bool get_contour_points (hb_codepoint_t glyph,
-			     contour_point_vector_t &points_ /* OUT */,
-			     hb_vector_t<unsigned int> &end_points_ /* OUT */,
-			     const bool phantom_only=false) const
-    {
-      unsigned int num_points = 0;
-      hb_bytes_t bytes = bytes_for_glyph (glyph);
-      const GlyphHeader &glyph_header = *bytes.as<GlyphHeader> ();
-      if (glyph_header.is_composite_glyph ())
-      {
-	/* add one pseudo point for each component in composite glyph */
-	num_points += hb_len (glyph_header.get_composite_iterator (bytes));
-	points_.resize (num_points + PHANTOM_COUNT);
-	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
-	return true;
-      }
-      else if (glyph_header.is_simple_glyph ())
-      {
-	const HBUINT16 *end_pts = &StructAfter<HBUINT16, GlyphHeader> (glyph_header);
-	range_checker_t checker (bytes.arrayZ, 0, bytes.length);
-	num_points = 0;
-	int num_contours = glyph_header.numberOfContours;
-	if (unlikely (!checker.in_range (&end_pts[num_contours + 1]))) return false;
-	num_points = end_pts[glyph_header.numberOfContours - 1] + 1;
-
-	points_.resize (num_points + PHANTOM_COUNT);
-	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
-	if (phantom_only) return true;
-
-	/* Read simple glyph points if !phantom_only */
-	end_points_.resize (num_contours);
-
-	for (int i = 0; i < num_contours; i++)
-	  end_points_[i] = end_pts[i];
-
-	/* Skip instructions */
-	const HBUINT8 *p = &StructAtOffset<HBUINT8> (&end_pts[num_contours + 1],
-						     end_pts[num_contours]);
-
-	/* Read flags */
-	for (unsigned int i = 0; i < num_points; i++)
-	{
-	  if (unlikely (!checker.in_range (p))) return false;
-	  uint8_t flag = *p++;
-	  points_[i].flag = flag;
-	  if ((flag & FLAG_REPEAT) != 0)
-	  {
-	    if (unlikely (!checker.in_range (p))) return false;
-	    unsigned int repeat_count = *p++;
-	    while ((repeat_count-- > 0) && (++i < num_points))
-	      points_[i].flag = flag;
-	  }
-	}
-
-	/* Read x & y coordinates */
-	return (read_points<x_setter_t> (p, points_, checker) &&
-		read_points<y_setter_t> (p, points_, checker));
-      }
-      else
-      {
-	/* empty glyph */
-	points_.resize (PHANTOM_COUNT);
-	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
-	return true;
-      }
     }
 
     struct contour_bounds_t
@@ -802,14 +824,14 @@ struct glyf
       if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t points;
       hb_vector_t<unsigned int> end_points;
-      if (unlikely (!get_contour_points (glyph, points, end_points))) return false;
+      hb_bytes_t bytes = bytes_for_glyph (glyph);
+      const GlyphHeader &glyph_header = *bytes.as<GlyphHeader> ();
+      if (unlikely (!glyph_header.get_contour_points (bytes, points, end_points))) return false;
       hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
       init_phantom_points (glyph, phantoms);
       if (unlikely (!face->table.gvar->apply_deltas_to_points (glyph, coords, coord_count, points.as_array (), end_points.as_array ()))) return false;
 
       unsigned int comp_index = 0;
-      hb_bytes_t bytes = bytes_for_glyph (glyph);
-      const GlyphHeader &glyph_header = *bytes.as<GlyphHeader> ();
       if (glyph_header.is_simple_glyph ())
 	all_points.extend (points.as_array ());
       else if (glyph_header.is_composite_glyph ())
