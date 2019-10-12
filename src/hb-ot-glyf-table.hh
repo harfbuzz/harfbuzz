@@ -265,7 +265,8 @@ struct glyf
       return size;
     }
 
-    bool is_anchored () const { return (flags & ARGS_ARE_XY_VALUES) == 0; }
+    bool is_use_my_metrics () const { return flags & USE_MY_METRICS; }
+    bool is_anchored ()       const { return (flags & ARGS_ARE_XY_VALUES) == 0; }
     void get_anchor_points (unsigned int &point1, unsigned int &point2) const
     {
       const HBUINT8 *p = &StructAfter<const HBUINT8> (glyphIndex);
@@ -845,7 +846,7 @@ struct glyf
 	    return false;
 
 	  /* Copy phantom points from component if USE_MY_METRICS flag set */
-	  if (item.flags & CompositeGlyphHeader::USE_MY_METRICS)
+	  if (item.is_use_my_metrics ())
 	    for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	      phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
