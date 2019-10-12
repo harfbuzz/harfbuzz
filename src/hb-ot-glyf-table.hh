@@ -359,9 +359,10 @@ struct glyf
   struct composite_iter_t : hb_iter_with_fallback_t<composite_iter_t, const CompositeGlyphChain &>
   {
     typedef const CompositeGlyphChain *__item_t__;
-    composite_iter_t (hb_bytes_t glyph_, __item_t__ current_) : glyph (glyph_), current (current_)
+    composite_iter_t (hb_bytes_t glyph_, __item_t__ current_) :
+      glyph (glyph_), current (current_), checker (range_checker_t (glyph.arrayZ, glyph.length))
     { if (!in_range (current)) current = nullptr; }
-    composite_iter_t () : glyph (hb_bytes_t ()), current (nullptr) {}
+    composite_iter_t () : glyph (hb_bytes_t ()), current (nullptr), checker (range_checker_t (nullptr, 0)) {}
 
     const CompositeGlyphChain &__item__ () const { return *current; }
     bool __more__ () const { return current; }
@@ -379,13 +380,14 @@ struct glyf
 
     bool in_range (const CompositeGlyphChain *composite) const
     {
-      return glyph.sub_array ((const char *) composite - (const char *) &glyph,
-			       CompositeGlyphChain::min_size).as<CompositeGlyphChain> () != &Null (CompositeGlyphChain);
+      return checker.in_range (composite, CompositeGlyphChain::min_size)
+	  && checker.in_range (composite, composite->get_size ());
     }
 
     private:
     hb_bytes_t glyph;
     __item_t__ current;
+    range_checker_t checker;
   };
 
   struct Glyph
@@ -569,7 +571,7 @@ struct glyf
 			       const bool phantom_only=false) const
       {
 	const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
-	range_checker_t checker (bytes.arrayZ, 0, bytes.length);
+	range_checker_t checker (bytes.arrayZ, bytes.length);
 	int num_contours = header.numberOfContours;
 	if (unlikely (!checker.in_range (&endPtsOfContours[num_contours + 1]))) return false;
 	unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
