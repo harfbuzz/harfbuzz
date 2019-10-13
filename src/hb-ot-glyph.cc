@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2019  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,31 +20,31 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#include "hb.hh"
 
-#include "hb.h"
+#ifndef HB_NO_OT_GLYPH
 
-#include "hb-ot-color.h"
-#include "hb-ot-deprecated.h"
-#include "hb-ot-font.h"
-#include "hb-ot-glyph.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-meta.h"
-#include "hb-ot-metrics.h"
-#include "hb-ot-name.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
+#include "hb-ot.h"
+#include "hb-ot-glyf-table.hh"
 
-HB_BEGIN_DECLS
+unsigned int
+hb_ot_glyph_get_outline_path (hb_font_t                *font,
+			      hb_codepoint_t            glyph,
+			      unsigned int              start_offset,
+			      unsigned int             *points_count /* IN/OUT.  May be NULL. */,
+			      hb_ot_glyph_path_point_t *points       /* OUT.     May be NULL. */)
+{
+  hb_vector_t<hb_ot_glyph_path_point_t> path;
+  font->face->table.glyf->get_path (font, glyph, path);
+  if (likely (points_count && points))
+  {
+    + path.sub_array (start_offset, points_count)
+    | hb_sink (hb_array (points, *points_count))
+    ;
+  }
+  return path.length;
+}
 
-HB_END_DECLS
-
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#endif

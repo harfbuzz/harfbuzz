@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2019  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,31 +20,33 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#ifndef HB_OT_H_IN
+#error "Include <hb-ot.h> instead."
+#endif
+
+#ifndef HB_OT_GLYPH_H
+#define HB_OT_GLYPH_H
 
 #include "hb.h"
 
-#include "hb-ot-color.h"
-#include "hb-ot-deprecated.h"
-#include "hb-ot-font.h"
-#include "hb-ot-glyph.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-meta.h"
-#include "hb-ot-metrics.h"
-#include "hb-ot-name.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
-
 HB_BEGIN_DECLS
+
+typedef struct hb_ot_glyph_path_point_t
+{
+  char cmd;
+  hb_position_t x;
+  hb_position_t y;
+} hb_ot_glyph_path_point_t;
+
+HB_EXTERN unsigned int
+hb_ot_glyph_get_outline_path (hb_font_t                *font,
+			      hb_codepoint_t            glyph,
+			      unsigned int              start_offset,
+			      unsigned int             *points_count /* IN/OUT.  May be NULL. */,
+			      hb_ot_glyph_path_point_t *points       /* OUT.     May be NULL. */);
 
 HB_END_DECLS
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#endif /* HB_OT_GLYPH_H */

@@ -42,12 +42,14 @@ namespace OT {
 
 struct contour_point_t
 {
-  void init (float x_=0.f, float y_=0.f) { flag = 0; x = x_; y = y_; }
+  void init (float x_ = 0.f, float y_ = 0.f, bool is_end_point_ = false)
+  { flag = 0; x = x_; y = y_; is_end_point = is_end_point_; }
 
   void translate (const contour_point_t &p) { x += p.x; y += p.y; }
 
   uint8_t flag;
   float x, y;
+  bool is_end_point;
 };
 
 struct contour_point_vector_t : hb_vector_t<contour_point_t>
@@ -563,7 +565,7 @@ struct gvar
 				 const hb_array_t<contour_point_t> points,
 				 const hb_array_t<unsigned int> end_points) const
     {
-      if (unlikely (coord_count != gvar_table->axisCount)) return false;
+      if (unlikely (coord_count != gvar_table->axisCount)) return !coord_count;
 
       const GlyphVarData *var_data = gvar_table->get_glyph_var_data (glyph);
       if (var_data == &Null (GlyphVarData)) return true;
