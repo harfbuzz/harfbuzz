@@ -306,14 +306,14 @@ bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, boun
   return true;
 }
 
-bool OT::cff1::accelerator_t::get_extents (hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */
   return true;
 #endif
 
-  bounds_t  bounds;
+  bounds_t bounds;
 
   if (!_get_bounds (this, glyph, bounds))
     return false;
@@ -325,8 +325,8 @@ bool OT::cff1::accelerator_t::get_extents (hb_codepoint_t glyph, hb_glyph_extent
   }
   else
   {
-    extents->x_bearing = (int32_t)bounds.min.x.floor ();
-    extents->width = (int32_t)bounds.max.x.ceil () - extents->x_bearing;
+    extents->x_bearing = font->em_scalef_x (bounds.min.x.to_real ());
+    extents->width = font->em_scalef_x (bounds.max.x.to_real () - bounds.min.x.to_real ());
   }
   if (bounds.min.y >= bounds.max.y)
   {
@@ -335,8 +335,8 @@ bool OT::cff1::accelerator_t::get_extents (hb_codepoint_t glyph, hb_glyph_extent
   }
   else
   {
-    extents->y_bearing = (int32_t)bounds.max.y.ceil ();
-    extents->height = (int32_t)bounds.min.y.floor () - extents->y_bearing;
+    extents->y_bearing = font->em_scalef_y (bounds.max.y.to_real ());
+    extents->height = font->em_scalef_x (bounds.min.y.to_real () - bounds.max.y.to_real ());
   }
 
   return true;

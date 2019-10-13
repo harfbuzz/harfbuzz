@@ -66,6 +66,60 @@ namespace OT {
 
 #define NOT_COVERED		((unsigned int) -1)
 
+template<typename OutputArray>
+struct subset_offset_array_t
+{
+  subset_offset_array_t
+  (hb_subset_context_t *subset_context,
+   OutputArray& out,
+   const void *src_base,
+   const void *dest_base)
+      : _subset_context(subset_context), _out (out), _src_base (src_base), _dest_base (dest_base) {}
+
+  template <typename T>
+  bool
+  operator ()
+  (T&& offset)
+  {
+    auto *o = _out.serialize_append (_subset_context->serializer);
+    if (unlikely (!o)) return false;
+    auto snap = _subset_context->serializer->snapshot ();
+    bool ret = o->serialize_subset (_subset_context, offset, _src_base, _dest_base);
+    if (!ret)
+    {
+      _out.pop ();
+      _subset_context->serializer->revert (snap);
+    }
+    return ret;
+  }
+
+  private:
+  hb_subset_context_t *_subset_context;
+  OutputArray &_out;
+  const void *_src_base;
+  const void *_dest_base;
+};
+
+/*
+ * Helper to subset an array of offsets. Subsets the thing pointed to by each offset
+ * and discards the offset in the array if the subset operation results in an empty
+ * thing.
+ */
+struct
+{
+  template<typename OutputArray>
+  subset_offset_array_t<OutputArray>
+  operator ()
+  (hb_subset_context_t *subset_context,
+   OutputArray& out,
+   const void *src_base,
+   const void *dest_base) const
+  {
+    return subset_offset_array_t<OutputArray> (subset_context, out, src_base, dest_base);
+  }
+}
+HB_FUNCOBJ (subset_offset_array);
+
 
 /*
  *

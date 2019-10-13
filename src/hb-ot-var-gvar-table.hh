@@ -80,20 +80,19 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
 
 struct range_checker_t
 {
-  range_checker_t (const void *table_, unsigned int start_offset_, unsigned int end_offset_)
-    : table ((const char*) table_), start_offset (start_offset_), end_offset (end_offset_) {}
+  range_checker_t (const void *data_, unsigned int length_)
+    : data ((const char *) data_), length (length_) {}
 
   template <typename T>
-  bool in_range (const T *p) const
+  bool in_range (const T *p, unsigned int size = T::static_size) const
   {
-    return ((const char *) p) >= table + start_offset
-	&& ((const char *) p + T::static_size) <= table + end_offset;
+    return ((const char *) p) >= data
+	&& ((const char *) p + size) <= data + length;
   }
 
   protected:
-  const char *table;
-  const unsigned int start_offset;
-  const unsigned int end_offset;
+  const char *data;
+  const unsigned int length;
 };
 
 struct Tuple : UnsizedArrayOf<F2DOT14> {};
@@ -234,7 +233,7 @@ struct GlyphVarData
     {
       if (var_data->has_shared_point_numbers ())
       {
-	range_checker_t checker (var_data, 0, length);
+	range_checker_t checker (var_data, length);
 	const HBUINT8 *base = &(var_data+var_data->data);
 	const HBUINT8 *p = base;
 	if (!unpack_points (p, shared_indices, checker)) return false;
@@ -612,7 +611,7 @@ struct gvar
 	if (unlikely (!iterator.in_range (p, length)))
 	  return false;
 
-	range_checker_t checker (p, 0, length);
+	range_checker_t checker (p, length);
 	hb_vector_t<unsigned int> private_indices;
 	if (iterator.current_tuple->has_private_points () &&
 	    !GlyphVarData::unpack_points (p, private_indices, checker))

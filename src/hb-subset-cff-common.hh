@@ -916,7 +916,7 @@ struct subr_subsetter_t
 				  hb_set_t *closure,
 				  const subr_subset_param_t &param)
   {
-    hb_set_add (closure, subr_num);
+    closure->add (subr_num);
     collect_subr_refs_in_str (subrs[subr_num], param);
   }
 
