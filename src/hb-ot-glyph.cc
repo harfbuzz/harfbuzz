@@ -36,15 +36,22 @@ hb_ot_glyph_get_outline_path (hb_font_t                *font,
 			      unsigned int             *points_count /* IN/OUT.  May be NULL. */,
 			      hb_ot_glyph_path_point_t *points       /* OUT.     May be NULL. */)
 {
-  hb_vector_t<hb_ot_glyph_path_point_t> path;
-  font->face->table.glyf->get_path (font, glyph, path);
-  if (likely (points_count && points))
-  {
-    + path.sub_array (start_offset, points_count)
-    | hb_sink (hb_array (points, *points_count))
-    ;
-  }
-  return path.length;
+  unsigned int points_to_write = likely (points && points_count) ? *points_count : 0;
+  if (likely (points_count)) *points_count = 0;
+  unsigned int all_points_count = 0;
+  font->face->table.glyf->get_path (font, glyph,
+				    [&] (char cmd, float x, float y)
+				    {
+				      all_points_count++;
+				      if (start_offset) { start_offset--; return; }
+				      if (points_to_write)
+				      {
+					points[*points_count] = {cmd, font->em_scalef_x (x), font->em_scalef_y (y)};
+					*points_count += 1;
+					points_to_write--;
+				      }
+				    });
+  return all_points_count;
 }
 
 #endif

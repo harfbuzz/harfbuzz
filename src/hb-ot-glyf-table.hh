@@ -1042,8 +1042,9 @@ struct glyf
         add_gid_and_children (item.glyphIndex, gids_to_retain, depth);
     }
 
+    template<typename F>
     bool
-    get_path (hb_font_t *font, hb_codepoint_t gid, hb_vector_t<hb_ot_glyph_path_point_t> &path) const
+    get_path (hb_font_t *font, hb_codepoint_t gid, F f) const
     {
       contour_point_vector_t all_points;
       if (unlikely (!get_points (font, gid, all_points))) return false;
@@ -1063,17 +1064,14 @@ struct glyf
 	contour_point_t *next = &points[contour_start];
 
 	if (curr->flag & Glyph::FLAG_ON_CURVE)
-	  path.push ((hb_ot_glyph_path_point_t)
-		     {'M', font->em_scalef_x (curr->x), font->em_scalef_y (curr->y)});
+	  f ('M', curr->x, curr->y);
 	else
 	{
 	  if (next->flag & Glyph::FLAG_ON_CURVE)
-	    path.push ((hb_ot_glyph_path_point_t)
-		       {'M', font->em_scalef_x (next->x), font->em_scalef_y (next->y)});
+	    f ('M', next->x, next->y);
 	  else
 	  /* If both first and last points are off-curve, start at their middle. */
-	    path.push ((hb_ot_glyph_path_point_t)
-		       {'M', font->em_scalef_x ((curr->x + next->x) / 2), font->em_scalef_y ((curr->y + next->y) / 2)});
+	    f ('M', (curr->x + next->x) / 2.f, (curr->y + next->y) / 2.f);
 	}
 
 	for (unsigned i = 0; i < contour_length; ++i)
@@ -1082,21 +1080,17 @@ struct glyf
 	  next = &points[contour_start + ((i + 1) % contour_length)];
 
 	  if (curr->flag & Glyph::FLAG_ON_CURVE)
-	    path.push ((hb_ot_glyph_path_point_t)
-		       {'L', font->em_scalef_x (curr->x), font->em_scalef_y (curr->y)}); /* straight line */
+	    f ('L', curr->x, curr->y); /* straight line */
 	  else
 	  {
-	    path.push ((hb_ot_glyph_path_point_t)
-		       {'Q', font->em_scalef_x (curr->x), font->em_scalef_y (curr->y)});
+	    f ('Q', curr->x, curr->y);
 	    if (next->flag & Glyph::FLAG_ON_CURVE)
-	      path.push ((hb_ot_glyph_path_point_t)
-			 {' ', font->em_scalef_x (next->x), font->em_scalef_y (next->y)});
+	      f (' ', next->x, next->y);
 	    else
-	      path.push ((hb_ot_glyph_path_point_t)
-			 {' ', font->em_scalef_x ((curr->x + next->x) / 2), font->em_scalef_y ((curr->y + next->y) / 2)});
+	      f (' ', (curr->x + next->x) / 2.f, (curr->y + next->y) / 2.f);
 	  }
 	}
-	path.push ((hb_ot_glyph_path_point_t) {'Z', 0, 0});
+	f ('Z', 0, 0);
 	contour_start += contour_length;
       }
       return true;

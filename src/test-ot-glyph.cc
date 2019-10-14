@@ -57,7 +57,8 @@ main (int argc, char **argv)
     {
       hb_ot_glyph_path_point_t points[200];
       unsigned int points_len = 200;
-      printf ("\ngid %d, points count: %d\n", gid, hb_ot_glyph_get_outline_path (font, gid, 0, &points_len, points));
+      hb_ot_glyph_get_outline_path (font, gid, 0, nullptr, nullptr); /* just to test it */
+      printf ("gid %d, points count: %d\n", gid, hb_ot_glyph_get_outline_path (font, gid, 0, &points_len, points));
       hb_glyph_extents_t extents = {0};
       hb_font_get_glyph_extents (font, gid, &extents);
       char name[100];
@@ -68,10 +69,11 @@ main (int argc, char **argv)
       fprintf (f, "<svg xmlns=\"http://www.w3.org/2000/svg\""
 		  " viewBox=\"0 0 %d %d\"><path d=\"", extents.width, extents.height * factor);
       for (unsigned i = 0; i < points_len; ++i)
+      {
 	if (points[i].cmd == 'Z') fprintf (f, "Z");
 	else fprintf (f, "%c%d,%d", points[i].cmd, points[i].x, (points[i].y + extents.height) * factor);
+      }
       fprintf (f, "\"/></svg>");
-
       fclose (f);
     }
     hb_font_destroy (font);
