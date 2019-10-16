@@ -221,13 +221,15 @@ struct RecordListOf : RecordArrayOf<Type>
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
     {
-      auto snap = c->serializer->snapshot ();
       auto *record = out->serialize_append (c->serializer);
-      if (likely(record) && record->offset.serialize_subset (c, this->get_offset (i), this, out, &record_list_context))
+      if (unlikely (!record)) return false;
+      auto snap = c->serializer->snapshot ();
+      if (record->offset.serialize_subset (c, this->get_offset (i), this, out, &record_list_context))
       {
         record->tag = this->get_tag(i);
         continue;
       }
+      out->pop ();
       c->serializer->revert (snap);
     }
 
