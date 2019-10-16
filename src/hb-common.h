@@ -434,7 +434,7 @@ typedef void (*hb_destroy_func_t) (void *user_data);
  * @start: the cluster to start applying this feature setting (inclusive).
  * @end: the cluster to end applying this feature setting (exclusive).
  *
- * The hb_feature_t is the structure that holds information about requested
+ * The #hb_feature_t is the structure that holds information about requested
  * feature application. The feature will be applied with the given value to all
  * glyphs which are in clusters between @start (inclusive) and @end (exclusive).
  * Setting start to @HB_FEATURE_GLOBAL_START and end to @HB_FEATURE_GLOBAL_END
