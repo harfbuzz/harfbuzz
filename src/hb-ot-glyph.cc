@@ -29,29 +29,134 @@
 #include "hb-ot.h"
 #include "hb-ot-glyf-table.hh"
 
-unsigned int
-hb_ot_glyph_get_outline_path (hb_font_t                *font,
-			      hb_codepoint_t            glyph,
-			      unsigned int              start_offset,
-			      unsigned int             *points_count /* IN/OUT.  May be NULL. */,
-			      hb_ot_glyph_path_point_t *points       /* OUT.     May be NULL. */)
+struct hb_ot_glyph_path_t
 {
-  unsigned int points_to_write = likely (points && points_count) ? *points_count : 0;
-  if (likely (points_count)) *points_count = 0;
-  unsigned int all_points_count = 0;
+  hb_object_header_t header;
+
+  const hb_position_t *coords;
+  unsigned int coords_count;
+
+  const uint8_t *commands;
+  unsigned int commands_count;
+
+  void *user_data;
+  hb_destroy_func_t destroy;
+};
+
+hb_ot_glyph_path_t *
+hb_ot_glyph_path_empty ()
+{
+  return const_cast<hb_ot_glyph_path_t *> (&Null (hb_ot_glyph_path_t));
+}
+
+hb_ot_glyph_path_t *
+hb_ot_glyph_create_path (hb_position_t     *coords,
+			 unsigned int       coords_count,
+			 uint8_t           *commands,
+			 unsigned int       commands_count,
+			 void              *user_data,
+			 hb_destroy_func_t  destroy)
+{
+  hb_ot_glyph_path_t *path;
+
+  if (!coords_count || !commands_count ||
+      !(path = hb_object_create<hb_ot_glyph_path_t> ()))
+  {
+    if (destroy)
+      destroy (user_data);
+    return hb_ot_glyph_path_empty ();
+  }
+
+  path->coords = coords;
+  path->coords_count =  coords_count;
+  path->commands = commands;
+  path->commands_count = commands_count;
+  path->user_data = user_data;
+  path->destroy = destroy;
+
+  return path;
+}
+
+const hb_position_t *
+hb_ot_glyph_path_get_coords (hb_ot_glyph_path_t *path, unsigned int *count)
+{
+  if (count) *count = path->coords_count;
+  return path->coords;
+}
+
+const uint8_t *
+hb_ot_glyph_path_get_commands (hb_ot_glyph_path_t *path, unsigned int *count)
+{
+  if (count) *count = path->commands_count;
+  return path->commands;
+}
+
+hb_ot_glyph_path_t *
+hb_ot_glyph_path_reference (hb_ot_glyph_path_t *path)
+{
+  return hb_object_reference (path);
+}
+
+void
+hb_ot_glyph_path_destroy (hb_ot_glyph_path_t *path)
+{
+  if (!hb_object_destroy (path)) return;
+}
+
+struct _hb_ot_glyph_path_vectors
+{
+  hb_vector_t<hb_position_t> *coords;
+  hb_vector_t<uint8_t> *commands;
+
+  bool init ()
+  {
+    coords = (hb_vector_t<hb_position_t> *) malloc (sizeof (hb_vector_t<hb_position_t>));
+    commands = (hb_vector_t<uint8_t> *) malloc (sizeof (hb_vector_t<uint8_t>));
+    if (unlikely (!coords || !commands))
+    {
+      free (coords);
+      free (commands);
+      return false;
+    }
+    coords->init ();
+    commands->init ();
+    return true;
+  }
+
+  void fini ()
+  {
+    coords->fini ();
+    commands->fini ();
+  }
+};
+
+static void
+_hb_ot_glyph_free_path_vectors (void *user_data)
+{
+  ((_hb_ot_glyph_path_vectors *) user_data)->fini ();
+  free (user_data);
+}
+
+hb_ot_glyph_path_t *
+hb_ot_glyph_create_path_from_font (hb_font_t *font, hb_codepoint_t glyph)
+{
+  _hb_ot_glyph_path_vectors *user_data = (_hb_ot_glyph_path_vectors *)
+					 malloc (sizeof (_hb_ot_glyph_path_vectors));
+  if (unlikely (!user_data->init ())) return hb_ot_glyph_path_empty ();
+
+  hb_vector_t<hb_position_t> &coords = *user_data->coords;
+  hb_vector_t<uint8_t> &commands = *user_data->commands;
   font->face->table.glyf->get_path (font, glyph,
 				    [&] (char cmd, float x, float y)
 				    {
-				      all_points_count++;
-				      if (start_offset) { start_offset--; return; }
-				      if (points_to_write)
-				      {
-					points[*points_count] = {cmd, font->em_scalef_x (x), font->em_scalef_y (y)};
-					*points_count += 1;
-					points_to_write--;
-				      }
+				      if (cmd != ' ') commands.push (cmd);
+				      if (cmd == 'Z') return;
+				      coords.push (font->em_scalef_x (x));
+				      coords.push (font->em_scalef_y (y));
 				    });
-  return all_points_count;
+
+  return hb_ot_glyph_create_path (coords.arrayZ, coords.length, commands.arrayZ, commands.length,
+				  user_data, (hb_destroy_func_t) _hb_ot_glyph_free_path_vectors);
 }
 
 #endif

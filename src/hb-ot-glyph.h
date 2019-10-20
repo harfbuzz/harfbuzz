@@ -33,19 +33,33 @@
 
 HB_BEGIN_DECLS
 
-typedef struct hb_ot_glyph_path_point_t
-{
-  char cmd;
-  hb_position_t x;
-  hb_position_t y;
-} hb_ot_glyph_path_point_t;
+typedef struct hb_ot_glyph_path_t hb_ot_glyph_path_t;
 
-HB_EXTERN unsigned int
-hb_ot_glyph_get_outline_path (hb_font_t                *font,
-			      hb_codepoint_t            glyph,
-			      unsigned int              start_offset,
-			      unsigned int             *points_count /* IN/OUT.  May be NULL. */,
-			      hb_ot_glyph_path_point_t *points       /* OUT.     May be NULL. */);
+HB_EXTERN hb_ot_glyph_path_t *
+hb_ot_glyph_path_empty ();
+
+HB_EXTERN hb_ot_glyph_path_t *
+hb_ot_glyph_create_path (hb_position_t     *coords,
+			 unsigned int       coords_count,
+			 uint8_t           *commands,
+			 unsigned int       commands_count,
+			 void              *user_data,
+			 hb_destroy_func_t  destroy);
+
+HB_EXTERN const hb_position_t *
+hb_ot_glyph_path_get_coords (hb_ot_glyph_path_t *path, unsigned int *count);
+
+HB_EXTERN const uint8_t *
+hb_ot_glyph_path_get_commands (hb_ot_glyph_path_t *path, unsigned int *count);
+
+HB_EXTERN hb_ot_glyph_path_t *
+hb_ot_glyph_path_reference (hb_ot_glyph_path_t *path);
+
+HB_EXTERN void
+hb_ot_glyph_path_destroy (hb_ot_glyph_path_t *path);
+
+HB_EXTERN hb_ot_glyph_path_t *
+hb_ot_glyph_create_path_from_font (hb_font_t *font, hb_codepoint_t glyph);
 
 HB_END_DECLS
 

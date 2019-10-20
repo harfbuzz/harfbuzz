@@ -55,26 +55,44 @@ main (int argc, char **argv)
     unsigned int glyph_count = hb_face_get_glyph_count (face);
     for (unsigned int gid = 0; gid < glyph_count; ++gid)
     {
-      hb_ot_glyph_path_point_t points[200];
-      unsigned int points_len = 200;
-      hb_ot_glyph_get_outline_path (font, gid, 0, nullptr, nullptr); /* just to test it */
-      printf ("gid %d, points count: %d\n", gid, hb_ot_glyph_get_outline_path (font, gid, 0, &points_len, points));
+      hb_font_extents_t font_extents;
+      hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
       hb_glyph_extents_t extents = {0};
       hb_font_get_glyph_extents (font, gid, &extents);
       char name[100];
       sprintf (name, "%d.svg", gid);
       FILE *f = fopen (name, "wb");
-      int factor = 1;
-      if (extents.height < 0) factor = -1;
       fprintf (f, "<svg xmlns=\"http://www.w3.org/2000/svg\""
-		  " viewBox=\"0 0 %d %d\"><path d=\"", extents.width, extents.height * factor);
-      for (unsigned i = 0; i < points_len; ++i)
+		  " viewBox=\"%d %d %d %d\"><path d=\"",
+		  extents.x_bearing, 0,
+		  extents.x_bearing + extents.width, font_extents.ascender - font_extents.descender); //-extents.height);
+      hb_ot_glyph_path_t *path = hb_ot_glyph_create_path_from_font (font, gid);
+      unsigned int commands_count;
+      const uint8_t *commands = hb_ot_glyph_path_get_commands (path, &commands_count);
+      unsigned int coords_count;
+      const hb_position_t *coords = hb_ot_glyph_path_get_coords (path, &coords_count);
+      for (unsigned i = 0, j = 0; i < commands_count && j < coords_count; ++i)
       {
-	if (points[i].cmd == 'Z') fprintf (f, "Z");
-	else fprintf (f, "%c%d,%d", points[i].cmd, points[i].x, (points[i].y + extents.height) * factor);
+	fprintf (f, "%c", commands[i]);
+	if (commands[i] == 'Z') continue;
+	fprintf (f, "%d,%d", coords[j], font_extents.ascender - coords[j + 1]); //extents.y_bearing - points[i].y);
+	j += 2;
+	if (commands[i] == 'Q')
+	{
+	  fprintf (f, " %d,%d", coords[j], font_extents.ascender - coords[j + 1]); //extents.y_bearing - points[i].y);
+	  j += 2;
+	}
+	if (commands[i] == 'C')
+	{
+	  fprintf (f, " %d,%d", coords[j], font_extents.ascender - coords[j + 1]); //extents.y_bearing - points[i].y);
+	  j += 2;
+	  fprintf (f, " %d,%d", coords[j], font_extents.ascender - coords[j + 1]); //extents.y_bearing - points[i].y);
+	  j += 2;
+	}
       }
       fprintf (f, "\"/></svg>");
       fclose (f);
+      hb_ot_glyph_path_destroy (path);
     }
     hb_font_destroy (font);
     hb_face_destroy (face);
