@@ -342,6 +342,116 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
   return true;
 }
 
+struct cff1_path_param_t
+{
+  void init (const OT::cff1::accelerator_t *_cff, hb_vector_t<hb_position_t> *points_, hb_vector_t<uint8_t> *commands_)
+  {
+    path_open = false;
+    cff = _cff;
+    points = points_;
+    commands = commands_;
+  }
+
+  void start_path   ()       { path_open = true; }
+  void end_path     ()       { path_open = false; }
+  bool is_path_open () const { return path_open; }
+
+  void push (const point_t &p) { points->push (p.x.to_real ()); points->push (p.y.to_real ()); }
+  void push_command (uint8_t c) { commands->push (c); }
+
+  bool path_open;
+  hb_vector_t<hb_position_t> *points;
+  hb_vector_t<uint8_t> *commands;
+
+  const OT::cff1::accelerator_t *cff;
+};
+
+struct cff1_path_procs_path_t : path_procs_t<cff1_path_procs_path_t, cff1_cs_interp_env_t, cff1_path_param_t>
+{
+  static void moveto (cff1_cs_interp_env_t &env, cff1_path_param_t& param, const point_t &pt)
+  {
+    param.end_path (); param.push_command ('Z');
+    env.moveto (pt); param.push_command ('M');
+  }
+
+  static void line (cff1_cs_interp_env_t &env, cff1_path_param_t& param, const point_t &pt1)
+  {
+    if (!param.is_path_open ())
+    {
+      param.start_path ();
+      param.push (env.get_pt ()); param.push_command ('M');
+    }
+    env.moveto (pt1);
+    param.push (env.get_pt ()); param.push_command ('L');
+  }
+
+  static void curve (cff1_cs_interp_env_t &env, cff1_path_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
+  {
+    if (!param.is_path_open ())
+    {
+      param.start_path ();
+      param.push (env.get_pt ()); param.push_command ('M');
+    }
+    /* include control points */param.push_command ('C');
+    param.push (pt1);
+    param.push (pt2);
+    env.moveto (pt3);
+    param.push (env.get_pt ());
+  }
+};
+
+static bool _get_path (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, hb_vector_t<hb_position_t> *points, hb_vector_t<uint8_t> *commands, bool in_seac=false);
+
+struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_param_t, cff1_path_procs_path_t>
+{
+  static void process_seac (cff1_cs_interp_env_t &env, cff1_path_param_t& param)
+  {
+//     unsigned int  n = env.argStack.get_count ();
+//     point_t delta;
+//     delta.x = env.argStack[n-4];
+//     delta.y = env.argStack[n-3];
+//     hb_codepoint_t base = param.cff->std_code_to_glyph (env.argStack[n-2].to_int ());
+//     hb_codepoint_t accent = param.cff->std_code_to_glyph (env.argStack[n-1].to_int ());
+
+//     bounds_t  base_bounds, accent_bounds;
+//     if (likely (!env.in_seac && base && accent
+// 	       && _get_path (param.cff, base, base_bounds, true)
+// 	       && _get_path (param.cff, accent, accent_bounds, true)))
+//     {
+//       param.bounds.merge (base_bounds);
+//       accent_bounds.offset (delta);
+//       param.bounds.merge (accent_bounds);
+//     }
+//     else
+//       env.set_error ();
+  }
+};
+
+bool _get_path (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, hb_vector_t<hb_position_t> *points, hb_vector_t<uint8_t> *commands, bool in_seac)
+{
+  if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
+
+  unsigned int fd = cff->fdSelect->get_fd (glyph);
+  cff1_cs_interpreter_t<cff1_cs_opset_path_t, cff1_path_param_t> interp;
+  const byte_str_t str = (*cff->charStrings)[glyph];
+  interp.env.init (str, *cff, fd);
+  interp.env.set_in_seac (in_seac);
+  cff1_path_param_t param;
+  param.init (cff, points, commands);
+  if (unlikely (!interp.interpret (param))) return false;
+  return true;
+}
+
+bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, hb_vector_t<hb_position_t> *points, hb_vector_t<uint8_t> *commands) const
+{
+#ifdef HB_NO_OT_FONT_CFF
+  /* XXX Remove check when this code moves to .hh file. */
+  return true;
+#endif
+
+  return _get_path (this, glyph, points, commands);
+}
+
 struct get_seac_param_t
 {
   void init (const OT::cff1::accelerator_t *_cff)
