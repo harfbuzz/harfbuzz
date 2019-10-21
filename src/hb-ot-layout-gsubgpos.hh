@@ -713,9 +713,7 @@ static inline bool intersects_array (const hb_set_t *glyphs,
 				     const void *intersects_data)
 {
   for (const HBUINT16 &_ : + hb_iter (values, count))
-  {
     if (intersects_func (glyphs, _, intersects_data)) return true;
-  }
   return false;
 }
 
