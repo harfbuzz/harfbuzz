@@ -1344,7 +1344,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
                                           hb_map_t *klass_map /*INOUT*/)
 {
   bool has_no_match = glyphset.get_population () > gid_klass_map.get_population ();
-  
+
   hb_map_t m;
   if (!klass_map) klass_map = &m;
 
@@ -1356,7 +1356,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
     klass_map->set (k, idx);
     idx++;
   }
-  
+
   auto it =
   + glyphs.iter ()
   | hb_map_retains_sorting ([&] (const HBGlyphID& gid) -> hb_pair_t<hb_codepoint_t, HBUINT16>
@@ -1366,7 +1366,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
                               return hb_pair ((hb_codepoint_t)gid, new_klass);
                             })
   ;
-  
+
   c->propagate_error (glyphs, klasses);
   ClassDef_serialize (c, it);
 }
@@ -1412,7 +1412,7 @@ struct ClassDefFormat1
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
-   
+
     hb_sorted_vector_t<HBGlyphID> glyphs;
     hb_sorted_vector_t<unsigned> orig_klasses;
     hb_map_t gid_org_klass_map;
@@ -1545,6 +1545,7 @@ struct ClassDefFormat2
     range_rec.value = prev_klass;
 
     RangeRecord *record = c->copy (range_rec);
+    if (unlikely (!record)) return_trace (false);
 
     for (const auto gid_klass_pair : + (++it))
     {
@@ -1562,6 +1563,7 @@ struct ClassDefFormat2
         range_rec.value = cur_klass;
 
         record = c->copy (range_rec);
+        if (unlikely (!record)) return_trace (false);
       }
 
       prev_klass = cur_klass;
