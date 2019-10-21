@@ -99,7 +99,14 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   template <typename T> operator T * () const { return arrayZ; }
 
   HB_INTERNAL bool operator == (const hb_array_t &o) const;
-  HB_INTERNAL uint32_t hash () const;
+
+  uint32_t hash () const {
+    uint32_t current = 0;
+    for (unsigned int i = 0; i < this->length; i++) {
+      current = current * 31 + hb_hash (this->arrayZ[i]);
+    }
+    return current;
+  }
 
   /*
    * Compare, Sort, and Search.
@@ -339,21 +346,28 @@ bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
   return true;
 }
 
-template <typename T>
-uint32_t hb_array_t<T>::hash () const
-{
+/* TODO Specialize opeator== for hb_bytes_t and hb_ubytes_t. */
+
+template <>
+inline uint32_t hb_array_t<const char>::hash () const {
   uint32_t current = 0;
-  for (unsigned int i = 0; i < this->length; i++) {
-    current = current * 31 + hb_hash (this->arrayZ[i]);
-  }
+  for (unsigned int i = 0; i < this->length; i++)
+    current = current * 31 + (uint32_t) (this->arrayZ[i] * 2654435761u);
   return current;
 }
+
+template <>
+inline uint32_t hb_array_t<const unsigned char>::hash () const {
+  uint32_t current = 0;
+  for (unsigned int i = 0; i < this->length; i++)
+    current = current * 31 + (uint32_t) (this->arrayZ[i] * 2654435761u);
+  return current;
+}
+
 
 typedef hb_array_t<const char> hb_bytes_t;
 typedef hb_array_t<const unsigned char> hb_ubytes_t;
 
-/* TODO Specialize opeator==/hash() for hb_bytes_t and hb_ubytes_t. */
-//template <>
-//uint32_t hb_array_t<const char>::hash () const { return 0; }
+
 
 #endif /* HB_ARRAY_HH */
