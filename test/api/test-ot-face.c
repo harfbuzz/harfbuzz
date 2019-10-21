@@ -109,6 +109,9 @@ test_face (hb_face_t *face,
   hb_ot_var_normalize_variations (face, NULL, 0, NULL, 0);
   hb_ot_var_normalize_coords (face, 0, NULL, NULL);
 
+  for (unsigned i = 0; i < 10; ++i)
+    hb_ot_glyph_path_destroy (hb_ot_glyph_path_create_from_font (font, 0));
+
   hb_set_destroy (set);
   hb_font_destroy (font);
 }

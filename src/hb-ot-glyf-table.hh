@@ -1047,11 +1047,6 @@ struct glyf
     {
 #define PUSH_POINT(x, y) HB_STMT_START { coords->push (font->em_scalef_x (x)); coords->push (font->em_scalef_y (y)); } HB_STMT_END
 #define PUSH_POINT_CMD(c, x, y) HB_STMT_START { commands->push (c); PUSH_POINT(x, y); } HB_STMT_END
-// 				      if (cmd != ' ') commands.push (cmd);
-// 				      if (cmd == 'Z') return;
-// 				      coords.push (font->em_scalef_x (x));
-// 				      coords.push (font->em_scalef_y (y));
-// 				    }
       contour_point_vector_t all_points;
       if (unlikely (!get_points (font, gid, all_points))) return false;
       hb_array_t<contour_point_t> points = all_points.sub_array (0, all_points.length - 4);
@@ -1099,6 +1094,8 @@ struct glyf
 	commands->push ('Z');
 	contour_start += contour_length;
       }
+#undef PUSH_POINT_CMD
+#undef PUSH_POINT
       return true;
     }
 
