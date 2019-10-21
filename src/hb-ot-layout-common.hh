@@ -1545,6 +1545,7 @@ struct ClassDefFormat2
     range_rec.value = prev_klass;
 
     RangeRecord *record = c->copy (range_rec);
+    if (unlikely (!record)) return_trace (false);
 
     for (const auto gid_klass_pair : + (++it))
     {
@@ -1554,6 +1555,7 @@ struct ClassDefFormat2
       if (cur_gid != prev_gid + 1 ||
           cur_klass != prev_klass)
       {
+        if (unlikely (!record)) break;
         record->end = prev_gid;
         num_ranges++;
 
@@ -1568,7 +1570,7 @@ struct ClassDefFormat2
       prev_gid = cur_gid;
     }
 
-    record->end = prev_gid;
+    if (likely (record)) record->end = prev_gid;
     rangeRecord.len = num_ranges;
     return_trace (true);
   }
