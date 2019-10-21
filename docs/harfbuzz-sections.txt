@@ -521,6 +521,18 @@ hb_ot_font_set_funcs
 </SECTION>
 
 <SECTION>
+<FILE>hb-ot-glyph</FILE>
+hb_ot_glyph_path_t
+hb_ot_glyph_path_create
+hb_ot_glyph_path_create_from_font
+hb_ot_glyph_path_destroy
+hb_ot_glyph_path_empty
+hb_ot_glyph_path_get_commands
+hb_ot_glyph_path_get_coords
+hb_ot_glyph_path_reference
+</SECTION>
+
+<SECTION>
 <FILE>hb-ot-name</FILE>
 hb_ot_name_id_t
 HB_OT_NAME_ID_INVALID

@@ -52,7 +52,7 @@ hb_ot_glyph_path_empty ()
 }
 
 hb_ot_glyph_path_t *
-hb_ot_glyph_create_path (hb_position_t     *coords,
+hb_ot_glyph_path_create (hb_position_t     *coords,
 			 unsigned int       coords_count,
 			 uint8_t           *commands,
 			 unsigned int       commands_count,
@@ -133,14 +133,14 @@ struct _hb_ot_glyph_path_vectors
 };
 
 static void
-_hb_ot_glyph_free_path_vectors (void *user_data)
+_hb_ot_glyph_path_free_vectors (void *user_data)
 {
   ((_hb_ot_glyph_path_vectors *) user_data)->fini ();
   free (user_data);
 }
 
 hb_ot_glyph_path_t *
-hb_ot_glyph_create_path_from_font (hb_font_t *font, hb_codepoint_t glyph)
+hb_ot_glyph_path_create_from_font (hb_font_t *font, hb_codepoint_t glyph)
 {
   _hb_ot_glyph_path_vectors *user_data = (_hb_ot_glyph_path_vectors *)
 					 malloc (sizeof (_hb_ot_glyph_path_vectors));
@@ -161,8 +161,8 @@ hb_ot_glyph_create_path_from_font (hb_font_t *font, hb_codepoint_t glyph)
 
   if (unlikely (!ret)) return hb_ot_glyph_path_empty ();
 
-  return hb_ot_glyph_create_path (coords.arrayZ, coords.length, commands.arrayZ, commands.length,
-				  user_data, (hb_destroy_func_t) _hb_ot_glyph_free_path_vectors);
+  return hb_ot_glyph_path_create (coords.arrayZ, coords.length, commands.arrayZ, commands.length,
+				  user_data, (hb_destroy_func_t) _hb_ot_glyph_path_free_vectors);
 }
 
 #endif

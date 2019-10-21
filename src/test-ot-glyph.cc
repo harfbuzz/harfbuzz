@@ -30,6 +30,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 int
 main (int argc, char **argv)
@@ -66,30 +67,35 @@ main (int argc, char **argv)
 		  " viewBox=\"%d %d %d %d\"><path d=\"",
 		  extents.x_bearing, 0,
 		  extents.x_bearing + extents.width, font_extents.ascender - font_extents.descender); //-extents.height);
-      hb_ot_glyph_path_t *path = hb_ot_glyph_create_path_from_font (font, gid);
+      hb_ot_glyph_path_t *path = hb_ot_glyph_path_create_from_font (font, gid);
       unsigned int commands_count;
       const uint8_t *commands = hb_ot_glyph_path_get_commands (path, &commands_count);
       unsigned int coords_count;
       const hb_position_t *coords = hb_ot_glyph_path_get_coords (path, &coords_count);
-      for (unsigned i = 0, j = 0; i < commands_count && j < coords_count; ++i)
+      unsigned j = 0;
+      for (unsigned i = 0; i < commands_count && j < coords_count; ++i)
       {
 	fprintf (f, "%c", commands[i]);
 	if (commands[i] == 'Z') continue;
+	assert (coords_count >= j + 2);
 	fprintf (f, "%d,%d", coords[j], font_extents.ascender - coords[j + 1]); //extents.y_bearing - points[i].y);
 	j += 2;
 	if (commands[i] == 'Q')
 	{
+	  assert (coords_count >= j + 2);
 	  fprintf (f, " %d,%d", coords[j], font_extents.ascender - coords[j + 1]); //extents.y_bearing - points[i].y);
 	  j += 2;
 	}
 	if (commands[i] == 'C')
 	{
+	  assert (coords_count >= j + 4);
 	  fprintf (f, " %d,%d", coords[j], font_extents.ascender - coords[j + 1]); //extents.y_bearing - points[i].y);
 	  j += 2;
 	  fprintf (f, " %d,%d", coords[j], font_extents.ascender - coords[j + 1]); //extents.y_bearing - points[i].y);
 	  j += 2;
 	}
       }
+      assert (coords_count == j);
       fprintf (f, "\"/></svg>");
       fclose (f);
       hb_ot_glyph_path_destroy (path);
