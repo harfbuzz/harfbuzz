@@ -387,7 +387,7 @@ struct hb_ot_apply_context_t :
 	     skip == matcher_t::SKIP_NO))
 	{
 	  num_items--;
-	  match_glyph_data++;
+	  if (match_glyph_data) match_glyph_data++;
 	  return true;
 	}
 
@@ -414,7 +414,7 @@ struct hb_ot_apply_context_t :
 	     skip == matcher_t::SKIP_NO))
 	{
 	  num_items--;
-	  match_glyph_data++;
+	  if (match_glyph_data) match_glyph_data++;
 	  return true;
 	}
 
@@ -2070,7 +2070,7 @@ struct ChainRule
           !hb_all (input, input_map) ||
           !hb_all (lookahead, lookahead_map))
         return_trace (false);
-      
+
       copy (c->serializer, backtrack_map, input_map, lookahead_map);
     }
 
@@ -2174,7 +2174,7 @@ struct ChainRuleSet
       if (!_) continue;
       auto *o = out->rule.serialize_append (c->serializer);
       if (unlikely (!o)) continue;
-      
+
       auto o_snap = c->serializer->snapshot ();
       if (!o->serialize_subset (c, _, this, out,
                                 backtrack_klass_map,
@@ -2188,7 +2188,7 @@ struct ChainRuleSet
 
     bool ret = bool (out->rule);
     if (!ret) c->serializer->revert (snap);
-    
+
     return_trace (ret);
   }
 
@@ -2447,7 +2447,7 @@ struct ChainContextFormat2
 
     hb_map_t backtrack_klass_map;
     out->backtrackClassDef.serialize_subset (c, backtrackClassDef, this, out, &backtrack_klass_map);
-    
+
     // subset inputClassDef based on glyphs survived in Coverage subsetting
     hb_map_t input_klass_map;
     out->inputClassDef.serialize_subset (c, inputClassDef, this, out, &input_klass_map);
@@ -2658,7 +2658,7 @@ struct ChainContextFormat3
 
     if (!serialize_coverage_offsets (c, backtrack.iter (), this, out))
       return_trace (false);
-   
+
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
     if (!serialize_coverage_offsets (c, input.iter (), this, out))
       return_trace (false);
@@ -2666,7 +2666,7 @@ struct ChainContextFormat3
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
     if (!serialize_coverage_offsets (c, lookahead.iter (), this, out))
       return_trace (false);
-   
+
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
     return_trace (c->serializer->copy (lookup));
   }
