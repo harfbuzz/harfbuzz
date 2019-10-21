@@ -142,5 +142,92 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
   return true;
 }
 
+struct cff2_path_param_t
+{
+  void init (hb_font_t *font_, hb_vector_t<hb_position_t> *points_, hb_vector_t<uint8_t> *commands_)
+  {
+    path_open = false;
+    font = font_;
+    points = points_;
+    commands = commands_;
+  }
+
+  void   start_path ()       { path_open = true; }
+  void     end_path ()       { path_open = false; }
+  bool is_path_open () const { return path_open; }
+
+  void push_point (const point_t &p)
+  {
+    points->push (font->em_scalef_x (p.x.to_real ()));
+    points->push (font->em_scalef_y (p.y.to_real ()));
+  }
+  void push_command (uint8_t c) { commands->push (c); }
+
+  bool  path_open;
+  hb_font_t *font;
+  hb_vector_t<hb_position_t> *points;
+  hb_vector_t<uint8_t> *commands;
+};
+
+struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_interp_env_t, cff2_path_param_t>
+{
+  static void moveto (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt)
+  {
+    param.end_path ();
+    env.moveto (pt);
+    param.push_command ('M');
+  }
+
+  static void line (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt1)
+  {
+    if (!param.is_path_open ())
+    {
+      param.start_path ();
+      param.push_point (env.get_pt ());
+    }
+    env.moveto (pt1);
+    param.push_point (env.get_pt ());
+    param.push_command ('L');
+  }
+
+  static void curve (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
+  {
+    if (!param.is_path_open ())
+    {
+      param.start_path ();
+      param.push_point (env.get_pt ());
+    }
+    /* include control points */
+    param.push_point (pt1);
+    param.push_point (pt2);
+    env.moveto (pt3);
+    param.push_point (env.get_pt ());
+    param.push_command ('C');
+  }
+};
+
+struct cff2_cs_opset_path_t : cff2_cs_opset_t<cff2_cs_opset_path_t, cff2_path_param_t, cff2_path_procs_path_t> {};
+
+bool OT::cff2::accelerator_t::get_path (hb_font_t *font,
+					hb_codepoint_t glyph,
+					hb_vector_t<hb_position_t> *points,
+					hb_vector_t<uint8_t> *commands) const
+{
+#ifdef HB_NO_OT_FONT_CFF
+  /* XXX Remove check when this code moves to .hh file. */
+  return true;
+#endif
+
+  if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
+
+  unsigned int fd = fdSelect->get_fd (glyph);
+  cff2_cs_interpreter_t<cff2_cs_opset_path_t, cff2_path_param_t> interp;
+  const byte_str_t str = (*charStrings)[glyph];
+  interp.env.init (str, *this, fd, font->coords, font->num_coords);
+  cff2_path_param_t  param;
+  param.init (font, points, commands);
+  if (unlikely (!interp.interpret (param))) return false;
+  return true;
+}
 
 #endif

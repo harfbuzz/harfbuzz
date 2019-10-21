@@ -29,6 +29,7 @@
 #include "hb-ot.h"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-cff1-table.hh"
+#include "hb-ot-cff2-table.hh"
 
 struct hb_ot_glyph_path_t
 {
@@ -147,18 +148,18 @@ hb_ot_glyph_create_path_from_font (hb_font_t *font, hb_codepoint_t glyph)
 
   hb_vector_t<hb_position_t> &coords = *user_data->coords;
   hb_vector_t<uint8_t> &commands = *user_data->commands;
-  font->face->table.glyf->get_path (font, glyph,
-				    [&] (char cmd, float x, float y)
-				    {
-				      if (cmd != ' ') commands.push (cmd);
-				      if (cmd == 'Z') return;
-				      coords.push (font->em_scalef_x (x));
-				      coords.push (font->em_scalef_y (y));
-				    });
-  if (!commands.length)
-  {
-    font->face->table.cff1->get_path (font, glyph, &coords, &commands);
-  }
+
+  bool ret = false;
+
+  if (!ret) ret = font->face->table.glyf->get_path (font, glyph, &coords, &commands);
+#ifndef HB_NO_OT_FONT_CFF
+  if (!ret) ret = font->face->table.cff1->get_path (font, glyph, &coords, &commands);
+  if (!ret) ret = font->face->table.cff2->get_path (font, glyph, &coords, &commands);
+#endif
+
+  assert (coords.length % 2 == 0); /* coords pairs, should be an even number */
+
+  if (unlikely (!ret)) return hb_ot_glyph_path_empty ();
 
   return hb_ot_glyph_create_path (coords.arrayZ, coords.length, commands.arrayZ, commands.length,
 				  user_data, (hb_destroy_func_t) _hb_ot_glyph_free_path_vectors);

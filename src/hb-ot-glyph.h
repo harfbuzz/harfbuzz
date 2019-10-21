@@ -36,7 +36,7 @@ HB_BEGIN_DECLS
 typedef struct hb_ot_glyph_path_t hb_ot_glyph_path_t;
 
 HB_EXTERN hb_ot_glyph_path_t *
-hb_ot_glyph_path_empty ();
+hb_ot_glyph_path_empty (void);
 
 HB_EXTERN hb_ot_glyph_path_t *
 hb_ot_glyph_create_path (hb_position_t     *coords,

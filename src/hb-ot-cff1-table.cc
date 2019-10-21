@@ -344,22 +344,28 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
 
 struct cff1_path_param_t
 {
-  void init (const OT::cff1::accelerator_t *_cff, hb_vector_t<hb_position_t> *points_, hb_vector_t<uint8_t> *commands_)
+  void init (const OT::cff1::accelerator_t *cff_, hb_font_t *font_, hb_vector_t<hb_position_t> *points_, hb_vector_t<uint8_t> *commands_)
   {
     path_open = false;
-    cff = _cff;
+    cff = cff_;
+    font = font_;
     points = points_;
     commands = commands_;
   }
 
   void start_path   ()       { path_open = true; }
-  void end_path     ()       { path_open = false; }
+  void end_path     ()       { if (path_open) push_command ('Z'); path_open = false; }
   bool is_path_open () const { return path_open; }
 
-  void push (const point_t &p) { points->push (p.x.to_real ()); points->push (p.y.to_real ()); }
+  void push_point (const point_t &p)
+  {
+    points->push (font->em_scalef_x (p.x.to_real ()));
+    points->push (font->em_scalef_y (p.y.to_real ()));
+  }
   void push_command (uint8_t c) { commands->push (c); }
 
   bool path_open;
+  hb_font_t *font;
   hb_vector_t<hb_position_t> *points;
   hb_vector_t<uint8_t> *commands;
 
@@ -370,8 +376,9 @@ struct cff1_path_procs_path_t : path_procs_t<cff1_path_procs_path_t, cff1_cs_int
 {
   static void moveto (cff1_cs_interp_env_t &env, cff1_path_param_t& param, const point_t &pt)
   {
-    param.end_path (); param.push_command ('Z');
-    env.moveto (pt); param.push_command ('M');
+    param.end_path ();
+    env.moveto (pt);
+    param.push_command ('M');
   }
 
   static void line (cff1_cs_interp_env_t &env, cff1_path_param_t& param, const point_t &pt1)
@@ -379,10 +386,11 @@ struct cff1_path_procs_path_t : path_procs_t<cff1_path_procs_path_t, cff1_cs_int
     if (!param.is_path_open ())
     {
       param.start_path ();
-      param.push (env.get_pt ()); param.push_command ('M');
+      param.push_point (env.get_pt ());
     }
     env.moveto (pt1);
-    param.push (env.get_pt ()); param.push_command ('L');
+    param.push_point (env.get_pt ());
+    param.push_command ('L');
   }
 
   static void curve (cff1_cs_interp_env_t &env, cff1_path_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
@@ -390,23 +398,24 @@ struct cff1_path_procs_path_t : path_procs_t<cff1_path_procs_path_t, cff1_cs_int
     if (!param.is_path_open ())
     {
       param.start_path ();
-      param.push (env.get_pt ()); param.push_command ('M');
+      param.push_point (env.get_pt ());
     }
-    /* include control points */param.push_command ('C');
-    param.push (pt1);
-    param.push (pt2);
+    /* include control points */
+    param.push_point (pt1);
+    param.push_point (pt2);
     env.moveto (pt3);
-    param.push (env.get_pt ());
+    param.push_point (env.get_pt ());
+    param.push_command ('C');
   }
 };
 
-static bool _get_path (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, hb_vector_t<hb_position_t> *points, hb_vector_t<uint8_t> *commands, bool in_seac=false);
+static bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph, hb_vector_t<hb_position_t> *points, hb_vector_t<uint8_t> *commands, bool in_seac=false);
 
 struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_param_t, cff1_path_procs_path_t>
 {
   static void process_seac (cff1_cs_interp_env_t &env, cff1_path_param_t& param)
   {
-//     unsigned int  n = env.argStack.get_count ();
+//     unsigned int n = env.argStack.get_count ();
 //     point_t delta;
 //     delta.x = env.argStack[n-4];
 //     delta.y = env.argStack[n-3];
@@ -427,7 +436,7 @@ struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_pa
   }
 };
 
-bool _get_path (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, hb_vector_t<hb_position_t> *points, hb_vector_t<uint8_t> *commands, bool in_seac)
+bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph, hb_vector_t<hb_position_t> *points, hb_vector_t<uint8_t> *commands, bool in_seac)
 {
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
 
@@ -437,7 +446,7 @@ bool _get_path (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, hb_vec
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
   cff1_path_param_t param;
-  param.init (cff, points, commands);
+  param.init (cff, font, points, commands);
   if (unlikely (!interp.interpret (param))) return false;
   return true;
 }
@@ -449,7 +458,7 @@ bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, h
   return true;
 #endif
 
-  return _get_path (this, glyph, points, commands);
+  return _get_path (this, font, glyph, points, commands);
 }
 
 struct get_seac_param_t
