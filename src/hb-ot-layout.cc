@@ -1212,6 +1212,49 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
   for (hb_codepoint_t feature_index = HB_SET_VALUE_INVALID;
        hb_set_next (&feature_indexes, &feature_index);)
     g.get_feature (feature_index).add_lookup_indexes_to (lookup_indexes);
+
+  g.feature_variation_collect_lookups (&feature_indexes, lookup_indexes);
+}
+
+/**
+ * hb_ot_layout_closure_lookups:
+ * @face: #hb_face_t to work upon
+ * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @lookup_indexes: (inout): lookup_indices collected from feature
+ * list
+ *
+ * Returns all inactive lookups reachable from lookup_indices
+ **/
+void
+hb_ot_layout_closure_lookups (hb_face_t      *face,
+			      hb_tag_t        table_tag,
+			      const hb_set_t *glyphs,
+			      hb_set_t       *lookup_indexes /* IN/OUT */)
+{
+  hb_set_t visited_lookups, inactive_lookups;
+  OT::hb_closure_lookups_context_t c (face, glyphs, &visited_lookups, &inactive_lookups);
+
+  for (unsigned lookup_index : + hb_iter (lookup_indexes))
+  {
+    switch (table_tag)
+    {
+      case HB_OT_TAG_GSUB:
+      {
+        const OT::SubstLookup& l = face->table.GSUB->table->get_lookup (lookup_index);
+        l.closure_lookups (&c, lookup_index);
+        break;
+      }
+      case HB_OT_TAG_GPOS:
+      {
+        const OT::PosLookup& l = face->table.GPOS->table->get_lookup (lookup_index);
+        l.closure_lookups (&c, lookup_index);
+        break;
+      }
+    }
+  }
+
+  hb_set_union (lookup_indexes, &visited_lookups);
+  hb_set_subtract (lookup_indexes, &inactive_lookups);
 }
 
 

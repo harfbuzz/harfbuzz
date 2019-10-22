@@ -122,6 +122,69 @@ struct hb_closure_context_t :
   hb_map_t *done_lookups;
 };
 
+struct hb_closure_lookups_context_t :
+       hb_dispatch_context_t<hb_closure_lookups_context_t, hb_empty_t, 0>
+{
+  const char *get_name () { return "CLOSURE_LOOKUPS"; }
+  typedef return_t (*recurse_func_t) (hb_closure_lookups_context_t *c, unsigned lookup_index);
+  template <typename T>
+  return_t dispatch (const T &obj) { obj.closure_lookups (this); return hb_empty_t (); }
+  static return_t default_return_value () { return hb_empty_t (); }
+  void recurse (unsigned lookup_index)
+  {
+    if (unlikely (nesting_level_left == 0 || !recurse_func))
+      return;
+
+    /* Return if new lookup was recursed to before. */
+    if (is_lookup_visited (lookup_index))
+      return;
+
+    set_lookup_visited (lookup_index);
+    nesting_level_left--;
+    recurse_func (this, lookup_index);
+    nesting_level_left++;
+  }
+
+  void set_lookup_visited (unsigned lookup_index)
+  {
+    visited_lookups->add (lookup_index);
+  }
+
+  void set_lookup_inactive (unsigned lookup_index)
+  {
+    inactive_lookups->add (lookup_index);
+  }
+
+  bool is_lookup_visited (unsigned lookup_index)
+  {
+    return visited_lookups->has (lookup_index) ;
+  }
+
+  hb_face_t *face;
+  const hb_set_t *glyphs;
+  recurse_func_t recurse_func;
+  unsigned int nesting_level_left;
+  unsigned int debug_depth;
+
+  hb_closure_lookups_context_t (hb_face_t *face_,
+				const hb_set_t *glyphs_,
+				hb_set_t *visited_lookups_,
+				hb_set_t *inactive_lookups_,
+				unsigned nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
+				face (face_),
+				glyphs (glyphs_),
+				recurse_func (nullptr),
+				nesting_level_left (nesting_level_left_),
+				debug_depth (0),
+				visited_lookups (visited_lookups_),
+				inactive_lookups (inactive_lookups_) {}
+
+  void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+
+  private:
+  hb_set_t *visited_lookups;
+  hb_set_t *inactive_lookups;
+};
 
 struct hb_would_apply_context_t :
        hb_dispatch_context_t<hb_would_apply_context_t, bool, 0>
@@ -1061,6 +1124,17 @@ static inline bool match_lookahead (hb_ot_apply_context_t *c,
 
 struct LookupRecord
 {
+  LookupRecord* copy (hb_serialize_context_t *c,
+		      const hb_map_t         *lookup_map)
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->embed (*this);
+    if (unlikely (!out)) return_trace (nullptr);
+
+    out->lookupListIndex = hb_map_get (lookup_map, lookupListIndex);
+    return_trace (out);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1315,6 +1389,13 @@ struct Rule
 			    lookup_context);
   }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
+						       (inputZ.as_array (inputCount ? inputCount - 1 : 0));
+    recurse_lookups (c, lookupCount, lookupRecord.arrayZ);
+  }
+
   void collect_glyphs (hb_collect_glyphs_context_t *c,
 		       ContextCollectGlyphsLookupContext &lookup_context) const
   {
@@ -1392,6 +1473,15 @@ struct RuleSet
     + hb_iter (rule)
     | hb_map (hb_add (this))
     | hb_apply ([&] (const Rule &_) { _.closure (c, lookup_context); })
+    ;
+  }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    return
+    + hb_iter (rule)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const Rule &_) { _.closure_lookups (c); })
     ;
   }
 
@@ -1475,6 +1565,14 @@ struct ContextFormat1
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([&] (const RuleSet &_) { _.closure (c, lookup_context); })
+    ;
+  }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    + hb_iter (ruleSet)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const RuleSet &_) { _.closure_lookups (c); })
     ;
   }
 
@@ -1592,6 +1690,14 @@ struct ContextFormat2
     ;
   }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    + hb_iter (ruleSet)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const RuleSet &_) { _.closure_lookups (c); })
+    ;
+  }
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     (this+coverage).add_coverage (c->input);
@@ -1697,6 +1803,12 @@ struct ContextFormat3
 			    glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
 			    lookupCount, lookupRecord,
 			    lookup_context);
+  }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
+    recurse_lookups (c, lookupCount, lookupRecord);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -1964,6 +2076,14 @@ struct ChainRule
 				  lookup_context);
   }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16>> (backtrack);
+    const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16>> (input);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
+    recurse_lookups (c, lookup.len, lookup.arrayZ);
+  }
+
   void collect_glyphs (hb_collect_glyphs_context_t *c,
 		       ChainContextCollectGlyphsLookupContext &lookup_context) const
   {
@@ -2131,6 +2251,15 @@ struct ChainRuleSet
     ;
   }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    return
+    + hb_iter (rule)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const ChainRule &_) { _.closure_lookups (c); })
+    ;
+  }
+
   void collect_glyphs (hb_collect_glyphs_context_t *c, ChainContextCollectGlyphsLookupContext &lookup_context) const
   {
     return
@@ -2241,6 +2370,14 @@ struct ChainContextFormat1
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([&] (const ChainRuleSet &_) { _.closure (c, lookup_context); })
+    ;
+  }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    + hb_iter (ruleSet)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const ChainRuleSet &_) { _.closure_lookups (c); })
     ;
   }
 
@@ -2377,6 +2514,14 @@ struct ChainContextFormat2
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([&] (const ChainRuleSet &_) { _.closure (c, lookup_context); })
+    ;
+  }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    + hb_iter (ruleSet)
+    | hb_map (hb_add (this))
+    | hb_apply ([&] (const ChainRuleSet &_) { _.closure_lookups (c); })
     ;
   }
 
@@ -2568,6 +2713,14 @@ struct ChainContextFormat3
 				  lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
 				  lookup.len, lookup.arrayZ,
 				  lookup_context);
+  }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const
+  {
+    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
+    recurse_lookups (c, lookup.len, lookup.arrayZ);
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
@@ -2879,7 +3032,7 @@ struct GSUBGPOS
   bool find_variations_index (const int *coords, unsigned int num_coords,
 			      unsigned int *index) const
   {
-#ifdef HB_NOVAR
+#ifdef HB_NO_VAR
     return false;
 #endif
     return (version.to_int () >= 0x00010001u ? this+featureVars : Null(FeatureVariations))
@@ -2899,6 +3052,16 @@ struct GSUBGPOS
     }
 #endif
     return get_feature (feature_index);
+  }
+
+  void feature_variation_collect_lookups (const hb_set_t *feature_indexes,
+					  hb_set_t       *lookup_indexes /* OUT */) const
+  {
+#ifdef HB_NO_VAR
+    return;
+#endif
+    if (version.to_int () >= 0x00010001u)
+      return (this+featureVars).collect_lookups (feature_indexes, lookup_indexes);
   }
 
   template <typename TLookup>

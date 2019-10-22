@@ -517,6 +517,8 @@ struct SinglePosFormat1
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const {}
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   { if (unlikely (!(this+coverage).add_coverage (c->input))) return; }
 
@@ -598,6 +600,8 @@ struct SinglePosFormat2
 {
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const {}
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   { if (unlikely (!(this+coverage).add_coverage (c->input))) return; }
@@ -932,6 +936,8 @@ struct PairPosFormat1
     ;
   }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const {}
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).add_coverage (c->input))) return;
@@ -1042,6 +1048,8 @@ struct PairPosFormat2
     return (this+coverage).intersects (glyphs) &&
 	   (this+classDef2).intersects (glyphs);
   }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const {}
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
@@ -1248,6 +1256,8 @@ struct CursivePosFormat1
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const {}
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   { if (unlikely (!(this+coverage).add_coverage (c->input))) return; }
 
@@ -1447,6 +1457,8 @@ struct MarkBasePosFormat1
   { return (this+markCoverage).intersects (glyphs) &&
 	   (this+baseCoverage).intersects (glyphs); }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const {}
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+markCoverage).add_coverage (c->input))) return;
@@ -1568,6 +1580,8 @@ struct MarkLigPosFormat1
   { return (this+markCoverage).intersects (glyphs) &&
 	   (this+ligatureCoverage).intersects (glyphs); }
 
+  void closure_lookups (hb_closure_lookups_context_t *c) const {}
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+markCoverage).add_coverage (c->input))) return;
@@ -1687,6 +1701,8 @@ struct MarkMarkPosFormat1
   bool intersects (const hb_set_t *glyphs) const
   { return (this+mark1Coverage).intersects (glyphs) &&
 	   (this+mark2Coverage).intersects (glyphs); }
+
+  void closure_lookups (hb_closure_lookups_context_t *c) const {}
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
@@ -1894,6 +1910,23 @@ struct PosLookup : Lookup
   hb_collect_glyphs_context_t::return_t collect_glyphs (hb_collect_glyphs_context_t *c) const
   { return dispatch (c); }
 
+  hb_closure_lookups_context_t::return_t closure_lookups (hb_closure_lookups_context_t *c, unsigned this_index) const
+  {
+    if (c->is_lookup_visited (this_index))
+      return hb_closure_lookups_context_t::default_return_value ();
+
+    c->set_lookup_visited (this_index);
+    if (!intersects (c->glyphs))
+    {
+      c->set_lookup_inactive (this_index);
+      return hb_closure_lookups_context_t::default_return_value ();
+    }
+    c->set_recurse_func (dispatch_closure_lookups_recurse_func);
+
+    hb_closure_lookups_context_t::return_t ret = dispatch (c);
+    return ret;
+  }
+
   template <typename set_t>
   void add_coverage (set_t *glyphs) const
   {
@@ -1905,6 +1938,8 @@ struct PosLookup : Lookup
 
   template <typename context_t>
   static typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
+
+  HB_INTERNAL static hb_closure_lookups_context_t::return_t dispatch_closure_lookups_recurse_func (hb_closure_lookups_context_t *c, unsigned this_index);
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
@@ -2062,6 +2097,13 @@ template <typename context_t>
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
   return l.dispatch (c);
 }
+
+/*static*/ inline hb_closure_lookups_context_t::return_t PosLookup::dispatch_closure_lookups_recurse_func (hb_closure_lookups_context_t *c, unsigned this_index)
+{
+  const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (this_index);
+  return l.closure_lookups (c, this_index);
+}
+
 /*static*/ inline bool PosLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
