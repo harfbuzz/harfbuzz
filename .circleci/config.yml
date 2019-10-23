@@ -98,7 +98,8 @@ jobs:
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
-      - run: make clean && cd src && clang++ -c hb-*.cc
+      - run: make clean
+      - run: clang -c src/hb-*.cc -DHB_NO_MT
 
   gcc-valgrind:
     docker:
