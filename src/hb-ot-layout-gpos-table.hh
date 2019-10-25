@@ -762,7 +762,7 @@ struct PairValueRecord
   friend struct PairSet;
 
   bool serialize (hb_serialize_context_t *c,
-                  unsigned size,
+                  unsigned length,
                   const hb_map_t &glyph_map) const
   {
     TRACE_SERIALIZE (this);
@@ -770,7 +770,7 @@ struct PairValueRecord
     if (unlikely (!c->extend_min (out))) return_trace (false);
     
     out->secondGlyph = glyph_map[secondGlyph];
-    return_trace (c->copy (values, size));
+    return_trace (c->copy (values, length));
   }
 
   protected:
@@ -871,16 +871,16 @@ struct PairSet
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    unsigned len1 = valueFormats[0].get_size ();
-    unsigned len2 = valueFormats[1].get_size ();
-    unsigned record_size = HBUINT16::static_size + len1 + len2;
+    unsigned len1 = valueFormats[0].get_len ();
+    unsigned len2 = valueFormats[1].get_len ();
+    unsigned record_size = HBUINT16::static_size + Value::static_size * (len1 + len2);
 
     const PairValueRecord *record = &firstPairValueRecord;
     unsigned count = len, num = 0;
     for (unsigned i = 0; i < count; i++)
     {
       if (!glyphset.has (record->secondGlyph)) continue;
-      if (record->serialize (c->serializer, record_size, glyph_map)) num++;
+      if (record->serialize (c->serializer, len1 + len2, glyph_map)) num++;
       record = &StructAtOffset<const PairValueRecord> (record, record_size);
     }
 
