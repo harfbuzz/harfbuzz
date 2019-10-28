@@ -1324,7 +1324,13 @@ struct cmap
     }
 
     void collect_unicodes (hb_set_t *out) const
-    { subtable->collect_unicodes (out); }
+    {
+      subtable->collect_unicodes (out);
+      // Never include unicode codepoint 0 in the set.
+      // This is assumed to be the notdef glyph.
+      out->del (0);
+    }
+
     void collect_variation_selectors (hb_set_t *out) const
     { subtable_uvs->collect_variation_selectors (out); }
     void collect_variation_unicodes (hb_codepoint_t variation_selector,
