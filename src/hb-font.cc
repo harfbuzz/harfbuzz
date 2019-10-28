@@ -799,7 +799,7 @@ hb_font_get_nominal_glyph (hb_font_t *font,
  *
  * Return value:
  *
- * Since: REPLACEME
+ * Since: 2.6.3
  **/
 unsigned int
 hb_font_get_nominal_glyphs (hb_font_t *font,
