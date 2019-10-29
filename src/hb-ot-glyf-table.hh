@@ -820,6 +820,31 @@ struct glyf
 
       bool empty () const { return (min_x >= max_x) || (min_y >= max_y); }
 
+      void get_extents (hb_font_t *font, hb_glyph_extents_t *extents)
+      {
+	if (min_x > max_x)
+	{
+	  extents->width = 0;
+	  extents->x_bearing = 0;
+	}
+	else
+	{
+	  extents->x_bearing = font->em_scalef_x (min_x);
+	  extents->width = font->em_scalef_x (max_x - min_x);
+	}
+	if (min_y > max_y)
+	{
+	  extents->height = 0;
+	  extents->y_bearing = 0;
+	}
+	else
+	{
+	  extents->y_bearing = font->em_scalef_y (max_y);
+	  extents->height = font->em_scalef_y (min_y - max_y);
+	}
+      }
+
+      protected:
       float min_x, min_y, max_x, max_y;
     };
 
@@ -918,27 +943,7 @@ struct glyf
 	contour_bounds_t bounds;
 	for (unsigned int i = 0; i + PHANTOM_COUNT < all_points.length; i++)
 	  bounds.add (all_points[i]);
-
-	if (bounds.min_x > bounds.max_x)
-	{
-	  extents->width = 0;
-	  extents->x_bearing = 0;
-	}
-	else
-	{
-	  extents->x_bearing = font->em_scalef_x (bounds.min_x);
-	  extents->width = font->em_scalef_x (bounds.max_x - bounds.min_x);
-	}
-	if (bounds.min_y > bounds.max_y)
-	{
-	  extents->height = 0;
-	  extents->y_bearing = 0;
-	}
-	else
-	{
-	  extents->y_bearing = font->em_scalef_y (bounds.max_y);
-	  extents->height = font->em_scalef_y (bounds.min_y - bounds.max_y);
-	}
+	bounds.get_extents (font, extents);
       }
       if (phantoms)
 	for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
