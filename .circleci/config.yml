@@ -99,6 +99,7 @@ jobs:
       - run: make -j32
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
       - run: make clean
+      - run: make -Csrc CPPFLAGS="-DHB_TINY -DHB_NO_OT_FONT" libharfbuzz-subset.la && make clean
       - run: clang -c src/hb-*.cc -DHB_NO_MT
 
   gcc-valgrind:
