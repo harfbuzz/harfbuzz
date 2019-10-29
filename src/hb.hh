@@ -373,7 +373,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #ifndef HB_NO_ERRNO
 #  include <errno.h>
 #else
-static int _hb_errno = 0; /* Use something better? */
+static int HB_UNUSED _hb_errno = 0;
 #  undef errno
 #  define errno _hb_errno
 #endif
