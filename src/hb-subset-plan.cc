@@ -71,7 +71,10 @@ _cmap_closure (hb_face_t           *face,
 	       const hb_set_t      *unicodes,
 	       hb_set_t            *glyphset)
 {
-  face->table.cmap->table->closure_glyphs (unicodes, glyphset);
+  OT::cmap::accelerator_t cmap;
+  cmap.init (face);
+  cmap.table->closure_glyphs (unicodes, glyphset);
+  cmap.fini ();
 }
 
 static inline void
