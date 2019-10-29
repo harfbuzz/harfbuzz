@@ -822,26 +822,18 @@ struct glyf
 
       void get_extents (hb_font_t *font, hb_glyph_extents_t *extents)
       {
-	if (min_x > max_x)
+	if (unlikely (empty ()))
 	{
 	  extents->width = 0;
 	  extents->x_bearing = 0;
-	}
-	else
-	{
-	  extents->x_bearing = font->em_scalef_x (min_x);
-	  extents->width = font->em_scalef_x (max_x - min_x);
-	}
-	if (min_y > max_y)
-	{
 	  extents->height = 0;
 	  extents->y_bearing = 0;
+	  return;
 	}
-	else
-	{
-	  extents->y_bearing = font->em_scalef_y (max_y);
-	  extents->height = font->em_scalef_y (min_y - max_y);
-	}
+	extents->x_bearing = font->em_scalef_x (min_x);
+	extents->width = font->em_scalef_x (max_x - min_x);
+	extents->y_bearing = font->em_scalef_y (max_y);
+	extents->height = font->em_scalef_y (min_y - max_y);
       }
 
       protected:
