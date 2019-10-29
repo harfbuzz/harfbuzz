@@ -50,6 +50,27 @@ test_collect_unicodes_format4 (void)
 }
 
 static void
+test_collect_unicodes_format12_notdef (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cmunrm.otf");
+  hb_set_t *codepoints = hb_set_create();
+  hb_codepoint_t cp;
+
+  hb_face_collect_unicodes (face, codepoints);
+
+  cp = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x20, ==, cp);
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x21, ==, cp);
+  g_assert (hb_set_next (codepoints, &cp));
+  g_assert_cmpuint (0x22, ==, cp);
+
+  hb_set_destroy (codepoints);
+  hb_face_destroy (face);
+}
+
+static void
 test_collect_unicodes_format12 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.abc.format12.ttf");
@@ -101,6 +122,7 @@ main (int argc, char **argv)
   hb_test_add (test_collect_unicodes);
   hb_test_add (test_collect_unicodes_format4);
   hb_test_add (test_collect_unicodes_format12);
+  hb_test_add (test_collect_unicodes_format12_notdef);
 
   return hb_test_run();
 }
