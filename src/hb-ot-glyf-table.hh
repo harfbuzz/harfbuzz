@@ -808,20 +808,19 @@ struct glyf
 
     struct contour_bounds_t
     {
-      contour_bounds_t () { min.x = min.y = FLT_MAX; max.x = max.y = -FLT_MAX; }
+      contour_bounds_t () { min_x = min_y = FLT_MAX; max_x = max_y = -FLT_MAX; }
 
       void add (const contour_point_t &p)
       {
-	min.x = hb_min (min.x, p.x);
-	min.y = hb_min (min.y, p.y);
-	max.x = hb_max (max.x, p.x);
-	max.y = hb_max (max.y, p.y);
+	min_x = hb_min (min_x, p.x);
+	min_y = hb_min (min_y, p.y);
+	max_x = hb_max (max_x, p.x);
+	max_y = hb_max (max_y, p.y);
       }
 
-      bool empty () const { return (min.x >= max.x) || (min.y >= max.y); }
+      bool empty () const { return (min_x >= max_x) || (min_y >= max_y); }
 
-      contour_point_t	min;
-      contour_point_t	max;
+      float min_x, min_y, max_x, max_y;
     };
 
 #ifndef HB_NO_VAR
@@ -920,25 +919,25 @@ struct glyf
 	for (unsigned int i = 0; i + PHANTOM_COUNT < all_points.length; i++)
 	  bounds.add (all_points[i]);
 
-	if (bounds.min.x > bounds.max.x)
+	if (bounds.min_x > bounds.max_x)
 	{
 	  extents->width = 0;
 	  extents->x_bearing = 0;
 	}
 	else
 	{
-	  extents->x_bearing = font->em_scalef_x (bounds.min.x);
-	  extents->width = font->em_scalef_x (bounds.max.x - bounds.min.x);
+	  extents->x_bearing = font->em_scalef_x (bounds.min_x);
+	  extents->width = font->em_scalef_x (bounds.max_x - bounds.min_x);
 	}
-	if (bounds.min.y > bounds.max.y)
+	if (bounds.min_y > bounds.max_y)
 	{
 	  extents->height = 0;
 	  extents->y_bearing = 0;
 	}
 	else
 	{
-	  extents->y_bearing = font->em_scalef_y (bounds.max.y);
-	  extents->height = font->em_scalef_y (bounds.min.y - bounds.max.y);
+	  extents->y_bearing = font->em_scalef_y (bounds.max_y);
+	  extents->height = font->em_scalef_y (bounds.min_y - bounds.max_y);
 	}
       }
       if (phantoms)
