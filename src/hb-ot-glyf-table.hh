@@ -360,9 +360,9 @@ struct glyf
   {
     typedef const CompositeGlyphChain *__item_t__;
     composite_iter_t (hb_bytes_t glyph_, __item_t__ current_) :
-      glyph (glyph_), current (current_), checker (range_checker_t (glyph.arrayZ, glyph.length))
+      glyph (glyph_), current (current_)
     { if (!in_range (current)) current = nullptr; }
-    composite_iter_t () : glyph (hb_bytes_t ()), current (nullptr), checker (range_checker_t (nullptr, 0)) {}
+    composite_iter_t () : glyph (hb_bytes_t ()), current (nullptr) {}
 
     const CompositeGlyphChain &__item__ () const { return *current; }
     bool __more__ () const { return current; }
@@ -380,14 +380,13 @@ struct glyf
 
     bool in_range (const CompositeGlyphChain *composite) const
     {
-      return checker.in_range (composite, CompositeGlyphChain::min_size)
-	  && checker.in_range (composite, composite->get_size ());
+      return glyph.in_range (composite, CompositeGlyphChain::min_size)
+	  && glyph.in_range (composite, composite->get_size ());
     }
 
     private:
     hb_bytes_t glyph;
     __item_t__ current;
-    range_checker_t checker;
   };
 
   struct Glyph
@@ -537,7 +536,7 @@ struct glyf
       template <typename T>
       static bool read_points (const HBUINT8 *&p /* IN/OUT */,
 			       contour_point_vector_t &points_ /* IN/OUT */,
-			       const range_checker_t &checker)
+			       const hb_bytes_t &bytes)
       {
 	T coord_setter;
 	float v = 0;
@@ -546,7 +545,7 @@ struct glyf
 	  uint8_t flag = points_[i].flag;
 	  if (coord_setter.is_short (flag))
 	  {
-	    if (unlikely (!checker.in_range (p))) return false;
+	    if (unlikely (!bytes.in_range (p))) return false;
 	    if (coord_setter.is_same (flag))
 	      v += *p++;
 	    else
@@ -556,7 +555,7 @@ struct glyf
 	  {
 	    if (!coord_setter.is_same (flag))
 	    {
-	      if (unlikely (!checker.in_range ((const HBUINT16 *) p))) return false;
+	      if (unlikely (!bytes.in_range ((const HBUINT16 *) p))) return false;
 	      v += *(const HBINT16 *) p;
 	      p += HBINT16::static_size;
 	    }
@@ -571,9 +570,8 @@ struct glyf
 			       const bool phantom_only=false) const
       {
 	const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
-	range_checker_t checker (bytes.arrayZ, bytes.length);
 	int num_contours = header.numberOfContours;
-	if (unlikely (!checker.in_range (&endPtsOfContours[num_contours + 1]))) return false;
+	if (unlikely (!bytes.in_range (&endPtsOfContours[num_contours + 1]))) return false;
 	unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
 
 	points_.resize (num_points + PHANTOM_COUNT);
@@ -593,12 +591,12 @@ struct glyf
 	/* Read flags */
 	for (unsigned int i = 0; i < num_points; i++)
 	{
-	  if (unlikely (!checker.in_range (p))) return false;
+	  if (unlikely (!bytes.in_range (p))) return false;
 	  uint8_t flag = *p++;
 	  points_[i].flag = flag;
 	  if (flag & FLAG_REPEAT)
 	  {
-	    if (unlikely (!checker.in_range (p))) return false;
+	    if (unlikely (!bytes.in_range (p))) return false;
 	    unsigned int repeat_count = *p++;
 	    while ((repeat_count-- > 0) && (++i < num_points))
 	      points_[i].flag = flag;
@@ -606,8 +604,8 @@ struct glyf
 	}
 
 	/* Read x & y coordinates */
-	return (read_points<x_setter_t> (p, points_, checker) &&
-		read_points<y_setter_t> (p, points_, checker));
+	return (read_points<x_setter_t> (p, points_, bytes) &&
+		read_points<y_setter_t> (p, points_, bytes));
       }
     };
 
@@ -949,7 +947,7 @@ struct glyf
 
     bool get_extents_var (hb_font_t *font, hb_codepoint_t gid,
 			  hb_glyph_extents_t *extents) const
-    { return get_var_extents_and_phantoms (font, gid,  extents); }
+    { return get_var_extents_and_phantoms (font, gid, extents); }
 #endif
 
     public:

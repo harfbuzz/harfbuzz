@@ -196,6 +196,15 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   const T *as () const
   { return length < hb_null_size (T) ? &Null (T) : reinterpret_cast<const T *> (arrayZ); }
 
+  template <typename T,
+	    unsigned P = sizeof (Type),
+	    hb_enable_if (P == 1)>
+  bool in_range (const T *p, unsigned int size = T::static_size) const
+  {
+    return ((const char *) p) >= arrayZ
+	&& ((const char *) p + size) <= arrayZ + length;
+  }
+
   /* Only call if you allocated the underlying array using malloc() or similar. */
   void free ()
   { ::free ((void *) arrayZ); arrayZ = nullptr; length = 0; }
