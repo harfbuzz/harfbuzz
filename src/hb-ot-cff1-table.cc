@@ -336,7 +336,7 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
   else
   {
     extents->y_bearing = font->em_scalef_y (bounds.max.y.to_real ());
-    extents->height = font->em_scalef_x (bounds.min.y.to_real () - bounds.max.y.to_real ());
+    extents->height = font->em_scalef_y (bounds.min.y.to_real () - bounds.max.y.to_real ());
   }
 
   return true;
