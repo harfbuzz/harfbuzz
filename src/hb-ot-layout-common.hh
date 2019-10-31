@@ -289,6 +289,9 @@ DECLARE_NULL_NAMESPACE_BYTES (OT, RangeRecord);
 
 struct IndexArray : ArrayOf<Index>
 {
+  bool intersects (const hb_map_t *indexes) const
+  { return hb_any (*this, indexes); }
+
   unsigned int get_indexes (unsigned int start_offset,
 			    unsigned int *_count /* IN/OUT */,
 			    unsigned int *_indexes /* OUT */) const
@@ -681,6 +684,9 @@ struct Feature
 
   const FeatureParams &get_feature_params () const
   { return this+featureParams; }
+
+  bool intersects_lookup_indexes (const hb_map_t *lookup_indexes) const
+  { return lookupIndex.intersects (lookup_indexes); }
 
   bool subset (hb_subset_context_t *c, RecordList_subset_context_t *r) const
   {
@@ -2299,6 +2305,13 @@ struct FeatureTableSubstitutionRecord
     return (this+feature).add_lookup_indexes_to (lookup_indexes);
   }
 
+  void closure_features (const hb_map_t *lookup_indexes,
+			 hb_set_t       *feature_indexes /* OUT */) const
+  {
+    if ((this+feature).intersects_lookup_indexes (lookup_indexes))
+      feature_indexes->add (featureIndex);
+  }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -2338,6 +2351,13 @@ struct FeatureTableSubstitution
     ;
   }
 
+  void closure_features (const hb_map_t *lookup_indexes,
+			 hb_set_t       *feature_indexes /* OUT */) const
+  {
+    for (const FeatureTableSubstitutionRecord& record : substitutions)
+      record.closure_features (lookup_indexes, feature_indexes);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -2362,6 +2382,12 @@ struct FeatureVariationRecord
 			hb_set_t       *lookup_indexes /* OUT */) const
   {
     return (this+substitutions).collect_lookups (feature_indexes, lookup_indexes);
+  }
+
+  void closure_features (const hb_map_t *lookup_indexes,
+			 hb_set_t       *feature_indexes /* OUT */) const
+  {
+    (this+substitutions).closure_features (lookup_indexes, feature_indexes);
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -2419,6 +2445,13 @@ struct FeatureVariations
   {
     for (const FeatureVariationRecord& r : varRecords)
       r.collect_lookups (feature_indexes, lookup_indexes);
+  }
+
+  void closure_features (const hb_map_t *lookup_indexes,
+			 hb_set_t       *feature_indexes /* OUT */) const
+  {
+    for (const FeatureVariationRecord& record : varRecords)
+      record.closure_features (lookup_indexes, feature_indexes);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

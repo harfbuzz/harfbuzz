@@ -270,6 +270,12 @@ hb_ot_layout_closure_lookups (hb_face_t      *face,
 			      hb_set_t       *lookup_indexes /* IN/OUT */);
 
 HB_EXTERN void
+hb_ot_layout_closure_features (hb_face_t      *face,
+			       hb_tag_t        table_tag,
+			       const hb_map_t *lookup_indexes, /* IN */
+			       hb_set_t       *feature_indexes /* OUT */);
+
+HB_EXTERN void
 hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_tag_t      table_tag,
 				    unsigned int  lookup_index,
