@@ -1238,6 +1238,27 @@ hb_ot_layout_closure_lookups (hb_face_t      *face,
   hb_set_subtract (lookup_indexes, &inactive_lookups);
 }
 
+/**
+ * hb_ot_layout_closure_features:
+ * @face: #hb_face_t to work upon
+ * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @lookup_indexes: (in): collected active lookup_indices
+ * @feature_indexes: (out): all active feature indexes collected
+ *
+ * Returns all active feature indexes
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_ot_layout_closure_features (hb_face_t      *face,
+			       hb_tag_t        table_tag,
+			       const hb_map_t *lookup_indexes, /* IN */
+			       hb_set_t       *feature_indexes /* OUT */)
+{
+  const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
+  g.closure_features (lookup_indexes, feature_indexes);
+}
+
 
 #ifndef HB_NO_LAYOUT_COLLECT_GLYPHS
 /**
