@@ -3083,6 +3083,20 @@ struct GSUBGPOS
     return_trace (true);
   }
 
+  void closure_features (const hb_map_t *lookup_indexes, /* IN */
+			 hb_set_t       *feature_indexes /* OUT */) const
+  {
+    for (unsigned i = 0; i < get_feature_count (); i++)
+    {
+      if (get_feature (i).intersects_lookup_indexes (lookup_indexes))
+        feature_indexes->add (i);
+    }
+#ifndef HB_NO_VAR
+    if (version.to_int () >= 0x00010001u)
+      (this+featureVars).closure_features (lookup_indexes, feature_indexes);
+#endif
+  }
+
   unsigned int get_size () const
   {
     return min_size +

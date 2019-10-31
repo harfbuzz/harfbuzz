@@ -71,6 +71,10 @@ struct hb_subset_plan_t
   hb_map_t *gsub_lookups;
   hb_map_t *gpos_lookups;
 
+  //active features we'd like to retain
+  hb_map_t *gsub_features;
+  hb_map_t *gpos_features;
+
  public:
 
   /*
