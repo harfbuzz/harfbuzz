@@ -1960,7 +1960,10 @@ struct GPOS : GSUBGPOS
   static inline void position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer);
 
   bool subset (hb_subset_context_t *c) const
-  { return GSUBGPOS::subset<PosLookup> (c); }
+  {
+    hb_subset_layout_context_t l (c, tableTag, c->plan->gpos_lookups, c->plan->gpos_features);
+    return GSUBGPOS::subset<PosLookup> (&l);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   { return GSUBGPOS::sanitize<PosLookup> (c); }

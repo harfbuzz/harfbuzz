@@ -3058,26 +3058,43 @@ struct GSUBGPOS
   }
 
   template <typename TLookup>
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_layout_context_t *c) const
   {
     TRACE_SUBSET (this);
-    auto *out = c->serializer->embed (*this);
+    auto *out = c->subset_context->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    out->scriptList.serialize_subset (c, scriptList, this, out);
-    out->featureList.serialize_subset (c, featureList, this, out);
-
-    typedef OffsetListOf<TLookup> TLookupList;
-    /* TODO Use intersects() to count how many subtables survive? */
+    typedef LookupOffsetList<TLookup> TLookupList;
     reinterpret_cast<OffsetTo<TLookupList> &> (out->lookupList)
-      .serialize_subset (c,
-			 reinterpret_cast<const OffsetTo<TLookupList> &> (lookupList),
-			 this,
-			 out);
+        .serialize_subset (c->subset_context,
+			   reinterpret_cast<const OffsetTo<TLookupList> &> (lookupList),
+			   this,
+			   out,
+			   c);
+
+    reinterpret_cast<OffsetTo<RecordListOfFeature> &> (out->featureList)
+        .serialize_subset (c->subset_context,
+			   reinterpret_cast<const OffsetTo<RecordListOfFeature> &> (featureList),
+			   this,
+			   out,
+			   c);
+
+    out->scriptList.serialize_subset (c->subset_context,
+				      scriptList,
+				      this,
+				      out,
+				      c);
 
 #ifndef HB_NO_VAR
     if (version.to_int () >= 0x00010001u)
-     out->featureVars.serialize_copy (c->serializer, featureVars, this, out);
+    {
+      bool ret = out->featureVars.serialize_subset (c->subset_context, featureVars, this, out, c);
+      if (!ret)
+      {
+        out->version.major = 1;
+        out->version.major = 0;
+      }
+    }
 #endif
 
     return_trace (true);

@@ -1533,7 +1533,10 @@ struct GSUB : GSUBGPOS
   { return static_cast<const SubstLookup &> (GSUBGPOS::get_lookup (i)); }
 
   bool subset (hb_subset_context_t *c) const
-  { return GSUBGPOS::subset<SubstLookup> (c); }
+  {
+    hb_subset_layout_context_t l (c, tableTag, c->plan->gsub_lookups, c->plan->gsub_features);
+    return GSUBGPOS::subset<SubstLookup> (&l);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   { return GSUBGPOS::sanitize<SubstLookup> (c); }
