@@ -465,6 +465,19 @@ endif ()
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
 target_link_libraries(harfbuzz ${THIRD_PARTY_LIBS})
 
+
+## Define harfbuzz-icu library
+if (HB_HAVE_ICU)
+  add_library(harfbuzz-icu ${PROJECT_SOURCE_DIR}/src/hb-icu.cc ${PROJECT_SOURCE_DIR}/src/hb-icu.h)
+  add_dependencies(harfbuzz-icu harfbuzz)
+  target_link_libraries(harfbuzz-icu harfbuzz ${THIRD_PARTY_LIBS})
+
+  if (BUILD_SHARED_LIBS)
+    set_target_properties(harfbuzz harfbuzz-icu PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
+  endif ()
+endif ()
+
+
 ## Define harfbuzz-subset library
 if (HB_BUILD_SUBSET)
   add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
@@ -723,6 +736,14 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       NAMESPACE harfbuzz::
       DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/harfbuzz
   )
+  if (HB_HAVE_ICU)
+    install(TARGETS harfbuzz-icu
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      FRAMEWORK DESTINATION Library/Frameworks
+    )
+  endif ()
   if (HB_BUILD_UTILS)
     if (WIN32 AND BUILD_SHARED_LIBS)
       install(TARGETS harfbuzz-subset
