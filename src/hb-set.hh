@@ -707,7 +707,6 @@ struct hb_set_t
     void __next__ () { s->next (&v); if (l) l--; }
     void __prev__ () { s->previous (&v); }
     unsigned __len__ () const { return l; }
-    iter_t end () const { return iter_t (*s); }
     bool operator != (const iter_t& o) const
     { return s != o.s || v != o.v; }
 
