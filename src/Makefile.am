@@ -290,7 +290,7 @@ ucd-table: gen-ucd-table.py ucd.nounihan.grouped.zip hb-common.h
 use-table: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-use-table.cc \
 	|| ($(RM) $(srcdir)/hb-ot-shape-complex-use-table.cc; false)
-vowel-constraints: gen-vowel-constraints.py HBIndicVowelConstraints.txt Scripts.txt
+vowel-constraints: gen-vowel-constraints.py IndicShapingInvalidCluster.txt Scripts.txt
 	$(AM_V_GEN) $(builddir)/$^ > $(srcdir)/hb-ot-shape-complex-vowel-constraints.cc \
 	|| ($(RM) $(srcdir)/hb-ot-shape-complex-vowel-constraints.cc; false)
 
