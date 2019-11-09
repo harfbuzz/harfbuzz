@@ -363,7 +363,11 @@ struct hb_ot_apply_context_t :
       matcher.set_syllable (start_index_ == c->buffer->idx ? c->buffer->cur().syllable () : 0);
     }
 
-    void reject () { num_items++; match_glyph_data--; }
+    void reject ()
+    {
+      num_items++;
+      if (match_glyph_data) match_glyph_data--;
+    }
 
     matcher_t::may_skip_t
     may_skip (const hb_glyph_info_t &info) const
