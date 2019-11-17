@@ -545,8 +545,9 @@ struct Charset
     }
   }
 
-  hb_codepoint_t get_sid (hb_codepoint_t glyph) const
+  hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned int num_glyphs) const
   {
+    if (unlikely (glyph >= num_glyphs)) return 0;
     switch (format)
     {
     case 0: return u.format0.get_sid (glyph);
@@ -1216,7 +1217,7 @@ struct cff1
     hb_codepoint_t glyph_to_sid (hb_codepoint_t glyph) const
     {
       if (charset != &Null(Charset))
-	return charset->get_sid (glyph);
+	return charset->get_sid (glyph, num_glyphs);
       else
       {
 	hb_codepoint_t sid = 0;
