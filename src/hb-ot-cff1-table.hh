@@ -1281,7 +1281,7 @@ struct cff1
       }
       else
       {
-	byte_str = (*stringIndex)[sid - HB_CFF_STD_STR_COUNT ];
+	byte_str = (*stringIndex)[sid - HB_CFF_STD_STR_COUNT];
 	str = (const char *)byte_str.arrayZ;
 	str_len = byte_str.length;
       }
