@@ -40,6 +40,7 @@ namespace CFF {
 #define HB_OT_TAG_cff1 HB_TAG('C','F','F',' ')
 
 #define CFF_UNDEF_SID   CFF_UNDEF_CODE
+#define HB_CFF_STD_STR_COUNT	391
 
 enum EncodingID { StandardEncoding = 0, ExpertEncoding = 1 };
 enum CharsetID { ISOAdobeCharset = 0, ExpertCharset = 1, ExpertSubsetCharset = 2 };
@@ -1076,6 +1077,20 @@ struct cff1
 	fdSelect = &Null(CFF1FDSelect);
       }
 
+      encoding = &Null(Encoding);
+      if (is_CID ())
+      {
+	if (unlikely (charset == &Null(Charset))) { fini (); return; }
+      }
+      else
+      {
+	if (!is_predef_encoding ())
+	{
+	  encoding = &StructAtOffsetOrNull<Encoding> (cff, topDict.EncodingOffset);
+	  if (unlikely ((encoding == &Null (Encoding)) || !encoding->sanitize (&sc))) { fini (); return; }
+	}
+      }
+
       stringIndex = &StructAtOffset<CFF1StringIndex> (topDictIndex, topDictIndex->get_size ());
       if ((stringIndex == &Null (CFF1StringIndex)) || !stringIndex->sanitize (&sc))
       { fini (); return; }
@@ -1172,57 +1187,6 @@ struct cff1
       return 0;
     }
 
-    protected:
-    hb_blob_t	       *blob;
-    hb_sanitize_context_t   sc;
-
-    public:
-    const Charset	   *charset;
-    const CFF1NameIndex     *nameIndex;
-    const CFF1TopDictIndex  *topDictIndex;
-    const CFF1StringIndex   *stringIndex;
-    const CFF1Subrs	 *globalSubrs;
-    const CFF1CharStrings   *charStrings;
-    const CFF1FDArray       *fdArray;
-    const CFF1FDSelect      *fdSelect;
-    unsigned int	    fdCount;
-
-    cff1_top_dict_values_t       topDict;
-    hb_vector_t<cff1_font_dict_values_t>   fontDicts;
-    hb_vector_t<PRIVDICTVAL>	  privateDicts;
-
-    unsigned int	    num_glyphs;
-  };
-
-  struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
-  {
-    HB_INTERNAL bool get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
-    HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const;
-  };
-
-  struct accelerator_subset_t : accelerator_templ_t<cff1_private_dict_opset_subset, cff1_private_dict_values_subset_t>
-  {
-    void init (hb_face_t *face)
-    {
-      SUPER::init (face);
-      if (blob == nullptr) return;
-
-      const OT::cff1 *cff = this->blob->as<OT::cff1> ();
-      encoding = &Null(Encoding);
-      if (is_CID ())
-      {
-	if (unlikely (charset == &Null(Charset))) { fini (); return; }
-      }
-      else
-      {
-	if (!is_predef_encoding ())
-	{
-	  encoding = &StructAtOffsetOrNull<Encoding> (cff, topDict.EncodingOffset);
-	  if (unlikely ((encoding == &Null (Encoding)) || !encoding->sanitize (&sc))) { fini (); return; }
-	}
-      }
-    }
-
     bool is_predef_encoding () const { return topDict.EncodingOffset <= ExpertEncoding; }
 
     hb_codepoint_t glyph_to_code (hb_codepoint_t glyph) const
@@ -1274,11 +1238,62 @@ struct cff1
       }
     }
 
-    const Encoding	  *encoding;
+    protected:
+    hb_blob_t	       *blob;
+    hb_sanitize_context_t   sc;
 
-    private:
-    typedef accelerator_templ_t<cff1_private_dict_opset_subset, cff1_private_dict_values_subset_t> SUPER;
+    public:
+    const Encoding	    *encoding;
+    const Charset	    *charset;
+    const CFF1NameIndex     *nameIndex;
+    const CFF1TopDictIndex  *topDictIndex;
+    const CFF1StringIndex   *stringIndex;
+    const CFF1Subrs	    *globalSubrs;
+    const CFF1CharStrings   *charStrings;
+    const CFF1FDArray       *fdArray;
+    const CFF1FDSelect      *fdSelect;
+    unsigned int	    fdCount;
+
+    cff1_top_dict_values_t       topDict;
+    hb_vector_t<cff1_font_dict_values_t>   fontDicts;
+    hb_vector_t<PRIVDICTVAL>	  privateDicts;
+
+    unsigned int	    num_glyphs;
   };
+
+  struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
+  {
+    bool get_glyph_name (hb_codepoint_t glyph,
+			      char *buf, unsigned int buf_len) const
+    {
+      if (!buf) return true;
+      hb_codepoint_t sid = glyph_to_sid (glyph);
+      byte_str_t byte_str;
+      const char *str;
+      size_t str_len;
+      if (sid < HB_CFF_STD_STR_COUNT)
+      {
+	str = lookup_standard_string_for_sid (sid);
+	str_len = strlen(str);
+      }
+      else
+      {
+	byte_str = (*stringIndex)[sid - HB_CFF_STD_STR_COUNT ];
+	str = (const char *)byte_str.arrayZ;
+	str_len = byte_str.length;
+      }
+      if (!str_len) return false;
+      unsigned int len = hb_min (buf_len - 1, str_len);
+      strncpy (buf, (const char*)str, len);
+      buf[len] = '\0';
+      return true;
+    }
+
+    HB_INTERNAL bool get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
+    HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const;
+  };
+
+  struct accelerator_subset_t : accelerator_templ_t<cff1_private_dict_opset_subset, cff1_private_dict_values_subset_t> {};
 
   bool subset (hb_subset_plan_t *plan) const
   {
@@ -1304,6 +1319,7 @@ struct cff1
   HB_INTERNAL static hb_codepoint_t lookup_expert_charset_for_sid (hb_codepoint_t glyph);
   HB_INTERNAL static hb_codepoint_t lookup_expert_subset_charset_for_sid (hb_codepoint_t glyph);
   HB_INTERNAL static hb_codepoint_t lookup_standard_encoding_for_sid (hb_codepoint_t code);
+  HB_INTERNAL static const char *lookup_standard_string_for_sid (hb_codepoint_t sid);
 
   public:
   FixedVersion<HBUINT8> version;	  /* Version of CFF table. set to 0x0100u */
