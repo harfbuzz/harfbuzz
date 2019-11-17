@@ -573,7 +573,7 @@ struct path_procs_t
   static void rlinecurve (ENV &env, PARAM& param)
   {
     unsigned int i = 0;
-    unsigned int line_limit = (env.argStack.get_count () % 6);
+    unsigned int line_limit = (env.argStack.get_count () - 6);
     for (; i + 2 <= line_limit; i += 2)
     {
       point_t pt1 = env.get_pt ();
