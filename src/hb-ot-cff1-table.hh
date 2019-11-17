@@ -1269,6 +1269,7 @@ struct cff1
     {
       if (!buf) return true;
       if (unlikely (!is_valid ())) return false;
+      if (is_CID()) return false;
       hb_codepoint_t sid = glyph_to_sid (glyph);
       byte_str_t byte_str;
       const char *str;
