@@ -135,7 +135,11 @@ struct hb_set_t
       unsigned int i = m / ELT_BITS;
       unsigned int j = m & ELT_MASK;
 
-      const elt_t vv = v[i] & ((elt_t (1) << (j + 1)) - 1);
+      /* Fancy mask to avoid shifting by elt_t bitsize, which is undefined. */
+      const elt_t mask = j < 8 * sizeof (elt_t) - 1 ?
+			 ((elt_t (1) << (j + 1)) - 1) :
+			 (elt_t) -1;
+      const elt_t vv = v[i] & mask;
       const elt_t *p = &vv;
       while (true)
       {
