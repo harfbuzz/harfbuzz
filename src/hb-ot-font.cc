@@ -224,7 +224,11 @@ hb_ot_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 			   void *user_data HB_UNUSED)
 {
   const hb_ot_face_t *ot_face = (const hb_ot_face_t *) font_data;
-  return ot_face->post->get_glyph_from_name (name, len, glyph);
+  hb_bool_t ret = ot_face->post->get_glyph_from_name (name, len, glyph);
+#ifndef HB_NO_OT_FONT_CFF
+    if (!ret) ret = ot_face->cff1->get_glyph_from_name (name, len, glyph);
+#endif
+  return ret;
 }
 #endif
 

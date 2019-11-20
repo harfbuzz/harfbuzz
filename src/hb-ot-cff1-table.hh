@@ -31,6 +31,12 @@
 #include "hb-ot-cff-common.hh"
 #include "hb-subset-cff1.hh"
 
+#define HB_STRING_ARRAY_NAME cff1_std_strings
+#define HB_STRING_ARRAY_LIST "hb-ot-cff1-std-str.hh"
+#include "hb-string-array.hh"
+#undef HB_STRING_ARRAY_LIST
+#undef HB_STRING_ARRAY_NAME
+
 namespace CFF {
 
 /*
@@ -40,7 +46,6 @@ namespace CFF {
 #define HB_OT_TAG_cff1 HB_TAG('C','F','F',' ')
 
 #define CFF_UNDEF_SID   CFF_UNDEF_CODE
-#define HB_CFF_STD_STR_COUNT	391
 
 enum EncodingID { StandardEncoding = 0, ExpertEncoding = 1 };
 enum CharsetID { ISOAdobeCharset = 0, ExpertCharset = 1, ExpertSubsetCharset = 2 };
@@ -1264,6 +1269,31 @@ struct cff1
 
   struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
   {
+    void init (hb_face_t *face)
+    {
+      SUPER::init (face);
+
+      if (!is_valid ()) return;
+      if (is_CID ()) return;
+
+      /* fill glyph_names */
+      for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
+      {
+	hb_codepoint_t	sid = charset->get_sid (gid, num_glyphs);
+	gname_t	gname;
+	gname.sid = sid;
+	if (sid < cff1_std_strings_length)
+	  gname.name = cff1_std_strings (sid);
+	else
+	{
+	  byte_str_t	ustr = (*stringIndex)[sid - cff1_std_strings_length];
+	  gname.name = hb_bytes_t ((const char*)ustr.arrayZ, ustr.length);
+	}
+	glyph_names.push (gname);
+      }
+      glyph_names.qsort ();
+    }
+
     bool get_glyph_name (hb_codepoint_t glyph,
 			      char *buf, unsigned int buf_len) const
     {
@@ -1271,19 +1301,19 @@ struct cff1
       if (unlikely (!is_valid ())) return false;
       if (is_CID()) return false;
       hb_codepoint_t sid = glyph_to_sid (glyph);
-      byte_str_t byte_str;
       const char *str;
       size_t str_len;
-      if (sid < HB_CFF_STD_STR_COUNT)
+      if (sid < cff1_std_strings_length)
       {
-	str = lookup_standard_string_for_sid (sid);
-	str_len = strlen(str);
+	hb_bytes_t byte_str = cff1_std_strings (sid);
+	str = byte_str.arrayZ;
+	str_len = byte_str.length;
       }
       else
       {
-	byte_str = (*stringIndex)[sid - HB_CFF_STD_STR_COUNT];
-	str = (const char *)byte_str.arrayZ;
-	str_len = byte_str.length;
+	byte_str_t ubyte_str = (*stringIndex)[sid - cff1_std_strings_length];
+	str = (const char *)ubyte_str.arrayZ;
+	str_len = ubyte_str.length;
       }
       if (!str_len) return false;
       unsigned int len = hb_min (buf_len - 1, str_len);
@@ -1292,8 +1322,46 @@ struct cff1
       return true;
     }
 
+    bool get_glyph_from_name (const char *name, int len,
+			      hb_codepoint_t *glyph) const
+    {
+      if (len < 0) len = strlen (name);
+      if (unlikely (!len)) return false;
+  
+      gname_t	key = { hb_bytes_t (name, len), 0 };
+      const gname_t *gname = glyph_names.bsearch (key);
+      if (gname == nullptr) return false;
+      hb_codepoint_t gid = charset->get_glyph (gname->sid, num_glyphs);
+      if (!gid && gname->sid) return false;
+      *glyph = gid;
+      return true;
+    }
+
     HB_INTERNAL bool get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
     HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const;
+
+    private:
+    struct gname_t
+    {
+      hb_bytes_t	name;
+      uint16_t		sid;
+
+      static int cmp (const void *a_, const void *b_)
+      {
+	const gname_t *a = (const gname_t *)a_;
+	const gname_t *b = (const gname_t *)b_;
+	int minlen = hb_min (a->name.length, b->name.length);
+	int ret = strncmp (a->name.arrayZ, b->name.arrayZ, minlen);
+	if (ret) return ret;
+	return a->name.length - b->name.length;
+      }
+
+      int cmp (const gname_t &a) const { return cmp (&a, this); }
+    };
+  
+    hb_sorted_vector_t<gname_t>	glyph_names;
+
+    typedef accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t> SUPER;
   };
 
   struct accelerator_subset_t : accelerator_templ_t<cff1_private_dict_opset_subset, cff1_private_dict_values_subset_t> {};
@@ -1322,7 +1390,6 @@ struct cff1
   HB_INTERNAL static hb_codepoint_t lookup_expert_charset_for_sid (hb_codepoint_t glyph);
   HB_INTERNAL static hb_codepoint_t lookup_expert_subset_charset_for_sid (hb_codepoint_t glyph);
   HB_INTERNAL static hb_codepoint_t lookup_standard_encoding_for_sid (hb_codepoint_t code);
-  HB_INTERNAL static const char *lookup_standard_string_for_sid (hb_codepoint_t sid);
 
   public:
   FixedVersion<HBUINT8> version;	  /* Version of CFF table. set to 0x0100u */
