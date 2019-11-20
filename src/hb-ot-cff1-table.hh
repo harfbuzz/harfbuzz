@@ -1294,6 +1294,13 @@ struct cff1
       glyph_names.qsort ();
     }
 
+    void fini ()
+    {
+      glyph_names.fini ();
+    
+      SUPER::fini ();
+    }
+
     bool get_glyph_name (hb_codepoint_t glyph,
 			      char *buf, unsigned int buf_len) const
     {
