@@ -718,7 +718,7 @@ hb_ft_font_changed (hb_font_t *font)
 		    ft_face->size->metrics.y_ppem);
 #endif
 
-#ifdef HAVE_FT_GET_VAR_BLEND_COORDINATES
+#if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
   FT_MM_Var *mm_var = nullptr;
   if (!FT_Get_MM_Var (ft_face, &mm_var))
   {
@@ -857,7 +857,7 @@ hb_ft_font_set_funcs (hb_font_t *font)
     FT_Set_Transform (ft_face, &matrix, nullptr);
   }
 
-#ifdef HAVE_FT_SET_VAR_BLEND_COORDINATES
+#if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
   unsigned int num_coords;
   const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
   if (num_coords)
