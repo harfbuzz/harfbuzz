@@ -97,10 +97,14 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 {
   OT::cmap::accelerator_t cmap;
   OT::glyf::accelerator_t glyf;
+#ifndef HB_NO_SUBSET_CFF
   OT::cff1::accelerator_t cff;
+#endif
   cmap.init (plan->source);
   glyf.init (plan->source);
+#ifndef HB_NO_SUBSET_CFF
   cff.init (plan->source);
+#endif
 
   plan->_glyphset_gsub->add (0); // Not-def
   hb_set_union (plan->_glyphset_gsub, input_glyphs_to_retain);
@@ -142,7 +146,9 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
 
+#ifndef HB_NO_SUBSET_CFF
   cff.fini ();
+#endif
   glyf.fini ();
   cmap.fini ();
 }
