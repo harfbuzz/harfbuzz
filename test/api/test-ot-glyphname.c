@@ -44,10 +44,8 @@ test_one_glyph (hb_font_t *font,  hb_codepoint_t gid, const char *name)
 static void
 test_standard_names (void)
 {
-  hb_blob_t *blob = hb_blob_create_from_file ("fonts/MathTestFontFull.otf");
-  hb_face_t *face = hb_face_create (blob, 0 /* first face */);
+  hb_face_t *face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
   hb_font_t *font = hb_font_create (face);
-  hb_blob_destroy (blob);
 
   test_one_glyph (font, 0,   ".notdef");
   test_one_glyph (font, 27,  "Z");
@@ -59,10 +57,8 @@ test_standard_names (void)
 static void
 test_non_standard_names (void)
 {
-  hb_blob_t *blob = hb_blob_create_from_file ("fonts/MathTestFontFull.otf");
-  hb_face_t *face = hb_face_create (blob, 0 /* first face */);
+  hb_face_t *face = hb_test_open_font_file ("fonts/MathTestFontFull.otf");
   hb_font_t *font = hb_font_create (face);
-  hb_blob_destroy (blob);
 
   test_one_glyph (font, 46,  "arrowdblright");
   test_one_glyph (font, 138, "uni21E7_size5");
