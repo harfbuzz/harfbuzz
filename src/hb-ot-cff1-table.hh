@@ -1279,7 +1279,7 @@ struct cff1
       /* fill glyph_names */
       for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
       {
-	hb_codepoint_t	sid = charset->get_sid (gid, num_glyphs);
+	hb_codepoint_t	sid = glyph_to_sid (gid);
 	gname_t	gname;
 	gname.sid = sid;
 	if (sid < cff1_std_strings_length)
