@@ -334,6 +334,7 @@ noinst_PROGRAMS = \
 	test-buffer-serialize \
 	test-ot-meta \
 	test-ot-name \
+	test-ot-glyphname \
 	test-gpos-size-params \
 	test-gsub-would-substitute \
 	$(NULL)
@@ -358,6 +359,10 @@ test_ot_meta_LDADD = libharfbuzz.la $(HBLIBS)
 test_ot_name_SOURCES = test-ot-name.cc
 test_ot_name_CPPFLAGS = $(HBCFLAGS)
 test_ot_name_LDADD = libharfbuzz.la $(HBLIBS)
+
+test_ot_glyphname_SOURCES = test-ot-glyphname.cc
+test_ot_glyphname_CPPFLAGS = $(HBCFLAGS)
+test_ot_glyphname_LDADD = libharfbuzz.la $(HBLIBS)
 
 test_gpos_size_params_SOURCES = test-gpos-size-params.cc
 test_gpos_size_params_CPPFLAGS = $(HBCFLAGS)
