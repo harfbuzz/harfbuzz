@@ -135,7 +135,11 @@ struct hb_set_t
       unsigned int i = m / ELT_BITS;
       unsigned int j = m & ELT_MASK;
 
-      const elt_t vv = v[i] & ((elt_t (1) << (j + 1)) - 1);
+      /* Fancy mask to avoid shifting by elt_t bitsize, which is undefined. */
+      const elt_t mask = j < 8 * sizeof (elt_t) - 1 ?
+			 ((elt_t (1) << (j + 1)) - 1) :
+			 (elt_t) -1;
+      const elt_t vv = v[i] & mask;
       const elt_t *p = &vv;
       while (true)
       {
@@ -698,8 +702,15 @@ struct hb_set_t
   struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
   {
     static constexpr bool is_sorted_iterator = true;
-    iter_t (const hb_set_t &s_ = Null(hb_set_t)) :
-      s (&s_), v (INVALID), l (s->get_population () + 1) { __next__ (); }
+    iter_t (const hb_set_t &s_ = Null(hb_set_t),
+	    bool init = true) : s (&s_), v (INVALID), l(0)
+    {
+      if (init)
+      {
+	l = s->get_population () + 1;
+	__next__ ();
+      }
+    }
 
     typedef hb_codepoint_t __item_t__;
     hb_codepoint_t __item__ () const { return v; }
@@ -707,7 +718,7 @@ struct hb_set_t
     void __next__ () { s->next (&v); if (l) l--; }
     void __prev__ () { s->previous (&v); }
     unsigned __len__ () const { return l; }
-    iter_t end () const { return iter_t (*s); }
+    iter_t end () const { return iter_t (*s, false); }
     bool operator != (const iter_t& o) const
     { return s != o.s || v != o.v; }
 

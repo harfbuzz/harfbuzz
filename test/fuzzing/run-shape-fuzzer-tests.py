@@ -33,7 +33,8 @@ def cmd (command):
 		def timeout (p, is_killed):
 			is_killed['value'] = True
 			p.kill ()
-		timer = threading.Timer (2, timeout, [p, is_killed])
+		timeout_seconds = int (os.environ.get ("HB_TEST_SHAPE_FUZZER_TIMEOUT", "2"))
+		timer = threading.Timer (timeout_seconds, timeout, [p, is_killed])
 
 		try:
 			timer.start()

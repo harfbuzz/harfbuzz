@@ -78,23 +78,6 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
   }
 };
 
-struct range_checker_t
-{
-  range_checker_t (const void *data_, unsigned int length_)
-    : data ((const char *) data_), length (length_) {}
-
-  template <typename T>
-  bool in_range (const T *p, unsigned int size = T::static_size) const
-  {
-    return ((const char *) p) >= data
-	&& ((const char *) p + size) <= data + length;
-  }
-
-  protected:
-  const char *data;
-  const unsigned int length;
-};
-
 struct Tuple : UnsizedArrayOf<F2DOT14> {};
 
 struct TuppleIndex : HBUINT16
@@ -233,10 +216,10 @@ struct GlyphVarData
     {
       if (var_data->has_shared_point_numbers ())
       {
-	range_checker_t checker (var_data, length);
+	hb_bytes_t bytes ((const char *) var_data, length);
 	const HBUINT8 *base = &(var_data+var_data->data);
 	const HBUINT8 *p = base;
-	if (!unpack_points (p, shared_indices, checker)) return false;
+	if (!unpack_points (p, shared_indices, bytes)) return false;
 	data_offset = p - base;
       }
       return true;
@@ -292,7 +275,7 @@ struct GlyphVarData
 
   static bool unpack_points (const HBUINT8 *&p /* IN/OUT */,
 			     hb_vector_t<unsigned int> &points /* OUT */,
-			     const range_checker_t &check)
+			     const hb_bytes_t &bytes)
   {
     enum packed_point_flag_t
     {
@@ -300,12 +283,12 @@ struct GlyphVarData
       POINT_RUN_COUNT_MASK = 0x7F
     };
 
-    if (unlikely (!check.in_range (p))) return false;
+    if (unlikely (!bytes.in_range (p))) return false;
 
     uint16_t count = *p++;
     if (count & POINTS_ARE_WORDS)
     {
-      if (unlikely (!check.in_range (p))) return false;
+      if (unlikely (!bytes.in_range (p))) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
     }
     points.resize (count);
@@ -314,7 +297,7 @@ struct GlyphVarData
     uint16_t i = 0;
     while (i < count)
     {
-      if (unlikely (!check.in_range (p))) return false;
+      if (unlikely (!bytes.in_range (p))) return false;
       uint16_t j;
       uint8_t control = *p++;
       uint16_t run_count = (control & POINT_RUN_COUNT_MASK) + 1;
@@ -322,7 +305,7 @@ struct GlyphVarData
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!check.in_range ((const HBUINT16 *) p)))
+	  if (unlikely (!bytes.in_range ((const HBUINT16 *) p)))
 	    return false;
 	  n += *(const HBUINT16 *)p;
 	  points[i] = n;
@@ -333,7 +316,7 @@ struct GlyphVarData
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!check.in_range (p))) return false;
+	  if (unlikely (!bytes.in_range (p))) return false;
 	  n += *p++;
 	  points[i] = n;
 	}
@@ -345,7 +328,7 @@ struct GlyphVarData
 
   static bool unpack_deltas (const HBUINT8 *&p /* IN/OUT */,
 			     hb_vector_t<int> &deltas /* IN/OUT */,
-			     const range_checker_t &check)
+			     const hb_bytes_t &bytes)
   {
     enum packed_delta_flag_t
     {
@@ -358,7 +341,7 @@ struct GlyphVarData
     unsigned int count = deltas.length;
     while (i < count)
     {
-      if (unlikely (!check.in_range (p))) return false;
+      if (unlikely (!bytes.in_range (p))) return false;
       uint8_t control = *p++;
       unsigned int run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
       unsigned int j;
@@ -368,7 +351,7 @@ struct GlyphVarData
       else if (control & DELTAS_ARE_WORDS)
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!check.in_range ((const HBUINT16 *) p)))
+	  if (unlikely (!bytes.in_range ((const HBUINT16 *) p)))
 	    return false;
 	  deltas[i] = *(const HBINT16 *) p;
 	  p += HBUINT16::static_size;
@@ -376,7 +359,7 @@ struct GlyphVarData
       else
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!check.in_range (p)))
+	  if (unlikely (!bytes.in_range (p)))
 	    return false;
 	  deltas[i] = *(const HBINT8 *) p++;
 	}
@@ -611,10 +594,10 @@ struct gvar
 	if (unlikely (!iterator.in_range (p, length)))
 	  return false;
 
-	range_checker_t checker (p, length);
+	hb_bytes_t bytes ((const char *) p, length);
 	hb_vector_t<unsigned int> private_indices;
 	if (iterator.current_tuple->has_private_points () &&
-	    !GlyphVarData::unpack_points (p, private_indices, checker))
+	    !GlyphVarData::unpack_points (p, private_indices, bytes))
 	  return false;
 	const hb_array_t<unsigned int> &indices = private_indices.length ? private_indices : shared_indices;
 
@@ -622,11 +605,11 @@ struct gvar
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
 	hb_vector_t<int> x_deltas;
 	x_deltas.resize (num_deltas);
-	if (!GlyphVarData::unpack_deltas (p, x_deltas, checker))
+	if (!GlyphVarData::unpack_deltas (p, x_deltas, bytes))
 	  return false;
 	hb_vector_t<int> y_deltas;
 	y_deltas.resize (num_deltas);
-	if (!GlyphVarData::unpack_deltas (p, y_deltas, checker))
+	if (!GlyphVarData::unpack_deltas (p, y_deltas, bytes))
 	  return false;
 
 	for (unsigned int i = 0; i < deltas.length; i++)

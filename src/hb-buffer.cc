@@ -776,8 +776,10 @@ hb_buffer_destroy (hb_buffer_t *buffer)
 
   free (buffer->info);
   free (buffer->pos);
+#ifndef HB_NO_BUFFER_MESSAGE
   if (buffer->message_destroy)
     buffer->message_destroy (buffer->message_data);
+#endif
 
   free (buffer);
 }
@@ -1858,18 +1860,8 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
 
   bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
 
-  unsigned int count = buffer->len;
-  if (unlikely (!count)) return;
-  hb_glyph_info_t *info = buffer->info;
-
-  unsigned int start = 0;
-  unsigned int end;
-  for (end = start + 1; end < count; end++)
-    if (info[start].cluster != info[end].cluster) {
-      normalize_glyphs_cluster (buffer, start, end, backward);
-      start = end;
-    }
-  normalize_glyphs_cluster (buffer, start, end, backward);
+  foreach_cluster (buffer, start, end)
+    normalize_glyphs_cluster (buffer, start, end, backward);
 }
 
 void

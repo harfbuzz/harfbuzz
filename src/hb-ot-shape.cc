@@ -166,7 +166,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
     plan.apply_kerx = true;
 #endif
 
-  if (!plan.apply_kerx && !has_gpos_kern)
+  if (!plan.apply_kerx && (!has_gpos_kern || !plan.apply_gpos))
   {
     /* Apparently Apple applies kerx if GPOS kern was not applied. */
 #ifndef HB_NO_AAT_SHAPE

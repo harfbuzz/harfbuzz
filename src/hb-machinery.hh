@@ -135,7 +135,7 @@ static inline Type& StructAfter(TObject &X)
 
 #define DEFINE_SIZE_ARRAY(size, array) \
   DEFINE_COMPILES_ASSERTION ((void) (array)[0].static_size) \
-  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + HB_VAR_ARRAY * sizeof ((array)[0])) \
+  DEFINE_INSTANCE_ASSERTION (sizeof (*this) == (size) + (HB_VAR_ARRAY+0) * sizeof ((array)[0])) \
   static constexpr unsigned null_size = (size); \
   static constexpr unsigned min_size = (size)
 

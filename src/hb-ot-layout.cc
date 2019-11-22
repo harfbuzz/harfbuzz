@@ -1223,7 +1223,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
  * @lookup_index: The index of the feature lookup to query
  * @glyphs_before: (out): Array of glyphs preceding the substitution range
  * @glyphs_input: (out): Array of input glyphs that would be substituted by the lookup
- * @glyphs_after: (out): Array of glyphs following the substition range
+ * @glyphs_after: (out): Array of glyphs following the substitution range
  * @glyphs_output: (out): Array of glyphs that would be the substitued output of the lookup
  *
  * Fetches a list of all glyphs affected by the specified lookup in the
@@ -1957,7 +1957,7 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
  *
  * Fetches a baseline value from the face.
  *
- * Return value: if found baseline value in the the font.
+ * Return value: if found baseline value in the font.
  *
  * Since: 2.6.0
  **/

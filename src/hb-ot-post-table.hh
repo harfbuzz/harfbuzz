@@ -35,8 +35,6 @@
 #undef HB_STRING_ARRAY_LIST
 #undef HB_STRING_ARRAY_NAME
 
-#define NUM_FORMAT1_NAMES 258
-
 /*
  * post -- PostScript
  * https://docs.microsoft.com/en-us/typography/opentype/spec/post
@@ -185,7 +183,7 @@ struct post
     unsigned int get_glyph_count () const
     {
       if (version == 0x00010000)
-	return NUM_FORMAT1_NAMES;
+	return format1_names_length;
 
       if (version == 0x00020000)
 	return glyphNameIndex->len;
@@ -213,7 +211,7 @@ struct post
     {
       if (version == 0x00010000)
       {
-	if (glyph >= NUM_FORMAT1_NAMES)
+	if (glyph >= format1_names_length)
 	  return hb_bytes_t ();
 
 	return format1_names (glyph);
@@ -223,9 +221,9 @@ struct post
 	return hb_bytes_t ();
 
       unsigned int index = glyphNameIndex->arrayZ[glyph];
-      if (index < NUM_FORMAT1_NAMES)
+      if (index < format1_names_length)
 	return format1_names (index);
-      index -= NUM_FORMAT1_NAMES;
+      index -= format1_names_length;
 
       if (index >= index_to_offset.length)
 	return hb_bytes_t ();

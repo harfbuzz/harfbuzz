@@ -4,7 +4,7 @@ jobs:
 
   macos-10.12.6-aat-fonts:
     macos:
-      xcode: "9.2.0"
+      xcode: "9.0.1"
     steps:
       - checkout
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo
@@ -98,7 +98,9 @@ jobs:
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
       - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
-      - run: make clean && cd src && clang++ -c hb-*.cc
+      - run: make clean
+      - run: make -Csrc CPPFLAGS="-DHB_TINY -DHB_NO_OT_FONT" libharfbuzz-subset.la && make clean
+      - run: clang -c src/hb-*.cc -DHB_NO_MT
 
   gcc-valgrind:
     docker:
@@ -112,7 +114,7 @@ jobs:
       - run: make -j32
       # run-shape-fuzzer-tests.py automatically runs valgrind if see available
       # but test/api runs it by request, we probably should normalize the approaches
-      - run: RUN_VALGRIND=1 make check && make -Ctest/api check-valgrind || .ci/fail.sh
+      - run: HB_TEST_SHAPE_FUZZER_TIMEOUT=3 HB_TEST_SUBSET_FUZZER_TIMEOUT=30 RUN_VALGRIND=1 make check && make -Ctest/api check-valgrind || .ci/fail.sh
       # informational for now
       - run: make -Ctest/api check-symbols || true
 
@@ -164,7 +166,7 @@ jobs:
       - run: wget https://ftp.gnome.org/pub/gnome/sources/glib/2.58/glib-2.58.1.tar.xz && tar xf glib-2.58.1.tar.xz && cd glib-2.58.1 && ./autogen.sh --with-pcre CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CFLAGS="-fsanitize=memory" CXXFLAGS="-fsanitize=memory" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
       - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
       - run: CPPFLAGS="-fsanitize=memory -fsanitize-memory-track-origins" LDFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --without-icu
-      - run: make -j32 && MSAN_OPTIONS=exitcode=42 make check || .ci/fail.sh | asan_symbolize | c++filt
+      - run: make -j32 && MSAN_OPTIONS=exitcode=42 HB_TEST_SUBSET_FUZZER_TIMEOUT=12 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-tsan:
     docker:
@@ -180,7 +182,7 @@ jobs:
       - run: pip install fonttools
       - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
-      - run: make check || .ci/fail.sh | asan_symbolize | c++filt
+      - run: HB_TEST_SUBSET_FUZZER_TIMEOUT=40 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-ubsan:
     docker:
@@ -203,7 +205,7 @@ jobs:
       - image: fedora
     steps:
       - checkout
-      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python mingw32-gcc-c++ mingw64-gcc-c++ mingw32-glib2 mingw32-cairo mingw32-freetype mingw64-glib2 mingw64-cairo mingw64-freetype glibc-devel.i686 || true
+      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which diffutils glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python python-pip mingw32-gcc-c++ mingw64-gcc-c++ mingw32-glib2 mingw32-cairo mingw32-freetype mingw64-glib2 mingw64-cairo mingw64-freetype glibc-devel.i686 || true
       - run: NOCONFIGURE=1 ./autogen.sh
       - run: mkdir build && cd build && CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ../configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make -j32 && (make check || ../.ci/fail.sh)
       - run: pip install pefile

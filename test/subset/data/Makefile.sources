@@ -6,7 +6,9 @@ TESTS = \
 	tests/cff-japanese.tests \
 	tests/layout.tests \
 	tests/layout.gpos.tests \
+	tests/layout.gpos2.tests \
 	tests/layout.gpos3.tests \
+	tests/layout.gsub6.tests \
 	tests/cmap14.tests \
 	$(NULL)
 
