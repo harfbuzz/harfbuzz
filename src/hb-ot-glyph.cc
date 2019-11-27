@@ -129,6 +129,8 @@ struct _hb_ot_glyph_path_vectors
   {
     coords->fini ();
     commands->fini ();
+    free (coords);
+    free (commands);
   }
 };
 
