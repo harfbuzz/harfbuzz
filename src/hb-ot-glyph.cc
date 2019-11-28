@@ -150,7 +150,7 @@ hb_ot_glyph_path_create_from_font (hb_font_t *font, hb_codepoint_t glyph)
 {
   _hb_ot_glyph_path_vectors *user_data = (_hb_ot_glyph_path_vectors *)
 					 malloc (sizeof (_hb_ot_glyph_path_vectors));
-  if (unlikely (!user_data || !user_data->init ()))
+  if (unlikely (!user_data || !user_data->init () || glyph >= font->face->get_num_glyphs ()))
   {
     free (user_data);
     return hb_ot_glyph_path_empty ();
