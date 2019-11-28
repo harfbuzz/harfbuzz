@@ -103,6 +103,10 @@ void
 hb_ot_glyph_path_destroy (hb_ot_glyph_path_t *path)
 {
   if (!hb_object_destroy (path)) return;
+
+  if (path->destroy) path->destroy (path->user_data);
+
+  free (path);
 }
 
 struct _hb_ot_glyph_path_vectors
@@ -146,7 +150,11 @@ hb_ot_glyph_path_create_from_font (hb_font_t *font, hb_codepoint_t glyph)
 {
   _hb_ot_glyph_path_vectors *user_data = (_hb_ot_glyph_path_vectors *)
 					 malloc (sizeof (_hb_ot_glyph_path_vectors));
-  if (unlikely (!user_data->init ())) return hb_ot_glyph_path_empty ();
+  if (unlikely (!user_data || !user_data->init ()))
+  {
+    free (user_data);
+    return hb_ot_glyph_path_empty ();
+  }
 
   hb_vector_t<hb_position_t> &coords = *user_data->coords;
   hb_vector_t<uint8_t> &commands = *user_data->commands;
@@ -161,7 +169,12 @@ hb_ot_glyph_path_create_from_font (hb_font_t *font, hb_codepoint_t glyph)
 
   assert (coords.length % 2 == 0); /* coords pairs, should be an even number */
 
-  if (unlikely (!ret)) return hb_ot_glyph_path_empty ();
+  if (unlikely (!ret))
+  {
+    user_data->fini ();
+    free (user_data);
+    return hb_ot_glyph_path_empty ();
+  }
 
   return hb_ot_glyph_path_create (coords.arrayZ, coords.length, commands.arrayZ, commands.length,
 				  user_data, (hb_destroy_func_t) _hb_ot_glyph_path_free_vectors);
