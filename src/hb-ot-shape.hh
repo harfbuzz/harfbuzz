@@ -99,6 +99,7 @@ struct hb_ot_shape_plan_t
 #else
   static constexpr bool has_frac = false;
 #endif
+  bool has_vert : 1;
   bool has_gpos_mark : 1;
   bool zero_marks : 1;
   bool fallback_glyph_classes : 1;

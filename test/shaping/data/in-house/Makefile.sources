@@ -43,6 +43,7 @@ TESTS = \
 	tests/none-directional.tests \
 	tests/positioning-features.tests \
 	tests/rand.tests \
+	tests/rotation.tests \
 	tests/spaces.tests \
 	tests/simple.tests \
 	tests/sinhala.tests \
