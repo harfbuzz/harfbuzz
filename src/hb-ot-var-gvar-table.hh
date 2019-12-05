@@ -283,12 +283,12 @@ struct GlyphVarData
       POINT_RUN_COUNT_MASK = 0x7F
     };
 
-    if (unlikely (!bytes.in_range (p))) return false;
+    if (unlikely (!bytes.check_range (p))) return false;
 
     uint16_t count = *p++;
     if (count & POINTS_ARE_WORDS)
     {
-      if (unlikely (!bytes.in_range (p))) return false;
+      if (unlikely (!bytes.check_range (p))) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
     }
     points.resize (count);
@@ -297,7 +297,7 @@ struct GlyphVarData
     uint16_t i = 0;
     while (i < count)
     {
-      if (unlikely (!bytes.in_range (p))) return false;
+      if (unlikely (!bytes.check_range (p))) return false;
       uint16_t j;
       uint8_t control = *p++;
       uint16_t run_count = (control & POINT_RUN_COUNT_MASK) + 1;
@@ -305,7 +305,7 @@ struct GlyphVarData
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!bytes.in_range ((const HBUINT16 *) p)))
+	  if (unlikely (!bytes.check_range ((const HBUINT16 *) p)))
 	    return false;
 	  n += *(const HBUINT16 *)p;
 	  points[i] = n;
@@ -316,7 +316,7 @@ struct GlyphVarData
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!bytes.in_range (p))) return false;
+	  if (unlikely (!bytes.check_range (p))) return false;
 	  n += *p++;
 	  points[i] = n;
 	}
@@ -341,7 +341,7 @@ struct GlyphVarData
     unsigned int count = deltas.length;
     while (i < count)
     {
-      if (unlikely (!bytes.in_range (p))) return false;
+      if (unlikely (!bytes.check_range (p))) return false;
       uint8_t control = *p++;
       unsigned int run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
       unsigned int j;
@@ -351,7 +351,7 @@ struct GlyphVarData
       else if (control & DELTAS_ARE_WORDS)
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!bytes.in_range ((const HBUINT16 *) p)))
+	  if (unlikely (!bytes.check_range ((const HBUINT16 *) p)))
 	    return false;
 	  deltas[i] = *(const HBINT16 *) p;
 	  p += HBUINT16::static_size;
@@ -359,7 +359,7 @@ struct GlyphVarData
       else
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!bytes.in_range (p)))
+	  if (unlikely (!bytes.check_range (p)))
 	    return false;
 	  deltas[i] = *(const HBINT8 *) p++;
 	}

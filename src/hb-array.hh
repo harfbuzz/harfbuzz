@@ -199,7 +199,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   template <typename T,
 	    unsigned P = sizeof (Type),
 	    hb_enable_if (P == 1)>
-  bool in_range (const T *p, unsigned int size = T::static_size) const
+  bool check_range (const T *p, unsigned int size = T::static_size) const
   {
     return arrayZ <= ((const char *) p)
 	&& ((const char *) p) <= arrayZ + length

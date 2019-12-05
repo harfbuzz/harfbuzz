@@ -361,7 +361,7 @@ struct glyf
     typedef const CompositeGlyphChain *__item_t__;
     composite_iter_t (hb_bytes_t glyph_, __item_t__ current_) :
       glyph (glyph_), current (current_)
-    { if (!in_range (current)) current = nullptr; }
+    { if (!check_range (current)) current = nullptr; }
     composite_iter_t () : glyph (hb_bytes_t ()), current (nullptr) {}
 
     const CompositeGlyphChain &__item__ () const { return *current; }
@@ -372,16 +372,16 @@ struct glyf
 
       const CompositeGlyphChain *possible = &StructAfter<CompositeGlyphChain,
 							 CompositeGlyphChain> (*current);
-      if (!in_range (possible)) { current = nullptr; return; }
+      if (!check_range (possible)) { current = nullptr; return; }
       current = possible;
     }
     bool operator != (const composite_iter_t& o) const
     { return glyph != o.glyph || current != o.current; }
 
-    bool in_range (const CompositeGlyphChain *composite) const
+    bool check_range (const CompositeGlyphChain *composite) const
     {
-      return glyph.in_range (composite, CompositeGlyphChain::min_size)
-	  && glyph.in_range (composite, composite->get_size ());
+      return glyph.check_range (composite, CompositeGlyphChain::min_size)
+	  && glyph.check_range (composite, composite->get_size ());
     }
 
     private:
@@ -545,7 +545,7 @@ struct glyf
 	  uint8_t flag = points_[i].flag;
 	  if (coord_setter.is_short (flag))
 	  {
-	    if (unlikely (!bytes.in_range (p))) return false;
+	    if (unlikely (!bytes.check_range (p))) return false;
 	    if (coord_setter.is_same (flag))
 	      v += *p++;
 	    else
@@ -555,7 +555,7 @@ struct glyf
 	  {
 	    if (!coord_setter.is_same (flag))
 	    {
-	      if (unlikely (!bytes.in_range ((const HBUINT16 *) p))) return false;
+	      if (unlikely (!bytes.check_range ((const HBUINT16 *) p))) return false;
 	      v += *(const HBINT16 *) p;
 	      p += HBINT16::static_size;
 	    }
@@ -571,7 +571,7 @@ struct glyf
       {
 	const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
 	int num_contours = header.numberOfContours;
-	if (unlikely (!bytes.in_range (&endPtsOfContours[num_contours + 1]))) return false;
+	if (unlikely (!bytes.check_range (&endPtsOfContours[num_contours + 1]))) return false;
 	unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
 
 	points_.resize (num_points + PHANTOM_COUNT);
@@ -591,12 +591,12 @@ struct glyf
 	/* Read flags */
 	for (unsigned int i = 0; i < num_points; i++)
 	{
-	  if (unlikely (!bytes.in_range (p))) return false;
+	  if (unlikely (!bytes.check_range (p))) return false;
 	  uint8_t flag = *p++;
 	  points_[i].flag = flag;
 	  if (flag & FLAG_REPEAT)
 	  {
-	    if (unlikely (!bytes.in_range (p))) return false;
+	    if (unlikely (!bytes.check_range (p))) return false;
 	    unsigned int repeat_count = *p++;
 	    while ((repeat_count-- > 0) && (++i < num_points))
 	      points_[i].flag = flag;
