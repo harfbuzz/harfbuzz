@@ -201,8 +201,9 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 	    hb_enable_if (P == 1)>
   bool in_range (const T *p, unsigned int size = T::static_size) const
   {
-    return ((const char *) p) >= arrayZ
-	&& ((const char *) p + size) <= arrayZ + length;
+    return arrayZ <= ((const char *) p)
+	&& ((const char *) p) <= arrayZ + length
+	&& (unsigned int) (arrayZ + length - (const char *) p) >= size;
   }
 
   /* Only call if you allocated the underlying array using malloc() or similar. */
