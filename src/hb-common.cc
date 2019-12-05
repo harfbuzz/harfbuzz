@@ -69,7 +69,6 @@ _hb_options_init ()
 	if (0 == strncmp (c, name, p - c) && strlen (name) == static_cast<size_t>(p - c)) do { u.opts.symbol = true; } while (0)
 
       OPTION ("uniscribe-bug-compatible", uniscribe_bug_compatible);
-      OPTION ("aat", aat);
 
 #undef OPTION
 

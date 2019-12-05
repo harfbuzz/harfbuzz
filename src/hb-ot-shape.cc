@@ -63,23 +63,6 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
 			      const hb_feature_t             *user_features,
 			      unsigned int                    num_user_features);
 
-#ifndef HB_NO_AAT_SHAPE
-static inline bool
-_hb_apply_morx (hb_face_t *face)
-{
-  if (hb_options ().aat &&
-      hb_aat_layout_has_substitution (face))
-    return true;
-
-  /* Ignore empty GSUB tables. */
-  return (!hb_ot_layout_has_substitution (face) ||
-	  !hb_ot_layout_table_get_script_tags (face,
-					       HB_OT_TAG_GSUB,
-					       0, nullptr, nullptr)) &&
-	 hb_aat_layout_has_substitution (face);
-}
-#endif
-
 hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *face,
 					      const hb_segment_properties_t *props) :
 						face (face),
@@ -87,7 +70,7 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
 						map (face, props),
 						aat_map (face, props)
 #ifndef HB_NO_AAT_SHAPE
-						, apply_morx (_hb_apply_morx (face))
+						, apply_morx (hb_aat_layout_has_substitution (face))
 #endif
 {
   shaper = hb_ot_shape_complex_categorize (this);
@@ -156,15 +139,11 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
   if (0)
     ;
 #ifndef HB_NO_AAT_SHAPE
-  else if (hb_options ().aat && hb_aat_layout_has_positioning (face))
+  else if (hb_aat_layout_has_positioning (face))
     plan.apply_kerx = true;
 #endif
   else if (!apply_morx && !disable_gpos && hb_ot_layout_has_positioning (face))
     plan.apply_gpos = true;
-#ifndef HB_NO_AAT_SHAPE
-  else if (hb_aat_layout_has_positioning (face))
-    plan.apply_kerx = true;
-#endif
 
   if (!plan.apply_kerx && (!has_gpos_kern || !plan.apply_gpos))
   {

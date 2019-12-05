@@ -399,27 +399,6 @@ OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 #ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
-
-#ifndef HB_NO_AAT_SHAPE
-  /* Mac OS X prefers morx over GSUB.  It also ships with various Indic fonts,
-   * all by 'MUTF' foundry (Tamil MN, Tamil Sangam MN, etc.), that have broken
-   * GSUB/GPOS tables.  Some have GSUB with zero scripts, those are ignored by
-   * our morx/GSUB preference code.  But if GSUB has non-zero scripts, we tend
-   * to prefer it over morx because we want to be consistent with other OpenType
-   * shapers.
-   *
-   * To work around broken Indic Mac system fonts, we ignore GSUB table if
-   * OS/2 VendorId is 'MUTF' and font has morx table as well.
-   *
-   * https://github.com/harfbuzz/harfbuzz/issues/1410
-   * https://github.com/harfbuzz/harfbuzz/issues/1348
-   * https://github.com/harfbuzz/harfbuzz/issues/1391
-   */
-  if (unlikely (face->table.OS2->achVendID == HB_TAG ('M','U','T','F') &&
-		face->table.morx->has_data ()))
-    return true;
-#endif
-
   return false;
 }
 
