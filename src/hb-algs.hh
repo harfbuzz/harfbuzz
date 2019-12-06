@@ -637,11 +637,21 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
  * Sort and search.
  */
 
+template <typename K, typename V, typename ...Ts>
+static int
+_hb_cmp_method (const void *pkey, const void *pval, Ts... ds)
+{
+  const K& key = * (const K*) pkey;
+  const V& val = * (const V*) pval;
+
+  return val.cmp (key, ds...);
+}
+
 template <typename V, typename K, typename ...Ts>
 static inline bool
 hb_bsearch_impl (V** out,
-		 const K& key, V* base,
-		 size_t nmemb, size_t stride,
+		 const K& key,
+		 V* base, size_t nmemb, size_t stride,
 		 int (*compar)(const void *_key, const void *_item, Ts... _ds),
 		 Ts... ds)
 {
@@ -666,25 +676,18 @@ hb_bsearch_impl (V** out,
       return true;
     }
   }
-  *out = nullptr;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+  *out = (V*) (((const char *) base) + (min * stride));
+#pragma GCC diagnostic pop
   return false;
-}
-
-template <typename K, typename V, typename ...Ts>
-static int
-_cmp_method (const void *pkey, const void *pval, Ts... ds)
-{
-  const K& key = * (const K*) pkey;
-  const V& val = * (const V*) pval;
-
-  return val.cmp (key, ds...);
 }
 
 template <typename V, typename K>
 static inline V*
 hb_bsearch (const K& key, V* base,
 	    size_t nmemb, size_t stride = sizeof (V),
-	    int (*compar)(const void *_key, const void *_item) = _cmp_method<K, V>)
+	    int (*compar)(const void *_key, const void *_item) = _hb_cmp_method<K, V>)
 {
   V* p;
   return hb_bsearch_impl (&p, key, base, nmemb, stride, compar) ? p : nullptr;

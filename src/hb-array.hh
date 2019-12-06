@@ -297,33 +297,24 @@ struct hb_sorted_array_t :
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
   template <typename T>
-  bool bsearch_impl (const T &x, unsigned int *pos) const
+  bool bsearch_impl (const T &x, unsigned *pos) const
   {
-    int min = 0, max = (int) this->length - 1;
-    const Type *array = this->arrayZ;
-    while (min <= max)
-    {
-      int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      int c = array[mid].cmp (x);
-      if (c < 0)
-	max = mid - 1;
-      else if (c > 0)
-	min = mid + 1;
-      else
-      {
-	*pos = (unsigned) mid;
-	return true;
-      }
-    }
-    *pos = (unsigned) min;
-    return false;
+    Type* p;
+    bool ret = hb_bsearch_impl (&p,
+				x,
+				this->arrayZ,
+				this->length,
+				sizeof (Type),
+				_hb_cmp_method<T, Type>);
+    *pos = p - this->arrayZ;
+    return ret;
   }
   template <typename T>
   bool bfind (const T &x, unsigned int *i = nullptr,
 	      hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
 	      unsigned int to_store = (unsigned int) -1) const
   {
-    unsigned int pos = 0;
+    unsigned pos;
 
     if (bsearch_impl (x, &pos))
     {
