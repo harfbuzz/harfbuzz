@@ -680,11 +680,20 @@ _cmp_method (const void *pkey, const void *pval, Ts... ds)
   return val.cmp (key, ds...);
 }
 
-template <typename V, typename K, typename ...Ts>
+template <typename V, typename K>
 static inline V*
 hb_bsearch (const K& key, V* base,
 	    size_t nmemb, size_t stride = sizeof (V),
-	    int (*compar)(const void *_key, const void *_item, Ts... _ds) = _cmp_method<K, V, Ts...>,
+	    int (*compar)(const void *_key, const void *_item) = _cmp_method<K, V>)
+{
+  V* p;
+  return hb_bsearch_impl (&p, key, base, nmemb, stride, compar) ? p : nullptr;
+}
+template <typename V, typename K, typename ...Ts>
+static inline V*
+hb_bsearch (const K& key, V* base,
+	    size_t nmemb, size_t stride,
+	    int (*compar)(const void *_key, const void *_item, Ts... _ds),
 	    Ts... ds)
 {
   V* p;
