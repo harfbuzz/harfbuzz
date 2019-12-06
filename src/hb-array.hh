@@ -330,9 +330,7 @@ struct hb_sorted_array_t :
 	  break;
 
 	case HB_BFIND_NOT_FOUND_STORE_CLOSEST:
-	  if (max < 0 || (max < (int) this->length && array[max].cmp (x) > 0))
-	    max++;
-	  *i = max;
+	  *i = min;
 	  break;
       }
     }
