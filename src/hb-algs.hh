@@ -637,6 +637,36 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
  * Sort and search.
  */
 
+template <typename V, typename K, typename ...Ts>
+static inline bool
+hb_bsearch_impl (V** out,
+		 const K& key, V* base,
+		 size_t nmemb, size_t stride,
+		 int (*compar)(const void *_key, const void *_item, Ts... _ds),
+		 Ts... ds)
+{
+  /* This is our *only* bsearch implementation. */
+
+  int min = 0, max = (int) nmemb - 1;
+  while (min <= max)
+  {
+    int mid = ((unsigned int) min + (unsigned int) max) / 2;
+    V* p = (V*) (((const char *) base) + (mid * stride));
+    int c = compar ((const void *) &key, (const void *) p, ds...);
+    if (c < 0)
+      max = mid - 1;
+    else if (c > 0)
+      min = mid + 1;
+    else
+    {
+      *out = p;
+      return true;
+    }
+  }
+  *out = nullptr;
+  return false;
+}
+
 template <typename K, typename V, typename ...Ts>
 static int
 _cmp_method (const void *pkey, const void *pval, Ts... ds)
@@ -654,20 +684,8 @@ hb_bsearch (const K& key, V* base,
 	    int (*compar)(const void *_key, const void *_item, Ts... _ds) = _cmp_method<K, V, Ts...>,
 	    Ts... ds)
 {
-  int min = 0, max = (int) nmemb - 1;
-  while (min <= max)
-  {
-    int mid = ((unsigned int) min + (unsigned int) max) / 2;
-    V* p = (V*) (((const char *) base) + (mid * stride));
-    int c = compar ((const void *) &key, (const void *) p, ds...);
-    if (c < 0)
-      max = mid - 1;
-    else if (c > 0)
-      min = mid + 1;
-    else
-      return p;
-  }
-  return nullptr;
+  V* p;
+  return hb_bsearch_impl (&p, key, base, nmemb, stride, compar, ds...) ? p : nullptr;
 }
 
 
