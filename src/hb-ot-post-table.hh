@@ -165,7 +165,7 @@ struct post
       }
 
       hb_bytes_t st (name, len);
-      auto* gid = hb_bsearch (hb_addressof (st), gids, count, sizeof (gids[0]), cmp_key, (void *) this);
+      auto* gid = hb_bsearch (st, gids, count, sizeof (gids[0]), cmp_key, (void *) this);
       if (gid)
       {
 	*glyph = *gid;
