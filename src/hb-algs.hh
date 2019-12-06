@@ -651,7 +651,10 @@ hb_bsearch_impl (V** out,
   while (min <= max)
   {
     int mid = ((unsigned int) min + (unsigned int) max) / 2;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
     V* p = (V*) (((const char *) base) + (mid * stride));
+#pragma GCC diagnostic pop
     int c = compar ((const void *) &key, (const void *) p, ds...);
     if (c < 0)
       max = mid - 1;
