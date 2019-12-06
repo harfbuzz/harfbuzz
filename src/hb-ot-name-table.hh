@@ -281,16 +281,14 @@ struct name
       this->table.destroy ();
     }
 
-    int get_index (hb_ot_name_id_t   name_id,
-			  hb_language_t     language,
-			  unsigned int     *width=nullptr) const
+    int get_index (hb_ot_name_id_t  name_id,
+		   hb_language_t    language,
+		   unsigned int    *width=nullptr) const
     {
       const hb_ot_name_entry_t key = {name_id, {0}, language};
-      const hb_ot_name_entry_t *entry = (const hb_ot_name_entry_t *)
-					hb_bsearch (&key,
-						    (const hb_ot_name_entry_t *) this->names,
+      const hb_ot_name_entry_t *entry = hb_bsearch (key, (const hb_ot_name_entry_t *) this->names,
 						    this->names.length,
-						    sizeof (key),
+						    sizeof (hb_ot_name_entry_t),
 						    _hb_ot_name_entry_cmp_key);
       if (!entry)
 	return -1;
