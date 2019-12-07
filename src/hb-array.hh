@@ -31,7 +31,13 @@
 #include "hb-algs.hh"
 #include "hb-iter.hh"
 #include "hb-null.hh"
+#include "hb-simd.hh"
 
+
+namespace OT {
+  struct HBGlyphID;
+  struct RangeRecord;
+}
 
 template <typename Type>
 struct hb_sorted_array_t;
@@ -303,7 +309,7 @@ struct hb_sorted_array_t :
   {
     unsigned pos;
 
-    if (bsearch_impl (x, &pos))
+    if (bsearch_impl (x, &pos, hb_prioritize))
     {
       if (i)
 	*i = pos;
@@ -328,8 +334,9 @@ struct hb_sorted_array_t :
     }
     return false;
   }
+
   template <typename T>
-  bool bsearch_impl (const T &x, unsigned *pos) const
+  bool bsearch_impl (const T &x, unsigned *pos, hb_priority<0>) const
   {
     return hb_bsearch_impl (pos,
 			    x,
@@ -338,6 +345,20 @@ struct hb_sorted_array_t :
 			    sizeof (Type),
 			    _hb_cmp_method<T, Type>);
   }
+#ifndef HB_NO_SIMD
+#if 0
+  template <typename U = Type,
+	    hb_enable_if (hb_is_same (hb_decay<U>, OT::RangeRecord))>
+  bool bsearch_impl (hb_codepoint_t x, unsigned *pos, hb_priority<1>) const
+  {
+    return hb_simd_bsearch_glyphid_range (pos,
+					  x,
+					  this->arrayZ,
+					  this->length,
+					  sizeof (Type));
+  }
+#endif
+#endif
 };
 template <typename T> inline hb_sorted_array_t<T>
 hb_sorted_array (T *array, unsigned int length)

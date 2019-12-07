@@ -148,6 +148,7 @@ HB_BASE_sources = \
 	hb-set-digest.hh \
 	hb-set.cc \
 	hb-set.hh \
+	hb-simd.hh \
 	hb-shape-plan.cc \
 	hb-shape-plan.hh \
 	hb-shape.cc \
