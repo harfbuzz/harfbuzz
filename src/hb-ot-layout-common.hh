@@ -263,7 +263,7 @@ struct RecordListOf : RecordArrayOf<Type>
 struct RangeRecord
 {
   int cmp (hb_codepoint_t g) const
-  { return g < start ? -1 : g <= end ? 0 : +1; }
+  { return g < first ? -1 : g <= last ? 0 : +1; }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -272,14 +272,14 @@ struct RangeRecord
   }
 
   bool intersects (const hb_set_t *glyphs) const
-  { return glyphs->intersects (start, end); }
+  { return glyphs->intersects (first, last); }
 
   template <typename set_t>
   bool add_coverage (set_t *glyphs) const
-  { return glyphs->add_range (start, end); }
+  { return glyphs->add_range (first, last); }
 
-  HBGlyphID	start;		/* First GlyphID in the range */
-  HBGlyphID	end;		/* Last GlyphID in the range */
+  HBGlyphID	first;		/* First GlyphID in the range */
+  HBGlyphID	last;		/* Last GlyphID in the range */
   HBUINT16	value;		/* Value */
   public:
   DEFINE_SIZE_STATIC (6);
@@ -993,8 +993,8 @@ struct CoverageFormat2
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
     const RangeRecord &range = rangeRecord.bsearch (glyph_id);
-    return likely (range.start <= range.end) ?
-	   (unsigned int) range.value + (glyph_id - range.start) :
+    return likely (range.first <= range.last) ?
+	   (unsigned int) range.value + (glyph_id - range.first) :
 	   NOT_COVERED;
   }
 
@@ -1032,10 +1032,10 @@ struct CoverageFormat2
       if (last + 1 != g)
       {
 	range++;
-	rangeRecord[range].start = g;
+	rangeRecord[range].first = g;
 	rangeRecord[range].value = count;
       }
-      rangeRecord[range].end = g;
+      rangeRecord[range].last = g;
       last = g;
       count++;
     }
@@ -1065,7 +1065,7 @@ struct CoverageFormat2
     for (i = 0; i < count; i++) {
       const RangeRecord &range = rangeRecord[i];
       if (range.value <= index &&
-	  index < (unsigned int) range.value + (range.end - range.start) &&
+	  index < (unsigned int) range.value + (range.last - range.first) &&
 	  range.intersects (glyphs))
 	return true;
       else if (index < range.value)
@@ -1093,8 +1093,8 @@ struct CoverageFormat2
       c = &c_;
       coverage = 0;
       i = 0;
-      j = c->rangeRecord.len ? c->rangeRecord[0].start : 0;
-      if (unlikely (c->rangeRecord[0].start > c->rangeRecord[0].end))
+      j = c->rangeRecord.len ? c->rangeRecord[0].first : 0;
+      if (unlikely (c->rangeRecord[0].first > c->rangeRecord[0].last))
       {
 	/* Broken table. Skip. */
 	i = c->rangeRecord.len;
@@ -1104,13 +1104,13 @@ struct CoverageFormat2
     bool more () const { return i < c->rangeRecord.len; }
     void next ()
     {
-      if (j >= c->rangeRecord[i].end)
+      if (j >= c->rangeRecord[i].last)
       {
 	i++;
 	if (more ())
 	{
 	  unsigned int old = coverage;
-	  j = c->rangeRecord[i].start;
+	  j = c->rangeRecord[i].first;
 	  coverage = c->rangeRecord[i].value;
 	  if (unlikely (coverage != old + 1))
 	  {
@@ -1540,8 +1540,8 @@ struct ClassDefFormat2
     unsigned prev_klass = (*it).second;
 
     RangeRecord range_rec;
-    range_rec.start = prev_gid;
-    range_rec.end = prev_gid;
+    range_rec.first = prev_gid;
+    range_rec.last = prev_gid;
     range_rec.value = prev_klass;
 
     RangeRecord *record = c->copy (range_rec);
@@ -1556,11 +1556,11 @@ struct ClassDefFormat2
           cur_klass != prev_klass)
       {
         if (unlikely (!record)) break;
-        record->end = prev_gid;
+        record->last = prev_gid;
         num_ranges++;
 
-        range_rec.start = cur_gid;
-        range_rec.end = cur_gid;
+        range_rec.first = cur_gid;
+        range_rec.last = cur_gid;
         range_rec.value = cur_klass;
 
         record = c->copy (range_rec);
@@ -1570,7 +1570,7 @@ struct ClassDefFormat2
       prev_gid = cur_gid;
     }
 
-    if (likely (record)) record->end = prev_gid;
+    if (likely (record)) record->last = prev_gid;
     rangeRecord.len = num_ranges;
     return_trace (true);
   }
@@ -1591,8 +1591,8 @@ struct ClassDefFormat2
     {
       unsigned klass = rangeRecord[i].value;
       if (!klass) continue;
-      hb_codepoint_t start = rangeRecord[i].start;
-      hb_codepoint_t end   = rangeRecord[i].end + 1;
+      hb_codepoint_t start = rangeRecord[i].first;
+      hb_codepoint_t end   = rangeRecord[i].last + 1;
       for (hb_codepoint_t g = start; g < end; g++)
       {
 	if (!glyphset.has (g)) continue;
@@ -1657,9 +1657,9 @@ struct ClassDefFormat2
       {
 	if (!hb_set_next (glyphs, &g))
 	  break;
-	if (g < rangeRecord[i].start)
+	if (g < rangeRecord[i].first)
 	  return true;
-	g = rangeRecord[i].end;
+	g = rangeRecord[i].last;
       }
       if (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
 	return true;
