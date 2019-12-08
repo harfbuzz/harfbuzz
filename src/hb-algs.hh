@@ -486,7 +486,7 @@ template <typename T>
 static inline HB_CONST_FUNC unsigned int
 hb_ctz (T v)
 {
-  if (unlikely (!v)) return 0;
+  if (unlikely (!v)) return 8 * sizeof (T);
 
 #if (defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)
   if (sizeof (T) <= sizeof (unsigned int))
