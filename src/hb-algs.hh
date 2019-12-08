@@ -649,7 +649,7 @@ _hb_cmp_method (const void *pkey, const void *pval, Ts... ds)
 
 template <typename V, typename K, typename ...Ts>
 static inline bool
-hb_bsearch_impl (V** out,
+hb_bsearch_impl (unsigned *pos, /* Out */
 		 const K& key,
 		 V* base, size_t nmemb, size_t stride,
 		 int (*compar)(const void *_key, const void *_item, Ts... _ds),
@@ -672,14 +672,11 @@ hb_bsearch_impl (V** out,
       min = mid + 1;
     else
     {
-      *out = p;
+      *pos = mid;
       return true;
     }
   }
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-  *out = (V*) (((const char *) base) + (min * stride));
-#pragma GCC diagnostic pop
+  *pos = min;
   return false;
 }
 
@@ -689,8 +686,12 @@ hb_bsearch (const K& key, V* base,
 	    size_t nmemb, size_t stride = sizeof (V),
 	    int (*compar)(const void *_key, const void *_item) = _hb_cmp_method<K, V>)
 {
-  V* p;
-  return hb_bsearch_impl (&p, key, base, nmemb, stride, compar) ? p : nullptr;
+  unsigned pos;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+  return hb_bsearch_impl (&pos, key, base, nmemb, stride, compar) ?
+	 (V*) (((const char *) base) + (pos * stride)) : nullptr;
+#pragma GCC diagnostic pop
 }
 template <typename V, typename K, typename ...Ts>
 static inline V*
@@ -699,8 +700,12 @@ hb_bsearch (const K& key, V* base,
 	    int (*compar)(const void *_key, const void *_item, Ts... _ds),
 	    Ts... ds)
 {
-  V* p;
-  return hb_bsearch_impl (&p, key, base, nmemb, stride, compar, ds...) ? p : nullptr;
+  unsigned pos;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
+  return hb_bsearch_impl (&pos, key, base, nmemb, stride, compar, ds...) ?
+	 (V*) (((const char *) base) + (pos * stride)) : nullptr;
+#pragma GCC diagnostic pop
 }
 
 
