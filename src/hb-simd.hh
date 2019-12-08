@@ -83,7 +83,6 @@
  * = WHICH EXTENSIONS TO TARGET
  *
  * There are four vector extensions that matter for integer work like we need:
- * On x86 those are:
  *
  * On x86 / x86_64 (Intel / AMD), those are (in order of introduction):
  *
@@ -178,7 +177,10 @@
  * Choose intrinsics set to use.
  */
 
+
 #if !defined(HB_NO_SIMD) && (defined(HB_SIMD_AVX2) || defined(__AVX2__))
+
+#pragma GCC target("avx2")
 
 #include <x86intrin.h>
 
