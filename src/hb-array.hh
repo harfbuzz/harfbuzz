@@ -350,6 +350,30 @@ struct hb_sorted_array_t :
 	    hb_enable_if (hb_is_same (hb_decay<U>, OT::RangeRecord))>
   bool bsearch_impl (hb_codepoint_t x, unsigned *pos, hb_priority<1>) const
   {
+#ifdef HB_SIMD_VERIFY
+    unsigned p0;
+    bool f0 = hb_bsearch_impl (&p0,
+				x,
+				this->arrayZ,
+				this->length,
+				sizeof (Type),
+				_hb_cmp_method<hb_codepoint_t, Type>);
+    unsigned p1;
+    bool f1 = hb_simd_ksearch_glyphid_range (&p1,
+					  x,
+					  this->arrayZ,
+					  this->length,
+					  sizeof (Type));
+    if (f0 != f1 || p0 != p1)
+     {
+      fprintf (stderr, "FAILED: Searching for %d; expected %d @ %d; got %d @ %d\n",
+	      x, f0, p0, f1, p1);
+      for (unsigned i = 0; i < this->length; i++)
+        printf ("Range %d: %d..%d\n", i,
+		(unsigned) this->arrayZ[i].first,
+		(unsigned) this->arrayZ[i].last);
+     }
+#endif
     return hb_simd_ksearch_glyphid_range (pos,
 					  x,
 					  this->arrayZ,
