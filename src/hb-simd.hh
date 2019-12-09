@@ -47,15 +47,21 @@
  * be a binary search in the Coverage table, but that's where the
  * hb_set_digest_t speedup came from: hb_set_digest_t are narrow (3 or 4
  * integers) structures that implement approximate matching, similar to Bloom
- * Filters or Quotient Filters. These digests do all bitwise operations, so
- * they can be easily vectorized. Combined with a gather operation, or just
- * multiple fetches in a row (which should parallelize) when gather is not
- * available.  This will allow us to * skip over 8 or 16 glyphs at a time.
+ * Filters or Quotient Filters. These digests do all their work using bitwise
+ * operations, so they can be easily vectorized. Combined with a gather
+ * operation, or just multiple fetches in a row (which should parallelize) when
+ * gather is not available.  This will allow us to skip over 8 or 16 glyphs at
+ * a time.
  *
  * For fast fonts, like simple Latin fonts, like Roboto, the majority of time
  * is spent in binary searching in the Coverage table of kern and liga lookups.
  * We can, again, use vector gather and comparison operations to implement a
- * 8ary or 16ary search instead of binary search.
+ * 9ary or 17ary search instead of binary search, which will reduce search
+ * depth by 3x / 4x respectively.  It's important to keep in mind that a
+ * 16-at-a-time 17ary search is /not/ in any way 17 times faster.  Only 4 times
+ * faster at best since the number of search steps compared to binary search is
+ * log(17)/log(2) ~= 4.  That should be taken into account while assessing
+ * various designs.
  *
  * The rest of this files adds facilities to implement those, and possibly
  * more.
@@ -137,7 +143,9 @@
  *   example, my 2019 ThinkPad Yoga X1 does *not* support it.  We should
  *   definitely explore that, but not initially.  Also, it is possible that the
  *   extra memory load that puts will defeat the speedup we can gain from it.
- *   Must be implemented and measured carefully.
+ *   Also do note that for the search usecase, doubling the bitwidth from 256
+ *   to 512, as discussed, only has hard max benefit cap of less than 30%
+ *   speedup (log(17) / log(9)).  Must be implemented and measured carefully.
  */
 
 /* DESIGN
