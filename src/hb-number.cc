@@ -25,7 +25,7 @@
 
 #include "hb.hh"
 #include "hb-machinery.hh"
-#include "hb-number-parser.hh"
+#include "hb-number.hh"
 
 #include <locale.h>
 #ifdef HAVE_XLOCALE_H
