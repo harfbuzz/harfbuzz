@@ -43,6 +43,7 @@ struct U16
 int
 main (int argc, char **argv)
 {
+#ifndef HB_NO_SIMD
 
   const U16 a[] = {1, 2, 5, 10, 16, 19};
 
@@ -80,5 +81,6 @@ main (int argc, char **argv)
   TEST (19, true , 2);
   TEST (20, false, 3);
 
+#endif
   return 0;
 }
