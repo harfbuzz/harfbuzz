@@ -56,7 +56,7 @@ Note: You'll need to first install ninja-build via apt-get.
 
 ```shell
 cd harfbuzz
-mkdir buid
+mkdir build
 cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test
 ```
 ## Test with the Fuzzer
