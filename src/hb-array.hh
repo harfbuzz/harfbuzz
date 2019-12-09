@@ -346,18 +346,16 @@ struct hb_sorted_array_t :
 			    _hb_cmp_method<T, Type>);
   }
 #ifndef HB_NO_SIMD
-#if 0
   template <typename U = Type,
 	    hb_enable_if (hb_is_same (hb_decay<U>, OT::RangeRecord))>
   bool bsearch_impl (hb_codepoint_t x, unsigned *pos, hb_priority<1>) const
   {
-    return hb_simd_bsearch_glyphid_range (pos,
+    return hb_simd_ksearch_glyphid_range (pos,
 					  x,
 					  this->arrayZ,
 					  this->length,
 					  sizeof (Type));
   }
-#endif
 #endif
 };
 template <typename T> inline hb_sorted_array_t<T>

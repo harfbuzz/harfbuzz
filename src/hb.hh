@@ -604,11 +604,11 @@ struct BEInt<Type, 4>
 #include "hb-meta.hh"
 #include "hb-mutex.hh"
 #include "hb-number.hh"
-#include "hb-simd.hh"	// Requires: hb-meta
 #include "hb-atomic.hh"	// Requires: hb-meta
 #include "hb-null.hh"	// Requires: hb-meta
 #include "hb-algs.hh"	// Requires: hb-meta hb-null hb-number
 #include "hb-iter.hh"	// Requires: hb-algs hb-meta
+#include "hb-simd.hh"	// Requires: hb-algs hb-meta
 #include "hb-debug.hh"	// Requires: hb-algs hb-atomic
 #include "hb-array.hh"	// Requires: hb-algs hb-iter hb-null hb-simd
 #include "hb-vector.hh"	// Requires: hb-array hb-null
