@@ -251,8 +251,11 @@ hb_simd_ksearch_glyphid_range (unsigned *pos, /* Out */
     /* The actual load... */
     __m256i V = _mm256_mask_i32gather_epi32 (__1x8, (const int *) base, offsets, mask, 1);
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-      V = _mm256_add_epi16 (_mm256_slli_epi16 (V, 8),
-			    _mm256_srli_epi16 (V, 8));
+    static const __m256i bswap16_shuffle = _mm256_set_epi16 (0x0E0F,0x0C0D,0x0A0B,0x0809,
+							     0x0607,0x0405,0x0203,0x0001,
+							     0x0E0F,0x0C0D,0x0A0B,0x0809,
+							     0x0607,0x0405,0x0203,0x0001);
+      V = _mm256_shuffle_epi8 (V, bswap16_shuffle);
 #endif
     V = _mm256_add_epi16 (V, __32768x16);
 
