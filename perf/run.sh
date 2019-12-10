@@ -1,7 +1,7 @@
 #!/bin/bash
 CXX=clang++
 FONT=fonts/NotoNastaliqUrdu-Regular.ttf
-TEXT=text/fa-monologue.txt
+TEXT=texts/fa-monologue.txt
 
 $CXX ../util/hb-shape.cc ../util/options.cc ../src/harfbuzz.cc \
   -lm -fno-rtti -fno-exceptions -fno-omit-frame-pointer -DHB_NO_MT \
