@@ -78,8 +78,9 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
   script_zero_marks = shaper->zero_width_marks != HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE;
   script_fallback_mark_positioning = shaper->fallback_position;
 
-  if (apply_morx)
-    shaper = &_hb_ot_complex_shaper_default;
+  /* https://github.com/harfbuzz/harfbuzz/issues/1528 */
+  if (apply_morx && shaper != &_hb_ot_complex_shaper_default)
+    shaper = &_hb_ot_complex_shaper_dumber;
 }
 
 void
