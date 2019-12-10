@@ -70,7 +70,7 @@ static inline const Type& StructAtOffsetUnaligned(const void *P, unsigned int of
 {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-align"
-  return * reinterpret_cast<Type*> ((char *) P + offset);
+  return * reinterpret_cast<const Type*> ((const char *) P + offset);
 #pragma GCC diagnostic pop
 }
 template<typename Type>
