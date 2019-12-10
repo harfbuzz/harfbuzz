@@ -228,7 +228,6 @@ hb_simd_ksearch_glyphid_range (unsigned *pos, /* Out */
     rank++;
 
   static const __m256i _1x8 = _mm256_set_epi32 (HB_8TIMES (1));
-  static const __m256i stridex8 = _mm256_set_epi32 (HB_8TIMES (stride));
   static const __m256i __1x8 = _mm256_set_epi32 (HB_8TIMES (-1));
   static const __m256i _12345678 = _mm256_set_epi32 (8, 7, 6, 5, 4, 3, 2, 1);
   static const __m256i __32768x16 = _mm256_set_epi16 (HB_16TIMES (-32768));
@@ -242,14 +241,17 @@ hb_simd_ksearch_glyphid_range (unsigned *pos, /* Out */
 
     /* Load multiple ranges to test against. */
     const unsigned limit = stride * length;
-    const __m256i limits = _mm256_set_epi32 (HB_8TIMES (limit));
+    const __m256i limits = _mm256_set_epi32 (HB_8TIMES (limit + 1));
     const unsigned pitch = stride * step;
     const __m256i pitches = _mm256_set_epi32 (HB_8TIMES (pitch));
-    const __m256i offsets = _mm256_sub_epi32 (_mm256_mullo_epi32 (pitches, _12345678), stridex8);
+    const __m256i offsets = _mm256_mullo_epi32 (pitches, _12345678);
     const __m256i mask = _mm256_cmpgt_epi32 (limits, offsets);
+    unsigned back_off = stride;
 
     /* The actual load... */
-    __m256i V = _mm256_mask_i32gather_epi32 (__1x8, (const int *) base, offsets, mask, 1);
+    __m256i V = _mm256_mask_i32gather_epi32 (__1x8,
+					     (const int *) ((const char *) base - back_off),
+					     offsets, mask, 1);
 #if __BYTE_ORDER == __LITTLE_ENDIAN
     static const __m256i bswap16_shuffle = _mm256_set_epi16 (0x0E0F,0x0C0D,0x0A0B,0x0809,
 							     0x0607,0x0405,0x0203,0x0001,
