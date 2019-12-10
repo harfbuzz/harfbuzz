@@ -1026,18 +1026,15 @@ struct VarSizedBinSearchArrayOf
   template <typename T>
   const Type *bsearch (const T &key) const
   {
-    unsigned int size = header.unitSize;
-    int min = 0, max = (int) get_length () - 1;
-    while (min <= max)
-    {
-      int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      const Type *p = (const Type *) (((const char *) &bytesZ) + (mid * size));
-      int c = p->cmp (key);
-      if (c < 0) max = mid - 1;
-      else if (c > 0) min = mid + 1;
-      else return p;
-    }
-    return nullptr;
+    unsigned pos;
+    return hb_bsearch_impl (&pos,
+			    key,
+			    (const void *) bytesZ,
+			    get_length (),
+			    header.unitSize,
+			    _hb_cmp_method<T, Type>)
+	   ? (const Type *) (((const char *) &bytesZ) + (pos * header.unitSize))
+	   : nullptr;
   }
 
   private:
