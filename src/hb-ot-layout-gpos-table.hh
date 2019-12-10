@@ -758,6 +758,9 @@ struct PairValueRecord
 {
   friend struct PairSet;
 
+  int cmp (hb_codepoint_t k) const
+  { return secondGlyph.cmp (k); }
+
   bool serialize (hb_serialize_context_t *c,
                   unsigned length,
                   const hb_map_t &glyph_map) const
@@ -765,7 +768,7 @@ struct PairValueRecord
     TRACE_SERIALIZE (this);
     auto *out = c->start_embed (*this);
     if (unlikely (!c->extend_min (out))) return_trace (false);
-    
+
     out->secondGlyph = glyph_map[secondGlyph];
     return_trace (c->copy (values, length));
   }
@@ -814,8 +817,8 @@ struct PairSet
   }
 
   bool apply (hb_ot_apply_context_t *c,
-		     const ValueFormat *valueFormats,
-		     unsigned int pos) const
+	      const ValueFormat *valueFormats,
+	      unsigned int pos) const
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
@@ -823,35 +826,21 @@ struct PairSet
     unsigned int len2 = valueFormats[1].get_len ();
     unsigned int record_size = HBUINT16::static_size * (1 + len1 + len2);
 
-    unsigned int count = len;
-
-    /* Hand-coded bsearch. */
-    if (unlikely (!count))
-      return_trace (false);
-    hb_codepoint_t x = buffer->info[pos].codepoint;
-    int min = 0, max = (int) count - 1;
-    while (min <= max)
+    const PairValueRecord *record = hb_bsearch (buffer->info[pos].codepoint,
+						&firstPairValueRecord,
+						len,
+						record_size);
+    if (record)
     {
-      int mid = ((unsigned int) min + (unsigned int) max) / 2;
-      const PairValueRecord *record = &StructAtOffset<PairValueRecord> (&firstPairValueRecord, record_size * mid);
-      hb_codepoint_t mid_x = record->secondGlyph;
-      if (x < mid_x)
-	max = mid - 1;
-      else if (x > mid_x)
-	min = mid + 1;
-      else
-      {
-	/* Note the intentional use of "|" instead of short-circuit "||". */
-	if (valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos()) |
-	    valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]))
-	  buffer->unsafe_to_break (buffer->idx, pos + 1);
-	if (len2)
-	  pos++;
-	buffer->idx = pos;
-	return_trace (true);
-      }
+      /* Note the intentional use of "|" instead of short-circuit "||". */
+      if (valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos()) |
+	  valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]))
+	buffer->unsafe_to_break (buffer->idx, pos + 1);
+      if (len2)
+	pos++;
+      buffer->idx = pos;
+      return_trace (true);
     }
-
     return_trace (false);
   }
 
