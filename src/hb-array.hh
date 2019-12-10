@@ -347,7 +347,49 @@ struct hb_sorted_array_t :
   }
 #ifndef HB_NO_SIMD
   template <typename U = Type,
-	    hb_enable_if (hb_is_same (hb_decay<U>, OT::RangeRecord))>
+	    hb_enable_if (hb_is_same (hb_decay<U>, OT::HBGlyphID))>
+  bool bsearch_impl (hb_codepoint_t x, unsigned *pos, hb_priority<1>) const
+  {
+#ifdef HB_SIMD_VERIFY
+    unsigned p0;
+    bool f0 = hb_bsearch_impl (&p0,
+				x,
+				this->arrayZ,
+				this->length,
+				sizeof (Type),
+				_hb_cmp_method<hb_codepoint_t, Type>);
+    unsigned p1;
+    bool f1 = hb_simd_ksearch_glyphid (&p1,
+				       x,
+				       this->arrayZ,
+				       this->length,
+				       sizeof (Type));
+    if (f0 != f1 || p0 != p1)
+     {
+      fprintf (stderr, "FAILED: Searching for %d; expected %d @ %d; got %d @ %d\n",
+	      x, f0, p0, f1, p1);
+      for (unsigned i = 0; i < this->length; i++)
+        printf ("Glyph %d: %d\n", i,
+		(unsigned) this->arrayZ[i]);
+     }
+#endif
+#if 0
+    if (likely (this->length < 81))
+      return hb_bsearch_impl (pos,
+			      x,
+			      this->arrayZ,
+			      this->length,
+			      sizeof (Type),
+			      _hb_cmp_method<hb_codepoint_t, Type>);
+#endif
+    return hb_simd_ksearch_glyphid (pos,
+				    x,
+				    this->arrayZ,
+				    this->length,
+				    sizeof (Type));
+  }
+  template <typename U = Type,
+	    hb_enable_if (hb_is_same (hb_decay<U>, OT::RangeRecord) && false)>
   bool bsearch_impl (hb_codepoint_t x, unsigned *pos, hb_priority<1>) const
   {
 #ifdef HB_SIMD_VERIFY

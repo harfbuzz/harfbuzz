@@ -201,12 +201,14 @@
 
 /* TODO: Test -mvzeroupper. */
 
+
+template <bool is_range = false>
 static inline bool
-hb_simd_ksearch_glyphid_range (unsigned *pos, /* Out */
-			       hb_codepoint_t k,
-			       const void *base,
-			       size_t length,
-			       size_t stride)
+hb_simd_ksearch_glyphid (unsigned *pos, /* Out */
+			 hb_codepoint_t k,
+			 const void *base,
+			 size_t length,
+			 size_t stride)
 {
   if (unlikely (k & ~0xFFFF))
   {
@@ -259,6 +261,14 @@ hb_simd_ksearch_glyphid_range (unsigned *pos, /* Out */
 							     0x0607,0x0405,0x0203,0x0001);
       V = _mm256_shuffle_epi8 (V, bswap16_shuffle);
 #endif
+    if (!is_range)
+    {
+      static const __m256i dup_shuffle = _mm256_set_epi16 (0x0D0C,0x0D0C,0x0908,0x0908,
+							   0x0504,0x0504,0x0100,0x0100,
+							   0x0D0C,0x0D0C,0x0908,0x0908,
+							   0x0504,0x0504,0x0100,0x0100);
+      V = _mm256_shuffle_epi8 (V, dup_shuffle);
+    }
     V = _mm256_add_epi16 (V, __32768x16);
 
     /* Compare and locate. */
@@ -276,6 +286,16 @@ hb_simd_ksearch_glyphid_range (unsigned *pos, /* Out */
     base = (const void *) ((const char *) base + stride * move);
   }
   return false;
+}
+
+static inline bool
+hb_simd_ksearch_glyphid_range (unsigned *pos, /* Out */
+			       hb_codepoint_t k,
+			       const void *base,
+			       size_t length,
+			       size_t stride)
+{
+  return hb_simd_ksearch_glyphid<true> (pos, k, base, length, stride);
 }
 
 
