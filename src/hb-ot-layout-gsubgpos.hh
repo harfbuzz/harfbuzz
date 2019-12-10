@@ -623,7 +623,7 @@ struct hb_get_subtables_context_t :
        hb_dispatch_context_t<hb_get_subtables_context_t, hb_empty_t, HB_DEBUG_APPLY>
 {
   template <typename Type>
-  HB_INTERNAL static bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
+  static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
   {
     const Type *typed_obj = (const Type *) obj;
     return typed_obj->apply (c);

@@ -173,17 +173,17 @@ struct ValueFormat : HBUINT16
     return true;
   }
 
-  HB_INTERNAL static OffsetTo<Device>& get_device (Value* value)
+  static inline OffsetTo<Device>& get_device (Value* value)
   {
     return *static_cast<OffsetTo<Device> *> (value);
   }
-  HB_INTERNAL static const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
+  static inline const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
     return *static_cast<const OffsetTo<Device> *> (value);
   }
 
-  HB_INTERNAL static const HBINT16& get_short (const Value* value, bool *worked=nullptr)
+  static inline const HBINT16& get_short (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
     return *reinterpret_cast<const HBINT16 *> (value);
@@ -1892,7 +1892,7 @@ struct PosLookup : Lookup
     dispatch (&c);
   }
 
-  HB_INTERNAL static bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
+  static inline bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
 
   template <typename context_t>
   static typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
@@ -2053,7 +2053,7 @@ template <typename context_t>
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
   return l.dispatch (c);
 }
-/*static*/ inline bool PosLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
+/*static*/ bool PosLookup::apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
