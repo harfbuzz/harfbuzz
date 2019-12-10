@@ -239,9 +239,9 @@ struct ValueFormat : HBUINT16
 };
 
 template<typename Iterator>
-static inline void SinglePos_serialize (hb_serialize_context_t *c,
-					Iterator it,
-					ValueFormat valFormat);
+static void SinglePos_serialize (hb_serialize_context_t *c,
+				 Iterator it,
+				 ValueFormat valFormat);
 
 
 struct AnchorFormat1
@@ -749,7 +749,7 @@ struct SinglePos
 };
 
 template<typename Iterator>
-static inline void
+static void
 SinglePos_serialize (hb_serialize_context_t *c,
 		     Iterator it,
 		     ValueFormat valFormat)
@@ -2048,7 +2048,7 @@ struct GPOS_accelerator_t : GPOS::accelerator_t {};
 
 #ifndef HB_NO_OT_LAYOUT
 template <typename context_t>
-/*static*/ inline typename context_t::return_t PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
+/*static*/ typename context_t::return_t PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
   return l.dispatch (c);

@@ -37,8 +37,8 @@ namespace OT {
 typedef hb_pair_t<hb_codepoint_t, hb_codepoint_t> hb_codepoint_pair_t;
 
 template<typename Iterator>
-static inline void SingleSubst_serialize (hb_serialize_context_t *c,
-					  Iterator it);
+static void SingleSubst_serialize (hb_serialize_context_t *c,
+				   Iterator it);
 
 
 struct SingleSubstFormat1
@@ -293,7 +293,7 @@ struct SingleSubst
 };
 
 template<typename Iterator>
-static inline void
+static void
 SingleSubst_serialize (hb_serialize_context_t *c,
 		       Iterator it)
 { c->start_embed<SingleSubst> ()->serialize (c, it); }
@@ -1114,7 +1114,6 @@ struct ChainContextSubst : ChainContext {};
 struct ExtensionSubst : Extension<ExtensionSubst>
 {
   typedef struct SubstLookupSubTable SubTable;
-
   bool is_reverse () const;
 };
 
@@ -1522,13 +1521,10 @@ struct GSUB_accelerator_t : GSUB::accelerator_t {};
 #ifndef HB_NO_OT_LAYOUT
 /*static*/ inline bool ExtensionSubst::is_reverse () const
 {
-  unsigned int type = get_type ();
-  if (unlikely (type == SubTable::Extension))
-    return reinterpret_cast<const ExtensionSubst &> (get_subtable<SubTable>()).is_reverse ();
-  return SubstLookup::lookup_type_is_reverse (type);
+  return SubstLookup::lookup_type_is_reverse (get_type ());
 }
 template <typename context_t>
-/*static*/ inline typename context_t::return_t SubstLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
+/*static*/ typename context_t::return_t SubstLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
   const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
   return l.dispatch (c);
