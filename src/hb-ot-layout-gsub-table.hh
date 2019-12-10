@@ -1343,7 +1343,7 @@ struct SubstLookup : Lookup
   {
     unsigned int type = get_type ();
     if (unlikely (type == SubTable::Extension))
-      return CastR<ExtensionSubst> (get_subtable(0)).is_reverse ();
+      return reinterpret_cast<const ExtensionSubst &> (get_subtable(0)).is_reverse ();
     return lookup_type_is_reverse (type);
   }
 
@@ -1499,7 +1499,7 @@ struct GSUB : GSUBGPOS
   static constexpr hb_tag_t tableTag = HB_OT_TAG_GSUB;
 
   const SubstLookup& get_lookup (unsigned int i) const
-  { return CastR<SubstLookup> (GSUBGPOS::get_lookup (i)); }
+  { return static_cast<const SubstLookup &> (GSUBGPOS::get_lookup (i)); }
 
   bool subset (hb_subset_context_t *c) const
   { return GSUBGPOS::subset<SubstLookup> (c); }
@@ -1524,7 +1524,7 @@ struct GSUB_accelerator_t : GSUB::accelerator_t {};
 {
   unsigned int type = get_type ();
   if (unlikely (type == SubTable::Extension))
-    return CastR<ExtensionSubst> (get_subtable<SubTable>()).is_reverse ();
+    return reinterpret_cast<const ExtensionSubst &> (get_subtable<SubTable>()).is_reverse ();
   return SubstLookup::lookup_type_is_reverse (type);
 }
 template <typename context_t>

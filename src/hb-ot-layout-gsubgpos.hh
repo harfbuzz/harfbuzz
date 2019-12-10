@@ -2741,7 +2741,7 @@ struct ExtensionFormat1
 
   template <typename X>
   const X& get_subtable () const
-  { return this + CastR<LOffsetTo<typename T::SubTable>> (extensionOffset); }
+  { return this + reinterpret_cast<const LOffsetTo<typename T::SubTable> &> (extensionOffset); }
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
@@ -2913,9 +2913,9 @@ struct GSUBGPOS
 
     typedef OffsetListOf<TLookup> TLookupList;
     /* TODO Use intersects() to count how many subtables survive? */
-    CastR<OffsetTo<TLookupList>> (out->lookupList)
+    reinterpret_cast<OffsetTo<TLookupList> &> (out->lookupList)
       .serialize_subset (c,
-			 CastR<OffsetTo<TLookupList>> (lookupList),
+			 reinterpret_cast<const OffsetTo<TLookupList> &> (lookupList),
 			 this,
 			 out);
 
@@ -2942,7 +2942,7 @@ struct GSUBGPOS
 		    likely (version.major == 1) &&
 		    scriptList.sanitize (c, this) &&
 		    featureList.sanitize (c, this) &&
-		    CastR<OffsetTo<TLookupList>> (lookupList).sanitize (c, this))))
+		    reinterpret_cast<const OffsetTo<TLookupList> &> (lookupList).sanitize (c, this))))
       return_trace (false);
 
 #ifndef HB_NO_VAR

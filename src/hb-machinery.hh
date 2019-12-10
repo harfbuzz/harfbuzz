@@ -41,14 +41,6 @@
  * Casts
  */
 
-/* Cast to struct T, reference to reference */
-template<typename Type, typename TObject>
-static inline const Type& CastR(const TObject &X)
-{ return reinterpret_cast<const Type&> (X); }
-template<typename Type, typename TObject>
-static inline Type& CastR(TObject &X)
-{ return reinterpret_cast<Type&> (X); }
-
 /* StructAtOffset<T>(P,Ofs) returns the struct T& that is placed at memory
  * location pointed to by P plus Ofs bytes. */
 template<typename Type>

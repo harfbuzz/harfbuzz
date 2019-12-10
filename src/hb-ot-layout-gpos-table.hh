@@ -1918,7 +1918,7 @@ struct GPOS : GSUBGPOS
   static constexpr hb_tag_t tableTag = HB_OT_TAG_GPOS;
 
   const PosLookup& get_lookup (unsigned int i) const
-  { return CastR<PosLookup> (GSUBGPOS::get_lookup (i)); }
+  { return static_cast<const PosLookup &> (GSUBGPOS::get_lookup (i)); }
 
   static inline void position_start (hb_font_t *font, hb_buffer_t *buffer);
   static inline void position_finish_advances (hb_font_t *font, hb_buffer_t *buffer);

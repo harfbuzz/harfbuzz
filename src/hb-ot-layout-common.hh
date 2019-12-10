@@ -775,10 +775,10 @@ struct Lookup
 
   template <typename TSubTable>
   const OffsetArrayOf<TSubTable>& get_subtables () const
-  { return CastR<OffsetArrayOf<TSubTable>> (subTable); }
+  { return reinterpret_cast<const OffsetArrayOf<TSubTable> &> (subTable); }
   template <typename TSubTable>
   OffsetArrayOf<TSubTable>& get_subtables ()
-  { return CastR<OffsetArrayOf<TSubTable>> (subTable); }
+  { return reinterpret_cast<OffsetArrayOf<TSubTable> &> (subTable); }
 
   template <typename TSubTable>
   const TSubTable& get_subtable (unsigned int i) const

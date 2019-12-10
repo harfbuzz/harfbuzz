@@ -284,7 +284,7 @@ struct TTCHeader
 struct ResourceRecord
 {
   const OpenTypeFontFace & get_face (const void *data_base) const
-  { return CastR<OpenTypeFontFace> ((data_base+offset).arrayZ); }
+  { return * reinterpret_cast<const OpenTypeFontFace *> ((data_base+offset).arrayZ); }
 
   bool sanitize (hb_sanitize_context_t *c,
 		 const void *data_base) const
