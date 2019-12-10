@@ -291,27 +291,28 @@ struct CmapSubtableFormat4
 
     bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
     {
-      /* Custom two-array bsearch. */
-      int min = 0, max = (int) this->segCount - 1;
-      const HBUINT16 *startCount = this->startCount;
-      const HBUINT16 *endCount = this->endCount;
-      unsigned int i;
-      while (min <= max)
+      struct CustomRange
       {
-	int mid = ((unsigned int) min + (unsigned int) max) / 2;
-	if (codepoint < startCount[mid])
-	  max = mid - 1;
-	else if (codepoint > endCount[mid])
-	  min = mid + 1;
-	else
+	int cmp (hb_codepoint_t k,
+		 unsigned distance) const
 	{
-	  i = mid;
-	  goto found;
+	  if (k > last) return +1;
+	  if (k < (&last)[distance]) return -1;
+	  return 0;
 	}
-      }
-      return false;
+        HBUINT16 last;
+      };
 
-    found:
+      const HBUINT16 *found =hb_bsearch (codepoint,
+					 this->endCount,
+					 this->segCount,
+					 2,
+					 _hb_cmp_method<hb_codepoint_t, CustomRange, unsigned>,
+					 this->segCount + 1);
+      if (!found)
+        return false;
+      unsigned int i = found - endCount;
+
       hb_codepoint_t gid;
       unsigned int rangeOffset = this->idRangeOffset[i];
       if (rangeOffset == 0)
@@ -333,8 +334,10 @@ struct CmapSubtableFormat4
       *glyph = gid;
       return true;
     }
+
     HB_INTERNAL static bool get_glyph_func (const void *obj, hb_codepoint_t codepoint, hb_codepoint_t *glyph)
     { return ((const accelerator_t *) obj)->get_glyph (codepoint, glyph); }
+
     void collect_unicodes (hb_set_t *out) const
     {
       unsigned int count = this->segCount;
