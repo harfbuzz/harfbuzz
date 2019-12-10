@@ -373,15 +373,13 @@ struct hb_sorted_array_t :
 		(unsigned) this->arrayZ[i]);
      }
 #endif
-#if 0
-    if (likely (this->length < 81))
+    if (likely (this->length < 64))
       return hb_bsearch_impl (pos,
 			      x,
 			      this->arrayZ,
 			      this->length,
 			      sizeof (Type),
 			      _hb_cmp_method<hb_codepoint_t, Type>);
-#endif
     return hb_simd_ksearch_glyphid (pos,
 				    x,
 				    this->arrayZ,
@@ -416,15 +414,13 @@ struct hb_sorted_array_t :
 		(unsigned) this->arrayZ[i].last);
      }
 #endif
-#if 0
-    if (likely (this->length < 81))
+    if (likely (this->length < 64))
       return hb_bsearch_impl (pos,
 			      x,
 			      this->arrayZ,
 			      this->length,
 			      sizeof (Type),
 			      _hb_cmp_method<hb_codepoint_t, Type>);
-#endif
     return hb_simd_ksearch_glyphid_range (pos,
 					  x,
 					  this->arrayZ,
