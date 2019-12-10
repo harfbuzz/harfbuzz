@@ -174,17 +174,19 @@ struct ValueFormat : HBUINT16
   }
 
   HB_INTERNAL static OffsetTo<Device>& get_device (Value* value)
-  { return *CastP<OffsetTo<Device>> (value); }
+  {
+    return *static_cast<OffsetTo<Device> *> (value);
+  }
   HB_INTERNAL static const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
-    return *CastP<OffsetTo<Device>> (value);
+    return *static_cast<const OffsetTo<Device> *> (value);
   }
 
   HB_INTERNAL static const HBINT16& get_short (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
-    return *CastP<HBINT16> (value);
+    return *reinterpret_cast<const HBINT16 *> (value);
   }
 
   public:

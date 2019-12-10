@@ -115,7 +115,7 @@ main (int argc, char **argv)
       case HB_OT_TAG_GPOS:
 	{
 
-	const GSUBGPOS &g = *CastP<GSUBGPOS> (font_data + table.offset);
+	const GSUBGPOS &g = *reinterpret_cast<const GSUBGPOS *> (font_data + table.offset);
 
 	int num_scripts = g.get_script_count ();
 	printf ("    %d script(s) found in table\n", num_scripts);
@@ -185,7 +185,7 @@ main (int argc, char **argv)
       case GDEF::tableTag:
 	{
 
-	const GDEF &gdef = *CastP<GDEF> (font_data + table.offset);
+	const GDEF &gdef = *reinterpret_cast<const GDEF *> (font_data + table.offset);
 
 	printf ("    Has %sglyph classes\n",
 		  gdef.has_glyph_classes () ? "" : "no ");
