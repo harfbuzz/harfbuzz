@@ -24,7 +24,18 @@ jobs:
 
   macos-10.14.4-aat-fonts:
     macos:
-      xcode: "11.0.0"
+      xcode: "11.1.0"
+    steps:
+      - checkout
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2 cmake
+      - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
+      - run: make -j4
+      - run: make check || .ci/fail.sh
+      - run: cmake -Bbuild -H. -DHB_HAVE_CORETEXT=1 -DHB_BUILD_TESTS=0 && cmake --build build
+
+  macos-10.15-aat-fonts:
+    macos:
+      xcode: "11.3.0"
     steps:
       - checkout
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2 cmake
@@ -310,6 +321,7 @@ workflows:
       - macos-10.12.6-aat-fonts
       - macos-10.13.6-aat-fonts
       - macos-10.14.4-aat-fonts
+      - macos-10.15-aat-fonts
 
       # both autotools and cmake
       - distcheck
