@@ -218,24 +218,19 @@ hb_simd_ksearch_glyphid (unsigned *pos, /* Out */
 
   *pos = 0;
 
-#define HB_2TIMES(x) (x), (x)
-#define HB_4TIMES(x) HB_2TIMES(x), HB_2TIMES (x)
-#define HB_8TIMES(x) HB_4TIMES(x), HB_4TIMES (x)
-#define HB_16TIMES(x) HB_8TIMES (x), HB_8TIMES (x)
-
   /* Find deptch of search tree. */
   static const unsigned steps[] = {1, 9, 81, 729, 6561, 59049};
   unsigned rank = 1;
   while (rank < ARRAY_LENGTH (steps) && length >= steps[rank])
     rank++;
 
-  static const __m256i _1x8 = _mm256_set_epi32 (HB_8TIMES (1));
-  static const __m256i __1x8 = _mm256_set_epi32 (HB_8TIMES (-1));
+  static const __m256i _1x8 = _mm256_set1_epi32 (+1);
+  static const __m256i __1x8 = _mm256_set1_epi32 (-1);
   static const __m256i _12345678 = _mm256_set_epi32 (8, 7, 6, 5, 4, 3, 2, 1);
-  static const __m256i __32768x16 = _mm256_set_epi16 (HB_16TIMES (-32768));
+  static const __m256i __32768x16 = _mm256_set1_epi16 (-32768);
 
   /* Set up key vector. */
-  const __m256i K = _mm256_add_epi16 (_mm256_set_epi16 (HB_16TIMES ((signed) k - 32768)), _1x8);
+  const __m256i K = _mm256_add_epi16 (_mm256_set1_epi16 ((signed) k - 32768), _1x8);
 
   while (rank)
   {
@@ -243,9 +238,9 @@ hb_simd_ksearch_glyphid (unsigned *pos, /* Out */
 
     /* Load multiple ranges to test against. */
     const unsigned limit = stride * length;
-    const __m256i limits = _mm256_set_epi32 (HB_8TIMES (limit + 1));
+    const __m256i limits = _mm256_set1_epi32 (limit + 1);
     const unsigned pitch = stride * step;
-    const __m256i pitches = _mm256_set_epi32 (HB_8TIMES (pitch));
+    const __m256i pitches = _mm256_set1_epi32 (pitch);
     const __m256i offsets = _mm256_mullo_epi32 (pitches, _12345678);
     const __m256i mask = _mm256_cmpgt_epi32 (limits, offsets);
     unsigned back_off = stride;
