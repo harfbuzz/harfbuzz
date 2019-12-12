@@ -453,7 +453,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 
   hb_blob_destroy (blob);
   return hb_blob_create ((const char *) new_sfnt_data, new_length,
-			 HB_MEMORY_MODE_WRITABLE, nullptr, free);
+			 HB_MEMORY_MODE_WRITABLE, new_sfnt_data, free);
 }
 
 hb_uniscribe_face_data_t *
