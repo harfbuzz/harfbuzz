@@ -332,14 +332,14 @@ retry:
 /**
  * hb_language_from_string:
  * @str: (array length=len) (element-type uint8_t): a string representing
- *       a BCP 47 language tag
+ *       a BCP 47 language tag
  * @len: length of the @str, or -1 if it is %NULL-terminated.
  *
- * Converts @str representing a BCP 47 language tag to the corresponding
+ * Converts @str representing a BCP 47 language tag to the corresponding
  * #hb_language_t.
  *
  * Return value: (transfer none):
- * The #hb_language_t corresponding to the BCP 47 language tag.
+ * The #hb_language_t corresponding to the BCP 47 language tag.
  *
  * Since: 0.9.2
  **/
@@ -421,12 +421,12 @@ hb_language_get_default ()
 
 /**
  * hb_script_from_iso15924_tag:
- * @tag: an #hb_tag_t representing an ISO 15924 tag.
+ * @tag: an #hb_tag_t representing an ISO 15924 tag.
  *
- * Converts an ISO 15924 script tag to a corresponding #hb_script_t.
+ * Converts an ISO 15924 script tag to a corresponding #hb_script_t.
  *
  * Return value:
- * An #hb_script_t corresponding to the ISO 15924 tag.
+ * An #hb_script_t corresponding to the ISO 15924 tag.
  *
  * Since: 0.9.2
  **/
@@ -467,15 +467,15 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
 /**
  * hb_script_from_string:
  * @str: (array length=len) (element-type uint8_t): a string representing an
- *       ISO 15924 tag.
+ *       ISO 15924 tag.
  * @len: length of the @str, or -1 if it is %NULL-terminated.
  *
- * Converts a string @str representing an ISO 15924 script tag to a
+ * Converts a string @str representing an ISO 15924 script tag to a
  * corresponding #hb_script_t. Shorthand for hb_tag_from_string() then
  * hb_script_from_iso15924_tag().
  *
  * Return value:
- * An #hb_script_t corresponding to the ISO 15924 tag.
+ * An #hb_script_t corresponding to the ISO 15924 tag.
  *
  * Since: 0.9.2
  **/
@@ -492,7 +492,7 @@ hb_script_from_string (const char *str, int len)
  * See hb_script_from_iso15924_tag().
  *
  * Return value:
- * An #hb_tag_t representing an ISO 15924 script tag.
+ * An #hb_tag_t representing an ISO 15924 script tag.
  *
  * Since: 0.9.2
  **/
