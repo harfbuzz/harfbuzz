@@ -438,13 +438,6 @@ hb_buffer_t::set_masks (hb_mask_t    value,
   if (!mask)
     return;
 
-  if (cluster_start == 0 && cluster_end == (unsigned int)-1) {
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      info[i].mask = (info[i].mask & not_mask) | value;
-    return;
-  }
-
   unsigned int count = len;
   for (unsigned int i = 0; i < count; i++)
     if (cluster_start <= info[i].cluster && info[i].cluster < cluster_end)
