@@ -951,7 +951,7 @@ hb_buffer_get_direction (hb_buffer_t    *buffer)
  *
  * You can pass one of the predefined #hb_script_t values, or use
  * hb_script_from_string() or hb_script_from_iso15924_tag() to get the
- * corresponding script from an ISO 15924 script tag.
+ * corresponding script from an ISO 15924 script tag.
  *
  * Since: 0.9.2
  **/
@@ -994,7 +994,7 @@ hb_buffer_get_script (hb_buffer_t *buffer)
  * are orthogonal to the scripts, and though they are related, they are
  * different concepts and should not be confused with each other.
  *
- * Use hb_language_from_string() to convert from BCP 47 language tags to
+ * Use hb_language_from_string() to convert from BCP 47 language tags to
  * #hb_language_t.
  *
  * Since: 0.9.2
