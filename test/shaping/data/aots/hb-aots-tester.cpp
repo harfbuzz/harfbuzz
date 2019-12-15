@@ -74,8 +74,8 @@ int gNbFeatures;
         features = (hb_feature_t *) malloc (sizeof (*features));
         features[0].tag = HB_TAG('t', 'e', 's', 't');
         features[0].value = 1;
-        features[0].start = 0;
-        features[0].end = 0xffffffff;
+        features[0].start = HB_FEATURE_GLOBAL_START;
+        features[0].end = HB_FEATURE_GLOBAL_END;
     }
     else
     {
