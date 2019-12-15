@@ -605,7 +605,7 @@ done:
 void
 hb_buffer_t::unsafe_to_break_impl (unsigned int start, unsigned int end)
 {
-  unsigned int cluster = (unsigned int) -1;
+  unsigned int cluster = UINT_MAX;
   cluster = _unsafe_to_break_find_min_cluster (info, start, end, cluster);
   _unsafe_to_break_set_mask (info, start, end, cluster);
 }
@@ -621,7 +621,7 @@ hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int en
   assert (start <= out_len);
   assert (idx <= end);
 
-  unsigned int cluster = (unsigned int) -1;
+  unsigned int cluster = UINT_MAX;
   cluster = _unsafe_to_break_find_min_cluster (out_info, start, out_len, cluster);
   cluster = _unsafe_to_break_find_min_cluster (info, idx, end, cluster);
   _unsafe_to_break_set_mask (out_info, start, out_len, cluster);
@@ -1731,7 +1731,7 @@ hb_buffer_add_codepoints (hb_buffer_t          *buffer,
  * @buffer: an #hb_buffer_t.
  * @source: source #hb_buffer_t.
  * @start: start index into source buffer to copy.  Use 0 to copy from start of buffer.
- * @end: end index into source buffer to copy.  Use (unsigned int) -1 to copy to end of buffer.
+ * @end: end index into source buffer to copy.  Use @HB_FEATURE_GLOBAL_END to copy to end of buffer.
  *
  * Append (part of) contents of another buffer to this buffer.
  *

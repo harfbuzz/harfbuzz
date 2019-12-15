@@ -737,7 +737,7 @@ hb_ot_shape_setup_masks (const hb_ot_shape_context_t *c)
   for (unsigned int i = 0; i < c->num_user_features; i++)
   {
     const hb_feature_t *feature = &c->user_features[i];
-    if (!(feature->start == 0 && feature->end == (unsigned int)-1)) {
+    if (!(feature->start == HB_FEATURE_GLOBAL_START && feature->end == HB_FEATURE_GLOBAL_END)) {
       unsigned int shift;
       hb_mask_t mask = map->get_mask (feature->tag, &shift);
       buffer->set_masks (feature->value << shift, mask, feature->start, feature->end);

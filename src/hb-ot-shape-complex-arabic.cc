@@ -292,7 +292,7 @@ arabic_joining (hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
-  unsigned int prev = (unsigned int) -1, state = 0;
+  unsigned int prev = UINT_MAX, state = 0;
 
   /* Check pre-context */
   for (unsigned int i = 0; i < buffer->context_len[0]; i++)
@@ -318,7 +318,7 @@ arabic_joining (hb_buffer_t *buffer)
 
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
 
-    if (entry->prev_action != NONE && prev != (unsigned int) -1)
+    if (entry->prev_action != NONE && prev != UINT_MAX)
     {
       info[prev].arabic_shaping_action() = entry->prev_action;
       buffer->unsafe_to_break (prev, i + 1);
@@ -338,7 +338,7 @@ arabic_joining (hb_buffer_t *buffer)
       continue;
 
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
-    if (entry->prev_action != NONE && prev != (unsigned int) -1)
+    if (entry->prev_action != NONE && prev != UINT_MAX)
       info[prev].arabic_shaping_action() = entry->prev_action;
     break;
   }

@@ -927,14 +927,14 @@ hb_feature_to_string (hb_feature_t *feature,
   len += 4;
   while (len && s[len - 1] == ' ')
     len--;
-  if (feature->start != 0 || feature->end != (unsigned int) -1)
+  if (feature->start != HB_FEATURE_GLOBAL_START || feature->end != HB_FEATURE_GLOBAL_END)
   {
     s[len++] = '[';
     if (feature->start)
       len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->start));
     if (feature->end != feature->start + 1) {
       s[len++] = ':';
-      if (feature->end != (unsigned int) -1)
+      if (feature->end != HB_FEATURE_GLOBAL_END)
 	len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%u", feature->end));
     }
     s[len++] = ']';

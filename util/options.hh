@@ -517,7 +517,7 @@ struct text_options_t : option_group_t
     fp = nullptr;
     gs = nullptr;
     line = nullptr;
-    line_len = (unsigned int) -1;
+    line_len = UINT_MAX;
 
     add_options (parser);
   }

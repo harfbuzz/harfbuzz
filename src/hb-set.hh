@@ -262,7 +262,7 @@ struct hb_set_t
     return true;
   }
 
-  void dirty () { population = (unsigned int) -1; }
+  void dirty () { population = UINT_MAX; }
 
   void add (hb_codepoint_t g)
   {
@@ -666,7 +666,7 @@ struct hb_set_t
 
   unsigned int get_population () const
   {
-    if (population != (unsigned int) -1)
+    if (population != UINT_MAX)
       return population;
 
     unsigned int pop = 0;

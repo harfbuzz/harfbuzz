@@ -746,7 +746,7 @@ text_options_t::get_line (unsigned int *len)
       line = text;
       line_len = text_len;
     }
-    if (line_len == (unsigned int) -1)
+    if (line_len == UINT_MAX)
       line_len = strlen (line);
 
     if (!line_len) {
