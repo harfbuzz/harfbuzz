@@ -191,7 +191,7 @@ jobs:
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=thread -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
+      - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O3" CFLAGS="-fsanitize=thread -O3" CXXFLAGS="-fsanitize=thread -O3" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
       - run: HB_TEST_SUBSET_FUZZER_TIMEOUT=40 make check || .ci/fail.sh | asan_symbolize | c++filt
 
