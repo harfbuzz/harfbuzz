@@ -160,7 +160,7 @@ struct hb_sanitize_context_t :
   }
   unsigned int get_num_glyphs () { return num_glyphs; }
 
-  void set_max_ops (int max_ops_) { max_ops = max_ops_; }
+  void set_max_ops (unsigned int max_ops_) { max_ops = max_ops_; }
 
   template <typename T>
   void set_object (const T *obj)
@@ -376,7 +376,7 @@ struct hb_sanitize_context_t :
 
   mutable unsigned int debug_depth;
   const char *start, *end;
-  mutable int max_ops;
+  mutable unsigned int max_ops;
   private:
   bool writable;
   unsigned int edit_count;
