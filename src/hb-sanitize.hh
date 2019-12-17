@@ -189,8 +189,9 @@ struct hb_sanitize_context_t :
   void start_processing ()
   {
     reset_object ();
-    this->max_ops = hb_max ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
-			 (unsigned) HB_SANITIZE_MAX_OPS_MIN);
+    this->max_ops = hb_min (hb_max ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
+				    (unsigned) HB_SANITIZE_MAX_OPS_MIN),
+			    (unsigned) HB_SANITIZE_MAX_OPS_MAX);
     this->edit_count = 0;
     this->debug_depth = 0;
 
