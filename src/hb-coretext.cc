@@ -475,13 +475,19 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
     hb_vector_t<feature_event_t> feature_events;
     for (unsigned int i = 0; i < num_features; i++)
     {
+      active_feature_t feature;
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1010
       const hb_aat_feature_mapping_t * mapping = hb_aat_layout_find_feature_mapping (features[i].tag);
       if (!mapping)
 	continue;
 
-      active_feature_t feature;
       feature.rec.feature = mapping->aatFeatureType;
       feature.rec.setting = features[i].value ? mapping->selectorToEnable : mapping->selectorToDisable;
+#else
+      feature.rec.feature = features[i].tag;
+      feature.rec.setting = features[i].value;
+#endif
       feature.order = i;
 
       feature_event_t *event;
@@ -530,6 +536,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	  /* active_features.qsort (); */
 	  for (unsigned int j = 0; j < active_features.length; j++)
 	  {
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1010
 	    CFStringRef keys[] = {
 	      kCTFontFeatureTypeIdentifierKey,
 	      kCTFontFeatureSelectorIdentifierKey
@@ -538,6 +545,17 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
 	      CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &active_features[j].rec.feature),
 	      CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &active_features[j].rec.setting)
 	    };
+#else
+	    char tag[5] = {HB_UNTAG (active_features[j].rec.feature)};
+	    CFTypeRef keys[] = {
+	      kCTFontOpenTypeFeatureTag,
+	      kCTFontOpenTypeFeatureValue
+	    };
+	    CFTypeRef values[] = {
+	      CFStringCreateWithCString (kCFAllocatorDefault, tag, kCFStringEncodingASCII),
+	      CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &active_features[j].rec.setting)
+	    };
+#endif
 	    static_assert ((ARRAY_LENGTH_CONST (keys) == ARRAY_LENGTH_CONST (values)), "");
 	    CFDictionaryRef dict = CFDictionaryCreate (kCFAllocatorDefault,
 						       (const void **) keys,
