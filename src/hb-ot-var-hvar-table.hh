@@ -185,7 +185,7 @@ struct index_map_subset_plan_t
 	unsigned int inner = v & 0xFFFF;
 	outer_map.add (outer);
 	if (inner > max_inners[outer]) max_inners[outer] = inner;
-	hb_set_add (inner_sets[outer], inner);
+	inner_sets[outer]->add (inner);
       }
     }
   }
@@ -275,7 +275,7 @@ struct hvarvvar_subset_plan_t
       {
 	hb_codepoint_t old_gid;
 	if (plan->old_gid_for_new_gid (gid, &old_gid))
-	  hb_set_add (inner_sets[0], old_gid);
+	  inner_sets[0]->add (old_gid);
       }
       hb_set_union (adv_set, inner_sets[0]);
     }
@@ -288,7 +288,7 @@ struct hvarvvar_subset_plan_t
     if (retain_adv_map)
     {
       for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
-	if (hb_set_has (inner_sets[0], gid))
+	if (inner_sets[0]->has (gid))
 	  inner_maps[0].add (gid);
 	else
 	  inner_maps[0].skip ();
