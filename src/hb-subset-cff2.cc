@@ -116,8 +116,8 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
       const blend_arg_t &arg = env.argStack[i];
       if (arg.blending ())
       {
-      	if (unlikely (!((arg.numValues > 0) && (env.argStack.get_count () >= arg.numValues))))
-      	{
+	if (unlikely (!((arg.numValues > 0) && (env.argStack.get_count () >= arg.numValues))))
+	{
 	  env.set_error ();
 	  return;
 	}
@@ -144,8 +144,8 @@ struct cff2_cs_opset_flatten_t : cff2_cs_opset_t<cff2_cs_opset_flatten_t, flatte
       if (unlikely (!((arg1.blending () && (arg.numValues == arg1.numValues) && (arg1.valueIndex == j) &&
 	      (arg1.deltas.length == env.get_region_count ())))))
       {
-      	env.set_error ();
-      	return;
+	env.set_error ();
+	return;
       }
       encoder.encode_num (arg1);
     }

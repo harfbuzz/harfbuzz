@@ -210,8 +210,8 @@ struct trak
 
   protected:
   FixedVersion<>version;	/* Version of the tracking table
-					 * (0x00010000u for version 1.0). */
-  HBUINT16	format; 	/* Format of the tracking table (set to 0). */
+				 * (0x00010000u for version 1.0). */
+  HBUINT16	format;		/* Format of the tracking table (set to 0). */
   OffsetTo<TrackData>
 		horizData;	/* Offset from start of tracking table to TrackData
 				 * for horizontal text (or 0 if none). */

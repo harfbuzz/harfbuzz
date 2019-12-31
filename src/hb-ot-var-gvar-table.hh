@@ -106,7 +106,7 @@ struct TupleVarHeader
   { return StructAtOffset<TupleVarHeader> (this, get_size (axis_count)); }
 
   float calculate_scalar (const int *coords, unsigned int coord_count,
-  			  const hb_array_t<const F2DOT14> shared_tuples) const
+			  const hb_array_t<const F2DOT14> shared_tuples) const
   {
     const F2DOT14 *peak_tuple;
 
@@ -260,10 +260,10 @@ struct GlyphVarData
   };
 
   static bool get_tuple_iterator (const GlyphVarData *var_data,
-  				  unsigned int length,
-  				  unsigned int axis_count,
-  				  hb_vector_t<unsigned int> &shared_indices /* OUT */,
-  				  tuple_iterator_t *iterator /* OUT */)
+				  unsigned int length,
+				  unsigned int axis_count,
+				  hb_vector_t<unsigned int> &shared_indices /* OUT */,
+				  tuple_iterator_t *iterator /* OUT */)
   {
     iterator->init (var_data, length, axis_count);
     if (!iterator->get_shared_indices (shared_indices))
@@ -513,7 +513,7 @@ struct gvar
 
       if (unlikely ((gvar_table->glyphCount != face->get_num_glyphs ()) ||
 		    (gvar_table->axisCount != axis_count)))
-      	fini ();
+	fini ();
 
       unsigned int num_shared_coord = gvar_table->sharedTupleCount * gvar_table->axisCount;
       shared_tuples.resize (num_shared_coord);
@@ -543,11 +543,11 @@ struct gvar
       float next_delta = T::get (deltas[next]);
 
       if (prev_val == next_val)
-      	return (prev_delta == next_delta) ? prev_delta : 0.f;
+	return (prev_delta == next_delta) ? prev_delta : 0.f;
       else if (target_val <= hb_min (prev_val, next_val))
-      	return (prev_val < next_val) ? prev_delta : next_delta;
+	return (prev_val < next_val) ? prev_delta : next_delta;
       else if (target_val >= hb_max (prev_val, next_val))
-      	return (prev_val > next_val) ? prev_delta : next_delta;
+	return (prev_val > next_val) ? prev_delta : next_delta;
 
       /* linear interpolation */
       float r = (target_val - prev_val) / (next_val - prev_val);

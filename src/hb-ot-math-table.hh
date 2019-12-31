@@ -645,27 +645,28 @@ struct MathVariants
   }
 
   protected:
-  HBUINT16	     minConnectorOverlap; /* Minimum overlap of connecting
-					   * glyphs during glyph construction,
-					   * in design units. */
-  OffsetTo<Coverage> vertGlyphCoverage;   /* Offset to Coverage table -
-					   * from the beginning of MathVariants
-					   * table. */
-  OffsetTo<Coverage> horizGlyphCoverage;  /* Offset to Coverage table -
-					   * from the beginning of MathVariants
-					   * table. */
-  HBUINT16	     vertGlyphCount;      /* Number of glyphs for which
-					   * information is provided for
-					   * vertically growing variants. */
-  HBUINT16	     horizGlyphCount;     /* Number of glyphs for which
-					   * information is provided for
-					   * horizontally growing variants. */
+  HBUINT16		minConnectorOverlap;
+					/* Minimum overlap of connecting
+					 * glyphs during glyph construction,
+					 * in design units. */
+  OffsetTo<Coverage> vertGlyphCoverage; /* Offset to Coverage table -
+					 * from the beginning of MathVariants
+					 * table. */
+  OffsetTo<Coverage> horizGlyphCoverage;/* Offset to Coverage table -
+					 * from the beginning of MathVariants
+					 * table. */
+  HBUINT16		vertGlyphCount;	/* Number of glyphs for which
+					 * information is provided for
+					 * vertically growing variants. */
+  HBUINT16		horizGlyphCount;/* Number of glyphs for which
+					 * information is provided for
+					 * horizontally growing variants. */
 
   /* Array of offsets to MathGlyphConstruction tables - from the beginning of
      the MathVariants table, for shapes growing in vertical/horizontal
      direction. */
   UnsizedArrayOf<OffsetTo<MathGlyphConstruction>>
- 			glyphConstruction;
+			glyphConstruction;
 
   public:
   DEFINE_SIZE_ARRAY (10, glyphConstruction);

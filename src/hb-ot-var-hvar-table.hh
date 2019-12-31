@@ -113,7 +113,7 @@ struct DeltaSetIndexMap
 				 * representation of delta-set indices. */
   HBUINT16	mapCount;	/* The number of mapping entries. */
   UnsizedArrayOf<HBUINT8>
- 		mapDataZ;	/* The delta-set index mapping data. */
+		mapDataZ;	/* The delta-set index mapping data. */
 
   public:
   DEFINE_SIZE_ARRAY (4, mapDataZ);
@@ -128,10 +128,10 @@ struct index_map_subset_plan_t
     VORG_INDEX
   };
 
-  void init (const DeltaSetIndexMap	&index_map,
-	     hb_inc_bimap_t	  	&outer_map,
-	     hb_vector_t<hb_set_t *>	&inner_sets,
-	     const hb_subset_plan_t *plan)
+  void init (const DeltaSetIndexMap  &index_map,
+	     hb_inc_bimap_t	     &outer_map,
+	     hb_vector_t<hb_set_t *> &inner_sets,
+	     const hb_subset_plan_t  *plan)
   {
     map_count = 0;
     outer_bit_count = 0;
@@ -288,7 +288,7 @@ struct hvarvvar_subset_plan_t
     if (retain_adv_map)
     {
       for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
-      	if (hb_set_has (inner_sets[0], gid))
+	if (hb_set_has (inner_sets[0], gid))
 	  inner_maps[0].add (gid);
 	else
 	  inner_maps[0].skip ();

@@ -1363,7 +1363,7 @@ struct Rule
 					 * glyph */
   HBUINT16	lookupCount;		/* Number of LookupRecords */
   UnsizedArrayOf<HBUINT16>
- 		inputZ;			/* Array of match inputs--start with
+		inputZ;			/* Array of match inputs--start with
 					 * second glyph */
 /*UnsizedArrayOf<LookupRecord>
 		lookupRecordX;*/	/* Array of LookupRecords--in
@@ -2992,11 +2992,11 @@ struct GSUBGPOS
   FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
 				 * to 0x00010000u */
   OffsetTo<ScriptList>
-		scriptList;  	/* ScriptList table */
+		scriptList;	/* ScriptList table */
   OffsetTo<FeatureList>
-		featureList; 	/* FeatureList table */
+		featureList;	/* FeatureList table */
   OffsetTo<LookupList>
-		lookupList; 	/* LookupList table */
+		lookupList;	/* LookupList table */
   LOffsetTo<FeatureVariations>
 		featureVars;	/* Offset to Feature Variations
 				   table--from beginning of table

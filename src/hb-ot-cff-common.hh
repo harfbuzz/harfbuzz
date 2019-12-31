@@ -139,7 +139,7 @@ struct CFFIndex
       /* serialize data */
       for (unsigned int i = 0; i < byteArray.length; i++)
       {
-      	const byte_str_t &bs = byteArray[i];
+	const byte_str_t &bs = byteArray[i];
 	unsigned char  *dest = c->allocate_size<unsigned char> (bs.length);
 	if (unlikely (dest == nullptr))
 	  return_trace (false);
@@ -459,7 +459,7 @@ struct FDArray : CFFIndexOf<COUNT, FontDict>
     for (unsigned i = 0; i < fontDicts.length; i++)
       if (fdmap.has (i))
       {
-      	if (unlikely (fid >= fdCount)) return_trace (false);
+	if (unlikely (fid >= fdCount)) return_trace (false);
 	CFFIndexOf<COUNT, FontDict>::set_offset_at (fid++, offset);
 	offset += FontDict::calculate_serialized_size (fontDicts[i], opszr);
       }
@@ -544,7 +544,7 @@ struct FDSelect3_4
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->check_struct (this) || !ranges.sanitize (c, nullptr, fdcount) ||
-    		  (nRanges () == 0) || ranges[0].first != 0))
+		  (nRanges () == 0) || ranges[0].first != 0))
       return_trace (false);
 
     for (unsigned int i = 1; i < nRanges (); i++)

@@ -300,14 +300,14 @@ struct subr_flattener_t
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
       {
-      	/* add an endchar only charstring for a missing glyph if CFF1 */
-      	if (endchar_op != OpCode_Invalid) flat_charstrings[i].push (endchar_op);
-      	continue;
+	/* add an endchar only charstring for a missing glyph if CFF1 */
+	if (endchar_op != OpCode_Invalid) flat_charstrings[i].push (endchar_op);
+	continue;
       }
       const byte_str_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
-      	return false;
+	return false;
       cs_interpreter_t<ENV, OPSET, flatten_param_t> interp;
       interp.env.init (str, acc, fd);
       flatten_param_t  param = { flat_charstrings[i], plan->drop_hints };
@@ -456,7 +456,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
   bool    vsindex_dropped;
   bool    has_prefix_;
   op_code_t	prefix_op_;
-  number_t 	prefix_num_;
+  number_t	prefix_num_;
 
   private:
   typedef parsed_values_t<parsed_cs_op_t> SUPER;
@@ -523,9 +523,9 @@ struct subr_subset_param_t
        * it must be because we are calling it recursively.
        * Handle it as an error. */
       if (unlikely (calling && !parsed_str->is_parsed () && (parsed_str->values.length > 0)))
-      	env.set_error ();
+	env.set_error ();
       else
-      	current_parsed_str = parsed_str;
+	current_parsed_str = parsed_str;
     }
     else
       env.set_error ();
@@ -659,11 +659,11 @@ struct subr_subsetter_t
     {
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
-      	continue;
+	continue;
       const byte_str_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
-      	return false;
+	return false;
 
       cs_interpreter_t<ENV, OPSET, subr_subset_param_t> interp;
       interp.env.init (str, acc, fd);
@@ -740,13 +740,13 @@ struct subr_subsetter_t
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
       {
-      	/* add an endchar only charstring for a missing glyph if CFF1 */
-      	if (endchar_op != OpCode_Invalid) buffArray[i].push (endchar_op);
-      	continue;
+	/* add an endchar only charstring for a missing glyph if CFF1 */
+	if (endchar_op != OpCode_Invalid) buffArray[i].push (endchar_op);
+	continue;
       }
       unsigned int  fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
-      	return false;
+	return false;
       if (unlikely (!encode_str (parsed_charstrings[i], fd, buffArray[i])))
 	return false;
     }
@@ -900,11 +900,11 @@ struct subr_subsetter_t
     {
       parsed_cs_op_t  &csop = str.values[pos];
       if (csop.op == OpCode_return)
-      	break;
+	break;
       if (!csop.for_drop ())
       {
-      	drop.all_dropped = false;
-      	break;
+	drop.all_dropped = false;
+	break;
       }
     }
 
@@ -986,7 +986,7 @@ struct subr_subsetter_t
   }
 
   protected:
-  const ACC   			&acc;
+  const ACC			&acc;
   const hb_subset_plan_t	*plan;
 
   subr_closures_t		closures;

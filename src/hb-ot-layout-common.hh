@@ -1344,7 +1344,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
                                           hb_map_t *klass_map /*INOUT*/)
 {
   bool has_no_match = glyphset.get_population () > gid_klass_map.get_population ();
-  
+
   hb_map_t m;
   if (!klass_map) klass_map = &m;
 
@@ -1356,7 +1356,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
     klass_map->set (k, idx);
     idx++;
   }
-  
+
   auto it =
   + glyphs.iter ()
   | hb_map_retains_sorting ([&] (const HBGlyphID& gid) -> hb_pair_t<hb_codepoint_t, HBUINT16>
@@ -1366,7 +1366,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
                               return hb_pair ((hb_codepoint_t)gid, new_klass);
                             })
   ;
-  
+
   c->propagate_error (glyphs, klasses);
   ClassDef_serialize (c, it);
 }
@@ -1412,7 +1412,7 @@ struct ClassDefFormat1
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
-   
+
     hb_sorted_vector_t<HBGlyphID> glyphs;
     hb_sorted_vector_t<unsigned> orig_klasses;
     hb_map_t gid_org_klass_map;
@@ -2031,8 +2031,8 @@ struct VarData
     for (r = 0; r < ri_count; r++)
       if (delta_sz[r])
       {
-      	ri_map[r] = (delta_sz[r] == kShort)? short_index++ : byte_index++;
-      	new_ri_count++;
+	ri_map[r] = (delta_sz[r] == kShort)? short_index++ : byte_index++;
+	new_ri_count++;
       }
 
     shortCount = new_short_count;
@@ -2145,7 +2145,7 @@ struct VariationStore
 
   bool serialize (hb_serialize_context_t *c,
 		  const VariationStore *src,
-  		  const hb_array_t <hb_inc_bimap_t> &inner_maps)
+		  const hb_array_t <hb_inc_bimap_t> &inner_maps)
   {
     TRACE_SERIALIZE (this);
     unsigned int set_count = 0;

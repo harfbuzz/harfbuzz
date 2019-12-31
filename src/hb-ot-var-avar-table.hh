@@ -51,7 +51,7 @@ struct AxisValueMap
   public:
   F2DOT14	coords[2];
 //   F2DOT14	fromCoord;	/* A normalized coordinate value obtained using
-// 				 * default normalization. */
+//				 * default normalization. */
 //   F2DOT14	toCoord;	/* The modified, normalized coordinate value. */
 
   public:

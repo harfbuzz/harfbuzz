@@ -420,7 +420,7 @@ struct Charset1_2 {
     for (unsigned int i = 0;; i++)
     {
       if (glyph >= num_glyphs)
-      	return 0;
+	return 0;
       if ((ranges[i].first <= sid) && (sid <= ranges[i].first + ranges[i].nLeft))
 	return glyph + (sid - ranges[i].first);
       glyph += (ranges[i].nLeft + 1);
@@ -500,7 +500,7 @@ struct Charset
       if (unlikely (fmt1 == nullptr)) return_trace (false);
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
-      	if (unlikely (!(sid_ranges[i].glyph <= 0xFF)))
+	if (unlikely (!(sid_ranges[i].glyph <= 0xFF)))
 	  return_trace (false);
 	fmt1->ranges[i].first = sid_ranges[i].code;
 	fmt1->ranges[i].nLeft = sid_ranges[i].glyph;
@@ -514,7 +514,7 @@ struct Charset
       if (unlikely (fmt2 == nullptr)) return_trace (false);
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
-      	if (unlikely (!(sid_ranges[i].glyph <= 0xFFFF)))
+	if (unlikely (!(sid_ranges[i].glyph <= 0xFFFF)))
 	  return_trace (false);
 	fmt2->ranges[i].first = sid_ranges[i].code;
 	fmt2->ranges[i].nLeft = sid_ranges[i].glyph;
@@ -1298,7 +1298,7 @@ struct cff1
     void fini ()
     {
       glyph_names.fini ();
-    
+
       SUPER::fini ();
     }
 
@@ -1335,7 +1335,7 @@ struct cff1
     {
       if (len < 0) len = strlen (name);
       if (unlikely (!len)) return false;
-  
+
       gname_t	key = { hb_bytes_t (name, len), 0 };
       const gname_t *gname = glyph_names.bsearch (key);
       if (gname == nullptr) return false;
@@ -1366,7 +1366,7 @@ struct cff1
 
       int cmp (const gname_t &a) const { return cmp (&a, this); }
     };
-  
+
     hb_sorted_vector_t<gname_t>	glyph_names;
 
     typedef accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t> SUPER;

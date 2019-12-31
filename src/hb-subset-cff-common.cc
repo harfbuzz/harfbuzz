@@ -108,7 +108,7 @@ hb_plan_subset_cff_fdselect (const hb_subset_plan_t *plan,
 	fdmap.add (fd);
       hb_set_destroy (set);
       if (unlikely (fdmap.get_population () != subset_fd_count))
-      	return false;
+	return false;
     }
 
     /* update each font dict index stored as "code" in fdselect_ranges */

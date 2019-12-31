@@ -80,10 +80,10 @@ struct fdsc
     Weight	 = HB_TAG ('w','g','h','t'),
 				/* Percent weight relative to regular weight.
 				 * (defaul value: 1.0) */
-    Width 	 = HB_TAG ('w','d','t','h'),
+    Width	 = HB_TAG ('w','d','t','h'),
 				/* Percent width relative to regular width.
 				 * (default value: 1.0) */
-    Slant 	 = HB_TAG ('s','l','n','t'),
+    Slant	 = HB_TAG ('s','l','n','t'),
 				/* Angle of slant in degrees, where positive
 				 * is clockwise from straight up.
 				 * (default value: 0.0) */
