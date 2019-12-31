@@ -331,7 +331,7 @@ struct cff1_cs_opset_flatten_t : cff1_cs_opset_t<cff1_cs_opset_flatten_t, flatte
 struct range_list_t : hb_vector_t<code_pair_t>
 {
   /* replace the first glyph ID in the "glyph" field each range with a nLeft value */
-  bool finalize (unsigned int last_glyph)
+  bool complete (unsigned int last_glyph)
   {
     bool  two_byte = false;
     for (unsigned int i = (*this).length; i > 0; i--)
@@ -402,7 +402,7 @@ struct cff1_subr_subsetter_t : subr_subsetter_t<cff1_subr_subsetter_t, CFF1Subrs
   cff1_subr_subsetter_t (const OT::cff1::accelerator_subset_t &acc_, const hb_subset_plan_t *plan_)
     : subr_subsetter_t (acc_, plan_) {}
 
-  static void finalize_parsed_str (cff1_cs_interp_env_t &env, subr_subset_param_t& param, parsed_cs_str_t &charstring)
+  static void complete_parsed_str (cff1_cs_interp_env_t &env, subr_subset_param_t& param, parsed_cs_str_t &charstring)
   {
     /* insert width at the beginning of the charstring as necessary */
     if (env.has_width)
@@ -515,7 +515,7 @@ struct cff_subset_plan {
     }
     supp_codes.fini ();
 
-    subset_enc_code_ranges.finalize (glyph);
+    subset_enc_code_ranges.complete (glyph);
 
     assert (subset_enc_num_codes <= 0xFF);
     size0 = Encoding0::min_size + HBUINT8::static_size * subset_enc_num_codes;
@@ -560,7 +560,7 @@ struct cff_subset_plan {
       last_sid = sid;
     }
 
-    bool two_byte = subset_charset_ranges.finalize (glyph);
+    bool two_byte = subset_charset_ranges.complete (glyph);
 
     size0 = Charset0::min_size + HBUINT16::static_size * (plan->num_output_glyphs () - 1);
     if (!two_byte)

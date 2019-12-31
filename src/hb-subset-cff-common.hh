@@ -677,8 +677,8 @@ struct subr_subsetter_t
       if (unlikely (!interp.interpret (param)))
 	return false;
 
-      /* finalize parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
-      SUBSETTER::finalize_parsed_str (interp.env, param, parsed_charstrings[i]);
+      /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
+      SUBSETTER::complete_parsed_str (interp.env, param, parsed_charstrings[i]);
     }
 
     if (plan->drop_hints)
