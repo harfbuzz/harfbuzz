@@ -395,7 +395,7 @@ struct HVARVVAR
     out->version.major = 1;
     out->version.minor = 0;
 
-    if (!unlikely (out->varStore.serialize (c->serializer, out)
+    if (unlikely (!out->varStore.serialize (c->serializer, out)
 		     .serialize (c->serializer, hvar_plan.var_store, hvar_plan.inner_maps.as_array ())))
       return_trace (false);
 
