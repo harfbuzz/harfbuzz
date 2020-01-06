@@ -927,7 +927,7 @@ struct glyf
 				       contour_point_vector_t *phantoms=nullptr /* OUT */) const
     {
       contour_point_vector_t all_points;
-      if (!unlikely (get_points_bearing_applied (font, gid, all_points))) return false;
+      if (unlikely (!get_points_bearing_applied (font, gid, all_points))) return false;
       if (extents)
       {
 	contour_bounds_t bounds;
@@ -1073,7 +1073,7 @@ struct glyf
 	pad_length--;
       }
 
-      if (!unlikely (dest_glyph.length)) return_trace (true);
+      if (unlikely (!dest_glyph.length)) return_trace (true);
 
       /* update components gids */
       for (auto &_ : Glyph (dest_glyph).get_composite_iterator ())
