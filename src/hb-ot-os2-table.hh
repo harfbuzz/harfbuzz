@@ -216,8 +216,8 @@ struct OS2
 					  uint16_t *min_cp, /* OUT */
 					  uint16_t *max_cp  /* OUT */)
   {
-    *min_cp = codepoints->get_min ();
-    *max_cp = codepoints->get_max ();
+    *min_cp = hb_min (0xFFFFu, codepoints->get_min ());
+    *max_cp = hb_min (0xFFFFu, codepoints->get_max ());
   }
 
   /* https://github.com/Microsoft/Font-Validator/blob/520aaae/OTFontFileVal/val_OS2.cs#L644-L681 */

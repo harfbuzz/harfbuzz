@@ -242,8 +242,14 @@ struct CmapSubtableFormat4
     if (unlikely (!c->extend_min (*this))) return;
     this->format = 4;
 
+    auto format4_iter =
+    + it
+    | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
+		 { return _.first <= 0xFFFF; })
+    ;
+
     //serialize endCode[]
-    HBUINT16 *endCode = serialize_endcode_array (c, it);
+    HBUINT16 *endCode = serialize_endcode_array (c, format4_iter);
     if (unlikely (!endCode)) return;
 
     unsigned segcount = (c->length () - min_size) / HBUINT16::static_size;
@@ -252,14 +258,14 @@ struct CmapSubtableFormat4
     if (unlikely (!c->allocate_size<HBUINT16> (HBUINT16::static_size))) return; // 2 bytes of padding.
 
    // serialize startCode[]
-    HBUINT16 *startCode = serialize_startcode_array (c, it);
+    HBUINT16 *startCode = serialize_startcode_array (c, format4_iter);
     if (unlikely (!startCode)) return;
 
     //serialize idDelta[]
-    HBINT16 *idDelta = serialize_idDelta_array (c, it, endCode, startCode, segcount);
+    HBINT16 *idDelta = serialize_idDelta_array (c, format4_iter, endCode, startCode, segcount);
     if (unlikely (!idDelta)) return;
 
-    HBUINT16 *idRangeOffset = serialize_rangeoffset_glyid (c, it, endCode, startCode, idDelta, segcount);
+    HBUINT16 *idRangeOffset = serialize_rangeoffset_glyid (c, format4_iter, endCode, startCode, idDelta, segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return;
 
     if (unlikely (!c->check_assign(this->length, c->length () - table_initpos))) return;
