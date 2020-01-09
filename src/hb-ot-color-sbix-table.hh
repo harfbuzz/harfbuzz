@@ -26,6 +26,7 @@
 #define HB_OT_COLOR_SBIX_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-layout-common.hh"
 
 /*
  * sbix -- Standard Bitmap Graphics
@@ -40,6 +41,32 @@ namespace OT {
 
 struct SBIXGlyph
 {
+  static unsigned int get_size (unsigned int data_length)
+  { return min_size + data_length * HBUINT8::static_size; }
+
+  bool serialize (hb_serialize_context_t *c, unsigned x_offset, unsigned y_offset, Tag graphic_type, const UnsizedArrayOf<HBUINT8>* src_data, unsigned int data_length)
+  {
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->extend (*this, data_length))) return_trace (false);
+
+    xOffset = x_offset;
+    yOffset = y_offset;
+    graphicType = graphic_type;
+    memcpy(&data, src_data, data_length);
+    return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c, unsigned int data_length) const {
+    TRACE_SUBSET (this);
+
+    SBIXGlyph* new_glyph = c->serializer->start_embed<SBIXGlyph> ();
+    if (unlikely (!new_glyph)) return_trace (false);
+
+    new_glyph->serialize (c->serializer, xOffset, yOffset, graphicType, &data, data_length);
+    return_trace (true);
+  }
+
   HBINT16	xOffset;	/* The horizontal (x-axis) offset from the left
 				 * edge of the graphic to the glyph’s origin.
 				 * That is, the x-coordinate of the point on the
@@ -62,6 +89,9 @@ struct SBIXGlyph
 
 struct SBIXStrike
 {
+  static unsigned int get_size (unsigned num_glyphs)
+  { return min_size + num_glyphs * HBUINT32::static_size; }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -114,6 +144,38 @@ struct SBIXStrike
     if (x_offset) *x_offset = glyph->xOffset;
     if (y_offset) *y_offset = glyph->yOffset;
     return hb_blob_create_sub_blob (sbix_blob, glyph_offset, glyph_length);
+  }
+
+  bool subset (hb_subset_context_t* c) const
+  {
+    TRACE_SUBSET (this);
+    unsigned int num_output_glyphs = c->plan->num_output_glyphs ();
+
+    auto* out = c->serializer->start_embed<SBIXStrike> ();
+    if (unlikely (!out)) return_trace (false);
+    if (unlikely (!c->serializer->extend (*out, num_output_glyphs + 1))) return_trace (false);
+    out->ppem = ppem;
+    out->resolution = resolution;
+    HBUINT32 head;
+    head = get_size(num_output_glyphs + 1);
+    for (unsigned new_gid = 0; new_gid < num_output_glyphs; new_gid++)
+    {
+      hb_codepoint_t old_gid;
+      if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid) ||
+          unlikely (imageOffsetsZ[old_gid + 1] <= imageOffsetsZ[old_gid] ||
+                    imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid] <= SBIXGlyph::min_size)) {
+        out->imageOffsetsZ[new_gid] = head;
+        continue;
+      }
+      unsigned int delta = imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid];
+      unsigned int glyph_data_length = delta - SBIXGlyph::min_size;
+      if (!(this + imageOffsetsZ[old_gid]).subset(c, glyph_data_length))
+        return_trace (false);
+      out->imageOffsetsZ[new_gid] = head;
+      head += delta;
+    }
+    out->imageOffsetsZ[num_output_glyphs] = head;
+    return_trace (true);
   }
 
   public:
@@ -273,6 +335,70 @@ struct sbix
     return_trace (likely (c->check_struct (this) &&
 			  version >= 1 &&
 			  strikes.sanitize (c, this)));
+  }
+
+  bool add_strike (hb_subset_context_t *c,
+                   const void *dst_base,
+                   LOffsetTo<SBIXStrike>* o,
+                   unsigned int i) const {
+    *o = 0;
+    if (strikes[i].is_null ())
+      return false;
+
+    auto *s = c->serializer;
+
+    s->push ();
+
+    return (this+strikes[i]).subset (c);
+  }
+
+  bool serialize_strike_offsets (hb_subset_context_t *c,
+                                 const void *dst_base) const
+  {
+    TRACE_SERIALIZE (this);
+
+    auto *out = c->serializer->start_embed<LOffsetLArrayOf<SBIXStrike>> ();
+    if (unlikely (!out)) return_trace (false);
+    if (unlikely (!c->serializer->allocate_size<HBUINT32> (HBUINT32::static_size))) return_trace (false);
+
+    hb_vector_t<LOffsetTo<SBIXStrike>*> new_strikes;
+    hb_vector_t<hb_serialize_context_t::objidx_t> objidxs;
+    for (int i = strikes.len - 1; i >= 0; --i)
+    {
+      auto* o = out->serialize_append (c->serializer);
+      if (unlikely (!o)) return_trace (false);
+      auto snap = c->serializer->snapshot ();
+      bool ret = add_strike(c, dst_base, o, i);
+      if (!ret)
+      {
+        c->serializer->pop_discard ();
+        out->pop();
+        c->serializer->revert (snap);
+      }
+      else
+      {
+        objidxs.push (c->serializer->pop_pack ());
+        new_strikes.push (o);
+      }
+    }
+    for (unsigned int i = 0; i < new_strikes.length; ++i)
+    {
+      c->serializer->add_link (*new_strikes[i], objidxs[new_strikes.length - 1 - i], dst_base);
+    }
+
+    return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t* c) const
+  {
+    TRACE_SUBSET (this);
+
+    sbix *sbix_prime = c->serializer->start_embed<sbix> ();
+    if (unlikely (!sbix_prime)) return_trace (false);
+    if (unlikely (!c->serializer->embed (this->version))) return_trace (false);
+    if (unlikely (!c->serializer->embed (this->flags))) return_trace (false);
+
+    return_trace (serialize_strike_offsets (c, sbix_prime));
   }
 
   protected:
