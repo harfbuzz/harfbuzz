@@ -265,11 +265,11 @@ struct hvarvvar_subset_plan_t
     for (unsigned int i = 0; i < inner_maps.length; i++)
       inner_maps[i].init ();
 
-    if (unlikely (!inner_sets.length || !inner_maps.length)) return;
+    if (unlikely (!index_map_plans.length || !inner_sets.length || !inner_maps.length)) return;
 
     bool retain_adv_map = false;
     index_map_plans[0].init (*index_maps[0], outer_map, inner_sets, plan);
-    if (index_maps[0] == &Null(DeltaSetIndexMap))
+    if (index_maps[0] == &Null (DeltaSetIndexMap))
     {
       retain_adv_map = plan->retain_gids;
       outer_map.add (0);
