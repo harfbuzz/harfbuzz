@@ -147,7 +147,8 @@ struct index_map_subset_plan_t
 
     outer_bit_count = (index_map.get_width () * 8) - index_map.get_inner_bit_count ();
     max_inners.resize (inner_sets.length);
-    for (unsigned i = 0; i < inner_sets.length; i++) max_inners[i] = 0;
+    unsigned int inners_count = max_inners.length;
+    for (unsigned i = 0; i < inners_count; i++) max_inners[i] = 0;
 
     /* Search backwards for a map value different from the last map value */
     for (; gid > 0; gid--)
@@ -182,6 +183,7 @@ struct index_map_subset_plan_t
       {
 	unsigned int v = index_map.map (old_gid);
 	unsigned int outer = v >> 16;
+	if (outer >= inners_count) continue;
 	unsigned int inner = v & 0xFFFF;
 	outer_map.add (outer);
 	if (inner > max_inners[outer]) max_inners[outer] = inner;
