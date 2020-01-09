@@ -1906,8 +1906,13 @@ struct VarRegionList
     axisCount = src->axisCount;
     regionCount = region_map.get_population ();
     if (unlikely (!c->allocate_size<VarRegionList> (get_size () - min_size))) return_trace (false);
+    unsigned int region_count = src->get_region_count ();
     for (unsigned int r = 0; r < regionCount; r++)
-      memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * region_map.backward (r)], VarRegionAxis::static_size * axisCount);
+    {
+      unsigned int backward = region_map.backward (r);
+      if (backward >= region_count) return_trace (false);
+      memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * backward], VarRegionAxis::static_size * axisCount);
+    }
 
     return_trace (true);
   }
