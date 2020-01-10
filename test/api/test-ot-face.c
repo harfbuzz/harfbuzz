@@ -74,6 +74,11 @@ test_face (hb_face_t *face,
   hb_ot_color_has_png (face);
   hb_blob_destroy (hb_ot_color_glyph_reference_png (font, cp));
 
+  hb_set_t *lookup_indexes = hb_set_create ();
+  hb_set_add (lookup_indexes, 0);
+  hb_ot_layout_closure_lookups (face, HB_OT_TAG_GSUB, set, lookup_indexes);
+  hb_set_destroy (lookup_indexes);
+
   hb_ot_layout_get_baseline (font, HB_OT_LAYOUT_BASELINE_TAG_HANGING, HB_DIRECTION_RTL, HB_SCRIPT_HANGUL, HB_TAG_NONE, NULL);
 
   hb_ot_layout_has_glyph_classes (face);
