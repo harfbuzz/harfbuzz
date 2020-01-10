@@ -1043,10 +1043,10 @@ struct glyf
     }
 
     bool
-    get_path (hb_font_t *font, hb_codepoint_t gid, hb_vector_t<hb_position_t> *coords, hb_vector_t<uint8_t> *commands) const
+    get_path (hb_font_t *font, hb_codepoint_t gid,
+	      hb_ot_glyph_decompose_funcs_t *funcs, void *user_data) const
     {
-#define PUSH_POINT(x, y) HB_STMT_START { coords->push (font->em_scalef_x (x)); coords->push (font->em_scalef_y (y)); } HB_STMT_END
-#define PUSH_POINT_CMD(c, x, y) HB_STMT_START { commands->push (c); PUSH_POINT(x, y); } HB_STMT_END
+      /* TODO: Make it work alloc free and without all_points vector */
       contour_point_vector_t all_points;
       if (unlikely (!get_points (font, gid, all_points))) return false;
       hb_array_t<contour_point_t> points = all_points.sub_array (0, all_points.length - 4);
@@ -1065,14 +1065,15 @@ struct glyf
 	contour_point_t *next = &points[contour_start];
 
 	if (curr->flag & Glyph::FLAG_ON_CURVE)
-	  PUSH_POINT_CMD ('M', curr->x, curr->y);
+	  funcs->move_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y), user_data);
 	else
 	{
 	  if (next->flag & Glyph::FLAG_ON_CURVE)
-	    PUSH_POINT_CMD ('M', next->x, next->y);
+            funcs->move_to (font->em_scalef_x (next->x), font->em_scalef_y (next->y), user_data);
 	  else
-	  /* If both first and last points are off-curve, start at their middle. */
-	    PUSH_POINT_CMD ('M', (curr->x + next->x) / 2.f, (curr->y + next->y) / 2.f);
+	    /* If both first and last points are off-curve, start at their middle. */
+            funcs->move_to (font->em_scalef_x ((curr->x + next->x) / 2.f),
+			    font->em_scalef_y ((curr->y + next->y) / 2.f), user_data);
 	}
 
 	for (unsigned i = 0; i < contour_length; ++i)
@@ -1081,21 +1082,19 @@ struct glyf
 	  next = &points[contour_start + ((i + 1) % contour_length)];
 
 	  if (curr->flag & Glyph::FLAG_ON_CURVE)
-	    PUSH_POINT_CMD ('L', curr->x, curr->y); /* straight line */
+	    funcs->line_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y), user_data);
 	  else
 	  {
-	    PUSH_POINT_CMD ('Q', curr->x, curr->y);
-	    if (next->flag & Glyph::FLAG_ON_CURVE)
-	      PUSH_POINT (next->x, next->y);
-	    else
-	      PUSH_POINT ((curr->x + next->x) / 2.f, (curr->y + next->y) / 2.f);
+	    float to_x, to_y;
+	    if (next->flag & Glyph::FLAG_ON_CURVE) { to_x = next->x; to_y = next->y; }
+	    else { to_x = (curr->x + next->x) / 2.f; to_y = (curr->y + next->y) / 2.f; }
+	    funcs->conic_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y),
+			     font->em_scalef_x (to_x), font->em_scalef_y (to_y), user_data);
 	  }
 	}
-	commands->push ('Z');
+	/* funcs->end_path (); */
 	contour_start += contour_length;
       }
-#undef PUSH_POINT_CMD
-#undef PUSH_POINT
       return true;
     }
 

@@ -38,16 +38,15 @@ hb_ot_glyph_decompose (hb_font_t *font, hb_codepoint_t glyph,
 {
   if (unlikely (!funcs || glyph >= font->face->get_num_glyphs ())) return false;
 
+  if (font->face->table.glyf->get_path (font, glyph, funcs, user_data)) return true;
+
+#ifndef HB_NO_OT_FONT_CFF
   hb_vector_t<hb_position_t> coords;
   hb_vector_t<uint8_t> commands;
 
   bool ret = false;
-
-  if (!ret) ret = font->face->table.glyf->get_path (font, glyph, &coords, &commands);
-#ifndef HB_NO_OT_FONT_CFF
   if (!ret) ret = font->face->table.cff1->get_path (font, glyph, &coords, &commands);
   if (!ret) ret = font->face->table.cff2->get_path (font, glyph, &coords, &commands);
-#endif
 
   if (unlikely (!ret || coords.length % 2 != 0)) return false;
 
@@ -68,12 +67,6 @@ hb_ot_glyph_decompose (hb_font_t *font, hb_codepoint_t glyph,
       funcs->line_to (coords[coords_idx + 0], coords[coords_idx + 1], user_data);
       coords_idx += 2;
       break;
-    case 'Q':
-      if (unlikely (coords.length < coords_idx + 4)) return false;
-      funcs->conic_to (coords[coords_idx + 0], coords[coords_idx + 1],
-		       coords[coords_idx + 2], coords[coords_idx + 3], user_data);
-      coords_idx += 4;
-      break;
     case 'C':
       if (unlikely (coords.length >= coords_idx + 6)) return false;
       funcs->cubic_to (coords[coords_idx + 0], coords[coords_idx + 1],
@@ -84,6 +77,9 @@ hb_ot_glyph_decompose (hb_font_t *font, hb_codepoint_t glyph,
     }
 
   return true;
+#endif
+
+  return false;
 }
 
 #endif

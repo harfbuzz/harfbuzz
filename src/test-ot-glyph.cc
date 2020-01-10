@@ -107,7 +107,12 @@ main (int argc, char **argv)
       hb_font_extents_t font_extents;
       hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
       hb_glyph_extents_t extents = {0};
-      hb_font_get_glyph_extents (font, gid, &extents);
+      if (!hb_font_get_glyph_extents (font, gid, &extents))
+      {
+        printf ("Skip gid: %d\n", gid);
+	continue;
+      }
+
       char name[100];
       sprintf (name, "%d.svg", gid);
       FILE *f = fopen (name, "wb");
