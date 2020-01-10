@@ -1203,7 +1203,8 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
  * list
  *
  * Returns all inactive lookups reachable from lookup_indices
- * Since: 2.6.4
+ *
+ * Since: REPLACEME
  **/
 void
 hb_ot_layout_closure_lookups (hb_face_t      *face,
