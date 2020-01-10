@@ -31,22 +31,28 @@
 
 /* Unit tests for hb-ot-*.h */
 
-static void
-move_to (hb_position_t to_x, hb_position_t to_y, void *user_data) {}
+#if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
+#define HB_UNUSED	__attribute__((unused))
+#else
+#define HB_UNUSED
+#endif
 
 static void
-line_to (hb_position_t to_x, hb_position_t to_y, void *user_data) {}
+move_to (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
 
 static void
-conic_to (hb_position_t control_x, hb_position_t control_y,
-	  hb_position_t to_x, hb_position_t to_y,
-	  void *user_data) {}
+line_to (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
 
 static void
-cubic_to (hb_position_t control1_x, hb_position_t control1_y,
-	  hb_position_t control2_x, hb_position_t control2_y,
-	  hb_position_t to_x, hb_position_t to_y,
-	  void *user_data) {}
+conic_to (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
+	  hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
+	  void *user_data HB_UNUSED) {}
+
+static void
+cubic_to (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
+	  hb_position_t control2_x HB_UNUSED, hb_position_t control2_y HB_UNUSED,
+	  hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
+	  void *user_data HB_UNUSED) {}
 
 static void
 test_face (hb_face_t *face,

@@ -1046,7 +1046,7 @@ struct glyf
     get_path (hb_font_t *font, hb_codepoint_t gid,
 	      hb_ot_glyph_decompose_funcs_t *funcs, void *user_data) const
     {
-      /* TODO: Make it work alloc free and without all_points vector */
+      /* TODO: Make it alloc free and work without all_points vector */
       contour_point_vector_t all_points;
       if (unlikely (!get_points (font, gid, all_points))) return false;
       hb_array_t<contour_point_t> points = all_points.sub_array (0, all_points.length - 4);
