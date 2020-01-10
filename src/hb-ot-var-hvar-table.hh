@@ -185,6 +185,7 @@ struct index_map_subset_plan_t
 	unsigned int inner = v & 0xFFFF;
 	outer_map.add (outer);
 	if (inner > max_inners[outer]) max_inners[outer] = inner;
+	if (outer >= inner_sets.length) return;
 	inner_sets[outer]->add (inner);
       }
     }
