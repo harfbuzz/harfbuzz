@@ -144,29 +144,42 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
 struct cff2_path_param_t
 {
-  void init (hb_font_t *font_, hb_vector_t<hb_position_t> *points_, hb_vector_t<uint8_t> *commands_)
+  void init (hb_font_t *font_, hb_ot_glyph_decompose_funcs_t *funcs_, void *user_data_)
   {
     path_open = false;
     font = font_;
-    points = points_;
-    commands = commands_;
+    funcs = funcs_;
+    user_data = user_data_;
   }
 
   void   start_path ()       { path_open = true; }
   void     end_path ()       { path_open = false; }
   bool is_path_open () const { return path_open; }
 
-  void push_point (const point_t &p)
+  void move_to (const point_t &p)
   {
-    points->push (font->em_scalef_x (p.x.to_real ()));
-    points->push (font->em_scalef_y (p.y.to_real ()));
+    funcs->move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
+		    user_data);
   }
-  void push_command (uint8_t c) { commands->push (c); }
+
+  void line_to (const point_t &p)
+  {
+    funcs->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
+		    user_data);
+  }
+
+  void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
+  {
+    funcs->cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
+		     font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
+		     font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()),
+		     user_data);
+  }
 
   bool  path_open;
   hb_font_t *font;
-  hb_vector_t<hb_position_t> *points;
-  hb_vector_t<uint8_t> *commands;
+  hb_ot_glyph_decompose_funcs_t *funcs;
+  void *user_data;
 };
 
 struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_interp_env_t, cff2_path_param_t>
@@ -174,44 +187,29 @@ struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_int
   static void moveto (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt)
   {
     param.end_path ();
+    param.move_to (pt);
     env.moveto (pt);
-    param.push_command ('M');
   }
 
   static void line (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt1)
   {
-    if (!param.is_path_open ())
-    {
-      param.start_path ();
-      param.push_point (env.get_pt ());
-    }
+    if (!param.is_path_open ()) param.start_path ();
+    param.line_to (pt1);
     env.moveto (pt1);
-    param.push_point (env.get_pt ());
-    param.push_command ('L');
   }
 
   static void curve (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
   {
-    if (!param.is_path_open ())
-    {
-      param.start_path ();
-      param.push_point (env.get_pt ());
-    }
-    /* include control points */
-    param.push_point (pt1);
-    param.push_point (pt2);
+    if (!param.is_path_open ()) param.start_path ();
+    param.cubic_to (pt1, pt2, pt3);
     env.moveto (pt3);
-    param.push_point (env.get_pt ());
-    param.push_command ('C');
   }
 };
 
 struct cff2_cs_opset_path_t : cff2_cs_opset_t<cff2_cs_opset_path_t, cff2_path_param_t, cff2_path_procs_path_t> {};
 
-bool OT::cff2::accelerator_t::get_path (hb_font_t *font,
-					hb_codepoint_t glyph,
-					hb_vector_t<hb_position_t> *points,
-					hb_vector_t<uint8_t> *commands) const
+bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
+					hb_ot_glyph_decompose_funcs_t *funcs, void *user_data) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */
@@ -225,7 +223,7 @@ bool OT::cff2::accelerator_t::get_path (hb_font_t *font,
   const byte_str_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd, font->coords, font->num_coords);
   cff2_path_param_t  param;
-  param.init (font, points, commands);
+  param.init (font, funcs, user_data);
   if (unlikely (!interp.interpret (param))) return false;
   return true;
 }

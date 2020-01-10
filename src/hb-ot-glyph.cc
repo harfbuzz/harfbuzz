@@ -39,44 +39,9 @@ hb_ot_glyph_decompose (hb_font_t *font, hb_codepoint_t glyph,
   if (unlikely (!funcs || glyph >= font->face->get_num_glyphs ())) return false;
 
   if (font->face->table.glyf->get_path (font, glyph, funcs, user_data)) return true;
-
-#ifndef HB_NO_OT_FONT_CFF
-  hb_vector_t<hb_position_t> coords;
-  hb_vector_t<uint8_t> commands;
-
-  bool ret = false;
-  if (!ret) ret = font->face->table.cff1->get_path (font, glyph, &coords, &commands);
-  if (!ret) ret = font->face->table.cff2->get_path (font, glyph, &coords, &commands);
-
-  if (unlikely (!ret || coords.length % 2 != 0)) return false;
-
-  /* FIXME: We should do all these memory O(1) without hb_vector_t
-	    by moving the logic to the tables */
-  unsigned int coords_idx = 0;
-  for (unsigned int i = 0; i < commands.length; ++i)
-    switch (commands[i])
-    {
-    case 'Z': break;
-    case 'M':
-      if (unlikely (coords.length < coords_idx + 2)) return false;
-      funcs->move_to (coords[coords_idx + 0], coords[coords_idx + 1], user_data);
-      coords_idx += 2;
-      break;
-    case 'L':
-      if (unlikely (coords.length < coords_idx + 2)) return false;
-      funcs->line_to (coords[coords_idx + 0], coords[coords_idx + 1], user_data);
-      coords_idx += 2;
-      break;
-    case 'C':
-      if (unlikely (coords.length >= coords_idx + 6)) return false;
-      funcs->cubic_to (coords[coords_idx + 0], coords[coords_idx + 1],
-		       coords[coords_idx + 2], coords[coords_idx + 3],
-		       coords[coords_idx + 4], coords[coords_idx + 5], user_data);
-      coords_idx += 6;
-      break;
-    }
-
-  return true;
+#ifndef HB_NO_CFF
+  if (font->face->table.cff1->get_path (font, glyph, funcs, user_data)) return true;
+  if (font->face->table.cff2->get_path (font, glyph, funcs, user_data)) return true;
 #endif
 
   return false;

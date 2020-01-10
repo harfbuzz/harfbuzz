@@ -522,14 +522,12 @@ hb_ot_font_set_funcs
 
 <SECTION>
 <FILE>hb-ot-glyph</FILE>
-hb_ot_glyph_path_t
-hb_ot_glyph_path_create
-hb_ot_glyph_path_create_from_font
-hb_ot_glyph_path_destroy
-hb_ot_glyph_path_empty
-hb_ot_glyph_path_get_commands
-hb_ot_glyph_path_get_coords
-hb_ot_glyph_path_reference
+hb_ot_glyph_decompose_funcs_t
+hb_ot_glyph_decompose_move_to_func_t
+hb_ot_glyph_decompose_line_to_func_t
+hb_ot_glyph_decompose_conic_to_func_t
+hb_ot_glyph_decompose_cubic_to_func_t
+hb_ot_glyph_decompose
 </SECTION>
 
 <SECTION>
