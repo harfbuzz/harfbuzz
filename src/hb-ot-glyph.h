@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019  Ebrahim Byagowi
+ * Copyright © 2019-2020  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -33,34 +33,39 @@
 
 HB_BEGIN_DECLS
 
-typedef struct hb_ot_glyph_path_t hb_ot_glyph_path_t;
+typedef void (*hb_ot_glyph_decompose_move_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
+typedef void (*hb_ot_glyph_decompose_line_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
+typedef void (*hb_ot_glyph_decompose_conic_to_func_t) (hb_position_t control_x, hb_position_t control_y,
+						       hb_position_t to_x, hb_position_t to_y,
+						       void *user_data);
+typedef void (*hb_ot_glyph_decompose_cubic_to_func_t) (hb_position_t control1_x, hb_position_t control1_y,
+						       hb_position_t control2_x, hb_position_t control2_y,
+						       hb_position_t to_x, hb_position_t to_y,
+						       void *user_data);
 
-HB_EXTERN hb_ot_glyph_path_t *
-hb_ot_glyph_path_create (hb_position_t     *coords,
-			 unsigned int       coords_count,
-			 uint8_t           *commands,
-			 unsigned int       commands_count,
-			 void              *user_data,
-			 hb_destroy_func_t  destroy);
+/**
+ * hb_ot_glyph_decompose_funcs_t:
+ *
+ * Glyph decompose callbacks.
+ *
+ * Since: REPLACEME
+ **/
+typedef struct hb_ot_glyph_decompose_funcs_t
+{
+  hb_ot_glyph_decompose_move_to_func_t move_to;
+  hb_ot_glyph_decompose_line_to_func_t line_to;
+  hb_ot_glyph_decompose_conic_to_func_t conic_to;
+  hb_ot_glyph_decompose_cubic_to_func_t cubic_to;
+  /*< private >*/
+  void *reserved4;
+  void *reserved3;
+  void *reserved2;
+  void *reserved1;
+} hb_ot_glyph_decompose_funcs_t;
 
-HB_EXTERN hb_ot_glyph_path_t *
-hb_ot_glyph_path_create_from_font (hb_font_t *font, hb_codepoint_t glyph);
-
-HB_EXTERN void
-hb_ot_glyph_path_destroy (hb_ot_glyph_path_t *path);
-
-HB_EXTERN hb_ot_glyph_path_t *
-hb_ot_glyph_path_empty (void);
-
-HB_EXTERN const uint8_t *
-hb_ot_glyph_path_get_commands (hb_ot_glyph_path_t *path, unsigned int *count);
-
-HB_EXTERN const hb_position_t *
-hb_ot_glyph_path_get_coords (hb_ot_glyph_path_t *path, unsigned int *count);
-
-HB_EXTERN hb_ot_glyph_path_t *
-hb_ot_glyph_path_reference (hb_ot_glyph_path_t *path);
-
+hb_bool_t
+hb_ot_glyph_decompose (hb_font_t *font, hb_codepoint_t glyph,
+		       hb_ot_glyph_decompose_funcs_t *funcs, void *user_data);
 
 HB_END_DECLS
 

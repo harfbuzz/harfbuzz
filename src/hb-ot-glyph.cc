@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019  Ebrahim Byagowi
+ * Copyright © 2019-2020  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -31,133 +31,15 @@
 #include "hb-ot-cff1-table.hh"
 #include "hb-ot-cff2-table.hh"
 
-struct hb_ot_glyph_path_t
+hb_bool_t
+hb_ot_glyph_decompose (hb_font_t *font, hb_codepoint_t glyph,
+		       hb_ot_glyph_decompose_funcs_t *funcs,
+		       void *user_data)
 {
-  hb_object_header_t header;
+  if (unlikely (!funcs || glyph >= font->face->get_num_glyphs ())) return false;
 
-  const hb_position_t *coords;
-  unsigned int coords_count;
-
-  const uint8_t *commands;
-  unsigned int commands_count;
-
-  void *user_data;
-  hb_destroy_func_t destroy;
-};
-
-hb_ot_glyph_path_t *
-hb_ot_glyph_path_empty ()
-{
-  return const_cast<hb_ot_glyph_path_t *> (&Null (hb_ot_glyph_path_t));
-}
-
-hb_ot_glyph_path_t *
-hb_ot_glyph_path_create (hb_position_t     *coords,
-			 unsigned int       coords_count,
-			 uint8_t           *commands,
-			 unsigned int       commands_count,
-			 void              *user_data,
-			 hb_destroy_func_t  destroy)
-{
-  hb_ot_glyph_path_t *path;
-
-  if (!coords_count || !commands_count ||
-      !(path = hb_object_create<hb_ot_glyph_path_t> ()))
-  {
-    if (destroy)
-      destroy (user_data);
-    return hb_ot_glyph_path_empty ();
-  }
-
-  path->coords = coords;
-  path->coords_count =  coords_count;
-  path->commands = commands;
-  path->commands_count = commands_count;
-  path->user_data = user_data;
-  path->destroy = destroy;
-
-  return path;
-}
-
-const hb_position_t *
-hb_ot_glyph_path_get_coords (hb_ot_glyph_path_t *path, unsigned int *count)
-{
-  if (count) *count = path->coords_count;
-  return path->coords;
-}
-
-const uint8_t *
-hb_ot_glyph_path_get_commands (hb_ot_glyph_path_t *path, unsigned int *count)
-{
-  if (count) *count = path->commands_count;
-  return path->commands;
-}
-
-hb_ot_glyph_path_t *
-hb_ot_glyph_path_reference (hb_ot_glyph_path_t *path)
-{
-  return hb_object_reference (path);
-}
-
-void
-hb_ot_glyph_path_destroy (hb_ot_glyph_path_t *path)
-{
-  if (!hb_object_destroy (path)) return;
-
-  if (path->destroy) path->destroy (path->user_data);
-
-  free (path);
-}
-
-struct _hb_ot_glyph_path_vectors
-{
-  hb_vector_t<hb_position_t> *coords;
-  hb_vector_t<uint8_t> *commands;
-
-  bool init ()
-  {
-    coords = (hb_vector_t<hb_position_t> *) malloc (sizeof (hb_vector_t<hb_position_t>));
-    commands = (hb_vector_t<uint8_t> *) malloc (sizeof (hb_vector_t<uint8_t>));
-    if (unlikely (!coords || !commands))
-    {
-      free (coords);
-      free (commands);
-      return false;
-    }
-    coords->init ();
-    commands->init ();
-    return true;
-  }
-
-  void fini ()
-  {
-    coords->fini ();
-    commands->fini ();
-    free (coords);
-    free (commands);
-  }
-};
-
-static void
-_hb_ot_glyph_path_free_vectors (void *user_data)
-{
-  ((_hb_ot_glyph_path_vectors *) user_data)->fini ();
-  free (user_data);
-}
-
-hb_ot_glyph_path_t *
-hb_ot_glyph_path_create_from_font (hb_font_t *font, hb_codepoint_t glyph)
-{
-  _hb_ot_glyph_path_vectors *user_data = (_hb_ot_glyph_path_vectors *)
-					 malloc (sizeof (_hb_ot_glyph_path_vectors));
-  if (unlikely (!user_data || !user_data->init () || glyph >= font->face->get_num_glyphs ()))
-  {
-    free (user_data);
-    return hb_ot_glyph_path_empty ();
-  }
-
-  hb_vector_t<hb_position_t> &coords = *user_data->coords;
-  hb_vector_t<uint8_t> &commands = *user_data->commands;
+  hb_vector_t<hb_position_t> coords;
+  hb_vector_t<uint8_t> commands;
 
   bool ret = false;
 
@@ -167,17 +49,41 @@ hb_ot_glyph_path_create_from_font (hb_font_t *font, hb_codepoint_t glyph)
   if (!ret) ret = font->face->table.cff2->get_path (font, glyph, &coords, &commands);
 #endif
 
-  assert (coords.length % 2 == 0); /* coords pairs, should be an even number */
+  if (unlikely (!ret || coords.length % 2 != 0)) return false;
 
-  if (unlikely (!ret))
-  {
-    user_data->fini ();
-    free (user_data);
-    return hb_ot_glyph_path_empty ();
-  }
+  /* FIXME: We should do all these memory O(1) without hb_vector_t
+	    by moving the logic to the tables */
+  unsigned int coords_idx = 0;
+  for (unsigned int i = 0; i < commands.length; ++i)
+    switch (commands[i])
+    {
+    case 'Z': break;
+    case 'M':
+      if (unlikely (coords.length < coords_idx + 2)) return false;
+      funcs->move_to (coords[coords_idx + 0], coords[coords_idx + 1], user_data);
+      coords_idx += 2;
+      break;
+    case 'L':
+      if (unlikely (coords.length < coords_idx + 2)) return false;
+      funcs->line_to (coords[coords_idx + 0], coords[coords_idx + 1], user_data);
+      coords_idx += 2;
+      break;
+    case 'Q':
+      if (unlikely (coords.length < coords_idx + 4)) return false;
+      funcs->conic_to (coords[coords_idx + 0], coords[coords_idx + 1],
+		       coords[coords_idx + 2], coords[coords_idx + 3], user_data);
+      coords_idx += 4;
+      break;
+    case 'C':
+      if (unlikely (coords.length >= coords_idx + 6)) return false;
+      funcs->cubic_to (coords[coords_idx + 0], coords[coords_idx + 1],
+		       coords[coords_idx + 2], coords[coords_idx + 3],
+		       coords[coords_idx + 4], coords[coords_idx + 5], user_data);
+      coords_idx += 6;
+      break;
+    }
 
-  return hb_ot_glyph_path_create (coords.arrayZ, coords.length, commands.arrayZ, commands.length,
-				  user_data, (hb_destroy_func_t) _hb_ot_glyph_path_free_vectors);
+  return true;
 }
 
 #endif
