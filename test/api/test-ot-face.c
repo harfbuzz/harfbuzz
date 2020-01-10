@@ -31,6 +31,22 @@
 
 /* Unit tests for hb-ot-*.h */
 
+static void
+move_to (hb_position_t to_x, hb_position_t to_y, void *user_data) {}
+
+static void
+line_to (hb_position_t to_x, hb_position_t to_y, void *user_data) {}
+
+static void
+conic_to (hb_position_t control_x, hb_position_t control_y,
+	  hb_position_t to_x, hb_position_t to_y,
+	  void *user_data) {}
+
+static void
+cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+	  hb_position_t control2_x, hb_position_t control2_y,
+	  hb_position_t to_x, hb_position_t to_y,
+	  void *user_data) {}
 
 static void
 test_face (hb_face_t *face,
@@ -109,8 +125,13 @@ test_face (hb_face_t *face,
   hb_ot_var_normalize_variations (face, NULL, 0, NULL, 0);
   hb_ot_var_normalize_coords (face, 0, NULL, NULL);
 
-  for (unsigned i = 0; i < 10; ++i)
-    hb_ot_glyph_path_destroy (hb_ot_glyph_path_create_from_font (font, 0));
+  hb_ot_glyph_decompose_funcs_t funcs;
+  funcs.move_to = (hb_ot_glyph_decompose_move_to_func_t) move_to;
+  funcs.line_to = (hb_ot_glyph_decompose_line_to_func_t) line_to;
+  funcs.conic_to = (hb_ot_glyph_decompose_conic_to_func_t) conic_to;
+  funcs.cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to;
+  for (unsigned gid = 0; gid < 10; ++gid)
+    hb_ot_glyph_decompose (font, gid, &funcs, NULL);
 
   hb_set_destroy (set);
   hb_font_destroy (font);

@@ -63,7 +63,7 @@ typedef struct hb_ot_glyph_decompose_funcs_t
   void *reserved1;
 } hb_ot_glyph_decompose_funcs_t;
 
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_ot_glyph_decompose (hb_font_t *font, hb_codepoint_t glyph,
 		       hb_ot_glyph_decompose_funcs_t *funcs, void *user_data);
 
