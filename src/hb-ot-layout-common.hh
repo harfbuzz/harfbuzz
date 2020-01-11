@@ -2363,10 +2363,11 @@ struct FeatureVariationRecord
 {
   friend struct FeatureVariations;
 
-  void collect_lookups (const hb_set_t *feature_indexes,
+  void collect_lookups (const void     *base,
+			const hb_set_t *feature_indexes,
 			hb_set_t       *lookup_indexes /* OUT */) const
   {
-    return (this+substitutions).collect_lookups (feature_indexes, lookup_indexes);
+    return (base+substitutions).collect_lookups (feature_indexes, lookup_indexes);
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -2423,7 +2424,7 @@ struct FeatureVariations
 			hb_set_t       *lookup_indexes /* OUT */) const
   {
     for (const FeatureVariationRecord& r : varRecords)
-      r.collect_lookups (feature_indexes, lookup_indexes);
+      r.collect_lookups (this, feature_indexes, lookup_indexes);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
