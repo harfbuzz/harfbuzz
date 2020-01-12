@@ -2299,9 +2299,9 @@ struct FeatureTableSubstitutionRecord
 {
   friend struct FeatureTableSubstitution;
 
-  void collect_lookups (hb_set_t *lookup_indexes /* OUT */) const
+  void collect_lookups (const void *base, hb_set_t *lookup_indexes /* OUT */) const
   {
-    return (this+feature).add_lookup_indexes_to (lookup_indexes);
+    return (base+feature).add_lookup_indexes_to (lookup_indexes);
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -2338,7 +2338,7 @@ struct FeatureTableSubstitution
     | hb_filter (feature_indexes, &FeatureTableSubstitutionRecord::featureIndex)
     | hb_apply ([=] (const FeatureTableSubstitutionRecord& r)
                 {
-                  r.collect_lookups (lookup_indexes);
+                  r.collect_lookups (this, lookup_indexes);
                 })
     ;
   }
