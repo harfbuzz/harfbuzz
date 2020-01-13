@@ -25,17 +25,18 @@
  */
 
 #ifndef TEST_OT_FACE_NO_MAIN
-#include "hb-test.h"
+# include "hb-test.h"
+#else
+# if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
+#  define HB_UNUSED      __attribute__((unused))
+# else
+#  define HB_UNUSED
+# endif
 #endif
 #include <hb-ot.h>
 
 /* Unit tests for hb-ot-*.h */
 
-#if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
-#define HB_UNUSED	__attribute__((unused))
-#else
-#define HB_UNUSED
-#endif
 
 static void
 move_to (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}

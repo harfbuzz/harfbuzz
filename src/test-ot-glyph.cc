@@ -39,39 +39,35 @@ struct user_data_t
 };
 
 static void
-move_to (hb_position_t to_x, hb_position_t to_y, void *user_data)
+move_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
 {
-  user_data_t u = *((user_data_t *) user_data);
-  fprintf (u.f, "M%d,%d", to_x, u.ascender - to_y);
+  fprintf (user_data.f, "M%d,%d", to_x, user_data.ascender - to_y);
 }
 
 static void
-line_to (hb_position_t to_x, hb_position_t to_y, void *user_data)
+line_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
 {
-  user_data_t u = *((user_data_t *) user_data);
-  fprintf (u.f, "L%d,%d", to_x, u.ascender - to_y);
+  fprintf (user_data.f, "L%d,%d", to_x, user_data.ascender - to_y);
 }
 
 static void
 conic_to (hb_position_t control_x, hb_position_t control_y,
 	  hb_position_t to_x, hb_position_t to_y,
-	  void *user_data)
+	  user_data_t &user_data)
 {
-  user_data_t u = *((user_data_t *) user_data);
-  fprintf (u.f, "Q%d,%d %d,%d", control_x, u.ascender - control_y,
-				to_x, u.ascender - to_y);
+  fprintf (user_data.f, "Q%d,%d %d,%d", control_x, user_data.ascender - control_y,
+					to_x, user_data.ascender - to_y);
 }
 
 static void
 cubic_to (hb_position_t control1_x, hb_position_t control1_y,
 	  hb_position_t control2_x, hb_position_t control2_y,
 	  hb_position_t to_x, hb_position_t to_y,
-	  void *user_data)
+	  user_data_t &user_data)
 {
-  user_data_t u = *((user_data_t *) user_data);
-  fprintf (u.f, "C%d,%d %d,%d %d,%d", control1_x, u.ascender - control1_y,
-				      control2_x, u.ascender - control2_y,
-				      to_x, u.ascender - to_y);
+  fprintf (user_data.f, "C%d,%d %d,%d %d,%d", control1_x, user_data.ascender - control1_y,
+					       control2_x, user_data.ascender - control2_y,
+					       to_x, user_data.ascender - to_y);
 }
 
 int
@@ -109,7 +105,7 @@ main (int argc, char **argv)
       hb_glyph_extents_t extents = {0};
       if (!hb_font_get_glyph_extents (font, gid, &extents))
       {
-        printf ("Skip gid: %d\n", gid);
+	printf ("Skip gid: %d\n", gid);
 	continue;
       }
 
