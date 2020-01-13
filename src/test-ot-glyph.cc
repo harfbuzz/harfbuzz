@@ -87,11 +87,11 @@ main (int argc, char **argv)
     exit (1);
   }
 
-  hb_ot_glyph_decompose_funcs_t funcs;
-  funcs.move_to = (hb_ot_glyph_decompose_move_to_func_t) move_to;
-  funcs.line_to = (hb_ot_glyph_decompose_line_to_func_t) line_to;
-  funcs.conic_to = (hb_ot_glyph_decompose_conic_to_func_t) conic_to;
-  funcs.cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to;
+  hb_ot_glyph_decompose_funcs_t *funcs = hb_ot_glyph_decompose_funcs_create ();
+  hb_ot_glyph_decompose_funcs_set_move_to_func (funcs, (hb_ot_glyph_decompose_move_to_func_t) move_to);
+  hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
+  hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
+  hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
 
   for (unsigned int face_index = 0; face_index < hb_face_count (blob); face_index++)
   {
@@ -119,7 +119,7 @@ main (int argc, char **argv)
       user_data_t user_data;
       user_data.ascender = font_extents.ascender;
       user_data.f = f;
-      if (!hb_ot_glyph_decompose (font, gid, &funcs, &user_data))
+      if (!hb_ot_glyph_decompose (font, gid, funcs, &user_data))
         printf ("Failed to decompose gid: %d\n", gid);
       fprintf (f, "\"/></svg>");
       fclose (f);
@@ -127,6 +127,8 @@ main (int argc, char **argv)
     hb_font_destroy (font);
     hb_face_destroy (face);
   }
+
+  hb_ot_glyph_decompose_funcs_destroy (funcs);
 
   hb_blob_destroy (blob);
 

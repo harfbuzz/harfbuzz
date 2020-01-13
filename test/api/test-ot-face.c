@@ -25,35 +25,12 @@
  */
 
 #ifndef TEST_OT_FACE_NO_MAIN
-# include "hb-test.h"
-#else
-# if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
-#  define HB_UNUSED      __attribute__((unused))
-# else
-#  define HB_UNUSED
-# endif
+#include "hb-test.h"
 #endif
 #include <hb-ot.h>
 
 /* Unit tests for hb-ot-*.h */
 
-
-static void
-move_to (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
-
-static void
-line_to (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
-
-static void
-conic_to (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
-	  hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
-	  void *user_data HB_UNUSED) {}
-
-static void
-cubic_to (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
-	  hb_position_t control2_x HB_UNUSED, hb_position_t control2_y HB_UNUSED,
-	  hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
-	  void *user_data HB_UNUSED) {}
 
 static void
 test_face (hb_face_t *face,
@@ -132,13 +109,10 @@ test_face (hb_face_t *face,
   hb_ot_var_normalize_variations (face, NULL, 0, NULL, 0);
   hb_ot_var_normalize_coords (face, 0, NULL, NULL);
 
-  hb_ot_glyph_decompose_funcs_t funcs;
-  funcs.move_to = (hb_ot_glyph_decompose_move_to_func_t) move_to;
-  funcs.line_to = (hb_ot_glyph_decompose_line_to_func_t) line_to;
-  funcs.conic_to = (hb_ot_glyph_decompose_conic_to_func_t) conic_to;
-  funcs.cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to;
+  hb_ot_glyph_decompose_funcs_t *funcs = hb_ot_glyph_decompose_funcs_create ();
   for (unsigned gid = 0; gid < 10; ++gid)
-    hb_ot_glyph_decompose (font, gid, &funcs, NULL);
+    hb_ot_glyph_decompose (font, gid, funcs, NULL);
+  hb_ot_glyph_decompose_funcs_destroy (funcs);
 
   hb_set_destroy (set);
   hb_font_destroy (font);

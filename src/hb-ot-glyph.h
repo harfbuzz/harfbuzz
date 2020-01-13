@@ -50,22 +50,37 @@ typedef void (*hb_ot_glyph_decompose_cubic_to_func_t) (hb_position_t control1_x,
  *
  * Since: REPLACEME
  **/
-typedef struct hb_ot_glyph_decompose_funcs_t
-{
-  hb_ot_glyph_decompose_move_to_func_t move_to;
-  hb_ot_glyph_decompose_line_to_func_t line_to;
-  hb_ot_glyph_decompose_conic_to_func_t conic_to;
-  hb_ot_glyph_decompose_cubic_to_func_t cubic_to;
-  /*< private >*/
-  void *reserved4;
-  void *reserved3;
-  void *reserved2;
-  void *reserved1;
-} hb_ot_glyph_decompose_funcs_t;
+typedef struct hb_ot_glyph_decompose_funcs_t hb_ot_glyph_decompose_funcs_t;
+
+HB_EXTERN void
+hb_ot_glyph_decompose_funcs_set_move_to_func (hb_ot_glyph_decompose_funcs_t        *funcs,
+					      hb_ot_glyph_decompose_move_to_func_t  move_to);
+
+HB_EXTERN void
+hb_ot_glyph_decompose_funcs_set_line_to_func (hb_ot_glyph_decompose_funcs_t        *funcs,
+					      hb_ot_glyph_decompose_move_to_func_t  line_to);
+
+HB_EXTERN void
+hb_ot_glyph_decompose_funcs_set_conic_to_func (hb_ot_glyph_decompose_funcs_t         *funcs,
+					       hb_ot_glyph_decompose_conic_to_func_t  conic_to);
+
+HB_EXTERN void
+hb_ot_glyph_decompose_funcs_set_cubic_to_func (hb_ot_glyph_decompose_funcs_t         *funcs,
+					       hb_ot_glyph_decompose_cubic_to_func_t  cubic_to);
+
+HB_EXTERN hb_ot_glyph_decompose_funcs_t *
+hb_ot_glyph_decompose_funcs_create (void);
+
+HB_EXTERN hb_ot_glyph_decompose_funcs_t *
+hb_ot_glyph_decompose_funcs_reference (hb_ot_glyph_decompose_funcs_t *funcs);
+
+HB_EXTERN void
+hb_ot_glyph_decompose_funcs_destroy (hb_ot_glyph_decompose_funcs_t *funcs);
 
 HB_EXTERN hb_bool_t
 hb_ot_glyph_decompose (hb_font_t *font, hb_codepoint_t glyph,
-		       hb_ot_glyph_decompose_funcs_t *funcs, void *user_data);
+		       const hb_ot_glyph_decompose_funcs_t *funcs,
+		       void *user_data);
 
 HB_END_DECLS
 

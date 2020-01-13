@@ -34,6 +34,7 @@
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-var-gvar-table.hh"
+#include "hb-ot-glyph.hh"
 
 #include <float.h>
 
@@ -1044,7 +1045,7 @@ struct glyf
 
     bool
     get_path (hb_font_t *font, hb_codepoint_t gid,
-	      hb_ot_glyph_decompose_funcs_t *funcs, void *user_data) const
+	      const hb_ot_glyph_decompose_funcs_t *funcs, void *user_data) const
     {
       /* TODO: Make it alloc free and work without all_points vector */
       contour_point_vector_t all_points;

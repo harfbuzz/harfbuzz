@@ -74,6 +74,7 @@ HB_BASE_sources = \
 	hb-ot-gasp-table.hh \
 	hb-ot-glyf-table.hh \
 	hb-ot-glyph.cc \
+	hb-ot-glyph.hh \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \

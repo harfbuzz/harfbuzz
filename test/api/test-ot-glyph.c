@@ -74,27 +74,17 @@ cubic_to (hb_position_t control1_x, hb_position_t control1_y,
 				   to_x, to_y);
 }
 
+static hb_ot_glyph_decompose_funcs_t *funcs;
+
 static void
 test_hb_ot_glyph_empty (void)
 {
-  hb_ot_glyph_decompose_funcs_t funcs;
-  funcs.move_to = (hb_ot_glyph_decompose_move_to_func_t) move_to;
-  funcs.line_to = (hb_ot_glyph_decompose_line_to_func_t) line_to;
-  funcs.conic_to = (hb_ot_glyph_decompose_conic_to_func_t) conic_to;
-  funcs.cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to;
-
-  g_assert (!hb_ot_glyph_decompose (hb_font_get_empty (), 3, &funcs, NULL));
+  g_assert (!hb_ot_glyph_decompose (hb_font_get_empty (), 3, funcs, NULL));
 }
 
 static void
 test_hb_ot_glyph_glyf (void)
 {
-  hb_ot_glyph_decompose_funcs_t funcs;
-  funcs.move_to = (hb_ot_glyph_decompose_move_to_func_t) move_to;
-  funcs.line_to = (hb_ot_glyph_decompose_line_to_func_t) line_to;
-  funcs.conic_to = (hb_ot_glyph_decompose_conic_to_func_t) conic_to;
-  funcs.cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to;
-
   hb_face_t *face = hb_test_open_font_file ("fonts/SourceSerifVariable-Roman-VVAR.abc.ttf");
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
@@ -105,8 +95,8 @@ test_hb_ot_glyph_glyf (void)
     .size = sizeof (str),
     .consumed = 0
   };
-  g_assert (!hb_ot_glyph_decompose (font, 4, &funcs, &user_data));
-  g_assert (hb_ot_glyph_decompose (font, 3, &funcs, &user_data));
+  g_assert (!hb_ot_glyph_decompose (font, 4, funcs, &user_data));
+  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
   char expected[] = "M275,442L275,442Q232,442 198,420Q164,397 145,353Q126,309 126,245L126,245"
 		    "Q126,182 147,139Q167,95 204,73Q240,50 287,50L287,50Q330,50 367,70Q404,90 427,128L427,128L451,116"
 		    "Q431,54 384,21Q336,-13 266,-13L266,-13Q198,-13 148,18Q97,48 70,104Q43,160 43,236L43,236Q43,314 76,371"
@@ -126,7 +116,7 @@ test_hb_ot_glyph_glyf (void)
     .size = sizeof (str2),
     .consumed = 0
   };
-  g_assert (hb_ot_glyph_decompose (font, 3, &funcs, &user_data2));
+  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data2));
   char expected2[] = "M323,448L323,448Q297,448 271,430Q244,412 227,371Q209,330 209,261L209,261Q209,204 226,166"
 		     "Q242,127 273,107Q303,86 344,86L344,86Q378,86 404,101Q430,115 451,137L451,137L488,103"
 		     "Q458,42 404,13Q350,-16 279,-16L279,-16Q211,-16 153,13Q95,41 60,99Q25,156 25,241L25,241"
@@ -141,12 +131,6 @@ test_hb_ot_glyph_glyf (void)
 static void
 test_hb_ot_glyph_cff1 (void)
 {
-  hb_ot_glyph_decompose_funcs_t funcs;
-  funcs.move_to = (hb_ot_glyph_decompose_move_to_func_t) move_to;
-  funcs.line_to = (hb_ot_glyph_decompose_line_to_func_t) line_to;
-  funcs.conic_to = (hb_ot_glyph_decompose_conic_to_func_t) conic_to;
-  funcs.cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to;
-
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_seac.otf");
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
@@ -157,7 +141,7 @@ test_hb_ot_glyph_cff1 (void)
     .size = sizeof (str),
     .consumed = 0
   };
-  g_assert (hb_ot_glyph_decompose (font, 3, &funcs, &user_data));
+  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
   char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367"
 		    "L369,267L172,267M3,0L88,0L151,200L390,200L452,0L541,0L319,656L225,656"
 		    "M300,653L342,694L201,861L143,806";
@@ -169,12 +153,6 @@ test_hb_ot_glyph_cff1 (void)
 static void
 test_hb_ot_glyph_cff2 (void)
 {
-  hb_ot_glyph_decompose_funcs_t funcs;
-  funcs.move_to = (hb_ot_glyph_decompose_move_to_func_t) move_to;
-  funcs.line_to = (hb_ot_glyph_decompose_line_to_func_t) line_to;
-  funcs.conic_to = (hb_ot_glyph_decompose_conic_to_func_t) conic_to;
-  funcs.cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to;
-
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
   hb_font_t *font = hb_font_create (face);
   hb_face_destroy (face);
@@ -185,7 +163,7 @@ test_hb_ot_glyph_cff2 (void)
     .size = sizeof (str),
     .consumed = 0
   };
-  g_assert (hb_ot_glyph_decompose (font, 3, &funcs, &user_data));
+  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
   char expected[] = "M275,442C303,442 337,435 371,417L325,454L350,366C357,341 370,321 403,321"
 		    "C428,321 443,333 448,358C435,432 361,487 272,487C153,487 43,393 43,236"
 		    "C43,83 129,-13 266,-13C360,-13 424,33 451,116L427,128C396,78 345,50 287,50"
@@ -203,7 +181,7 @@ test_hb_ot_glyph_cff2 (void)
     .size = sizeof (str2),
     .consumed = 0
   };
-  g_assert (hb_ot_glyph_decompose (font, 3, &funcs, &user_data2));
+  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data2));
   char expected2[] = "M323,448C356,448 380,441 411,427L333,469L339,401C343,322 379,297 420,297"
 		     "C458,297 480,314 492,352C486,433 412,501 303,501C148,501 25,406 25,241"
 		     "C25,70 143,-16 279,-16C374,-16 447,22 488,103L451,137C423,107 390,86 344,86"
@@ -216,10 +194,19 @@ test_hb_ot_glyph_cff2 (void)
 int
 main (int argc, char **argv)
 {
+  funcs = hb_ot_glyph_decompose_funcs_create ();
+  hb_ot_glyph_decompose_funcs_set_move_to_func (funcs, (hb_ot_glyph_decompose_move_to_func_t) move_to);
+  hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
+  hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
+  hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
+
   hb_test_init (&argc, &argv);
   hb_test_add (test_hb_ot_glyph_empty);
   hb_test_add (test_hb_ot_glyph_glyf);
   hb_test_add (test_hb_ot_glyph_cff1);
   hb_test_add (test_hb_ot_glyph_cff2);
-  return hb_test_run ();
+  unsigned result = hb_test_run ();
+
+  hb_ot_glyph_decompose_funcs_destroy (funcs);
+  return result;
 }
