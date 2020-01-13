@@ -652,7 +652,6 @@ hb_ot_rotate_chars (const hb_ot_shape_context_t *c)
   {
     for (unsigned int i = 0; i < count; i++) {
       hb_codepoint_t codepoint = hb_vert_char_for (info[i].codepoint);
-      if (c->font->has_glyph (codepoint))
       if (unlikely (codepoint != info[i].codepoint && c->font->has_glyph (codepoint)))
 	info[i].codepoint = codepoint;
     }
