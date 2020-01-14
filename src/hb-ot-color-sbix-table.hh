@@ -44,27 +44,17 @@ struct SBIXGlyph
   static unsigned int get_size (unsigned int data_length)
   { return min_size + data_length * HBUINT8::static_size; }
 
-  bool serialize (hb_serialize_context_t *c, unsigned x_offset, unsigned y_offset, Tag graphic_type, const UnsizedArrayOf<HBUINT8>* src_data, unsigned int data_length)
-  {
+  SBIXGlyph* copy (hb_serialize_context_t *c, unsigned int data_length) const {
     TRACE_SERIALIZE (this);
+    SBIXGlyph* new_glyph = c->start_embed<SBIXGlyph> ();
+    if (unlikely (!new_glyph)) return_trace (nullptr);
+    if (unlikely (!c->extend (*new_glyph, data_length))) return_trace (nullptr);
 
-    if (unlikely (!c->extend (*this, data_length))) return_trace (false);
-
-    xOffset = x_offset;
-    yOffset = y_offset;
-    graphicType = graphic_type;
-    memcpy(&data, src_data, data_length);
-    return_trace (true);
-  }
-
-  bool subset (hb_subset_context_t *c, unsigned int data_length) const {
-    TRACE_SUBSET (this);
-
-    SBIXGlyph* new_glyph = c->serializer->start_embed<SBIXGlyph> ();
-    if (unlikely (!new_glyph)) return_trace (false);
-
-    new_glyph->serialize (c->serializer, xOffset, yOffset, graphicType, &data, data_length);
-    return_trace (true);
+    new_glyph->xOffset = xOffset;
+    new_glyph->yOffset = yOffset;
+    new_glyph->graphicType = graphicType;
+    memcpy (&new_glyph->data, &data, data_length);
+    return_trace (new_glyph);
   }
 
   HBINT16	xOffset;	/* The horizontal (x-axis) offset from the left
@@ -146,18 +136,21 @@ struct SBIXStrike
     return hb_blob_create_sub_blob (sbix_blob, glyph_offset, glyph_length);
   }
 
-  bool subset (hb_subset_context_t* c) const
+  bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
     unsigned int num_output_glyphs = c->plan->num_output_glyphs ();
 
     auto* out = c->serializer->start_embed<SBIXStrike> ();
     if (unlikely (!out)) return_trace (false);
+    auto snap = c->serializer->snapshot ();
     if (unlikely (!c->serializer->extend (*out, num_output_glyphs + 1))) return_trace (false);
     out->ppem = ppem;
     out->resolution = resolution;
     HBUINT32 head;
     head = get_size(num_output_glyphs + 1);
+
+    bool has_glyphs = false;
     for (unsigned new_gid = 0; new_gid < num_output_glyphs; new_gid++)
     {
       hb_codepoint_t old_gid;
@@ -167,15 +160,19 @@ struct SBIXStrike
         out->imageOffsetsZ[new_gid] = head;
         continue;
       }
+      has_glyphs = true;
       unsigned int delta = imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid];
       unsigned int glyph_data_length = delta - SBIXGlyph::min_size;
-      if (!(this + imageOffsetsZ[old_gid]).subset(c, glyph_data_length))
+      if (!(this + imageOffsetsZ[old_gid]).copy (c->serializer, glyph_data_length))
         return_trace (false);
       out->imageOffsetsZ[new_gid] = head;
       head += delta;
     }
-    out->imageOffsetsZ[num_output_glyphs] = head;
-    return_trace (true);
+    if (has_glyphs)
+      out->imageOffsetsZ[num_output_glyphs] = head;
+    else
+      c->serializer->revert (snap);
+    return_trace (has_glyphs);
   }
 
   public:
@@ -359,7 +356,7 @@ struct sbix
 
     auto *out = c->serializer->start_embed<LOffsetLArrayOf<SBIXStrike>> ();
     if (unlikely (!out)) return_trace (false);
-    if (unlikely (!c->serializer->allocate_size<HBUINT32> (HBUINT32::static_size))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min(out))) return_trace (false);
 
     hb_vector_t<LOffsetTo<SBIXStrike>*> new_strikes;
     hb_vector_t<hb_serialize_context_t::objidx_t> objidxs;
@@ -382,9 +379,7 @@ struct sbix
       }
     }
     for (unsigned int i = 0; i < new_strikes.length; ++i)
-    {
       c->serializer->add_link (*new_strikes[i], objidxs[new_strikes.length - 1 - i], dst_base);
-    }
 
     return_trace (true);
   }
