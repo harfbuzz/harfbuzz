@@ -153,8 +153,8 @@ struct cff2_path_param_t
     user_data = user_data_;
   }
 
-  void   start_path ()       { path_open = true; }
-  void     end_path ()       { /* funcs->close_path (); */ path_open = false; }
+  void   start_path ()       { funcs->open_path (user_data);                 path_open = true; }
+  void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
   bool is_path_open () const { return path_open; }
 
   void move_to (const point_t &p)

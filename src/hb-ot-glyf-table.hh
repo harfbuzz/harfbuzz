@@ -1047,14 +1047,19 @@ struct glyf
     get_path (hb_font_t *font, hb_codepoint_t gid,
 	      const hb_ot_glyph_decompose_funcs_t *funcs, void *user_data) const
     {
-      /* TODO: Make it alloc free and work without all_points vector */
+      /* Making this completely alloc free is not that easy
+	 https://github.com/harfbuzz/harfbuzz/issues/2095
+	 mostly because of gvar handling in VF fonts,
+	 perhaps a separate path can be considered */
       contour_point_vector_t all_points;
       if (unlikely (!get_points (font, gid, all_points))) return false;
       hb_array_t<contour_point_t> points = all_points.sub_array (0, all_points.length - 4);
 
       unsigned contour_start = 0;
+      /* Learnt from https://github.com/opentypejs/opentype.js/blob/4e0bb99/src/tables/glyf.js#L222 */
       while (contour_start < points.length)
       {
+	funcs->open_path (user_data);
 	unsigned contour_length = 0;
 	for (unsigned i = contour_start; i < points.length; ++i)
 	{
@@ -1093,8 +1098,8 @@ struct glyf
 			     font->em_scalef_x (to_x), font->em_scalef_y (to_y), user_data);
 	  }
 	}
-	/* funcs->end_path (); */
 	contour_start += contour_length;
+	funcs->close_path (user_data);
       }
       return true;
     }

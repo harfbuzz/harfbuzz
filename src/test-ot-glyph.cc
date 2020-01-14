@@ -70,6 +70,12 @@ cubic_to (hb_position_t control1_x, hb_position_t control1_y,
 					       to_x, user_data.ascender - to_y);
 }
 
+static void
+close_path (user_data_t &user_data)
+{
+  fprintf (user_data.f, "Z");
+}
+
 int
 main (int argc, char **argv)
 {
