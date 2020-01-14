@@ -41,19 +41,16 @@ namespace OT {
 
 struct SBIXGlyph
 {
-  static unsigned int get_size (unsigned int data_length)
-  { return min_size + data_length * HBUINT8::static_size; }
-
   SBIXGlyph* copy (hb_serialize_context_t *c, unsigned int data_length) const {
     TRACE_SERIALIZE (this);
     SBIXGlyph* new_glyph = c->start_embed<SBIXGlyph> ();
     if (unlikely (!new_glyph)) return_trace (nullptr);
-    if (unlikely (!c->extend (*new_glyph, data_length))) return_trace (nullptr);
+    if (unlikely (!c->extend_min (new_glyph))) return_trace (nullptr);
 
     new_glyph->xOffset = xOffset;
     new_glyph->yOffset = yOffset;
     new_glyph->graphicType = graphicType;
-    memcpy (&new_glyph->data, &data, data_length);
+    data.copy(c, data_length);
     return_trace (new_glyph);
   }
 
