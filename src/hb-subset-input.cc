@@ -77,8 +77,6 @@ hb_subset_input_create_or_fail ()
     HB_TAG ('G', 'l', 'o', 'c'),
     HB_TAG ('S', 'i', 'l', 'f'),
     HB_TAG ('S', 'i', 'l', 'l'),
-    // Colour
-    HB_TAG ('s', 'b', 'i', 'x')
   };
 
   input->drop_tables->add_array (default_drop_tables, ARRAY_LENGTH (default_drop_tables));
