@@ -29,7 +29,6 @@
 #define HB_OT_VAR_GVAR_TABLE_HH
 
 #include "hb-open-type.hh"
-#include "hb-ot-glyf-table.hh"
 #include "hb-ot-var-fvar-table.hh"
 
 /*
