@@ -155,6 +155,43 @@ struct subset_offset_array_t
   const void *_dest_base;
 };
 
+
+template<typename OutputArray, typename Arg>
+struct subset_offset_array_arg_t
+{
+  subset_offset_array_arg_t
+  (hb_subset_context_t *subset_context,
+   OutputArray& out,
+   const void *src_base,
+   const void *dest_base,
+   Arg &&arg)
+      : _subset_context(subset_context), _out (out), _src_base (src_base), _dest_base (dest_base), _arg (arg) {}
+
+  template <typename T>
+  bool
+  operator ()
+  (T&& offset)
+  {
+    auto *o = _out.serialize_append (_subset_context->serializer);
+    if (unlikely (!o)) return false;
+    auto snap = _subset_context->serializer->snapshot ();
+    bool ret = o->serialize_subset (_subset_context, offset, _src_base, _dest_base, _arg);
+    if (!ret)
+    {
+      _out.pop ();
+      _subset_context->serializer->revert (snap);
+    }
+    return ret;
+  }
+
+  private:
+  hb_subset_context_t *_subset_context;
+  OutputArray &_out;
+  const void *_src_base;
+  const void *_dest_base;
+  Arg &&_arg;
+};
+
 /*
  * Helper to subset an array of offsets. Subsets the thing pointed to by each offset
  * and discards the offset in the array if the subset operation results in an empty
@@ -171,6 +208,19 @@ struct
    const void *dest_base) const
   {
     return subset_offset_array_t<OutputArray> (subset_context, out, src_base, dest_base);
+  }
+
+  /* Variant with one extra argument passed to serialize_subset */
+  template<typename OutputArray, typename Arg>
+  subset_offset_array_arg_t<OutputArray, Arg>
+  operator ()
+  (hb_subset_context_t *subset_context,
+   OutputArray& out,
+   const void *src_base,
+   const void *dest_base,
+   Arg &&arg) const
+  {
+    return subset_offset_array_arg_t<OutputArray, Arg> (subset_context, out, src_base, dest_base, arg);
   }
 }
 HB_FUNCOBJ (subset_offset_array);
@@ -1006,17 +1056,17 @@ struct Lookup
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    auto *out = c->serializer->embed (*this);
-    if (unlikely (!out)) return_trace (false);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    out->lookupType = lookupType;
+    out->lookupFlag = lookupFlag;
 
-    /* Subset the actual subtables. */
-    /* TODO Drop empty ones, either by calling intersects() beforehand,
-     * or just dropping null offsets after. */
-    const OffsetArrayOf<TSubTable>& subtables = get_subtables<TSubTable> ();
-    OffsetArrayOf<TSubTable>& out_subtables = out->get_subtables<TSubTable> ();
-    unsigned int count = subTable.len;
-    for (unsigned int i = 0; i < count; i++)
-      out_subtables[i].serialize_subset (c, subtables[i], this, out, get_type ());
+    const hb_set_t *glyphset = c->plan->glyphset ();
+    unsigned int lookup_type = get_type ();
+    + hb_iter (get_subtables <TSubTable> ())
+    | hb_filter ([=] (const OffsetTo<TSubTable> &_) { return (this+_).intersects (glyphset, lookup_type); })
+    | hb_apply (subset_offset_array (c, out->get_subtables<TSubTable> (), this, out, lookup_type))
+    ;
 
     return_trace (true);
   }

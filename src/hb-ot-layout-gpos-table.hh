@@ -1931,6 +1931,12 @@ struct PosLookupSubTable
     }
   }
 
+  bool intersects (const hb_set_t *glyphs, unsigned int lookup_type) const
+  {
+    hb_intersects_context_t c (glyphs);
+    return dispatch (&c, lookup_type);
+  }
+
   protected:
   union {
   SinglePos		single;
