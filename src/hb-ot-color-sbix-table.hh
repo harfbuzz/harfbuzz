@@ -133,7 +133,7 @@ struct SBIXStrike
     return hb_blob_create_sub_blob (sbix_blob, glyph_offset, glyph_length);
   }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c, unsigned int sbix_len, unsigned int strike_offset) const
   {
     TRACE_SUBSET (this);
     unsigned int num_output_glyphs = c->plan->num_output_glyphs ();
@@ -153,7 +153,8 @@ struct SBIXStrike
       hb_codepoint_t old_gid;
       if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid) ||
           unlikely (imageOffsetsZ[old_gid + 1] <= imageOffsetsZ[old_gid] ||
-                    imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid] <= SBIXGlyph::min_size)) {
+                    imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid] <= SBIXGlyph::min_size) ||
+                    (unsigned int) imageOffsetsZ[old_gid + 1] > sbix_len - strike_offset) {
         out->imageOffsetsZ[new_gid] = head;
         continue;
       }
@@ -334,7 +335,8 @@ struct sbix
   bool add_strike (hb_subset_context_t *c,
                    const void *dst_base,
                    LOffsetTo<SBIXStrike>* o,
-                   unsigned int i) const {
+                   unsigned int i,
+                   unsigned int sbix_len) const {
     *o = 0;
     if (strikes[i].is_null ())
       return false;
@@ -343,11 +345,12 @@ struct sbix
 
     s->push ();
 
-    return (this+strikes[i]).subset (c);
+    return (this+strikes[i]).subset (c, sbix_len, (unsigned int) strikes[i]);
   }
 
   bool serialize_strike_offsets (hb_subset_context_t *c,
-                                 const void *dst_base) const
+                                 const void *dst_base,
+                                 unsigned int sbix_len) const
   {
     TRACE_SERIALIZE (this);
 
@@ -362,7 +365,7 @@ struct sbix
       auto* o = out->serialize_append (c->serializer);
       if (unlikely (!o)) return_trace (false);
       auto snap = c->serializer->snapshot ();
-      bool ret = add_strike(c, dst_base, o, i);
+      bool ret = add_strike(c, dst_base, o, i, sbix_len);
       if (!ret)
       {
         c->serializer->pop_discard ();
@@ -389,8 +392,11 @@ struct sbix
     if (unlikely (!sbix_prime)) return_trace (false);
     if (unlikely (!c->serializer->embed (this->version))) return_trace (false);
     if (unlikely (!c->serializer->embed (this->flags))) return_trace (false);
+    hb_blob_ptr_t<sbix> table = hb_sanitize_context_t().reference_table<sbix> (c->plan->source);
+    const unsigned int sbix_len = table.get_blob ()->length;
+    table.destroy ();
 
-    return_trace (serialize_strike_offsets (c, sbix_prime));
+    return_trace (serialize_strike_offsets (c, sbix_prime, sbix_len));
   }
 
   protected:
