@@ -85,6 +85,62 @@ parse_nameids (const char *name,
 }
 
 static gboolean
+parse_name_languages (const char *name,
+		      const char *arg,
+		      gpointer    data,
+		      GError    **error G_GNUC_UNUSED)
+{
+  subset_options_t *subset_opts = (subset_options_t *) data;
+  hb_set_t *name_languages = subset_opts->input->name_languages;
+
+  char last_name_char = name[strlen (name) - 1];
+
+  if (last_name_char != '+' && last_name_char != '-')
+    hb_set_clear (name_languages);
+
+  if (0 == strcmp (arg, "*"))
+  {
+    if (last_name_char == '-')
+      hb_set_del_range (name_languages, 0, 0x5FFF);
+    else
+      hb_set_add_range (name_languages, 0, 0x5FFF);
+    return true;
+  }
+
+  char *s = (char *) arg;
+  char *p;
+
+  while (s && *s)
+  {
+    while (*s && strchr (", ", *s))
+      s++;
+    if (!*s)
+      break;
+
+    errno = 0;
+    hb_codepoint_t u = strtoul (s, &p, 10);
+    if (errno || s == p)
+    {
+      hb_set_destroy (name_languages);
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing name_languages values at: '%s'", s);
+      return false;
+    }
+
+    if (last_name_char != '-')
+    {
+      hb_set_add (name_languages, u);
+    } else {
+      hb_set_del (name_languages, u);
+    }
+
+    s = p;
+  }
+
+  return true;
+}
+
+static gboolean
 parse_drop_tables (const char *name,
 		   const char *arg,
 		   gpointer    data,
@@ -130,6 +186,8 @@ subset_options_t::add_options (option_parser_t *parser)
     {"retain-gids", 0, 0, G_OPTION_ARG_NONE,  &this->input->retain_gids,   "If set don't renumber glyph ids in the subset.",   nullptr},
     {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->input->desubroutinize,   "Remove CFF/CFF2 use of subroutines",   nullptr},
     {"name-IDs", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-legacy", 0, 0, G_OPTION_ARG_NONE,  &this->input->name_legacy,   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
+    {"name-languages", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
     {"drop-tables", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {"drop-tables+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {"drop-tables-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},

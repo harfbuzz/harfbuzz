@@ -108,6 +108,15 @@ struct NameRecord
     return_trace (out);
   }
 
+  bool isUnicode () const
+  {
+    unsigned int p = platformID;
+    unsigned int e = encodingID;
+    
+    return (p == 0 ||
+            (p == 3 && (e == 0 || e == 1 || e == 10)));
+  }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -210,6 +219,8 @@ struct name
     auto it =
     + nameRecordZ.as_array (count)
     | hb_filter (c->plan->name_ids, &NameRecord::nameID)
+    | hb_filter (c->plan->name_languages, &NameRecord::languageID)
+    | hb_filter ([&] (const NameRecord& namerecord) { return c->plan->name_legacy || namerecord.isUnicode (); })
     ;
 
     name_prime->serialize (c->serializer, it, hb_addressof (this + stringOffset));
