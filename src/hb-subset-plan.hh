@@ -42,12 +42,16 @@ struct hb_subset_plan_t
   bool drop_hints : 1;
   bool desubroutinize : 1;
   bool retain_gids : 1;
+  bool name_legacy : 1;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;
 
   // name_ids we would like to retain
   hb_set_t *name_ids;
+
+  // name_languages we would like to retain
+  hb_set_t *name_languages;
 
   // Tables which should be dropped.
   hb_set_t *drop_tables;

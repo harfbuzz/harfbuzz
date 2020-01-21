@@ -71,6 +71,11 @@ hb_subset_test_create_input_from_nameids (const hb_set_t *name_ids)
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_set_t * input_name_ids  = hb_subset_input_nameid_set (input);
   hb_set_set (input_name_ids, name_ids);
+
+  hb_set_t *name_langids = hb_subset_input_namelangid_set (input);
+  hb_set_add_range (name_langids, 0, 0x5FFF);
+
+  hb_subset_input_set_name_legacy (input, true);
   return input;
 }
 
