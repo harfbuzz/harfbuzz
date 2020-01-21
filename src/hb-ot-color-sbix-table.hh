@@ -154,7 +154,8 @@ struct SBIXStrike
       if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid) ||
           unlikely (imageOffsetsZ[old_gid + 1] <= imageOffsetsZ[old_gid] ||
                     imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid] <= SBIXGlyph::min_size) ||
-                    (unsigned int) imageOffsetsZ[old_gid + 1] > sbix_len - strike_offset) {
+                    (unsigned int) imageOffsetsZ[old_gid + 1] > sbix_len - strike_offset)
+      {
         out->imageOffsetsZ[new_gid] = head;
         continue;
       }
