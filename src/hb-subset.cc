@@ -45,6 +45,7 @@
 #include "hb-ot-cff2-table.hh"
 #include "hb-ot-vorg-table.hh"
 #include "hb-ot-name-table.hh"
+#include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-var-gvar-table.hh"
@@ -154,6 +155,53 @@ _subset (hb_subset_plan_t *plan)
 
 
 static bool
+_is_table_present (hb_face_t *source,
+                   hb_tag_t tag)
+{
+  unsigned tables = hb_face_get_table_tags (source, 0, nullptr, nullptr);
+  hb_vector_t<uint32_t> tags;
+  tags.resize (tables);
+  hb_face_get_table_tags (source, 0, &tables, tags.arrayZ);
+  for (unsigned int i = 0; i < tables; i++) {
+    if (tags[i] == tag)
+      return true;
+  }
+  return false;
+}
+
+static bool
+_should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
+{
+  if (plan->drop_tables->has (tag))
+    return true;
+
+  switch (tag) {
+    case HB_TAG ('c', 'v', 'a', 'r'): /* hint table, fallthrough */
+    case HB_TAG ('c', 'v', 't', ' '): /* hint table, fallthrough */
+    case HB_TAG ('f', 'p', 'g', 'm'): /* hint table, fallthrough */
+    case HB_TAG ('p', 'r', 'e', 'p'): /* hint table, fallthrough */
+    case HB_TAG ('h', 'd', 'm', 'x'): /* hint table, fallthrough */
+    case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
+      return plan->drop_hints;
+
+#ifdef HB_NO_SUBSET_LAYOUT
+    // Drop Layout Tables if requested.
+    case HB_OT_TAG_GDEF:
+    case HB_OT_TAG_GPOS:
+    case HB_OT_TAG_GSUB:
+    case HB_TAG ('m', 'o', 'r', 'x'):
+    case HB_TAG ('m', 'o', 'r', 't'):
+    case HB_TAG ('k', 'e', 'r', 'x'):
+    case HB_TAG ('k', 'e', 'r', 'n'):
+      return true;
+#endif
+
+    default:
+      return false;
+  }
+}
+
+static bool
 _subset_table (hb_subset_plan_t *plan,
 	       hb_tag_t          tag)
 {
@@ -169,11 +217,15 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_name:
       result = _subset2<const OT::name> (plan);
       break;
-    case HB_OT_TAG_head:
-      // TODO that won't work well if there is no glyf
-      DEBUG_MSG(SUBSET, nullptr, "skip head, handled by glyf");
-      result = true;
+    case HB_OT_TAG_head: {
+      if (_is_table_present (plan->source, HB_OT_TAG_glyf) && !_should_drop_table (plan, HB_OT_TAG_glyf))
+      {
+        DEBUG_MSG(SUBSET, nullptr, "skip head, handled by glyf");
+        return true;
+      }
+      result = _subset2<const OT::head> (plan);
       break;
+    }
     case HB_OT_TAG_hhea:
       DEBUG_MSG(SUBSET, nullptr, "skip hhea handled by hmtx");
       return true;
@@ -207,6 +259,12 @@ _subset_table (hb_subset_plan_t *plan,
     case HB_OT_TAG_COLR:
       result = _subset2<const OT::COLR> (plan);
       break;
+    case HB_OT_TAG_CBLC:
+      result = _subset2<const OT::CBLC> (plan);
+      break;
+    case HB_OT_TAG_CBDT:
+      DEBUG_MSG(SUBSET, nullptr, "skip CBDT handled by CBLC");
+      return true;
 
 #ifndef HB_NO_SUBSET_CFF
     case HB_OT_TAG_cff1:
@@ -252,38 +310,6 @@ _subset_table (hb_subset_plan_t *plan,
   }
   DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG (tag), result ? "ok" : "FAILED");
   return result;
-}
-
-static bool
-_should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
-{
-  if (plan->drop_tables->has (tag))
-    return true;
-
-  switch (tag) {
-    case HB_TAG ('c', 'v', 'a', 'r'): /* hint table, fallthrough */
-    case HB_TAG ('c', 'v', 't', ' '): /* hint table, fallthrough */
-    case HB_TAG ('f', 'p', 'g', 'm'): /* hint table, fallthrough */
-    case HB_TAG ('p', 'r', 'e', 'p'): /* hint table, fallthrough */
-    case HB_TAG ('h', 'd', 'm', 'x'): /* hint table, fallthrough */
-    case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
-      return plan->drop_hints;
-
-#ifdef HB_NO_SUBSET_LAYOUT
-    // Drop Layout Tables if requested.
-    case HB_OT_TAG_GDEF:
-    case HB_OT_TAG_GPOS:
-    case HB_OT_TAG_GSUB:
-    case HB_TAG ('m', 'o', 'r', 'x'):
-    case HB_TAG ('m', 'o', 'r', 't'):
-    case HB_TAG ('k', 'e', 'r', 'x'):
-    case HB_TAG ('k', 'e', 'r', 'n'):
-      return true;
-#endif
-
-    default:
-      return false;
-  }
 }
 
 /**
