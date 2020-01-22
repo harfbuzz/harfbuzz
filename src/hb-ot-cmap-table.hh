@@ -238,15 +238,17 @@ struct CmapSubtableFormat4
   void serialize (hb_serialize_context_t *c,
 		  Iterator it)
   {
-    unsigned table_initpos = c->length ();
-    if (unlikely (!c->extend_min (*this))) return;
-    this->format = 4;
-
     auto format4_iter =
     + it
     | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
 		 { return _.first <= 0xFFFF; })
     ;
+
+    if (format4_iter.len () == 0) return;
+
+    unsigned table_initpos = c->length ();
+    if (unlikely (!c->extend_min (*this))) return;
+    this->format = 4;
 
     //serialize endCode[]
     HBUINT16 *endCode = serialize_endcode_array (c, format4_iter);
