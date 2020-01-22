@@ -944,8 +944,8 @@ struct PairSet
     unsigned count = len, num = 0;
     for (unsigned i = 0; i < count; i++)
     {
-      if (!glyphset.has (record->secondGlyph)) continue;
-      if (record->serialize (c->serializer, &closure)) num++;
+      if (glyphset.has (record->secondGlyph)
+	 && record->serialize (c->serializer, &closure)) num++;
       record = &StructAtOffset<const PairValueRecord> (record, record_size);
     }
 
@@ -956,7 +956,6 @@ struct PairSet
 
   struct sanitize_closure_t
   {
-    const void *base;
     const ValueFormat *valueFormats;
     unsigned int len1; /* valueFormats[0].get_len() */
     unsigned int stride; /* 1 + len1 + len2 */
@@ -973,8 +972,8 @@ struct PairSet
 
     unsigned int count = len;
     const PairValueRecord *record = &firstPairValueRecord;
-    return_trace (closure->valueFormats[0].sanitize_values_stride_unsafe (c, closure->base, &record->values[0], count, closure->stride) &&
-		  closure->valueFormats[1].sanitize_values_stride_unsafe (c, closure->base, &record->values[closure->len1], count, closure->stride));
+    return_trace (closure->valueFormats[0].sanitize_values_stride_unsafe (c, this, &record->values[0], count, closure->stride) &&
+		  closure->valueFormats[1].sanitize_values_stride_unsafe (c, this, &record->values[closure->len1], count, closure->stride));
   }
 
   protected:
@@ -1078,7 +1077,6 @@ struct PairPosFormat1
     unsigned int len2 = valueFormat[1].get_len ();
     PairSet::sanitize_closure_t closure =
     {
-      &pairSet,
       valueFormat,
       len1,
       1 + len1 + len2
