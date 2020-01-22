@@ -133,7 +133,7 @@ struct SBIXStrike
     return hb_blob_create_sub_blob (sbix_blob, glyph_offset, glyph_length);
   }
 
-  bool subset (hb_subset_context_t *c, unsigned int sbix_len, unsigned int strike_offset) const
+  bool subset (hb_subset_context_t *c, unsigned int available_len) const
   {
     TRACE_SUBSET (this);
     unsigned int num_output_glyphs = c->plan->num_output_glyphs ();
@@ -154,7 +154,7 @@ struct SBIXStrike
       if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid) ||
           unlikely (imageOffsetsZ[old_gid + 1] <= imageOffsetsZ[old_gid] ||
                     imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid] <= SBIXGlyph::min_size) ||
-                    (unsigned int) imageOffsetsZ[old_gid + 1] > sbix_len - strike_offset)
+                    (unsigned int) imageOffsetsZ[old_gid + 1] > available_len)
       {
         out->imageOffsetsZ[new_gid] = head;
         continue;
@@ -335,18 +335,15 @@ struct sbix
 
   bool add_strike (hb_subset_context_t *c,
                    const void *dst_base,
-                   LOffsetTo<SBIXStrike>* o,
                    unsigned int i,
                    unsigned int sbix_len) const {
-    *o = 0;
-    if (strikes[i].is_null ())
+    if (strikes[i].is_null () ||
+        sbix_len < (unsigned int) strikes[i])
       return false;
 
-    auto *s = c->serializer;
+    c->serializer->push ();
 
-    s->push ();
-
-    return (this+strikes[i]).subset (c, sbix_len, (unsigned int) strikes[i]);
+    return (this+strikes[i]).subset (c, sbix_len - (unsigned int) strikes[i]);
   }
 
   bool serialize_strike_offsets (hb_subset_context_t *c,
@@ -365,8 +362,9 @@ struct sbix
     {
       auto* o = out->serialize_append (c->serializer);
       if (unlikely (!o)) return_trace (false);
+      *o = 0;
       auto snap = c->serializer->snapshot ();
-      bool ret = add_strike(c, dst_base, o, i, sbix_len);
+      bool ret = add_strike(c, dst_base, i, sbix_len);
       if (!ret)
       {
         c->serializer->pop_discard ();
