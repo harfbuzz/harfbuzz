@@ -25,24 +25,13 @@
 
 #include "hb.hh"
 
-#include <cairo.h>
-
 #ifdef HB_NO_OPEN
 #define hb_blob_create_from_file(x)  hb_blob_get_empty ()
 #endif
 
-#if !defined(HB_NO_COLOR) && defined(CAIRO_HAS_SVG_SURFACE)
+#if !defined(HB_NO_COLOR)
 
 #include "hb-ot.h"
-
-#include "hb-ft.h"
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
-
-#include <cairo-ft.h>
-#include <cairo-svg.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -133,137 +122,152 @@ png_dump (hb_face_t *face, unsigned int face_index)
   hb_font_destroy (font);
 }
 
-static void
-layered_glyph_dump (hb_face_t *face, cairo_font_face_t *cairo_face, unsigned int face_index)
+struct user_data_t
 {
-  unsigned int upem = hb_face_get_upem (face);
+  FILE *f;
+  hb_position_t ascender;
+};
 
-  unsigned glyph_count = hb_face_get_glyph_count (face);
-  for (hb_codepoint_t gid = 0; gid < glyph_count; ++gid)
+static void
+move_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
+{
+  fprintf (user_data.f, "M%d,%d", to_x, user_data.ascender - to_y);
+}
+
+static void
+line_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
+{
+  fprintf (user_data.f, "L%d,%d", to_x, user_data.ascender - to_y);
+}
+
+static void
+conic_to (hb_position_t control_x, hb_position_t control_y,
+	  hb_position_t to_x, hb_position_t to_y,
+	  user_data_t &user_data)
+{
+  fprintf (user_data.f, "Q%d,%d %d,%d", control_x, user_data.ascender - control_y,
+					to_x, user_data.ascender - to_y);
+}
+
+static void
+cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+	  hb_position_t control2_x, hb_position_t control2_y,
+	  hb_position_t to_x, hb_position_t to_y,
+	  user_data_t &user_data)
+{
+  fprintf (user_data.f, "C%d,%d %d,%d %d,%d", control1_x, user_data.ascender - control1_y,
+					       control2_x, user_data.ascender - control2_y,
+					       to_x, user_data.ascender - to_y);
+}
+
+static void
+close_path (user_data_t &user_data)
+{
+  fprintf (user_data.f, "Z");
+}
+
+static void
+layered_glyph_dump (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsigned int face_index)
+{
+  hb_face_t *face = hb_font_get_face (font);
+  unsigned num_glyphs = hb_face_get_glyph_count (face);
+  for (hb_codepoint_t gid = 0; gid < num_glyphs; ++gid)
   {
     unsigned int num_layers = hb_ot_color_glyph_get_layers (face, gid, 0, nullptr, nullptr);
-    if (!num_layers)
-      continue;
+    if (!num_layers) continue;
 
     hb_ot_color_layer_t *layers = (hb_ot_color_layer_t*) malloc (num_layers * sizeof (hb_ot_color_layer_t));
 
     hb_ot_color_glyph_get_layers (face, gid, 0, &num_layers, layers);
     if (num_layers)
     {
-      // Measure
-      cairo_text_extents_t extents;
+      hb_font_extents_t font_extents;
+      hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
+      hb_glyph_extents_t extents = {0};
+      if (!hb_font_get_glyph_extents (font, gid, &extents))
       {
-	cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 1, 1);
-	cairo_t *cr = cairo_create (surface);
-	cairo_set_font_face (cr, cairo_face);
-	cairo_set_font_size (cr, upem);
-
-	cairo_glyph_t *glyphs = (cairo_glyph_t *) calloc (num_layers, sizeof (cairo_glyph_t));
-	for (unsigned int j = 0; j < num_layers; ++j)
-	  glyphs[j].index = layers[j].glyph;
-	cairo_glyph_extents (cr, glyphs, num_layers, &extents);
-	free (glyphs);
-	cairo_surface_destroy (surface);
-	cairo_destroy (cr);
+	printf ("Skip gid: %d\n", gid);
+	continue;
       }
 
-      // Add a slight margin
-      extents.width += extents.width / 10;
-      extents.height += extents.height / 10;
-      extents.x_bearing -= extents.width / 20;
-      extents.y_bearing -= extents.height / 20;
-
-      // Render
       unsigned int palette_count = hb_ot_color_palette_get_count (face);
-      for (unsigned int palette = 0; palette < palette_count; palette++)
+      for (unsigned int palette = 0; palette < palette_count; ++palette)
       {
 	unsigned int num_colors = hb_ot_color_palette_get_colors (face, palette, 0, nullptr, nullptr);
 	if (!num_colors)
 	  continue;
 
+	char output_path[255];
+	sprintf (output_path, "out/colr-%u-%u-%u.svg", gid, palette, face_index);
+        FILE *f = fopen (output_path, "wb");
+        fprintf (f, "<svg xmlns=\"http://www.w3.org/2000/svg\""
+		    " viewBox=\"%d %d %d %d\">\n",
+		    extents.x_bearing, 0,
+		    extents.x_bearing + extents.width, -extents.height);
+        user_data_t user_data;
+        user_data.ascender = extents.y_bearing;
+        user_data.f = f;
+
 	hb_color_t *colors = (hb_color_t*) calloc (num_colors, sizeof (hb_color_t));
 	hb_ot_color_palette_get_colors (face, palette, 0, &num_colors, colors);
 	if (num_colors)
 	{
-	  char output_path[255];
-	  sprintf (output_path, "out/colr-%u-%u-%u.svg", gid, palette, face_index);
-
-	  cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
-	  cairo_t *cr = cairo_create (surface);
-	  cairo_set_font_face (cr, cairo_face);
-	  cairo_set_font_size (cr, upem);
-
 	  for (unsigned int layer = 0; layer < num_layers; ++layer)
 	  {
 	    hb_color_t color = 0x000000FF;
 	    if (layers[layer].color_index != 0xFFFF)
 	      color = colors[layers[layer].color_index];
-	    cairo_set_source_rgba (cr,
-				   hb_color_get_red (color) / 255.,
-				   hb_color_get_green (color) / 255.,
-				   hb_color_get_blue (color) / 255.,
-				   hb_color_get_alpha (color) / 255.);
-
-	    cairo_glyph_t glyph;
-	    glyph.index = layers[layer].glyph;
-	    glyph.x = -extents.x_bearing;
-	    glyph.y = -extents.y_bearing;
-	    cairo_show_glyphs (cr, &glyph, 1);
+	    fprintf (f, "<path fill=\"#%02X%02X%02X\" ",
+		     hb_color_get_red (color), hb_color_get_green (color), hb_color_get_green (color));
+	    if (hb_color_get_alpha (color) != 255)
+	      fprintf (f, "fill-opacity=\"%.3f\"", (double) hb_color_get_alpha (color) / 255.);
+	    fprintf (f, "d=\"");
+	    if (!hb_ot_glyph_decompose (font, layers[layer].glyph, funcs, &user_data))
+	      printf ("Failed to decompose layer %d while %d\n", layers[layer].glyph, gid);
+	    fprintf (f, "\"/>\n");
 	  }
-
-	  cairo_surface_destroy (surface);
-	  cairo_destroy (cr);
 	}
 	free (colors);
+
+	fprintf (f, "</svg>");
+	fclose (f);
       }
     }
+
 
     free (layers);
   }
 }
 
 static void
-dump_glyphs (cairo_font_face_t *cairo_face, unsigned int upem,
-	     unsigned int num_glyphs, unsigned int face_index)
+dump_glyphs (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsigned int face_index)
 {
-  for (unsigned int i = 0; i < num_glyphs; ++i)
+  unsigned num_glyphs = hb_face_get_glyph_count (hb_font_get_face (font));
+  for (unsigned int gid = 0; gid < num_glyphs; ++gid)
   {
-    cairo_text_extents_t extents;
-    cairo_glyph_t glyph = {0};
-    glyph.index = i;
-
-    // Measure
+    hb_font_extents_t font_extents;
+    hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
+    hb_glyph_extents_t extents = {0};
+    if (!hb_font_get_glyph_extents (font, gid, &extents))
     {
-      cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 1, 1);
-      cairo_t *cr = cairo_create (surface);
-      cairo_set_font_face (cr, cairo_face);
-      cairo_set_font_size (cr, upem);
-
-      cairo_glyph_extents (cr, &glyph, 1, &extents);
-      cairo_surface_destroy (surface);
-      cairo_destroy (cr);
+      printf ("Skip gid: %d\n", gid);
+      continue;
     }
 
-    // Add a slight margin
-    extents.width += extents.width / 10;
-    extents.height += extents.height / 10;
-    extents.x_bearing -= extents.width / 20;
-    extents.y_bearing -= extents.height / 20;
-
-    // Render
-    {
-      char output_path[255];
-      sprintf (output_path, "out/%u-%u.svg", face_index, i);
-      cairo_surface_t *surface = cairo_svg_surface_create (output_path, extents.width, extents.height);
-      cairo_t *cr = cairo_create (surface);
-      cairo_set_font_face (cr, cairo_face);
-      cairo_set_font_size (cr, upem);
-      glyph.x = -extents.x_bearing;
-      glyph.y = -extents.y_bearing;
-      cairo_show_glyphs (cr, &glyph, 1);
-      cairo_surface_destroy (surface);
-      cairo_destroy (cr);
-    }
+    char output_path[255];
+    sprintf (output_path, "out/%u-%u.svg", face_index, gid);
+    FILE *f = fopen (output_path, "wb");
+    fprintf (f, "<svg xmlns=\"http://www.w3.org/2000/svg\""
+		" viewBox=\"%d %d %d %d\"><path d=\"",
+		extents.x_bearing, 0,
+		extents.x_bearing + extents.width, font_extents.ascender - font_extents.descender);
+    user_data_t user_data;
+    user_data.ascender = font_extents.ascender;
+    user_data.f = f;
+    if (!hb_ot_glyph_decompose (font, gid, funcs, &user_data))
+      printf ("Failed to decompose gid: %d\n", gid);
+    fprintf (f, "\"/></svg>");
+    fclose (f);
   }
 }
 
@@ -302,42 +306,37 @@ main (int argc, char **argv)
     exit (1);
   }
 
+  hb_ot_glyph_decompose_funcs_t *funcs = hb_ot_glyph_decompose_funcs_create ();
+  hb_ot_glyph_decompose_funcs_set_move_to_func (funcs, (hb_ot_glyph_decompose_move_to_func_t) move_to);
+  hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
+  hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
+  hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
+  hb_ot_glyph_decompose_funcs_set_close_path_func (funcs, (hb_ot_glyph_decompose_close_path_func_t) close_path);
+
   for (unsigned int face_index = 0; face_index < hb_face_count (blob); face_index++)
   {
     hb_face_t *face = hb_face_create (blob, face_index);
     hb_font_t *font = hb_font_create (face);
 
-    if (hb_ot_color_has_png (face)) printf ("Dumping png (cbdt/sbix)...\n");
+    if (hb_ot_color_has_png (face))
+      printf ("Dumping png (CBDT/sbix)...\n");
     png_dump (face, face_index);
 
-    if (hb_ot_color_has_svg (face)) printf ("Dumping svg...\n");
+    if (hb_ot_color_has_svg (face))
+      printf ("Dumping svg (SVG )...\n");
     svg_dump (face, face_index);
 
-    cairo_font_face_t *cairo_face;
-    {
-      FT_Library library;
-      FT_Init_FreeType (&library);
-      FT_Face ft_face;
-      FT_New_Face (library, argv[1], 0, &ft_face);
-      cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, 0);
-    }
     if (hb_ot_color_has_layers (face) && hb_ot_color_has_palettes (face))
-      printf ("Dumping layered color glyphs...\n");
-    layered_glyph_dump (face, cairo_face, face_index);
+      printf ("Dumping layered color glyphs (COLR/CPAL)...\n");
+    layered_glyph_dump (font, funcs, face_index);
 
-    unsigned int num_glyphs = hb_face_get_glyph_count (face);
-    unsigned int upem = hb_face_get_upem (face);
-
-    // disabled when color font as cairo rendering of NotoColorEmoji is soooo slow
-    if (!hb_ot_color_has_layers (face) &&
-	!hb_ot_color_has_png (face) &&
-	!hb_ot_color_has_svg (face))
-      dump_glyphs (cairo_face, upem, num_glyphs, face_index);
+    dump_glyphs (font, funcs, face_index);
 
     hb_font_destroy (font);
     hb_face_destroy (face);
-    }
+  }
 
+  hb_ot_glyph_decompose_funcs_destroy (funcs);
   hb_blob_destroy (blob);
 
   return 0;
