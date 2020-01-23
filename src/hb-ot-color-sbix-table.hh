@@ -337,11 +337,12 @@ struct sbix
                    const void *dst_base,
                    unsigned int i,
                    unsigned int sbix_len) const {
+    // Push first so reverting doesn't fail.
+    c->serializer->push ();
+
     if (strikes[i].is_null () ||
         sbix_len < (unsigned int) strikes[i])
       return false;
-
-    c->serializer->push ();
 
     return (this+strikes[i]).subset (c, sbix_len - (unsigned int) strikes[i]);
   }
