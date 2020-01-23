@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2020  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -22,29 +22,24 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
  * Red Hat Author(s): Behdad Esfahbod
+ * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_H
-#define HB_OT_H
-#define HB_OT_H_IN
+#ifndef HB_OT_GLYPH_HH
+#define HB_OT_GLYPH_HH
 
-#include "hb.h"
+#include "hb.hh"
 
-#include "hb-ot-color.h"
-#include "hb-ot-deprecated.h"
-#include "hb-ot-font.h"
-#include "hb-ot-glyph.h"
-#include "hb-ot-layout.h"
-#include "hb-ot-math.h"
-#include "hb-ot-meta.h"
-#include "hb-ot-metrics.h"
-#include "hb-ot-name.h"
-#include "hb-ot-shape.h"
-#include "hb-ot-var.h"
+struct hb_ot_glyph_decompose_funcs_t
+{
+  hb_object_header_t header;
 
-HB_BEGIN_DECLS
+  hb_ot_glyph_decompose_move_to_func_t move_to;
+  hb_ot_glyph_decompose_line_to_func_t line_to;
+  hb_ot_glyph_decompose_conic_to_func_t conic_to;
+  hb_ot_glyph_decompose_cubic_to_func_t cubic_to;
+  hb_ot_glyph_decompose_close_path_func_t close_path;
+};
 
-HB_END_DECLS
 
-#undef HB_OT_H_IN
-#endif /* HB_OT_H */
+#endif /* HB_OT_GLYPH_HH */

@@ -521,6 +521,25 @@ hb_ot_font_set_funcs
 </SECTION>
 
 <SECTION>
+<FILE>hb-ot-glyph</FILE>
+hb_ot_glyph_decompose_funcs_t
+hb_ot_glyph_decompose_close_path_func_t
+hb_ot_glyph_decompose_conic_to_func_t
+hb_ot_glyph_decompose_cubic_to_func_t
+hb_ot_glyph_decompose_line_to_func_t
+hb_ot_glyph_decompose_move_to_func_t
+hb_ot_glyph_decompose
+hb_ot_glyph_decompose_funcs_create
+hb_ot_glyph_decompose_funcs_destroy
+hb_ot_glyph_decompose_funcs_reference
+hb_ot_glyph_decompose_funcs_set_close_path_func
+hb_ot_glyph_decompose_funcs_set_conic_to_func
+hb_ot_glyph_decompose_funcs_set_cubic_to_func
+hb_ot_glyph_decompose_funcs_set_line_to_func
+hb_ot_glyph_decompose_funcs_set_move_to_func
+</SECTION>
+
+<SECTION>
 <FILE>hb-ot-name</FILE>
 hb_ot_name_id_t
 HB_OT_NAME_ID_INVALID

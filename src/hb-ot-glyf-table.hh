@@ -34,6 +34,7 @@
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-var-gvar-table.hh"
+#include "hb-ot-glyph.hh"
 
 #include <float.h>
 
@@ -391,6 +392,18 @@ struct glyf
 
   struct Glyph
   {
+    enum simple_glyph_flag_t
+    {
+      FLAG_ON_CURVE  = 0x01,
+      FLAG_X_SHORT   = 0x02,
+      FLAG_Y_SHORT   = 0x04,
+      FLAG_REPEAT    = 0x08,
+      FLAG_X_SAME    = 0x10,
+      FLAG_Y_SAME    = 0x20,
+      FLAG_RESERVED1 = 0x40,
+      FLAG_RESERVED2 = 0x80
+    };
+
     private:
     struct GlyphHeader
     {
@@ -444,18 +457,6 @@ struct glyf
 	if (unlikely (length (instructionLength) > bytes.length)) return 0;
 	return instructionLength;
       }
-
-      enum simple_glyph_flag_t
-      {
-	FLAG_ON_CURVE  = 0x01,
-	FLAG_X_SHORT   = 0x02,
-	FLAG_Y_SHORT   = 0x04,
-	FLAG_REPEAT    = 0x08,
-	FLAG_X_SAME    = 0x10,
-	FLAG_Y_SAME    = 0x20,
-	FLAG_RESERVED1 = 0x40,
-	FLAG_RESERVED2 = 0x80
-      };
 
       const Glyph trim_padding () const
       {
@@ -582,7 +583,10 @@ struct glyf
 	end_points_.resize (num_contours);
 
 	for (int i = 0; i < num_contours; i++)
+	{
 	  end_points_[i] = endPtsOfContours[i];
+	  points_[end_points_[i]].is_end_point = true;
+	}
 
 	/* Skip instructions */
 	const HBUINT8 *p = &StructAtOffset<HBUINT8> (&endPtsOfContours[num_contours + 1],
@@ -838,14 +842,13 @@ struct glyf
       float min_x, min_y, max_x, max_y;
     };
 
-#ifndef HB_NO_VAR
     /* Note: Recursively calls itself.
      * all_points includes phantom points
      */
-    bool get_points_var (hb_codepoint_t gid,
-			 const int *coords, unsigned int coord_count,
-			 contour_point_vector_t &all_points /* OUT */,
-			 unsigned int depth = 0) const
+    bool _get_points (hb_codepoint_t gid,
+		      const int *coords, unsigned int coord_count,
+		      contour_point_vector_t &all_points /* OUT */,
+		      unsigned int depth = 0) const
     {
       if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t points;
@@ -854,18 +857,20 @@ struct glyf
       if (unlikely (!glyph.get_contour_points (points, end_points))) return false;
       hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
       init_phantom_points (gid, phantoms);
+#ifndef HB_NO_VAR
       if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, coords, coord_count, points.as_array (), end_points.as_array ()))) return false;
+#endif
 
-      unsigned int comp_index = 0;
       if (glyph.is_simple_glyph ())
 	all_points.extend (points.as_array ());
       else if (glyph.is_composite_glyph ())
       {
+	unsigned int comp_index = 0;
 	for (auto &item : glyph.get_composite_iterator ())
 	{
 	  contour_point_vector_t comp_points;
-	  if (unlikely (!get_points_var (item.glyphIndex, coords, coord_count,
-					 comp_points, depth))
+	  if (unlikely (!_get_points (item.glyphIndex, coords, coord_count,
+				      comp_points, depth))
 			|| comp_points.length < PHANTOM_COUNT)
 	    return false;
 
@@ -906,9 +911,9 @@ struct glyf
       return true;
     }
 
-    bool get_points_bearing_applied (hb_font_t *font, hb_codepoint_t gid, contour_point_vector_t &all_points) const
+    bool get_points (hb_font_t *font, hb_codepoint_t gid, contour_point_vector_t &all_points) const
     {
-      if (unlikely (!get_points_var (gid, font->coords, font->num_coords, all_points) ||
+      if (unlikely (!_get_points (gid, font->coords, font->num_coords, all_points) ||
 		    all_points.length < PHANTOM_COUNT)) return false;
 
       /* Undocumented rasterizer behavior:
@@ -920,14 +925,13 @@ struct glyf
       return true;
     }
 
-    protected:
-
+#ifndef HB_NO_VAR
     bool get_var_extents_and_phantoms (hb_font_t *font, hb_codepoint_t gid,
-				       hb_glyph_extents_t *extents=nullptr /* OUT */,
-				       contour_point_vector_t *phantoms=nullptr /* OUT */) const
+				       hb_glyph_extents_t *extents /* OUT */,
+				       contour_point_vector_t *phantoms /* OUT */) const
     {
       contour_point_vector_t all_points;
-      if (unlikely (!get_points_bearing_applied (font, gid, all_points))) return false;
+      if (unlikely (!get_points (font, gid, all_points))) return false;
       if (extents)
       {
 	contour_bounds_t bounds;
@@ -947,7 +951,7 @@ struct glyf
 
     bool get_extents_var (hb_font_t *font, hb_codepoint_t gid,
 			  hb_glyph_extents_t *extents) const
-    { return get_var_extents_and_phantoms (font, gid, extents); }
+    { return get_var_extents_and_phantoms (font, gid, extents, nullptr); }
 #endif
 
     public:
@@ -1037,6 +1041,66 @@ struct glyf
 
       for (auto &item : glyph_for_gid (gid).get_composite_iterator ())
         add_gid_and_children (item.glyphIndex, gids_to_retain, depth);
+    }
+
+    bool
+    get_path (hb_font_t *font, hb_codepoint_t gid,
+	      const hb_ot_glyph_decompose_funcs_t *funcs, void *user_data) const
+    {
+      /* Making this completely alloc free is not that easy
+	 https://github.com/harfbuzz/harfbuzz/issues/2095
+	 mostly because of gvar handling in VF fonts,
+	 perhaps a separate path can be considered */
+      contour_point_vector_t all_points;
+      if (unlikely (!get_points (font, gid, all_points))) return false;
+      hb_array_t<contour_point_t> points = all_points.sub_array (0, all_points.length - 4);
+
+      unsigned contour_start = 0;
+      /* Learnt from https://github.com/opentypejs/opentype.js/blob/4e0bb99/src/tables/glyf.js#L222 */
+      while (contour_start < points.length)
+      {
+	unsigned contour_length = 0;
+	for (unsigned i = contour_start; i < points.length; ++i)
+	{
+	  contour_length++;
+	  if (points[i].is_end_point)
+	    break;
+	}
+	contour_point_t *curr = &points[contour_start + contour_length - 1];
+	contour_point_t *next = &points[contour_start];
+
+	if (curr->flag & Glyph::FLAG_ON_CURVE)
+	  funcs->move_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y), user_data);
+	else
+	{
+	  if (next->flag & Glyph::FLAG_ON_CURVE)
+            funcs->move_to (font->em_scalef_x (next->x), font->em_scalef_y (next->y), user_data);
+	  else
+	    /* If both first and last points are off-curve, start at their middle. */
+            funcs->move_to (font->em_scalef_x ((curr->x + next->x) / 2.f),
+			    font->em_scalef_y ((curr->y + next->y) / 2.f), user_data);
+	}
+
+	for (unsigned i = 0; i < contour_length; ++i)
+	{
+	  curr = next;
+	  next = &points[contour_start + ((i + 1) % contour_length)];
+
+	  if (curr->flag & Glyph::FLAG_ON_CURVE)
+	    funcs->line_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y), user_data);
+	  else
+	  {
+	    float to_x, to_y;
+	    if (next->flag & Glyph::FLAG_ON_CURVE) { to_x = next->x; to_y = next->y; }
+	    else { to_x = (curr->x + next->x) / 2.f; to_y = (curr->y + next->y) / 2.f; }
+	    funcs->conic_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y),
+			     font->em_scalef_x (to_x), font->em_scalef_y (to_y), user_data);
+	  }
+	}
+	contour_start += contour_length;
+	funcs->close_path (user_data);
+      }
+      return true;
     }
 
     private:
