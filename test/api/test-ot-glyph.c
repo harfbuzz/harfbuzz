@@ -159,6 +159,31 @@ test_hb_ot_glyph_cff1 (void)
 }
 
 static void
+test_hb_ot_glyph_cff1_rline (void)
+{
+  /* https://github.com/harfbuzz/harfbuzz/pull/2053 */
+  hb_face_t *face = hb_test_open_font_file ("fonts/RanaKufi-Regular.subset.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  char str[1024] = {0};
+  user_data_t user_data = {
+    .str = str,
+    .size = sizeof (str),
+    .consumed = 0
+  };
+  g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+  char expected[] = "M775,400C705,400 650,343 650,274L650,250L391,250L713,572L392,893"
+		    "L287,1000C311,942 296,869 250,823C250,823 286,858 321,823L571,572"
+		    "L150,150L750,150L750,276C750,289 761,300 775,300C789,300 800,289 800,276"
+		    "L800,100L150,100C100,100 100,150 100,150C100,85 58,23 0,0L900,0L900,274"
+		    "C900,343 844,400 775,400Z";
+  g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+  hb_font_destroy (font);
+}
+
+static void
 test_hb_ot_glyph_cff2 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
@@ -215,6 +240,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_glyph_empty);
   hb_test_add (test_hb_ot_glyph_glyf);
   hb_test_add (test_hb_ot_glyph_cff1);
+  hb_test_add (test_hb_ot_glyph_cff1_rline);
   hb_test_add (test_hb_ot_glyph_cff2);
   unsigned result = hb_test_run ();
 
