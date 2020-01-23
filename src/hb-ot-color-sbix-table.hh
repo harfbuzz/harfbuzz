@@ -337,9 +337,6 @@ struct sbix
                    const void *dst_base,
                    unsigned int i,
                    unsigned int sbix_len) const {
-    // Push first so reverting doesn't fail.
-    c->serializer->push ();
-
     if (strikes[i].is_null () ||
         sbix_len < (unsigned int) strikes[i])
       return false;
@@ -365,6 +362,7 @@ struct sbix
       if (unlikely (!o)) return_trace (false);
       *o = 0;
       auto snap = c->serializer->snapshot ();
+      c->serializer->push ();
       bool ret = add_strike(c, dst_base, i, sbix_len);
       if (!ret)
       {
