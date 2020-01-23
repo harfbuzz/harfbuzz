@@ -80,7 +80,6 @@ open_path (user_data_t *user_data HB_UNUSED) {}
 static void
 close_path (user_data_t *user_data)
 {
-  if (!user_data->consumed) return; /* XXX: CFF tables are inserting an Z in the beginning, we should resolve it */
   user_data->consumed += snprintf (user_data->str + user_data->consumed,
 				   user_data->size - user_data->consumed,
 				   "Z");
@@ -154,9 +153,9 @@ test_hb_ot_glyph_cff1 (void)
     .consumed = 0
   };
   g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
-  char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367L369,267"
-		    "L172,267ZM3,0L88,0L151,200L390,200L452,0L541,0L319,656"
-		    "L225,656ZM300,653L342,694L201,861L143,806";
+  char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367L369,267L172,267Z"
+		    "M3,0L88,0L151,200L390,200L452,0L541,0L319,656L225,656Z"
+		    "M300,653L342,694L201,861L143,806Z";
   g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
   hb_font_destroy (font);
@@ -178,9 +177,9 @@ test_hb_ot_glyph_cff2 (void)
   g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
   char expected[] = "M275,442C303,442 337,435 371,417L325,454L350,366"
 		    "C357,341 370,321 403,321C428,321 443,333 448,358"
-		    "C435,432 361,487 272,487C153,487 43,393 43,236C43,83 129,-13 266,-13"
-		    "C360,-13 424,33 451,116L427,128C396,78 345,50 287,50"
-		    "C193,50 126,119 126,245C126,373 188,442 275,442";
+		    "C435,432 361,487 272,487C153,487 43,393 43,236"
+		    "C43,83 129,-13 266,-13C360,-13 424,33 451,116L427,128"
+		    "C396,78 345,50 287,50C193,50 126,119 126,245C126,373 188,442 275,442Z";
   g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
   hb_variation_t var;
@@ -195,10 +194,11 @@ test_hb_ot_glyph_cff2 (void)
     .consumed = 0
   };
   g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data2));
-  char expected2[] = "M323,448C356,448 380,441 411,427L333,469L339,401C343,322 379,297 420,297"
-		     "C458,297 480,314 492,352C486,433 412,501 303,501C148,501 25,406 25,241"
-		     "C25,70 143,-16 279,-16C374,-16 447,22 488,103L451,137C423,107 390,86 344,86"
-		     "C262,86 209,148 209,261C209,398 271,448 323,448";
+  char expected2[] = "M323,448C356,448 380,441 411,427L333,469L339,401"
+		     "C343,322 379,297 420,297C458,297 480,314 492,352"
+		     "C486,433 412,501 303,501C148,501 25,406 25,241"
+		     "C25,70 143,-16 279,-16C374,-16 447,22 488,103L451,137"
+		     "C423,107 390,86 344,86C262,86 209,148 209,261C209,398 271,448 323,448Z";
   g_assert_cmpmem (str2, user_data2.consumed, expected2, sizeof (expected2) - 1);
 
   hb_font_destroy (font);

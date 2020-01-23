@@ -345,9 +345,9 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
 
 struct cff1_path_param_t
 {
-  void init (const OT::cff1::accelerator_t *cff_, hb_font_t *font_,
-	     const hb_ot_glyph_decompose_funcs_t *funcs_, void *user_data_,
-	     point_t *delta_)
+  cff1_path_param_t (const OT::cff1::accelerator_t *cff_, hb_font_t *font_,
+		     const hb_ot_glyph_decompose_funcs_t *funcs_, void *user_data_,
+		     point_t *delta_)
   {
     path_open = false;
     cff = cff_;
@@ -356,6 +356,7 @@ struct cff1_path_param_t
     user_data = user_data_;
     delta = delta_;
   }
+  ~cff1_path_param_t () { end_path (); }
 
   void   start_path ()       { funcs->open_path (user_data);                 path_open = true; }
   void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
@@ -457,8 +458,7 @@ bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoin
   const byte_str_t str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
-  cff1_path_param_t param;
-  param.init (cff, font, funcs, user_data, delta);
+  cff1_path_param_t param (cff, font, funcs, user_data, delta);
   if (unlikely (!interp.interpret (param))) return false;
   return true;
 }

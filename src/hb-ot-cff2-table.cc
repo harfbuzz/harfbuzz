@@ -145,13 +145,14 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
 struct cff2_path_param_t
 {
-  void init (hb_font_t *font_, const hb_ot_glyph_decompose_funcs_t *funcs_, void *user_data_)
+  cff2_path_param_t (hb_font_t *font_, const hb_ot_glyph_decompose_funcs_t *funcs_, void *user_data_)
   {
     path_open = false;
     font = font_;
     funcs = funcs_;
     user_data = user_data_;
   }
+  ~cff2_path_param_t () { end_path (); }
 
   void   start_path ()       { funcs->open_path (user_data);                 path_open = true; }
   void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
@@ -223,8 +224,7 @@ bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
   cff2_cs_interpreter_t<cff2_cs_opset_path_t, cff2_path_param_t> interp;
   const byte_str_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd, font->coords, font->num_coords);
-  cff2_path_param_t  param;
-  param.init (font, funcs, user_data);
+  cff2_path_param_t param (font, funcs, user_data);
   if (unlikely (!interp.interpret (param))) return false;
   return true;
 }

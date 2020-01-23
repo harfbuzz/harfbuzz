@@ -135,23 +135,20 @@ hb_ot_glyph_decompose_funcs_set_close_path_func (hb_ot_glyph_decompose_funcs_t  
 }
 
 static void
-_move_to_noop (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
+_move_line_to_nil (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
 
 static void
-_line_to_noop (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
-
-static void
-_conic_to_noop (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
+_conic_to_nil (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
 		hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
 		void *user_data HB_UNUSED) {}
 static void
-_cubic_to_noop (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
+_cubic_to_nil (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
 		hb_position_t control2_x HB_UNUSED, hb_position_t control2_y HB_UNUSED,
 		hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
 		void *user_data HB_UNUSED) {}
 
 static void
-_open_close_path_noop (void *user_data HB_UNUSED) {}
+_open_close_path_nil (void *user_data HB_UNUSED) {}
 
 /**
  * hb_ot_glyph_decompose_funcs_create:
@@ -167,12 +164,12 @@ hb_ot_glyph_decompose_funcs_create ()
   if (unlikely (!(funcs = hb_object_create<hb_ot_glyph_decompose_funcs_t> ())))
     return const_cast<hb_ot_glyph_decompose_funcs_t *> (&Null (hb_ot_glyph_decompose_funcs_t));
 
-  funcs->move_to = (hb_ot_glyph_decompose_move_to_func_t) _move_to_noop;
-  funcs->line_to = (hb_ot_glyph_decompose_line_to_func_t) _line_to_noop;
-  funcs->conic_to = (hb_ot_glyph_decompose_conic_to_func_t) _conic_to_noop;
-  funcs->cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) _cubic_to_noop;
-  funcs->open_path = (hb_ot_glyph_decompose_open_path_func_t) _open_close_path_noop;
-  funcs->close_path = (hb_ot_glyph_decompose_close_path_func_t) _open_close_path_noop;
+  funcs->move_to = (hb_ot_glyph_decompose_move_to_func_t) _move_line_to_nil;
+  funcs->line_to = (hb_ot_glyph_decompose_line_to_func_t) _move_line_to_nil;
+  funcs->conic_to = (hb_ot_glyph_decompose_conic_to_func_t) _conic_to_nil;
+  funcs->cubic_to = (hb_ot_glyph_decompose_cubic_to_func_t) _cubic_to_nil;
+  funcs->open_path = (hb_ot_glyph_decompose_open_path_func_t) _open_close_path_nil;
+  funcs->close_path = (hb_ot_glyph_decompose_close_path_func_t) _open_close_path_nil;
   return funcs;
 }
 
