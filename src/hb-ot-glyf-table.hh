@@ -1059,7 +1059,6 @@ struct glyf
       /* Learnt from https://github.com/opentypejs/opentype.js/blob/4e0bb99/src/tables/glyf.js#L222 */
       while (contour_start < points.length)
       {
-	funcs->open_path (user_data);
 	unsigned contour_length = 0;
 	for (unsigned i = contour_start; i < points.length; ++i)
 	{

@@ -75,9 +75,6 @@ cubic_to (hb_position_t control1_x, hb_position_t control1_y,
 }
 
 static void
-open_path (user_data_t *user_data HB_UNUSED) {}
-
-static void
 close_path (user_data_t *user_data)
 {
   user_data->consumed += snprintf (user_data->str + user_data->consumed,
@@ -212,7 +209,6 @@ main (int argc, char **argv)
   hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
   hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
   hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
-  hb_ot_glyph_decompose_funcs_set_open_path_func (funcs, (hb_ot_glyph_decompose_open_path_func_t) open_path);
   hb_ot_glyph_decompose_funcs_set_close_path_func (funcs, (hb_ot_glyph_decompose_close_path_func_t) close_path);
 
   hb_test_init (&argc, &argv);

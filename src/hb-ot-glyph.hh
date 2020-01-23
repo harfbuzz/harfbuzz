@@ -38,7 +38,6 @@ struct hb_ot_glyph_decompose_funcs_t
   hb_ot_glyph_decompose_line_to_func_t line_to;
   hb_ot_glyph_decompose_conic_to_func_t conic_to;
   hb_ot_glyph_decompose_cubic_to_func_t cubic_to;
-  hb_ot_glyph_decompose_open_path_func_t open_path;
   hb_ot_glyph_decompose_close_path_func_t close_path;
 };
 
