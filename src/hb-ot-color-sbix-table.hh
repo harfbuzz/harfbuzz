@@ -1,5 +1,6 @@
 /*
  * Copyright © 2018  Ebrahim Byagowi
+ * Copyright © 2020  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,6 +21,8 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Google Author(s): Calder Kitagawa
  */
 
 #ifndef HB_OT_COLOR_SBIX_TABLE_HH
@@ -51,7 +54,7 @@ struct SBIXGlyph
     new_glyph->xOffset = xOffset;
     new_glyph->yOffset = yOffset;
     new_glyph->graphicType = graphicType;
-    data.copy(c, data_length);
+    data.copy (c, data_length);
     return_trace (new_glyph);
   }
 
@@ -146,27 +149,27 @@ struct SBIXStrike
     out->ppem = ppem;
     out->resolution = resolution;
     HBUINT32 head;
-    head = get_size(num_output_glyphs + 1);
+    head = get_size (num_output_glyphs + 1);
 
     bool has_glyphs = false;
     for (unsigned new_gid = 0; new_gid < num_output_glyphs; new_gid++)
     {
       hb_codepoint_t old_gid;
       if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid) ||
-          unlikely (imageOffsetsZ[old_gid].is_null() ||
-                    imageOffsetsZ[old_gid + 1].is_null () ||
-                    imageOffsetsZ[old_gid + 1] <= imageOffsetsZ[old_gid] ||
-                    imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid] <= SBIXGlyph::min_size) ||
-                    (unsigned int) imageOffsetsZ[old_gid + 1] > available_len)
+	  unlikely (imageOffsetsZ[old_gid].is_null () ||
+		    imageOffsetsZ[old_gid + 1].is_null () ||
+		    imageOffsetsZ[old_gid + 1] <= imageOffsetsZ[old_gid] ||
+		    imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid] <= SBIXGlyph::min_size) ||
+		    (unsigned int) imageOffsetsZ[old_gid + 1] > available_len)
       {
-        out->imageOffsetsZ[new_gid] = head;
-        continue;
+	out->imageOffsetsZ[new_gid] = head;
+	continue;
       }
       has_glyphs = true;
       unsigned int delta = imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid];
       unsigned int glyph_data_length = delta - SBIXGlyph::min_size;
       if (!(this+imageOffsetsZ[old_gid]).copy (c->serializer, glyph_data_length))
-        return_trace (false);
+	return_trace (false);
       out->imageOffsetsZ[new_gid] = head;
       head += delta;
     }
@@ -201,7 +204,7 @@ struct sbix
   {
     void init (hb_face_t *face)
     {
-      table = hb_sanitize_context_t().reference_table<sbix> (face);
+      table = hb_sanitize_context_t ().reference_table<sbix> (face);
       num_glyphs = face->get_num_glyphs ();
     }
     void fini () { table.destroy (); }
@@ -234,7 +237,7 @@ struct sbix
     {
       unsigned count = table->strikes.len;
       if (unlikely (!count))
-	return Null(SBIXStrike);
+	return Null (SBIXStrike);
 
       unsigned int requested_ppem = hb_max (font->x_ppem, font->y_ppem);
       if (!requested_ppem)
@@ -337,25 +340,25 @@ struct sbix
   }
 
   bool add_strike (hb_subset_context_t *c,
-                   const void *dst_base,
-                   unsigned int i,
-                   unsigned int sbix_len) const {
+		   const void *dst_base,
+		   unsigned int i,
+		   unsigned int sbix_len) const {
     if (strikes[i].is_null () ||
-        sbix_len < (unsigned int) strikes[i])
+	sbix_len < (unsigned int) strikes[i])
       return false;
 
     return (this+strikes[i]).subset (c, sbix_len - (unsigned int) strikes[i]);
   }
 
   bool serialize_strike_offsets (hb_subset_context_t *c,
-                                 const void *dst_base,
-                                 unsigned int sbix_len) const
+				 const void *dst_base,
+				 unsigned int sbix_len) const
   {
     TRACE_SERIALIZE (this);
 
     auto *out = c->serializer->start_embed<LOffsetLArrayOf<SBIXStrike>> ();
     if (unlikely (!out)) return_trace (false);
-    if (unlikely (!c->serializer->extend_min(out))) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     hb_vector_t<LOffsetTo<SBIXStrike>*> new_strikes;
     hb_vector_t<hb_serialize_context_t::objidx_t> objidxs;
@@ -366,17 +369,17 @@ struct sbix
       *o = 0;
       auto snap = c->serializer->snapshot ();
       c->serializer->push ();
-      bool ret = add_strike(c, dst_base, i, sbix_len);
+      bool ret = add_strike (c, dst_base, i, sbix_len);
       if (!ret)
       {
-        c->serializer->pop_discard ();
-        out->pop();
-        c->serializer->revert (snap);
+	c->serializer->pop_discard ();
+	out->pop ();
+	c->serializer->revert (snap);
       }
       else
       {
-        objidxs.push (c->serializer->pop_pack ());
-        new_strikes.push (o);
+	objidxs.push (c->serializer->pop_pack ());
+	new_strikes.push (o);
       }
     }
     for (unsigned int i = 0; i < new_strikes.length; ++i)
@@ -393,7 +396,7 @@ struct sbix
     if (unlikely (!sbix_prime)) return_trace (false);
     if (unlikely (!c->serializer->embed (this->version))) return_trace (false);
     if (unlikely (!c->serializer->embed (this->flags))) return_trace (false);
-    hb_blob_ptr_t<sbix> table = hb_sanitize_context_t().reference_table<sbix> (c->plan->source);
+    hb_blob_ptr_t<sbix> table = hb_sanitize_context_t ().reference_table<sbix> (c->plan->source);
     const unsigned int sbix_len = table.get_blob ()->length;
     table.destroy ();
 
