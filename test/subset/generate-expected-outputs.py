@@ -20,9 +20,11 @@ def usage():
 def generate_expected_output(input_file, unicodes, profile_flags, output_path):
 	args = ["fonttools", "subset", input_file]
 	args.extend(["--notdef-outline",
-		     "--layout-features=*",
+		     "--name-languages=*",
+		     "--name-legacy",
+                     "--layout-features=*",
 		     "--drop-tables+=DSIG,GPOS,GSUB,GDEF",
-		     "--drop-tables-=sbix",
+                     "--drop-tables-=sbix",
 		     "--unicodes=%s" % unicodes,
 		     "--output-file=%s" % output_path])
 	args.extend(profile_flags)
