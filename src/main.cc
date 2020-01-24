@@ -1,5 +1,7 @@
 /*
  * Copyright © 2007,2008,2009  Red Hat, Inc.
+ * Copyright © 2018,2019,2020  Ebrahim Byagowi
+ * Copyright © 2018  Khaled Hosny
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -42,6 +44,241 @@ using namespace OT;
 #define hb_blob_create_from_file(x)  hb_blob_get_empty ()
 #endif
 
+static void
+svg_dump (hb_face_t *face, unsigned face_index)
+{
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+
+  for (unsigned glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+  {
+    hb_blob_t *blob = hb_ot_color_glyph_reference_svg (face, glyph_id);
+
+    if (hb_blob_get_length (blob) == 0) continue;
+
+    unsigned length;
+    const char *data = hb_blob_get_data (blob, &length);
+
+    char output_path[255];
+    sprintf (output_path, "out/svg-%u-%u.svg%s",
+	     glyph_id,
+	     face_index,
+	     // append "z" if the content is gzipped, https://stackoverflow.com/a/6059405
+	     (length > 2 && (data[0] == '\x1F') && (data[1] == '\x8B')) ? "z" : "");
+
+    FILE *f = fopen (output_path, "wb");
+    fwrite (data, 1, length, f);
+    fclose (f);
+
+    hb_blob_destroy (blob);
+  }
+}
+
+/* _png API is so easy to use unlike the below code, don't get confused */
+static void
+png_dump (hb_face_t *face, unsigned face_index)
+{
+  unsigned glyph_count = hb_face_get_glyph_count (face);
+  hb_font_t *font = hb_font_create (face);
+
+  /* scans the font for strikes */
+  unsigned sample_glyph_id;
+  /* we don't care about different strikes for different glyphs at this point */
+  for (sample_glyph_id = 0; sample_glyph_id < glyph_count; sample_glyph_id++)
+  {
+    hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
+    unsigned blob_length = hb_blob_get_length (blob);
+    hb_blob_destroy (blob);
+    if (blob_length != 0)
+      break;
+  }
+
+  unsigned upem = hb_face_get_upem (face);
+  unsigned blob_length = 0;
+  unsigned strike = 0;
+  for (unsigned ppem = 1; ppem < upem; ppem++)
+  {
+    hb_font_set_ppem (font, ppem, ppem);
+    hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
+    unsigned new_blob_length = hb_blob_get_length (blob);
+    hb_blob_destroy (blob);
+    if (new_blob_length != blob_length)
+    {
+      for (unsigned glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+      {
+	hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, glyph_id);
+
+	if (hb_blob_get_length (blob) == 0) continue;
+
+	unsigned length;
+	const char *data = hb_blob_get_data (blob, &length);
+
+	char output_path[255];
+	sprintf (output_path, "out/png-%u-%u-%u.png", glyph_id, strike, face_index);
+
+	FILE *f = fopen (output_path, "wb");
+	fwrite (data, 1, length, f);
+	fclose (f);
+
+	hb_blob_destroy (blob);
+      }
+
+      strike++;
+      blob_length = new_blob_length;
+    }
+  }
+
+  hb_font_destroy (font);
+}
+
+struct user_data_t
+{
+  FILE *f;
+  hb_position_t ascender;
+};
+
+static void
+move_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
+{
+  fprintf (user_data.f, "M%d,%d", to_x, user_data.ascender - to_y);
+}
+
+static void
+line_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
+{
+  fprintf (user_data.f, "L%d,%d", to_x, user_data.ascender - to_y);
+}
+
+static void
+conic_to (hb_position_t control_x, hb_position_t control_y,
+	  hb_position_t to_x, hb_position_t to_y,
+	  user_data_t &user_data)
+{
+  fprintf (user_data.f, "Q%d,%d %d,%d", control_x, user_data.ascender - control_y,
+					to_x, user_data.ascender - to_y);
+}
+
+static void
+cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+	  hb_position_t control2_x, hb_position_t control2_y,
+	  hb_position_t to_x, hb_position_t to_y,
+	  user_data_t &user_data)
+{
+  fprintf (user_data.f, "C%d,%d %d,%d %d,%d", control1_x, user_data.ascender - control1_y,
+					       control2_x, user_data.ascender - control2_y,
+					       to_x, user_data.ascender - to_y);
+}
+
+static void
+close_path (user_data_t &user_data)
+{
+  fprintf (user_data.f, "Z");
+}
+
+static void
+layered_glyph_dump (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsigned face_index)
+{
+  hb_face_t *face = hb_font_get_face (font);
+  unsigned num_glyphs = hb_face_get_glyph_count (face);
+  for (hb_codepoint_t gid = 0; gid < num_glyphs; ++gid)
+  {
+    unsigned num_layers = hb_ot_color_glyph_get_layers (face, gid, 0, nullptr, nullptr);
+    if (!num_layers) continue;
+
+    hb_ot_color_layer_t *layers = (hb_ot_color_layer_t*) malloc (num_layers * sizeof (hb_ot_color_layer_t));
+
+    hb_ot_color_glyph_get_layers (face, gid, 0, &num_layers, layers);
+    if (num_layers)
+    {
+      hb_font_extents_t font_extents;
+      hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
+      hb_glyph_extents_t extents = {0};
+      if (!hb_font_get_glyph_extents (font, gid, &extents))
+      {
+	printf ("Skip gid: %d\n", gid);
+	continue;
+      }
+
+      unsigned palette_count = hb_ot_color_palette_get_count (face);
+      for (unsigned palette = 0; palette < palette_count; ++palette)
+      {
+	unsigned num_colors = hb_ot_color_palette_get_colors (face, palette, 0, nullptr, nullptr);
+	if (!num_colors)
+	  continue;
+
+	char output_path[255];
+	sprintf (output_path, "out/colr-%u-%u-%u.svg", gid, palette, face_index);
+        FILE *f = fopen (output_path, "wb");
+        fprintf (f, "<svg xmlns=\"http://www.w3.org/2000/svg\""
+		    " viewBox=\"%d %d %d %d\">\n",
+		    extents.x_bearing, 0,
+		    extents.x_bearing + extents.width, -extents.height);
+        user_data_t user_data;
+        user_data.ascender = extents.y_bearing;
+        user_data.f = f;
+
+	hb_color_t *colors = (hb_color_t*) calloc (num_colors, sizeof (hb_color_t));
+	hb_ot_color_palette_get_colors (face, palette, 0, &num_colors, colors);
+	if (num_colors)
+	{
+	  for (unsigned layer = 0; layer < num_layers; ++layer)
+	  {
+	    hb_color_t color = 0x000000FF;
+	    if (layers[layer].color_index != 0xFFFF)
+	      color = colors[layers[layer].color_index];
+	    fprintf (f, "<path fill=\"#%02X%02X%02X\" ",
+		     hb_color_get_red (color), hb_color_get_green (color), hb_color_get_green (color));
+	    if (hb_color_get_alpha (color) != 255)
+	      fprintf (f, "fill-opacity=\"%.3f\"", (double) hb_color_get_alpha (color) / 255.);
+	    fprintf (f, "d=\"");
+	    if (!hb_ot_glyph_decompose (font, layers[layer].glyph, funcs, &user_data))
+	      printf ("Failed to decompose layer %d while %d\n", layers[layer].glyph, gid);
+	    fprintf (f, "\"/>\n");
+	  }
+	}
+	free (colors);
+
+	fprintf (f, "</svg>");
+	fclose (f);
+      }
+    }
+
+
+    free (layers);
+  }
+}
+
+static void
+dump_glyphs (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsigned face_index)
+{
+  unsigned num_glyphs = hb_face_get_glyph_count (hb_font_get_face (font));
+  for (unsigned gid = 0; gid < num_glyphs; ++gid)
+  {
+    hb_font_extents_t font_extents;
+    hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
+    hb_glyph_extents_t extents = {0};
+    if (!hb_font_get_glyph_extents (font, gid, &extents))
+    {
+      printf ("Skip gid: %d\n", gid);
+      continue;
+    }
+
+    char output_path[255];
+    sprintf (output_path, "out/%u-%u.svg", face_index, gid);
+    FILE *f = fopen (output_path, "wb");
+    fprintf (f, "<svg xmlns=\"http://www.w3.org/2000/svg\""
+		" viewBox=\"%d %d %d %d\"><path d=\"",
+		extents.x_bearing, 0,
+		extents.x_bearing + extents.width, font_extents.ascender - font_extents.descender);
+    user_data_t user_data;
+    user_data.ascender = font_extents.ascender;
+    user_data.f = f;
+    if (!hb_ot_glyph_decompose (font, gid, funcs, &user_data))
+      printf ("Failed to decompose gid: %d\n", gid);
+    fprintf (f, "\"/></svg>");
+    fclose (f);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -52,7 +289,7 @@ main (int argc, char **argv)
   }
 
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
-  unsigned int len;
+  unsigned len;
   const char *font_data = hb_blob_get_data (blob, &len);
   printf ("Opened font file %s: %d bytes long\n", argv[1], len);
 
@@ -91,12 +328,12 @@ main (int argc, char **argv)
     break;
   }
 
-  int num_fonts = ot.get_face_count ();
-  printf ("%d font(s) found in file\n", num_fonts);
-  for (int n_font = 0; n_font < num_fonts; n_font++)
+  unsigned num_faces = hb_face_count (blob);
+  printf ("%d font(s) found in file\n", num_faces);
+  for (int n_font = 0; n_font < num_faces; n_font++)
   {
     const OpenTypeFontFace &font = ot.get_face (n_font);
-    printf ("Font %d of %d:\n", n_font, num_fonts);
+    printf ("Font %d of %d:\n", n_font, num_faces);
 
     int num_tables = font.get_table_count ();
     printf ("  %d table(s) found in font\n", num_tables);
@@ -105,8 +342,8 @@ main (int argc, char **argv)
       const OpenTypeTable &table = font.get_table (n_table);
       printf ("  Table %2d of %2d: %.4s (0x%08x+0x%08x)\n", n_table, num_tables,
 	      (const char *) table.tag,
-	      (unsigned int) table.offset,
-	      (unsigned int) table.length);
+	      (unsigned) table.offset,
+	      (unsigned) table.length);
 
       switch (table.tag)
       {
@@ -137,7 +374,7 @@ main (int argc, char **argv)
 	      printf ("      Default Language System\n");
 	    else
 	      printf ("      Language System %2d of %2d: %.4s\n", n_langsys, num_langsys,
-		      (const char *)script.get_lang_sys_tag (n_langsys));
+		      (const char *) script.get_lang_sys_tag (n_langsys));
 	    if (!langsys.has_required_feature ())
 	      printf ("        No required feature\n");
 	    else
@@ -202,6 +439,58 @@ main (int argc, char **argv)
       }
     }
   }
+
+  /* Dump glyphs */
+  FILE *font_name_file = fopen ("out/.dumped_font_name", "r");
+  if (font_name_file != nullptr)
+  {
+    fprintf (stderr, "Purge or move ./out folder in order to run a new glyph dump,\n"
+		     "run it like `rm -rf out && mkdir out && %s font-file.ttf`\n",
+		     argv[0]);
+    return 0;
+  }
+
+  font_name_file = fopen ("out/.dumped_font_name", "w");
+  if (font_name_file == nullptr)
+  {
+    fprintf (stderr, "./out is not accessible as a folder, create it please\n");
+    return 0;
+  }
+  fwrite (argv[1], 1, strlen (argv[1]), font_name_file);
+  fclose (font_name_file);
+
+  hb_ot_glyph_decompose_funcs_t *funcs = hb_ot_glyph_decompose_funcs_create ();
+  hb_ot_glyph_decompose_funcs_set_move_to_func (funcs, (hb_ot_glyph_decompose_move_to_func_t) move_to);
+  hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
+  hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
+  hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
+  hb_ot_glyph_decompose_funcs_set_close_path_func (funcs, (hb_ot_glyph_decompose_close_path_func_t) close_path);
+
+  for (unsigned face_index = 0; face_index < num_faces; ++face_index)
+  {
+    hb_face_t *face = hb_face_create (blob, face_index);
+    hb_font_t *font = hb_font_create (face);
+
+    if (hb_ot_color_has_png (face))
+      printf ("Dumping png (CBDT/sbix)...\n");
+    png_dump (face, face_index);
+
+    if (hb_ot_color_has_svg (face))
+      printf ("Dumping svg (SVG )...\n");
+    svg_dump (face, face_index);
+
+    if (hb_ot_color_has_layers (face) && hb_ot_color_has_palettes (face))
+      printf ("Dumping layered color glyphs (COLR/CPAL)...\n");
+    layered_glyph_dump (font, funcs, face_index);
+
+    dump_glyphs (font, funcs, face_index);
+
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+
+  hb_ot_glyph_decompose_funcs_destroy (funcs);
+  hb_blob_destroy (blob);
 
   return 0;
 }
