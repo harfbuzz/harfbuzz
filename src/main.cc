@@ -26,19 +26,12 @@
  * Red Hat Author(s): Behdad Esfahbod
  */
 
-#include "hb-static.cc"
-#include "hb-open-file.hh"
-#include "hb-ot-layout-gdef-table.hh"
-#include "hb-ot-layout-gsubgpos.hh"
+#include "hb.h"
+#include "hb-ot.h"
 
-#ifdef HAVE_GLIB
-#include <glib.h>
-#endif
 #include <stdlib.h>
 #include <stdio.h>
-
-
-using namespace OT;
+#include <string.h>
 
 #ifdef HB_NO_OPEN
 #define hb_blob_create_from_file(x)  hb_blob_get_empty ()
@@ -49,7 +42,7 @@ svg_dump (hb_face_t *face, unsigned face_index)
 {
   unsigned glyph_count = hb_face_get_glyph_count (face);
 
-  for (unsigned glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+  for (unsigned glyph_id = 0; glyph_id < glyph_count; ++glyph_id)
   {
     hb_blob_t *blob = hb_ot_color_glyph_reference_svg (face, glyph_id);
 
@@ -83,7 +76,7 @@ png_dump (hb_face_t *face, unsigned face_index)
   /* scans the font for strikes */
   unsigned sample_glyph_id;
   /* we don't care about different strikes for different glyphs at this point */
-  for (sample_glyph_id = 0; sample_glyph_id < glyph_count; sample_glyph_id++)
+  for (sample_glyph_id = 0; sample_glyph_id < glyph_count; ++sample_glyph_id)
   {
     hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
     unsigned blob_length = hb_blob_get_length (blob);
@@ -95,7 +88,7 @@ png_dump (hb_face_t *face, unsigned face_index)
   unsigned upem = hb_face_get_upem (face);
   unsigned blob_length = 0;
   unsigned strike = 0;
-  for (unsigned ppem = 1; ppem < upem; ppem++)
+  for (unsigned ppem = 1; ppem < upem; ++ppem)
   {
     hb_font_set_ppem (font, ppem, ppem);
     hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, sample_glyph_id);
@@ -103,7 +96,7 @@ png_dump (hb_face_t *face, unsigned face_index)
     hb_blob_destroy (blob);
     if (new_blob_length != blob_length)
     {
-      for (unsigned glyph_id = 0; glyph_id < glyph_count; glyph_id++)
+      for (unsigned glyph_id = 0; glyph_id < glyph_count; ++glyph_id)
       {
 	hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, glyph_id);
 
@@ -279,29 +272,80 @@ dump_glyphs (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsigned fac
   }
 }
 
-int
-main (int argc, char **argv)
+static void
+dump_glyphs (hb_blob_t *blob, const char *font_name)
 {
-  if (argc != 2)
+  FILE *font_name_file = fopen ("out/.dumped_font_name", "r");
+  if (font_name_file != nullptr)
   {
-    fprintf (stderr, "usage: %s font-file.ttf\n", argv[0]);
-    exit (1);
+    fprintf (stderr, "Purge or move ./out folder in order to run a new glyph dump,\n"
+		     "run it like `rm -rf out && mkdir out && src/main font-file.ttf`\n");
+    return;
   }
 
-  hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
-  unsigned len;
-  const char *font_data = hb_blob_get_data (blob, &len);
-  printf ("Opened font file %s: %d bytes long\n", argv[1], len);
+  font_name_file = fopen ("out/.dumped_font_name", "w");
+  if (font_name_file == nullptr)
+  {
+    fprintf (stderr, "./out is not accessible as a folder, create it please\n");
+    return;
+  }
+  fwrite (font_name, 1, strlen (font_name), font_name_file);
+  fclose (font_name_file);
 
-  hb_blob_t *font_blob = hb_sanitize_context_t().sanitize_blob<OpenTypeFontFile> (blob);
+  hb_ot_glyph_decompose_funcs_t *funcs = hb_ot_glyph_decompose_funcs_create ();
+  hb_ot_glyph_decompose_funcs_set_move_to_func (funcs, (hb_ot_glyph_decompose_move_to_func_t) move_to);
+  hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
+  hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
+  hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
+  hb_ot_glyph_decompose_funcs_set_close_path_func (funcs, (hb_ot_glyph_decompose_close_path_func_t) close_path);
+
+  unsigned num_faces = hb_face_count (blob);
+  for (unsigned face_index = 0; face_index < num_faces; ++face_index)
+  {
+    hb_face_t *face = hb_face_create (blob, face_index);
+    hb_font_t *font = hb_font_create (face);
+
+    if (hb_ot_color_has_png (face))
+      printf ("Dumping png (CBDT/sbix)...\n");
+    png_dump (face, face_index);
+
+    if (hb_ot_color_has_svg (face))
+      printf ("Dumping svg (SVG )...\n");
+    svg_dump (face, face_index);
+
+    if (hb_ot_color_has_layers (face) && hb_ot_color_has_palettes (face))
+      printf ("Dumping layered color glyphs (COLR/CPAL)...\n");
+    layered_glyph_dump (font, funcs, face_index);
+
+    dump_glyphs (font, funcs, face_index);
+
+    hb_font_destroy (font);
+    hb_face_destroy (face);
+  }
+
+  hb_ot_glyph_decompose_funcs_destroy (funcs);
+}
+
+/* Only this part of this mini app uses private API */
+#include "hb-static.cc"
+#include "hb-open-file.hh"
+#include "hb-ot-layout-gdef-table.hh"
+#include "hb-ot-layout-gsubgpos.hh"
+
+using namespace OT;
+
+static void
+print_layout_info_using_private_api (hb_blob_t *blob)
+{
+  const char *font_data = hb_blob_get_data (blob, nullptr);
+  hb_blob_t *font_blob = hb_sanitize_context_t ().sanitize_blob<OpenTypeFontFile> (blob);
   const OpenTypeFontFile* sanitized = font_blob->as<OpenTypeFontFile> ();
   if (!font_blob->data)
   {
     printf ("Sanitization of the file wasn't successful. Exit");
-    return 1;
+    exit (1);
   }
   const OpenTypeFontFile& ot = *sanitized;
-
 
   switch (ot.get_tag ())
   {
@@ -330,14 +374,14 @@ main (int argc, char **argv)
 
   unsigned num_faces = hb_face_count (blob);
   printf ("%d font(s) found in file\n", num_faces);
-  for (int n_font = 0; n_font < num_faces; n_font++)
+  for (unsigned n_font = 0; n_font < num_faces; ++n_font)
   {
     const OpenTypeFontFace &font = ot.get_face (n_font);
     printf ("Font %d of %d:\n", n_font, num_faces);
 
-    int num_tables = font.get_table_count ();
+    unsigned num_tables = font.get_table_count ();
     printf ("  %d table(s) found in font\n", num_tables);
-    for (int n_table = 0; n_table < num_tables; n_table++)
+    for (unsigned n_table = 0; n_table < num_tables; ++n_table)
     {
       const OpenTypeTable &table = font.get_table (n_table);
       printf ("  Table %2d of %2d: %.4s (0x%08x+0x%08x)\n", n_table, num_tables,
@@ -354,19 +398,20 @@ main (int argc, char **argv)
 
 	const GSUBGPOS &g = *reinterpret_cast<const GSUBGPOS *> (font_data + table.offset);
 
-	int num_scripts = g.get_script_count ();
+	unsigned num_scripts = g.get_script_count ();
 	printf ("    %d script(s) found in table\n", num_scripts);
-	for (int n_script = 0; n_script < num_scripts; n_script++)
+	for (unsigned n_script = 0; n_script < num_scripts; ++n_script)
 	{
 	  const Script &script = g.get_script (n_script);
 	  printf ("    Script %2d of %2d: %.4s\n", n_script, num_scripts,
-		  (const char *)g.get_script_tag(n_script));
+		  (const char *) g.get_script_tag (n_script));
 
-	  if (!script.has_default_lang_sys())
+	  if (!script.has_default_lang_sys ())
 	    printf ("      No default language system\n");
 	  int num_langsys = script.get_lang_sys_count ();
 	  printf ("      %d language system(s) found in script\n", num_langsys);
-	  for (int n_langsys = script.has_default_lang_sys() ? -1 : 0; n_langsys < num_langsys; n_langsys++) {
+	  for (int n_langsys = script.has_default_lang_sys () ? -1 : 0; n_langsys < num_langsys; ++n_langsys)
+	  {
 	    const LangSys &langsys = n_langsys == -1
 				   ? script.get_default_lang_sys ()
 				   : script.get_lang_sys (n_langsys);
@@ -381,9 +426,9 @@ main (int argc, char **argv)
 	      printf ("        Required feature index: %d\n",
 		      langsys.get_required_feature_index ());
 
-	    int num_features = langsys.get_feature_count ();
+	    unsigned num_features = langsys.get_feature_count ();
 	    printf ("        %d feature(s) found in language system\n", num_features);
-	    for (int n_feature = 0; n_feature < num_features; n_feature++)
+	    for (unsigned n_feature = 0; n_feature < num_features; ++n_feature)
 	    {
 	      printf ("        Feature index %2d of %2d: %d\n", n_feature, num_features,
 		      langsys.get_feature_index (n_feature));
@@ -391,29 +436,29 @@ main (int argc, char **argv)
 	  }
 	}
 
-	int num_features = g.get_feature_count ();
+	unsigned num_features = g.get_feature_count ();
 	printf ("    %d feature(s) found in table\n", num_features);
-	for (int n_feature = 0; n_feature < num_features; n_feature++)
+	for (unsigned n_feature = 0; n_feature < num_features; ++n_feature)
 	{
 	  const Feature &feature = g.get_feature (n_feature);
-	  int num_lookups = feature.get_lookup_count ();
+	  unsigned num_lookups = feature.get_lookup_count ();
 	  printf ("    Feature %2d of %2d: %c%c%c%c\n", n_feature, num_features,
-		  HB_UNTAG(g.get_feature_tag(n_feature)));
+		  HB_UNTAG (g.get_feature_tag (n_feature)));
 
 	  printf ("        %d lookup(s) found in feature\n", num_lookups);
-	  for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++) {
+	  for (unsigned n_lookup = 0; n_lookup < num_lookups; ++n_lookup) {
 	    printf ("        Lookup index %2d of %2d: %d\n", n_lookup, num_lookups,
 		    feature.get_lookup_index (n_lookup));
 	  }
 	}
 
-	int num_lookups = g.get_lookup_count ();
+	unsigned num_lookups = g.get_lookup_count ();
 	printf ("    %d lookup(s) found in table\n", num_lookups);
-	for (int n_lookup = 0; n_lookup < num_lookups; n_lookup++)
+	for (unsigned n_lookup = 0; n_lookup < num_lookups; ++n_lookup)
 	{
 	  const Lookup &lookup = g.get_lookup (n_lookup);
 	  printf ("    Lookup %2d of %2d: type %d, props 0x%04X\n", n_lookup, num_lookups,
-		  lookup.get_type(), lookup.get_props());
+		  lookup.get_type (), lookup.get_props ());
 	}
 
 	}
@@ -439,57 +484,21 @@ main (int argc, char **argv)
       }
     }
   }
+}
 
-  /* Dump glyphs */
-  FILE *font_name_file = fopen ("out/.dumped_font_name", "r");
-  if (font_name_file != nullptr)
+int
+main (int argc, char **argv)
+{
+  if (argc != 2)
   {
-    fprintf (stderr, "Purge or move ./out folder in order to run a new glyph dump,\n"
-		     "run it like `rm -rf out && mkdir out && %s font-file.ttf`\n",
-		     argv[0]);
-    return 0;
+    fprintf (stderr, "usage: %s font-file.ttf\n", argv[0]);
+    exit (1);
   }
 
-  font_name_file = fopen ("out/.dumped_font_name", "w");
-  if (font_name_file == nullptr)
-  {
-    fprintf (stderr, "./out is not accessible as a folder, create it please\n");
-    return 0;
-  }
-  fwrite (argv[1], 1, strlen (argv[1]), font_name_file);
-  fclose (font_name_file);
-
-  hb_ot_glyph_decompose_funcs_t *funcs = hb_ot_glyph_decompose_funcs_create ();
-  hb_ot_glyph_decompose_funcs_set_move_to_func (funcs, (hb_ot_glyph_decompose_move_to_func_t) move_to);
-  hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
-  hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
-  hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
-  hb_ot_glyph_decompose_funcs_set_close_path_func (funcs, (hb_ot_glyph_decompose_close_path_func_t) close_path);
-
-  for (unsigned face_index = 0; face_index < num_faces; ++face_index)
-  {
-    hb_face_t *face = hb_face_create (blob, face_index);
-    hb_font_t *font = hb_font_create (face);
-
-    if (hb_ot_color_has_png (face))
-      printf ("Dumping png (CBDT/sbix)...\n");
-    png_dump (face, face_index);
-
-    if (hb_ot_color_has_svg (face))
-      printf ("Dumping svg (SVG )...\n");
-    svg_dump (face, face_index);
-
-    if (hb_ot_color_has_layers (face) && hb_ot_color_has_palettes (face))
-      printf ("Dumping layered color glyphs (COLR/CPAL)...\n");
-    layered_glyph_dump (font, funcs, face_index);
-
-    dump_glyphs (font, funcs, face_index);
-
-    hb_font_destroy (font);
-    hb_face_destroy (face);
-  }
-
-  hb_ot_glyph_decompose_funcs_destroy (funcs);
+  hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
+  printf ("Opened font file %s: %d bytes long\n", argv[1], hb_blob_get_length (blob));
+  print_layout_info_using_private_api (blob);
+  dump_glyphs (blob, argv[1]);
   hb_blob_destroy (blob);
 
   return 0;
