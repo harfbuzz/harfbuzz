@@ -47,7 +47,7 @@ struct LayerRecord
     return_trace (c->check_struct (this));
   }
 
-  protected:
+  public:
   HBGlyphID	glyphId;	/* Glyph ID of layer glyph */
   Index		colorIdx;	/* Index value to use with a
 				 * selected color palette.
@@ -112,12 +112,137 @@ struct COLR
     return glyph_layers.length;
   }
 
+  struct accelerator_t
+  {
+    accelerator_t () {}
+    ~accelerator_t () { fini(); }
+
+    void init (hb_face_t *face)
+    {
+      colr = hb_sanitize_context_t().reference_table<COLR> (face);
+    }
+
+    void fini ()
+    {
+      this->colr.destroy();
+    }
+
+    bool is_valid ()
+    {
+      return colr.get_blob ()->length;
+    }
+
+    void get_related_glyphs (hb_codepoint_t glyph,
+                             hb_set_t *related_ids /* OUT */) const
+    {
+      colr->get_related_glyphs (glyph, related_ids);
+    }
+
+    private:
+    hb_blob_ptr_t<COLR> colr;
+  };
+
+  void get_related_glyphs (hb_codepoint_t glyph,
+                           hb_set_t *related_ids /* OUT */) const
+  {
+    const BaseGlyphRecord &record = (this+baseGlyphsZ).bsearch (numBaseGlyphs, glyph);
+
+    hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
+    hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
+                                                                       record.numLayers);
+    for (unsigned int i = 0; i < glyph_layers.length; i++)
+      hb_set_add (related_ids, glyph_layers[i].glyphId);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
 			  (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
 			  (this+layersZ).sanitize (c, numLayers)));
+  }
+
+  template<typename Iterator,
+           hb_requires (hb_is_iterator (Iterator))>
+  bool serialize (hb_subset_context_t *c,
+                  unsigned version,
+                  Iterator it,
+                  hb_array_t<const LayerRecord> all_layers)
+  {
+    TRACE_SERIALIZE (this);
+
+    if (unlikely (!c->serializer->extend_min (this))) return_trace (false);
+    this->version = version;
+    numLayers = 0;
+    numBaseGlyphs = it.len ();
+    baseGlyphsZ = COLR::min_size;
+    layersZ = COLR::min_size + numBaseGlyphs * BaseGlyphRecord::min_size;
+
+    if (unlikely (!c->serializer->allocate_size<HBUINT8> ((unsigned int) layersZ - (unsigned int) baseGlyphsZ)))
+      return_trace (false);
+    hb_sorted_array_t<BaseGlyphRecord> glyph_records = (this+baseGlyphsZ).as_array (numBaseGlyphs);
+
+    unsigned int index = 0;
+    for (const hb_item_type<Iterator>& _ : it.iter ())
+    {
+      const unsigned int new_gid = _.first;
+      const BaseGlyphRecord* record = _.second;
+      if (record->firstLayerIdx >= all_layers.length ||
+          record->firstLayerIdx + record->numLayers > all_layers.length)
+        return_trace (false);
+
+      glyph_records[index].glyphId = new_gid;
+      glyph_records[index].numLayers = record->numLayers;
+      glyph_records[index].firstLayerIdx = numLayers;
+      index += 1;
+
+      hb_array_t<const LayerRecord> layers = all_layers.sub_array (record->firstLayerIdx,
+                                                                   record->numLayers);
+
+      for (unsigned int i = 0; i < layers.length; i++)
+      {
+        hb_codepoint_t new_gid = 0;
+        if (unlikely (!c->plan->new_gid_for_old_gid (layers[i].glyphId, &new_gid))) return_trace(false);
+
+        LayerRecord* out_layer = c->serializer->start_embed<LayerRecord> ();
+        if (unlikely (!c->serializer->extend_min (out_layer))) return_trace (false);
+
+        out_layer->glyphId = new_gid;
+        out_layer->colorIdx = layers[i].colorIdx;
+      }
+      numLayers += record->numLayers;
+    }
+
+    return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+
+    auto it =
+    + hb_range (1u, c->plan->num_output_glyphs ())  // Skip notdef.
+    | hb_map ([&](unsigned int new_gid)
+        {
+          hb_codepoint_t old_gid = 0;
+          if (unlikely (!c->plan->old_gid_for_new_gid (new_gid, &old_gid)))
+            return hb_pair_t<hb_codepoint_t, const BaseGlyphRecord*>(new_gid, nullptr);
+
+          const BaseGlyphRecord* record = &(this+baseGlyphsZ).bsearch (numBaseGlyphs, old_gid);
+          if (record && (hb_codepoint_t) record->glyphId != old_gid)
+            record = nullptr;
+          return hb_pair_t<hb_codepoint_t, const BaseGlyphRecord*>(new_gid, record);
+        })
+    | hb_filter (hb_second)
+    ;
+
+    if (unlikely (!it.len ())) return_trace (false);
+
+    COLR *colr_prime = c->serializer->start_embed<COLR> ();
+
+    hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
+
+    return_trace (colr_prime->serialize (c, version, it, all_layers));
   }
 
   protected:
