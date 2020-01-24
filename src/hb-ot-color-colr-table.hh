@@ -121,25 +121,15 @@ struct COLR
     ~accelerator_t () { fini (); }
 
     void init (hb_face_t *face)
-    {
-      colr = hb_sanitize_context_t ().reference_table<COLR> (face);
-    }
+    { colr = hb_sanitize_context_t ().reference_table<COLR> (face); }
 
-    void fini ()
-    {
-      this->colr.destroy ();
-    }
+    void fini () { this->colr.destroy (); }
 
-    bool is_valid ()
-    {
-      return colr.get_blob ()->length;
-    }
+    bool is_valid () { return colr.get_blob ()->length; }
 
     void get_related_glyphs (hb_codepoint_t glyph,
                              hb_set_t *related_ids /* OUT */) const
-    {
-      colr->get_related_glyphs (glyph, related_ids);
-    }
+    { colr->get_related_glyphs (glyph, related_ids); }
 
     private:
     hb_blob_ptr_t<COLR> colr;
