@@ -186,7 +186,7 @@ struct COLR
     hb_sorted_array_t<BaseGlyphRecord> glyph_records = (this+baseGlyphsZ).as_array (numBaseGlyphs);
 
     unsigned int index = 0;
-    for (const hb_item_type<Iterator>& _ : it.iter ())
+    for (const hb_item_type<Iterator>& _ : + it.iter ())
     {
       const unsigned int new_gid = _.first;
       const BaseGlyphRecord* record = _.second;
