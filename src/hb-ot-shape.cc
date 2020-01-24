@@ -48,6 +48,16 @@
 #include "hb-aat-layout.hh"
 
 
+#ifndef HB_NO_AAT_SHAPE
+static inline bool
+_hb_apply_morx (hb_face_t *face, const hb_segment_properties_t *props)
+{
+  /* https://github.com/harfbuzz/harfbuzz/issues/2124 */
+  return hb_aat_layout_has_substitution (face) &&
+	 (HB_DIRECTION_IS_HORIZONTAL (props->direction) || !hb_ot_layout_has_substitution (face));
+}
+#endif
+
 /**
  * SECTION:hb-ot-shape
  * @title: hb-ot-shape
@@ -70,8 +80,7 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
 						map (face, props),
 						aat_map (face, props)
 #ifndef HB_NO_AAT_SHAPE
-                        /* https://github.com/harfbuzz/harfbuzz/issues/2124 */
-						, apply_morx (HB_DIRECTION_IS_HORIZONTAL(props->direction) && hb_aat_layout_has_substitution (face))
+						, apply_morx (_hb_apply_morx (face, props))
 #endif
 {
   shaper = hb_ot_shape_complex_categorize (this);
