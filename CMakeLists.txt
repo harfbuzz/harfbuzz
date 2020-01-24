@@ -791,7 +791,7 @@ endif ()
 
 if (HB_BUILD_TESTS)
   ## src/ executables
-  foreach (prog main test test-gsub-would-substitute test-gpos-size-params test-buffer-serialize test-unicode-ranges) # hb-ot-tag
+  foreach (prog test test-gsub-would-substitute test-gpos-size-params test-buffer-serialize test-unicode-ranges) # hb-ot-tag
     set (prog_name ${prog})
     if (${prog_name} STREQUAL "test")
       # test can not be used as a valid executable name on cmake, lets special case it
