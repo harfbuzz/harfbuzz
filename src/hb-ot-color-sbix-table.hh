@@ -152,7 +152,9 @@ struct SBIXStrike
     {
       hb_codepoint_t old_gid;
       if (!c->plan->old_gid_for_new_gid (new_gid, &old_gid) ||
-          unlikely (imageOffsetsZ[old_gid + 1] <= imageOffsetsZ[old_gid] ||
+          unlikely (imageOffsetsZ[old_gid].is_null() ||
+                    imageOffsetsZ[old_gid + 1].is_null () ||
+                    imageOffsetsZ[old_gid + 1] <= imageOffsetsZ[old_gid] ||
                     imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid] <= SBIXGlyph::min_size) ||
                     (unsigned int) imageOffsetsZ[old_gid + 1] > available_len)
       {
@@ -162,7 +164,7 @@ struct SBIXStrike
       has_glyphs = true;
       unsigned int delta = imageOffsetsZ[old_gid + 1] - imageOffsetsZ[old_gid];
       unsigned int glyph_data_length = delta - SBIXGlyph::min_size;
-      if (!(this + imageOffsetsZ[old_gid]).copy (c->serializer, glyph_data_length))
+      if (!(this+imageOffsetsZ[old_gid]).copy (c->serializer, glyph_data_length))
         return_trace (false);
       out->imageOffsetsZ[new_gid] = head;
       head += delta;
