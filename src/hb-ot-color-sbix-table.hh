@@ -41,7 +41,8 @@ namespace OT {
 
 struct SBIXGlyph
 {
-  SBIXGlyph* copy (hb_serialize_context_t *c, unsigned int data_length) const {
+  SBIXGlyph* copy (hb_serialize_context_t *c, unsigned int data_length) const
+  {
     TRACE_SERIALIZE (this);
     SBIXGlyph* new_glyph = c->start_embed<SBIXGlyph> ();
     if (unlikely (!new_glyph)) return_trace (nullptr);
