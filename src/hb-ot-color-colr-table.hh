@@ -1,5 +1,6 @@
 /*
  * Copyright © 2018  Ebrahim Byagowi
+ * Copyright © 2020  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,6 +21,8 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Google Author(s): Calder Kitagawa
  */
 
 #ifndef HB_OT_COLOR_COLR_TABLE_HH
@@ -115,16 +118,16 @@ struct COLR
   struct accelerator_t
   {
     accelerator_t () {}
-    ~accelerator_t () { fini(); }
+    ~accelerator_t () { fini (); }
 
     void init (hb_face_t *face)
     {
-      colr = hb_sanitize_context_t().reference_table<COLR> (face);
+      colr = hb_sanitize_context_t ().reference_table<COLR> (face);
     }
 
     void fini ()
     {
-      this->colr.destroy();
+      this->colr.destroy ();
     }
 
     bool is_valid ()
@@ -202,7 +205,7 @@ struct COLR
       for (unsigned int i = 0; i < layers.length; i++)
       {
         hb_codepoint_t new_gid = 0;
-        if (unlikely (!c->plan->new_gid_for_old_gid (layers[i].glyphId, &new_gid))) return_trace(false);
+        if (unlikely (!c->plan->new_gid_for_old_gid (layers[i].glyphId, &new_gid))) return_trace (false);
 
         LayerRecord* out_layer = c->serializer->start_embed<LayerRecord> ();
         if (unlikely (!c->serializer->extend_min (out_layer))) return_trace (false);
@@ -231,7 +234,7 @@ struct COLR
           const BaseGlyphRecord* record = &(this+baseGlyphsZ).bsearch (numBaseGlyphs, old_gid);
           if (record && (hb_codepoint_t) record->glyphId != old_gid)
             record = nullptr;
-          return hb_pair_t<hb_codepoint_t, const BaseGlyphRecord*>(new_gid, record);
+          return hb_pair_t<hb_codepoint_t, const BaseGlyphRecord*> (new_gid, record);
         })
     | hb_filter (hb_second)
     ;
