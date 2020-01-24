@@ -177,7 +177,7 @@ jobs:
       - run: wget https://ftp.gnome.org/pub/gnome/sources/glib/2.58/glib-2.58.1.tar.xz && tar xf glib-2.58.1.tar.xz && cd glib-2.58.1 && ./autogen.sh --with-pcre CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CFLAGS="-fsanitize=memory" CXXFLAGS="-fsanitize=memory" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
       - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
       - run: CPPFLAGS="-fsanitize=memory -fsanitize-memory-track-origins" LDFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --without-icu
-      - run: make -j32 && MSAN_OPTIONS=exitcode=42 HB_TEST_SUBSET_FUZZER_TIMEOUT=12 make check || .ci/fail.sh | asan_symbolize | c++filt
+      - run: make -j32 && MSAN_OPTIONS=exitcode=42 HB_TEST_SUBSET_FUZZER_TIMEOUT=18 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-tsan:
     docker:
@@ -218,7 +218,7 @@ jobs:
       - checkout
       - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which diffutils glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python python-pip mingw32-gcc-c++ mingw64-gcc-c++ mingw32-glib2 mingw32-cairo mingw32-freetype mingw64-glib2 mingw64-cairo mingw64-freetype glibc-devel.i686 || true
       - run: NOCONFIGURE=1 ./autogen.sh
-      - run: mkdir build && cd build && CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ../configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make -j32 && (make check || ../.ci/fail.sh)
+      - run: mkdir build && cd build && CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ../configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make -j32 && (HB_TEST_SUBSET_FUZZER_TIMEOUT=15 make check || ../.ci/fail.sh)
       - run: pip install pefile
       - run: mkdir winbuild32 && cd winbuild32 && ../mingw32.sh && make -j32 && make dist-win && cp harfbuzz-*-win32.zip harfbuzz-win32.zip
       - run: mkdir winbuild64 && cd winbuild64 && ../mingw64.sh && make -j32 && make dist-win && cp harfbuzz-*-win64.zip harfbuzz-win64.zip
