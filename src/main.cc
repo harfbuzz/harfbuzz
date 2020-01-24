@@ -37,6 +37,7 @@
 #define hb_blob_create_from_file(x)  hb_blob_get_empty ()
 #endif
 
+#if !defined(HB_NO_COLOR) && !defined(HB_NO_GLYPH)
 static void
 svg_dump (hb_face_t *face, unsigned face_index)
 {
@@ -325,6 +326,7 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
 
   hb_ot_glyph_decompose_funcs_destroy (funcs);
 }
+#endif
 
 /* Only this part of this mini app uses private API */
 #include "hb-static.cc"
@@ -485,6 +487,7 @@ print_layout_info_using_private_api (hb_blob_t *blob)
     }
   }
 }
+/* end of private API use */
 
 int
 main (int argc, char **argv)
@@ -498,7 +501,9 @@ main (int argc, char **argv)
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
   printf ("Opened font file %s: %d bytes long\n", argv[1], hb_blob_get_length (blob));
   print_layout_info_using_private_api (blob);
+#if !defined(HB_NO_COLOR) && !defined(HB_NO_GLYPH)
   dump_glyphs (blob, argv[1]);
+#endif
   hb_blob_destroy (blob);
 
   return 0;

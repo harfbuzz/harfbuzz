@@ -24,7 +24,7 @@
 
 #include "hb.hh"
 
-#ifndef HB_NO_OT_GLYPH
+#ifndef HB_NO_GLYPH
 
 #include "hb-ot.h"
 #include "hb-ot-glyf-table.hh"
