@@ -70,7 +70,8 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
 						map (face, props),
 						aat_map (face, props)
 #ifndef HB_NO_AAT_SHAPE
-						, apply_morx (hb_aat_layout_has_substitution (face))
+                        /* https://github.com/harfbuzz/harfbuzz/issues/2124 */
+						, apply_morx (HB_DIRECTION_IS_HORIZONTAL(props->direction) && hb_aat_layout_has_substitution (face))
 #endif
 {
   shaper = hb_ot_shape_complex_categorize (this);
