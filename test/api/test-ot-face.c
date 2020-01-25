@@ -121,10 +121,10 @@ test_face (hb_face_t *face,
   hb_ot_var_normalize_variations (face, NULL, 0, NULL, 0);
   hb_ot_var_normalize_coords (face, 0, NULL, NULL);
 
-  hb_ot_glyph_decompose_funcs_t *funcs = hb_ot_glyph_decompose_funcs_create ();
+  hb_outline_decompose_funcs_t *funcs = hb_outline_decompose_funcs_create ();
   for (unsigned gid = 0; gid < 10; ++gid)
-    hb_ot_glyph_decompose (font, gid, funcs, NULL);
-  hb_ot_glyph_decompose_funcs_destroy (funcs);
+    hb_outline_decompose (font, gid, funcs, NULL);
+  hb_outline_decompose_funcs_destroy (funcs);
 
   hb_set_destroy (set);
   hb_font_destroy (font);

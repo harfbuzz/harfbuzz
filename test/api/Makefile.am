@@ -38,8 +38,8 @@ TEST_PROGS = \
 	test-map \
 	test-object \
 	test-ot-face \
-	test-ot-glyph \
 	test-ot-glyphname \
+	test-outline \
 	test-set \
 	test-shape \
 	test-subset \

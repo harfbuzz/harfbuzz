@@ -30,7 +30,7 @@
 
 #include "hb-ot-cff2-table.hh"
 #include "hb-cff2-interp-cs.hh"
-#include "hb-ot-glyph.hh"
+#include "hb-outline.hh"
 
 using namespace CFF;
 
@@ -145,7 +145,7 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
 struct cff2_path_param_t
 {
-  cff2_path_param_t (hb_font_t *font_, const hb_ot_glyph_decompose_funcs_t *funcs_, void *user_data_)
+  cff2_path_param_t (hb_font_t *font_, const hb_outline_decompose_funcs_t *funcs_, void *user_data_)
   {
     path_open = false;
     font = font_;
@@ -180,7 +180,7 @@ struct cff2_path_param_t
 
   bool  path_open;
   hb_font_t *font;
-  const hb_ot_glyph_decompose_funcs_t *funcs;
+  const hb_outline_decompose_funcs_t *funcs;
   void *user_data;
 };
 
@@ -211,7 +211,7 @@ struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_int
 struct cff2_cs_opset_path_t : cff2_cs_opset_t<cff2_cs_opset_path_t, cff2_path_param_t, cff2_path_procs_path_t> {};
 
 bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
-					const hb_ot_glyph_decompose_funcs_t *funcs, void *user_data) const
+					const hb_outline_decompose_funcs_t *funcs, void *user_data) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */
