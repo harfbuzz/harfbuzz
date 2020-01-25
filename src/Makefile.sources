@@ -40,6 +40,8 @@ HB_BASE_sources = \
 	hb-fallback-shape.cc \
 	hb-font.cc \
 	hb-font.hh \
+	hb-outline.cc \
+	hb-outline.hh \
 	hb-iter.hh \
 	hb-kern.hh \
 	hb-machinery.hh \
@@ -73,8 +75,6 @@ HB_BASE_sources = \
 	hb-ot-font.cc \
 	hb-ot-gasp-table.hh \
 	hb-ot-glyf-table.hh \
-	hb-ot-glyph.cc \
-	hb-ot-glyph.hh \
 	hb-ot-hdmx-table.hh \
 	hb-ot-head-table.hh \
 	hb-ot-hhea-table.hh \
@@ -197,11 +197,11 @@ HB_BASE_headers = \
 	hb-deprecated.h \
 	hb-face.h \
 	hb-font.h \
+	hb-outline.h \
 	hb-map.h \
 	hb-ot-color.h \
 	hb-ot-deprecated.h \
 	hb-ot-font.h \
-	hb-ot-glyph.h \
 	hb-ot-layout.h \
 	hb-ot-math.h \
 	hb-ot-meta.h \

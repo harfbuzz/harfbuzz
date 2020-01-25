@@ -37,7 +37,7 @@
 #define hb_blob_create_from_file(x)  hb_blob_get_empty ()
 #endif
 
-#if !defined(HB_NO_COLOR) && !defined(HB_NO_GLYPH)
+#if !defined(HB_NO_COLOR) && !defined(HB_NO_OUTLINE)
 static void
 svg_dump (hb_face_t *face, unsigned face_index)
 {
@@ -169,7 +169,7 @@ close_path (user_data_t &user_data)
 }
 
 static void
-layered_glyph_dump (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsigned face_index)
+layered_glyph_dump (hb_font_t *font, hb_outline_decompose_funcs_t *funcs, unsigned face_index)
 {
   hb_face_t *face = hb_font_get_face (font);
   unsigned num_glyphs = hb_face_get_glyph_count (face);
@@ -224,7 +224,7 @@ layered_glyph_dump (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsig
 	    if (hb_color_get_alpha (color) != 255)
 	      fprintf (f, "fill-opacity=\"%.3f\"", (double) hb_color_get_alpha (color) / 255.);
 	    fprintf (f, "d=\"");
-	    if (!hb_ot_glyph_decompose (font, layers[layer].glyph, funcs, &user_data))
+	    if (!hb_outline_decompose (font, layers[layer].glyph, funcs, &user_data))
 	      printf ("Failed to decompose layer %d while %d\n", layers[layer].glyph, gid);
 	    fprintf (f, "\"/>\n");
 	  }
@@ -242,7 +242,7 @@ layered_glyph_dump (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsig
 }
 
 static void
-dump_glyphs (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsigned face_index)
+dump_glyphs (hb_font_t *font, hb_outline_decompose_funcs_t *funcs, unsigned face_index)
 {
   unsigned num_glyphs = hb_face_get_glyph_count (hb_font_get_face (font));
   for (unsigned gid = 0; gid < num_glyphs; ++gid)
@@ -266,7 +266,7 @@ dump_glyphs (hb_font_t *font, hb_ot_glyph_decompose_funcs_t *funcs, unsigned fac
     user_data_t user_data;
     user_data.ascender = font_extents.ascender;
     user_data.f = f;
-    if (!hb_ot_glyph_decompose (font, gid, funcs, &user_data))
+    if (!hb_outline_decompose (font, gid, funcs, &user_data))
       printf ("Failed to decompose gid: %d\n", gid);
     fprintf (f, "\"/></svg>");
     fclose (f);
@@ -293,12 +293,12 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
   fwrite (font_name, 1, strlen (font_name), font_name_file);
   fclose (font_name_file);
 
-  hb_ot_glyph_decompose_funcs_t *funcs = hb_ot_glyph_decompose_funcs_create ();
-  hb_ot_glyph_decompose_funcs_set_move_to_func (funcs, (hb_ot_glyph_decompose_move_to_func_t) move_to);
-  hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
-  hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
-  hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
-  hb_ot_glyph_decompose_funcs_set_close_path_func (funcs, (hb_ot_glyph_decompose_close_path_func_t) close_path);
+  hb_outline_decompose_funcs_t *funcs = hb_outline_decompose_funcs_create ();
+  hb_outline_decompose_funcs_set_move_to_func (funcs, (hb_outline_decompose_move_to_func_t) move_to);
+  hb_outline_decompose_funcs_set_line_to_func (funcs, (hb_outline_decompose_line_to_func_t) line_to);
+  hb_outline_decompose_funcs_set_conic_to_func (funcs, (hb_outline_decompose_conic_to_func_t) conic_to);
+  hb_outline_decompose_funcs_set_cubic_to_func (funcs, (hb_outline_decompose_cubic_to_func_t) cubic_to);
+  hb_outline_decompose_funcs_set_close_path_func (funcs, (hb_outline_decompose_close_path_func_t) close_path);
 
   unsigned num_faces = hb_face_count (blob);
   for (unsigned face_index = 0; face_index < num_faces; ++face_index)
@@ -324,7 +324,7 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
     hb_face_destroy (face);
   }
 
-  hb_ot_glyph_decompose_funcs_destroy (funcs);
+  hb_outline_decompose_funcs_destroy (funcs);
 }
 #endif
 
@@ -501,7 +501,7 @@ main (int argc, char **argv)
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
   printf ("Opened font file %s: %d bytes long\n", argv[1], hb_blob_get_length (blob));
   print_layout_info_using_private_api (blob);
-#if !defined(HB_NO_COLOR) && !defined(HB_NO_GLYPH)
+#if !defined(HB_NO_COLOR) && !defined(HB_NO_OUTLINE)
   dump_glyphs (blob, argv[1]);
 #endif
   hb_blob_destroy (blob);

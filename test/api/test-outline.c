@@ -24,7 +24,7 @@
 
 #include "hb-test.h"
 
-#include <hb-ot.h>
+#include <hb.h>
 
 typedef struct user_data_t
 {
@@ -159,16 +159,16 @@ close_path (user_data_t *user_data)
   user_data->str[user_data->consumed++] = 'Z';
 }
 
-static hb_ot_glyph_decompose_funcs_t *funcs;
+static hb_outline_decompose_funcs_t *funcs;
 
 static void
-test_hb_ot_glyph_empty (void)
+test_hb_glyph_empty (void)
 {
-  g_assert (!hb_ot_glyph_decompose (hb_font_get_empty (), 3, funcs, NULL));
+  g_assert (!hb_outline_decompose (hb_font_get_empty (), 3, funcs, NULL));
 }
 
 static void
-test_hb_ot_glyph_glyf (void)
+test_hb_glyph_glyf (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/SourceSerifVariable-Roman-VVAR.abc.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -182,9 +182,9 @@ test_hb_ot_glyph_glyf (void)
   };
 
   user_data.consumed = 0;
-  g_assert (!hb_ot_glyph_decompose (font, 4, funcs, &user_data));
+  g_assert (!hb_outline_decompose (font, 4, funcs, &user_data));
   user_data.consumed = 0;
-  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
+  g_assert (hb_outline_decompose (font, 3, funcs, &user_data));
   char expected[] = "M275,442L275,442Q232,442 198,420Q164,397 145,353Q126,309 126,245L126,245"
 		    "Q126,182 147,139Q167,95 204,73Q240,50 287,50L287,50Q330,50 367,70"
 		    "Q404,90 427,128L427,128L451,116Q431,54 384,21Q336,-13 266,-13L266,-13Q198,-13 148,18"
@@ -199,7 +199,7 @@ test_hb_ot_glyph_glyf (void)
   hb_font_set_variations (font, &var, 1);
 
   user_data.consumed = 0;
-  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
+  g_assert (hb_outline_decompose (font, 3, funcs, &user_data));
   char expected2[] = "M323,448L323,448Q297,448 271,430Q244,412 227,371"
 		     "Q209,330 209,261L209,261Q209,204 226,166Q242,127 273,107Q303,86 344,86L344,86Q378,86 404,101"
 		     "Q430,115 451,137L451,137L488,103Q458,42 404,13Q350,-16 279,-16L279,-16Q211,-16 153,13Q95,41 60,99"
@@ -212,7 +212,7 @@ test_hb_ot_glyph_glyf (void)
 }
 
 static void
-test_hb_ot_glyph_cff1 (void)
+test_hb_glyph_cff1 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_seac.otf");
   hb_font_t *font = hb_font_create (face);
@@ -224,7 +224,7 @@ test_hb_ot_glyph_cff1 (void)
     .size = sizeof (str),
     .consumed = 0
   };
-  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
+  g_assert (hb_outline_decompose (font, 3, funcs, &user_data));
   char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367L369,267L172,267Z"
 		    "M3,0L88,0L151,200L390,200L452,0L541,0L319,656L225,656Z"
 		    "M300,653L342,694L201,861L143,806Z";
@@ -234,7 +234,7 @@ test_hb_ot_glyph_cff1 (void)
 }
 
 static void
-test_hb_ot_glyph_cff1_rline (void)
+test_hb_glyph_cff1_rline (void)
 {
   /* https://github.com/harfbuzz/harfbuzz/pull/2053 */
   hb_face_t *face = hb_test_open_font_file ("fonts/RanaKufi-Regular.subset.otf");
@@ -247,7 +247,7 @@ test_hb_ot_glyph_cff1_rline (void)
     .size = sizeof (str),
     .consumed = 0
   };
-  g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+  g_assert (hb_outline_decompose (font, 1, funcs, &user_data));
   char expected[] = "M775,400C705,400 650,343 650,274L650,250L391,250L713,572L392,893"
 		    "L287,1000C311,942 296,869 250,823C250,823 286,858 321,823L571,572"
 		    "L150,150L750,150L750,276C750,289 761,300 775,300C789,300 800,289 800,276"
@@ -259,7 +259,7 @@ test_hb_ot_glyph_cff1_rline (void)
 }
 
 static void
-test_hb_ot_glyph_cff2 (void)
+test_hb_glyph_cff2 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
   hb_font_t *font = hb_font_create (face);
@@ -272,7 +272,7 @@ test_hb_ot_glyph_cff2 (void)
   };
 
   user_data.consumed = 0;
-  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
+  g_assert (hb_outline_decompose (font, 3, funcs, &user_data));
   char expected[] = "M275,442C303,442 337,435 371,417L325,454L350,366"
 		    "C357,341 370,321 403,321C428,321 443,333 448,358"
 		    "C435,432 361,487 272,487C153,487 43,393 43,236"
@@ -286,7 +286,7 @@ test_hb_ot_glyph_cff2 (void)
   hb_font_set_variations (font, &var, 1);
 
   user_data.consumed = 0;
-  g_assert (hb_ot_glyph_decompose (font, 3, funcs, &user_data));
+  g_assert (hb_outline_decompose (font, 3, funcs, &user_data));
   char expected2[] = "M323,448C356,448 380,441 411,427L333,469L339,401"
 		     "C343,322 379,297 420,297C458,297 480,314 492,352"
 		     "C486,433 412,501 303,501C148,501 25,406 25,241"
@@ -298,7 +298,7 @@ test_hb_ot_glyph_cff2 (void)
 }
 
 static void
-test_hb_ot_glyph_ttf_parser_tests (void)
+test_hb_glyph_ttf_parser_tests (void)
 {
   /* https://github.com/RazrFalcon/ttf-parser/blob/337e7d1c/tests/tests.rs#L50-L133 */
   char str[1024] = {0};
@@ -313,19 +313,19 @@ test_hb_ot_glyph_ttf_parser_tests (void)
     {
       /* We aren't identical on paths points for glyf with ttf-parser but visually, investigate */
       user_data.consumed = 0;
-      g_assert (hb_ot_glyph_decompose (font, 0, funcs, &user_data));
+      g_assert (hb_outline_decompose (font, 0, funcs, &user_data));
       char expected[] = "M450,0L50,0L50,750L450,750L450,0Z";
       g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
     }
     {
       user_data.consumed = 0;
-      g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+      g_assert (hb_outline_decompose (font, 1, funcs, &user_data));
       char expected[] = "M514,416L56,416L56,487L514,487L514,416ZM514,217L56,217L56,288L514,288L514,217Z";
       g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
     }
     {
       user_data.consumed = 0;
-      g_assert (hb_ot_glyph_decompose (font, 4, funcs, &user_data));
+      g_assert (hb_outline_decompose (font, 4, funcs, &user_data));
       char expected[] = "M332,536L332,468L197,468L197,0L109,0L109,468L15,468L15,509L109,539L109,570"
 			"Q109,674 155,720Q201,765 283,765L283,765Q315,765 342,760Q368,754 387,747"
 			"L387,747L364,678Q348,683 327,688Q306,693 284,693L284,693Q240,693 219,664"
@@ -338,13 +338,13 @@ test_hb_ot_glyph_ttf_parser_tests (void)
     {
       /* According to tests on tts-parser we should return an empty on single point but we aren't */
       user_data.consumed = 0;
-      g_assert (hb_ot_glyph_decompose (font, 5, funcs, &user_data));
+      g_assert (hb_outline_decompose (font, 5, funcs, &user_data));
       char expected[] = "M15,0Q15,0 15,0Z";
       g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
     }
     {
       user_data.consumed = 0;
-      g_assert (hb_ot_glyph_decompose (font, 6, funcs, &user_data));
+      g_assert (hb_outline_decompose (font, 6, funcs, &user_data));
       char expected[] = "M346,536L346,468L211,468L211,0L123,0L123,468L29,468"
 			"L29,509L123,539L123,570Q123,674 169,720Q215,765 297,765"
 			"L297,765Q329,765 356,760Q382,754 401,747L401,747L378,678"
@@ -361,7 +361,7 @@ test_hb_ot_glyph_ttf_parser_tests (void)
     hb_face_destroy (face);
 
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, 1, funcs, &user_data));
     char expected[] = "M0,0C100,0 150,-20 250,-20C350,-20 400,0 500,0C500,100 520,150 520,250"
 		      "C520,350 500,400 500,500C400,500 350,520 250,520C150,520 100,500 0,500"
 		      "C0,400 -20,350 -20,250C-20,150 0,100 0,0ZM50,50C50,130 34,170 34,250"
@@ -378,7 +378,7 @@ test_hb_ot_glyph_ttf_parser_tests (void)
     hb_face_destroy (face);
 
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, 1, funcs, &user_data));
     char expected[] = "M82,0L164,0L164,486L82,486ZM124,586C156,586 181,608 181,639"
 		      "C181,671 156,692 124,692C92,692 67,671 67,639C67,608 92,586 124,586Z";
     g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
@@ -388,7 +388,7 @@ test_hb_ot_glyph_ttf_parser_tests (void)
 }
 
 static void
-test_hb_ot_glyph_font_kit_glyphs_tests (void)
+test_hb_glyph_font_kit_glyphs_tests (void)
 {
   /* https://github.com/foliojs/fontkit/blob/master/test/glyphs.js */
   char str[2048];
@@ -404,7 +404,7 @@ test_hb_ot_glyph_font_kit_glyphs_tests (void)
 
     /* should get a path for the glyph */
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, 37, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, 37, funcs, &user_data));
     char expected[] = "M201,0L201,1462L614,1462Q905,1462 1035,1375Q1165,1288 1165,1100"
 		      "L1165,1100Q1165,970 1093,886Q1020,801 881,776L881,776L881,766"
 		      "Q1214,709 1214,416L1214,416Q1214,220 1082,110Q949,0 711,0L711,0L201,0Z"
@@ -416,7 +416,7 @@ test_hb_ot_glyph_font_kit_glyphs_tests (void)
 
     /* should get a path for the glyph */
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, 171, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, 171, funcs, &user_data));
     char expected2[] = "M639,-20L639,-20Q396,-20 256,128Q115,276 115,539L115,539"
 		       "Q115,804 246,960Q376,1116 596,1116L596,1116Q802,1116 922,981"
 		       "Q1042,845 1042,623L1042,623L1042,518L287,518Q292,325 385,225"
@@ -445,7 +445,7 @@ test_hb_ot_glyph_font_kit_glyphs_tests (void)
 
     /* should resolve composite glyphs recursively */
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, codepoint, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, codepoint, funcs, &user_data));
     char expected[] = "M581,170L581,274L443,274Q409,274 384,259Q359,243 348,219"
 		      "Q336,194 340,166Q343,138 365,111L365,111L468,-13Q470,-10 473,-7"
 		      "Q475,-3 477,0L477,0L253,0Q225,0 203,8Q180,15 168,32Q155,48 155,73"
@@ -463,7 +463,7 @@ test_hb_ot_glyph_font_kit_glyphs_tests (void)
 
     /* should transform points of a composite glyph */
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, 2, funcs, &user_data)); /* 2 == arAlef.fina */
+    g_assert (hb_outline_decompose (font, 2, funcs, &user_data)); /* 2 == arAlef.fina */
     char expected2[] = "M50,624L155,624L155,84Q150,90 146,95Q141,99 136,105L136,105"
 		       "L292,105L292,0L156,0Q128,0 104,14Q79,27 65,51Q50,74 50,104"
 		       "L50,104L50,624ZM282,0L282,105L312,105L312,0L282,0Z";
@@ -478,7 +478,7 @@ test_hb_ot_glyph_font_kit_glyphs_tests (void)
     hb_face_destroy (face);
 
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, 5, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, 5, funcs, &user_data));
     char expected[] = "M90,0L258,0C456,0 564,122 564,331C564,539 456,656 254,656L90,656ZM173,68"
 		      "L173,588L248,588C401,588 478,496 478,331C478,165 401,68 248,68Z";
     g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
@@ -493,7 +493,7 @@ test_hb_ot_glyph_font_kit_glyphs_tests (void)
     hb_face_destroy (face);
 
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, 1, funcs, &user_data));
     char expected[] = "M139,390C175,390 205,419 205,459C205,501 175,530 139,530C103,530 73,501 73,459"
 		      "C73,419 103,390 139,390ZM139,-13C175,-13 205,15 205,56C205,97 175,127 139,127"
 		      "C103,127 73,97 73,56C73,15 103,-13 139,-13Z";
@@ -505,7 +505,7 @@ test_hb_ot_glyph_font_kit_glyphs_tests (void)
 }
 
 static void
-test_hb_ot_glyph_font_kit_variations_tests (void)
+test_hb_glyph_font_kit_variations_tests (void)
 {
   /* https://github.com/foliojs/fontkit/blob/b310db5/test/variations.js */
   char str[2048];
@@ -538,7 +538,7 @@ test_hb_ot_glyph_font_kit_variations_tests (void)
     hb_buffer_destroy (buffer);
 
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, codepoint, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, codepoint, funcs, &user_data));
     char expected[] = "M414,-102L371,-102L371,539L914,539L914,-27Q914,-102 840,-102L840,-102Q796,-102 755,-98"
 		      "L755,-98L742,-59Q790,-66 836,-66L836,-66Q871,-66 871,-31L871,-31L871,504L414,504L414,-102Z"
 		      "M203,-94L203,-94Q138,-94 86,-90L86,-90L74,-52Q137,-59 188,-59L188,-59Q211,-59 222,-47"
@@ -584,7 +584,7 @@ test_hb_ot_glyph_font_kit_variations_tests (void)
     hb_buffer_destroy (buffer);
 
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, codepoint, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, codepoint, funcs, &user_data));
     char expected[] = "M414,-102L371,-102L371,539L914,539L914,-27Q914,-102 840,-102L840,-102Q796,-102 755,-98"
 		      "L755,-98L742,-59Q790,-66 836,-66L836,-66Q871,-66 871,-31L871,-31L871,504L414,504"
 		      "L414,-102ZM203,-94L203,-94Q138,-94 86,-90L86,-90L74,-52Q137,-59 188,-59L188,-59"
@@ -630,7 +630,7 @@ test_hb_ot_glyph_font_kit_variations_tests (void)
     hb_buffer_destroy (buffer);
 
     user_data.consumed = 0;
-    g_assert (hb_ot_glyph_decompose (font, codepoint, funcs, &user_data));
+    g_assert (hb_outline_decompose (font, codepoint, funcs, &user_data));
     char expected[] = "M414,-102L371,-102L371,539L914,539L914,-27Q914,-102 840,-102L840,-102"
 		      "Q796,-102 755,-98L755,-98L742,-59Q790,-66 836,-66L836,-66Q871,-66 871,-31"
 		      "L871,-31L871,504L414,504L414,-102ZM203,-94L203,-94Q138,-94 86,-90"
@@ -680,7 +680,7 @@ test_hb_ot_glyph_font_kit_variations_tests (void)
       hb_buffer_destroy (buffer);
 
       user_data.consumed = 0;
-      g_assert (hb_ot_glyph_decompose (font, codepoint, funcs, &user_data));
+      g_assert (hb_outline_decompose (font, codepoint, funcs, &user_data));
       char expected[] = "M246,15C188,15 147,27 101,68L142,23L117,117C111,143 96,149 81,149"
 		        "C65,149 56,141 52,126C71,40 137,-13 244,-13C348,-13 436,46 436,156"
 		        "C436,229 405,295 271,349L247,359C160,393 119,439 119,506"
@@ -704,7 +704,7 @@ test_hb_ot_glyph_font_kit_variations_tests (void)
       hb_buffer_destroy (buffer);
 
       user_data.consumed = 0;
-      g_assert (hb_ot_glyph_decompose (font, codepoint, funcs, &user_data));
+      g_assert (hb_outline_decompose (font, codepoint, funcs, &user_data));
       char expected[] = "M251,36C206,36 165,42 118,61L176,21L161,99C151,152 129,167 101,167"
 			"C78,167 61,155 51,131C54,43 133,-14 247,-14C388,-14 474,64 474,171"
 			"C474,258 430,321 294,370L257,383C188,406 150,438 150,499"
@@ -729,7 +729,7 @@ test_hb_ot_glyph_font_kit_variations_tests (void)
       hb_buffer_destroy (buffer);
 
       user_data.consumed = 0;
-      g_assert (hb_ot_glyph_decompose (font, codepoint, funcs, &user_data));
+      g_assert (hb_outline_decompose (font, codepoint, funcs, &user_data));
       char expected[] = "M258,38C197,38 167,48 118,71L192,19L183,103C177,155 155,174 115,174"
 			"C89,174 64,161 51,125C52,36 124,-16 258,-16C417,-16 513,67 513,175"
 			"C513,278 457,328 322,388L289,403C232,429 203,452 203,500C203,562 244,589 301,589"
@@ -747,25 +747,25 @@ test_hb_ot_glyph_font_kit_variations_tests (void)
 int
 main (int argc, char **argv)
 {
-  funcs = hb_ot_glyph_decompose_funcs_create ();
-  hb_ot_glyph_decompose_funcs_set_move_to_func (funcs, (hb_ot_glyph_decompose_move_to_func_t) move_to);
-  hb_ot_glyph_decompose_funcs_set_line_to_func (funcs, (hb_ot_glyph_decompose_line_to_func_t) line_to);
-  hb_ot_glyph_decompose_funcs_set_conic_to_func (funcs, (hb_ot_glyph_decompose_conic_to_func_t) conic_to);
-  hb_ot_glyph_decompose_funcs_set_cubic_to_func (funcs, (hb_ot_glyph_decompose_cubic_to_func_t) cubic_to);
-  hb_ot_glyph_decompose_funcs_set_close_path_func (funcs, (hb_ot_glyph_decompose_close_path_func_t) close_path);
+  funcs = hb_outline_decompose_funcs_create ();
+  hb_outline_decompose_funcs_set_move_to_func (funcs, (hb_outline_decompose_move_to_func_t) move_to);
+  hb_outline_decompose_funcs_set_line_to_func (funcs, (hb_outline_decompose_line_to_func_t) line_to);
+  hb_outline_decompose_funcs_set_conic_to_func (funcs, (hb_outline_decompose_conic_to_func_t) conic_to);
+  hb_outline_decompose_funcs_set_cubic_to_func (funcs, (hb_outline_decompose_cubic_to_func_t) cubic_to);
+  hb_outline_decompose_funcs_set_close_path_func (funcs, (hb_outline_decompose_close_path_func_t) close_path);
 
   hb_test_init (&argc, &argv);
   hb_test_add (test_itoa);
-  hb_test_add (test_hb_ot_glyph_empty);
-  hb_test_add (test_hb_ot_glyph_glyf);
-  hb_test_add (test_hb_ot_glyph_cff1);
-  hb_test_add (test_hb_ot_glyph_cff1_rline);
-  hb_test_add (test_hb_ot_glyph_cff2);
-  hb_test_add (test_hb_ot_glyph_ttf_parser_tests);
-  hb_test_add (test_hb_ot_glyph_font_kit_glyphs_tests);
-  hb_test_add (test_hb_ot_glyph_font_kit_variations_tests);
+  hb_test_add (test_hb_glyph_empty);
+  hb_test_add (test_hb_glyph_glyf);
+  hb_test_add (test_hb_glyph_cff1);
+  hb_test_add (test_hb_glyph_cff1_rline);
+  hb_test_add (test_hb_glyph_cff2);
+  hb_test_add (test_hb_glyph_ttf_parser_tests);
+  hb_test_add (test_hb_glyph_font_kit_glyphs_tests);
+  hb_test_add (test_hb_glyph_font_kit_variations_tests);
   unsigned result = hb_test_run ();
 
-  hb_ot_glyph_decompose_funcs_destroy (funcs);
+  hb_outline_decompose_funcs_destroy (funcs);
   return result;
 }
