@@ -226,6 +226,97 @@ test_hb_ot_glyph_cff2 (void)
   hb_font_destroy (font);
 }
 
+static void
+test_hb_ot_glyph_ttf_parser_tests (void)
+{
+  char str[1024] = {0};
+  user_data_t user_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  /* https://github.com/RazrFalcon/ttf-parser/blob/337e7d1c/tests/tests.rs#L50-L133 */
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+    {
+      /* We aren't identical on paths points for glyf with ttf-parser but visually, investigate */
+      user_data.consumed = 0;
+      g_assert (hb_ot_glyph_decompose (font, 0, funcs, &user_data));
+      char expected[] = "M450,0L50,0L50,750L450,750L450,0Z";
+      g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+    }
+    {
+      user_data.consumed = 0;
+      g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+      char expected[] = "M514,416L56,416L56,487L514,487L514,416ZM514,217L56,217L56,288L514,288L514,217Z";
+      g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+    }
+    {
+      user_data.consumed = 0;
+      g_assert (hb_ot_glyph_decompose (font, 4, funcs, &user_data));
+      char expected[] = "M332,536L332,468L197,468L197,0L109,0L109,468L15,468L15,509L109,539L109,570"
+			"Q109,674 155,720Q201,765 283,765L283,765Q315,765 342,760Q368,754 387,747"
+			"L387,747L364,678Q348,683 327,688Q306,693 284,693L284,693Q240,693 219,664"
+			"Q197,634 197,571L197,571L197,536L332,536ZM474,737L474,737Q494,737 510,724"
+			"Q525,710 525,681L525,681Q525,653 510,639Q494,625 474,625L474,625"
+			"Q452,625 437,639Q422,653 422,681L422,681Q422,710 437,724Q452,737 474,737Z"
+			"M429,536L517,536L517,0L429,0L429,536Z";
+      g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+    }
+    {
+      /* According to tests on tts-parser we should return an empty on single point but we aren't */
+      user_data.consumed = 0;
+      g_assert (hb_ot_glyph_decompose (font, 5, funcs, &user_data));
+      char expected[] = "M15,0Q15,0 15,0Z";
+      printf ("%s", str);
+      g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+    }
+    {
+      user_data.consumed = 0;
+      g_assert (hb_ot_glyph_decompose (font, 6, funcs, &user_data));
+      char expected[] = "M346,536L346,468L211,468L211,0L123,0L123,468L29,468"
+			"L29,509L123,539L123,570Q123,674 169,720Q215,765 297,765"
+			"L297,765Q329,765 356,760Q382,754 401,747L401,747L378,678"
+			"Q362,683 341,688Q320,693 298,693L298,693Q254,693 233,664"
+			"Q211,634 211,571L211,571L211,536L346,536ZM15,0Q15,0 15,0Z";
+      g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+    }
+
+    hb_font_destroy (font);
+  }
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+    char expected[] = "M0,0C100,0 150,-20 250,-20C350,-20 400,0 500,0C500,100 520,150 520,250"
+		      "C520,350 500,400 500,500C400,500 350,520 250,520C150,520 100,500 0,500"
+		      "C0,400 -20,350 -20,250C-20,150 0,100 0,0ZM50,50C50,130 34,170 34,250"
+		      "C34,330 50,370 50,450C130,450 170,466 250,466C330,466 370,450 450,450"
+		      "C450,370 466,330 466,250C466,170 450,130 450,50C370,50 330,34 250,34"
+		      "C170,34 130,50 50,50Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/cff1_dotsect.nohints.otf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+    char expected[] = "M82,0L164,0L164,486L82,486ZM124,586C156,586 181,608 181,639"
+		      "C181,671 156,692 124,692C92,692 67,671 67,639C67,608 92,586 124,586Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -242,6 +333,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_glyph_cff1);
   hb_test_add (test_hb_ot_glyph_cff1_rline);
   hb_test_add (test_hb_ot_glyph_cff2);
+  hb_test_add (test_hb_ot_glyph_ttf_parser_tests);
   unsigned result = hb_test_run ();
 
   hb_ot_glyph_decompose_funcs_destroy (funcs);
