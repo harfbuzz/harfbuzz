@@ -5,3 +5,5 @@ Inconsolata-Regular.abc.widerc.ttf has the hmtx width of "c" set to 600; everyth
 chromacheck-* fonts are from https://github.com/RoelN/ChromaCheck/tree/master/fonts and licensed under MIT by Roel Nieskens and Google.
 
 RanaKufi-Regular.subset.otf is from https://github.com/alif-type/rana-kufi/ but the subset is licensed for us in MIT for the project use.
+
+glyphs.ttf is from https://github.com/RazrFalcon/ttf-parser/blob/337e7d1/tests/fonts/glyphs.ttf
