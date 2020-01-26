@@ -386,7 +386,7 @@ struct hb_buffer_t
     inf.cluster = cluster;
   }
 
-  int
+  unsigned int
   _unsafe_to_break_find_min_cluster (const hb_glyph_info_t *infos,
 				     unsigned int start, unsigned int end,
 				     unsigned int cluster) const
