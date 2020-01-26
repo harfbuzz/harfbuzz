@@ -387,7 +387,117 @@ test_hb_ot_glyph_ttf_parser_tests (void)
   }
 }
 
-/* TODO: https://github.com/foliojs/fontkit/blob/master/test/glyphs.js */
+static void
+test_hb_ot_glyph_font_kit_glyphs_tests (void)
+{
+  /* https://github.com/foliojs/fontkit/blob/master/test/glyphs.js */
+  char str[2048];
+  user_data_t user_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  /* truetype glyphs */
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/OpenSans-Regular.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    /* should get a path for the glyph */
+    user_data.consumed = 0;
+    g_assert (hb_ot_glyph_decompose (font, 37, funcs, &user_data));
+    char expected[] = "M201,0L201,1462L614,1462Q905,1462 1035,1375Q1165,1288 1165,1100"
+		      "L1165,1100Q1165,970 1093,886Q1020,801 881,776L881,776L881,766"
+		      "Q1214,709 1214,416L1214,416Q1214,220 1082,110Q949,0 711,0L711,0L201,0Z"
+		      "M371,1315L371,836L651,836Q831,836 910,893Q989,949 989,1083L989,1083"
+		      "Q989,1206 901,1261Q813,1315 621,1315L621,1315L371,1315ZM662,692L371,692"
+		      "L371,145L676,145Q853,145 943,214Q1032,282 1032,428L1032,428"
+		      "Q1032,564 941,628Q849,692 662,692L662,692Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    /* should get a path for the glyph */
+    user_data.consumed = 0;
+    g_assert (hb_ot_glyph_decompose (font, 171, funcs, &user_data));
+    char expected2[] = "M639,-20L639,-20Q396,-20 256,128Q115,276 115,539L115,539"
+		       "Q115,804 246,960Q376,1116 596,1116L596,1116Q802,1116 922,981"
+		       "Q1042,845 1042,623L1042,623L1042,518L287,518Q292,325 385,225"
+		       "Q477,125 645,125L645,125Q822,125 995,199L995,199L995,51"
+		       "Q907,13 829,-4Q750,-20 639,-20ZM594,977L594,977"
+		       "Q462,977 384,891Q305,805 291,653L291,653L864,653"
+		       "Q864,810 794,894Q724,977 594,977ZM471,1241L471,1266"
+		       "Q519,1328 575,1416Q630,1504 662,1569L662,1569L864,1569"
+		       "L864,1548Q820,1483 733,1388Q646,1293 582,1241L582,1241L471,1241Z";
+    g_assert_cmpmem (str, user_data.consumed, expected2, sizeof (expected2) - 1);
+
+    hb_font_destroy (font);
+  }
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/Mada-VF.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    hb_buffer_t *buffer = hb_buffer_create ();
+    hb_codepoint_t codepoint = 1610; /* ي */
+    hb_buffer_add_codepoints (buffer, &codepoint, 1, 0, -1);
+    hb_buffer_set_direction (buffer, HB_DIRECTION_RTL);
+    hb_shape (font, buffer, NULL, 0);
+    codepoint = hb_buffer_get_glyph_infos (buffer, NULL)[0].codepoint;
+    hb_buffer_destroy (buffer);
+
+    /* should resolve composite glyphs recursively */
+    user_data.consumed = 0;
+    g_assert (hb_ot_glyph_decompose (font, codepoint, funcs, &user_data));
+    char expected[] = "M581,170L581,274L443,274Q409,274 384,259Q359,243 348,219"
+		      "Q336,194 340,166Q343,138 365,111L365,111L468,-13Q470,-10 473,-7"
+		      "Q475,-3 477,0L477,0L253,0Q225,0 203,8Q180,15 168,32Q155,48 155,73"
+		      "L155,73L155,269L50,269L50,73Q50,24 69,-10Q88,-44 118,-65"
+		      "Q147,-85 181,-95Q214,-104 243,-104L243,-104L473,-104"
+		      "Q501,-104 525,-91Q549,-78 564,-56Q578,-34 578,-8Q578,18 557,43"
+		      "L557,43L442,182Q439,179 437,176Q435,173 432,170L432,170L581,170Z"
+		      "M184,-194L184,-194Q184,-216 199,-231Q214,-246 236,-246L236,-246"
+		      "Q258,-246 273,-231Q288,-216 288,-194L288,-194Q288,-172 273,-157"
+		      "Q258,-142 236,-142L236,-142Q214,-142 199,-157Q184,-172 184,-194Z"
+		      "M360,-194L360,-194Q360,-216 375,-231Q390,-246 412,-246L412,-246"
+		      "Q434,-246 449,-231Q464,-216 464,-194L464,-194Q464,-172 449,-157"
+		      "Q434,-142 412,-142L412,-142Q390,-142 375,-157Q360,-172 360,-194Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    /* should transform points of a composite glyph */
+    /* The test won't do what it says I think, let's skip for now */
+
+    hb_font_destroy (font);
+  }
+  /* CFF glyphs, should get a path for the glyph */
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_ot_glyph_decompose (font, 5, funcs, &user_data));
+    char expected[] = "M90,0L258,0C456,0 564,122 564,331C564,539 456,656 254,656L90,656ZM173,68"
+		      "L173,588L248,588C401,588 478,496 478,331C478,165 401,68 248,68Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+  /* CFF glyphs (CID font) */
+  {
+    /* replaced with a subset as the original one was 15MB */
+    hb_face_t *face = hb_test_open_font_file ("fonts/NotoSansCJKkr-Regular-subset-colon.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_ot_glyph_decompose (font, 1, funcs, &user_data));
+    char expected[] = "M139,390C175,390 205,419 205,459C205,501 175,530 139,530C103,530 73,501 73,459"
+		      "C73,419 103,390 139,390ZM139,-13C175,-13 205,15 205,56C205,97 175,127 139,127"
+		      "C103,127 73,97 73,56C73,15 103,-13 139,-13Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+  /* Skip SBIX glyphs (empty path), COLR glyphs (empty path), WOFF ttf glyphs, WOFF2 ttf glyph */
+}
 
 static void
 test_hb_ot_glyph_font_kit_variations_tests (void)
@@ -647,6 +757,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_glyph_cff1_rline);
   hb_test_add (test_hb_ot_glyph_cff2);
   hb_test_add (test_hb_ot_glyph_ttf_parser_tests);
+  hb_test_add (test_hb_ot_glyph_font_kit_glyphs_tests);
   hb_test_add (test_hb_ot_glyph_font_kit_variations_tests);
   unsigned result = hb_test_run ();
 
