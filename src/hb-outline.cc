@@ -45,7 +45,7 @@ void
 hb_outline_decompose_funcs_set_move_to_func (hb_outline_decompose_funcs_t        *funcs,
 					     hb_outline_decompose_move_to_func_t  move_to)
 {
-  if (unlikely (funcs == &Null (hb_outline_decompose_funcs_t))) return;
+  if (unlikely (hb_object_is_immutable (funcs))) return;
   funcs->move_to = move_to;
 }
 
@@ -62,7 +62,7 @@ void
 hb_outline_decompose_funcs_set_line_to_func (hb_outline_decompose_funcs_t        *funcs,
 					     hb_outline_decompose_line_to_func_t  line_to)
 {
-  if (unlikely (funcs == &Null (hb_outline_decompose_funcs_t))) return;
+  if (unlikely (hb_object_is_immutable (funcs))) return;
   funcs->line_to = line_to;
 }
 
@@ -79,7 +79,7 @@ void
 hb_outline_decompose_funcs_set_conic_to_func (hb_outline_decompose_funcs_t         *funcs,
 					      hb_outline_decompose_conic_to_func_t  conic_to)
 {
-  if (unlikely (funcs == &Null (hb_outline_decompose_funcs_t))) return;
+  if (unlikely (hb_object_is_immutable (funcs))) return;
   funcs->conic_to = conic_to;
 }
 
@@ -96,7 +96,7 @@ void
 hb_outline_decompose_funcs_set_cubic_to_func (hb_outline_decompose_funcs_t         *funcs,
 					      hb_outline_decompose_cubic_to_func_t  cubic_to)
 {
-  if (unlikely (funcs == &Null (hb_outline_decompose_funcs_t))) return;
+  if (unlikely (hb_object_is_immutable (funcs))) return;
   funcs->cubic_to = cubic_to;
 }
 
@@ -113,7 +113,7 @@ void
 hb_outline_decompose_funcs_set_close_path_func (hb_outline_decompose_funcs_t           *funcs,
 					        hb_outline_decompose_close_path_func_t  close_path)
 {
-  if (unlikely (funcs == &Null (hb_outline_decompose_funcs_t))) return;
+  if (unlikely (hb_object_is_immutable (funcs))) return;
   funcs->close_path = close_path;
 }
 
