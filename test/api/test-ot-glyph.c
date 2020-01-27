@@ -462,7 +462,12 @@ test_hb_ot_glyph_font_kit_glyphs_tests (void)
     g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
     /* should transform points of a composite glyph */
-    /* The test won't do what it says I think, let's skip for now */
+    user_data.consumed = 0;
+    g_assert (hb_ot_glyph_decompose (font, 2, funcs, &user_data)); /* 2 == arAlef.fina */
+    char expected2[] = "M50,624L155,624L155,84Q150,90 146,95Q141,99 136,105L136,105"
+		       "L292,105L292,0L156,0Q128,0 104,14Q79,27 65,51Q50,74 50,104"
+		       "L50,104L50,624ZM282,0L282,105L312,105L312,0L282,0Z";
+    g_assert_cmpmem (str, user_data.consumed, expected2, sizeof (expected2) - 1);
 
     hb_font_destroy (font);
   }
