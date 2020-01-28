@@ -34,7 +34,7 @@
 #include "hb-ot-head-table.hh"
 #include "hb-ot-hmtx-table.hh"
 #include "hb-ot-var-gvar-table.hh"
-#include "hb-outline.hh"
+#include "hb-draw.hh"
 
 #include <float.h>
 
@@ -1045,7 +1045,7 @@ struct glyf
 
     bool
     get_path (hb_font_t *font, hb_codepoint_t gid,
-	      const hb_outline_decompose_funcs_t *funcs, void *user_data) const
+	      const hb_draw_funcs_t *funcs, void *user_data) const
     {
       /* Making this completely alloc free is not that easy
 	 https://github.com/harfbuzz/harfbuzz/issues/2095

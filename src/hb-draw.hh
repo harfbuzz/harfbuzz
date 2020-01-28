@@ -22,21 +22,21 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_OUTLINE_HH
-#define HB_OUTLINE_HH
+#ifndef HB_DRAW_HH
+#define HB_DRAW_HH
 
 #include "hb.hh"
 
-struct hb_outline_decompose_funcs_t
+struct hb_draw_funcs_t
 {
   hb_object_header_t header;
 
-  hb_outline_decompose_move_to_func_t move_to;
-  hb_outline_decompose_line_to_func_t line_to;
-  hb_outline_decompose_conic_to_func_t conic_to;
-  hb_outline_decompose_cubic_to_func_t cubic_to;
-  hb_outline_decompose_close_path_func_t close_path;
+  hb_draw_move_to_func_t move_to;
+  hb_draw_line_to_func_t line_to;
+  hb_draw_conic_to_func_t conic_to;
+  hb_draw_cubic_to_func_t cubic_to;
+  hb_draw_close_path_func_t close_path;
 };
 
 
-#endif /* HB_OUTLINE_HH */
+#endif /* HB_DRAW_HH */

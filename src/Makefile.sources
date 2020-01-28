@@ -35,13 +35,13 @@ HB_BASE_sources = \
 	hb-config.hh \
 	hb-debug.hh \
 	hb-dispatch.hh \
+	hb-draw.cc \
+	hb-draw.hh \
 	hb-face.cc \
 	hb-face.hh \
 	hb-fallback-shape.cc \
 	hb-font.cc \
 	hb-font.hh \
-	hb-outline.cc \
-	hb-outline.hh \
 	hb-iter.hh \
 	hb-kern.hh \
 	hb-machinery.hh \
@@ -195,9 +195,9 @@ HB_BASE_headers = \
 	hb-buffer.h \
 	hb-common.h \
 	hb-deprecated.h \
+	hb-draw.h \
 	hb-face.h \
 	hb-font.h \
-	hb-outline.h \
 	hb-map.h \
 	hb-ot-color.h \
 	hb-ot-deprecated.h \

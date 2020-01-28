@@ -34,12 +34,12 @@ TEST_PROGS = \
 	test-buffer \
 	test-collect-unicodes \
 	test-common \
+	test-draw \
 	test-font \
 	test-map \
 	test-object \
 	test-ot-face \
 	test-ot-glyphname \
-	test-outline \
 	test-set \
 	test-shape \
 	test-subset \

@@ -28,7 +28,7 @@
 
 #ifndef HB_NO_CFF
 
-#include "hb-outline.hh"
+#include "hb-draw.hh"
 #include "hb-ot-cff1-table.hh"
 #include "hb-cff1-interp-cs.hh"
 
@@ -346,7 +346,7 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
 struct cff1_path_param_t
 {
   cff1_path_param_t (const OT::cff1::accelerator_t *cff_, hb_font_t *font_,
-		     const hb_outline_decompose_funcs_t *funcs_, void *user_data_,
+		     const hb_draw_funcs_t *funcs_, void *user_data_,
 		     point_t *delta_)
   {
     path_open = false;
@@ -395,7 +395,7 @@ struct cff1_path_param_t
 
   bool path_open;
   hb_font_t *font;
-  const hb_outline_decompose_funcs_t *funcs;
+  const hb_draw_funcs_t *funcs;
   void *user_data;
   point_t *delta;
 
@@ -427,7 +427,7 @@ struct cff1_path_procs_path_t : path_procs_t<cff1_path_procs_path_t, cff1_cs_int
 };
 
 static bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph,
-		       const hb_outline_decompose_funcs_t *funcs, void *user_data,
+		       const hb_draw_funcs_t *funcs, void *user_data,
 		       bool in_seac = false, point_t *delta = nullptr);
 
 struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_param_t, cff1_path_procs_path_t>
@@ -449,7 +449,7 @@ struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_pa
 };
 
 bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph,
-		const hb_outline_decompose_funcs_t *funcs, void *user_data, bool in_seac, point_t *delta)
+		const hb_draw_funcs_t *funcs, void *user_data, bool in_seac, point_t *delta)
 {
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
 
@@ -464,7 +464,7 @@ bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoin
 }
 
 bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
-					const hb_outline_decompose_funcs_t *funcs, void *user_data) const
+					const hb_draw_funcs_t *funcs, void *user_data) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */

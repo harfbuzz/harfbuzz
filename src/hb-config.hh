@@ -58,6 +58,7 @@
 #define HB_NO_BITMAP
 #define HB_NO_CFF
 #define HB_NO_COLOR
+#define HB_NO_DRAW
 #define HB_NO_ERRNO
 #define HB_NO_FACE_COLLECT_UNICODES
 #define HB_NO_GETENV
@@ -72,7 +73,6 @@
 #define HB_NO_MMAP
 #define HB_NO_NAME
 #define HB_NO_OPEN
-#define HB_NO_OUTLINE
 #define HB_NO_SETLOCALE
 #define HB_NO_OT_FONT_GLYPH_NAMES
 #define HB_NO_OT_SHAPE_FRACTIONS
