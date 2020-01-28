@@ -450,6 +450,32 @@ struct hb_set_t
     return true;
   }
 
+  void compact (unsigned int length)
+  {
+    hb_hashmap_t<uint32_t, uint32_t> old_index_to_page_map_index;
+
+    for (unsigned int i = 0; i < length; i++) {
+      old_index_to_page_map_index.set (page_map[i].index, i);
+    }
+
+    compact_pages (old_index_to_page_map_index);
+  }
+
+  void compact_pages (const hb_hashmap_t<uint32_t, uint32_t>& old_index_to_page_map_index)
+  {
+    unsigned int write_index = 0;
+    for (unsigned int i = 0; i < pages.length; i++)
+    {
+      if (!old_index_to_page_map_index.has (i)) continue;
+
+      if (write_index < i)
+        pages[write_index] = pages[i];
+
+      page_map[old_index_to_page_map_index[i]].index = write_index;
+      write_index++;
+    }
+  }
+
   template <typename Op>
   void process (const Op& op, const hb_set_t *other)
   {
@@ -463,10 +489,22 @@ struct hb_set_t
 
     unsigned int count = 0, newCount = 0;
     unsigned int a = 0, b = 0;
+    unsigned int write_index = 0;
     for (; a < na && b < nb; )
     {
       if (page_map[a].major == other->page_map[b].major)
       {
+        if (!Op::passthru_left)
+        {
+          // Move page_map entries that we're keeping from the left side set
+          // to the front of the page_map vector. This isn't necessary if
+          // passthru_left is set since no left side pages will be removed
+          // in that case.
+          if (write_index < a)
+            page_map[write_index] = page_map[a];
+          write_index++;
+        }
+
 	count++;
 	a++;
 	b++;
@@ -489,9 +527,16 @@ struct hb_set_t
     if (Op::passthru_right)
       count += nb - b;
 
-    if (count > pages.length)
-      if (!resize (count))
-	return;
+    if (!Op::passthru_left)
+    {
+      na  = write_index;
+      next_page = write_index;
+      compact (write_index);
+    }
+
+    if (!resize (count))
+      return;
+
     newCount = count;
 
     /* Process in-place backward. */
