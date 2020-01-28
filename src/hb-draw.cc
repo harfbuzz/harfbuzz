@@ -67,7 +67,7 @@ hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
 }
 
 /**
- * hb_draw_funcs_set_conic_to_func:
+ * hb_draw_funcs_set_quadratic_to_func:
  * @funcs: decompose functions object
  * @move_to: quadratic-to callback
  *
@@ -76,11 +76,11 @@ hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
  * Since: REPLACEME
  **/
 void
-hb_draw_funcs_set_conic_to_func (hb_draw_funcs_t         *funcs,
-				 hb_draw_conic_to_func_t  conic_to)
+hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
+				     hb_draw_quadratic_to_func_t  quadratic_to)
 {
   if (unlikely (hb_object_is_immutable (funcs))) return;
-  funcs->conic_to = conic_to;
+  funcs->quadratic_to = quadratic_to;
 }
 
 /**
@@ -124,9 +124,9 @@ static void
 _line_to_nil (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
 
 static void
-_conic_to_nil (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
-	       hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
-	       void *user_data HB_UNUSED) {}
+_quadratic_to_nil (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
+		   hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
+		   void *user_data HB_UNUSED) {}
 
 static void
 _cubic_to_nil (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
@@ -153,7 +153,7 @@ hb_draw_funcs_create ()
 
   funcs->move_to = (hb_draw_move_to_func_t) _move_to_nil;
   funcs->line_to = (hb_draw_line_to_func_t) _line_to_nil;
-  funcs->conic_to = (hb_draw_conic_to_func_t) _conic_to_nil;
+  funcs->quadratic_to = (hb_draw_quadratic_to_func_t) _quadratic_to_nil;
   funcs->cubic_to = (hb_draw_cubic_to_func_t) _cubic_to_nil;
   funcs->close_path = (hb_draw_close_path_func_t) _close_path_nil;
   return funcs;

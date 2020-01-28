@@ -33,7 +33,7 @@ struct hb_draw_funcs_t
 
   hb_draw_move_to_func_t move_to;
   hb_draw_line_to_func_t line_to;
-  hb_draw_conic_to_func_t conic_to;
+  hb_draw_quadratic_to_func_t quadratic_to;
   hb_draw_cubic_to_func_t cubic_to;
   hb_draw_close_path_func_t close_path;
 };

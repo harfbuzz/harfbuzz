@@ -143,9 +143,9 @@ line_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
 }
 
 static void
-conic_to (hb_position_t control_x, hb_position_t control_y,
-	  hb_position_t to_x, hb_position_t to_y,
-	  user_data_t &user_data)
+quadratic_to (hb_position_t control_x, hb_position_t control_y,
+	      hb_position_t to_x, hb_position_t to_y,
+	      user_data_t &user_data)
 {
   fprintf (user_data.f, "Q%d,%d %d,%d", control_x, user_data.ascender - control_y,
 					to_x, user_data.ascender - to_y);
@@ -296,7 +296,7 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
   hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
   hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) move_to);
   hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) line_to);
-  hb_draw_funcs_set_conic_to_func (funcs, (hb_draw_conic_to_func_t) conic_to);
+  hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) quadratic_to);
   hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) cubic_to);
   hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) close_path);
 

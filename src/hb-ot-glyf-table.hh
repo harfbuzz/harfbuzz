@@ -1093,8 +1093,8 @@ struct glyf
 	    float to_x, to_y;
 	    if (next->flag & Glyph::FLAG_ON_CURVE) { to_x = next->x; to_y = next->y; }
 	    else { to_x = (curr->x + next->x) / 2.f; to_y = (curr->y + next->y) / 2.f; }
-	    funcs->conic_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y),
-			     font->em_scalef_x (to_x), font->em_scalef_y (to_y), user_data);
+	    funcs->quadratic_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y),
+				 font->em_scalef_x (to_x), font->em_scalef_y (to_y), user_data);
 	  }
 	}
 	contour_start += contour_length;
