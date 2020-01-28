@@ -135,6 +135,81 @@ test_set_basic (void)
 //   printf ("}\n");
 // }
 
+static void test_set_intersect_empty (void)
+{
+  hb_set_t* a = hb_set_create ();
+  hb_set_add (a, 3585);
+  hb_set_add (a, 21333);
+  hb_set_add (a, 24405);
+
+  hb_set_t* b = hb_set_create();
+  hb_set_add (b, 21483);
+  hb_set_add (b, 24064);
+
+  hb_set_intersect (a, b);
+  g_assert (hb_set_is_empty (a));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+
+
+  a = hb_set_create ();
+  hb_set_add (a, 16777216);
+
+  b = hb_set_create();
+  hb_set_add (b, 0);
+
+  hb_set_intersect (a, b);
+  g_assert (hb_set_is_empty (a));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+}
+
+static void test_set_intersect_page_reduction (void)
+{
+  hb_set_t* a = hb_set_create ();
+  hb_set_add (a, 3585);
+  hb_set_add (a, 21333);
+  hb_set_add (a, 24405);
+
+  hb_set_t* b = hb_set_create();
+  hb_set_add (b, 3585);
+  hb_set_add (b, 24405);
+
+  hb_set_intersect(a, b);
+  g_assert (hb_set_is_equal (a, b));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+}
+
+static void test_set_union (void)
+{
+  hb_set_t* a = hb_set_create();
+  hb_set_add (a, 3585);
+  hb_set_add (a, 21333);
+  hb_set_add (a, 24405);
+
+  hb_set_t* b = hb_set_create();
+  hb_set_add (b, 21483);
+  hb_set_add (b, 24064);
+
+  hb_set_t* u = hb_set_create ();
+  hb_set_add (u, 3585);
+  hb_set_add (u, 21333);
+  hb_set_add (u, 21483);
+  hb_set_add (u, 24064);
+  hb_set_add (u, 24405);
+
+  hb_set_union(b, a);
+  g_assert (hb_set_is_equal (u, b));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+  hb_set_destroy (u);
+}
+
 static void
 test_set_algebra (void)
 {
@@ -404,6 +479,10 @@ main (int argc, char **argv)
   hb_test_add (test_set_algebra);
   hb_test_add (test_set_iter);
   hb_test_add (test_set_empty);
+
+  hb_test_add (test_set_intersect_empty);
+  hb_test_add (test_set_intersect_page_reduction);
+  hb_test_add (test_set_union);
 
   return hb_test_run();
 }
