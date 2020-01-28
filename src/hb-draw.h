@@ -49,6 +49,9 @@ typedef void (*hb_draw_close_path_func_t) (void *user_data);
  *
  * Glyph decompose callbacks.
  *
+ * _move_to, _line_to and _cubic_to are nessecary to be defined but we
+ * can translate _quadratic_to calls to _cubic_to in case isn't defined.
+ *
  * Since: REPLACEME
  **/
 typedef struct hb_draw_funcs_t hb_draw_funcs_t;

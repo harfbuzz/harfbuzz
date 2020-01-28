@@ -160,6 +160,7 @@ close_path (user_data_t *user_data)
 }
 
 static hb_draw_funcs_t *funcs;
+static hb_draw_funcs_t *funcs2; /* this one translates quadratic calls to cubic ones */
 
 static void
 test_hb_glyph_empty (void)
@@ -183,6 +184,7 @@ test_hb_glyph_glyf (void)
 
   user_data.consumed = 0;
   g_assert (!hb_font_draw_glyph (font, 4, funcs, &user_data));
+
   user_data.consumed = 0;
   g_assert (hb_font_draw_glyph (font, 3, funcs, &user_data));
   char expected[] = "M275,442L275,442Q232,442 198,420Q164,397 145,353Q126,309 126,245L126,245"
@@ -193,6 +195,20 @@ test_hb_glyph_glyf (void)
 		    "Q378,321 367,334Q355,347 350,366L350,366L325,454L371,417Q346,430 321,436Q296,442 275,442Z";
   g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
+  /* Test translating quadratic calls to cubic by a _draw_funcs_t that doesn't set the callback */
+  user_data.consumed = 0;
+  g_assert (hb_font_draw_glyph (font, 3, funcs2, &user_data));
+  char expected2[] = "M275,442L275,442C246,442 221,435 198,420C175,405 158,382 145,353C132,324 126,288 126,245"
+		     "L126,245C126,203 133,168 147,139C160,110 179,88 204,73C228,58 256,50 287,50L287,50"
+		     "C316,50 342,57 367,70C392,83 412,103 427,128L427,128L451,116C438,75 415,43 384,21"
+		     "C352,-2 313,-13 266,-13L266,-13C221,-13 181,-3 148,18C114,38 88,67 70,104"
+		     "C52,141 43,185 43,236L43,236C43,288 54,333 76,371C97,408 125,437 160,457"
+		     "C195,477 232,487 272,487L272,487C301,487 329,481 354,470C379,459 400,443 417,424"
+		     "C434,405 444,383 448,358L448,358C443,333 428,321 403,321L403,321"
+		     "C386,321 374,325 367,334C359,343 353,353 350,366L350,366L325,454"
+		     "L371,417C354,426 338,432 321,436C304,440 289,442 275,442Z";
+  g_assert_cmpmem (str, user_data.consumed, expected2, sizeof (expected2) - 1);
+
   hb_variation_t var;
   var.tag = HB_TAG ('w','g','h','t');
   var.value = 800;
@@ -200,13 +216,13 @@ test_hb_glyph_glyf (void)
 
   user_data.consumed = 0;
   g_assert (hb_font_draw_glyph (font, 3, funcs, &user_data));
-  char expected2[] = "M323,448L323,448Q297,448 271,430Q244,412 227,371"
+  char expected3[] = "M323,448L323,448Q297,448 271,430Q244,412 227,371"
 		     "Q209,330 209,261L209,261Q209,204 226,166Q242,127 273,107Q303,86 344,86L344,86Q378,86 404,101"
 		     "Q430,115 451,137L451,137L488,103Q458,42 404,13Q350,-16 279,-16L279,-16Q211,-16 153,13Q95,41 60,99"
 		     "Q25,156 25,241L25,241Q25,323 62,382Q99,440 163,471Q226,501 303,501L303,501Q357,501 399,481"
 		     "Q440,460 464,426Q488,392 492,352L492,352Q475,297 420,297L420,297Q390,297 366,320"
 		     "Q342,342 339,401L339,401L333,469L411,427Q387,438 368,443Q348,448 323,448Z";
-  g_assert_cmpmem (str, user_data.consumed, expected2, sizeof (expected2) - 1);
+  g_assert_cmpmem (str, user_data.consumed, expected3, sizeof (expected3) - 1);
 
   hb_font_destroy (font);
 }
@@ -754,6 +770,12 @@ main (int argc, char **argv)
   hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) cubic_to);
   hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) close_path);
 
+  funcs2 = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func (funcs2, (hb_draw_move_to_func_t) move_to);
+  hb_draw_funcs_set_line_to_func (funcs2, (hb_draw_line_to_func_t) line_to);
+  hb_draw_funcs_set_cubic_to_func (funcs2, (hb_draw_cubic_to_func_t) cubic_to);
+  hb_draw_funcs_set_close_path_func (funcs2, (hb_draw_close_path_func_t) close_path);
+
   hb_test_init (&argc, &argv);
   hb_test_add (test_itoa);
   hb_test_add (test_hb_glyph_empty);
@@ -767,5 +789,6 @@ main (int argc, char **argv)
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);
+  hb_draw_funcs_destroy (funcs2);
   return result;
 }
