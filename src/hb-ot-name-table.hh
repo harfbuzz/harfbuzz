@@ -116,6 +116,29 @@ struct NameRecord
     return (p == 0 ||
             (p == 3 && (e == 0 || e == 1 || e == 10)));
   }
+  
+  static int cmp (const void *pa, const void *pb)
+  {
+    const NameRecord *a = (const NameRecord *)pa;
+    const NameRecord *b = (const NameRecord *)pb;
+
+    if (a->platformID != b->platformID)
+      return a->platformID < b->platformID ? -1 : +1;
+
+    if (a->encodingID != b->encodingID)
+      return a->encodingID < b->encodingID ? -1 : +1;
+
+    if (a->languageID != b->languageID)
+      return a->languageID < b->languageID ? -1 : +1;
+
+    if (a->nameID != b->nameID)
+      return a->nameID < b->nameID ? -1 : +1;
+
+    if (a->length != b->length)
+      return a->length < b->length ? -1 : +1;
+
+    return 0;
+  }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
@@ -200,7 +223,19 @@ struct name
 
     const void *dst_string_pool = &(this + this->stringOffset);
 
-    c->copy_all (it, src_string_pool, dst_string_pool);
+    NameRecord *name_records = (NameRecord *) calloc (it.len (), NameRecord::static_size);
+    hb_array_t<NameRecord> records (name_records, it.len ());
+
+    for (const NameRecord& record : it)
+    {
+      memcpy (name_records, &record, NameRecord::static_size);
+      name_records++;
+    }
+
+    records.qsort ();
+
+    c->copy_all (records, src_string_pool, dst_string_pool);
+    free (records.arrayZ);
 
     if (unlikely (c->ran_out_of_room)) return_trace (false);
 
