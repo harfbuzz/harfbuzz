@@ -783,7 +783,7 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
   {
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      out->add (arrayZ[i].glyphID);
+      out->add (arrayZ[i].unicodeValue);
   }
 
   void closure_glyphs (const hb_set_t      *unicodes,
@@ -977,6 +977,12 @@ struct CmapSubtableFormat14
     ;
   }
 
+  void collect_unicodes (hb_set_t *out) const
+  {
+    for (const VariationSelectorRecord& _ : record)
+      _.collect_unicodes (out, this);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1155,10 +1161,13 @@ struct cmap
 
     for (const EncodingRecord& _ : encodingrec_iter)
     {
+      hb_set_t unicodes_set;
+      (src_base+_.subtable).collect_unicodes (&unicodes_set);
+
       unsigned format = (src_base+_.subtable).u.format;
 
-      if (format == 4) c->copy (_, it, 4u, src_base, this, plan, &format4objidx);
-      else if (format == 12) c->copy (_, it, 12u, src_base, this, plan, &format12objidx);
+      if (format == 4) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, src_base, this, plan, &format4objidx);
+      else if (format == 12) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 12u, src_base, this, plan, &format12objidx);
       else if (format == 14) c->copy (_, it, 14u, src_base, this, plan, &format14objidx);
     }
 
