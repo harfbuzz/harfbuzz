@@ -38,6 +38,7 @@
 #endif
 
 #if !defined(HB_NO_COLOR) && !defined(HB_NO_DRAW)
+#ifdef HB_EXPERIMENTAL_API
 static void
 svg_dump (hb_face_t *face, unsigned face_index)
 {
@@ -328,6 +329,7 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
   hb_draw_funcs_destroy (funcs);
 }
 #endif
+#endif
 
 /* Only this part of this mini app uses private API */
 #include "hb-static.cc"
@@ -503,7 +505,9 @@ main (int argc, char **argv)
   printf ("Opened font file %s: %d bytes long\n", argv[1], hb_blob_get_length (blob));
   print_layout_info_using_private_api (blob);
 #if !defined(HB_NO_COLOR) && !defined(HB_NO_DRAW)
+#ifdef HB_EXPERIMENTAL_API
   dump_glyphs (blob, argv[1]);
+#endif
 #endif
   hb_blob_destroy (blob);
 
