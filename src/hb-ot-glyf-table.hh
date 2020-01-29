@@ -1032,6 +1032,7 @@ struct glyf
 	add_gid_and_children (item.glyphIndex, gids_to_retain, depth);
     }
 
+#ifdef HB_EXPERIMENTAL_API
     struct path_builder_t
     {
       hb_font_t *font;
@@ -1150,6 +1151,7 @@ struct glyf
     bool
     get_path (hb_font_t *font, hb_codepoint_t gid, draw_helper_t &draw_helper) const
     { return get_points (font, gid, path_builder_t (font, draw_helper)); }
+#endif
 
     private:
     bool short_offset;

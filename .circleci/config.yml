@@ -121,6 +121,8 @@ jobs:
       - run: HB_TEST_SHAPE_FUZZER_TIMEOUT=3 HB_TEST_SUBSET_FUZZER_TIMEOUT=30 RUN_VALGRIND=1 make check && make -Ctest/api check-valgrind || .ci/fail.sh
       # informational for now
       - run: make -Ctest/api check-symbols || true
+      # enable and test experimental outline drawing APIs
+      - run: make clean && HB_EXPERIMENTAL_API=1 make -j9 CPPFLAGS="-DHB_EXPERIMENTAL_API" check
 
   clang-everything:
     docker:

@@ -26,6 +26,7 @@
 
 #include <hb.h>
 
+#ifdef HB_EXPERIMENTAL_API
 typedef struct user_data_t
 {
   char *str;
@@ -935,3 +936,9 @@ main (int argc, char **argv)
   hb_draw_funcs_destroy (funcs2);
   return result;
 }
+#else
+int main (int argc HB_UNUSED, char **argv HB_UNUSED)
+{
+  return 0;
+}
+#endif

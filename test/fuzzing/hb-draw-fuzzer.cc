@@ -5,6 +5,7 @@
 
 #include "hb-fuzzer.hh"
 
+#ifdef HB_EXPERIMENTAL_API
 struct _user_data_t
 {
   bool is_open;
@@ -74,6 +75,7 @@ _close_path (void *user_data_)
   assert (user_data->path_start_x == user_data->path_last_x &&
 	  user_data->path_start_y == user_data->path_last_y);
 }
+#endif
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
@@ -95,6 +97,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   unsigned glyph_count = hb_face_get_glyph_count (face);
   glyph_count = glyph_count > 16 ? 16 : glyph_count;
 
+#ifdef HB_EXPERIMENTAL_API
   _user_data_t user_data = {false, 0, 0, 0, 0, 0};
 
   hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
@@ -103,11 +106,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) _quadratic_to);
   hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) _cubic_to);
   hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) _close_path);
+#endif
   volatile unsigned counter = !glyph_count;
   for (unsigned gid = 0; gid < glyph_count; ++gid)
   {
+#ifdef HB_EXPERIMENTAL_API
     hb_font_draw_glyph (font, gid, funcs, &user_data);
     assert (!user_data.is_open);
+#endif
 
     /* Glyph extents also may practices the similar path, call it now that is related */
     hb_glyph_extents_t extents;
@@ -117,7 +123,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     if (!counter) counter += 1;
   }
   assert (counter);
+#ifdef HB_EXPERIMENTAL_API
   hb_draw_funcs_destroy (funcs);
+#endif
 
   hb_font_destroy (font);
   hb_face_destroy (face);
