@@ -129,7 +129,7 @@ struct COLR
 
     void closure_glyphs (hb_codepoint_t glyph,
                          hb_set_t *related_ids /* OUT */) const
-    { colr->get_related_glyphs (glyph, related_ids); }
+    { colr->closure_glyphs (glyph, related_ids); }
 
     private:
     hb_blob_ptr_t<COLR> colr;
