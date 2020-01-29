@@ -138,13 +138,12 @@ struct COLR
   void closure_glyphs (hb_codepoint_t glyph,
                        hb_set_t *related_ids /* OUT */) const
   {
-    const BaseGlyphRecord &record = (this+baseGlyphsZ).bsearch (numBaseGlyphs, glyph);
+    const BaseGlyphRecord *record = get_base_glyph_record (glyph);
+    if (!record) return;
 
-    hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
-    hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
-                                                                       record.numLayers);
-    for (unsigned int i = 0; i < glyph_layers.length; i++)
-      hb_set_add (related_ids, glyph_layers[i].glyphId);
+    hb_array_t<const LayerRecord> glyph_layers = (this+layersZ).as_array (numLayers).sub_array (record->firstLayerIdx, record->numLayers);
+    if (!glyph_layers.length) return;
+    related_ids->add_array (&glyph_layers[0].glyphId, glyph_layers.length, LayerRecord::min_size);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -253,9 +252,7 @@ struct COLR
     | hb_map_retains_sorting (hb_second)
     ;
 
-    if (unlikely (!base_it.len () ||
-                  !layer_it.len () ||
-                  base_it.len () != layer_it.len ()))
+    if (unlikely (!base_it || !layer_it || base_it.len () != layer_it.len ()))
       return_trace (false);
 
     COLR *colr_prime = c->serializer->start_embed<COLR> ();
