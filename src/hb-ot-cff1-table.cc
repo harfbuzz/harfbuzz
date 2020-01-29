@@ -346,36 +346,32 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
 struct cff1_path_param_t
 {
   cff1_path_param_t (const OT::cff1::accelerator_t *cff_, hb_font_t *font_,
-		     const hb_draw_funcs_t *funcs_, void *user_data_,
-		     point_t *delta_)
+		     hb_draw_pen_t *pen_, point_t *delta_)
   {
     path_open = false;
     cff = cff_;
     font = font_;
-    funcs = funcs_;
-    user_data = user_data_;
+    pen = pen_;
     delta = delta_;
   }
   ~cff1_path_param_t () { end_path (); }
 
   void   start_path ()       { path_open = true; }
-  void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
+  void     end_path ()       { if (path_open) pen->close_path (); path_open = false; }
   bool is_path_open () const { return path_open; }
 
   void move_to (const point_t &p)
   {
     point_t point = p;
     if (delta) point.move (*delta);
-    funcs->move_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()),
-		    user_data);
+    pen->move_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()));
   }
 
   void line_to (const point_t &p)
   {
     point_t point = p;
     if (delta) point.move (*delta);
-    funcs->line_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()),
-		    user_data);
+    pen->line_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()));
   }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
@@ -387,16 +383,14 @@ struct cff1_path_param_t
       point2.move (*delta);
       point3.move (*delta);
     }
-    funcs->cubic_to (font->em_scalef_x (point1.x.to_real ()), font->em_scalef_y (point1.y.to_real ()),
-		     font->em_scalef_x (point2.x.to_real ()), font->em_scalef_y (point2.y.to_real ()),
-		     font->em_scalef_x (point3.x.to_real ()), font->em_scalef_y (point3.y.to_real ()),
-		     user_data);
+    pen->cubic_to (font->em_scalef_x (point1.x.to_real ()), font->em_scalef_y (point1.y.to_real ()),
+		   font->em_scalef_x (point2.x.to_real ()), font->em_scalef_y (point2.y.to_real ()),
+		   font->em_scalef_x (point3.x.to_real ()), font->em_scalef_y (point3.y.to_real ()));
   }
 
   bool path_open;
   hb_font_t *font;
-  const hb_draw_funcs_t *funcs;
-  void *user_data;
+  hb_draw_pen_t *pen;
   point_t *delta;
 
   const OT::cff1::accelerator_t *cff;
@@ -427,8 +421,7 @@ struct cff1_path_procs_path_t : path_procs_t<cff1_path_procs_path_t, cff1_cs_int
 };
 
 static bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph,
-		       const hb_draw_funcs_t *funcs, void *user_data,
-		       bool in_seac = false, point_t *delta = nullptr);
+		       hb_draw_pen_t *pen, bool in_seac = false, point_t *delta = nullptr);
 
 struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_param_t, cff1_path_procs_path_t>
 {
@@ -442,14 +435,14 @@ struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_pa
     hb_codepoint_t accent = param.cff->std_code_to_glyph (env.argStack[n-1].to_int ());
 
     if (unlikely (!(!env.in_seac && base && accent
-		    && _get_path (param.cff, param.font, base, param.funcs, param.user_data, true)
-		    && _get_path (param.cff, param.font, accent, param.funcs, param.user_data, true, &delta))))
+		    && _get_path (param.cff, param.font, base, param.pen, true)
+		    && _get_path (param.cff, param.font, accent, param.pen, true, &delta))))
       env.set_error ();
   }
 };
 
 bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph,
-		const hb_draw_funcs_t *funcs, void *user_data, bool in_seac, point_t *delta)
+		hb_draw_pen_t *pen, bool in_seac, point_t *delta)
 {
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
 
@@ -458,20 +451,19 @@ bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoin
   const byte_str_t str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
-  cff1_path_param_t param (cff, font, funcs, user_data, delta);
+  cff1_path_param_t param (cff, font, pen, delta);
   if (unlikely (!interp.interpret (param))) return false;
   return true;
 }
 
-bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
-					const hb_draw_funcs_t *funcs, void *user_data) const
+bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_pen_t *pen) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */
   return true;
 #endif
 
-  return _get_path (this, font, glyph, funcs, user_data);
+  return _get_path (this, font, glyph, pen);
 }
 
 struct get_seac_param_t

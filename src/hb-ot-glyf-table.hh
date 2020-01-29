@@ -1043,39 +1043,8 @@ struct glyf
         add_gid_and_children (item.glyphIndex, gids_to_retain, depth);
     }
 
-    static void
-    _normal_quadratic_to_call (hb_font_t *font, const hb_draw_funcs_t *funcs,
-			       float from_x HB_UNUSED, float from_y HB_UNUSED,
-			       float control_x, float control_y,
-			       float to_x, float to_y,
-			       void *user_data)
-    {
-      funcs->quadratic_to (font->em_scalef_x (control_x), font->em_scalef_y (control_y),
-			   font->em_scalef_x (to_x), font->em_scalef_y (to_y),
-			   user_data);
-    }
-
-    static void
-    _translate_quadratic_to_cubic (hb_font_t *font, const hb_draw_funcs_t *funcs,
-				   float from_x, float from_y,
-				   float control_x, float control_y,
-				   float to_x, float to_y,
-				   void *user_data)
-    {
-      /* based on https://github.com/fonttools/fonttools/blob/a37dab3/Lib/fontTools/pens/basePen.py#L218 */
-      float mid1_x = from_x + 0.6666666667f * (control_x - from_x);
-      float mid1_y = from_y + 0.6666666667f * (control_y - from_y);
-      float mid2_x = to_x + 0.6666666667f * (control_x - to_x);
-      float mid2_y = to_y + 0.6666666667f * (control_y - to_y);
-      funcs->cubic_to (font->em_scalef_x (mid1_x), font->em_scalef_y (mid1_y),
-		       font->em_scalef_x (mid2_x), font->em_scalef_y (mid2_y),
-		       font->em_scalef_x (to_x), font->em_scalef_y (to_y),
-		       user_data);
-    }
-
     bool
-    get_path (hb_font_t *font, hb_codepoint_t gid,
-	      const hb_draw_funcs_t *funcs, void *user_data) const
+    get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_pen_t *pen) const
     {
       /* Making this completely alloc free is not that easy
 	 https://github.com/harfbuzz/harfbuzz/issues/2095
@@ -1085,15 +1054,10 @@ struct glyf
       if (unlikely (!get_points (font, gid, all_points))) return false;
       hb_array_t<contour_point_t> points = all_points.sub_array (0, all_points.length - 4);
 
-      void (*quad_to) (hb_font_t *, const hb_draw_funcs_t *,
-		       float, float, float, float, float, float,
-		       void *) = funcs->quadratic_to ? _normal_quadratic_to_call : _translate_quadratic_to_cubic;
-
       unsigned contour_start = 0;
       /* Learnt from https://github.com/opentypejs/opentype.js/blob/4e0bb99/src/tables/glyf.js#L222 */
       while (contour_start < points.length)
       {
-	float prev_x = 0; float prev_y = 0;
 	unsigned contour_length = 0;
 	for (unsigned i = contour_start; i < points.length; ++i)
 	{
@@ -1105,23 +1069,15 @@ struct glyf
 	contour_point_t *next = &points[contour_start];
 
 	if (curr->flag & Glyph::FLAG_ON_CURVE)
-	{
-	  prev_x = curr->x; prev_y = curr->y;
-	  funcs->move_to (font->em_scalef_x (prev_x), font->em_scalef_y (prev_y), user_data);
-	}
+	  pen->move_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y));
 	else
 	{
 	  if (next->flag & Glyph::FLAG_ON_CURVE)
-	  {
-	    prev_x = next->x; prev_y = next->y;
-	    funcs->move_to (font->em_scalef_x (prev_x), font->em_scalef_y (prev_y), user_data);
-	  }
+	    pen->move_to (font->em_scalef_x (next->x), font->em_scalef_y (next->y));
 	  else
-	  {
-	    prev_x = (curr->x + next->x) / 2.f; prev_y = (curr->y + next->y) / 2.f;
 	    /* If both first and last points are off-curve, start at their middle. */
-            funcs->move_to (font->em_scalef_x (prev_x), font->em_scalef_y (prev_y), user_data);
-	  }
+            pen->move_to (font->em_scalef_x ((curr->x + next->x) / 2.f),
+			  font->em_scalef_y ((curr->y + next->y) / 2.f));
 	}
 
 	for (unsigned i = 0; i < contour_length; ++i)
@@ -1130,21 +1086,18 @@ struct glyf
 	  next = &points[contour_start + ((i + 1) % contour_length)];
 
 	  if (curr->flag & Glyph::FLAG_ON_CURVE)
-	  {
-	    prev_x = curr->x; prev_y = curr->y;
-	    funcs->line_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y), user_data);
-	  }
+	    pen->line_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y));
 	  else
 	  {
 	    float to_x, to_y;
 	    if (next->flag & Glyph::FLAG_ON_CURVE) { to_x = next->x; to_y = next->y; }
 	    else { to_x = (curr->x + next->x) / 2.f; to_y = (curr->y + next->y) / 2.f; }
-	    quad_to (font, funcs, prev_x, prev_y, curr->x, curr->y, to_x, to_y, user_data);
-	    prev_x = to_x; prev_y = to_y;
+	    pen->quadratic_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y),
+			       font->em_scalef_x (to_x), font->em_scalef_y (to_y));
 	  }
 	}
 	contour_start += contour_length;
-	funcs->close_path (user_data);
+	pen->close_path ();
       }
       return true;
     }

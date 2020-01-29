@@ -719,8 +719,7 @@ hb_font_set_var_named_instance (hb_font_t *font,
 				unsigned instance_index);
 
 HB_EXTERN hb_bool_t
-hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
-		    const hb_draw_funcs_t *funcs, void *user_data);
+hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_draw_pen_t *pen);
 
 HB_END_DECLS
 

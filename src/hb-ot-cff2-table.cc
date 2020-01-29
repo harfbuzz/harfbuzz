@@ -145,43 +145,38 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
 struct cff2_path_param_t
 {
-  cff2_path_param_t (hb_font_t *font_, const hb_draw_funcs_t *funcs_, void *user_data_)
+  cff2_path_param_t (hb_font_t *font_, hb_draw_pen_t *pen_)
   {
     path_open = false;
     font = font_;
-    funcs = funcs_;
-    user_data = user_data_;
+    pen = pen_;
   }
   ~cff2_path_param_t () { end_path (); }
 
   void   start_path ()       { path_open = true; }
-  void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
+  void     end_path ()       { if (path_open) pen->close_path (); path_open = false; }
   bool is_path_open () const { return path_open; }
 
   void move_to (const point_t &p)
   {
-    funcs->move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
-		    user_data);
+    pen->move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()));
   }
 
   void line_to (const point_t &p)
   {
-    funcs->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
-		    user_data);
+    pen->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()));
   }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
   {
-    funcs->cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
-		     font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
-		     font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()),
-		     user_data);
+    pen->cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
+		   font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
+		   font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()));
   }
 
   bool  path_open;
   hb_font_t *font;
-  const hb_draw_funcs_t *funcs;
-  void *user_data;
+  hb_draw_pen_t *pen;
 };
 
 struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_interp_env_t, cff2_path_param_t>
@@ -210,8 +205,7 @@ struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_int
 
 struct cff2_cs_opset_path_t : cff2_cs_opset_t<cff2_cs_opset_path_t, cff2_path_param_t, cff2_path_procs_path_t> {};
 
-bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
-					const hb_draw_funcs_t *funcs, void *user_data) const
+bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_pen_t *pen) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */
@@ -224,7 +218,7 @@ bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
   cff2_cs_interpreter_t<cff2_cs_opset_path_t, cff2_path_param_t> interp;
   const byte_str_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd, font->coords, font->num_coords);
-  cff2_path_param_t param (font, funcs, user_data);
+  cff2_path_param_t param (font, pen);
   if (unlikely (!interp.interpret (param))) return false;
   return true;
 }

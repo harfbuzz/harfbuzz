@@ -121,10 +121,10 @@ test_face (hb_face_t *face,
   hb_ot_var_normalize_variations (face, NULL, 0, NULL, 0);
   hb_ot_var_normalize_coords (face, 0, NULL, NULL);
 
-  hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+  hb_draw_pen_t *pen = hb_draw_pen_create ();
   for (unsigned gid = 0; gid < 10; ++gid)
-    hb_font_draw_glyph (font, gid, funcs, NULL);
-  hb_draw_funcs_destroy (funcs);
+    hb_font_draw_glyph (font, gid, pen);
+  hb_draw_pen_destroy (pen);
 
   hb_set_destroy (set);
   hb_font_destroy (font);

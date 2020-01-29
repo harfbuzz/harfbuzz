@@ -33,19 +33,19 @@
 
 HB_BEGIN_DECLS
 
-typedef void (*hb_draw_move_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
-typedef void (*hb_draw_line_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
-typedef void (*hb_draw_quadratic_to_func_t) (hb_position_t control_x, hb_position_t control_y,
+typedef void (*hb_draw_pen_move_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
+typedef void (*hb_draw_pen_line_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
+typedef void (*hb_draw_pen_quadratic_to_func_t) (hb_position_t control_x, hb_position_t control_y,
+						 hb_position_t to_x, hb_position_t to_y,
+						 void *user_data);
+typedef void (*hb_draw_pen_cubic_to_func_t) (hb_position_t control1_x, hb_position_t control1_y,
+					     hb_position_t control2_x, hb_position_t control2_y,
 					     hb_position_t to_x, hb_position_t to_y,
 					     void *user_data);
-typedef void (*hb_draw_cubic_to_func_t) (hb_position_t control1_x, hb_position_t control1_y,
-					 hb_position_t control2_x, hb_position_t control2_y,
-					 hb_position_t to_x, hb_position_t to_y,
-					 void *user_data);
-typedef void (*hb_draw_close_path_func_t) (void *user_data);
+typedef void (*hb_draw_pen_close_path_func_t) (void *user_data);
 
 /**
- * hb_draw_funcs_t:
+ * hb_draw_pen_t:
  *
  * Glyph decompose callbacks.
  *
@@ -54,36 +54,62 @@ typedef void (*hb_draw_close_path_func_t) (void *user_data);
  *
  * Since: REPLACEME
  **/
-typedef struct hb_draw_funcs_t hb_draw_funcs_t;
+typedef struct hb_draw_pen_t hb_draw_pen_t;
 
 HB_EXTERN void
-hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_move_to_func_t  move_to);
+hb_draw_pen_set_move_to_func (hb_draw_pen_t              *pen,
+			      hb_draw_pen_move_to_func_t  move_to);
 
 HB_EXTERN void
-hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_move_to_func_t  line_to);
+hb_draw_pen_set_line_to_func (hb_draw_pen_t              *pen,
+			      hb_draw_pen_move_to_func_t  line_to);
 
 HB_EXTERN void
-hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
-				     hb_draw_quadratic_to_func_t  quadratic_to);
+hb_draw_pen_set_quadratic_to_func (hb_draw_pen_t                   *pen,
+				   hb_draw_pen_quadratic_to_func_t  quadratic_to);
 
 HB_EXTERN void
-hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
-				 hb_draw_cubic_to_func_t  cubic_to);
+hb_draw_pen_set_cubic_to_func (hb_draw_pen_t               *pen,
+			       hb_draw_pen_cubic_to_func_t  cubic_to);
 
 HB_EXTERN void
-hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *funcs,
-				   hb_draw_close_path_func_t  close_path);
-
-HB_EXTERN hb_draw_funcs_t *
-hb_draw_funcs_create (void);
-
-HB_EXTERN hb_draw_funcs_t *
-hb_draw_funcs_reference (hb_draw_funcs_t *funcs);
+hb_draw_pen_set_close_path_func (hb_draw_pen_t                 *pen,
+				 hb_draw_pen_close_path_func_t  close_path);
 
 HB_EXTERN void
-hb_draw_funcs_destroy (hb_draw_funcs_t *funcs);
+hb_draw_pen_set_user_data (hb_draw_pen_t *pen, void *user_data);
+
+HB_EXTERN void *
+hb_draw_pen_get_user_data (hb_draw_pen_t *pen);
+
+HB_EXTERN void
+hb_draw_pen_move_to (hb_draw_pen_t *pen, hb_position_t x, hb_position_t y);
+
+HB_EXTERN void
+hb_draw_pen_line_to (hb_draw_pen_t *pen, hb_position_t x, hb_position_t y);
+
+HB_EXTERN void
+hb_draw_pen_quadratic_to (hb_draw_pen_t *pen,
+			 hb_position_t control_x, hb_position_t control_y,
+			 hb_position_t to_x, hb_position_t to_y);
+
+HB_EXTERN void
+hb_draw_pen_cubic_to (hb_draw_pen_t *pen,
+		      hb_position_t control1_x, hb_position_t control1_y,
+		      hb_position_t control2_x, hb_position_t control2_y,
+		      hb_position_t to_x, hb_position_t to_y);
+
+HB_EXTERN void
+hb_draw_pen_close_path (hb_draw_pen_t *pen);
+
+HB_EXTERN hb_draw_pen_t *
+hb_draw_pen_create (void);
+
+HB_EXTERN hb_draw_pen_t *
+hb_draw_pen_reference (hb_draw_pen_t *pen);
+
+HB_EXTERN void
+hb_draw_pen_destroy (hb_draw_pen_t *pen);
 
 HB_END_DECLS
 
