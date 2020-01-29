@@ -68,6 +68,26 @@ test_subset_colr_keep_one_colr_glyph (void)
 }
 
 static void
+test_subset_colr_keep_mixed_glyph (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/TwemojiMozilla.subset.ttf");
+  hb_face_t *face_expected = hb_test_open_font_file ("fonts/TwemojiMozilla.subset.default.32,3299.ttf");
+
+  hb_set_t *codepoints = hb_set_create ();
+  hb_face_t *face_subset;
+  hb_set_add (codepoints, '2');
+  hb_set_add (codepoints, 0x3299);
+  face_subset = hb_subset_test_create_subset (face, hb_subset_test_create_input (codepoints));
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_expected, face_subset, HB_TAG ('C','O','L','R'));
+
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face_expected);
+  hb_face_destroy (face);
+}
+
+static void
 test_subset_colr_keep_no_colr_glyph (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/TwemojiMozilla.subset.ttf");
@@ -93,6 +113,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_subset_colr_noop);
   hb_test_add (test_subset_colr_keep_one_colr_glyph);
+  hb_test_add (test_subset_colr_keep_mixed_glyph);
   hb_test_add (test_subset_colr_keep_no_colr_glyph);
 
   return hb_test_run();

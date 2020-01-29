@@ -205,7 +205,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
       _add_cff_seac_components (cff, gid, plan->_glyphset);
 #endif
     if (colr.is_valid ())
-      colr.get_related_glyphs (gid, plan->_glyphset);
+      colr.closure_glyphs (gid, plan->_glyphset);
   }
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
