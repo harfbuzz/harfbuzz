@@ -62,7 +62,7 @@ hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
 
 HB_EXTERN void
 hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_move_to_func_t  line_to);
+				hb_draw_line_to_func_t  line_to);
 
 HB_EXTERN void
 hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
