@@ -31,6 +31,7 @@
 #include "hb-ot-cmap-table.hh"
 #include "hb-ot-glyf-table.hh"
 #include "hb-ot-cff1-table.hh"
+#include "hb-ot-color-colr-table.hh"
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-stat-table.hh"
 
@@ -156,11 +157,13 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #ifndef HB_NO_SUBSET_CFF
   OT::cff1::accelerator_t cff;
 #endif
+  OT::COLR::accelerator_t colr;
   cmap.init (plan->source);
   glyf.init (plan->source);
 #ifndef HB_NO_SUBSET_CFF
   cff.init (plan->source);
 #endif
+  colr.init (plan->source);
 
   plan->_glyphset_gsub->add (0); // Not-def
   hb_set_union (plan->_glyphset_gsub, input_glyphs_to_retain);
@@ -201,6 +204,8 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
     if (cff.is_valid ())
       _add_cff_seac_components (cff, gid, plan->_glyphset);
 #endif
+    if (colr.is_valid ())
+      colr.closure_glyphs (gid, plan->_glyphset);
   }
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());

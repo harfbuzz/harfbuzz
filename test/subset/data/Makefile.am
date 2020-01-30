@@ -19,6 +19,7 @@ EXTRA_DIST += \
 	expected/layout.gsub6 \
 	expected/cmap14 \
 	expected/sbix \
+	expected/colr \
 	fonts \
 	profiles \
 	$(NULL)

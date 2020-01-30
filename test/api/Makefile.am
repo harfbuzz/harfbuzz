@@ -58,6 +58,7 @@ TEST_PROGS = \
 	test-subset-vvar \
 	test-subset-sbix \
 	test-subset-gpos \
+	test-subset-colr \
 	test-unicode \
 	test-version \
 	test-subset-nameids \
@@ -80,6 +81,7 @@ test_subset_vvar_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_sbix_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_nameids_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_gpos_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_colr_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 
 test_unicode_CPPFLAGS = \
 	$(AM_CPPFLAGS) \

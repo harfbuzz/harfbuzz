@@ -11,6 +11,7 @@ TESTS = \
 	tests/layout.gsub6.tests \
 	tests/cmap14.tests \
 	tests/sbix.tests \
+	tests/colr.tests \
 	$(NULL)
 
 XFAIL_TESTS = \
