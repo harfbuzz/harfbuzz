@@ -34,10 +34,10 @@
 
 /**
  * hb_draw_funcs_set_move_to_func:
- * @funcs: decompose functions object
+ * @funcs: draw functions object
  * @move_to: move-to callback
  *
- * Sets move-to callback to the decompose functions object.
+ * Sets move-to callback to the draw functions object.
  *
  * Since: REPLACEME
  **/
@@ -51,10 +51,10 @@ hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
 
 /**
  * hb_draw_funcs_set_line_to_func:
- * @funcs: decompose functions object
+ * @funcs: draw functions object
  * @line_to: line-to callback
  *
- * Sets line-to callback to the decompose functions object.
+ * Sets line-to callback to the draw functions object.
  *
  * Since: REPLACEME
  **/
@@ -68,10 +68,10 @@ hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
 
 /**
  * hb_draw_funcs_set_quadratic_to_func:
- * @funcs: decompose functions object
+ * @funcs: draw functions object
  * @move_to: quadratic-to callback
  *
- * Sets quadratic-to callback to the decompose functions object.
+ * Sets quadratic-to callback to the draw functions object.
  *
  * Since: REPLACEME
  **/
@@ -85,10 +85,10 @@ hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
 
 /**
  * hb_draw_funcs_set_cubic_to_func:
- * @funcs: decompose functions
+ * @funcs: draw functions
  * @cubic_to: cubic-to callback
  *
- * Sets cubic-to callback to the decompose functions object.
+ * Sets cubic-to callback to the draw functions object.
  *
  * Since: REPLACEME
  **/
@@ -102,10 +102,10 @@ hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
 
 /**
  * hb_draw_funcs_set_close_path_func:
- * @funcs: decompose functions object
+ * @funcs: draw functions object
  * @close_path: close-path callback
  *
- * Sets close-path callback to the decompose functions object.
+ * Sets close-path callback to the draw functions object.
  *
  * Since: REPLACEME
  **/
@@ -135,7 +135,7 @@ _close_path_nil (void *user_data HB_UNUSED) {}
 /**
  * hb_draw_funcs_create:
  *
- * Creates a new decompose callbacks object.
+ * Creates a new draw callbacks object.
  *
  * Since: REPLACEME
  **/
@@ -156,7 +156,7 @@ hb_draw_funcs_create ()
 
 /**
  * hb_draw_funcs_reference:
- * @funcs: decompose functions
+ * @funcs: draw functions
  *
  * Add to callbacks object refcount.
  *
@@ -171,7 +171,7 @@ hb_draw_funcs_reference (hb_draw_funcs_t *funcs)
 
 /**
  * hb_draw_funcs_destroy:
- * @funcs: decompose functions
+ * @funcs: draw functions
  *
  * Decreases refcount of callbacks object and deletes the object if it reaches
  * to zero.
@@ -187,13 +187,13 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *funcs)
 }
 
 /**
- * hb_draw:
+ * hb_font_draw_glyph:
  * @font: a font object
  * @glyph: a glyph id
- * @funcs: decompose callbacks object
+ * @funcs: draw callbacks object
  * @user_data: parameter you like be passed to the callbacks when are called
  *
- * Decomposes a glyph.
+ * Draw a glyph.
  *
  * Returns: Whether the font had the glyph and the operation completed successfully.
  * Since: REPLACEME
