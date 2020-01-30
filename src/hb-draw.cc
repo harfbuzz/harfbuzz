@@ -118,19 +118,38 @@ hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *funcs,
 }
 
 static void
-_move_to_nil (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
+_move_to_nil (const hb_draw_funcs_t *funcs HB_UNUSED,
+	      hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
+	      void *user_data HB_UNUSED) {}
 
 static void
-_line_to_nil (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
+_line_to_nil (const hb_draw_funcs_t *funcs HB_UNUSED, hb_position_t from_x HB_UNUSED, hb_position_t from_y HB_UNUSED,
+	      hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
 
 static void
-_cubic_to_nil (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
+_quadratic_to_cubic (const hb_draw_funcs_t *funcs, hb_position_t from_x, hb_position_t from_y,
+		     hb_position_t control_x, hb_position_t control_y,
+		     hb_position_t to_x, hb_position_t to_y, void *user_data HB_UNUSED)
+{
+   /* based on https://github.com/fonttools/fonttools/blob/a37dab3/Lib/fontTools/pens/basePen.py#L218 */
+   hb_position_t mid1_x = roundf ((float) from_x + 0.6666666667f * (control_x - from_x));
+   hb_position_t mid1_y = roundf ((float) from_y + 0.6666666667f * (control_y - from_y));
+   hb_position_t mid2_x = roundf ((float) to_x + 0.6666666667f * (control_x - to_x));
+   hb_position_t mid2_y = roundf ((float) to_y + 0.6666666667f * (control_y - to_y));
+   funcs->cubic_to (funcs, from_x, from_y, mid1_x, mid1_y, mid2_x, mid2_y,
+		    to_x, to_y, user_data);
+}
+
+static void
+_cubic_to_nil (const hb_draw_funcs_t *funcs HB_UNUSED,
+	       hb_position_t from_x HB_UNUSED, hb_position_t from_y HB_UNUSED,
+	       hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
 	       hb_position_t control2_x HB_UNUSED, hb_position_t control2_y HB_UNUSED,
 	       hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
 	       void *user_data HB_UNUSED) {}
 
 static void
-_close_path_nil (void *user_data HB_UNUSED) {}
+_close_path_nil (const hb_draw_funcs_t *funcs HB_UNUSED, void *user_data HB_UNUSED) {}
 
 /**
  * hb_draw_funcs_create:
@@ -148,7 +167,7 @@ hb_draw_funcs_create ()
 
   funcs->move_to = (hb_draw_move_to_func_t) _move_to_nil;
   funcs->line_to = (hb_draw_line_to_func_t) _line_to_nil;
-  funcs->quadratic_to = nullptr;
+  funcs->quadratic_to = (hb_draw_quadratic_to_func_t) _quadratic_to_cubic;
   funcs->cubic_to = (hb_draw_cubic_to_func_t) _cubic_to_nil;
   funcs->close_path = (hb_draw_close_path_func_t) _close_path_nil;
   return funcs;

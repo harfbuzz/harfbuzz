@@ -151,36 +151,42 @@ struct cff2_path_param_t
     font = font_;
     funcs = funcs_;
     user_data = user_data_;
+    curr_x = 0; curr_y = 0;
   }
   ~cff2_path_param_t () { end_path (); }
 
   void   start_path ()       { path_open = true; }
-  void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
+  void     end_path ()       { if (path_open) funcs->close_path (funcs, user_data); path_open = false; }
   bool is_path_open () const { return path_open; }
 
   void move_to (const point_t &p)
   {
-    funcs->move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
-		    user_data);
+    curr_x = font->em_scalef_x (p.x.to_real ());
+    curr_y = font->em_scalef_y (p.y.to_real ());
+    funcs->move_to (funcs, curr_x, curr_y, user_data);
   }
 
   void line_to (const point_t &p)
   {
-    funcs->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
-		    user_data);
+    hb_position_t to_x = font->em_scalef_x (p.x.to_real ()), to_y = font->em_scalef_y (p.y.to_real ());
+    funcs->line_to (funcs, curr_x, curr_y, to_x, to_y, user_data);
+    curr_x = to_x; curr_y = to_y;
   }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
   {
-    funcs->cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
+    hb_position_t to_x = font->em_scalef_x (p3.x.to_real ()), to_y = font->em_scalef_y (p3.y.to_real ());
+    funcs->cubic_to (funcs, curr_x, curr_y,
+		     font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
 		     font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
-		     font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()),
-		     user_data);
+		     to_x, to_y, user_data);
+    curr_x = to_x; curr_y = to_y;
   }
 
   bool  path_open;
   hb_font_t *font;
   const hb_draw_funcs_t *funcs;
+  hb_position_t curr_x, curr_y;
   void *user_data;
 };
 

@@ -33,17 +33,6 @@
 
 HB_BEGIN_DECLS
 
-typedef void (*hb_draw_move_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
-typedef void (*hb_draw_line_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
-typedef void (*hb_draw_quadratic_to_func_t) (hb_position_t control_x, hb_position_t control_y,
-					     hb_position_t to_x, hb_position_t to_y,
-					     void *user_data);
-typedef void (*hb_draw_cubic_to_func_t) (hb_position_t control1_x, hb_position_t control1_y,
-					 hb_position_t control2_x, hb_position_t control2_y,
-					 hb_position_t to_x, hb_position_t to_y,
-					 void *user_data);
-typedef void (*hb_draw_close_path_func_t) (void *user_data);
-
 /**
  * hb_draw_funcs_t:
  *
@@ -55,6 +44,20 @@ typedef void (*hb_draw_close_path_func_t) (void *user_data);
  * Since: REPLACEME
  **/
 typedef struct hb_draw_funcs_t hb_draw_funcs_t;
+
+typedef void (*hb_draw_move_to_func_t) (const hb_draw_funcs_t *funcs, hb_position_t to_x, hb_position_t to_y, void *user_data);
+typedef void (*hb_draw_line_to_func_t) (const hb_draw_funcs_t *funcs, hb_position_t from_x, hb_position_t from_y,
+					hb_position_t to_x, hb_position_t to_y, void *user_data);
+typedef void (*hb_draw_quadratic_to_func_t) (const hb_draw_funcs_t *funcs, hb_position_t from_x, hb_position_t from_y,
+					     hb_position_t control_x, hb_position_t control_y,
+					     hb_position_t to_x, hb_position_t to_y,
+					     void *user_data);
+typedef void (*hb_draw_cubic_to_func_t) (const hb_draw_funcs_t *funcs, hb_position_t from_x, hb_position_t from_y,
+					 hb_position_t control1_x, hb_position_t control1_y,
+					 hb_position_t control2_x, hb_position_t control2_y,
+					 hb_position_t to_x, hb_position_t to_y,
+					 void *user_data);
+typedef void (*hb_draw_close_path_func_t) (const hb_draw_funcs_t *funcs, void *user_data);
 
 HB_EXTERN void
 hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,

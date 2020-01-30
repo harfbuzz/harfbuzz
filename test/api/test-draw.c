@@ -94,7 +94,7 @@ test_itoa (void)
 }
 
 static void
-move_to (hb_position_t to_x, hb_position_t to_y, user_data_t *user_data)
+move_to (hb_destroy_func_t *funcs HB_UNUSED, hb_position_t to_x, hb_position_t to_y, user_data_t *user_data)
 {
   /* 4 = command character space + comma + array starts with 0 index + nul character space */
   if (user_data->consumed + 2 * ITOA_BUF_SIZE + 4 > user_data->size) return;
@@ -105,7 +105,8 @@ move_to (hb_position_t to_x, hb_position_t to_y, user_data_t *user_data)
 }
 
 static void
-line_to (hb_position_t to_x, hb_position_t to_y, user_data_t *user_data)
+line_to (hb_destroy_func_t *funcs HB_UNUSED, hb_position_t from_x HB_UNUSED, hb_position_t from_y HB_UNUSED,
+	 hb_position_t to_x, hb_position_t to_y, user_data_t *user_data)
 {
   if (user_data->consumed + 2 * ITOA_BUF_SIZE + 4 > user_data->size) return;
   user_data->str[user_data->consumed++] = 'L';
@@ -115,7 +116,8 @@ line_to (hb_position_t to_x, hb_position_t to_y, user_data_t *user_data)
 }
 
 static void
-quadratic_to (hb_position_t control_x, hb_position_t control_y,
+quadratic_to (hb_destroy_func_t *funcs HB_UNUSED, hb_position_t from_x HB_UNUSED, hb_position_t from_y HB_UNUSED,
+	      hb_position_t control_x, hb_position_t control_y,
 	      hb_position_t to_x, hb_position_t to_y,
 	      user_data_t *user_data)
 {
@@ -132,7 +134,8 @@ quadratic_to (hb_position_t control_x, hb_position_t control_y,
 }
 
 static void
-cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+cubic_to (hb_destroy_func_t *funcs HB_UNUSED, hb_position_t from_x HB_UNUSED, hb_position_t from_y HB_UNUSED,
+	  hb_position_t control1_x, hb_position_t control1_y,
 	  hb_position_t control2_x, hb_position_t control2_y,
 	  hb_position_t to_x, hb_position_t to_y,
 	  user_data_t *user_data)
@@ -153,7 +156,7 @@ cubic_to (hb_position_t control1_x, hb_position_t control1_y,
 }
 
 static void
-close_path (user_data_t *user_data)
+close_path (hb_destroy_func_t *funcs HB_UNUSED, user_data_t *user_data)
 {
   if (user_data->consumed + 2 > user_data->size) return;
   user_data->str[user_data->consumed++] = 'Z';

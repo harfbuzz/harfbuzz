@@ -355,18 +355,19 @@ struct cff1_path_param_t
     funcs = funcs_;
     user_data = user_data_;
     delta = delta_;
+    curr_x = 0; curr_y = 0;
   }
   ~cff1_path_param_t () { end_path (); }
 
   void   start_path ()       { path_open = true; }
-  void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
+  void     end_path ()       { if (path_open) funcs->close_path (funcs, user_data); path_open = false; }
   bool is_path_open () const { return path_open; }
 
   void move_to (const point_t &p)
   {
     point_t point = p;
     if (delta) point.move (*delta);
-    funcs->move_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()),
+    funcs->move_to (funcs, font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()),
 		    user_data);
   }
 
@@ -374,8 +375,9 @@ struct cff1_path_param_t
   {
     point_t point = p;
     if (delta) point.move (*delta);
-    funcs->line_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()),
-		    user_data);
+    hb_position_t to_x = font->em_scalef_x (point.x.to_real ()), to_y = font->em_scalef_y (point.y.to_real ());
+    funcs->line_to (funcs, curr_x, curr_y, to_x, to_y, user_data);
+    curr_x = to_x; curr_y = to_y;
   }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
@@ -387,16 +389,19 @@ struct cff1_path_param_t
       point2.move (*delta);
       point3.move (*delta);
     }
-    funcs->cubic_to (font->em_scalef_x (point1.x.to_real ()), font->em_scalef_y (point1.y.to_real ()),
+    hb_position_t to_x = font->em_scalef_x (point3.x.to_real ()), to_y = font->em_scalef_y (point3.y.to_real ());
+    funcs->cubic_to (funcs, curr_x, curr_y,
+		     font->em_scalef_x (point1.x.to_real ()), font->em_scalef_y (point1.y.to_real ()),
 		     font->em_scalef_x (point2.x.to_real ()), font->em_scalef_y (point2.y.to_real ()),
-		     font->em_scalef_x (point3.x.to_real ()), font->em_scalef_y (point3.y.to_real ()),
-		     user_data);
+		     to_x, to_y, user_data);
+    curr_x = to_x; curr_y = to_y;
   }
 
   bool path_open;
   hb_font_t *font;
   const hb_draw_funcs_t *funcs;
   void *user_data;
+  hb_position_t curr_x, curr_y;
   point_t *delta;
 
   const OT::cff1::accelerator_t *cff;

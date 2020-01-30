@@ -130,20 +130,30 @@ struct user_data_t
   hb_position_t ascender;
 };
 
+#if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
+#define HB_UNUSED	__attribute__((unused))
+#else
+#define HB_UNUSED
+#endif
+
 static void
-move_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
+move_to (const hb_draw_funcs_t *funcs HB_UNUSED, hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
 {
   fprintf (user_data.f, "M%d,%d", to_x, user_data.ascender - to_y);
 }
 
 static void
-line_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
+line_to (const hb_draw_funcs_t *funcs HB_UNUSED,
+	 hb_position_t from_x HB_UNUSED, hb_position_t from_y HB_UNUSED,
+	 hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
 {
   fprintf (user_data.f, "L%d,%d", to_x, user_data.ascender - to_y);
 }
 
 static void
-quadratic_to (hb_position_t control_x, hb_position_t control_y,
+quadratic_to (const hb_draw_funcs_t *funcs HB_UNUSED,
+	      hb_position_t from_x HB_UNUSED, hb_position_t from_y HB_UNUSED,
+	      hb_position_t control_x, hb_position_t control_y,
 	      hb_position_t to_x, hb_position_t to_y,
 	      user_data_t &user_data)
 {
@@ -152,7 +162,9 @@ quadratic_to (hb_position_t control_x, hb_position_t control_y,
 }
 
 static void
-cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+cubic_to (const hb_draw_funcs_t *funcs HB_UNUSED,
+	  hb_position_t from_x HB_UNUSED, hb_position_t from_y HB_UNUSED,
+	  hb_position_t control1_x, hb_position_t control1_y,
 	  hb_position_t control2_x, hb_position_t control2_y,
 	  hb_position_t to_x, hb_position_t to_y,
 	  user_data_t &user_data)
@@ -163,7 +175,7 @@ cubic_to (hb_position_t control1_x, hb_position_t control1_y,
 }
 
 static void
-close_path (user_data_t &user_data)
+close_path (const hb_draw_funcs_t *funcs HB_UNUSED, user_data_t &user_data)
 {
   fprintf (user_data.f, "Z");
 }
