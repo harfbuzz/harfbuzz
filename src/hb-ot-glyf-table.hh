@@ -471,7 +471,6 @@ struct glyf
 	unsigned int num_instructions = StructAtOffset<HBUINT16> (glyph, 0);
 
 	glyph += 2 + num_instructions;
-	if (unlikely (glyph + 2 >= glyph_end)) return Glyph ();
 
 	unsigned int coord_bytes = 0;
 	unsigned int coords_with_flags = 0;
