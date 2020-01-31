@@ -764,7 +764,7 @@ hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
 						  hb_tag_t      table_tag,
 						  unsigned int  script_index,
 						  unsigned int  language_index,
-						  unsigned int *feature_index)
+						  unsigned int *feature_index /* OUT */)
 {
   return hb_ot_layout_language_get_required_feature (face,
 						     table_tag,
@@ -781,7 +781,7 @@ hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
  * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_index: The index of the requested language tag
- * @feature_index: The index of the requested feature
+ * @feature_index: (out): The index of the requested feature
  * @feature_tag: (out): The #hb_tag_t of the requested feature
  *
  * Fetches the tag of a requested feature index in the given face's GSUB or GPOS table,
@@ -796,8 +796,8 @@ hb_ot_layout_language_get_required_feature (hb_face_t    *face,
 					    hb_tag_t      table_tag,
 					    unsigned int  script_index,
 					    unsigned int  language_index,
-					    unsigned int *feature_index,
-					    hb_tag_t     *feature_tag)
+					    unsigned int *feature_index /* OUT */,
+					    hb_tag_t     *feature_tag   /* OUT */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   const OT::LangSys &l = g.get_script (script_index).get_lang_sys (language_index);
