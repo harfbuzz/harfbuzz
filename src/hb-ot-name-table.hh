@@ -112,30 +112,30 @@ struct NameRecord
   {
     unsigned int p = platformID;
     unsigned int e = encodingID;
-    
+
     return (p == 0 ||
             (p == 3 && (e == 0 || e == 1 || e == 10)));
   }
-  
+
   static int cmp (const void *pa, const void *pb)
   {
     const NameRecord *a = (const NameRecord *)pa;
     const NameRecord *b = (const NameRecord *)pb;
 
     if (a->platformID != b->platformID)
-      return a->platformID < b->platformID ? -1 : +1;
+      return a->platformID - b->platformID;
 
     if (a->encodingID != b->encodingID)
-      return a->encodingID < b->encodingID ? -1 : +1;
+      return a->encodingID - b->encodingID;
 
     if (a->languageID != b->languageID)
-      return a->languageID < b->languageID ? -1 : +1;
+      return a->languageID - b->languageID;
 
     if (a->nameID != b->nameID)
-      return a->nameID < b->nameID ? -1 : +1;
+      return a->nameID - b->nameID;
 
     if (a->length != b->length)
-      return a->length < b->length ? -1 : +1;
+      return a->length - b->length;
 
     return 0;
   }
@@ -166,7 +166,7 @@ _hb_ot_name_entry_cmp_key (const void *pa, const void *pb)
   /* Compare by name_id, then language. */
 
   if (a->name_id != b->name_id)
-    return a->name_id < b->name_id ? -1 : +1;
+    return a->name_id - b->name_id;
 
   if (a->language == b->language) return 0;
   if (!a->language) return -1;
@@ -188,10 +188,10 @@ _hb_ot_name_entry_cmp (const void *pa, const void *pb)
   const hb_ot_name_entry_t *b = (const hb_ot_name_entry_t *) pb;
 
   if (a->entry_score != b->entry_score)
-    return a->entry_score < b->entry_score ? -1 : +1;
+    return a->entry_score - b->entry_score;
 
   if (a->entry_index != b->entry_index)
-    return a->entry_index < b->entry_index ? -1 : +1;
+    return a->entry_index - b->entry_index;
 
   return 0;
 }
