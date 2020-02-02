@@ -231,6 +231,8 @@ hb_draw_move_to_func_t
 hb_draw_quadratic_to_func_t
 hb_draw_funcs_create
 hb_draw_funcs_destroy
+hb_draw_funcs_is_immutable
+hb_draw_funcs_make_immutable
 hb_draw_funcs_reference
 hb_draw_funcs_set_close_path_func
 hb_draw_funcs_set_cubic_to_func

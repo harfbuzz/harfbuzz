@@ -85,6 +85,12 @@ hb_draw_funcs_reference (hb_draw_funcs_t *funcs);
 HB_EXTERN void
 hb_draw_funcs_destroy (hb_draw_funcs_t *funcs);
 
+HB_EXTERN void
+hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs);
+
+HB_EXTERN hb_bool_t
+hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs);
+
 HB_END_DECLS
 
 #endif /* HB_DRAW_H */
