@@ -813,6 +813,16 @@ test_hb_draw_stroking (void)
   }
 }
 
+static void
+test_hb_draw_immutable (void)
+{
+  hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
+  g_assert (!hb_draw_funcs_is_immutable (draw_funcs));
+  hb_draw_funcs_make_immutable (draw_funcs);
+  g_assert (hb_draw_funcs_is_immutable (draw_funcs));
+  hb_draw_funcs_destroy (draw_funcs);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -822,12 +832,14 @@ main (int argc, char **argv)
   hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) quadratic_to);
   hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) cubic_to);
   hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) close_path);
+  hb_draw_funcs_make_immutable (funcs);
 
   funcs2 = hb_draw_funcs_create ();
   hb_draw_funcs_set_move_to_func (funcs2, (hb_draw_move_to_func_t) move_to);
   hb_draw_funcs_set_line_to_func (funcs2, (hb_draw_line_to_func_t) line_to);
   hb_draw_funcs_set_cubic_to_func (funcs2, (hb_draw_cubic_to_func_t) cubic_to);
   hb_draw_funcs_set_close_path_func (funcs2, (hb_draw_close_path_func_t) close_path);
+  hb_draw_funcs_make_immutable (funcs2);
 
   hb_test_init (&argc, &argv);
   hb_test_add (test_itoa);
@@ -840,6 +852,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_font_kit_glyphs_tests);
   hb_test_add (test_hb_draw_font_kit_variations_tests);
   hb_test_add (test_hb_draw_stroking);
+  hb_test_add (test_hb_draw_immutable);
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);

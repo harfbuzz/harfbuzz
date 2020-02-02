@@ -187,6 +187,38 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *funcs)
 }
 
 /**
+ * hb_draw_funcs_make_immutable:
+ * @funcs: draw functions
+ *
+ * Makes funcs object immutable.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs)
+{
+  if (hb_object_is_immutable (funcs))
+    return;
+
+  hb_object_make_immutable (funcs);
+}
+
+/**
+ * hb_draw_funcs_is_immutable:
+ * @funcs: draw functions
+ *
+ * Checks whether funcs is immutable.
+ *
+ * Returns: If is immutable.
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs)
+{
+  return hb_object_is_immutable (funcs);
+}
+
+/**
  * hb_font_draw_glyph:
  * @font: a font object
  * @glyph: a glyph id
