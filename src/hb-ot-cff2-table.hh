@@ -539,20 +539,16 @@ struct cff2
 
   typedef accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t> accelerator_subset_t;
 
-  bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_context_t *c) const
   {
-    hb_blob_t *cff2_prime = nullptr;
-
     bool success = true;
-    if (hb_subset_cff2 (plan, &cff2_prime)) {
-      success = success && plan->add_table (HB_OT_TAG_cff2, cff2_prime);
-      hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (plan->source);
-      success = success && head_blob && plan->add_table (HB_OT_TAG_head, head_blob);
+    if (hb_subset_cff2 (c)) {
+      hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (c->plan->source);
+      success = success && head_blob && c->plan->add_table (HB_OT_TAG_head, head_blob);
       hb_blob_destroy (head_blob);
     } else {
       success = false;
     }
-    hb_blob_destroy (cff2_prime);
 
     return success;
   }
