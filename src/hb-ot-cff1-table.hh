@@ -1376,20 +1376,16 @@ struct cff1
 
   struct accelerator_subset_t : accelerator_templ_t<cff1_private_dict_opset_subset, cff1_private_dict_values_subset_t> {};
 
-  bool subset (hb_subset_plan_t *plan) const
+  bool subset (hb_subset_context_t *c) const
   {
-    hb_blob_t *cff_prime = nullptr;
-
     bool success = true;
-    if (hb_subset_cff1 (plan, &cff_prime)) {
-      success = success && plan->add_table (HB_OT_TAG_cff1, cff_prime);
-      hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (plan->source);
-      success = success && head_blob && plan->add_table (HB_OT_TAG_head, head_blob);
+    if (hb_subset_cff1 (c)) {
+      hb_blob_t *head_blob = hb_sanitize_context_t().reference_table<head> (c->plan->source);
+      success = success && head_blob && c->plan->add_table (HB_OT_TAG_head, head_blob);
       hb_blob_destroy (head_blob);
     } else {
       success = false;
     }
-    hb_blob_destroy (cff_prime);
 
     return success;
   }
