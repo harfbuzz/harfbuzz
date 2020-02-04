@@ -55,6 +55,7 @@ HB_INTERNAL bool copy_data_to_cbdt (hb_vector_t<char> *cbdt_prime,
 struct cblc_bitmap_size_subset_context_t
 {
   const char *cbdt;
+  unsigned int cbdt_length;
   hb_vector_t<char> *cbdt_prime;
   unsigned int size;          /* INOUT
                                *  Input: old size of IndexSubtable
@@ -265,6 +266,7 @@ struct IndexSubtable
   bool copy_glyph_at_idx (hb_serialize_context_t *c,
                           unsigned int idx,
                           const char *cbdt,
+                          unsigned int cbdt_length,
                           hb_vector_t<char> *cbdt_prime /* INOUT */,
                           IndexSubtable *subtable_prime /* INOUT */,
                           unsigned int *size /* OUT (accumulated) */) const
@@ -273,6 +275,7 @@ struct IndexSubtable
 
     unsigned int offset, length, format;
     if (unlikely (!get_image_data (idx, &offset, &length, &format))) return_trace (false);
+    if (unlikely (offset > cbdt_length || cbdt_length - offset < length)) return_trace (false);
 
     auto* header_prime = subtable_prime->get_header();
     unsigned int new_local_offset = cbdt_prime->length - (unsigned int) header_prime->imageDataOffset;
@@ -414,6 +417,7 @@ struct IndexSubtableRecord
       if (unlikely (!next_subtable->copy_glyph_at_idx (c->serializer,
                                                        old_idx,
                                                        bitmap_size_context->cbdt,
+                                                       bitmap_size_context->cbdt_length,
                                                        bitmap_size_context->cbdt_prime,
                                                        subtable,
                                                        &bitmap_size_context->size)))
@@ -620,6 +624,7 @@ struct BitmapSizeTable
               const void *src_base,
               const void *dst_base,
               const char *cbdt,
+              unsigned int cbdt_length,
               hb_vector_t<char> *cbdt_prime /* INOUT */) const
   {
     TRACE_SUBSET (this);
@@ -628,6 +633,7 @@ struct BitmapSizeTable
 
     cblc_bitmap_size_subset_context_t bitmap_size_context;
     bitmap_size_context.cbdt = cbdt;
+    bitmap_size_context.cbdt_length = cbdt_length;
     bitmap_size_context.cbdt_prime = cbdt_prime;
     bitmap_size_context.size = indexTablesSize;
     bitmap_size_context.num_tables = numberOfIndexSubtables;
@@ -729,6 +735,7 @@ struct CBLC
   bool subset_size_table (hb_subset_context_t *c,
                           const BitmapSizeTable& table,
                           const char *cbdt /* IN */,
+                          unsigned int cbdt_length,
                           CBLC *cblc_prime /* INOUT */,
                           hb_vector_t<char> *cbdt_prime /* INOUT */) const
   {
@@ -738,7 +745,7 @@ struct CBLC
     auto snap = c->serializer->snapshot ();
     auto cbdt_prime_len = cbdt_prime->length;
 
-    if (!table.subset (c, this, cblc_prime, cbdt, cbdt_prime))
+    if (!table.subset (c, this, cblc_prime, cbdt, cbdt_length, cbdt_prime))
     {
       cblc_prime->sizeTables.len--;
       c->serializer->revert (snap);
