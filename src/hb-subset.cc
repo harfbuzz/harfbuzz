@@ -134,16 +134,16 @@ _subset (hb_subset_plan_t *plan)
 }
 
 static bool
-_is_table_present (hb_face_t *source,
-                   hb_tag_t tag)
+_is_table_present (hb_face_t *source, hb_tag_t tag)
 {
-  unsigned tables = hb_face_get_table_tags (source, 0, nullptr, nullptr);
-  hb_vector_t<uint32_t> tags;
-  tags.resize (tables);
-  hb_face_get_table_tags (source, 0, &tables, tags.arrayZ);
-  for (unsigned int i = 0; i < tables; i++) {
-    if (tags[i] == tag)
-      return true;
+  hb_tag_t tables[32];
+  unsigned offset = 0, num_tables = ARRAY_LENGTH (tables);
+  while ((hb_face_get_table_tags (source, offset, &num_tables, tables), num_tables))
+  {
+    for (unsigned i = 0; i < num_tables; ++i)
+      if (tables[i] == tag)
+	return true;
+    offset += num_tables;
   }
   return false;
 }
