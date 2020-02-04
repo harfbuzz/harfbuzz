@@ -134,7 +134,7 @@ test_subset_cmap_empty_tables (void)
 }
 
 static void
-test_subset_cmap14_plat_0_enc_5_noop (void)
+test_subset_cmap_noto_color_emoji_noop (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoColorEmoji.cmap.ttf");
 
@@ -155,7 +155,7 @@ test_subset_cmap14_plat_0_enc_5_noop (void)
 }
 
 static void
-test_subset_cmap14_plat_0_enc_5_non_consecutive_glyphs (void)
+test_subset_cmap_noto_color_emoji_non_consecutive_glyphs (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoColorEmoji.cmap.ttf");
   hb_face_t *face_expected = hb_test_open_font_file ("fonts/NotoColorEmoji.cmap.38,AE,2049.ttf");
@@ -187,8 +187,8 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cmap_non_consecutive_glyphs);
   hb_test_add (test_subset_cmap4_no_exceeding_maximum_codepoint);
   hb_test_add (test_subset_cmap_empty_tables);
-  hb_test_add (test_subset_cmap14_plat_0_enc_5_noop);
-  hb_test_add (test_subset_cmap14_plat_0_enc_5_non_consecutive_glyphs);
+  hb_test_add (test_subset_cmap_noto_color_emoji_noop);
+  hb_test_add (test_subset_cmap_noto_color_emoji_non_consecutive_glyphs);
 
   return hb_test_run();
 }
