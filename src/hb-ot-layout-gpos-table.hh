@@ -34,6 +34,11 @@
 
 namespace OT {
 
+struct MarkArray;
+static void Markclass_closure_and_remap_indexes (const Coverage  &mark_coverage,
+						 const MarkArray &mark_array,
+						 const hb_set_t  &glyphset,
+						 hb_map_t*        klass_mapping /* INOUT */);
 
 /* buffer **position** var allocations */
 #define attach_chain() var.i16[0] /* glyph to which this attaches to, relative to current glyphs; negative for going back, positive for forward. */
@@ -465,6 +470,27 @@ struct AnchorMatrix
     return this+matrixZ[row * cols + col];
   }
 
+  template <typename Iterator,
+	    hb_requires (hb_is_iterator (Iterator))>
+  bool serialize (hb_serialize_context_t *c,
+		  unsigned                num_rows,
+		  AnchorMatrix const     *offset_matrix,
+		  Iterator                index_iter)
+  {
+    TRACE_SERIALIZE (this);
+    if (!index_iter.len ()) return_trace (false);
+    if (unlikely (!c->extend_min ((*this))))  return_trace (false);
+
+    this->rows = num_rows;
+    for (const unsigned i : index_iter)
+    {
+      auto *offset = c->embed (offset_matrix->matrixZ[i]);
+      offset->serialize_copy (c, offset_matrix->matrixZ[i], offset_matrix, this);
+    }
+
+    return_trace (true);
+  }
+
   bool sanitize (hb_sanitize_context_t *c, unsigned int cols) const
   {
     TRACE_SANITIZE (this);
@@ -478,7 +504,6 @@ struct AnchorMatrix
   }
 
   HBUINT16	rows;			/* Number of rows */
-  protected:
   UnsizedArrayOf<OffsetTo<Anchor>>
 		matrixZ;		/* Matrix of offsets to Anchor tables--
 					 * from beginning of AnchorMatrix table */
@@ -491,10 +516,25 @@ struct MarkRecord
 {
   friend struct MarkArray;
 
+  unsigned get_class () const { return (unsigned) klass; }
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && markAnchor.sanitize (c, base));
+  }
+
+  MarkRecord *copy (hb_serialize_context_t *c,
+		    const void             *src_base,
+		    const void             *dst_base,
+		    const hb_map_t         *klass_mapping) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->embed (this);
+    if (unlikely (!out)) return_trace (nullptr);
+    
+    out->klass = klass_mapping->get (klass);
+    out->markAnchor.serialize_copy (c, markAnchor, src_base, dst_base);
+    return_trace (out);
   }
 
   protected:
@@ -539,6 +579,20 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT;
 
     buffer->idx++;
+    return_trace (true);
+  }
+
+  template<typename Iterator,
+	   hb_requires (hb_is_source_of (Iterator, MarkRecord))>
+  bool serialize (hb_serialize_context_t *c,
+		  const hb_map_t         *klass_mapping,
+		  const void             *src_base,
+		  Iterator                it)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->check_assign (len, it.len ()))) return_trace (false);
+    c->copy_all (it, src_base, this, klass_mapping);
     return_trace (true);
   }
 
@@ -1514,6 +1568,29 @@ typedef AnchorMatrix BaseArray;		/* base-major--
 					 * mark-minor--
 					 * ordered by class--zero-based. */
 
+static void Markclass_closure_and_remap_indexes (const Coverage  &mark_coverage,
+						 const MarkArray &mark_array,
+						 const hb_set_t  &glyphset,
+						 hb_map_t*        klass_mapping /* INOUT */)
+{
+  hb_set_t orig_classes;
+
+  + hb_zip (mark_coverage, mark_array)
+  | hb_filter (glyphset, hb_first)
+  | hb_map (hb_second)
+  | hb_map (&MarkRecord::get_class)
+  | hb_sink (orig_classes)
+  ;
+
+  unsigned idx = 0;
+  for (auto klass : orig_classes.iter ())
+  {
+    if (klass_mapping->has (klass)) continue;
+    klass_mapping->set (klass, idx);
+    idx++;
+  }
+}
+
 struct MarkBasePosFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
@@ -1573,8 +1650,70 @@ struct MarkBasePosFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    hb_map_t klass_mapping;
+    Markclass_closure_and_remap_indexes (this+markCoverage, this+markArray, glyphset, &klass_mapping);
+    
+    if (!klass_mapping.get_population ()) return_trace (false);
+    out->classCount = klass_mapping.get_population ();
+
+    auto mark_iter =
+    + hb_zip (this+markCoverage, this+markArray)
+    | hb_filter (glyphset, hb_first)
+    ;
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + mark_iter
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+
+    if (!out->markCoverage.serialize (c->serializer, out)
+			  .serialize (c->serializer, new_coverage.iter ()))
+      return_trace (false);
+
+    out->markArray.serialize (c->serializer, out)
+		  .serialize (c->serializer, &klass_mapping, &(this+markArray), + mark_iter
+										| hb_map (hb_second));
+
+    unsigned basecount = (this+baseArray).rows;
+    auto base_iter =
+    + hb_zip (this+baseCoverage, hb_range (basecount))
+    | hb_filter (glyphset, hb_first)
+    ;
+
+    new_coverage.reset ();
+    + base_iter
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+
+    if (!out->baseCoverage.serialize (c->serializer, out)
+			  .serialize (c->serializer, new_coverage.iter ()))
+      return_trace (false);
+
+    hb_sorted_vector_t<unsigned> base_indexes;
+    for (const unsigned row : + base_iter
+			      | hb_map (hb_second))
+    {
+      + hb_range ((unsigned) classCount)
+      | hb_filter (klass_mapping)
+      | hb_map ([&] (const unsigned col) { return row * (unsigned) classCount + col; })
+      | hb_sink (base_indexes)
+      ;
+    }
+    out->baseArray.serialize (c->serializer, out)
+		  .serialize (c->serializer, base_iter.len (), &(this+baseArray), base_indexes.iter ());
+
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

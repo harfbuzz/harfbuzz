@@ -16,6 +16,7 @@ EXTRA_DIST += \
 	expected/layout.gpos \
 	expected/layout.gpos2 \
 	expected/layout.gpos3 \
+	expected/layout.gpos4 \
 	expected/layout.gsub6 \
 	expected/cmap \
 	expected/cmap14 \
