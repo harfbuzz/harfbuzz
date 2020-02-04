@@ -1061,14 +1061,12 @@ struct glyf
 				   float to_x, float to_y,
 				   void *user_data)
     {
-      /* based on https://github.com/fonttools/fonttools/blob/a37dab3/Lib/fontTools/pens/basePen.py#L218 */
-      float mid1_x = from_x + 0.6666666667f * (control_x - from_x);
-      float mid1_y = from_y + 0.6666666667f * (control_y - from_y);
-      float mid2_x = to_x + 0.6666666667f * (control_x - to_x);
-      float mid2_y = to_y + 0.6666666667f * (control_y - to_y);
-      funcs->cubic_to (font->em_scalef_x (mid1_x), font->em_scalef_y (mid1_y),
-		       font->em_scalef_x (mid2_x), font->em_scalef_y (mid2_y),
-		       font->em_scalef_x (to_x), font->em_scalef_y (to_y),
+      funcs->cubic_to (font->em_scalef_x ((from_x + 2.f * control_x) / 3.f),
+		       font->em_scalef_y ((from_y + 2.f * control_y) / 3.f),
+		       font->em_scalef_x ((to_x + 2.f * control_x) / 3.f),
+		       font->em_scalef_y ((to_y + 2.f * control_y) / 3.f),
+		       font->em_scalef_x (to_x),
+		       font->em_scalef_y (to_y),
 		       user_data);
     }
 
