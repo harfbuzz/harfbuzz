@@ -73,6 +73,13 @@ struct IntType
 
   HB_INTERNAL static int cmp (const IntType *a, const IntType *b)
   { return b->cmp (*a); }
+  HB_INTERNAL static int cmp (const void *a, const void *b)
+  {
+    IntType *pa = (IntType *) a;
+    IntType *pb = (IntType *) b;
+
+    return pb->cmp (*pa);
+  }
   template <typename Type2>
   int cmp (Type2 a) const
   {
