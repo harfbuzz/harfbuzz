@@ -1375,10 +1375,7 @@ struct cff1
 
   struct accelerator_subset_t : accelerator_templ_t<cff1_private_dict_opset_subset, cff1_private_dict_values_subset_t> {};
 
-  bool subset (hb_subset_context_t *c) const
-  {
-    return hb_subset_cff1 (c);
-  }
+  bool subset (hb_subset_context_t *c) const { return hb_subset_cff1 (c); }
 
   protected:
   HB_INTERNAL static hb_codepoint_t lookup_standard_encoding_for_code (hb_codepoint_t sid);

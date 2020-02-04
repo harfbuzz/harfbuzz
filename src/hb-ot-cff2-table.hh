@@ -538,10 +538,7 @@ struct cff2
 
   typedef accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t> accelerator_subset_t;
 
-  bool subset (hb_subset_context_t *c) const
-  {
-    return hb_subset_cff2 (c);
-  }
+  bool subset (hb_subset_context_t *c) const { return hb_subset_cff2 (c); }
 
   public:
   FixedVersion<HBUINT8>		version;	/* Version of CFF2 table. set to 0x0200u */
