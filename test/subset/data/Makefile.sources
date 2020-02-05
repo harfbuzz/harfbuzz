@@ -9,6 +9,7 @@ TESTS = \
 	tests/layout.gpos2.tests \
 	tests/layout.gpos3.tests \
 	tests/layout.gpos4.tests \
+	tests/layout.gpos6.tests \
 	tests/layout.gsub6.tests \
 	tests/cmap.tests \
 	tests/cmap14.tests \
