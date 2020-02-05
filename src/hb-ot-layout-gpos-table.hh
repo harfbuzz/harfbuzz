@@ -1961,8 +1961,70 @@ struct MarkMarkPosFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    hb_map_t klass_mapping;
+    Markclass_closure_and_remap_indexes (this+mark1Coverage, this+mark1Array, glyphset, &klass_mapping);
+    
+    if (!klass_mapping.get_population ()) return_trace (false);
+    out->classCount = klass_mapping.get_population ();
+
+    auto mark1_iter =
+    + hb_zip (this+mark1Coverage, this+mark1Array)
+    | hb_filter (glyphset, hb_first)
+    ;
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + mark1_iter
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+
+    if (!out->mark1Coverage.serialize (c->serializer, out)
+			   .serialize (c->serializer, new_coverage.iter ()))
+      return_trace (false);
+
+    out->mark1Array.serialize (c->serializer, out)
+		   .serialize (c->serializer, &klass_mapping, &(this+mark1Array), + mark1_iter
+										  | hb_map (hb_second));
+//////
+    unsigned mark2count = (this+mark2Array).rows;
+    auto mark2_iter =
+    + hb_zip (this+mark2Coverage, hb_range (mark2count))
+    | hb_filter (glyphset, hb_first)
+    ;
+
+    new_coverage.reset ();
+    + mark2_iter
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+
+    if (!out->mark2Coverage.serialize (c->serializer, out)
+			   .serialize (c->serializer, new_coverage.iter ()))
+      return_trace (false);
+
+    hb_sorted_vector_t<unsigned> mark2_indexes;
+    for (const unsigned row : + mark2_iter
+			      | hb_map (hb_second))
+    {
+      + hb_range ((unsigned) classCount)
+      | hb_filter (klass_mapping)
+      | hb_map ([&] (const unsigned col) { return row * (unsigned) classCount + col; })
+      | hb_sink (mark2_indexes)
+      ;
+    }
+    out->mark2Array.serialize (c->serializer, out)
+		   .serialize (c->serializer, mark2_iter.len (), &(this+mark2Array), mark2_indexes.iter ());
+
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
