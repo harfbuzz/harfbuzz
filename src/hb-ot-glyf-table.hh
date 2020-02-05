@@ -1098,6 +1098,14 @@ struct glyf
 	  if (points[i].is_end_point)
 	    break;
 	}
+
+	/* Skip contours with less than 2 points */
+	if (contour_length < 2)
+	{
+	  contour_start += contour_length;
+	  continue;
+	}
+
 	contour_point_t *curr = &points[contour_start + contour_length - 1];
 	contour_point_t *next = &points[contour_start];
 
