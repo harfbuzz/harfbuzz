@@ -21,7 +21,7 @@
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  *
- * Google Author(s): Seigo Nonaka
+ * Google Author(s): Seigo Nonaka, Calder Kitagawa
  */
 
 #ifndef HB_OT_COLOR_CBDT_TABLE_HH
@@ -42,6 +42,32 @@
 
 
 namespace OT {
+
+namespace CBDT_internal {
+
+// Helper function internal to CBDT.
+HB_INTERNAL bool copy_data_to_cbdt (hb_vector_t<char> *cbdt_prime,
+                                    const void *data,
+                                    unsigned int length);
+
+}
+
+struct cblc_bitmap_size_subset_context_t
+{
+  const char *cbdt;
+  unsigned int cbdt_length;
+  hb_vector_t<char> *cbdt_prime;
+  unsigned int size;          /* INOUT
+                               *  Input: old size of IndexSubtable
+                               *  Output: new size of IndexSubtable
+                               */
+  unsigned int num_tables;    /* INOUT
+                               *  Input: old number of subtables.
+                               *  Output: new number of subtables.
+                               */
+  hb_codepoint_t start_glyph; /* OUT */
+  hb_codepoint_t end_glyph;   /* OUT */
+};
 
 struct SmallGlyphMetrics
 {
@@ -143,6 +169,18 @@ struct IndexSubtableFormat1Or3
     return true;
   }
 
+  bool add_offset (hb_serialize_context_t *c,
+                   unsigned int offset,
+                   unsigned int *size /* OUT (accumulated) */)
+  {
+    TRACE_SERIALIZE (this);
+    Offset<OffsetType> embedded_offset;
+    embedded_offset = offset;
+    *size += sizeof(OffsetType);
+    auto* o = c->embed (embedded_offset);
+    return_trace ((bool) o);
+  }
+
   IndexSubtableHeader	header;
   UnsizedArrayOf<Offset<OffsetType>>
 			offsetArrayZ;
@@ -163,6 +201,101 @@ struct IndexSubtable
     case 1: return_trace (u.format1.sanitize (c, glyph_count));
     case 3: return_trace (u.format3.sanitize (c, glyph_count));
     default:return_trace (true);
+    }
+  }
+
+  bool finish_subtable (hb_serialize_context_t *c,
+                        unsigned int cbdt_prime_len,
+                        unsigned int num_glyphs,
+                        unsigned int *size /* OUT (accumulated) */)
+  {
+    TRACE_SERIALIZE (this);
+
+    unsigned int local_offset = cbdt_prime_len - u.header.imageDataOffset;
+    switch (u.header.indexFormat) {
+    case 1: return_trace (u.format1.add_offset (c, local_offset, size));
+    case 3: {
+      if (!u.format3.add_offset (c, local_offset, size))
+        return_trace (false);
+      if (!(num_glyphs & 0x01))  // Pad to 32-bit alignment if needed.
+        return_trace (u.format3.add_offset (c, 0, size));
+      return_trace(true);
+    }
+    // TODO: implement 2, 4, 5.
+    case 2: case 4:  // No-op.
+    case 5:  // Pad to 32-bit aligned.
+    default: return_trace (false);
+    }
+  }
+
+  bool fill_missing_glyphs (hb_serialize_context_t *c,
+                            unsigned int cbdt_prime_len,
+                            unsigned int num_missing,
+                            unsigned int *size /* OUT (accumulated) */,
+                            unsigned int *num_glyphs /* OUT (accumulated) */)
+  {
+    TRACE_SERIALIZE (this);
+
+    unsigned int local_offset = cbdt_prime_len - u.header.imageDataOffset;
+    switch (u.header.indexFormat) {
+    case 1: {
+      for (unsigned int i = 0; i < num_missing; i++)
+      {
+        if (unlikely (!u.format1.add_offset (c, local_offset, size)))
+          return_trace (false);
+        *num_glyphs += 1;
+      }
+      return_trace (true);
+    }
+    case 3: {
+      for (unsigned int i = 0; i < num_missing; i++)
+      {
+        if (unlikely (!u.format3.add_offset (c, local_offset, size)))
+          return_trace (false);
+        *num_glyphs += 1;
+      }
+      return_trace (true);
+    }
+    // TODO: implement 2, 4, 5.
+    case 2:  // Add empty space in cbdt_prime?.
+    case 4: case 5:  // No-op as sparse is supported.
+    default: return_trace (false);
+    }
+  }
+
+  bool copy_glyph_at_idx (hb_serialize_context_t *c,
+                          unsigned int idx,
+                          const char *cbdt,
+                          unsigned int cbdt_length,
+                          hb_vector_t<char> *cbdt_prime /* INOUT */,
+                          IndexSubtable *subtable_prime /* INOUT */,
+                          unsigned int *size /* OUT (accumulated) */) const
+  {
+    TRACE_SERIALIZE (this);
+
+    unsigned int offset, length, format;
+    if (unlikely (!get_image_data (idx, &offset, &length, &format))) return_trace (false);
+    if (unlikely (offset > cbdt_length || cbdt_length - offset < length)) return_trace (false);
+
+    auto* header_prime = subtable_prime->get_header();
+    unsigned int new_local_offset = cbdt_prime->length - (unsigned int) header_prime->imageDataOffset;
+    if (unlikely (!CBDT_internal::copy_data_to_cbdt (cbdt_prime, cbdt + offset, length))) return_trace (false);
+
+    return_trace (subtable_prime->add_offset (c, new_local_offset, size));
+  }
+
+  bool add_offset (hb_serialize_context_t *c,
+                   unsigned int local_offset,
+                   unsigned int *size /* OUT (accumulated) */)
+  {
+    TRACE_SERIALIZE (this);
+    switch (u.header.indexFormat) {
+    case 1: return_trace (u.format1.add_offset (c, local_offset, size));
+    case 3: return_trace (u.format3.add_offset (c, local_offset, size));
+    // TODO: Implement tables 2, 4, 5
+    case 2:  // Should be a no-op.
+    case 4: case 5:  // Handle sparse cases.
+    default: return_trace (false);
     }
   }
 
@@ -188,6 +321,25 @@ struct IndexSubtable
     }
   }
 
+  const IndexSubtableHeader* get_header() const
+  {
+    return &u.header;
+  }
+
+  void populate_header (unsigned index_format,
+                        unsigned image_format,
+                        unsigned int image_data_offset,
+                        unsigned int *size)
+  {
+    u.header.indexFormat = index_format;
+    u.header.imageFormat = image_format;
+    u.header.imageDataOffset = image_data_offset;
+    switch (u.header.indexFormat) {
+    case 1: *size += IndexSubtableFormat1::min_size; break;
+    case 3: *size += IndexSubtableFormat3::min_size; break;
+    }
+  }
+
   protected:
   union {
   IndexSubtableHeader	header;
@@ -207,6 +359,128 @@ struct IndexSubtableRecord
     return_trace (c->check_struct (this) &&
 		  firstGlyphIndex <= lastGlyphIndex &&
 		  offsetToSubtable.sanitize (c, base, lastGlyphIndex - firstGlyphIndex + 1));
+  }
+
+  const IndexSubtable* get_subtable (const void *base) const
+  {
+    return &(base+offsetToSubtable);
+  }
+
+  bool add_new_subtable (hb_subset_context_t* c,
+                         cblc_bitmap_size_subset_context_t *bitmap_size_context,
+                         IndexSubtableRecord *record,
+                         const hb_vector_t<hb_pair_t<hb_codepoint_t, const IndexSubtableRecord*>> *lookup, /* IN */
+                         const void *base,
+                         unsigned int *start /* INOUT */) const
+  {
+    TRACE_SERIALIZE (this);
+
+    auto* subtable = c->serializer->start_embed<IndexSubtable> ();
+    if (unlikely (!subtable)) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (subtable))) return_trace (false);
+
+    auto* old_subtable = get_subtable (base);
+    auto* old_header = old_subtable->get_header ();
+
+    subtable->populate_header (old_header->indexFormat,
+                               old_header->imageFormat,
+                               bitmap_size_context->cbdt_prime->length,
+                               &bitmap_size_context->size);
+
+    unsigned int num_glyphs = 0;
+    bool early_exit = false;
+    for (unsigned int i = *start; i < lookup->length; i++)
+    {
+      hb_codepoint_t new_gid = (*lookup)[i].first;
+      const IndexSubtableRecord *next_record = (*lookup)[i].second;
+      const IndexSubtable *next_subtable = next_record->get_subtable (base);
+      auto* next_header = next_subtable->get_header ();
+      if (next_header != old_header) {
+        *start = i;
+        early_exit = true;
+        break;
+      }
+      unsigned int num_missing = record->add_glyph_for_subset (new_gid);
+      if (unlikely (!subtable->fill_missing_glyphs (c->serializer,
+                                                    bitmap_size_context->cbdt_prime->length,
+                                                    num_missing,
+                                                    &bitmap_size_context->size,
+                                                    &num_glyphs)))
+        return_trace (false);
+
+      hb_codepoint_t old_gid = 0;
+      c->plan->old_gid_for_new_gid (new_gid, &old_gid);
+      if (old_gid < next_record->firstGlyphIndex)
+        return_trace (false);
+
+      unsigned int old_idx = (unsigned int) old_gid - next_record->firstGlyphIndex;
+      if (unlikely (!next_subtable->copy_glyph_at_idx (c->serializer,
+                                                       old_idx,
+                                                       bitmap_size_context->cbdt,
+                                                       bitmap_size_context->cbdt_length,
+                                                       bitmap_size_context->cbdt_prime,
+                                                       subtable,
+                                                       &bitmap_size_context->size)))
+        return_trace (false);
+      num_glyphs += 1;
+    }
+    if (!early_exit)
+      *start = lookup->length;
+    if (unlikely (!subtable->finish_subtable (c->serializer,
+                                              bitmap_size_context->cbdt_prime->length,
+                                              num_glyphs,
+                                              &bitmap_size_context->size)))
+      return_trace (false);
+    return_trace (true);
+  }
+
+  bool add_new_record (hb_subset_context_t *c,
+                       cblc_bitmap_size_subset_context_t *bitmap_size_context,
+                       const hb_vector_t<hb_pair_t<hb_codepoint_t, const IndexSubtableRecord*>> *lookup, /* IN */
+                       const void *base,
+                       unsigned int *start, /* INOUT */
+                       hb_vector_t<IndexSubtableRecord>* records /* INOUT */) const
+  {
+    TRACE_SERIALIZE (this);
+    auto snap = c->serializer->snapshot ();
+    unsigned int old_size = bitmap_size_context->size;
+    unsigned int old_cbdt_prime_length = bitmap_size_context->cbdt_prime->length;
+
+    // Set to invalid state to indicate filling glyphs is not yet started.
+    records->resize (records->length + 1);
+    (*records)[records->length - 1].firstGlyphIndex = 1;
+    (*records)[records->length - 1].lastGlyphIndex = 0;
+    bitmap_size_context->size += IndexSubtableRecord::min_size;
+
+    c->serializer->push ();
+
+    if (unlikely (!add_new_subtable (c, bitmap_size_context, &((*records)[records->length - 1]), lookup, base, start)))
+    {
+      c->serializer->pop_discard ();
+      c->serializer->revert (snap);
+      bitmap_size_context->cbdt_prime->shrink (old_cbdt_prime_length);
+      bitmap_size_context->size = old_size;
+      records->resize (records->length - 1);
+      return_trace (false);
+    }
+
+    bitmap_size_context->num_tables += 1;
+    return_trace (true);
+  }
+
+  unsigned int add_glyph_for_subset (hb_codepoint_t gid) {
+    if (firstGlyphIndex > lastGlyphIndex)
+    {
+      firstGlyphIndex = gid;
+      lastGlyphIndex = gid;
+      return 0;
+    }
+    // TODO maybe assert? this shouldn't occur.
+    if (lastGlyphIndex > gid)
+      return 0;
+    unsigned int num_missing = (unsigned int) (gid - lastGlyphIndex - 1);
+    lastGlyphIndex = gid;
+    return num_missing;
   }
 
   bool get_extents (hb_glyph_extents_t *extents,
@@ -241,6 +515,70 @@ struct IndexSubtableArray
   {
     TRACE_SANITIZE (this);
     return_trace (indexSubtablesZ.sanitize (c, count, this));
+  }
+
+  void build_lookup (hb_subset_context_t *c,
+                     cblc_bitmap_size_subset_context_t *bitmap_size_context,
+                     hb_vector_t<hb_pair_t<hb_codepoint_t, const IndexSubtableRecord*>> *lookup /* OUT */) const
+  {
+    bool start_glyph_is_set = false;
+    for (hb_codepoint_t new_gid = 0; new_gid < c->plan->num_output_glyphs (); new_gid++)
+    {
+      hb_codepoint_t old_gid;
+      if (unlikely (!c->plan->old_gid_for_new_gid (new_gid, &old_gid))) continue;
+
+      const IndexSubtableRecord* record = find_table(old_gid, bitmap_size_context->num_tables);
+      if (unlikely (!record)) continue;
+
+      // Don't add gaps to the lookup. The best way to determine if a glyph is a
+      // gap is that it has no image data.
+      unsigned int offset, length, format;
+      if (unlikely (!record->get_image_data (old_gid, this, &offset, &length, &format))) continue;
+
+      lookup->push (hb_pair_t<hb_codepoint_t, const IndexSubtableRecord*> (new_gid, record));
+
+      if (!start_glyph_is_set)
+      {
+        bitmap_size_context->start_glyph = new_gid;
+        start_glyph_is_set = true;
+      }
+
+      bitmap_size_context->end_glyph = new_gid;
+    }
+  }
+
+  bool subset (hb_subset_context_t *c,
+               cblc_bitmap_size_subset_context_t *bitmap_size_context) const
+  {
+    TRACE_SUBSET (this);
+
+    auto* dst = c->serializer->start_embed<IndexSubtableArray> ();
+    if (unlikely (!dst)) return_trace (false);
+
+    hb_vector_t<hb_pair_t<hb_codepoint_t, const IndexSubtableRecord*>> lookup;
+    build_lookup (c, bitmap_size_context, &lookup);
+
+    bitmap_size_context->size = 0;
+    bitmap_size_context->num_tables = 0;
+    hb_vector_t<IndexSubtableRecord> records;
+    for (unsigned int start = 0; start < lookup.length;)
+    {
+      if (unlikely (!lookup[start].second->add_new_record (c, bitmap_size_context, &lookup, this, &start, &records)))
+        return_trace (false);
+    }
+
+    // Workaround to ensure offset ordering is from least to greatest when
+    // resolving links.
+    hb_vector_t<hb_serialize_context_t::objidx_t> objidxs;
+    for (unsigned int i = 0; i < records.length; i++)
+      objidxs.push (c->serializer->pop_pack());
+    for (unsigned int i = 0; i < records.length; i++)
+    {
+      IndexSubtableRecord* record = c->serializer->embed (records[i]);
+      if (unlikely (!record)) return_trace (false);
+      c->serializer->add_link (record->offsetToSubtable, objidxs[records.length - 1 - i], dst);
+    }
+    return_trace (true);
   }
 
   public:
@@ -280,6 +618,44 @@ struct BitmapSizeTable
   {
     *out_base = &(base+indexSubtableArrayOffset);
     return (base+indexSubtableArrayOffset).find_table (glyph, numberOfIndexSubtables);
+  }
+
+  bool subset(hb_subset_context_t *c,
+              const void *src_base,
+              const void *dst_base,
+              const char *cbdt,
+              unsigned int cbdt_length,
+              hb_vector_t<char> *cbdt_prime /* INOUT */) const
+  {
+    TRACE_SUBSET (this);
+    auto* out_table = c->serializer->embed (this);
+    if (unlikely (!out_table)) return_trace (false);
+
+    cblc_bitmap_size_subset_context_t bitmap_size_context;
+    bitmap_size_context.cbdt = cbdt;
+    bitmap_size_context.cbdt_length = cbdt_length;
+    bitmap_size_context.cbdt_prime = cbdt_prime;
+    bitmap_size_context.size = indexTablesSize;
+    bitmap_size_context.num_tables = numberOfIndexSubtables;
+    bitmap_size_context.start_glyph = 1;
+    bitmap_size_context.end_glyph = 0;
+
+    if (!out_table->indexSubtableArrayOffset.serialize_subset(c,
+                                                              indexSubtableArrayOffset,
+                                                              src_base,
+                                                              dst_base,
+                                                              &bitmap_size_context))
+      return_trace (false);
+    if (!bitmap_size_context.size ||
+        !bitmap_size_context.num_tables ||
+        bitmap_size_context.start_glyph > bitmap_size_context.end_glyph)
+      return_trace (false);
+
+    out_table->indexTablesSize = bitmap_size_context.size;
+    out_table->numberOfIndexSubtables = bitmap_size_context.num_tables;
+    out_table->startGlyphIndex = bitmap_size_context.start_glyph;
+    out_table->endGlyphIndex = bitmap_size_context.end_glyph;
+    return_trace (true);
   }
 
   protected:
@@ -341,6 +717,46 @@ struct CBLC
 		  likely (version.major == 2 || version.major == 3) &&
 		  sizeTables.sanitize (c, this));
   }
+
+  static bool sink_cbdt(hb_subset_context_t *c,
+                        hb_vector_t<char>* cbdt_prime)
+  {
+    hb_blob_t *cbdt_prime_blob = hb_blob_create (cbdt_prime->arrayZ,
+                                                 cbdt_prime->length,
+                                                 HB_MEMORY_MODE_WRITABLE,
+                                                 cbdt_prime->arrayZ,
+                                                 free);
+    cbdt_prime->init ();  // Leak arrayZ to the blob.
+    bool ret = c->plan->add_table (HB_OT_TAG_CBDT, cbdt_prime_blob);
+    hb_blob_destroy (cbdt_prime_blob);
+    return ret;
+  }
+
+  bool subset_size_table (hb_subset_context_t *c,
+                          const BitmapSizeTable& table,
+                          const char *cbdt /* IN */,
+                          unsigned int cbdt_length,
+                          CBLC *cblc_prime /* INOUT */,
+                          hb_vector_t<char> *cbdt_prime /* INOUT */) const
+  {
+    TRACE_SUBSET (this);
+    cblc_prime->sizeTables.len++;
+
+    auto snap = c->serializer->snapshot ();
+    auto cbdt_prime_len = cbdt_prime->length;
+
+    if (!table.subset (c, this, cblc_prime, cbdt, cbdt_length, cbdt_prime))
+    {
+      cblc_prime->sizeTables.len--;
+      c->serializer->revert (snap);
+      cbdt_prime->shrink (cbdt_prime_len);
+      return_trace (false);
+    }
+    return_trace (true);
+  }
+
+  // Implemented in cc file as it depends on definition of CBDT.
+  HB_INTERNAL bool subset (hb_subset_context_t *c) const;
 
   protected:
   const BitmapSizeTable &choose_strike (hb_font_t *font) const

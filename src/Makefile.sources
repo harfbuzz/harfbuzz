@@ -63,6 +63,7 @@ HB_BASE_sources = \
 	hb-ot-cff2-table.cc \
 	hb-ot-cff2-table.hh \
 	hb-ot-cmap-table.hh \
+	hb-ot-color-cbdt-table.cc \
 	hb-ot-color-cbdt-table.hh \
 	hb-ot-color-colr-table.hh \
 	hb-ot-color-cpal-table.hh \
@@ -253,6 +254,7 @@ HB_SUBSET_sources = \
 	hb-number.hh \
 	hb-ot-cff1-table.cc \
 	hb-ot-cff2-table.cc \
+	hb-ot-color-cbdt-table.cc \
 	hb-static.cc \
 	hb-subset-cff-common.cc \
 	hb-subset-cff-common.hh \

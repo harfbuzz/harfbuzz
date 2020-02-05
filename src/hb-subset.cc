@@ -45,6 +45,7 @@
 #include "hb-ot-cff2-table.hh"
 #include "hb-ot-vorg-table.hh"
 #include "hb-ot-name-table.hh"
+#include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-var-gvar-table.hh"
@@ -201,6 +202,8 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
   case HB_OT_TAG_OS2 : return _subset<const OT::OS2 > (plan);
   case HB_OT_TAG_post: return _subset<const OT::post> (plan);
   case HB_OT_TAG_COLR: return _subset<const OT::COLR> (plan);
+  case HB_OT_TAG_CBLC: return _subset<const OT::CBLC> (plan);
+  case HB_OT_TAG_CBDT: return true; /* skip CBDT, handled by CBLC */
 
 #ifndef HB_NO_SUBSET_CFF
   case HB_OT_TAG_cff1: return _subset<const OT::cff1> (plan);
