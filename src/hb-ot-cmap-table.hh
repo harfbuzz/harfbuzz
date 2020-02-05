@@ -1225,7 +1225,7 @@ struct cmap
       else if (_.platformID == 3 && _.encodingID == 10) ms_ucs4 = table;
     }
 
-    if (unlikely (!unicode_bmp && !ms_bmp)) return_trace (false);
+    if (unlikely (!has_format12 && !unicode_bmp && !ms_bmp)) return_trace (false);
     if (unlikely (has_format12 && (!unicode_ucs4 && !ms_ucs4))) return_trace (false);
 
     auto it =
