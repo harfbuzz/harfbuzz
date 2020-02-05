@@ -136,12 +136,12 @@ _subset (hb_subset_plan_t *plan)
 static bool
 _is_table_present (hb_face_t *source, hb_tag_t tag)
 {
-  hb_tag_t tables[32];
-  unsigned offset = 0, num_tables = ARRAY_LENGTH (tables);
-  while ((hb_face_get_table_tags (source, offset, &num_tables, tables), num_tables))
+  hb_tag_t table_tags[32];
+  unsigned offset = 0, num_tables = ARRAY_LENGTH (table_tags);
+  while ((hb_face_get_table_tags (source, offset, &num_tables, table_tags), num_tables))
   {
     for (unsigned i = 0; i < num_tables; ++i)
-      if (tables[i] == tag)
+      if (table_tags[i] == tag)
 	return true;
     offset += num_tables;
   }
@@ -237,33 +237,29 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
  * Subsets a font according to provided input.
  **/
 hb_face_t *
-hb_subset (hb_face_t *source,
-	   hb_subset_input_t *input)
+hb_subset (hb_face_t *source, hb_subset_input_t *input)
 {
   if (unlikely (!input || !source)) return hb_face_get_empty ();
 
   hb_subset_plan_t *plan = hb_subset_plan_create (source, input);
 
-  hb_tag_t table_tags[32];
-  unsigned int offset = 0, count;
-  bool success = true;
   hb_set_t tags_set;
-  do {
-    count = ARRAY_LENGTH (table_tags);
-    hb_face_get_table_tags (source, offset, &count, table_tags);
-    for (unsigned int i = 0; i < count; i++)
+  bool success = true;
+  hb_tag_t table_tags[32];
+  unsigned offset = 0, num_tables = ARRAY_LENGTH (table_tags);
+  while ((hb_face_get_table_tags (source, offset, &num_tables, table_tags), num_tables))
+  {
+    for (unsigned i = 0; i < num_tables; ++i)
     {
       hb_tag_t tag = table_tags[i];
-      if (_should_drop_table (plan, tag) && !tags_set.has (tag))
-      {
-	DEBUG_MSG(SUBSET, nullptr, "drop %c%c%c%c", HB_UNTAG (tag));
-	continue;
-      }
+      if (_should_drop_table (plan, tag) && !tags_set.has (tag)) continue;
       tags_set.add (tag);
-      success = success && _subset_table (plan, tag);
+      success = _subset_table (plan, tag);
+      if (unlikely (!success)) goto end;
     }
-    offset += count;
-  } while (success && count == ARRAY_LENGTH (table_tags));
+    offset += num_tables;
+  }
+end:
 
   hb_face_t *result = success ? hb_face_reference (plan->dest) : hb_face_get_empty ();
   hb_subset_plan_destroy (plan);
