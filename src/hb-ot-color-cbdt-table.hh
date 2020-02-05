@@ -43,15 +43,6 @@
 
 namespace OT {
 
-namespace CBDT_internal {
-
-// Helper function internal to CBDT.
-HB_INTERNAL bool copy_data_to_cbdt (hb_vector_t<char> *cbdt_prime,
-                                    const void *data,
-                                    unsigned int length);
-
-}
-
 struct cblc_bitmap_size_subset_context_t
 {
   const char *cbdt;
@@ -68,6 +59,18 @@ struct cblc_bitmap_size_subset_context_t
   hb_codepoint_t start_glyph; /* OUT */
   hb_codepoint_t end_glyph;   /* OUT */
 };
+
+static inline bool
+_copy_data_to_cbdt (hb_vector_t<char> *cbdt_prime,
+		    const void        *data,
+		    unsigned           length)
+{
+  unsigned int new_len = cbdt_prime->length + length;
+  if (unlikely (!cbdt_prime->alloc (new_len))) return false;
+  memcpy (cbdt_prime->arrayZ + cbdt_prime->length, data, length);
+  cbdt_prime->length = new_len;
+  return true;
+}
 
 struct SmallGlyphMetrics
 {
@@ -279,7 +282,7 @@ struct IndexSubtable
 
     auto* header_prime = subtable_prime->get_header();
     unsigned int new_local_offset = cbdt_prime->length - (unsigned int) header_prime->imageDataOffset;
-    if (unlikely (!CBDT_internal::copy_data_to_cbdt (cbdt_prime, cbdt + offset, length))) return_trace (false);
+    if (unlikely (!_copy_data_to_cbdt (cbdt_prime, cbdt + offset, length))) return_trace (false);
 
     return_trace (subtable_prime->add_offset (c, new_local_offset, size));
   }
@@ -868,8 +871,8 @@ struct CBDT
       return true;
     }
 
-    hb_blob_t* reference_png (hb_font_t      *font,
-			      hb_codepoint_t  glyph) const
+    hb_blob_t*
+    reference_png (hb_font_t *font, hb_codepoint_t glyph) const
     {
       const void *base;
       const BitmapSizeTable &strike = this->cblc->choose_strike (font);
@@ -943,6 +946,34 @@ struct CBDT
   public:
   DEFINE_SIZE_ARRAY(4, dataZ);
 };
+
+inline bool
+CBLC::subset (hb_subset_context_t *c) const
+{
+  TRACE_SUBSET (this);
+
+  auto* cblc_prime = c->serializer->start_embed<CBLC> ();
+
+  // Use a vector as a secondary buffer as the tables need to be built in parallel.
+  hb_vector_t<char> cbdt_prime;
+
+  if (unlikely (!cblc_prime)) return_trace (false);
+  if (unlikely (!c->serializer->extend_min(cblc_prime))) return_trace (false);
+  cblc_prime->version = version;
+
+  hb_blob_t* cbdt_blob = hb_sanitize_context_t ().reference_table<CBDT> (c->plan->source);
+  unsigned int cbdt_length;
+  CBDT* cbdt = (CBDT *) hb_blob_get_data (cbdt_blob, &cbdt_length);
+  if (unlikely (cbdt_length < CBDT::min_size)) return_trace (false);
+  _copy_data_to_cbdt (&cbdt_prime, cbdt, CBDT::min_size);
+
+  for (const BitmapSizeTable& table : + sizeTables.iter ())
+    subset_size_table (c, table, (const char *) cbdt, cbdt_length, cblc_prime, &cbdt_prime);
+
+  hb_blob_destroy (cbdt_blob);
+
+  return_trace (CBLC::sink_cbdt (c, &cbdt_prime));
+}
 
 struct CBDT_accelerator_t : CBDT::accelerator_t {};
 
