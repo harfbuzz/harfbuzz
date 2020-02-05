@@ -154,135 +154,79 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
   if (plan->drop_tables->has (tag))
     return true;
 
-  switch (tag) {
-    case HB_TAG ('c', 'v', 'a', 'r'): /* hint table, fallthrough */
-    case HB_TAG ('c', 'v', 't', ' '): /* hint table, fallthrough */
-    case HB_TAG ('f', 'p', 'g', 'm'): /* hint table, fallthrough */
-    case HB_TAG ('p', 'r', 'e', 'p'): /* hint table, fallthrough */
-    case HB_TAG ('h', 'd', 'm', 'x'): /* hint table, fallthrough */
-    case HB_TAG ('V', 'D', 'M', 'X'): /* hint table, fallthrough */
-      return plan->drop_hints;
+  switch (tag)
+  {
+  case HB_TAG ('c','v','a','r'): /* hint table, fallthrough */
+  case HB_TAG ('c','v','t',' '): /* hint table, fallthrough */
+  case HB_TAG ('f','p','g','m'): /* hint table, fallthrough */
+  case HB_TAG ('p','r','e','p'): /* hint table, fallthrough */
+  case HB_TAG ('h','d','m','x'): /* hint table, fallthrough */
+  case HB_TAG ('V','D','M','X'): /* hint table, fallthrough */
+    return plan->drop_hints;
 
 #ifdef HB_NO_SUBSET_LAYOUT
     // Drop Layout Tables if requested.
-    case HB_OT_TAG_GDEF:
-    case HB_OT_TAG_GPOS:
-    case HB_OT_TAG_GSUB:
-    case HB_TAG ('m', 'o', 'r', 'x'):
-    case HB_TAG ('m', 'o', 'r', 't'):
-    case HB_TAG ('k', 'e', 'r', 'x'):
-    case HB_TAG ('k', 'e', 'r', 'n'):
-      return true;
+  case HB_OT_TAG_GDEF:
+  case HB_OT_TAG_GPOS:
+  case HB_OT_TAG_GSUB:
+  case HB_TAG ('m','o','r','x'):
+  case HB_TAG ('m','o','r','t'):
+  case HB_TAG ('k','e','r','x'):
+  case HB_TAG ('k','e','r','n'):
+    return true;
 #endif
 
-    default:
-      return false;
+  default:
+    return false;
   }
 }
 
 static bool
-_subset_table (hb_subset_plan_t *plan,
-	       hb_tag_t          tag)
+_subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
 {
-  DEBUG_MSG(SUBSET, nullptr, "begin subset %c%c%c%c", HB_UNTAG (tag));
-  bool result = true;
-  switch (tag) {
-    case HB_OT_TAG_glyf:
-      result = _subset<const OT::glyf> (plan);
-      break;
-    case HB_OT_TAG_hdmx:
-      result = _subset<const OT::hdmx> (plan);
-      break;
-    case HB_OT_TAG_name:
-      result = _subset<const OT::name> (plan);
-      break;
-    case HB_OT_TAG_head: {
-      if (_is_table_present (plan->source, HB_OT_TAG_glyf) && !_should_drop_table (plan, HB_OT_TAG_glyf))
-      {
-        DEBUG_MSG(SUBSET, nullptr, "skip head, handled by glyf");
-        return true;
-      }
-      result = _subset<const OT::head> (plan);
-      break;
-    }
-    case HB_OT_TAG_hhea:
-      DEBUG_MSG(SUBSET, nullptr, "skip hhea handled by hmtx");
-      return true;
-    case HB_OT_TAG_hmtx:
-      result = _subset<const OT::hmtx> (plan);
-      break;
-    case HB_OT_TAG_vhea:
-      DEBUG_MSG(SUBSET, nullptr, "skip vhea handled by vmtx");
-      return true;
-    case HB_OT_TAG_vmtx:
-      result = _subset<const OT::vmtx> (plan);
-      break;
-    case HB_OT_TAG_maxp:
-      result = _subset<const OT::maxp> (plan);
-      break;
-    case HB_OT_TAG_sbix:
-      result = _subset<const OT::sbix> (plan);
-      break;
-    case HB_OT_TAG_loca:
-      DEBUG_MSG(SUBSET, nullptr, "skip loca handled by glyf");
-      return true;
-    case HB_OT_TAG_cmap:
-      result = _subset<const OT::cmap> (plan);
-      break;
-    case HB_OT_TAG_OS2:
-      result = _subset<const OT::OS2> (plan);
-      break;
-    case HB_OT_TAG_post:
-      result = _subset<const OT::post> (plan);
-      break;
-    case HB_OT_TAG_COLR:
-      result = _subset<const OT::COLR> (plan);
-      break;
+  DEBUG_MSG (SUBSET, nullptr, "subset %c%c%c%c", HB_UNTAG (tag));
+  switch (tag)
+  {
+  case HB_OT_TAG_glyf: return _subset<const OT::glyf> (plan);
+  case HB_OT_TAG_hdmx: return _subset<const OT::hdmx> (plan);
+  case HB_OT_TAG_name: return _subset<const OT::name> (plan);
+  case HB_OT_TAG_head:
+    if (_is_table_present (plan->source, HB_OT_TAG_glyf) && !_should_drop_table (plan, HB_OT_TAG_glyf))
+      return true; /* skip head, handled by glyf */
+    return _subset<const OT::head> (plan);
+  case HB_OT_TAG_hhea: return true; /* skip hhea, handled by hmtx */
+  case HB_OT_TAG_hmtx: return _subset<const OT::hmtx> (plan);
+  case HB_OT_TAG_vhea: return true; /* skip vhea, handled by vmtx */
+  case HB_OT_TAG_vmtx: return _subset<const OT::vmtx> (plan);
+  case HB_OT_TAG_maxp: return _subset<const OT::maxp> (plan);
+  case HB_OT_TAG_sbix: return _subset<const OT::sbix> (plan);
+  case HB_OT_TAG_loca: return true; /* skip loca, handled by glyf */
+  case HB_OT_TAG_cmap: return _subset<const OT::cmap> (plan);
+  case HB_OT_TAG_OS2 : return _subset<const OT::OS2 > (plan);
+  case HB_OT_TAG_post: return _subset<const OT::post> (plan);
+  case HB_OT_TAG_COLR: return _subset<const OT::COLR> (plan);
 
 #ifndef HB_NO_SUBSET_CFF
-    case HB_OT_TAG_cff1:
-      result = _subset<const OT::cff1> (plan);
-      break;
-    case HB_OT_TAG_cff2:
-      result = _subset<const OT::cff2> (plan);
-      break;
-    case HB_OT_TAG_VORG:
-      result = _subset<const OT::VORG> (plan);
-      break;
+  case HB_OT_TAG_cff1: return _subset<const OT::cff1> (plan);
+  case HB_OT_TAG_cff2: return _subset<const OT::cff2> (plan);
+  case HB_OT_TAG_VORG: return _subset<const OT::VORG> (plan);
 #endif
 
 #ifndef HB_NO_SUBSET_LAYOUT
-    case HB_OT_TAG_GDEF:
-      result = _subset<const OT::GDEF> (plan);
-      break;
-    case HB_OT_TAG_GSUB:
-      result = _subset<const OT::GSUB> (plan);
-      break;
-    case HB_OT_TAG_GPOS:
-      result = _subset<const OT::GPOS> (plan);
-      break;
-    case HB_OT_TAG_gvar:
-      result = _subset<const OT::gvar> (plan);
-      break;
-    case HB_OT_TAG_HVAR:
-      result = _subset<const OT::HVAR> (plan);
-      break;
-    case HB_OT_TAG_VVAR:
-      result = _subset<const OT::VVAR> (plan);
-      break;
+  case HB_OT_TAG_GDEF: return _subset<const OT::GDEF> (plan);
+  case HB_OT_TAG_GSUB: return _subset<const OT::GSUB> (plan);
+  case HB_OT_TAG_GPOS: return _subset<const OT::GPOS> (plan);
+  case HB_OT_TAG_gvar: return _subset<const OT::gvar> (plan);
+  case HB_OT_TAG_HVAR: return _subset<const OT::HVAR> (plan);
+  case HB_OT_TAG_VVAR: return _subset<const OT::VVAR> (plan);
 #endif
 
-    default:
-      hb_blob_t *source_table = hb_face_reference_table (plan->source, tag);
-      if (likely (source_table))
-	result = plan->add_table (tag, source_table);
-      else
-	result = false;
-      hb_blob_destroy (source_table);
-      break;
+  default:
+    hb_blob_t *source_table = hb_face_reference_table (plan->source, tag);
+    bool result = plan->add_table (tag, source_table);
+    hb_blob_destroy (source_table);
+    return result;
   }
-  DEBUG_MSG(SUBSET, nullptr, "subset %c%c%c%c %s", HB_UNTAG (tag), result ? "ok" : "FAILED");
-  return result;
 }
 
 /**
