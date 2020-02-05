@@ -352,10 +352,9 @@ test_hb_glyph_ttf_parser_tests (void)
       g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
     }
     {
-      /* According to tests on tts-parser we should return an empty on single point but we aren't */
       user_data.consumed = 0;
       g_assert (hb_font_draw_glyph (font, 5, funcs, &user_data));
-      char expected[] = "M15,0Q15,0 15,0Z";
+      char expected[] = "";
       g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
     }
     {
@@ -365,7 +364,7 @@ test_hb_glyph_ttf_parser_tests (void)
 			"L29,509L123,539L123,570Q123,674 169,720Q215,765 297,765"
 			"L297,765Q329,765 356,760Q382,754 401,747L401,747L378,678"
 			"Q362,683 341,688Q320,693 298,693L298,693Q254,693 233,664"
-			"Q211,634 211,571L211,571L211,536L346,536ZM15,0Q15,0 15,0Z";
+			"Q211,634 211,571L211,571L211,536L346,536Z";
       g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
     }
 
@@ -760,6 +759,60 @@ test_hb_glyph_font_kit_variations_tests (void)
   }
 }
 
+static void
+test_hb_draw_stroking (void)
+{
+  /* https://skia-review.googlesource.com/c/skia/+/266945
+     https://savannah.nongnu.org/bugs/index.php?57701 */
+  char str[2048];
+  user_data_t user_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 6, funcs, &user_data));
+    char expected[] = "M1626,1522Q1626,1522 1626,1522Q1626,1522 1626,1522ZM531,1985"
+		      "Q436,1764 436,1522Q436,1280 531,1060Q625,839 784,680Q943,521 1164,427"
+		      "Q1384,332 1626,332Q1868,332 2089,427Q2309,521 2468,680Q2627,839 2722,1060"
+		      "Q2816,1280 2816,1522Q2816,1764 2722,1985Q2627,2205 2468,2364"
+		      "Q2309,2523 2089,2618Q1868,2712 1626,2712Q1384,2712 1164,2618"
+		      "Q943,2523 784,2364Q625,2205 531,1985ZM306,1165Q256,1342 256,1528"
+		      "Q256,1714 306,1892Q355,2069 443,2220Q531,2370 658,2497"
+		      "Q784,2623 935,2711Q1085,2799 1263,2849Q1440,2898 1626,2898"
+		      "Q1812,2898 1990,2849Q2167,2799 2318,2711Q2468,2623 2595,2497"
+		      "Q2721,2370 2809,2220Q2897,2069 2947,1892Q2996,1714 2996,1528"
+		      "Q2996,1342 2947,1165Q2897,987 2809,837Q2721,686 2595,560"
+		      "Q2468,433 2318,345Q2167,257 1990,208Q1812,158 1626,158"
+		      "Q1440,158 1263,208Q1085,257 935,345Q784,433 658,560"
+		      "Q531,686 443,837Q355,987 306,1165Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 7, funcs, &user_data));
+    char expected2[] = "M531,1985Q436,1764 436,1522Q436,1280 531,1060Q625,839 784,680"
+		       "Q943,521 1164,427Q1384,332 1626,332Q1868,332 2089,427"
+		       "Q2309,521 2468,680Q2627,839 2722,1060Q2816,1280 2816,1522"
+		       "Q2816,1764 2722,1985Q2627,2205 2468,2364Q2309,2523 2089,2618"
+		       "Q1868,2712 1626,2712Q1384,2712 1164,2618Q943,2523 784,2364"
+		       "Q625,2205 531,1985ZM306,1165Q256,1342 256,1528Q256,1714 306,1892"
+		       "Q355,2069 443,2220Q531,2370 658,2497Q784,2623 935,2711"
+		       "Q1085,2799 1263,2849Q1440,2898 1626,2898Q1812,2898 1990,2849"
+		       "Q2167,2799 2318,2711Q2468,2623 2595,2497Q2721,2370 2809,2220"
+		       "Q2897,2069 2947,1892Q2996,1714 2996,1528Q2996,1342 2947,1165"
+		       "Q2897,987 2809,837Q2721,686 2595,560Q2468,433 2318,345"
+		       "Q2167,257 1990,208Q1812,158 1626,158Q1440,158 1263,208"
+		       "Q1085,257 935,345Q784,433 658,560Q531,686 443,837Q355,987 306,1165Z";
+    g_assert_cmpmem (str, user_data.consumed, expected2, sizeof (expected2) - 1);
+
+    hb_font_destroy (font);
+  }
+}
+
 int
 main (int argc, char **argv)
 {
@@ -786,6 +839,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_glyph_ttf_parser_tests);
   hb_test_add (test_hb_glyph_font_kit_glyphs_tests);
   hb_test_add (test_hb_glyph_font_kit_variations_tests);
+  hb_test_add (test_hb_draw_stroking);
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);
