@@ -382,7 +382,7 @@ struct RecordListOfFeature : RecordListOf<Feature>
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
-    
+
     unsigned count = this->len;
     + hb_zip (*this, hb_range (count))
     | hb_filter (l->feature_index_map, hb_second)
@@ -497,7 +497,7 @@ struct LangSys
 
     for (const auto _ : + hb_zip (featureIndex, o.featureIndex))
       if (_.first != _.second) return false;
-    
+
     return true;
   }
 
@@ -886,9 +886,9 @@ struct Feature
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
-    
+
     out->featureParams = 0; /* TODO(subset) FeatureParams. */
-    
+
     auto it =
     + hb_iter (lookupIndex)
     | hb_filter (l->lookup_index_map)
@@ -1064,7 +1064,7 @@ struct Lookup
     const hb_set_t *glyphset = c->plan->glyphset ();
     unsigned int lookup_type = get_type ();
     + hb_iter (get_subtables <TSubTable> ())
-    | hb_filter ([=] (const OffsetTo<TSubTable> &_) { return (this+_).intersects (glyphset, lookup_type); })
+    | hb_filter ([this, glyphset, lookup_type] (const OffsetTo<TSubTable> &_) { return (this+_).intersects (glyphset, lookup_type); })
     | hb_apply (subset_offset_array (c, out->get_subtables<TSubTable> (), this, out, lookup_type))
     ;
 
@@ -1129,7 +1129,7 @@ struct LookupOffsetList : OffsetListOf<TLookup>
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
-    
+
     unsigned count = this->len;
     + hb_zip (*this, hb_range (count))
     | hb_filter (l->lookup_index_map, hb_second)
@@ -2622,10 +2622,8 @@ struct FeatureTableSubstitution
   {
     + hb_iter (substitutions)
     | hb_filter (feature_indexes, &FeatureTableSubstitutionRecord::featureIndex)
-    | hb_apply ([=] (const FeatureTableSubstitutionRecord& r)
-                {
-                  r.collect_lookups (this, lookup_indexes);
-                })
+    | hb_apply ([this, lookup_indexes] (const FeatureTableSubstitutionRecord& r)
+		{ r.collect_lookups (this, lookup_indexes); })
     ;
   }
 
