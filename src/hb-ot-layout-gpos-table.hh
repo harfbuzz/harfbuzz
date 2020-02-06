@@ -474,7 +474,7 @@ struct AnchorMatrix
 	    hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
 		  unsigned                num_rows,
-		  AnchorMatrix const     *offset_matrix,
+		  const AnchorMatrix     *offset_matrix,
 		  Iterator                index_iter)
   {
     TRACE_SERIALIZE (this);
@@ -488,6 +488,27 @@ struct AnchorMatrix
       offset->serialize_copy (c, offset_matrix->matrixZ[i], offset_matrix, this);
     }
 
+    return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c,
+	       unsigned cols,
+	       const hb_map_t *klass_mapping) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+
+    hb_vector_t<unsigned> indexes;
+    for (unsigned row : + hb_range ((unsigned) rows))
+    {
+      + hb_range (cols)
+      | hb_filter (klass_mapping)
+      | hb_map ([=] (const unsigned col) { return row * cols + col; })
+      | hb_sink (indexes)
+      ;
+    }
+
+    out->serialize (c->serializer, (unsigned) rows, this, indexes.iter ());
     return_trace (true);
   }
 
@@ -1771,10 +1792,30 @@ typedef AnchorMatrix LigatureAttach;	/* component-major--
 					 * mark-minor--
 					 * ordered by class--zero-based. */
 
-typedef OffsetListOf<LigatureAttach> LigatureArray;
-					/* Array of LigatureAttach
-					 * tables ordered by
-					 * LigatureCoverage Index */
+/* Array of LigatureAttach tables ordered by LigatureCoverage Index */
+struct LigatureArray : OffsetListOf<LigatureAttach>
+{
+  template <typename Iterator,
+	    hb_requires (hb_is_iterator (Iterator))>
+  bool subset (hb_subset_context_t    *c,
+	       unsigned                cols,
+	       const hb_map_t         *klass_mapping,
+	       const LigatureArray    &src_lig_array,
+	       Iterator                ligature_iter)
+  {
+    TRACE_SERIALIZE (this);
+    if (!ligature_iter.len ()) return_trace (false);
+    if (unlikely (!c->serializer->extend_min ((*this))))  return_trace (false);
+
+    for (unsigned i : ligature_iter)
+    {
+      auto *out = serialize_append (c->serializer);
+      if (unlikely (!out)) break;
+      out->serialize_subset (c, src_lig_array.arrayZ[i], &src_lig_array, this, cols, klass_mapping);
+    }
+    return_trace (this->len);
+  }
+};
 
 struct MarkLigPosFormat1
 {
@@ -1838,8 +1879,61 @@ struct MarkLigPosFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    hb_map_t klass_mapping;
+    Markclass_closure_and_remap_indexes (this+markCoverage, this+markArray, glyphset, &klass_mapping);
+    
+    if (!klass_mapping.get_population ()) return_trace (false);
+    out->classCount = klass_mapping.get_population ();
+
+    auto mark_iter =
+    + hb_zip (this+markCoverage, this+markArray)
+    | hb_filter (glyphset, hb_first)
+    ;
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + mark_iter
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+
+    if (!out->markCoverage.serialize (c->serializer, out)
+			  .serialize (c->serializer, new_coverage.iter ()))
+      return_trace (false);
+
+    out->markArray.serialize (c->serializer, out)
+		  .serialize (c->serializer, &klass_mapping, &(this+markArray), + mark_iter
+										| hb_map (hb_second));
+    
+    unsigned ligcount = (this+ligatureArray).len;
+    auto ligature_iter =
+    + hb_zip (this+ligatureCoverage, hb_range (ligcount))
+    | hb_filter (glyphset, hb_first)
+    ;
+
+    new_coverage.reset ();
+    + ligature_iter
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+
+    if (!out->ligatureCoverage.serialize (c->serializer, out)
+			      .serialize (c->serializer, new_coverage.iter ()))
+      return_trace (false);
+
+    out->ligatureArray.serialize (c->serializer, out)
+		      .subset (c, (unsigned) classCount, &klass_mapping, this+ligatureArray, + ligature_iter
+											     | hb_map (hb_second));
+
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
