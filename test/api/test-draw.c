@@ -163,13 +163,13 @@ static hb_draw_funcs_t *funcs;
 static hb_draw_funcs_t *funcs2; /* this one translates quadratic calls to cubic ones */
 
 static void
-test_hb_glyph_empty (void)
+test_hb_draw_empty (void)
 {
   g_assert (!hb_font_draw_glyph (hb_font_get_empty (), 3, funcs, NULL));
 }
 
 static void
-test_hb_glyph_glyf (void)
+test_hb_draw_glyf (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/SourceSerifVariable-Roman-VVAR.abc.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -228,7 +228,7 @@ test_hb_glyph_glyf (void)
 }
 
 static void
-test_hb_glyph_cff1 (void)
+test_hb_draw_cff1 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cff1_seac.otf");
   hb_font_t *font = hb_font_create (face);
@@ -250,7 +250,7 @@ test_hb_glyph_cff1 (void)
 }
 
 static void
-test_hb_glyph_cff1_rline (void)
+test_hb_draw_cff1_rline (void)
 {
   /* https://github.com/harfbuzz/harfbuzz/pull/2053 */
   hb_face_t *face = hb_test_open_font_file ("fonts/RanaKufi-Regular.subset.otf");
@@ -275,7 +275,7 @@ test_hb_glyph_cff1_rline (void)
 }
 
 static void
-test_hb_glyph_cff2 (void)
+test_hb_draw_cff2 (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
   hb_font_t *font = hb_font_create (face);
@@ -314,7 +314,7 @@ test_hb_glyph_cff2 (void)
 }
 
 static void
-test_hb_glyph_ttf_parser_tests (void)
+test_hb_draw_ttf_parser_tests (void)
 {
   /* https://github.com/RazrFalcon/ttf-parser/blob/337e7d1c/tests/tests.rs#L50-L133 */
   char str[1024] = {0};
@@ -403,7 +403,7 @@ test_hb_glyph_ttf_parser_tests (void)
 }
 
 static void
-test_hb_glyph_font_kit_glyphs_tests (void)
+test_hb_draw_font_kit_glyphs_tests (void)
 {
   /* https://github.com/foliojs/fontkit/blob/master/test/glyphs.js */
   char str[2048];
@@ -520,7 +520,7 @@ test_hb_glyph_font_kit_glyphs_tests (void)
 }
 
 static void
-test_hb_glyph_font_kit_variations_tests (void)
+test_hb_draw_font_kit_variations_tests (void)
 {
   /* https://github.com/foliojs/fontkit/blob/b310db5/test/variations.js */
   char str[2048];
@@ -831,14 +831,14 @@ main (int argc, char **argv)
 
   hb_test_init (&argc, &argv);
   hb_test_add (test_itoa);
-  hb_test_add (test_hb_glyph_empty);
-  hb_test_add (test_hb_glyph_glyf);
-  hb_test_add (test_hb_glyph_cff1);
-  hb_test_add (test_hb_glyph_cff1_rline);
-  hb_test_add (test_hb_glyph_cff2);
-  hb_test_add (test_hb_glyph_ttf_parser_tests);
-  hb_test_add (test_hb_glyph_font_kit_glyphs_tests);
-  hb_test_add (test_hb_glyph_font_kit_variations_tests);
+  hb_test_add (test_hb_draw_empty);
+  hb_test_add (test_hb_draw_glyf);
+  hb_test_add (test_hb_draw_cff1);
+  hb_test_add (test_hb_draw_cff1_rline);
+  hb_test_add (test_hb_draw_cff2);
+  hb_test_add (test_hb_draw_ttf_parser_tests);
+  hb_test_add (test_hb_draw_font_kit_glyphs_tests);
+  hb_test_add (test_hb_draw_font_kit_variations_tests);
   hb_test_add (test_hb_draw_stroking);
   unsigned result = hb_test_run ();
 
