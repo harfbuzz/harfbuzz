@@ -26,6 +26,7 @@ EXTRA_DIST += \
 check_PROGRAMS = \
 	hb-shape-fuzzer \
 	hb-subset-fuzzer \
+	hb-set-fuzzer \
 	$(NULL)
 
 AM_CPPFLAGS = \
@@ -53,6 +54,16 @@ hb_subset_fuzzer_LDADD = \
 	$(top_builddir)/src/libharfbuzz-subset.la
 hb_subset_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
 hb_subset_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz-subset.la
+
+hb_set_fuzzer_SOURCES = \
+	hb-fuzzer.hh \
+	hb-set-fuzzer.cc \
+	main.cc \
+	$(NULL)
+hb_set_fuzzer_LDADD = $(top_builddir)/src/libharfbuzz.la
+hb_set_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
+hb_set_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz.la
+
 
 check:
 	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" LIBTOOL="$(LIBTOOL)" $(srcdir)/run-shape-fuzzer-tests.py
