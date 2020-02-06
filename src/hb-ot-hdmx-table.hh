@@ -134,10 +134,10 @@ struct hdmx
 	  auto row =
 	    + hb_range (c->plan->num_output_glyphs ())
 	    | hb_map (c->plan->reverse_glyph_map)
-	    | hb_map ([=] (hb_codepoint_t _)
+	    | hb_map ([this, c, device_record] (hb_codepoint_t _)
 		      {
 			if (c->plan->is_empty_glyph (_))
-			  return Null(HBUINT8);
+			  return Null (HBUINT8);
 			return device_record->widthsZ.as_array (get_num_glyphs ()) [_];
 		      })
 	    ;
