@@ -452,21 +452,23 @@ struct hb_set_t
 
   void compact (unsigned int length)
   {
-    hb_hashmap_t<uint32_t, uint32_t> old_index_to_page_map_index;
+    hb_vector_t<uint32_t> old_index_to_page_map_index;
+    old_index_to_page_map_index.resize(pages.length);
+    for (uint32_t i = 0; i < old_index_to_page_map_index.length; i++)
+      old_index_to_page_map_index[i] = 0xFFFFFFFF;
 
-    for (unsigned int i = 0; i < length; i++) {
-      old_index_to_page_map_index.set (page_map[i].index, i);
-    }
+    for (uint32_t i = 0; i < length; i++)
+      old_index_to_page_map_index[page_map[i].index] =  i;
 
     compact_pages (old_index_to_page_map_index);
   }
 
-  void compact_pages (const hb_hashmap_t<uint32_t, uint32_t>& old_index_to_page_map_index)
+  void compact_pages (const hb_vector_t<uint32_t>& old_index_to_page_map_index)
   {
     unsigned int write_index = 0;
     for (unsigned int i = 0; i < pages.length; i++)
     {
-      if (!old_index_to_page_map_index.has (i)) continue;
+      if (old_index_to_page_map_index[i] == 0xFFFFFFFF) continue;
 
       if (write_index < i)
         pages[write_index] = pages[i];
