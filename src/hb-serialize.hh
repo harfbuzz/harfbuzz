@@ -70,7 +70,9 @@ struct hb_serialize_context_t
     struct link_t
     {
       bool is_wide: 1;
-      unsigned position : 31;
+      bool is_signed: 1;
+      bool is_absolute: 1;
+      unsigned position;
       unsigned bias;
       objidx_t objidx;
     };
@@ -127,7 +129,7 @@ struct hb_serialize_context_t
 
   template <typename T1, typename T2>
   bool check_assign (T1 &v1, T2 &&v2)
-  { return check_equal (v1 = v2, v2); }
+  { return check_equal ((hb_remove_reference<T2>) (v1 = v2), v2); }
 
   template <typename T> bool propagate_error (T &&obj)
   { return check_success (!hb_deref (obj).in_error ()); }
@@ -286,11 +288,47 @@ struct hb_serialize_context_t
 
     auto& link = *current->links.push ();
     link.is_wide = sizeof (T) == 4;
+    link.is_signed = false;
+    link.is_absolute = false;
     link.position = (const char *) &ofs - current->head;
     link.bias = (const char *) base - current->head;
     link.objidx = objidx;
   }
 
+  /*
+   * Set a link to an object with an absolute offset.
+   * T may be signed or unsigned IntType.
+   */
+  template <typename T>
+  void add_link_abs (T &ofs, objidx_t objidx)
+  {
+    static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
+
+    if (!objidx)
+      return;
+
+    assert (current);
+    assert (current->head <= (const char *) &ofs);
+
+    auto& link = *current->links.push ();
+    link.is_wide = sizeof (T) == 4;
+    link.is_signed = hb_is_signed (typename T::type);
+    link.is_absolute = true;
+    link.position = (const char *) &ofs - current->head;
+    link.bias = 0;
+    link.objidx = objidx;
+  }
+
+  private:
+  template <typename T>
+  void assign (const object_t* parent, const object_t::link_t &link, unsigned offset)
+  {
+    auto &off = * ((BEInt<T, sizeof (T)> *) (parent->head + link.position));
+    assert (0 == off);
+    check_assign (off, offset);
+  }
+
+  public:
   void resolve_links ()
   {
     if (unlikely (in_error ())) return;
@@ -302,20 +340,29 @@ struct hb_serialize_context_t
       for (const object_t::link_t &link : parent->links)
       {
 	const object_t* child = packed[link.objidx];
-	assert (link.bias <= (size_t) (parent->tail - parent->head));
-	unsigned offset = (child->head - parent->head) - link.bias;
-
-	if (link.is_wide)
+	if (unlikely (!child)) { err_other_error(); return; }
+	unsigned offset;
+	if (link.is_absolute)
+	  offset = (head - start) + (child->head - tail);
+	else
 	{
-	  auto &off = * ((BEInt<uint32_t, 4> *) (parent->head + link.position));
-	  assert (0 == off);
-	  check_assign (off, offset);
+	  assert (link.bias <= (size_t) (parent->tail - parent->head));
+	  offset = (child->head - parent->head) - link.bias;
+	}
+
+	if (link.is_signed)
+	{
+	  if (link.is_wide)
+	    assign<int32_t> (parent, link, offset);
+	  else
+	    assign<int16_t> (parent, link, offset);
 	}
 	else
 	{
-	  auto &off = * ((BEInt<uint16_t, 2> *) (parent->head + link.position));
-	  assert (0 == off);
-	  check_assign (off, offset);
+	  if (link.is_wide)
+	    assign<uint32_t> (parent, link, offset);
+	  else
+	    assign<uint16_t> (parent, link, offset);
 	}
       }
   }
