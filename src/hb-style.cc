@@ -63,6 +63,9 @@ hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag)
   }
 #endif
 
+  if (style_tag == HB_STYLE_TAG_OPTICAL_SIZE && font->ptem)
+    return font->ptem;
+
   /* STAT */
   float value;
   if (face->table.STAT->get_value (style_tag, &value))
