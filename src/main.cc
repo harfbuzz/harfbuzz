@@ -172,72 +172,73 @@ static void
 layered_glyph_dump (hb_font_t *font, hb_draw_funcs_t *funcs, unsigned face_index)
 {
   hb_face_t *face = hb_font_get_face (font);
-  unsigned num_glyphs = hb_face_get_glyph_count (face);
-  for (hb_codepoint_t gid = 0; gid < num_glyphs; ++gid)
+  unsigned palette_count = hb_ot_color_palette_get_count (face);
+  for (unsigned palette = 0; palette < palette_count; ++palette)
   {
-    unsigned num_layers = hb_ot_color_glyph_get_layers (face, gid, 0, nullptr, nullptr);
-    if (!num_layers) continue;
+    unsigned num_colors = hb_ot_color_palette_get_colors (face, palette, 0, nullptr, nullptr);
+    if (!num_colors) continue;
 
-    hb_ot_color_layer_t *layers = (hb_ot_color_layer_t*) malloc (num_layers * sizeof (hb_ot_color_layer_t));
-
-    hb_ot_color_glyph_get_layers (face, gid, 0, &num_layers, layers);
-    if (num_layers)
+    hb_color_t *colors = (hb_color_t*) calloc (num_colors, sizeof (hb_color_t));
+    hb_ot_color_palette_get_colors (face, palette, 0, &num_colors, colors);
+    if (!num_colors)
     {
-      hb_font_extents_t font_extents;
-      hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
-      hb_glyph_extents_t extents = {0};
-      if (!hb_font_get_glyph_extents (font, gid, &extents))
-      {
-	printf ("Skip gid: %d\n", gid);
-	continue;
-      }
+      free (colors);
+      continue;
+    }
 
-      unsigned palette_count = hb_ot_color_palette_get_count (face);
-      for (unsigned palette = 0; palette < palette_count; ++palette)
+    unsigned num_glyphs = hb_face_get_glyph_count (face);
+    for (hb_codepoint_t gid = 0; gid < num_glyphs; ++gid)
+    {
+      unsigned num_layers = hb_ot_color_glyph_get_layers (face, gid, 0, nullptr, nullptr);
+      if (!num_layers) continue;
+
+      hb_ot_color_layer_t *layers = (hb_ot_color_layer_t*) malloc (num_layers * sizeof (hb_ot_color_layer_t));
+
+      hb_ot_color_glyph_get_layers (face, gid, 0, &num_layers, layers);
+      if (num_layers)
       {
-	unsigned num_colors = hb_ot_color_palette_get_colors (face, palette, 0, nullptr, nullptr);
-	if (!num_colors)
+	hb_font_extents_t font_extents;
+	hb_font_get_extents_for_direction (font, HB_DIRECTION_LTR, &font_extents);
+	hb_glyph_extents_t extents = {0};
+	if (!hb_font_get_glyph_extents (font, gid, &extents))
+	{
+	  printf ("Skip gid: %d\n", gid);
 	  continue;
+	}
 
 	char output_path[255];
 	sprintf (output_path, "out/colr-%u-%u-%u.svg", gid, palette, face_index);
-        FILE *f = fopen (output_path, "wb");
-        fprintf (f, "<svg xmlns=\"http://www.w3.org/2000/svg\""
+	FILE *f = fopen (output_path, "wb");
+	fprintf (f, "<svg xmlns=\"http://www.w3.org/2000/svg\""
 		    " viewBox=\"%d %d %d %d\">\n",
 		    extents.x_bearing, 0,
 		    extents.x_bearing + extents.width, -extents.height);
-        user_data_t user_data;
-        user_data.ascender = extents.y_bearing;
-        user_data.f = f;
+	user_data_t user_data;
+	user_data.ascender = extents.y_bearing;
+	user_data.f = f;
 
-	hb_color_t *colors = (hb_color_t*) calloc (num_colors, sizeof (hb_color_t));
-	hb_ot_color_palette_get_colors (face, palette, 0, &num_colors, colors);
-	if (num_colors)
+	for (unsigned layer = 0; layer < num_layers; ++layer)
 	{
-	  for (unsigned layer = 0; layer < num_layers; ++layer)
-	  {
-	    hb_color_t color = 0x000000FF;
-	    if (layers[layer].color_index != 0xFFFF)
-	      color = colors[layers[layer].color_index];
-	    fprintf (f, "<path fill=\"#%02X%02X%02X\" ",
-		     hb_color_get_red (color), hb_color_get_green (color), hb_color_get_green (color));
-	    if (hb_color_get_alpha (color) != 255)
-	      fprintf (f, "fill-opacity=\"%.3f\"", (double) hb_color_get_alpha (color) / 255.);
-	    fprintf (f, "d=\"");
-	    if (!hb_font_draw_glyph (font, layers[layer].glyph, funcs, &user_data))
-	      printf ("Failed to decompose layer %d while %d\n", layers[layer].glyph, gid);
-	    fprintf (f, "\"/>\n");
-	  }
+	  hb_color_t color = 0x000000FF;
+	  if (layers[layer].color_index != 0xFFFF)
+	    color = colors[layers[layer].color_index];
+	  fprintf (f, "<path fill=\"#%02X%02X%02X\" ",
+		   hb_color_get_red (color), hb_color_get_green (color), hb_color_get_green (color));
+	  if (hb_color_get_alpha (color) != 255)
+	    fprintf (f, "fill-opacity=\"%.3f\"", (double) hb_color_get_alpha (color) / 255.);
+	  fprintf (f, "d=\"");
+	  if (!hb_font_draw_glyph (font, layers[layer].glyph, funcs, &user_data))
+	    printf ("Failed to decompose layer %d while %d\n", layers[layer].glyph, gid);
+	  fprintf (f, "\"/>\n");
 	}
-	free (colors);
 
 	fprintf (f, "</svg>");
 	fclose (f);
       }
+      free (layers);
     }
 
-
-    free (layers);
+    free (colors);
   }
 }
 
@@ -279,7 +280,7 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
   FILE *font_name_file = fopen ("out/.dumped_font_name", "r");
   if (font_name_file != nullptr)
   {
-    fprintf (stderr, "Purge or move ./out folder in order to run a new glyph dump,\n"
+    fprintf (stderr, "Purge or rename ./out folder if you like to run a glyph dump,\n"
 		     "run it like `rm -rf out && mkdir out && src/main font-file.ttf`\n");
     return;
   }
