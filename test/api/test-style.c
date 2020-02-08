@@ -70,6 +70,9 @@ test_face_fdsc (void)
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 400);
 
+  hb_font_set_ptem (font, 36);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 36);
+
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
