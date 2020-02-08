@@ -1940,7 +1940,7 @@ hb_font_set_var_coords_design (hb_font_t *font,
   }
 
   if (coords_length)
-    memcpy (design_coords, coords, font->num_coords * sizeof (font->design_coords[0]));
+    memcpy (design_coords, coords, coords_length * sizeof (font->design_coords[0]));
 
   hb_ot_var_normalize_coords (font->face, coords_length, coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
