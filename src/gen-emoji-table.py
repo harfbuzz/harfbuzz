@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# Input file: https://www.unicode.org/Public/emoji/12.0/emoji-data.txt
+
 from __future__ import print_function, division, absolute_import
 import sys
 import os.path
