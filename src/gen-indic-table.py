@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+# Input files:
+# - https://unicode.org/Public/12.0.0/ucd/IndicSyllabicCategory.txt
+# - https://unicode.org/Public/12.0.0/ucd/IndicPositionalCategory.txt
+# - https://unicode.org/Public/12.0.0/ucd/Blocks.txt
+
 from __future__ import print_function, division, absolute_import
 
 import io, sys

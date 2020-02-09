@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# Input file: http://unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip
+
 from __future__ import print_function, division, absolute_import
 
 import io, os.path, sys, re
