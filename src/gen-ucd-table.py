@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-# Input file: http://unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip
-
 from __future__ import print_function, division, absolute_import
 
 import io, os.path, sys, re
@@ -9,7 +7,10 @@ import logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 if len (sys.argv) not in (2, 3):
-	print("usage: ./gen-ucd-table ucd.nounihan.grouped.xml [/path/to/hb-common.h]", file=sys.stderr)
+	print("""usage: ./gen-ucd-table ucd.nounihan.grouped.xml [/path/to/hb-common.h]
+
+Input file, as of Unicode 12:
+* https://unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip""", file=sys.stderr)
 	sys.exit(1)
 
 # https://github.com/harfbuzz/packtab
