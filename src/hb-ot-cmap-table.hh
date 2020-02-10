@@ -867,50 +867,44 @@ struct VariationSelectorRecord
 		  nonDefaultUVS.sanitize (c, base));
   }
 
-  VariationSelectorRecord* copy (hb_serialize_context_t *c,
-				 const hb_set_t *unicodes,
-				 const hb_set_t *glyphs,
-				 const hb_map_t *glyph_map,
-				 const void *src_base,
-				 const void *dst_base) const
+  hb_pair_t<unsigned, unsigned>
+  copy (hb_serialize_context_t *c,
+        const hb_set_t *unicodes,
+        const hb_set_t *glyphs,
+        const hb_map_t *glyph_map,
+        const void *src_base,
+        const void *dst_base) const
   {
     auto snap = c->snapshot ();
     auto *out = c->embed<VariationSelectorRecord> (*this);
-    if (unlikely (!out)) return nullptr;
+    if (unlikely (!out)) return hb_pair (0, 0);
 
     out->defaultUVS = 0;
     out->nonDefaultUVS = 0;
 
-    bool drop = true;
-
-    if (defaultUVS != 0)
-    {
-      c->push ();
-      if (c->copy (src_base+defaultUVS, unicodes))
-      {
-	c->add_link (out->defaultUVS, c->pop_pack (), dst_base);
-	drop = false;
-      }
-      else c->pop_discard ();
-    }
-
+    unsigned non_default_uvs_objidx = 0;
     if (nonDefaultUVS != 0)
     {
       c->push ();
       if (c->copy (src_base+nonDefaultUVS, unicodes, glyphs, glyph_map))
-      {
-	c->add_link (out->nonDefaultUVS, c->pop_pack (), dst_base);
-	drop = false;
-      }
+        non_default_uvs_objidx = c->pop_pack ();
       else c->pop_discard ();
     }
 
-    if (drop)
+    unsigned default_uvs_objidx = 0;
+    if (defaultUVS != 0)
     {
-      c->revert (snap);
-      return nullptr;
+      c->push ();
+      if (c->copy (src_base+defaultUVS, unicodes))
+        default_uvs_objidx = c->pop_pack ();
+      else c->pop_discard ();
     }
-    else return out;
+
+
+    if (!default_uvs_objidx && !non_default_uvs_objidx)
+      c->revert (snap);
+
+    return hb_pair (default_uvs_objidx, non_default_uvs_objidx);
   }
 
   HBUINT24	varSelector;	/* Variation selector. */
@@ -953,16 +947,73 @@ struct CmapSubtableFormat14
     this->format = 14;
 
     auto src_tbl = reinterpret_cast<const CmapSubtableFormat14*> (src_base);
-    c->copy_all (hb_iter (src_tbl->record),
-		 unicodes, glyphs, glyph_map, src_base, this);
+
+    // Some versions of OTS require that offsets are in order. Due to the use
+    // of push()/pop_pack() serializing the variation records in order results
+    // in the offsets being in reverse order (first record has the largest
+    // offset). While this is perfectly valid, it will cause some versions of
+    // OTS to consider this table bad.
+    //
+    // So to prevent this issue we serialize the variation records in reverse
+    // order, so that the offsets are ordered from small to large. Since
+    // variation records are supposed to be in increasing order of varSelector
+    // we then have to reverse the order of the written variation selector
+    // records after everything is finalized.
+    hb_vector_t<hb_pair_t<unsigned, unsigned>> obj_indices;
+    for (int i = src_tbl->record.len - 1; i >= 0; i--)
+    {
+      hb_pair_t<unsigned, unsigned> result =
+          src_tbl->record[i].copy (c, unicodes, glyphs, glyph_map, src_base, this);
+      if (result.first || result.second)
+        obj_indices.push (result);
+    }
 
     if (c->length () - table_initpos == CmapSubtableFormat14::min_size)
-      c->revert (snap);
-    else
     {
-      int tail_len = init_tail - c->tail;
-      c->check_assign (this->length, c->length () - table_initpos + tail_len);
-      c->check_assign (this->record.len, (c->length () - table_initpos - CmapSubtableFormat14::min_size) / VariationSelectorRecord::static_size);
+      c->revert (snap);
+      return;
+    }
+
+    int tail_len = init_tail - c->tail;
+    c->check_assign (this->length, c->length () - table_initpos + tail_len);
+    c->check_assign (this->record.len,
+                     (c->length () - table_initpos - CmapSubtableFormat14::min_size) /
+                     VariationSelectorRecord::static_size);
+
+    // Correct the incorrect write order by reversing the order of the variation
+    // records array.
+    _reverse_variation_records ();
+
+    // Now that records are in the right order, we can set up the offsets.
+    _add_links_to_variation_records (c, obj_indices);
+  }
+
+  void _reverse_variation_records ()
+  {
+    int rhs = record.len - 1;
+    int lhs = 0;
+    while (rhs > lhs)
+    {
+      int value_rhs = record[rhs].varSelector;
+      int value_lhs = record[lhs].varSelector;
+      record[rhs].varSelector = value_lhs;
+      record[lhs].varSelector = value_rhs;
+      rhs--;
+      lhs++;
+    }
+  }
+
+  void _add_links_to_variation_records (hb_serialize_context_t *c,
+                                        const hb_vector_t<hb_pair_t<unsigned, unsigned>>& obj_indices)
+  {
+    for (unsigned i = 0; i < obj_indices.length; i++)
+    {
+      // Since the record array has been reversed (see comments in copy())
+      // but obj_indices has not been, the indices at obj_indices[i]
+      // are for the variation record at record[j].
+      int j = obj_indices.length - 1 - i;
+      c->add_link (record[j].defaultUVS, obj_indices[i].first, this);
+      c->add_link (record[j].nonDefaultUVS, obj_indices[i].second, this);
     }
   }
 
