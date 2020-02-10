@@ -677,7 +677,8 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
 				 void                        *user_data, \
 				 hb_destroy_func_t            destroy)   \
 {                                                                        \
-  if (hb_object_is_immutable (ffuncs)) {                                 \
+  if (hb_object_is_immutable (ffuncs))                                   \
+  {                                                                      \
     if (destroy)                                                         \
       destroy (user_data);                                               \
     return;                                                              \
@@ -2152,6 +2153,13 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
 			      hb_font_get_glyph_func_t func,
 			      void *user_data, hb_destroy_func_t destroy)
 {
+  if (hb_object_is_immutable (ffuncs))
+  {
+    if (destroy)
+      destroy (user_data);
+    return;
+  }
+
   hb_font_get_glyph_trampoline_t *trampoline;
 
   trampoline = trampoline_create (func, user_data, destroy);
