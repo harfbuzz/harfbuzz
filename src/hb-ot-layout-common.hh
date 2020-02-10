@@ -78,8 +78,8 @@ static inline void ClassDef_serialize (hb_serialize_context_t *c,
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
                                           const hb_set_t &glyphset,
                                           const hb_map_t &gid_klass_map,
-                                          hb_sorted_vector_t<HBGlyphID> glyphs,
-                                          hb_sorted_vector_t<unsigned> klasses,
+                                          hb_sorted_vector_t<HBGlyphID> &glyphs,
+                                          const hb_set_t &klasses,
                                           hb_map_t *klass_map /*INOUT*/);
 
 struct hb_subset_layout_context_t :
@@ -1573,16 +1573,22 @@ Coverage_serialize (hb_serialize_context_t *c,
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
                                           const hb_set_t &glyphset,
                                           const hb_map_t &gid_klass_map,
-                                          hb_sorted_vector_t<HBGlyphID> glyphs,
-                                          hb_sorted_vector_t<unsigned> klasses,
+                                          hb_sorted_vector_t<HBGlyphID> &glyphs,
+                                          const hb_set_t &klasses,
                                           hb_map_t *klass_map /*INOUT*/)
 {
-  bool has_no_match = glyphset.get_population () > gid_klass_map.get_population ();
+  if (!klass_map)
+  {
+    ClassDef_serialize (c, hb_zip (glyphs.iter (), + glyphs.iter ()
+						   | hb_map (gid_klass_map)));
+    return;
+  }
 
-  hb_map_t m;
-  if (!klass_map) klass_map = &m;
+  /* any glyph not assigned a class value falls into Class zero (0),
+   * if any glyph assigned to class 0, remapping must start with 0->0*/
+  if (glyphset.get_population () > gid_klass_map.get_population ())
+    klass_map->set (0, 0);
 
-  if (has_no_match) klass_map->set (0, 0);
   unsigned idx = klass_map->has (0) ? 1 : 0;
   for (const unsigned k: klasses.iter ())
   {
@@ -1593,10 +1599,9 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
 
   auto it =
   + glyphs.iter ()
-  | hb_map_retains_sorting ([&] (const HBGlyphID& gid) -> hb_pair_t<hb_codepoint_t, HBUINT16>
+  | hb_map_retains_sorting ([&] (const HBGlyphID& gid) -> hb_pair_t<hb_codepoint_t, unsigned>
                             {
-                              HBUINT16 new_klass;
-                              new_klass = klass_map->get (gid_klass_map[gid]);
+                              unsigned new_klass = klass_map->get (gid_klass_map[gid]);
                               return hb_pair ((hb_codepoint_t)gid, new_klass);
                             })
   ;
@@ -1644,11 +1649,11 @@ struct ClassDefFormat1
                hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_set_t &glyphset = klass_map ? *c->plan->glyphset () : *c->plan->_glyphset_gsub;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_sorted_vector_t<HBGlyphID> glyphs;
-    hb_sorted_vector_t<unsigned> orig_klasses;
+    hb_set_t orig_klasses;
     hb_map_t gid_org_klass_map;
 
     hb_codepoint_t start = startGlyph;
@@ -1661,7 +1666,7 @@ struct ClassDefFormat1
 
       glyphs.push (glyph_map[gid]);
       gid_org_klass_map.set (glyph_map[gid], klass);
-      orig_klasses.push (klass);
+      orig_klasses.add (klass);
     }
 
     ClassDef_remap_and_serialize (c->serializer, glyphset, gid_org_klass_map,
@@ -1813,11 +1818,11 @@ struct ClassDefFormat2
                hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_set_t &glyphset = klass_map ? *c->plan->glyphset () : *c->plan->_glyphset_gsub;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_sorted_vector_t<HBGlyphID> glyphs;
-    hb_sorted_vector_t<unsigned> orig_klasses;
+    hb_set_t orig_klasses;
     hb_map_t gid_org_klass_map;
 
     unsigned count = rangeRecord.len;
@@ -1832,7 +1837,7 @@ struct ClassDefFormat2
 	if (!glyphset.has (g)) continue;
 	glyphs.push (glyph_map[g]);
         gid_org_klass_map.set (glyph_map[g], klass);
-        orig_klasses.push (klass);
+        orig_klasses.add (klass);
       }
     }
 
@@ -1957,6 +1962,7 @@ struct ClassDef
       {
         hb_codepoint_t cur_gid = gid_klass_pair.first;
         unsigned cur_klass = gid_klass_pair.second;
+        if (cur_gid == glyph_min || !cur_klass) continue;
         if (cur_gid != prev_gid + 1 ||
             cur_klass != prev_klass)
           num_ranges++;
@@ -1965,7 +1971,7 @@ struct ClassDef
         prev_klass = cur_klass;
       }
 
-      if (1 + (glyph_max - glyph_min + 1) < num_ranges * 3)
+      if (1 + (glyph_max - glyph_min + 1) <= num_ranges * 3)
 	format = 1;
     }
     u.format = format;

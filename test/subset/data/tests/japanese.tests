@@ -4,6 +4,7 @@ Mplus1p-Regular.ttf
 PROFILES:
 default.txt
 drop-hints.txt
+keep-gdef.txt
 
 SUBSETS:
 明
