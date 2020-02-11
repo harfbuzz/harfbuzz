@@ -823,6 +823,51 @@ test_hb_draw_immutable (void)
   hb_draw_funcs_destroy (draw_funcs);
 }
 
+static void
+test_hb_draw_area_pen (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  hb_draw_funcs_t *funcs = hb_draw_area_pen_draw_funcs_create ();
+  {
+    hb_draw_area_pen_t *pen = hb_draw_area_pen_create ();
+
+    hb_draw_funcs_move_to (funcs, 0, 0, pen);
+    hb_draw_funcs_line_to (funcs, 100, 0, pen);
+    hb_draw_funcs_line_to (funcs, 50, 50, pen);
+    hb_draw_funcs_close_path (funcs, pen);
+
+    g_assert_cmpint ((int) hb_draw_area_pen_get_result (pen), ==, 2500);
+
+    hb_draw_area_pen_destroy (pen);
+  }
+  {
+    hb_draw_area_pen_t *pen = hb_draw_area_pen_create ();
+
+    hb_draw_funcs_move_to (funcs, 0, 0, pen);
+    hb_draw_funcs_line_to (funcs, 100, 0, pen);
+    hb_draw_funcs_quadratic_to (funcs, 10, 10, 50, 50, pen);
+    hb_draw_funcs_close_path (funcs, pen);
+
+    g_assert_cmpint ((int) hb_draw_area_pen_get_result (pen), ==, 1166);
+
+    hb_draw_area_pen_destroy (pen);
+  }
+  {
+    hb_draw_area_pen_t *pen = hb_draw_area_pen_create ();
+
+    hb_font_draw_glyph (font, 0, funcs, pen);
+    g_assert_cmpint ((int) hb_draw_area_pen_get_result (pen), ==, -300000);
+
+    hb_draw_area_pen_destroy (pen);
+  }
+  hb_draw_funcs_destroy (funcs);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -853,6 +898,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_font_kit_variations_tests);
   hb_test_add (test_hb_draw_stroking);
   hb_test_add (test_hb_draw_immutable);
+  hb_test_add (test_hb_draw_area_pen);
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);

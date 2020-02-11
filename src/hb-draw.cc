@@ -248,4 +248,190 @@ hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
   return false;
 }
 
+/**
+ * hb_draw_funcs_move_to:
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_draw_funcs_move_to (hb_draw_funcs_t *funcs, hb_position_t to_x, hb_position_t to_y, void *user_data)
+{
+  funcs->move_to (to_x, to_y, user_data);
+}
+
+/**
+ * hb_draw_funcs_line_to:
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_draw_funcs_line_to (hb_draw_funcs_t *funcs, hb_position_t to_x, hb_position_t to_y, void *user_data)
+{
+  funcs->line_to (to_x, to_y, user_data);
+}
+
+/**
+ * hb_draw_funcs_quadratic_to:
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_draw_funcs_quadratic_to (hb_draw_funcs_t *funcs,
+			    hb_position_t control_x, hb_position_t control_y,
+			    hb_position_t to_x, hb_position_t to_y,
+			    void *user_data)
+{
+  if (funcs->quadratic_to)
+    funcs->quadratic_to (control_x, control_y, to_x, to_y, user_data);
+}
+
+/**
+ * hb_draw_funcs_cubic_to:
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_draw_funcs_cubic_to (hb_draw_funcs_t *funcs,
+			hb_position_t control1_x, hb_position_t control1_y,
+			hb_position_t control2_x, hb_position_t control2_y,
+			hb_position_t to_x, hb_position_t to_y,
+			void *user_data)
+{
+  funcs->cubic_to (control1_x, control1_y, control2_x, control2_y, to_x, to_y, user_data);
+}
+
+/**
+ * hb_draw_funcs_close_path:
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_draw_funcs_close_path (hb_draw_funcs_t *funcs, void *user_data)
+{
+  funcs->close_path (user_data);
+}
+
+struct hb_draw_area_pen_t
+{
+  hb_object_header_t header;
+
+  float area;
+  hb_position_t curr_x;
+  hb_position_t curr_y;
+  hb_position_t start_x;
+  hb_position_t start_y;
+};
+
+/**
+ * hb_draw_area_pen_create:
+ *
+ * Since: REPLACEME
+ **/
+hb_draw_area_pen_t *
+hb_draw_area_pen_create ()
+{
+  hb_draw_area_pen_t *pen;
+  if (unlikely (!(pen = hb_object_create<hb_draw_area_pen_t> ())))
+    return const_cast<hb_draw_area_pen_t *> (&Null (hb_draw_area_pen_t));
+  pen->area = 0;
+  pen->curr_x = pen->curr_y = pen->start_x = pen->start_y = 0;
+  return pen;
+}
+
+/* https://github.com/fonttools/fonttools/blob/0132821/Lib/fontTools/pens/areaPen.py */
+static void
+_area_pen_move_to (hb_position_t to_x, hb_position_t to_y, hb_draw_area_pen_t &pen)
+{
+  pen.start_x = pen.curr_x = to_x;
+  pen.start_y = pen.curr_y = to_y;
+}
+
+static void
+_area_pen_line_to (hb_position_t to_x, hb_position_t to_y, hb_draw_area_pen_t &pen)
+{
+  hb_position_t x0 = pen.curr_x, y0 = pen.curr_y;
+  hb_position_t x1 = to_x, y1 = to_y;
+  pen.area -= (x1 - x0) * (y1 + y0) * .5f;
+  pen.curr_x = to_x; pen.curr_y = to_y;
+}
+
+static void
+_area_pen_quadratic_to (hb_position_t control_x, hb_position_t control_y,
+			hb_position_t to_x, hb_position_t to_y, hb_draw_area_pen_t &pen)
+{
+  /* https://github.com/Pomax/bezierinfo/issues/44 */
+  hb_position_t x0 = pen.curr_x, y0 = pen.curr_y;
+  hb_position_t x1 = control_x - x0, y1 = control_y - y0;
+  hb_position_t x2 = to_x - x0, y2 = to_y - y0;
+  pen.area -= (x2 * y1 - x1 * y2) / 3.f;
+  _area_pen_line_to (to_x, to_y, pen);
+  pen.curr_x = to_x; pen.curr_y = to_y;
+}
+
+static void
+_area_pen_cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+		    hb_position_t control2_x, hb_position_t control2_y,
+		    hb_position_t to_x, hb_position_t to_y, hb_draw_area_pen_t &pen)
+{
+  /* https://github.com/Pomax/bezierinfo/issues/44 */
+  hb_position_t x0 = pen.curr_x, y0 = pen.curr_y;
+  hb_position_t x1 = control1_x - x0, y1 = control1_y - y0;
+  hb_position_t x2 = control2_x - x0, y2 = control2_y - y0;
+  hb_position_t x3 = to_x - x0, y3 = to_y - y0;
+  pen.area -= (
+    x1 * (   -   y2 -   y3) +
+    x2 * (y1        - 2*y3) +
+    x3 * (y1 + 2*y2       )
+  ) * 0.15f;
+  _area_pen_line_to (to_x, to_y, pen);
+  pen.curr_x = to_x; pen.curr_y = to_y;
+}
+
+static void
+_area_pen_close_path (hb_draw_area_pen_t &pen)
+{
+  _area_pen_line_to (pen.start_x, pen.start_y, pen);
+}
+
+/**
+ * hb_draw_area_pen_draw_funcs_create:
+ *
+ * Since: REPLACEME
+ **/
+hb_draw_funcs_t *
+hb_draw_area_pen_draw_funcs_create ()
+{
+  hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+  funcs->move_to = (hb_draw_move_to_func_t) _area_pen_move_to;
+  funcs->line_to = (hb_draw_line_to_func_t) _area_pen_line_to;
+  funcs->quadratic_to = (hb_draw_quadratic_to_func_t) _area_pen_quadratic_to;
+  funcs->cubic_to = (hb_draw_cubic_to_func_t) _area_pen_cubic_to;
+  funcs->close_path = (hb_draw_close_path_func_t) _area_pen_close_path;
+  return funcs;
+}
+
+/**
+ * hb_draw_area_pen_get_result:
+ *
+ * Since: REPLACEME
+ **/
+float
+hb_draw_area_pen_get_result (hb_draw_area_pen_t *pen)
+{
+  return pen->area;
+}
+
+/**
+ * hb_draw_area_pen_destroy:
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_draw_area_pen_destroy (hb_draw_area_pen_t *pen)
+{
+  if (!hb_object_destroy (pen)) return;
+
+  free (pen);
+}
+
 #endif

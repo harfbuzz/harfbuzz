@@ -91,6 +91,46 @@ hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs);
 HB_EXTERN hb_bool_t
 hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs);
 
+HB_EXTERN void
+hb_draw_funcs_move_to (hb_draw_funcs_t *funcs, hb_position_t to_x, hb_position_t to_y, void *user_data);
+
+HB_EXTERN void
+hb_draw_funcs_line_to (hb_draw_funcs_t *funcs, hb_position_t to_x, hb_position_t to_y, void *user_data);
+
+HB_EXTERN void
+hb_draw_funcs_quadratic_to (hb_draw_funcs_t *funcs,
+			    hb_position_t control_x, hb_position_t control_y,
+			    hb_position_t to_x, hb_position_t to_y,
+			    void *user_data);
+HB_EXTERN void
+hb_draw_funcs_cubic_to (hb_draw_funcs_t *funcs,
+			hb_position_t control1_x, hb_position_t control1_y,
+			hb_position_t control2_x, hb_position_t control2_y,
+			hb_position_t to_x, hb_position_t to_y,
+			void *user_data);
+
+HB_EXTERN void
+hb_draw_funcs_close_path (hb_draw_funcs_t *funcs, void *user_data);
+
+/**
+ * hb_draw_area_pen_t:
+ *
+ * Since: REPLACEME
+ **/
+typedef struct hb_draw_area_pen_t hb_draw_area_pen_t;
+
+HB_EXTERN hb_draw_area_pen_t *
+hb_draw_area_pen_create ();
+
+HB_EXTERN hb_draw_funcs_t *
+hb_draw_area_pen_draw_funcs_create ();
+
+HB_EXTERN float
+hb_draw_area_pen_get_result (hb_draw_area_pen_t *pen);
+
+HB_EXTERN void
+hb_draw_area_pen_destroy (hb_draw_area_pen_t *pen);
+
 HB_END_DECLS
 
 #endif /* HB_DRAW_H */
