@@ -189,7 +189,6 @@ HB_BASE_RAGEL_sources = \
 	$(NULL)
 
 HB_BASE_headers = \
-	hb-aat-layout.h \
 	hb-aat.h \
 	hb-blob.h \
 	hb-buffer.h \
@@ -207,7 +206,6 @@ HB_BASE_headers = \
 	hb-ot-meta.h \
 	hb-ot-metrics.h \
 	hb-ot-name.h \
-	hb-ot-shape.h \
 	hb-ot-var.h \
 	hb-ot.h \
 	hb-set.h \
@@ -216,6 +214,8 @@ HB_BASE_headers = \
 	hb-unicode.h \
 	hb-version.h \
 	hb.h \
+	hb-aat-layout.h \
+	hb-ot-shape.h \
 	$(NULL)
 
 # Optional Sources and Headers with external deps
