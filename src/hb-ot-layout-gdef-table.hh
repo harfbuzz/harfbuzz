@@ -288,6 +288,34 @@ struct MarkGlyphSetsFormat1
   bool covers (unsigned int set_index, hb_codepoint_t glyph_id) const
   { return (this+coverage[set_index]).get_coverage (glyph_id) != NOT_COVERED; }
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    bool ret = true;
+    for (const LOffsetTo<Coverage>& offset : coverage.iter ())
+    {
+      auto *o = out->coverage.serialize_append (c->serializer);
+      if (unlikely (!o))
+      {
+        ret = false;
+        break;
+      }
+      
+      //not using o->serialize_subset (c, offset, this, out) here because
+      //OTS doesn't allow null offset.
+      //See issue: https://github.com/khaledhosny/ots/issues/172
+      c->serializer->push ();
+      c->dispatch (this+offset);
+      c->serializer->add_link (*o, c->serializer->pop_pack (), out);
+    }
+
+    return_trace (ret && out->coverage.len);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -310,6 +338,15 @@ struct MarkGlyphSets
     switch (u.format) {
     case 1: return u.format1.covers (set_index, glyph_id);
     default:return false;
+    }
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    switch (u.format) {
+    case 1: return_trace (u.format1.subset (c));
+    default:return_trace (false);
     }
   }
 
@@ -448,7 +485,11 @@ struct GDEF
     out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, out);
 
     if (version.to_int () >= 0x00010002u)
-      out->markGlyphSetsDef = 0;// TODO(subset) serialize_subset (c, markGlyphSetsDef, this, out);
+    {
+      if (!out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this, out) &&
+          version.to_int () == 0x00010002u)
+        out->version.minor = 0;
+    }
 
     if (version.to_int () >= 0x00010003u)
       out->varStore = 0;// TODO(subset) serialize_subset (c, varStore, this, out);

@@ -12,6 +12,7 @@ TESTS = \
 	tests/layout.gpos6.tests \
 	tests/layout.gsub3.tests \
 	tests/layout.gsub6.tests \
+	tests/layout.gdef.tests \
 	tests/cmap.tests \
 	tests/cmap14.tests \
 	tests/sbix.tests \
