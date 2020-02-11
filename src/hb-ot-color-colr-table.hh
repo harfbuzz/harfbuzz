@@ -207,13 +207,13 @@ struct COLR
     + hb_range (c->plan->num_output_glyphs ())
     | hb_map_retains_sorting ([&](hb_codepoint_t new_gid)
         {
-          hb_codepoint_t old_gid = reverse_glyph_map.get(new_gid);
+          hb_codepoint_t old_gid = reverse_glyph_map.get (new_gid);
+
           const BaseGlyphRecord* old_record = get_base_glyph_record (old_gid);
+          if (unlikely (!old_record))
+            return hb_pair_t<bool, BaseGlyphRecord> (false, Null (BaseGlyphRecord));
 
           BaseGlyphRecord new_record;
-          if (unlikely (!old_record))
-            return hb_pair_t<bool, BaseGlyphRecord> (false, new_record);
-
           new_record.glyphId = new_gid;
           new_record.numLayers = old_record->numLayers;
           return hb_pair_t<bool, BaseGlyphRecord> (true, new_record);
