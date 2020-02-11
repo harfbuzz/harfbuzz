@@ -9,10 +9,10 @@
 
 enum set_operation_t : uint8_t
 {
-  INTERSECT,
-  UNION,
-  SUBTRACT,
-  SYMMETRIC_DIFFERENCE
+  INTERSECT = 0,
+  UNION = 1,
+  SUBTRACT = 2,
+  SYMMETRIC_DIFFERENCE = 3
 };
 
 struct instructions_t
