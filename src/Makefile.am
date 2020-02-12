@@ -452,7 +452,16 @@ if HAVE_INTROSPECTION
 
 -include $(INTROSPECTION_MAKEFILE)
 INTROSPECTION_GIRS = HarfBuzz-0.0.gir # What does the 0 mean anyway?!
-INTROSPECTION_SCANNER_ARGS = -I$(srcdir) -n hb --identifier-prefix=hb_ --warn-all
+INTROSPECTION_SCANNER_ARGS = \
+	-I$(srcdir) \
+	--warn-all --verbose \
+	--namespace=HarfBuzz \
+	--nsversion=0.0 \
+	--symbol-prefix=hb \
+	--symbol-prefix=hb_gobject \
+	--identifier-prefix=hb_ \
+	--pkg-export=harfbuzz-gobject \
+	--c-include=hb-gobject.h
 INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 INTROSPECTION_SCANNER_ENV = CC="$(CC)"
 

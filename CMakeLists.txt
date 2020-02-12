@@ -628,12 +628,14 @@ if (HB_HAVE_INTROSPECTION)
     POST_BUILD
     COMMAND ${G_IR_SCANNER_CMD}
       --warn-all --no-libtool --verbose
-      -n hb
       --namespace=HarfBuzz
       --nsversion=0.0
+      --symbol-prefix=hb
+      --symbol-prefix=hb_gobject
       --identifier-prefix=hb_
       --include GObject-2.0
-      --pkg-export=harfbuzz
+      --pkg-export=harfbuzz-gobject
+      --c-include=hb-gobject.h
       --cflags-begin
       -I${PROJECT_SOURCE_DIR}/src
       -I${PROJECT_BINARY_DIR}/src
