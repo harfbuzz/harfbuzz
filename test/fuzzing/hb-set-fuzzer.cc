@@ -33,15 +33,15 @@ static hb_set_t* create_set (const uint32_t* value_array, int count)
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
-  if (size < sizeof(instructions_t*))
+  if (size < sizeof (instructions_t))
     return 0;
 
   const instructions_t* instructions = reinterpret_cast<const instructions_t*> (data);
-  data += sizeof(instructions_t);
-  size -= sizeof(instructions_t);
+  data += sizeof (instructions_t);
+  size -= sizeof (instructions_t);
 
   const uint32_t* values = reinterpret_cast<const uint32_t*> (data);
-  size = size / sizeof(uint32_t);
+  size = size / sizeof (uint32_t);
 
   if (size < instructions->first_set_size)
     return 0;
