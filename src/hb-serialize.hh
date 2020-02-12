@@ -123,7 +123,7 @@ struct hb_serialize_context_t
 
   template <typename T1, typename T2>
   bool check_equal (T1 &&v1, T2 &&v2)
-  { return check_success (v1 == v2); }
+  { return check_success ((long long) v1 == (long long) v2); }
 
   template <typename T1, typename T2>
   bool check_assign (T1 &v1, T2 &&v2)
