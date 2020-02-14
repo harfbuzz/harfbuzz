@@ -396,17 +396,16 @@ using hb_is_trivial= hb_bool_constant<
 >;
 #define hb_is_trivial(T) hb_is_trivial<T>::value
 
-/* hb_get_type (T)
- * Returns T::type if T::type is typedef'ed, or T otherwise.
+/* hb_unwrap_type (T)
+ * If T has no T::type, returns T. Otherwise calls itself on T::type recursively.
  */
 
 template <typename T, typename>
-struct _hb_get_type : hb_type_identity_t<T> {};
+struct _hb_unwrap_type : hb_type_identity_t<T> {};
 template <typename T>
-struct _hb_get_type<T, hb_void_t<typename T::type>> : hb_type_identity_t<typename T::type> {};
+struct _hb_unwrap_type<T, hb_void_t<typename T::type>> : _hb_unwrap_type<typename T::type, void> {};
 template <typename T>
-using hb_get_type = _hb_get_type<T, void>;
-#define hb_get_type(T) typename hb_get_type<T>::type
-
+using hb_unwrap_type = _hb_unwrap_type<T, void>;
+#define hb_unwrap_type(T) typename hb_unwrap_type<T>::type
 
 #endif /* HB_META_HH */
