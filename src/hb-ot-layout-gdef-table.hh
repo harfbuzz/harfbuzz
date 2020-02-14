@@ -96,6 +96,13 @@ struct AttachList
 struct CaretValueFormat1
 {
   friend struct CaretValue;
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+    return_trace (true);
+  }
 
   private:
   hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction) const
@@ -119,6 +126,13 @@ struct CaretValueFormat1
 struct CaretValueFormat2
 {
   friend struct CaretValue;
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+    return_trace (true);
+  }
 
   private:
   hb_position_t get_caret_value (hb_font_t *font, hb_direction_t direction, hb_codepoint_t glyph_id) const
@@ -153,6 +167,15 @@ struct CaretValueFormat3
 	   font->em_scale_y (coordinate) + (this+deviceTable).get_y_delta (font, var_store);
   }
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable, this, out));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -182,6 +205,19 @@ struct CaretValue
     case 2: return u.format2.get_caret_value (font, direction, glyph_id);
     case 3: return u.format3.get_caret_value (font, direction, var_store);
     default:return 0;
+    }
+  }
+
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
+  {
+    TRACE_DISPATCH (this, u.format);
+    if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
+    switch (u.format) {
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 3: return_trace (c->dispatch (u.format3, hb_forward<Ts> (ds)...));
+    default:return_trace (c->default_return_value ());
     }
   }
 
@@ -229,6 +265,19 @@ struct LigGlyph
     return carets.len;
   }
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    + hb_iter (carets)
+    | hb_apply (subset_offset_array (c, out->carets, this, out))
+    ;
+
+    return_trace (bool (out->carets));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -263,6 +312,28 @@ struct LigCaretList
     }
     const LigGlyph &lig_glyph = this+ligGlyph[index];
     return lig_glyph.get_lig_carets (font, direction, glyph_id, var_store, start_offset, caret_count, caret_array);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + hb_zip (this+coverage, ligGlyph)
+    | hb_filter (glyphset, hb_first)
+    | hb_filter (subset_offset_array (c, out->ligGlyph, this, out), hb_second)
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+    out->coverage.serialize (c->serializer, out)
+		 .serialize (c->serializer, new_coverage.iter ());
+    return_trace (bool (new_coverage));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -444,7 +515,7 @@ struct GDEF
 
     out->glyphClassDef.serialize_subset (c, glyphClassDef, this, out);
     out->attachList = 0;//TODO(subset) serialize_subset (c, attachList, this, out);
-    out->ligCaretList = 0;//TODO(subset) serialize_subset (c, ligCaretList, this, out);
+    out->ligCaretList.serialize_subset (c, ligCaretList, this, out);
     out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, out);
 
     if (version.to_int () >= 0x00010002u)
