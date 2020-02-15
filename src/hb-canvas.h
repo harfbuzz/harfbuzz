@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009  Red Hat, Inc.
+ * Copyright © 2020  Ebrahim Byagowi
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -20,31 +20,53 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Red Hat Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_H
-#define HB_H
-#define HB_H_IN
+#ifndef HB_H_IN
+#error "Include <hb.h> instead."
+#endif
 
-#include "hb-blob.h"
-#include "hb-buffer.h"
-#include "hb-canvas.h"
-#include "hb-common.h"
-#include "hb-deprecated.h"
-#include "hb-draw.h"
-#include "hb-face.h"
-#include "hb-font.h"
-#include "hb-map.h"
-#include "hb-set.h"
-#include "hb-shape.h"
-#include "hb-shape-plan.h"
-#include "hb-unicode.h"
-#include "hb-version.h"
+#ifndef HB_CANVAS_H
+#define HB_CANVAS_H
+
+#include "hb.h"
 
 HB_BEGIN_DECLS
+
+/**
+ * hb_canvas_t:
+ *
+ * Since: REPLACEME
+ **/
+typedef struct hb_canvas_t hb_canvas_t;
+
+HB_EXTERN hb_canvas_t *
+hb_canvas_create (unsigned int w, unsigned h);
+
+HB_EXTERN void
+hb_canvas_write_bitmap (hb_canvas_t *canvas, uint8_t *bitmap);
+
+HB_EXTERN void
+hb_canvas_destroy (hb_canvas_t *canvas);
+
+HB_EXTERN void
+hb_canvas_move_to (hb_canvas_t *canvas, float x, float y);
+
+HB_EXTERN void
+hb_canvas_line_to (hb_canvas_t *canvas, float x, float y);
+
+HB_EXTERN void
+hb_canvas_quadratic_to (hb_canvas_t *canvas, float x1, float y1, float x2, float y2);
+
+HB_EXTERN void
+hb_canvas_cubic_to (hb_canvas_t *canvas, float x1, float y1, float x2, float y2, float x3, float y3);
+
+HB_EXTERN void
+hb_canvas_close_path (hb_canvas_t *canvas);
+
+HB_EXTERN void
+hb_canvas_clear (hb_canvas_t *canvas);
+
 HB_END_DECLS
 
-#undef HB_H_IN
-#endif /* HB_H */
+#endif /* HB_CANVAS_H */

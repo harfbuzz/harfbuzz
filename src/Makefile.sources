@@ -31,6 +31,7 @@ HB_BASE_sources = \
 	hb-cff-interp-dict-common.hh \
 	hb-cff1-interp-cs.hh \
 	hb-cff2-interp-cs.hh \
+	hb-canvas.cc \
 	hb-common.cc \
 	hb-config.hh \
 	hb-debug.hh \
@@ -193,6 +194,7 @@ HB_BASE_headers = \
 	hb-aat.h \
 	hb-blob.h \
 	hb-buffer.h \
+	hb-canvas.h \
 	hb-common.h \
 	hb-deprecated.h \
 	hb-draw.h \

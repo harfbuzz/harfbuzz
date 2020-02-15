@@ -3,6 +3,7 @@
 #include "hb-blob.cc"
 #include "hb-buffer-serialize.cc"
 #include "hb-buffer.cc"
+#include "hb-canvas.cc"
 #include "hb-common.cc"
 #include "hb-draw.cc"
 #include "hb-face.cc"

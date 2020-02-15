@@ -823,6 +823,84 @@ test_hb_draw_immutable (void)
   hb_draw_funcs_destroy (draw_funcs);
 }
 
+static void
+canvas_move_to (hb_position_t to_x, hb_position_t to_y, hb_canvas_t *canvas)
+{
+  hb_canvas_move_to (canvas, to_x, to_y);
+}
+
+static void
+canvas_line_to (hb_position_t to_x, hb_position_t to_y, hb_canvas_t *canvas)
+{
+  hb_canvas_line_to (canvas, to_x, to_y);
+}
+
+static void
+canvas_quadratic_to (hb_position_t control_x, hb_position_t control_y,
+		     hb_position_t to_x, hb_position_t to_y,
+		     hb_canvas_t *canvas)
+{
+  hb_canvas_quadratic_to (canvas,
+			  control_x, control_y,
+			  to_x, to_y);
+}
+
+static void
+canvas_cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+		 hb_position_t control2_x, hb_position_t control2_y,
+		 hb_position_t to_x, hb_position_t to_y,
+		 hb_canvas_t *canvas)
+{
+  hb_canvas_cubic_to (canvas,
+		      control1_x, control1_y,
+		      control2_x, control2_y,
+		      to_x, to_y);
+}
+
+static void
+canvas_close_path (hb_canvas_t *canvas)
+{
+  hb_canvas_close_path (canvas);
+}
+
+static void
+test_hb_canvas (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) canvas_move_to);
+  hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) canvas_line_to);
+  hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) canvas_quadratic_to);
+  hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) canvas_cubic_to);
+  hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) canvas_close_path);
+
+  unsigned width = 1000, height = 1000;
+  hb_canvas_t *canvas = hb_canvas_create (width, height);
+  hb_font_draw_glyph (font, 4, funcs, canvas);
+
+  hb_draw_funcs_destroy (funcs);
+  hb_font_destroy (font);
+
+  uint8_t *a = calloc (width * height, sizeof (uint8_t));
+  hb_canvas_write_bitmap (canvas, a);
+  hb_canvas_destroy (canvas);
+
+  if ((1))
+  {
+    FILE *f = fopen ("out.pbm", "wb");
+    fprintf (f, "P5 %d %d %d\n", width, height, 255);
+    for (unsigned i = 0; i < width * height; ++i)
+      fputc (a[i], f);
+    fflush (f);
+    fclose (f);
+    system ("xdg-open out.pbm");
+  }
+
+  free (a);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -853,6 +931,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_font_kit_variations_tests);
   hb_test_add (test_hb_draw_stroking);
   hb_test_add (test_hb_draw_immutable);
+  hb_test_add (test_hb_canvas);
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);

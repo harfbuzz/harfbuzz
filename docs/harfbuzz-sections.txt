@@ -113,6 +113,20 @@ hb_buffer_message_func_t
 </SECTION>
 
 <SECTION>
+<FILE>hb-canvas</FILE>
+hb_canvas_t
+hb_canvas_clear
+hb_canvas_close_path
+hb_canvas_create
+hb_canvas_cubic_to
+hb_canvas_destroy
+hb_canvas_line_to
+hb_canvas_move_to
+hb_canvas_quadratic_to
+hb_canvas_write_bitmap
+</SECTION>
+
+<SECTION>
 <FILE>hb-common</FILE>
 hb_tag_from_string
 hb_tag_to_string
