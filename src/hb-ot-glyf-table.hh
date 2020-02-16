@@ -519,48 +519,35 @@ struct glyf
 	dest_end = bytes.sub_array (glyph_length, bytes.length - glyph_length);
       }
 
-      struct x_setter_t
-      {
-	void set (contour_point_t &point, float v) const { point.x = v; }
-	bool is_short (uint8_t flag) const { return flag & FLAG_X_SHORT; }
-	bool is_same  (uint8_t flag) const { return flag & FLAG_X_SAME; }
-      };
-
-      struct y_setter_t
-      {
-	void set (contour_point_t &point, float v) const { point.y = v; }
-	bool is_short (uint8_t flag) const { return flag & FLAG_Y_SHORT; }
-	bool is_same  (uint8_t flag) const { return flag & FLAG_Y_SAME; }
-      };
-
-      template <typename T>
       static bool read_points (const HBUINT8 *&p /* IN/OUT */,
 			       contour_point_vector_t &points_ /* IN/OUT */,
-			       const hb_bytes_t &bytes)
+			       const hb_bytes_t &bytes,
+			       void (* setter) (contour_point_t &_, float v),
+			       const simple_glyph_flag_t short_flag,
+			       const simple_glyph_flag_t same_flag)
       {
-	T coord_setter;
 	float v = 0;
 	for (unsigned int i = 0; i < points_.length - PHANTOM_COUNT; i++)
 	{
 	  uint8_t flag = points_[i].flag;
-	  if (coord_setter.is_short (flag))
+	  if (flag & short_flag)
 	  {
 	    if (unlikely (!bytes.check_range (p))) return false;
-	    if (coord_setter.is_same (flag))
+	    if (flag & same_flag)
 	      v += *p++;
 	    else
 	      v -= *p++;
 	  }
 	  else
 	  {
-	    if (!coord_setter.is_same (flag))
+	    if (!(flag & same_flag))
 	    {
 	      if (unlikely (!bytes.check_range ((const HBUINT16 *) p))) return false;
 	      v += *(const HBINT16 *) p;
 	      p += HBINT16::static_size;
 	    }
 	  }
-	  coord_setter.set (points_[i], v);
+	  setter (points_[i], v);
 	}
 	return true;
       }
@@ -607,8 +594,10 @@ struct glyf
 	}
 
 	/* Read x & y coordinates */
-	return (read_points<x_setter_t> (p, points_, bytes) &&
-		read_points<y_setter_t> (p, points_, bytes));
+	return (read_points (p, points_, bytes,
+			     [] (contour_point_t &p, float v) { p.x = v; }, FLAG_X_SHORT, FLAG_X_SAME) &&
+		read_points (p, points_, bytes,
+			     [] (contour_point_t &p, float v) { p.y = v; }, FLAG_Y_SHORT, FLAG_Y_SAME));
       }
     };
 
