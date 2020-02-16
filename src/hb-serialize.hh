@@ -195,7 +195,12 @@ struct hb_serialize_context_t
     obj->fini ();
     object_pool.free (obj);
   }
-  objidx_t pop_pack ()
+
+  /* Set share to false when an object is unlikely sharable with others
+   * so not worth an attempt, or a contiguous table is serialized as
+   * multiple consecutive objects in the reverse order so can't be shared.
+   */
+  objidx_t pop_pack (bool share=true)
   {
     object_t *obj = current;
     if (unlikely (!obj)) return 0;
@@ -211,11 +216,15 @@ struct hb_serialize_context_t
       return 0;
     }
 
-    objidx_t objidx = packed_map.get (obj);
-    if (objidx)
+    objidx_t objidx;
+    if (share)
     {
-      obj->fini ();
-      return objidx;
+      objidx = packed_map.get (obj);
+      if (objidx)
+      {
+	obj->fini ();
+	return objidx;
+      }
     }
 
     tail -= len;
@@ -231,7 +240,7 @@ struct hb_serialize_context_t
 
     objidx = packed.length - 1;
 
-    packed_map.set (obj, objidx);
+    if (share) packed_map.set (obj, objidx);
 
     return objidx;
   }
