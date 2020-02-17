@@ -166,7 +166,7 @@ struct hb_serialize_context_t
     if (packed.length <= 1)
       return;
 
-    pop_pack ();
+    pop_pack (false);
 
     resolve_links ();
   }
