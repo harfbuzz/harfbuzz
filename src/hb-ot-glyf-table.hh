@@ -1059,6 +1059,19 @@ struct glyf
 		       user_data);
     }
 
+    struct optional_point_t
+    {
+      optional_point_t () { is_null = true; }
+      optional_point_t (float x_, float y_) { x = x_; y = y_; is_null = false; }
+
+      bool is_null;
+      float x;
+      float y;
+
+      optional_point_t lerp (optional_point_t p, float t)
+      { return optional_point_t (x + t * (p.x - x), y + t * (p.y - y)); }
+    };
+
     bool
     get_path (hb_font_t *font, hb_codepoint_t gid,
 	      const hb_draw_funcs_t *funcs, void *user_data) const
@@ -1075,69 +1088,115 @@ struct glyf
 		       float, float, float, float, float, float,
 		       void *) = funcs->quadratic_to ? _normal_quadratic_to_call : _translate_quadratic_to_cubic;
 
-      unsigned contour_start = 0;
-      /* Learnt from https://github.com/opentypejs/opentype.js/blob/4e0bb99/src/tables/glyf.js#L222 */
-      while (contour_start < points.length)
+      /* based on https://github.com/RazrFalcon/ttf-parser/blob/master/src/glyf.rs#L292 which is base on font-rs */
+      unsigned point_index = 0;
+      while (point_index < points.length)
       {
-	float prev_x = 0; float prev_y = 0;
-	unsigned contour_length = 0;
-	for (unsigned i = contour_start; i < points.length; ++i)
+	/* Skip empty contours */
+	if (points[point_index].is_end_point)
 	{
-	  contour_length++;
-	  if (points[i].is_end_point)
-	    break;
-	}
-
-	/* Skip contours with less than 2 points */
-	if (contour_length < 2)
-	{
-	  contour_start += contour_length;
+	  ++point_index;
 	  continue;
 	}
-
-	contour_point_t *curr = &points[contour_start + contour_length - 1];
-	contour_point_t *next = &points[contour_start];
-
-	if (curr->flag & Glyph::FLAG_ON_CURVE)
+	optional_point_t first_oncurve = optional_point_t ();
+	optional_point_t first_offcurve = optional_point_t ();
+	optional_point_t last_offcurve = optional_point_t ();
+	float last_x = 0, last_y = 0;
+	do
 	{
-	  prev_x = curr->x; prev_y = curr->y;
-	  funcs->move_to (font->em_scalef_x (prev_x), font->em_scalef_y (prev_y), user_data);
-	}
-	else
-	{
-	  if (next->flag & Glyph::FLAG_ON_CURVE)
+	  bool is_on_curve = points[point_index].flag & Glyph::FLAG_ON_CURVE;
+	  optional_point_t p (points[point_index].x, points[point_index].y);
+	  if (first_oncurve.is_null)
 	  {
-	    prev_x = next->x; prev_y = next->y;
-	    funcs->move_to (font->em_scalef_x (prev_x), font->em_scalef_y (prev_y), user_data);
+	    if (is_on_curve)
+	    {
+	      first_oncurve = p;
+	      last_x = p.x; last_y = p.y;
+	      funcs->move_to (font->em_scalef_x (last_x), font->em_scalef_y (last_y),
+			      user_data);
+	    }
+	    else
+	    {
+	      if (!first_offcurve.is_null)
+	      {
+		optional_point_t mid = first_offcurve.lerp (p, .5f);
+		first_oncurve = mid;
+		last_offcurve = p;
+		last_x = mid.x; last_y = mid.y;
+		funcs->move_to (font->em_scalef_x (last_x), font->em_scalef_y (last_y),
+				user_data);
+	      }
+	      else
+		first_offcurve = p;
+	    }
 	  }
 	  else
 	  {
-	    prev_x = (curr->x + next->x) / 2.f; prev_y = (curr->y + next->y) / 2.f;
-	    /* If both first and last points are off-curve, start at their middle. */
-            funcs->move_to (font->em_scalef_x (prev_x), font->em_scalef_y (prev_y), user_data);
+	    if (!last_offcurve.is_null)
+	    {
+	      if (is_on_curve)
+	      {
+		quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, p.x, p.y, user_data);
+		last_x = p.x;
+		last_y = p.y;
+		last_offcurve = optional_point_t ();
+	      }
+	      else
+	      {
+		optional_point_t mid = last_offcurve.lerp (p, .5f);
+		quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, mid.x, mid.y, user_data);
+		last_x = mid.x;
+		last_y = mid.y;
+		last_offcurve = p;
+	      }
+	    }
+	    else
+	    {
+	      if (is_on_curve)
+	      {
+		last_x = p.x;
+		last_y = p.y;
+		funcs->line_to (font->em_scalef_x (last_x), font->em_scalef_y (last_y),
+				user_data);
+	      }
+	      else
+	      {
+		last_offcurve = p;
+	      }
+	    }
 	  }
-	}
+	} while (!points[point_index++].is_end_point);
 
-	for (unsigned i = 0; i < contour_length; ++i)
+	while (true)
 	{
-	  curr = next;
-	  next = &points[contour_start + ((i + 1) % contour_length)];
-
-	  if (curr->flag & Glyph::FLAG_ON_CURVE)
+	  if (!first_offcurve.is_null && !last_offcurve.is_null)
 	  {
-	    prev_x = curr->x; prev_y = curr->y;
-	    funcs->line_to (font->em_scalef_x (curr->x), font->em_scalef_y (curr->y), user_data);
+	    optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
+	    quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, mid.x, mid.y, user_data);
+	    last_x = mid.x;
+	    last_y = mid.y;
+	    last_offcurve = optional_point_t ();
 	  }
-	  else
+	  else if (!first_offcurve.is_null && last_offcurve.is_null)
 	  {
-	    float to_x, to_y;
-	    if (next->flag & Glyph::FLAG_ON_CURVE) { to_x = next->x; to_y = next->y; }
-	    else { to_x = (curr->x + next->x) / 2.f; to_y = (curr->y + next->y) / 2.f; }
-	    quad_to (font, funcs, prev_x, prev_y, curr->x, curr->y, to_x, to_y, user_data);
-	    prev_x = to_x; prev_y = to_y;
+	    if (!first_oncurve.is_null)
+	      quad_to (font, funcs, last_x, last_y, first_offcurve.x, first_offcurve.y, first_oncurve.x, first_oncurve.y, user_data);
+	    break;
+	  }
+	  else if (first_offcurve.is_null && !last_offcurve.is_null)
+	  {
+	    if (!first_oncurve.is_null)
+	      quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, first_oncurve.x, first_oncurve.y, user_data);
+	    break;
+	  }
+	  else /* first_offcurve.is_null && last_offcurve.is_null */
+	  {
+	    if (!first_oncurve.is_null)
+	      funcs->line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y),
+			      user_data);
+	    break;
 	  }
 	}
-	contour_start += contour_length;
 	funcs->close_path (user_data);
       }
       return true;
