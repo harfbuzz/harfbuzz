@@ -230,18 +230,18 @@ struct glyf
   {
     enum composite_glyph_flag_t
     {
-      ARG_1_AND_2_ARE_WORDS =      0x0001,
-      ARGS_ARE_XY_VALUES =         0x0002,
-      ROUND_XY_TO_GRID =           0x0004,
-      WE_HAVE_A_SCALE =            0x0008,
-      MORE_COMPONENTS =            0x0020,
-      WE_HAVE_AN_X_AND_Y_SCALE =   0x0040,
-      WE_HAVE_A_TWO_BY_TWO =       0x0080,
-      WE_HAVE_INSTRUCTIONS =       0x0100,
-      USE_MY_METRICS =             0x0200,
-      OVERLAP_COMPOUND =           0x0400,
-      SCALED_COMPONENT_OFFSET =    0x0800,
-      UNSCALED_COMPONENT_OFFSET =  0x1000
+      ARG_1_AND_2_ARE_WORDS	= 0x0001,
+      ARGS_ARE_XY_VALUES	= 0x0002,
+      ROUND_XY_TO_GRID		= 0x0004,
+      WE_HAVE_A_SCALE		= 0x0008,
+      MORE_COMPONENTS		= 0x0020,
+      WE_HAVE_AN_X_AND_Y_SCALE	= 0x0040,
+      WE_HAVE_A_TWO_BY_TWO	= 0x0080,
+      WE_HAVE_INSTRUCTIONS	= 0x0100,
+      USE_MY_METRICS		= 0x0200,
+      OVERLAP_COMPOUND		= 0x0400,
+      SCALED_COMPONENT_OFFSET	= 0x0800,
+      UNSCALED_COMPONENT_OFFSET = 0x1000
     };
 
     unsigned int get_size () const
@@ -892,9 +892,9 @@ struct glyf
     bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer) const
     {
       /* Making this alloc free is not that easy
-         https://github.com/harfbuzz/harfbuzz/issues/2095
-         mostly because of gvar handling in VF fonts,
-         perhaps a separate path for non-VF fonts can be considered */
+	 https://github.com/harfbuzz/harfbuzz/issues/2095
+	 mostly because of gvar handling in VF fonts,
+	 perhaps a separate path for non-VF fonts can be considered */
       contour_point_vector_t all_points;
 
       bool phantom_only = !consumer.is_consuming_contour_points ();
@@ -911,9 +911,9 @@ struct glyf
 
       if (consumer.is_consuming_contour_points ())
       {
-        for (unsigned point_index = 0; point_index + 4 < all_points.length; ++point_index)
+	for (unsigned point_index = 0; point_index + 4 < all_points.length; ++point_index)
 	  consumer.consume_point (all_points[point_index]);
-        consumer.points_end ();
+	consumer.points_end ();
       }
 
       /* Where to write phantoms, nullptr if not requested */
@@ -1033,7 +1033,7 @@ struct glyf
       gids_to_retain->add (gid);
 
       for (auto &item : glyph_for_gid (gid).get_composite_iterator ())
-        add_gid_and_children (item.glyphIndex, gids_to_retain, depth);
+	add_gid_and_children (item.glyphIndex, gids_to_retain, depth);
     }
 
     struct path_builder_t
@@ -1102,8 +1102,8 @@ struct glyf
       /* based on https://github.com/RazrFalcon/ttf-parser/blob/master/src/glyf.rs#L292 */
       void consume_point (const contour_point_t &point)
       {
-        /* Skip empty contours */
-        if (unlikely (point.is_end_point && first_oncurve.is_null && first_offcurve.is_null))
+	/* Skip empty contours */
+	if (unlikely (point.is_end_point && first_oncurve.is_null && first_offcurve.is_null))
 	  return;
 
 	bool is_on_curve = point.flag & Glyph::FLAG_ON_CURVE;
@@ -1183,19 +1183,19 @@ struct glyf
 	    else if (!first_offcurve.is_null && last_offcurve.is_null)
 	    {
 	      if (!first_oncurve.is_null)
-	        quad_to (font, funcs, last_x, last_y, first_offcurve.x, first_offcurve.y, first_oncurve.x, first_oncurve.y, user_data);
+		quad_to (font, funcs, last_x, last_y, first_offcurve.x, first_offcurve.y, first_oncurve.x, first_oncurve.y, user_data);
 	      break;
 	    }
 	    else if (first_offcurve.is_null && !last_offcurve.is_null)
 	    {
 	      if (!first_oncurve.is_null)
-	        quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, first_oncurve.x, first_oncurve.y, user_data);
+		quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, first_oncurve.x, first_oncurve.y, user_data);
 	      break;
 	    }
 	    else /* first_offcurve.is_null && last_offcurve.is_null */
 	    {
 	      if (!first_oncurve.is_null)
-	        funcs->line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y),
+		funcs->line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y),
 				user_data);
 	      break;
 	    }
