@@ -962,10 +962,9 @@ struct glyf
 	     ? face->table.vmtx->get_advance (gid)
 	     : face->table.hmtx->get_advance (gid);
 
-      if (is_vertical)
-	return roundf (phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y);
-      else
-	return roundf (phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x);
+      return is_vertical
+	   ? roundf (phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y)
+	   : roundf (phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x);
     }
 
     int get_side_bearing_var (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
@@ -974,9 +973,13 @@ struct glyf
 
       contour_point_t phantoms[PHANTOM_COUNT];
       if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms))))
-	return is_vertical ? face->table.vmtx->get_side_bearing (gid) : face->table.hmtx->get_side_bearing (gid);
+	return is_vertical
+	     ? face->table.vmtx->get_side_bearing (gid)
+	     : face->table.hmtx->get_side_bearing (gid);
 
-      return is_vertical ? ceil (phantoms[PHANTOM_TOP].y) - extents.y_bearing : floor (phantoms[PHANTOM_LEFT].x);
+      return is_vertical
+	   ? ceil (phantoms[PHANTOM_TOP].y) - extents.y_bearing
+	   : floor (phantoms[PHANTOM_LEFT].x);
     }
 #endif
 
