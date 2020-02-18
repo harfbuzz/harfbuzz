@@ -916,8 +916,11 @@ struct glyf
         consumer.points_end ();
       }
 
-      for (unsigned i = 0; i < PHANTOM_COUNT; ++i)
-        consumer.consume_phantom (all_points[all_points.length - PHANTOM_COUNT + i], i);
+      /* Where to write phantoms, nullptr if not requested */
+      contour_point_t *phantoms = consumer.get_phantoms_sink ();
+      if (phantoms)
+	for (unsigned i = 0; i < PHANTOM_COUNT; ++i)
+	  phantoms[i] = all_points[all_points.length - PHANTOM_COUNT + i];
 
       return true;
     }
@@ -927,10 +930,10 @@ struct glyf
     {
       hb_font_t *font;
       hb_glyph_extents_t *extents;
-      contour_point_vector_t *phantoms;
+      contour_point_t *phantoms;
       contour_bounds_t bounds;
 
-      points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_vector_t *phantoms_)
+      points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_)
       {
 	font = font_;
 	extents = extents_;
@@ -941,10 +944,8 @@ struct glyf
       void consume_point (const contour_point_t &point) { bounds.add (point); }
       void points_end () { bounds.get_extents (font, extents); }
 
-      void consume_phantom (const contour_point_t &point, unsigned i)
-      { if (phantoms) (*phantoms)[i] = point; }
-
       bool is_consuming_contour_points () { return extents; }
+      contour_point_t *get_phantoms_sink () { return phantoms; }
     };
 #endif
 
@@ -954,11 +955,10 @@ struct glyf
 				  bool is_vertical) const
     {
       bool success = false;
-      contour_point_vector_t phantoms;
-      phantoms.resize (PHANTOM_COUNT);
 
+      contour_point_t phantoms[PHANTOM_COUNT];
       if (likely (font->num_coords == face->table.gvar->get_axis_count ()))
-	success = get_points (font, gid, points_aggregator_t (font, nullptr, &phantoms));
+	success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms));
 
       if (unlikely (!success))
 	return is_vertical ? face->table.vmtx->get_advance (gid) : face->table.hmtx->get_advance (gid);
@@ -972,10 +972,9 @@ struct glyf
     int get_side_bearing_var (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
     {
       hb_glyph_extents_t extents;
-      contour_point_vector_t phantoms;
-      phantoms.resize (PHANTOM_COUNT);
 
-      if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, &phantoms))))
+      contour_point_t phantoms[PHANTOM_COUNT];
+      if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms))))
 	return is_vertical ? face->table.vmtx->get_side_bearing (gid) : face->table.hmtx->get_side_bearing (gid);
 
       return is_vertical ? ceil (phantoms[PHANTOM_TOP].y) - extents.y_bearing : floor (phantoms[PHANTOM_LEFT].x);
@@ -1206,9 +1205,9 @@ struct glyf
 	}
       }
       void points_end () {}
-      void consume_phantom (const contour_point_t &point HB_UNUSED, unsigned i HB_UNUSED) {}
 
       bool is_consuming_contour_points () { return true; }
+      contour_point_t *get_phantoms_sink () { return nullptr; }
     };
 
     bool
