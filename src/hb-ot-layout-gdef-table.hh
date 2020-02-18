@@ -41,8 +41,18 @@ namespace OT {
  * Attachment List Table
  */
 
-typedef ArrayOf<HBUINT16> AttachPoint;	/* Array of contour point indices--in
-					 * increasing numerical order */
+/* Array of contour point indices--in increasing numerical order */
+struct AttachPoint : ArrayOf<HBUINT16>
+{
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    
+    return_trace (out->serialize (c->serializer, + iter ()));
+  }
+};
 
 struct AttachList
 {
@@ -70,6 +80,28 @@ struct AttachList
     }
 
     return points.len;
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + hb_zip (this+coverage, attachPoint)
+    | hb_filter (glyphset, hb_first)
+    | hb_filter (subset_offset_array (c, out->attachPoint, this), hb_second)
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+    out->coverage.serialize (c->serializer, out)
+		 .serialize (c->serializer, new_coverage.iter ());
+    return_trace (bool (new_coverage));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -613,7 +645,7 @@ struct GDEF
     if (unlikely (!out)) return_trace (false);
 
     bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this);
-    out->attachList = 0;//TODO(subset) serialize_subset (c, attachList, this);
+    bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
     bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
     bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this);
 
@@ -634,7 +666,8 @@ struct GDEF
         out->version.minor = 2;
     }
 
-    return_trace (subset_glyphclassdef || subset_ligcaretlist || subset_markattachclassdef ||
+    return_trace (subset_glyphclassdef || subset_attachlist ||
+                  subset_ligcaretlist || subset_markattachclassdef ||
                   (out->version.to_int () >= 0x00010002u && subset_markglyphsetsdef) ||
                   (out->version.to_int () >= 0x00010003u && subset_varstore));
   }
