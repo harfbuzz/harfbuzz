@@ -271,15 +271,15 @@ struct hb_serialize_context_t
   }
 
   enum base_mode_t {
-     HEAD,	/* Relative to the current object head (default). */
-     TAIL,	/* Relative to the current object tail. */
-     ABSOLUTE	/* Absolute: from the start of the serialize buffer. */
+     Head,	/* Relative to the current object head (default). */
+     Tail,	/* Relative to the current object tail. */
+     Absolute	/* Absolute: from the start of the serialize buffer. */
    };
 
   template <typename T>
   void add_link (T &ofs, objidx_t objidx,
 		 const void *base = nullptr,
-		 base_mode_t mode = HEAD)
+		 base_mode_t mode = Head)
   {
     static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
 
@@ -294,15 +294,15 @@ struct hb_serialize_context_t
 
     switch (mode)
     {
-    case HEAD:
+    case Head:
       dflt_base = current->head;
       link.is_absolute = false;
       break;
-    case TAIL:
+    case Tail:
       dflt_base = current->tail;
       link.is_absolute = false;
       break;
-    case ABSOLUTE:
+    case Absolute:
       dflt_base = start;
       link.is_absolute = true;
       break;
