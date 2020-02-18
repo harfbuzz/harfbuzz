@@ -149,7 +149,19 @@ struct glyf
 		  const hb_subset_plan_t *plan)
   {
     TRACE_SERIALIZE (this);
+    unsigned init_len = c->length ();
     for (const auto &_ : it) _.serialize (c, plan);
+   
+    /* As a special case when all glyph in the font are empty, add a zero byte
+     * to the table, so that OTS doesn’t reject it, and to make the table work
+     * on Windows as well.
+     * See https://github.com/khaledhosny/ots/issues/52 */
+    if (init_len == c->length ())
+    {
+      HBUINT8 empty_byte;
+      empty_byte = 0;
+      c->copy (empty_byte);
+    }
     return_trace (true);
   }
 
