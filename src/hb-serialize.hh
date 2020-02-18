@@ -129,7 +129,7 @@ struct hb_serialize_context_t
 
   template <typename T1, typename T2>
   bool check_assign (T1 &v1, T2 &&v2)
-  { return check_equal ((hb_remove_reference<T2>) (v1 = v2), v2); }
+  { return check_equal (v1 = v2, v2); }
 
   template <typename T> bool propagate_error (T &&obj)
   { return check_success (!hb_deref (obj).in_error ()); }
