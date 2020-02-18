@@ -561,8 +561,7 @@ struct gvar
     public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
-				 const hb_array_t<contour_point_t> points,
-				 const hb_array_t<unsigned int> end_points) const
+				 const hb_array_t<contour_point_t> points) const
     {
       if (!coord_count) return true;
       if (unlikely (coord_count != gvar_table->axisCount)) return false;
@@ -625,26 +624,27 @@ struct gvar
 	}
 
 	/* infer deltas for unreferenced points */
-	unsigned int start_point = 0;
-	for (unsigned int c = 0; c < end_points.length; c++)
+	for (unsigned start_point = 0; start_point + 4 < points.length; ++start_point)
 	{
-	  unsigned int end_point = end_points[c];
-	  unsigned int i, j;
-
 	  /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
-	  unsigned int unref_count = 0;
-	  for (i = start_point; i <= end_point; i++)
-	    if (!deltas[i].flag) unref_count++;
+	  unsigned unref_count = 0;
+	  unsigned end_point = start_point;
+	  do
+	  {
+	    if (!deltas[end_point].flag) unref_count++;
+	    end_point++;
+	  } while (!points[end_point].is_end_point && end_point + 4 < points.length);
+
+	  unsigned j = start_point;
 	  if (unref_count == 0 || unref_count > end_point - start_point)
 	    goto no_more_gaps;
 
-	  j = start_point;
 	  for (;;)
 	  {
 	    /* Locate the next gap of unreferenced points between two referenced points prev and next.
 	     * Note that a gap may wrap around at left (start_point) and/or at right (end_point).
 	     */
-	    unsigned int prev, next;
+	    unsigned int prev, next, i;
 	    for (;;)
 	    {
 	      i = j;

@@ -552,9 +552,7 @@ struct glyf
 	return true;
       }
 
-      bool get_contour_points (contour_point_vector_t &points_ /* OUT */,
-			       hb_vector_t<unsigned int> &end_points_ /* OUT */,
-			       const bool phantom_only=false) const
+      bool get_contour_points (contour_point_vector_t &points_ /* OUT */, bool phantom_only = false) const
       {
 	const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
 	int num_contours = header.numberOfContours;
@@ -565,14 +563,8 @@ struct glyf
 	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
 	if (phantom_only) return true;
 
-	/* Read simple glyph points if !phantom_only */
-	end_points_.resize (num_contours);
-
 	for (int i = 0; i < num_contours; i++)
-	{
-	  end_points_[i] = endPtsOfContours[i];
-	  points_[end_points_[i]].is_end_point = true;
-	}
+	  points_[endPtsOfContours[i]].is_end_point = true;
 
 	/* Skip instructions */
 	const HBUINT8 *p = &StructAtOffset<HBUINT8> (&endPtsOfContours[num_contours + 1],
@@ -642,8 +634,7 @@ struct glyf
       { dest_start = bytes.sub_array (0, bytes.length - instructions_length (bytes)); }
 
       bool get_contour_points (contour_point_vector_t &points_ /* OUT */,
-			       hb_vector_t<unsigned int> &end_points_ /* OUT */,
-			       const bool phantom_only=false) const
+			       bool phantom_only = false) const
       {
 	/* add one pseudo point for each component in composite glyph */
 	unsigned int num_points = hb_len (get_iterator ());
@@ -702,13 +693,11 @@ struct glyf
      * for a composite glyph, return pseudo component points
      * in both cases points trailed with four phantom points
      */
-    bool get_contour_points (contour_point_vector_t &points_ /* OUT */,
-			     hb_vector_t<unsigned int> &end_points_ /* OUT */,
-			     const bool phantom_only=false) const
+    bool get_contour_points (contour_point_vector_t &points_ /* OUT */, bool phantom_only = false) const
     {
       switch (type) {
-      case COMPOSITE: return CompositeGlyph (*header, bytes).get_contour_points (points_, end_points_, phantom_only);
-      case SIMPLE:    return SimpleGlyph (*header, bytes).get_contour_points (points_, end_points_, phantom_only);
+      case COMPOSITE: return CompositeGlyph (*header, bytes).get_contour_points (points_, phantom_only);
+      case SIMPLE:    return SimpleGlyph (*header, bytes).get_contour_points (points_, phantom_only);
       default:
 	/* empty glyph */
 	points_.resize (PHANTOM_COUNT);
@@ -840,13 +829,12 @@ struct glyf
     {
       if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t points;
-      hb_vector_t<unsigned int> end_points;
       const Glyph &glyph = glyph_for_gid (gid);
-      if (unlikely (!glyph.get_contour_points (points, end_points))) return false;
+      if (unlikely (!glyph.get_contour_points (points))) return false;
       hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
       init_phantom_points (gid, phantoms);
 #ifndef HB_NO_VAR
-      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, coords, coord_count, points.as_array (), end_points.as_array ()))) return false;
+      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, coords, coord_count, points.as_array ()))) return false;
 #endif
 
       if (glyph.is_simple_glyph ())
@@ -1170,7 +1158,7 @@ struct glyf
 
 	if (point.is_end_point)
 	{
-	  while (true)
+	  for (;;)
 	  {
 	    if (!first_offcurve.is_null && !last_offcurve.is_null)
 	    {
