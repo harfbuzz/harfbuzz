@@ -24,6 +24,7 @@ DISABLED_TESTS = \
 	tests/layout.gdef.tests \
 	tests/layout.context.tests \
 	tests/layout.gdef-varstore.tests \
+	tests/layout.gdef-attachlist.tests \
 	$(NULL)
 
 XFAIL_TESTS = \
