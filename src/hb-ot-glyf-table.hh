@@ -982,15 +982,11 @@ struct glyf
 
     bool get_extents (hb_font_t *font, hb_codepoint_t gid, hb_glyph_extents_t *extents) const
     {
+      if (unlikely (gid >= num_glyphs)) return false;
 #ifndef HB_NO_VAR
-      unsigned int coord_count;
-      const int *coords = hb_font_get_var_coords_normalized (font, &coord_count);
-      if (coords && coord_count > 0 && coord_count == face->table.gvar->get_axis_count ())
+      if (font->num_coords && font->num_coords == face->table.gvar->get_axis_count ())
 	return get_points (font, gid, points_aggregator_t (font, extents, nullptr));
 #endif
-
-      if (unlikely (gid >= num_glyphs)) return false;
-
       return glyph_for_gid (gid).get_extents (font, gid, extents);
     }
 
