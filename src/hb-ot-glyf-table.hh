@@ -899,8 +899,10 @@ struct glyf
       return true;
     }
 
-    bool get_points (hb_font_t *font, hb_codepoint_t gid, contour_point_vector_t &all_points) const
+    template<typename T>
+    bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer) const
     {
+      contour_point_vector_t all_points;
       if (unlikely (!_get_points (gid, font->coords, font->num_coords, all_points) ||
 		    all_points.length < PHANTOM_COUNT)) return false;
 
@@ -910,36 +912,39 @@ struct glyf
       contour_point_t delta;
       delta.init (-all_points[all_points.length - PHANTOM_COUNT + PHANTOM_LEFT].x, 0.f);
       if (delta.x) all_points.translate (delta);
+
+      for (unsigned point_index = 0; point_index + 4 < all_points.length; ++point_index)
+	consumer.consume_point (all_points[point_index]);
+      consumer.points_end ();
+
+      for (unsigned i = 0; i < PHANTOM_COUNT; ++i)
+        consumer.consume_phantom (all_points[all_points.length - PHANTOM_COUNT + i], i);
+
       return true;
     }
 
 #ifndef HB_NO_VAR
-    bool get_var_extents_and_phantoms (hb_font_t *font, hb_codepoint_t gid,
-				       hb_glyph_extents_t *extents /* OUT */,
-				       contour_point_vector_t *phantoms /* OUT */) const
+    struct extents_bounds_aggregator_t
     {
-      contour_point_vector_t all_points;
-      if (unlikely (!get_points (font, gid, all_points))) return false;
-      if (extents)
+      hb_font_t *font;
+      hb_glyph_extents_t *extents;
+      contour_point_vector_t *phantoms;
+      contour_bounds_t bounds;
+
+      extents_bounds_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_vector_t *phantoms_)
       {
-	contour_bounds_t bounds;
-	for (unsigned int i = 0; i + PHANTOM_COUNT < all_points.length; i++)
-	  bounds.add (all_points[i]);
-	bounds.get_extents (font, extents);
+	font = font_;
+	extents = extents_;
+	phantoms = phantoms_;
+	if (extents) bounds = contour_bounds_t ();
       }
-      if (phantoms)
-	for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
-	  (*phantoms)[i] = all_points[all_points.length - PHANTOM_COUNT + i];
-      return true;
-    }
 
-    bool get_var_metrics (hb_font_t *font, hb_codepoint_t gid,
-			  contour_point_vector_t &phantoms) const
-    { return get_var_extents_and_phantoms (font, gid, nullptr, &phantoms); }
+      void consume_point (const contour_point_t &point) { if (extents) bounds.add (point); }
+      void points_end () { if (extents) bounds.get_extents (font, extents); }
 
-    bool get_extents_var (hb_font_t *font, hb_codepoint_t gid,
-			  hb_glyph_extents_t *extents) const
-    { return get_var_extents_and_phantoms (font, gid, extents, nullptr); }
+      void consume_phantom (const contour_point_t &point, unsigned i)
+      { if (phantoms) (*phantoms)[i] = point; }
+    };
 #endif
 
     public:
@@ -952,7 +957,7 @@ struct glyf
       phantoms.resize (PHANTOM_COUNT);
 
       if (likely (font->num_coords == face->table.gvar->get_axis_count ()))
-	success = get_var_metrics (font, gid, phantoms);
+	success = get_points (font, gid, extents_bounds_aggregator_t (font, nullptr, &phantoms));
 
       if (unlikely (!success))
 	return is_vertical ? face->table.vmtx->get_advance (gid) : face->table.hmtx->get_advance (gid);
@@ -969,7 +974,7 @@ struct glyf
       contour_point_vector_t phantoms;
       phantoms.resize (PHANTOM_COUNT);
 
-      if (unlikely (!get_var_extents_and_phantoms (font, gid, &extents, &phantoms)))
+      if (unlikely (!get_points (font, gid, extents_bounds_aggregator_t (font, &extents, &phantoms))))
 	return is_vertical ? face->table.vmtx->get_side_bearing (gid) : face->table.hmtx->get_side_bearing (gid);
 
       return is_vertical ? ceil (phantoms[PHANTOM_TOP].y) - extents.y_bearing : floor (phantoms[PHANTOM_LEFT].x);
@@ -982,7 +987,7 @@ struct glyf
       unsigned int coord_count;
       const int *coords = hb_font_get_var_coords_normalized (font, &coord_count);
       if (coords && coord_count > 0 && coord_count == face->table.gvar->get_axis_count ())
-	return get_extents_var (font, gid, extents);
+	return get_points (font, gid, extents_bounds_aggregator_t (font, extents, nullptr));
 #endif
 
       if (unlikely (gid >= num_glyphs)) return false;
@@ -1095,7 +1100,7 @@ struct glyf
       }
 
       /* based on https://github.com/RazrFalcon/ttf-parser/blob/master/src/glyf.rs#L292 */
-      void consume_point (contour_point_t &point)
+      void consume_point (const contour_point_t &point)
       {
         /* Skip empty contours */
         if (unlikely (point.is_end_point && first_oncurve.is_null && first_offcurve.is_null))
@@ -1199,19 +1204,15 @@ struct glyf
 	  funcs->close_path (user_data);
 	}
       }
+      void points_end () {}
+
+      void consume_phantom (const contour_point_t &point HB_UNUSED, unsigned i HB_UNUSED) {}
     };
 
     bool
     get_path (hb_font_t *font, hb_codepoint_t gid,
 	      const hb_draw_funcs_t *funcs, void *user_data) const
-    {
-      path_builder_t builder (font, funcs, user_data);
-      contour_point_vector_t all_points;
-      if (unlikely (!get_points (font, gid, all_points))) return false;
-      for (unsigned point_index = 0; point_index < all_points.length - 4; ++point_index)
-        builder.consume_point (all_points[point_index]);
-      return true;
-    }
+    { return get_points (font, gid, path_builder_t (font, funcs, user_data)); }
 
     private:
     bool short_offset;
