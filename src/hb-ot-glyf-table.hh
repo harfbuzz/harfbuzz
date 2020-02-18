@@ -1042,7 +1042,6 @@ struct glyf
       void (*quad_to) (hb_font_t *, const hb_draw_funcs_t *,
 		       float, float, float, float, float, float,
 		       void *);
-      float last_x, last_y;
 
       struct optional_point_t
       {
@@ -1055,19 +1054,21 @@ struct glyf
 
 	optional_point_t lerp (optional_point_t p, float t)
 	{ return optional_point_t (x + t * (p.x - x), y + t * (p.y - y)); }
-      } first_oncurve, first_offcurve, last_offcurve;
+      } first_oncurve, first_offcurve, last_offcurve, current;
 
       path_builder_t (hb_font_t *font_, const hb_draw_funcs_t *funcs_, void *user_data_)
       {
 	font = font_;
 	funcs = funcs_;
 	user_data = user_data_;
-	quad_to = funcs->quadratic_to ? _normal_quadratic_to_call : _translate_quadratic_to_cubic;
-	last_x = last_y = 0;
+	quad_to = funcs->quadratic_to
+		? _normal_quadratic_to_call
+		: _translate_quadratic_to_cubic;
 	end_of_contour ();
       }
 
-      void end_of_contour () { first_oncurve = first_offcurve = last_offcurve = optional_point_t (); }
+      void end_of_contour ()
+      { first_oncurve = first_offcurve = last_offcurve = current = optional_point_t (); }
 
       static void
       _normal_quadratic_to_call (hb_font_t *font, const hb_draw_funcs_t *funcs,
@@ -1101,7 +1102,7 @@ struct glyf
       void consume_point (const contour_point_t &point)
       {
 	/* Skip empty contours */
-	if (unlikely (point.is_end_point && first_oncurve.is_null && first_offcurve.is_null))
+	if (unlikely (point.is_end_point && current.is_null && first_offcurve.is_null))
 	  return;
 
 	bool is_on_curve = point.flag & Glyph::FLAG_ON_CURVE;
@@ -1111,9 +1112,10 @@ struct glyf
 	  if (is_on_curve)
 	  {
 	    first_oncurve = p;
-	    last_x = p.x; last_y = p.y;
-	    funcs->move_to (font->em_scalef_x (last_x), font->em_scalef_y (last_y),
+	    funcs->move_to (font->em_scalef_x (p.x),
+			    font->em_scalef_y (p.y),
 			    user_data);
+	    current = p;
 	  }
 	  else
 	  {
@@ -1122,9 +1124,10 @@ struct glyf
 	      optional_point_t mid = first_offcurve.lerp (p, .5f);
 	      first_oncurve = mid;
 	      last_offcurve = p;
-	      last_x = mid.x; last_y = mid.y;
-	      funcs->move_to (font->em_scalef_x (last_x), font->em_scalef_y (last_y),
+	      funcs->move_to (font->em_scalef_x (mid.x),
+			      font->em_scalef_y (mid.y),
 			      user_data);
+	      current = mid;
 	    }
 	    else
 	      first_offcurve = p;
@@ -1136,33 +1139,32 @@ struct glyf
 	  {
 	    if (is_on_curve)
 	    {
-	      quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, p.x, p.y, user_data);
-	      last_x = p.x;
-	      last_y = p.y;
+	      quad_to (font, funcs, current.x, current.y,
+		       last_offcurve.x, last_offcurve.y,
+		       p.x, p.y, user_data);
+	      current = p;
 	      last_offcurve = optional_point_t ();
 	    }
 	    else
 	    {
 	      optional_point_t mid = last_offcurve.lerp (p, .5f);
-	      quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, mid.x, mid.y, user_data);
-	      last_x = mid.x;
-	      last_y = mid.y;
+	      quad_to (font, funcs, current.x, current.y,
+		       last_offcurve.x, last_offcurve.y,
+		       mid.x, mid.y, user_data);
 	      last_offcurve = p;
+	      current = mid;
 	    }
 	  }
 	  else
 	  {
 	    if (is_on_curve)
 	    {
-	      last_x = p.x;
-	      last_y = p.y;
-	      funcs->line_to (font->em_scalef_x (last_x), font->em_scalef_y (last_y),
-			      user_data);
+	      funcs->line_to (font->em_scalef_x (p.x),
+			      font->em_scalef_y (p.y), user_data);
+	      current = p;
 	    }
 	    else
-	    {
 	      last_offcurve = p;
-	    }
 	  }
 	}
 
@@ -1173,27 +1175,35 @@ struct glyf
 	    if (!first_offcurve.is_null && !last_offcurve.is_null)
 	    {
 	      optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
-	      quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, mid.x, mid.y, user_data);
-	      last_x = mid.x;
-	      last_y = mid.y;
+	      quad_to (font, funcs, current.x, current.y,
+		       last_offcurve.x, last_offcurve.y, mid.x, mid.y,
+		       user_data);
+	      current = mid;
 	      last_offcurve = optional_point_t ();
 	    }
 	    else if (!first_offcurve.is_null && last_offcurve.is_null)
 	    {
 	      if (!first_oncurve.is_null)
-		quad_to (font, funcs, last_x, last_y, first_offcurve.x, first_offcurve.y, first_oncurve.x, first_oncurve.y, user_data);
+		quad_to (font, funcs, current.x, current.y,
+			 first_offcurve.x, first_offcurve.y,
+			 first_oncurve.x, first_oncurve.y,
+			 user_data);
 	      break;
 	    }
 	    else if (first_offcurve.is_null && !last_offcurve.is_null)
 	    {
 	      if (!first_oncurve.is_null)
-		quad_to (font, funcs, last_x, last_y, last_offcurve.x, last_offcurve.y, first_oncurve.x, first_oncurve.y, user_data);
+		quad_to (font, funcs, current.x, current.y,
+			 last_offcurve.x, last_offcurve.y,
+			 first_oncurve.x, first_oncurve.y,
+			 user_data);
 	      break;
 	    }
 	    else /* first_offcurve.is_null && last_offcurve.is_null */
 	    {
 	      if (!first_oncurve.is_null)
-		funcs->line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y),
+		funcs->line_to (font->em_scalef_x (first_oncurve.x),
+				font->em_scalef_y (first_oncurve.y),
 				user_data);
 	      break;
 	    }
