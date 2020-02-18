@@ -72,7 +72,7 @@ struct hb_serialize_context_t
       bool is_wide: 1;
       bool is_signed: 1;
       bool is_absolute: 1;
-      unsigned position;
+      unsigned position: 29;
       unsigned bias;
       objidx_t objidx;
     };
@@ -270,8 +270,16 @@ struct hb_serialize_context_t
       assert (packed.tail ()->head == tail);
   }
 
+  enum base_mode_t {
+     HEAD,	/* Relative to the current object head (default). */
+     TAIL,	/* Relative to the current object tail. */
+     ABSOLUTE	/* Absolute: from the start of the serialize buffer. */
+   };
+
   template <typename T>
-  void add_link (T &ofs, objidx_t objidx, const void *base = nullptr)
+  void add_link (T &ofs, objidx_t objidx,
+		 const void *base = nullptr,
+		 base_mode_t mode = HEAD)
   {
     static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
 
@@ -281,54 +289,37 @@ struct hb_serialize_context_t
     assert (current);
     assert (current->head <= (const char *) &ofs);
 
+    const char  *dflt_base;
+    auto& link = *current->links.push ();
+
+    switch (mode)
+    {
+    case HEAD:
+      dflt_base = current->head;
+      link.is_absolute = false;
+      break;
+    case TAIL:
+      dflt_base = current->tail;
+      link.is_absolute = false;
+      break;
+    case ABSOLUTE:
+      dflt_base = start;
+      link.is_absolute = true;
+      break;
+    default: return;
+    }
     if (!base)
-      base = current->head;
+      base = dflt_base;
     else
-      assert (current->head <= (const char *) base);
+      assert (dflt_base <= (const char *) base);
 
-    auto& link = *current->links.push ();
     link.is_wide = sizeof (T) == 4;
-    link.is_signed = false;
-    link.is_absolute = false;
+    link.is_signed = hb_is_signed (hb_unwrap_type (T));
     link.position = (const char *) &ofs - current->head;
-    link.bias = (const char *) base - current->head;
+    link.bias = (const char *) base - dflt_base;
     link.objidx = objidx;
   }
 
-  /*
-   * Set a link to an object with an absolute offset.
-   * T may be signed or unsigned IntType.
-   */
-  template <typename T>
-  void add_link_abs (T &ofs, objidx_t objidx)
-  {
-    static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
-
-    if (!objidx)
-      return;
-
-    assert (current);
-    assert (current->head <= (const char *) &ofs);
-
-    auto& link = *current->links.push ();
-    link.is_wide = sizeof (T) == 4;
-    link.is_signed = hb_is_signed (typename T::type);
-    link.is_absolute = true;
-    link.position = (const char *) &ofs - current->head;
-    link.bias = 0;
-    link.objidx = objidx;
-  }
-
-  private:
-  template <typename T>
-  void assign (const object_t* parent, const object_t::link_t &link, unsigned offset)
-  {
-    auto &off = * ((BEInt<T, sizeof (T)> *) (parent->head + link.position));
-    assert (0 == off);
-    check_assign (off, offset);
-  }
-
-  public:
   void resolve_links ()
   {
     if (unlikely (in_error ())) return;
@@ -353,16 +344,16 @@ struct hb_serialize_context_t
 	if (link.is_signed)
 	{
 	  if (link.is_wide)
-	    assign<int32_t> (parent, link, offset);
+	    assign_offset<int32_t> (parent, link, offset);
 	  else
-	    assign<int16_t> (parent, link, offset);
+	    assign_offset<int16_t> (parent, link, offset);
 	}
 	else
 	{
 	  if (link.is_wide)
-	    assign<uint32_t> (parent, link, offset);
+	    assign_offset<uint32_t> (parent, link, offset);
 	  else
-	    assign<uint16_t> (parent, link, offset);
+	    assign_offset<uint16_t> (parent, link, offset);
 	}
       }
   }
@@ -501,6 +492,15 @@ struct hb_serialize_context_t
     return hb_blob_create (b.arrayZ, b.length,
 			   HB_MEMORY_MODE_WRITABLE,
 			   (char *) b.arrayZ, free);
+  }
+
+  private:
+  template <typename T>
+  void assign_offset (const object_t* parent, const object_t::link_t &link, unsigned offset)
+  {
+    auto &off = * ((BEInt<T, sizeof (T)> *) (parent->head + link.position));
+    assert (0 == off);
+    check_assign (off, offset);
   }
 
   public: /* TODO Make private. */
