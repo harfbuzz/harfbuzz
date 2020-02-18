@@ -784,40 +784,6 @@ struct glyf
       phantoms[PHANTOM_BOTTOM].y = v_orig - (int) v_adv;
     }
 
-    struct contour_bounds_t
-    {
-      contour_bounds_t () { min_x = min_y = FLT_MAX; max_x = max_y = -FLT_MAX; }
-
-      void add (const contour_point_t &p)
-      {
-	min_x = hb_min (min_x, p.x);
-	min_y = hb_min (min_y, p.y);
-	max_x = hb_max (max_x, p.x);
-	max_y = hb_max (max_y, p.y);
-      }
-
-      bool empty () const { return (min_x >= max_x) || (min_y >= max_y); }
-
-      void get_extents (hb_font_t *font, hb_glyph_extents_t *extents)
-      {
-	if (unlikely (empty ()))
-	{
-	  extents->width = 0;
-	  extents->x_bearing = 0;
-	  extents->height = 0;
-	  extents->y_bearing = 0;
-	  return;
-	}
-	extents->x_bearing = font->em_scalef_x (min_x);
-	extents->width = font->em_scalef_x (max_x - min_x);
-	extents->y_bearing = font->em_scalef_y (max_y);
-	extents->height = font->em_scalef_y (min_y - max_y);
-      }
-
-      protected:
-      float min_x, min_y, max_x, max_y;
-    };
-
     /* Note: Recursively calls itself.
      * all_points includes phantom points
      */
@@ -925,13 +891,47 @@ struct glyf
       return true;
     }
 
+    public:
 #ifndef HB_NO_VAR
     struct points_aggregator_t
     {
       hb_font_t *font;
       hb_glyph_extents_t *extents;
       contour_point_t *phantoms;
-      contour_bounds_t bounds;
+
+      struct contour_bounds_t
+      {
+	contour_bounds_t () { min_x = min_y = FLT_MAX; max_x = max_y = -FLT_MAX; }
+
+	void add (const contour_point_t &p)
+	{
+	  min_x = hb_min (min_x, p.x);
+	  min_y = hb_min (min_y, p.y);
+	  max_x = hb_max (max_x, p.x);
+	  max_y = hb_max (max_y, p.y);
+	}
+
+	bool empty () const { return (min_x >= max_x) || (min_y >= max_y); }
+
+	void get_extents (hb_font_t *font, hb_glyph_extents_t *extents)
+	{
+	  if (unlikely (empty ()))
+	  {
+	    extents->width = 0;
+	    extents->x_bearing = 0;
+	    extents->height = 0;
+	    extents->y_bearing = 0;
+	    return;
+	  }
+	  extents->x_bearing = font->em_scalef_x (min_x);
+	  extents->width = font->em_scalef_x (max_x - min_x);
+	  extents->y_bearing = font->em_scalef_y (max_y);
+	  extents->height = font->em_scalef_y (min_y - max_y);
+	}
+
+	protected:
+	float min_x, min_y, max_x, max_y;
+      } bounds;
 
       points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_)
       {
@@ -947,12 +947,9 @@ struct glyf
       bool is_consuming_contour_points () { return extents; }
       contour_point_t *get_phantoms_sink () { return phantoms; }
     };
-#endif
 
-    public:
-#ifndef HB_NO_VAR
-    unsigned int get_advance_var (hb_font_t *font, hb_codepoint_t gid,
-				  bool is_vertical) const
+    unsigned int
+    get_advance_var (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
     {
       bool success = false;
 
@@ -961,7 +958,9 @@ struct glyf
 	success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms));
 
       if (unlikely (!success))
-	return is_vertical ? face->table.vmtx->get_advance (gid) : face->table.hmtx->get_advance (gid);
+	return is_vertical
+	     ? face->table.vmtx->get_advance (gid)
+	     : face->table.hmtx->get_advance (gid);
 
       if (is_vertical)
 	return roundf (phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y);
