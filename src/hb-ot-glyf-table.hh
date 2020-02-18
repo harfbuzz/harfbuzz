@@ -801,7 +801,7 @@ struct glyf
       init_phantom_points (gid, phantoms);
 
 #ifndef HB_NO_VAR
-      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, coords, coord_count, points.as_array ()))) return false;
+      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, coords, coord_count, points.sub_array (0, points.length - PHANTOM_COUNT)))) return false;
 #endif
 
       if (glyph.is_simple_glyph ())
