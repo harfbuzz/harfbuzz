@@ -147,7 +147,7 @@ function (extract_make_variable variable makefile_source)
   set (${variable} ${listVar} PARENT_SCOPE)
 endfunction ()
 
-# http://stackoverflow.com/a/27630120
+# https://stackoverflow.com/a/27630120
 function (add_prefix_to_list var prefix)
   set (listVar "")
   foreach (f ${${var}})
