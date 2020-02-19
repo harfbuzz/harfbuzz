@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copied from https://github.com/xantares/mingw-ldd/blob/master/mingw-ldd.py
 # Modified to point to right prefix location on Fedora.
 
 # WTFPL - Do What the Fuck You Want to Public License
-from __future__ import print_function
 import pefile
 import os
 import sys

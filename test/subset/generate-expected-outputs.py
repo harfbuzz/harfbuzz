@@ -1,9 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Pre-generates the expected output subset files (via fonttools) for
 # specified subset test suite(s).
-
-from __future__ import print_function, division, absolute_import
 
 import io
 import os
