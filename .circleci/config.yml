@@ -96,19 +96,19 @@ jobs:
 
   clang-O3-O0-and-nobuildsystem:
     docker:
-      - image: ubuntu:18.10
+      - image: ubuntu:19.10
     steps:
       - checkout
       - run: apt update || true
       - run: apt install -y clang wget autoconf automake libtool pkg-config ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure && make -j32 && cd ..
       - run: CFLAGS="-O3" CXXFLAGS="-O3" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
-      - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
+      - run: make check || .ci/fail.sh
+      - run: make clean
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
-      - run: LD_LIBRARY_PATH="$PWD/freetype-2.9/objs/.libs" make check || .ci/fail.sh
+      - run: make check || .ci/fail.sh
       - run: make clean
       - run: make -Csrc CPPFLAGS="-DHB_TINY -DHB_NO_OT_FONT" libharfbuzz-subset.la && make clean
       - run: clang -c src/harfbuzz.cc -DHB_NO_MT
@@ -117,7 +117,7 @@ jobs:
 
   gcc-valgrind:
     docker:
-      - image: ubuntu:18.10
+      - image: ubuntu:19.10
     steps:
       - checkout
       - run: apt update || true
@@ -133,13 +133,13 @@ jobs:
 
   clang-everything:
     docker:
-      - image: ubuntu:18.10
+      - image: ubuntu:19.10
     steps:
       - checkout
       - run: apt update || true; apt install -y wget gnupg
       - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
-      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
+      - run: echo "deb http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libfontconfig1-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
@@ -149,13 +149,13 @@ jobs:
 
   clang-asan:
     docker:
-      - image: ubuntu:18.10
+      - image: ubuntu:19.10
     steps:
       - checkout
       - run: apt update || true; apt install -y wget gnupg
       - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
-      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
+      - run: echo "deb http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config gtk-doc-tools ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
@@ -165,13 +165,13 @@ jobs:
 
   clang-msan:
     docker:
-      - image: ubuntu:18.10
+      - image: ubuntu:19.10
     steps:
       - checkout
       - run: apt update || true; apt install -y wget gnupg
       - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
-      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
+      - run: echo "deb http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake gtk-doc-tools gettext make pkg-config ragel libcairo2-dev libicu-dev libmount-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
@@ -183,13 +183,13 @@ jobs:
 
   clang-tsan:
     docker:
-      - image: ubuntu:18.10
+      - image: ubuntu:19.10
     steps:
       - checkout
       - run: apt update || true; apt install -y wget gnupg
       - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
-      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
+      - run: echo "deb http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
@@ -199,13 +199,13 @@ jobs:
 
   clang-ubsan:
     docker:
-      - image: ubuntu:18.10
+      - image: ubuntu:19.10
     steps:
       - checkout
       - run: apt update || true; apt install -y wget gnupg
       - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-      - run: echo "deb http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdev.list
-      - run: echo "deb-src http://apt.llvm.org/cosmic/ llvm-toolchain-cosmic main" > /etc/apt/sources.list.d/llvmdevsrc.list
+      - run: echo "deb http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdev.list
+      - run: echo "deb-src http://apt.llvm.org/eoan/ llvm-toolchain-eoan main" > /etc/apt/sources.list.d/llvmdevsrc.list
       - run: apt update || true
       - run: apt install -y clang lld binutils libtool autoconf automake make pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
