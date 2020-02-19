@@ -16,10 +16,6 @@ back to BCP 47 tags. Ambiguous OpenType tags (those that correspond to
 multiple BCP 47 tags) are listed here, except when the alphabetically
 first BCP 47 tag happens to be the chosen disambiguated tag. In that
 case, the fallback behavior will choose the right tag anyway.
-
-Input files:
-- https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags
-- https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
 """
 
 import collections
@@ -39,7 +35,11 @@ import sys
 import unicodedata
 
 if len (sys.argv) != 3:
-	print ('usage: ./gen-tag-table.py languagetags language-subtag-registry', file=sys.stderr)
+	print ('''usage: ./gen-tag-table.py languagetags language-subtag-registry
+
+Input files, as of Unicode 12:
+* https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags
+* https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry''', file=sys.stderr)
 	sys.exit (1)
 
 try:
