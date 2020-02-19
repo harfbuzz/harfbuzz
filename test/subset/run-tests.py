@@ -1,9 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Runs a subsetting test suite. Compares the results of subsetting via harfbuzz
 # to subsetting via fonttools.
-
-from __future__ import print_function, division, absolute_import
 
 import io
 from difflib import unified_diff

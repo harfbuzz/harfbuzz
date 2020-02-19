@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """Generator of the function to prohibit certain vowel sequences.
 
@@ -8,8 +8,6 @@ This function should be used as the ``preprocess_text`` of an
 ``hb_ot_complex_shaper_t``.
 
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections
 try:

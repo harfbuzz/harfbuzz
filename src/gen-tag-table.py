@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 """Generator of the mapping from OpenType tags to BCP 47 tags and vice
 versa.
@@ -21,8 +21,6 @@ Input files:
 - https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags
 - https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
 
 import collections
 try:
@@ -758,7 +756,7 @@ ot.add_language ('und-Syre', 'SYRE')
 ot.add_language ('und-Syrj', 'SYRJ')
 ot.add_language ('und-Syrn', 'SYRN')
 
-bcp_47.names['xst'] = u"Silt'e"
+bcp_47.names['xst'] = "Silt'e"
 bcp_47.scopes['xst'] = ' (retired code)'
 bcp_47.macrolanguages['xst'] = {'stv', 'wle'}
 
@@ -865,7 +863,7 @@ def hb_tag (tag):
 	Returns:
 		A snippet of C++ representing ``tag``.
 	"""
-	return u"HB_TAG('%s','%s','%s','%s')" % tuple (('%-4s' % tag)[:4])
+	return "HB_TAG('%s','%s','%s','%s')" % tuple (('%-4s' % tag)[:4])
 
 def get_variant_set (name):
 	"""Return a set of variant language names from a name.
@@ -877,7 +875,7 @@ def get_variant_set (name):
 	Returns:
 		A set of normalized language names.
 	"""
-	return set (unicodedata.normalize ('NFD', n.replace ('\u2019', u"'"))
+	return set (unicodedata.normalize ('NFD', n.replace ('\u2019', "'"))
 			.encode ('ASCII', 'ignore')
 			.strip ()
 			for n in re.split ('[\n(),]', name) if n)
