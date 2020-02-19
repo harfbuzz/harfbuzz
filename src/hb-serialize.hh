@@ -78,7 +78,7 @@ struct hb_serialize_context_t
       bool is_wide: 1;
       bool is_signed: 1;
       whence_t whence: 2;
-      unsigned position: 29;
+      unsigned position: 28;
       unsigned bias;
       objidx_t objidx;
     };
@@ -297,8 +297,13 @@ struct hb_serialize_context_t
     link.position = (const char *) &ofs - current->head;
     if (whence == Head)
     {
-      assert (current->head <= (const char *)base);
-      link.bias = (const char *) base - current->head;
+      if (base == nullptr)
+	link.bias = 0;
+      else
+      {
+	assert (current->head <= (const char *)base);
+	link.bias = (const char *) base - current->head;
+      }
     }
     else
       link.bias = 0;
