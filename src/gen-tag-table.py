@@ -56,7 +56,7 @@ def expect (condition, message=None):
 			raise AssertionError
 		raise AssertionError (message)
 
-# from http://www-01.sil.org/iso639-3/iso-639-3.tab
+# from https://www-01.sil.org/iso639-3/iso-639-3.tab
 ISO_639_3_TO_1 = {
 	'aar': 'aa',
 	'abk': 'ab',

@@ -104,25 +104,25 @@ hb_test_bug (const char *uri_base, unsigned int number)
 static inline void
 hb_test_bug_freedesktop (unsigned int number)
 {
-  hb_test_bug ("http://bugs.freedesktop.org/", number);
+  hb_test_bug ("https://bugs.freedesktop.org/", number);
 }
 
 static inline void
 hb_test_bug_gnome (unsigned int number)
 {
-  hb_test_bug ("http://bugzilla.gnome.org/", number);
+  hb_test_bug ("https://bugzilla.gnome.org/", number);
 }
 
 static inline void
 hb_test_bug_mozilla (unsigned int number)
 {
-  hb_test_bug ("http://bugzilla.mozilla.org/", number);
+  hb_test_bug ("https://bugzilla.mozilla.org/", number);
 }
 
 static inline void
 hb_test_bug_redhat (unsigned int number)
 {
-  hb_test_bug ("http://bugzilla.redhat.com/", number);
+  hb_test_bug ("https://bugzilla.redhat.com/", number);
 }
 
 

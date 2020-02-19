@@ -202,7 +202,7 @@ class Stats:
 		   Self is Stats for sample.
 		   Returns larger absolute value if sample is highly unlikely to be random.
 		   Anything outside of -3..+3 is very unlikely to be random.
-		   See: http://en.wikipedia.org/wiki/Standard_score"""
+		   See: https://en.wikipedia.org/wiki/Standard_score"""
 
 		return (self.mean () - population.mean ()) / population.stddev ()
 

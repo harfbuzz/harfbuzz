@@ -40,7 +40,7 @@ namespace CFF {
 
 /*
  * CFF -- Compact Font Format (CFF)
- * http://www.adobe.com/content/dam/acom/en/devnet/font/pdfs/5176.CFF.pdf
+ * https://www.adobe.com/content/dam/acom/en/devnet/font/pdfs/5176.CFF.pdf
  */
 #define HB_OT_TAG_cff1 HB_TAG('C','F','F',' ')
 
