@@ -324,7 +324,7 @@ struct hb_serialize_context_t
 	if (unlikely (!child)) { err_other_error(); return; }
 	unsigned offset;
 	switch ((whence_t)link.whence) {
-	case Head:     offset = child->head - parent->head; break;
+	case Head:     offset = (child->head - parent->head) - link.bias; break;
 	case Tail:     offset = child->head - parent->tail; break;
 	case Absolute: offset = (head - start) + (child->head - tail); break;
 	default: assert (0);
