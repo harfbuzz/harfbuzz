@@ -50,6 +50,12 @@ struct hb_serialize_context_t
     char *head, *tail;
   };
 
+  enum whence_t {
+     Head,	/* Relative to the current object head (default). */
+     Tail,	/* Relative to the current object tail after packed. */
+     Absolute	/* Absolute: from the start of the serialize buffer. */
+   };
+
   struct object_t : range_t
   {
     void fini () { links.fini (); }
@@ -71,7 +77,7 @@ struct hb_serialize_context_t
     {
       bool is_wide: 1;
       bool is_signed: 1;
-      bool is_absolute: 1;
+      whence_t whence: 2;
       unsigned position: 29;
       unsigned bias;
       objidx_t objidx;
@@ -270,16 +276,10 @@ struct hb_serialize_context_t
       assert (packed.tail ()->head == tail);
   }
 
-  enum base_mode_t {
-     Head,	/* Relative to the current object head (default). */
-     Tail,	/* Relative to the current object tail. */
-     Absolute	/* Absolute: from the start of the serialize buffer. */
-   };
-
   template <typename T>
   void add_link (T &ofs, objidx_t objidx,
 		 const void *base = nullptr,
-		 base_mode_t mode = Head)
+		 whence_t whence = Head)
   {
     static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
 
@@ -289,34 +289,19 @@ struct hb_serialize_context_t
     assert (current);
     assert (current->head <= (const char *) &ofs);
 
-    const char  *dflt_base;
     auto& link = *current->links.push ();
-
-    switch (mode)
-    {
-    case Head:
-      dflt_base = current->head;
-      link.is_absolute = false;
-      break;
-    case Tail:
-      dflt_base = current->tail;
-      link.is_absolute = false;
-      break;
-    case Absolute:
-      dflt_base = start;
-      link.is_absolute = true;
-      break;
-    default: return;
-    }
-    if (!base)
-      base = dflt_base;
-    else
-      assert (dflt_base <= (const char *) base);
 
     link.is_wide = sizeof (T) == 4;
     link.is_signed = hb_is_signed (hb_unwrap_type (T));
+    link.whence = whence;
     link.position = (const char *) &ofs - current->head;
-    link.bias = (const char *) base - dflt_base;
+    if (whence == Head)
+    {
+      assert (current->head <= (const char *)base);
+      link.bias = (const char *) base - current->head;
+    }
+    else
+      link.bias = 0;
     link.objidx = objidx;
   }
 
@@ -333,12 +318,11 @@ struct hb_serialize_context_t
 	const object_t* child = packed[link.objidx];
 	if (unlikely (!child)) { err_other_error(); return; }
 	unsigned offset;
-	if (link.is_absolute)
-	  offset = (head - start) + (child->head - tail);
-	else
-	{
-	  assert (link.bias <= (size_t) (parent->tail - parent->head));
-	  offset = (child->head - parent->head) - link.bias;
+	switch (link.whence) {
+	case Head:     offset = child->head - parent->head; break;
+	case Tail:     offset = child->head - parent->tail; break;
+	case Absolute: offset = (head - start) + (child->head - tail); break;
+	default: assert (0);
 	}
 
 	if (link.is_signed)

@@ -338,6 +338,30 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   /* TODO: Somehow merge this with previous function into a serialize_dispatch(). */
+  /* Workaround clang bug: https://bugs.llvm.org/show_bug.cgi?id=23029
+   * Can't compile: whence = hb_serialize_context_t::Head followed by Ts&&...
+   */
+  template <typename ...Ts>
+  bool serialize_copy (hb_serialize_context_t *c,
+		       const OffsetTo& src,
+		       const void *src_base,
+		       const void *dst_base,
+		       hb_serialize_context_t::whence_t whence,
+		       Ts&&... ds)
+  {
+    *this = 0;
+    if (src.is_null ())
+      return false;
+
+    c->push ();
+
+    bool ret = c->copy (src_base+src, hb_forward<Ts> (ds)...);
+
+    c->add_link (*this, c->pop_pack (), dst_base, whence);
+
+    return ret;
+  }
+
   template <typename ...Ts>
   bool serialize_copy (hb_serialize_context_t *c,
 		       const OffsetTo& src,
