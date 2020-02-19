@@ -77,7 +77,7 @@ struct hb_serialize_context_t
     {
       bool is_wide: 1;
       bool is_signed: 1;
-      whence_t whence: 2;
+      unsigned whence: 2;
       unsigned position: 28;
       unsigned bias;
       objidx_t objidx;
@@ -293,7 +293,7 @@ struct hb_serialize_context_t
 
     link.is_wide = sizeof (T) == 4;
     link.is_signed = hb_is_signed (hb_unwrap_type (T));
-    link.whence = whence;
+    link.whence = (unsigned)whence;
     link.position = (const char *) &ofs - current->head;
     if (whence == Head)
     {
@@ -323,7 +323,7 @@ struct hb_serialize_context_t
 	const object_t* child = packed[link.objidx];
 	if (unlikely (!child)) { err_other_error(); return; }
 	unsigned offset;
-	switch (link.whence) {
+	switch ((whence_t)link.whence) {
 	case Head:     offset = child->head - parent->head; break;
 	case Tail:     offset = child->head - parent->tail; break;
 	case Absolute: offset = (head - start) + (child->head - tail); break;
