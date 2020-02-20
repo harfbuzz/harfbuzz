@@ -151,7 +151,7 @@ struct glyf
     TRACE_SERIALIZE (this);
     unsigned init_len = c->length ();
     for (const auto &_ : it) _.serialize (c, plan);
-   
+
     /* As a special case when all glyph in the font are empty, add a zero byte
      * to the table, so that OTS doesn’t reject it, and to make the table work
      * on Windows as well.
@@ -1073,7 +1073,7 @@ struct glyf
 	font = font_;
 	funcs = funcs_;
 	user_data = user_data_;
-	quad_to = funcs->quadratic_to
+	quad_to = funcs->is_quadratic_to_set
 		? _normal_quadratic_to_call
 		: _translate_quadratic_to_cubic;
 	end_of_contour ();

@@ -81,6 +81,7 @@ hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
 {
   if (unlikely (hb_object_is_immutable (funcs))) return;
   funcs->quadratic_to = quadratic_to;
+  funcs->is_quadratic_to_set = true;
 }
 
 /**
@@ -124,6 +125,11 @@ static void
 _line_to_nil (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
 
 static void
+_quadratic_to_nil (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
+		   hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
+		   void *user_data HB_UNUSED) {}
+
+static void
 _cubic_to_nil (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
 	       hb_position_t control2_x HB_UNUSED, hb_position_t control2_y HB_UNUSED,
 	       hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
@@ -148,7 +154,8 @@ hb_draw_funcs_create ()
 
   funcs->move_to = (hb_draw_move_to_func_t) _move_to_nil;
   funcs->line_to = (hb_draw_line_to_func_t) _line_to_nil;
-  funcs->quadratic_to = nullptr;
+  funcs->quadratic_to = (hb_draw_quadratic_to_func_t) _quadratic_to_nil;
+  funcs->is_quadratic_to_set = false;
   funcs->cubic_to = (hb_draw_cubic_to_func_t) _cubic_to_nil;
   funcs->close_path = (hb_draw_close_path_func_t) _close_path_nil;
   return funcs;
