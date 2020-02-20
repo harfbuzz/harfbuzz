@@ -362,25 +362,11 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return ret;
   }
 
-  template <typename ...Ts>
   bool serialize_copy (hb_serialize_context_t *c,
 		       const OffsetTo& src,
 		       const void *src_base,
-		       const void *dst_base,
-		       Ts&&... ds)
-  {
-    *this = 0;
-    if (src.is_null ())
-      return false;
-
-    c->push ();
-
-    bool ret = c->copy (src_base+src, hb_forward<Ts> (ds)...);
-
-    c->add_link (*this, c->pop_pack (), dst_base);
-
-    return ret;
-  }
+		       const void *dst_base)
+  { return serialize_copy (c, src, src_base, dst_base, hb_serialize_context_t::Head); }
 
   bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const
   {
