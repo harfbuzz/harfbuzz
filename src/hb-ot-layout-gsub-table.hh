@@ -605,6 +605,7 @@ struct AlternateSubstFormat1
   void closure (hb_closure_context_t *c) const
   {
     + hb_zip (this+coverage, alternateSet)
+    | hb_filter(c->glyphs, hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const AlternateSet &_) { _.closure (c); })
