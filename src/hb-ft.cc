@@ -33,6 +33,7 @@
 
 #include "hb-ft.h"
 
+#include "hb-draw.hh"
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 #include "hb-cache.hh"
@@ -930,5 +931,93 @@ hb_ft_font_set_funcs (hb_font_t *font)
   hb_ft_font_set_load_flags (font, FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING);
 }
 
+struct _outline_user_data
+{
+  const hb_draw_funcs_t *funcs;
+  void *user_data;
+  bool is_open;
+};
+
+static int
+_ft_move_to (FT_Vector *to, _outline_user_data *user_data)
+{
+  if (user_data->is_open) user_data->funcs->close_path (user_data->user_data);
+  user_data->funcs->move_to (round (to->x), round (to->y), user_data->user_data);
+  return FT_Err_Ok;
+}
+
+static int
+_ft_line_to (const FT_Vector *to, _outline_user_data *user_data)
+{
+  user_data->is_open = true;
+  user_data->funcs->line_to (round (to->x), round (to->y), user_data->user_data);
+  return FT_Err_Ok;
+}
+
+static int
+_ft_conic_to (const FT_Vector *control, const FT_Vector *to, _outline_user_data *user_data)
+{
+  user_data->is_open = true;
+  user_data->funcs->quadratic_to (round (control->x), round (control->y),
+				  round (to->x), round (to->y), user_data->user_data);
+  return FT_Err_Ok;
+}
+
+static int
+_ft_cubic_to (const FT_Vector *control1, const FT_Vector *control2, const FT_Vector *to, _outline_user_data *user_data)
+{
+  user_data->is_open = true;
+  user_data->funcs->cubic_to (round (control1->x), round (control1->y),
+			      round (control2->x), round (control2->y),
+			      round (to->x), round (to->y),
+			      user_data->user_data);
+  return FT_Err_Ok;
+}
+
+/**
+ * hb_ft_font_draw_glyph:
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_ft_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+		       const hb_draw_funcs_t *funcs, void *user_data)
+{
+  if (unlikely (font->destroy != (hb_destroy_func_t) _hb_ft_font_destroy))
+    return false;
+
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font->user_data;
+
+  if (unlikely (FT_Load_Glyph (ft_font->ft_face, glyph,
+			       FT_LOAD_NO_BITMAP | ft_font->load_flags)))
+    return false;
+
+  if (ft_font->ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE)
+    return false;
+
+  const FT_Outline_Funcs outline_funcs = {
+    (FT_Outline_MoveToFunc) _ft_move_to,
+    (FT_Outline_LineToFunc) _ft_line_to,
+    (FT_Outline_ConicToFunc) _ft_conic_to,
+    (FT_Outline_CubicToFunc) _ft_cubic_to,
+    0, /* shift */
+    0, /* delta */
+  };
+
+  _outline_user_data _user_data = {
+    funcs,
+    user_data,
+    false
+  };
+
+  if (unlikely (FT_Outline_Decompose (&ft_font->ft_face->glyph->outline,
+				      &outline_funcs, &_user_data)))
+    return false;
+
+  if (_user_data.is_open)
+    funcs->close_path (user_data);
+
+  return true;
+}
 
 #endif

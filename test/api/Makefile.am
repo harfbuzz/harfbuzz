@@ -66,6 +66,12 @@ TEST_PROGS = \
 	test-subset-nameids \
 	$(NULL)
 
+if HAVE_FREETYPE
+TEST_PROGS += test-draw
+test_draw_CFLAGS = $(CFLAGS) $(FREETYPE_CFLAGS)
+test_draw_LDADD = $(LDADD) $(FREETYPE_LIBS)
+endif
+
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_drop_tables_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la

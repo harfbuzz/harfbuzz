@@ -33,6 +33,7 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_OUTLINE_H
 
 HB_BEGIN_DECLS
 
@@ -132,6 +133,9 @@ hb_ft_font_changed (hb_font_t *font);
 HB_EXTERN void
 hb_ft_font_set_funcs (hb_font_t *font);
 
+HB_EXTERN hb_bool_t
+hb_ft_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+		       const hb_draw_funcs_t *funcs, void *user_data);
 
 HB_END_DECLS
 
