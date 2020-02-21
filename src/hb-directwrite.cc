@@ -29,8 +29,10 @@
 #include "hb-shaper-impl.hh"
 
 #include <dwrite_1.h>
+#include <d2d1.h>
 
 #include "hb-directwrite.h"
+#include "hb-draw.hh"
 
 
 /* Declare object creator for dynamic support of DWRITE */
@@ -702,7 +704,6 @@ retry_getglyphs:
   int fontEmSize = font->face->get_upem ();
   if (fontEmSize < 0) fontEmSize = -fontEmSize;
 
-  if (fontEmSize < 0) fontEmSize = -fontEmSize;
   double x_mult = (double) font->x_scale / fontEmSize;
   double y_mult = (double) font->y_scale / fontEmSize;
 
@@ -962,18 +963,90 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
 }
 
 /**
-* hb_directwrite_face_get_font_face:
-* @face: a #hb_face_t object
-*
-* Return value: DirectWrite IDWriteFontFace object corresponding to the given input
-*
-* Since: 2.5.0
-**/
+ * hb_directwrite_face_get_font_face:
+ * @face: a #hb_face_t object
+ *
+ * Return value: DirectWrite IDWriteFontFace object corresponding to the given input
+ *
+ * Since: 2.5.0
+ **/
 IDWriteFontFace *
 hb_directwrite_face_get_font_face (hb_face_t *face)
 {
   return face->data.directwrite->fontFace;
 }
 
+class GeometrySink : public IDWriteGeometrySink
+{
+  hb_font_t *font;
+  hb_draw_funcs_t *funcs;
+  void *user_data;
+
+public:
+  GeometrySink (hb_font_t *font_, hb_draw_funcs_t *funcs_, void *user_data_)
+  {
+    font = font_;
+    funcs = funcs_;
+    user_data = user_data_;
+  }
+  virtual ~GeometrySink () {}
+
+  HRESULT STDMETHODCALLTYPE Close () { return S_OK; }
+  void STDMETHODCALLTYPE SetFillMode (D2D1_FILL_MODE fillMode) {}
+  void STDMETHODCALLTYPE SetSegmentFlags (D2D1_PATH_SEGMENT vertexFlags) {}
+
+  /* IUnknown interface */
+  IFACEMETHOD(QueryInterface) (IID const &iid, OUT void **ppObject)
+  { return S_OK; }
+  IFACEMETHOD_(ULONG, AddRef) () { return 1; }
+  IFACEMETHOD_(ULONG, Release)() { return 1; }
+
+  void STDMETHODCALLTYPE AddBeziers (_In_ const D2D1_BEZIER_SEGMENT *beziers, unsigned int beziersCount)
+  {
+    for (unsigned i = 0; i < beziersCount; ++i)
+      funcs->cubic_to (font->em_scalef_x (beziers[i].point1.x), font->em_scalef_y (beziers[i].point1.y),
+		       font->em_scalef_x (beziers[i].point2.x), font->em_scalef_y (beziers[i].point2.y),
+		       font->em_scalef_x (beziers[i].point3.x), font->em_scalef_y (beziers[i].point3.y),
+		       user_data);
+  }
+
+  void STDMETHODCALLTYPE AddLines (_In_ const D2D1_POINT_2F *points, unsigned int pointsCount)
+  {
+    for (unsigned i = 0; i < pointsCount; ++i)
+      funcs->line_to (font->em_scalef_x (points[i].x), font->em_scalef_y (points[i].y), user_data);
+  }
+
+  void STDMETHODCALLTYPE BeginFigure (D2D1_POINT_2F startPoint, D2D1_FIGURE_BEGIN figureBegin)
+  { funcs->line_to (font->em_scalef_x (startPoint.x), font->em_scalef_y (startPoint.y), user_data); }
+
+  void STDMETHODCALLTYPE EndFigure (D2D1_FIGURE_END figureEnd)
+  { funcs->close_path (user_data); }
+};
+
+/**
+ * hb_directwrite_font_draw_glyph:
+ * @face: a #hb_face_t object
+ *
+ * Fetches a glyph path using DirectWrite's GetGlyphRunOutline.
+ *
+ * Return value: Whether GetGlyphRunOutline result was OK.
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_directwrite_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+				hb_draw_funcs_t *funcs, void *user_data)
+{
+  const hb_directwrite_face_data_t *face_data = font->face->data.directwrite;
+  if (unlikely (!face_data)) return false;
+  IDWriteFontFace *fontFace = face_data->fontFace;
+  if (unlikely (!fontFace)) return false;
+
+  uint16_t gid = glyph;
+  GeometrySink *sink = new GeometrySink (font, funcs, user_data);
+  HRESULT hr = fontFace->GetGlyphRunOutline (font->face->get_upem (),
+					     &gid, 0, 0, 1, false, false, sink);
+  delete sink;
+  return hr == S_OK;
+}
 
 #endif

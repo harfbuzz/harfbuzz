@@ -217,8 +217,7 @@ hb_coretext_font_get_ct_font
 <FILE>hb-directwrite</FILE>
 hb_directwrite_face_create
 hb_directwrite_face_get_font_face
-<SUBSECTION Private>
-hb_directwrite_shape_experimental_width
+hb_directwrite_font_draw_glyph
 </SECTION>
 
 <SECTION>
@@ -386,6 +385,7 @@ hb_ft_face_create_referenced
 hb_ft_font_create
 hb_ft_font_create_referenced
 hb_ft_font_changed
+hb_ft_font_draw_glyph
 hb_ft_font_get_face
 hb_ft_font_lock_face
 hb_ft_font_unlock_face

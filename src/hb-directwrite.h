@@ -35,6 +35,10 @@ hb_directwrite_face_create (IDWriteFontFace *font_face);
 HB_EXTERN IDWriteFontFace *
 hb_directwrite_face_get_font_face (hb_face_t *face);
 
+HB_EXTERN hb_bool_t
+hb_directwrite_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+				hb_draw_funcs_t *funcs, void *user_data);
+
 HB_END_DECLS
 
 #endif /* HB_DIRECTWRITE_H */

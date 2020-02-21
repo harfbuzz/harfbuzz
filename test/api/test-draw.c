@@ -28,6 +28,9 @@
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
+#ifdef HAVE_DIRECTWRITE
+#include <hb-directwrite.h>
+#endif
 
 typedef struct user_data_t
 {
@@ -879,6 +882,40 @@ test_hb_draw_freetype (void)
 }
 #endif
 
+#ifdef HB_DIRECTWRITE
+static void
+test_hb_draw_directwrite (void)
+{
+  char str[2048];
+  user_data_t user_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_directwrite_font_draw_glyph (font, 6, funcs, &user_data));
+    /*char expected[] = "M1626,1522Q1626,1522 1626,1522Q1626,1522 1626,1522ZM436,1522"
+		      "Q436,1280 531,1060Q625,839 784,680Q943,521 1164,427Q1384,332 1626,332"
+		      "Q1868,332 2089,427Q2309,521 2468,680Q2627,839 2722,1060Q2816,1280 2816,1522"
+		      "Q2816,1764 2722,1985Q2627,2205 2468,2364Q2309,2523 2089,2618Q1868,2712 1626,2712"
+		      "Q1384,2712 1164,2618Q943,2523 784,2364Q625,2205 531,1985Q436,1764 436,1522ZM256,1528"
+		      "Q256,1714 306,1892Q355,2069 443,2220Q531,2370 658,2497Q784,2623 935,2711"
+		      "Q1085,2799 1263,2849Q1440,2898 1626,2898Q1812,2898 1990,2849Q2167,2799 2318,2711"
+		      "Q2468,2623 2595,2497Q2721,2370 2809,2220Q2897,2069 2947,1892Q2996,1714 2996,1528"
+		      "Q2996,1342 2947,1165Q2897,987 2809,837Q2721,686 2595,560Q2468,433 2318,345"
+		      "Q2167,257 1990,208Q1812,158 1626,158Q1440,158 1263,208Q1085,257 935,345"
+		      "Q784,433 658,560Q531,686 443,837Q355,987 306,1165Q256,1342 256,1528Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);*/
+
+    hb_font_destroy (font);
+  }
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -911,6 +948,9 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_immutable);
 #ifdef HAVE_FREETYPE
   hb_test_add (test_hb_draw_freetype);
+#endif
+#ifdef HAVE_DIRECTWRITE
+  hb_test_add (test_hb_draw_directwrite);
 #endif
   unsigned result = hb_test_run ();
 
