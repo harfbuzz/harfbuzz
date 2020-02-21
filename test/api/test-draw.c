@@ -31,6 +31,9 @@
 #ifdef HAVE_DIRECTWRITE
 #include <hb-directwrite.h>
 #endif
+#ifdef HAVE_CORETEXT
+#include <hb-coretext.h>
+#endif
 
 typedef struct user_data_t
 {
@@ -916,6 +919,44 @@ test_hb_draw_directwrite (void)
 }
 #endif
 
+#ifdef HAVE_CORETEXT
+static void
+test_hb_draw_coretext (void)
+{
+  char str[2048];
+  user_data_t user_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_coretext_font_draw_glyph (font, 6, funcs, &user_data));
+    puts (str);
+    char expected[] = "M1626,1522Q436,1764 1031,1643Q1626,1522 1626,1522ZM530,1742"
+		      "Q436,1280 436,1280Q436,1280 531,1060Q625,839 784,680"
+		      "Q943,521 1164,427Q1384,332 1626,332Q1868,332 2089,427"
+		      "Q2309,521 2468,680Q2627,839 2722,1060Q2816,1280 2816,1522"
+		      "Q2816,1764 2722,1985Q2627,2205 2468,2364Q2309,2523 2089,2618"
+		      "Q1868,2712 1626,2712Q1384,2712 1164,2618Q943,2523 784,2364"
+		      "Q625,2205 530,1742ZM305,1164Q256,1342 256,1528Q256,1714 306,1892"
+		      "Q355,2069 443,2220Q531,2370 658,2497Q784,2623 935,2711"
+		      "Q1085,2799 1263,2849Q1440,2898 1626,2898Q1812,2898 1990,2849"
+		      "Q2167,2799 2318,2711Q2468,2623 2595,2497Q2721,2370 2809,2220"
+		      "Q2897,2069 2947,1892Q2996,1714 2996,1528Q2996,1342 2947,1165"
+		      "Q2897,987 2809,837Q2721,686 2595,560Q2468,433 2318,345"
+		      "Q2167,257 1990,208Q1812,158 1626,158Q1440,158 1263,208"
+		      "Q1085,257 935,345Q784,433 658,560Q531,686 443,837Q355,987 305,1164Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -951,6 +992,9 @@ main (int argc, char **argv)
 #endif
 #ifdef HAVE_DIRECTWRITE
   hb_test_add (test_hb_draw_directwrite);
+#endif
+#ifdef HAVE_CORETEXT
+  hb_test_add (test_hb_draw_coretext);
 #endif
   unsigned result = hb_test_run ();
 

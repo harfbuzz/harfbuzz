@@ -34,6 +34,7 @@
 
 #include "hb-coretext.h"
 #include "hb-aat-layout.hh"
+#include "hb-draw.hh"
 #include <math.h>
 
 
@@ -1153,5 +1154,90 @@ fail:
   return ret;
 }
 
+struct _coretext_path_user_data
+{
+  hb_font_t *font;
+  hb_draw_funcs_t *funcs;
+  void *user_data;
+  CGFloat x_mult;
+  CGFloat y_mult;
+};
+
+static void _hb_coretext_element_callback (_coretext_path_user_data *info, const CGPathElement *element)
+{
+  switch (element->type) {
+  case kCGPathElementMoveToPoint:
+    info->funcs->move_to (info->font->em_scalef_x (element->points[0].x * info->x_mult),
+			  info->font->em_scalef_y (element->points[0].y * info->y_mult),
+			  info->user_data);
+    break;
+  case kCGPathElementAddLineToPoint:
+    info->funcs->line_to (info->font->em_scalef_x (element->points[0].x * info->x_mult),
+			  info->font->em_scalef_y (element->points[0].y * info->y_mult),
+			  info->user_data);
+    break;
+  case kCGPathElementAddQuadCurveToPoint:
+    info->funcs->quadratic_to (info->font->em_scalef_x (element->points[0].x * info->x_mult),
+			       info->font->em_scalef_y (element->points[0].y * info->y_mult),
+			       info->font->em_scalef_x (element->points[1].x * info->x_mult),
+			       info->font->em_scalef_y (element->points[1].y * info->y_mult),
+			       info->user_data);
+    break;
+  case kCGPathElementAddCurveToPoint:
+    info->funcs->cubic_to (info->font->em_scalef_x (element->points[0].x * info->x_mult),
+			   info->font->em_scalef_y (element->points[0].y * info->y_mult),
+			   info->font->em_scalef_x (element->points[1].x * info->x_mult),
+			   info->font->em_scalef_y (element->points[1].y * info->y_mult),
+			   info->font->em_scalef_x (element->points[2].x * info->x_mult),
+			   info->font->em_scalef_y (element->points[2].y * info->y_mult),
+			   info->user_data);
+    break;
+  case kCGPathElementCloseSubpath:
+    info->funcs->close_path (info->user_data);
+    break;
+  }
+}
+
+/**
+ * hb_coretext_font_draw_glyph:
+ * @face: a #hb_face_t object
+ *
+ * Fetches a glyph path using CoreText's CTFontCreatePathForGlyph.
+ *
+ * Return value: Whether CTFontCreatePathForGlyph result was OK.
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_coretext_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+			     hb_draw_funcs_t *funcs, void *user_data)
+{
+  hb_coretext_font_data_t *font_data = _hb_coretext_shaper_font_data_create (font);
+  if (unlikely (!font_data)) return false;
+
+  CTFontRef ct_font = (CTFontRef) font_data;
+  CGFloat ct_font_size = CTFontGetSize (ct_font);
+  CGFloat x_mult = (CGFloat) font->x_scale / ct_font_size;
+  CGFloat y_mult = (CGFloat) font->y_scale / ct_font_size;
+
+  _coretext_path_user_data info = {
+    font,
+    funcs,
+    user_data,
+    x_mult,
+    y_mult
+  };
+
+  CGPathRef path = CTFontCreatePathForGlyph (ct_font, glyph, nullptr);
+  if (unlikely (!path))
+  {
+    _hb_coretext_shaper_font_data_destroy (font_data);
+    return false;
+  }
+
+  CGPathApply (path, &info, (CGPathApplierFunction) _hb_coretext_element_callback);
+  CFRelease (path);
+  _hb_coretext_shaper_font_data_destroy (font_data);
+  return true;
+}
 
 #endif

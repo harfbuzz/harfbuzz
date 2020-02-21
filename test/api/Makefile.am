@@ -66,10 +66,18 @@ TEST_PROGS = \
 	test-subset-nameids \
 	$(NULL)
 
-if HAVE_FREETYPE
 TEST_PROGS += test-draw
+if HAVE_FREETYPE
 test_draw_CFLAGS = $(CFLAGS) $(FREETYPE_CFLAGS)
 test_draw_LDADD = $(LDADD) $(FREETYPE_LIBS)
+endif
+# if HAVE_DIRECTWRITE
+# test_draw_CFLAGS = $(CFLAGS) $(DIRECTWRITE_CXXFLAGS)
+# test_draw_LDADD = $(LDADD) $(DIRECTWRITE_LIBS)
+# endif
+if HAVE_CORETEXT
+test_draw_CFLAGS = $(CFLAGS) $(CORETEXT_CFLAGS)
+test_draw_LDADD = $(LDADD) $(CORETEXT_LIBS)
 endif
 
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la

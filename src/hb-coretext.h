@@ -59,6 +59,10 @@ HB_EXTERN CTFontRef
 hb_coretext_font_get_ct_font (hb_font_t *font);
 
 
+HB_EXTERN hb_bool_t
+hb_coretext_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+			     hb_draw_funcs_t *funcs, void *user_data);
+
 HB_END_DECLS
 
 #endif /* HB_CORETEXT_H */
