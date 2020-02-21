@@ -34,6 +34,9 @@
 #ifdef HAVE_CORETEXT
 #include <hb-coretext.h>
 #endif
+#ifdef HAVE_UNISCRIBE
+#include <hb-uniscribe.h>
+#endif
 
 typedef struct user_data_t
 {
@@ -185,11 +188,7 @@ test_hb_draw_glyf (void)
   hb_face_destroy (face);
 
   char str[1024];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str),
-    .consumed = 0
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
 
   user_data.consumed = 0;
   g_assert (!hb_font_draw_glyph (font, 4, funcs, &user_data));
@@ -246,11 +245,7 @@ test_hb_draw_cff1 (void)
   hb_face_destroy (face);
 
   char str[1024];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str),
-    .consumed = 0
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   g_assert (hb_font_draw_glyph (font, 3, funcs, &user_data));
   char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367L369,267L172,267L203,367Z"
 		    "M3,0L88,0L151,200L390,200L452,0L541,0L319,656L225,656L3,0Z"
@@ -269,11 +264,7 @@ test_hb_draw_cff1_rline (void)
   hb_face_destroy (face);
 
   char str[1024];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str),
-    .consumed = 0
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   g_assert (hb_font_draw_glyph (font, 1, funcs, &user_data));
   char expected[] = "M775,400C705,400 650,343 650,274L650,250L391,250L713,572L392,893"
 		    "L287,1000C311,942 296,869 250,823C250,823 286,858 321,823L571,572"
@@ -293,10 +284,7 @@ test_hb_draw_cff2 (void)
   hb_face_destroy (face);
 
   char str[1024];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str)
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
 
   user_data.consumed = 0;
   g_assert (hb_font_draw_glyph (font, 3, funcs, &user_data));
@@ -329,10 +317,7 @@ test_hb_draw_ttf_parser_tests (void)
 {
   /* https://github.com/RazrFalcon/ttf-parser/blob/337e7d1c/tests/tests.rs#L50-L133 */
   char str[1024];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str)
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
     hb_font_t *font = hb_font_create (face);
@@ -417,10 +402,7 @@ test_hb_draw_font_kit_glyphs_tests (void)
 {
   /* https://github.com/foliojs/fontkit/blob/master/test/glyphs.js */
   char str[2048];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str)
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   /* truetype glyphs */
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/OpenSans-Regular.ttf");
@@ -532,10 +514,7 @@ test_hb_draw_font_kit_variations_tests (void)
 {
   /* https://github.com/foliojs/fontkit/blob/b310db5/test/variations.js */
   char str[2048];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str)
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   /* Skia */
   {
     /* Skipping Skia tests for now even the fact we can actually do platform specific tests using our CIs */
@@ -766,10 +745,7 @@ test_hb_draw_stroking (void)
   /* https://skia-review.googlesource.com/c/skia/+/266945
      https://savannah.nongnu.org/bugs/index.php?57701 */
   char str[2048];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str)
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   {
     /* See https://github.com/google/skia/blob/d38f00a1/gm/stroketext.cpp#L115-L124 */
     hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
@@ -852,10 +828,7 @@ static void
 test_hb_draw_freetype (void)
 {
   char str[2048];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str)
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
     hb_font_t *font = hb_font_create (face);
@@ -885,15 +858,47 @@ test_hb_draw_freetype (void)
 }
 #endif
 
-#ifdef HB_DIRECTWRITE
+#ifdef HAVE_CORETEXT
+static void
+test_hb_draw_coretext (void)
+{
+  char str[2048];
+  user_data_t user_data = { str, sizeof (str), 0 };
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_coretext_font_draw_glyph (font, 6, funcs, &user_data));
+    puts (str);
+    char expected[] = "M1626,1522Q436,1764 1031,1643Q1626,1522 1626,1522ZM530,1742"
+		      "Q436,1280 436,1280Q436,1280 531,1060Q625,839 784,680"
+		      "Q943,521 1164,427Q1384,332 1626,332Q1868,332 2089,427"
+		      "Q2309,521 2468,680Q2627,839 2722,1060Q2816,1280 2816,1522"
+		      "Q2816,1764 2722,1985Q2627,2205 2468,2364Q2309,2523 2089,2618"
+		      "Q1868,2712 1626,2712Q1384,2712 1164,2618Q943,2523 784,2364"
+		      "Q625,2205 530,1742ZM305,1164Q256,1342 256,1528Q256,1714 306,1892"
+		      "Q355,2069 443,2220Q531,2370 658,2497Q784,2623 935,2711"
+		      "Q1085,2799 1263,2849Q1440,2898 1626,2898Q1812,2898 1990,2849"
+		      "Q2167,2799 2318,2711Q2468,2623 2595,2497Q2721,2370 2809,2220"
+		      "Q2897,2069 2947,1892Q2996,1714 2996,1528Q2996,1342 2947,1165"
+		      "Q2897,987 2809,837Q2721,686 2595,560Q2468,433 2318,345"
+		      "Q2167,257 1990,208Q1812,158 1626,158Q1440,158 1263,208"
+		      "Q1085,257 935,345Q784,433 658,560Q531,686 443,837Q355,987 305,1164Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+}
+#endif
+
+#ifdef HAVE_DIRECTWRITE
 static void
 test_hb_draw_directwrite (void)
 {
   char str[2048];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str)
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
     hb_font_t *font = hb_font_create (face);
@@ -919,39 +924,31 @@ test_hb_draw_directwrite (void)
 }
 #endif
 
-#ifdef HAVE_CORETEXT
+#ifdef HAVE_UNISCRIBE
 static void
-test_hb_draw_coretext (void)
+test_hb_draw_uniscribe (void)
 {
   char str[2048];
-  user_data_t user_data = {
-    .str = str,
-    .size = sizeof (str)
-  };
+  user_data_t user_data = { str, sizeof (str), 0 };
   {
     hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
     hb_font_t *font = hb_font_create (face);
     hb_face_destroy (face);
 
     user_data.consumed = 0;
-    g_assert (hb_coretext_font_draw_glyph (font, 6, funcs, &user_data));
-    puts (str);
-    char expected[] = "M1626,1522Q436,1764 1031,1643Q1626,1522 1626,1522ZM530,1742"
-		      "Q436,1280 436,1280Q436,1280 531,1060Q625,839 784,680"
-		      "Q943,521 1164,427Q1384,332 1626,332Q1868,332 2089,427"
-		      "Q2309,521 2468,680Q2627,839 2722,1060Q2816,1280 2816,1522"
-		      "Q2816,1764 2722,1985Q2627,2205 2468,2364Q2309,2523 2089,2618"
-		      "Q1868,2712 1626,2712Q1384,2712 1164,2618Q943,2523 784,2364"
-		      "Q625,2205 530,1742ZM305,1164Q256,1342 256,1528Q256,1714 306,1892"
-		      "Q355,2069 443,2220Q531,2370 658,2497Q784,2623 935,2711"
-		      "Q1085,2799 1263,2849Q1440,2898 1626,2898Q1812,2898 1990,2849"
-		      "Q2167,2799 2318,2711Q2468,2623 2595,2497Q2721,2370 2809,2220"
-		      "Q2897,2069 2947,1892Q2996,1714 2996,1528Q2996,1342 2947,1165"
-		      "Q2897,987 2809,837Q2721,686 2595,560Q2468,433 2318,345"
-		      "Q2167,257 1990,208Q1812,158 1626,158Q1440,158 1263,208"
-		      "Q1085,257 935,345Q784,433 658,560Q531,686 443,837Q355,987 305,1164Z";
-    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
-
+    g_assert (hb_uniscribe_font_draw_glyph (font, 6, funcs, &user_data));
+    /*char expected[] = "M1626,1522Q1626,1522 1626,1522Q1626,1522 1626,1522ZM436,1522"
+		      "Q436,1280 531,1060Q625,839 784,680Q943,521 1164,427Q1384,332 1626,332"
+		      "Q1868,332 2089,427Q2309,521 2468,680Q2627,839 2722,1060Q2816,1280 2816,1522"
+		      "Q2816,1764 2722,1985Q2627,2205 2468,2364Q2309,2523 2089,2618Q1868,2712 1626,2712"
+		      "Q1384,2712 1164,2618Q943,2523 784,2364Q625,2205 531,1985Q436,1764 436,1522ZM256,1528"
+		      "Q256,1714 306,1892Q355,2069 443,2220Q531,2370 658,2497Q784,2623 935,2711"
+		      "Q1085,2799 1263,2849Q1440,2898 1626,2898Q1812,2898 1990,2849Q2167,2799 2318,2711"
+		      "Q2468,2623 2595,2497Q2721,2370 2809,2220Q2897,2069 2947,1892Q2996,1714 2996,1528"
+		      "Q2996,1342 2947,1165Q2897,987 2809,837Q2721,686 2595,560Q2468,433 2318,345"
+		      "Q2167,257 1990,208Q1812,158 1626,158Q1440,158 1263,208Q1085,257 935,345"
+		      "Q784,433 658,560Q531,686 443,837Q355,987 306,1165Q256,1342 256,1528Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);*/
     hb_font_destroy (font);
   }
 }
@@ -990,11 +987,14 @@ main (int argc, char **argv)
 #ifdef HAVE_FREETYPE
   hb_test_add (test_hb_draw_freetype);
 #endif
+#ifdef HAVE_CORETEXT
+  hb_test_add (test_hb_draw_coretext);
+#endif
 #ifdef HAVE_DIRECTWRITE
   hb_test_add (test_hb_draw_directwrite);
 #endif
-#ifdef HAVE_CORETEXT
-  hb_test_add (test_hb_draw_coretext);
+#ifdef HAVE_UNISCRIBE
+  hb_test_add (test_hb_draw_uniscribe);
 #endif
   unsigned result = hb_test_run ();
 

@@ -40,6 +40,9 @@ hb_uniscribe_font_get_logfontw (hb_font_t *font);
 HB_EXTERN HFONT
 hb_uniscribe_font_get_hfont (hb_font_t *font);
 
+HB_EXTERN hb_bool_t
+hb_uniscribe_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+			      hb_draw_funcs_t *funcs, void *user_data);
 
 HB_END_DECLS
 

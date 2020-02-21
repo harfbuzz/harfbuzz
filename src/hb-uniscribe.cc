@@ -44,6 +44,7 @@
 
 #include "hb-uniscribe.h"
 
+#include "hb-draw.hh"
 #include "hb-open-file.hh"
 #include "hb-ot-name-table.hh"
 #include "hb-ot-layout.h"
@@ -1023,5 +1024,105 @@ retry:
   return true;
 }
 
+
+/**
+ * hb_uniscribe_font_draw_glyph:
+ * @face: a #hb_face_t object
+ *
+ * Fetches a glyph path using GDI's GetGlyphOutlineW.
+ *
+ * Return value: Whether GetGlyphOutlineW result was OK.
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_uniscribe_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+			      hb_draw_funcs_t *funcs, void *user_data)
+{
+  const hb_uniscribe_font_data_t *data = font->data.uniscribe;
+  if (unlikely (!data || !data->hdc || !data->hfont)) return false;
+  SelectObject (data->hdc, data->hfont);
+
+  GLYPHMETRICS gm = {0};
+  MAT2 mat2 = {{0, 1}, {0, 0}, {0, 0}, {0, 1}};
+
+  unsigned flags = GGO_GLYPH_INDEX | GGO_NATIVE;
+  /* trig quad-cubic calls translation provided by GDI */
+  if (!funcs->is_quadratic_to_set) flags |= GGO_BEZIER;
+
+  DWORD buffer_size = GetGlyphOutlineW (data->hdc, glyph, flags, &gm, 0, nullptr, &mat2);
+  if (unlikely (buffer_size == GDI_ERROR)) return false;
+
+  unsigned char *buffer = (unsigned char *) calloc (buffer_size, 1);
+  buffer_size = GetGlyphOutlineW (data->hdc, glyph, flags, &gm, buffer_size, buffer, &mat2);
+  if (unlikely (buffer_size < 0))
+  {
+    free (buffer);
+    return false;
+  }
+
+  unsigned char *ptr = buffer;
+  /* Based on https://github.com/freedesktop/cairo/blob/3a03c1b/src/win32/cairo-win32-font.c#L1690-L1804
+     and https://jeffpar.github.io/kbarchive/kb/243/Q243285/ */
+  while (ptr < buffer + buffer_size)
+  {
+    auto &header = * (const TTPOLYGONHEADER *) ptr;
+    unsigned char *end_poly = ptr + header.cb;
+    ptr += sizeof (TTPOLYGONHEADER);
+#define fixed_to_float(fixed) ((float) fixed.value + fixed.fract / 65536.f)
+    funcs->move_to (font->em_scalef_x (fixed_to_float (header.pfxStart.x)),
+		    font->em_scalef_y (fixed_to_float (header.pfxStart.y)),
+		    user_data);
+
+    while (ptr < end_poly)
+    {
+      auto &curve = * (const TTPOLYCURVE *) ptr;
+      ptr += sizeof (TTPOLYCURVE) + sizeof (POINTFX) * (curve.cpfx - 1);
+      switch (curve.wType)
+      {
+      case TT_PRIM_LINE:
+	for (int i = 0; i < curve.cpfx; ++i)
+	  funcs->line_to (font->em_scalef_x (fixed_to_float (curve.apfx[i].x)),
+			  font->em_scalef_y (fixed_to_float (curve.apfx[i].y)),
+			  user_data);
+	break;
+      case TT_PRIM_QSPLINE:
+	for (int i = 0; i < curve.cpfx - 1; ++i)
+	{
+	  float cx = fixed_to_float (curve.apfx[i].x),
+		cy = fixed_to_float (curve.apfx[i].y), x, y;
+	  if (i + 1 == curve.cpfx - 1)
+	  {
+	    x = fixed_to_float (curve.apfx[i + 1].x);
+	    y = fixed_to_float (curve.apfx[i + 1].y);
+	  }
+	  else
+	  {
+	    x = (cx + fixed_to_float (curve.apfx[i + 1].x)) / 2.f;
+	    y = (cy + fixed_to_float (curve.apfx[i + 1].y)) / 2.f;
+	  }
+	  funcs->quadratic_to (font->em_scalef_x (cx), font->em_scalef_y (cy),
+			       font->em_scalef_x (x), font->em_scalef_y (y),
+			       user_data);
+	}
+	break;
+      case TT_PRIM_CSPLINE:
+	for (int i = 0; i < curve.cpfx - 2; i += 2)
+	  funcs->cubic_to (font->em_scalef_x (fixed_to_float (curve.apfx[i + 0].x)),
+			   font->em_scalef_y (fixed_to_float (curve.apfx[i + 0].y)),
+			   font->em_scalef_x (fixed_to_float (curve.apfx[i + 1].x)),
+			   font->em_scalef_y (fixed_to_float (curve.apfx[i + 1].y)),
+			   font->em_scalef_x (fixed_to_float (curve.apfx[i + 2].x)),
+			   font->em_scalef_y (fixed_to_float (curve.apfx[i + 2].y)),
+			   user_data);
+#undef fixed_to_float
+	break;
+      }
+    }
+    funcs->close_path (user_data);
+  }
+
+  free (buffer);
+  return true;
+}
 
 #endif

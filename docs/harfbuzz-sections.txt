@@ -773,6 +773,7 @@ hb_unicode_script_func_t
 
 <SECTION>
 <FILE>hb-uniscribe</FILE>
+hb_uniscribe_font_draw_glyph
 hb_uniscribe_font_get_hfont
 hb_uniscribe_font_get_logfontw
 </SECTION>
