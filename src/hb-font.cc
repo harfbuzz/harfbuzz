@@ -472,6 +472,27 @@ hb_font_get_glyph_from_name_default (hb_font_t *font,
   return font->parent->get_glyph_from_name (name, len, glyph);
 }
 
+static hb_bool_t
+hb_font_get_draw_glyph_nil (hb_font_t *font HB_UNUSED,
+			    void *font_data HB_UNUSED,
+			    hb_codepoint_t glyph HB_UNUSED,
+			    const hb_draw_funcs_t *funcs HB_UNUSED,
+			    void *call_user_data HB_UNUSED,
+			    void *user_data HB_UNUSED)
+{
+  return false;
+}
+static hb_bool_t
+hb_font_get_draw_glyph_default (hb_font_t *font,
+				void *font_data HB_UNUSED,
+				hb_codepoint_t glyph,
+				const hb_draw_funcs_t *funcs,
+				void *call_user_data,
+				void *user_data HB_UNUSED)
+{
+  return font->parent->draw_glyph (glyph, funcs, call_user_data);
+}
+
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
 {
   HB_OBJECT_HEADER_STATIC,
@@ -1313,6 +1334,25 @@ hb_font_glyph_from_string (hb_font_t *font,
   return font->glyph_from_string (s, len, glyph);
 }
 
+/**
+ * hb_font_draw_glyph:
+ * @font: a font object
+ * @glyph: a glyph id
+ * @funcs: draw callbacks object
+ * @user_data: parameter you like be passed to the callbacks when are called
+ *
+ * Draw a glyph.
+ *
+ * Returns: Whether the font had the glyph and the operation completed successfully.
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+		    const hb_draw_funcs_t *funcs,
+		    void *user_data)
+{
+  return font->draw_glyph (glyph, funcs, user_data);
+}
 
 /*
  * hb_font_t

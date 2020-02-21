@@ -57,6 +57,7 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
   HB_FONT_FUNC_IMPLEMENT (glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
+  HB_FONT_FUNC_IMPLEMENT (draw_glyph) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t
@@ -367,6 +368,14 @@ struct hb_font_t
 					 name, len,
 					 glyph,
 					 klass->user_data.glyph_from_name);
+  }
+
+  hb_bool_t draw_glyph (hb_codepoint_t glyph, const hb_draw_funcs_t *funcs,
+			void *call_user_data)
+  {
+
+    return klass->get.f.draw_glyph (this, user_data, glyph, funcs, call_user_data,
+				    klass->user_data.draw_glyph);
   }
 
 

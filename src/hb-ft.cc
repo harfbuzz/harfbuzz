@@ -33,6 +33,7 @@
 
 #include "hb-ft.h"
 
+#include "hb-draw.hh"
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 #include "hb-cache.hh"
@@ -528,6 +529,92 @@ hb_ft_get_glyph_from_name (hb_font_t *font HB_UNUSED,
   return *glyph != 0;
 }
 
+struct _ft_draw_user_data
+{
+  const hb_draw_funcs_t *funcs;
+  void *user_data;
+  bool is_open;
+};
+
+static int
+_ft_move_to (const FT_Vector *to, _ft_draw_user_data *user_data)
+{
+  if (user_data->is_open) user_data->funcs->close_path (user_data->user_data);
+  user_data->funcs->move_to (round (to->x), round (to->y), user_data->user_data);
+  return FT_Err_Ok;
+}
+
+static int
+_ft_line_to (const FT_Vector *to, _ft_draw_user_data *user_data)
+{
+  user_data->is_open = true;
+  user_data->funcs->line_to (round (to->x), round (to->y), user_data->user_data);
+  return FT_Err_Ok;
+}
+
+static int
+_ft_conic_to (const FT_Vector *control, const FT_Vector *to, _ft_draw_user_data *user_data)
+{
+  user_data->is_open = true;
+  user_data->funcs->quadratic_to (round (control->x), round (control->y),
+				  round (to->x), round (to->y), user_data->user_data);
+  return FT_Err_Ok;
+}
+
+static int
+_ft_cubic_to (const FT_Vector *control1, const FT_Vector *control2, const FT_Vector *to, _ft_draw_user_data *user_data)
+{
+  user_data->is_open = true;
+  user_data->funcs->cubic_to (round (control1->x), round (control1->y),
+			      round (control2->x), round (control2->y),
+			      round (to->x), round (to->y),
+			      user_data->user_data);
+  return FT_Err_Ok;
+}
+
+static hb_bool_t
+hb_ft_draw_glyph (hb_font_t *font HB_UNUSED,
+		  void *font_data,
+		  hb_codepoint_t glyph,
+		  const hb_draw_funcs_t *funcs,
+		  void *call_user_data,
+		  void *user_data HB_UNUSED)
+{
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
+
+  if (unlikely (FT_Load_Glyph (ft_font->ft_face, glyph,
+			       FT_LOAD_NO_BITMAP | ft_font->load_flags)))
+    return false;
+
+  if (ft_font->ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE)
+    return false;
+
+  const FT_Outline_Funcs outline_funcs = {
+    (FT_Outline_MoveToFunc) _ft_move_to,
+    (FT_Outline_LineToFunc) _ft_line_to,
+    (FT_Outline_ConicToFunc) _ft_conic_to,
+    (FT_Outline_CubicToFunc) _ft_cubic_to,
+    0, /* shift */
+    0, /* delta */
+  };
+
+  _ft_draw_user_data ft_user_data = {
+    funcs,
+    call_user_data,
+    false
+  };
+
+  if (unlikely (FT_Outline_Decompose (&ft_font->ft_face->glyph->outline,
+				      &outline_funcs, &ft_user_data)))
+    return false;
+
+  if (ft_user_data.is_open)
+    funcs->close_path (call_user_data);
+
+  return true;
+}
+
 static hb_bool_t
 hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
 			  void *font_data,
@@ -576,6 +663,7 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
     hb_font_funcs_set_glyph_contour_point_func (funcs, hb_ft_get_glyph_contour_point, nullptr, nullptr);
     hb_font_funcs_set_glyph_name_func (funcs, hb_ft_get_glyph_name, nullptr, nullptr);
     hb_font_funcs_set_glyph_from_name_func (funcs, hb_ft_get_glyph_from_name, nullptr, nullptr);
+    hb_font_funcs_set_draw_glyph_func (funcs, hb_ft_draw_glyph, nullptr, nullptr);
 
     hb_font_funcs_make_immutable (funcs);
 

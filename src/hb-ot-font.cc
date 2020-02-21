@@ -231,6 +231,29 @@ hb_ot_get_glyph_from_name (hb_font_t *font HB_UNUSED,
 }
 #endif
 
+#ifndef HB_NO_DRAW
+static hb_bool_t
+hb_ot_draw_glyph (hb_font_t *font, void *font_data HB_UNUSED,
+		  hb_codepoint_t glyph,
+		  const hb_draw_funcs_t *funcs,
+		  void *call_user_data,
+		  void *user_data HB_UNUSED)
+{
+  if (unlikely (funcs == &Null (hb_draw_funcs_t) ||
+		glyph >= font->face->get_num_glyphs ()))
+    return false;
+
+  draw_helper_t draw_helper (funcs, user_data);
+  if (font->face->table.glyf->get_path (font, glyph, draw_helper)) return true;
+#ifndef HB_NO_CFF
+  if (font->face->table.cff1->get_path (font, glyph, draw_helper)) return true;
+  if (font->face->table.cff2->get_path (font, glyph, draw_helper)) return true;
+#endif
+
+  return false;
+}
+#endif
+
 static hb_bool_t
 hb_ot_get_font_h_extents (hb_font_t *font,
 			  void *font_data HB_UNUSED,
@@ -277,6 +300,9 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 #ifndef HB_NO_OT_FONT_GLYPH_NAMES
     hb_font_funcs_set_glyph_name_func (funcs, hb_ot_get_glyph_name, nullptr, nullptr);
     hb_font_funcs_set_glyph_from_name_func (funcs, hb_ot_get_glyph_from_name, nullptr, nullptr);
+#endif
+#ifndef HB_NO_DRAW
+    hb_font_funcs_set_draw_glyph_func (funcs, hb_ot_draw_glyph, nullptr, nullptr);
 #endif
 
     hb_font_funcs_make_immutable (funcs);

@@ -34,7 +34,6 @@ TEST_PROGS = \
 	test-buffer \
 	test-collect-unicodes \
 	test-common \
-	test-draw \
 	test-font \
 	test-map \
 	test-object \
@@ -65,6 +64,13 @@ TEST_PROGS = \
 	test-version \
 	test-subset-nameids \
 	$(NULL)
+
+TEST_PROGS += test-draw
+test_draw_SOURCES = test-draw.c
+if HAVE_FREETYPE
+test_draw_CFLAGS = $(CFLAGS) $(FREETYPE_CFLAGS)
+test_draw_LDADD = $(LDADD) $(FREETYPE_LIBS)
+endif
 
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la

@@ -25,6 +25,9 @@
 #include "hb-test.h"
 
 #include <hb.h>
+#ifdef HAVE_FREETYPE
+#include <hb-ft.h>
+#endif
 
 typedef struct user_data_t
 {
@@ -898,6 +901,44 @@ test_hb_draw_immutable (void)
   hb_draw_funcs_destroy (draw_funcs);
 }
 
+#ifdef HAVE_FREETYPE
+static void
+test_hb_draw_freetype (void)
+{
+  char str[2048];
+  user_data_t user_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_ft_font_set_funcs (font);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 6, funcs, &user_data));
+    char expected[] = "M1626,1522Q1626,1522 1626,1522Q1626,1522 1626,1522Z"
+		      "M530,1984Q436,1764 436,1522Q436,1280 530,1059Q625,839 784,680"
+		      "Q943,521 1163,426Q1384,332 1626,332Q1868,332 2088,426"
+		      "Q2309,521 2468,680Q2627,839 2721,1059Q2816,1280 2816,1522"
+		      "Q2816,1764 2721,1984Q2627,2205 2468,2364Q2309,2523 2088,2617"
+		      "Q1868,2712 1626,2712Q1384,2712 1163,2617Q943,2523 784,2364"
+		      "Q625,2205 530,1984ZM305,1164Q256,1342 256,1528Q256,1714 305,1891"
+		      "Q355,2069 443,2219Q531,2370 657,2496Q784,2623 934,2711"
+		      "Q1085,2799 1262,2848Q1440,2898 1626,2898Q1812,2898 1989,2848"
+		      "Q2167,2799 2317,2711Q2468,2623 2594,2496Q2721,2370 2809,2219"
+		      "Q2897,2069 2946,1891Q2996,1714 2996,1528Q2996,1342 2946,1164"
+		      "Q2897,987 2809,836Q2721,686 2594,559Q2468,433 2317,345"
+		      "Q2167,257 1989,207Q1812,158 1626,158Q1440,158 1262,207"
+		      "Q1085,257 934,345Q784,433 657,559Q531,686 443,836Q355,987 305,1164Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -929,6 +970,9 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_estedad_vf);
   hb_test_add (test_hb_draw_stroking);
   hb_test_add (test_hb_draw_immutable);
+#ifdef HAVE_FREETYPE
+  hb_test_add (test_hb_draw_freetype);
+#endif
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);
