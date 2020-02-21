@@ -473,22 +473,22 @@ hb_font_get_glyph_from_name_default (hb_font_t *font,
 }
 
 static hb_bool_t
-hb_font_get_draw_glyph_nil (hb_font_t *font HB_UNUSED,
-			    void *font_data HB_UNUSED,
-			    hb_codepoint_t glyph HB_UNUSED,
-			    const hb_draw_funcs_t *funcs HB_UNUSED,
-			    void *call_user_data HB_UNUSED,
-			    void *user_data HB_UNUSED)
+hb_font_draw_glyph_nil (hb_font_t *font HB_UNUSED,
+			void *font_data HB_UNUSED,
+			hb_codepoint_t glyph HB_UNUSED,
+			const hb_draw_funcs_t *funcs HB_UNUSED,
+			void *call_user_data HB_UNUSED,
+			void *user_data HB_UNUSED)
 {
   return false;
 }
 static hb_bool_t
-hb_font_get_draw_glyph_default (hb_font_t *font,
-				void *font_data HB_UNUSED,
-				hb_codepoint_t glyph,
-				const hb_draw_funcs_t *funcs,
-				void *call_user_data,
-				void *user_data HB_UNUSED)
+hb_font_draw_glyph_default (hb_font_t *font,
+			    void *font_data HB_UNUSED,
+			    hb_codepoint_t glyph,
+			    const hb_draw_funcs_t *funcs,
+			    void *call_user_data,
+			    void *user_data HB_UNUSED)
 {
   return font->parent->draw_glyph (glyph, funcs, call_user_data);
 }
@@ -501,17 +501,20 @@ DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
 #define HB_FONT_FUNC_IMPLEMENT(name) nullptr,
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+    nullptr,
   },
   {
 #define HB_FONT_FUNC_IMPLEMENT(name) nullptr,
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+    nullptr,
   },
   {
     {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_nil,
       HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+      hb_font_draw_glyph_nil,
     }
   }
 };
@@ -523,17 +526,20 @@ static const hb_font_funcs_t _hb_font_funcs_default = {
 #define HB_FONT_FUNC_IMPLEMENT(name) nullptr,
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+    nullptr,
   },
   {
 #define HB_FONT_FUNC_IMPLEMENT(name) nullptr,
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+    nullptr,
   },
   {
     {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_default,
       HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+      hb_font_draw_glyph_default,
     }
   }
 };
@@ -609,6 +615,8 @@ hb_font_funcs_destroy (hb_font_funcs_t *ffuncs)
   ffuncs->destroy.name (ffuncs->user_data.name);
   HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+  if (ffuncs->destroy.draw_glyph)
+    ffuncs->destroy.draw_glyph (ffuncs->user_data.draw_glyph);
 
   free (ffuncs);
 }
@@ -721,6 +729,33 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
 
 HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+
+void
+hb_font_funcs_set_draw_glyph_func (hb_font_funcs_t           *ffuncs,
+				   hb_font_draw_glyph_func_t  func,
+				   void                      *user_data,
+				   hb_destroy_func_t          destroy)
+{
+  if (hb_object_is_immutable (ffuncs))
+  {
+    if (destroy)
+      destroy (user_data);
+    return;
+  }
+
+  if (ffuncs->destroy.draw_glyph)
+    ffuncs->destroy.draw_glyph (ffuncs->user_data.draw_glyph);
+
+  if (func) {
+    ffuncs->get.f.draw_glyph = func;
+    ffuncs->user_data.draw_glyph = user_data;
+    ffuncs->destroy.draw_glyph = destroy;
+  } else {
+    ffuncs->get.f.draw_glyph = hb_font_draw_glyph_default;
+    ffuncs->user_data.draw_glyph = nullptr;
+    ffuncs->destroy.draw_glyph = nullptr;
+  }
+}
 
 bool
 hb_font_t::has_func_set (unsigned int i)

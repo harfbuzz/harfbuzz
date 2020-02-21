@@ -243,7 +243,7 @@ hb_ot_draw_glyph (hb_font_t *font, void *font_data HB_UNUSED,
 		glyph >= font->face->get_num_glyphs ()))
     return false;
 
-  draw_helper_t draw_helper (funcs, user_data);
+  draw_helper_t draw_helper (funcs, call_user_data);
   if (font->face->table.glyf->get_path (font, glyph, draw_helper)) return true;
 #ifndef HB_NO_CFF
   if (font->face->table.cff1->get_path (font, glyph, draw_helper)) return true;

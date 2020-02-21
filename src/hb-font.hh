@@ -57,7 +57,6 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
   HB_FONT_FUNC_IMPLEMENT (glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
-  HB_FONT_FUNC_IMPLEMENT (draw_glyph) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t
@@ -68,12 +67,14 @@ struct hb_font_funcs_t
 #define HB_FONT_FUNC_IMPLEMENT(name) void *name;
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+    void *draw_glyph;
   } user_data;
 
   struct {
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_destroy_func_t name;
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+    hb_destroy_func_t draw_glyph;
   } destroy;
 
   /* Don't access these directly.  Call font->get_*() instead. */
@@ -82,11 +83,13 @@ struct hb_font_funcs_t
 #define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_func_t name;
       HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+      hb_font_draw_glyph_func_t draw_glyph;
     } f;
     void (*array[0
 #define HB_FONT_FUNC_IMPLEMENT(name) +1
       HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+	+1 /* for draw_glyph */
 		]) ();
   } get;
 };
@@ -195,6 +198,22 @@ struct hb_font_t
   }
   HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
+
+
+  bool
+  has_draw_glyph_func ()
+  {
+    hb_font_funcs_t *funcs = this->klass;
+    unsigned int i = offsetof (hb_font_funcs_t::get_t::get_funcs_t, draw_glyph) / sizeof (funcs->get.array[0]);
+    return has_func (i);
+  }
+  bool
+  has_draw_glyph_func_set ()
+  {
+    hb_font_funcs_t *funcs = this->klass;
+    unsigned int i = offsetof (hb_font_funcs_t::get_t::get_funcs_t, draw_glyph) / sizeof (funcs->get.array[0]);
+    return has_func_set (i);
+  }
 
   hb_bool_t get_font_h_extents (hb_font_extents_t *extents)
   {
