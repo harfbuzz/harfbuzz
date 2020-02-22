@@ -1001,23 +1001,23 @@ public:
   IFACEMETHOD_(ULONG, AddRef) () { return 1; }
   IFACEMETHOD_(ULONG, Release)() { return 1; }
 
+  void STDMETHODCALLTYPE BeginFigure (D2D1_POINT_2F startPoint, D2D1_FIGURE_BEGIN figureBegin)
+  { funcs->move_to (font->em_scalef_x (startPoint.x), -font->em_scalef_y (startPoint.y), user_data); }
+
   void STDMETHODCALLTYPE AddBeziers (_In_ const D2D1_BEZIER_SEGMENT *beziers, unsigned int beziersCount)
   {
     for (unsigned i = 0; i < beziersCount; ++i)
-      funcs->cubic_to (font->em_scalef_x (beziers[i].point1.x), font->em_scalef_y (beziers[i].point1.y),
-		       font->em_scalef_x (beziers[i].point2.x), font->em_scalef_y (beziers[i].point2.y),
-		       font->em_scalef_x (beziers[i].point3.x), font->em_scalef_y (beziers[i].point3.y),
+      funcs->cubic_to (font->em_scalef_x (beziers[i].point1.x), -font->em_scalef_y (beziers[i].point1.y),
+		       font->em_scalef_x (beziers[i].point2.x), -font->em_scalef_y (beziers[i].point2.y),
+		       font->em_scalef_x (beziers[i].point3.x), -font->em_scalef_y (beziers[i].point3.y),
 		       user_data);
   }
 
   void STDMETHODCALLTYPE AddLines (_In_ const D2D1_POINT_2F *points, unsigned int pointsCount)
   {
     for (unsigned i = 0; i < pointsCount; ++i)
-      funcs->line_to (font->em_scalef_x (points[i].x), font->em_scalef_y (points[i].y), user_data);
+      funcs->line_to (font->em_scalef_x (points[i].x), -font->em_scalef_y (points[i].y), user_data);
   }
-
-  void STDMETHODCALLTYPE BeginFigure (D2D1_POINT_2F startPoint, D2D1_FIGURE_BEGIN figureBegin)
-  { funcs->line_to (font->em_scalef_x (startPoint.x), font->em_scalef_y (startPoint.y), user_data); }
 
   void STDMETHODCALLTYPE EndFigure (D2D1_FIGURE_END figureEnd)
   { funcs->close_path (user_data); }
@@ -1043,8 +1043,9 @@ hb_directwrite_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
 
   uint16_t gid = glyph;
   GeometrySink *sink = new GeometrySink (font, funcs, user_data);
-  HRESULT hr = fontFace->GetGlyphRunOutline (font->face->get_upem (),
-					     &gid, 0, 0, 1, false, false, sink);
+  int fontEmSize = font->face->get_upem ();
+  if (fontEmSize < 0) fontEmSize = -fontEmSize;
+  HRESULT hr = fontFace->GetGlyphRunOutline (fontEmSize, &gid, 0, 0, 1, false, false, sink);
   delete sink;
   return hr == S_OK;
 }
