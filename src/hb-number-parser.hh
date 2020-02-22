@@ -128,8 +128,8 @@ strtod_rl (const char *buf, char **end_ptr)
   double frac_count = 0;
   unsigned int exp = 0;
   bool neg = false, exp_neg = false, exp_overflow = false;
-  const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 1^52-1 */
-  const unsigned int MAX_EXP = 0x7FFu; /* 1^11-1 */
+  const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
+  const unsigned int MAX_EXP = 0x7FFu; /* 2^11-1 */
   p = buf;
   pe = p + strlen (p);
 
