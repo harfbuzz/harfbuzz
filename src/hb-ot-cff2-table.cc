@@ -161,6 +161,8 @@ struct cff2_path_param_t
   void start_path ()
   {
     path_open = true;
+    funcs->move_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y),
+		    user_data);
   }
   bool is_path_open () const { return path_open; }
 
@@ -168,8 +170,6 @@ struct cff2_path_param_t
   {
     path_last_x = path_start_x = p.x.to_real ();
     path_last_y = path_start_y = p.y.to_real ();
-    funcs->move_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y),
-		    user_data);
   }
 
   void line_to (const point_t &p)
@@ -211,9 +211,6 @@ struct cff2_path_param_t
   hb_font_t *font;
   const hb_draw_funcs_t *funcs;
   void *user_data;
-  point_t *delta;
-
-  const OT::cff2::accelerator_t *cff;
 };
 
 struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_interp_env_t, cff2_path_param_t>

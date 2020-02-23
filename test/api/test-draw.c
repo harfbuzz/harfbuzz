@@ -243,7 +243,6 @@ test_hb_draw_cff1 (void)
     .consumed = 0
   };
   g_assert (hb_font_draw_glyph (font, 3, funcs, &user_data));
-  puts (str);
   char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367L369,267L172,267L203,367Z"
 		    "M3,0L88,0L151,200L390,200L452,0L541,0L319,656L225,656L3,0Z"
 		    "M300,653L342,694L201,861L143,806L300,653Z";
@@ -763,6 +762,7 @@ test_hb_draw_stroking (void)
     .size = sizeof (str)
   };
   {
+    /* See https://github.com/google/skia/blob/d38f00a1/gm/stroketext.cpp#L115-L124 */
     hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.ttf");
     hb_font_t *font = hb_font_create (face);
     hb_face_destroy (face);
@@ -798,6 +798,30 @@ test_hb_draw_stroking (void)
 		       "Q1812,158 1626,158Q1440,158 1263,208Q1085,257 935,345"
 		       "Q784,433 658,560Q531,686 443,837Q355,987 306,1165"
 		       "Q256,1342 256,1528Z";
+    g_assert_cmpmem (str, user_data.consumed, expected2, sizeof (expected2) - 1);
+
+    hb_font_destroy (font);
+  }
+  {
+    /* https://github.com/google/skia/blob/d38f00a1/gm/stroketext.cpp#L131-L138 */
+    hb_face_t *face = hb_test_open_font_file ("fonts/Stroking.otf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 4, funcs, &user_data));
+    char expected[] = "M397,372L397,372Z" /* TODO: Do we like to fold this path? */
+		      "M106,372C106,532 237,662 397,662C557,662 688,532 688,372C688,212 557,81 397,81C237,81 106,212 106,372Z"
+		      "M62,373C62,188 212,39 397,39C582,39 731,188 731,373C731,558 582,708 397,708C212,708 62,558 62,373Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 5, funcs, &user_data));
+    /* Fold consequent move-to commands */
+    char expected2[] = "M106,372C106,532 237,662 397,662C557,662 688,532 688,372"
+		       "C688,212 557,81 397,81C237,81 106,212 106,372ZM62,373"
+		       "C62,188 212,39 397,39C582,39 731,188 731,373"
+		       "C731,558 582,708 397,708C212,708 62,558 62,373Z";
     g_assert_cmpmem (str, user_data.consumed, expected2, sizeof (expected2) - 1);
 
     hb_font_destroy (font);

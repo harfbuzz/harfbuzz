@@ -365,6 +365,8 @@ struct cff1_path_param_t
   void start_path ()
   {
     path_open = true;
+    funcs->move_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y),
+		    user_data);
   }
   bool is_path_open () const { return path_open; }
 
@@ -374,8 +376,6 @@ struct cff1_path_param_t
     if (delta) point.move (*delta);
     path_last_x = path_start_x = point.x.to_real ();
     path_last_y = path_start_y = point.y.to_real ();
-    funcs->move_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y),
-		    user_data);
   }
 
   void line_to (const point_t &p)
