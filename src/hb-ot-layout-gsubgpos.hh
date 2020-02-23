@@ -114,6 +114,7 @@ struct hb_closure_context_t :
 
   void flush ()
   {
+    hb_set_del_range (output, face->get_num_glyphs (), hb_set_get_max (output));	/* Remove invalid glyphs. */
     hb_set_union (glyphs, output);
     hb_set_clear (output);
   }
