@@ -151,16 +151,24 @@ struct cff2_path_param_t
     font = font_;
     funcs = funcs_;
     user_data = user_data_;
+    path_start_x = 0;
+    path_start_y = 0;
+    path_last_x = 0;
+    path_last_y = 0;
   }
   ~cff2_path_param_t () { end_path (); }
 
-  void   start_path ()       { path_open = true; }
-  void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
+  void start_path ()
+  {
+    path_open = true;
+  }
   bool is_path_open () const { return path_open; }
 
   void move_to (const point_t &p)
   {
-    funcs->move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
+    path_last_x = path_start_x = p.x.to_real ();
+    path_last_y = path_start_y = p.y.to_real ();
+    funcs->move_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y),
 		    user_data);
   }
 
@@ -168,6 +176,8 @@ struct cff2_path_param_t
   {
     funcs->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
 		    user_data);
+    path_last_x = p.x.to_real ();
+    path_last_y = p.y.to_real ();
   }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
@@ -176,12 +186,34 @@ struct cff2_path_param_t
 		     font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
 		     font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()),
 		     user_data);
+    path_last_x = p3.x.to_real ();
+    path_last_y = p3.y.to_real ();
   }
 
-  bool  path_open;
+  void end_path ()
+  {
+    if (path_open)
+    {
+      if ((path_start_x != path_last_x) || (path_start_y != path_last_y))
+	funcs->line_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y), user_data);
+      funcs->close_path (user_data);
+    }
+    path_open = false;
+  }
+
+  double path_start_x;
+  double path_start_y;
+
+  double path_last_x;
+  double path_last_y;
+
+  bool path_open;
   hb_font_t *font;
   const hb_draw_funcs_t *funcs;
   void *user_data;
+  point_t *delta;
+
+  const OT::cff2::accelerator_t *cff;
 };
 
 struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_interp_env_t, cff2_path_param_t>
