@@ -243,9 +243,10 @@ test_hb_draw_cff1 (void)
     .consumed = 0
   };
   g_assert (hb_font_draw_glyph (font, 3, funcs, &user_data));
-  char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367L369,267L172,267Z"
-		    "M3,0L88,0L151,200L390,200L452,0L541,0L319,656L225,656Z"
-		    "M300,653L342,694L201,861L143,806Z";
+  puts (str);
+  char expected[] = "M203,367C227,440 248,512 268,588L272,588C293,512 314,440 338,367L369,267L172,267L203,367Z"
+		    "M3,0L88,0L151,200L390,200L452,0L541,0L319,656L225,656L3,0Z"
+		    "M300,653L342,694L201,861L143,806L300,653Z";
   g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
   hb_font_destroy (font);
@@ -394,8 +395,9 @@ test_hb_draw_ttf_parser_tests (void)
 
     user_data.consumed = 0;
     g_assert (hb_font_draw_glyph (font, 1, funcs, &user_data));
-    char expected[] = "M82,0L164,0L164,486L82,486ZM124,586C156,586 181,608 181,639"
-		      "C181,671 156,692 124,692C92,692 67,671 67,639C67,608 92,586 124,586Z";
+    char expected[] = "M82,0L164,0L164,486L82,486L82,0Z"
+		      "M124,586C156,586 181,608 181,639C181,671 156,692 124,692"
+		      "C92,692 67,671 67,639C67,608 92,586 124,586Z";
     g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
     hb_font_destroy (font);
@@ -492,8 +494,8 @@ test_hb_draw_font_kit_glyphs_tests (void)
 
     user_data.consumed = 0;
     g_assert (hb_font_draw_glyph (font, 5, funcs, &user_data));
-    char expected[] = "M90,0L258,0C456,0 564,122 564,331C564,539 456,656 254,656L90,656ZM173,68"
-		      "L173,588L248,588C401,588 478,496 478,331C478,165 401,68 248,68Z";
+    char expected[] = "M90,0L258,0C456,0 564,122 564,331C564,539 456,656 254,656L90,656L90,0Z"
+		      "M173,68L173,588L248,588C401,588 478,496 478,331C478,165 401,68 248,68L173,68Z";
     g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
     hb_font_destroy (font);

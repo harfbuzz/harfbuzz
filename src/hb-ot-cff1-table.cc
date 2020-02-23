@@ -355,18 +355,26 @@ struct cff1_path_param_t
     funcs = funcs_;
     user_data = user_data_;
     delta = delta_;
+    path_start_x = 0;
+    path_start_y = 0;
+    path_last_x = 0;
+    path_last_y = 0;
   }
   ~cff1_path_param_t () { end_path (); }
 
-  void   start_path ()       { path_open = true; }
-  void     end_path ()       { if (path_open) funcs->close_path (user_data); path_open = false; }
+  void start_path ()
+  {
+    path_open = true;
+  }
   bool is_path_open () const { return path_open; }
 
   void move_to (const point_t &p)
   {
     point_t point = p;
     if (delta) point.move (*delta);
-    funcs->move_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()),
+    path_last_x = path_start_x = point.x.to_real ();
+    path_last_y = path_start_y = point.y.to_real ();
+    funcs->move_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y),
 		    user_data);
   }
 
@@ -376,6 +384,8 @@ struct cff1_path_param_t
     if (delta) point.move (*delta);
     funcs->line_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()),
 		    user_data);
+    path_last_x = point.x.to_real ();
+    path_last_y = point.y.to_real ();
   }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
@@ -391,7 +401,26 @@ struct cff1_path_param_t
 		     font->em_scalef_x (point2.x.to_real ()), font->em_scalef_y (point2.y.to_real ()),
 		     font->em_scalef_x (point3.x.to_real ()), font->em_scalef_y (point3.y.to_real ()),
 		     user_data);
+    path_last_x = point3.x.to_real ();
+    path_last_y = point3.y.to_real ();
   }
+
+  void end_path ()
+  {
+    if (path_open)
+    {
+      if ((path_start_x != path_last_x) || (path_start_y != path_last_y))
+	funcs->line_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y), user_data);
+      funcs->close_path (user_data);
+    }
+    path_open = false;
+  }
+
+  double path_start_x;
+  double path_start_y;
+
+  double path_last_x;
+  double path_last_y;
 
   bool path_open;
   hb_font_t *font;
