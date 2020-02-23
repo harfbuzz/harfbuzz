@@ -10,15 +10,10 @@ This function should be used as the ``preprocess_text`` of an
 """
 
 import collections
-try:
-	from HTMLParser import HTMLParser
-	def write (s):
-		print (s.encode ('utf-8'), end='')
-except ImportError:
-	from html.parser import HTMLParser
-	def write (s):
-		sys.stdout.flush ()
-		sys.stdout.buffer.write (s.encode ('utf-8'))
+from html.parser import HTMLParser
+def write (s):
+	sys.stdout.flush ()
+	sys.stdout.buffer.write (s.encode ('utf-8'))
 import itertools
 import io
 import sys

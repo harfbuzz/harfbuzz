@@ -19,15 +19,10 @@ case, the fallback behavior will choose the right tag anyway.
 """
 
 import collections
-try:
-	from HTMLParser import HTMLParser
-	def write (s):
-		print (s.encode ('utf-8'), end='')
-except ImportError:
-	from html.parser import HTMLParser
-	def write (s):
-		sys.stdout.flush ()
-		sys.stdout.buffer.write (s.encode ('utf-8'))
+from html.parser import HTMLParser
+def write (s):
+	sys.stdout.flush ()
+	sys.stdout.buffer.write (s.encode ('utf-8'))
 import io
 import itertools
 import re
@@ -42,13 +37,9 @@ Input files, as of Unicode 12:
 * https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry''', file=sys.stderr)
 	sys.exit (1)
 
-try:
-	from html import unescape
-	def html_unescape (parser, entity):
-		return unescape (entity)
-except ImportError:
-	def html_unescape (parser, entity):
-		return parser.unescape (entity)
+from html import unescape
+def html_unescape (parser, entity):
+	return unescape (entity)
 
 def expect (condition, message=None):
 	if not condition:

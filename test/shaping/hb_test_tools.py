@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, os, re, difflib, unicodedata, errno, cgi
+import sys, os, re, difflib, unicodedata, errno, cgi, itertools
 from itertools import *
 try:
 	import unicodedata2 as unicodedata
@@ -139,7 +139,7 @@ class ZipDiffer:
 	def diff_files (files, symbols=diff_symbols):
 		files = tuple (files) # in case it's a generator, copy it
 		try:
-			for lines in izip_longest (*files):
+			for lines in itertools.zip_longest (*files):
 				if all (lines[0] == line for line in lines[1:]):
 					sys.stdout.writelines ([" ", lines[0]])
 					continue
@@ -433,7 +433,7 @@ class Unicode:
 		s = re.sub (r"[<+>\\uU]", " ", s)
 		s = re.sub (r"0[xX]", " ", s)
 		s = [chr (int (x, 16)) for x in re.split ('[, \n]', s) if len (x)]
-		return ' + '.join (Unicode.pretty_name (x) for x in s).encode ('utf-8')
+		return ' + '.join (Unicode.pretty_name (x) for x in s)
 
 
 class FileHelpers:
