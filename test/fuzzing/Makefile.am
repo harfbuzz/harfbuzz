@@ -64,6 +64,15 @@ hb_set_fuzzer_LDADD = $(top_builddir)/src/libharfbuzz.la
 hb_set_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
 hb_set_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz.la
 
+hb_draw_fuzzer_SOURCES = \
+	hb-fuzzer.hh \
+	hb-draw-fuzzer.cc \
+	main.cc \
+	$(NULL)
+hb_draw_fuzzer_LDADD = $(top_builddir)/src/libharfbuzz.la
+hb_draw_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
+hb_draw_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz.la
+
 
 check:
 	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" LIBTOOL="$(LIBTOOL)" $(srcdir)/run-shape-fuzzer-tests.py
