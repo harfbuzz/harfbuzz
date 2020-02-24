@@ -370,6 +370,8 @@ struct GlyphVarData
     return true;
   }
 
+  bool has_data () const { return tupleVarCount; }
+
   protected:
   TupleVarCount		tupleVarCount;
   OffsetTo<HBUINT8>	data;
@@ -455,7 +457,7 @@ struct gvar
       else
 	((HBUINT16 *) subset_offsets)[gid] = glyph_offset / 2;
 
-      if (length > 0) memcpy (subset_data, get_glyph_var_data (old_gid), length);
+      if (length > 0) memcpy (subset_data, &get_glyph_var_data (old_gid), length);
       subset_data += length;
       glyph_offset += length;
     }
@@ -468,7 +470,7 @@ struct gvar
   }
 
   protected:
-  const GlyphVarData *get_glyph_var_data (hb_codepoint_t glyph) const
+  const GlyphVarData &get_glyph_var_data (hb_codepoint_t glyph) const
   {
     unsigned int start_offset = get_offset (glyph);
     unsigned int end_offset = get_offset (glyph+1);
@@ -476,8 +478,8 @@ struct gvar
     if ((start_offset == end_offset) ||
 	unlikely ((start_offset > get_offset (glyphCount)) ||
 		  (start_offset + GlyphVarData::min_size > end_offset)))
-      return &Null (GlyphVarData);
-    return &(((unsigned char *) this + start_offset) + dataZ);
+      return Null (GlyphVarData);
+    return (((unsigned char *) this + start_offset) + dataZ);
   }
 
   bool is_long_offset () const { return (flags & 1) != 0; }
@@ -566,11 +568,11 @@ struct gvar
       coord_count = hb_min (coord_count, gvar_table->axisCount);
       if (!coord_count || coord_count != gvar_table->axisCount) return true;
 
-      const GlyphVarData *var_data = gvar_table->get_glyph_var_data (glyph);
-      if (var_data == &Null (GlyphVarData)) return true;
+      const GlyphVarData &var_data = gvar_table->get_glyph_var_data (glyph);
+      if (!var_data.has_data ()) return true;
       hb_vector_t<unsigned int> shared_indices;
       GlyphVarData::tuple_iterator_t iterator;
-      if (!GlyphVarData::get_tuple_iterator (var_data,
+      if (!GlyphVarData::get_tuple_iterator (&var_data,
 					     gvar_table->get_glyph_var_data_length (glyph),
 					     gvar_table->axisCount,
 					     shared_indices,
@@ -688,7 +690,7 @@ no_more_gaps:
     unsigned int get_axis_count () const { return gvar_table->axisCount; }
 
     protected:
-    const GlyphVarData *get_glyph_var_data (hb_codepoint_t glyph) const
+    const GlyphVarData &get_glyph_var_data (hb_codepoint_t glyph) const
     { return gvar_table->get_glyph_var_data (glyph); }
 
     private:
