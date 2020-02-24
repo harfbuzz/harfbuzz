@@ -625,17 +625,27 @@ struct gvar
 	  deltas[pt_index].y += y_deltas[i] * scalar;
 	}
 
+	/* find point before phantoms start which is an end point */
+	unsigned all_contours_end = points.length ? points.length - 1 : 0;
+	while (all_contours_end > 0)
+	{
+	  if (points[all_contours_end].is_end_point) break;
+	  --all_contours_end;
+	}
+
 	/* infer deltas for unreferenced points */
-	for (unsigned start_point = 0; start_point + 4 < points.length; ++start_point)
+	for (unsigned start_point = 0; start_point < all_contours_end; ++start_point)
 	{
 	  /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
-	  unsigned unref_count = 0;
 	  unsigned end_point = start_point;
-	  do
+	  unsigned unref_count = 0;
+	  for (; end_point <= all_contours_end; ++end_point)
 	  {
-	    if (!deltas[end_point].flag) unref_count++;
-	    end_point++;
-	  } while (!points[end_point].is_end_point && end_point + 4 < points.length);
+	    if (!deltas[end_point].flag)
+	      unref_count++;
+	    if (points[end_point].is_end_point)
+	      break;
+	  }
 
 	  unsigned j = start_point;
 	  if (unref_count == 0 || unref_count > end_point - start_point)

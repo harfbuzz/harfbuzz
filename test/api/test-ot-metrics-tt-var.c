@@ -234,6 +234,23 @@ test_advance_tt_var_comp_v (void)
   hb_font_destroy (font);
 }
 
+static void
+test_advance_tt_var_gvar_infer (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/TestGVAREight.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_ot_font_set_funcs (font);
+  hb_face_destroy (face);
+
+  int coords[6] = {100};
+  hb_font_set_var_coords_normalized (font, coords, 6);
+
+  hb_glyph_extents_t extents = {0};
+  g_assert (hb_font_get_glyph_extents (font, 4, &extents));
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -245,6 +262,7 @@ main (int argc, char **argv)
   hb_test_add (test_advance_tt_var_anchor);
   hb_test_add (test_extents_tt_var_comp);
   hb_test_add (test_advance_tt_var_comp_v);
+  hb_test_add (test_advance_tt_var_gvar_infer);
 
   return hb_test_run ();
 }
