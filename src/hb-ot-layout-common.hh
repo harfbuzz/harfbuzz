@@ -2206,7 +2206,7 @@ struct VarData
    return delta;
   }
 
-  void get_scalars (int *coords, unsigned int coord_count,
+  void get_scalars (const int *coords, unsigned int coord_count,
 		    const VarRegionList &regions,
 		    float *scalars /*OUT */,
 		    unsigned int num_scalars) const
@@ -2423,7 +2423,7 @@ struct VariationStore
   { return (this+dataSets[ivs]).get_region_index_count (); }
 
   void get_scalars (unsigned int ivs,
-		    int *coords, unsigned int coord_count,
+		    const int *coords, unsigned int coord_count,
 		    float *scalars /*OUT*/,
 		    unsigned int num_scalars) const
   {

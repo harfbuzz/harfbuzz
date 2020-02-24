@@ -80,7 +80,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
 {
   template <typename ACC>
   void init (const byte_str_t &str, ACC &acc, unsigned int fd,
-		    const int *coords_=nullptr, unsigned int num_coords_=0)
+	     const int *coords_=nullptr, unsigned int num_coords_=0)
   {
     SUPER::init (str, acc.globalSubrs, acc.privateDicts[fd].localSubrs);
 
@@ -134,8 +134,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
       if (do_blend)
       {
 	scalars.resize (region_count);
-	varStore->varStore.get_scalars (get_ivs (),
-					(int *)coords, num_coords,
+	varStore->varStore.get_scalars (get_ivs (), coords, num_coords,
 					&scalars[0], region_count);
       }
       seen_blend = true;
