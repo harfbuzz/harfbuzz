@@ -563,6 +563,7 @@ struct gvar
 				 const int *coords, unsigned int coord_count,
 				 const hb_array_t<contour_point_t> points) const
     {
+      coord_count = hb_min (coord_count, gvar_table->axisCount);
       if (!coord_count || coord_count != gvar_table->axisCount) return true;
 
       const GlyphVarData *var_data = gvar_table->get_glyph_var_data (glyph);
