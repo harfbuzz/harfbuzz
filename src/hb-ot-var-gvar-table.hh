@@ -574,7 +574,7 @@ struct gvar
 					     gvar_table->axisCount,
 					     shared_indices,
 					     &iterator))
-	return false;
+	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
       contour_point_vector_t orig_points;
