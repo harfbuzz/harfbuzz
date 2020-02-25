@@ -384,6 +384,23 @@ struct hb_set_t
     page->del (g);
   }
 
+  private:
+  void del_pages (int ds, int de)
+  {
+    if (ds <= de)
+    {
+      unsigned int write_index = 0;
+      for (unsigned int i = 0; i < page_map.length; i++)
+      {
+	int m = (int) page_map[i].major;
+	if (m < ds || de < m)
+	  page_map[write_index++] = page_map[i];
+      }
+      compact (write_index);
+    }
+  }
+
+  public:
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
     /* TODO perform op even if !successful. */
@@ -393,9 +410,9 @@ struct hb_set_t
     unsigned int ma = get_major (a);
     unsigned int mb = get_major (b);
     /* Delete pages from ds through de if ds <= de. */
-    int ds = (a == major_start (ma))? (int)ma: (int)(ma + 1);
-    int de = (b + 1 == major_start (mb + 1))? (int)mb: ((int)mb - 1);
-    if (ds > de || (int)ma < ds)
+    int ds = (a == major_start (ma))? (int) ma: (int) (ma + 1);
+    int de = (b + 1 == major_start (mb + 1))? (int) mb: ((int) mb - 1);
+    if (ds > de || (int) ma < ds)
     {
       page_t *page = page_for (a);
       if (page)
@@ -406,23 +423,13 @@ struct hb_set_t
 	  page->del_range (a, major_start (ma + 1) - 1);
       }
     }
-    if (de < (int)mb && ma != mb)
+    if (de < (int) mb && ma != mb)
     {
       page_t *page = page_for (b);
       if (page)
 	page->del_range (major_start (mb), b);
     }
-    if (ds <= de)
-    {
-      unsigned int write_index = 0;
-      for (unsigned int i = 0; i < page_map.length; i++)
-      {
-	unsigned int m = page_map[i].major;
-	if ((int)m < ds || de < (int)m)
-	  page_map[write_index++] = page_map[i];
-      }
-      compact (write_index);
-    }
+    del_pages (ds, de);
   }
 
   bool get (hb_codepoint_t g) const
