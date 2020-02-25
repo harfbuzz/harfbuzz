@@ -3,6 +3,8 @@
 #include <hb-ot.h>
 #include <string.h>
 
+#include <stdlib.h>
+
 #define TEST_OT_FACE_NO_MAIN 1
 #include "../api/test-ot-face.c"
 #undef TEST_OT_FACE_NO_MAIN
@@ -15,6 +17,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   hb_font_t *font = hb_font_create (face);
   hb_ot_font_set_funcs (font);
   hb_font_set_scale (font, 12, 12);
+
+  unsigned num_coords = 0;
+  if (size) num_coords = data[size - 1];
+  num_coords = hb_ot_var_get_axis_count (face) > num_coords ? num_coords : hb_ot_var_get_axis_count (face);
+  int *coords = (int *) calloc (num_coords, sizeof (int));
+  if (size > num_coords + 1)
+    for (unsigned i = 0; i < num_coords; ++i)
+      coords[i] = ((int) data[size - num_coords + i - 1] - 128) * 10;
+  hb_font_set_var_coords_normalized (font, coords, num_coords);
+  free (coords);
 
   {
     const char text[] = "ABCDEXYZ123@_%&)*$!";
@@ -37,8 +49,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   hb_shape (font, buffer, nullptr, 0);
   hb_buffer_destroy (buffer);
 
-  /* Misc calls on face. */
-  test_face (face, text32[15]);
+  /* Misc calls on font. */
+  test_font (font, text32[15]);
 
   hb_font_destroy (font);
   hb_face_destroy (face);
