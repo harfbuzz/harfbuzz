@@ -479,14 +479,16 @@ test_set_delrange (void)
   for (unsigned int g = 0; g < 2100; g += 10)
     hb_set_add (s, g);
 
+  hb_set_add (s, 512);  /* edge case */
   hb_set_add (s, 2047); /* (=512*4-1) edge case */
 
-  hb_set_del_range (s, 55, 705);
+  hb_set_del_range (s, 512, 705);
   hb_set_del_range (s, 795, 2047);
 
-  g_assert ( hb_set_has (s, 50));
-  g_assert (!hb_set_has (s, 60));
-  g_assert (!hb_set_has (s, 600));
+  g_assert ( hb_set_has (s, 0));
+  g_assert ( hb_set_has (s, 510));
+  g_assert (!hb_set_has (s, 512));
+  g_assert (!hb_set_has (s, 700));
   g_assert ( hb_set_has (s, 710));
   g_assert ( hb_set_has (s, 790));
   g_assert (!hb_set_has (s, 800));

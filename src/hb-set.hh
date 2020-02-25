@@ -392,9 +392,10 @@ struct hb_set_t
     dirty ();
     unsigned int ma = get_major (a);
     unsigned int mb = get_major (b);
+    /* Delete entire pages from mds through mde. */
     unsigned int mds = (a == major_start (ma))? ma: (ma + 1);
     int          mde = (b + 1 == major_start (mb + 1))? (int)mb: ((int)mb - 1);
-    if (ma < mds)
+    if ((int)mds > mde || ma < mds)
     {
       page_t *page = page_for (a);
       if (page)
