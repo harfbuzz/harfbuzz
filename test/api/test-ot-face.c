@@ -33,10 +33,9 @@
 
 
 static void
-test_face (hb_face_t *face,
-	   hb_codepoint_t cp)
+test_font (hb_font_t *font, hb_codepoint_t cp)
 {
-  hb_font_t *font = hb_font_create (face);
+  hb_face_t *face = hb_font_get_face (font);
   hb_set_t *set;
   hb_codepoint_t g;
   hb_position_t x, y;
@@ -126,14 +125,13 @@ test_face (hb_face_t *face,
   hb_draw_funcs_destroy (funcs);
 
   hb_set_destroy (set);
-  hb_font_destroy (font);
 }
 
 #ifndef TEST_OT_FACE_NO_MAIN
 static void
 test_ot_face_empty (void)
 {
-  test_face (hb_face_get_empty (), 0);
+  test_font (hb_font_get_empty (), 0);
 }
 
 static void
