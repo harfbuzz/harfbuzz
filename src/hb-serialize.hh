@@ -50,6 +50,12 @@ struct hb_serialize_context_t
     char *head, *tail;
   };
 
+  enum whence_t {
+     Head,	/* Relative to the current object head (default). */
+     Tail,	/* Relative to the current object tail after packed. */
+     Absolute	/* Absolute: from the start of the serialize buffer. */
+   };
+
   struct object_t : range_t
   {
     void fini () { links.fini (); }
@@ -70,7 +76,9 @@ struct hb_serialize_context_t
     struct link_t
     {
       bool is_wide: 1;
-      unsigned position : 31;
+      bool is_signed: 1;
+      unsigned whence: 2;
+      unsigned position: 28;
       unsigned bias;
       objidx_t objidx;
     };
@@ -269,7 +277,9 @@ struct hb_serialize_context_t
   }
 
   template <typename T>
-  void add_link (T &ofs, objidx_t objidx, const void *base = nullptr)
+  void add_link (T &ofs, objidx_t objidx,
+		 const void *base = nullptr,
+		 whence_t whence = Head)
   {
     static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
 
@@ -279,15 +289,24 @@ struct hb_serialize_context_t
     assert (current);
     assert (current->head <= (const char *) &ofs);
 
-    if (!base)
-      base = current->head;
-    else
-      assert (current->head <= (const char *) base);
-
     auto& link = *current->links.push ();
+
     link.is_wide = sizeof (T) == 4;
+    link.is_signed = hb_is_signed (hb_unwrap_type (T));
+    link.whence = (unsigned)whence;
     link.position = (const char *) &ofs - current->head;
-    link.bias = (const char *) base - current->head;
+    if (whence == Head)
+    {
+      if (base == nullptr)
+	link.bias = 0;
+      else
+      {
+	assert (current->head <= (const char *)base);
+	link.bias = (const char *) base - current->head;
+      }
+    }
+    else
+      link.bias = 0;
     link.objidx = objidx;
   }
 
@@ -302,20 +321,28 @@ struct hb_serialize_context_t
       for (const object_t::link_t &link : parent->links)
       {
 	const object_t* child = packed[link.objidx];
-	assert (link.bias <= (size_t) (parent->tail - parent->head));
-	unsigned offset = (child->head - parent->head) - link.bias;
+	if (unlikely (!child)) { err_other_error(); return; }
+	unsigned offset;
+	switch ((whence_t)link.whence) {
+	case Head:     offset = (child->head - parent->head) - link.bias; break;
+	case Tail:     offset = child->head - parent->tail; break;
+	case Absolute: offset = (head - start) + (child->head - tail); break;
+	default: assert (0);
+	}
 
-	if (link.is_wide)
+	if (link.is_signed)
 	{
-	  auto &off = * ((BEInt<uint32_t, 4> *) (parent->head + link.position));
-	  assert (0 == off);
-	  check_assign (off, offset);
+	  if (link.is_wide)
+	    assign_offset<int32_t> (parent, link, offset);
+	  else
+	    assign_offset<int16_t> (parent, link, offset);
 	}
 	else
 	{
-	  auto &off = * ((BEInt<uint16_t, 2> *) (parent->head + link.position));
-	  assert (0 == off);
-	  check_assign (off, offset);
+	  if (link.is_wide)
+	    assign_offset<uint32_t> (parent, link, offset);
+	  else
+	    assign_offset<uint16_t> (parent, link, offset);
 	}
       }
   }
@@ -454,6 +481,15 @@ struct hb_serialize_context_t
     return hb_blob_create (b.arrayZ, b.length,
 			   HB_MEMORY_MODE_WRITABLE,
 			   (char *) b.arrayZ, free);
+  }
+
+  private:
+  template <typename T>
+  void assign_offset (const object_t* parent, const object_t::link_t &link, unsigned offset)
+  {
+    auto &off = * ((BEInt<T, sizeof (T)> *) (parent->head + link.position));
+    assert (0 == off);
+    check_assign (off, offset);
   }
 
   public: /* TODO Make private. */

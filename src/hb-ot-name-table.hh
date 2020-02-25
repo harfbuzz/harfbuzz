@@ -98,13 +98,12 @@ struct NameRecord
   }
 
   NameRecord* copy (hb_serialize_context_t *c,
-		    const void *src_base,
-		    const void *dst_base) const
+		    const void *src_base) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
-    out->offset.serialize_copy (c, offset, src_base, dst_base, length);
+    out->offset.serialize_copy (c, offset, src_base, nullptr, hb_serialize_context_t::Tail, length);
     return_trace (out);
   }
 
@@ -216,13 +215,6 @@ struct name
     this->format = 0;
     this->count = it.len ();
 
-    auto snap = c->snapshot ();
-    this->nameRecordZ.serialize (c, this->count);
-    if (unlikely (!c->check_assign (this->stringOffset, c->length ()))) return_trace (false);
-    c->revert (snap);
-
-    const void *dst_string_pool = &(this + this->stringOffset);
-
     NameRecord *name_records = (NameRecord *) calloc (it.len (), NameRecord::static_size);
     hb_array_t<NameRecord> records (name_records, it.len ());
 
@@ -234,12 +226,12 @@ struct name
 
     records.qsort ();
 
-    c->copy_all (records, src_string_pool, dst_string_pool);
+    c->copy_all (records, src_string_pool);
     free (records.arrayZ);
 
     if (unlikely (c->ran_out_of_room)) return_trace (false);
 
-    assert (this->stringOffset == c->length ());
+    this->stringOffset = c->length ();
 
     return_trace (true);
   }
