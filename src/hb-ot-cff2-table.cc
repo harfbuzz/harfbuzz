@@ -160,20 +160,22 @@ struct cff2_path_param_t
 
   void start_path ()
   {
+    if (path_open) end_path ();
     path_open = true;
     funcs->move_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y),
 		    user_data);
   }
-  bool is_path_open () const { return path_open; }
 
   void move_to (const point_t &p)
   {
+    if (path_open) end_path ();
     path_last_x = path_start_x = p.x.to_real ();
     path_last_y = path_start_y = p.y.to_real ();
   }
 
   void line_to (const point_t &p)
   {
+    if (!path_open) start_path ();
     funcs->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
 		    user_data);
     path_last_x = p.x.to_real ();
@@ -182,6 +184,7 @@ struct cff2_path_param_t
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
   {
+    if (!path_open) start_path ();
     funcs->cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
 		     font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
 		     font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()),
@@ -217,21 +220,18 @@ struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_int
 {
   static void moveto (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt)
   {
-    param.end_path ();
     param.move_to (pt);
     env.moveto (pt);
   }
 
   static void line (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt1)
   {
-    if (!param.is_path_open ()) param.start_path ();
     param.line_to (pt1);
     env.moveto (pt1);
   }
 
   static void curve (cff2_cs_interp_env_t &env, cff2_path_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
   {
-    if (!param.is_path_open ()) param.start_path ();
     param.cubic_to (pt1, pt2, pt3);
     env.moveto (pt3);
   }
