@@ -463,6 +463,9 @@ struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_pa
 {
   static void process_seac (cff1_cs_interp_env_t &env, cff1_path_param_t& param)
   {
+    /* End previous path */
+    param.end_path ();
+
     unsigned int n = env.argStack.get_count ();
     point_t delta;
     delta.x = env.argStack[n-4];
