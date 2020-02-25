@@ -470,6 +470,34 @@ test_set_empty (void)
   hb_set_destroy (b);
 }
 
+static void
+test_set_delrange (void)
+{
+  hb_set_t *s = hb_set_create ();
+
+  test_empty (s);
+  for (unsigned int g = 0; g < 2100; g += 10)
+    hb_set_add (s, g);
+
+  hb_set_add (s, 2047); /* (=512*4-1) edge case */
+
+  hb_set_del_range (s, 55, 705);
+  hb_set_del_range (s, 795, 2047);
+
+  g_assert ( hb_set_has (s, 50));
+  g_assert (!hb_set_has (s, 60));
+  g_assert (!hb_set_has (s, 600));
+  g_assert ( hb_set_has (s, 710));
+  g_assert ( hb_set_has (s, 790));
+  g_assert (!hb_set_has (s, 800));
+  g_assert (!hb_set_has (s, 1500));
+  g_assert (!hb_set_has (s, 2040));
+  g_assert (!hb_set_has (s, 2047));
+  g_assert ( hb_set_has (s, 2050));
+
+  hb_set_destroy (s);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -479,6 +507,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_algebra);
   hb_test_add (test_set_iter);
   hb_test_add (test_set_empty);
+  hb_test_add (test_set_delrange);
 
   hb_test_add (test_set_intersect_empty);
   hb_test_add (test_set_intersect_page_reduction);

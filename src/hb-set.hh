@@ -89,6 +89,23 @@ struct hb_set_t
       }
     }
 
+    void del_range (hb_codepoint_t a, hb_codepoint_t b)
+    {
+      elt_t *la = &elt (a);
+      elt_t *lb = &elt (b);
+      if (la == lb)
+	*la &= ~((mask (b) << 1) - mask(a));
+      else
+      {
+	*la &= mask (a) - 1;
+	la++;
+
+	memset (la, 0, (char *) lb - (char *) la);
+
+	*lb &= ~((mask (b) << 1) - 1);
+      }
+    }
+
     bool is_equal (const page_t *other) const
     {
       return 0 == hb_memcmp (&v, &other->v, sizeof (v));
@@ -366,14 +383,47 @@ struct hb_set_t
     dirty ();
     page->del (g);
   }
+
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
     /* TODO perform op even if !successful. */
-    /* TODO Optimize, like add_range(). */
     if (unlikely (!successful)) return;
-    for (unsigned int i = a; i < b + 1; i++)
-      del (i);
+    if (unlikely (a > b || a == INVALID || b == INVALID)) return;
+    dirty ();
+    unsigned int ma = get_major (a);
+    unsigned int mb = get_major (b);
+    unsigned int mds = (a == major_start (ma))? ma: (ma + 1);
+    int          mde = (b + 1 == major_start (mb + 1))? (int)mb: ((int)mb - 1);
+    if (ma < mds)
+    {
+      page_t *page = page_for (a);
+      if (page)
+      {
+	if (ma == mb)
+	  page->del_range (a, b);
+	else
+	  page->del_range (a, major_start (ma + 1) - 1);
+      }
+    }
+    if (mde < (int)mb && ma != mb)
+    {
+      page_t *page = page_for (b);
+      if (page)
+	page->del_range (major_start (mb), b);
+    }
+    if ((int)mds <= mde)
+    {
+      unsigned int write_index = 0;
+      for (unsigned int i = 0; i < page_map.length; i++)
+      {
+	unsigned int m = page_map[i].major;
+	if (m < mds || mde < (int)m)
+	  page_map[write_index++] = page_map[i];
+      }
+      compact (write_index);
+    }
   }
+
   bool get (hb_codepoint_t g) const
   {
     const page_t *page = page_for (g);
