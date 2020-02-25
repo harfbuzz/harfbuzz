@@ -392,10 +392,10 @@ struct hb_set_t
     dirty ();
     unsigned int ma = get_major (a);
     unsigned int mb = get_major (b);
-    /* Delete entire pages from mds through mde. */
-    unsigned int mds = (a == major_start (ma))? ma: (ma + 1);
-    int          mde = (b + 1 == major_start (mb + 1))? (int)mb: ((int)mb - 1);
-    if ((int)mds > mde || ma < mds)
+    /* Delete pages from ds through de if ds <= de. */
+    int ds = (a == major_start (ma))? (int)ma: (int)(ma + 1);
+    int de = (b + 1 == major_start (mb + 1))? (int)mb: ((int)mb - 1);
+    if (ds > de || (int)ma < ds)
     {
       page_t *page = page_for (a);
       if (page)
@@ -406,19 +406,19 @@ struct hb_set_t
 	  page->del_range (a, major_start (ma + 1) - 1);
       }
     }
-    if (mde < (int)mb && ma != mb)
+    if (de < (int)mb && ma != mb)
     {
       page_t *page = page_for (b);
       if (page)
 	page->del_range (major_start (mb), b);
     }
-    if ((int)mds <= mde)
+    if (ds <= de)
     {
       unsigned int write_index = 0;
       for (unsigned int i = 0; i < page_map.length; i++)
       {
 	unsigned int m = page_map[i].major;
-	if (m < mds || mde < (int)m)
+	if ((int)m < ds || de < (int)m)
 	  page_map[write_index++] = page_map[i];
       }
       compact (write_index);
