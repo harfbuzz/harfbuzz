@@ -59,6 +59,7 @@ struct draw_helper_t
 
   void line_to (hb_position_t x, hb_position_t y)
   {
+    if (equal_to_current (x, y)) return;
     if (!path_open) start_path ();
     funcs->line_to (x, y, user_data);
     current_x = x;
@@ -69,6 +70,8 @@ struct draw_helper_t
   quadratic_to (hb_position_t control_x, hb_position_t control_y,
 		hb_position_t to_x, hb_position_t to_y)
   {
+    if (equal_to_current (control_x, control_y) && equal_to_current (to_x, to_y))
+      return;
     if (!path_open) start_path ();
     if (funcs->is_quadratic_to_set)
       funcs->quadratic_to (control_x, control_y, to_x, to_y, user_data);
@@ -83,14 +86,18 @@ struct draw_helper_t
   }
 
   void
-  cubic_to (hb_position_t x1, hb_position_t y1,
-	    hb_position_t x2, hb_position_t y2,
-	    hb_position_t x3, hb_position_t y3)
+  cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+	    hb_position_t control2_x, hb_position_t control2_y,
+	    hb_position_t to_x, hb_position_t to_y)
   {
+    if (equal_to_current (control1_x, control1_y) &&
+        equal_to_current (control2_x, control2_y) &&
+	equal_to_current (to_x, to_y))
+      return;
     if (!path_open) start_path ();
-    funcs->cubic_to (x1, y1, x2, y2, x3, y3, user_data);
-    current_x = x3;
-    current_y = y3;
+    funcs->cubic_to (control1_x, control1_y, control2_x, control2_y, to_x, to_y, user_data);
+    current_x = to_x;
+    current_y = to_y;
   }
 
   void end_path ()
@@ -106,6 +113,9 @@ struct draw_helper_t
   }
 
   protected:
+  bool equal_to_current (hb_position_t x, hb_position_t y)
+  { return current_x == x && current_y == y; }
+
   void start_path ()
   {
     if (path_open) end_path ();

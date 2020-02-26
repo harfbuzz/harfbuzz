@@ -36,17 +36,20 @@ _line_to (hb_position_t to_x, hb_position_t to_y, void *user_data_)
 {
   _user_data_t *user_data = (_user_data_t *) user_data_;
   assert (user_data->is_open);
+  assert (user_data->path_last_x != to_x || user_data->path_last_y != to_y);
   ++user_data->path_len;
   user_data->path_last_x = to_x;
   user_data->path_last_y = to_y;
 }
 
 static void
-_quadratic_to (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
+_quadratic_to (hb_position_t control_x, hb_position_t control_y,
 	       hb_position_t to_x, hb_position_t to_y, void *user_data_)
 {
   _user_data_t *user_data = (_user_data_t *) user_data_;
   assert (user_data->is_open);
+  assert (user_data->path_last_x != control_x || user_data->path_last_y != control_y ||
+	  user_data->path_last_x != to_x || user_data->path_last_y != to_y);
   ++user_data->path_len;
   user_data->path_last_x = to_x;
   user_data->path_last_y = to_y;
@@ -59,6 +62,9 @@ _cubic_to (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSE
 {
   _user_data_t *user_data = (_user_data_t *) user_data_;
   assert (user_data->is_open);
+  assert (user_data->path_last_x != control1_x || user_data->path_last_y != control1_y ||
+	  user_data->path_last_x != control2_x || user_data->path_last_y != control2_y ||
+	  user_data->path_last_x != to_x || user_data->path_last_y != to_y);
   ++user_data->path_len;
   user_data->path_last_x = to_x;
   user_data->path_last_y = to_y;

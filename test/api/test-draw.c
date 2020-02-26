@@ -769,8 +769,8 @@ test_hb_draw_stroking (void)
 
     user_data.consumed = 0;
     g_assert (hb_font_draw_glyph (font, 6, funcs, &user_data));
-    char expected[] = "M1626,1522Q1626,1522 1626,1522Q1626,1522 1626,1522ZM436,1522"
-		      "Q436,1280 531,1060Q625,839 784,680Q943,521 1164,427Q1384,332 1626,332"
+    /* Skip empty path where all the points of a path are equal */
+    char expected[] = "M436,1522Q436,1280 531,1060Q625,839 784,680Q943,521 1164,427Q1384,332 1626,332"
 		      "Q1868,332 2089,427Q2309,521 2468,680Q2627,839 2722,1060Q2816,1280 2816,1522"
 		      "Q2816,1764 2722,1985Q2627,2205 2468,2364Q2309,2523 2089,2618Q1868,2712 1626,2712"
 		      "Q1384,2712 1164,2618Q943,2523 784,2364Q625,2205 531,1985Q436,1764 436,1522ZM256,1528"
@@ -810,8 +810,8 @@ test_hb_draw_stroking (void)
 
     user_data.consumed = 0;
     g_assert (hb_font_draw_glyph (font, 4, funcs, &user_data));
-    char expected[] = "M397,372L397,372Z" /* TODO: Do we like to fold this path? */
-		      "M106,372C106,532 237,662 397,662C557,662 688,532 688,372C688,212 557,81 397,81C237,81 106,212 106,372Z"
+    /* Skip empty path in CFF */
+    char expected[] = "M106,372C106,532 237,662 397,662C557,662 688,532 688,372C688,212 557,81 397,81C237,81 106,212 106,372Z"
 		      "M62,373C62,188 212,39 397,39C582,39 731,188 731,373C731,558 582,708 397,708C212,708 62,558 62,373Z";
     g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
