@@ -82,6 +82,11 @@ struct hb_subset_plan_t
   hb_map_t *gsub_features;
   hb_map_t *gpos_features;
 
+  //The set of layout item variation store delta set indices to be retained
+  hb_set_t *layout_variation_indices;
+  //Old -> New layout item variation store delta set index mapping
+  hb_map_t *layout_variation_idx_map;
+
  public:
 
   /*
