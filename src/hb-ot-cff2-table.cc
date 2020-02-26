@@ -145,29 +145,27 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
 struct cff2_path_param_t
 {
-  cff2_path_param_t (hb_font_t *font_, const hb_draw_funcs_t *funcs, void *user_data)
+  cff2_path_param_t (hb_font_t *font_, draw_helper_t &draw_helper_)
   {
-    draw_helper = draw_helper_t ();
-    draw_helper.init (funcs, user_data);
+    draw_helper = &draw_helper_;
     font = font_;
   }
-  ~cff2_path_param_t () { draw_helper.fini (); }
 
   void move_to (const point_t &p)
-  { draw_helper.move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ())); }
+  { draw_helper->move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ())); }
 
   void line_to (const point_t &p)
-  { draw_helper.line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ())); }
+  { draw_helper->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ())); }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
   {
-    draw_helper.cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
-			  font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
-			  font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()));
+    draw_helper->cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
+			   font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
+			   font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()));
   }
 
   protected:
-  draw_helper_t draw_helper;
+  draw_helper_t *draw_helper;
   hb_font_t *font;
 };
 
@@ -194,8 +192,7 @@ struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_int
 
 struct cff2_cs_opset_path_t : cff2_cs_opset_t<cff2_cs_opset_path_t, cff2_path_param_t, cff2_path_procs_path_t> {};
 
-bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
-					const hb_draw_funcs_t *funcs, void *user_data) const
+bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, draw_helper_t &draw_helper) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */
@@ -208,7 +205,7 @@ bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph,
   cff2_cs_interpreter_t<cff2_cs_opset_path_t, cff2_path_param_t> interp;
   const byte_str_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd, font->coords, font->num_coords);
-  cff2_path_param_t param (font, funcs, user_data);
+  cff2_path_param_t param (font, draw_helper);
   if (unlikely (!interp.interpret (param))) return false;
   return true;
 }

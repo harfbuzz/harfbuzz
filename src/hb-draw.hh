@@ -41,14 +41,14 @@ struct hb_draw_funcs_t
 
 struct draw_helper_t
 {
-  void init (const hb_draw_funcs_t *funcs_, void *user_data_)
+  draw_helper_t (const hb_draw_funcs_t *funcs_, void *user_data_)
   {
     funcs = funcs_;
     user_data = user_data_;
     path_open = false;
     path_start_x = current_x = path_start_y = current_y = 0;
   }
-  void fini () { end_path (); }
+  ~draw_helper_t () { end_path (); }
 
   void move_to (hb_position_t x, hb_position_t y)
   {

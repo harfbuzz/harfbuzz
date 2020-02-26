@@ -246,10 +246,11 @@ hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
 		glyph >= font->face->get_num_glyphs ()))
     return false;
 
-  if (font->face->table.glyf->get_path (font, glyph, funcs, user_data)) return true;
+  draw_helper_t draw_helper (funcs, user_data);
+  if (font->face->table.glyf->get_path (font, glyph, draw_helper)) return true;
 #ifndef HB_NO_CFF
-  if (font->face->table.cff1->get_path (font, glyph, funcs, user_data)) return true;
-  if (font->face->table.cff2->get_path (font, glyph, funcs, user_data)) return true;
+  if (font->face->table.cff1->get_path (font, glyph, draw_helper)) return true;
+  if (font->face->table.cff2->get_path (font, glyph, draw_helper)) return true;
 #endif
 
   return false;
