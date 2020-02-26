@@ -145,75 +145,30 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
 struct cff2_path_param_t
 {
-  cff2_path_param_t (hb_font_t *font_, const hb_draw_funcs_t *funcs_, void *user_data_)
+  cff2_path_param_t (hb_font_t *font_, const hb_draw_funcs_t *funcs, void *user_data)
   {
-    path_open = false;
+    draw_helper = draw_helper_t ();
+    draw_helper.init (funcs, user_data);
     font = font_;
-    funcs = funcs_;
-    user_data = user_data_;
-    path_start_x = 0;
-    path_start_y = 0;
-    path_last_x = 0;
-    path_last_y = 0;
   }
-  ~cff2_path_param_t () { end_path (); }
-
-  void start_path ()
-  {
-    if (path_open) end_path ();
-    path_open = true;
-    funcs->move_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y),
-		    user_data);
-  }
+  ~cff2_path_param_t () { draw_helper.fini (); }
 
   void move_to (const point_t &p)
-  {
-    if (path_open) end_path ();
-    path_last_x = path_start_x = p.x.to_real ();
-    path_last_y = path_start_y = p.y.to_real ();
-  }
+  { draw_helper.move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ())); }
 
   void line_to (const point_t &p)
-  {
-    if (!path_open) start_path ();
-    funcs->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ()),
-		    user_data);
-    path_last_x = p.x.to_real ();
-    path_last_y = p.y.to_real ();
-  }
+  { draw_helper.line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ())); }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
   {
-    if (!path_open) start_path ();
-    funcs->cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
-		     font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
-		     font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()),
-		     user_data);
-    path_last_x = p3.x.to_real ();
-    path_last_y = p3.y.to_real ();
+    draw_helper.cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
+			  font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
+			  font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()));
   }
 
-  void end_path ()
-  {
-    if (path_open)
-    {
-      if ((path_start_x != path_last_x) || (path_start_y != path_last_y))
-	funcs->line_to (font->em_scalef_x (path_start_x), font->em_scalef_y (path_start_y), user_data);
-      funcs->close_path (user_data);
-    }
-    path_open = false;
-  }
-
-  double path_start_x;
-  double path_start_y;
-
-  double path_last_x;
-  double path_last_y;
-
-  bool path_open;
+  protected:
+  draw_helper_t draw_helper;
   hb_font_t *font;
-  const hb_draw_funcs_t *funcs;
-  void *user_data;
 };
 
 struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_interp_env_t, cff2_path_param_t>

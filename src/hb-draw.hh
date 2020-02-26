@@ -39,5 +39,75 @@ struct hb_draw_funcs_t
   hb_draw_close_path_func_t close_path;
 };
 
+struct draw_helper_t
+{
+  void init (const hb_draw_funcs_t *funcs_, void *user_data_)
+  {
+    path_open = false;
+    funcs = funcs_;
+    user_data = user_data_;
+    path_start_x = 0;
+    path_start_y = 0;
+    path_last_x = 0;
+    path_last_y = 0;
+
+  }
+  void fini () { end_path (); }
+
+  void move_to (hb_position_t x, hb_position_t y)
+  {
+    if (path_open) end_path ();
+    path_last_x = path_start_x = x;
+    path_last_y = path_start_y = y;
+  }
+
+  void line_to (hb_position_t x, hb_position_t y)
+  {
+    if (!path_open) start_path ();
+    funcs->line_to (x, y, user_data);
+    path_last_x = x;
+    path_last_y = y;
+  }
+
+  void
+  cubic_to (hb_position_t x1, hb_position_t y1,
+	    hb_position_t x2, hb_position_t y2,
+	    hb_position_t x3, hb_position_t y3)
+  {
+    if (!path_open) start_path ();
+    funcs->cubic_to (x1, y1, x2, y2, x3, y3, user_data);
+    path_last_x = x3;
+    path_last_y = y3;
+  }
+
+  void end_path ()
+  {
+    if (path_open)
+    {
+      if ((path_start_x != path_last_x) || (path_start_y != path_last_y))
+	funcs->line_to (path_start_x, path_start_y, user_data);
+      funcs->close_path (user_data);
+    }
+    path_open = false;
+  }
+
+  protected:
+  void start_path ()
+  {
+    if (path_open) end_path ();
+    path_open = true;
+    funcs->move_to (path_start_x, path_start_y, user_data);
+  }
+
+  hb_position_t path_start_x;
+  hb_position_t path_start_y;
+
+  hb_position_t path_last_x;
+  hb_position_t path_last_y;
+
+  bool path_open;
+  const hb_draw_funcs_t *funcs;
+  void *user_data;
+};
 
 #endif /* HB_DRAW_HH */
