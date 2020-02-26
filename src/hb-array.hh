@@ -171,6 +171,21 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 
   unsigned int get_size () const { return length * this->get_item_size (); }
 
+  void reverse ()
+  {
+    int rhs = length - 1;
+    int lhs = 0;
+    while (rhs > lhs)
+    {
+      Type value_rhs = arrayZ[rhs];
+      Type value_lhs = arrayZ[lhs];
+      arrayZ[rhs] = value_lhs;
+      arrayZ[lhs] = value_rhs;
+      rhs--;
+      lhs++;
+    }
+  }
+
   hb_array_t sub_array (unsigned int start_offset = 0, unsigned int *seg_count = nullptr /* IN/OUT */) const
   {
     if (!start_offset && !seg_count)
