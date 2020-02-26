@@ -10,13 +10,8 @@ int main (int argc, char **argv)
 
     unsigned int len;
     const char *font_data = hb_blob_get_data (blob, &len);
-    if (len == 0)
-    {
-      printf ("Font not found.\n");
-      return 1;
-    }
+    printf ("%s%s\n", argv[i], len ? "" : " (note: not found or was empty)");
 
-    printf ("%s\n", argv[i]);
     LLVMFuzzerTestOneInput ((const uint8_t *) font_data, len);
 
     hb_blob_destroy (blob);
