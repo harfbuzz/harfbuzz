@@ -850,6 +850,20 @@ struct VariationSelectorRecord
     return GLYPH_VARIANT_NOT_FOUND;
   }
 
+  VariationSelectorRecord(const VariationSelectorRecord& other)
+  {
+    *this = other;
+  }
+
+  void operator= (const VariationSelectorRecord& other)
+  {
+    varSelector = other.varSelector;
+    HBUINT32 offset = other.defaultUVS;
+    defaultUVS = offset;
+    offset = other.nonDefaultUVS;
+    nonDefaultUVS = offset;
+  }
+
   void collect_unicodes (hb_set_t *out, const void *base) const
   {
     (base+defaultUVS).collect_unicodes (out);
@@ -992,17 +1006,7 @@ struct CmapSubtableFormat14
 
   void _reverse_variation_records ()
   {
-    int rhs = record.len - 1;
-    int lhs = 0;
-    while (rhs > lhs)
-    {
-      int value_rhs = record[rhs].varSelector;
-      int value_lhs = record[lhs].varSelector;
-      record[rhs].varSelector = value_lhs;
-      record[lhs].varSelector = value_rhs;
-      rhs--;
-      lhs++;
-    }
+    record.as_array ().reverse ();
   }
 
   void _add_links_to_variation_records (hb_serialize_context_t *c,
