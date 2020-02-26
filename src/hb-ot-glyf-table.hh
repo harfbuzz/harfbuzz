@@ -1054,8 +1054,6 @@ struct glyf
 	draw_helper.init (funcs, user_data);
 	first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
       }
-      void end_of_contour ()
-      { first_oncurve = first_offcurve = last_offcurve = optional_point_t (); }
 
       /* based on https://github.com/RazrFalcon/ttf-parser/blob/master/src/glyf.rs#L292 */
       void consume_point (const contour_point_t &point)
@@ -1115,37 +1113,32 @@ struct glyf
 
 	if (point.is_end_point)
 	{
-	  for (;;)
+	  if (!first_offcurve.is_null && !last_offcurve.is_null)
 	  {
-	    if (!first_offcurve.is_null && !last_offcurve.is_null)
-	    {
-	      optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
-	      draw_helper.quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
-					font->em_scalef_x (mid.x), font->em_scalef_y (mid.y));
-	      last_offcurve = optional_point_t ();
-	    }
-	    else if (!first_offcurve.is_null && last_offcurve.is_null)
-	    {
-	      if (!first_oncurve.is_null)
-		draw_helper.quadratic_to (font->em_scalef_x (first_offcurve.x), font->em_scalef_y (first_offcurve.y),
-					  font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
-	      break;
-	    }
-	    else if (first_offcurve.is_null && !last_offcurve.is_null)
-	    {
-	      if (!first_oncurve.is_null)
-		draw_helper.quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
-					  font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
-	      break;
-	    }
-	    else /* first_offcurve.is_null && last_offcurve.is_null */
-	    {
-	      if (!first_oncurve.is_null)
-		draw_helper.line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
-	      break;
-	    }
+	    optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
+	    draw_helper.quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
+				      font->em_scalef_x (mid.x), font->em_scalef_y (mid.y));
+	    last_offcurve = optional_point_t ();
+	    /* now check the rest */
 	  }
-	  end_of_contour ();
+
+	  if (!first_offcurve.is_null && last_offcurve.is_null)
+	  {
+	    if (!first_oncurve.is_null)
+	      draw_helper.quadratic_to (font->em_scalef_x (first_offcurve.x), font->em_scalef_y (first_offcurve.y),
+					font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+	  }
+	  else if (first_offcurve.is_null && !last_offcurve.is_null)
+	  {
+	    if (!first_oncurve.is_null)
+	      draw_helper.quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
+					font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+	  }
+	  else /* first_offcurve.is_null && last_offcurve.is_null */
+	    if (!first_oncurve.is_null)
+	      draw_helper.line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+
+	  first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
 	  draw_helper.end_path ();
 	}
       }
