@@ -56,8 +56,8 @@ _quadratic_to (hb_position_t control_x, hb_position_t control_y,
 }
 
 static void
-_cubic_to (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
-	   hb_position_t control2_x HB_UNUSED, hb_position_t control2_y HB_UNUSED,
+_cubic_to (hb_position_t control1_x, hb_position_t control1_y,
+	   hb_position_t control2_x, hb_position_t control2_y,
 	   hb_position_t to_x, hb_position_t to_y, void *user_data_)
 {
   _user_data_t *user_data = (_user_data_t *) user_data_;
