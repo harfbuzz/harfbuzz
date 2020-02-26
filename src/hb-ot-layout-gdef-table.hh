@@ -173,7 +173,8 @@ struct CaretValueFormat3
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable, this));
+    return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable, this, c->serializer->to_bias (out),
+                                                   hb_serialize_context_t::Head, c->plan->layout_variation_idx_map));
   }
   
   void collect_variation_indices (hb_set_t *layout_variation_indices) const
@@ -610,22 +611,31 @@ struct GDEF
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    out->glyphClassDef.serialize_subset (c, glyphClassDef, this);
+    bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this);
     out->attachList = 0;//TODO(subset) serialize_subset (c, attachList, this);
-    out->ligCaretList.serialize_subset (c, ligCaretList, this);
-    out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this);
+    bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
+    bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this);
 
+    bool subset_markglyphsetsdef = true;
     if (version.to_int () >= 0x00010002u)
     {
-      if (!out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this) &&
-	  version.to_int () == 0x00010002u)
-	out->version.minor = 0;
+      subset_markglyphsetsdef = out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this);
+      if (!subset_markglyphsetsdef &&
+          version.to_int () == 0x00010002u)
+        out->version.minor = 0;
     }
 
+    bool subset_varstore = true;
     if (version.to_int () >= 0x00010003u)
-      out->varStore = 0;// TODO(subset) serialize_subset (c, varStore, this);
+    {
+      subset_varstore = out->varStore.serialize_subset (c, varStore, this);
+      if (!subset_varstore && version.to_int () == 0x00010003u)
+        out->version.minor = 2;
+    }
 
-    return_trace (true);
+    return_trace (subset_glyphclassdef || subset_ligcaretlist || subset_markattachclassdef ||
+                  (out->version.to_int () >= 0x00010002u && subset_markglyphsetsdef) ||
+                  (out->version.to_int () >= 0x00010003u && subset_varstore));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const

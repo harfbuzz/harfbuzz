@@ -121,13 +121,6 @@ hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
 				  hb_ot_layout_glyph_class_t  klass,
 				  hb_set_t                   *glyphs /* OUT */);
 
-HB_EXTERN void
-hb_ot_layout_collect_variation_indices (hb_face_t *face,
-					const hb_set_t *glyphset,
-					const hb_map_t *gpos_lookups,
-					hb_set_t  *layout_variation_indices /* INOUT */,
-					hb_map_t  *layout_variation_idx_map /* INOUT */);
-
 /* Not that useful.  Provides list of attach points for a glyph that a
  * client may want to cache */
 HB_EXTERN unsigned int
