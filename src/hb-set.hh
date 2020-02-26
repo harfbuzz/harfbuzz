@@ -397,6 +397,7 @@ struct hb_set_t
 	  page_map[write_index++] = page_map[i];
       }
       compact (write_index);
+      resize (write_index);
     }
   }
 
