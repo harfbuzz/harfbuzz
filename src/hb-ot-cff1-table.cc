@@ -385,8 +385,6 @@ struct cff1_path_param_t
   void end_path () { draw_helper->end_path (); }
 
   hb_font_t *font;
-  const hb_draw_funcs_t *funcs;
-  void *user_data;
   draw_helper_t *draw_helper;
   point_t *delta;
 
@@ -401,13 +399,13 @@ struct cff1_path_procs_path_t : path_procs_t<cff1_path_procs_path_t, cff1_cs_int
     env.moveto (pt);
   }
 
-  static void line (cff1_cs_interp_env_t &env, cff1_path_param_t& param, const point_t &pt1)
+  static void line (cff1_cs_interp_env_t &env, cff1_path_param_t &param, const point_t &pt1)
   {
     param.line_to (pt1);
     env.moveto (pt1);
   }
 
-  static void curve (cff1_cs_interp_env_t &env, cff1_path_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
+  static void curve (cff1_cs_interp_env_t &env, cff1_path_param_t &param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
   {
     param.cubic_to (pt1, pt2, pt3);
     env.moveto (pt3);
