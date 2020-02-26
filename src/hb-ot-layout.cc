@@ -318,38 +318,6 @@ hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
   return face->table.GDEF->table->get_glyphs_in_class (klass, glyphs);
 }
 
-#ifndef HB_NO_VAR
-/**
- * hb_ot_layout_collect_variation_indices:
- * @face: The #hb_face_t to work on
- * @layout_variation_indices: (inout): The #hb_set_t set of var indexes in all Device
- * tables
- *
- * Fetch and remap a list of variation indices in all Device tables referenced
- * in the specified face's GDEF table and GPOS tables that are going to be
- * retained in the final subset
- *
- * Since: REPLACEME
- **/
-void
-hb_ot_layout_collect_variation_indices (hb_face_t      *face,
-					const hb_set_t *glyphset,
-					const hb_map_t *gpos_lookups,
-					hb_set_t       *layout_variation_indices /* OUT */,
-					hb_map_t       *layout_variation_idx_map /* OUT */)
-{
-  if (!face->table.GDEF->table->has_data ()) return;
-  OT::hb_collect_variation_indices_context_t c (layout_variation_indices, glyphset, gpos_lookups);
-  face->table.GDEF->table->collect_variation_indices (&c);
-
-  if (hb_ot_layout_has_positioning (face))
-    face->table.GPOS->table->collect_variation_indices (&c);
-
-  face->table.GDEF->table->remap_layout_variation_indices (layout_variation_indices, layout_variation_idx_map);
-}
-#endif
-
-
 #ifndef HB_NO_LAYOUT_UNUSED
 /**
  * hb_ot_layout_get_attach_points:

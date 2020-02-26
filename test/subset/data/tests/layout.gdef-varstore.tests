@@ -1,0 +1,16 @@
+FONTS:
+AdobeVFPrototype.otf
+
+PROFILES:
+default.txt
+drop-hints.txt
+keep-gdef-gpos.txt
+
+SUBSETS:
+A
+AB
+ABC
+BW
+AVW
+ABCW
+

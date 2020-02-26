@@ -160,7 +160,8 @@ struct ValueFormat : HBUINT16
     return ret;
   }
 
-  void serialize_copy (hb_serialize_context_t *c, const void *base, const Value *values) const
+  void serialize_copy (hb_serialize_context_t *c, const void *base,
+                       const Value *values, const hb_map_t *layout_variation_idx_map) const
   {
     unsigned int format = *this;
     if (!format) return;
@@ -170,10 +171,10 @@ struct ValueFormat : HBUINT16
     if (format & xAdvance)   c->copy (*values++);
     if (format & yAdvance)   c->copy (*values++);
 
-    if (format & xPlaDevice) copy_device (c, base, values++);
-    if (format & yPlaDevice) copy_device (c, base, values++);
-    if (format & xAdvDevice) copy_device (c, base, values++);
-    if (format & yAdvDevice) copy_device (c, base, values++);
+    if (format & xPlaDevice) copy_device (c, base, values++, layout_variation_idx_map);
+    if (format & yPlaDevice) copy_device (c, base, values++, layout_variation_idx_map);
+    if (format & xAdvDevice) copy_device (c, base, values++, layout_variation_idx_map);
+    if (format & yAdvDevice) copy_device (c, base, values++, layout_variation_idx_map);
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
@@ -241,7 +242,8 @@ struct ValueFormat : HBUINT16
     return *static_cast<const OffsetTo<Device> *> (value);
   }
 
-  bool copy_device (hb_serialize_context_t *c, const void *base, const Value *src_value) const
+  bool copy_device (hb_serialize_context_t *c, const void *base,
+                    const Value *src_value, const hb_map_t *layout_variation_idx_map) const
   {
     Value	*dst_value = c->copy (*src_value);
 
@@ -250,7 +252,7 @@ struct ValueFormat : HBUINT16
 
     *dst_value = 0;
     c->push ();
-    if ((base + get_device (src_value)).copy (c))
+    if ((base + get_device (src_value)).copy (c, layout_variation_idx_map))
     {
       c->add_link (*dst_value, c->pop_pack ());
       return true;
@@ -321,7 +323,8 @@ template<typename Iterator>
 static void SinglePos_serialize (hb_serialize_context_t *c,
 				 const void *src,
 				 Iterator it,
-				 ValueFormat valFormat);
+				 ValueFormat valFormat,
+                                 const hb_map_t *layout_variation_idx_map);
 
 
 struct AnchorFormat1
@@ -420,14 +423,17 @@ struct AnchorFormat3
     return_trace (c->check_struct (this) && xDeviceTable.sanitize (c, this) && yDeviceTable.sanitize (c, this));
   }
 
-  AnchorFormat3* copy (hb_serialize_context_t *c) const
+  AnchorFormat3* copy (hb_serialize_context_t *c,
+		       const hb_map_t *layout_variation_idx_map) const
   {
     TRACE_SERIALIZE (this);
+    if (!layout_variation_idx_map) return_trace (nullptr);
+
     auto *out = c->embed<AnchorFormat3> (this);
     if (unlikely (!out)) return_trace (nullptr);
 
-    out->xDeviceTable.serialize_copy (c, xDeviceTable, this);
-    out->yDeviceTable.serialize_copy (c, yDeviceTable, this);
+    out->xDeviceTable.serialize_copy (c, xDeviceTable, this, 0, hb_serialize_context_t::Head, layout_variation_idx_map);
+    out->yDeviceTable.serialize_copy (c, yDeviceTable, this, 0, hb_serialize_context_t::Head, layout_variation_idx_map);
     return_trace (out);
   }
 
@@ -479,13 +485,13 @@ struct Anchor
     }
   }
 
-  Anchor* copy (hb_serialize_context_t *c) const
+  Anchor* copy (hb_serialize_context_t *c, const hb_map_t *layout_variation_idx_map) const
   {
     TRACE_SERIALIZE (this);
     switch (u.format) {
     case 1: return_trace (reinterpret_cast<Anchor *> (u.format1.copy (c)));
     case 2: return_trace (reinterpret_cast<Anchor *> (u.format2.copy (c)));
-    case 3: return_trace (reinterpret_cast<Anchor *> (u.format3.copy (c)));
+    case 3: return_trace (reinterpret_cast<Anchor *> (u.format3.copy (c, layout_variation_idx_map)));
     default:return_trace (nullptr);
     }
   }
@@ -539,6 +545,7 @@ struct AnchorMatrix
   bool serialize (hb_serialize_context_t *c,
 		  unsigned                num_rows,
 		  AnchorMatrix const     *offset_matrix,
+                  const hb_map_t         *layout_variation_idx_map,
 		  Iterator                index_iter)
   {
     TRACE_SERIALIZE (this);
@@ -550,7 +557,10 @@ struct AnchorMatrix
     {
       auto *offset = c->embed (offset_matrix->matrixZ[i]);
       if (!offset) return_trace (false);
-      offset->serialize_copy (c, offset_matrix->matrixZ[i], offset_matrix, c->to_bias (this));
+      offset->serialize_copy (c, offset_matrix->matrixZ[i],
+                              offset_matrix, c->to_bias (this),
+                              hb_serialize_context_t::Head,
+                              layout_variation_idx_map);
     }
 
     return_trace (true);
@@ -588,15 +598,18 @@ struct MarkRecord
     return_trace (c->check_struct (this) && markAnchor.sanitize (c, base));
   }
 
-  MarkRecord *copy (hb_serialize_context_t *c, const void *base,
-		    unsigned dst_bias, const hb_map_t *klass_mapping) const
+  MarkRecord *copy (hb_serialize_context_t *c,
+		    const void             *src_base,
+		    unsigned                dst_bias,
+		    const hb_map_t         *klass_mapping,
+		    const hb_map_t         *layout_variation_idx_map) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
     out->klass = klass_mapping->get (klass);
-    out->markAnchor.serialize_copy (c, markAnchor, base, dst_bias);
+    out->markAnchor.serialize_copy (c, markAnchor, src_base, dst_bias, hb_serialize_context_t::Head, layout_variation_idx_map);
     return_trace (out);
   }
 
@@ -655,13 +668,14 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 	   hb_requires (hb_is_source_of (Iterator, MarkRecord))>
   bool serialize (hb_serialize_context_t *c,
 		  const hb_map_t         *klass_mapping,
+                  const hb_map_t         *layout_variation_idx_map,
 		  const void             *base,
 		  Iterator                it)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!c->check_assign (len, it.len ()))) return_trace (false);
-    c->copy_all (it, base, c->to_bias (this), klass_mapping);
+    c->copy_all (it, base, c->to_bias (this), klass_mapping, layout_variation_idx_map);
     return_trace (true);
   }
 
@@ -717,7 +731,8 @@ struct SinglePosFormat1
   void serialize (hb_serialize_context_t *c,
 		  const void *src,
 		  Iterator it,
-		  ValueFormat valFormat)
+		  ValueFormat valFormat,
+                  const hb_map_t *layout_variation_idx_map)
   {
     auto out = c->extend_min (*this);
     if (unlikely (!out)) return;
@@ -726,7 +741,7 @@ struct SinglePosFormat1
     + it
     | hb_map (hb_second)
     | hb_apply ([&] (hb_array_t<const Value> _)
-		{ valFormat.serialize_copy (c, src, &_); })
+		{ valFormat.serialize_copy (c, src, &_, layout_variation_idx_map); })
     ;
 
     auto glyphs =
@@ -751,7 +766,7 @@ struct SinglePosFormat1
     ;
 
     bool ret = bool (it);
-    SinglePos_serialize (c->serializer, this, it, valueFormat);
+    SinglePos_serialize (c->serializer, this, it, valueFormat, c->plan->layout_variation_idx_map);
     return_trace (ret);
   }
 
@@ -830,7 +845,8 @@ struct SinglePosFormat2
   void serialize (hb_serialize_context_t *c,
 		  const void *src,
 		  Iterator it,
-		  ValueFormat valFormat)
+		  ValueFormat valFormat,
+                  const hb_map_t *layout_variation_idx_map)
   {
     auto out = c->extend_min (*this);
     if (unlikely (!out)) return;
@@ -840,7 +856,7 @@ struct SinglePosFormat2
     + it
     | hb_map (hb_second)
     | hb_apply ([&] (hb_array_t<const Value> _)
-		{ valFormat.serialize_copy (c, src, &_); })
+		{ valFormat.serialize_copy (c, src, &_, layout_variation_idx_map); })
     ;
 
     auto glyphs =
@@ -872,7 +888,7 @@ struct SinglePosFormat2
     ;
 
     bool ret = bool (it);
-    SinglePos_serialize (c->serializer, this, it, valueFormat);
+    SinglePos_serialize (c->serializer, this, it, valueFormat, c->plan->layout_variation_idx_map);
     return_trace (ret);
   }
 
@@ -920,7 +936,8 @@ struct SinglePos
   void serialize (hb_serialize_context_t *c,
 		  const void *src,
 		  Iterator glyph_val_iter_pairs,
-		  ValueFormat valFormat)
+		  ValueFormat valFormat,
+                  const hb_map_t *layout_variation_idx_map)
   {
     if (unlikely (!c->extend_min (u.format))) return;
     unsigned format = 2;
@@ -929,9 +946,9 @@ struct SinglePos
 
     u.format = format;
     switch (u.format) {
-    case 1: u.format1.serialize (c, src, glyph_val_iter_pairs, valFormat);
+    case 1: u.format1.serialize (c, src, glyph_val_iter_pairs, valFormat, layout_variation_idx_map);
 	    return;
-    case 2: u.format2.serialize (c, src, glyph_val_iter_pairs, valFormat);
+    case 2: u.format2.serialize (c, src, glyph_val_iter_pairs, valFormat, layout_variation_idx_map);
 	    return;
     default:return;
     }
@@ -962,8 +979,9 @@ static void
 SinglePos_serialize (hb_serialize_context_t *c,
 		     const void *src,
 		     Iterator it,
-		     ValueFormat valFormat)
-{ c->start_embed<SinglePos> ()->serialize (c, src, it, valFormat); }
+		     ValueFormat valFormat,
+                     const hb_map_t *layout_variation_idx_map)
+{ c->start_embed<SinglePos> ()->serialize (c, src, it, valFormat, layout_variation_idx_map); }
 
 
 struct PairValueRecord
@@ -979,6 +997,7 @@ struct PairValueRecord
     const ValueFormat	*valueFormats;
     unsigned		len1; /* valueFormats[0].get_len() */
     const hb_map_t 	*glyph_map;
+    const hb_map_t      *layout_variation_idx_map;
   };
 
   bool serialize (hb_serialize_context_t *c,
@@ -990,8 +1009,8 @@ struct PairValueRecord
 
     out->secondGlyph = (*closure->glyph_map)[secondGlyph];
 
-    closure->valueFormats[0].serialize_copy (c, closure->base, &values[0]);
-    closure->valueFormats[1].serialize_copy (c, closure->base, &values[closure->len1]);
+    closure->valueFormats[0].serialize_copy (c, closure->base, &values[0], closure->layout_variation_idx_map);
+    closure->valueFormats[1].serialize_copy (c, closure->base, &values[closure->len1], closure->layout_variation_idx_map);
 
     return_trace (true);
   }
@@ -1122,7 +1141,8 @@ struct PairSet
       this,
       valueFormats,
       len1,
-      &glyph_map
+      &glyph_map,
+      c->plan->layout_variation_idx_map
     };
 
     const PairValueRecord *record = &firstPairValueRecord;
@@ -1408,17 +1428,17 @@ struct PairPosFormat2
     + hb_range ((unsigned) class1Count)
     | hb_filter (klass1_map)
     | hb_apply ([&] (const unsigned class1_idx)
-		{
-		  + hb_range ((unsigned) class2Count)
-		  | hb_filter (klass2_map)
-		  | hb_apply ([&] (const unsigned class2_idx)
-			      {
-				unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
-				valueFormat1.serialize_copy (c->serializer, this, &values[idx]);
-				valueFormat2.serialize_copy (c->serializer, this, &values[idx + len1]);
-			      })
-		  ;
-		})
+                {
+                  + hb_range ((unsigned) class2Count)
+                  | hb_filter (klass2_map)
+                  | hb_apply ([&] (const unsigned class2_idx)
+                              {
+                                unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
+                                valueFormat1.serialize_copy (c->serializer, this, &values[idx], c->plan->layout_variation_idx_map);
+                                valueFormat2.serialize_copy (c->serializer, this, &values[idx + len1], c->plan->layout_variation_idx_map);
+                              })
+                  ;
+                })
     ;
 
     const hb_set_t &glyphset = *c->plan->_glyphset_gsub;
@@ -1524,14 +1544,17 @@ struct EntryExitRecord
     (src_base+exitAnchor).collect_variation_indices (c);
   }
 
-  EntryExitRecord* copy (hb_serialize_context_t *c, const void *base) const
+  EntryExitRecord* copy (hb_serialize_context_t *c,
+			 const void *src_base,
+			 const void *dst_base,
+                         const hb_map_t *layout_variation_idx_map) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
-    out->entryAnchor.serialize_copy (c, entryAnchor, base);
-    out->exitAnchor.serialize_copy (c, exitAnchor, base);
+    out->entryAnchor.serialize_copy (c, entryAnchor, src_base, c->to_bias (dst_base), hb_serialize_context_t::Head, layout_variation_idx_map);
+    out->exitAnchor.serialize_copy (c, exitAnchor, src_base, c->to_bias (dst_base), hb_serialize_context_t::Head, layout_variation_idx_map);
     return_trace (out);
   }
 
@@ -1675,7 +1698,10 @@ struct CursivePosFormat1
 
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
-  void serialize (hb_serialize_context_t *c, Iterator it, const void *base)
+  void serialize (hb_serialize_context_t *c,
+		  Iterator it,
+		  const void *src_base,
+                  const hb_map_t *layout_variation_idx_map)
   {
     if (unlikely (!c->extend_min ((*this)))) return;
     this->format = 1;
@@ -1683,7 +1709,7 @@ struct CursivePosFormat1
 
     for (const EntryExitRecord& entry_record : + it
 					       | hb_map (hb_second))
-      c->copy (entry_record, base);
+      c->copy (entry_record, src_base, this, layout_variation_idx_map);
 
     auto glyphs =
     + it
@@ -1710,7 +1736,7 @@ struct CursivePosFormat1
     ;
 
     bool ret = bool (it);
-    out->serialize (c->serializer, it, this);
+    out->serialize (c->serializer, it, this, c->plan->layout_variation_idx_map);
     return_trace (ret);
   }
 
@@ -1900,8 +1926,8 @@ struct MarkBasePosFormat1
       return_trace (false);
 
     out->markArray.serialize (c->serializer, out)
-		  .serialize (c->serializer, &klass_mapping, &(this+markArray), + mark_iter
-										| hb_map (hb_second));
+		  .serialize (c->serializer, &klass_mapping, c->plan->layout_variation_idx_map, &(this+markArray), + mark_iter
+										                                   | hb_map (hb_second));
 
     unsigned basecount = (this+baseArray).rows;
     auto base_iter =
@@ -1931,7 +1957,7 @@ struct MarkBasePosFormat1
       ;
     }
     out->baseArray.serialize (c->serializer, out)
-		  .serialize (c->serializer, base_iter.len (), &(this+baseArray), base_indexes.iter ());
+		  .serialize (c->serializer, base_iter.len (), &(this+baseArray), c->plan->layout_variation_idx_map, base_indexes.iter ());
 
     return_trace (true);
   }
@@ -2277,8 +2303,8 @@ struct MarkMarkPosFormat1
       return_trace (false);
 
     out->mark1Array.serialize (c->serializer, out)
-		   .serialize (c->serializer, &klass_mapping, &(this+mark1Array), + mark1_iter
-										  | hb_map (hb_second));
+		   .serialize (c->serializer, &klass_mapping, c->plan->layout_variation_idx_map, &(this+mark1Array), + mark1_iter
+										                                     | hb_map (hb_second));
     
     unsigned mark2count = (this+mark2Array).rows;
     auto mark2_iter =
@@ -2308,7 +2334,7 @@ struct MarkMarkPosFormat1
       ;
     }
     out->mark2Array.serialize (c->serializer, out)
-		   .serialize (c->serializer, mark2_iter.len (), &(this+mark2Array), mark2_indexes.iter ());
+		   .serialize (c->serializer, mark2_iter.len (), &(this+mark2Array), c->plan->layout_variation_idx_map, mark2_indexes.iter ());
 
     return_trace (true);
   }
