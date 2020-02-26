@@ -171,18 +171,21 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 
   unsigned int get_size () const { return length * this->get_item_size (); }
 
-  void reverse ()
+  /*
+   * Reverse the order of items in this array in the range [start, end).
+   */
+  void reverse (unsigned start = 0, unsigned end = -1)
   {
-    int rhs = length - 1;
-    int lhs = 0;
-    while (rhs > lhs)
-    {
-      Type value_rhs = arrayZ[rhs];
-      Type value_lhs = arrayZ[lhs];
-      arrayZ[rhs] = value_lhs;
-      arrayZ[lhs] = value_rhs;
-      rhs--;
-      lhs++;
+    start = hb_min (start, length);
+    end = hb_min (end, length);
+
+    if (end < start + 2)
+      return;
+
+    for (unsigned lhs = start, rhs = end - 1; lhs < rhs; lhs++, rhs--) {
+      Type temp = arrayZ[rhs];
+      arrayZ[rhs] = arrayZ[lhs];
+      arrayZ[lhs] = temp;
     }
   }
 

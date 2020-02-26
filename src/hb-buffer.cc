@@ -448,27 +448,13 @@ void
 hb_buffer_t::reverse_range (unsigned int start,
 			    unsigned int end)
 {
-  unsigned int i, j;
-
   if (end - start < 2)
     return;
 
-  for (i = start, j = end - 1; i < j; i++, j--) {
-    hb_glyph_info_t t;
-
-    t = info[i];
-    info[i] = info[j];
-    info[j] = t;
-  }
+  hb_array_t<hb_glyph_info_t> (info, len).reverse (start, end);
 
   if (have_positions) {
-    for (i = start, j = end - 1; i < j; i++, j--) {
-      hb_glyph_position_t t;
-
-      t = pos[i];
-      pos[i] = pos[j];
-      pos[j] = t;
-    }
+    hb_array_t<hb_glyph_position_t> (pos, len).reverse (start, end);
   }
 }
 
