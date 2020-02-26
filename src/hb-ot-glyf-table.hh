@@ -1032,11 +1032,7 @@ struct glyf
     struct path_builder_t
     {
       hb_font_t *font;
-      const hb_draw_funcs_t *funcs;
-      void *user_data;
-      void (*quad_to) (hb_font_t *, const hb_draw_funcs_t *,
-		       float, float, float, float, float, float,
-		       void *);
+      draw_helper_t draw_helper;
 
       struct optional_point_t
       {
@@ -1049,55 +1045,23 @@ struct glyf
 
 	optional_point_t lerp (optional_point_t p, float t)
 	{ return optional_point_t (x + t * (p.x - x), y + t * (p.y - y)); }
-      } first_oncurve, first_offcurve, last_offcurve, current;
+      } first_oncurve, first_offcurve, last_offcurve;
 
-      path_builder_t (hb_font_t *font_, const hb_draw_funcs_t *funcs_, void *user_data_)
+      path_builder_t (hb_font_t *font_, const hb_draw_funcs_t *funcs, void *user_data)
       {
 	font = font_;
-	funcs = funcs_;
-	user_data = user_data_;
-	quad_to = funcs->is_quadratic_to_set
-		? _normal_quadratic_to_call
-		: _translate_quadratic_to_cubic;
-	end_of_contour ();
+	draw_helper = draw_helper_t ();
+	draw_helper.init (funcs, user_data);
+	first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
       }
-
       void end_of_contour ()
-      { first_oncurve = first_offcurve = last_offcurve = current = optional_point_t (); }
-
-      static void
-      _normal_quadratic_to_call (hb_font_t *font, const hb_draw_funcs_t *funcs,
-				 float from_x HB_UNUSED, float from_y HB_UNUSED,
-				 float control_x, float control_y,
-				 float to_x, float to_y,
-				 void *user_data)
-      {
-	funcs->quadratic_to (font->em_scalef_x (control_x), font->em_scalef_y (control_y),
-			     font->em_scalef_x (to_x), font->em_scalef_y (to_y),
-			     user_data);
-      }
-
-      static void
-      _translate_quadratic_to_cubic (hb_font_t *font, const hb_draw_funcs_t *funcs,
-				     float from_x, float from_y,
-				     float control_x, float control_y,
-				     float to_x, float to_y,
-				     void *user_data)
-      {
-	funcs->cubic_to (font->em_scalef_x ((from_x + 2.f * control_x) / 3.f),
-			 font->em_scalef_y ((from_y + 2.f * control_y) / 3.f),
-			 font->em_scalef_x ((to_x + 2.f * control_x) / 3.f),
-			 font->em_scalef_y ((to_y + 2.f * control_y) / 3.f),
-			 font->em_scalef_x (to_x),
-			 font->em_scalef_y (to_y),
-			 user_data);
-      }
+      { first_oncurve = first_offcurve = last_offcurve = optional_point_t (); }
 
       /* based on https://github.com/RazrFalcon/ttf-parser/blob/master/src/glyf.rs#L292 */
       void consume_point (const contour_point_t &point)
       {
 	/* Skip empty contours */
-	if (unlikely (point.is_end_point && current.is_null && first_offcurve.is_null))
+	if (unlikely (point.is_end_point && first_oncurve.is_null && first_offcurve.is_null))
 	  return;
 
 	bool is_on_curve = point.flag & Glyph::FLAG_ON_CURVE;
@@ -1107,10 +1071,7 @@ struct glyf
 	  if (is_on_curve)
 	  {
 	    first_oncurve = p;
-	    funcs->move_to (font->em_scalef_x (p.x),
-			    font->em_scalef_y (p.y),
-			    user_data);
-	    current = p;
+	    draw_helper.move_to (font->em_scalef_x (p.x), font->em_scalef_y (p.y));
 	  }
 	  else
 	  {
@@ -1119,10 +1080,7 @@ struct glyf
 	      optional_point_t mid = first_offcurve.lerp (p, .5f);
 	      first_oncurve = mid;
 	      last_offcurve = p;
-	      funcs->move_to (font->em_scalef_x (mid.x),
-			      font->em_scalef_y (mid.y),
-			      user_data);
-	      current = mid;
+	      draw_helper.move_to (font->em_scalef_x (mid.x), font->em_scalef_y (mid.y));
 	    }
 	    else
 	      first_offcurve = p;
@@ -1134,30 +1092,22 @@ struct glyf
 	  {
 	    if (is_on_curve)
 	    {
-	      quad_to (font, funcs, current.x, current.y,
-		       last_offcurve.x, last_offcurve.y,
-		       p.x, p.y, user_data);
-	      current = p;
+	      draw_helper.quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
+					font->em_scalef_x (p.x), font->em_scalef_y (p.y));
 	      last_offcurve = optional_point_t ();
 	    }
 	    else
 	    {
 	      optional_point_t mid = last_offcurve.lerp (p, .5f);
-	      quad_to (font, funcs, current.x, current.y,
-		       last_offcurve.x, last_offcurve.y,
-		       mid.x, mid.y, user_data);
+	      draw_helper.quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
+					font->em_scalef_x (mid.x), font->em_scalef_y (mid.y));
 	      last_offcurve = p;
-	      current = mid;
 	    }
 	  }
 	  else
 	  {
 	    if (is_on_curve)
-	    {
-	      funcs->line_to (font->em_scalef_x (p.x),
-			      font->em_scalef_y (p.y), user_data);
-	      current = p;
-	    }
+	      draw_helper.line_to (font->em_scalef_x (p.x), font->em_scalef_y (p.y));
 	    else
 	      last_offcurve = p;
 	  }
@@ -1170,41 +1120,33 @@ struct glyf
 	    if (!first_offcurve.is_null && !last_offcurve.is_null)
 	    {
 	      optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
-	      quad_to (font, funcs, current.x, current.y,
-		       last_offcurve.x, last_offcurve.y, mid.x, mid.y,
-		       user_data);
-	      current = mid;
+	      draw_helper.quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
+					font->em_scalef_x (mid.x), font->em_scalef_y (mid.y));
 	      last_offcurve = optional_point_t ();
 	    }
 	    else if (!first_offcurve.is_null && last_offcurve.is_null)
 	    {
 	      if (!first_oncurve.is_null)
-		quad_to (font, funcs, current.x, current.y,
-			 first_offcurve.x, first_offcurve.y,
-			 first_oncurve.x, first_oncurve.y,
-			 user_data);
+		draw_helper.quadratic_to (font->em_scalef_x (first_offcurve.x), font->em_scalef_y (first_offcurve.y),
+					  font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
 	      break;
 	    }
 	    else if (first_offcurve.is_null && !last_offcurve.is_null)
 	    {
 	      if (!first_oncurve.is_null)
-		quad_to (font, funcs, current.x, current.y,
-			 last_offcurve.x, last_offcurve.y,
-			 first_oncurve.x, first_oncurve.y,
-			 user_data);
+		draw_helper.quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
+					  font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
 	      break;
 	    }
 	    else /* first_offcurve.is_null && last_offcurve.is_null */
 	    {
 	      if (!first_oncurve.is_null)
-		funcs->line_to (font->em_scalef_x (first_oncurve.x),
-				font->em_scalef_y (first_oncurve.y),
-				user_data);
+		draw_helper.line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
 	      break;
 	    }
 	  }
 	  end_of_contour ();
-	  funcs->close_path (user_data);
+	  draw_helper.end_path ();
 	}
       }
       void points_end () {}

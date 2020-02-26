@@ -43,30 +43,43 @@ struct draw_helper_t
 {
   void init (const hb_draw_funcs_t *funcs_, void *user_data_)
   {
-    path_open = false;
     funcs = funcs_;
     user_data = user_data_;
-    path_start_x = 0;
-    path_start_y = 0;
-    path_last_x = 0;
-    path_last_y = 0;
-
+    path_open = false;
+    path_start_x = current_x = path_start_y = current_y = 0;
   }
   void fini () { end_path (); }
 
   void move_to (hb_position_t x, hb_position_t y)
   {
     if (path_open) end_path ();
-    path_last_x = path_start_x = x;
-    path_last_y = path_start_y = y;
+    current_x = path_start_x = x;
+    current_y = path_start_y = y;
   }
 
   void line_to (hb_position_t x, hb_position_t y)
   {
     if (!path_open) start_path ();
     funcs->line_to (x, y, user_data);
-    path_last_x = x;
-    path_last_y = y;
+    current_x = x;
+    current_y = y;
+  }
+
+  void
+  quadratic_to (hb_position_t control_x, hb_position_t control_y,
+		hb_position_t to_x, hb_position_t to_y)
+  {
+    if (!path_open) start_path ();
+    if (funcs->is_quadratic_to_set)
+      funcs->quadratic_to (control_x, control_y, to_x, to_y, user_data);
+    else
+      funcs->cubic_to (roundf ((current_x + 2.f * control_x) / 3.f),
+		       roundf ((current_y + 2.f * control_y) / 3.f),
+		       roundf ((to_x + 2.f * control_x) / 3.f),
+		       roundf ((to_y + 2.f * control_y) / 3.f),
+		       to_x, to_y, user_data);
+    current_x = to_x;
+    current_y = to_y;
   }
 
   void
@@ -76,19 +89,20 @@ struct draw_helper_t
   {
     if (!path_open) start_path ();
     funcs->cubic_to (x1, y1, x2, y2, x3, y3, user_data);
-    path_last_x = x3;
-    path_last_y = y3;
+    current_x = x3;
+    current_y = y3;
   }
 
   void end_path ()
   {
     if (path_open)
     {
-      if ((path_start_x != path_last_x) || (path_start_y != path_last_y))
+      if ((path_start_x != current_x) || (path_start_y != current_y))
 	funcs->line_to (path_start_x, path_start_y, user_data);
       funcs->close_path (user_data);
     }
     path_open = false;
+    path_start_x = current_x = path_start_y = current_y = 0;
   }
 
   protected:
@@ -102,8 +116,8 @@ struct draw_helper_t
   hb_position_t path_start_x;
   hb_position_t path_start_y;
 
-  hb_position_t path_last_x;
-  hb_position_t path_last_y;
+  hb_position_t current_x;
+  hb_position_t current_y;
 
   bool path_open;
   const hb_draw_funcs_t *funcs;
