@@ -175,6 +175,9 @@ struct CaretValueFormat3
 
     return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable, this));
   }
+  
+  void collect_variation_indices (hb_set_t *layout_variation_indices) const
+  { (this+deviceTable).collect_variation_indices (layout_variation_indices); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -218,6 +221,19 @@ struct CaretValue
     case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, hb_forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
+    }
+  }
+
+  void collect_variation_indices (hb_set_t *layout_variation_indices) const
+  {
+    switch (u.format) {
+    case 1:
+    case 2:
+      return;
+    case 3:
+      u.format3.collect_variation_indices (layout_variation_indices);
+      return;
+    default: return;
     }
   }
 
@@ -277,6 +293,12 @@ struct LigGlyph
 
     return_trace (bool (out->carets));
   }
+  
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
+  {
+    for (const OffsetTo<CaretValue>& offset : carets.iter ())
+      (this+offset).collect_variation_indices (c->layout_variation_indices);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -334,6 +356,16 @@ struct LigCaretList
     out->coverage.serialize (c->serializer, out)
 		 .serialize (c->serializer, new_coverage.iter ());
     return_trace (bool (new_coverage));
+  }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
+  {
+    + hb_zip (this+coverage, ligGlyph)
+    | hb_filter (c->glyph_set, hb_first)
+    | hb_map (hb_second)
+    | hb_map (hb_add (this))
+    | hb_apply ([c] (const LigGlyph& _) { _.collect_variation_indices (c); })
+    ;
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -542,6 +574,34 @@ struct GDEF
     return min_size +
 	   (version.to_int () >= 0x00010002u ? markGlyphSetsDef.static_size : 0) +
 	   (version.to_int () >= 0x00010003u ? varStore.static_size : 0);
+  }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
+  { (this+ligCaretList).collect_variation_indices (c); }
+
+  void remap_layout_variation_indices (const hb_set_t *layout_variation_indices,
+				       hb_map_t *layout_variation_idx_map /* OUT */) const
+  {
+    if (version.to_int () < 0x00010003u || !varStore) return;
+    if (layout_variation_indices->is_empty ()) return;
+    
+    unsigned new_major = 0, new_minor = 0;
+    unsigned last_major = (layout_variation_indices->get_min ()) >> 16;
+    for (unsigned idx : layout_variation_indices->iter ())
+    {
+      uint16_t major = idx >> 16;
+      if (major >= (this+varStore).get_sub_table_count ()) break;
+      if (major != last_major)
+      {
+        new_minor = 0;
+        ++new_major;
+      }
+
+      unsigned new_idx = (new_major << 16) + new_minor;
+      layout_variation_idx_map->set (idx, new_idx);
+      ++new_minor;
+      last_major = major;
+    }
   }
 
   bool subset (hb_subset_context_t *c) const

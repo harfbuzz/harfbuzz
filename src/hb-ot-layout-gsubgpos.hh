@@ -1674,6 +1674,8 @@ struct ContextFormat1
     ;
   }
 
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const {}
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     (this+coverage).collect_coverage (c->input);
@@ -1813,6 +1815,8 @@ struct ContextFormat2
     | hb_apply ([&] (const RuleSet &_) { _.closure_lookups (c); })
     ;
   }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const {}
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
@@ -1963,6 +1967,8 @@ struct ContextFormat3
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
     recurse_lookups (c, lookupCount, lookupRecord);
   }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const {}
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
@@ -2562,6 +2568,8 @@ struct ChainContextFormat1
     ;
   }
 
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const {}
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     (this+coverage).collect_coverage (c->input);
@@ -2705,6 +2713,8 @@ struct ChainContextFormat2
     | hb_apply ([&] (const ChainRuleSet &_) { _.closure_lookups (c); })
     ;
   }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const {}
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
@@ -2904,6 +2914,8 @@ struct ChainContextFormat3
     recurse_lookups (c, lookup.len, lookup.arrayZ);
   }
 
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const {}
+
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
@@ -3081,6 +3093,9 @@ struct ExtensionFormat1
     if (unlikely (!c->may_dispatch (this, this))) return_trace (c->no_dispatch_return_value ());
     return_trace (get_subtable<typename T::SubTable> ().dispatch (c, get_type (), hb_forward<Ts> (ds)...));
   }
+
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
+  { dispatch (c); }
 
   /* This is called from may_dispatch() above with hb_sanitize_context_t. */
   bool sanitize (hb_sanitize_context_t *c) const

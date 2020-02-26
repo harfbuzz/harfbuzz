@@ -150,6 +150,28 @@ struct hb_subset_layout_context_t :
   unsigned lookup_index_count;
 };
 
+struct hb_collect_variation_indices_context_t :
+       hb_dispatch_context_t<hb_collect_variation_indices_context_t, hb_empty_t, 0>
+{
+  const char *get_name () { return "CLOSURE_LAYOUT_VARIATION_IDXES"; }
+  template <typename T>
+  return_t dispatch (const T &obj) { obj.collect_variation_indices (this); return hb_empty_t (); }
+  static return_t default_return_value () { return hb_empty_t (); }
+
+  hb_set_t *layout_variation_indices;
+  const hb_set_t *glyph_set;
+  const hb_map_t *gpos_lookups;
+  unsigned int debug_depth;
+
+  hb_collect_variation_indices_context_t (hb_set_t *layout_variation_indices_,
+					  const hb_set_t *glyph_set_,
+					  const hb_map_t *gpos_lookups_) :
+					layout_variation_indices (layout_variation_indices_),
+					glyph_set (glyph_set_),
+					gpos_lookups (gpos_lookups_),
+					debug_depth (0) {}
+};
+
 template<typename OutputArray>
 struct subset_offset_array_t
 {
@@ -2916,6 +2938,12 @@ struct VariationDevice
     return_trace (c->embed<VariationDevice> (this));
   }
 
+  void record_variation_index (hb_set_t *layout_variation_indices) const
+  {
+    unsigned var_idx = (outerIndex << 16) + innerIndex;
+    layout_variation_indices->add (var_idx);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -3017,6 +3045,25 @@ struct Device
 #endif
     default:
       return_trace (nullptr);
+    }
+  }
+
+  void collect_variation_indices (hb_set_t *layout_variation_indices) const
+  {
+    switch (u.b.format) {
+#ifndef HB_NO_HINTING
+    case 1:
+    case 2:
+    case 3:
+      return;
+#endif
+#ifndef HB_NO_VAR
+    case 0x8000:
+      u.variation.record_variation_index (layout_variation_indices);
+      return;
+#endif
+    default:
+      return;
     }
   }
 

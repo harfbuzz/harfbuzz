@@ -35,6 +35,7 @@
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-stat-table.hh"
 
+
 #ifndef HB_NO_SUBSET_CFF
 static inline void
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
@@ -128,6 +129,18 @@ _gpos_closure_lookups_features (hb_face_t      *face,
 }
 #endif
 
+#ifndef HB_NO_VAR
+static inline void
+  _collect_layout_variation_indices (hb_face_t *face,
+				     const hb_set_t *glyphset,
+				     const hb_map_t *gpos_lookups,
+				     hb_set_t  *layout_variation_indices,
+				     hb_map_t  *layout_variation_idx_map)
+{
+  hb_ot_layout_collect_variation_indices (face, glyphset, gpos_lookups, layout_variation_indices, layout_variation_idx_map);
+}
+#endif
+
 static inline void
 _cmap_closure (hb_face_t           *face,
 	       const hb_set_t      *unicodes,
@@ -156,7 +169,8 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 			  const hb_set_t *unicodes,
 			  const hb_set_t *input_glyphs_to_retain,
 			  bool close_over_gsub,
-			  bool close_over_gpos)
+			  bool close_over_gpos,
+                          bool close_over_gdef)
 {
   OT::cmap::accelerator_t cmap;
   OT::glyf::accelerator_t glyf;
@@ -215,6 +229,11 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   }
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
+
+#ifndef HB_NO_VAR
+  if (close_over_gdef)
+    _collect_layout_variation_indices (plan->source, plan->_glyphset, plan->gpos_lookups, plan->layout_variation_indices, plan->layout_variation_idx_map);
+#endif
 
 #ifndef HB_NO_SUBSET_CFF
   cff.fini ();
@@ -308,12 +327,15 @@ hb_subset_plan_create (hb_face_t         *face,
   plan->gpos_lookups = hb_map_create ();
   plan->gsub_features = hb_map_create ();
   plan->gpos_features = hb_map_create ();
+  plan->layout_variation_indices = hb_set_create ();
+  plan->layout_variation_idx_map = hb_map_create ();
 
   _populate_gids_to_retain (plan,
 			    input->unicodes,
 			    input->glyphs,
 			    !input->drop_tables->has (HB_OT_TAG_GSUB),
-			    !input->drop_tables->has (HB_OT_TAG_GPOS));
+			    !input->drop_tables->has (HB_OT_TAG_GPOS),
+                            !input->drop_tables->has (HB_OT_TAG_GDEF));
 
   _create_old_gid_to_new_gid_map (face,
 				  input->retain_gids,
@@ -351,6 +373,8 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_map_destroy (plan->gpos_lookups);
   hb_map_destroy (plan->gsub_features);
   hb_map_destroy (plan->gpos_features);
+  hb_set_destroy (plan->layout_variation_indices);
+  hb_map_destroy (plan->layout_variation_idx_map);
 
 
   free (plan);
