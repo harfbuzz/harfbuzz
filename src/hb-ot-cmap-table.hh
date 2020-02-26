@@ -948,17 +948,19 @@ struct CmapSubtableFormat14
 
     auto src_tbl = reinterpret_cast<const CmapSubtableFormat14*> (src_base);
 
-    // Some versions of OTS require that offsets are in order. Due to the use
-    // of push()/pop_pack() serializing the variation records in order results
-    // in the offsets being in reverse order (first record has the largest
-    // offset). While this is perfectly valid, it will cause some versions of
-    // OTS to consider this table bad.
-    //
-    // So to prevent this issue we serialize the variation records in reverse
-    // order, so that the offsets are ordered from small to large. Since
-    // variation records are supposed to be in increasing order of varSelector
-    // we then have to reverse the order of the written variation selector
-    // records after everything is finalized.
+    /*
+     * Some versions of OTS require that offsets are in order. Due to the use
+     * of push()/pop_pack() serializing the variation records in order results
+     * in the offsets being in reverse order (first record has the largest
+     * offset). While this is perfectly valid, it will cause some versions of
+     * OTS to consider this table bad.
+     *
+     * So to prevent this issue we serialize the variation records in reverse
+     * order, so that the offsets are ordered from small to large. Since
+     * variation records are supposed to be in increasing order of varSelector
+     * we then have to reverse the order of the written variation selector
+     * records after everything is finalized.
+     */
     hb_vector_t<hb_pair_t<unsigned, unsigned>> obj_indices;
     for (int i = src_tbl->record.len - 1; i >= 0; i--)
     {
@@ -980,11 +982,11 @@ struct CmapSubtableFormat14
                      (c->length () - table_initpos - CmapSubtableFormat14::min_size) /
                      VariationSelectorRecord::static_size);
 
-    // Correct the incorrect write order by reversing the order of the variation
-    // records array.
+    /* Correct the incorrect write order by reversing the order of the variation
+       records array. */
     _reverse_variation_records ();
 
-    // Now that records are in the right order, we can set up the offsets.
+    /* Now that records are in the right order, we can set up the offsets. */
     _add_links_to_variation_records (c, obj_indices);
   }
 
@@ -1008,9 +1010,11 @@ struct CmapSubtableFormat14
   {
     for (unsigned i = 0; i < obj_indices.length; i++)
     {
-      // Since the record array has been reversed (see comments in copy())
-      // but obj_indices has not been, the indices at obj_indices[i]
-      // are for the variation record at record[j].
+      /*
+       * Since the record array has been reversed (see comments in copy())
+       * but obj_indices has not been, the indices at obj_indices[i]
+       * are for the variation record at record[j].
+       */
       int j = obj_indices.length - 1 - i;
       c->add_link (record[j].defaultUVS, obj_indices[i].first, this);
       c->add_link (record[j].nonDefaultUVS, obj_indices[i].second, this);
