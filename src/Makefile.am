@@ -352,6 +352,10 @@ test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
 
+test_array_SOURCES = test-array.cc
+test_array_CPPFLAGS = $(HBCFLAGS)
+test_array_LDADD = libharfbuzz.la $(HBLIBS)
+
 test_ot_meta_SOURCES = test-ot-meta.cc
 test_ot_meta_CPPFLAGS = $(HBCFLAGS)
 test_ot_meta_LDADD = libharfbuzz.la $(HBLIBS)
@@ -407,7 +411,7 @@ dump_use_data_SOURCES = dump-use-data.cc hb-ot-shape-complex-use-table.cc
 dump_use_data_CPPFLAGS = $(HBCFLAGS)
 dump_use_data_LDADD = libharfbuzz.la $(HBLIBS)
 
-COMPILED_TESTS = test-algs test-iter test-meta test-number test-ot-tag test-unicode-ranges test-bimap
+COMPILED_TESTS = test-algs test-array test-iter test-meta test-number test-ot-tag test-unicode-ranges test-bimap
 COMPILED_TESTS_CPPFLAGS = $(HBCFLAGS) -DMAIN -UNDEBUG
 COMPILED_TESTS_LDADD = libharfbuzz.la $(HBLIBS)
 check_PROGRAMS += $(COMPILED_TESTS)
