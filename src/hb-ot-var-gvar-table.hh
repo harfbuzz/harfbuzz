@@ -492,9 +492,8 @@ struct gvar
   {
     unsigned start_offset = get_offset (glyph);
     unsigned length = get_offset (glyph+1) - start_offset;
-    return unlikely (GlyphVarData::min_size > length)
-	 ? hb_bytes_t ()
-	 : blob->as_bytes ().sub_array (((unsigned) dataZ) + start_offset, length);
+    hb_bytes_t var_data = blob->as_bytes ().sub_array (((unsigned) dataZ) + start_offset, length);
+    return likely (var_data.length >= GlyphVarData::min_size) ? var_data : hb_bytes_t ();
   }
 
   bool is_long_offset () const { return (flags & 1) != 0; }
