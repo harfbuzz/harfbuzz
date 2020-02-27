@@ -763,7 +763,7 @@ struct glyf
 	  /* Apply component transformation & translation */
 	  item.transform_points (comp_points);
 
-	  /* Apply translatation from gvar */
+	  /* Apply translation from gvar */
 	  comp_points.translate (points[comp_index]);
 
 	  if (item.is_anchored ())
