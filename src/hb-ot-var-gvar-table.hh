@@ -416,25 +416,19 @@ struct gvar
     unsigned int num_glyphs = c->plan->num_output_glyphs ();
     out->glyphCount = num_glyphs;
 
-    hb_blob_ptr_t<gvar> table = hb_sanitize_context_t ().reference_table<gvar> (c->plan->source);
-
     unsigned int subset_data_size = 0;
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
       hb_codepoint_t old_gid;
       if (!c->plan->old_gid_for_new_gid (gid, &old_gid)) continue;
-      subset_data_size += get_glyph_var_data_bytes (table.get_blob (), old_gid).length;
+      subset_data_size += get_glyph_var_data_bytes (c->source_blob, old_gid).length;
     }
 
     bool long_offset = subset_data_size & ~0xFFFFu;
     out->flags = long_offset ? 1 : 0;
 
     HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> ((long_offset ? 4 : 2) * (num_glyphs + 1));
-    if (!subset_offsets)
-    {
-      table.destroy ();
-      return_trace (false);
-    }
+    if (!subset_offsets) return_trace (false);
 
     /* shared tuples */
     if (!sharedTupleCount || !sharedTuples)
@@ -443,29 +437,21 @@ struct gvar
     {
       unsigned int shared_tuple_size = F2DOT14::static_size * axisCount * sharedTupleCount;
       F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
-      if (!tuples)
-      {
-	table.destroy ();
-	return_trace (false);
-      }
+      if (!tuples) return_trace (false);
       out->sharedTuples = (char *) tuples - (char *) out;
       memcpy (tuples, &(this+sharedTuples), shared_tuple_size);
     }
 
     char *subset_data = c->serializer->allocate_size<char> (subset_data_size);
-    if (!subset_data)
-    {
-      table.destroy ();
-      return_trace (false);
-    }
-    out->dataZ = subset_data - (char *)out;
+    if (!subset_data) return_trace (false);
+    out->dataZ = subset_data - (char *) out;
 
     unsigned int glyph_offset = 0;
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
       hb_codepoint_t old_gid;
       hb_bytes_t var_data_bytes = c->plan->old_gid_for_new_gid (gid, &old_gid)
-				? get_glyph_var_data_bytes (table.get_blob (), old_gid)
+				? get_glyph_var_data_bytes (c->source_blob, old_gid)
 				: hb_bytes_t ();
 
       if (long_offset)
@@ -483,7 +469,6 @@ struct gvar
     else
       ((HBUINT16 *) subset_offsets)[num_glyphs] = glyph_offset / 2;
 
-    table.destroy ();
     return_trace (true);
   }
 
