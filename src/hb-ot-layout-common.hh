@@ -60,6 +60,11 @@
 #define HB_MAX_LANGSYS	2000
 #endif
 
+#ifndef HB_MAX_FEATURE_INDICES
+#define HB_MAX_FEATURE_INDICES	2000
+#endif
+
+
 
 namespace OT {
 
