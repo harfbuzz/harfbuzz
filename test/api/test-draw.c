@@ -161,6 +161,7 @@ close_path (user_data_t *user_data)
 
 static hb_draw_funcs_t *funcs;
 static hb_draw_funcs_t *funcs2; /* this one translates quadratic calls to cubic ones */
+static hb_draw_funcs_t *funcs3; /* this one translates quad/cubic calls to line-to calls*/
 
 static void
 test_hb_draw_empty (void)
@@ -397,6 +398,32 @@ test_hb_draw_ttf_parser_tests (void)
     char expected[] = "M82,0L164,0L164,486L82,486L82,0Z"
 		      "M124,586C156,586 181,608 181,639C181,671 156,692 124,692"
 		      "C92,692 67,671 67,639C67,608 92,586 124,586Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/cff1_dotsect.nohints.otf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 1, funcs3, &user_data));
+    char expected[] = "M82,0L164,0L164,486L82,486L82,0ZM124,586L127,586L130,586L133,586"
+		      "L136,587L139,587L142,588L145,589L148,590L151,591L153,593L156,594"
+		      "L158,596L161,598L163,599L165,601L167,603L169,606L171,608L172,610"
+		      "L174,613L175,615L176,618L177,621L178,623L179,626L180,629L180,632"
+		      "L180,635L181,639L180,641L180,644L180,647L179,650L179,653L178,655"
+		      "L177,658L176,660L175,663L174,665L172,667L171,669L169,671L168,673"
+		      "L166,675L164,677L162,679L160,680L158,682L156,683L153,684L151,686"
+		      "L148,687L146,688L143,689L141,689L138,690L135,691L132,691L129,691"
+		      "L126,691L124,692L121,691L118,691L115,691L112,691L109,690L106,689"
+		      "L104,689L101,688L99,687L96,686L94,684L91,683L89,682L87,680L85,679"
+		      "L83,677L81,675L79,673L78,671L76,669L75,667L73,665L72,663L71,660"
+		      "L70,658L69,655L68,653L68,650L67,647L67,644L67,641L67,639L67,635"
+		      "L67,632L67,629L68,626L69,623L70,621L71,618L72,615L73,613L75,610"
+		      "L76,608L78,606L80,603L82,601L84,599L86,598L89,596L91,594L94,593"
+		      "L96,591L99,590L102,589L105,588L108,587L111,587L114,586L117,586L120,586L124,586Z";
     g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
 
     hb_font_destroy (font);
@@ -856,6 +883,12 @@ main (int argc, char **argv)
   hb_draw_funcs_set_close_path_func (funcs2, (hb_draw_close_path_func_t) close_path);
   hb_draw_funcs_make_immutable (funcs2);
 
+  funcs3 = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func (funcs3, (hb_draw_move_to_func_t) move_to);
+  hb_draw_funcs_set_line_to_func (funcs3, (hb_draw_line_to_func_t) line_to);
+  hb_draw_funcs_set_close_path_func (funcs3, (hb_draw_close_path_func_t) close_path);
+  hb_draw_funcs_make_immutable (funcs3);
+
   hb_test_init (&argc, &argv);
   hb_test_add (test_itoa);
   hb_test_add (test_hb_draw_empty);
@@ -872,5 +905,6 @@ main (int argc, char **argv)
 
   hb_draw_funcs_destroy (funcs);
   hb_draw_funcs_destroy (funcs2);
+  hb_draw_funcs_destroy (funcs3);
   return result;
 }

@@ -36,6 +36,7 @@ struct hb_draw_funcs_t
   hb_draw_quadratic_to_func_t quadratic_to;
   bool is_quadratic_to_set;
   hb_draw_cubic_to_func_t cubic_to;
+  bool is_cubic_to_set;
   hb_draw_close_path_func_t close_path;
 };
 
@@ -47,8 +48,12 @@ struct draw_helper_t
     user_data = user_data_;
     path_open = false;
     path_start_x = current_x = path_start_y = current_y = 0;
+    accuracy = 1;
   }
   ~draw_helper_t () { end_path (); }
+
+  /* Bezier to lines accuracy */
+  void set_accuracy (int accuracy_) { accuracy = abs (accuracy_); }
 
   void move_to (hb_position_t x, hb_position_t y)
   {
@@ -95,7 +100,35 @@ struct draw_helper_t
 	equal_to_current (to_x, to_y))
       return;
     if (!path_open) start_path ();
-    funcs->cubic_to (control1_x, control1_y, control2_x, control2_y, to_x, to_y, user_data);
+    if (funcs->is_quadratic_to_set)
+      funcs->cubic_to (control1_x, control1_y, control2_x, control2_y, to_x, to_y, user_data);
+    else
+    {
+      /* just an inaccurate one based https://github.com/raphlinus/font-rs/blob/master/src/raster.rs#L100 */
+      float devx = current_x - 2.f * (control1_x + control2_y) / 2.f + to_x;
+      float devy = current_y - 2.f * (control1_y + control2_y) / 2.f + to_y;
+      float devsq = devx * devx + devy * devy;
+      if (devsq > 0.333f)
+      {
+	float tol = 3.0;
+	float n = 1 + (unsigned) floor (sqrtf (sqrtf (tol * (devx * devx + devy * devy))) / accuracy);
+	float nrecip = 1.f / (float) n;
+	float t = 0.f;
+	hb_position_t x = current_x, y = current_y;
+	for (unsigned i = 0; i < n - 1; ++i)
+	{
+	  t += nrecip;
+	  /* https://twitter.com/FreyaHolmer/status/1063633419752669184 */
+	  float omt = 1.f - t;
+	  float omt2 = omt * omt;
+	  float t2 = t * t;
+	  x = current_x * (omt2 * omt) + control1_x * (3 * omt2 * t) + control2_x * (3 * omt * t2) + to_x * (t2 * t);
+	  y = current_y * (omt2 * omt) + control1_y * (3 * omt2 * t) + control2_y * (3 * omt * t2) + to_y * (t2 * t);
+	  funcs->line_to (x, y, user_data);
+        }
+      }
+      funcs->line_to (to_x, to_y, user_data);
+    }
     current_x = to_x;
     current_y = to_y;
   }
@@ -128,6 +161,8 @@ struct draw_helper_t
 
   hb_position_t current_x;
   hb_position_t current_y;
+
+  int accuracy;
 
   bool path_open;
   const hb_draw_funcs_t *funcs;

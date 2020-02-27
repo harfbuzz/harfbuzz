@@ -99,6 +99,7 @@ hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
 {
   if (unlikely (hb_object_is_immutable (funcs))) return;
   funcs->cubic_to = cubic_to;
+  funcs->is_cubic_to_set = true;
 }
 
 /**
@@ -155,7 +156,7 @@ hb_draw_funcs_create ()
   funcs->move_to = (hb_draw_move_to_func_t) _move_to_nil;
   funcs->line_to = (hb_draw_line_to_func_t) _line_to_nil;
   funcs->quadratic_to = (hb_draw_quadratic_to_func_t) _quadratic_to_nil;
-  funcs->is_quadratic_to_set = false;
+  funcs->is_cubic_to_set = funcs->is_quadratic_to_set = false;
   funcs->cubic_to = (hb_draw_cubic_to_func_t) _cubic_to_nil;
   funcs->close_path = (hb_draw_close_path_func_t) _close_path_nil;
   return funcs;
@@ -247,6 +248,9 @@ hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
     return false;
 
   draw_helper_t draw_helper (funcs, user_data);
+  if (font->x_ppem || font->y_ppem)
+    draw_helper.set_accuracy (hb_min (font->x_ppem / font->x_scale,
+				      font->y_ppem / font->y_scale));
   if (font->face->table.glyf->get_path (font, glyph, draw_helper)) return true;
 #ifndef HB_NO_CFF
   if (font->face->table.cff1->get_path (font, glyph, draw_helper)) return true;
