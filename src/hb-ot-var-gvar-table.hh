@@ -416,19 +416,25 @@ struct gvar
     unsigned int num_glyphs = c->plan->num_output_glyphs ();
     out->glyphCount = num_glyphs;
 
+    hb_blob_ptr_t<gvar> table = hb_sanitize_context_t ().reference_table<gvar> (c->plan->source);
+
     unsigned int subset_data_size = 0;
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
       hb_codepoint_t old_gid;
       if (!c->plan->old_gid_for_new_gid (gid, &old_gid)) continue;
-      subset_data_size += get_glyph_var_data_length (old_gid);
+      subset_data_size += get_glyph_var_data_bytes (table.get_blob (), old_gid).length;
     }
 
     bool long_offset = subset_data_size & ~0xFFFFu;
     out->flags = long_offset ? 1 : 0;
 
     HBUINT8 *subset_offsets = c->serializer->allocate_size<HBUINT8> ((long_offset ? 4 : 2) * (num_glyphs + 1));
-    if (!subset_offsets) return_trace (false);
+    if (!subset_offsets)
+    {
+      table.destroy ();
+      return_trace (false);
+    }
 
     /* shared tuples */
     if (!sharedTupleCount || !sharedTuples)
@@ -437,49 +443,58 @@ struct gvar
     {
       unsigned int shared_tuple_size = F2DOT14::static_size * axisCount * sharedTupleCount;
       F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
-      if (!tuples) return_trace (false);
+      if (!tuples)
+      {
+	table.destroy ();
+	return_trace (false);
+      }
       out->sharedTuples = (char *) tuples - (char *) out;
       memcpy (tuples, &(this+sharedTuples), shared_tuple_size);
     }
 
     char *subset_data = c->serializer->allocate_size<char> (subset_data_size);
-    if (!subset_data) return_trace (false);
+    if (!subset_data)
+    {
+      table.destroy ();
+      return_trace (false);
+    }
     out->dataZ = subset_data - (char *)out;
 
     unsigned int glyph_offset = 0;
     for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
     {
       hb_codepoint_t old_gid;
-      unsigned int length = c->plan->old_gid_for_new_gid (gid, &old_gid) ? get_glyph_var_data_length (old_gid) : 0;
+      hb_bytes_t var_data_bytes = c->plan->old_gid_for_new_gid (gid, &old_gid)
+				? get_glyph_var_data_bytes (table.get_blob (), old_gid)
+				: hb_bytes_t ();
 
       if (long_offset)
 	((HBUINT32 *) subset_offsets)[gid] = glyph_offset;
       else
 	((HBUINT16 *) subset_offsets)[gid] = glyph_offset / 2;
 
-      if (length > 0) memcpy (subset_data, &get_glyph_var_data (old_gid), length);
-      subset_data += length;
-      glyph_offset += length;
+      if (var_data_bytes.length > 0)
+	memcpy (subset_data, var_data_bytes.arrayZ, var_data_bytes.length);
+      subset_data += var_data_bytes.length;
+      glyph_offset += var_data_bytes.length;
     }
     if (long_offset)
       ((HBUINT32 *) subset_offsets)[num_glyphs] = glyph_offset;
     else
       ((HBUINT16 *) subset_offsets)[num_glyphs] = glyph_offset / 2;
 
+    table.destroy ();
     return_trace (true);
   }
 
   protected:
-  const GlyphVarData &get_glyph_var_data (hb_codepoint_t glyph) const
+  const hb_bytes_t get_glyph_var_data_bytes (hb_blob_t *blob, hb_codepoint_t glyph) const
   {
-    unsigned int start_offset = get_offset (glyph);
-    unsigned int end_offset = get_offset (glyph+1);
-
-    if ((start_offset == end_offset) ||
-	unlikely ((start_offset > get_offset (glyphCount)) ||
-		  (start_offset + GlyphVarData::min_size > end_offset)))
-      return Null (GlyphVarData);
-    return (((unsigned char *) this + start_offset) + dataZ);
+    unsigned start_offset = get_offset (glyph);
+    unsigned length = get_offset (glyph+1) - start_offset;
+    return unlikely (GlyphVarData::min_size > length)
+	 ? hb_bytes_t ()
+	 : blob->as_bytes ().sub_array (((unsigned) dataZ) + start_offset, length);
   }
 
   bool is_long_offset () const { return (flags & 1) != 0; }
@@ -490,15 +505,6 @@ struct gvar
       return get_long_offset_array ()[i];
     else
       return get_short_offset_array ()[i] * 2;
-  }
-
-  unsigned int get_glyph_var_data_length (unsigned int glyph) const
-  {
-    unsigned int end_offset = get_offset (glyph + 1);
-    unsigned int start_offset = get_offset (glyph);
-    if (unlikely (start_offset > end_offset || end_offset > get_offset (glyphCount)))
-      return 0;
-    return end_offset - start_offset;
   }
 
   const HBUINT32 * get_long_offset_array () const { return (const HBUINT32 *) &offsetZ; }
@@ -568,12 +574,12 @@ struct gvar
       coord_count = hb_min (coord_count, gvar_table->axisCount);
       if (!coord_count || coord_count != gvar_table->axisCount) return true;
 
-      const GlyphVarData &var_data = gvar_table->get_glyph_var_data (glyph);
-      if (!var_data.has_data ()) return true;
+      hb_bytes_t var_data_bytes = gvar_table->get_glyph_var_data_bytes (gvar_table.get_blob (), glyph);
+      const GlyphVarData *var_data = var_data_bytes.as<GlyphVarData> ();
+      if (!var_data->has_data ()) return true;
       hb_vector_t<unsigned int> shared_indices;
       GlyphVarData::tuple_iterator_t iterator;
-      if (!GlyphVarData::get_tuple_iterator (&var_data,
-					     gvar_table->get_glyph_var_data_length (glyph),
+      if (!GlyphVarData::get_tuple_iterator (var_data, var_data_bytes.length,
 					     gvar_table->axisCount,
 					     shared_indices,
 					     &iterator))
@@ -698,10 +704,6 @@ no_more_gaps:
     }
 
     unsigned int get_axis_count () const { return gvar_table->axisCount; }
-
-    protected:
-    const GlyphVarData &get_glyph_var_data (hb_codepoint_t glyph) const
-    { return gvar_table->get_glyph_var_data (glyph); }
 
     private:
     hb_blob_ptr_t<gvar> gvar_table;
