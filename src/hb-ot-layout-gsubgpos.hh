@@ -3104,7 +3104,7 @@ struct GSUBGPOS
   void closure_features (const hb_map_t *lookup_indexes, /* IN */
 			 hb_set_t       *feature_indexes /* OUT */) const
   {
-    unsigned int feature_count = hb_min (get_feature_count (), (unsigned) HB_MAX_FEATURE_INDICES);
+    unsigned int feature_count = hb_min (get_feature_count (), (unsigned) HB_MAX_FEATURES);
     for (unsigned i = 0; i < feature_count; i++)
     {
       if (get_feature (i).intersects_lookup_indexes (lookup_indexes))

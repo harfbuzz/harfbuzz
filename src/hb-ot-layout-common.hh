@@ -60,8 +60,12 @@
 #define HB_MAX_LANGSYS	2000
 #endif
 
+#ifndef HB_MAX_FEATURES
+#define HB_MAX_FEATURES 750
+#endif
+
 #ifndef HB_MAX_FEATURE_INDICES
-#define HB_MAX_FEATURE_INDICES	2000
+#define HB_MAX_FEATURE_INDICES	1500
 #endif
 
 
@@ -103,6 +107,12 @@ struct hb_subset_layout_context_t :
     return langsys_count++ < HB_MAX_LANGSYS;
   }
 
+  bool visitFeatureIndex (int count)
+  {
+    feature_index_count += count;
+    return feature_index_count < HB_MAX_FEATURE_INDICES;
+  }
+
   hb_subset_context_t *subset_context;
   const hb_tag_t table_tag;
   const hb_map_t *lookup_index_map;
@@ -119,11 +129,14 @@ struct hb_subset_layout_context_t :
 				feature_index_map (feature_map_),
 				debug_depth (0),
 				script_count (0),
-				langsys_count (0) {}
+				langsys_count (0),
+                                feature_index_count (0)
+  {}
 
   private:
   unsigned script_count;
   unsigned langsys_count;
+  unsigned feature_index_count;
 };
 
 template<typename OutputArray>
@@ -515,6 +528,9 @@ struct LangSys
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
     out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex) ? l->feature_index_map->get (reqFeatureIndex) : 0xFFFFu;
+
+    if (!l->visitFeatureIndex (featureIndex.len))
+      return_trace (false);
 
     auto it =
     + hb_iter (featureIndex)
