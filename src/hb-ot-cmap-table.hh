@@ -549,12 +549,12 @@ struct CmapSubtableLongSegmented
       hb_codepoint_t gid = this->groups[i].glyphID;
       if (!gid)
       {
-	/* Intention is: if (hb_is_same (T, CmapSubtableFormat13)) return; */
-	if (! T::group_get_glyph (this->groups[i], end)) return;
+	/* Intention is: if (hb_is_same (T, CmapSubtableFormat13)) continue; */
+	if (! T::group_get_glyph (this->groups[i], end)) continue;
 	start++;
 	gid++;
       }
-      if (unlikely ((unsigned int) gid >= num_glyphs)) return;
+      if (unlikely ((unsigned int) gid >= num_glyphs)) continue;
       if (unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
 	end = start + (hb_codepoint_t) num_glyphs - gid;
 
