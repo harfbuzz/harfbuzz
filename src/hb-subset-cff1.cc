@@ -247,7 +247,7 @@ struct cff1_font_dict_op_serializer_t : cff_font_dict_op_serializer_t
     TRACE_SERIALIZE (this);
 
     if (opstr.op == OpCode_FontName)
-      return_trace (FontDict::serialize_uint2_op (c, opstr.op, mod.fontName));
+      return_trace (FontDict::serialize_int2_op (c, opstr.op, mod.fontName));
     else
       return_trace (SUPER::serialize (c, opstr, mod.privateDictInfo));
   }

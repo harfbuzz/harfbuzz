@@ -252,30 +252,27 @@ struct number_t
 struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 {
   // encode 2-byte int (Dict/CharString) or 4-byte int (Dict)
-  template <typename INTTYPE, int minVal, int maxVal>
-  static bool serialize_int (hb_serialize_context_t *c, op_code_t intOp, int value)
+  template <typename T, typename V>
+  static bool serialize_int (hb_serialize_context_t *c, op_code_t intOp, V value)
   {
     TRACE_SERIALIZE (this);
-
-    if (unlikely ((value < minVal || value > maxVal)))
-      return_trace (false);
 
     HBUINT8 *p = c->allocate_size<HBUINT8> (1);
     if (unlikely (p == nullptr)) return_trace (false);
     *p = intOp;
 
-    INTTYPE *ip = c->allocate_size<INTTYPE> (INTTYPE::static_size);
+    T *ip = c->allocate_size<T> (T::static_size);
     if (unlikely (ip == nullptr)) return_trace (false);
-    *ip = (unsigned int) value;
-
-    return_trace (true);
+    return_trace (c->check_assign (*ip, value));
   }
 
-  static bool serialize_int4 (hb_serialize_context_t *c, int value)
-  { return serialize_int<HBUINT32, 0, 0x7FFFFFFF> (c, OpCode_longintdict, value); }
+  template <typename V>
+  static bool serialize_int4 (hb_serialize_context_t *c, V value)
+  { return serialize_int<HBINT32> (c, OpCode_longintdict, value); }
 
-  static bool serialize_int2 (hb_serialize_context_t *c, int value)
-  { return serialize_int<HBUINT16, 0, 0x7FFF> (c, OpCode_shortint, value); }
+  template <typename V>
+  static bool serialize_int2 (hb_serialize_context_t *c, V value)
+  { return serialize_int<HBINT16> (c, OpCode_shortint, value); }
 
   /* Defining null_size allows a Null object may be created. Should be safe because:
    * A descendent struct Dict uses a Null pointer to indicate a missing table,

@@ -352,11 +352,11 @@ struct Dict : UnsizedByteStr
     return size;
   }
 
-  template <typename INTTYPE, int minVal, int maxVal>
-  static bool serialize_int_op (hb_serialize_context_t *c, op_code_t op, int value, op_code_t intOp)
+  template <typename T, typename V>
+  static bool serialize_int_op (hb_serialize_context_t *c, op_code_t op, V value, op_code_t intOp)
   {
     // XXX: not sure why but LLVM fails to compile the following 'unlikely' macro invocation
-    if (/*unlikely*/ (!serialize_int<INTTYPE, minVal, maxVal> (c, intOp, value)))
+    if (/*unlikely*/ (!serialize_int<T, V> (c, intOp, value)))
       return false;
 
     TRACE_SERIALIZE (this);
@@ -373,17 +373,19 @@ struct Dict : UnsizedByteStr
     return_trace (true);
   }
 
-  static bool serialize_uint4_op (hb_serialize_context_t *c, op_code_t op, int value)
-  { return serialize_int_op<HBUINT32, 0, 0x7FFFFFFF> (c, op, value, OpCode_longintdict); }
+  template <typename V>
+  static bool serialize_int4_op (hb_serialize_context_t *c, op_code_t op, V value)
+  { return serialize_int_op<HBINT32> (c, op, value, OpCode_longintdict); }
 
-  static bool serialize_uint2_op (hb_serialize_context_t *c, op_code_t op, int value)
-  { return serialize_int_op<HBUINT16, 0, 0x7FFF> (c, op, value, OpCode_shortint); }
+  template <typename V>
+  static bool serialize_int2_op (hb_serialize_context_t *c, op_code_t op, V value)
+  { return serialize_int_op<HBINT16> (c, op, value, OpCode_shortint); }
 
-  static bool serialize_offset4_op (hb_serialize_context_t *c, op_code_t op, int value)
-  { return serialize_uint4_op (c, op, value); }
+  static bool serialize_offset4_op (hb_serialize_context_t *c, op_code_t op, unsigned value)
+  { return serialize_int4_op (c, op, value); }
 
-  static bool serialize_offset2_op (hb_serialize_context_t *c, op_code_t op, int value)
-  { return serialize_uint2_op (c, op, value); }
+  static bool serialize_offset2_op (hb_serialize_context_t *c, op_code_t op, unsigned value)
+  { return serialize_int2_op (c, op, value); }
 };
 
 struct TopDict : Dict {};
