@@ -539,7 +539,7 @@ struct CmapSubtableLongSegmented
     return true;
   }
 
-  void collect_unicodes (hb_set_t *out) const
+  void collect_unicodes (hb_set_t *out, unsigned int num_glyphs) const
   {
     for (unsigned int i = 0; i < this->groups.len; i++)
     {
@@ -548,7 +548,7 @@ struct CmapSubtableLongSegmented
 				   (hb_codepoint_t) HB_UNICODE_MAX);
       for (hb_codepoint_t codepoint = start; codepoint <= end; codepoint++)
       {
-	hb_codepoint_t gid = T::group_get_glyph (this->groups[i], codepoint);
+	hb_codepoint_t gid = T::group_get_glyph (this->groups[i], codepoint, num_glyphs);
 	if (unlikely (!gid))
 	  continue;
 	out->add (codepoint);
@@ -576,9 +576,13 @@ struct CmapSubtableLongSegmented
 struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 {
   static hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
-					 hb_codepoint_t u)
-  { return likely (group.startCharCode <= group.endCharCode) ?
-	   group.glyphID + (u - group.startCharCode) : 0; }
+					 hb_codepoint_t u, unsigned int num_glyphs = UINT_MAX)
+  { hb_codepoint_t g = group.glyphID;
+    hb_codepoint_t s = group.startCharCode;
+    return likely (s <= group.endCharCode &&
+		   g < num_glyphs &&
+		   g + (u - s) < num_glyphs) ?
+	   g + (u - s) : 0; }
 
 
   template<typename Iterator,
@@ -652,8 +656,8 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 struct CmapSubtableFormat13 : CmapSubtableLongSegmented<CmapSubtableFormat13>
 {
   static hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
-					 hb_codepoint_t u HB_UNUSED)
-  { return group.glyphID; }
+					 hb_codepoint_t u HB_UNUSED, unsigned int num_glyphs = UINT_MAX)
+  { return likely (group.glyphID < num_glyphs)? group.glyphID: 0; }
 };
 
 typedef enum
@@ -1077,15 +1081,15 @@ struct CmapSubtable
     default: return false;
     }
   }
-  void collect_unicodes (hb_set_t *out) const
+  void collect_unicodes (hb_set_t *out, unsigned int num_glyphs = UINT_MAX) const
   {
     switch (u.format) {
     case  0: u.format0 .collect_unicodes (out); return;
     case  4: u.format4 .collect_unicodes (out); return;
     case  6: u.format6 .collect_unicodes (out); return;
     case 10: u.format10.collect_unicodes (out); return;
-    case 12: u.format12.collect_unicodes (out); return;
-    case 13: u.format13.collect_unicodes (out); return;
+    case 12: u.format12.collect_unicodes (out, num_glyphs); return;
+    case 13: u.format13.collect_unicodes (out, num_glyphs); return;
     case 14:
     default: return;
     }
@@ -1417,8 +1421,8 @@ struct cmap
       return get_nominal_glyph (unicode, glyph);
     }
 
-    void collect_unicodes (hb_set_t *out) const
-    { subtable->collect_unicodes (out); }
+    void collect_unicodes (hb_set_t *out, unsigned int num_glyphs) const
+    { subtable->collect_unicodes (out, num_glyphs); }
     void collect_variation_selectors (hb_set_t *out) const
     { subtable_uvs->collect_variation_selectors (out); }
     void collect_variation_unicodes (hb_codepoint_t variation_selector,
