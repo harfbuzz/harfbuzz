@@ -577,12 +577,14 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
 {
   static hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
 					 hb_codepoint_t u, unsigned int num_glyphs = UINT_MAX)
-  { hb_codepoint_t g = group.glyphID;
+  {
+    hb_codepoint_t g = group.glyphID;
     hb_codepoint_t s = group.startCharCode;
     return likely (s <= group.endCharCode &&
 		   g < num_glyphs &&
 		   g + (u - s) < num_glyphs) ?
-	   g + (u - s) : 0; }
+	   g + (u - s) : 0;
+  }
 
 
   template<typename Iterator,
@@ -657,7 +659,7 @@ struct CmapSubtableFormat13 : CmapSubtableLongSegmented<CmapSubtableFormat13>
 {
   static hb_codepoint_t group_get_glyph (const CmapSubtableLongGroup &group,
 					 hb_codepoint_t u HB_UNUSED, unsigned int num_glyphs = UINT_MAX)
-  { return likely (group.glyphID < num_glyphs)? group.glyphID: 0; }
+  { return likely (group.glyphID < num_glyphs) ? group.glyphID : 0; }
 };
 
 typedef enum
