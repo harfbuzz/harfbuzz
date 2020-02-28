@@ -544,12 +544,20 @@ struct CmapSubtableLongSegmented
     for (unsigned int i = 0; i < this->groups.len; i++)
     {
       hb_codepoint_t start = this->groups[i].startCharCode;
-      unsigned int gid = this->groups[i].glyphID;
-      if (!gid) { start++; gid++; }
-      if (unlikely (gid >= num_glyphs)) return;
-      hb_codepoint_t end = hb_min (hb_min ((hb_codepoint_t) this->groups[i].endCharCode,
-					   (hb_codepoint_t) HB_UNICODE_MAX),
-				   start + (hb_codepoint_t) (num_glyphs - gid - 1));
+      hb_codepoint_t end = hb_min ((hb_codepoint_t) this->groups[i].endCharCode,
+                                   (hb_codepoint_t) HB_UNICODE_MAX);
+      hb_codepoint_t gid = this->groups[i].glyphID;
+      if (!gid)
+      {
+	/* Intention is: if (hb_is_same (T, CmapSubtableFormat13)) return; */
+	if (! T::group_get_glyph (this->groups[i], end)) return;
+	start++;
+	gid++;
+      }
+      if (unlikely ((unsigned int) gid >= num_glyphs)) return;
+      if (unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
+	end = start + (hb_codepoint_t) num_glyphs - gid;
+
       out->add_range (start, end);
     }
   }
