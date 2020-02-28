@@ -203,10 +203,10 @@ struct GlyphVarData
 
   struct tuple_iterator_t
   {
-    void init (const GlyphVarData *var_data_, unsigned int length_, unsigned int axis_count_)
+    void init (hb_bytes_t var_data_bytes_, unsigned int axis_count_)
     {
-      var_data = var_data_;
-      length = length_;
+      var_data_bytes = var_data_bytes_;
+      var_data = var_data_bytes_.as<GlyphVarData> ();
       index = 0;
       axis_count = axis_count_;
       current_tuple = &var_data->get_tuple_var_header ();
@@ -217,10 +217,9 @@ struct GlyphVarData
     {
       if (var_data->has_shared_point_numbers ())
       {
-	hb_bytes_t bytes ((const char *) var_data, length);
 	const HBUINT8 *base = &(var_data+var_data->data);
 	const HBUINT8 *p = base;
-	if (!unpack_points (p, shared_indices, bytes)) return false;
+	if (!unpack_points (p, shared_indices, var_data_bytes)) return false;
 	data_offset = p - base;
       }
       return true;
@@ -229,7 +228,8 @@ struct GlyphVarData
     bool is_valid () const
     {
       return (index < var_data->tupleVarCount.get_count ()) &&
-	     in_range (current_tuple) &&
+	     var_data_bytes.check_range (current_tuple, TupleVarHeader::min_size) &&
+	     var_data_bytes.check_range (current_tuple, current_tuple->get_data_size ()) &&
 	     current_tuple->get_size (axis_count);
     }
 
@@ -241,32 +241,25 @@ struct GlyphVarData
       return is_valid ();
     }
 
-    bool in_range (const void *p, unsigned int l) const
-    { return (const char*) p >= (const char*) var_data && (const char*) p+l <= (const char*) var_data + length; }
-
-    template <typename T> bool in_range (const T *p) const { return in_range (p, sizeof (*p)); }
-
     const HBUINT8 *get_serialized_data () const
     { return &(var_data+var_data->data) + data_offset; }
 
     private:
     const GlyphVarData *var_data;
-    unsigned int length;
     unsigned int index;
     unsigned int axis_count;
     unsigned int data_offset;
 
     public:
+    hb_bytes_t var_data_bytes;
     const TupleVarHeader *current_tuple;
   };
 
-  static bool get_tuple_iterator (const GlyphVarData *var_data,
-				  unsigned int length,
-				  unsigned int axis_count,
+  static bool get_tuple_iterator (hb_bytes_t var_data_bytes, unsigned axis_count,
 				  hb_vector_t<unsigned int> &shared_indices /* OUT */,
 				  tuple_iterator_t *iterator /* OUT */)
   {
-    iterator->init (var_data, length, axis_count);
+    iterator->init (var_data_bytes, axis_count);
     if (!iterator->get_shared_indices (shared_indices))
       return false;
     return iterator->is_valid ();
@@ -574,14 +567,11 @@ struct gvar
       if (!coord_count || coord_count != gvar_table->axisCount) return true;
 
       hb_bytes_t var_data_bytes = gvar_table->get_glyph_var_data_bytes (gvar_table.get_blob (), glyph);
-      const GlyphVarData *var_data = var_data_bytes.as<GlyphVarData> ();
-      if (!var_data->has_data ()) return true;
+      if (!var_data_bytes.as<GlyphVarData> ()->has_data ()) return true;
       hb_vector_t<unsigned int> shared_indices;
       GlyphVarData::tuple_iterator_t iterator;
-      if (!GlyphVarData::get_tuple_iterator (var_data, var_data_bytes.length,
-					     gvar_table->axisCount,
-					     shared_indices,
-					     &iterator))
+      if (!GlyphVarData::get_tuple_iterator (var_data_bytes, gvar_table->axisCount,
+					     shared_indices, &iterator))
 	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
@@ -599,7 +589,7 @@ struct gvar
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();
-	if (unlikely (!iterator.in_range (p, length)))
+	if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
 	  return false;
 
 	hb_bytes_t bytes ((const char *) p, length);
