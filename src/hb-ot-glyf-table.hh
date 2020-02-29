@@ -574,7 +574,6 @@ struct glyf
       }
 
       bool get_contour_points (contour_point_vector_t &points_ /* OUT */,
-			       hb_vector_t<unsigned int> &end_points_ /* OUT */,
 			       bool phantom_only = false) const
       {
 	const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
@@ -586,13 +585,8 @@ struct glyf
 	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
 	if (phantom_only) return true;
 
-	end_points_.resize (num_contours);
-
 	for (int i = 0; i < num_contours; i++)
-	{
-	  end_points_[i] = endPtsOfContours[i];
 	  points_[endPtsOfContours[i]].is_end_point = true;
-	}
 
 	/* Skip instructions */
 	const HBUINT8 *p = &StructAtOffset<HBUINT8> (&endPtsOfContours[num_contours + 1],
@@ -709,7 +703,6 @@ struct glyf
     {
       if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
       contour_point_vector_t points;
-      hb_vector_t<unsigned> end_points;
 
       switch (type) {
       case COMPOSITE:
@@ -722,7 +715,7 @@ struct glyf
         break;
       }
       case SIMPLE:
-	if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, end_points, phantom_only)))
+	if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
 	  return false;
 	break;
       default: return false; /* empty glyph */
@@ -746,8 +739,8 @@ struct glyf
       }
 
 #ifndef HB_NO_VAR
-      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, font->coords, font->num_coords,
-							       points.as_array (), end_points.as_array ()))) return false;
+      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, font->coords, font->num_coords, points.as_array ())))
+	return false;
 #endif
 
       switch (type) {

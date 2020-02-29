@@ -546,8 +546,7 @@ struct gvar
     public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
-				 const hb_array_t<contour_point_t> points,
-				 const hb_array_t<unsigned int> end_points) const
+				 const hb_array_t<contour_point_t> points) const
     {
       coord_count = hb_min (coord_count, gvar_table->axisCount);
       if (!coord_count || coord_count != gvar_table->axisCount) return true;
@@ -568,6 +567,11 @@ struct gvar
 
       contour_point_vector_t deltas; /* flag is used to indicate referenced point */
       deltas.resize (points.length);
+
+      hb_vector_t<unsigned> end_points;
+      for (unsigned i = 0; i < points.length; ++i)
+	if (points[i].is_end_point)
+	  end_points.push (i);
 
       do
       {
