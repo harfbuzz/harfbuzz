@@ -201,9 +201,9 @@ struct GlyphVarData
   const TupleVarHeader &get_tuple_var_header (void) const
   { return StructAfter<TupleVarHeader> (data); }
 
-  struct tuple_iterator_t
+  struct tuple_iterator_t : hb_iter_t<tuple_iterator_t, const TupleVarHeader &>
   {
-    void init (hb_bytes_t var_data_bytes_, unsigned int axis_count_)
+    tuple_iterator_t (hb_bytes_t var_data_bytes_, unsigned axis_count_)
     {
       var_data_bytes = var_data_bytes_;
       var_data = var_data_bytes_.as<GlyphVarData> ();
@@ -212,6 +212,12 @@ struct GlyphVarData
       current_tuple = &var_data->get_tuple_var_header ();
       data_offset = 0;
     }
+
+    const TupleVarHeader &__item__ () const { return *current_tuple; }
+    bool __more__ () const { return current_tuple; }
+
+    bool operator != (const tuple_iterator_t& o) const
+    { return var_data_bytes != o.var_data_bytes || current_tuple != o.current_tuple; }
 
     bool get_shared_indices (hb_vector_t<unsigned int> &shared_indices /* OUT */)
     {
@@ -225,6 +231,18 @@ struct GlyphVarData
       return true;
     }
 
+    void __next__ ()
+    {
+      data_offset += current_tuple->get_data_size ();
+      current_tuple = &current_tuple->get_next (axis_count);
+      index++;
+      if (!is_valid ()) current_tuple = nullptr;
+    }
+
+    const HBUINT8 *get_serialized_data () const
+    { return &(var_data+var_data->data) + data_offset; }
+
+    private:
     bool is_valid () const
     {
       return (index < var_data->tupleVarCount.get_count ()) &&
@@ -233,37 +251,15 @@ struct GlyphVarData
 	     current_tuple->get_size (axis_count);
     }
 
-    bool move_to_next ()
-    {
-      data_offset += current_tuple->get_data_size ();
-      current_tuple = &current_tuple->get_next (axis_count);
-      index++;
-      return is_valid ();
-    }
-
-    const HBUINT8 *get_serialized_data () const
-    { return &(var_data+var_data->data) + data_offset; }
-
-    private:
     const GlyphVarData *var_data;
     unsigned int index;
     unsigned int axis_count;
     unsigned int data_offset;
+    const TupleVarHeader *current_tuple;
 
     public:
     hb_bytes_t var_data_bytes;
-    const TupleVarHeader *current_tuple;
   };
-
-  static bool get_tuple_iterator (hb_bytes_t var_data_bytes, unsigned axis_count,
-				  hb_vector_t<unsigned int> &shared_indices /* OUT */,
-				  tuple_iterator_t *iterator /* OUT */)
-  {
-    iterator->init (var_data_bytes, axis_count);
-    if (!iterator->get_shared_indices (shared_indices))
-      return false;
-    return iterator->is_valid ();
-  }
 
   bool has_shared_point_numbers () const { return tupleVarCount.has_shared_point_numbers (); }
 
@@ -554,10 +550,10 @@ struct gvar
       hb_bytes_t var_data_bytes = gvar_table->get_glyph_var_data_bytes (gvar_table.get_blob (), glyph);
       if (!var_data_bytes.as<GlyphVarData> ()->has_data ()) return true;
       hb_vector_t<unsigned int> shared_indices;
-      GlyphVarData::tuple_iterator_t iterator;
-      if (!GlyphVarData::get_tuple_iterator (var_data_bytes, gvar_table->axisCount,
-					     shared_indices, &iterator))
-	return true; /* so isn't applied at all */
+
+      GlyphVarData::tuple_iterator_t iterator (var_data_bytes, coord_count);
+      if (!iterator.get_shared_indices (shared_indices) || !iterator.__more__ ())
+        return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
       contour_point_vector_t orig_points;
@@ -568,19 +564,23 @@ struct gvar
       contour_point_vector_t deltas; /* flag is used to indicate referenced point */
       deltas.resize (points.length);
 
-      do
+      for (; iterator.__more__ (); iterator.__next__ ())
       {
-	float scalar = iterator.current_tuple->calculate_scalar (coords, coord_count, shared_tuples.as_array ());
+	auto &tuple = iterator.__item__ ();
+//       for (auto &tuple : iterator)
+//       {
+
+	float scalar = tuple.calculate_scalar (coords, coord_count, shared_tuples.as_array ());
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
-	unsigned int length = iterator.current_tuple->get_data_size ();
+	unsigned int length = tuple.get_data_size ();
 	if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
 	  return false;
 
-	hb_bytes_t bytes ((const char *) p, length);
+	hb_bytes_t points_bytes ((const char *) p, length);
 	hb_vector_t<unsigned int> private_indices;
-	if (iterator.current_tuple->has_private_points () &&
-	    !GlyphVarData::unpack_points (p, private_indices, bytes))
+	if (tuple.has_private_points () &&
+	    !GlyphVarData::unpack_points (p, private_indices, points_bytes))
 	  return false;
 	const hb_array_t<unsigned int> &indices = private_indices.length ? private_indices : shared_indices;
 
@@ -588,11 +588,11 @@ struct gvar
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
 	hb_vector_t<int> x_deltas;
 	x_deltas.resize (num_deltas);
-	if (!GlyphVarData::unpack_deltas (p, x_deltas, bytes))
+	if (!GlyphVarData::unpack_deltas (p, x_deltas, points_bytes))
 	  return false;
 	hb_vector_t<int> y_deltas;
 	y_deltas.resize (num_deltas);
-	if (!GlyphVarData::unpack_deltas (p, y_deltas, bytes))
+	if (!GlyphVarData::unpack_deltas (p, y_deltas, points_bytes))
 	  return false;
 
 	for (unsigned int i = 0; i < deltas.length; i++)
@@ -672,7 +672,7 @@ no_more_gaps:
 	  points[i].x += (float) roundf (deltas[i].x);
 	  points[i].y += (float) roundf (deltas[i].y);
 	}
-      } while (iterator.move_to_next ());
+      }
 
       return true;
     }
