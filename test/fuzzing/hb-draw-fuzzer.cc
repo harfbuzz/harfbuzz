@@ -109,11 +109,20 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) _quadratic_to);
   hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) _cubic_to);
   hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) _close_path);
-  for (unsigned i = 0; i < glyph_count; ++i)
+  volatile unsigned counter = !glyph_count;
+  for (unsigned gid = 0; gid < glyph_count; ++gid)
   {
-    hb_font_draw_glyph (font, i, funcs, &user_data);
+    hb_font_draw_glyph (font, gid, funcs, &user_data);
     assert (!user_data.is_open);
+
+    /* Glyph extents also may practices the similar path, call it now that is related */
+    hb_glyph_extents_t extents;
+    if (hb_font_get_glyph_extents (font, gid, &extents))
+      counter += !!extents.width + !!extents.height + !!extents.x_bearing + !!extents.y_bearing;
+
+    if (!counter) counter += 1;
   }
+  assert (counter);
   hb_draw_funcs_destroy (funcs);
 
   hb_font_destroy (font);
