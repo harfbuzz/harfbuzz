@@ -539,20 +539,26 @@ struct CmapSubtableLongSegmented
     return true;
   }
 
-  void collect_unicodes (hb_set_t *out) const
+  void collect_unicodes (hb_set_t *out, unsigned int num_glyphs) const
   {
     for (unsigned int i = 0; i < this->groups.len; i++)
     {
       hb_codepoint_t start = this->groups[i].startCharCode;
       hb_codepoint_t end = hb_min ((hb_codepoint_t) this->groups[i].endCharCode,
-				   (hb_codepoint_t) HB_UNICODE_MAX);
-      for (hb_codepoint_t codepoint = start; codepoint <= end; codepoint++)
+                                   (hb_codepoint_t) HB_UNICODE_MAX);
+      hb_codepoint_t gid = this->groups[i].glyphID;
+      if (!gid)
       {
-	hb_codepoint_t gid = T::group_get_glyph (this->groups[i], codepoint);
-	if (unlikely (!gid))
-	  continue;
-	out->add (codepoint);
+	/* Intention is: if (hb_is_same (T, CmapSubtableFormat13)) continue; */
+	if (! T::group_get_glyph (this->groups[i], end)) continue;
+	start++;
+	gid++;
       }
+      if (unlikely ((unsigned int) gid >= num_glyphs)) continue;
+      if (unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
+	end = start + (hb_codepoint_t) num_glyphs - gid;
+
+      out->add_range (start, end);
     }
   }
 
@@ -1077,15 +1083,15 @@ struct CmapSubtable
     default: return false;
     }
   }
-  void collect_unicodes (hb_set_t *out) const
+  void collect_unicodes (hb_set_t *out, unsigned int num_glyphs = UINT_MAX) const
   {
     switch (u.format) {
     case  0: u.format0 .collect_unicodes (out); return;
     case  4: u.format4 .collect_unicodes (out); return;
     case  6: u.format6 .collect_unicodes (out); return;
     case 10: u.format10.collect_unicodes (out); return;
-    case 12: u.format12.collect_unicodes (out); return;
-    case 13: u.format13.collect_unicodes (out); return;
+    case 12: u.format12.collect_unicodes (out, num_glyphs); return;
+    case 13: u.format13.collect_unicodes (out, num_glyphs); return;
     case 14:
     default: return;
     }
@@ -1417,8 +1423,8 @@ struct cmap
       return get_nominal_glyph (unicode, glyph);
     }
 
-    void collect_unicodes (hb_set_t *out) const
-    { subtable->collect_unicodes (out); }
+    void collect_unicodes (hb_set_t *out, unsigned int num_glyphs) const
+    { subtable->collect_unicodes (out, num_glyphs); }
     void collect_variation_selectors (hb_set_t *out) const
     { subtable_uvs->collect_variation_selectors (out); }
     void collect_variation_unicodes (hb_codepoint_t variation_selector,

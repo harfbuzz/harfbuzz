@@ -546,7 +546,7 @@ void
 hb_face_collect_unicodes (hb_face_t *face,
 			  hb_set_t  *out)
 {
-  face->table.cmap->collect_unicodes (out);
+  face->table.cmap->collect_unicodes (out, face->get_num_glyphs ());
 }
 /**
  * hb_face_collect_variation_selectors:
