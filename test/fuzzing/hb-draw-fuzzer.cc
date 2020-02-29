@@ -5,12 +5,6 @@
 
 #include "hb-fuzzer.hh"
 
-#if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
-#define HB_UNUSED	__attribute__((unused))
-#else
-#define HB_UNUSED
-#endif
-
 struct _user_data_t
 {
   bool is_open;
