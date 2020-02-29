@@ -546,7 +546,8 @@ struct gvar
     public:
     bool apply_deltas_to_points (hb_codepoint_t glyph,
 				 const int *coords, unsigned int coord_count,
-				 const hb_array_t<contour_point_t> points) const
+				 const hb_array_t<contour_point_t> points,
+				 const hb_array_t<unsigned int> end_points) const
     {
       coord_count = hb_min (coord_count, gvar_table->axisCount);
       if (!coord_count || coord_count != gvar_table->axisCount) return true;
@@ -605,27 +606,16 @@ struct gvar
 	  deltas[pt_index].y += y_deltas[i] * scalar;
 	}
 
-	/* find point before phantoms start which is an end point */
-	unsigned all_contours_end = points.length ? points.length - 1 : 0;
-	while (all_contours_end > 0)
-	{
-	  if (points[all_contours_end].is_end_point) break;
-	  --all_contours_end;
-	}
-
 	/* infer deltas for unreferenced points */
-	for (unsigned start_point = 0; start_point < all_contours_end; ++start_point)
+	unsigned start_point = 0;
+	for (unsigned c = 0; c < end_points.length; c++)
 	{
+	  unsigned end_point = end_points[c];
+
 	  /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
-	  unsigned end_point = start_point;
 	  unsigned unref_count = 0;
-	  for (; end_point <= all_contours_end; ++end_point)
-	  {
-	    if (!deltas[end_point].flag)
-	      unref_count++;
-	    if (points[end_point].is_end_point)
-	      break;
-	  }
+	  for (unsigned i = start_point; i <= end_point; i++)
+	    if (!deltas[i].flag) unref_count++;
 
 	  unsigned j = start_point;
 	  if (unref_count == 0 || unref_count > end_point - start_point)

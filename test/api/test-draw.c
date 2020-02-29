@@ -752,6 +752,66 @@ test_hb_draw_font_kit_variations_tests (void)
 }
 
 static void
+test_hb_draw_estedad_vf (void)
+{
+  /* https://github.com/harfbuzz/harfbuzz/issues/2215 */
+  char str[2048];
+  user_data_t user_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  {
+    /* See https://github.com/google/skia/blob/d38f00a1/gm/stroketext.cpp#L115-L124 */
+    hb_face_t *face = hb_test_open_font_file ("fonts/Estedad-VF.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+
+    hb_variation_t var;
+    hb_variation_from_string ("wght=100", -1, &var);
+    hb_font_set_variations (font, &var, 1);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 156, funcs, &user_data));
+    /* Skip empty path where all the points of a path are equal */
+    char expected[] = "M150,1158L182,1158Q256,1158 317,1170Q377,1182 421,1213L421,430L521,430"
+		      "L521,1490L421,1490L421,1320Q393,1279 344,1262Q294,1244 182,1244L150,1244"
+		      "L150,1158ZM1815,-122L1669,-122L1669,642L1552,642L1055,-117L1055,-206"
+		      "L1569,-206L1569,-458L1669,-458L1669,-206L1815,-206L1815,-122ZM1569,-122"
+		      "L1166,-122L1569,494L1569,-122ZM609,-79L1639,1288L1555,1334L525,-33L609,-79Z";
+    g_assert_cmpmem (str, user_data.consumed, expected, sizeof (expected) - 1);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 180, funcs, &user_data));
+    /* Skip empty path where all the points of a path are equal */
+    char expected2[] = "M120,693Q120,545 177,414Q233,282 333,182Q433,81 567,24Q701,-33 855,-33"
+		       "Q1010,-33 1144,24Q1277,81 1377,182Q1477,282 1534,414Q1590,545 1590,693"
+		       "Q1590,842 1534,973Q1477,1104 1377,1205Q1277,1305 1144,1362Q1010,1419 855,1419"
+		       "Q701,1419 567,1362Q433,1305 333,1205Q233,1104 177,973Q120,842 120,693ZM220,693"
+		       "Q220,828 270,945Q320,1061 409,1148Q497,1235 612,1284Q726,1333 855,1333"
+		       "Q984,1333 1099,1284Q1213,1235 1302,1148Q1390,1061 1440,945Q1490,828 1490,693"
+		       "Q1490,558 1440,442Q1390,325 1302,237Q1213,149 1099,100Q984,51 855,51"
+		       "Q726,51 612,100Q497,149 409,237Q320,325 270,442Q220,558 220,693ZM690,643"
+		       "L690,997L886,997Q970,997 1029,949Q1087,901 1087,819Q1087,737 1028,690"
+		       "Q969,643 886,643L690,643ZM1165,334L973,568Q1065,591 1126,658Q1187,725 1187,819"
+		       "Q1187,896 1147,956Q1106,1015 1038,1049Q969,1083 886,1083L590,1083L590,310"
+		       "L690,310L690,557L860,557L1083,286L1165,334Z";
+    g_assert_cmpmem (str, user_data.consumed, expected2, sizeof (expected2) - 1);
+
+    user_data.consumed = 0;
+    g_assert (hb_font_draw_glyph (font, 262, funcs, &user_data));
+    /* Skip empty path where all the points of a path are equal */
+    char expected3[] = "M422,598Q495,598 545,548Q595,498 595,426Q595,353 545,303Q494,252 422,252"
+		       "Q350,252 300,303Q250,353 250,426Q250,499 300,549Q349,598 422,598ZM422,698"
+		       "Q347,698 285,662Q223,625 187,564Q150,502 150,426Q150,351 187,289"
+		       "Q223,226 285,189Q346,152 422,152Q498,152 560,189Q622,226 659,289"
+		       "Q695,351 695,426Q695,502 658,564Q621,625 560,662Q498,698 422,698Z";
+    g_assert_cmpmem (str, user_data.consumed, expected3, sizeof (expected3) - 1);
+
+    hb_font_destroy (font);
+  }
+}
+
+static void
 test_hb_draw_stroking (void)
 {
   /* https://skia-review.googlesource.com/c/skia/+/266945
@@ -866,6 +926,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_ttf_parser_tests);
   hb_test_add (test_hb_draw_font_kit_glyphs_tests);
   hb_test_add (test_hb_draw_font_kit_variations_tests);
+  hb_test_add (test_hb_draw_estedad_vf);
   hb_test_add (test_hb_draw_stroking);
   hb_test_add (test_hb_draw_immutable);
   unsigned result = hb_test_run ();
