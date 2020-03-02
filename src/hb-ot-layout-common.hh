@@ -1097,6 +1097,10 @@ struct Lookup
   {
     TRACE_SANITIZE (this);
     if (!(c->check_struct (this) && subTable.sanitize (c))) return_trace (false);
+
+    unsigned subtables = get_subtable_count ();
+    if (unlikely (!c->visit_subtables (subtables))) return_trace (false);
+
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
       const HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
@@ -1119,8 +1123,7 @@ struct Lookup
        * https://bugs.chromium.org/p/chromium/issues/detail?id=960331
        */
       unsigned int type = get_subtable<TSubTable> (0).u.extension.get_type ();
-      unsigned int count = get_subtable_count ();
-      for (unsigned int i = 1; i < count; i++)
+      for (unsigned int i = 1; i < subtables; i++)
 	if (get_subtable<TSubTable> (i).u.extension.get_type () != type)
 	  return_trace (false);
     }
