@@ -128,26 +128,23 @@ struct str_encoder_t
   bool    error;
 };
 
-struct cff_sub_table_offsets_t {
-  cff_sub_table_offsets_t () : privateDictsOffset (0)
+struct cff_sub_table_info_t {
+  cff_sub_table_info_t ()
+    : fd_array_link (0),
+      char_strings_link (0),
+      private_dicts_offset (0)
   {
-    topDictInfo.init ();
-    FDSelectInfo.init ();
-    FDArrayInfo.init ();
-    charStringsInfo.init ();
-    globalSubrsInfo.init ();
-    localSubrsInfos.init ();
+    top_dict.init ();
+    fd_select.init ();
+    global_subrs.init ();
   }
 
-  ~cff_sub_table_offsets_t () { localSubrsInfos.fini (); }
-
-  table_info_t     topDictInfo;
-  table_info_t     FDSelectInfo;
-  table_info_t     FDArrayInfo;
-  table_info_t     charStringsInfo;
-  unsigned int  privateDictsOffset;
-  table_info_t     globalSubrsInfo;
-  hb_vector_t<table_info_t>  localSubrsInfos;
+  table_info_t     top_dict;
+  table_info_t     fd_select;
+  objidx_t     	   fd_array_link;
+  objidx_t     	   char_strings_link;
+  unsigned int	   private_dicts_offset;
+  table_info_t     global_subrs;
 };
 
 template <typename OPSTR=op_str_t>
@@ -155,20 +152,20 @@ struct cff_top_dict_op_serializer_t : op_serializer_t
 {
   bool serialize (hb_serialize_context_t *c,
 		  const OPSTR &opstr,
-		  const cff_sub_table_offsets_t &offsets) const
+		  const cff_sub_table_info_t &info) const
   {
     TRACE_SERIALIZE (this);
 
     switch (opstr.op)
     {
       case OpCode_CharStrings:
-	return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.charStringsInfo.offset));
+	return_trace (FontDict::serialize_link4_op(c, opstr.op, info.char_strings_link, whence_t::Absolute));
 
       case OpCode_FDArray:
-	return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.FDArrayInfo.offset));
+	return_trace (FontDict::serialize_link4_op(c, opstr.op, info.fd_array_link, whence_t::Absolute));
 
       case OpCode_FDSelect:
-	return_trace (FontDict::serialize_offset4_op(c, opstr.op, offsets.FDSelectInfo.offset));
+	return_trace (FontDict::serialize_link4_op(c, opstr.op, info.fd_select.link, whence_t::Absolute));
 
       default:
 	return_trace (copy_opstr (c, opstr));
@@ -202,16 +199,8 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
     if (opstr.op == OpCode_Private)
     {
       /* serialize the private dict size & offset as 2-byte & 4-byte integers */
-      if (unlikely (!UnsizedByteStr::serialize_int2 (c, privateDictInfo.size) ||
-		    !UnsizedByteStr::serialize_int4 (c, privateDictInfo.offset)))
-	return_trace (false);
-
-      /* serialize the opcode */
-      HBUINT8 *p = c->allocate_size<HBUINT8> (1);
-      if (unlikely (p == nullptr)) return_trace (false);
-      *p = OpCode_Private;
-
-      return_trace (true);
+      return_trace (UnsizedByteStr::serialize_int2 (c, privateDictInfo.size) &&
+		    Dict::serialize_link4_op (c, opstr.op, privateDictInfo.link, whence_t::Absolute));
     }
     else
     {
@@ -238,7 +227,7 @@ struct cff_private_dict_op_serializer_t : op_serializer_t
 
   bool serialize (hb_serialize_context_t *c,
 		  const op_str_t &opstr,
-		  const unsigned int subrsOffset) const
+		  objidx_t subrs_link) const
   {
     TRACE_SERIALIZE (this);
 
@@ -246,10 +235,10 @@ struct cff_private_dict_op_serializer_t : op_serializer_t
       return true;
     if (opstr.op == OpCode_Subrs)
     {
-      if (desubroutinize || (subrsOffset == 0))
+      if (desubroutinize || !subrs_link)
 	return_trace (true);
       else
-	return_trace (FontDict::serialize_offset2_op (c, opstr.op, subrsOffset));
+	return_trace (FontDict::serialize_link2_op (c, opstr.op, subrs_link));
     }
     else
       return_trace (copy_opstr (c, opstr));
