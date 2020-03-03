@@ -41,7 +41,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   unsigned int len = sizeof (text32);
   if (size < len)
     len = size;
-  memcpy(text32, data + size - len, len);
+  if (len)
+    memcpy(text32, data + size - len, len);
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_add_utf32 (buffer, text32, sizeof (text32) / sizeof (text32[0]), 0, -1);
