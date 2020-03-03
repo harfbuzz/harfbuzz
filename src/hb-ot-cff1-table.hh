@@ -55,7 +55,6 @@ template <typename Type> struct CFF1IndexOf : CFFIndexOf<HBUINT16, Type> {};
 
 typedef CFFIndex<HBUINT16> CFF1Index;
 typedef CFF1Index          CFF1CharStrings;
-typedef FDArray<HBUINT16>  CFF1FDArray;
 typedef Subrs<HBUINT16>    CFF1Subrs;
 
 struct CFF1FDSelect : FDSelect {};
@@ -601,13 +600,13 @@ struct Charset
 struct CFF1StringIndex : CFF1Index
 {
   bool serialize (hb_serialize_context_t *c, const CFF1StringIndex &strings,
-		  unsigned int offSize_, const hb_inc_bimap_t &sidmap)
+                  const hb_inc_bimap_t &sidmap)
   {
     TRACE_SERIALIZE (this);
     if (unlikely ((strings.count == 0) || (sidmap.get_population () == 0)))
     {
       if (unlikely (!c->extend_min (this->count)))
-	return_trace (false);
+        return_trace (false);
       count = 0;
       return_trace (true);
     }
@@ -620,28 +619,12 @@ struct CFF1StringIndex : CFF1Index
     {
       hb_codepoint_t  j = sidmap[i];
       if (j != HB_MAP_VALUE_INVALID)
-	bytesArray[j] = strings[i];
+        bytesArray[j] = strings[i];
     }
 
-    bool result = CFF1Index::serialize (c, offSize_, bytesArray);
+    bool result = CFF1Index::serialize (c, bytesArray);
     bytesArray.fini ();
     return_trace (result);
-  }
-
-  /* in parallel to above */
-  unsigned int calculate_serialized_size (unsigned int &offSize_ /*OUT*/, const hb_inc_bimap_t &sidmap) const
-  {
-    offSize_ = 0;
-    if ((count == 0) || (sidmap.get_population () == 0))
-      return count.static_size;
-
-    unsigned int dataSize = 0;
-    for (unsigned int i = 0; i < count; i++)
-      if (sidmap[i] != HB_MAP_VALUE_INVALID)
-	dataSize += length_at (i);
-
-    offSize_ = calcOffSize(dataSize);
-    return CFF1Index::calculate_serialized_size (offSize_, sidmap.get_population (), dataSize);
   }
 };
 
@@ -745,7 +728,7 @@ struct cff1_top_dict_values_t : top_dict_values_t<cff1_top_dict_val_t>
   unsigned int    EncodingOffset;
   unsigned int    CharsetOffset;
   unsigned int    FDSelectOffset;
-  table_info_t       privateDictInfo;
+  table_info_t    privateDictInfo;
 };
 
 struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
@@ -1003,6 +986,37 @@ typedef dict_interpreter_t<cff1_font_dict_opset_t, cff1_font_dict_values_t> cff1
 
 typedef CFF1Index CFF1NameIndex;
 typedef CFF1IndexOf<TopDict> CFF1TopDictIndex;
+
+struct cff1_font_dict_values_mod_t
+{
+  cff1_font_dict_values_mod_t() { init (); }
+
+  void init () { init ( &Null(cff1_font_dict_values_t), CFF_UNDEF_SID ); }
+
+  void init (const cff1_font_dict_values_t *base_,
+	     unsigned int fontName_)
+  {
+    base = base_;
+    fontName = fontName_;
+    privateDictInfo.init ();
+  }
+
+  unsigned get_count () const { return base->get_count (); }
+
+  const op_str_t &operator [] (unsigned int i) const { return (*base)[i]; }
+
+  const cff1_font_dict_values_t    *base;
+  table_info_t		   privateDictInfo;
+  unsigned int		fontName;
+};
+
+struct CFF1FDArray : FDArray<HBUINT16>
+{
+  /* FDArray::serialize() requires this partial specialization to compile */
+  template <typename ITER, typename OP_SERIALIZER>
+  bool serialize (hb_serialize_context_t *c, ITER it, OP_SERIALIZER& opszr)
+  { return FDArray<HBUINT16>::serialize<cff1_font_dict_values_mod_t, cff1_font_dict_values_mod_t> (c, it, opszr); }
+};
 
 } /* namespace CFF */
 

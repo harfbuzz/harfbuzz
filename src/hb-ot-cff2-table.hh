@@ -43,7 +43,6 @@ typedef CFFIndex<HBUINT32>  CFF2Index;
 template <typename Type> struct CFF2IndexOf : CFFIndexOf<HBUINT32, Type> {};
 
 typedef CFF2Index         CFF2CharStrings;
-typedef FDArray<HBUINT32> CFF2FDArray;
 typedef Subrs<HBUINT32>   CFF2Subrs;
 
 typedef FDSelect3_4<HBUINT32, HBUINT16> FDSelect4;
@@ -403,6 +402,14 @@ struct cff2_private_dict_opset_subset_t : dict_opset_t
 
 typedef dict_interpreter_t<cff2_top_dict_opset_t, cff2_top_dict_values_t> cff2_top_dict_interpreter_t;
 typedef dict_interpreter_t<cff2_font_dict_opset_t, cff2_font_dict_values_t> cff2_font_dict_interpreter_t;
+
+struct CFF2FDArray : FDArray<HBUINT32>
+{
+  /* FDArray::serialize does not compile without this partial specialization */
+  template <typename ITER, typename OP_SERIALIZER>
+  bool serialize (hb_serialize_context_t *c, ITER it, OP_SERIALIZER& opszr)
+  { return FDArray<HBUINT32>::serialize<cff2_font_dict_values_t, table_info_t> (c, it, opszr); }
+};
 
 } /* namespace CFF */
 
