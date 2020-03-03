@@ -353,42 +353,62 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
 
       if (plan.subset_localsubrs[i].length > 0)
       {
-	c->push ();
 	CFF2Subrs *dest = c->start_embed <CFF2Subrs> ();
 	if (unlikely (dest == nullptr)) return false;
-	if (unlikely (!dest->serialize (c, plan.subset_localsubrs[i]))) return false;
-	subrs_link = c->pop_pack ();
+	c->push ();
+	if (likely (dest->serialize (c, plan.subset_localsubrs[i])))
+	  subrs_link = c->pop_pack ();
+	else
+	{
+	  c->pop_discard ();
+	  return false;
+	}
       }
-      c->push ();
       PrivateDict  *pd = c->start_embed<PrivateDict> ();
       if (unlikely (pd == nullptr)) return false;
-      bool result;
+      c->push ();
       cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
-      result = pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link);
-      if (unlikely (!result)) return false;
-      unsigned fd = plan.fdmap[i];
-      private_dict_infos[fd].size = c->length ();
-      private_dict_infos[fd].link = c->pop_pack ();
+      if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
+      {
+	unsigned fd = plan.fdmap[i];
+	private_dict_infos[fd].size = c->length ();
+	private_dict_infos[fd].link = c->pop_pack ();
+      }
+      else
+      {
+	c->pop_discard ();
+	return false;
+      }
     }
   }
 
   /* CharStrings */
   {
-    c->push ();
     CFF2CharStrings  *cs = c->start_embed<CFF2CharStrings> ();
     if (unlikely (cs == nullptr)) return false;
-    if (unlikely (!cs->serialize (c, plan.subset_charstrings))) return false;
-    plan.info.char_strings_link = c->pop_pack ();
+    c->push ();
+    if (likely (cs->serialize (c, plan.subset_charstrings)))
+      plan.info.char_strings_link = c->pop_pack ();
+    else
+    {
+      c->pop_discard ();
+      return false;
+    }
   }
 
   /* FDSelect */
   if (acc.fdSelect != &Null(CFF2FDSelect))
   {
     c->push ();
-    if (unlikely (!hb_serialize_cff_fdselect (c, num_glyphs, *(const FDSelect *)acc.fdSelect, 					      plan.orig_fdcount,
-					      plan.subset_fdselect_format, plan.subset_fdselect_size,
-					      plan.subset_fdselect_ranges))) return false;
-    plan.info.fd_select.link = c->pop_pack ();
+    if (likely (hb_serialize_cff_fdselect (c, num_glyphs, *(const FDSelect *)acc.fdSelect, 					      plan.orig_fdcount,
+					    plan.subset_fdselect_format, plan.subset_fdselect_size,
+					    plan.subset_fdselect_ranges)))
+      plan.info.fd_select.link = c->pop_pack ();
+    else
+    {
+      c->pop_discard ();
+      return false;
+    }
   }
   
   /* FDArray (FD Index) */
