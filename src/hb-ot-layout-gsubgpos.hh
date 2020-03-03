@@ -3160,6 +3160,7 @@ struct GSUBGPOS
       if (unlikely (!this->accels))
 	this->lookup_count = 0;
 
+printf ("%d\n", lookup_count);
       for (unsigned int i = 0; i < this->lookup_count; i++)
 	this->accels[i].init (table->get_lookup (i));
     }
