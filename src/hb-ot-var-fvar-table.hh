@@ -229,7 +229,7 @@ struct fvar
     hb_ot_var_axis_info_t axis;
     get_axis_info (axis_index, &axis);
 
-    v = hb_max (hb_min (v, axis.max_value), axis.min_value); /* Clamp. */
+    v = hb_clamp (v, axis.min_value, axis.max_value);
 
     if (v == axis.default_value)
       return 0;
