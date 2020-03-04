@@ -95,34 +95,31 @@ struct TuppleIndex : HBUINT16
 
 struct TupleVarHeader
 {
-  unsigned int get_size (unsigned int axis_count) const
-  {
-    return min_size +
-	   (has_peak () ? get_peak_tuple ().get_size (axis_count) : 0) +
-	   (has_intermediate () ? (get_start_tuple (axis_count).get_size (axis_count) +
-				   get_end_tuple (axis_count).get_size (axis_count)) : 0);
-  }
+  unsigned get_size (unsigned axis_count) const
+  { return min_size + get_all_tuples (axis_count).get_size (); }
 
-  const TupleVarHeader &get_next (unsigned int axis_count) const
+  unsigned get_data_size () const { return varDataSize; }
+
+  const TupleVarHeader &get_next (unsigned axis_count) const
   { return StructAtOffset<TupleVarHeader> (this, get_size (axis_count)); }
 
   float calculate_scalar (const int *coords, unsigned int coord_count,
 			  const hb_array_t<const F2DOT14> shared_tuples) const
   {
-    const F2DOT14 *peak_tuple;
+    hb_array_t<const F2DOT14> peak_tuple;
 
     if (has_peak ())
-      peak_tuple = &(get_peak_tuple ()[0]);
+      peak_tuple = get_peak_tuple (coord_count);
     else
     {
       unsigned int index = get_index ();
       if (unlikely (index * coord_count >= shared_tuples.length))
 	return 0.f;
-      peak_tuple = &shared_tuples[coord_count * index];
+      peak_tuple = shared_tuples.sub_array (coord_count * index, coord_count);
     }
 
-    const F2DOT14 *start_tuple = nullptr;
-    const F2DOT14 *end_tuple = nullptr;
+    hb_array_t<const F2DOT14> start_tuple;
+    hb_array_t<const F2DOT14> end_tuple;
     if (has_intermediate ())
     {
       start_tuple = get_start_tuple (coord_count);
@@ -155,20 +152,20 @@ struct TupleVarHeader
     return scalar;
   }
 
-  unsigned int get_data_size () const { return varDataSize; }
-
   bool           has_peak () const { return (tupleIndex & TuppleIndex::EmbeddedPeakTuple); }
   bool   has_intermediate () const { return (tupleIndex & TuppleIndex::IntermediateRegion); }
   bool has_private_points () const { return (tupleIndex & TuppleIndex::PrivatePointNumbers); }
   unsigned int  get_index () const { return (tupleIndex & TuppleIndex::TupleIndexMask); }
 
   protected:
-  const Tuple &get_peak_tuple () const
-  { return StructAfter<Tuple> (tupleIndex); }
-  const Tuple &get_start_tuple (unsigned int axis_count) const
-  { return *(const Tuple *) &get_peak_tuple ()[has_peak () ? axis_count : 0]; }
-  const Tuple &get_end_tuple (unsigned int axis_count) const
-  { return *(const Tuple *) &get_peak_tuple ()[has_peak () ? (axis_count * 2) : axis_count]; }
+  hb_array_t<const F2DOT14> get_all_tuples (unsigned axis_count) const
+  { return StructAfter<UnsizedArrayOf<F2DOT14>> (tupleIndex).as_array ((has_peak () + has_intermediate () * 2) * axis_count); }
+  hb_array_t<const F2DOT14> get_peak_tuple (unsigned axis_count) const
+  { return get_all_tuples (axis_count).sub_array (0, axis_count); }
+  hb_array_t<const F2DOT14> get_start_tuple (unsigned axis_count) const
+  { return get_all_tuples (axis_count).sub_array (has_peak () * axis_count, axis_count); }
+  hb_array_t<const F2DOT14> get_end_tuple (unsigned axis_count) const
+  { return get_all_tuples (axis_count).sub_array (has_peak () * axis_count + axis_count, axis_count); }
 
   HBUINT16		varDataSize;
   TuppleIndex		tupleIndex;
