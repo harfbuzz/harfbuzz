@@ -541,12 +541,11 @@ struct gvar
     { return (i >= end) ? start : (i + 1); }
 
     public:
-    bool apply_deltas_to_points (hb_codepoint_t glyph,
-				 const int *coords, unsigned int coord_count,
+    bool apply_deltas_to_points (hb_codepoint_t glyph, hb_font_t *font,
 				 const hb_array_t<contour_point_t> points) const
     {
-      coord_count = hb_min (coord_count, gvar_table->axisCount);
-      if (!coord_count || coord_count != gvar_table->axisCount) return true;
+      /* num_coords should exactly match gvar's axisCount due to how GlyphVarData tuples are aligned */
+      if (!font->num_coords || font->num_coords != gvar_table->axisCount) return true;
 
       hb_bytes_t var_data_bytes = gvar_table->get_glyph_var_data_bytes (gvar_table.get_blob (), glyph);
       if (!var_data_bytes.as<GlyphVarData> ()->has_data ()) return true;
@@ -570,9 +569,11 @@ struct gvar
 	if (points[i].is_end_point)
 	  end_points.push (i);
 
+      int *coords = font->coords;
+      unsigned num_coords = font->num_coords;
       do
       {
-	float scalar = iterator.current_tuple->calculate_scalar (coords, coord_count, shared_tuples.as_array ());
+	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples.as_array ());
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();
