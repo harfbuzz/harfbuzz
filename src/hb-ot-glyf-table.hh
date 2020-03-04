@@ -739,7 +739,7 @@ struct glyf
       }
 
 #ifndef HB_NO_VAR
-      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, font->coords, font->num_coords, points.as_array ())))
+      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, font, points.as_array ())))
 	return false;
 #endif
 
