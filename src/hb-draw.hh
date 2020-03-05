@@ -27,6 +27,8 @@
 
 #include "hb.hh"
 
+#include "hb-font.hh"
+
 struct hb_draw_funcs_t
 {
   hb_object_header_t header;
@@ -50,6 +52,8 @@ struct draw_helper_t
   }
   ~draw_helper_t () { end_path (); }
 
+  void move_to (hb_font_t *font, float x, float y)
+  { move_to (font->em_scalef_x (x), font->em_scalef_y (y)); }
   void move_to (hb_position_t x, hb_position_t y)
   {
     if (path_open) end_path ();
@@ -57,6 +61,8 @@ struct draw_helper_t
     current_y = path_start_y = y;
   }
 
+  void line_to (hb_font_t *font, float x, float y)
+  { line_to (font->em_scalef_x (x), font->em_scalef_y (y)); }
   void line_to (hb_position_t x, hb_position_t y)
   {
     if (equal_to_current (x, y)) return;
@@ -66,6 +72,11 @@ struct draw_helper_t
     current_y = y;
   }
 
+  void quadratic_to (hb_font_t *font, float control_x, float control_y, float to_x, float to_y)
+  {
+    quadratic_to (font->em_scalef_x (control_x), font->em_scalef_y (control_y),
+		  font->em_scalef_y (to_x),      font->em_scalef_y (to_y));
+  }
   void
   quadratic_to (hb_position_t control_x, hb_position_t control_y,
 		hb_position_t to_x, hb_position_t to_y)
@@ -85,6 +96,13 @@ struct draw_helper_t
     current_y = to_y;
   }
 
+  void cubic_to (hb_font_t *font, float control1_x, float control1_y,
+		 float control2_x, float control2_y, float to_x, float to_y)
+  {
+    cubic_to (font->em_scalef_x (control1_x), font->em_scalef_y (control1_y),
+	      font->em_scalef_x (control2_x), font->em_scalef_y (control2_y),
+	      font->em_scalef_y (to_x),       font->em_scalef_y (to_y));
+  }
   void
   cubic_to (hb_position_t control1_x, hb_position_t control1_y,
 	    hb_position_t control2_x, hb_position_t control2_y,

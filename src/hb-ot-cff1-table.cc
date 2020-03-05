@@ -358,14 +358,14 @@ struct cff1_path_param_t
   {
     point_t point = p;
     if (delta) point.move (*delta);
-    draw_helper->move_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()));
+    draw_helper->move_to (font, point.x.to_real (), point.y.to_real ());
   }
 
   void line_to (const point_t &p)
   {
     point_t point = p;
     if (delta) point.move (*delta);
-    draw_helper->line_to (font->em_scalef_x (point.x.to_real ()), font->em_scalef_y (point.y.to_real ()));
+    draw_helper->line_to (font, point.x.to_real (), point.y.to_real ());
   }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
@@ -377,9 +377,9 @@ struct cff1_path_param_t
       point2.move (*delta);
       point3.move (*delta);
     }
-    draw_helper->cubic_to (font->em_scalef_x (point1.x.to_real ()), font->em_scalef_y (point1.y.to_real ()),
-			   font->em_scalef_x (point2.x.to_real ()), font->em_scalef_y (point2.y.to_real ()),
-			   font->em_scalef_x (point3.x.to_real ()), font->em_scalef_y (point3.y.to_real ()));
+    draw_helper->cubic_to (font, point1.x.to_real (), point1.y.to_real (),
+			   point2.x.to_real (), point2.y.to_real (),
+			   point3.x.to_real (), point3.y.to_real ());
   }
 
   void end_path () { draw_helper->end_path (); }

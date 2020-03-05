@@ -1074,7 +1074,7 @@ struct glyf
 	  if (is_on_curve)
 	  {
 	    first_oncurve = p;
-	    draw_helper->move_to (font->em_scalef_x (p.x), font->em_scalef_y (p.y));
+	    draw_helper->move_to (font, p.x, p.y);
 	  }
 	  else
 	  {
@@ -1083,7 +1083,7 @@ struct glyf
 	      optional_point_t mid = first_offcurve.lerp (p, .5f);
 	      first_oncurve = mid;
 	      last_offcurve = p;
-	      draw_helper->move_to (font->em_scalef_x (mid.x), font->em_scalef_y (mid.y));
+	      draw_helper->move_to (font, mid.x, mid.y);
 	    }
 	    else
 	      first_offcurve = p;
@@ -1095,22 +1095,20 @@ struct glyf
 	  {
 	    if (is_on_curve)
 	    {
-	      draw_helper->quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
-					 font->em_scalef_x (p.x), font->em_scalef_y (p.y));
+	      draw_helper->quadratic_to (font, last_offcurve.x, last_offcurve.y, p.x, p.y);
 	      last_offcurve = optional_point_t ();
 	    }
 	    else
 	    {
 	      optional_point_t mid = last_offcurve.lerp (p, .5f);
-	      draw_helper->quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
-					 font->em_scalef_x (mid.x), font->em_scalef_y (mid.y));
+	      draw_helper->quadratic_to (font, last_offcurve.x, last_offcurve.y, mid.x, mid.y);
 	      last_offcurve = p;
 	    }
 	  }
 	  else
 	  {
 	    if (is_on_curve)
-	      draw_helper->line_to (font->em_scalef_x (p.x), font->em_scalef_y (p.y));
+	      draw_helper->line_to (font, p.x, p.y);
 	    else
 	      last_offcurve = p;
 	  }
@@ -1121,20 +1119,17 @@ struct glyf
 	  if (first_offcurve.has_data && last_offcurve.has_data)
 	  {
 	    optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
-	    draw_helper->quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
-				       font->em_scalef_x (mid.x), font->em_scalef_y (mid.y));
+	    draw_helper->quadratic_to (font, last_offcurve.x, last_offcurve.y, mid.x, mid.y);
 	    last_offcurve = optional_point_t ();
 	    /* now check the rest */
 	  }
 
 	  if (first_offcurve.has_data && first_oncurve.has_data)
-	    draw_helper->quadratic_to (font->em_scalef_x (first_offcurve.x), font->em_scalef_y (first_offcurve.y),
-				       font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+	    draw_helper->quadratic_to (font, first_offcurve.x, first_offcurve.y, first_oncurve.x, first_oncurve.y);
 	  else if (last_offcurve.has_data && first_oncurve.has_data)
-	    draw_helper->quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
-				       font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+	    draw_helper->quadratic_to (font, last_offcurve.x, last_offcurve.y, first_oncurve.x, first_oncurve.y);
 	  else if (first_oncurve.has_data)
-	    draw_helper->line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+	    draw_helper->line_to (font, first_oncurve.x, first_oncurve.y);
 
 	  /* Getting ready for the next contour */
 	  first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
