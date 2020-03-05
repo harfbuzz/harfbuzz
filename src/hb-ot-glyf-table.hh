@@ -1039,10 +1039,10 @@ struct glyf
 
       struct optional_point_t
       {
-	optional_point_t () { is_null = true; }
-	optional_point_t (float x_, float y_) { x = x_; y = y_; is_null = false; }
+	optional_point_t () { has_data = false; }
+	optional_point_t (float x_, float y_) { x = x_; y = y_; has_data = true; }
 
-	bool is_null;
+	bool has_data;
 	float x;
 	float y;
 
@@ -1057,16 +1057,19 @@ struct glyf
 	first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
       }
 
-      /* based on https://github.com/RazrFalcon/ttf-parser/blob/master/src/glyf.rs#L292 */
+      /* based on https://github.com/RazrFalcon/ttf-parser/blob/4f32821/src/glyf.rs#L287
+         See also:
+	 * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM01/Chap1.html
+	 * https://stackoverflow.com/a/20772557 */
       void consume_point (const contour_point_t &point)
       {
 	/* Skip empty contours */
-	if (unlikely (point.is_end_point && first_oncurve.is_null && first_offcurve.is_null))
+	if (unlikely (point.is_end_point && !first_oncurve.has_data && !first_offcurve.has_data))
 	  return;
 
 	bool is_on_curve = point.flag & Glyph::FLAG_ON_CURVE;
 	optional_point_t p (point.x, point.y);
-	if (first_oncurve.is_null)
+	if (!first_oncurve.has_data)
 	{
 	  if (is_on_curve)
 	  {
@@ -1075,7 +1078,7 @@ struct glyf
 	  }
 	  else
 	  {
-	    if (!first_offcurve.is_null)
+	    if (first_offcurve.has_data)
 	    {
 	      optional_point_t mid = first_offcurve.lerp (p, .5f);
 	      first_oncurve = mid;
@@ -1088,7 +1091,7 @@ struct glyf
 	}
 	else
 	{
-	  if (!last_offcurve.is_null)
+	  if (last_offcurve.has_data)
 	  {
 	    if (is_on_curve)
 	    {
@@ -1115,7 +1118,7 @@ struct glyf
 
 	if (point.is_end_point)
 	{
-	  if (!first_offcurve.is_null && !last_offcurve.is_null)
+	  if (first_offcurve.has_data && last_offcurve.has_data)
 	  {
 	    optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
 	    draw_helper->quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
@@ -1124,22 +1127,16 @@ struct glyf
 	    /* now check the rest */
 	  }
 
-	  if (!first_offcurve.is_null && last_offcurve.is_null)
-	  {
-	    if (!first_oncurve.is_null)
-	      draw_helper->quadratic_to (font->em_scalef_x (first_offcurve.x), font->em_scalef_y (first_offcurve.y),
-					 font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
-	  }
-	  else if (first_offcurve.is_null && !last_offcurve.is_null)
-	  {
-	    if (!first_oncurve.is_null)
-	      draw_helper->quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
-					 font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
-	  }
-	  else /* first_offcurve.is_null && last_offcurve.is_null */
-	    if (!first_oncurve.is_null)
-	      draw_helper->line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+	  if (first_offcurve.has_data && first_oncurve.has_data)
+	    draw_helper->quadratic_to (font->em_scalef_x (first_offcurve.x), font->em_scalef_y (first_offcurve.y),
+				       font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+	  else if (last_offcurve.has_data && first_oncurve.has_data)
+	    draw_helper->quadratic_to (font->em_scalef_x (last_offcurve.x), font->em_scalef_y (last_offcurve.y),
+				       font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
+	  else if (first_oncurve.has_data)
+	    draw_helper->line_to (font->em_scalef_x (first_oncurve.x), font->em_scalef_y (first_oncurve.y));
 
+	  /* Getting ready for the next contour */
 	  first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
 	  draw_helper->end_path ();
 	}
