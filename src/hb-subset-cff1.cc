@@ -71,12 +71,12 @@ struct cff1_sub_table_info_t : cff_sub_table_info_t
       encoding_link (0),
       charset_link (0)
    {
-    privateDictInfo.init ();
+    private_dict_info.init ();
   }
 
   objidx_t	encoding_link;
   objidx_t	charset_link;
-  table_info_t	privateDictInfo;
+  table_info_t	private_dict_info;
 };
 
 /* a copy of a parsed out cff1_top_dict_values_t augmented with additional operators */
@@ -147,8 +147,8 @@ struct cff1_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<cff1_top_dic
 	  goto fall_back;
 
       case OpCode_Private:
-	return_trace (UnsizedByteStr::serialize_int2 (c, mod.info.privateDictInfo.size) &&
-		      Dict::serialize_link4_op (c, op, mod.info.privateDictInfo.link, whence_t::Absolute));
+	return_trace (UnsizedByteStr::serialize_int2 (c, mod.info.private_dict_info.size) &&
+		      Dict::serialize_link4_op (c, op, mod.info.private_dict_info.link, whence_t::Absolute));
 
       case OpCode_version:
       case OpCode_Notice:
@@ -159,7 +159,7 @@ struct cff1_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<cff1_top_dic
       case OpCode_PostScript:
       case OpCode_BaseFontName:
       case OpCode_FontName:
-	return_trace (FontDict::serialize_offset2_op(c, op, mod.nameSIDs[name_dict_values_t::name_op_to_index (op)]));
+	return_trace (FontDict::serialize_int2_op (c, op, mod.nameSIDs[name_dict_values_t::name_op_to_index (op)]));
 
       case OpCode_ROS:
 	{
@@ -194,7 +194,7 @@ struct cff1_font_dict_op_serializer_t : cff_font_dict_op_serializer_t
     if (opstr.op == OpCode_FontName)
       return_trace (FontDict::serialize_int2_op (c, opstr.op, mod.fontName));
     else
-      return_trace (SUPER::serialize (c, opstr, mod.privateDictInfo));
+      return_trace (SUPER::serialize (c, opstr, mod.private_dict_info));
   }
 
   private:
@@ -734,8 +734,8 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
       if (likely (pd->serialize (c, acc.privateDicts[i], privSzr, subrs_link)))
       {
 	unsigned fd = plan.fdmap[i];
-	plan.fontdicts_mod[fd].privateDictInfo.size = c->length ();
-	plan.fontdicts_mod[fd].privateDictInfo.link = c->pop_pack ();
+	plan.fontdicts_mod[fd].private_dict_info.size = c->length ();
+	plan.fontdicts_mod[fd].private_dict_info.link = c->pop_pack ();
       }
       else
       {
@@ -746,7 +746,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   }
 
   if (!acc.is_CID ())
-    plan.info.privateDictInfo = plan.fontdicts_mod[0].privateDictInfo;
+    plan.info.private_dict_info = plan.fontdicts_mod[0].private_dict_info;
 
   /* CharStrings */
   {

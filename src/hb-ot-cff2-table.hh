@@ -60,9 +60,6 @@ struct CFF2FDSelect
     return_trace (true);
   }
 
-  unsigned int calculate_serialized_size (unsigned int num_glyphs) const
-  { return get_size (num_glyphs); }
-
   unsigned int get_size (unsigned int num_glyphs) const
   {
     switch (format)
@@ -149,26 +146,6 @@ struct cff2_top_dict_values_t : top_dict_values_t<>
   }
   void fini () { top_dict_values_t<>::fini (); }
 
-  unsigned int calculate_serialized_size () const
-  {
-    unsigned int size = 0;
-    for (unsigned int i = 0; i < get_count (); i++)
-    {
-      op_code_t op = get_value (i).op;
-      switch (op)
-      {
-	case OpCode_vstore:
-	case OpCode_FDSelect:
-	  size += OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (op);
-	  break;
-	default:
-	  size += top_dict_values_t<>::calculate_serialized_op_size (get_value (i));
-	  break;
-      }
-    }
-    return size;
-  }
-
   unsigned int  vstoreOffset;
   unsigned int  FDSelectOffset;
 };
@@ -215,11 +192,11 @@ struct cff2_font_dict_values_t : dict_values_t<op_str_t>
   void init ()
   {
     dict_values_t<op_str_t>::init ();
-    privateDictInfo.init ();
+    private_dict_info.init ();
   }
   void fini () { dict_values_t<op_str_t>::fini (); }
 
-  table_info_t    privateDictInfo;
+  table_info_t    private_dict_info;
 };
 
 struct cff2_font_dict_opset_t : dict_opset_t
@@ -228,8 +205,8 @@ struct cff2_font_dict_opset_t : dict_opset_t
   {
     switch (op) {
       case OpCode_Private:
-	dictval.privateDictInfo.offset = env.argStack.pop_uint ();
-	dictval.privateDictInfo.size = env.argStack.pop_uint ();
+	dictval.private_dict_info.offset = env.argStack.pop_uint ();
+	dictval.private_dict_info.size = env.argStack.pop_uint ();
 	env.clear_args ();
 	break;
 
@@ -259,17 +236,6 @@ struct cff2_private_dict_values_base_t : dict_values_t<VAL>
     ivs = 0;
   }
   void fini () { dict_values_t<VAL>::fini (); }
-
-  unsigned int calculate_serialized_size () const
-  {
-    unsigned int size = 0;
-    for (unsigned int i = 0; i < dict_values_t<VAL>::get_count; i++)
-      if (dict_values_t<VAL>::get_value (i).op == OpCode_Subrs)
-	size += OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Subrs);
-      else
-	size += dict_values_t<VAL>::get_value (i).str.length;
-    return size;
-  }
 
   unsigned int      subrsOffset;
   const CFF2Subrs   *localSubrs;
@@ -490,7 +456,7 @@ struct cff2
 	font->init ();
 	if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 
-	const byte_str_t privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
+	const byte_str_t privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->private_dict_info.offset), font->private_dict_info.size);
 	if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL, cff2_priv_dict_interp_env_t>  priv_interp;
 	priv_interp.env.init(privDictStr);
