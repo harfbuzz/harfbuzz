@@ -131,20 +131,14 @@ struct str_encoder_t
 struct cff_sub_table_info_t {
   cff_sub_table_info_t ()
     : fd_array_link (0),
-      char_strings_link (0),
-      private_dicts_offset (0)
+      char_strings_link (0)
   {
-    top_dict.init ();
     fd_select.init ();
-    global_subrs.init ();
   }
 
-  table_info_t     top_dict;
   table_info_t     fd_select;
   objidx_t     	   fd_array_link;
   objidx_t     	   char_strings_link;
-  unsigned int	   private_dicts_offset;
-  table_info_t     global_subrs;
 };
 
 template <typename OPSTR=op_str_t>
@@ -172,35 +166,21 @@ struct cff_top_dict_op_serializer_t : op_serializer_t
     }
     return_trace (true);
   }
-
-  unsigned int calculate_serialized_size (const OPSTR &opstr) const
-  {
-    switch (opstr.op)
-    {
-      case OpCode_CharStrings:
-      case OpCode_FDArray:
-      case OpCode_FDSelect:
-	return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (opstr.op);
-
-      default:
-	return opstr.str.length;
-    }
-  }
 };
 
 struct cff_font_dict_op_serializer_t : op_serializer_t
 {
   bool serialize (hb_serialize_context_t *c,
 		  const op_str_t &opstr,
-		  const table_info_t &privateDictInfo) const
+		  const table_info_t &private_dict_info) const
   {
     TRACE_SERIALIZE (this);
 
     if (opstr.op == OpCode_Private)
     {
       /* serialize the private dict size & offset as 2-byte & 4-byte integers */
-      return_trace (UnsizedByteStr::serialize_int2 (c, privateDictInfo.size) &&
-		    Dict::serialize_link4_op (c, opstr.op, privateDictInfo.link, whence_t::Absolute));
+      return_trace (UnsizedByteStr::serialize_int2 (c, private_dict_info.size) &&
+		    Dict::serialize_link4_op (c, opstr.op, private_dict_info.link, whence_t::Absolute));
     }
     else
     {
@@ -209,14 +189,6 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
       memcpy (d, &opstr.str[0], opstr.str.length);
     }
     return_trace (true);
-  }
-
-  unsigned int calculate_serialized_size (const op_str_t &opstr) const
-  {
-    if (opstr.op == OpCode_Private)
-      return OpCode_Size (OpCode_longintdict) + 4 + OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (OpCode_Private);
-    else
-      return opstr.str.length;
   }
 };
 
@@ -242,22 +214,6 @@ struct cff_private_dict_op_serializer_t : op_serializer_t
     }
     else
       return_trace (copy_opstr (c, opstr));
-  }
-
-  unsigned int calculate_serialized_size (const op_str_t &opstr,
-					  bool has_localsubr=true) const
-  {
-    if (drop_hints && dict_opset_t::is_hint_op (opstr.op))
-      return 0;
-    if (opstr.op == OpCode_Subrs)
-    {
-      if (desubroutinize || !has_localsubr)
-	return 0;
-      else
-	return OpCode_Size (OpCode_shortint) + 2 + OpCode_Size (opstr.op);
-    }
-    else
-      return opstr.str.length;
   }
 
   protected:

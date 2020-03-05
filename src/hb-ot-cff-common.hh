@@ -102,13 +102,6 @@ struct CFFIndex
     return_trace (out);
   }
 
-  static unsigned int calculate_serialized_size (unsigned int offSize_, unsigned int count,
-						 unsigned int dataSize)
-  {
-    if (count == 0) return COUNT::static_size;
-    return min_size + calculate_offset_array_size (offSize_, count) + dataSize;
-  }
-
   bool serialize (hb_serialize_context_t *c, const CFFIndex &src)
   {
     TRACE_SERIALIZE (this);
@@ -369,27 +362,6 @@ struct CFFIndexOf : CFFIndex<COUNT>
     }
     return_trace (true);
   }
-
-  /* in parallel to above */
-  template <typename DATA, typename PARAM>
-  static unsigned int calculate_serialized_size (unsigned int &offSize_ /* OUT */,
-						 const DATA *dataArray,
-						 unsigned int dataArrayLen,
-						 hb_vector_t<unsigned int> &dataSizeArray, /* OUT */
-						 const PARAM &param)
-  {
-    /* determine offset size */
-    unsigned int totalDataSize = 0;
-    for (unsigned int i = 0; i < dataArrayLen; i++)
-    {
-      unsigned int dataSize = TYPE::calculate_serialized_size (dataArray[i], param);
-      dataSizeArray[i] = dataSize;
-      totalDataSize += dataSize;
-    }
-    offSize_ = calcOffSize (totalDataSize);
-
-    return CFFIndex<COUNT>::calculate_serialized_size (offSize_, dataArrayLen, totalDataSize);
-  }
 };
 
 /* Top Dict, Font Dict, Private Dict */
@@ -407,28 +379,6 @@ struct Dict : UnsizedByteStr
 	return_trace (false);
 
     return_trace (true);
-  }
-
-  /* in parallel to above */
-  template <typename DICTVAL, typename OP_SERIALIZER, typename PARAM>
-  static unsigned int calculate_serialized_size (const DICTVAL &dictval,
-						 OP_SERIALIZER& opszr,
-						 PARAM& param)
-  {
-    unsigned int size = 0;
-    for (unsigned int i = 0; i < dictval.get_count (); i++)
-      size += opszr.calculate_serialized_size (dictval[i], param);
-    return size;
-  }
-
-  template <typename DICTVAL, typename OP_SERIALIZER>
-  static unsigned int calculate_serialized_size (const DICTVAL &dictval,
-						 OP_SERIALIZER& opszr)
-  {
-    unsigned int size = 0;
-    for (unsigned int i = 0; i < dictval.get_count (); i++)
-      size += opszr.calculate_serialized_size (dictval[i]);
-    return size;
   }
 
   template <typename T, typename V>
@@ -460,12 +410,6 @@ struct Dict : UnsizedByteStr
   static bool serialize_int2_op (hb_serialize_context_t *c, op_code_t op, V value)
   { return serialize_int_op<HBINT16> (c, op, value, OpCode_shortint); }
 
-  static bool serialize_offset4_op (hb_serialize_context_t *c, op_code_t op, unsigned value)
-  { return serialize_int4_op (c, op, value); }
-
-  static bool serialize_offset2_op (hb_serialize_context_t *c, op_code_t op, unsigned value)
-  { return serialize_int2_op (c, op, value); }
-
   template <typename T, int int_op>
   static bool serialize_link_op (hb_serialize_context_t *c, op_code_t op, objidx_t link, whence_t whence)
   {
@@ -488,11 +432,10 @@ struct PrivateDict : Dict {};
 
 struct table_info_t
 {
-  void init () { offSize = offset = size = 0; link = 0; }
+  void init () { offset = size = 0; link = 0; }
 
   unsigned int    offset;
   unsigned int    size;
-  unsigned int    offSize;
   objidx_t	  link;
 };
 
@@ -623,9 +566,6 @@ struct FDSelect
     memcpy (dest, &src, size);
     return_trace (true);
   }
-
-  unsigned int calculate_serialized_size (unsigned int num_glyphs) const
-  { return get_size (num_glyphs); }
 
   unsigned int get_size (unsigned int num_glyphs) const
   {
