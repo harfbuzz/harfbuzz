@@ -172,15 +172,15 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
 {
   bool serialize (hb_serialize_context_t *c,
 		  const op_str_t &opstr,
-		  const table_info_t &private_dict_info) const
+		  const table_info_t &privateDictInfo) const
   {
     TRACE_SERIALIZE (this);
 
     if (opstr.op == OpCode_Private)
     {
       /* serialize the private dict size & offset as 2-byte & 4-byte integers */
-      return_trace (UnsizedByteStr::serialize_int2 (c, private_dict_info.size) &&
-		    Dict::serialize_link4_op (c, opstr.op, private_dict_info.link, whence_t::Absolute));
+      return_trace (UnsizedByteStr::serialize_int2 (c, privateDictInfo.size) &&
+		    Dict::serialize_link4_op (c, opstr.op, privateDictInfo.link, whence_t::Absolute));
     }
     else
     {
