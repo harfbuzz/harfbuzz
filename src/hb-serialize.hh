@@ -278,8 +278,8 @@ struct hb_serialize_context_t
 
   template <typename T>
   void add_link (T &ofs, objidx_t objidx,
-		 const void *base = nullptr,
-		 whence_t whence = Head)
+		 whence_t whence,
+		 unsigned bias = 0)
   {
     static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
 
@@ -293,22 +293,17 @@ struct hb_serialize_context_t
 
     link.is_wide = sizeof (T) == 4;
     link.is_signed = hb_is_signed (hb_unwrap_type (T));
-    link.whence = (unsigned)whence;
+    link.whence = (unsigned) whence;
     link.position = (const char *) &ofs - current->head;
-    if (whence == Head)
-    {
-      if (base == nullptr)
-	link.bias = 0;
-      else
-      {
-	assert (current->head <= (const char *)base);
-	link.bias = (const char *) base - current->head;
-      }
-    }
-    else
-      link.bias = 0;
+    link.bias = bias;
     link.objidx = objidx;
   }
+
+  template <typename T>
+  void add_link (T &ofs, objidx_t objidx,
+		 const void *base = nullptr,
+		 whence_t whence = Head)
+  { add_link (ofs, objidx, whence, to_bias (base)); }
 
   void resolve_links ()
   {
@@ -324,12 +319,14 @@ struct hb_serialize_context_t
 	if (unlikely (!child)) { err_other_error(); return; }
 	unsigned offset;
 	switch ((whence_t)link.whence) {
-	case Head:     offset = (child->head - parent->head) - link.bias; break;
+	case Head:     offset = child->head - parent->head; break;
 	case Tail:     offset = child->head - parent->tail; break;
 	case Absolute: offset = (head - start) + (child->head - tail); break;
 	default: assert (0);
 	}
 
+	assert (offset >= link.bias);
+	offset -= link.bias;
 	if (link.is_signed)
 	{
 	  if (link.is_wide)
@@ -490,6 +487,14 @@ struct hb_serialize_context_t
     auto &off = * ((BEInt<T, sizeof (T)> *) (parent->head + link.position));
     assert (0 == off);
     check_assign (off, offset);
+  }
+
+  unsigned to_bias (const void *base) const
+  {
+    if (!base) return 0;
+    assert (current);
+    assert (current->head <= (const char *) base);
+    return (const char *) base - current->head;
   }
 
   public: /* TODO Make private. */

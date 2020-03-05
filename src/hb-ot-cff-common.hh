@@ -415,7 +415,7 @@ struct Dict : UnsizedByteStr
   {
     T &ofs = *(T *) (c->head + OpCode_Size (int_op));
     if (unlikely (!serialize_int_op<T> (c, op, 0, int_op))) return false;
-    c->add_link (ofs, link, nullptr, whence);
+    c->add_link (ofs, link, whence);
     return true;
   }
   
