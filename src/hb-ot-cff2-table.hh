@@ -192,11 +192,11 @@ struct cff2_font_dict_values_t : dict_values_t<op_str_t>
   void init ()
   {
     dict_values_t<op_str_t>::init ();
-    private_dict_info.init ();
+    privateDictInfo.init ();
   }
   void fini () { dict_values_t<op_str_t>::fini (); }
 
-  table_info_t    private_dict_info;
+  table_info_t    privateDictInfo;
 };
 
 struct cff2_font_dict_opset_t : dict_opset_t
@@ -205,8 +205,8 @@ struct cff2_font_dict_opset_t : dict_opset_t
   {
     switch (op) {
       case OpCode_Private:
-	dictval.private_dict_info.offset = env.argStack.pop_uint ();
-	dictval.private_dict_info.size = env.argStack.pop_uint ();
+	dictval.privateDictInfo.offset = env.argStack.pop_uint ();
+	dictval.privateDictInfo.size = env.argStack.pop_uint ();
 	env.clear_args ();
 	break;
 
@@ -456,7 +456,7 @@ struct cff2
 	font->init ();
 	if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 
-	const byte_str_t privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->private_dict_info.offset), font->private_dict_info.size);
+	const byte_str_t privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
 	if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL, cff2_priv_dict_interp_env_t>  priv_interp;
 	priv_interp.env.init(privDictStr);

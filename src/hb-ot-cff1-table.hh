@@ -683,7 +683,7 @@ struct cff1_top_dict_values_t : top_dict_values_t<cff1_top_dict_val_t>
     EncodingOffset = 0;
     CharsetOffset = 0;
     FDSelectOffset = 0;
-    private_dict_info.init ();
+    privateDictInfo.init ();
   }
   void fini () { top_dict_values_t<cff1_top_dict_val_t>::fini (); }
 
@@ -698,7 +698,7 @@ struct cff1_top_dict_values_t : top_dict_values_t<cff1_top_dict_val_t>
   unsigned int    EncodingOffset;
   unsigned int    CharsetOffset;
   unsigned int    FDSelectOffset;
-  table_info_t    private_dict_info;
+  table_info_t    privateDictInfo;
 };
 
 struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
@@ -769,8 +769,8 @@ struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
 	break;
 
       case OpCode_Private:
-	dictval.private_dict_info.offset = env.argStack.pop_uint ();
-	dictval.private_dict_info.size = env.argStack.pop_uint ();
+	dictval.privateDictInfo.offset = env.argStack.pop_uint ();
+	dictval.privateDictInfo.size = env.argStack.pop_uint ();
 	env.clear_args ();
 	break;
 
@@ -793,12 +793,12 @@ struct cff1_font_dict_values_t : dict_values_t<op_str_t>
   void init ()
   {
     dict_values_t<op_str_t>::init ();
-    private_dict_info.init ();
+    privateDictInfo.init ();
     fontName = CFF_UNDEF_SID;
   }
   void fini () { dict_values_t<op_str_t>::fini (); }
 
-  table_info_t       private_dict_info;
+  table_info_t       privateDictInfo;
   unsigned int    fontName;
 };
 
@@ -816,8 +816,8 @@ struct cff1_font_dict_opset_t : dict_opset_t
 	env.clear_args ();
 	break;
       case OpCode_Private:
-	dictval.private_dict_info.offset = env.argStack.pop_uint ();
-	dictval.private_dict_info.size = env.argStack.pop_uint ();
+	dictval.privateDictInfo.offset = env.argStack.pop_uint ();
+	dictval.privateDictInfo.size = env.argStack.pop_uint ();
 	env.clear_args ();
 	break;
 
@@ -957,7 +957,7 @@ struct cff1_font_dict_values_mod_t
   {
     base = base_;
     fontName = fontName_;
-    private_dict_info.init ();
+    privateDictInfo.init ();
   }
 
   unsigned get_count () const { return base->get_count (); }
@@ -965,7 +965,7 @@ struct cff1_font_dict_values_mod_t
   const op_str_t &operator [] (unsigned int i) const { return (*base)[i]; }
 
   const cff1_font_dict_values_t    *base;
-  table_info_t		   private_dict_info;
+  table_info_t		   privateDictInfo;
   unsigned int		fontName;
 };
 
@@ -1106,7 +1106,7 @@ struct cff1
 	  font->init ();
 	  if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 	  PRIVDICTVAL  *priv = &privateDicts[i];
-	  const byte_str_t privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->private_dict_info.offset), font->private_dict_info.size);
+	  const byte_str_t privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
 	  if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	  dict_interpreter_t<PRIVOPSET, PRIVDICTVAL> priv_interp;
 	  priv_interp.env.init (privDictStr);
@@ -1124,7 +1124,7 @@ struct cff1
 	cff1_top_dict_values_t  *font = &topDict;
 	PRIVDICTVAL  *priv = &privateDicts[0];
 
-	const byte_str_t privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->private_dict_info.offset), font->private_dict_info.size);
+	const byte_str_t privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
 	if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL> priv_interp;
 	priv_interp.env.init (privDictStr);
