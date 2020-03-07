@@ -892,8 +892,7 @@ struct VariationSelectorRecord
         const hb_set_t *unicodes,
         const hb_set_t *glyphs,
         const hb_map_t *glyph_map,
-        const void *src_base,
-        const void *dst_base) const
+        const void *src_base) const
   {
     auto snap = c->snapshot ();
     auto *out = c->embed<VariationSelectorRecord> (*this);
@@ -985,7 +984,7 @@ struct CmapSubtableFormat14
     for (int i = src_tbl->record.len - 1; i >= 0; i--)
     {
       hb_pair_t<unsigned, unsigned> result =
-          src_tbl->record[i].copy (c, unicodes, glyphs, glyph_map, src_base, this);
+          src_tbl->record[i].copy (c, unicodes, glyphs, glyph_map, src_base);
       if (result.first || result.second)
         obj_indices.push (result);
     }
@@ -1026,8 +1025,8 @@ struct CmapSubtableFormat14
        * are for the variation record at record[j].
        */
       int j = obj_indices.length - 1 - i;
-      c->add_link (record[j].defaultUVS, obj_indices[i].first, this);
-      c->add_link (record[j].nonDefaultUVS, obj_indices[i].second, this);
+      c->add_link (record[j].defaultUVS, obj_indices[i].first);
+      c->add_link (record[j].nonDefaultUVS, obj_indices[i].second);
     }
   }
 
@@ -1170,7 +1169,6 @@ struct EncodingRecord
 			Iterator it,
 			unsigned format,
 			const void *src_base,
-			const void *dst_base,
 			const hb_subset_plan_t *plan,
 			/* INOUT */ unsigned *objidx) const
   {
@@ -1195,7 +1193,7 @@ struct EncodingRecord
       return_trace (nullptr);
     }
 
-    c->add_link (out->subtable, *objidx, dst_base);
+    c->add_link (out->subtable, *objidx);
     return_trace (out);
   }
 
@@ -1231,9 +1229,9 @@ struct cmap
 
       unsigned format = (src_base+_.subtable).u.format;
 
-      if (format == 4) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, src_base, this, plan, &format4objidx);
-      else if (format == 12) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 12u, src_base, this, plan, &format12objidx);
-      else if (format == 14) c->copy (_, it, 14u, src_base, this, plan, &format14objidx);
+      if (format == 4) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, src_base, plan, &format4objidx);
+      else if (format == 12) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 12u, src_base, plan, &format12objidx);
+      else if (format == 14) c->copy (_, it, 14u, src_base, plan, &format14objidx);
     }
 
     c->check_assign(this->encodingRecord.len, (c->length () - cmap::min_size)/EncodingRecord::static_size);

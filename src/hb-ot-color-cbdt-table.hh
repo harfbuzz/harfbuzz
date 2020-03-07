@@ -584,7 +584,7 @@ struct IndexSubtableArray
     {
       IndexSubtableRecord* record = c->serializer->embed (records[i]);
       if (unlikely (!record)) return_trace (false);
-      c->serializer->add_link (record->offsetToSubtable, objidxs[records.length - 1 - i], dst);
+      c->serializer->add_link (record->offsetToSubtable, objidxs[records.length - 1 - i]);
     }
     return_trace (true);
   }
@@ -628,7 +628,7 @@ struct BitmapSizeTable
   }
 
   bool
-  subset (hb_subset_context_t *c, const void *src_base, const void *dst_base,
+  subset (hb_subset_context_t *c, const void *src_base,
 	  const char *cbdt, unsigned int cbdt_length,
 	  hb_vector_t<char> *cbdt_prime /* INOUT */) const
   {
@@ -648,7 +648,6 @@ struct BitmapSizeTable
     if (!out_table->indexSubtableArrayOffset.serialize_subset (c,
 							       indexSubtableArrayOffset,
 							       src_base,
-							       dst_base,
 							       &bitmap_size_context))
       return_trace (false);
     if (!bitmap_size_context.size ||
@@ -748,7 +747,7 @@ struct CBLC
     auto snap = c->serializer->snapshot ();
     auto cbdt_prime_len = cbdt_prime->length;
 
-    if (!table.subset (c, this, cblc_prime, cbdt, cbdt_length, cbdt_prime))
+    if (!table.subset (c, this, cbdt, cbdt_length, cbdt_prime))
     {
       cblc_prime->sizeTables.len--;
       c->serializer->revert (snap);

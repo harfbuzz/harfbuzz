@@ -173,7 +173,7 @@ struct CaretValueFormat3
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable, this, out));
+    return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable, this));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -272,7 +272,7 @@ struct LigGlyph
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     + hb_iter (carets)
-    | hb_apply (subset_offset_array (c, out->carets, this, out))
+    | hb_apply (subset_offset_array (c, out->carets, this))
     ;
 
     return_trace (bool (out->carets));
@@ -326,7 +326,7 @@ struct LigCaretList
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
     + hb_zip (this+coverage, ligGlyph)
     | hb_filter (glyphset, hb_first)
-    | hb_filter (subset_offset_array (c, out->ligGlyph, this, out), hb_second)
+    | hb_filter (subset_offset_array (c, out->ligGlyph, this), hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
@@ -381,7 +381,7 @@ struct MarkGlyphSetsFormat1
       //See issue: https://github.com/khaledhosny/ots/issues/172
       c->serializer->push ();
       c->dispatch (this+offset);
-      c->serializer->add_link (*o, c->serializer->pop_pack (), out);
+      c->serializer->add_link (*o, c->serializer->pop_pack ());
     }
 
     return_trace (ret && out->coverage.len);
@@ -550,20 +550,20 @@ struct GDEF
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    out->glyphClassDef.serialize_subset (c, glyphClassDef, this, out);
-    out->attachList = 0;//TODO(subset) serialize_subset (c, attachList, this, out);
-    out->ligCaretList.serialize_subset (c, ligCaretList, this, out);
-    out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, out);
+    out->glyphClassDef.serialize_subset (c, glyphClassDef, this);
+    out->attachList = 0;//TODO(subset) serialize_subset (c, attachList, this);
+    out->ligCaretList.serialize_subset (c, ligCaretList, this);
+    out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this);
 
     if (version.to_int () >= 0x00010002u)
     {
-      if (!out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this, out) &&
+      if (!out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this) &&
           version.to_int () == 0x00010002u)
         out->version.minor = 0;
     }
 
     if (version.to_int () >= 0x00010003u)
-      out->varStore = 0;// TODO(subset) serialize_subset (c, varStore, this, out);
+      out->varStore = 0;// TODO(subset) serialize_subset (c, varStore, this);
 
     return_trace (true);
   }

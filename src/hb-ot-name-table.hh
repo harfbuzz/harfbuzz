@@ -103,7 +103,7 @@ struct NameRecord
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
-    out->offset.serialize_copy (c, offset, src_base, nullptr, hb_serialize_context_t::Tail, length);
+    out->offset.serialize_copy (c, offset, src_base, 0, hb_serialize_context_t::Tail, length);
     return_trace (out);
   }
 

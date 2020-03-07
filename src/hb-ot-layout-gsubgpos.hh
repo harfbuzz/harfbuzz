@@ -2304,7 +2304,7 @@ struct ChainRuleSet
       if (unlikely (!o)) continue;
 
       auto o_snap = c->serializer->snapshot ();
-      if (!o->serialize_subset (c, _, this, out,
+      if (!o->serialize_subset (c, _, this,
                                 backtrack_klass_map,
                                 input_klass_map,
                                 lookahead_klass_map))
@@ -2430,7 +2430,7 @@ struct ChainContextFormat1
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
     + hb_zip (this+coverage, ruleSet)
     | hb_filter (glyphset, hb_first)
-    | hb_filter (subset_offset_array (c, out->ruleSet, this, out), hb_second)
+    | hb_filter (subset_offset_array (c, out->ruleSet, this), hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
@@ -2587,17 +2587,17 @@ struct ChainContextFormat2
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
     out->format = format;
-    out->coverage.serialize_subset (c, coverage, this, out);
+    out->coverage.serialize_subset (c, coverage, this);
 
     hb_map_t backtrack_klass_map;
-    out->backtrackClassDef.serialize_subset (c, backtrackClassDef, this, out, &backtrack_klass_map);
+    out->backtrackClassDef.serialize_subset (c, backtrackClassDef, this, &backtrack_klass_map);
 
     // subset inputClassDef based on glyphs survived in Coverage subsetting
     hb_map_t input_klass_map;
-    out->inputClassDef.serialize_subset (c, inputClassDef, this, out, &input_klass_map);
+    out->inputClassDef.serialize_subset (c, inputClassDef, this, &input_klass_map);
 
     hb_map_t lookahead_klass_map;
-    out->lookaheadClassDef.serialize_subset (c, lookaheadClassDef, this, out, &lookahead_klass_map);
+    out->lookaheadClassDef.serialize_subset (c, lookaheadClassDef, this, &lookahead_klass_map);
 
     hb_vector_t<unsigned> rulesets;
     bool ret = true;
@@ -2611,7 +2611,7 @@ struct ChainContextFormat2
         ret = false;
         break;
       }
-      if (!o->serialize_subset (c, _, this, out,
+      if (!o->serialize_subset (c, _, this,
                                 &backtrack_klass_map,
                                 &input_klass_map,
                                 &lookahead_klass_map))
@@ -2785,8 +2785,7 @@ struct ChainContextFormat3
 	   hb_requires (hb_is_iterator (Iterator))>
   bool serialize_coverage_offsets (hb_subset_context_t *c,
                                    Iterator it,
-				   const void* src_base,
-				   const void* dst_base) const
+				   const void* src_base) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->serializer->start_embed<OffsetArrayOf<Coverage>> ();
@@ -2794,7 +2793,7 @@ struct ChainContextFormat3
     if (unlikely (!c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size))) return_trace (false);
 
     + it
-    | hb_apply (subset_offset_array (c, *out, src_base, dst_base))
+    | hb_apply (subset_offset_array (c, *out, src_base))
     ;
 
     return_trace (out->len);
@@ -2808,15 +2807,15 @@ struct ChainContextFormat3
     if (unlikely (!out)) return_trace (false);
     if (unlikely (!c->serializer->embed (this->format))) return_trace (false);
 
-    if (!serialize_coverage_offsets (c, backtrack.iter (), this, out))
+    if (!serialize_coverage_offsets (c, backtrack.iter (), this))
       return_trace (false);
 
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
-    if (!serialize_coverage_offsets (c, input.iter (), this, out))
+    if (!serialize_coverage_offsets (c, input.iter (), this))
       return_trace (false);
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
-    if (!serialize_coverage_offsets (c, lookahead.iter (), this, out))
+    if (!serialize_coverage_offsets (c, lookahead.iter (), this))
       return_trace (false);
 
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
@@ -3070,26 +3069,23 @@ struct GSUBGPOS
         .serialize_subset (c->subset_context,
 			   reinterpret_cast<const OffsetTo<TLookupList> &> (lookupList),
 			   this,
-			   out,
 			   c);
 
     reinterpret_cast<OffsetTo<RecordListOfFeature> &> (out->featureList)
         .serialize_subset (c->subset_context,
 			   reinterpret_cast<const OffsetTo<RecordListOfFeature> &> (featureList),
 			   this,
-			   out,
 			   c);
 
     out->scriptList.serialize_subset (c->subset_context,
 				      scriptList,
 				      this,
-				      out,
 				      c);
 
 #ifndef HB_NO_VAR
     if (version.to_int () >= 0x00010001u)
     {
-      bool ret = out->featureVars.serialize_subset (c->subset_context, featureVars, this, out, c);
+      bool ret = out->featureVars.serialize_subset (c->subset_context, featureVars, this, c);
       if (!ret)
       {
         out->version.major = 1;
