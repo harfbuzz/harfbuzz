@@ -160,7 +160,7 @@ struct ValueFormat : HBUINT16
     return ret;
   }
 
-  void serialize_copy (hb_serialize_context_t *c, const void *src_base, const void *dst_base, const Value *values) const
+  void serialize_copy (hb_serialize_context_t *c, const void *src_base, const Value *values) const
   {
     unsigned int format = *this;
     if (!format) return;
@@ -170,10 +170,10 @@ struct ValueFormat : HBUINT16
     if (format & xAdvance)   c->copy (*values++);
     if (format & yAdvance)   c->copy (*values++);
 
-    if (format & xPlaDevice) copy_device (c, src_base, dst_base, values++);
-    if (format & yPlaDevice) copy_device (c, src_base, dst_base, values++);
-    if (format & xAdvDevice) copy_device (c, src_base, dst_base, values++);
-    if (format & yAdvDevice) copy_device (c, src_base, dst_base, values++);
+    if (format & xPlaDevice) copy_device (c, src_base, values++);
+    if (format & yPlaDevice) copy_device (c, src_base, values++);
+    if (format & xAdvDevice) copy_device (c, src_base, values++);
+    if (format & yAdvDevice) copy_device (c, src_base, values++);
   }
 
   private:
@@ -194,7 +194,7 @@ struct ValueFormat : HBUINT16
     return true;
   }
 
-  bool copy_device (hb_serialize_context_t *c, const void *src_base, const void *dst_base, const Value *src_value) const
+  bool copy_device (hb_serialize_context_t *c, const void *src_base, const Value *src_value) const
   {
     Value	*dst_value = c->copy (*src_value);
 
@@ -205,7 +205,7 @@ struct ValueFormat : HBUINT16
     c->push ();
     if ((src_base + get_device (src_value)).copy (c))
     {
-      c->add_link (*dst_value, c->pop_pack (), dst_base);
+      c->add_link (*dst_value, c->pop_pack ());
       return true;
     }
     else
@@ -389,8 +389,8 @@ struct AnchorFormat3
     auto *out = c->embed<AnchorFormat3> (this);
     if (unlikely (!out)) return_trace (nullptr);
 
-    out->xDeviceTable.serialize_copy (c, xDeviceTable, this, out);
-    out->yDeviceTable.serialize_copy (c, yDeviceTable, this, out);
+    out->xDeviceTable.serialize_copy (c, xDeviceTable, this);
+    out->yDeviceTable.serialize_copy (c, yDeviceTable, this);
     return_trace (out);
   }
 
@@ -485,7 +485,7 @@ struct AnchorMatrix
     for (const unsigned i : index_iter)
     {
       auto *offset = c->embed (offset_matrix->matrixZ[i]);
-      offset->serialize_copy (c, offset_matrix->matrixZ[i], offset_matrix, this);
+      offset->serialize_copy (c, offset_matrix->matrixZ[i], offset_matrix, c->to_bias (this));
     }
 
     return_trace (true);
@@ -525,7 +525,7 @@ struct MarkRecord
 
   MarkRecord *copy (hb_serialize_context_t *c,
 		    const void             *src_base,
-		    const void             *dst_base,
+		    unsigned                dst_bias,
 		    const hb_map_t         *klass_mapping) const
   {
     TRACE_SERIALIZE (this);
@@ -533,7 +533,7 @@ struct MarkRecord
     if (unlikely (!out)) return_trace (nullptr);
     
     out->klass = klass_mapping->get (klass);
-    out->markAnchor.serialize_copy (c, markAnchor, src_base, dst_base);
+    out->markAnchor.serialize_copy (c, markAnchor, src_base, dst_bias);
     return_trace (out);
   }
 
@@ -592,7 +592,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!c->check_assign (len, it.len ()))) return_trace (false);
-    c->copy_all (it, src_base, this, klass_mapping);
+    c->copy_all (it, src_base, c->to_bias (this), klass_mapping);
     return_trace (true);
   }
 
@@ -645,7 +645,7 @@ struct SinglePosFormat1
     + it
     | hb_map (hb_second)
     | hb_apply ([&] (hb_array_t<const Value> _)
-		{ valFormat.serialize_copy (c, src, out, &_); })
+		{ valFormat.serialize_copy (c, src, &_); })
     ;
 
     auto glyphs =
@@ -740,7 +740,7 @@ struct SinglePosFormat2
     + it
     | hb_map (hb_second)
     | hb_apply ([&] (hb_array_t<const Value> _)
-		{ valFormat.serialize_copy (c, src, out, &_); })
+		{ valFormat.serialize_copy (c, src, &_); })
     ;
 
     auto glyphs =
@@ -876,7 +876,6 @@ struct PairValueRecord
   struct serialize_closure_t
   {
     const void 		*src_base;
-    void       		*dst_base;
     const ValueFormat	*valueFormats;
     unsigned		len1; /* valueFormats[0].get_len() */
     const hb_map_t 	*glyph_map;
@@ -891,8 +890,8 @@ struct PairValueRecord
 
     out->secondGlyph = (*closure->glyph_map)[secondGlyph];
 
-    closure->valueFormats[0].serialize_copy (c, closure->src_base, closure->dst_base, &values[0]);
-    closure->valueFormats[1].serialize_copy (c, closure->src_base, closure->dst_base, &values[closure->len1]);
+    closure->valueFormats[0].serialize_copy (c, closure->src_base, &values[0]);
+    closure->valueFormats[1].serialize_copy (c, closure->src_base, &values[closure->len1]);
 
     return_trace (true);
   }
@@ -988,7 +987,6 @@ struct PairSet
     PairValueRecord::serialize_closure_t closure =
     {
       this,
-      out,
       valueFormats,
       len1,
       &glyph_map
@@ -1101,7 +1099,7 @@ struct PairPosFormat1
 		   auto *o = out->pairSet.serialize_append (c->serializer);
 		   if (unlikely (!o)) return false;
 		   auto snap = c->serializer->snapshot ();
-		   bool ret = o->serialize_subset (c, _, this, out, valueFormat);
+		   bool ret = o->serialize_subset (c, _, this, valueFormat);
 		   if (!ret)
 		   {
 		     out->pairSet.pop ();
@@ -1217,11 +1215,11 @@ struct PairPosFormat2
     out->valueFormat2 = valueFormat2;
 
     hb_map_t klass1_map;
-    out->classDef1.serialize_subset (c, classDef1, this, out, &klass1_map);
+    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map);
     out->class1Count = klass1_map.get_population ();
 
     hb_map_t klass2_map;
-    out->classDef2.serialize_subset (c, classDef2, this, out, &klass2_map);
+    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map);
     out->class2Count = klass2_map.get_population ();
 
     unsigned len1 = valueFormat1.get_len ();
@@ -1236,8 +1234,8 @@ struct PairPosFormat2
                   | hb_apply ([&] (const unsigned class2_idx)
                               {
                                 unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
-                                valueFormat1.serialize_copy (c->serializer, this, out, &values[idx]);
-                                valueFormat2.serialize_copy (c->serializer, this, out, &values[idx + len1]);
+                                valueFormat1.serialize_copy (c->serializer, this, &values[idx]);
+                                valueFormat2.serialize_copy (c->serializer, this, &values[idx + len1]);
                               })
                   ;
                 })
@@ -1340,15 +1338,14 @@ struct EntryExitRecord
   }
 
   EntryExitRecord* copy (hb_serialize_context_t *c,
-			 const void *src_base,
-			 const void *dst_base) const
+			 const void *src_base) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
-    out->entryAnchor.serialize_copy (c, entryAnchor, src_base, dst_base);
-    out->exitAnchor.serialize_copy (c, exitAnchor, src_base, dst_base);
+    out->entryAnchor.serialize_copy (c, entryAnchor, src_base);
+    out->exitAnchor.serialize_copy (c, exitAnchor, src_base);
     return_trace (out);
   }
 
@@ -1493,7 +1490,7 @@ struct CursivePosFormat1
 
     for (const EntryExitRecord& entry_record : + it
 					       | hb_map (hb_second))
-      c->copy (entry_record, src_base, this);
+      c->copy (entry_record, src_base);
 
     auto glyphs =
     + it

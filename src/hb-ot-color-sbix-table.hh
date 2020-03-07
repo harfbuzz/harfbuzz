@@ -340,7 +340,7 @@ struct sbix
   }
 
   bool
-  add_strike (hb_subset_context_t *c, const void *dst_base, unsigned i) const
+  add_strike (hb_subset_context_t *c, unsigned i) const
   {
     if (strikes[i].is_null () || c->source_blob->length < (unsigned) strikes[i])
       return false;
@@ -348,7 +348,7 @@ struct sbix
     return (this+strikes[i]).subset (c, c->source_blob->length - (unsigned) strikes[i]);
   }
 
-  bool serialize_strike_offsets (hb_subset_context_t *c, const void *dst_base) const
+  bool serialize_strike_offsets (hb_subset_context_t *c) const
   {
     TRACE_SERIALIZE (this);
 
@@ -365,7 +365,7 @@ struct sbix
       *o = 0;
       auto snap = c->serializer->snapshot ();
       c->serializer->push ();
-      bool ret = add_strike (c, dst_base, i);
+      bool ret = add_strike (c, i);
       if (!ret)
       {
 	c->serializer->pop_discard ();
@@ -379,7 +379,7 @@ struct sbix
       }
     }
     for (unsigned int i = 0; i < new_strikes.length; ++i)
-      c->serializer->add_link (*new_strikes[i], objidxs[new_strikes.length - 1 - i], dst_base);
+      c->serializer->add_link (*new_strikes[i], objidxs[new_strikes.length - 1 - i]);
 
     return_trace (true);
   }
@@ -393,7 +393,7 @@ struct sbix
     if (unlikely (!c->serializer->embed (this->version))) return_trace (false);
     if (unlikely (!c->serializer->embed (this->flags))) return_trace (false);
 
-    return_trace (serialize_strike_offsets (c, sbix_prime));
+    return_trace (serialize_strike_offsets (c));
   }
 
   protected:

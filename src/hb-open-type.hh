@@ -316,7 +316,6 @@ struct OffsetTo : Offset<OffsetType, has_null>
   bool serialize_subset (hb_subset_context_t *c,
 			 const OffsetTo& src,
 			 const void *src_base,
-			 const void *dst_base,
 			 Ts&&... ds)
   {
     *this = 0;
@@ -330,7 +329,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
     bool ret = c->dispatch (src_base+src, hb_forward<Ts> (ds)...);
 
     if (ret || !has_null)
-      s->add_link (*this, s->pop_pack (), dst_base);
+      s->add_link (*this, s->pop_pack ());
     else
       s->pop_discard ();
 
@@ -345,7 +344,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
   bool serialize_copy (hb_serialize_context_t *c,
 		       const OffsetTo& src,
 		       const void *src_base,
-		       const void *dst_base,
+		       unsigned dst_bias,
 		       hb_serialize_context_t::whence_t whence,
 		       Ts&&... ds)
   {
@@ -357,7 +356,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
     bool ret = c->copy (src_base+src, hb_forward<Ts> (ds)...);
 
-    c->add_link (*this, c->pop_pack (), dst_base, whence);
+    c->add_link (*this, c->pop_pack (), whence, dst_bias);
 
     return ret;
   }
@@ -365,8 +364,8 @@ struct OffsetTo : Offset<OffsetType, has_null>
   bool serialize_copy (hb_serialize_context_t *c,
 		       const OffsetTo& src,
 		       const void *src_base,
-		       const void *dst_base)
-  { return serialize_copy (c, src, src_base, dst_base, hb_serialize_context_t::Head); }
+		       unsigned dst_bias = 0)
+  { return serialize_copy (c, src, src_base, dst_bias, hb_serialize_context_t::Head); }
 
   bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const
   {

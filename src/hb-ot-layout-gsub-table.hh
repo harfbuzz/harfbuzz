@@ -457,7 +457,7 @@ struct MultipleSubstFormat1
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
     + hb_zip (this+coverage, sequence)
     | hb_filter (glyphset, hb_first)
-    | hb_filter (subset_offset_array (c, out->sequence, this, out), hb_second)
+    | hb_filter (subset_offset_array (c, out->sequence, this), hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
@@ -670,7 +670,7 @@ struct AlternateSubstFormat1
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
     + hb_zip (this+coverage, alternateSet)
     | hb_filter (glyphset, hb_first)
-    | hb_filter (subset_offset_array (c, out->alternateSet, this, out), hb_second)
+    | hb_filter (subset_offset_array (c, out->alternateSet, this), hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
@@ -930,7 +930,7 @@ struct LigatureSet
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     + hb_iter (ligature)
-    | hb_filter (subset_offset_array (c, out->ligature, this, out))
+    | hb_filter (subset_offset_array (c, out->ligature, this))
     | hb_drain
     ;
     return_trace (bool (out->ligature));
@@ -1046,7 +1046,7 @@ struct LigatureSubstFormat1
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
     + hb_zip (this+coverage, ligatureSet)
     | hb_filter (glyphset, hb_first)
-    | hb_filter (subset_offset_array (c, out->ligatureSet, this, out), hb_second)
+    | hb_filter (subset_offset_array (c, out->ligatureSet, this), hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
     | hb_sink (new_coverage)

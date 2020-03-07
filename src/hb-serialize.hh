@@ -278,7 +278,7 @@ struct hb_serialize_context_t
 
   template <typename T>
   void add_link (T &ofs, objidx_t objidx,
-		 whence_t whence,
+		 whence_t whence = Head,
 		 unsigned bias = 0)
   {
     static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
@@ -299,11 +299,13 @@ struct hb_serialize_context_t
     link.objidx = objidx;
   }
 
-  template <typename T>
-  void add_link (T &ofs, objidx_t objidx,
-		 const void *base = nullptr,
-		 whence_t whence = Head)
-  { add_link (ofs, objidx, whence, to_bias (base)); }
+  unsigned to_bias (const void *base) const
+  {
+    if (!base) return 0;
+    assert (current);
+    assert (current->head <= (const char *) base);
+    return (const char *) base - current->head;
+  }
 
   void resolve_links ()
   {
@@ -487,14 +489,6 @@ struct hb_serialize_context_t
     auto &off = * ((BEInt<T, sizeof (T)> *) (parent->head + link.position));
     assert (0 == off);
     check_assign (off, offset);
-  }
-
-  unsigned to_bias (const void *base) const
-  {
-    if (!base) return 0;
-    assert (current);
-    assert (current->head <= (const char *) base);
-    return (const char *) base - current->head;
   }
 
   public: /* TODO Make private. */
