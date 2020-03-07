@@ -955,7 +955,11 @@ CBLC::subset (hb_subset_context_t *c) const
   hb_blob_t* cbdt_blob = hb_sanitize_context_t ().reference_table<CBDT> (c->plan->source);
   unsigned int cbdt_length;
   CBDT* cbdt = (CBDT *) hb_blob_get_data (cbdt_blob, &cbdt_length);
-  if (unlikely (cbdt_length < CBDT::min_size)) return_trace (false);
+  if (unlikely (cbdt_length < CBDT::min_size))
+  {
+    hb_blob_destroy (cbdt_blob);
+    return_trace (false);
+  }
   _copy_data_to_cbdt (&cbdt_prime, cbdt, CBDT::min_size);
 
   for (const BitmapSizeTable& table : + sizeTables.iter ())
