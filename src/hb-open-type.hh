@@ -313,10 +313,8 @@ struct OffsetTo : Offset<OffsetType, has_null>
   }
 
   template <typename ...Ts>
-  bool serialize_subset (hb_subset_context_t *c,
-			 const OffsetTo& src,
-			 const void *src_base,
-			 Ts&&... ds)
+  bool serialize_subset (hb_subset_context_t *c, const OffsetTo& src,
+			 const void *src_base, Ts&&... ds)
   {
     *this = 0;
     if (src.is_null ())
@@ -341,10 +339,8 @@ struct OffsetTo : Offset<OffsetType, has_null>
    * Can't compile: whence = hb_serialize_context_t::Head followed by Ts&&...
    */
   template <typename ...Ts>
-  bool serialize_copy (hb_serialize_context_t *c,
-		       const OffsetTo& src,
-		       const void *src_base,
-		       unsigned dst_bias,
+  bool serialize_copy (hb_serialize_context_t *c, const OffsetTo& src,
+		       const void *src_base, unsigned dst_bias,
 		       hb_serialize_context_t::whence_t whence,
 		       Ts&&... ds)
   {
@@ -361,10 +357,8 @@ struct OffsetTo : Offset<OffsetType, has_null>
     return ret;
   }
 
-  bool serialize_copy (hb_serialize_context_t *c,
-		       const OffsetTo& src,
-		       const void *src_base,
-		       unsigned dst_bias = 0)
+  bool serialize_copy (hb_serialize_context_t *c, const OffsetTo& src,
+		       const void *src_base, unsigned dst_bias = 0)
   { return serialize_copy (c, src, src_base, dst_bias, hb_serialize_context_t::Head); }
 
   bool sanitize_shallow (hb_sanitize_context_t *c, const void *base) const

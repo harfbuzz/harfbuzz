@@ -97,13 +97,12 @@ struct NameRecord
     return UNSUPPORTED;
   }
 
-  NameRecord* copy (hb_serialize_context_t *c,
-		    const void *src_base) const
+  NameRecord* copy (hb_serialize_context_t *c, const void *base) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
-    out->offset.serialize_copy (c, offset, src_base, 0, hb_serialize_context_t::Tail, length);
+    out->offset.serialize_copy (c, offset, base, 0, hb_serialize_context_t::Tail, length);
     return_trace (out);
   }
 

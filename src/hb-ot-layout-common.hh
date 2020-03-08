@@ -142,68 +142,62 @@ struct hb_subset_layout_context_t :
 template<typename OutputArray>
 struct subset_offset_array_t
 {
-  subset_offset_array_t
-  (hb_subset_context_t *subset_context,
-   OutputArray& out,
-   const void *src_base)
-      : _subset_context(subset_context), _out (out), _src_base (src_base) {}
+  subset_offset_array_t (hb_subset_context_t *subset_context_,
+			 OutputArray& out_,
+			 const void *base_) : subset_context (subset_context_),
+					      out (out_), base (base_) {}
 
   template <typename T>
-  bool
-  operator ()
-  (T&& offset)
+  bool operator () (T&& offset)
   {
-    auto *o = _out.serialize_append (_subset_context->serializer);
+    auto *o = out.serialize_append (subset_context->serializer);
     if (unlikely (!o)) return false;
-    auto snap = _subset_context->serializer->snapshot ();
-    bool ret = o->serialize_subset (_subset_context, offset, _src_base);
+    auto snap = subset_context->serializer->snapshot ();
+    bool ret = o->serialize_subset (subset_context, offset, base);
     if (!ret)
     {
-      _out.pop ();
-      _subset_context->serializer->revert (snap);
+      out.pop ();
+      subset_context->serializer->revert (snap);
     }
     return ret;
   }
 
   private:
-  hb_subset_context_t *_subset_context;
-  OutputArray &_out;
-  const void *_src_base;
+  hb_subset_context_t *subset_context;
+  OutputArray &out;
+  const void *base;
 };
 
 
 template<typename OutputArray, typename Arg>
 struct subset_offset_array_arg_t
 {
-  subset_offset_array_arg_t
-  (hb_subset_context_t *subset_context,
-   OutputArray& out,
-   const void *src_base,
-   Arg &&arg)
-      : _subset_context(subset_context), _out (out), _src_base (src_base), _arg (arg) {}
+  subset_offset_array_arg_t (hb_subset_context_t *subset_context_,
+			     OutputArray& out_,
+			     const void *base_,
+			     Arg &&arg_) : subset_context (subset_context_), out (out_),
+					  base (base_), arg (arg_) {}
 
   template <typename T>
-  bool
-  operator ()
-  (T&& offset)
+  bool operator () (T&& offset)
   {
-    auto *o = _out.serialize_append (_subset_context->serializer);
+    auto *o = out.serialize_append (subset_context->serializer);
     if (unlikely (!o)) return false;
-    auto snap = _subset_context->serializer->snapshot ();
-    bool ret = o->serialize_subset (_subset_context, offset, _src_base, _arg);
+    auto snap = subset_context->serializer->snapshot ();
+    bool ret = o->serialize_subset (subset_context, offset, base, arg);
     if (!ret)
     {
-      _out.pop ();
-      _subset_context->serializer->revert (snap);
+      out.pop ();
+      subset_context->serializer->revert (snap);
     }
     return ret;
   }
 
   private:
-  hb_subset_context_t *_subset_context;
-  OutputArray &_out;
-  const void *_src_base;
-  Arg &&_arg;
+  hb_subset_context_t *subset_context;
+  OutputArray &out;
+  const void *base;
+  Arg &&arg;
 };
 
 /*
@@ -215,52 +209,40 @@ struct
 {
   template<typename OutputArray>
   subset_offset_array_t<OutputArray>
-  operator ()
-  (hb_subset_context_t *subset_context,
-   OutputArray& out,
-   const void *src_base) const
-  {
-    return subset_offset_array_t<OutputArray> (subset_context, out, src_base);
-  }
+  operator () (hb_subset_context_t *subset_context, OutputArray& out,
+	       const void *base) const
+  { return subset_offset_array_t<OutputArray> (subset_context, out, base); }
 
   /* Variant with one extra argument passed to serialize_subset */
   template<typename OutputArray, typename Arg>
   subset_offset_array_arg_t<OutputArray, Arg>
-  operator ()
-  (hb_subset_context_t *subset_context,
-   OutputArray& out,
-   const void *src_base,
-   Arg &&arg) const
-  {
-    return subset_offset_array_arg_t<OutputArray, Arg> (subset_context, out, src_base, arg);
-  }
+  operator () (hb_subset_context_t *subset_context, OutputArray& out,
+	       const void *base, Arg &&arg) const
+  { return subset_offset_array_arg_t<OutputArray, Arg> (subset_context, out, base, arg); }
 }
 HB_FUNCOBJ (subset_offset_array);
 
 template<typename OutputArray>
 struct subset_record_array_t
 {
-  subset_record_array_t
-  (hb_subset_layout_context_t *c,
-   OutputArray* out,
-   const void *src_base)
-      : _subset_layout_context(c), _out (out), _src_base (src_base) {}
+  subset_record_array_t (hb_subset_layout_context_t *c_, OutputArray* out_,
+			 const void *base_) : subset_layout_context (c_),
+					      out (out_), base (base_) {}
 
   template <typename T>
   void
-  operator ()
-  (T&& record)
+  operator () (T&& record)
   {
-    auto snap = _subset_layout_context->subset_context->serializer->snapshot ();
-    bool ret = record.subset (_subset_layout_context, _src_base);
-    if (!ret) _subset_layout_context->subset_context->serializer->revert (snap);
-    else _out->len++;
+    auto snap = subset_layout_context->subset_context->serializer->snapshot ();
+    bool ret = record.subset (subset_layout_context, base);
+    if (!ret) subset_layout_context->subset_context->serializer->revert (snap);
+    else out->len++;
   }
 
   private:
-  hb_subset_layout_context_t *_subset_layout_context;
-  OutputArray *_out;
-  const void *_src_base;
+  hb_subset_layout_context_t *subset_layout_context;
+  OutputArray *out;
+  const void *base;
 };
 
 /*
@@ -271,13 +253,9 @@ struct
 {
   template<typename OutputArray>
   subset_record_array_t<OutputArray>
-  operator ()
-  (hb_subset_layout_context_t *c,
-   OutputArray* out,
-   const void *src_base) const
-  {
-    return subset_record_array_t<OutputArray> (c, out, src_base);
-  }
+  operator () (hb_subset_layout_context_t *c, OutputArray* out,
+	       const void *base) const
+  { return subset_record_array_t<OutputArray> (c, out, base); }
 }
 HB_FUNCOBJ (subset_record_array);
 
@@ -302,13 +280,12 @@ struct Record
 {
   int cmp (hb_tag_t a) const { return tag.cmp (a); }
 
-  bool subset (hb_subset_layout_context_t *c,
-	       const void                 *src_base) const
+  bool subset (hb_subset_layout_context_t *c, const void *base) const
   {
     TRACE_SUBSET (this);
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
-    bool ret = out->offset.serialize_subset (c->subset_context, offset, src_base, c, &tag);
+    bool ret = out->offset.serialize_subset (c->subset_context, offset, base, c, &tag);
     return_trace (ret);
   }
 
@@ -2597,15 +2574,14 @@ struct FeatureTableSubstitutionRecord
       feature_indexes->add (featureIndex);
   }
 
-  bool subset (hb_subset_layout_context_t *c,
-	       const void                 *src_base) const
+  bool subset (hb_subset_layout_context_t *c, const void *base) const
   {
     TRACE_SUBSET (this);
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
     out->featureIndex = c->feature_index_map->get (featureIndex);
-    bool ret = out->feature.serialize_subset (c->subset_context, feature, src_base, c);
+    bool ret = out->feature.serialize_subset (c->subset_context, feature, base, c);
     return_trace (ret);
   }
 
@@ -2703,16 +2679,15 @@ struct FeatureVariationRecord
     (base+substitutions).closure_features (lookup_indexes, feature_indexes);
   }
 
-  bool subset (hb_subset_layout_context_t *c,
-	       const void                 *src_base) const
+  bool subset (hb_subset_layout_context_t *c, const void *base) const
   {
     TRACE_SUBSET (this);
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    out->conditions.serialize_subset (c->subset_context, conditions, src_base);
+    out->conditions.serialize_subset (c->subset_context, conditions, base);
 
-    bool ret = out->substitutions.serialize_subset (c->subset_context, substitutions, src_base, c);
+    bool ret = out->substitutions.serialize_subset (c->subset_context, substitutions, base, c);
     return_trace (ret);
   }
 

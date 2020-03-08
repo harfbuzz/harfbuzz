@@ -628,7 +628,7 @@ struct BitmapSizeTable
   }
 
   bool
-  subset (hb_subset_context_t *c, const void *src_base,
+  subset (hb_subset_context_t *c, const void *base,
 	  const char *cbdt, unsigned int cbdt_length,
 	  hb_vector_t<char> *cbdt_prime /* INOUT */) const
   {
@@ -647,7 +647,7 @@ struct BitmapSizeTable
 
     if (!out_table->indexSubtableArrayOffset.serialize_subset (c,
 							       indexSubtableArrayOffset,
-							       src_base,
+							       base,
 							       &bitmap_size_context))
       return_trace (false);
     if (!bitmap_size_context.size ||

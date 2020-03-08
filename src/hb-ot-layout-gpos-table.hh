@@ -160,7 +160,7 @@ struct ValueFormat : HBUINT16
     return ret;
   }
 
-  void serialize_copy (hb_serialize_context_t *c, const void *src_base, const Value *values) const
+  void serialize_copy (hb_serialize_context_t *c, const void *base, const Value *values) const
   {
     unsigned int format = *this;
     if (!format) return;
@@ -170,10 +170,10 @@ struct ValueFormat : HBUINT16
     if (format & xAdvance)   c->copy (*values++);
     if (format & yAdvance)   c->copy (*values++);
 
-    if (format & xPlaDevice) copy_device (c, src_base, values++);
-    if (format & yPlaDevice) copy_device (c, src_base, values++);
-    if (format & xAdvDevice) copy_device (c, src_base, values++);
-    if (format & yAdvDevice) copy_device (c, src_base, values++);
+    if (format & xPlaDevice) copy_device (c, base, values++);
+    if (format & yPlaDevice) copy_device (c, base, values++);
+    if (format & xAdvDevice) copy_device (c, base, values++);
+    if (format & yAdvDevice) copy_device (c, base, values++);
   }
 
   private:
@@ -194,7 +194,7 @@ struct ValueFormat : HBUINT16
     return true;
   }
 
-  bool copy_device (hb_serialize_context_t *c, const void *src_base, const Value *src_value) const
+  bool copy_device (hb_serialize_context_t *c, const void *base, const Value *src_value) const
   {
     Value	*dst_value = c->copy (*src_value);
 
@@ -203,7 +203,7 @@ struct ValueFormat : HBUINT16
 
     *dst_value = 0;
     c->push ();
-    if ((src_base + get_device (src_value)).copy (c))
+    if ((base + get_device (src_value)).copy (c))
     {
       c->add_link (*dst_value, c->pop_pack ());
       return true;
@@ -523,17 +523,15 @@ struct MarkRecord
     return_trace (c->check_struct (this) && markAnchor.sanitize (c, base));
   }
 
-  MarkRecord *copy (hb_serialize_context_t *c,
-		    const void             *src_base,
-		    unsigned                dst_bias,
-		    const hb_map_t         *klass_mapping) const
+  MarkRecord *copy (hb_serialize_context_t *c, const void *base,
+		    unsigned dst_bias, const hb_map_t *klass_mapping) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
-    
+
     out->klass = klass_mapping->get (klass);
-    out->markAnchor.serialize_copy (c, markAnchor, src_base, dst_bias);
+    out->markAnchor.serialize_copy (c, markAnchor, base, dst_bias);
     return_trace (out);
   }
 
@@ -586,13 +584,13 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
 	   hb_requires (hb_is_source_of (Iterator, MarkRecord))>
   bool serialize (hb_serialize_context_t *c,
 		  const hb_map_t         *klass_mapping,
-		  const void             *src_base,
+		  const void             *base,
 		  Iterator                it)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!c->check_assign (len, it.len ()))) return_trace (false);
-    c->copy_all (it, src_base, c->to_bias (this), klass_mapping);
+    c->copy_all (it, base, c->to_bias (this), klass_mapping);
     return_trace (true);
   }
 
@@ -875,7 +873,7 @@ struct PairValueRecord
 
   struct serialize_closure_t
   {
-    const void 		*src_base;
+    const void 		*base;
     const ValueFormat	*valueFormats;
     unsigned		len1; /* valueFormats[0].get_len() */
     const hb_map_t 	*glyph_map;
@@ -890,8 +888,8 @@ struct PairValueRecord
 
     out->secondGlyph = (*closure->glyph_map)[secondGlyph];
 
-    closure->valueFormats[0].serialize_copy (c, closure->src_base, &values[0]);
-    closure->valueFormats[1].serialize_copy (c, closure->src_base, &values[closure->len1]);
+    closure->valueFormats[0].serialize_copy (c, closure->base, &values[0]);
+    closure->valueFormats[1].serialize_copy (c, closure->base, &values[closure->len1]);
 
     return_trace (true);
   }
@@ -1337,15 +1335,14 @@ struct EntryExitRecord
     return_trace (entryAnchor.sanitize (c, base) && exitAnchor.sanitize (c, base));
   }
 
-  EntryExitRecord* copy (hb_serialize_context_t *c,
-			 const void *src_base) const
+  EntryExitRecord* copy (hb_serialize_context_t *c, const void *base) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
-    out->entryAnchor.serialize_copy (c, entryAnchor, src_base);
-    out->exitAnchor.serialize_copy (c, exitAnchor, src_base);
+    out->entryAnchor.serialize_copy (c, entryAnchor, base);
+    out->exitAnchor.serialize_copy (c, exitAnchor, base);
     return_trace (out);
   }
 
@@ -1480,9 +1477,7 @@ struct CursivePosFormat1
 
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
-  void serialize (hb_serialize_context_t *c,
-		  Iterator it,
-		  const void *src_base)
+  void serialize (hb_serialize_context_t *c, Iterator it, const void *base)
   {
     if (unlikely (!c->extend_min ((*this)))) return;
     this->format = 1;
@@ -1490,7 +1485,7 @@ struct CursivePosFormat1
 
     for (const EntryExitRecord& entry_record : + it
 					       | hb_map (hb_second))
-      c->copy (entry_record, src_base);
+      c->copy (entry_record, base);
 
     auto glyphs =
     + it
@@ -1656,7 +1651,7 @@ struct MarkBasePosFormat1
 
     hb_map_t klass_mapping;
     Markclass_closure_and_remap_indexes (this+markCoverage, this+markArray, glyphset, &klass_mapping);
-    
+
     if (!klass_mapping.get_population ()) return_trace (false);
     out->classCount = klass_mapping.get_population ();
 
@@ -1967,7 +1962,7 @@ struct MarkMarkPosFormat1
 
     hb_map_t klass_mapping;
     Markclass_closure_and_remap_indexes (this+mark1Coverage, this+mark1Array, glyphset, &klass_mapping);
-    
+
     if (!klass_mapping.get_population ()) return_trace (false);
     out->classCount = klass_mapping.get_population ();
 
