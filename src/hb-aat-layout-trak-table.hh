@@ -141,7 +141,7 @@ struct TrackData
   protected:
   HBUINT16	nTracks;	/* Number of separate tracks included in this table. */
   HBUINT16	nSizes;		/* Number of point sizes included in this table. */
-  LOffsetTo<UnsizedArrayOf<HBFixed>, false>
+  LNNOffsetTo<UnsizedArrayOf<HBFixed>>
 		sizeTable;	/* Offset from start of the tracking table to
 				 * Array[nSizes] of size values.. */
   UnsizedArrayOf<TrackTableEntry>
