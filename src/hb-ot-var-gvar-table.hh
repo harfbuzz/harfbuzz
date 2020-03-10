@@ -490,17 +490,13 @@ struct gvar
     void init (hb_face_t *face)
     {
       gvar_table = hb_sanitize_context_t ().reference_table<gvar> (face);
-      hb_blob_ptr_t<fvar> fvar_table = hb_sanitize_context_t ().reference_table<fvar> (face);
-      unsigned int axis_count = fvar_table->get_axis_count ();
-      fvar_table.destroy ();
 
-      if (unlikely ((gvar_table->glyphCount != face->get_num_glyphs ()) ||
-		    (gvar_table->axisCount != axis_count)))
+      if (unlikely (gvar_table->glyphCount != face->get_num_glyphs ()))
 	fini ();
 
-      unsigned int num_shared_coord = gvar_table->sharedTupleCount * gvar_table->axisCount;
+      unsigned num_shared_coord = gvar_table->sharedTupleCount * gvar_table->axisCount;
       shared_tuples.resize (num_shared_coord);
-      for (unsigned int i = 0; i < num_shared_coord; i++)
+      for (unsigned i = 0; i < num_shared_coord; i++)
 	shared_tuples[i] = (&(gvar_table + gvar_table->sharedTuples))[i];
     }
 
