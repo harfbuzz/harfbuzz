@@ -29,7 +29,6 @@
 #define HB_OT_VAR_GVAR_TABLE_HH
 
 #include "hb-open-type.hh"
-#include "hb-ot-var-fvar-table.hh"
 
 /*
  * gvar -- Glyph Variation Table
@@ -379,7 +378,7 @@ struct gvar
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && (version.major == 1) &&
 		  (glyphCount == c->get_num_glyphs ()) &&
-		  c->check_array (&(this+sharedTuples), axisCount * sharedTupleCount) &&
+		  sharedTuples.sanitize (c, this, axisCount * sharedTupleCount) &&
 		  (is_long_offset () ?
 		     c->check_array (get_long_offset_array (), glyphCount+1) :
 		     c->check_array (get_short_offset_array (), glyphCount+1)) &&
@@ -429,7 +428,7 @@ struct gvar
       F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
       if (!tuples) return_trace (false);
       out->sharedTuples = (char *) tuples - (char *) out;
-      memcpy (tuples, &(this+sharedTuples), shared_tuple_size);
+      memcpy (tuples, this+sharedTuples, shared_tuple_size);
     }
 
     char *subset_data = c->serializer->allocate_size<char> (subset_data_size);
@@ -488,19 +487,8 @@ struct gvar
   struct accelerator_t
   {
     void init (hb_face_t *face)
-    {
-      table = hb_sanitize_context_t ().reference_table<gvar> (face);
-      unsigned num_shared_coord = table->sharedTupleCount * table->axisCount;
-      shared_tuples.resize (num_shared_coord);
-      for (unsigned i = 0; i < num_shared_coord; ++i)
-	shared_tuples[i] = (&(table+table->sharedTuples))[i];
-    }
-
-    void fini ()
-    {
-      table.destroy ();
-      shared_tuples.fini ();
-    }
+    { table = hb_sanitize_context_t ().reference_table<gvar> (face); }
+    void fini () { table.destroy (); }
 
     private:
     struct x_getter { static float get (const contour_point_t &p) { return p.x; } };
@@ -563,9 +551,10 @@ struct gvar
 
       int *coords = font->coords;
       unsigned num_coords = font->num_coords;
+      hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
       do
       {
-	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples.as_array ());
+	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples);
 	if (scalar == 0.f) continue;
 	const HBUINT8 *p = iterator.get_serialized_data ();
 	unsigned int length = iterator.current_tuple->get_data_size ();
@@ -665,14 +654,13 @@ no_more_gaps:
 
     private:
     hb_blob_ptr_t<gvar> table;
-    hb_vector_t<F2DOT14> shared_tuples;
   };
 
   protected:
   FixedVersion<>version;	/* Version of gvar table. Set to 0x00010000u. */
   HBUINT16	axisCount;
   HBUINT16	sharedTupleCount;
-  LOffsetTo<F2DOT14>
+  LNNOffsetTo<UnsizedArrayOf<F2DOT14>>
 		sharedTuples;	/* LOffsetTo<UnsizedArrayOf<Tupple>> */
   HBUINT16	glyphCount;
   HBUINT16	flags;
