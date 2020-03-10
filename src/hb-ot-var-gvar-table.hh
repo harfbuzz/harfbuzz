@@ -489,20 +489,20 @@ struct gvar
   {
     void init (hb_face_t *face)
     {
-      gvar_table = hb_sanitize_context_t ().reference_table<gvar> (face);
+      table = hb_sanitize_context_t ().reference_table<gvar> (face);
 
-      if (unlikely (gvar_table->glyphCount != face->get_num_glyphs ()))
+      if (unlikely (table->glyphCount != face->get_num_glyphs ()))
 	fini ();
 
-      unsigned num_shared_coord = gvar_table->sharedTupleCount * gvar_table->axisCount;
+      unsigned num_shared_coord = table->sharedTupleCount * table->axisCount;
       shared_tuples.resize (num_shared_coord);
-      for (unsigned i = 0; i < num_shared_coord; i++)
-	shared_tuples[i] = (&(gvar_table + gvar_table->sharedTuples))[i];
+      for (unsigned i = 0; i < num_shared_coord; ++i)
+	shared_tuples[i] = (&(table+table->sharedTuples))[i];
     }
 
     void fini ()
     {
-      gvar_table.destroy ();
+      table.destroy ();
       shared_tuples.fini ();
     }
 
@@ -541,13 +541,13 @@ struct gvar
 				 const hb_array_t<contour_point_t> points) const
     {
       /* num_coords should exactly match gvar's axisCount due to how GlyphVarData tuples are aligned */
-      if (!font->num_coords || font->num_coords != gvar_table->axisCount) return true;
+      if (!font->num_coords || font->num_coords != table->axisCount) return true;
 
-      hb_bytes_t var_data_bytes = gvar_table->get_glyph_var_data_bytes (gvar_table.get_blob (), glyph);
+      hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyph);
       if (!var_data_bytes.as<GlyphVarData> ()->has_data ()) return true;
       hb_vector_t<unsigned int> shared_indices;
       GlyphVarData::tuple_iterator_t iterator;
-      if (!GlyphVarData::get_tuple_iterator (var_data_bytes, gvar_table->axisCount,
+      if (!GlyphVarData::get_tuple_iterator (var_data_bytes, table->axisCount,
 					     shared_indices, &iterator))
 	return true; /* so isn't applied at all */
 
@@ -665,10 +665,10 @@ no_more_gaps:
       return true;
     }
 
-    unsigned int get_axis_count () const { return gvar_table->axisCount; }
+    unsigned int get_axis_count () const { return table->axisCount; }
 
     private:
-    hb_blob_ptr_t<gvar> gvar_table;
+    hb_blob_ptr_t<gvar> table;
     hb_vector_t<F2DOT14> shared_tuples;
   };
 
