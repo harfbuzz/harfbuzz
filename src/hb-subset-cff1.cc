@@ -594,7 +594,7 @@ struct cff_subset_plan {
 	return false;
       if (unlikely (sidmap.get_population () > 0x8000))	/* assumption: a dict won't reference that many strings */
 	return false;
-	
+
       if (subset_charset) plan_subset_charset (acc, plan);
 
       topdict_mod.reassignSIDs (sidmap);
@@ -922,13 +922,9 @@ _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
 bool
 hb_subset_cff1 (hb_subset_context_t *c)
 {
-  hb_blob_t *cff_blob = hb_sanitize_context_t().reference_table<CFF::cff1> (c->plan->source);
-
   OT::cff1::accelerator_subset_t acc;
-  acc.init(c->plan->source);
-  bool result = likely (acc.is_valid ()) &&
-			_hb_subset_cff1 (acc, c);
-  hb_blob_destroy (cff_blob);
+  acc.init (c->plan->source);
+  bool result = likely (acc.is_valid ()) && _hb_subset_cff1 (acc, c);
   acc.fini ();
 
   return result;

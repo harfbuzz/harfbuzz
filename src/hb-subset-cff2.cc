@@ -410,7 +410,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
       return false;
     }
   }
-  
+
   /* FDArray (FD Index) */
   {
     c->push ();
@@ -478,14 +478,9 @@ _hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
 bool
 hb_subset_cff2 (hb_subset_context_t *c)
 {
-  hb_blob_t *cff2_blob = hb_sanitize_context_t().reference_table<CFF::cff2> (c->plan->source);
-
   OT::cff2::accelerator_subset_t acc;
-  acc.init(c->plan->source);
-  bool result = likely (acc.is_valid ()) &&
-		_hb_subset_cff2 (acc, c);
-
-  hb_blob_destroy (cff2_blob);
+  acc.init (c->plan->source);
+  bool result = likely (acc.is_valid ()) && _hb_subset_cff2 (acc, c);
   acc.fini ();
 
   return result;
