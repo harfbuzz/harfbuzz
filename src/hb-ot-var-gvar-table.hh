@@ -78,29 +78,16 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
   }
 };
 
-struct Tuple : UnsizedArrayOf<F2DOT14> {};
-
-struct TuppleIndex : HBUINT16
-{
-  enum Flags {
-    EmbeddedPeakTuple   = 0x8000u,
-    IntermediateRegion  = 0x4000u,
-    PrivatePointNumbers = 0x2000u,
-    TupleIndexMask      = 0x0FFFu
-  };
-
-  DEFINE_SIZE_STATIC (2);
-};
-
-struct TupleVarHeader
+/* https://docs.microsoft.com/en-us/typography/opentype/spec/otvarcommonformats#tuplevariationheader */
+struct TupleVariationHeader
 {
   unsigned get_size (unsigned axis_count) const
   { return min_size + get_all_tuples (axis_count).get_size (); }
 
   unsigned get_data_size () const { return varDataSize; }
 
-  const TupleVarHeader &get_next (unsigned axis_count) const
-  { return StructAtOffset<TupleVarHeader> (this, get_size (axis_count)); }
+  const TupleVariationHeader &get_next (unsigned axis_count) const
+  { return StructAtOffset<TupleVariationHeader> (this, get_size (axis_count)); }
 
   float calculate_scalar (const int *coords, unsigned int coord_count,
 			  const hb_array_t<const F2DOT14> shared_tuples) const
@@ -157,6 +144,18 @@ struct TupleVarHeader
   unsigned int  get_index () const { return (tupleIndex & TuppleIndex::TupleIndexMask); }
 
   protected:
+  struct TuppleIndex : HBUINT16
+  {
+    enum Flags {
+      EmbeddedPeakTuple   = 0x8000u,
+      IntermediateRegion  = 0x4000u,
+      PrivatePointNumbers = 0x2000u,
+      TupleIndexMask      = 0x0FFFu
+    };
+
+    DEFINE_SIZE_STATIC (2);
+  };
+
   hb_array_t<const F2DOT14> get_all_tuples (unsigned axis_count) const
   { return StructAfter<UnsizedArrayOf<F2DOT14>> (tupleIndex).as_array ((has_peak () + has_intermediate () * 2) * axis_count); }
   hb_array_t<const F2DOT14> get_peak_tuple (unsigned axis_count) const
@@ -166,43 +165,37 @@ struct TupleVarHeader
   hb_array_t<const F2DOT14> get_end_tuple (unsigned axis_count) const
   { return get_all_tuples (axis_count).sub_array (has_peak () * axis_count + axis_count, axis_count); }
 
-  HBUINT16		varDataSize;
-  TuppleIndex		tupleIndex;
+  HBUINT16	varDataSize;	/* The size in bytes of the serialized
+				 * data for this tuple variation table. */
+  TuppleIndex	tupleIndex;	/* A packed field. The high 4 bits are flags (see below).
+				   The low 12 bits are an index into a shared tuple
+				   records array. */
   /* UnsizedArrayOf<F2DOT14> peakTuple - optional */
+				/* Peak tuple record for this tuple variation table — optional,
+				 * determined by flags in the tupleIndex value.
+				 *
+				 * Note that this must always be included in the 'cvar' table. */
   /* UnsizedArrayOf<F2DOT14> intermediateStartTuple - optional */
+				/* Intermediate start tuple record for this tuple variation table — optional,
+				   determined by flags in the tupleIndex value. */
   /* UnsizedArrayOf<F2DOT14> intermediateEndTuple - optional */
-
+				/* Intermediate end tuple record for this tuple variation table — optional,
+				 * determined by flags in the tupleIndex value. */
   public:
   DEFINE_SIZE_MIN (4);
 };
 
-struct TupleVarCount : HBUINT16
+struct GlyphVariationData
 {
-  bool has_shared_point_numbers () const { return ((*this) & SharedPointNumbers); }
-  unsigned int get_count () const { return (*this) & CountMask; }
-
-  protected:
-  enum Flags
-  {
-    SharedPointNumbers	= 0x8000u,
-    CountMask		= 0x0FFFu
-  };
-
-  public:
-  DEFINE_SIZE_STATIC (2);
-};
-
-struct GlyphVarData
-{
-  const TupleVarHeader &get_tuple_var_header (void) const
-  { return StructAfter<TupleVarHeader> (data); }
+  const TupleVariationHeader &get_tuple_var_header (void) const
+  { return StructAfter<TupleVariationHeader> (data); }
 
   struct tuple_iterator_t
   {
     void init (hb_bytes_t var_data_bytes_, unsigned int axis_count_)
     {
       var_data_bytes = var_data_bytes_;
-      var_data = var_data_bytes_.as<GlyphVarData> ();
+      var_data = var_data_bytes_.as<GlyphVariationData> ();
       index = 0;
       axis_count = axis_count_;
       current_tuple = &var_data->get_tuple_var_header ();
@@ -224,7 +217,7 @@ struct GlyphVarData
     bool is_valid () const
     {
       return (index < var_data->tupleVarCount.get_count ()) &&
-	     var_data_bytes.check_range (current_tuple, TupleVarHeader::min_size) &&
+	     var_data_bytes.check_range (current_tuple, TupleVariationHeader::min_size) &&
 	     var_data_bytes.check_range (current_tuple, hb_max (current_tuple->get_data_size (), current_tuple->get_size (axis_count))) &&
 	     current_tuple->get_size (axis_count);
     }
@@ -241,14 +234,14 @@ struct GlyphVarData
     { return &(var_data+var_data->data) + data_offset; }
 
     private:
-    const GlyphVarData *var_data;
+    const GlyphVariationData *var_data;
     unsigned int index;
     unsigned int axis_count;
     unsigned int data_offset;
 
     public:
     hb_bytes_t var_data_bytes;
-    const TupleVarHeader *current_tuple;
+    const TupleVariationHeader *current_tuple;
   };
 
   static bool get_tuple_iterator (hb_bytes_t var_data_bytes, unsigned axis_count,
@@ -362,9 +355,29 @@ struct GlyphVarData
   bool has_data () const { return tupleVarCount; }
 
   protected:
-  TupleVarCount		tupleVarCount;
-  OffsetTo<HBUINT8>	data;
-  /* TupleVarHeader tupleVarHeaders[] */
+  struct TupleVarCount : HBUINT16
+  {
+    bool has_shared_point_numbers () const { return ((*this) & SharedPointNumbers); }
+    unsigned int get_count () const { return (*this) & CountMask; }
+
+    protected:
+    enum Flags
+    {
+      SharedPointNumbers= 0x8000u,
+      CountMask		= 0x0FFFu
+    };
+    public:
+    DEFINE_SIZE_STATIC (2);
+  };
+
+  TupleVarCount	tupleVarCount;  /* A packed field. The high 4 bits are flags, and the
+				 * low 12 bits are the number of tuple variation tables
+				 * for this glyph. The number of tuple variation tables
+				 * can be any number between 1 and 4095. */
+  OffsetTo<HBUINT8>
+		data;		/* Offset from the start of the GlyphVariationData table
+				 * to the serialized data. */
+  /* TupleVariationHeader tupleVariationHeaders[] *//* Array of tuple variation headers. */
   public:
   DEFINE_SIZE_MIN (4);
 };
@@ -386,7 +399,7 @@ struct gvar
 				  get_offset (glyphCount) - get_offset (0)));
   }
 
-  /* GlyphVarData not sanitized here; must be checked while accessing each glyph varation data */
+  /* GlyphVariationData not sanitized here; must be checked while accessing each glyph varation data */
   bool sanitize (hb_sanitize_context_t *c) const
   { return sanitize_shallow (c); }
 
@@ -467,7 +480,7 @@ struct gvar
     unsigned start_offset = get_offset (glyph);
     unsigned length = get_offset (glyph+1) - start_offset;
     hb_bytes_t var_data = blob->as_bytes ().sub_array (((unsigned) dataZ) + start_offset, length);
-    return likely (var_data.length >= GlyphVarData::min_size) ? var_data : hb_bytes_t ();
+    return likely (var_data.length >= GlyphVariationData::min_size) ? var_data : hb_bytes_t ();
   }
 
   bool is_long_offset () const { return (flags & 1) != 0; }
@@ -524,14 +537,14 @@ struct gvar
     bool apply_deltas_to_points (hb_codepoint_t glyph, hb_font_t *font,
 				 const hb_array_t<contour_point_t> points) const
     {
-      /* num_coords should exactly match gvar's axisCount due to how GlyphVarData tuples are aligned */
+      /* num_coords should exactly match gvar's axisCount due to how GlyphVariationData tuples are aligned */
       if (!font->num_coords || font->num_coords != table->axisCount) return true;
 
       hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyph);
-      if (!var_data_bytes.as<GlyphVarData> ()->has_data ()) return true;
+      if (!var_data_bytes.as<GlyphVariationData> ()->has_data ()) return true;
       hb_vector_t<unsigned int> shared_indices;
-      GlyphVarData::tuple_iterator_t iterator;
-      if (!GlyphVarData::get_tuple_iterator (var_data_bytes, table->axisCount,
+      GlyphVariationData::tuple_iterator_t iterator;
+      if (!GlyphVariationData::get_tuple_iterator (var_data_bytes, table->axisCount,
 					     shared_indices, &iterator))
 	return true; /* so isn't applied at all */
 
@@ -564,7 +577,7 @@ struct gvar
 	hb_bytes_t bytes ((const char *) p, length);
 	hb_vector_t<unsigned int> private_indices;
 	if (iterator.current_tuple->has_private_points () &&
-	    !GlyphVarData::unpack_points (p, private_indices, bytes))
+	    !GlyphVariationData::unpack_points (p, private_indices, bytes))
 	  return false;
 	const hb_array_t<unsigned int> &indices = private_indices.length ? private_indices : shared_indices;
 
@@ -572,11 +585,11 @@ struct gvar
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
 	hb_vector_t<int> x_deltas;
 	x_deltas.resize (num_deltas);
-	if (!GlyphVarData::unpack_deltas (p, x_deltas, bytes))
+	if (!GlyphVariationData::unpack_deltas (p, x_deltas, bytes))
 	  return false;
 	hb_vector_t<int> y_deltas;
 	y_deltas.resize (num_deltas);
-	if (!GlyphVarData::unpack_deltas (p, y_deltas, bytes))
+	if (!GlyphVariationData::unpack_deltas (p, y_deltas, bytes))
 	  return false;
 
 	for (unsigned int i = 0; i < deltas.length; i++)
@@ -657,17 +670,29 @@ no_more_gaps:
   };
 
   protected:
-  FixedVersion<>version;	/* Version of gvar table. Set to 0x00010000u. */
-  HBUINT16	axisCount;
+  FixedVersion<>version;	/* Version number of the glyph variations table
+				 * Set to 0x00010000u. */
+  HBUINT16	axisCount;	/* The number of variation axes for this font. This must be
+				 * the same number as axisCount in the 'fvar' table. */
   HBUINT16	sharedTupleCount;
+				/* The number of shared tuple records. Shared tuple records
+				 * can be referenced within glyph variation data tables for
+				 * multiple glyphs, as opposed to other tuple records stored
+				 * directly within a glyph variation data table. */
   LNNOffsetTo<UnsizedArrayOf<F2DOT14>>
-		sharedTuples;	/* LOffsetTo<UnsizedArrayOf<Tupple>> */
-  HBUINT16	glyphCount;
-  HBUINT16	flags;
-  LOffsetTo<GlyphVarData>
-		dataZ;		/* Array of GlyphVarData */
+		sharedTuples;	/* Offset from the start of this table to the shared tuple records.
+				 * Array of tuple records shared across all glyph variation data tables. */
+  HBUINT16	glyphCount;	/* The number of glyphs in this font. This must match the number of
+				 * glyphs stored elsewhere in the font. */
+  HBUINT16	flags;		/* Bit-field that gives the format of the offset array that follows.
+				 * If bit 0 is clear, the offsets are uint16; if bit 0 is set, the
+				 * offsets are uint32. */
+  LOffsetTo<GlyphVariationData>
+		dataZ;		/* Offset from the start of this table to the array of
+				 * GlyphVariationData tables. */
   UnsizedArrayOf<HBUINT8>
-		offsetZ;	/* Array of 16-bit or 32-bit (glyphCount+1) offsets */
+		offsetZ;	/* Offsets from the start of the GlyphVariationData array
+				 * to each GlyphVariationData table. */
   public:
   DEFINE_SIZE_MIN (20);
 };
