@@ -169,7 +169,7 @@ struct hmtxvmtx
 
       num_advances = T::is_horizontal ? face->table.hhea->numberOfLongMetrics : face->table.vhea->numberOfLongMetrics;
 
-      table = hb_sanitize_context_t().reference_table<hmtxvmtx> (face, T::tableTag);
+      table = hb_sanitize_context_t ().reference_table<hmtxvmtx> (face, T::tableTag);
 
       /* Cap num_metrics() and num_advances() based on table length. */
       unsigned int len = table.get_length ();
@@ -186,7 +186,7 @@ struct hmtxvmtx
 	table = hb_blob_get_empty ();
       }
 
-      var_table = hb_sanitize_context_t().reference_table<HVARVVAR> (face, T::variationsTag);
+      var_table = hb_sanitize_context_t ().reference_table<HVARVVAR> (face, T::variationsTag);
     }
 
     void fini ()

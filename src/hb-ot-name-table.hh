@@ -274,7 +274,7 @@ struct name
   {
     void init (hb_face_t *face)
     {
-      this->table = hb_sanitize_context_t().reference_table<name> (face);
+      this->table = hb_sanitize_context_t ().reference_table<name> (face);
       assert (this->table.get_length () >= this->table->stringOffset);
       this->pool = (const char *) (const void *) (this->table+this->table->stringOffset);
       this->pool_len = this->table.get_length () - this->table->stringOffset;

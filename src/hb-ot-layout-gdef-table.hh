@@ -375,7 +375,7 @@ struct MarkGlyphSetsFormat1
         ret = false;
         break;
       }
-      
+
       //not using o->serialize_subset (c, offset, this, out) here because
       //OTS doesn't allow null offset.
       //See issue: https://github.com/khaledhosny/ots/issues/172
@@ -524,7 +524,7 @@ struct GDEF
   {
     void init (hb_face_t *face)
     {
-      this->table = hb_sanitize_context_t().reference_table<GDEF> (face);
+      this->table = hb_sanitize_context_t ().reference_table<GDEF> (face);
       if (unlikely (this->table->is_blacklisted (this->table.get_blob (), face)))
       {
 	hb_blob_destroy (this->table.get_blob ());
