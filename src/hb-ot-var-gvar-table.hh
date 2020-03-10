@@ -490,10 +490,6 @@ struct gvar
     void init (hb_face_t *face)
     {
       table = hb_sanitize_context_t ().reference_table<gvar> (face);
-
-      if (unlikely (table->glyphCount != face->get_num_glyphs ()))
-	fini ();
-
       unsigned num_shared_coord = table->sharedTupleCount * table->axisCount;
       shared_tuples.resize (num_shared_coord);
       for (unsigned i = 0; i < num_shared_coord; ++i)
