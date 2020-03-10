@@ -50,12 +50,7 @@ endif
 if HAVE_FREETYPE
 HBCFLAGS += $(FREETYPE_CFLAGS)
 HBLIBS   += $(FREETYPE_LIBS)
-# XXX
-# The following creates a recursive dependency on FreeType if FreeType is
-# built with HarfBuzz support enabled.  Newer pkg-config handles that just
-# fine but pkg-config 0.26 as shipped in Ubuntu 14.04 crashes.  Remove
-# in a year or two, or otherwise work around it...
-#HBDEPS   += $(FREETYPE_DEPS)
+HBDEPS   += $(FREETYPE_DEPS)
 HBSOURCES += $(HB_FT_sources)
 HBHEADERS += $(HB_FT_headers)
 endif
