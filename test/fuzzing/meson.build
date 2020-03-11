@@ -1,6 +1,8 @@
 tests = [
   ['hb-shape-fuzzer.cc'],
   ['hb-subset-fuzzer.cc'],
+  ['hb-set-fuzzer.cc'],
+  ['hb-draw-fuzzer.cc'],
 ]
 
 foreach test_data : tests

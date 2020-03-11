@@ -1,6 +1,6 @@
 project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.47.0',
-  version: '2.2.0')
+  version: '2.6.4')
 
 hb_version_arr = meson.project_version().split('.')
 hb_version_major = hb_version_arr[0].to_int()
@@ -58,7 +58,7 @@ check_funcs = [
   ['isatty'],
   ['newlocale'],
   ['strtod_l'],
-  ['round'],
+  ['roundf'],
 ]
 
 freetype_dep = dependency('freetype2', required: get_option('freetype'),
