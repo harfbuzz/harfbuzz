@@ -229,6 +229,8 @@ jobs:
       - run: meson build && ninja -Cbuild test && rm -rf build
       # test amalgam build
       - run: meson build -Damalgam=true && ninja -Cbuild && rm -rf build
+      # test meson's own unity feature also
+      - run: meson build --unity on && ninja -Cbuild && rm -rf build
 
   crosscompile-notest-djgpp:
     docker:
