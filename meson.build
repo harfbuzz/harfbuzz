@@ -1,5 +1,6 @@
 project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.47.0',
+  default_options : ['cpp_std=c++11'],
   version: '2.6.4')
 
 hb_version_arr = meson.project_version().split('.')
