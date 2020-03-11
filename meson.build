@@ -40,6 +40,19 @@ if cpp.get_id() == 'msvc'
   # noseh_link_args = ['/SAFESEH:NO']
 endif
 
+add_global_arguments(cpp.get_supported_arguments([
+  '-fno-rtti',
+  '-fno-exceptions',
+  '-fno-threadsafe-statics',
+  '-fvisibility-inlines-hidden', # maybe shouldn't be applied for mingw
+]), language : 'cpp')
+
+if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') != 1
+  if cpp.has_argument('-mstructure-size-boundary=8')
+    add_global_arguments('-mstructure-size-boundary=8', language : 'cpp')
+  endif
+endif
+
 python3 = import('python').find_installation('python3')
 
 check_headers = [
