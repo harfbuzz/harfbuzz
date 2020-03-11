@@ -1,4 +1,24 @@
-tests = ['basics', 'full-font', 'japanese']
+tests = [
+  #'basics', should investiage how to not hit timeout limit
+  'full-font',
+  'cff-full-font',
+  'japanese',
+  #'cff-japanese',
+  'layout',
+  'layout.gpos',
+  'layout.gpos2',
+  'layout.gpos3',
+  'layout.gpos4',
+  'layout.gpos6',
+  'layout.gsub3',
+  'layout.gsub6',
+  'layout.gdef',
+  'cmap',
+  'cmap14',
+  'sbix',
+  'colr',
+  'cbdt',
+]
 
 run_test = find_program('run-tests.py')
 
