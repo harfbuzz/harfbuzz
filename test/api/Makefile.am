@@ -12,7 +12,7 @@ lib:
 libs:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src libs
 
-EXTRA_DIST += CMakeLists.txt
+EXTRA_DIST += meson.build
 
 EXTRA_DIST += fonts
 
