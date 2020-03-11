@@ -16,7 +16,7 @@ EXTRA_DIST = \
 	CONFIG.md \
 	RELEASING.md \
 	TESTING.md \
-	CMakeLists.txt \
+	meson.build \
 	replace-enum-strings.cmake \
 	mingw-configure.sh \
 	mingw-ldd.py \

@@ -53,7 +53,6 @@ if (HB_BUILD_UTILS)
 endif ()
 
 option(HB_BUILD_SUBSET "Build harfbuzz-subset" ON)
-option(HB_BUILD_TESTS "Build harfbuzz tests" ON)
 
 option(HB_HAVE_GOBJECT "Enable GObject Bindings" OFF)
 if (HB_HAVE_GOBJECT)
@@ -789,55 +788,4 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       )
     endif ()
   endif ()
-endif ()
-
-if (HB_BUILD_TESTS)
-  ## src/ executables
-  foreach (prog test test-gsub-would-substitute test-gpos-size-params test-buffer-serialize test-unicode-ranges) # hb-ot-tag
-    set (prog_name ${prog})
-    if (${prog_name} STREQUAL "test")
-      # test can not be used as a valid executable name on cmake, lets special case it
-      set (prog_name test-test)
-    endif ()
-    add_executable(${prog_name} ${PROJECT_SOURCE_DIR}/src/${prog}.cc)
-    target_link_libraries(${prog_name} harfbuzz ${THIRD_PARTY_LIBS})
-  endforeach ()
-  # set_target_properties(hb-ot-tag PROPERTIES COMPILE_FLAGS "-DMAIN")
-
-  ## Tests
-  if (UNIX OR MINGW)
-    if (BUILD_SHARED_LIBS)
-      # generate harfbuzz.def after build completion
-      add_custom_command(TARGET harfbuzz POST_BUILD
-        COMMAND "${PYTHON_EXECUTABLE}" ${PROJECT_SOURCE_DIR}/src/gen-def.py ${PROJECT_BINARY_DIR}/harfbuzz.def ${project_headers}
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src)
-
-      add_test(NAME check-static-inits.sh
-        COMMAND ${PROJECT_SOURCE_DIR}/src/check-static-inits.sh
-        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/harfbuzz.dir/src # ugly hack
-      )
-      add_test(NAME check-libstdc++.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-libstdc++.sh)
-      add_test(NAME check-symbols.sh COMMAND ${PROJECT_SOURCE_DIR}/src/check-symbols.sh)
-
-      set_tests_properties(
-        check-static-inits.sh check-libstdc++.sh check-symbols.sh
-        PROPERTIES
-          ENVIRONMENT "libs=.;srcdir=${PROJECT_SOURCE_DIR}/src"
-          SKIP_RETURN_CODE 77)
-    endif ()
-
-    add_test(NAME check-c-linkage-decls.sh COMMAND ./check-c-linkage-decls.sh)
-    add_test(NAME check-header-guards.sh COMMAND ./check-header-guards.sh)
-    add_test(NAME check-externs.sh COMMAND ./check-externs.sh)
-    add_test(NAME check-includes.sh COMMAND ./check-includes.sh)
-    set_tests_properties(
-      check-c-linkage-decls.sh check-header-guards.sh check-externs.sh check-includes.sh
-      PROPERTIES
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src
-        SKIP_RETURN_CODE 77)
-  endif ()
-
-  # Needs to come last so that variables defined above are passed to
-  # subdirectories.
-  add_subdirectory(test)
 endif ()

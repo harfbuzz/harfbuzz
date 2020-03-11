@@ -27,29 +27,27 @@ jobs:
       xcode: "11.1.0"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2 cmake
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2
       - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
       - run: make -j4
       - run: make check || .ci/fail.sh
-      - run: cmake -Bbuild -H. -DHB_HAVE_CORETEXT=1 -DHB_BUILD_TESTS=0 && cmake --build build
 
   macos-10.15-aat-fonts:
     macos:
       xcode: "11.2.1"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2 cmake
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2
       - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
       - run: make -j4
       - run: make check || .ci/fail.sh
-      - run: cmake -Bbuild -H. -DHB_HAVE_CORETEXT=1 -DHB_BUILD_TESTS=0 && cmake --build build
 
   distcheck:
     docker:
       - image: ubuntu:19.10
     steps:
       - checkout
-      - run: apt update && apt install -y git ninja-build binutils libtool autoconf automake make cmake gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt update && apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
       - run: ./autogen.sh
       - run: make -j32
@@ -82,15 +80,6 @@ jobs:
       - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
       - run: make -j32 CPPFLAGS="-Werror"
       - run: make check CPPFLAGS="-Werror" || .ci/fail.sh
-
-  ## Doesn't play well with CircleCI apparently
-  #void-notest:
-  #  docker:
-  #    - image: voidlinux/voidlinux
-  #  steps:
-  #    - checkout
-  #    - run: xbps-install -Suy freetype gettext gcc glib graphite pkg-config ragel libtool autoconf automake make
-  #    - run: ./autogen.sh && make -j32 && make check
 
   clang-O3-O0-and-nobuildsystem:
     docker:
@@ -229,29 +218,14 @@ jobs:
           path: winbuild64/harfbuzz-win64.zip
           destination: harfbuzz-win64.zip
 
-  cmake-gcc:
+  meson-gcc:
     docker:
       - image: ubuntu:19.10
     steps:
       - checkout
-      - run: apt update && apt install -y ninja-build binutils cmake gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
+      - run: apt update && apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: cmake -DHB_CHECK=ON -Bbuild -H. -GNinja
-      - run: ninja -Cbuild
-      # - run: CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test
-      # - run: ninja -Cbuild install
-
-  #cmake-oracledeveloperstudio:
-  #  docker:
-  #    - image: fedora
-  #  steps:
-  #    - checkout
-  #    - run: dnf install -y gcc ragel cmake make which glib2-devel freetype-devel cairo-devel libicu-devel graphite2-devel wget tar bzip2 python libnsl || true
-  #    - run: wget http://$ODSUSER:$ODSPASS@behdad.org/harfbuzz-private/OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 && tar xf OracleDeveloperStudio12.6-linux-x86-bin.tar.bz2 --owner root --group root --no-same-owner
-  #    - run: CC=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/suncc CXX=/root/project/OracleDeveloperStudio12.6-linux-x86-bin/developerstudio12.6/bin/sunCC cmake -DHB_HAVE_GRAPHITE2=ON -DHB_HAVE_GLIB=ON -DHB_HAVE_FREETYPE=ON -Bbuild -H.
-  #    - run: make -Cbuild -j32
-  #    - run: CTEST_OUTPUT_ON_FAILURE=1 make -Cbuild test
-  #    - run: make -Cbuild install
+      - run: meson build && ninja -Cbuild test
 
   crosscompile-notest-djgpp:
     docker:
@@ -273,46 +247,6 @@ jobs:
       - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
       - run: make -j32
 
-  crosscompile-cmake-notest-android-arm:
-    docker:
-      - image: dockcross/android-arm
-    steps:
-      - checkout
-      - run: cmake -Bbuild -H. -GNinja -DHB_BUILD_TESTS=OFF
-      - run: ninja -Cbuild
-
-  crosscompile-cmake-notest-browser-asmjs-hb_tiny:
-    docker:
-      - image: dockcross/browser-asmjs
-    steps:
-      - checkout
-      - run: cmake -Bbuild -H. -GNinja -DCMAKE_CXX_FLAGS="-DHB_TINY" -DHB_BUILD_TESTS=OFF
-      - run: ninja -Cbuild
-
-  crosscompile-cmake-notest-linux-arm64:
-    docker:
-      - image: dockcross/linux-arm64
-    steps:
-      - checkout
-      - run: cmake -Bbuild -H. -GNinja -DHB_BUILD_TESTS=OFF
-      - run: ninja -Cbuild
-
-  crosscompile-cmake-notest-linux-mips:
-    docker:
-      - image: dockcross/linux-mips
-    steps:
-      - checkout
-      - run: cmake -Bbuild -H. -GNinja -DHB_BUILD_TESTS=OFF
-      - run: ninja -Cbuild
-
-  #crosscompile-cmake-notest-windows-x64:
-  #  docker:
-  #    - image: dockcross/windows-x64
-  #  steps:
-  #    - checkout
-  #    - run: cmake -Bbuild -H. -GNinja
-  #    - run: ninja -Cbuild
-
 workflows:
   version: 2
   build:
@@ -323,13 +257,11 @@ workflows:
       - macos-10.14.4-aat-fonts
       - macos-10.15-aat-fonts
 
-      # both autotools and cmake
       - distcheck
 
       # autotools based builds
       - alpine-O3-Os-NOMMAP
       - archlinux-py3-all
-      #- void-notest
       - gcc-valgrind
       - clang-O3-O0-and-nobuildsystem
       - clang-everything
@@ -339,9 +271,7 @@ workflows:
       - clang-ubsan
       - fedora-O0-debug-outoftreebuild-mingw
 
-      # cmake based builds
-      - cmake-gcc
-      #- cmake-oracledeveloperstudio
+      - meson-gcc
 
       # crosscompiles
       # they can't be test thus are without tests
@@ -349,9 +279,3 @@ workflows:
       - crosscompile-notest-djgpp
       - crosscompile-notest-psvita
 
-      ## cmake
-      - crosscompile-cmake-notest-android-arm
-      - crosscompile-cmake-notest-browser-asmjs-hb_tiny
-      - crosscompile-cmake-notest-linux-arm64
-      - crosscompile-cmake-notest-linux-mips
-      #- crosscompile-cmake-notest-windows-x64
