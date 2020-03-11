@@ -200,6 +200,11 @@ if conf.get('HAVE_CORETEXT', 0) == 1
   hb_headers += ['hb-coretext.h']
 endif
 
+if get_option('amalgam')
+  # replace the array if is amalgam build
+  hb_sources = ['harfbuzz.cc']
+endif
+
 # harfbuzz
 gen_def = find_program('gen-def.py')
 harfbuzz_def = custom_target('harfbuzz.def',

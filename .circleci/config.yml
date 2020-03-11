@@ -37,10 +37,11 @@ jobs:
       xcode: "11.2.1"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2 meson
       - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
       - run: make -j4
       - run: make check || .ci/fail.sh
+      - run: make clean && meson build -Damalgam=true && ninja -Cbuild test
 
   distcheck:
     docker:
@@ -225,7 +226,9 @@ jobs:
       - checkout
       - run: apt update && apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
       - run: pip install fonttools
-      - run: meson build && ninja -Cbuild test
+      - run: meson build && ninja -Cbuild test && rm -rf build
+      # test amalgam build
+      - run: meson build -Damalgam=true && ninja -Cbuild && rm -rf build
 
   crosscompile-notest-djgpp:
     docker:
