@@ -25,3 +25,6 @@ option('tests', type : 'feature', value : 'auto', yield : true,
   description: 'Enable or disable unit tests')
 option('introspection', type : 'feature', value : 'disabled', yield : true,
   description : 'Generate gobject-introspection bindings (.gir/.typelib files)')
+
+option('amalgam', type : 'boolean', value : false,
+  description : 'Enable amalgam builds')
