@@ -78,8 +78,12 @@ struct hb_closure_context_t :
 
   bool should_visit_lookup (unsigned int lookup_index)
   {
+    if (lookup_count++ > HB_MAX_LOOKUP_INDICES)
+      return false;
+
     if (is_lookup_done (lookup_index))
       return false;
+
     done_lookups->set (lookup_index, glyphs->get_population ());
     return true;
   }
@@ -106,7 +110,9 @@ struct hb_closure_context_t :
 			  recurse_func (nullptr),
 			  nesting_level_left (nesting_level_left_),
 			  debug_depth (0),
-			  done_lookups (done_lookups_) {}
+			  done_lookups (done_lookups_),
+			  lookup_count (0)
+  {}
 
   ~hb_closure_context_t () { flush (); }
 
@@ -121,6 +127,7 @@ struct hb_closure_context_t :
 
   private:
   hb_map_t *done_lookups;
+  unsigned int lookup_count;
 };
 
 struct hb_closure_lookups_context_t :
@@ -153,7 +160,12 @@ struct hb_closure_lookups_context_t :
   { inactive_lookups->add (lookup_index); }
 
   bool is_lookup_visited (unsigned lookup_index)
-  { return visited_lookups->has (lookup_index); }
+  {
+    if (lookup_count++ > HB_MAX_LOOKUP_INDICES)
+      return true;
+
+    return visited_lookups->has (lookup_index);
+  }
 
   hb_face_t *face;
   const hb_set_t *glyphs;
@@ -172,13 +184,15 @@ struct hb_closure_lookups_context_t :
 				nesting_level_left (nesting_level_left_),
 				debug_depth (0),
 				visited_lookups (visited_lookups_),
-				inactive_lookups (inactive_lookups_) {}
+				inactive_lookups (inactive_lookups_),
+                                lookup_count (0) {}
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 
   private:
   hb_set_t *visited_lookups;
   hb_set_t *inactive_lookups;
+  unsigned int lookup_count;
 };
 
 struct hb_would_apply_context_t :
