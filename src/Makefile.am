@@ -13,6 +13,7 @@ TESTS =
 check_PROGRAMS =
 
 EXTRA_DIST += harfbuzz.cc
+EXTRA_DIST += meson.build
 
 # Convenience targets:
 lib: $(BUILT_SOURCES) libharfbuzz.la
