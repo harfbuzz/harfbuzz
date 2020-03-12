@@ -52,14 +52,13 @@ jobs:
       - image: ubuntu:20.04
     steps:
       - checkout
-      - run: apt update && DEBIAN_FRONTEND=noninteractive apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip cmake
+      - run: apt update && DEBIAN_FRONTEND=noninteractive apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
       - run: pip3 install fonttools meson --upgrade
       - run: ./autogen.sh
       - run: make -j32
       - run: make distcheck || .ci/fail.sh
       - run: rm harfbuzz-* && make distdir
       - run: cd harfbuzz-* && meson build && ninja -Cbuild test
-      - run: cd harfbuzz-* && cmake -Bcmakebuild -H. && cmake --build cmakebuild
 
   fedora-valgrind:
     docker:
