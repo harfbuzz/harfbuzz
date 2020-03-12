@@ -68,6 +68,9 @@
 #define HB_MAX_FEATURE_INDICES	1500
 #endif
 
+#ifndef HB_MAX_LOOKUP_INDICES
+#define HB_MAX_LOOKUP_INDICES	20000
+#endif
 
 
 namespace OT {
