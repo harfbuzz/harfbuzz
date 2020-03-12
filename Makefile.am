@@ -17,6 +17,9 @@ EXTRA_DIST = \
 	RELEASING.md \
 	TESTING.md \
 	meson.build \
+	meson_options.txt \
+	meson-cc-tests/intel-atomic-primitives-test.c \
+	meson-cc-tests/solaris-atomic-operations.c \
 	replace-enum-strings.cmake \
 	mingw-configure.sh \
 	mingw-ldd.py \
