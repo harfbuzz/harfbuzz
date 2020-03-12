@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(harfbuzz)
 
-enable_testing()
-
 ## Limit framework build to Xcode generator
 if (BUILD_FRAMEWORK)
   # for a framework build on macOS, use:
@@ -63,25 +61,6 @@ option(HB_HAVE_INTROSPECTION "Enable building introspection (.gir/.typelib) file
 if (HB_HAVE_INTROSPECTION)
   set (HB_HAVE_GOBJECT ON)
   set (HB_HAVE_GLIB ON)
-endif ()
-
-option(HB_CHECK OFF "Do a configuration suitable for testing (shared library and enable all options)")
-if (HB_CHECK)
-  set (BUILD_SHARED_LIBS ON)
-  set (HB_BUILD_UTILS ON)
-  set (HB_HAVE_ICU)
-  set (HB_HAVE_GLIB ON)
-  #set (HB_HAVE_GOBJECT ON)
-  #set (HB_HAVE_INTROSPECTION ON)
-  set (HB_HAVE_FREETYPE ON)
-  set (HB_HAVE_GRAPHITE2 ON)
-  if (WIN32)
-    set (HB_HAVE_UNISCRIBE ON)
-    set (HB_HAVE_GDI ON)
-    set (HB_HAVE_DIRECTWRITE ON)
-  elseif (APPLE)
-    set (HB_HAVE_CORETEXT ON)
-  endif ()
 endif ()
 
 include_directories(AFTER
