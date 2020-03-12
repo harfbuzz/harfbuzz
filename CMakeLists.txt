@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.0)
 project(harfbuzz)
 
+message("HarfBuzz has a Meson port also and tries to migrate all the other build systems to it, please consider using it.")
+
 ## Limit framework build to Xcode generator
 if (BUILD_FRAMEWORK)
   # for a framework build on macOS, use:
