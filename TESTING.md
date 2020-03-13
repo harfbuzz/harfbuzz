@@ -55,10 +55,9 @@ make CPPFLAGS=-DHB_DEBUG_SUBSET=100
 Note: You'll need to first install ninja-build via apt-get.
 
 ```shell
-cd harfbuzz
-mkdir build
-cmake -DHB_CHECK=ON -Bbuild -H. -GNinja && ninja -Cbuild && CTEST_OUTPUT_ON_FAILURE=1 ninja -Cbuild test
+meson build && ninja -Cbuild && ninja -Cbuild test
 ```
+
 ## Test with the Fuzzer
 
 ```shell

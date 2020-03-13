@@ -7,11 +7,8 @@ whereas on Fedora, RHEL, CentOS, and other Red Hat based systems you would do:
 
     sudo yum install gcc gcc-c++ freetype-devel glib2-devel cairo-devel
 
-on Windows, consider using [vcpkg](https://github.com/Microsoft/vcpkg),
-provided by Microsoft, for building HarfBuzz and other open-source libraries
-but if you need to build harfbuzz from source, put ragel binary on your
-PATH and follow appveyor CI's cmake
-[build steps](https://github.com/harfbuzz/harfbuzz/blob/master/appveyor.yml).
+on Windows, consider using [vcpkg](https://github.com/Microsoft/vcpkg)
+or `meson build && ninja -Cbuild`.
 
 on macOS, using MacPorts:
 

@@ -1,7 +1,7 @@
 # Configuring HarfBuzz
 
 Most of the time you will not need any custom configuration.  The configuration
-options provided by `configure` or `cmake` should be enough.  In particular,
+options provided by `configure` or `meson` should be enough.  In particular,
 if you just want HarfBuzz library plus hb-shape / hb-view utilities, make sure
 FreeType and Cairo are available and found during configuration.
 
