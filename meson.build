@@ -212,16 +212,17 @@ if fontconfig_dep.found()
   deps += [fontconfig_dep]
 endif
 
-# uniscribe (windows)
-if host_machine.system() == 'windows' and not get_option('uniscribe').disabled()
+# GDI (uniscribe) (windows)
+if host_machine.system() == 'windows' and not get_option('gdi').disabled()
   # TODO: make nicer once we have https://github.com/mesonbuild/meson/issues/3940
   if cpp.has_header('usp10.h') and cpp.has_header('windows.h')
     foreach usplib : ['usp10', 'gdi32', 'rpcrt4']
       deps += [cpp.find_library(usplib, required: true)]
     endforeach
     conf.set('HAVE_UNISCRIBE', 1)
-  elif get_option('uniscribe').enabled()
-    error('uniscribe was enabled explicitly, but some required headers are missing.')
+    conf.set('HAVE_GDI', 1)
+  elif get_option('gdi').enabled()
+    error('gdi was enabled explicitly, but some required headers are missing.')
   endif
 endif
 
