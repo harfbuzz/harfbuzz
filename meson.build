@@ -90,8 +90,7 @@ glib_dep = dependency('glib-2.0', required: get_option('glib'),
                       fallback: ['glib', 'libglib_dep'])
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'),
                          fallback: ['glib', 'libgobject_dep'])
-cairo_dep = dependency('cairo', required: get_option('cairo'),
-                       fallback: ['cairo', 'libcairo_dep'])
+cairo_dep = dependency('cairo', required: false)
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'),
                             fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: get_option('graphite'))
@@ -117,12 +116,25 @@ if not icu_dep.found() and cpp.get_id() == 'msvc'
   endif
 endif
 
+if not cairo_dep.found() and cpp.get_id() == 'msvc'
+  if cpp.has_header('cairo.h')
+    cairo_dep = cpp.find_library('cairo')
+  endif
+endif
+
+if not cairo_dep.found() and get_option('cairo').enabled()
+  cairo_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'])
+endif
+
 # Ensure that cairo-ft is fetched from the same library as cairo itself
 if cairo_dep.found()
   if cairo_dep.type_name() == 'pkgconfig'
     cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
   else
-    cairo_ft_dep = cairo_dep
+    if cpp.has_header('cairo-ft.h') and \
+       cpp.has_function('cairo_ft_font_face_create_for_ft_face', dependencies: cairo_dep)
+      cairo_ft_dep = cairo_dep
+    endif
   endif
 else
   # Not-found dependency
