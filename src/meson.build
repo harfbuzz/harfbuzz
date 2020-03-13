@@ -360,7 +360,7 @@ if have_gobject
   libharfbuzz_gobject_dep = declare_dependency(
     link_with: libharfbuzz_gobject,
     include_directories: incsrc,
-    sources: hb_gen_files_gir,
+    sources: build_gir ? hb_gen_files_gir : hb_gobject_sources,
     dependencies: deps)
 
   pkgmod.generate(libharfbuzz_gobject,
