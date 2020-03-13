@@ -181,7 +181,7 @@ if fontconfig_dep.found()
   deps += [fontconfig_dep]
 endif
 
-# uniscribe (windows) - FIXME: untested
+# uniscribe (windows)
 if host_machine.system() == 'windows' and not get_option('uniscribe').disabled()
   # TODO: make nicer once we have https://github.com/mesonbuild/meson/issues/3940
   if cpp.has_header('usp10.h') and cpp.has_header('windows.h')
@@ -194,9 +194,9 @@ if host_machine.system() == 'windows' and not get_option('uniscribe').disabled()
   endif
 endif
 
-# DirectWrite (windows) - FIXME: untested
+# DirectWrite (windows)
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
-  if cpp.has_header('dwrite.h')
+  if cpp.has_header('dwrite_1.h')
     deps += [cpp.find_library('dwrite', required: true)]
     conf.set('HAVE_DIRECTWRITE', 1)
   elif get_option('directwrite').enabled()
