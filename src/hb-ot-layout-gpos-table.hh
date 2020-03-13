@@ -485,6 +485,7 @@ struct AnchorMatrix
     for (const unsigned i : index_iter)
     {
       auto *offset = c->embed (offset_matrix->matrixZ[i]);
+      if (!offset) return_trace (false);
       offset->serialize_copy (c, offset_matrix->matrixZ[i], offset_matrix, c->to_bias (this));
     }
 
