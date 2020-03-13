@@ -215,19 +215,25 @@ harfbuzz_def = custom_target('harfbuzz.def',
 version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
 
 extra_hb_cpp_args = []
-if get_option('default_library') == 'shared' and cpp.get_id() == 'msvc'
-  extra_hb_cpp_args += '-DHB_DLL_EXPORT'
+if cpp.get_id() == 'msvc'
+  if get_option('default_library') == 'shared'
+    extra_hb_cpp_args += '-DHB_DLL_EXPORT'
+  endif
+  hb_so_version = ''
+  hb_lib_prefix = ''
+else
+  hb_so_version = '0'
+  hb_lib_prefix = 'lib'
 endif
 
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: [incconfig, incucdn],
   dependencies: deps,
   cpp_args: cpp_args + extra_hb_cpp_args,
-  vs_module_defs: harfbuzz_def,
-  soversion: '0',
+  soversion: hb_so_version,
   version: version,
   install: true,
-  name_prefix: 'lib')
+  name_prefix: hb_lib_prefix)
 
 libharfbuzz_dep = declare_dependency(
   link_with: libharfbuzz,
@@ -244,11 +250,10 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   include_directories: incconfig,
   link_with: [libharfbuzz],
   cpp_args: cpp_args + extra_hb_cpp_args,
-  vs_module_defs: harfbuzz_subset_def,
-  soversion: '0',
+  soversion: hb_so_version,
   version: version,
   install: true,
-  name_prefix: 'lib')
+  name_prefix: hb_lib_prefix)
 
 libharfbuzz_subset_dep = declare_dependency(
   link_with: libharfbuzz_subset,
@@ -328,11 +333,10 @@ if have_gobject
     dependencies: deps,
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
-    vs_module_defs: harfbuzz_gobject_def,
-    soversion: '0',
+    soversion: hb_so_version,
     version: version,
     install: true,
-    name_prefix: 'lib')
+    name_prefix: hb_lib_prefix)
 
   gir = find_program('g-ir-scanner', required: get_option('introspection'))
   build_gir = gir.found() and not meson.is_cross_build()
