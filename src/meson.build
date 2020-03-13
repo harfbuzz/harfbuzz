@@ -170,6 +170,11 @@ if conf.get('HAVE_FREETYPE', 0) == 1
   hb_headers += hb_ft_headers
 endif
 
+if conf.get('HAVE_GDI', 0) == 1
+  hb_sources += ['hb-gdi.cc']
+  hb_headers += ['hb-gdi.h']
+endif
+
 if conf.get('HAVE_GRAPHITE2', 0) == 1
   hb_sources += hb_graphite2_sources
   hb_headers += hb_graphite2_headers

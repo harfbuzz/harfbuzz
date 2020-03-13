@@ -13,8 +13,8 @@ option('graphite', type: 'feature', value: 'disabled',
   description: 'Enable Graphite2 complementary shaper')
 option('freetype', type: 'feature', value: 'auto',
   description: 'Enable freetype interop helpers')
-option('uniscribe', type: 'feature', value: 'disabled',
-  description: 'Enable Uniscribe shaper backend (Windows only)')
+option('gdi', type: 'feature', value: 'disabled',
+  description: 'Enable GDI helpers and Uniscribe shaper backend (Windows only)')
 option('directwrite', type: 'feature', value: 'disabled',
   description: 'Enable DirectWrite shaper backend on Windows (experimental)')
 option('coretext', type: 'feature', value: 'disabled',
