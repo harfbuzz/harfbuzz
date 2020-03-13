@@ -95,8 +95,27 @@ cairo_dep = dependency('cairo', required: get_option('cairo'),
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'),
                             fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: get_option('graphite'))
-icu_dep = dependency('icu-uc', required: get_option('icu'))
+icu_dep = dependency('icu-uc', required: get_option('icu').enabled() and cpp.get_id() != 'msvc')
 m_dep = cpp.find_library('m', required: false)
+
+if not icu_dep.found() and cpp.get_id() == 'msvc'
+  if cpp.has_header('unicode/uchar.h') and \
+     cpp.has_header('unicode/unorm2.h') and \
+     cpp.has_header('unicode/ustring.h') and \
+     cpp.has_header('unicode/utf16.h') and \
+     cpp.has_header('unicode/uversion.h') and \
+     cpp.has_header('unicode/uscript.h')
+    if get_option('buildtype') == 'debug'
+      icu_dep = cpp.find_library('icuucd', required: get_option('icu'))
+    else
+      icu_dep = cpp.find_library('icuuc', required: get_option('icu'))
+    endif
+  else
+    if get_option('icu').enabled()
+      error('ICU headers and libraries must be present to build ICU support')
+    endif
+  endif
+endif
 
 # Ensure that cairo-ft is fetched from the same library as cairo itself
 if cairo_dep.found()
