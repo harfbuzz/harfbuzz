@@ -107,11 +107,8 @@ struct hdmx
     this->numRecords = it.len ();
     this->sizeDeviceRecord = DeviceRecord::get_size (it ? (*it).second.len () : 0);
 
-    + it
-    | hb_apply ([c] (const hb_item_type<Iterator>& _) {
-		  c->start_embed<DeviceRecord> ()->serialize (c, _.first, _.second);
-		})
-    ;
+    for (const hb_item_type<Iterator>& _ : +it)
+      c->start_embed<DeviceRecord> ()->serialize (c, _.first, _.second);
 
     return_trace (c->successful);
   }

@@ -184,7 +184,8 @@ struct CFFIndex
     else
     {
       serialize_header(c, + it | hb_map ([] (const byte_str_t &_) { return _.length; }));
-      + it | hb_apply ([&] (const byte_str_t &_) { _.copy (c); });
+      for (const byte_str_t &_ : +it)
+	_.copy (c);
     }
     return_trace (true);
   }
@@ -221,15 +222,13 @@ struct CFFIndex
       return_trace (false);
 
     /* serialize indices */
-    unsigned int  offset = 1;
-    unsigned int  i = 0;
-    + it
-    | hb_apply ([&] (unsigned _)
-		{
-		  CFFIndex<COUNT>::set_offset_at (i++, offset);
-		  offset += _;
-		})
-    ;
+    unsigned int offset = 1;
+    unsigned int i = 0;
+    for (unsigned _ : +it)
+    {
+      CFFIndex<COUNT>::set_offset_at (i++, offset);
+      offset += _;
+    }
     CFFIndex<COUNT>::set_offset_at (i, offset);
 
     return_trace (true);
@@ -418,7 +417,7 @@ struct Dict : UnsizedByteStr
     c->add_link (ofs, link, whence);
     return true;
   }
-  
+
   static bool serialize_link4_op (hb_serialize_context_t *c, op_code_t op, objidx_t link, whence_t whence = whence_t::Head)
   { return serialize_link_op<HBINT32, OpCode_longintdict> (c, op, link, whence); }
 
