@@ -74,8 +74,18 @@ check_funcs = [
   ['roundf'],
 ]
 
-freetype_dep = dependency('freetype2', required: get_option('freetype'),
-                          fallback: ['freetype2', 'freetype_dep'])
+freetype_dep = dependency('freetype2', required: false)
+
+if not freetype_dep.found() and cpp.get_id() == 'msvc'
+  if cpp.has_header('ft2build.h')
+    freetype_dep = cpp.find_library('freetype', required: false)
+  endif
+endif
+
+if not freetype_dep.found() and get_option('freetype').enabled()
+  freetype_dep = dependency('freetype2', fallback: ['freetype2', 'freetype_dep'])
+endif
+
 glib_dep = dependency('glib-2.0', required: get_option('glib'),
                       fallback: ['glib', 'libglib_dep'])
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'),
