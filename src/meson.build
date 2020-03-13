@@ -214,10 +214,15 @@ harfbuzz_def = custom_target('harfbuzz.def',
 
 version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
 
+extra_hb_cpp_args = []
+if get_option('default_library') == 'shared' and cpp.get_id() == 'msvc'
+  extra_hb_cpp_args += '-DHB_DLL_EXPORT'
+endif
+
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: [incconfig, incucdn],
   dependencies: deps,
-  cpp_args: cpp_args,
+  cpp_args: cpp_args + extra_hb_cpp_args,
   vs_module_defs: harfbuzz_def,
   soversion: '0',
   version: version,
@@ -238,7 +243,7 @@ harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
 libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   include_directories: incconfig,
   link_with: [libharfbuzz],
-  cpp_args: cpp_args,
+  cpp_args: cpp_args + extra_hb_cpp_args,
   vs_module_defs: harfbuzz_subset_def,
   soversion: '0',
   version: version,
@@ -322,7 +327,7 @@ if have_gobject
     include_directories: incconfig,
     dependencies: deps,
     link_with: [libharfbuzz],
-    cpp_args: cpp_args,
+    cpp_args: cpp_args + extra_hb_cpp_args,
     vs_module_defs: harfbuzz_gobject_def,
     soversion: '0',
     version: version,
