@@ -45,10 +45,9 @@ if conf.get('HAVE_GLIB', 0) == 1
     opts = test_data.length() > 1 ? test_data[1] : {}
     extra_c_args = opts.get('c_args', [])
 
-
-
     test_name = fname.split('.')[0].underscorify()
     exe = executable(test_name, fname,
+      c_args: extra_c_args,
       cpp_args: cpp_args + extra_c_args,
       include_directories: [incconfig, incsrc],
       dependencies: deps,
