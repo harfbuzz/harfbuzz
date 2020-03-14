@@ -144,13 +144,14 @@ deps = []
 
 conf = configuration_data()
 incconfig = include_directories('.')
-cpp_args = ['-DHAVE_CONFIG_H']
+
+add_project_arguments('-DHAVE_CONFIG_H', language: ['c', 'cpp'])
 
 warn_cflags = [
   '-Wno-non-virtual-dtor',
 ]
 
-cpp_args += cpp.get_supported_arguments(warn_cflags)
+cpp_args = cpp.get_supported_arguments(warn_cflags)
 
 if m_dep.found()
   deps += [m_dep]
