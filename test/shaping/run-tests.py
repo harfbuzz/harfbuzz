@@ -67,7 +67,7 @@ for filename in args:
 
 		fontfile, options, unicodes, glyphs_expected = line.split (":")
 		if fontfile.startswith ('/') or fontfile.startswith ('"/'):
-			s.name == 'nt': # Skip on Window
+			if s.name == 'nt': # Skip on Window
 				continue
 
 			fontfile, expected_hash = fontfile.split('@')
