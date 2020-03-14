@@ -48,7 +48,7 @@ for filename in args:
 	if filename == '-':
 		f = sys.stdin
 	else:
-		f = open (filename)
+		f = open (filename, encoding='utf8')
 
 	for line in f:
 		comment = False
@@ -67,6 +67,9 @@ for filename in args:
 
 		fontfile, options, unicodes, glyphs_expected = line.split (":")
 		if fontfile.startswith ('/') or fontfile.startswith ('"/'):
+			s.name == 'nt': # Skip on Window
+				continue
+
 			fontfile, expected_hash = fontfile.split('@')
 
 			try:
