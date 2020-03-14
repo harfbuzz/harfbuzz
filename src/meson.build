@@ -185,11 +185,6 @@ if conf.get('HAVE_GLIB', 0) == 1
   hb_headers += hb_glib_headers
 endif
 
-if conf.get('HAVE_ICU', 0) == 1
-  hb_sources += hb_icu_sources
-  hb_headers += hb_icu_headers
-endif
-
 if conf.get('HAVE_UNISCRIBE', 0) == 1
   hb_sources += ['hb-uniscribe.cc']
   hb_headers += ['hb-uniscribe.h']
@@ -208,6 +203,12 @@ endif
 if get_option('amalgam')
   # replace the array if is amalgam build
   hb_sources = ['harfbuzz.cc']
+endif
+
+# FIXME: move into harfbuzz-icu module
+if conf.get('HAVE_ICU', 0) == 1
+  hb_sources += hb_icu_sources
+  hb_headers += hb_icu_headers
 endif
 
 # harfbuzz
