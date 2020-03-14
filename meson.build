@@ -34,13 +34,12 @@ if cpp.get_id() == 'msvc'
       '/wd4305', # truncating type conversion (e.g. double -> float)
       cpp.get_supported_arguments(['/utf-8']), # set the input encoding to utf-8
   ]
-  add_project_arguments(msvc_args, language : 'c')
-  add_project_arguments(msvc_args, language : 'cpp')
+  add_project_arguments(msvc_args, language : ['c', 'cpp'])
   # Disable SAFESEH with MSVC for libs that use external deps that are built with MinGW
   # noseh_link_args = ['/SAFESEH:NO']
 endif
 
-add_global_arguments(cpp.get_supported_arguments([
+add_project_arguments(cpp.get_supported_arguments([
   '-fno-rtti',
   '-fno-exceptions',
   '-fno-threadsafe-statics',
@@ -49,7 +48,7 @@ add_global_arguments(cpp.get_supported_arguments([
 
 if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') != 1
   if cpp.has_argument('-mstructure-size-boundary=8')
-    add_global_arguments('-mstructure-size-boundary=8', language : 'cpp')
+    add_project_arguments('-mstructure-size-boundary=8', language : 'cpp')
   endif
 endif
 
