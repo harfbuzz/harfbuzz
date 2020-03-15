@@ -21,7 +21,7 @@ import sys
 if len (sys.argv) != 3:
 	print ("""usage: ./gen-vowel-constraints.py ms-use/IndicShapingInvalidCluster.txt Scripts.txt
 
-Input file, as of Unicode 12:
+Input file:
 * https://unicode.org/Public/UCD/latest/ucd/Scripts.txt""", file=sys.stderr)
 	sys.exit (1)
 

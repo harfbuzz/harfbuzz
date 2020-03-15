@@ -8,8 +8,8 @@ import packTab
 if len (sys.argv) != 2:
 	print("""usage: ./gen-emoji-table.py emoji-data.txt
 
-Input file, as of Unicode 12:
-* https://www.unicode.org/Public/emoji/12.0/emoji-data.txt""", file=sys.stderr)
+Input file:
+* https://www.unicode.org/Public/UCD/latest/ucd/emoji/emoji-data.txt""", file=sys.stderr)
 	sys.exit (1)
 
 f = open(sys.argv[1])
