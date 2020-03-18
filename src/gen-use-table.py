@@ -151,18 +151,13 @@ property_names = [
 	'Overstruck',
 ]
 
-try:
-	basestring
-except NameError:
-	basestring = str
-
 class PropertyValue(object):
 	def __init__(self, name_):
 		self.name = name_
 	def __str__(self):
 		return self.name
 	def __eq__(self, other):
-		return self.name == (other if isinstance(other, basestring) else other.name)
+		return self.name == (other if isinstance(other, str) else other.name)
 	def __ne__(self, other):
 		return not (self == other)
 	def __hash__(self):

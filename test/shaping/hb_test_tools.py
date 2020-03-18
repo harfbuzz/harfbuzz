@@ -2,10 +2,6 @@
 
 import sys, os, re, difflib, unicodedata, errno, cgi, itertools
 from itertools import *
-try:
-	import unicodedata2 as unicodedata
-except Exception:
-	pass
 
 diff_symbols = "-+=*&^%$#@!~/"
 diff_colors = ['red', 'green', 'blue']
