@@ -10,28 +10,12 @@ import re
 import subprocess
 import sys
 import tempfile
+import shutil
 
 from subset_test_suite import SubsetTestSuite
 
-# https://stackoverflow.com/a/377028
-def which (program):
-	def is_exe (fpath):
-		return os.path.isfile (fpath) and os.access (fpath, os.X_OK)
-
-	fpath, _ = os.path.split (program)
-	if fpath:
-		if is_exe (program):
-			return program
-	else:
-		for path in os.environ["PATH"].split (os.pathsep):
-			exe_file = os.path.join (path, program)
-			if is_exe (exe_file):
-				return exe_file
-
-	return None
-
-fonttools = which ("fonttools")
-ots_sanitize = which ("ots-sanitize")
+fonttools = shutil.which ("fonttools")
+ots_sanitize = shutil.which ("ots-sanitize")
 
 if not fonttools:
 	print ("fonttools is not present, skipping test.")
