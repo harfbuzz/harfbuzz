@@ -1,24 +1,6 @@
 #!/usr/bin/env python3
 
-import sys, os, subprocess, tempfile, threading
-
-
-def which(program):
-	# https://stackoverflow.com/a/377028
-	def is_exe(fpath):
-		return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-	fpath, _ = os.path.split(program)
-	if fpath:
-		if is_exe(program):
-			return program
-	else:
-		for path in os.environ["PATH"].split(os.pathsep):
-			exe_file = os.path.join(path, program)
-			if is_exe(exe_file):
-				return exe_file
-
-	return None
+import sys, os, subprocess, tempfile, threading, shutil
 
 
 def cmd(command):
@@ -74,7 +56,7 @@ fails = 0
 libtool = os.environ.get('LIBTOOL')
 valgrind = None
 if os.environ.get('RUN_VALGRIND', ''):
-	valgrind = which ('valgrind')
+	valgrind = shutil.which ('valgrind')
 	if valgrind is None:
 		print ("""Valgrind requested but not found.""")
 		sys.exit (1)
