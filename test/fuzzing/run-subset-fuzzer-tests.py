@@ -1,40 +1,24 @@
 #!/usr/bin/env python3
 
-import sys, os, subprocess, tempfile, threading, shutil
+import sys, os, subprocess, tempfile, shutil
 
 
-def cmd(command):
-	# https://stackoverflow.com/a/4408409
-	# https://stackoverflow.com/a/10012262
-	with tempfile.TemporaryFile() as tempf:
+def cmd (command):
+	# https://stackoverflow.com/a/4408409 as we might have huge output sometimes
+	with tempfile.TemporaryFile () as tempf:
 		p = subprocess.Popen (command, stderr=tempf)
-		is_killed = {'value': False}
-
-		def timeout(p, is_killed):
-			is_killed['value'] = True
-			p.kill()
-		timeout_seconds = int (os.environ.get ("HB_TEST_SUBSET_FUZZER_TIMEOUT", "12"))
-		timer = threading.Timer (timeout_seconds, timeout, [p, is_killed])
 
 		try:
-			timer.start()
-			p.wait ()
+			p.wait (timeout=int (os.environ.get ("HB_TEST_SUBSET_FUZZER_TIMEOUT", "12")))
 			tempf.seek (0)
 			text = tempf.read ()
 
 			#TODO: Detect debug mode with a better way
 			is_debug_mode = b"SANITIZE" in text
 
-			text = "" if is_debug_mode else text.decode ("utf-8").strip ()
-			returncode = p.returncode
-		finally:
-			timer.cancel()
-
-		if is_killed['value']:
-			text = 'error: timeout, ' + text
-			returncode = 1
-
-		return text, returncode
+			return ("" if is_debug_mode else text.decode ("utf-8").strip ()), p.returncode
+		except subprocess.TimeoutExpired:
+			return 'error: timeout, ' + ' '.join (command), 1
 
 
 srcdir = os.environ.get ("srcdir", ".")
