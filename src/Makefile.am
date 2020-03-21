@@ -149,6 +149,7 @@ cmake_DATA = harfbuzz-config.cmake
 EXTRA_DIST += hb-version.h.in harfbuzz.pc.in harfbuzz-config.cmake.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
+libharfbuzz_subset_la_LINK = $(chosen_linker) $(libharfbuzz_subset_la_LDFLAGS)
 libharfbuzz_subset_la_SOURCES = $(HB_SUBSET_sources)
 libharfbuzz_subset_la_CPPFLAGS = $(HBCFLAGS) $(CODE_COVERAGE_CFLAGS)
 libharfbuzz_subset_la_LDFLAGS = $(base_link_flags) $(export_symbols_subset) $(CODE_COVERAGE_LDFLAGS)
