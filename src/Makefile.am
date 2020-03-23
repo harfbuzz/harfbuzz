@@ -349,10 +349,6 @@ test_buffer_serialize_SOURCES = test-buffer-serialize.cc
 test_buffer_serialize_CPPFLAGS = $(HBCFLAGS)
 test_buffer_serialize_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_array_SOURCES = test-array.cc
-test_array_CPPFLAGS = $(HBCFLAGS)
-test_array_LDADD = libharfbuzz.la $(HBLIBS)
-
 test_ot_meta_SOURCES = test-ot-meta.cc
 test_ot_meta_CPPFLAGS = $(HBCFLAGS)
 test_ot_meta_LDADD = libharfbuzz.la $(HBLIBS)
@@ -372,22 +368,6 @@ test_gpos_size_params_LDADD = libharfbuzz.la $(HBLIBS)
 test_gsub_would_substitute_SOURCES = test-gsub-would-substitute.cc
 test_gsub_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
 test_gsub_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
-
-dist_check_SCRIPTS = \
-	check-c-linkage-decls.sh \
-	check-externs.sh \
-	check-header-guards.sh \
-	check-includes.sh \
-	check-static-inits.sh \
-	check-symbols.sh \
-	$(NULL)
-TESTS += $(dist_check_SCRIPTS)
-
-if !WITH_LIBSTDCXX
-dist_check_SCRIPTS += \
-	check-libstdc++.sh \
-	$(NULL)
-endif
 
 check_PROGRAMS += \
 	dump-indic-data \
@@ -418,6 +398,10 @@ test_algs_SOURCES = test-algs.cc hb-static.cc
 test_algs_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_algs_LDADD = $(COMPILED_TESTS_LDADD)
 
+test_array_SOURCES = test-array.cc
+test_array_CPPFLAGS = $(HBCFLAGS)
+test_array_LDADD = libharfbuzz.la $(HBLIBS)
+
 test_iter_SOURCES = test-iter.cc hb-static.cc
 test_iter_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_iter_LDADD = $(COMPILED_TESTS_LDADD)
@@ -441,6 +425,22 @@ test_unicode_ranges_LDADD = $(COMPILED_TESTS_LDADD)
 test_bimap_SOURCES = test-bimap.cc hb-static.cc
 test_bimap_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_bimap_LDADD = $(COMPILED_TESTS_LDADD)
+
+dist_check_SCRIPTS = \
+	check-c-linkage-decls.sh \
+	check-externs.sh \
+	check-header-guards.sh \
+	check-includes.sh \
+	check-static-inits.sh \
+	check-symbols.sh \
+	$(NULL)
+TESTS += $(dist_check_SCRIPTS)
+
+if !WITH_LIBSTDCXX
+dist_check_SCRIPTS += \
+	check-libstdc++.sh \
+	$(NULL)
+endif
 
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
