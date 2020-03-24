@@ -607,12 +607,6 @@ hb_memset (void *s, int c, unsigned int n)
   return memset (s, c, n);
 }
 
-static inline bool
-hb_unsigned_mul_overflows (unsigned int count, unsigned int size)
-{
-  return (size > 0) && (count >= ((unsigned int) -1) / size);
-}
-
 static inline unsigned int
 hb_ceil_to_4 (unsigned int v)
 {
@@ -638,6 +632,29 @@ hb_in_ranges (T u, T lo1, T hi1, T lo2, T hi2, T lo3, T hi3)
 {
   return hb_in_range (u, lo1, hi1) || hb_in_range (u, lo2, hi2) || hb_in_range (u, lo3, hi3);
 }
+
+
+/*
+ * Overflow checking.
+ */
+
+/* Consider __builtin_mul_overflow use here also */
+static inline bool
+hb_unsigned_mul_overflows (unsigned int count, unsigned int size)
+{
+  return (size > 0) && (count >= ((unsigned int) -1) / size);
+}
+
+/* Right now we only have one use for signed overflow and as it
+ * is GCC 5.1 > and clang we don't care about its fallback ATM */
+#ifndef __has_builtin
+# define __has_builtin(x) 0
+#endif
+#if __has_builtin(__builtin_mul_overflow)
+# define hb_signed_mul_overflows(x, y, result) __builtin_mul_overflow(x, y, &result)
+#else
+# define hb_signed_mul_overflows(x, y, result) (result = (x) * (y), false)
+#endif
 
 
 /*
