@@ -425,13 +425,16 @@ if host_machine.system() != 'windows' and not meson.is_cross_build()
     'check-c-linkage-decls.sh',
   	'check-externs.sh',
   	'check-header-guards.sh',
-  	'check-includes.sh',
   	'check-static-inits.sh', # fails with "check-static-inits.sh: object files not found; skipping test"
   	'check-symbols.sh', # fails with "'harfbuzz.def' not found; skipping"
   ]
+  if not get_option('amalgam')
+    dist_check_script += ['check-includes.sh']
+  endif
   if false # !WITH_LIBSTDCXX
     dist_check_script += 'check-libstdc++.sh' # we don't have chosen_linker logic here yet
   endif
+
   foreach name : dist_check_script
     env = environment()
     env.set('srcdir', meson.current_source_dir())
