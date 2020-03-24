@@ -24,6 +24,12 @@ if conf.get('HAVE_GLIB', 0) == 1
     'test-ot-metrics-tt-var.c',
     'test-set.c',
     'test-shape.c',
+    'test-unicode.c',
+    'test-var-coords.c',
+    'test-version.c',
+  ]
+
+  subset_tests = [
     'test-subset.c',
     'test-subset-cmap.c',
     'test-subset-drop-tables.c',
@@ -43,9 +49,6 @@ if conf.get('HAVE_GLIB', 0) == 1
     'test-subset-gpos.c',
     'test-subset-colr.c',
     'test-subset-cbdt.c',
-    'test-unicode.c',
-    'test-var-coords.c',
-    'test-version.c',
   ]
 
   if conf.get('HAVE_FREETYPE', 0) == 1
@@ -69,7 +72,16 @@ if conf.get('HAVE_GLIB', 0) == 1
     test(test_name, executable(test_name, source,
       include_directories: [incconfig, incsrc],
       dependencies: deps,
-      link_with: [libharfbuzz] + (source.contains('-subset') ? [libharfbuzz_subset] : []),
+      link_with: libharfbuzz,
+    ), env: env)
+  endforeach
+
+  foreach source : subset_tests
+    test_name = source.split('.')[0]
+    test(test_name, executable(test_name, source,
+      include_directories: [incconfig, incsrc],
+      dependencies: deps,
+      link_with: [libharfbuzz, libharfbuzz_subset],
     ), env: env)
   endforeach
 else
