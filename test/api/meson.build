@@ -59,23 +59,18 @@ if conf.get('HAVE_GLIB', 0) == 1
   # Default test running environment
   env = environment()
   env.set('MALLOC_CHECK_', '2')
-  env.set('MALLOC_PERTURB_', '63') # $$(($${RANDOM:-256} % 256))
   env.set('G_DEBUG', 'gc-friendly')
   env.set('G_SLICE', 'always-malloc')
-  #env.set('srcdir', meson.current_source_dir()) Is it needed?
   env.set('G_TEST_SRCDIR', meson.current_source_dir())
   env.set('G_TEST_BUILDDIR', meson.current_build_dir())
 
   foreach source : tests
-    extra_c_args = []
     test_name = source.split('.')[0]
-    exe = executable(test_name, source,
+    test(test_name, executable(test_name, source,
       include_directories: [incconfig, incsrc],
       dependencies: deps,
       link_with: [libharfbuzz] + (source.contains('-subset') ? [libharfbuzz_subset] : []),
-    )
-
-    test(test_name, exe, env: env)
+    ), env: env)
   endforeach
 else
   message('You need to have glib support enabled to run test/api tests')
