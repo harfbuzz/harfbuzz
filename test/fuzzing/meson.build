@@ -36,7 +36,8 @@ test('subset_fuzzer', python3,
     files('run-subset-fuzzer-tests.py')[0],
     hb_subset_fuzzer_exe,
   ],
-  # as the test are ran concurrently and we have numerous ones here let's raise acceptable time
+  # as the tests are ran concurrently let's raise acceptable time here
+  # ideally better to break and let meson handles them in parallel
   timeout: 120,
   workdir: join_paths(meson.current_build_dir(), '..', '..'),
   env: env)
