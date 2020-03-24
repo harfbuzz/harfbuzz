@@ -1,169 +1,289 @@
+# Base and default-included sources and headers
 hb_base_sources = [
+  'hb-aat-fdsc-table.hh',
+  'hb-aat-layout-ankr-table.hh',
+  'hb-aat-layout-bsln-table.hh',
+  'hb-aat-layout-common.hh',
+  'hb-aat-layout-feat-table.hh',
+  'hb-aat-layout-just-table.hh',
+  'hb-aat-layout-kerx-table.hh',
+  'hb-aat-layout-lcar-table.hh',
+  'hb-aat-layout-morx-table.hh',
+  'hb-aat-layout-opbd-table.hh',
+  'hb-aat-layout-trak-table.hh',
+  'hb-aat-layout.cc',
+  'hb-aat-layout.hh',
+  'hb-aat-ltag-table.hh',
+  'hb-aat-map.cc',
+  'hb-aat-map.hh',
+  'hb-algs.hh',
+  'hb-array.hh',
+  'hb-atomic.hh',
   'hb-blob.cc',
+  'hb-blob.hh',
   'hb-buffer-serialize.cc',
   'hb-buffer.cc',
-  'hb-draw.cc',
+  'hb-buffer.hh',
+  'hb-cache.hh',
+  'hb-cff-interp-common.hh',
+  'hb-cff-interp-cs-common.hh',
+  'hb-cff-interp-dict-common.hh',
+  'hb-cff1-interp-cs.hh',
+  'hb-cff2-interp-cs.hh',
   'hb-common.cc',
+  'hb-config.hh',
+  'hb-debug.hh',
+  'hb-dispatch.hh',
+  'hb-draw.cc',
+  'hb-draw.hh',
   'hb-face.cc',
-  'hb-font.cc',
-  'hb-map.cc',
-  'hb-ot-cff1-table.cc',
-  'hb-ot-cff2-table.cc',
-  'hb-ot-name.cc',
-  'hb-ot-tag.cc',
-  'hb-set.cc',
-  'hb-shape.cc',
-  'hb-shape-plan.cc',
-  'hb-shaper.cc',
-  'hb-static.cc',
-  'hb-unicode.cc',
-  'hb-ucd.cc',
-  'hb-number.cc'
-]
-
-hb_base_headers = files([
-  'hb.h',
-  'hb-blob.h',
-  'hb-buffer.h',
-  'hb-draw.h',
-  'hb-common.h',
-  'hb-deprecated.h',
-  'hb-face.h',
-  'hb-font.h',
-  'hb-map.h',
-  'hb-set.h',
-  'hb-shape.h',
-  'hb-shape-plan.h',
-  'hb-unicode.h',
-  'hb-version.h',
-  'hb-number.hh'
-])
-
-hb_base_ragel_sources = [
-  'hb-buffer-deserialize-json.rl',
-  'hb-buffer-deserialize-text.rl',
-]
-
-hb_fallback_sources = [
+  'hb-face.hh',
   'hb-fallback-shape.cc',
-]
-
-hb_ot_sources = [
-  'hb-aat-layout.cc',
-  'hb-aat-map.cc',
-  'hb-ot-face.cc',
-  'hb-ot-font.cc',
-  'hb-ot-metrics.cc',
-  'hb-ot-layout.cc',
+  'hb-font.cc',
+  'hb-font.hh',
+  'hb-iter.hh',
+  'hb-kern.hh',
+  'hb-machinery.hh',
+  'hb-map.cc',
+  'hb-map.hh',
+  'hb-bimap.hh',
+  'hb-meta.hh',
+  'hb-mutex.hh',
+  'hb-null.hh',
+  'hb-number.cc',
+  'hb-number.hh',
+  'hb-object.hh',
+  'hb-open-file.hh',
+  'hb-open-type.hh',
+  'hb-ot-cff-common.hh',
+  'hb-ot-cff1-table.cc',
+  'hb-ot-cff1-table.hh',
+  'hb-ot-cff1-std-str.hh',
+  'hb-ot-cff2-table.cc',
+  'hb-ot-cff2-table.hh',
+  'hb-ot-cmap-table.hh',
+  'hb-ot-color-cbdt-table.hh',
+  'hb-ot-color-colr-table.hh',
+  'hb-ot-color-cpal-table.hh',
+  'hb-ot-color-sbix-table.hh',
+  'hb-ot-color-svg-table.hh',
   'hb-ot-color.cc',
+  'hb-ot-face.cc',
+  'hb-ot-face.hh',
+  'hb-ot-face-table-list.hh',
+  'hb-ot-font.cc',
+  'hb-ot-gasp-table.hh',
+  'hb-ot-glyf-table.hh',
+  'hb-ot-hdmx-table.hh',
+  'hb-ot-head-table.hh',
+  'hb-ot-hhea-table.hh',
+  'hb-ot-hmtx-table.hh',
+  'hb-ot-kern-table.hh',
+  'hb-ot-layout-base-table.hh',
+  'hb-ot-layout-common.hh',
+  'hb-ot-layout-gdef-table.hh',
+  'hb-ot-layout-gpos-table.hh',
+  'hb-ot-layout-gsub-table.hh',
+  'hb-ot-layout-gsubgpos.hh',
+  'hb-ot-layout-jstf-table.hh',
+  'hb-ot-layout.cc',
+  'hb-ot-layout.hh',
   'hb-ot-map.cc',
+  'hb-ot-map.hh',
+  'hb-ot-math-table.hh',
   'hb-ot-math.cc',
-  'hb-ot-shape.cc',
+  'hb-ot-maxp-table.hh',
+  'hb-ot-meta-table.hh',
+  'hb-ot-meta.cc',
+  'hb-ot-metrics.cc',
+  'hb-ot-metrics.hh',
+  'hb-ot-name-language-static.hh',
+  'hb-ot-name-language.hh',
+  'hb-ot-name-table.hh',
+  'hb-ot-name.cc',
+  'hb-ot-os2-table.hh',
+  'hb-ot-os2-unicode-ranges.hh',
+  'hb-ot-post-macroman.hh',
+  'hb-ot-post-table.hh',
+  'hb-ot-shape-complex-arabic-fallback.hh',
+  'hb-ot-shape-complex-arabic-table.hh',
+  'hb-ot-shape-complex-arabic-win1256.hh',
   'hb-ot-shape-complex-arabic.cc',
+  'hb-ot-shape-complex-arabic.hh',
   'hb-ot-shape-complex-default.cc',
   'hb-ot-shape-complex-hangul.cc',
   'hb-ot-shape-complex-hebrew.cc',
-  'hb-ot-shape-complex-indic.cc',
   'hb-ot-shape-complex-indic-table.cc',
+  'hb-ot-shape-complex-indic.cc',
+  'hb-ot-shape-complex-indic.hh',
   'hb-ot-shape-complex-khmer.cc',
+  'hb-ot-shape-complex-khmer.hh',
   'hb-ot-shape-complex-myanmar.cc',
+  'hb-ot-shape-complex-myanmar.hh',
   'hb-ot-shape-complex-thai.cc',
-  'hb-ot-shape-complex-use.cc',
   'hb-ot-shape-complex-use-table.cc',
+  'hb-ot-shape-complex-use.cc',
+  'hb-ot-shape-complex-use.hh',
   'hb-ot-shape-complex-vowel-constraints.cc',
-  'hb-ot-shape-normalize.cc',
+  'hb-ot-shape-complex-vowel-constraints.hh',
+  'hb-ot-shape-complex.hh',
   'hb-ot-shape-fallback.cc',
-  'hb-ot-cff1-table.cc',
-  'hb-ot-cff2-table.cc',
+  'hb-ot-shape-fallback.hh',
+  'hb-ot-shape-normalize.cc',
+  'hb-ot-shape-normalize.hh',
+  'hb-ot-shape.cc',
+  'hb-ot-shape.hh',
+  'hb-ot-stat-table.hh',
+  'hb-ot-tag-table.hh',
+  'hb-ot-tag.cc',
+  'hb-ot-var-avar-table.hh',
+  'hb-ot-var-fvar-table.hh',
+  'hb-ot-var-gvar-table.hh',
+  'hb-ot-var-hvar-table.hh',
+  'hb-ot-var-mvar-table.hh',
   'hb-ot-var.cc',
+  'hb-ot-vorg-table.hh',
+  'hb-pool.hh',
+  'hb-sanitize.hh',
+  'hb-serialize.hh',
+  'hb-set-digest.hh',
+  'hb-set.cc',
+  'hb-set.hh',
+  'hb-shape-plan.cc',
+  'hb-shape-plan.hh',
+  'hb-shape.cc',
+  'hb-shaper-impl.hh',
+  'hb-shaper-list.hh',
+  'hb-shaper.cc',
+  'hb-shaper.hh',
+  'hb-static.cc',
+  'hb-string-array.hh',
+  'hb-ucd-table.hh',
+  'hb-ucd.cc',
+  'hb-unicode-emoji-table.hh',
+  'hb-unicode.cc',
+  'hb-unicode.hh',
+  'hb-utf.hh',
+  'hb-vector.hh',
+  'hb.hh',
 ]
 
-hb_ot_headers = files([
-  'hb-ot.h',
-  'hb-ot-deprecated.h',
-  'hb-ot-metrics.h',
+hb_base_ragel_generated_sources = [
+  'hb-buffer-deserialize-json.hh',
+	'hb-buffer-deserialize-text.hh',
+	'hb-number-parser.hh',
+	'hb-ot-shape-complex-indic-machine.hh',
+	'hb-ot-shape-complex-khmer-machine.hh',
+	'hb-ot-shape-complex-myanmar-machine.hh',
+	'hb-ot-shape-complex-use-machine.hh',
+]
+hb_base_ragel_sources = [
+  'hb-buffer-deserialize-json.rl',
+	'hb-buffer-deserialize-text.rl',
+	'hb-number-parser.rl',
+	'hb-ot-shape-complex-indic-machine.rl',
+	'hb-ot-shape-complex-khmer-machine.rl',
+	'hb-ot-shape-complex-myanmar-machine.rl',
+	'hb-ot-shape-complex-use-machine.rl',
+]
+
+hb_base_headers = [
+  'hb-aat-layout.h',
+  'hb-aat.h',
+  'hb-blob.h',
+  'hb-buffer.h',
+  'hb-common.h',
+  'hb-deprecated.h',
+  'hb-draw.h',
+  'hb-face.h',
+  'hb-font.h',
+  'hb-map.h',
   'hb-ot-color.h',
+  'hb-ot-deprecated.h',
   'hb-ot-font.h',
   'hb-ot-layout.h',
   'hb-ot-math.h',
+  'hb-ot-meta.h',
+  'hb-ot-metrics.h',
   'hb-ot-name.h',
   'hb-ot-shape.h',
   'hb-ot-var.h',
-])
-
-hb_ot_ragel_sources = [
-  'hb-ot-shape-complex-indic-machine.rl',
-  'hb-ot-shape-complex-khmer-machine.rl',
-  'hb-ot-shape-complex-myanmar-machine.rl',
-  'hb-ot-shape-complex-use-machine.rl',
+  'hb-ot.h',
+  'hb-set.h',
+  'hb-shape-plan.h',
+  'hb-shape.h',
+  'hb-unicode.h',
+  'hb-version.h',
+  'hb.h',
 ]
 
-hb_ft_sources = [
-  'hb-ft.cc',
-]
+# Optional Sources and Headers with external deps
 
-hb_ft_headers = files([
-  'hb-ft.h',
-])
+hb_ft_sources = ['hb-ft.cc']
+hb_ft_headers = ['hb-ft.h']
 
-hb_glib_sources = [
-  'hb-glib.cc',
-]
+hb_glib_sources = ['hb-glib.cc']
+hb_glib_headers = ['hb-glib.h']
 
-hb_glib_headers = files([
-  'hb-glib.h',
-])
+hb_graphite2_sources = ['hb-graphite2.cc']
+hb_graphite2_headers = ['hb-graphite2.h']
 
-hb_graphite2_sources = [
-  'hb-graphite2.cc',
-]
+# System-dependent sources and headers
 
-hb_graphite2_headers = files([
-  'hb-graphite2.h',
-])
+hb_coretext_sources = ['hb-coretext.cc']
+hb_coretext_headers = ['hb-coretext.h']
 
-hb_icu_sources = [
-  'hb-icu.cc',
-]
+hb_directwrite_sources = ['hb-directwrite.cc']
+hb_directwrite_headers = ['hb-directwrite.h']
 
-hb_icu_headers = files([
-  'hb-icu.h',
-])
+hb_gdi_sources = ['hb-gdi.cc']
+hb_gdi_headers = ['hb-gdi.h']
 
+hb_uniscribe_sources = ['hb-uniscribe.cc']
+hb_uniscribe_headers = ['hb-uniscribe.h']
+
+# Sources for libharfbuzz-gobject and libharfbuzz-icu
+hb_icu_sources = ['hb-icu.cc']
+hb_icu_headers = ['hb-icu.h']
+
+# Sources for libharfbuzz-subset
 hb_subset_sources = [
+  'hb-number.cc',
+  'hb-number.hh',
   'hb-ot-cff1-table.cc',
   'hb-ot-cff2-table.cc',
   'hb-static.cc',
-  'hb-subset.cc',
-  'hb-subset-cff1.cc',
-  'hb-subset-cff2.cc',
   'hb-subset-cff-common.cc',
+  'hb-subset-cff-common.hh',
+  'hb-subset-cff1.cc',
+  'hb-subset-cff1.hh',
+  'hb-subset-cff2.cc',
+  'hb-subset-cff2.hh',
   'hb-subset-input.cc',
+  'hb-subset-input.hh',
   'hb-subset-plan.cc',
-  'hb-number.cc',
-  'hb-ot-meta.cc'
+  'hb-subset-plan.hh',
+  'hb-subset-plan.hh',
+  'hb-subset.cc',
+  'hb-subset.hh',
+  'hb-subset.hh',
 ]
 
-hb_subset_headers = files([
-  'hb-subset.h',
-  'hb-number.hh',
-  'hb-ot-meta.h'
-])
+hb_subset_headers = ['hb-subset.h']
 
 hb_gobject_sources = [
   'hb-gobject-structs.cc'
 ]
 
-hb_gobject_headers = files([
+hb_gobject_headers = [
   'hb-gobject.h',
   'hb-gobject-structs.h',
-])
+]
 
-incucdn = []
 incsrc = include_directories('.')
 
-hb_sources = hb_base_sources + hb_fallback_sources + hb_ot_sources
-hb_headers = hb_base_headers + hb_ot_headers
+hb_sources = hb_base_sources + hb_base_ragel_generated_sources
+hb_headers = hb_base_headers
 
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
@@ -171,8 +291,8 @@ if conf.get('HAVE_FREETYPE', 0) == 1
 endif
 
 if conf.get('HAVE_GDI', 0) == 1
-  hb_sources += ['hb-gdi.cc']
-  hb_headers += ['hb-gdi.h']
+  hb_sources += hb_gdi_sources
+  hb_headers += hb_gdi_headers
 endif
 
 if conf.get('HAVE_GRAPHITE2', 0) == 1
@@ -186,18 +306,18 @@ if conf.get('HAVE_GLIB', 0) == 1
 endif
 
 if conf.get('HAVE_UNISCRIBE', 0) == 1
-  hb_sources += ['hb-uniscribe.cc']
-  hb_headers += ['hb-uniscribe.h']
+  hb_sources += hb_uniscribe_sources
+  hb_headers += hb_uniscribe_headers
 endif
 
 if conf.get('HAVE_DIRECTWRITE', 0) == 1
-  hb_sources += ['hb-directwrite.cc']
-  hb_headers += ['hb-directwrite.h']
+  hb_sources += hb_directwrite_sources
+  hb_headers += hb_directwrite_headers
 endif
 
 if conf.get('HAVE_CORETEXT', 0) == 1
-  hb_sources += ['hb-coretext.cc']
-  hb_headers += ['hb-coretext.h']
+  hb_sources += hb_coretext_sources
+  hb_headers += hb_coretext_headers
 endif
 
 if get_option('amalgam')
@@ -233,7 +353,7 @@ else
 endif
 
 libharfbuzz = library('harfbuzz', hb_sources,
-  include_directories: [incconfig, incucdn],
+  include_directories: incconfig,
   dependencies: deps,
   cpp_args: cpp_args + extra_hb_cpp_args,
   soversion: hb_so_version,
@@ -243,8 +363,84 @@ libharfbuzz = library('harfbuzz', hb_sources,
 
 libharfbuzz_dep = declare_dependency(
   link_with: libharfbuzz,
-  include_directories: [incsrc, incucdn],
+  include_directories: incsrc,
   dependencies: deps)
+
+noinst_programs = {
+  'main': 'main.cc',
+  'test-basics': 'test.cc',
+  'test-buffer-serialize': 'test-buffer-serialize.cc',
+  'test-ot-meta': 'test-ot-meta.cc',
+  'test-ot-name': 'test-ot-name.cc',
+  'test-ot-glyphname': 'test-ot-glyphname.cc',
+  'test-ot-gpos-size-params': 'test-gpos-size-params.cc',
+  'test-ot-gsub-would-substitute': 'test-gsub-would-substitute.cc',
+}
+foreach name, source : noinst_programs
+  executable(name, source,
+    include_directories: incconfig,
+    cpp_args: cpp_args,
+    dependencies : libharfbuzz_dep,
+    install : false,
+  )
+endforeach
+
+check_programs = {
+  'dump-indic-data': ['dump-indic-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
+  'dump-khmer-data': ['dump-khmer-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
+  'dump-myanmar-data': ['dump-myanmar-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
+  'dump-use-data': ['dump-use-data.cc', 'hb-ot-shape-complex-use-table.cc'],
+}
+foreach name, source : check_programs
+  executable(name, source,
+    include_directories: incconfig,
+    cpp_args: cpp_args,
+    dependencies : libharfbuzz_dep,
+    install : false,
+  )
+endforeach
+
+compiled_tests = {
+  'test-algs': ['test-algs.cc', 'hb-static.cc'],
+  'test-array': 'test-array.cc',
+  'test-iter': ['test-iter.cc', 'hb-static.cc'],
+  'test-meta': ['test-meta.cc', 'hb-static.cc'],
+  'test-number': ['test-number.cc', 'hb-number.cc'],
+  'test-ot-tag': 'hb-ot-tag.cc',
+  'test-unicode-ranges': 'test-unicode-ranges.cc',
+  'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
+}
+foreach name, source : compiled_tests
+  test(name, executable(name, source,
+    include_directories: incconfig,
+    cpp_args: cpp_args + ['-DMAIN', '-UNDEBUG'],
+    dependencies : libharfbuzz_dep,
+    install : false,
+  ))
+endforeach
+
+if host_machine.system() != 'windows' and not meson.is_cross_build()
+  # Some of them should be ported to python
+  dist_check_script = [
+    'check-c-linkage-decls.sh',
+  	'check-externs.sh',
+  	'check-header-guards.sh',
+  	'check-includes.sh',
+  	'check-static-inits.sh', # fails with "check-static-inits.sh: object files not found; skipping test"
+  	'check-symbols.sh', # fails with "'harfbuzz.def' not found; skipping"
+  ]
+  if false # !WITH_LIBSTDCXX
+    dist_check_script += 'check-libstdc++.sh' # we don't have chosen_linker logic here yet
+  endif
+  foreach name : dist_check_script
+    env = environment()
+    env.set('srcdir', meson.current_source_dir())
+    env.set('libs', meson.current_build_dir())
+    env.set('HBSOURCES', ' '.join(hb_sources))
+    env.set('HBHEADERS', ' '.join(hb_headers))
+    test(name, find_program(name), env: env)
+  endforeach
+endif
 
 # harfbuzz-subset
 harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
