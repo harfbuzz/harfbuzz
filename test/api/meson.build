@@ -1,60 +1,82 @@
-tests = [
-  ['test-baseline.c'],
-  ['test-blob.c'],
-  ['test-buffer.c'],
-  ['test-c.c'],
-  ['test-collect-unicodes.c'],
-  ['test-common.c'],
-  ['test-cplusplus.cc'],
-  ['test-font.c'],
-  ['test-map.c'],
-  ['test-object.c'],
-  ['test-ot-color.c'],
-  ['test-ot-face.c'],
-  ['test-ot-ligature-carets.c'],
-  ['test-ot-name.c'],
-  ['test-ot-tag.c'],
-  ['test-set.c'],
-  ['test-shape.c'],
-  ['test-subset.c'],
-  ['test-subset-cmap.c'],
-  ['test-subset-glyf.c'],
-  ['test-subset-hdmx.c'],
-  ['test-subset-hmtx.c'],
-  ['test-subset-os2.c'],
-  ['test-subset-post.c'],
-  ['test-subset-vmtx.c'],
-  ['test-unicode.c'],
-  ['test-version.c'],
-]
-
-if conf.get('HAVE_FREETYPE', 0) == 1
-  tests += [['test-ot-math.c']]
-endif
-
-if conf.get('HAVE_FREETYPE', 0) == 1 and conf.get('HAVE_PTHREAD', 0) == 1
-  tests += [['test-multithread.c']]
-endif
 if conf.get('HAVE_GLIB', 0) == 1
+  tests = [
+    'test-aat-layout.c',
+    'test-baseline.c',
+    'test-blob.c',
+    'test-buffer.c',
+    'test-c.c',
+    'test-collect-unicodes.c',
+    'test-cplusplus.cc',
+    'test-common.c',
+    'test-draw.c',
+    'test-font.c',
+    'test-map.c',
+    'test-object.c',
+    'test-ot-color.c',
+    'test-ot-face.c',
+    'test-ot-glyphname.c',
+    'test-ot-ligature-carets.c',
+    'test-ot-name.c',
+    'test-ot-meta.c',
+    'test-ot-metrics.c',
+    'test-ot-tag.c',
+    'test-ot-extents-cff.c',
+    'test-ot-metrics-tt-var.c',
+    'test-set.c',
+    'test-shape.c',
+    'test-subset.c',
+    'test-subset-cmap.c',
+    'test-subset-drop-tables.c',
+    'test-subset-glyf.c',
+    'test-subset-hdmx.c',
+    'test-subset-hmtx.c',
+    'test-subset-nameids.c',
+    'test-subset-os2.c',
+    'test-subset-post.c',
+    'test-subset-vmtx.c',
+    'test-subset-cff1.c',
+    'test-subset-cff2.c',
+    'test-subset-gvar.c',
+    'test-subset-hvar.c',
+    'test-subset-vvar.c',
+    'test-subset-sbix.c',
+    'test-subset-gpos.c',
+    'test-subset-colr.c',
+    'test-subset-cbdt.c',
+    'test-unicode.c',
+    'test-var-coords.c',
+    'test-version.c',
+  ]
+
+  if conf.get('HAVE_FREETYPE', 0) == 1
+    tests += 'test-ot-math.c'
+  endif
+
+  if conf.get('HAVE_FREETYPE', 0) == 1 and conf.get('HAVE_PTHREAD', 0) == 1
+    tests += 'test-multithread.c'
+  endif
+
+  # Default test running environment
   env = environment()
+  env.set('MALLOC_CHECK_', '2')
+  env.set('MALLOC_PERTURB_', '63') # $$(($${RANDOM:-256} % 256))
+  env.set('G_DEBUG', 'gc-friendly')
+  env.set('G_SLICE', 'always-malloc')
+  #env.set('srcdir', meson.current_source_dir()) Is it needed?
   env.set('G_TEST_SRCDIR', meson.current_source_dir())
   env.set('G_TEST_BUILDDIR', meson.current_build_dir())
 
-  foreach test_data : tests
-    fname = test_data[0]
-    opts = test_data.length() > 1 ? test_data[1] : {}
-    extra_c_args = opts.get('c_args', [])
-
-    test_name = fname.split('.')[0].underscorify()
-    exe = executable(test_name, fname,
-      c_args: extra_c_args,
-      cpp_args: cpp_args + extra_c_args,
+  foreach source : tests
+    extra_c_args = []
+    test_name = source.split('.')[0]
+    exe = executable(test_name, source,
       include_directories: [incconfig, incsrc],
       dependencies: deps,
-      link_with: [libharfbuzz, libharfbuzz_subset],
+      link_with: [libharfbuzz] + (source.contains('-subset') ? [libharfbuzz_subset] : []),
     )
 
-    test(test_name, exe,
-      env: env)
+    test(test_name, exe, env: env)
   endforeach
+else
+  message('You need to have glib support enabled to run test/api tests')
 endif
