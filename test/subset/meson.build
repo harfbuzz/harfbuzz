@@ -30,9 +30,10 @@ foreach t : tests
       hb_subset,
       join_paths(meson.current_source_dir(), 'data', 'tests', fname),
     ],
-    workdir: join_paths(meson.current_build_dir(), '..', '..'),
-    # as the test are ran concurrently and we have numerous ones here let's raise acceptable time
+    # as the tests are ran concurrently let's raise acceptable time here
+    # ideally better to break and let meson handles them in parallel
     timeout: 120,
+    workdir: join_paths(meson.current_build_dir(), '..', '..'),
   )
 endforeach
 
