@@ -301,9 +301,9 @@ foreach check : check_funcs
     foreach link_with : link_withs
       dep = cpp.find_library(link_with, required: false)
       if dep.found()
-	extra_deps += dep
+        extra_deps += dep
       else
-	found = false
+        found = false
       endif
     endforeach
 

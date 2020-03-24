@@ -259,14 +259,14 @@ text_rendering_tests = [
 ]
 
 disabled_text_rendering_tests = [
-	'CMAP-3.tests',
-	'MORX-31.tests',
-	'MORX-41.tests',
-	'SHARAN-1.tests',
-	'SHBALI-1.tests',
-	'SHBALI-2.tests',
-	'SHKNDA-2.tests',
-	'SHKNDA-3.tests',
+  'CMAP-3.tests',
+  'MORX-31.tests',
+  'MORX-41.tests',
+  'SHARAN-1.tests',
+  'SHBALI-1.tests',
+  'SHBALI-2.tests',
+  'SHKNDA-2.tests',
+  'SHKNDA-3.tests',
 ]
 
 foreach file_name : in_house_tests

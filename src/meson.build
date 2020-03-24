@@ -170,21 +170,21 @@ hb_base_sources = [
 
 hb_base_ragel_generated_sources = [
   'hb-buffer-deserialize-json.hh',
-	'hb-buffer-deserialize-text.hh',
-	'hb-number-parser.hh',
-	'hb-ot-shape-complex-indic-machine.hh',
-	'hb-ot-shape-complex-khmer-machine.hh',
-	'hb-ot-shape-complex-myanmar-machine.hh',
-	'hb-ot-shape-complex-use-machine.hh',
+  'hb-buffer-deserialize-text.hh',
+  'hb-number-parser.hh',
+  'hb-ot-shape-complex-indic-machine.hh',
+  'hb-ot-shape-complex-khmer-machine.hh',
+  'hb-ot-shape-complex-myanmar-machine.hh',
+  'hb-ot-shape-complex-use-machine.hh',
 ]
 hb_base_ragel_sources = [
   'hb-buffer-deserialize-json.rl',
-	'hb-buffer-deserialize-text.rl',
-	'hb-number-parser.rl',
-	'hb-ot-shape-complex-indic-machine.rl',
-	'hb-ot-shape-complex-khmer-machine.rl',
-	'hb-ot-shape-complex-myanmar-machine.rl',
-	'hb-ot-shape-complex-use-machine.rl',
+  'hb-buffer-deserialize-text.rl',
+  'hb-number-parser.rl',
+  'hb-ot-shape-complex-indic-machine.rl',
+  'hb-ot-shape-complex-khmer-machine.rl',
+  'hb-ot-shape-complex-myanmar-machine.rl',
+  'hb-ot-shape-complex-use-machine.rl',
 ]
 
 hb_base_headers = [
@@ -428,10 +428,10 @@ if host_machine.system() != 'windows' and not meson.is_cross_build()
   # Some of them should be ported to python
   dist_check_script = [
     'check-c-linkage-decls.sh',
-  	'check-externs.sh',
-  	'check-header-guards.sh',
-  	'check-static-inits.sh', # fails with "check-static-inits.sh: object files not found; skipping test"
-  	'check-symbols.sh', # fails with "'harfbuzz.def' not found; skipping"
+    'check-externs.sh',
+    'check-header-guards.sh',
+    'check-static-inits.sh', # fails with "check-static-inits.sh: object files not found; skipping test"
+    'check-symbols.sh', # fails with "'harfbuzz.def' not found; skipping"
   ]
   if not get_option('amalgam')
     dist_check_script += ['check-includes.sh']
