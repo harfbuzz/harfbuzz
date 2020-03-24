@@ -21,9 +21,7 @@ endforeach
 env = environment()
 env.set('srcdir', meson.current_source_dir())
 
-run_shape_fuzzer_tests = find_program('run-shape-fuzzer-tests.py')
-
-test('shape_fuzzer', run_shape_fuzzer_tests,
+test('shape_fuzzer', find_program('run-shape-fuzzer-tests.py'),
   args: [
     hb_shape_fuzzer_exe,
   ],
@@ -31,9 +29,8 @@ test('shape_fuzzer', run_shape_fuzzer_tests,
   workdir: join_paths(meson.current_build_dir(), '..', '..'),
   env: env)
 
-test('subset_fuzzer', python3,
+test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
   args: [
-    files('run-subset-fuzzer-tests.py')[0],
     hb_subset_fuzzer_exe,
   ],
   # as the tests are ran concurrently let's raise acceptable time here
