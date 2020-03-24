@@ -366,24 +366,28 @@ libharfbuzz_dep = declare_dependency(
   include_directories: incsrc,
   dependencies: deps)
 
-noinst_programs = {
-  'main': 'main.cc',
-  'test-basics': 'test.cc',
-  'test-buffer-serialize': 'test-buffer-serialize.cc',
-  'test-ot-meta': 'test-ot-meta.cc',
-  'test-ot-name': 'test-ot-name.cc',
-  'test-ot-glyphname': 'test-ot-glyphname.cc',
-  'test-ot-gpos-size-params': 'test-gpos-size-params.cc',
-  'test-ot-gsub-would-substitute': 'test-gsub-would-substitute.cc',
-}
-foreach name, source : noinst_programs
-  executable(name, source,
-    include_directories: incconfig,
-    cpp_args: cpp_args,
-    dependencies: libharfbuzz_dep,
-    install: false,
-  )
-endforeach
+# TODO: MSVC gives the following,
+# error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
+if cpp.get_id() != 'msvc'
+  noinst_programs = {
+    'main': 'main.cc',
+    'test-basics': 'test.cc',
+    'test-buffer-serialize': 'test-buffer-serialize.cc',
+    'test-ot-meta': 'test-ot-meta.cc',
+    'test-ot-name': 'test-ot-name.cc',
+    'test-ot-glyphname': 'test-ot-glyphname.cc',
+    'test-ot-gpos-size-params': 'test-gpos-size-params.cc',
+    'test-ot-gsub-would-substitute': 'test-gsub-would-substitute.cc',
+  }
+  foreach name, source : noinst_programs
+    executable(name, source,
+      include_directories: incconfig,
+      cpp_args: cpp_args,
+      dependencies: libharfbuzz_dep,
+      install: false,
+    )
+  endforeach
+endif
 
 check_programs = {
   'dump-indic-data': ['dump-indic-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
