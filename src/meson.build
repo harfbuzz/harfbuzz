@@ -380,8 +380,8 @@ foreach name, source : noinst_programs
   executable(name, source,
     include_directories: incconfig,
     cpp_args: cpp_args,
-    dependencies : libharfbuzz_dep,
-    install : false,
+    dependencies: libharfbuzz_dep,
+    install: false,
   )
 endforeach
 
@@ -395,8 +395,8 @@ foreach name, source : check_programs
   executable(name, source,
     include_directories: incconfig,
     cpp_args: cpp_args,
-    dependencies : libharfbuzz_dep,
-    install : false,
+    dependencies: libharfbuzz_dep,
+    install: false,
   )
 endforeach
 
@@ -419,8 +419,8 @@ foreach name, source : compiled_tests
   test(name, executable(name, source,
     include_directories: incconfig,
     cpp_args: cpp_args + ['-DMAIN', '-UNDEBUG'],
-    dependencies : libharfbuzz_dep,
-    install : false,
+    dependencies: libharfbuzz_dep,
+    install: false,
   ))
 endforeach
 

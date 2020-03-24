@@ -73,6 +73,7 @@ if conf.get('HAVE_GLIB', 0) == 1
       include_directories: [incconfig, incsrc],
       dependencies: deps,
       link_with: libharfbuzz,
+      install: false,
     ), env: env)
   endforeach
 
@@ -82,6 +83,7 @@ if conf.get('HAVE_GLIB', 0) == 1
       include_directories: [incconfig, incsrc],
       dependencies: deps,
       link_with: [libharfbuzz, libharfbuzz_subset],
+      install: false,
     ), env: env)
   endforeach
 else

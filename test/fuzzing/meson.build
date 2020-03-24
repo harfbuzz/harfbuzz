@@ -13,6 +13,7 @@ foreach file_name : tests
     include_directories: [incconfig, incsrc],
     dependencies: deps,
     link_with: [libharfbuzz, libharfbuzz_subset],
+    install: false,
   )
   set_variable('@0@_exe'.format(test_name.underscorify()), exe)
 endforeach
