@@ -409,12 +409,12 @@ compiled_tests = {
   'test-number': ['test-number.cc', 'hb-number.cc'],
   'test-ot-tag': 'hb-ot-tag.cc',
   'test-unicode-ranges': 'test-unicode-ranges.cc',
-  'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
 }
 if cpp.get_id() != 'msvc'
   # TODO: MSVC doesn't like these, fix them
   compiled_tests += {
     'test-algs': ['test-algs.cc', 'hb-static.cc'],
+    'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
     'test-iter': ['test-iter.cc', 'hb-static.cc'],
     'test-meta': ['test-meta.cc', 'hb-static.cc'],
   }
