@@ -1,15 +1,14 @@
 tests = [
-  ['hb-shape-fuzzer.cc'],
-  ['hb-subset-fuzzer.cc'],
-  ['hb-set-fuzzer.cc'],
-  ['hb-draw-fuzzer.cc'],
+  'hb-shape-fuzzer.cc',
+  'hb-subset-fuzzer.cc',
+  'hb-set-fuzzer.cc',
+  'hb-draw-fuzzer.cc',
 ]
 
-foreach test_data : tests
-  fname = test_data[0]
-  test_name = fname.split('.')[0].underscorify()
+foreach file_name : tests
+  test_name = file_name.split('.')[0].underscorify()
 
-  exe = executable(test_name, [fname, 'main.cc'],
+  exe = executable(test_name, [file_name, 'main.cc'],
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
     dependencies: deps,
@@ -36,5 +35,12 @@ test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
   # as the tests are ran concurrently let's raise acceptable time here
   # ideally better to break and let meson handles them in parallel
   timeout: 120,
+  workdir: join_paths(meson.current_build_dir(), '..', '..'),
+  env: env)
+
+test('draw_fuzzer', find_program('run-draw-fuzzer-tests.py'),
+  args: [
+    hb_draw_fuzzer_exe,
+  ],
   workdir: join_paths(meson.current_build_dir(), '..', '..'),
   env: env)
