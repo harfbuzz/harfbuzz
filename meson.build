@@ -59,7 +59,6 @@ python3 = import('python').find_installation('python3')
 check_headers = [
   ['unistd.h'],
   ['sys/mman.h'],
-  ['xlocale.h'],
   ['stdbool.h'],
 ]
 
@@ -70,8 +69,6 @@ check_funcs = [
   ['getpagesize'],
   ['mmap'],
   ['isatty'],
-  ['newlocale'],
-  ['strtod_l'],
   ['roundf'],
 ]
 
