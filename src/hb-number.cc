@@ -28,11 +28,6 @@
 #include "hb-number.hh"
 #include "hb-number-parser.hh"
 
-#include <locale.h>
-#ifdef HAVE_XLOCALE_H
-#include <xlocale.h>
-#endif
-
 template<typename T, typename Func>
 static bool
 _parse_number (const char **pp, const char *end, T *pv,
@@ -74,75 +69,11 @@ hb_parse_uint (const char **pp, const char *end, unsigned int *pv,
 				      { return strtoul (p, end, base); });
 }
 
-
-#if defined (HAVE_NEWLOCALE) && defined (HAVE_STRTOD_L)
-#define USE_XLOCALE 1
-#define HB_LOCALE_T locale_t
-#define HB_CREATE_LOCALE(locName) newlocale (LC_ALL_MASK, locName, nullptr)
-#define HB_FREE_LOCALE(loc) freelocale (loc)
-#elif defined(_MSC_VER)
-#define USE_XLOCALE 1
-#define HB_LOCALE_T _locale_t
-#define HB_CREATE_LOCALE(locName) _create_locale (LC_ALL, locName)
-#define HB_FREE_LOCALE(loc) _free_locale (loc)
-#define strtod_l(a, b, c) _strtod_l ((a), (b), (c))
-#endif
-
-#ifdef USE_XLOCALE
-
-#if HB_USE_ATEXIT
-static void free_static_C_locale ();
-#endif
-
-static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<HB_LOCALE_T>,
-							  hb_C_locale_lazy_loader_t>
-{
-  static HB_LOCALE_T create ()
-  {
-    HB_LOCALE_T C_locale = HB_CREATE_LOCALE ("C");
-
-#if HB_USE_ATEXIT
-    atexit (free_static_C_locale);
-#endif
-
-    return C_locale;
-  }
-  static void destroy (HB_LOCALE_T p)
-  {
-    HB_FREE_LOCALE (p);
-  }
-  static HB_LOCALE_T get_null ()
-  {
-    return nullptr;
-  }
-} static_C_locale;
-
-#if HB_USE_ATEXIT
-static
-void free_static_C_locale ()
-{
-  static_C_locale.free_instance ();
-}
-#endif
-
-static HB_LOCALE_T
-get_C_locale ()
-{
-  return static_C_locale.get_unconst ();
-}
-#endif /* USE_XLOCALE */
-
 bool
 hb_parse_double (const char **pp, const char *end, double *pv,
 		 bool whole_buffer)
 {
   return _parse_number<double> (pp, end, pv, whole_buffer,
 				[] (const char *p, char **end)
-				{
-#ifdef USE_XLOCALE
-				  return strtod_l (p, end, get_C_locale ());
-#else
-				  return strtod_rl (p, end);
-#endif
-				});
+				{ return strtod_rl (p, end); });
 }

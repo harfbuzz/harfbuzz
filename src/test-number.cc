@@ -146,11 +146,6 @@ main (int argc, char **argv)
     assert ((int) roundf (pv * 1000.) == 123);
     assert (pp - str == 4);
     assert (end - pp == 1);
-
-    /* Test strtod_rl even if libc's strtod_l is used */
-    char *pend;
-    assert ((int) roundf (strtod_rl (str, &pend) * 1000.) == 123);
-    assert (pend - str == 4);
   }
 
   {
@@ -163,10 +158,6 @@ main (int argc, char **argv)
     assert ((int) roundf (pv * 1000.) == 123);
     assert (pp - str == 5);
     assert (end - pp == 0);
-
-    char *pend;
-    assert ((int) roundf (strtod_rl (str, &pend) * 1000.) == 123);
-    assert (pend - str == 5);
   }
 
   {
