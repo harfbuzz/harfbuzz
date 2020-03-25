@@ -76,6 +76,11 @@ struct hb_closure_context_t :
     nesting_level_left++;
   }
 
+  bool lookup_limit_exceeded ()
+  {
+    return lookup_count > HB_MAX_LOOKUP_INDICES;
+  }
+
   bool should_visit_lookup (unsigned int lookup_index)
   {
     if (lookup_count++ > HB_MAX_LOOKUP_INDICES)
@@ -158,6 +163,11 @@ struct hb_closure_lookups_context_t :
 
   void set_lookup_inactive (unsigned lookup_index)
   { inactive_lookups->add (lookup_index); }
+
+  bool lookup_limit_exceeded ()
+  {
+    return lookup_count > HB_MAX_LOOKUP_INDICES;
+  }
 
   bool is_lookup_visited (unsigned lookup_index)
   {
@@ -2074,6 +2084,10 @@ struct ChainRule
   void closure (hb_closure_context_t *c,
 		ChainContextClosureLookupContext &lookup_context) const
   {
+    if (c->lookup_limit_exceeded ()) {
+      return;
+    }
+
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16>> (backtrack);
     const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
@@ -2087,6 +2101,10 @@ struct ChainRule
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
+    if (c->lookup_limit_exceeded ()) {
+      return;
+    }
+
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16>> (backtrack);
     const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
@@ -2253,6 +2271,10 @@ struct ChainRuleSet
   }
   void closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
   {
+    if (c->lookup_limit_exceeded ()) {
+      return;
+    }
+
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
@@ -2262,6 +2284,10 @@ struct ChainRuleSet
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
+    if (c->lookup_limit_exceeded ()) {
+      return;
+    }
+
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
