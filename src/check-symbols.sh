@@ -4,6 +4,7 @@ LC_ALL=C
 export LC_ALL
 
 test -z "$srcdir" && srcdir=.
+test -z "$builddir" && builddir=.
 test -z "$libs" && libs=.libs
 stat=0
 
@@ -36,7 +37,7 @@ for soname in harfbuzz harfbuzz-subset harfbuzz-icu harfbuzz-gobject; do
 			stat=1
 		fi
 
-		def=$soname.def
+		def=$builddir/$soname.def
 		if ! test -f "$def"; then
 			echo "'$def' not found; skipping"
 		else
@@ -47,9 +48,9 @@ for soname in harfbuzz harfbuzz-subset harfbuzz-icu harfbuzz-gobject; do
 				# cheat: copy the last line from the def file!
 				tail -n1 "$def"
 			} | c++filt | diff "$def" - >&2 || stat=1
-		fi
 
-		tested=true
+			tested=true
+		fi
 	done
 done
 if ! $tested; then
