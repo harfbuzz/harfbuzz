@@ -3054,7 +3054,7 @@ struct GSUBGPOS
 			      unsigned int *index) const
   {
 #ifdef HB_NO_VAR
-    *index = Index::NOT_FOUND_INDEX;
+    *index = FeatureVariations::NOT_FOUND_INDEX;
     return false;
 #endif
     return (version.to_int () >= 0x00010001u ? this+featureVars : Null (FeatureVariations))
