@@ -366,6 +366,26 @@ libharfbuzz_dep = declare_dependency(
   include_directories: incsrc,
   dependencies: deps)
 
+# harfbuzz-subset
+harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
+    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    input: hb_subset_headers,
+    output: 'harfbuzz-subset.def')
+
+libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
+  include_directories: incconfig,
+  link_with: [libharfbuzz],
+  cpp_args: cpp_args + extra_hb_cpp_args,
+  soversion: hb_so_version,
+  version: version,
+  install: true,
+  name_prefix: hb_lib_prefix)
+
+libharfbuzz_subset_dep = declare_dependency(
+  link_with: libharfbuzz_subset,
+  include_directories: incsrc,
+  dependencies: deps)
+
 # TODO: MSVC gives the following,
 # error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
 if cpp.get_id() != 'msvc'
@@ -434,45 +454,30 @@ if host_machine.system() != 'windows' and not meson.is_cross_build()
     'check-c-linkage-decls.sh',
     'check-externs.sh',
     'check-header-guards.sh',
-    'check-static-inits.sh', # fails with "check-static-inits.sh: object files not found; skipping test"
-    'check-symbols.sh', # fails with "'harfbuzz.def' not found; skipping"
+    'check-static-inits.sh',
   ]
   if not get_option('amalgam')
-    dist_check_script += ['check-includes.sh']
+    dist_check_script += 'check-includes.sh'
   endif
   if false # !WITH_LIBSTDCXX
-    dist_check_script += 'check-libstdc++.sh' # we don't have chosen_linker logic here yet
+    dist_check_script += 'check-libstdc++.sh' # See https://github.com/harfbuzz/harfbuzz/issues/2276
   endif
 
+  env = environment()
+  env.set('srcdir', meson.current_source_dir())
+  env.set('builddir', meson.current_build_dir())
+  env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
+  env.set('HBSOURCES', ' '.join(hb_sources))
+  env.set('HBHEADERS', ' '.join(hb_headers))
+
   foreach name : dist_check_script
-    env = environment()
-    env.set('srcdir', meson.current_source_dir())
-    env.set('libs', meson.current_build_dir())
-    env.set('HBSOURCES', ' '.join(hb_sources))
-    env.set('HBHEADERS', ' '.join(hb_headers))
     test(name, find_program(name), env: env)
   endforeach
+
+  test('check-symbols.sh', find_program('check-symbols.sh'),
+    depends: [harfbuzz_def, harfbuzz_subset_def], # TODO: harfbuzz_icu_def and harfbuzz_gobject_def also
+    env: env)
 endif
-
-# harfbuzz-subset
-harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
-    command: [gen_def, '@OUTPUT@', '@INPUT@'],
-    input: hb_subset_headers,
-    output: 'harfbuzz-subset.def')
-
-libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
-  include_directories: incconfig,
-  link_with: [libharfbuzz],
-  cpp_args: cpp_args + extra_hb_cpp_args,
-  soversion: hb_so_version,
-  version: version,
-  install: true,
-  name_prefix: hb_lib_prefix)
-
-libharfbuzz_subset_dep = declare_dependency(
-  link_with: libharfbuzz_subset,
-  include_directories: incsrc,
-  dependencies: deps)
 
 pkgmod.generate(libharfbuzz,
   description: 'HarfBuzz text shaping library',
