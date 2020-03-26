@@ -37,9 +37,9 @@ struct hb_ot_shape_plan_key_t
 {
   unsigned int variations_index[2];
 
-  void init (hb_face_t   *face,
-		    const int   *coords,
-		    unsigned int num_coords)
+  void init (hb_face_t *face,
+	     const int *coords,
+	     unsigned   num_coords)
   {
     for (unsigned int table_index = 0; table_index < 2; table_index++)
       hb_ot_layout_table_find_feature_variations (face,

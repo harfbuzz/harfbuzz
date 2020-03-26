@@ -3056,7 +3056,7 @@ struct GSUBGPOS
 #ifdef HB_NO_VAR
     return false;
 #endif
-    return (version.to_int () >= 0x00010001u ? this+featureVars : Null(FeatureVariations))
+    return (version.to_int () >= 0x00010001u ? this+featureVars : Null (FeatureVariations))
 	    .find_index (coords, num_coords, index);
   }
   const Feature& get_feature_variation (unsigned int feature_index,
