@@ -47,6 +47,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
     feature_info_t *info = features.push();
     info->type = HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_ALTERNATIVES;
     info->setting = (hb_aat_layout_feature_selector_t) value;
+    info->seq = features.length;
     return;
   }
 
@@ -57,6 +58,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
   feature_info_t *info = features.push();
   info->type = mapping->aatFeatureType;
   info->setting = value ? mapping->selectorToEnable : mapping->selectorToDisable;
+  info->seq = features.length;
 }
 
 void
