@@ -129,6 +129,8 @@ struct FeatureName
 
   hb_ot_name_id_t get_feature_name_id () const { return nameIndex; }
 
+  bool is_exclusive () const { return featureFlags & Exclusive; }
+
   /* A FeatureName with no settings is meaningless */
   bool has_data () const { return nSettings; }
 
