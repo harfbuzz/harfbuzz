@@ -1981,13 +1981,17 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 void hb_ot_map_t::substitute (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
 {
   GSUBProxy proxy (font->face);
+  if (!buffer->message (font, "start table GSUB")) return;
   apply (proxy, plan, font, buffer);
+  (void)buffer->message (font, "end table GSUB");
 }
 
 void hb_ot_map_t::position (const hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const
 {
   GPOSProxy proxy (font->face);
+  if (!buffer->message (font, "start table GPOS")) return;
   apply (proxy, plan, font, buffer);
+  (void)buffer->message (font, "end table GPOS");
 }
 
 void
