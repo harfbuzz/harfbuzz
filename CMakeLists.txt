@@ -499,6 +499,14 @@ if (UNIX OR MINGW)
   endif()
 endif ()
 
+if (MINGW)
+  if(${CMAKE_SIZEOF_VOID_P} EQUAL 8)
+    CHECK_CXX_COMPILER_FLAG("-Wa,-mbig-obj" COMPILER_SUPPORTS_BIG_OBJ)
+    if (COMPILER_SUPPORTS_BIG_OBJ)
+      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
+    endif()
+  endif()
+endif()
 
 ## Define harfbuzz-gobject library
 if (HB_HAVE_GOBJECT)
