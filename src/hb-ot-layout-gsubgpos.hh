@@ -1397,6 +1397,8 @@ struct Rule
 
   void closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
   {
+    if (c->lookup_limit_exceeded ()) return;
+
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 						       (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
     context_closure_lookup (c,
@@ -1407,6 +1409,8 @@ struct Rule
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
+    if (c->lookup_limit_exceeded ()) return;
+
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 						       (inputZ.as_array (inputCount ? inputCount - 1 : 0));
     recurse_lookups (c, lookupCount, lookupRecord.arrayZ);
@@ -1485,6 +1489,8 @@ struct RuleSet
   void closure (hb_closure_context_t *c,
 		ContextClosureLookupContext &lookup_context) const
   {
+    if (c->lookup_limit_exceeded ()) return;
+
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
@@ -1494,6 +1500,8 @@ struct RuleSet
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
+    if (c->lookup_limit_exceeded ()) return;
+
     return
     + hb_iter (rule)
     | hb_map (hb_add (this))
