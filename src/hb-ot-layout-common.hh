@@ -116,6 +116,12 @@ struct hb_subset_layout_context_t :
     return feature_index_count < HB_MAX_FEATURE_INDICES;
   }
 
+  bool visitLookupIndex()
+  {
+    lookup_index_count++;
+    return lookup_index_count < HB_MAX_LOOKUP_INDICES;
+  }
+
   hb_subset_context_t *subset_context;
   const hb_tag_t table_tag;
   const hb_map_t *lookup_index_map;
@@ -133,13 +139,15 @@ struct hb_subset_layout_context_t :
 				debug_depth (0),
 				script_count (0),
 				langsys_count (0),
-                                feature_index_count (0)
+                                feature_index_count (0),
+                                lookup_index_count (0)
   {}
 
   private:
   unsigned script_count;
   unsigned langsys_count;
   unsigned feature_index_count;
+  unsigned lookup_index_count;
 };
 
 template<typename OutputArray>
@@ -416,17 +424,20 @@ struct IndexArray : ArrayOf<Index>
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
-		  Iterator it)
+                  hb_subset_layout_context_t *l,
+                  Iterator it)
   {
-    if (!it.len ()) return;
-    if (unlikely (!c->extend_min ((*this))))  return;
+    if (!it) return;
+    if (unlikely (!c->extend_min ((*this)))) return;
 
-    this->len = it.len ();
     for (const auto _ : it)
     {
+      if (!l->visitLookupIndex()) break;
+
       Index i;
       i = _;
       c->copy (i);
+      this->len++;
     }
   }
 
@@ -509,7 +520,7 @@ struct LangSys
     ;
 
     bool ret = bool (it);
-    out->featureIndex.serialize (c->serializer, it);
+    out->featureIndex.serialize (c->serializer, l, it);
     return_trace (ret);
   }
 
@@ -886,7 +897,7 @@ struct Feature
     | hb_map (l->lookup_index_map)
     ;
 
-    out->lookupIndex.serialize (c->serializer, it);
+    out->lookupIndex.serialize (c->serializer, l, it);
     return_trace (bool (it) || (tag && *tag == HB_TAG ('p', 'r', 'e', 'f')));
   }
 
