@@ -2656,7 +2656,7 @@ struct FeatureTableSubstitution
     + substitutions.iter ()
     | hb_apply (subset_record_array (l, &(out->substitutions), this))
     ;
-    return_trace (bool (out->substitutions));
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
