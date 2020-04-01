@@ -3125,7 +3125,7 @@ struct GSUBGPOS
       if (!ret)
       {
         out->version.major = 1;
-        out->version.major = 0;
+        out->version.minor = 0;
       }
     }
 #endif
