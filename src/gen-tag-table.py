@@ -807,6 +807,7 @@ disambiguation = {
 	'HAL': 'cfm',
 	'HND': 'hnd',
 	'KIS': 'kqs',
+	'KUI': 'uki',
 	'LRC': 'bqi',
 	'NDB': 'nd',
 	'NIS': 'njz',
