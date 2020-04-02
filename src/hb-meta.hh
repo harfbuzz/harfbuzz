@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 
+#include <climits>
 
 /*
  * C++ template meta-programming & fundamentals used with them.
