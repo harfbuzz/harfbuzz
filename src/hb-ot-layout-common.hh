@@ -1644,9 +1644,19 @@ struct ClassDefFormat1
       return_trace (true);
     }
 
-    startGlyph = (*it).first;
-    classValue.serialize (c, + it
-                             | hb_map (hb_second));
+    hb_codepoint_t glyph_min = (*it).first;
+    hb_codepoint_t glyph_max = + it
+                               | hb_map (hb_first)
+                               | hb_reduce (hb_max, 0u);
+    unsigned glyph_count = glyph_max - glyph_min + 1;
+
+    startGlyph = glyph_min;
+    classValue.serialize (c, glyph_count);
+    for (const hb_pair_t<hb_codepoint_t, unsigned>& gid_klass_pair : + it)
+    {
+      unsigned idx = gid_klass_pair.first - glyph_min;
+      classValue[idx] = gid_klass_pair.second;
+    }
     return_trace (true);
   }
 
@@ -1654,7 +1664,7 @@ struct ClassDefFormat1
                hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = klass_map ? *c->plan->glyphset () : *c->plan->_glyphset_gsub;
+    const hb_set_t &glyphset = *c->plan->_glyphset_gsub;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_sorted_vector_t<HBGlyphID> glyphs;
@@ -1823,7 +1833,7 @@ struct ClassDefFormat2
                hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = klass_map ? *c->plan->glyphset () : *c->plan->_glyphset_gsub;
+    const hb_set_t &glyphset = *c->plan->_glyphset_gsub;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_sorted_vector_t<HBGlyphID> glyphs;
