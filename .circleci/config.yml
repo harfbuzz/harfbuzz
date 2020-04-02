@@ -32,9 +32,9 @@ jobs:
       - run: make -j4
       - run: make check || .ci/fail.sh
 
-  macos-10.15-aat-fonts:
+  macos-10.15.3-aat-fonts:
     macos:
-      xcode: "11.2.1"
+      xcode: "11.4.0"
     steps:
       - checkout
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2 meson
@@ -265,7 +265,7 @@ workflows:
       - macos-10.12.6-aat-fonts
       - macos-10.13.6-aat-fonts
       - macos-10.14.4-aat-fonts
-      - macos-10.15-aat-fonts
+      - macos-10.15.3-aat-fonts
 
       - distcheck
 
