@@ -346,6 +346,11 @@ HB_FUNCOBJ (hb_second);
  * However, that would silently convert between different-signedness integers.
  * Instead we accept two different types, such that compiler can err if
  * comparing integers of different signedness. */
+#ifdef _MSC_VER
+/* Disable MSVC warning C4172: returning address of local variable or temporary
+ * https://github.com/harfbuzz/harfbuzz/issues/2293 */
+#pragma warning(disable:4172)
+#endif
 struct
 {
   template <typename T, typename T2> constexpr auto
@@ -367,6 +372,9 @@ struct
   (hb_min (hb_max (hb_forward<T> (x), hb_forward<T2> (min)), hb_forward<T3> (max)))
 }
 HB_FUNCOBJ (hb_clamp);
+#ifdef _MSC_VER
+#pragma warning(default:4172)
+#endif
 
 
 /*
