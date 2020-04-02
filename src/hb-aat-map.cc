@@ -36,16 +36,14 @@
 #include "hb-aat-layout-feat-table.hh"
 
 
-void hb_aat_map_builder_t::add_feature (hb_tag_t tag,
-					unsigned int value)
+void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
 {
-  hb_blob_t *feat_blob = face->table.feat.get_blob ();
-  const AAT::feat& feat = *feat_blob->as<AAT::feat> ();
-  if (!feat.has_data ()) return;
+  if (!face->table.feat->has_data ()) return;
 
   if (tag == HB_TAG ('a','a','l','t'))
   {
-    if (!feat.exposes_feature (HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_ALTERNATIVES)) return;
+    if (!face->table.feat->exposes_feature (HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_ALTERNATIVES))
+      return;
     feature_info_t *info = features.push();
     info->type = HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_ALTERNATIVES;
     info->setting = (hb_aat_layout_feature_selector_t) value;
@@ -54,7 +52,7 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag,
 
   const hb_aat_feature_mapping_t *mapping = hb_aat_layout_find_feature_mapping (tag);
   if (!mapping) return;
-  if (!feat.exposes_feature (mapping->aatFeatureType)) return;
+  if (!face->table.feat->exposes_feature (mapping->aatFeatureType)) return;
 
   feature_info_t *info = features.push();
   info->type = mapping->aatFeatureType;

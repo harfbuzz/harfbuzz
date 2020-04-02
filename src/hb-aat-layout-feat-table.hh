@@ -130,7 +130,7 @@ struct FeatureName
   hb_ot_name_id_t get_feature_name_id () const { return nameIndex; }
 
   /* A FeatureName with no settings is meaningless */
-  bool has_data () const { return nSettings > 0; }
+  bool has_data () const { return nSettings; }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
