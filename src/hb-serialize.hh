@@ -319,12 +319,11 @@ struct hb_serialize_context_t
       {
 	const object_t* child = packed[link.objidx];
 	if (unlikely (!child)) { err_other_error(); return; }
-	unsigned offset;
-	switch ((whence_t)link.whence) {
+	unsigned offset = 0;
+	switch ((whence_t) link.whence) {
 	case Head:     offset = child->head - parent->head; break;
 	case Tail:     offset = child->head - parent->tail; break;
 	case Absolute: offset = (head - start) + (child->head - tail); break;
-	default: assert (0);
 	}
 
 	assert (offset >= link.bias);
