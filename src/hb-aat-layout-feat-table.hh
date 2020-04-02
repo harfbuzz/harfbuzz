@@ -129,6 +129,9 @@ struct FeatureName
 
   hb_ot_name_id_t get_feature_name_id () const { return nameIndex; }
 
+  /* A FeatureName with no settings is meaningless */
+  bool has_data () const { return nSettings > 0; }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -171,6 +174,9 @@ struct feat
     }
     return featureNameCount;
   }
+
+  bool exposes_feature (hb_aat_layout_feature_type_t feature_type) const
+  { return get_feature (feature_type).has_data (); }
 
   const FeatureName& get_feature (hb_aat_layout_feature_type_t feature_type) const
   { return namesZ.bsearch (featureNameCount, feature_type); }
