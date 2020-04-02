@@ -4,7 +4,7 @@ Roboto-Regular.ttf
 PROFILES:
 default.txt
 drop-hints.txt
-keep-gdef.txt
+keep-gdef-gpos.txt
 
 SUBSETS:
 Ḁ̃

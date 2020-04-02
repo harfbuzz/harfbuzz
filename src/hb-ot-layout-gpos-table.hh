@@ -1240,7 +1240,7 @@ struct PairPosFormat2
                 })
     ;
 
-    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_set_t &glyphset = *c->plan->_glyphset_gsub;
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     auto it =
