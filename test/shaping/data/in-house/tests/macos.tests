@@ -119,3 +119,4 @@
 /System/Library/Fonts/Supplemental/Apple Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features dlig=1,sups=0,tnum=0:U+0066,U+0069,U+0072,U+0073,U+0074:[f_i=0+1097|r=2+853|s_t=3+1438]
 /System/Library/Fonts/Supplemental/Apple Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features liga=0,sups=0,tnum=0:U+0066,U+0069,U+0072,U+0073,U+0074:[f=0+639|i=1+606|r=2+853|s=3+728|t=4+725]
 /System/Library/Fonts/Supplemental/Apple Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features smcp=1:U+0066,U+0069,U+0072,U+0073,U+0074:[F.small=0+903|I.small=1+634|R.small=2+1113|S.small=3+911|T.small=4+1075]
+/System/Library/Fonts/Supplemental/Apple Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features liga=0,dlig=1:U+0066,U+0069,U+0072,U+0073,U+0074:[f=0+639|i=1+606|r=2+853|s_t=3+1438]
