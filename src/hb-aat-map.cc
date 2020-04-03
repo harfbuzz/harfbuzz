@@ -55,8 +55,9 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
   if (!mapping) return;
   if (!face->table.feat->exposes_feature (mapping->aatFeatureType))
   {
-    // Special case: Chain::compile_flags will fall back to the deprecated version of
-    // small-caps if necessary, so we need to check for that possibility.
+    /* Special case: Chain::compile_flags will fall back to the deprecated version of
+     * small-caps if necessary, so we need to check for that possibility.
+		 * https://github.com/harfbuzz/harfbuzz/issues/2307 */
     if (mapping->aatFeatureType == HB_AAT_LAYOUT_FEATURE_TYPE_LOWER_CASE &&
         mapping->selectorToEnable == HB_AAT_LAYOUT_FEATURE_SELECTOR_LOWER_CASE_SMALL_CAPS)
     {
