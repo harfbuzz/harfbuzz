@@ -53,7 +53,17 @@ void hb_aat_map_builder_t::add_feature (hb_tag_t tag, unsigned value)
 
   const hb_aat_feature_mapping_t *mapping = hb_aat_layout_find_feature_mapping (tag);
   if (!mapping) return;
-  if (!face->table.feat->exposes_feature (mapping->aatFeatureType)) return;
+  if (!face->table.feat->exposes_feature (mapping->aatFeatureType))
+  {
+    // Special case: Chain::compile_flags will fall back to the deprecated version of
+    // small-caps if necessary, so we need to check for that possibility.
+    if (mapping->aatFeatureType == HB_AAT_LAYOUT_FEATURE_TYPE_LOWER_CASE &&
+        mapping->selectorToEnable == HB_AAT_LAYOUT_FEATURE_SELECTOR_LOWER_CASE_SMALL_CAPS)
+    {
+      if (!face->table.feat->exposes_feature (HB_AAT_LAYOUT_FEATURE_TYPE_LETTER_CASE)) return;
+    }
+    else return;
+  }
 
   feature_info_t *info = features.push();
   info->type = mapping->aatFeatureType;
