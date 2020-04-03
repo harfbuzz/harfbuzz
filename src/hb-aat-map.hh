@@ -76,7 +76,7 @@ struct hb_aat_map_builder_t
 
     int cmp (hb_aat_layout_feature_type_t ty) const
     {
-      return (type != ty) ? (type < ty ? -1 : 1) : 0;
+      return (ty != type) ? (ty < type ? -1 : 1) : 0;
     }
   };
 
