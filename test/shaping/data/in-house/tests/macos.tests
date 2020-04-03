@@ -95,3 +95,8 @@
 /System/Library/Fonts/Times.ttc@e9b4f626133de3b22787ee025218c6c799cc3ceb:--font-funcs ot --features liga=0:U+0066,U+0069,U+006e,U+0065:[f=0+682|i=1+569|n=2+1024|e=3+909]
 /System/Library/Fonts/Supplemental/Kokonor.ttf@14a5c850ba917d9ec9f6bb9b1fc59b1d95512da4:--font-funcs ot:U+0F62,U+0F92,U+0FB1,U+0F74:[r_g_y_u=0+1579]
 /System/Library/Fonts/Supplemental/Kokonor.ttf@14a5c850ba917d9ec9f6bb9b1fc59b1d95512da4:--font-funcs ot --features liga=0:U+0F62,U+0F92,U+0FB1,U+0F74:[r_g_y_u=0+1579]
+/System/Library/Fonts/Supplemental/Apple\ Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot:U+0066,U+0069,U+0072,U+0073,U+0074:[f_i=0+1097|r=2+853|s=3+728|t=4+725]
+/System/Library/Fonts/Supplemental/Apple\ Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features dlig=1:U+0066,U+0069,U+0072,U+0073,U+0074:[f_i=0+1097|r=2+853|s_t=3+1438]
+/System/Library/Fonts/Supplemental/Apple\ Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features liga=0:U+0066,U+0069,U+0072,U+0073,U+0074:[f=0+639|i=1+606|r=2+853|s=3+728|t=4+725]
+/System/Library/Fonts/Supplemental/Apple\ Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features dlig=1,sups=0,tnum=0:U+0066,U+0069,U+0072,U+0073,U+0074:[f_i=0+1097|r=2+853|s_t=3+1438]
+/System/Library/Fonts/Supplemental/Apple\ Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features liga=0,sups=0,tnum=0:U+0066,U+0069,U+0072,U+0073,U+0074:[f=0+639|i=1+606|r=2+853|s=3+728|t=4+725]
