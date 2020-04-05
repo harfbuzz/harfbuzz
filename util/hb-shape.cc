@@ -170,12 +170,15 @@ main (int argc, char **argv)
       argc = 0;
       char *p = buf, *e;
       args[argc++] = p;
-      while ((e = strchr (p, ' ')) && argc < (int) (int) ARRAY_LENGTH (args))
+      unsigned start_offset = 0;
+      while ((e = strchr (p + start_offset, ':')) && argc < (int) ARRAY_LENGTH (args))
       {
 	*e++ = '\0';
-	while (*e == ' ')
+	while (*e == ':')
 	  e++;
 	args[argc++] = p = e;
+	/* Skip 2 first bytes on first argument if is Windows path, "C:\..." */
+	start_offset = argc == 2 && p[0] != '\0' && p[0] != ':' && p[1] == ':' && (p[2] == '\\' || p[2] == '/') ? 2 : 0;
       }
       ret |= driver.main (argc, args);
       fflush (stdout);

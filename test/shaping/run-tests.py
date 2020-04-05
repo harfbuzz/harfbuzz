@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-import sys, os, subprocess, hashlib, tempfile, shutil
+import sys, os, subprocess, hashlib
 
 def cmd(command):
+	print (command)
 	global process
-	process.stdin.write ((' '.join (command) + '\n').encode ("utf-8"))
+	process.stdin.write ((':'.join (command) + '\n').encode ("utf-8"))
 	process.stdin.flush ()
 	return process.stdout.readline().decode ("utf-8").strip ()
 
@@ -97,21 +98,15 @@ for filename in args:
 			print ('%s "%s" %s %s --unicodes %s' %
 					 (hb_shape, fontfile, ' '.join(extra_options), options, unicodes))
 
-		# hack to support fonts with space on run-tests.py, after several other tries...
-		if ' ' in fontfile:
-			new_fontfile = os.path.join (tempfile.gettempdir (), 'tmpfile')
-			shutil.copyfile(fontfile, new_fontfile)
-			fontfile = new_fontfile
-
 		if "--font-funcs=ft" in options and not have_freetype:
 			skips += 1
 			continue
 
 		if "--font-funcs=ot" in options or not have_freetype:
-			glyphs1 = cmd ([hb_shape, "--font-funcs=ot", fontfile] + extra_options + ["--unicodes", unicodes] + options)
+			glyphs1 = cmd ([hb_shape, fontfile, "--font-funcs=ot"] + extra_options + ["--unicodes", unicodes] + options)
 		else:
-			glyphs1 = cmd ([hb_shape, "--font-funcs=ft", fontfile] + extra_options + ["--unicodes", unicodes] + options)
-			glyphs2 = cmd ([hb_shape, "--font-funcs=ot", fontfile] + extra_options + ["--unicodes", unicodes] + options)
+			glyphs1 = cmd ([hb_shape, fontfile, "--font-funcs=ft"] + extra_options + ["--unicodes", unicodes] + options)
+			glyphs2 = cmd ([hb_shape, fontfile, "--font-funcs=ot"] + extra_options + ["--unicodes", unicodes] + options)
 
 			if glyphs1 != glyphs2 and glyphs_expected != '*':
 				print ("FT funcs: " + glyphs1, file=sys.stderr)
