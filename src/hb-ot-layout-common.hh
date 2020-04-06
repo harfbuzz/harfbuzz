@@ -2708,11 +2708,12 @@ struct FeatureVariationRecord
     TRACE_SUBSET (this);
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
-
-    out->conditions.serialize_subset (c->subset_context, conditions, base);
-
+    
     bool ret = out->substitutions.serialize_subset (c->subset_context, substitutions, base, c);
-    return_trace (ret);
+    if (unlikely (!ret)) return_trace (false);
+    
+    out->conditions.serialize_subset (c->subset_context, conditions, base);
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
