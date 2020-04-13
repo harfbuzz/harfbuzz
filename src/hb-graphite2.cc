@@ -43,7 +43,7 @@
  *
  * Functions for using HarfBuzz with fonts that include Graphite2 features.
  * 
- * For Graphite2 features to work, you must be sure that HarfBuzz was compiled
+ * For Graphite features to work, you must be sure that HarfBuzz was compiled
  * with the `graphite2` shaping engine enabled. Currently, the default is to
  * not enable `graphite2` shaping.
  **/
