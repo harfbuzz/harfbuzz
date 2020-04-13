@@ -506,7 +506,7 @@
       on any supported platform.
     </para>
     <para>
-      The principle integration point with ICU is the
+      The principal integration point with ICU is the
       <type>hb_unicode_funcs_t</type> Unicode-functions structure
       attached to a buffer. This structure holds the virtual methods
       used for retrieving Unicode character properties, such as
