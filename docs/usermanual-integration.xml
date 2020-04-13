@@ -315,8 +315,8 @@
       accurately reproduce the same output for shaping a given text
       segment that Uniscribe produces &mdash; even to the point of
       duplicating known shaping bugs or deviations from the
-      specification &mdash; so you can be sure that your users'
-      documents with their existing fonts will not be affected by
+      specification &mdash; so you can be confident that your users'
+      documents with their existing fonts will not be affected adversely by
       switching to HarfBuzz.
     </para>
     <para>
