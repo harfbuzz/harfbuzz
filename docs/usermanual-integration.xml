@@ -412,7 +412,7 @@
       Core Text engine and the underlying Core Graphics
       framework. HarfBuzz does not attempt to offer the same
       drop-in-replacement functionality for Core Text that it strives
-      for with Uniscribe on Windows, but you can still user HarfBuzz
+      for with Uniscribe on Windows, but you can still use HarfBuzz
       to perform text shaping in native macOS and iOS applications.
     </para>
     <para>
