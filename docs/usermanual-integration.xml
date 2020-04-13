@@ -68,7 +68,7 @@
   </para>
   <para>
     The Unicode information is necessary for shaping because the
-    properties of a code point (such as it's General Category (gc),
+    properties of a code point (such as its General Category (gc),
     Canonical Combining Class (ccc), and decomposition) can directly
     impact the shaping moves that HarfBuzz performs.
   </para>
