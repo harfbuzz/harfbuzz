@@ -35,7 +35,7 @@ HB_BEGIN_DECLS
 /**
  * HB_GRAPHITE2_TAG_SILF:
  *
- * The #hb_tag_t tag for the `Silf` table, which holds Graphite2
+ * The #hb_tag_t tag for the `Silf` table, which holds Graphite
  * features. 
  *
  * For more information, see http://graphite.sil.org/
