@@ -40,7 +40,7 @@
     accessing font and face information, so HarfBuzz includes
     functions to create <type>hb_face_t</type> and
     <type>hb_font_t</type> objects directly from FreeType
-    objects. HarfBuzz will can use FreeType's built-in functions for
+    objects. HarfBuzz can use FreeType's built-in functions for
     <structfield>font_funcs</structfield> vtable in an <type>hb_font_t</type>.
   </para>
   <para>
