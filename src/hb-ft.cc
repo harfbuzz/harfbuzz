@@ -673,7 +673,7 @@ hb_ft_face_finalize (FT_Face ft_face)
  * Creates an #hb_face_t face object from the specified FT_Face.
  *
  * This variant of the function caches the newly created #hb_face_t
- * face object, using the generic pointer of @ft_face. Subsequent function
+ * face object, using the @generic pointer of @ft_face. Subsequent function
  * calls that are passed the same @ft_face parameter will have the same
  * #hb_face_t returned to them, and that #hb_face_t will be correctly
  * reference counted.
