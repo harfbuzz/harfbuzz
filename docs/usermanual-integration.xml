@@ -31,7 +31,7 @@
     <type>hb_buffer_t</type> passed to HarfBuzz for shaping contains
     Unicode code points that share the same segment properties
     (namely, direction, language, and script, but also higher-level
-    properties like the active font, font style, color, and so on).
+    properties like the active font, font style, and so on).
   </para>
   <para>
     The layer directly "below" HarfBuzz is typically FreeType, which
