@@ -372,7 +372,7 @@ void free_static_icu_funcs ()
  * Fetches a Unicode-functions structure that is populated
  * with the appropriate ICU function for each method.
  *
- * Return value: (transfer full): a pointer to the #hb_unicode_funcs_t Unicode-functions structure
+ * Return value: (transfer none): a pointer to the #hb_unicode_funcs_t Unicode-functions structure
  *
  * Since: 0.9.38
  **/
