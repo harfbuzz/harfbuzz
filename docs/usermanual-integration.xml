@@ -481,14 +481,14 @@
       As a final note, you may notice a reference to an optional
       <literal>coretext</literal> shaper back-end in the <xref
       linkend="configuration" /> section of the HarfBuzz manual. This
-      option is not a CoreText-integration facility.
+      option is not a Core Text-integration facility.
     </para>
     <para>
       Instead, it is a internal code path used in the
       <command>hb-shape</command> command-line utility, which hands
-      shaping functionality over to CoreText entirely, when run on a
+      shaping functionality over to Core Text entirely, when run on a
       macOS system. That allows testing HarfBuzz's native output
-      against the CoreText engine, for tracking compatibility and debugging.
+      against the Core Text engine, for tracking compatibility and debugging.
     </para>
     <para>
       Because this back-end is only used when testing HarfBuzz
