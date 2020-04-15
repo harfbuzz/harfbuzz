@@ -721,6 +721,12 @@ hb_ft_face_create_cached (FT_Face ft_face)
  * then it is the client program's responsibility to destroy @ft_face 
  * after the #hb_font_t font object has been destroyed.
  *
+ * HarfBuzz will use the @destroy callback on the #hb_font_t font object 
+ * if it is supplied when you use this function. However, even if @destroy
+ * is provided, it is the client program's responsibility to destroy @ft_face,
+ * and it is the client program's responsibility to ensure that @ft_face is
+ * destroyed only after the #hb_font_t font object has been destroyed.
+ *
  * Return value: (transfer full): the new #hb_font_t font object
  *
  * Since: 0.9.2
