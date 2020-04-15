@@ -887,9 +887,18 @@ _release_blob (FT_Face ft_face)
  * Configures the font-functions structure of the specified
  * #hb_font_t font object to use FreeType font functions.
  *
+ * In particular, you can use this function to configure an
+ * existing #hb_face_t face object for use with FreeType font
+ * functions even if that #hb_face_t face object was initially
+ * created with hb_face_create(), and therefore was not
+ * initially configured to use FreeType font functions.
+ *
+ * An #hb_face_t face object created with hb_ft_face_create()
+ * is preconfigured for FreeType font functions and does not
+ * require this function to be used.
+ *
  * <note>Note: Internally, this function creates an FT_Face.
- * You should use this FT_Face when you create an #hb_face_t
- * with hb_ft_face_create().</note>
+* </note>
  *
  * Since: 1.0.5
  **/
