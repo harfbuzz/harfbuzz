@@ -645,7 +645,8 @@ hb_ft_face_create (FT_Face           ft_face,
  * This is the preferred variant of the hb_ft_face_create*
  * function family, because it calls FT_Reference_Face() on @ft_face,
  * ensuring that @ft_face remains alive as long as the resulting
- * #hb_face_t face object remains alive.
+ * #hb_face_t face object remains alive. Also calls FT_Done_Face()
+ * when the #hb_face_t face object is destroyed.
  *
  * Use this version unless you know you have good reasons not to.
  *
