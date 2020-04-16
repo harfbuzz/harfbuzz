@@ -645,16 +645,17 @@ hb_unsigned_mul_overflows (unsigned int count, unsigned int size)
   return (size > 0) && (count >= ((unsigned int) -1) / size);
 }
 
-/* Right now we only have one use for signed overflow and as it
- * is GCC 5.1 > and clang we don't care about its fallback ATM */
-#ifndef __has_builtin
-# define __has_builtin(x) 0
-#endif
+static inline bool
+hb_int_mul_overflows (int x, int y, int &result)
+{
 #if __has_builtin(__builtin_mul_overflow)
-# define hb_signed_mul_overflows(x, y, result) __builtin_mul_overflow(x, y, &result)
+  return __builtin_mul_overflow (x, y, &result);
 #else
-# define hb_signed_mul_overflows(x, y, result) (result = (x) * (y), false)
+  int64_t sink = (int64_t) x * y;
+  result = sink;
+  return result != sink;
 #endif
+}
 
 
 /*
