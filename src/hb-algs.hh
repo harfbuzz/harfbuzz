@@ -645,18 +645,6 @@ hb_unsigned_mul_overflows (unsigned int count, unsigned int size)
   return (size > 0) && (count >= ((unsigned int) -1) / size);
 }
 
-static inline bool
-hb_int_mul_overflows (int x, int y, int &result)
-{
-#if __has_builtin(__builtin_mul_overflow)
-  return __builtin_mul_overflow (x, y, &result);
-#else
-  int64_t sink = (int64_t) x * y;
-  result = sink;
-  return result != sink;
-#endif
-}
-
 
 /*
  * Sort and search.
