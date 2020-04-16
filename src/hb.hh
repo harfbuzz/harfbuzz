@@ -219,10 +219,6 @@ extern "C" void  hb_free_impl(void *ptr);
  * Compiler attributes
  */
 
-#ifndef __has_builtin
-# define __has_builtin(x) 0
-#endif
-
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__OPTIMIZE__)
 #define likely(expr) (__builtin_expect (!!(expr), 1))
 #define unlikely(expr) (__builtin_expect (!!(expr), 0))

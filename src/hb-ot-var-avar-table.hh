@@ -89,14 +89,9 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
     if (unlikely (arrayZ[i-1].fromCoord == arrayZ[i].fromCoord))
       return arrayZ[i-1].toCoord;
 
-    int factor;
-    if (unlikely (hb_int_mul_overflows (arrayZ[i].toCoord - arrayZ[i-1].toCoord,
-					value - arrayZ[i-1].fromCoord,
-					factor)))
-      return arrayZ[i-1].toCoord;
-
     int denom = arrayZ[i].fromCoord - arrayZ[i-1].fromCoord;
-    return arrayZ[i-1].toCoord + (factor + denom/2) / denom;
+    return roundf (arrayZ[i-1].toCoord + ((float) (arrayZ[i].toCoord - arrayZ[i-1].toCoord) *
+					  (value - arrayZ[i-1].fromCoord)) / denom);
 #undef toCoord
 #undef fromCoord
   }
