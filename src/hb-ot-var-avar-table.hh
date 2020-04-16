@@ -90,9 +90,9 @@ struct SegmentMaps : ArrayOf<AxisValueMap>
       return arrayZ[i-1].toCoord;
 
     int factor;
-    if (hb_signed_mul_overflows (arrayZ[i].toCoord - arrayZ[i-1].toCoord,
-				 value - arrayZ[i-1].fromCoord,
-				 factor))
+    if (unlikely (hb_int_mul_overflows (arrayZ[i].toCoord - arrayZ[i-1].toCoord,
+					value - arrayZ[i-1].fromCoord,
+					factor)))
       return arrayZ[i-1].toCoord;
 
     int denom = arrayZ[i].fromCoord - arrayZ[i-1].fromCoord;
