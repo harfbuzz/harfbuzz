@@ -75,12 +75,16 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
 
   hb_set_t *lookup_indexes = hb_set_create ();
   hb_set_add (lookup_indexes, 0);
+#ifdef HB_EXPERIMENTAL_API
   hb_ot_layout_closure_lookups (face, HB_OT_TAG_GSUB, set, lookup_indexes);
+#endif
 
   hb_map_t *lookup_mapping = hb_map_create ();
   hb_map_set (lookup_mapping, 0, 0);
   hb_set_t *feature_indices = hb_set_create ();
+#ifdef HB_EXPERIMENTAL_API
   hb_ot_layout_closure_features (face, HB_OT_TAG_GSUB, lookup_mapping, feature_indices);
+#endif
   hb_set_destroy (lookup_indexes);
   hb_set_destroy (feature_indices);
   hb_map_destroy (lookup_mapping);

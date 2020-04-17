@@ -51,6 +51,7 @@ _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
 #endif
 
 #ifndef HB_NO_SUBSET_LAYOUT
+#ifdef HB_EXPERIMENTAL_API
 static void
 _remap_indexes (const hb_set_t *indexes,
 		hb_map_t       *mapping /* OUT */)
@@ -61,6 +62,7 @@ _remap_indexes (const hb_set_t *indexes,
     mapping->set (_.first, _.second);
 
 }
+#endif
 
 static inline void
 _gsub_closure_glyphs_lookups_features (hb_face_t *face,
@@ -78,6 +80,7 @@ _gsub_closure_glyphs_lookups_features (hb_face_t *face,
   hb_ot_layout_lookups_substitute_closure (face,
 					   &lookup_indices,
 					   gids_to_retain);
+#ifdef HB_EXPERIMENTAL_API
   hb_ot_layout_closure_lookups (face,
 				HB_OT_TAG_GSUB,
 				gids_to_retain,
@@ -91,6 +94,7 @@ _gsub_closure_glyphs_lookups_features (hb_face_t *face,
 				 gsub_lookups,
 				 &feature_indices);
   _remap_indexes (&feature_indices, gsub_features);
+#endif
 }
 
 static inline void
@@ -106,6 +110,7 @@ _gpos_closure_lookups_features (hb_face_t      *face,
 				nullptr,
 				nullptr,
 				&lookup_indices);
+#ifdef HB_EXPERIMENTAL_API
   hb_ot_layout_closure_lookups (face,
 				HB_OT_TAG_GPOS,
 				gids_to_retain,
@@ -119,6 +124,7 @@ _gpos_closure_lookups_features (hb_face_t      *face,
 				 gpos_lookups,
 				 &feature_indices);
   _remap_indexes (&feature_indices, gpos_features);
+#endif
 }
 #endif
 
