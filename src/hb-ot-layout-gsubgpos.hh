@@ -1144,7 +1144,7 @@ static inline bool match_lookahead (hb_ot_apply_context_t *c,
 struct LookupRecord
 {
   LookupRecord* copy (hb_serialize_context_t *c,
-		      const hb_map_t         *lookup_map)
+		      const hb_map_t         *lookup_map) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->embed (*this);
@@ -1450,6 +1450,47 @@ struct Rule
     return_trace (context_apply_lookup (c, inputCount, inputZ.arrayZ, lookupCount, lookupRecord.arrayZ, lookup_context));
   }
 
+  bool serialize (hb_serialize_context_t *c,
+		  const hb_map_t *input_mapping, /* old->new glyphid or class mapping */
+		  const hb_map_t *lookup_map) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (this);
+    if (unlikely (!c->extend_min (out))) return_trace (false);
+
+    out->inputCount = inputCount;
+    out->lookupCount = lookupCount;
+
+    const hb_array_t<const HBUINT16> input = inputZ.as_array (inputCount - 1);
+    for (const auto org : input)
+    {
+      HBUINT16 d;
+      d = input_mapping->get (org);
+      c->copy (d);
+    }
+
+    const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
+                                                       (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
+    for (unsigned i = 0; i < (unsigned) lookupCount; i++)
+      c->copy (lookupRecord[i], lookup_map);
+
+    return_trace (true);
+  }
+
+  bool subset (hb_subset_context_t *c,
+	       const hb_map_t *lookup_map,
+	       const hb_map_t *klass_map = nullptr) const
+  {
+    TRACE_SUBSET (this);
+
+    const hb_array_t<const HBUINT16> input = inputZ.as_array ((inputCount ? inputCount - 1 : 0));
+    if (!input.length) return_trace (false);
+
+    const hb_map_t *mapping = klass_map == nullptr ? c->plan->glyph_map : klass_map;
+    if (!hb_all (input, mapping)) return_trace (false);
+    return_trace (serialize (c->serializer, mapping, lookup_map));
+  }
+
   public:
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -1544,6 +1585,36 @@ struct RuleSet
     | hb_any
     )
     ;
+  }
+
+  bool subset (hb_subset_context_t *c,
+	       const hb_map_t *lookup_map,
+	       const hb_map_t *klass_map = nullptr) const
+  {
+    TRACE_SUBSET (this);
+
+    auto snap = c->serializer->snapshot ();
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    for (const OffsetTo<Rule>& _ : rule)
+    {
+      if (!_) continue;
+      auto *o = out->rule.serialize_append (c->serializer);
+      if (unlikely (!o)) continue;
+
+      auto o_snap = c->serializer->snapshot ();
+      if (!o->serialize_subset (c, _, this, lookup_map, klass_map))
+      {
+        out->rule.pop ();
+        c->serializer->revert (o_snap);
+      }
+    }
+
+    bool ret = bool (out->rule);
+    if (!ret) c->serializer->revert (snap);
+
+    return_trace (ret);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1648,8 +1719,26 @@ struct ContextFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
+    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
+    + hb_zip (this+coverage, ruleSet)
+    | hb_filter (glyphset, hb_first)
+    | hb_filter (subset_offset_array (c, out->ruleSet, this, lookup_map), hb_second)
+    | hb_map (hb_first)
+    | hb_map (glyph_map)
+    | hb_sink (new_coverage)
+    ;
+
+    out->coverage.serialize (c->serializer, out)
+                 .serialize (c->serializer, new_coverage.iter ());
+    return_trace (bool (new_coverage));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1774,8 +1863,45 @@ struct ContextFormat2
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+    if (unlikely (!out->coverage.serialize_subset (c, coverage, this)))
+      return_trace (false);
+
+    hb_map_t klass_map;
+    out->classDef.serialize_subset (c, classDef, this, &klass_map);
+
+    const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
+    bool ret = true;
+    unsigned non_zero_index = 0, index = 0;
+    for (const hb_pair_t<unsigned, const OffsetTo<RuleSet>&>& _ : + hb_enumerate (ruleSet)
+								  | hb_filter (klass_map, hb_first))
+    {
+      auto *o = out->ruleSet.serialize_append (c->serializer);
+      if (unlikely (!o))
+      {
+        ret = false;
+        break;
+      }
+
+      if (o->serialize_subset (c, _.second, this, lookup_map, &klass_map))
+        non_zero_index = index;
+
+      index++;
+    }
+
+    if (!ret) return_trace (ret);
+
+    //prune empty trailing ruleSets
+    --index;
+    while (index > non_zero_index)
+    {
+      out->ruleSet.pop ();
+      index--;
+    }
+
+    return_trace (bool (out->ruleSet));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -1886,8 +2012,28 @@ struct ContextFormat3
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    out->format = format;
+    out->glyphCount = glyphCount;
+    out->lookupCount = lookupCount;
+
+    const hb_array_t<const OffsetTo<Coverage>> coverages = coverageZ.as_array (glyphCount);
+
+    for (const OffsetTo<Coverage>& offset : coverages)
+    {
+      auto *o = c->serializer->allocate_size<OffsetTo<Coverage>> (OffsetTo<Coverage>::static_size);
+      if (unlikely (!o)) return_trace (false);
+      if (!o->serialize_subset (c, offset, this)) return_trace (false);
+    }
+
+    const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
+    const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
+    for (unsigned i = 0; i < (unsigned) lookupCount; i++)
+      c->serializer->copy (lookupRecord[i], lookup_map);
+    
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
