@@ -1,7 +1,7 @@
 project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.47.0',
   default_options : ['cpp_std=c++11'],
-  version: '2.6.4')
+  version: '2.6.5')
 
 warning('Meson is not our main build system yet, don\'t use it for packaging HarfBuzz for *nix distros for now')
 

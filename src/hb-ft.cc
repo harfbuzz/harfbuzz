@@ -195,7 +195,7 @@ hb_ft_font_get_face (hb_font_t *font)
  *
  *
  * Return value:
- * Since: REPLACEME
+ * Since: 2.6.5
  **/
 FT_Face
 hb_ft_font_lock_face (hb_font_t *font)
@@ -217,7 +217,7 @@ hb_ft_font_lock_face (hb_font_t *font)
  *
  *
  * Return value:
- * Since: REPLACEME
+ * Since: 2.6.5
  **/
 void
 hb_ft_font_unlock_face (hb_font_t *font)
