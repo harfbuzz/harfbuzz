@@ -1213,7 +1213,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
  *
  * Returns all inactive lookups reachable from lookup_indices
  *
- * Since: REPLACEME
+ * Since: EXPERIMENTAL
  **/
 void
 hb_ot_layout_closure_lookups (hb_face_t      *face,
@@ -1256,7 +1256,7 @@ hb_ot_layout_closure_lookups (hb_face_t      *face,
  *
  * Returns all active feature indexes
  *
- * Since: REPLACEME
+ * Since: EXPERIMENTAL
  **/
 void
 hb_ot_layout_closure_features (hb_face_t      *face,
