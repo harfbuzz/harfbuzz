@@ -2032,13 +2032,14 @@ hb_font_get_var_coords_normalized (hb_font_t *font,
   return font->coords;
 }
 
+#ifdef HB_EXPERIMENTAL_API
 /**
  * hb_font_get_var_coords_design:
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.
  *
- * Since: REPLACEME
+ * Since: EXPERIMENTAL
  */
 const float *
 hb_font_get_var_coords_design (hb_font_t *font,
@@ -2049,6 +2050,7 @@ hb_font_get_var_coords_design (hb_font_t *font,
 
   return font->design_coords;
 }
+#endif
 #endif
 
 #ifndef HB_DISABLE_DEPRECATED

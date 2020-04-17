@@ -38,6 +38,7 @@
 static void
 test_get_var_coords (void)
 {
+#ifdef HB_EXPERIMENTAL_API
   hb_face_t *face = hb_test_open_font_file ("fonts/TestCFF2VF.otf");
   hb_font_t *font = hb_font_create (face);
 
@@ -65,6 +66,7 @@ test_get_var_coords (void)
 
   hb_font_destroy (font);
   hb_face_destroy (face);
+#endif
 }
 
 static void
