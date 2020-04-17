@@ -1203,6 +1203,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
   g.feature_variation_collect_lookups (&feature_indexes, lookup_indexes);
 }
 
+#ifdef HB_EXPERIMENTAL_API
 /**
  * hb_ot_layout_closure_lookups:
  * @face: #hb_face_t to work upon
@@ -1266,6 +1267,7 @@ hb_ot_layout_closure_features (hb_face_t      *face,
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
   g.closure_features (lookup_indexes, feature_indexes);
 }
+#endif
 
 
 #ifndef HB_NO_LAYOUT_COLLECT_GLYPHS

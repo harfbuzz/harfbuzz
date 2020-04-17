@@ -263,6 +263,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 			      const hb_tag_t *features,
 			      hb_set_t       *lookup_indexes /* OUT */);
 
+#ifdef HB_EXPERIMENTAL_API
 HB_EXTERN void
 hb_ot_layout_closure_lookups (hb_face_t      *face,
 			      hb_tag_t        table_tag,
@@ -274,6 +275,7 @@ hb_ot_layout_closure_features (hb_face_t      *face,
 			       hb_tag_t        table_tag,
 			       const hb_map_t *lookup_indexes, /* IN */
 			       hb_set_t       *feature_indexes /* OUT */);
+#endif
 
 HB_EXTERN void
 hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
