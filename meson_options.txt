@@ -26,5 +26,7 @@ option('tests', type : 'feature', value : 'auto', yield : true,
 option('introspection', type : 'feature', value : 'disabled', yield : true,
   description : 'Generate gobject-introspection bindings (.gir/.typelib files)')
 
+option('icu-builtin', type: 'boolean', value: false,
+  description: 'Don\'t separate ICU support as harfbuzz-icu module')
 option('amalgam', type : 'boolean', value : false,
   description : 'Enable amalgam builds')
