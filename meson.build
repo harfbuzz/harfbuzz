@@ -190,6 +190,9 @@ endif
 
 if icu_dep.found()
   conf.set('HAVE_ICU', 1)
+endif
+
+if get_option('icu-builtin')
   conf.set('HAVE_ICU_BUILTIN', 1)
 endif
 

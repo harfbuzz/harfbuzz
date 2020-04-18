@@ -96,7 +96,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     test(test_name, executable(test_name, source,
       include_directories: [incconfig, incsrc],
       dependencies: deps,
-      link_with: [libharfbuzz, libharfbuzz_icu],
+      link_with: have_icu_builtin ? [libharfbuzz] : [libharfbuzz, libharfbuzz_icu],
       install: false,
     ), env: env)
   endforeach

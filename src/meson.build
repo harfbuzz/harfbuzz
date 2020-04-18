@@ -325,6 +325,15 @@ if get_option('amalgam')
   hb_sources = ['harfbuzz.cc']
 endif
 
+have_icu = conf.get('HAVE_ICU', 0) == 1
+have_icu_builtin = conf.get('HAVE_ICU_BUILTIN', 0) == 1
+
+if have_icu and have_icu_builtin
+  hb_sources += hb_icu_sources
+  hb_headers += hb_icu_headers
+  deps += [icu_dep]
+endif
+
 # harfbuzz
 gen_def = find_program('gen-def.py')
 harfbuzz_def = custom_target('harfbuzz.def',
@@ -485,9 +494,7 @@ pkgmod.generate(libharfbuzz_subset,
   version: meson.project_version(),
 )
 
-have_icu = conf.get('HAVE_ICU', 0) == 1
-
-if have_icu
+if have_icu and not have_icu_builtin
   libharfbuzz_icu = library('harfbuzz-icu', [hb_icu_sources, hb_icu_headers],
     include_directories: incconfig,
     dependencies: icu_dep,
