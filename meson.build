@@ -95,8 +95,12 @@ cairo_dep = dependency('cairo', required: false)
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'),
                             fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: get_option('graphite'))
-icu_dep = dependency('icu-uc', required: get_option('icu').enabled() and cpp.get_id() != 'msvc')
+icu_dep = dependency('icu-uc', required: false)
 m_dep = cpp.find_library('m', required: false)
+
+if not icu_dep.found() and get_option('icu').enabled()
+  icu_dep = dependency('icu-uc', required: cpp.get_id() != 'msvc')
+endif
 
 if not icu_dep.found() and cpp.get_id() == 'msvc'
   if cpp.has_header('unicode/uchar.h') and \
@@ -187,7 +191,6 @@ endif
 if icu_dep.found()
   conf.set('HAVE_ICU', 1)
   conf.set('HAVE_ICU_BUILTIN', 1)
-  deps += [icu_dep]
 endif
 
 if freetype_dep.found()

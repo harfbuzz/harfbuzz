@@ -24,7 +24,6 @@ if conf.get('HAVE_GLIB', 0) == 1
     'test-ot-metrics-tt-var.c',
     'test-set.c',
     'test-shape.c',
-    'test-unicode.c',
     'test-var-coords.c',
     'test-version.c',
   ]
@@ -50,6 +49,11 @@ if conf.get('HAVE_GLIB', 0) == 1
     'test-subset-colr.c',
     'test-subset-cbdt.c',
   ]
+
+  icu_tests = []
+  if conf.get('HAVE_ICU', 0) == 1
+    icu_tests += 'test-unicode.c'
+  endif
 
   if conf.get('HAVE_FREETYPE', 0) == 1
     tests += 'test-ot-math.c'
@@ -83,6 +87,16 @@ if conf.get('HAVE_GLIB', 0) == 1
       include_directories: [incconfig, incsrc],
       dependencies: deps,
       link_with: [libharfbuzz, libharfbuzz_subset],
+      install: false,
+    ), env: env)
+  endforeach
+
+  foreach source : icu_tests
+    test_name = source.split('.')[0]
+    test(test_name, executable(test_name, source,
+      include_directories: [incconfig, incsrc],
+      dependencies: deps,
+      link_with: [libharfbuzz, libharfbuzz_icu],
       install: false,
     ), env: env)
   endforeach

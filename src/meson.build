@@ -325,12 +325,6 @@ if get_option('amalgam')
   hb_sources = ['harfbuzz.cc']
 endif
 
-# FIXME: move into harfbuzz-icu module
-if conf.get('HAVE_ICU', 0) == 1
-  hb_sources += hb_icu_sources
-  hb_headers += hb_icu_headers
-endif
-
 # harfbuzz
 gen_def = find_program('gen-def.py')
 harfbuzz_def = custom_target('harfbuzz.def',
@@ -490,6 +484,33 @@ pkgmod.generate(libharfbuzz_subset,
   subdirs: [meson.project_name()],
   version: meson.project_version(),
 )
+
+have_icu = conf.get('HAVE_ICU', 0) == 1
+
+if have_icu
+  libharfbuzz_icu = library('harfbuzz-icu', [hb_icu_sources, hb_icu_headers],
+    include_directories: incconfig,
+    dependencies: icu_dep,
+    link_with: [libharfbuzz],
+    cpp_args: cpp_args + extra_hb_cpp_args,
+    soversion: hb_so_version,
+    version: version,
+    install: true,
+    name_prefix: hb_lib_prefix)
+
+  libharfbuzz_icu_dep = declare_dependency(
+    link_with: libharfbuzz_icu,
+    include_directories: incsrc,
+    dependencies: deps)
+
+  pkgmod.generate(libharfbuzz_icu,
+    description: 'HarfBuzz text shaping library ICU integration',
+    subdirs: [meson.project_name()],
+    version: meson.project_version(),
+  )
+else
+  libharfbuzz_icu_dep = dependency('', required: false)
+endif
 
 have_gobject = conf.get('HAVE_GOBJECT', 0) == 1
 
