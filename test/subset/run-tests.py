@@ -23,7 +23,8 @@ if not fonttools:
 
 def cmd(command):
 	p = subprocess.Popen (
-		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+		universal_newlines=True)
 	(stdoutdata, stderrdata) = p.communicate ()
 	print (stderrdata, end="") # file=sys.stderr
 	return stdoutdata, p.returncode
@@ -91,7 +92,7 @@ def run_ttx (file):
 def strip_check_sum (ttx_string):
 	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
 		       'checkSumAdjustment value="0x00000000"',
-		       ttx_string.decode ("utf-8"), count=1)
+		       ttx_string, count=1)
 
 def has_ots ():
 	if not ots_sanitize:
