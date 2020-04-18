@@ -974,8 +974,8 @@ struct glyf
 	     : face->table.hmtx->get_side_bearing (gid);
 
       return is_vertical
-	   ? ceil (phantoms[PHANTOM_TOP].y) - extents.y_bearing
-	   : floor (phantoms[PHANTOM_LEFT].x);
+	   ? ceilf (phantoms[PHANTOM_TOP].y) - extents.y_bearing
+	   : floorf (phantoms[PHANTOM_LEFT].x);
     }
 #endif
 
