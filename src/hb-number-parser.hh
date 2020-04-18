@@ -30,8 +30,6 @@
 
 #include "hb.hh"
 
-#include <float.h>
-
 
 #line 37 "hb-number-parser.hh"
 static const unsigned char _double_parser_trans_keys[] = {

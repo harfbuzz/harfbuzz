@@ -36,8 +36,6 @@
 #include "hb-ot-var-gvar-table.hh"
 #include "hb-draw.hh"
 
-#include <float.h>
-
 namespace OT {
 
 
