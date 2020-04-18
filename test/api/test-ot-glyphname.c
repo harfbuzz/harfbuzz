@@ -67,6 +67,20 @@ test_non_standard_names (void)
   hb_face_destroy (face);
 }
 
+static void
+test_predef_charset_names (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/cff1_expert.otf");
+  hb_font_t *font = hb_font_create (face);
+
+  test_one_glyph (font, 0,   ".notdef");
+  test_one_glyph (font, 29,  "centsuperior");
+  test_one_glyph (font, 86,  "commainferior");
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -74,6 +88,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_standard_names);
   hb_test_add (test_non_standard_names);
+  hb_test_add (test_predef_charset_names);
 
   return hb_test_run();
 }

@@ -1217,6 +1217,31 @@ struct cff1
       }
     }
 
+    hb_codepoint_t sid_to_glyph (hb_codepoint_t sid) const
+    {
+      if (charset != &Null(Charset))
+        return charset->get_glyph (sid, num_glyphs);
+      else
+      {
+        hb_codepoint_t glyph = 0;
+        switch (topDict.CharsetOffset)
+        {
+          case  ISOAdobeCharset:
+            if (sid <= 228 /*zcaron*/) glyph = sid;
+            break;
+          case  ExpertCharset:
+            glyph = lookup_expert_charset_for_glyph (sid);
+            break;
+          case  ExpertSubsetCharset:
+            glyph = lookup_expert_subset_charset_for_glyph (sid);
+            break;
+          default:
+            break;
+        }
+        return glyph;
+      }
+    }
+
     protected:
     hb_blob_t	       *blob;
     hb_sanitize_context_t   sc;
@@ -1312,7 +1337,7 @@ struct cff1
       gname_t	key = { hb_bytes_t (name, len), 0 };
       const gname_t *gname = glyph_names.bsearch (key);
       if (gname == nullptr) return false;
-      hb_codepoint_t gid = charset->get_glyph (gname->sid, num_glyphs);
+      hb_codepoint_t gid = sid_to_glyph (gname->sid);
       if (!gid && gname->sid) return false;
       *glyph = gid;
       return true;
@@ -1357,6 +1382,8 @@ struct cff1
   HB_INTERNAL static hb_codepoint_t lookup_expert_encoding_for_code (hb_codepoint_t sid);
   HB_INTERNAL static hb_codepoint_t lookup_expert_charset_for_sid (hb_codepoint_t glyph);
   HB_INTERNAL static hb_codepoint_t lookup_expert_subset_charset_for_sid (hb_codepoint_t glyph);
+  HB_INTERNAL static hb_codepoint_t lookup_expert_charset_for_glyph (hb_codepoint_t sid);
+  HB_INTERNAL static hb_codepoint_t lookup_expert_subset_charset_for_glyph (hb_codepoint_t sid);
   HB_INTERNAL static hb_codepoint_t lookup_standard_encoding_for_sid (hb_codepoint_t code);
 
   public:
