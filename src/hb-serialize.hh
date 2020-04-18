@@ -45,18 +45,13 @@ struct hb_serialize_context_t
 {
   typedef unsigned objidx_t;
 
-  struct range_t
-  {
-    char *head, *tail;
-  };
-
   enum whence_t {
      Head,	/* Relative to the current object head (default). */
      Tail,	/* Relative to the current object tail after packed. */
      Absolute	/* Absolute: from the start of the serialize buffer. */
    };
 
-  struct object_t : range_t
+  struct object_t
   {
     void fini () { links.fini (); }
 
@@ -83,12 +78,22 @@ struct hb_serialize_context_t
       objidx_t objidx;
     };
 
+    char *head;
+    char *tail;
     hb_vector_t<link_t> links;
     object_t *next;
   };
 
-  range_t snapshot () { range_t s = {head, tail} ; return s; }
+  struct snapshot_t
+  {
+    char *head;
+    char *tail;
+    object_t *current; // Just for sanity check
+    unsigned num_links;
+  };
 
+  snapshot_t snapshot ()
+  { return snapshot_t { head, tail, current, current->links.length }; }
 
   hb_serialize_context_t (void *start_, unsigned int size) :
     start ((char *) start_),
@@ -199,7 +204,7 @@ struct hb_serialize_context_t
     object_t *obj = current;
     if (unlikely (!obj)) return;
     current = current->next;
-    revert (*obj);
+    revert (obj->head, obj->tail);
     obj->fini ();
     object_pool.free (obj);
   }
@@ -253,12 +258,19 @@ struct hb_serialize_context_t
     return objidx;
   }
 
-  void revert (range_t snap)
+  void revert (snapshot_t snap)
   {
-    assert (snap.head <= head);
-    assert (tail <= snap.tail);
-    head = snap.head;
-    tail = snap.tail;
+    assert (snap.current == current);
+    current->links.shrink (snap.num_links);
+    revert (snap.head, snap.tail);
+  }
+  void revert (char *snap_head,
+	       char *snap_tail)
+  {
+    assert (snap_head <= head);
+    assert (tail <= snap_tail);
+    head = snap_head;
+    tail = snap_tail;
     discard_stale_objects ();
   }
 
