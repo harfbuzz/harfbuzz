@@ -627,4 +627,4 @@ else
   libharfbuzz_gobject_dep = dependency('', required: false)
 endif
 
-install_headers(hb_headers + hb_gobject_headers + hb_subset_headers, subdir: meson.project_name())
+install_headers(hb_headers + hb_gobject_headers + hb_subset_headers + hb_icu_headers, subdir: meson.project_name())
