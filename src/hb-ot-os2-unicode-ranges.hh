@@ -222,10 +222,9 @@ static const OS2Range _hb_os2_unicode_ranges[] =
 static unsigned int
 _hb_ot_os2_get_unicode_range_bit (hb_codepoint_t cp)
 {
-  auto* range = hb_bsearch (cp, _hb_os2_unicode_ranges, ARRAY_LENGTH (_hb_os2_unicode_ranges));
-  if (range != nullptr)
-    return range->bit;
-  return -1;
+  auto *range = hb_sorted_array (_hb_os2_unicode_ranges).bsearch (cp);
+  if (unlikely (range == nullptr)) return -1;
+  return range->bit;
 }
 
 } /* namespace OT */
