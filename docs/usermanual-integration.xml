@@ -550,11 +550,15 @@
       to a <type>hb_script_t</type>.
     </para>
     <para>
-      By default, ICU support is included when compiling HarfBuzz from
-      source. The build system will look for the ICU library and link
-      to it if it is found. You can also build HarfBuzz with it own,
-      internal copy of ICU, by specifying the
-      <literal>--with-icu=builtin</literal> compile-time option.
+      By default, HarfBuzz's ICU support is built as a separate shared
+      library (<filename class="libraryfile">libharfbuzz-icu.so</filename>)
+      when compiling HarfBuzz from source. This allows client programs
+      that do not need ICU to link against HarfBuzz without unnecessarily
+      adding ICU as a dependency. You can also build HarfBuzz with ICU
+      support built directly into the main HarfBuzz shared library
+      (<filename class="libraryfile">libharfbuzz.so</filename>),
+      by specifying the <literal>--with-icu=builtin</literal>
+      compile-time option.
     </para>
 
   </section>
