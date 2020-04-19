@@ -208,17 +208,26 @@
       hb_font_t *font = hb_ft_font_create(face);
     </programlisting>
     <para>
+      <function>hb_ft_font_create_referenced()</function> is
+      the recommended function for creating an <type>hb_face_t</type> face
+      object. This function calls <function>FT_Reference_Face()</function>
+      before using the <type>FT_Face</type> and calls 
+      <function>FT_Done_Face()</function> when it is finished using the
+      <type>FT_Face</type>. Consequently, your client program does not need
+      to worry about destroying the <type>FT_Face</type> while HarfBuzz
+      is still using it.
+    </para>
+    <para>
       Although <function>hb_ft_font_create_referenced()</function> is
-      the recommended function, there is another variant. The simpler
-      version of the function is
-      <function>hb_ft_font_create()</function>, which takes an
-      <type>FT_Face</type> and an optional destroy callback as its
-      arguments. The critical difference between the two is that
-      <function>hb_ft_font_create()</function> does not offer the
-      lifecycle-management feature. Your client code will be
-      responsible for tracking references to the <type>FT_Face</type> objects and
-      destroying them when they are no longer needed. If you do not
-      have a valid reason for doing this, user
+      the recommended function, there is another variant for client code
+      where special circumstances make it necessary. The simpler
+      version of the function is <function>hb_ft_font_create()</function>,
+      which takes an <type>FT_Face</type> and an optional destroy callback 
+      as its arguments. Because <function>hb_ft_font_create()</function> 
+      does not offer lifecycle management, however, your client code will
+      be responsible for tracking references to the <type>FT_Face</type>
+      objects and destroying them when they are no longer needed. If you
+      do not have a valid reason for doing this, use
       <function>hb_ft_font_create_referenced()</function>. 
     </para>
     <para>
