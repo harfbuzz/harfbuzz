@@ -172,7 +172,7 @@ static const hb_aat_feature_mapping_t feature_mappings[] =
 const hb_aat_feature_mapping_t *
 hb_aat_layout_find_feature_mapping (hb_tag_t tag)
 {
-  return hb_bsearch (tag, feature_mappings, ARRAY_LENGTH (feature_mappings));
+  return hb_sorted_array (feature_mappings).bsearch (tag);
 }
 #endif
 

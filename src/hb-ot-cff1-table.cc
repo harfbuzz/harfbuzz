@@ -247,13 +247,13 @@ hb_codepoint_t OT::cff1::lookup_expert_subset_charset_for_sid (hb_codepoint_t gl
 
 hb_codepoint_t OT::cff1::lookup_expert_charset_for_glyph (hb_codepoint_t sid)
 {
-  const auto  *pair = hb_bsearch (sid, expert_charset_sid_to_gid, ARRAY_LENGTH (expert_charset_sid_to_gid));
+  const auto *pair = hb_sorted_array (expert_charset_sid_to_gid).bsearch (sid);
   return pair ? pair->gid : 0;
 }
 
 hb_codepoint_t OT::cff1::lookup_expert_subset_charset_for_glyph (hb_codepoint_t sid)
 {
-  const auto  *pair = hb_bsearch (sid, expert_subset_charset_sid_to_gid, ARRAY_LENGTH (expert_subset_charset_sid_to_gid));
+  const auto *pair = hb_sorted_array (expert_subset_charset_sid_to_gid).bsearch (sid);
   return pair ? pair->gid : 0;
 }
 
