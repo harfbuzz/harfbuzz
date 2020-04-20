@@ -300,7 +300,7 @@ struct cff2_subset_plan {
     }
 
     /* FDSelect */
-    if (acc.fdSelect != &Null(CFF2FDSelect))
+    if (acc.fdSelect != &Null (CFF2FDSelect))
     {
       if (unlikely (!hb_plan_subset_cff_fdselect (plan,
 				  orig_fdcount,
@@ -397,7 +397,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
   }
 
   /* FDSelect */
-  if (acc.fdSelect != &Null(CFF2FDSelect))
+  if (acc.fdSelect != &Null (CFF2FDSelect))
   {
     c->push ();
     if (likely (hb_serialize_cff_fdselect (c, num_glyphs, *(const FDSelect *)acc.fdSelect, 					      plan.orig_fdcount,
@@ -428,7 +428,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
   }
 
   /* variation store */
-  if (acc.varStore != &Null(CFF2VariationStore))
+  if (acc.varStore != &Null (CFF2VariationStore))
   {
     c->push ();
     CFF2VariationStore *dest = c->start_embed<CFF2VariationStore> ();

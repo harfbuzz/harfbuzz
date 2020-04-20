@@ -530,7 +530,7 @@ struct hb_set_t
       if (old_index_to_page_map_index[i] == 0xFFFFFFFF) continue;
 
       if (write_index < i)
-        pages[write_index] = pages[i];
+	pages[write_index] = pages[i];
 
       page_map[old_index_to_page_map_index[i]].index = write_index;
       write_index++;
@@ -555,16 +555,16 @@ struct hb_set_t
     {
       if (page_map[a].major == other->page_map[b].major)
       {
-        if (!Op::passthru_left)
-        {
-          // Move page_map entries that we're keeping from the left side set
-          // to the front of the page_map vector. This isn't necessary if
-          // passthru_left is set since no left side pages will be removed
-          // in that case.
-          if (write_index < a)
-            page_map[write_index] = page_map[a];
-          write_index++;
-        }
+	if (!Op::passthru_left)
+	{
+	  // Move page_map entries that we're keeping from the left side set
+	  // to the front of the page_map vector. This isn't necessary if
+	  // passthru_left is set since no left side pages will be removed
+	  // in that case.
+	  if (write_index < a)
+	    page_map[write_index] = page_map[a];
+	  write_index++;
+	}
 
 	count++;
 	a++;
@@ -808,7 +808,7 @@ struct hb_set_t
   struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
   {
     static constexpr bool is_sorted_iterator = true;
-    iter_t (const hb_set_t &s_ = Null(hb_set_t),
+    iter_t (const hb_set_t &s_ = Null (hb_set_t),
 	    bool init = true) : s (&s_), v (INVALID), l(0)
     {
       if (init)

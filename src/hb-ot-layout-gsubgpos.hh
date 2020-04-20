@@ -114,7 +114,7 @@ struct hb_closure_context_t :
 			  nesting_level_left (nesting_level_left_),
 			  debug_depth (0),
 			  done_lookups (done_lookups_),
-                          lookup_count (0)
+			  lookup_count (0)
   {}
 
   ~hb_closure_context_t () { flush (); }
@@ -191,7 +191,7 @@ struct hb_closure_lookups_context_t :
 				debug_depth (0),
 				visited_lookups (visited_lookups_),
 				inactive_lookups (inactive_lookups_),
-                                lookup_count (0) {}
+				lookup_count (0) {}
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
 
@@ -314,7 +314,7 @@ struct hb_add_coverage_context_t :
   typedef const Coverage &return_t;
   template <typename T>
   return_t dispatch (const T &obj) { return obj.get_coverage (); }
-  static return_t default_return_value () { return Null(Coverage); }
+  static return_t default_return_value () { return Null (Coverage); }
   bool stop_sublookup_iteration (return_t r) const
   {
     r.add_coverage (set);
@@ -569,7 +569,7 @@ struct hb_ot_apply_context_t :
 #ifndef HB_NO_OT_LAYOUT
 			      *face->table.GDEF->table
 #else
-			      Null(GDEF)
+			      Null (GDEF)
 #endif
 			     ),
 			var_store (gdef.get_var_store ()),
@@ -2155,8 +2155,8 @@ struct ChainRule
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
   void serialize_array (hb_serialize_context_t *c,
-                        HBUINT16 len,
-                        Iterator it) const
+			HBUINT16 len,
+			Iterator it) const
   {
     c->copy (len);
     for (const auto g : it)
@@ -2197,9 +2197,9 @@ struct ChainRule
   }
 
   bool subset (hb_subset_context_t *c,
-               const hb_map_t *backtrack_map = nullptr,
-               const hb_map_t *input_map = nullptr,
-               const hb_map_t *lookahead_map = nullptr) const
+	       const hb_map_t *backtrack_map = nullptr,
+	       const hb_map_t *input_map = nullptr,
+	       const hb_map_t *lookahead_map = nullptr) const
   {
     TRACE_SUBSET (this);
 
@@ -2210,18 +2210,18 @@ struct ChainRule
     {
       const hb_set_t &glyphset = *c->plan->glyphset ();
       if (!hb_all (backtrack, glyphset) ||
-          !hb_all (input, glyphset) ||
-          !hb_all (lookahead, glyphset))
-        return_trace (false);
+	  !hb_all (input, glyphset) ||
+	  !hb_all (lookahead, glyphset))
+	return_trace (false);
 
       copy (c->serializer, c->plan->glyph_map);
     }
     else
     {
       if (!hb_all (backtrack, backtrack_map) ||
-          !hb_all (input, input_map) ||
-          !hb_all (lookahead, lookahead_map))
-        return_trace (false);
+	  !hb_all (input, input_map) ||
+	  !hb_all (lookahead, lookahead_map))
+	return_trace (false);
 
       copy (c->serializer, backtrack_map, input_map, lookahead_map);
     }
@@ -2324,9 +2324,9 @@ struct ChainRuleSet
   }
 
   bool subset (hb_subset_context_t *c,
-               const hb_map_t *backtrack_klass_map = nullptr,
-               const hb_map_t *input_klass_map = nullptr,
-               const hb_map_t *lookahead_klass_map = nullptr) const
+	       const hb_map_t *backtrack_klass_map = nullptr,
+	       const hb_map_t *input_klass_map = nullptr,
+	       const hb_map_t *lookahead_klass_map = nullptr) const
   {
     TRACE_SUBSET (this);
 
@@ -2342,12 +2342,12 @@ struct ChainRuleSet
 
       auto o_snap = c->serializer->snapshot ();
       if (!o->serialize_subset (c, _, this,
-                                backtrack_klass_map,
-                                input_klass_map,
-                                lookahead_klass_map))
+				backtrack_klass_map,
+				input_klass_map,
+				lookahead_klass_map))
       {
-        out->rule.pop ();
-        c->serializer->revert (o_snap);
+	out->rule.pop ();
+	c->serializer->revert (o_snap);
       }
     }
 
@@ -2645,15 +2645,15 @@ struct ChainContextFormat2
       auto *o = out->ruleSet.serialize_append (c->serializer);
       if (unlikely (!o))
       {
-        ret = false;
-        break;
+	ret = false;
+	break;
       }
       if (!o->serialize_subset (c, _, this,
-                                &backtrack_klass_map,
-                                &input_klass_map,
-                                &lookahead_klass_map))
+				&backtrack_klass_map,
+				&input_klass_map,
+				&lookahead_klass_map))
       {
-        rulesets.push (0);
+	rulesets.push (0);
       }
       else rulesets.push (1);
     }
@@ -2967,7 +2967,7 @@ struct Extension
   {
     switch (u.format) {
     case 1: return u.format1.template get_subtable<typename T::SubTable> ();
-    default:return Null(typename T::SubTable);
+    default:return Null (typename T::SubTable);
     }
   }
 
@@ -3102,13 +3102,13 @@ struct GSUBGPOS
 
     typedef LookupOffsetList<TLookup> TLookupList;
     reinterpret_cast<OffsetTo<TLookupList> &> (out->lookupList)
-        .serialize_subset (c->subset_context,
+	.serialize_subset (c->subset_context,
 			   reinterpret_cast<const OffsetTo<TLookupList> &> (lookupList),
 			   this,
 			   c);
 
     reinterpret_cast<OffsetTo<RecordListOfFeature> &> (out->featureList)
-        .serialize_subset (c->subset_context,
+	.serialize_subset (c->subset_context,
 			   reinterpret_cast<const OffsetTo<RecordListOfFeature> &> (featureList),
 			   this,
 			   c);
@@ -3124,8 +3124,8 @@ struct GSUBGPOS
       bool ret = out->featureVars.serialize_subset (c->subset_context, featureVars, this, c);
       if (!ret)
       {
-        out->version.major = 1;
-        out->version.minor = 0;
+	out->version.major = 1;
+	out->version.minor = 0;
       }
     }
 #endif
@@ -3140,7 +3140,7 @@ struct GSUBGPOS
     for (unsigned i = 0; i < feature_count; i++)
     {
       if (get_feature (i).intersects_lookup_indexes (lookup_indexes))
-        feature_indexes->add (i);
+	feature_indexes->add (i);
     }
 #ifndef HB_NO_VAR
     if (version.to_int () >= 0x00010001u)

@@ -234,7 +234,7 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
   static Returned* convert (Stored *p) { return p; }
 
   /* By default null/init/fini the object. */
-  static const Stored* get_null () { return &Null(Stored); }
+  static const Stored* get_null () { return &Null (Stored); }
   static Stored *create (Data *data)
   {
     Stored *p = (Stored *) calloc (1, sizeof (Stored));

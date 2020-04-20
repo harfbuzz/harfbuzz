@@ -82,7 +82,7 @@ struct cff1_sub_table_info_t : cff_sub_table_info_t
 /* a copy of a parsed out cff1_top_dict_values_t augmented with additional operators */
 struct cff1_top_dict_values_mod_t : cff1_top_dict_values_t
 {
-  void init (const cff1_top_dict_values_t *base_= &Null(cff1_top_dict_values_t))
+  void init (const cff1_top_dict_values_t *base_= &Null (cff1_top_dict_values_t))
   {
     SUPER::init ();
     base = base_;
@@ -437,7 +437,7 @@ struct cff_subset_plan {
       }
       last_code = code;
 
-      if (encoding != &Null(Encoding))
+      if (encoding != &Null (Encoding))
       {
 	hb_codepoint_t  sid = acc.glyph_to_sid (old_glyph);
 	encoding->get_supplement_codes (sid, supp_codes);
@@ -521,7 +521,7 @@ struct cff_subset_plan {
       }
     }
 
-    if (acc.fdArray != &Null(CFF1FDArray))
+    if (acc.fdArray != &Null (CFF1FDArray))
       for (unsigned int i = 0; i < orig_fdcount; i++)
 	if (fdmap.has (i))
 	  (void)sidmap.add (acc.fontDicts[i].fontName);
@@ -572,7 +572,7 @@ struct cff_subset_plan {
     }
 
     /* Determine re-mapping of font index as fdmap among other info */
-    if (acc.fdSelect != &Null(CFF1FDSelect))
+    if (acc.fdSelect != &Null (CFF1FDSelect))
     {
 	if (unlikely (!hb_plan_subset_cff_fdselect (plan,
 				  orig_fdcount,
@@ -763,7 +763,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   }
 
   /* FDArray (FD Index) */
-  if (acc.fdArray != &Null(CFF1FDArray))
+  if (acc.fdArray != &Null (CFF1FDArray))
   {
     CFF1FDArray  *fda = c->start_embed<CFF1FDArray> ();
     if (unlikely (fda == nullptr)) return false;
@@ -780,7 +780,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   }
 
   /* FDSelect */
-  if (acc.fdSelect != &Null(CFF1FDSelect))
+  if (acc.fdSelect != &Null (CFF1FDSelect))
   {
     c->push ();
     if (likely (hb_serialize_cff_fdselect (c, num_glyphs, *acc.fdSelect, acc.fdCount,

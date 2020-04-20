@@ -260,7 +260,7 @@ struct CFFIndex
   unsigned int length_at (unsigned int index) const
   {
     if (unlikely ((offset_at (index + 1) < offset_at (index)) ||
-	          (offset_at (index + 1) > offset_at (count))))
+		  (offset_at (index + 1) > offset_at (count))))
       return 0;
     return offset_at (index + 1) - offset_at (index);
   }
@@ -321,7 +321,7 @@ struct CFFIndexOf : CFFIndex<COUNT>
   {
     if (likely (index < CFFIndex<COUNT>::count))
       return byte_str_t (CFFIndex<COUNT>::data_base () + CFFIndex<COUNT>::offset_at (index) - 1, CFFIndex<COUNT>::length_at (index));
-    return Null(byte_str_t);
+    return Null (byte_str_t);
   }
 
   template <typename DATA, typename PARAM1, typename PARAM2>

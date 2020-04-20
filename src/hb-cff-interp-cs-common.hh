@@ -82,7 +82,7 @@ struct biased_subrs_t
   byte_str_t operator [] (unsigned int index) const
   {
     if (unlikely ((subrs == nullptr) || index >= subrs->count))
-      return Null(byte_str_t);
+      return Null (byte_str_t);
     else
       return (*subrs)[index];
   }

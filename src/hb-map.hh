@@ -135,8 +135,8 @@ struct hb_hashmap_t
       for (unsigned int i = 0; i < old_size; i++)
 	if (old_items[i].is_real ())
 	  set_with_hash (old_items[i].key,
-                         old_items[i].hash,
-                         old_items[i].value);
+			 old_items[i].hash,
+			 old_items[i].value);
 
     free (old_items);
 

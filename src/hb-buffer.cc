@@ -715,7 +715,7 @@ hb_buffer_create ()
 hb_buffer_t *
 hb_buffer_get_empty ()
 {
-  return const_cast<hb_buffer_t *> (&Null(hb_buffer_t));
+  return const_cast<hb_buffer_t *> (&Null (hb_buffer_t));
 }
 
 /**

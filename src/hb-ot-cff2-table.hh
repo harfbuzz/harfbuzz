@@ -232,7 +232,7 @@ struct cff2_private_dict_values_base_t : dict_values_t<VAL>
   {
     dict_values_t<VAL>::init ();
     subrsOffset = 0;
-    localSubrs = &Null(CFF2Subrs);
+    localSubrs = &Null (CFF2Subrs);
     ivs = 0;
   }
   void fini () { dict_values_t<VAL>::fini (); }
@@ -411,7 +411,7 @@ struct cff2
 
       const OT::cff2 *cff2 = this->blob->template as<OT::cff2> ();
 
-      if (cff2 == &Null(OT::cff2))
+      if (cff2 == &Null (OT::cff2))
       { fini (); return; }
 
       { /* parse top dict */
@@ -429,11 +429,11 @@ struct cff2
       fdArray = &StructAtOffsetOrNull<CFF2FDArray> (cff2, topDict.FDArrayOffset);
       fdSelect = &StructAtOffsetOrNull<CFF2FDSelect> (cff2, topDict.FDSelectOffset);
 
-      if (((varStore != &Null(CFF2VariationStore)) && unlikely (!varStore->sanitize (&sc))) ||
-	  (charStrings == &Null(CFF2CharStrings)) || unlikely (!charStrings->sanitize (&sc)) ||
-	  (globalSubrs == &Null(CFF2Subrs)) || unlikely (!globalSubrs->sanitize (&sc)) ||
-	  (fdArray == &Null(CFF2FDArray)) || unlikely (!fdArray->sanitize (&sc)) ||
-	  (((fdSelect != &Null(CFF2FDSelect)) && unlikely (!fdSelect->sanitize (&sc, fdArray->count)))))
+      if (((varStore != &Null (CFF2VariationStore)) && unlikely (!varStore->sanitize (&sc))) ||
+	  (charStrings == &Null (CFF2CharStrings)) || unlikely (!charStrings->sanitize (&sc)) ||
+	  (globalSubrs == &Null (CFF2Subrs)) || unlikely (!globalSubrs->sanitize (&sc)) ||
+	  (fdArray == &Null (CFF2FDArray)) || unlikely (!fdArray->sanitize (&sc)) ||
+	  (((fdSelect != &Null (CFF2FDSelect)) && unlikely (!fdSelect->sanitize (&sc, fdArray->count)))))
       { fini (); return; }
 
       num_glyphs = charStrings->count;
@@ -452,7 +452,7 @@ struct cff2
 	cff2_font_dict_interpreter_t font_interp;
 	font_interp.env.init (fontDictStr);
 	font = fontDicts.push ();
-	if (unlikely (font == &Crap(cff2_font_dict_values_t))) { fini (); return; }
+	if (unlikely (font == &Crap (cff2_font_dict_values_t))) { fini (); return; }
 	font->init ();
 	if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 
@@ -464,7 +464,7 @@ struct cff2
 	if (unlikely (!priv_interp.interpret (privateDicts[i]))) { fini (); return; }
 
 	privateDicts[i].localSubrs = &StructAtOffsetOrNull<CFF2Subrs> (&privDictStr[0], privateDicts[i].subrsOffset);
-	if (privateDicts[i].localSubrs != &Null(CFF2Subrs) &&
+	if (privateDicts[i].localSubrs != &Null (CFF2Subrs) &&
 	  unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
 	{ fini (); return; }
       }

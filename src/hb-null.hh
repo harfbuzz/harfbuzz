@@ -135,7 +135,7 @@ template <typename Type>
 static inline Type& Crap () {
   static_assert (hb_null_size (Type) <= HB_NULL_POOL_SIZE, "Increase HB_NULL_POOL_SIZE.");
   Type *obj = reinterpret_cast<Type *> (_hb_CrapPool);
-  memcpy (obj, &Null(Type), sizeof (*obj));
+  memcpy (obj, &Null (Type), sizeof (*obj));
   return *obj;
 }
 template <typename QType>
@@ -148,11 +148,11 @@ struct CrapHelper
 
 template <typename Type>
 struct CrapOrNullHelper {
-  static Type & get () { return Crap(Type); }
+  static Type & get () { return Crap (Type); }
 };
 template <typename Type>
 struct CrapOrNullHelper<const Type> {
-  static const Type & get () { return Null(Type); }
+  static const Type & get () { return Null (Type); }
 };
 #define CrapOrNull(Type) CrapOrNullHelper<Type>::get ()
 
@@ -174,7 +174,7 @@ struct hb_nonnull_ptr_t
   /* Only auto-cast to const types. */
   template <typename C> operator const C * () const { return get (); }
   operator const char * () const { return (const char *) get (); }
-  T * get () const { return v ? v : const_cast<T *> (&Null(T)); }
+  T * get () const { return v ? v : const_cast<T *> (&Null (T)); }
   T * get_raw () const { return v; }
 
   T *v;

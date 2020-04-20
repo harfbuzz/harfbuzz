@@ -226,7 +226,7 @@ hb_face_create (hb_blob_t    *blob,
 hb_face_t *
 hb_face_get_empty ()
 {
-  return const_cast<hb_face_t *> (&Null(hb_face_t));
+  return const_cast<hb_face_t *> (&Null (hb_face_t));
 }
 
 

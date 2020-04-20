@@ -73,7 +73,7 @@ struct hb_aat_map_builder_t
       const feature_info_t *b = (const feature_info_t *) pb;
       if (a->type != b->type) return (a->type < b->type ? -1 : 1);
       if (!a->is_exclusive &&
-          (a->setting & ~1) != (b->setting & ~1)) return (a->setting < b->setting ? -1 : 1);
+	  (a->setting & ~1) != (b->setting & ~1)) return (a->setting < b->setting ? -1 : 1);
 	    return (a->seq < b->seq ? -1 : a->seq > b->seq ? 1 : 0);
     }
 
@@ -81,7 +81,7 @@ struct hb_aat_map_builder_t
     int cmp (const feature_info_t& f) const
     {
       return (f.type != type) ? (f.type < type ? -1 : 1) :
-             (f.setting != setting) ? (f.setting < setting ? -1 : 1) : 0;
+	     (f.setting != setting) ? (f.setting < setting ? -1 : 1) : 0;
     }
   };
 

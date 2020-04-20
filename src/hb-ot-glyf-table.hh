@@ -710,7 +710,7 @@ struct glyf
 	if (unlikely (!points.resize (num_points))) return false;
 	for (unsigned i = 0; i < points.length; i++)
 	  points[i].init ();
-        break;
+	break;
       }
       case SIMPLE:
 	if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
@@ -1057,7 +1057,7 @@ struct glyf
       }
 
       /* based on https://github.com/RazrFalcon/ttf-parser/blob/4f32821/src/glyf.rs#L287
-         See also:
+	 See also:
 	 * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM01/Chap1.html
 	 * https://stackoverflow.com/a/20772557 */
       void consume_point (const contour_point_t &point)

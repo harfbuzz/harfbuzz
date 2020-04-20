@@ -92,7 +92,7 @@ struct draw_helper_t
 	    hb_position_t to_x, hb_position_t to_y)
   {
     if (equal_to_current (control1_x, control1_y) &&
-        equal_to_current (control2_x, control2_y) &&
+	equal_to_current (control2_x, control2_y) &&
 	equal_to_current (to_x, to_y))
       return;
     if (!path_open) start_path ();

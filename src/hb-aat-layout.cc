@@ -55,7 +55,7 @@ AAT::hb_aat_apply_context_t::hb_aat_apply_context_t (const hb_ot_shape_plan_t *p
 						       face (font->face),
 						       buffer (buffer_),
 						       sanitizer (),
-						       ankr_table (&Null(AAT::ankr)),
+						       ankr_table (&Null (AAT::ankr)),
 						       lookup_index (0),
 						       debug_depth (0)
 {
