@@ -235,7 +235,7 @@ jobs:
       # test meson's own unity feature also
       - run: meson build --unity on && ninja -Cbuild && rm -rf build
       # test experimental APIs
-      - run: meson build -Dexperimental-api=true && ninja -Cbuild && rm -rf build
+      - run: meson build -Dexperimental-api=true && ninja -Cbuild test && rm -rf build
 
   crosscompile-notest-djgpp:
     docker:
