@@ -626,7 +626,7 @@ output_options_t::add_options (option_parser_t *parser)
 {
   const char *text;
 
-  if (nullptr == supported_formats)
+  if (!supported_formats)
     text = "Set output serialization format";
   else
   {
