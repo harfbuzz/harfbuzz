@@ -28,5 +28,7 @@ option('introspection', type : 'feature', value : 'disabled', yield : true,
 
 option('icu-builtin', type: 'boolean', value: false,
   description: 'Don\'t separate ICU support as harfbuzz-icu module')
+option('experimental-api', type: 'boolean', value: false,
+  description: 'Enable experimental APIs')
 option('amalgam', type : 'boolean', value : false,
   description : 'Enable amalgam builds')

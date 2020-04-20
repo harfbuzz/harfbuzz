@@ -196,6 +196,10 @@ if get_option('icu-builtin')
   conf.set('HAVE_ICU_BUILTIN', 1)
 endif
 
+if get_option('experimental-api')
+  conf.set('HB_EXPERIMENTAL_API', 1)
+endif
+
 if freetype_dep.found()
   conf.set('HAVE_FREETYPE', 1)
   deps += [freetype_dep]
