@@ -465,7 +465,7 @@ struct AnchorMatrix
 			    unsigned int cols, bool *found) const
   {
     *found = false;
-    if (unlikely (row >= rows || col >= cols)) return Null(Anchor);
+    if (unlikely (row >= rows || col >= cols)) return Null (Anchor);
     *found = !matrixZ[row * cols + col].is_null ();
     return this+matrixZ[row * cols + col];
   }
@@ -967,7 +967,7 @@ struct PairSet
   }
 
   bool subset (hb_subset_context_t *c,
-               const ValueFormat valueFormats[2]) const
+	       const ValueFormat valueFormats[2]) const
   {
     TRACE_SUBSET (this);
     auto snap = c->serializer->snapshot ();
@@ -1227,17 +1227,17 @@ struct PairPosFormat2
     + hb_range ((unsigned) class1Count)
     | hb_filter (klass1_map)
     | hb_apply ([&] (const unsigned class1_idx)
-                {
-                  + hb_range ((unsigned) class2Count)
-                  | hb_filter (klass2_map)
-                  | hb_apply ([&] (const unsigned class2_idx)
-                              {
-                                unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
-                                valueFormat1.serialize_copy (c->serializer, this, &values[idx]);
-                                valueFormat2.serialize_copy (c->serializer, this, &values[idx + len1]);
-                              })
-                  ;
-                })
+		{
+		  + hb_range ((unsigned) class2Count)
+		  | hb_filter (klass2_map)
+		  | hb_apply ([&] (const unsigned class2_idx)
+			      {
+				unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
+				valueFormat1.serialize_copy (c->serializer, this, &values[idx]);
+				valueFormat2.serialize_copy (c->serializer, this, &values[idx + len1]);
+			      })
+		  ;
+		})
     ;
 
     const hb_set_t &glyphset = *c->plan->_glyphset_gsub;

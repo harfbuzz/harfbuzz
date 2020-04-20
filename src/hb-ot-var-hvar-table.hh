@@ -139,7 +139,7 @@ struct index_map_subset_plan_t
     max_inners.init ();
     output_map.init ();
 
-    if (&index_map == &Null(DeltaSetIndexMap)) return;
+    if (&index_map == &Null (DeltaSetIndexMap)) return;
 
     unsigned int	last_val = (unsigned int)-1;
     hb_codepoint_t	last_gid = (hb_codepoint_t)-1;
@@ -202,7 +202,7 @@ struct index_map_subset_plan_t
 	      const hb_vector_t<hb_inc_bimap_t> &inner_maps,
 	      const hb_subset_plan_t *plan)
   {
-    if (input_map == &Null(DeltaSetIndexMap)) return;
+    if (input_map == &Null (DeltaSetIndexMap)) return;
 
     for (unsigned int i = 0; i < max_inners.length; i++)
     {

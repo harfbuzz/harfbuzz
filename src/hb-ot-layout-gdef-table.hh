@@ -372,8 +372,8 @@ struct MarkGlyphSetsFormat1
       auto *o = out->coverage.serialize_append (c->serializer);
       if (unlikely (!o))
       {
-        ret = false;
-        break;
+	ret = false;
+	break;
       }
 
       //not using o->serialize_subset (c, offset, this, out) here because
@@ -494,7 +494,7 @@ struct GDEF
 
   bool has_var_store () const { return version.to_int () >= 0x00010003u && varStore != 0; }
   const VariationStore &get_var_store () const
-  { return version.to_int () >= 0x00010003u ? this+varStore : Null(VariationStore); }
+  { return version.to_int () >= 0x00010003u ? this+varStore : Null (VariationStore); }
 
   /* glyph_props is a 16-bit integer where the lower 8-bit have bits representing
    * glyph class and other bits, and high 8-bit the mark attachment type (if any).
@@ -558,8 +558,8 @@ struct GDEF
     if (version.to_int () >= 0x00010002u)
     {
       if (!out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this) &&
-          version.to_int () == 0x00010002u)
-        out->version.minor = 0;
+	  version.to_int () == 0x00010002u)
+	out->version.minor = 0;
     }
 
     if (version.to_int () >= 0x00010003u)

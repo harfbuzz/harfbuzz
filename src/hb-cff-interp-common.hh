@@ -405,7 +405,7 @@ struct cff_stack_t
     else
     {
       set_error ();
-      return Crap(ELEM);
+      return Crap (ELEM);
     }
   }
 
@@ -416,7 +416,7 @@ struct cff_stack_t
     else
     {
       set_error ();
-      return Crap(ELEM);
+      return Crap (ELEM);
     }
   }
   void pop (unsigned int n)
@@ -432,7 +432,7 @@ struct cff_stack_t
     if (unlikely (count < 0))
     {
       set_error ();
-      return Null(ELEM);
+      return Null (ELEM);
     }
     return elements[count - 1];
   }

@@ -189,7 +189,7 @@ hb_blob_copy_writable_or_fail (hb_blob_t *blob)
 hb_blob_t *
 hb_blob_get_empty ()
 {
-  return const_cast<hb_blob_t *> (&Null(hb_blob_t));
+  return const_cast<hb_blob_t *> (&Null (hb_blob_t));
 }
 
 /**

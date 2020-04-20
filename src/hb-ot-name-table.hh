@@ -112,7 +112,7 @@ struct NameRecord
     unsigned int e = encodingID;
 
     return (p == 0 ||
-            (p == 3 && (e == 0 || e == 1 || e == 10)));
+	    (p == 3 && (e == 0 || e == 1 || e == 10)));
   }
 
   static int cmp (const void *pa, const void *pb)

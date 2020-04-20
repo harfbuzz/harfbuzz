@@ -1465,7 +1465,7 @@ hb_font_create_sub_font (hb_font_t *parent)
 hb_font_t *
 hb_font_get_empty ()
 {
-  return const_cast<hb_font_t *> (&Null(hb_font_t));
+  return const_cast<hb_font_t *> (&Null (hb_font_t));
 }
 
 /**
