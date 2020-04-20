@@ -2709,10 +2709,9 @@ struct FeatureVariationRecord
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    bool ret = out->substitutions.serialize_subset (c->subset_context, substitutions, base, c);
-    if (unlikely (!ret)) return_trace (false);
-
     out->conditions.serialize_subset (c->subset_context, conditions, base);
+    out->substitutions.serialize_subset (c->subset_context, substitutions, base, c);
+
     return_trace (true);
   }
 
