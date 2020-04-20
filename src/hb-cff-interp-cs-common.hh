@@ -76,12 +76,12 @@ struct biased_subrs_t
 
   void fini () {}
 
-  unsigned int get_count () const { return (subrs == nullptr) ? 0 : subrs->count; }
+  unsigned int get_count () const { return subrs ? subrs->count : 0; }
   unsigned int get_bias () const  { return bias; }
 
   byte_str_t operator [] (unsigned int index) const
   {
-    if (unlikely ((subrs == nullptr) || index >= subrs->count))
+    if (unlikely (!subrs || index >= subrs->count))
       return Null (byte_str_t);
     else
       return (*subrs)[index];

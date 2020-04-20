@@ -65,7 +65,7 @@ struct subset_consumer_t
       gunichar cp = g_utf8_get_char(c);
       hb_codepoint_t hb_cp = cp;
       hb_set_add (codepoints, hb_cp);
-    } while ((c = g_utf8_find_next_char(c, text + text_len)) != nullptr);
+    } while ((c = g_utf8_find_next_char(c, text + text_len)));
   }
 
   hb_bool_t
@@ -74,7 +74,7 @@ struct subset_consumer_t
     const char* data = hb_blob_get_data (blob, &data_length);
 
     FILE *fp_out = fopen(output_file, "wb");
-    if (fp_out == nullptr) {
+    if (!fp_out) {
       fprintf(stderr, "Unable to open output file\n");
       return false;
     }

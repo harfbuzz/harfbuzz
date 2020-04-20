@@ -90,7 +90,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
     seen_blend = false;
     seen_vsindex_ = false;
     scalars.init ();
-    do_blend = (coords != nullptr) && num_coords && (varStore != &Null (CFF2VariationStore));
+    do_blend = num_coords && coords && varStore->size;
     set_ivs (acc.privateDicts[fd].ivs);
   }
 

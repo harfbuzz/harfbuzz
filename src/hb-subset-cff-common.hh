@@ -185,7 +185,7 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
     else
     {
       HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.length);
-      if (unlikely (d == nullptr)) return_trace (false);
+      if (unlikely (!d)) return_trace (false);
       memcpy (d, &opstr.str[0], opstr.str.length);
     }
     return_trace (true);
@@ -461,19 +461,19 @@ struct subr_subset_param_t
   template <typename ENV>
   void set_current_str (ENV &env, bool calling)
   {
-    parsed_cs_str_t  *parsed_str = get_parsed_str_for_context (env.context);
-    if (likely (parsed_str != nullptr))
+    parsed_cs_str_t *parsed_str = get_parsed_str_for_context (env.context);
+    if (unlikely (!parsed_str))
     {
-      /* If the called subroutine is parsed partially but not completely yet,
-       * it must be because we are calling it recursively.
-       * Handle it as an error. */
-      if (unlikely (calling && !parsed_str->is_parsed () && (parsed_str->values.length > 0)))
-	env.set_error ();
-      else
-	current_parsed_str = parsed_str;
-    }
-    else
       env.set_error ();
+      return;
+    }
+    /* If the called subroutine is parsed partially but not completely yet,
+     * it must be because we are calling it recursively.
+     * Handle it as an error. */
+    if (unlikely (calling && !parsed_str->is_parsed () && (parsed_str->values.length > 0)))
+      env.set_error ();
+    else
+      current_parsed_str = parsed_str;
   }
 
   parsed_cs_str_t	*current_parsed_str;
