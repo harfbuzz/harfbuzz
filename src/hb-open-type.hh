@@ -194,6 +194,7 @@ struct Offset : Type
 
   bool is_null () const { return has_null && 0 == *this; }
 
+  HB_DEPRECATED
   void *serialize (hb_serialize_context_t *c, const void *base)
   {
     void *t = c->start_embed<void> ();
@@ -307,9 +308,12 @@ struct OffsetTo : Offset<OffsetType, has_null>
 	    hb_enable_if (hb_is_convertible (Base, void *))>
   friend Type& operator + (OffsetTo &offset, Base &&base) { return offset ((void *) base); }
 
+  HB_DEPRECATED
   Type& serialize (hb_serialize_context_t *c, const void *base)
   {
-    return * (Type *) Offset<OffsetType>::serialize (c, base);
+    Type *t = c->start_embed<Type> ();
+    c->check_assign (*this, (unsigned) ((char *) t - (char *) base));
+    return *t;
   }
 
   template <typename ...Ts>
