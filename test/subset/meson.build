@@ -4,15 +4,15 @@ tests = [
   'cff-full-font',
   'japanese',
   'cff-japanese',
-  #'layout',
-  #'layout.gpos',
-  #'layout.gpos2',
-  #'layout.gpos3',
-  #'layout.gpos4',
-  #'layout.gpos6',
-  #'layout.gsub3',
-  #'layout.gsub6',
-  #'layout.gdef',
+  'layout',
+  'layout.gpos',
+  'layout.gpos2',
+  'layout.gpos3',
+  'layout.gpos4',
+  'layout.gpos6',
+  'layout.gsub3',
+  'layout.gsub6',
+  'layout.gdef',
   'cmap',
   'cmap14',
   'sbix',
@@ -24,6 +24,11 @@ run_test = find_program('run-tests.py')
 
 foreach t : tests
   fname = '@0@.tests'.format(t)
+
+  # layout test are enabled only under experimental API flag for now
+  if t.contains('layout') and not get_option('experimental-api')
+    continue
+  endif
 
   test(t, run_test,
     args: [

@@ -336,8 +336,14 @@ endif
 
 # harfbuzz
 gen_def = find_program('gen-def.py')
+
+harfbuzz_def_command_args = [gen_def, '@OUTPUT@', '@INPUT@']
+if get_option('experimental-api')
+  harfbuzz_def_command_args += '--experimental-api'
+endif
+
 harfbuzz_def = custom_target('harfbuzz.def',
-    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    command: harfbuzz_def_command_args,
     input: hb_headers,
     output: 'harfbuzz.def')
 

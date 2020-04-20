@@ -14,7 +14,7 @@ for h in header_paths:
 		with io.open (h, encoding='utf-8') as f: headers_content.append (f.read ())
 
 symbols = sorted (re.findall (r"^hb_\w+(?= \()", "\n".join (headers_content), re.M))
-if not os.environ.get('HB_EXPERIMENTAL_API', ''):
+if '--experimental-api' not in sys.argv:
 	# Move these to harfbuzz-sections.txt when got stable
 	experimental_symbols = \
 """hb_font_draw_glyph
