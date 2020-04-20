@@ -23,24 +23,28 @@ environment:
       MINGW_PREFIX: /mingw64
       MINGW_CHOST: x86_64-w64-mingw32
       MSYS2_ARCH: x86_64
+      MSYSTEM: MINGW64
 
     - compiler: msys2
       MINGW_PREFIX: /mingw32
       MINGW_CHOST: i686-w64-mingw32
       MSYS2_ARCH: i686
+      MSYSTEM: MINGW32
 
 
 install:
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm --force -S --needed mingw-w64-$MSYS2_ARCH-{gcc,freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config,python2,ragel}"'
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm --force -S --needed mingw-w64-$MSYS2_ARCH-{gcc,freetype,cairo,icu,gettext,gobject-introspection,gcc,gcc-libs,glib2,graphite2,pkg-config,python3,python3-pip,ragel,meson,ninja}"'
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pip install fonttools"'
 
 build_script:
   - set "PYTHON_ROOT=C:\python37-x64"
   - set "PATH=%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%"
   - pip install --upgrade meson
+  - pip install fonttools
   - 'if "%compiler%"=="msvc" "%vcvarsallpath%" %arch% && meson setup build --buildtype=release -Dglib=enabled -Dfreetype=enabled -Dgdi=enabled -Ddirectwrite=enabled && meson test --print-errorlogs --suite=harfbuzz -Cbuild'
 
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "curl https://raw.githubusercontent.com/mirror/mingw-w64/023eb04c396d4e8d8fcf604cfababc53dae13398/mingw-w64-headers/include/dwrite_1.h > %MINGW_PREFIX%/%MINGW_CHOST%/include/dwrite_1.h"'
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh --with-uniscribe --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 --with-directwrite --with-gdi --build=%MINGW_CHOST% --host=%MINGW_CHOST% --prefix=%MINGW_PREFIX%; make -j3 check || .ci/fail.sh"'
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; meson build --wrap-mode=nofallback -Dfreetype=enabled -Dglib=enabled -Dcairo=enabled -Dgobject=enabled -Dgdi=enabled -Ddirectwrite=enabled -Dgraphite=enabled && meson test -Cbuild --print-errorlogs"'
 
 cache:
   - c:\tools\vcpkg\installed\
