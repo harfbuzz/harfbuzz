@@ -21,7 +21,7 @@ if not fonttools:
 	print ("fonttools is not present, skipping test.")
 	sys.exit (77)
 
-def cmd(command):
+def cmd (command):
 	p = subprocess.Popen (
 		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 		universal_newlines=True)
@@ -59,21 +59,39 @@ def run_test (test, should_check_ots):
 	if return_code:
 		return fail_test (test, cli_args, "%s returned %d" % (' '.join (cli_args), return_code))
 
-	expected_ttx, return_code = run_ttx (os.path.join (test_suite.get_output_directory (),
-					     test.get_font_name ()))
+	expected_ttx = tempfile.mktemp ()
+	_, return_code = run_ttx (os.path.join (test_suite.get_output_directory (),
+					    					test.get_font_name ()),
+							  expected_ttx)
 	if return_code:
+		if os.path.exists (expected_ttx): os.remove (expected_ttx)
 		return fail_test (test, cli_args, "ttx (expected) returned %d" % (return_code))
 
-	actual_ttx, return_code = run_ttx (out_file)
+	actual_ttx = tempfile.mktemp ()
+	_, return_code = run_ttx (out_file, actual_ttx)
 	if return_code:
+		if os.path.exists (expected_ttx): os.remove (expected_ttx)
+		if os.path.exists (actual_ttx): os.remove (actual_ttx)
 		return fail_test (test, cli_args, "ttx (actual) returned %d" % (return_code))
 
-	print ("stripping checksums.")
-	expected_ttx = strip_check_sum (expected_ttx)
-	actual_ttx = strip_check_sum (actual_ttx)
+	with io.open (expected_ttx, encoding='utf-8') as f:
+		expected_ttx_text = f.read ()
+	with io.open (actual_ttx, encoding='utf-8') as f:
+		actual_ttx_text = f.read ()
 
-	if not actual_ttx == expected_ttx:
-		for line in unified_diff (expected_ttx.splitlines (1), actual_ttx.splitlines (1)):
+	# cleanup
+	try:
+		os.remove (expected_ttx)
+		os.remove (actual_ttx)
+	except:
+		pass
+
+	print ("stripping checksums.")
+	expected_ttx_text = strip_check_sum (expected_ttx_text)
+	actual_ttx_text = strip_check_sum (actual_ttx_text)
+
+	if not actual_ttx_text == expected_ttx_text:
+		for line in unified_diff (expected_ttx_text.splitlines (1), actual_ttx_text.splitlines (1)):
 			sys.stdout.write (line)
 		sys.stdout.flush ()
 		return fail_test (test, cli_args, 'ttx for expected and actual does not match.')
@@ -85,9 +103,9 @@ def run_test (test, should_check_ots):
 
 	return 0
 
-def run_ttx (file):
-	print ("fonttools ttx %s" % file)
-	return cmd ([fonttools, "ttx", "-q", "-o-", file])
+def run_ttx (font_path, ttx_output_path):
+	print ("fonttools ttx %s" % font_path)
+	return cmd ([fonttools, "ttx", "-q", "-o", ttx_output_path, font_path])
 
 def strip_check_sum (ttx_string):
 	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
