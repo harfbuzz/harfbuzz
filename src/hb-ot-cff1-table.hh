@@ -174,7 +174,7 @@ struct Encoding
     TRACE_SERIALIZE (this);
     unsigned int size = src.get_size ();
     Encoding *dest = c->allocate_size<Encoding> (size);
-    if (unlikely (dest == nullptr)) return_trace (false);
+    if (unlikely (!dest)) return_trace (false);
     memcpy (dest, &src, size);
     return_trace (true);
   }
@@ -188,13 +188,13 @@ struct Encoding
   {
     TRACE_SERIALIZE (this);
     Encoding *dest = c->extend_min (*this);
-    if (unlikely (dest == nullptr)) return_trace (false);
+    if (unlikely (!dest)) return_trace (false);
     dest->format = format | ((supp_codes.length > 0) ? 0x80 : 0);
     switch (format) {
     case 0:
     {
       Encoding0 *fmt0 = c->allocate_size<Encoding0> (Encoding0::min_size + HBUINT8::static_size * enc_count);
-      if (unlikely (fmt0 == nullptr)) return_trace (false);
+      if (unlikely (!fmt0)) return_trace (false);
       fmt0->nCodes () = enc_count;
       unsigned int glyph = 0;
       for (unsigned int i = 0; i < code_ranges.length; i++)
@@ -211,7 +211,7 @@ struct Encoding
     case 1:
     {
       Encoding1 *fmt1 = c->allocate_size<Encoding1> (Encoding1::min_size + Encoding1_Range::static_size * code_ranges.length);
-      if (unlikely (fmt1 == nullptr)) return_trace (false);
+      if (unlikely (!fmt1)) return_trace (false);
       fmt1->nRanges () = code_ranges.length;
       for (unsigned int i = 0; i < code_ranges.length; i++)
       {
@@ -228,7 +228,7 @@ struct Encoding
     if (supp_codes.length)
     {
       CFF1SuppEncData *suppData = c->allocate_size<CFF1SuppEncData> (CFF1SuppEncData::min_size + SuppEncoding::static_size * supp_codes.length);
-      if (unlikely (suppData == nullptr)) return_trace (false);
+      if (unlikely (!suppData)) return_trace (false);
       suppData->nSups () = supp_codes.length;
       for (unsigned int i = 0; i < supp_codes.length; i++)
       {
@@ -445,7 +445,7 @@ struct Charset
     TRACE_SERIALIZE (this);
     unsigned int size = src.get_size (num_glyphs);
     Charset *dest = c->allocate_size<Charset> (size);
-    if (unlikely (dest == nullptr)) return_trace (false);
+    if (unlikely (!dest)) return_trace (false);
     memcpy (dest, &src, size);
     return_trace (true);
   }
@@ -458,14 +458,14 @@ struct Charset
   {
     TRACE_SERIALIZE (this);
     Charset *dest = c->extend_min (*this);
-    if (unlikely (dest == nullptr)) return_trace (false);
+    if (unlikely (!dest)) return_trace (false);
     dest->format = format;
     switch (format)
     {
     case 0:
     {
       Charset0 *fmt0 = c->allocate_size<Charset0> (Charset0::min_size + HBUINT16::static_size * (num_glyphs - 1));
-      if (unlikely (fmt0 == nullptr)) return_trace (false);
+      if (unlikely (!fmt0)) return_trace (false);
       unsigned int glyph = 0;
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
@@ -479,7 +479,7 @@ struct Charset
     case 1:
     {
       Charset1 *fmt1 = c->allocate_size<Charset1> (Charset1::min_size + Charset1_Range::static_size * sid_ranges.length);
-      if (unlikely (fmt1 == nullptr)) return_trace (false);
+      if (unlikely (!fmt1)) return_trace (false);
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
 	if (unlikely (!(sid_ranges[i].glyph <= 0xFF)))
@@ -493,7 +493,7 @@ struct Charset
     case 2:
     {
       Charset2 *fmt2 = c->allocate_size<Charset2> (Charset2::min_size + Charset2_Range::static_size * sid_ranges.length);
-      if (unlikely (fmt2 == nullptr)) return_trace (false);
+      if (unlikely (!fmt2)) return_trace (false);
       for (unsigned int i = 0; i < sid_ranges.length; i++)
       {
 	if (unlikely (!(sid_ranges[i].glyph <= 0xFFFF)))
@@ -1148,7 +1148,7 @@ struct cff1
       blob = nullptr;
     }
 
-    bool is_valid () const { return blob != nullptr; }
+    bool is_valid () const { return blob; }
     bool   is_CID () const { return topDict.is_CID (); }
 
     bool is_predef_charset () const { return topDict.CharsetOffset <= ExpertSubsetCharset; }
@@ -1288,7 +1288,7 @@ struct cff1
 	  byte_str_t	ustr = (*stringIndex)[sid - cff1_std_strings_length];
 	  gname.name = hb_bytes_t ((const char*)ustr.arrayZ, ustr.length);
 	}
-	if (unlikely (gname.name.arrayZ == nullptr)) { fini (); return; }
+	if (unlikely (!gname.name.arrayZ)) { fini (); return; }
 	glyph_names.push (gname);
       }
       glyph_names.qsort ();
@@ -1337,7 +1337,7 @@ struct cff1
 
       gname_t key = { hb_bytes_t (name, len), 0 };
       const gname_t *gname = glyph_names.bsearch (key);
-      if (gname == nullptr) return false;
+      if (!gname) return false;
       hb_codepoint_t gid = sid_to_glyph (gname->sid);
       if (!gid && gname->sid) return false;
       *glyph = gid;

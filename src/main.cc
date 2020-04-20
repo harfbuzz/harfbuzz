@@ -279,7 +279,7 @@ static void
 dump_glyphs (hb_blob_t *blob, const char *font_name)
 {
   FILE *font_name_file = fopen ("out/.dumped_font_name", "r");
-  if (font_name_file != nullptr)
+  if (font_name_file)
   {
     fprintf (stderr, "Purge or rename ./out folder if you like to run a glyph dump,\n"
 		     "run it like `rm -rf out && mkdir out && src/main font-file.ttf`\n");
@@ -287,7 +287,7 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
   }
 
   font_name_file = fopen ("out/.dumped_font_name", "w");
-  if (font_name_file == nullptr)
+  if (!font_name_file)
   {
     fprintf (stderr, "./out is not accessible as a folder, create it please\n");
     return;

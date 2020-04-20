@@ -55,7 +55,7 @@ struct CFF2FDSelect
     TRACE_SERIALIZE (this);
     unsigned int size = src.get_size (num_glyphs);
     CFF2FDSelect *dest = c->allocate_size<CFF2FDSelect> (size);
-    if (unlikely (dest == nullptr)) return_trace (false);
+    if (unlikely (!dest)) return_trace (false);
     memcpy (dest, &src, size);
     return_trace (true);
   }
@@ -123,7 +123,7 @@ struct CFF2VariationStore
     TRACE_SERIALIZE (this);
     unsigned int size_ = varStore->get_size ();
     CFF2VariationStore *dest = c->allocate_size<CFF2VariationStore> (size_);
-    if (unlikely (dest == nullptr)) return_trace (false);
+    if (unlikely (!dest)) return_trace (false);
     memcpy (dest, varStore, size_);
     return_trace (true);
   }
@@ -480,7 +480,7 @@ struct cff2
       blob = nullptr;
     }
 
-    bool is_valid () const { return blob != nullptr; }
+    bool is_valid () const { return blob; }
 
     protected:
     hb_blob_t			*blob;

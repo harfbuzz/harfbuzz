@@ -223,8 +223,7 @@ static unsigned int
 _hb_ot_os2_get_unicode_range_bit (hb_codepoint_t cp)
 {
   auto *range = hb_sorted_array (_hb_os2_unicode_ranges).bsearch (cp);
-  if (unlikely (range == nullptr)) return -1;
-  return range->bit;
+  return range ? range->bit : -1;
 }
 
 } /* namespace OT */

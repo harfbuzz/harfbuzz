@@ -1549,7 +1549,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
   do
   {
     glyphs_length = glyphs->get_population ();
-    if (lookups != nullptr)
+    if (lookups)
     {
       for (hb_codepoint_t lookup_index = HB_SET_VALUE_INVALID; hb_set_next (lookups, &lookup_index);)
 	gsub.get_lookup (lookup_index).closure (&c, lookup_index);

@@ -351,8 +351,8 @@ struct cff1_subr_subsetter_t : subr_subsetter_t<cff1_subr_subsetter_t, CFF1Subrs
     param.current_parsed_str->set_parsed ();
     for (unsigned int i = 0; i < env.callStack.get_count (); i++)
     {
-      parsed_cs_str_t  *parsed_str = param.get_parsed_str_for_context (env.callStack[i]);
-      if (likely (parsed_str != nullptr))
+      parsed_cs_str_t *parsed_str = param.get_parsed_str_for_context (env.callStack[i]);
+      if (likely (parsed_str))
 	parsed_str->set_parsed ();
       else
 	env.set_error ();
@@ -715,7 +715,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
       if (plan.subset_localsubrs[i].length > 0)
       {
 	CFF1Subrs *dest = c->start_embed <CFF1Subrs> ();
-	if (unlikely (dest == nullptr)) return false;
+	if (unlikely (!dest)) return false;
 	c->push ();
 	if (likely (dest && dest->serialize (c, plan.subset_localsubrs[i])))
 	  subrs_link = c->pop_pack ();
@@ -726,8 +726,8 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
 	}
       }
 
-      PrivateDict  *pd = c->start_embed<PrivateDict> ();
-      if (unlikely (pd == nullptr)) return false;
+      PrivateDict *pd = c->start_embed<PrivateDict> ();
+      if (unlikely (!pd)) return false;
       c->push ();
       cff_private_dict_op_serializer_t privSzr (plan.desubroutinize, plan.drop_hints);
       /* N.B. local subrs immediately follows its corresponding private dict. i.e., subr offset == private dict size */
@@ -751,7 +751,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   /* CharStrings */
   {
     CFF1CharStrings  *cs = c->start_embed<CFF1CharStrings> ();
-    if (unlikely (cs == nullptr)) return false;
+    if (unlikely (!cs)) return false;
     c->push ();
     if (likely (cs->serialize (c, plan.subset_charstrings)))
       plan.info.char_strings_link = c->pop_pack ();
@@ -765,8 +765,8 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   /* FDArray (FD Index) */
   if (acc.fdArray != &Null (CFF1FDArray))
   {
-    CFF1FDArray  *fda = c->start_embed<CFF1FDArray> ();
-    if (unlikely (fda == nullptr)) return false;
+    CFF1FDArray *fda = c->start_embed<CFF1FDArray> ();
+    if (unlikely (!fda)) return false;
     c->push ();
     cff1_font_dict_op_serializer_t  fontSzr;
     auto it = + hb_zip (+ hb_iter (plan.fontdicts_mod), + hb_iter (plan.fontdicts_mod));
@@ -798,7 +798,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   if (plan.subset_charset)
   {
     Charset *dest = c->start_embed<Charset> ();
-    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest)) return false;
     c->push ();
     if (likely (dest->serialize (c,
 				 plan.subset_charset_format,
@@ -816,7 +816,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   if (plan.subset_encoding)
   {
     Encoding *dest = c->start_embed<Encoding> ();
-    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest)) return false;
     c->push ();
     if (likely (dest->serialize (c,
 				 plan.subset_enc_format,
@@ -835,7 +835,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   {
     c->push ();
     CFF1Subrs *dest = c->start_embed <CFF1Subrs> ();
-    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest)) return false;
     if (likely (dest->serialize (c, plan.subset_globalsubrs)))
       c->pop_pack ();
     else
@@ -848,7 +848,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   /* String INDEX */
   {
     CFF1StringIndex *dest = c->start_embed<CFF1StringIndex> ();
-    if (unlikely (dest == nullptr)) return false;
+    if (unlikely (!dest)) return false;
     c->push ();
     if (likely (dest->serialize (c, *acc.stringIndex, plan.sidmap)))
       c->pop_pack ();
@@ -876,7 +876,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
   {
     /* serialize singleton TopDict */
     TopDict *top = c->start_embed<TopDict> ();
-    if (top == nullptr) return false;
+    if (!top) return false;
     c->push ();
     cff1_top_dict_op_serializer_t topSzr;
     unsigned top_size = 0;
@@ -893,7 +893,7 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
     }
     /* serialize INDEX header for above */
     CFF1Index *dest = c->start_embed<CFF1Index> ();
-    if (dest == nullptr) return false;
+    if (!dest) return false;
     return dest->serialize_header (c, hb_iter (hb_array_t<unsigned> (&top_size, 1)));
   }
 }
