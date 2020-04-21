@@ -280,6 +280,36 @@ hb_gobject_headers = [
   'hb-gobject-structs.h',
 ]
 
+custom_target('hb-version.h',
+  build_by_default: true,
+  input: 'hb-version.h.in',
+  output: 'hb-version.h',
+  command: [find_program('gen-hb-version.py'), meson.project_version(),
+            '@INPUT@', join_paths(meson.current_source_dir(), 'hb-version.h')])
+
+ragel = find_program('ragel', required: false)
+if not ragel.found()
+  message('You have to install ragel if you are going to develop HarfBuzz itself')
+else
+  foreach rl : hb_base_ragel_sources
+    hh = rl.split('.rl')[0] + '.hh'
+    custom_target(hh,
+      build_by_default: true,
+      depfile: rl,
+      output: hh,
+      command: [find_program('gen-ragel-artifacts.py'), meson.current_source_dir(), rl])
+  endforeach
+endif
+
+custom_target('harfbuzz.cc',
+  build_by_default: true,
+  output: 'harfbuzz.cc',
+  command: [find_program('gen-harfbuzzcc.py'),
+            join_paths(meson.source_root(), '@OUTPUT@')] +
+            hb_base_sources + hb_glib_sources + hb_ft_sources +
+            hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
+            hb_directwrite_sources + hb_coretext_sources)
+
 incsrc = include_directories('.')
 
 hb_sources = hb_base_sources + hb_base_ragel_generated_sources

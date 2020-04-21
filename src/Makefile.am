@@ -98,12 +98,7 @@ BUILT_SOURCES += \
 	hb-version.h
 
 $(srcdir)/hb-version.h: hb-version.h.in $(top_srcdir)/configure.ac
-	$(AM_V_GEN) $(SED) \
-		-e 's/[@]HB_VERSION_MAJOR@/$(HB_VERSION_MAJOR)/' \
-		-e 's/[@]HB_VERSION_MINOR@/$(HB_VERSION_MINOR)/' \
-		-e 's/[@]HB_VERSION_MICRO@/$(HB_VERSION_MICRO)/' \
-		-e 's/[@]HB_VERSION@/$(HB_VERSION)/' \
-		"$<" > "$@" || ($(RM) "$@"; false)
+	$(AM_V_GEN) $(srcdir)/gen-hb-version.py $(HB_VERSION) "$<" "$@"
 
 # Put the library together
 
@@ -251,8 +246,11 @@ GENERATORS = \
 	gen-arabic-table.py \
 	gen-def.py \
 	gen-emoji-table.py \
+	gen-harfbuzzcc.py \
+	gen-hb-version.py \
 	gen-indic-table.py \
 	gen-os2-unicode-ranges.py \
+	gen-ragel-artifacts.py \
 	gen-tag-table.py \
 	gen-ucd-table.py \
 	gen-use-table.py \
@@ -312,7 +310,8 @@ $(srcdir)/%.hh: $(srcdir)/%.rl
 
 harfbuzz.cc: Makefile.sources
 	$(AM_V_GEN) \
-	for f in \
+	$(srcdir)/gen-harfbuzzcc.py \
+		$(srcdir)/harfbuzz.cc \
 		$(HB_BASE_sources) \
 		$(HB_GLIB_sources) \
 		$(HB_FT_sources) \
@@ -320,10 +319,7 @@ harfbuzz.cc: Makefile.sources
 		$(HB_UNISCRIBE_sources) \
 		$(HB_GDI_sources) \
 		$(HB_DIRECTWRITE_sources) \
-		$(HB_CORETEXT_sources) \
-		; do echo '#include "'$$f'"'; done | \
-	grep '[.]cc"' > $(srcdir)/harfbuzz.cc \
-	|| ($(RM) $(srcdir)/harfbuzz.cc; false)
+		$(HB_CORETEXT_sources)
 BUILT_SOURCES += harfbuzz.cc
 
 noinst_PROGRAMS = \
