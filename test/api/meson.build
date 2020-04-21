@@ -28,6 +28,7 @@ tests = [
   'test-ot-metrics-tt-var.c',
   'test-set.c',
   'test-shape.c',
+  'test-style.c',
   'test-subset.c',
   'test-subset-cmap.c',
   'test-subset-drop-tables.c',
