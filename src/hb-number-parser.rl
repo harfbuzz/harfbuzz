@@ -28,8 +28,6 @@
 
 #include "hb.hh"
 
-#include <float.h>
-
 %%{
 
 machine double_parser;
