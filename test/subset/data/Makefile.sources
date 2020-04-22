@@ -4,6 +4,7 @@ TESTS = \
 	tests/cff-full-font.tests \
 	tests/japanese.tests \
 	tests/cff-japanese.tests \
+	tests/cmap.tests \
 	tests/cmap14.tests \
 	tests/sbix.tests \
 	tests/colr.tests \
@@ -20,7 +21,6 @@ DISABLED_TESTS = \
 	tests/layout.gsub3.tests \
 	tests/layout.gsub6.tests \
 	tests/layout.gdef.tests \
-	tests/cmap.tests \
 	$(NULL)
 
 XFAIL_TESTS = \

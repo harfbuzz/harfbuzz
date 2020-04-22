@@ -11,6 +11,7 @@ retain-gids.txt
 name-ids.txt
 name-languages.txt
 name-legacy.txt
+gids.txt
 
 SUBSETS:
 abc

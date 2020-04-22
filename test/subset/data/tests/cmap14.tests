@@ -8,6 +8,7 @@ drop-hints.txt
 drop-hints-retain-gids.txt
 retain-gids.txt
 name-ids.txt
+gids.txt
 
 SUBSETS:
 一丂七
