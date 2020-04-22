@@ -73,7 +73,7 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 }
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N))
 
-#elif !defined(HB_NO_MT) && __cplusplus >= 201103L
+#elif !defined(HB_NO_MT)
 
 /* C++11 atomics. */
 

@@ -29,6 +29,9 @@
 #ifndef HB_HH
 #define HB_HH
 
+#if !(__cplusplus >= 201103L)
+#error "HarfBuzz requires C++11"
+#endif
 
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC
 #ifdef _MSC_VER
@@ -301,8 +304,8 @@ extern "C" void  hb_free_impl(void *ptr);
  *     return foo;
  * }
  */
-#if defined(__clang__) && __cplusplus >= 201103L
-   /* clang's fallthrough annotations are only available starting in C++11. */
+#if defined(__clang__)
+   /* clang's fallthrough annotations are available starting in C++11. */
 #  define HB_FALLTHROUGH [[clang::fallthrough]]
 #elif defined(__GNUC__) && (__GNUC__ >= 7)
    /* GNU fallthrough attribute is available from GCC7 */
