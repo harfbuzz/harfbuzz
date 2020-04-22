@@ -113,7 +113,6 @@ test_subset_cmap4_no_exceeding_maximum_codepoint (void)
   hb_face_destroy (face_origin);
 }
 
-/* TEMPORARILY COMMENTED OFF
 static void
 test_subset_cmap_empty_tables (void)
 {
@@ -133,7 +132,6 @@ test_subset_cmap_empty_tables (void)
   hb_face_destroy (face_abc);
   hb_face_destroy (face_empty);
 }
-*/
 
 static void
 test_subset_cmap_noto_color_emoji_noop (void)
@@ -188,7 +186,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_cmap_noop);
   hb_test_add (test_subset_cmap_non_consecutive_glyphs);
   hb_test_add (test_subset_cmap4_no_exceeding_maximum_codepoint);
-  //hb_test_add (test_subset_cmap_empty_tables);
+  hb_test_add (test_subset_cmap_empty_tables);
   hb_test_add (test_subset_cmap_noto_color_emoji_noop);
   hb_test_add (test_subset_cmap_noto_color_emoji_non_consecutive_glyphs);
 

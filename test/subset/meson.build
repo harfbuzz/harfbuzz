@@ -13,6 +13,7 @@ tests = [
   'layout.gsub3',
   'layout.gsub6',
   'layout.gdef',
+  'cmap',
   'cmap14',
   'sbix',
   'colr',
@@ -36,7 +37,7 @@ foreach t : tests
     ],
     # as the tests are ran concurrently let's raise acceptable time here
     # ideally better to break and let meson handles them in parallel
-    timeout: 120,
+    timeout: 140,
     workdir: join_paths(meson.current_build_dir(), '..', '..'),
   )
 endforeach

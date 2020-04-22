@@ -53,6 +53,9 @@ struct hb_subset_plan_t
   // name_languages we would like to retain
   hb_set_t *name_languages;
 
+  //glyph ids requested to retain
+  hb_set_t *glyphs_requested;
+
   // Tables which should be dropped.
   hb_set_t *drop_tables;
 

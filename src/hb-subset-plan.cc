@@ -294,6 +294,7 @@ hb_subset_plan_create (hb_face_t         *face,
   plan->name_ids = hb_set_reference (input->name_ids);
   _nameid_closure (face, plan->name_ids);
   plan->name_languages = hb_set_reference (input->name_languages);
+  plan->glyphs_requested = hb_set_reference (input->glyphs);
   plan->drop_tables = hb_set_reference (input->drop_tables);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
@@ -337,6 +338,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_set_destroy (plan->unicodes);
   hb_set_destroy (plan->name_ids);
   hb_set_destroy (plan->name_languages);
+  hb_set_destroy (plan->glyphs_requested);
   hb_set_destroy (plan->drop_tables);
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);
