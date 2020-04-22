@@ -104,7 +104,7 @@ struct NullHelper
 	  } \
 	}; \
 	namespace Namespace { \
-	static_assert (true, "Just so we take semicolon after.")
+	static_assert (true, "") /* Require semicolon after. */
 #define DEFINE_NULL_NAMESPACE_BYTES(Namespace, Type) \
 	const unsigned char _hb_Null_##Namespace##_##Type[Namespace::Type::null_size]
 
@@ -117,7 +117,7 @@ struct NullHelper
 	    return _hb_Null_##Type; \
 	  } \
 	}; \
-	static_assert (true, "Just so we take semicolon after.")
+	static_assert (true, "") /* Require semicolon after. */
 #define DEFINE_NULL_INSTANCE(Type) \
 	const Type _hb_Null_##Type
 
