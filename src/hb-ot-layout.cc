@@ -1642,8 +1642,8 @@ hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
  * specifically in their respective size ranges; other ways to differentiate fonts within
  * a subfamily are not covered by the `size` feature.
  *
- * For more information on this distinction, see the `size` documentation at
- * https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#tag-39size39
+ * For more information on this distinction, see the [`size` feature documentation](
+ * https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#tag-size).
  *
  * Return value: true if data found, false otherwise
  *
