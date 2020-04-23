@@ -917,7 +917,7 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
 
   while (start < num_glyphs)
   {
-    char buf[1024];
+    char buf[32768];
     unsigned int consumed;
     start += hb_buffer_serialize_glyphs (buffer, start, num_glyphs,
 					 buf, sizeof (buf), &consumed,
