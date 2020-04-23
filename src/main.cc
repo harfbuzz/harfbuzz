@@ -333,6 +333,7 @@ dump_glyphs (hb_blob_t *blob, const char *font_name)
 }
 #endif
 
+#ifndef MAIN_CC_NO_PRIVATE_API
 /* Only this part of this mini app uses private API */
 #include "hb-static.cc"
 #include "hb-open-file.hh"
@@ -493,6 +494,7 @@ print_layout_info_using_private_api (hb_blob_t *blob)
   }
 }
 /* end of private API use */
+#endif
 
 int
 main (int argc, char **argv)
@@ -505,7 +507,9 @@ main (int argc, char **argv)
 
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
   printf ("Opened font file %s: %d bytes long\n", argv[1], hb_blob_get_length (blob));
+#ifndef MAIN_CC_NO_PRIVATE_API
   print_layout_info_using_private_api (blob);
+#endif
 #if !defined(HB_NO_COLOR) && !defined(HB_NO_DRAW) && defined(HB_EXPERIMENTAL_API)
   dump_glyphs (blob, argv[1]);
 #endif
