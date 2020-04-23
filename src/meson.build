@@ -395,6 +395,7 @@ libharfbuzz_subset_dep = declare_dependency(
   include_directories: incsrc,
   dependencies: deps)
 
+if get_option('tests').enabled()
 # TODO: MSVC gives the following,
 # error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
 if cpp.get_id() != 'msvc'
@@ -486,6 +487,7 @@ if host_machine.system() != 'windows' and not meson.is_cross_build()
   test('check-symbols.sh', find_program('check-symbols.sh'),
     depends: [harfbuzz_def, harfbuzz_subset_def], # TODO: harfbuzz_icu_def and harfbuzz_gobject_def also
     env: env)
+endif
 endif
 
 pkgmod.generate(libharfbuzz,
