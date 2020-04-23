@@ -29,6 +29,8 @@
 
 #include "hb.hh"
 
+#ifdef HAVE_ICU
+
 #include "hb-icu.h"
 
 #include "hb-machinery.hh"
@@ -39,6 +41,12 @@
 #include <unicode/utf16.h>
 #include <unicode/uversion.h>
 
+/* ICU extra semicolon, fixed since 65, https://github.com/unicode-org/icu/commit/480bec3 */
+#if U_ICU_VERSION_MAJOR_NUM < 65 && (defined(__GNUC__) || defined(__clang__))
+#define HB_ICU_EXTRA_SEMI_IGNORED
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextra-semi-stmt"
+#endif
 
 /**
  * SECTION:hb-icu
@@ -52,7 +60,6 @@
  * structure.
  **/
 
-
 /**
  * hb_icu_script_to_script:
  * @script: The UScriptCode identifier to query
@@ -63,6 +70,7 @@
  * Return value: the #hb_script_t script found
  *
  **/
+
 hb_script_t
 hb_icu_script_to_script (UScriptCode script)
 {
@@ -248,7 +256,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
       *b = 0;
       return *a != ab;
     } else if (len == 2) {
-      len =0;
+      len = 0;
       U16_NEXT_UNSAFE (decomposed, len, *a);
       U16_NEXT_UNSAFE (decomposed, len, *b);
     }
@@ -259,7 +267,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
   /* We don't ifdef-out the fallback code such that compiler always
    * sees it and makes sure it's compilable. */
 
-  UChar utf16[2], normalized[2 * HB_UNICODE_MAX_DECOMPOSITION_LEN + 1];
+  UChar utf16[2], normalized[2 * 19/*HB_UNICODE_MAX_DECOMPOSITION_LEN*/ + 1];
   unsigned int len;
   hb_bool_t ret, err;
   UErrorCode icu_err;
@@ -285,7 +293,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
     *b = 0;
     ret = *a != ab;
   } else if (len == 2) {
-    len =0;
+    len = 0;
     U16_NEXT_UNSAFE (normalized, len, *a);
     U16_NEXT_UNSAFE (normalized, len, *b);
 
@@ -381,3 +389,9 @@ hb_icu_get_unicode_funcs ()
 {
   return static_icu_funcs.get_unconst ();
 }
+
+#ifdef HB_ICU_EXTRA_SEMI_IGNORED
+#pragma GCC diagnostic pop
+#endif
+
+#endif

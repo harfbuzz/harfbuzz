@@ -135,6 +135,81 @@ test_set_basic (void)
 //   printf ("}\n");
 // }
 
+static void test_set_intersect_empty (void)
+{
+  hb_set_t* a = hb_set_create ();
+  hb_set_add (a, 3585);
+  hb_set_add (a, 21333);
+  hb_set_add (a, 24405);
+
+  hb_set_t* b = hb_set_create();
+  hb_set_add (b, 21483);
+  hb_set_add (b, 24064);
+
+  hb_set_intersect (a, b);
+  g_assert (hb_set_is_empty (a));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+
+
+  a = hb_set_create ();
+  hb_set_add (a, 16777216);
+
+  b = hb_set_create();
+  hb_set_add (b, 0);
+
+  hb_set_intersect (a, b);
+  g_assert (hb_set_is_empty (a));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+}
+
+static void test_set_intersect_page_reduction (void)
+{
+  hb_set_t* a = hb_set_create ();
+  hb_set_add (a, 3585);
+  hb_set_add (a, 21333);
+  hb_set_add (a, 24405);
+
+  hb_set_t* b = hb_set_create();
+  hb_set_add (b, 3585);
+  hb_set_add (b, 24405);
+
+  hb_set_intersect(a, b);
+  g_assert (hb_set_is_equal (a, b));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+}
+
+static void test_set_union (void)
+{
+  hb_set_t* a = hb_set_create();
+  hb_set_add (a, 3585);
+  hb_set_add (a, 21333);
+  hb_set_add (a, 24405);
+
+  hb_set_t* b = hb_set_create();
+  hb_set_add (b, 21483);
+  hb_set_add (b, 24064);
+
+  hb_set_t* u = hb_set_create ();
+  hb_set_add (u, 3585);
+  hb_set_add (u, 21333);
+  hb_set_add (u, 21483);
+  hb_set_add (u, 24064);
+  hb_set_add (u, 24405);
+
+  hb_set_union(b, a);
+  g_assert (hb_set_is_equal (u, b));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+  hb_set_destroy (u);
+}
+
 static void
 test_set_algebra (void)
 {
@@ -395,6 +470,53 @@ test_set_empty (void)
   hb_set_destroy (b);
 }
 
+static void
+test_set_delrange (void)
+{
+  const unsigned P = 512;	/* Page size. */
+  struct { unsigned b, e; } ranges[] = {
+    { 35, P-15 },		/* From page middle thru middle. */
+    { P, P+100 },		/* From page start thru middle. */
+    { P+300, P*2-1 },		/* From page middle thru end. */
+    { P*3, P*4+100 },		/* From page start thru next page middle. */
+    { P*4+300, P*6-1 },		/* From page middle thru next page end. */
+    { P*6+200,P*8+100 },	/* From page middle covering one page thru page middle. */
+    { P*9, P*10+105 },		/* From page start covering one page thru page middle. */
+    { P*10+305, P*12-1 },	/* From page middle covering one page thru page end. */
+    { P*13, P*15-1 },		/* From page start covering two pages thru page end. */
+    { P*15+100, P*18+100 }	/* From page middle covering two pages thru page middle. */
+  };
+  unsigned n = sizeof (ranges) / sizeof(ranges[0]);
+
+  hb_set_t *s = hb_set_create ();
+
+  test_empty (s);
+  for (unsigned int g = 0; g < ranges[n - 1].e + P; g += 2)
+    hb_set_add (s, g);
+
+  hb_set_add (s, P*2-1);
+  hb_set_add (s, P*6-1);
+  hb_set_add (s, P*12-1);
+  hb_set_add (s, P*15-1);
+
+  for (unsigned i = 0; i < n; i++)
+    hb_set_del_range (s, ranges[i].b, ranges[i].e);
+    
+  hb_set_del_range (s, P*13+5, P*15-10);	/* Deletion from deleted pages. */
+
+  for (unsigned i = 0; i < n; i++)
+  {
+    unsigned b = ranges[i].b;
+    unsigned e = ranges[i].e;
+    g_assert (hb_set_has (s, (b-2)&~1));
+    while (b <= e)
+      g_assert (!hb_set_has (s, b++));
+    g_assert (hb_set_has (s, (e+2)&~1));
+  }
+
+  hb_set_destroy (s);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -404,6 +526,11 @@ main (int argc, char **argv)
   hb_test_add (test_set_algebra);
   hb_test_add (test_set_iter);
   hb_test_add (test_set_empty);
+  hb_test_add (test_set_delrange);
+
+  hb_test_add (test_set_intersect_empty);
+  hb_test_add (test_set_intersect_page_reduction);
+  hb_test_add (test_set_union);
 
   return hb_test_run();
 }

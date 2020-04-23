@@ -31,6 +31,8 @@
 #endif
 #include <hb-ot.h>
 
+#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
+
 static struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);
@@ -114,7 +116,7 @@ pre_parse (GOptionContext *context G_GNUC_UNUSED,
 {
   option_group_t *option_group = (option_group_t *) data;
   option_group->pre_parse (error);
-  return *error == nullptr;
+  return !*error;
 }
 
 static gboolean
@@ -125,7 +127,7 @@ post_parse (GOptionContext *context G_GNUC_UNUSED,
 {
   option_group_t *option_group = static_cast<option_group_t *>(data);
   option_group->post_parse (error);
-  return *error == nullptr;
+  return !*error;
 }
 
 void
@@ -150,10 +152,12 @@ option_parser_t::parse (int *argc, char ***argv)
   GError *parse_error = nullptr;
   if (!g_option_context_parse (context, argc, argv, &parse_error))
   {
-    if (parse_error != nullptr) {
+    if (parse_error)
+    {
       fail (true, "%s", parse_error->message);
       //g_error_free (parse_error);
-    } else
+    }
+    else
       fail (true, "Option parse error");
   }
 }
@@ -194,8 +198,8 @@ parse_shapers (const char *name G_GNUC_UNUSED,
     bool found = false;
     for (const char **hb_shaper = hb_shape_list_shapers (); *hb_shaper; hb_shaper++) {
       if (strcmp (*shaper, *hb_shaper) == 0) {
-        found = true;
-        break;
+	found = true;
+	break;
       }
     }
     if (!found) {
@@ -226,9 +230,9 @@ list_shapers (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_features (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		const char *arg,
+		gpointer    data,
+		GError    **error G_GNUC_UNUSED)
 {
   shape_options_t *shape_opts = (shape_options_t *) data;
   char *s = (char *) arg;
@@ -269,9 +273,9 @@ parse_features (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_variations (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		  const char *arg,
+		  gpointer    data,
+		  GError    **error G_GNUC_UNUSED)
 {
   font_options_t *font_opts = (font_options_t *) data;
   char *s = (char *) arg;
@@ -333,9 +337,9 @@ parse_text (const char *name G_GNUC_UNUSED,
 
 static gboolean
 parse_unicodes (const char *name G_GNUC_UNUSED,
-	        const char *arg,
-	        gpointer    data,
-	        GError    **error G_GNUC_UNUSED)
+		const char *arg,
+		gpointer    data,
+		GError    **error G_GNUC_UNUSED)
 {
   text_options_t *text_opts = (text_options_t *) data;
 
@@ -347,28 +351,37 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   }
 
   GString *gs = g_string_new (nullptr);
-  char *s = (char *) arg;
-  char *p;
-
-  while (s && *s)
+  if (0 == strcmp (arg, "*"))
   {
-    while (*s && strchr ("<+>{},;&#\\xXuUnNiI\n\t\v\f\r ", *s))
-      s++;
-    if (!*s)
-      break;
+    g_string_append_c (gs, '*');
+  }
+  else
+  {
 
-    errno = 0;
-    hb_codepoint_t u = strtoul (s, &p, 16);
-    if (errno || s == p)
+    char *s = (char *) arg;
+    char *p;
+
+    while (s && *s)
     {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Failed parsing Unicode values at: '%s'", s);
-      return false;
+      while (*s && strchr (DELIMITERS, *s))
+	s++;
+      if (!*s)
+	break;
+
+      errno = 0;
+      hb_codepoint_t u = strtoul (s, &p, 16);
+      if (errno || s == p)
+      {
+	g_string_free (gs, TRUE);
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Failed parsing Unicode values at: '%s'", s);
+	return false;
+      }
+
+      g_string_append_unichar (gs, u);
+
+      s = p;
     }
-
-    g_string_append_unichar (gs, u);
-
-    s = p;
   }
 
   text_opts->text_len = gs->len;
@@ -613,7 +626,7 @@ output_options_t::add_options (option_parser_t *parser)
 {
   const char *text;
 
-  if (nullptr == supported_formats)
+  if (!supported_formats)
     text = "Set output serialization format";
   else
   {
@@ -705,7 +718,7 @@ font_options_t::get_font () const
       GString *s = g_string_new (nullptr);
       for (unsigned int i = 0; i < ARRAY_LENGTH (supported_font_funcs); i++)
       {
-        if (i)
+	if (i)
 	  g_string_append_c (s, '/');
 	g_string_append (s, supported_font_funcs[i].name);
       }
@@ -735,7 +748,7 @@ text_options_t::get_line (unsigned int *len)
       line = text;
       line_len = text_len;
     }
-    if (line_len == (unsigned int) -1)
+    if (line_len == UINT_MAX)
       line_len = strlen (line);
 
     if (!line_len) {
@@ -866,9 +879,9 @@ format_options_t::add_options (option_parser_t *parser)
   parser->add_group (entries,
 		     "output-syntax",
 		     "Output syntax:\n"
-         "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
-         "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
-         "\nOutput syntax options:",
+	 "    text: [<glyph name or index>=<glyph cluster index within input>@<horizontal displacement>,<vertical displacement>+<horizontal advance>,<vertical advance>|...]\n"
+	 "    json: [{\"g\": <glyph name or index>, \"ax\": <horizontal advance>, \"ay\": <vertical advance>, \"dx\": <horizontal displacement>, \"dy\": <vertical displacement>, \"cl\": <glyph cluster index within input>}, ...]\n"
+	 "\nOutput syntax options:",
 		     "Options for the syntax of the output",
 		     this);
 }
@@ -969,23 +982,4 @@ format_options_t::serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
   serialize_line_no (line_no, gs);
   serialize_glyphs (buffer, font, output_format, format_flags, gs);
   g_string_append_c (gs, '\n');
-}
-
-void
-subset_options_t::add_options (option_parser_t *parser)
-{
-  GOptionEntry entries[] =
-  {
-    {"layout", 0, 0, G_OPTION_ARG_NONE,  &this->keep_layout,   "Keep OpenType Layout tables",   nullptr},
-    {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  &this->drop_hints,   "Whether to drop hints",   nullptr},
-    {"retain-gids", 0, 0, G_OPTION_ARG_NONE,  &this->retain_gids,   "If set don't renumber glyph ids in the subset.",   nullptr},
-    {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->desubroutinize,   "Remove CFF/CFF2 use of subroutines",   nullptr},
-
-    {nullptr}
-  };
-  parser->add_group (entries,
-         "subset",
-         "Subset options:",
-         "Options subsetting",
-         this);
 }

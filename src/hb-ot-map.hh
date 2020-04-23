@@ -134,13 +134,13 @@ struct hb_ot_map_t
   unsigned int get_feature_stage (unsigned int table_index, hb_tag_t feature_tag) const
   {
     const feature_map_t *map = features.bsearch (feature_tag);
-    return map ? map->stage[table_index] : (unsigned int) -1;
+    return map ? map->stage[table_index] : UINT_MAX;
   }
 
   void get_stage_lookups (unsigned int table_index, unsigned int stage,
 			  const struct lookup_map_t **plookups, unsigned int *lookup_count) const
   {
-    if (unlikely (stage == (unsigned int) -1)) {
+    if (unlikely (stage == UINT_MAX)) {
       *plookups = nullptr;
       *lookup_count = 0;
       return;
@@ -154,8 +154,8 @@ struct hb_ot_map_t
 
   HB_INTERNAL void collect_lookups (unsigned int table_index, hb_set_t *lookups) const;
   template <typename Proxy>
-  HB_INTERNAL inline void apply (const Proxy &proxy,
-				 const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
+  HB_INTERNAL void apply (const Proxy &proxy,
+			  const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void substitute (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
   HB_INTERNAL void position (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer) const;
 

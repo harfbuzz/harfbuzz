@@ -1,14 +1,7 @@
-#!/usr/bin/env python
-
-from __future__ import print_function, division, absolute_import
+#!/usr/bin/env python3
 
 import sys, os, subprocess, hashlib, tempfile, shutil
 
-def cmd(command):
-	global process
-	process.stdin.write ((' '.join (command) + '\n').encode ("utf-8"))
-	process.stdin.flush ()
-	return process.stdout.readline().decode ("utf-8").strip ()
 
 args = sys.argv[1:]
 
@@ -22,10 +15,21 @@ if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
 	sys.exit (1)
 hb_shape, args = args[0], args[1:]
 
-process = subprocess.Popen ([hb_shape, '--batch'],
+def cmd(command):
+	process = subprocess.Popen ([hb_shape, '--batch'],
 			    stdin=subprocess.PIPE,
 			    stdout=subprocess.PIPE,
-			    stderr=sys.stdout)
+			    stderr=subprocess.PIPE)
+	process.stdin.write ((' '.join (command) + '\n').encode ("utf-8"))
+	process.stdin.flush ()
+	ret_stdout = None
+	ret_stderr = None
+	ret_stdout, ret_stderr = process.communicate ()
+	if ret_stdout is not None:
+		ret_stdout = ret_stdout.decode ("utf-8").strip ()
+	if ret_stderr is not None:
+		ret_stderr = ret_stderr.decode ("utf-8").strip ()
+	return (ret_stdout, ret_stderr)
 
 passes = 0
 fails = 0
@@ -44,7 +48,7 @@ for filename in args:
 	if filename == '-':
 		f = sys.stdin
 	else:
-		f = open (filename)
+		f = open (filename, encoding='utf8')
 
 	for line in f:
 		comment = False
@@ -63,6 +67,9 @@ for filename in args:
 
 		fontfile, options, unicodes, glyphs_expected = line.split (":")
 		if fontfile.startswith ('/') or fontfile.startswith ('"/'):
+			if os.name == 'nt': # Skip on Windows
+				continue
+
 			fontfile, expected_hash = fontfile.split('@')
 
 			try:
@@ -104,23 +111,31 @@ for filename in args:
 			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
+		if glyphs1[1] is not None or glyphs1[1] != '':
+			check_string = hb_shape[hb_shape.find(os.path.sep) + 1:] + \
+			               ': Unknown font function implementation `ft\''
+			if glyphs1[1].startswith(check_string):
+				skips += 1
+				print ("Skipping test due to lack of FreeType support")
+				continue
+
 		glyphs2 = cmd ([hb_shape, "--font-funcs=ot",
 			fontfile] + extra_options + ["--unicodes",
 			unicodes] + (options.split (' ') if options else []))
 
-		if glyphs1 != glyphs2 and glyphs_expected != '*':
-			print ("FT funcs: " + glyphs1) # file=sys.stderr
-			print ("OT funcs: " + glyphs2) # file=sys.stderr
+		if glyphs1[0] != glyphs2[0] and glyphs_expected != '*':
+			print ("FT funcs: " + glyphs1[0]) # file=sys.stderr
+			print ("OT funcs: " + glyphs2[0]) # file=sys.stderr
 			fails += 1
 		else:
 			passes += 1
 
 		if reference:
-			print (":".join ([fontfile, options, unicodes, glyphs1]))
+			print (":".join ([fontfile, options, unicodes, glyphs1[0]]))
 			continue
 
-		if glyphs1.strip() != glyphs_expected and glyphs_expected != '*':
-			print ("Actual:   " + glyphs1) # file=sys.stderr
+		if glyphs1[0].strip() != glyphs_expected and glyphs_expected != '*':
+			print ("Actual:   " + glyphs1[0]) # file=sys.stderr
 			print ("Expected: " + glyphs_expected) # file=sys.stderr
 			fails += 1
 		else:

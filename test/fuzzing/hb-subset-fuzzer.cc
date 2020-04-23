@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "hb-subset.h"
 
@@ -16,9 +17,15 @@ trySubset (hb_face_t *face,
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   hb_subset_input_set_drop_hints (input, drop_hints);
-  hb_subset_input_set_drop_layout (input, drop_layout);
   hb_subset_input_set_retain_gids (input, retain_gids);
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+
+  if (!drop_layout)
+  {
+    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'S', 'U', 'B'));
+    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'P', 'O', 'S'));
+    hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'D', 'E', 'F'));
+  }
 
   for (int i = 0; i < text_length; i++)
   {
@@ -26,6 +33,19 @@ trySubset (hb_face_t *face,
   }
 
   hb_face_t *result = hb_subset (face, input);
+  {
+    hb_blob_t *blob = hb_face_reference_blob (result);
+    unsigned int length;
+    const char *data = hb_blob_get_data (blob, &length);
+
+    // Something not optimizable just to access all the blob data
+    unsigned int bytes_count = 0;
+    for (unsigned int i = 0; i < length; ++i)
+      if (data[i]) ++bytes_count;
+    assert (bytes_count || !length);
+
+    hb_blob_destroy (blob);
+  }
   hb_face_destroy (result);
 
   hb_subset_input_destroy (input);
@@ -47,7 +67,7 @@ trySubset (hb_face_t *face,
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   hb_blob_t *blob = hb_blob_create ((const char *)data, size,
-				    HB_MEMORY_MODE_READONLY, NULL, NULL);
+				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
   hb_face_t *face = hb_face_create (blob, 0);
 
   /* Just test this API here quickly. */

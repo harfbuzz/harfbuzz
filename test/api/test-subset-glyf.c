@@ -70,9 +70,9 @@ test_subset_glyf (void)
   face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
   check_maxp_num_glyphs(face_abc_subset, 3, true);
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -137,7 +137,9 @@ test_subset_glyf_with_gsub (void)
 
   input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
-  hb_subset_input_set_drop_layout (input, false);
+  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'S', 'U', 'B'));
+  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'P', 'O', 'S'));
+  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'D', 'E', 'F'));
 
   face_subset = hb_subset_test_create_subset (face_fil, input);
 
@@ -164,7 +166,9 @@ test_subset_glyf_without_gsub (void)
 
   input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
-  hb_subset_input_set_drop_layout (input, true);
+  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'S', 'U', 'B'));
+  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'P', 'O', 'S'));
+  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'D', 'E', 'F'));
 
   face_subset = hb_subset_test_create_subset (face_fil, input);
 
@@ -190,9 +194,9 @@ test_subset_glyf_noop (void)
   face_abc_subset = hb_subset_test_create_subset (face_abc, hb_subset_test_create_input (codepoints));
   hb_set_destroy (codepoints);
 
-  hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('g','l','y','f'));
-  hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('l','o','c', 'a'));
   check_maxp_num_glyphs(face_abc_subset, 4, true);
+  hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_abc, face_abc_subset, HB_TAG ('g','l','y','f'));
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -214,9 +218,9 @@ test_subset_glyf_strip_hints_simple (void)
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
+  check_maxp_num_glyphs(face_abc_subset, 3, false);
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
-  check_maxp_num_glyphs(face_abc_subset, 3, false);
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
@@ -239,9 +243,9 @@ test_subset_glyf_strip_hints_composite (void)
   face_generated_subset = hb_subset_test_create_subset (face_components, input);
   hb_set_destroy (codepoints);
 
-  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('g','l','y','f'));
-  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('l','o','c', 'a'));
   check_maxp_num_glyphs(face_generated_subset, 4, false);
+  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_subset, face_generated_subset, HB_TAG ('g','l','y','f'));
 
   hb_face_destroy (face_generated_subset);
   hb_face_destroy (face_subset);
@@ -296,13 +300,37 @@ test_subset_glyf_retain_gids (void)
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
-  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
   check_maxp_num_glyphs(face_abc_subset, 4, true);
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
 
   hb_face_destroy (face_abc_subset);
   hb_face_destroy (face_abc);
   hb_face_destroy (face_ac);
+}
+
+static void
+test_subset_glyf_retain_gids_truncates (void)
+{
+  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
+  hb_face_t *face_a = hb_test_open_font_file ("fonts/Roboto-Regular.a.retaingids.ttf");
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_face_t *face_abc_subset;
+  hb_set_add (codepoints, 97);
+
+  hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_retain_gids (input, true);
+  face_abc_subset = hb_subset_test_create_subset (face_abc, input);
+  hb_set_destroy (codepoints);
+
+  check_maxp_num_glyphs(face_abc_subset, 2, true);
+  hb_subset_test_check (face_a, face_abc_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_a, face_abc_subset, HB_TAG ('g','l','y','f'));
+
+  hb_face_destroy (face_abc_subset);
+  hb_face_destroy (face_abc);
+  hb_face_destroy (face_a);
 }
 
 // TODO(grieger): test for long loca generation.
@@ -322,6 +350,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_glyf_with_gsub);
   hb_test_add (test_subset_glyf_without_gsub);
   hb_test_add (test_subset_glyf_retain_gids);
+  hb_test_add (test_subset_glyf_retain_gids_truncates);
 
   return hb_test_run();
 }

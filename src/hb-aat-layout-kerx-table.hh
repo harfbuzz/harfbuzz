@@ -82,8 +82,8 @@ struct KernPair
   }
 
   protected:
-  GlyphID	left;
-  GlyphID	right;
+  HBGlyphID	left;
+  HBGlyphID	right;
   FWORD		value;
   public:
   DEFINE_SIZE_STATIC (6);
@@ -251,7 +251,7 @@ struct KerxSubTableFormat1
 
       if (Format1EntryT::performAction (entry) && depth)
       {
-	unsigned int tuple_count = MAX (1u, table->header.tuple_count ());
+	unsigned int tuple_count = hb_max (1u, table->header.tuple_count ());
 
 	unsigned int kern_idx = Format1EntryT::kernActionIndex (entry);
 	kern_idx = Types::byteOffsetToIndex (kern_idx, &table->machine, kernAction.arrayZ);
@@ -392,7 +392,7 @@ struct KerxSubTableFormat2
 
     const UnsizedArrayOf<FWORD> &arrayZ = this+array;
     unsigned int kern_idx = l + r;
-    kern_idx = Types::offsetToIndex (kern_idx, this, &arrayZ);
+    kern_idx = Types::offsetToIndex (kern_idx, this, arrayZ.arrayZ);
     const FWORD *v = &arrayZ[kern_idx];
     if (unlikely (!v->sanitize (&c->sanitizer))) return 0;
 
@@ -712,18 +712,18 @@ struct KerxSubTableFormat6
   {
     struct Long
     {
-      LNNOffsetTo<Lookup<HBUINT32> >		rowIndexTable;
-      LNNOffsetTo<Lookup<HBUINT32> >		columnIndexTable;
-      LNNOffsetTo<UnsizedArrayOf<FWORD32> >	array;
+      LNNOffsetTo<Lookup<HBUINT32>>		rowIndexTable;
+      LNNOffsetTo<Lookup<HBUINT32>>		columnIndexTable;
+      LNNOffsetTo<UnsizedArrayOf<FWORD32>>	array;
     } l;
     struct Short
     {
-      LNNOffsetTo<Lookup<HBUINT16> >		rowIndexTable;
-      LNNOffsetTo<Lookup<HBUINT16> >		columnIndexTable;
-      LNNOffsetTo<UnsizedArrayOf<FWORD> >	array;
+      LNNOffsetTo<Lookup<HBUINT16>>		rowIndexTable;
+      LNNOffsetTo<Lookup<HBUINT16>>		columnIndexTable;
+      LNNOffsetTo<UnsizedArrayOf<FWORD>>	array;
     } s;
   } u;
-  LNNOffsetTo<UnsizedArrayOf<FWORD> >	vector;
+  LNNOffsetTo<UnsizedArrayOf<FWORD>>	vector;
   public:
   DEFINE_SIZE_STATIC (KernSubTableHeader::static_size + 24);
 };
@@ -733,8 +733,8 @@ struct KerxSubTableHeader
 {
   typedef ExtendedTypes Types;
 
-  unsigned int tuple_count () const { return tupleCount; }
-  bool is_horizontal () const       { return !(coverage & Vertical); }
+  unsigned   tuple_count () const { return tupleCount; }
+  bool     is_horizontal () const { return !(coverage & Vertical); }
 
   enum Coverage
   {
@@ -771,17 +771,17 @@ struct KerxSubTable
   unsigned int get_size () const { return u.header.length; }
   unsigned int get_type () const { return u.header.coverage & u.header.SubtableType; }
 
-  template <typename context_t>
-  typename context_t::return_t dispatch (context_t *c) const
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
-    case 0:	return_trace (c->dispatch (u.format0));
-    case 1:	return_trace (c->dispatch (u.format1));
-    case 2:	return_trace (c->dispatch (u.format2));
-    case 4:	return_trace (c->dispatch (u.format4));
-    case 6:	return_trace (c->dispatch (u.format6));
+    case 0:	return_trace (c->dispatch (u.format0, hb_forward<Ts> (ds)...));
+    case 1:	return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 2:	return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 4:	return_trace (c->dispatch (u.format4, hb_forward<Ts> (ds)...));
+    case 6:	return_trace (c->dispatch (u.format6, hb_forward<Ts> (ds)...));
     default:	return_trace (c->default_return_value ());
     }
   }
@@ -830,7 +830,7 @@ struct KerxTable
     for (unsigned int i = 0; i < count; i++)
     {
       if (st->get_type () == 1)
-        return true;
+	return true;
       st = &StructAfter<SubTable> (*st);
     }
     return false;
@@ -845,7 +845,7 @@ struct KerxTable
     for (unsigned int i = 0; i < count; i++)
     {
       if (st->u.header.coverage & st->u.header.CrossStream)
-        return true;
+	return true;
       st = &StructAfter<SubTable> (*st);
     }
     return false;
@@ -862,7 +862,7 @@ struct KerxTable
     {
       if ((st->u.header.coverage & (st->u.header.Variation | st->u.header.CrossStream)) ||
 	  !st->u.header.is_horizontal ())
-        continue;
+	continue;
       v += st->get_kerning (left, right);
       st = &StructAfter<SubTable> (*st);
     }
@@ -883,7 +883,7 @@ struct KerxTable
       bool reverse;
 
       if (!T::Types::extended && (st->u.header.coverage & st->u.header.Variation))
-        goto skip;
+	goto skip;
 
       if (HB_DIRECTION_IS_HORIZONTAL (c->buffer->props.direction) != st->u.header.is_horizontal ())
 	goto skip;
@@ -897,8 +897,8 @@ struct KerxTable
       if (!seenCrossStream &&
 	  (st->u.header.coverage & st->u.header.CrossStream))
       {
-        /* Attach all glyphs into a chain. */
-        seenCrossStream = true;
+	/* Attach all glyphs into a chain. */
+	seenCrossStream = true;
 	hb_glyph_position_t *pos = c->buffer->pos;
 	unsigned int count = c->buffer->len;
 	for (unsigned int i = 0; i < count; i++)

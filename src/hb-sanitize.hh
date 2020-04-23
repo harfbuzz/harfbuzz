@@ -113,6 +113,9 @@
 #ifndef HB_SANITIZE_MAX_OPS_MAX
 #define HB_SANITIZE_MAX_OPS_MAX 0x3FFFFFFF
 #endif
+#ifndef HB_SANITIZE_MAX_SUTABLES
+#define HB_SANITIZE_MAX_SUTABLES 0x4000
+#endif
 
 struct hb_sanitize_context_t :
        hb_dispatch_context_t<hb_sanitize_context_t, bool, HB_DEBUG_SANITIZE>
@@ -120,7 +123,7 @@ struct hb_sanitize_context_t :
   hb_sanitize_context_t () :
 	debug_depth (0),
 	start (nullptr), end (nullptr),
-	max_ops (0),
+	max_ops (0), max_subtables (0),
 	writable (false), edit_count (0),
 	blob (nullptr),
 	num_glyphs (65536),
@@ -130,11 +133,28 @@ struct hb_sanitize_context_t :
   template <typename T, typename F>
   bool may_dispatch (const T *obj HB_UNUSED, const F *format)
   { return format->sanitize (this); }
-  template <typename T>
-  return_t dispatch (const T &obj) { return obj.sanitize (this); }
   static return_t default_return_value () { return true; }
   static return_t no_dispatch_return_value () { return false; }
   bool stop_sublookup_iteration (const return_t r) const { return !r; }
+
+  bool visit_subtables (unsigned count)
+  {
+    max_subtables += count;
+    return max_subtables < HB_SANITIZE_MAX_SUTABLES;
+  }
+
+  private:
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
+  ( obj.sanitize (this, hb_forward<Ts> (ds)...) )
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
+  ( obj.dispatch (this, hb_forward<Ts> (ds)...) )
+  public:
+  template <typename T, typename ...Ts> auto
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
+
 
   void init (hb_blob_t *b)
   {
@@ -164,7 +184,7 @@ struct hb_sanitize_context_t :
     else
     {
       this->start = obj_start;
-      this->end   = obj_start + MIN<uintptr_t> (this->end - obj_start, obj->get_size ());
+      this->end   = obj_start + hb_min (size_t (this->end - obj_start), obj->get_size ());
     }
   }
 
@@ -178,8 +198,12 @@ struct hb_sanitize_context_t :
   void start_processing ()
   {
     reset_object ();
-    this->max_ops = MAX ((unsigned int) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
-			 (unsigned) HB_SANITIZE_MAX_OPS_MIN);
+    if (unlikely (hb_unsigned_mul_overflows (this->end - this->start, HB_SANITIZE_MAX_OPS_FACTOR)))
+      this->max_ops = HB_SANITIZE_MAX_OPS_MAX;
+    else
+      this->max_ops = hb_clamp ((unsigned) (this->end - this->start) * HB_SANITIZE_MAX_OPS_FACTOR,
+				(unsigned) HB_SANITIZE_MAX_OPS_MIN,
+				(unsigned) HB_SANITIZE_MAX_OPS_MAX);
     this->edit_count = 0;
     this->debug_depth = 0;
 
@@ -199,6 +223,8 @@ struct hb_sanitize_context_t :
     this->blob = nullptr;
     this->start = this->end = nullptr;
   }
+
+  unsigned get_edit_count () { return edit_count; }
 
   bool check_range (const void *base,
 		    unsigned int len) const
@@ -313,8 +339,8 @@ struct hb_sanitize_context_t :
       {
 	DEBUG_MSG_FUNC (SANITIZE, start, "passed first round with %d edits; going for second round", edit_count);
 
-        /* sanitize again to ensure no toe-stepping */
-        edit_count = 0;
+	/* sanitize again to ensure no toe-stepping */
+	edit_count = 0;
 	sane = t->sanitize (this);
 	if (edit_count) {
 	  DEBUG_MSG_FUNC (SANITIZE, start, "requested %d edits in second round; FAILLING", edit_count);
@@ -325,7 +351,7 @@ struct hb_sanitize_context_t :
     else
     {
       if (edit_count && !writable) {
-        start = hb_blob_get_data_writable (blob, nullptr);
+	start = hb_blob_get_data_writable (blob, nullptr);
 	end = start + blob->length;
 
 	if (start)
@@ -363,7 +389,7 @@ struct hb_sanitize_context_t :
 
   mutable unsigned int debug_depth;
   const char *start, *end;
-  mutable int max_ops;
+  mutable int max_ops, max_subtables;
   private:
   bool writable;
   unsigned int edit_count;

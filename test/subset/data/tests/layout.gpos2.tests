@@ -1,0 +1,13 @@
+FONTS:
+gpos2_1_font7.otf
+gpos2_2_font5.otf
+
+PROFILES:
+keep-layout.txt
+keep-layout-retain-gids.txt
+
+SUBSETS:
+!#
+!#%
+ABC
+*

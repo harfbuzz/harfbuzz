@@ -193,7 +193,7 @@
       hb_buffer_set_language(buf, hb_language_from_string("en", -1));
     </programlisting>
     <para>
-      However, since these properties are often the repeated for
+      However, since these properties are often repeated for
       multiple text runs, you can also save them in a
       <literal>hb_segment_properties_t</literal> for reuse:
     </para>
@@ -215,7 +215,7 @@
       bottom-to-top (<literal>HB_DIRECTION_BTT</literal>).  For the
       script property, HarfBuzz uses identifiers based on the
       <ulink
-      url="https://unicode.org/iso15924/">ISO-15924
+      url="https://unicode.org/iso15924/">ISO 15924
       standard</ulink>. For languages, HarfBuzz uses tags based on the
       <ulink url="https://tools.ietf.org/html/bcp47">IETF BCP 47</ulink> standard.
     </para>
@@ -300,10 +300,13 @@
       decomposing code points.
     </para>
     <para>
-      At build time, HarfBuzz looks first for the GLib library. If
-      it is found, HarfBuzz will use GLib's Unicode functions by
-      default. If there is no GLib, HarfBuzz will fall back to its own
-      internal, lightweight set of Unicode functions instead.
+      HarfBuzz includes its own internal, lightweight set of Unicode
+      functions. At build time, it is also possible to compile support
+      for some other options, such as the Unicode functions provided
+      by GLib or the International Components for Unicode (ICU)
+      library. Generally, this option is only of interest for client
+      programs that have specific integration requirements or that do
+      a significant amount of customization.
     </para>
     <para>
       If your program has access to other Unicode functions, however,

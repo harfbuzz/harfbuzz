@@ -133,7 +133,7 @@ struct image_t
 	for (unsigned int col = 0; col < w; col++)
 	  *q++ = *p++;
       else {
-        unsigned int limit = width - x;
+	unsigned int limit = width - x;
 	for (unsigned int col = 0; col < limit; col++)
 	  *q++ = *p++;
 	p--;
@@ -171,17 +171,17 @@ struct biimage_t
     int freq[8] = {0};
     for (unsigned int y = 0; y < height; y++)
       for (unsigned int x = 0; x < width; x++) {
-        color_t c = image (x, y);
-        freq[c.to_ansi ()]++;
+	color_t c = image (x, y);
+	freq[c.to_ansi ()]++;
       }
     bg = 0;
     for (unsigned int i = 1; i < 8; i++)
       if (freq[bg] < freq[i])
-        bg = i;
+	bg = i;
     fg = 0;
     for (unsigned int i = 1; i < 8; i++)
       if (i != bg && freq[fg] < freq[i])
-        fg = i;
+	fg = i;
     if (fg == bg || freq[fg] == 0) {
       fg = bg;
       unicolor = true;
@@ -202,7 +202,7 @@ struct biimage_t
     int dd = diff.dot (diff);
     for (unsigned int y = 0; y < height; y++)
       for (unsigned int x = 0; x < width; x++) {
-        int d = diff.dot (image (x, y).diff (bgc));
+	int d = diff.dot (image (x, y).diff (bgc));
 	(*this)(x, y) = d < 0 ? 0 : d > dd ? 255 : lround (d * 255. / dd);
       }
   }
@@ -229,7 +229,7 @@ block_best (const biimage_t &bi, bool *inverse)
   assert (bi.width  <= CELL_W);
   assert (bi.height <= CELL_H);
 
-  unsigned int score = (unsigned int) -1;
+  unsigned int score = UINT_MAX;
   unsigned int row_sum[CELL_H] = {0};
   unsigned int col_sum[CELL_W] = {0};
   unsigned int row_sum_i[CELL_H] = {0};
@@ -279,7 +279,7 @@ block_best (const biimage_t &bi, bool *inverse)
 
   /* Find best lower line */
   if (1) {
-    unsigned int best_s = (unsigned int) -1;
+    unsigned int best_s = UINT_MAX;
     bool best_inv = false;
     int best_i = 0;
     for (unsigned int i = 0; i < bi.height - 1; i++)
@@ -287,13 +287,13 @@ block_best (const biimage_t &bi, bool *inverse)
       unsigned int s;
       s = row_sum[i] + total_i - row_sum_i[i];
       if (s < best_s) {
-        best_s = s;
+	best_s = s;
 	best_i = i;
 	best_inv = false;
       }
       s = row_sum_i[i] + total - row_sum[i];
       if (s < best_s) {
-        best_s = s;
+	best_s = s;
 	best_i = i;
 	best_inv = true;
       }
@@ -311,7 +311,7 @@ block_best (const biimage_t &bi, bool *inverse)
 
   /* Find best left line */
   if (1) {
-    unsigned int best_s = (unsigned int) -1;
+    unsigned int best_s = UINT_MAX;
     bool best_inv = false;
     int best_i = 0;
     for (unsigned int i = 0; i < bi.width - 1; i++)
@@ -319,13 +319,13 @@ block_best (const biimage_t &bi, bool *inverse)
       unsigned int s;
       s = col_sum[i] + total_i - col_sum_i[i];
       if (s < best_s) {
-        best_s = s;
+	best_s = s;
 	best_i = i;
 	best_inv = true;
       }
       s = col_sum_i[i] + total - col_sum[i];
       if (s < best_s) {
-        best_s = s;
+	best_s = s;
 	best_i = i;
 	best_inv = false;
       }
@@ -396,15 +396,15 @@ ansi_print_image_rgb24 (const uint32_t *data,
       image.copy_sub_image (cell, col * CELL_W, row * CELL_H, CELL_W, CELL_H);
       bi.set (cell);
       if (bi.unicolor) {
-        if (last_bg != bi.bg) {
+	if (last_bg != bi.bg) {
 	  printf ("%c[%dm", ESC_E, 40 + bi.bg);
 	  last_bg = bi.bg;
 	}
 	printf (" ");
       } else {
-        /* Figure out the closest character to the biimage */
+	/* Figure out the closest character to the biimage */
 	bool inverse = false;
-        const char *c = block_best (bi, &inverse);
+	const char *c = block_best (bi, &inverse);
 	if (inverse) {
 	  if (last_bg != bi.fg || last_fg != bi.bg) {
 	    printf ("%c[%d;%dm", ESC_E, 30 + bi.bg, 40 + bi.fg);

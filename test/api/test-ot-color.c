@@ -210,7 +210,7 @@ static void
 test_hb_ot_color_palette_get_colors_v0 (void)
 {
   unsigned int num_colors = hb_ot_color_palette_get_colors (cpal_v0, 0, 0, NULL, NULL);
-  hb_color_t *colors = (hb_color_t*) alloca (num_colors * sizeof (hb_color_t));
+  hb_color_t *colors = (hb_color_t*) malloc (num_colors * sizeof (hb_color_t));
   size_t colors_size = num_colors * sizeof(*colors);
   g_assert_cmpint (num_colors, ==, 2);
 
@@ -252,6 +252,8 @@ test_hb_ot_color_palette_get_colors_v0 (void)
   g_assert_cmpint (num_colors, ==, 0);
   assert_color_rgba (colors, 0, 0x44, 0x44, 0x44, 0x44);  /* untouched */
   assert_color_rgba (colors, 1, 0x44, 0x44, 0x44, 0x44);  /* untouched */
+	
+  free (colors);
 }
 
 
@@ -426,9 +428,9 @@ test_hb_ot_color_png (void)
   g_assert (strncmp (data + 1, "PNG", 3) == 0);
   hb_font_get_glyph_extents (sbix_font, 1, &extents);
   g_assert_cmpint (extents.x_bearing, ==, 0);
-  g_assert_cmpint (extents.y_bearing, ==, 0);
+  g_assert_cmpint (extents.y_bearing, ==, 800);
   g_assert_cmpint (extents.width, ==, 800);
-  g_assert_cmpint (extents.height, ==, 800);
+  g_assert_cmpint (extents.height, ==, -800);
   hb_blob_destroy (blob);
   hb_font_destroy (sbix_font);
 

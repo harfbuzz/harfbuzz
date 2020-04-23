@@ -37,7 +37,7 @@
       An <type>hb_face_t</type> represents a <emphasis>face</emphasis>
       in HarfBuzz. This data type is a wrapper around an
       <type>hb_blob_t</type> blob that holds the contents of a binary
-      fotn file. Since HarfBuzz supports TrueType Collections and
+      font file. Since HarfBuzz supports TrueType Collections and
       OpenType Collections (each of which can include multiple
       typefaces), a HarfBuzz face also requires an index number
       specifying which typeface in the file you want to use. Most of
@@ -86,7 +86,7 @@
       objects. <function>hb_font_set_ppem(font, x_ppem,
       y_ppem)</function> sets the pixels-per-EM value of the font. You
       can also set the point size of the font with
-      <function>hb_font_set_ppem(font, ptem)</function>. HarfBuzz uses the
+      <function>hb_font_set_ptem(font, ptem)</function>. HarfBuzz uses the
       industry standard 72 points per inch.
     </para>
     <para>

@@ -29,8 +29,9 @@
 #ifndef HB_HH
 #define HB_HH
 
+
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #pragma warning( disable: 4068 ) /* Unknown pragma */
 #endif
 #if defined(__GNUC__) || defined(__clang__)
@@ -65,6 +66,8 @@
 #pragma GCC diagnostic error   "-Wcast-align"
 #pragma GCC diagnostic error   "-Wcast-function-type"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
+#pragma GCC diagnostic error   "-Wembedded-directive"
+#pragma GCC diagnostic error   "-Wextra-semi-stmt"
 #pragma GCC diagnostic error   "-Wformat-security"
 #pragma GCC diagnostic error   "-Wimplicit-function-declaration"
 #pragma GCC diagnostic error   "-Winit-self"
@@ -94,7 +97,10 @@
 /* Warning.  To be investigated if happens. */
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_WARNING
 #pragma GCC diagnostic warning "-Wbuiltin-macro-redefined"
+#pragma GCC diagnostic warning "-Wdeprecated"
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
 #pragma GCC diagnostic warning "-Wdisabled-optimization"
+#pragma GCC diagnostic warning "-Wdouble-promotion"
 #pragma GCC diagnostic warning "-Wformat=2"
 #pragma GCC diagnostic warning "-Wignored-pragma-optimize"
 #pragma GCC diagnostic warning "-Wlogical-op"
@@ -121,14 +127,15 @@
 #pragma GCC diagnostic ignored "-Wpacked" // Erratic impl in clang
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #pragma GCC diagnostic ignored "-Wtype-limits"
+#pragma GCC diagnostic ignored "-Wc++11-compat" // only gcc raises it
 #endif
 
 #endif
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+
+#include "hb-config.hh"
+
 
 /*
  * Following added based on what AC_USE_SYSTEM_EXTENSIONS adds to
@@ -167,19 +174,25 @@
 #include "hb-aat.h"
 #define HB_AAT_H_IN
 
-#include "hb-aat.h"
-
+#include <limits.h>
 #include <math.h>
+#include <float.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <assert.h>
-#include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>
 
 #if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
+#ifdef __MINGW32_VERSION
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN 1
+#endif
+#include <windows.h>
+#else
 #include <intrin.h>
+#endif
 #endif
 
 #define HB_PASTE1(a,b) a##b
@@ -200,14 +213,6 @@ extern "C" void  hb_free_impl(void *ptr);
 #define calloc hb_calloc_impl
 #define realloc hb_realloc_impl
 #define free hb_free_impl
-
-#if defined(hb_memalign_impl)
-extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
-#define posix_memalign hb_memalign_impl
-#else
-#undef HAVE_POSIX_MEMALIGN
-#endif
-
 #endif
 
 
@@ -237,7 +242,7 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #define HB_CONST_FUNC
 #define HB_PRINTF_FUNC(format_idx, arg_idx)
 #endif
-#if defined(__GNUC__) && (__GNUC__ >= 4)
+#if defined(__GNUC__) && (__GNUC__ >= 4) || (__clang__)
 #define HB_UNUSED	__attribute__((unused))
 #elif defined(_MSC_VER) /* https://github.com/harfbuzz/harfbuzz/issues/635 */
 #define HB_UNUSED __pragma(warning(suppress: 4100 4101))
@@ -258,6 +263,13 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #  define HB_INTERNAL
 #  define HB_NO_VISIBILITY 1
 # endif
+#endif
+
+/* https://github.com/harfbuzz/harfbuzz/issues/1651 */
+#if defined(__clang__) && __clang_major__ < 10
+#define static_const static
+#else
+#define static_const static const
 #endif
 
 #if defined(__GNUC__) && (__GNUC__ >= 3)
@@ -306,7 +318,8 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #  define HB_FALLTHROUGH /* FALLTHROUGH */
 #endif
 
-#if defined(__clang__)
+/* https://github.com/harfbuzz/harfbuzz/issues/1852 */
+#if defined(__clang__) && !(defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__)))
 /* Disable certain sanitizer errors. */
 /* https://github.com/harfbuzz/harfbuzz/issues/1247 */
 #define HB_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW __attribute__((no_sanitize("signed-integer-overflow")))
@@ -337,17 +350,33 @@ extern "C" int hb_memalign_impl(void **memptr, size_t alignment, size_t size);
 #  if defined(_WIN32_WCE)
      /* Some things not defined on Windows CE. */
 #    define vsnprintf _vsnprintf
-#    define getenv(Name) nullptr
+#    ifndef HB_NO_GETENV
+#      define HB_NO_GETENV
+#    endif
 #    if _WIN32_WCE < 0x800
-#      define setlocale(Category, Locale) "C"
-static int errno = 0; /* Use something better? */
+#      define HB_NO_SETLOCALE
+#      define HB_NO_ERRNO
 #    endif
 #  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
-#    define getenv(Name) nullptr
+#    ifndef HB_NO_GETENV
+#      define HB_NO_GETENV
+#    endif
 #  endif
 #  if defined(_MSC_VER) && _MSC_VER < 1900
 #    define snprintf _snprintf
 #  endif
+#endif
+
+#ifdef HB_NO_GETENV
+#define getenv(Name) nullptr
+#endif
+
+#ifndef HB_NO_ERRNO
+#  include <errno.h>
+#else
+static int HB_UNUSED _hb_errno = 0;
+#  undef errno
+#  define errno _hb_errno
 #endif
 
 #if defined(HAVE_ATEXIT) && !defined(HB_USE_ATEXIT)
@@ -417,48 +446,6 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
   void operator=(const TypeName&) = delete
 
 
-/*
- * Compiler-assisted vectorization parameters.
- */
-
-/*
- * Disable vectorization for now.  To correctly use them, we should
- * use posix_memalign() to allocate in hb_vector_t.  Otherwise, can
- * cause misaligned access.
- *
- * https://bugs.chromium.org/p/chromium/issues/detail?id=860184
- */
-#if !defined(HB_VECTOR_SIZE)
-#  define HB_VECTOR_SIZE 0
-#endif
-
-/* The `vector_size' attribute was introduced in gcc 3.1. */
-#if !defined(HB_VECTOR_SIZE)
-#  if defined( __GNUC__ ) && ( __GNUC__ >= 4 )
-#    define HB_VECTOR_SIZE 128
-#  else
-#    define HB_VECTOR_SIZE 0
-#  endif
-#endif
-static_assert (0 == (HB_VECTOR_SIZE & (HB_VECTOR_SIZE - 1)), "HB_VECTOR_SIZE is not power of 2.");
-static_assert (0 == (HB_VECTOR_SIZE % 64), "HB_VECTOR_SIZE is not multiple of 64.");
-#if HB_VECTOR_SIZE
-typedef uint64_t hb_vector_size_impl_t __attribute__((vector_size (HB_VECTOR_SIZE / 8)));
-#else
-typedef uint64_t hb_vector_size_impl_t;
-#endif
-
-
-/* HB_NDEBUG disables some sanity checks that are very safe to disable and
- * should be disabled in production systems.  If NDEBUG is defined, enable
- * HB_NDEBUG; but if it's desirable that normal assert()s (which are very
- * light-weight) to be enabled, then HB_DEBUG can be defined to disable
- * the costlier checks. */
-#ifdef NDEBUG
-#define HB_NDEBUG 1
-#endif
-
-
 /* Flags */
 
 /* Enable bitwise ops on enums marked as flags_t */
@@ -496,48 +483,24 @@ typedef uint64_t hb_vector_size_impl_t;
 
 
 /* Size signifying variable-sized array */
-#define VAR 1
+#ifndef HB_VAR_ARRAY
+#define HB_VAR_ARRAY 1
+#endif
 
-
-/* fallback for round() */
 static inline double
-_hb_round (double x)
+_hb_roundf (float x)
 {
-  if (x >= 0)
-    return floor (x + 0.5);
-  else
-    return ceil (x - 0.5);
+  return x >= 0 ? floor ((double) x + .5) : ceil ((double) x - .5);
 }
-#if !defined (HAVE_ROUND) && !defined (HAVE_DECL_ROUND)
-#define round(x) _hb_round(x)
+#ifndef HAVE_ROUNDF
+#define roundf(x) _hb_roundf(x)
 #endif
 
-
-/* fallback for posix_memalign() */
-static inline int
-_hb_memalign(void **memptr, size_t alignment, size_t size)
-{
-  if (unlikely (0 != (alignment & (alignment - 1)) ||
-		!alignment ||
-		0 != (alignment & (sizeof (void *) - 1))))
-    return EINVAL;
-
-  char *p = (char *) malloc (size + alignment - 1);
-  if (unlikely (!p))
-    return ENOMEM;
-
-  size_t off = (size_t) p & (alignment - 1);
-  if (off)
-    p += alignment - off;
-
-  *memptr = (void *) p;
-
-  return 0;
-}
-#if !defined(posix_memalign) && !defined(HAVE_POSIX_MEMALIGN)
-#define posix_memalign _hb_memalign
-#endif
-
+/* Endian swap, used in Windows related backends */
+static inline uint16_t hb_uint16_swap (const uint16_t v)
+{ return (v >> 8) | (v << 8); }
+static inline uint32_t hb_uint32_swap (const uint32_t v)
+{ return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
 /*
  * Big-endian integers.  Here because fundamental.
@@ -582,7 +545,7 @@ struct BEInt<Type, 2>
 #endif
 #endif
     return (v[0] <<  8)
-         + (v[1]      );
+	 + (v[1]      );
   }
   private: uint8_t v[2];
 };
@@ -600,8 +563,8 @@ struct BEInt<Type, 3>
   operator Type () const
   {
     return (v[0] << 16)
-         + (v[1] <<  8)
-         + (v[2]      );
+	 + (v[1] <<  8)
+	 + (v[2]      );
   }
   private: uint8_t v[3];
 };
@@ -620,9 +583,9 @@ struct BEInt<Type, 4>
   operator Type () const
   {
     return (v[0] << 24)
-         + (v[1] << 16)
-         + (v[2] <<  8)
-         + (v[3]      );
+	 + (v[1] << 16)
+	 + (v[2] <<  8)
+	 + (v[3]      );
   }
   private: uint8_t v[4];
 };
@@ -641,10 +604,11 @@ struct BEInt<Type, 4>
  * them directly.*/
 #include "hb-meta.hh"
 #include "hb-mutex.hh"
+#include "hb-number.hh"
 #include "hb-atomic.hh"	// Requires: hb-meta
 #include "hb-null.hh"	// Requires: hb-meta
-#include "hb-algs.hh"	// Requires: hb-meta hb-null
-#include "hb-iter.hh"	// Requires: hb-meta
+#include "hb-algs.hh"	// Requires: hb-meta hb-null hb-number
+#include "hb-iter.hh"	// Requires: hb-algs hb-meta
 #include "hb-debug.hh"	// Requires: hb-algs hb-atomic
 #include "hb-array.hh"	// Requires: hb-algs hb-iter hb-null
 #include "hb-vector.hh"	// Requires: hb-array hb-null

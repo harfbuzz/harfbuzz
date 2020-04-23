@@ -181,7 +181,7 @@ main (int argc, char **argv)
       fflush (stdout);
 
       if (ret)
-        break;
+	break;
     }
     return ret;
   }

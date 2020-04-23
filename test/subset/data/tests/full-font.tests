@@ -1,5 +1,6 @@
 FONTS:
 Roboto-Regular.ttf
+SourceSerifVariable-Roman.ttf
 
 PROFILES:
 default.txt
@@ -9,4 +10,3 @@ SUBSETS:
 abc
 Ǽ!A bc
 ×ØÙÚÞ
-

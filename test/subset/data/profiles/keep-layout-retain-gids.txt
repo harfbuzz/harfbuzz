@@ -1,0 +1,2 @@
+--drop-tables-=GSUB,GPOS
+--retain-gids

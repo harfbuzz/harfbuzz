@@ -19,13 +19,16 @@ EXTRA_DIST += \
 	README \
 	run-shape-fuzzer-tests.py \
 	run-subset-fuzzer-tests.py \
-	CMakeLists.txt \
+	run-draw-fuzzer-tests.py \
+	meson.build \
 	fonts \
 	$(NULL)
 
 check_PROGRAMS = \
 	hb-shape-fuzzer \
 	hb-subset-fuzzer \
+	hb-set-fuzzer \
+	hb-draw-fuzzer \
 	$(NULL)
 
 AM_CPPFLAGS = \
@@ -54,9 +57,29 @@ hb_subset_fuzzer_LDADD = \
 hb_subset_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
 hb_subset_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz-subset.la
 
+hb_set_fuzzer_SOURCES = \
+	hb-fuzzer.hh \
+	hb-set-fuzzer.cc \
+	main.cc \
+	$(NULL)
+hb_set_fuzzer_LDADD = $(top_builddir)/src/libharfbuzz.la
+hb_set_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
+hb_set_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz.la
+
+hb_draw_fuzzer_SOURCES = \
+	hb-fuzzer.hh \
+	hb-draw-fuzzer.cc \
+	main.cc \
+	$(NULL)
+hb_draw_fuzzer_LDADD = $(top_builddir)/src/libharfbuzz.la
+hb_draw_fuzzer_CPPFLAGS = $(AM_CPPFLAGS)
+hb_draw_fuzzer_DEPENDENCIES = $(top_builddir)/src/libharfbuzz.la
+
+
 check:
-	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" $(srcdir)/run-shape-fuzzer-tests.py
-	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" $(srcdir)/run-subset-fuzzer-tests.py
+	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" LIBTOOL="$(LIBTOOL)" $(srcdir)/run-shape-fuzzer-tests.py
+	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" LIBTOOL="$(LIBTOOL)" $(srcdir)/run-subset-fuzzer-tests.py
+	EXEEXT="$(EXEEXT)" srcdir="$(srcdir)" builddir="$(builddir)" LIBTOOL="$(LIBTOOL)" $(srcdir)/run-draw-fuzzer-tests.py
 check-valgrind:
 	$(AM_V_at)RUN_VALGRIND=1 $(MAKE) $(AM_MAKEFLGS) check
 

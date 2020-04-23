@@ -146,8 +146,8 @@ test_extents_cff2 (void)
 
   g_assert_cmpint (extents.x_bearing, ==, 38);
   g_assert_cmpint (extents.y_bearing, ==, 493);
-  g_assert_cmpint (extents.width, ==, 481);
-  g_assert_cmpint (extents.height, ==, -508);
+  g_assert_cmpint (extents.width, ==, 480);
+  g_assert_cmpint (extents.height, ==, -507);
 
   hb_font_destroy (font);
 }
@@ -168,18 +168,49 @@ test_extents_cff2_vsindex (void)
   hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
   g_assert (result);
 
-  g_assert_cmpint (extents.x_bearing, ==, 11);
-  g_assert_cmpint (extents.y_bearing, ==, 656);
-  g_assert_cmpint (extents.width, ==, 653);
-  g_assert_cmpint (extents.height, ==, -656);
+  g_assert_cmpint (extents.x_bearing, ==, 12);
+  g_assert_cmpint (extents.y_bearing, ==, 655);
+  g_assert_cmpint (extents.width, ==, 652);
+  g_assert_cmpint (extents.height, ==, -655);
 
   result = hb_font_get_glyph_extents (font, 2, &extents);
   g_assert (result);
 
-  g_assert_cmpint (extents.x_bearing, ==, 7);
+  g_assert_cmpint (extents.x_bearing, ==, 8);
   g_assert_cmpint (extents.y_bearing, ==, 669);
-  g_assert_cmpint (extents.width, ==, 650);
+  g_assert_cmpint (extents.width, ==, 649);
   g_assert_cmpint (extents.height, ==, -669);
+
+  hb_font_destroy (font);
+}
+
+static void
+test_extents_cff2_vsindex_named_instance (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype_vsindex.otf");
+  g_assert (face);
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+  g_assert (font);
+  hb_ot_font_set_funcs (font);
+
+  hb_font_set_var_named_instance (font, 6); // 6 (BlackMediumContrast): 900, 50
+  hb_glyph_extents_t  extents;
+  hb_bool_t result = hb_font_get_glyph_extents (font, 1, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 13);
+  g_assert_cmpint (extents.y_bearing, ==, 652);
+  g_assert_cmpint (extents.width, ==, 653);
+  g_assert_cmpint (extents.height, ==, -652);
+
+  result = hb_font_get_glyph_extents (font, 2, &extents);
+  g_assert (result);
+
+  g_assert_cmpint (extents.x_bearing, ==, 6);
+  g_assert_cmpint (extents.y_bearing, ==, 675);
+  g_assert_cmpint (extents.width, ==, 647);
+  g_assert_cmpint (extents.height, ==, -675);
 
   hb_font_destroy (font);
 }
@@ -194,6 +225,7 @@ main (int argc, char **argv)
   hb_test_add (test_extents_cff1_seac);
   hb_test_add (test_extents_cff2);
   hb_test_add (test_extents_cff2_vsindex);
+  hb_test_add (test_extents_cff2_vsindex_named_instance);
 
   return hb_test_run ();
 }
