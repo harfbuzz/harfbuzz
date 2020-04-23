@@ -396,20 +396,36 @@ libharfbuzz_subset_dep = declare_dependency(
   dependencies: deps)
 
 if get_option('tests').enabled()
-# TODO: MSVC gives the following,
-# error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
-if cpp.get_id() != 'msvc'
-  noinst_programs = {
-    'main': 'main.cc',
-    'test-basics': 'test.cc',
-    'test-buffer-serialize': 'test-buffer-serialize.cc',
-    'test-ot-meta': 'test-ot-meta.cc',
-    'test-ot-name': 'test-ot-name.cc',
-    'test-ot-glyphname': 'test-ot-glyphname.cc',
-    'test-ot-gpos-size-params': 'test-gpos-size-params.cc',
-    'test-ot-gsub-would-substitute': 'test-gsub-would-substitute.cc',
+  # TODO: MSVC gives the following,
+  # error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
+  if cpp.get_id() != 'msvc'
+    noinst_programs = {
+      'main': 'main.cc',
+      'test-basics': 'test.cc',
+      'test-buffer-serialize': 'test-buffer-serialize.cc',
+      'test-ot-meta': 'test-ot-meta.cc',
+      'test-ot-name': 'test-ot-name.cc',
+      'test-ot-glyphname': 'test-ot-glyphname.cc',
+      'test-ot-gpos-size-params': 'test-gpos-size-params.cc',
+      'test-ot-gsub-would-substitute': 'test-gsub-would-substitute.cc',
+    }
+    foreach name, source : noinst_programs
+      executable(name, source,
+        include_directories: incconfig,
+        cpp_args: cpp_args,
+        dependencies: libharfbuzz_dep,
+        install: false,
+      )
+    endforeach
+  endif
+  
+  check_programs = {
+    'dump-indic-data': ['dump-indic-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
+    'dump-khmer-data': ['dump-khmer-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
+    'dump-myanmar-data': ['dump-myanmar-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
+    'dump-use-data': ['dump-use-data.cc', 'hb-ot-shape-complex-use-table.cc'],
   }
-  foreach name, source : noinst_programs
+  foreach name, source : check_programs
     executable(name, source,
       include_directories: incconfig,
       cpp_args: cpp_args,
@@ -417,77 +433,61 @@ if cpp.get_id() != 'msvc'
       install: false,
     )
   endforeach
-endif
-
-check_programs = {
-  'dump-indic-data': ['dump-indic-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
-  'dump-khmer-data': ['dump-khmer-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
-  'dump-myanmar-data': ['dump-myanmar-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
-  'dump-use-data': ['dump-use-data.cc', 'hb-ot-shape-complex-use-table.cc'],
-}
-foreach name, source : check_programs
-  executable(name, source,
-    include_directories: incconfig,
-    cpp_args: cpp_args,
-    dependencies: libharfbuzz_dep,
-    install: false,
-  )
-endforeach
-
-compiled_tests = {
-  'test-array': 'test-array.cc',
-  'test-number': ['test-number.cc', 'hb-number.cc'],
-  'test-ot-tag': 'hb-ot-tag.cc',
-  'test-unicode-ranges': 'test-unicode-ranges.cc',
-}
-if cpp.get_id() != 'msvc'
-  # TODO: MSVC doesn't like these, fix them
-  compiled_tests += {
-    'test-algs': ['test-algs.cc', 'hb-static.cc'],
-    'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
-    'test-iter': ['test-iter.cc', 'hb-static.cc'],
-    'test-meta': ['test-meta.cc', 'hb-static.cc'],
+  
+  compiled_tests = {
+    'test-array': 'test-array.cc',
+    'test-number': ['test-number.cc', 'hb-number.cc'],
+    'test-ot-tag': 'hb-ot-tag.cc',
+    'test-unicode-ranges': 'test-unicode-ranges.cc',
   }
-endif
-foreach name, source : compiled_tests
-  test(name, executable(name, source,
-    include_directories: incconfig,
-    cpp_args: cpp_args + ['-DMAIN', '-UNDEBUG'],
-    dependencies: libharfbuzz_dep,
-    install: false,
-  ))
-endforeach
-
-if host_machine.system() != 'windows' and not meson.is_cross_build()
-  # Some of them should be ported to python
-  dist_check_script = [
-    'check-c-linkage-decls.sh',
-    'check-externs.sh',
-    'check-header-guards.sh',
-    'check-static-inits.sh',
-  ]
-  if not get_option('amalgam')
-    dist_check_script += 'check-includes.sh'
+  if cpp.get_id() != 'msvc'
+    # TODO: MSVC doesn't like these, fix them
+    compiled_tests += {
+      'test-algs': ['test-algs.cc', 'hb-static.cc'],
+      'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
+      'test-iter': ['test-iter.cc', 'hb-static.cc'],
+      'test-meta': ['test-meta.cc', 'hb-static.cc'],
+    }
   endif
-  if false # !WITH_LIBSTDCXX
-    dist_check_script += 'check-libstdc++.sh' # See https://github.com/harfbuzz/harfbuzz/issues/2276
-  endif
-
-  env = environment()
-  env.set('srcdir', meson.current_source_dir())
-  env.set('builddir', meson.current_build_dir())
-  env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
-  env.set('HBSOURCES', ' '.join(hb_sources))
-  env.set('HBHEADERS', ' '.join(hb_headers))
-
-  foreach name : dist_check_script
-    test(name, find_program(name), env: env)
+  foreach name, source : compiled_tests
+    test(name, executable(name, source,
+      include_directories: incconfig,
+      cpp_args: cpp_args + ['-DMAIN', '-UNDEBUG'],
+      dependencies: libharfbuzz_dep,
+      install: false,
+    ))
   endforeach
-
-  test('check-symbols.sh', find_program('check-symbols.sh'),
-    depends: [harfbuzz_def, harfbuzz_subset_def], # TODO: harfbuzz_icu_def and harfbuzz_gobject_def also
-    env: env)
-endif
+  
+  if host_machine.system() != 'windows' and not meson.is_cross_build()
+    # Some of them should be ported to python
+    dist_check_script = [
+      'check-c-linkage-decls.sh',
+      'check-externs.sh',
+      'check-header-guards.sh',
+      'check-static-inits.sh',
+    ]
+    if not get_option('amalgam')
+      dist_check_script += 'check-includes.sh'
+    endif
+    if false # !WITH_LIBSTDCXX
+      dist_check_script += 'check-libstdc++.sh' # See https://github.com/harfbuzz/harfbuzz/issues/2276
+    endif
+  
+    env = environment()
+    env.set('srcdir', meson.current_source_dir())
+    env.set('builddir', meson.current_build_dir())
+    env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
+    env.set('HBSOURCES', ' '.join(hb_sources))
+    env.set('HBHEADERS', ' '.join(hb_headers))
+  
+    foreach name : dist_check_script
+      test(name, find_program(name), env: env)
+    endforeach
+  
+    test('check-symbols.sh', find_program('check-symbols.sh'),
+      depends: [harfbuzz_def, harfbuzz_subset_def], # TODO: harfbuzz_icu_def and harfbuzz_gobject_def also
+      env: env)
+  endif
 endif
 
 pkgmod.generate(libharfbuzz,
