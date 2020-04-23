@@ -1400,7 +1400,7 @@ struct Rule
 
   void closure (hb_closure_context_t *c, ContextClosureLookupContext &lookup_context) const
   {
-    if (c->lookup_limit_exceeded ()) return;
+    if (unlikely (c->lookup_limit_exceeded ())) return;
 
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 						       (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
@@ -1412,7 +1412,7 @@ struct Rule
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
-    if (c->lookup_limit_exceeded ()) return;
+    if (unlikely (c->lookup_limit_exceeded ())) return;
 
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 						       (inputZ.as_array (inputCount ? inputCount - 1 : 0));
@@ -1492,7 +1492,7 @@ struct RuleSet
   void closure (hb_closure_context_t *c,
 		ContextClosureLookupContext &lookup_context) const
   {
-    if (c->lookup_limit_exceeded ()) return;
+    if (unlikely (c->lookup_limit_exceeded ())) return;
 
     return
     + hb_iter (rule)
@@ -1503,7 +1503,7 @@ struct RuleSet
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
-    if (c->lookup_limit_exceeded ()) return;
+    if (unlikely (c->lookup_limit_exceeded ())) return;
 
     return
     + hb_iter (rule)
@@ -2092,7 +2092,7 @@ struct ChainRule
   void closure (hb_closure_context_t *c,
 		ChainContextClosureLookupContext &lookup_context) const
   {
-    if (c->lookup_limit_exceeded ()) return;
+    if (unlikely (c->lookup_limit_exceeded ())) return;
 
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16>> (backtrack);
     const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16>> (input);
@@ -2107,7 +2107,7 @@ struct ChainRule
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
-    if (c->lookup_limit_exceeded ()) return;
+    if (unlikely (c->lookup_limit_exceeded ())) return;
 
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16>> (backtrack);
     const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16>> (input);
@@ -2275,7 +2275,7 @@ struct ChainRuleSet
   }
   void closure (hb_closure_context_t *c, ChainContextClosureLookupContext &lookup_context) const
   {
-    if (c->lookup_limit_exceeded ()) return;
+    if (unlikely (c->lookup_limit_exceeded ())) return;
 
     return
     + hb_iter (rule)
@@ -2286,7 +2286,7 @@ struct ChainRuleSet
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
-    if (c->lookup_limit_exceeded ()) return;
+    if (unlikely (c->lookup_limit_exceeded ())) return;
 
     return
     + hb_iter (rule)
