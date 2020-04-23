@@ -464,7 +464,7 @@ struct GDEF
   unsigned int get_glyph_class (hb_codepoint_t glyph) const
   { return (this+glyphClassDef).get_class (glyph); }
   void get_glyphs_in_class (unsigned int klass, hb_set_t *glyphs) const
-  { (this+glyphClassDef).add_class (glyphs, klass); }
+  { (this+glyphClassDef).collect_class (glyphs, klass); }
 
   bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
   unsigned int get_mark_attachment_type (hb_codepoint_t glyph) const

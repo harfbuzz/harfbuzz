@@ -810,7 +810,7 @@ static inline void collect_glyph (hb_set_t *glyphs, const HBUINT16 &value, const
 static inline void collect_class (hb_set_t *glyphs, const HBUINT16 &value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
-  class_def.add_class (glyphs, value);
+  class_def.collect_class (glyphs, value);
 }
 static inline void collect_coverage (hb_set_t *glyphs, const HBUINT16 &value, const void *data)
 {
