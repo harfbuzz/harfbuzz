@@ -307,8 +307,8 @@ struct hb_collect_glyphs_context_t :
 
 
 template <typename set_t>
-struct hb_add_coverage_context_t :
-       hb_dispatch_context_t<hb_add_coverage_context_t<set_t>, const Coverage &, HB_DEBUG_GET_COVERAGE>
+struct hb_collect_coverage_context_t :
+       hb_dispatch_context_t<hb_collect_coverage_context_t<set_t>, const Coverage &, HB_DEBUG_GET_COVERAGE>
 {
   const char *get_name () { return "GET_COVERAGE"; }
   typedef const Coverage &return_t;
@@ -317,13 +317,13 @@ struct hb_add_coverage_context_t :
   static return_t default_return_value () { return Null (Coverage); }
   bool stop_sublookup_iteration (return_t r) const
   {
-    r.add_coverage (set);
+    r.collect_coverage (set);
     return false;
   }
 
-  hb_add_coverage_context_t (set_t *set_) :
-			    set (set_),
-			    debug_depth (0) {}
+  hb_collect_coverage_context_t (set_t *set_) :
+				   set (set_),
+				   debug_depth (0) {}
 
   set_t *set;
   unsigned int debug_depth;
@@ -720,7 +720,7 @@ struct hb_get_subtables_context_t :
       obj = &obj_;
       apply_func = apply_func_;
       digest.init ();
-      obj_.get_coverage ().add_coverage (&digest);
+      obj_.get_coverage ().collect_coverage (&digest);
     }
 
     bool apply (OT::hb_ot_apply_context_t *c) const
@@ -815,7 +815,7 @@ static inline void collect_class (hb_set_t *glyphs, const HBUINT16 &value, const
 static inline void collect_coverage (hb_set_t *glyphs, const HBUINT16 &value, const void *data)
 {
   const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
-  (data+coverage).add_coverage (glyphs);
+  (data+coverage).collect_coverage (glyphs);
 }
 static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
 				  hb_set_t *glyphs,
@@ -1605,7 +1605,7 @@ struct ContextFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    (this+coverage).add_coverage (c->input);
+    (this+coverage).collect_coverage (c->input);
 
     struct ContextCollectGlyphsLookupContext lookup_context = {
       {collect_glyph},
@@ -1727,7 +1727,7 @@ struct ContextFormat2
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    (this+coverage).add_coverage (c->input);
+    (this+coverage).collect_coverage (c->input);
 
     const ClassDef &class_def = this+classDef;
     struct ContextCollectGlyphsLookupContext lookup_context = {
@@ -1840,7 +1840,7 @@ struct ContextFormat3
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    (this+coverageZ[0]).add_coverage (c->input);
+    (this+coverageZ[0]).collect_coverage (c->input);
 
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
     struct ContextCollectGlyphsLookupContext lookup_context = {
@@ -2418,7 +2418,7 @@ struct ChainContextFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    (this+coverage).add_coverage (c->input);
+    (this+coverage).collect_coverage (c->input);
 
     struct ChainContextCollectGlyphsLookupContext lookup_context = {
       {collect_glyph},
@@ -2562,7 +2562,7 @@ struct ChainContextFormat2
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    (this+coverage).add_coverage (c->input);
+    (this+coverage).collect_coverage (c->input);
 
     const ClassDef &backtrack_class_def = this+backtrackClassDef;
     const ClassDef &input_class_def = this+inputClassDef;
@@ -2762,7 +2762,7 @@ struct ChainContextFormat3
   {
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
 
-    (this+input[0]).add_coverage (c->input);
+    (this+input[0]).collect_coverage (c->input);
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
@@ -3003,7 +3003,7 @@ struct hb_ot_layout_lookup_accelerator_t
   void init (const TLookup &lookup)
   {
     digest.init ();
-    lookup.add_coverage (&digest);
+    lookup.collect_coverage (&digest);
 
     subtables.init ();
     OT::hb_get_subtables_context_t c_get_subtables (subtables);

@@ -60,7 +60,7 @@ struct SingleSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
+    if (unlikely (!(this+coverage).collect_coverage (c->input))) return;
     unsigned d = deltaGlyphID;
     + hb_iter (this+coverage)
     | hb_map ([d] (hb_codepoint_t g) { return (g + d) & 0xFFFFu; })
@@ -160,7 +160,7 @@ struct SingleSubstFormat2
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
+    if (unlikely (!(this+coverage).collect_coverage (c->input))) return;
     + hb_zip (this+coverage, substitute)
     | hb_map (hb_second)
     | hb_sink (c->output)
@@ -402,7 +402,7 @@ struct MultipleSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
+    if (unlikely (!(this+coverage).collect_coverage (c->input))) return;
     + hb_zip (this+coverage, sequence)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
@@ -615,7 +615,7 @@ struct AlternateSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
+    if (unlikely (!(this+coverage).collect_coverage (c->input))) return;
     + hb_zip (this+coverage, alternateSet)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
@@ -978,7 +978,7 @@ struct LigatureSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
+    if (unlikely (!(this+coverage).collect_coverage (c->input))) return;
 
     + hb_zip (this+coverage, ligatureSet)
     | hb_map (hb_second)
@@ -1170,18 +1170,18 @@ struct ReverseChainSingleSubstFormat1
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    if (unlikely (!(this+coverage).add_coverage (c->input))) return;
+    if (unlikely (!(this+coverage).collect_coverage (c->input))) return;
 
     unsigned int count;
 
     count = backtrack.len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!(this+backtrack[i]).add_coverage (c->before))) return;
+      if (unlikely (!(this+backtrack[i]).collect_coverage (c->before))) return;
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
     count = lookahead.len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!(this+lookahead[i]).add_coverage (c->after))) return;
+      if (unlikely (!(this+lookahead[i]).collect_coverage (c->after))) return;
 
     const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
     count = substitute.len;
@@ -1415,9 +1415,9 @@ struct SubstLookup : Lookup
   }
 
   template <typename set_t>
-  void add_coverage (set_t *glyphs) const
+  void collect_coverage (set_t *glyphs) const
   {
-    hb_add_coverage_context_t<set_t> c (glyphs);
+    hb_collect_coverage_context_t<set_t> c (glyphs);
     dispatch (&c);
   }
 

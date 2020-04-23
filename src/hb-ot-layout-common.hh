@@ -404,7 +404,7 @@ struct RangeRecord
   { return glyphs->intersects (first, last); }
 
   template <typename set_t>
-  bool add_coverage (set_t *glyphs) const
+  bool collect_coverage (set_t *glyphs) const
   { return glyphs->add_range (first, last); }
 
   HBGlyphID	first;		/* First GlyphID in the range */
@@ -1195,7 +1195,7 @@ struct CoverageFormat1
   { return glyphs->has (glyphArray[index]); }
 
   template <typename set_t>
-  bool add_coverage (set_t *glyphs) const
+  bool collect_coverage (set_t *glyphs) const
   { return glyphs->add_sorted_array (glyphArray.arrayZ, glyphArray.len); }
 
   public:
@@ -1314,11 +1314,11 @@ struct CoverageFormat2
   }
 
   template <typename set_t>
-  bool add_coverage (set_t *glyphs) const
+  bool collect_coverage (set_t *glyphs) const
   {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+      if (unlikely (!rangeRecord[i].collect_coverage (glyphs)))
 	return false;
     return true;
   }
@@ -1485,12 +1485,12 @@ struct Coverage
   /* Might return false if array looks unsorted.
    * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  bool add_coverage (set_t *glyphs) const
+  bool collect_coverage (set_t *glyphs) const
   {
     switch (u.format)
     {
-    case 1: return u.format1.add_coverage (glyphs);
-    case 2: return u.format2.add_coverage (glyphs);
+    case 1: return u.format1.collect_coverage (glyphs);
+    case 2: return u.format2.collect_coverage (glyphs);
     default:return false;
     }
   }
@@ -1696,7 +1696,7 @@ struct ClassDefFormat1
   }
 
   template <typename set_t>
-  bool add_coverage (set_t *glyphs) const
+  bool collect_coverage (set_t *glyphs) const
   {
     unsigned int start = 0;
     unsigned int count = classValue.len;
@@ -1868,12 +1868,12 @@ struct ClassDefFormat2
   }
 
   template <typename set_t>
-  bool add_coverage (set_t *glyphs) const
+  bool collect_coverage (set_t *glyphs) const
   {
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
       if (rangeRecord[i].value)
-	if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+	if (unlikely (!rangeRecord[i].collect_coverage (glyphs)))
 	  return false;
     return true;
   }
@@ -1885,7 +1885,7 @@ struct ClassDefFormat2
     for (unsigned int i = 0; i < count; i++)
     {
       if (rangeRecord[i].value == klass)
-	if (unlikely (!rangeRecord[i].add_coverage (glyphs)))
+	if (unlikely (!rangeRecord[i].collect_coverage (glyphs)))
 	  return false;
     }
     return true;
@@ -2024,11 +2024,11 @@ struct ClassDef
   /* Might return false if array looks unsorted.
    * Used for faster rejection of corrupt data. */
   template <typename set_t>
-  bool add_coverage (set_t *glyphs) const
+  bool collect_coverage (set_t *glyphs) const
   {
     switch (u.format) {
-    case 1: return u.format1.add_coverage (glyphs);
-    case 2: return u.format2.add_coverage (glyphs);
+    case 1: return u.format1.collect_coverage (glyphs);
+    case 2: return u.format2.collect_coverage (glyphs);
     default:return false;
     }
   }
