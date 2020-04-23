@@ -211,7 +211,7 @@ struct hb_hashmap_t
   )
 
   /* Sink interface. */
-  hb_hashmap_t<K, V, kINVALID, vINVALID>& operator << (const hb_pair_t<K, V>& v)
+  hb_hashmap_t& operator << (const hb_pair_t<K, V>& v)
   { set (v.first, v.second); return *this; }
 
   protected:
