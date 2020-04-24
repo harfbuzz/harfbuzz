@@ -31,6 +31,47 @@
 /* Unit tests for hb-ot-metrics.h */
 
 static void
+test_ot_metrics_rise_run (void)
+{
+  hb_position_t value;
+
+  hb_face_t *face = hb_test_open_font_file ("fonts/Roboto-Regular.empty.ttf");
+  hb_font_t *font = hb_font_create (face);
+  g_assert (hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE, &value));
+  g_assert_cmpint (value, ==, 2048);
+  g_assert (hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN, &value));
+  g_assert_cmpint (value, ==, 0);
+  g_assert (!hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_VERTICAL_CARET_RISE, &value));
+  g_assert (!hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_VERTICAL_CARET_RUN, &value));
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+
+  hb_face_t *face2 = hb_test_open_font_file ("fonts/TestGVAROne.ttf");
+  hb_font_t *font2 = hb_font_create (face2);
+  g_assert (hb_ot_metrics_get_position (font2, HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE, &value));
+  g_assert_cmpint (value, ==, 1000);
+  g_assert (hb_ot_metrics_get_position (font2, HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN, &value));
+  g_assert_cmpint (value, ==, 0);
+  g_assert (hb_ot_metrics_get_position (font2, HB_OT_METRICS_TAG_VERTICAL_CARET_RISE, &value));
+  g_assert_cmpint (value, ==, 0);
+  g_assert (hb_ot_metrics_get_position (font2, HB_OT_METRICS_TAG_VERTICAL_CARET_RUN, &value));
+  g_assert_cmpint (value, ==, 1000);
+  hb_font_destroy (font2);
+  hb_face_destroy (face2);
+
+  hb_face_t *face3 = hb_test_open_font_file ("fonts/DroidSerif-Italic.ttf");
+  hb_font_t *font3 = hb_font_create (face3);
+  g_assert (hb_ot_metrics_get_position (font3, HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE, &value));
+  g_assert_cmpint (value, ==, 2048);
+  g_assert (hb_ot_metrics_get_position (font3, HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN, &value));
+  g_assert_cmpint (value, ==, 430);
+  g_assert (!hb_ot_metrics_get_position (font3, HB_OT_METRICS_TAG_VERTICAL_CARET_RISE, &value));
+  g_assert (!hb_ot_metrics_get_position (font3, HB_OT_METRICS_TAG_VERTICAL_CARET_RUN, &value));
+  hb_font_destroy (font3);
+  hb_face_destroy (face3);
+}
+
+static void
 test_ot_metrics_get_no_var (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/cpal-v0.ttf");
@@ -72,6 +113,7 @@ int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
+  hb_test_add (test_ot_metrics_rise_run);
   hb_test_add (test_ot_metrics_get_no_var);
   hb_test_add (test_ot_metrics_get_var);
   return hb_test_run ();

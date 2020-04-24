@@ -138,6 +138,34 @@ hb_ot_metrics_get_position (hb_font_t           *font,
 #else
 #define GET_VAR 0
 #endif
+  case HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE:
+  case HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN:
+  case HB_OT_METRICS_TAG_VERTICAL_CARET_RISE:
+  case HB_OT_METRICS_TAG_VERTICAL_CARET_RUN:
+  {
+    float rise, run;
+    if (metrics_tag == HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE ||
+	metrics_tag == HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN)
+    {
+      if (!face->table.hhea->has_data ()) return false;
+      if (unlikely (!position)) return true;
+      rise = face->table.hhea->caretSlopeRise + GET_VAR;
+      run = face->table.hhea->caretSlopeRun + GET_VAR;
+    }
+    else
+    {
+      if (!face->table.vhea->has_data ()) return false;
+      if (unlikely (!position)) return true;
+      rise = face->table.vhea->caretSlopeRise + GET_VAR;
+      run = face->table.vhea->caretSlopeRun + GET_VAR;
+    }
+    float mult = (float) face->get_upem () / hb_max (hb_max (rise, run), 1);
+    *position = metrics_tag == HB_OT_METRICS_TAG_VERTICAL_CARET_RISE ||
+		metrics_tag == HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE
+	      ? font->em_scalef_x (mult * rise)
+	      : font->em_scalef_y (mult * run);
+    return true;
+  }
 #define GET_METRIC_X(TABLE, ATTR) \
   (face->table.TABLE->has_data () && \
     (position && (*position = font->em_scalef_x (face->table.TABLE->ATTR + GET_VAR)), true))
@@ -146,11 +174,7 @@ hb_ot_metrics_get_position (hb_font_t           *font,
     (position && (*position = font->em_scalef_y (face->table.TABLE->ATTR + GET_VAR)), true))
   case HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_ASCENT:  return GET_METRIC_Y (OS2, usWinAscent);
   case HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_DESCENT: return GET_METRIC_Y (OS2, usWinDescent);
-  case HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE:       return GET_METRIC_Y (hhea, caretSlopeRise);
-  case HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN:        return GET_METRIC_X (hhea, caretSlopeRun);
   case HB_OT_METRICS_TAG_HORIZONTAL_CARET_OFFSET:     return GET_METRIC_X (hhea, caretOffset);
-  case HB_OT_METRICS_TAG_VERTICAL_CARET_RISE:         return GET_METRIC_X (vhea, caretSlopeRise);
-  case HB_OT_METRICS_TAG_VERTICAL_CARET_RUN:          return GET_METRIC_Y (vhea, caretSlopeRun);
   case HB_OT_METRICS_TAG_VERTICAL_CARET_OFFSET:       return GET_METRIC_Y (vhea, caretOffset);
   case HB_OT_METRICS_TAG_X_HEIGHT:                    return GET_METRIC_Y (OS2->v2 (), sxHeight);
   case HB_OT_METRICS_TAG_CAP_HEIGHT:                  return GET_METRIC_Y (OS2->v2 (), sCapHeight);
