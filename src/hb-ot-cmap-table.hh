@@ -238,7 +238,8 @@ struct CmapSubtableFormat4
 		 { return _.first <= 0xFFFF; })
     ;
 
-    if (format4_iter.len () == 0) return;
+    //comment off temporarily while we're working on supporting --gids option
+    //if (format4_iter.len () == 0) return;
 
     unsigned table_initpos = c->length ();
     if (unlikely (!c->extend_min (*this))) return;
