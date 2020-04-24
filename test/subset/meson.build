@@ -13,7 +13,6 @@ tests = [
   'layout.gsub3',
   'layout.gsub6',
   'layout.gdef',
-  'cmap',
   'cmap14',
   'sbix',
   'colr',
