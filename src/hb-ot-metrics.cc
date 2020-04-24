@@ -107,6 +107,7 @@ _get_gasp (hb_face_t *face, float *result, hb_ot_metrics_tag_t metrics_tag)
 #define _HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER_HHEA HB_TAG ('H','d','s','c')
 #define _HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP_OS2   HB_TAG ('O','l','g','p')
 #define _HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP_HHEA  HB_TAG ('H','l','g','p')
+#define _HB_OT_METRICS_TAG_ITALIC_CORRECTION         HB_TAG ('I','t','a','l')
 
 /**
  * hb_ot_metrics_get_position:
@@ -177,6 +178,14 @@ hb_ot_metrics_get_position (hb_font_t           *font,
 #undef GET_METRIC_Y
 #undef GET_METRIC_X
 #undef GET_VAR
+  case _HB_OT_METRICS_TAG_ITALIC_CORRECTION:
+  {
+    if (unlikely (!face->table.post->table->has_data ()))
+      return hb_ot_metrics_get_position (font, HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN, position);
+    if (unlikely (!position)) return false;
+    *position = roundf (sinf (-face->table.post->table->italicAngle.to_float () * (float) M_PI / 180.f) * font->x_scale);
+    return true;
+  }
   default:                                        return false;
   }
 }

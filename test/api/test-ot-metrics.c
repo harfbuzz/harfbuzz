@@ -68,11 +68,27 @@ test_ot_metrics_get_var (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_metrics_get_ital (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/DroidSerif-Italic.ttf");
+  hb_font_t *font = hb_font_create (face);
+  hb_position_t value;
+  g_assert (hb_ot_metrics_get_position (font, HB_TAG ('I','t','a','l'), &value));
+  g_assert_cmpint (value, ==, 426);
+  int x_scale;
+  hb_font_get_scale (font, &x_scale, NULL);
+  g_assert_cmpint ((int) roundf (-asinf ((float) value / x_scale) * 180.f / (float) M_PI), ==, -12);
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_ot_metrics_get_no_var);
   hb_test_add (test_ot_metrics_get_var);
+  hb_test_add (test_ot_metrics_get_ital);
   return hb_test_run ();
 }
