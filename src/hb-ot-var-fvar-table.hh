@@ -83,9 +83,9 @@ struct AxisRecord
 
   public:
   Tag		axisTag;	/* Tag identifying the design variation for the axis. */
-  HBFixed		minValue;	/* The minimum coordinate value for the axis. */
-  HBFixed		defaultValue;	/* The default coordinate value for the axis. */
-  HBFixed		maxValue;	/* The maximum coordinate value for the axis. */
+  HBFixed	minValue;	/* The minimum coordinate value for the axis. */
+  HBFixed	defaultValue;	/* The default coordinate value for the axis. */
+  HBFixed	maxValue;	/* The maximum coordinate value for the axis. */
   HBUINT16	flags;		/* Axis flags. */
   NameID	axisNameID;	/* The name ID for entries in the 'name' table that
 				 * provide a display name for this axis. */

@@ -108,12 +108,13 @@ struct meta
   protected:
   HBUINT32	version;	/* Version number of the metadata table — set to 1. */
   HBUINT32	flags;		/* Flags — currently unused; set to 0. */
-  HBUINT32	dataOffset;	/* Per Apple specification:
+  HBUINT32	dataOffset;
+				/* Per Apple specification:
 				 * Offset from the beginning of the table to the data.
 				 * Per OT specification:
 				 * Reserved. Not used; should be set to 0. */
   LArrayOf<DataMap>
-		dataMaps;	/* Array of data map records. */
+		dataMaps;/* Array of data map records. */
   public:
   DEFINE_SIZE_ARRAY (16, dataMaps);
 };

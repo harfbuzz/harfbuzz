@@ -353,12 +353,12 @@ struct name
   };
 
   /* We only implement format 0 for now. */
-  HBUINT16	format;			/* Format selector (=0/1). */
-  HBUINT16	count;			/* Number of name records. */
+  HBUINT16	format;		/* Format selector (=0/1). */
+  HBUINT16	count;		/* Number of name records. */
   NNOffsetTo<UnsizedArrayOf<HBUINT8>>
-		stringOffset;		/* Offset to start of string storage (from start of table). */
+		stringOffset;	/* Offset to start of string storage (from start of table). */
   UnsizedArrayOf<NameRecord>
-		nameRecordZ;		/* The name records where count is the number of records. */
+		nameRecordZ;	/* The name records where count is the number of records. */
   public:
   DEFINE_SIZE_ARRAY (6, nameRecordZ);
 };

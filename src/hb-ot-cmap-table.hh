@@ -1516,9 +1516,9 @@ struct cmap
   }
 
   protected:
-  HBUINT16		version;	/* Table version number (0). */
+  HBUINT16	version;	/* Table version number (0). */
   SortedArrayOf<EncodingRecord>
-			encodingRecord;	/* Encoding tables. */
+		encodingRecord;	/* Encoding tables. */
   public:
   DEFINE_SIZE_ARRAY (4, encodingRecord);
 };

@@ -161,10 +161,12 @@ struct hdmx
   }
 
   protected:
-  HBUINT16		version;		/* Table version number (0) */
-  HBUINT16		numRecords;		/* Number of device records. */
-  HBUINT32		sizeDeviceRecord;	/* Size of a device record, 32-bit aligned. */
-  DeviceRecord		firstDeviceRecord;	/* Array of device records. */
+  HBUINT16	version;	/* Table version number (0) */
+  HBUINT16	numRecords;	/* Number of device records. */
+  HBUINT32	sizeDeviceRecord;
+				/* Size of a device record, 32-bit aligned. */
+  DeviceRecord	firstDeviceRecord;
+				/* Array of device records. */
   public:
   DEFINE_SIZE_MIN (8);
 };

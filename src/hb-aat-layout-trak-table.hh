@@ -62,7 +62,7 @@ struct TrackTableEntry
   }
 
   protected:
-  HBFixed		track;		/* Track value for this record. */
+  HBFixed	track;		/* Track value for this record. */
   NameID	trackNameID;	/* The 'name' table index for this track.
 				 * (a short word or phrase like "loose"
 				 * or "very tight") */

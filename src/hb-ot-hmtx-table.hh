@@ -295,27 +295,29 @@ struct hmtxvmtx
   };
 
   protected:
-  UnsizedArrayOf<LongMetric>longMetricZ;/* Paired advance width and leading
-					 * bearing values for each glyph. The
-					 * value numOfHMetrics comes from
-					 * the 'hhea' table. If the font is
-					 * monospaced, only one entry need
-					 * be in the array, but that entry is
-					 * required. The last entry applies to
-					 * all subsequent glyphs. */
-/*UnsizedArrayOf<FWORD>	leadingBearingX;*//* Here the advance is assumed
-					 * to be the same as the advance
-					 * for the last entry above. The
-					 * number of entries in this array is
-					 * derived from numGlyphs (from 'maxp'
-					 * table) minus numberOfLongMetrics.
-					 * This generally is used with a run
-					 * of monospaced glyphs (e.g., Kanji
-					 * fonts or Courier fonts). Only one
-					 * run is allowed and it must be at
-					 * the end. This allows a monospaced
-					 * font to vary the side bearing
-					 * values for each glyph. */
+  UnsizedArrayOf<LongMetric>
+		longMetricZ;	/* Paired advance width and leading
+				 * bearing values for each glyph. The
+				 * value numOfHMetrics comes from
+				 * the 'hhea' table. If the font is
+				 * monospaced, only one entry need
+				 * be in the array, but that entry is
+				 * required. The last entry applies to
+				 * all subsequent glyphs. */
+/*UnsizedArrayOf<FWORD>	leadingBearingX;*/
+				/* Here the advance is assumed
+				 * to be the same as the advance
+				 * for the last entry above. The
+				 * number of entries in this array is
+				 * derived from numGlyphs (from 'maxp'
+				 * table) minus numberOfLongMetrics.
+				 * This generally is used with a run
+				 * of monospaced glyphs (e.g., Kanji
+				 * fonts or Courier fonts). Only one
+				 * run is allowed and it must be at
+				 * the end. This allows a monospaced
+				 * font to vary the side bearing
+				 * values for each glyph. */
   public:
   DEFINE_SIZE_ARRAY (0, longMetricZ);
 };

@@ -433,7 +433,7 @@ struct hb_ot_apply_context_t :
     }
 
     void reset (unsigned int start_index_,
-		       unsigned int num_items_)
+		unsigned int num_items_)
     {
       idx = start_index_;
       num_items = num_items_;

@@ -271,14 +271,14 @@ struct JustWidthDeltaEntry
   };
 
   protected:
-  HBFixed		beforeGrowLimit;/* The ratio by which the advance width of the
+  HBFixed	beforeGrowLimit;/* The ratio by which the advance width of the
 				 * glyph is permitted to grow on the left or top side. */
-  HBFixed		beforeShrinkLimit;
+  HBFixed	beforeShrinkLimit;
 				/* The ratio by which the advance width of the
 				 * glyph is permitted to shrink on the left or top side. */
-  HBFixed		afterGrowLimit;	/* The ratio by which the advance width of the glyph
+  HBFixed	afterGrowLimit;	/* The ratio by which the advance width of the glyph
 				 * is permitted to shrink on the left or top side. */
-  HBFixed		afterShrinkLimit;
+  HBFixed	afterShrinkLimit;
 				/* The ratio by which the advance width of the glyph
 				 * is at most permitted to shrink on the right or
 				 * bottom side. */
