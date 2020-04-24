@@ -189,10 +189,14 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN 1
 #endif
-#include <windows.h>
 #else
 #include <intrin.h>
 #endif
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
+#include <winapifamily.h>
 #endif
 
 #define HB_PASTE1(a,b) a##b
@@ -348,7 +352,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #    undef _WIN32_WINNT
 #  endif
 #  ifndef _WIN32_WINNT
-#    if !defined(WINAPI_FAMILY) || !(WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+#    if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 #      define _WIN32_WINNT 0x0600
 #    endif
 #  endif
@@ -369,7 +373,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #      define HB_NO_SETLOCALE
 #      define HB_NO_ERRNO
 #    endif
-#  elif defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+#  elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 #    ifndef HB_NO_GETENV
 #      define HB_NO_GETENV
 #    endif

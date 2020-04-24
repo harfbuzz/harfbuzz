@@ -618,7 +618,7 @@ fail_without_close:
   wchar_t * wchar_file_name = (wchar_t *) malloc (sizeof (wchar_t) * size);
   if (unlikely (!wchar_file_name)) goto fail_without_close;
   mbstowcs (wchar_file_name, file_name, size);
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
   {
     CREATEFILE2_EXTENDED_PARAMETERS ceparams = { 0 };
     ceparams.dwSize = sizeof(CREATEFILE2_EXTENDED_PARAMETERS);
@@ -639,7 +639,7 @@ fail_without_close:
 
   if (unlikely (fd == INVALID_HANDLE_VALUE)) goto fail_without_close;
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
   {
     LARGE_INTEGER length;
     GetFileSizeEx (fd, &length);
@@ -652,7 +652,7 @@ fail_without_close:
 #endif
   if (unlikely (!file->mapping)) goto fail;
 
-#if defined(WINAPI_FAMILY) && (WINAPI_FAMILY==WINAPI_FAMILY_PC_APP || WINAPI_FAMILY==WINAPI_FAMILY_PHONE_APP)
+#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
   file->contents = (char *) MapViewOfFileFromApp (file->mapping, FILE_MAP_READ, 0, 0);
 #else
   file->contents = (char *) MapViewOfFile (file->mapping, FILE_MAP_READ, 0, 0, 0);
