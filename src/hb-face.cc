@@ -193,7 +193,9 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
  * @index: The index of the face within @blob
  *
  * Constructs a new face object from the specified blob and
- * a face index into that blob.
+ * a face index into that blob. This is used for blobs of
+ * file formats such as Dfont and TTC that can contain more
+ * than one face.
  *
  * Return value: (transfer full): The new face object
  *
