@@ -109,7 +109,7 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
  * Creates a new face object from the specified @user_data and @reference_table_func,
  * with the @destroy callback. 
  *
- * Return value: (transfer full)
+ * Return value: (transfer full): The new face object
  *
  * Since: 0.9.2
  **/
