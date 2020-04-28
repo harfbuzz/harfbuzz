@@ -2,34 +2,34 @@ platform: x64
 
 environment:
   matrix:
-    - compiler: msvc
-      generator: Visual Studio 14
-      vcvarsallpath: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
-      arch: amd64
+    # - compiler: msvc
+    #   generator: Visual Studio 14
+    #   vcvarsallpath: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat
+    #   arch: amd64
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-      compiler: msvc
-      generator: Visual Studio 15
-      vcvarsallpath: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat
-      arch: x86
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    #   compiler: msvc
+    #   generator: Visual Studio 15
+    #   vcvarsallpath: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat
+    #   arch: x86
 
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      compiler: msvc
-      generator: Visual Studio 16
-      vcvarsallpath: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat
-      arch: amd64
+    # - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    #   compiler: msvc
+    #   generator: Visual Studio 16
+    #   vcvarsallpath: C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat
+    #   arch: amd64
 
-    - compiler: msys2
-      MINGW_PREFIX: /mingw64
-      MINGW_CHOST: x86_64-w64-mingw32
-      MSYS2_ARCH: x86_64
-      MSYSTEM: MINGW64
+    # - compiler: msys2
+    #   MINGW_PREFIX: /mingw64
+    #   MINGW_CHOST: x86_64-w64-mingw32
+    #   MSYS2_ARCH: x86_64
+    #   MSYSTEM: MINGW64
 
-    - compiler: msys2
-      MINGW_PREFIX: /mingw32
-      MINGW_CHOST: i686-w64-mingw32
-      MSYS2_ARCH: i686
-      MSYSTEM: MINGW32
+    # - compiler: msys2
+    #   MINGW_PREFIX: /mingw32
+    #   MINGW_CHOST: i686-w64-mingw32
+    #   MSYS2_ARCH: i686
+    #   MSYSTEM: MINGW32
 
 
 install:
