@@ -3,12 +3,6 @@ dist: trusty
 
 language: cpp
 
-env:
-  global:
-    - CPPFLAGS=""
-    - CONFIGURE_OPTS="--with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2"
-    - NOCONFIGURE=1
-
 matrix:
   include:
     - os: linux
@@ -19,28 +13,14 @@ matrix:
         - export LD_LIBRARY_PATH="$HOME/.local/lib"
         - bash .ci/build-freetype.sh
 
-        - ./autogen.sh
-        - ./configure $CONFIGURE_OPTS --enable-gtk-doc --enable-code-coverage
+        - ./autogen.sh NOCONFIGURE=1
+        - ./configure $CONFIGURE_OPTS --enable-gtk-doc --enable-code-coverage --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2
         - make
         - make check || .ci/fail.sh
         - rm -rf freetype-2.9
       after_success:
         - bash .ci/run-coveralls.sh # coveralls.io code coverage
         - bash .ci/deploy-docs.sh
-        - bash .ci/trigger-coverity.sh
-
-    - os: linux
-      compiler: clang
-      script:
-        # Remove the following three lines when Travis updates its distro
-        - export PKG_CONFIG_PATH="$HOME/.local/lib/pkgconfig"
-        - export LD_LIBRARY_PATH="$HOME/.local/lib"
-        - bash .ci/build-freetype.sh
-
-        - ./autogen.sh
-        - ./configure $CONFIGURE_OPTS
-        - make
-        - make check || .ci/fail.sh
 
 notifications:
   irc: "irc.freenode.org#harfbuzz"
