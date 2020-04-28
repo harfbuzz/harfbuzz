@@ -1,0 +1,38 @@
+
+name: coverity-scan
+on:
+  schedule:
+    - cron: '0 10 * * *' # Daily at 10:00 UTC
+
+jobs:
+  latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: sudo apt-get install gcc wget git curl
+
+      - name: Download Coverity
+        run: |
+          wget -q https://scan.coverity.com/download/cxx/linux64 --post-data "token=$TOKEN&project=behdad/harfbuzz" -O cov-analysis-linux64.tar.gz
+          mkdir cov-analysis-linux64
+          tar xzf cov-analysis-linux64.tar.gz --strip 1 -C cov-analysis-linux64
+        env:
+          TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
+  
+      - run: cov-analysis-linux64/bin/cov-build --dir cov-int gcc src/hb-*.cc -c -DHB_NO_MT
+
+      - run: tar czvf harfbuzz.tgz cov-int
+        
+      - name: submit to coverity
+        run: |
+          curl \
+            --form project=behdad/harfbuzz \
+            --form token=$TOKEN \
+            --form email=harfbuzz-bots-chatter@googlegroups.com \
+            --form file=@harfbuzz.tgz \
+            --form version=trunk \
+            --form description="`git rev-parse --short HEAD`" \
+            https://scan.coverity.com/builds?project=behdad-harfbuzz
+        env:
+          TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}
