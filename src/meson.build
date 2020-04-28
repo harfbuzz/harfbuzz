@@ -484,9 +484,9 @@ if get_option('tests').enabled()
       test(name, find_program(name), env: env)
     endforeach
   
-    test('check-symbols.sh', find_program('check-symbols.sh'),
-      depends: [harfbuzz_def, harfbuzz_subset_def], # TODO: harfbuzz_icu_def and harfbuzz_gobject_def also
-      env: env)
+    #test('check-symbols.sh', find_program('check-symbols.sh'),
+    #  depends: [harfbuzz_def, harfbuzz_subset_def], # TODO: harfbuzz_icu_def and harfbuzz_gobject_def also
+    #  env: env)
   endif
 endif
 
