@@ -654,6 +654,7 @@ fail_without_close:
 
     len += addition;
   }
+	fclose (fp);
 
   return hb_blob_create (data, len, HB_MEMORY_MODE_WRITABLE, data,
 			 (hb_destroy_func_t) free);
