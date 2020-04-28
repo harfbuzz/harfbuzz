@@ -13,9 +13,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install dependencies
-      run: sudo apt-get install meson pkg-config gcc ragel lcov gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev # libgirepository1.0-dev
+      run: sudo apt-get install pkg-config gcc ragel gcovr gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-setuptools ninja-build # libgirepository1.0-dev
+    - name: install meson
+      run: sudo pip3 install meson
     - name: run
-      run: meson build -Db_coverage=true -Dglib=true -Dcairo=true -Dicu=true -Dgraphite=true -Dfreetype=true
+      run: meson build -Db_coverage=true -Dglib=enabled -Dcairo=enabled -Dicu=enabled -Dgraphite=enabled -Dfreetype=enabled
     - name: ci
       run: meson test --print-errorlogs -Cbuild
     - name: cov
