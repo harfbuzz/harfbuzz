@@ -98,8 +98,7 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		0x0907u == buffer->cur (2).codepoint)
 	    {
 	      buffer->next_glyph ();
-	      buffer->next_glyph ();
-	      _output_dotted_circle (buffer);
+	      matched = true;
 	    }
 	    break;
 	}
@@ -219,8 +218,7 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	if (0x0B85u == buffer->cur ().codepoint &&
 	    0x0BC2u == buffer->cur (1).codepoint)
 	{
-	  buffer->next_glyph ();
-	  _output_dotted_circle (buffer);
+	  matched = true;
 	}
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
