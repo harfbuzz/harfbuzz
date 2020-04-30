@@ -35,6 +35,10 @@
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
 
+#if !defined(HB_NO_RESOURCE_FORK) && defined(__APPLE__)
+#include <sys/paths.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -520,6 +524,39 @@ _hb_mapped_file_destroy (void *file_)
 }
 #endif
 
+#ifdef _PATH_RSRCFORKSPEC
+static int
+_open_resource_fork(const char *file_name, hb_mapped_file_t *file)
+{
+  size_t name_len = strlen (file_name);
+  size_t len = name_len + sizeof (_PATH_RSRCFORKSPEC);
+
+  char *rsrc_name = (char *) malloc (len);
+  if (unlikely (!rsrc_name)) return -1;
+
+  strncpy (rsrc_name, file_name, name_len);
+  strncpy (rsrc_name + name_len, _PATH_RSRCFORKSPEC,
+           sizeof (_PATH_RSRCFORKSPEC) - 1);
+
+  int fd = open (rsrc_name, O_RDONLY | O_BINARY, 0);
+  free (rsrc_name);
+
+  if (fd != -1)
+  {
+    struct stat st;
+    if (fstat (fd, &st) != -1)
+      file->length = (unsigned long) st.st_size;
+    else
+    {
+      close (fd);
+      fd = -1;
+    }
+  }
+
+  return fd;
+}
+#endif
+
 /**
  * hb_blob_create_from_file:
  * @file_name: font filename.
@@ -544,6 +581,19 @@ hb_blob_create_from_file (const char *file_name)
   if (unlikely (fstat (fd, &st) == -1)) goto fail;
 
   file->length = (unsigned long) st.st_size;
+
+#ifdef _PATH_RSRCFORKSPEC
+  if (unlikely (file->length == 0))
+  {
+    int rfd = _open_resource_fork (file_name, file);
+    if (rfd != -1)
+    {
+      close (fd);
+      fd = rfd;
+    }
+  }
+#endif
+
   file->contents = (char *) mmap (nullptr, file->length, PROT_READ,
 				  MAP_PRIVATE | MAP_NORESERVE, fd, 0);
 
