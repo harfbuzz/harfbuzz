@@ -573,15 +573,15 @@ struct IndexSubtableArray
     {
       if (unlikely (!lookup[start].second->add_new_record (c, bitmap_size_context, &lookup, this, &start, &records)))
       {
-        // Discard any leftover pushes to the serializer from successful records.
-        for (unsigned int i = 0; i < records.length; i++)
-          c->serializer->pop_discard ();
-        return_trace (false);
+	// Discard any leftover pushes to the serializer from successful records.
+	for (unsigned int i = 0; i < records.length; i++)
+	  c->serializer->pop_discard ();
+	return_trace (false);
       }
     }
 
-    // Workaround to ensure offset ordering is from least to greatest when
-    // resolving links.
+    /* Workaround to ensure offset ordering is from least to greatest when
+     * resolving links. */
     hb_vector_t<hb_serialize_context_t::objidx_t> objidxs;
     for (unsigned int i = 0; i < records.length; i++)
       objidxs.push (c->serializer->pop_pack ());

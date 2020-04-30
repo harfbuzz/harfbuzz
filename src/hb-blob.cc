@@ -526,7 +526,7 @@ _hb_mapped_file_destroy (void *file_)
 
 #ifdef _PATH_RSRCFORKSPEC
 static int
-_open_resource_fork(const char *file_name, hb_mapped_file_t *file)
+_open_resource_fork (const char *file_name, hb_mapped_file_t *file)
 {
   size_t name_len = strlen (file_name);
   size_t len = name_len + sizeof (_PATH_RSRCFORKSPEC);
@@ -536,7 +536,7 @@ _open_resource_fork(const char *file_name, hb_mapped_file_t *file)
 
   strncpy (rsrc_name, file_name, name_len);
   strncpy (rsrc_name + name_len, _PATH_RSRCFORKSPEC,
-           sizeof (_PATH_RSRCFORKSPEC) - 1);
+	   sizeof (_PATH_RSRCFORKSPEC) - 1);
 
   int fd = open (rsrc_name, O_RDONLY | O_BINARY, 0);
   free (rsrc_name);
