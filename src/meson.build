@@ -637,9 +637,40 @@ if have_gobject
     error('Introspection support is requested but the default library option should be shared or both')
   endif
 
+  hb_gen_files_gir = []
   if build_gir
     conf.set('HAVE_INTROSPECTION', 1)
-    hb_gen_files_gir = gnome.generate_gir(libharfbuzz, libharfbuzz_gobject,
+    python = import('python').find_installation('python3')
+    identfilter_py = join_paths(meson.current_source_dir(), 'gen-introspection-symbols.py')
+    new_gir = gnome.generate_gir(libharfbuzz, libharfbuzz_gobject,
+      sources: [hb_headers, hb_sources, hb_gobject_headers, hb_gobject_sources, enum_h],
+      namespace: 'HarfBuzz',
+      nsversion: '@0@.0'.format(hb_version_major),
+      identifier_prefix: 'Hb',
+      symbol_prefix: ['hb', 'hb_gobject'],
+      includes: ['GObject-2.0'],
+      export_packages: ['harfbuzz-gobject'],
+      header: 'hb-gobject.h',
+      install: true,
+      extra_args:  [
+        '--identifier-filter-cmd=@0@ @1@'.format(python.path(), identfilter_py),
+        '--accept-unprefixed',
+        '--quiet',
+        '--warn-all',
+        '--cflags-begin',
+          '-DHB_H',
+          '-DHB_H_IN',
+          '-DHB_OT_H',
+          '-DHB_OT_H_IN',
+          '-DHB_AAT_H',
+          '-DHB_AAT_H_IN',
+          '-DHB_GOBJECT_H',
+          '-DHB_GOBJECT_H_IN',
+          '-DHB_EXTERN=',
+        '--cflags-end'])
+    hb_gen_files_gir += new_gir
+
+    old_gir = gnome.generate_gir(libharfbuzz, libharfbuzz_gobject,
       sources: [hb_headers, hb_sources, hb_gobject_headers, hb_gobject_sources, enum_h],
       namespace: 'HarfBuzz',
       nsversion: '0.0',
@@ -660,19 +691,20 @@ if have_gobject
                     '-DHB_GOBJECT_H_IN',
                     '-DHB_EXTERN=',
                     '--cflags-end'])
+    hb_gen_files_gir += old_gir
   endif
 
   libharfbuzz_gobject_dep = declare_dependency(
     link_with: libharfbuzz_gobject,
     include_directories: incsrc,
-    sources: build_gir ? hb_gen_files_gir : hb_gobject_sources,
-    dependencies: [glib_dep, gobject_dep])
+    sources: [ hb_gen_files_gir, hb_gobject_sources ],
+    dependencies: [glib_dep, gobject_dep],
+  )
 
   pkgmod.generate(libharfbuzz_gobject,
     description: 'HarfBuzz text shaping library GObject integration',
     requires: ['harfbuzz = @0@'.format(meson.project_version()), 'glib-2.0', 'gobject-2.0'],
     subdirs: [meson.project_name()],
-    version: meson.project_version(),
   )
 
   install_headers(hb_gobject_headers, subdir: meson.project_name())
