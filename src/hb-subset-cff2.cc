@@ -343,7 +343,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
 {
   /* private dicts & local subrs */
   hb_vector_t<table_info_t>  private_dict_infos;
-  private_dict_infos.resize (plan.subset_fdcount);
+  if (unlikely (!private_dict_infos.resize (plan.subset_fdcount))) return false;
 
   for (int i = (int)acc.privateDicts.length; --i >= 0 ;)
   {
