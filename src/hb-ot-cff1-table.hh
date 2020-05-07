@@ -268,7 +268,7 @@ struct Encoding
 
   void get_supplement_codes (hb_codepoint_t sid, hb_vector_t<hb_codepoint_t> &codes) const
   {
-    codes.resize (0);
+    (void) codes.resize (0);
     if (has_supplement ())
       suppEncData().get_codes (sid, codes);
   }
@@ -1087,7 +1087,7 @@ struct cff1
       if (num_glyphs != sc.get_num_glyphs ())
       { fini (); return; }
 
-      privateDicts.resize (fdCount);
+      if (unlikely (!privateDicts.resize (fdCount))) { fini(); return; }
       for (unsigned int i = 0; i < fdCount; i++)
 	privateDicts[i].init ();
 

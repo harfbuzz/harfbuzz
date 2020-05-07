@@ -238,8 +238,9 @@ struct COLR
 
 				auto layers = (this+layersZ).as_array (numLayers).sub_array (old_record->firstLayerIdx,
 											     old_record->numLayers);
-				out_layers.resize (layers.length);
-				for (unsigned int i = 0; i < layers.length; i++) {
+				(void) out_layers.resize (layers.length);
+				for (unsigned i = 0; i < out_layers.length; i++)
+				{
 				  out_layers[i] = layers[i];
 				  hb_codepoint_t new_gid = 0;
 				  if (unlikely (!c->plan->new_gid_for_old_gid (out_layers[i].glyphId, &new_gid)))

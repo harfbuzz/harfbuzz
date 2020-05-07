@@ -2264,8 +2264,8 @@ struct VarData
     enum delta_size_t { kZero=0, kByte, kShort };
     hb_vector_t<delta_size_t> delta_sz;
     hb_vector_t<unsigned int> ri_map;	/* maps old index to new index */
-    delta_sz.resize (ri_count);
-    ri_map.resize (ri_count);
+    if (unlikely (!delta_sz.resize (ri_count))) return_trace (false);
+    if (unlikely (!ri_map.resize (ri_count))) return_trace (false);
     unsigned int new_short_count = 0;
     unsigned int r;
     for (r = 0; r < ri_count; r++)

@@ -56,7 +56,7 @@ struct blend_arg_t : number_t
   {
     numValues = numValues_;
     valueIndex = valueIndex_;
-    deltas.resize (numBlends);
+    if (unlikely (!deltas.resize (numBlends))) return;
     for (unsigned int i = 0; i < numBlends; i++)
       deltas[i] = blends_[i];
   }
@@ -65,7 +65,7 @@ struct blend_arg_t : number_t
   void reset_blends ()
   {
     numValues = valueIndex = 0;
-    deltas.resize (0);
+    (void) deltas.resize (0);
   }
 
   unsigned int numValues;
@@ -133,9 +133,9 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
       region_count = varStore->varStore.get_region_index_count (get_ivs ());
       if (do_blend)
       {
-	scalars.resize (region_count);
-	varStore->varStore.get_scalars (get_ivs (), coords, num_coords,
-					&scalars[0], region_count);
+	if (likely (scalars.resize (region_count)))
+	  varStore->varStore.get_scalars (get_ivs (), coords, num_coords,
+					  &scalars[0], region_count);
       }
       seen_blend = true;
     }
@@ -174,7 +174,7 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
 	  v += (double)scalars[i] * arg.deltas[i].to_real ();
 	}
 	arg.set_real (v);
-	arg.deltas.resize (0);
+	(void) arg.deltas.resize (0);
       }
     }
   }

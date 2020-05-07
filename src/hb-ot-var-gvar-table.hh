@@ -55,9 +55,9 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
   void extend (const hb_array_t<contour_point_t> &a)
   {
     unsigned int old_len = length;
-    resize (old_len + a.length);
-    for (unsigned int i = 0; i < a.length; i++)
-      (*this)[old_len + i] = a[i];
+    if (likely (resize (old_len + a.length)))
+      for (unsigned int i = 0; i < a.length; i++)
+	(*this)[old_len + i] = a[i];
   }
 
   void transform (const float (&matrix)[4])
@@ -274,7 +274,7 @@ struct GlyphVariationData
       if (unlikely (!bytes.check_range (p))) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
     }
-    points.resize (count);
+    if (unlikely (!points.resize (count))) return false;
 
     unsigned int n = 0;
     uint16_t i = 0;
@@ -545,17 +545,17 @@ struct gvar
       hb_vector_t<unsigned int> shared_indices;
       GlyphVariationData::tuple_iterator_t iterator;
       if (!GlyphVariationData::get_tuple_iterator (var_data_bytes, table->axisCount,
-					     shared_indices, &iterator))
+						   shared_indices, &iterator))
 	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
       contour_point_vector_t orig_points;
-      orig_points.resize (points.length);
+      if (unlikely (!orig_points.resize (points.length))) return false;
       for (unsigned int i = 0; i < orig_points.length; i++)
 	orig_points[i] = points[i];
 
       contour_point_vector_t deltas; /* flag is used to indicate referenced point */
-      deltas.resize (points.length);
+      if (unlikely (!deltas.resize (points.length))) return false;
 
       hb_vector_t<unsigned> end_points;
       for (unsigned i = 0; i < points.length; ++i)
@@ -584,11 +584,11 @@ struct gvar
 	bool apply_to_all = (indices.length == 0);
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
 	hb_vector_t<int> x_deltas;
-	x_deltas.resize (num_deltas);
+	if (unlikely (!x_deltas.resize (num_deltas))) return false;
 	if (!GlyphVariationData::unpack_deltas (p, x_deltas, bytes))
 	  return false;
 	hb_vector_t<int> y_deltas;
-	y_deltas.resize (num_deltas);
+	if (unlikely (!y_deltas.resize (num_deltas))) return false;
 	if (!GlyphVariationData::unpack_deltas (p, y_deltas, bytes))
 	  return false;
 

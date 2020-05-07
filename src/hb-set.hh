@@ -247,7 +247,7 @@ struct hb_set_t
     if (unlikely (!successful)) return false;
     if (!pages.resize (count) || !page_map.resize (count))
     {
-      pages.resize (page_map.length);
+      (void) pages.resize (0);
       successful = false;
       return false;
     }
@@ -267,8 +267,8 @@ struct hb_set_t
     if (unlikely (hb_object_is_immutable (this)))
       return;
     population = 0;
-    page_map.resize (0);
-    pages.resize (0);
+    (void) page_map.resize (0);
+    (void) pages.resize (0);
   }
   bool is_empty () const
   {
@@ -515,7 +515,7 @@ struct hb_set_t
   void compact (unsigned int length)
   {
     hb_vector_t<uint32_t> old_index_to_page_map_index;
-    old_index_to_page_map_index.resize(pages.length);
+    if (unlikely (!old_index_to_page_map_index.resize (pages.length))) return;
     for (uint32_t i = 0; i < old_index_to_page_map_index.length; i++)
       old_index_to_page_map_index[i] = 0xFFFFFFFF;
 

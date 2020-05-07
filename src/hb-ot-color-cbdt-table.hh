@@ -454,8 +454,8 @@ struct IndexSubtableRecord
     unsigned int old_size = bitmap_size_context->size;
     unsigned int old_cbdt_prime_length = bitmap_size_context->cbdt_prime->length;
 
-    // Set to invalid state to indicate filling glyphs is not yet started.
-    records->resize (records->length + 1);
+    /* Set to invalid state to indicate filling glyphs is not yet started. */
+    if (unlikely (!records->resize (records->length + 1))) return_trace (false);
     (*records)[records->length - 1].firstGlyphIndex = 1;
     (*records)[records->length - 1].lastGlyphIndex = 0;
     bitmap_size_context->size += IndexSubtableRecord::min_size;
@@ -468,7 +468,7 @@ struct IndexSubtableRecord
       c->serializer->revert (snap);
       bitmap_size_context->cbdt_prime->shrink (old_cbdt_prime_length);
       bitmap_size_context->size = old_size;
-      records->resize (records->length - 1);
+      (void) records->resize (records->length - 1);
       return_trace (false);
     }
 

@@ -579,8 +579,8 @@ struct glyf
 	if (unlikely (!bytes.check_range (&endPtsOfContours[num_contours + 1]))) return false;
 	unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
 
-	points_.resize (num_points);
-	for (unsigned int i = 0; i < points_.length; i++) points_[i].init ();
+	if (unlikely (!points_.resize (num_points))) return false;
+	for (unsigned int i = 0; i < num_points; i++) points_[i].init ();
 	if (phantom_only) return true;
 
 	for (int i = 0; i < num_contours; i++)

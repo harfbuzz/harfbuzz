@@ -370,7 +370,8 @@ struct cff_subset_plan {
       desubroutinize(false)
   {
     topdict_sizes.init ();
-    topdict_sizes.resize (1);
+    /* XXX Is this in any use? */
+    (void) topdict_sizes.resize (1);
     topdict_mod.init ();
     subset_fdselect_ranges.init ();
     fdmap.init ();
@@ -409,7 +410,7 @@ struct cff_subset_plan {
     hb_codepoint_t  code, last_code = CFF_UNDEF_CODE;
     hb_vector_t<hb_codepoint_t> supp_codes;
 
-    subset_enc_code_ranges.resize (0);
+    (void) subset_enc_code_ranges.resize (0);
     supp_size = 0;
     supp_codes.init ();
 
@@ -468,7 +469,7 @@ struct cff_subset_plan {
     unsigned int  size0, size_ranges;
     hb_codepoint_t  sid, last_sid = CFF_UNDEF_CODE;
 
-    subset_charset_ranges.resize (0);
+    (void) subset_charset_ranges.resize (0);
     unsigned int glyph;
     for (glyph = 1; glyph < plan->num_output_glyphs (); glyph++)
     {

@@ -146,7 +146,7 @@ struct index_map_subset_plan_t
     hb_codepoint_t	gid = (hb_codepoint_t) hb_min (index_map.get_map_count (), plan->num_output_glyphs ());
 
     outer_bit_count = (index_map.get_width () * 8) - index_map.get_inner_bit_count ();
-    max_inners.resize (inner_sets.length);
+    if (unlikely (!max_inners.resize (inner_sets.length))) return;
     for (unsigned i = 0; i < inner_sets.length; i++) max_inners[i] = 0;
 
     /* Search backwards for a map value different from the last map value */
@@ -211,7 +211,7 @@ struct index_map_subset_plan_t
       if (bit_count > inner_bit_count) inner_bit_count = bit_count;
     }
 
-    output_map.resize (map_count);
+    (void) output_map.resize (map_count);
     for (hb_codepoint_t gid = 0; gid < output_map.length; gid++)
     {
       hb_codepoint_t	old_gid;
@@ -253,15 +253,15 @@ struct hvarvvar_subset_plan_t
 	     const VariationStore &_var_store,
 	     const hb_subset_plan_t *plan)
   {
-    index_map_plans.resize (index_maps.length);
+    (void) index_map_plans.resize (index_maps.length);
 
     var_store = &_var_store;
-    inner_sets.resize (var_store->get_sub_table_count ());
-    for (unsigned int i = 0; i < inner_sets.length; i++)
+    (void) inner_sets.resize (var_store->get_sub_table_count ());
+    for (unsigned i = 0; i < inner_sets.length; i++)
       inner_sets[i] = hb_set_create ();
     adv_set = hb_set_create ();
 
-    inner_maps.resize (var_store->get_sub_table_count ());
+    (void) inner_maps.resize (var_store->get_sub_table_count ());
 
     for (unsigned int i = 0; i < inner_maps.length; i++)
       inner_maps[i].init ();

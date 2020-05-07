@@ -282,7 +282,7 @@ struct name
 						    this->table->count);
 
       this->names.init ();
-      this->names.alloc (all_names.length);
+      if (unlikely (!this->names.alloc (all_names.length))) return;
 
       for (unsigned int i = 0; i < all_names.length; i++)
       {
@@ -309,7 +309,7 @@ struct name
 	  continue;
 	this->names[j++] = this->names[i];
       }
-      this->names.resize (j);
+      (void) this->names.resize (j);
     }
 
     void fini ()

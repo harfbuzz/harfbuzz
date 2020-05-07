@@ -379,7 +379,7 @@ struct cff_stack_t
     error = false;
     count = 0;
     elements.init ();
-    elements.resize (kSizeLimit);
+    if (unlikely (!elements.resize (kSizeLimit))) { error = true; return; }
     for (unsigned int i = 0; i < elements.length; i++)
       elements[i].init ();
   }

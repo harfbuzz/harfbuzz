@@ -40,7 +40,7 @@ struct str_encoder_t
   str_encoder_t (str_buff_t &buff_)
     : buff (buff_), error (false) {}
 
-  void reset () { buff.resize (0); }
+  void reset () { (void) buff.resize (0); }
 
   void encode_byte (unsigned char b)
   {
@@ -110,7 +110,7 @@ struct str_encoder_t
   void copy_str (const byte_str_t &str)
   {
     unsigned int  offset = buff.length;
-    buff.resize (offset + str.length);
+    (void) buff.resize (offset + str.length);
     if (unlikely (buff.length < offset + str.length))
     {
       set_error ();
@@ -409,11 +409,11 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
 
 struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
 {
-  void init (unsigned int len_ = 0)
+  void init (unsigned len_ = 0)
   {
     SUPER::init ();
-    resize (len_);
-    for (unsigned int i = 0; i < length; i++)
+    (void) resize (len_);
+    for (unsigned i = 0; i < length; i++)
       (*this)[i].init ();
   }
   void fini () { SUPER::fini_deep (); }
@@ -528,8 +528,8 @@ struct subr_remaps_t
 
   void init (unsigned int fdCount)
   {
-    local_remaps.resize (fdCount);
-    for (unsigned int i = 0; i < fdCount; i++)
+    (void) local_remaps.resize (fdCount);
+    for (unsigned i = 0; i < local_remaps.length; i++)
       local_remaps[i].init ();
   }
 
@@ -591,11 +591,9 @@ struct subr_subsetter_t
 
     parsed_charstrings.init (plan->num_output_glyphs ());
     parsed_global_subrs.init (acc.globalSubrs->count);
-    parsed_local_subrs.resize (acc.fdCount);
-    for (unsigned int i = 0; i < acc.fdCount; i++)
-    {
+    if (unlikely (!parsed_local_subrs.resize (acc.fdCount))) return false;
+    for (unsigned i = 0; i < acc.fdCount; ++i)
       parsed_local_subrs[i].init (acc.privateDicts[i].localSubrs->count);
-    }
     if (unlikely (!closures.valid))
       return false;
 

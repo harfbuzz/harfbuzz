@@ -80,7 +80,7 @@ struct hb_vector_t
     fini ();
   }
 
-  void reset () { resize (0); }
+  void reset () { (void) resize (0); }
 
   hb_vector_t& operator = (const hb_vector_t &o)
   {
@@ -213,7 +213,7 @@ struct hb_vector_t
     return true;
   }
 
-  bool resize (int size_)
+  hb_success_t resize (int size_)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
     if (!alloc (size))

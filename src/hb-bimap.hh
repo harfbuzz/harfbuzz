@@ -147,7 +147,7 @@ struct hb_inc_bimap_t : hb_bimap_t
   {
     hb_codepoint_t  count = get_population ();
     hb_vector_t <hb_codepoint_t> work;
-    work.resize (count);
+    if (unlikely (!work.resize (count))) return;
 
     for (hb_codepoint_t rhs = 0; rhs < count; rhs++)
       work[rhs] = back_map[rhs];
