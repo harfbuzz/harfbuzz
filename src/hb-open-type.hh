@@ -604,7 +604,7 @@ struct ArrayOf
   hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_array ().sub_array (start_offset, count); }
 
-  bool serialize (hb_serialize_context_t *c, unsigned int items_len)
+  hb_success_t serialize (hb_serialize_context_t *c, unsigned items_len)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -614,7 +614,7 @@ struct ArrayOf
   }
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, Type))>
-  bool serialize (hb_serialize_context_t *c, Iterator items)
+  hb_success_t serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     unsigned count = items.len ();
