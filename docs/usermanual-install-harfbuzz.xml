@@ -11,19 +11,13 @@
     <title id="download.title">Downloading HarfBuzz</title>
     <para>
       The HarfBuzz source code is hosted at <ulink
-      url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>. The
-      same source tree is also available at the
-      <ulink
-	  url="http://cgit.freedesktop.org/harfbuzz/">Freedesktop.org</ulink>
-      site.
+      url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz</ulink>.
     </para>
     <para>
       Tarball releases and Win32 binary bundles (which include the
       libharfbuzz DLL, hb-view.exe, hb-shape.exe, and all
       dependencies) of HarfBuzz can be downloaded from <ulink
-      url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz/releases</ulink>
-      or from 
-      <ulink url="http://www.freedesktop.org/software/harfbuzz/release/">Freedesktop.org</ulink>.
+      url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz/releases</ulink>.
     </para>
     <para>
       Release notes are posted with each new release to provide an
