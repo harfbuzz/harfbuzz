@@ -274,11 +274,11 @@ workflows:
       - archlinux-py3-all
       - gcc-valgrind
       - clang-O3-O0-and-nobuildsystem
-      - clang-everything
-      - clang-asan
-      - clang-msan
-      - clang-tsan
-      - clang-ubsan
+      #- clang-everything
+      #- clang-asan
+      #- clang-msan
+      #- clang-tsan
+      #- clang-ubsan
       - fedora-O0-debug-outoftreebuild-mingw
 
       - meson-gcc
