@@ -334,6 +334,16 @@ if have_icu and have_icu_builtin
   deps += [icu_dep]
 endif
 
+if host_machine.system() == 'windows' or get_option('with-libstdcxx')
+  chosen_linker = 'cpp'
+else
+  # our autotools port was limiting this to HAVE_GCC as https://github.com/harfbuzz/harfbuzz/commit/e784632
+  # let's see if that is needed anymore
+
+  # Use a C linker, not C++; Don't link to libstdc++
+  chosen_linker = 'c'
+endif
+
 # harfbuzz
 gen_def = find_program('gen-def.py')
 
@@ -369,6 +379,7 @@ libharfbuzz = library('harfbuzz', hb_sources,
   soversion: hb_so_version,
   version: version,
   install: true,
+  link_language: chosen_linker,
   name_prefix: hb_lib_prefix)
 
 libharfbuzz_dep = declare_dependency(
@@ -390,6 +401,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   soversion: hb_so_version,
   version: version,
   install: true,
+  link_language: chosen_linker,
   name_prefix: hb_lib_prefix)
 
 libharfbuzz_subset_dep = declare_dependency(
@@ -471,7 +483,9 @@ if get_option('tests').enabled()
     if not get_option('amalgam')
       dist_check_script += 'check-includes.sh'
     endif
-    if false # !WITH_LIBSTDCXX
+    if false and not get_option('with-libstdcxx')
+      # enable this once https://github.com/mesonbuild/meson/pull/6838 hits a release
+      # and make that version (i.e. 0.55) our minimum build requirement
       dist_check_script += 'check-libstdc++.sh' # See https://github.com/harfbuzz/harfbuzz/issues/2276
     endif
 
@@ -515,6 +529,8 @@ if have_icu and not have_icu_builtin
     soversion: hb_so_version,
     version: version,
     install: true,
+    # ICU links to stdc++ anyway so the default linker is good
+    # link_language: chosen_linker,
     name_prefix: hb_lib_prefix)
 
   libharfbuzz_icu_dep = declare_dependency(
@@ -598,6 +614,7 @@ if have_gobject
     soversion: hb_so_version,
     version: version,
     install: true,
+    link_language: chosen_linker,
     name_prefix: hb_lib_prefix)
 
   gir = find_program('g-ir-scanner', required: get_option('introspection'))

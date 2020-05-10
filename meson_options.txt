@@ -28,6 +28,8 @@ option('introspection', type : 'feature', value : 'disabled', yield : true,
 
 option('icu-builtin', type: 'boolean', value: false,
   description: 'Don\'t separate ICU support as harfbuzz-icu module')
+option('with-libstdcxx', type: 'boolean', value: false,
+   description: 'Allow linking with libstdc++ (ignored and always enabled in Windows)')
 option('experimental-api', type: 'boolean', value: false,
   description: 'Enable experimental APIs')
 option('amalgam', type : 'boolean', value : false,
