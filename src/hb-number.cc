@@ -68,13 +68,3 @@ hb_parse_uint (const char **pp, const char *end, unsigned *pv,
 				  [base] (const char *p, char **end)
 				  { return strtoul (p, end, base); });
 }
-
-bool
-hb_parse_double (const char **pp, const char *end, double *pv, bool whole_buffer)
-{
-  const char *pend = end;
-  *pv = strtod_rl (*pp, &pend);
-  if (unlikely (*pp == pend)) return false;
-  *pp = pend;
-  return !whole_buffer || end == pend;
-}

@@ -31,7 +31,7 @@
 %%{
 
 machine double_parser;
-alphtype unsigned char;
+alphtype char;
 write data;
 
 action see_neg { neg = true; }
@@ -90,10 +90,10 @@ _pow10 (unsigned exponent)
   return result;
 }
 
-static inline double
-strtod_rl (const char *buf, const char **end_ptr /* IN/OUT */)
+bool
+hb_parse_double (const char **pp /* IN/OUT */, const char *end, double *pv, bool whole_buffer)
 {
-  const char *p, *pe;
+  const char *p = *pp, *pe = end;
   double value = 0;
   double frac = 0;
   double frac_count = 0;
@@ -101,8 +101,6 @@ strtod_rl (const char *buf, const char **end_ptr /* IN/OUT */)
   bool neg = false, exp_neg = false, exp_overflow = false;
   const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
   const unsigned MAX_EXP = 0x7FFu; /* 2^11-1 */
-  p = buf;
-  pe = *end_ptr;
 
   while (p < pe && ISSPACE (*p))
     p++;
@@ -113,25 +111,24 @@ strtod_rl (const char *buf, const char **end_ptr /* IN/OUT */)
     write exec;
   }%%
 
-  *end_ptr = (const char *) p;
-
   if (frac_count) value += frac / _pow10 (frac_count);
   if (neg) value *= -1.;
 
-  if (unlikely (exp_overflow))
+  if (unlikely (exp_overflow && value != 0))
   {
-    if (value == 0) return value;
-    if (exp_neg)    return neg ? -DBL_MIN : DBL_MIN;
-    else            return neg ? -DBL_MAX : DBL_MAX;
+    if (exp_neg) value = neg ? -DBL_MIN : DBL_MIN;
+    else         value = neg ? -DBL_MAX : DBL_MAX;
   }
-
-  if (exp)
+  else if (exp)
   {
     if (exp_neg) value /= _pow10 (exp);
     else         value *= _pow10 (exp);
   }
 
-  return value;
+  *pv = value;
+  if (unlikely (*pp == p)) return false;
+  *pp = p;
+  return !whole_buffer || end == p;
 }
 
 #endif /* HB_NUMBER_PARSER_HH */
