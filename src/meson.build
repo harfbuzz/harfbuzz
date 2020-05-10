@@ -366,10 +366,8 @@ if cpp.get_id() == 'msvc'
     extra_hb_cpp_args += '-DHB_DLL_EXPORT'
   endif
   hb_so_version = ''
-  hb_lib_prefix = ''
 else
   hb_so_version = '0'
-  hb_lib_prefix = 'lib'
 endif
 
 libharfbuzz = library('harfbuzz', hb_sources,
@@ -380,7 +378,7 @@ libharfbuzz = library('harfbuzz', hb_sources,
   version: version,
   install: true,
   link_language: chosen_linker,
-  name_prefix: hb_lib_prefix)
+)
 
 libharfbuzz_dep = declare_dependency(
   link_with: libharfbuzz,
@@ -402,7 +400,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   version: version,
   install: true,
   link_language: chosen_linker,
-  name_prefix: hb_lib_prefix)
+)
 
 libharfbuzz_subset_dep = declare_dependency(
   link_with: libharfbuzz_subset,
@@ -531,7 +529,7 @@ if have_icu and not have_icu_builtin
     install: true,
     # ICU links to stdc++ anyway so the default linker is good
     # link_language: chosen_linker,
-    name_prefix: hb_lib_prefix)
+  )
 
   libharfbuzz_icu_dep = declare_dependency(
     link_with: libharfbuzz_icu,
@@ -615,7 +613,7 @@ if have_gobject
     version: version,
     install: true,
     link_language: chosen_linker,
-    name_prefix: hb_lib_prefix)
+  )
 
   gir = find_program('g-ir-scanner', required: get_option('introspection'))
   build_gir = gir.found() and not meson.is_cross_build()
