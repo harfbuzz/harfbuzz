@@ -8,7 +8,7 @@ test -z "$builddir" && builddir=.
 test -z "$libs" && libs=.libs
 stat=0
 
-IGNORED_SYMBOLS='_fini\|_init\|_fdata\|_ftext\|_fbss\|__bss_start\|__bss_start__\|__bss_end__\|_edata\|_end\|_bss_end__\|__end__\|__gcov_.*\|llvm_.*'
+IGNORED_SYMBOLS='_fini\|_init\|_fdata\|_ftext\|_fbss\|__bss_start\|__bss_start__\|__bss_end__\|_edata\|_end\|_bss_end__\|__end__\|__gcov_.*\|llvm_.*\|flush_fn_list\|writeout_fn_list'
 
 if which nm 2>/dev/null >/dev/null; then
 	:

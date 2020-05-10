@@ -346,6 +346,7 @@ harfbuzz_def = custom_target('harfbuzz.def',
     command: harfbuzz_def_command_args,
     input: hb_headers,
     output: 'harfbuzz.def')
+defs_list = [harfbuzz_def]
 
 version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
 
@@ -380,6 +381,7 @@ harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
     command: [gen_def, '@OUTPUT@', '@INPUT@'],
     input: hb_subset_headers,
     output: 'harfbuzz-subset.def')
+defs_list += [harfbuzz_subset_def]
 
 libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   include_directories: incconfig,
@@ -418,7 +420,7 @@ if get_option('tests').enabled()
       )
     endforeach
   endif
-  
+
   check_programs = {
     'dump-indic-data': ['dump-indic-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
     'dump-khmer-data': ['dump-khmer-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
@@ -433,7 +435,7 @@ if get_option('tests').enabled()
       install: false,
     )
   endforeach
-  
+
   compiled_tests = {
     'test-array': 'test-array.cc',
     'test-number': ['test-number.cc', 'hb-number.cc'],
@@ -457,7 +459,7 @@ if get_option('tests').enabled()
       install: false,
     ))
   endforeach
-  
+
   if host_machine.system() != 'windows' and not meson.is_cross_build()
     # Some of them should be ported to python
     dist_check_script = [
@@ -472,21 +474,17 @@ if get_option('tests').enabled()
     if false # !WITH_LIBSTDCXX
       dist_check_script += 'check-libstdc++.sh' # See https://github.com/harfbuzz/harfbuzz/issues/2276
     endif
-  
+
     env = environment()
     env.set('srcdir', meson.current_source_dir())
     env.set('builddir', meson.current_build_dir())
     env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
     env.set('HBSOURCES', ' '.join(hb_sources))
     env.set('HBHEADERS', ' '.join(hb_headers))
-  
+
     foreach name : dist_check_script
       test(name, find_program(name), env: env)
     endforeach
-  
-    #test('check-symbols.sh', find_program('check-symbols.sh'),
-    #  depends: [harfbuzz_def, harfbuzz_subset_def], # TODO: harfbuzz_icu_def and harfbuzz_gobject_def also
-    #  env: env)
   endif
 endif
 
@@ -503,6 +501,12 @@ pkgmod.generate(libharfbuzz_subset,
 )
 
 if have_icu and not have_icu_builtin
+  harfbuzz_icu_def = custom_target('harfbuzz-icu.def',
+    command: [gen_def, '@OUTPUT@', '@INPUT@'],
+    input: [hb_icu_headers],
+    output: 'harfbuzz-icu.def')
+  defs_list += [harfbuzz_icu_def]
+
   libharfbuzz_icu = library('harfbuzz-icu', [hb_icu_sources, hb_icu_headers],
     include_directories: incconfig,
     dependencies: icu_dep,
@@ -584,6 +588,7 @@ if have_gobject
     command: [gen_def, '@OUTPUT@', '@INPUT@'],
     input: [hb_gobject_headers, enum_h],
     output: 'harfbuzz-gobject.def')
+  defs_list += [harfbuzz_gobject_def]
 
   libharfbuzz_gobject = library('harfbuzz-gobject', [hb_gobject_sources, enum_c, enum_h],
     include_directories: incconfig,
@@ -637,6 +642,12 @@ if have_gobject
   install_headers(hb_gobject_headers, subdir: meson.project_name())
 else
   libharfbuzz_gobject_dep = dependency('', required: false)
+endif
+
+if get_option('tests').enabled() and host_machine.system() != 'windows' and not meson.is_cross_build()
+  test('check-symbols.sh', find_program('check-symbols.sh'),
+    depends: defs_list,
+    env: env)
 endif
 
 install_headers(hb_headers + hb_subset_headers, subdir: meson.project_name())
