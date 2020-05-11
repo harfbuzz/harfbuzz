@@ -1,3 +1,10 @@
+Overview of changes leading to 2.6.6
+Tuesday, May 12, 2020
+====================================
+- A fix in AAT kerning for Geeza Pro.
+- Better support for resource fork fonts on macOS.
+
+
 Overview of changes leading to 2.6.5
 Friday, April 17, 2020
 ====================================

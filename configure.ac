@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([HarfBuzz],
-        [2.6.5],
+        [2.6.6],
         [https://github.com/harfbuzz/harfbuzz/issues/new],
         [harfbuzz],
         [http://harfbuzz.org/])
