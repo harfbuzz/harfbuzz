@@ -92,9 +92,8 @@ _pow10 (unsigned exponent)
 
 /* a variant of strtod that also gets end of buffer in its second argument */
 static inline double
-strtod_rl (const char *buf, const char **end_ptr /* IN/OUT */)
+strtod_rl (const char *p, const char **end_ptr /* IN/OUT */)
 {
-  const char *p, *pe;
   double value = 0;
   double frac = 0;
   double frac_count = 0;
@@ -102,9 +101,8 @@ strtod_rl (const char *buf, const char **end_ptr /* IN/OUT */)
   bool neg = false, exp_neg = false, exp_overflow = false;
   const unsigned long long MAX_FRACT = 0xFFFFFFFFFFFFFull; /* 2^52-1 */
   const unsigned MAX_EXP = 0x7FFu; /* 2^11-1 */
-  p = buf;
-  pe = *end_ptr;
 
+  const char *pe = *end_ptr;
   while (p < pe && ISSPACE (*p))
     p++;
 
@@ -114,7 +112,7 @@ strtod_rl (const char *buf, const char **end_ptr /* IN/OUT */)
     write exec;
   }%%
 
-  *end_ptr = (const char *) p;
+  *end_ptr = p;
 
   if (frac_count) value += frac / _pow10 (frac_count);
   if (neg) value *= -1.;
