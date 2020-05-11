@@ -35,10 +35,6 @@
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
 
-#if !defined(HB_NO_RESOURCE_FORK) && defined(__APPLE__)
-#include <sys/paths.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -480,6 +476,9 @@ hb_blob_t::try_make_writable ()
 
 #ifndef HB_NO_OPEN
 #ifdef HAVE_MMAP
+# if !defined(HB_NO_RESOURCE_FORK) && defined(__APPLE__)
+#  include <sys/paths.h>
+# endif
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <fcntl.h>
