@@ -22,7 +22,7 @@ HarfBuzz release walk-through checklist:
 
 4. Make sure you have correct date and new version at the top of NEWS file,
 
-5. Bump version in configure.ac line 3,
+5. Bump version in configure.ac line 3 and meson.build line 4.
 
 6. Do "make distcheck", if it passes, you get a tarball.
    Otherwise, fix things and commit them separately before making release,
@@ -50,23 +50,13 @@ HarfBuzz release walk-through checklist:
 
    b. Run "make dist-win" to build Win32 bundle.
 
-11. Copy all artefacts to users.freedesktop.org and move them into
-    `/srv/www.freedesktop.org/www/software/harfbuzz/release` There should be four
-    files.  Eg.:
- ```
--rw-r--r--  1 behdad eng 1592693 Jul 18 11:25 harfbuzz-1.4.7.tar.xz
--rw-r--r--  1 behdad eng      89 Jul 18 11:34 harfbuzz-1.4.7.tar.xz.sha256
--rw-r--r--  1 behdad eng     339 Jul 18 11:34 harfbuzz-1.4.7.tar.xz.sha256.asc
--rw-r--r--  1 behdad eng 2895619 Jul 18 11:34 harfbuzz-1.4.7-win32.zip
-```
-
-12. While doing that, quickly double-check the size of the .tar.xz and .zip
-    files against their previous releases to make sure nothing bad happened.
+11. Quickly double-check the size of the .tar.xz and .zip files against their
+    previous releases to make sure nothing bad happened.
     They should be in the ballpark, perhaps slightly larger.  Sometimes they
     do shrink, that's not by itself a stopper.
 
-13. Push the commit and tag out: "git push --follow-tags".  Make sure it's
+12. Push the commit and tag out: "git push --follow-tags".  Make sure it's
     pushed both to freedesktop repo and github.
 
-14. Go to GitHub release page [here](https://github.com/harfbuzz/harfbuzz/releases),
+13. Go to GitHub release page [here](https://github.com/harfbuzz/harfbuzz/releases),
     edit the tag, upload artefacts and NEWS entry and save.
