@@ -369,8 +369,6 @@ struct cff_subset_plan {
       drop_hints (false),
       desubroutinize(false)
   {
-    topdict_sizes.init ();
-    topdict_sizes.resize (1);
     topdict_mod.init ();
     subset_fdselect_ranges.init ();
     fdmap.init ();
@@ -388,7 +386,6 @@ struct cff_subset_plan {
 
   ~cff_subset_plan ()
   {
-    topdict_sizes.fini ();
     topdict_mod.fini ();
     subset_fdselect_ranges.fini ();
     fdmap.fini ();
@@ -663,7 +660,6 @@ struct cff_subset_plan {
 	   && (fontdicts_mod.length == subset_fdcount));
   }
 
-  hb_vector_t<unsigned int>	topdict_sizes;
   cff1_top_dict_values_mod_t	topdict_mod;
   cff1_sub_table_info_t		info;
 
