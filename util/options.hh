@@ -125,6 +125,7 @@ struct view_options_t : option_group_t
     fore = nullptr;
     back = nullptr;
     line_space = 0;
+    line_height = 0;
     margin.t = margin.r = margin.b = margin.l = DEFAULT_MARGIN;
 
     add_options (parser);
@@ -141,6 +142,7 @@ struct view_options_t : option_group_t
   char *fore;
   char *back;
   double line_space;
+  double line_height;
   struct margin_t {
     double t, r, b, l;
   } margin;

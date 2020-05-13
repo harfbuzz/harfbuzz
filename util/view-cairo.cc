@@ -46,11 +46,16 @@ view_cairo_t::render (const font_options_t *font_opts)
   double ascent = y_sign * scalbn ((double) extents.ascender, scale_bits);
   double descent = y_sign * -scalbn ((double) extents.descender, scale_bits);
   double font_height = y_sign * scalbn ((double) extents.ascender - extents.descender + extents.line_gap, scale_bits);
-  double leading = font_height + view_options.line_space;
+  bool fixed_leading = view_options.line_height > 0;
+  double leading = fixed_leading ? view_options.line_height : font_height + view_options.line_space;
 
   /* Calculate surface size. */
   double w = 0, h = 0;
-  (vertical ? w : h) = (int) lines->len * leading - view_options.line_space;
+  if (fixed_leading) {
+    (vertical ? w : h) = (int) lines->len * leading + (vertical ? font_height * .5 : descent);
+  } else {
+    (vertical ? w : h) = (int) lines->len * leading - view_options.line_space;
+  }
   (vertical ? h : w) = 0;
   for (unsigned int i = 0; i < lines->len; i++) {
     helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
@@ -77,16 +82,17 @@ view_cairo_t::render (const font_options_t *font_opts)
 
   /* Setup coordinate system. */
   cairo_translate (cr, view_options.margin.l, view_options.margin.t);
+
   if (vertical)
     cairo_translate (cr,
-		     w /* We stack lines right to left */
+		     fixed_leading ? w - leading * .5 : w /* We stack lines right to left */
 		     -font_height * .5 /* "ascent" for vertical */,
 		     y_sign < 0 ? h : 0);
   else
    {
     cairo_translate (cr,
 		     x_sign < 0 ? w : 0,
-		     y_sign < 0 ? descent : ascent);
+		     y_sign < 0 ? descent : (fixed_leading ? leading : ascent));
    }
 
   /* Draw. */
@@ -105,8 +111,8 @@ view_cairo_t::render (const font_options_t *font_opts)
       cairo_set_line_width (cr, 5);
       cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
       for (unsigned i = 0; i < l.num_glyphs; i++) {
-	cairo_move_to (cr, l.glyphs[i].x, l.glyphs[i].y);
-	cairo_rel_line_to (cr, 0, 0);
+        cairo_move_to (cr, l.glyphs[i].x, l.glyphs[i].y);
+        cairo_rel_line_to (cr, 0, 0);
       }
       cairo_stroke (cr);
 
