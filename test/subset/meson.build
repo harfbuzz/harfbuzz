@@ -37,8 +37,7 @@ foreach t : tests
     ],
     # as the tests are ran concurrently let's raise acceptable time here
     # ideally better to break and let meson handles them in parallel
-    timeout: 140,
+    timeout: 200,
     workdir: join_paths(meson.current_build_dir(), '..', '..'),
   )
 endforeach
-
