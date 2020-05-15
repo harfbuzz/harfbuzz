@@ -125,6 +125,8 @@ struct view_options_t : option_group_t
     fore = nullptr;
     back = nullptr;
     line_space = 0;
+    have_font_extents = false;
+    font_extents.ascent = font_extents.descent = font_extents.line_gap = 0;
     margin.t = margin.r = margin.b = margin.l = DEFAULT_MARGIN;
 
     add_options (parser);
@@ -141,6 +143,10 @@ struct view_options_t : option_group_t
   char *fore;
   char *back;
   double line_space;
+  bool have_font_extents;
+  struct font_extents_t {
+    double ascent, descent, line_gap;
+  } font_extents;
   struct margin_t {
     double t, r, b, l;
   } margin;
