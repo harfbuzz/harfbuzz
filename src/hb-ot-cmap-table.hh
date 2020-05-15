@@ -63,8 +63,8 @@ struct CmapSubtableFormat0
       if (glyphIdArray[i])
       {
         hb_codepoint_t glyph = glyphIdArray[i];
-        *unicodes << i;
-        *mapping << hb_pair_t<hb_codepoint_t, hb_codepoint_t> (i, glyph);
+        unicodes->add (i);
+        mapping->set (i, glyph);
       }
   }
 
@@ -406,8 +406,8 @@ struct CmapSubtableFormat4
             hb_codepoint_t gid = (codepoint + this->idDelta[i]) & 0xFFFFu;
             if (unlikely (!gid))
               continue;
-            *unicodes << codepoint;
-            *mapping << hb_pair_t<hb_codepoint_t, hb_codepoint_t> (codepoint, gid);
+            unicodes->add (codepoint);
+            mapping->set (codepoint, gid);
           }
         }
         else
@@ -420,8 +420,8 @@ struct CmapSubtableFormat4
             hb_codepoint_t gid = this->glyphIdArray[index];
             if (unlikely (!gid))
               continue;
-            *unicodes << codepoint;
-            *mapping << hb_pair_t<hb_codepoint_t, hb_codepoint_t> (codepoint, gid);
+            unicodes->add (codepoint);
+            mapping->set (codepoint, gid);
           }
         }
       }
@@ -566,8 +566,8 @@ struct CmapSubtableTrimmed
       {
         hb_codepoint_t unicode = start_cp + i;
         hb_codepoint_t glyphid = glyphIdArray[i];
-        *unicodes << unicode;
-        *mapping << hb_pair_t<hb_codepoint_t, hb_codepoint_t> (unicode, glyphid);
+        unicodes->add (unicode);
+        mapping->set (unicode, glyphid);
       }
   }
 
@@ -652,8 +652,8 @@ struct CmapSubtableLongSegmented
 
       for (unsigned cp = start; cp <= end; cp++)
       {
-        *unicodes << cp;
-        *mapping << hb_pair_t<hb_codepoint_t, hb_codepoint_t> (cp, gid);
+        unicodes->add (cp);
+        mapping->set (cp, gid);
         gid++;
       }
     }
@@ -893,8 +893,8 @@ struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
     {
       hb_codepoint_t unicode = arrayZ[i].unicodeValue;
       hb_codepoint_t glyphid = arrayZ[i].glyphID;
-      *unicodes << unicode;
-      *mapping << hb_pair_t<hb_codepoint_t, hb_codepoint_t> (unicode, glyphid);
+      unicodes->add (unicode);
+      mapping->set (unicode, glyphid);
     }
   }
 
