@@ -32,7 +32,7 @@ import unicodedata
 if len (sys.argv) != 3:
 	print ('''usage: ./gen-tag-table.py languagetags language-subtag-registry
 
-Input files, as of Unicode 12:
+Input files:
 * https://docs.microsoft.com/en-us/typography/opentype/spec/languagetags
 * https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry''', file=sys.stderr)
 	sys.exit (1)
@@ -807,6 +807,7 @@ disambiguation = {
 	'HAL': 'cfm',
 	'HND': 'hnd',
 	'KIS': 'kqs',
+	'KUI': 'uki',
 	'LRC': 'bqi',
 	'NDB': 'nd',
 	'NIS': 'njz',

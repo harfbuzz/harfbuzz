@@ -5,7 +5,7 @@ import io, os.path, sys
 if len (sys.argv) != 4:
 	print ("""usage: ./gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 
-Input files, as of Unicode 12:
+Input files:
 * https://unicode.org/Public/UCD/latest/ucd/ArabicShaping.txt
 * https://unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
 * https://unicode.org/Public/UCD/latest/ucd/Blocks.txt
@@ -65,7 +65,7 @@ def print_joining_table(f):
 		values[u] = value
 
 	short_value = {}
-	for value in set([v for v in values.values()] + ['JOINING_TYPE_X']):
+	for value in sorted (set ([v for v in values.values ()] + ['JOINING_TYPE_X'])):
 		short = ''.join(x[0] for x in value.split('_')[2:])
 		assert short not in short_value.values()
 		short_value[value] = short

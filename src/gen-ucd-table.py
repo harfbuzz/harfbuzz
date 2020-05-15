@@ -7,7 +7,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 if len (sys.argv) not in (2, 3):
 	print("""usage: ./gen-ucd-table ucd.nounihan.grouped.xml [/path/to/hb-common.h]
 
-Input file, as of Unicode 12:
+Input file:
 * https://unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip""", file=sys.stderr)
 	sys.exit(1)
 

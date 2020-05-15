@@ -21,7 +21,7 @@ import sys
 if len (sys.argv) != 3:
 	print ("""usage: ./gen-vowel-constraints.py ms-use/IndicShapingInvalidCluster.txt Scripts.txt
 
-Input file, as of Unicode 12:
+Input file:
 * https://unicode.org/Public/UCD/latest/ucd/Scripts.txt""", file=sys.stderr)
 	sys.exit (1)
 
@@ -103,9 +103,9 @@ class ConstraintSet (object):
 					s.append ('{}0x{:04X}u == buffer->cur ({}).codepoint{}\n'.format (
 						self._indent (depth + 2), cp, index + i, ')' if i == len (self._c) - 1 else ' &&'))
 				s.append ('{}{{\n'.format (indent))
-				for i in range (index + 1):
+				for i in range (index):
 					s.append ('{}buffer->next_glyph ();\n'.format (self._indent (depth + 1)))
-				s.append ('{}_output_dotted_circle (buffer);\n'.format (self._indent (depth + 1)))
+				s.append ('{}matched = true;\n'.format (self._indent (depth + 1)))
 				s.append ('{}}}\n'.format (indent))
 		else:
 			s.append ('{}switch (buffer->cur ({}).codepoint)\n'.format(indent, index or ''))

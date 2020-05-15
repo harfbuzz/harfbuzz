@@ -5,7 +5,7 @@ import io, sys
 if len (sys.argv) != 4:
 	print ("""usage: ./gen-indic-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt Blocks.txt
 
-Input files, as of Unicode 12:
+Input files:
 * https://unicode.org/Public/UCD/latest/ucd/IndicSyllabicCategory.txt
 * https://unicode.org/Public/UCD/latest/ucd/IndicPositionalCategory.txt
 * https://unicode.org/Public/UCD/latest/ucd/Blocks.txt""", file=sys.stderr)

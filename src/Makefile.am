@@ -267,7 +267,7 @@ unicode-tables: \
 	tag-table \
 	ucd-table \
 	use-table \
-	emoji-table \
+	vowel-constraints \
 	$(NULL)
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
