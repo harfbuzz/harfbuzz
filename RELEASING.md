@@ -55,8 +55,6 @@ HarfBuzz release walk-through checklist:
     They should be in the ballpark, perhaps slightly larger.  Sometimes they
     do shrink, that's not by itself a stopper.
 
-12. Push the commit and tag out: "git push --follow-tags".  Make sure it's
-    pushed both to freedesktop repo and github.
-
-13. Go to GitHub release page [here](https://github.com/harfbuzz/harfbuzz/releases),
-    edit the tag, upload artefacts and NEWS entry and save.
+12. Push the commit and tag out: "git push --follow-tags".  Go to GitHub release
+    page [here](https://github.com/harfbuzz/harfbuzz/releases), edit the tag,
+    upload artefacts and NEWS entry and save.
