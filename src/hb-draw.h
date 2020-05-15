@@ -33,7 +33,6 @@
 
 HB_BEGIN_DECLS
 
-#ifdef HB_EXPERIMENTAL_API
 typedef void (*hb_draw_move_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
 typedef void (*hb_draw_line_to_func_t) (hb_position_t to_x, hb_position_t to_y, void *user_data);
 typedef void (*hb_draw_quadratic_to_func_t) (hb_position_t control_x, hb_position_t control_y,
@@ -53,7 +52,7 @@ typedef void (*hb_draw_close_path_func_t) (void *user_data);
  * _move_to, _line_to and _cubic_to calls are nessecary to be defined but we
  * translate _quadratic_to calls to _cubic_to if the callback isn't defined.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 typedef struct hb_draw_funcs_t hb_draw_funcs_t;
 
@@ -91,7 +90,6 @@ hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs);
 
 HB_EXTERN hb_bool_t
 hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs);
-#endif
 
 HB_END_DECLS
 

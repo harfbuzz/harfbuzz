@@ -143,7 +143,6 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
   return true;
 }
 
-#ifdef HB_EXPERIMENTAL_API
 struct cff2_path_param_t
 {
   cff2_path_param_t (hb_font_t *font_, draw_helper_t &draw_helper_)
@@ -210,6 +209,5 @@ bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, d
   if (unlikely (!interp.interpret (param))) return false;
   return true;
 }
-#endif
 
 #endif

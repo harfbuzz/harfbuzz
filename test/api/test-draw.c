@@ -26,7 +26,7 @@
 
 #include <hb.h>
 
-#ifdef HB_EXPERIMENTAL_API
+#ifndef HB_NO_DRAW
 typedef struct user_data_t
 {
   char *str;

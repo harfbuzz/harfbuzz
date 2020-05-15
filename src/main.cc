@@ -41,7 +41,7 @@
 #define hb_blob_create_from_file(x)  hb_blob_get_empty ()
 #endif
 
-#if !defined(HB_NO_COLOR) && !defined(HB_NO_DRAW) && defined(HB_EXPERIMENTAL_API)
+#if !defined(HB_NO_COLOR) && !defined(HB_NO_DRAW)
 static void
 svg_dump (hb_face_t *face, unsigned face_index)
 {
@@ -510,7 +510,7 @@ main (int argc, char **argv)
 #ifndef MAIN_CC_NO_PRIVATE_API
   print_layout_info_using_private_api (blob);
 #endif
-#if !defined(HB_NO_COLOR) && !defined(HB_NO_DRAW) && defined(HB_EXPERIMENTAL_API)
+#if !defined(HB_NO_COLOR) && !defined(HB_NO_DRAW)
   dump_glyphs (blob, argv[1]);
 #endif
   hb_blob_destroy (blob);

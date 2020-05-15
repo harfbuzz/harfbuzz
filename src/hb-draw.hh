@@ -27,7 +27,6 @@
 
 #include "hb.hh"
 
-#ifdef HB_EXPERIMENTAL_API
 struct hb_draw_funcs_t
 {
   hb_object_header_t header;
@@ -134,6 +133,5 @@ struct draw_helper_t
   const hb_draw_funcs_t *funcs;
   void *user_data;
 };
-#endif
 
 #endif /* HB_DRAW_HH */
