@@ -657,6 +657,10 @@ if have_gobject
 
   install_headers(hb_gobject_headers, subdir: meson.project_name())
 else
+  if get_option('introspection').enabled()
+    error('introspection requires gobject to be enabled')
+  endif
+
   libharfbuzz_gobject_dep = dependency('', required: false)
 endif
 
