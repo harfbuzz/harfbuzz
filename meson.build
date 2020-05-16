@@ -342,4 +342,8 @@ if not get_option('tests').disabled()
   subdir('test')
 endif
 
+if not get_option('gtk_doc').disabled()
+  subdir('docs')
+endif
+
 configure_file(output: 'config.h', configuration: conf)

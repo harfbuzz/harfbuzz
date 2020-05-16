@@ -25,6 +25,8 @@ option('tests', type : 'feature', value : 'enabled', yield : true,
   description: 'Enable or disable unit tests')
 option('introspection', type : 'feature', value : 'disabled', yield : true,
   description : 'Generate gobject-introspection bindings (.gir/.typelib files)')
+option('gtk_doc',  type : 'feature', value : 'auto', yield : true,
+  description : 'Generate documentation with gtk-doc')
 
 option('icu-builtin', type: 'boolean', value: false,
   description: 'Don\'t separate ICU support as harfbuzz-icu module')
