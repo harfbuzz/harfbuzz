@@ -96,16 +96,12 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
   hb_position_t caret_array[16];
 
   {
-/*
     unsigned caret_count = 16;
-    g_assert_cmpuint (210, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
+    g_assert_cmpuint (0, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
 							       188, 0, &caret_count,
 							       caret_array));
-    g_assert_cmpuint (3, ==, caret_count);
-    g_assert_cmpuint (2718, ==, caret_array[0]);
-    g_assert_cmpuint (5438, ==, caret_array[1]);
-    g_assert_cmpuint (5438, ==, caret_array[1]);
-*/
+
+    g_assert_cmpuint (0, ==, caret_count);
   }
 
   {
@@ -118,17 +114,15 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
     g_assert_cmpuint (2718, ==, caret_array[0]);
     g_assert_cmpuint (5438, ==, caret_array[1]);
     g_assert_cmpuint (5438, ==, caret_array[1]);
-
   }
 
   {
-/*
     unsigned caret_count = 16;
     g_assert_cmpuint (0, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
 							       1021, 0, &caret_count,
 							       caret_array));
+
     g_assert_cmpuint (0, ==, caret_count);
-*/
   }
 
   {

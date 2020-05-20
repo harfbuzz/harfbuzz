@@ -95,6 +95,8 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_layout_has_substitution (face);
   hb_ot_layout_has_positioning (face);
 
+  hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR, cp, 0, NULL, NULL);
+
   hb_ot_math_has_data (face);
   hb_ot_math_get_constant (font, HB_OT_MATH_CONSTANT_MATH_LEADING);
   hb_ot_math_get_glyph_italics_correction (font, cp);
