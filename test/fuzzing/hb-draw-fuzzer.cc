@@ -121,6 +121,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
       counter += !!extents.width + !!extents.height + !!extents.x_bearing + !!extents.y_bearing;
 
     if (!counter) counter += 1;
+
+    /* misc calls, TODO: test more of calls working with some specific gid  */
+    hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR, gid, 0, nullptr, nullptr);
   }
   assert (counter);
 #ifdef HB_EXPERIMENTAL_API
