@@ -347,3 +347,30 @@ if not get_option('gtk_doc').disabled()
 endif
 
 configure_file(output: 'config.h', configuration: conf)
+
+summary({'prefix': get_option('prefix'),
+         'bindir': get_option('bindir'),
+         'libdir': get_option('libdir'),
+         'includedir': get_option('includedir'),
+         'datadir': get_option('datadir'),
+        }, section: 'Directories')
+summary({'Builtin': true,
+         'Glib': conf.get('HAVE_GLIB', 0) == 1,
+         'ICU': conf.get('HAVE_ICU', 0) == 1,
+        }, bool_yn: true, section: 'Unicode callbacks (you want at least one)')
+summary({'FreeType': conf.get('HAVE_FREETYPE', 0) == 1,
+        }, bool_yn: true, section: 'Font callbacks (the more the merrier)')
+summary({'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
+         'Fontconfig': conf.get('HAVE_FONTCONFIG', 0) == 1,
+        }, bool_yn: true, section: 'Tools used for command-line utilities')
+summary({'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
+        }, bool_yn: true, section: 'Additional shapers (the more the merrier)')
+summary({'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
+         'DirectWrite': conf.get('HAVE_DIRECTWRITE', 0) == 1,
+         'GDI': conf.get('HAVE_GDI', 0) == 1,
+         'Uniscribe': conf.get('HAVE_UNISCRIBE', 0) == 1,
+        }, bool_yn: true, section: 'Platform shapers (not normally needed)')
+summary({'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
+         'GObject bindings': conf.get('HAVE_GOBJECT', 0) == 1,
+         'Introspection': conf.get('HAVE_INTROSPECTION', 0) == 1,
+        }, bool_yn: true, section: 'Other features')
