@@ -2317,6 +2317,7 @@ struct ChainRule
   }
 
   ChainRule* copy (hb_serialize_context_t *c,
+		   const hb_map_t *lookup_map,
 		   const hb_map_t *backtrack_map,
 		   const hb_map_t *input_map = nullptr,
 		   const hb_map_t *lookahead_map = nullptr) const
@@ -2339,13 +2340,19 @@ struct ChainRule
     serialize_array (c, lookahead.len, + lookahead.iter ()
 				       | hb_map (mapping));
 
-    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
-    c->copy (lookup);
+    const ArrayOf<LookupRecord> &lookupRecord = StructAfter<ArrayOf<LookupRecord>> (lookahead);
+    HBUINT16 lookupCount;
+    lookupCount = lookupRecord.len;
+    if (!c->copy (lookupCount)) return_trace (nullptr);
+
+    for (unsigned i = 0; i < (unsigned) lookupCount; i++)
+      if (!c->copy (lookupRecord[i], lookup_map)) return_trace (nullptr);
 
     return_trace (out);
   }
 
   bool subset (hb_subset_context_t *c,
+	       const hb_map_t *lookup_map,
 	       const hb_map_t *backtrack_map = nullptr,
 	       const hb_map_t *input_map = nullptr,
 	       const hb_map_t *lookahead_map = nullptr) const
@@ -2363,7 +2370,7 @@ struct ChainRule
 	  !hb_all (lookahead, glyphset))
 	return_trace (false);
 
-      copy (c->serializer, c->plan->glyph_map);
+      copy (c->serializer, lookup_map, c->plan->glyph_map);
     }
     else
     {
@@ -2372,7 +2379,7 @@ struct ChainRule
 	  !hb_all (lookahead, lookahead_map))
 	return_trace (false);
 
-      copy (c->serializer, backtrack_map, input_map, lookahead_map);
+      copy (c->serializer, lookup_map, backtrack_map, input_map, lookahead_map);
     }
 
     return_trace (true);
@@ -2473,6 +2480,7 @@ struct ChainRuleSet
   }
 
   bool subset (hb_subset_context_t *c,
+	       const hb_map_t *lookup_map,
 	       const hb_map_t *backtrack_klass_map = nullptr,
 	       const hb_map_t *input_klass_map = nullptr,
 	       const hb_map_t *lookahead_klass_map = nullptr) const
@@ -2491,6 +2499,7 @@ struct ChainRuleSet
 
       auto o_snap = c->serializer->snapshot ();
       if (!o->serialize_subset (c, _, this,
+				lookup_map,
 				backtrack_klass_map,
 				input_klass_map,
 				lookahead_klass_map))
@@ -2613,10 +2622,11 @@ struct ChainContextFormat1
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
     out->format = format;
 
+    const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
     + hb_zip (this+coverage, ruleSet)
     | hb_filter (glyphset, hb_first)
-    | hb_filter (subset_offset_array (c, out->ruleSet, this), hb_second)
+    | hb_filter (subset_offset_array (c, out->ruleSet, this, lookup_map), hb_second)
     | hb_map (hb_first)
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
@@ -2785,8 +2795,9 @@ struct ChainContextFormat2
     hb_map_t lookahead_klass_map;
     out->lookaheadClassDef.serialize_subset (c, lookaheadClassDef, this, &lookahead_klass_map);
 
-    hb_vector_t<unsigned> rulesets;
+    unsigned non_zero_index = 0, index = 0;
     bool ret = true;
+    const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     for (const OffsetTo<ChainRuleSet>& _ : + hb_enumerate (ruleSet)
 					   | hb_filter (input_klass_map, hb_first)
 					   | hb_map (hb_second))
@@ -2797,24 +2808,24 @@ struct ChainContextFormat2
 	ret = false;
 	break;
       }
-      if (!o->serialize_subset (c, _, this,
-				&backtrack_klass_map,
-				&input_klass_map,
-				&lookahead_klass_map))
-      {
-	rulesets.push (0);
-      }
-      else rulesets.push (1);
+      if (o->serialize_subset (c, _, this,
+			       lookup_map,
+			       &backtrack_klass_map,
+			       &input_klass_map,
+			       &lookahead_klass_map))
+        non_zero_index = index;
+
+      index++;
     }
 
     if (!ret) return_trace (ret);
 
     //prune empty trailing ruleSets
-    unsigned count = rulesets.length;
-    while (count > 0 && rulesets[count-1] == 0)
+    --index;
+    while (index > non_zero_index)
     {
       out->ruleSet.pop ();
-      count--;
+      index--;
     }
 
     return_trace (bool (out->ruleSet));
@@ -3002,8 +3013,16 @@ struct ChainContextFormat3
     if (!serialize_coverage_offsets (c, lookahead.iter (), this))
       return_trace (false);
 
-    const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
-    return_trace (c->serializer->copy (lookup));
+    const ArrayOf<LookupRecord> &lookupRecord = StructAfter<ArrayOf<LookupRecord>> (lookahead);
+    HBUINT16 lookupCount;
+    lookupCount = lookupRecord.len;
+    if (!c->serializer->copy (lookupCount)) return_trace (false);
+
+    const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
+    for (unsigned i = 0; i < (unsigned) lookupCount; i++)
+      if (!c->serializer->copy (lookupRecord[i], lookup_map)) return_trace (false);
+    
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
