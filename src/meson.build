@@ -364,12 +364,9 @@ if have_icu and have_icu_builtin
   deps += [icu_dep]
 endif
 
-if host_machine.system() == 'windows' or get_option('with_libstdcxx')
+if not get_option('with_libstdcxx')
   chosen_linker = 'cpp'
 else
-  # our autotools port was limiting this to HAVE_GCC as https://github.com/harfbuzz/harfbuzz/commit/e784632
-  # let's see if that is needed anymore
-
   # Use a C linker, not C++; Don't link to libstdc++
   chosen_linker = 'c'
 endif
