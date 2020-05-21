@@ -77,6 +77,42 @@ _close_path (void *user_data_)
 }
 #endif
 
+/* Similar to test-ot-face.c's #test_font() */
+static void misc_calls_for_gid (hb_face_t *face, hb_font_t *font, hb_set_t *set, hb_codepoint_t cp)
+{
+  /* Other gid specific misc calls */
+  hb_face_collect_variation_unicodes (face, cp, set);
+
+  hb_codepoint_t g;
+  hb_font_get_nominal_glyph (font, cp, &g);
+  hb_font_get_variation_glyph (font, cp, cp, &g);
+  hb_font_get_glyph_h_advance (font, cp);
+  hb_font_get_glyph_v_advance (font, cp);
+  hb_position_t x, y;
+  hb_font_get_glyph_h_origin (font, cp, &x, &y);
+  hb_font_get_glyph_v_origin (font, cp, &x, &y);
+  hb_font_get_glyph_contour_point (font, cp, 0, &x, &y);
+  char buf[64];
+  hb_font_get_glyph_name (font, cp, buf, sizeof (buf));
+
+  hb_ot_color_palette_get_name_id (face, cp);
+  hb_ot_color_palette_color_get_name_id (face, cp);
+  hb_ot_color_palette_get_flags (face, cp);
+  hb_ot_color_palette_get_colors (face, cp, 0, nullptr, nullptr);
+  hb_ot_color_glyph_get_layers (face, cp, 0, nullptr, nullptr);
+  hb_blob_destroy (hb_ot_color_glyph_reference_svg (face, cp));
+  hb_blob_destroy (hb_ot_color_glyph_reference_png (font, cp));
+
+  hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR, cp, 0, nullptr, nullptr);
+
+  hb_ot_math_get_glyph_italics_correction (font, cp);
+  hb_ot_math_get_glyph_top_accent_attachment (font, cp);
+  hb_ot_math_is_glyph_extended_shape (face, cp);
+  hb_ot_math_get_glyph_kerning (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0);
+  hb_ot_math_get_glyph_variants (font, cp, HB_DIRECTION_TTB, 0, nullptr, nullptr);
+  hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_BTT, 0, nullptr, nullptr, nullptr);
+}
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   hb_blob_t *blob = hb_blob_create ((const char *) data, size,
@@ -108,6 +144,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) _close_path);
 #endif
   volatile unsigned counter = !glyph_count;
+  hb_set_t *set = hb_set_create ();
   for (unsigned gid = 0; gid < glyph_count; ++gid)
   {
 #ifdef HB_EXPERIMENTAL_API
@@ -122,9 +159,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
     if (!counter) counter += 1;
 
-    /* misc calls, TODO: test more of calls working with some specific gid  */
-    hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR, gid, 0, nullptr, nullptr);
+    /* other misc calls */
+    misc_calls_for_gid (face, font, set, gid);
   }
+  hb_set_destroy (set);
   assert (counter);
 #ifdef HB_EXPERIMENTAL_API
   hb_draw_funcs_destroy (funcs);
