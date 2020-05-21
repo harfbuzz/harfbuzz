@@ -48,8 +48,8 @@ jobs:
       - image: ubuntu:19.10
     steps:
       - checkout
-      - run: apt update && apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip meson cmake
-      - run: pip install fonttools
+      - run: apt update && apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip cmake
+      - run: pip3 install fonttools meson --upgrade
       - run: ./autogen.sh
       - run: make -j32
       - run: make distcheck || .ci/fail.sh
@@ -227,8 +227,8 @@ jobs:
       - image: ubuntu:19.10
     steps:
       - checkout
-      - run: apt update && apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python python-pip
-      - run: pip install fonttools
+      - run: apt update && apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
+      - run: pip3 install fonttools meson --upgrade
       - run: meson build && ninja -Cbuild test && rm -rf build
       # test amalgam build
       - run: meson build -Damalgam=true && ninja -Cbuild && rm -rf build
