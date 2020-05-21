@@ -26,7 +26,7 @@ foreach t : tests
   fname = '@0@.tests'.format(t)
 
   # layout test are enabled only under experimental API flag for now
-  if t.contains('layout') and not get_option('experimental-api')
+  if t.contains('layout') and not get_option('experimental_api')
     continue
   endif
 
