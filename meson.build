@@ -54,8 +54,6 @@ if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') !=
   endif
 endif
 
-python3 = import('python').find_installation('python3')
-
 check_headers = [
   ['unistd.h'],
   ['sys/mman.h'],

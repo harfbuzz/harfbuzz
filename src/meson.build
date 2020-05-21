@@ -613,13 +613,13 @@ if have_gobject
   enum_c = custom_target('hb-gobject-enums.cc',
     input: enums[0],
     output: 'hb-gobject-enums.cc',
-    command: [python3, files('fix_get_types.py')[0], '@INPUT@', '@OUTPUT@']
+    command: [find_program('fix_get_types.py'), '@INPUT@', '@OUTPUT@']
   )
 
   enum_h = custom_target('hb-gobject-enums.h',
     input: enums[1],
     output: 'hb-gobject-enums.h',
-    command: [python3, files('fix_get_types.py')[0], '@INPUT@', '@OUTPUT@'],
+    command: [find_program('fix_get_types.py'), '@INPUT@', '@OUTPUT@'],
     install: true,
     install_dir: get_option('prefix') / get_option('includedir') / meson.project_name(),
   )

@@ -272,9 +272,8 @@ disabled_text_rendering_tests = [
 foreach file_name : in_house_tests
   test_name = file_name.split('.')[0].underscorify()
 
-  test(test_name, python3,
+  test(test_name, find_program('run-tests.py'),
     args: [
-      files('run-tests.py')[0],
       hb_shape,
       meson.current_source_dir() / 'data' / 'in-house' / 'tests' / file_name,
     ],
@@ -285,9 +284,8 @@ endforeach
 foreach file_name : aots_tests
   test_name = file_name.split('.')[0].underscorify()
 
-  test(test_name, python3,
+  test(test_name, find_program('run-tests.py'),
     args: [
-      files('run-tests.py')[0],
       hb_shape,
       meson.current_source_dir() / 'data' / 'aots' / 'tests' / file_name,
     ],
@@ -298,9 +296,8 @@ endforeach
 foreach file_name : text_rendering_tests
   test_name = file_name.split('.')[0].underscorify()
 
-  test(test_name, python3,
+  test(test_name, find_program('run-tests.py'),
     args: [
-      files('run-tests.py')[0],
       hb_shape,
       meson.current_source_dir() / 'data' / 'text-rendering-tests' / 'tests' / file_name,
     ],
