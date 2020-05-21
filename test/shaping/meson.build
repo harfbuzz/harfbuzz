@@ -276,9 +276,9 @@ foreach file_name : in_house_tests
     args: [
       files('run-tests.py')[0],
       hb_shape,
-      join_paths(meson.current_source_dir(), 'data/in-house/tests', file_name),
+      meson.current_source_dir() / 'data' / 'in-house' / 'tests' / file_name,
     ],
-    workdir: join_paths(meson.current_build_dir(), '..', '..'),
+    workdir: meson.current_build_dir() / '..' / '..',
   )
 endforeach
 
@@ -289,9 +289,9 @@ foreach file_name : aots_tests
     args: [
       files('run-tests.py')[0],
       hb_shape,
-      join_paths(meson.current_source_dir(), 'data/aots/tests', file_name),
+      meson.current_source_dir() / 'data' / 'aots' / 'tests' / file_name,
     ],
-    workdir: join_paths(meson.current_build_dir(), '..', '..'),
+    workdir: meson.current_build_dir() / '..' / '..',
   )
 endforeach
 
@@ -302,8 +302,8 @@ foreach file_name : text_rendering_tests
     args: [
       files('run-tests.py')[0],
       hb_shape,
-      join_paths(meson.current_source_dir(), 'data/text-rendering-tests/tests', file_name),
+      meson.current_source_dir() / 'data' / 'text-rendering-tests' / 'tests' / file_name,
     ],
-    workdir: join_paths(meson.current_build_dir(), '..', '..'),
+    workdir: meson.current_build_dir() / '..' / '..',
   )
 endforeach

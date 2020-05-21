@@ -285,7 +285,7 @@ custom_target('hb-version.h',
   input: 'hb-version.h.in',
   output: 'hb-version.h',
   command: [find_program('gen-hb-version.py'), meson.project_version(),
-            '@INPUT@', join_paths(meson.current_source_dir(), 'hb-version.h')])
+            '@INPUT@', meson.current_source_dir() / 'hb-version.h'])
 
 ragel = find_program('ragel', required: false)
 if not ragel.found()
@@ -305,7 +305,7 @@ custom_target('harfbuzz.cc',
   build_by_default: true,
   output: 'harfbuzz.cc',
   command: [find_program('gen-harfbuzzcc.py'),
-            join_paths(meson.source_root(), '@OUTPUT@')] +
+            meson.source_root() / '@OUTPUT@'] +
             hb_base_sources + hb_glib_sources + hb_ft_sources +
             hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
             hb_directwrite_sources + hb_coretext_sources)
@@ -588,7 +588,7 @@ cmake_config.set('have_gobject', have_gobject ? 'true' : 'false')
 configure_file(input: 'harfbuzz-config.cmake.in',
   output: 'harfbuzz-config.cmake',
   configuration: cmake_config,
-  install_dir: join_paths(get_option('libdir'), 'cmake', 'harfbuzz'))
+  install_dir: get_option('libdir') / 'cmake' / 'harfbuzz')
 
 if have_gobject
   gnome = import('gnome')
@@ -624,7 +624,7 @@ if have_gobject
     output: 'hb-gobject-enums.h',
     command: [python3, files('fix_get_types.py')[0], '@INPUT@', '@OUTPUT@'],
     install: true,
-    install_dir: join_paths(get_option('prefix'), get_option('includedir'), meson.project_name()),
+    install_dir: get_option('prefix') / get_option('includedir') / meson.project_name(),
   )
 
   hb_gobject_sources += [enum_c]

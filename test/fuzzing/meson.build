@@ -27,7 +27,7 @@ test('shape_fuzzer', find_program('run-shape-fuzzer-tests.py'),
     hb_shape_fuzzer_exe,
   ],
   depends: [hb_shape_fuzzer_exe, libharfbuzz, libharfbuzz_subset],
-  workdir: join_paths(meson.current_build_dir(), '..', '..'),
+  workdir: meson.current_build_dir() / '..' / '..',
   env: env)
 
 test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
@@ -37,12 +37,12 @@ test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
   # as the tests are ran concurrently let's raise acceptable time here
   # ideally better to break and let meson handles them in parallel
   timeout: 300,
-  workdir: join_paths(meson.current_build_dir(), '..', '..'),
+  workdir: meson.current_build_dir() / '..' / '..',
   env: env)
 
 test('draw_fuzzer', find_program('run-draw-fuzzer-tests.py'),
   args: [
     hb_draw_fuzzer_exe,
   ],
-  workdir: join_paths(meson.current_build_dir(), '..', '..'),
+  workdir: meson.current_build_dir() / '..' / '..',
   env: env)
