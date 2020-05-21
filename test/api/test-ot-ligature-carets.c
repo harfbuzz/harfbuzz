@@ -113,12 +113,12 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
     g_assert_cmpuint (3, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
 							       1020, 0, &caret_count,
 							       caret_array));
-/*
+
     g_assert_cmpuint (3, ==, caret_count);
     g_assert_cmpuint (2718, ==, caret_array[0]);
     g_assert_cmpuint (5438, ==, caret_array[1]);
     g_assert_cmpuint (5438, ==, caret_array[1]);
-*/
+
   }
 
   {
@@ -136,10 +136,9 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
     g_assert_cmpuint (1, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
 							       1022, 0, &caret_count,
 							       caret_array));
-/*
+
     g_assert_cmpuint (1, ==, caret_count);
     g_assert_cmpuint (3530, ==, caret_array[0]);
-*/
   }
 
   {
@@ -147,11 +146,10 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
     g_assert_cmpuint (2, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
 							       1023, 0, &caret_count,
 							       caret_array));
-/*
+
     g_assert_cmpuint (2, ==, caret_count);
     g_assert_cmpuint (2352, ==, caret_array[0]);
     g_assert_cmpuint (4706, ==, caret_array[1]);
-*/
   }
 
   hb_font_destroy (font);
