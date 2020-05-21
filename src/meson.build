@@ -650,6 +650,7 @@ if have_gobject
   build_gir = gir.found() and not meson.is_cross_build()
 
   if build_gir
+    conf.set('HAVE_INTROSPECTION', 1)
     hb_gen_files_gir = gnome.generate_gir(libharfbuzz, libharfbuzz_gobject,
       sources: [hb_headers, hb_sources, hb_gobject_headers, hb_gobject_sources, enum_h],
       namespace: 'HarfBuzz',

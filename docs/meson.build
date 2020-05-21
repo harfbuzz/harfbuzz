@@ -8,6 +8,8 @@ if not find_program('gtkdoc-scan', required: get_option('gtk_doc')).found()
   subdir_done()
 endif
 
+conf.set('HAVE_GTK_DOC', 1)
+
 gnome = import('gnome')
 
 docconf = configuration_data()
