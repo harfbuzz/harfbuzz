@@ -364,7 +364,7 @@ if have_icu and have_icu_builtin
   deps += [icu_dep]
 endif
 
-if host_machine.system() == 'windows' or get_option('with-libstdcxx')
+if host_machine.system() == 'windows' or get_option('with_libstdcxx')
   chosen_linker = 'cpp'
 else
   # our autotools port was limiting this to HAVE_GCC as https://github.com/harfbuzz/harfbuzz/commit/e784632
@@ -378,7 +378,7 @@ endif
 gen_def = find_program('gen-def.py')
 
 harfbuzz_def_command_args = [gen_def, '@OUTPUT@', '@INPUT@']
-if get_option('experimental-api')
+if get_option('experimental_api')
   harfbuzz_def_command_args += '--experimental-api'
 endif
 
@@ -512,7 +512,7 @@ if get_option('tests').enabled()
     if not get_option('amalgam')
       dist_check_script += 'check-includes.sh'
     endif
-    if false and not get_option('with-libstdcxx')
+    if false and not get_option('with_libstdcxx')
       # enable this once https://github.com/mesonbuild/meson/pull/6838 hits a release
       # and make that version (i.e. 0.55) our minimum build requirement
       dist_check_script += 'check-libstdc++.sh' # See https://github.com/harfbuzz/harfbuzz/issues/2276

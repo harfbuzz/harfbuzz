@@ -189,11 +189,11 @@ if icu_dep.found()
   conf.set('HAVE_ICU', 1)
 endif
 
-if get_option('icu-builtin')
+if get_option('icu_builtin')
   conf.set('HAVE_ICU_BUILTIN', 1)
 endif
 
-if get_option('experimental-api')
+if get_option('experimental_api')
   conf.set('HB_EXPERIMENTAL_API', 1)
 endif
 
