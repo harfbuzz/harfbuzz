@@ -1875,8 +1875,8 @@ struct ContextFormat2
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     bool ret = true;
     unsigned non_zero_index = 0, index = 0;
-    for (const hb_pair_t<unsigned, const OffsetTo<RuleSet>&>& _ : + hb_enumerate (ruleSet)
-								  | hb_filter (klass_map, hb_first))
+    for (const hb_pair_t<unsigned, const OffsetTo<RuleSet>&> _ : + hb_enumerate (ruleSet)
+								 | hb_filter (klass_map, hb_first))
     {
       auto *o = out->ruleSet.serialize_append (c->serializer);
       if (unlikely (!o))
@@ -2032,7 +2032,7 @@ struct ContextFormat3
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     for (unsigned i = 0; i < (unsigned) lookupCount; i++)
       c->serializer->copy (lookupRecord[i], lookup_map);
-    
+
     return_trace (true);
   }
 
