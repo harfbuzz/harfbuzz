@@ -20,7 +20,7 @@ endforeach
 
 env = environment()
 env.set('srcdir', meson.current_source_dir())
-env.set('HB_TEST_SUBSET_FUZZER_TIMEOUT', '24')
+env.set('HB_TEST_SUBSET_FUZZER_TIMEOUT', '36')
 
 test('shape_fuzzer', find_program('run-shape-fuzzer-tests.py'),
   args: [
