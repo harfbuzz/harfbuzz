@@ -10,7 +10,7 @@ major, minor, micro = version.split (".")
 input = sys.argv[2]
 output = sys.argv[3]
 
-with open (output, "wb") as output_file, open (input, "r") as input_file:
+with open (output, "wb") as output_file, open (input, "r", encoding='utf-8') as input_file:
 	output_file.write (input_file.read ()
 		.replace ("@HB_VERSION_MAJOR@", major)
 		.replace ("@HB_VERSION_MINOR@", minor)
