@@ -1,5 +1,5 @@
 project('harfbuzz', 'c', 'cpp',
-  meson_version: '>= 0.47.0',
+  meson_version: '>= 0.53.0',
   default_options : ['cpp_std=c++11'],
   version: '2.6.6')
 
