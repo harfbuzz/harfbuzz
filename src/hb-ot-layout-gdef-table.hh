@@ -176,7 +176,7 @@ struct CaretValueFormat3
     return_trace (out->deviceTable.serialize_copy (c->serializer, deviceTable, this, c->serializer->to_bias (out),
                                                    hb_serialize_context_t::Head, c->plan->layout_variation_idx_map));
   }
-  
+
   void collect_variation_indices (hb_set_t *layout_variation_indices) const
   { (this+deviceTable).collect_variation_indices (layout_variation_indices); }
 
@@ -263,20 +263,21 @@ struct CaretValue
 
 struct LigGlyph
 {
-  unsigned int get_lig_carets (hb_font_t *font,
-			       hb_direction_t direction,
-			       hb_codepoint_t glyph_id,
-			       const VariationStore &var_store,
-			       unsigned int start_offset,
-			       unsigned int *caret_count /* IN/OUT */,
-			       hb_position_t *caret_array /* OUT */) const
+  unsigned get_lig_carets (hb_font_t            *font,
+			   hb_direction_t        direction,
+			   hb_codepoint_t        glyph_id,
+			   const VariationStore &var_store,
+			   unsigned              start_offset,
+			   unsigned             *caret_count /* IN/OUT */,
+			   hb_position_t        *caret_array /* OUT */) const
   {
     if (caret_count)
     {
-      hb_array_t <const OffsetTo<CaretValue>> array = carets.sub_array (start_offset, caret_count);
-      unsigned int count = array.length;
-      for (unsigned int i = 0; i < count; i++)
-	caret_array[i] = (this+array[i]).get_caret_value (font, direction, glyph_id, var_store);
+      + carets.sub_array (start_offset, caret_count)
+      | hb_map (hb_add (this))
+      | hb_map ([&] (const CaretValue &value) { return value.get_caret_value (font, direction, glyph_id, var_store); })
+      | hb_sink (hb_array (caret_array, *caret_count))
+      ;
     }
 
     return carets.len;
@@ -294,7 +295,7 @@ struct LigGlyph
 
     return_trace (bool (out->carets));
   }
-  
+
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     for (const OffsetTo<CaretValue>& offset : carets.iter ())
@@ -585,7 +586,7 @@ struct GDEF
   {
     if (version.to_int () < 0x00010003u || !varStore) return;
     if (layout_variation_indices->is_empty ()) return;
-    
+
     unsigned new_major = 0, new_minor = 0;
     unsigned last_major = (layout_variation_indices->get_min ()) >> 16;
     for (unsigned idx : layout_variation_indices->iter ())
