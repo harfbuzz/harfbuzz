@@ -289,16 +289,13 @@ custom_target('hb-version.h',
 
 ragel = find_program('ragel', required: false)
 if not ragel.found()
-  message('You have to install ragel if you are going to develop HarfBuzz itself')
+  warning('You have to install ragel if you are going to develop HarfBuzz itself')
 else
-  foreach rl : hb_base_ragel_sources
-    hh = rl.split('.rl')[0] + '.hh'
-    custom_target(hh,
-      build_by_default: true,
-      depfile: rl,
-      output: hh,
-      command: [find_program('gen-ragel-artifacts.py'), meson.current_source_dir(), rl])
-  endforeach
+  custom_target('ragel header files',
+    build_by_default: true,
+    input: hb_base_ragel_sources,
+    output: '.ragel-artifacts',
+    command: [find_program('gen-ragel-artifacts.py')] + hb_base_ragel_sources)
 endif
 
 custom_target('harfbuzz.cc',

@@ -10,10 +10,18 @@ major, minor, micro = version.split (".")
 input = sys.argv[2]
 output = sys.argv[3]
 
-with open (output, "wb") as output_file, open (input, "r", encoding='utf-8') as input_file:
-	output_file.write (input_file.read ()
+with open (input, "r", encoding='utf-8') as input_file:
+	generated = (input_file.read ()
 		.replace ("@HB_VERSION_MAJOR@", major)
 		.replace ("@HB_VERSION_MINOR@", minor)
 		.replace ("@HB_VERSION_MICRO@", micro)
 		.replace ("@HB_VERSION@", version)
 		.encode ())
+
+	with open (output, "rb") as current_file:
+		current = current_file.read()
+
+	# write only if is changed
+	if generated != current:
+		with open (output, "wb") as output_file:
+			output_file.write ()

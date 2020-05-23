@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import io, os, re, sys, subprocess, shutil
+import io, os, re, sys, subprocess, shutil, tempfile
 
-if len (sys.argv) < 3:
+os.chdir(os.path.dirname(__file__))
+
+if len (sys.argv) < 2:
 	ragel_sources = [x for x in os.listdir ('.') if x.endswith ('.rl')]
 else:
-	os.chdir(sys.argv[1])
 	ragel_sources = sys.argv[2:]
 
 ragel = shutil.which ('ragel')
@@ -17,6 +18,23 @@ if not ragel:
 if not len (ragel_sources):
 	exit (77)
 
+tempdir = tempfile.mkdtemp ()
+
 for rl in ragel_sources:
 	hh = rl.replace ('.rl', '.hh')
-	subprocess.Popen ([ragel, '-e', '-F1', '-o', hh, rl]).wait ()
+	shutil.copy (rl, tempdir)
+	# writing to stdout has some complication on Windows
+	subprocess.Popen ([ragel, '-e', '-F1', '-o', hh, rl], cwd=tempdir).wait ()
+
+	generated_path = os.path.join (tempdir, hh)
+	with open (generated_path, "rb") as temp_file:
+		generated = temp_file.read()
+
+	with open (hh, "rb") as current_file:
+		current = current_file.read()
+
+	# overwrite only if is changed
+	if generated != current:
+		shutil.copyfile (generated_path, hh)
+
+shutil.rmtree(tempdir)
