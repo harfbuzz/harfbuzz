@@ -27,6 +27,7 @@
 #ifndef TEST_OT_FACE_NO_MAIN
 #include "hb-test.h"
 #endif
+#include <hb-aat.h>
 #include <hb-ot.h>
 
 /* Unit tests for hb-ot-*.h */
@@ -72,6 +73,15 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_blob_destroy (hb_ot_color_glyph_reference_svg (face, cp));
   hb_ot_color_has_png (face);
   hb_blob_destroy (hb_ot_color_glyph_reference_png (font, cp));
+
+  hb_aat_layout_feature_type_t feature;
+  unsigned count = 1;
+  hb_aat_layout_get_feature_types (face, 0, &count, &feature);
+  hb_aat_layout_feature_type_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE);
+  hb_aat_layout_feature_selector_info_t setting = {0};
+  unsigned default_index;
+  count = 1;
+  hb_aat_layout_feature_type_get_selector_infos (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, 0, &count, &setting, &default_index);
 
   hb_set_t *lookup_indexes = hb_set_create ();
   hb_set_add (lookup_indexes, 0);
