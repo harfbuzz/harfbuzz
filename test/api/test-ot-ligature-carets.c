@@ -72,6 +72,21 @@ test_ot_layout_get_ligature_carets_aat_lcar (void)
     g_assert_cmpuint (4688, ==, caret_array[1]);
   }
 
+  /* the same glyph as above but with offset */
+  {
+    caret_array[1] = 123;
+
+    unsigned caret_count = 16;
+    g_assert_cmpuint (2, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_BTT,
+							       98, 1, &caret_count,
+							       caret_array));
+
+    g_assert_cmpuint (1, ==, caret_count);
+    g_assert_cmpuint (4688, ==, caret_array[0]);
+
+    g_assert_cmpuint (123, ==, caret_array[1]);
+  }
+
   /* empty carets */
   {
     unsigned caret_count = 16;
@@ -95,6 +110,7 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
 
   hb_position_t caret_array[16];
 
+  /* call with no result */
   {
     unsigned caret_count = 16;
     g_assert_cmpuint (0, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
@@ -104,6 +120,17 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
     g_assert_cmpuint (0, ==, caret_count);
   }
 
+  /* call with no result and some offset */
+  {
+    unsigned caret_count = 16;
+    g_assert_cmpuint (0, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
+							       188, 10, &caret_count,
+							       caret_array));
+
+    g_assert_cmpuint (0, ==, caret_count);
+  }
+
+  /* a glyph with 3 ligature carets */
   {
     unsigned caret_count = 16;
     g_assert_cmpuint (3, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
@@ -113,9 +140,37 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
     g_assert_cmpuint (3, ==, caret_count);
     g_assert_cmpuint (2718, ==, caret_array[0]);
     g_assert_cmpuint (5438, ==, caret_array[1]);
-    g_assert_cmpuint (5438, ==, caret_array[1]);
+    g_assert_cmpuint (8156, ==, caret_array[2]);
   }
 
+  /* the same glyph as above but with offset */
+  {
+    caret_array[2] = 123;
+
+    unsigned caret_count = 16;
+    g_assert_cmpuint (3, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
+							       1020, 1, &caret_count,
+							       caret_array));
+
+    g_assert_cmpuint (2, ==, caret_count);
+    g_assert_cmpuint (5438, ==, caret_array[0]);
+    g_assert_cmpuint (8156, ==, caret_array[1]);
+
+    g_assert_cmpuint (123, ==, caret_array[2]);
+  }
+
+  /* the same glyph as above but with another offset */
+  {
+    unsigned caret_count = 16;
+    g_assert_cmpuint (3, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
+							       1020, 2, &caret_count,
+							       caret_array));
+
+    g_assert_cmpuint (1, ==, caret_count);
+    g_assert_cmpuint (8156, ==, caret_array[0]);
+  }
+
+  /* call with no result */
   {
     unsigned caret_count = 16;
     g_assert_cmpuint (0, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
@@ -125,6 +180,7 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
     g_assert_cmpuint (0, ==, caret_count);
   }
 
+  /* a glyph with 1 ligature caret */
   {
     unsigned caret_count = 16;
     g_assert_cmpuint (1, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
@@ -135,6 +191,17 @@ test_ot_layout_get_ligature_carets_ot_gsub (void)
     g_assert_cmpuint (3530, ==, caret_array[0]);
   }
 
+  /* the same glyph as above but with offset */
+  {
+    unsigned caret_count = 16;
+    g_assert_cmpuint (1, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
+							       1022, 1, &caret_count,
+							       caret_array));
+
+    g_assert_cmpuint (0, ==, caret_count);
+  }
+
+  /* a glyph with 2 ligature carets */
   {
     unsigned caret_count = 16;
     g_assert_cmpuint (2, ==, hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR,
