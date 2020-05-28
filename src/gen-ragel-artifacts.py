@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import io, os, re, sys, subprocess, shutil, tempfile
+import os, re, sys, subprocess, shutil, tempfile
 
-os.chdir(os.path.dirname(__file__))
+os.chdir (os.path.dirname (__file__))
 
 if len (sys.argv) < 2:
 	ragel_sources = [x for x in os.listdir ('.') if x.endswith ('.rl')]
@@ -37,4 +37,4 @@ for rl in ragel_sources:
 	if generated != current:
 		shutil.copyfile (generated_path, hh)
 
-shutil.rmtree(tempdir)
+shutil.rmtree (tempdir)

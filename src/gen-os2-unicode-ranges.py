@@ -5,7 +5,6 @@ Input is a tab seperated list of unicode ranges from the otspec
 (https://docs.microsoft.com/en-us/typography/opentype/spec/os2#ur).
 """
 
-import io
 import re
 import sys
 

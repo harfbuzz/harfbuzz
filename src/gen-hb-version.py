@@ -2,7 +2,7 @@
 
 "usage: gen-hb-version.py 1.0.0 hb-version.h.in hb-version.h"
 
-import io, os, re, sys
+import os, re, sys
 
 if len (sys.argv) < 4:
 	sys.exit(__doc__)

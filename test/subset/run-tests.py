@@ -120,7 +120,7 @@ def has_ots ():
 def check_ots (path):
 	ots_report, returncode = cmd ([ots_sanitize, path])
 	if returncode:
-		print("OTS Failure: %s" % ots_report);
+		print ("OTS Failure: %s" % ots_report)
 		return False
 	return True
 

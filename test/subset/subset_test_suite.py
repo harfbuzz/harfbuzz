@@ -17,8 +17,8 @@ class Test:
 			return ",".join("%X" % ord(c) for (i, c) in enumerate(self.subset))
 
 	def get_profile_flags(self):
-		with open(self.profile_path, mode="r", encoding="utf-8") as f:
-		    return f.read().splitlines();
+		with open (self.profile_path, mode="r", encoding="utf-8") as f:
+		    return f.read().splitlines()
 
 	def get_font_name(self):
 		font_base_name = os.path.basename(self.font_path)

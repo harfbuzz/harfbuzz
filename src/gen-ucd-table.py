@@ -6,7 +6,7 @@ Input file:
 * https://unicode.org/Public/UCD/latest/ucdxml/ucd.nounihan.grouped.zip
 """
 
-import io, os.path, sys, re
+import os.path, sys, re
 import logging
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 

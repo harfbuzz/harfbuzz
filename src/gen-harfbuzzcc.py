@@ -2,7 +2,7 @@
 
 "usage: gen-harfbuzzcc.py harfbuzz.cc hb-blob.cc hb-buffer.cc ..."
 
-import io, os, re, sys
+import os, re, sys
 
 if len (sys.argv) < 3:
 	sys.exit (__doc__)
