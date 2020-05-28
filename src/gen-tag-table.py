@@ -29,7 +29,6 @@ from html.parser import HTMLParser
 def write (s):
 	sys.stdout.flush ()
 	sys.stdout.buffer.write (s.encode ('utf-8'))
-import io
 import itertools
 import re
 import sys
@@ -393,7 +392,7 @@ class OpenTypeRegistryParser (HTMLParser):
 		Args:
 			filename (str): The file name of the registry.
 		"""
-		with io.open (filename, encoding='utf-8') as f:
+		with open (filename, encoding='utf-8') as f:
 			self.feed (f.read ())
 		expect (self.header)
 		for tag, iso_codes in self.to_bcp_47.items ():
@@ -535,7 +534,7 @@ class BCP47Parser (object):
 		Args:
 			filename (str): The file name of the registry.
 		"""
-		with io.open (filename, encoding='utf-8') as f:
+		with open (filename, encoding='utf-8') as f:
 			subtag_type = None
 			subtag = None
 			deprecated = False

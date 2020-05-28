@@ -8,12 +8,12 @@ Input files:
 * https://unicode.org/Public/UCD/latest/ucd/Blocks.txt
 """
 
-import io, os.path, sys
+import os.path, sys
 
 if len (sys.argv) != 4:
 	sys.exit (__doc__)
 
-files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
+files = [open (x, encoding='utf-8') for x in sys.argv[1:]]
 
 headers = [[files[0].readline (), files[0].readline ()], [files[2].readline (), files[2].readline ()]]
 headers.append (["UnicodeData.txt does not have a header."])

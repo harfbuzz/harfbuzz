@@ -2,7 +2,7 @@
 
 "usage: gen-def.py harfbuzz.def hb.h [hb-blob.h hb-buffer.h ...]"
 
-import io, os, re, sys
+import os, re, sys
 
 if len (sys.argv) < 3:
 	sys.exit(__doc__)
@@ -13,7 +13,7 @@ header_paths = sys.argv[2:]
 headers_content = []
 for h in header_paths:
 	if h.endswith (".h"):
-		with io.open (h, encoding='utf-8') as f: headers_content.append (f.read ())
+		with open (h, encoding='utf-8') as f: headers_content.append (f.read ())
 
 symbols = sorted (re.findall (r"^hb_\w+(?= \()", "\n".join (headers_content), re.M))
 if '--experimental-api' not in sys.argv:

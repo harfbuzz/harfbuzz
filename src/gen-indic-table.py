@@ -8,7 +8,7 @@ Input files:
 * https://unicode.org/Public/UCD/latest/ucd/Blocks.txt
 """
 
-import io, sys
+import sys
 
 if len (sys.argv) != 4:
 	sys.exit (__doc__)
@@ -37,7 +37,7 @@ ALLOWED_BLOCKS = [
 	'Myanmar Extended-A',
 ]
 
-files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
+files = [open (x, encoding='utf-8') for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for f in files]
 

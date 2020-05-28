@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import io
 import os
 
 # A single test in a subset test suite. Identifies a font
@@ -18,7 +17,7 @@ class Test:
 			return ",".join("%X" % ord(c) for (i, c) in enumerate(self.subset))
 
 	def get_profile_flags(self):
-		with io.open(self.profile_path, mode="r", encoding="utf-8") as f:
+		with open(self.profile_path, mode="r", encoding="utf-8") as f:
 		    return f.read().splitlines();
 
 	def get_font_name(self):

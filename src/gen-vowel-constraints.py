@@ -19,13 +19,12 @@ def write (s):
 	sys.stdout.flush ()
 	sys.stdout.buffer.write (s.encode ('utf-8'))
 import itertools
-import io
 import sys
 
 if len (sys.argv) != 3:
 	sys.exit (__doc__)
 
-with io.open (sys.argv[2], encoding='utf-8') as f:
+with open (sys.argv[2], encoding='utf-8') as f:
 	scripts_header = [f.readline () for i in range (2)]
 	scripts = {}
 	script_order = {}
@@ -128,7 +127,7 @@ class ConstraintSet (object):
 		return ''.join (s)
 
 constraints = {}
-with io.open (sys.argv[1], encoding='utf-8') as f:
+with open (sys.argv[1], encoding='utf-8') as f:
 	constraints_header = []
 	while True:
 		line = f.readline ().strip ()

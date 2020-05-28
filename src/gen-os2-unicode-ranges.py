@@ -16,7 +16,7 @@ print ("""static OS2Range _hb_os2_unicode_ranges[] =
 args = sys.argv[1:]
 input_file = args[0]
 
-with io.open(input_file, mode="r", encoding="utf-8") as f:
+with open (input_file, mode="r", encoding="utf-8") as f:
 
   all_ranges = []
   current_bit = 0

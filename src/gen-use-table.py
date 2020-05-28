@@ -10,7 +10,6 @@ Input file:
 * https://unicode.org/Public/UCD/latest/ucd/Blocks.txt
 """
 
-import io
 import sys
 
 if len (sys.argv) != 5:
@@ -18,7 +17,7 @@ if len (sys.argv) != 5:
 
 BLACKLISTED_BLOCKS = ["Thai", "Lao"]
 
-files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
+files = [open (x, encoding='utf-8') for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for j,f in enumerate(files) if j != 2]
 headers.append (["UnicodeData.txt does not have a header."])

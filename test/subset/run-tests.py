@@ -3,7 +3,6 @@
 # Runs a subsetting test suite. Compares the results of subsetting via harfbuzz
 # to subsetting via fonttools.
 
-import io
 from difflib import unified_diff
 import os
 import re
@@ -74,9 +73,9 @@ def run_test (test, should_check_ots):
 		if os.path.exists (actual_ttx): os.remove (actual_ttx)
 		return fail_test (test, cli_args, "ttx (actual) returned %d" % (return_code))
 
-	with io.open (expected_ttx, encoding='utf-8') as f:
+	with open (expected_ttx, encoding='utf-8') as f:
 		expected_ttx_text = f.read ()
-	with io.open (actual_ttx, encoding='utf-8') as f:
+	with open (actual_ttx, encoding='utf-8') as f:
 		actual_ttx_text = f.read ()
 
 	# cleanup
@@ -137,7 +136,7 @@ has_ots = has_ots()
 
 fails = 0
 for path in args:
-	with io.open (path, mode="r", encoding="utf-8") as f:
+	with open (path, mode="r", encoding="utf-8") as f:
 		print ("Running tests in " + path)
 		test_suite = SubsetTestSuite (path, f.read ())
 		for test in test_suite.tests ():

@@ -3,7 +3,6 @@
 # Pre-generates the expected output subset files (via fonttools) for
 # specified subset test suite(s).
 
-import io
 import os
 import sys
 
@@ -32,7 +31,7 @@ if not args:
 	usage()
 
 for path in args:
-	with io.open(path, mode="r", encoding="utf-8") as f:
+	with open(path, mode="r", encoding="utf-8") as f:
 		test_suite = SubsetTestSuite(path, f.read())
 		output_directory = test_suite.get_output_directory()
 
