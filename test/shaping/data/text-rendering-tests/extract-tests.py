@@ -57,4 +57,5 @@ for elt in html.findall(".//*[@class='expected-no-crash'][@ft:id]", namespaces):
 		opts = '--variations=%s' % variations
 	print ("../fonts/%s:%s:%s:*" % (font, opts, unistr(text)))
 
-sys.exit(0 if found else 1)
+if not found:
+	sys.exit (1)

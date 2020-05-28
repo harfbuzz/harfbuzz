@@ -127,13 +127,11 @@ def check_ots (path):
 
 args = sys.argv[1:]
 if not args or sys.argv[1].find ('hb-subset') == -1 or not os.path.exists (sys.argv[1]):
-	print ("First argument does not seem to point to usable hb-subset.")
-	sys.exit (1)
+	sys.exit ("First argument does not seem to point to usable hb-subset.")
 hb_subset, args = args[0], args[1:]
 
 if not len (args):
-	print ("No tests supplied.")
-	sys.exit (1)
+	sys.exit ("No tests supplied.")
 
 has_ots = has_ots()
 
@@ -146,7 +144,6 @@ for path in args:
 			fails += run_test (test, has_ots)
 
 if fails != 0:
-	print (str (fails) + " test(s) failed.")
-	sys.exit(1)
+	sys.exit ("%d test(s) failed." % fails)
 else:
 	print ("All tests passed.")

@@ -14,8 +14,7 @@ import io
 import sys
 
 if len (sys.argv) != 5:
-	print (__doc__, file=sys.stderr)
-	sys.exit (1)
+	sys.exit (__doc__)
 
 BLACKLISTED_BLOCKS = ["Thai", "Lao"]
 

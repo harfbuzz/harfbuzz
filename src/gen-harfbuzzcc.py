@@ -5,7 +5,7 @@
 import io, os, re, sys
 
 if len (sys.argv) < 3:
-	sys.exit(__doc__)
+	sys.exit (__doc__)
 
 output_file = sys.argv[1]
 source_paths = sys.argv[2:]

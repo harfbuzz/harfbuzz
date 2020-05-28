@@ -28,9 +28,8 @@ hb_shape_fuzzer = os.path.join (top_builddir, "hb-shape-fuzzer" + EXEEXT)
 
 if not os.path.exists (hb_shape_fuzzer):
 	if len (sys.argv) == 1 or not os.path.exists (sys.argv[1]):
-		print ("""Failed to find hb-shape-fuzzer binary automatically,
+		sys.exit ("""Failed to find hb-shape-fuzzer binary automatically,
 please provide it as the first argument to the tool""")
-		sys.exit (1)
 
 	hb_shape_fuzzer = sys.argv[1]
 
@@ -42,8 +41,7 @@ valgrind = None
 if os.environ.get ('RUN_VALGRIND', ''):
 	valgrind = shutil.which ('valgrind')
 	if valgrind is None:
-		print ("""Valgrind requested but not found.""")
-		sys.exit (1)
+		sys.exit ("""Valgrind requested but not found.""")
 	if libtool is None:
 		print ("""Valgrind support is currently autotools only and needs libtool but not found.""")
 
@@ -68,5 +66,4 @@ for file in os.listdir (parent_path):
 
 
 if fails:
-	print ("%i shape fuzzer related tests failed." % fails)
-	sys.exit (1)
+	sys.exit ("%d shape fuzzer related tests failed." % fails)

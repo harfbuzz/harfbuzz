@@ -145,8 +145,7 @@ class ZipDiffer:
 						sys.stdout.writelines ([symbols[i], l])
 		except IOError as e:
 			if e.errno != errno.EPIPE:
-				print ("%s: %s: %s" % (sys.argv[0], e.filename, e.strerror), file=sys.stderr)
-				sys.exit (1)
+				sys.exit ("%s: %s: %s" % (sys.argv[0], e.filename, e.strerror))
 
 
 class DiffFilters:
@@ -321,8 +320,7 @@ class UtilMains:
 	def process_multiple_files (callback, mnemonic = "FILE"):
 
 		if "--help" in sys.argv:
-			print ("Usage: %s %s..." % (sys.argv[0], mnemonic))
-			sys.exit (1)
+			sys.exit ("Usage: %s %s..." % (sys.argv[0], mnemonic))
 
 		try:
 			files = sys.argv[1:] if len (sys.argv) > 1 else ['-']
@@ -330,23 +328,20 @@ class UtilMains:
 				callback (FileHelpers.open_file_or_stdin (s))
 		except IOError as e:
 			if e.errno != errno.EPIPE:
-				print ("%s: %s: %s" % (sys.argv[0], e.filename, e.strerror), file=sys.stderr)
-				sys.exit (1)
+				sys.exit ("%s: %s: %s" % (sys.argv[0], e.filename, e.strerror))
 
 	@staticmethod
 	def process_multiple_args (callback, mnemonic):
 
 		if len (sys.argv) == 1 or "--help" in sys.argv:
-			print ("Usage: %s %s..." % (sys.argv[0], mnemonic))
-			sys.exit (1)
+			sys.exit ("Usage: %s %s..." % (sys.argv[0], mnemonic))
 
 		try:
 			for s in sys.argv[1:]:
 				callback (s)
 		except IOError as e:
 			if e.errno != errno.EPIPE:
-				print ("%s: %s: %s" % (sys.argv[0], e.filename, e.strerror), file=sys.stderr)
-				sys.exit (1)
+				sys.exit ("%s: %s: %s" % (sys.argv[0], e.filename, e.strerror))
 
 	@staticmethod
 	def filter_multiple_strings_or_stdin (callback, mnemonic, \
@@ -354,9 +349,12 @@ class UtilMains:
 					      concat_separator = False):
 
 		if "--help" in sys.argv:
-			print ("Usage:\n  %s %s...\nor:\n  %s\n\nWhen called with no arguments, input is read from standard input." \
-			      % (sys.argv[0], mnemonic, sys.argv[0]))
-			sys.exit (1)
+			sys.exit ("""Usage:
+  %s %s...
+or:
+  %s
+When called with no arguments, input is read from standard input.
+""" % (sys.argv[0], mnemonic, sys.argv[0]))
 
 		try:
 			if len (sys.argv) == 1:
@@ -374,8 +372,7 @@ class UtilMains:
 				print (separator.join (callback (x) for x in (args)))
 		except IOError as e:
 			if e.errno != errno.EPIPE:
-				print ("%s: %s: %s" % (sys.argv[0], e.filename, e.strerror), file=sys.stderr)
-				sys.exit (1)
+				sys.exit ("%s: %s: %s" % (sys.argv[0], e.filename, e.strerror))
 
 
 class Unicode:
@@ -448,8 +445,7 @@ class Manifest:
 
 		if not os.path.exists (s):
 			if strict:
-				print ("%s: %s does not exist" % (sys.argv[0], s), file=sys.stderr)
-				sys.exit (1)
+				sys.exit ("%s: %s does not exist" % (sys.argv[0], s))
 			return
 
 		s = os.path.normpath (s)
@@ -464,8 +460,7 @@ class Manifest:
 						yield p
 			except IOError:
 				if strict:
-					print ("%s: %s does not exist" % (sys.argv[0], os.path.join (s, "MANIFEST")), file=sys.stderr)
-					sys.exit (1)
+					sys.exit ("%s: %s does not exist" % (sys.argv[0], os.path.join (s, "MANIFEST")))
 				return
 		else:
 			yield s

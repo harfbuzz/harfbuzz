@@ -23,8 +23,7 @@ import io
 import sys
 
 if len (sys.argv) != 3:
-	print (__doc__, file=sys.stderr)
-	sys.exit (1)
+	sys.exit (__doc__)
 
 with io.open (sys.argv[2], encoding='utf-8') as f:
 	scripts_header = [f.readline () for i in range (2)]

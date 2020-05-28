@@ -36,8 +36,7 @@ import sys
 import unicodedata
 
 if len (sys.argv) != 3:
-	print (__doc__, file=sys.stderr)
-	sys.exit (1)
+	sys.exit (__doc__)
 
 from html import unescape
 def html_unescape (parser, entity):

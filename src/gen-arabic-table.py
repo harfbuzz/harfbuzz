@@ -11,8 +11,7 @@ Input files:
 import io, os.path, sys
 
 if len (sys.argv) != 4:
-	print (__doc__, file=sys.stderr)
-	sys.exit (1)
+	sys.exit (__doc__)
 
 files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
 

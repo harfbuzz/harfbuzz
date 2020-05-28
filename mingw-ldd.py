@@ -47,8 +47,7 @@ def get_arch(filename):
     try:
         return type2arch[pe.PE_TYPE]
     except KeyError:
-        sys.stderr.write('Error: unknown architecture')
-        sys.exit(1)
+        sys.exit ('Error: unknown architecture')
 
 if __name__ == '__main__':
     filename = sys.argv[1]

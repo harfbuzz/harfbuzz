@@ -11,8 +11,7 @@ if len (args) and args[0] == "--reference":
 	args = args[1:]
 
 if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
-	print ("""First argument does not seem to point to usable hb-shape.""")
-	sys.exit (1)
+	sys.exit ("""First argument does not seem to point to usable hb-shape.""")
 hb_shape, args = args[0], args[1:]
 
 def cmd(command):

@@ -12,8 +12,7 @@ from collections import OrderedDict
 import packTab
 
 if len (sys.argv) != 2:
-	print(__doc__, file=sys.stderr)
-	sys.exit (1)
+	sys.exit (__doc__)
 
 f = open(sys.argv[1])
 header = [f.readline () for _ in range(10)]

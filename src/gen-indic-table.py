@@ -11,8 +11,7 @@ Input files:
 import io, sys
 
 if len (sys.argv) != 4:
-	print (__doc__, file=sys.stderr)
-	sys.exit (1)
+	sys.exit (__doc__)
 
 ALLOWED_SINGLES = [0x00A0, 0x25CC]
 ALLOWED_BLOCKS = [
