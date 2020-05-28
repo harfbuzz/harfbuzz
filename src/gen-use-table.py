@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-# flake8: noqa
+# flake8: noqa: F821
 
-import io
-import sys
-
-if len (sys.argv) != 5:
-	print ("""usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt
+"""usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt UnicodeData.txt Blocks.txt
 
 Input file:
 * https://unicode.org/Public/UCD/latest/ucd/IndicSyllabicCategory.txt
 * https://unicode.org/Public/UCD/latest/ucd/IndicPositionalCategory.txt
 * https://unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
-* https://unicode.org/Public/UCD/latest/ucd/Blocks.txt""", file=sys.stderr)
+* https://unicode.org/Public/UCD/latest/ucd/Blocks.txt
+"""
+
+import io
+import sys
+
+if len (sys.argv) != 5:
+	print (__doc__, file=sys.stderr)
 	sys.exit (1)
 
 BLACKLISTED_BLOCKS = ["Thai", "Lao"]

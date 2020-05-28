@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+"usage: gen-harfbuzzcc.py harfbuzz.cc hb-blob.cc hb-buffer.cc ..."
+
 import io, os, re, sys
 
 if len (sys.argv) < 3:
-	sys.exit("usage: gen-harfbuzzcc.py harfbuzz.def hb-blob.cc hb-buffer.cc ...")
+	sys.exit(__doc__)
 
 output_file = sys.argv[1]
 source_paths = sys.argv[2:]

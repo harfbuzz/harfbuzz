@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+"usage: gen-def.py harfbuzz.def hb.h [hb-blob.h hb-buffer.h ...]"
+
 import io, os, re, sys
 
 if len (sys.argv) < 3:
-	sys.exit("usage: gen-def.py harfbuzz.def hb.h [hb-blob.h hb-buffer.h ...]")
+	sys.exit(__doc__)
 
 output_file = sys.argv[1]
 header_paths = sys.argv[2:]

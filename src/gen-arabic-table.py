@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 
-import io, os.path, sys
-
-if len (sys.argv) != 4:
-	print ("""usage: ./gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
+"""usage: ./gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 
 Input files:
 * https://unicode.org/Public/UCD/latest/ucd/ArabicShaping.txt
 * https://unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
 * https://unicode.org/Public/UCD/latest/ucd/Blocks.txt
-""", file=sys.stderr)
+"""
+
+import io, os.path, sys
+
+if len (sys.argv) != 4:
+	print (__doc__, file=sys.stderr)
 	sys.exit (1)
 
 files = [io.open (x, encoding='utf-8') for x in sys.argv[1:]]
@@ -126,7 +128,7 @@ def print_joining_table(f):
 	print ("}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy))
 	print ()
 
-	page_bits = 12;
+	page_bits = 12
 	print ()
 	print ("static unsigned int")
 	print ("joining_type (hb_codepoint_t u)")

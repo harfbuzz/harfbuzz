@@ -7,6 +7,10 @@ circles into sequences prohibited by the USE script development spec.
 This function should be used as the ``preprocess_text`` of an
 ``hb_ot_complex_shaper_t``.
 
+usage: ./gen-vowel-constraints.py ms-use/IndicShapingInvalidCluster.txt Scripts.txt
+
+Input file:
+* https://unicode.org/Public/UCD/latest/ucd/Scripts.txt
 """
 
 import collections
@@ -19,10 +23,7 @@ import io
 import sys
 
 if len (sys.argv) != 3:
-	print ("""usage: ./gen-vowel-constraints.py ms-use/IndicShapingInvalidCluster.txt Scripts.txt
-
-Input file:
-* https://unicode.org/Public/UCD/latest/ucd/Scripts.txt""", file=sys.stderr)
+	print (__doc__, file=sys.stderr)
 	sys.exit (1)
 
 with io.open (sys.argv[2], encoding='utf-8') as f:

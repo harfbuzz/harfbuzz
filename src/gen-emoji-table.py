@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 
+"""usage: ./gen-emoji-table.py emoji-data.txt
+
+Input file:
+* https://www.unicode.org/Public/UCD/latest/ucd/emoji/emoji-data.txt
+"""
+
 import sys
 import os.path
 from collections import OrderedDict
 import packTab
 
 if len (sys.argv) != 2:
-	print("""usage: ./gen-emoji-table.py emoji-data.txt
-
-Input file:
-* https://www.unicode.org/Public/UCD/latest/ucd/emoji/emoji-data.txt""", file=sys.stderr)
+	print(__doc__, file=sys.stderr)
 	sys.exit (1)
 
 f = open(sys.argv[1])

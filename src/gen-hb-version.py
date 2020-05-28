@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+"usage: gen-hb-version.py 1.0.0 hb-version.h.in hb-version.h"
+
 import io, os, re, sys
 
 if len (sys.argv) < 4:
-	sys.exit("usage: gen-hb-version.py 1.0.0 hb-version.h.in hb-version.h")
+	sys.exit(__doc__)
 
 version = sys.argv[1]
 major, minor, micro = version.split (".")
