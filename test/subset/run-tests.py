@@ -26,7 +26,7 @@ def cmd (command):
 		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
 		universal_newlines=True)
 	(stdoutdata, stderrdata) = p.communicate ()
-	print (stderrdata, end="") # file=sys.stderr
+	print (stderrdata, end="", file=sys.stderr)
 	return stdoutdata, p.returncode
 
 def read_binary (file_path):

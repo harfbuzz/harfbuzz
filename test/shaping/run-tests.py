@@ -123,8 +123,8 @@ for filename in args:
 			unicodes] + (options.split (' ') if options else []))
 
 		if glyphs1[0] != glyphs2[0] and glyphs_expected != '*':
-			print ("FT funcs: " + glyphs1[0]) # file=sys.stderr
-			print ("OT funcs: " + glyphs2[0]) # file=sys.stderr
+			print ("FT funcs: " + glyphs1[0], file=sys.stderr)
+			print ("OT funcs: " + glyphs2[0], file=sys.stderr)
 			fails += 1
 		else:
 			passes += 1
@@ -134,14 +134,14 @@ for filename in args:
 			continue
 
 		if glyphs1[0].strip() != glyphs_expected and glyphs_expected != '*':
-			print ("Actual:   " + glyphs1[0]) # file=sys.stderr
-			print ("Expected: " + glyphs_expected) # file=sys.stderr
+			print ("Actual:   " + glyphs1[0], file=sys.stderr)
+			print ("Expected: " + glyphs_expected, file=sys.stderr)
 			fails += 1
 		else:
 			passes += 1
 
 if not reference:
-	print ("%d tests passed; %d failed; %d skipped." % (passes, fails, skips)) # file=sys.stderr
+	print ("%d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr)
 	if not (fails + passes):
 		print ("No tests ran.")
 	elif not (fails + skips):
