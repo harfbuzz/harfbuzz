@@ -494,35 +494,6 @@ if get_option('tests').enabled()
       install: false,
     ))
   endforeach
-
-  if host_machine.system() != 'windows' and not meson.is_cross_build()
-    # Some of them should be ported to python
-    dist_check_script = [
-      'check-c-linkage-decls.sh',
-      'check-externs.sh',
-      'check-header-guards.sh',
-      'check-static-inits.sh',
-    ]
-    if not get_option('amalgam')
-      dist_check_script += 'check-includes.sh'
-    endif
-    if false and not get_option('with_libstdcxx')
-      # enable this once https://github.com/mesonbuild/meson/pull/6838 hits a release
-      # and make that version (i.e. 0.55) our minimum build requirement
-      dist_check_script += 'check-libstdc++.sh' # See https://github.com/harfbuzz/harfbuzz/issues/2276
-    endif
-
-    env = environment()
-    env.set('srcdir', meson.current_source_dir())
-    env.set('builddir', meson.current_build_dir())
-    env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
-    env.set('HBSOURCES', ' '.join(hb_sources))
-    env.set('HBHEADERS', ' '.join(hb_headers))
-
-    foreach name : dist_check_script
-      test(name, find_program(name), env: env)
-    endforeach
-  endif
 endif
 
 pkgmod.generate(libharfbuzz,
@@ -689,10 +660,34 @@ else
   libharfbuzz_gobject_dep = dependency('', required: false)
 endif
 
-if get_option('tests').enabled() and host_machine.system() != 'windows' and not meson.is_cross_build()
-  test('check-symbols.sh', find_program('check-symbols.sh'),
-    depends: defs_list,
-    env: env)
+if get_option('tests').enabled()
+  dist_check_script = [
+    'check-c-linkage-decls',
+    'check-externs',
+    'check-header-guards',
+    'check-includes',
+  ]
+
+  env = environment()
+  env.set('srcdir', meson.current_source_dir())
+  env.set('builddir', meson.current_build_dir())
+  env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
+  if not get_option('amalgam')
+    env.set('HBSOURCES', ' '.join(hb_sources))
+  endif
+  env.set('HBHEADERS', ' '.join(hb_headers))
+
+  if cpp.get_id() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
+    # See https://github.com/mesonbuild/meson/pull/6838
+    if meson.version().version_compare('>=0.54.999') and not get_option('with_libstdcxx')
+      dist_check_script += 'check-libstdc++'
+    endif
+    dist_check_script += ['check-static-inits', 'check-symbols']
+  endif
+
+  foreach name : dist_check_script
+    test(name, find_program(name + '.py'), env: env, depends: defs_list)
+  endforeach
 endif
 
 install_headers(hb_headers + hb_subset_headers, subdir: meson.project_name())
