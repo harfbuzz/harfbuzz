@@ -31,7 +31,7 @@ option('gtk_doc',  type : 'feature', value : 'auto', yield : true,
 option('icu_builtin', type: 'boolean', value: false,
   description: 'Don\'t separate ICU support as harfbuzz-icu module')
 option('with_libstdcxx', type: 'boolean', value: false,
-   description: 'Allow linking with libstdc++ (always enabled in Windows)')
+  description: 'Allow linking with libstdc++')
 option('experimental_api', type: 'boolean', value: false,
   description: 'Enable experimental APIs')
 option('amalgam', type: 'boolean', value: false,
