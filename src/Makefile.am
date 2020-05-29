@@ -424,18 +424,18 @@ test_bimap_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_bimap_LDADD = $(COMPILED_TESTS_LDADD)
 
 dist_check_SCRIPTS = \
-	check-c-linkage-decls.sh \
-	check-externs.sh \
-	check-header-guards.sh \
-	check-includes.sh \
-	check-static-inits.sh \
-	check-symbols.sh \
+	check-c-linkage-decls.py \
+	check-externs.py \
+	check-header-guards.py \
+	check-includes.py \
+	check-static-inits.py \
+	check-symbols.py \
 	$(NULL)
 TESTS += $(dist_check_SCRIPTS)
 
 if !WITH_LIBSTDCXX
 dist_check_SCRIPTS += \
-	check-libstdc++.sh \
+	check-libstdc++.py \
 	$(NULL)
 endif
 
