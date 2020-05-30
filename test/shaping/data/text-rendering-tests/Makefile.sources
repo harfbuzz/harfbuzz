@@ -1,8 +1,8 @@
 TESTS = \
 	tests/AVAR-1.tests \
 	tests/CFF-1.tests \
-	tests/CFF2-1.tests \
 	tests/CFF-2.tests \
+	tests/CFF2-1.tests \
 	tests/CMAP-1.tests \
 	tests/CMAP-2.tests \
 	tests/CVAR-1.tests \
@@ -29,6 +29,7 @@ TESTS = \
 	tests/HVAR-2.tests \
 	tests/KERN-1.tests \
 	tests/KERN-2.tests \
+	tests/MORX-1.tests \
 	tests/MORX-10.tests \
 	tests/MORX-11.tests \
 	tests/MORX-12.tests \
@@ -38,7 +39,7 @@ TESTS = \
 	tests/MORX-17.tests \
 	tests/MORX-18.tests \
 	tests/MORX-19.tests \
-	tests/MORX-1.tests \
+	tests/MORX-2.tests \
 	tests/MORX-20.tests \
 	tests/MORX-21.tests \
 	tests/MORX-22.tests \
@@ -49,7 +50,7 @@ TESTS = \
 	tests/MORX-27.tests \
 	tests/MORX-28.tests \
 	tests/MORX-29.tests \
-	tests/MORX-2.tests \
+	tests/MORX-3.tests \
 	tests/MORX-30.tests \
 	tests/MORX-31.tests \
 	tests/MORX-32.tests \
@@ -60,26 +61,35 @@ TESTS = \
 	tests/MORX-37.tests \
 	tests/MORX-38.tests \
 	tests/MORX-39.tests \
-	tests/MORX-3.tests \
+	tests/MORX-4.tests \
 	tests/MORX-40.tests \
 	tests/MORX-41.tests \
-	tests/MORX-4.tests \
 	tests/MORX-5.tests \
 	tests/MORX-6.tests \
 	tests/MORX-7.tests \
 	tests/MORX-8.tests \
 	tests/MORX-9.tests \
+	tests/SFNT-1.tests \
+	tests/SFNT-2.tests \
 	tests/SHBALI-3.tests \
 	tests/SHKNDA-1.tests \
 	$(NULL)
 
 DISBALED_TESTS = \
 	tests/CMAP-3.tests \
-	tests/MORX-31.tests \
-	tests/MORX-41.tests \
 	tests/SHARAN-1.tests \
 	tests/SHBALI-1.tests \
 	tests/SHBALI-2.tests \
 	tests/SHKNDA-2.tests \
 	tests/SHKNDA-3.tests \
+	tests/SHLANA-1.tests \
+	tests/SHLANA-10.tests \
+	tests/SHLANA-2.tests \
+	tests/SHLANA-3.tests \
+	tests/SHLANA-4.tests \
+	tests/SHLANA-5.tests \
+	tests/SHLANA-6.tests \
+	tests/SHLANA-7.tests \
+	tests/SHLANA-8.tests \
+	tests/SHLANA-9.tests \
 	$(NULL)
