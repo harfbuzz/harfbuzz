@@ -492,7 +492,7 @@ if get_option('tests').enabled()
       cpp_args: cpp_args + ['-DMAIN', '-UNDEBUG'],
       dependencies: libharfbuzz_dep,
       install: false,
-    ))
+    ), suite: ['src'])
   endforeach
 endif
 
@@ -686,7 +686,11 @@ if get_option('tests').enabled()
   endif
 
   foreach name : dist_check_script
-    test(name, find_program(name + '.py'), env: env, depends: defs_list)
+    test(name, find_program(name + '.py'),
+      env: env,
+      depends: name == 'check-symbols' ? defs_list : [],
+      suite: ['src'],
+    )
   endforeach
 endif
 
