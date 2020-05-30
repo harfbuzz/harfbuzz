@@ -83,5 +83,5 @@ foreach source : tests
     dependencies: deps,
     link_with: link_withs,
     install: false,
-  ), env: env)
+  ), env: env, suite: ['api'] + (test_name.contains('-subset') ? ['subset'] : []))
 endforeach
