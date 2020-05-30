@@ -99,6 +99,14 @@ for x in sorted (os.listdir ('text-rendering-tests/testcases')):
 
 subprocess.run([git, 'add', 'tests'], check=True)
 
+with open ('meson.build', 'w') as f: f.write ('\n'.join (
+	['text_rendering_tests = ['] +
+	['  \'%s\',' % x.split('tests/')[1] for x in tests] +
+	[']', '', 'disabled_text_rendering_tests = ['] +
+	['  \'%s\',' % x.split('tests/')[1] for x in disabled_tests] +
+	[']', '']
+))
+
 with open ('Makefile.sources', 'w') as f: f.write ('\n'.join (
 	['TESTS = \\'] +
 	['	%s \\' % x for x in tests] +
