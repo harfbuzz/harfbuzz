@@ -204,31 +204,23 @@ jobs:
       - run: make -j32
       - run: UBSAN_OPTIONS=print_stacktrace=1 make check || .ci/fail.sh | asan_symbolize | c++filt
 
-  fedora-O0-debug-outoftreebuild-mingw:
+  fedora-O0-debug-outoftreebuild:
     docker:
       - image: fedora
     steps:
       - checkout
-      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which diffutils glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python python-pip mingw32-gcc-c++ mingw64-gcc-c++ mingw32-glib2 mingw32-cairo mingw32-freetype mingw64-glib2 mingw64-cairo mingw64-freetype glibc-devel.i686 || true
+      - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which diffutils glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python python-pip || true
       - run: NOCONFIGURE=1 ./autogen.sh
       - run: mkdir build && cd build && CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ../configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make -j32 && (HB_TEST_SUBSET_FUZZER_TIMEOUT=15 make check || ../.ci/fail.sh)
-      - run: pip install pefile
-      - run: mkdir winbuild32 && cd winbuild32 && ../mingw32.sh && make -j32 && make dist-win && cp harfbuzz-*-win32.zip harfbuzz-win32.zip
-      - run: mkdir winbuild64 && cd winbuild64 && ../mingw64.sh && make -j32 && make dist-win && cp harfbuzz-*-win64.zip harfbuzz-win64.zip
-      - store_artifacts:
-          path: winbuild32/harfbuzz-win32.zip
-          destination: harfbuzz-win32.zip
-      - store_artifacts:
-          path: winbuild64/harfbuzz-win64.zip
-          destination: harfbuzz-win64.zip
 
-  meson-gcc:
+  meson-gcc-mingw:
     docker:
       - image: ubuntu:19.10
     steps:
       - checkout
-      - run: apt update && apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
-      - run: pip3 install fonttools meson --upgrade
+      - run: apt update && apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip git g++-mingw-w64-i686 zip
+      - run: pip3 install fonttools --upgrade
+      - run: pip3 install git+https://github.com/mesonbuild/meson # use C linker, remove when meson 0.55 is released
       - run: meson build && ninja -Cbuild test && rm -rf build
       # test amalgam build
       - run: meson build -Damalgam=true && ninja -Cbuild && rm -rf build
@@ -236,6 +228,10 @@ jobs:
       - run: meson build --unity on && ninja -Cbuild && rm -rf build
       # test experimental APIs
       - run: meson build -Dexperimental_api=true && ninja -Cbuild test && rm -rf build
+      # mingw
+      - run: .ci/build-win32.sh
+      - store_artifacts:
+          path: harfbuzz-win32.zip
 
   crosscompile-notest-djgpp:
     docker:
@@ -279,9 +275,9 @@ workflows:
       - clang-msan
       - clang-tsan
       - clang-ubsan
-      - fedora-O0-debug-outoftreebuild-mingw
+      - fedora-O0-debug-outoftreebuild
 
-      - meson-gcc
+      - meson-gcc-mingw
 
       # crosscompiles
       # they can't be test thus are without tests

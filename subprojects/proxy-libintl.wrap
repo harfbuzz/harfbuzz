@@ -1,4 +1,5 @@
 [wrap-git]
 directory=proxy-libintl
 url=https://github.com/frida/proxy-libintl.git
+depth=1
 revision=0.1

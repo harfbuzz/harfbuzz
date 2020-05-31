@@ -1,4 +1,5 @@
 [wrap-git]
 directory=zlib
 url=https://github.com/centricular/zlib.git
+depth=1
 revision=meson
