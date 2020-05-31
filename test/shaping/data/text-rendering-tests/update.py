@@ -69,7 +69,7 @@ git = shutil.which ('git')
 assert git
 
 if os.path.isdir ('./text-rendering-tests'):
-	subprocess.run ([git, 'pull'], check=True)
+	subprocess.run ([git, 'pull'], cwd='text-rendering-tests', check=True)
 else:
 	subprocess.run ([git, 'clone', 'https://github.com/unicode-org/text-rendering-tests'], check=True)
 
