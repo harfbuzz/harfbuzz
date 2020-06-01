@@ -44,11 +44,7 @@ HarfBuzz release walk-through checklist:
 9. Tag the release and sign it: Eg. "git tag -s 1.4.7 -m 1.4.7".  Enter your
    GPG password again.
 
-10. Build win32 bundle.
-
-   a. Build Win32 binaries.  See [README.mingw.md](README.mingw.md).
-
-   b. Run "make dist-win" to build Win32 bundle.
+10. Build win32 bundle.  See [README.mingw.md](README.mingw.md).
 
 11. Quickly double-check the size of the .tar.xz and .zip files against their
     previous releases to make sure nothing bad happened.

@@ -134,6 +134,9 @@ if cairo_dep.found()
     if cpp.has_header('cairo-ft.h') and \
        cpp.has_function('cairo_ft_font_face_create_for_ft_face', dependencies: cairo_dep)
       cairo_ft_dep = cairo_dep
+    else
+      # Not-found dependency
+      cairo_ft_dep = dependency('', required: false)
     endif
   endif
 else
