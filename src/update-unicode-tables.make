@@ -2,7 +2,7 @@
 
 all: packtab arabic-table emoji-table indic-table tag-table ucd-table use-table vowel-constraints
 
-.PHONY: all clean packtab arabic-table indic-table tag-table use-table vowel-constraints emoji-table
+.PHONY: all clean packtab arabic-table emoji-table indic-table tag-table ucd-table use-table vowel-constraints
 
 arabic-table: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 	./$^ > hb-ot-shape-complex-arabic-table.hh || (rm hb-ot-shape-complex-arabic-table.hh; false)
