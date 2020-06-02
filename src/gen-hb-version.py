@@ -4,6 +4,8 @@
 
 import os, re, sys
 
+os.chdir (os.path.dirname (__file__))
+
 if len (sys.argv) < 4:
 	sys.exit(__doc__)
 
@@ -26,4 +28,4 @@ with open (input, "r", encoding='utf-8') as input_file:
 	# write only if is changed
 	if generated != current:
 		with open (output, "wb") as output_file:
-			output_file.write ()
+			output_file.write (generated)

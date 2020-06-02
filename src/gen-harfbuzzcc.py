@@ -4,6 +4,8 @@
 
 import os, re, sys
 
+os.chdir (os.path.dirname (__file__))
+
 if len (sys.argv) < 3:
 	sys.exit (__doc__)
 
