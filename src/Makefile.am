@@ -98,7 +98,7 @@ BUILT_SOURCES += \
 	hb-version.h
 
 $(srcdir)/hb-version.h: hb-version.h.in $(top_srcdir)/configure.ac
-	$(AM_V_GEN) $(srcdir)/gen-hb-version.py $(HB_VERSION) "$<" "$@"
+	$(AM_V_GEN) $(srcdir)/gen-hb-version.py $(HB_VERSION) hb-version.h.in hb-version.h
 
 # Put the library together
 
