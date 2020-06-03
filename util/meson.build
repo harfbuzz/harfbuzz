@@ -23,13 +23,15 @@ hb_subset_cli_sources = [
   'options-subset.cc',
 ]
 
+util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
+
 if conf.get('HAVE_GLIB', 0) == 1
   if conf.get('HAVE_FREETYPE', 0) == 1 and conf.get('HAVE_CAIRO_FT', 0) == 1
 
     hb_view = executable('hb-view', hb_view_sources,
       cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
-      dependencies: deps,
+      dependencies: util_deps,
       link_with: [libharfbuzz],
       install: true,
     )
@@ -38,7 +40,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   hb_shape = executable('hb-shape', hb_shape_sources,
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
-    dependencies: deps,
+    dependencies: util_deps,
     link_with: [libharfbuzz],
     install: true,
   )
@@ -46,7 +48,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   hb_subset = executable('hb-subset', hb_subset_cli_sources,
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
-    dependencies: deps,
+    dependencies: util_deps,
     link_with: [libharfbuzz, libharfbuzz_subset],
     install: true,
   )
@@ -54,7 +56,7 @@ if conf.get('HAVE_GLIB', 0) == 1
   hb_ot_shape_closure = executable('hb-ot-shape-closure', hb_ot_shape_closure_sources,
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
-    dependencies: deps,
+    dependencies: util_deps,
     link_with: [libharfbuzz],
     install: true,
   )

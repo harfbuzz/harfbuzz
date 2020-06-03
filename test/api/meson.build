@@ -80,7 +80,7 @@ foreach source : tests
 
   test(test_name, executable(test_name, source,
     include_directories: [incconfig, incsrc],
-    dependencies: deps,
+    dependencies: [glib_dep, freetype_dep, thread_dep],
     link_with: link_withs,
     install: false,
   ), env: env, suite: ['api'] + (test_name.contains('-subset') ? ['subset'] : []))
