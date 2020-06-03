@@ -11,7 +11,6 @@ foreach file_name : tests
   exe = executable(test_name, [file_name, 'main.cc'],
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
-    dependencies: deps,
     link_with: [libharfbuzz, libharfbuzz_subset],
     install: false,
   )

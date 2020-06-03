@@ -313,24 +313,30 @@ incsrc = include_directories('.')
 hb_sources = hb_base_sources + hb_base_ragel_generated_sources
 hb_headers = hb_base_headers
 
+harfbuzz_deps = [thread_dep, m_dep] + harfbuzz_extra_deps
+
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
   hb_headers += hb_ft_headers
+  harfbuzz_deps += [freetype_dep]
 endif
 
 if conf.get('HAVE_GDI', 0) == 1
   hb_sources += hb_gdi_sources
   hb_headers += hb_gdi_headers
+  harfbuzz_deps += gdi_uniscribe_deps
 endif
 
 if conf.get('HAVE_GRAPHITE2', 0) == 1
   hb_sources += hb_graphite2_sources
   hb_headers += hb_graphite2_headers
+  harfbuzz_deps += [graphite2_dep]
 endif
 
 if conf.get('HAVE_GLIB', 0) == 1
   hb_sources += hb_glib_sources
   hb_headers += hb_glib_headers
+  harfbuzz_deps += [glib_dep]
 endif
 
 if conf.get('HAVE_UNISCRIBE', 0) == 1
@@ -341,11 +347,13 @@ endif
 if conf.get('HAVE_DIRECTWRITE', 0) == 1
   hb_sources += hb_directwrite_sources
   hb_headers += hb_directwrite_headers
+  harfbuzz_deps += directwrite_dep
 endif
 
 if conf.get('HAVE_CORETEXT', 0) == 1
   hb_sources += hb_coretext_sources
   hb_headers += hb_coretext_headers
+  harfbuzz_deps += coretext_deps
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1
@@ -354,7 +362,7 @@ have_icu_builtin = conf.get('HAVE_ICU_BUILTIN', 0) == 1
 if have_icu and have_icu_builtin
   hb_sources += hb_icu_sources
   hb_headers += hb_icu_headers
-  deps += [icu_dep]
+  harfbuzz_deps += [icu_dep]
 endif
 
 if get_option('with_libstdcxx')
@@ -392,7 +400,7 @@ endif
 
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: incconfig,
-  dependencies: deps,
+  dependencies: harfbuzz_deps,
   cpp_args: cpp_args + extra_hb_cpp_args,
   soversion: hb_so_version,
   version: version,
@@ -403,7 +411,7 @@ libharfbuzz = library('harfbuzz', hb_sources,
 libharfbuzz_dep = declare_dependency(
   link_with: libharfbuzz,
   include_directories: incsrc,
-  dependencies: deps)
+  dependencies: harfbuzz_deps)
 
 # harfbuzz-subset
 harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
@@ -414,7 +422,7 @@ defs_list += [harfbuzz_subset_def]
 
 libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   include_directories: incconfig,
-  dependencies: deps,
+  dependencies: [m_dep],
   link_with: [libharfbuzz],
   cpp_args: cpp_args + extra_hb_cpp_args,
   soversion: hb_so_version,
@@ -426,7 +434,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
 libharfbuzz_subset_dep = declare_dependency(
   link_with: libharfbuzz_subset,
   include_directories: incsrc,
-  dependencies: deps)
+  dependencies: [m_dep])
 
 if get_option('tests').enabled()
   # TODO: MSVC gives the following,
@@ -526,7 +534,7 @@ if have_icu and not have_icu_builtin
   libharfbuzz_icu_dep = declare_dependency(
     link_with: libharfbuzz_icu,
     include_directories: incsrc,
-    dependencies: deps)
+    dependencies: icu_dep)
 
   pkgmod.generate(libharfbuzz_icu,
     description: 'HarfBuzz text shaping library ICU integration',
@@ -598,7 +606,7 @@ if have_gobject
 
   libharfbuzz_gobject = library('harfbuzz-gobject', [hb_gobject_sources, enum_c, enum_h],
     include_directories: incconfig,
-    dependencies: deps,
+    dependencies: [glib_dep, gobject_dep],
     link_with: [libharfbuzz],
     cpp_args: cpp_args + extra_hb_cpp_args,
     soversion: hb_so_version,
@@ -639,7 +647,7 @@ if have_gobject
     link_with: libharfbuzz_gobject,
     include_directories: incsrc,
     sources: build_gir ? hb_gen_files_gir : hb_gobject_sources,
-    dependencies: deps)
+    dependencies: [glib_dep, gobject_dep])
 
   pkgmod.generate(libharfbuzz_gobject,
     description: 'HarfBuzz text shaping library GObject integration',
