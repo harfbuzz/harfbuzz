@@ -222,6 +222,8 @@ jobs:
       - run: pip3 install fonttools --upgrade
       - run: pip3 install git+https://github.com/mesonbuild/meson # use C linker, remove when meson 0.55 is released
       - run: meson build && ninja -Cbuild test && rm -rf build
+      # test a meson based dist
+      - run: meson dist -Cbuild
       # test meson unity builds
       - run: meson build --unity on && ninja -Cbuild && rm -rf build
       # test experimental APIs
