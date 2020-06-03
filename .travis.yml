@@ -20,7 +20,6 @@ matrix:
         - rm -rf freetype-2.9
       after_success:
         - bash .ci/run-coveralls.sh # coveralls.io code coverage
-        - bash .ci/deploy-docs.sh
 
 notifications:
   irc: "irc.freenode.org#harfbuzz"

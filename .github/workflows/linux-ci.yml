@@ -20,6 +20,16 @@ jobs:
       run: meson build -Db_coverage=true -Dglib=enabled -Dcairo=enabled -Dicu=enabled -Dgraphite=enabled -Dfreetype=enabled
     - name: ci
       run: meson test --print-errorlogs -Cbuild
+
+    - name: generate documentations
+      run: ninja -Cbuild harfbuzz-doc
+    - name: deploy documentations
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      run: .ci/deploy-docs.sh
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        REVISION: ${{ github.sha }}
+
     - name: cov
       run: ninja -Cbuild coverage
     - uses: codecov/codecov-action@v1

@@ -3,11 +3,6 @@
 set -x
 set -o errexit -o nounset
 
-if test "x$TRAVIS_SECURE_ENV_VARS" != xtrue; then exit; fi
-
-BRANCH="$TRAVIS_BRANCH"
-if test "x$BRANCH" != xmaster; then exit; fi
-
 TAG="$(git describe --exact-match --match "[0-9]*" HEAD 2>/dev/null || true)"
 
 DOCSDIR=build-docs
@@ -17,8 +12,8 @@ rm -rf $DOCSDIR || exit
 mkdir $DOCSDIR
 cd $DOCSDIR
 
-cp ../docs/html/* .
-#cp ../docs/CNAME .
+cp ../build/docs/html/* .
+#cp ../build/docs/CNAME .
 
 git init
 git config user.name "Travis CI"
