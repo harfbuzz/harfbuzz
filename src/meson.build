@@ -346,11 +346,6 @@ if conf.get('HAVE_CORETEXT', 0) == 1
   hb_headers += hb_coretext_headers
 endif
 
-if get_option('amalgam')
-  # replace the array if is amalgam build
-  hb_sources = ['harfbuzz.cc']
-endif
-
 have_icu = conf.get('HAVE_ICU', 0) == 1
 have_icu_builtin = conf.get('HAVE_ICU_BUILTIN', 0) == 1
 
@@ -671,9 +666,7 @@ if get_option('tests').enabled()
   env.set('srcdir', meson.current_source_dir())
   env.set('builddir', meson.current_build_dir())
   env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
-  if not get_option('amalgam')
-    env.set('HBSOURCES', ' '.join(hb_sources))
-  endif
+  env.set('HBSOURCES', ' '.join(hb_sources))
   env.set('HBHEADERS', ' '.join(hb_headers))
 
   if cpp.get_id() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable

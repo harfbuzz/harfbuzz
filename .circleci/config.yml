@@ -41,7 +41,7 @@ jobs:
       - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
       - run: make -j4
       - run: make check || .ci/fail.sh
-      - run: make clean && meson build -Dcoretext=enabled -Damalgam=true && ninja -Cbuild test
+      - run: make clean && meson build -Dcoretext=enabled && ninja -Cbuild test
 
   distcheck:
     docker:
@@ -222,9 +222,7 @@ jobs:
       - run: pip3 install fonttools --upgrade
       - run: pip3 install git+https://github.com/mesonbuild/meson # use C linker, remove when meson 0.55 is released
       - run: meson build && ninja -Cbuild test && rm -rf build
-      # test amalgam build
-      - run: meson build -Damalgam=true && ninja -Cbuild && rm -rf build
-      # test meson's own unity feature also
+      # test meson unity builds
       - run: meson build --unity on && ninja -Cbuild && rm -rf build
       # test experimental APIs
       - run: meson build -Dexperimental_api=true && ninja -Cbuild test && rm -rf build

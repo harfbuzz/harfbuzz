@@ -34,5 +34,3 @@ option('with_libstdcxx', type: 'boolean', value: false,
   description: 'Allow linking with libstdc++')
 option('experimental_api', type: 'boolean', value: false,
   description: 'Enable experimental APIs')
-option('amalgam', type: 'boolean', value: false,
-  description : 'Enable amalgam builds')
