@@ -368,7 +368,7 @@ typedef enum
   /*12.0*/HB_SCRIPT_WANCHO			= HB_TAG ('W','c','h','o'),
 
   /*
-   * Since REPLACEME
+   * Since 2.6.7
    */
   /*13.0*/HB_SCRIPT_CHORASMIAN			= HB_TAG ('C','h','r','s'),
   /*13.0*/HB_SCRIPT_DIVES_AKURU			= HB_TAG ('D','i','a','k'),
