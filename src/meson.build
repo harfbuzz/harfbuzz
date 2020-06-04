@@ -355,7 +355,7 @@ if have_icu and have_icu_builtin
   deps += [icu_dep]
 endif
 
-if not get_option('with_libstdcxx')
+if get_option('with_libstdcxx')
   chosen_linker = 'cpp'
 else
   # Use a C linker, not C++; Don't link to libstdc++
