@@ -41,6 +41,10 @@ if cpp.get_id() == 'msvc'
   # noseh_link_args = ['/SAFESEH:NO']
 endif
 
+add_project_link_arguments(cpp.get_supported_link_arguments([
+  '-Bsymbolic-functions'
+]), language : 'c')
+
 add_project_arguments(cpp.get_supported_arguments([
   '-fno-rtti',
   '-fno-exceptions',
