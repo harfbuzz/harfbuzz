@@ -131,11 +131,13 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_name_get_utf16 (face, cp, NULL, NULL, NULL);
   hb_ot_name_get_utf32 (face, cp, NULL, NULL, NULL);
 
+#if 0
   hb_style_get_value (font, HB_STYLE_TAG_ITALIC);
   hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE);
   hb_style_get_value (font, HB_STYLE_TAG_SLANT);
   hb_style_get_value (font, HB_STYLE_TAG_WIDTH);
   hb_style_get_value (font, HB_STYLE_TAG_WEIGHT);
+#endif
 
   hb_ot_var_get_axis_count (face);
   hb_ot_var_get_axis_infos (face, 0, NULL, NULL);

@@ -36,6 +36,7 @@ hb_draw_funcs_set_cubic_to_func
 hb_draw_funcs_set_line_to_func
 hb_draw_funcs_set_move_to_func
 hb_draw_funcs_set_quadratic_to_func
+hb_style_get_value
 hb_font_get_var_coords_design
 hb_ot_layout_closure_lookups
 hb_ot_layout_closure_features""".splitlines ()
