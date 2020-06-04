@@ -526,7 +526,7 @@ Tools used for command-line utilities:
 	Cairo:			${have_cairo}
 	Fontconfig:		${have_fontconfig}
 
-Additional shapers (the more the merrier):
+Additional shapers:
 	Graphite2:		${have_graphite2}
 
 Platform shapers (not normally needed):

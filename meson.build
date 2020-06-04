@@ -356,7 +356,7 @@ summary({'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
          'Fontconfig': conf.get('HAVE_FONTCONFIG', 0) == 1,
         }, bool_yn: true, section: 'Tools used for command-line utilities')
 summary({'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
-        }, bool_yn: true, section: 'Additional shapers (the more the merrier)')
+        }, bool_yn: true, section: 'Additional shapers')
 summary({'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
          'DirectWrite': conf.get('HAVE_DIRECTWRITE', 0) == 1,
          'GDI': conf.get('HAVE_GDI', 0) == 1,
