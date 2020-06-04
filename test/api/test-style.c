@@ -22,6 +22,7 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
+#ifdef HB_EXPERIMENTAL_API
 #include "hb-test.h"
 
 #include <hb.h>
@@ -29,6 +30,12 @@
 /* Unit tests for hb-style.h */
 
 #define assert_cmpfloat(n1, n2) g_assert_cmpint ((int) (n1 * 100.f), ==, (int) (n2 * 100.f))
+
+#define HB_STYLE_TAG_ITALIC		HB_TAG ('i','t','a','l')
+#define HB_STYLE_TAG_OPTICAL_SIZE	HB_TAG ('o','p','s','z')
+#define HB_STYLE_TAG_SLANT		HB_TAG ('s','l','n','t')
+#define HB_STYLE_TAG_WIDTH		HB_TAG ('w','d','t','h')
+#define HB_STYLE_TAG_WEIGHT		HB_TAG ('w','g','h','t')
 
 static void
 test_empty_face (void)
@@ -178,3 +185,6 @@ main (int argc, char **argv)
 
   return hb_test_run ();
 }
+#else
+int main () {}
+#endif
