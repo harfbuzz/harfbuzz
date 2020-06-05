@@ -1547,7 +1547,7 @@ struct GSUB : GSUBGPOS
   bool sanitize (hb_sanitize_context_t *c) const
   { return GSUBGPOS::sanitize<SubstLookup> (c); }
 
-  HB_INTERNAL bool is_blacklisted (hb_blob_t *blob,
+  HB_INTERNAL bool is_blocklisted (hb_blob_t *blob,
 				   hb_face_t *face) const;
 
   typedef GSUBGPOS::accelerator_t<GSUB> accelerator_t;

@@ -650,7 +650,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
    * is *not* a Halant after last consonant already.  We know that is the
    * case for Kannada, while it reorders unconditionally in other scripts,
    * eg. Malayalam, Bengali, and Devanagari.  We don't currently know about
-   * other scripts, so we blacklist Kannada.
+   * other scripts, so we block Kannada.
    *
    * Kannada test case:
    * U+0C9A,U+0CCD,U+0C9A,U+0CCD

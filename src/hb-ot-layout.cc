@@ -143,13 +143,13 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
  */
 
 bool
-OT::GDEF::is_blacklisted (hb_blob_t *blob,
+OT::GDEF::is_blocklisted (hb_blob_t *blob,
 			  hb_face_t *face) const
 {
 #ifdef HB_NO_OT_LAYOUT_BLACKLIST
   return false;
 #endif
-  /* The ugly business of blacklisting individual fonts' tables happen here!
+  /* The ugly business of blocklisting individual fonts' tables happen here!
    * See this thread for why we finally had to bend in and do this:
    * https://lists.freedesktop.org/archives/harfbuzz/2016-February/005489.html
    *
@@ -392,7 +392,7 @@ hb_ot_layout_get_ligature_carets (hb_font_t      *font,
  */
 
 bool
-OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
+OT::GSUB::is_blocklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face) const
 {
 #ifdef HB_NO_OT_LAYOUT_BLACKLIST
@@ -402,7 +402,7 @@ OT::GSUB::is_blacklisted (hb_blob_t *blob HB_UNUSED,
 }
 
 bool
-OT::GPOS::is_blacklisted (hb_blob_t *blob HB_UNUSED,
+OT::GPOS::is_blocklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face HB_UNUSED) const
 {
 #ifdef HB_NO_OT_LAYOUT_BLACKLIST
