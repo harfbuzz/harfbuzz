@@ -365,13 +365,6 @@ if have_icu and have_icu_builtin
   harfbuzz_deps += [icu_dep]
 endif
 
-if get_option('with_libstdcxx')
-  chosen_linker = 'cpp'
-else
-  # Use a C linker, not C++; Don't link to libstdc++
-  chosen_linker = 'c'
-endif
-
 # harfbuzz
 gen_def = find_program('gen-def.py')
 
@@ -405,7 +398,7 @@ libharfbuzz = library('harfbuzz', hb_sources,
   soversion: hb_so_version,
   version: version,
   install: true,
-  link_language: chosen_linker,
+  link_language: 'c',
 )
 
 libharfbuzz_dep = declare_dependency(
@@ -428,7 +421,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   soversion: hb_so_version,
   version: version,
   install: true,
-  link_language: chosen_linker,
+  link_language: 'c',
 )
 
 libharfbuzz_subset_dep = declare_dependency(
@@ -528,7 +521,7 @@ if have_icu and not have_icu_builtin
     version: version,
     install: true,
     # ICU links to stdc++ anyway so the default linker is good
-    # link_language: chosen_linker,
+    # link_language: 'c',
   )
 
   libharfbuzz_icu_dep = declare_dependency(
@@ -612,7 +605,7 @@ if have_gobject
     soversion: hb_so_version,
     version: version,
     install: true,
-    link_language: chosen_linker,
+    link_language: 'c',
   )
 
   gir = find_program('g-ir-scanner', required: get_option('introspection'))
@@ -680,11 +673,7 @@ if get_option('tests').enabled()
   env.set('HBHEADERS', ' '.join(hb_headers))
 
   if cpp.get_id() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
-    # See https://github.com/mesonbuild/meson/pull/6838
-    if meson.version().version_compare('>=0.54.999') and not get_option('with_libstdcxx')
-      dist_check_script += 'check-libstdc++'
-    endif
-    dist_check_script += ['check-static-inits', 'check-symbols']
+    dist_check_script += ['check-libstdc++', 'check-static-inits', 'check-symbols']
   endif
 
   foreach name : dist_check_script
