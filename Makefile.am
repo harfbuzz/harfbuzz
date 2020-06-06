@@ -81,15 +81,4 @@ dist-hook: dist-clear-sticky-bits
 dist-clear-sticky-bits:
 	chmod -R a-s $(distdir)
 
-tar_file = $(PACKAGE_TARNAME)-$(VERSION).tar.xz
-sha256_file = $(tar_file).sha256
-gpg_file = $(sha256_file).asc
-$(sha256_file): $(tar_file)
-	sha256sum $^ > $@
-$(gpg_file): $(sha256_file)
-	@echo "Please enter your GPG password to sign the checksum."
-	gpg --armor --sign $^
-
-release-files: $(tar_file) $(sha256_file) $(gpg_file)
-
 -include $(top_srcdir)/git.mk
