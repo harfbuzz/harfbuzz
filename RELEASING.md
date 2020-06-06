@@ -37,12 +37,10 @@ HarfBuzz release walk-through checklist:
    as well as any REPLACEME changes you made.  The commit message is simply the
    release number.  Eg. "1.4.7"
 
-8. "make dist" again to get a tarball with your new commit in the ChangeLog.  Then
-   "make release-files".  Enter your GPG password.  This creates a sha256 hash
-   and signs it.  Check the size of the three resulting files.
+8. "make dist" again to get a tarball with your new commit in the ChangeLog.
 
 9. Tag the release and sign it: Eg. "git tag -s 1.4.7 -m 1.4.7".  Enter your
-   GPG password again.
+   GPG password.
 
 10. Build win32 bundle.  See [README.mingw.md](README.mingw.md).
 
