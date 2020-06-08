@@ -211,11 +211,9 @@ hb_ot_get_glyph_contour_point (hb_font_t *font,
   const hb_ot_face_t *ot_face = (const hb_ot_face_t *) font_data;
 
   if (ot_face->glyf->get_contour_point (font, glyph, point_index, x, y)) return true;
-#if 0 /* NOT IMPLEMENTED YET */
 #ifndef HB_NO_OT_FONT_CFF
-  if (ot_face->cff1->get_extents (font, glyph, extents)) return true;
-  if (ot_face->cff2->get_extents (font, glyph, extents)) return true;
-#endif
+  if (ot_face->cff1->get_contour_point (font, glyph, point_index, x, y)) return true;
+  if (ot_face->cff2->get_contour_point (font, glyph, point_index, x, y)) return true;
 #endif
 
   return false;

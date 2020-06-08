@@ -509,6 +509,7 @@ struct cff2
 #ifdef HB_EXPERIMENTAL_API
     HB_INTERNAL bool get_path (hb_font_t *font, hb_codepoint_t glyph, draw_helper_t &draw_helper) const;
 #endif
+    HB_INTERNAL bool get_contour_point (hb_font_t *font, hb_codepoint_t glyph, unsigned point_index, hb_position_t *x, hb_position_t *y) const;
   };
 
   typedef accelerator_templ_t<cff2_private_dict_opset_subset_t, cff2_private_dict_values_subset_t> accelerator_subset_t;

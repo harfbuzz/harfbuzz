@@ -566,6 +566,141 @@ bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, d
 }
 #endif
 
+struct cff1_contour_point_param_t
+{
+  cff1_contour_point_param_t (const OT::cff1::accelerator_t *cff_, hb_font_t *font_,
+			      unsigned *point_index_, bool *found_, hb_position_t *x_, hb_position_t *y_,
+			      point_t *delta_)
+  {
+    cff = cff_;
+    font = font_;
+    delta = delta_;
+    point_index = point_index_;
+    found = found_;
+    x = x_; y = y_;
+  }
+
+  void consume_point (const point_t &p)
+  {
+    if (*found) return;
+
+    if (!*point_index)
+    {
+      *found = true;
+      if (likely (x)) *x = font->em_scalef_x (p.x.to_real ());
+      if (likely (y)) *y = font->em_scalef_y (p.y.to_real ());
+    }
+    else
+      --*point_index;
+  }
+
+  void move_to (const point_t &p)
+  {
+    point_t point = p;
+    if (delta) point.move (*delta);
+    consume_point (point);
+  }
+
+  void line_to (const point_t &p)
+  {
+    point_t point = p;
+    if (delta) point.move (*delta);
+    consume_point (point);
+  }
+
+  void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
+  {
+    point_t point1 = p1, point2 = p2, point3 = p3;
+    if (delta)
+    {
+      point1.move (*delta);
+      point2.move (*delta);
+      point3.move (*delta);
+    }
+    consume_point (point1);
+    consume_point (point2);
+    consume_point (point3);
+  }
+
+  hb_font_t *font;
+  unsigned *point_index;
+  bool *found;
+  hb_position_t *x, *y;
+  point_t *delta;
+
+  const OT::cff1::accelerator_t *cff;
+};
+
+struct cff1_path_procs_glyph_contour_point_t : path_procs_t<cff1_path_procs_glyph_contour_point_t, cff1_cs_interp_env_t, cff1_contour_point_param_t>
+{
+  static void moveto (cff1_cs_interp_env_t &env, cff1_contour_point_param_t& param, const point_t &pt)
+  {
+    param.move_to (pt);
+    env.moveto (pt);
+  }
+
+  static void line (cff1_cs_interp_env_t &env, cff1_contour_point_param_t &param, const point_t &pt1)
+  {
+    param.line_to (pt1);
+    env.moveto (pt1);
+  }
+
+  static void curve (cff1_cs_interp_env_t &env, cff1_contour_point_param_t &param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
+  {
+    param.cubic_to (pt1, pt2, pt3);
+    env.moveto (pt3);
+  }
+};
+
+static bool _get_contour_point (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph,
+				unsigned *point_index, bool *found, hb_position_t *x, hb_position_t *y,
+				bool in_seac = false, point_t *delta = nullptr);
+
+struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_contour_point_param_t, cff1_path_procs_glyph_contour_point_t>
+{
+  static void process_seac (cff1_cs_interp_env_t &env, cff1_contour_point_param_t& param)
+  {
+    unsigned int n = env.argStack.get_count ();
+    point_t delta;
+    delta.x = env.argStack[n-4];
+    delta.y = env.argStack[n-3];
+    hb_codepoint_t base = param.cff->std_code_to_glyph (env.argStack[n-2].to_int ());
+    hb_codepoint_t accent = param.cff->std_code_to_glyph (env.argStack[n-1].to_int ());
+
+    if (unlikely (!(!env.in_seac && base && accent
+		    && _get_contour_point (param.cff, param.font, base, param.point_index, param.found, param.x, param.y, true)
+		    && _get_contour_point (param.cff, param.font, accent, param.point_index, param.found, param.x, param.y, true, &delta))))
+      env.set_error ();
+  }
+};
+
+bool _get_contour_point (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph,
+			 unsigned *point_index, bool *found, hb_position_t *x, hb_position_t *y, bool in_seac, point_t *delta)
+{
+  if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
+
+  unsigned int fd = cff->fdSelect->get_fd (glyph);
+  cff1_cs_interpreter_t<cff1_cs_opset_path_t, cff1_contour_point_param_t> interp;
+  const byte_str_t str = (*cff->charStrings)[glyph];
+  interp.env.init (str, *cff, fd);
+  interp.env.set_in_seac (in_seac);
+  cff1_contour_point_param_t param (cff, font, point_index, found, x, y, delta);
+  return interp.interpret (param);
+}
+
+bool OT::cff1::accelerator_t::get_contour_point (hb_font_t *font, hb_codepoint_t glyph, unsigned point_index_,
+						 hb_position_t *x, hb_position_t *y) const
+{
+#ifdef HB_NO_OT_FONT_CFF
+  /* XXX Remove check when this code moves to .hh file. */
+  return false;
+#endif
+
+  unsigned point_index = point_index_;
+  bool found = false;
+  return likely (_get_contour_point (this, font, glyph, &point_index, &found, x, y) && found);
+}
+
 struct get_seac_param_t
 {
   void init (const OT::cff1::accelerator_t *_cff)

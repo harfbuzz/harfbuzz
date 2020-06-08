@@ -212,4 +212,87 @@ bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, d
 }
 #endif
 
+struct cff2_contour_point_param_t
+{
+  cff2_contour_point_param_t (hb_font_t *font_, unsigned *point_index_, bool *found_, hb_position_t *x_, hb_position_t *y_)
+  {
+    font = font_;
+    point_index = point_index_;
+    found = found_;
+    x = x_; y = y_;
+  }
+
+  void consume_point (const point_t &p)
+  {
+    if (*found) return;
+
+    if (!*point_index)
+    {
+      *found = true;
+      if (likely (x)) *x = font->em_scalef_x (p.x.to_real ());
+      if (likely (y)) *y = font->em_scalef_y (p.y.to_real ());
+    }
+    else
+      --*point_index;
+  }
+
+  void move_to (const point_t &p) { consume_point (p); }
+  void line_to (const point_t &p) { consume_point (p); }
+  void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
+  {
+    consume_point (p1);
+    consume_point (p2);
+    consume_point (p3);
+  }
+
+  protected:
+  hb_font_t *font;
+  unsigned *point_index;
+  bool *found;
+  hb_position_t *x, *y;
+};
+
+struct cff2_contour_point_procs_path_t : path_procs_t<cff2_contour_point_procs_path_t, cff2_cs_interp_env_t, cff2_contour_point_param_t>
+{
+  static void moveto (cff2_cs_interp_env_t &env, cff2_contour_point_param_t& param, const point_t &pt)
+  {
+    param.move_to (pt);
+    env.moveto (pt);
+  }
+
+  static void line (cff2_cs_interp_env_t &env, cff2_contour_point_param_t& param, const point_t &pt1)
+  {
+    param.line_to (pt1);
+    env.moveto (pt1);
+  }
+
+  static void curve (cff2_cs_interp_env_t &env, cff2_contour_point_param_t& param, const point_t &pt1, const point_t &pt2, const point_t &pt3)
+  {
+    param.cubic_to (pt1, pt2, pt3);
+    env.moveto (pt3);
+  }
+};
+
+struct cff2_cs_opset_path_t : cff2_cs_opset_t<cff2_cs_opset_path_t, cff2_contour_point_param_t, cff2_contour_point_procs_path_t> {};
+
+bool OT::cff2::accelerator_t::get_contour_point (hb_font_t *font, hb_codepoint_t glyph, unsigned point_index_,
+						 hb_position_t *x, hb_position_t *y) const
+{
+#ifdef HB_NO_OT_FONT_CFF
+  /* XXX Remove check when this code moves to .hh file. */
+  return false;
+#endif
+
+  if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
+
+  unsigned int fd = fdSelect->get_fd (glyph);
+  cff2_cs_interpreter_t<cff2_cs_opset_path_t, cff2_contour_point_param_t> interp;
+  const byte_str_t str = (*charStrings)[glyph];
+  interp.env.init (str, *this, fd, font->coords, font->num_coords);
+  unsigned point_index = point_index_;
+  bool found = false;
+  cff2_contour_point_param_t param (font, &point_index, &found, x, y);
+  return likely (interp.interpret (param) && found);
+}
+
 #endif

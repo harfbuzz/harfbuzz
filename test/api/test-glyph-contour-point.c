@@ -53,12 +53,62 @@ test_glyf_get_glyph_contour_point ()
   hb_font_destroy (font);
 }
 
+static void
+test_cff1_get_glyph_contour_point ()
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/RanaKufi-Regular.subset.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  hb_position_t x, y;
+
+  /* ft */
+  hb_ft_font_set_funcs (font);
+  g_assert (hb_font_get_glyph_contour_point (font, 1, 3, &x, &y));
+  g_assert_cmpint (x, ==, 650);
+  g_assert_cmpint (y, ==, 274);
+
+  /* ot */
+  hb_ot_font_set_funcs (font);
+  g_assert (hb_font_get_glyph_contour_point (font, 1, 3, &x, &y));
+  g_assert_cmpint (x, ==, 650);
+  g_assert_cmpint (y, ==, 274);
+
+  hb_font_destroy (font);
+}
+
+static void
+test_cff2_get_glyph_contour_point ()
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype.abc.otf");
+  hb_font_t *font = hb_font_create (face);
+  hb_face_destroy (face);
+
+  hb_position_t x, y;
+
+  /* ft */
+  hb_ft_font_set_funcs (font);
+  g_assert (hb_font_get_glyph_contour_point (font, 3, 2, &x, &y));
+  g_assert_cmpint (x, ==, 337);
+  g_assert_cmpint (y, ==, 435);
+
+  /* ot */
+  hb_ot_font_set_funcs (font);
+  g_assert (hb_font_get_glyph_contour_point (font, 3, 2, &x, &y));
+  g_assert_cmpint (x, ==, 337);
+  g_assert_cmpint (y, ==, 435);
+
+  hb_font_destroy (font);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_glyf_get_glyph_contour_point);
+  hb_test_add (test_cff1_get_glyph_contour_point);
+  hb_test_add (test_cff2_get_glyph_contour_point);
 
-  return hb_test_run();
+ return hb_test_run();
 }
