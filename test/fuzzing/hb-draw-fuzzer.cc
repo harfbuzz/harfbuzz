@@ -157,6 +157,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     if (hb_font_get_glyph_extents (font, gid, &extents))
       counter += !!extents.width + !!extents.height + !!extents.x_bearing + !!extents.y_bearing;
 
+    hb_position_t x, y;
+    if (hb_font_get_glyph_contour_point (font, gid, gid, &x, &y))
+      counter += !!x + !!y;
+
     if (!counter) counter += 1;
 
     /* other misc calls */

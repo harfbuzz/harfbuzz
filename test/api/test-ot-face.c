@@ -150,6 +150,8 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_draw_funcs_destroy (funcs);
 #endif
 
+  hb_font_get_glyph_contour_point (font, 0, 0, NULL, NULL);
+
   hb_set_destroy (set);
 }
 
