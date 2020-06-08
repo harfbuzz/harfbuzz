@@ -1174,8 +1174,8 @@ struct glyf
 	if (!point_index)
 	{
 	  found = true;
-	  if (likely (x)) *x = font->em_scalef_x (point.x);
-	  if (likely (y)) *y = font->em_scalef_y (point.y);
+	  *x = font->em_scalef_x (point.x);
+	  *y = font->em_scalef_y (point.y);
 	}
 	else
 	  --point_index;

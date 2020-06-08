@@ -229,8 +229,8 @@ struct cff2_contour_point_param_t
     if (!*point_index)
     {
       *found = true;
-      if (likely (x)) *x = font->em_scalef_x (p.x.to_real ());
-      if (likely (y)) *y = font->em_scalef_y (p.y.to_real ());
+      *x = font->em_scalef_x (p.x.to_real ());
+      *y = font->em_scalef_y (p.y.to_real ());
     }
     else
       --*point_index;
