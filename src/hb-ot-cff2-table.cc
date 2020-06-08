@@ -252,7 +252,7 @@ struct cff2_contour_point_param_t
   hb_position_t *x, *y;
 };
 
-struct cff2_contour_point_procs_path_t : path_procs_t<cff2_contour_point_procs_path_t, cff2_cs_interp_env_t, cff2_contour_point_param_t>
+struct cff2_procs_contour_point_t : path_procs_t<cff2_procs_contour_point_t, cff2_cs_interp_env_t, cff2_contour_point_param_t>
 {
   static void moveto (cff2_cs_interp_env_t &env, cff2_contour_point_param_t& param, const point_t &pt)
   {
@@ -273,7 +273,7 @@ struct cff2_contour_point_procs_path_t : path_procs_t<cff2_contour_point_procs_p
   }
 };
 
-struct cff2_cs_opset_path_t : cff2_cs_opset_t<cff2_cs_opset_path_t, cff2_contour_point_param_t, cff2_contour_point_procs_path_t> {};
+struct cff2_cs_opset_contour_point_t : cff2_cs_opset_t<cff2_cs_opset_contour_point_t, cff2_contour_point_param_t, cff2_procs_contour_point_t> {};
 
 bool OT::cff2::accelerator_t::get_contour_point (hb_font_t *font, hb_codepoint_t glyph, unsigned point_index_,
 						 hb_position_t *x, hb_position_t *y) const
@@ -286,7 +286,7 @@ bool OT::cff2::accelerator_t::get_contour_point (hb_font_t *font, hb_codepoint_t
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 
   unsigned int fd = fdSelect->get_fd (glyph);
-  cff2_cs_interpreter_t<cff2_cs_opset_path_t, cff2_contour_point_param_t> interp;
+  cff2_cs_interpreter_t<cff2_cs_opset_contour_point_t, cff2_contour_point_param_t> interp;
   const byte_str_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd, font->coords, font->num_coords);
   unsigned point_index = point_index_;

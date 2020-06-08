@@ -631,7 +631,7 @@ struct cff1_contour_point_param_t
   const OT::cff1::accelerator_t *cff;
 };
 
-struct cff1_path_procs_glyph_contour_point_t : path_procs_t<cff1_path_procs_glyph_contour_point_t, cff1_cs_interp_env_t, cff1_contour_point_param_t>
+struct cff1_procs_glyph_contour_point_t : path_procs_t<cff1_procs_glyph_contour_point_t, cff1_cs_interp_env_t, cff1_contour_point_param_t>
 {
   static void moveto (cff1_cs_interp_env_t &env, cff1_contour_point_param_t& param, const point_t &pt)
   {
@@ -656,7 +656,7 @@ static bool _get_contour_point (const OT::cff1::accelerator_t *cff, hb_font_t *f
 				unsigned *point_index, bool *found, hb_position_t *x, hb_position_t *y,
 				bool in_seac = false, point_t *delta = nullptr);
 
-struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_contour_point_param_t, cff1_path_procs_glyph_contour_point_t>
+struct cff1_cs_opset_contour_point_t : cff1_cs_opset_t<cff1_cs_opset_contour_point_t, cff1_contour_point_param_t, cff1_procs_glyph_contour_point_t>
 {
   static void process_seac (cff1_cs_interp_env_t &env, cff1_contour_point_param_t& param)
   {
@@ -680,7 +680,7 @@ bool _get_contour_point (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
 
   unsigned int fd = cff->fdSelect->get_fd (glyph);
-  cff1_cs_interpreter_t<cff1_cs_opset_path_t, cff1_contour_point_param_t> interp;
+  cff1_cs_interpreter_t<cff1_cs_opset_contour_point_t, cff1_contour_point_param_t> interp;
   const byte_str_t str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
