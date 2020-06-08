@@ -14,6 +14,7 @@ tests = [
   'test-common.c',
   'test-draw.c',
   'test-font.c',
+  'test-glyph-contour-point.c',
   'test-map.c',
   'test-object.c',
   'test-ot-color.c',

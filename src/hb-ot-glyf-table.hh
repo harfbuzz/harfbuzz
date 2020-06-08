@@ -884,7 +884,7 @@ struct glyf
 	for (unsigned i = 0; i < PHANTOM_COUNT; ++i)
 	  phantoms[i] = all_points[all_points.length - PHANTOM_COUNT + i];
 
-      return true;
+      return true && consumer.was_successful ();
     }
 
     public:
@@ -941,6 +941,7 @@ struct glyf
       void points_end () { bounds.get_extents (font, extents); }
 
       bool is_consuming_contour_points () { return extents; }
+      bool was_successful () { return true; }
       contour_point_t *get_phantoms_sink () { return phantoms; }
     };
 
@@ -1143,6 +1144,7 @@ struct glyf
       void points_end () {}
 
       bool is_consuming_contour_points () { return true; }
+      bool was_successful () { return true; }
       contour_point_t *get_phantoms_sink () { return nullptr; }
     };
 
@@ -1150,6 +1152,44 @@ struct glyf
     get_path (hb_font_t *font, hb_codepoint_t gid, draw_helper_t &draw_helper) const
     { return get_points (font, gid, path_builder_t (font, draw_helper)); }
 #endif
+
+    struct contour_point_finder_t
+    {
+      hb_font_t *font;
+      hb_position_t *x, *y;
+      unsigned point_index;
+      bool found;
+
+      contour_point_finder_t (hb_font_t *font_, unsigned point_index_, hb_position_t *x_, hb_position_t *y_)
+      {
+	font = font_; x = x_; y = y_;
+	point_index = point_index_;
+	found = false;
+      }
+
+      void consume_point (const contour_point_t &point)
+      {
+	if (found) return;
+
+	if (!point_index)
+	{
+	  found = true;
+	  if (likely (x)) *x = font->em_scalef_x (point.x);
+	  if (likely (y)) *y = font->em_scalef_y (point.y);
+	}
+	else
+	  --point_index;
+      }
+      void points_end () {}
+
+      bool is_consuming_contour_points () { return true; }
+      bool was_successful () { return found; }
+      contour_point_t *get_phantoms_sink () { return nullptr; }
+    };
+
+    bool
+    get_contour_point (hb_font_t *font, hb_codepoint_t gid, unsigned point_index, hb_position_t *x, hb_position_t *y) const
+    { return get_points (font, gid, contour_point_finder_t (font, point_index, x, y)); }
 
     private:
     bool short_offset;

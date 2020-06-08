@@ -38,6 +38,7 @@ TEST_PROGS = \
 	test-common \
 	test-draw \
 	test-font \
+	test-glyph-contour-point \
 	test-map \
 	test-object \
 	test-ot-color \
@@ -120,8 +121,11 @@ endif
 
 if HAVE_FREETYPE
 TEST_PROGS += \
+	test-glyph-contour-point \
 	test-ot-math \
 	$(NULL)
+test_glyph_contour_point_LDADD = $(LDADD) $(FREETYPE_LIBS)
+test_glyph_contour_point_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 endif # HAVE_FREETYPE
