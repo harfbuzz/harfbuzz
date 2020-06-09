@@ -1,0 +1,8 @@
+[wrap-file]
+directory = benchmark-1.4.1
+source_url = https://github.com/google/benchmark/archive/v1.4.1.zip
+source_filename = benchmark-1.4.1.zip
+source_hash = 61ae07eb5d4a0b02753419eb17a82b7d322786bb36ab62bd3df331a4d47c00a7
+patch_url = https://wrapdb.mesonbuild.com/v1/projects/google-benchmark/1.4.1/1/get_zip
+patch_filename = google-benchmark-1.4.1-1-wrap.zip
+patch_hash = 4cc5fe02ebd4fc82e110919b7977d7463eb2a99e4ecb9feca920eab6fd911d67

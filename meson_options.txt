@@ -28,6 +28,8 @@ option('introspection', type: 'feature', value: 'auto', yield: true,
 option('gtk_doc',  type: 'feature', value: 'auto', yield: true,
   description: 'Generate documentation with gtk-doc')
 
+option('benchmark', type : 'boolean', value : false,
+  description: 'Enable benchmark tests')
 option('icu_builtin', type: 'boolean', value: false,
   description: 'Don\'t separate ICU support as harfbuzz-icu module')
 option('experimental_api', type: 'boolean', value: false,
