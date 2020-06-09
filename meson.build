@@ -345,6 +345,10 @@ if not get_option('tests').disabled()
   subdir('test')
 endif
 
+if get_option('benchmark')
+  subdir('perf')
+endif
+
 if not get_option('gtk_doc').disabled()
   subdir('docs')
 endif
