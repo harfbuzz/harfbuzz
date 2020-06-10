@@ -74,14 +74,16 @@ check_funcs = [
   ['roundf'],
 ]
 
-freetype_dep = dependency('freetype2', required: false)
-
-if not freetype_dep.found() and cpp.get_id() == 'msvc'
+if not get_option('freetype').disabled()
+  freetype_dep = dependency('freetype2', required: false)
+else
+  freetype_dep = dependency('', required: false)
+endif
+if not get_option('freetype').disabled() and not freetype_dep.found() and cpp.get_id() == 'msvc'
   if cpp.has_header('ft2build.h')
     freetype_dep = cpp.find_library('freetype', required: false)
   endif
 endif
-
 if not freetype_dep.found() and get_option('freetype').enabled()
   freetype_dep = dependency('freetype2', fallback: ['freetype2', 'freetype_dep'])
 endif
@@ -90,18 +92,20 @@ glib_dep = dependency('glib-2.0', required: get_option('glib'),
                       fallback: ['glib', 'libglib_dep'])
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'),
                          fallback: ['glib', 'libgobject_dep'])
-cairo_dep = dependency('cairo', required: false)
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'),
                             fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: get_option('graphite'))
-icu_dep = dependency('icu-uc', required: false)
 m_dep = cpp.find_library('m', required: false)
 
+if not get_option('icu').disabled()
+  icu_dep = dependency('icu-uc', required: false)
+else
+  icu_dep = dependency('', required: false)
+endif
 if not icu_dep.found() and get_option('icu').enabled()
   icu_dep = dependency('icu-uc', required: cpp.get_id() != 'msvc')
 endif
-
-if not icu_dep.found() and cpp.get_id() == 'msvc'
+if not get_option('icu').disabled() and not icu_dep.found() and cpp.get_id() == 'msvc'
   if cpp.has_header('unicode/uchar.h') and \
      cpp.has_header('unicode/unorm2.h') and \
      cpp.has_header('unicode/ustring.h') and \
@@ -120,12 +124,16 @@ if not icu_dep.found() and cpp.get_id() == 'msvc'
   endif
 endif
 
-if not cairo_dep.found() and cpp.get_id() == 'msvc'
+if not get_option('cairo').disabled()
+  cairo_dep = dependency('cairo', required: false)
+else
+  cairo_dep = dependency('', required: false)
+endif
+if not get_option('cairo').disabled() and not cairo_dep.found() and cpp.get_id() == 'msvc'
   if cpp.has_header('cairo.h')
     cairo_dep = cpp.find_library('cairo')
   endif
 endif
-
 if not cairo_dep.found() and get_option('cairo').enabled()
   cairo_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'])
 endif
