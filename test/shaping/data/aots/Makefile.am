@@ -10,6 +10,7 @@ EXTRA_DIST = \
 	COPYING \
 	fonts \
 	update.py \
+	meson.build \
 	$(TESTS) \
 	$(NULL)
 
