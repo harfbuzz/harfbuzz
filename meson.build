@@ -74,18 +74,22 @@ check_funcs = [
   ['roundf'],
 ]
 
+m_dep = cpp.find_library('m', required: false)
+
 if not get_option('freetype').disabled()
   freetype_dep = dependency('freetype2', required: false)
+
+  if not freetype_dep.found() and cpp.get_id() == 'msvc'
+    if cpp.has_header('ft2build.h')
+      freetype_dep = cpp.find_library('freetype', required: false)
+    endif
+  endif
+
+  if not freetype_dep.found() and get_option('freetype').enabled()
+    freetype_dep = dependency('freetype2', fallback: ['freetype2', 'freetype_dep'])
+  endif
 else
   freetype_dep = dependency('', required: false)
-endif
-if not get_option('freetype').disabled() and not freetype_dep.found() and cpp.get_id() == 'msvc'
-  if cpp.has_header('ft2build.h')
-    freetype_dep = cpp.find_library('freetype', required: false)
-  endif
-endif
-if not freetype_dep.found() and get_option('freetype').enabled()
-  freetype_dep = dependency('freetype2', fallback: ['freetype2', 'freetype_dep'])
 endif
 
 glib_dep = dependency('glib-2.0', required: get_option('glib'),
@@ -95,64 +99,66 @@ gobject_dep = dependency('gobject-2.0', required: get_option('gobject'),
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'),
                             fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: get_option('graphite'))
-m_dep = cpp.find_library('m', required: false)
 
 if not get_option('icu').disabled()
   icu_dep = dependency('icu-uc', required: false)
-else
-  icu_dep = dependency('', required: false)
-endif
-if not icu_dep.found() and get_option('icu').enabled()
-  icu_dep = dependency('icu-uc', required: cpp.get_id() != 'msvc')
-endif
-if not get_option('icu').disabled() and not icu_dep.found() and cpp.get_id() == 'msvc'
-  if cpp.has_header('unicode/uchar.h') and \
-     cpp.has_header('unicode/unorm2.h') and \
-     cpp.has_header('unicode/ustring.h') and \
-     cpp.has_header('unicode/utf16.h') and \
-     cpp.has_header('unicode/uversion.h') and \
-     cpp.has_header('unicode/uscript.h')
-    if get_option('buildtype') == 'debug'
-      icu_dep = cpp.find_library('icuucd', required: get_option('icu'))
+
+  if not icu_dep.found() and get_option('icu').enabled()
+    icu_dep = dependency('icu-uc', required: cpp.get_id() != 'msvc')
+  endif
+
+  if not icu_dep.found() and cpp.get_id() == 'msvc'
+    if cpp.has_header('unicode/uchar.h') and \
+       cpp.has_header('unicode/unorm2.h') and \
+       cpp.has_header('unicode/ustring.h') and \
+       cpp.has_header('unicode/utf16.h') and \
+       cpp.has_header('unicode/uversion.h') and \
+       cpp.has_header('unicode/uscript.h')
+      if get_option('buildtype') == 'debug'
+        icu_dep = cpp.find_library('icuucd', required: get_option('icu'))
+      else
+        icu_dep = cpp.find_library('icuuc', required: get_option('icu'))
+      endif
     else
-      icu_dep = cpp.find_library('icuuc', required: get_option('icu'))
-    endif
-  else
-    if get_option('icu').enabled()
-      error('ICU headers and libraries must be present to build ICU support')
+      if get_option('icu').enabled()
+        error('ICU headers and libraries must be present to build ICU support')
+      endif
     endif
   endif
+else
+  icu_dep = dependency('', required: false)
 endif
 
 if not get_option('cairo').disabled()
   cairo_dep = dependency('cairo', required: false)
-else
-  cairo_dep = dependency('', required: false)
-endif
-if not get_option('cairo').disabled() and not cairo_dep.found() and cpp.get_id() == 'msvc'
-  if cpp.has_header('cairo.h')
-    cairo_dep = cpp.find_library('cairo')
-  endif
-endif
-if not cairo_dep.found() and get_option('cairo').enabled()
-  cairo_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'])
-endif
 
-# Ensure that cairo-ft is fetched from the same library as cairo itself
-if cairo_dep.found()
-  if cairo_dep.type_name() == 'pkgconfig'
-    cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
-  else
-    if cpp.has_header('cairo-ft.h') and \
-       cpp.has_function('cairo_ft_font_face_create_for_ft_face', dependencies: cairo_dep)
-      cairo_ft_dep = cairo_dep
-    else
-      # Not-found dependency
-      cairo_ft_dep = dependency('', required: false)
+  if not cairo_dep.found() and cpp.get_id() == 'msvc'
+    if cpp.has_header('cairo.h')
+      cairo_dep = cpp.find_library('cairo')
     endif
   endif
+
+  if not cairo_dep.found() and get_option('cairo').enabled()
+    cairo_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'])
+  endif
+
+  # Ensure that cairo-ft is fetched from the same library as cairo itself
+  if cairo_dep.found()
+    if cairo_dep.type_name() == 'pkgconfig'
+      cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
+    else
+      if cpp.has_header('cairo-ft.h') and \
+         cpp.has_function('cairo_ft_font_face_create_for_ft_face', dependencies: cairo_dep)
+        cairo_ft_dep = cairo_dep
+      else
+        cairo_ft_dep = dependency('', required: false)
+      endif
+    endif
+  else
+    cairo_ft_dep = dependency('', required: false)
+  endif
 else
-  # Not-found dependency
+  cairo_dep = dependency('', required: false)
   cairo_ft_dep = dependency('', required: false)
 endif
 
