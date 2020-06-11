@@ -1,6 +1,6 @@
 TESTS = \
-	tests/aat-trak.tests \
 	tests/aat-morx.tests \
+	tests/aat-trak.tests \
 	tests/arabic-fallback-shaping.tests \
 	tests/arabic-feature-order.tests \
 	tests/arabic-like-joining.tests \
@@ -44,16 +44,16 @@ TESTS = \
 	tests/positioning-features.tests \
 	tests/rand.tests \
 	tests/rotation.tests \
-	tests/spaces.tests \
 	tests/simple.tests \
 	tests/sinhala.tests \
+	tests/spaces.tests \
 	tests/tibetan-contractions-1.tests \
 	tests/tibetan-contractions-2.tests \
 	tests/tibetan-vowels.tests \
-	tests/use.tests \
 	tests/use-indic3.tests \
 	tests/use-marchen.tests \
 	tests/use-syllable.tests \
+	tests/use.tests \
 	tests/variations-rvrn.tests \
 	tests/vertical.tests \
 	tests/zero-width-marks.tests \
