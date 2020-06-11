@@ -1,6 +1,6 @@
 project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.53.0',
-  default_options : ['cpp_std=c++11'],
+  default_options: ['cpp_std=c++11'],
   version: '2.6.7')
 
 warning('Meson is not our main build system yet, don\'t use it for packaging HarfBuzz for *nix distros for now')
@@ -36,25 +36,25 @@ if cpp.get_id() == 'msvc'
       '/wd4305', # truncating type conversion (e.g. double -> float)
       cpp.get_supported_arguments(['/utf-8']), # set the input encoding to utf-8
   ]
-  add_project_arguments(msvc_args, language : ['c', 'cpp'])
+  add_project_arguments(msvc_args, language: ['c', 'cpp'])
   # Disable SAFESEH with MSVC for libs that use external deps that are built with MinGW
   # noseh_link_args = ['/SAFESEH:NO']
 endif
 
 add_project_link_arguments(cpp.get_supported_link_arguments([
   '-Bsymbolic-functions'
-]), language : 'c')
+]), language: 'c')
 
 add_project_arguments(cpp.get_supported_arguments([
   '-fno-rtti',
   '-fno-exceptions',
   '-fno-threadsafe-statics',
   '-fvisibility-inlines-hidden', # maybe shouldn't be applied for mingw
-]), language : 'cpp')
+]), language: 'cpp')
 
 if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') != 1
   if cpp.has_argument('-mstructure-size-boundary=8')
-    add_project_arguments('-mstructure-size-boundary=8', language : 'cpp')
+    add_project_arguments('-mstructure-size-boundary=8', language: 'cpp')
   endif
 endif
 
@@ -256,16 +256,16 @@ endif
 # CoreText (macOS) - FIXME: untested
 coretext_deps = []
 if host_machine.system() == 'darwin' and not get_option('coretext').disabled()
-  app_services_dep = dependency('appleframeworks', modules : ['ApplicationServices'], required: false)
+  app_services_dep = dependency('appleframeworks', modules: ['ApplicationServices'], required: false)
   if cpp.has_type('CTFontRef', prefix: '#include <ApplicationServices/ApplicationServices.h>', dependencies: app_services_dep)
     coretext_deps += [app_services_dep]
     conf.set('HAVE_CORETEXT', 1)
   # On iOS CoreText and CoreGraphics are stand-alone frameworks
   # Check for a different symbol to avoid getting cached result
   else
-    coretext_dep = dependency('appleframeworks', modules : ['CoreText'], required: false)
-    coregraphics_dep = dependency('appleframeworks', modules : ['CoreGraphics'], required: false)
-    corefoundation_dep = dependency('appleframeworks', modules : ['CoreFoundation'], required: false)
+    coretext_dep = dependency('appleframeworks', modules: ['CoreText'], required: false)
+    coregraphics_dep = dependency('appleframeworks', modules: ['CoreGraphics'], required: false)
+    corefoundation_dep = dependency('appleframeworks', modules: ['CoreFoundation'], required: false)
     if cpp.has_type('CTRunRef', prefix: '#include <CoreText/CoreText.h>', dependencies: [coretext_dep, coregraphics_dep, corefoundation_dep])
       coretext_deps += [coretext_dep, coregraphics_dep, corefoundation_dep]
       conf.set('HAVE_CORETEXT', 1)
