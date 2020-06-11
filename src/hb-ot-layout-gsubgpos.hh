@@ -3277,6 +3277,21 @@ struct GSUBGPOS
   }
 
   template <typename TLookup>
+  void closure_lookups (hb_face_t      *face,
+			const hb_set_t *glyphs,
+                        hb_set_t       *lookup_indexes /* IN/OUT */) const
+  {
+    hb_set_t visited_lookups, inactive_lookups;
+    OT::hb_closure_lookups_context_t c (face, glyphs, &visited_lookups, &inactive_lookups);
+
+    for (unsigned lookup_index : + hb_iter (lookup_indexes))
+      reinterpret_cast<const TLookup &> (get_lookup (lookup_index)).closure_lookups (&c, lookup_index);
+
+    hb_set_union (lookup_indexes, &visited_lookups);
+    hb_set_subtract (lookup_indexes, &inactive_lookups);
+  }
+
+  template <typename TLookup>
   bool subset (hb_subset_layout_context_t *c) const
   {
     TRACE_SUBSET (this);

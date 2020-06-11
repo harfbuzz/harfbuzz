@@ -2572,6 +2572,11 @@ struct GPOS : GSUBGPOS
     }
   }
 
+  void closure_lookups (hb_face_t      *face,
+			const hb_set_t *glyphs,
+			hb_set_t       *lookup_indexes /* IN/OUT */) const
+  { GSUBGPOS::closure_lookups<PosLookup> (face, glyphs, lookup_indexes); }
+
   typedef GSUBGPOS::accelerator_t<GPOS> accelerator_t;
 };
 
