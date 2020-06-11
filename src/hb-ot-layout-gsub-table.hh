@@ -1550,6 +1550,11 @@ struct GSUB : GSUBGPOS
   HB_INTERNAL bool is_blocklisted (hb_blob_t *blob,
 				   hb_face_t *face) const;
 
+  void closure_lookups (hb_face_t      *face,
+                        const hb_set_t *glyphs,
+                        hb_set_t       *lookup_indexes /* IN/OUT */) const
+  { GSUBGPOS::closure_lookups<SubstLookup> (face, glyphs, lookup_indexes); }
+
   typedef GSUBGPOS::accelerator_t<GSUB> accelerator_t;
 };
 

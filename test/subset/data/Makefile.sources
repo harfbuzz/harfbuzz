@@ -9,9 +9,6 @@ TESTS = \
 	tests/sbix.tests \
 	tests/colr.tests \
 	tests/cbdt.tests \
-	$(NULL)
-
-DISABLED_TESTS = \
 	tests/layout.tests \
 	tests/layout.gpos.tests \
 	tests/layout.gpos2.tests \
