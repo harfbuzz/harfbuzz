@@ -99,7 +99,7 @@ jobs:
       - run: make clean
       - run: CFLAGS="-O0" CXXFLAGS="-O0" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-fontconfig --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
-      - run: make check || .ci/fail.sh
+      - run: HB_TEST_SUBSET_FUZZER_TIMEOUT=30 make check || .ci/fail.sh
       - run: make clean
       - run: make -Csrc CPPFLAGS="-DHB_TINY -DHB_NO_OT_FONT" libharfbuzz-subset.la && make clean
       - run: clang -c src/harfbuzz.cc -DHB_NO_MT
@@ -136,7 +136,7 @@ jobs:
       - run: pip install fonttools
       - run: CFLAGS="-Weverything -Wno-reserved-id-macro -Wno-conversion -Wno-padded -Wno-sign-conversion -Wno-cast-qual -Wno-documentation -Wno-documentation-unknown-command -DHB_WITH_WIN1256" CXXFLAGS="-Weverything -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-c++98-compat -Wno-cast-qual -Wno-c++98-compat-pedantic -Wno-sign-conversion -Wno-padded -Wno-shorten-64-to-32 -Wno-reserved-id-macro -Wno-float-conversion -Wno-format-pedantic -Wno-shadow -Wno-conversion -Wno-zero-as-null-pointer-constant -Wno-missing-field-initializers -Wno-used-but-marked-unused -Wno-unused-macros -Wno-comma -Wno-float-equal -Wno-disabled-macro-expansion -Wno-weak-vtables -Wno-unused-parameter -Wno-covered-switch-default -Wno-unreachable-code -Wno-unused-template -DHB_WITH_WIN1256" CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2 --with-fontconfig
       - run: make -j32 CPPFLAGS="-Werror"
-      - run: make check CPPFLAGS="-Werror" || .ci/fail.sh
+      - run: HB_TEST_SUBSET_FUZZER_TIMEOUT=30 make check CPPFLAGS="-Werror" || .ci/fail.sh
 
   clang-asan:
     docker:
@@ -170,7 +170,7 @@ jobs:
       - run: wget https://ftp.gnome.org/pub/gnome/sources/glib/2.58/glib-2.58.1.tar.xz && tar xf glib-2.58.1.tar.xz && cd glib-2.58.1 && ./autogen.sh --with-pcre CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory" CFLAGS="-fsanitize=memory" CXXFLAGS="-fsanitize=memory" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
       - run: wget http://download.savannah.gnu.org/releases/freetype/freetype-2.9.tar.bz2 && tar xf freetype-2.9.tar.bz2 && cd freetype-2.9 && ./autogen.sh && ./configure CPPFLAGS="-fsanitize=memory" LDFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ && make -j32 && make install && cd ..
       - run: CPPFLAGS="-fsanitize=memory -fsanitize-memory-track-origins" LDFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=memory -fsanitize-memory-track-origins -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --without-icu
-      - run: make -j32 && MSAN_OPTIONS=exitcode=42 HB_TEST_SUBSET_FUZZER_TIMEOUT=18 make check || .ci/fail.sh | asan_symbolize | c++filt
+      - run: make -j32 && MSAN_OPTIONS=exitcode=42 HB_TEST_SUBSET_FUZZER_TIMEOUT=30 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-tsan:
     docker:
@@ -211,7 +211,7 @@ jobs:
       - checkout
       - run: dnf install -y pkg-config ragel gcc gcc-c++ automake autoconf libtool make which diffutils glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python python-pip || true
       - run: NOCONFIGURE=1 ./autogen.sh
-      - run: mkdir build && cd build && CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ../configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make -j32 && (HB_TEST_SUBSET_FUZZER_TIMEOUT=15 make check || ../.ci/fail.sh)
+      - run: mkdir build && cd build && CFLAGS="-O0" CXXFLAGS="-O0" CPPFLAGS="-DHB_DEBUG" ../configure --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-graphite2 && make -j32 && (HB_TEST_SUBSET_FUZZER_TIMEOUT=30 make check || ../.ci/fail.sh)
 
   meson-gcc-mingw:
     docker:
