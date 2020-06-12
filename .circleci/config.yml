@@ -118,7 +118,7 @@ jobs:
       - run: make -j32
       # run-shape-fuzzer-tests.py automatically runs valgrind if see available
       # but test/api runs it by request, we probably should normalize the approaches
-      - run: HB_TEST_SHAPE_FUZZER_TIMEOUT=3 HB_TEST_SUBSET_FUZZER_TIMEOUT=30 RUN_VALGRIND=1 make check && make -Ctest/api check-valgrind || .ci/fail.sh
+      - run: HB_TEST_SHAPE_FUZZER_TIMEOUT=3 HB_TEST_SUBSET_FUZZER_TIMEOUT=50 RUN_VALGRIND=1 make check && make -Ctest/api check-valgrind || .ci/fail.sh
       # informational for now
       - run: make -Ctest/api check-symbols || true
 
@@ -152,7 +152,7 @@ jobs:
       - run: pip install fonttools
       - run: CPPFLAGS="-fsanitize=address" LDFLAGS="-fsanitize=address -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=address -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=address -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
-      - run: make check || .ci/fail.sh | asan_symbolize | c++filt
+      - run: HB_TEST_SUBSET_FUZZER_TIMEOUT=30 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-msan:
     docker:
