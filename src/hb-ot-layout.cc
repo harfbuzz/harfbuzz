@@ -1954,7 +1954,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
     for (; i < stage->last_lookup; i++)
     {
       unsigned int lookup_index = lookups[table_index][i].index;
-      if (!buffer->message (font, "start table %s lookup %d", (table_index==0 ? "GSUB" : "GPOS"), lookup_index)) continue;
+      if (!buffer->message (font, "start lookup %d", lookup_index)) continue;
       c.set_lookup_index (lookup_index);
       c.set_lookup_mask (lookups[table_index][i].mask);
       c.set_auto_zwj (lookups[table_index][i].auto_zwj);
@@ -1967,7 +1967,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       apply_string<Proxy> (&c,
 			   proxy.table.get_lookup (lookup_index),
 			   proxy.accels[lookup_index]);
-      (void) buffer->message (font, "end table %s lookup %d", (table_index==0 ? "GSUB" : "GPOS"), lookup_index);
+      (void) buffer->message (font, "end lookup %d", lookup_index);
     }
 
     if (stage->pause_func)
