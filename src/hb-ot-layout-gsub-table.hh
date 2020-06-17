@@ -1205,7 +1205,9 @@ struct ReverseChainSingleSubstFormat1
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
     const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
 
-  unsigned int start_index = 0, end_index = 0;
+    if (unlikely (index >= substitute.len)) return_trace (false);
+
+    unsigned int start_index = 0, end_index = 0;
     if (match_backtrack (c,
 			 backtrack.len, (HBUINT16 *) backtrack.arrayZ,
 			 match_coverage, this,
