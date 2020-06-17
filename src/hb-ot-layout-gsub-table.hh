@@ -522,6 +522,8 @@ struct MultipleSubst
 
 struct AlternateSet
 {
+  friend struct AlternateSubstFormat1;
+
   bool intersects (const hb_set_t *glyphs) const
   { return hb_any (alternates, glyphs); }
 
@@ -628,6 +630,14 @@ struct AlternateSubstFormat1
   bool would_apply (hb_would_apply_context_t *c) const
   { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
+  const ArrayOf<HBGlyphID> &get_alternates (hb_codepoint_t gid) const
+  {
+    unsigned index = (this+coverage).get_coverage (gid);
+    if (index == NOT_COVERED) return Null (ArrayOf<HBGlyphID>);
+
+    return (this+alternateSet[index]).alternates;
+  }
+
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -712,6 +722,14 @@ struct AlternateSubst
     switch (u.format) {
     case 1: return_trace (u.format1.serialize (c, glyphs, alternate_len_list, alternate_glyphs_list));
     default:return_trace (false);
+    }
+  }
+
+  const ArrayOf<HBGlyphID> &get_alternates (hb_codepoint_t gid) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_alternates (gid);
+    default:return Null (ArrayOf<HBGlyphID>);
     }
   }
 
@@ -1461,6 +1479,18 @@ struct SubstLookup : Lookup
 			     glyphs,
 			     substitute_len_list,
 			     substitute_glyphs_list));
+  }
+
+  const ArrayOf<HBGlyphID> &get_alternates (hb_codepoint_t gid) const
+  {
+    if (get_type () != SubTable::Alternate) return Null (ArrayOf<HBGlyphID>);
+    unsigned size = get_subtable_count ();
+    for (unsigned i = 0; i < size; ++i)
+    {
+      const ArrayOf<HBGlyphID> &alternates = get_subtable (i).u.alternate.get_alternates (gid);
+      if (alternates.len) return alternates;
+    }
+    return Null (ArrayOf<HBGlyphID>);
   }
 
   bool serialize_alternate (hb_serialize_context_t *c,

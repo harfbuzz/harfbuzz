@@ -449,6 +449,13 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
 			   hb_tag_t                     language_tag,
 			   hb_position_t               *coord        /* OUT.  May be NULL. */);
 
+HB_EXTERN unsigned
+hb_ot_layout_lookup_get_alternates (hb_face_t      *face,
+				    unsigned        lookup_index,
+				    hb_codepoint_t  glyph,
+				    unsigned        start_offset,
+				    unsigned       *alternate_count /* IN/OUT */,
+				    hb_codepoint_t *alternate_glyphs);
 
 HB_END_DECLS
 

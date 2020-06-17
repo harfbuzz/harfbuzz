@@ -1969,4 +1969,41 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
   return result;
 }
 #endif
+
+/**
+ * hb_ot_layout_lookup_get_alternates:
+ * @face: a face.
+ * @lookup_index: index of the feature lookup to query.
+ * @glyph: a glyph id.
+ * @start_offset: starting offset.
+ * @alternate_count: (inout) (allow-none): Input = the maximum number of alternate glyphs to return;
+ *                   Output = the actual number of alternate glyphs returned (may be zero).
+ * @alternate_glyphs: (out caller-allocates) (array length=alternate_count): A glyphs buffer.
+ *                    Alternate glyphs associated with the glyph id.
+ *
+ * Fetches alternates of a glyph from a given GSUB lookup index.
+ *
+ * Return value: total number of alternates found in the specific lookup index for the given glyph id.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN unsigned
+hb_ot_layout_lookup_get_alternates (hb_face_t      *face,
+				    unsigned        lookup_index,
+				    hb_codepoint_t  glyph,
+				    unsigned        start_offset,
+				    unsigned       *alternate_count /* IN/OUT */,
+				    hb_codepoint_t *alternate_glyphs)
+{
+  const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
+  const OT::ArrayOf<OT::HBGlyphID> &alternates = lookup.get_alternates (glyph);
+  if (alternate_count)
+  {
+    + alternates.sub_array (start_offset, alternate_count)
+    | hb_sink (hb_array (alternate_glyphs, *alternate_count))
+    ;
+  }
+  return alternates.len;
+}
+
 #endif
