@@ -1333,6 +1333,7 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
 	goto reph_move;
       }
     }
+    /* See https://github.com/harfbuzz/harfbuzz/issues/2298#issuecomment-615318654 */
 
     /*       6. Otherwise, reorder reph to the end of the syllable.
      */
