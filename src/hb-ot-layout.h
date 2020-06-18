@@ -455,7 +455,7 @@ hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
 					  hb_codepoint_t  glyph,
 					  unsigned        start_offset,
 					  unsigned       *alternate_count /* IN/OUT */,
-					  hb_codepoint_t *alternate_glyphs);
+					  hb_codepoint_t *alternate_glyphs /* OUT */);
 
 HB_END_DECLS
 
