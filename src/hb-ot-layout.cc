@@ -1969,6 +1969,34 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
 }
 #endif
 
+
+struct hb_get_glyph_alternates_context_t :
+       hb_dispatch_context_t<hb_get_glyph_alternates_context_t, unsigned, 0>
+{
+  const char *get_name () { return "GET_GLYPH_ALTERNATES"; }
+  static return_t default_return_value () { return 0; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
+
+  hb_face_t *face;
+  unsigned int debug_depth;
+
+  hb_get_glyph_alternates_context_t (hb_face_t *face) :
+				       face (face),
+				       debug_depth (0) {}
+
+  private:
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
+  ( obj.get_glyph_alternates (hb_forward<Ts> (ds)...) )
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
+  ( default_return_value () )
+  public:
+  template <typename T, typename ...Ts> auto
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
+};
+
 /**
  * hb_ot_layout_lookup_get_glyph_alternates:
  * @face: a face.
@@ -1994,9 +2022,9 @@ hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
 					  unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
 					  hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */)
 {
-  OT::hb_get_glyph_alternates_context_t c (face, glyph, start_offset, alternate_count, alternate_glyphs);
+  hb_get_glyph_alternates_context_t c (face);
   const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
-  auto ret = lookup.dispatch (&c);
+  auto ret = lookup.dispatch (&c, glyph, start_offset, alternate_count, alternate_glyphs);
   if (!ret && alternate_count) *alternate_count = 0;
   return ret;
 }

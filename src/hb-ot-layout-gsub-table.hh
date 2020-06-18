@@ -643,9 +643,12 @@ struct AlternateSubstFormat1
   { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
   unsigned
-  get_glyph_alternates (hb_get_glyph_alternates_context_t *c) const
-  { return (this+alternateSet[(this+coverage).get_coverage (c->gid)])
-	   .get_alternates (c->start_offset, c->alternate_count, c->alternate_glyphs); }
+  get_glyph_alternates (hb_codepoint_t  gid,
+			unsigned        start_offset,
+			unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
+			hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */) const
+  { return (this+alternateSet[(this+coverage).get_coverage (gid)])
+	   .get_alternates (start_offset, alternate_count, alternate_glyphs); }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
