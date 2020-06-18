@@ -1362,7 +1362,6 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
   OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, (bool) zero_context);
 
   const OT::SubstLookup& l = face->table.GSUB->table->get_lookup (lookup_index);
-
   return l.would_apply (&c, &face->table.GSUB->accels[lookup_index]);
 }
 
@@ -1380,7 +1379,7 @@ void
 hb_ot_layout_substitute_start (hb_font_t    *font,
 			       hb_buffer_t  *buffer)
 {
-_hb_ot_layout_set_glyph_props (font, buffer);
+  _hb_ot_layout_set_glyph_props (font, buffer);
 }
 
 void
