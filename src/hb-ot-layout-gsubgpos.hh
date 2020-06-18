@@ -302,9 +302,8 @@ struct hb_collect_glyphs_context_t :
 
 template <typename set_t>
 struct hb_collect_coverage_context_t :
-       hb_dispatch_context_t<hb_collect_coverage_context_t<set_t>, const Coverage &, HB_DEBUG_GET_COVERAGE>
+       hb_dispatch_context_t<hb_collect_coverage_context_t<set_t>, const Coverage &, 0>
 {
-  const char *get_name () { return "GET_COVERAGE"; }
   typedef const Coverage &return_t;
   template <typename T>
   return_t dispatch (const T &obj) { return obj.get_coverage (); }
@@ -695,7 +694,7 @@ struct hb_ot_apply_context_t :
 
 
 struct hb_get_subtables_context_t :
-       hb_dispatch_context_t<hb_get_subtables_context_t, hb_empty_t, HB_DEBUG_APPLY>
+       hb_dispatch_context_t<hb_get_subtables_context_t, hb_empty_t, 0>
 {
   template <typename Type>
   static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
@@ -731,7 +730,6 @@ struct hb_get_subtables_context_t :
   typedef hb_vector_t<hb_applicable_t> array_t;
 
   /* Dispatch interface. */
-  const char *get_name () { return "GET_SUBTABLES"; }
   template <typename T>
   return_t dispatch (const T &obj)
   {
