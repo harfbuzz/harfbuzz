@@ -1992,18 +1992,11 @@ hb_ot_layout_lookup_get_alternates (hb_face_t      *face,
 				    unsigned        lookup_index,
 				    hb_codepoint_t  glyph,
 				    unsigned        start_offset,
-				    unsigned       *alternate_count /* IN/OUT */,
-				    hb_codepoint_t *alternate_glyphs)
+				    unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
+				    hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */)
 {
   const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
-  const OT::ArrayOf<OT::HBGlyphID> &alternates = lookup.get_alternates (glyph);
-  if (alternate_count)
-  {
-    + alternates.sub_array (start_offset, alternate_count)
-    | hb_sink (hb_array (alternate_glyphs, *alternate_count))
-    ;
-  }
-  return alternates.len;
+  return lookup.get_alternates (glyph, start_offset, alternate_count, alternate_glyphs);
 }
 
 #endif
