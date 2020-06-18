@@ -1973,7 +1973,6 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
 struct hb_get_glyph_alternates_context_t :
        hb_dispatch_context_t<hb_get_glyph_alternates_context_t, unsigned, 0>
 {
-  const char *get_name () { return "GET_GLYPH_ALTERNATES"; }
   static return_t default_return_value () { return 0; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 

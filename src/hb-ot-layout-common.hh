@@ -153,7 +153,6 @@ struct hb_subset_layout_context_t :
 struct hb_collect_variation_indices_context_t :
        hb_dispatch_context_t<hb_collect_variation_indices_context_t, hb_empty_t, 0>
 {
-  const char *get_name () { return "CLOSURE_LAYOUT_VARIATION_IDXES"; }
   template <typename T>
   return_t dispatch (const T &obj) { obj.collect_variation_indices (this); return hb_empty_t (); }
   static return_t default_return_value () { return hb_empty_t (); }

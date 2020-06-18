@@ -44,7 +44,6 @@ namespace OT {
 struct hb_intersects_context_t :
        hb_dispatch_context_t<hb_intersects_context_t, bool, 0>
 {
-  const char *get_name () { return "INTERSECTS"; }
   template <typename T>
   return_t dispatch (const T &obj) { return obj.intersects (this->glyphs); }
   static return_t default_return_value () { return false; }
@@ -61,7 +60,6 @@ struct hb_intersects_context_t :
 struct hb_closure_context_t :
        hb_dispatch_context_t<hb_closure_context_t, hb_empty_t, 0>
 {
-  const char *get_name () { return "CLOSURE"; }
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
   return_t dispatch (const T &obj) { obj.closure (this); return hb_empty_t (); }
@@ -136,7 +134,6 @@ struct hb_closure_context_t :
 struct hb_closure_lookups_context_t :
        hb_dispatch_context_t<hb_closure_lookups_context_t, hb_empty_t, 0>
 {
-  const char *get_name () { return "CLOSURE_LOOKUPS"; }
   typedef return_t (*recurse_func_t) (hb_closure_lookups_context_t *c, unsigned lookup_index);
   template <typename T>
   return_t dispatch (const T &obj) { obj.closure_lookups (this); return hb_empty_t (); }
@@ -204,7 +201,6 @@ struct hb_closure_lookups_context_t :
 struct hb_would_apply_context_t :
        hb_dispatch_context_t<hb_would_apply_context_t, bool, 0>
 {
-  const char *get_name () { return "WOULD_APPLY"; }
   template <typename T>
   return_t dispatch (const T &obj) { return obj.would_apply (this); }
   static return_t default_return_value () { return false; }
@@ -230,7 +226,6 @@ struct hb_would_apply_context_t :
 struct hb_collect_glyphs_context_t :
        hb_dispatch_context_t<hb_collect_glyphs_context_t, hb_empty_t, 0>
 {
-  const char *get_name () { return "COLLECT_GLYPHS"; }
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
   return_t dispatch (const T &obj) { obj.collect_glyphs (this); return hb_empty_t (); }
