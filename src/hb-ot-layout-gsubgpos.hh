@@ -58,7 +58,7 @@ struct hb_intersects_context_t :
 };
 
 struct hb_closure_context_t :
-       hb_dispatch_context_t<hb_closure_context_t, hb_empty_t>
+       hb_dispatch_context_t<hb_closure_context_t>
 {
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
   template <typename T>
@@ -132,7 +132,7 @@ struct hb_closure_context_t :
 };
 
 struct hb_closure_lookups_context_t :
-       hb_dispatch_context_t<hb_closure_lookups_context_t, hb_empty_t>
+       hb_dispatch_context_t<hb_closure_lookups_context_t>
 {
   typedef return_t (*recurse_func_t) (hb_closure_lookups_context_t *c, unsigned lookup_index);
   template <typename T>
@@ -224,7 +224,7 @@ struct hb_would_apply_context_t :
 };
 
 struct hb_collect_glyphs_context_t :
-       hb_dispatch_context_t<hb_collect_glyphs_context_t, hb_empty_t>
+       hb_dispatch_context_t<hb_collect_glyphs_context_t>
 {
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
   template <typename T>
@@ -694,7 +694,7 @@ struct hb_ot_apply_context_t :
 
 
 struct hb_get_subtables_context_t :
-       hb_dispatch_context_t<hb_get_subtables_context_t, hb_empty_t>
+       hb_dispatch_context_t<hb_get_subtables_context_t>
 {
   template <typename Type>
   static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
