@@ -43,6 +43,7 @@ in_house_tests = [
   'none-directional.tests',
   'positioning-features.tests',
   'rand.tests',
+  'reverse-sub.tests',
   'rotation.tests',
   'simple.tests',
   'sinhala.tests',
