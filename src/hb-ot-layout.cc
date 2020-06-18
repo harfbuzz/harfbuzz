@@ -1994,8 +1994,11 @@ hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
 					  unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
 					  hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */)
 {
+  OT::hb_get_glyph_alternates_context_t c (face, glyph, start_offset, alternate_count, alternate_glyphs);
   const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
-  return lookup.get_glyph_alternates (glyph, start_offset, alternate_count, alternate_glyphs);
+  auto ret = lookup.dispatch (&c);
+  if (!ret && alternate_count) *alternate_count = 0;
+  return ret;
 }
 
 #endif

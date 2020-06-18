@@ -227,6 +227,45 @@ struct hb_would_apply_context_t :
 			      debug_depth (0) {}
 };
 
+struct hb_get_glyph_alternates_context_t :
+       hb_dispatch_context_t<hb_get_glyph_alternates_context_t, unsigned, 0>
+{
+  const char *get_name () { return "GET_GLYPH_ALTERNATES"; }
+  static return_t default_return_value () { return 0; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
+
+  hb_face_t *face;
+  hb_codepoint_t gid;
+  unsigned        start_offset;
+  unsigned       *alternate_count;
+  hb_codepoint_t *alternate_glyphs;
+  unsigned int debug_depth;
+
+  hb_get_glyph_alternates_context_t (hb_face_t *face_,
+				     hb_codepoint_t gid_,
+				     unsigned        start_offset_,
+				     unsigned       *alternate_count_,
+				     hb_codepoint_t *alternate_glyphs_) :
+				       face (face_),
+				       gid (gid_),
+				       start_offset (start_offset_),
+				       alternate_count (alternate_count_),
+				       alternate_glyphs (alternate_glyphs_),
+				       debug_depth (0) {}
+
+  private:
+  template <typename T> auto
+  _dispatch (const T &obj, hb_priority<1>) HB_AUTO_RETURN
+  ( obj.get_glyph_alternates (this) )
+  template <typename T> auto
+  _dispatch (const T &obj, hb_priority<0>) HB_AUTO_RETURN
+  ( default_return_value () )
+  public:
+  template <typename T> auto
+  dispatch (const T &obj) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize) )
+};
+
 
 struct hb_collect_glyphs_context_t :
        hb_dispatch_context_t<hb_collect_glyphs_context_t, hb_empty_t, 0>
