@@ -1971,7 +1971,7 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
 #endif
 
 /**
- * hb_ot_layout_lookup_get_alternates:
+ * hb_ot_layout_lookup_get_glyph_alternates:
  * @face: a face.
  * @lookup_index: index of the feature lookup to query.
  * @glyph: a glyph id.
@@ -1988,15 +1988,15 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
  * Since: REPLACEME
  **/
 HB_EXTERN unsigned
-hb_ot_layout_lookup_get_alternates (hb_face_t      *face,
-				    unsigned        lookup_index,
-				    hb_codepoint_t  glyph,
-				    unsigned        start_offset,
-				    unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
-				    hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */)
+hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
+					  unsigned        lookup_index,
+					  hb_codepoint_t  glyph,
+					  unsigned        start_offset,
+					  unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
+					  hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */)
 {
   const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
-  return lookup.get_alternates (glyph, start_offset, alternate_count, alternate_glyphs);
+  return lookup.get_glyph_alternates (glyph, start_offset, alternate_count, alternate_glyphs);
 }
 
 #endif
