@@ -347,11 +347,12 @@ struct RecordArrayOf : SortedArrayOf<Record<Type>>
 			 unsigned int *record_count /* IN/OUT */,
 			 hb_tag_t     *record_tags /* OUT */) const
   {
-    if (record_count) {
-      const Record<Type> *arr = this->sub_array (start_offset, record_count);
-      unsigned int count = *record_count;
-      for (unsigned int i = 0; i < count; i++)
-	record_tags[i] = arr[i].tag;
+    if (record_count)
+    {
+      + this->sub_array (start_offset, record_count)
+      | hb_map (&Record<Type>::tag)
+      | hb_sink (hb_array (record_tags, *record_count))
+      ;
     }
     return this->len;
   }
@@ -464,11 +465,11 @@ struct IndexArray : ArrayOf<Index>
 			    unsigned int *_count /* IN/OUT */,
 			    unsigned int *_indexes /* OUT */) const
   {
-    if (_count) {
-      const HBUINT16 *arr = this->sub_array (start_offset, _count);
-      unsigned int count = *_count;
-      for (unsigned int i = 0; i < count; i++)
-	_indexes[i] = arr[i];
+    if (_count)
+    {
+      + this->sub_array (start_offset, _count)
+      | hb_sink (hb_array (_indexes, *_count))
+      ;
     }
     return this->len;
   }

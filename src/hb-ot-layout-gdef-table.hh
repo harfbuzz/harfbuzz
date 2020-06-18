@@ -73,10 +73,9 @@ struct AttachList
 
     if (point_count)
     {
-      hb_array_t<const HBUINT16> array = points.sub_array (start_offset, point_count);
-      unsigned int count = array.length;
-      for (unsigned int i = 0; i < count; i++)
-	point_array[i] = array[i];
+      + points.sub_array (start_offset, point_count)
+      | hb_sink (hb_array (point_array, *point_count))
+      ;
     }
 
     return points.len;
