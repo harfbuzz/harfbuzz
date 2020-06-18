@@ -35,7 +35,7 @@
  * Dispatch
  */
 
-template <typename Context, typename Return, unsigned int MaxDebugDepth>
+template <typename Context, typename Return, unsigned int MaxDebugDepth=0>
 struct hb_dispatch_context_t
 {
   private:

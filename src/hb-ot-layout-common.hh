@@ -151,7 +151,7 @@ struct hb_subset_layout_context_t :
 };
 
 struct hb_collect_variation_indices_context_t :
-       hb_dispatch_context_t<hb_collect_variation_indices_context_t, hb_empty_t, 0>
+       hb_dispatch_context_t<hb_collect_variation_indices_context_t, hb_empty_t>
 {
   template <typename T>
   return_t dispatch (const T &obj) { obj.collect_variation_indices (this); return hb_empty_t (); }
