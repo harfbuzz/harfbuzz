@@ -557,11 +557,11 @@ struct AlternateSet
   }
 
   unsigned
-  get_glyph_alternates (unsigned        start_offset,
-			unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
-			hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */) const
+  get_alternates (unsigned        start_offset,
+		  unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
+		  hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */) const
   {
-    if (alternate_count)
+    if (alternates.len && alternate_count)
     {
       + alternates.sub_array (start_offset, alternate_count)
       | hb_sink (hb_array (alternate_glyphs, *alternate_count))
@@ -642,15 +642,13 @@ struct AlternateSubstFormat1
   bool would_apply (hb_would_apply_context_t *c) const
   { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
 
-  unsigned get_coverage_index (hb_codepoint_t gid) const
-  { return (this+coverage).get_coverage (gid); }
-
   unsigned
-  get_glyph_alternates (unsigned        index,
+  get_glyph_alternates (hb_codepoint_t  gid,
 			unsigned        start_offset,
 			unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
 			hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */) const
-  { return (this+alternateSet[index]).get_glyph_alternates (start_offset, alternate_count, alternate_glyphs); }
+  { return (this+alternateSet[(this+coverage).get_coverage (gid)])
+	   .get_alternates (start_offset, alternate_count, alternate_glyphs); }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
@@ -740,22 +738,13 @@ struct AlternateSubst
   }
 
   unsigned
-  get_coverage_index (hb_codepoint_t gid) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.get_coverage_index (gid);
-    default:return NOT_COVERED;
-    }
-  }
-
-  unsigned
-  get_glyph_alternates (unsigned        index,
+  get_glyph_alternates (hb_codepoint_t  gid,
 			unsigned        start_offset,
 			unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
 			hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_glyph_alternates (index, start_offset, alternate_count, alternate_glyphs);
+    case 1: return u.format1.get_glyph_alternates (gid, start_offset, alternate_count, alternate_glyphs);
     default:assert (0); return 0;
     }
   }
@@ -1519,10 +1508,9 @@ struct SubstLookup : Lookup
       unsigned size = get_subtable_count ();
       for (unsigned i = 0; i < size; ++i)
       {
-	const AlternateSubst &alternate_subtable = get_subtable (i).u.alternate;
-	unsigned index = alternate_subtable.get_coverage_index (gid);
-	if (index != NOT_COVERED)
-	  return alternate_subtable.get_glyph_alternates (index, start_offset, alternate_count, alternate_glyphs);
+	const AlternateSubst &subtable = get_subtable (i).u.alternate;
+	auto ret = subtable.get_glyph_alternates (gid, start_offset, alternate_count, alternate_glyphs);
+	if (ret) return (ret);
       }
     }
     if (alternate_count) *alternate_count = 0;
