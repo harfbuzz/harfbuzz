@@ -1710,12 +1710,6 @@ hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
  * Fetches a list of the characters defined as having a variant under the specified
  * "Character Variant" ("cvXX") feature tag.
  *
- * <note>Note: If the char_count output value is equal to its input value, then there
- *       is a chance there were more characters defined under the feature tag than were
- *       returned. This function can be called with incrementally larger start_offset
- *       until the char_count output value is lower than its input value, or the size
- *       of the characters array can be increased.</note>
- *
  * Return value: Number of total sample characters in the cvXX feature.
  *
  * Since: 2.0.0
@@ -1729,24 +1723,10 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 				     hb_codepoint_t *characters  /* OUT.     May be NULL */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-
-  hb_tag_t feature_tag = g.get_feature_tag (feature_index);
-  const OT::Feature &f = g.get_feature (feature_index);
-
-  const OT::FeatureParams &feature_params = f.get_feature_params ();
-
-  const OT::FeatureParamsCharacterVariants& cv_params =
-    feature_params.get_character_variants_params(feature_tag);
-
-  unsigned int len = 0;
-  if (char_count && characters && start_offset < cv_params.characters.len)
-  {
-    len = hb_min (cv_params.characters.len - start_offset, *char_count);
-    for (unsigned int i = 0; i < len; ++i)
-      characters[i] = cv_params.characters[start_offset + i];
-  }
-  if (char_count) *char_count = len;
-  return cv_params.characters.len;
+  return g.get_feature (feature_index)
+	  .get_feature_params ()
+	  .get_character_variants_params(g.get_feature_tag (feature_index))
+	  .get_characters (start_offset, char_count, characters);
 }
 #endif
 
