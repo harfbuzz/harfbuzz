@@ -126,7 +126,6 @@ struct hb_subset_layout_context_t :
   const hb_tag_t table_tag;
   const hb_map_t *lookup_index_map;
   const hb_map_t *feature_index_map;
-  unsigned debug_depth;
 
   hb_subset_layout_context_t (hb_subset_context_t *c_,
 			      hb_tag_t tag_,
@@ -136,7 +135,6 @@ struct hb_subset_layout_context_t :
 				table_tag (tag_),
 				lookup_index_map (lookup_map_),
 				feature_index_map (feature_map_),
-				debug_depth (0),
 				script_count (0),
 				langsys_count (0),
 				feature_index_count (0),

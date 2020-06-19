@@ -530,7 +530,6 @@ struct hb_ot_apply_context_t :
   unsigned int lookup_index;
   unsigned int lookup_props;
   unsigned int nesting_level_left;
-  unsigned int debug_depth;
 
   bool has_glyph_classes;
   bool auto_zwnj;
@@ -560,7 +559,6 @@ struct hb_ot_apply_context_t :
 			lookup_index ((unsigned int) -1),
 			lookup_props (0),
 			nesting_level_left (HB_MAX_NESTING_LEVEL),
-			debug_depth (0),
 			has_glyph_classes (gdef.has_glyph_classes ()),
 			auto_zwnj (true),
 			auto_zwj (true),
@@ -728,11 +726,9 @@ struct hb_get_subtables_context_t :
   static return_t default_return_value () { return hb_empty_t (); }
 
   hb_get_subtables_context_t (array_t &array_) :
-			      array (array_),
-			      debug_depth (0) {}
+			      array (array_) {}
 
   array_t &array;
-  unsigned int debug_depth;
 };
 
 
