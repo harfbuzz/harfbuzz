@@ -1723,17 +1723,10 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 				     hb_codepoint_t *characters  /* OUT.     May be NULL */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-  auto &cv_params = g.get_feature (feature_index)
-		     .get_feature_params ()
-		     .get_character_variants_params(g.get_feature_tag (feature_index));
-
-  if (char_count)
-  {
-    + cv_params.characters.sub_array (start_offset, char_count)
-    | hb_sink (hb_array (characters, *char_count))
-    ;
-  }
-  return cv_params.characters.len;
+  return g.get_feature (feature_index)
+	  .get_feature_params ()
+	  .get_character_variants_params(g.get_feature_tag (feature_index))
+	  .get_characters (start_offset, char_count, characters);
 }
 #endif
 
