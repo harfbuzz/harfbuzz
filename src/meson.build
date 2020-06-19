@@ -640,6 +640,12 @@ if have_gobject
   hb_gen_files_gir = []
   if build_gir
     conf.set('HAVE_INTROSPECTION', 1)
+
+    gir_includes = ['GObject-2.0']
+    if conf.get('HAVE_FREETYPE', 0) == 1
+      gir_includes += ['freetype2-2.0']
+    endif
+
     python = import('python').find_installation('python3')
     identfilter_py = join_paths(meson.current_source_dir(), 'gen-introspection-symbols.py')
     new_gir = gnome.generate_gir(libharfbuzz, libharfbuzz_gobject,
@@ -648,7 +654,7 @@ if have_gobject
       nsversion: '@0@.0'.format(hb_version_major),
       identifier_prefix: 'Hb',
       symbol_prefix: ['hb', 'hb_gobject'],
-      includes: ['GObject-2.0'],
+      includes: gir_includes,
       export_packages: ['harfbuzz-gobject'],
       header: 'hb-gobject.h',
       install: true,
@@ -676,7 +682,7 @@ if have_gobject
       nsversion: '0.0',
       identifier_prefix: 'hb_',
       symbol_prefix: ['hb', 'hb_gobject'],
-      includes: ['GObject-2.0'],
+      includes: gir_includes,
       export_packages: ['harfbuzz-gobject'],
       header: 'hb-gobject.h',
       install: true,
