@@ -50,11 +50,9 @@ struct hb_intersects_context_t :
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
   const hb_set_t *glyphs;
-  unsigned int debug_depth;
 
   hb_intersects_context_t (const hb_set_t *glyphs_) :
-			     glyphs (glyphs_),
-			     debug_depth (0) {}
+			     glyphs (glyphs_) {}
 };
 
 struct hb_closure_context_t :
@@ -100,7 +98,6 @@ struct hb_closure_context_t :
   hb_set_t output[1];
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
-  unsigned int debug_depth;
 
   hb_closure_context_t (hb_face_t *face_,
 			hb_set_t *glyphs_,
@@ -110,7 +107,6 @@ struct hb_closure_context_t :
 			  glyphs (glyphs_),
 			  recurse_func (nullptr),
 			  nesting_level_left (nesting_level_left_),
-			  debug_depth (0),
 			  done_lookups (done_lookups_),
 			  lookup_count (0)
   {}
@@ -174,7 +170,6 @@ struct hb_closure_lookups_context_t :
   const hb_set_t *glyphs;
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
-  unsigned int debug_depth;
 
   hb_closure_lookups_context_t (hb_face_t *face_,
 				const hb_set_t *glyphs_,
@@ -185,7 +180,6 @@ struct hb_closure_lookups_context_t :
 				glyphs (glyphs_),
 				recurse_func (nullptr),
 				nesting_level_left (nesting_level_left_),
-				debug_depth (0),
 				visited_lookups (visited_lookups_),
 				inactive_lookups (inactive_lookups_),
 				lookup_count (0) {}
@@ -210,7 +204,6 @@ struct hb_would_apply_context_t :
   const hb_codepoint_t *glyphs;
   unsigned int len;
   bool zero_context;
-  unsigned int debug_depth;
 
   hb_would_apply_context_t (hb_face_t *face_,
 			    const hb_codepoint_t *glyphs_,
@@ -219,8 +212,7 @@ struct hb_would_apply_context_t :
 			      face (face_),
 			      glyphs (glyphs_),
 			      len (len_),
-			      zero_context (zero_context_),
-			      debug_depth (0) {}
+			      zero_context (zero_context_) {}
 };
 
 struct hb_collect_glyphs_context_t :
@@ -276,7 +268,6 @@ struct hb_collect_glyphs_context_t :
   recurse_func_t recurse_func;
   hb_set_t *recursed_lookups;
   unsigned int nesting_level_left;
-  unsigned int debug_depth;
 
   hb_collect_glyphs_context_t (hb_face_t *face_,
 			       hb_set_t  *glyphs_before, /* OUT.  May be NULL */
@@ -291,8 +282,7 @@ struct hb_collect_glyphs_context_t :
 			      output (glyphs_output ? glyphs_output : hb_set_get_empty ()),
 			      recurse_func (nullptr),
 			      recursed_lookups (hb_set_create ()),
-			      nesting_level_left (nesting_level_left_),
-			      debug_depth (0) {}
+			      nesting_level_left (nesting_level_left_) {}
   ~hb_collect_glyphs_context_t () { hb_set_destroy (recursed_lookups); }
 
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
@@ -315,11 +305,9 @@ struct hb_collect_coverage_context_t :
   }
 
   hb_collect_coverage_context_t (set_t *set_) :
-				   set (set_),
-				   debug_depth (0) {}
+				   set (set_) {}
 
   set_t *set;
-  unsigned int debug_depth;
 };
 
 

@@ -1977,11 +1977,9 @@ struct hb_get_glyph_alternates_dispatch_t :
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
   hb_face_t *face;
-  unsigned int debug_depth;
 
   hb_get_glyph_alternates_dispatch_t (hb_face_t *face) :
-					face (face),
-					debug_depth (0) {}
+					face (face) {}
 
   private:
   template <typename T, typename ...Ts> auto

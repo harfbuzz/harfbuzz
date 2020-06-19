@@ -44,6 +44,7 @@ struct hb_dispatch_context_t
 	Context* thiz ()       { return static_cast<      Context *> (this); }
   public:
   const char *get_name () { return "UNKNOWN"; }
+  static constexpr unsigned debug_depth = 0;
   static constexpr unsigned max_debug_depth = MaxDebugDepth;
   typedef Return return_t;
   template <typename T, typename F>
