@@ -515,9 +515,9 @@ struct MathGlyphAssembly
     if (parts_count)
     {
       int64_t mult = font->dir_mult (direction);
-      + hb_enumerate (partRecords.sub_array (start_offset, parts_count))
-      | hb_apply ([&] (hb_pair_t<unsigned, const MathGlyphPartRecord &> pair)
-		  { pair.second.extract (parts[pair.first], mult, font); })
+      + hb_zip (partRecords.sub_array (start_offset, parts_count), hb_array (parts, *parts_count))
+      | hb_apply ([&] (hb_pair_t<const MathGlyphPartRecord &, hb_ot_math_glyph_part_t &> _)
+		  { _.first.extract (_.second, mult, font); })
       ;
     }
 
@@ -563,10 +563,10 @@ struct MathGlyphConstruction
     if (variants_count)
     {
       int64_t mult = font->dir_mult (direction);
-      + mathGlyphVariantRecord.sub_array (start_offset, variants_count)
-      | hb_map ([&] (const MathGlyphVariantRecord &record) -> hb_ot_math_glyph_variant_t
-		{ return {record.variantGlyph, font->em_mult (record.advanceMeasurement, mult)}; })
-      | hb_sink (hb_array (variants, *variants_count))
+      + hb_zip (mathGlyphVariantRecord.sub_array (start_offset, variants_count),
+		hb_array (variants, *variants_count))
+      | hb_apply ([&] (hb_pair_t<const MathGlyphVariantRecord &, hb_ot_math_glyph_variant_t &> _)
+		  { _.second = {_.first.variantGlyph, font->em_mult (_.first.advanceMeasurement, mult)}; })
       ;
     }
     return mathGlyphVariantRecord.len;
