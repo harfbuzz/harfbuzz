@@ -40,6 +40,7 @@ TEST_PROGS = \
 	test-font \
 	test-map \
 	test-object \
+	test-ot-alternates \
 	test-ot-color \
 	test-ot-face \
 	test-ot-glyphname \

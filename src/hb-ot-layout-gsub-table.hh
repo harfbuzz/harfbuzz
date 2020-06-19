@@ -556,6 +556,20 @@ struct AlternateSet
     return_trace (true);
   }
 
+  unsigned
+  get_alternates (unsigned        start_offset,
+		  unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
+		  hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */) const
+  {
+    if (alternates.len && alternate_count)
+    {
+      + alternates.sub_array (start_offset, alternate_count)
+      | hb_sink (hb_array (alternate_glyphs, *alternate_count))
+      ;
+    }
+    return alternates.len;
+  }
+
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
@@ -627,6 +641,14 @@ struct AlternateSubstFormat1
 
   bool would_apply (hb_would_apply_context_t *c) const
   { return c->len == 1 && (this+coverage).get_coverage (c->glyphs[0]) != NOT_COVERED; }
+
+  unsigned
+  get_glyph_alternates (hb_codepoint_t  gid,
+			unsigned        start_offset,
+			unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
+			hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */) const
+  { return (this+alternateSet[(this+coverage).get_coverage (gid)])
+	   .get_alternates (start_offset, alternate_count, alternate_glyphs); }
 
   bool apply (hb_ot_apply_context_t *c) const
   {

@@ -35,7 +35,7 @@
  * Dispatch
  */
 
-template <typename Context, typename Return, unsigned int MaxDebugDepth>
+template <typename Context, typename Return=hb_empty_t, unsigned int MaxDebugDepth=0>
 struct hb_dispatch_context_t
 {
   private:
@@ -43,6 +43,8 @@ struct hb_dispatch_context_t
   const Context* thiz () const { return static_cast<const Context *> (this); }
 	Context* thiz ()       { return static_cast<      Context *> (this); }
   public:
+  const char *get_name () { return "UNKNOWN"; }
+  static constexpr unsigned debug_depth = 0;
   static constexpr unsigned max_debug_depth = MaxDebugDepth;
   typedef Return return_t;
   template <typename T, typename F>

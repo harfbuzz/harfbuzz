@@ -151,9 +151,8 @@ struct hb_subset_layout_context_t :
 };
 
 struct hb_collect_variation_indices_context_t :
-       hb_dispatch_context_t<hb_collect_variation_indices_context_t, hb_empty_t, 0>
+       hb_dispatch_context_t<hb_collect_variation_indices_context_t>
 {
-  const char *get_name () { return "CLOSURE_LAYOUT_VARIATION_IDXES"; }
   template <typename T>
   return_t dispatch (const T &obj) { obj.collect_variation_indices (this); return hb_empty_t (); }
   static return_t default_return_value () { return hb_empty_t (); }
@@ -161,15 +160,13 @@ struct hb_collect_variation_indices_context_t :
   hb_set_t *layout_variation_indices;
   const hb_set_t *glyph_set;
   const hb_map_t *gpos_lookups;
-  unsigned int debug_depth;
 
   hb_collect_variation_indices_context_t (hb_set_t *layout_variation_indices_,
 					  const hb_set_t *glyph_set_,
 					  const hb_map_t *gpos_lookups_) :
 					layout_variation_indices (layout_variation_indices_),
 					glyph_set (glyph_set_),
-					gpos_lookups (gpos_lookups_),
-					debug_depth (0) {}
+					gpos_lookups (gpos_lookups_) {}
 };
 
 template<typename OutputArray>

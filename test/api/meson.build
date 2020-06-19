@@ -16,6 +16,7 @@ tests = [
   'test-font.c',
   'test-map.c',
   'test-object.c',
+  'test-ot-alternates.c',
   'test-ot-color.c',
   'test-ot-face.c',
   'test-ot-glyphname.c',

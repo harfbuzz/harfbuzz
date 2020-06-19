@@ -323,6 +323,14 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
 HB_EXTERN hb_bool_t
 hb_ot_layout_has_substitution (hb_face_t *face);
 
+HB_EXTERN unsigned
+hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
+					  unsigned        lookup_index,
+					  hb_codepoint_t  glyph,
+					  unsigned        start_offset,
+					  unsigned       *alternate_count /* IN/OUT */,
+					  hb_codepoint_t *alternate_glyphs /* OUT */);
+
 HB_EXTERN hb_bool_t
 hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 				      unsigned int          lookup_index,
@@ -448,7 +456,6 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
 			   hb_tag_t                     script_tag,
 			   hb_tag_t                     language_tag,
 			   hb_position_t               *coord        /* OUT.  May be NULL. */);
-
 
 HB_END_DECLS
 

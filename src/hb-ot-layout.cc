@@ -1362,7 +1362,6 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
   OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, (bool) zero_context);
 
   const OT::SubstLookup& l = face->table.GSUB->table->get_lookup (lookup_index);
-
   return l.would_apply (&c, &face->table.GSUB->accels[lookup_index]);
 }
 
@@ -1380,7 +1379,7 @@ void
 hb_ot_layout_substitute_start (hb_font_t    *font,
 			       hb_buffer_t  *buffer)
 {
-_hb_ot_layout_set_glyph_props (font, buffer);
+  _hb_ot_layout_set_glyph_props (font, buffer);
 }
 
 void
@@ -1969,4 +1968,62 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
   return result;
 }
 #endif
+
+
+struct hb_get_glyph_alternates_dispatch_t :
+       hb_dispatch_context_t<hb_get_glyph_alternates_dispatch_t, unsigned>
+{
+  static return_t default_return_value () { return 0; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
+
+  hb_face_t *face;
+
+  hb_get_glyph_alternates_dispatch_t (hb_face_t *face) :
+					face (face) {}
+
+  private:
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
+  ( obj.get_glyph_alternates (hb_forward<Ts> (ds)...) )
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
+  ( default_return_value () )
+  public:
+  template <typename T, typename ...Ts> auto
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
+};
+
+/**
+ * hb_ot_layout_lookup_get_glyph_alternates:
+ * @face: a face.
+ * @lookup_index: index of the feature lookup to query.
+ * @glyph: a glyph id.
+ * @start_offset: starting offset.
+ * @alternate_count: (inout) (allow-none): Input = the maximum number of alternate glyphs to return;
+ *                   Output = the actual number of alternate glyphs returned (may be zero).
+ * @alternate_glyphs: (out caller-allocates) (array length=alternate_count): A glyphs buffer.
+ *                    Alternate glyphs associated with the glyph id.
+ *
+ * Fetches alternates of a glyph from a given GSUB lookup index.
+ *
+ * Return value: total number of alternates found in the specific lookup index for the given glyph id.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN unsigned
+hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
+					  unsigned        lookup_index,
+					  hb_codepoint_t  glyph,
+					  unsigned        start_offset,
+					  unsigned       *alternate_count  /* IN/OUT.  May be NULL. */,
+					  hb_codepoint_t *alternate_glyphs /* OUT.     May be NULL. */)
+{
+  hb_get_glyph_alternates_dispatch_t c (face);
+  const OT::SubstLookup &lookup = face->table.GSUB->table->get_lookup (lookup_index);
+  auto ret = lookup.dispatch (&c, glyph, start_offset, alternate_count, alternate_glyphs);
+  if (!ret && alternate_count) *alternate_count = 0;
+  return ret;
+}
+
 #endif
