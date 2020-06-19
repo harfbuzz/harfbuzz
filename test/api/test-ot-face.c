@@ -32,17 +32,19 @@
 
 /* Unit tests for hb-ot-*.h */
 
-
-static void
+/* Return some dummy result so that compiler won't just optimize things */
+static long long
 test_font (hb_font_t *font, hb_codepoint_t cp)
 {
+  long long result = 0;
+
   hb_face_t *face = hb_font_get_face (font);
   hb_set_t *set;
-  hb_codepoint_t g;
-  hb_position_t x, y;
+  hb_codepoint_t g = 0;
+  hb_position_t x = 0, y = 0;
   char buf[5] = {0};
-  unsigned int len;
-  hb_glyph_extents_t extents;
+  unsigned int len = 0;
+  hb_glyph_extents_t extents = {0};
   hb_ot_font_set_funcs (font);
 
   set = hb_set_create ();
@@ -74,14 +76,17 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_color_has_png (face);
   hb_blob_destroy (hb_ot_color_glyph_reference_png (font, cp));
 
-  hb_aat_layout_feature_type_t feature;
-  unsigned count = 1;
-  hb_aat_layout_get_feature_types (face, 0, &count, &feature);
-  hb_aat_layout_feature_type_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE);
-  hb_aat_layout_feature_selector_info_t setting = {0};
-  unsigned default_index;
-  count = 1;
-  hb_aat_layout_feature_type_get_selector_infos (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, 0, &count, &setting, &default_index);
+  {
+    hb_aat_layout_feature_type_t feature = HB_AAT_LAYOUT_FEATURE_TYPE_ALL_TYPOGRAPHIC;
+    unsigned count = 1;
+    hb_aat_layout_get_feature_types (face, 0, &count, &feature);
+    hb_aat_layout_feature_type_get_name_id (face, HB_AAT_LAYOUT_FEATURE_TYPE_CHARACTER_SHAPE);
+    hb_aat_layout_feature_selector_info_t setting = {0};
+    unsigned default_index;
+    count = 1;
+    hb_aat_layout_feature_type_get_selector_infos (face, HB_AAT_LAYOUT_FEATURE_TYPE_DESIGN_COMPLEXITY_TYPE, 0, &count, &setting, &default_index);
+    result += count + feature + setting.disable + setting.disable + setting.name_id + setting.reserved + default_index;
+  }
 
   hb_set_t *lookup_indexes = hb_set_create ();
   hb_set_add (lookup_indexes, 0);
@@ -102,8 +107,8 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR, cp, 0, NULL, NULL);
 
   {
-    unsigned temp = 0, temp2;
-    hb_ot_name_id_t name;
+    unsigned temp = 0, temp2 = 0;
+    hb_ot_name_id_t name = HB_OT_NAME_ID_FULL_NAME;
     hb_ot_layout_get_size_params (face, &temp, &temp, &name, &temp, &temp);
     hb_tag_t cv01 = HB_TAG ('c','v','0','1');
     unsigned feature_index = 0;
@@ -116,6 +121,8 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
     hb_ot_layout_feature_get_characters (face, HB_OT_TAG_GSUB, feature_index, 0, &temp, &g);
     temp = 1;
     hb_ot_layout_language_get_feature_indexes (face, HB_OT_TAG_GSUB, 0, 0, 0, &temp, &temp2);
+
+    result += temp + name + feature_index + temp2;
   }
 
   hb_ot_math_has_data (face);
@@ -162,6 +169,9 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
 #endif
 
   hb_set_destroy (set);
+
+  return result + g + x + y + buf[0] + buf[1] + buf[2] + buf[3] + buf[4] + len +
+	 extents.height + extents.width + extents.x_bearing + extents.y_bearing;
 }
 
 #ifndef TEST_OT_FACE_NO_MAIN
