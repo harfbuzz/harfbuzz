@@ -304,7 +304,7 @@ template <typename set_t>
 struct hb_collect_coverage_context_t :
        hb_dispatch_context_t<hb_collect_coverage_context_t<set_t>, const Coverage &>
 {
-  typedef const Coverage &return_t;
+  typedef const Coverage &return_t; // Stoopid that we have to dupe this here.
   template <typename T>
   return_t dispatch (const T &obj) { return obj.get_coverage (); }
   static return_t default_return_value () { return Null (Coverage); }
