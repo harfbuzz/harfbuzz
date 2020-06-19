@@ -42,16 +42,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   if (size < len)
     len = size;
   if (len)
-    memcpy(text32, data + size - len, len);
+    memcpy (text32, data + size - len, len);
+
+  /* Misc calls on font. */
+  text32[10] = test_font (font, text32[15]) % 256;
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_add_utf32 (buffer, text32, sizeof (text32) / sizeof (text32[0]), 0, -1);
   hb_buffer_guess_segment_properties (buffer);
   hb_shape (font, buffer, nullptr, 0);
   hb_buffer_destroy (buffer);
-
-  /* Misc calls on font. */
-  test_font (font, text32[15]);
 
   hb_font_destroy (font);
   hb_face_destroy (face);
