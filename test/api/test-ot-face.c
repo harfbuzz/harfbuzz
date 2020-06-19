@@ -101,6 +101,23 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
 
   hb_ot_layout_get_ligature_carets (font, HB_DIRECTION_LTR, cp, 0, NULL, NULL);
 
+  {
+    unsigned temp = 0, temp2;
+    hb_ot_name_id_t name;
+    hb_ot_layout_get_size_params (face, &temp, &temp, &name, &temp, &temp);
+    hb_tag_t cv01 = HB_TAG ('c','v','0','1');
+    unsigned feature_index = 0;
+    hb_ot_layout_language_find_feature (face, HB_OT_TAG_GSUB, 0,
+					HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX,
+					cv01, &feature_index);
+    hb_ot_layout_feature_get_name_ids (face, HB_OT_TAG_GSUB, feature_index,
+				       &name, &name, &name, &temp, &name);
+    temp = 1;
+    hb_ot_layout_feature_get_characters (face, HB_OT_TAG_GSUB, feature_index, 0, &temp, &g);
+    temp = 1;
+    hb_ot_layout_language_get_feature_indexes (face, HB_OT_TAG_GSUB, 0, 0, 0, &temp, &temp2);
+  }
+
   hb_ot_math_has_data (face);
   hb_ot_math_get_constant (font, HB_OT_MATH_CONSTANT_MATH_LEADING);
   hb_ot_math_get_glyph_italics_correction (font, cp);
