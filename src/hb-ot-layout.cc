@@ -1727,14 +1727,12 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 		     .get_feature_params ()
 		     .get_character_variants_params(g.get_feature_tag (feature_index));
 
-  unsigned int len = 0;
-  if (char_count && characters && start_offset < cv_params.characters.len)
+  if (char_count)
   {
-    len = hb_min (cv_params.characters.len - start_offset, *char_count);
-    for (unsigned int i = 0; i < len; ++i)
-      characters[i] = cv_params.characters[start_offset + i];
+    + cv_params.characters.sub_array (start_offset, char_count)
+    | hb_sink (hb_array (characters, *char_count))
+    ;
   }
-  if (char_count) *char_count = len;
   return cv_params.characters.len;
 }
 #endif
