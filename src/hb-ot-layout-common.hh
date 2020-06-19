@@ -805,13 +805,6 @@ struct FeatureParamsStylisticSet
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/features_ae#cv01-cv99 */
 struct FeatureParamsCharacterVariants
 {
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  characters.sanitize (c));
-  }
-
   unsigned get_size () const
   { return min_size + characters.len * HBUINT24::static_size; }
 
@@ -819,6 +812,13 @@ struct FeatureParamsCharacterVariants
   {
     TRACE_SUBSET (this);
     return_trace ((bool) c->serializer->embed (*this));
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+		  characters.sanitize (c));
   }
 
   HBUINT16	format;			/* Format number is set to 0. */
