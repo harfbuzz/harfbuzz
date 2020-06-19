@@ -1723,14 +1723,9 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 				     hb_codepoint_t *characters  /* OUT.     May be NULL */)
 {
   const OT::GSUBGPOS &g = get_gsubgpos_table (face, table_tag);
-
-  hb_tag_t feature_tag = g.get_feature_tag (feature_index);
-  const OT::Feature &f = g.get_feature (feature_index);
-
-  const OT::FeatureParams &feature_params = f.get_feature_params ();
-
-  const OT::FeatureParamsCharacterVariants& cv_params =
-    feature_params.get_character_variants_params(feature_tag);
+  auto &cv_params = g.get_feature (feature_index)
+		     .get_feature_params ()
+		     .get_character_variants_params(g.get_feature_tag (feature_index));
 
   unsigned int len = 0;
   if (char_count && characters && start_offset < cv_params.characters.len)
