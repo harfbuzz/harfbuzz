@@ -28,6 +28,7 @@ EXTRA_DIST = \
 	subprojects/zlib.wrap \
 	meson-cc-tests/intel-atomic-primitives-test.c \
 	meson-cc-tests/solaris-atomic-operations.c \
+	write-tarball-revision.py \
 	$(NULL)
 
 MAINTAINERCLEANFILES = \

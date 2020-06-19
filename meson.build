@@ -356,6 +356,8 @@ if not get_option('gtk_doc').disabled()
   subdir('docs')
 endif
 
+meson.add_dist_script('write-tarball-revision.py')
+
 configure_file(output: 'config.h', configuration: conf)
 
 summary({'prefix': get_option('prefix'),
