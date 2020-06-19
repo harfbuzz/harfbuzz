@@ -68,6 +68,15 @@ test_ot_layout_feature_get_name_ids_and_characters (void)
   g_assert_cmpint (char_count, ==, 2);
   g_assert_cmpint (characters[0], ==, 10);
   g_assert_cmpint (characters[1], ==, 24030);
+
+  char_count = 100;
+  characters[1] = 1234;
+  all_chars = hb_ot_layout_feature_get_characters (face, HB_OT_TAG_GSUB, feature_index,
+						   1, &char_count, characters);
+  g_assert_cmpint (all_chars, ==, 2);
+  g_assert_cmpint (char_count, ==, 1);
+  g_assert_cmpint (characters[0], ==, 24030);
+  g_assert_cmpint (characters[1], ==, 1234);
 }
 
 static void
