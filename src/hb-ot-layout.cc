@@ -1710,12 +1710,6 @@ hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
  * Fetches a list of the characters defined as having a variant under the specified
  * "Character Variant" ("cvXX") feature tag.
  *
- * <note>Note: If the char_count output value is equal to its input value, then there
- *       is a chance there were more characters defined under the feature tag than were
- *       returned. This function can be called with incrementally larger start_offset
- *       until the char_count output value is lower than its input value, or the size
- *       of the characters array can be increased.</note>
- *
  * Return value: Number of total sample characters in the cvXX feature.
  *
  * Since: 2.0.0
