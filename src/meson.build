@@ -680,7 +680,7 @@ if get_option('tests').enabled()
     test(name, find_program(name + '.py'),
       env: env,
       depends: name == 'check-symbols' ? defs_list : [],
-      suite: ['src'],
+      suite: ['src'] + (name == 'check-static-inits' ? ['slow'] : []),
     )
   endforeach
 endif
