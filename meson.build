@@ -356,7 +356,9 @@ if not get_option('gtk_doc').disabled()
   subdir('docs')
 endif
 
-meson.add_dist_script('write-tarball-revision.py')
+if not meson.is_subproject()
+  meson.add_dist_script('write-tarball-revision.py')
+endif
 
 configure_file(output: 'config.h', configuration: conf)
 
