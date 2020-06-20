@@ -186,7 +186,7 @@ jobs:
       - run: pip install fonttools
       - run: CPPFLAGS="-fsanitize=thread" LDFLAGS="-fsanitize=thread -O3" CFLAGS="-fsanitize=thread -O3" CXXFLAGS="-fsanitize=thread -O3" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
-      - run: HB_TEST_SUBSET_FUZZER_TIMEOUT=40 make check || .ci/fail.sh | asan_symbolize | c++filt
+      - run: HB_TEST_SUBSET_FUZZER_TIMEOUT=60 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   clang-ubsan:
     docker:
@@ -202,7 +202,7 @@ jobs:
       - run: pip install fonttools
       - run: CPPFLAGS="-fsanitize=undefined -fno-sanitize-recover=undefined" LDFLAGS="-fsanitize=undefined -fno-sanitize-recover=undefined -O1 -g -fno-omit-frame-pointer" CFLAGS="-fsanitize=undefined -O1 -g -fno-omit-frame-pointer" CXXFLAGS="-fsanitize=undefined -O1 -g -fno-omit-frame-pointer" LD=ld.lld CC=clang CXX=clang++ ./autogen.sh --with-freetype --with-glib --with-cairo --with-icu --with-graphite2
       - run: make -j32
-      - run: UBSAN_OPTIONS=print_stacktrace=1 make check || .ci/fail.sh | asan_symbolize | c++filt
+      - run: UBSAN_OPTIONS=print_stacktrace=1 HB_TEST_SUBSET_FUZZER_TIMEOUT=60 make check || .ci/fail.sh | asan_symbolize | c++filt
 
   fedora-O0-debug-outoftreebuild:
     docker:
