@@ -28,7 +28,7 @@ test('shape_fuzzer', find_program('run-shape-fuzzer-tests.py'),
   depends: [hb_shape_fuzzer_exe, libharfbuzz, libharfbuzz_subset],
   workdir: meson.current_build_dir() / '..' / '..',
   env: env,
-  suite: ['fuzzing'],
+  suite: ['fuzzing', 'slow'],
 )
 
 test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
@@ -40,7 +40,7 @@ test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
   timeout: 300,
   workdir: meson.current_build_dir() / '..' / '..',
   env: env,
-  suite: ['fuzzing'],
+  suite: ['fuzzing', 'slow'],
 )
 
 test('draw_fuzzer', find_program('run-draw-fuzzer-tests.py'),
