@@ -140,14 +140,6 @@ struct fvar
   unsigned int get_axis_count () const { return axisCount; }
 
 #ifndef HB_DISABLE_DEPRECATED
-  void get_axis_deprecated (unsigned axis_index, hb_ot_var_axis_t *info) const
-  { get_axes ()[axis_index].get_axis_deprecated (info); }
-#endif
-
-  void get_axis_info (unsigned axis_index, hb_ot_var_axis_info_t *info) const
-  { get_axes ()[axis_index].get_axis_info (axis_index, info); }
-
-#ifndef HB_DISABLE_DEPRECATED
   unsigned int get_axes_deprecated (unsigned int      start_offset,
 				    unsigned int     *axes_count /* IN/OUT */,
 				    hb_ot_var_axis_t *axes_array /* OUT */) const
@@ -155,8 +147,9 @@ struct fvar
     if (axes_count)
     {
       hb_array_t<const AxisRecord> arr = hb_array (&(this+firstAxis), axisCount).sub_array (start_offset, axes_count);
+      const AxisRecord *axes = get_axes ();
       for (unsigned i = 0; i < arr.length; ++i)
-	get_axis_deprecated (start_offset + i, axes_array + i);
+	axes[start_offset + i].get_axis_deprecated (&axes_array[i]);
     }
     return axisCount;
   }
@@ -169,8 +162,9 @@ struct fvar
     if (axes_count)
     {
       hb_array_t<const AxisRecord> arr = hb_array (&(this+firstAxis), axisCount).sub_array (start_offset, axes_count);
+      const AxisRecord *axes = get_axes ();
       for (unsigned i = 0; i < arr.length; ++i)
-	get_axis_info (start_offset + i, axes_array + i);
+        axes[start_offset + i].get_axis_info (start_offset + i, &axes_array[i]);
     }
     return axisCount;
   }
@@ -187,7 +181,7 @@ struct fvar
       {
 	if (axis_index)
 	  *axis_index = i;
-	get_axis_deprecated (i, info);
+	axes[i].get_axis_deprecated (info);
 	return true;
       }
     if (axis_index)
@@ -204,7 +198,7 @@ struct fvar
     for (unsigned int i = 0; i < count; i++)
       if (axes[i].axisTag == tag)
       {
-	get_axis_info (i, info);
+	axes[i].get_axis_info (i, info);
 	return true;
       }
     return false;
@@ -213,7 +207,7 @@ struct fvar
   int normalize_axis_value (unsigned int axis_index, float v) const
   {
     hb_ot_var_axis_info_t axis;
-    get_axis_info (axis_index, &axis);
+    get_axes ()[axis_index].get_axis_info (axis_index, &axis);
 
     v = hb_clamp (v, axis.min_value, axis.max_value);
 
@@ -229,7 +223,7 @@ struct fvar
   float unnormalize_axis_value (unsigned int axis_index, float v) const
   {
     hb_ot_var_axis_info_t axis;
-    get_axis_info (axis_index, &axis);
+    get_axes ()[axis_index].get_axis_info (axis_index, &axis);
 
     if (v == 0)
       return axis.default_value;
