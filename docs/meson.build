@@ -41,7 +41,7 @@ html_images = [
 ]
 
 ignore_headers = []
-if have_gobject
+if not have_gobject
   ignore_headers += [
     'hb-gobject.h',
     'hb-gobject-enums.h',
