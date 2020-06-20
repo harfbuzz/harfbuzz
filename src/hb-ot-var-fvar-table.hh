@@ -146,10 +146,9 @@ struct fvar
   {
     if (axes_count)
     {
-      hb_array_t<const AxisRecord> arr = hb_array (&(this+firstAxis), axisCount).sub_array (start_offset, axes_count);
-      const AxisRecord *axes = get_axes ();
+      hb_array_t<const AxisRecord> arr = get_axes ().sub_array (start_offset, axes_count);
       for (unsigned i = 0; i < arr.length; ++i)
-	axes[start_offset + i].get_axis_deprecated (&axes_array[i]);
+	arr[i].get_axis_deprecated (&axes_array[i]);
     }
     return axisCount;
   }
@@ -161,10 +160,9 @@ struct fvar
   {
     if (axes_count)
     {
-      hb_array_t<const AxisRecord> arr = hb_array (&(this+firstAxis), axisCount).sub_array (start_offset, axes_count);
-      const AxisRecord *axes = get_axes ();
+      hb_array_t<const AxisRecord> arr = get_axes ().sub_array (start_offset, axes_count);
       for (unsigned i = 0; i < arr.length; ++i)
-        axes[start_offset + i].get_axis_info (start_offset + i, &axes_array[i]);
+	arr[i].get_axis_info (start_offset + i, &axes_array[i]);
     }
     return axisCount;
   }
