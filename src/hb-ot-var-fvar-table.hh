@@ -168,13 +168,11 @@ struct fvar
   }
 
 #ifndef HB_DISABLE_DEPRECATED
-  bool find_axis_deprecated (hb_tag_t tag,
-			     unsigned int *axis_index,
-			     hb_ot_var_axis_t *info) const
+  bool
+  find_axis_deprecated (hb_tag_t tag, unsigned *axis_index, hb_ot_var_axis_t *info) const
   {
-    const AxisRecord *axes = get_axes ();
-    unsigned int count = get_axis_count ();
-    for (unsigned int i = 0; i < count; i++)
+    hb_array_t<const AxisRecord> axes = get_axes ();
+    for (unsigned i = 0; i < axes.length; i++)
       if (axes[i].axisTag == tag)
       {
 	if (axis_index)
@@ -188,12 +186,11 @@ struct fvar
   }
 #endif
 
-  bool find_axis_info (hb_tag_t tag,
-		       hb_ot_var_axis_info_t *info) const
+  bool
+  find_axis_info (hb_tag_t tag, hb_ot_var_axis_info_t *info) const
   {
-    const AxisRecord *axes = get_axes ();
-    unsigned int count = get_axis_count ();
-    for (unsigned int i = 0; i < count; i++)
+    hb_array_t<const AxisRecord> axes = get_axes ();
+    for (unsigned i = 0; i < axes.length; i++)
       if (axes[i].axisTag == tag)
       {
 	axes[i].get_axis_info (i, info);
