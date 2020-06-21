@@ -3,7 +3,7 @@ project('harfbuzz', 'c', 'cpp',
   default_options: ['cpp_std=c++11'],
   version: '2.6.7')
 
-warning('Meson is not our main build system yet, don\'t use it for packaging HarfBuzz for *nix distros for now')
+warning('Meson is not our main build system for building *nix packages yet we encourage packagers to test it and give us feedback about it.')
 
 hb_version_arr = meson.project_version().split('.')
 hb_version_major = hb_version_arr[0].to_int()
