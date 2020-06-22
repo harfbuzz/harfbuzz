@@ -379,7 +379,7 @@ harfbuzz_def = custom_target('harfbuzz.def',
     output: 'harfbuzz.def')
 defs_list = [harfbuzz_def]
 
-version = '0.' + '0'.join(meson.project_version().split('.')) + '.0'
+version = '0.@0@.0'.format(hb_version_int)
 
 extra_hb_cpp_args = []
 if cpp.get_id() == 'msvc'

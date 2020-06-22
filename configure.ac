@@ -46,16 +46,7 @@ AC_SUBST(HB_VERSION)
 # Libtool version
 m4_define([hb_version_int],
 	  m4_eval(hb_version_major*10000 + hb_version_minor*100 + hb_version_micro))
-m4_if(m4_eval(hb_version_minor % 2), [1],
-      dnl for unstable releases
-      [m4_define([hb_libtool_revision], 0)],
-      dnl for stable releases
-      [m4_define([hb_libtool_revision], hb_version_micro)])
-m4_define([hb_libtool_age],
-	  m4_eval(hb_version_int - hb_libtool_revision))
-m4_define([hb_libtool_current],
-	  m4_eval(hb_libtool_age))
-HB_LIBTOOL_VERSION_INFO=hb_libtool_current:hb_libtool_revision:hb_libtool_age
+HB_LIBTOOL_VERSION_INFO=hb_version_int:0:hb_version_int
 AC_SUBST(HB_LIBTOOL_VERSION_INFO)
 
 AC_ARG_WITH([libstdc++],

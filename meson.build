@@ -12,14 +12,7 @@ hb_version_micro = hb_version_arr[2].to_int()
 
 # libtool versioning
 hb_version_int = hb_version_major*10000 + hb_version_minor*100 + hb_version_micro
-if hb_version_minor % 2 == 1
-  hb_libtool_revision = 0                # for unstable releases
-else
-  hb_libtool_revision = hb_version_micro # for stable releases
-endif
-hb_libtool_age = hb_version_int - hb_libtool_revision
-hb_libtool_current = hb_libtool_age
-hb_libtool_version_info = '@0@:@1@:@2@'.format(hb_libtool_current, hb_libtool_revision, hb_libtool_age)
+hb_libtool_version_info = '@0@:0:@0@'.format(hb_version_int)
 
 pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
