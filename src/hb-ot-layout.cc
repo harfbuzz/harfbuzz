@@ -1989,7 +1989,7 @@ struct hb_get_glyph_alternates_dispatch_t :
  *
  * Return value: total number of alternates found in the specific lookup index for the given glyph id.
  *
- * Since: REPLACEME
+ * Since: 2.6.8
  **/
 HB_EXTERN unsigned
 hb_ot_layout_lookup_get_glyph_alternates (hb_face_t      *face,
