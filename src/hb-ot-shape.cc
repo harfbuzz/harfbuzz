@@ -220,7 +220,13 @@ hb_ot_shape_plan_t::init0 (hb_face_t                     *face,
   {
     data = shaper->data_create (this);
     if (unlikely (!data))
+    {
+      map.fini ();
+#ifndef HB_NO_AAT_SHAPE
+      aat_map.fini ();
+#endif
       return false;
+    }
   }
 
   return true;
