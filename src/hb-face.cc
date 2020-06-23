@@ -200,10 +200,15 @@ hb_face_create (hb_blob_t    *blob,
   if (unlikely (!blob))
     blob = hb_blob_get_empty ();
 
-  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob)), index);
+  blob = hb_sanitize_context_t ().sanitize_blob<OT::OpenTypeFontFile> (hb_blob_reference (blob));
+
+  hb_face_for_data_closure_t *closure = _hb_face_for_data_closure_create (blob, index);
 
   if (unlikely (!closure))
+  {
+    hb_blob_destroy (blob);
     return hb_face_get_empty ();
+  }
 
   face = hb_face_create_for_tables (_hb_face_for_data_reference_table,
 				    closure,
