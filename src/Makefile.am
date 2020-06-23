@@ -277,8 +277,7 @@ $(srcdir)/%.hh: $(srcdir)/%.rl
 
 harfbuzz.cc: Makefile.sources
 	$(AM_V_GEN) \
-	$(srcdir)/gen-harfbuzzcc.py \
-		$(srcdir)/harfbuzz.cc \
+	$(srcdir)/gen-harfbuzzcc.py harfbuzz.cc \
 		$(HB_BASE_sources) \
 		$(HB_GLIB_sources) \
 		$(HB_FT_sources) \
