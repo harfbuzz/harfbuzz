@@ -130,7 +130,11 @@ if not get_option('cairo').disabled()
                                  has_headers: ['cairo.h'])
   endif
 
-  if not cairo_dep.found() and get_option('cairo').enabled()
+  if not cairo_dep.found()
+    # Note that we don't have harfbuzz -> cairo -> freetype2 -> harfbuzz fallback
+    # dependency cycle here because we have configured freetype2 above with
+    # harfbuzz support disabled, so when cairo will lookup freetype2 dependency
+    # it will be forced to use that one.
     cairo_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'])
   endif
 
