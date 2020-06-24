@@ -79,7 +79,8 @@ if not get_option('freetype').disabled()
 
   if not freetype_dep.found()
     freetype_dep = dependency('freetype2', fallback: ['freetype2', 'freetype_dep'],
-                              default_options: ['harfbuzz=disabled'])
+                              default_options: ['harfbuzz=disabled'],
+                              required: get_option('freetype'))
   endif
 else
   freetype_dep = dependency('', required: false)
@@ -135,7 +136,8 @@ if not get_option('cairo').disabled()
     # dependency cycle here because we have configured freetype2 above with
     # harfbuzz support disabled, so when cairo will lookup freetype2 dependency
     # it will be forced to use that one.
-    cairo_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'])
+    cairo_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'],
+                           required: get_option('cairo'))
   endif
 
   # Ensure that cairo-ft is fetched from the same library as cairo itself
