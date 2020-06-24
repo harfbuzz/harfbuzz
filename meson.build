@@ -126,9 +126,8 @@ if not get_option('cairo').disabled()
   cairo_dep = dependency('cairo', required: false)
 
   if not cairo_dep.found() and cpp.get_id() == 'msvc'
-    if cpp.has_header('cairo.h')
-      cairo_dep = cpp.find_library('cairo')
-    endif
+    cairo_dep = cpp.find_library('cairo', required: false,
+                                 has_headers: ['cairo.h'])
   endif
 
   if not cairo_dep.found() and get_option('cairo').enabled()
