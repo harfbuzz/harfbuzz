@@ -73,9 +73,8 @@ if not get_option('freetype').disabled()
   freetype_dep = dependency('freetype2', required: false)
 
   if not freetype_dep.found() and cpp.get_id() == 'msvc'
-    if cpp.has_header('ft2build.h')
-      freetype_dep = cpp.find_library('freetype', required: false)
-    endif
+    freetype_dep = cpp.find_library('freetype', required: false,
+                                    has_headers: ['ft2build.h'], )
   endif
 
   if not freetype_dep.found() and get_option('freetype').enabled()
