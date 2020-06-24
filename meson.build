@@ -77,8 +77,9 @@ if not get_option('freetype').disabled()
                                     has_headers: ['ft2build.h'], )
   endif
 
-  if not freetype_dep.found() and get_option('freetype').enabled()
-    freetype_dep = dependency('freetype2', fallback: ['freetype2', 'freetype_dep'])
+  if not freetype_dep.found()
+    freetype_dep = dependency('freetype2', fallback: ['freetype2', 'freetype_dep'],
+                              default_options: ['harfbuzz=disabled'])
   endif
 else
   freetype_dep = dependency('', required: false)
