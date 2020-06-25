@@ -64,6 +64,7 @@ static void draw (benchmark::State &state, const char *font_path, bool is_var, b
 
   if (is_ft)
   {
+    hb_ft_font_set_funcs (font);
     FT_Face ft_face = hb_ft_font_get_face (font);
     hb_ft_font_set_load_flags (font, FT_LOAD_NO_HINTING | FT_LOAD_NO_SCALE);
 
