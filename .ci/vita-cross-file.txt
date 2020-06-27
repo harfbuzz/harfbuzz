@@ -1,0 +1,19 @@
+[host_machine]
+system = 'generic'
+cpu_family = 'arm'
+cpu = 'armv7-a'
+endian = 'little'
+
+[properties]
+c_args = []
+c_link_args = []
+cpp_args = []
+cpp_link_args = []
+
+[binaries]
+c = '/usr/local/vitasdk/bin/arm-vita-eabi-gcc'
+cpp = '/usr/local/vitasdk/bin/arm-vita-eabi-g++'
+ar = '/usr/local/vitasdk/bin/arm-vita-eabi-ar'
+ld = '/usr/local/vitasdk/bin/arm-vita-eabi-ld'
+objcopy = '/usr/local/vitasdk/bin/arm-vita-eabi-objcopy'
+strip = '/usr/local/vitasdk/bin/arm-vita-eabi-strip'

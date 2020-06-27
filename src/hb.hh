@@ -174,7 +174,7 @@
 #include "hb-aat.h"
 #define HB_AAT_H_IN
 
-#include <limits.h>
+#include <climits>
 #include <math.h>
 #include <float.h>
 #include <stdlib.h>

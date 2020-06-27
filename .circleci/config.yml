@@ -249,10 +249,11 @@ jobs:
       - image: dockcross/base
     steps:
       - checkout
+      - run: apt update && apt install python3-pip ninja-build
+      - run: pip install meson
       - run: git clone https://github.com/vitasdk/vdpm && cd vdpm && ./bootstrap-vitasdk.sh
-      - run: echo '#!/bin/true' > /usr/bin/ragel && chmod +x /usr/bin/ragel
-      - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
-      - run: make -j32
+      - run: meson vitabuild --cross-file=.ci/vita-cross-file.txt --wrap-mode=nofallback
+      - run: ninja -Cvitabuild
 
 workflows:
   version: 2

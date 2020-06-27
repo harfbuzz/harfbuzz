@@ -270,16 +270,16 @@ endif
 
 # threads
 thread_dep = dependency('', required: false)
-if host_machine.system() != 'windows'
-  thread_dep = dependency('threads', required: false)
-
-  if thread_dep.found()
-    conf.set('HAVE_PTHREAD', 1)
-  else
-    check_headers += ['sched.h']
-    check_funcs += ['sched_yield', {'link_with': 'rt'}]
-  endif
-endif
+#if host_machine.system() != 'windows'
+#  thread_dep = dependency('threads', required: false)
+#
+#  if thread_dep.found()
+#    conf.set('HAVE_PTHREAD', 1)
+#  else
+#    check_headers += ['sched.h']
+#    check_funcs += ['sched_yield', {'link_with': 'rt'}]
+#  endif
+#endif
 
 conf.set('HAVE_OT', 1)
 conf.set('HAVE_FALLBACK', 1)
