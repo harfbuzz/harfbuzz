@@ -70,6 +70,8 @@ struct InstanceRecord
 
 struct AxisRecord
 {
+  int cmp (hb_tag_t key) const { return axisTag.cmp (key); }
+
   enum
   {
     AXIS_FLAG_HIDDEN	= 0x0001,
@@ -172,14 +174,14 @@ struct fvar
   find_axis_deprecated (hb_tag_t tag, unsigned *axis_index, hb_ot_var_axis_t *info) const
   {
     hb_array_t<const AxisRecord> axes = get_axes ();
-    for (unsigned i = 0; i < axes.length; i++)
-      if (axes[i].axisTag == tag)
-      {
-	if (axis_index)
-	  *axis_index = i;
-	axes[i].get_axis_deprecated (info);
-	return true;
-      }
+    unsigned i;
+    if (axes.lfind (tag, &i))
+    {
+      if (axis_index)
+	*axis_index = i;
+      axes[i].get_axis_deprecated (info);
+      return true;
+    }
     if (axis_index)
       *axis_index = HB_OT_VAR_NO_AXIS_INDEX;
     return false;
@@ -190,13 +192,8 @@ struct fvar
   find_axis_info (hb_tag_t tag, hb_ot_var_axis_info_t *info) const
   {
     hb_array_t<const AxisRecord> axes = get_axes ();
-    for (unsigned i = 0; i < axes.length; i++)
-      if (axes[i].axisTag == tag)
-      {
-	axes[i].get_axis_info (i, info);
-	return true;
-      }
-    return false;
+    unsigned i;
+    return axes.lfind (tag, &i) && (axes[i].get_axis_info (i, info), true);
   }
 
   int normalize_axis_value (unsigned int axis_index, float v) const
