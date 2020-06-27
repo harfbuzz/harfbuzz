@@ -7,3 +7,17 @@ benchmark('perf', executable('perf', 'perf.cc',
   link_with: [libharfbuzz],
   install: false,
 ), workdir: meson.current_source_dir() / '..', timeout: 100)
+
+executable('perf-shaping-bench', 'perf-shaping-bench.cc',
+  dependencies : [google_benchmark_dep],
+  include_directories: [incconfig, incsrc],
+  link_with: [libharfbuzz],
+  install: false,
+)
+
+executable('perf-extents-bench', 'perf-extents-bench.cc',
+  dependencies : [google_benchmark_dep, freetype_dep],
+  include_directories: [incconfig, incsrc],
+  link_with: [libharfbuzz],
+  install: false,
+)

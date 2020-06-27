@@ -40,6 +40,7 @@ static void extents (benchmark::State &state, const char *font_path, bool is_var
 
 #define FONT_BASE_PATH "test/subset/data/fonts/"
 
+#ifndef PERF_BENCH
 BENCHMARK_CAPTURE (extents, cff - ot - SourceSansPro, FONT_BASE_PATH "SourceSansPro-Regular.otf", false, false);
 BENCHMARK_CAPTURE (extents, cff - ft - SourceSansPro, FONT_BASE_PATH "SourceSansPro-Regular.otf", false, true);
 
@@ -63,3 +64,4 @@ BENCHMARK_CAPTURE (extents, glyf/vf - ft - Comfortaa, FONT_BASE_PATH "Comfortaa-
 
 BENCHMARK_CAPTURE (extents, glyf - ot - Roboto, FONT_BASE_PATH "Roboto-Regular.ttf", false, false);
 BENCHMARK_CAPTURE (extents, glyf - ft - Roboto, FONT_BASE_PATH "Roboto-Regular.ttf", false, true);
+#endif

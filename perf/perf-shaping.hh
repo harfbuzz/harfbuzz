@@ -27,6 +27,8 @@ static void shape (benchmark::State &state, const char *text_path,
     hb_buffer_add_utf8 (buf, text, text_length, 0, -1);
     hb_buffer_set_direction (buf, direction);
     hb_buffer_set_script (buf, script);
+    if (direction == HB_DIRECTION_INVALID && script == HB_SCRIPT_INVALID)
+      hb_buffer_guess_segment_properties (buf);
     hb_shape (font, buf, nullptr, 0);
     hb_buffer_clear_contents (buf);
   }
@@ -36,6 +38,7 @@ static void shape (benchmark::State &state, const char *text_path,
   hb_font_destroy (font);
 }
 
+#ifndef PERF_BENCH
 BENCHMARK_CAPTURE (shape, fa-thelittleprince.txt - Amiri,
 		   "perf/texts/fa-thelittleprince.txt",
 		   HB_DIRECTION_RTL, HB_SCRIPT_ARABIC,
@@ -63,3 +66,4 @@ BENCHMARK_CAPTURE (shape, en-words.txt - Roboto,
 		   "perf/texts/en-words.txt",
 		   HB_DIRECTION_LTR, HB_SCRIPT_LATIN,
 		   "perf/fonts/Roboto-Regular.ttf");
+#endif
