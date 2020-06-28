@@ -832,6 +832,10 @@ hb_ft_font_changed (hb_font_t *font)
     return;
 
   hb_ft_font_t *ft_font = (hb_ft_font_t *) font->user_data;
+
+  if (unlikely (!ft_font))
+	  return;
+
   FT_Face ft_face = ft_font->ft_face;
 
   hb_font_set_scale (font,
