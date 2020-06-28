@@ -64,7 +64,6 @@ check_funcs = [
   ['getpagesize'],
   ['mmap'],
   ['isatty'],
-  ['roundf'],
 ]
 
 m_dep = cpp.find_library('m', required: false)
