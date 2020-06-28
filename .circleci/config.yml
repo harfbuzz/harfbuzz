@@ -226,7 +226,7 @@ jobs:
       # test a meson based dist
       - run: meson dist -Cbuild && rm -rf build
       # test experimental APIs
-      - run: meson build -Dexperimental_api=true -Dbenchmark=true -Dexperimental_api=true -Doptimization=2 && ninja -j9 -Cbuild test # or meson test -Cbuild
+      - run: meson build -Dexperimental_api=true -Dexperimental_api=true -Doptimization=2 && ninja -j9 -Cbuild test # or meson test -Cbuild
       # run benchmarks
       - run: build/perf/perf && meson test -Cbuild --benchmark && rm -rf build # or ninja -Cbuild benchmark
       # mingw
