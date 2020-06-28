@@ -499,14 +499,9 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 #define HB_VAR_ARRAY 1
 #endif
 
-static inline double
-_hb_roundf (float x)
-{
-  return x >= 0 ? floor ((double) x + .5) : ceil ((double) x - .5);
-}
-#ifndef HAVE_ROUNDF
+static inline float
+_hb_roundf (float x) { return floorf (x + .5f); }
 #define roundf(x) _hb_roundf(x)
-#endif
 
 /* Endian swap, used in Windows related backends */
 static inline uint16_t hb_uint16_swap (const uint16_t v)
