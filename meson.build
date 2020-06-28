@@ -344,7 +344,10 @@ if not get_option('tests').disabled()
   subdir('test')
 endif
 
-if get_option('benchmark')
+if not get_option('benchmark').disabled() and \
+    ((host_machine.system() != 'windows' and \
+      not meson.is_subproject() and \
+      not meson.is_cross_build()) or get_option('benchmark').enabled())
   subdir('perf')
 endif
 

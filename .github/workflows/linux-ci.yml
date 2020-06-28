@@ -17,7 +17,7 @@ jobs:
     - name: install meson and fonttools
       run: sudo pip3 install meson fonttools
     - name: run
-      run: meson build -Db_coverage=true -Dglib=enabled -Dcairo=enabled -Dicu=enabled -Dgraphite=enabled -Dfreetype=enabled -Dbenchmark=true -Doptimization=2
+      run: meson build -Db_coverage=true -Dglib=enabled -Dcairo=enabled -Dicu=enabled -Dgraphite=enabled -Dfreetype=enabled -Doptimization=2
     - name: ci
       run: meson test --print-errorlogs -Cbuild
 
