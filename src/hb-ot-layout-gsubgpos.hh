@@ -1753,10 +1753,12 @@ struct ContextFormat2
     };
 
     return
-    + hb_enumerate (ruleSet)
-    | hb_map ([&] (const hb_pair_t<unsigned, const OffsetTo<RuleSet> &> p)
+    + hb_iter (ruleSet)
+    | hb_map (hb_add (this))
+    | hb_enumerate
+    | hb_map ([&] (const hb_pair_t<unsigned, const RuleSet &> p)
 	      { return class_def.intersects_class (glyphs, p.first) &&
-		       (this+p.second).intersects (glyphs, lookup_context); })
+		       p.second.intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }
@@ -2001,7 +2003,7 @@ struct ContextFormat3
     out->glyphCount = glyphCount;
     out->lookupCount = lookupCount;
 
-    const hb_array_t<const OffsetTo<Coverage>> coverages = coverageZ.as_array (glyphCount);
+    auto coverages = coverageZ.as_array (glyphCount);
 
     for (const OffsetTo<Coverage>& offset : coverages)
     {
@@ -2658,10 +2660,12 @@ struct ChainContextFormat2
     };
 
     return
-    + hb_enumerate (ruleSet)
-    | hb_map ([&] (const hb_pair_t<unsigned, const OffsetTo<ChainRuleSet> &> p)
+    + hb_iter (ruleSet)
+    | hb_map (hb_add (this))
+    | hb_enumerate
+    | hb_map ([&] (const hb_pair_t<unsigned, const ChainRuleSet &> p)
 	      { return input_class_def.intersects_class (glyphs, p.first) &&
-		       (this+p.second).intersects (glyphs, lookup_context); })
+		       p.second.intersects (glyphs, lookup_context); })
     | hb_any
     ;
   }
