@@ -55,6 +55,7 @@ in_house_tests = [
   'use-marchen.tests',
   'use-syllable.tests',
   'use.tests',
+  'variations-rounding.tests',
   'variations-rvrn.tests',
   'vertical.tests',
   'zero-width-marks.tests',
