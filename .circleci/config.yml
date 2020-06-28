@@ -234,26 +234,6 @@ jobs:
       - store_artifacts:
           path: harfbuzz-win32.zip
 
-  crosscompile-notest-djgpp:
-    docker:
-      # https://gist.github.com/ebraminio/8551fc74f27951e668102baa2f6b1175
-      - image: quay.io/ebraminio/djgpp
-    steps:
-      - checkout
-      - run: apt update && apt install -y ragel pkg-config libtool autoconf
-      - run: CFLAGS="-Wno-attributes" CXXFLAGS="-Wno-attributes" ./autogen.sh --prefix=/usr/local/djgpp --host=i586-pc-msdosdjgpp
-      - run: make -j32
-
-  crosscompile-notest-psvita:
-    docker:
-      - image: dockcross/base
-    steps:
-      - checkout
-      - run: git clone https://github.com/vitasdk/vdpm && cd vdpm && ./bootstrap-vitasdk.sh
-      - run: echo '#!/bin/true' > /usr/bin/ragel && chmod +x /usr/bin/ragel
-      - run: ./autogen.sh --prefix=/usr/local/vitasdk/arm-vita-eabi --host=arm-vita-eabi
-      - run: make -j32
-
 workflows:
   version: 2
   build:
@@ -279,10 +259,3 @@ workflows:
       - fedora-O0-debug-outoftreebuild
 
       - meson-gcc-mingw
-
-      # crosscompiles
-      # they can't be test thus are without tests
-      ## autotools
-      - crosscompile-notest-djgpp
-      - crosscompile-notest-psvita
-
