@@ -537,7 +537,7 @@ HB_FUNCOBJ (hb_clamp);
 
 /* Return the number of 1 bits in v. */
 template <typename T>
-static inline HB_CONST_FUNC unsigned int
+static inline unsigned int
 hb_popcount (T v)
 {
 #if (defined(__GNUC__) && (__GNUC__ >= 4)) || defined(__clang__)
@@ -578,7 +578,7 @@ hb_popcount (T v)
 
 /* Returns the number of bits needed to store number */
 template <typename T>
-static inline HB_CONST_FUNC unsigned int
+static inline unsigned int
 hb_bit_storage (T v)
 {
   if (unlikely (!v)) return 0;
@@ -652,7 +652,7 @@ hb_bit_storage (T v)
 
 /* Returns the number of zero bits in the least significant side of v */
 template <typename T>
-static inline HB_CONST_FUNC unsigned int
+static inline unsigned int
 hb_ctz (T v)
 {
   if (unlikely (!v)) return 8 * sizeof (T);
