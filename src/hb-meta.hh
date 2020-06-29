@@ -50,9 +50,9 @@ using hb_true_type = hb_bool_constant<true>;
 using hb_false_type = hb_bool_constant<false>;
 
 /* Static-assert as expression. */
-template <bool cond> struct hb_assert_constant_t;
-template <> struct hb_assert_constant_t<true> : hb_true_type {};
-#define static_assert_expr(_cond) (hb_assert_constant_t<_cond>::value)
+template <bool cond> struct static_assert_expr;
+template <> struct static_assert_expr<true> : hb_false_type {};
+#define static_assert_expr(C) static_assert_expr<C>::value
 
 /* Basic type SFINAE. */
 
