@@ -123,30 +123,6 @@ static_assert ((sizeof (LONG) == sizeof (int)), "");
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((P), (N), (O)) == (O))
 
 
-#elif !defined(HB_NO_MT) && defined(__APPLE__)
-
-#include <libkern/OSAtomic.h>
-#ifdef __MAC_OS_X_MIN_REQUIRED
-#include <AvailabilityMacros.h>
-#elif defined(__IPHONE_OS_MIN_REQUIRED)
-#include <Availability.h>
-#endif
-
-#define _hb_memory_barrier()			OSMemoryBarrier ()
-
-#define hb_atomic_int_impl_add(AI, V)		(OSAtomicAdd32Barrier ((V), (AI)) - (V))
-
-#if (MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_4 || __IPHONE_VERSION_MIN_REQUIRED >= 20100)
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwapPtrBarrier ((O), (N), (P))
-#else
-#if __ppc64__ || __x86_64__ || __aarch64__
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwap64Barrier ((int64_t) (O), (int64_t) (N), (int64_t*) (P))
-#else
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)	OSAtomicCompareAndSwap32Barrier ((int32_t) (O), (int32_t) (N), (int32_t*) (P))
-#endif
-#endif
-
-
 #elif !defined(HB_NO_MT) && defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__))
 
 #include <builtins.h>
