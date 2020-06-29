@@ -123,35 +123,6 @@ static_assert ((sizeof (LONG) == sizeof (int)), "");
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((P), (N), (O)) == (O))
 
 
-#elif !defined(HB_NO_MT) && defined(HAVE_SOLARIS_ATOMIC_OPS)
-
-#include <atomic.h>
-#include <mbarrier.h>
-
-#define _hb_memory_r_barrier()			__machine_r_barrier ()
-#define _hb_memory_w_barrier()			__machine_w_barrier ()
-#define _hb_memory_barrier()			__machine_rw_barrier ()
-
-static inline int _hb_fetch_and_add (int *AI, int V)
-{
-  _hb_memory_w_barrier ();
-  int result = atomic_add_int_nv ((uint_t *) AI, V) - V;
-  _hb_memory_r_barrier ();
-  return result;
-}
-static inline bool _hb_compare_and_swap_ptr (void **P, void *O, void *N)
-{
-  _hb_memory_w_barrier ();
-  bool result = atomic_cas_ptr (P, O, N) == O;
-  _hb_memory_r_barrier ();
-  return result;
-}
-
-#define hb_atomic_int_impl_add(AI, V)           _hb_fetch_and_add ((AI), (V))
-
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)       _hb_compare_and_swap_ptr ((P), (O), (N))
-
-
 #elif !defined(HB_NO_MT) && defined(__APPLE__)
 
 #include <libkern/OSAtomic.h>
