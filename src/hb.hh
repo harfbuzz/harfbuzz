@@ -519,25 +519,19 @@ template <typename Type>
 struct BEInt<Type, 1>
 {
   public:
-  BEInt<Type, 1>& operator = (Type V)
-  {
-    v = V;
-    return *this;
-  }
-  operator Type () const { return v; }
+  BEInt () = default;
+  constexpr BEInt (Type V) : v {V} {}
+  constexpr operator Type () const { return v; }
   private: uint8_t v;
 };
 template <typename Type>
 struct BEInt<Type, 2>
 {
   public:
-  BEInt<Type, 2>& operator = (Type V)
-  {
-    v[0] = (V >>  8) & 0xFF;
-    v[1] = (V      ) & 0xFF;
-    return *this;
-  }
-  operator Type () const
+  BEInt () = default;
+  constexpr BEInt (Type V) : v {(V >>  8) & 0xFF,
+			        (V      ) & 0xFF} {}
+  constexpr operator Type () const
   {
 #if ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
     defined(__BYTE_ORDER) && \
@@ -560,40 +554,28 @@ template <typename Type>
 struct BEInt<Type, 3>
 {
   public:
-  BEInt<Type, 3>& operator = (Type V)
-  {
-    v[0] = (V >> 16) & 0xFF;
-    v[1] = (V >>  8) & 0xFF;
-    v[2] = (V      ) & 0xFF;
-    return *this;
-  }
-  operator Type () const
-  {
-    return (v[0] << 16)
-	 + (v[1] <<  8)
-	 + (v[2]      );
-  }
+  BEInt () = default;
+  constexpr BEInt (Type V) : v {(V >> 16) & 0xFF,
+			        (V >>  8) & 0xFF,
+			        (V      ) & 0xFF} {}
+  constexpr operator Type () const { return (v[0] << 16)
+					     + (v[1] <<  8)
+					     + (v[2]      ); }
   private: uint8_t v[3];
 };
 template <typename Type>
 struct BEInt<Type, 4>
 {
   public:
-  BEInt<Type, 4>& operator = (Type V)
-  {
-    v[0] = (V >> 24) & 0xFF;
-    v[1] = (V >> 16) & 0xFF;
-    v[2] = (V >>  8) & 0xFF;
-    v[3] = (V      ) & 0xFF;
-    return *this;
-  }
-  operator Type () const
-  {
-    return (v[0] << 24)
-	 + (v[1] << 16)
-	 + (v[2] <<  8)
-	 + (v[3]      );
-  }
+  BEInt () = default;
+  constexpr BEInt (Type V) : v {(V >> 24) & 0xFF,
+			        (V >> 16) & 0xFF,
+			        (V >>  8) & 0xFF,
+			        (V      ) & 0xFF} {}
+  constexpr operator Type () const { return (v[0] << 24)
+					  + (v[1] << 16)
+					  + (v[2] <<  8)
+					  + (v[3]      ); }
   private: uint8_t v[4];
 };
 
