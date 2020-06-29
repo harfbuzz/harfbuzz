@@ -448,11 +448,6 @@ static_assert ((sizeof (hb_mask_t) == 4), "");
 static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 
-/* Size signifying variable-sized array */
-#ifndef HB_VAR_ARRAY
-#define HB_VAR_ARRAY 1
-#endif
-
 static inline float
 _hb_roundf (float x) { return floorf (x + .5f); }
 #define roundf(x) _hb_roundf(x)
