@@ -362,10 +362,9 @@ hb_blob_get_data (hb_blob_t *blob, unsigned int *length)
 char *
 hb_blob_get_data_writable (hb_blob_t *blob, unsigned int *length)
 {
-  if (!blob->try_make_writable ()) {
-    if (length)
-      *length = 0;
-
+  if (!blob->try_make_writable ())
+  {
+    if (length) *length = 0;
     return nullptr;
   }
 
@@ -439,6 +438,9 @@ hb_blob_t::try_make_writable ()
 {
   if (hb_object_is_immutable (this))
     return false;
+
+  if (unlikely (!length))
+    mode = HB_MEMORY_MODE_WRITABLE;
 
   if (this->mode == HB_MEMORY_MODE_WRITABLE)
     return true;
