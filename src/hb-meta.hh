@@ -49,6 +49,10 @@ template <bool b> using hb_bool_constant = hb_integral_constant<bool, b>;
 using hb_true_type = hb_bool_constant<true>;
 using hb_false_type = hb_bool_constant<false>;
 
+/* Static-assert as expression. */
+template <bool cond> struct hb_assert_constant_t;
+template <> struct hb_assert_constant_t<true> : hb_true_type {};
+#define static_assert_expr(_cond) (hb_assert_constant_t<_cond>::value)
 
 /* Basic type SFINAE. */
 
