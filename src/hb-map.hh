@@ -177,6 +177,7 @@ struct hb_hashmap_t
   }
 
   bool is_empty () const { return population == 0; }
+  explicit operator bool () const { return !is_empty (); }
 
   unsigned int get_population () const { return population; }
 
