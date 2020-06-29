@@ -449,11 +449,6 @@ if $hb_cv_have_solaris_atomic_ops; then
 	AC_DEFINE(HAVE_SOLARIS_ATOMIC_OPS, 1, [Have Solaris __machine_*_barrier and atomic_* operations])
 fi
 
-if test "$os_win32" = no && ! $have_pthread; then
-	AC_CHECK_HEADERS(sched.h)
-	AC_SEARCH_LIBS(sched_yield,rt,AC_DEFINE(HAVE_SCHED_YIELD, 1, [Have sched_yield]))
-fi
-
 dnl ===========================================================================
 
 AC_CONFIG_FILES([
