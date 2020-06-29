@@ -273,6 +273,7 @@ struct hb_set_t
 	return false;
     return true;
   }
+  explicit operator bool () const { return !is_empty (); }
 
   void dirty () { population = UINT_MAX; }
 
