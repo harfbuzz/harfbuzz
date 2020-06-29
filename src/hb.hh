@@ -484,10 +484,10 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 #endif
 #define HB_MARK_AS_FLAG_T(T) \
 	extern "C++" { \
-	  static inline T operator | (T l, T r) { return T ((unsigned) l | (unsigned) r); } \
-	  static inline T operator & (T l, T r) { return T ((unsigned) l & (unsigned) r); } \
-	  static inline T operator ^ (T l, T r) { return T ((unsigned) l ^ (unsigned) r); } \
-	  static inline T operator ~ (T r) { return T (~(unsigned int) r); } \
+	  static inline constexpr T operator | (T l, T r) { return T ((unsigned) l | (unsigned) r); } \
+	  static inline constexpr T operator & (T l, T r) { return T ((unsigned) l & (unsigned) r); } \
+	  static inline constexpr T operator ^ (T l, T r) { return T ((unsigned) l ^ (unsigned) r); } \
+	  static inline constexpr T operator ~ (T r) { return T (~(unsigned int) r); } \
 	  static inline T& operator |= (T &l, T r) { l = l | r; return l; } \
 	  static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
 	  static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \
