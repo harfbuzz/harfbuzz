@@ -339,10 +339,11 @@ hb_buffer_t::swap_buffers ()
 
   if (out_info != info)
   {
-    hb_glyph_info_t *tmp_string;
-    tmp_string = info;
+    hb_glyph_info_t *tmp;
+    tmp = info;
     info = out_info;
-    out_info = tmp_string;
+    out_info = tmp;
+
     pos = (hb_glyph_position_t *) out_info;
   }
 
