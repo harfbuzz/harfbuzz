@@ -333,6 +333,9 @@ hb_buffer_t::swap_buffers ()
 {
   if (unlikely (!successful)) return;
 
+  assert (idx <= len);
+  next_glyphs (len - idx);
+
   assert (have_output);
   have_output = false;
 

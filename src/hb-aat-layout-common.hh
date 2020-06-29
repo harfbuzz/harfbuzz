@@ -835,11 +835,7 @@ struct StateTableDriver
     }
 
     if (!c->in_place)
-    {
-      for (; buffer->successful && buffer->idx < buffer->len;)
-	buffer->next_glyph ();
       buffer->swap_buffers ();
-    }
   }
 
   public:
