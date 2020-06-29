@@ -97,8 +97,6 @@ struct hb_hashmap_t
 
   void reset ()
   {
-    if (unlikely (hb_object_is_immutable (this)))
-      return;
     successful = true;
     clear ();
   }
@@ -171,8 +169,6 @@ struct hb_hashmap_t
 
   void clear ()
   {
-    if (unlikely (hb_object_is_immutable (this)))
-      return;
     if (items)
       for (auto &_ : hb_iter (items, mask + 1))
 	_.clear ();
