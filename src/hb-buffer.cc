@@ -330,6 +330,8 @@ hb_buffer_t::clear_positions ()
 void
 hb_buffer_t::swap_buffers ()
 {
+  next_glyphs (len - idx);
+
   if (unlikely (!successful)) return;
 
   assert (have_output);

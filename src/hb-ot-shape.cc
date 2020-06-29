@@ -535,8 +535,6 @@ hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
   info.cluster = buffer->cur().cluster;
   info.mask = buffer->cur().mask;
   buffer->output_info (info);
-  while (buffer->idx < buffer->len && buffer->successful)
-    buffer->next_glyph ();
   buffer->swap_buffers ();
 }
 
