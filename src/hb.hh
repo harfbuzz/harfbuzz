@@ -433,7 +433,7 @@ static int HB_UNUSED _hb_errno = 0;
 /* Static-assert as expression. */
 template <bool cond> class hb_assert_constant_t;
 template <> class hb_assert_constant_t<true> {};
-#define ASSERT_STATIC_EXPR_ZERO(_cond) (0u * (unsigned int) sizeof (hb_assert_constant_t<_cond>))
+#define static_assert_expr(_cond) (bool (0u * (unsigned int) sizeof (hb_assert_constant_t<_cond>)))
 
 /* Lets assert int types.  Saves trouble down the road. */
 static_assert ((sizeof (int8_t) == 1), "");
@@ -487,10 +487,10 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
  * For example, for testing "x ∈ {x1, x2, x3}" use:
  * (FLAG_UNSAFE(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))
  */
-#define FLAG(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned)(x) < 32) + (((uint32_t) 1U) << (unsigned)(x)))
+#define FLAG(x) (static_assert_expr ((unsigned)(x) < 32) + (((uint32_t) 1U) << (unsigned)(x)))
 #define FLAG_UNSAFE(x) ((unsigned)(x) < 32 ? (((uint32_t) 1U) << (unsigned)(x)) : 0)
-#define FLAG_RANGE(x,y) (ASSERT_STATIC_EXPR_ZERO ((x) < (y)) + FLAG(y+1) - FLAG(x))
-#define FLAG64(x) (ASSERT_STATIC_EXPR_ZERO ((unsigned)(x) < 64) + (((uint64_t) 1ULL) << (unsigned)(x)))
+#define FLAG_RANGE(x,y) (static_assert_expr ((x) < (y)) + FLAG(y+1) - FLAG(x))
+#define FLAG64(x) (static_assert_expr ((unsigned)(x) < 64) + (((uint64_t) 1ULL) << (unsigned)(x)))
 #define FLAG64_UNSAFE(x) ((unsigned)(x) < 64 ? (((uint64_t) 1ULL) << (unsigned)(x)) : 0)
 
 
