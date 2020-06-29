@@ -448,11 +448,6 @@ static_assert ((sizeof (hb_mask_t) == 4), "");
 static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 
-static inline float
-_hb_roundf (float x) { return floorf (x + .5f); }
-#define roundf(x) _hb_roundf(x)
-
-
 /*
  * For lack of a better place, put Zawgyi script hack here.
  * https://github.com/harfbuzz/harfbuzz/issues/1162

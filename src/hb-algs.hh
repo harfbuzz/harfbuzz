@@ -150,6 +150,12 @@ struct BEInt<Type, 4>
   private: uint8_t v[4];
 };
 
+/* Floats. */
+
+/* We want our rounding towards +infinity. */
+static inline float
+_hb_roundf (float x) { return floorf (x + .5f); }
+#define roundf(x) _hb_roundf(x)
 
 
 /* Encodes three unsigned integers in one 64-bit number.  If the inputs have more than 21 bits,
@@ -164,6 +170,7 @@ struct BEInt<Type, 4>
 #define HB_CODEPOINT_DECODE3_11_7_14_1(v) ((hb_codepoint_t) ((v) >> 21))
 #define HB_CODEPOINT_DECODE3_11_7_14_2(v) ((hb_codepoint_t) (((v) >> 14) & 0x007Fu) | 0x0300)
 #define HB_CODEPOINT_DECODE3_11_7_14_3(v) ((hb_codepoint_t) (v) & 0x3FFFu)
+
 
 struct
 {
