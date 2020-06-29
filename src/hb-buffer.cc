@@ -1772,11 +1772,6 @@ hb_buffer_append (hb_buffer_t *buffer,
   if (start == end)
     return;
 
-  if (!buffer->len)
-    buffer->content_type = source->content_type;
-  if (!buffer->have_positions && source->have_positions)
-    buffer->clear_positions ();
-
   if (buffer->len + (end - start) < buffer->len) /* Overflows. */
   {
     buffer->successful = false;
@@ -1787,6 +1782,11 @@ hb_buffer_append (hb_buffer_t *buffer,
   hb_buffer_set_length (buffer, buffer->len + (end - start));
   if (unlikely (!buffer->successful))
     return;
+
+  if (!orig_len)
+    buffer->content_type = source->content_type;
+  if (!buffer->have_positions && source->have_positions)
+    buffer->clear_positions ();
 
   memcpy (buffer->info + orig_len, source->info + start, (end - start) * sizeof (buffer->info[0]));
   if (buffer->have_positions)
