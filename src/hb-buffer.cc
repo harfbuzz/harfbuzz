@@ -289,9 +289,6 @@ hb_buffer_t::add_info (const hb_glyph_info_t &glyph_info)
 void
 hb_buffer_t::remove_output ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   have_output = false;
   have_positions = false;
 
@@ -302,9 +299,6 @@ hb_buffer_t::remove_output ()
 void
 hb_buffer_t::clear_output ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   have_output = true;
   have_positions = false;
 
@@ -315,9 +309,6 @@ hb_buffer_t::clear_output ()
 void
 hb_buffer_t::clear_positions ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   have_output = false;
   have_positions = true;
 
