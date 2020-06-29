@@ -274,9 +274,6 @@ if host_machine.system() != 'windows'
 
   if thread_dep.found()
     conf.set('HAVE_PTHREAD', 1)
-  else
-    check_headers += ['sched.h']
-    check_funcs += ['sched_yield', {'link_with': 'rt'}]
   endif
 endif
 
