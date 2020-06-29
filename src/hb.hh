@@ -441,11 +441,6 @@ static int HB_UNUSED _hb_errno = 0;
 #define HB_STMT_START do
 #define HB_STMT_END   while (0)
 
-/* Static-assert as expression. */
-template <bool cond> class hb_assert_constant_t;
-template <> class hb_assert_constant_t<true> {};
-#define static_assert_expr(_cond) (bool (0u * (unsigned int) sizeof (hb_assert_constant_t<_cond>)))
-
 /* Lets assert int types.  Saves trouble down the road. */
 static_assert ((sizeof (int8_t) == 1), "");
 static_assert ((sizeof (uint8_t) == 1), "");
