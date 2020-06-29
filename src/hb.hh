@@ -447,14 +447,6 @@ static_assert ((sizeof (hb_position_t) == 4), "");
 static_assert ((sizeof (hb_mask_t) == 4), "");
 static_assert ((sizeof (hb_var_int_t) == 4), "");
 
-#define HB_DELETE_COPY_ASSIGN(TypeName) \
-  TypeName(const TypeName&) = delete; \
-  void operator=(const TypeName&) = delete
-#define HB_DELETE_CREATE_COPY_ASSIGN(TypeName) \
-  TypeName() = delete; \
-  TypeName(const TypeName&) = delete; \
-  void operator=(const TypeName&) = delete
-
 
 /* Size signifying variable-sized array */
 #ifndef HB_VAR_ARRAY
