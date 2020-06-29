@@ -35,7 +35,9 @@
 #include "hb-number.hh"
 
 
-/* Flags */
+/*
+ * Flags
+ */
 
 /* Enable bitwise ops on enums marked as flags_t */
 /* To my surprise, looks like the function resolver is happy to silently cast
@@ -69,6 +71,83 @@
 #define FLAG_RANGE(x,y) (static_assert_expr ((x) < (y)) + FLAG(y+1) - FLAG(x))
 #define FLAG64(x) (static_assert_expr ((unsigned)(x) < 64) + (((uint64_t) 1ULL) << (unsigned)(x)))
 #define FLAG64_UNSAFE(x) ((unsigned)(x) < 64 ? (((uint64_t) 1ULL) << (unsigned)(x)) : 0)
+
+
+/*
+ * Big-endian integers.
+ */
+
+/* Endian swap, used in Windows related backends */
+static inline constexpr uint16_t hb_uint16_swap (uint16_t v)
+{ return (v >> 8) | (v << 8); }
+static inline constexpr uint32_t hb_uint32_swap (uint32_t v)
+{ return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
+
+template <typename Type, int Bytes = sizeof (Type)> struct BEInt;
+template <typename Type>
+struct BEInt<Type, 1>
+{
+  public:
+  BEInt () = default;
+  constexpr BEInt (Type V) : v {V} {}
+  constexpr operator Type () const { return v; }
+  private: uint8_t v;
+};
+template <typename Type>
+struct BEInt<Type, 2>
+{
+  public:
+  BEInt () = default;
+  constexpr BEInt (Type V) : v {(V >>  8) & 0xFF,
+			        (V      ) & 0xFF} {}
+  constexpr operator Type () const
+  {
+#if ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
+    defined(__BYTE_ORDER) && \
+    (__BYTE_ORDER == __LITTLE_ENDIAN || __BYTE_ORDER == __BIG_ENDIAN)
+    /* Spoon-feed the compiler a big-endian integer with alignment 1.
+     * https://github.com/harfbuzz/harfbuzz/pull/1398 */
+    struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    return __builtin_bswap16 (((packed_uint16_t *) this)->v);
+#else /* __BYTE_ORDER == __BIG_ENDIAN */
+    return ((packed_uint16_t *) this)->v;
+#endif
+#endif
+    return (v[0] <<  8)
+	 + (v[1]      );
+  }
+  private: uint8_t v[2];
+};
+template <typename Type>
+struct BEInt<Type, 3>
+{
+  public:
+  BEInt () = default;
+  constexpr BEInt (Type V) : v {(V >> 16) & 0xFF,
+			        (V >>  8) & 0xFF,
+			        (V      ) & 0xFF} {}
+  constexpr operator Type () const { return (v[0] << 16)
+					     + (v[1] <<  8)
+					     + (v[2]      ); }
+  private: uint8_t v[3];
+};
+template <typename Type>
+struct BEInt<Type, 4>
+{
+  public:
+  BEInt () = default;
+  constexpr BEInt (Type V) : v {(V >> 24) & 0xFF,
+			        (V >> 16) & 0xFF,
+			        (V >>  8) & 0xFF,
+			        (V      ) & 0xFF} {}
+  constexpr operator Type () const { return (v[0] << 24)
+					  + (v[1] << 16)
+					  + (v[2] <<  8)
+					  + (v[3]      ); }
+  private: uint8_t v[4];
+};
+
 
 
 /* Encodes three unsigned integers in one 64-bit number.  If the inputs have more than 21 bits,
