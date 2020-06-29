@@ -406,23 +406,6 @@ if (HB_HAVE_GOBJECT)
   )
 endif ()
 
-## Atomic ops availability detection
-file(WRITE "${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c"
-"		#include <atomic.h>
-		/* This requires Solaris Studio 12.2 or newer: */
-		#include <mbarrier.h>
-		void memory_barrier (void) { __machine_rw_barrier (); }
-		int atomic_add (volatile unsigned *i) { return atomic_add_int_nv (i, 1); }
-		void *atomic_ptr_cmpxchg (volatile void **target, void *cmp, void *newval) { return atomic_cas_ptr (target, cmp, newval); }
-		int main () { return 0; }
-")
-try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
-  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops
-  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c)
-if (HB_HAVE_SOLARIS_ATOMIC_OPS)
-  add_definitions(-DHAVE_SOLARIS_ATOMIC_OPS)
-endif ()
-
 
 ## Define harfbuzz library
 add_library(harfbuzz ${project_sources} ${project_extra_sources} ${project_headers})
