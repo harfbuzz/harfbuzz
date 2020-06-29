@@ -53,7 +53,7 @@ namespace OT {
  */
 
 /* Integer types in big-endian order and no alignment requirement */
-template <typename Type, unsigned int Size>
+template <typename Type, unsigned int Size = sizeof (Type)>
 struct IntType
 {
   typedef Type type;
@@ -100,12 +100,12 @@ struct IntType
   DEFINE_SIZE_STATIC (Size);
 };
 
-typedef IntType<uint8_t,  1> HBUINT8;	/* 8-bit unsigned integer. */
-typedef IntType<int8_t,   1> HBINT8;	/* 8-bit signed integer. */
-typedef IntType<uint16_t, 2> HBUINT16;	/* 16-bit unsigned integer. */
-typedef IntType<int16_t,  2> HBINT16;	/* 16-bit signed integer. */
-typedef IntType<uint32_t, 4> HBUINT32;	/* 32-bit unsigned integer. */
-typedef IntType<int32_t,  4> HBINT32;	/* 32-bit signed integer. */
+typedef IntType<uint8_t>  HBUINT8;	/* 8-bit unsigned integer. */
+typedef IntType<int8_t>   HBINT8;	/* 8-bit signed integer. */
+typedef IntType<uint16_t> HBUINT16;	/* 16-bit unsigned integer. */
+typedef IntType<int16_t>  HBINT16;	/* 16-bit signed integer. */
+typedef IntType<uint32_t> HBUINT32;	/* 32-bit unsigned integer. */
+typedef IntType<int32_t>  HBINT32;	/* 32-bit signed integer. */
 /* Note: we cannot defined a signed HBINT24 because there's no corresponding C type.
  * Works for unsigned, but not signed, since we rely on compiler for sign-extension. */
 typedef IntType<uint32_t, 3> HBUINT24;	/* 24-bit unsigned integer. */
