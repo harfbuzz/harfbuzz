@@ -217,9 +217,6 @@ hb_buffer_t::get_scratch_buffer (unsigned int *size)
 void
 hb_buffer_t::reset ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   hb_unicode_funcs_destroy (unicode);
   unicode = hb_unicode_funcs_reference (hb_unicode_funcs_get_default ());
   flags = HB_BUFFER_FLAG_DEFAULT;
@@ -232,9 +229,6 @@ hb_buffer_t::reset ()
 void
 hb_buffer_t::clear ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   hb_segment_properties_t default_props = HB_SEGMENT_PROPERTIES_DEFAULT;
   props = default_props;
   scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
@@ -1208,6 +1202,9 @@ hb_buffer_get_invisible_glyph (hb_buffer_t    *buffer)
 void
 hb_buffer_reset (hb_buffer_t *buffer)
 {
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
   buffer->reset ();
 }
 
@@ -1223,6 +1220,9 @@ hb_buffer_reset (hb_buffer_t *buffer)
 void
 hb_buffer_clear_contents (hb_buffer_t *buffer)
 {
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
   buffer->clear ();
 }
 
