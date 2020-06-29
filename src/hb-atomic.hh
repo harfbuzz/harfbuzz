@@ -52,7 +52,7 @@
 
 #elif !defined(HB_NO_MT) && defined(__ATOMIC_ACQUIRE)
 
-/* C++11-style GCC primitives. */
+/* C++11-style GCC primitives. We prefer these as they don't require standard library. */
 
 #define _hb_memory_barrier()			__sync_synchronize ()
 
@@ -102,6 +102,8 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 
 
 #elif !defined(HB_NO_MT) && defined(_WIN32)
+/* Windows branch still needed because MSVC doesn't correctly define __cplusplus:
+ * https://github.com/harfbuzz/harfbuzz/pull/2362 */
 
 #include <windows.h>
 
