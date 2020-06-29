@@ -123,15 +123,6 @@ static_assert ((sizeof (LONG) == sizeof (int)), "");
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((P), (N), (O)) == (O))
 
 
-#elif !defined(HB_NO_MT) && defined(HAVE_INTEL_ATOMIC_PRIMITIVES)
-
-#define _hb_memory_barrier()			__sync_synchronize ()
-
-#define hb_atomic_int_impl_add(AI, V)		__sync_fetch_and_add ((AI), (V))
-
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)	__sync_bool_compare_and_swap ((P), (O), (N))
-
-
 #elif !defined(HB_NO_MT) && defined(HAVE_SOLARIS_ATOMIC_OPS)
 
 #include <atomic.h>
