@@ -464,10 +464,10 @@ static inline constexpr uint32_t hb_uint32_swap (uint32_t v)
 { return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
 /*
- * Big-endian integers.  Here because fundamental.
+ * Big-endian integers.
  */
 
-template <typename Type, int Bytes> struct BEInt;
+template <typename Type, int Bytes = sizeof (Type)> struct BEInt;
 
 template <typename Type>
 struct BEInt<Type, 1>

@@ -524,7 +524,7 @@ struct hb_serialize_context_t
   template <typename T>
   void assign_offset (const object_t* parent, const object_t::link_t &link, unsigned offset)
   {
-    auto &off = * ((BEInt<T, sizeof (T)> *) (parent->head + link.position));
+    auto &off = * ((BEInt<T> *) (parent->head + link.position));
     assert (0 == off);
     check_assign (off, offset);
   }
