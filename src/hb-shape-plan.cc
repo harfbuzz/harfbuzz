@@ -385,7 +385,6 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
   if (unlikely (!buffer->len))
     return true;
 
-  assert (!hb_object_is_immutable (buffer));
   assert (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE);
 
   if (unlikely (hb_object_is_inert (shape_plan)))
@@ -394,23 +393,19 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
   assert (shape_plan->face_unsafe == font->face);
   assert (hb_segment_properties_equal (&shape_plan->key.props, &buffer->props));
 
-#define HB_SHAPER_EXECUTE(shaper) \
-	HB_STMT_START { \
-	  return font->data.shaper && \
-		 _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features); \
-	} HB_STMT_END
-
-  if (false)
-    ;
+  bool ret = false
 #define HB_SHAPER_IMPLEMENT(shaper) \
-  else if (shape_plan->key.shaper_func == _hb_##shaper##_shape) \
-    HB_SHAPER_EXECUTE (shaper);
+	|| (shape_plan->key.shaper_func == _hb_##shaper##_shape && \
+	    font->data.shaper && \
+	    _hb_##shaper##_shape (shape_plan, font, buffer, features, num_features))
 #include "hb-shaper-list.hh"
 #undef HB_SHAPER_IMPLEMENT
+  ;
 
-#undef HB_SHAPER_EXECUTE
+  if (ret)
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
 
-  return false;
+  return ret;
 }
 
 
