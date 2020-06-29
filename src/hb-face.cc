@@ -89,8 +89,8 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
   nullptr, /* destroy */
 
   0,    /* index */
-  HB_ATOMIC_INT_INIT (1000), /* upem */
-  HB_ATOMIC_INT_INIT (0),    /* num_glyphs */
+  1000, /* upem */
+  0,    /* num_glyphs */
 
   /* Zero for the rest is fine. */
 };

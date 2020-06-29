@@ -140,7 +140,7 @@ struct hb_lockable_set_t
  * Reference-count.
  */
 
-#define HB_REFERENCE_COUNT_INIT {HB_ATOMIC_INT_INIT (0)}
+#define HB_REFERENCE_COUNT_INIT {0}
 
 struct hb_reference_count_t
 {
@@ -195,15 +195,10 @@ struct hb_user_data_array_t
 struct hb_object_header_t
 {
   hb_reference_count_t ref_count;
-  mutable hb_atomic_int_t writable;
+  mutable hb_atomic_int_t writable = 0;
   hb_atomic_ptr_t<hb_user_data_array_t> user_data;
 };
-#define HB_OBJECT_HEADER_STATIC \
-	{ \
-	  HB_REFERENCE_COUNT_INIT, \
-	  HB_ATOMIC_INT_INIT (false), \
-	  HB_ATOMIC_PTR_INIT (nullptr) \
-	}
+#define HB_OBJECT_HEADER_STATIC {}
 
 
 /*
