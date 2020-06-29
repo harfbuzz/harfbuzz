@@ -256,16 +256,12 @@ struct hb_set_t
 
   void reset ()
   {
-    if (unlikely (hb_object_is_immutable (this)))
-      return;
     clear ();
     successful = true;
   }
 
   void clear ()
   {
-    if (unlikely (hb_object_is_immutable (this)))
-      return;
     population = 0;
     page_map.resize (0);
     pages.resize (0);
