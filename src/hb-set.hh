@@ -256,17 +256,12 @@ struct hb_set_t
 
   void reset ()
   {
-    if (unlikely (hb_object_is_immutable (this)))
-      return;
     successful = true;
     clear ();
   }
 
   void clear ()
   {
-    if (unlikely (hb_object_is_immutable (this)))
-      return;
-
     if (resize (0))
       population = 0;
   }
