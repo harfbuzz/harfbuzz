@@ -515,9 +515,9 @@ _hb_roundf (float x) { return floorf (x + .5f); }
 #define roundf(x) _hb_roundf(x)
 
 /* Endian swap, used in Windows related backends */
-static inline uint16_t hb_uint16_swap (const uint16_t v)
+static inline constexpr uint16_t hb_uint16_swap (uint16_t v)
 { return (v >> 8) | (v << 8); }
-static inline uint32_t hb_uint32_swap (const uint32_t v)
+static inline constexpr uint32_t hb_uint32_swap (uint32_t v)
 { return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
 /*
