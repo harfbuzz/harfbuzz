@@ -334,10 +334,6 @@ foreach check : check_funcs
   endif
 endforeach
 
-if cpp.links(files('meson-cc-tests/intel-atomic-primitives-test.c'), name: 'Intel atomics')
-  conf.set('HAVE_INTEL_ATOMIC_PRIMITIVES', 1)
-endif
-
 if cpp.links(files('meson-cc-tests/solaris-atomic-operations.c'), name: 'Solaris atomic ops')
   conf.set('HAVE_SOLARIS_ATOMIC_OPS', 1)
 endif
