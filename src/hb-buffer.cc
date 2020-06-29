@@ -224,6 +224,7 @@ hb_buffer_t::reset ()
   invisible = 0;
 
   clear ();
+  successful = true;
 }
 
 void
@@ -234,7 +235,6 @@ hb_buffer_t::clear ()
   scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
 
   content_type = HB_BUFFER_CONTENT_TYPE_INVALID;
-  successful = true;
   have_output = false;
   have_positions = false;
 
