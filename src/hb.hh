@@ -453,42 +453,6 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
   void operator=(const TypeName&) = delete
 
 
-/* Flags */
-
-/* Enable bitwise ops on enums marked as flags_t */
-/* To my surprise, looks like the function resolver is happy to silently cast
- * one enum to another...  So this doesn't provide the type-checking that I
- * originally had in mind... :(.
- *
- * For MSVC warnings, see: https://github.com/harfbuzz/harfbuzz/pull/163
- */
-#ifdef _MSC_VER
-# pragma warning(disable:4200)
-# pragma warning(disable:4800)
-#endif
-#define HB_MARK_AS_FLAG_T(T) \
-	extern "C++" { \
-	  static inline constexpr T operator | (T l, T r) { return T ((unsigned) l | (unsigned) r); } \
-	  static inline constexpr T operator & (T l, T r) { return T ((unsigned) l & (unsigned) r); } \
-	  static inline constexpr T operator ^ (T l, T r) { return T ((unsigned) l ^ (unsigned) r); } \
-	  static inline constexpr T operator ~ (T r) { return T (~(unsigned int) r); } \
-	  static inline T& operator |= (T &l, T r) { l = l | r; return l; } \
-	  static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
-	  static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \
-	} \
-	static_assert (true, "")
-
-/* Useful for set-operations on small enums.
- * For example, for testing "x ∈ {x1, x2, x3}" use:
- * (FLAG_UNSAFE(x) & (FLAG(x1) | FLAG(x2) | FLAG(x3)))
- */
-#define FLAG(x) (static_assert_expr ((unsigned)(x) < 32) + (((uint32_t) 1U) << (unsigned)(x)))
-#define FLAG_UNSAFE(x) ((unsigned)(x) < 32 ? (((uint32_t) 1U) << (unsigned)(x)) : 0)
-#define FLAG_RANGE(x,y) (static_assert_expr ((x) < (y)) + FLAG(y+1) - FLAG(x))
-#define FLAG64(x) (static_assert_expr ((unsigned)(x) < 64) + (((uint64_t) 1ULL) << (unsigned)(x)))
-#define FLAG64_UNSAFE(x) ((unsigned)(x) < 64 ? (((uint64_t) 1ULL) << (unsigned)(x)) : 0)
-
-
 /* Size signifying variable-sized array */
 #ifndef HB_VAR_ARRAY
 #define HB_VAR_ARRAY 1
