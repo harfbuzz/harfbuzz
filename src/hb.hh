@@ -442,14 +442,6 @@ static int HB_UNUSED _hb_errno = 0;
 #define HB_STMT_END   while (0)
 
 /* Lets assert int types.  Saves trouble down the road. */
-static_assert ((sizeof (int8_t) == 1), "");
-static_assert ((sizeof (uint8_t) == 1), "");
-static_assert ((sizeof (int16_t) == 2), "");
-static_assert ((sizeof (uint16_t) == 2), "");
-static_assert ((sizeof (int32_t) == 4), "");
-static_assert ((sizeof (uint32_t) == 4), "");
-static_assert ((sizeof (int64_t) == 8), "");
-static_assert ((sizeof (uint64_t) == 8), "");
 static_assert ((sizeof (hb_codepoint_t) == 4), "");
 static_assert ((sizeof (hb_position_t) == 4), "");
 static_assert ((sizeof (hb_mask_t) == 4), "");
