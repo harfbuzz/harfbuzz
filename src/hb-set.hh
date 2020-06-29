@@ -258,8 +258,8 @@ struct hb_set_t
   {
     if (unlikely (hb_object_is_immutable (this)))
       return;
-    clear ();
     successful = true;
+    clear ();
   }
 
   void clear ()
