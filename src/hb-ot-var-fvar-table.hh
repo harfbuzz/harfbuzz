@@ -102,13 +102,15 @@ struct AxisRecord
     info->reserved = 0;
   }
 
+  hb_ot_name_id_t get_name_id () const { return axisNameID; }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
   }
 
-  public:
+  protected:
   Tag		axisTag;	/* Tag identifying the design variation for the axis. */
   HBFixed	minValue;	/* The minimum coordinate value for the axis. */
   HBFixed	defaultValue;	/* The default coordinate value for the axis. */
@@ -264,7 +266,7 @@ struct fvar
     if (!has_data ()) return;
 
     + get_axes ()
-    | hb_map (&AxisRecord::axisNameID)
+    | hb_map (&AxisRecord::get_name_id)
     | hb_sink (nameids)
     ;
 
