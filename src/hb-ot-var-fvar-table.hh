@@ -82,7 +82,7 @@ struct AxisRecord
   {
     info->tag = axisTag;
     info->name_id = axisNameID;
-    fill_values (info->default_value, info->min_value, info->max_value);
+    get_coordinates (info->min_value, info->default_value, info->max_value);
   }
 #endif
 
@@ -92,14 +92,14 @@ struct AxisRecord
     info->tag = axisTag;
     info->name_id = axisNameID;
     info->flags = (hb_ot_var_axis_flags_t) (unsigned int) flags;
-    fill_values (info->default_value, info->min_value, info->max_value);
+    get_coordinates (info->min_value, info->default_value, info->max_value);
     info->reserved = 0;
   }
 
   int normalize_axis_value (float v) const
   {
-    float default_value, min_value, max_value;
-    fill_values (default_value, min_value, max_value);
+    float min_value, default_value, max_value;
+    get_coordinates (min_value, default_value, max_value);
 
     v = hb_clamp (v, min_value, max_value);
 
@@ -114,8 +114,8 @@ struct AxisRecord
 
   float unnormalize_axis_value (int v) const
   {
-    float default_value, min_value, max_value;
-    fill_values (default_value, min_value, max_value);
+    float min_value, default_value, max_value;
+    get_coordinates (min_value, default_value, max_value);
 
     if (v == 0)
       return default_value;
@@ -134,12 +134,12 @@ struct AxisRecord
   }
 
   protected:
-  void fill_values (float &default_value, float &min_value, float &max_value) const
+  void get_coordinates (float &min, float &default_, float &max) const
   {
-    default_value = defaultValue / 65536.f;
+    default_ = defaultValue / 65536.f;
     /* Ensure order, to simplify client math. */
-    min_value = hb_min (default_value, minValue / 65536.f);
-    max_value = hb_max (default_value, maxValue / 65536.f);
+    min = hb_min (default_, minValue / 65536.f);
+    max = hb_max (default_, maxValue / 65536.f);
   }
 
   protected:
