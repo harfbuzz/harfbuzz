@@ -6,4 +6,7 @@
 /proxy-libintl
 /zlib
 /packagecache
-/google-benchmark
+/benchmark-1.4.1
+/cairo
+/pixman
+/libpng-1.6.35
