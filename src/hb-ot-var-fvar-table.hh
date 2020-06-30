@@ -96,6 +96,35 @@ struct AxisRecord
     info->reserved = 0;
   }
 
+  int normalize_axis_value (float v) const
+  {
+    float default_value, min_value, max_value;
+    fill_values (default_value, min_value, max_value);
+
+    v = hb_clamp (v, min_value, max_value);
+
+    if (v == default_value)
+      return 0;
+    else if (v < default_value)
+      v = (v - default_value) / (default_value - min_value);
+    else
+      v = (v - default_value) / (max_value - default_value);
+    return roundf (v * 16384.f);
+  }
+
+  float unnormalize_axis_value (int v) const
+  {
+    float default_value, min_value, max_value;
+    fill_values (default_value, min_value, max_value);
+
+    if (v == 0)
+      return default_value;
+    else if (v < 0)
+      return v * (default_value - min_value) / 16384.f + default_value;
+    else
+      return v * (max_value - default_value) / 16384.f + default_value;
+  }
+
   hb_ot_name_id_t get_name_id () const { return axisNameID; }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -104,7 +133,7 @@ struct AxisRecord
     return_trace (c->check_struct (this));
   }
 
-  private:
+  protected:
   void fill_values (float &default_value, float &min_value, float &max_value) const
   {
     default_value = defaultValue / 65536.f;
@@ -195,34 +224,10 @@ struct fvar
   }
 
   int normalize_axis_value (unsigned int axis_index, float v) const
-  {
-    hb_ot_var_axis_info_t axis;
-    get_axes ()[axis_index].get_axis_info (axis_index, &axis);
+  { return get_axes ()[axis_index].normalize_axis_value (v); }
 
-    v = hb_clamp (v, axis.min_value, axis.max_value);
-
-    if (v == axis.default_value)
-      return 0;
-    else if (v < axis.default_value)
-      v = (v - axis.default_value) / (axis.default_value - axis.min_value);
-    else
-      v = (v - axis.default_value) / (axis.max_value - axis.default_value);
-    return roundf (v * 16384.f);
-  }
-
-  float unnormalize_axis_value (unsigned int axis_index, float v) const
-  {
-    hb_ot_var_axis_info_t axis;
-    get_axes ()[axis_index].get_axis_info (axis_index, &axis);
-
-    if (v == 0)
-      return axis.default_value;
-    else if (v < 0)
-      v = v * (axis.default_value - axis.min_value) / 16384.f + axis.default_value;
-    else
-      v = v * (axis.max_value - axis.default_value) / 16384.f + axis.default_value;
-    return v;
-  }
+  float unnormalize_axis_value (unsigned int axis_index, int v) const
+  { return get_axes ()[axis_index].unnormalize_axis_value (v); }
 
   unsigned int get_instance_count () const { return instanceCount; }
 
@@ -283,7 +288,6 @@ struct fvar
     | hb_sink (nameids)
     ;
   }
-
 
   protected:
   hb_array_t<const AxisRecord> get_axes () const
