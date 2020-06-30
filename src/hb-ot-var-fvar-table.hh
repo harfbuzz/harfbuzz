@@ -82,10 +82,7 @@ struct AxisRecord
   {
     info->tag = axisTag;
     info->name_id = axisNameID;
-    info->default_value = defaultValue / 65536.f;
-    /* Ensure order, to simplify client math. */
-    info->min_value = hb_min (info->default_value, minValue / 65536.f);
-    info->max_value = hb_max (info->default_value, maxValue / 65536.f);
+    fill_values (info->default_value, info->min_value, info->max_value);
   }
 #endif
 
@@ -95,10 +92,7 @@ struct AxisRecord
     info->tag = axisTag;
     info->name_id = axisNameID;
     info->flags = (hb_ot_var_axis_flags_t) (unsigned int) flags;
-    info->default_value = defaultValue / 65536.f;
-    /* Ensure order, to simplify client math. */
-    info->min_value = hb_min (info->default_value, minValue / 65536.f);
-    info->max_value = hb_max (info->default_value, maxValue / 65536.f);
+    fill_values (info->default_value, info->min_value, info->max_value);
     info->reserved = 0;
   }
 
@@ -108,6 +102,15 @@ struct AxisRecord
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
+  }
+
+  private:
+  void fill_values (float &default_value, float &min_value, float &max_value) const
+  {
+    default_value = defaultValue / 65536.f;
+    /* Ensure order, to simplify client math. */
+    min_value = hb_min (default_value, minValue / 65536.f);
+    max_value = hb_max (default_value, maxValue / 65536.f);
   }
 
   protected:
