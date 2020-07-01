@@ -210,7 +210,7 @@ struct fvar
     unsigned i;
     if (!axis_index) axis_index = &i;
     *axis_index = HB_OT_VAR_NO_AXIS_INDEX;
-    hb_array_t<const AxisRecord> axes = get_axes ();
+    auto axes = get_axes ();
     return axes.lfind (tag, axis_index) && (axes[*axis_index].get_axis_deprecated (info), true);
   }
 #endif
@@ -218,8 +218,8 @@ struct fvar
   bool
   find_axis_info (hb_tag_t tag, hb_ot_var_axis_info_t *info) const
   {
-    hb_array_t<const AxisRecord> axes = get_axes ();
     unsigned i;
+    auto axes = get_axes ();
     return axes.lfind (tag, &i) && (axes[i].get_axis_info (i, info), true);
   }
 
