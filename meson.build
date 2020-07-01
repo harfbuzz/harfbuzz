@@ -151,18 +151,12 @@ if not get_option('cairo').disabled()
     if cairo_dep.type_name() == 'pkgconfig'
       cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
     else
-      cairo_ft_dep = cairo_dep
-      # TODO: Apparently the following isn't reliable to detect whether a dependency provides
-      #       something or not so let's assume it is always enabled as we control
-      #       cairo subproject anyway for now.  To fix and test run .ci/build-win32.sh and
-      #       make sure hb-view.exe is not missing.
-      #
-      # if cpp.has_header('cairo-ft.h') and \
-      #    cpp.has_function('cairo_ft_font_face_create_for_ft_face', dependencies: cairo_dep)
-      #   cairo_ft_dep = cairo_dep
-      # else
-      #   cairo_ft_dep = dependency('', required: false)
-      # endif
+      cairo_ft_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'],
+                                has_headers: ['cairo-ft.h'],
+                                required: get_option('cairo'))
+      if cairo_ft_dep.found()
+        cairo_dep = cairo_ft_dep
+      endif
     endif
   else
     cairo_ft_dep = dependency('', required: false)
