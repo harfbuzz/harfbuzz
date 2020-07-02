@@ -16,6 +16,7 @@ hb_libtool_version_info = '@0@:0:@0@'.format(hb_version_int)
 
 pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
+null_dep = dependency('', required: false)
 
 if cpp.get_id() == 'msvc'
   # Ignore several spurious warnings for things HarfBuzz does very commonly.
@@ -89,7 +90,7 @@ if not get_option('freetype').disabled()
                               default_options: ['harfbuzz=disabled'])
   endif
 else
-  freetype_dep = dependency('', required: false)
+  freetype_dep = null_dep
 endif
 
 glib_dep = dependency('glib-2.0', required: get_option('glib'),
@@ -126,7 +127,7 @@ if not get_option('icu').disabled()
     endif
   endif
 else
-  icu_dep = dependency('', required: false)
+  icu_dep = null_dep
 endif
 
 if not get_option('cairo').disabled()
@@ -160,11 +161,11 @@ if not get_option('cairo').disabled()
       cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
     endif
   else
-    cairo_ft_dep = dependency('', required: false)
+    cairo_ft_dep = null_dep
   endif
 else
-  cairo_dep = dependency('', required: false)
-  cairo_ft_dep = dependency('', required: false)
+  cairo_dep = null_dep
+  cairo_ft_dep = null_dep
 endif
 
 conf = configuration_data()
@@ -248,7 +249,7 @@ if host_machine.system() == 'windows' and not get_option('gdi').disabled()
 endif
 
 # DirectWrite (windows)
-directwrite_dep = dependency('', required: false)
+directwrite_dep = null_dep
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
   if cpp.has_header('dwrite_1.h')
     directwrite_dep = cpp.find_library('dwrite', required: true)
@@ -281,7 +282,7 @@ if host_machine.system() == 'darwin' and not get_option('coretext').disabled()
 endif
 
 # threads
-thread_dep = dependency('', required: false)
+thread_dep = null_dep
 if host_machine.system() != 'windows'
   thread_dep = dependency('threads', required: false)
 

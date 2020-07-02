@@ -537,7 +537,7 @@ if have_icu and not have_icu_builtin
 
   install_headers(hb_icu_headers, subdir: meson.project_name())
 else
-  libharfbuzz_icu_dep = dependency('', required: false)
+  libharfbuzz_icu_dep = null_dep
 endif
 
 have_gobject = conf.get('HAVE_GOBJECT', 0) == 1
@@ -654,7 +654,7 @@ else
     error('introspection requires gobject to be enabled')
   endif
 
-  libharfbuzz_gobject_dep = dependency('', required: false)
+  libharfbuzz_gobject_dep = null_dep
 endif
 
 if get_option('tests').enabled()
