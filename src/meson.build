@@ -501,6 +501,7 @@ pkgmod.generate(libharfbuzz,
 
 pkgmod.generate(libharfbuzz_subset,
   description: 'HarfBuzz font subsetter',
+  requires: ['harfbuzz'],
   subdirs: [meson.project_name()],
   version: meson.project_version(),
 )
@@ -531,6 +532,7 @@ if have_icu and not have_icu_builtin
 
   pkgmod.generate(libharfbuzz_icu,
     description: 'HarfBuzz text shaping library ICU integration',
+    requires: ['harfbuzz'],
     subdirs: [meson.project_name()],
     version: meson.project_version(),
   )
@@ -644,6 +646,7 @@ if have_gobject
 
   pkgmod.generate(libharfbuzz_gobject,
     description: 'HarfBuzz text shaping library GObject integration',
+    requires: ['harfbuzz', 'glib-2.0', 'gobject-2.0'],
     subdirs: [meson.project_name()],
     version: meson.project_version(),
   )
