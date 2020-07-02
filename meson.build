@@ -148,15 +148,16 @@ if not get_option('cairo').disabled()
 
   # Ensure that cairo-ft is fetched from the same library as cairo itself
   if cairo_dep.found()
-    if cairo_dep.type_name() == 'pkgconfig'
+    if cairo_dep.type_name() == 'internal'
+      # It is true at least for the port we have
+      cairo_ft_dep = cairo_dep
+    elif cairo_dep.type_name() == 'library' and \
+         cpp.has_function('cairo_ft_font_face_create_for_ft_face',
+                          prefix: '#include <cairo-ft.h>',
+                          dependencies: cairo_dep)
+      cairo_ft_dep = cairo_dep
+    else # including the most important type for us, 'pkgconfig'
       cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
-    else
-      cairo_ft_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'],
-                                has_headers: ['cairo-ft.h'],
-                                required: get_option('cairo'))
-      if cairo_ft_dep.found()
-        cairo_dep = cairo_ft_dep
-      endif
     endif
   else
     cairo_ft_dep = dependency('', required: false)
