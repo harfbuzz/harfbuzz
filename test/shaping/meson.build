@@ -5,6 +5,11 @@ subdir('data/text-rendering-tests') # text_rendering_tests
 
 shaping_run_tests_py = find_program('run-tests.py')
 
+env = environment()
+if conf.get('HAVE_FREETYPE', 0) == 0
+  env.set('no_ft_funcs', '1')
+endif
+
 foreach file_name : in_house_tests
   test_name = file_name.split('.')[0].underscorify()
 
@@ -13,6 +18,7 @@ foreach file_name : in_house_tests
       hb_shape,
       meson.current_source_dir() / 'data' / 'in-house' / 'tests' / file_name,
     ],
+    env: env,
     workdir: meson.current_build_dir() / '..' / '..',
     suite: ['shaping', 'in-house'],
   )
@@ -26,6 +32,7 @@ foreach file_name : aots_tests
       hb_shape,
       meson.current_source_dir() / 'data' / 'aots' / 'tests' / file_name,
     ],
+    env: env,
     workdir: meson.current_build_dir() / '..' / '..',
     suite: ['shaping', 'aots'],
   )
@@ -39,6 +46,7 @@ foreach file_name : text_rendering_tests
       hb_shape,
       meson.current_source_dir() / 'data' / 'text-rendering-tests' / 'tests' / file_name,
     ],
+    env: env,
     workdir: meson.current_build_dir() / '..' / '..',
     suite: ['shaping', 'text-rendering-tests'],
   )
