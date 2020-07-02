@@ -15,6 +15,8 @@ if len (args) and args[0] == "--reference":
 	reference = True
 	args = args[1:]
 
+no_ft_funcs = bool(int(os.getenv('no_ft_funcs', '0')))
+
 if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
 	sys.exit ("""First argument does not seem to point to usable hb-shape.""")
 hb_shape, args = args[0], args[1:]
@@ -59,6 +61,7 @@ for filename in args:
 			continue
 
 		fontfile, options, unicodes, glyphs_expected = line.split (":")
+		options = options.split ()
 		if fontfile.startswith ('/') or fontfile.startswith ('"/'):
 			if os.name == 'nt': # Skip on Windows
 				continue
@@ -100,23 +103,25 @@ for filename in args:
 			shutil.copyfile(fontfile, new_fontfile)
 			fontfile = new_fontfile
 
-		glyphs1 = cmd ([hb_shape, "--font-funcs=ft",
-			fontfile] + extra_options + ["--unicodes",
-			unicodes] + (options.split (' ') if options else []))
+		if "--font-funcs=ft" in options and no_ft_funcs:
+			skips += 1
+			continue
 
-		glyphs2 = cmd ([hb_shape, "--font-funcs=ot",
-			fontfile] + extra_options + ["--unicodes",
-			unicodes] + (options.split (' ') if options else []))
-
-		if glyphs1 != glyphs2 and glyphs_expected != '*':
-			print ("FT funcs: " + glyphs1, file=sys.stderr)
-			print ("OT funcs: " + glyphs2, file=sys.stderr)
-			fails += 1
+		if "--font-funcs=ot" in options or no_ft_funcs:
+			glyphs1 = cmd ([hb_shape, "--font-funcs=ot", fontfile] + extra_options + ["--unicodes", unicodes] + options)
 		else:
-			passes += 1
+			glyphs1 = cmd ([hb_shape, "--font-funcs=ft", fontfile] + extra_options + ["--unicodes", unicodes] + options)
+			glyphs2 = cmd ([hb_shape, "--font-funcs=ot", fontfile] + extra_options + ["--unicodes", unicodes] + options)
+
+			if glyphs1 != glyphs2 and glyphs_expected != '*':
+				print ("FT funcs: " + glyphs1, file=sys.stderr)
+				print ("OT funcs: " + glyphs2, file=sys.stderr)
+				fails += 1
+			else:
+				passes += 1
 
 		if reference:
-			print (":".join ([fontfile, options, unicodes, glyphs1]))
+			print (":".join ([fontfile, " ".join(options), unicodes, glyphs1]))
 			continue
 
 		if glyphs1.strip() != glyphs_expected and glyphs_expected != '*':
