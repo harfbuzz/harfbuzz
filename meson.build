@@ -79,12 +79,6 @@ if not get_option('freetype').disabled()
   endif
 
   if not freetype_dep.found()
-    freetype_dep = dependency('freetype2', required: false,
-                              fallback: ['freetype2', 'freetype_dep'])
-  endif
-
-  if not freetype_dep.found()
-    # try to fetch freetype2 without harfbuzz, just as a last resort
     # https://github.com/harfbuzz/harfbuzz/pull/2498
     freetype_dep = dependency('freetype2', required: get_option('freetype'),
                               fallback: ['freetype2', 'freetype_dep'],
