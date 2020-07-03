@@ -1,5 +1,5 @@
 # Base and default-included sources and headers
-hb_base_sources = [
+hb_base_sources = files(
   'hb-aat-fdsc-table.hh',
   'hb-aat-layout-ankr-table.hh',
   'hb-aat-layout-bsln-table.hh',
@@ -167,9 +167,9 @@ hb_base_sources = [
   'hb-utf.hh',
   'hb-vector.hh',
   'hb.hh',
-]
+)
 
-hb_base_ragel_generated_sources = [
+hb_base_ragel_generated_sources = files(
   'hb-buffer-deserialize-json.hh',
   'hb-buffer-deserialize-text.hh',
   'hb-number-parser.hh',
@@ -177,7 +177,7 @@ hb_base_ragel_generated_sources = [
   'hb-ot-shape-complex-khmer-machine.hh',
   'hb-ot-shape-complex-myanmar-machine.hh',
   'hb-ot-shape-complex-use-machine.hh',
-]
+)
 hb_base_ragel_sources = [
   'hb-buffer-deserialize-json.rl',
   'hb-buffer-deserialize-text.rl',
@@ -188,7 +188,7 @@ hb_base_ragel_sources = [
   'hb-ot-shape-complex-use-machine.rl',
 ]
 
-hb_base_headers = [
+hb_base_headers = files(
   'hb-aat-layout.h',
   'hb-aat.h',
   'hb-blob.h',
@@ -217,39 +217,39 @@ hb_base_headers = [
   'hb-unicode.h',
   'hb-version.h',
   'hb.h',
-]
+)
 
 # Optional Sources and Headers with external deps
 
-hb_ft_sources = ['hb-ft.cc']
-hb_ft_headers = ['hb-ft.h']
+hb_ft_sources = files('hb-ft.cc')
+hb_ft_headers = files('hb-ft.h')
 
-hb_glib_sources = ['hb-glib.cc']
-hb_glib_headers = ['hb-glib.h']
+hb_glib_sources = files('hb-glib.cc')
+hb_glib_headers = files('hb-glib.h')
 
-hb_graphite2_sources = ['hb-graphite2.cc']
-hb_graphite2_headers = ['hb-graphite2.h']
+hb_graphite2_sources = files('hb-graphite2.cc')
+hb_graphite2_headers = files('hb-graphite2.h')
 
 # System-dependent sources and headers
 
-hb_coretext_sources = ['hb-coretext.cc']
-hb_coretext_headers = ['hb-coretext.h']
+hb_coretext_sources = files('hb-coretext.cc')
+hb_coretext_headers = files('hb-coretext.h')
 
-hb_directwrite_sources = ['hb-directwrite.cc']
-hb_directwrite_headers = ['hb-directwrite.h']
+hb_directwrite_sources = files('hb-directwrite.cc')
+hb_directwrite_headers = files('hb-directwrite.h')
 
-hb_gdi_sources = ['hb-gdi.cc']
-hb_gdi_headers = ['hb-gdi.h']
+hb_gdi_sources = files('hb-gdi.cc')
+hb_gdi_headers = files('hb-gdi.h')
 
-hb_uniscribe_sources = ['hb-uniscribe.cc']
-hb_uniscribe_headers = ['hb-uniscribe.h']
+hb_uniscribe_sources = files('hb-uniscribe.cc')
+hb_uniscribe_headers = files('hb-uniscribe.h')
 
 # Sources for libharfbuzz-gobject and libharfbuzz-icu
-hb_icu_sources = ['hb-icu.cc']
-hb_icu_headers = ['hb-icu.h']
+hb_icu_sources = files('hb-icu.cc')
+hb_icu_headers = files('hb-icu.h')
 
 # Sources for libharfbuzz-subset
-hb_subset_sources = [
+hb_subset_sources = files(
   'hb-number.cc',
   'hb-number.hh',
   'hb-ot-cff1-table.cc',
@@ -269,18 +269,18 @@ hb_subset_sources = [
   'hb-subset.cc',
   'hb-subset.hh',
   'hb-subset.hh',
-]
+)
 
-hb_subset_headers = ['hb-subset.h']
+hb_subset_headers = files('hb-subset.h')
 
-hb_gobject_sources = [
+hb_gobject_sources = files(
   'hb-gobject-structs.cc'
-]
+)
 
-hb_gobject_headers = [
+hb_gobject_headers = files(
   'hb-gobject.h',
   'hb-gobject-structs.h',
-]
+)
 
 custom_target('hb-version.h',
   build_by_default: true,
@@ -293,11 +293,18 @@ ragel = find_program('ragel', required: false)
 if not ragel.found()
   warning('You have to install ragel if you are going to develop HarfBuzz itself')
 else
-  custom_target('ragel header files',
-    build_by_default: true,
-    input: hb_base_ragel_sources,
-    output: '.ragel-artifacts',
-    command: [find_program('gen-ragel-artifacts.py')] + hb_base_ragel_sources)
+  foreach rl : hb_base_ragel_sources
+    hh = rl.split('.')[0] + '.hh'
+    custom_target('@0@'.format(hh),
+      build_by_default: true,
+      input: rl,
+      output: hh,
+      command: [find_program('gen-ragel-artifacts.py'),
+                '@OUTPUT@',
+                '@CURRENT_SOURCE_DIR@',
+                '@INPUT@'],
+    )
+  endforeach
 endif
 
 custom_target('harfbuzz.cc',
@@ -667,8 +674,16 @@ if get_option('tests').enabled()
   env.set('srcdir', meson.current_source_dir())
   env.set('builddir', meson.current_build_dir())
   env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
-  env.set('HBSOURCES', ' '.join(hb_sources))
-  env.set('HBHEADERS', ' '.join(hb_headers))
+  HBSOURCES = []
+  foreach f : hb_sources
+    HBSOURCES += '@0@'.format(f).split ('/')[1]
+  endforeach
+  env.set('HBSOURCES', ' '.join(HBSOURCES))
+  HBHEADERS = []
+  foreach f : hb_headers
+    HBHEADERS += '@0@'.format(f).split ('/')[1]
+  endforeach
+  env.set('HBHEADERS', ' '.join(HBHEADERS))
 
   if cpp.get_id() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
     dist_check_script += ['check-libstdc++', 'check-static-inits', 'check-symbols']
