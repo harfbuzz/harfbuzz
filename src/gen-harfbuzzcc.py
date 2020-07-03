@@ -2,7 +2,7 @@
 
 "usage: gen-harfbuzzcc.py harfbuzz.cc hb-blob.cc hb-buffer.cc ..."
 
-import os, re, sys
+import os, sys
 
 os.chdir (os.path.dirname (__file__))
 

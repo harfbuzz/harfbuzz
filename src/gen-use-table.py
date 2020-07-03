@@ -89,7 +89,6 @@ for i,d in enumerate (data):
 combined = {k:v for k,v in combined.items() if v[3] not in BLACKLISTED_BLOCKS}
 data = combined
 del combined
-num = len (data)
 
 
 property_names = [
