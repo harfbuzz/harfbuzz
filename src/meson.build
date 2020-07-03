@@ -505,6 +505,7 @@ pkgmod.generate(libharfbuzz_subset,
   version: meson.project_version(),
 )
 
+libharfbuzz_icu_dep = null_dep
 if have_icu and not have_icu_builtin
   harfbuzz_icu_def = custom_target('harfbuzz-icu.def',
     command: [gen_def, '@OUTPUT@', '@INPUT@'],
@@ -536,8 +537,6 @@ if have_icu and not have_icu_builtin
   )
 
   install_headers(hb_icu_headers, subdir: meson.project_name())
-else
-  libharfbuzz_icu_dep = null_dep
 endif
 
 have_gobject = conf.get('HAVE_GOBJECT', 0) == 1
@@ -552,6 +551,7 @@ configure_file(input: 'harfbuzz-config.cmake.in',
   configuration: cmake_config,
   install_dir: get_option('libdir') / 'cmake' / 'harfbuzz')
 
+libharfbuzz_gobject_dep = null_dep
 if have_gobject
   gnome = import('gnome')
 
@@ -653,8 +653,6 @@ else
   if get_option('introspection').enabled()
     error('introspection requires gobject to be enabled')
   endif
-
-  libharfbuzz_gobject_dep = null_dep
 endif
 
 if get_option('tests').enabled()

@@ -69,6 +69,7 @@ check_funcs = [
 
 m_dep = cpp.find_library('m', required: false)
 
+freetype_dep = null_dep
 if not get_option('freetype').disabled()
   freetype_dep = dependency('freetype2', required: false)
 
@@ -89,8 +90,6 @@ if not get_option('freetype').disabled()
                               fallback: ['freetype2', 'freetype_dep'],
                               default_options: ['harfbuzz=disabled'])
   endif
-else
-  freetype_dep = null_dep
 endif
 
 glib_dep = dependency('glib-2.0', required: get_option('glib'),
@@ -101,6 +100,7 @@ fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'),
                             fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: get_option('graphite'))
 
+icu_dep = null_dep
 if not get_option('icu').disabled()
   icu_dep = dependency('icu-uc', required: false)
 
@@ -126,10 +126,10 @@ if not get_option('icu').disabled()
       endif
     endif
   endif
-else
-  icu_dep = null_dep
 endif
 
+cairo_dep = null_dep
+cairo_ft_dep = null_dep
 if not get_option('cairo').disabled()
   cairo_dep = dependency('cairo', required: false)
 
@@ -160,12 +160,7 @@ if not get_option('cairo').disabled()
     else # including the most important type for us, 'pkgconfig'
       cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
     endif
-  else
-    cairo_ft_dep = null_dep
   endif
-else
-  cairo_dep = null_dep
-  cairo_ft_dep = null_dep
 endif
 
 conf = configuration_data()
