@@ -676,12 +676,12 @@ if get_option('tests').enabled()
   env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
   HBSOURCES = []
   foreach f : hb_sources
-    HBSOURCES += '@0@'.format(f).split ('/')[1]
+    HBSOURCES += '@0@'.format(f)
   endforeach
   env.set('HBSOURCES', ' '.join(HBSOURCES))
   HBHEADERS = []
   foreach f : hb_headers
-    HBHEADERS += '@0@'.format(f).split ('/')[1]
+    HBHEADERS += '@0@'.format(f)
   endforeach
   env.set('HBHEADERS', ' '.join(HBHEADERS))
 
