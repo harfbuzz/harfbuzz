@@ -12,7 +12,7 @@ if len (sys.argv) < 3:
 output_file = sys.argv[1]
 source_paths = sys.argv[2:]
 
-result = "".join ('#include "{}"\n'.format (x) for x in source_paths if x.endswith (".cc")).encode ()
+result = "".join ('#include "{}"\n'.format (os.path.basename (x)) for x in source_paths if x.endswith (".cc")).encode ()
 
 with open (output_file, "rb") as f:
 	current = f.read()
