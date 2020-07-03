@@ -2,7 +2,7 @@
 
 "usage: gen-hb-version.py 1.0.0 hb-version.h.in hb-version.h"
 
-import os, re, sys
+import os, sys
 
 os.chdir (os.path.dirname (__file__))
 

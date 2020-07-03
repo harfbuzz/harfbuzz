@@ -82,7 +82,6 @@ for i,d in enumerate (data):
 combined = {k:v for k,v in combined.items() if k in ALLOWED_SINGLES or v[2] in ALLOWED_BLOCKS}
 data = combined
 del combined
-num = len (data)
 
 # Move the outliers NO-BREAK SPACE and DOTTED CIRCLE out
 singles = {}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, re, sys, subprocess, shutil, tempfile
+import os, sys, subprocess, shutil, tempfile
 
 os.chdir (os.path.dirname (__file__))
 
