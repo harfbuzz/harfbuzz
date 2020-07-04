@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
 
-"usage: gen-harfbuzzcc.py harfbuzz.cc hb-blob.cc hb-buffer.cc ..."
+"This tool is intended to be used from meson"
 
-import os, sys
-
-os.chdir (os.path.dirname (__file__))
+import os, sys, shutil
 
 if len (sys.argv) < 3:
-	sys.exit (__doc__)
+	exit (__doc__)
 
-output_file = sys.argv[1]
-source_paths = sys.argv[2:]
+OUTPUT = sys.argv[1]
+CURRENT_SOURCE_DIR = sys.argv[2]
+sources = sys.argv[3:]
 
-result = "".join ('#include "{}"\n'.format (os.path.basename (x)) for x in source_paths if x.endswith (".cc")).encode ()
+with open (OUTPUT, "wb") as f:
+	f.write ("".join ('#include "{}"\n'.format (os.path.basename (x)) for x in sources if x.endswith (".cc")).encode ())
 
-with open (output_file, "rb") as f:
-	current = f.read()
-
-if result != current:
-	with open (output_file, "wb") as f:
-		f.write (result)
+# copy it also to src/
+shutil.copyfile (OUTPUT, os.path.join (CURRENT_SOURCE_DIR, os.path.basename (OUTPUT)))

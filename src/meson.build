@@ -301,9 +301,7 @@ else
       input: rl,
       output: hh,
       command: [find_program('gen-ragel-artifacts.py'),
-                '@OUTPUT@',
-                '@CURRENT_SOURCE_DIR@',
-                '@INPUT@'],
+                '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
     )
   endforeach
 endif
@@ -311,10 +309,12 @@ endif
 custom_target('harfbuzz.cc',
   build_by_default: true,
   output: 'harfbuzz.cc',
-  command: [find_program('gen-harfbuzzcc.py'), 'harfbuzz.cc'] +
-            hb_base_sources + hb_glib_sources + hb_ft_sources +
-            hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
-            hb_directwrite_sources + hb_coretext_sources)
+  input: hb_base_sources + hb_glib_sources + hb_ft_sources +
+         hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
+         hb_directwrite_sources + hb_coretext_sources,
+  command: [find_program('gen-harfbuzzcc.py'),
+            '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+)
 
 incsrc = include_directories('.')
 
