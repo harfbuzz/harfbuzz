@@ -35,7 +35,10 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   if (size < sizeof (instructions_t))
     return 0;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
   const instructions_t &instructions = reinterpret_cast<const instructions_t &> (data);
+#pragma GCC diagnostic pop
   data += sizeof (instructions_t);
   size -= sizeof (instructions_t);
 
