@@ -6,10 +6,10 @@ import os, os.path, sys, subprocess, shutil, tempfile
 
 ragel = shutil.which ('ragel')
 if not ragel:
-	exit ('You have to install ragel if you are going to develop HarfBuzz itself')
+	sys.exit ('You have to install ragel if you are going to develop HarfBuzz itself')
 
 if len (sys.argv) < 4:
-	exit (__doc__)
+	sys.exit (__doc__)
 
 OUTPUT = sys.argv[1]
 CURRENT_SOURCE_DIR = sys.argv[2]
