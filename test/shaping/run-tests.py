@@ -15,7 +15,7 @@ if len (args) and args[0] == "--reference":
 	reference = True
 	args = args[1:]
 
-no_ft_funcs = bool(int(os.getenv('no_ft_funcs', '0')))
+no_ft_funcs = bool(int(os.getenv ('NO_FT_FUNCS', '0')))
 
 if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
 	sys.exit ("""First argument does not seem to point to usable hb-shape.""")

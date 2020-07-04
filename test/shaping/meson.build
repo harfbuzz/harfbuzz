@@ -6,9 +6,7 @@ subdir('data/text-rendering-tests') # text_rendering_tests
 shaping_run_tests_py = find_program('run-tests.py')
 
 env = environment()
-if conf.get('HAVE_FREETYPE', 0) == 0
-  env.set('no_ft_funcs', '1')
-endif
+env.set('NO_FT_FUNCS', conf.get('HAVE_FREETYPE', 0) == 1 ? '0' : '1')
 
 foreach file_name : in_house_tests
   test_name = file_name.split('.')[0].underscorify()
