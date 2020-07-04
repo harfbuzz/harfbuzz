@@ -2,7 +2,7 @@
 
 import sys, os, subprocess, shutil
 
-os.chdir (os.environ.get ('srcdir', os.path.dirname (__file__)))
+os.chdir (os.getenv ('srcdir', os.path.dirname (__file__)))
 
 git = shutil.which ('git'); assert git
 make = shutil.which ('make'); assert make

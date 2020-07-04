@@ -63,7 +63,7 @@ def extract_tests (input):
 	assert found
 	return '\n'.join (result) + '\n'
 
-os.chdir (os.environ.get ('srcdir', os.path.dirname (__file__)))
+os.chdir (os.getenv ('srcdir', os.path.dirname (__file__)))
 
 git = shutil.which ('git')
 assert git
