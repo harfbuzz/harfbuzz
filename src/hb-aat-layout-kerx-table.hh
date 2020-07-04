@@ -508,8 +508,10 @@ struct KerxSubTableFormat4
 	{
 	  case 0: /* Control Point Actions.*/
 	  {
-	    /* indexed into glyph outline. */
-	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex];
+	    /* Indexed into glyph outline. */
+	    /* Each action (record in ankrData) contains two 16-bit fields, so we must
+	       double the ankrActionIndex to get the correct offset here. */
+	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
 	    if (!c->sanitizer.check_array (data, 2)) return;
 	    HB_UNUSED unsigned int markControlPoint = *data++;
 	    HB_UNUSED unsigned int currControlPoint = *data++;
@@ -534,8 +536,10 @@ struct KerxSubTableFormat4
 
 	  case 1: /* Anchor Point Actions. */
 	  {
-	   /* Indexed into 'ankr' table. */
-	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex];
+	    /* Indexed into 'ankr' table. */
+	    /* Each action (record in ankrData) contains two 16-bit fields, so we must
+	       double the ankrActionIndex to get the correct offset here. */
+	    const HBUINT16 *data = &ankrData[entry.data.ankrActionIndex * 2];
 	    if (!c->sanitizer.check_array (data, 2)) return;
 	    unsigned int markAnchorPoint = *data++;
 	    unsigned int currAnchorPoint = *data++;
