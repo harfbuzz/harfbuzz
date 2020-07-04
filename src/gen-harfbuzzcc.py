@@ -5,7 +5,7 @@
 import os, sys, shutil
 
 if len (sys.argv) < 3:
-	exit (__doc__)
+	sys.exit (__doc__)
 
 OUTPUT = sys.argv[1]
 CURRENT_SOURCE_DIR = sys.argv[2]
