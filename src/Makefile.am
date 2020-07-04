@@ -98,7 +98,7 @@ BUILT_SOURCES += \
 	hb-version.h
 
 $(srcdir)/hb-version.h: hb-version.h.in $(top_srcdir)/configure.ac
-	$(AM_V_GEN) $(srcdir)/gen-hb-version.py $(HB_VERSION) "$<" "$@" \
+	$(AM_V_GEN) $(SED) \
 		-e 's/[@]HB_VERSION_MAJOR@/$(HB_VERSION_MAJOR)/' \
 		-e 's/[@]HB_VERSION_MINOR@/$(HB_VERSION_MINOR)/' \
 		-e 's/[@]HB_VERSION_MICRO@/$(HB_VERSION_MICRO)/' \
