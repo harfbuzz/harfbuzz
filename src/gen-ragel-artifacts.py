@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+"This tool is intended to be used from meson"
+
 import os, os.path, sys, subprocess, shutil, tempfile
 
 ragel = shutil.which ('ragel')
@@ -7,7 +9,7 @@ if not ragel:
 	exit ('You have to install ragel if you are going to develop HarfBuzz itself')
 
 if len (sys.argv) < 4:
-	exit ('This tool is intended to be used from meson')
+	exit (__doc__)
 
 OUTPUT = sys.argv[1]
 CURRENT_SOURCE_DIR = sys.argv[2]
