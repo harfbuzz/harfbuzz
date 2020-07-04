@@ -9,7 +9,7 @@ def cmd (command):
 		p = subprocess.Popen (command, stderr=tempf)
 
 		try:
-			p.wait (timeout=int (os.environ.get ("HB_TEST_SHAPE_FUZZER_TIMEOUT", "2")))
+			p.wait (timeout=int (os.getenv ("HB_TEST_SHAPE_FUZZER_TIMEOUT", "2")))
 			tempf.seek (0)
 			text = tempf.read ()
 
@@ -21,9 +21,9 @@ def cmd (command):
 			return 'error: timeout, ' + ' '.join (command), 1
 
 
-srcdir = os.environ.get ("srcdir", ".")
-EXEEXT = os.environ.get ("EXEEXT", "")
-top_builddir = os.environ.get ("top_builddir", ".")
+srcdir = os.getenv ("srcdir", ".")
+EXEEXT = os.getenv ("EXEEXT", "")
+top_builddir = os.getenv ("top_builddir", ".")
 hb_draw_fuzzer = os.path.join (top_builddir, "hb-draw-fuzzer" + EXEEXT)
 
 if not os.path.exists (hb_draw_fuzzer):
@@ -36,9 +36,9 @@ please provide it as the first argument to the tool""")
 print ('hb_draw_fuzzer:', hb_draw_fuzzer)
 fails = 0
 
-libtool = os.environ.get ('LIBTOOL')
+libtool = os.getenv ('LIBTOOL')
 valgrind = None
-if os.environ.get ('RUN_VALGRIND', ''):
+if os.getenv ('RUN_VALGRIND', ''):
 	valgrind = shutil.which ('valgrind')
 	if valgrind is None:
 		sys.exit ("""Valgrind requested but not found.""")
