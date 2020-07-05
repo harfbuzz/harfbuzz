@@ -60,7 +60,6 @@ HB_OT_ACCELERATOR (OT, post)
 HB_OT_ACCELERATOR (OT, name)
 #endif
 #ifndef HB_NO_STYLE
-HB_OT_TABLE (AAT, fdsc)
 HB_OT_TABLE (OT, STAT)
 #endif
 #ifndef HB_NO_META
