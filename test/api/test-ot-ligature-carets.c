@@ -28,7 +28,7 @@
 #include <hb-ot.h>
 
 static void
-test_ot_layout_get_ligature_carets_ot_gsub (void)
+test_ot_layout_get_ligature_carets_ot_gdef (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/NotoNastaliqUrdu-Regular.ttf");
   hb_font_t *font = hb_font_create (face);
@@ -167,7 +167,7 @@ main (int argc, char **argv)
 {
   g_test_init (&argc, &argv, NULL);
 
-  hb_test_add (test_ot_layout_get_ligature_carets_ot_gsub);
+  hb_test_add (test_ot_layout_get_ligature_carets_ot_gdef);
   hb_test_add (test_ot_layout_get_ligature_carets_empty);
 
   return hb_test_run ();
