@@ -66,25 +66,6 @@ test_regular_face (void)
 }
 
 static void
-test_face_fdsc (void)
-{
-  hb_face_t *face = hb_test_open_font_file ("fonts/aat-fdsc.ttf");
-  hb_font_t *font = hb_font_create (face);
-
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 24);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 6.33f);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 400);
-
-  hb_font_set_ptem (font, 36);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 36);
-
-  hb_font_destroy (font);
-  hb_face_destroy (face);
-}
-
-static void
 test_face_user_setting (void)
 {
   hb_face_t *face = hb_test_open_font_file ("fonts/AdobeVFPrototype_vsindex.otf");
@@ -180,7 +161,6 @@ main (int argc, char **argv)
 
   hb_test_add (test_empty_face);
   hb_test_add (test_regular_face);
-  hb_test_add (test_face_fdsc);
   hb_test_add (test_face_user_setting);
 
   return hb_test_run ();

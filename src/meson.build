@@ -1,6 +1,5 @@
 # Base and default-included sources and headers
 hb_base_sources = files(
-  'hb-aat-fdsc-table.hh',
   'hb-aat-layout-ankr-table.hh',
   'hb-aat-layout-bsln-table.hh',
   'hb-aat-layout-common.hh',

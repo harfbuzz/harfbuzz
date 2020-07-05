@@ -28,7 +28,6 @@
 #include "hb.hh"
 
 #include "hb-aat-layout.hh"
-#include "hb-aat-fdsc-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-layout-ankr-table.hh"
 #include "hb-aat-layout-bsln-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-aat-layout-feat-table.hh"
