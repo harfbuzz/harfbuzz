@@ -20,6 +20,11 @@ EXTRA_DIST = \
 	$(NULL)
 
 TEST_EXTENSIONS = .tests
+if HAVE_FREETYPE
+TESTS_ENVIRONMENT = HAVE_FREETYPE=1
+else
+TESTS_ENVIRONMENT = HAVE_FREETYPE=0
+endif
 TESTS_LOG_COMPILER = $(srcdir)/../../run-tests.py $(top_builddir)/util/hb-shape$(EXEEXT)
 
 include Makefile.sources
