@@ -22,7 +22,7 @@ HarfBuzz release walk-through checklist:
 
 4. Make sure you have correct date and new version at the top of NEWS file,
 
-5. Bump version in configure.ac line 3 and meson.build line 4.
+5. Bump version in line 3 of meson.build and configure.ac.
 
 6. Do "make distcheck", if it passes, you get a tarball.
    Otherwise, fix things and commit them separately before making release,
