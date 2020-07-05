@@ -17,7 +17,7 @@
       Tarball releases and Win32 binary bundles (which include the
       libharfbuzz DLL, hb-view.exe, hb-shape.exe, and all
       dependencies) of HarfBuzz can be downloaded from <ulink
-      url="https://github.com/harfbuzz/harfbuzz">github.com/harfbuzz/harfbuzz/releases</ulink>.
+      url="https://github.com/harfbuzz/harfbuzz/releases">github.com/harfbuzz/harfbuzz/releases</ulink>.
     </para>
     <para>
       Release notes are posted with each new release to provide an
