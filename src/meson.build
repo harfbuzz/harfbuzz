@@ -6,7 +6,6 @@ hb_base_sources = files(
   'hb-aat-layout-feat-table.hh',
   'hb-aat-layout-just-table.hh',
   'hb-aat-layout-kerx-table.hh',
-  'hb-aat-layout-lcar-table.hh',
   'hb-aat-layout-morx-table.hh',
   'hb-aat-layout-opbd-table.hh',
   'hb-aat-layout-trak-table.hh',
