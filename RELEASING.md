@@ -20,35 +20,25 @@ HarfBuzz release walk-through checklist:
 3. Search for REPLACEME on the repository and replace it with the chosen version
    for the release.
 
-4. Make sure you have correct date and new version at the top of NEWS file,
+4. Make sure you have correct date and new version at the top of NEWS file.
 
 5. Bump version in line 3 of meson.build and configure.ac.
+   Do a `meson test -Cbuild` so it both checks the tests and updates
+   hb-version.h (use `git diff` to see if is really updated).
 
-6. Do "make distcheck", if it passes, you get a tarball.
-   Otherwise, fix things and commit them separately before making release,
-   Note: Check src/hb-version.h and make sure the new version number is
-   there.  Sometimes, it does not get updated.  If that's the case,
-   "touch configure.ac" and rebuild.  Also check that there is no hb-version.h
-   in your build/src file. Typically it will fail the distcheck if there is.
-   That's what happened to 2.0.0 going out with 1.8.0 hb-version.h...  So, that's
-   a clue.
+6. Commit NEWS, meson.build, configure.ac, and src/hb-version.h, as well as any REPLACEME
+   changes you made.  The commit message is simply the release number.  Eg. "1.4.7"
 
-7. Now that you have release files, commit NEWS, configure.ac, and src/hb-version.h,
-   as well as any REPLACEME changes you made.  The commit message is simply the
-   release number.  Eg. "1.4.7"
+7. Do a `meson dist -Cbuild` that runs the tests against the latest commited changes.
+   If doesn't pass, something fishy is going on, reset the repo and start over.
 
-8. "make dist" again to get a tarball with your new commit in the ChangeLog.
-
-9. Tag the release and sign it: Eg. "git tag -s 1.4.7 -m 1.4.7".  Enter your
+8. Tag the release and sign it: Eg. "git tag -s 1.4.7 -m 1.4.7".  Enter your
    GPG password.
 
-10. Build win32 bundle.  See [README.mingw.md](README.mingw.md).
+9. Build win32 bundle.  See [README.mingw.md](README.mingw.md).
 
-11. Quickly double-check the size of the .tar.xz and .zip files against their
-    previous releases to make sure nothing bad happened.
-    They should be in the ballpark, perhaps slightly larger.  Sometimes they
-    do shrink, that's not by itself a stopper.
+10. Push the commit and tag out: "git push --follow-tags".
 
-12. Push the commit and tag out: "git push --follow-tags".  Go to GitHub release
-    page [here](https://github.com/harfbuzz/harfbuzz/releases), edit the tag,
-    upload artefacts and NEWS entry and save.
+11. Go to GitHub release page [here](https://github.com/harfbuzz/harfbuzz/releases),
+    edit the tag, upload win32 bundle and NEWS entry and save.
+    No need to upload source tarball as we rely to GitHub's automatic tar.gz generation.
