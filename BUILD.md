@@ -38,4 +38,4 @@ Examples of meson built harfbuzz packages,
 * https://git.alpinelinux.org/aports/tree/main/harfbuzz
   Which uses https://git.alpinelinux.org/aports/tree/main/meson/abuild-meson
 * https://github.com/msys2/MINGW-packages/blob/master/mingw-w64-harfbuzz/PKGBUILD
-* (feel free to add you package source here)
+* (feel free to add your distribution's source link here)
