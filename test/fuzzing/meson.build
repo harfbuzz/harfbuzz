@@ -8,9 +8,19 @@ tests = [
 foreach file_name : tests
   test_name = file_name.split('.')[0].underscorify()
 
-  exe = executable(test_name, [file_name, 'main.cc'],
+  sources = [file_name]
+  fuzzer_ldflags = []
+
+  if get_option('fuzzer_ldflags') == ''
+    sources += 'main.cc'
+  else
+    fuzzer_ldflags += get_option('fuzzer_ldflags')
+  endif
+
+  exe = executable(test_name, sources,
     cpp_args: cpp_args,
     include_directories: [incconfig, incsrc],
+    link_args: fuzzer_ldflags,
     link_with: [libharfbuzz, libharfbuzz_subset],
     install: false,
   )
