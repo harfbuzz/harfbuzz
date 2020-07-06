@@ -1,7 +1,10 @@
 project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.53.0',
   version: '2.6.8',
-  default_options: ['cpp_std=c++11', 'wrap_mode=nofallback'],
+  default_options: [
+    'cpp_std=c++11',
+    'wrap_mode=nofallback', # https://github.com/harfbuzz/harfbuzz/pull/2548
+  ],
 )
 
 warning('Meson is not our main build system for building *nix packages yet we encourage packagers to test it and give us feedback about it.')
@@ -25,11 +28,11 @@ if cpp.get_id() == 'msvc'
   # If a warning is harmless but hard to fix, use '/woXXXX' so it's shown once
   # NOTE: Only add warnings here if you are sure they're spurious
   msvc_args = [
-      '/wd4018', # implicit signed/unsigned conversion
-      '/wd4146', # unary minus on unsigned (beware INT_MIN)
-      '/wd4244', # lossy type conversion (e.g. double -> int)
-      '/wd4305', # truncating type conversion (e.g. double -> float)
-      cpp.get_supported_arguments(['/utf-8']), # set the input encoding to utf-8
+    '/wd4018', # implicit signed/unsigned conversion
+    '/wd4146', # unary minus on unsigned (beware INT_MIN)
+    '/wd4244', # lossy type conversion (e.g. double -> int)
+    '/wd4305', # truncating type conversion (e.g. double -> float)
+    cpp.get_supported_arguments(['/utf-8']), # set the input encoding to utf-8
   ]
   add_project_arguments(msvc_args, language: ['c', 'cpp'])
   # Disable SAFESEH with MSVC for libs that use external deps that are built with MinGW
@@ -224,7 +227,7 @@ if fontconfig_dep.found()
 endif
 
 gdi_uniscribe_deps = []
-# GDI (uniscribe) (windows)
+# GDI (Uniscribe) (Windows)
 if host_machine.system() == 'windows' and not get_option('gdi').disabled()
   # TODO: make nicer once we have https://github.com/mesonbuild/meson/issues/3940
   if cpp.has_header('usp10.h') and cpp.has_header('windows.h')
@@ -238,7 +241,7 @@ if host_machine.system() == 'windows' and not get_option('gdi').disabled()
   endif
 endif
 
-# DirectWrite (windows)
+# DirectWrite (Windows)
 directwrite_dep = null_dep
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
   if cpp.has_header('dwrite_1.h')
@@ -307,7 +310,6 @@ foreach check : check_funcs
   found = true
 
   # First try without linking
-
   found = cpp.has_function(name, dependencies: check_deps)
 
   if not found and link_withs.length() > 0
