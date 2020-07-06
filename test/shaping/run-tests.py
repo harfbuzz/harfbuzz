@@ -15,7 +15,7 @@ if len (args) and args[0] == "--reference":
 	reference = True
 	args = args[1:]
 
-no_ft_funcs = bool(int(os.getenv ('NO_FT_FUNCS', '0')))
+have_freetype = bool(int(os.getenv ('HAVE_FREETYPE', '1')))
 
 if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
 	sys.exit ("""First argument does not seem to point to usable hb-shape.""")
@@ -103,11 +103,11 @@ for filename in args:
 			shutil.copyfile(fontfile, new_fontfile)
 			fontfile = new_fontfile
 
-		if "--font-funcs=ft" in options and no_ft_funcs:
+		if "--font-funcs=ft" in options and not have_freetype:
 			skips += 1
 			continue
 
-		if "--font-funcs=ot" in options or no_ft_funcs:
+		if "--font-funcs=ot" in options or not have_freetype:
 			glyphs1 = cmd ([hb_shape, "--font-funcs=ot", fontfile] + extra_options + ["--unicodes", unicodes] + options)
 		else:
 			glyphs1 = cmd ([hb_shape, "--font-funcs=ft", fontfile] + extra_options + ["--unicodes", unicodes] + options)
