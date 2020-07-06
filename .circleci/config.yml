@@ -7,41 +7,40 @@ jobs:
       xcode: "9.0.1"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo python3
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
-      - run: make -j4
-      - run: make check || .ci/fail.sh
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install meson pkg-config ragel freetype glib cairo python3
+      - run: meson build
+      - run: meson compile -Cbuild # or ninja -Cbuild
+      - run: meson test -Cbuild --print-errorlogs
 
   macos-10.13.6-aat-fonts:
     macos:
       xcode: "10.1.0"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo
-      - run: ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo
-      - run: make -j4
-      - run: make check || .ci/fail.sh
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install meson pkg-config ragel freetype glib cairo python3
+      - run: meson build
+      - run: meson compile -Cbuild
+      - run: meson test -Cbuild --print-errorlogs
 
   macos-10.14.4-aat-fonts:
     macos:
       xcode: "11.1.0"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2
-      - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
-      - run: make -j4
-      - run: make check || .ci/fail.sh
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install meson pkg-config ragel freetype glib cairo python3 icu4c graphite2
+      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" CPPFLAGS="-I/usr/local/opt/icu4c/include" meson build -Dcoretext=enabled
+      - run: meson compile -Cbuild
+      - run: meson test -Cbuild --print-errorlogs
 
   macos-10.15.3-aat-fonts:
     macos:
       xcode: "11.4.0"
     steps:
       - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget autoconf automake libtool pkg-config ragel freetype glib cairo icu4c graphite2 meson
-      - run: export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" && ./autogen.sh --with-freetype --with-glib --with-gobject --with-cairo --with-icu --with-coretext --with-graphite2
-      - run: make -j4
-      - run: make check || .ci/fail.sh
-      - run: make clean && meson build -Dcoretext=enabled && ninja -Cbuild test
+      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install meson pkg-config ragel freetype glib cairo python3 icu4c graphite2 gobject-introspection gtk-doc
+      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" CPPFLAGS="-I/usr/local/opt/icu4c/include" meson build -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled
+      - run: meson compile -Cbuild
+      - run: meson test -Cbuild --print-errorlogs
 
   distcheck:
     docker:
