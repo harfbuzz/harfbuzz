@@ -28,7 +28,7 @@ jobs:
     steps:
       - checkout
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install meson pkg-config ragel freetype glib cairo python3 icu4c graphite2
-      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" CPPFLAGS="-I/usr/local/opt/icu4c/include" meson build -Dcoretext=enabled
+      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Dcoretext=enabled
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
 
@@ -38,7 +38,7 @@ jobs:
     steps:
       - checkout
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install meson pkg-config ragel freetype glib cairo python3 icu4c graphite2 gobject-introspection gtk-doc
-      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" CPPFLAGS="-I/usr/local/opt/icu4c/include" meson build -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled
+      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
 

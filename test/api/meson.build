@@ -73,17 +73,16 @@ env.set('G_TEST_BUILDDIR', meson.current_build_dir())
 foreach source : tests
   test_name = source.split('.')[0]
 
-  link_withs = libharfbuzz
+  deps = [glib_dep, freetype_dep, thread_dep, libharfbuzz_dep, libharfbuzz_icu_dep]
+  suite = ['api']
   if test_name.contains('-subset')
-    link_withs = [libharfbuzz, libharfbuzz_subset]
-  elif test_name == 'test-unicode' and have_icu and not have_icu_builtin
-    link_withs = [libharfbuzz, libharfbuzz_icu]
+    deps += libharfbuzz_subset_dep
+    suite += 'subset'
   endif
 
   test(test_name, executable(test_name, source,
-    include_directories: [incconfig, incsrc],
-    dependencies: [glib_dep, freetype_dep, thread_dep],
-    link_with: link_withs,
+    include_directories: [incconfig],
+    dependencies: deps,
     install: false,
-  ), env: env, suite: ['api'] + (test_name.contains('-subset') ? ['subset'] : []))
+  ), env: env, suite: suite)
 endforeach
