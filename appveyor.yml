@@ -41,7 +41,7 @@ build_script:
   - set "PATH=%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%"
   - pip install --upgrade meson
   - pip install fonttools
-  - 'if "%compiler%"=="msvc" "%vcvarsallpath%" %arch% && meson setup build --buildtype=release -Dglib=enabled -Dfreetype=enabled -Dgdi=enabled -Ddirectwrite=enabled && meson test --print-errorlogs --suite=harfbuzz -Cbuild'
+  - 'if "%compiler%"=="msvc" "%vcvarsallpath%" %arch% && meson setup build --wrap-mode=default --buildtype=release -Dglib=enabled -Dfreetype=enabled -Dgdi=enabled -Ddirectwrite=enabled && meson test --print-errorlogs --suite=harfbuzz -Cbuild'
 
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "curl https://raw.githubusercontent.com/mirror/mingw-w64/023eb04c396d4e8d8fcf604cfababc53dae13398/mingw-w64-headers/include/dwrite_1.h > %MINGW_PREFIX%/%MINGW_CHOST%/include/dwrite_1.h"'
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; meson build --wrap-mode=nofallback -Dfreetype=enabled -Dglib=enabled -Dcairo=enabled -Dgobject=enabled -Dgdi=enabled -Ddirectwrite=enabled -Dgraphite=enabled && meson test -Cbuild --print-errorlogs"'
