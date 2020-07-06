@@ -249,7 +249,7 @@ if host_machine.system() == 'windows' and not get_option('directwrite').disabled
   endif
 endif
 
-# CoreText (macOS) - FIXME: untested
+# CoreText (macOS)
 coretext_deps = []
 if host_machine.system() == 'darwin' and not get_option('coretext').disabled()
   app_services_dep = dependency('appleframeworks', modules: ['ApplicationServices'], required: false)
