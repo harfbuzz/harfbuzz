@@ -377,7 +377,7 @@ summary({'FreeType': conf.get('HAVE_FREETYPE', 0) == 1,
         }, bool_yn: true, section: 'Font callbacks (the more the merrier)')
 summary({'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
          'Fontconfig': conf.get('HAVE_FONTCONFIG', 0) == 1,
-        }, bool_yn: true, section: 'Tools used for command-line utilities')
+        }, bool_yn: true, section: 'Dependencies used for command-line utilities')
 summary({'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
         }, bool_yn: true, section: 'Additional shapers')
 summary({'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
