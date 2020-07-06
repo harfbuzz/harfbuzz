@@ -6,7 +6,7 @@ tests = [
 ]
 
 foreach file_name : tests
-  test_name = file_name.split('.')[0].underscorify()
+  test_name = file_name.split('.')[0]
 
   sources = [file_name]
   fuzzer_ldflags = []
