@@ -107,22 +107,14 @@ if not get_option('icu').disabled()
   endif
 
   if not icu_dep.found() and cpp.get_id() == 'msvc'
-    if cpp.has_header('unicode/uchar.h') and \
-       cpp.has_header('unicode/unorm2.h') and \
-       cpp.has_header('unicode/ustring.h') and \
-       cpp.has_header('unicode/utf16.h') and \
-       cpp.has_header('unicode/uversion.h') and \
-       cpp.has_header('unicode/uscript.h')
-      if get_option('buildtype') == 'debug'
-        icu_dep = cpp.find_library('icuucd', required: get_option('icu'))
-      else
-        icu_dep = cpp.find_library('icuuc', required: get_option('icu'))
-      endif
-    else
-      if get_option('icu').enabled()
-        error('ICU headers and libraries must be present to build ICU support')
-      endif
-    endif
+    icu_dep = cpp.find_library(get_option('buildtype') == 'debug' ? 'icuucd' : 'icuuc',
+                               required: get_option('icu'),
+                               has_headers: ['unicode/uchar.h',
+                                             'unicode/unorm2.h',
+                                             'unicode/ustring.h',
+                                             'unicode/utf16.h',
+                                             'unicode/uversion.h',
+                                             'unicode/uscript.h'])
   endif
 endif
 
@@ -229,26 +221,29 @@ endif
 gdi_uniscribe_deps = []
 # GDI (Uniscribe) (Windows)
 if host_machine.system() == 'windows' and not get_option('gdi').disabled()
-  # TODO: make nicer once we have https://github.com/mesonbuild/meson/issues/3940
-  if cpp.has_header('usp10.h') and cpp.has_header('windows.h')
-    foreach usplib : ['usp10', 'gdi32', 'rpcrt4']
-      gdi_uniscribe_deps += cpp.find_library(usplib, required: true)
-    endforeach
+  gdi_deps_found = true
+
+  foreach usplib : ['usp10', 'gdi32', 'rpcrt4']
+    dep = cpp.find_library(usplib, required: get_option('gdi'),
+                           has_headers: ['usp10.h', 'windows.h'])
+    gdi_deps_found = gdi_deps_found and dep.found()
+    gdi_uniscribe_deps += dep
+  endforeach
+
+  if gdi_deps_found
     conf.set('HAVE_UNISCRIBE', 1)
     conf.set('HAVE_GDI', 1)
-  elif get_option('gdi').enabled()
-    error('gdi was enabled explicitly, but some required headers are missing.')
   endif
 endif
 
 # DirectWrite (Windows)
 directwrite_dep = null_dep
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
-  if cpp.has_header('dwrite_1.h')
-    directwrite_dep = cpp.find_library('dwrite', required: true)
+  directwrite_dep = cpp.find_library('dwrite', required: get_option('directwrite'),
+                                     has_headers: ['dwrite_1.h'])
+
+  if directwrite_dep.found()
     conf.set('HAVE_DIRECTWRITE', 1)
-  elif get_option('directwrite').enabled()
-    error('DirectWrite was enabled explicitly, but required header is missing.')
   endif
 endif
 
