@@ -349,7 +349,8 @@ if not get_option('tests').disabled()
 endif
 
 if not get_option('benchmark').disabled() and \
-    ((host_machine.system() != 'windows' and \
+    ((get_option('wrap_mode') != 'nodownload' and \
+      host_machine.system() != 'windows' and \
       not meson.is_subproject() and \
       not meson.is_cross_build()) or get_option('benchmark').enabled())
   subdir('perf')
