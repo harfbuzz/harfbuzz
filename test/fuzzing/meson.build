@@ -14,7 +14,7 @@ foreach file_name : tests
   if get_option('fuzzer_ldflags') == ''
     sources += 'main.cc'
   else
-    fuzzer_ldflags += get_option('fuzzer_ldflags')
+    fuzzer_ldflags += get_option('fuzzer_ldflags').split()
   endif
 
   exe = executable(test_name, sources,
