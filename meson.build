@@ -287,8 +287,6 @@ if host_machine.system() != 'windows'
   endif
 endif
 
-conf.set('HAVE_OT', 1)
-conf.set('HAVE_FALLBACK', 1)
 conf.set_quoted('PACKAGE_NAME', 'HarfBuzz')
 conf.set_quoted('PACKAGE_VERSION', meson.project_version())
 
