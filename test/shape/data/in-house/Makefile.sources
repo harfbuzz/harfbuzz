@@ -45,6 +45,7 @@ TESTS = \
 	tests/myanmar-misc.tests \
 	tests/myanmar-syllable.tests \
 	tests/myanmar-zawgyi.tests \
+	tests/nested-mark-filtering-sets.tests \
 	tests/none-directional.tests \
 	tests/positioning-features.tests \
 	tests/rand.tests \
