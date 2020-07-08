@@ -40,6 +40,7 @@ in_house_tests = [
   'mongolian-variation-selector.tests',
   'myanmar-syllable.tests',
   'myanmar-zawgyi.tests',
+  'nested-mark-filtering-sets.tests',
   'none-directional.tests',
   'positioning-features.tests',
   'rand.tests',
