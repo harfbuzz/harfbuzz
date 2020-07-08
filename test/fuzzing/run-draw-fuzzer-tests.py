@@ -36,15 +36,11 @@ please provide it as the first argument to the tool""")
 print ('hb_draw_fuzzer:', hb_draw_fuzzer)
 fails = 0
 
-libtool = os.getenv ('LIBTOOL')
 valgrind = None
 if os.getenv ('RUN_VALGRIND', ''):
 	valgrind = shutil.which ('valgrind')
 	if valgrind is None:
 		sys.exit ("""Valgrind requested but not found.""")
-	if libtool is None:
-		print ("""Valgrind support is currently autotools only and needs libtool but not found.""")
-
 
 parent_path = os.path.join (srcdir, "fonts")
 for file in os.listdir (parent_path):
@@ -52,7 +48,7 @@ for file in os.listdir (parent_path):
 	path = os.path.join (parent_path, file)
 
 	if valgrind:
-		text, returncode = cmd (libtool.split(' ') + ['--mode=execute', valgrind + ' --leak-check=full --error-exitcode=1', '--', hb_draw_fuzzer, path])
+		text, returncode = cmd ([valgrind, '--leak-check=full', '--error-exitcode=1', hb_draw_fuzzer, path])
 	else:
 		text, returncode = cmd ([hb_draw_fuzzer, path])
 		if 'error' in text:

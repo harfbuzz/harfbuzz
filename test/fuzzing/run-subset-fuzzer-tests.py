@@ -36,15 +36,11 @@ please provide it as the first argument to the tool""")
 print ('hb_subset_fuzzer:', hb_subset_fuzzer)
 fails = 0
 
-libtool = os.getenv ('LIBTOOL')
 valgrind = None
 if os.getenv ('RUN_VALGRIND', ''):
 	valgrind = shutil.which ('valgrind')
 	if valgrind is None:
 		sys.exit ("""Valgrind requested but not found.""")
-	if libtool is None:
-		print ("""Valgrind support is currently autotools only and needs libtool but not found.""")
-
 
 def run_dir (parent_path):
 	global fails
@@ -55,7 +51,7 @@ def run_dir (parent_path):
 
 		print ("running subset fuzzer against %s" % path)
 		if valgrind:
-			text, returncode = cmd (libtool.split(' ') + ['--mode=execute', valgrind + ' --leak-check=full --show-leak-kinds=all --error-exitcode=1', '--', hb_subset_fuzzer, path])
+			text, returncode = cmd ([valgrind, '--leak-check=full', '--error-exitcode=1', hb_subset_fuzzer, path])
 		else:
 			text, returncode = cmd ([hb_subset_fuzzer, path])
 			if 'error' in text:
