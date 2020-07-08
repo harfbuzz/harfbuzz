@@ -119,7 +119,7 @@ jobs:
       - run: ninja -Cbuild -j8 && HB_TEST_SUBSET_FUZZER_TIMEOUT=30 meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
       # test -std=c++2a and -Weverything of nightly clang builds
       - run: clang -c src/harfbuzz.cc src/hb-subset*.cc -DHB_NO_MT -Werror -std=c++2a -Wno-ambiguous-reversed-operator # TOOO fix the warning
-      - run: clang -c src/harfbuzz.cc src/hb-subset*.cc -DHB_NO_MT -Werror -Weverything -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-c++98-compat -Wno-cast-qual -Wno-c++98-compat-pedantic -Wno-sign-conversion -Wno-padded -Wno-shorten-64-to-32 -Wno-reserved-id-macro -Wno-float-conversion -Wno-format-pedantic -Wno-shadow -Wno-conversion -Wno-zero-as-null-pointer-constant -Wno-missing-field-initializers -Wno-used-but-marked-unused -Wno-unused-macros -Wno-comma -Wno-float-equal -Wno-disabled-macro-expansion -Wno-weak-vtables -Wno-unused-parameter -Wno-covered-switch-default -Wno-unreachable-code -Wno-unused-template -DHB_WITH_WIN1256
+      - run: clang -c src/hb-*.cc -DHB_NO_MT -Werror -Weverything -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-c++98-compat -Wno-cast-qual -Wno-c++98-compat-pedantic -Wno-sign-conversion -Wno-padded -Wno-shorten-64-to-32 -Wno-reserved-id-macro -Wno-float-conversion -Wno-format-pedantic -Wno-shadow -Wno-conversion -Wno-zero-as-null-pointer-constant -Wno-missing-field-initializers -Wno-used-but-marked-unused -Wno-unused-macros -Wno-comma -Wno-float-equal -Wno-disabled-macro-expansion -Wno-weak-vtables -Wno-unused-parameter -Wno-covered-switch-default -Wno-unreachable-code -Wno-unused-template -DHB_WITH_WIN1256
 
   meson-gcc-mingw:
     docker:
