@@ -629,9 +629,8 @@ struct hb_ot_apply_context_t :
 			 bool ligature = false,
 			 bool component = false) const
   {
-    unsigned int props = _hb_glyph_info_get_glyph_props (&buffer->cur());
+    unsigned int props = HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
 
-    props |= HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
     if (ligature)
     {
       props |= HB_OT_LAYOUT_GLYPH_PROPS_LIGATED;
