@@ -19,6 +19,7 @@ in_house_tests_base = [
   'emoji.tests',
   'emoji-clusters.tests',
   'fallback-positioning.tests',
+  'glyph-props-no-gdef.tests',
   'hangul-jamo.tests',
   'hyphens.tests',
   'indic-consonant-with-stacker.tests',
