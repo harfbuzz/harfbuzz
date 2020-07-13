@@ -2,7 +2,7 @@
 
 "This tool is intended to be used from meson"
 
-import os, os.path, sys, subprocess, shutil, tempfile
+import os, os.path, sys, subprocess, shutil
 
 ragel = shutil.which ('ragel')
 if not ragel:
