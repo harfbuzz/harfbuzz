@@ -725,6 +725,7 @@ struct InsertionSubtable
       if (entry.data.markedInsertIndex != 0xFFFF)
       {
 	unsigned int count = (flags & MarkedInsertCount);
+	if ((buffer->max_ops -= count) <= 0) return;
 	unsigned int start = entry.data.markedInsertIndex;
 	const HBGlyphID *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) count = 0;
@@ -753,6 +754,7 @@ struct InsertionSubtable
       if (entry.data.currentInsertIndex != 0xFFFF)
       {
 	unsigned int count = (flags & CurrentInsertCount) >> 5;
+	if ((buffer->max_ops -= count) <= 0) return;
 	unsigned int start = entry.data.currentInsertIndex;
 	const HBGlyphID *glyphs = &insertionAction[start];
 	if (unlikely (!c->sanitizer.check_array (glyphs, count))) count = 0;
