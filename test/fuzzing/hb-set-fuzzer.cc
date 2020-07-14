@@ -32,6 +32,8 @@ static hb_set_t *create_set (const uint32_t *value_array, int count)
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
+  alloc_state = size; /* see src/failing-alloc.c */
+
   if (size < sizeof (instructions_t))
     return 0;
 

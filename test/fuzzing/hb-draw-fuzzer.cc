@@ -115,6 +115,8 @@ static void misc_calls_for_gid (hb_face_t *face, hb_font_t *font, hb_set_t *set,
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
+  alloc_state = size; /* see src/failing-alloc.c */
+
   hb_blob_t *blob = hb_blob_create ((const char *) data, size,
 				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
   hb_face_t *face = hb_face_create (blob, 0);
