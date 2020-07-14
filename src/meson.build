@@ -292,14 +292,14 @@ ragel = find_program('ragel', required: false)
 if not ragel.found()
   warning('You have to install ragel if you are going to develop HarfBuzz itself')
 else
+  ragel_helper = find_program('gen-ragel-artifacts.py')
   foreach rl : hb_base_ragel_sources
     hh = rl.split('.')[0] + '.hh'
     custom_target('@0@'.format(hh),
       build_by_default: true,
       input: rl,
       output: hh,
-      command: [find_program('gen-ragel-artifacts.py'),
-                '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+      command: [ragel_helper, '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
     )
   endforeach
 endif
