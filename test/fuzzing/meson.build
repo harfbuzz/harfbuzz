@@ -10,15 +10,17 @@ foreach file_name : tests
 
   sources = [file_name]
   fuzzer_ldflags = []
+  extra_cpp_args = []
 
   if get_option('fuzzer_ldflags') == ''
     sources += 'main.cc'
   else
     fuzzer_ldflags += get_option('fuzzer_ldflags').split()
+    extra_cpp_args += '-DHB_IS_IN_FUZZER'
   endif
 
   exe = executable(test_name, sources,
-    cpp_args: cpp_args,
+    cpp_args: cpp_args + extra_cpp_args,
     include_directories: [incconfig, incsrc],
     link_args: fuzzer_ldflags,
     link_with: [libharfbuzz, libharfbuzz_subset],

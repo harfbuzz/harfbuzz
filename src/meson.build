@@ -397,6 +397,14 @@ else
   hb_so_version = '0'
 endif
 
+if get_option('fuzzer_ldflags') != ''
+  extra_hb_cpp_args += ['-DHB_CUSTOM_MALLOC']
+  hb_sources += 'failing-alloc.c'
+  hb_subset_sources += 'failing-alloc.c'
+  hb_icu_sources += 'failing-alloc.c'
+  hb_gobject_sources += 'failing-alloc.c'
+endif
+
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: incconfig,
   dependencies: harfbuzz_deps,

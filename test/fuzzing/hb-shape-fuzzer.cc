@@ -33,7 +33,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     hb_buffer_t *buffer = hb_buffer_create ();
     hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
     hb_buffer_guess_segment_properties (buffer);
+    alloc_state = size; /* see src/failing-alloc.c TODO: move to top */
     hb_shape (font, buffer, nullptr, 0);
+    alloc_state = 0; /* no failing alloc, TODO: remove */
     hb_buffer_destroy (buffer);
   }
 
@@ -45,12 +47,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     memcpy (text32, data + size - len, len);
 
   /* Misc calls on font. */
+  alloc_state = size; /* see src/failing-alloc.c TODO: move to top */
   text32[10] = test_font (font, text32[15]) % 256;
+  alloc_state = 0; /* no failing alloc, TODO: remove */
 
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_add_utf32 (buffer, text32, sizeof (text32) / sizeof (text32[0]), 0, -1);
   hb_buffer_guess_segment_properties (buffer);
+  alloc_state = size; /* see src/failing-alloc.c TODO: move to top */
   hb_shape (font, buffer, nullptr, 0);
+  alloc_state = 0; /* no failing alloc, TODO: remove */
   hb_buffer_destroy (buffer);
 
   hb_font_destroy (font);
