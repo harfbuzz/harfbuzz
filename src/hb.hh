@@ -205,10 +205,15 @@
 
 /* Compile-time custom allocator support. */
 
-#if defined(hb_malloc_impl) \
- && defined(hb_calloc_impl) \
- && defined(hb_realloc_impl) \
- && defined(hb_free_impl)
+#if !defined(HB_CUSTOM_MALLOC) \
+  && defined(hb_malloc_impl) \
+  && defined(hb_calloc_impl) \
+  && defined(hb_realloc_impl) \
+  && defined(hb_free_impl)
+#define HB_CUSTOM_MALLOC
+#endif
+
+#ifdef HB_CUSTOM_MALLOC
 extern "C" void* hb_malloc_impl(size_t size);
 extern "C" void* hb_calloc_impl(size_t nmemb, size_t size);
 extern "C" void* hb_realloc_impl(void *ptr, size_t size);
