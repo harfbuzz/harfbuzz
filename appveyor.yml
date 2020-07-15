@@ -17,7 +17,7 @@ build_script:
   - set "PYTHON_ROOT=C:\python37-x64"
   - set "PATH=%PYTHON_ROOT%;%PYTHON_ROOT%\Scripts;%PATH%"
   - pip install --upgrade meson fonttools
-  - "%vcvarsallpath%" %arch% && meson setup build --wrap-mode=default --buildtype=release -Dglib=enabled -Dfreetype=enabled -Dgdi=enabled -Ddirectwrite=enabled && meson test --print-errorlogs --suite=harfbuzz -Cbuild
+  - '"%vcvarsallpath%" %arch% && meson setup build --wrap-mode=default --buildtype=release -Dglib=enabled -Dfreetype=enabled -Dgdi=enabled -Ddirectwrite=enabled && meson test --print-errorlogs --suite=harfbuzz -Cbuild'
 
 cache:
   - c:\tools\vcpkg\installed\
