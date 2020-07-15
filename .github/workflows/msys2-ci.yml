@@ -1,0 +1,66 @@
+name: msys2
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  msys2:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        include:
+          - MSYSTEM: MINGW32
+            MSYS2_ARCH: i686
+          - MSYSTEM: MINGW64
+            MSYS2_ARCH: x86_64
+    name: ${{ matrix.MSYSTEM }}
+
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v1
+        with:
+          msystem: ${{ matrix.MSYSTEM }}
+          update: true
+          install: >-
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-cairo
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-freetype
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-gcc
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-gcc-libs
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-gettext
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-glib2
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-gobject-introspection
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-graphite2
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-icu
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-ninja
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-pkg-config
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-python3
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-python3-pip
+            mingw-w64-${{ matrix.MSYS2_ARCH }}-ragel
+      - name: Install extra dependencies
+        run: |
+          pip install fonttools
+          pip install --upgrade meson==0.53.0
+          curl "https://raw.githubusercontent.com/mirror/mingw-w64/023eb04c396d4e8d8fcf604cfababc53dae13398/mingw-w64-headers/include/dwrite_1.h" > "$MINGW_PREFIX/$MINGW_CHOST/include/dwrite_1.h"
+      - name: Build
+        run: |
+          meson build \
+            --wrap-mode=nofallback \
+            -Dfreetype=enabled \
+            -Dglib=enabled \
+            -Dcairo=enabled \
+            -Dgobject=enabled \
+            -Dgdi=enabled \
+            -Ddirectwrite=enabled \
+            -Dgraphite=enabled
+          ninja -C build
+      - name: Test
+        run: |
+          meson test \
+            --print-errorlogs \
+            --suite=harfbuzz \
+            -C build
