@@ -1360,13 +1360,13 @@ struct cmap
 
     for (const EncodingRecord& _ : encodingrec_iter)
     {
-      hb_set_t unicodes_set;
-      hb_map_t cp_glyphid_map;
-      (base+_.subtable).collect_mapping (&unicodes_set, &cp_glyphid_map);
-
       unsigned format = (base+_.subtable).u.format;
       if (!plan->glyphs_requested->is_empty ())
       {
+        hb_set_t unicodes_set;
+        hb_map_t cp_glyphid_map;
+        (base+_.subtable).collect_mapping (&unicodes_set, &cp_glyphid_map);
+        
         auto table_iter =
         + hb_zip (unicodes_set.iter(), unicodes_set.iter() | hb_map(cp_glyphid_map))
         | hb_filter (plan->_glyphset, hb_second)
@@ -1389,6 +1389,9 @@ struct cmap
        * all codepoints in each subtable, which is more efficient */
       else
       {
+        hb_set_t unicodes_set;
+        (base+_.subtable).collect_unicodes (&unicodes_set);
+
         if (format == 4) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, base, plan, &format4objidx);
         else if (format == 12) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 12u, base, plan, &format12objidx);
         else if (format == 14) c->copy (_, it, 14u, base, plan, &format14objidx);
