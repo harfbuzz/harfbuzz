@@ -176,7 +176,7 @@ hb_base_ragel_generated_sources = files(
   'hb-ot-shape-complex-myanmar-machine.hh',
   'hb-ot-shape-complex-use-machine.hh',
 )
-hb_base_ragel_sources = [
+hb_base_ragel_sources = files(
   'hb-buffer-deserialize-json.rl',
   'hb-buffer-deserialize-text.rl',
   'hb-number-parser.rl',
@@ -184,7 +184,7 @@ hb_base_ragel_sources = [
   'hb-ot-shape-complex-khmer-machine.rl',
   'hb-ot-shape-complex-myanmar-machine.rl',
   'hb-ot-shape-complex-use-machine.rl',
-]
+)
 
 hb_base_headers = files(
   'hb-aat-layout.h',
@@ -292,10 +292,12 @@ ragel = find_program('ragel', required: false)
 if not ragel.found()
   warning('You have to install ragel if you are going to develop HarfBuzz itself')
 else
+  hb_base_ragel_generated_sources = []
   ragel_helper = find_program('gen-ragel-artifacts.py')
   foreach rl : hb_base_ragel_sources
-    hh = rl.split('.')[0] + '.hh'
-    custom_target('@0@'.format(hh),
+    hh = '@0@'.format(rl).split('/')[1].split('.')[0] + '.hh'
+    hb_base_ragel_generated_sources += custom_target(
+      hh,
       build_by_default: true,
       input: rl,
       output: hh,
@@ -686,16 +688,6 @@ if get_option('tests').enabled()
   env.set('srcdir', meson.current_source_dir())
   env.set('builddir', meson.current_build_dir())
   env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
-  HBSOURCES = []
-  foreach f : hb_sources
-    HBSOURCES += '@0@'.format(f)
-  endforeach
-  env.set('HBSOURCES', ' '.join(HBSOURCES))
-  HBHEADERS = []
-  foreach f : hb_headers
-    HBHEADERS += '@0@'.format(f)
-  endforeach
-  env.set('HBHEADERS', ' '.join(HBHEADERS))
 
   if cpp.get_id() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
     dist_check_script += ['check-libstdc++', 'check-static-inits', 'check-symbols']
