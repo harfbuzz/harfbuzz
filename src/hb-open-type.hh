@@ -552,8 +552,8 @@ struct SortedUnsizedArrayOf : UnsizedArrayOf<Type>
   { return *as_array (len).bsearch (x, &not_found); }
   template <typename T>
   bool bfind (unsigned int len, const T &x, unsigned int *i = nullptr,
-		     hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
-		     unsigned int to_store = (unsigned int) -1) const
+	      hb_bfind_not_found_t not_found = HB_BFIND_NOT_FOUND_DONT_STORE,
+	      unsigned int to_store = (unsigned int) -1) const
   { return as_array (len).bfind (x, i, not_found, to_store); }
 };
 
