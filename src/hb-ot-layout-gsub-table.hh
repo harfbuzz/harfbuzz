@@ -852,8 +852,8 @@ struct Ligature
 
     auto *out = c->serializer->start_embed (*this);
     return_trace (out->serialize (c->serializer,
-				   glyph_map[ligGlyph],
-				   it));
+				  glyph_map[ligGlyph],
+				  it));
   }
 
   public:

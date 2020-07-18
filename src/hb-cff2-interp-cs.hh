@@ -52,7 +52,7 @@ struct blend_arg_t : number_t
   void set_real (double v) { reset_blends (); number_t::set_real (v); }
 
   void set_blends (unsigned int numValues_, unsigned int valueIndex_,
-			  unsigned int numBlends, hb_array_t<const blend_arg_t> blends_)
+		   unsigned int numBlends, hb_array_t<const blend_arg_t> blends_)
   {
     numValues = numValues_;
     valueIndex = valueIndex_;

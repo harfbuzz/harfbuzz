@@ -49,7 +49,7 @@ struct AttachPoint : ArrayOf<HBUINT16>
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out)) return_trace (false);
-    
+
     return_trace (out->serialize (c->serializer, + iter ()));
   }
 };
@@ -231,9 +231,9 @@ struct CaretValueFormat3
 struct CaretValue
 {
   hb_position_t get_caret_value (hb_font_t *font,
-					hb_direction_t direction,
-					hb_codepoint_t glyph_id,
-					const VariationStore &var_store) const
+				 hb_direction_t direction,
+				 hb_codepoint_t glyph_id,
+				 const VariationStore &var_store) const
   {
     switch (u.format) {
     case 1: return u.format1.get_caret_value (font, direction);

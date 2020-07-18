@@ -318,7 +318,7 @@ struct hb_buffer_t
   HB_INTERNAL void delete_glyph ();
 
   void unsafe_to_break (unsigned int start,
-			       unsigned int end)
+			unsigned int end)
   {
     if (end - start < 2)
       return;

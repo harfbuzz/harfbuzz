@@ -545,7 +545,7 @@ struct gvar
       hb_vector_t<unsigned int> shared_indices;
       GlyphVariationData::tuple_iterator_t iterator;
       if (!GlyphVariationData::get_tuple_iterator (var_data_bytes, table->axisCount,
-					     shared_indices, &iterator))
+						   shared_indices, &iterator))
 	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */

@@ -335,7 +335,7 @@ struct hb_ot_apply_context_t :
     void set_mask (hb_mask_t mask_) { mask = mask_; }
     void set_syllable (uint8_t syllable_)  { syllable = syllable_; }
     void set_match_func (match_func_t match_func_,
-				const void *match_data_)
+			 const void *match_data_)
     { match_func = match_func_; match_data = match_data_; }
 
     enum may_match_t {
@@ -540,8 +540,8 @@ struct hb_ot_apply_context_t :
 
 
   hb_ot_apply_context_t (unsigned int table_index_,
-		      hb_font_t *font_,
-		      hb_buffer_t *buffer_) :
+			 hb_font_t *font_,
+			 hb_buffer_t *buffer_) :
 			iter_input (), iter_context (),
 			font (font_), face (font->face), buffer (buffer_),
 			recurse_func (nullptr),
@@ -3013,7 +3013,7 @@ struct ChainContextFormat3
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     for (unsigned i = 0; i < (unsigned) lookupCount; i++)
       if (!c->serializer->copy (lookupRecord[i], lookup_map)) return_trace (false);
-    
+
     return_trace (true);
   }
 

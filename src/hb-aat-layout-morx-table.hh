@@ -971,7 +971,7 @@ struct Chain
   }
 
   void apply (hb_aat_apply_context_t *c,
-		     hb_mask_t flags) const
+	      hb_mask_t flags) const
   {
     const ChainSubtable<Types> *subtable = &StructAfter<ChainSubtable<Types>> (featureZ.as_array (featureCount));
     unsigned int count = subtableCount;

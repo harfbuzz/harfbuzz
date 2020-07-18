@@ -1096,8 +1096,8 @@ hb_buffer_get_flags (hb_buffer_t *buffer)
  * Since: 0.9.42
  **/
 void
-hb_buffer_set_cluster_level (hb_buffer_t       *buffer,
-		     hb_buffer_cluster_level_t  cluster_level)
+hb_buffer_set_cluster_level (hb_buffer_t               *buffer,
+			     hb_buffer_cluster_level_t  cluster_level)
 {
   if (unlikely (hb_object_is_immutable (buffer)))
     return;

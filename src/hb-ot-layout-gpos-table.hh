@@ -79,14 +79,14 @@ struct ValueFormat : HBUINT16
 
 /* All fields are options.  Only those available advance the value pointer. */
 #if 0
-  HBINT16		xPlacement;		/* Horizontal adjustment for
+  HBINT16		xPlacement;	/* Horizontal adjustment for
 					 * placement--in design units */
-  HBINT16		yPlacement;		/* Vertical adjustment for
+  HBINT16		yPlacement;	/* Vertical adjustment for
 					 * placement--in design units */
-  HBINT16		xAdvance;		/* Horizontal adjustment for
+  HBINT16		xAdvance;	/* Horizontal adjustment for
 					 * advance--in design units (only used
 					 * for horizontal writing) */
-  HBINT16		yAdvance;		/* Vertical adjustment for advance--in
+  HBINT16		yAdvance;	/* Vertical adjustment for advance--in
 					 * design units (only used for vertical
 					 * writing) */
   OffsetTo<Device>	xPlaDevice;	/* Offset to Device table for
@@ -698,7 +698,7 @@ struct SinglePosFormat1
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     if (!valueFormat.has_device ()) return;
-    
+
     auto it =
     + hb_iter (this+coverage)
     | hb_filter (c->glyph_set)
@@ -801,7 +801,7 @@ struct SinglePosFormat2
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     if (!valueFormat.has_device ()) return;
-     
+
     auto it =
     + hb_zip (this+coverage, hb_range ((unsigned) valueCount))
     | hb_filter (c->glyph_set, hb_first)
@@ -1063,7 +1063,7 @@ struct PairSet
   }
 
   void collect_glyphs (hb_collect_glyphs_context_t *c,
-			      const ValueFormat *valueFormats) const
+		       const ValueFormat *valueFormats) const
   {
     unsigned int len1 = valueFormats[0].get_len ();
     unsigned int len2 = valueFormats[1].get_len ();
@@ -1347,7 +1347,7 @@ struct PairPosFormat2
     }
 
     if (class1_set.is_empty () || class2_set.is_empty ()) return;
-    
+
     unsigned len1 = valueFormat1.get_len ();
     unsigned len2 = valueFormat2.get_len ();
     const hb_array_t<const Value> values_array = values.as_array ((unsigned)class1Count * (unsigned) class2Count * (len1 + len2));
@@ -1358,7 +1358,7 @@ struct PairPosFormat2
         unsigned start_offset = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
         if (valueFormat1.has_device ())
           valueFormat1.collect_variation_indices (c, this, values_array.sub_array (start_offset, len1));
-        
+
         if (valueFormat2.has_device ())
           valueFormat2.collect_variation_indices (c, this, values_array.sub_array (start_offset+len1, len2));
       }
@@ -1816,8 +1816,10 @@ static void Markclass_closure_and_remap_indexes (const Coverage  &mark_coverage,
 struct MarkBasePosFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
-  { return (this+markCoverage).intersects (glyphs) &&
-	   (this+baseCoverage).intersects (glyphs); }
+  {
+    return (this+markCoverage).intersects (glyphs) &&
+	   (this+baseCoverage).intersects (glyphs);
+  }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
 
@@ -2031,8 +2033,10 @@ typedef OffsetListOf<LigatureAttach> LigatureArray;
 struct MarkLigPosFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
-  { return (this+markCoverage).intersects (glyphs) &&
-	   (this+ligatureCoverage).intersects (glyphs); }
+  {
+    return (this+markCoverage).intersects (glyphs) &&
+	   (this+ligatureCoverage).intersects (glyphs);
+  }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
 
@@ -2189,8 +2193,10 @@ typedef AnchorMatrix Mark2Array;	/* mark2-major--
 struct MarkMarkPosFormat1
 {
   bool intersects (const hb_set_t *glyphs) const
-  { return (this+mark1Coverage).intersects (glyphs) &&
-	   (this+mark2Coverage).intersects (glyphs); }
+  {
+    return (this+mark1Coverage).intersects (glyphs) &&
+	   (this+mark2Coverage).intersects (glyphs);
+  }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
 
@@ -2254,12 +2260,15 @@ struct MarkMarkPosFormat1
     unsigned int comp1 = _hb_glyph_info_get_lig_comp (&buffer->cur());
     unsigned int comp2 = _hb_glyph_info_get_lig_comp (&buffer->info[j]);
 
-    if (likely (id1 == id2)) {
+    if (likely (id1 == id2))
+    {
       if (id1 == 0) /* Marks belonging to the same base. */
 	goto good;
       else if (comp1 == comp2) /* Marks belonging to the same ligature component. */
 	goto good;
-    } else {
+    }
+    else
+    {
       /* If ligature ids don't match, it may be the case that one of the marks
        * itself is a ligature.  In which case match. */
       if ((id1 > 0 && !comp1) || (id2 > 0 && !comp2))
@@ -2311,7 +2320,7 @@ struct MarkMarkPosFormat1
     out->mark1Array.serialize (c->serializer, out)
 		   .serialize (c->serializer, &klass_mapping, c->plan->layout_variation_idx_map, &(this+mark1Array), + mark1_iter
 										                                     | hb_map (hb_second));
-    
+
     unsigned mark2count = (this+mark2Array).rows;
     auto mark2_iter =
     + hb_zip (this+mark2Coverage, hb_range (mark2count))
