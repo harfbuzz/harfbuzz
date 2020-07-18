@@ -14,11 +14,9 @@ jobs:
         include:
           - name: msvc-2017-x86
             os: windows-2016
-            VCVARSALLPATH: C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
             ARCH: x86
           - name: msvc-2019-amd64
             os: windows-latest
-            VCVARSALLPATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat
             ARCH: amd64
     name: ${{ matrix.name }}
 
@@ -27,12 +25,26 @@ jobs:
       - uses: actions/setup-python@v1
         with:
           python-version: '3.x'
-      - name: Build
-        shell: cmd
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch : ${{ matrix.ARCH }}
+      - name: Install Dependencies
         run: |
           pip install --upgrade meson ninja fonttools
-          "${{ matrix.VCVARSALLPATH }}" ${{ matrix.ARCH }} && meson setup build --wrap-mode=default --buildtype=release -Dglib=enabled -Dfreetype=enabled -Dgdi=enabled -Ddirectwrite=enabled && meson test --print-errorlogs --suite=harfbuzz -Cbuild
-      - name: Test
-        shell: cmd
+      - name: Build
         run: |
-          meson test --print-errorlogs --suite=harfbuzz -Cbuild
+          # This dir contains a pkg-config which meson will happily use and later fail, so remove it
+          $env:path = ($env:path.Split(';') | Where-Object { $_ -ne 'C:\Strawberry\perl\bin' }) -join ';'
+
+          meson setup build `
+            --wrap-mode=default `
+            --buildtype=release `
+            -Dglib=enabled `
+            -Dfreetype=enabled `
+            -Dgdi=enabled `
+            -Ddirectwrite=enabled
+
+          meson compile -C build
+      - name: Test
+        run: |
+          meson test --print-errorlogs --suite=harfbuzz -C build
