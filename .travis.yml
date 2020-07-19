@@ -22,7 +22,6 @@ matrix:
         - bash .ci/run-coveralls.sh # coveralls.io code coverage
 
 notifications:
-  irc: "irc.freenode.org#harfbuzz"
   email: harfbuzz-bots-chatter@googlegroups.com
 
 cache:
