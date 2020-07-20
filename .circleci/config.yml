@@ -103,10 +103,10 @@ jobs:
     steps:
       - checkout
       - run: apt update || true; DEBIAN_FRONTEND=noninteractive apt install -y wget gnupg
-      - run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-      - run: echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal main" > /etc/apt/sources.list.d/llvmdev.list
-      - run: echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main" > /etc/apt/sources.list.d/llvmdevsrc.list
-      - run: apt update || true
+      #- run: wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+      #- run: echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal main" > /etc/apt/sources.list.d/llvmdev.list
+      #- run: echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main" > /etc/apt/sources.list.d/llvmdevsrc.list
+      #- run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y clang lld git binutils meson pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
       # asan+ubsan
       - run: rm -rf build && meson build --default-library=static -Db_sanitize=address,undefined --buildtype=debugoptimized --wrap-mode=nodownload
