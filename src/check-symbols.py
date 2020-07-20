@@ -9,7 +9,7 @@ libs = os.getenv ('libs', '.libs')
 
 IGNORED_SYMBOLS = '|'.join(['_fini', '_init', '_fdata', '_ftext', '_fbss',
 	'__bss_start', '__bss_start__', '__bss_end__', '_edata', '_end', '_bss_end__',
-	'__end__', '__gcov_.*', 'llvm_.*', 'flush_fn_list', 'writeout_fn_list'])
+	'__end__', '__gcov_.*', 'llvm_.*', 'flush_fn_list', 'writeout_fn_list', 'mangle_path'])
 
 nm = shutil.which ('nm')
 if not nm:
