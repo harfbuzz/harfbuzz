@@ -114,7 +114,7 @@ struct cff1_top_dict_values_mod_t : cff1_top_dict_values_t
 struct top_dict_modifiers_t
 {
   top_dict_modifiers_t (const cff1_sub_table_info_t &info_,
-			   const unsigned int (&nameSIDs_)[name_dict_values_t::ValCount])
+			const unsigned int (&nameSIDs_)[name_dict_values_t::ValCount])
     : info (info_),
       nameSIDs (nameSIDs_)
   {}

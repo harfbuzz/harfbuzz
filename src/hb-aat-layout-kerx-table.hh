@@ -229,9 +229,7 @@ struct KerxSubTableFormat1
 
     bool is_actionable (StateTableDriver<Types, EntryData> *driver HB_UNUSED,
 			const Entry<EntryData> &entry)
-    {
-      return Format1EntryT::performAction (entry);
-    }
+    { return Format1EntryT::performAction (entry); }
     void transition (StateTableDriver<Types, EntryData> *driver,
 		     const Entry<EntryData> &entry)
     {

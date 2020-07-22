@@ -213,8 +213,8 @@ struct hb_ot_map_builder_t
   { add_feature (feat.tag, feat.flags); }
 
   void enable_feature (hb_tag_t tag,
-			      hb_ot_map_feature_flags_t flags=F_NONE,
-			      unsigned int value=1)
+		       hb_ot_map_feature_flags_t flags=F_NONE,
+		       unsigned int value=1)
   { add_feature (tag, F_GLOBAL | flags, value); }
 
   void disable_feature (hb_tag_t tag)
