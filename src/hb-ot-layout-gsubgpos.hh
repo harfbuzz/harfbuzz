@@ -3096,6 +3096,24 @@ struct ExtensionFormat1
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   { dispatch (c); }
 
+  /* This is called from may_dispatch() above with hb_subset_context_t. */
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+    out->extensionLookupType = extensionLookupType;
+
+    const auto& inOffset = reinterpret_cast<const OffsetTo<typename T::SubTable, HBUINT32>&> (this->extensionOffset);
+    auto& outOffset = reinterpret_cast<OffsetTo<typename T::SubTable, HBUINT32>&> (out->extensionOffset);
+    /*bool ret =*/ outOffset.serialize_subset (c, inOffset, this, get_type ());
+
+    // Cancel dispatch to next level.
+    return_trace (false);
+  }
+
   /* This is called from may_dispatch() above with hb_sanitize_context_t. */
   bool sanitize (hb_sanitize_context_t *c) const
   {

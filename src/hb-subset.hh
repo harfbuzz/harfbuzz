@@ -54,6 +54,18 @@ struct hb_subset_context_t :
   dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
   ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
 
+  private:
+  template <typename T, typename F> auto
+  _may_dispatch (const T *obj, const F *format, hb_priority<1>) HB_AUTO_RETURN
+  ( format->subset (this) )
+  template <typename T, typename F> auto
+  _may_dispatch (const T *obj, const F *format, hb_priority<0>) HB_AUTO_RETURN
+  ( true )
+  public:
+  template <typename T, typename F> auto
+  may_dispatch (const T *obj, const F *format) HB_AUTO_RETURN
+  ( _may_dispatch (obj, format, hb_prioritize) )
+
   hb_blob_t *source_blob;
   hb_subset_plan_t *plan;
   hb_serialize_context_t *serializer;
