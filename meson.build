@@ -351,7 +351,7 @@ if not get_option('benchmark').disabled() and \
   subdir('perf')
 endif
 
-if not get_option('gtk_doc').disabled()
+if not get_option('docs').disabled()
   subdir('docs')
 endif
 
