@@ -22,7 +22,6 @@ jobs:
   
       # ideally we should've used meson and ninja here but it complains about coverage or something
       - run: cov-analysis-linux64/bin/cov-build --dir cov-int clang src/hb-*.cc -DHAVE_FREETYPE -DHAVE_GRAPHITE2 -DHAVE_GLIB -DHAVE_ICU `pkg-config --cflags freetype2 graphite2 glib-2.0 icu-uc` -DHAVE_INTEL_ATOMIC_PRIMITIVES -DHAVE_ROUNDF -DHAVE_SYS_MMAN_H -DHAVE_UNISTD_H -DHAVE_GETPAGESIZE -DHB_EXPERIMENTAL_API -c
-      - run: cov-analysis-linux64/bin/cov-analyze --dir cov-int --all
 
       - run: tar czvf harfbuzz.tgz cov-int
         
