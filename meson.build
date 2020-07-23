@@ -2,6 +2,8 @@ project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.53.0',
   version: '2.6.8',
   default_options: [
+    'cpp_eh=none',          # https://github.com/harfbuzz/harfbuzz/pull/2584
+    'cpp_rtti=false',       # https://github.com/harfbuzz/harfbuzz/pull/2584
     'cpp_std=c++11',
     'wrap_mode=nofallback', # https://github.com/harfbuzz/harfbuzz/pull/2548
   ],
@@ -44,10 +46,8 @@ add_project_link_arguments(cpp.get_supported_link_arguments([
 ]), language: 'c')
 
 add_project_arguments(cpp.get_supported_arguments([
-  '-fno-rtti',
-  '-fno-exceptions',
   '-fno-threadsafe-statics',
-  '-fvisibility-inlines-hidden', # maybe shouldn't be applied for mingw
+  '-fvisibility-inlines-hidden',
 ]), language: 'cpp')
 
 if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') != 1
