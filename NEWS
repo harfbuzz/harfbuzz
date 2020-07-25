@@ -1,3 +1,24 @@
+Overview of changes leading to 2.7.0
+Saturday, July 25, 2020
+====================================
+- Use an implementation for round that always rounds up, some minor fluctuations
+  are expected on var font specially when hb-ot callback is used.
+- Fix an AAT's `kerx` issue on broken rendering of Devanagari Sangam MN.
+- Remove AAT's `lcar` table support from _get_ligature_carets API, not even much
+  use on macOS installed fonts (only two files).  GDEF support is the recommended
+  one and expected to work properly after issues fixed two releases ago.
+- Minor memory fixes to handle OOM better specially in hb-ft.
+- Minor .so files versioning scheme change and remove stable/unstable scheme
+  differences, was never used in practice (always default to stable scheme).
+- We are now suggesting careful packaging of the library using meson,
+  https://github.com/harfbuzz/harfbuzz/wiki/Notes-on-migration-to-meson
+  for more information.
+- Distribution package URL is changed, either use GitHub generated tarballs,
+  `https://github.com/harfbuzz/harfbuzz/archive/$pkgver.tar.gz`
+  or, even more preferably use commit hash of the release and git checkouts like,
+  `git+https://github.com/harfbuzz/harfbuzz#commit=$commit`
+
+
 Overview of changes leading to 2.6.8
 Monday, June 22, 2020
 ====================================

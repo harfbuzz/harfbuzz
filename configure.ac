@@ -1,6 +1,6 @@
 AC_PREREQ([2.64])
 AC_INIT([HarfBuzz],
-        [2.6.8],
+        [2.7.0],
         [https://github.com/harfbuzz/harfbuzz/issues/new],
         [harfbuzz],
         [http://harfbuzz.org/])
@@ -503,11 +503,8 @@ echo
 
 AC_MSG_NOTICE([
 
-Autotools still is our main and recommended build system for
-building *nix package out of the library yet we encourage
-packagers to experiment with our brand new meson port and
-give us feedback as our effort to migrate and unify all
-the other build systems we have tools to meson.
+Autotools is no longer our supported build system for building the library
+for *nix distributions, please migrate to meson.
 
 ])
 

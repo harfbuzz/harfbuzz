@@ -1,13 +1,11 @@
 project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.53.0',
-  version: '2.6.8',
+  version: '2.7.0',
   default_options: [
     'cpp_std=c++11',
     'wrap_mode=nofallback', # https://github.com/harfbuzz/harfbuzz/pull/2548
   ],
 )
-
-warning('Meson is not our main build system for building *nix packages yet we encourage packagers to test it and give us feedback about it.')
 
 hb_version_arr = meson.project_version().split('.')
 hb_version_major = hb_version_arr[0].to_int()
