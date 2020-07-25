@@ -89,6 +89,7 @@ jobs:
       - checkout
       - run: pacman --noconfirm -Syu freetype2 meson git clang cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python python-pip base-devel gtk-doc
       - run: pip install flake8 fonttools
+      - run: pip install git+https://github.com/mesonbuild/meson
       - run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
       - run: meson build -Dgraphite=enabled -Dauto_features=enabled
       - run: meson compile -Cbuild -j9
@@ -121,23 +122,12 @@ jobs:
       - run: clang -c src/harfbuzz.cc src/hb-subset*.cc -DHB_NO_MT -Werror -std=c++2a
       - run: clang -c src/hb-*.cc -DHB_NO_MT -Werror -Weverything -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-c++98-compat -Wno-cast-qual -Wno-c++98-compat-pedantic -Wno-sign-conversion -Wno-padded -Wno-shorten-64-to-32 -Wno-reserved-id-macro -Wno-float-conversion -Wno-format-pedantic -Wno-shadow -Wno-conversion -Wno-zero-as-null-pointer-constant -Wno-missing-field-initializers -Wno-used-but-marked-unused -Wno-unused-macros -Wno-comma -Wno-float-equal -Wno-disabled-macro-expansion -Wno-weak-vtables -Wno-unused-parameter -Wno-covered-switch-default -Wno-unreachable-code -Wno-unused-template -DHB_WITH_WIN1256
 
-  meson-gcc-mingw:
+  crossbuild-win32:
     docker:
       - image: ubuntu:20.04
     steps:
       - checkout
       - run: apt update && DEBIAN_FRONTEND=noninteractive apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip git g++-mingw-w64-i686 zip
-      - run: pip3 install fonttools --upgrade
-      - run: pip3 install git+https://github.com/mesonbuild/meson # use C linker, remove when meson 0.55 is released
-      # a regular meson run
-      - run: meson build && ninja -j9 -Cbuild test
-      # test a meson based dist
-      - run: meson dist -Cbuild && rm -rf build
-      # test experimental APIs
-      - run: meson build -Dexperimental_api=true -Doptimization=2 && ninja -j9 -Cbuild test # or meson test -Cbuild
-      # run benchmarks
-      - run: build/perf/perf && meson test -Cbuild --benchmark && rm -rf build # or ninja -Cbuild benchmark
-      # mingw
       - run: .ci/build-win32.sh
       - store_artifacts:
           path: harfbuzz-win32.zip
@@ -155,4 +145,4 @@ workflows:
       - alpine
       - archlinux
       - sanitizers
-      - meson-gcc-mingw
+      - crossbuild-win32
