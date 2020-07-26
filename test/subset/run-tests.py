@@ -12,13 +12,13 @@ import tempfile
 import shutil
 
 from subset_test_suite import SubsetTestSuite
-
-fonttools = shutil.which ("fonttools")
-ots_sanitize = shutil.which ("ots-sanitize")
-
-if not fonttools:
+try:
+	from fontTools import ttx
+except ImportError:
 	print ("fonttools is not present, skipping test.")
 	sys.exit (77)
+
+ots_sanitize = shutil.which ("ots-sanitize")
 
 def cmd (command):
 	p = subprocess.Popen (
@@ -59,7 +59,7 @@ def run_test (test, should_check_ots):
 		return fail_test (test, cli_args, "%s returned %d" % (' '.join (cli_args), return_code))
 
 	expected_ttx = tempfile.mktemp ()
-	_, return_code = run_ttx (os.path.join (test_suite.get_output_directory (),
+	return_code = run_ttx (os.path.join (test_suite.get_output_directory (),
 					    					test.get_font_name ()),
 							  expected_ttx)
 	if return_code:
@@ -67,7 +67,7 @@ def run_test (test, should_check_ots):
 		return fail_test (test, cli_args, "ttx (expected) returned %d" % (return_code))
 
 	actual_ttx = tempfile.mktemp ()
-	_, return_code = run_ttx (out_file, actual_ttx)
+	return_code = run_ttx (out_file, actual_ttx)
 	if return_code:
 		if os.path.exists (expected_ttx): os.remove (expected_ttx)
 		if os.path.exists (actual_ttx): os.remove (actual_ttx)
@@ -104,7 +104,7 @@ def run_test (test, should_check_ots):
 
 def run_ttx (font_path, ttx_output_path):
 	print ("fonttools ttx %s" % font_path)
-	return cmd ([fonttools, "ttx", "-q", "-o", ttx_output_path, font_path])
+	ttx.main (args=['-q', '-o', ttx_output_path, font_path])
 
 def strip_check_sum (ttx_string):
 	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
