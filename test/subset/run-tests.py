@@ -36,8 +36,8 @@ def fail_test (test, cli_args, message):
 	print ('  test.font_path    %s' % os.path.abspath (test.font_path))
 	print ('  test.profile_path %s' % os.path.abspath (test.profile_path))
 	print ('  test.unicodes	    %s' % test.unicodes ())
-	expected_file = os.path.join(test_suite.get_output_directory (),
-				     test.get_font_name ())
+	expected_file = os.path.join (test_suite.get_output_directory (),
+				      test.get_font_name ())
 	print ('  expected_file	    %s' % os.path.abspath (expected_file))
 	return 1
 
@@ -48,7 +48,7 @@ def run_test (test, should_check_ots):
 		    "--output-file=" + out_file,
 		    "--unicodes=%s" % test.unicodes (),
 		    "--drop-tables+=DSIG,GPOS,GSUB,GDEF",
-			"--drop-tables-=sbix"]
+		    "--drop-tables-=sbix"]
 	cli_args.extend (test.get_profile_flags ())
 	print (' '.join (cli_args))
 	_, return_code = cmd (cli_args)
@@ -62,7 +62,7 @@ def run_test (test, should_check_ots):
 			font.saveXML (expected_ttx)
 	except Exception as e:
 		print (e)
-		return fail_test (test, cli_args, "ttx (expected) returned %d" % (return_code))
+		return fail_test (test, cli_args, "ttx failed to parse the expected result")
 
 	actual_ttx = io.StringIO ()
 	try:
@@ -70,7 +70,7 @@ def run_test (test, should_check_ots):
 			font.saveXML (actual_ttx)
 	except Exception as e:
 		print (e)
-		return fail_test (test, cli_args, "ttx (actual) returned %d" % (return_code))
+		return fail_test (test, cli_args, "ttx failed to parse the actual result")
 
 	expected_ttx_text = strip_check_sum (expected_ttx.getvalue ())
 	expected_ttx.close ()
@@ -97,7 +97,7 @@ def strip_check_sum (ttx_string):
 
 def has_ots ():
 	if not ots_sanitize:
-		print("OTS is not present, skipping all ots checks.")
+		print ("OTS is not present, skipping all ots checks.")
 		return False
 	return True
 
