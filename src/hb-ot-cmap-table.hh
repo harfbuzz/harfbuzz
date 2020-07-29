@@ -57,14 +57,14 @@ struct CmapSubtableFormat0
   }
 
   void collect_mapping (hb_set_t *unicodes, /* OUT */
-                        hb_map_t *mapping /* OUT */) const
+			hb_map_t *mapping /* OUT */) const
   {
     for (unsigned i = 0; i < 256; i++)
       if (glyphIdArray[i])
       {
-        hb_codepoint_t glyph = glyphIdArray[i];
-        unicodes->add (i);
-        mapping->set (i, glyph);
+	hb_codepoint_t glyph = glyphIdArray[i];
+	unicodes->add (i);
+	mapping->set (i, glyph);
       }
   }
 
@@ -389,41 +389,41 @@ struct CmapSubtableFormat4
     }
 
     void collect_mapping (hb_set_t *unicodes, /* OUT */
-                          hb_map_t *mapping /* OUT */) const
+			  hb_map_t *mapping /* OUT */) const
     {
       unsigned count = this->segCount;
       if (count && this->startCount[count - 1] == 0xFFFFu)
-        count--; /* Skip sentinel segment. */
+	count--; /* Skip sentinel segment. */
       for (unsigned i = 0; i < count; i++)
       {
-        hb_codepoint_t start = this->startCount[i];
-        hb_codepoint_t end = this->endCount[i];
-        unsigned rangeOffset = this->idRangeOffset[i];
-        if (rangeOffset == 0)
-        {
-          for (hb_codepoint_t codepoint = start; codepoint <= end; codepoint++)
-          {
-            hb_codepoint_t gid = (codepoint + this->idDelta[i]) & 0xFFFFu;
-            if (unlikely (!gid))
-              continue;
-            unicodes->add (codepoint);
-            mapping->set (codepoint, gid);
-          }
-        }
-        else
-        {
-          for (hb_codepoint_t codepoint = start; codepoint <= end; codepoint++)
-          {
-            unsigned index = rangeOffset / 2 + (codepoint - this->startCount[i]) + i - this->segCount;
-            if (unlikely (index >= this->glyphIdArrayLength))
-              break;
-            hb_codepoint_t gid = this->glyphIdArray[index];
-            if (unlikely (!gid))
-              continue;
-            unicodes->add (codepoint);
-            mapping->set (codepoint, gid);
-          }
-        }
+	hb_codepoint_t start = this->startCount[i];
+	hb_codepoint_t end = this->endCount[i];
+	unsigned rangeOffset = this->idRangeOffset[i];
+	if (rangeOffset == 0)
+	{
+	  for (hb_codepoint_t codepoint = start; codepoint <= end; codepoint++)
+	  {
+	    hb_codepoint_t gid = (codepoint + this->idDelta[i]) & 0xFFFFu;
+	    if (unlikely (!gid))
+	      continue;
+	    unicodes->add (codepoint);
+	    mapping->set (codepoint, gid);
+	  }
+	}
+	else
+	{
+	  for (hb_codepoint_t codepoint = start; codepoint <= end; codepoint++)
+	  {
+	    unsigned index = rangeOffset / 2 + (codepoint - this->startCount[i]) + i - this->segCount;
+	    if (unlikely (index >= this->glyphIdArrayLength))
+	      break;
+	    hb_codepoint_t gid = this->glyphIdArray[index];
+	    if (unlikely (!gid))
+	      continue;
+	    unicodes->add (codepoint);
+	    mapping->set (codepoint, gid);
+	  }
+	}
       }
     }
 
@@ -448,7 +448,7 @@ struct CmapSubtableFormat4
   }
 
   void collect_mapping (hb_set_t *unicodes, /* OUT */
-                        hb_map_t *mapping /* OUT */) const
+			hb_map_t *mapping /* OUT */) const
   {
     accelerator_t accel (this);
     accel.collect_mapping (unicodes, mapping);
@@ -557,17 +557,17 @@ struct CmapSubtableTrimmed
   }
 
   void collect_mapping (hb_set_t *unicodes, /* OUT */
-                        hb_map_t *mapping /* OUT */) const
+			hb_map_t *mapping /* OUT */) const
   {
     hb_codepoint_t start_cp = startCharCode;
     unsigned count = glyphIdArray.len;
     for (unsigned i = 0; i < count; i++)
       if (glyphIdArray[i])
       {
-        hb_codepoint_t unicode = start_cp + i;
-        hb_codepoint_t glyphid = glyphIdArray[i];
-        unicodes->add (unicode);
-        mapping->set (unicode, glyphid);
+	hb_codepoint_t unicode = start_cp + i;
+	hb_codepoint_t glyphid = glyphIdArray[i];
+	unicodes->add (unicode);
+	mapping->set (unicode, glyphid);
       }
   }
 
@@ -630,31 +630,31 @@ struct CmapSubtableLongSegmented
   }
 
   void collect_mapping (hb_set_t *unicodes, /* OUT */
-                        hb_map_t *mapping, /* OUT */
-                        unsigned num_glyphs) const
+			hb_map_t *mapping, /* OUT */
+			unsigned num_glyphs) const
   {
     for (unsigned i = 0; i < this->groups.len; i++)
     {
       hb_codepoint_t start = this->groups[i].startCharCode;
       hb_codepoint_t end = hb_min ((hb_codepoint_t) this->groups[i].endCharCode,
-                                   (hb_codepoint_t) HB_UNICODE_MAX);
+				   (hb_codepoint_t) HB_UNICODE_MAX);
       hb_codepoint_t gid = this->groups[i].glyphID;
       if (!gid)
       {
-        /* Intention is: if (hb_is_same (T, CmapSubtableFormat13)) continue; */
-        if (! T::group_get_glyph (this->groups[i], end)) continue;
-        start++;
-        gid++;
+	/* Intention is: if (hb_is_same (T, CmapSubtableFormat13)) continue; */
+	if (! T::group_get_glyph (this->groups[i], end)) continue;
+	start++;
+	gid++;
       }
       if (unlikely ((unsigned int) gid >= num_glyphs)) continue;
       if (unlikely ((unsigned int) (gid + end - start) >= num_glyphs))
-        end = start + (hb_codepoint_t) num_glyphs - gid;
+	end = start + (hb_codepoint_t) num_glyphs - gid;
 
       for (unsigned cp = start; cp <= end; cp++)
       {
-        unicodes->add (cp);
-        mapping->set (cp, gid);
-        gid++;
+	unicodes->add (cp);
+	mapping->set (cp, gid);
+	gid++;
       }
     }
   }
@@ -1363,38 +1363,38 @@ struct cmap
       unsigned format = (base+_.subtable).u.format;
       if (!plan->glyphs_requested->is_empty ())
       {
-        hb_set_t unicodes_set;
-        hb_map_t cp_glyphid_map;
-        (base+_.subtable).collect_mapping (&unicodes_set, &cp_glyphid_map);
+	hb_set_t unicodes_set;
+	hb_map_t cp_glyphid_map;
+	(base+_.subtable).collect_mapping (&unicodes_set, &cp_glyphid_map);
 
-        auto table_iter =
-        + hb_zip (unicodes_set.iter(), unicodes_set.iter() | hb_map(cp_glyphid_map))
-        | hb_filter (plan->_glyphset, hb_second)
-        | hb_filter ([plan] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& p)
-                     {
-                       return plan->unicodes->has (p.first) ||
-                              plan->glyphs_requested->has (p.second);
-                     })
-        | hb_map ([plan] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& p_org)
-                  {
-                    return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (p_org.first, plan->glyph_map->get(p_org.second));
-                  })
-        ;
+	auto table_iter =
+	+ hb_zip (unicodes_set.iter(), unicodes_set.iter() | hb_map(cp_glyphid_map))
+	| hb_filter (plan->_glyphset, hb_second)
+	| hb_filter ([plan] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& p)
+		     {
+		       return plan->unicodes->has (p.first) ||
+			      plan->glyphs_requested->has (p.second);
+		     })
+	| hb_map ([plan] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& p_org)
+		  {
+		    return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (p_org.first, plan->glyph_map->get(p_org.second));
+		  })
+	;
 
-        if (format == 4) c->copy (_, table_iter, 4u, base, plan, &format4objidx);
-        else if (format == 12) c->copy (_, table_iter, 12u, base, plan, &format12objidx);
-        else if (format == 14) c->copy (_, table_iter, 14u, base, plan, &format14objidx);
+	if (format == 4) c->copy (_, table_iter, 4u, base, plan, &format4objidx);
+	else if (format == 12) c->copy (_, table_iter, 12u, base, plan, &format12objidx);
+	else if (format == 14) c->copy (_, table_iter, 14u, base, plan, &format14objidx);
       }
       /* when --gids option is not used, we iterate input unicodes instead of
        * all codepoints in each subtable, which is more efficient */
       else
       {
-        hb_set_t unicodes_set;
-        (base+_.subtable).collect_unicodes (&unicodes_set);
+	hb_set_t unicodes_set;
+	(base+_.subtable).collect_unicodes (&unicodes_set);
 
-        if (format == 4) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, base, plan, &format4objidx);
-        else if (format == 12) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 12u, base, plan, &format12objidx);
-        else if (format == 14) c->copy (_, it, 14u, base, plan, &format14objidx);
+	if (format == 4) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, base, plan, &format4objidx);
+	else if (format == 12) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 12u, base, plan, &format12objidx);
+	else if (format == 14) c->copy (_, it, 14u, base, plan, &format14objidx);
       }
     }
 

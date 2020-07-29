@@ -1446,7 +1446,7 @@ struct Rule
     }
 
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
-                                                       (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
+						       (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
     for (unsigned i = 0; i < (unsigned) lookupCount; i++)
       c->copy (lookupRecord[i], lookup_map);
 
@@ -1582,8 +1582,8 @@ struct RuleSet
       auto o_snap = c->serializer->snapshot ();
       if (!o->serialize_subset (c, _, this, lookup_map, klass_map))
       {
-        out->rule.pop ();
-        c->serializer->revert (o_snap);
+	out->rule.pop ();
+	c->serializer->revert (o_snap);
       }
     }
 
@@ -1715,7 +1715,7 @@ struct ContextFormat1
     ;
 
     out->coverage.serialize (c->serializer, out)
-                 .serialize (c->serializer, new_coverage.iter ());
+		 .serialize (c->serializer, new_coverage.iter ());
     return_trace (bool (new_coverage));
   }
 
@@ -1863,12 +1863,12 @@ struct ContextFormat2
       auto *o = out->ruleSet.serialize_append (c->serializer);
       if (unlikely (!o))
       {
-        ret = false;
-        break;
+	ret = false;
+	break;
       }
 
       if (o->serialize_subset (c, _.second, this, lookup_map, &klass_map))
-        non_zero_index = index;
+	non_zero_index = index;
 
       index++;
     }
@@ -2803,7 +2803,7 @@ struct ChainContextFormat2
 			       &backtrack_klass_map,
 			       &input_klass_map,
 			       &lookahead_klass_map))
-        non_zero_index = index;
+	non_zero_index = index;
 
       index++;
     }
@@ -3259,7 +3259,7 @@ struct GSUBGPOS
   template <typename TLookup>
   void closure_lookups (hb_face_t      *face,
 			const hb_set_t *glyphs,
-                        hb_set_t       *lookup_indexes /* IN/OUT */) const
+			hb_set_t       *lookup_indexes /* IN/OUT */) const
   {
     hb_set_t visited_lookups, inactive_lookups;
     OT::hb_closure_lookups_context_t c (face, glyphs, &visited_lookups, &inactive_lookups);
@@ -3319,7 +3319,7 @@ struct GSUBGPOS
     {
       const Feature& f = get_feature (i);
       if ((!f.featureParams.is_null ()) || f.intersects_lookup_indexes (lookup_indexes))
-        feature_indexes->add (i);
+	feature_indexes->add (i);
     }
 #ifndef HB_NO_VAR
     if (version.to_int () >= 0x00010001u)

@@ -90,10 +90,7 @@ struct hb_subset_plan_t
 
  public:
 
-  bool in_error () const
-  {
-    return !successful;
-  }
+  bool in_error () const { return !successful; }
 
   /*
    * The set of input glyph ids which will be retained in the subset.

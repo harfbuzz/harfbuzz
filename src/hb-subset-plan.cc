@@ -146,7 +146,7 @@ static inline void
     gpos->collect_variation_indices (&c);
 
   gdef->remap_layout_variation_indices (layout_variation_indices, layout_variation_idx_map);
-  
+
   gdef.destroy ();
   gpos.destroy ();
 }
@@ -181,7 +181,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 			  const hb_set_t *input_glyphs_to_retain,
 			  bool close_over_gsub,
 			  bool close_over_gpos,
-                          bool close_over_gdef)
+	                  bool close_over_gdef)
 {
   OT::cmap::accelerator_t cmap;
   OT::glyf::accelerator_t glyf;
@@ -315,9 +315,8 @@ hb_subset_plan_create (hb_face_t         *face,
 		       hb_subset_input_t *input)
 {
   hb_subset_plan_t *plan;
-  if (unlikely (!(plan = hb_object_create<hb_subset_plan_t> ()))) {
+  if (unlikely (!(plan = hb_object_create<hb_subset_plan_t> ())))
     return const_cast<hb_subset_plan_t *> (&Null (hb_subset_plan_t));
-  }
 
   plan->successful = true;
   plan->drop_hints = input->drop_hints;

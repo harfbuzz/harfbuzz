@@ -35,7 +35,7 @@ _ft_line_to (const FT_Vector* to HB_UNUSED, void* user HB_UNUSED) {}
 
 static void
 _ft_conic_to (const FT_Vector* control HB_UNUSED, const FT_Vector* to HB_UNUSED,
-              void* user HB_UNUSED) {}
+	      void* user HB_UNUSED) {}
 
 static void
 _ft_cubic_to (const FT_Vector* control1 HB_UNUSED, const FT_Vector* control2 HB_UNUSED,

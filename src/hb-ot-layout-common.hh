@@ -963,7 +963,7 @@ struct Feature
 
     out->lookupIndex.serialize (c->serializer, l, it);
     return_trace (bool (it) || subset_featureParams
-                  || (tag && *tag == HB_TAG ('p', 'r', 'e', 'f')));
+		  || (tag && *tag == HB_TAG ('p', 'r', 'e', 'f')));
   }
 
   bool sanitize (hb_sanitize_context_t *c,
@@ -2527,9 +2527,9 @@ struct VariationStore
 
       if (major >= inner_maps.length)
       {
-        for (unsigned i = 0; i < inner_maps.length; i++)
-          inner_maps[i].fini ();
-        return_trace (false);
+	for (unsigned i = 0; i < inner_maps.length; i++)
+	  inner_maps[i].fini ();
+	return_trace (false);
       }
       inner_maps[major].add (minor);
     }

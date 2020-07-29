@@ -53,7 +53,7 @@ parse_gids (const char *name G_GNUC_UNUSED,
     {
       hb_set_destroy (gids);
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing gids values at: '%s'", s);
+		   "Failed parsing gids values at: '%s'", s);
       return false;
     }
 

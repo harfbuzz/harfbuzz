@@ -1575,8 +1575,8 @@ struct GSUB : GSUBGPOS
 				   hb_face_t *face) const;
 
   void closure_lookups (hb_face_t      *face,
-                        const hb_set_t *glyphs,
-                        hb_set_t       *lookup_indexes /* IN/OUT */) const
+			const hb_set_t *glyphs,
+			hb_set_t       *lookup_indexes /* IN/OUT */) const
   { GSUBGPOS::closure_lookups<SubstLookup> (face, glyphs, lookup_indexes); }
 
   typedef GSUBGPOS::accelerator_t<GSUB> accelerator_t;
