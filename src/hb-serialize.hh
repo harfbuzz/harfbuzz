@@ -172,6 +172,8 @@ struct hb_serialize_context_t
     propagate_error (packed, packed_map);
 
     if (unlikely (!current)) return;
+    if (unlikely (in_error())) return;
+
     assert (!current->next);
 
     /* Only "pack" if there exist other objects... Otherwise, don't bother.
@@ -187,6 +189,8 @@ struct hb_serialize_context_t
   template <typename Type = void>
   Type *push ()
   {
+    if (unlikely (in_error ())) return start_embed<Type> ();
+
     object_t *obj = object_pool.alloc ();
     if (unlikely (!obj))
       check_success (false);
@@ -203,6 +207,8 @@ struct hb_serialize_context_t
   {
     object_t *obj = current;
     if (unlikely (!obj)) return;
+    if (unlikely (in_error())) return;
+
     current = current->next;
     revert (obj->head, obj->tail);
     obj->fini ();
@@ -217,6 +223,8 @@ struct hb_serialize_context_t
   {
     object_t *obj = current;
     if (unlikely (!obj)) return 0;
+    if (unlikely (in_error())) return 0;
+
     current = current->next;
     obj->tail = head;
     obj->next = nullptr;
@@ -260,6 +268,7 @@ struct hb_serialize_context_t
 
   void revert (snapshot_t snap)
   {
+    if (unlikely (in_error ())) return;
     assert (snap.current == current);
     current->links.shrink (snap.num_links);
     revert (snap.head, snap.tail);
@@ -267,6 +276,7 @@ struct hb_serialize_context_t
   void revert (char *snap_head,
 	       char *snap_tail)
   {
+    if (unlikely (in_error ())) return;
     assert (snap_head <= head);
     assert (tail <= snap_tail);
     head = snap_head;
@@ -276,6 +286,7 @@ struct hb_serialize_context_t
 
   void discard_stale_objects ()
   {
+    if (unlikely (in_error ())) return;
     while (packed.length > 1 &&
 	   packed.tail ()->head < tail)
     {
@@ -294,6 +305,7 @@ struct hb_serialize_context_t
 		 unsigned bias = 0)
   {
     static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
+    if (unlikely (in_error ())) return;
 
     if (!objidx)
       return;
@@ -445,6 +457,8 @@ struct hb_serialize_context_t
   template <typename Type>
   Type *extend_size (Type *obj, unsigned int size)
   {
+    if (unlikely (in_error ())) return nullptr;
+
     assert (this->start <= (char *) obj);
     assert ((char *) obj <= this->head);
     assert ((char *) obj + size >= this->head);
