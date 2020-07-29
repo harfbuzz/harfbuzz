@@ -256,8 +256,12 @@ struct hb_serialize_context_t
 
     packed.push (obj);
 
-    if (unlikely (packed.in_error ()))
+    if (unlikely (packed.in_error ())) {
+      // obj wasn't successfully added to packed, so clean it up otherwise it's
+      // links will be leaked.
+      obj->fini ();
       return 0;
+    }
 
     objidx = packed.length - 1;
 
