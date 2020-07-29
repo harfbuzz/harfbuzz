@@ -192,7 +192,7 @@ hb_icu_unicode_compose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			hb_codepoint_t      a,
 			hb_codepoint_t      b,
 			hb_codepoint_t     *ab,
-			void               *user_data HB_UNUSED)
+			void               *user_data)
 {
   const UNormalizer2 *normalizer = (const UNormalizer2 *) user_data;
   UChar32 ret = unorm2_composePair (normalizer, a, b);
@@ -206,7 +206,7 @@ hb_icu_unicode_decompose (hb_unicode_funcs_t *ufuncs HB_UNUSED,
 			  hb_codepoint_t      ab,
 			  hb_codepoint_t     *a,
 			  hb_codepoint_t     *b,
-			  void               *user_data HB_UNUSED)
+			  void               *user_data)
 {
   const UNormalizer2 *normalizer = (const UNormalizer2 *) user_data;
   UChar decomposed[4];
