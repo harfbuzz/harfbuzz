@@ -242,11 +242,9 @@ static struct hb_icu_unicode_funcs_lazy_loader_t : hb_unicode_funcs_lazy_loader_
   static hb_unicode_funcs_t *create ()
   {
     void *user_data = nullptr;
-#if U_ICU_VERSION_MAJOR_NUM >= 49
     UErrorCode icu_err = U_ZERO_ERROR;
     user_data = (void *) unorm2_getNFCInstance (&icu_err);
     assert (user_data);
-#endif
 
     hb_unicode_funcs_t *funcs = hb_unicode_funcs_create (nullptr);
 
