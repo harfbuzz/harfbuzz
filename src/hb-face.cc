@@ -721,7 +721,10 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
     return false;
 
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) face->user_data;
+
   hb_face_builder_data_t::table_entry_t *entry = data->tables.push ();
+  if (data->tables.in_error())
+    return false;
 
   entry->tag = tag;
   entry->blob = hb_blob_reference (blob);
