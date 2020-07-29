@@ -314,8 +314,12 @@ hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t         *face,
 		       hb_subset_input_t *input)
 {
-  hb_subset_plan_t *plan = hb_object_create<hb_subset_plan_t> ();
+  hb_subset_plan_t *plan;
+  if (unlikely (!(plan = hb_object_create<hb_subset_plan_t> ()))) {
+    return const_cast<hb_subset_plan_t *> (&Null (hb_subset_plan_t));
+  }
 
+  plan->successful = true;
   plan->drop_hints = input->drop_hints;
   plan->desubroutinize = input->desubroutinize;
   plan->retain_gids = input->retain_gids;
