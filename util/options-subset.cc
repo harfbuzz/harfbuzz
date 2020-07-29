@@ -63,18 +63,18 @@ parse_gids (const char *name G_GNUC_UNUSED,
       hb_codepoint_t end_code = strtoul (s, &p, 10);
       if (s[0] == '-' || errno || s == p)
       {
-        hb_set_destroy (gids);
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Failed parsing gids values at: '%s'", s);
-        return false;
+	hb_set_destroy (gids);
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Failed parsing gids values at: '%s'", s);
+	return false;
       }
 
       if (end_code < start_code)
       {
-        hb_set_destroy (gids);
-        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                     "Invalid gids range value %u-%u", start_code, end_code);
-        return false;
+	hb_set_destroy (gids);
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Invalid gids range value %u-%u", start_code, end_code);
+	return false;
       }
       hb_set_add_range (gids, start_code, end_code);
     }

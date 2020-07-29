@@ -349,7 +349,7 @@ hb_subset_plan_create (hb_face_t         *face,
 			    input->glyphs,
 			    !input->drop_tables->has (HB_OT_TAG_GSUB),
 			    !input->drop_tables->has (HB_OT_TAG_GPOS),
-                            !input->drop_tables->has (HB_OT_TAG_GDEF));
+	                    !input->drop_tables->has (HB_OT_TAG_GDEF));
 
   _create_old_gid_to_new_gid_map (face,
 				  input->retain_gids,
