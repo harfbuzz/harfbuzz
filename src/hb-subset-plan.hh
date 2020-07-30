@@ -92,6 +92,12 @@ struct hb_subset_plan_t
 
   bool in_error () const { return !successful; }
 
+  bool check_success(bool success)
+  {
+    successful = (successful && success);
+    return successful;
+  }
+
   /*
    * The set of input glyph ids which will be retained in the subset.
    * Does NOT include ids kept due to retain_gids. You probably want to use
