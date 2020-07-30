@@ -1,7 +1,7 @@
 google_benchmark = subproject('google-benchmark')
 google_benchmark_dep = google_benchmark.get_variable('google_benchmark_dep')
 
-ttf_parser_dep = dependency('', required: false)
+ttf_parser_dep = null_dep
 if add_languages('rust', required: false, native: true)
   ttf_parser_dep = subproject('ttf-parser').get_variable('ttf_parser_dep')
 endif
