@@ -35,8 +35,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
     hb_buffer_t *buffer = hb_buffer_create ();
     hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
     hb_buffer_guess_segment_properties (buffer);
-    if (hb_buffer_get_content_type (buffer) != HB_BUFFER_CONTENT_TYPE_INVALID)
-      hb_shape (font, buffer, nullptr, 0);
+    hb_shape (font, buffer, nullptr, 0);
     hb_buffer_destroy (buffer);
   }
 
@@ -53,8 +52,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   hb_buffer_t *buffer = hb_buffer_create ();
   hb_buffer_add_utf32 (buffer, text32, sizeof (text32) / sizeof (text32[0]), 0, -1);
   hb_buffer_guess_segment_properties (buffer);
-  if (hb_buffer_get_content_type (buffer) != HB_BUFFER_CONTENT_TYPE_INVALID)
-    hb_shape (font, buffer, nullptr, 0);
+  hb_shape (font, buffer, nullptr, 0);
   hb_buffer_destroy (buffer);
 
   hb_font_destroy (font);
