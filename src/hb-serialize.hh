@@ -259,6 +259,7 @@ struct hb_serialize_context_t
     if (unlikely (packed.in_error ())) {
       // obj wasn't successfully added to packed, so clean it up otherwise it's
       // links will be leaked.
+      propagate_error (packed);
       obj->fini ();
       return 0;
     }
@@ -266,6 +267,7 @@ struct hb_serialize_context_t
     objidx = packed.length - 1;
 
     if (share) packed_map.set (obj, objidx);
+    propagate_error (packed_map);
 
     return objidx;
   }
@@ -277,6 +279,7 @@ struct hb_serialize_context_t
     current->links.shrink (snap.num_links);
     revert (snap.head, snap.tail);
   }
+
   void revert (char *snap_head,
 	       char *snap_tail)
   {
