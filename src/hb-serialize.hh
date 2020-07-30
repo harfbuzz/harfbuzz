@@ -373,7 +373,11 @@ struct hb_serialize_context_t
       }
   }
 
-  unsigned int length () const { return this->head - current->head; }
+  unsigned int length () const
+  {
+    if (unlikely (!current)) return 0;
+    return this->head - current->head;
+  }
 
   void align (unsigned int alignment)
   {
