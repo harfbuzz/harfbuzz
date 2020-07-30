@@ -405,6 +405,8 @@ if get_option('fuzzer_ldflags') != ''
   hb_gobject_sources += 'failing-alloc.c'
 endif
 
+darwin_versions = [hb_version_int, '@0@.0.0'.format(hb_version_int)]
+
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: incconfig,
   dependencies: harfbuzz_deps,
@@ -412,6 +414,7 @@ libharfbuzz = library('harfbuzz', hb_sources,
   soversion: hb_so_version,
   version: version,
   install: true,
+  darwin_versions: darwin_versions,
   link_language: 'c',
 )
 
@@ -435,6 +438,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
   soversion: hb_so_version,
   version: version,
   install: true,
+  darwin_versions: darwin_versions,
   link_language: 'c',
 )
 
@@ -536,6 +540,7 @@ if have_icu and not have_icu_builtin
     soversion: hb_so_version,
     version: version,
     install: true,
+    darwin_versions: darwin_versions,
     # ICU links to stdc++ anyway so the default linker is good
     # link_language: 'c',
   )
@@ -621,6 +626,7 @@ if have_gobject
     soversion: hb_so_version,
     version: version,
     install: true,
+    darwin_versions: darwin_versions,
     link_language: 'c',
   )
 
