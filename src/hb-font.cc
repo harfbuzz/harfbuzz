@@ -519,7 +519,7 @@ static const hb_font_funcs_t _hb_font_funcs_default = {
 
 
 /**
- * hb_font_funcs_create: (Xconstructor)
+ * hb_font_funcs_create: (constructor)
  *
  *
  *
@@ -1366,7 +1366,7 @@ _hb_font_create (hb_face_t *face)
 }
 
 /**
- * hb_font_create: (Xconstructor)
+ * hb_font_create: (constructor)
  * @face: a face.
  *
  *

@@ -40,7 +40,7 @@
 
 
 /**
- * hb_map_create: (Xconstructor)
+ * hb_map_create: (constructor)
  *
  * Return value: (transfer full):
  *

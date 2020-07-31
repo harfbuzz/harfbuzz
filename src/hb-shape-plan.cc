@@ -163,7 +163,7 @@ hb_shape_plan_key_t::equal (const hb_shape_plan_key_t *other)
 
 
 /**
- * hb_shape_plan_create: (Xconstructor)
+ * hb_shape_plan_create: (constructor)
  * @face:
  * @props:
  * @user_features: (array length=num_user_features):

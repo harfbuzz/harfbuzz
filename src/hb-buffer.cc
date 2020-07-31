@@ -674,7 +674,7 @@ DEFINE_NULL_INSTANCE (hb_buffer_t) =
 
 
 /**
- * hb_buffer_create: (Xconstructor)
+ * hb_buffer_create: (constructor)
  *
  * Creates a new #hb_buffer_t with all properties to defaults.
  *
