@@ -46,13 +46,13 @@
 /**
  * hb_ot_name_list_names:
  * @face: font face.
- * @num_entries: (out) (allow-none): number of returned entries.
+ * @num_entries: (out) (optional): number of returned entries.
  *
  * Enumerates all available name IDs and language combinations. Returned
  * array is owned by the @face and should not be modified.  It can be
  * used as long as @face is alive.
  *
- * Returns: (out) (transfer none) (array length=num_entries): Array of available name entries.
+ * Returns: (transfer none) (array length=num_entries): Array of available name entries.
  * Since: 2.1.0
  **/
 const hb_ot_name_entry_t *

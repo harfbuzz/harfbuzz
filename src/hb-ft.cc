@@ -771,7 +771,7 @@ hb_ft_face_create_cached (FT_Face ft_face)
 /**
  * hb_ft_font_create:
  * @ft_face: (destroy destroy) (scope notified): FT_Face to work upon
- * @destroy: (optional): A callback to call when the font object is not needed anymore
+ * @destroy: (nullable): A callback to call when the font object is not needed anymore
  *
  * Creates an #hb_font_t font object from the specified FT_Face.
  *
