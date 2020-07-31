@@ -179,7 +179,7 @@ hb_ft_font_get_load_flags (hb_font_t *font)
 }
 
 /**
- * hb_ft_get_face:
+ * hb_ft_font_get_face: (skip)
  * @font: #hb_font_t to work upon
  *
  * Fetches the FT_Face associated with the specified #hb_font_t
@@ -201,12 +201,12 @@ hb_ft_font_get_face (hb_font_t *font)
 }
 
 /**
- * hb_ft_font_lock_face:
+ * hb_ft_font_lock_face: (skip)
  * @font:
  *
  *
  *
- * Return value:
+ * Return value: (transfer none):
  * Since: 2.6.5
  **/
 FT_Face
@@ -223,14 +223,13 @@ hb_ft_font_lock_face (hb_font_t *font)
 }
 
 /**
- * hb_ft_font_unlock_face:
+ * hb_ft_font_unlock_face: (skip)
  * @font:
  *
  *
  *
- * Return value:
  * Since: 2.6.5
- **/
+ */
 void
 hb_ft_font_unlock_face (hb_font_t *font)
 {
