@@ -133,9 +133,11 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
       region_count = varStore->varStore.get_region_index_count (get_ivs ());
       if (do_blend)
       {
-	scalars.resize (region_count);
-	varStore->varStore.get_scalars (get_ivs (), coords, num_coords,
-					&scalars[0], region_count);
+	if (unlikely (!scalars.resize (region_count)))
+	  set_error ();
+	else
+	  varStore->varStore.get_scalars (get_ivs (), coords, num_coords,
+					  &scalars[0], region_count);
       }
       seen_blend = true;
     }
