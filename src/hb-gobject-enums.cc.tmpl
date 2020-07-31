@@ -53,7 +53,7 @@
 
 /*** BEGIN value-header ***/
 GType
-@enum_name@_get_type ()
+@enum_name@_get_gtype ()
 {
   static gsize type_id = 0;
 
@@ -75,6 +75,12 @@ GType
     }
 
   return type_id;
+}
+
+GType
+gobject_@enum_name@_gobject_get_type ()
+{
+  return @enum_name@_get_gtype ();
 }
 
 /*** END value-tail ***/

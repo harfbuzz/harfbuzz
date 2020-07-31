@@ -62,7 +62,7 @@
 
 #define HB_DEFINE_BOXED_TYPE(name,copy_func,free_func) \
 GType \
-hb_gobject_##name##_get_type () \
+hb_##name##_get_gtype () \
 { \
    static gsize type_id = 0; \
    if (g_once_init_enter (&type_id)) { \
@@ -72,6 +72,12 @@ hb_gobject_##name##_get_type () \
       g_once_init_leave (&type_id, id); \
    } \
    return type_id; \
+} \
+\
+GType \
+hb_gobject_##name##_get_type () \
+{ \
+  return hb_##name##_get_gtype (); \
 }
 
 #define HB_DEFINE_OBJECT_TYPE(name) \
@@ -105,6 +111,5 @@ HB_DEFINE_VALUE_TYPE (user_data_key)
 
 HB_DEFINE_VALUE_TYPE (ot_math_glyph_variant)
 HB_DEFINE_VALUE_TYPE (ot_math_glyph_part)
-
 
 #endif

@@ -43,9 +43,11 @@ HB_BEGIN_DECLS
 
 /*** BEGIN value-header ***/
 HB_EXTERN GType
-@enum_name@_get_type () G_GNUC_CONST;
-#define @ENUMPREFIX@_TYPE_@ENUMSHORT@ (@enum_name@_get_type ())
-
+@enum_name@_get_gtype () G_GNUC_CONST;
+#define @ENUMPREFIX@_TYPE_@ENUMSHORT@ (@enum_name@_get_gtype ())
+HB_EXTERN HB_DEPRECATED_FOR (@enum_name@_get_gtype) GType
+gobject_@enum_name@_gobject_get_type () G_GNUC_CONST;
+#define @ENUMPREFIX@_GOBJECT_TYPE_@ENUMSHORT@ (@enum_name@_get_gtype ())
 /*** END value-header ***/
 
 /*** BEGIN file-tail ***/

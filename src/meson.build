@@ -588,7 +588,7 @@ if have_gobject
     h_template: h_templ,
     c_template: cc_templ,
     identifier_prefix: 'hb_',
-    symbol_prefix: 'hb_gobject',
+    symbol_prefix: 'hb',
   )
 
   enum_c = custom_target('hb-gobject-enums.cc',
@@ -653,7 +653,7 @@ if have_gobject
       namespace: 'HarfBuzz',
       nsversion: '@0@.0'.format(hb_version_major),
       identifier_prefix: 'Hb',
-      symbol_prefix: ['hb', 'hb_gobject'],
+      symbol_prefix: ['hb'],
       includes: gir_includes,
       export_packages: ['harfbuzz-gobject'],
       header: 'hb-gobject.h',
