@@ -1108,6 +1108,9 @@ struct CmapSubtableFormat14
       return;
     }
 
+    if (unlikely (!c->check_success (!obj_indices.in_error ())))
+      return;
+
     int tail_len = init_tail - c->tail;
     c->check_assign (this->length, c->length () - table_initpos + tail_len);
     c->check_assign (this->record.len,
