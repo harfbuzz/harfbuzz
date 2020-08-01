@@ -712,7 +712,10 @@ if get_option('tests').enabled()
   env.set('HBHEADERS', ' '.join(HBHEADERS))
 
   if cpp.get_id() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
-    dist_check_script += ['check-libstdc++', 'check-static-inits', 'check-symbols']
+    if meson.version().version_compare('>=0.55')
+      dist_check_script += 'check-libstdc++'
+    endif
+    dist_check_script += ['check-static-inits', 'check-symbols']
   endif
 
   foreach name : dist_check_script
