@@ -2,6 +2,8 @@ project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.53.0',
   version: '2.7.0',
   default_options: [
+    'cpp_eh=none',          # Just to support msvc, we are passing -fno-rtti also anyway
+    'cpp_rtti=false',       # Just to support msvc, we are passing -fno-exceptions also anyway
     'cpp_std=c++11',
     'wrap_mode=nofallback', # https://github.com/harfbuzz/harfbuzz/pull/2548
   ],
@@ -42,8 +44,8 @@ add_project_link_arguments(cpp.get_supported_link_arguments([
 ]), language: 'c')
 
 add_project_arguments(cpp.get_supported_arguments([
-  '-fno-rtti',
   '-fno-exceptions',
+  '-fno-rtti',
   '-fno-threadsafe-statics',
   '-fvisibility-inlines-hidden',
 ]), language: 'cpp')
