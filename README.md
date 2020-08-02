@@ -1,4 +1,4 @@
-[![Travis Build Status](https://travis-ci.org/harfbuzz/harfbuzz.svg?branch=master)](https://travis-ci.org/harfbuzz/harfbuzz)
+[![Linux CI Status](https://github.com/harfbuzz/harfbuzz/workflows/linux-ci/badge.svg)](https://github.com/harfbuzz/harfbuzz/workflows/linux-ci/badge.svg)
 [![CircleCI Build Status](https://circleci.com/gh/harfbuzz/harfbuzz/tree/master.svg?style=svg)](https://circleci.com/gh/harfbuzz/harfbuzz/tree/master)
 [![OSS-Fuzz Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/harfbuzz.svg)](https://oss-fuzz-build-logs.storage.googleapis.com/index.html)
 [![Coverity Code Health](https://img.shields.io/coverity/scan/5450.svg)](https://scan.coverity.com/projects/behdad-harfbuzz)

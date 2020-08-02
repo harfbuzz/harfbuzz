@@ -56,7 +56,7 @@ jobs:
       - run: pip3 install fonttools meson --upgrade
       - run: ./autogen.sh
       - run: make -j32
-      - run: make distcheck || .ci/fail.sh
+      - run: make distcheck
       - run: rm harfbuzz-* && make distdir
       - run: cd harfbuzz-* && meson build && ninja -Cbuild test
 
