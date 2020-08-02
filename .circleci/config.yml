@@ -46,20 +46,6 @@ jobs:
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
 
-  # will be dropped with autotools removal
-  distcheck:
-    docker:
-      - image: ubuntu:20.04
-    steps:
-      - checkout
-      - run: apt update && DEBIAN_FRONTEND=noninteractive apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools libfontconfig1-dev libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
-      - run: pip3 install fonttools meson --upgrade
-      - run: ./autogen.sh
-      - run: make -j32
-      - run: make distcheck
-      - run: rm harfbuzz-* && make distdir
-      - run: cd harfbuzz-* && meson build && ninja -Cbuild test
-
   fedora-valgrind:
     docker:
       - image: fedora
@@ -139,7 +125,6 @@ workflows:
       - macos-10.13.6-aat-fonts
       - macos-10.14.4-aat-fonts
       - macos-10.15.3-aat-fonts
-      - distcheck # will be dropped with autotools removal
       - fedora-valgrind
       - alpine
       - archlinux
