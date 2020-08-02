@@ -12,7 +12,7 @@ And then run `autogen.sh` (if building from git), and then:
 ./configure --with-gobject --enable-introspection
 ```
 
-Make sure that gobject-introspection is reported enabled then in the `configure` script output.
+Make sure that `Introspection` is reported enabled in `meson setup` output.
 
 Compile and install.
 
