@@ -45,7 +45,7 @@ add_project_arguments(cpp.get_supported_arguments([
   '-fno-rtti',
   '-fno-exceptions',
   '-fno-threadsafe-statics',
-  '-fvisibility-inlines-hidden', # maybe shouldn't be applied for mingw
+  '-fvisibility-inlines-hidden',
 ]), language: 'cpp')
 
 if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') != 1
