@@ -20,22 +20,8 @@ On Windows, meson can build the project like above if a working MSVC's cl.exe (`
 or gcc/clang is already on your path, and if you use something like `meson build --wrap-mode=default`
 it fetches and compiles most of the dependencies also.
 
+Our CI configurations is also a good source of learning how to build HarfBuzz.
+
 There is also amalgam source provided with HarfBuzz which reduces whole process of building
 HarfBuzz like `g++ src/harfbuzz.cc -fno-exceptions` but there is not guarantee provided
 with buildability and reliability of features you get.
-
-Our CI is also good source of learning how to build HarfBuzz.
-
-Linux packagers are advised to at least use `--buildtype=release` (or any other way
-to enable regular compiler optimization) and `-Dauto_features=enabled --wrap-mode=nodownload`
-and install any other needed packages (most distributions build harfbuzz with
-graphite support which needs to be enabled separately, `-Dgraphite=enabled`),
-and follow other best practices of packaging a meson project.
-
-Examples of meson built harfbuzz packages,
-* https://git.archlinux.org/svntogit/packages.git/tree/trunk?h=packages/harfbuzz
-  Which uses https://git.archlinux.org/svntogit/packages.git/tree/trunk/arch-meson?h=packages/meson
-* https://git.alpinelinux.org/aports/tree/main/harfbuzz
-  Which uses https://git.alpinelinux.org/aports/tree/main/meson/abuild-meson
-* https://github.com/msys2/MINGW-packages/blob/master/mingw-w64-harfbuzz/PKGBUILD
-* (feel free to add your distribution's source link here)
