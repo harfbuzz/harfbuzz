@@ -13,6 +13,7 @@ meson test -C build
 ```shell
 meson setup build -Db_sanitize=address
 meson compile -C build
+meson test -C build
 ```
 
 ### Debug with GDB
@@ -20,7 +21,7 @@ meson compile -C build
 ```
 meson setup build
 meson compile -C build
-meson test --gdb testname
+meson test -C build --gdb testname
 ```
 
 ### Enable Debug Logging
@@ -35,7 +36,7 @@ ninja -C build
 ```shell
 meson build
 ninja -Cbuild
-ninja -Cbuild test
+meson test -Cbuild
 ```
 
 ## Test with the Fuzzer
