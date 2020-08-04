@@ -5,7 +5,7 @@ project('harfbuzz', 'c', 'cpp',
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-rtti also anyway
     'cpp_rtti=false',       # Just to support msvc, we are passing -fno-exceptions also anyway
     'cpp_std=c++11',
-    'wrap_mode=nofallback', # https://github.com/harfbuzz/harfbuzz/pull/2548
+    'wrap_mode=nofallback', # Use --wrap-mode=default to revert, https://github.com/harfbuzz/harfbuzz/pull/2548
   ],
 )
 
