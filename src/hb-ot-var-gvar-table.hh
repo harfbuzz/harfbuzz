@@ -483,15 +483,10 @@ struct gvar
     return likely (var_data.length >= GlyphVariationData::min_size) ? var_data : hb_bytes_t ();
   }
 
-  bool is_long_offset () const { return (flags & 1) != 0; }
+  bool is_long_offset () const { return flags & 1; }
 
-  unsigned int get_offset (unsigned int i) const
-  {
-    if (is_long_offset ())
-      return get_long_offset_array ()[i];
-    else
-      return get_short_offset_array ()[i] * 2;
-  }
+  unsigned get_offset (unsigned i) const
+  { return is_long_offset () ? get_long_offset_array ()[i] : get_short_offset_array ()[i] * 2; }
 
   const HBUINT32 * get_long_offset_array () const { return (const HBUINT32 *) &offsetZ; }
   const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *) &offsetZ; }
