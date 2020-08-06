@@ -409,6 +409,8 @@ struct glyf
     PHANTOM_COUNT  = 4
   };
 
+  struct accelerator_t;
+
   struct Glyph
   {
     enum simple_glyph_flag_t
@@ -428,11 +430,12 @@ struct glyf
     {
       bool has_data () const { return numberOfContours; }
 
-      bool get_extents (hb_font_t *font, hb_codepoint_t gid, hb_glyph_extents_t *extents) const
+      bool get_extents (hb_font_t *font, const accelerator_t &glyf_accelerator,
+		        hb_codepoint_t gid, hb_glyph_extents_t *extents) const
       {
 	/* Undocumented rasterizer behavior: shift glyph to the left by (lsb - xMin), i.e., xMin = lsb */
 	/* extents->x_bearing = hb_min (glyph_header.xMin, glyph_header.xMax); */
-	extents->x_bearing = font->em_scale_x (font->face->table.hmtx->get_side_bearing (gid));
+	extents->x_bearing = font->em_scale_x (glyf_accelerator.hmtx->get_side_bearing (gid));
 	extents->y_bearing = font->em_scale_y (hb_max (yMin, yMax));
 	extents->width     = font->em_scale_x (hb_max (xMin, xMax) - hb_min (xMin, xMax));
 	extents->height    = font->em_scale_y (hb_min (yMin, yMax) - hb_max (yMin, yMax));
@@ -694,7 +697,7 @@ struct glyf
      * all_points includes phantom points
      */
     template<typename T>
-    bool get_points (T glyph_for_gid, hb_font_t *font,
+    bool get_points (T glyph_for_gid, hb_font_t *font, const accelerator_t &glyf_accelerator,
 		     contour_point_vector_t &all_points /* OUT */,
 		     bool phantom_only = false,
 		     unsigned int depth = 0) const
@@ -718,17 +721,15 @@ struct glyf
 	break;
       }
 
-      hb_face_t *face = font->face;
-
       /* Init phantom points */
       if (unlikely (!points.resize (points.length + PHANTOM_COUNT))) return false;
       hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
       {
 	for (unsigned i = 0; i < PHANTOM_COUNT; ++i) phantoms[i].init ();
-	int h_delta = (int) header->xMin - face->table.hmtx->get_side_bearing (gid);
-	int v_orig  = (int) header->yMax + face->table.vmtx->get_side_bearing (gid);
-	unsigned h_adv = face->table.hmtx->get_advance (gid);
-	unsigned v_adv = face->table.vmtx->get_advance (gid);
+	int h_delta = (int) header->xMin - glyf_accelerator.hmtx->get_side_bearing (gid);
+	int v_orig  = (int) header->yMax + glyf_accelerator.vmtx->get_side_bearing (gid);
+	unsigned h_adv = glyf_accelerator.hmtx->get_advance (gid);
+	unsigned v_adv = glyf_accelerator.vmtx->get_advance (gid);
 	phantoms[PHANTOM_LEFT].x = h_delta;
 	phantoms[PHANTOM_RIGHT].x = h_adv + h_delta;
 	phantoms[PHANTOM_TOP].y = v_orig;
@@ -736,7 +737,7 @@ struct glyf
       }
 
 #ifndef HB_NO_VAR
-      if (unlikely (!face->table.gvar->apply_deltas_to_points (gid, font, points.as_array ())))
+      if (unlikely (!glyf_accelerator.gvar->apply_deltas_to_points (gid, font, points.as_array ())))
 	return false;
 #endif
 
@@ -750,7 +751,7 @@ struct glyf
 	for (auto &item : get_composite_iterator ())
 	{
 	  contour_point_vector_t comp_points;
-	  if (unlikely (!glyph_for_gid (item.glyphIndex).get_points (glyph_for_gid, font, comp_points, phantom_only, depth + 1))
+	  if (unlikely (!glyph_for_gid (item.glyphIndex).get_points (glyph_for_gid, font, glyf_accelerator, comp_points, phantom_only, depth + 1))
 			|| comp_points.length < PHANTOM_COUNT)
 	    return false;
 
@@ -803,10 +804,11 @@ struct glyf
       return true;
     }
 
-    bool get_extents (hb_font_t *font, hb_glyph_extents_t *extents) const
+    bool get_extents (hb_font_t *font, const accelerator_t &glyf_accelerator,
+		      hb_glyph_extents_t *extents) const
     {
       if (type == EMPTY) return true; /* Empty glyph; zero extents. */
-      return header->get_extents (font, gid, extents);
+      return header->get_extents (font, glyf_accelerator, gid, extents);
     }
 
     hb_bytes_t get_bytes () const { return bytes; }
@@ -836,6 +838,11 @@ struct glyf
       num_glyphs = 0;
       loca_table = nullptr;
       glyf_table = nullptr;
+#ifndef HB_NO_VAR
+      gvar = &Null (gvar_accelerator_t);
+#endif
+      hmtx = &Null (hmtx_accelerator_t);
+      vmtx = &Null (vmtx_accelerator_t);
       face = face_;
       const OT::head &head = *face->table.head;
       if (head.indexToLocFormat > 1 || head.glyphDataFormat > 0)
@@ -845,6 +852,11 @@ struct glyf
 
       loca_table = hb_sanitize_context_t ().reference_table<loca> (face);
       glyf_table = hb_sanitize_context_t ().reference_table<glyf> (face);
+#ifndef HB_NO_VAR
+      gvar = face->table.gvar;
+#endif
+      hmtx = face->table.hmtx;
+      vmtx = face->table.vmtx;
 
       num_glyphs = hb_max (1u, loca_table.get_length () / (short_offset ? 2 : 4)) - 1;
       num_glyphs = hb_min (num_glyphs, face->get_num_glyphs ());
@@ -870,7 +882,7 @@ struct glyf
 
       bool phantom_only = !consumer.is_consuming_contour_points ();
       if (unlikely (!glyph_for_gid (gid).get_points ([this] (hb_codepoint_t gid) -> const Glyph { return this->glyph_for_gid (gid); },
-						     font, all_points, phantom_only)))
+						     font, *this, all_points, phantom_only)))
 	return false;
 
       if (consumer.is_consuming_contour_points ())
@@ -896,6 +908,7 @@ struct glyf
       hb_font_t *font;
       hb_glyph_extents_t *extents;
       contour_point_t *phantoms;
+      const accelerator_t *accelerator;
 
       struct contour_bounds_t
       {
@@ -931,9 +944,10 @@ struct glyf
 	float min_x, min_y, max_x, max_y;
       } bounds;
 
-      points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_)
+      points_aggregator_t (hb_font_t *font_, const accelerator_t *accelerator_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_)
       {
 	font = font_;
+	accelerator = accelerator_;
 	extents = extents_;
 	phantoms = phantoms_;
 	if (extents) bounds = contour_bounds_t ();
@@ -952,13 +966,11 @@ struct glyf
       bool success = false;
 
       contour_point_t phantoms[PHANTOM_COUNT];
-      if (likely (font->num_coords == face->table.gvar->get_axis_count ()))
-	success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms));
+      if (likely (font->num_coords == gvar->get_axis_count ()))
+	success = get_points (font, gid, points_aggregator_t (font, this, nullptr, phantoms));
 
       if (unlikely (!success))
-	return is_vertical
-	     ? face->table.vmtx->get_advance (gid)
-	     : face->table.hmtx->get_advance (gid);
+	return is_vertical ? vmtx->get_advance (gid) : hmtx->get_advance (gid);
 
       float result = is_vertical
 		   ? phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y
@@ -971,10 +983,8 @@ struct glyf
       hb_glyph_extents_t extents;
 
       contour_point_t phantoms[PHANTOM_COUNT];
-      if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms))))
-	return is_vertical
-	     ? face->table.vmtx->get_side_bearing (gid)
-	     : face->table.hmtx->get_side_bearing (gid);
+      if (unlikely (!get_points (font, gid, points_aggregator_t (font, this, &extents, phantoms))))
+	return is_vertical ? vmtx->get_side_bearing (gid) : hmtx->get_side_bearing (gid);
 
       return is_vertical
 	   ? ceilf (phantoms[PHANTOM_TOP].y) - extents.y_bearing
@@ -986,10 +996,10 @@ struct glyf
     {
       if (unlikely (gid >= num_glyphs)) return false;
 #ifndef HB_NO_VAR
-      if (font->num_coords && font->num_coords == face->table.gvar->get_axis_count ())
-	return get_points (font, gid, points_aggregator_t (font, extents, nullptr));
+      if (font->num_coords && font->num_coords == gvar->get_axis_count ())
+	return get_points (font, gid, points_aggregator_t (font, this, extents, nullptr));
 #endif
-      return glyph_for_gid (gid).get_extents (font, extents);
+      return glyph_for_gid (gid).get_extents (font, *this, extents);
     }
 
     const Glyph
@@ -1153,6 +1163,12 @@ struct glyf
     get_path (hb_font_t *font, hb_codepoint_t gid, draw_helper_t &draw_helper) const
     { return get_points (font, gid, path_builder_t (font, draw_helper)); }
 #endif
+
+#ifndef HB_NO_VAR
+    const gvar_accelerator_t *gvar;
+#endif
+    const hmtx_accelerator_t *hmtx;
+    const vmtx_accelerator_t *vmtx;
 
     private:
     bool short_offset;
