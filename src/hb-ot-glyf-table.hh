@@ -946,7 +946,7 @@ struct glyf
       contour_point_t *get_phantoms_sink () { return phantoms; }
     };
 
-    unsigned int
+    unsigned
     get_advance_var (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
     {
       bool success = false;
@@ -960,9 +960,10 @@ struct glyf
 	     ? face->table.vmtx->get_advance (gid)
 	     : face->table.hmtx->get_advance (gid);
 
-      return is_vertical
-	   ? roundf (phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y)
-	   : roundf (phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x);
+      float result = is_vertical
+		   ? phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y
+		   : phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x;
+      return hb_clamp (roundf (result), 0.f, (float) UINT_MAX / 2);
     }
 
     int get_side_bearing_var (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
