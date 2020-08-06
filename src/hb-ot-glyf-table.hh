@@ -716,7 +716,6 @@ struct glyf
 	if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
 	  return false;
 	break;
-      default: return false; /* empty glyph */
       }
 
       hb_face_t *face = font->face;
@@ -787,7 +786,8 @@ struct glyf
 
 	all_points.extend (phantoms);
       } break;
-      default: return false;
+      default:
+	all_points.extend (phantoms);
       }
 
       if (depth == 0) /* Apply at top level */
@@ -860,6 +860,8 @@ struct glyf
     template<typename T>
     bool get_points (hb_font_t *font, hb_codepoint_t gid, T consumer) const
     {
+      if (gid >= num_glyphs) return false;
+
       /* Making this alloc free is not that easy
 	 https://github.com/harfbuzz/harfbuzz/issues/2095
 	 mostly because of gvar handling in VF fonts,
