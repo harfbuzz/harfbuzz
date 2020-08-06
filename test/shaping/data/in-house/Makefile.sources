@@ -57,6 +57,7 @@ TESTS = \
 	tests/use.tests \
 	tests/variations-rounding.tests \
 	tests/variations-rvrn.tests \
+	tests/variations-space.tests \
 	tests/vertical.tests \
 	tests/zero-width-marks.tests \
 	$(NULL)

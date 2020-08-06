@@ -57,6 +57,7 @@ in_house_tests = [
   'use.tests',
   'variations-rounding.tests',
   'variations-rvrn.tests',
+  'variations-space.tests',
   'vertical.tests',
   'zero-width-marks.tests',
 ]
