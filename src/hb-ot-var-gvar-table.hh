@@ -540,7 +540,7 @@ struct gvar
       /* num_coords should exactly match gvar's axisCount due to how GlyphVariationData tuples are aligned */
       if (!font->num_coords || font->num_coords != table->axisCount) return true;
 
-      if (unlikely (glyph >= table->glyphCount)) return false;
+      if (unlikely (glyph >= table->glyphCount)) return true;
 
       hb_bytes_t var_data_bytes = table->get_glyph_var_data_bytes (table.get_blob (), glyph);
       if (!var_data_bytes.as<GlyphVariationData> ()->has_data ()) return true;
