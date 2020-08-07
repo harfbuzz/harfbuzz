@@ -4,6 +4,8 @@ set(_harfbuzz_remove_string "REMOVE_ME")
 set(exec_prefix "${_harfbuzz_remove_string}")
 set(prefix "${_harfbuzz_remove_string}")
 
+warning("Finding HarfBuzz through cmake config is deprecated, please use a pkg-config based solution one.")
+
 # Compute the installation prefix by stripping components from our current
 # location.
 get_filename_component(_harfbuzz_prefix "${CMAKE_CURRENT_LIST_DIR}" DIRECTORY)
