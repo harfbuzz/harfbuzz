@@ -25,21 +25,10 @@ unset(_harfbuzz_libdir_iter)
 set(_harfbuzz_includedir "@includedir@")
 string(REPLACE "${_harfbuzz_remove_string}/" "" _harfbuzz_includedir "${_harfbuzz_includedir}")
 
-# Extract version information from libtool.
-set(_harfbuzz_version_info "@HB_LIBTOOL_VERSION_INFO@")
-string(REPLACE ":" ";" _harfbuzz_version_info "${_harfbuzz_version_info}")
-list(GET _harfbuzz_version_info 0
-  _harfbuzz_current)
-list(GET _harfbuzz_version_info 1
-  _harfbuzz_revision)
-list(GET _harfbuzz_version_info 2
-  _harfbuzz_age)
-unset(_harfbuzz_version_info)
-
 if (APPLE)
   set(_harfbuzz_lib_suffix ".0${CMAKE_SHARED_LIBRARY_SUFFIX}")
 elseif (UNIX)
-  set(_harfbuzz_lib_suffix "${CMAKE_SHARED_LIBRARY_SUFFIX}.0.${_harfbuzz_current}.${_harfbuzz_revision}")
+  set(_harfbuzz_lib_suffix "${CMAKE_SHARED_LIBRARY_SUFFIX}.0.@HB_VERSION@.0")
 else ()
   # Unsupported.
   set(harfbuzz_FOUND 0)
@@ -75,9 +64,6 @@ endif ()
 
 # Clean out variables we used in our scope.
 unset(_harfbuzz_lib_suffix)
-unset(_harfbuzz_current)
-unset(_harfbuzz_revision)
-unset(_harfbuzz_age)
 unset(_harfbuzz_includedir)
 unset(_harfbuzz_libdir)
 unset(_harfbuzz_prefix)
