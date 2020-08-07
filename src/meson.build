@@ -566,6 +566,7 @@ cmake_config = configuration_data()
 cmake_config.set('libdir', '${prefix}/@0@'.format(get_option('libdir')))
 cmake_config.set('includedir', '${prefix}/@0@'.format(get_option('includedir')))
 cmake_config.set('HB_VERSION', '@0@'.format(hb_version_int))
+cmake_config.set('have_icu', have_icu and not have_icu_builtin ? 'true' : 'false')
 cmake_config.set('have_gobject', have_gobject ? 'true' : 'false')
 configure_file(input: 'harfbuzz-config.cmake.in',
   output: 'harfbuzz-config.cmake',

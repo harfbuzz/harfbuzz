@@ -25,10 +25,11 @@ unset(_harfbuzz_libdir_iter)
 set(_harfbuzz_includedir "@includedir@")
 string(REPLACE "${_harfbuzz_remove_string}/" "" _harfbuzz_includedir "${_harfbuzz_includedir}")
 
+set(_harfbuzz_version "@HB_VERSION@")
 if (APPLE)
   set(_harfbuzz_lib_suffix ".0${CMAKE_SHARED_LIBRARY_SUFFIX}")
 elseif (UNIX)
-  set(_harfbuzz_lib_suffix "${CMAKE_SHARED_LIBRARY_SUFFIX}.0.@HB_VERSION@.0")
+  set(_harfbuzz_lib_suffix "${CMAKE_SHARED_LIBRARY_SUFFIX}.0.${_harfbuzz_version}.0")
 else ()
   # Unsupported.
   set(harfbuzz_FOUND 0)
@@ -40,17 +41,21 @@ set_target_properties(harfbuzz::harfbuzz PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_harfbuzz_prefix}/${_harfbuzz_includedir}/harfbuzz"
   IMPORTED_LOCATION "${_harfbuzz_prefix}/${_harfbuzz_libdir}/libharfbuzz${_harfbuzz_lib_suffix}")
 
-add_library(harfbuzz::icu SHARED IMPORTED)
-set_target_properties(harfbuzz::icu PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "${_harfbuzz_prefix}/${_harfbuzz_includedir}/harfbuzz"
-  INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz"
-  IMPORTED_LOCATION "${_harfbuzz_prefix}/${_harfbuzz_libdir}/libharfbuzz-icu${_harfbuzz_lib_suffix}")
-
 add_library(harfbuzz::subset SHARED IMPORTED)
 set_target_properties(harfbuzz::subset PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${_harfbuzz_prefix}/${_harfbuzz_includedir}/harfbuzz"
   INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz"
   IMPORTED_LOCATION "${_harfbuzz_prefix}/${_harfbuzz_libdir}/libharfbuzz-subset${_harfbuzz_lib_suffix}")
+
+# Only add the icu library if it was built.
+set(_harfbuzz_have_icu "@have_icu@")
+if (_harfbuzz_have_icu)
+  add_library(harfbuzz::icu SHARED IMPORTED)
+  set_target_properties(harfbuzz::icu PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${_harfbuzz_prefix}/${_harfbuzz_includedir}/harfbuzz"
+    INTERFACE_LINK_LIBRARIES "harfbuzz::harfbuzz"
+    IMPORTED_LOCATION "${_harfbuzz_prefix}/${_harfbuzz_libdir}/libharfbuzz-icu${_harfbuzz_lib_suffix}")
+endif ()
 
 # Only add the gobject library if it was built.
 set(_harfbuzz_have_gobject "@have_gobject@")
@@ -63,6 +68,9 @@ if (_harfbuzz_have_gobject)
 endif ()
 
 # Clean out variables we used in our scope.
+unset(_harfbuzz_version)
+unset(_harfbuzz_have_icu)
+unset(_harfbuzz_have_gobject)
 unset(_harfbuzz_lib_suffix)
 unset(_harfbuzz_includedir)
 unset(_harfbuzz_libdir)
