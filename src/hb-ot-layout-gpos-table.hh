@@ -549,7 +549,7 @@ struct AnchorMatrix
 		  Iterator                index_iter)
   {
     TRACE_SERIALIZE (this);
-    if (!index_iter.len ()) return_trace (false);
+    if (!index_iter) return_trace (false);
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
 
     this->rows = num_rows;
