@@ -1342,11 +1342,12 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 				      unsigned int          glyphs_length,
 				      hb_bool_t             zero_context)
 {
-  if (unlikely (lookup_index >= face->table.GSUB->lookup_count)) return false;
+  auto accels = face->table.GSUB->get_accels ();
+  if (unlikely (lookup_index >= accels.length)) return false;
   OT::hb_would_apply_context_t c (face, glyphs, glyphs_length, (bool) zero_context);
 
   const OT::SubstLookup& l = face->table.GSUB->table->get_lookup (lookup_index);
-  return l.would_apply (&c, &face->table.GSUB->accels[lookup_index]);
+  return l.would_apply (&c, &accels[lookup_index]);
 }
 
 
@@ -1729,10 +1730,10 @@ struct GSUBProxy
 
   GSUBProxy (hb_face_t *face) :
     table (*face->table.GSUB->table),
-    accels (face->table.GSUB->accels) {}
+    accels (face->table.GSUB->get_accels ()) {}
 
   const OT::GSUB &table;
-  const OT::hb_ot_layout_lookup_accelerator_t *accels;
+  hb_array_t<const OT::hb_ot_layout_lookup_accelerator_t> accels;
 };
 
 struct GPOSProxy
@@ -1743,10 +1744,10 @@ struct GPOSProxy
 
   GPOSProxy (hb_face_t *face) :
     table (*face->table.GPOS->table),
-    accels (face->table.GPOS->accels) {}
+    accels (face->table.GPOS->get_accels ()) {}
 
   const OT::GPOS &table;
-  const OT::hb_ot_layout_lookup_accelerator_t *accels;
+  hb_array_t<const OT::hb_ot_layout_lookup_accelerator_t> accels;
 };
 
 

@@ -3386,7 +3386,11 @@ struct GSUBGPOS
       this->table.destroy ();
     }
 
+    hb_array_t<const hb_ot_layout_lookup_accelerator_t> get_accels () const
+    { return hb_array (accels, lookup_count); }
+
     hb_blob_ptr_t<T> table;
+    protected:
     unsigned int lookup_count;
     hb_ot_layout_lookup_accelerator_t *accels;
   };
