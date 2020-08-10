@@ -618,10 +618,10 @@ struct glyf
 	}
 
 	/* Read x & y coordinates */
-	return (read_points (p, points_, bytes,
-			     [] (contour_point_t &p, float v) { p.x = v; }, FLAG_X_SHORT, FLAG_X_SAME) &&
-		read_points (p, points_, bytes,
-			     [] (contour_point_t &p, float v) { p.y = v; }, FLAG_Y_SHORT, FLAG_Y_SAME));
+	return read_points (p, points_, bytes, [] (contour_point_t &p, float v) { p.x = v; },
+			    FLAG_X_SHORT, FLAG_X_SAME)
+	    && read_points (p, points_, bytes, [] (contour_point_t &p, float v) { p.y = v; },
+			    FLAG_Y_SHORT, FLAG_Y_SAME);
       }
     };
 
@@ -1207,7 +1207,7 @@ struct glyf
       hb_bytes_t dest_glyph = dest_start.copy (c);
       dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + dest_end.copy (c).length);
       unsigned int pad_length = padding ();
-      DEBUG_MSG (SUBSET, nullptr, "serialize %d byte glyph, width %d pad %d", dest_glyph.length, dest_glyph.length  + pad_length, pad_length);
+      DEBUG_MSG (SUBSET, nullptr, "serialize %d byte glyph, width %d pad %d", dest_glyph.length, dest_glyph.length + pad_length, pad_length);
 
       HBUINT8 pad;
       pad = 0;
