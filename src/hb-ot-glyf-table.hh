@@ -238,6 +238,7 @@ struct glyf
 
   struct CompositeGlyphChain
   {
+    protected:
     enum composite_glyph_flag_t
     {
       ARG_1_AND_2_ARE_WORDS	= 0x0001,
@@ -254,6 +255,7 @@ struct glyf
       UNSCALED_COMPONENT_OFFSET = 0x1000
     };
 
+    public:
     unsigned int get_size () const
     {
       unsigned int size = min_size;
@@ -272,6 +274,13 @@ struct glyf
       return size;
     }
 
+    void change_glyph_index (hb_codepoint_t new_gid) { glyphIndex = new_gid; }
+    hb_codepoint_t get_glyph_index ()          const { return glyphIndex; }
+
+    void drop_instructions_flag ()  { flags = (uint16_t) flags & ~WE_HAVE_INSTRUCTIONS; }
+    bool has_instructions ()  const { return   flags & WE_HAVE_INSTRUCTIONS; }
+
+    bool has_more ()          const { return   flags & MORE_COMPONENTS; }
     bool is_use_my_metrics () const { return   flags & USE_MY_METRICS; }
     bool is_anchored ()       const { return !(flags & ARGS_ARE_XY_VALUES); }
     void get_anchor_points (unsigned int &point1, unsigned int &point2) const
@@ -360,7 +369,7 @@ struct glyf
       return tx || ty;
     }
 
-    public:
+    protected:
     HBUINT16	flags;
     HBGlyphID	glyphIndex;
     public:
@@ -379,7 +388,7 @@ struct glyf
     bool __more__ () const { return current; }
     void __next__ ()
     {
-      if (!(current->flags & CompositeGlyphChain::MORE_COMPONENTS)) { current = nullptr; return; }
+      if (!current->has_more ()) { current = nullptr; return; }
 
       const CompositeGlyphChain *possible = &StructAfter<CompositeGlyphChain,
 							 CompositeGlyphChain> (*current);
@@ -635,7 +644,7 @@ struct glyf
 	  last = &item;
 	if (unlikely (!last)) return 0;
 
-	if ((uint16_t) last->flags & CompositeGlyphChain::WE_HAVE_INSTRUCTIONS)
+	if (last->has_instructions ())
 	  start = (char *) last - &bytes + last->get_size ();
 	if (unlikely (start > end)) return 0;
 	return end - start;
@@ -645,11 +654,10 @@ struct glyf
        * If removing hints it falls out of that. */
       const Glyph trim_padding () const { return Glyph (bytes); }
 
-      /* remove WE_HAVE_INSTRUCTIONS flag from composite glyph */
       void drop_hints ()
       {
 	for (const auto &_ : get_iterator ())
-	  *const_cast<OT::HBUINT16 *> (&_.flags) = (uint16_t) _.flags & ~OT::glyf::CompositeGlyphChain::WE_HAVE_INSTRUCTIONS;
+	  const_cast<CompositeGlyphChain &> (_).drop_instructions_flag ();
       }
 
       /* Chop instructions off the end */
@@ -750,8 +758,10 @@ struct glyf
 	for (auto &item : get_composite_iterator ())
 	{
 	  contour_point_vector_t comp_points;
-	  if (unlikely (!glyf_accelerator.glyph_for_gid (item.glyphIndex).get_points (font, glyf_accelerator, comp_points, phantom_only, depth + 1))
-			|| comp_points.length < PHANTOM_COUNT)
+	  if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_glyph_index ())
+					 .get_points (font, glyf_accelerator, comp_points,
+			 			      phantom_only, depth + 1)
+			|| comp_points.length < PHANTOM_COUNT))
 	    return false;
 
 	  /* Copy phantom points from component if USE_MY_METRICS flag set */
@@ -1043,7 +1053,7 @@ struct glyf
       gids_to_retain->add (gid);
 
       for (auto &item : glyph_for_gid (gid).get_composite_iterator ())
-	add_gid_and_children (item.glyphIndex, gids_to_retain, depth);
+	add_gid_and_children (item.get_glyph_index (), gids_to_retain, depth);
     }
 
 #ifdef HB_EXPERIMENTAL_API
@@ -1213,8 +1223,8 @@ struct glyf
       for (auto &_ : Glyph (dest_glyph).get_composite_iterator ())
       {
 	hb_codepoint_t new_gid;
-	if (plan->new_gid_for_old_gid (_.glyphIndex, &new_gid))
-	  ((OT::glyf::CompositeGlyphChain *) &_)->glyphIndex = new_gid;
+	if (plan->new_gid_for_old_gid (_.get_glyph_index (), &new_gid))
+	  const_cast<CompositeGlyphChain &> (_).change_glyph_index (new_gid);
       }
 
       if (plan->drop_hints) Glyph (dest_glyph).drop_hints ();
