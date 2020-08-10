@@ -274,8 +274,8 @@ struct glyf
       return size;
     }
 
-    void change_glyph_index (hb_codepoint_t new_gid) { glyphIndex = new_gid; }
-    hb_codepoint_t get_glyph_index ()          const { return glyphIndex; }
+    void set_glyph_index (hb_codepoint_t new_gid) { glyphIndex = new_gid; }
+    hb_codepoint_t get_glyph_index ()       const { return glyphIndex; }
 
     void drop_instructions_flag ()  { flags = (uint16_t) flags & ~WE_HAVE_INSTRUCTIONS; }
     bool has_instructions ()  const { return   flags & WE_HAVE_INSTRUCTIONS; }
@@ -1224,7 +1224,7 @@ struct glyf
       {
 	hb_codepoint_t new_gid;
 	if (plan->new_gid_for_old_gid (_.get_glyph_index (), &new_gid))
-	  const_cast<CompositeGlyphChain &> (_).change_glyph_index (new_gid);
+	  const_cast<CompositeGlyphChain &> (_).set_glyph_index (new_gid);
       }
 
       if (plan->drop_hints) Glyph (dest_glyph).drop_hints ();
