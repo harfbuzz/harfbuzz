@@ -905,7 +905,6 @@ struct glyf
       hb_font_t *font;
       hb_glyph_extents_t *extents;
       contour_point_t *phantoms;
-      const accelerator_t *accelerator;
 
       struct contour_bounds_t
       {
@@ -941,10 +940,9 @@ struct glyf
 	float min_x, min_y, max_x, max_y;
       } bounds;
 
-      points_aggregator_t (hb_font_t *font_, const accelerator_t *accelerator_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_)
+      points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_)
       {
 	font = font_;
-	accelerator = accelerator_;
 	extents = extents_;
 	phantoms = phantoms_;
 	if (extents) bounds = contour_bounds_t ();
@@ -967,7 +965,7 @@ struct glyf
 
       contour_point_t phantoms[PHANTOM_COUNT];
       if (likely (font->num_coords == gvar->get_axis_count ()))
-	success = get_points (font, gid, points_aggregator_t (font, this, nullptr, phantoms));
+	success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms));
 
       if (unlikely (!success))
 	return is_vertical ? vmtx->get_advance (gid) : hmtx->get_advance (gid);
@@ -985,7 +983,7 @@ struct glyf
       hb_glyph_extents_t extents;
 
       contour_point_t phantoms[PHANTOM_COUNT];
-      if (unlikely (!get_points (font, gid, points_aggregator_t (font, this, &extents, phantoms))))
+      if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms))))
 	return is_vertical ? vmtx->get_side_bearing (gid) : hmtx->get_side_bearing (gid);
 
       return is_vertical
@@ -1001,7 +999,7 @@ struct glyf
 
 #ifndef HB_NO_VAR
       if (font->num_coords && font->num_coords == gvar->get_axis_count ())
-	return get_points (font, gid, points_aggregator_t (font, this, extents, nullptr));
+	return get_points (font, gid, points_aggregator_t (font, extents, nullptr));
 #endif
       return glyph_for_gid (gid).get_extents (font, *this, extents);
     }
