@@ -696,8 +696,7 @@ struct glyf
     /* Note: Recursively calls itself.
      * all_points includes phantom points
      */
-    template<typename T>
-    bool get_points (T glyph_for_gid, hb_font_t *font, const accelerator_t &glyf_accelerator,
+    bool get_points (hb_font_t *font, const accelerator_t &glyf_accelerator,
 		     contour_point_vector_t &all_points /* OUT */,
 		     bool phantom_only = false,
 		     unsigned int depth = 0) const
@@ -751,7 +750,7 @@ struct glyf
 	for (auto &item : get_composite_iterator ())
 	{
 	  contour_point_vector_t comp_points;
-	  if (unlikely (!glyph_for_gid (item.glyphIndex).get_points (glyph_for_gid, font, glyf_accelerator, comp_points, phantom_only, depth + 1))
+	  if (unlikely (!glyf_accelerator.glyph_for_gid (item.glyphIndex).get_points (font, glyf_accelerator, comp_points, phantom_only, depth + 1))
 			|| comp_points.length < PHANTOM_COUNT)
 	    return false;
 
@@ -881,8 +880,7 @@ struct glyf
       contour_point_vector_t all_points;
 
       bool phantom_only = !consumer.is_consuming_contour_points ();
-      if (unlikely (!glyph_for_gid (gid).get_points ([this] (hb_codepoint_t gid) -> const Glyph { return this->glyph_for_gid (gid); },
-						     font, *this, all_points, phantom_only)))
+      if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, phantom_only)))
 	return false;
 
       if (consumer.is_consuming_contour_points ())
