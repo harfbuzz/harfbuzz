@@ -624,56 +624,53 @@ struct hb_ot_apply_context_t :
     return true;
   }
 
-  void _set_glyph_class (hb_codepoint_t glyph_index,
-			 unsigned int class_guess = 0,
-			 bool ligature = false,
-			 bool component = false) const
+  void _set_glyph_props (hb_codepoint_t glyph_index,
+			  unsigned int class_guess = 0,
+			  bool ligature = false,
+			  bool component = false) const
   {
-    unsigned int props = _hb_glyph_info_get_glyph_props (&buffer->cur());
-
-    props |= HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
+    unsigned int add_in = _hb_glyph_info_get_glyph_props (&buffer->cur()) &
+			  HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
+    add_in |= HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
     if (ligature)
     {
-      props |= HB_OT_LAYOUT_GLYPH_PROPS_LIGATED;
+      add_in |= HB_OT_LAYOUT_GLYPH_PROPS_LIGATED;
       /* In the only place that the MULTIPLIED bit is used, Uniscribe
        * seems to only care about the "last" transformation between
        * Ligature and Multiple substitutions.  Ie. if you ligate, expand,
        * and ligate again, it forgives the multiplication and acts as
        * if only ligation happened.  As such, clear MULTIPLIED bit.
        */
-      props &= ~HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
+      add_in &= ~HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
     }
     if (component)
-      props |= HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
-
+      add_in |= HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
     if (likely (has_glyph_classes))
-      props = (props & ~HB_OT_LAYOUT_GLYPH_PROPS_CLASS_MASK) | gdef.get_glyph_props (glyph_index);
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in | gdef.get_glyph_props (glyph_index));
     else if (class_guess)
-      props = (props & ~HB_OT_LAYOUT_GLYPH_PROPS_CLASS_MASK) | class_guess;
-
-    _hb_glyph_info_set_glyph_props (&buffer->cur(), props);
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in | class_guess);
   }
 
   void replace_glyph (hb_codepoint_t glyph_index) const
   {
-    _set_glyph_class (glyph_index);
+    _set_glyph_props (glyph_index);
     buffer->replace_glyph (glyph_index);
   }
   void replace_glyph_inplace (hb_codepoint_t glyph_index) const
   {
-    _set_glyph_class (glyph_index);
+    _set_glyph_props (glyph_index);
     buffer->cur().codepoint = glyph_index;
   }
   void replace_glyph_with_ligature (hb_codepoint_t glyph_index,
 				    unsigned int class_guess) const
   {
-    _set_glyph_class (glyph_index, class_guess, true);
+    _set_glyph_props (glyph_index, class_guess, true);
     buffer->replace_glyph (glyph_index);
   }
   void output_glyph_for_component (hb_codepoint_t glyph_index,
 				   unsigned int class_guess) const
   {
-    _set_glyph_class (glyph_index, class_guess, false, true);
+    _set_glyph_props (glyph_index, class_guess, false, true);
     buffer->output_glyph (glyph_index);
   }
 };
