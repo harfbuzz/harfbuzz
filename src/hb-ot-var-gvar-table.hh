@@ -138,10 +138,10 @@ struct TupleVariationHeader
     return scalar;
   }
 
-  bool           has_peak () const { return (tupleIndex & TuppleIndex::EmbeddedPeakTuple); }
-  bool   has_intermediate () const { return (tupleIndex & TuppleIndex::IntermediateRegion); }
-  bool has_private_points () const { return (tupleIndex & TuppleIndex::PrivatePointNumbers); }
-  unsigned int  get_index () const { return (tupleIndex & TuppleIndex::TupleIndexMask); }
+  bool           has_peak () const { return tupleIndex & TuppleIndex::EmbeddedPeakTuple; }
+  bool   has_intermediate () const { return tupleIndex & TuppleIndex::IntermediateRegion; }
+  bool has_private_points () const { return tupleIndex & TuppleIndex::PrivatePointNumbers; }
+  unsigned      get_index () const { return tupleIndex & TuppleIndex::TupleIndexMask; }
 
   protected:
   struct TuppleIndex : HBUINT16
