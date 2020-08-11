@@ -1,0 +1,31 @@
+TESTS = \
+	tests/basics.tests \
+	tests/cbdt.tests \
+	tests/cff-full-font.tests \
+	tests/cff-japanese.tests \
+	tests/cmap.tests \
+	tests/cmap14.tests \
+	tests/colr.tests \
+	tests/full-font.tests \
+	tests/japanese.tests \
+	tests/layout.context.tests \
+	tests/layout.gdef-attachlist.tests \
+	tests/layout.gdef-varstore.tests \
+	tests/layout.gdef.tests \
+	tests/layout.gpos.tests \
+	tests/layout.gpos2.tests \
+	tests/layout.gpos3.tests \
+	tests/layout.gpos4.tests \
+	tests/layout.gpos6.tests \
+	tests/layout.gpos8.tests \
+	tests/layout.gsub3.tests \
+	tests/layout.gsub6.tests \
+	tests/layout.tests \
+	tests/sbix.tests \
+	$(NULL)
+
+XFAIL_TESTS = \
+	$(NULL)
+
+DISABLED_TESTS = \
+	$(NULL)

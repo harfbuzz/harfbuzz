@@ -22,7 +22,7 @@ HarfBuzz release walk-through checklist:
 
 4. Make sure you have correct date and new version at the top of NEWS file.
 
-5. Bump version in line 3 of meson.build.
+5. Bump version in line 3 of meson.build and configure.ac.
    Do a `meson test -Cbuild` so it both checks the tests and updates
    hb-version.h (use `git diff` to see if is really updated).
 
