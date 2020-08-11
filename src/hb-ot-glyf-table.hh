@@ -91,7 +91,10 @@ struct glyf
   static bool
   _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets)
   {
-    unsigned max_offset = + padded_offsets | hb_reduce(hb_add, 0);
+    unsigned max_offset =
+    + padded_offsets
+    | hb_reduce (hb_add, 0)
+    ;
     unsigned num_offsets = padded_offsets.len () + 1;
     bool use_short_loca = max_offset < 0x1FFFF;
     unsigned entry_size = use_short_loca ? 2 : 4;
@@ -104,18 +107,18 @@ struct glyf
 	       entry_size, num_offsets, max_offset, entry_size * num_offsets);
 
     if (use_short_loca)
-      _write_loca (padded_offsets, 1, hb_array ((HBUINT16*) loca_prime_data, num_offsets));
+      _write_loca (padded_offsets, 1, hb_array ((HBUINT16 *) loca_prime_data, num_offsets));
     else
-      _write_loca (padded_offsets, 0, hb_array ((HBUINT32*) loca_prime_data, num_offsets));
+      _write_loca (padded_offsets, 0, hb_array ((HBUINT32 *) loca_prime_data, num_offsets));
 
-    hb_blob_t * loca_blob = hb_blob_create (loca_prime_data,
-					    entry_size * num_offsets,
-					    HB_MEMORY_MODE_WRITABLE,
-					    loca_prime_data,
-					    free);
+    hb_blob_t *loca_blob = hb_blob_create (loca_prime_data,
+					   entry_size * num_offsets,
+					   HB_MEMORY_MODE_WRITABLE,
+					   loca_prime_data,
+					   free);
 
     bool result = plan->add_table (HB_OT_TAG_loca, loca_blob)
-		  && _add_head_and_set_loca_version (plan, use_short_loca);
+	       && _add_head_and_set_loca_version (plan, use_short_loca);
 
     hb_blob_destroy (loca_blob);
     return result;
