@@ -332,6 +332,7 @@ struct hb_serialize_context_t
 
   unsigned to_bias (const void *base) const
   {
+    if (unlikely (in_error ())) return 0;
     if (!base) return 0;
     assert (current);
     assert (current->head <= (const char *) base);
