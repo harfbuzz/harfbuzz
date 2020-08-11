@@ -32,6 +32,7 @@
 
 #include "hb-ot-shape-complex-use.hh"
 #include "hb-ot-shape-complex-arabic.hh"
+#include "hb-ot-shape-complex-arabic-joining-list.hh"
 #include "hb-ot-shape-complex-vowel-constraints.hh"
 
 /* buffer var allocations */
@@ -151,40 +152,6 @@ struct use_shape_plan_t
 
   arabic_shape_plan_t *arabic_plan;
 };
-
-static bool
-has_arabic_joining (hb_script_t script)
-{
-  /* List of scripts that have data in arabic-table. */
-  switch ((int) script)
-  {
-    /* Unicode-1.1 additions */
-    case HB_SCRIPT_ARABIC:
-
-    /* Unicode-3.0 additions */
-    case HB_SCRIPT_MONGOLIAN:
-    case HB_SCRIPT_SYRIAC:
-
-    /* Unicode-5.0 additions */
-    case HB_SCRIPT_NKO:
-    case HB_SCRIPT_PHAGS_PA:
-
-    /* Unicode-6.0 additions */
-    case HB_SCRIPT_MANDAIC:
-
-    /* Unicode-7.0 additions */
-    case HB_SCRIPT_MANICHAEAN:
-    case HB_SCRIPT_PSALTER_PAHLAVI:
-
-    /* Unicode-9.0 additions */
-    case HB_SCRIPT_ADLAM:
-
-      return true;
-
-    default:
-      return false;
-  }
-}
 
 static void *
 data_create_use (const hb_ot_shape_plan_t *plan)
