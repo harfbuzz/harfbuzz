@@ -478,6 +478,7 @@ dnl ===========================================================================
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+src/harfbuzz-config.cmake
 util/Makefile
 test/Makefile
 test/api/Makefile

@@ -145,7 +145,9 @@ pkginclude_HEADERS = $(HBHEADERS)
 nodist_pkginclude_HEADERS =
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = harfbuzz.pc
-EXTRA_DIST += hb-version.h.in harfbuzz.pc.in
+cmakedir = $(libdir)/cmake/harfbuzz
+cmake_DATA = harfbuzz-config.cmake
+EXTRA_DIST += hb-version.h.in harfbuzz.pc.in harfbuzz-config.cmake.in
 
 lib_LTLIBRARIES += libharfbuzz-subset.la
 libharfbuzz_subset_la_LINK = $(chosen_linker) $(libharfbuzz_subset_la_LDFLAGS)
