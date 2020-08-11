@@ -1,6 +1,7 @@
 #!/usr/bin/env -S make -f
 
 all: packtab \
+	hb-ot-shape-complex-arabic-joining-list.hh \
 	hb-ot-shape-complex-arabic-table.hh hb-unicode-emoji-table.hh \
 	hb-ot-shape-complex-indic-table.cc hb-ot-tag-table.hh \
 	hb-ucd-table.hh hb-ot-shape-complex-use-table.cc \
@@ -8,6 +9,8 @@ all: packtab \
 
 .PHONY: all clean packtab
 
+hb-ot-shape-complex-arabic-joining-list.hh: gen-arabic-joining-list.py ArabicShaping.txt Scripts.txt
+	./$^ > $@ || ($(RM) $@; false)
 hb-ot-shape-complex-arabic-table.hh: gen-arabic-table.py ArabicShaping.txt UnicodeData.txt Blocks.txt
 	./$^ > $@ || ($(RM) $@; false)
 hb-unicode-emoji-table.hh: gen-emoji-table.py emoji-data.txt

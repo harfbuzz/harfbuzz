@@ -104,6 +104,7 @@ hb_base_sources = files(
   'hb-ot-post-macroman.hh',
   'hb-ot-post-table.hh',
   'hb-ot-shape-complex-arabic-fallback.hh',
+  'hb-ot-shape-complex-arabic-joining-list.hh',
   'hb-ot-shape-complex-arabic-table.hh',
   'hb-ot-shape-complex-arabic-win1256.hh',
   'hb-ot-shape-complex-arabic.cc',
