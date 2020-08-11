@@ -15,6 +15,8 @@ EXTRA_DIST = \
 	CONFIG.md \
 	RELEASING.md \
 	TESTING.md \
+	CMakeLists.txt \
+	replace-enum-strings.cmake \
 	meson.build \
 	meson_options.txt \
 	subprojects/expat.wrap \
