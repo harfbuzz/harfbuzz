@@ -9,7 +9,7 @@
 #include "../api/test-ot-face.c"
 #undef TEST_OT_FACE_NO_MAIN
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
   alloc_state = size; /* see src/failing-alloc.c */
 

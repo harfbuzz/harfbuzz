@@ -113,7 +113,7 @@ static void misc_calls_for_gid (hb_face_t *face, hb_font_t *font, hb_set_t *set,
   hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_BTT, 0, nullptr, nullptr, nullptr);
 }
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
   alloc_state = size; /* see src/failing-alloc.c */
 
