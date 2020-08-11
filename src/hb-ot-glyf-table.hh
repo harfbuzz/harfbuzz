@@ -818,10 +818,7 @@ struct glyf
 
     bool get_extents (hb_font_t *font, const accelerator_t &glyf_accelerator,
 		      hb_glyph_extents_t *extents) const
-    {
-      if (type == EMPTY) return true; /* Empty glyph; zero extents. */
-      return header->get_extents (font, glyf_accelerator, gid, extents);
-    }
+    { return header->get_extents (font, glyf_accelerator, gid, extents); }
 
     hb_bytes_t get_bytes () const { return bytes; }
 
