@@ -1,5 +1,5 @@
 project('harfbuzz', 'c', 'cpp',
-  meson_version: '>= 0.49.0',
+  meson_version: '>= 0.47.0',
   version: '2.7.0',
   default_options: [
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-rtti also anyway
@@ -348,12 +348,16 @@ if not get_option('tests').disabled()
   subdir('test')
 endif
 
-if (not get_option('benchmark').disabled() and
-    get_option('wrap_mode') != 'nodownload' and
-    host_machine.system() != 'windows' and
-    not meson.is_subproject() and
-    not meson.is_cross_build())
-  subdir('perf')
+# get_option('wrap_mode') isn't available in <0.49 and this
+# is just an internal tool
+if meson.version().version_compare('>=0.49')
+  if (not get_option('benchmark').disabled() and
+      get_option('wrap_mode') != 'nodownload' and
+      host_machine.system() != 'windows' and
+      not meson.is_subproject() and
+      not meson.is_cross_build())
+    subdir('perf')
+  endif
 endif
 
 if not get_option('docs').disabled()

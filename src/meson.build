@@ -488,21 +488,20 @@ if get_option('tests').enabled()
   endforeach
 
   compiled_tests = {
+    'test-algs': ['test-algs.cc', 'hb-static.cc'],
     'test-array': 'test-array.cc',
+    'test-iter': ['test-iter.cc', 'hb-static.cc'],
+    'test-meta': ['test-meta.cc', 'hb-static.cc'],
     'test-number': ['test-number.cc', 'hb-number.cc'],
     'test-ot-tag': 'hb-ot-tag.cc',
     'test-unicode-ranges': 'test-unicode-ranges.cc',
+    'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
   }
-  if cpp.get_id() != 'msvc'
-    # TODO: MSVC doesn't like these, fix them
-    compiled_tests += {
-      'test-algs': ['test-algs.cc', 'hb-static.cc'],
-      'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
-      'test-iter': ['test-iter.cc', 'hb-static.cc'],
-      'test-meta': ['test-meta.cc', 'hb-static.cc'],
-    }
-  endif
   foreach name, source : compiled_tests
+    if cpp.get_id() == 'msvc' and ['test-algs', 'test-bimap', 'test-iter', 'test-meta'].contains(name)
+      # TODO: MSVC doesn't like these, fix them
+      continue
+    endif
     test(name, executable(name, source,
       include_directories: incconfig,
       cpp_args: cpp_args + ['-DMAIN', '-UNDEBUG'],
@@ -577,7 +576,7 @@ cmake_config.set('have_gobject', have_gobject_string)
 configure_file(input: 'harfbuzz-config.cmake.in',
   output: 'harfbuzz-config.cmake',
   configuration: cmake_config,
-  install_dir: get_option('libdir') / 'cmake' / 'harfbuzz',
+  install_dir: join_paths(get_option('libdir'), 'cmake', 'harfbuzz'),
 )
 
 libharfbuzz_gobject_dep = null_dep
@@ -615,7 +614,7 @@ if have_gobject
     output: 'hb-gobject-enums.h',
     command: [find_program('fix_get_types.py'), '@INPUT@', '@OUTPUT@'],
     install: true,
-    install_dir: get_option('prefix') / get_option('includedir') / meson.project_name(),
+    install_dir: join_paths(get_option('prefix'), get_option('includedir'), meson.project_name()),
   )
 
   hb_gobject_sources += [enum_c]

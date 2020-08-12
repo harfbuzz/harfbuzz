@@ -52,8 +52,8 @@ endif
 
 gnome.gtkdoc('harfbuzz',
   main_sgml: 'harfbuzz-docs.xml',
-  src_dir: [meson.current_source_dir() / '..',
-            meson.current_build_dir() / '..',
+  src_dir: [join_paths(meson.current_source_dir(), '..'),
+            join_paths(meson.current_build_dir(), '..'),
            ],
   scan_args: ['--deprecated-guards=HB_DISABLE_DEPRECATED',
               '--ignore-decorators=HB_EXTERN',

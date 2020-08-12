@@ -24,4 +24,4 @@ benchmark('perf', executable('perf', 'perf.cc',
   include_directories: [incconfig, incsrc],
   link_with: [libharfbuzz],
   install: false,
-), workdir: meson.current_source_dir() / '..', timeout: 100)
+), workdir: join_paths(meson.current_source_dir(), '..'), timeout: 100)
