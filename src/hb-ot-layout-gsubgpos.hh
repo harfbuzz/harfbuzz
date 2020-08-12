@@ -163,6 +163,9 @@ struct hb_closure_lookups_context_t :
     if (lookup_count++ > HB_MAX_LOOKUP_INDICES)
       return true;
 
+    if (visited_lookups->in_error ())
+      return true;
+
     return visited_lookups->has (lookup_index);
   }
 
