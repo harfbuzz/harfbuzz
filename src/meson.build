@@ -562,17 +562,11 @@ endif
 
 have_gobject = conf.get('HAVE_GOBJECT', 0) == 1
 
-if have_gobject
-  have_gobject_string = 'true'
-else
-  have_gobject_string = 'false'
-endif
-
 cmake_config = configuration_data()
 cmake_config.set('libdir', '${prefix}/@0@'.format(get_option('libdir')))
 cmake_config.set('includedir', '${prefix}/@0@'.format(get_option('includedir')))
 cmake_config.set('HB_LIBTOOL_VERSION_INFO', hb_libtool_version_info)
-cmake_config.set('have_gobject', have_gobject_string)
+cmake_config.set('have_gobject', '@0@'.format(have_gobject))
 configure_file(input: 'harfbuzz-config.cmake.in',
   output: 'harfbuzz-config.cmake',
   configuration: cmake_config,
@@ -677,15 +671,15 @@ if have_gobject
   endif
 
   if build_gir
-    gobject_sources = hb_gen_files_gir
+    libharfbuzz_gobject_sources = hb_gen_files_gir
   else
-    gobject_sources = hb_gobject_sources
+    libharfbuzz_gobject_sources = hb_gobject_sources
   endif
 
   libharfbuzz_gobject_dep = declare_dependency(
     link_with: libharfbuzz_gobject,
     include_directories: incsrc,
-    sources: gobject_sources,
+    sources: libharfbuzz_gobject_sources,
     dependencies: [glib_dep, gobject_dep])
 
   pkgmod.generate(libharfbuzz_gobject,
