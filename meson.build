@@ -1,5 +1,5 @@
 project('harfbuzz', 'c', 'cpp',
-  meson_version: '>= 0.53.0',
+  meson_version: '>= 0.49.0',
   version: '2.7.0',
   default_options: [
     'cpp_eh=none',          # Just to support msvc, we are passing -fno-rtti also anyway
@@ -107,7 +107,12 @@ if not get_option('icu').disabled()
   endif
 
   if not icu_dep.found() and cpp.get_id() == 'msvc'
-    icu_dep = cpp.find_library(get_option('buildtype') == 'debug' ? 'icuucd' : 'icuuc',
+    if get_option('buildtype') == 'debug'
+      icu_dep_name = 'icuucd'
+    else
+      icu_dep_name = 'icuuc'
+    endif
+    icu_dep = cpp.find_library(icu_dep_name,
                                required: get_option('icu'),
                                has_headers: ['unicode/uchar.h',
                                              'unicode/unorm2.h',
@@ -142,10 +147,10 @@ if not get_option('cairo').disabled()
     if cairo_dep.type_name() == 'internal'
       # It is true at least for the port we have
       cairo_ft_dep = cairo_dep
-    elif cairo_dep.type_name() == 'library' and \
-         cpp.has_function('cairo_ft_font_face_create_for_ft_face',
-                          prefix: '#include <cairo-ft.h>',
-                          dependencies: cairo_dep)
+    elif (cairo_dep.type_name() == 'library' and
+          cpp.has_function('cairo_ft_font_face_create_for_ft_face',
+                           prefix: '#include <cairo-ft.h>',
+                           dependencies: cairo_dep))
       cairo_ft_dep = cairo_dep
     else # including the most important type for us, 'pkgconfig'
       cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
@@ -343,11 +348,11 @@ if not get_option('tests').disabled()
   subdir('test')
 endif
 
-if not get_option('benchmark').disabled() and \
-    get_option('wrap_mode') != 'nodownload' and \
-    host_machine.system() != 'windows' and \
-    not meson.is_subproject() and \
-    not meson.is_cross_build()
+if (not get_option('benchmark').disabled() and
+    get_option('wrap_mode') != 'nodownload' and
+    host_machine.system() != 'windows' and
+    not meson.is_subproject() and
+    not meson.is_cross_build())
   subdir('perf')
 endif
 
@@ -357,28 +362,53 @@ endif
 
 configure_file(output: 'config.h', configuration: conf)
 
-summary({'prefix': get_option('prefix'),
-         'bindir': get_option('bindir'),
-         'libdir': get_option('libdir'),
-         'includedir': get_option('includedir'),
-         'datadir': get_option('datadir'),
-        }, section: 'Directories')
-summary({'Builtin': true,
-         'Glib': conf.get('HAVE_GLIB', 0) == 1,
-         'ICU': conf.get('HAVE_ICU', 0) == 1,
-        }, bool_yn: true, section: 'Unicode callbacks (you want at least one)')
-summary({'FreeType': conf.get('HAVE_FREETYPE', 0) == 1,
-        }, bool_yn: true, section: 'Font callbacks (the more the merrier)')
-summary({'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
-         'Fontconfig': conf.get('HAVE_FONTCONFIG', 0) == 1,
-        }, bool_yn: true, section: 'Dependencies used for command-line utilities')
-summary({'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
-        }, bool_yn: true, section: 'Additional shapers')
-summary({'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
-         'DirectWrite': conf.get('HAVE_DIRECTWRITE', 0) == 1,
-         'GDI/Uniscribe': (conf.get('HAVE_GDI', 0) == 1) and (conf.get('HAVE_UNISCRIBE', 0) == 1),
-        }, bool_yn: true, section: 'Platform shapers (not normally needed)')
-summary({'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
-         'GObject bindings': conf.get('HAVE_GOBJECT', 0) == 1,
-         'Introspection': conf.get('HAVE_INTROSPECTION', 0) == 1,
-        }, bool_yn: true, section: 'Other features')
+build_summary = {
+  'Directories':
+    {'prefix': get_option('prefix'),
+     'bindir': get_option('bindir'),
+     'libdir': get_option('libdir'),
+     'includedir': get_option('includedir'),
+     'datadir': get_option('datadir'),
+    },
+  'Unicode callbacks (you want at least one)':
+    {'Builtin': true,
+     'Glib': conf.get('HAVE_GLIB', 0) == 1,
+     'ICU': conf.get('HAVE_ICU', 0) == 1,
+    },
+  'Font callbacks (the more the merrier)':
+    {'FreeType': conf.get('HAVE_FREETYPE', 0) == 1,
+    },
+  'Dependencies used for command-line utilities':
+    {'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
+     'Fontconfig': conf.get('HAVE_FONTCONFIG', 0) == 1,
+    },
+  'Additional shapers':
+    {'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
+    },
+  'Platform shapers (not normally needed)':
+    {'CoreText': conf.get('HAVE_CORETEXT', 0) == 1,
+     'DirectWrite': conf.get('HAVE_DIRECTWRITE', 0) == 1,
+     'GDI/Uniscribe': (conf.get('HAVE_GDI', 0) == 1) and (conf.get('HAVE_UNISCRIBE', 0) == 1),
+    },
+  'Other features':
+    {'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
+     'GObject bindings': conf.get('HAVE_GOBJECT', 0) == 1,
+     'Introspection': conf.get('HAVE_INTROSPECTION', 0) == 1,
+    },
+}
+if meson.version().version_compare('>=0.53')
+  foreach section_title, section : build_summary
+    summary(section, bool_yn: true, section: section_title)
+  endforeach
+else
+  summary = ['']
+  foreach section_title, section : build_summary
+    summary += '  @0@:'.format(section_title)
+    foreach feature, value : section
+      summary += '    @0@:'.format(feature)
+      summary += '          @0@'.format(value)
+    endforeach
+    summary += ''
+  endforeach
+  message('\n'.join(summary))
+endif
