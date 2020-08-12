@@ -118,6 +118,9 @@ jobs:
       # msan, needs --force-fallback-for=glib,freetype2 also which doesn't work yet but runs fuzzer cases at least
       - run: rm -rf build && meson build --default-library=static -Db_sanitize=memory --buildtype=debugoptimized --wrap-mode=nodownload -Dauto_features=disabled -Dtests=enabled -Dexperimental_api=true
       - run: ninja -Cbuild -j8 && meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+      # asan fuzzer (tests failing-alloc also)
+      - run: rm -rf build && CXXFLAGS="-fsanitize=address,fuzzer-no-link" meson build --default-library=static -Dfuzzer_ldflags="-fsanitize=address,fuzzer" --buildtype=debugoptimized --wrap-mode=nodownload
+      - run: ninja -Cbuild -j8 && meson test -Cbuild --suite fuzzing --print-errorlogs | asan_symbolize | c++filt
       # test -std=c++2a and -Weverything of nightly clang builds
       - run: clang -c src/harfbuzz.cc src/hb-subset*.cc -DHB_NO_MT -Werror -std=c++2a
       - run: clang -c src/hb-*.cc -DHB_NO_MT -Werror -Weverything -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-c++98-compat -Wno-cast-qual -Wno-c++98-compat-pedantic -Wno-sign-conversion -Wno-padded -Wno-shorten-64-to-32 -Wno-reserved-id-macro -Wno-float-conversion -Wno-format-pedantic -Wno-shadow -Wno-conversion -Wno-zero-as-null-pointer-constant -Wno-missing-field-initializers -Wno-used-but-marked-unused -Wno-unused-macros -Wno-comma -Wno-float-equal -Wno-disabled-macro-expansion -Wno-weak-vtables -Wno-unused-parameter -Wno-covered-switch-default -Wno-unreachable-code -Wno-unused-template -DHB_WITH_WIN1256
