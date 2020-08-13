@@ -77,9 +77,10 @@ freetype_dep = null_dep
 if not get_option('freetype').disabled()
   freetype_dep = dependency('freetype2', required: false)
 
-  if not freetype_dep.found() and cpp.get_id() == 'msvc'
-    freetype_dep = cpp.find_library('freetype', required: false,
-                                    has_headers: ['ft2build.h'])
+  if (not freetype_dep.found() and
+      cpp.get_id() == 'msvc' and
+      cpp.has_header('ft2build.h'))
+    freetype_dep = cpp.find_library('freetype', required: false)
   endif
 
   if not freetype_dep.found()
@@ -102,24 +103,23 @@ icu_dep = null_dep
 if not get_option('icu').disabled()
   icu_dep = dependency('icu-uc', required: false)
 
-  if not icu_dep.found() and get_option('icu').enabled()
-    icu_dep = dependency('icu-uc', required: cpp.get_id() != 'msvc')
+  if (not icu_dep.found() and
+      cpp.get_id() == 'msvc' and
+      cpp.has_header('unicode/uchar.h') and
+      cpp.has_header('unicode/unorm2.h') and
+      cpp.has_header('unicode/ustring.h') and
+      cpp.has_header('unicode/utf16.h') and
+      cpp.has_header('unicode/uversion.h') and
+      cpp.has_header('unicode/uscript.h'))
+    if get_option('buildtype') == 'debug'
+      icu_dep = cpp.find_library('icuucd', required: false)
+    else
+      icu_dep = cpp.find_library('icuuc', required: false)
+    endif
   endif
 
-  if not icu_dep.found() and cpp.get_id() == 'msvc'
-    if get_option('buildtype') == 'debug'
-      icu_dep_name = 'icuucd'
-    else
-      icu_dep_name = 'icuuc'
-    endif
-    icu_dep = cpp.find_library(icu_dep_name,
-                               required: get_option('icu'),
-                               has_headers: ['unicode/uchar.h',
-                                             'unicode/unorm2.h',
-                                             'unicode/ustring.h',
-                                             'unicode/utf16.h',
-                                             'unicode/uversion.h',
-                                             'unicode/uscript.h'])
+  if not icu_dep.found()
+    icu_dep = dependency('icu-uc', required: get_option('icu'))
   endif
 endif
 
@@ -128,9 +128,10 @@ cairo_ft_dep = null_dep
 if not get_option('cairo').disabled()
   cairo_dep = dependency('cairo', required: false)
 
-  if not cairo_dep.found() and cpp.get_id() == 'msvc'
-    cairo_dep = cpp.find_library('cairo', required: false,
-                                 has_headers: ['cairo.h'])
+  if (not cairo_dep.found() and
+      cpp.get_id() == 'msvc' and
+      cpp.has_header('cairo.h'))
+    cairo_dep = cpp.find_library('cairo', required: false)
   endif
 
   if not cairo_dep.found()
@@ -226,11 +227,10 @@ endif
 gdi_uniscribe_deps = []
 # GDI (Uniscribe) (Windows)
 if host_machine.system() == 'windows' and not get_option('gdi').disabled()
-  gdi_deps_found = true
+  gdi_deps_found = cpp.has_header('usp10.h') and cpp.has_header('windows.h')
 
   foreach usplib : ['usp10', 'gdi32', 'rpcrt4']
-    dep = cpp.find_library(usplib, required: get_option('gdi'),
-                           has_headers: ['usp10.h', 'windows.h'])
+    dep = cpp.find_library(usplib, required: get_option('gdi'))
     gdi_deps_found = gdi_deps_found and dep.found()
     gdi_uniscribe_deps += dep
   endforeach
@@ -244,8 +244,11 @@ endif
 # DirectWrite (Windows)
 directwrite_dep = null_dep
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
-  directwrite_dep = cpp.find_library('dwrite', required: get_option('directwrite'),
-                                     has_headers: ['dwrite_1.h'])
+  if get_option('directwrite').enabled() and not cpp.has_header('dwrite_1.h')
+    error('DirectWrite was enabled explicitly, but required header is missing.')
+  endif
+
+  directwrite_dep = cpp.find_library('dwrite', required: get_option('directwrite'))
 
   if directwrite_dep.found()
     conf.set('HAVE_DIRECTWRITE', 1)
