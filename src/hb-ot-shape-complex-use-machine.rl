@@ -96,8 +96,7 @@ h = H | HVM | Sk;
 
 # Override: Adhoc ZWJ placement. https://github.com/harfbuzz/harfbuzz/issues/542#issuecomment-353169729
 consonant_modifiers = CMAbv* CMBlw* ((ZWJ?.h.ZWJ? B | SUB) CMAbv? CMBlw*)*;
-# Override: Allow two MBlw. https://github.com/harfbuzz/harfbuzz/issues/376
-medial_consonants = MPre? MAbv? MBlw?.MBlw? MPst?;
+medial_consonants = MPre? MAbv? MBlw? MPst?;
 dependent_vowels = VPre* VAbv* VBlw* VPst*;
 vowel_modifiers = HVM? VMPre* VMAbv* VMBlw* VMPst*;
 final_consonants = FAbv* FBlw* FPst*;
