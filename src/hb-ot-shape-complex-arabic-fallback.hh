@@ -86,13 +86,13 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan HB_UNUS
   char buf[(SHAPING_TABLE_LAST - SHAPING_TABLE_FIRST + 1) * 4 + 128];
   hb_serialize_context_t c (buf, sizeof (buf));
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
-  lookup->serialize_single (&c,
-			    OT::LookupFlag::IgnoreMarks,
-			    hb_sorted_array (glyphs, num_glyphs),
-			    hb_array (substitutes, num_glyphs));
+  bool ret = lookup->serialize_single (&c,
+				       OT::LookupFlag::IgnoreMarks,
+				       hb_sorted_array (glyphs, num_glyphs),
+				       hb_array (substitutes, num_glyphs));
   c.end_serialize ();
 
-  return c.in_error () ? nullptr : c.copy<OT::SubstLookup> ();
+  return ret && !c.in_error () ? c.copy<OT::SubstLookup> () : nullptr;
 }
 
 static OT::SubstLookup *
@@ -160,17 +160,17 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   char buf[ARRAY_LENGTH_CONST (ligature_list) * 16 + 128];
   hb_serialize_context_t c (buf, sizeof (buf));
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
-  lookup->serialize_ligature (&c,
-			      OT::LookupFlag::IgnoreMarks,
-			      hb_sorted_array (first_glyphs, num_first_glyphs),
-			      hb_array (ligature_per_first_glyph_count_list, num_first_glyphs),
-			      hb_array (ligature_list, num_ligatures),
-			      hb_array (component_count_list, num_ligatures),
-			      hb_array (component_list, num_ligatures));
+  bool ret = lookup->serialize_ligature (&c,
+					 OT::LookupFlag::IgnoreMarks,
+					 hb_sorted_array (first_glyphs, num_first_glyphs),
+					 hb_array (ligature_per_first_glyph_count_list, num_first_glyphs),
+					 hb_array (ligature_list, num_ligatures),
+					 hb_array (component_count_list, num_ligatures),
+					 hb_array (component_list, num_ligatures));
   c.end_serialize ();
   /* TODO sanitize the results? */
 
-  return c.in_error () ? nullptr : c.copy<OT::SubstLookup> ();
+  return ret && !c.in_error () ? c.copy<OT::SubstLookup> () : nullptr;
 }
 
 static OT::SubstLookup *
