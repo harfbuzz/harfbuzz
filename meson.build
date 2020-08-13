@@ -227,8 +227,12 @@ endif
 gdi_uniscribe_deps = []
 # GDI (Uniscribe) (Windows)
 if host_machine.system() == 'windows' and not get_option('gdi').disabled()
-  gdi_deps_found = cpp.has_header('usp10.h') and cpp.has_header('windows.h')
+  if (get_option('directwrite').enabled() and
+      not (cpp.has_header('usp10.h') and cpp.has_header('windows.h')))
+    error('GDI/Uniscribe was enabled explicitly, but required headers are missing.')
+  endif
 
+  gdi_deps_found = true
   foreach usplib : ['usp10', 'gdi32', 'rpcrt4']
     dep = cpp.find_library(usplib, required: get_option('gdi'))
     gdi_deps_found = gdi_deps_found and dep.found()
