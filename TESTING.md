@@ -40,9 +40,9 @@ ninja -C build
 ## Test with the Fuzzer
 
 ```shell
-CXXFLAGS="-fsanitize=address,fuzzer-no-link" meson build --default-library=static -Dfuzzer_ldflags="-fsanitize=address,fuzzer" -Dexperimental_api=true --reconfigure
-ninja -C build test/fuzzing/hb-{shape,draw,subset,set}-fuzzer
-build/test/fuzzing/hb-subset-fuzzer
+CXXFLAGS="-fsanitize=address,fuzzer-no-link" meson fuzzbuild --default-library=static -Dfuzzer_ldflags="-fsanitize=address,fuzzer" -Dexperimental_api=true
+ninja -Cfuzzbuild test/fuzzing/hb-{shape,draw,subset,set}-fuzzer
+fuzzbuild/test/fuzzing/hb-subset-fuzzer test/fuzzing/fonts
 ```
 
 ## Profiling
