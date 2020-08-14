@@ -38,7 +38,15 @@ headers.append (["UnicodeData.txt does not have a header."])
 data = [{} for _ in files]
 values = [{} for _ in files]
 for i, f in enumerate (files):
+	extended = False
+
 	for line in f:
+
+		# TODO: https://github.com/MicrosoftDocs/typography-issues/issues/522
+		if extended and line.startswith ('# ') and line.find (';'):
+			line = line[2:]
+		elif 'USE_Syllabic_Category' in line:
+			extended = True
 
 		j = line.find ('#')
 		if j >= 0:
@@ -176,6 +184,10 @@ property_names = [
 	'Number_Joiner',
 	'Number',
 	'Brahmi_Joining_Number',
+	'Hieroglyph',
+	'Hieroglyph_Joiner',
+	'Hieroglyph_Segment_Begin',
+	'Hieroglyph_Segment_End',
 	# Indic_Positional_Category
 	'Not_Applicable',
 	'Right',
@@ -268,6 +280,14 @@ def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UGC, AJT):
 	return U in [0x11046, 0x1134D]
 def is_HALANT_NUM(U, UISC, UGC, AJT):
 	return UISC == Number_Joiner
+def is_HIEROGLYPH(U, UISC, UGC, AJT):
+	return UISC == Hieroglyph
+def is_HIEROGLYPH_JOINER(U, UISC, UGC, AJT):
+	return UISC == Hieroglyph_Joiner
+def is_HIEROGLYPH_SEGMENT_BEGIN(U, UISC, UGC, AJT):
+	return UISC == Hieroglyph_Segment_Begin
+def is_HIEROGLYPH_SEGMENT_END(U, UISC, UGC, AJT):
+	return UISC == Hieroglyph_Segment_End
 def is_ZWNJ(U, UISC, UGC, AJT):
 	return UISC == Non_Joiner
 def is_ZWJ(U, UISC, UGC, AJT):
@@ -316,6 +336,10 @@ use_mapping = {
 	'H':	is_HALANT,
 	'HVM':	is_HALANT_OR_VOWEL_MODIFIER,
 	'HN':	is_HALANT_NUM,
+	'G':	is_HIEROGLYPH,
+	'J':	is_HIEROGLYPH_JOINER,
+	'SB':	is_HIEROGLYPH_SEGMENT_BEGIN,
+	'SE':	is_HIEROGLYPH_SEGMENT_END,
 	'ZWNJ':	is_ZWNJ,
 	'ZWJ':	is_ZWJ,
 	'WJ':	is_Word_Joiner,

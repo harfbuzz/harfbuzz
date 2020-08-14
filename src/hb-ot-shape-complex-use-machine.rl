@@ -68,6 +68,10 @@ S	= 19; # SYM
 CS	= 43; # CONS_WITH_STACKER
 HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
 Sk	= 48; # SAKOT
+G	= 49; # HIEROGLYPH
+J	= 50; # HIEROGLYPH_JOINER
+SB	= 51; # HIEROGLYPH_SEGMENT_BEGIN
+SE	= 52; # HIEROGLYPH_SEGMENT_END
 
 FAbv	= 24; # CONS_FINAL_ABOVE
 FBlw	= 25; # CONS_FINAL_BELOW
@@ -141,6 +145,7 @@ broken_cluster =
 number_joiner_terminated_cluster = N number_joiner_terminated_cluster_tail;
 numeral_cluster = N numeral_cluster_tail?;
 symbol_cluster = (S | GB) symbol_cluster_tail?;
+hieroglyph_cluster = SB+ | SB* G SE* (J SE* (G SE*)?)*;
 independent_cluster = (IND | O | Rsv | WJ);
 other = any;
 
@@ -152,6 +157,7 @@ main := |*
 	number_joiner_terminated_cluster	=> { found_syllable (number_joiner_terminated_cluster); };
 	numeral_cluster				=> { found_syllable (numeral_cluster); };
 	symbol_cluster				=> { found_syllable (symbol_cluster); };
+	hieroglyph_cluster			=> { found_syllable (hieroglyph_cluster); };
 	broken_cluster				=> { found_syllable (broken_cluster); };
 	other					=> { found_syllable (non_cluster); };
 *|;
