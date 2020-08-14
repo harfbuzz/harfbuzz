@@ -194,6 +194,7 @@ enum use_syllable_type_t {
   use_number_joiner_terminated_cluster,
   use_numeral_cluster,
   use_symbol_cluster,
+  use_hieroglyph_cluster,
   use_broken_cluster,
   use_non_cluster,
 };
@@ -275,6 +276,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
     {
       case use_independent_cluster:
       case use_symbol_cluster:
+      case use_hieroglyph_cluster:
       case use_non_cluster:
 	/* These don't join.  Nothing to do. */
 	last_form = _USE_NONE;

@@ -72,6 +72,10 @@ enum use_category_t {
   USE_HVM	= 44,	/* HALANT_OR_VOWEL_MODIFIER */
 
   USE_Sk	= 48,	/* SAKOT */
+  USE_G		= 49,	/* HIEROGLYPH */
+  USE_J		= 50,	/* HIEROGLYPH_JOINER */
+  USE_SB	= 51,	/* HIEROGLYPH_SEGMENT_BEGIN */
+  USE_SE	= 52,	/* HIEROGLYPH_SEGMENT_END */
 
   USE_FAbv	= 24,	/* CONS_FINAL_ABOVE */
   USE_FBlw	= 25,	/* CONS_FINAL_BELOW */
