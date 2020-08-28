@@ -1,5 +1,12 @@
+Overview of changes leading to 2.7.2
+Saturday, August 29, 2020
+====================================
+- Fix a regression in the previous release that caused a crash with Kaithi.
+- More OOM fixes.
+
+
 Overview of changes leading to 2.7.1
-Thursday, Aug 13, 2020
+Thursday, August 13, 2020
 ====================================
 - ot-funcs now handles variable empty glyphs better when hvar/vvar isn't present.
 - Reverted a GDEF processing regression.
