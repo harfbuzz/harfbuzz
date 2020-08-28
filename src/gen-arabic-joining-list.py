@@ -54,6 +54,8 @@ def read_joining_uu (f):
 		fields = [x.strip () for x in line.split (';')]
 		if len (fields) == 1:
 			continue
+		if fields[2] in {'T', 'U'}:
+			continue
 
 		values.add (int (fields[0], 16))
 
