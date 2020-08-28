@@ -36,7 +36,7 @@
 #include "hb-ot-shape-complex-vowel-constraints.hh"
 
 /* buffer var allocations */
-#define use_category() complex_var_u8_0()
+#define use_category() complex_var_u8_1()
 
 
 /*
