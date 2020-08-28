@@ -25,7 +25,6 @@ has_arabic_joining (hb_script_t script)
     case HB_SCRIPT_ARABIC:
     case HB_SCRIPT_CHORASMIAN:
     case HB_SCRIPT_HANIFI_ROHINGYA:
-    case HB_SCRIPT_KAITHI:
     case HB_SCRIPT_MANDAIC:
     case HB_SCRIPT_MANICHAEAN:
     case HB_SCRIPT_MONGOLIAN:
