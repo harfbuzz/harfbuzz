@@ -322,6 +322,8 @@ hb_headers = hb_base_headers
 
 harfbuzz_deps = [thread_dep, m_dep] + harfbuzz_extra_deps
 
+libharfbuzz_link_language = 'c'
+
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
   hb_headers += hb_ft_headers
@@ -351,12 +353,12 @@ if conf.get('HAVE_UNISCRIBE', 0) == 1
   hb_headers += hb_uniscribe_headers
 endif
 
-has_directwrite = false
 if conf.get('HAVE_DIRECTWRITE', 0) == 1
   hb_sources += hb_directwrite_sources
   hb_headers += hb_directwrite_headers
   harfbuzz_deps += directwrite_dep
-  has_directwrite = true
+  # hb-directwrite needs a C++ linker
+  libharfbuzz_link_language = 'cpp'
 endif
 
 if conf.get('HAVE_CORETEXT', 0) == 1
@@ -409,12 +411,6 @@ if get_option('fuzzer_ldflags') != ''
 endif
 
 darwin_versions = [hb_version_int, '@0@.0.0'.format(hb_version_int)]
-
-libharfbuzz_link_language = 'c'
-if has_directwrite
-  # hb-directwrite needs a C++ linker
-  libharfbuzz_link_language = 'cpp'
-endif
 
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: incconfig,
