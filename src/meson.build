@@ -351,10 +351,12 @@ if conf.get('HAVE_UNISCRIBE', 0) == 1
   hb_headers += hb_uniscribe_headers
 endif
 
+has_directwrite = false
 if conf.get('HAVE_DIRECTWRITE', 0) == 1
   hb_sources += hb_directwrite_sources
   hb_headers += hb_directwrite_headers
   harfbuzz_deps += directwrite_dep
+  has_directwrite = true
 endif
 
 if conf.get('HAVE_CORETEXT', 0) == 1
@@ -408,6 +410,12 @@ endif
 
 darwin_versions = [hb_version_int, '@0@.0.0'.format(hb_version_int)]
 
+libharfbuzz_link_language = 'c'
+if has_directwrite
+  # hb-directwrite needs a C++ linker
+  libharfbuzz_link_language = 'cpp'
+endif
+
 libharfbuzz = library('harfbuzz', hb_sources,
   include_directories: incconfig,
   dependencies: harfbuzz_deps,
@@ -416,7 +424,7 @@ libharfbuzz = library('harfbuzz', hb_sources,
   version: version,
   install: true,
   darwin_versions: darwin_versions,
-  link_language: 'c',
+  link_language: libharfbuzz_link_language,
 )
 
 libharfbuzz_dep = declare_dependency(
