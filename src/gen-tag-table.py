@@ -1079,6 +1079,10 @@ def verify_disambiguation_dict ():
 			expect (ot_tag not in disambiguation, 'unnecessary disambiguation for OT tag: %s' % ot_tag)
 			if '-' in primary_tags[0]:
 				disambiguation[ot_tag] = primary_tags[0]
+			else:
+				first_tag = sorted (t for t in bcp_47_tags if t not in bcp_47.grandfathered and ot_tag in ot.from_bcp_47.get (t))[0]
+				if primary_tags[0] != first_tag:
+					disambiguation[ot_tag] = primary_tags[0]
 		elif len (primary_tags) == 0:
 			expect (ot_tag not in disambiguation, 'There is no possible valid disambiguation for %s' % ot_tag)
 		else:
