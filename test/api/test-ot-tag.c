@@ -306,6 +306,9 @@ test_ot_tag_language (void)
   test_language_two_way ("HAL", "cfm"); /* BCP47 and current ISO639-3 code for Halam/Falam Chin */
   test_tag_from_language ("HAL", "flm"); /* Retired ISO639-3 code for Halam/Falam Chin */
 
+  test_language_two_way ("HYE0", "hy");
+  test_language_two_way ("HYE", "hyw");
+
   test_tag_from_language ("QIN", "bgr"); /* Bawm Chin */
   test_tag_from_language ("QIN", "cbl"); /* Bualkhaw Chin */
   test_tag_from_language ("QIN", "cka"); /* Khumi Awa Chin */

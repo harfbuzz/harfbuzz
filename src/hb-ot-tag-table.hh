@@ -7,7 +7,7 @@
  * on files with these headers:
  *
  * <meta name="updated_at" content="2019-05-22 06:05 PM" />
- * File-Date: 2020-05-12
+ * File-Date: 2020-07-17
  */
 
 #ifndef HB_OT_TAG_TABLE_HH
@@ -2082,6 +2082,8 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("hmn", -1);  /* Hmong */
   case HB_TAG('H','N','D',' '):  /* Hindko */
     return hb_language_from_string ("hnd", -1);  /* Southern Hindko */
+  case HB_TAG('H','Y','E',' '):  /* Armenian */
+    return hb_language_from_string ("hyw", -1);  /* Western Armenian */
   case HB_TAG('I','J','O',' '):  /* Ijo */
     return hb_language_from_string ("ijo", -1);  /* Ijo */
   case HB_TAG('I','N','U',' '):  /* Inuktitut */
@@ -2160,6 +2162,10 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("tmh", -1);  /* Tamashek */
   case HB_TAG('T','N','E',' '):  /* Tundra Nenets */
     return hb_language_from_string ("yrk", -1);  /* Nenets */
+  case HB_TAG('T','O','D',' '):  /* Todo */
+    return hb_language_from_string ("xwo", -1);  /* Written Oirat */
+  case HB_TAG('T','W','I',' '):  /* Twi */
+    return hb_language_from_string ("tw", -1);  /* Twi */
   case HB_TAG('Z','H','H',' '):  /* Chinese, Hong Kong SAR */
     return hb_language_from_string ("zh-HK", -1);  /* Chinese; Hong Kong */
   case HB_TAG('Z','H','S',' '):  /* Chinese Simplified */
