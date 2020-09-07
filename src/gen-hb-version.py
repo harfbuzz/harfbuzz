@@ -4,15 +4,15 @@
 
 import os, sys, shutil
 
-if len (sys.argv) < 5:
+if len (sys.argv) < 4:
 	sys.exit(__doc__)
 
 version = sys.argv[1]
 major, minor, micro = version.split (".")
 
 OUTPUT = sys.argv[2]
-CURRENT_SOURCE_DIR = sys.argv[3]
-INPUT = sys.argv[4]
+INPUT = sys.argv[3]
+CURRENT_SOURCE_DIR = os.path.dirname(INPUT)
 
 with open (INPUT, "r", encoding='utf-8') as template:
 	with open (OUTPUT, "wb") as output:

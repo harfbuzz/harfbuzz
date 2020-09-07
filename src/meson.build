@@ -286,7 +286,7 @@ custom_target('hb-version.h',
   input: 'hb-version.h.in',
   output: 'hb-version.h',
   command: [find_program('gen-hb-version.py'), meson.project_version(),
-            '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+            '@OUTPUT@', '@INPUT@'],
 )
 
 ragel = find_program('ragel', required: false)
