@@ -676,19 +676,13 @@ ot.add_language ('ga-Latg', 'IRT')
 ot.remove_language_ot ('KGE')
 ot.add_language ('und-Geok', 'KGE')
 
-ot.add_language ('guk', 'GUK')
-ot.names['GUK'] = 'Gumuz (SIL fonts)'
-ot.ranks['GUK'] = ot.ranks['GMZ'] + 1
-
 bcp_47.macrolanguages['id'] = {'in'}
 
 bcp_47.macrolanguages['ijo'] = {'ijc'}
 
 ot.add_language ('kht', 'KHN')
 ot.names['KHN'] = ot.names['KHT'] + ' (Microsoft fonts)'
-ot.names['KHT'] = ot.names['KHT'] + ' (OpenType spec and SIL fonts)'
-ot.ranks['KHN'] = ot.ranks['KHT']
-ot.ranks['KHT'] += 1
+ot.ranks['KHN'] = ot.ranks['KHT'] + 1
 
 ot.ranks['LCR'] = ot.ranks['MCR'] + 1
 
@@ -735,10 +729,6 @@ ot.add_language ('qxw', 'QWH')
 
 bcp_47.macrolanguages['ro'].remove ('mo')
 bcp_47.macrolanguages['ro-MD'].add ('mo')
-
-ot.add_language ('sgw', 'SGW')
-ot.names['SGW'] = ot.names['CHG'] + ' (SIL fonts)'
-ot.ranks['SGW'] = ot.ranks['CHG'] + 1
 
 ot.remove_language_ot ('SYRE')
 ot.remove_language_ot ('SYRJ')
