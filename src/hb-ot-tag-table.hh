@@ -372,7 +372,6 @@ static const LangTag ot_languages[] = {
   {"gug",	HB_TAG('G','U','A',' ')},	/* Paraguayan Guaraní -> Guarani */
   {"gui",	HB_TAG('G','U','A',' ')},	/* Eastern Bolivian Guaraní -> Guarani */
   {"guk",	HB_TAG('G','M','Z',' ')},	/* Gumuz */
-  {"guk",	HB_TAG('G','U','K',' ')},	/* Gumuz (SIL fonts) */
   {"gun",	HB_TAG('G','U','A',' ')},	/* Mbyá Guaraní -> Guarani */
 /*{"guz",	HB_TAG('G','U','Z',' ')},*/	/* Gusii */
   {"gv",	HB_TAG('M','N','X',' ')},	/* Manx */
@@ -484,8 +483,8 @@ static const LangTag ot_languages[] = {
   {"kha",	HB_TAG('K','S','I',' ')},	/* Khasi */
   {"khb",	HB_TAG('X','B','D',' ')},	/* Lü */
   {"khk",	HB_TAG('M','N','G',' ')},	/* Halh Mongolian -> Mongolian */
+  {"kht",	HB_TAG('K','H','T',' ')},	/* Khamti -> Khamti Shan */
   {"kht",	HB_TAG('K','H','N',' ')},	/* Khamti -> Khamti Shan (Microsoft fonts) */
-  {"kht",	HB_TAG('K','H','T',' ')},	/* Khamti -> Khamti Shan (OpenType spec and SIL fonts) */
 /*{"khw",	HB_TAG('K','H','W',' ')},*/	/* Khowar */
   {"ki",	HB_TAG('K','I','K',' ')},	/* Kikuyu (Gikuyu) */
 /*{"kiu",	HB_TAG('K','I','U',' ')},*/	/* Kirmanjki */
@@ -856,7 +855,6 @@ static const LangTag ot_languages[] = {
   {"sgc",	HB_TAG('K','A','L',' ')},	/* Kipsigis -> Kalenjin */
 /*{"sgs",	HB_TAG('S','G','S',' ')},*/	/* Samogitian */
   {"sgw",	HB_TAG('C','H','G',' ')},	/* Sebat Bet Gurage -> Chaha Gurage */
-  {"sgw",	HB_TAG('S','G','W',' ')},	/* Sebat Bet Gurage -> Chaha Gurage (SIL fonts) */
 /*{"shi",	HB_TAG('S','H','I',' ')},*/	/* Tachelhit */
 /*{"shn",	HB_TAG('S','H','N',' ')},*/	/* Shan */
   {"shu",	HB_TAG('A','R','A',' ')},	/* Chadian Arabic -> Arabic */
