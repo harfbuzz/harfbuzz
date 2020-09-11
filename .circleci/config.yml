@@ -1,4 +1,9 @@
-version: 2
+version: 2.1
+
+executors:
+  win32-executor:
+    docker:
+      - image: cimg/base:edge-20.04
 
 jobs:
 
@@ -124,11 +129,10 @@ jobs:
       - run: clang -c src/hb-*.cc -DHB_NO_MT -Werror -Weverything -Wno-old-style-cast -Wno-documentation -Wno-documentation-unknown-command -Wno-c++98-compat -Wno-cast-qual -Wno-c++98-compat-pedantic -Wno-sign-conversion -Wno-padded -Wno-shorten-64-to-32 -Wno-reserved-id-macro -Wno-float-conversion -Wno-format-pedantic -Wno-shadow -Wno-conversion -Wno-zero-as-null-pointer-constant -Wno-missing-field-initializers -Wno-used-but-marked-unused -Wno-unused-macros -Wno-comma -Wno-float-equal -Wno-disabled-macro-expansion -Wno-weak-vtables -Wno-unused-parameter -Wno-covered-switch-default -Wno-unreachable-code -Wno-unused-template -DHB_WITH_WIN1256
 
   crossbuild-win32:
-    docker:
-      - image: ubuntu:20.04
+    executor: win32-executor
     steps:
       - checkout
-      - run: apt update && DEBIAN_FRONTEND=noninteractive apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip git g++-mingw-w64-i686 zip
+      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build binutils meson gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip git g++-mingw-w64-i686 zip
       - run: .ci/build-win32.sh
       - store_artifacts:
           path: harfbuzz-win32.zip
