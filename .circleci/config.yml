@@ -10,7 +10,7 @@ executors:
 
 jobs:
 
-  macos-10.12.6-aat-fonts:
+  macos-10_12_6-aat-fonts:
     macos:
       xcode: "9.0.1"
     steps:
@@ -21,7 +21,7 @@ jobs:
       - run: meson compile -Cbuild # or ninja -Cbuild
       - run: meson test -Cbuild --print-errorlogs
 
-  macos-10.13.6-aat-fonts:
+  macos-10_13_6-aat-fonts:
     macos:
       xcode: "10.1.0"
     steps:
@@ -32,7 +32,7 @@ jobs:
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
 
-  macos-10.14.4-aat-fonts:
+  macos-10_14_4-aat-fonts:
     macos:
       xcode: "11.1.0"
     steps:
@@ -43,7 +43,7 @@ jobs:
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
 
-  macos-10.15.3-aat-fonts:
+  macos-10_15_3-aat-fonts:
     macos:
       xcode: "11.4.0"
     steps:
@@ -170,10 +170,10 @@ workflows:
 
   build:
     jobs:
-      - macos-10.12.6-aat-fonts
-      - macos-10.13.6-aat-fonts
-      - macos-10.14.4-aat-fonts
-      - macos-10.15.3-aat-fonts
+      - macos-10_12_6-aat-fonts
+      - macos-10_13_6-aat-fonts
+      - macos-10_14_4-aat-fonts
+      - macos-10_15_3-aat-fonts
       - distcheck # will be dropped with autotools removal
       - publish-dist:
           requires:
