@@ -67,6 +67,25 @@ jobs:
       - run: rm harfbuzz-* && make distdir
       - run: cd harfbuzz-* && meson build && ninja -Cbuild test
       - run: cd harfbuzz-* && cmake -Bcmakebuild -H. && cmake --build cmakebuild
+      - run: make dist
+      - persist_to_workspace:
+          root: .
+          paths: harfbuzz-*.tar.xz
+
+  publish-dist:
+    executor: autotools-executor
+    steps:
+      - attach_workspace:
+          at: .
+      - run: |
+          if [[ -n $GITHUB_TOKEN ]]; then
+            export _GHR=ghr_v0.13.0_linux_amd64
+            curl -sL https://github.com/tcnksm/ghr/releases/download/v0.13.0/$_GHR.tar.gz | tar xz --strip-components=1 $_GHR/ghr
+            echo TOKEN IS = $GITHUB_TOKEN
+            ./ghr -replace -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME $CIRCLE_TAG harfbuzz-$CIRCLE_TAG.tar.xz
+          else
+            echo "No GITHUB_TOKEN secret found, artifact publishing skipped"
+          fi
 
   fedora-valgrind:
     docker:
@@ -168,6 +187,14 @@ workflows:
       - macos-10.14.4-aat-fonts
       - macos-10.15.3-aat-fonts
       - distcheck # will be dropped with autotools removal
+      - publish-dist:
+          requires:
+            - distcheck
+          filters:
+            tags:
+              only: /^\d+.\d+.\d+$/
+            branches:
+              ignore: /.*/
       - fedora-valgrind
       - alpine
       - archlinux
