@@ -136,9 +136,19 @@ jobs:
       - run: .ci/build-win32.sh
       - store_artifacts:
           path: harfbuzz-win32.zip
+      - persist_to_workspace:
+          root: .
+          paths: harfbuzz-win32.zip
+
+  publish-win32:
+    executor: win32-executor
+    steps:
+      - attach_workspace:
+          at: .
 
 workflows:
   version: 2
+
   build:
     jobs:
       - macos-10.12.6-aat-fonts
@@ -151,3 +161,11 @@ workflows:
       - archlinux
       - sanitizers
       - crossbuild-win32
+      - publish-win32:
+          requires:
+            - crossbuild-win32
+          filters:
+            tags:
+              only: /^\d+.\d+.\d+$/
+            branches:
+              ignore: /.*/
