@@ -38,6 +38,7 @@ TESTS = \
 	tests/mark-attachment.tests \
 	tests/mark-filtering-sets.tests \
 	tests/mongolian-variation-selector.tests \
+	tests/myanmar-misc.tests \
 	tests/myanmar-syllable.tests \
 	tests/myanmar-zawgyi.tests \
 	tests/none-directional.tests \
