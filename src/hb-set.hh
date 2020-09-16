@@ -544,7 +544,6 @@ struct hb_set_t
   void process (const Op& op, const hb_set_t *other)
   {
     if (unlikely (!successful)) return;
-    if (unlikely (!other->successful)) return;
 
     dirty ();
 
