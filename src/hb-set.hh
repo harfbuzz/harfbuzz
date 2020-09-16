@@ -266,9 +266,9 @@ struct hb_set_t
   {
     if (unlikely (hb_object_is_immutable (this)))
       return;
-    population = 0;
-    page_map.resize (0);
-    pages.resize (0);
+
+    if (resize (0))
+      population = 0;
   }
   bool is_empty () const
   {
@@ -515,6 +515,7 @@ struct hb_set_t
   void compact (unsigned int length)
   {
     hb_vector_t<uint32_t> old_index_to_page_map_index;
+    // TODO(grieger): need to handle resize failure here.
     old_index_to_page_map_index.resize(pages.length);
     for (uint32_t i = 0; i < old_index_to_page_map_index.length; i++)
       old_index_to_page_map_index[i] = 0xFFFFFFFF;
@@ -599,6 +600,7 @@ struct hb_set_t
     }
 
     if (!resize (count))
+      // TODO(grieger): does this leave us in an invalid state?
       return;
 
     newCount = count;
@@ -655,6 +657,9 @@ struct hb_set_t
       }
     assert (!count);
     if (pages.length > newCount)
+      // This resize() doesn't need to be checked because we can't get here
+      // if the set is currently in_error() and this only resizes downwards
+      // which will always succeed if the set is not in_error().
       resize (newCount);
   }
 
