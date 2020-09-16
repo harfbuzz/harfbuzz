@@ -389,6 +389,11 @@ struct hb_set_t
   {
     if (ds <= de)
     {
+      // Pre-allocate the workspace that compact() will need so we can bail on allocation failure
+      // before attempting to rewrite the page map.
+      hb_vector_t<uint32_t> compact_workspace;
+      if (unlikely (!allocate_compact_workspace (&compact_workspace))) return;
+
       unsigned int write_index = 0;
       for (unsigned int i = 0; i < page_map.length; i++)
       {
@@ -396,10 +401,11 @@ struct hb_set_t
 	if (m < ds || de < m)
 	  page_map[write_index++] = page_map[i];
       }
-      compact (write_index);
+      compact (&compact_workspace, write_index);
       resize (write_index);
     }
   }
+
 
   public:
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
@@ -512,18 +518,35 @@ struct hb_set_t
     return true;
   }
 
-  void compact (unsigned int length)
+  bool allocate_compact_workspace(hb_vector_t<uint32_t>* workspace)
   {
-    hb_vector_t<uint32_t> old_index_to_page_map_index;
-    // TODO(grieger): need to handle resize failure here.
-    old_index_to_page_map_index.resize(pages.length);
-    for (uint32_t i = 0; i < old_index_to_page_map_index.length; i++)
-      old_index_to_page_map_index[i] = 0xFFFFFFFF;
+    if (unlikely(!workspace->resize (pages.length)))
+    {
+      successful = false;
+      return false;
+    }
+
+    return true;
+  }
+
+
+  /*
+   * workspace should be a pre-sized vector allocated to hold at exactly pages.length
+   * elements.
+   */
+  void compact (hb_vector_t<uint32_t>* workspace,
+                unsigned int length)
+  {
+    assert(workspace->length == pages.length);
+    hb_vector_t<uint32_t>* old_index_to_page_map_index = workspace;
+
+    for (uint32_t i = 0; i < old_index_to_page_map_index->length; i++)
+      (*old_index_to_page_map_index)[i] = 0xFFFFFFFF;
 
     for (uint32_t i = 0; i < length; i++)
-      old_index_to_page_map_index[page_map[i].index] =  i;
+      (*old_index_to_page_map_index)[page_map[i].index] =  i;
 
-    compact_pages (old_index_to_page_map_index);
+    compact_pages (*old_index_to_page_map_index);
   }
 
   void compact_pages (const hb_vector_t<uint32_t>& old_index_to_page_map_index)
@@ -555,6 +578,12 @@ struct hb_set_t
     unsigned int count = 0, newCount = 0;
     unsigned int a = 0, b = 0;
     unsigned int write_index = 0;
+
+    // Pre-allocate the workspace that compact() will need so we can bail on allocation failure
+    // before attempting to rewrite the page map.
+    hb_vector_t<uint32_t> compact_workspace;
+    if (!Op::passthru_left && unlikely (!allocate_compact_workspace (&compact_workspace))) return;
+
     for (; a < na && b < nb; )
     {
       if (page_map[a].major == other->page_map[b].major)
@@ -596,11 +625,10 @@ struct hb_set_t
     {
       na  = write_index;
       next_page = write_index;
-      compact (write_index);
+      compact (&compact_workspace, write_index);
     }
 
     if (!resize (count))
-      // TODO(grieger): does this leave us in an invalid state?
       return;
 
     newCount = count;
