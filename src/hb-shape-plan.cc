@@ -355,26 +355,12 @@ hb_shape_plan_get_shaper (hb_shape_plan_t *shape_plan)
 }
 
 
-/**
- * hb_shape_plan_execute:
- * @shape_plan: a shape plan.
- * @font: a font.
- * @buffer: a buffer.
- * @features: (array length=num_features):
- * @num_features:
- *
- *
- *
- * Return value:
- *
- * Since: 0.9.7
- **/
-hb_bool_t
-hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
-		       hb_font_t          *font,
-		       hb_buffer_t        *buffer,
-		       const hb_feature_t *features,
-		       unsigned int        num_features)
+static bool
+_hb_shape_plan_execute_internal (hb_shape_plan_t    *shape_plan,
+				 hb_font_t          *font,
+				 hb_buffer_t        *buffer,
+				 const hb_feature_t *features,
+				 unsigned int        num_features)
 {
   DEBUG_MSG_FUNC (SHAPE_PLAN, shape_plan,
 		  "num_features=%d shaper_func=%p, shaper_name=%s",
@@ -411,6 +397,35 @@ hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
 #undef HB_SHAPER_EXECUTE
 
   return false;
+}
+/**
+ * hb_shape_plan_execute:
+ * @shape_plan: a shape plan.
+ * @font: a font.
+ * @buffer: a buffer.
+ * @features: (array length=num_features):
+ * @num_features:
+ *
+ *
+ *
+ * Return value:
+ *
+ * Since: 0.9.7
+ **/
+hb_bool_t
+hb_shape_plan_execute (hb_shape_plan_t    *shape_plan,
+		       hb_font_t          *font,
+		       hb_buffer_t        *buffer,
+		       const hb_feature_t *features,
+		       unsigned int        num_features)
+{
+  bool ret = _hb_shape_plan_execute_internal (shape_plan, font, buffer,
+					      features, num_features);
+
+  if (ret && buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE)
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
+
+  return ret;
 }
 
 
