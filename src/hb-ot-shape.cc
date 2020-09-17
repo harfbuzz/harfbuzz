@@ -851,7 +851,7 @@ hb_ot_substitute_default (const hb_ot_shape_context_t *c)
 
   HB_BUFFER_ALLOCATE_VAR (buffer, glyph_index);
 
-  if (buffer->message(c->font, "begin normalize")) {
+  if (buffer->message(c->font, "start normalize")) {
     _hb_ot_shape_normalize (c->plan, buffer, c->font);
     buffer->message(c->font, "end normalize");
   }
@@ -900,7 +900,7 @@ hb_ot_substitute_post (const hb_ot_shape_context_t *c)
 #endif
 
   if (c->plan->shaper->postprocess_glyphs &&
-    c->buffer->message(c->font, "begin postprocess")) {
+    c->buffer->message(c->font, "start postprocess")) {
     c->plan->shaper->postprocess_glyphs (c->plan, c->buffer, c->font);
     (void)c->buffer->message(c->font, "end postprocess");
   }
@@ -1127,7 +1127,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   hb_ensure_native_direction (c->buffer);
 
   if (c->plan->shaper->preprocess_text &&
-    c->buffer->message(c->font, "begin preprocess")) {
+    c->buffer->message(c->font, "start preprocess")) {
     c->plan->shaper->preprocess_text (c->plan, c->buffer, c->font);
     (void)c->buffer->message(c->font, "end preprocess");
   }
