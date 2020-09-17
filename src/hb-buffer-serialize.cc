@@ -197,6 +197,47 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
 }
 
 static unsigned int
+_hb_buffer_serialize_unicode_json (hb_buffer_t *buffer,
+					unsigned int start,
+					unsigned int end,
+					char *buf,
+					unsigned int buf_size,
+					unsigned int *buf_consumed)
+{
+	hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, nullptr);
+
+	*buf_consumed = 0;
+	for (unsigned int i = start; i < end; i++)
+	{
+		char b[1024];
+		char *p = b;
+		if (i)
+			*p++ = ',';
+
+		*p++ = '{';
+
+		APPEND ("\"u\":");
+		p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "%u", info[i].codepoint));
+
+		*p++ = '}';
+
+		unsigned int l = p - b;
+		if (buf_size > l)
+		{
+			memcpy (buf, b, l);
+			buf += l;
+			buf_size -= l;
+			*buf_consumed += l;
+			*buf = '\0';
+		} else
+			return i - start;
+
+	}
+
+	return end - start;
+}
+
+static unsigned int
 _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
 				  unsigned int start,
 				  unsigned int end,
@@ -280,6 +321,35 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
   }
 
   return end - start;
+}
+
+
+static unsigned int
+_hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
+					unsigned int start,
+					unsigned int end,
+					char *buf,
+					unsigned int buf_size,
+					unsigned int *buf_consumed)
+{
+	hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, nullptr);
+	*buf_consumed = 0;
+	char *p = buf;
+	/* We can use a much simpler implementation for this and copy text
+	 * directly into the output buffer. */
+	for (unsigned int i = start; i < end; i++)
+	{
+		if (i) {
+			*p++ = '|';
+		}
+
+		p += hb_max (0, snprintf (p, buf_size - *buf_consumed, "U+%X", info[i].codepoint));
+		*buf_consumed = p - buf;
+		if (*buf_consumed > buf_size)
+			return i - start;
+	}
+	*p = '\0';
+	return end - start;
 }
 
 /**
@@ -377,6 +447,117 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
       return 0;
 
   }
+}
+
+unsigned int
+hb_buffer_serialize_unicode (hb_buffer_t *buffer,
+					unsigned int start,
+					unsigned int end,
+					char *buf,
+					unsigned int buf_size,
+					unsigned int *buf_consumed,
+					hb_buffer_serialize_format_t format)
+{
+	assert (start <= end && end <= buffer->len);
+
+	unsigned int sconsumed;
+	if (!buf_consumed)
+		buf_consumed = &sconsumed;
+	*buf_consumed = 0;
+	if (buf_size)
+		*buf = '\0';
+
+	assert ((!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)) ||
+		(buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE));
+
+	if (unlikely (start == end))
+		return 0;
+
+	switch (format)
+	{
+		case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
+			return _hb_buffer_serialize_unicode_text (buffer, start, end,
+								 buf, buf_size, buf_consumed);
+
+		case HB_BUFFER_SERIALIZE_FORMAT_JSON:
+			return _hb_buffer_serialize_unicode_json (buffer, start, end,
+								 buf, buf_size, buf_consumed);
+
+		default:
+		case HB_BUFFER_SERIALIZE_FORMAT_INVALID:
+			return 0;
+
+	}
+}
+/**
+ * hb_buffer_serialize:
+ * @buffer: an #hb_buffer_t buffer.
+ * @start: the first item in @buffer to serialize.
+ * @end: the last item in @buffer to serialize.
+ * @buf: (out) (array length=buf_size) (element-type uint8_t): output string to
+ *       write serialized buffer into.
+ * @buf_size: the size of @buf.
+ * @buf_consumed: (out) (allow-none): if not %NULL, will be set to the number of byes written into @buf.
+ * @font: (allow-none): the #hb_font_t used to shape this buffer, needed to
+ *        read glyph names and extents. If %NULL, and empty font will be used.
+ * @format: the #hb_buffer_serialize_format_t to use for formatting the output.
+ * @flags: the #hb_buffer_serialize_flags_t that control what glyph properties
+ *         to serialize.
+ *
+ * Serializes @buffer into a textual representation of its content, whether
+ * Unicode codepoints or glyph identifiers and positioning information. This is
+ * useful for showing the contents of the buffer, for example during debugging.
+ * There are currently two supported serialization formats:
+ *
+ * ## text
+ * A human-readable, plain text format.
+ * Serialized glyphs will look something like:
+ *
+ * ```
+ * [uni0651=0@518,0+0|uni0628=0+1897]
+ * ```
+ * - The serialized glyphs are delimited with `[` and `]`.
+ * - Glyphs are separated with `|`
+ * - Each glyph starts with glyph name, or glyph index if
+ *   #HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES flag is set. Then,
+ *   - If #HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS is not set, `=` then #hb_glyph_info_t.cluster.
+ *   - If #HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS is not set, the #hb_glyph_position_t in the format:
+ *     - If both #hb_glyph_position_t.x_offset and #hb_glyph_position_t.y_offset are not 0, `@x_offset,y_offset`. Then,
+ *     - `+x_advance`, then `,y_advance` if #hb_glyph_position_t.y_advance is not 0. Then,
+ *   - If #HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS is set, the
+ *     #hb_glyph_extents_t in the format
+ *     `&lt;x_bearing,y_bearing,width,height&gt;`
+ *
+ * Serialized Unicode codepoints will look like:
+ *
+ * ```
+ * [U+0651|U+0628]
+ * ```
+ * ## json
+ * TODO.
+ *
+ * Return value:
+ * The number of serialized items.
+ *
+ * Since: 2.7.3
+ **/
+unsigned int
+hb_buffer_serialize (hb_buffer_t *buffer,
+					unsigned int start,
+					unsigned int end,
+					char *buf,
+					unsigned int buf_size,
+					unsigned int *buf_consumed,
+					hb_font_t *font,
+					hb_buffer_serialize_format_t format,
+					hb_buffer_serialize_flags_t flags)
+{
+	if (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS)
+		return hb_buffer_serialize_glyphs(buffer, start, end, buf, buf_size,
+			buf_consumed, font, format, flags);
+	else
+		return hb_buffer_serialize_unicode(buffer, start, end, buf, buf_size,
+			buf_consumed, format);
 }
 
 static bool
