@@ -137,7 +137,7 @@ struct output_buffer_t
     g_string_set_size (gs, 0);
     format.serialize_line_no (line_no, gs);
     g_string_append_printf (gs, "trace: %s	buffer: ", message);
-    format.serialize_glyphs (buffer, font, output_format, format_flags, gs);
+    format.serialize (buffer, font, output_format, format_flags, gs);
     g_string_append_c (gs, '\n');
     fprintf (options.fp, "%s", gs->str);
   }

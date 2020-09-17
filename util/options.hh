@@ -635,9 +635,7 @@ struct format_options_t : option_group_t
 
   void add_options (option_parser_t *parser) override;
 
-  void serialize_unicode (hb_buffer_t  *buffer,
-			  GString      *gs);
-  void serialize_glyphs (hb_buffer_t  *buffer,
+  void serialize (hb_buffer_t  *buffer,
 			 hb_font_t    *font,
 			 hb_buffer_serialize_format_t format,
 			 hb_buffer_serialize_flags_t flags,
