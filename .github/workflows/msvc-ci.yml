@@ -45,6 +45,6 @@ jobs:
             -Ddirectwrite=enabled
 
           meson compile -C build
-      - name: Test
-        run: |
-          meson test --print-errorlogs --suite=harfbuzz -C build
+#     - name: Test
+#       run: |
+#         meson test --print-errorlogs --suite=harfbuzz -C build
