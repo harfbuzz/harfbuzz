@@ -214,12 +214,7 @@ _hb_buffer_serialize_unicode_json (hb_buffer_t *buffer,
     if (i)
       *p++ = ',';
 
-    *p++ = '{';
-
-    APPEND ("\"u\":");
     p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "%u", info[i].codepoint));
-
-    *p++ = '}';
 
     unsigned int l = p - b;
     if (buf_size > l)
