@@ -391,7 +391,24 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
  *     `&lt;x_bearing,y_bearing,width,height&gt;`
  *
  * ## json
- * TODO.
+ * A machine-readable, structured format.
+ * The serialized glyphs will look something like:
+ *
+ * ```
+ * [{"g":"uni0651","cl":0,"dx":518,"dy":0,"ax":0,"ay":0},
+ * {"g":"uni0628","cl":0,"dx":0,"dy":0,"ax":1897,"ay":0}]
+ * ```
+ * Each glyph is a JSON object, with the following properties:
+ * - `g`: the glyph name or glyph index if
+ *   #HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES flag is set.
+ * - `cl`: #hb_glyph_info_t.cluster if
+ *   #HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS is not set.
+ * - `dx`,`dy`,`ax`,`ay`: #hb_glyph_position_t.x_offset, #hb_glyph_position_t.y_offset,
+ *    #hb_glyph_position_t.x_advance and #hb_glyph_position_t.y_advance
+ *    respectively, if #HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS is not set.
+ * - `xb`,`yb`,`w`,`h`: #hb_glyph_extents_t.x_bearing, #hb_glyph_extents_t.y_bearing,
+ *    #hb_glyph_extents_t.width and #hb_glyph_extents_t.height respectively if
+ *    #HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS is set.
  *
  * Return value:
  * The number of serialized items.
@@ -449,6 +466,46 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
   }
 }
 
+/**
+ * hb_buffer_serialize_unicode:
+ * @buffer: an #hb_buffer_t buffer.
+ * @start: the first item in @buffer to serialize.
+ * @end: the last item in @buffer to serialize.
+ * @buf: (out) (array length=buf_size) (element-type uint8_t): output string to
+ *       write serialized buffer into.
+ * @buf_size: the size of @buf.
+ * @buf_consumed: (out) (allow-none): if not %NULL, will be set to the number of byes written into @buf.
+ * @format: the #hb_buffer_serialize_format_t to use for formatting the output.
+ *
+ * Serializes @buffer into a textual representation of its content,
+ * when the buffer contains Unicode codepoints (i.e., before shaping). This is
+ * useful for showing the contents of the buffer, for example during debugging.
+ * There are currently two supported serialization formats:
+ *
+ * ## text
+ * A human-readable, plain text format.
+ * The serialized codepoints will look something like:
+ *
+ * ```
+ * U+0651|U+0628
+ * ```
+ * - Glyphs are separated with `|`
+ * - Unicode codepoints are expressed as zero-padded four (or more)
+ *   digit hexadecimal numbers preceded by `U+`
+ *
+ * ## json
+ * A machine-readable, structured format.
+ * The serialized codepoints will be a list of Unicode codepoints as
+ * decimal integers. For example:
+ * ```
+ * [1617,1576]
+ * ```
+ *
+ * Return value:
+ * The number of serialized items.
+ *
+ * Since: 2.7.3
+ **/
 unsigned int
 hb_buffer_serialize_unicode (hb_buffer_t *buffer,
                              unsigned int start,
