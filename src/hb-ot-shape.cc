@@ -851,10 +851,7 @@ hb_ot_substitute_default (const hb_ot_shape_context_t *c)
 
   HB_BUFFER_ALLOCATE_VAR (buffer, glyph_index);
 
-  if (buffer->message(c->font, "start normalize")) {
-    _hb_ot_shape_normalize (c->plan, buffer, c->font);
-    buffer->message(c->font, "end normalize");
-  }
+  _hb_ot_shape_normalize (c->plan, buffer, c->font);
 
   hb_ot_shape_setup_masks (c);
 
