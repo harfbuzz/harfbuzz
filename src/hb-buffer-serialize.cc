@@ -125,6 +125,8 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
 
     if (i)
       *p++ = ',';
+    else
+      *p++ = '[';
 
     *p++ = '{';
 
@@ -174,6 +176,8 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
     }
 
     *p++ = '}';
+    if (i == end-1)
+      *p++ = ']';
 
     unsigned int l = p - b;
     if (buf_size > l)
@@ -213,8 +217,13 @@ _hb_buffer_serialize_unicode_json (hb_buffer_t *buffer,
     char *p = b;
     if (i)
       *p++ = ',';
+    else
+      *p++ = '[';
 
     p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "%u", info[i].codepoint));
+
+    if (i == end-1)
+      *p++ = ']';
 
     unsigned int l = p - b;
     if (buf_size > l)
@@ -257,6 +266,8 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
 
     if (i)
       *p++ = '|';
+    else
+      *p++ = '[';
 
     if (!(flags & HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES))
     {
@@ -295,6 +306,10 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
       hb_glyph_extents_t extents;
       hb_font_get_glyph_extents(font, info[i].codepoint, &extents);
       p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "<%d,%d,%d,%d>", extents.x_bearing, extents.y_bearing, extents.width, extents.height));
+    }
+
+    if (i == end-1) {
+      *p++ = ']';
     }
 
     unsigned int l = p - b;
@@ -336,8 +351,14 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
 
     if (i)
       *p++ = '|';
+    else
+      *p++ = '<';
 
     p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "U+%04X", info[i].codepoint));
+
+    if (i == end-1)
+      *p++ = '>';
+
     unsigned int l = p - b;
     if (buf_size > l)
     {
@@ -487,7 +508,7 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
  * The serialized codepoints will look something like:
  *
  * ```
- * U+0651|U+0628
+ * <U+0651|U+0628>
  * ```
  * - Glyphs are separated with `|`
  * - Unicode codepoints are expressed as zero-padded four (or more)

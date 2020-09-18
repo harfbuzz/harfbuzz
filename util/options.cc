@@ -916,10 +916,6 @@ format_options_t::serialize (hb_buffer_t *buffer,
 				    hb_buffer_serialize_flags_t flags,
 				    GString     *gs)
 {
-  if (hb_buffer_get_content_type(buffer) == HB_BUFFER_CONTENT_TYPE_UNICODE)
-    g_string_append_c (gs, '<');
-  else
-    g_string_append_c (gs, '[');
   unsigned int num_glyphs = hb_buffer_get_length (buffer);
   unsigned int start = 0;
 
@@ -934,10 +930,6 @@ format_options_t::serialize (hb_buffer_t *buffer,
       break;
     g_string_append (gs, buf);
   }
-  if (hb_buffer_get_content_type(buffer) == HB_BUFFER_CONTENT_TYPE_UNICODE)
-    g_string_append_c (gs, '>');
-  else
-    g_string_append_c (gs, ']');
 }
 
 void
