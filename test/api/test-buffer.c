@@ -856,6 +856,46 @@ test_buffer_empty (void)
   g_assert (!hb_buffer_allocation_successful (b));
 }
 
+typedef struct {
+  const char *contents;
+  hb_buffer_serialize_format_t format;
+  unsigned int num_items;
+} serialization_test_t;
+
+static const serialization_test_t serialization_tests[] = {
+  { "<U+0640|U+0635>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, 2 },
+  { "[1600,1589]", HB_BUFFER_SERIALIZE_FORMAT_JSON, 2 },
+};
+
+static void
+test_buffer_serialize_deserialize (void)
+{
+  hb_buffer_t *b;
+  unsigned int i;
+
+  b = hb_buffer_create ();
+  hb_buffer_set_replacement_codepoint (b, (hb_codepoint_t) -1);
+
+  for (i = 0; i < G_N_ELEMENTS (serialization_tests); i++)
+  {
+    unsigned int num_glyphs, consumed;
+    char round_trip[1024];
+    const serialization_test_t *test = &serialization_tests[i];
+    g_test_message ("serialize test #%d", i);
+
+    hb_buffer_deserialize_unicode (b, test->contents, -1, NULL, test->format);
+
+    num_glyphs = hb_buffer_get_length (b);
+    g_assert_cmpint (num_glyphs, ==, test->num_items);
+
+    hb_buffer_serialize_unicode(b, 0, num_glyphs, round_trip,
+                                sizeof(round_trip), &consumed, test->format);
+    g_assert_cmpstr (round_trip, ==, test->contents);
+  }
+
+  hb_buffer_destroy (b);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -880,6 +920,7 @@ main (int argc, char **argv)
   hb_test_add (test_buffer_utf16_conversion);
   hb_test_add (test_buffer_utf32_conversion);
   hb_test_add (test_buffer_empty);
+  hb_test_add (test_buffer_serialize_deserialize);
 
   return hb_test_run();
 }
