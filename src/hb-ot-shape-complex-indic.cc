@@ -1013,7 +1013,7 @@ initial_reordering_indic (const hb_ot_shape_plan_t *plan,
 
   foreach_syllable (buffer, start, end)
     initial_reordering_syllable_indic (plan, font->face, buffer, start, end);
-  (void)buffer->message (font, "end reordering indic initial");
+  (void) buffer->message (font, "end reordering indic initial");
 }
 
 static void

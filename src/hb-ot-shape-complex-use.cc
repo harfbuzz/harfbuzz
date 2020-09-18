@@ -523,7 +523,7 @@ reorder_use (const hb_ot_shape_plan_t *plan,
 	  foreach_syllable (buffer, start, end)
 	    reorder_syllable_use (buffer, start, end);
 
-	  (void)buffer->message (font, "end reordering USE");
+	  (void) buffer->message (font, "end reordering USE");
   }
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, use_category);
