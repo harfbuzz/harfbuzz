@@ -1491,7 +1491,7 @@ final_reordering_indic (const hb_ot_shape_plan_t *plan,
   if (buffer->message (font, "start reordering indic final")) {
     foreach_syllable (buffer, start, end)
       final_reordering_syllable_indic (plan, buffer, start, end);
-    buffer->message (font, "end reordering indic final");
+    (void) buffer->message (font, "end reordering indic final");
   }
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
