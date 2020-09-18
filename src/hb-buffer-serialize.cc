@@ -636,6 +636,18 @@ parse_uint (const char *pp, const char *end, uint32_t *pv)
   return true;
 }
 
+static bool
+parse_hex (const char *pp, const char *end, uint32_t *pv)
+{
+  unsigned int v;
+  const char *p = pp;
+  if (unlikely (!hb_parse_uint (&p, end, &v, true/* whole buffer */, 16)))
+    return false;
+
+  *pv = v;
+  return true;
+}
+
 #include "hb-buffer-deserialize-json.hh"
 #include "hb-buffer-deserialize-text.hh"
 
@@ -693,17 +705,80 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
   switch (format)
   {
     case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
-      return _hb_buffer_deserialize_glyphs_text (buffer,
-                                                 buf, buf_len, end_ptr,
-                                                 font);
+      return _hb_buffer_deserialize_text (buffer,
+                                          buf, buf_len, end_ptr,
+                                          font);
 
     case HB_BUFFER_SERIALIZE_FORMAT_JSON:
-      return _hb_buffer_deserialize_glyphs_json (buffer,
-                                                 buf, buf_len, end_ptr,
-                                                 font);
+      return _hb_buffer_deserialize_json (buffer,
+                                          buf, buf_len, end_ptr,
+                                          font);
 
     default:
     case HB_BUFFER_SERIALIZE_FORMAT_INVALID:
+      return false;
+
+  }
+}
+
+
+/**
+ * hb_buffer_deserialize_unicode:
+ * @buffer: an #hb_buffer_t buffer.
+ * @buf: (array length=buf_len):
+ * @buf_len:
+ * @end_ptr: (out):
+ * @format:
+ *
+ *
+ *
+ * Return value:
+ *
+ * Since: 2.7.3
+ **/
+hb_bool_t
+hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
+                               const char *buf,
+                               int buf_len, /* -1 means nul-terminated */
+                               const char **end_ptr, /* May be NULL */
+                               hb_buffer_serialize_format_t format)
+{
+  const char *end;
+  if (!end_ptr)
+    end_ptr = &end;
+  *end_ptr = buf;
+
+  assert ((!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)) ||
+          (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE));
+
+  if (buf_len == -1)
+    buf_len = strlen (buf);
+
+  if (!buf_len)
+  {
+    *end_ptr = buf;
+    return false;
+  }
+
+  hb_buffer_set_content_type (buffer, HB_BUFFER_CONTENT_TYPE_UNICODE);
+
+  hb_font_t* font = hb_font_get_empty ();
+
+  switch (format)
+  {
+    case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
+      return _hb_buffer_deserialize_text (buffer,
+                                          buf, buf_len, end_ptr,
+                                          font);
+
+    case HB_BUFFER_SERIALIZE_FORMAT_JSON:
+      return _hb_buffer_deserialize_json (buffer,
+                                          buf, buf_len, end_ptr,
+                                          font);
+
+    default:
+    case HB_BUFFER_SERIALIZE_FORMAT_INVALID:
+      printf("Invalid!\n");
       return false;
 
   }
