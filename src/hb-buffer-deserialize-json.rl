@@ -92,12 +92,16 @@ item	=
 	@add_item
 	;
 
-main := space* item (comma item)* space* (','|']')?;
+json_glyphs = space* item (comma item)* space* (','|']')?;
+unicode_item = (glyph_number >clear_item %add_item);
+json_unicode = space* unicode_item (comma unicode_item)* (','|']');
+
+main := json_glyphs | json_unicode;
 
 }%%
 
 static hb_bool_t
-_hb_buffer_deserialize_glyphs_json (hb_buffer_t *buffer,
+_hb_buffer_deserialize_json (hb_buffer_t *buffer,
 				    const char *buf,
 				    unsigned int buf_len,
 				    const char **end_ptr,

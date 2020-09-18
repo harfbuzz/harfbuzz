@@ -546,6 +546,14 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      hb_font_t *font,
 			      hb_buffer_serialize_format_t format);
 
+HB_EXTERN hb_bool_t
+hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
+            const char *buf,
+            int buf_len,
+            const char **end_ptr,
+            hb_buffer_serialize_format_t format);
+
+
 
 /*
  * Compare buffers
