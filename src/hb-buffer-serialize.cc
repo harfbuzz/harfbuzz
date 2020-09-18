@@ -332,24 +332,29 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
 					unsigned int buf_size,
 					unsigned int *buf_consumed)
 {
-	hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, nullptr);
-	*buf_consumed = 0;
-	char *p = buf;
-	/* We can use a much simpler implementation for this and copy text
-	 * directly into the output buffer. */
-	for (unsigned int i = start; i < end; i++)
-	{
-		if (i) {
-			*p++ = '|';
-		}
+  hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, nullptr);
+  *buf_consumed = 0;
+  for (unsigned int i = start; i < end; i++)
+  {
+    char b[1024];
+    char *p = b;
 
-		p += hb_max (0, snprintf (p, buf_size - *buf_consumed, "U+%X", info[i].codepoint));
-		*buf_consumed = p - buf;
-		if (*buf_consumed > buf_size)
-			return i - start;
-	}
-	*p = '\0';
-	return end - start;
+    if (i)
+      *p++ = '|';
+
+    p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "U+%04X", info[i].codepoint));
+    unsigned int l = p - b;
+    if (buf_size > l)
+    {
+      memcpy (buf, b, l);
+      buf += l;
+      buf_size -= l;
+      *buf_consumed += l;
+      *buf = '\0';
+    } else
+      return i - start;
+  }
+  return end - start;
 }
 
 /**
