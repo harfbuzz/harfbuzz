@@ -537,13 +537,13 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
  * A machine-readable, structured format.
  * The serialized codepoints will be a list of objects with the following
  * properties:
- * - `g`: the Unicode codepoint as a decimal integer
+ * - `u`: the Unicode codepoint as a decimal integer
  * - `cl`: #hb_glyph_info_t.cluster if
  *   #HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS is not set.
  *
  * For example:
  * ```
- * [{g:1617,cl:0},{g:1576,cl:1}]
+ * [{u:1617,cl:0},{u:1576,cl:1}]
  * ```
  *
  * Return value:
