@@ -79,7 +79,7 @@ offsets	= '@' (num >tok %parse_x_offset)   ',' (num >tok %parse_y_offset );
 advances= '+' (num >tok %parse_x_advance) (',' (num >tok %parse_y_advance))?;
 
 codepoint = xdigit+ >tok %parse_hexdigits;
-unicode_id = 'U' '+' codepoint >clear_item %add_item;
+unicode_id = 'U' '+'  >clear_item codepoint cluster? %add_item;
 
 item	=
 	(

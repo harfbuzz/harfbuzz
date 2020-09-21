@@ -206,7 +206,8 @@ _hb_buffer_serialize_unicode_json (hb_buffer_t *buffer,
           unsigned int end,
           char *buf,
           unsigned int buf_size,
-          unsigned int *buf_consumed)
+          unsigned int *buf_consumed,
+          hb_buffer_serialize_flags_t flags)
 {
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, nullptr);
 
@@ -215,12 +216,23 @@ _hb_buffer_serialize_unicode_json (hb_buffer_t *buffer,
   {
     char b[1024];
     char *p = b;
+
     if (i)
       *p++ = ',';
     else
       *p++ = '[';
 
+    *p++ = '{';
+
+    APPEND ("\"u\":");
+
     p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "%u", info[i].codepoint));
+
+    if (!(flags & HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS)) {
+      p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), ",\"cl\":%u", info[i].cluster));
+    }
+
+    *p++ = '}';
 
     if (i == end-1)
       *p++ = ']';
@@ -340,7 +352,8 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
                                    unsigned int end,
                                    char *buf,
                                    unsigned int buf_size,
-                                   unsigned int *buf_consumed)
+                                   unsigned int *buf_consumed,
+                                   hb_buffer_serialize_flags_t flags)
 {
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, nullptr);
   *buf_consumed = 0;
@@ -355,6 +368,10 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
       *p++ = '<';
 
     p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "U+%04X", info[i].codepoint));
+
+    if (!(flags & HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS)) {
+      p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), "=%u", info[i].cluster));
+    }
 
     if (i == end-1)
       *p++ = '>';
@@ -508,18 +525,25 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
  * The serialized codepoints will look something like:
  *
  * ```
- * <U+0651|U+0628>
+ * <U+0651=0|U+0628=1>
  * ```
  * - Glyphs are separated with `|`
  * - Unicode codepoints are expressed as zero-padded four (or more)
  *   digit hexadecimal numbers preceded by `U+`
+ * - If #HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS is not set, the cluster
+ *   will be indicated with a `=` then #hb_glyph_info_t.cluster.
  *
  * ## json
  * A machine-readable, structured format.
- * The serialized codepoints will be a list of Unicode codepoints as
- * decimal integers. For example:
+ * The serialized codepoints will be a list of objects with the following
+ * properties:
+ * - `g`: the Unicode codepoint as a decimal integer
+ * - `cl`: #hb_glyph_info_t.cluster if
+ *   #HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS is not set.
+ *
+ * For example:
  * ```
- * [1617,1576]
+ * [{g:1617,cl:0},{g:1576,cl:1}]
  * ```
  *
  * Return value:
@@ -534,7 +558,8 @@ hb_buffer_serialize_unicode (hb_buffer_t *buffer,
                              char *buf,
                              unsigned int buf_size,
                              unsigned int *buf_consumed,
-                             hb_buffer_serialize_format_t format)
+                             hb_buffer_serialize_format_t format,
+                             hb_buffer_serialize_flags_t flags)
 {
   assert (start <= end && end <= buffer->len);
 
@@ -555,11 +580,11 @@ hb_buffer_serialize_unicode (hb_buffer_t *buffer,
   {
     case HB_BUFFER_SERIALIZE_FORMAT_TEXT:
       return _hb_buffer_serialize_unicode_text (buffer, start, end,
-                                                buf, buf_size, buf_consumed);
+                                                buf, buf_size, buf_consumed, flags);
 
     case HB_BUFFER_SERIALIZE_FORMAT_JSON:
       return _hb_buffer_serialize_unicode_json (buffer, start, end,
-                                                buf, buf_size, buf_consumed);
+                                                buf, buf_size, buf_consumed, flags);
 
     default:
     case HB_BUFFER_SERIALIZE_FORMAT_INVALID:
@@ -609,7 +634,7 @@ hb_buffer_serialize (hb_buffer_t *buffer,
                                       buf_consumed, font, format, flags);
   else
     return hb_buffer_serialize_unicode(buffer, start, end, buf, buf_size,
-                                       buf_consumed, format);
+                                       buf_consumed, format, flags);
 }
 
 static bool

@@ -863,8 +863,8 @@ typedef struct {
 } serialization_test_t;
 
 static const serialization_test_t serialization_tests[] = {
-  { "<U+0640|U+0635>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, 2 },
-  { "[1600,1589]", HB_BUFFER_SERIALIZE_FORMAT_JSON, 2 },
+  { "<U+0640=0|U+0635=1>", HB_BUFFER_SERIALIZE_FORMAT_TEXT, 2 },
+  { "[{\"u\":1600,\"cl\":0},{\"u\":1589,\"cl\":1}]", HB_BUFFER_SERIALIZE_FORMAT_JSON, 2 },
 };
 
 static void
@@ -873,13 +873,14 @@ test_buffer_serialize_deserialize (void)
   hb_buffer_t *b;
   unsigned int i;
 
-  b = hb_buffer_create ();
-  hb_buffer_set_replacement_codepoint (b, (hb_codepoint_t) -1);
-
   for (i = 0; i < G_N_ELEMENTS (serialization_tests); i++)
   {
     unsigned int num_glyphs, consumed;
     char round_trip[1024];
+
+	  b = hb_buffer_create ();
+	  hb_buffer_set_replacement_codepoint (b, (hb_codepoint_t) -1);
+
     const serialization_test_t *test = &serialization_tests[i];
     g_test_message ("serialize test #%d", i);
 
@@ -889,11 +890,13 @@ test_buffer_serialize_deserialize (void)
     g_assert_cmpint (num_glyphs, ==, test->num_items);
 
     hb_buffer_serialize_unicode(b, 0, num_glyphs, round_trip,
-                                sizeof(round_trip), &consumed, test->format);
+                                sizeof(round_trip), &consumed, test->format,
+                                HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
     g_assert_cmpstr (round_trip, ==, test->contents);
-  }
 
-  hb_buffer_destroy (b);
+	  hb_buffer_destroy (b);
+
+  }
 }
 
 int
