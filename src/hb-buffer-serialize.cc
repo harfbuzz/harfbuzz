@@ -437,6 +437,12 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
   assert ((!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)) ||
 	  (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS));
 
+  if (unlikely (hb_object_is_immutable (buffer)))
+  {
+    *end_ptr = buf;
+    return false;
+  }
+
   if (buf_len == -1)
     buf_len = strlen (buf);
 
