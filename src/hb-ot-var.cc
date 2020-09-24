@@ -89,7 +89,7 @@ hb_ot_var_get_axis_count (hb_face_t *face)
  * @start_offset: offset of the first lookup to retrieve
  * @axes_count: (inout) (allow-none): Input = the maximum number of variation axes to return;
  *                Output = the actual number of variation axes returned (may be zero)
- * @axes_array: (out) (array length=axes_count): The array of variation axes found
+ * @axes_array: (out caller-allocates) (array length=axes_count): The array of variation axes found
  *
  * Fetches a list of all variation axes in the specified face. The list returned will begin
  * at the offset provided.
@@ -135,7 +135,7 @@ hb_ot_var_find_axis (hb_face_t        *face,
  * @start_offset: offset of the first lookup to retrieve
  * @axes_count: (inout) (allow-none): Input = the maximum number of variation axes to return;
  *                Output = the actual number of variation axes returned (may be zero)
- * @axes_array: (out) (array length=axes_count): The array of variation axes found
+ * @axes_array: (out caller-allocates) (array length=axes_count): The array of variation axes found
  *
  * Fetches a list of all variation axes in the specified face. The list returned will begin
  * at the offset provided.
