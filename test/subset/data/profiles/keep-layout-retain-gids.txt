@@ -1,2 +1,2 @@
---drop-tables-=GSUB,GPOS
+--drop-tables-=GSUB,GPOS,GDEF
 --retain-gids
