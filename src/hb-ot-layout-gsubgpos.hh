@@ -2981,18 +2981,20 @@ struct ChainContextFormat3
 
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
-  bool serialize_coverage_offsets (hb_subset_context_t *c, Iterator it, const void* base) const
+  OffsetArrayOf<Coverage>* serialize_coverage_offsets
+      (hb_subset_context_t *c, Iterator it, const void* base) const
   {
     TRACE_SERIALIZE (this);
     auto *out = c->serializer->start_embed<OffsetArrayOf<Coverage>> ();
 
-    if (unlikely (!c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size))) return_trace (false);
+    if (unlikely (!c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size)))
+      return_trace (nullptr);
 
     + it
     | hb_apply (subset_offset_array (c, *out, base))
     ;
 
-    return_trace (out->len);
+    return_trace (out);
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -3007,7 +3009,8 @@ struct ChainContextFormat3
       return_trace (false);
 
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
-    if (!serialize_coverage_offsets (c, input.iter (), this))
+    OffsetArrayOf<Coverage>* new_coverage = serialize_coverage_offsets (c, input.iter (), this);
+    if (!new_coverage || !new_coverage->len)
       return_trace (false);
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
