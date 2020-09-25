@@ -810,7 +810,6 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
 
     default:
     case HB_BUFFER_SERIALIZE_FORMAT_INVALID:
-      printf("Invalid!\n");
       return false;
 
   }
