@@ -1945,6 +1945,8 @@ struct ContextFormat3
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
+    if (!intersects (c->glyphs))
+      return;
     const LookupRecord *lookupRecord = &StructAfter<LookupRecord> (coverageZ.as_array (glyphCount));
     recurse_lookups (c, lookupCount, lookupRecord);
   }
@@ -2910,6 +2912,9 @@ struct ChainContextFormat3
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
+    if (!intersects (c->glyphs))
+      return;
+
     const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
