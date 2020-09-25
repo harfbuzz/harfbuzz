@@ -592,6 +592,35 @@ hb_buffer_serialize_unicode (hb_buffer_t *buffer,
 
   }
 }
+
+static unsigned int
+_hb_buffer_serialize_invalid (hb_buffer_t *buffer,
+                              unsigned int start,
+                              unsigned int end,
+                              char *buf,
+                              unsigned int buf_size,
+                              unsigned int *buf_consumed,
+                              hb_buffer_serialize_format_t format,
+                              hb_buffer_serialize_flags_t flags)
+{
+  unsigned int sconsumed;
+  if (!buf_consumed)
+    buf_consumed = &sconsumed;
+  if (buf_size < 3)
+    return 0;
+  if (format == HB_BUFFER_SERIALIZE_FORMAT_JSON) {
+    *buf++ = '[';
+    *buf++ = ']';
+    *buf = '\0';
+  } else if (format == HB_BUFFER_SERIALIZE_FORMAT_TEXT) {
+    *buf++ = '!';
+    *buf++ = '!';
+    *buf = '\0';
+  }
+  *buf_consumed = 2;
+  return 0;
+}
+
 /**
  * hb_buffer_serialize:
  * @buffer: an #hb_buffer_t buffer.
@@ -629,12 +658,22 @@ hb_buffer_serialize (hb_buffer_t *buffer,
                      hb_buffer_serialize_format_t format,
                      hb_buffer_serialize_flags_t flags)
 {
-  if (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS)
-    return hb_buffer_serialize_glyphs(buffer, start, end, buf, buf_size,
-                                      buf_consumed, font, format, flags);
-  else
-    return hb_buffer_serialize_unicode(buffer, start, end, buf, buf_size,
+  switch (buffer->content_type)
+  {
+
+    case HB_BUFFER_CONTENT_TYPE_GLYPHS:
+      return hb_buffer_serialize_glyphs(buffer, start, end, buf, buf_size,
+                                        buf_consumed, font, format, flags);
+
+    case HB_BUFFER_CONTENT_TYPE_UNICODE:
+      return hb_buffer_serialize_unicode(buffer, start, end, buf, buf_size,
                                        buf_consumed, format, flags);
+
+    case HB_BUFFER_CONTENT_TYPE_INVALID:
+    default:
+      return _hb_buffer_serialize_invalid(buffer, start, end, buf, buf_size,
+                                           buf_consumed, format, flags);
+  }
 }
 
 static bool

@@ -898,14 +898,28 @@ test_buffer_serialize_deserialize (void)
 		num_glyphs = hb_buffer_get_length (b);
 		g_assert_cmpint (num_glyphs, ==, test->num_items);
 
-		hb_buffer_serialize_unicode(b, 0, num_glyphs, round_trip,
-																sizeof(round_trip), &consumed, test->format,
-																HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+		hb_buffer_serialize_unicode (b, 0, num_glyphs, round_trip,
+																 sizeof(round_trip), &consumed, test->format,
+																 HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
 		g_assert_cmpstr (round_trip, ==, test->contents);
 
 		hb_buffer_destroy (b);
 
 	}
+
+  char test[1024];
+  unsigned int num_glyphs, consumed;
+  hb_buffer_t *indeterminate = hb_buffer_get_empty ();
+  hb_buffer_serialize (indeterminate, 0, hb_buffer_get_length (indeterminate),
+    test, sizeof(test), &consumed, NULL, HB_BUFFER_SERIALIZE_FORMAT_JSON,
+    HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+  g_assert_cmpstr ( test, ==, "[]");
+
+  hb_buffer_serialize (indeterminate, 0, hb_buffer_get_length (indeterminate),
+    test, sizeof(test), &consumed, NULL, HB_BUFFER_SERIALIZE_FORMAT_TEXT,
+    HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+  g_assert_cmpstr ( test, ==, "!!");
+
 }
 
 int
