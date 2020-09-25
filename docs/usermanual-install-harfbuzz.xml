@@ -110,8 +110,12 @@
       <title>Building on Windows</title>
 
       <para>
-	Install meson and use it like `meson build --wrap-mode=default`
-	or use vcpkg.
+	      Install meson and from a Visual Studio Developer Command Prompt (or other shell after running vcvars32.bat) run the following commands in the harfbuzz directory to produce a release-mode DLL in the <filename>build/src/</filename> directory:
+	      <programlisting>
+		      <command>meson.exe setup build --wrap-mode=default --buildtype=release -Dglib=enabled -Dfreetype=enabled -Dgdi=enabled -Ddirectwrite=enabled</command>
+		      <command>meson.exe compile -C build</command>
+	      </programlisting>
+	      Alternately, use <ulink url="https://github.com/Microsoft/vcpkg">Microsoft's free vcpkg utility</ulink>.
       </para>
     </section>
 
