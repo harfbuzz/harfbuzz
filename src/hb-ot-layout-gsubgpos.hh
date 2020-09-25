@@ -2794,9 +2794,10 @@ struct ChainContextFormat2
     if (unlikely (!c->serializer->check_success (!lookahead_klass_map.in_error ())))
       return_trace (false);
 
-    unsigned non_zero_index = 0, index = 0;
+    int non_zero_index = -1, index = 0;
     bool ret = true;
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
+    auto last_non_zero = c->serializer->snapshot ();
     for (const OffsetTo<ChainRuleSet>& _ : + hb_enumerate (ruleSet)
 					   | hb_filter (input_klass_map, hb_first)
 					   | hb_map (hb_second))
@@ -2812,19 +2813,20 @@ struct ChainContextFormat2
 			       &backtrack_klass_map,
 			       &input_klass_map,
 			       &lookahead_klass_map))
+      {
+        last_non_zero = c->serializer->snapshot ();
 	non_zero_index = index;
+      }
 
       index++;
     }
 
     if (!ret) return_trace (ret);
 
-    //prune empty trailing ruleSets
-    --index;
-    while (index > non_zero_index)
-    {
-      out->ruleSet.pop ();
-      index--;
+    // prune empty trailing ruleSets
+    if (index > non_zero_index) {
+      c->serializer->revert (last_non_zero);
+      out->ruleSet.len = non_zero_index + 1;
     }
 
     return_trace (bool (out->ruleSet));
