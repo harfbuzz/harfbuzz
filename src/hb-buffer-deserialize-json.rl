@@ -52,6 +52,30 @@ action tok {
 	tok = p;
 }
 
+action ensure_glyphs {
+  if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
+  {
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
+    	buffer->clear();
+      return false;
+    }
+    assert (buffer->len == 0);
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
+  }
+}
+
+action ensure_unicode {
+  if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
+  {
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
+    	buffer->clear();
+      return false;
+    }
+    assert (buffer->len == 0);
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
+  }
+}
+
 action parse_glyph {
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
@@ -78,8 +102,8 @@ glyph_name = alpha (alnum|'_'|'.'|'-')*;
 glyph_string   = '"' (glyph_name >tok %parse_glyph) '"';
 glyph_number = (glyph_id >tok %parse_gid);
 
-glyph	= "\"g\""  colon (glyph_string | glyph_number);
-codepoint	= "\"u\""  colon glyph_number;
+glyph	= "\"g\""  colon (glyph_string | glyph_number) @ensure_glyphs;
+codepoint	= "\"u\""  colon glyph_number @ensure_unicode;
 cluster	= "\"cl\"" colon (unum >tok %parse_cluster);
 xoffset	= "\"dx\"" colon (num >tok %parse_x_offset);
 yoffset	= "\"dy\"" colon (num >tok %parse_y_offset);
