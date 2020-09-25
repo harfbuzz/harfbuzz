@@ -52,6 +52,30 @@ action tok {
 	tok = p;
 }
 
+action ensure_glyphs {
+  if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
+  {
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
+    	buffer->clear();
+      return false;
+    }
+    assert (buffer->len == 0);
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
+  }
+}
+
+action ensure_unicode {
+  if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
+  {
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
+    	buffer->clear();
+      return false;
+    }
+    assert (buffer->len == 0);
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
+  }
+}
+
 action parse_glyph {
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
@@ -73,13 +97,13 @@ num	= '-'? unum;
 glyph_id = unum;
 glyph_name = alpha (alnum|'_'|'.'|'-')*;
 
-glyph	= (glyph_id | glyph_name) >tok %parse_glyph;
+glyph	= (glyph_id | glyph_name) >tok @ensure_glyphs %parse_glyph;
 cluster	= '=' (unum >tok %parse_cluster);
 offsets	= '@' (num >tok %parse_x_offset)   ',' (num >tok %parse_y_offset );
 advances= '+' (num >tok %parse_x_advance) (',' (num >tok %parse_y_advance))?;
 
 codepoint = xdigit+ >tok %parse_hexdigits;
-unicode_id = 'U' '+'  >clear_item codepoint cluster? %add_item;
+unicode_id = 'U' '+'  >clear_item @ensure_unicode codepoint cluster? %add_item;
 
 item	=
 	(

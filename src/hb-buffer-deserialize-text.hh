@@ -409,17 +409,17 @@ static const char _deserialize_text_trans_actions[] = {
 	2, 2, 2, 0, 0, 5, 0, 6, 
 	5, 5, 0, 0, 0, 7, 7, 7, 
 	0, 8, 9, 9, 9, 8, 8, 0, 
-	0, 0, 10, 11, 10, 10, 12, 12, 
-	12, 7, 13, 13, 7, 14, 15, 14, 
-	14, 0, 0
+	0, 10, 11, 12, 11, 11, 13, 13, 
+	13, 7, 14, 14, 7, 15, 16, 15, 
+	15, 0, 10
 };
 
 static const char _deserialize_text_eof_actions[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 5, 0, 0, 0, 
-	7, 7, 8, 0, 0, 8, 10, 12, 
-	12, 10, 7, 14, 14, 7, 8
+	7, 7, 8, 0, 0, 8, 11, 13, 
+	13, 11, 7, 15, 15, 7, 8
 };
 
 static const int deserialize_text_start = 1;
@@ -429,7 +429,7 @@ static const int deserialize_text_error = 0;
 static const int deserialize_text_en_main = 1;
 
 
-#line 100 "hb-buffer-deserialize-text.rl"
+#line 124 "hb-buffer-deserialize-text.rl"
 
 
 static hb_bool_t
@@ -482,21 +482,28 @@ _resume:
 		goto _again;
 
 	switch ( _deserialize_text_trans_actions[_trans] ) {
-	case 1:
-#line 38 "hb-buffer-deserialize-text.rl"
-	{
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
-}
-	break;
 	case 2:
 #line 51 "hb-buffer-deserialize-text.rl"
 	{
 	tok = p;
 }
 	break;
-	case 9:
+	case 10:
 #line 55 "hb-buffer-deserialize-text.rl"
+	{
+  if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
+  {
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
+    	buffer->clear();
+      return false;
+    }
+    assert (buffer->len == 0);
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
+  }
+}
+	break;
+	case 9:
+#line 79 "hb-buffer-deserialize-text.rl"
 	{
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
@@ -505,38 +512,46 @@ _resume:
 }
 	break;
 	case 6:
-#line 62 "hb-buffer-deserialize-text.rl"
+#line 86 "hb-buffer-deserialize-text.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
 	break;
-	case 13:
-#line 64 "hb-buffer-deserialize-text.rl"
+	case 14:
+#line 88 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 	break;
 	case 4:
-#line 65 "hb-buffer-deserialize-text.rl"
+#line 89 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 	break;
-	case 15:
-#line 66 "hb-buffer-deserialize-text.rl"
+	case 16:
+#line 90 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 	break;
-	case 11:
-#line 67 "hb-buffer-deserialize-text.rl"
+	case 12:
+#line 91 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 	break;
-	case 3:
+	case 1:
 #line 38 "hb-buffer-deserialize-text.rl"
 	{
 	memset (&info, 0, sizeof (info));
 	memset (&pos , 0, sizeof (pos ));
 }
-#line 51 "hb-buffer-deserialize-text.rl"
+#line 67 "hb-buffer-deserialize-text.rl"
 	{
-	tok = p;
+  if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
+  {
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
+    	buffer->clear();
+      return false;
+    }
+    assert (buffer->len == 0);
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
+  }
 }
 	break;
 	case 8:
-#line 55 "hb-buffer-deserialize-text.rl"
+#line 79 "hb-buffer-deserialize-text.rl"
 	{
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
@@ -553,7 +568,7 @@ _resume:
 }
 	break;
 	case 5:
-#line 62 "hb-buffer-deserialize-text.rl"
+#line 86 "hb-buffer-deserialize-text.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -565,7 +580,7 @@ _resume:
 }
 	break;
 	case 7:
-#line 64 "hb-buffer-deserialize-text.rl"
+#line 88 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -576,8 +591,8 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-	case 14:
-#line 66 "hb-buffer-deserialize-text.rl"
+	case 15:
+#line 90 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -588,8 +603,8 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-	case 10:
-#line 67 "hb-buffer-deserialize-text.rl"
+	case 11:
+#line 91 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -600,8 +615,8 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-	case 12:
-#line 68 "hb-buffer-deserialize-text.rl"
+	case 13:
+#line 92 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -612,7 +627,30 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-#line 616 "hb-buffer-deserialize-text.hh"
+	case 3:
+#line 38 "hb-buffer-deserialize-text.rl"
+	{
+	memset (&info, 0, sizeof (info));
+	memset (&pos , 0, sizeof (pos ));
+}
+#line 51 "hb-buffer-deserialize-text.rl"
+	{
+	tok = p;
+}
+#line 55 "hb-buffer-deserialize-text.rl"
+	{
+  if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
+  {
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
+    	buffer->clear();
+      return false;
+    }
+    assert (buffer->len == 0);
+    buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
+  }
+}
+	break;
+#line 654 "hb-buffer-deserialize-text.hh"
 	}
 
 _again:
@@ -625,7 +663,7 @@ _again:
 	{
 	switch ( _deserialize_text_eof_actions[cs] ) {
 	case 8:
-#line 55 "hb-buffer-deserialize-text.rl"
+#line 79 "hb-buffer-deserialize-text.rl"
 	{
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
@@ -642,7 +680,7 @@ _again:
 }
 	break;
 	case 5:
-#line 62 "hb-buffer-deserialize-text.rl"
+#line 86 "hb-buffer-deserialize-text.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -654,7 +692,7 @@ _again:
 }
 	break;
 	case 7:
-#line 64 "hb-buffer-deserialize-text.rl"
+#line 88 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -665,8 +703,8 @@ _again:
 	*end_ptr = p;
 }
 	break;
-	case 14:
-#line 66 "hb-buffer-deserialize-text.rl"
+	case 15:
+#line 90 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -677,8 +715,8 @@ _again:
 	*end_ptr = p;
 }
 	break;
-	case 10:
-#line 67 "hb-buffer-deserialize-text.rl"
+	case 11:
+#line 91 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -689,8 +727,8 @@ _again:
 	*end_ptr = p;
 }
 	break;
-	case 12:
-#line 68 "hb-buffer-deserialize-text.rl"
+	case 13:
+#line 92 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -701,14 +739,14 @@ _again:
 	*end_ptr = p;
 }
 	break;
-#line 705 "hb-buffer-deserialize-text.hh"
+#line 743 "hb-buffer-deserialize-text.hh"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 124 "hb-buffer-deserialize-text.rl"
+#line 148 "hb-buffer-deserialize-text.rl"
 
 
   *end_ptr = p;
