@@ -139,9 +139,14 @@ hb_unicode_decompose_compatibility_nil (hb_unicode_funcs_t *ufuncs     HB_UNUSED
 #endif
 
 /**
+ * hb_unicode_funcs_get_default:
  *
+ * Fetches a pointer to the default Unicode-functions structure that is used
+ * when no functions are explicitly set on #hb_buffer_t.
  *
+ * Return value: (transfer none): a pointer to the #hb_unicode_funcs_t Unicode-functions structure
  *
+ * Since: 0.9.2
  **/
 hb_unicode_funcs_t *
 hb_unicode_funcs_get_default ()

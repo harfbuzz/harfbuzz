@@ -102,9 +102,10 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
  * @user_data: A pointer to the user data
  * @destroy: (optional): A callback to call when @data is not needed anymore
  *
- * Variant of hb_face_create(), built for those cases where
- * client programs are primarily concerned with querying the
- * font tables, rather than with full shaping.
+ * Variant of hb_face_create(), built for those cases where it is more
+ * convenient to provide data for individual tables instead of the whole font
+ * data. With the caveat that hb_face_get_table_tags() does not currently work
+ * with faces created this way.
  * 
  * Creates a new face object from the specified @user_data and @reference_table_func,
  * with the @destroy callback. 
@@ -397,8 +398,8 @@ hb_face_reference_table (const hb_face_t *face,
  * @face: A face object
  *
  * Fetches a pointer to the binary blob that contains the
- * specified face. Can only be used on faces created with
- * hb_face_builder_create().
+ * specified face. Returns an empty blob if referencing face data is not
+ * possible.
  *
  * Return value: (transfer full): A pointer to the blob for @face
  *
