@@ -102,8 +102,11 @@
       <title>Building on Windows</title>
 
       <para>
-	Install meson and use it like `meson build --wrap-mode=default`
-	or use vcpkg.
+        <ulink url="https://mesonbuild.com/Getting-meson.html">Install meson</ulink>
+        and run (from the console) <command>meson build</command> (by default
+        bundled dependencies are not built, <command>--wrap-mode=default</command>
+        overrides this), then <command>meson compile -C build</command> to
+	build HarfBuzz.
       </para>
     </section>
 
