@@ -2262,9 +2262,11 @@ struct ChainRule
 				  lookup_context);
   }
 
-  void closure_lookups (hb_closure_lookups_context_t *c) const
+  void closure_lookups (hb_closure_lookups_context_t *c,
+                        ChainContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
+    if (!intersects (c->glyphs, lookup_context)) return;
 
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16>> (backtrack);
     const ArrayOf<HBUINT16> &lookahead = StructAfter<ArrayOf<HBUINT16>> (input);
@@ -2448,14 +2450,14 @@ struct ChainRuleSet
     ;
   }
 
-  void closure_lookups (hb_closure_lookups_context_t *c) const
+  void closure_lookups (hb_closure_lookups_context_t *c,
+                        ChainContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
 
-    return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRule &_) { _.closure_lookups (c); })
+    | hb_apply ([&] (const ChainRule &_) { return _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -2576,9 +2578,16 @@ struct ChainContextFormat1
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
-    + hb_iter (ruleSet)
+    struct ChainContextClosureLookupContext lookup_context = {
+      {intersects_glyph},
+      {nullptr, nullptr, nullptr}
+    };
+
+    + hb_zip (this+coverage, ruleSet)
+    | hb_filter (*c->glyphs, hb_first)
+    | hb_map (hb_second)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRuleSet &_) { _.closure_lookups (c); })
+    | hb_apply ([&] (const ChainRuleSet &_) { return _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -2725,9 +2734,28 @@ struct ChainContextFormat2
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
+    if (!(this+coverage).intersects (c->glyphs))
+      return;
+
+    const ClassDef &backtrack_class_def = this+backtrackClassDef;
+    const ClassDef &input_class_def = this+inputClassDef;
+    const ClassDef &lookahead_class_def = this+lookaheadClassDef;
+
+    struct ChainContextClosureLookupContext lookup_context = {
+      {intersects_class},
+      {&backtrack_class_def,
+       &input_class_def,
+       &lookahead_class_def}
+    };
+
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRuleSet &_) { _.closure_lookups (c); })
+    | hb_enumerate
+    | hb_filter([&] (unsigned gid)
+    { return input_class_def.intersects_class (c->glyphs, gid); }, hb_first)
+    | hb_map (hb_second)
+    | hb_apply ([&] (const ChainRuleSet &_)
+    { _.closure_lookups (c, lookup_context); })
     ;
   }
 
