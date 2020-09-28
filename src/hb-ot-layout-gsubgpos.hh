@@ -1529,7 +1529,7 @@ struct RuleSet
     if (unlikely (c->lookup_limit_exceeded ())) return;
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const Rule &_) { return _.closure_lookups (c, lookup_context); })
+    | hb_apply ([&] (const Rule &_) { _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -1657,7 +1657,7 @@ struct ContextFormat1
     | hb_filter (*c->glyphs, hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const RuleSet &_) { return _.closure_lookups (c, lookup_context); })
+    | hb_apply ([&] (const RuleSet &_) { _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -2457,7 +2457,7 @@ struct ChainRuleSet
 
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRule &_) { return _.closure_lookups (c, lookup_context); })
+    | hb_apply ([&] (const ChainRule &_) { _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -2587,7 +2587,7 @@ struct ChainContextFormat1
     | hb_filter (*c->glyphs, hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const ChainRuleSet &_) { return _.closure_lookups (c, lookup_context); })
+    | hb_apply ([&] (const ChainRuleSet &_) { _.closure_lookups (c, lookup_context); })
     ;
   }
 
