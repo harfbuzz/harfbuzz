@@ -1389,9 +1389,11 @@ struct Rule
 			    lookup_context);
   }
 
-  void closure_lookups (hb_closure_lookups_context_t *c) const
+  void closure_lookups (hb_closure_lookups_context_t *c,
+                        ContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
+    if (!intersects (c->glyphs, lookup_context)) return;
 
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 						       (inputZ.as_array (inputCount ? inputCount - 1 : 0));
@@ -1521,14 +1523,13 @@ struct RuleSet
     ;
   }
 
-  void closure_lookups (hb_closure_lookups_context_t *c) const
+  void closure_lookups (hb_closure_lookups_context_t *c,
+                        ContextClosureLookupContext &lookup_context) const
   {
     if (unlikely (c->lookup_limit_exceeded ())) return;
-
-    return
     + hb_iter (rule)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const Rule &_) { _.closure_lookups (c); })
+    | hb_apply ([&] (const Rule &_) { return _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -1647,9 +1648,16 @@ struct ContextFormat1
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
-    + hb_iter (ruleSet)
+    struct ContextClosureLookupContext lookup_context = {
+      {intersects_glyph},
+      nullptr
+    };
+
+    + hb_zip (this+coverage, ruleSet)
+    | hb_filter (*c->glyphs, hb_first)
+    | hb_map (hb_second)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const RuleSet &_) { _.closure_lookups (c); })
+    | hb_apply ([&] (const RuleSet &_) { return _.closure_lookups (c, lookup_context); })
     ;
   }
 
@@ -1791,10 +1799,24 @@ struct ContextFormat2
 
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
+    if (!(this+coverage).intersects (c->glyphs))
+      return;
+
+    const ClassDef &class_def = this+classDef;
+
+    struct ContextClosureLookupContext lookup_context = {
+      {intersects_class},
+      &class_def
+    };
+
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
-    | hb_apply ([&] (const RuleSet &_) { _.closure_lookups (c); })
-    ;
+    | hb_enumerate
+    | hb_filter ([&] (const hb_pair_t<unsigned, const RuleSet &> p)
+    { return class_def.intersects_class (c->glyphs, p.first); })
+    | hb_map (hb_second)
+    | hb_apply ([&] (const RuleSet & _)
+    { _.closure_lookups (c, lookup_context); });
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const {}
