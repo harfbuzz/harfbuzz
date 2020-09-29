@@ -384,7 +384,7 @@ struct Axis
     if (likely (coord))
     {
       unsigned int tag_index = 0;
-      if (!(this+baseTagList).bfind (baseline_tag, &tag_index)) return false;
+      (this+baseTagList).bfind (baseline_tag, &tag_index);
       *coord = &base_script.get_base_coord (tag_index);
     }
 
