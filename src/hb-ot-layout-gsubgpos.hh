@@ -1708,7 +1708,7 @@ struct ContextFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     auto *out = c->serializer->start_embed (*this);
@@ -2377,7 +2377,7 @@ struct ChainRule
 
     if (!backtrack_map)
     {
-      const hb_set_t &glyphset = *c->plan->glyphset ();
+      const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
       if (!hb_all (backtrack, glyphset) ||
 	  !hb_all (input, glyphset) ||
 	  !hb_all (lookahead, glyphset))
@@ -2637,7 +2637,7 @@ struct ChainContextFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     auto *out = c->serializer->start_embed (*this);

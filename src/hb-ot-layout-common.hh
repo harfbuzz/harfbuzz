@@ -1128,7 +1128,7 @@ struct Lookup
     out->lookupType = lookupType;
     out->lookupFlag = lookupFlag;
 
-    const hb_set_t *glyphset = c->plan->glyphset ();
+    const hb_set_t *glyphset = c->plan->glyphset_gsub ();
     unsigned int lookup_type = get_type ();
     + hb_iter (get_subtables <TSubTable> ())
     | hb_filter ([this, glyphset, lookup_type] (const OffsetTo<TSubTable> &_) { return (this+_).intersects (glyphset, lookup_type); })
@@ -1502,7 +1502,7 @@ struct Coverage
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset ();
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     auto it =
@@ -1729,7 +1729,7 @@ struct ClassDefFormat1
 	       hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->_glyphset_gsub;
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_sorted_vector_t<HBGlyphID> glyphs;
@@ -1898,7 +1898,7 @@ struct ClassDefFormat2
 	       hb_map_t *klass_map = nullptr /*OUT*/) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->_glyphset_gsub;
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_sorted_vector_t<HBGlyphID> glyphs;
