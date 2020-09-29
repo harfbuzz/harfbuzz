@@ -3380,20 +3380,31 @@ struct GSUBGPOS
     return_trace (true);
   }
 
-  void closure_features (const hb_map_t *lookup_indexes, /* IN */
-			 hb_set_t       *feature_indexes /* OUT */) const
+  void prune_features (const hb_map_t *lookup_indices, /* IN */
+                       hb_set_t       *feature_indices /* IN/OUT */) const
   {
-    unsigned int feature_count = hb_min (get_feature_count (), (unsigned) HB_MAX_FEATURES);
-    for (unsigned i = 0; i < feature_count; i++)
+#ifndef HB_NO_VAR
+    // This is the set of feature indices which have alternate versions defined
+    // if the FeatureVariation's table and the alternate version(s) intersect the
+    // set of lookup indices.
+    hb_set_t alternate_feature_indices;
+    if (version.to_int () >= 0x00010001u)
+      (this+featureVars).closure_features (lookup_indices, &alternate_feature_indices);
+    if (alternate_feature_indices.in_error()) {
+      feature_indices->successful = false;
+      return;
+    }
+#endif
+
+    for (unsigned i : feature_indices->iter())
     {
       const Feature& f = get_feature (i);
-      if ((!f.featureParams.is_null ()) || f.intersects_lookup_indexes (lookup_indexes))
-	feature_indexes->add (i);
+
+      if (f.featureParams.is_null ()
+          && !f.intersects_lookup_indexes (lookup_indices)
+          && !alternate_feature_indices.has (i))
+        feature_indices->del (i);
     }
-#ifndef HB_NO_VAR
-    if (version.to_int () >= 0x00010001u)
-      (this+featureVars).closure_features (lookup_indexes, feature_indexes);
-#endif
   }
 
   unsigned int get_size () const
