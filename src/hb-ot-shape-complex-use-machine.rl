@@ -185,7 +185,8 @@ find_syllables_use (hb_buffer_t *buffer)
   auto p =
     + hb_iter (info, buffer->len)
     | hb_enumerate
-    | hb_filter (not_standard_default_ignorable, hb_second)
+    | hb_filter ([] (const hb_glyph_info_t &i) { return not_standard_default_ignorable (i); },
+		 hb_second)
     | hb_filter ([&] (const hb_pair_t<unsigned, const hb_glyph_info_t &> p)
 		 {
 		   if (p.second.use_category() == USE_ZWNJ)
