@@ -359,7 +359,8 @@ find_syllables_use (hb_buffer_t *buffer)
   auto p =
     + hb_iter (info, buffer->len)
     | hb_enumerate
-    | hb_filter (not_standard_default_ignorable, hb_second)
+    | hb_filter ([] (const hb_glyph_info_t &i) { return not_standard_default_ignorable (i); },
+		 hb_second)
     | hb_filter ([&] (const hb_pair_t<unsigned, const hb_glyph_info_t &> p)
 		 {
 		   if (p.second.use_category() == USE_ZWNJ)
@@ -378,7 +379,7 @@ find_syllables_use (hb_buffer_t *buffer)
   unsigned int act;
   int cs;
   
-#line 382 "hb-ot-shape-complex-use-machine.hh"
+#line 383 "hb-ot-shape-complex-use-machine.hh"
 	{
 	cs = use_syllable_machine_start;
 	ts = 0;
@@ -386,12 +387,12 @@ find_syllables_use (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 209 "hb-ot-shape-complex-use-machine.rl"
+#line 210 "hb-ot-shape-complex-use-machine.rl"
 
 
   unsigned int syllable_serial = 1;
   
-#line 395 "hb-ot-shape-complex-use-machine.hh"
+#line 396 "hb-ot-shape-complex-use-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -405,7 +406,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 409 "hb-ot-shape-complex-use-machine.hh"
+#line 410 "hb-ot-shape-complex-use-machine.hh"
 	}
 
 	_keys = _use_syllable_machine_trans_keys + (cs<<1);
@@ -511,7 +512,7 @@ _eof_trans:
 #line 162 "hb-ot-shape-complex-use-machine.rl"
 	{act = 10;}
 	break;
-#line 515 "hb-ot-shape-complex-use-machine.hh"
+#line 516 "hb-ot-shape-complex-use-machine.hh"
 	}
 
 _again:
@@ -520,7 +521,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 524 "hb-ot-shape-complex-use-machine.hh"
+#line 525 "hb-ot-shape-complex-use-machine.hh"
 	}
 
 	if ( ++p != pe )
@@ -536,7 +537,7 @@ _again:
 
 	}
 
-#line 214 "hb-ot-shape-complex-use-machine.rl"
+#line 215 "hb-ot-shape-complex-use-machine.rl"
 
 }
 
