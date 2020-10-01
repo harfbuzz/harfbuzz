@@ -544,7 +544,8 @@ struct AnchorMatrix
 	    hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
 		  unsigned                num_rows,
-		  const AnchorMatrix     *offset_matrix,
+		  AnchorMatrix const     *offset_matrix,
+		  const hb_map_t         *layout_variation_idx_map,
 		  Iterator                index_iter)
   {
     TRACE_SERIALIZE (this);
@@ -582,7 +583,11 @@ struct AnchorMatrix
       ;
     }
 
-    out->serialize (c->serializer, (unsigned) rows, this, indexes.iter ());
+    out->serialize (c->serializer,
+                    (unsigned) rows,
+                    this,
+                    c->plan->layout_variation_idx_map,
+                    indexes.iter ());
     return_trace (true);
   }
 
@@ -2057,14 +2062,20 @@ struct LigatureArray : OffsetListOf<LigatureAttach>
 	       Iterator                ligature_iter)
   {
     TRACE_SERIALIZE (this);
+
     if (!ligature_iter.len ()) return_trace (false);
     if (unlikely (!c->serializer->extend_min ((*this))))  return_trace (false);
+
 
     for (unsigned i : ligature_iter)
     {
       auto *out = serialize_append (c->serializer);
       if (unlikely (!out)) break;
-      out->serialize_subset (c, src_lig_array.arrayZ[i], &src_lig_array, this, cols, klass_mapping);
+      out->serialize_subset (c,
+                             src_lig_array.arrayZ[i],
+                             &src_lig_array,
+                             cols,
+                             klass_mapping);
     }
     return_trace (this->len);
   }
@@ -2179,7 +2190,7 @@ struct MarkLigPosFormat1
 
     hb_map_t klass_mapping;
     Markclass_closure_and_remap_indexes (this+markCoverage, this+markArray, glyphset, &klass_mapping);
-    
+
     if (!klass_mapping.get_population ()) return_trace (false);
     out->classCount = klass_mapping.get_population ();
 
@@ -2200,9 +2211,13 @@ struct MarkLigPosFormat1
       return_trace (false);
 
     out->markArray.serialize (c->serializer, out)
-		  .serialize (c->serializer, &klass_mapping, &(this+markArray), + mark_iter
-										| hb_map (hb_second));
-    
+		  .serialize (c->serializer,
+                              &klass_mapping,
+                              c->plan->layout_variation_idx_map,
+                              &(this+markArray),
+                              + mark_iter
+                              | hb_map (hb_second));
+
     unsigned ligcount = (this+ligatureArray).len;
     auto ligature_iter =
     + hb_zip (this+ligatureCoverage, hb_range (ligcount))
@@ -2221,8 +2236,12 @@ struct MarkLigPosFormat1
       return_trace (false);
 
     out->ligatureArray.serialize (c->serializer, out)
-		      .subset (c, (unsigned) classCount, &klass_mapping, this+ligatureArray, + ligature_iter
-											     | hb_map (hb_second));
+		      .subset (c,
+                               (unsigned) classCount,
+                               &klass_mapping,
+                               this+ligatureArray,
+                               + ligature_iter
+                               | hb_map (hb_second));
 
     return_trace (true);
   }
