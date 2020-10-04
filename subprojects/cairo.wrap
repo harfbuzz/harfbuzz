@@ -1,5 +1,5 @@
 [wrap-git]
 directory=cairo
-url=https://github.com/ebraminio/cairo.git
+url=https://gitlab.freedesktop.org/cairo/cairo.git
 depth=1
-revision=meson
+revision=master
