@@ -548,7 +548,6 @@ struct AnchorMatrix
 		  const hb_map_t         *layout_variation_idx_map,
 		  Iterator                index_iter)
   {
-    // TODO(grieger): can serialize with an iterator of anchor's?
     TRACE_SERIALIZE (this);
     if (!index_iter) return_trace (false);
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
@@ -574,22 +573,16 @@ struct AnchorMatrix
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
 
-    // TODO(grieger): shouldn't need to use an allocated vector to do this.
-    hb_vector_t<unsigned> indexes;
-    for (unsigned row : + hb_range ((unsigned) rows))
-    {
-      + hb_range (cols)
-      | hb_filter (klass_mapping)
-      | hb_map ([=] (const unsigned col) { return row * cols + col; })
-      | hb_sink (indexes)
-      ;
-    }
+    auto indexes =
+    + hb_range (rows * cols)
+    | hb_filter ([=] (unsigned index) { return klass_mapping->has (index % cols); })
+    ;
 
     out->serialize (c->serializer,
                     (unsigned) rows,
                     this,
                     c->plan->layout_variation_idx_map,
-                    indexes.iter ());
+                    indexes);
     return_trace (true);
   }
 
