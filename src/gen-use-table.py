@@ -9,8 +9,8 @@ Input files:
 * https://unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
 * https://unicode.org/Public/UCD/latest/ucd/ArabicShaping.txt
 * https://unicode.org/Public/UCD/latest/ucd/Blocks.txt
-* ms-use/IndicPositionalCategory-Additional.txt
 * ms-use/IndicSyllabicCategory-Additional.txt
+* ms-use/IndicPositionalCategory-Additional.txt
 """
 
 import sys
