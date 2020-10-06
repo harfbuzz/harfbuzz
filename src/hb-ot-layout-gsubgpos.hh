@@ -3178,6 +3178,24 @@ struct ExtensionFormat1
 		  extensionLookupType != T::SubTable::Extension);
   }
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+
+    out->format = format;
+    out->extensionLookupType = extensionLookupType;
+
+    const auto& src_offset =
+        reinterpret_cast<const LOffsetTo<typename T::SubTable> &> (extensionOffset);
+    auto& dest_offset =
+        reinterpret_cast<LOffsetTo<typename T::SubTable> &> (out->extensionOffset);
+
+    return_trace (dest_offset.serialize_subset (c, src_offset, this, get_type ()));
+  }
+
   protected:
   HBUINT16	format;			/* Format identifier. Set to 1. */
   HBUINT16	extensionLookupType;	/* Lookup type of subtable referenced
@@ -3205,6 +3223,18 @@ struct Extension
     switch (u.format) {
     case 1: return u.format1.template get_subtable<typename T::SubTable> ();
     default:return Null (typename T::SubTable);
+    }
+  }
+
+  // Specialization of dispatch for subset. dispatch() normally just
+  // dispatches to the sub table this points too, but for subset
+  // we need to run subset on this subtable too.
+  template <typename ...Ts>
+  typename hb_subset_context_t::return_t dispatch (hb_subset_context_t *c, Ts&&... ds) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.subset (c);
+    default: return c->default_return_value ();
     }
   }
 

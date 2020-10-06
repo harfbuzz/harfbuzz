@@ -20,6 +20,7 @@ TESTS = \
 	tests/layout.gpos6.tests \
 	tests/layout.gpos8.tests \
 	tests/layout.gpos8.amiri.tests \
+	tests/layout.gpos9.tests \
 	tests/layout.gsub3.tests \
 	tests/layout.gsub6.tests \
 	tests/layout.tests \
