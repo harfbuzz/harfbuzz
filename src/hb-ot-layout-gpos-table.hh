@@ -1366,7 +1366,10 @@ struct PairPosFormat2
       class2_set.add (klass2);
     }
 
-    if (class1_set.is_empty () || class2_set.is_empty ()) return;
+    if (class1_set.is_empty ()
+        || class2_set.is_empty ()
+        || (class2_set.get_population() == 1 && class2_set.has(0)))
+      return;
 
     unsigned len1 = valueFormat1.get_len ();
     unsigned len2 = valueFormat2.get_len ();
@@ -1434,12 +1437,17 @@ struct PairPosFormat2
     out->valueFormat1 = valueFormat1;
     out->valueFormat2 = valueFormat2;
 
+    hb_set_t coverage_glyphs;
+    + hb_iter (this + coverage)
+    | hb_filter (c->plan->glyphset_gsub())
+    | hb_sink (coverage_glyphs);
+
     hb_map_t klass1_map;
-    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map);
+    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, &coverage_glyphs);
     out->class1Count = klass1_map.get_population ();
 
     hb_map_t klass2_map;
-    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map);
+    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map, false);
     out->class2Count = klass2_map.get_population ();
 
     unsigned len1 = valueFormat1.get_len ();
