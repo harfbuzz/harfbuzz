@@ -1328,8 +1328,9 @@ struct PairPosFormat2
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    return (this+coverage).intersects (glyphs) &&
-	   (this+classDef2).intersects (glyphs);
+    // Don't check classDef2 for coverage since class 0 is implicitly included
+    // which matches everything.
+    return (this+coverage).intersects (glyphs);
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
@@ -1489,7 +1490,7 @@ struct PairPosFormat2
 		classDef1;		/* Offset to ClassDef table--from
 					 * beginning of PairPos subtable--for
 					 * the first glyph of the pair */
-  OffsetTo<ClassDef>
+  NNOffsetTo<ClassDef>
 		classDef2;		/* Offset to ClassDef table--from
 					 * beginning of PairPos subtable--for
 					 * the second glyph of the pair */
