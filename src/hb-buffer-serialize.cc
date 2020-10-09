@@ -464,7 +464,8 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
                             hb_buffer_serialize_format_t format,
                             hb_buffer_serialize_flags_t flags)
 {
-  assert (start <= end && end <= buffer->len);
+  end = hb_clamp (end, start, buffer->len);
+  start = hb_min (start, end);
 
   unsigned int sconsumed;
   if (!buf_consumed)
@@ -561,7 +562,8 @@ hb_buffer_serialize_unicode (hb_buffer_t *buffer,
                              hb_buffer_serialize_format_t format,
                              hb_buffer_serialize_flags_t flags)
 {
-  assert (start <= end && end <= buffer->len);
+  end = hb_clamp (end, start, buffer->len);
+  start = hb_min (start, end);
 
   unsigned int sconsumed;
   if (!buf_consumed)
