@@ -748,7 +748,8 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 
   if (unlikely (hb_object_is_immutable (buffer)))
   {
-    *end_ptr = buf;
+    if (end_ptr)
+      *end_ptr = buf;
     return false;
   }
 
@@ -818,7 +819,8 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
 
   if (unlikely (hb_object_is_immutable (buffer)))
   {
-    *end_ptr = buf;
+    if (end_ptr)
+      *end_ptr = buf;
     return false;
   }
 
