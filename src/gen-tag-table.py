@@ -686,6 +686,8 @@ ot.add_language ('und-fonnapa', 'APPH')
 ot.remove_language_ot ('IRT')
 ot.add_language ('ga-Latg', 'IRT')
 
+ot.add_language ('hy-arevmda', 'HYE')
+
 ot.remove_language_ot ('KGE')
 ot.add_language ('und-Geok', 'KGE')
 
@@ -809,6 +811,7 @@ disambiguation = {
 	'ECR': 'crj',
 	'HAL': 'cfm',
 	'HND': 'hnd',
+	'HYE': 'hyw',
 	'KIS': 'kqs',
 	'KUI': 'uki',
 	'LRC': 'bqi',
