@@ -39,8 +39,8 @@ static const unsigned char _deserialize_json_trans_keys[] = {
 	9u, 125u, 9u, 125u, 108u, 108u, 34u, 34u, 9u, 58u, 9u, 57u, 9u, 125u, 9u, 125u, 
 	120u, 121u, 34u, 34u, 9u, 58u, 9u, 57u, 48u, 57u, 9u, 125u, 9u, 125u, 34u, 34u, 
 	9u, 58u, 9u, 57u, 48u, 57u, 9u, 125u, 9u, 125u, 34u, 34u, 9u, 58u, 9u, 57u, 
-	65u, 122u, 34u, 122u, 9u, 125u, 9u, 125u, 34u, 34u, 9u, 58u, 9u, 57u, 9u, 125u, 
-	9u, 93u, 9u, 123u, 0u, 0u, 0
+	34u, 92u, 9u, 125u, 34u, 92u, 9u, 125u, 9u, 125u, 34u, 34u, 9u, 58u, 9u, 57u, 
+	9u, 125u, 9u, 93u, 9u, 123u, 0u, 0u, 0
 };
 
 static const char _deserialize_json_key_spans[] = {
@@ -49,8 +49,8 @@ static const char _deserialize_json_key_spans[] = {
 	117, 117, 1, 1, 50, 49, 117, 117, 
 	2, 1, 50, 49, 10, 117, 117, 1, 
 	50, 49, 10, 117, 117, 1, 50, 49, 
-	58, 89, 117, 117, 1, 50, 49, 117, 
-	85, 115, 0
+	59, 117, 59, 117, 117, 1, 50, 49, 
+	117, 85, 115, 0
 };
 
 static const short _deserialize_json_index_offsets[] = {
@@ -59,8 +59,8 @@ static const short _deserialize_json_index_offsets[] = {
 	750, 868, 986, 988, 990, 1041, 1091, 1209, 
 	1327, 1330, 1332, 1383, 1433, 1444, 1562, 1680, 
 	1682, 1733, 1783, 1794, 1912, 2030, 2032, 2083, 
-	2133, 2192, 2282, 2400, 2518, 2520, 2571, 2621, 
-	2739, 2825, 2941
+	2133, 2193, 2311, 2371, 2489, 2607, 2609, 2660, 
+	2710, 2828, 2914, 3030
 };
 
 static const char _deserialize_json_indicies[] = {
@@ -330,30 +330,19 @@ static const char _deserialize_json_indicies[] = {
 	1, 1, 1, 66, 1, 67, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 68, 69, 69, 69, 69, 
-	69, 69, 69, 69, 69, 1, 70, 70, 
+	69, 69, 69, 69, 69, 1, 71, 70, 
 	70, 70, 70, 70, 70, 70, 70, 70, 
 	70, 70, 70, 70, 70, 70, 70, 70, 
 	70, 70, 70, 70, 70, 70, 70, 70, 
-	1, 1, 1, 1, 1, 1, 70, 70, 
 	70, 70, 70, 70, 70, 70, 70, 70, 
 	70, 70, 70, 70, 70, 70, 70, 70, 
 	70, 70, 70, 70, 70, 70, 70, 70, 
-	1, 71, 72, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 72, 72, 1, 72, 
-	72, 72, 72, 72, 72, 72, 72, 72, 
-	72, 1, 1, 1, 1, 1, 1, 1, 
-	72, 72, 72, 72, 72, 72, 72, 72, 
-	72, 72, 72, 72, 72, 72, 72, 72, 
-	72, 72, 72, 72, 72, 72, 72, 72, 
-	72, 72, 1, 1, 1, 1, 72, 1, 
-	72, 72, 72, 72, 72, 72, 72, 72, 
-	72, 72, 72, 72, 72, 72, 72, 72, 
-	72, 72, 72, 72, 72, 72, 72, 72, 
-	72, 72, 1, 73, 73, 73, 73, 73, 
+	70, 70, 70, 70, 70, 70, 70, 70, 
+	72, 70, 73, 73, 73, 73, 73, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 73, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 74, 1, 
+	1, 73, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 74, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
@@ -363,64 +352,19 @@ static const char _deserialize_json_indicies[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 75, 
-	1, 73, 73, 73, 73, 73, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	73, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 74, 1, 1, 1, 
-	76, 76, 76, 76, 76, 76, 76, 76, 
-	76, 76, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 75, 1, 
+	70, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 70, 1, 76, 76, 76, 76, 
+	76, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 75, 1, 77, 
-	1, 77, 77, 77, 77, 77, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	77, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 78, 1, 78, 78, 78, 78, 
-	78, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 78, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 79, 80, 80, 80, 80, 
-	80, 80, 80, 80, 80, 1, 73, 73, 
-	73, 73, 73, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 73, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 74, 1, 1, 1, 81, 81, 81, 
-	81, 81, 81, 81, 81, 81, 81, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 75, 1, 82, 82, 82, 82, 
-	82, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 82, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 83, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	84, 1, 0, 0, 0, 0, 0, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 0, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 76, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 77, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
@@ -431,21 +375,89 @@ static const char _deserialize_json_indicies[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 2, 1, 1, 0
+	78, 1, 76, 76, 76, 76, 76, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 76, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 77, 1, 1, 
+	1, 79, 79, 79, 79, 79, 79, 79, 
+	79, 79, 79, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 78, 1, 
+	80, 1, 80, 80, 80, 80, 80, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 80, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 81, 1, 81, 81, 81, 
+	81, 81, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 81, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 82, 83, 83, 83, 
+	83, 83, 83, 83, 83, 83, 1, 76, 
+	76, 76, 76, 76, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 76, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 77, 1, 1, 1, 84, 84, 
+	84, 84, 84, 84, 84, 84, 84, 84, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 78, 1, 85, 85, 85, 
+	85, 85, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 85, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	86, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 87, 1, 0, 0, 0, 0, 0, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 0, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 1, 1, 1, 
+	1, 1, 1, 1, 1, 2, 1, 1, 
+	0
 };
 
 static const char _deserialize_json_trans_targs[] = {
 	1, 0, 2, 2, 3, 4, 18, 24, 
-	37, 44, 5, 12, 6, 7, 8, 9, 
-	11, 9, 11, 10, 2, 48, 10, 48, 
+	37, 45, 5, 12, 6, 7, 8, 9, 
+	11, 9, 11, 10, 2, 49, 10, 49, 
 	13, 14, 15, 16, 17, 16, 17, 10, 
-	2, 48, 19, 20, 21, 22, 23, 10, 
-	2, 48, 23, 25, 31, 26, 27, 28, 
-	29, 30, 29, 30, 10, 2, 48, 32, 
+	2, 49, 19, 20, 21, 22, 23, 10, 
+	2, 49, 23, 25, 31, 26, 27, 28, 
+	29, 30, 29, 30, 10, 2, 49, 32, 
 	33, 34, 35, 36, 35, 36, 10, 2, 
-	48, 38, 39, 40, 42, 43, 41, 10, 
-	41, 10, 2, 48, 43, 45, 46, 42, 
-	47, 47, 48, 49, 50
+	49, 38, 39, 40, 43, 44, 40, 41, 
+	42, 10, 2, 49, 10, 2, 49, 44, 
+	46, 47, 43, 48, 48, 49, 50, 51
 };
 
 static const char _deserialize_json_trans_actions[] = {
@@ -457,19 +469,19 @@ static const char _deserialize_json_trans_actions[] = {
 	8, 9, 0, 0, 0, 0, 0, 2, 
 	2, 2, 0, 0, 10, 10, 11, 0, 
 	0, 2, 2, 2, 0, 0, 12, 12, 
-	13, 0, 0, 0, 14, 14, 2, 15, 
-	0, 16, 16, 17, 18, 0, 0, 19, 
-	19, 20, 0, 0, 0
+	13, 0, 0, 2, 14, 14, 0, 15, 
+	0, 16, 16, 17, 18, 18, 19, 15, 
+	0, 0, 20, 20, 21, 0, 0, 0
 };
 
 static const int deserialize_json_start = 1;
-static const int deserialize_json_first_final = 48;
+static const int deserialize_json_first_final = 49;
 static const int deserialize_json_error = 0;
 
 static const int deserialize_json_en_main = 1;
 
 
-#line 122 "hb-buffer-deserialize-json.rl"
+#line 129 "hb-buffer-deserialize-json.rl"
 
 
 static hb_bool_t
@@ -496,12 +508,12 @@ _hb_buffer_deserialize_json (hb_buffer_t *buffer,
   hb_glyph_info_t info = {0};
   hb_glyph_position_t pos = {0};
   
-#line 500 "hb-buffer-deserialize-json.hh"
+#line 512 "hb-buffer-deserialize-json.hh"
 	{
 	cs = deserialize_json_start;
 	}
 
-#line 505 "hb-buffer-deserialize-json.hh"
+#line 517 "hb-buffer-deserialize-json.hh"
 	{
 	int _slen;
 	int _trans;
@@ -549,7 +561,7 @@ _resume:
 	tok = p;
 }
 	break;
-	case 18:
+	case 15:
 #line 55 "hb-buffer-deserialize-json.rl"
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
@@ -563,7 +575,7 @@ _resume:
   }
 }
 	break;
-	case 20:
+	case 21:
 #line 67 "hb-buffer-deserialize-json.rl"
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
@@ -578,27 +590,37 @@ _resume:
 }
 	break;
 	case 16:
-#line 86 "hb-buffer-deserialize-json.rl"
+#line 79 "hb-buffer-deserialize-json.rl"
+	{
+	/* TODO Unescape \" and \\ if found. */
+	if (!hb_font_glyph_from_string (font,
+					tok, p - tok,
+					&info.codepoint))
+	  return false;
+}
+	break;
+	case 18:
+#line 87 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_uint (tok, p, &info.codepoint)) return false; }
 	break;
 	case 8:
-#line 87 "hb-buffer-deserialize-json.rl"
+#line 88 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 	break;
 	case 10:
-#line 88 "hb-buffer-deserialize-json.rl"
+#line 89 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 	break;
 	case 12:
-#line 89 "hb-buffer-deserialize-json.rl"
+#line 90 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 	break;
 	case 3:
-#line 90 "hb-buffer-deserialize-json.rl"
+#line 91 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 	break;
 	case 6:
-#line 91 "hb-buffer-deserialize-json.rl"
+#line 92 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 	break;
 	case 14:
@@ -619,7 +641,7 @@ _resume:
   }
 }
 	break;
-	case 19:
+	case 20:
 #line 51 "hb-buffer-deserialize-json.rl"
 	{
 	tok = p;
@@ -637,29 +659,26 @@ _resume:
   }
 }
 	break;
-	case 15:
+	case 17:
 #line 79 "hb-buffer-deserialize-json.rl"
 	{
+	/* TODO Unescape \" and \\ if found. */
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
 					&info.codepoint))
 	  return false;
 }
-#line 55 "hb-buffer-deserialize-json.rl"
+#line 43 "hb-buffer-deserialize-json.rl"
 	{
-  if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
-  {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
-      return false;
-    }
-    assert (buffer->len == 0);
-    buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
-  }
+	buffer->add_info (info);
+	if (unlikely (!buffer->successful))
+	  return false;
+	buffer->pos[buffer->len - 1] = pos;
+	*end_ptr = p;
 }
 	break;
-	case 17:
-#line 86 "hb-buffer-deserialize-json.rl"
+	case 19:
+#line 87 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_uint (tok, p, &info.codepoint)) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -671,7 +690,7 @@ _resume:
 }
 	break;
 	case 9:
-#line 87 "hb-buffer-deserialize-json.rl"
+#line 88 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -683,7 +702,7 @@ _resume:
 }
 	break;
 	case 11:
-#line 88 "hb-buffer-deserialize-json.rl"
+#line 89 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -695,7 +714,7 @@ _resume:
 }
 	break;
 	case 13:
-#line 89 "hb-buffer-deserialize-json.rl"
+#line 90 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -707,7 +726,7 @@ _resume:
 }
 	break;
 	case 4:
-#line 90 "hb-buffer-deserialize-json.rl"
+#line 91 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -719,7 +738,7 @@ _resume:
 }
 	break;
 	case 7:
-#line 91 "hb-buffer-deserialize-json.rl"
+#line 92 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -730,7 +749,7 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-#line 734 "hb-buffer-deserialize-json.hh"
+#line 753 "hb-buffer-deserialize-json.hh"
 	}
 
 _again:
@@ -742,7 +761,7 @@ _again:
 	_out: {}
 	}
 
-#line 150 "hb-buffer-deserialize-json.rl"
+#line 157 "hb-buffer-deserialize-json.rl"
 
 
   *end_ptr = p;

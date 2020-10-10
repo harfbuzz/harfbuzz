@@ -77,6 +77,7 @@ action ensure_unicode {
 }
 
 action parse_glyph {
+	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
 					&info.codepoint))
@@ -95,9 +96,9 @@ unum  = '0' | [1-9] digit*;
 num	= '-'? unum;
 
 glyph_id = unum;
-glyph_name = alpha (alnum|'_'|'.'|'-')*;
+glyph_name = ([^\\\]=@+,|] | '\\' [\\\]=@+,|]) *;
 
-glyph	= (glyph_id | glyph_name) >tok @ensure_glyphs %parse_glyph;
+glyph	= (glyph_id | glyph_name) >tok %parse_glyph;
 cluster	= '=' (unum >tok %parse_cluster);
 offsets	= '@' (num >tok %parse_x_offset)   ',' (num >tok %parse_y_offset );
 advances= '+' (num >tok %parse_x_advance) (',' (num >tok %parse_y_advance))?;
@@ -110,10 +111,11 @@ glyph_item	=
 		advances?
 	)
 	>clear_item
+	@ensure_glyphs
 	%add_item
 	;
 
-unicode = 'U' '+' xdigit+ >tok @ensure_unicode %parse_hexdigits;
+unicode = 'U' '+' xdigit+ >tok %parse_hexdigits;
 
 unicode_item	=
 	(
@@ -121,6 +123,7 @@ unicode_item	=
 		cluster?
 	)
 	>clear_item
+	@ensure_unicode
 	%add_item
 	;
 

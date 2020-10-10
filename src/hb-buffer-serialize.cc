@@ -136,10 +136,11 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
       char g[128];
       hb_font_glyph_to_string (font, info[i].codepoint, g, sizeof (g));
       *p++ = '"';
-      for (char *q = g; *q; q++) {
-        if (*q == '"')
-          *p++ = '\\';
-        *p++ = *q;
+      for (char *q = g; *q; q++)
+      {
+	if (unlikely (*q == '"' || *q == '\\'))
+	  *p++ = '\\';
+	*p++ = *q;
       }
       *p++ = '"';
     }
@@ -153,10 +154,10 @@ _hb_buffer_serialize_glyphs_json (hb_buffer_t *buffer,
     if (!(flags & HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS))
     {
       p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), ",\"dx\":%d,\"dy\":%d",
-                   x+pos[i].x_offset, y+pos[i].y_offset));
+		   x+pos[i].x_offset, y+pos[i].y_offset));
       if (!(flags & HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES))
         p += hb_max (0, snprintf (p, ARRAY_LENGTH (b) - (p - b), ",\"ax\":%d,\"ay\":%d",
-                     pos[i].x_advance, pos[i].y_advance));
+		     pos[i].x_advance, pos[i].y_advance));
     }
 
     if (flags & HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS)
@@ -283,6 +284,7 @@ _hb_buffer_serialize_glyphs_text (hb_buffer_t *buffer,
 
     if (!(flags & HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES))
     {
+      /* TODO Escape delimiters we use. */
       hb_font_glyph_to_string (font, info[i].codepoint, p, 128);
       p += strlen (p);
     }

@@ -77,6 +77,7 @@ action ensure_unicode {
 }
 
 action parse_glyph_name {
+	/* TODO Unescape \" and \\ if found. */
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
 					&info.codepoint))
@@ -97,20 +98,26 @@ comma = space* ',' space*;
 colon = space* ':' space*;
 
 codepoint = unum;
-glyph_name = alpha (alnum|'_'|'.'|'-'|'#')*;
+glyph_name = '"' ([^\\"] | '\\' [\\"])* '"';
 
-parse_glyph_name   = '"' (glyph_name >tok %parse_glyph_name) '"';
+parse_glyph_name   = (glyph_name >tok %parse_glyph_name);
 parse_codepoint = (codepoint >tok %parse_codepoint);
 
-glyph	= "\"g\""  colon (parse_glyph_name | parse_codepoint) @ensure_glyphs;
-unicode	= "\"u\""  colon parse_codepoint @ensure_unicode;
+glyph	= "\"g\""  colon (parse_glyph_name | parse_codepoint);
+unicode	= "\"u\""  colon parse_codepoint;
 cluster	= "\"cl\"" colon (unum >tok %parse_cluster);
 xoffset	= "\"dx\"" colon (num >tok %parse_x_offset);
 yoffset	= "\"dy\"" colon (num >tok %parse_y_offset);
 xadvance= "\"ax\"" colon (num >tok %parse_x_advance);
 yadvance= "\"ay\"" colon (num >tok %parse_y_advance);
 
-element = glyph | unicode | cluster | xoffset | yoffset | xadvance | yadvance;
+element = glyph @ensure_glyphs
+	| unicode @ensure_unicode
+	| cluster
+	| xoffset
+	| yoffset
+	| xadvance
+	| yadvance;
 item	=
 	( '{' space* element (comma element)* space* '}')
 	>clear_item
