@@ -401,7 +401,7 @@ static const int deserialize_text_error = 0;
 static const int deserialize_text_en_main = 1;
 
 
-#line 135 "hb-buffer-deserialize-text.rl"
+#line 131 "hb-buffer-deserialize-text.rl"
 
 
 static hb_bool_t
@@ -472,31 +472,27 @@ _resume:
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   }
 }
 	break;
 	case 8:
-#line 67 "hb-buffer-deserialize-text.rl"
+#line 65 "hb-buffer-deserialize-text.rl"
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
   }
 }
 	break;
 	case 18:
-#line 79 "hb-buffer-deserialize-text.rl"
+#line 75 "hb-buffer-deserialize-text.rl"
 	{
 	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
@@ -506,23 +502,23 @@ _resume:
 }
 	break;
 	case 9:
-#line 87 "hb-buffer-deserialize-text.rl"
+#line 83 "hb-buffer-deserialize-text.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
 	break;
 	case 21:
-#line 89 "hb-buffer-deserialize-text.rl"
+#line 85 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 	break;
 	case 6:
-#line 90 "hb-buffer-deserialize-text.rl"
+#line 86 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 	break;
 	case 23:
-#line 91 "hb-buffer-deserialize-text.rl"
+#line 87 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 	break;
 	case 20:
-#line 92 "hb-buffer-deserialize-text.rl"
+#line 88 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 	break;
 	case 15:
@@ -545,10 +541,8 @@ _resume:
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   }
@@ -559,21 +553,19 @@ _resume:
 	{
 	tok = p;
 }
-#line 67 "hb-buffer-deserialize-text.rl"
+#line 65 "hb-buffer-deserialize-text.rl"
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
   }
 }
 	break;
 	case 16:
-#line 79 "hb-buffer-deserialize-text.rl"
+#line 75 "hb-buffer-deserialize-text.rl"
 	{
 	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
@@ -591,7 +583,7 @@ _resume:
 }
 	break;
 	case 7:
-#line 87 "hb-buffer-deserialize-text.rl"
+#line 83 "hb-buffer-deserialize-text.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -603,7 +595,7 @@ _resume:
 }
 	break;
 	case 10:
-#line 89 "hb-buffer-deserialize-text.rl"
+#line 85 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -615,7 +607,7 @@ _resume:
 }
 	break;
 	case 22:
-#line 91 "hb-buffer-deserialize-text.rl"
+#line 87 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -627,7 +619,7 @@ _resume:
 }
 	break;
 	case 19:
-#line 92 "hb-buffer-deserialize-text.rl"
+#line 88 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -639,7 +631,7 @@ _resume:
 }
 	break;
 	case 24:
-#line 93 "hb-buffer-deserialize-text.rl"
+#line 89 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -664,10 +656,8 @@ _resume:
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   }
@@ -683,7 +673,7 @@ _resume:
 	{
 	tok = p;
 }
-#line 79 "hb-buffer-deserialize-text.rl"
+#line 75 "hb-buffer-deserialize-text.rl"
 	{
 	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
@@ -693,7 +683,7 @@ _resume:
 }
 	break;
 	case 17:
-#line 79 "hb-buffer-deserialize-text.rl"
+#line 75 "hb-buffer-deserialize-text.rl"
 	{
 	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
@@ -705,10 +695,8 @@ _resume:
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   }
@@ -732,7 +720,7 @@ _resume:
 	{
 	tok = p;
 }
-#line 79 "hb-buffer-deserialize-text.rl"
+#line 75 "hb-buffer-deserialize-text.rl"
 	{
 	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
@@ -759,7 +747,7 @@ _resume:
 	{
 	tok = p;
 }
-#line 79 "hb-buffer-deserialize-text.rl"
+#line 75 "hb-buffer-deserialize-text.rl"
 	{
 	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
@@ -771,10 +759,8 @@ _resume:
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   }
@@ -788,7 +774,7 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-#line 792 "hb-buffer-deserialize-text.hh"
+#line 778 "hb-buffer-deserialize-text.hh"
 	}
 
 _again:
@@ -801,7 +787,7 @@ _again:
 	{
 	switch ( _deserialize_text_eof_actions[cs] ) {
 	case 16:
-#line 79 "hb-buffer-deserialize-text.rl"
+#line 75 "hb-buffer-deserialize-text.rl"
 	{
 	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
@@ -819,7 +805,7 @@ _again:
 }
 	break;
 	case 7:
-#line 87 "hb-buffer-deserialize-text.rl"
+#line 83 "hb-buffer-deserialize-text.rl"
 	{if (!parse_hex (tok, p, &info.codepoint )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -831,7 +817,7 @@ _again:
 }
 	break;
 	case 10:
-#line 89 "hb-buffer-deserialize-text.rl"
+#line 85 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -843,7 +829,7 @@ _again:
 }
 	break;
 	case 22:
-#line 91 "hb-buffer-deserialize-text.rl"
+#line 87 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -855,7 +841,7 @@ _again:
 }
 	break;
 	case 19:
-#line 92 "hb-buffer-deserialize-text.rl"
+#line 88 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -867,7 +853,7 @@ _again:
 }
 	break;
 	case 24:
-#line 93 "hb-buffer-deserialize-text.rl"
+#line 89 "hb-buffer-deserialize-text.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 #line 43 "hb-buffer-deserialize-text.rl"
 	{
@@ -888,7 +874,7 @@ _again:
 	{
 	tok = p;
 }
-#line 79 "hb-buffer-deserialize-text.rl"
+#line 75 "hb-buffer-deserialize-text.rl"
 	{
 	/* TODO Unescape delimeters. */
 	if (!hb_font_glyph_from_string (font,
@@ -905,14 +891,14 @@ _again:
 	*end_ptr = p;
 }
 	break;
-#line 909 "hb-buffer-deserialize-text.hh"
+#line 895 "hb-buffer-deserialize-text.hh"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 159 "hb-buffer-deserialize-text.rl"
+#line 155 "hb-buffer-deserialize-text.rl"
 
 
   *end_ptr = p;

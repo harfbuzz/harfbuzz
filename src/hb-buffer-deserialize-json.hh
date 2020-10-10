@@ -481,7 +481,7 @@ static const int deserialize_json_error = 0;
 static const int deserialize_json_en_main = 1;
 
 
-#line 129 "hb-buffer-deserialize-json.rl"
+#line 125 "hb-buffer-deserialize-json.rl"
 
 
 static hb_bool_t
@@ -566,31 +566,27 @@ _resume:
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   }
 }
 	break;
 	case 21:
-#line 67 "hb-buffer-deserialize-json.rl"
+#line 65 "hb-buffer-deserialize-json.rl"
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
   }
 }
 	break;
 	case 16:
-#line 79 "hb-buffer-deserialize-json.rl"
+#line 75 "hb-buffer-deserialize-json.rl"
 	{
 	/* TODO Unescape \" and \\ if found. */
 	if (!hb_font_glyph_from_string (font,
@@ -600,27 +596,27 @@ _resume:
 }
 	break;
 	case 18:
-#line 87 "hb-buffer-deserialize-json.rl"
+#line 83 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_uint (tok, p, &info.codepoint)) return false; }
 	break;
 	case 8:
-#line 88 "hb-buffer-deserialize-json.rl"
+#line 84 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 	break;
 	case 10:
-#line 89 "hb-buffer-deserialize-json.rl"
+#line 85 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 	break;
 	case 12:
-#line 90 "hb-buffer-deserialize-json.rl"
+#line 86 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 	break;
 	case 3:
-#line 91 "hb-buffer-deserialize-json.rl"
+#line 87 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 	break;
 	case 6:
-#line 92 "hb-buffer-deserialize-json.rl"
+#line 88 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 	break;
 	case 14:
@@ -632,10 +628,8 @@ _resume:
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   }
@@ -646,21 +640,19 @@ _resume:
 	{
 	tok = p;
 }
-#line 67 "hb-buffer-deserialize-json.rl"
+#line 65 "hb-buffer-deserialize-json.rl"
 	{
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
   }
 }
 	break;
 	case 17:
-#line 79 "hb-buffer-deserialize-json.rl"
+#line 75 "hb-buffer-deserialize-json.rl"
 	{
 	/* TODO Unescape \" and \\ if found. */
 	if (!hb_font_glyph_from_string (font,
@@ -678,7 +670,7 @@ _resume:
 }
 	break;
 	case 19:
-#line 87 "hb-buffer-deserialize-json.rl"
+#line 83 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_uint (tok, p, &info.codepoint)) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -690,7 +682,7 @@ _resume:
 }
 	break;
 	case 9:
-#line 88 "hb-buffer-deserialize-json.rl"
+#line 84 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -702,7 +694,7 @@ _resume:
 }
 	break;
 	case 11:
-#line 89 "hb-buffer-deserialize-json.rl"
+#line 85 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -714,7 +706,7 @@ _resume:
 }
 	break;
 	case 13:
-#line 90 "hb-buffer-deserialize-json.rl"
+#line 86 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -726,7 +718,7 @@ _resume:
 }
 	break;
 	case 4:
-#line 91 "hb-buffer-deserialize-json.rl"
+#line 87 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -738,7 +730,7 @@ _resume:
 }
 	break;
 	case 7:
-#line 92 "hb-buffer-deserialize-json.rl"
+#line 88 "hb-buffer-deserialize-json.rl"
 	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
 #line 43 "hb-buffer-deserialize-json.rl"
 	{
@@ -749,7 +741,7 @@ _resume:
 	*end_ptr = p;
 }
 	break;
-#line 753 "hb-buffer-deserialize-json.hh"
+#line 745 "hb-buffer-deserialize-json.hh"
 	}
 
 _again:
@@ -761,7 +753,7 @@ _again:
 	_out: {}
 	}
 
-#line 157 "hb-buffer-deserialize-json.rl"
+#line 153 "hb-buffer-deserialize-json.rl"
 
 
   *end_ptr = p;

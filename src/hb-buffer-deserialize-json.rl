@@ -55,10 +55,8 @@ action tok {
 action ensure_glyphs {
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
   }
@@ -67,10 +65,8 @@ action ensure_glyphs {
 action ensure_unicode {
   if (unlikely (buffer->content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
   {
-    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID) {
-    	buffer->clear();
+    if (buffer->content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
       return false;
-    }
     assert (buffer->len == 0);
     buffer->content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
   }
