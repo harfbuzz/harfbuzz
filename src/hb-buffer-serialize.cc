@@ -666,17 +666,17 @@ hb_buffer_serialize (hb_buffer_t *buffer,
   {
 
     case HB_BUFFER_CONTENT_TYPE_GLYPHS:
-      return hb_buffer_serialize_glyphs(buffer, start, end, buf, buf_size,
-                                        buf_consumed, font, format, flags);
+      return hb_buffer_serialize_glyphs (buffer, start, end, buf, buf_size,
+					 buf_consumed, font, format, flags);
 
     case HB_BUFFER_CONTENT_TYPE_UNICODE:
-      return hb_buffer_serialize_unicode(buffer, start, end, buf, buf_size,
-                                       buf_consumed, format, flags);
+      return hb_buffer_serialize_unicode (buffer, start, end, buf, buf_size,
+					  buf_consumed, format, flags);
 
     case HB_BUFFER_CONTENT_TYPE_INVALID:
     default:
-      return _hb_buffer_serialize_invalid(buffer, start, end, buf, buf_size,
-                                           buf_consumed, format, flags);
+      return _hb_buffer_serialize_invalid (buffer, start, end, buf, buf_size,
+					   buf_consumed, format, flags);
   }
 }
 
