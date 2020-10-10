@@ -102,10 +102,7 @@ cluster	= '=' (unum >tok %parse_cluster);
 offsets	= '@' (num >tok %parse_x_offset)   ',' (num >tok %parse_y_offset );
 advances= '+' (num >tok %parse_x_advance) (',' (num >tok %parse_y_advance))?;
 
-codepoint = xdigit+ >tok %parse_hexdigits;
-unicode_id = 'U' '+'  >clear_item @ensure_unicode codepoint cluster? %add_item;
-
-item	=
+glyph_item	=
 	(
 		glyph
 		cluster?
@@ -116,8 +113,19 @@ item	=
 	%add_item
 	;
 
-glyphs = item (space* '|' space* item)* space* ('|'|']')?;
-unicodes = unicode_id (space* '|' space* unicode_id)* space* ('|'|'>')?;
+unicode = 'U' '+' xdigit+ >tok @ensure_unicode %parse_hexdigits;
+
+unicode_item	=
+	(
+		unicode
+		cluster?
+	)
+	>clear_item
+	%add_item
+	;
+
+glyphs = glyph_item (space* '|' space* glyph_item)* space* ('|'|']')?;
+unicodes = unicode_item (space* '|' space* unicode_item)* space* ('|'|'>')?;
 
 main := space* ( ('[' glyphs) | ('<' unicodes) );
 

@@ -76,14 +76,14 @@ action ensure_unicode {
   }
 }
 
-action parse_glyph {
+action parse_glyph_name {
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
 					&info.codepoint))
 	  return false;
 }
 
-action parse_gid       { if (!parse_uint (tok, p, &info.codepoint)) return false; }
+action parse_codepoint { if (!parse_uint (tok, p, &info.codepoint)) return false; }
 action parse_cluster   { if (!parse_uint (tok, p, &info.cluster )) return false; }
 action parse_x_offset  { if (!parse_int  (tok, p, &pos.x_offset )) return false; }
 action parse_y_offset  { if (!parse_int  (tok, p, &pos.y_offset )) return false; }
@@ -96,21 +96,21 @@ num	= '-'? unum;
 comma = space* ',' space*;
 colon = space* ':' space*;
 
-glyph_id = unum;
-glyph_name = alpha (alnum|'_'|'.'|'-')*;
+codepoint = unum;
+glyph_name = alpha (alnum|'_'|'.'|'-'|'#')*;
 
-glyph_string   = '"' (glyph_name >tok %parse_glyph) '"';
-glyph_number = (glyph_id >tok %parse_gid);
+parse_glyph_name   = '"' (glyph_name >tok %parse_glyph_name) '"';
+parse_codepoint = (codepoint >tok %parse_codepoint);
 
-glyph	= "\"g\""  colon (glyph_string | glyph_number) @ensure_glyphs;
-codepoint	= "\"u\""  colon glyph_number @ensure_unicode;
+glyph	= "\"g\""  colon (parse_glyph_name | parse_codepoint) @ensure_glyphs;
+unicode	= "\"u\""  colon parse_codepoint @ensure_unicode;
 cluster	= "\"cl\"" colon (unum >tok %parse_cluster);
 xoffset	= "\"dx\"" colon (num >tok %parse_x_offset);
 yoffset	= "\"dy\"" colon (num >tok %parse_y_offset);
 xadvance= "\"ax\"" colon (num >tok %parse_x_advance);
 yadvance= "\"ay\"" colon (num >tok %parse_y_advance);
 
-element = glyph | codepoint | cluster | xoffset | yoffset | xadvance | yadvance;
+element = glyph | unicode | cluster | xoffset | yoffset | xadvance | yadvance;
 item	=
 	( '{' space* element (comma element)* space* '}')
 	>clear_item
