@@ -591,7 +591,9 @@ class BCP47Parser (object):
 					elif not has_preferred_value and line.startswith ('Macrolanguage: '):
 						self._add_macrolanguage (line.split (' ')[1], subtag)
 				elif subtag_type == 'variant':
-					if line.startswith ('Prefix: '):
+					if line.startswith ('Deprecated: '):
+						self.scopes[subtag] = ' (retired code)' + self.scopes.get (subtag, '')
+					elif line.startswith ('Prefix: '):
 						self.prefixes[subtag].add (line.split (' ')[1])
 				elif line.startswith ('File-Date: '):
 					self.header = line
@@ -622,6 +624,17 @@ class BCP47Parser (object):
 				for macrolanguage in macrolanguages:
 					self._add_macrolanguage (biggest_macrolanguage, macrolanguage)
 
+	def _get_name_piece (self, subtag):
+		"""Return the first name of a subtag plus its scope suffix.
+
+		Args:
+			subtag (str): A BCP 47 subtag.
+
+		Returns:
+			The name form of ``subtag``.
+		"""
+		return self.names[subtag].split ('\n')[0] + self.scopes.get (subtag, '')
+
 	def get_name (self, lt):
 		"""Return the names of the subtags in a language tag.
 
@@ -631,13 +644,13 @@ class BCP47Parser (object):
 		Returns:
 			The name form of ``lt``.
 		"""
-		name = self.names[lt.language].split ('\n')[0]
+		name = self._get_name_piece (lt.language)
 		if lt.script:
-			name += '; ' + self.names[lt.script.title ()].split ('\n')[0]
+			name += '; ' + self._get_name_piece (lt.script.title ())
 		if lt.region:
-			name += '; ' + self.names[lt.region.upper ()].split ('\n')[0]
+			name += '; ' + self._get_name_piece (lt.region.upper ())
 		if lt.variant:
-			name += '; ' + self.names[lt.variant].split ('\n')[0]
+			name += '; ' + self._get_name_piece (lt.variant)
 		return name
 
 bcp_47 = BCP47Parser ()
