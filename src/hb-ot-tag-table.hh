@@ -2125,6 +2125,8 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("ms", -1);  /* Malay [macrolanguage] */
   case HB_TAG('M','N','G',' '):  /* Mongolian */
     return hb_language_from_string ("mn", -1);  /* Mongolian [macrolanguage] */
+  case HB_TAG('M','N','K',' '):  /* Maninka */
+    return hb_language_from_string ("man", -1);  /* Mandingo [macrolanguage] */
   case HB_TAG('M','O','L',' '):  /* Moldavian */
     return hb_language_from_string ("ro-MD", -1);  /* Romanian; Moldova */
   case HB_TAG('N','E','P',' '):  /* Nepali */
