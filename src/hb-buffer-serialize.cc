@@ -605,6 +605,8 @@ _hb_buffer_serialize_invalid (hb_buffer_t *buffer,
                               hb_buffer_serialize_format_t format,
                               hb_buffer_serialize_flags_t flags)
 {
+  assert (!buffer->len);
+
   unsigned int sconsumed;
   if (!buf_consumed)
     buf_consumed = &sconsumed;
