@@ -335,6 +335,8 @@ test_ot_tag_language (void)
   test_language_two_way ("FAR", "fa");
   test_tag_from_language ("FAR", "fa_IR");
 
+  test_language_two_way ("MNK", "man"); /* Mandingo [macrolanguage] */
+
   test_language_two_way ("SWA", "aii"); /* Swadaya Aramaic */
 
   test_language_two_way ("SYR", "syr"); /* Syriac [macrolanguage] */

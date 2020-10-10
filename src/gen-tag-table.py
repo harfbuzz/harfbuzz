@@ -1103,8 +1103,8 @@ def verify_disambiguation_dict ():
 						'%s is not a valid disambiguation for %s' % (disambiguation[ot_tag], ot_tag))
 			elif ot_tag not in disambiguation:
 				disambiguation[ot_tag] = macrolanguages[0]
-			different_primary_tags = sorted (t for t in primary_tags if not same_tag (t, ot.from_bcp_47.get (t)))
-			if different_primary_tags and disambiguation[ot_tag] == different_primary_tags[0] and '-' not in disambiguation[ot_tag]:
+			different_bcp_47_tags = sorted (t for t in bcp_47_tags if not same_tag (t, ot.from_bcp_47.get (t)))
+			if different_bcp_47_tags and disambiguation[ot_tag] == different_bcp_47_tags[0] and '-' not in disambiguation[ot_tag]:
 				del disambiguation[ot_tag]
 	for ot_tag in disambiguation.keys ():
 		expect (ot_tag in ot.to_bcp_47, 'unknown OT tag: %s' % ot_tag)
