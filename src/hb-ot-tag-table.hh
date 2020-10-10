@@ -7,7 +7,7 @@
  * on files with these headers:
  *
  * <meta name="updated_at" content="2019-05-22 06:05 PM" />
- * File-Date: 2020-07-17
+ * File-Date: 2020-09-29
  */
 
 #ifndef HB_OT_TAG_TABLE_HH
@@ -1137,7 +1137,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'a':
     if (0 == strcmp (&lang_str[1], "rt-lojban"))
     {
-      /* Lojban */
+      /* Lojban (retired code) */
       tags[0] = HB_TAG('J','B','O',' ');  /* Lojban */
       *count = 1;
       return true;
@@ -1731,7 +1731,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'i':
     if (0 == strcmp (&lang_str[1], "-navajo"))
     {
-      /* Navajo */
+      /* Navajo (retired code) */
       unsigned int i;
       hb_tag_t possible_tags[] = {
 	HB_TAG('N','A','V',' '),  /* Navajo */
@@ -1744,14 +1744,14 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     }
     if (0 == strcmp (&lang_str[1], "-hak"))
     {
-      /* Hakka */
+      /* Hakka (retired code) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (0 == strcmp (&lang_str[1], "-lux"))
     {
-      /* Luxembourgish */
+      /* Luxembourgish (retired code) */
       tags[0] = HB_TAG('L','T','Z',' ');  /* Luxembourgish */
       *count = 1;
       return true;
@@ -1875,14 +1875,14 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     }
     if (0 == strcmp (&lang_str[1], "o-bok"))
     {
-      /* Norwegian Bokmal */
+      /* Norwegian Bokmal (retired code) */
       tags[0] = HB_TAG('N','O','R',' ');  /* Norwegian */
       *count = 1;
       return true;
     }
     if (0 == strcmp (&lang_str[1], "o-nyn"))
     {
-      /* Norwegian Nynorsk */
+      /* Norwegian Nynorsk (retired code) */
       tags[0] = HB_TAG('N','Y','N',' ');  /* Norwegian Nynorsk (Nynorsk, Norwegian) */
       *count = 1;
       return true;
@@ -1964,42 +1964,42 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'z':
     if (lang_matches (&lang_str[1], "h-hant-hk"))
     {
-      /* Chinese */
+      /* Chinese [macrolanguage] */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "h-hant-mo"))
     {
-      /* Chinese */
+      /* Chinese [macrolanguage] */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (0 == strcmp (&lang_str[1], "h-min-nan"))
     {
-      /* Minnan, Hokkien, Amoy, Taiwanese, Southern Min, Southern Fujian, Hoklo, Southern Fukien, Ho-lo */
+      /* Minnan, Hokkien, Amoy, Taiwanese, Southern Min, Southern Fujian, Hoklo, Southern Fukien, Ho-lo (retired code) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "h-hans"))
     {
-      /* Chinese */
+      /* Chinese [macrolanguage] */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "h-hant"))
     {
-      /* Chinese */
+      /* Chinese [macrolanguage] */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (0 == strcmp (&lang_str[1], "h-min"))
     {
-      /* Min, Fuzhou, Hokkien, Amoy, or Taiwanese */
+      /* Min, Fuzhou, Hokkien, Amoy, or Taiwanese (retired code) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
@@ -2007,7 +2007,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     if (0 == strncmp (&lang_str[1], "h-", 2)
 	&& subtag_matches (lang_str, limit, "-hk"))
     {
-      /* Chinese; Hong Kong */
+      /* Chinese [macrolanguage]; Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
@@ -2015,7 +2015,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     if (0 == strncmp (&lang_str[1], "h-", 2)
 	&& subtag_matches (lang_str, limit, "-mo"))
     {
-      /* Chinese; Macao */
+      /* Chinese [macrolanguage]; Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
@@ -2023,7 +2023,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     if (0 == strncmp (&lang_str[1], "h-", 2)
 	&& subtag_matches (lang_str, limit, "-tw"))
     {
-      /* Chinese; Taiwan, Province of China */
+      /* Chinese [macrolanguage]; Taiwan, Province of China */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
@@ -2055,83 +2055,83 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
   case HB_TAG('A','P','P','H'):  /* Phonetic transcription—Americanist conventions */
     return hb_language_from_string ("und-fonnapa", -1);  /* Undetermined; North American Phonetic Alphabet */
   case HB_TAG('A','R','A',' '):  /* Arabic */
-    return hb_language_from_string ("ar", -1);  /* Arabic */
+    return hb_language_from_string ("ar", -1);  /* Arabic [macrolanguage] */
   case HB_TAG('A','R','K',' '):  /* Rakhine */
     return hb_language_from_string ("rki", -1);  /* Rakhine */
   case HB_TAG('A','T','H',' '):  /* Athapaskan */
-    return hb_language_from_string ("ath", -1);  /* Athapascan */
+    return hb_language_from_string ("ath", -1);  /* Athapascan [family] */
   case HB_TAG('B','I','K',' '):  /* Bikol */
-    return hb_language_from_string ("bik", -1);  /* Bikol */
+    return hb_language_from_string ("bik", -1);  /* Bikol [macrolanguage] */
   case HB_TAG('C','P','P',' '):  /* Creoles */
-    return hb_language_from_string ("crp", -1);  /* Creoles and pidgins */
+    return hb_language_from_string ("crp", -1);  /* Creoles and pidgins [family] */
   case HB_TAG('C','R','R',' '):  /* Carrier */
     return hb_language_from_string ("crx", -1);  /* Carrier */
   case HB_TAG('D','N','K',' '):  /* Dinka */
-    return hb_language_from_string ("din", -1);  /* Dinka */
+    return hb_language_from_string ("din", -1);  /* Dinka [macrolanguage] */
   case HB_TAG('D','R','I',' '):  /* Dari */
     return hb_language_from_string ("prs", -1);  /* Dari */
   case HB_TAG('D','Z','N',' '):  /* Dzongkha */
     return hb_language_from_string ("dz", -1);  /* Dzongkha */
   case HB_TAG('E','T','I',' '):  /* Estonian */
-    return hb_language_from_string ("et", -1);  /* Estonian */
+    return hb_language_from_string ("et", -1);  /* Estonian [macrolanguage] */
   case HB_TAG('G','O','N',' '):  /* Gondi */
-    return hb_language_from_string ("gon", -1);  /* Gondi */
+    return hb_language_from_string ("gon", -1);  /* Gondi [macrolanguage] */
   case HB_TAG('H','M','N',' '):  /* Hmong */
-    return hb_language_from_string ("hmn", -1);  /* Hmong */
+    return hb_language_from_string ("hmn", -1);  /* Hmong [macrolanguage] */
   case HB_TAG('H','N','D',' '):  /* Hindko */
     return hb_language_from_string ("hnd", -1);  /* Southern Hindko */
   case HB_TAG('H','Y','E',' '):  /* Armenian */
     return hb_language_from_string ("hyw", -1);  /* Western Armenian */
   case HB_TAG('I','J','O',' '):  /* Ijo */
-    return hb_language_from_string ("ijo", -1);  /* Ijo */
+    return hb_language_from_string ("ijo", -1);  /* Ijo [family] */
   case HB_TAG('I','N','U',' '):  /* Inuktitut */
-    return hb_language_from_string ("iu", -1);  /* Inuktitut */
+    return hb_language_from_string ("iu", -1);  /* Inuktitut [macrolanguage] */
   case HB_TAG('I','P','K',' '):  /* Inupiat */
-    return hb_language_from_string ("ik", -1);  /* Inupiaq */
+    return hb_language_from_string ("ik", -1);  /* Inupiaq [macrolanguage] */
   case HB_TAG('I','P','P','H'):  /* Phonetic transcription—IPA conventions */
     return hb_language_from_string ("und-fonipa", -1);  /* Undetermined; International Phonetic Alphabet */
   case HB_TAG('I','R','T',' '):  /* Irish Traditional */
     return hb_language_from_string ("ga-Latg", -1);  /* Irish; Latin (Gaelic variant) */
   case HB_TAG('J','I','I',' '):  /* Yiddish */
-    return hb_language_from_string ("yi", -1);  /* Yiddish */
+    return hb_language_from_string ("yi", -1);  /* Yiddish [macrolanguage] */
   case HB_TAG('K','A','L',' '):  /* Kalenjin */
-    return hb_language_from_string ("kln", -1);  /* Kalenjin */
+    return hb_language_from_string ("kln", -1);  /* Kalenjin [macrolanguage] */
   case HB_TAG('K','G','E',' '):  /* Khutsuri Georgian */
     return hb_language_from_string ("und-Geok", -1);  /* Undetermined; Khutsuri (Asomtavruli and Nuskhuri) */
   case HB_TAG('K','N','R',' '):  /* Kanuri */
-    return hb_language_from_string ("kr", -1);  /* Kanuri */
+    return hb_language_from_string ("kr", -1);  /* Kanuri [macrolanguage] */
   case HB_TAG('K','O','K',' '):  /* Konkani */
-    return hb_language_from_string ("kok", -1);  /* Konkani */
+    return hb_language_from_string ("kok", -1);  /* Konkani [macrolanguage] */
   case HB_TAG('K','U','I',' '):  /* Kui */
     return hb_language_from_string ("uki", -1);  /* Kui (India) */
   case HB_TAG('K','U','R',' '):  /* Kurdish */
-    return hb_language_from_string ("ku", -1);  /* Kurdish */
+    return hb_language_from_string ("ku", -1);  /* Kurdish [macrolanguage] */
   case HB_TAG('L','U','H',' '):  /* Luyia */
-    return hb_language_from_string ("luy", -1);  /* Luyia */
+    return hb_language_from_string ("luy", -1);  /* Luyia [macrolanguage] */
   case HB_TAG('L','V','I',' '):  /* Latvian */
-    return hb_language_from_string ("lv", -1);  /* Latvian */
+    return hb_language_from_string ("lv", -1);  /* Latvian [macrolanguage] */
   case HB_TAG('M','A','W',' '):  /* Marwari */
-    return hb_language_from_string ("mwr", -1);  /* Marwari */
+    return hb_language_from_string ("mwr", -1);  /* Marwari [macrolanguage] */
   case HB_TAG('M','L','G',' '):  /* Malagasy */
-    return hb_language_from_string ("mg", -1);  /* Malagasy */
+    return hb_language_from_string ("mg", -1);  /* Malagasy [macrolanguage] */
   case HB_TAG('M','L','Y',' '):  /* Malay */
-    return hb_language_from_string ("ms", -1);  /* Malay */
+    return hb_language_from_string ("ms", -1);  /* Malay [macrolanguage] */
   case HB_TAG('M','N','G',' '):  /* Mongolian */
-    return hb_language_from_string ("mn", -1);  /* Mongolian */
+    return hb_language_from_string ("mn", -1);  /* Mongolian [macrolanguage] */
   case HB_TAG('M','O','L',' '):  /* Moldavian */
     return hb_language_from_string ("ro-MD", -1);  /* Romanian; Moldova */
   case HB_TAG('N','E','P',' '):  /* Nepali */
-    return hb_language_from_string ("ne", -1);  /* Nepali */
+    return hb_language_from_string ("ne", -1);  /* Nepali [macrolanguage] */
   case HB_TAG('N','I','S',' '):  /* Nisi */
     return hb_language_from_string ("njz", -1);  /* Nyishi */
   case HB_TAG('N','O','R',' '):  /* Norwegian */
-    return hb_language_from_string ("no", -1);  /* Norwegian */
+    return hb_language_from_string ("no", -1);  /* Norwegian [macrolanguage] */
   case HB_TAG('O','J','B',' '):  /* Ojibway */
-    return hb_language_from_string ("oj", -1);  /* Ojibwa */
+    return hb_language_from_string ("oj", -1);  /* Ojibwa [macrolanguage] */
   case HB_TAG('O','R','O',' '):  /* Oromo */
-    return hb_language_from_string ("om", -1);  /* Oromo */
+    return hb_language_from_string ("om", -1);  /* Oromo [macrolanguage] */
   case HB_TAG('P','A','S',' '):  /* Pashto */
-    return hb_language_from_string ("ps", -1);  /* Pashto */
+    return hb_language_from_string ("ps", -1);  /* Pashto [macrolanguage] */
   case HB_TAG('P','G','R',' '):  /* Polytonic Greek */
     return hb_language_from_string ("el-polyton", -1);  /* Modern Greek (1453-); Polytonic Greek */
   case HB_TAG('P','R','O',' '):  /* Provençal / Old Provençal */
@@ -2143,13 +2143,13 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
   case HB_TAG('Q','W','H',' '):  /* Quechua (Peru) */
     return hb_language_from_string ("qwh", -1);  /* Huaylas Ancash Quechua */
   case HB_TAG('R','A','J',' '):  /* Rajasthani */
-    return hb_language_from_string ("raj", -1);  /* Rajasthani */
+    return hb_language_from_string ("raj", -1);  /* Rajasthani [macrolanguage] */
   case HB_TAG('R','O','Y',' '):  /* Romany */
-    return hb_language_from_string ("rom", -1);  /* Romany */
+    return hb_language_from_string ("rom", -1);  /* Romany [macrolanguage] */
   case HB_TAG('S','Q','I',' '):  /* Albanian */
-    return hb_language_from_string ("sq", -1);  /* Albanian */
+    return hb_language_from_string ("sq", -1);  /* Albanian [macrolanguage] */
   case HB_TAG('S','Y','R',' '):  /* Syriac */
-    return hb_language_from_string ("syr", -1);  /* Syriac */
+    return hb_language_from_string ("syr", -1);  /* Syriac [macrolanguage] */
   case HB_TAG('S','Y','R','E'):  /* Syriac, Estrangela script-variant (equivalent to ISO 15924 'Syre') */
     return hb_language_from_string ("und-Syre", -1);  /* Undetermined; Syriac (Estrangelo variant) */
   case HB_TAG('S','Y','R','J'):  /* Syriac, Western script-variant (equivalent to ISO 15924 'Syrj') */
@@ -2157,7 +2157,7 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
   case HB_TAG('S','Y','R','N'):  /* Syriac, Eastern script-variant (equivalent to ISO 15924 'Syrn') */
     return hb_language_from_string ("und-Syrn", -1);  /* Undetermined; Syriac (Eastern variant) */
   case HB_TAG('T','M','H',' '):  /* Tamashek */
-    return hb_language_from_string ("tmh", -1);  /* Tamashek */
+    return hb_language_from_string ("tmh", -1);  /* Tamashek [macrolanguage] */
   case HB_TAG('T','N','E',' '):  /* Tundra Nenets */
     return hb_language_from_string ("yrk", -1);  /* Nenets */
   case HB_TAG('T','O','D',' '):  /* Todo */
@@ -2165,11 +2165,11 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
   case HB_TAG('T','W','I',' '):  /* Twi */
     return hb_language_from_string ("tw", -1);  /* Twi */
   case HB_TAG('Z','H','H',' '):  /* Chinese, Hong Kong SAR */
-    return hb_language_from_string ("zh-HK", -1);  /* Chinese; Hong Kong */
+    return hb_language_from_string ("zh-HK", -1);  /* Chinese [macrolanguage]; Hong Kong */
   case HB_TAG('Z','H','S',' '):  /* Chinese Simplified */
-    return hb_language_from_string ("zh-Hans", -1);  /* Chinese; Han (Simplified variant) */
+    return hb_language_from_string ("zh-Hans", -1);  /* Chinese [macrolanguage]; Han (Simplified variant) */
   case HB_TAG('Z','H','T',' '):  /* Chinese Traditional */
-    return hb_language_from_string ("zh-Hant", -1);  /* Chinese; Han (Traditional variant) */
+    return hb_language_from_string ("zh-Hant", -1);  /* Chinese [macrolanguage]; Han (Traditional variant) */
   default:
     return HB_LANGUAGE_INVALID;
   }
