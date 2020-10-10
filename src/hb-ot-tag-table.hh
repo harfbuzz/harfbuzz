@@ -1090,6 +1090,13 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     *count = 1;
     return true;
   }
+  if (subtag_matches (lang_str, limit, "-arevmda"))
+  {
+    /* Armenian; Western Armenian (retired code) */
+    tags[0] = HB_TAG('H','Y','E',' ');  /* Armenian */
+    *count = 1;
+    return true;
+  }
   if (subtag_matches (lang_str, limit, "-provenc"))
   {
     /* Occitan (post 1500); Provençal */
