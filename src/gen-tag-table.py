@@ -468,11 +468,8 @@ class OpenTypeRegistryParser (HTMLParser):
 			if ot_macrolanguages:
 				for ot_macrolanguage in ot_macrolanguages:
 					for language in languages:
-						# Remove the following condition if e.g. nn should map to NYN,NOR
-						# instead of just NYN.
-						if language not in original_ot_from_bcp_47:
-							self.add_language (language, ot_macrolanguage)
-							self.ranks[ot_macrolanguage] += 1
+						self.add_language (language, ot_macrolanguage)
+						self.ranks[ot_macrolanguage] += 1
 			else:
 				for language in languages:
 					if language in original_ot_from_bcp_47:
