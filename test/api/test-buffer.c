@@ -892,16 +892,17 @@ test_buffer_serialize_deserialize (void)
 
     retval = hb_buffer_deserialize_unicode (b, test->contents, -1, NULL, test->format);
 
-    if (test->success == 0)
-      continue; // Expected parse failure, got one, don't round-trip
+    // Expected parse failure, got one, don't round-trip
+    if (test->success != 0)
+    {
+      num_glyphs = hb_buffer_get_length (b);
+      g_assert_cmpint (num_glyphs, ==, test->num_items);
 
-    num_glyphs = hb_buffer_get_length (b);
-    g_assert_cmpint (num_glyphs, ==, test->num_items);
-
-    hb_buffer_serialize_unicode (b, 0, num_glyphs, round_trip,
-				 sizeof(round_trip), &consumed, test->format,
-				 HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
-    g_assert_cmpstr (round_trip, ==, test->contents);
+      hb_buffer_serialize_unicode (b, 0, num_glyphs, round_trip,
+				   sizeof(round_trip), &consumed, test->format,
+				   HB_BUFFER_SERIALIZE_FLAG_DEFAULT);
+      g_assert_cmpstr (round_trip, ==, test->contents);
+    }
 
     hb_buffer_destroy (b);
 
