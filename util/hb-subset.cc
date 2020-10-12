@@ -70,27 +70,27 @@ struct subset_consumer_t
 
   hb_bool_t
   write_file (const char *output_file, hb_blob_t *blob) {
-    unsigned int data_length;
-    const char* data = hb_blob_get_data (blob, &data_length);
+    unsigned int size;
+    const char* data = hb_blob_get_data (blob, &size);
 
-    FILE *fp_out = fopen(output_file, "wb");
-    if (!fp_out) {
-      fprintf(stderr, "Unable to open output file\n");
-      return false;
-    }
-    int bytes_written = fwrite(data, 1, data_length, fp_out);
+    if (!output_file)
+      fail (true, "No output file was specified");
 
-    fclose (fp_out);
+    FILE *fp = fopen(output_file, "wb");
+    if (!fp)
+      fail (false, "Cannot open output file `%s': %s",
+	    g_filename_display_name (output_file), strerror (errno));
 
-    if (bytes_written == -1) {
-      fprintf(stderr, "Unable to write output file\n");
-      return false;
+    while (size) {
+      size_t ret = fwrite (data, 1, size, fp);
+      size -= ret;
+      data += ret;
+      if (size && ferror (fp))
+        fail (false, "Failed to write output: %s", strerror (errno));
     }
-    if ((unsigned int) bytes_written != data_length) {
-      fprintf(stderr, "Expected %u bytes written, got %d\n", data_length,
-	      bytes_written);
-      return false;
-    }
+
+    fclose (fp);
+
     return true;
   }
 
