@@ -447,6 +447,9 @@ HB_EXTERN hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
 			       unsigned int *length);
 
+HB_EXTERN hb_bool_t
+hb_buffer_has_positions (hb_buffer_t  *buffer);
+
 
 HB_EXTERN void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer);

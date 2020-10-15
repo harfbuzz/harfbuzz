@@ -50,7 +50,7 @@
  * Checks the equality of two #hb_segment_properties_t's.
  *
  * Return value:
- * %true if all properties of @a equal those of @b, false otherwise.
+ * %true if all properties of @a equal those of @b, %false otherwise.
  *
  * Since: 0.9.7
  **/
@@ -1402,6 +1402,25 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
     *length = buffer->len;
 
   return (hb_glyph_position_t *) buffer->pos;
+}
+
+/**
+ * hb_buffer_has_positions:
+ * @buffer: an #hb_buffer_t.
+ *
+ * Returns whether @buffer has glyph position data.
+ * A buffer gains position data when hb_buffer_get_glyph_positions() is called on it,
+ * and cleared of position data when hb_buffer_clear_contents() is called.
+ *
+ * Return value:
+ * %true if the @buffer has position array, %false otherwise.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN hb_bool_t
+hb_buffer_has_positions (hb_buffer_t  *buffer)
+{
+  return buffer->have_positions;
 }
 
 /**
