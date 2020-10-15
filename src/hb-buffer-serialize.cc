@@ -476,8 +476,7 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
   if (buf_size)
     *buf = '\0';
 
-  assert ((!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)) ||
-          (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS));
+  buffer->assert_glyphs ();
 
   if (!buffer->have_positions)
     flags |= HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS;
@@ -574,8 +573,7 @@ hb_buffer_serialize_unicode (hb_buffer_t *buffer,
   if (buf_size)
     *buf = '\0';
 
-  assert ((!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)) ||
-    (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE));
+  buffer->assert_unicode ();
 
   if (unlikely (start == end))
     return 0;
@@ -749,8 +747,7 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
     end_ptr = &end;
   *end_ptr = buf;
 
-  assert ((!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)) ||
-          (buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS));
+  buffer->assert_glyphs ();
 
   if (unlikely (hb_object_is_immutable (buffer)))
   {
@@ -819,9 +816,7 @@ hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
     end_ptr = &end;
   *end_ptr = buf;
 
-  assert ((!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)) ||
-          (buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE));
-
+  buffer->assert_unicode ();
 
   if (unlikely (hb_object_is_immutable (buffer)))
   {

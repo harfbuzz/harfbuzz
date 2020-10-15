@@ -339,6 +339,16 @@ struct hb_buffer_t
   bool ensure_inplace (unsigned int size)
   { return likely (!size || size < allocated); }
 
+  void assert_glyphs ()
+  {
+    assert ((content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS) ||
+	    (!len && (content_type == HB_BUFFER_CONTENT_TYPE_INVALID)));
+  }
+  void assert_unicode ()
+  {
+    assert ((content_type == HB_BUFFER_CONTENT_TYPE_UNICODE) ||
+	    (!len && (content_type == HB_BUFFER_CONTENT_TYPE_INVALID)));
+  }
   bool ensure_glyphs ()
   {
     if (unlikely (content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))

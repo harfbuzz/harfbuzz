@@ -617,8 +617,7 @@ hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int en
 void
 hb_buffer_t::guess_segment_properties ()
 {
-  assert ((content_type == HB_BUFFER_CONTENT_TYPE_UNICODE) ||
-	  (!len && (content_type == HB_BUFFER_CONTENT_TYPE_INVALID)));
+  assert_unicode ();
 
   /* If script is set to INVALID, guess from buffer contents */
   if (props.script == HB_SCRIPT_INVALID) {
@@ -1532,8 +1531,7 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   typedef typename utf_t::codepoint_t T;
   const hb_codepoint_t replacement = buffer->replacement;
 
-  assert ((buffer->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE) ||
-	  (!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)));
+  buffer->assert_unicode ();
 
   if (unlikely (hb_object_is_immutable (buffer)))
     return;
@@ -1853,8 +1851,8 @@ void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer)
 {
   assert (buffer->have_positions);
-  assert ((buffer->content_type == HB_BUFFER_CONTENT_TYPE_GLYPHS) ||
-	  (!buffer->len && (buffer->content_type == HB_BUFFER_CONTENT_TYPE_INVALID)));
+
+  buffer->assert_glyphs ();
 
   bool backward = HB_DIRECTION_IS_BACKWARD (buffer->props.direction);
 
