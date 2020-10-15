@@ -339,6 +339,29 @@ struct hb_buffer_t
   bool ensure_inplace (unsigned int size)
   { return likely (!size || size < allocated); }
 
+  bool ensure_glyphs ()
+  {
+    if (unlikely (content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
+    {
+      if (content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
+	return false;
+      assert (len == 0);
+      content_type = HB_BUFFER_CONTENT_TYPE_GLYPHS;
+    }
+    return true;
+  }
+  bool ensure_unicode ()
+  {
+    if (unlikely (content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
+    {
+      if (content_type != HB_BUFFER_CONTENT_TYPE_INVALID)
+	return false;
+      assert (len == 0);
+      content_type = HB_BUFFER_CONTENT_TYPE_UNICODE;
+    }
+    return true;
+  }
+
   HB_INTERNAL bool make_room_for (unsigned int num_in, unsigned int num_out);
   HB_INTERNAL bool shift_forward (unsigned int count);
 
