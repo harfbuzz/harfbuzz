@@ -246,9 +246,6 @@ def is_BASE(U, UISC, UGC, AJT):
 		AJT in [jt_C, jt_D, jt_L, jt_R] and UISC != Joiner or
 		(UGC == Lo and UISC in [Avagraha, Bindu, Consonant_Final, Consonant_Medial,
 					Consonant_Subjoined, Vowel, Vowel_Dependent]))
-def is_BASE_IND(U, UISC, UGC, AJT):
-	return (UISC in [Consonant_Dead, Modifying_Letter] or
-		(UGC == Po and not U in [0x0F04, 0x0F05, 0x0F06, 0x104B, 0x104E, 0x1800, 0x1807, 0x180A, 0x1B5B, 0x1B5C, 0x1B5F, 0x2022, 0x111C8, 0x11A3F, 0x11A45, 0x11C44, 0x11C45]))
 def is_BASE_NUM(U, UISC, UGC, AJT):
 	return UISC == Brahmi_Joining_Number
 def is_BASE_OTHER(U, UISC, UGC, AJT):
@@ -291,13 +288,12 @@ def is_HIEROGLYPH_SEGMENT_END(U, UISC, UGC, AJT):
 def is_ZWNJ(U, UISC, UGC, AJT):
 	return UISC == Non_Joiner
 def is_OTHER(U, UISC, UGC, AJT):
-	return (UISC in [Joiner, Other]
+	return ((UGC in [Cn, Po] or UISC in [Consonant_Dead, Joiner, Modifying_Letter, Other])
 		and not is_BASE(U, UISC, UGC, AJT)
+		and not is_BASE_OTHER(U, UISC, UGC, AJT)
 		and not is_SYM(U, UISC, UGC, AJT)
 		and not is_SYM_MOD(U, UISC, UGC, AJT)
 	)
-def is_Reserved(U, UISC, UGC, AJT):
-	return UGC == 'Cn'
 def is_REPHA(U, UISC, UGC, AJT):
 	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
 def is_SAKOT(U, UISC, UGC, AJT):
@@ -319,7 +315,6 @@ def is_VOWEL_MOD(U, UISC, UGC, AJT):
 # CGJ, VS, WJ, and ZWJ are handled in find_syllables
 use_mapping = {
 	'B':	is_BASE,
-	'IND':	is_BASE_IND,
 	'N':	is_BASE_NUM,
 	'GB':	is_BASE_OTHER,
 	'F':	is_CONS_FINAL,
@@ -337,7 +332,6 @@ use_mapping = {
 	'SE':	is_HIEROGLYPH_SEGMENT_END,
 	'ZWNJ':	is_ZWNJ,
 	'O':	is_OTHER,
-	'Rsv':	is_Reserved,
 	'R':	is_REPHA,
 	'S':	is_SYM,
 	'Sk':	is_SAKOT,
