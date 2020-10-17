@@ -46,7 +46,6 @@ enum use_category_t {
   USE_O		= 0,	/* OTHER */
 
   USE_B		= 1,	/* BASE */
-  USE_IND	= 3,	/* BASE_IND */
   USE_N		= 4,	/* BASE_NUM */
   USE_GB	= 5,	/* BASE_OTHER */
   USE_SUB	= 11,	/* CONS_SUB */
@@ -54,7 +53,6 @@ enum use_category_t {
 
   USE_HN	= 13,	/* HALANT_NUM */
   USE_ZWNJ	= 14,	/* Zero width non-joiner */
-  USE_Rsv	= 17,	/* Reserved characters */
   USE_R		= 18,	/* REPHA */
   USE_S		= 19,	/* SYM */
   USE_CS	= 43,	/* CONS_WITH_STACKER */

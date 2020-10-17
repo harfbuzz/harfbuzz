@@ -46,12 +46,10 @@
 #define H	USE_H	/* HALANT */
 #define HN	USE_HN	/* HALANT_NUM */
 #define HVM	USE_HVM	/* HALANT_OR_VOWEL_MODIFIER */
-#define IND	USE_IND	/* BASE_IND */
 #define J	USE_J	/* HIEROGLYPH_JOINER */
 #define N	USE_N	/* BASE_NUM */
 #define O	USE_O	/* OTHER */
 #define R	USE_R	/* REPHA */
-#define Rsv	USE_Rsv	/* Reserved */
 #define S	USE_S	/* SYM */
 #define SB	USE_SB	/* HIEROGLYPH_SEGMENT_BEGIN */
 #define SE	USE_SE	/* HIEROGLYPH_SEGMENT_END */
@@ -146,7 +144,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 0990 */     B,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 09A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,
   /* 09B0 */     B,     O,     B,     O,     O,     O,     B,     B,     B,     B,     O,     O, CMBlw,     B,  VPst,  VPre,
-  /* 09C0 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,  VPre,  VPre,     O,     O,  VPre,  VPre,     H,   IND,     O,
+  /* 09C0 */  VPst,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,  VPre,  VPre,     O,     O,  VPre,  VPre,     H,     O,     O,
   /* 09D0 */     O,     O,     O,     O,     O,     O,     O,  VPst,     O,     O,     O,     O,     B,     B,     O,     B,
   /* 09E0 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 09F0 */     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     B,     O, FMAbv,     O,
@@ -186,7 +184,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* Tamil */
 
-  /* 0B80 */     O,     O, VMAbv,   IND,     O,     B,     B,     B,     B,     B,     B,     O,     O,     O,     B,     B,
+  /* 0B80 */     O,     O, VMAbv,     O,     O,     B,     B,     B,     B,     B,     B,     O,     O,     O,     B,     B,
   /* 0B90 */     B,     O,     B,     B,     B,     B,     O,     O,     O,     B,     B,     O,     B,     O,     B,     B,
   /* 0BA0 */     O,     O,     O,     B,     B,     O,     O,     O,     B,     B,     B,     O,     O,     O,     B,     B,
   /* 0BB0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,  VPst,  VPst,
@@ -224,9 +222,9 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 0D20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0D30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,     B,  VPst,  VPst,
   /* 0D40 */  VPst,  VPst,  VPst,  VBlw,  VBlw,     O,  VPre,  VPre,  VPre,     O,  VPre,  VPre,  VPre,     H,     R,     O,
-  /* 0D50 */     O,     O,     O,     O,   IND,   IND,   IND,  VPst,     O,     O,     O,     O,     O,     O,     O,     B,
+  /* 0D50 */     O,     O,     O,     O,     O,     O,     O,  VPst,     O,     O,     O,     O,     O,     O,     O,     B,
   /* 0D60 */     B,     B,  VBlw,  VBlw,     O,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
-  /* 0D70 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,   IND,   IND,   IND,   IND,   IND,   IND,
+  /* 0D70 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Sinhala */
 
@@ -251,8 +249,8 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 0F40 */     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,
   /* 0F50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0F60 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,
-  /* 0F70 */     O, CMBlw,  VBlw,  VAbv,  VAbv,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw, VMAbv,   IND,
-  /* 0F80 */  VBlw,  VAbv, VMAbv, VMAbv,  VBlw,   IND, VMAbv, VMAbv,     B,     B,     B,     B,     B,   SUB,   SUB,   SUB,
+  /* 0F70 */     O, CMBlw,  VBlw,  VAbv,  VAbv,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw, VMAbv,     O,
+  /* 0F80 */  VBlw,  VAbv, VMAbv, VMAbv,  VBlw,     O, VMAbv, VMAbv,     B,     B,     B,     B,     B,   SUB,   SUB,   SUB,
   /* 0F90 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,     O,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,
   /* 0FA0 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,
   /* 0FB0 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,     O,     O,     O,
@@ -409,7 +407,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
   /* 1CD0 */ VMAbv, VMAbv, VMAbv,     O, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMAbv, VMAbv, VMBlw, VMBlw, VMBlw, VMBlw,
   /* 1CE0 */ VMAbv, VMPst, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw,     O,     O,     O,     O, VMBlw,     O,     O,
-  /* 1CF0 */     O,     O,   IND,   IND, VMAbv,    CS,    CS, VMPst, VMAbv, VMAbv,    GB,     O,     O,     O,     O,     O,
+  /* 1CF0 */     O,     O,     O,     O, VMAbv,    CS,    CS, VMPst, VMAbv, VMAbv,    GB,     O,     O,     O,     O,     O,
 
 #define use_offset_0x1df8u 3040
 
@@ -969,7 +967,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
   /* 16F20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 16F30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 16F40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O, CMBlw,
-  /* 16F50 */   IND,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,
+  /* 16F50 */     O,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,
   /* 16F60 */  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,
   /* 16F70 */  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,
   /* 16F80 */  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,     O,     O,     O,     O,     O, VMBlw,
@@ -1167,12 +1165,10 @@ hb_use_get_category (hb_codepoint_t u)
 #undef H
 #undef HN
 #undef HVM
-#undef IND
 #undef J
 #undef N
 #undef O
 #undef R
-#undef Rsv
 #undef S
 #undef SB
 #undef SE

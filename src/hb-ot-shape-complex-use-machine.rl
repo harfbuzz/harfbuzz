@@ -45,7 +45,6 @@
 O	= 0; # OTHER
 
 B	= 1; # BASE
-IND	= 3; # BASE_IND
 N	= 4; # BASE_NUM
 GB	= 5; # BASE_OTHER
 SUB	= 11; # CONS_SUB
@@ -53,7 +52,6 @@ H	= 12; # HALANT
 
 HN	= 13; # HALANT_NUM
 ZWNJ	= 14; # Zero width non-joiner
-Rsv	= 17; # Reserved characters
 R	= 18; # REPHA
 S	= 19; # SYM
 CS	= 43; # CONS_WITH_STACKER
@@ -136,7 +134,7 @@ number_joiner_terminated_cluster = N number_joiner_terminated_cluster_tail;
 numeral_cluster = N numeral_cluster_tail?;
 symbol_cluster = (S | GB) symbol_cluster_tail?;
 hieroglyph_cluster = SB+ | SB* G SE* (J SE* (G SE*)?)*;
-independent_cluster = (IND | O | Rsv);
+independent_cluster = O;
 other = any;
 
 main := |*
@@ -166,7 +164,7 @@ main := |*
 
 static bool
 not_standard_default_ignorable (const hb_glyph_info_t &i)
-{ return !((i.use_category() == USE_O || i.use_category() == USE_Rsv) && _hb_glyph_info_is_default_ignorable (&i)); }
+{ return !(i.use_category() == USE_O && _hb_glyph_info_is_default_ignorable (&i)); }
 
 static void
 find_syllables_use (hb_buffer_t *buffer)
