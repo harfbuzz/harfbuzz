@@ -241,7 +241,9 @@ def is_BASE(U, UISC, UGC, AJT):
 	return (UISC in [Number, Consonant, Consonant_Head_Letter,
 			Tone_Letter,
 			Vowel_Independent,
-			] or
+			] and
+			# TODO: https://github.com/microsoft/font-tools/issues/12
+			UGC != Cn or
 		# TODO: https://github.com/MicrosoftDocs/typography-issues/issues/484
 		AJT in [jt_C, jt_D, jt_L, jt_R] and UISC != Joiner or
 		(UGC == Lo and UISC in [Avagraha, Bindu, Consonant_Final, Consonant_Medial,
@@ -389,11 +391,6 @@ def map_to_use(data):
 	items = use_mapping.items()
 	for U,(UISC,UIPC,UGC,AJT,UBlock) in data.items():
 
-		if UGC == Cn: continue
-
-		# TODO: These variation selectors are overridden to IND, but we want to ignore them
-		if U in range (0xFE00, 0xFE0F + 1): continue
-
 		# Resolve Indic_Syllabic_Category
 
 		# TODO: These don't have UISC assigned in Unicode 13.0.0, but have UIPC
@@ -519,6 +516,8 @@ print ("")
 print ("static const USE_TABLE_ELEMENT_TYPE use_table[] = {")
 for u in uu:
 	if u <= last:
+		continue
+	if data[u][0] == 'O':
 		continue
 	block = data[u][1]
 
