@@ -30,6 +30,7 @@
 #include "hb.hh"
 
 #include "hb-ot-shape-complex.hh"
+#include "hb-ot-shape-complex-indic-category.hh"
 
 
 /* buffer var allocations */
@@ -38,41 +39,6 @@
 
 
 #define INDIC_TABLE_ELEMENT_TYPE uint16_t
-
-/* Cateories used in the OpenType spec:
- * https://docs.microsoft.com/en-us/typography/script-development/devanagari
- */
-/* Note: This enum is duplicated in the -machine.rl source file.
- * Not sure how to avoid duplication. */
-enum indic_category_t {
-  OT_X = 0,
-  OT_C = 1,
-  OT_V = 2,
-  OT_N = 3,
-  OT_H = 4,
-  OT_ZWNJ = 5,
-  OT_ZWJ = 6,
-  OT_M = 7,
-  OT_SM = 8,
-  /* OT_VD = 9, UNUSED; we use OT_A instead. */
-  OT_A = 10,
-  OT_PLACEHOLDER = 11,
-  OT_DOTTEDCIRCLE = 12,
-  OT_RS = 13, /* Register Shifter, used in Khmer OT spec. */
-  OT_Coeng = 14, /* Khmer-style Virama. */
-  OT_Repha = 15, /* Atomically-encoded logical or visual repha. */
-  OT_Ra = 16,
-  OT_CM = 17,  /* Consonant-Medial. */
-  OT_Symbol = 18, /* Avagraha, etc that take marks (SM,A,VD). */
-  OT_CS = 19,
-
-  /* The following are used by Khmer & Myanmar shapers.  Defined
-   * here for them to share. */
-  OT_VAbv    = 26,
-  OT_VBlw    = 27,
-  OT_VPre    = 28,
-  OT_VPst    = 29,
-};
 
 #define MEDIAL_FLAGS (FLAG (OT_CM))
 

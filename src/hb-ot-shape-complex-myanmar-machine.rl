@@ -37,32 +37,7 @@
 
 %%{
 
-# Same order as enum myanmar_category_t.  Not sure how to avoid duplication.
-A    = 10;
-As   = 18;
-C    = 1;
-D    = 32;
-D0   = 20;
-DB   = 3;
-GB   = 11;
-H    = 4;
-IV   = 2;
-MH   = 21;
-MR   = 22;
-MW   = 23;
-MY   = 24;
-PT   = 25;
-V    = 8;
-VAbv = 26;
-VBlw = 27;
-VPre = 28;
-VPst = 29;
-VS   = 30;
-ZWJ  = 6;
-ZWNJ = 5;
-Ra   = 16;
-P    = 31;
-CS   = 19;
+import "hb-ot-shape-complex-indic-category.hh";
 
 j = ZWJ|ZWNJ;			# Joiners
 k = (Ra As H);			# Kinzi
@@ -74,11 +49,11 @@ main_vowel_group = (VPre.VS?)* VAbv* VBlw* A* (DB As?)?;
 post_vowel_group = VPst MH? As* VAbv* A* (DB As?)?;
 pwo_tone_group = PT A* DB? As?;
 
-complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_tone_group* V* j?;
+complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_tone_group* VST* j?;
 syllable_tail = (H (c|IV).VS?)* (H | complex_syllable_tail);
 
 consonant_syllable =	(k|CS)? (c|IV|D|GB).VS? syllable_tail;
-punctuation_cluster =	P V;
+punctuation_cluster =	P VST;
 broken_cluster =	k? VS? syllable_tail;
 other =			any;
 
