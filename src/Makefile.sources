@@ -113,6 +113,7 @@ HB_BASE_sources = \
 	hb-ot-shape-complex-default.cc \
 	hb-ot-shape-complex-hangul.cc \
 	hb-ot-shape-complex-hebrew.cc \
+	hb-ot-shape-complex-indic-category.hh \
 	hb-ot-shape-complex-indic-table.cc \
 	hb-ot-shape-complex-indic.cc \
 	hb-ot-shape-complex-indic.hh \
@@ -122,6 +123,7 @@ HB_BASE_sources = \
 	hb-ot-shape-complex-myanmar.cc \
 	hb-ot-shape-complex-myanmar.hh \
 	hb-ot-shape-complex-thai.cc \
+	hb-ot-shape-complex-use-category.hh \
 	hb-ot-shape-complex-use-table.cc \
 	hb-ot-shape-complex-use.cc \
 	hb-ot-shape-complex-use.hh \

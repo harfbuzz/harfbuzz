@@ -219,7 +219,7 @@ static const int khmer_syllable_machine_en_main = 20;
 
 
 
-#line 80 "hb-ot-shape-complex-khmer-machine.rl"
+#line 65 "hb-ot-shape-complex-khmer-machine.rl"
 
 
 #define found_syllable(syllable_type) \
@@ -246,7 +246,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 100 "hb-ot-shape-complex-khmer-machine.rl"
+#line 85 "hb-ot-shape-complex-khmer-machine.rl"
 
 
   p = 0;
@@ -291,27 +291,27 @@ _eof_trans:
 	{te = p+1;}
 	break;
 	case 8:
-#line 76 "hb-ot-shape-complex-khmer-machine.rl"
+#line 61 "hb-ot-shape-complex-khmer-machine.rl"
 	{te = p+1;{ found_syllable (non_khmer_cluster); }}
 	break;
 	case 10:
-#line 74 "hb-ot-shape-complex-khmer-machine.rl"
+#line 59 "hb-ot-shape-complex-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (consonant_syllable); }}
 	break;
 	case 12:
-#line 75 "hb-ot-shape-complex-khmer-machine.rl"
+#line 60 "hb-ot-shape-complex-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (broken_cluster); }}
 	break;
 	case 11:
-#line 76 "hb-ot-shape-complex-khmer-machine.rl"
+#line 61 "hb-ot-shape-complex-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (non_khmer_cluster); }}
 	break;
 	case 1:
-#line 74 "hb-ot-shape-complex-khmer-machine.rl"
+#line 59 "hb-ot-shape-complex-khmer-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (consonant_syllable); }}
 	break;
 	case 5:
-#line 75 "hb-ot-shape-complex-khmer-machine.rl"
+#line 60 "hb-ot-shape-complex-khmer-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (broken_cluster); }}
 	break;
 	case 3:
@@ -329,13 +329,13 @@ _eof_trans:
 	case 4:
 #line 1 "NONE"
 	{te = p+1;}
-#line 75 "hb-ot-shape-complex-khmer-machine.rl"
+#line 60 "hb-ot-shape-complex-khmer-machine.rl"
 	{act = 2;}
 	break;
 	case 9:
 #line 1 "NONE"
 	{te = p+1;}
-#line 76 "hb-ot-shape-complex-khmer-machine.rl"
+#line 61 "hb-ot-shape-complex-khmer-machine.rl"
 	{act = 3;}
 	break;
 #line 342 "hb-ot-shape-complex-khmer-machine.hh"
@@ -363,7 +363,7 @@ _again:
 
 	}
 
-#line 108 "hb-ot-shape-complex-khmer-machine.rl"
+#line 93 "hb-ot-shape-complex-khmer-machine.rl"
 
 }
 
