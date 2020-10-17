@@ -57,8 +57,6 @@
 #define SE	USE_SE	/* HIEROGLYPH_SEGMENT_END */
 #define SUB	USE_SUB	/* CONS_SUB */
 #define Sk	USE_Sk	/* SAKOT */
-#define WJ	USE_WJ	/* Word_Joiner */
-#define ZWJ	USE_ZWJ	/* ZWJ */
 #define ZWNJ	USE_ZWNJ	/* ZWNJ */
 #define CMAbv	USE_CMAbv
 #define CMBlw	USE_CMBlw
@@ -423,12 +421,12 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
 
   /* General Punctuation */
-                                                                         O,     O,     O,     O,  ZWNJ,   ZWJ,     O,     O,
+                                                                         O,     O,     O,     O,  ZWNJ,     O,     O,     O,
   /* 2010 */    GB,    GB,    GB,    GB,    GB,     O,     O,     O,
 
 #define use_offset_0x2060u 3064
 
-  /* 2060 */    WJ,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 2060 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Superscripts and Subscripts */
 
@@ -1180,8 +1178,6 @@ hb_use_get_category (hb_codepoint_t u)
 #undef SE
 #undef SUB
 #undef Sk
-#undef WJ
-#undef ZWJ
 #undef ZWNJ
 #undef CMAbv
 #undef CMBlw

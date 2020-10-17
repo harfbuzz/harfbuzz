@@ -57,8 +57,6 @@ H	= 12; # HALANT
 
 HN	= 13; # HALANT_NUM
 ZWNJ	= 14; # Zero width non-joiner
-ZWJ	= 15; # Zero width joiner
-WJ	= 16; # Word joiner
 Rsv	= 17; # Reserved characters
 R	= 18; # REPHA
 S	= 19; # SYM
@@ -98,8 +96,7 @@ FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
 
 h = H | HVM | Sk;
 
-# Override: Adhoc ZWJ placement. https://github.com/harfbuzz/harfbuzz/issues/542#issuecomment-353169729
-consonant_modifiers = CMAbv* CMBlw* ((ZWJ?.h.ZWJ? B | SUB) CMAbv? CMBlw*)*;
+consonant_modifiers = CMAbv* CMBlw* ((h B | SUB) CMAbv? CMBlw*)*;
 medial_consonants = MPre? MAbv? MBlw? MPst?;
 dependent_vowels = VPre* VAbv* VBlw* VPst*;
 vowel_modifiers = HVM? VMPre* VMAbv* VMBlw* VMPst*;
@@ -126,7 +123,7 @@ symbol_cluster_tail = SMAbv+ SMBlw* | SMBlw+;
 virama_terminated_cluster =
 	complex_syllable_start
 	consonant_modifiers
-	ZWJ?.h.ZWJ?
+	h
 ;
 sakot_terminated_cluster =
 	complex_syllable_start
@@ -146,7 +143,7 @@ number_joiner_terminated_cluster = N number_joiner_terminated_cluster_tail;
 numeral_cluster = N numeral_cluster_tail?;
 symbol_cluster = (S | GB) symbol_cluster_tail?;
 hieroglyph_cluster = SB+ | SB* G SE* (J SE* (G SE*)?)*;
-independent_cluster = (IND | O | Rsv | WJ);
+independent_cluster = (IND | O | Rsv);
 other = any;
 
 main := |*

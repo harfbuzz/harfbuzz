@@ -58,8 +58,6 @@ enum use_category_t {
 
   USE_HN	= 13,	/* HALANT_NUM */
   USE_ZWNJ	= 14,	/* Zero width non-joiner */
-  USE_ZWJ	= 15,	/* Zero width joiner */
-  USE_WJ	= 16,	/* Word joiner */
   USE_Rsv	= 17,	/* Reserved characters */
   USE_R		= 18,	/* REPHA */
   USE_S		= 19,	/* SYM */
