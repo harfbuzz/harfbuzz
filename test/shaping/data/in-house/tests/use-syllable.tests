@@ -18,3 +18,5 @@
 ../fonts/573d3a3177c9a8646e94c8a0d7b224334340946a.ttf:--font-funcs=ft:U+11410,U+11442,U+200C,U+034F,U+11411:[Ga=0+576|Virama=0@70,70+0|Gha=4+566]
 ../fonts/573d3a3177c9a8646e94c8a0d7b224334340946a.ttf:--font-funcs=ft:U+11410,U+200C,U+11442,U+034F,U+11411:[Ga.icd=0+367|Gha.diag=1@100,0+386]
 ../fonts/e68a88939e0f06e34d2bc911f09b70890289c8fd.ttf::U+AA00,U+200C,U+AA34:[raMedial_cham_pre=0+400|a_cham=0+1121]
+../fonts/2a670df15b73a5dc75a5cc491bde5ac93c5077dc.ttf::U+11124,U+200D,U+11127:[u11124=0+514|u11127=0+0]
+../fonts/2a670df15b73a5dc75a5cc491bde5ac93c5077dc.ttf::U+11124,U+2060,U+11127:[u11124=0+514|u11127=1+0]

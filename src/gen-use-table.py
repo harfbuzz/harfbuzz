@@ -243,7 +243,7 @@ def is_BASE(U, UISC, UGC, AJT):
 			Vowel_Independent,
 			] or
 		# TODO: https://github.com/MicrosoftDocs/typography-issues/issues/484
-		AJT in [jt_C, jt_D, jt_L, jt_R] and not is_ZWJ(U, UISC, UGC, AJT) or
+		AJT in [jt_C, jt_D, jt_L, jt_R] and UISC != Joiner or
 		(UGC == Lo and UISC in [Avagraha, Bindu, Consonant_Final, Consonant_Medial,
 					Consonant_Subjoined, Vowel, Vowel_Dependent]))
 def is_BASE_IND(U, UISC, UGC, AJT):
@@ -290,16 +290,11 @@ def is_HIEROGLYPH_SEGMENT_END(U, UISC, UGC, AJT):
 	return UISC == Hieroglyph_Segment_End
 def is_ZWNJ(U, UISC, UGC, AJT):
 	return UISC == Non_Joiner
-def is_ZWJ(U, UISC, UGC, AJT):
-	return UISC == Joiner
-def is_Word_Joiner(U, UISC, UGC, AJT):
-	return U == 0x2060
 def is_OTHER(U, UISC, UGC, AJT):
-	return (UISC == Other
+	return (UISC in [Joiner, Other]
 		and not is_BASE(U, UISC, UGC, AJT)
 		and not is_SYM(U, UISC, UGC, AJT)
 		and not is_SYM_MOD(U, UISC, UGC, AJT)
-		and not is_Word_Joiner(U, UISC, UGC, AJT)
 	)
 def is_Reserved(U, UISC, UGC, AJT):
 	return UGC == 'Cn'
@@ -321,7 +316,7 @@ def is_VOWEL_MOD(U, UISC, UGC, AJT):
 	return (UISC in [Tone_Mark, Cantillation_Mark, Register_Shifter, Visarga] or
 		(UGC != Lo and (UISC == Bindu or U in [0xAA29])))
 
-# CGJ and VS are handled in find_syllables
+# CGJ, VS, WJ, and ZWJ are handled in find_syllables
 use_mapping = {
 	'B':	is_BASE,
 	'IND':	is_BASE_IND,
@@ -341,8 +336,6 @@ use_mapping = {
 	'SB':	is_HIEROGLYPH_SEGMENT_BEGIN,
 	'SE':	is_HIEROGLYPH_SEGMENT_END,
 	'ZWNJ':	is_ZWNJ,
-	'ZWJ':	is_ZWJ,
-	'WJ':	is_Word_Joiner,
 	'O':	is_OTHER,
 	'Rsv':	is_Reserved,
 	'R':	is_REPHA,
