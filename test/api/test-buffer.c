@@ -880,7 +880,7 @@ test_buffer_serialize_deserialize (void)
 
   for (i = 0; i < G_N_ELEMENTS (serialization_tests); i++)
   {
-    unsigned int num_glyphs, consumed;
+    unsigned int consumed;
     char round_trip[1024];
     hb_bool_t retval;
 
@@ -895,7 +895,7 @@ test_buffer_serialize_deserialize (void)
     // Expected parse failure, got one, don't round-trip
     if (test->success != 0)
     {
-      num_glyphs = hb_buffer_get_length (b);
+      unsigned int num_glyphs = hb_buffer_get_length (b);
       g_assert_cmpint (num_glyphs, ==, test->num_items);
 
       hb_buffer_serialize_unicode (b, 0, num_glyphs, round_trip,
@@ -909,7 +909,7 @@ test_buffer_serialize_deserialize (void)
   }
 
   char test[1024];
-  unsigned int num_glyphs, consumed;
+  unsigned int consumed;
   hb_buffer_t *indeterminate = hb_buffer_get_empty ();
   hb_buffer_serialize (indeterminate, 0, (unsigned) -1,
 		       test, sizeof(test), &consumed, NULL,
