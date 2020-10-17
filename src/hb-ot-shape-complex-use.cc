@@ -387,8 +387,7 @@ reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 
   hb_glyph_info_t *info = buffer->info;
 
-#define POST_BASE_FLAGS64 (FLAG64 (USE_FM) | \
-			   FLAG64 (USE_FAbv) | \
+#define POST_BASE_FLAGS64 (FLAG64 (USE_FAbv) | \
 			   FLAG64 (USE_FBlw) | \
 			   FLAG64 (USE_FPst) | \
 			   FLAG64 (USE_MAbv) | \
