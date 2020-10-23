@@ -20,6 +20,8 @@ jobs:
       - run: meson build
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
+      - store_artifacts:
+          path: build/meson-logs/
 
   macos-10_14_4-aat-fonts:
     macos:
@@ -31,6 +33,8 @@ jobs:
       - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Dcoretext=enabled
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
+      - store_artifacts:
+          path: build/meson-logs/
 
   macos-10_15_3-aat-fonts:
     macos:
@@ -42,6 +46,8 @@ jobs:
       - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
+      - store_artifacts:
+          path: build/meson-logs/
 
   # will be dropped with autotools removal
   distcheck:
