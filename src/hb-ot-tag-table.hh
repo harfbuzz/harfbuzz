@@ -1028,6 +1028,7 @@ static const LangTag ot_languages[] = {
   {"quh",	HB_TAG('Q','U','H',' ')},	/* South Bolivian Quechua -> Quechua (Bolivia) */
   {"quh",	HB_TAG('Q','U','Z',' ')},	/* South Bolivian Quechua -> Quechua */
   {"quk",	HB_TAG('Q','U','Z',' ')},	/* Chachapoyas Quechua -> Quechua */
+  {"qul",	HB_TAG('Q','U','H',' ')},	/* North Bolivian Quechua -> Quechua (Bolivia) */
   {"qul",	HB_TAG('Q','U','Z',' ')},	/* North Bolivian Quechua -> Quechua */
   {"qum",	HB_TAG('M','Y','N',' ')},	/* Sipacapense -> Mayan */
   {"qup",	HB_TAG('Q','V','I',' ')},	/* Southern Pastaza Quechua -> Quechua (Ecuador) */
