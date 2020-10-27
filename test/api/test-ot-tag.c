@@ -483,6 +483,10 @@ test_ot_tag_language (void)
   test_tag_from_language ("ZHS", "zh-min-nan");
   test_tag_from_language ("ZHS", "zh-xiang");
 
+  /* BCP 47 tags that look similar to unrelated language system tags */
+  test_tag_from_language ("SQI", "als");
+  test_tag_from_language ("dflt", "far");
+
   /* A UN M.49 region code, not an extended language subtag */
   test_tag_from_language ("ARA", "ar-001");
 
