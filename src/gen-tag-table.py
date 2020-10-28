@@ -995,22 +995,24 @@ for initial, items in sorted (complex_tags.items ()):
 	print ("  case '%s':" % initial)
 	for lt, tags in items:
 		print ('    if (', end='')
+		script = lt.script
+		region = lt.region
 		if lt.grandfathered:
 			print ('0 == strcmp (&lang_str[1], "%s")' % lt.language[1:], end='')
 		else:
 			string_literal = lt.language[1:] + '-'
-			if lt.script:
-				string_literal += lt.script
-				lt.script = None
-				if lt.region:
-					string_literal += '-' + lt.region
-					lt.region = None
+			if script:
+				string_literal += script
+				script = None
+				if region:
+					string_literal += '-' + region
+					region = None
 			if string_literal[-1] == '-':
 				print ('0 == strncmp (&lang_str[1], "%s", %i)' % (string_literal, len (string_literal)), end='')
 			else:
 				print ('lang_matches (&lang_str[1], "%s")' % string_literal, end='')
-		print_subtag_matches (lt.script, True)
-		print_subtag_matches (lt.region, True)
+		print_subtag_matches (script, True)
+		print_subtag_matches (region, True)
 		print_subtag_matches (lt.variant, True)
 		print (')')
 		print ('    {')

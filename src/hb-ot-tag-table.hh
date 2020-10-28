@@ -1227,224 +1227,224 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'c':
     if (lang_matches (&lang_str[1], "do-hant-hk"))
     {
-      /* Min Dong Chinese */
+      /* Min Dong Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "do-hant-mo"))
     {
-      /* Min Dong Chinese */
+      /* Min Dong Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "jy-hant-hk"))
     {
-      /* Jinyu Chinese */
+      /* Jinyu Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "jy-hant-mo"))
     {
-      /* Jinyu Chinese */
+      /* Jinyu Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "mn-hant-hk"))
     {
-      /* Mandarin Chinese */
+      /* Mandarin Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "mn-hant-mo"))
     {
-      /* Mandarin Chinese */
+      /* Mandarin Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "np-hant-hk"))
     {
-      /* Northern Ping Chinese */
+      /* Northern Ping Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "np-hant-mo"))
     {
-      /* Northern Ping Chinese */
+      /* Northern Ping Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "px-hant-hk"))
     {
-      /* Pu-Xian Chinese */
+      /* Pu-Xian Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "px-hant-mo"))
     {
-      /* Pu-Xian Chinese */
+      /* Pu-Xian Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "sp-hant-hk"))
     {
-      /* Southern Ping Chinese */
+      /* Southern Ping Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "sp-hant-mo"))
     {
-      /* Southern Ping Chinese */
+      /* Southern Ping Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "zh-hant-hk"))
     {
-      /* Huizhou Chinese */
+      /* Huizhou Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "zh-hant-mo"))
     {
-      /* Huizhou Chinese */
+      /* Huizhou Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "zo-hant-hk"))
     {
-      /* Min Zhong Chinese */
+      /* Min Zhong Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "zo-hant-mo"))
     {
-      /* Min Zhong Chinese */
+      /* Min Zhong Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "do-hans"))
     {
-      /* Min Dong Chinese */
+      /* Min Dong Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "do-hant"))
     {
-      /* Min Dong Chinese */
+      /* Min Dong Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "jy-hans"))
     {
-      /* Jinyu Chinese */
+      /* Jinyu Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "jy-hant"))
     {
-      /* Jinyu Chinese */
+      /* Jinyu Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "mn-hans"))
     {
-      /* Mandarin Chinese */
+      /* Mandarin Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "mn-hant"))
     {
-      /* Mandarin Chinese */
+      /* Mandarin Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "np-hans"))
     {
-      /* Northern Ping Chinese */
+      /* Northern Ping Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "np-hant"))
     {
-      /* Northern Ping Chinese */
+      /* Northern Ping Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "px-hans"))
     {
-      /* Pu-Xian Chinese */
+      /* Pu-Xian Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "px-hant"))
     {
-      /* Pu-Xian Chinese */
+      /* Pu-Xian Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "sp-hans"))
     {
-      /* Southern Ping Chinese */
+      /* Southern Ping Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "sp-hant"))
     {
-      /* Southern Ping Chinese */
+      /* Southern Ping Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "zh-hans"))
     {
-      /* Huizhou Chinese */
+      /* Huizhou Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "zh-hant"))
     {
-      /* Huizhou Chinese */
+      /* Huizhou Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "zo-hans"))
     {
-      /* Min Zhong Chinese */
+      /* Min Zhong Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "zo-hant"))
     {
-      /* Min Zhong Chinese */
+      /* Min Zhong Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
@@ -1645,35 +1645,35 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'g':
     if (lang_matches (&lang_str[1], "an-hant-hk"))
     {
-      /* Gan Chinese */
+      /* Gan Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "an-hant-mo"))
     {
-      /* Gan Chinese */
+      /* Gan Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "an-hans"))
     {
-      /* Gan Chinese */
+      /* Gan Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "an-hant"))
     {
-      /* Gan Chinese */
+      /* Gan Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "a-latg"))
     {
-      /* Irish */
+      /* Irish; Latin (Gaelic variant) */
       tags[0] = HB_TAG('I','R','T',' ');  /* Irish Traditional */
       *count = 1;
       return true;
@@ -1706,56 +1706,56 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'h':
     if (lang_matches (&lang_str[1], "ak-hant-hk"))
     {
-      /* Hakka Chinese */
+      /* Hakka Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "ak-hant-mo"))
     {
-      /* Hakka Chinese */
+      /* Hakka Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "sn-hant-hk"))
     {
-      /* Xiang Chinese */
+      /* Xiang Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "sn-hant-mo"))
     {
-      /* Xiang Chinese */
+      /* Xiang Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "ak-hans"))
     {
-      /* Hakka Chinese */
+      /* Hakka Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "ak-hant"))
     {
-      /* Hakka Chinese */
+      /* Hakka Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "sn-hans"))
     {
-      /* Xiang Chinese */
+      /* Xiang Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "sn-hant"))
     {
-      /* Xiang Chinese */
+      /* Xiang Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
@@ -1841,7 +1841,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'l':
     if (lang_matches (&lang_str[1], "zh-hans"))
     {
-      /* Literary Chinese */
+      /* Literary Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
@@ -1850,28 +1850,28 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'm':
     if (lang_matches (&lang_str[1], "np-hant-hk"))
     {
-      /* Min Bei Chinese */
+      /* Min Bei Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "np-hant-mo"))
     {
-      /* Min Bei Chinese */
+      /* Min Bei Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "np-hans"))
     {
-      /* Min Bei Chinese */
+      /* Min Bei Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "np-hant"))
     {
-      /* Min Bei Chinese */
+      /* Min Bei Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
@@ -1904,28 +1904,28 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'n':
     if (lang_matches (&lang_str[1], "an-hant-hk"))
     {
-      /* Min Nan Chinese */
+      /* Min Nan Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "an-hant-mo"))
     {
-      /* Min Nan Chinese */
+      /* Min Nan Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "an-hans"))
     {
-      /* Min Nan Chinese */
+      /* Min Nan Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "an-hant"))
     {
-      /* Min Nan Chinese */
+      /* Min Nan Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
@@ -1988,28 +1988,28 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'w':
     if (lang_matches (&lang_str[1], "uu-hant-hk"))
     {
-      /* Wu Chinese */
+      /* Wu Chinese; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "uu-hant-mo"))
     {
-      /* Wu Chinese */
+      /* Wu Chinese; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "uu-hans"))
     {
-      /* Wu Chinese */
+      /* Wu Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "uu-hant"))
     {
-      /* Wu Chinese */
+      /* Wu Chinese; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
@@ -2042,7 +2042,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'y':
     if (lang_matches (&lang_str[1], "ue-hans"))
     {
-      /* Yue Chinese */
+      /* Yue Chinese; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
@@ -2051,14 +2051,14 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   case 'z':
     if (lang_matches (&lang_str[1], "h-hant-hk"))
     {
-      /* Chinese [macrolanguage] */
+      /* Chinese [macrolanguage]; Han (Traditional variant); Hong Kong */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "h-hant-mo"))
     {
-      /* Chinese [macrolanguage] */
+      /* Chinese [macrolanguage]; Han (Traditional variant); Macao */
       tags[0] = HB_TAG('Z','H','H',' ');  /* Chinese, Hong Kong SAR */
       *count = 1;
       return true;
@@ -2072,14 +2072,14 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     }
     if (lang_matches (&lang_str[1], "h-hans"))
     {
-      /* Chinese [macrolanguage] */
+      /* Chinese [macrolanguage]; Han (Simplified variant) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese Simplified */
       *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], "h-hant"))
     {
-      /* Chinese [macrolanguage] */
+      /* Chinese [macrolanguage]; Han (Traditional variant) */
       tags[0] = HB_TAG('Z','H','T',' ');  /* Chinese Traditional */
       *count = 1;
       return true;
