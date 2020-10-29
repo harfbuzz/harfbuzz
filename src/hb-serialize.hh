@@ -520,6 +520,9 @@ struct hb_serialize_context_t
 			   (char *) b.arrayZ, free);
   }
 
+  const hb_vector_t<object_t *>& object_graph()
+  { return packed; }
+
   private:
   template <typename T>
   void assign_offset (const object_t* parent, const object_t::link_t &link, unsigned offset)
