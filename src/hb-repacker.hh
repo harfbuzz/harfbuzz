@@ -28,6 +28,7 @@
 #define HB_REPACKER_HH
 
 #include "hb-open-type.hh"
+#include "hb-map.hh"
 #include "hb-serialize.hh"
 #include "hb-vector.hh"
 
@@ -42,8 +43,30 @@ struct graph_t
    * serializer
    */
   graph_t (const hb_vector_t<hb_serialize_context_t::object_t *>& objects)
-      : objects_ (objects)
-  {}
+  {
+    bool removed_nil = false;
+    for (unsigned i = 0; i < objects.length; i++)
+    {
+      // If this graph came from a serialization buffer object 0 is the
+      // nil object. We don't need it for our purposes here so drop it.
+      if (i == 0 && !objects[i])
+      {
+        removed_nil = true;
+        continue;
+      }
+
+      auto* copy = objects_.push (*objects[i]);
+      if (!removed_nil) continue;
+      for (unsigned i = 0; i < copy->links.length; i++)
+        // Fix indices to account for removed nil object.
+        copy->links[i].objidx--;
+    }
+  }
+
+  ~graph_t ()
+  {
+    objects_.fini_deep ();
+  }
 
   /*
    * serialize graph into the provided serialization buffer.
@@ -52,17 +75,15 @@ struct graph_t
   {
     c->start_serialize<void> ();
     for (unsigned i = 0; i < objects_.length; i++) {
-      if (!objects_[i]) continue;
-
       c->push ();
 
-      size_t size = objects_[i]->tail - objects_[i]->head;
+      size_t size = objects_[i].tail - objects_[i].head;
       char* start = c->allocate_size <char> (size);
       if (!start) return;
 
-      memcpy (start, objects_[i]->head, size);
+      memcpy (start, objects_[i].head, size);
 
-      for (const auto& link : objects_[i]->links)
+      for (const auto& link : objects_[i].links)
         serialize_link (link, start, c);
 
       c->pop_pack (false);
@@ -75,36 +96,65 @@ struct graph_t
    */
   void sort_bfs ()
   {
-    hb_vector_t<int> queue;
-    hb_vector_t<hb_serialize_context_t::object_t *> sorted_graph;
+    // BFS doesn't always produce a topological sort so this is just
+    // for testing re-ordering capabilities for now.
+    // Will need to use a more advanced topological sorting algorithm
+
+    if (objects_.length <= 1) {
+      // Graph of 1 or less doesn't need sorting.
+      return;
+    }
+
+    hb_vector_t<unsigned> queue;
+    hb_vector_t<hb_serialize_context_t::object_t> sorted_graph;
+    hb_map_t id_map;
 
     // Object graphs are in reverse order, the first object is at the end
     // of the vector.
     queue.push (objects_.length - 1);
+    int new_id = objects_.length - 1;
 
     hb_set_t visited;
     while (queue.length)
     {
-      int next_id = queue[0];
+      unsigned next_id = queue[0];
       queue.remove(0);
       visited.add(next_id);
 
-      hb_serialize_context_t::object_t* next = objects_[next_id];
+      hb_serialize_context_t::object_t& next = objects_[next_id];
       sorted_graph.push (next);
+      id_map.set (next_id, new_id--);
 
-      for (const auto& link : next->links) {
+      for (const auto& link : next.links) {
         if (!visited.has (link.objidx))
           queue.push (link.objidx);
       }
     }
 
+    if (new_id != -1)
+    {
+      // Graph is not fully connected, there are unsorted objects.
+      // TODO(garretrieger): handle this.
+      assert (false);
+    }
+
+    // Apply objidx remapping.
+    // TODO(garretrieger): extract this to a helper.
+    for (unsigned i = 0; i < sorted_graph.length; i++)
+    {
+      for (unsigned j = 0; j < sorted_graph[i].links.length; j++)
+      {
+        auto& link = sorted_graph[i].links[j];
+        if (!id_map.has (link.objidx))
+          // TODO(garretrieger): handle this.
+          assert (false);
+        link.objidx = id_map.get (link.objidx);
+      }
+    }
+
     sorted_graph.as_array ().reverse ();
     objects_ = sorted_graph;
-    // TODO(garretrieger): remap object id's on the links.
-    // TODO(garretrieger): what order should graphs be in (first object at the end? or the beginning)
-
-    // TODO(garretrieger): check that all objects made it over into the sorted copy
-    //                     (ie. all objects are connected in the original graph).
+    sorted_graph.fini_deep ();
   }
 
   /*
@@ -113,6 +163,8 @@ struct graph_t
   bool will_overflow()
   {
     // TODO(garretrieger): implement me.
+    // Check for offsets that exceed their width or are negative if
+    // using a non-signed link.
     return false;
   }
 
@@ -126,7 +178,9 @@ struct graph_t
     OT::Offset<O>* offset = reinterpret_cast<OT::Offset<O>*> (head + link.position);
     *offset = 0;
     c->add_link (*offset,
-                 link.objidx,
+                 // serializer has an extra nil object at the start of the
+                 // object array. So all id's are +1 of what our id's are.
+                 link.objidx + 1,
                  (hb_serialize_context_t::whence_t) link.whence,
                  link.bias);
   }
@@ -153,7 +207,8 @@ struct graph_t
     }
   }
 
-  hb_vector_t<hb_serialize_context_t::object_t *> objects_;
+ public:
+  hb_vector_t<hb_serialize_context_t::object_t> objects_;
 };
 
 
