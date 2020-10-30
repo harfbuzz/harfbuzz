@@ -50,6 +50,7 @@
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-var-gvar-table.hh"
 #include "hb-ot-var-hvar-table.hh"
+#include "hb-repacker.hh"
 
 
 static unsigned
@@ -63,6 +64,32 @@ _plan_estimate_subset_table_size (hb_subset_plan_t *plan, unsigned table_len)
 
   return 512 + (unsigned) (table_len * sqrt ((double) dst_glyphs / src_glyphs));
 }
+
+/*
+ * Repack the serialization buffer if any offset overflows exist.
+ */
+static hb_blob_t*
+_repack (const hb_serialize_context_t& c)
+{
+  if (!c.offset_overflow)
+    return c.copy_blob ();
+
+  hb_vector_t<char> buf;
+  int buf_size = c.end - c.start;
+  if (unlikely (!buf.alloc (buf_size)))
+    return nullptr;
+
+  hb_serialize_context_t repacked ((void *) buf, buf_size);
+  hb_resolve_overflows (c.object_graph (), &repacked);
+
+  if (unlikely (repacked.ran_out_of_room || repacked.in_error () || repacked.offset_overflow))
+    // TODO(garretrieger): refactor so we can share the resize/retry logic with the subset
+    //                     portion.
+    return nullptr;
+
+  return repacked.copy_blob ();
+}
+
 
 template<typename TableType>
 static bool
@@ -111,7 +138,8 @@ _subset (hb_subset_plan_t *plan)
     {
       if (needed)
       {
-	hb_blob_t *dest_blob = serializer.copy_blob ();
+	hb_blob_t *dest_blob = _repack (serializer);
+        if (!dest_blob) return false;
 	DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c final subset table size: %u bytes.", HB_UNTAG (tag), dest_blob->length);
 	result = c.plan->add_table (tag, dest_blob);
 	hb_blob_destroy (dest_blob);
