@@ -35,10 +35,13 @@
 
 struct graph_t
 {
+  // TODO(garretrieger): add an error tracking system similar to what serialize_context_t
+  //                     does.
+
   /*
    * A topological sorting of an object graph. Ordered
    * in reverse serialization order (first object in the
-   * serialization is at the end of the graph). This matches
+   * serialization is at the end of the list). This matches
    * the 'packed' object stack used internally in the
    * serializer
    */
@@ -92,14 +95,11 @@ struct graph_t
   }
 
   /*
-   * Generates a new topological sorting of graph using BFS.
+   * Generates a new topological sorting of graph using Kahn's
+   * algorithm: https://en.wikipedia.org/wiki/Topological_sorting#Algorithms
    */
-  void sort_bfs ()
+  void sort_kahn ()
   {
-    // BFS doesn't always produce a topological sort so this is just
-    // for testing re-ordering capabilities for now.
-    // Will need to use a more advanced topological sorting algorithm
-
     if (objects_.length <= 1) {
       // Graph of 1 or less doesn't need sorting.
       return;
@@ -108,25 +108,28 @@ struct graph_t
     hb_vector_t<unsigned> queue;
     hb_vector_t<hb_serialize_context_t::object_t> sorted_graph;
     hb_map_t id_map;
+    hb_map_t edge_count;
+    incoming_edge_count (&edge_count);
 
     // Object graphs are in reverse order, the first object is at the end
-    // of the vector.
+    // of the vector. Since the graph is topologically sorted it's safe to
+    // assume the first object has no incoming edges.
     queue.push (objects_.length - 1);
     int new_id = objects_.length - 1;
 
-    hb_set_t visited;
     while (queue.length)
     {
       unsigned next_id = queue[0];
       queue.remove(0);
-      visited.add(next_id);
 
       hb_serialize_context_t::object_t& next = objects_[next_id];
       sorted_graph.push (next);
       id_map.set (next_id, new_id--);
 
       for (const auto& link : next.links) {
-        if (!visited.has (link.objidx))
+        // TODO(garretrieger): sort children from smallest to largest
+        edge_count.set (link.objidx, edge_count.get (link.objidx) - 1);
+        if (!edge_count.get (link.objidx))
           queue.push (link.objidx);
       }
     }
@@ -138,19 +141,7 @@ struct graph_t
       assert (false);
     }
 
-    // Apply objidx remapping.
-    // TODO(garretrieger): extract this to a helper.
-    for (unsigned i = 0; i < sorted_graph.length; i++)
-    {
-      for (unsigned j = 0; j < sorted_graph[i].links.length; j++)
-      {
-        auto& link = sorted_graph[i].links[j];
-        if (!id_map.has (link.objidx))
-          // TODO(garretrieger): handle this.
-          assert (false);
-        link.objidx = id_map.get (link.objidx);
-      }
-    }
+    remap_obj_indices (id_map, &sorted_graph);
 
     sorted_graph.as_array ().reverse ();
     objects_ = sorted_graph;
@@ -163,12 +154,52 @@ struct graph_t
   bool will_overflow()
   {
     // TODO(garretrieger): implement me.
-    // Check for offsets that exceed their width or are negative if
-    // using a non-signed link.
+    // - Check for offsets that exceed their width or;
+    // - are negative if using a non-signed link.
     return false;
   }
 
  private:
+
+  /*
+   * Updates all objidx's in all links using the provided mapping.
+   */
+  void remap_obj_indices (const hb_map_t& id_map,
+                          hb_vector_t<hb_serialize_context_t::object_t>* sorted_graph)
+  {
+    for (unsigned i = 0; i < sorted_graph->length; i++)
+    {
+      for (unsigned j = 0; j < (*sorted_graph)[i].links.length; j++)
+      {
+        auto& link = (*sorted_graph)[i].links[j];
+        if (!id_map.has (link.objidx))
+          // TODO(garretrieger): handle this.
+          assert (false);
+        link.objidx = id_map.get (link.objidx);
+      }
+    }
+  }
+
+  /*
+   * Creates a map from objid to # of incoming edges.
+   */
+  void incoming_edge_count (hb_map_t* out)
+  {
+    for (unsigned i = 0; i < objects_.length; i++)
+    {
+      if (!out->has (i))
+        out->set (i, 0);
+
+      for (const auto& l : objects_[i].links)
+      {
+        unsigned id = l.objidx;
+        if (out->has (id))
+          out->set (id, out->get (id) + 1);
+        else
+          out->set (id, 1);
+      }
+    }
+  }
 
   template <typename O> void
   serialize_link_of_type (const hb_serialize_context_t::object_t::link_t& link,
@@ -220,9 +251,10 @@ inline void
 hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& packed,
                       hb_serialize_context_t* c) {
   graph_t sorted_graph (packed);
-  sorted_graph.sort_bfs ();
+  sorted_graph.sort_kahn ();
   if (sorted_graph.will_overflow ()) {
-    // TODO(garretrieger): additional offset resolution strategies
+    // TODO(garretrieger): try additional offset resolution strategies
+    // - Dijkstra sort of weighted graph.
     // - Promotion to extension lookups.
     // - Table duplication.
     // - Table splitting.
