@@ -24,6 +24,8 @@
  * Google Author(s): Garret Rieger
  */
 
+#include <string>
+
 #include "hb-repacker.hh"
 #include "hb-open-type.hh"
 
@@ -63,6 +65,25 @@ populate_serializer_simple (hb_serialize_context_t* c)
   unsigned obj_2 = add_object ("def", 3, c);
 
   start_object ("abc", 3, c);
+  add_offset (obj_2, c);
+  add_offset (obj_1, c);
+  c->pop_pack ();
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_with_overflow (hb_serialize_context_t* c)
+{
+  std::string large_string(40000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned obj_1 = add_object (large_string.c_str(), 40000, c);
+  unsigned obj_2 = add_object (large_string.c_str(), 40000, c);
+  unsigned obj_3 = add_object (large_string.c_str(), 40000, c);
+
+  start_object ("abc", 3, c);
+  add_offset (obj_3, c);
   add_offset (obj_2, c);
   add_offset (obj_1, c);
   c->pop_pack ();
@@ -196,10 +217,34 @@ test_serialize ()
   free (buffer_2);
 }
 
+static void test_will_overflow_1 ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_complex_2 (&c);
+  graph_t graph (c.object_graph ());
+
+  assert (!graph.will_overflow ());
+}
+
+static void test_will_overflow_2 ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_overflow (&c);
+  graph_t graph (c.object_graph ());
+
+  assert (graph.will_overflow ());
+}
+
 int
 main (int argc, char **argv)
 {
   test_serialize ();
   test_sort_kahn_1 ();
   test_sort_kahn_2 ();
+  test_will_overflow_1 ();
+  test_will_overflow_2 ();
 }

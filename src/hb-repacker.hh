@@ -50,6 +50,8 @@ struct graph_t
     bool removed_nil = false;
     for (unsigned i = 0; i < objects.length; i++)
     {
+      // TODO(grieger): check all links point to valid objects.
+
       // If this graph came from a serialization buffer object 0 is the
       // nil object. We don't need it for our purposes here so drop it.
       if (i == 0 && !objects[i])
@@ -151,15 +153,78 @@ struct graph_t
   /*
    * Will any offsets overflow on graph when it's serialized?
    */
-  bool will_overflow()
+  bool will_overflow ()
   {
-    // TODO(garretrieger): implement me.
-    // - Check for offsets that exceed their width or;
-    // - are negative if using a non-signed link.
+    hb_map_t start_positions;
+    hb_map_t end_positions;
+
+    unsigned current_pos = 0;
+    for (int i = objects_.length - 1; i >= 0; i--)
+    {
+      start_positions.set (i, current_pos);
+      current_pos += objects_[i].tail - objects_[i].head;
+      end_positions.set (i, current_pos);
+    }
+
+
+    for (unsigned parent_idx = 0; parent_idx < objects_.length; parent_idx++)
+    {
+      for (const auto& link : objects_[parent_idx].links)
+      {
+        int64_t offset = compute_offset (parent_idx,
+                                         link,
+                                         start_positions,
+                                         end_positions);
+
+        if (!is_valid_offset (offset, link)) return true;
+      }
+    }
+
     return false;
   }
 
  private:
+
+  int64_t compute_offset (
+      unsigned parent_idx,
+      const hb_serialize_context_t::object_t::link_t& link,
+      const hb_map_t& start_positions,
+      const hb_map_t& end_positions)
+  {
+    unsigned child_idx = link.objidx;
+    int64_t offset = 0;
+    switch ((hb_serialize_context_t::whence_t) link.whence) {
+      case hb_serialize_context_t::whence_t::Head:
+        offset = start_positions[child_idx] - start_positions[parent_idx]; break;
+      case hb_serialize_context_t::whence_t::Tail:
+        offset = start_positions[child_idx] - end_positions[parent_idx]; break;
+      case hb_serialize_context_t::whence_t::Absolute:
+        offset = start_positions[child_idx]; break;
+    }
+
+    assert (offset >= link.bias);
+    offset -= link.bias;
+    return offset;
+  }
+
+  bool is_valid_offset (int64_t offset,
+                        const hb_serialize_context_t::object_t::link_t& link)
+  {
+    if (link.is_signed)
+    {
+      if (link.is_wide)
+        return offset >= -((int64_t) 1 << 31) && offset < ((int64_t) 1 << 31);
+      else
+        return offset >= -(1 << 15) && offset < (1 << 15);
+    }
+    else
+    {
+      if (link.is_wide)
+        return offset >= 0 && offset < ((int64_t) 1 << 32);
+      else
+        return offset >= 0 && offset < (1 << 16);
+    }
+  }
 
   /*
    * Updates all objidx's in all links using the provided mapping.
