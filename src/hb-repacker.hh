@@ -151,6 +151,62 @@ struct graph_t
   }
 
   /*
+   * Generates a new topological sorting of graph ordered by the shortest
+   * distance to each node.
+   */
+  void sort_shortest_distance ()
+  {
+    if (objects_.length <= 1) {
+      // Graph of 1 or less doesn't need sorting.
+      return;
+    }
+
+    hb_hashmap_t<unsigned, int64_t, -1, hb_int_max(int64_t)> distance_to;
+    compute_distances (&distance_to);
+
+    hb_set_t queue;
+    hb_vector_t<hb_serialize_context_t::object_t> sorted_graph;
+    hb_map_t id_map;
+    hb_map_t edge_count;
+    incoming_edge_count (&edge_count);
+
+    // Object graphs are in reverse order, the first object is at the end
+    // of the vector. Since the graph is topologically sorted it's safe to
+    // assume the first object has no incoming edges.
+    queue.add (objects_.length - 1);
+    int new_id = objects_.length - 1;
+
+    while (queue.get_population ())
+    {
+      unsigned next_id = closest_object (queue, distance_to);
+      queue.del (next_id);
+
+      hb_serialize_context_t::object_t& next = objects_[next_id];
+      sorted_graph.push (next);
+      id_map.set (next_id, new_id--);
+
+      for (const auto& link : next.links) {
+        edge_count.set (link.objidx, edge_count.get (link.objidx) - 1);
+        if (!edge_count.get (link.objidx))
+          queue.add (link.objidx);
+      }
+    }
+
+    if (new_id != -1)
+    {
+      // Graph is not fully connected, there are unsorted objects.
+      // TODO(garretrieger): handle this.
+      assert (false);
+    }
+
+    remap_obj_indices (id_map, &sorted_graph);
+
+    sorted_graph.as_array ().reverse ();
+    objects_ = sorted_graph;
+    sorted_graph.fini_deep ();
+  }
+
+  /*
    * Will any offsets overflow on graph when it's serialized?
    */
   bool will_overflow ()
@@ -184,6 +240,74 @@ struct graph_t
   }
 
  private:
+
+  unsigned closest_object (const hb_set_t& queue,
+                           const hb_hashmap_t<unsigned, int64_t, -1, hb_int_max(int64_t)>& distance_to)
+  {
+    int64_t closest_distance = hb_int_max (int64_t);
+    unsigned closest_index = -1;
+    for (unsigned i : queue)
+    {
+      if (distance_to.get (i) < closest_distance)
+      {
+        closest_distance = distance_to.get (i);
+        closest_index = i;
+      }
+    }
+    assert (closest_index != (unsigned) -1);
+    return closest_index;
+  }
+
+  /*
+   * Finds the distance too each object in the graph
+   * from the initial node.
+   */
+  void compute_distances (hb_hashmap_t<unsigned, int64_t, -1, hb_int_max(int64_t)>* distance_to)
+  {
+    // Uses Dijkstra's algorithm to find all of the shortest distances.
+    // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+    distance_to->clear ();
+    hb_set_t unvisited;
+    unvisited.add_range (0, objects_.length - 1);
+
+    unsigned current_idx = objects_.length - 1;
+    distance_to->set (current_idx, 0);
+
+    while (unvisited.get_population ())
+    {
+      const auto& current = objects_[current_idx];
+      int current_distance = (*distance_to)[current_idx];
+
+      for (const auto& link : current.links)
+      {
+        if (!unvisited.has (link.objidx)) continue;
+
+        const auto& child = objects_[link.objidx];
+        int64_t child_weight = child.tail - child.head +
+                               (!link.is_wide ? (1 << 16) : ((int64_t) 1 << 32));
+        int64_t child_distance = current_distance + child_weight;
+
+        if (child_distance < distance_to->get (link.objidx))
+          distance_to->set (link.objidx, child_distance);
+      }
+
+      unvisited.del (current_idx);
+
+      // TODO(garretrieger): change this to use a priority queue.
+      int64_t smallest_distance = hb_int_max(int64_t);
+      for (hb_codepoint_t idx : unvisited)
+      {
+        if (distance_to->get (idx) < smallest_distance)
+        {
+          smallest_distance = distance_to->get (idx);
+          current_idx = idx;
+        }
+      }
+
+      // TODO(garretrieger): this will trigger if graph is disconnected. Handle this.
+      assert (!unvisited.get_population () || smallest_distance != hb_int_max (int64_t));
+    }
+  }
 
   int64_t compute_offset (
       unsigned parent_idx,
@@ -318,6 +442,7 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
   graph_t sorted_graph (packed);
   sorted_graph.sort_kahn ();
   if (sorted_graph.will_overflow ()) {
+    sorted_graph.sort_shortest_distance ();
     // TODO(garretrieger): try additional offset resolution strategies
     // - Dijkstra sort of weighted graph.
     // - Promotion to extension lookups.

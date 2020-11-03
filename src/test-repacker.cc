@@ -116,7 +116,7 @@ populate_serializer_complex_2 (hb_serialize_context_t* c)
 {
   c->start_serialize<char> ();
 
-  unsigned obj_5 = add_object ("mno", 3, c);
+  unsigned obj_5 = add_object ("mn", 3, c);
 
   unsigned obj_4 = add_object ("jkl", 3, c);
 
@@ -184,8 +184,40 @@ static void test_sort_kahn_2 ()
   assert(graph.objects_[3].links.length == 1);
   assert(graph.objects_[3].links[0].objidx == 1);
 
-  assert(strncmp (graph.objects_[2].head, "mno", 3) == 0);
+  assert(strncmp (graph.objects_[2].head, "mn", 2) == 0);
   assert(graph.objects_[2].links.length == 0);
+
+  assert(strncmp (graph.objects_[1].head, "ghi", 3) == 0);
+  assert(graph.objects_[1].links.length == 1);
+  assert(graph.objects_[1].links[0].objidx == 0);
+
+  assert(strncmp (graph.objects_[0].head, "jkl", 3) == 0);
+  assert(graph.objects_[0].links.length == 0);
+}
+
+static void test_sort_shortest ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_complex_2 (&c);
+
+  graph_t graph (c.object_graph ());
+  graph.sort_shortest_distance ();
+
+
+  assert(strncmp (graph.objects_[4].head, "abc", 3) == 0);
+  assert(graph.objects_[4].links.length == 3);
+  assert(graph.objects_[4].links[0].objidx == 2);
+  assert(graph.objects_[4].links[1].objidx == 0);
+  assert(graph.objects_[4].links[2].objidx == 3);
+
+  assert(strncmp (graph.objects_[3].head, "mn", 2) == 0);
+  assert(graph.objects_[3].links.length == 0);
+
+  assert(strncmp (graph.objects_[2].head, "def", 3) == 0);
+  assert(graph.objects_[2].links.length == 1);
+  assert(graph.objects_[2].links[0].objidx == 1);
 
   assert(strncmp (graph.objects_[1].head, "ghi", 3) == 0);
   assert(graph.objects_[1].links.length == 1);
@@ -245,6 +277,7 @@ main (int argc, char **argv)
   test_serialize ();
   test_sort_kahn_1 ();
   test_sort_kahn_2 ();
+  test_sort_shortest ();
   test_will_overflow_1 ();
   test_will_overflow_2 ();
 }
