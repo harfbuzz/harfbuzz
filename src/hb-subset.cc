@@ -69,8 +69,12 @@ _plan_estimate_subset_table_size (hb_subset_plan_t *plan, unsigned table_len)
  * Repack the serialization buffer if any offset overflows exist.
  */
 static hb_blob_t*
-_repack (const hb_serialize_context_t& c)
+_repack (hb_tag_t tag, const hb_serialize_context_t& c)
 {
+  if (tag != HB_OT_TAG_GPOS
+      &&  tag != HB_OT_TAG_GSUB)
+    return c.copy_blob ();
+
   if (!c.offset_overflow)
     return c.copy_blob ();
 
@@ -89,7 +93,6 @@ _repack (const hb_serialize_context_t& c)
 
   return repacked.copy_blob ();
 }
-
 
 template<typename TableType>
 static bool
@@ -138,7 +141,7 @@ _subset (hb_subset_plan_t *plan)
     {
       if (needed)
       {
-	hb_blob_t *dest_blob = _repack (serializer);
+	hb_blob_t *dest_blob = _repack (tag, serializer);
         if (!dest_blob) return false;
 	DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c final subset table size: %u bytes.", HB_UNTAG (tag), dest_blob->length);
 	result = c.plan->add_table (tag, dest_blob);
