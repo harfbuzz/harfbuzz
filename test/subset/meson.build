@@ -22,6 +22,7 @@ tests = [
   'layout.context',
   'layout.gdef-varstore',
   'layout.gdef-attachlist',
+  'layout.notonastaliqurdu',
   'cmap',
   'cmap14',
   'sbix',
