@@ -146,7 +146,6 @@ struct hb_closure_lookups_context_t :
     if (is_lookup_visited (lookup_index))
       return;
 
-    set_lookup_visited (lookup_index);
     nesting_level_left--;
     recurse_func (this, lookup_index);
     nesting_level_left++;
@@ -2328,12 +2327,19 @@ struct ChainRule
 				       | hb_map (mapping));
 
     const ArrayOf<LookupRecord> &lookupRecord = StructAfter<ArrayOf<LookupRecord>> (lookahead);
-    HBUINT16 lookupCount;
-    lookupCount = lookupRecord.len;
-    if (!c->copy (lookupCount)) return_trace (nullptr);
 
-    for (unsigned i = 0; i < (unsigned) lookupCount; i++)
+    HBUINT16* lookupCount = c->embed (&(lookupRecord.len));
+    if (!lookupCount) return_trace (nullptr);
+
+    for (unsigned i = 0; i < lookupRecord.len; i++)
+    {
+      if (!lookup_map->has (lookupRecord[i].lookupListIndex))
+      {
+        (*lookupCount)--;
+        continue;
+      }
       if (!c->copy (lookupRecord[i], lookup_map)) return_trace (nullptr);
+    }
 
     return_trace (out);
   }
