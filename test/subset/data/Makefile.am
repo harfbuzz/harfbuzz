@@ -30,6 +30,7 @@ EXTRA_DIST += \
 	expected/layout.context \
 	expected/layout.gdef-varstore \
 	expected/layout.gdef-attachlist \
+	expected/layout.notonastaliqurdu \
 	expected/cmap \
 	expected/cmap14 \
 	expected/sbix \
