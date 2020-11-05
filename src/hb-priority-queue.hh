@@ -43,7 +43,7 @@ struct hb_priority_queue_t
   ~hb_priority_queue_t () { fini (); }
 
  private:
-  typedef hb_pair_t<unsigned, unsigned> item_t;
+  typedef hb_pair_t<unsigned, int64_t> item_t;
   hb_vector_t<item_t> heap;
 
  public:
@@ -55,7 +55,7 @@ struct hb_priority_queue_t
 
   bool in_error () const { return heap.in_error (); }
 
-  void insert (unsigned value, unsigned priority)
+  void insert (unsigned value, int64_t priority)
   {
     heap.push (item_t (value, priority));
     bubble_up (heap.length - 1);

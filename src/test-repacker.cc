@@ -271,6 +271,8 @@ static void test_will_overflow_2 ()
   assert (graph.will_overflow ());
 }
 
+// TODO(garretrieger): add a test(s) using a real font.
+
 int
 main (int argc, char **argv)
 {

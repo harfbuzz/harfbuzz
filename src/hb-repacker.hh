@@ -161,7 +161,7 @@ struct graph_t
       return;
     }
 
-    hb_hashmap_t<unsigned, int64_t, -1, hb_int_max(int64_t)> distance_to;
+    hb_vector_t<int64_t> distance_to;
     compute_distances (&distance_to);
 
     hb_set_t queue;
@@ -242,15 +242,16 @@ struct graph_t
  private:
 
   unsigned closest_object (const hb_set_t& queue,
-                           const hb_hashmap_t<unsigned, int64_t, -1, hb_int_max(int64_t)>& distance_to)
+                           const hb_vector_t<int64_t> distance_to)
   {
+    // TODO(garretrieger): use a priority queue.
     int64_t closest_distance = hb_int_max (int64_t);
     unsigned closest_index = -1;
     for (unsigned i : queue)
     {
-      if (distance_to.get (i) < closest_distance)
+      if (distance_to[i] < closest_distance)
       {
-        closest_distance = distance_to.get (i);
+        closest_distance = distance_to[i];
         closest_index = i;
       }
     }
@@ -262,51 +263,41 @@ struct graph_t
    * Finds the distance too each object in the graph
    * from the initial node.
    */
-  void compute_distances (hb_hashmap_t<unsigned, int64_t, -1, hb_int_max(int64_t)>* distance_to)
+  void compute_distances (hb_vector_t<int64_t>* distance_to)
   {
     // Uses Dijkstra's algorithm to find all of the shortest distances.
     // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
-    distance_to->clear ();
+    distance_to->resize (0);
+    distance_to->resize (objects_.length);
+    for (unsigned i = 0; i < objects_.length; i++)
+      (*distance_to)[i] = hb_int_max (int64_t);
+    (*distance_to)[objects_.length - 1] = 0;
+
     hb_set_t unvisited;
     unvisited.add_range (0, objects_.length - 1);
 
-    unsigned current_idx = objects_.length - 1;
-    distance_to->set (current_idx, 0);
-
-    while (unvisited.get_population ())
+    while (!unvisited.is_empty ())
     {
-      const auto& current = objects_[current_idx];
-      int current_distance = (*distance_to)[current_idx];
+      unsigned next_idx = closest_object (unvisited, *distance_to);
+      const auto& next = objects_[next_idx];
+      int next_distance = (*distance_to)[next_idx];
+      unvisited.del (next_idx);
 
-      for (const auto& link : current.links)
+      for (const auto& link : next.links)
       {
         if (!unvisited.has (link.objidx)) continue;
 
         const auto& child = objects_[link.objidx];
         int64_t child_weight = child.tail - child.head +
                                (!link.is_wide ? (1 << 16) : ((int64_t) 1 << 32));
-        int64_t child_distance = current_distance + child_weight;
+        int64_t child_distance = next_distance + child_weight;
 
-        if (child_distance < distance_to->get (link.objidx))
-          distance_to->set (link.objidx, child_distance);
+        if (child_distance < (*distance_to)[link.objidx])
+          (*distance_to)[link.objidx] = child_distance;
       }
-
-      unvisited.del (current_idx);
-
-      // TODO(garretrieger): change this to use a priority queue.
-      int64_t smallest_distance = hb_int_max(int64_t);
-      for (hb_codepoint_t idx : unvisited)
-      {
-        if (distance_to->get (idx) < smallest_distance)
-        {
-          smallest_distance = distance_to->get (idx);
-          current_idx = idx;
-        }
-      }
-
-      // TODO(garretrieger): this will trigger if graph is disconnected. Handle this.
-      assert (!unvisited.get_population () || smallest_distance != hb_int_max (int64_t));
     }
+    // TODO(garretrieger): Handle this. If anything is left, part of the graph is disconnected.
+    assert (unvisited.is_empty ());
   }
 
   int64_t compute_offset (
