@@ -110,8 +110,9 @@ struct graph_t
 
     hb_vector_t<unsigned> queue;
     hb_vector_t<hb_serialize_context_t::object_t> sorted_graph;
-    hb_map_t id_map;
-    hb_map_t edge_count;
+    hb_vector_t<unsigned> id_map;
+    id_map.resize (objects_.length);
+    hb_vector_t<unsigned> edge_count;
     incoming_edge_count (&edge_count);
 
     // Object graphs are in reverse order, the first object is at the end
@@ -127,12 +128,12 @@ struct graph_t
 
       hb_serialize_context_t::object_t& next = objects_[next_id];
       sorted_graph.push (next);
-      id_map.set (next_id, new_id--);
+      id_map[next_id] = new_id--;
 
       for (const auto& link : next.links) {
         // TODO(garretrieger): sort children from smallest to largest
-        edge_count.set (link.objidx, edge_count.get (link.objidx) - 1);
-        if (!edge_count.get (link.objidx))
+        edge_count[link.objidx] -= 1;
+        if (!edge_count[link.objidx])
           queue.push (link.objidx);
       }
     }
@@ -167,8 +168,9 @@ struct graph_t
 
     hb_priority_queue_t queue;
     hb_vector_t<hb_serialize_context_t::object_t> sorted_graph;
-    hb_map_t id_map;
-    hb_map_t edge_count;
+    hb_vector_t<unsigned> id_map;
+    id_map.resize (objects_.length);
+    hb_vector_t<unsigned> edge_count;
     incoming_edge_count (&edge_count);
 
     // Object graphs are in reverse order, the first object is at the end
@@ -183,11 +185,11 @@ struct graph_t
 
       hb_serialize_context_t::object_t& next = objects_[next_id];
       sorted_graph.push (next);
-      id_map.set (next_id, new_id--);
+      id_map[next_id] = new_id--;
 
       for (const auto& link : next.links) {
-        edge_count.set (link.objidx, edge_count.get (link.objidx) - 1);
-        if (!edge_count.get (link.objidx))
+        edge_count[link.objidx] -= 1;
+        if (!edge_count[link.objidx])
           // Add the order that the links were encountered to the priority.
           // This ensures that ties between priorities objects are broken in a consistent
           // way. More specifically this is set up so that if a set of objects have the same
@@ -216,15 +218,17 @@ struct graph_t
    */
   bool will_overflow ()
   {
-    hb_map_t start_positions;
-    hb_map_t end_positions;
+    hb_vector_t<unsigned> start_positions;
+    start_positions.resize (objects_.length);
+    hb_vector_t<unsigned> end_positions;
+    end_positions.resize (objects_.length);
 
     unsigned current_pos = 0;
     for (int i = objects_.length - 1; i >= 0; i--)
     {
-      start_positions.set (i, current_pos);
+      start_positions[i] = current_pos;
       current_pos += objects_[i].tail - objects_[i].head;
-      end_positions.set (i, current_pos);
+      end_positions[i] = current_pos;
     }
 
 
@@ -267,7 +271,6 @@ struct graph_t
     // According to https://www3.cs.stonybrook.edu/~rezaul/papers/TR-07-54.pdf
     // for practical performance this is faster then using a more advanced queue
     // (such as a fibonaacci queue) with a fast decrease priority.
-    hb_priority_queue_t queue;
     distance_to->resize (0);
     distance_to->resize (objects_.length);
     for (unsigned i = 0; i < objects_.length; i++)
@@ -276,8 +279,10 @@ struct graph_t
         (*distance_to)[i] = 0;
       else
         (*distance_to)[i] = hb_int_max (int64_t);
-      queue.insert (i, (*distance_to)[i]);
     }
+
+    hb_priority_queue_t queue;
+    queue.insert (objects_.length - 1, 0);
 
     hb_set_t visited;
 
@@ -312,8 +317,8 @@ struct graph_t
   int64_t compute_offset (
       unsigned parent_idx,
       const hb_serialize_context_t::object_t::link_t& link,
-      const hb_map_t& start_positions,
-      const hb_map_t& end_positions)
+      const hb_vector_t<unsigned>& start_positions,
+      const hb_vector_t<unsigned>& end_positions)
   {
     unsigned child_idx = link.objidx;
     int64_t offset = 0;
@@ -353,7 +358,7 @@ struct graph_t
   /*
    * Updates all objidx's in all links using the provided mapping.
    */
-  void remap_obj_indices (const hb_map_t& id_map,
+  void remap_obj_indices (const hb_vector_t<unsigned>& id_map,
                           hb_vector_t<hb_serialize_context_t::object_t>* sorted_graph)
   {
     for (unsigned i = 0; i < sorted_graph->length; i++)
@@ -361,10 +366,7 @@ struct graph_t
       for (unsigned j = 0; j < (*sorted_graph)[i].links.length; j++)
       {
         auto& link = (*sorted_graph)[i].links[j];
-        if (!id_map.has (link.objidx))
-          // TODO(garretrieger): handle this.
-          assert (false);
-        link.objidx = id_map.get (link.objidx);
+        link.objidx = id_map[link.objidx];
       }
     }
   }
@@ -372,20 +374,15 @@ struct graph_t
   /*
    * Creates a map from objid to # of incoming edges.
    */
-  void incoming_edge_count (hb_map_t* out)
+  void incoming_edge_count (hb_vector_t<unsigned>* out)
   {
-    for (unsigned i = 0; i < objects_.length; i++)
+    out->resize (0);
+    out->resize (objects_.length);
+    for (const auto& o : objects_)
     {
-      if (!out->has (i))
-        out->set (i, 0);
-
-      for (const auto& l : objects_[i].links)
+      for (const auto& l : o.links)
       {
-        unsigned id = l.objidx;
-        if (out->has (id))
-          out->set (id, out->get (id) + 1);
-        else
-          out->set (id, 1);
+        (*out)[l.objidx] += 1;
       }
     }
   }
