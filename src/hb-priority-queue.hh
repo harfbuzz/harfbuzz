@@ -111,11 +111,11 @@ struct hb_priority_queue_t
       return;
 
     bool has_right = right < heap.length;
-    if (heap[index] <= heap[left]
-        && (!has_right || heap[index] <= heap[right]))
+    if (heap[index].second <= heap[left].second
+        && (!has_right || heap[index].second <= heap[right].second))
       return;
 
-    if (!has_right || heap[left] < heap[right])
+    if (!has_right || heap[left].second < heap[right].second)
     {
       swap (index, left);
       bubble_down (left);
