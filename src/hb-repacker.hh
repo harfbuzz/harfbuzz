@@ -29,6 +29,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-map.hh"
+#include "hb-priority-queue.hh"
 #include "hb-serialize.hh"
 #include "hb-vector.hh"
 
@@ -267,25 +268,39 @@ struct graph_t
   {
     // Uses Dijkstra's algorithm to find all of the shortest distances.
     // https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
+    //
+    // Implementation Note:
+    // Since our priority queue doesn't support fast priority decreases
+    // we instead just add new entries into the queue when a priority changes.
+    // Redundant ones are filtered out later on by the visited set.
+    // According to https://www3.cs.stonybrook.edu/~rezaul/papers/TR-07-54.pdf
+    // for practical performance this is faster then using a more advanced queue
+    // (such as a fibonaacci queue) with a fast decrease priority.
+    hb_priority_queue_t queue;
     distance_to->resize (0);
     distance_to->resize (objects_.length);
     for (unsigned i = 0; i < objects_.length; i++)
-      (*distance_to)[i] = hb_int_max (int64_t);
-    (*distance_to)[objects_.length - 1] = 0;
-
-    hb_set_t unvisited;
-    unvisited.add_range (0, objects_.length - 1);
-
-    while (!unvisited.is_empty ())
     {
-      unsigned next_idx = closest_object (unvisited, *distance_to);
+      if (i == objects_.length - 1)
+        (*distance_to)[i] = 0;
+      else
+        (*distance_to)[i] = hb_int_max (int64_t);
+      queue.insert (i, (*distance_to)[i]);
+    }
+
+    hb_set_t visited;
+
+    while (!queue.is_empty ())
+    {
+      unsigned next_idx = queue.extract_minimum ().first;
+      if (visited.has (next_idx)) continue;
       const auto& next = objects_[next_idx];
-      int next_distance = (*distance_to)[next_idx];
-      unvisited.del (next_idx);
+      int64_t next_distance = (*distance_to)[next_idx];
+      visited.add (next_idx);
 
       for (const auto& link : next.links)
       {
-        if (!unvisited.has (link.objidx)) continue;
+        if (visited.has (link.objidx)) continue;
 
         const auto& child = objects_[link.objidx];
         int64_t child_weight = child.tail - child.head +
@@ -293,11 +308,14 @@ struct graph_t
         int64_t child_distance = next_distance + child_weight;
 
         if (child_distance < (*distance_to)[link.objidx])
+        {
           (*distance_to)[link.objidx] = child_distance;
+          queue.insert (link.objidx, child_distance);
+        }
       }
     }
     // TODO(garretrieger): Handle this. If anything is left, part of the graph is disconnected.
-    assert (unvisited.is_empty ());
+    assert (queue.is_empty ());
   }
 
   int64_t compute_offset (
