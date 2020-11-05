@@ -165,7 +165,7 @@ struct graph_t
     hb_vector_t<int64_t> distance_to;
     compute_distances (&distance_to);
 
-    hb_set_t queue;
+    hb_priority_queue_t queue;
     hb_vector_t<hb_serialize_context_t::object_t> sorted_graph;
     hb_map_t id_map;
     hb_map_t edge_count;
@@ -174,13 +174,12 @@ struct graph_t
     // Object graphs are in reverse order, the first object is at the end
     // of the vector. Since the graph is topologically sorted it's safe to
     // assume the first object has no incoming edges.
-    queue.add (objects_.length - 1);
+    queue.insert (objects_.length - 1, add_order(distance_to[objects_.length - 1], 0));
     int new_id = objects_.length - 1;
-
-    while (queue.get_population ())
+    unsigned order = 1;
+    while (!queue.is_empty ())
     {
-      unsigned next_id = closest_object (queue, distance_to);
-      queue.del (next_id);
+      unsigned next_id = queue.extract_minimum().first;
 
       hb_serialize_context_t::object_t& next = objects_[next_id];
       sorted_graph.push (next);
@@ -189,7 +188,12 @@ struct graph_t
       for (const auto& link : next.links) {
         edge_count.set (link.objidx, edge_count.get (link.objidx) - 1);
         if (!edge_count.get (link.objidx))
-          queue.add (link.objidx);
+          // Add the order that the links were encountered to the priority.
+          // This ensures that ties between priorities objects are broken in a consistent
+          // way. More specifically this is set up so that if a set of objects have the same
+          // distance they'll be added to the topolical order in the order that they are
+          // referenced from the parent object.
+          queue.insert (link.objidx, add_order(distance_to[link.objidx], order++));
       }
     }
 
@@ -242,22 +246,9 @@ struct graph_t
 
  private:
 
-  unsigned closest_object (const hb_set_t& queue,
-                           const hb_vector_t<int64_t> distance_to)
+  int64_t add_order (int64_t distance, unsigned order)
   {
-    // TODO(garretrieger): use a priority queue.
-    int64_t closest_distance = hb_int_max (int64_t);
-    unsigned closest_index = -1;
-    for (unsigned i : queue)
-    {
-      if (distance_to[i] < closest_distance)
-      {
-        closest_distance = distance_to[i];
-        closest_index = i;
-      }
-    }
-    assert (closest_index != (unsigned) -1);
-    return closest_index;
+    return (distance << 24) | (0x00FFFFFF & order);
   }
 
   /*
