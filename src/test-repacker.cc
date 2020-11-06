@@ -197,20 +197,20 @@ static void test_sort_kahn_1 ()
   graph_t graph (c.object_graph ());
   graph.sort_kahn ();
 
-  assert(strncmp (graph.objects_[3].head, "abc", 3) == 0);
-  assert(graph.objects_[3].links.length == 2);
-  assert(graph.objects_[3].links[0].objidx == 2);
-  assert(graph.objects_[3].links[1].objidx == 1);
+  assert(strncmp (graph.object (3).head, "abc", 3) == 0);
+  assert(graph.object (3).links.length == 2);
+  assert(graph.object (3).links[0].objidx == 2);
+  assert(graph.object (3).links[1].objidx == 1);
 
-  assert(strncmp (graph.objects_[2].head, "def", 3) == 0);
-  assert(graph.objects_[2].links.length == 1);
-  assert(graph.objects_[2].links[0].objidx == 0);
+  assert(strncmp (graph.object (2).head, "def", 3) == 0);
+  assert(graph.object (2).links.length == 1);
+  assert(graph.object (2).links[0].objidx == 0);
 
-  assert(strncmp (graph.objects_[1].head, "jkl", 3) == 0);
-  assert(graph.objects_[1].links.length == 0);
+  assert(strncmp (graph.object (1).head, "jkl", 3) == 0);
+  assert(graph.object (1).links.length == 0);
 
-  assert(strncmp (graph.objects_[0].head, "ghi", 3) == 0);
-  assert(graph.objects_[0].links.length == 0);
+  assert(strncmp (graph.object (0).head, "ghi", 3) == 0);
+  assert(graph.object (0).links.length == 0);
 }
 
 static void test_sort_kahn_2 ()
@@ -224,25 +224,25 @@ static void test_sort_kahn_2 ()
   graph.sort_kahn ();
 
 
-  assert(strncmp (graph.objects_[4].head, "abc", 3) == 0);
-  assert(graph.objects_[4].links.length == 3);
-  assert(graph.objects_[4].links[0].objidx == 3);
-    assert(graph.objects_[4].links[1].objidx == 0);
-  assert(graph.objects_[4].links[2].objidx == 2);
+  assert(strncmp (graph.object (4).head, "abc", 3) == 0);
+  assert(graph.object (4).links.length == 3);
+  assert(graph.object (4).links[0].objidx == 3);
+    assert(graph.object (4).links[1].objidx == 0);
+  assert(graph.object (4).links[2].objidx == 2);
 
-  assert(strncmp (graph.objects_[3].head, "def", 3) == 0);
-  assert(graph.objects_[3].links.length == 1);
-  assert(graph.objects_[3].links[0].objidx == 1);
+  assert(strncmp (graph.object (3).head, "def", 3) == 0);
+  assert(graph.object (3).links.length == 1);
+  assert(graph.object (3).links[0].objidx == 1);
 
-  assert(strncmp (graph.objects_[2].head, "mn", 2) == 0);
-  assert(graph.objects_[2].links.length == 0);
+  assert(strncmp (graph.object (2).head, "mn", 2) == 0);
+  assert(graph.object (2).links.length == 0);
 
-  assert(strncmp (graph.objects_[1].head, "ghi", 3) == 0);
-  assert(graph.objects_[1].links.length == 1);
-  assert(graph.objects_[1].links[0].objidx == 0);
+  assert(strncmp (graph.object (1).head, "ghi", 3) == 0);
+  assert(graph.object (1).links.length == 1);
+  assert(graph.object (1).links[0].objidx == 0);
 
-  assert(strncmp (graph.objects_[0].head, "jkl", 3) == 0);
-  assert(graph.objects_[0].links.length == 0);
+  assert(strncmp (graph.object (0).head, "jkl", 3) == 0);
+  assert(graph.object (0).links.length == 0);
 }
 
 static void test_sort_shortest ()
@@ -256,25 +256,25 @@ static void test_sort_shortest ()
   graph.sort_shortest_distance ();
 
 
-  assert(strncmp (graph.objects_[4].head, "abc", 3) == 0);
-  assert(graph.objects_[4].links.length == 3);
-  assert(graph.objects_[4].links[0].objidx == 2);
-  assert(graph.objects_[4].links[1].objidx == 0);
-  assert(graph.objects_[4].links[2].objidx == 3);
+  assert(strncmp (graph.object (4).head, "abc", 3) == 0);
+  assert(graph.object (4).links.length == 3);
+  assert(graph.object (4).links[0].objidx == 2);
+  assert(graph.object (4).links[1].objidx == 0);
+  assert(graph.object (4).links[2].objidx == 3);
 
-  assert(strncmp (graph.objects_[3].head, "mn", 2) == 0);
-  assert(graph.objects_[3].links.length == 0);
+  assert(strncmp (graph.object (3).head, "mn", 2) == 0);
+  assert(graph.object (3).links.length == 0);
 
-  assert(strncmp (graph.objects_[2].head, "def", 3) == 0);
-  assert(graph.objects_[2].links.length == 1);
-  assert(graph.objects_[2].links[0].objidx == 1);
+  assert(strncmp (graph.object (2).head, "def", 3) == 0);
+  assert(graph.object (2).links.length == 1);
+  assert(graph.object (2).links[0].objidx == 1);
 
-  assert(strncmp (graph.objects_[1].head, "ghi", 3) == 0);
-  assert(graph.objects_[1].links.length == 1);
-  assert(graph.objects_[1].links[0].objidx == 0);
+  assert(strncmp (graph.object (1).head, "ghi", 3) == 0);
+  assert(graph.object (1).links.length == 1);
+  assert(graph.object (1).links[0].objidx == 0);
 
-  assert(strncmp (graph.objects_[0].head, "jkl", 3) == 0);
-  assert(graph.objects_[0].links.length == 0);
+  assert(strncmp (graph.object (0).head, "jkl", 3) == 0);
+  assert(graph.object (0).links.length == 0);
 }
 
 static void test_duplicate_leaf ()
@@ -287,28 +287,28 @@ static void test_duplicate_leaf ()
   graph_t graph (c.object_graph ());
   graph.duplicate (4, 1);
 
-  assert(strncmp (graph.objects_[5].head, "abc", 3) == 0);
-  assert(graph.objects_[5].links.length == 3);
-  assert(graph.objects_[5].links[0].objidx == 3);
-  assert(graph.objects_[5].links[1].objidx == 4);
-  assert(graph.objects_[5].links[2].objidx == 0);
+  assert(strncmp (graph.object (5).head, "abc", 3) == 0);
+  assert(graph.object (5).links.length == 3);
+  assert(graph.object (5).links[0].objidx == 3);
+  assert(graph.object (5).links[1].objidx == 4);
+  assert(graph.object (5).links[2].objidx == 0);
 
-  assert(strncmp (graph.objects_[4].head, "jkl", 3) == 0);
-  assert(graph.objects_[4].links.length == 0);
+  assert(strncmp (graph.object (4).head, "jkl", 3) == 0);
+  assert(graph.object (4).links.length == 0);
 
-  assert(strncmp (graph.objects_[3].head, "def", 3) == 0);
-  assert(graph.objects_[3].links.length == 1);
-  assert(graph.objects_[3].links[0].objidx == 2);
+  assert(strncmp (graph.object (3).head, "def", 3) == 0);
+  assert(graph.object (3).links.length == 1);
+  assert(graph.object (3).links[0].objidx == 2);
 
-  assert(strncmp (graph.objects_[2].head, "ghi", 3) == 0);
-  assert(graph.objects_[2].links.length == 1);
-  assert(graph.objects_[2].links[0].objidx == 1);
+  assert(strncmp (graph.object (2).head, "ghi", 3) == 0);
+  assert(graph.object (2).links.length == 1);
+  assert(graph.object (2).links[0].objidx == 1);
 
-  assert(strncmp (graph.objects_[1].head, "jkl", 3) == 0);
-  assert(graph.objects_[1].links.length == 0);
+  assert(strncmp (graph.object (1).head, "jkl", 3) == 0);
+  assert(graph.object (1).links.length == 0);
 
-  assert(strncmp (graph.objects_[0].head, "mn", 2) == 0);
-  assert(graph.objects_[0].links.length == 0);
+  assert(strncmp (graph.object (0).head, "mn", 2) == 0);
+  assert(graph.object (0).links.length == 0);
 }
 
 static void test_duplicate_interior ()
@@ -321,33 +321,33 @@ static void test_duplicate_interior ()
   graph_t graph (c.object_graph ());
   graph.duplicate (3, 2);
 
-  assert(strncmp (graph.objects_[6].head, "abc", 3) == 0);
-  assert(graph.objects_[6].links.length == 3);
-  assert(graph.objects_[6].links[0].objidx == 4);
-  assert(graph.objects_[6].links[1].objidx == 2);
-  assert(graph.objects_[6].links[2].objidx == 1);
+  assert(strncmp (graph.object (6).head, "abc", 3) == 0);
+  assert(graph.object (6).links.length == 3);
+  assert(graph.object (6).links[0].objidx == 4);
+  assert(graph.object (6).links[1].objidx == 2);
+  assert(graph.object (6).links[2].objidx == 1);
 
-  assert(strncmp (graph.objects_[5].head, "jkl", 3) == 0);
-  assert(graph.objects_[5].links.length == 1);
-  assert(graph.objects_[5].links[0].objidx == 0);
+  assert(strncmp (graph.object (5).head, "jkl", 3) == 0);
+  assert(graph.object (5).links.length == 1);
+  assert(graph.object (5).links[0].objidx == 0);
 
-  assert(strncmp (graph.objects_[4].head, "def", 3) == 0);
-  assert(graph.objects_[4].links.length == 1);
-  assert(graph.objects_[4].links[0].objidx == 3);
+  assert(strncmp (graph.object (4).head, "def", 3) == 0);
+  assert(graph.object (4).links.length == 1);
+  assert(graph.object (4).links[0].objidx == 3);
 
-  assert(strncmp (graph.objects_[3].head, "ghi", 3) == 0);
-  assert(graph.objects_[3].links.length == 1);
-  assert(graph.objects_[3].links[0].objidx == 5);
+  assert(strncmp (graph.object (3).head, "ghi", 3) == 0);
+  assert(graph.object (3).links.length == 1);
+  assert(graph.object (3).links[0].objidx == 5);
 
-  assert(strncmp (graph.objects_[2].head, "jkl", 3) == 0);
-  assert(graph.objects_[2].links.length == 1);
-  assert(graph.objects_[2].links[0].objidx == 0);
+  assert(strncmp (graph.object (2).head, "jkl", 3) == 0);
+  assert(graph.object (2).links.length == 1);
+  assert(graph.object (2).links[0].objidx == 0);
 
-  assert(strncmp (graph.objects_[1].head, "mn", 2) == 0);
-  assert(graph.objects_[1].links.length == 0);
+  assert(strncmp (graph.object (1).head, "mn", 2) == 0);
+  assert(graph.object (1).links.length == 0);
 
-  assert(strncmp (graph.objects_[0].head, "opqrst", 6) == 0);
-  assert(graph.objects_[0].links.length == 0);
+  assert(strncmp (graph.object (0).head, "opqrst", 6) == 0);
+  assert(graph.object (0).links.length == 0);
 }
 
 static void
