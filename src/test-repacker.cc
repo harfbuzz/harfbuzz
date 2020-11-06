@@ -75,18 +75,38 @@ populate_serializer_simple (hb_serialize_context_t* c)
 static void
 populate_serializer_with_overflow (hb_serialize_context_t* c)
 {
-  std::string large_string(40000, 'a');
+  std::string large_string(50000, 'a');
   c->start_serialize<char> ();
 
-  unsigned obj_1 = add_object (large_string.c_str(), 40000, c);
-  unsigned obj_2 = add_object (large_string.c_str(), 40000, c);
-  unsigned obj_3 = add_object (large_string.c_str(), 40000, c);
+  unsigned obj_1 = add_object (large_string.c_str(), 10000, c);
+  unsigned obj_2 = add_object (large_string.c_str(), 20000, c);
+  unsigned obj_3 = add_object (large_string.c_str(), 50000, c);
 
   start_object ("abc", 3, c);
   add_offset (obj_3, c);
   add_offset (obj_2, c);
   add_offset (obj_1, c);
   c->pop_pack ();
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_with_dedup_overflow (hb_serialize_context_t* c)
+{
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned obj_1 = add_object ("def", 3, c);
+
+  start_object (large_string.c_str(), 60000, c);
+  add_offset (obj_1, c);
+  unsigned obj_2 = c->pop_pack (false);
+
+  start_object (large_string.c_str(), 10000, c);
+  add_offset (obj_2, c);
+  add_offset (obj_1, c);
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -116,9 +136,39 @@ populate_serializer_complex_2 (hb_serialize_context_t* c)
 {
   c->start_serialize<char> ();
 
-  unsigned obj_5 = add_object ("mn", 3, c);
+  unsigned obj_5 = add_object ("mn", 2, c);
 
   unsigned obj_4 = add_object ("jkl", 3, c);
+
+  start_object ("ghi", 3, c);
+  add_offset (obj_4, c);
+  unsigned obj_3 = c->pop_pack (false);
+
+  start_object ("def", 3, c);
+  add_offset (obj_3, c);
+  unsigned obj_2 = c->pop_pack (false);
+
+  start_object ("abc", 3, c);
+  add_offset (obj_2, c);
+  add_offset (obj_4, c);
+  add_offset (obj_5, c);
+  c->pop_pack ();
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_complex_3 (hb_serialize_context_t* c)
+{
+  c->start_serialize<char> ();
+
+  unsigned obj_6 = add_object ("opqrst", 6, c);
+
+  unsigned obj_5 = add_object ("mn", 2, c);
+
+  start_object ("jkl", 3, c);
+  add_offset (obj_6, c);
+  unsigned obj_4 = c->pop_pack (false);
 
   start_object ("ghi", 3, c);
   add_offset (obj_4, c);
@@ -227,6 +277,79 @@ static void test_sort_shortest ()
   assert(graph.objects_[0].links.length == 0);
 }
 
+static void test_duplicate_leaf ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_complex_2 (&c);
+
+  graph_t graph (c.object_graph ());
+  graph.duplicate (4, 1);
+
+  assert(strncmp (graph.objects_[5].head, "abc", 3) == 0);
+  assert(graph.objects_[5].links.length == 3);
+  assert(graph.objects_[5].links[0].objidx == 3);
+  assert(graph.objects_[5].links[1].objidx == 4);
+  assert(graph.objects_[5].links[2].objidx == 0);
+
+  assert(strncmp (graph.objects_[4].head, "jkl", 3) == 0);
+  assert(graph.objects_[4].links.length == 0);
+
+  assert(strncmp (graph.objects_[3].head, "def", 3) == 0);
+  assert(graph.objects_[3].links.length == 1);
+  assert(graph.objects_[3].links[0].objidx == 2);
+
+  assert(strncmp (graph.objects_[2].head, "ghi", 3) == 0);
+  assert(graph.objects_[2].links.length == 1);
+  assert(graph.objects_[2].links[0].objidx == 1);
+
+  assert(strncmp (graph.objects_[1].head, "jkl", 3) == 0);
+  assert(graph.objects_[1].links.length == 0);
+
+  assert(strncmp (graph.objects_[0].head, "mn", 2) == 0);
+  assert(graph.objects_[0].links.length == 0);
+}
+
+static void test_duplicate_interior ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_complex_3 (&c);
+
+  graph_t graph (c.object_graph ());
+  graph.duplicate (3, 2);
+
+  assert(strncmp (graph.objects_[6].head, "abc", 3) == 0);
+  assert(graph.objects_[6].links.length == 3);
+  assert(graph.objects_[6].links[0].objidx == 4);
+  assert(graph.objects_[6].links[1].objidx == 2);
+  assert(graph.objects_[6].links[2].objidx == 1);
+
+  assert(strncmp (graph.objects_[5].head, "jkl", 3) == 0);
+  assert(graph.objects_[5].links.length == 1);
+  assert(graph.objects_[5].links[0].objidx == 0);
+
+  assert(strncmp (graph.objects_[4].head, "def", 3) == 0);
+  assert(graph.objects_[4].links.length == 1);
+  assert(graph.objects_[4].links[0].objidx == 3);
+
+  assert(strncmp (graph.objects_[3].head, "ghi", 3) == 0);
+  assert(graph.objects_[3].links.length == 1);
+  assert(graph.objects_[3].links[0].objidx == 5);
+
+  assert(strncmp (graph.objects_[2].head, "jkl", 3) == 0);
+  assert(graph.objects_[2].links.length == 1);
+  assert(graph.objects_[2].links[0].objidx == 0);
+
+  assert(strncmp (graph.objects_[1].head, "mn", 2) == 0);
+  assert(graph.objects_[1].links.length == 0);
+
+  assert(strncmp (graph.objects_[0].head, "opqrst", 6) == 0);
+  assert(graph.objects_[0].links.length == 0);
+}
+
 static void
 test_serialize ()
 {
@@ -257,7 +380,7 @@ static void test_will_overflow_1 ()
   populate_serializer_complex_2 (&c);
   graph_t graph (c.object_graph ());
 
-  assert (!graph.will_overflow ());
+  assert (!graph.will_overflow (nullptr));
 }
 
 static void test_will_overflow_2 ()
@@ -268,9 +391,63 @@ static void test_will_overflow_2 ()
   populate_serializer_with_overflow (&c);
   graph_t graph (c.object_graph ());
 
-  assert (graph.will_overflow ());
+  assert (graph.will_overflow (nullptr));
 }
 
+static void test_will_overflow_3 ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_dedup_overflow (&c);
+  graph_t graph (c.object_graph ());
+
+  assert (graph.will_overflow (nullptr));
+}
+
+static void test_resolve_overflows_via_sort ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_overflow (&c);
+  graph_t graph (c.object_graph ());
+
+  void* out_buffer = malloc (buffer_size);
+  hb_serialize_context_t out (out_buffer, buffer_size);
+
+  hb_resolve_overflows (c.object_graph (), &out);
+  assert (!out.offset_overflow);
+  hb_bytes_t result = out.copy_bytes ();
+  assert (result.length == (80000 + 3 + 3 * 2));
+
+  result.free ();
+  free (buffer);
+  free (out_buffer);
+}
+
+static void test_resolve_overflows_via_duplication ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_dedup_overflow (&c);
+  graph_t graph (c.object_graph ());
+
+  void* out_buffer = malloc (buffer_size);
+  hb_serialize_context_t out (out_buffer, buffer_size);
+
+  hb_resolve_overflows (c.object_graph (), &out);
+  assert (!out.offset_overflow);
+  hb_bytes_t result = out.copy_bytes ();
+  assert (result.length == (10000 + 2 * 2 + 60000 + 2 + 3 * 2));
+
+  result.free ();
+  free (buffer);
+  free (out_buffer);
+}
+
+// TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add a test(s) using a real font.
 
 int
@@ -282,4 +459,9 @@ main (int argc, char **argv)
   test_sort_shortest ();
   test_will_overflow_1 ();
   test_will_overflow_2 ();
+  test_will_overflow_3 ();
+  test_resolve_overflows_via_sort ();
+  test_resolve_overflows_via_duplication ();
+  test_duplicate_leaf ();
+  test_duplicate_interior ();
 }

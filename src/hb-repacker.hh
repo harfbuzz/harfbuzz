@@ -39,6 +39,36 @@ struct graph_t
   // TODO(garretrieger): add an error tracking system similar to what serialize_context_t
   //                     does.
 
+  struct overflow_record_t
+  {
+    unsigned parent;
+    const hb_serialize_context_t::object_t::link_t* link;
+  };
+
+  struct clone_buffer_t
+  {
+    clone_buffer_t () : head (nullptr), tail (nullptr) {}
+
+    void copy (const hb_serialize_context_t::object_t& object)
+    {
+      fini ();
+      unsigned size = object.tail - object.head;
+      head = (char*) malloc (size);
+      memcpy (head, object.head, size);
+      tail = head + size;
+    }
+
+    char* head;
+    char* tail;
+
+    void fini ()
+    {
+      if (!head) return;
+      free (head);
+      head = nullptr;
+    }
+  };
+
   /*
    * A topological sorting of an object graph. Ordered
    * in reverse serialization order (first object in the
@@ -72,6 +102,7 @@ struct graph_t
   ~graph_t ()
   {
     objects_.fini_deep ();
+    clone_buffers_.fini_deep ();
   }
 
   /*
@@ -214,10 +245,44 @@ struct graph_t
   }
 
   /*
+   * Creates a copy of child and re-assigns the link from
+   * parent to the clone. The copy is a shallow copy, objects
+   * linked from child are not duplicated.
+   */
+  void duplicate (unsigned parent_idx, unsigned child_idx)
+  {
+    const auto& child = objects_[child_idx];
+    clone_buffer_t* buffer = clone_buffers_.push ();
+    buffer->copy (child);
+
+    auto* clone = objects_.push ();
+    clone->head = buffer->head;
+    clone->tail = buffer->tail;
+    for (const auto& l : child.links)
+      clone->links.push (l);
+
+    auto& parent = objects_[parent_idx];
+    unsigned clone_idx = objects_.length - 2;
+    for (unsigned i = 0; i < parent.links.length; i++)
+    {
+      auto& l = parent.links[i];
+      if (l.objidx == child_idx) l.objidx = clone_idx;
+    }
+
+    // The last object is the root of the graph, so swap back the root to the end.
+    // The root's obj idx does change, however since it's root nothing else refers to it.
+    // all other obj idx's will be unaffected.
+    hb_serialize_context_t::object_t root = objects_[objects_.length - 2];
+    objects_[objects_.length - 2] = *clone;
+    objects_[objects_.length - 1] = root;
+  }
+
+  /*
    * Will any offsets overflow on graph when it's serialized?
    */
-  bool will_overflow ()
+  bool will_overflow (hb_vector_t<overflow_record_t>* overflows)
   {
+    if (overflows) overflows->resize (0);
     hb_vector_t<unsigned> start_positions;
     start_positions.resize (objects_.length);
     hb_vector_t<unsigned> end_positions;
@@ -232,7 +297,7 @@ struct graph_t
     }
 
 
-    for (unsigned parent_idx = 0; parent_idx < objects_.length; parent_idx++)
+    for (int parent_idx = objects_.length - 1; parent_idx >= 0; parent_idx--)
     {
       for (const auto& link : objects_[parent_idx].links)
       {
@@ -241,11 +306,52 @@ struct graph_t
                                          start_positions,
                                          end_positions);
 
-        if (!is_valid_offset (offset, link)) return true;
+        if (is_valid_offset (offset, link))
+          continue;
+
+        if (!overflows) return true;
+
+        overflow_record_t r;
+        r.parent = parent_idx;
+        r.link = &link;
+        overflows->push (r);
       }
     }
 
-    return false;
+    if (!overflows) return false;
+    return overflows->length;
+  }
+
+  /*
+   * Creates a map from objid to # of incoming edges.
+   */
+  void incoming_edge_count (hb_vector_t<unsigned>* out) const
+  {
+    out->resize (0);
+    out->resize (objects_.length);
+    for (const auto& o : objects_)
+    {
+      for (const auto& l : o.links)
+      {
+        (*out)[l.objidx] += 1;
+      }
+    }
+  }
+
+  void print_overflows (const hb_vector_t<overflow_record_t>& overflows) const
+  {
+    if (!DEBUG_ENABLED(SUBSET_REPACK)) return;
+
+    hb_vector_t<unsigned> edge_count;
+    incoming_edge_count (&edge_count);
+    for (const auto& o : overflows)
+    {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "overflow from %d => %d (%d incoming , %d outgoing)",
+                 o.parent,
+                 o.link->objidx,
+                 edge_count[o.link->objidx],
+                 objects_[o.link->objidx].links.length);
+    }
   }
 
  private:
@@ -371,22 +477,6 @@ struct graph_t
     }
   }
 
-  /*
-   * Creates a map from objid to # of incoming edges.
-   */
-  void incoming_edge_count (hb_vector_t<unsigned>* out)
-  {
-    out->resize (0);
-    out->resize (objects_.length);
-    for (const auto& o : objects_)
-    {
-      for (const auto& l : o.links)
-      {
-        (*out)[l.objidx] += 1;
-      }
-    }
-  }
-
   template <typename O> void
   serialize_link_of_type (const hb_serialize_context_t::object_t::link_t& link,
                           char* head,
@@ -426,6 +516,7 @@ struct graph_t
 
  public:
   hb_vector_t<hb_serialize_context_t::object_t> objects_;
+  hb_vector_t<clone_buffer_t> clone_buffers_;
 };
 
 
@@ -438,13 +529,49 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
                       hb_serialize_context_t* c) {
   graph_t sorted_graph (packed);
   sorted_graph.sort_kahn ();
-  if (sorted_graph.will_overflow ()) {
-    sorted_graph.sort_shortest_distance ();
-    // TODO(garretrieger): try additional offset resolution strategies
-    // - Dijkstra sort of weighted graph.
-    // - Promotion to extension lookups.
-    // - Table duplication.
-    // - Table splitting.
+  if (!sorted_graph.will_overflow (nullptr)) return;
+
+  sorted_graph.sort_shortest_distance ();
+
+  unsigned round = 0;
+  hb_vector_t<graph_t::overflow_record_t> overflows;
+  // TODO(garretrieger): select a good limit for max rounds.
+  while (sorted_graph.will_overflow (&overflows) && round++ < 10) {
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "Over flow resolution round %d", round);
+    sorted_graph.print_overflows (overflows);
+
+    // TODO(garretrieger): cache ege count in the graph object . Will need to be invalidated
+    //                     by graph modifications.
+    hb_vector_t<unsigned> edge_count;
+    sorted_graph.incoming_edge_count (&edge_count);
+
+    // Try resolving the furthest overflow first.
+    bool resolution_attempted = false;
+    for (int i = overflows.length - 1; i >= 0; i--)
+    {
+      const graph_t::overflow_record_t& r = overflows[i];
+      if (edge_count[r.link->objidx] > 1)
+      {
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Duplicating %d => %d",
+                   r.parent, r.link->objidx);
+        // The child object is shared, we may be able to eliminate the overflow
+        // by duplicating it.
+        sorted_graph.duplicate (r.parent, r.link->objidx);
+        sorted_graph.sort_shortest_distance ();
+        resolution_attempted = true;
+        break;
+      }
+
+      // TODO(garretrieger): add additional offset resolution strategies
+      // - Promotion to extension lookups.
+      // - Table splitting.
+    }
+
+    if (!resolution_attempted)
+    {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
+      break;
+    }
   }
 
   sorted_graph.serialize (c);
