@@ -449,6 +449,7 @@ static void test_resolve_overflows_via_duplication ()
 
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add a test(s) using a real font.
+// TODO(garretrieger): add tests for priority raising.
 
 int
 main (int argc, char **argv)

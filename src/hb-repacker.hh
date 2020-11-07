@@ -41,6 +41,13 @@ struct graph_t
 
   struct vertex_t
   {
+    vertex_t () :
+        distance (0),
+        incoming_edges (0),
+        start (0),
+        end (0),
+        priority(0) {}
+
     void fini () { obj.fini (); }
 
     hb_serialize_context_t::object_t obj;
@@ -48,6 +55,38 @@ struct graph_t
     unsigned incoming_edges;
     unsigned start;
     unsigned end;
+    unsigned priority;
+
+    bool is_shared () const
+    {
+      return incoming_edges > 1;
+    }
+
+    bool is_leaf () const
+    {
+      return !obj.links.length;
+    }
+
+    void raise_priority ()
+    {
+      priority++;
+    }
+
+    int64_t modified_distance (unsigned order) const
+    {
+      // TODO(garretrieger): once priority is high enough, should try
+      // setting distance = 0 which will force to sort immediately after
+      // it's parent where possible.
+      int64_t modified_distance = distance + distance_modifier ();
+      return (modified_distance << 24) | (0x00FFFFFF & order);
+    }
+
+    int64_t distance_modifier () const
+    {
+      if (!priority) return 0;
+      int64_t table_size = obj.tail - obj.head;
+      return -(table_size - table_size / (1 << priority));
+    }
   };
 
   struct overflow_record_t
@@ -246,7 +285,7 @@ struct graph_t
     // Object graphs are in reverse order, the first object is at the end
     // of the vector. Since the graph is topologically sorted it's safe to
     // assume the first object has no incoming edges.
-    queue.insert (root_idx (), add_order(root ().distance, 0));
+    queue.insert (root_idx (), root ().modified_distance (0));
     int new_id = root_idx ();
     unsigned order = 1;
     while (!queue.is_empty ())
@@ -265,7 +304,8 @@ struct graph_t
           // way. More specifically this is set up so that if a set of objects have the same
           // distance they'll be added to the topolical order in the order that they are
           // referenced from the parent object.
-          queue.insert (link.objidx, add_order(vertices_[link.objidx].distance, order++));
+          queue.insert (link.objidx,
+                        vertices_[link.objidx].modified_distance (order++));
       }
     }
 
@@ -290,6 +330,9 @@ struct graph_t
    */
   void duplicate (unsigned parent_idx, unsigned child_idx)
   {
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %d => %d",
+               parent_idx, child_idx);
+
     positions_invalid = true;
 
     auto& child = vertices_[child_idx];
@@ -326,9 +369,24 @@ struct graph_t
   }
 
   /*
+   * Raises the sorting priority of all children.
+   */
+  void raise_childrens_priority (unsigned parent_idx)
+  {
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "  Raising priority of all children of %d",
+               parent_idx);
+    // This operation doesn't change ordering until a sort is run, so no need
+    // to invalidate positions. It does not change graph structure so no need
+    // to update distances or edge counts.
+    auto& parent = vertices_[parent_idx].obj;
+    for (unsigned i = 0; i < parent.links.length; i++)
+      vertices_[parent.links[i].objidx].raise_priority ();
+  }
+
+  /*
    * Will any offsets overflow on graph when it's serialized?
    */
-  bool will_overflow (hb_vector_t<overflow_record_t>* overflows)
+  bool will_overflow (hb_vector_t<overflow_record_t>* overflows = nullptr)
   {
     if (overflows) overflows->resize (0);
     update_positions ();
@@ -362,7 +420,7 @@ struct graph_t
     for (const auto& o : overflows)
     {
       const auto& child = vertices_[o.link->objidx];
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "overflow from %d => %d (%d incoming , %d outgoing)",
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "  overflow from %d => %d (%d incoming , %d outgoing)",
                  o.parent,
                  o.link->objidx,
                  child.incoming_edges,
@@ -391,12 +449,6 @@ struct graph_t
     }
 
     edge_count_invalid = false;
-  }
-
-
-  int64_t add_order (int64_t distance, unsigned order)
-  {
-    return (distance << 24) | (0x00FFFFFF & order);
   }
 
   /*
@@ -589,9 +641,11 @@ struct graph_t
 inline void
 hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& packed,
                       hb_serialize_context_t* c) {
+  // Kahn sort is ~twice as fast as shortest distance sort and works for many fonts
+  // so try it first.
   graph_t sorted_graph (packed);
   sorted_graph.sort_kahn ();
-  if (!sorted_graph.will_overflow (nullptr)) return;
+  if (!sorted_graph.will_overflow ()) return;
 
   sorted_graph.sort_shortest_distance ();
 
@@ -599,24 +653,34 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
   hb_vector_t<graph_t::overflow_record_t> overflows;
   // TODO(garretrieger): select a good limit for max rounds.
   while (sorted_graph.will_overflow (&overflows) && round++ < 10) {
-    DEBUG_MSG (SUBSET_REPACK, nullptr, "Over flow resolution round %d", round);
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "=== Over flow resolution round %d ===", round);
     sorted_graph.print_overflows (overflows);
 
-    // Try resolving the furthest overflow first.
     bool resolution_attempted = false;
+    hb_set_t priority_bumped_parents;
+    // Try resolving the furthest overflows first.
     for (int i = overflows.length - 1; i >= 0; i--)
     {
       const graph_t::overflow_record_t& r = overflows[i];
-      if (sorted_graph.vertices_[r.link->objidx].incoming_edges > 1)
+      const auto& child = sorted_graph.vertices_[r.link->objidx];
+      if (child.is_shared ())
       {
-        DEBUG_MSG (SUBSET_REPACK, nullptr, "Duplicating %d => %d",
-                   r.parent, r.link->objidx);
         // The child object is shared, we may be able to eliminate the overflow
         // by duplicating it.
         sorted_graph.duplicate (r.parent, r.link->objidx);
-        sorted_graph.sort_shortest_distance ();
         resolution_attempted = true;
         break;
+      }
+
+      if (child.is_leaf () && !priority_bumped_parents.has (r.parent))
+      {
+        // TODO(garretrieger): initially limiting this to leaf's but likely
+        //                     can be used for non-leafs as well.
+        // TODO(garretrieger): add a maximum priority, don't try to raise past this.
+        sorted_graph.raise_childrens_priority (r.parent);
+        priority_bumped_parents.add (r.parent);
+        resolution_attempted = true;
+        continue;
       }
 
       // TODO(garretrieger): add additional offset resolution strategies
@@ -624,11 +688,14 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
       // - Table splitting.
     }
 
-    if (!resolution_attempted)
+    if (resolution_attempted)
     {
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
-      break;
+      sorted_graph.sort_shortest_distance ();
+      continue;
     }
+
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
+    break;
   }
 
   sorted_graph.serialize (c);
