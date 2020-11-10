@@ -142,10 +142,14 @@ _subset (hb_subset_plan_t *plan)
       if (needed)
       {
 	hb_blob_t *dest_blob = _repack (tag, serializer);
-        if (!dest_blob) return false;
-	DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c final subset table size: %u bytes.", HB_UNTAG (tag), dest_blob->length);
-	result = c.plan->add_table (tag, dest_blob);
-	hb_blob_destroy (dest_blob);
+        if (dest_blob)
+        {
+          DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c final subset table size: %u bytes.", HB_UNTAG (tag), dest_blob->length);
+          result = c.plan->add_table (tag, dest_blob);
+          hb_blob_destroy (dest_blob);
+        } else {
+          result = false;
+        }
       }
       else
       {

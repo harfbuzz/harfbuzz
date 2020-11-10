@@ -77,6 +77,7 @@ struct graph_t
       // TODO(garretrieger): once priority is high enough, should try
       // setting distance = 0 which will force to sort immediately after
       // it's parent where possible.
+
       int64_t modified_distance = distance + distance_modifier ();
       return (modified_distance << 24) | (0x00FFFFFF & order);
     }
@@ -254,6 +255,8 @@ struct graph_t
     remap_obj_indices (id_map, &sorted_graph);
 
     sorted_graph.as_array ().reverse ();
+
+    vertices_.fini_deep ();
     vertices_ = sorted_graph;
     sorted_graph.fini_deep ();
   }
@@ -319,6 +322,8 @@ struct graph_t
     remap_obj_indices (id_map, &sorted_graph);
 
     sorted_graph.as_array ().reverse ();
+
+    vertices_.fini_deep ();
     vertices_ = sorted_graph;
     sorted_graph.fini_deep ();
   }
@@ -335,11 +340,11 @@ struct graph_t
 
     positions_invalid = true;
 
+    auto* clone = vertices_.push ();
     auto& child = vertices_[child_idx];
     clone_buffer_t* buffer = clone_buffers_.push ();
     buffer->copy (child.obj);
 
-    auto* clone = vertices_.push ();
     clone->obj.head = buffer->head;
     clone->obj.tail = buffer->tail;
     clone->distance = child.distance;
