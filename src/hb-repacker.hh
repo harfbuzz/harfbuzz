@@ -36,9 +36,6 @@
 
 struct graph_t
 {
-  // TODO(garretrieger): add an error tracking system similar to what serialize_context_t
-  //                     does.
-
   struct vertex_t
   {
     vertex_t () :
@@ -100,13 +97,16 @@ struct graph_t
   {
     clone_buffer_t () : head (nullptr), tail (nullptr) {}
 
-    void copy (const hb_serialize_context_t::object_t& object)
+    bool copy (const hb_serialize_context_t::object_t& object)
     {
       fini ();
       unsigned size = object.tail - object.head;
       head = (char*) malloc (size);
+      if (!head) return false;
+
       memcpy (head, object.head, size);
       tail = head + size;
+      return true;
     }
 
     char* head;
@@ -130,7 +130,8 @@ struct graph_t
   graph_t (const hb_vector_t<hb_serialize_context_t::object_t *>& objects)
       : edge_count_invalid (true),
         distance_invalid (true),
-        positions_invalid (true)
+        positions_invalid (true),
+        successful (true)
   {
     bool removed_nil = false;
     for (unsigned i = 0; i < objects.length; i++)
@@ -158,6 +159,11 @@ struct graph_t
   {
     vertices_.fini_deep ();
     clone_buffers_.fini_deep ();
+  }
+
+  bool in_error () const
+  {
+    return !successful || vertices_.in_error () || clone_buffers_.in_error ();
   }
 
   const vertex_t& root () const
@@ -219,38 +225,35 @@ struct graph_t
     hb_vector_t<unsigned> queue;
     hb_vector_t<vertex_t> sorted_graph;
     hb_vector_t<unsigned> id_map;
-    id_map.resize (vertices_.length);
+    check_success (id_map.resize (vertices_.length));
 
     hb_vector_t<unsigned> removed_edges;
-    removed_edges.resize (vertices_.length);
+    check_success (removed_edges.resize (vertices_.length));
     update_incoming_edge_count ();
 
     queue.push (root_idx ());
     int new_id = vertices_.length - 1;
 
-    while (queue.length)
+    while (!queue.in_error () && queue.length)
     {
       unsigned next_id = queue[0];
-      queue.remove(0);
+      queue.remove (0);
 
       vertex_t& next = vertices_[next_id];
       sorted_graph.push (next);
       id_map[next_id] = new_id--;
 
       for (const auto& link : next.obj.links) {
-        // TODO(garretrieger): sort children from smallest to largest
         removed_edges[link.objidx]++;
         if (!(vertices_[link.objidx].incoming_edges - removed_edges[link.objidx]))
           queue.push (link.objidx);
       }
     }
 
-    if (new_id != -1)
-    {
-      // Graph is not fully connected, there are unsorted objects.
-      // TODO(garretrieger): handle this.
-      assert (false);
-    }
+    check_success (!queue.in_error ());
+    check_success (!sorted_graph.in_error ());
+    if (!check_success (new_id == -1))
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
 
     remap_obj_indices (id_map, &sorted_graph);
 
@@ -279,10 +282,10 @@ struct graph_t
     hb_priority_queue_t queue;
     hb_vector_t<vertex_t> sorted_graph;
     hb_vector_t<unsigned> id_map;
-    id_map.resize (vertices_.length);
+    check_success (id_map.resize (vertices_.length));
 
     hb_vector_t<unsigned> removed_edges;
-    removed_edges.resize (vertices_.length);
+    check_success (removed_edges.resize (vertices_.length));
     update_incoming_edge_count ();
 
     // Object graphs are in reverse order, the first object is at the end
@@ -291,7 +294,7 @@ struct graph_t
     queue.insert (root_idx (), root ().modified_distance (0));
     int new_id = root_idx ();
     unsigned order = 1;
-    while (!queue.is_empty ())
+    while (!queue.in_error () && !queue.is_empty ())
     {
       unsigned next_id = queue.extract_minimum().first;
 
@@ -312,12 +315,10 @@ struct graph_t
       }
     }
 
-    if (new_id != -1)
-    {
-      // Graph is not fully connected, there are unsorted objects.
-      // TODO(garretrieger): handle this.
-      assert (false);
-    }
+    check_success (!queue.in_error ());
+    check_success (!sorted_graph.in_error ());
+    if (!check_success (new_id == -1))
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
 
     remap_obj_indices (id_map, &sorted_graph);
 
@@ -343,7 +344,9 @@ struct graph_t
     auto* clone = vertices_.push ();
     auto& child = vertices_[child_idx];
     clone_buffer_t* buffer = clone_buffers_.push ();
-    buffer->copy (child.obj);
+    if (!check_success (buffer->copy (child.obj))) {
+      return;
+    }
 
     clone->obj.head = buffer->head;
     clone->obj.tail = buffer->tail;
@@ -351,6 +354,8 @@ struct graph_t
 
     for (const auto& l : child.obj.links)
       clone->obj.links.push (l);
+
+    check_success (!clone->obj.links.in_error ());
 
     auto& parent = vertices_[parent_idx];
     unsigned clone_idx = vertices_.length - 2;
@@ -433,7 +438,12 @@ struct graph_t
     }
   }
 
+  void err_other_error () { this->successful = false; }
+
  private:
+
+  bool check_success (bool success)
+  { return this->successful && (success || (err_other_error (), false)); }
 
   /*
    * Creates a map from objid to # of incoming edges.
@@ -506,7 +516,7 @@ struct graph_t
 
     hb_set_t visited;
 
-    while (!queue.is_empty ())
+    while (!queue.in_error () && !queue.is_empty ())
     {
       unsigned next_idx = queue.extract_minimum ().first;
       if (visited.has (next_idx)) continue;
@@ -530,8 +540,14 @@ struct graph_t
         }
       }
     }
-    // TODO(garretrieger): Handle this. If anything is left, part of the graph is disconnected.
-    assert (queue.is_empty ());
+
+    check_success (!queue.in_error ());
+    if (!check_success (queue.is_empty ()))
+    {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
+      return;
+    }
+
     distance_invalid = false;
   }
 
@@ -636,6 +652,7 @@ struct graph_t
   bool edge_count_invalid;
   bool distance_invalid;
   bool positions_invalid;
+  bool successful;
 };
 
 
@@ -657,7 +674,9 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
   unsigned round = 0;
   hb_vector_t<graph_t::overflow_record_t> overflows;
   // TODO(garretrieger): select a good limit for max rounds.
-  while (sorted_graph.will_overflow (&overflows) && round++ < 10) {
+  while (!sorted_graph.in_error ()
+         && sorted_graph.will_overflow (&overflows)
+         && round++ < 10) {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "=== Over flow resolution round %d ===", round);
     sorted_graph.print_overflows (overflows);
 
@@ -682,6 +701,12 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
         // TODO(garretrieger): initially limiting this to leaf's but likely
         //                     can be used for non-leafs as well.
         // TODO(garretrieger): add a maximum priority, don't try to raise past this.
+        // TODO(garretrieger): also try lowering priority of the parent. Make it
+        //                     get placed further up in the ordering, closer to it's children.
+        //                     this is probably preferable if the total size of the parent object
+        //                     is < then the total size of the children (and the parent can be moved).
+        //                     Since in that case moving the parent will cause a smaller increase in
+        //                     the length of other offsets.
         sorted_graph.raise_childrens_priority (r.parent);
         priority_bumped_parents.add (r.parent);
         resolution_attempted = true;
@@ -700,9 +725,15 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
     }
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
-    break;
+    c->err_offset_overflow ();
+    return;
   }
 
+  if (sorted_graph.in_error ())
+  {
+    c->err_other_error ();
+    return;
+  }
   sorted_graph.serialize (c);
 }
 
