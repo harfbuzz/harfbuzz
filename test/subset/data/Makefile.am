@@ -3,7 +3,7 @@
 NULL =
 EXTRA_DIST =
 CLEANFILES =
-SUBDIRS =
+SUBDIRS = repack_tests
 
 EXTRA_DIST += \
 	$(TESTS) \
