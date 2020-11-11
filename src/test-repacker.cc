@@ -211,6 +211,8 @@ static void test_sort_kahn_1 ()
 
   assert(strncmp (graph.object (0).head, "ghi", 3) == 0);
   assert(graph.object (0).links.length == 0);
+
+  free (buffer);
 }
 
 static void test_sort_kahn_2 ()
@@ -243,6 +245,8 @@ static void test_sort_kahn_2 ()
 
   assert(strncmp (graph.object (0).head, "jkl", 3) == 0);
   assert(graph.object (0).links.length == 0);
+
+  free (buffer);
 }
 
 static void test_sort_shortest ()
@@ -254,7 +258,6 @@ static void test_sort_shortest ()
 
   graph_t graph (c.object_graph ());
   graph.sort_shortest_distance ();
-
 
   assert(strncmp (graph.object (4).head, "abc", 3) == 0);
   assert(graph.object (4).links.length == 3);
@@ -275,6 +278,8 @@ static void test_sort_shortest ()
 
   assert(strncmp (graph.object (0).head, "jkl", 3) == 0);
   assert(graph.object (0).links.length == 0);
+
+  free (buffer);
 }
 
 static void test_duplicate_leaf ()
@@ -309,6 +314,8 @@ static void test_duplicate_leaf ()
 
   assert(strncmp (graph.object (0).head, "mn", 2) == 0);
   assert(graph.object (0).links.length == 0);
+
+  free (buffer);
 }
 
 static void test_duplicate_interior ()
@@ -348,6 +355,8 @@ static void test_duplicate_interior ()
 
   assert(strncmp (graph.object (0).head, "opqrst", 6) == 0);
   assert(graph.object (0).links.length == 0);
+
+  free (buffer);
 }
 
 static void
@@ -368,6 +377,8 @@ test_serialize ()
 
   assert (actual == expected);
 
+  actual.free ();
+  expected.free ();
   free (buffer_1);
   free (buffer_2);
 }
@@ -381,6 +392,8 @@ static void test_will_overflow_1 ()
   graph_t graph (c.object_graph ());
 
   assert (!graph.will_overflow (nullptr));
+
+  free (buffer);
 }
 
 static void test_will_overflow_2 ()
@@ -392,6 +405,8 @@ static void test_will_overflow_2 ()
   graph_t graph (c.object_graph ());
 
   assert (graph.will_overflow (nullptr));
+
+  free (buffer);
 }
 
 static void test_will_overflow_3 ()
@@ -403,6 +418,8 @@ static void test_will_overflow_3 ()
   graph_t graph (c.object_graph ());
 
   assert (graph.will_overflow (nullptr));
+
+  free (buffer);
 }
 
 static void test_resolve_overflows_via_sort ()
