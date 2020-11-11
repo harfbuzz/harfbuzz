@@ -288,9 +288,6 @@ struct graph_t
     check_success (removed_edges.resize (vertices_.length));
     update_incoming_edge_count ();
 
-    // Object graphs are in reverse order, the first object is at the end
-    // of the vector. Since the graph is topologically sorted it's safe to
-    // assume the first object has no incoming edges.
     queue.insert (root_idx (), root ().modified_distance (0));
     int new_id = root_idx ();
     unsigned order = 1;
@@ -308,7 +305,7 @@ struct graph_t
           // Add the order that the links were encountered to the priority.
           // This ensures that ties between priorities objects are broken in a consistent
           // way. More specifically this is set up so that if a set of objects have the same
-          // distance they'll be added to the topolical order in the order that they are
+          // distance they'll be added to the topological order in the order that they are
           // referenced from the parent object.
           queue.insert (link.objidx,
                         vertices_[link.objidx].modified_distance (order++));
@@ -486,7 +483,7 @@ struct graph_t
   }
 
   /*
-   * Finds the distance too each object in the graph
+   * Finds the distance to each object in the graph
    * from the initial node.
    */
   void update_distances ()
@@ -657,17 +654,27 @@ struct graph_t
 
 
 /*
- * Re-serialize the provided object graph into the serialization context
- * using BFS (Breadth First Search) to produce the topological ordering.
+ * Attempts to modify the topological sorting of the provided object graph to
+ * eliminate offset overflows in the links between objects of the graph. If a
+ * non-overflowing ordering is found the updated graph is serialized it into the
+ * provided serialization context.
+ *
+ * If necessary the structure of the graph may be modified in ways that do not
+ * affect the functionality of the graph. For example shared objects may be
+ * duplicated.
  */
 inline void
 hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& packed,
                       hb_serialize_context_t* c) {
   // Kahn sort is ~twice as fast as shortest distance sort and works for many fonts
-  // so try it first.
+  // so try it first to save time.
   graph_t sorted_graph (packed);
   sorted_graph.sort_kahn ();
-  if (!sorted_graph.will_overflow ()) return;
+  if (!sorted_graph.will_overflow ())
+  {
+    sorted_graph.serialize (c);
+    return;
+  }
 
   sorted_graph.sort_shortest_distance ();
 
@@ -693,13 +700,19 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
         // by duplicating it.
         sorted_graph.duplicate (r.parent, r.link->objidx);
         resolution_attempted = true;
+
+        // Stop processing overflows for this round so that object order can be
+        // updated to account for the newly added object.
         break;
       }
 
       if (child.is_leaf () && !priority_bumped_parents.has (r.parent))
       {
-        // TODO(garretrieger): initially limiting this to leaf's but likely
-        //                     can be used for non-leafs as well.
+        // This object is too far from it's parent, attempt to move it closer.
+        //
+        // TODO(garretrieger): initially limiting this to leaf's since they can be
+        //                     moved closer with fewer consequences. However, this can
+        //                     likely can be used for non-leafs as well.
         // TODO(garretrieger): add a maximum priority, don't try to raise past this.
         // TODO(garretrieger): also try lowering priority of the parent. Make it
         //                     get placed further up in the ordering, closer to it's children.
