@@ -119,6 +119,14 @@ struct hb_serialize_context_t
 
   bool in_error () const { return !this->successful; }
 
+  void reset (void *start_, unsigned int size)
+  {
+    start = (char*) start_;
+    end = start + size;
+    reset ();
+    current = nullptr;
+  }
+
   void reset ()
   {
     this->successful = true;
@@ -129,6 +137,7 @@ struct hb_serialize_context_t
 
     fini ();
     this->packed.push (nullptr);
+    this->packed_map.init ();
   }
 
   bool check_success (bool success)
