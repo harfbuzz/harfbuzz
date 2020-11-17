@@ -127,34 +127,31 @@ cairo_dep = null_dep
 cairo_ft_dep = null_dep
 if not get_option('cairo').disabled()
   cairo_dep = dependency('cairo', required: false)
+  cairo_ft_dep = dependency('cairo-ft', required: false)
 
   if (not cairo_dep.found() and
       cpp.get_id() == 'msvc' and
       cpp.has_header('cairo.h'))
     cairo_dep = cpp.find_library('cairo', required: false)
+    if cairo_dep.found() and cpp.has_function('cairo_ft_font_face_create_for_ft_face',
+                                              prefix: '#include <cairo-ft.h>',
+                                              dependencies: cairo_dep)
+      cairo_ft_dep = cairo_dep
+    endif
   endif
 
   if not cairo_dep.found()
-    # Note that we don't have harfbuzz -> cairo -> freetype2 -> harfbuzz fallback
-    # dependency cycle here because we have configured freetype2 above with
-    # harfbuzz support disabled, so when cairo will lookup freetype2 dependency
-    # it will be forced to use that one.
-    cairo_dep = dependency('cairo', fallback: ['cairo', 'libcairo_dep'],
-                           required: get_option('cairo'))
-  endif
-
-  # Ensure that cairo-ft is fetched from the same library as cairo itself
-  if cairo_dep.found()
-    if cairo_dep.type_name() == 'internal'
-      # It is true at least for the port we have
-      cairo_ft_dep = cairo_dep
-    elif (cairo_dep.type_name() == 'library' and
-          cpp.has_function('cairo_ft_font_face_create_for_ft_face',
-                           prefix: '#include <cairo-ft.h>',
-                           dependencies: cairo_dep))
-      cairo_ft_dep = cairo_dep
-    else # including the most important type for us, 'pkgconfig'
-      cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
+    # Requires Meson 0.54.0 to use cairo subproject
+    if meson.version().version_compare('>=0.54.0')
+      # Note that we don't have harfbuzz -> cairo -> freetype2 -> harfbuzz fallback
+      # dependency cycle here because we have configured freetype2 above with
+      # harfbuzz support disabled, so when cairo will lookup freetype2 dependency
+      # it will be forced to use that one.
+      cairo_dep = dependency('cairo', fallback: 'cairo', required: get_option('cairo'))
+      cairo_ft_dep = dependency('cairo-ft', fallback: 'cairo', required: get_option('cairo'))
+    elif get_option('cairo').enabled()
+      error('cairo feature is enabled but it cannot be found on the system and ' +
+            'meson>=0.54.0 is required to build it as subproject')
     endif
   endif
 endif
