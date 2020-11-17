@@ -80,6 +80,7 @@ hb_buffer_set_user_data
 hb_buffer_get_user_data
 hb_buffer_get_glyph_infos
 hb_buffer_get_glyph_positions
+hb_buffer_has_positions
 hb_buffer_get_invisible_glyph
 hb_buffer_set_invisible_glyph
 hb_buffer_set_replacement_codepoint

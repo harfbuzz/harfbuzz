@@ -447,6 +447,9 @@ HB_EXTERN hb_glyph_position_t *
 hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
 			       unsigned int *length);
 
+HB_EXTERN hb_bool_t
+hb_buffer_has_positions (hb_buffer_t  *buffer);
+
 
 HB_EXTERN void
 hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
@@ -518,6 +521,27 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
 			    hb_buffer_serialize_format_t format,
 			    hb_buffer_serialize_flags_t flags);
 
+HB_EXTERN unsigned int
+hb_buffer_serialize_unicode (hb_buffer_t *buffer,
+					unsigned int start,
+					unsigned int end,
+					char *buf,
+					unsigned int buf_size,
+					unsigned int *buf_consumed,
+					hb_buffer_serialize_format_t format,
+					hb_buffer_serialize_flags_t flags);
+
+HB_EXTERN unsigned int
+hb_buffer_serialize (hb_buffer_t *buffer,
+					unsigned int start,
+					unsigned int end,
+					char *buf,
+					unsigned int buf_size,
+					unsigned int *buf_consumed,
+					hb_font_t *font,
+					hb_buffer_serialize_format_t format,
+					hb_buffer_serialize_flags_t flags);
+
 HB_EXTERN hb_bool_t
 hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char *buf,
@@ -525,6 +549,14 @@ hb_buffer_deserialize_glyphs (hb_buffer_t *buffer,
 			      const char **end_ptr,
 			      hb_font_t *font,
 			      hb_buffer_serialize_format_t format);
+
+HB_EXTERN hb_bool_t
+hb_buffer_deserialize_unicode (hb_buffer_t *buffer,
+            const char *buf,
+            int buf_len,
+            const char **end_ptr,
+            hb_buffer_serialize_format_t format);
+
 
 
 /*

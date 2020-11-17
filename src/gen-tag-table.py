@@ -468,11 +468,8 @@ class OpenTypeRegistryParser (HTMLParser):
 			if ot_macrolanguages:
 				for ot_macrolanguage in ot_macrolanguages:
 					for language in languages:
-						# Remove the following condition if e.g. nn should map to NYN,NOR
-						# instead of just NYN.
-						if language not in original_ot_from_bcp_47:
-							self.add_language (language, ot_macrolanguage)
-							self.ranks[ot_macrolanguage] += 1
+						self.add_language (language, ot_macrolanguage)
+						self.ranks[ot_macrolanguage] += 1
 			else:
 				for language in languages:
 					if language in original_ot_from_bcp_47:
@@ -591,7 +588,9 @@ class BCP47Parser (object):
 					elif not has_preferred_value and line.startswith ('Macrolanguage: '):
 						self._add_macrolanguage (line.split (' ')[1], subtag)
 				elif subtag_type == 'variant':
-					if line.startswith ('Prefix: '):
+					if line.startswith ('Deprecated: '):
+						self.scopes[subtag] = ' (retired code)' + self.scopes.get (subtag, '')
+					elif line.startswith ('Prefix: '):
 						self.prefixes[subtag].add (line.split (' ')[1])
 				elif line.startswith ('File-Date: '):
 					self.header = line
@@ -622,6 +621,17 @@ class BCP47Parser (object):
 				for macrolanguage in macrolanguages:
 					self._add_macrolanguage (biggest_macrolanguage, macrolanguage)
 
+	def _get_name_piece (self, subtag):
+		"""Return the first name of a subtag plus its scope suffix.
+
+		Args:
+			subtag (str): A BCP 47 subtag.
+
+		Returns:
+			The name form of ``subtag``.
+		"""
+		return self.names[subtag].split ('\n')[0] + self.scopes.get (subtag, '')
+
 	def get_name (self, lt):
 		"""Return the names of the subtags in a language tag.
 
@@ -631,13 +641,13 @@ class BCP47Parser (object):
 		Returns:
 			The name form of ``lt``.
 		"""
-		name = self.names[lt.language].split ('\n')[0]
+		name = self._get_name_piece (lt.language)
 		if lt.script:
-			name += '; ' + self.names[lt.script.title ()].split ('\n')[0]
+			name += '; ' + self._get_name_piece (lt.script.title ())
 		if lt.region:
-			name += '; ' + self.names[lt.region.upper ()].split ('\n')[0]
+			name += '; ' + self._get_name_piece (lt.region.upper ())
 		if lt.variant:
-			name += '; ' + self.names[lt.variant].split ('\n')[0]
+			name += '; ' + self._get_name_piece (lt.variant)
 		return name
 
 bcp_47 = BCP47Parser ()
@@ -672,6 +682,8 @@ ot.add_language ('und-fonnapa', 'APPH')
 
 ot.remove_language_ot ('IRT')
 ot.add_language ('ga-Latg', 'IRT')
+
+ot.add_language ('hy-arevmda', 'HYE')
 
 ot.remove_language_ot ('KGE')
 ot.add_language ('und-Geok', 'KGE')
@@ -796,6 +808,7 @@ disambiguation = {
 	'ECR': 'crj',
 	'HAL': 'cfm',
 	'HND': 'hnd',
+	'HYE': 'hyw',
 	'KIS': 'kqs',
 	'KUI': 'uki',
 	'LRC': 'bqi',
@@ -982,22 +995,24 @@ for initial, items in sorted (complex_tags.items ()):
 	print ("  case '%s':" % initial)
 	for lt, tags in items:
 		print ('    if (', end='')
+		script = lt.script
+		region = lt.region
 		if lt.grandfathered:
 			print ('0 == strcmp (&lang_str[1], "%s")' % lt.language[1:], end='')
 		else:
 			string_literal = lt.language[1:] + '-'
-			if lt.script:
-				string_literal += lt.script
-				lt.script = None
-				if lt.region:
-					string_literal += '-' + lt.region
-					lt.region = None
+			if script:
+				string_literal += script
+				script = None
+				if region:
+					string_literal += '-' + region
+					region = None
 			if string_literal[-1] == '-':
 				print ('0 == strncmp (&lang_str[1], "%s", %i)' % (string_literal, len (string_literal)), end='')
 			else:
 				print ('lang_matches (&lang_str[1], "%s")' % string_literal, end='')
-		print_subtag_matches (lt.script, True)
-		print_subtag_matches (lt.region, True)
+		print_subtag_matches (script, True)
+		print_subtag_matches (region, True)
 		print_subtag_matches (lt.variant, True)
 		print (')')
 		print ('    {')
@@ -1087,8 +1102,8 @@ def verify_disambiguation_dict ():
 						'%s is not a valid disambiguation for %s' % (disambiguation[ot_tag], ot_tag))
 			elif ot_tag not in disambiguation:
 				disambiguation[ot_tag] = macrolanguages[0]
-			different_primary_tags = sorted (t for t in primary_tags if not same_tag (t, ot.from_bcp_47.get (t)))
-			if different_primary_tags and disambiguation[ot_tag] == different_primary_tags[0] and '-' not in disambiguation[ot_tag]:
+			different_bcp_47_tags = sorted (t for t in bcp_47_tags if not same_tag (t, ot.from_bcp_47.get (t)))
+			if different_bcp_47_tags and disambiguation[ot_tag] == different_bcp_47_tags[0] and '-' not in disambiguation[ot_tag]:
 				del disambiguation[ot_tag]
 	for ot_tag in disambiguation.keys ():
 		expect (ot_tag in ot.to_bcp_47, 'unknown OT tag: %s' % ot_tag)

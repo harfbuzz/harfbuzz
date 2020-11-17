@@ -910,31 +910,12 @@ format_options_t::add_options (option_parser_t *parser)
 }
 
 void
-format_options_t::serialize_unicode (hb_buffer_t *buffer,
-				     GString     *gs)
-{
-  unsigned int num_glyphs = hb_buffer_get_length (buffer);
-  hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, nullptr);
-
-  g_string_append_c (gs, '<');
-  for (unsigned int i = 0; i < num_glyphs; i++)
-  {
-    if (i)
-      g_string_append_c (gs, ',');
-    g_string_append_printf (gs, "U+%04X", info->codepoint);
-    info++;
-  }
-  g_string_append_c (gs, '>');
-}
-
-void
-format_options_t::serialize_glyphs (hb_buffer_t *buffer,
+format_options_t::serialize (hb_buffer_t *buffer,
 				    hb_font_t   *font,
 				    hb_buffer_serialize_format_t output_format,
 				    hb_buffer_serialize_flags_t flags,
 				    GString     *gs)
 {
-  g_string_append_c (gs, '[');
   unsigned int num_glyphs = hb_buffer_get_length (buffer);
   unsigned int start = 0;
 
@@ -942,15 +923,15 @@ format_options_t::serialize_glyphs (hb_buffer_t *buffer,
   {
     char buf[32768];
     unsigned int consumed;
-    start += hb_buffer_serialize_glyphs (buffer, start, num_glyphs,
+    start += hb_buffer_serialize (buffer, start, num_glyphs,
 					 buf, sizeof (buf), &consumed,
 					 font, output_format, flags);
     if (!consumed)
       break;
     g_string_append (gs, buf);
   }
-  g_string_append_c (gs, ']');
 }
+
 void
 format_options_t::serialize_line_no (unsigned int  line_no,
 				     GString      *gs)
@@ -978,7 +959,7 @@ format_options_t::serialize_buffer_of_text (hb_buffer_t  *buffer,
   if (show_unicode)
   {
     serialize_line_no (line_no, gs);
-    serialize_unicode (buffer, gs);
+    serialize (buffer, font, HB_BUFFER_SERIALIZE_FORMAT_TEXT, HB_BUFFER_SERIALIZE_FLAG_DEFAULT, gs);
     g_string_append_c (gs, '\n');
   }
 }
@@ -1003,6 +984,6 @@ format_options_t::serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
 					      GString      *gs)
 {
   serialize_line_no (line_no, gs);
-  serialize_glyphs (buffer, font, output_format, format_flags, gs);
+  serialize (buffer, font, output_format, format_flags, gs);
   g_string_append_c (gs, '\n');
 }
