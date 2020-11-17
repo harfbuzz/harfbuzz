@@ -896,8 +896,11 @@ hb_ot_substitute_post (const hb_ot_shape_context_t *c)
     hb_aat_layout_remove_deleted_glyphs (c->buffer);
 #endif
 
-  if (c->plan->shaper->postprocess_glyphs)
+  if (c->plan->shaper->postprocess_glyphs &&
+    c->buffer->message(c->font, "start postprocess-glyphs")) {
     c->plan->shaper->postprocess_glyphs (c->plan, c->buffer, c->font);
+    (void) c->buffer->message(c->font, "end postprocess-glyphs");
+  }
 }
 
 
@@ -1120,8 +1123,11 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   hb_ensure_native_direction (c->buffer);
 
-  if (c->plan->shaper->preprocess_text)
+  if (c->plan->shaper->preprocess_text &&
+    c->buffer->message(c->font, "start preprocess-text")) {
     c->plan->shaper->preprocess_text (c->plan, c->buffer, c->font);
+    (void) c->buffer->message(c->font, "end preprocess-text");
+  }
 
   hb_ot_substitute_pre (c);
   hb_ot_position (c);

@@ -517,10 +517,14 @@ reorder_use (const hb_ot_shape_plan_t *plan,
 	     hb_font_t *font,
 	     hb_buffer_t *buffer)
 {
-  insert_dotted_circles_use (plan, font, buffer);
+	if (buffer->message (font, "start reordering USE")) {
+	  insert_dotted_circles_use (plan, font, buffer);
 
-  foreach_syllable (buffer, start, end)
-    reorder_syllable_use (buffer, start, end);
+	  foreach_syllable (buffer, start, end)
+	    reorder_syllable_use (buffer, start, end);
+
+	  (void) buffer->message (font, "end reordering USE");
+  }
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, use_category);
 }

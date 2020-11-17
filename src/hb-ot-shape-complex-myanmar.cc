@@ -327,10 +327,13 @@ reorder_myanmar (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font,
 		 hb_buffer_t *buffer)
 {
-  insert_dotted_circles_myanmar (plan, font, buffer);
+  if (buffer->message (font, "start reordering myanmar")) {
+    insert_dotted_circles_myanmar (plan, font, buffer);
 
-  foreach_syllable (buffer, start, end)
-    reorder_syllable_myanmar (plan, font->face, buffer, start, end);
+    foreach_syllable (buffer, start, end)
+      reorder_syllable_myanmar (plan, font->face, buffer, start, end);
+    (void) buffer->message (font, "end reordering myanmar");
+  }
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_position);
