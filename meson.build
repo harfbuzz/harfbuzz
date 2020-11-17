@@ -284,13 +284,15 @@ endif
 # threads
 thread_dep = null_dep
 if host_machine.system() != 'windows'
-  thread_dep = dependency('threads', required: false)
+  if cpp.has_header('pthread.h')
+    thread_dep = dependency('threads', required: false)
+  endif
 
   if thread_dep.found()
     conf.set('HAVE_PTHREAD', 1)
   else
     check_headers += ['sched.h']
-    check_funcs += ['sched_yield', {'link_with': 'rt'}]
+    check_funcs += [['sched_yield', {'link_with': 'rt'}]]
   endif
 endif
 
