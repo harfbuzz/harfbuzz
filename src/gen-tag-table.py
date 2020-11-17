@@ -758,14 +758,17 @@ ot.add_language ('xwo', 'TOD')
 ot.remove_language_ot ('ZHH')
 ot.remove_language_ot ('ZHP')
 ot.remove_language_ot ('ZHT')
+ot.remove_language_ot ('ZHTM')
 bcp_47.macrolanguages['zh'].remove ('lzh')
 bcp_47.macrolanguages['zh'].remove ('yue')
 ot.add_language ('zh-Hant-MO', 'ZHH')
+ot.add_language ('zh-Hant-MO', 'ZHTM')
 ot.add_language ('zh-Hant-HK', 'ZHH')
 ot.add_language ('zh-Hans', 'ZHS')
 ot.add_language ('zh-Hant', 'ZHT')
 ot.add_language ('zh-HK', 'ZHH')
 ot.add_language ('zh-MO', 'ZHH')
+ot.add_language ('zh-MO', 'ZHTM')
 ot.add_language ('zh-TW', 'ZHT')
 ot.add_language ('lzh', 'ZHT')
 ot.add_language ('lzh-Hans', 'ZHS')
@@ -797,6 +800,7 @@ def rank_delta (bcp_47, ot):
 disambiguation = {
 	'ALT': 'alt',
 	'ARK': 'rki',
+	'ATH': 'ath',
 	'BHI': 'bhb',
 	'BLN': 'bjt',
 	'BTI': 'beb',
@@ -821,10 +825,11 @@ disambiguation = {
 	'QVI': 'qvi',
 	'QWH': 'qwh',
 	'SIG': 'stv',
-	'TNE': 'yrk',
+	'SRB': 'sr',
 	'ZHH': 'zh-HK',
 	'ZHS': 'zh-Hans',
 	'ZHT': 'zh-Hant',
+	'ZHTM': 'zh-MO',
 }
 
 ot.inherit_from_macrolanguages ()
