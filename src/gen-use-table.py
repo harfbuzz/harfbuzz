@@ -241,9 +241,7 @@ def is_BASE(U, UISC, UGC, AJT):
 	return (UISC in [Number, Consonant, Consonant_Head_Letter,
 			Tone_Letter,
 			Vowel_Independent,
-			] and
-			# TODO: https://github.com/microsoft/font-tools/issues/12
-			UGC != Cn or
+			] or
 		# TODO: https://github.com/MicrosoftDocs/typography-issues/issues/484
 		AJT in [jt_C, jt_D, jt_L, jt_R] and UISC != Joiner or
 		(UGC == Lo and UISC in [Avagraha, Bindu, Consonant_Final, Consonant_Medial,
