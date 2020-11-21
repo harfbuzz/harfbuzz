@@ -348,7 +348,7 @@ find_syllables_use (hb_buffer_t *buffer)
   auto eof = +pe;
   auto ts = +p;
   auto te = +p;
-  unsigned int act;
+  unsigned int act HB_UNUSED;
   int cs;
   
 #line 355 "hb-ot-shape-complex-use-machine.hh"
