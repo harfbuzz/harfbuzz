@@ -3380,7 +3380,7 @@ struct GSUBGPOS
       if (unlikely (!this->accels))
       {
 	this->lookup_count = 0;
-	hb_blob_destroy (this->table.get_blob ());
+	this->table.destroy ();
 	this->table = hb_blob_get_empty ();
       }
 
