@@ -9,7 +9,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size);
 #define HB_UNUSED
 #endif
 
-#ifdef HB_IS_IN_FUZZER
+#ifdef HB_IS_FAILING_ALLOC
 /* See src/failing-alloc.c */
 extern "C" int alloc_state;
 #else

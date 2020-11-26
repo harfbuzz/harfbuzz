@@ -36,3 +36,5 @@ option('experimental_api', type: 'boolean', value: false,
   description: 'Enable experimental APIs')
 option('fuzzer_ldflags', type: 'string',
   description: 'Extra LDFLAGS used during linking of fuzzing binaries')
+option('failing_alloc', type: 'boolean', value: false,
+  description: 'Development only option to test what happens when allocator fails')

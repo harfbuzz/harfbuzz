@@ -401,7 +401,7 @@ else
   hb_so_version = '0'
 endif
 
-if get_option('fuzzer_ldflags') != ''
+if get_option('failing_alloc')
   extra_hb_cpp_args += ['-DHB_CUSTOM_MALLOC']
   hb_sources += 'failing-alloc.c'
   hb_subset_sources += 'failing-alloc.c'
