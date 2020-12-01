@@ -299,7 +299,7 @@ else
       build_by_default: true,
       input: rl,
       output: hh,
-      command: [ragel_helper, '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+      command: [ragel_helper, '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
     )
   endforeach
 endif
@@ -311,7 +311,7 @@ custom_target('harfbuzz.cc',
          hb_graphite2_sources + hb_uniscribe_sources + hb_gdi_sources +
          hb_directwrite_sources + hb_coretext_sources,
   command: [find_program('gen-harfbuzzcc.py'),
-            '@OUTPUT@', '@CURRENT_SOURCE_DIR@', '@INPUT@'],
+            '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
 )
 
 incsrc = include_directories('.')
