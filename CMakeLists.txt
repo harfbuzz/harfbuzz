@@ -302,6 +302,7 @@ if (WIN32 AND HB_HAVE_DIRECTWRITE)
 endif ()
 
 if (HB_HAVE_GOBJECT)
+  add_definitions(-DHAVE_GOBJECT)
   include (FindPerl)
 
   # Use the hints from glib-2.0.pc to find glib-mkenums
