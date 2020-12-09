@@ -46,14 +46,28 @@ struct SingleSubstFormat1
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
+  bool may_have_non_1to1 () const
+  { return false; }
+
   void closure (hb_closure_context_t *c) const
   {
     unsigned d = deltaGlyphID;
+    hb_set_t *active_parent_glyphs;
+    
+    if (c->active_glyphs_stack.length >= 1)
+    {
+      active_parent_glyphs = c->parent_active_glyphs ();
+    } else
+    {
+      active_parent_glyphs = c->glyphs;
+    }
+
     + hb_iter (this+coverage)
-    | hb_filter (*c->glyphs)
+    | hb_filter (active_parent_glyphs)
     | hb_map ([d] (hb_codepoint_t g) { return (g + d) & 0xFFFFu; })
     | hb_sink (c->output)
     ;
+
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
@@ -147,13 +161,27 @@ struct SingleSubstFormat2
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
+  bool may_have_non_1to1 () const
+  { return false; }
+
   void closure (hb_closure_context_t *c) const
   {
+    hb_set_t *active_parent_glyphs;
+
+    if (c->active_glyphs_stack.length >= 1)
+    {
+      active_parent_glyphs = c->parent_active_glyphs ();
+    } else
+    {
+      active_parent_glyphs = c->glyphs;
+    }
+
     + hb_zip (this+coverage, substitute)
-    | hb_filter (*c->glyphs, hb_first)
+    | hb_filter (active_parent_glyphs, hb_first)
     | hb_map (hb_second)
     | hb_sink (c->output)
     ;
+
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
@@ -388,14 +416,28 @@ struct MultipleSubstFormat1
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
+  bool may_have_non_1to1 () const
+  { return true; }
+
   void closure (hb_closure_context_t *c) const
   {
+    hb_set_t *active_parent_glyphs;
+
+    if (c->active_glyphs_stack.length >= 1)
+    {
+      active_parent_glyphs = c->parent_active_glyphs ();
+    } else
+    {
+      active_parent_glyphs = c->glyphs;
+    }
+
     + hb_zip (this+coverage, sequence)
-    | hb_filter (*c->glyphs, hb_first)
+    | hb_filter (active_parent_glyphs, hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const Sequence &_) { _.closure (c); })
     ;
+
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
@@ -615,14 +657,28 @@ struct AlternateSubstFormat1
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
+  bool may_have_non_1to1 () const
+  { return false; }
+
   void closure (hb_closure_context_t *c) const
   {
+    hb_set_t *active_parent_glyphs;
+
+    if (c->active_glyphs_stack.length >= 1)
+    {
+      active_parent_glyphs = c->parent_active_glyphs ();
+    } else
+    {
+      active_parent_glyphs = c->glyphs;
+    }
+
     + hb_zip (this+coverage, alternateSet)
-    | hb_filter (c->glyphs, hb_first)
+    | hb_filter (active_parent_glyphs, hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const AlternateSet &_) { _.closure (c); })
     ;
+
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
@@ -986,14 +1042,28 @@ struct LigatureSubstFormat1
     ;
   }
 
+  bool may_have_non_1to1 () const
+  { return true; }
+
   void closure (hb_closure_context_t *c) const
   {
+    hb_set_t *active_parent_glyphs;
+
+    if (c->active_glyphs_stack.length >= 1)
+    {
+      active_parent_glyphs = c->parent_active_glyphs ();
+    } else
+    {
+      active_parent_glyphs = c->glyphs;
+    }
+
     + hb_zip (this+coverage, ligatureSet)
-    | hb_filter (*c->glyphs, hb_first)
+    | hb_filter (active_parent_glyphs, hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const LigatureSet &_) { _.closure (c); })
     ;
+
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
@@ -1174,15 +1244,27 @@ struct ReverseChainSingleSubstFormat1
     return true;
   }
 
+  bool may_have_non_1to1 () const
+  { return false; }
+
   void closure (hb_closure_context_t *c) const
   {
     if (!intersects (c->glyphs)) return;
+
+    hb_set_t *active_parent_glyphs;
+    if (c->active_glyphs_stack.length >= 1)
+    {
+      active_parent_glyphs = c->parent_active_glyphs ();
+    } else
+    {
+      active_parent_glyphs = c->glyphs;
+    }
 
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
     const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
 
     + hb_zip (this+coverage, substitute)
-    | hb_filter (*c->glyphs, hb_first)
+    | hb_filter (active_parent_glyphs, hb_first)
     | hb_map (hb_second)
     | hb_sink (c->output)
     ;
@@ -1386,6 +1468,12 @@ struct SubstLookup : Lookup
     if (unlikely (type == SubTable::Extension))
       return reinterpret_cast<const ExtensionSubst &> (get_subtable (0)).is_reverse ();
     return lookup_type_is_reverse (type);
+  }
+
+  bool may_have_non_1to1 () const
+  {
+    hb_have_non_1to1_context_t c;
+    return dispatch (&c);
   }
 
   bool apply (hb_ot_apply_context_t *c) const

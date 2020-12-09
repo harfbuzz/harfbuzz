@@ -55,6 +55,15 @@ struct hb_intersects_context_t :
 			     glyphs (glyphs_) {}
 };
 
+struct hb_have_non_1to1_context_t :
+       hb_dispatch_context_t<hb_have_non_1to1_context_t, bool>
+{
+  template <typename T>
+  return_t dispatch (const T &obj) { return obj.may_have_non_1to1 (); }
+  static return_t default_return_value () { return false; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
+};
+
 struct hb_closure_context_t :
        hb_dispatch_context_t<hb_closure_context_t>
 {
@@ -96,9 +105,29 @@ struct hb_closure_context_t :
     return done_lookups->get (lookup_index) == glyphs->get_population ();
   }
 
+  hb_set_t* parent_active_glyphs ()
+  {
+    return active_glyphs_stack.tail ();
+  }
+
+  void push_cur_active_glyphs (hb_set_t* cur_active_glyph_set)
+  {
+    active_glyphs_stack.push (cur_active_glyph_set);
+  }
+
+  bool pop_cur_done_glyphs ()
+  {
+    if (active_glyphs_stack.length < 1)
+      return false;
+
+    active_glyphs_stack.pop ();
+    return true;
+  }
+
   hb_face_t *face;
   hb_set_t *glyphs;
   hb_set_t output[1];
+  hb_vector_t<hb_set_t *> active_glyphs_stack;
   recurse_func_t recurse_func;
   unsigned int nesting_level_left;
 
@@ -112,7 +141,9 @@ struct hb_closure_context_t :
 			  nesting_level_left (nesting_level_left_),
 			  done_lookups (done_lookups_),
 			  lookup_count (0)
-  {}
+  {
+    push_cur_active_glyphs (glyphs_);
+  }
 
   ~hb_closure_context_t () { flush (); }
 
@@ -123,6 +154,8 @@ struct hb_closure_context_t :
     hb_set_del_range (output, face->get_num_glyphs (), hb_set_get_max (output));	/* Remove invalid glyphs. */
     hb_set_union (glyphs, output);
     hb_set_clear (output);
+    active_glyphs_stack.pop ();
+    active_glyphs_stack.fini ();
   }
 
   private:
@@ -1151,8 +1184,11 @@ static inline void recurse_lookups (context_t *c,
 				    unsigned int lookupCount,
 				    const LookupRecord lookupRecord[] /* Array of LookupRecords--in design order */)
 {
+  hb_set_t *chaos = hb_set_create ();
   for (unsigned int i = 0; i < lookupCount; i++)
     c->recurse (lookupRecord[i].lookupListIndex);
+
+  hb_set_destroy (chaos);
 }
 
 static inline bool apply_lookup (hb_ot_apply_context_t *c,
@@ -1631,6 +1667,9 @@ struct ContextFormat1
     ;
   }
 
+  bool may_have_non_1to1 () const
+  { return true; }
+
   void closure (hb_closure_context_t *c) const
   {
     struct ContextClosureLookupContext lookup_context = {
@@ -1773,6 +1812,9 @@ struct ContextFormat2
     | hb_any
     ;
   }
+
+  bool may_have_non_1to1 () const
+  { return true; }
 
   void closure (hb_closure_context_t *c) const
   {
@@ -1948,6 +1990,9 @@ struct ContextFormat3
 			       glyphCount, (const HBUINT16 *) (coverageZ.arrayZ + 1),
 			       lookup_context);
   }
+
+  bool may_have_non_1to1 () const
+  { return true; }
 
   void closure (hb_closure_context_t *c) const
   {
@@ -2565,6 +2610,9 @@ struct ChainContextFormat1
     ;
   }
 
+  bool may_have_non_1to1 () const
+  { return true; }
+
   void closure (hb_closure_context_t *c) const
   {
     struct ChainContextClosureLookupContext lookup_context = {
@@ -2709,6 +2757,10 @@ struct ChainContextFormat2
     | hb_any
     ;
   }
+
+  bool may_have_non_1to1 () const
+  { return true; }
+
   void closure (hb_closure_context_t *c) const
   {
     if (!(this+coverage).intersects (c->glyphs))
@@ -2940,6 +2992,9 @@ struct ChainContextFormat3
 				     lookahead.len, (const HBUINT16 *) lookahead.arrayZ,
 				     lookup_context);
   }
+
+  bool may_have_non_1to1 () const
+  { return true; }
 
   void closure (hb_closure_context_t *c) const
   {
