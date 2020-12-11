@@ -16,7 +16,10 @@ foreach file_name : tests
     sources += 'main.cc'
   else
     fuzzer_ldflags += get_option('fuzzer_ldflags').split()
-    extra_cpp_args += '-DHB_IS_IN_FUZZER'
+  endif
+
+  if get_option('failing_alloc')
+    extra_cpp_args += '-DHB_IS_FAILING_ALLOC'
   endif
 
   exe = executable(test_name, sources,
