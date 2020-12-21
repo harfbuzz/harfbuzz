@@ -262,7 +262,7 @@ struct hb_buffer_t
   void
   next_glyph ()
   {
-    if (have_output)
+    if (have_output && idx < len)
     {
       if (out_info != info || out_len != idx)
       {
