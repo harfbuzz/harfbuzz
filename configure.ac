@@ -239,25 +239,6 @@ AC_ARG_WITH(icu,
 have_icu=false
 if test "x$with_icu" = "xyes" -o "x$with_icu" = "xbuiltin" -o "x$with_icu" = "xauto"; then
 	PKG_CHECK_MODULES(ICU, icu-uc, have_icu=true, :)
-
-	dnl Fallback to icu-config if ICU pkg-config files could not be found
-	if test "$have_icu" != "true"; then
-		AC_CHECK_TOOL(ICU_CONFIG, icu-config, no)
-		AC_MSG_CHECKING([for ICU by using icu-config fallback])
-		if test "$ICU_CONFIG" != "no" && "$ICU_CONFIG" --version >/dev/null; then
-			have_icu=true
-			# We don't use --cflags as this gives us a lot of things that we don't
-			# necessarily want, like debugging and optimization flags
-			# See man (1) icu-config for more info.
-			ICU_CFLAGS=`$ICU_CONFIG --cppflags`
-			ICU_LIBS=`$ICU_CONFIG --ldflags-searchpath --ldflags-libsonly`
-			AC_SUBST(ICU_CFLAGS)
-			AC_SUBST(ICU_LIBS)
-			AC_MSG_RESULT([yes])
-		else
-			AC_MSG_RESULT([no])
-		fi
-	fi
 fi
 if test \( "x$with_icu" = "xyes" -o "x$with_icu" = "xbuiltin" \) -a "x$have_icu" != "xtrue"; then
 	AC_MSG_ERROR([icu support requested but icu-uc not found])
