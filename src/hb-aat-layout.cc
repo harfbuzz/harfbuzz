@@ -218,7 +218,7 @@ hb_aat_layout_compile_map (const hb_aat_map_builder_t *mapper,
 }
 
 
-/*
+/**
  * hb_aat_layout_has_substitution:
  * @face: #hb_face_t to work upon
  *
@@ -285,7 +285,7 @@ hb_aat_layout_remove_deleted_glyphs (hb_buffer_t *buffer)
   hb_ot_layout_delete_glyphs_inplace (buffer, is_deleted_glyph);
 }
 
-/*
+/**
  * hb_aat_layout_has_positioning:
  * @face: #hb_face_t to work upon
  *
@@ -318,7 +318,7 @@ hb_aat_layout_position (const hb_ot_shape_plan_t *plan,
 }
 
 
-/*
+/**
  * hb_aat_layout_has_tracking:
  * @face:: #hb_face_t to work upon
  *
