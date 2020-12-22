@@ -82,8 +82,7 @@ hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs);
 /* font and glyph extents */
 
 /* Note that typically ascender is positive and descender negative in coordinate systems that grow up. */
-typedef struct hb_font_extents_t
-{
+typedef struct hb_font_extents_t {
   hb_position_t ascender; /* typographic ascender. */
   hb_position_t descender; /* typographic descender. */
   hb_position_t line_gap; /* suggested line spacing gap. */
@@ -100,8 +99,7 @@ typedef struct hb_font_extents_t
 } hb_font_extents_t;
 
 /* Note that height is negative in coordinate systems that grow up. */
-typedef struct hb_glyph_extents_t
-{
+typedef struct hb_glyph_extents_t {
   hb_position_t x_bearing; /* left side of glyph from origin. */
   hb_position_t y_bearing; /* top side of glyph from origin. */
   hb_position_t width; /* distance from left to right side. */
