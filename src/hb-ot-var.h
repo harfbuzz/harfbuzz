@@ -115,8 +115,7 @@ typedef enum { /*< flags >*/
  *
  * Since: 2.2.0
  */
-typedef struct hb_ot_var_axis_info_t
-{
+typedef struct hb_ot_var_axis_info_t {
   unsigned int			axis_index;
   hb_tag_t			tag;
   hb_ot_name_id_t		name_id;

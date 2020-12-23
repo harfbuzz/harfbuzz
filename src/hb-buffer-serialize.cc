@@ -418,6 +418,7 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
  * ```
  * [uni0651=0@518,0+0|uni0628=0+1897]
  * ```
+ *
  * - The serialized glyphs are delimited with `[` and `]`.
  * - Glyphs are separated with `|`
  * - Each glyph starts with glyph name, or glyph index if
@@ -426,9 +427,7 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
  *   - If #HB_BUFFER_SERIALIZE_FLAG_NO_POSITIONS is not set, the #hb_glyph_position_t in the format:
  *     - If both #hb_glyph_position_t.x_offset and #hb_glyph_position_t.y_offset are not 0, `@x_offset,y_offset`. Then,
  *     - `+x_advance`, then `,y_advance` if #hb_glyph_position_t.y_advance is not 0. Then,
- *   - If #HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS is set, the
- *     #hb_glyph_extents_t in the format
- *     `&lt;x_bearing,y_bearing,width,height&gt;`
+ *   - If #HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS is set, the #hb_glyph_extents_t in the format `<x_bearing,y_bearing,width,height>`
  *
  * ## json
  * A machine-readable, structured format.
@@ -438,6 +437,7 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
  * [{"g":"uni0651","cl":0,"dx":518,"dy":0,"ax":0,"ay":0},
  * {"g":"uni0628","cl":0,"dx":0,"dy":0,"ax":1897,"ay":0}]
  * ```
+ *
  * Each glyph is a JSON object, with the following properties:
  * - `g`: the glyph name or glyph index if
  *   #HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES flag is set.
@@ -527,8 +527,9 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
  * The serialized codepoints will look something like:
  *
  * ```
- * <U+0651=0|U+0628=1>
+ *  <U+0651=0|U+0628=1>
  * ```
+ *
  * - Glyphs are separated with `|`
  * - Unicode codepoints are expressed as zero-padded four (or more)
  *   digit hexadecimal numbers preceded by `U+`
@@ -544,6 +545,7 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
  *   #HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS is not set.
  *
  * For example:
+ *
  * ```
  * [{u:1617,cl:0},{u:1576,cl:1}]
  * ```

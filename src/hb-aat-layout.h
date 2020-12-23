@@ -732,8 +732,7 @@ HB_EXTERN hb_ot_name_id_t
 hb_aat_layout_feature_type_get_name_id (hb_face_t                    *face,
 					hb_aat_layout_feature_type_t  feature_type);
 
-typedef struct hb_aat_layout_feature_selector_info_t
-{
+typedef struct hb_aat_layout_feature_selector_info_t {
   hb_ot_name_id_t			name_id;
   hb_aat_layout_feature_selector_t	enable;
   hb_aat_layout_feature_selector_t	disable;

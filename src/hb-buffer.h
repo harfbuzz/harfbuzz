@@ -59,8 +59,7 @@ HB_BEGIN_DECLS
  * The #hb_glyph_info_t is the structure that holds information about the
  * glyphs and their relation to input text.
  */
-typedef struct hb_glyph_info_t
-{
+typedef struct hb_glyph_info_t {
   hb_codepoint_t codepoint;
   /*< private >*/
   hb_mask_t      mask;
