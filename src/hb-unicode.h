@@ -122,11 +122,12 @@ typedef enum
 
 /**
  * hb_unicode_combining_class_t:
- * @HB_UNICODE_COMBINING_CLASS_NOT_REORDERED:
- * @HB_UNICODE_COMBINING_CLASS_OVERLAY:
- * @HB_UNICODE_COMBINING_CLASS_NUKTA:
- * @HB_UNICODE_COMBINING_CLASS_KANA_VOICING:
- * @HB_UNICODE_COMBINING_CLASS_VIRAMA:
+ * @HB_UNICODE_COMBINING_CLASS_NOT_REORDERED: Spacing and enclosing marks; also many vowel and consonant signs, even if nonspacing
+ * @HB_UNICODE_COMBINING_CLASS_OVERLAY: Marks which overlay a base letter or symbol
+ * @HB_UNICODE_COMBINING_CLASS_NUKTA: Diacritic nukta marks in Brahmi-derived scripts
+ * @HB_UNICODE_COMBINING_CLASS_KANA_VOICING: Hiragana/Katakana voicing marks
+ * @HB_UNICODE_COMBINING_CLASS_VIRAMA: Viramas
+ * @HB_UNICODE_COMBINING_CLASS_CCC10: [Hebrew]
  * @HB_UNICODE_COMBINING_CLASS_CCC11: [Hebrew]
  * @HB_UNICODE_COMBINING_CLASS_CCC12: [Hebrew]
  * @HB_UNICODE_COMBINING_CLASS_CCC13: [Hebrew]
@@ -143,6 +144,7 @@ typedef enum
  * @HB_UNICODE_COMBINING_CLASS_CCC24: [Hebrew]
  * @HB_UNICODE_COMBINING_CLASS_CCC25: [Hebrew]
  * @HB_UNICODE_COMBINING_CLASS_CCC26: [Hebrew]
+ * @HB_UNICODE_COMBINING_CLASS_CCC27: [Arabic]
  * @HB_UNICODE_COMBINING_CLASS_CCC28: [Arabic]
  * @HB_UNICODE_COMBINING_CLASS_CCC29: [Arabic]
  * @HB_UNICODE_COMBINING_CLASS_CCC30: [Arabic]
@@ -161,22 +163,22 @@ typedef enum
  * @HB_UNICODE_COMBINING_CLASS_CCC129: [Tibetan]
  * @HB_UNICODE_COMBINING_CLASS_CCC130: [Tibetan]
  * @HB_UNICODE_COMBINING_CLASS_CCC133: [Tibetan]
- * @HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT:
- * @HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW:
- * @HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE:
- * @HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE_RIGHT:
- * @HB_UNICODE_COMBINING_CLASS_BELOW_LEFT:
- * @HB_UNICODE_COMBINING_CLASS_BELOW:
- * @HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT:
- * @HB_UNICODE_COMBINING_CLASS_LEFT:
- * @HB_UNICODE_COMBINING_CLASS_RIGHT:
- * @HB_UNICODE_COMBINING_CLASS_ABOVE_LEFT:
- * @HB_UNICODE_COMBINING_CLASS_ABOVE:
- * @HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT:
- * @HB_UNICODE_COMBINING_CLASS_DOUBLE_BELOW:
- * @HB_UNICODE_COMBINING_CLASS_DOUBLE_ABOVE:
- * @HB_UNICODE_COMBINING_CLASS_IOTA_SUBSCRIPT:
- * @HB_UNICODE_COMBINING_CLASS_INVALID: 255
+ * @HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW_LEFT: Marks attached at the bottom left
+ * @HB_UNICODE_COMBINING_CLASS_ATTACHED_BELOW: Marks attached directly below
+ * @HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE: Marks attached directly above
+ * @HB_UNICODE_COMBINING_CLASS_ATTACHED_ABOVE_RIGHT: Marks attached at the top right
+ * @HB_UNICODE_COMBINING_CLASS_BELOW_LEFT: Distinct marks at the bottom left
+ * @HB_UNICODE_COMBINING_CLASS_BELOW: Distinct marks directly below
+ * @HB_UNICODE_COMBINING_CLASS_BELOW_RIGHT: Distinct marks at the bottom right
+ * @HB_UNICODE_COMBINING_CLASS_LEFT: Distinct marks to the left
+ * @HB_UNICODE_COMBINING_CLASS_RIGHT: Distinct marks to the right
+ * @HB_UNICODE_COMBINING_CLASS_ABOVE_LEFT: Distinct marks at the top left
+ * @HB_UNICODE_COMBINING_CLASS_ABOVE: Distinct marks directly above
+ * @HB_UNICODE_COMBINING_CLASS_ABOVE_RIGHT: Distinct marks at the top right
+ * @HB_UNICODE_COMBINING_CLASS_DOUBLE_BELOW: Distinct marks subtending two bases
+ * @HB_UNICODE_COMBINING_CLASS_DOUBLE_ABOVE: Distinct marks extending above two bases
+ * @HB_UNICODE_COMBINING_CLASS_IOTA_SUBSCRIPT: Greek iota subscript only
+ * @HB_UNICODE_COMBINING_CLASS_INVALID: Invalid combining class
  *
  * Data type for the Canonical_Combining_Class (ccc) property
  * from the Unicode Character Database.
@@ -335,11 +337,16 @@ hb_unicode_funcs_get_parent (hb_unicode_funcs_t *ufuncs);
 
 /**
  * hb_unicode_combining_class_func_t:
+ * @ufuncs: A Unicode-functions structure
+ * @unicode: The code point to query
+ * @user_data: User data pointer passed by the caller
  *
  * A virtual method for the #hb_unicode_funcs_t structure.
  *
  * This method should retrieve the Canonical Combining Class (ccc)
  * property for a specified Unicode code point. 
+ *
+ * Return value: The #hb_unicode_combining_class_t of @unicode
  * 
  **/
 typedef hb_unicode_combining_class_t	(*hb_unicode_combining_class_func_t)	(hb_unicode_funcs_t *ufuncs,
@@ -348,12 +355,17 @@ typedef hb_unicode_combining_class_t	(*hb_unicode_combining_class_func_t)	(hb_un
 
 /**
  * hb_unicode_general_category_func_t:
+ * @ufuncs: A Unicode-functions structure
+ * @unicode: The code point to query
+ * @user_data: User data pointer passed by the caller
  *
  * A virtual method for the #hb_unicode_funcs_t structure.
  *
  * This method should retrieve the General Category property for
  * a specified Unicode code point.
  * 
+ * Return value: The #hb_unicode_general_category_t of @unicode
+ *
  **/
 typedef hb_unicode_general_category_t	(*hb_unicode_general_category_func_t)	(hb_unicode_funcs_t *ufuncs,
 										 hb_codepoint_t      unicode,
@@ -361,6 +373,9 @@ typedef hb_unicode_general_category_t	(*hb_unicode_general_category_func_t)	(hb_
 
 /**
  * hb_unicode_mirroring_func_t:
+ * @ufuncs: A Unicode-functions structure
+ * @unicode: The code point to query
+ * @user_data: User data pointer passed by the caller
  *
  * A virtual method for the #hb_unicode_funcs_t structure.
  *
@@ -371,6 +386,8 @@ typedef hb_unicode_general_category_t	(*hb_unicode_general_category_func_t)	(hb_
  * Bi-Directional Mirroring Glyph defined, the method should
  * return the original code point.</note>
  * 
+ * Return value: The #hb_codepoint_t of the Mirroring Glyph for @unicode
+ *
  **/
 typedef hb_codepoint_t			(*hb_unicode_mirroring_func_t)		(hb_unicode_funcs_t *ufuncs,
 										 hb_codepoint_t      unicode,
@@ -378,11 +395,16 @@ typedef hb_codepoint_t			(*hb_unicode_mirroring_func_t)		(hb_unicode_funcs_t *uf
 
 /**
  * hb_unicode_script_func_t:
+ * @ufuncs: A Unicode-functions structure
+ * @unicode: The code point to query
+ * @user_data: User data pointer passed by the caller
  *
  * A virtual method for the #hb_unicode_funcs_t structure.
  *
  * This method should retrieve the Script property for a 
  * specified Unicode code point.
+ *
+ * Return value: The #hb_script_t of @unicode
  * 
  **/
 typedef hb_script_t			(*hb_unicode_script_func_t)		(hb_unicode_funcs_t *ufuncs,
@@ -391,6 +413,11 @@ typedef hb_script_t			(*hb_unicode_script_func_t)		(hb_unicode_funcs_t *ufuncs,
 
 /**
  * hb_unicode_compose_func_t:
+ * @ufuncs: A Unicode-functions structure
+ * @a: The first code point to compose
+ * @b: The second code point to compose
+ * @ab: (out): The composed code point
+ * @user_data: user data pointer passed by the caller
  *
  * A virtual method for the #hb_unicode_funcs_t structure.
  *
@@ -400,6 +427,8 @@ typedef hb_script_t			(*hb_unicode_script_func_t)		(hb_unicode_funcs_t *ufuncs,
  * The method must return an #hb_bool_t indicating the success
  * of the composition.
  * 
+ * Return value: True is @a,@b composed, false otherwise
+ *
  **/
 typedef hb_bool_t			(*hb_unicode_compose_func_t)		(hb_unicode_funcs_t *ufuncs,
 										 hb_codepoint_t      a,
@@ -409,6 +438,11 @@ typedef hb_bool_t			(*hb_unicode_compose_func_t)		(hb_unicode_funcs_t *ufuncs,
 
 /**
  * hb_unicode_decompose_func_t:
+ * @ufuncs: A Unicode-functions structure
+ * @ab: The code point to decompose
+ * @a: (out): The first decomposed code point
+ * @b: (out): The second decomposed code point
+ * @user_data: user data pointer passed by the caller
  *
  * A virtual method for the #hb_unicode_funcs_t structure.
  *
@@ -417,6 +451,8 @@ typedef hb_bool_t			(*hb_unicode_compose_func_t)		(hb_unicode_funcs_t *ufuncs,
  * output parameters (if successful). The method must return an
  * #hb_bool_t indicating the success of the composition.
  * 
+ * Return value: True if @ab decomposed, false otherwise
+ *
  **/
 typedef hb_bool_t			(*hb_unicode_decompose_func_t)		(hb_unicode_funcs_t *ufuncs,
 										 hb_codepoint_t      ab,
@@ -593,7 +629,7 @@ hb_unicode_script (hb_unicode_funcs_t *ufuncs,
  * @ufuncs: The Unicode-functions structure
  * @a: The first code point to compose
  * @b: The second code point to compose
- * @ab: (out): The composed code point 
+ * @ab: (out): The composed code point
  *
  * Composes the code point sequence @a,@b by canonical equivalence into
  * code point @ab.
