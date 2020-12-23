@@ -1414,7 +1414,7 @@ hb_buffer_get_glyph_positions (hb_buffer_t  *buffer,
  * Return value:
  * %true if the @buffer has position array, %false otherwise.
  *
- * Since: REPLACEME
+ * Since: 2.7.3
  **/
 HB_EXTERN hb_bool_t
 hb_buffer_has_positions (hb_buffer_t  *buffer)
