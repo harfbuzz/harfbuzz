@@ -333,7 +333,7 @@ hb_blob_get_length (hb_blob_t *blob)
  *
  * Fetches the data from a blob.
  *
- * Returns: (transfer none) (array length=length):
+ * Returns: (transfer none) (array length=length): the byte data of @blob.
  *
  * Since: 0.9.2
  **/
