@@ -768,7 +768,7 @@ hb_buffer_destroy (hb_buffer_t *buffer)
  * @buffer: An #hb_buffer_t
  * @key: The user-data key
  * @data: A pointer to the user data
- * @destroy: A callback to call when @data is not needed anymore
+ * @destroy: (optional): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the specified buffer. 
@@ -795,7 +795,7 @@ hb_buffer_set_user_data (hb_buffer_t        *buffer,
  * Fetches the user data associated with the specified key,
  * attached to the specified buffer.
  *
- * Return value: A pointer to the user data
+ * Return value: (transfer-none): A pointer to the user data
  *
  * Since: 0.9.2
  **/
