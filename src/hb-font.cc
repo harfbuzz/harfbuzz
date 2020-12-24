@@ -796,8 +796,6 @@ hb_font_get_v_extents (hb_font_t         *font,
  * Fetches the glyph ID for a Unicode code point in the specified
  * font, with an optional variation selector.
  *
- * This version of the function is higher-level and supports fallback behavior.
- * 
  * If @variation_selector is 0, calls hb_font_get_nominal_glyph();
  * otherwise calls hb_font_get_variation_glyph().
  *
@@ -1030,6 +1028,9 @@ hb_font_get_glyph_v_origin (hb_font_t      *font,
  * Fetches the kerning-adjustment value for a glyph-pair in
  * the specified font, in horizontal text segments.
  *
+ * <note>It handles legacy kerning only (as returned by the corresponding
+ * #hb_font_funcs_t function).</note>
+ *
  * Return value: The kerning adjustment value
  *
  * Since: 0.9.2
@@ -1051,6 +1052,9 @@ hb_font_get_glyph_h_kerning (hb_font_t      *font,
  *
  * Fetches the kerning-adjustment value for a glyph-pair in
  * the specified font, in vertical text segments.
+ *
+ * <note>It handles legacy kerning only (as returned by the corresponding
+ * #hb_font_funcs_t function).</note>
  *
  * Return value: The kerning adjustment value
  *
@@ -1404,7 +1408,6 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t      *font,
   return font->get_glyph_contour_point_for_origin (glyph, point_index, direction, x, y);
 }
 
-/* Generates gidDDD if glyph has no name. */
 /**
  * hb_font_glyph_to_string:
  * @font: #hb_font_t to work upon
@@ -1415,8 +1418,8 @@ hb_font_get_glyph_contour_point_for_origin (hb_font_t      *font,
  * Fetches the name of the specified glyph ID in @font and returns
  * it in string @s.
  *
- * If the glyph ID has no name in @font, a string of the form "gidDDD" is
- * generated.
+ * If the glyph ID has no name in @font, a string of the form `gidDDD` is
+ * generated, with `DDD` being the glyph ID.
  *
  * Since: 0.9.2
  **/
@@ -1429,7 +1432,6 @@ hb_font_glyph_to_string (hb_font_t      *font,
   font->glyph_to_string (glyph, s, size);
 }
 
-/* Parses gidDDD and uniUUUU strings automatically. */
 /**
  * hb_font_glyph_from_string:
  * @font: #hb_font_t to work upon
@@ -1438,7 +1440,7 @@ hb_font_glyph_to_string (hb_font_t      *font,
  * @glyph: (out): The glyph ID corresponding to the string requested
  *
  * Fetches the glyph ID from @font that matches the specified string.
- * Strings of the format "gidDDD" or "uniUUUU" are parsed automatically.
+ * Strings of the format `gidDDD` or `uniUUUU` are parsed automatically.
  *
  * <note>Note: @len == -1 means the string is null-terminated.</note>
  *
@@ -1449,7 +1451,7 @@ hb_font_glyph_to_string (hb_font_t      *font,
 hb_bool_t
 hb_font_glyph_from_string (hb_font_t      *font,
 			   const char     *s,
-			   int             len, /* -1 means nul-terminated */
+			   int             len,
 			   hb_codepoint_t *glyph)
 {
   return font->glyph_from_string (s, len, glyph);
@@ -1941,7 +1943,7 @@ hb_font_get_scale (hb_font_t *font,
  * @x_ppem: Horizontal ppem value to assign
  * @y_ppem: Vertical ppem value to assign
  *
- * Sets the horizontal and vertical points-per-em (ppem) of a font. 
+ * Sets the horizontal and vertical pixels-per-em (ppem) of a font. 
  *
  * Since: 0.9.2
  **/
