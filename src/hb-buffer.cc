@@ -773,7 +773,7 @@ hb_buffer_destroy (hb_buffer_t *buffer)
  *
  * Attaches a user-data key/data pair to the specified buffer. 
  *
- * Return value: %true if success, false otherwise
+ * Return value: %true if success, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1076,7 +1076,7 @@ hb_buffer_set_flags (hb_buffer_t       *buffer,
  * hb_buffer_get_flags:
  * @buffer: An #hb_buffer_t
  *
- * Fetches the #hb_buffer_flags_t for @buffer.
+ * Fetches the #hb_buffer_flags_t of @buffer.
  *
  * Return value:
  * The @buffer flags

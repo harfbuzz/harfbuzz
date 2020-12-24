@@ -234,7 +234,7 @@ hb_blob_destroy (hb_blob_t *blob)
 
 /**
  * hb_blob_set_user_data: (skip)
- * @blob: a blob
+ * @blob: An #hb_blob_t
  * @key: The user-data key to set
  * @data: A pointer to the user data to set
  * @destroy: A callback to call when @data is not needed anymore
@@ -242,7 +242,7 @@ hb_blob_destroy (hb_blob_t *blob)
  *
  * Attaches a user-data key/data pair to the specified blob.
  *
- * Return value: %true if success, false otherwise
+ * Return value: %true if success, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -566,7 +566,7 @@ _open_resource_fork (const char *file_name, hb_mapped_file_t *file)
  * Creates a new blob containing the data from the
  * specified binary font file.
  *
- * Returns: A hb_blob_t pointer with the content of the file
+ * Returns: An #hb_blob_t pointer with the content of the file
  *
  * Since: 1.7.7
  **/

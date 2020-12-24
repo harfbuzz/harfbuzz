@@ -122,7 +122,7 @@ hb_set_destroy (hb_set_t *set)
  *
  * Attaches a user-data key/data pair to the specified set.
  *
- * Return value: %true if success, false otherwise
+ * Return value: %true if success, %false otherwise
  *
  * Since: 0.9.2
  **/

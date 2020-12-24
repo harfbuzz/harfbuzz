@@ -122,7 +122,7 @@ hb_map_destroy (hb_map_t *map)
  *
  * Attaches a user-data key/data pair to the specified map.
  *
- * Return value: %true if success, false otherwise
+ * Return value: %true if success, %false otherwise
  *
  * Since: 1.7.7
  **/

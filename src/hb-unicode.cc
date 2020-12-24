@@ -281,7 +281,7 @@ hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs)
  *
  * Attaches a user-data key/data pair to the specified Unicode-functions structure. 
  *
- * Return value: %true if success, false otherwise
+ * Return value: %true if success, %false otherwise
  *
  * Since: 0.9.2
  **/
