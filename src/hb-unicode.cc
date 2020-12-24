@@ -276,7 +276,7 @@ hb_unicode_funcs_destroy (hb_unicode_funcs_t *ufuncs)
  * @ufuncs: The Unicode-functions structure
  * @key: The user-data key
  * @data: A pointer to the user data
- * @destroy: A callback to call when @data is not needed anymore
+ * @destroy: (optional): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the specified Unicode-functions structure. 

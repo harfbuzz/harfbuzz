@@ -329,7 +329,7 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
  * @shape_plan: A shaping plan
  * @key: The user-data key to set
  * @data: A pointer to the user data
- * @destroy: A callback to call when @data is not needed anymore
+ * @destroy: (optional): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the given shaping plan. 

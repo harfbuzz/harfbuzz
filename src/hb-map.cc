@@ -117,7 +117,7 @@ hb_map_destroy (hb_map_t *map)
  * @map: A map
  * @key: The user-data key to set
  * @data: A pointer to the user data to set
- * @destroy: A callback to call when @data is not needed anymore
+ * @destroy: (optional): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the specified map.
