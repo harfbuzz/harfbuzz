@@ -136,8 +136,8 @@ typedef union _hb_var_int_t {
 /**
  * hb_tag_t:
  * 
- * Data type for tag identifiers. Tags are arrays of four
- * bytes, each of which holds a character. 
+ * Data type for tag identifiers. Tags are four
+ * byte integers, each byte representing a character.
  *
  * Tags are used to identify tables, design-variation axes,
  * scripts, languages, font features, and baselines with
@@ -236,8 +236,8 @@ hb_direction_to_string (hb_direction_t direction);
  * HB_DIRECTION_IS_FORWARD:
  * @dir: #hb_direction_t to test
  *
- * Tests whether a text direction is forward. Requires
- * that the direction be valid.
+ * Tests whether a text direction moves forward (from left to right, or from
+ * top to bottom). Requires that the direction be valid.
  *
  **/
 #define HB_DIRECTION_IS_FORWARD(dir)	((((unsigned int) (dir)) & ~2U) == 4)
@@ -245,8 +245,8 @@ hb_direction_to_string (hb_direction_t direction);
  * HB_DIRECTION_IS_BACKWARD:
  * @dir: #hb_direction_t to test
  *
- * Tests whether a text direction is backward. Requires
- * that the direction be valid.
+ * Tests whether a text direction moves backward (from right to left, or from
+ * bottom to top). Requires that the direction be valid.
  *
  **/
 #define HB_DIRECTION_IS_BACKWARD(dir)	((((unsigned int) (dir)) & ~2U) == 5)
@@ -433,11 +433,9 @@ hb_language_get_default (void);
  * @HB_SCRIPT_NYIAKENG_PUACHUE_HMONG
  * @HB_SCRIPT_WANCHO
  * @HB_SCRIPT_INVALID: #HB_TAG_NONE
- * @_HB_SCRIPT_MAX_VALUE: Dummy value
- * @_HB_SCRIPT_MAX_VALUE_SIGNED: Dummy value
  *
  * Data type for scripts. Each #hb_script_t's value is an #hb_tag_t corresponding
- * to the four-letter values defined at https://unicode.org/iso15924/ .
+ * to the four-letter values defined by [ISO 15924](https://unicode.org/iso15924/).
  *
  * See also the Script (sc) property of the Unicode Character Database.
  *
