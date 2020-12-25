@@ -359,6 +359,8 @@ hb_font_get_font_h_extents_func_t
 hb_font_get_font_v_extents_func_t
 hb_font_get_h_extents
 hb_font_get_v_extents
+hb_font_extents_t
+hb_glyph_extents_t
 </SECTION>
 
 <SECTION>

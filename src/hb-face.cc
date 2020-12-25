@@ -304,7 +304,7 @@ hb_face_destroy (hb_face_t *face)
  *
  * Attaches a user-data key/data pair to the given face object. 
  *
- * Return value: %true if success, false otherwise
+ * Return value: %true if success, %false otherwise
  *
  * Since: 0.9.2
  **/
