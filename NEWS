@@ -1,3 +1,10 @@
+Overview of changes leading to 2.7.4
+Sunday, December 27, 2020
+====================================
+- Fix missing --enable-introspection configure option from previous release
+  tarball.
+- Documentation updates.
+
 Overview of changes leading to 2.7.3
 Wednesday, December 23, 2020
 ====================================
