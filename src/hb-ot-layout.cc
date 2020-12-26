@@ -1907,7 +1907,7 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
  * @baseline_tag: a baseline tag
  * @direction: text direction.
  * @script_tag:  script tag.
- * @language_tag: language tag.
+ * @language_tag: language tag, currently unused.
  * @coord: (out): baseline value if found.
  *
  * Fetches a baseline value from the face.
