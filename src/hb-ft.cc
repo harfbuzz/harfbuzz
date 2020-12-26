@@ -776,8 +776,8 @@ hb_ft_face_create_cached (FT_Face ft_face)
  * Creates an #hb_font_t font object from the specified FT_Face.
  *
  * <note>Note: You must set the face size on @ft_face before calling
- * hb_ft_font_create() on it. Otherwise, HarfBuzz will not pick up
- * the face size.</note>
+ * hb_ft_font_create() on it. HarfBuzz assumes size is always set and will
+ * access `size` member of FT_Face unconditionally.</note>
  *
  * This variant of the function does not provide any life-cycle management.
  *
@@ -884,8 +884,8 @@ hb_ft_font_changed (hb_font_t *font)
  * Creates an #hb_font_t font object from the specified FT_Face.
  *
  * <note>Note: You must set the face size on @ft_face before calling
- * hb_ft_font_create_references() on it. Otherwise, HarfBuzz will not pick up
- * the face size.</note>
+ * hb_ft_font_create_referenced() on it. HarfBuzz assumes size is always set
+ * and will access `size` member of FT_Face unconditionally.</note>
  *
  * This is the preferred variant of the hb_ft_font_create*
  * function family, because it calls FT_Reference_Face() on @ft_face,
