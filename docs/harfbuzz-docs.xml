@@ -49,37 +49,6 @@
         <ulink role="online-location" url="http://[SERVER]/libharfbuzz/index.html">http://[SERVER]/libharfbuzz/</ulink>.-->
       </releaseinfo>
     </partinfo>
-
-    <note>
-      <para>
-        The current HarfBuzz codebase is versioned 2.x.x and is stable
-	and under active maintenance. This is what is used in latest
-	versions of Firefox, GNOME, ChromeOS, Chrome, LibreOffice,
-	XeTeX, Android, and KDE, among other places. 
-      </para>
-      <para>
-        Prior to 2012, the original HarfBuzz codebase (which, these
-	days, is referred to as <emphasis>harfbuzz-old</emphasis>) was 
-        derived from code in <ulink
-	url="http://freetype.org/">FreeType</ulink>, <ulink
-	url="http://pango.org/">Pango</ulink>, and 
-        <ulink url="http://qt-project.org/">Qt</ulink>.
-        It is <emphasis>not</emphasis> actively developed or
-	maintained, and is extremely buggy. All users of harfbuzz-old
-	are encouraged to switch over to the new HarfBuzz as soon as possible.
-      </para>
-      <para>
-	To make this distinction clearer in discussions, the current
-	HarfBuzz codebase is sometimes referred to as
-	<emphasis>harfbuzz-ng</emphasis>.
-      </para>
-      <para>
-	For reference purposes, the harfbuzz-old source tree is archived 
-        <ulink
-	    url="http://cgit.freedesktop.org/harfbuzz.old/">here</ulink>. There
-	are no release tarballs of harfbuzz-old whatsoever.
-      </para>
-    </note>
       
     <title>Reference manual</title>
       <chapter>
@@ -180,4 +149,33 @@
 
       <xi:include href="xml/annotation-glossary.xml"><xi:fallback /></xi:include>
   </part>
+
+  <note>
+    <para>
+      The current HarfBuzz codebase is versioned 2.x.x and is stable
+      and under active maintenance. This is what is used in latest
+      versions of Firefox, GNOME, ChromeOS, Chrome, LibreOffice,
+      XeTeX, Android, and KDE, among other places.
+    </para>
+    <para>
+      Prior to 2012, the original HarfBuzz codebase (which, these days, is
+      referred to as <emphasis>harfbuzz-old</emphasis>) was derived from code
+      in <ulink url="http://freetype.org/">FreeType</ulink>,
+      <ulink url="http://pango.org/">Pango</ulink>, and
+      <ulink url="http://qt-project.org/">Qt</ulink>.
+      It is <emphasis>not</emphasis> actively developed or  maintained, and is
+      extremely buggy. All users of harfbuzz-old are encouraged to switch over
+      to the new HarfBuzz as soon as possible.
+    </para>
+    <para>
+      To make this distinction clearer in discussions, the current HarfBuzz
+      codebase is sometimes referred to as <emphasis>harfbuzz-ng</emphasis>.
+    </para>
+    <para>
+      For reference purposes, the harfbuzz-old source tree is archived
+      <ulink url="http://cgit.freedesktop.org/harfbuzz.old/">here</ulink>.
+      There are no release tarballs of harfbuzz-old whatsoever.
+    </para>
+  </note>
+
 </book>
