@@ -30,6 +30,7 @@
 
 #include "hb-ot-shape-complex-indic.hh"
 #include "hb-ot-shape-complex-vowel-constraints.hh"
+#include "hb-ot-shape-complex-syllabic.hh"
 #include "hb-ot-layout.hh"
 
 
@@ -338,15 +339,6 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
 }
 
 
-enum indic_syllable_type_t {
-  indic_consonant_syllable,
-  indic_vowel_syllable,
-  indic_standalone_cluster,
-  indic_symbol_cluster,
-  indic_broken_cluster,
-  indic_non_indic_cluster,
-};
-
 #include "hb-ot-shape-complex-indic-machine.hh"
 
 
@@ -385,8 +377,6 @@ compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
 
   return a < b ? -1 : a == b ? 0 : +1;
 }
-
-
 
 static void
 update_consonant_positions_indic (const hb_ot_shape_plan_t *plan,
@@ -919,86 +909,23 @@ initial_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
 				   hb_buffer_t *buffer,
 				   unsigned int start, unsigned int end)
 {
-  indic_syllable_type_t syllable_type = (indic_syllable_type_t) (buffer->info[start].syllable() & 0x0F);
+  syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   switch (syllable_type)
   {
     case indic_vowel_syllable: /* We made the vowels look like consonants.  So let's call the consonant logic! */
-    case indic_consonant_syllable:
+    case consonant_syllable:
      initial_reordering_consonant_syllable (plan, face, buffer, start, end);
      break;
 
-    case indic_broken_cluster: /* We already inserted dotted-circles, so just call the standalone_cluster. */
+    case broken_cluster: /* We already inserted dotted-circles, so just call the standalone_cluster. */
     case indic_standalone_cluster:
      initial_reordering_standalone_cluster (plan, face, buffer, start, end);
      break;
 
     case indic_symbol_cluster:
-    case indic_non_indic_cluster:
+    case alien_cluster:
       break;
   }
-}
-
-static inline void
-insert_dotted_circles_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
-			     hb_font_t *font,
-			     hb_buffer_t *buffer)
-{
-  if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
-    return;
-
-  /* Note: This loop is extra overhead, but should not be measurable.
-   * TODO Use a buffer scratch flag to remove the loop. */
-  bool has_broken_syllables = false;
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  for (unsigned int i = 0; i < count; i++)
-    if ((info[i].syllable() & 0x0F) == indic_broken_cluster)
-    {
-      has_broken_syllables = true;
-      break;
-    }
-  if (likely (!has_broken_syllables))
-    return;
-
-
-  hb_codepoint_t dottedcircle_glyph;
-  if (!font->get_nominal_glyph (0x25CCu, &dottedcircle_glyph))
-    return;
-
-  hb_glyph_info_t dottedcircle = {0};
-  dottedcircle.codepoint = 0x25CCu;
-  set_indic_properties (dottedcircle);
-  dottedcircle.codepoint = dottedcircle_glyph;
-
-  buffer->clear_output ();
-
-  buffer->idx = 0;
-  unsigned int last_syllable = 0;
-  while (buffer->idx < buffer->len && buffer->successful)
-  {
-    unsigned int syllable = buffer->cur().syllable();
-    indic_syllable_type_t syllable_type = (indic_syllable_type_t) (syllable & 0x0F);
-    if (unlikely (last_syllable != syllable && syllable_type == indic_broken_cluster))
-    {
-      last_syllable = syllable;
-
-      hb_glyph_info_t ginfo = dottedcircle;
-      ginfo.cluster = buffer->cur().cluster;
-      ginfo.mask = buffer->cur().mask;
-      ginfo.syllable() = buffer->cur().syllable();
-
-      /* Insert dottedcircle after possible Repha. */
-      while (buffer->idx < buffer->len && buffer->successful &&
-	     last_syllable == buffer->cur().syllable() &&
-	     buffer->cur().indic_category() == OT_Repha)
-	buffer->next_glyph ();
-
-      buffer->output_info (ginfo);
-    }
-    else
-      buffer->next_glyph ();
-  }
-  buffer->swap_buffers ();
 }
 
 static void
@@ -1009,7 +936,7 @@ initial_reordering_indic (const hb_ot_shape_plan_t *plan,
   if (!buffer->message (font, "start reordering indic initial"))
     return;
   update_consonant_positions_indic (plan, font, buffer);
-  insert_dotted_circles_indic (plan, font, buffer);
+  hb_syllabic_insert_dotted_circles (buffer, font, OT_Repha, set_indic_properties);
 
   foreach_syllable (buffer, start, end)
     initial_reordering_syllable_indic (plan, font->face, buffer, start, end);
