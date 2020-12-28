@@ -304,7 +304,7 @@ static const int myanmar_syllable_machine_en_main = 0;
   HB_STMT_START { \
     if (0) fprintf (stderr, "syllable %d..%d %s\n", ts, te, #syllable_type); \
     for (unsigned int i = ts; i < te; i++) \
-      info[i].syllable() = (syllable_serial << 4) | myanmar_##syllable_type; \
+      info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
@@ -370,7 +370,7 @@ _eof_trans:
 	break;
 	case 4:
 #line 87 "hb-ot-shape-complex-myanmar-machine.rl"
-	{te = p+1;{ found_syllable (non_myanmar_cluster); }}
+	{te = p+1;{ found_syllable (alien_cluster); }}
 	break;
 	case 10:
 #line 88 "hb-ot-shape-complex-myanmar-machine.rl"
@@ -382,7 +382,7 @@ _eof_trans:
 	break;
 	case 3:
 #line 90 "hb-ot-shape-complex-myanmar-machine.rl"
-	{te = p+1;{ found_syllable (non_myanmar_cluster); }}
+	{te = p+1;{ found_syllable (alien_cluster); }}
 	break;
 	case 5:
 #line 86 "hb-ot-shape-complex-myanmar-machine.rl"
@@ -394,7 +394,7 @@ _eof_trans:
 	break;
 	case 9:
 #line 90 "hb-ot-shape-complex-myanmar-machine.rl"
-	{te = p;p--;{ found_syllable (non_myanmar_cluster); }}
+	{te = p;p--;{ found_syllable (alien_cluster); }}
 	break;
 #line 400 "hb-ot-shape-complex-myanmar-machine.hh"
 	}

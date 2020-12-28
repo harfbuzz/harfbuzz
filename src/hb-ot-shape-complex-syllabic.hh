@@ -35,6 +35,7 @@ enum syllable_type_t {
   broken_cluster,
   alien_cluster,
   consonant_syllable,
+  punctuation_cluster,
   indic_vowel_syllable,
   indic_standalone_cluster,
   indic_symbol_cluster,

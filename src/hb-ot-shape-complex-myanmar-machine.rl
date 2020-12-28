@@ -84,10 +84,10 @@ other =			any;
 
 main := |*
 	consonant_syllable	=> { found_syllable (consonant_syllable); };
-	j			=> { found_syllable (non_myanmar_cluster); };
+	j			=> { found_syllable (alien_cluster); };
 	punctuation_cluster	=> { found_syllable (punctuation_cluster); };
 	broken_cluster		=> { found_syllable (broken_cluster); };
-	other			=> { found_syllable (non_myanmar_cluster); };
+	other			=> { found_syllable (alien_cluster); };
 *|;
 
 
@@ -97,7 +97,7 @@ main := |*
   HB_STMT_START { \
     if (0) fprintf (stderr, "syllable %d..%d %s\n", ts, te, #syllable_type); \
     for (unsigned int i = ts; i < te; i++) \
-      info[i].syllable() = (syllable_serial << 4) | myanmar_##syllable_type; \
+      info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
