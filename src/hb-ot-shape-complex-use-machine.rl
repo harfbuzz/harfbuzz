@@ -138,16 +138,16 @@ independent_cluster = O;
 other = any;
 
 main := |*
-	independent_cluster			=> { found_syllable (independent_cluster); };
-	virama_terminated_cluster		=> { found_syllable (virama_terminated_cluster); };
-	sakot_terminated_cluster		=> { found_syllable (sakot_terminated_cluster); };
-	standard_cluster			=> { found_syllable (standard_cluster); };
-	number_joiner_terminated_cluster	=> { found_syllable (number_joiner_terminated_cluster); };
-	numeral_cluster				=> { found_syllable (numeral_cluster); };
-	symbol_cluster				=> { found_syllable (symbol_cluster); };
-	hieroglyph_cluster			=> { found_syllable (hieroglyph_cluster); };
+	independent_cluster			=> { found_syllable (use_independent_cluster); };
+	virama_terminated_cluster		=> { found_syllable (use_virama_terminated_cluster); };
+	sakot_terminated_cluster		=> { found_syllable (use_sakot_terminated_cluster); };
+	standard_cluster			=> { found_syllable (use_standard_cluster); };
+	number_joiner_terminated_cluster	=> { found_syllable (use_number_joiner_terminated_cluster); };
+	numeral_cluster				=> { found_syllable (use_numeral_cluster); };
+	symbol_cluster				=> { found_syllable (use_symbol_cluster); };
+	hieroglyph_cluster			=> { found_syllable (use_hieroglyph_cluster); };
 	broken_cluster				=> { found_syllable (broken_cluster); };
-	other					=> { found_syllable (non_cluster); };
+	other					=> { found_syllable (alien_cluster); };
 *|;
 
 
@@ -157,7 +157,7 @@ main := |*
   HB_STMT_START { \
     if (0) fprintf (stderr, "syllable %d..%d %s\n", (*ts).second.first, (*te).second.first, #syllable_type); \
     for (unsigned i = (*ts).second.first; i < (*te).second.first; ++i) \
-      info[i].syllable() = (syllable_serial << 4) | use_##syllable_type; \
+      info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END

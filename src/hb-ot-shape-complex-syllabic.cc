@@ -58,7 +58,8 @@ hb_syllabic_insert_dotted_circles (hb_buffer_t *buffer, hb_font_t *font,
 
   hb_glyph_info_t dottedcircle = {0};
   dottedcircle.codepoint = 0x25CCu;
-  set_properties (dottedcircle);
+  if (set_properties)
+	  set_properties (dottedcircle);
   dottedcircle.codepoint = dottedcircle_glyph;
 
   buffer->clear_output ();

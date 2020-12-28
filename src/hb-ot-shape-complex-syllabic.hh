@@ -39,6 +39,14 @@ enum syllable_type_t {
   indic_vowel_syllable,
   indic_standalone_cluster,
   indic_symbol_cluster,
+  use_independent_cluster,
+  use_virama_terminated_cluster,
+  use_sakot_terminated_cluster,
+  use_standard_cluster,
+  use_number_joiner_terminated_cluster,
+  use_numeral_cluster,
+  use_symbol_cluster,
+  use_hieroglyph_cluster
 };
 
 void

@@ -31,6 +31,7 @@
 #ifndef HB_NO_OT_SHAPE
 
 #include "hb-ot-shape-complex-use.hh"
+#include "hb-ot-shape-complex-syllabic.hh"
 #include "hb-ot-shape-complex-arabic.hh"
 #include "hb-ot-shape-complex-arabic-joining-list.hh"
 #include "hb-ot-shape-complex-vowel-constraints.hh"
@@ -186,19 +187,6 @@ data_destroy_use (void *data)
   free (data);
 }
 
-enum use_syllable_type_t {
-  use_independent_cluster,
-  use_virama_terminated_cluster,
-  use_sakot_terminated_cluster,
-  use_standard_cluster,
-  use_number_joiner_terminated_cluster,
-  use_numeral_cluster,
-  use_symbol_cluster,
-  use_hieroglyph_cluster,
-  use_broken_cluster,
-  use_non_cluster,
-};
-
 #include "hb-ot-shape-complex-use-machine.hh"
 
 
@@ -271,13 +259,13 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
   hb_glyph_info_t *info = buffer->info;
   foreach_syllable (buffer, start, end)
   {
-    use_syllable_type_t syllable_type = (use_syllable_type_t) (info[start].syllable() & 0x0F);
+    syllable_type_t syllable_type = (syllable_type_t) (info[start].syllable() & 0x0F);
     switch (syllable_type)
     {
       case use_independent_cluster:
       case use_symbol_cluster:
       case use_hieroglyph_cluster:
-      case use_non_cluster:
+      case alien_cluster:
 	/* These don't join.  Nothing to do. */
 	last_form = _USE_NONE;
 	break;
@@ -287,7 +275,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
       case use_standard_cluster:
       case use_number_joiner_terminated_cluster:
       case use_numeral_cluster:
-      case use_broken_cluster:
+      case broken_cluster:
 
 	bool join = last_form == USE_FINA || last_form == USE_ISOL;
 
@@ -375,13 +363,13 @@ is_halant_use (const hb_glyph_info_t &info)
 static void
 reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 {
-  use_syllable_type_t syllable_type = (use_syllable_type_t) (buffer->info[start].syllable() & 0x0F);
+  syllable_type_t syllable_type = (syllable_type_t) (buffer->info[start].syllable() & 0x0F);
   /* Only a few syllable types need reordering. */
   if (unlikely (!(FLAG_UNSAFE (syllable_type) &
 		  (FLAG (use_virama_terminated_cluster) |
 		   FLAG (use_sakot_terminated_cluster) |
 		   FLAG (use_standard_cluster) |
-		   FLAG (use_broken_cluster) |
+		   FLAG (broken_cluster) |
 		   0))))
     return;
 
@@ -454,71 +442,13 @@ reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
   }
 }
 
-static inline void
-insert_dotted_circles_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
-			   hb_font_t *font,
-			   hb_buffer_t *buffer)
-{
-  if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
-    return;
-
-  /* Note: This loop is extra overhead, but should not be measurable.
-   * TODO Use a buffer scratch flag to remove the loop. */
-  bool has_broken_syllables = false;
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  for (unsigned int i = 0; i < count; i++)
-    if ((info[i].syllable() & 0x0F) == use_broken_cluster)
-    {
-      has_broken_syllables = true;
-      break;
-    }
-  if (likely (!has_broken_syllables))
-    return;
-
-  hb_glyph_info_t dottedcircle = {0};
-  if (!font->get_nominal_glyph (0x25CCu, &dottedcircle.codepoint))
-    return;
-  dottedcircle.use_category() = hb_use_get_category (0x25CC);
-
-  buffer->clear_output ();
-
-  buffer->idx = 0;
-  unsigned int last_syllable = 0;
-  while (buffer->idx < buffer->len && buffer->successful)
-  {
-    unsigned int syllable = buffer->cur().syllable();
-    use_syllable_type_t syllable_type = (use_syllable_type_t) (syllable & 0x0F);
-    if (unlikely (last_syllable != syllable && syllable_type == use_broken_cluster))
-    {
-      last_syllable = syllable;
-
-      hb_glyph_info_t ginfo = dottedcircle;
-      ginfo.cluster = buffer->cur().cluster;
-      ginfo.mask = buffer->cur().mask;
-      ginfo.syllable() = buffer->cur().syllable();
-
-      /* Insert dottedcircle after possible Repha. */
-      while (buffer->idx < buffer->len && buffer->successful &&
-	     last_syllable == buffer->cur().syllable() &&
-	     buffer->cur().use_category() == USE_R)
-	buffer->next_glyph ();
-
-      buffer->output_info (ginfo);
-    }
-    else
-      buffer->next_glyph ();
-  }
-  buffer->swap_buffers ();
-}
-
 static void
 reorder_use (const hb_ot_shape_plan_t *plan,
 	     hb_font_t *font,
 	     hb_buffer_t *buffer)
 {
 	if (buffer->message (font, "start reordering USE")) {
-	  insert_dotted_circles_use (plan, font, buffer);
+	  hb_syllabic_insert_dotted_circles (buffer, font, USE_R, nullptr);
 
 	  foreach_syllable (buffer, start, end)
 	    reorder_syllable_use (buffer, start, end);
