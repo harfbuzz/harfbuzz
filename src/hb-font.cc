@@ -790,7 +790,7 @@ hb_font_get_v_extents (hb_font_t         *font,
  * hb_font_get_glyph:
  * @font: #hb_font_t to work upon
  * @unicode: The Unicode code point to query
- * @variation_selector: (nullable): A variation-selector code point
+ * @variation_selector: A variation-selector code point
  * @glyph: (out): The glyph ID retrieved
  *
  * Fetches the glyph ID for a Unicode code point in the specified
