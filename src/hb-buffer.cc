@@ -795,7 +795,7 @@ hb_buffer_set_user_data (hb_buffer_t        *buffer,
  * Fetches the user data associated with the specified key,
  * attached to the specified buffer.
  *
- * Return value: (transfer-none): A pointer to the user data
+ * Return value: (transfer none): A pointer to the user data
  *
  * Since: 0.9.2
  **/
@@ -1137,7 +1137,7 @@ hb_buffer_get_cluster_level (hb_buffer_t *buffer)
  * Sets the #hb_codepoint_t that replaces invalid entries for a given encoding
  * when adding text to @buffer.
  *
- * Default is %HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT.
+ * Default is #HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT.
  *
  * Since: 0.9.31
  **/
@@ -1501,20 +1501,20 @@ hb_buffer_reverse_clusters (hb_buffer_t *buffer)
  *
  * Sets unset buffer segment properties based on buffer Unicode
  * contents.  If buffer is not empty, it must have content type
- * %HB_BUFFER_CONTENT_TYPE_UNICODE.
+ * #HB_BUFFER_CONTENT_TYPE_UNICODE.
  *
- * If buffer script is not set (ie. is %HB_SCRIPT_INVALID), it
+ * If buffer script is not set (ie. is #HB_SCRIPT_INVALID), it
  * will be set to the Unicode script of the first character in
- * the buffer that has a script other than %HB_SCRIPT_COMMON,
- * %HB_SCRIPT_INHERITED, and %HB_SCRIPT_UNKNOWN.
+ * the buffer that has a script other than #HB_SCRIPT_COMMON,
+ * #HB_SCRIPT_INHERITED, and #HB_SCRIPT_UNKNOWN.
  *
- * Next, if buffer direction is not set (ie. is %HB_DIRECTION_INVALID),
+ * Next, if buffer direction is not set (ie. is #HB_DIRECTION_INVALID),
  * it will be set to the natural horizontal direction of the
  * buffer script as returned by hb_script_get_horizontal_direction().
- * If hb_script_get_horizontal_direction() returns %HB_DIRECTION_INVALID,
- * then %HB_DIRECTION_LTR is used.
+ * If hb_script_get_horizontal_direction() returns #HB_DIRECTION_INVALID,
+ * then #HB_DIRECTION_LTR is used.
  *
- * Finally, if buffer language is not set (ie. is %HB_LANGUAGE_INVALID),
+ * Finally, if buffer language is not set (ie. is #HB_LANGUAGE_INVALID),
  * it will be set to the process's default language as returned by
  * hb_language_get_default().  This may change in the future by
  * taking buffer script into consideration when choosing a language.
@@ -1902,8 +1902,8 @@ hb_buffer_t::sort (unsigned int start, unsigned int end, int(*compar)(const hb_g
  * @dottedcircle_glyph: glyph id of U+25CC DOTTED CIRCLE, or (hb_codepont_t) -1.
  * @position_fuzz: allowed absolute difference in position values.
  *
- * If dottedcircle_glyph is (hb_codepoint_t) -1 then %HB_BUFFER_DIFF_FLAG_DOTTED_CIRCLE_PRESENT
- * and %HB_BUFFER_DIFF_FLAG_NOTDEF_PRESENT are never returned.  This should be used by most
+ * If dottedcircle_glyph is (hb_codepoint_t) -1 then #HB_BUFFER_DIFF_FLAG_DOTTED_CIRCLE_PRESENT
+ * and #HB_BUFFER_DIFF_FLAG_NOTDEF_PRESENT are never returned.  This should be used by most
  * callers if just comparing two buffers is needed.
  *
  * Since: 1.5.0
@@ -1994,11 +1994,11 @@ hb_buffer_diff (hb_buffer_t *buffer,
 /**
  * hb_buffer_set_message_func:
  * @buffer: An #hb_buffer_t
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy:
+ * @func: (closure user_data) (destroy destroy) (scope notified): Callback function
+ * @user_data: (nullable): Data to pass to @func
+ * @destroy: (optional): The function to call when @user_data is not needed anymore
  *
- *
+ * Sets the implementation function for #hb_buffer_message_func_t.
  *
  * Since: 1.1.3
  **/
