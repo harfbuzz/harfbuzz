@@ -118,7 +118,7 @@ typedef unsigned int			(*hb_unicode_eastasian_width_func_t)	(hb_unicode_funcs_t 
  * @ufuncs: a Unicode-function structure
  * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
- * @destroy: (optional): The function to call when @user_data is not needed anymore
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_unicode_eastasian_width_func_t.
  *
@@ -184,7 +184,7 @@ typedef unsigned int			(*hb_unicode_decompose_compatibility_func_t)	(hb_unicode_
  * @ufuncs: A Unicode-functions structure
  * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
- * @destroy: (optional): The function to call when @user_data is not needed anymore
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_unicode_decompose_compatibility_func_t.
  *
@@ -220,7 +220,7 @@ typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_v_kerning_func_t;
  * @ffuncs: A font-function structure
  * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
  * @user_data: Data to pass to @func
- * @destroy: (optional): The function to call when @user_data is not needed anymore
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_font_get_glyph_v_kerning_func_t.
  *

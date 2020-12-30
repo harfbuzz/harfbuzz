@@ -100,7 +100,7 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
  * hb_face_create_for_tables:
  * @reference_table_func: (closure user_data) (destroy destroy) (scope notified): Table-referencing function
  * @user_data: A pointer to the user data
- * @destroy: (optional): A callback to call when @data is not needed anymore
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
  *
  * Variant of hb_face_create(), built for those cases where it is more
  * convenient to provide data for individual tables instead of the whole font
@@ -299,7 +299,7 @@ hb_face_destroy (hb_face_t *face)
  * @face: A face object
  * @key: The user-data key to set
  * @data: A pointer to the user data
- * @destroy: (optional): A callback to call when @data is not needed anymore
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the given face object. 

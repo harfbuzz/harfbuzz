@@ -768,7 +768,7 @@ hb_buffer_destroy (hb_buffer_t *buffer)
  * @buffer: An #hb_buffer_t
  * @key: The user-data key
  * @data: A pointer to the user data
- * @destroy: (optional): A callback to call when @data is not needed anymore
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the specified buffer. 
@@ -1996,7 +1996,7 @@ hb_buffer_diff (hb_buffer_t *buffer,
  * @buffer: An #hb_buffer_t
  * @func: (closure user_data) (destroy destroy) (scope notified): Callback function
  * @user_data: (nullable): Data to pass to @func
- * @destroy: (optional): The function to call when @user_data is not needed anymore
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
  * Sets the implementation function for #hb_buffer_message_func_t.
  *
