@@ -162,7 +162,7 @@ hb_map_get_user_data (hb_map_t           *map,
  *
  * Tests whether memory allocation for a set was successful.
  *
- * Return value: %true if allocation succeeded, false otherwise
+ * Return value: %true if allocation succeeded, %false otherwise
  *
  * Since: 1.7.7
  **/
@@ -230,7 +230,7 @@ hb_map_del (hb_map_t       *map,
  *
  * Tests whether @key is an element of @map.
  *
- * Return value: %true if @key is found in @map, false otherwise
+ * Return value: %true if @key is found in @map, %false otherwise
  *
  * Since: 1.7.7
  **/

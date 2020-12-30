@@ -690,7 +690,7 @@ hb_font_funcs_make_immutable (hb_font_funcs_t *ffuncs)
  *
  * Tests whether a font-functions structure is immutable.
  *
- * Return value: %true if @ffuncs is immutable, false otherwise
+ * Return value: %true if @ffuncs is immutable, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -756,7 +756,7 @@ hb_font_t::has_func (unsigned int i)
  * Fetches the extents for a specified font, in horizontal
  * text segments.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 1.1.3
  **/
@@ -775,7 +775,7 @@ hb_font_get_h_extents (hb_font_t         *font,
  * Fetches the extents for a specified font, in vertical
  * text segments.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 1.1.3
  **/
@@ -799,7 +799,7 @@ hb_font_get_v_extents (hb_font_t         *font,
  * If @variation_selector is 0, calls hb_font_get_nominal_glyph();
  * otherwise calls hb_font_get_variation_glyph().
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -827,7 +827,7 @@ hb_font_get_glyph (hb_font_t      *font,
  * for code points modified by variation selectors. For variation-selector
  * support, user hb_font_get_variation_glyph() or use hb_font_get_glyph().
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 1.2.3
  **/
@@ -873,7 +873,7 @@ hb_font_get_nominal_glyphs (hb_font_t *font,
  * by the specified variation-selector code point, in the specified
  * font.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 1.2.3
  **/
@@ -983,7 +983,7 @@ hb_font_get_glyph_v_advances (hb_font_t*            font,
  * Fetches the (X,Y) coordinates of the origin for a glyph ID
  * in the specified font, for horizontal text segments.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1006,7 +1006,7 @@ hb_font_get_glyph_h_origin (hb_font_t      *font,
  * Fetches the (X,Y) coordinates of the origin for a glyph ID
  * in the specified font, for vertical text segments.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1079,7 +1079,7 @@ hb_font_get_glyph_v_kerning (hb_font_t      *font,
  * Fetches the #hb_glyph_extents_t data for a glyph ID
  * in the specified font.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1102,7 +1102,7 @@ hb_font_get_glyph_extents (hb_font_t          *font,
  * Fetches the (x,y) coordinates of a specified contour-point index
  * in the specified glyph, within the specified font.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1125,7 +1125,7 @@ hb_font_get_glyph_contour_point (hb_font_t      *font,
  *
  * Fetches the glyph-name string for a glyph ID in the specified @font.
  *
- * Return value: %true if data found, zero otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1149,7 +1149,7 @@ hb_font_get_glyph_name (hb_font_t      *font,
  *
  * <note>Note: @len == -1 means the name string is null-terminated.</note>
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1364,7 +1364,7 @@ hb_font_get_glyph_kerning_for_direction (hb_font_t      *font,
  * Calls the appropriate direction-specific variant (horizontal
  * or vertical) depending on the value of @direction.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1393,7 +1393,7 @@ hb_font_get_glyph_extents_for_origin (hb_font_t          *font,
  * Calls the appropriate direction-specific variant (horizontal
  * or vertical) depending on the value of @direction.
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1444,7 +1444,7 @@ hb_font_glyph_to_string (hb_font_t      *font,
  *
  * <note>Note: @len == -1 means the string is null-terminated.</note>
  *
- * Return value: %true if data found, false otherwise
+ * Return value: %true if data found, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -1728,7 +1728,7 @@ hb_font_make_immutable (hb_font_t *font)
  *
  * Tests whether a font object is immutable.
  *
- * Return value: %true if @font is immutable, false otherwise
+ * Return value: %true if @font is immutable, %false otherwise
  *
  * Since: 0.9.2
  **/

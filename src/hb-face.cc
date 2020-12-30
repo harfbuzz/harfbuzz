@@ -360,7 +360,7 @@ hb_face_make_immutable (hb_face_t *face)
  *
  * Tests whether the given face object is immutable.
  *
- * Return value: True is @face is immutable, false otherwise
+ * Return value: %true is @face is immutable, %false otherwise
  *
  * Since: 0.9.2
  **/

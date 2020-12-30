@@ -162,7 +162,7 @@ hb_set_get_user_data (hb_set_t           *set,
  *
  * Tests whether memory allocation for a set was successful.
  *
- * Return value: %true if allocation succeeded, false otherwise
+ * Return value: %true if allocation succeeded, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -209,7 +209,7 @@ hb_set_is_empty (const hb_set_t *set)
  *
  * Tests whether @codepoint belongs to @set.
  *
- * Return value: %true if @codepoint is in @set, false otherwise
+ * Return value: %true if @codepoint is in @set, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -298,7 +298,7 @@ hb_set_del_range (hb_set_t       *set,
  * Tests whether @set and @other are equal (contain the same
  * elements).
  *
- * Return value: %TRUE if the two sets are equal, %FALSE otherwise.
+ * Return value: %true if the two sets are equal, %false otherwise.
  *
  * Since: 0.9.7
  **/
@@ -316,7 +316,7 @@ hb_set_is_equal (const hb_set_t *set,
  *
  * Tests whether @set is a subset of @larger_set.
  *
- * Return value: %TRUE if the @set is a subset of (or equal to) @larger_set, %FALSE otherwise.
+ * Return value: %true if the @set is a subset of (or equal to) @larger_set, %false otherwise.
  *
  * Since: 1.8.1
  **/
@@ -483,7 +483,7 @@ hb_set_get_max (const hb_set_t *set)
  *
  * Set @codepoint to %HB_SET_VALUE_INVALID to get started.
  *
- * Return value: %true if there was a next value, false otherwise
+ * Return value: %true if there was a next value, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -504,7 +504,7 @@ hb_set_next (const hb_set_t *set,
  *
  * Set @codepoint to %HB_SET_VALUE_INVALID to get started.
  *
- * Return value: %true if there was a previous value, false otherwise
+ * Return value: %true if there was a previous value, %false otherwise
  *
  * Since: 1.8.0
  **/
@@ -527,7 +527,7 @@ hb_set_previous (const hb_set_t *set,
  *
  * Set @last to %HB_SET_VALUE_INVALID to get started.
  *
- * Return value: %true if there was a next range, false otherwise
+ * Return value: %true if there was a next range, %false otherwise
  *
  * Since: 0.9.7
  **/
@@ -551,7 +551,7 @@ hb_set_next_range (const hb_set_t *set,
  *
  * Set @first to %HB_SET_VALUE_INVALID to get started.
  *
- * Return value: %true if there was a previous range, false otherwise
+ * Return value: %true if there was a previous range, %false otherwise
  *
  * Since: 1.8.0
  **/
