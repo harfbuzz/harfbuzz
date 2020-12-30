@@ -179,13 +179,13 @@ hb_ft_font_get_load_flags (hb_font_t *font)
 }
 
 /**
- * hb_ft_get_face:
+ * hb_ft_font_get_face:
  * @font: #hb_font_t to work upon
  *
  * Fetches the FT_Face associated with the specified #hb_font_t
  * font object.
  *
- * Return value: the FT_Face found
+ * Return value: (nullable): the FT_Face found or %NULL
  *
  * Since: 0.9.2
  **/
@@ -202,11 +202,12 @@ hb_ft_font_get_face (hb_font_t *font)
 
 /**
  * hb_ft_font_lock_face:
- * @font:
+ * @font: #hb_font_t to work upon
  *
+ * Gets the FT_Face associated with @font, This face will be kept around until
+ * you call hb_ft_font_unlock_face().
  *
- *
- * Return value:
+ * Return value: (nullable): the FT_Face associated with @font or %NULL
  * Since: 2.6.5
  **/
 FT_Face
@@ -224,11 +225,10 @@ hb_ft_font_lock_face (hb_font_t *font)
 
 /**
  * hb_ft_font_unlock_face:
- * @font:
+ * @font: #hb_font_t to work upon
  *
+ * Releases an FT_Face previously obtained with hb_ft_font_lock_face().
  *
- *
- * Return value:
  * Since: 2.6.5
  **/
 void
@@ -814,7 +814,7 @@ hb_ft_font_create (FT_Face           ft_face,
 }
 
 /**
- * hb_ft_font_has_changed:
+ * hb_ft_font_changed:
  * @font: #hb_font_t to work upon
  *
  * Refreshes the state of @font when the underlying FT_Face has changed.
