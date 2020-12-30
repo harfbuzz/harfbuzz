@@ -753,7 +753,7 @@ hb_font_t::has_func (unsigned int i)
  * @font: #hb_font_t to work upon
  * @extents: (out): The font extents retrieved
  *
- * Fetches the extents for a specified font, in horizontal
+ * Fetches the extents for a specified font, for horizontal
  * text segments.
  *
  * Return value: %true if data found, %false otherwise
@@ -772,7 +772,7 @@ hb_font_get_h_extents (hb_font_t         *font,
  * @font: #hb_font_t to work upon
  * @extents: (out): The font extents retrieved
  *
- * Fetches the extents for a specified font, in vertical
+ * Fetches the extents for a specified font, for vertical
  * text segments.
  *
  * Return value: %true if data found, %false otherwise
@@ -841,11 +841,17 @@ hb_font_get_nominal_glyph (hb_font_t      *font,
 
 /**
  * hb_font_get_nominal_glyphs:
- * @font: a font.
+ * @font: #hb_font_t to work upon
+ * @count: number of code points to query
+ * @first_unicode: The first Unicode code point to query
+ * @unicode_stride: The stride between successive code points
+ * @first_glyph: (out): The first glyph ID retrieved
+ * @glyph_stride: The stride between successive glyph IDs
  *
+ * Fetches the nominal glyph IDs for a sequence of Unicode code points. Glyph
+ * IDs must be returned in a #hb_codepoint_t output parameter.
  *
- *
- * Return value:
+ * Return value: the number of code points processed
  *
  * Since: 2.6.3
  **/
@@ -931,7 +937,7 @@ hb_font_get_glyph_v_advance (hb_font_t      *font,
  * @first_glyph: The first glyph ID to query
  * @glyph_stride: The stride between successive glyph IDs
  * @first_advance: (out): The first advance retrieved
- * @advance_stride: (out): The stride between successive advances
+ * @advance_stride: The stride between successive advances
  *
  * Fetches the advances for a sequence of glyph IDs in the specified
  * font, for horizontal text segments. 
@@ -1026,7 +1032,7 @@ hb_font_get_glyph_v_origin (hb_font_t      *font,
  * @right_glyph: The glyph ID of the right glyph in the glyph pair
  *
  * Fetches the kerning-adjustment value for a glyph-pair in
- * the specified font, in horizontal text segments.
+ * the specified font, for horizontal text segments.
  *
  * <note>It handles legacy kerning only (as returned by the corresponding
  * #hb_font_funcs_t function).</note>
@@ -1051,7 +1057,7 @@ hb_font_get_glyph_h_kerning (hb_font_t      *font,
  * @bottom_glyph: The glyph ID of the bottom glyph in the glyph pair
  *
  * Fetches the kerning-adjustment value for a glyph-pair in
- * the specified font, in vertical text segments.
+ * the specified font, for vertical text segments.
  *
  * <note>It handles legacy kerning only (as returned by the corresponding
  * #hb_font_funcs_t function).</note>
@@ -1669,7 +1675,7 @@ hb_font_destroy (hb_font_t *font)
  *
  * Attaches a user-data key/data pair to the specified font object. 
  *
- * Return value:
+ * Return value: %true if success, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -2212,9 +2218,13 @@ hb_font_get_var_coords_normalized (hb_font_t    *font,
 #ifdef HB_EXPERIMENTAL_API
 /**
  * hb_font_get_var_coords_design:
+ * @font: #hb_font_t to work upon
+ * @length: (out): number of coordinates
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.
+ *
+ * Return value: coordinates array
  *
  * Since: EXPERIMENTAL
  */

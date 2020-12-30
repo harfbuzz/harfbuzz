@@ -58,6 +58,24 @@ HB_BEGIN_DECLS
 #define HB_BUFFER_FLAGS_DEFAULT			HB_BUFFER_FLAG_DEFAULT
 #define HB_BUFFER_SERIALIZE_FLAGS_DEFAULT	HB_BUFFER_SERIALIZE_FLAG_DEFAULT
 
+/**
+ * hb_font_get_glyph_func_t:
+ * @font: #hb_font_t to work upon
+ * @font_data: @font user data pointer
+ * @unicode: The Unicode code point to query
+ * @variation_selector: The  variation-selector code point to query
+ * @glyph: (out): The glyph ID retrieved
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
+ *
+ * This method should retrieve the glyph ID for a specified Unicode code point
+ * font, with an optional variation selector.
+ *
+ * Return value: %true if data found, %false otherwise
+ * Deprecated: 1.2.3
+ *
+ **/
 typedef hb_bool_t (*hb_font_get_glyph_func_t) (hb_font_t *font, void *font_data,
 					       hb_codepoint_t unicode, hb_codepoint_t variation_selector,
 					       hb_codepoint_t *glyph,
@@ -165,16 +183,25 @@ hb_unicode_decompose_compatibility (hb_unicode_funcs_t *ufuncs,
 				    hb_codepoint_t     *decomposed);
 
 
+/**
+ * hb_font_get_glyph_v_kerning_func_t:
+ *
+ * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
+ *
+ * This method should retrieve the kerning-adjustment value for a glyph-pair in
+ * the specified font, for vertical text segments.
+ *
+ **/
 typedef hb_font_get_glyph_kerning_func_t hb_font_get_glyph_v_kerning_func_t;
 
 /**
  * hb_font_funcs_set_glyph_v_kerning_func:
- * @ffuncs: font functions.
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy:
+ * @ffuncs: A font-function structure
+ * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @user_data: Data to pass to @func
+ * @destroy: (optional): The function to call when @user_data is not needed anymore
  *
- * 
+ * Sets the implementation function for #hb_font_get_glyph_v_kerning_func_t.
  *
  * Since: 0.9.2
  * Deprecated: 2.0.0
