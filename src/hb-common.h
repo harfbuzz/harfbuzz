@@ -135,7 +135,7 @@ typedef union _hb_var_int_t {
 
 /**
  * hb_tag_t:
- * 
+ *
  * Data type for tag identifiers. Tags are four
  * byte integers, each byte representing a character.
  *
@@ -148,22 +148,48 @@ typedef uint32_t hb_tag_t;
 
 /**
  * HB_TAG:
+ * @c1: 1st character of the tag
+ * @c2: 2nd character of the tag
+ * @c3: 3rd character of the tag
+ * @c4: 4th character of the tag
  *
- * Constructs an #hb_tag_t from four characters.
+ * Constructs an #hb_tag_t from four character literals.
  *
  **/
 #define HB_TAG(c1,c2,c3,c4) ((hb_tag_t)((((uint32_t)(c1)&0xFF)<<24)|(((uint32_t)(c2)&0xFF)<<16)|(((uint32_t)(c3)&0xFF)<<8)|((uint32_t)(c4)&0xFF)))
 
 /**
  * HB_UNTAG:
+ * @tag: an #hb_tag_t
  *
- * Extracts the characters from an #hb_tag_t.
+ * Extracts four character literals from an #hb_tag_t.
+ *
+ * Since: 0.6.0
  *
  **/
 #define HB_UNTAG(tag)   (uint8_t)(((tag)>>24)&0xFF), (uint8_t)(((tag)>>16)&0xFF), (uint8_t)(((tag)>>8)&0xFF), (uint8_t)((tag)&0xFF)
 
+/**
+ * HB_TAG_NONE:
+ *
+ * Unset #hb_tag_t.
+ */
 #define HB_TAG_NONE HB_TAG(0,0,0,0)
+/**
+ * HB_TAG_MAX:
+ *
+ * Maximum possible unsigned #hb_tag_t.
+ *
+ * Since: 0.9.26
+ */
 #define HB_TAG_MAX HB_TAG(0xff,0xff,0xff,0xff)
+/**
+ * HB_TAG_MAX_SIGNED:
+ *
+ * Maximum possible signed #hb_tag_t.
+ *
+ * Since: 0.9.33
+ */
 #define HB_TAG_MAX_SIGNED HB_TAG(0x7f,0xff,0xff,0xff)
 
 /* len=-1 means str is NUL-terminated. */
@@ -263,6 +289,13 @@ hb_direction_to_string (hb_direction_t direction);
 
 /* hb_language_t */
 
+/**
+ * hb_language_t:
+ *
+ * Data type for languages. Each #hb_language_t corresponds to a BCP 47
+ * language tag.
+ *
+ */
 typedef const struct hb_language_impl_t *hb_language_t;
 
 HB_EXTERN hb_language_t
@@ -271,6 +304,13 @@ hb_language_from_string (const char *str, int len);
 HB_EXTERN const char *
 hb_language_to_string (hb_language_t language);
 
+/**
+ * HB_LANGUAGE_INVALID:
+ *
+ * An unset #hb_language_t.
+ *
+ * Since: 0.6.0
+ */
 #define HB_LANGUAGE_INVALID ((hb_language_t) 0)
 
 HB_EXTERN hb_language_t
@@ -279,159 +319,9 @@ hb_language_get_default (void);
 
 /**
  * hb_script_t:
- * @HB_SCRIPT_COMMON: HB_TAG ('Z','y','y','y')
- * @HB_SCRIPT_INHERITED: HB_TAG ('Z','i','n','h')
- * @HB_SCRIPT_UNKNOWN: HB_TAG ('Z','z','z','z')
- * @HB_SCRIPT_ARABIC
- * @HB_SCRIPT_ARMENIAN
- * @HB_SCRIPT_BENGALI
- * @HB_SCRIPT_CYRILLIC
- * @HB_SCRIPT_DEVANAGARI
- * @HB_SCRIPT_GEORGIAN
- * @HB_SCRIPT_GREEK
- * @HB_SCRIPT_GUJARATI
- * @HB_SCRIPT_GURMUKHI
- * @HB_SCRIPT_HANGUL
- * @HB_SCRIPT_HAN
- * @HB_SCRIPT_HEBREW
- * @HB_SCRIPT_HIRAGANA
- * @HB_SCRIPT_KANNADA
- * @HB_SCRIPT_KATAKANA
- * @HB_SCRIPT_LAO
- * @HB_SCRIPT_LATIN
- * @HB_SCRIPT_MALAYALAM
- * @HB_SCRIPT_ORIYA
- * @HB_SCRIPT_TAMIL
- * @HB_SCRIPT_TELUGU
- * @HB_SCRIPT_THAI
- * @HB_SCRIPT_TIBETAN
- * @HB_SCRIPT_BOPOMOFO
- * @HB_SCRIPT_BRAILLE
- * @HB_SCRIPT_CANADIAN_SYLLABICS
- * @HB_SCRIPT_CHEROKEE
- * @HB_SCRIPT_ETHIOPIC
- * @HB_SCRIPT_KHMER
- * @HB_SCRIPT_MONGOLIAN
- * @HB_SCRIPT_MYANMAR
- * @HB_SCRIPT_OGHAM
- * @HB_SCRIPT_RUNIC
- * @HB_SCRIPT_SINHALA
- * @HB_SCRIPT_SYRIAC
- * @HB_SCRIPT_THAANA
- * @HB_SCRIPT_YI
- * @HB_SCRIPT_DESERET
- * @HB_SCRIPT_GOTHIC
- * @HB_SCRIPT_OLD_ITALIC
- * @HB_SCRIPT_BUHID
- * @HB_SCRIPT_HANUNOO
- * @HB_SCRIPT_TAGALOG
- * @HB_SCRIPT_TAGBANWA
- * @HB_SCRIPT_CYPRIOT
- * @HB_SCRIPT_LIMBU
- * @HB_SCRIPT_LINEAR_B
- * @HB_SCRIPT_OSMANYA
- * @HB_SCRIPT_SHAVIAN
- * @HB_SCRIPT_TAI_LE
- * @HB_SCRIPT_UGARITIC
- * @HB_SCRIPT_BUGINESE
- * @HB_SCRIPT_COPTIC
- * @HB_SCRIPT_GLAGOLITIC
- * @HB_SCRIPT_KHAROSHTHI
- * @HB_SCRIPT_NEW_TAI_LUE
- * @HB_SCRIPT_OLD_PERSIAN
- * @HB_SCRIPT_SYLOTI_NAGRI
- * @HB_SCRIPT_TIFINAGH
- * @HB_SCRIPT_BALINESE
- * @HB_SCRIPT_CUNEIFORM
- * @HB_SCRIPT_NKO
- * @HB_SCRIPT_PHAGS_PA
- * @HB_SCRIPT_PHOENICIAN
- * @HB_SCRIPT_CARIAN
- * @HB_SCRIPT_CHAM
- * @HB_SCRIPT_KAYAH_LI
- * @HB_SCRIPT_LEPCHA
- * @HB_SCRIPT_LYCIAN
- * @HB_SCRIPT_LYDIAN
- * @HB_SCRIPT_OL_CHIKI
- * @HB_SCRIPT_REJANG
- * @HB_SCRIPT_SAURASHTRA
- * @HB_SCRIPT_SUNDANESE
- * @HB_SCRIPT_VAI
- * @HB_SCRIPT_AVESTAN
- * @HB_SCRIPT_BAMUM
- * @HB_SCRIPT_EGYPTIAN_HIEROGLYPHS
- * @HB_SCRIPT_IMPERIAL_ARAMAIC
- * @HB_SCRIPT_INSCRIPTIONAL_PAHLAVI
- * @HB_SCRIPT_INSCRIPTIONAL_PARTHIAN
- * @HB_SCRIPT_JAVANESE
- * @HB_SCRIPT_KAITHI
- * @HB_SCRIPT_LISU
- * @HB_SCRIPT_MEETEI_MAYEK
- * @HB_SCRIPT_OLD_SOUTH_ARABIAN
- * @HB_SCRIPT_OLD_TURKIC
- * @HB_SCRIPT_SAMARITAN
- * @HB_SCRIPT_TAI_THAM
- * @HB_SCRIPT_TAI_VIET
- * @HB_SCRIPT_BATAK
- * @HB_SCRIPT_BRAHMI
- * @HB_SCRIPT_MANDAIC
- * @HB_SCRIPT_CHAKMA
- * @HB_SCRIPT_MEROITIC_CURSIVE
- * @HB_SCRIPT_MEROITIC_HIEROGLYPHS
- * @HB_SCRIPT_MIAO
- * @HB_SCRIPT_SHARADA
- * @HB_SCRIPT_SORA_SOMPENG
- * @HB_SCRIPT_TAKRI
- * @HB_SCRIPT_BASSA_VAH
- * @HB_SCRIPT_CAUCASIAN_ALBANIAN
- * @HB_SCRIPT_DUPLOYAN
- * @HB_SCRIPT_ELBASAN
- * @HB_SCRIPT_GRANTHA
- * @HB_SCRIPT_KHOJKI
- * @HB_SCRIPT_KHUDAWADI
- * @HB_SCRIPT_LINEAR_A
- * @HB_SCRIPT_MAHAJANI
- * @HB_SCRIPT_MANICHAEAN
- * @HB_SCRIPT_MENDE_KIKAKUI
- * @HB_SCRIPT_MODI
- * @HB_SCRIPT_MRO
- * @HB_SCRIPT_NABATAEAN
- * @HB_SCRIPT_OLD_NORTH_ARABIAN
- * @HB_SCRIPT_OLD_PERMIC
- * @HB_SCRIPT_PAHAWH_HMONG
- * @HB_SCRIPT_PALMYRENE
- * @HB_SCRIPT_PAU_CIN_HAU
- * @HB_SCRIPT_PSALTER_PAHLAVI
- * @HB_SCRIPT_SIDDHAM
- * @HB_SCRIPT_TIRHUTA
- * @HB_SCRIPT_WARANG_CITI
- * @HB_SCRIPT_AHOM
- * @HB_SCRIPT_ANATOLIAN_HIEROGLYPHS
- * @HB_SCRIPT_HATRAN
- * @HB_SCRIPT_MULTANI
- * @HB_SCRIPT_OLD_HUNGARIAN
- * @HB_SCRIPT_SIGNWRITING
- * @HB_SCRIPT_ADLAM
- * @HB_SCRIPT_BHAIKSUKI
- * @HB_SCRIPT_MARCHEN
- * @HB_SCRIPT_OSAGE
- * @HB_SCRIPT_TANGUT
- * @HB_SCRIPT_NEWA
- * @HB_SCRIPT_MASARAM_GONDI
- * @HB_SCRIPT_NUSHU
- * @HB_SCRIPT_SOYOMBO
- * @HB_SCRIPT_ZANABAZAR_SQUARE
- * @HB_SCRIPT_DOGRA
- * @HB_SCRIPT_GUNJALA_GONDI
- * @HB_SCRIPT_HANIFI_ROHINGYA
- * @HB_SCRIPT_MAKASAR
- * @HB_SCRIPT_MEDEFAIDRIN
- * @HB_SCRIPT_OLD_SOGDIAN
- * @HB_SCRIPT_SOGDIAN
- * @HB_SCRIPT_ELYMAIC
- * @HB_SCRIPT_NANDINAGARI
- * @HB_SCRIPT_NYIAKENG_PUACHUE_HMONG
- * @HB_SCRIPT_WANCHO
+ * @HB_SCRIPT_COMMON: `Zyyy`
+ * @HB_SCRIPT_INHERITED: `Zinh`
+ * @HB_SCRIPT_UNKNOWN: `Zzzz`
  * @HB_SCRIPT_INVALID: #HB_TAG_NONE
  *
  * Data type for scripts. Each #hb_script_t's value is an #hb_tag_t corresponding
@@ -644,6 +534,8 @@ typedef enum
   /* No script set. */
   HB_SCRIPT_INVALID				= HB_TAG_NONE,
 
+  /*< private >*/
+
   /* Dummy values to ensure any hb_tag_t value can be passed/stored as hb_script_t
    * without risking undefined behavior.  We have two, for historical reasons.
    * HB_TAG_MAX used to be unsigned, but that was invalid Ansi C, so was changed
@@ -687,19 +579,33 @@ typedef struct hb_user_data_key_t {
   char unused;
 } hb_user_data_key_t;
 
+/**
+ * hb_destroy_func_t:
+ * @user_data: the data to be destroyed
+ *
+ * A virtual method for destroy user-data callbacks.
+ *
+ */
 typedef void (*hb_destroy_func_t) (void *user_data);
 
 
 /* Font features and variations. */
 
 /**
- * HB_FEATURE_GLOBAL_START
+ * HB_FEATURE_GLOBAL_START:
+ *
+ * Special setting for #hb_feature_t.start to apply the feature from the start
+ * of the buffer.
  *
  * Since: 2.0.0
  */
 #define HB_FEATURE_GLOBAL_START	0
+
 /**
- * HB_FEATURE_GLOBAL_END
+ * HB_FEATURE_GLOBAL_END:
+ *
+ * Special setting for #hb_feature_t.end to apply the feature from to the end
+ * of the buffer.
  *
  * Since: 2.0.0
  */
@@ -717,7 +623,7 @@ typedef void (*hb_destroy_func_t) (void *user_data);
  * The #hb_feature_t is the structure that holds information about requested
  * feature application. The feature will be applied with the given value to all
  * glyphs which are in clusters between @start (inclusive) and @end (exclusive).
- * Setting start to @HB_FEATURE_GLOBAL_START and end to @HB_FEATURE_GLOBAL_END
+ * Setting start to #HB_FEATURE_GLOBAL_START and end to #HB_FEATURE_GLOBAL_END
  * specifies that the feature always applies to the entire buffer.
  */
 typedef struct hb_feature_t {
@@ -741,8 +647,8 @@ hb_feature_to_string (hb_feature_t *feature,
  * @value: The value of the variation axis
  *
  * Data type for holding variation data. Registered OpenType
- * variation-axis tags are listed at
- * https://docs.microsoft.com/en-us/typography/opentype/spec/dvaraxisreg
+ * variation-axis tags are listed in
+ * [OpenType Axis Tag Registry](https://docs.microsoft.com/en-us/typography/opentype/spec/dvaraxisreg).
  * 
  * Since: 1.4.2
  */
@@ -769,6 +675,17 @@ hb_variation_to_string (hb_variation_t *variation,
  */
 typedef uint32_t hb_color_t;
 
+/**
+ * HB_COLOR:
+ * @b: blue channel value
+ * @g: green channel value
+ * @r: red channel value
+ * @a: alpha channel value
+ *
+ * Constructs an #hb_color_t from four integers.
+ *
+ * Since: 2.1.0
+ */
 #define HB_COLOR(b,g,r,a) ((hb_color_t) HB_TAG ((b),(g),(r),(a)))
 
 HB_EXTERN uint8_t
