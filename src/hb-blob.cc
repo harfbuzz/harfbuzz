@@ -58,7 +58,7 @@
  * @length: Length of @data in bytes.
  * @mode: Memory mode for @data.
  * @user_data: Data parameter to pass to @destroy.
- * @destroy: (optional): Callback to call when @data is not needed anymore.
+ * @destroy: (nullable): Callback to call when @data is not needed anymore.
  *
  * Creates a new "blob" object wrapping @data.  The @mode parameter is used
  * to negotiate ownership and lifecycle of @data.
@@ -237,7 +237,7 @@ hb_blob_destroy (hb_blob_t *blob)
  * @blob: An #hb_blob_t
  * @key: The user-data key to set
  * @data: A pointer to the user data to set
- * @destroy: (optional): A callback to call when @data is not needed anymore
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the specified blob.

@@ -661,7 +661,7 @@ _hb_ft_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data
 /**
  * hb_ft_face_create:
  * @ft_face: (destroy destroy) (scope notified): FT_Face to work upon
- * @destroy: (optional): A callback to call when the face object is not needed anymore
+ * @destroy: (nullable): A callback to call when the face object is not needed anymore
  *
  * Creates an #hb_face_t face object from the specified FT_Face.
  *
@@ -771,7 +771,7 @@ hb_ft_face_create_cached (FT_Face ft_face)
 /**
  * hb_ft_font_create:
  * @ft_face: (destroy destroy) (scope notified): FT_Face to work upon
- * @destroy: (optional): A callback to call when the font object is not needed anymore
+ * @destroy: (nullable): A callback to call when the font object is not needed anymore
  *
  * Creates an #hb_font_t font object from the specified FT_Face.
  *

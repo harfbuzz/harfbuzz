@@ -628,7 +628,7 @@ hb_font_funcs_destroy (hb_font_funcs_t *ffuncs)
  * @ffuncs: The font-functions structure
  * @key: The user-data key to set
  * @data: A pointer to the user data set
- * @destroy: (optional): A callback to call when @data is not needed anymore
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the specified font-functions structure. 
@@ -790,7 +790,7 @@ hb_font_get_v_extents (hb_font_t         *font,
  * hb_font_get_glyph:
  * @font: #hb_font_t to work upon
  * @unicode: The Unicode code point to query
- * @variation_selector: (optional): A variation-selector code point
+ * @variation_selector: (nullable): A variation-selector code point
  * @glyph: (out): The glyph ID retrieved
  *
  * Fetches the glyph ID for a Unicode code point in the specified
@@ -1670,7 +1670,7 @@ hb_font_destroy (hb_font_t *font)
  * @font: #hb_font_t to work upon
  * @key: The user-data key 
  * @data: A pointer to the user data
- * @destroy: (optional): A callback to call when @data is not needed anymore
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
  * Attaches a user-data key/data pair to the specified font object. 
@@ -1836,7 +1836,7 @@ hb_font_get_face (hb_font_t *font)
  * @font: #hb_font_t to work upon
  * @klass: (closure font_data) (destroy destroy) (scope notified):
  * @font_data: Data to attach to @font
- * @destroy: (optional): The function to call when @font_data is not needed anymore
+ * @destroy: (nullable): The function to call when @font_data is not needed anymore
  *
  * Replaces the font-functions structure attached to a font, updating
  * the font's user-data with @font-data and the @destroy callback.
@@ -1873,7 +1873,7 @@ hb_font_set_funcs (hb_font_t         *font,
  * hb_font_set_funcs_data:
  * @font: #hb_font_t to work upon
  * @font_data: (destroy destroy) (scope notified): Data to attach to @font
- * @destroy: (optional): The function to call when @font_data is not needed anymore
+ * @destroy: (nullable): The function to call when @font_data is not needed anymore
  *
  * Replaces the user data attached to a font, updating the font's 
  * @destroy callback.
@@ -2329,7 +2329,7 @@ hb_font_get_variation_glyph_trampoline (hb_font_t      *font,
  * @ffuncs: The font-functions structure
  * @func: (closure user_data) (destroy destroy) (scope notified): callback function
  * @user_data: data to pass to @func
- * @destroy: (optional): function to call when @user_data is not needed anymore
+ * @destroy: (nullable): function to call when @user_data is not needed anymore
  *
  * Deprecated.  Use hb_font_funcs_set_nominal_glyph_func() and
  * hb_font_funcs_set_variation_glyph_func() instead.
