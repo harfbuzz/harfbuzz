@@ -40,9 +40,23 @@ HB_BEGIN_DECLS
  * MATH
  */
 
+/**
+ * HB_OT_TAG_MATH:
+ *
+ * OpenType [Mathematical Typesetting Table](https://docs.microsoft.com/en-us/typography/opentype/spec/math).
+ *
+ * Since: 1.3.3
+ */
 #define HB_OT_TAG_MATH HB_TAG('M','A','T','H')
 
-/* Use with hb_buffer_set_script() for math shaping. */
+/**
+ * HB_OT_MATH_SCRIPT:
+ *
+ * OpenType script tag for math shaping, for use with
+ * Use with hb_buffer_set_script().
+ *
+ * Since: 1.3.3
+ */
 #define HB_OT_MATH_SCRIPT HB_TAG('m','a','t','h')
 
 /* Types */
@@ -116,6 +130,10 @@ typedef enum {
 
 /**
  * hb_ot_math_kern_t:
+ * @HB_OT_MATH_KERN_TOP_RIGHT: The top right corner of the glyph.
+ * @HB_OT_MATH_KERN_TOP_LEFT: The top left corner of the glyph.
+ * @HB_OT_MATH_KERN_BOTTOM_RIGHT: The bottom right corner of the glyph.
+ * @HB_OT_MATH_KERN_BOTTOM_LEFT: The bottom left corner of the glyph.
  *
  * The math kerning-table types defined for the four corners
  * of a glyph.
@@ -145,6 +163,8 @@ typedef struct hb_ot_math_glyph_variant_t {
 
 /**
  * hb_ot_math_glyph_part_flags_t:
+ * @HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER: This is an extender glyph part that
+ * can be repeated to reach the desired length.
  *
  * Flags for math glyph parts.
  *
