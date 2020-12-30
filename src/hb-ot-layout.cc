@@ -410,7 +410,7 @@ get_gsubgpos_table (hb_face_t *face,
 /**
  * hb_ot_layout_table_get_script_tags:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @start_offset: offset of the first script tag to retrieve
  * @script_count: (inout) (allow-none): Input = the maximum number of script tags to return;
  *                Output = the actual number of script tags returned (may be zero)
@@ -437,7 +437,7 @@ hb_ot_layout_table_get_script_tags (hb_face_t    *face,
 /**
  * hb_ot_layout_table_find_script:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_tag: #hb_tag_t of the script tag requested
  * @script_index: (out): The index of the requested script tag
  *
@@ -481,7 +481,7 @@ hb_ot_layout_table_find_script (hb_face_t    *face,
 /**
  * hb_ot_layout_table_choose_script:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_tags: Array of #hb_tag_t script tags
  * @script_index: (out): The index of the requested script tag
  * @chosen_script: (out): #hb_tag_t of the script tag requested
@@ -504,11 +504,22 @@ hb_ot_layout_table_choose_script (hb_face_t      *face,
 /**
  * hb_ot_layout_table_select_script:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_count: Number of script tags in the array
  * @script_tags: Array of #hb_tag_t script tags
- * @script_index: (out): The index of the requested script
- * @chosen_script: (out): #hb_tag_t of the requested script
+ * @script_index: (out) (optional): The index of the requested script
+ * @chosen_script: (out) (optional): #hb_tag_t of the requested script
+ *
+ * Selects an OpenType script for @table_tag from the @script_tags array.
+ *
+ * If the table does not have any of the requested scripts, then `DFLT`,
+ * `dflt`, and `latn` tags are tried in that order. If the table still does not
+ * have any of these scripts, @script_index and @chosen_script are set to
+ * #HB_OT_LAYOUT_NO_SCRIPT_INDEX.
+ *
+ * Return value:
+ * %true if one of the requested scripts is selected, %false if a fallback
+ * script is selected or if no scripts are selected.
  *
  * Since: 2.0.0
  **/
@@ -566,7 +577,7 @@ hb_ot_layout_table_select_script (hb_face_t      *face,
 /**
  * hb_ot_layout_table_get_feature_tags:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @start_offset: offset of the first feature tag to retrieve
  * @feature_count: (inout) (allow-none): Input = the maximum number of feature tags to return;
  *                 Output = the actual number of feature tags returned (may be zero)
@@ -591,7 +602,7 @@ hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
 /**
  * hb_ot_layout_table_find_feature:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @feature_tag: The #hb_tag_t og the requested feature tag
  * @feature_index: (out): The index of the requested feature
  *
@@ -626,7 +637,7 @@ hb_ot_layout_table_find_feature (hb_face_t    *face,
 /**
  * hb_ot_layout_script_get_language_tags:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @start_offset: offset of the first language tag to retrieve
  * @language_count: (inout) (allow-none): Input = the maximum number of language tags to return;
@@ -655,7 +666,7 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
 /**
  * hb_ot_layout_script_find_language:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_tag: The #hb_tag_t of the requested language
  * @language_index: The index of the requested language
@@ -688,7 +699,7 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
 /**
  * hb_ot_layout_script_select_language:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_count: The number of languages in the specified script
  * @language_tags: The array of language tags
@@ -731,7 +742,7 @@ hb_ot_layout_script_select_language (hb_face_t      *face,
 /**
  * hb_ot_layout_language_get_required_feature_index:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_index: The index of the requested language tag
  * @feature_index: (out): The index of the requested feature
@@ -761,7 +772,7 @@ hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
 /**
  * hb_ot_layout_language_get_required_feature:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_index: The index of the requested language tag
  * @feature_index: (out): The index of the requested feature
@@ -796,7 +807,7 @@ hb_ot_layout_language_get_required_feature (hb_face_t    *face,
 /**
  * hb_ot_layout_language_get_feature_indexes:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_index: The index of the requested language tag
  * @start_offset: offset of the first feature tag to retrieve
@@ -827,7 +838,7 @@ hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
 /**
  * hb_ot_layout_language_get_feature_tags:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_index: The index of the requested language tag
  * @start_offset: offset of the first feature tag to retrieve
@@ -868,7 +879,7 @@ hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
 /**
  * hb_ot_layout_language_find_feature:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @script_index: The index of the requested script tag
  * @language_index: The index of the requested language tag
  * @feature_tag: #hb_tag_t of the feature tag requested
@@ -910,7 +921,7 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
 /**
  * hb_ot_layout_feature_get_lookups:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @feature_index: The index of the requested feature
  * @start_offset: offset of the first lookup to retrieve
  * @lookup_count: (inout) (allow-none): Input = the maximum number of lookups to return;
@@ -944,7 +955,7 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
 /**
  * hb_ot_layout_table_get_lookup_count:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  *
  * Fetches the total number of lookups enumerated in the specified
  * face's GSUB table or GPOS table.
@@ -1101,7 +1112,7 @@ script_collect_features (hb_collect_features_context_t *c,
 /**
  * hb_ot_layout_collect_features:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @scripts: The array of scripts to collect features for
  * @languages: The array of languages to collect features for
  * @features: The array of features to collect
@@ -1152,7 +1163,7 @@ hb_ot_layout_collect_features (hb_face_t      *face,
 /**
  * hb_ot_layout_collect_lookups:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @scripts: The array of scripts to collect lookups for
  * @languages: The array of languages to collect lookups for
  * @features: The array of features to collect lookups for
@@ -1191,7 +1202,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
 /**
  * hb_ot_layout_lookup_collect_glyphs:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @lookup_index: The index of the feature lookup to query
  * @glyphs_before: (out): Array of glyphs preceding the substitution range
  * @glyphs_input: (out): Array of input glyphs that would be substituted by the lookup
@@ -1243,7 +1254,7 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 /**
  * hb_ot_layout_table_find_feature_variations:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @coords: The variation coordinates to query
  * @num_coords: The number of variation coordinates
  * @variations_index: (out): The array of feature variations found for the query
@@ -1268,7 +1279,7 @@ hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
 /**
  * hb_ot_layout_feature_with_variations_get_lookups:
  * @face: #hb_face_t to work upon
- * @table_tag: HB_OT_TAG_GSUB or HB_OT_TAG_GPOS
+ * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
  * @feature_index: The index of the feature to query
  * @variations_index: The index of the feature variation to query
  * @start_offset: offset of the first lookup to retrieve
@@ -1487,6 +1498,8 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
 /**
  * hb_ot_layout_has_positioning:
  * @face: #hb_face_t to work upon
+ *
+ * Tests whether the specified face includes any GPOS positioning.
  *
  * Return value: %true if the face has GPOS data, %false otherwise
  *

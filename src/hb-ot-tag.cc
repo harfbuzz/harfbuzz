@@ -164,6 +164,15 @@ hb_ot_all_tags_from_script (hb_script_t   script,
   *count = i;
 }
 
+/**
+ * hb_ot_tag_to_script:
+ * @tag: a script tag
+ *
+ * Converts a script tag to an #hb_script_t.
+ *
+ * Return value: The #hb_script_t corresponding to @tag.
+ *
+ **/
 hb_script_t
 hb_ot_tag_to_script (hb_tag_t tag)
 {
@@ -424,10 +433,12 @@ hb_ot_tags_from_script_and_language (hb_script_t   script,
 
 /**
  * hb_ot_tag_to_language:
+ * @tag: an language tag
  *
+ * Converts a language tag to an #hb_language_t.
  *
- *
- * Return value: (transfer none):
+ * Return value: (transfer none) (nullable):
+ * The #hb_language_t corresponding to @tag.
  *
  * Since: 0.9.2
  **/
