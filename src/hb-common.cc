@@ -1003,6 +1003,21 @@ parse_one_variation (const char **pp, const char *end, hb_variation_t *variation
 
 /**
  * hb_variation_from_string:
+ * @str: (array length=len) (element-type uint8_t): a string to parse
+ * @len: length of @str, or -1 if string is %NULL terminated
+ * @variation: (out): the #hb_variation_t to initialize with the parsed values
+ *
+ * Parses a string into a #hb_variation_t.
+ *
+ * The format for specifying variation settings follows. All valid CSS
+ * font-variation-settings values other than 'normal' and 'inherited' are also
+ * accepted, though, not documented below.
+ *
+ * The format is a tag, optionally followed by an equals sign, followed by a
+ * number. For example `wght=500`, or `slnt=-7.5`.
+ *
+ * Return value:
+ * %true if @str is successfully parsed, %false otherwise
  *
  * Since: 1.4.2
  */
@@ -1029,6 +1044,13 @@ hb_variation_from_string (const char *str, int len,
 
 /**
  * hb_variation_to_string:
+ * @variation: an #hb_variation_t to convert
+ * @buf: (array length=size) (out): output string
+ * @size: the allocated size of @buf
+ *
+ * Converts an #hb_variation_t into a %NULL-terminated string in the format
+ * understood by hb_variation_from_string(). The client in responsible for
+ * allocating big enough size for @buf, 128 bytes is more than enough.
  *
  * Since: 1.4.2
  */
@@ -1055,7 +1077,7 @@ hb_variation_to_string (hb_variation_t *variation,
 
 /**
  * hb_color_get_alpha:
- * color: a #hb_color_t we are interested in its channels.
+ * @color: an #hb_color_t we are interested in its channels.
  *
  * Return value: Alpha channel value of the given color
  *
@@ -1069,7 +1091,7 @@ uint8_t
 
 /**
  * hb_color_get_red:
- * color: a #hb_color_t we are interested in its channels.
+ * @color: an #hb_color_t we are interested in its channels.
  *
  * Return value: Red channel value of the given color
  *
@@ -1083,7 +1105,7 @@ uint8_t
 
 /**
  * hb_color_get_green:
- * color: a #hb_color_t we are interested in its channels.
+ * @color: an #hb_color_t we are interested in its channels.
  *
  * Return value: Green channel value of the given color
  *
@@ -1097,7 +1119,7 @@ uint8_t
 
 /**
  * hb_color_get_blue:
- * color: a #hb_color_t we are interested in its channels.
+ * @color: an #hb_color_t we are interested in its channels.
  *
  * Return value: Blue channel value of the given color
  *
