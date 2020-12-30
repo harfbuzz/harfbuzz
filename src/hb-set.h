@@ -36,7 +36,11 @@
 HB_BEGIN_DECLS
 
 
-/*
+/**
+ * HB_SET_VALUE_INVALID:
+ *
+ * Unset #hb_set_t value.
+ *
  * Since: 0.9.21
  */
 #define HB_SET_VALUE_INVALID ((hb_codepoint_t) -1)

@@ -85,6 +85,13 @@ hb_ot_tag_from_language (hb_language_t language);
 
 /**
  * hb_ot_var_axis_t:
+ * @tag: axis tag
+ * @name_id: axis name identifier
+ * @min_value: minimum value of the axis
+ * @default_value: default value of the axis
+ * @max_value: maximum value of the axis
+ *
+ * Use #hb_ot_var_axis_info_t instead.
  *
  * Since: 1.4.2
  * Deprecated: 2.2.0
