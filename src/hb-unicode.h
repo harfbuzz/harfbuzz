@@ -427,7 +427,7 @@ typedef hb_script_t			(*hb_unicode_script_func_t)		(hb_unicode_funcs_t *ufuncs,
  * The method must return an #hb_bool_t indicating the success
  * of the composition.
  * 
- * Return value: True is @a,@b composed, false otherwise
+ * Return value: %true is @a,@b composed, %false otherwise
  *
  **/
 typedef hb_bool_t			(*hb_unicode_compose_func_t)		(hb_unicode_funcs_t *ufuncs,
@@ -451,7 +451,7 @@ typedef hb_bool_t			(*hb_unicode_compose_func_t)		(hb_unicode_funcs_t *ufuncs,
  * output parameters (if successful). The method must return an
  * #hb_bool_t indicating the success of the composition.
  * 
- * Return value: True if @ab decomposed, false otherwise
+ * Return value: %true if @ab decomposed, %false otherwise
  *
  **/
 typedef hb_bool_t			(*hb_unicode_decompose_func_t)		(hb_unicode_funcs_t *ufuncs,
@@ -634,7 +634,7 @@ hb_unicode_script (hb_unicode_funcs_t *ufuncs,
  * Composes the code point sequence @a,@b by canonical equivalence into
  * code point @ab.
  *
- * Return value: True is @a,@b composed, false otherwise
+ * Return value: %true if @a,@b composed, %false otherwise
  *
  * Since: 0.9.2
  **/
@@ -654,7 +654,7 @@ hb_unicode_compose (hb_unicode_funcs_t *ufuncs,
  * Decomposes code point @ab by canonical equivalence, into code points
  * @a and @b.
  *
- * Return value: True if @ab decomposed, false otherwise
+ * Return value: %true if @ab decomposed, %false otherwise
  *
  * Since: 0.9.2
  **/

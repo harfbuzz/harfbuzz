@@ -299,7 +299,7 @@ hb_blob_make_immutable (hb_blob_t *blob)
  *
  * Tests whether a blob is immutable.
  *
- * Return value: %true if @blob is immutable, false otherwise
+ * Return value: %true if @blob is immutable, %false otherwise
  *
  * Since: 0.9.2
  **/

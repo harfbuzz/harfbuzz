@@ -675,8 +675,8 @@ hb_version_string ()
  * Tests the library version against a minimum value,
  * as three integer components.
  *
- * Return value: True if the library is equal to or greater than
- * the test value, false otherwise
+ * Return value: %true if the library is equal to or greater than
+ * the test value, %false otherwise
  *
  * Since: 0.9.30
  **/

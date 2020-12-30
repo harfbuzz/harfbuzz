@@ -73,7 +73,7 @@
  * === The sanitize() contract ===
  *
  * The sanitize() method of each object type shall return true if it's safe to
- * call other methods of the object, and false otherwise.
+ * call other methods of the object, and %false otherwise.
  *
  * Note that what sanitize() checks for might align with what the specification
  * describes as valid table data, but does not have to be.  In particular, we
