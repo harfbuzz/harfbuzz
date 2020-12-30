@@ -38,10 +38,10 @@ HB_BEGIN_DECLS
 
 /**
  * hb_memory_mode_t:
- * @HB_MEMORY_MODE_DUPLICATE
- * @HB_MEMORY_MODE_READONLY
- * @HB_MEMORY_MODE_WRITABLE
- * @HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE
+ * @HB_MEMORY_MODE_DUPLICATE: HarfBuzz immediately makes a copy of the data.
+ * @HB_MEMORY_MODE_READONLY: HarfBuzz client will never modify the data
+ * @HB_MEMORY_MODE_WRITABLE: HarfBuzz client made a copy of the data solely for HarfBuzz.
+ * @HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE: See above
  *
  * Data type holding the memory modes available to
  * client programs.

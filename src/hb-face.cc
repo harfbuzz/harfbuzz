@@ -235,7 +235,7 @@ hb_face_create (hb_blob_t    *blob,
  *
  * Fetches the singleton empty face object.
  *
- * Return value: (transfer full) The empty face object
+ * Return value: (transfer full): The empty face object
  *
  * Since: 0.9.2
  **/

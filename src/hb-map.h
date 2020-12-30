@@ -36,7 +36,11 @@
 HB_BEGIN_DECLS
 
 
-/*
+/**
+ * HB_MAP_VALUE_INVALID:
+ *
+ * Unset #hb_map_t value.
+ *
  * Since: 1.7.7
  */
 #define HB_MAP_VALUE_INVALID ((hb_codepoint_t) -1)

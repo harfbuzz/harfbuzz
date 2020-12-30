@@ -402,7 +402,7 @@ hb_coretext_font_create (CTFontRef ct_font)
 }
 
 /**
- * hb_coretext_face_get_ct_font:
+ * hb_coretext_font_get_ct_font:
  * @font: #hb_font_t to work upon
  *
  * Fetches the CTFontRef associated with the specified
