@@ -329,7 +329,6 @@ hb_font_get_scale
 hb_font_get_user_data
 hb_font_get_variation_glyph
 hb_font_get_variation_glyph_func_t
-hb_font_get_var_coords_design
 hb_font_get_var_coords_normalized
 hb_font_glyph_from_string
 hb_font_glyph_to_string
@@ -361,6 +360,9 @@ hb_font_get_h_extents
 hb_font_get_v_extents
 hb_font_extents_t
 hb_glyph_extents_t
+<SUBSECTION Private>
+hb_font_get_var_coords_design
+hb_font_draw_glyph
 </SECTION>
 
 <SECTION>
