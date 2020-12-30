@@ -116,7 +116,7 @@ _hb_blob_destroy (void *data)
  * @length: Length of sub-blob.
  *
  * Returns a blob that represents a range of bytes in @parent.  The new
- * blob is always created with %HB_MEMORY_MODE_READONLY, meaning that it
+ * blob is always created with #HB_MEMORY_MODE_READONLY, meaning that it
  * will never modify data in the parent blob.  The parent data is not
  * expected to be modified, and will result in undefined behavior if it
  * is.

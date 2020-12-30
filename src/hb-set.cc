@@ -447,7 +447,7 @@ hb_set_get_population (const hb_set_t *set)
  *
  * Finds the smallest element in the set.
  *
- * Return value: minimum of @set, or %HB_SET_VALUE_INVALID if @set is empty.
+ * Return value: minimum of @set, or #HB_SET_VALUE_INVALID if @set is empty.
  *
  * Since: 0.9.7
  **/
@@ -463,7 +463,7 @@ hb_set_get_min (const hb_set_t *set)
  *
  * Finds the largest element in the set.
  *
- * Return value: maximum of @set, or %HB_SET_VALUE_INVALID if @set is empty.
+ * Return value: maximum of @set, or #HB_SET_VALUE_INVALID if @set is empty.
  *
  * Since: 0.9.7
  **/
@@ -481,7 +481,7 @@ hb_set_get_max (const hb_set_t *set)
  *
  * Fetches the next element in @set that is greater than current value of @codepoint.
  *
- * Set @codepoint to %HB_SET_VALUE_INVALID to get started.
+ * Set @codepoint to #HB_SET_VALUE_INVALID to get started.
  *
  * Return value: %true if there was a next value, %false otherwise
  *
@@ -502,7 +502,7 @@ hb_set_next (const hb_set_t *set,
  *
  * Fetches the previous element in @set that is lower than current value of @codepoint.
  *
- * Set @codepoint to %HB_SET_VALUE_INVALID to get started.
+ * Set @codepoint to #HB_SET_VALUE_INVALID to get started.
  *
  * Return value: %true if there was a previous value, %false otherwise
  *
@@ -525,7 +525,7 @@ hb_set_previous (const hb_set_t *set,
  * Fetches the next consecutive range of elements in @set that
  * are greater than current value of @last.
  *
- * Set @last to %HB_SET_VALUE_INVALID to get started.
+ * Set @last to #HB_SET_VALUE_INVALID to get started.
  *
  * Return value: %true if there was a next range, %false otherwise
  *
@@ -549,7 +549,7 @@ hb_set_next_range (const hb_set_t *set,
  * Fetches the previous consecutive range of elements in @set that
  * are greater than current value of @last.
  *
- * Set @first to %HB_SET_VALUE_INVALID to get started.
+ * Set @first to #HB_SET_VALUE_INVALID to get started.
  *
  * Return value: %true if there was a previous range, %false otherwise
  *
