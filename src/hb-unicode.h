@@ -41,7 +41,9 @@ HB_BEGIN_DECLS
 
 
 /**
- * HB_UNICODE_MAX
+ * HB_UNICODE_MAX:
+ *
+ * Maximum valid Unicode code point.
  *
  * Since: 1.9.0
  **/

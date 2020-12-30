@@ -469,7 +469,7 @@ hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
  * Fetches the compatibility decomposition of a Unicode
  * code point. Deprecated.
  *
- * Return value:
+ * Return value: length of @decomposed.
  *
  * Since: 0.9.2
  * Deprecated: 2.0.0

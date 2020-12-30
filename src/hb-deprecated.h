@@ -101,6 +101,11 @@ hb_set_invert (hb_set_t *set);
 
 /**
  * hb_unicode_eastasian_width_func_t:
+ * @ufuncs: A Unicode-functions structure
+ * @unicode: The code point to query
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_unicode_funcs_t structure.
  *
  * Deprecated: 2.0.0
  */
@@ -110,12 +115,12 @@ typedef unsigned int			(*hb_unicode_eastasian_width_func_t)	(hb_unicode_funcs_t 
 
 /**
  * hb_unicode_funcs_set_eastasian_width_func:
- * @ufuncs: a Unicode function structure
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy:
+ * @ufuncs: a Unicode-function structure
+ * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @user_data: Data to pass to @func
+ * @destroy: (optional): The function to call when @user_data is not needed anymore
  *
- * 
+ * Sets the implementation function for #hb_unicode_eastasian_width_func_t.
  *
  * Since: 0.9.2
  * Deprecated: 2.0.0
@@ -127,6 +132,10 @@ hb_unicode_funcs_set_eastasian_width_func (hb_unicode_funcs_t *ufuncs,
 
 /**
  * hb_unicode_eastasian_width:
+ * @ufuncs: a Unicode-function structure
+ * @unicode: The code point to query
+ *
+ * Don't use. Not used by HarfBuzz.
  *
  * Since: 0.9.2
  * Deprecated: 2.0.0
@@ -140,7 +149,7 @@ hb_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs,
  * hb_unicode_decompose_compatibility_func_t:
  * @ufuncs: a Unicode function structure
  * @u: codepoint to decompose
- * @decomposed: address of codepoint array (of length %HB_UNICODE_MAX_DECOMPOSITION_LEN) to write decomposition into
+ * @decomposed: address of codepoint array (of length #HB_UNICODE_MAX_DECOMPOSITION_LEN) to write decomposition into
  * @user_data: user data pointer as passed to hb_unicode_funcs_set_decompose_compatibility_func()
  *
  * Fully decompose @u to its Unicode compatibility decomposition. The codepoints of the decomposition will be written to @decomposed.
@@ -148,7 +157,7 @@ hb_unicode_eastasian_width (hb_unicode_funcs_t *ufuncs,
  *
  * If @u has no compatibility decomposition, zero should be returned.
  *
- * The Unicode standard guarantees that a buffer of length %HB_UNICODE_MAX_DECOMPOSITION_LEN codepoints will always be sufficient for any
+ * The Unicode standard guarantees that a buffer of length #HB_UNICODE_MAX_DECOMPOSITION_LEN codepoints will always be sufficient for any
  * compatibility decomposition plus an terminating value of 0.  Consequently, @decompose must be allocated by the caller to be at least this length.  Implementations
  * of this function type must ensure that they do not write past the provided array.
  *
@@ -172,10 +181,12 @@ typedef unsigned int			(*hb_unicode_decompose_compatibility_func_t)	(hb_unicode_
 
 /**
  * hb_unicode_funcs_set_decompose_compatibility_func:
- * @ufuncs: a Unicode function structure
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy:
+ * @ufuncs: A Unicode-functions structure
+ * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @user_data: Data to pass to @func
+ * @destroy: (optional): The function to call when @user_data is not needed anymore
+ *
+ * Sets the implementation function for #hb_unicode_decompose_compatibility_func_t.
  *
  * 
  *
