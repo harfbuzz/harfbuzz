@@ -350,7 +350,7 @@ hb_aat_layout_track (const hb_ot_shape_plan_t *plan,
  * hb_aat_layout_get_feature_types:
  * @face: #hb_face_t to work upon
  * @start_offset: offset of the first feature type to retrieve
- * @feature_count: (inout) (allow-none): Input = the maximum number of feature types to return;
+ * @feature_count: (inout) (optional): Input = the maximum number of feature types to return;
  *                 Output = the actual number of feature types returned (may be zero)
  * @features: (out caller-allocates) (array length=feature_count): Array of feature types found
  *
