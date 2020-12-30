@@ -600,6 +600,8 @@ hb_ot_layout_language_get_required_feature_index
 Xhb_ot_layout_lookup_enumerate_sequences
 Xhb_ot_layout_lookup_position
 Xhb_ot_layout_lookup_substitute
+hb_ot_layout_glyph_sequence_t
+hb_ot_layout_glyph_sequence_func_t
 </SECTION>
 
 <SECTION>
