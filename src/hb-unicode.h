@@ -626,40 +626,12 @@ HB_EXTERN hb_script_t
 hb_unicode_script (hb_unicode_funcs_t *ufuncs,
 		   hb_codepoint_t unicode);
 
-/**
- * hb_unicode_compose:
- * @ufuncs: The Unicode-functions structure
- * @a: The first code point to compose
- * @b: The second code point to compose
- * @ab: (out): The composed code point
- *
- * Composes the code point sequence @a,@b by canonical equivalence into
- * code point @ab.
- *
- * Return value: %true if @a,@b composed, %false otherwise
- *
- * Since: 0.9.2
- **/
 HB_EXTERN hb_bool_t
 hb_unicode_compose (hb_unicode_funcs_t *ufuncs,
 		    hb_codepoint_t      a,
 		    hb_codepoint_t      b,
 		    hb_codepoint_t     *ab);
 
-/**
- * hb_unicode_decompose:
- * @ufuncs: The Unicode-functions structure
- * @ab: The code point to decompose
- * @a: (out): The first decomposed code point
- * @b: (out): The second decomposed code point
- *
- * Decomposes code point @ab by canonical equivalence, into code points
- * @a and @b.
- *
- * Return value: %true if @ab decomposed, %false otherwise
- *
- * Since: 0.9.2
- **/
 HB_EXTERN hb_bool_t
 hb_unicode_decompose (hb_unicode_funcs_t *ufuncs,
 		      hb_codepoint_t      ab,
