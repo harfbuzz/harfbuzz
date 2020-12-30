@@ -41,6 +41,13 @@ HB_BEGIN_DECLS
 
 
 /* https://github.com/harfbuzz/harfbuzz/issues/1734 */
+/**
+ * HB_MATH_GLYPH_PART_FLAG_EXTENDER:
+ *
+ * Use #HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER instead.
+ *
+ * Deprecated: 2.5.1
+ */
 #define HB_MATH_GLYPH_PART_FLAG_EXTENDER HB_OT_MATH_GLYPH_PART_FLAG_EXTENDER
 
 
