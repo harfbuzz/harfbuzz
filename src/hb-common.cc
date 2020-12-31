@@ -1079,7 +1079,9 @@ hb_variation_to_string (hb_variation_t *variation,
  * hb_color_get_alpha:
  * @color: an #hb_color_t we are interested in its channels.
  *
- * Return value: Alpha channel value of the given color
+ * Fetches the alpha channel of the given @color.
+ *
+ * Return value: Alpha channel value
  *
  * Since: 2.1.0
  */
@@ -1093,7 +1095,9 @@ uint8_t
  * hb_color_get_red:
  * @color: an #hb_color_t we are interested in its channels.
  *
- * Return value: Red channel value of the given color
+ * Fetches the red channel of the given @color.
+ *
+ * Return value: Red channel value
  *
  * Since: 2.1.0
  */
@@ -1107,7 +1111,9 @@ uint8_t
  * hb_color_get_green:
  * @color: an #hb_color_t we are interested in its channels.
  *
- * Return value: Green channel value of the given color
+ * Fetches the green channel of the given @color.
+ *
+ * Return value: Green channel value
  *
  * Since: 2.1.0
  */
@@ -1121,7 +1127,9 @@ uint8_t
  * hb_color_get_blue:
  * @color: an #hb_color_t we are interested in its channels.
  *
- * Return value: Blue channel value of the given color
+ * Fetches the blue channel of the given @color.
+ *
+ * Return value: Blue channel value
  *
  * Since: 2.1.0
  */
