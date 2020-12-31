@@ -78,6 +78,8 @@ hb_ot_tag_from_language (hb_language_t language);
 /**
  * HB_OT_VAR_NO_AXIS_INDEX:
  *
+ * Do not use.
+ *
  * Since: 1.4.2
  * Deprecated: 2.2.0
  */
