@@ -74,7 +74,19 @@ HB_BEGIN_DECLS
  * Script & Language tags.
  */
 
+/**
+ * HB_OT_TAG_DEFAULT_SCRIPT:
+ *
+ * OpenType script tag, `DFLT`, for features that are not script-specific.
+ *
+ */
 #define HB_OT_TAG_DEFAULT_SCRIPT	HB_TAG ('D', 'F', 'L', 'T')
+/**
+ * HB_OT_TAG_DEFAULT_LANGUAGE:
+ *
+ * OpenType language tag, `dflt`. Not a valid language tag, but some fonts
+ * mistakenly use it.
+ */
 #define HB_OT_TAG_DEFAULT_LANGUAGE	HB_TAG ('d', 'f', 'l', 't')
 
 /**
