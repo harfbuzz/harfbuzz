@@ -1834,7 +1834,7 @@ hb_font_get_face (hb_font_t *font)
 /**
  * hb_font_set_funcs:
  * @font: #hb_font_t to work upon
- * @klass: (closure font_data) (destroy destroy) (scope notified):
+ * @klass: (closure font_data) (destroy destroy) (scope notified): The font-functions structure.
  * @font_data: Data to attach to @font
  * @destroy: (nullable): The function to call when @font_data is not needed anymore
  *
