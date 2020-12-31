@@ -226,7 +226,7 @@
   </section>
   
 
-  <section>
+  <section id="what-does-harfbuzz-do">
     <title>What does HarfBuzz do?</title>
     <para>
       HarfBuzz provides text shaping through a cross-platform

@@ -26,7 +26,7 @@
     </abstract>
   </bookinfo>
 
-  <part>
+  <part id="user-manual">
     <title>User's manual</title>
       <xi:include href="usermanual-what-is-harfbuzz.xml"/>
       <xi:include href="usermanual-install-harfbuzz.xml"/>
@@ -41,7 +41,7 @@
       <xi:include href="usermanual-integration.xml"/>
   </part>
 
-  <part>
+  <part id="reference-manual">
     <partinfo>
       <releaseinfo>
         This document is for HarfBuzz &version;.
@@ -51,7 +51,7 @@
     </partinfo>
       
     <title>Reference manual</title>
-      <chapter>
+      <chapter id="core-api">
         <title>Core API</title>
         <xi:include href="xml/hb-blob.xml"/>
         <xi:include href="xml/hb-buffer.xml"/>
@@ -67,7 +67,7 @@
         <xi:include href="xml/hb-version.xml"/>
       </chapter>
 
-      <chapter>
+      <chapter id="opentype-api">
         <title>OpenType API</title>
         <xi:include href="xml/hb-ot-color.xml"/>
         <xi:include href="xml/hb-ot-font.xml"/>
@@ -80,12 +80,12 @@
         <xi:include href="xml/hb-ot-var.xml"/>
       </chapter>
 
-      <chapter>
+      <chapter id="apple-advanced-typography-api">
         <title>Apple Advanced Typography API</title>
         <xi:include href="xml/hb-aat-layout.xml"/>
       </chapter>
 
-      <chapter>
+      <chapter id="integration-api">
         <title>Integration API</title>
         <xi:include href="xml/hb-coretext.xml"/>
         <xi:include href="xml/hb-ft.xml"/>

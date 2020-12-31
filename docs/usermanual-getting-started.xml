@@ -6,7 +6,7 @@
 ]>
 <chapter id="getting-started">
   <title>Getting started with HarfBuzz</title>
-  <section>
+  <section id="an-overview-of-the-harfbuzz-shaping-api">
     <title>An overview of the HarfBuzz shaping API</title>
     <para>
       The core of the HarfBuzz shaping API is the function
@@ -73,7 +73,7 @@
     </para>
   </section>
 
-  <section>
+  <section id="terminology">
     <title>Terminology</title>
     <para>
       
@@ -201,7 +201,7 @@
   </section>
 
 
-  <section>
+  <section id="a-simple-shaping-example">
     <title>A simple shaping example</title>
 
     <para>
