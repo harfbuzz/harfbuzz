@@ -195,6 +195,11 @@ _hb_graphite2_shaper_font_data_destroy (hb_graphite2_font_data_t *data HB_UNUSED
 #ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_graphite2_font_get_gr_font:
+ * @font: An #hb_font_t
+ *
+ * Always returns %NULL. Use hb_graphite2_face_get_gr_face() instead.
+ *
+ * Return value: (nullable): Graphite2 font associated with @font.
  *
  * Since: 0.9.10
  * Deprecated: 1.4.2
