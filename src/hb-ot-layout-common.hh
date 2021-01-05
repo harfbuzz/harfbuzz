@@ -1838,6 +1838,24 @@ struct ClassDefFormat1
     return false;
   }
 
+  void intersects_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs)
+  {
+    unsigned count = classValue.len;
+    if (klass == 0)
+    {
+      hb_codepoint_t endGlyph = startGlyph + count -1;
+      for (hb_codepoint_t g : glyphs->iter ())
+        if (g < startGlyph || g > endGlyph)
+          intersect_glyphs->add (g);
+
+      return;
+    }
+
+    for (unsigned i = 0; i < count; i++)
+      if (classValue[i] == klass && glyphs->has (startGlyph + i))
+        intersect_glyphs->add (startGlyph + i);
+  }
+
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 1 */
   HBGlyphID	startGlyph;	/* First GlyphID of the classValueArray */
@@ -2021,6 +2039,54 @@ struct ClassDefFormat2
     return false;
   }
 
+  void intersects_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs)
+  {
+    unsigned count = rangeRecord.len;
+    if (klass == 0)
+    {
+      hb_codepoint_t g = HB_SET_VALUE_INVALID;
+      for (unsigned int i = 0; i < count; i++)
+      {
+        if (!hb_set_next (glyphs, &g))
+          break;
+        while (g != HB_SET_VALUE_INVALID && g < rangeRecord[i].first)
+        {
+          intersect_glyphs->add (g);
+          hb_set_next (glyphs, &g);
+        }
+        g = rangeRecord[i].last;
+      }
+      while (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
+        intersect_glyphs->add (g);
+
+      return;
+    }
+
+    hb_codepoint_t g = HB_SET_VALUE_INVALID;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (rangeRecord[i].value == klass)
+      {
+        if (g != HB_SET_VALUE_INVALID)
+        {
+          if (g >= rangeRecord[i].first &&
+              g <= rangeRecord[i].last)
+            intersect_glyphs->add (g);
+          if (g > rangeRecord[i].last)
+            continue;
+        }
+
+        while (hb_set_next (glyphs, &g))
+        {
+          if (g >= rangeRecord[i].first && g <= rangeRecord[i].last)
+            intersect_glyphs->add (g);
+          else if (g > rangeRecord[i].last)
+            break;
+        }
+      }
+    }
+  }
+
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 2 */
   SortedArrayOf<RangeRecord>
@@ -2158,6 +2224,15 @@ struct ClassDef
     case 1: return u.format1.intersects_class (glyphs, klass);
     case 2: return u.format2.intersects_class (glyphs, klass);
     default:return false;
+    }
+  }
+
+  void intersects_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs)
+  {
+    switch (u.format) {
+    case 1: return u.format1.intersects_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 2: return u.format2.intersects_class_glyphs (glyphs, klass, intersect_glyphs);
+    default:return;
     }
   }
 
