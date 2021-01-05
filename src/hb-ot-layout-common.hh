@@ -1260,6 +1260,14 @@ struct CoverageFormat1
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   { return glyphs->has (glyphArray[index]); }
 
+  void intersected_coverage_glyphs (const hb_set_t *glyphs, hb_set_t *intersect_glyphs) const
+  {
+    unsigned count = glyphArray.len;
+    for (unsigned i = 0; i < count; i++)
+      if (glyphs->has (glyphArray[i]))
+        intersect_glyphs->add (glyphArray[i]);
+  }
+
   template <typename set_t>
   bool collect_coverage (set_t *glyphs) const
   { return glyphs->add_sorted_array (glyphArray.arrayZ, glyphArray.len); }
@@ -1380,6 +1388,17 @@ struct CoverageFormat2
 	return false;
     }
     return false;
+  }
+
+  void intersected_coverage_glyphs (const hb_set_t *glyphs, hb_set_t *intersect_glyphs) const
+  {
+    unsigned count = rangeRecord.len;
+    for (unsigned i = 0; i < count; i++)
+    {
+      const RangeRecord &range = rangeRecord[i];
+      for (hb_codepoint_t g = range.first; g <= range.last; g++)
+        if (glyphs->has (g)) intersect_glyphs->add (g);
+    }
   }
 
   template <typename set_t>
@@ -1561,6 +1580,16 @@ struct Coverage
     case 1: return u.format1.collect_coverage (glyphs);
     case 2: return u.format2.collect_coverage (glyphs);
     default:return false;
+    }
+  }
+
+  void intersected_coverage_glyphs (const hb_set_t *glyphs, hb_set_t *intersect_glyphs) const
+  {
+    switch (u.format)
+    {
+    case 1: return u.format1.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+    case 2: return u.format2.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+    default:return ;
     }
   }
 
@@ -1838,7 +1867,7 @@ struct ClassDefFormat1
     return false;
   }
 
-  void intersects_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs)
+  void intersected_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs) const
   {
     unsigned count = classValue.len;
     if (klass == 0)
@@ -2039,7 +2068,7 @@ struct ClassDefFormat2
     return false;
   }
 
-  void intersects_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs)
+  void intersected_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs) const
   {
     unsigned count = rangeRecord.len;
     if (klass == 0)
@@ -2227,11 +2256,11 @@ struct ClassDef
     }
   }
 
-  void intersects_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs)
+  void intersected_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs) const
   {
     switch (u.format) {
-    case 1: return u.format1.intersects_class_glyphs (glyphs, klass, intersect_glyphs);
-    case 2: return u.format2.intersects_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 1: return u.format1.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 2: return u.format2.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
     default:return;
     }
   }
