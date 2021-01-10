@@ -52,18 +52,9 @@ struct SingleSubstFormat1
   void closure (hb_closure_context_t *c) const
   {
     unsigned d = deltaGlyphID;
-    hb_set_t *active_parent_glyphs;
-    
-    if (c->active_glyphs_stack.length >= 1)
-    {
-      active_parent_glyphs = c->parent_active_glyphs ();
-    } else
-    {
-      active_parent_glyphs = c->glyphs;
-    }
 
     + hb_iter (this+coverage)
-    | hb_filter (active_parent_glyphs)
+    | hb_filter (c->parent_active_glyphs ())
     | hb_map ([d] (hb_codepoint_t g) { return (g + d) & 0xFFFFu; })
     | hb_sink (c->output)
     ;
@@ -166,18 +157,8 @@ struct SingleSubstFormat2
 
   void closure (hb_closure_context_t *c) const
   {
-    hb_set_t *active_parent_glyphs;
-
-    if (c->active_glyphs_stack.length >= 1)
-    {
-      active_parent_glyphs = c->parent_active_glyphs ();
-    } else
-    {
-      active_parent_glyphs = c->glyphs;
-    }
-
     + hb_zip (this+coverage, substitute)
-    | hb_filter (active_parent_glyphs, hb_first)
+    | hb_filter (c->parent_active_glyphs (), hb_first)
     | hb_map (hb_second)
     | hb_sink (c->output)
     ;
@@ -421,18 +402,8 @@ struct MultipleSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    hb_set_t *active_parent_glyphs;
-
-    if (c->active_glyphs_stack.length >= 1)
-    {
-      active_parent_glyphs = c->parent_active_glyphs ();
-    } else
-    {
-      active_parent_glyphs = c->glyphs;
-    }
-
     + hb_zip (this+coverage, sequence)
-    | hb_filter (active_parent_glyphs, hb_first)
+    | hb_filter (c->parent_active_glyphs (), hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const Sequence &_) { _.closure (c); })
@@ -662,18 +633,8 @@ struct AlternateSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    hb_set_t *active_parent_glyphs;
-
-    if (c->active_glyphs_stack.length >= 1)
-    {
-      active_parent_glyphs = c->parent_active_glyphs ();
-    } else
-    {
-      active_parent_glyphs = c->glyphs;
-    }
-
     + hb_zip (this+coverage, alternateSet)
-    | hb_filter (active_parent_glyphs, hb_first)
+    | hb_filter (c->parent_active_glyphs (), hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const AlternateSet &_) { _.closure (c); })
@@ -1047,18 +1008,8 @@ struct LigatureSubstFormat1
 
   void closure (hb_closure_context_t *c) const
   {
-    hb_set_t *active_parent_glyphs;
-
-    if (c->active_glyphs_stack.length >= 1)
-    {
-      active_parent_glyphs = c->parent_active_glyphs ();
-    } else
-    {
-      active_parent_glyphs = c->glyphs;
-    }
-
     + hb_zip (this+coverage, ligatureSet)
-    | hb_filter (active_parent_glyphs, hb_first)
+    | hb_filter (c->parent_active_glyphs (), hb_first)
     | hb_map (hb_second)
     | hb_map (hb_add (this))
     | hb_apply ([c] (const LigatureSet &_) { _.closure (c); })
@@ -1251,20 +1202,11 @@ struct ReverseChainSingleSubstFormat1
   {
     if (!intersects (c->glyphs)) return;
 
-    hb_set_t *active_parent_glyphs;
-    if (c->active_glyphs_stack.length >= 1)
-    {
-      active_parent_glyphs = c->parent_active_glyphs ();
-    } else
-    {
-      active_parent_glyphs = c->glyphs;
-    }
-
     const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
     const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
 
     + hb_zip (this+coverage, substitute)
-    | hb_filter (active_parent_glyphs, hb_first)
+    | hb_filter (c->parent_active_glyphs (), hb_first)
     | hb_map (hb_second)
     | hb_sink (c->output)
     ;
@@ -1609,13 +1551,15 @@ struct SubstLookup : Lookup
 
   template <typename context_t>
   static inline typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
+  
+  static inline typename hb_closure_context_t::return_t closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *chaos, unsigned seq_index, unsigned end_index);
 
-  static inline hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned int lookup_index)
+  static inline hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *chaos, unsigned seq_index, unsigned end_index)
   {
     if (!c->should_visit_lookup (lookup_index))
       return hb_empty_t ();
 
-    hb_closure_context_t::return_t ret = dispatch_recurse_func (c, lookup_index);
+    hb_closure_context_t::return_t ret = closure_glyphs_recurse_func (c, lookup_index, chaos, seq_index, end_index);
 
     /* While in theory we should flush here, it will cause timeouts because a recursive
      * lookup can keep growing the glyph set.  Skip, and outer loop will retry up to
@@ -1685,6 +1629,14 @@ template <typename context_t>
 /*static*/ typename context_t::return_t SubstLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
   const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
+  return l.dispatch (c);
+}
+
+/*static*/ typename hb_closure_context_t::return_t SubstLookup::closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *chaos, unsigned seq_index, unsigned end_index)
+{
+  const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
+  if (l.may_have_non_1to1 ())
+      hb_set_add_range (chaos, seq_index, end_index);
   return l.dispatch (c);
 }
 
