@@ -1396,6 +1396,7 @@ struct CoverageFormat2
     for (unsigned i = 0; i < count; i++)
     {
       const RangeRecord &range = rangeRecord[i];
+      if (!range.intersects (glyphs)) continue;
       for (hb_codepoint_t g = range.first; g <= range.last; g++)
         if (glyphs->has (g)) intersect_glyphs->add (g);
     }
@@ -2094,24 +2095,24 @@ struct ClassDefFormat2
     hb_codepoint_t g = HB_SET_VALUE_INVALID;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (rangeRecord[i].value == klass)
+      if (rangeRecord[i].value != klass) continue;
+      
+      if (g != HB_SET_VALUE_INVALID)
       {
-        if (g != HB_SET_VALUE_INVALID)
-        {
-          if (g >= rangeRecord[i].first &&
-              g <= rangeRecord[i].last)
-            intersect_glyphs->add (g);
-          if (g > rangeRecord[i].last)
-            continue;
-        }
-
-        while (hb_set_next (glyphs, &g))
-        {
-          if (g >= rangeRecord[i].first && g <= rangeRecord[i].last)
-            intersect_glyphs->add (g);
-          else if (g > rangeRecord[i].last)
-            break;
-        }
+        if (g >= rangeRecord[i].first &&
+            g <= rangeRecord[i].last)
+          intersect_glyphs->add (g);
+        if (g > rangeRecord[i].last)
+          continue;
+      }
+      
+      g = rangeRecord[i].first - 1;
+      while (hb_set_next (glyphs, &g))
+      {
+        if (g >= rangeRecord[i].first && g <= rangeRecord[i].last)
+          intersect_glyphs->add (g);
+        else if (g > rangeRecord[i].last)
+          break;
       }
     }
   }

@@ -22,6 +22,7 @@ TESTS = \
 	tests/layout.gpos8.amiri.tests \
 	tests/layout.gpos9.tests \
 	tests/layout.gsub3.tests \
+	tests/layout.gsub5.tests \
 	tests/layout.gsub6.tests \
 	tests/layout.tests \
 	tests/sbix.tests \
