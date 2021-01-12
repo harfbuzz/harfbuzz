@@ -1552,14 +1552,14 @@ struct SubstLookup : Lookup
   template <typename context_t>
   static inline typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
   
-  static inline typename hb_closure_context_t::return_t closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *chaos, unsigned seq_index, unsigned end_index);
+  static inline typename hb_closure_context_t::return_t closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index);
 
-  static inline hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *chaos, unsigned seq_index, unsigned end_index)
+  static inline hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
   {
     if (!c->should_visit_lookup (lookup_index))
       return hb_empty_t ();
 
-    hb_closure_context_t::return_t ret = closure_glyphs_recurse_func (c, lookup_index, chaos, seq_index, end_index);
+    hb_closure_context_t::return_t ret = closure_glyphs_recurse_func (c, lookup_index, covered_seq_indices, seq_index, end_index);
 
     /* While in theory we should flush here, it will cause timeouts because a recursive
      * lookup can keep growing the glyph set.  Skip, and outer loop will retry up to
@@ -1632,11 +1632,11 @@ template <typename context_t>
   return l.dispatch (c);
 }
 
-/*static*/ typename hb_closure_context_t::return_t SubstLookup::closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *chaos, unsigned seq_index, unsigned end_index)
+/*static*/ typename hb_closure_context_t::return_t SubstLookup::closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)
 {
   const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (lookup_index);
   if (l.may_have_non_1to1 ())
-      hb_set_add_range (chaos, seq_index, end_index);
+      hb_set_add_range (covered_seq_indices, seq_index, end_index);
   return l.dispatch (c);
 }
 

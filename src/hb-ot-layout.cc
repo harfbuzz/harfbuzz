@@ -1443,12 +1443,17 @@ hb_ot_layout_lookup_substitute_closure (hb_face_t    *face,
 					unsigned int  lookup_index,
 					hb_set_t     *glyphs /* OUT */)
 {
-  hb_map_t done_lookups;
-  OT::hb_closure_context_t c (face, glyphs, &done_lookups);
+  hb_set_t cur_intersected_glyphs;
+  hb_map_t done_lookups_glyph_count;
+  hb_hashmap_t<unsigned, hb_set_t *, (unsigned)-1, nullptr> done_lookups_glyph_set;
+  OT::hb_closure_context_t c (face, glyphs, &cur_intersected_glyphs, &done_lookups_glyph_count, &done_lookups_glyph_set);
 
   const OT::SubstLookup& l = face->table.GSUB->table->get_lookup (lookup_index);
 
   l.closure (&c, lookup_index);
+
+  for (auto _ : done_lookups_glyph_set.iter ())
+    hb_set_destroy (_.second);
 }
 
 /**
@@ -1467,8 +1472,10 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
 					 const hb_set_t *lookups,
 					 hb_set_t       *glyphs /* OUT */)
 {
-  hb_map_t done_lookups;
-  OT::hb_closure_context_t c (face, glyphs, &done_lookups);
+  hb_set_t cur_intersected_glyphs;
+  hb_map_t done_lookups_glyph_count;
+  hb_hashmap_t<unsigned, hb_set_t *, (unsigned)-1, nullptr> done_lookups_glyph_set;
+  OT::hb_closure_context_t c (face, glyphs, &cur_intersected_glyphs, &done_lookups_glyph_count, &done_lookups_glyph_set);
   const OT::GSUB& gsub = *face->table.GSUB->table;
 
   unsigned int iteration_count = 0;
@@ -1488,6 +1495,9 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
     }
   } while (iteration_count++ <= HB_CLOSURE_MAX_STAGES &&
 	   glyphs_length != glyphs->get_population ());
+
+  for (auto _ : done_lookups_glyph_set.iter ())
+    hb_set_destroy (_.second);
 }
 
 /*
