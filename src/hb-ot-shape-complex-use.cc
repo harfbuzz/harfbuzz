@@ -454,76 +454,22 @@ reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
   }
 }
 
-static inline void
-insert_dotted_circles_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
-			   hb_font_t *font,
-			   hb_buffer_t *buffer)
-{
-  if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
-    return;
-
-  /* Note: This loop is extra overhead, but should not be measurable.
-   * TODO Use a buffer scratch flag to remove the loop. */
-  bool has_broken_syllables = false;
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  for (unsigned int i = 0; i < count; i++)
-    if ((info[i].syllable() & 0x0F) == use_broken_cluster)
-    {
-      has_broken_syllables = true;
-      break;
-    }
-  if (likely (!has_broken_syllables))
-    return;
-
-  hb_glyph_info_t dottedcircle = {0};
-  if (!font->get_nominal_glyph (0x25CCu, &dottedcircle.codepoint))
-    return;
-  dottedcircle.use_category() = hb_use_get_category (0x25CC);
-
-  buffer->clear_output ();
-
-  buffer->idx = 0;
-  unsigned int last_syllable = 0;
-  while (buffer->idx < buffer->len && buffer->successful)
-  {
-    unsigned int syllable = buffer->cur().syllable();
-    use_syllable_type_t syllable_type = (use_syllable_type_t) (syllable & 0x0F);
-    if (unlikely (last_syllable != syllable && syllable_type == use_broken_cluster))
-    {
-      last_syllable = syllable;
-
-      hb_glyph_info_t ginfo = dottedcircle;
-      ginfo.cluster = buffer->cur().cluster;
-      ginfo.mask = buffer->cur().mask;
-      ginfo.syllable() = buffer->cur().syllable();
-
-      /* Insert dottedcircle after possible Repha. */
-      while (buffer->idx < buffer->len && buffer->successful &&
-	     last_syllable == buffer->cur().syllable() &&
-	     buffer->cur().use_category() == USE_R)
-	buffer->next_glyph ();
-
-      buffer->output_info (ginfo);
-    }
-    else
-      buffer->next_glyph ();
-  }
-  buffer->swap_buffers ();
-}
-
 static void
 reorder_use (const hb_ot_shape_plan_t *plan,
 	     hb_font_t *font,
 	     hb_buffer_t *buffer)
 {
-	if (buffer->message (font, "start reordering USE")) {
-	  insert_dotted_circles_use (plan, font, buffer);
+  if (buffer->message (font, "start reordering USE"))
+  {
+    hb_syllabic_insert_dotted_circles (font, buffer,
+				       use_broken_cluster,
+				       USE_B,
+				       USE_R);
 
-	  foreach_syllable (buffer, start, end)
-	    reorder_syllable_use (buffer, start, end);
+    foreach_syllable (buffer, start, end)
+      reorder_syllable_use (buffer, start, end);
 
-	  (void) buffer->message (font, "end reordering USE");
+    (void) buffer->message (font, "end reordering USE");
   }
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, use_category);

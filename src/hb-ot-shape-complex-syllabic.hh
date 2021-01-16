@@ -30,4 +30,12 @@
 #include "hb-ot-shape-complex.hh"
 
 
+HB_INTERNAL void
+hb_syllabic_insert_dotted_circles (hb_font_t *font,
+				   hb_buffer_t *buffer,
+				   int broken_syllable_type,
+				   int dottedcircle_category,
+				   int repha_category = -1);
+
+
 #endif /* HB_OT_SHAPE_COMPLEX_SYLLABIC_HH */
