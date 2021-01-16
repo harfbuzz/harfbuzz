@@ -37,7 +37,22 @@
 
 %%{
 
-import "hb-ot-shape-complex-indic-category.hh";
+# Same order as enum khmer_category_t.  Not sure how to avoid duplication.
+C    = 1;
+V    = 2;
+ZWNJ = 5;
+ZWJ  = 6;
+PLACEHOLDER = 11;
+DOTTEDCIRCLE = 12;
+Coeng= 14;
+Ra   = 16;
+Robatic = 20;
+Xgroup  = 21;
+Ygroup  = 22;
+VAbv = 26;
+VBlw = 27;
+VPre = 28;
+VPst = 29;
 
 c = (C | Ra | V);
 cn = c.((ZWJ|ZWNJ)?.Robatic)?;

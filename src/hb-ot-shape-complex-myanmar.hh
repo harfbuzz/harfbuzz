@@ -33,8 +33,30 @@
 
 
 /* buffer var allocations */
-#define myanmar_category() indic_category() /* indic_category_t */
+#define myanmar_category() indic_category() /* myanmar_category_t */
 #define myanmar_position() indic_position() /* myanmar_position_t */
+
+
+/* Note: This enum is duplicated in the -machine.rl source file.
+ * Not sure how to avoid duplication. */
+enum myanmar_category_t {
+  OT_As  = 18,  /* Asat */
+  OT_D0  = 20, /* Digit zero */
+  OT_DB  = OT_N, /* Dot below */
+  OT_GB  = OT_PLACEHOLDER,
+  OT_MH  = 21, /* Various consonant medial types */
+  OT_MR  = 22, /* Various consonant medial types */
+  OT_MW  = 23, /* Various consonant medial types */
+  OT_MY  = 24, /* Various consonant medial types */
+  OT_PT  = 25, /* Pwo and other tones */
+  //OT_VAbv = 26,
+  //OT_VBlw = 27,
+  //OT_VPre = 28,
+  //OT_VPst = 29,
+  OT_VS   = 30, /* Variation selectors */
+  OT_P    = 31, /* Punctuation */
+  OT_D    = 32, /* Digits except zero */
+};
 
 
 static inline void
@@ -133,11 +155,11 @@ set_myanmar_properties (hb_glyph_info_t &info)
   {
     switch ((int) pos)
     {
-      case POS_PRE_C:	cat = (indic_category_t) OT_VPre;
+      case POS_PRE_C:	cat = (myanmar_category_t) OT_VPre;
 			pos = POS_PRE_M; break;
-      case POS_ABOVE_C:	cat = (indic_category_t) OT_VAbv;   break;
-      case POS_BELOW_C:	cat = (indic_category_t) OT_VBlw;   break;
-      case POS_POST_C:	cat = (indic_category_t) OT_VPst;   break;
+      case POS_ABOVE_C:	cat = (myanmar_category_t) OT_VAbv;   break;
+      case POS_BELOW_C:	cat = (myanmar_category_t) OT_VBlw;   break;
+      case POS_POST_C:	cat = (myanmar_category_t) OT_VPst;   break;
     }
   }
 

@@ -33,11 +33,62 @@
 
 
 #include "hb-ot-shape-complex.hh"
-#include "hb-ot-shape-complex-use-category.hh"
 
 
 #define USE_TABLE_ELEMENT_TYPE uint8_t
 
+/* Cateories used in the Universal Shaping Engine spec:
+ * https://docs.microsoft.com/en-us/typography/script-development/use
+ */
+/* Note: This enum is duplicated in the -machine.rl source file.
+ * Not sure how to avoid duplication. */
+enum use_category_t {
+  USE_O		= 0,	/* OTHER */
+
+  USE_B		= 1,	/* BASE */
+  USE_N		= 4,	/* BASE_NUM */
+  USE_GB	= 5,	/* BASE_OTHER */
+  USE_SUB	= 11,	/* CONS_SUB */
+  USE_H		= 12,	/* HALANT */
+
+  USE_HN	= 13,	/* HALANT_NUM */
+  USE_ZWNJ	= 14,	/* Zero width non-joiner */
+  USE_R		= 18,	/* REPHA */
+  USE_S		= 19,	/* SYM */
+  USE_CS	= 43,	/* CONS_WITH_STACKER */
+
+  /* https://github.com/harfbuzz/harfbuzz/issues/1102 */
+  USE_HVM	= 44,	/* HALANT_OR_VOWEL_MODIFIER */
+
+  USE_Sk	= 48,	/* SAKOT */
+  USE_G		= 49,	/* HIEROGLYPH */
+  USE_J		= 50,	/* HIEROGLYPH_JOINER */
+  USE_SB	= 51,	/* HIEROGLYPH_SEGMENT_BEGIN */
+  USE_SE	= 52,	/* HIEROGLYPH_SEGMENT_END */
+
+  USE_FAbv	= 24,	/* CONS_FINAL_ABOVE */
+  USE_FBlw	= 25,	/* CONS_FINAL_BELOW */
+  USE_FPst	= 26,	/* CONS_FINAL_POST */
+  USE_MAbv	= 27,	/* CONS_MED_ABOVE */
+  USE_MBlw	= 28,	/* CONS_MED_BELOW */
+  USE_MPst	= 29,	/* CONS_MED_POST */
+  USE_MPre	= 30,	/* CONS_MED_PRE */
+  USE_CMAbv	= 31,	/* CONS_MOD_ABOVE */
+  USE_CMBlw	= 32,	/* CONS_MOD_BELOW */
+  USE_VAbv	= 33,	/* VOWEL_ABOVE / VOWEL_ABOVE_BELOW / VOWEL_ABOVE_BELOW_POST / VOWEL_ABOVE_POST */
+  USE_VBlw	= 34,	/* VOWEL_BELOW / VOWEL_BELOW_POST */
+  USE_VPst	= 35,	/* VOWEL_POST	UIPC = Right */
+  USE_VPre	= 22,	/* VOWEL_PRE / VOWEL_PRE_ABOVE / VOWEL_PRE_ABOVE_POST / VOWEL_PRE_POST */
+  USE_VMAbv	= 37,	/* VOWEL_MOD_ABOVE */
+  USE_VMBlw	= 38,	/* VOWEL_MOD_BELOW */
+  USE_VMPst	= 39,	/* VOWEL_MOD_POST */
+  USE_VMPre	= 23,	/* VOWEL_MOD_PRE */
+  USE_SMAbv	= 41,	/* SYM_MOD_ABOVE */
+  USE_SMBlw	= 42,	/* SYM_MOD_BELOW */
+  USE_FMAbv	= 45,	/* CONS_FINAL_MOD	UIPC = Top */
+  USE_FMBlw	= 46,	/* CONS_FINAL_MOD	UIPC = Bottom */
+  USE_FMPst	= 47,	/* CONS_FINAL_MOD	UIPC = Not_Applicable */
+};
 
 HB_INTERNAL USE_TABLE_ELEMENT_TYPE
 hb_use_get_category (hb_codepoint_t u);
