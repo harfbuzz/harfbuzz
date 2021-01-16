@@ -35,8 +35,8 @@
 
 
 /* buffer var allocations, used by complex shapers */
-#define complex_var_u8_0()	var2.u8[2]
-#define complex_var_u8_1()	var2.u8[3]
+#define complex_var_u8_category()	var2.u8[2]
+#define complex_var_u8_auxiliary()	var2.u8[3]
 
 
 #define HB_OT_SHAPE_COMPLEX_MAX_COMBINING_MARKS 32

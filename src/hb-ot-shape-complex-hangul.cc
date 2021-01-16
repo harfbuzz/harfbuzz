@@ -119,7 +119,7 @@ data_destroy_hangul (void *data)
 #define isHangulTone(u) (hb_in_range<hb_codepoint_t> ((u), 0x302Eu, 0x302Fu))
 
 /* buffer var allocations */
-#define hangul_shaping_feature() complex_var_u8_0() /* hangul jamo shaping feature */
+#define hangul_shaping_feature() complex_var_u8_auxiliary() /* hangul jamo shaping feature */
 
 static bool
 is_zero_width_char (hb_font_t *font,
