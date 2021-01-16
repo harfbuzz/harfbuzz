@@ -30,7 +30,6 @@
 #define HB_OT_SHAPE_COMPLEX_USE_MACHINE_HH
 
 #include "hb.hh"
-#include "hb-ot-shape-complex-machine-index.hh"
 
 %%{
   machine use_syllable_machine;
