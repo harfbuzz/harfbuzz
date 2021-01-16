@@ -31,8 +31,7 @@
 
 #include "hb.hh"
 
-
-#include "hb-ot-shape-complex.hh"
+#include "hb-ot-shape-complex-syllabic.hh"
 
 
 #define USE_TABLE_ELEMENT_TYPE uint8_t

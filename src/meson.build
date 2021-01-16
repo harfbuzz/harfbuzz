@@ -126,6 +126,8 @@ hb_base_sources = files(
   'hb-ot-shape-complex-khmer.hh',
   'hb-ot-shape-complex-myanmar.cc',
   'hb-ot-shape-complex-myanmar.hh',
+  'hb-ot-shape-complex-syllabic.cc',
+  'hb-ot-shape-complex-syllabic.hh',
   'hb-ot-shape-complex-thai.cc',
   'hb-ot-shape-complex-use-table.cc',
   'hb-ot-shape-complex-use.cc',
