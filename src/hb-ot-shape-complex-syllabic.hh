@@ -33,8 +33,8 @@
 HB_INTERNAL void
 hb_syllabic_insert_dotted_circles (hb_font_t *font,
 				   hb_buffer_t *buffer,
-				   int broken_syllable_type,
-				   int dottedcircle_category,
+				   unsigned int broken_syllable_type,
+				   unsigned int dottedcircle_category,
 				   int repha_category = -1);
 
 
