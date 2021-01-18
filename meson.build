@@ -75,7 +75,11 @@ m_dep = cpp.find_library('m', required: false)
 
 freetype_dep = null_dep
 if not get_option('freetype').disabled()
-  freetype_dep = dependency('freetype2', required: false)
+  freetype_dep = dependency('freetype2', method: 'pkg-config', required: false)
+
+  if not (freetype_dep.found())
+    freetype_dep = dependency('freetype', method: 'cmake', required: false)
+  endif
 
   if (not freetype_dep.found() and
       cpp.get_id() == 'msvc' and
