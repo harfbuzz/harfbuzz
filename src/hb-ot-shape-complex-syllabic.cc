@@ -32,8 +32,8 @@
 void
 hb_syllabic_insert_dotted_circles (hb_font_t *font,
 				   hb_buffer_t *buffer,
-				   int broken_syllable_type,
-				   int dottedcircle_category,
+				   unsigned int broken_syllable_type,
+				   unsigned int dottedcircle_category,
 				   int repha_category)
 {
   if (unlikely (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE))
@@ -84,7 +84,7 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
       {
 	while (buffer->idx < buffer->len && buffer->successful &&
 	       last_syllable == buffer->cur().syllable() &&
-	       buffer->cur().complex_var_u8_category() == repha_category)
+	       buffer->cur().complex_var_u8_category() == (unsigned) repha_category)
 	  buffer->next_glyph ();
       }
 
