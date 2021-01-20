@@ -1175,7 +1175,7 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
  * hb_font_get_extents_for_direction:
  * @font: #hb_font_t to work upon
  * @direction: The direction of the text segment
- * @extents: (out): The #hb_glyph_extents_t retrieved
+ * @extents: (out): The #hb_font_extents_t retrieved
  *
  * Fetches the extents for a font in a text segment of the
  * specified direction.
