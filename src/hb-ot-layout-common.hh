@@ -1251,8 +1251,9 @@ struct CoverageFormat1
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
     unsigned int count = glyphArray.len;
+    const HBGlyphID *arr = glyphArray.arrayZ;
     for (unsigned int i = 0; i < count; i++)
-      if (glyphs->has (glyphArray[i]))
+      if (glyphs->has (arr[i]))
 	return true;
     return false;
   }
@@ -1356,18 +1357,21 @@ struct CoverageFormat2
   bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
-    unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (rangeRecord[i].intersects (glyphs))
+    /* TODO Rewrite as dagger. */
+    unsigned count = rangeRecord.len;
+    const RangeRecord *arr = rangeRecord.arrayZ;
+    for (unsigned i = 0; i < count; i++)
+      if (arr[i].intersects (glyphs))
 	return true;
     return false;
   }
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
-    unsigned int i;
-    unsigned int count = rangeRecord.len;
-    for (i = 0; i < count; i++) {
-      const RangeRecord &range = rangeRecord[i];
+    /* TODO Rewrite as dagger. */
+    unsigned count = rangeRecord.len;
+    const RangeRecord *arr = rangeRecord.arrayZ;
+    for (unsigned i = 0; i < count; i++) {
+      const RangeRecord &range = arr[i];
       if (range.value <= index &&
 	  index < (unsigned int) range.value + (range.last - range.first) &&
 	  range.intersects (glyphs))
@@ -1815,8 +1819,13 @@ struct ClassDefFormat1
       if (hb_set_next (glyphs, &g)) return true;
       /* Fall through. */
     }
+    /* TODO Speed up, using set overlap first? */
+    /* TODO Rewrite as dagger. */
+    HBUINT16 k; /* TODO(constexpr) use constructor to initialize. */
+    k = klass;
+    const HBUINT16 *arr = classValue.arrayZ;
     for (unsigned int i = 0; i < count; i++)
-      if (classValue[i] == klass && glyphs->has (startGlyph + i))
+      if (arr[i] == k && glyphs->has (startGlyph + i))
 	return true;
     return false;
   }
@@ -1984,8 +1993,13 @@ struct ClassDefFormat2
 	return true;
       /* Fall through. */
     }
+    /* TODO Speed up, using set overlap first? */
+    /* TODO Rewrite as dagger. */
+    HBUINT16 k; /* TODO(constexpr) use constructor to initialize. */
+    k = klass;
+    const RangeRecord *arr = rangeRecord.arrayZ;
     for (unsigned int i = 0; i < count; i++)
-      if (rangeRecord[i].value == klass && rangeRecord[i].intersects (glyphs))
+      if (arr[i].value == k && arr[i].intersects (glyphs))
 	return true;
     return false;
   }
