@@ -988,32 +988,24 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 
 struct hb_bitwise_and
 { HB_PARTIALIZE(2);
-  static constexpr bool passthru_left = false;
-  static constexpr bool passthru_right = false;
   template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
 }
 HB_FUNCOBJ (hb_bitwise_and);
 struct hb_bitwise_or
 { HB_PARTIALIZE(2);
-  static constexpr bool passthru_left = true;
-  static constexpr bool passthru_right = true;
   template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
 }
 HB_FUNCOBJ (hb_bitwise_or);
 struct hb_bitwise_xor
 { HB_PARTIALIZE(2);
-  static constexpr bool passthru_left = true;
-  static constexpr bool passthru_right = true;
   template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a ^ b)
 }
 HB_FUNCOBJ (hb_bitwise_xor);
 struct hb_bitwise_sub
 { HB_PARTIALIZE(2);
-  static constexpr bool passthru_left = true;
-  static constexpr bool passthru_right = false;
   template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
 }

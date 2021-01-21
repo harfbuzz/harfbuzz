@@ -566,6 +566,9 @@ struct hb_set_t
   template <typename Op>
   void process (const Op& op, const hb_set_t *other)
   {
+    const bool passthru_left = op (1, 0);
+    const bool passthru_right = op (0, 1);
+
     if (unlikely (!successful)) return;
 
     dirty ();
@@ -581,13 +584,13 @@ struct hb_set_t
     // Pre-allocate the workspace that compact() will need so we can bail on allocation failure
     // before attempting to rewrite the page map.
     hb_vector_t<unsigned> compact_workspace;
-    if (!Op::passthru_left && unlikely (!allocate_compact_workspace (compact_workspace))) return;
+    if (!passthru_left && unlikely (!allocate_compact_workspace (compact_workspace))) return;
 
     for (; a < na && b < nb; )
     {
       if (page_map[a].major == other->page_map[b].major)
       {
-	if (!Op::passthru_left)
+	if (!passthru_left)
 	{
 	  // Move page_map entries that we're keeping from the left side set
 	  // to the front of the page_map vector. This isn't necessary if
@@ -604,23 +607,23 @@ struct hb_set_t
       }
       else if (page_map[a].major < other->page_map[b].major)
       {
-	if (Op::passthru_left)
+	if (passthru_left)
 	  count++;
 	a++;
       }
       else
       {
-	if (Op::passthru_right)
+	if (passthru_right)
 	  count++;
 	b++;
       }
     }
-    if (Op::passthru_left)
+    if (passthru_left)
       count += na - a;
-    if (Op::passthru_right)
+    if (passthru_right)
       count += nb - b;
 
-    if (!Op::passthru_left)
+    if (!passthru_left)
     {
       na  = write_index;
       next_page = write_index;
@@ -648,7 +651,7 @@ struct hb_set_t
       else if (page_map[a - 1].major > other->page_map[b - 1].major)
       {
 	a--;
-	if (Op::passthru_left)
+	if (passthru_left)
 	{
 	  count--;
 	  page_map[count] = page_map[a];
@@ -657,7 +660,7 @@ struct hb_set_t
       else
       {
 	b--;
-	if (Op::passthru_right)
+	if (passthru_right)
 	{
 	  count--;
 	  page_map[count].major = other->page_map[b].major;
@@ -666,14 +669,14 @@ struct hb_set_t
 	}
       }
     }
-    if (Op::passthru_left)
+    if (passthru_left)
       while (a)
       {
 	a--;
 	count--;
 	page_map[count] = page_map [a];
       }
-    if (Op::passthru_right)
+    if (passthru_right)
       while (b)
       {
 	b--;
