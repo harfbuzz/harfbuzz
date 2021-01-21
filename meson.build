@@ -352,16 +352,8 @@ if not get_option('tests').disabled()
   subdir('test')
 endif
 
-# get_option('wrap_mode') isn't available in <0.49 and this
-# is just an internal tool
-if meson.version().version_compare('>=0.49')
-  if (not get_option('benchmark').disabled() and
-      get_option('wrap_mode') != 'nodownload' and
-      host_machine.system() != 'windows' and
-      not meson.is_subproject() and
-      not meson.is_cross_build())
-    subdir('perf')
-  endif
+if not get_option('benchmark').disabled()
+  subdir('perf')
 endif
 
 if not get_option('docs').disabled()
