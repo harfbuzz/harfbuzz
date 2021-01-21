@@ -540,9 +540,8 @@ struct hb_set_t
     assert(workspace.length == pages.length);
     hb_vector_t<unsigned>& old_index_to_page_map_index = workspace;
 
-    for (unsigned i = 0; i < old_index_to_page_map_index.length; i++)
-      old_index_to_page_map_index[i] = 0xFFFFFFFF;
-
+    hb_fill (old_index_to_page_map_index.writer(), 0xFFFFFFFF);
+    /* TODO(iter) Rewrite as dagger? */
     for (unsigned i = 0; i < length; i++)
       old_index_to_page_map_index[page_map[i].index] =  i;
 

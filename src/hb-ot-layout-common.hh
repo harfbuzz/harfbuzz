@@ -1357,7 +1357,7 @@ struct CoverageFormat2
   bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
-    /* TODO Rewrite as dagger. */
+    /* TODO(iter) Rewrite as dagger. */
     unsigned count = rangeRecord.len;
     const RangeRecord *arr = rangeRecord.arrayZ;
     for (unsigned i = 0; i < count; i++)
@@ -1367,7 +1367,7 @@ struct CoverageFormat2
   }
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
-    /* TODO Rewrite as dagger. */
+    /* TODO(iter) Rewrite as dagger. */
     unsigned count = rangeRecord.len;
     const RangeRecord *arr = rangeRecord.arrayZ;
     for (unsigned i = 0; i < count; i++) {
@@ -1820,7 +1820,7 @@ struct ClassDefFormat1
       /* Fall through. */
     }
     /* TODO Speed up, using set overlap first? */
-    /* TODO Rewrite as dagger. */
+    /* TODO(iter) Rewrite as dagger. */
     HBUINT16 k; /* TODO(constexpr) use constructor to initialize. */
     k = klass;
     const HBUINT16 *arr = classValue.arrayZ;
@@ -1994,7 +1994,7 @@ struct ClassDefFormat2
       /* Fall through. */
     }
     /* TODO Speed up, using set overlap first? */
-    /* TODO Rewrite as dagger. */
+    /* TODO(iter) Rewrite as dagger. */
     HBUINT16 k; /* TODO(constexpr) use constructor to initialize. */
     k = klass;
     const RangeRecord *arr = rangeRecord.arrayZ;
