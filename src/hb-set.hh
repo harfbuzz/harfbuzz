@@ -391,7 +391,7 @@ struct hb_set_t
     {
       // Pre-allocate the workspace that compact() will need so we can bail on allocation failure
       // before attempting to rewrite the page map.
-      hb_vector_t<uint32_t> compact_workspace;
+      hb_vector_t<unsigned> compact_workspace;
       if (unlikely (!allocate_compact_workspace (compact_workspace))) return;
 
       unsigned int write_index = 0;
@@ -518,7 +518,7 @@ struct hb_set_t
     return true;
   }
 
-  bool allocate_compact_workspace(hb_vector_t<uint32_t>& workspace)
+  bool allocate_compact_workspace(hb_vector_t<unsigned>& workspace)
   {
     if (unlikely(!workspace.resize (pages.length)))
     {
@@ -534,22 +534,22 @@ struct hb_set_t
    * workspace should be a pre-sized vector allocated to hold at exactly pages.length
    * elements.
    */
-  void compact (hb_vector_t<uint32_t>& workspace,
+  void compact (hb_vector_t<unsigned>& workspace,
                 unsigned int length)
   {
     assert(workspace.length == pages.length);
-    hb_vector_t<uint32_t>& old_index_to_page_map_index = workspace;
+    hb_vector_t<unsigned>& old_index_to_page_map_index = workspace;
 
-    for (uint32_t i = 0; i < old_index_to_page_map_index.length; i++)
+    for (unsigned i = 0; i < old_index_to_page_map_index.length; i++)
       old_index_to_page_map_index[i] = 0xFFFFFFFF;
 
-    for (uint32_t i = 0; i < length; i++)
+    for (unsigned i = 0; i < length; i++)
       old_index_to_page_map_index[page_map[i].index] =  i;
 
     compact_pages (old_index_to_page_map_index);
   }
 
-  void compact_pages (const hb_vector_t<uint32_t>& old_index_to_page_map_index)
+  void compact_pages (const hb_vector_t<unsigned>& old_index_to_page_map_index)
   {
     unsigned int write_index = 0;
     for (unsigned int i = 0; i < pages.length; i++)
@@ -581,7 +581,7 @@ struct hb_set_t
 
     // Pre-allocate the workspace that compact() will need so we can bail on allocation failure
     // before attempting to rewrite the page map.
-    hb_vector_t<uint32_t> compact_workspace;
+    hb_vector_t<unsigned> compact_workspace;
     if (!Op::passthru_left && unlikely (!allocate_compact_workspace (compact_workspace))) return;
 
     for (; a < na && b < nb; )
