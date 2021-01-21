@@ -402,6 +402,11 @@ build_summary = {
     {'Documentation': conf.get('HAVE_GTK_DOC', 0) == 1,
      'GObject bindings': conf.get('HAVE_GOBJECT', 0) == 1,
      'Introspection': conf.get('HAVE_INTROSPECTION', 0) == 1,
+     'Experimental APIs': conf.get('HB_EXPERIMENTAL_API', 0) == 1,
+    },
+  'Testing':
+    {'Tests': get_option('tests').enabled(),
+     'Benchmark': get_option('benchmark').enabled(),
     },
 }
 if meson.version().version_compare('>=0.53')
