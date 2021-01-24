@@ -42,6 +42,7 @@ EXTRA_DIST = \
 	perf/texts/fa-thelittleprince.txt \
 	meson-cc-tests/intel-atomic-primitives-test.c \
 	meson-cc-tests/solaris-atomic-operations.c \
+	mingw-configure.sh \
 	$(NULL)
 
 MAINTAINERCLEANFILES = \
