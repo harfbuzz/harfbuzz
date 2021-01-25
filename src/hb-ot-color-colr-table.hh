@@ -217,6 +217,7 @@ struct COLR
 				BaseGlyphRecord new_record;
 				new_record.glyphId = new_gid;
 				new_record.numLayers = old_record->numLayers;
+				new_record.firstLayerIdx = 0; // Updated during serialization.
 				return hb_pair_t<bool, BaseGlyphRecord> (true, new_record);
 			      })
     | hb_filter (hb_first)
