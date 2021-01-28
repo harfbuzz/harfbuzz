@@ -52,7 +52,7 @@ struct hb_intersects_context_t :
   const hb_set_t *glyphs;
 
   hb_intersects_context_t (const hb_set_t *glyphs_) :
-			     glyphs (glyphs_) {}
+                            glyphs (glyphs_) {}
 };
 
 struct hb_have_non_1to1_context_t :
@@ -3587,6 +3587,20 @@ struct GSUBGPOS
     hb_set_subtract (lookup_indexes, &inactive_lookups);
   }
 
+  void prune_langsys (const hb_map_t *duplicate_feature_map,
+                      hb_hashmap_t<unsigned, hb_set_t *, (unsigned)-1, nullptr> *script_langsys_map,
+                      hb_set_t       *new_feature_indexes /* OUT */) const
+  {
+    hb_prune_langsys_context_t c (this, script_langsys_map, duplicate_feature_map, new_feature_indexes);
+    
+    unsigned count = get_script_count ();
+    for (unsigned script_index = 0; script_index < count; script_index++)
+    {
+      const Script& s = get_script (script_index);
+      s.prune_langsys (&c, script_index);
+    }
+  }
+
   template <typename TLookup>
   bool subset (hb_subset_layout_context_t *c) const
   {
@@ -3627,8 +3641,65 @@ struct GSUBGPOS
     return_trace (true);
   }
 
+  void find_duplicate_features (const hb_map_t *lookup_indices,
+                                const hb_set_t *feature_indices,
+                                hb_map_t *duplicate_feature_map /* OUT */) const
+  {
+    //find out duplicate features after subset
+    unsigned prev = 0xFFFFu;
+    for (unsigned i : feature_indices->iter ())
+    {
+      if (prev == 0xFFFFu)
+      {
+        duplicate_feature_map->set (i, i);
+        prev = i;
+        continue;
+      }
+
+      hb_tag_t t = get_feature_tag (i);
+      hb_tag_t prev_t = get_feature_tag (prev);
+      if (t != prev_t)
+      {
+        duplicate_feature_map->set (i, i);
+        prev = i;
+        continue;
+      }
+
+      const Feature& f = get_feature (i);
+      const Feature& prev_f = get_feature (prev);
+
+      auto f_iter =
+      + hb_iter (f.lookupIndex)
+      | hb_filter (lookup_indices)
+      ;
+
+      auto prev_iter =
+      + hb_iter (prev_f.lookupIndex)
+      | hb_filter (lookup_indices)
+      ;
+
+      if (f_iter.len () != prev_iter.len ())
+      {
+        duplicate_feature_map->set (i, i);
+        prev = i;
+        continue;
+      }
+
+      bool is_equal = true;
+      for (auto _ : + hb_zip (f_iter, prev_iter))
+        if (_.first != _.second) { is_equal = false; break; }
+
+      if (is_equal == true) duplicate_feature_map->set (i, prev);
+      else
+      {
+        duplicate_feature_map->set (i, i);
+        prev = i;
+      }
+    }
+  }
+
   void prune_features (const hb_map_t *lookup_indices, /* IN */
-                       hb_set_t       *feature_indices /* IN/OUT */) const
+		       hb_set_t       *feature_indices /* IN/OUT */) const
   {
 #ifndef HB_NO_VAR
     // This is the set of feature indices which have alternate versions defined
