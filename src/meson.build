@@ -477,21 +477,6 @@ if get_option('tests').enabled()
     endforeach
   endif
 
-  check_programs = {
-    'dump-indic-data': ['dump-indic-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
-    'dump-khmer-data': ['dump-khmer-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
-    'dump-myanmar-data': ['dump-myanmar-data.cc', 'hb-ot-shape-complex-indic-table.cc'],
-    'dump-use-data': ['dump-use-data.cc', 'hb-ot-shape-complex-use-table.cc'],
-  }
-  foreach name, source : check_programs
-    executable(name, source,
-      include_directories: incconfig,
-      cpp_args: cpp_args,
-      dependencies: libharfbuzz_dep,
-      install: false,
-    )
-  endforeach
-
   compiled_tests = {
     'test-algs': ['test-algs.cc', 'hb-static.cc'],
     'test-array': ['test-array.cc'],
