@@ -457,9 +457,10 @@ for h in headers:
 		print (" * %s" % (l.strip()))
 print (" */")
 print ()
-print ('#include "hb.hh"')
+print ("#ifndef HB_OT_SHAPE_COMPLEX_USE_TABLE_HH")
+print ("#define HB_OT_SHAPE_COMPLEX_USE_TABLE_HH")
 print ()
-print ('#ifndef HB_NO_OT_SHAPE')
+print ('#include "hb.hh"')
 print ()
 print ('#include "hb-ot-shape-complex-use-machine.hh"')
 print ()
@@ -511,7 +512,7 @@ for k,v in sorted(use_positions.items()):
 		print ("#define %s	USE(%s)" % (tag, tag))
 print ('#pragma GCC diagnostic pop')
 print ("")
-print ("static const USE_TABLE_ELEMENT_TYPE use_table[] = {")
+print ("static const uint8_t use_table[] = {")
 for u in uu:
 	if u <= last:
 		continue
@@ -547,7 +548,7 @@ occupancy = used * 100. / total
 page_bits = 12
 print ("}; /* Table items: %d; occupancy: %d%% */" % (offset, occupancy))
 print ()
-print ("USE_TABLE_ELEMENT_TYPE")
+print ("static inline uint8_t")
 print ("hb_use_get_category (hb_codepoint_t u)")
 print ("{")
 print ("  switch (u >> %d)" % page_bits)
@@ -577,7 +578,7 @@ for k,v in sorted(use_positions.items()):
 		print ("#undef %s" % tag)
 print ()
 print ()
-print ('#endif')
+print ("#endif /* HB_OT_SHAPE_COMPLEX_USE_TABLE_HH */")
 print ("/* == End of generated table == */")
 
 # Maintain at least 50% occupancy in the table */

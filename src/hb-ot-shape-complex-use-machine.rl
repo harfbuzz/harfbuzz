@@ -38,11 +38,6 @@
 
 #define USE(Cat) use_syllable_machine_ex_##Cat
 
-#define USE_TABLE_ELEMENT_TYPE uint8_t
-
-HB_INTERNAL USE_TABLE_ELEMENT_TYPE
-hb_use_get_category (hb_codepoint_t u);
-
 enum use_syllable_type_t {
   use_independent_cluster,
   use_virama_terminated_cluster,
