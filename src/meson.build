@@ -131,7 +131,6 @@ hb_base_sources = files(
   'hb-ot-shape-complex-thai.cc',
   'hb-ot-shape-complex-use-table.cc',
   'hb-ot-shape-complex-use.cc',
-  'hb-ot-shape-complex-use.hh',
   'hb-ot-shape-complex-vowel-constraints.cc',
   'hb-ot-shape-complex-vowel-constraints.hh',
   'hb-ot-shape-complex.hh',

@@ -30,7 +30,6 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex-use.hh"
 #include "hb-ot-shape-complex-use-machine.hh"
 #include "hb-ot-shape-complex-arabic.hh"
 #include "hb-ot-shape-complex-arabic-joining-list.hh"

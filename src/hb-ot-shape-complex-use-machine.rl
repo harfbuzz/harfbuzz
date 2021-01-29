@@ -30,10 +30,18 @@
 #define HB_OT_SHAPE_COMPLEX_USE_MACHINE_HH
 
 #include "hb.hh"
-#include "hb-ot-shape-complex-use.hh"
+
+#include "hb-ot-shape-complex-syllabic.hh"
 
 /* buffer var allocations */
 #define use_category() complex_var_u8_category()
+
+#define USE(Cat) use_syllable_machine_ex_##Cat
+
+#define USE_TABLE_ELEMENT_TYPE uint8_t
+
+HB_INTERNAL USE_TABLE_ELEMENT_TYPE
+hb_use_get_category (hb_codepoint_t u);
 
 enum use_syllable_type_t {
   use_independent_cluster,
@@ -180,6 +188,46 @@ main := |*
     syllable_serial++; \
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
+
+
+template <typename Iter>
+struct machine_index_t :
+  hb_iter_with_fallback_t<machine_index_t<Iter>,
+			  typename Iter::item_t>
+{
+  machine_index_t (const Iter& it) : it (it) {}
+  machine_index_t (const machine_index_t& o) : it (o.it) {}
+
+  static constexpr bool is_random_access_iterator = Iter::is_random_access_iterator;
+  static constexpr bool is_sorted_iterator = Iter::is_sorted_iterator;
+
+  typename Iter::item_t __item__ () const { return *it; }
+  typename Iter::item_t __item_at__ (unsigned i) const { return it[i]; }
+  unsigned __len__ () const { return it.len (); }
+  void __next__ () { ++it; }
+  void __forward__ (unsigned n) { it += n; }
+  void __prev__ () { --it; }
+  void __rewind__ (unsigned n) { it -= n; }
+  void operator = (unsigned n)
+  { unsigned index = (*it).first; if (index < n) it += n - index; else if (index > n) it -= index - n; }
+  void operator = (const machine_index_t& o) { *this = (*o.it).first; }
+  bool operator == (const machine_index_t& o) const { return (*it).first == (*o.it).first; }
+  bool operator != (const machine_index_t& o) const { return !(*this == o); }
+
+  private:
+  Iter it;
+};
+struct
+{
+  template <typename Iter,
+	    hb_requires (hb_is_iterable (Iter))>
+  machine_index_t<hb_iter_type<Iter>>
+  operator () (Iter&& it) const
+  { return machine_index_t<hb_iter_type<Iter>> (hb_iter (it)); }
+}
+HB_FUNCOBJ (machine_index);
+
+
 
 static bool
 not_standard_default_ignorable (const hb_glyph_info_t &i)

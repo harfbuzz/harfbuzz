@@ -461,7 +461,6 @@ print ('#include "hb.hh"')
 print ()
 print ('#ifndef HB_NO_OT_SHAPE')
 print ()
-print ('#include "hb-ot-shape-complex-use.hh"')
 print ('#include "hb-ot-shape-complex-use-machine.hh"')
 print ()
 
