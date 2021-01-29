@@ -90,11 +90,11 @@ broken_cluster =	k? VS? syllable_tail;
 other =			any;
 
 main := |*
-	consonant_syllable	=> { found_syllable (consonant_syllable); };
-	j			=> { found_syllable (non_myanmar_cluster); };
-	punctuation_cluster	=> { found_syllable (punctuation_cluster); };
-	broken_cluster		=> { found_syllable (broken_cluster); };
-	other			=> { found_syllable (non_myanmar_cluster); };
+	consonant_syllable	=> { found_syllable (myanmar_consonant_syllable); };
+	j			=> { found_syllable (myanmar_non_myanmar_cluster); };
+	punctuation_cluster	=> { found_syllable (myanmar_punctuation_cluster); };
+	broken_cluster		=> { found_syllable (myanmar_broken_cluster); };
+	other			=> { found_syllable (myanmar_non_myanmar_cluster); };
 *|;
 
 
@@ -104,7 +104,7 @@ main := |*
   HB_STMT_START { \
     if (0) fprintf (stderr, "syllable %d..%d %s\n", ts, te, #syllable_type); \
     for (unsigned int i = ts; i < te; i++) \
-      info[i].syllable() = (syllable_serial << 4) | myanmar_##syllable_type; \
+      info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
