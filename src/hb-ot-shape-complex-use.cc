@@ -31,12 +31,10 @@
 #ifndef HB_NO_OT_SHAPE
 
 #include "hb-ot-shape-complex-use.hh"
+#include "hb-ot-shape-complex-use-machine.hh"
 #include "hb-ot-shape-complex-arabic.hh"
 #include "hb-ot-shape-complex-arabic-joining-list.hh"
 #include "hb-ot-shape-complex-vowel-constraints.hh"
-
-/* buffer var allocations */
-#define use_category() complex_var_u8_category()
 
 
 /*
@@ -185,22 +183,6 @@ data_destroy_use (void *data)
 
   free (data);
 }
-
-enum use_syllable_type_t {
-  use_independent_cluster,
-  use_virama_terminated_cluster,
-  use_sakot_terminated_cluster,
-  use_standard_cluster,
-  use_number_joiner_terminated_cluster,
-  use_numeral_cluster,
-  use_symbol_cluster,
-  use_hieroglyph_cluster,
-  use_broken_cluster,
-  use_non_cluster,
-};
-
-#include "hb-ot-shape-complex-use-machine.hh"
-
 
 static void
 setup_masks_use (const hb_ot_shape_plan_t *plan,

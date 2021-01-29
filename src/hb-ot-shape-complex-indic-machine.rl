@@ -29,6 +29,15 @@
 
 #include "hb.hh"
 
+enum indic_syllable_type_t {
+  indic_consonant_syllable,
+  indic_vowel_syllable,
+  indic_standalone_cluster,
+  indic_symbol_cluster,
+  indic_broken_cluster,
+  indic_non_indic_cluster,
+};
+
 %%{
   machine indic_syllable_machine;
   alphtype unsigned char;
