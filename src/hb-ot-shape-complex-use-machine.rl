@@ -30,6 +30,7 @@
 #define HB_OT_SHAPE_COMPLEX_USE_MACHINE_HH
 
 #include "hb.hh"
+#include "hb-ot-shape-complex-use.hh"
 
 /* buffer var allocations */
 #define use_category() complex_var_u8_category()
@@ -55,6 +56,9 @@ enum use_syllable_type_t {
 }%%
 
 %%{
+
+# Cateories used in the Universal Shaping Engine spec:
+# https://docs.microsoft.com/en-us/typography/script-development/use
 
 export O	= 0; # OTHER
 
@@ -98,6 +102,7 @@ export SMBlw	= 42; # SYM_MOD_BELOW
 export FMAbv	= 45; # CONS_FINAL_MOD	UIPC = Top
 export FMBlw	= 46; # CONS_FINAL_MOD	UIPC = Bottom
 export FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
+
 
 h = H | HVM | Sk;
 
@@ -178,9 +183,9 @@ main := |*
 
 static bool
 not_standard_default_ignorable (const hb_glyph_info_t &i)
-{ return !(i.use_category() == USE_O && _hb_glyph_info_is_default_ignorable (&i)); }
+{ return !(i.use_category() == USE(O) && _hb_glyph_info_is_default_ignorable (&i)); }
 
-static void
+static inline void
 find_syllables_use (hb_buffer_t *buffer)
 {
   hb_glyph_info_t *info = buffer->info;
@@ -191,7 +196,7 @@ find_syllables_use (hb_buffer_t *buffer)
 		 hb_second)
     | hb_filter ([&] (const hb_pair_t<unsigned, const hb_glyph_info_t &> p)
 		 {
-		   if (p.second.use_category() == USE_ZWNJ)
+		   if (p.second.use_category() == USE(ZWNJ))
 		     for (unsigned i = p.first + 1; i < buffer->len; ++i)
 		       if (not_standard_default_ignorable (info[i]))
 			 return !_hb_glyph_info_is_unicode_mark (&info[i]);

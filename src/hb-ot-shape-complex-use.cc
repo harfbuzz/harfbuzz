@@ -221,7 +221,7 @@ setup_rphf_mask (const hb_ot_shape_plan_t *plan,
 
   foreach_syllable (buffer, start, end)
   {
-    unsigned int limit = info[start].use_category() == USE_R ? 1 : hb_min (3u, end - start);
+    unsigned int limit = info[start].use_category() == USE(R) ? 1 : hb_min (3u, end - start);
     for (unsigned int i = start; i < start + limit; i++)
       info[i].mask |= mask;
   }
@@ -318,11 +318,11 @@ record_rphf_use (const hb_ot_shape_plan_t *plan,
 
   foreach_syllable (buffer, start, end)
   {
-    /* Mark a substituted repha as USE_R. */
+    /* Mark a substituted repha as USE(R). */
     for (unsigned int i = start; i < end && (info[i].mask & mask); i++)
       if (_hb_glyph_info_substituted (&info[i]))
       {
-	info[i].use_category() = USE_R;
+	info[i].use_category() = USE(R);
 	break;
       }
   }
@@ -341,7 +341,7 @@ record_pref_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
     for (unsigned int i = start; i < end; i++)
       if (_hb_glyph_info_substituted (&info[i]))
       {
-	info[i].use_category() = USE_VPre;
+	info[i].use_category() = USE(VPre);
 	break;
       }
   }
@@ -350,7 +350,7 @@ record_pref_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
 static inline bool
 is_halant_use (const hb_glyph_info_t &info)
 {
-  return (info.use_category() == USE_H || info.use_category() == USE_HVM) &&
+  return (info.use_category() == USE(H) || info.use_category() == USE(HVM)) &&
 	 !_hb_glyph_info_ligated (&info);
 }
 
@@ -369,24 +369,24 @@ reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
 
   hb_glyph_info_t *info = buffer->info;
 
-#define POST_BASE_FLAGS64 (FLAG64 (USE_FAbv) | \
-			   FLAG64 (USE_FBlw) | \
-			   FLAG64 (USE_FPst) | \
-			   FLAG64 (USE_MAbv) | \
-			   FLAG64 (USE_MBlw) | \
-			   FLAG64 (USE_MPst) | \
-			   FLAG64 (USE_MPre) | \
-			   FLAG64 (USE_VAbv) | \
-			   FLAG64 (USE_VBlw) | \
-			   FLAG64 (USE_VPst) | \
-			   FLAG64 (USE_VPre) | \
-			   FLAG64 (USE_VMAbv) | \
-			   FLAG64 (USE_VMBlw) | \
-			   FLAG64 (USE_VMPst) | \
-			   FLAG64 (USE_VMPre))
+#define POST_BASE_FLAGS64 (FLAG64 (USE(FAbv)) | \
+			   FLAG64 (USE(FBlw)) | \
+			   FLAG64 (USE(FPst)) | \
+			   FLAG64 (USE(MAbv)) | \
+			   FLAG64 (USE(MBlw)) | \
+			   FLAG64 (USE(MPst)) | \
+			   FLAG64 (USE(MPre)) | \
+			   FLAG64 (USE(VAbv)) | \
+			   FLAG64 (USE(VBlw)) | \
+			   FLAG64 (USE(VPst)) | \
+			   FLAG64 (USE(VPre)) | \
+			   FLAG64 (USE(VMAbv)) | \
+			   FLAG64 (USE(VMBlw)) | \
+			   FLAG64 (USE(VMPst)) | \
+			   FLAG64 (USE(VMPre)))
 
   /* Move things forward. */
-  if (info[start].use_category() == USE_R && end - start > 1)
+  if (info[start].use_category() == USE(R) && end - start > 1)
   {
     /* Got a repha.  Reorder it towards the end, but before the first post-base
      * glyph. */
@@ -423,7 +423,7 @@ reorder_syllable_use (hb_buffer_t *buffer, unsigned int start, unsigned int end)
        * shift things in between forward. */
       j = i + 1;
     }
-    else if (((flag) & (FLAG (USE_VPre) | FLAG (USE_VMPre))) &&
+    else if (((flag) & (FLAG (USE(VPre)) | FLAG (USE(VMPre)))) &&
 	     /* Only move the first component of a MultipleSubst. */
 	     0 == _hb_glyph_info_get_lig_comp (&info[i]) &&
 	     j < i)
@@ -445,8 +445,8 @@ reorder_use (const hb_ot_shape_plan_t *plan,
   {
     hb_syllabic_insert_dotted_circles (font, buffer,
 				       use_broken_cluster,
-				       USE_B,
-				       USE_R);
+				       USE(B),
+				       USE(R));
 
     foreach_syllable (buffer, start, end)
       reorder_syllable_use (buffer, start, end);
