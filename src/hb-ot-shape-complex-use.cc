@@ -69,11 +69,11 @@ use_topographical_features[] =
 };
 /* Same order as use_topographical_features. */
 enum joining_form_t {
-  USE_ISOL,
-  USE_INIT,
-  USE_MEDI,
-  USE_FINA,
-  _USE_NONE
+  JOINING_FORM_ISOL,
+  JOINING_FORM_INIT,
+  JOINING_FORM_MEDI,
+  JOINING_FORM_FINA,
+  _JOINING_FORM_NONE
 };
 static const hb_tag_t
 use_other_features[] =
@@ -253,7 +253,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
   if (use_plan->arabic_plan)
     return;
 
-  static_assert ((USE_INIT < 4 && USE_ISOL < 4 && USE_MEDI < 4 && USE_FINA < 4), "");
+  static_assert ((JOINING_FORM_INIT < 4 && JOINING_FORM_ISOL < 4 && JOINING_FORM_MEDI < 4 && JOINING_FORM_FINA < 4), "");
   hb_mask_t masks[4], all_masks = 0;
   for (unsigned int i = 0; i < 4; i++)
   {
@@ -267,7 +267,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
   hb_mask_t other_masks = ~all_masks;
 
   unsigned int last_start = 0;
-  joining_form_t last_form = _USE_NONE;
+  joining_form_t last_form = _JOINING_FORM_NONE;
   hb_glyph_info_t *info = buffer->info;
   foreach_syllable (buffer, start, end)
   {
@@ -279,7 +279,7 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
       case use_hieroglyph_cluster:
       case use_non_cluster:
 	/* These don't join.  Nothing to do. */
-	last_form = _USE_NONE;
+	last_form = _JOINING_FORM_NONE;
 	break;
 
       case use_virama_terminated_cluster:
@@ -289,18 +289,18 @@ setup_topographical_masks (const hb_ot_shape_plan_t *plan,
       case use_numeral_cluster:
       case use_broken_cluster:
 
-	bool join = last_form == USE_FINA || last_form == USE_ISOL;
+	bool join = last_form == JOINING_FORM_FINA || last_form == JOINING_FORM_ISOL;
 
 	if (join)
 	{
 	  /* Fixup previous syllable's form. */
-	  last_form = last_form == USE_FINA ? USE_MEDI : USE_INIT;
+	  last_form = last_form == JOINING_FORM_FINA ? JOINING_FORM_MEDI : JOINING_FORM_INIT;
 	  for (unsigned int i = last_start; i < start; i++)
 	    info[i].mask = (info[i].mask & other_masks) | masks[last_form];
 	}
 
 	/* Form for this syllable. */
-	last_form = join ? USE_FINA : USE_ISOL;
+	last_form = join ? JOINING_FORM_FINA : JOINING_FORM_ISOL;
 	for (unsigned int i = start; i < end; i++)
 	  info[i].mask = (info[i].mask & other_masks) | masks[last_form];
 
