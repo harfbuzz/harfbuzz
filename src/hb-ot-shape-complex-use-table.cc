@@ -35,7 +35,6 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex-use.hh"
 #include "hb-ot-shape-complex-use-machine.hh"
 
 #pragma GCC diagnostic push
