@@ -32,37 +32,37 @@
 %%{
   machine myanmar_syllable_machine;
   alphtype unsigned char;
+  write exports;
   write data;
 }%%
 
 %%{
 
-# Same order as enum myanmar_category_t.  Not sure how to avoid duplication.
-A    = 10;
-As   = 18;
-C    = 1;
-D    = 32;
-D0   = 20;
-DB   = 3;
-GB   = 11;
-H    = 4;
-IV   = 2;
-MH   = 21;
-MR   = 22;
-MW   = 23;
-MY   = 24;
-PT   = 25;
-V    = 8;
-VAbv = 26;
-VBlw = 27;
-VPre = 28;
-VPst = 29;
-VS   = 30;
-ZWJ  = 6;
-ZWNJ = 5;
-Ra   = 16;
-P    = 31;
-CS   = 19;
+export A    = 10;
+export As   = 18;
+export C    = 1;
+export D    = 32;
+export D0   = 20;
+export DB   = 3;
+export GB   = 11;
+export H    = 4;
+export IV   = 2;
+export MH   = 21;
+export MR   = 22;
+export MW   = 23;
+export MY   = 24;
+export PT   = 25;
+export V    = 8;
+export VAbv = 26;
+export VBlw = 27;
+export VPre = 28;
+export VPst = 29;
+export VS   = 30;
+export ZWJ  = 6;
+export ZWNJ = 5;
+export Ra   = 16;
+export P    = 31;
+export CS   = 19;
 
 j = ZWJ|ZWNJ;			# Joiners
 k = (Ra As H);			# Kinzi

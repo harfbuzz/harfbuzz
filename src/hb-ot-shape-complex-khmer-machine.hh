@@ -33,6 +33,24 @@
 
 
 #line 36 "hb-ot-shape-complex-khmer-machine.hh"
+#define khmer_syllable_machine_ex_C 1u
+#define khmer_syllable_machine_ex_Coeng 14u
+#define khmer_syllable_machine_ex_DOTTEDCIRCLE 12u
+#define khmer_syllable_machine_ex_PLACEHOLDER 11u
+#define khmer_syllable_machine_ex_Ra 16u
+#define khmer_syllable_machine_ex_Robatic 20u
+#define khmer_syllable_machine_ex_V 2u
+#define khmer_syllable_machine_ex_VAbv 26u
+#define khmer_syllable_machine_ex_VBlw 27u
+#define khmer_syllable_machine_ex_VPre 28u
+#define khmer_syllable_machine_ex_VPst 29u
+#define khmer_syllable_machine_ex_Xgroup 21u
+#define khmer_syllable_machine_ex_Ygroup 22u
+#define khmer_syllable_machine_ex_ZWJ 6u
+#define khmer_syllable_machine_ex_ZWNJ 5u
+
+
+#line 54 "hb-ot-shape-complex-khmer-machine.hh"
 static const unsigned char _khmer_syllable_machine_trans_keys[] = {
 	5u, 26u, 5u, 21u, 5u, 26u, 5u, 21u, 1u, 16u, 5u, 21u, 5u, 26u, 5u, 21u, 
 	5u, 26u, 5u, 21u, 5u, 21u, 5u, 26u, 5u, 21u, 1u, 16u, 5u, 21u, 5u, 26u, 
@@ -215,7 +233,7 @@ static const int khmer_syllable_machine_error = -1;
 static const int khmer_syllable_machine_en_main = 20;
 
 
-#line 36 "hb-ot-shape-complex-khmer-machine.rl"
+#line 37 "hb-ot-shape-complex-khmer-machine.rl"
 
 
 
@@ -238,7 +256,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
   int cs;
   hb_glyph_info_t *info = buffer->info;
   
-#line 242 "hb-ot-shape-complex-khmer-machine.hh"
+#line 260 "hb-ot-shape-complex-khmer-machine.hh"
 	{
 	cs = khmer_syllable_machine_start;
 	ts = 0;
@@ -254,7 +272,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
 
   unsigned int syllable_serial = 1;
   
-#line 258 "hb-ot-shape-complex-khmer-machine.hh"
+#line 276 "hb-ot-shape-complex-khmer-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -268,7 +286,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 272 "hb-ot-shape-complex-khmer-machine.hh"
+#line 290 "hb-ot-shape-complex-khmer-machine.hh"
 	}
 
 	_keys = _khmer_syllable_machine_trans_keys + (cs<<1);
@@ -338,7 +356,7 @@ _eof_trans:
 #line 76 "hb-ot-shape-complex-khmer-machine.rl"
 	{act = 3;}
 	break;
-#line 342 "hb-ot-shape-complex-khmer-machine.hh"
+#line 360 "hb-ot-shape-complex-khmer-machine.hh"
 	}
 
 _again:
@@ -347,7 +365,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 351 "hb-ot-shape-complex-khmer-machine.hh"
+#line 369 "hb-ot-shape-complex-khmer-machine.hh"
 	}
 
 	if ( ++p != pe )

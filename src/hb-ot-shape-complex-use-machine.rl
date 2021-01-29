@@ -34,55 +34,54 @@
 %%{
   machine use_syllable_machine;
   alphtype unsigned char;
+  write exports;
   write data;
 }%%
 
 %%{
 
-# Same order as enum use_category_t.  Not sure how to avoid duplication.
+export O	= 0; # OTHER
 
-O	= 0; # OTHER
+export B	= 1; # BASE
+export N	= 4; # BASE_NUM
+export GB	= 5; # BASE_OTHER
+export SUB	= 11; # CONS_SUB
+export H	= 12; # HALANT
 
-B	= 1; # BASE
-N	= 4; # BASE_NUM
-GB	= 5; # BASE_OTHER
-SUB	= 11; # CONS_SUB
-H	= 12; # HALANT
+export HN	= 13; # HALANT_NUM
+export ZWNJ	= 14; # Zero width non-joiner
+export R	= 18; # REPHA
+export S	= 19; # SYM
+export CS	= 43; # CONS_WITH_STACKER
+export HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
+export Sk	= 48; # SAKOT
+export G	= 49; # HIEROGLYPH
+export J	= 50; # HIEROGLYPH_JOINER
+export SB	= 51; # HIEROGLYPH_SEGMENT_BEGIN
+export SE	= 52; # HIEROGLYPH_SEGMENT_END
 
-HN	= 13; # HALANT_NUM
-ZWNJ	= 14; # Zero width non-joiner
-R	= 18; # REPHA
-S	= 19; # SYM
-CS	= 43; # CONS_WITH_STACKER
-HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
-Sk	= 48; # SAKOT
-G	= 49; # HIEROGLYPH
-J	= 50; # HIEROGLYPH_JOINER
-SB	= 51; # HIEROGLYPH_SEGMENT_BEGIN
-SE	= 52; # HIEROGLYPH_SEGMENT_END
-
-FAbv	= 24; # CONS_FINAL_ABOVE
-FBlw	= 25; # CONS_FINAL_BELOW
-FPst	= 26; # CONS_FINAL_POST
-MAbv	= 27; # CONS_MED_ABOVE
-MBlw	= 28; # CONS_MED_BELOW
-MPst	= 29; # CONS_MED_POST
-MPre	= 30; # CONS_MED_PRE
-CMAbv	= 31; # CONS_MOD_ABOVE
-CMBlw	= 32; # CONS_MOD_BELOW
-VAbv	= 33; # VOWEL_ABOVE / VOWEL_ABOVE_BELOW / VOWEL_ABOVE_BELOW_POST / VOWEL_ABOVE_POST
-VBlw	= 34; # VOWEL_BELOW / VOWEL_BELOW_POST
-VPst	= 35; # VOWEL_POST	UIPC = Right
-VPre	= 22; # VOWEL_PRE / VOWEL_PRE_ABOVE / VOWEL_PRE_ABOVE_POST / VOWEL_PRE_POST
-VMAbv	= 37; # VOWEL_MOD_ABOVE
-VMBlw	= 38; # VOWEL_MOD_BELOW
-VMPst	= 39; # VOWEL_MOD_POST
-VMPre	= 23; # VOWEL_MOD_PRE
-SMAbv	= 41; # SYM_MOD_ABOVE
-SMBlw	= 42; # SYM_MOD_BELOW
-FMAbv	= 45; # CONS_FINAL_MOD	UIPC = Top
-FMBlw	= 46; # CONS_FINAL_MOD	UIPC = Bottom
-FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
+export FAbv	= 24; # CONS_FINAL_ABOVE
+export FBlw	= 25; # CONS_FINAL_BELOW
+export FPst	= 26; # CONS_FINAL_POST
+export MAbv	= 27; # CONS_MED_ABOVE
+export MBlw	= 28; # CONS_MED_BELOW
+export MPst	= 29; # CONS_MED_POST
+export MPre	= 30; # CONS_MED_PRE
+export CMAbv	= 31; # CONS_MOD_ABOVE
+export CMBlw	= 32; # CONS_MOD_BELOW
+export VAbv	= 33; # VOWEL_ABOVE / VOWEL_ABOVE_BELOW / VOWEL_ABOVE_BELOW_POST / VOWEL_ABOVE_POST
+export VBlw	= 34; # VOWEL_BELOW / VOWEL_BELOW_POST
+export VPst	= 35; # VOWEL_POST	UIPC = Right
+export VPre	= 22; # VOWEL_PRE / VOWEL_PRE_ABOVE / VOWEL_PRE_ABOVE_POST / VOWEL_PRE_POST
+export VMAbv	= 37; # VOWEL_MOD_ABOVE
+export VMBlw	= 38; # VOWEL_MOD_BELOW
+export VMPst	= 39; # VOWEL_MOD_POST
+export VMPre	= 23; # VOWEL_MOD_PRE
+export SMAbv	= 41; # SYM_MOD_ABOVE
+export SMBlw	= 42; # SYM_MOD_BELOW
+export FMAbv	= 45; # CONS_FINAL_MOD	UIPC = Top
+export FMBlw	= 46; # CONS_FINAL_MOD	UIPC = Bottom
+export FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
 
 h = H | HVM | Sk;
 
