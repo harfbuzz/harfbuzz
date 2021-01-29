@@ -462,6 +462,7 @@ print ()
 print ('#ifndef HB_NO_OT_SHAPE')
 print ()
 print ('#include "hb-ot-shape-complex-use.hh"')
+print ('#include "hb-ot-shape-complex-use-machine.hh"')
 print ()
 
 total = 0
@@ -503,12 +504,12 @@ print ('#pragma GCC diagnostic push')
 print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
 for k,v in sorted(use_mapping.items()):
 	if k in use_positions and use_positions[k]: continue
-	print ("#define %s	USE_%s	/* %s */" % (k, k, v.__name__[3:]))
+	print ("#define %s	USE(%s)	/* %s */" % (k, k, v.__name__[3:]))
 for k,v in sorted(use_positions.items()):
 	if not v: continue
 	for suf in v.keys():
 		tag = k + suf
-		print ("#define %s	USE_%s" % (tag, tag))
+		print ("#define %s	USE(%s)" % (tag, tag))
 print ('#pragma GCC diagnostic pop')
 print ("")
 print ("static const USE_TABLE_ELEMENT_TYPE use_table[] = {")
@@ -564,7 +565,7 @@ for p in sorted(pages):
 print ("    default:")
 print ("      break;")
 print ("  }")
-print ("  return USE_O;")
+print ("  return USE(O);")
 print ("}")
 print ()
 for k in sorted(use_mapping.keys()):
