@@ -32,29 +32,29 @@
 %%{
   machine indic_syllable_machine;
   alphtype unsigned char;
+  write exports;
   write data;
 }%%
 
 %%{
 
-# Same order as enum indic_category_t.  Not sure how to avoid duplication.
-C    = 1;
-V    = 2;
-N    = 3;
-H    = 4;
-ZWNJ = 5;
-ZWJ  = 6;
-M    = 7;
-SM   = 8;
-A    = 10;
-PLACEHOLDER = 11;
-DOTTEDCIRCLE = 12;
-RS    = 13;
-Repha = 15;
-Ra    = 16;
-CM    = 17;
-Symbol= 18;
-CS    = 19;
+export C    = 1;
+export V    = 2;
+export N    = 3;
+export H    = 4;
+export ZWNJ = 5;
+export ZWJ  = 6;
+export M    = 7;
+export SM   = 8;
+export A    = 10;
+export PLACEHOLDER = 11;
+export DOTTEDCIRCLE = 12;
+export RS    = 13;
+export Repha = 15;
+export Ra    = 16;
+export CM    = 17;
+export Symbol= 18;
+export CS    = 19;
 
 c = (C | Ra);			# is_consonant
 n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier

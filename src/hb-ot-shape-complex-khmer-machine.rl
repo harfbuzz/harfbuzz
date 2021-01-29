@@ -32,27 +32,27 @@
 %%{
   machine khmer_syllable_machine;
   alphtype unsigned char;
+  write exports;
   write data;
 }%%
 
 %%{
 
-# Same order as enum khmer_category_t.  Not sure how to avoid duplication.
-C    = 1;
-V    = 2;
-ZWNJ = 5;
-ZWJ  = 6;
-PLACEHOLDER = 11;
-DOTTEDCIRCLE = 12;
-Coeng= 14;
-Ra   = 16;
-Robatic = 20;
-Xgroup  = 21;
-Ygroup  = 22;
-VAbv = 26;
-VBlw = 27;
-VPre = 28;
-VPst = 29;
+export C    = 1;
+export V    = 2;
+export ZWNJ = 5;
+export ZWJ  = 6;
+export PLACEHOLDER = 11;
+export DOTTEDCIRCLE = 12;
+export Coeng= 14;
+export Ra   = 16;
+export Robatic = 20;
+export Xgroup  = 21;
+export Ygroup  = 22;
+export VAbv = 26;
+export VBlw = 27;
+export VPre = 28;
+export VPst = 29;
 
 c = (C | Ra | V);
 cn = c.((ZWJ|ZWNJ)?.Robatic)?;

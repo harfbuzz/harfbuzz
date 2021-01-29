@@ -33,6 +33,34 @@
 
 
 #line 36 "hb-ot-shape-complex-myanmar-machine.hh"
+#define myanmar_syllable_machine_ex_A 10u
+#define myanmar_syllable_machine_ex_As 18u
+#define myanmar_syllable_machine_ex_C 1u
+#define myanmar_syllable_machine_ex_CS 19u
+#define myanmar_syllable_machine_ex_D 32u
+#define myanmar_syllable_machine_ex_D0 20u
+#define myanmar_syllable_machine_ex_DB 3u
+#define myanmar_syllable_machine_ex_GB 11u
+#define myanmar_syllable_machine_ex_H 4u
+#define myanmar_syllable_machine_ex_IV 2u
+#define myanmar_syllable_machine_ex_MH 21u
+#define myanmar_syllable_machine_ex_MR 22u
+#define myanmar_syllable_machine_ex_MW 23u
+#define myanmar_syllable_machine_ex_MY 24u
+#define myanmar_syllable_machine_ex_P 31u
+#define myanmar_syllable_machine_ex_PT 25u
+#define myanmar_syllable_machine_ex_Ra 16u
+#define myanmar_syllable_machine_ex_V 8u
+#define myanmar_syllable_machine_ex_VAbv 26u
+#define myanmar_syllable_machine_ex_VBlw 27u
+#define myanmar_syllable_machine_ex_VPre 28u
+#define myanmar_syllable_machine_ex_VPst 29u
+#define myanmar_syllable_machine_ex_VS 30u
+#define myanmar_syllable_machine_ex_ZWJ 6u
+#define myanmar_syllable_machine_ex_ZWNJ 5u
+
+
+#line 64 "hb-ot-shape-complex-myanmar-machine.hh"
 static const unsigned char _myanmar_syllable_machine_trans_keys[] = {
 	1u, 32u, 3u, 30u, 5u, 29u, 5u, 8u, 5u, 29u, 3u, 25u, 5u, 25u, 5u, 25u, 
 	3u, 29u, 3u, 29u, 3u, 29u, 3u, 29u, 1u, 16u, 3u, 29u, 3u, 29u, 3u, 29u, 
@@ -293,7 +321,7 @@ static const int myanmar_syllable_machine_error = -1;
 static const int myanmar_syllable_machine_en_main = 0;
 
 
-#line 36 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 37 "hb-ot-shape-complex-myanmar-machine.rl"
 
 
 
@@ -316,7 +344,7 @@ find_syllables_myanmar (hb_buffer_t *buffer)
   int cs;
   hb_glyph_info_t *info = buffer->info;
   
-#line 320 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 348 "hb-ot-shape-complex-myanmar-machine.hh"
 	{
 	cs = myanmar_syllable_machine_start;
 	ts = 0;
@@ -332,7 +360,7 @@ find_syllables_myanmar (hb_buffer_t *buffer)
 
   unsigned int syllable_serial = 1;
   
-#line 336 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 364 "hb-ot-shape-complex-myanmar-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -346,7 +374,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 350 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 378 "hb-ot-shape-complex-myanmar-machine.hh"
 	}
 
 	_keys = _myanmar_syllable_machine_trans_keys + (cs<<1);
@@ -396,7 +424,7 @@ _eof_trans:
 #line 90 "hb-ot-shape-complex-myanmar-machine.rl"
 	{te = p;p--;{ found_syllable (non_myanmar_cluster); }}
 	break;
-#line 400 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 428 "hb-ot-shape-complex-myanmar-machine.hh"
 	}
 
 _again:
@@ -405,7 +433,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 409 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 437 "hb-ot-shape-complex-myanmar-machine.hh"
 	}
 
 	if ( ++p != pe )

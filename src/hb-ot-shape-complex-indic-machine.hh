@@ -33,6 +33,26 @@
 
 
 #line 36 "hb-ot-shape-complex-indic-machine.hh"
+#define indic_syllable_machine_ex_A 10u
+#define indic_syllable_machine_ex_C 1u
+#define indic_syllable_machine_ex_CM 17u
+#define indic_syllable_machine_ex_CS 19u
+#define indic_syllable_machine_ex_DOTTEDCIRCLE 12u
+#define indic_syllable_machine_ex_H 4u
+#define indic_syllable_machine_ex_M 7u
+#define indic_syllable_machine_ex_N 3u
+#define indic_syllable_machine_ex_PLACEHOLDER 11u
+#define indic_syllable_machine_ex_RS 13u
+#define indic_syllable_machine_ex_Ra 16u
+#define indic_syllable_machine_ex_Repha 15u
+#define indic_syllable_machine_ex_SM 8u
+#define indic_syllable_machine_ex_Symbol 18u
+#define indic_syllable_machine_ex_V 2u
+#define indic_syllable_machine_ex_ZWJ 6u
+#define indic_syllable_machine_ex_ZWNJ 5u
+
+
+#line 56 "hb-ot-shape-complex-indic-machine.hh"
 static const unsigned char _indic_syllable_machine_trans_keys[] = {
 	8u, 8u, 4u, 8u, 5u, 7u, 5u, 8u, 4u, 8u, 6u, 6u, 16u, 16u, 4u, 8u, 
 	4u, 13u, 4u, 8u, 8u, 8u, 5u, 7u, 5u, 8u, 4u, 8u, 6u, 6u, 16u, 16u, 
@@ -384,7 +404,7 @@ static const int indic_syllable_machine_error = -1;
 static const int indic_syllable_machine_en_main = 39;
 
 
-#line 36 "hb-ot-shape-complex-indic-machine.rl"
+#line 37 "hb-ot-shape-complex-indic-machine.rl"
 
 
 
@@ -407,7 +427,7 @@ find_syllables_indic (hb_buffer_t *buffer)
   int cs;
   hb_glyph_info_t *info = buffer->info;
   
-#line 411 "hb-ot-shape-complex-indic-machine.hh"
+#line 431 "hb-ot-shape-complex-indic-machine.hh"
 	{
 	cs = indic_syllable_machine_start;
 	ts = 0;
@@ -423,7 +443,7 @@ find_syllables_indic (hb_buffer_t *buffer)
 
   unsigned int syllable_serial = 1;
   
-#line 427 "hb-ot-shape-complex-indic-machine.hh"
+#line 447 "hb-ot-shape-complex-indic-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -437,7 +457,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 441 "hb-ot-shape-complex-indic-machine.hh"
+#line 461 "hb-ot-shape-complex-indic-machine.hh"
 	}
 
 	_keys = _indic_syllable_machine_trans_keys + (cs<<1);
@@ -540,7 +560,7 @@ _eof_trans:
 #line 89 "hb-ot-shape-complex-indic-machine.rl"
 	{act = 6;}
 	break;
-#line 544 "hb-ot-shape-complex-indic-machine.hh"
+#line 564 "hb-ot-shape-complex-indic-machine.hh"
 	}
 
 _again:
@@ -549,7 +569,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 553 "hb-ot-shape-complex-indic-machine.hh"
+#line 573 "hb-ot-shape-complex-indic-machine.hh"
 	}
 
 	if ( ++p != pe )
