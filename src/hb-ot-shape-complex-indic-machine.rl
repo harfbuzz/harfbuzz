@@ -90,12 +90,12 @@ broken_cluster =	reph? n? complex_syllable_tail;
 other =			any;
 
 main := |*
-	consonant_syllable	=> { found_syllable (consonant_syllable); };
-	vowel_syllable		=> { found_syllable (vowel_syllable); };
-	standalone_cluster	=> { found_syllable (standalone_cluster); };
-	symbol_cluster		=> { found_syllable (symbol_cluster); };
-	broken_cluster		=> { found_syllable (broken_cluster); };
-	other			=> { found_syllable (non_indic_cluster); };
+	consonant_syllable	=> { found_syllable (indic_consonant_syllable); };
+	vowel_syllable		=> { found_syllable (indic_vowel_syllable); };
+	standalone_cluster	=> { found_syllable (indic_standalone_cluster); };
+	symbol_cluster		=> { found_syllable (indic_symbol_cluster); };
+	broken_cluster		=> { found_syllable (indic_broken_cluster); };
+	other			=> { found_syllable (indic_non_indic_cluster); };
 *|;
 
 
@@ -105,7 +105,7 @@ main := |*
   HB_STMT_START { \
     if (0) fprintf (stderr, "syllable %d..%d %s\n", ts, te, #syllable_type); \
     for (unsigned int i = ts; i < te; i++) \
-      info[i].syllable() = (syllable_serial << 4) | indic_##syllable_type; \
+      info[i].syllable() = (syllable_serial << 4) | syllable_type; \
     syllable_serial++; \
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
