@@ -31,9 +31,10 @@
  * UnicodeData.txt does not have a header.
  */
 
-#include "hb.hh"
+#ifndef HB_OT_SHAPE_COMPLEX_USE_TABLE_HH
+#define HB_OT_SHAPE_COMPLEX_USE_TABLE_HH
 
-#ifndef HB_NO_OT_SHAPE
+#include "hb.hh"
 
 #include "hb-ot-shape-complex-use-machine.hh"
 
@@ -80,7 +81,7 @@
 #define VMPre	USE(VMPre)
 #pragma GCC diagnostic pop
 
-static const USE_TABLE_ELEMENT_TYPE use_table[] = {
+static const uint8_t use_table[] = {
 
 
 #define use_offset_0x0028u 0
@@ -1066,7 +1067,7 @@ static const USE_TABLE_ELEMENT_TYPE use_table[] = {
 
 }; /* Table items: 8824; occupancy: 79% */
 
-USE_TABLE_ELEMENT_TYPE
+static inline uint8_t
 hb_use_get_category (hb_codepoint_t u)
 {
   switch (u >> 12)
@@ -1198,5 +1199,5 @@ hb_use_get_category (hb_codepoint_t u)
 #undef VMPre
 
 
-#endif
+#endif /* HB_OT_SHAPE_COMPLEX_USE_TABLE_HH */
 /* == End of generated table == */

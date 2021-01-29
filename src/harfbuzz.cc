@@ -31,7 +31,6 @@
 #include "hb-ot-shape-complex-myanmar.cc"
 #include "hb-ot-shape-complex-syllabic.cc"
 #include "hb-ot-shape-complex-thai.cc"
-#include "hb-ot-shape-complex-use-table.cc"
 #include "hb-ot-shape-complex-use.cc"
 #include "hb-ot-shape-complex-vowel-constraints.cc"
 #include "hb-ot-shape-fallback.cc"
