@@ -29,6 +29,13 @@
 
 #include "hb.hh"
 
+enum myanmar_syllable_type_t {
+  myanmar_consonant_syllable,
+  myanmar_punctuation_cluster,
+  myanmar_broken_cluster,
+  myanmar_non_myanmar_cluster,
+};
+
 %%{
   machine myanmar_syllable_machine;
   alphtype unsigned char;

@@ -29,6 +29,12 @@
 
 #include "hb.hh"
 
+enum khmer_syllable_type_t {
+  khmer_consonant_syllable,
+  khmer_broken_cluster,
+  khmer_non_khmer_cluster,
+};
+
 %%{
   machine khmer_syllable_machine;
   alphtype unsigned char;

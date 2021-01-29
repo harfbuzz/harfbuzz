@@ -29,6 +29,7 @@
 #ifndef HB_NO_OT_SHAPE
 
 #include "hb-ot-shape-complex-myanmar.hh"
+#include "hb-ot-shape-complex-myanmar-machine.hh"
 
 
 /*
@@ -96,17 +97,6 @@ collect_features_myanmar (hb_ot_shape_planner_t *plan)
   for (unsigned int i = 0; i < ARRAY_LENGTH (myanmar_other_features); i++)
     map->enable_feature (myanmar_other_features[i], F_MANUAL_ZWJ);
 }
-
-
-enum myanmar_syllable_type_t {
-  myanmar_consonant_syllable,
-  myanmar_punctuation_cluster,
-  myanmar_broken_cluster,
-  myanmar_non_myanmar_cluster,
-};
-
-#include "hb-ot-shape-complex-myanmar-machine.hh"
-
 
 static void
 setup_masks_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,

@@ -31,6 +31,22 @@
 
 #include "hb.hh"
 
+/* buffer var allocations */
+#define use_category() complex_var_u8_category()
+
+enum use_syllable_type_t {
+  use_independent_cluster,
+  use_virama_terminated_cluster,
+  use_sakot_terminated_cluster,
+  use_standard_cluster,
+  use_number_joiner_terminated_cluster,
+  use_numeral_cluster,
+  use_symbol_cluster,
+  use_hieroglyph_cluster,
+  use_broken_cluster,
+  use_non_cluster,
+};
+
 %%{
   machine use_syllable_machine;
   alphtype unsigned char;

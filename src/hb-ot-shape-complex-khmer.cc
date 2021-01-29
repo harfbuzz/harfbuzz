@@ -29,6 +29,7 @@
 #ifndef HB_NO_OT_SHAPE
 
 #include "hb-ot-shape-complex-khmer.hh"
+#include "hb-ot-shape-complex-khmer-machine.hh"
 #include "hb-ot-layout.hh"
 
 
@@ -185,15 +186,6 @@ data_destroy_khmer (void *data)
 {
   free (data);
 }
-
-
-enum khmer_syllable_type_t {
-  khmer_consonant_syllable,
-  khmer_broken_cluster,
-  khmer_non_khmer_cluster,
-};
-
-#include "hb-ot-shape-complex-khmer-machine.hh"
 
 static void
 setup_masks_khmer (const hb_ot_shape_plan_t *plan HB_UNUSED,

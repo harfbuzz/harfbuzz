@@ -29,6 +29,7 @@
 #ifndef HB_NO_OT_SHAPE
 
 #include "hb-ot-shape-complex-indic.hh"
+#include "hb-ot-shape-complex-indic-machine.hh"
 #include "hb-ot-shape-complex-vowel-constraints.hh"
 #include "hb-ot-layout.hh"
 
@@ -336,19 +337,6 @@ consonant_position_from_face (const indic_shape_plan_t *indic_plan,
     return POS_POST_C;
   return POS_BASE_C;
 }
-
-
-enum indic_syllable_type_t {
-  indic_consonant_syllable,
-  indic_vowel_syllable,
-  indic_standalone_cluster,
-  indic_symbol_cluster,
-  indic_broken_cluster,
-  indic_non_indic_cluster,
-};
-
-#include "hb-ot-shape-complex-indic-machine.hh"
-
 
 static void
 setup_masks_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
