@@ -37,8 +37,6 @@
 #define indic_position() complex_var_u8_auxiliary() /* indic_position_t */
 
 
-#define INDIC_TABLE_ELEMENT_TYPE uint16_t
-
 /* Cateories used in the OpenType spec:
  * https://docs.microsoft.com/en-us/typography/script-development/devanagari
  */
@@ -194,7 +192,7 @@ enum indic_matra_category_t {
     ) \
    )
 
-HB_INTERNAL INDIC_TABLE_ELEMENT_TYPE
+HB_INTERNAL uint16_t
 hb_indic_get_categories (hb_codepoint_t u);
 
 
