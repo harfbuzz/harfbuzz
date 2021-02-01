@@ -60,7 +60,7 @@ enum use_syllable_type_t {
 
 %%{
 
-# Cateories used in the Universal Shaping Engine spec:
+# Categories used in the Universal Shaping Engine spec:
 # https://docs.microsoft.com/en-us/typography/script-development/use
 
 export O	= 0; # OTHER
