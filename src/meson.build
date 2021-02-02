@@ -272,9 +272,7 @@ hb_subset_sources = files(
   'hb-subset-input.hh',
   'hb-subset-plan.cc',
   'hb-subset-plan.hh',
-  'hb-subset-plan.hh',
   'hb-subset.cc',
-  'hb-subset.hh',
   'hb-subset.hh',
 )
 
