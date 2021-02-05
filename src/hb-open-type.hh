@@ -80,14 +80,21 @@ struct IntType
 
     return pb->cmp (*pa);
   }
-  template <typename Type2>
+  template <typename Type2,
+	    hb_enable_if (hb_is_integral (Type2) &&
+			  sizeof (Type2) < sizeof (int) &&
+			  sizeof (Type) < sizeof (int))>
   int cmp (Type2 a) const
   {
     Type b = v;
-    if (sizeof (Type) < sizeof (int) && sizeof (Type2) < sizeof (int))
-      return (int) a - (int) b;
-    else
-      return a < b ? -1 : a == b ? 0 : +1;
+    return (int) a - (int) b;
+  }
+  template <typename Type2,
+	    hb_enable_if (hb_is_convertible (Type2, Type))>
+  int cmp (Type2 a) const
+  {
+    Type b = v;
+    return a < b ? -1 : a == b ? 0 : +1;
   }
   bool sanitize (hb_sanitize_context_t *c) const
   {
