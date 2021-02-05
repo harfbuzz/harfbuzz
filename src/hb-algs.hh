@@ -307,13 +307,13 @@ struct
   template <typename T1, typename T2> auto
   impl (T1&& v1, T2 &&v2, hb_priority<2>) const HB_AUTO_RETURN
   (
-    hb_forward<T2> (v2). cmp (hb_forward<T1> (v1)) == 0
+    hb_forward<T2> (v2).cmp (hb_forward<T1> (v1)) == 0
   )
 
   template <typename T1, typename T2> auto
   impl (T1&& v1, T2 &&v2, hb_priority<1>) const HB_AUTO_RETURN
   (
-    hb_forward<T1> (v1). cmp (hb_forward<T2> (v2)) == 0
+    hb_forward<T1> (v1).cmp (hb_forward<T2> (v2)) == 0
   )
 
   template <typename T1, typename T2> auto
