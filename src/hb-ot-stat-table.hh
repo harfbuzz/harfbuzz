@@ -316,7 +316,7 @@ struct STAT
   hb_ot_name_id_t get_axis_record_name_id (unsigned axis_record_index) const
   {
     if (unlikely (axis_record_index >= designAxisCount)) return HB_OT_NAME_ID_INVALID;
-    const StatAxisRecord &axis_record = get_design_axes ()[axis_record_index];
+    const StatAxisRecord axis_record (get_design_axes ()[axis_record_index]);
     return axis_record.get_name_id ();
   }
 
