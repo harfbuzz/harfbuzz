@@ -301,8 +301,9 @@
     <programlisting language="C">
       hb_font_t *subfont = hb_font_create_sub_font (font)
       hb_font_funcs_t *ffunctions = hb_font_funcs_create ();
-      hb_font_funcs_set_nominal_glyph_func(ffunctions, func, user_data, destroy);
+      hb_font_funcs_set_nominal_glyph_func (ffunctions, func, user_data, destroy);
       hb_font_set_funcs (subfont, ffunctions, font_data, destroy);
+      hb_font_funcs_destroy (ffunctions);
     </programlisting>
   </section>
 
