@@ -1187,7 +1187,7 @@ static inline bool apply_lookup (hb_ot_apply_context_t *c,
 
     /* Don't recurse to ourself at same position.
      * Note that this test is too naive, it doesn't catch longer loops. */
-    if (idx == 0 && lookupRecord[i].lookupListIndex == c->lookup_index)
+    if (unlikely (idx == 0 && lookupRecord[i].lookupListIndex == c->lookup_index))
       continue;
 
     if (unlikely (!buffer->move_to (match_positions[idx])))
@@ -1225,7 +1225,8 @@ static inline bool apply_lookup (hb_ot_apply_context_t *c,
      *     mean that n match positions where removed, as there might
      *     have been marks and default-ignorables in the sequence.  We
      *     should instead drop match positions between current-position
-     *     and current-position + n instead.
+     *     and current-position + n instead. Though, am not sure which
+     *     one is better. Both cases have valid uses. Sigh.
      *
      * It should be possible to construct tests for both of these cases.
      */
