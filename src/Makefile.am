@@ -425,14 +425,7 @@ HarfBuzz_0_0_gir_INCLUDES = GObject-2.0
 HarfBuzz_0_0_gir_CFLAGS = \
 	$(INCLUDES) \
 	$(HBCFLAGS) \
-	-DHB_H \
-	-DHB_H_IN \
-	-DHB_OT_H \
-	-DHB_OT_H_IN \
-	-DHB_AAT_H \
-	-DHB_AAT_H_IN \
-	-DHB_GOBJECT_H \
-	-DHB_GOBJECT_H_IN \
+	-DHB_NO_SINGLE_HEADER_ERROR \
 	-DHAVE_GOBJECT \
 	-DHB_EXTERN= \
 	$(NULL)
