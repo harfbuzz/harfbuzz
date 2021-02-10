@@ -2757,8 +2757,8 @@ struct ChainContextFormat2
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
     | hb_enumerate
-    | hb_filter([&] (unsigned gid)
-    { return input_class_def.intersects_class (c->glyphs, gid); }, hb_first)
+    | hb_filter([&] (unsigned klass)
+    { return input_class_def.intersects_class (c->glyphs, klass); }, hb_first)
     | hb_map (hb_second)
     | hb_apply ([&] (const ChainRuleSet &_)
     { _.closure_lookups (c, lookup_context); })
