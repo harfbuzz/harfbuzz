@@ -256,10 +256,11 @@ struct hb_serialize_context_t
 
     packed.push (obj);
 
-    if (unlikely (packed.in_error ())) {
-      // obj wasn't successfully added to packed, so clean it up otherwise it's
-      // links will be leaked.
-      propagate_error (packed);
+    if (unlikely (!propagate_error (packed)))
+    {
+      /* Obj wasn't successfully added to packed, so clean it up otherwise its
+       * links will be leaked. When we use constructor/destructors properly, we
+       * can remove these. */
       obj->fini ();
       return 0;
     }
