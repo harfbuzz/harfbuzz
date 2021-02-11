@@ -186,7 +186,7 @@ struct glyf
     | hb_map (&SubsetGlyph::padded_size)
     ;
 
-    if (c->serializer->in_error ()) return_trace (false);
+    if (unlikely (c->serializer->in_error ())) return_trace (false);
     return_trace (c->serializer->check_success (_add_loca_and_head (c->plan,
 								    padded_offsets)));
   }

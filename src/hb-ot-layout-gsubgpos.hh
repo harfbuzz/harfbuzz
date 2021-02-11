@@ -89,7 +89,7 @@ struct hb_closure_context_t :
 
   bool is_lookup_done (unsigned int lookup_index)
   {
-    if (done_lookups->in_error ())
+    if (unlikely (done_lookups->in_error ()))
       return true;
 
     /* Have we visited this lookup with the current set of glyphs? */
@@ -162,10 +162,10 @@ struct hb_closure_lookups_context_t :
 
   bool is_lookup_visited (unsigned lookup_index)
   {
-    if (lookup_count++ > HB_MAX_LOOKUP_INDICES)
+    if (unlikely (lookup_count++ > HB_MAX_LOOKUP_INDICES))
       return true;
 
-    if (visited_lookups->in_error ())
+    if (unlikely (visited_lookups->in_error ()))
       return true;
 
     return visited_lookups->has (lookup_index);
@@ -3397,7 +3397,7 @@ struct GSUBGPOS
     hb_set_t alternate_feature_indices;
     if (version.to_int () >= 0x00010001u)
       (this+featureVars).closure_features (lookup_indices, &alternate_feature_indices);
-    if (alternate_feature_indices.in_error()) {
+    if (unlikely (alternate_feature_indices.in_error())) {
       feature_indices->successful = false;
       return;
     }
