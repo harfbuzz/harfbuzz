@@ -566,6 +566,26 @@ struct AnchorMatrix
     return_trace (true);
   }
 
+  bool subset (hb_subset_context_t *c,
+	       unsigned cols,
+	       const hb_map_t *klass_mapping) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+
+    auto indexes =
+    + hb_range (rows * cols)
+    | hb_filter ([=] (unsigned index) { return klass_mapping->has (index % cols); })
+    ;
+
+    out->serialize (c->serializer,
+                    (unsigned) rows,
+                    this,
+                    c->plan->layout_variation_idx_map,
+                    indexes);
+    return_trace (true);
+  }
+
   bool sanitize (hb_sanitize_context_t *c, unsigned int cols) const
   {
     TRACE_SANITIZE (this);
@@ -2025,10 +2045,40 @@ typedef AnchorMatrix LigatureAttach;	/* component-major--
 					 * mark-minor--
 					 * ordered by class--zero-based. */
 
-typedef OffsetListOf<LigatureAttach> LigatureArray;
-					/* Array of LigatureAttach
-					 * tables ordered by
-					 * LigatureCoverage Index */
+/* Array of LigatureAttach tables ordered by LigatureCoverage Index */
+struct LigatureArray : OffsetListOf<LigatureAttach>
+{
+  template <typename Iterator,
+	    hb_requires (hb_is_iterator (Iterator))>
+  bool subset (hb_subset_context_t *c,
+	       Iterator		    coverage,
+	       unsigned		    class_count,
+	       const hb_map_t	   *klass_mapping) const
+  {
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
+
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!c->serializer->extend_min (out)))  return_trace (false);
+
+    unsigned ligature_count = 0;
+    for (hb_codepoint_t gid : coverage)
+    {
+      ligature_count++;
+      if (!glyphset.has (gid)) continue;
+
+      auto *matrix = out->serialize_append (c->serializer);
+      if (unlikely (!matrix)) return_trace (false);
+
+      matrix->serialize_subset (c,
+				this->arrayZ[ligature_count - 1],
+				this,
+				class_count,
+				klass_mapping);
+    }
+    return_trace (this->len);
+  }
+};
 
 struct MarkLigPosFormat1
 {
@@ -2130,8 +2180,56 @@ struct MarkLigPosFormat1
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    out->format = format;
+
+    hb_map_t klass_mapping;
+    Markclass_closure_and_remap_indexes (this+markCoverage, this+markArray, glyphset, &klass_mapping);
+
+    if (!klass_mapping.get_population ()) return_trace (false);
+    out->classCount = klass_mapping.get_population ();
+
+    auto mark_iter =
+    + hb_zip (this+markCoverage, this+markArray)
+    | hb_filter (glyphset, hb_first)
+    ;
+
+    auto new_mark_coverage =
+    + mark_iter
+    | hb_map_retains_sorting (hb_first)
+    | hb_map_retains_sorting (glyph_map)
+    ;
+
+    if (!out->markCoverage.serialize (c->serializer, out)
+			  .serialize (c->serializer, new_mark_coverage))
+      return_trace (false);
+
+    out->markArray.serialize (c->serializer, out)
+		  .serialize (c->serializer,
+                              &klass_mapping,
+                              c->plan->layout_variation_idx_map,
+                              &(this+markArray),
+                              + mark_iter
+                              | hb_map (hb_second));
+
+    auto new_ligature_coverage =
+    + hb_iter (this + ligatureCoverage)
+    | hb_filter (glyphset)
+    | hb_map_retains_sorting (glyph_map)
+    ;
+
+    if (!out->ligatureCoverage.serialize (c->serializer, out)
+			      .serialize (c->serializer, new_ligature_coverage))
+      return_trace (false);
+
+    out->ligatureArray.serialize_subset (c, ligatureArray, this,
+                                         hb_iter (this+ligatureCoverage), classCount, &klass_mapping);
+
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -2163,6 +2261,7 @@ struct MarkLigPosFormat1
   public:
   DEFINE_SIZE_STATIC (12);
 };
+
 
 struct MarkLigPos
 {

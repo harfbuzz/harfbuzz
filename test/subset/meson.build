@@ -9,6 +9,7 @@ tests = [
   'layout.gpos2',
   'layout.gpos3',
   'layout.gpos4',
+  'layout.gpos5',
   'layout.gpos6',
   'layout.gpos8',
   'layout.gpos8.amiri',
