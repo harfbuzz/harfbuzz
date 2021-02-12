@@ -44,23 +44,24 @@ namespace OT {
 struct hb_intersects_context_t :
        hb_dispatch_context_t<hb_intersects_context_t, bool>
 {
-  template <typename T>
-  return_t dispatch (const T &obj) { return obj.intersects (this->glyphs); }
-  static return_t default_return_value () { return false; }
-  bool stop_sublookup_iteration (return_t r) const { return r; }
-
   const hb_set_t *glyphs;
 
   hb_intersects_context_t (const hb_set_t *glyphs_) :
 			     glyphs (glyphs_) {}
+
+  /* Dispatch interface. */
+  template <typename T> auto
+  dispatch (const T &obj) HB_RETURN (return_t, obj.intersects (this->glyphs))
+  static return_t default_return_value () { return false; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
 };
 
 struct hb_closure_context_t :
        hb_dispatch_context_t<hb_closure_context_t>
 {
   typedef return_t (*recurse_func_t) (hb_closure_context_t *c, unsigned int lookup_index);
-  template <typename T>
-  return_t dispatch (const T &obj) { obj.closure (this); return hb_empty_t (); }
+  template <typename T> auto
+  dispatch (const T &obj) HB_RETURN (return_t, (obj.closure (this), hb_empty_t ()))
   static return_t default_return_value () { return hb_empty_t (); }
   void recurse (unsigned int lookup_index)
   {
@@ -134,8 +135,8 @@ struct hb_closure_lookups_context_t :
        hb_dispatch_context_t<hb_closure_lookups_context_t>
 {
   typedef return_t (*recurse_func_t) (hb_closure_lookups_context_t *c, unsigned lookup_index);
-  template <typename T>
-  return_t dispatch (const T &obj) { obj.closure_lookups (this); return hb_empty_t (); }
+  template <typename T> auto
+  dispatch (const T &obj) HB_RETURN (return_t, (obj.closure_lookups (this), hb_empty_t ()))
   static return_t default_return_value () { return hb_empty_t (); }
   void recurse (unsigned lookup_index)
   {
@@ -200,8 +201,8 @@ struct hb_closure_lookups_context_t :
 struct hb_would_apply_context_t :
        hb_dispatch_context_t<hb_would_apply_context_t, bool>
 {
-  template <typename T>
-  return_t dispatch (const T &obj) { return obj.would_apply (this); }
+  template <typename T> auto
+  dispatch (const T &obj) HB_RETURN (return_t, obj.would_apply (this))
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
 
@@ -224,8 +225,8 @@ struct hb_collect_glyphs_context_t :
        hb_dispatch_context_t<hb_collect_glyphs_context_t>
 {
   typedef return_t (*recurse_func_t) (hb_collect_glyphs_context_t *c, unsigned int lookup_index);
-  template <typename T>
-  return_t dispatch (const T &obj) { obj.collect_glyphs (this); return hb_empty_t (); }
+  template <typename T> auto
+  dispatch (const T &obj) HB_RETURN (return_t, (obj.collect_glyphs (this), hb_empty_t()))
   static return_t default_return_value () { return hb_empty_t (); }
   void recurse (unsigned int lookup_index)
   {
@@ -300,8 +301,8 @@ struct hb_collect_coverage_context_t :
        hb_dispatch_context_t<hb_collect_coverage_context_t<set_t>, const Coverage &>
 {
   typedef const Coverage &return_t; // Stoopid that we have to dupe this here.
-  template <typename T>
-  return_t dispatch (const T &obj) { return obj.get_coverage (); }
+  template <typename T> auto
+  dispatch (const T &obj) HB_RETURN (return_t, obj.get_coverage (this))
   static return_t default_return_value () { return Null (Coverage); }
   bool stop_sublookup_iteration (return_t r) const
   {
@@ -505,8 +506,8 @@ struct hb_ot_apply_context_t :
 
   const char *get_name () { return "APPLY"; }
   typedef return_t (*recurse_func_t) (hb_ot_apply_context_t *c, unsigned int lookup_index);
-  template <typename T>
-  return_t dispatch (const T &obj) { return obj.apply (this); }
+  template <typename T> auto
+  dispatch (const T &obj) HB_RETURN (return_t, obj.apply (this))
   static return_t default_return_value () { return false; }
   bool stop_sublookup_iteration (return_t r) const { return r; }
   return_t recurse (unsigned int sub_lookup_index)
@@ -3159,13 +3160,23 @@ struct ExtensionFormat1
   const X& get_subtable () const
   { return this + reinterpret_cast<const LOffsetTo<typename T::SubTable> &> (extensionOffset); }
 
-  template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
+  private:
+  /* If the context accepts dispatching to this object, call it. */
+  template <typename context_t, typename ...Ts> auto
+  _dispatch (context_t *c, hb_priority<1>, Ts&&... ds) const HB_AUTO_RETURN
+  ( c->dispatch (*this, hb_forward<Ts> (ds)...) )
+  /* Otherwise, dispatch to the referred sublookup. */
+  template <typename context_t, typename ...Ts> typename context_t::return_t
+  _dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, format);
     if (unlikely (!c->may_dispatch (this, this))) return_trace (c->no_dispatch_return_value ());
     return_trace (get_subtable<typename T::SubTable> ().dispatch (c, get_type (), hb_forward<Ts> (ds)...));
   }
+  public:
+  template <typename context_t, typename ...Ts> auto
+  dispatch (context_t *c, Ts&&... ds) const HB_AUTO_RETURN
+  ( _dispatch (c, hb_prioritize, hb_forward<Ts> (ds)...) )
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   { dispatch (c); }
@@ -3226,20 +3237,8 @@ struct Extension
     }
   }
 
-  // Specialization of dispatch for subset. dispatch() normally just
-  // dispatches to the sub table this points too, but for subset
-  // we need to run subset on this subtable too.
-  template <typename ...Ts>
-  typename hb_subset_context_t::return_t dispatch (hb_subset_context_t *c, Ts&&... ds) const
-  {
-    switch (u.format) {
-    case 1: return u.format1.subset (c);
-    default: return c->default_return_value ();
-    }
-  }
-
-  template <typename context_t, typename ...Ts>
-  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
+  template <typename context_t, typename ...Ts> typename context_t::return_t
+  dispatch (context_t *c, Ts&&... ds) const
   {
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
