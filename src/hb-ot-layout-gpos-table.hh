@@ -2064,6 +2064,9 @@ struct LigatureArray : OffsetListOf<LigatureAttach>
     unsigned ligature_count = 0;
     for (hb_codepoint_t gid : coverage)
     {
+      if (ligature_count >= this->len)
+        break;
+
       ligature_count++;
       if (!glyphset.has (gid)) continue;
 
