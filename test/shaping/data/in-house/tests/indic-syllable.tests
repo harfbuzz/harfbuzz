@@ -8,3 +8,5 @@
 ../fonts/81c368a33816fb20e9f647e8f24e2180f4720263.ttf:--no-glyph-names:U+0C80,U+0C82:[1=0+502|2=0+502]
 ../fonts/f75c4b05a0a4d67c1a808081ae3d74a9c66509e8.ttf::U+0A20,U+0A75,U+0A47:[tthaguru=0+1352|yakashguru=0@-90,0+0|eematraguru=0@-411,0+0]
 ../fonts/f75c4b05a0a4d67c1a808081ae3d74a9c66509e8.ttf::U+0A20,U+0A75,U+0A42:[tthaguru=0+1352|yakashuuguru=0+0]
+../fonts/b3075ca42b27dde7341c2d0ae16703c5b6640df0.ttf::U+0B2C,U+0B55,U+0B3E:[uni0B2C=0+641|uni0B55=0+0|uni0B3E=0+253]
+../fonts/b3075ca42b27dde7341c2d0ae16703c5b6640df0.ttf::U+0B2C,U+0B3E,U+0B55:[uni0B2C=0+641|uni0B3E=0+253|uni0B55=0+0]
