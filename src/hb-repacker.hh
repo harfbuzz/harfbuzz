@@ -83,7 +83,7 @@ struct graph_t
     {
       if (!priority) return 0;
       int64_t table_size = obj.tail - obj.head;
-      return -(table_size - table_size / (1 << priority));
+      return -(table_size - table_size / (1 << hb_min(priority, 16u)));
     }
   };
 
