@@ -159,7 +159,7 @@ test_advance_tt_var_anchor (void)
 
   g_assert_cmpint (extents.x_bearing, ==, 50);
   g_assert_cmpint (extents.y_bearing, ==, 667);
-  g_assert_cmpint (extents.width, ==, 593);
+  g_assert_cmpint (extents.width, ==, 592);
   g_assert_cmpint (extents.height, ==, -679);
 
   hb_font_destroy (font);
@@ -186,7 +186,7 @@ test_extents_tt_var_comp (void)
   g_assert_cmpint (extents.x_bearing, ==, 19);
   g_assert_cmpint (extents.y_bearing, ==, 663);
   g_assert_cmpint (extents.width, ==, 519);
-  g_assert_cmpint (extents.height, ==, -895);
+  g_assert_cmpint (extents.height, ==, -894);
 
   result = hb_font_get_glyph_extents (font, 3, &extents);	/* Cacute, acute y-scaled by 0.8, with unscaled component offset (default) */
   g_assert (result);
