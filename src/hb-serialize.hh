@@ -131,6 +131,7 @@ struct hb_serialize_context_t
   {
     this->successful = true;
     this->ran_out_of_room = false;
+    this->offset_overflow = false;
     this->head = this->start;
     this->tail = this->end;
     this->debug_depth = 0;
