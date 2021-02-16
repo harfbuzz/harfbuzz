@@ -363,6 +363,7 @@ set_indic_properties (hb_glyph_info_t &info)
   else if (unlikely (u == 0x1133Bu || u == 0x1133Cu)) cat = OT_N;
 
   else if (unlikely (u == 0x0AFBu)) cat = OT_N; /* https://github.com/harfbuzz/harfbuzz/issues/552 */
+  else if (unlikely (u == 0x0B55u)) cat = OT_N; /* https://github.com/harfbuzz/harfbuzz/issues/2849 */
 
   else if (unlikely (u == 0x0980u)) cat = OT_PLACEHOLDER; /* https://github.com/harfbuzz/harfbuzz/issues/538 */
   else if (unlikely (u == 0x09FCu)) cat = OT_PLACEHOLDER; /* https://github.com/harfbuzz/harfbuzz/pull/1613 */
