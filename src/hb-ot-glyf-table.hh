@@ -944,9 +944,9 @@ struct glyf
 	    return;
 	  }
 	  extents->x_bearing = font->em_scalef_x (min_x);
-	  extents->width = font->em_scalef_x (max_x - min_x);
+	  extents->width = font->em_scalef_x (max_x) - extents->x_bearing;
 	  extents->y_bearing = font->em_scalef_y (max_y);
-	  extents->height = font->em_scalef_y (min_y - max_y);
+	  extents->height = font->em_scalef_y (min_y) - extents->y_bearing;
 	}
 
 	protected:
