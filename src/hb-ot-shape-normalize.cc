@@ -419,6 +419,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
   /* Third round, recompose */
 
   if (!all_simple &&
+      buffer->successful &&
       (mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS ||
        mode == HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT))
   {
