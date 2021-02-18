@@ -729,9 +729,9 @@ struct ExtendedTypes
 template <typename Types, typename EntryData>
 struct StateTableDriver
 {
-  using StateTable = StateTable<Types, EntryData>;
+  using StateTableT = StateTable<Types, EntryData>;
 
-  StateTableDriver (const StateTable &machine_,
+  StateTableDriver (const StateTableT &machine_,
 		    hb_buffer_t *buffer_,
 		    hb_face_t *face_) :
 	      machine (machine_),
@@ -744,12 +744,12 @@ struct StateTableDriver
     if (!c->in_place)
       buffer->clear_output ();
 
-    int state = StateTable::STATE_START_OF_TEXT;
+    int state = StateTableT::STATE_START_OF_TEXT;
     for (buffer->idx = 0; buffer->successful;)
     {
       unsigned int klass = buffer->idx < buffer->len ?
 			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
-			   (unsigned) StateTable::CLASS_END_OF_TEXT;
+			   (unsigned) StateTableT::CLASS_END_OF_TEXT;
       DEBUG_MSG (APPLY, nullptr, "c%u at %u", klass, buffer->idx);
       const Entry<EntryData> &entry = machine.get_entry (state, klass);
 
@@ -762,7 +762,7 @@ struct StateTableDriver
 	/* If there's no action and we're just epsilon-transitioning to state 0,
 	 * safe to break. */
 	if (c->is_actionable (this, entry) ||
-	    !(entry.newState == StateTable::STATE_START_OF_TEXT &&
+	    !(entry.newState == StateTableT::STATE_START_OF_TEXT &&
 	      entry.flags == context_t::DontAdvance))
 	  buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
       }
@@ -770,7 +770,7 @@ struct StateTableDriver
       /* Unsafe-to-break if end-of-text would kick in here. */
       if (buffer->backtrack_len () && buffer->idx < buffer->len)
       {
-	const Entry<EntryData> &end_entry = machine.get_entry (state, StateTable::CLASS_END_OF_TEXT);
+	const Entry<EntryData> &end_entry = machine.get_entry (state, StateTableT::CLASS_END_OF_TEXT);
 	if (c->is_actionable (this, end_entry))
 	  buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
       }
@@ -796,7 +796,7 @@ struct StateTableDriver
   }
 
   public:
-  const StateTable &machine;
+  const StateTableT &machine;
   hb_buffer_t *buffer;
   unsigned int num_glyphs;
 };
