@@ -778,7 +778,7 @@ struct StateTableDriver
       state = machine.new_state (entry.newState);
       DEBUG_MSG (APPLY, nullptr, "s%d", state);
 
-      if (buffer->idx == buffer->len)
+      if (buffer->idx == buffer->len || unlikely (!buffer->successful))
 	break;
 
       if (!(entry.flags & context_t::DontAdvance) || buffer->max_ops-- <= 0)
