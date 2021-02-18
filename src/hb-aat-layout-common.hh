@@ -730,6 +730,7 @@ template <typename Types, typename EntryData>
 struct StateTableDriver
 {
   using StateTableT = StateTable<Types, EntryData>;
+  using EntryT = Entry<EntryData>;
 
   StateTableDriver (const StateTableT &machine_,
 		    hb_buffer_t *buffer_,
@@ -751,33 +752,79 @@ struct StateTableDriver
 			   machine.get_class (buffer->info[buffer->idx].codepoint, num_glyphs) :
 			   (unsigned) StateTableT::CLASS_END_OF_TEXT;
       DEBUG_MSG (APPLY, nullptr, "c%u at %u", klass, buffer->idx);
-      const Entry<EntryData> &entry = machine.get_entry (state, klass);
+      const EntryT &entry = machine.get_entry (state, klass);
+      const int next_state = machine.new_state (entry.newState);
 
-      /* Unsafe-to-break before this if not in state 0, as things might
-       * go differently if we start from state 0 here.
+      /* Conditions under which it's guaranteed safe-to-break before current glyph:
        *
-       * Ugh.  The indexing here is ugly... */
-      if (state && buffer->backtrack_len () && buffer->idx < buffer->len)
-      {
-	/* If there's no action and we're just epsilon-transitioning to state 0,
-	 * safe to break. */
-	if (c->is_actionable (this, entry) ||
-	    !(entry.newState == StateTableT::STATE_START_OF_TEXT &&
-	      entry.flags == context_t::DontAdvance))
-	  buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
-      }
+       * 1. There was no action in this transition; and
+       *
+       * 2. If we break before current glyph, the results will be the same. That
+       *    is guaranteed if:
+       *
+       *    2a. We were already in start-of-text state; or
+       *
+       *    2b. We are epsilon-transitioning to start-of-text state; or
+       *
+       *    2c. Starting from start-of-text state seeing current glyph:
+       *
+       *        2c'. There won't be any actions; and
+       *
+       *        2c". We would end up in the same state that we were going to end up
+       *             in now, including whether epsilon-transitioning.
+       *
+       *    and
+       *
+       * 3. If we break before current glyph, there won't be any end-of-text action
+       *    after previous glyph.
+       *
+       * This triples the transitions we need to look up, but is worth returning
+       * granular unsafe-to-break results. See eg.:
+       *
+       *   https://github.com/harfbuzz/harfbuzz/issues/2860
+       */
+      const EntryT *wouldbe_entry;
+      bool safe_to_break =
+	/* 1. */
+	!c->is_actionable (this, entry)
+      &&
+	/* 2. */
+	(
+	  /* 2a. */
+	  state == StateTableT::STATE_START_OF_TEXT
+	||
+	  /* 2b. */
+	  (
+	    (entry.flags & context_t::DontAdvance) &&
+	    next_state == StateTableT::STATE_START_OF_TEXT
+	  )
+	||
+	  /* 2c. */
+	  (
+	    wouldbe_entry = &machine.get_entry (StateTableT::STATE_START_OF_TEXT, klass)
+	  ,
+	    /* 2c'. */
+	    !c->is_actionable (this, *wouldbe_entry)
+	  &&
+	    /* 2c". */
+	    (
+	      next_state == machine.new_state (wouldbe_entry->newState)
+	    &&
+	      (entry.flags & context_t::DontAdvance) == (wouldbe_entry->flags & context_t::DontAdvance)
+	    )
+	  )
+	)
+      &&
+	/* 3. */
+	!c->is_actionable (this, machine.get_entry (state, StateTableT::CLASS_END_OF_TEXT))
+      ;
 
-      /* Unsafe-to-break if end-of-text would kick in here. */
-      if (buffer->backtrack_len () && buffer->idx < buffer->len)
-      {
-	const Entry<EntryData> &end_entry = machine.get_entry (state, StateTableT::CLASS_END_OF_TEXT);
-	if (c->is_actionable (this, end_entry))
-	  buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
-      }
+      if (!safe_to_break && buffer->backtrack_len () && buffer->idx < buffer->len)
+	buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
 
       c->transition (this, entry);
 
-      state = machine.new_state (entry.newState);
+      state = next_state;
       DEBUG_MSG (APPLY, nullptr, "s%d", state);
 
       if (buffer->idx == buffer->len || unlikely (!buffer->successful))
