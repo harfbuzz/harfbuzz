@@ -86,6 +86,8 @@ struct CmapSubtableFormat0
 
 struct CmapSubtableFormat4
 {
+  unsigned get_language () const
+  { return (unsigned)language; }
 
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
@@ -683,6 +685,8 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
   { return likely (group.startCharCode <= group.endCharCode) ?
 	   group.glyphID + (u - group.startCharCode) : 0; }
 
+  unsigned get_language () const
+  { return (unsigned)language; }
 
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
@@ -1348,6 +1352,177 @@ struct cmap
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_cmap;
 
+  template<typename Iterable1, typename Iterable2,
+           hb_requires (hb_is_iterator (Iterable1)),
+           hb_requires (hb_is_iterator (Iterable2))>
+  bool compare_iterators (Iterable1 Iter_1, Iterable2 Iter_2) const
+  {
+    if (Iter_1.len () != Iter_2.len ())
+      return false;
+
+    for (auto pair : + hb_zip (Iter_1, Iter_2))
+    {
+      if (pair.first != pair.second)
+        return false;
+    }
+    return true;
+  }
+
+  template<typename Iterator,
+	   hb_requires (hb_is_iterator (Iterator))>
+  bool categorize_sub_tables (Iterator encodingrec_iter,
+                              hb_hashmap_t<unsigned, const EncodingRecord *, (unsigned)-1, nullptr>& unicode_bmp_tables, /* INOUT */
+                              hb_hashmap_t<unsigned, const EncodingRecord *, (unsigned)-1, nullptr>& ms_bmp_tables, /* INOUT */
+                              hb_map_t& format12_table_languages /* INOUT */) const
+  {
+    const EncodingRecord *unicode_bmp= nullptr, *unicode_ucs4 = nullptr, *ms_bmp = nullptr, *ms_ucs4 = nullptr;
+    bool has_format12 = false;
+    for (auto _ : encodingrec_iter)
+    {
+      const EncodingRecord& record = _.first;
+      unsigned index = _.second;
+      unsigned format = (this + record.subtable).u.format;
+      const EncodingRecord *table = hb_addressof (record);
+      if (format == 12)
+      {
+        has_format12 = true;
+        if ((record.platformID == 0 && record.encodingID == 4) ||
+            (record.platformID == 3 && record.encodingID == 10))
+        {
+          unsigned language = (this+record.subtable).u.format12.get_language ();
+          format12_table_languages.set (index, language);
+        }
+      }
+
+      if (record.platformID == 0 && record.encodingID ==  3)
+      {
+        unicode_bmp = table;
+        if (format == 4)
+        {
+          unsigned language = (this+record.subtable).u.format4.get_language ();
+          unicode_bmp_tables.set (language, table);
+        }
+      }
+      else if (record.platformID == 0 && record.encodingID ==  4) unicode_ucs4 = table;
+      else if (record.platformID == 3 && record.encodingID ==  1)
+      {
+        ms_bmp = table;
+        if (format == 4)
+        {
+          unsigned language = (this+record.subtable).u.format4.get_language ();
+          ms_bmp_tables.set (language, table);
+        }
+      }
+      else if (record.platformID == 3 && record.encodingID == 10) ms_ucs4 = table;
+    }
+
+    if (unlikely (!has_format12 && !unicode_bmp && !ms_bmp)) return false;
+    if (unlikely (has_format12 && (!unicode_ucs4 && !ms_ucs4))) return false;
+
+    return true;
+  }
+
+  template<typename Iterator,
+           hb_requires (hb_is_iterator (Iterator))>
+  void prune_redundant_format12_tables (hb_subset_plan_t *plan,
+                                        hb_map_t& format12_table_languages,
+                                        Iterator unicode_gid_pairs,
+                                        hb_hashmap_t<unsigned, const EncodingRecord *, (unsigned)-1, nullptr>& unicode_bmp_tables,
+                                        hb_hashmap_t<unsigned, const EncodingRecord *, (unsigned)-1, nullptr>& ms_bmp_tables,
+                                        hb_set_t& redundant_format12_tables /* OUT */) const
+  {
+    for (auto _ : format12_table_languages.iter ())
+    {
+      unsigned language =_.second;
+      const EncodingRecord *format4_tbl = nullptr;
+      const EncodingRecord *format12_tbl = hb_addressof (encodingRecord[_.first]);
+      if (format12_tbl->platformID == 0 && format12_tbl->encodingID == 4)
+      {
+        if (!unicode_bmp_tables.has (language))
+          continue;
+        format4_tbl = unicode_bmp_tables.get (language);
+      }
+
+      if (format12_tbl->platformID == 3 && format12_tbl->encodingID == 10)
+      {
+        if (!ms_bmp_tables.has (language))
+          continue;
+        format4_tbl = ms_bmp_tables.get (language);
+      }
+
+      if (!format4_tbl) continue;
+
+      if (!plan->glyphs_requested->is_empty ())
+      {
+        hb_set_t format12_unicodes_set;
+        hb_map_t format12_cp_glyphid_map;
+        (this+format12_tbl->subtable).collect_mapping (&format12_unicodes_set, &format12_cp_glyphid_map);
+
+        //auto format12_iter = gen_subtable_cp_glyphid_iter (plan, format12_tbl);
+        auto format12_iter =
+        + hb_zip (format12_unicodes_set.iter(), format12_unicodes_set.iter() | hb_map(format12_cp_glyphid_map))
+        | hb_filter (plan->_glyphset, hb_second)
+        | hb_filter ([plan] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& p)
+                     {
+                       return plan->unicodes->has (p.first) ||
+                              plan->glyphs_requested->has (p.second);
+                     })
+        | hb_map (hb_first)
+        ;
+
+        if (!format12_iter.len ())
+          continue;
+
+        hb_set_t format4_unicodes_set;
+        hb_map_t format4_cp_glyphid_map;
+        (this+format4_tbl->subtable).collect_mapping (&format4_unicodes_set, &format4_cp_glyphid_map);
+
+        auto format4_iter =
+        + hb_zip (format4_unicodes_set.iter(), format4_unicodes_set.iter() | hb_map(format4_cp_glyphid_map))
+        | hb_filter (plan->_glyphset, hb_second)
+        | hb_filter ([plan] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& p)
+                     {
+                       return plan->unicodes->has (p.first) ||
+                              plan->glyphs_requested->has (p.second);
+                     })
+        | hb_map (hb_first)
+        ;
+
+        if (!compare_iterators (format12_iter, format4_iter))
+          continue;
+        
+        redundant_format12_tables.add (_.first);
+      }
+      else
+      {
+        hb_set_t format12_unicodes;
+        (this+format12_tbl->subtable).collect_unicodes (&format12_unicodes);
+
+        auto format12_iter =
+        + unicode_gid_pairs
+        | hb_filter (format12_unicodes, hb_first)
+        | hb_map (hb_first)
+        ;
+
+        if (! format12_iter.len ())
+          continue;
+
+        hb_set_t format4_unicodes;
+        (this+format4_tbl->subtable).collect_unicodes (&format4_unicodes);
+        auto format4_iter =
+        + unicode_gid_pairs
+        | hb_filter (format4_unicodes, hb_first)
+        | hb_map (hb_first)
+        ;
+
+        if (!compare_iterators (format12_iter, format4_iter))
+          continue;
+
+        redundant_format12_tables.add (_.first);
+      }
+    }
+  }
+
   template<typename Iterator, typename EncodingRecIter,
 	   hb_requires (hb_is_iterator (EncodingRecIter))>
   void serialize (hb_serialize_context_t *c,
@@ -1422,15 +1597,16 @@ struct cmap
     cmap *cmap_prime = c->serializer->start_embed<cmap> ();
     if (unlikely (!c->serializer->check_success (cmap_prime))) return_trace (false);
 
+    unsigned count = encodingRecord.len;
     auto encodingrec_iter =
-    + hb_iter (encodingRecord)
-    | hb_filter ([&] (const EncodingRecord& _)
+    + hb_zip (encodingRecord, hb_range (count))
+    | hb_filter ([&] (hb_pair_t<const EncodingRecord&, unsigned> _)
 		{
-		  if ((_.platformID == 0 && _.encodingID == 3) ||
-		      (_.platformID == 0 && _.encodingID == 4) ||
-		      (_.platformID == 3 && _.encodingID == 1) ||
-		      (_.platformID == 3 && _.encodingID == 10) ||
-		      (this + _.subtable).u.format == 14)
+		  if ((_.first.platformID == 0 && _.first.encodingID == 3) ||
+		      (_.first.platformID == 0 && _.first.encodingID == 4) ||
+		      (_.first.platformID == 3 && _.first.encodingID == 1) ||
+		      (_.first.platformID == 3 && _.first.encodingID == 10) ||
+		      (this + _.first.subtable).u.format == 14)
 		    return true;
 
 		  return false;
@@ -1439,23 +1615,13 @@ struct cmap
 
     if (unlikely (!encodingrec_iter.len ())) return_trace (false);
 
-    const EncodingRecord *unicode_bmp= nullptr, *unicode_ucs4 = nullptr, *ms_bmp = nullptr, *ms_ucs4 = nullptr;
-    bool has_format12 = false;
+    hb_hashmap_t<unsigned, const EncodingRecord *, (unsigned)-1, nullptr> unicode_bmp_tables;
+    hb_hashmap_t<unsigned, const EncodingRecord *, (unsigned)-1, nullptr> ms_bmp_tables;
+    hb_map_t format12_table_languages;
+    hb_set_t redundant_format12_tables;
 
-    for (const EncodingRecord& _ : encodingrec_iter)
-    {
-      unsigned format = (this + _.subtable).u.format;
-      if (format == 12) has_format12 = true;
-
-      const EncodingRecord *table = hb_addressof (_);
-      if      (_.platformID == 0 && _.encodingID ==  3) unicode_bmp = table;
-      else if (_.platformID == 0 && _.encodingID ==  4) unicode_ucs4 = table;
-      else if (_.platformID == 3 && _.encodingID ==  1) ms_bmp = table;
-      else if (_.platformID == 3 && _.encodingID == 10) ms_ucs4 = table;
-    }
-
-    if (unlikely (!has_format12 && !unicode_bmp && !ms_bmp)) return_trace (false);
-    if (unlikely (has_format12 && (!unicode_ucs4 && !ms_ucs4))) return_trace (false);
+    if (!categorize_sub_tables (encodingrec_iter, unicode_bmp_tables, ms_bmp_tables, format12_table_languages))
+      return_trace (false);
 
     auto it =
     + hb_iter (c->plan->unicodes)
@@ -1468,7 +1634,19 @@ struct cmap
     | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
 		 { return (_.second != HB_MAP_VALUE_INVALID); })
     ;
-    cmap_prime->serialize (c->serializer, it, encodingrec_iter, this, c->plan);
+
+    prune_redundant_format12_tables (c->plan, format12_table_languages, it, unicode_bmp_tables, ms_bmp_tables, redundant_format12_tables);
+
+    auto encoding_record_iter =
+    + encodingrec_iter
+    | hb_filter ([&] (hb_pair_t<const EncodingRecord&, unsigned> _)
+                 {
+                   unsigned format = (this+_.first.subtable).u.format;
+                   return format != 12 || !redundant_format12_tables.has (_.second);
+                 })
+    | hb_map (hb_first)
+    ;
+    cmap_prime->serialize (c->serializer, it, encoding_record_iter, this, c->plan);
     return_trace (true);
   }
 
