@@ -766,11 +766,11 @@ struct StateTableDriver
       }
 
       /* Unsafe-to-break if end-of-text would kick in here. */
-      if (buffer->idx + 2 <= buffer->len)
+      if (buffer->backtrack_len () && buffer->idx < buffer->len)
       {
 	const Entry<EntryData> &end_entry = machine.get_entry (state, StateTable<Types, EntryData>::CLASS_END_OF_TEXT);
 	if (c->is_actionable (this, end_entry))
-	  buffer->unsafe_to_break (buffer->idx, buffer->idx + 2);
+	  buffer->unsafe_to_break_from_outbuffer (buffer->backtrack_len () - 1, buffer->idx + 1);
       }
 
       c->transition (this, entry);
