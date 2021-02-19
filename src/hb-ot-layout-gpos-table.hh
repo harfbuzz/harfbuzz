@@ -2061,20 +2061,14 @@ struct LigatureArray : OffsetListOf<LigatureAttach>
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!c->serializer->extend_min (out)))  return_trace (false);
 
-    unsigned ligature_count = 0;
-    for (hb_codepoint_t gid : coverage)
+    for (const auto _ : + hb_zip (coverage, *this)
+		  | hb_filter (glyphset, hb_first))
     {
-      if (ligature_count >= this->len)
-        break;
-
-      ligature_count++;
-      if (!glyphset.has (gid)) continue;
-
       auto *matrix = out->serialize_append (c->serializer);
       if (unlikely (!matrix)) return_trace (false);
 
       matrix->serialize_subset (c,
-				this->arrayZ[ligature_count - 1],
+				_.second,
 				this,
 				class_count,
 				klass_mapping);
