@@ -113,9 +113,10 @@ struct BEInt<Type, 2>
 #else /* __BYTE_ORDER == __BIG_ENDIAN */
     return ((packed_uint16_t *) this)->v;
 #endif
-#endif
+#else
     return (v[0] <<  8)
 	 + (v[1]      );
+#endif
   }
   private: uint8_t v[2];
 };
