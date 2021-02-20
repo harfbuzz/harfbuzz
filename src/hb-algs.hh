@@ -89,7 +89,7 @@ struct BEInt<Type, 1>
 {
   public:
   BEInt () = default;
-  constexpr BEInt (Type V) : v {V} {}
+  constexpr BEInt (Type V) : v {uint8_t (V)} {}
   constexpr operator Type () const { return v; }
   private: uint8_t v;
 };
@@ -98,8 +98,8 @@ struct BEInt<Type, 2>
 {
   public:
   BEInt () = default;
-  constexpr BEInt (Type V) : v {(V >>  8) & 0xFF,
-			        (V      ) & 0xFF} {}
+  constexpr BEInt (Type V) : v {uint8_t ((V >>  8) & 0xFF),
+			        uint8_t ((V      ) & 0xFF)} {}
   constexpr operator Type () const
   {
 #if ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
@@ -125,9 +125,9 @@ struct BEInt<Type, 3>
 {
   public:
   BEInt () = default;
-  constexpr BEInt (Type V) : v {(V >> 16) & 0xFF,
-			        (V >>  8) & 0xFF,
-			        (V      ) & 0xFF} {}
+  constexpr BEInt (Type V) : v {uint8_t ((V >> 16) & 0xFF),
+			        uint8_t ((V >>  8) & 0xFF),
+			        uint8_t ((V      ) & 0xFF)} {}
   constexpr operator Type () const { return (v[0] << 16)
 					     + (v[1] <<  8)
 					     + (v[2]      ); }
@@ -138,10 +138,10 @@ struct BEInt<Type, 4>
 {
   public:
   BEInt () = default;
-  constexpr BEInt (Type V) : v {(V >> 24) & 0xFF,
-			        (V >> 16) & 0xFF,
-			        (V >>  8) & 0xFF,
-			        (V      ) & 0xFF} {}
+  constexpr BEInt (Type V) : v {uint8_t ((V >> 24) & 0xFF),
+			        uint8_t ((V >> 16) & 0xFF),
+			        uint8_t ((V >>  8) & 0xFF),
+			        uint8_t ((V      ) & 0xFF)} {}
   constexpr operator Type () const { return (v[0] << 24)
 					  + (v[1] << 16)
 					  + (v[2] <<  8)
