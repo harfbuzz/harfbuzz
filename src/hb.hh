@@ -62,7 +62,6 @@
 
 /* Error.  Should never happen. */
 #ifndef HB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR
-#pragma GCC diagnostic error   "-Wc++11-narrowing"
 #pragma GCC diagnostic error   "-Wcast-align"
 #pragma GCC diagnostic error   "-Wcast-function-type"
 #pragma GCC diagnostic error   "-Wdelete-non-virtual-dtor"
@@ -75,6 +74,7 @@
 #pragma GCC diagnostic error   "-Wmissing-braces"
 #pragma GCC diagnostic error   "-Wmissing-declarations"
 #pragma GCC diagnostic error   "-Wmissing-prototypes"
+#pragma GCC diagnostic error   "-Wnarrowing"
 #pragma GCC diagnostic error   "-Wnested-externs"
 #pragma GCC diagnostic error   "-Wold-style-definition"
 #pragma GCC diagnostic error   "-Wpointer-arith"
