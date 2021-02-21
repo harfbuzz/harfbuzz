@@ -882,7 +882,6 @@ test_buffer_serialize_deserialize (void)
   {
     unsigned int consumed;
     char round_trip[1024];
-    hb_bool_t retval;
 
     b = hb_buffer_create ();
     hb_buffer_set_replacement_codepoint (b, (hb_codepoint_t) -1);
@@ -890,7 +889,7 @@ test_buffer_serialize_deserialize (void)
     const serialization_test_t *test = &serialization_tests[i];
     g_test_message ("serialize test #%d", i);
 
-    retval = hb_buffer_deserialize_unicode (b, test->contents, -1, NULL, test->format);
+    (void) hb_buffer_deserialize_unicode (b, test->contents, -1, NULL, test->format);
 
     // Expected parse failure, got one, don't round-trip
     if (test->success != 0)
