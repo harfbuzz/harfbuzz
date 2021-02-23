@@ -53,14 +53,18 @@ namespace OT {
  */
 
 /* Integer types in big-endian order and no alignment requirement */
-template <typename Type, unsigned int Size = sizeof (Type)>
+template <typename Type,
+	  unsigned int Size = sizeof (Type),
+	  typename Wide = hb_conditional<hb_is_signed (Type), signed, unsigned>>
 struct IntType
 {
   typedef Type type;
-  typedef hb_conditional<hb_is_signed (Type), signed, unsigned> wide_type;
 
-  IntType& operator = (wide_type i) { v = i; return *this; }
-  operator wide_type () const { return v; }
+  IntType () = default;
+  explicit constexpr IntType (Wide V) : v {V} {}
+  IntType& operator = (Wide i) { v = i; return *this; }
+  operator Wide () const { return v; }
+
   bool operator == (const IntType &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType &o) const { return !(*this == o); }
 

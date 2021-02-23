@@ -83,7 +83,8 @@ static inline constexpr uint16_t hb_uint16_swap (uint16_t v)
 static inline constexpr uint32_t hb_uint32_swap (uint32_t v)
 { return (hb_uint16_swap (v) << 16) | hb_uint16_swap (v >> 16); }
 
-template <typename Type, int Bytes = sizeof (Type)> struct BEInt;
+template <typename Type, int Bytes = sizeof (Type)>
+struct BEInt;
 template <typename Type>
 struct BEInt<Type, 1>
 {
@@ -124,14 +125,16 @@ struct BEInt<Type, 2>
 template <typename Type>
 struct BEInt<Type, 3>
 {
+  static_assert (!hb_is_signed (Type), "");
   public:
   BEInt () = default;
   constexpr BEInt (Type V) : v {uint8_t ((V >> 16) & 0xFF),
-			        uint8_t ((V >>  8) & 0xFF),
-			        uint8_t ((V      ) & 0xFF)} {}
+				uint8_t ((V >>  8) & 0xFF),
+				uint8_t ((V      ) & 0xFF)} {}
+
   constexpr operator Type () const { return (v[0] << 16)
-					     + (v[1] <<  8)
-					     + (v[2]      ); }
+					  + (v[1] <<  8)
+					  + (v[2]      ); }
   private: uint8_t v[3];
 };
 template <typename Type>
