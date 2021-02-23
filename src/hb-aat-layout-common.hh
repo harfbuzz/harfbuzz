@@ -576,7 +576,7 @@ struct StateTable
 	  if (unlikely (stop > states))
 	    return_trace (false);
 	  for (const HBUSHORT *p = states; stop < p; p--)
-	    num_entries = hb_max (num_entries, *(p - 1) + 1);
+	    num_entries = hb_max (num_entries, *(p - 1) + 1u);
 	  state_neg = min_state;
 	}
       }
@@ -597,7 +597,7 @@ struct StateTable
 	  if (unlikely (stop < states))
 	    return_trace (false);
 	  for (const HBUSHORT *p = &states[state_pos * num_classes]; p < stop; p++)
-	    num_entries = hb_max (num_entries, *p + 1);
+	    num_entries = hb_max (num_entries, *p + 1u);
 	  state_pos = max_state + 1;
 	}
       }
