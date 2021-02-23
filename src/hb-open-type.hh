@@ -64,6 +64,11 @@ struct IntType
   IntType& operator = (Type i) { v = i; return *this; }
   operator Type () const { return v; }
 
+  template <typename Type2 = hb_conditional<hb_is_signed (Type), signed, unsigned>,
+	   hb_enable_if (sizeof (Type) < sizeof (Type2))>
+  operator hb_type_identity_t<Type2> () const { return v; }
+
+
   bool operator == (const IntType &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType &o) const { return !(*this == o); }
 
