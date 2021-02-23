@@ -73,6 +73,7 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 }
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N))
 
+
 #elif !defined(HB_NO_MT)
 
 /* C++11 atomics. */
@@ -99,33 +100,6 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
   return reinterpret_cast<std::atomic<const void*> *> (P)->compare_exchange_weak (O, N, std::memory_order_acq_rel, std::memory_order_relaxed);
 }
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N))
-
-
-#elif !defined(HB_NO_MT) && defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__))
-
-#include <builtins.h>
-
-#define _hb_memory_barrier()			__lwsync ()
-
-static inline int _hb_fetch_and_add (int *AI, int V)
-{
-  _hb_memory_barrier ();
-  int result = __fetch_and_add (AI, V);
-  _hb_memory_barrier ();
-  return result;
-}
-static inline bool _hb_compare_and_swaplp (long *P, long O, long N)
-{
-  _hb_memory_barrier ();
-  bool result = __compare_and_swaplp (P, &O, N);
-  _hb_memory_barrier ();
-  return result;
-}
-
-#define hb_atomic_int_impl_add(AI, V)           _hb_fetch_and_add ((AI), (V))
-
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)       _hb_compare_and_swaplp ((long *) (P), (long) (O), (long) (N))
-static_assert ((sizeof (long) == sizeof (void *)), "");
 
 
 #elif defined(HB_NO_MT)
