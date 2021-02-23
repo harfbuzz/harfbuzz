@@ -1788,7 +1788,7 @@ struct ClassDefFormat1
   }
 
   template <typename set_t>
-  bool collect_class (set_t *glyphs, unsigned int klass) const
+  bool collect_class (set_t *glyphs, unsigned klass) const
   {
     unsigned int count = classValue.len;
     for (unsigned int i = 0; i < count; i++)
@@ -1806,7 +1806,7 @@ struct ClassDefFormat1
       if (classValue[iter - start]) return true;
     return false;
   }
-  bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
+  bool intersects_class (const hb_set_t *glyphs, uint16_t klass) const
   {
     unsigned int count = classValue.len;
     if (klass == 0)
@@ -1973,7 +1973,7 @@ struct ClassDefFormat2
 	return true;
     return false;
   }
-  bool intersects_class (const hb_set_t *glyphs, unsigned int klass) const
+  bool intersects_class (const hb_set_t *glyphs, uint16_t klass) const
   {
     unsigned int count = rangeRecord.len;
     if (klass == 0)
