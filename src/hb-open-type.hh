@@ -170,8 +170,8 @@ struct Tag : HBUINT32
 {
   Tag& operator = (hb_tag_t i) { HBUINT32::operator= (i); return *this; }
   /* What the char* converters return is NOT nul-terminated.  Print using "%.4s" */
-  operator const char* () const { return reinterpret_cast<const char *> (&this->v); }
-  operator char* ()             { return reinterpret_cast<char *> (&this->v); }
+  operator const char* () const { return reinterpret_cast<const char *> (this); }
+  operator char* ()             { return reinterpret_cast<char *> (this); }
   public:
   DEFINE_SIZE_STATIC (4);
 };
