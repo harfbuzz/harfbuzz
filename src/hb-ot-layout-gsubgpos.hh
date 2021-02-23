@@ -2323,12 +2323,7 @@ struct ChainRule
   {
     c->copy (len);
     for (const auto g : it)
-    {
-      /* TODO(constexpr) Simplify. */
-      HBUINT16 gid;
-      gid = g;
-      c->copy (gid);
-    }
+      c->copy ((HBUINT16) g);
   }
 
   ChainRule* copy (hb_serialize_context_t *c,

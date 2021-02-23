@@ -53,14 +53,19 @@ namespace OT {
  */
 
 /* Integer types in big-endian order and no alignment requirement */
-template <typename Type, unsigned int Size = sizeof (Type)>
+template <typename Type,
+	  unsigned int Size = sizeof (Type)>
 struct IntType
 {
   typedef Type type;
-  typedef hb_conditional<hb_is_signed (Type), signed, unsigned> wide_type;
 
-  IntType& operator = (wide_type i) { v = i; return *this; }
-  operator wide_type () const { return v; }
+  IntType () = default;
+  explicit constexpr IntType (Type V) : v {V} {}
+  IntType& operator = (Type i) { v = i; return *this; }
+  /* For reason we define cast out operator for signed/unsigned, instead of Type, see:
+   * https://github.com/harfbuzz/harfbuzz/pull/2875/commits/09836013995cab2b9f07577a179ad7b024130467 */
+  operator hb_conditional<hb_is_signed (Type), signed, unsigned> () const { return v; }
+
   bool operator == (const IntType &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType &o) const { return !(*this == o); }
 
