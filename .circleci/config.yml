@@ -54,14 +54,13 @@ jobs:
     executor: autotools-executor
     steps:
       - checkout
-      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools gobject-introspection libfontconfig1-dev libfreetype6-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip cmake
+      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools gobject-introspection libfontconfig1-dev libfreetype6-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
       - run: pip3 install fonttools meson --upgrade
       - run: ./autogen.sh
       - run: make -j32
       - run: make distcheck
       - run: rm harfbuzz-* && make distdir
       - run: cd harfbuzz-* && meson build && ninja -Cbuild test
-      - run: cd harfbuzz-* && cmake -Bcmakebuild -H. && cmake --build cmakebuild
       - run: make dist
       - persist_to_workspace:
           root: .
