@@ -52,7 +52,7 @@
 
 #elif !defined(HB_NO_MT) && defined(__ATOMIC_ACQUIRE)
 
-/* C++11-style GCC primitives. We prefer these as they don't require standard library. */
+/* C++11-style GCC primitives. We prefer these as they don't require linking to libstdc++ / libc++. */
 
 #define _hb_memory_barrier()			__sync_synchronize ()
 
@@ -73,7 +73,7 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 }
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N))
 
-#elif !defined(HB_NO_MT) && __cplusplus >= 201103L
+#elif !defined(HB_NO_MT)
 
 /* C++11 atomics. */
 
@@ -99,30 +99,6 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
   return reinterpret_cast<std::atomic<const void*> *> (P)->compare_exchange_weak (O, N, std::memory_order_acq_rel, std::memory_order_relaxed);
 }
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N))
-
-
-#elif !defined(HB_NO_MT) && defined(_WIN32)
-/* Windows branch still needed because MSVC doesn't correctly define __cplusplus:
- * https://github.com/harfbuzz/harfbuzz/pull/2362 */
-
-#include <windows.h>
-
-static inline void _hb_memory_barrier ()
-{
-#if !defined(MemoryBarrier) && !defined(__MINGW32_VERSION)
-  /* MinGW has a convoluted history of supporting MemoryBarrier. */
-  LONG dummy = 0;
-  InterlockedExchange (&dummy, 1);
-#else
-  MemoryBarrier ();
-#endif
-}
-#define _hb_memory_barrier()			_hb_memory_barrier ()
-
-#define hb_atomic_int_impl_add(AI, V)		InterlockedExchangeAdd ((LONG *) (AI), (V))
-static_assert ((sizeof (LONG) == sizeof (int)), "");
-
-#define hb_atomic_ptr_impl_cmpexch(P,O,N)	(InterlockedCompareExchangePointer ((P), (N), (O)) == (O))
 
 
 #elif !defined(HB_NO_MT) && defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__))
