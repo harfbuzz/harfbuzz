@@ -2165,12 +2165,6 @@ struct VarRegionAxis
   {
     int start = startCoord, peak = peakCoord, end = endCoord;
 
-    /* TODO Move these to sanitize(). */
-    if (unlikely (start > peak || peak > end))
-      return 1.;
-    if (unlikely (start < 0 && end > 0 && peak != 0))
-      return 1.;
-
     if (peak == 0 || coord == peak)
       return 1.;
 
@@ -2187,9 +2181,9 @@ struct VarRegionAxis
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this));
-    /* TODO Handle invalid start/peak/end configs, so we don't
-     * have to do that at runtime. */
+    return_trace (c->check_struct (this) &&
+		  startCoord <= peakCoord && peakCoord <= endCoord &&
+		  (startCoord >= 0 || endCoord <= 0 || peakCoord == 0));
   }
 
   public:
