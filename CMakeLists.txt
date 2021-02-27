@@ -514,6 +514,10 @@ if (HB_HAVE_GOBJECT)
   endif ()
 endif ()
 
+if (SWITCH)
+  add_definitions("-DHAVE_PTHREAD")
+endif ()
+
 if (BUILD_SHARED_LIBS AND WIN32 AND NOT MINGW)
   add_definitions("-DHB_DLL_EXPORT")
 endif ()

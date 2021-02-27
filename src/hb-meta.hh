@@ -28,6 +28,9 @@
 #define HB_META_HH
 
 #include "hb.hh"
+#ifdef __SWITCH__
+#include <climits>
+#endif
 
 
 /*
