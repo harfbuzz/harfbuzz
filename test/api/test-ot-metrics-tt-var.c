@@ -159,7 +159,7 @@ test_advance_tt_var_anchor (void)
 
   g_assert_cmpint (extents.x_bearing, ==, 50);
   g_assert_cmpint (extents.y_bearing, ==, 667);
-  g_assert_cmpint (extents.width, ==, 593);
+  g_assert_cmpint (extents.width, ==, 592);
   g_assert_cmpint (extents.height, ==, -679);
 
   hb_font_destroy (font);

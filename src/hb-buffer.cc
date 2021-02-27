@@ -218,9 +218,6 @@ hb_buffer_t::get_scratch_buffer (unsigned int *size)
 void
 hb_buffer_t::reset ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   hb_unicode_funcs_destroy (unicode);
   unicode = hb_unicode_funcs_reference (hb_unicode_funcs_get_default ());
   flags = HB_BUFFER_FLAG_DEFAULT;
@@ -233,9 +230,6 @@ hb_buffer_t::reset ()
 void
 hb_buffer_t::clear ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   hb_segment_properties_t default_props = HB_SEGMENT_PROPERTIES_DEFAULT;
   props = default_props;
   scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
@@ -290,9 +284,6 @@ hb_buffer_t::add_info (const hb_glyph_info_t &glyph_info)
 void
 hb_buffer_t::remove_output ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   have_output = false;
   have_positions = false;
 
@@ -303,9 +294,6 @@ hb_buffer_t::remove_output ()
 void
 hb_buffer_t::clear_output ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   have_output = true;
   have_positions = false;
 
@@ -316,9 +304,6 @@ hb_buffer_t::clear_output ()
 void
 hb_buffer_t::clear_positions ()
 {
-  if (unlikely (hb_object_is_immutable (this)))
-    return;
-
   have_output = false;
   have_positions = true;
 
@@ -333,15 +318,19 @@ hb_buffer_t::swap_buffers ()
 {
   if (unlikely (!successful)) return;
 
+  assert (idx <= len);
+  next_glyphs (len - idx);
+
   assert (have_output);
   have_output = false;
 
   if (out_info != info)
   {
-    hb_glyph_info_t *tmp_string;
-    tmp_string = info;
+    hb_glyph_info_t *tmp;
+    tmp = info;
     info = out_info;
-    out_info = tmp_string;
+    out_info = tmp;
+
     pos = (hb_glyph_position_t *) out_info;
   }
 
@@ -1222,6 +1211,9 @@ hb_buffer_get_invisible_glyph (hb_buffer_t    *buffer)
 void
 hb_buffer_reset (hb_buffer_t *buffer)
 {
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
   buffer->reset ();
 }
 
@@ -1237,6 +1229,9 @@ hb_buffer_reset (hb_buffer_t *buffer)
 void
 hb_buffer_clear_contents (hb_buffer_t *buffer)
 {
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
   buffer->clear ();
 }
 
@@ -1768,11 +1763,6 @@ hb_buffer_append (hb_buffer_t *buffer,
   if (start == end)
     return;
 
-  if (!buffer->len)
-    buffer->content_type = source->content_type;
-  if (!buffer->have_positions && source->have_positions)
-    buffer->clear_positions ();
-
   if (buffer->len + (end - start) < buffer->len) /* Overflows. */
   {
     buffer->successful = false;
@@ -1783,6 +1773,11 @@ hb_buffer_append (hb_buffer_t *buffer,
   hb_buffer_set_length (buffer, buffer->len + (end - start));
   if (unlikely (!buffer->successful))
     return;
+
+  if (!orig_len)
+    buffer->content_type = source->content_type;
+  if (!buffer->have_positions && source->have_positions)
+    buffer->clear_positions ();
 
   memcpy (buffer->info + orig_len, source->info + start, (end - start) * sizeof (buffer->info[0]));
   if (buffer->have_positions)

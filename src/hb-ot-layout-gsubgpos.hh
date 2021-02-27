@@ -1882,8 +1882,8 @@ struct ContextFormat2
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     bool ret = true;
     int non_zero_index = 0, index = 0;
-    for (const hb_pair_t<unsigned, const OffsetTo<RuleSet>&> _ : + hb_enumerate (ruleSet)
-								 | hb_filter (klass_map, hb_first))
+    for (const auto& _ : + hb_enumerate (ruleSet)
+			 | hb_filter (klass_map, hb_first))
     {
       auto *o = out->ruleSet.serialize_append (c->serializer);
       if (unlikely (!o))
@@ -2034,6 +2034,7 @@ struct ContextFormat3
 
     for (const OffsetTo<Coverage>& offset : coverages)
     {
+      /* TODO(subset) This looks like should not be necessary to write this way. */
       auto *o = c->serializer->allocate_size<OffsetTo<Coverage>> (OffsetTo<Coverage>::static_size);
       if (unlikely (!o)) return_trace (false);
       if (!o->serialize_subset (c, offset, this)) return_trace (false);
@@ -2322,11 +2323,7 @@ struct ChainRule
   {
     c->copy (len);
     for (const auto g : it)
-    {
-      HBUINT16 gid;
-      gid = g;
-      c->copy (gid);
-    }
+      c->copy ((HBUINT16) g);
   }
 
   ChainRule* copy (hb_serialize_context_t *c,

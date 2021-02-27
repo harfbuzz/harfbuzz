@@ -102,6 +102,8 @@ if (${HAVE_STDBOOL_H})
   add_definitions(-DHAVE_STDBOOL_H)
 endif ()
 
+# https://github.com/harfbuzz/harfbuzz/pull/2874#issuecomment-782859099
+if (NOT WIN32) add_definitions("-DHAVE_PTHREAD") endif ()
 
 if (MSVC)
   add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
@@ -404,37 +406,6 @@ if (HB_HAVE_GOBJECT)
       ${hb_gobject_header}
       ${project_headers}
   )
-endif ()
-
-## Atomic ops availability detection
-file(WRITE "${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c"
-"		void memory_barrier (void) { __sync_synchronize (); }
-		int atomic_add (int *i) { return __sync_fetch_and_add (i, 1); }
-		int mutex_trylock (int *m) { return __sync_lock_test_and_set (m, 1); }
-		void mutex_unlock (int *m) { __sync_lock_release (m); }
-		int main () { return 0; }
-")
-try_compile(HB_HAVE_INTEL_ATOMIC_PRIMITIVES
-  ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives
-  ${PROJECT_BINARY_DIR}/try_compile_intel_atomic_primitives.c)
-if (HB_HAVE_INTEL_ATOMIC_PRIMITIVES)
-  add_definitions(-DHAVE_INTEL_ATOMIC_PRIMITIVES)
-endif ()
-
-file(WRITE "${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c"
-"		#include <atomic.h>
-		/* This requires Solaris Studio 12.2 or newer: */
-		#include <mbarrier.h>
-		void memory_barrier (void) { __machine_rw_barrier (); }
-		int atomic_add (volatile unsigned *i) { return atomic_add_int_nv (i, 1); }
-		void *atomic_ptr_cmpxchg (volatile void **target, void *cmp, void *newval) { return atomic_cas_ptr (target, cmp, newval); }
-		int main () { return 0; }
-")
-try_compile(HB_HAVE_SOLARIS_ATOMIC_OPS
-  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops
-  ${PROJECT_BINARY_DIR}/try_compile_solaris_atomic_ops.c)
-if (HB_HAVE_SOLARIS_ATOMIC_OPS)
-  add_definitions(-DHAVE_SOLARIS_ATOMIC_OPS)
 endif ()
 
 

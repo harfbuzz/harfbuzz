@@ -175,7 +175,7 @@ enum indic_matra_category_t {
 
 #define INDIC_COMBINE_CATEGORIES(S,M) \
   ( \
-    ASSERT_STATIC_EXPR_ZERO (S < 255 && M < 255) + \
+    static_assert_expr (S < 255 && M < 255) + \
     ( S | \
      ( \
       ( \

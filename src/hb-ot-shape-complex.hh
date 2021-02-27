@@ -265,8 +265,9 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 	return &_hb_ot_complex_shaper_myanmar;
 
 
-    /* https://github.com/harfbuzz/harfbuzz/issues/1162 */
+#define HB_SCRIPT_MYANMAR_ZAWGYI	((hb_script_t) HB_TAG ('Q','a','a','g'))
     case HB_SCRIPT_MYANMAR_ZAWGYI:
+    /* https://github.com/harfbuzz/harfbuzz/issues/1162 */
 
       return &_hb_ot_complex_shaper_myanmar_zawgyi;
 

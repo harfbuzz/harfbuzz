@@ -51,7 +51,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
    *
    * https://github.com/harfbuzz/harfbuzz/issues/1019
    */
-  bool processed = false;
   buffer->clear_output ();
   unsigned int count = buffer->len;
   switch ((unsigned) buffer->props.script)
@@ -105,7 +104,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_BENGALI:
@@ -127,7 +125,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_GURMUKHI:
@@ -164,7 +161,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_GUJARATI:
@@ -189,7 +185,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_ORIYA:
@@ -208,7 +203,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_TAMIL:
@@ -223,7 +217,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_TELUGU:
@@ -247,7 +240,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_KANNADA:
@@ -266,7 +258,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_MALAYALAM:
@@ -293,7 +284,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_SINHALA:
@@ -329,7 +319,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_BRAHMI:
@@ -351,7 +340,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_KHUDAWADI:
@@ -373,7 +361,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_TIRHUTA:
@@ -400,7 +387,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_MODI:
@@ -421,7 +407,6 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     case HB_SCRIPT_TAKRI:
@@ -445,18 +430,12 @@ _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	buffer->next_glyph ();
 	if (matched) _output_with_dotted_circle (buffer);
       }
-      processed = true;
       break;
 
     default:
       break;
   }
-  if (processed)
-  {
-    if (buffer->idx < count)
-      buffer->next_glyph ();
-    buffer->swap_buffers ();
-  }
+  buffer->swap_buffers ();
 }
 
 
