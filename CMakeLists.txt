@@ -103,7 +103,9 @@ if (${HAVE_STDBOOL_H})
 endif ()
 
 # https://github.com/harfbuzz/harfbuzz/pull/2874#issuecomment-782859099
-if (NOT WIN32) add_definitions("-DHAVE_PTHREAD") endif ()
+if (NOT WIN32)
+  add_definitions("-DHAVE_PTHREAD")
+endif ()
 
 if (MSVC)
   add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
@@ -483,10 +485,6 @@ if (HB_HAVE_GOBJECT)
   if (BUILD_SHARED_LIBS)
     set_target_properties(harfbuzz-gobject PROPERTIES VISIBILITY_INLINES_HIDDEN TRUE)
   endif ()
-endif ()
-
-if (SWITCH)
-  add_definitions("-DHAVE_PTHREAD")
 endif ()
 
 if (BUILD_SHARED_LIBS AND WIN32 AND NOT MINGW)
