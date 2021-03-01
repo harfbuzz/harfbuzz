@@ -103,7 +103,9 @@ if (${HAVE_STDBOOL_H})
 endif ()
 
 # https://github.com/harfbuzz/harfbuzz/pull/2874#issuecomment-782859099
-if (NOT WIN32) add_definitions("-DHAVE_PTHREAD") endif ()
+if (NOT WIN32)
+  add_definitions("-DHAVE_PTHREAD")
+endif ()
 
 if (MSVC)
   add_definitions(-wd4244 -wd4267 -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS)
