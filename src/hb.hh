@@ -176,15 +176,15 @@
 #include "hb-aat.h"
 #define HB_AAT_H_IN
 
-#include <limits.h>
-#include <math.h>
-#include <float.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <assert.h>
-#include <stdio.h>
-#include <stdarg.h>
+#include <cassert>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #if (defined(_MSC_VER) && _MSC_VER >= 1500) || defined(__MINGW32__)
 #ifdef __MINGW32_VERSION
@@ -391,7 +391,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #endif
 
 #ifndef HB_NO_ERRNO
-#  include <errno.h>
+#  include <cerrno>
 #else
 static int HB_UNUSED _hb_errno = 0;
 #  undef errno
