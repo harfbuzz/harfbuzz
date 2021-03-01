@@ -34,7 +34,6 @@
 
 #include "hb-coretext.h"
 #include "hb-aat-layout.hh"
-#include <math.h>
 
 
 /**

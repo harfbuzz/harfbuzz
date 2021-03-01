@@ -35,9 +35,6 @@
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
 
-#include <stdio.h>
-#include <stdlib.h>
-
 
 /**
  * SECTION: hb-blob

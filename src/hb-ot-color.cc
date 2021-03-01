@@ -37,9 +37,6 @@
 #include "hb-ot-color-sbix-table.hh"
 #include "hb-ot-color-svg-table.hh"
 
-#include <stdlib.h>
-#include <string.h>
-
 
 /**
  * SECTION:hb-ot-color
