@@ -752,7 +752,28 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      * We could use buffer->sort() for this, if there was no special
      * reordering of pre-base stuff happening later...
      * We don't want to merge_clusters all of that, which buffer->sort()
-     * would.
+     * would.  Here's a concrete example:
+     *
+     * Assume there's a pre-base consonant and explicit Halant before base,
+     * followed by a prebase-reordering (left) Matra:
+     *
+     *   C,H,ZWNJ,B,M
+     *
+     * At this point in reordering we would have:
+     *
+     *   M,C,H,ZWNJ,B
+     *
+     * whereas in final reordering we will bring the Matra closer to Base:
+     *
+     *   C,H,ZWNJ,M,B
+     *
+     * That's why we don't want to merge-clusters anything before the Base
+     * at this point.  But if something moved from after Base to before it,
+     * we should merge clusters from base to them.  In final-reordering, we
+     * only move things around before base, and merge-clusters up to base.
+     * These two merge-clusters from the two sides of base will interlock
+     * to merge things correctly.  See:
+     * https://github.com/harfbuzz/harfbuzz/issues/2272
      */
     if (indic_plan->is_old_spec || end - start > 127)
       buffer->merge_clusters (base, end);
@@ -762,17 +783,18 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
       for (unsigned int i = base; i < end; i++)
 	if (info[i].syllable() != 255)
 	{
+	  unsigned int min = i;
 	  unsigned int max = i;
 	  unsigned int j = start + info[i].syllable();
 	  while (j != i)
 	  {
+	    min = hb_min (min, j);
 	    max = hb_max (max, j);
 	    unsigned int next = start + info[j].syllable();
 	    info[j].syllable() = 255; /* So we don't process j later again. */
 	    j = next;
 	  }
-	  if (i != max)
-	    buffer->merge_clusters (i, max + 1);
+	  buffer->merge_clusters (hb_max (base, min), max + 1);
 	}
     }
 
