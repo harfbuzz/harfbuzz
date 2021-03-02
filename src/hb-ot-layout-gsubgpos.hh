@@ -3433,9 +3433,12 @@ struct GSUBGPOS
       const Feature& f = get_feature (i);
 
       if (f.featureParams.is_null ()
-          && !f.intersects_lookup_indexes (lookup_indices)
-          && !alternate_feature_indices.has (i))
-        feature_indices->del (i);
+	  && !f.intersects_lookup_indexes (lookup_indices)
+#ifndef HB_NO_VAR
+          && !alternate_feature_indices.has (i)
+#endif
+	  )
+	feature_indices->del (i);
     }
   }
 
