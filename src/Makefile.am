@@ -235,7 +235,7 @@ DEF_FILES += harfbuzz-gobject.def
 endif
 check: $(DEF_FILES) # For check-symbols.sh
 CLEANFILES += $(DEF_FILES)
-harfbuzz.def: $(HBHEADERS) $(HBNODISTHEADERS)
+harfbuzz.def: $(HBHEADERS)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
 harfbuzz-subset.def: $(HB_SUBSET_headers)
 	$(AM_V_GEN) $(srcdir)/gen-def.py "$@" $^
