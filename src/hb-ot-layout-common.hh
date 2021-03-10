@@ -1969,8 +1969,11 @@ struct ClassDefFormat2
     /* TODO Speed up, using hb_set_next() and bsearch()? */
     unsigned int count = rangeRecord.len;
     for (unsigned int i = 0; i < count; i++)
-      if (rangeRecord[i].intersects (glyphs))
+    {
+      const auto& range = rangeRecord[i];
+      if (range.intersects (glyphs) && range.value)
 	return true;
+    }
     return false;
   }
   bool intersects_class (const hb_set_t *glyphs, uint16_t klass) const
