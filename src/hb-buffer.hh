@@ -332,9 +332,9 @@ struct hb_buffer_t
 
 
   /* Internal methods */
-  HB_INTERNAL HB_NODISCARD bool move_to (unsigned int i); /* i is output-buffer index. */
+  HB_NODISCARD HB_INTERNAL bool move_to (unsigned int i); /* i is output-buffer index. */
 
-  HB_INTERNAL HB_NODISCARD bool enlarge (unsigned int size);
+  HB_NODISCARD HB_INTERNAL bool enlarge (unsigned int size);
 
   HB_NODISCARD bool ensure (unsigned int size)
   { return likely (!size || size < allocated) ? true : enlarge (size); }
@@ -375,8 +375,8 @@ struct hb_buffer_t
     return true;
   }
 
-  HB_INTERNAL HB_NODISCARD bool make_room_for (unsigned int num_in, unsigned int num_out);
-  HB_INTERNAL HB_NODISCARD bool shift_forward (unsigned int count);
+  HB_NODISCARD HB_INTERNAL bool make_room_for (unsigned int num_in, unsigned int num_out);
+  HB_NODISCARD HB_INTERNAL bool shift_forward (unsigned int count);
 
   typedef long scratch_buffer_t;
   HB_INTERNAL scratch_buffer_t *get_scratch_buffer (unsigned int *size);
