@@ -215,7 +215,7 @@ struct hb_buffer_t
 		       unsigned int num_out,
 		       const hb_codepoint_t *glyph_data);
 
-  bool replace_glyph (hb_codepoint_t glyph_index)
+  HB_NODISCARD bool replace_glyph (hb_codepoint_t glyph_index)
   {
     if (unlikely (out_info != info || out_len != idx))
     {

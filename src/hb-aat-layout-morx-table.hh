@@ -525,7 +525,7 @@ struct LigatureSubtable
 	    hb_codepoint_t lig = ligatureData;
 
 	    DEBUG_MSG (APPLY, nullptr, "Produced ligature %u", lig);
-	    buffer->replace_glyph (lig);
+	    if (unlikely (!buffer->replace_glyph (lig))) return;
 
 	    unsigned int lig_end = match_positions[(match_length - 1u) % ARRAY_LENGTH (match_positions)] + 1u;
 	    /* Now go and delete all subsequent components. */
@@ -533,7 +533,7 @@ struct LigatureSubtable
 	    {
 	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
 	      buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]);
-	      buffer->replace_glyph (DELETED_GLYPH);
+	      if (unlikely (!buffer->replace_glyph (DELETED_GLYPH))) return;
 	    }
 
 	    buffer->move_to (lig_end);

@@ -659,7 +659,7 @@ struct hb_ot_apply_context_t :
   void replace_glyph (hb_codepoint_t glyph_index) const
   {
     _set_glyph_props (glyph_index);
-    buffer->replace_glyph (glyph_index);
+    (void) buffer->replace_glyph (glyph_index);
   }
   void replace_glyph_inplace (hb_codepoint_t glyph_index) const
   {
@@ -670,7 +670,7 @@ struct hb_ot_apply_context_t :
 				    unsigned int class_guess) const
   {
     _set_glyph_props (glyph_index, class_guess, true);
-    buffer->replace_glyph (glyph_index);
+    (void) buffer->replace_glyph (glyph_index);
   }
   void output_glyph_for_component (hb_codepoint_t glyph_index,
 				   unsigned int class_guess) const
