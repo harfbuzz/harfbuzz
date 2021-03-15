@@ -340,7 +340,7 @@ struct hb_buffer_t
   HB_NODISCARD bool ensure (unsigned int size)
   { return likely (!size || size < allocated) ? true : enlarge (size); }
 
-  bool ensure_inplace (unsigned int size)
+  HB_NODISCARD bool ensure_inplace (unsigned int size)
   { return likely (!size || size < allocated); }
 
   void assert_glyphs ()
