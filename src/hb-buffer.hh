@@ -251,15 +251,8 @@ struct hb_buffer_t
   }
   /* Makes a copy of the glyph at idx to output and replace glyph_index */
   HB_NODISCARD bool output_glyph (hb_codepoint_t glyph_index)
-  {
-    if (unlikely (!make_room_for (0, 1))) return false;
+  { return replace_glyphs (0, 1, &glyph_index); }
 
-    out_info[out_len] = idx < len ? cur() : prev();
-    out_info[out_len].codepoint = glyph_index;
-
-    out_len++;
-    return true;
-  }
   HB_NODISCARD bool output_info (const hb_glyph_info_t &glyph_info)
   {
     if (unlikely (!make_room_for (0, 1))) return false;
