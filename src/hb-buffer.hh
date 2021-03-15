@@ -242,7 +242,7 @@ struct hb_buffer_t
     out_len++;
     return out_info[out_len - 1];
   }
-  bool output_info (const hb_glyph_info_t &glyph_info)
+  HB_NODISCARD bool output_info (const hb_glyph_info_t &glyph_info)
   {
     if (unlikely (!make_room_for (0, 1))) return false;
 

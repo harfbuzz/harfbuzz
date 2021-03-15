@@ -88,7 +88,7 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
 	  buffer->next_glyph ();
       }
 
-      buffer->output_info (ginfo);
+      (void) buffer->output_info (ginfo);
     }
     else
       buffer->next_glyph ();
