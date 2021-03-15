@@ -39,6 +39,7 @@
 #include "hb-ot-maxp-table.hh"
 #include "hb-ot-color-sbix-table.hh"
 #include "hb-ot-color-colr-table.hh"
+#include "hb-ot-color-colrv1-closure.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-post-table.hh"
 #include "hb-ot-cff1-table.hh"
