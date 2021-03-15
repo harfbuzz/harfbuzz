@@ -231,7 +231,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    chars[0] = 0x25CCu;
 	    chars[1] = u;
 	  }
-	  buffer->replace_glyphs (1, 2, chars);
+	  (void) buffer->replace_glyphs (1, 2, chars);
 	}
 	else
 	{
@@ -273,7 +273,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	  hb_codepoint_t s = SBase + (l - LBase) * NCount + (v - VBase) * TCount + tindex;
 	  if (font->has_glyph (s))
 	  {
-	    buffer->replace_glyphs (t ? 3 : 2, 1, &s);
+	    (void) buffer->replace_glyphs (t ? 3 : 2, 1, &s);
 	    end = start + 1;
 	    continue;
 	  }
@@ -323,9 +323,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	hb_codepoint_t new_s = s + new_tindex;
 	if (font->has_glyph (new_s))
 	{
-	  buffer->replace_glyphs (2, 1, &new_s);
-	  if (unlikely (!buffer->successful))
-	    break;
+	  (void) buffer->replace_glyphs (2, 1, &new_s);
 	  end = start + 1;
 	  continue;
 	}
@@ -349,7 +347,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    (!tindex || font->has_glyph (decomposed[2])))
 	{
 	  unsigned int s_len = tindex ? 3 : 2;
-	  buffer->replace_glyphs (1, s_len, decomposed);
+	  (void) buffer->replace_glyphs (1, s_len, decomposed);
 
 	  /* If we decomposed an LV because of a non-combining T following,
 	   * we want to include this T in the syllable.

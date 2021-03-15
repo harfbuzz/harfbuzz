@@ -229,7 +229,7 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
       if (font->get_variation_glyph (buffer->cur().codepoint, buffer->cur(+1).codepoint, &buffer->cur().glyph_index()))
       {
 	hb_codepoint_t unicode = buffer->cur().codepoint;
-	buffer->replace_glyphs (2, 1, &unicode);
+	(void) buffer->replace_glyphs (2, 1, &unicode);
       }
       else
       {

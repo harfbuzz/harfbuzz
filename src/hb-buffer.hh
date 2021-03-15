@@ -210,9 +210,10 @@ struct hb_buffer_t
   HB_INTERNAL void clear_output ();
   HB_INTERNAL void clear_positions ();
 
-  HB_INTERNAL bool replace_glyphs (unsigned int num_in,
-				   unsigned int num_out,
-				   const hb_codepoint_t *glyph_data);
+  HB_INTERNAL HB_NODISCARD
+  bool replace_glyphs (unsigned int num_in,
+		       unsigned int num_out,
+		       const hb_codepoint_t *glyph_data);
 
   bool replace_glyph (hb_codepoint_t glyph_index)
   {
