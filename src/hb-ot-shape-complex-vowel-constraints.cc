@@ -23,8 +23,8 @@
 static void
 _output_dotted_circle (hb_buffer_t *buffer)
 {
-  hb_glyph_info_t &dottedcircle = buffer->output_glyph (0x25CCu);
-  _hb_glyph_info_reset_continuation (&dottedcircle);
+  (void) buffer->output_glyph (0x25CCu);
+  _hb_glyph_info_reset_continuation (&buffer->prev());
 }
 
 static void

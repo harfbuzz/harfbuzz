@@ -676,7 +676,7 @@ struct hb_ot_apply_context_t :
 				   unsigned int class_guess) const
   {
     _set_glyph_props (glyph_index, class_guess, false, true);
-    buffer->output_glyph (glyph_index);
+    (void) buffer->output_glyph (glyph_index);
   }
 };
 

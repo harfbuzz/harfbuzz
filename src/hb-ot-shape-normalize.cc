@@ -101,8 +101,9 @@ set_glyph (hb_glyph_info_t &info, hb_font_t *font)
 static inline void
 output_char (hb_buffer_t *buffer, hb_codepoint_t unichar, hb_codepoint_t glyph)
 {
+  /* This is very confusing indeed. */
   buffer->cur().glyph_index() = glyph;
-  buffer->output_glyph (unichar); /* This is very confusing indeed. */
+  (void) buffer->output_glyph (unichar);
   _hb_glyph_info_set_unicode_props (&buffer->prev(), buffer);
 }
 

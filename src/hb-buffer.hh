@@ -210,10 +210,31 @@ struct hb_buffer_t
   HB_INTERNAL void clear_output ();
   HB_INTERNAL void clear_positions ();
 
-  HB_INTERNAL HB_NODISCARD
-  bool replace_glyphs (unsigned int num_in,
-		       unsigned int num_out,
-		       const hb_codepoint_t *glyph_data);
+  template <typename T>
+  HB_NODISCARD bool replace_glyphs (unsigned int num_in,
+				    unsigned int num_out,
+				    const T *glyph_data)
+  {
+    if (unlikely (!make_room_for (num_in, num_out))) return false;
+
+    assert (idx + num_in <= len);
+
+    merge_clusters (idx, idx + num_in);
+
+    hb_glyph_info_t &orig_info = idx < len ? cur() : prev();
+
+    hb_glyph_info_t *pinfo = &out_info[out_len];
+    for (unsigned int i = 0; i < num_out; i++)
+    {
+      *pinfo = orig_info;
+      pinfo->codepoint = glyph_data[i];
+      pinfo++;
+    }
+
+    idx  += num_in;
+    out_len += num_out;
+    return true;
+  }
 
   HB_NODISCARD bool replace_glyph (hb_codepoint_t glyph_index)
   {
@@ -229,18 +250,15 @@ struct hb_buffer_t
     return true;
   }
   /* Makes a copy of the glyph at idx to output and replace glyph_index */
-  hb_glyph_info_t & output_glyph (hb_codepoint_t glyph_index)
+  HB_NODISCARD bool output_glyph (hb_codepoint_t glyph_index)
   {
-    if (unlikely (!make_room_for (0, 1))) return Crap (hb_glyph_info_t);
+    if (unlikely (!make_room_for (0, 1))) return false;
 
-    if (unlikely (idx == len && !out_len))
-      return Crap (hb_glyph_info_t);
-
-    out_info[out_len] = idx < len ? info[idx] : out_info[out_len - 1];
+    out_info[out_len] = idx < len ? cur() : prev();
     out_info[out_len].codepoint = glyph_index;
 
     out_len++;
-    return out_info[out_len - 1];
+    return true;
   }
   HB_NODISCARD bool output_info (const hb_glyph_info_t &glyph_info)
   {

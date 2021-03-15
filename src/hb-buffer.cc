@@ -342,33 +342,6 @@ hb_buffer_t::swap_buffers ()
   idx = 0;
 }
 
-
-bool
-hb_buffer_t::replace_glyphs (unsigned int num_in,
-			     unsigned int num_out,
-			     const uint32_t *glyph_data)
-{
-  if (unlikely (!make_room_for (num_in, num_out))) return false;
-
-  assert (idx + num_in <= len);
-
-  merge_clusters (idx, idx + num_in);
-
-  hb_glyph_info_t orig_info = info[idx];
-  hb_glyph_info_t *pinfo = &out_info[out_len];
-  for (unsigned int i = 0; i < num_out; i++)
-  {
-    *pinfo = orig_info;
-    pinfo->codepoint = glyph_data[i];
-    pinfo++;
-  }
-
-  idx  += num_in;
-  out_len += num_out;
-
-  return true;
-}
-
 bool
 hb_buffer_t::move_to (unsigned int i)
 {
