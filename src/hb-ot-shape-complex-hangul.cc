@@ -274,8 +274,6 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	  if (font->has_glyph (s))
 	  {
 	    buffer->replace_glyphs (t ? 3 : 2, 1, &s);
-	    if (unlikely (!buffer->successful))
-	      return;
 	    end = start + 1;
 	    continue;
 	  }
@@ -298,6 +296,8 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	}
 	else
 	  end = start + 2;
+	if (unlikely (!buffer->successful))
+	  break;
 	if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES)
 	  buffer->merge_out_clusters (start, end);
 	continue;
@@ -325,7 +325,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	{
 	  buffer->replace_glyphs (2, 1, &new_s);
 	  if (unlikely (!buffer->successful))
-	    return;
+	    break;
 	  end = start + 1;
 	  continue;
 	}
@@ -359,9 +359,8 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    buffer->next_glyph ();
 	    s_len++;
 	  }
-
 	  if (unlikely (!buffer->successful))
-	    return;
+	    break;
 
 	  /* We decomposed S: apply jamo features to the individual glyphs
 	   * that are now in buffer->out_info.
