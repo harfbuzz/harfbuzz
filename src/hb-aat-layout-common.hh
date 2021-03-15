@@ -831,7 +831,7 @@ struct StateTableDriver
 	break;
 
       if (!(entry.flags & context_t::DontAdvance) || buffer->max_ops-- <= 0)
-	buffer->next_glyph ();
+	(void) buffer->next_glyph ();
     }
 
     if (!c->in_place)

@@ -101,7 +101,7 @@ class ConstraintSet (object):
 						self._indent (depth + 2), cp, index + i, ')' if i == len (self._c) - 1 else ' &&'))
 				s.append ('{}{{\n'.format (indent))
 				for i in range (index):
-					s.append ('{}buffer->next_glyph ();\n'.format (self._indent (depth + 1)))
+					s.append ('{}(void) buffer->next_glyph ();\n'.format (self._indent (depth + 1)))
 				s.append ('{}matched = true;\n'.format (self._indent (depth + 1)))
 				s.append ('{}}}\n'.format (indent))
 		else:
@@ -179,7 +179,7 @@ print ('static void')
 print ('_output_with_dotted_circle (hb_buffer_t *buffer)')
 print ('{')
 print ('  _output_dotted_circle (buffer);')
-print ('  buffer->next_glyph ();')
+print ('  (void) buffer->next_glyph ();')
 print ('}')
 print ()
 
@@ -211,7 +211,7 @@ for script, constraints in sorted (constraints.items (), key=lambda s_c: script_
 	print ('      {')
 	print ('\tbool matched = false;')
 	write (str (constraints))
-	print ('\tbuffer->next_glyph ();')
+	print ('\t(void) buffer->next_glyph ();')
 	print ('\tif (matched) _output_with_dotted_circle (buffer);')
 	print ('      }')
 	print ('      break;')

@@ -262,7 +262,7 @@ struct hb_buffer_t
 
   /* Copies glyph at idx to output and advance idx.
    * If there's no output, just advance idx. */
-  bool next_glyph ()
+  HB_NODISCARD bool next_glyph ()
   {
     if (have_output)
     {
