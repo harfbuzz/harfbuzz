@@ -1318,7 +1318,7 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
   if (unlikely (hb_object_is_immutable (buffer)))
     return length == 0;
 
-  if (!buffer->ensure (length))
+  if (unlikely (!buffer->ensure (length)))
     return false;
 
   /* Wipe the new space */
@@ -1548,7 +1548,10 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   if (item_length == -1)
     item_length = text_length - item_offset;
 
-  buffer->ensure (buffer->len + item_length * sizeof (T) / 4);
+  if (unlikely (item_length < 0 ||
+		item_length > INT_MAX / 8 ||
+		!buffer->ensure (buffer->len + item_length * sizeof (T) / 4)))
+    return;
 
   /* If buffer is empty and pre-context provided, install it.
    * This check is written this way, to make sure people can
