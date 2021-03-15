@@ -499,7 +499,7 @@ struct LigatureSubtable
 	  }
 
 	  DEBUG_MSG (APPLY, nullptr, "Moving to stack position %u", cursor - 1);
-	  buffer->move_to (match_positions[--cursor % ARRAY_LENGTH (match_positions)]);
+	  if (unlikely (!buffer->move_to (match_positions[--cursor % ARRAY_LENGTH (match_positions)]))) return;
 
 	  if (unlikely (!actionData->sanitize (&c->sanitizer))) break;
 	  action = *actionData;
@@ -532,18 +532,18 @@ struct LigatureSubtable
 	    while (match_length - 1u > cursor)
 	    {
 	      DEBUG_MSG (APPLY, nullptr, "Skipping ligature component");
-	      buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]);
+	      if (unlikely (!buffer->move_to (match_positions[--match_length % ARRAY_LENGTH (match_positions)]))) return;
 	      if (unlikely (!buffer->replace_glyph (DELETED_GLYPH))) return;
 	    }
 
-	    buffer->move_to (lig_end);
+	    if (unlikely (!buffer->move_to (lig_end))) return;
 	    buffer->merge_out_clusters (match_positions[cursor % ARRAY_LENGTH (match_positions)], buffer->out_len);
 	  }
 
 	  actionData++;
 	}
 	while (!(action & LigActionLast));
-	buffer->move_to (end);
+	if (unlikely (!buffer->move_to (end))) return;
       }
     }
 
@@ -733,7 +733,7 @@ struct InsertionSubtable
 	bool before = flags & MarkedInsertBefore;
 
 	unsigned int end = buffer->out_len;
-	buffer->move_to (mark);
+	if (unlikely (!buffer->move_to (mark))) return;
 
 	if (buffer->idx < buffer->len && !before)
 	  buffer->copy_glyph ();
@@ -743,7 +743,7 @@ struct InsertionSubtable
 	if (buffer->idx < buffer->len && !before)
 	  buffer->skip_glyph ();
 
-	buffer->move_to (end + count);
+	if (unlikely (!buffer->move_to (end + count))) return;
 
 	buffer->unsafe_to_break_from_outbuffer (mark, hb_min (buffer->idx + 1, buffer->len));
       }
@@ -786,7 +786,7 @@ struct InsertionSubtable
 	 *
 	 * https://github.com/harfbuzz/harfbuzz/issues/1224#issuecomment-427691417
 	 */
-	buffer->move_to ((flags & DontAdvance) ? end : end + count);
+	if (unlikely (!buffer->move_to ((flags & DontAdvance) ? end : end + count))) return;
       }
     }
 

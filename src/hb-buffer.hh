@@ -333,7 +333,7 @@ struct hb_buffer_t
 
 
   /* Internal methods */
-  HB_INTERNAL bool move_to (unsigned int i); /* i is output-buffer index. */
+  HB_INTERNAL HB_NODISCARD bool move_to (unsigned int i); /* i is output-buffer index. */
 
   HB_INTERNAL HB_NODISCARD bool enlarge (unsigned int size);
 
