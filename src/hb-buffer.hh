@@ -210,20 +210,22 @@ struct hb_buffer_t
   HB_INTERNAL void clear_output ();
   HB_INTERNAL void clear_positions ();
 
-  HB_INTERNAL void replace_glyphs (unsigned int num_in,
+  HB_INTERNAL bool replace_glyphs (unsigned int num_in,
 				   unsigned int num_out,
 				   const hb_codepoint_t *glyph_data);
 
-  void replace_glyph (hb_codepoint_t glyph_index)
+  bool replace_glyph (hb_codepoint_t glyph_index)
   {
-    if (unlikely (out_info != info || out_len != idx)) {
-      if (unlikely (!make_room_for (1, 1))) return;
+    if (unlikely (out_info != info || out_len != idx))
+    {
+      if (unlikely (!make_room_for (1, 1))) return false;
       out_info[out_len] = info[idx];
     }
     out_info[out_len].codepoint = glyph_index;
 
     idx++;
     out_len++;
+    return true;
   }
   /* Makes a copy of the glyph at idx to output and replace glyph_index */
   hb_glyph_info_t & output_glyph (hb_codepoint_t glyph_index)
@@ -237,59 +239,60 @@ struct hb_buffer_t
     out_info[out_len].codepoint = glyph_index;
 
     out_len++;
-
     return out_info[out_len - 1];
   }
-  void output_info (const hb_glyph_info_t &glyph_info)
+  bool output_info (const hb_glyph_info_t &glyph_info)
   {
-    if (unlikely (!make_room_for (0, 1))) return;
+    if (unlikely (!make_room_for (0, 1))) return false;
 
     out_info[out_len] = glyph_info;
 
     out_len++;
+    return true;
   }
   /* Copies glyph at idx to output but doesn't advance idx */
-  void copy_glyph ()
+  bool copy_glyph ()
   {
-    if (unlikely (!make_room_for (0, 1))) return;
+    if (unlikely (!make_room_for (0, 1))) return false;
 
     out_info[out_len] = info[idx];
 
     out_len++;
+    return true;
   }
   /* Copies glyph at idx to output and advance idx.
    * If there's no output, just advance idx. */
-  void
-  next_glyph ()
+  bool next_glyph ()
   {
     if (have_output)
     {
       if (out_info != info || out_len != idx)
       {
-	if (unlikely (!make_room_for (1, 1))) return;
+	if (unlikely (!make_room_for (1, 1))) return false;
 	out_info[out_len] = info[idx];
       }
       out_len++;
     }
 
     idx++;
+    return true;
   }
   /* Copies n glyphs at idx to output and advance idx.
    * If there's no output, just advance idx. */
-  void
-  next_glyphs (unsigned int n)
+  bool next_glyphs (unsigned int n)
   {
     if (have_output)
     {
       if (out_info != info || out_len != idx)
       {
-	if (unlikely (!make_room_for (n, n))) return;
+	if (unlikely (!make_room_for (n, n))) return false;
 	memmove (out_info + out_len, info + idx, n * sizeof (out_info[0]));
       }
       out_len += n;
     }
 
     idx += n;
+    return true;
   }
   /* Advance idx without copying to output. */
   void skip_glyph () { idx++; }

@@ -343,12 +343,12 @@ hb_buffer_t::swap_buffers ()
 }
 
 
-void
+bool
 hb_buffer_t::replace_glyphs (unsigned int num_in,
 			     unsigned int num_out,
 			     const uint32_t *glyph_data)
 {
-  if (unlikely (!make_room_for (num_in, num_out))) return;
+  if (unlikely (!make_room_for (num_in, num_out))) return false;
 
   assert (idx + num_in <= len);
 
@@ -365,6 +365,8 @@ hb_buffer_t::replace_glyphs (unsigned int num_in,
 
   idx  += num_in;
   out_len += num_out;
+
+  return true;
 }
 
 bool
