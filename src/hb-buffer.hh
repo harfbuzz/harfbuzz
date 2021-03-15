@@ -376,7 +376,7 @@ struct hb_buffer_t
     return true;
   }
 
-  HB_INTERNAL bool make_room_for (unsigned int num_in, unsigned int num_out);
+  HB_INTERNAL HB_NODISCARD bool make_room_for (unsigned int num_in, unsigned int num_out);
   HB_INTERNAL bool shift_forward (unsigned int count);
 
   typedef long scratch_buffer_t;
