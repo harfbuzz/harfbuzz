@@ -255,13 +255,11 @@ struct hb_buffer_t
   /* Copies glyph at idx to output but doesn't advance idx */
   HB_NODISCARD bool copy_glyph ()
   {
-    if (unlikely (!make_room_for (0, 1))) return false;
-
-    out_info[out_len] = info[idx];
-
-    out_len++;
-    return true;
+    /* Extra copy because cur()'s return can be freed within
+     * output_info() call if buffer reallocates. */
+    return output_info (hb_glyph_info_t (cur()));
   }
+
   /* Copies glyph at idx to output and advance idx.
    * If there's no output, just advance idx. */
   bool next_glyph ()
