@@ -97,7 +97,7 @@ for filename in args:
 
 		if not reference:
 			print ('%s "%s" %s %s --unicodes %s' %
-					 (hb_shape, fontfile, ' '.join(extra_options), options, unicodes))
+					 (hb_shape, fontfile, ' '.join(extra_options), ' '.join(options), unicodes))
 
 		if "--font-funcs=ft" in options and not have_freetype:
 			skips += 1
