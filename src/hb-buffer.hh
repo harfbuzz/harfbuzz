@@ -353,7 +353,7 @@ struct hb_buffer_t
     assert ((content_type == HB_BUFFER_CONTENT_TYPE_UNICODE) ||
 	    (!len && (content_type == HB_BUFFER_CONTENT_TYPE_INVALID)));
   }
-  bool ensure_glyphs ()
+  HB_NODISCARD bool ensure_glyphs ()
   {
     if (unlikely (content_type != HB_BUFFER_CONTENT_TYPE_GLYPHS))
     {
@@ -364,7 +364,7 @@ struct hb_buffer_t
     }
     return true;
   }
-  bool ensure_unicode ()
+  HB_NODISCARD bool ensure_unicode ()
   {
     if (unlikely (content_type != HB_BUFFER_CONTENT_TYPE_UNICODE))
     {
