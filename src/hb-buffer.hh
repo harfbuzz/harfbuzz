@@ -280,7 +280,7 @@ struct hb_buffer_t
   }
   /* Copies n glyphs at idx to output and advance idx.
    * If there's no output, just advance idx. */
-  bool next_glyphs (unsigned int n)
+  HB_NODISCARD bool next_glyphs (unsigned int n)
   {
     if (have_output)
     {

@@ -348,7 +348,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 						      sizeof (buffer->info[0]),
 						      &buffer->cur().glyph_index(),
 						      sizeof (buffer->info[0]));
-	buffer->next_glyphs (done);
+	if (unlikely (!buffer->next_glyphs (done))) break;
       }
       while (buffer->idx < end && buffer->successful)
 	decompose_current_character (&c, might_short_circuit);
