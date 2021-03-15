@@ -139,7 +139,7 @@ struct hb_buffer_t
 
   /* Methods */
 
-  bool in_error () const { return !successful; }
+  HB_NODISCARD bool in_error () const { return !successful; }
 
   void allocate_var (unsigned int start, unsigned int count)
   {
