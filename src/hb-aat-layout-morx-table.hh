@@ -736,7 +736,7 @@ struct InsertionSubtable
 	if (unlikely (!buffer->move_to (mark))) return;
 
 	if (buffer->idx < buffer->len && !before)
-	  buffer->copy_glyph ();
+	  if (unlikely (!buffer->copy_glyph ())) return;
 	/* TODO We ignore KashidaLike setting. */
 	for (unsigned int i = 0; i < count; i++)
 	  buffer->output_glyph (glyphs[i]);
@@ -764,7 +764,7 @@ struct InsertionSubtable
 	unsigned int end = buffer->out_len;
 
 	if (buffer->idx < buffer->len && !before)
-	  buffer->copy_glyph ();
+	  if (unlikely (!buffer->copy_glyph ())) return;
 	/* TODO We ignore KashidaLike setting. */
 	for (unsigned int i = 0; i < count; i++)
 	  buffer->output_glyph (glyphs[i]);

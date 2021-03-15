@@ -252,7 +252,7 @@ struct hb_buffer_t
     return true;
   }
   /* Copies glyph at idx to output but doesn't advance idx */
-  bool copy_glyph ()
+  HB_NODISCARD bool copy_glyph ()
   {
     if (unlikely (!make_room_for (0, 1))) return false;
 
