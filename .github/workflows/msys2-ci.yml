@@ -2,7 +2,9 @@ name: msys2
 
 on:
   push:
+    branches: [ master ]
   pull_request:
+    branches: [ master ]
 
 jobs:
   msys2:

@@ -8,14 +8,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
     - name: install dependencies
       run: sudo apt-get install pkg-config gcc ragel gcovr gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-setuptools ninja-build gobject-introspection libgirepository1.0-dev
-    - run: sudo pip3 install fonttools
-    - run: sudo pip3 install git+https://github.com/mesonbuild/meson
+    - run: sudo pip3 install fonttools meson==0.47.0
     - name: run
       run: meson build -Db_coverage=true --auto-features=enabled -Dgraphite=enabled -Doptimization=2
     - name: ci
