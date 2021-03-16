@@ -1358,7 +1358,7 @@ struct PairPosFormat2
     if ((!valueFormat1.has_device ()) && (!valueFormat2.has_device ())) return;
 
     hb_set_t class1_set, class2_set;
-    for (const unsigned cp : c->glyph_set->iter ())
+    for (const unsigned cp : + c->glyph_set->iter () | hb_filter (this + coverage))
     {
       unsigned klass1 = (this+classDef1).get (cp);
       unsigned klass2 = (this+classDef2).get (cp);
