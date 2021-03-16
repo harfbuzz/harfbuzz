@@ -319,7 +319,7 @@ hb_buffer_t::swap_buffers ()
   if (unlikely (!successful)) return;
 
   assert (idx <= len);
-  next_glyphs (len - idx);
+  if (unlikely (!next_glyphs (len - idx))) return;
 
   assert (have_output);
   have_output = false;
@@ -340,31 +340,6 @@ hb_buffer_t::swap_buffers ()
   out_len = tmp;
 
   idx = 0;
-}
-
-
-void
-hb_buffer_t::replace_glyphs (unsigned int num_in,
-			     unsigned int num_out,
-			     const uint32_t *glyph_data)
-{
-  if (unlikely (!make_room_for (num_in, num_out))) return;
-
-  assert (idx + num_in <= len);
-
-  merge_clusters (idx, idx + num_in);
-
-  hb_glyph_info_t orig_info = info[idx];
-  hb_glyph_info_t *pinfo = &out_info[out_len];
-  for (unsigned int i = 0; i < num_out; i++)
-  {
-    *pinfo = orig_info;
-    pinfo->codepoint = glyph_data[i];
-    pinfo++;
-  }
-
-  idx  += num_in;
-  out_len += num_out;
 }
 
 bool
@@ -1316,7 +1291,7 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
   if (unlikely (hb_object_is_immutable (buffer)))
     return length == 0;
 
-  if (!buffer->ensure (length))
+  if (unlikely (!buffer->ensure (length)))
     return false;
 
   /* Wipe the new space */
@@ -1546,7 +1521,10 @@ hb_buffer_add_utf (hb_buffer_t  *buffer,
   if (item_length == -1)
     item_length = text_length - item_offset;
 
-  buffer->ensure (buffer->len + item_length * sizeof (T) / 4);
+  if (unlikely (item_length < 0 ||
+		item_length > INT_MAX / 8 ||
+		!buffer->ensure (buffer->len + item_length * sizeof (T) / 4)))
+    return;
 
   /* If buffer is empty and pre-context provided, install it.
    * This check is written this way, to make sure people can

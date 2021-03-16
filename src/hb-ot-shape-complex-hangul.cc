@@ -205,7 +205,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
       {
 	/* Tone mark follows a valid syllable; move it in front, unless it's zero width. */
 	buffer->unsafe_to_break_from_outbuffer (start, buffer->idx);
-	buffer->next_glyph ();
+	if (unlikely (!buffer->next_glyph ())) break;
 	if (!is_zero_width_char (font, u))
 	{
 	  buffer->merge_out_clusters (start, end + 1);
@@ -231,12 +231,12 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    chars[0] = 0x25CCu;
 	    chars[1] = u;
 	  }
-	  buffer->replace_glyphs (1, 2, chars);
+	  (void) buffer->replace_glyphs (1, 2, chars);
 	}
 	else
 	{
 	  /* No dotted circle available in the font; just leave tone mark untouched. */
-	  buffer->next_glyph ();
+	  (void) buffer->next_glyph ();
 	}
       }
       start = end = buffer->out_len;
@@ -273,7 +273,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	  hb_codepoint_t s = SBase + (l - LBase) * NCount + (v - VBase) * TCount + tindex;
 	  if (font->has_glyph (s))
 	  {
-	    buffer->replace_glyphs (t ? 3 : 2, 1, &s);
+	    (void) buffer->replace_glyphs (t ? 3 : 2, 1, &s);
 	    end = start + 1;
 	    continue;
 	  }
@@ -285,13 +285,13 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	 * Set jamo features on the individual glyphs, and advance past them.
 	 */
 	buffer->cur().hangul_shaping_feature() = LJMO;
-	buffer->next_glyph ();
+	(void) buffer->next_glyph ();
 	buffer->cur().hangul_shaping_feature() = VJMO;
-	buffer->next_glyph ();
+	(void) buffer->next_glyph ();
 	if (t)
 	{
 	  buffer->cur().hangul_shaping_feature() = TJMO;
-	  buffer->next_glyph ();
+	  (void) buffer->next_glyph ();
 	  end = start + 3;
 	}
 	else
@@ -323,9 +323,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	hb_codepoint_t new_s = s + new_tindex;
 	if (font->has_glyph (new_s))
 	{
-	  buffer->replace_glyphs (2, 1, &new_s);
-	  if (unlikely (!buffer->successful))
-	    break;
+	  (void) buffer->replace_glyphs (2, 1, &new_s);
 	  end = start + 1;
 	  continue;
 	}
@@ -349,14 +347,14 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 	    (!tindex || font->has_glyph (decomposed[2])))
 	{
 	  unsigned int s_len = tindex ? 3 : 2;
-	  buffer->replace_glyphs (1, s_len, decomposed);
+	  (void) buffer->replace_glyphs (1, s_len, decomposed);
 
 	  /* If we decomposed an LV because of a non-combining T following,
 	   * we want to include this T in the syllable.
 	   */
 	  if (has_glyph && !tindex)
 	  {
-	    buffer->next_glyph ();
+	    (void) buffer->next_glyph ();
 	    s_len++;
 	  }
 	  if (unlikely (!buffer->successful))
@@ -384,17 +382,15 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
 
       if (has_glyph)
       {
-	/* We didn't decompose the S, so just advance past it. */
+	/* We didn't decompose the S, so just advance past it and fall through. */
 	end = start + 1;
-	buffer->next_glyph ();
-	continue;
       }
     }
 
     /* Didn't find a recognizable syllable, so we leave end <= start;
      * this will prevent tone-mark reordering happening.
      */
-    buffer->next_glyph ();
+    (void) buffer->next_glyph ();
   }
   buffer->swap_buffers ();
 }

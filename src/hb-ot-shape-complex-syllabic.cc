@@ -85,13 +85,13 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
 	while (buffer->idx < buffer->len && buffer->successful &&
 	       last_syllable == buffer->cur().syllable() &&
 	       buffer->cur().complex_var_u8_category() == (unsigned) repha_category)
-	  buffer->next_glyph ();
+	  (void) buffer->next_glyph ();
       }
 
-      buffer->output_info (ginfo);
+      (void) buffer->output_info (ginfo);
     }
     else
-      buffer->next_glyph ();
+      (void) buffer->next_glyph ();
   }
   buffer->swap_buffers ();
 }
