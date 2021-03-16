@@ -32,7 +32,6 @@
 static void
 test_subset_gpos_lookup_subtable (void)
 {
-#ifdef HB_EXPERIMENTAL_API
   hb_face_t *face_pwa = hb_test_open_font_file ("fonts/Roboto-Regular-gpos-.aw.ttf");
   hb_face_t *face_wa = hb_test_open_font_file ("fonts/Roboto-Regular-gpos-aw.ttf");
 
@@ -53,14 +52,11 @@ test_subset_gpos_lookup_subtable (void)
   hb_face_destroy (face_pwa_subset);
   hb_face_destroy (face_pwa);
   hb_face_destroy (face_wa);
-#endif
 }
 
-/* TODO: Once GDEF subsetting is implemented, this test may fail & expected result need update. */
 static void
 test_subset_gpos_pairpos1_vf (void)
 {
-#ifdef HB_EXPERIMENTAL_API
   hb_face_t *face_wav = hb_test_open_font_file ("fonts/AdobeVFPrototype.WAV.gpos.otf");
   hb_face_t *face_wa = hb_test_open_font_file ("fonts/AdobeVFPrototype.WA.gpos.otf");
 
@@ -81,7 +77,6 @@ test_subset_gpos_pairpos1_vf (void)
   hb_face_destroy (face_wav_subset);
   hb_face_destroy (face_wav);
   hb_face_destroy (face_wa);
-#endif
 }
 
 int
