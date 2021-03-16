@@ -88,7 +88,6 @@ static inline void ClassDef_serialize (hb_serialize_context_t *c,
 				       Iterator it);
 
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
-					  const hb_set_t &glyphset,
 					  const hb_map_t &gid_klass_map,
 					  hb_sorted_vector_t<HBGlyphID> &glyphs,
 					  const hb_set_t &klasses,
@@ -1646,7 +1645,6 @@ Coverage_serialize (hb_serialize_context_t *c,
 { c->start_embed<Coverage> ()->serialize (c, it); }
 
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
-					  const hb_set_t &glyphset,
 					  const hb_map_t &gid_klass_map,
 					  hb_sorted_vector_t<HBGlyphID> &glyphs,
 					  const hb_set_t &klasses,
@@ -1662,7 +1660,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
 
   /* any glyph not assigned a class value falls into Class zero (0),
    * if any glyph assigned to class 0, remapping must start with 0->0*/
-  if (!use_class_zero || glyphset.get_population () > gid_klass_map.get_population ())
+  if (!use_class_zero)
     klass_map->set (0, 0);
 
   unsigned idx = klass_map->has (0) ? 1 : 0;
@@ -1734,10 +1732,10 @@ struct ClassDefFormat1
   bool subset (hb_subset_context_t *c,
 	       hb_map_t *klass_map = nullptr /*OUT*/,
                bool use_class_zero = true,
-               const hb_set_t* glyph_filter = nullptr) const
+               const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t *glyphset = glyph_filter ? glyph_filter : c->plan->glyphset_gsub ();
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_sorted_vector_t<HBGlyphID> glyphs;
@@ -1746,9 +1744,12 @@ struct ClassDefFormat1
 
     hb_codepoint_t start = startGlyph;
     hb_codepoint_t end   = start + classValue.len;
+
     for (const hb_codepoint_t gid : + hb_range (start, end)
-				    | hb_filter (glyphset))
+                                    | hb_filter (glyphset))
     {
+      if (glyph_filter && !glyph_filter->has(gid)) continue;
+
       unsigned klass = classValue[gid - start];
       if (!klass) continue;
 
@@ -1757,7 +1758,11 @@ struct ClassDefFormat1
       orig_klasses.add (klass);
     }
 
-    ClassDef_remap_and_serialize (c->serializer, *glyphset, gid_org_klass_map,
+    unsigned glyph_count = glyph_filter
+                           ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
+                           : glyphset.get_population ();
+    use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
+    ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
 				  glyphs, orig_klasses, use_class_zero, klass_map);
     return_trace ((bool) glyphs);
   }
@@ -1909,10 +1914,10 @@ struct ClassDefFormat2
   bool subset (hb_subset_context_t *c,
 	       hb_map_t *klass_map = nullptr /*OUT*/,
                bool use_class_zero = true,
-               const hb_set_t* glyph_filter = nullptr) const
+               const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t *glyphset = glyph_filter != nullptr ? glyph_filter : c->plan->glyphset_gsub ();
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_sorted_vector_t<HBGlyphID> glyphs;
@@ -1928,14 +1933,19 @@ struct ClassDefFormat2
       hb_codepoint_t end   = rangeRecord[i].last + 1;
       for (hb_codepoint_t g = start; g < end; g++)
       {
-	if (!glyphset->has (g)) continue;
+	if (!glyphset.has (g)) continue;
+        if (glyph_filter && !glyph_filter->has (g)) continue;
 	glyphs.push (glyph_map[g]);
 	gid_org_klass_map.set (glyph_map[g], klass);
 	orig_klasses.add (klass);
       }
     }
 
-    ClassDef_remap_and_serialize (c->serializer, *glyphset, gid_org_klass_map,
+    unsigned glyph_count = glyph_filter
+                           ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
+                           : glyphset.get_population ();
+    use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
+    ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
 				  glyphs, orig_klasses, use_class_zero, klass_map);
     return_trace ((bool) glyphs);
   }
@@ -2089,7 +2099,7 @@ struct ClassDef
   bool subset (hb_subset_context_t *c,
 	       hb_map_t *klass_map = nullptr /*OUT*/,
                bool use_class_zero = true,
-               const hb_set_t* glyph_filter = nullptr) const
+               const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
     switch (u.format) {

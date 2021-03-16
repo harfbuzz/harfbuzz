@@ -1437,13 +1437,8 @@ struct PairPosFormat2
     out->valueFormat1 = valueFormat1;
     out->valueFormat2 = valueFormat2;
 
-    hb_set_t coverage_glyphs;
-    + hb_iter (this + coverage)
-    | hb_filter (c->plan->glyphset_gsub())
-    | hb_sink (coverage_glyphs);
-
     hb_map_t klass1_map;
-    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, &coverage_glyphs);
+    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, &(this + coverage));
     out->class1Count = klass1_map.get_population ();
 
     hb_map_t klass2_map;
