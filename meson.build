@@ -75,7 +75,17 @@ m_dep = cpp.find_library('m', required: false)
 
 freetype_dep = null_dep
 if not get_option('freetype').disabled()
-  freetype_dep = dependency('freetype2', required: false)
+  # The package names for FreeType2 are different for pkg-config and CMake
+  check_freetype_pkgs = [
+    ['freetype2', 'pkg-config'],
+    ['freetype', 'cmake'],
+  ]
+
+  foreach ft_pkg: check_freetype_pkgs
+    if not freetype_dep.found()
+      freetype_dep = dependency(ft_pkg[0], method: ft_pkg[1], required: false)
+    endif
+  endforeach
 
   if (not freetype_dep.found() and
       cpp.get_id() == 'msvc' and
