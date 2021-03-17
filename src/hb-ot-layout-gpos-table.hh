@@ -2666,7 +2666,7 @@ struct GPOS : GSUBGPOS
 
   bool subset (hb_subset_context_t *c) const
   {
-    hb_subset_layout_context_t l (c, tableTag, c->plan->gpos_lookups, c->plan->gpos_features);
+    hb_subset_layout_context_t l (c, tableTag, c->plan->gpos_lookups, c->plan->gpos_langsys, c->plan->gpos_features);
     return GSUBGPOS::subset<PosLookup> (&l);
   }
 
