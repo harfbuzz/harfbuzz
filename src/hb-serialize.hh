@@ -41,6 +41,14 @@
  * Serialize
  */
 
+enum hb_serialize_error_type_t {
+  HB_SERIALIZE_ERR_NONE =            0x00000000u,
+  HB_SERIALIZE_ERR_OTHER =           0x00000001u,
+  HB_SERIALIZE_ERR_OFFSET_OVERFLOW = 0x00000002u,
+  HB_SERIALIZE_ERR_OUT_OF_ROOM =     0x00000004u,
+};
+HB_MARK_AS_FLAG_T (hb_serialize_error_type_t);
+
 struct hb_serialize_context_t
 {
   typedef unsigned objidx_t;
@@ -50,6 +58,8 @@ struct hb_serialize_context_t
      Tail,	/* Relative to the current object tail after packed. */
      Absolute	/* Absolute: from the start of the serialize buffer. */
    };
+
+
 
   struct object_t
   {
@@ -117,7 +127,12 @@ struct hb_serialize_context_t
     object_pool.fini ();
   }
 
-  bool in_error () const { return !this->successful; }
+  bool in_error () const { return errors & HB_SERIALIZE_ERR_OTHER; }
+
+  bool successful () const { return !in_error (); }
+
+  bool ran_out_of_room () const { return errors & HB_SERIALIZE_ERR_OUT_OF_ROOM; }
+  bool offset_overflow () const { return errors & HB_SERIALIZE_ERR_OFFSET_OVERFLOW; }
 
   void reset (void *start_, unsigned int size)
   {
@@ -129,9 +144,7 @@ struct hb_serialize_context_t
 
   void reset ()
   {
-    this->successful = true;
-    this->ran_out_of_room = false;
-    this->offset_overflow = false;
+    this->errors = HB_SERIALIZE_ERR_NONE;
     this->head = this->start;
     this->tail = this->end;
     this->debug_depth = 0;
@@ -141,23 +154,27 @@ struct hb_serialize_context_t
     this->packed_map.init ();
   }
 
-  bool check_success (bool success)
-  { return this->successful && (success || (err_other_error (), false)); }
+  bool check_success (bool success,
+                      hb_serialize_error_type_t err_type = HB_SERIALIZE_ERR_OTHER)
+  {
+    return successful ()
+        && (success || (set_error (err_type), false));
+  }
 
   template <typename T1, typename T2>
-  bool check_equal (T1 &&v1, T2 &&v2)
+  bool check_equal (T1 &&v1, T2 &&v2, hb_serialize_error_type_t err_type)
   {
     if ((long long) v1 != (long long) v2)
     {
-      err_offset_overflow ();
+      set_error (err_type);
       return false;
     }
     return true;
   }
 
   template <typename T1, typename T2>
-  bool check_assign (T1 &v1, T2 &&v2)
-  { return check_equal (v1 = v2, v2); }
+  bool check_assign (T1 &v1, T2 &&v2, hb_serialize_error_type_t err_type)
+  { return check_equal (v1 = v2, v2, err_type); }
 
   template <typename T> bool propagate_error (T &&obj)
   { return check_success (!hb_deref (obj).in_error ()); }
@@ -184,7 +201,7 @@ struct hb_serialize_context_t
 		     "end [%p..%p] serialized %u bytes; %s",
 		     this->start, this->end,
 		     (unsigned) (this->head - this->start),
-		     this->successful ? "successful" : "UNSUCCESSFUL");
+		     successful () ? "successful" : "UNSUCCESSFUL");
 
     propagate_error (packed, packed_map);
 
@@ -368,7 +385,7 @@ struct hb_serialize_context_t
       for (const object_t::link_t &link : parent->links)
       {
 	const object_t* child = packed[link.objidx];
-	if (unlikely (!child)) { err_other_error(); return; }
+	if (unlikely (!child)) { set_error (HB_SERIALIZE_ERR_OTHER); return; }
 	unsigned offset = 0;
 	switch ((whence_t) link.whence) {
 	case Head:     offset = child->head - parent->head; break;
@@ -415,20 +432,20 @@ struct hb_serialize_context_t
   Type *start_embed (const Type &obj) const
   { return start_embed (hb_addressof (obj)); }
 
-  /* Following two functions exist to allow setting breakpoint on. */
-  void err_ran_out_of_room () { this->ran_out_of_room = true; }
-  void err_offset_overflow () { this->offset_overflow = true; }
-  void err_other_error () { this->successful = false; }
+  void set_error (hb_serialize_error_type_t err_type)
+  {
+    errors = errors | err_type;
+  }
 
   template <typename Type>
   Type *allocate_size (unsigned int size)
   {
-    if (unlikely (!this->successful)) return nullptr;
+    if (unlikely (in_error ())) return nullptr;
 
     if (this->tail - this->head < ptrdiff_t (size))
     {
-      err_ran_out_of_room ();
-      this->successful = false;
+      set_error (HB_SERIALIZE_ERR_OUT_OF_ROOM);
+      set_error (HB_SERIALIZE_ERR_OTHER);
       return nullptr;
     }
     memset (this->head, 0, size);
@@ -515,7 +532,7 @@ struct hb_serialize_context_t
   /* Output routines. */
   hb_bytes_t copy_bytes () const
   {
-    assert (this->successful);
+    assert (successful ());
     /* Copy both items from head side and tail side... */
     unsigned int len = (this->head - this->start)
 		     + (this->end  - this->tail);
@@ -547,15 +564,13 @@ struct hb_serialize_context_t
   {
     auto &off = * ((BEInt<T> *) (parent->head + link.position));
     assert (0 == off);
-    check_assign (off, offset);
+    check_assign (off, offset, HB_SERIALIZE_ERR_OFFSET_OVERFLOW);
   }
 
   public: /* TODO Make private. */
   char *start, *head, *tail, *end;
   unsigned int debug_depth;
-  bool successful;
-  bool ran_out_of_room;
-  bool offset_overflow;
+  hb_serialize_error_type_t errors;
 
   private:
 
@@ -571,6 +586,5 @@ struct hb_serialize_context_t
   /* Map view of packed objects. */
   hb_hashmap_t<const object_t *, objidx_t, nullptr, 0> packed_map;
 };
-
 
 #endif /* HB_SERIALIZE_HH */

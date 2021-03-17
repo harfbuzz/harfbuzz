@@ -230,7 +230,8 @@ struct name
     c->copy_all (records, src_string_pool);
     free (records.arrayZ);
 
-    if (unlikely (c->ran_out_of_room)) return_trace (false);
+
+    if (unlikely (c->ran_out_of_room ())) return_trace (false);
 
     this->stringOffset = c->length ();
 

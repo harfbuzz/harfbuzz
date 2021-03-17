@@ -75,7 +75,7 @@ _repack (hb_tag_t tag, const hb_serialize_context_t& c)
       &&  tag != HB_OT_TAG_GSUB)
     return c.copy_blob ();
 
-  if (!c.offset_overflow)
+  if (!c.offset_overflow ())
     return c.copy_blob ();
 
   hb_vector_t<char> buf;
@@ -86,7 +86,7 @@ _repack (hb_tag_t tag, const hb_serialize_context_t& c)
   hb_serialize_context_t repacked ((void *) buf, buf_size);
   hb_resolve_overflows (c.object_graph (), &repacked);
 
-  if (unlikely (repacked.ran_out_of_room || repacked.in_error () || repacked.offset_overflow))
+  if (unlikely (repacked.ran_out_of_room () || repacked.in_error () || repacked.offset_overflow ()))
     // TODO(garretrieger): refactor so we can share the resize/retry logic with the subset
     //                     portion.
     return nullptr;
@@ -105,7 +105,7 @@ _try_subset (const TableType *table,
   c->serializer->start_serialize<TableType> ();
 
   bool needed = table->subset (c);
-  if (!c->serializer->ran_out_of_room)
+  if (!c->serializer->ran_out_of_room ())
   {
     c->serializer->end_serialize ();
     return needed;
@@ -163,7 +163,7 @@ _subset (hb_subset_plan_t *plan)
   }
   hb_blob_destroy (source_blob);
 
-  if (serializer.ran_out_of_room ||  serializer.in_error ())
+  if (serializer.ran_out_of_room () ||  serializer.in_error ())
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c::subset FAILED!", HB_UNTAG (tag));
     return false;
