@@ -88,10 +88,10 @@ static inline void ClassDef_serialize (hb_serialize_context_t *c,
 				       Iterator it);
 
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
-					  const hb_set_t &glyphset,
 					  const hb_map_t &gid_klass_map,
 					  hb_sorted_vector_t<HBGlyphID> &glyphs,
 					  const hb_set_t &klasses,
+                                          bool use_class_zero,
 					  hb_map_t *klass_map /*INOUT*/);
 
 struct hb_subset_layout_context_t :
@@ -1645,10 +1645,10 @@ Coverage_serialize (hb_serialize_context_t *c,
 { c->start_embed<Coverage> ()->serialize (c, it); }
 
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
-					  const hb_set_t &glyphset,
 					  const hb_map_t &gid_klass_map,
 					  hb_sorted_vector_t<HBGlyphID> &glyphs,
 					  const hb_set_t &klasses,
+                                          bool use_class_zero,
 					  hb_map_t *klass_map /*INOUT*/)
 {
   if (!klass_map)
@@ -1660,7 +1660,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
 
   /* any glyph not assigned a class value falls into Class zero (0),
    * if any glyph assigned to class 0, remapping must start with 0->0*/
-  if (glyphset.get_population () > gid_klass_map.get_population ())
+  if (!use_class_zero)
     klass_map->set (0, 0);
 
   unsigned idx = klass_map->has (0) ? 1 : 0;
@@ -1730,7 +1730,9 @@ struct ClassDefFormat1
   }
 
   bool subset (hb_subset_context_t *c,
-	       hb_map_t *klass_map = nullptr /*OUT*/) const
+	       hb_map_t *klass_map = nullptr /*OUT*/,
+               bool use_class_zero = true,
+               const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
@@ -1742,9 +1744,12 @@ struct ClassDefFormat1
 
     hb_codepoint_t start = startGlyph;
     hb_codepoint_t end   = start + classValue.len;
+
     for (const hb_codepoint_t gid : + hb_range (start, end)
-				    | hb_filter (glyphset))
+                                    | hb_filter (glyphset))
     {
+      if (glyph_filter && !glyph_filter->has(gid)) continue;
+
       unsigned klass = classValue[gid - start];
       if (!klass) continue;
 
@@ -1753,8 +1758,12 @@ struct ClassDefFormat1
       orig_klasses.add (klass);
     }
 
-    ClassDef_remap_and_serialize (c->serializer, glyphset, gid_org_klass_map,
-				  glyphs, orig_klasses, klass_map);
+    unsigned glyph_count = glyph_filter
+                           ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
+                           : glyphset.get_population ();
+    use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
+    ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
+				  glyphs, orig_klasses, use_class_zero, klass_map);
     return_trace ((bool) glyphs);
   }
 
@@ -1903,7 +1912,9 @@ struct ClassDefFormat2
   }
 
   bool subset (hb_subset_context_t *c,
-	       hb_map_t *klass_map = nullptr /*OUT*/) const
+	       hb_map_t *klass_map = nullptr /*OUT*/,
+               bool use_class_zero = true,
+               const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
@@ -1923,14 +1934,19 @@ struct ClassDefFormat2
       for (hb_codepoint_t g = start; g < end; g++)
       {
 	if (!glyphset.has (g)) continue;
+        if (glyph_filter && !glyph_filter->has (g)) continue;
 	glyphs.push (glyph_map[g]);
 	gid_org_klass_map.set (glyph_map[g], klass);
 	orig_klasses.add (klass);
       }
     }
 
-    ClassDef_remap_and_serialize (c->serializer, glyphset, gid_org_klass_map,
-				  glyphs, orig_klasses, klass_map);
+    unsigned glyph_count = glyph_filter
+                           ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
+                           : glyphset.get_population ();
+    use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
+    ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
+				  glyphs, orig_klasses, use_class_zero, klass_map);
     return_trace ((bool) glyphs);
   }
 
@@ -2045,10 +2061,9 @@ struct ClassDef
     if (likely (it))
     {
       hb_codepoint_t glyph_min = (*it).first;
-      hb_codepoint_t glyph_max = + it
-				 | hb_map (hb_first)
-				 | hb_reduce (hb_max, 0u);
+      hb_codepoint_t glyph_max = glyph_min;
 
+      unsigned num_glyphs = 0;
       unsigned num_ranges = 1;
       hb_codepoint_t prev_gid = glyph_min;
       unsigned prev_klass = (*it).second;
@@ -2057,7 +2072,9 @@ struct ClassDef
       {
 	hb_codepoint_t cur_gid = gid_klass_pair.first;
 	unsigned cur_klass = gid_klass_pair.second;
+        if (cur_klass) num_glyphs++;
 	if (cur_gid == glyph_min || !cur_klass) continue;
+        if (cur_gid > glyph_max) glyph_max = cur_gid;
 	if (cur_gid != prev_gid + 1 ||
 	    cur_klass != prev_klass)
 	  num_ranges++;
@@ -2066,7 +2083,7 @@ struct ClassDef
 	prev_klass = cur_klass;
       }
 
-      if (1 + (glyph_max - glyph_min + 1) <= num_ranges * 3)
+      if (num_glyphs && 1 + (glyph_max - glyph_min + 1) <= num_ranges * 3)
 	format = 1;
     }
     u.format = format;
@@ -2080,12 +2097,14 @@ struct ClassDef
   }
 
   bool subset (hb_subset_context_t *c,
-	       hb_map_t *klass_map = nullptr /*OUT*/) const
+	       hb_map_t *klass_map = nullptr /*OUT*/,
+               bool use_class_zero = true,
+               const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
     switch (u.format) {
-    case 1: return_trace (u.format1.subset (c, klass_map));
-    case 2: return_trace (u.format2.subset (c, klass_map));
+    case 1: return_trace (u.format1.subset (c, klass_map, use_class_zero, glyph_filter));
+    case 2: return_trace (u.format2.subset (c, klass_map, use_class_zero, glyph_filter));
     default:return_trace (false);
     }
   }

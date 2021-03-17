@@ -1358,7 +1358,7 @@ struct PairPosFormat2
     if ((!valueFormat1.has_device ()) && (!valueFormat2.has_device ())) return;
 
     hb_set_t class1_set, class2_set;
-    for (const unsigned cp : c->glyph_set->iter ())
+    for (const unsigned cp : + c->glyph_set->iter () | hb_filter (this + coverage))
     {
       unsigned klass1 = (this+classDef1).get (cp);
       unsigned klass2 = (this+classDef2).get (cp);
@@ -1366,7 +1366,10 @@ struct PairPosFormat2
       class2_set.add (klass2);
     }
 
-    if (class1_set.is_empty () || class2_set.is_empty ()) return;
+    if (class1_set.is_empty ()
+        || class2_set.is_empty ()
+        || (class2_set.get_population() == 1 && class2_set.has(0)))
+      return;
 
     unsigned len1 = valueFormat1.get_len ();
     unsigned len2 = valueFormat2.get_len ();
@@ -1435,11 +1438,11 @@ struct PairPosFormat2
     out->valueFormat2 = valueFormat2;
 
     hb_map_t klass1_map;
-    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map);
+    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, &(this + coverage));
     out->class1Count = klass1_map.get_population ();
 
     hb_map_t klass2_map;
-    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map);
+    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map, false);
     out->class2Count = klass2_map.get_population ();
 
     unsigned len1 = valueFormat1.get_len ();
