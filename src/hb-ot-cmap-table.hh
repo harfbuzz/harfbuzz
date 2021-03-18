@@ -276,7 +276,9 @@ struct CmapSubtableFormat4
     HBUINT16 *idRangeOffset = serialize_rangeoffset_glyid (c, format4_iter, endCode, startCode, idDelta, segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return;
 
-    if (unlikely (!c->check_assign(this->length, c->length () - table_initpos))) return;
+    if (unlikely (!c->check_assign(this->length,
+                                   c->length () - table_initpos,
+                                   HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
     this->segCountX2 = segcount * 2;
     this->entrySelector = hb_max (1u, hb_bit_storage (segcount)) - 1;
     this->searchRange = 2 * (1u << this->entrySelector);
@@ -850,7 +852,9 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
     }
     else
     {
-      if (unlikely (!c->check_assign (out->len, (c->length () - init_len) / UnicodeValueRange::static_size))) return nullptr;
+      if (unlikely (!c->check_assign (out->len,
+                                      (c->length () - init_len) / UnicodeValueRange::static_size,
+                                      HB_SERIALIZE_ERROR_INT_OVERFLOW))) return nullptr;
       return out;
     }
   }
@@ -1112,10 +1116,12 @@ struct CmapSubtableFormat14
       return;
 
     int tail_len = init_tail - c->tail;
-    c->check_assign (this->length, c->length () - table_initpos + tail_len);
+    c->check_assign (this->length, c->length () - table_initpos + tail_len,
+                     HB_SERIALIZE_ERROR_INT_OVERFLOW);
     c->check_assign (this->record.len,
 		     (c->length () - table_initpos - CmapSubtableFormat14::min_size) /
-		     VariationSelectorRecord::static_size);
+		     VariationSelectorRecord::static_size,
+                     HB_SERIALIZE_ERROR_INT_OVERFLOW);
 
     /* Correct the incorrect write order by reversing the order of the variation
        records array. */
@@ -1401,7 +1407,9 @@ struct cmap
       }
     }
 
-    c->check_assign(this->encodingRecord.len, (c->length () - cmap::min_size)/EncodingRecord::static_size);
+    c->check_assign(this->encodingRecord.len,
+                    (c->length () - cmap::min_size)/EncodingRecord::static_size,
+                    HB_SERIALIZE_ERROR_INT_OVERFLOW);
   }
 
   void closure_glyphs (const hb_set_t      *unicodes,

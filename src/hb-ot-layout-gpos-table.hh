@@ -694,7 +694,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    if (unlikely (!c->check_assign (len, it.len ()))) return_trace (false);
+    if (unlikely (!c->check_assign (len, it.len (), HB_SERIALIZE_ERROR_ARRAY_OVERFLOW))) return_trace (false);
     c->copy_all (it, base, c->to_bias (this), klass_mapping, layout_variation_idx_map);
     return_trace (true);
   }
@@ -756,7 +756,7 @@ struct SinglePosFormat1
   {
     auto out = c->extend_min (*this);
     if (unlikely (!out)) return;
-    if (unlikely (!c->check_assign (valueFormat, valFormat))) return;
+    if (unlikely (!c->check_assign (valueFormat, valFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
 
     + it
     | hb_map (hb_second)
@@ -870,8 +870,8 @@ struct SinglePosFormat2
   {
     auto out = c->extend_min (*this);
     if (unlikely (!out)) return;
-    if (unlikely (!c->check_assign (valueFormat, valFormat))) return;
-    if (unlikely (!c->check_assign (valueCount, it.len ()))) return;
+    if (unlikely (!c->check_assign (valueFormat, valFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
+    if (unlikely (!c->check_assign (valueCount, it.len (), HB_SERIALIZE_ERROR_ARRAY_OVERFLOW))) return;
 
     + it
     | hb_map (hb_second)

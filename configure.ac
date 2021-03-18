@@ -432,6 +432,7 @@ test/shaping/data/in-house/Makefile
 test/shaping/data/text-rendering-tests/Makefile
 test/subset/Makefile
 test/subset/data/Makefile
+test/subset/data/repack_tests/Makefile
 docs/Makefile
 docs/version.xml
 ])

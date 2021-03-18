@@ -102,7 +102,7 @@ struct SingleSubstFormat1
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs))) return_trace (false);
-    c->check_assign (deltaGlyphID, delta);
+    c->check_assign (deltaGlyphID, delta, HB_SERIALIZE_ERROR_INT_OVERFLOW);
     return_trace (true);
   }
 
@@ -1551,7 +1551,7 @@ struct SubstLookup : Lookup
 
   template <typename context_t>
   static inline typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
-  
+
   static inline typename hb_closure_context_t::return_t closure_glyphs_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index);
 
   static inline hb_closure_context_t::return_t dispatch_closure_recurse_func (hb_closure_context_t *c, unsigned lookup_index, hb_set_t *covered_seq_indices, unsigned seq_index, unsigned end_index)

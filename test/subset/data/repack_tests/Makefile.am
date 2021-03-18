@@ -3,23 +3,19 @@
 NULL =
 EXTRA_DIST =
 CLEANFILES =
-SUBDIRS = data
+SUBDIRS =
 
 # Convenience targets:
 lib: libs # Always build subsetter lib in this subdir
 libs:
 	@$(MAKE) $(AM_MAKEFLAGS) -C $(top_builddir)/src libs
 
-EXTRA_DIST += \
-	meson.build \
-	run-tests.py \
-	run-repack-tests.py \
-	subset_test_suite.py \
-	repack_test.py \
-	$(NULL)
+TEST_EXTENSIONS = .tests
+TESTS_LOG_COMPILER = $(srcdir)/../../run-repack-tests.py $(top_builddir)/util/hb-subset$(EXEEXT)
+include Makefile.sources
 
-CLEANFILES += \
-	subset_test_suite.py[co] \
+EXTRA_DIST += \
+	$(TESTS) \
 	$(NULL)
 
 -include $(top_srcdir)/git.mk

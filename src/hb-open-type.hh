@@ -209,7 +209,9 @@ struct Offset : Type
   void *serialize (hb_serialize_context_t *c, const void *base)
   {
     void *t = c->start_embed<void> ();
-    c->check_assign (*this, (unsigned) ((char *) t - (char *) base));
+    c->check_assign (*this,
+                     (unsigned) ((char *) t - (char *) base),
+                     HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
     return t;
   }
 
@@ -621,7 +623,7 @@ struct ArrayOf
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    c->check_assign (len, items_len);
+    c->check_assign (len, items_len, HB_SERIALIZE_ERROR_ARRAY_OVERFLOW);
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
@@ -656,7 +658,7 @@ struct ArrayOf
     TRACE_SERIALIZE (this);
     auto *out = c->start_embed (this);
     if (unlikely (!c->extend_min (out))) return_trace (nullptr);
-    c->check_assign (out->len, len);
+    c->check_assign (out->len, len, HB_SERIALIZE_ERROR_ARRAY_OVERFLOW);
     if (unlikely (!as_array ().copy (c))) return_trace (nullptr);
     return_trace (out);
   }
@@ -787,7 +789,7 @@ struct HeadlessArrayOf
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
-    c->check_assign (lenP1, items_len + 1);
+    c->check_assign (lenP1, items_len + 1, HB_SERIALIZE_ERROR_ARRAY_OVERFLOW);
     if (unlikely (!c->extend (*this))) return_trace (false);
     return_trace (true);
   }
