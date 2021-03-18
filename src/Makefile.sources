@@ -269,7 +269,7 @@ HB_SUBSET_sources = \
 	hb-subset-plan.hh \
 	hb-subset.cc \
 	hb-subset.hh \
-        hb-repacker.hh \
+	hb-repacker.hh \
 	$(NULL)
 
 HB_SUBSET_headers = \

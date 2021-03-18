@@ -288,12 +288,12 @@ struct graph_t
     check_success (removed_edges.resize (vertices_.length));
     update_incoming_edge_count ();
 
-    queue.insert (root_idx (), root ().modified_distance (0));
+    queue.insert (root ().modified_distance (0), root_idx ());
     int new_id = root_idx ();
     unsigned order = 1;
     while (!queue.in_error () && !queue.is_empty ())
     {
-      unsigned next_id = queue.extract_minimum().first;
+      unsigned next_id = queue.pop_minimum().second;
 
       vertex_t& next = vertices_[next_id];
       sorted_graph.push (next);
@@ -307,8 +307,8 @@ struct graph_t
           // way. More specifically this is set up so that if a set of objects have the same
           // distance they'll be added to the topological order in the order that they are
           // referenced from the parent object.
-          queue.insert (link.objidx,
-                        vertices_[link.objidx].modified_distance (order++));
+          queue.insert (vertices_[link.objidx].modified_distance (order++),
+                        link.objidx);
       }
     }
 
@@ -509,13 +509,13 @@ struct graph_t
     }
 
     hb_priority_queue_t queue;
-    queue.insert (vertices_.length - 1, 0);
+    queue.insert (0, vertices_.length - 1);
 
     hb_set_t visited;
 
     while (!queue.in_error () && !queue.is_empty ())
     {
-      unsigned next_idx = queue.extract_minimum ().first;
+      unsigned next_idx = queue.pop_minimum ().second;
       if (visited.has (next_idx)) continue;
       const auto& next = vertices_[next_idx];
       int64_t next_distance = vertices_[next_idx].distance;
@@ -533,7 +533,7 @@ struct graph_t
         if (child_distance < vertices_[link.objidx].distance)
         {
           vertices_[link.objidx].distance = child_distance;
-          queue.insert (link.objidx, child_distance);
+          queue.insert (child_distance, link.objidx);
         }
       }
     }

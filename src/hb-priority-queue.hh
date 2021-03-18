@@ -43,7 +43,7 @@ struct hb_priority_queue_t
   ~hb_priority_queue_t () { fini (); }
 
  private:
-  typedef hb_pair_t<unsigned, int64_t> item_t;
+  typedef hb_pair_t<int64_t, unsigned> item_t;
   hb_vector_t<item_t> heap;
 
  public:
@@ -55,13 +55,13 @@ struct hb_priority_queue_t
 
   bool in_error () const { return heap.in_error (); }
 
-  void insert (unsigned value, int64_t priority)
+  void insert (int64_t priority, unsigned value)
   {
-    heap.push (item_t (value, priority));
+    heap.push (item_t (priority, value));
     bubble_up (heap.length - 1);
   }
 
-  item_t extract_minimum ()
+  item_t pop_minimum ()
   {
     item_t result = heap[0];
 
@@ -78,6 +78,8 @@ struct hb_priority_queue_t
   }
 
   bool is_empty () const { return heap.length == 0; }
+  explicit operator bool () const { return !is_empty (); }
+  unsigned int get_population () const { return heap.length; }
 
   /* Sink interface. */
   hb_priority_queue_t& operator << (item_t item)
@@ -85,17 +87,17 @@ struct hb_priority_queue_t
 
  private:
 
-  unsigned parent (unsigned index)
+  static constexpr unsigned parent (unsigned index)
   {
     return (index - 1) / 2;
   }
 
-  unsigned left_child (unsigned index)
+  static constexpr unsigned left_child (unsigned index)
   {
     return 2 * index + 1;
   }
 
-  unsigned right_child (unsigned index)
+  static constexpr unsigned right_child (unsigned index)
   {
     return 2 * index + 2;
   }
@@ -111,11 +113,11 @@ struct hb_priority_queue_t
       return;
 
     bool has_right = right < heap.length;
-    if (heap[index].second <= heap[left].second
-        && (!has_right || heap[index].second <= heap[right].second))
+    if (heap[index].first <= heap[left].first
+        && (!has_right || heap[index].first <= heap[right].first))
       return;
 
-    if (!has_right || heap[left].second < heap[right].second)
+    if (!has_right || heap[left].first < heap[right].first)
     {
       swap (index, left);
       bubble_down (left);
@@ -131,7 +133,7 @@ struct hb_priority_queue_t
     if (index == 0) return;
 
     unsigned parent_index = parent (index);
-    if (heap[parent_index].second <= heap[index].second)
+    if (heap[parent_index].first <= heap[index].first)
       return;
 
     swap (index, parent_index);

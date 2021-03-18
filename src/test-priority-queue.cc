@@ -33,21 +33,21 @@ test_insert ()
   hb_priority_queue_t queue;
   assert (queue.is_empty ());
 
-  queue.insert (0, 10);
+  queue.insert (10, 0);
   assert (!queue.is_empty ());
-  assert (queue.minimum () == hb_pair (0, 10));
+  assert (queue.minimum () == hb_pair (10, 0));
 
-  queue.insert (1, 20);
-  assert (queue.minimum () == hb_pair (0, 10));
+  queue.insert (20, 1);
+  assert (queue.minimum () == hb_pair (10, 0));
 
-  queue.insert (2, 5);
-  assert (queue.minimum () == hb_pair (2, 5));
+  queue.insert (5, 2);
+  assert (queue.minimum () == hb_pair (5, 2));
 
-  queue.insert (3, 15);
-  assert (queue.minimum () == hb_pair (2, 5));
+  queue.insert (15, 3);
+  assert (queue.minimum () == hb_pair (5, 2));
 
-  queue.insert (4, 1);
-  assert (queue.minimum () == hb_pair (4, 1));
+  queue.insert (1, 4);
+  assert (queue.minimum () == hb_pair (1, 4));
 }
 
 static void
@@ -55,19 +55,19 @@ test_extract ()
 {
   hb_priority_queue_t queue;
   queue.insert (0, 0);
-  queue.insert (6, 60);
-  queue.insert (3, 30);
-  queue.insert (4, 40);
-  queue.insert (2, 20);
-  queue.insert (5, 50);
-  queue.insert (7, 70);
-  queue.insert (1, 10);
+  queue.insert (60, 6);
+  queue.insert (30, 3);
+  queue.insert (40 ,4);
+  queue.insert (20, 2);
+  queue.insert (50, 5);
+  queue.insert (70, 7);
+  queue.insert (10, 1);
 
   for (int i = 0; i < 8; i++)
   {
     assert (!queue.is_empty ());
-    assert (queue.minimum () == hb_pair (i, i * 10));
-    assert (queue.extract_minimum () == hb_pair (i, i * 10));
+    assert (queue.minimum () == hb_pair (i * 10, i));
+    assert (queue.pop_minimum () == hb_pair (i * 10, i));
   }
 
   assert (queue.is_empty ());
@@ -77,7 +77,7 @@ static void
 test_extract_empty ()
 {
   hb_priority_queue_t queue;
-  assert (queue.extract_minimum () == hb_pair (0, 0));
+  assert (queue.pop_minimum () == hb_pair (0, 0));
 }
 
 int
