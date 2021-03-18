@@ -738,13 +738,13 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
     }
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
-    c->set_error (HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
+    c->err (HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
     return;
   }
 
   if (sorted_graph.in_error ())
   {
-    c->set_error (HB_SERIALIZE_ERROR_OTHER);
+    c->err (HB_SERIALIZE_ERROR_OTHER);
     return;
   }
   sorted_graph.serialize (c);

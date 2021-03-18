@@ -161,7 +161,7 @@ struct hb_serialize_context_t
                       hb_serialize_error_t err_type = HB_SERIALIZE_ERROR_OTHER)
   {
     return successful ()
-        && (success || (set_error (err_type), false));
+        && (success || err (err_type));
   }
 
   template <typename T1, typename T2>
@@ -169,8 +169,7 @@ struct hb_serialize_context_t
   {
     if ((long long) v1 != (long long) v2)
     {
-      set_error (err_type);
-      return false;
+      return err (err_type);
     }
     return true;
   }
@@ -213,7 +212,7 @@ struct hb_serialize_context_t
     {
       // Offset overflows that occur before link resolution cannot be handled
       // by repacking, so set a more general error.
-      if (offset_overflow ()) set_error (HB_SERIALIZE_ERROR_OTHER);
+      if (offset_overflow ()) err (HB_SERIALIZE_ERROR_OTHER);
       return;
     }
 
@@ -394,7 +393,7 @@ struct hb_serialize_context_t
       for (const object_t::link_t &link : parent->links)
       {
 	const object_t* child = packed[link.objidx];
-	if (unlikely (!child)) { set_error (HB_SERIALIZE_ERROR_OTHER); return; }
+	if (unlikely (!child)) { err (HB_SERIALIZE_ERROR_OTHER); return; }
 	unsigned offset = 0;
 	switch ((whence_t) link.whence) {
 	case Head:     offset = child->head - parent->head; break;
@@ -441,9 +440,9 @@ struct hb_serialize_context_t
   Type *start_embed (const Type &obj) const
   { return start_embed (hb_addressof (obj)); }
 
-  void set_error (hb_serialize_error_t err_type)
+  bool err (hb_serialize_error_t err_type)
   {
-    errors = errors | err_type;
+    return bool ((errors = (errors | err_type)));
   }
 
   template <typename Type>
@@ -453,7 +452,7 @@ struct hb_serialize_context_t
 
     if (this->tail - this->head < ptrdiff_t (size))
     {
-      set_error (HB_SERIALIZE_ERROR_OUT_OF_ROOM);
+      err (HB_SERIALIZE_ERROR_OUT_OF_ROOM);
       return nullptr;
     }
     memset (this->head, 0, size);
