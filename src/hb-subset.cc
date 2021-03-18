@@ -86,7 +86,7 @@ _repack (hb_tag_t tag, const hb_serialize_context_t& c)
   hb_serialize_context_t repacked ((void *) buf, buf_size);
   hb_resolve_overflows (c.object_graph (), &repacked);
 
-  if (unlikely (repacked.ran_out_of_room () || repacked.in_error () || repacked.offset_overflow ()))
+  if (unlikely (repacked.in_error ()))
     // TODO(garretrieger): refactor so we can share the resize/retry logic with the subset
     //                     portion.
     return nullptr;
@@ -163,7 +163,7 @@ _subset (hb_subset_plan_t *plan)
   }
   hb_blob_destroy (source_blob);
 
-  if (serializer.ran_out_of_room () ||  serializer.in_error ())
+  if (serializer.in_error () && !serializer.only_offset_overflow ())
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c::subset FAILED!", HB_UNTAG (tag));
     return false;

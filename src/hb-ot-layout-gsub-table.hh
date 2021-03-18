@@ -102,7 +102,7 @@ struct SingleSubstFormat1
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs))) return_trace (false);
-    c->check_assign (deltaGlyphID, delta, HB_SERIALIZE_ERR_OTHER);
+    c->check_assign (deltaGlyphID, delta, HB_SERIALIZE_ERROR_INT_OVERFLOW);
     return_trace (true);
   }
 

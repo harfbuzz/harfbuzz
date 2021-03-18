@@ -278,7 +278,7 @@ struct CmapSubtableFormat4
 
     if (unlikely (!c->check_assign(this->length,
                                    c->length () - table_initpos,
-                                   HB_SERIALIZE_ERR_OTHER))) return;
+                                   HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
     this->segCountX2 = segcount * 2;
     this->entrySelector = hb_max (1u, hb_bit_storage (segcount)) - 1;
     this->searchRange = 2 * (1u << this->entrySelector);
@@ -854,7 +854,7 @@ struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
     {
       if (unlikely (!c->check_assign (out->len,
                                       (c->length () - init_len) / UnicodeValueRange::static_size,
-                                      HB_SERIALIZE_ERR_OTHER))) return nullptr;
+                                      HB_SERIALIZE_ERROR_INT_OVERFLOW))) return nullptr;
       return out;
     }
   }
@@ -1116,11 +1116,12 @@ struct CmapSubtableFormat14
       return;
 
     int tail_len = init_tail - c->tail;
-    c->check_assign (this->length, c->length () - table_initpos + tail_len, HB_SERIALIZE_ERR_OTHER);
+    c->check_assign (this->length, c->length () - table_initpos + tail_len,
+                     HB_SERIALIZE_ERROR_INT_OVERFLOW);
     c->check_assign (this->record.len,
 		     (c->length () - table_initpos - CmapSubtableFormat14::min_size) /
 		     VariationSelectorRecord::static_size,
-                     HB_SERIALIZE_ERR_OTHER);
+                     HB_SERIALIZE_ERROR_INT_OVERFLOW);
 
     /* Correct the incorrect write order by reversing the order of the variation
        records array. */
@@ -1408,7 +1409,7 @@ struct cmap
 
     c->check_assign(this->encodingRecord.len,
                     (c->length () - cmap::min_size)/EncodingRecord::static_size,
-                    HB_SERIALIZE_ERR_OTHER);
+                    HB_SERIALIZE_ERROR_INT_OVERFLOW);
   }
 
   void closure_glyphs (const hb_set_t      *unicodes,
