@@ -1274,11 +1274,80 @@ struct ReverseChainSingleSubstFormat1
     return_trace (false);
   }
 
+  template<typename Iterator,
+           hb_requires (hb_is_iterator (Iterator))>
+  bool serialize_coverage_offset_array (hb_subset_context_t *c, Iterator it) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->serializer->start_embed<OffsetArrayOf<Coverage>> ();
+
+    if (unlikely (!c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size)))
+      return_trace (false);
+
+    for (auto& offset : it) {
+      auto *o = out->serialize_append (c->serializer);
+      if (unlikely (!o) || !o->serialize_subset (c, offset, this))
+        return_trace (false);
+    }
+
+    return_trace (true);
+  }
+
+  template<typename Iterator, typename BacktrackIterator, typename LookaheadIterator,
+           hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_pair_t)),
+           hb_requires (hb_is_iterator (BacktrackIterator)),
+           hb_requires (hb_is_iterator (LookaheadIterator))>
+  bool serialize (hb_subset_context_t *c,
+                  Iterator coverage_subst_iter,
+                  BacktrackIterator backtrack_iter,
+                  LookaheadIterator lookahead_iter) const
+  {
+    TRACE_SERIALIZE (this);
+
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!c->serializer->check_success (out))) return_trace (false);
+    if (unlikely (!c->serializer->embed (this->format))) return_trace (false);
+    if (unlikely (!c->serializer->embed (this->coverage))) return_trace (false);
+
+    if (!serialize_coverage_offset_array (c, backtrack_iter)) return_trace (false);
+    if (!serialize_coverage_offset_array (c, lookahead_iter)) return_trace (false);
+
+    auto *substitute_out = c->serializer->start_embed<ArrayOf<HBGlyphID>> ();
+    auto substitutes =
+    + coverage_subst_iter
+    | hb_map (hb_second)
+    ;
+
+    auto glyphs =
+    + coverage_subst_iter
+    | hb_map_retains_sorting (hb_first)
+    ;
+    if (unlikely (! c->serializer->check_success (substitute_out->serialize (c->serializer, substitutes))))
+        return_trace (false);
+
+    if (unlikely (!out->coverage.serialize (c->serializer, out).serialize (c->serializer, glyphs)))
+      return_trace (false);
+    return_trace (true);
+  }
+
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    // TODO(subset)
-    return_trace (false);
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+
+    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
+
+    auto it =
+    + hb_zip (this+coverage, substitute)
+    | hb_filter (glyphset, hb_first)
+    | hb_filter (glyphset, hb_second)
+    | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const HBGlyphID &> p) -> hb_codepoint_pair_t
+                              { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
+    ;
+
+    return_trace (bool (it) && serialize (c, it, backtrack.iter (), lookahead.iter ()));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
