@@ -178,6 +178,7 @@ helper_cairo_scaled_font_has_color (cairo_scaled_font_t *scaled_font)
 enum class image_protocol_t {
   NONE = 0,
   ITERM2,
+  KITTY,
 };
 
 struct finalize_closure_t {
@@ -297,6 +298,35 @@ finalize_png (finalize_closure_t *closure)
     /* https://iterm2.com/documentation-images.html */
     g_string_printf (string, "\033]1337;File=inline=1;size=%zu:%s\a\n",
 		     base64_len, base64);
+  }
+  else if (closure->protocol == image_protocol_t::KITTY)
+  {
+#define CHUNK_SIZE 4096
+    /* https://sw.kovidgoyal.net/kitty/graphics-protocol.html */
+    for (size_t pos = 0; pos < base64_len; pos += CHUNK_SIZE)
+    {
+      size_t len = base64_len - pos;
+
+      if (pos == 0)
+	g_string_append (string, "\033_Ga=T,f=100,m=");
+      else
+	g_string_append (string, "\033_Gm=");
+
+      if (len > CHUNK_SIZE)
+      {
+	g_string_append (string, "1;");
+	g_string_append_len (string, base64 + pos, CHUNK_SIZE);
+      }
+      else
+      {
+	g_string_append (string, "0;");
+	g_string_append_len (string, base64 + pos, len);
+      }
+
+      g_string_append (string, "\033\\");
+    }
+    g_string_append (string, "\n");
+#undef CHUNK_SIZE
   }
 
   closure->write_func (closure->closure, (unsigned char *) string->str, string->len);
@@ -423,6 +453,12 @@ helper_cairo_create_context (double w, double h,
       {
 	extension = "png";
 	protocol = image_protocol_t::ITERM2;
+      }
+      else if ((name = getenv ("TERM")) != nullptr &&
+	       0 == g_ascii_strcasecmp (name, "xterm-kitty"))
+      {
+	extension = "png";
+	protocol = image_protocol_t::KITTY;
       }
       else
 	extension = "ansi";
