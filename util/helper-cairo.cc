@@ -175,11 +175,17 @@ helper_cairo_scaled_font_has_color (cairo_scaled_font_t *scaled_font)
 }
 
 
+enum class image_protocol_t {
+  NONE = 0,
+  ITERM2,
+};
+
 struct finalize_closure_t {
   void (*callback)(finalize_closure_t *);
   cairo_surface_t *surface;
   cairo_write_func_t write_func;
   void *closure;
+  image_protocol_t protocol;
 };
 static cairo_user_data_key_t finalize_closure_key;
 
@@ -201,7 +207,8 @@ _cairo_ansi_surface_create_for_stream (cairo_write_func_t write_func,
 				       void *closure,
 				       double width,
 				       double height,
-				       cairo_content_t content)
+				       cairo_content_t content,
+				       image_protocol_t protocol HB_UNUSED)
 {
   cairo_surface_t *surface;
   int w = ceil (width);
@@ -242,16 +249,61 @@ _cairo_ansi_surface_create_for_stream (cairo_write_func_t write_func,
 
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
 
+static cairo_status_t
+byte_array_write_func (void                *closure,
+		       const unsigned char *data,
+		       unsigned int         size)
+{
+  g_byte_array_append ((GByteArray *) closure, data, size);
+  return CAIRO_STATUS_SUCCESS;
+}
+
 static void
 finalize_png (finalize_closure_t *closure)
 {
   cairo_status_t status;
-  status = cairo_surface_write_to_png_stream (closure->surface,
-					      closure->write_func,
-					      closure->closure);
+  GByteArray *bytes;
+  GString *string;
+  gchar *base64;
+  size_t base64_len;
+
+  if (closure->protocol == image_protocol_t::NONE)
+  {
+    status = cairo_surface_write_to_png_stream (closure->surface,
+						closure->write_func,
+						closure->closure);
+  }
+  else
+  {
+    bytes = g_byte_array_new ();
+    status = cairo_surface_write_to_png_stream (closure->surface,
+						byte_array_write_func,
+						bytes);
+  }
+
   if (status != CAIRO_STATUS_SUCCESS)
     fail (false, "Failed to write output: %s",
 	  cairo_status_to_string (status));
+
+  if (closure->protocol == image_protocol_t::NONE)
+    return;
+
+  base64 = g_base64_encode (bytes->data, bytes->len);
+  base64_len = strlen (base64);
+
+  string = g_string_new (NULL);
+  if (closure->protocol == image_protocol_t::ITERM2)
+  {
+    /* https://iterm2.com/documentation-images.html */
+    g_string_printf (string, "\033]1337;File=inline=1;size=%zu:%s\a\n",
+		     base64_len, base64);
+  }
+
+  closure->write_func (closure->closure, (unsigned char *) string->str, string->len);
+
+  g_byte_array_unref (bytes);
+  g_free (base64);
+  g_string_free (string, TRUE);
 }
 
 static cairo_surface_t *
@@ -259,7 +311,8 @@ _cairo_png_surface_create_for_stream (cairo_write_func_t write_func,
 				      void *closure,
 				      double width,
 				      double height,
-				      cairo_content_t content)
+				      cairo_content_t content,
+				      image_protocol_t protocol)
 {
   cairo_surface_t *surface;
   int w = ceil (width);
@@ -287,6 +340,7 @@ _cairo_png_surface_create_for_stream (cairo_write_func_t write_func,
   png_closure->surface = surface;
   png_closure->write_func = write_func;
   png_closure->closure = closure;
+  png_closure->protocol = protocol;
 
   if (cairo_surface_set_user_data (surface,
 				   &finalize_closure_key,
@@ -352,13 +406,30 @@ helper_cairo_create_context (double w, double h,
 				    void *closure,
 				    double width,
 				    double height,
-				    cairo_content_t content) = nullptr;
+				    cairo_content_t content,
+				    image_protocol_t protocol) = nullptr;
 
+  image_protocol_t protocol = image_protocol_t::NONE;
   const char *extension = out_opts->output_format;
   if (!extension) {
 #if HAVE_ISATTY
     if (isatty (fileno (out_opts->get_file_handle ())))
+    {
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+      const char *name;
+      /* https://gitlab.com/gnachman/iterm2/-/issues/7154 */
+      if ((name = getenv ("LC_TERMINAL")) != nullptr &&
+	  0 == g_ascii_strcasecmp (name, "iTerm2"))
+      {
+	extension = "png";
+	protocol = image_protocol_t::ITERM2;
+      }
+      else
+	extension = "ansi";
+#else
       extension = "ansi";
+#endif
+    }
     else
 #endif
     {
@@ -419,7 +490,7 @@ helper_cairo_create_context (double w, double h,
   if (constructor)
     surface = constructor (stdio_write_func, f, w, h);
   else if (constructor2)
-    surface = constructor2 (stdio_write_func, f, w, h, content);
+    surface = constructor2 (stdio_write_func, f, w, h, content, protocol);
   else
     fail (false, "Unknown output format `%s'; supported formats are: %s%s",
 	  extension,
