@@ -95,8 +95,6 @@ glib_dep = dependency('glib-2.0', required: get_option('glib'),
                       fallback: ['glib', 'libglib_dep'])
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'),
                          fallback: ['glib', 'libgobject_dep'])
-fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'),
-                            fallback: ['fontconfig', 'fontconfig_dep'])
 graphite2_dep = dependency('graphite2', required: get_option('graphite'))
 
 icu_dep = null_dep
@@ -215,10 +213,6 @@ if freetype_dep.found()
   else
     check_funcs += check_freetype_funcs
   endif
-endif
-
-if fontconfig_dep.found()
-  conf.set('HAVE_FONTCONFIG', 1)
 endif
 
 gdi_uniscribe_deps = []
@@ -369,7 +363,6 @@ build_summary = {
     },
   'Dependencies used for command-line utilities':
     {'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
-     'Fontconfig': conf.get('HAVE_FONTCONFIG', 0) == 1,
     },
   'Additional shapers':
     {'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,

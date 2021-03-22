@@ -239,26 +239,6 @@
 	</varlistentry>
 	
 	<varlistentry>
-	  <term><command>-Dfontconfig=enabled</command></term>
-	  <listitem>
-	    <para>
-	      Use <ulink url="https://www.freedesktop.org/wiki/Software/fontconfig/">Fontconfig</ulink>. <emphasis>(Default = auto)</emphasis>
-	    </para>
-	    <para>
-	      This option enables or disables usage of the Fontconfig
-	      library, which provides font-matching functions and
-	      provides access to font properties. The default setting
-	      is to check for the presence of Fontconfig and, if it is
-	      found, build with Fontconfig support.
-	    </para>
-	    <para>
-	      Note: Fontconfig is used only by the HarfBuzz
-	      command-line utilities, and not by the HarfBuzz library.
-	    </para>
-	  </listitem>
-	</varlistentry>
-	
-	<varlistentry>
 	  <term><command>-Dicu=enabled</command></term>
 	  <listitem>
 	    <para>
