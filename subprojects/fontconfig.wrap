@@ -1,6 +1,0 @@
-[wrap-git]
-directory=fontconfig
-url=https://gitlab.freedesktop.org/fontconfig/fontconfig.git
-depth=1
-push-url=git@gitlab.freedesktop.org/fontconfig/fontconfig.git
-revision=2.13.93

@@ -5,8 +5,6 @@ option('gobject', type: 'feature', value: 'auto',
   description: 'Enable GObject bindings')
 option('cairo', type: 'feature', value: 'auto',
   description: 'Use Cairo graphics library')
-option('fontconfig', type: 'feature', value: 'auto',
-  description: 'Use fontconfig')
 option('icu', type: 'feature', value: 'auto',
   description: 'Enable ICU library unicode functions')
 option('graphite', type: 'feature', value: 'disabled',
