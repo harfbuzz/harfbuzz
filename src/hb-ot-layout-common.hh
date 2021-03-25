@@ -1108,7 +1108,7 @@ struct Feature
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    bool subset_featureParams = out->featureParams.serialize_subset (c, featureParams, this, tag);
+    out->featureParams.serialize_subset (c, featureParams, this, tag);
 
     auto it =
     + hb_iter (lookupIndex)
@@ -1117,8 +1117,9 @@ struct Feature
     ;
 
     out->lookupIndex.serialize (c->serializer, l, it);
-    return_trace (bool (it) || subset_featureParams
-		  || (tag && *tag == HB_TAG ('p', 'r', 'e', 'f')));
+    // The decision to keep or drop this feature is already made before we get here
+    // so always retain it.
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c,
@@ -3001,6 +3002,12 @@ struct FeatureTableSubstitutionRecord
   bool subset (hb_subset_layout_context_t *c, const void *base) const
   {
     TRACE_SUBSET (this);
+    if (!c->feature_index_map->has (featureIndex)) {
+      // Feature that is being substituted is not being retained, so we don't
+      // need this.
+      return_trace (false);
+    }
+
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
