@@ -302,8 +302,10 @@ hb_subset (hb_face_t *source, hb_subset_input_t *input)
   if (unlikely (!input || !source)) return hb_face_get_empty ();
 
   hb_subset_plan_t *plan = hb_subset_plan_create (source, input);
-  if (unlikely (plan->in_error ()))
+  if (unlikely (plan->in_error ())) {
+    hb_subset_plan_destroy (plan);
     return hb_face_get_empty ();
+  }
 
   hb_set_t tags_set;
   bool success = true;
