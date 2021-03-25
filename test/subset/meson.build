@@ -28,6 +28,7 @@ tests = [
   'sbix',
   'colr',
   'cbdt',
+  'variable',
 ]
 
 repack_tests = [

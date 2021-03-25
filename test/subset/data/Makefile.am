@@ -36,6 +36,7 @@ EXTRA_DIST += \
 	expected/sbix \
 	expected/colr \
 	expected/cbdt \
+	expected/variable \
 	fonts \
 	profiles \
 	$(NULL)
