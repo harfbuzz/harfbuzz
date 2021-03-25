@@ -372,16 +372,20 @@ hb_subset_plan_create (hb_face_t         *face,
   plan->reverse_glyph_map = hb_map_create ();
   plan->gsub_lookups = hb_map_create ();
   plan->gpos_lookups = hb_map_create ();
-  
-  plan->gsub_langsys = hb_object_create<script_langsys_map> ();
-  plan->gsub_langsys->init_shallow ();
 
-  plan->gpos_langsys = hb_object_create<script_langsys_map> ();
-  plan->gpos_langsys->init_shallow ();
+  if (plan->check_success (plan->gsub_langsys = hb_object_create<script_langsys_map> ()))
+    plan->gsub_langsys->init_shallow ();
+  if (plan->check_success (plan->gpos_langsys = hb_object_create<script_langsys_map> ()))
+    plan->gpos_langsys->init_shallow ();
+
   plan->gsub_features = hb_map_create ();
   plan->gpos_features = hb_map_create ();
   plan->layout_variation_indices = hb_set_create ();
   plan->layout_variation_idx_map = hb_map_create ();
+
+  if (plan->in_error ()) {
+    return plan;
+  }
 
   _populate_gids_to_retain (plan,
 			    input->unicodes,
@@ -429,19 +433,25 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_set_destroy (plan->layout_variation_indices);
   hb_map_destroy (plan->layout_variation_idx_map);
 
-  for (auto _ : plan->gsub_langsys->iter ())
-    hb_set_destroy (_.second);
-  
-  hb_object_destroy (plan->gsub_langsys);
-  plan->gsub_langsys->fini_shallow ();
-  free (plan->gsub_langsys);
+  if (plan->gsub_langsys)
+  {
+    for (auto _ : plan->gsub_langsys->iter ())
+      hb_set_destroy (_.second);
 
-  for (auto _ : plan->gpos_langsys->iter ())
-    hb_set_destroy (_.second);
-  
-  hb_object_destroy (plan->gpos_langsys);
-  plan->gpos_langsys->fini_shallow ();
-  free (plan->gpos_langsys);
+    hb_object_destroy (plan->gsub_langsys);
+    plan->gsub_langsys->fini_shallow ();
+    free (plan->gsub_langsys);
+  }
+
+  if (plan->gpos_langsys)
+  {
+    for (auto _ : plan->gpos_langsys->iter ())
+      hb_set_destroy (_.second);
+
+    hb_object_destroy (plan->gpos_langsys);
+    plan->gpos_langsys->fini_shallow ();
+    free (plan->gpos_langsys);
+  }
 
   free (plan);
 }
