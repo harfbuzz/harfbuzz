@@ -2965,7 +2965,8 @@ struct ConditionSet
     + conditions.iter ()
     | hb_apply (subset_offset_array (c, out->conditions, this))
     ;
-    return_trace (true);
+
+    return_trace (bool (out->conditions));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -3065,7 +3066,8 @@ struct FeatureTableSubstitution
     + substitutions.iter ()
     | hb_apply (subset_record_array (l, &(out->substitutions), this))
     ;
-    return_trace (true);
+
+    return_trace (bool (out->substitutions));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -3108,10 +3110,9 @@ struct FeatureVariationRecord
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    out->conditions.serialize_subset (c->subset_context, conditions, base);
-    out->substitutions.serialize_subset (c->subset_context, substitutions, base, c);
-
-    return_trace (true);
+    if (!out->conditions.serialize_subset (c->subset_context, conditions, base))
+      return_trace (false);
+    return_trace (out->substitutions.serialize_subset (c->subset_context, substitutions, base, c));
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
