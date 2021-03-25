@@ -28,6 +28,7 @@ TESTS = \
 	tests/layout.notonastaliqurdu.tests \
 	tests/layout.tests \
 	tests/sbix.tests \
+	tests/variable.tests \
 	$(NULL)
 
 XFAIL_TESTS = \
