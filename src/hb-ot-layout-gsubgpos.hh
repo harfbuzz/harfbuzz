@@ -105,17 +105,19 @@ struct hb_closure_context_t :
     if (done_lookups_glyph_count->get (lookup_index) != glyphs->get_population ())
     {
       done_lookups_glyph_count->set (lookup_index, glyphs->get_population ());
-      
-      if (!done_lookups_glyph_set->get (lookup_index))
-        done_lookups_glyph_set->set (lookup_index, hb_set_create ());
 
-      done_lookups_glyph_set->get (lookup_index)->clear ();
+      if (!done_lookups_glyph_set->get (lookup_index))
+      {
+        done_lookups_glyph_set->set (lookup_index, hb_set_create ());
+      } else {
+        done_lookups_glyph_set->get (lookup_index)->clear ();
+      }
     }
 
     hb_set_t *covered_glyph_set = done_lookups_glyph_set->get (lookup_index);
     if (parent_active_glyphs ()->is_subset (covered_glyph_set))
       return true;
-    
+
     hb_set_union (covered_glyph_set, parent_active_glyphs ());
     return false;
   }
@@ -124,7 +126,7 @@ struct hb_closure_context_t :
   {
     if (active_glyphs_stack.length < 1)
       return glyphs;
-    
+
     return active_glyphs_stack.tail ();
   }
 
@@ -1270,20 +1272,20 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
           input_data = data;
           input_value = input[seqIndex - 1];
         }
-       
+
         intersected_glyphs_func (c->glyphs, input_data, input_value, pos_glyphs);
       }
     }
 
     hb_set_add (covered_seq_indicies, seqIndex);
     c->push_cur_active_glyphs (pos_glyphs);
-   
+
     unsigned endIndex = inputCount;
     if (context_format == ContextFormat::CoverageBasedContext)
       endIndex += 1;
 
     c->recurse (lookupRecord[i].lookupListIndex, covered_seq_indicies, seqIndex, endIndex);
-    
+
     c->pop_cur_done_glyphs ();
     hb_set_destroy (pos_glyphs);
   }
@@ -3592,7 +3594,7 @@ struct GSUBGPOS
                       hb_set_t       *new_feature_indexes /* OUT */) const
   {
     hb_prune_langsys_context_t c (this, script_langsys_map, duplicate_feature_map, new_feature_indexes);
-    
+
     unsigned count = get_script_count ();
     for (unsigned script_index = 0; script_index < count; script_index++)
     {
