@@ -338,7 +338,6 @@ extern "C" void  hb_free_impl(void *ptr);
 #else
 #  define HB_NODISCARD
 #endif
-#define hb_success_t HB_NODISCARD bool
 
 /* https://github.com/harfbuzz/harfbuzz/issues/1852 */
 #if defined(__clang__) && !(defined(_AIX) && (defined(__IBMCPP__) || defined(__ibmxl__)))

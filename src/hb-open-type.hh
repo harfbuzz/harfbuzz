@@ -632,7 +632,7 @@ struct ArrayOf
   void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
   { as_array ().qsort (start, end); }
 
-  hb_success_t serialize (hb_serialize_context_t *c, unsigned items_len)
+  HB_NODISCARD bool serialize (hb_serialize_context_t *c, unsigned items_len)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
@@ -642,7 +642,7 @@ struct ArrayOf
   }
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, Type))>
-  hb_success_t serialize (hb_serialize_context_t *c, Iterator items)
+  HB_NODISCARD bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     unsigned count = items.len ();
