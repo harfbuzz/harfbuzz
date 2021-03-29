@@ -108,10 +108,15 @@ struct hb_closure_context_t :
 
       if (!done_lookups_glyph_set->get (lookup_index))
       {
-        done_lookups_glyph_set->set (lookup_index, hb_set_create ());
-      } else {
-        done_lookups_glyph_set->get (lookup_index)->clear ();
+        hb_set_t* empty_set = hb_set_create ();
+        done_lookups_glyph_set->set (lookup_index, empty_set);
+        if (!done_lookups_glyph_set->get (lookup_index)) {
+          hb_set_destroy (empty_set);
+          return true;
+        }
       }
+
+      done_lookups_glyph_set->get (lookup_index)->clear ();
     }
 
     hb_set_t *covered_glyph_set = done_lookups_glyph_set->get (lookup_index);
