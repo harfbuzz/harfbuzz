@@ -485,7 +485,7 @@ struct RecordListOfScript : RecordListOf<Script>
       if (!ret) c->serializer->revert (snap);
       else out->len++;
     }
-    
+
     return_trace (true);
   }
 };
@@ -699,8 +699,15 @@ struct Script
     if (c->visitedScript (this)) return;
 
     if (!c->script_langsys_map->has (script_index))
-      c->script_langsys_map->set (script_index, hb_set_create ());
-    
+    {
+      hb_set_t* empty_set = hb_set_create ();
+      c->script_langsys_map->set (script_index, empty_set);
+      if (!c->script_langsys_map->has (script_index)) {
+        hb_set_destroy (empty_set);
+        return;
+      }
+    }
+
     unsigned langsys_count = get_lang_sys_count ();
     if (has_default_lang_sys ())
     {
@@ -2244,7 +2251,7 @@ struct ClassDefFormat2
     for (unsigned int i = 0; i < count; i++)
     {
       if (rangeRecord[i].value != klass) continue;
-      
+
       if (g != HB_SET_VALUE_INVALID)
       {
         if (g >= rangeRecord[i].first &&
@@ -2253,7 +2260,7 @@ struct ClassDefFormat2
         if (g > rangeRecord[i].last)
           continue;
       }
-      
+
       g = rangeRecord[i].first - 1;
       while (hb_set_next (glyphs, &g))
       {
