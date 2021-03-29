@@ -161,7 +161,7 @@ struct hb_serialize_context_t
                       hb_serialize_error_t err_type = HB_SERIALIZE_ERROR_OTHER)
   {
     return successful ()
-        && (success || !err (err_type));
+        && (success || err (err_type));
   }
 
   template <typename T1, typename T2>
@@ -442,7 +442,7 @@ struct hb_serialize_context_t
 
   bool err (hb_serialize_error_t err_type)
   {
-    return bool ((errors = (errors | err_type)));
+    return !bool ((errors = (errors | err_type)));
   }
 
   template <typename Type>
