@@ -117,6 +117,7 @@
 #pragma GCC diagnostic ignored "-Wshadow"			// TODO fix
 #pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"	// TODO fix
 #pragma GCC diagnostic ignored "-Wunused-parameter"		// TODO fix
+#pragma GCC diagnostic ignored "-Wunused-result"		// TODO fix
 #endif
 
 /* Ignored intentionally. */
