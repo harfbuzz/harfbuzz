@@ -1248,7 +1248,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
   for (unsigned int i = 0; i < lookupCount; i++)
   {
     unsigned seqIndex = lookupRecord[i].sequenceIndex;
-    if (seqIndex > inputCount) continue;
+    if (seqIndex >= inputCount) continue;
 
     hb_set_t *pos_glyphs = hb_set_create ();
 
