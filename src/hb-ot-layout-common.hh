@@ -701,10 +701,10 @@ struct Script
     if (!c->script_langsys_map->has (script_index))
     {
       hb_set_t* empty_set = hb_set_create ();
-      c->script_langsys_map->set (script_index, empty_set);
-      if (!c->script_langsys_map->has (script_index)) {
-        hb_set_destroy (empty_set);
-        return;
+      if (unlikely (!c->script_langsys_map->set (script_index, empty_set)))
+      {
+	hb_set_destroy (empty_set);
+	return;
       }
     }
 
