@@ -116,8 +116,7 @@ struct hb_closure_context_t :
         }
       }
 
-      if (done_lookups_glyph_set->get (lookup_index)->get_population ())
-        done_lookups_glyph_set->get (lookup_index)->clear ();
+      hb_set_clear (done_lookups_glyph_set->get (lookup_index));
     }
 
     hb_set_t *covered_glyph_set = done_lookups_glyph_set->get (lookup_index);
