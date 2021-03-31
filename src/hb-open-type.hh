@@ -296,7 +296,7 @@ struct _hb_has_null<Type, true>
   static       Type *get_crap () { return &Crap (Type); }
 };
 
-template <typename Type, typename OffsetType=HBUINT16, bool has_null=true>
+template <typename Type, typename OffsetType, bool has_null=true>
 struct OffsetTo : Offset<OffsetType, has_null>
 {
   HB_DELETE_COPY_ASSIGN (OffsetTo);

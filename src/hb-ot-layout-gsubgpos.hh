@@ -833,7 +833,7 @@ static inline bool intersects_class (const hb_set_t *glyphs, const HBUINT16 &val
 }
 static inline bool intersects_coverage (const hb_set_t *glyphs, const HBUINT16 &value, const void *data)
 {
-  const Offset16To<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
+  const Offset16To<Coverage> &coverage = (const Offset16To<Coverage>&)value;
   return (data+coverage).intersects (glyphs);
 }
 
@@ -879,7 +879,7 @@ static inline void collect_class (hb_set_t *glyphs, const HBUINT16 &value, const
 }
 static inline void collect_coverage (hb_set_t *glyphs, const HBUINT16 &value, const void *data)
 {
-  const Offset16To<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
+  const Offset16To<Coverage> &coverage = (const Offset16To<Coverage>&)value;
   (data+coverage).collect_coverage (glyphs);
 }
 static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
@@ -907,7 +907,7 @@ static inline bool match_class (hb_codepoint_t glyph_id, const HBUINT16 &value, 
 }
 static inline bool match_coverage (hb_codepoint_t glyph_id, const HBUINT16 &value, const void *data)
 {
-  const Offset16To<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
+  const Offset16To<Coverage> &coverage = (const Offset16To<Coverage>&)value;
   return (data+coverage).get_coverage (glyph_id) != NOT_COVERED;
 }
 
@@ -2221,7 +2221,7 @@ struct ContextFormat3
     for (const Offset16To<Coverage>& offset : coverages)
     {
       /* TODO(subset) This looks like should not be necessary to write this way. */
-      auto *o = c->serializer->allocate_size<Offset16To<Coverage>> (OffsetTo<Coverage>::static_size);
+      auto *o = c->serializer->allocate_size<Offset16To<Coverage>> (Offset16To<Coverage>::static_size);
       if (unlikely (!o)) return_trace (false);
       if (!o->serialize_subset (c, offset, this)) return_trace (false);
     }
