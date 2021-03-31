@@ -524,11 +524,11 @@ struct UnsizedArrayOf
 
 /* Unsized array of offset's */
 template <typename Type, typename OffsetType, bool has_null=true>
-using UnsizedOffsetArrayOf = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null>>;
+using UnsizedArray16OfOffsetTo = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_null>>;
 
 /* Unsized array of offsets relative to the beginning of the array itself. */
 template <typename Type, typename OffsetType, bool has_null=true>
-struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
+struct UnsizedOffsetListOf : UnsizedArray16OfOffsetTo<Type, OffsetType, has_null>
 {
   const Type& operator [] (int i_) const
   {
@@ -549,7 +549,7 @@ struct UnsizedOffsetListOf : UnsizedOffsetArrayOf<Type, OffsetType, has_null>
   bool sanitize (hb_sanitize_context_t *c, unsigned int count, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
-    return_trace ((UnsizedOffsetArrayOf<Type, OffsetType, has_null>
+    return_trace ((UnsizedArray16OfOffsetTo<Type, OffsetType, has_null>
 		   ::sanitize (c, count, this, hb_forward<Ts> (ds)...)));
   }
 };
