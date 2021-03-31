@@ -3315,22 +3315,20 @@ struct VariationDevice
     if (unlikely (!out)) return_trace (nullptr);
     if (!layout_variation_idx_map || layout_variation_idx_map->is_empty ()) return_trace (out);
 
-    unsigned org_idx = (outerIndex << 16) + innerIndex;
-    if (!layout_variation_idx_map->has (org_idx))
+    /* TODO Just get() and bail if NO_VARIATION. Needs to setup the map to return that. */
+    if (!layout_variation_idx_map->has (varIdx))
     {
       c->revert (snap);
       return_trace (nullptr);
     }
-    unsigned new_idx = layout_variation_idx_map->get (org_idx);
-    out->outerIndex = new_idx >> 16;
-    out->innerIndex = new_idx & 0xFFFF;
+    unsigned new_idx = layout_variation_idx_map->get (varIdx);
+    out->varIdx = new_idx;
     return_trace (out);
   }
 
   void record_variation_index (hb_set_t *layout_variation_indices) const
   {
-    unsigned var_idx = (outerIndex << 16) + innerIndex;
-    layout_variation_indices->add (var_idx);
+    layout_variation_indices->add (varIdx);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -3343,12 +3341,11 @@ struct VariationDevice
 
   float get_delta (hb_font_t *font, const VariationStore &store) const
   {
-    return store.get_delta (outerIndex, innerIndex, font->coords, font->num_coords);
+    return store.get_delta (varIdx, font->coords, font->num_coords);
   }
 
   protected:
-  HBUINT16	outerIndex;
-  HBUINT16	innerIndex;
+  VarIdx	varIdx;
   HBUINT16	deltaFormat;	/* Format identifier for this table: 0x0x8000 */
   public:
   DEFINE_SIZE_STATIC (6);
