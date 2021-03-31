@@ -1204,11 +1204,11 @@ struct Lookup
   unsigned int get_subtable_count () const { return subTable.len; }
 
   template <typename TSubTable>
-  const OffsetArrayOf<TSubTable>& get_subtables () const
-  { return reinterpret_cast<const OffsetArrayOf<TSubTable> &> (subTable); }
+  const Array16OfOffset16To<TSubTable>& get_subtables () const
+  { return reinterpret_cast<const Array16OfOffset16To<TSubTable> &> (subTable); }
   template <typename TSubTable>
-  OffsetArrayOf<TSubTable>& get_subtables ()
-  { return reinterpret_cast<OffsetArrayOf<TSubTable> &> (subTable); }
+  Array16OfOffset16To<TSubTable>& get_subtables ()
+  { return reinterpret_cast<Array16OfOffset16To<TSubTable> &> (subTable); }
 
   template <typename TSubTable>
   const TSubTable& get_subtable (unsigned int i) const

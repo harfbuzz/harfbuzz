@@ -113,7 +113,7 @@ struct AttachList
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table -- from
 					 * beginning of AttachList table */
-  OffsetArrayOf<AttachPoint>
+  Array16OfOffset16To<AttachPoint>
 		attachPoint;		/* Array of AttachPoint tables
 					 * in Coverage Index order */
   public:
@@ -340,7 +340,7 @@ struct LigGlyph
   }
 
   protected:
-  OffsetArrayOf<CaretValue>
+  Array16OfOffset16To<CaretValue>
 		carets;			/* Offset array of CaretValue tables
 					 * --from beginning of LigGlyph table
 					 * --in increasing coordinate order */
@@ -411,7 +411,7 @@ struct LigCaretList
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of LigCaretList table */
-  OffsetArrayOf<LigGlyph>
+  Array16OfOffset16To<LigGlyph>
 		ligGlyph;		/* Array of LigGlyph tables
 					 * in Coverage Index order */
   public:

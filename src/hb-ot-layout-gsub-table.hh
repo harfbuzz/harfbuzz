@@ -491,7 +491,7 @@ struct MultipleSubstFormat1
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  OffsetArrayOf<Sequence>
+  Array16OfOffset16To<Sequence>
 		sequence;		/* Array of Sequence tables
 					 * ordered by Coverage Index */
   public:
@@ -730,7 +730,7 @@ struct AlternateSubstFormat1
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  OffsetArrayOf<AlternateSet>
+  Array16OfOffset16To<AlternateSet>
 		alternateSet;		/* Array of AlternateSet tables
 					 * ordered by Coverage Index */
   public:
@@ -982,7 +982,7 @@ struct LigatureSet
   }
 
   protected:
-  OffsetArrayOf<Ligature>
+  Array16OfOffset16To<Ligature>
 		ligature;		/* Array LigatureSet tables
 					 * ordered by preference */
   public:
@@ -1110,7 +1110,7 @@ struct LigatureSubstFormat1
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  OffsetArrayOf<LigatureSet>
+  Array16OfOffset16To<LigatureSet>
 		ligatureSet;		/* Array LigatureSet tables
 					 * ordered by Coverage Index */
   public:
@@ -1178,7 +1178,7 @@ struct ReverseChainSingleSubstFormat1
     if (!(this+coverage).intersects (glyphs))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
 
     unsigned int count;
 
@@ -1202,7 +1202,7 @@ struct ReverseChainSingleSubstFormat1
   {
     if (!intersects (c->glyphs)) return;
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
 
     + hb_zip (this+coverage, substitute)
@@ -1224,7 +1224,7 @@ struct ReverseChainSingleSubstFormat1
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(this+backtrack[i]).collect_coverage (c->before))) return;
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     count = lookahead.len;
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(this+lookahead[i]).collect_coverage (c->after))) return;
@@ -1248,7 +1248,7 @@ struct ReverseChainSingleSubstFormat1
     unsigned int index = (this+coverage).get_coverage (c->buffer->cur ().codepoint);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
 
     if (unlikely (index >= substitute.len)) return_trace (false);
@@ -1279,7 +1279,7 @@ struct ReverseChainSingleSubstFormat1
   bool serialize_coverage_offset_array (hb_subset_context_t *c, Iterator it) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->serializer->start_embed<OffsetArrayOf<Coverage>> ();
+    auto *out = c->serializer->start_embed<Array16OfOffset16To<Coverage>> ();
 
     if (unlikely (!c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size)))
       return_trace (false);
@@ -1336,7 +1336,7 @@ struct ReverseChainSingleSubstFormat1
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
 
     auto it =
@@ -1355,7 +1355,7 @@ struct ReverseChainSingleSubstFormat1
     TRACE_SANITIZE (this);
     if (!(coverage.sanitize (c, this) && backtrack.sanitize (c, this)))
       return_trace (false);
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     if (!lookahead.sanitize (c, this))
       return_trace (false);
     const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
@@ -1367,11 +1367,11 @@ struct ReverseChainSingleSubstFormat1
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  OffsetArrayOf<Coverage>
+  Array16OfOffset16To<Coverage>
 		backtrack;		/* Array of coverage tables
 					 * in backtracking sequence, in glyph
 					 * sequence order */
-  OffsetArrayOf<Coverage>
+  Array16OfOffset16To<Coverage>
 		lookaheadX;		/* Array of coverage tables
 					 * in lookahead sequence, in glyph
 					 * sequence order */

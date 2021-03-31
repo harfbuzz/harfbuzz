@@ -1763,7 +1763,7 @@ struct RuleSet
   }
 
   protected:
-  OffsetArrayOf<Rule>
+  Array16OfOffset16To<Rule>
 		rule;			/* Array of Rule tables
 					 * ordered by preference */
   public:
@@ -1908,7 +1908,7 @@ struct ContextFormat1
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  OffsetArrayOf<RuleSet>
+  Array16OfOffset16To<RuleSet>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by Coverage Index */
   public:
@@ -2103,7 +2103,7 @@ struct ContextFormat2
   Offset16To<ClassDef>
 		classDef;		/* Offset to glyph ClassDef table--from
 					 * beginning of table */
-  OffsetArrayOf<RuleSet>
+  Array16OfOffset16To<RuleSet>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by class */
   public:
@@ -2733,7 +2733,7 @@ struct ChainRuleSet
   }
 
   protected:
-  OffsetArrayOf<ChainRule>
+  Array16OfOffset16To<ChainRule>
 		rule;			/* Array of ChainRule tables
 					 * ordered by preference */
   public:
@@ -2876,7 +2876,7 @@ struct ChainContextFormat1
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  OffsetArrayOf<ChainRuleSet>
+  Array16OfOffset16To<ChainRuleSet>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by Coverage Index */
   public:
@@ -3127,7 +3127,7 @@ struct ChainContextFormat2
 		lookaheadClassDef;	/* Offset to glyph ClassDef table
 					 * containing lookahead sequence
 					 * data--from beginning of table */
-  OffsetArrayOf<ChainRuleSet>
+  Array16OfOffset16To<ChainRuleSet>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by class */
   public:
@@ -3138,12 +3138,12 @@ struct ChainContextFormat3
 {
   bool intersects (const hb_set_t *glyphs) const
   {
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
 
     if (!(this+input[0]).intersects (glyphs))
       return false;
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_coverage, intersected_coverage_glyphs},
       ContextFormat::CoverageBasedContext,
@@ -3161,7 +3161,7 @@ struct ChainContextFormat3
 
   void closure (hb_closure_context_t *c) const
   {
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
 
     if (!(this+input[0]).intersects (c->glyphs))
       return;
@@ -3169,7 +3169,7 @@ struct ChainContextFormat3
     c->cur_intersected_glyphs->clear ();
     get_coverage ().intersected_coverage_glyphs (c->parent_active_glyphs (), c->cur_intersected_glyphs);
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_coverage, intersected_coverage_glyphs},
@@ -3189,8 +3189,8 @@ struct ChainContextFormat3
     if (!intersects (c->glyphs))
       return;
 
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
     recurse_lookups (c, lookup.len, lookup.arrayZ);
   }
@@ -3199,11 +3199,11 @@ struct ChainContextFormat3
 
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
 
     (this+input[0]).collect_coverage (c->input);
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
     struct ChainContextCollectGlyphsLookupContext lookup_context = {
       {collect_coverage},
@@ -3219,8 +3219,8 @@ struct ChainContextFormat3
 
   bool would_apply (hb_would_apply_context_t *c) const
   {
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
     struct ChainContextApplyLookupContext lookup_context = {
       {match_coverage},
@@ -3235,19 +3235,19 @@ struct ChainContextFormat3
 
   const Coverage &get_coverage () const
   {
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     return this+input[0];
   }
 
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
 
     unsigned int index = (this+input[0]).get_coverage (c->buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
     struct ChainContextApplyLookupContext lookup_context = {
       {match_coverage},
@@ -3265,7 +3265,7 @@ struct ChainContextFormat3
   bool serialize_coverage_offsets (hb_subset_context_t *c, Iterator it, const void* base) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->serializer->start_embed<OffsetArrayOf<Coverage>> ();
+    auto *out = c->serializer->start_embed<Array16OfOffset16To<Coverage>> ();
 
     if (unlikely (!c->serializer->allocate_size<HBUINT16> (HBUINT16::static_size)))
       return_trace (false);
@@ -3290,11 +3290,11 @@ struct ChainContextFormat3
     if (!serialize_coverage_offsets (c, backtrack.iter (), this))
       return_trace (false);
 
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     if (!serialize_coverage_offsets (c, input.iter (), this))
       return_trace (false);
 
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
     if (!serialize_coverage_offsets (c, lookahead.iter (), this))
       return_trace (false);
 
@@ -3314,10 +3314,10 @@ struct ChainContextFormat3
   {
     TRACE_SANITIZE (this);
     if (!backtrack.sanitize (c, this)) return_trace (false);
-    const OffsetArrayOf<Coverage> &input = StructAfter<OffsetArrayOf<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     if (!input.sanitize (c, this)) return_trace (false);
     if (!input.len) return_trace (false); /* To be consistent with Context. */
-    const OffsetArrayOf<Coverage> &lookahead = StructAfter<OffsetArrayOf<Coverage>> (input);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
     if (!lookahead.sanitize (c, this)) return_trace (false);
     const ArrayOf<LookupRecord> &lookup = StructAfter<ArrayOf<LookupRecord>> (lookahead);
     return_trace (lookup.sanitize (c));
@@ -3325,15 +3325,15 @@ struct ChainContextFormat3
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 3 */
-  OffsetArrayOf<Coverage>
+  Array16OfOffset16To<Coverage>
 		backtrack;		/* Array of coverage tables
 					 * in backtracking sequence, in  glyph
 					 * sequence order */
-  OffsetArrayOf<Coverage>
+  Array16OfOffset16To<Coverage>
 		inputX		;	/* Array of coverage
 					 * tables in input sequence, in glyph
 					 * sequence order */
-  OffsetArrayOf<Coverage>
+  Array16OfOffset16To<Coverage>
 		lookaheadX;		/* Array of coverage tables
 					 * in lookahead sequence, in glyph
 					 * sequence order */

@@ -1337,7 +1337,7 @@ struct PairPosFormat1
 					/* [1] Defines the types of data in
 					 * ValueRecord2--for the second glyph
 					 * in the pair--may be zero (0) */
-  OffsetArrayOf<PairSet>
+  Array16OfOffset16To<PairSet>
 		pairSet;		/* Array of PairSet tables
 					 * ordered by Coverage Index */
   public:

@@ -247,7 +247,7 @@ struct BaseValues
   Index		defaultIndex;	/* Index number of default baseline for this
 				 * script — equals index position of baseline tag
 				 * in baselineTags array of the BaseTagList */
-  OffsetArrayOf<BaseCoord>
+  Array16OfOffset16To<BaseCoord>
 		baseCoords;	/* Number of BaseCoord tables defined — should equal
 				 * baseTagCount in the BaseTagList
 				 *
