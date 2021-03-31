@@ -220,6 +220,7 @@ struct Offset : Type
 };
 
 typedef Offset<HBUINT16> Offset16;
+typedef Offset<HBUINT24> Offset24;
 typedef Offset<HBUINT32> Offset32;
 
 
