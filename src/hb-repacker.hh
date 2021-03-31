@@ -147,7 +147,8 @@ struct graph_t
       }
 
       vertex_t* v = vertices_.push ();
-      v->obj = *objects[i];
+      if (check_success (!vertices_.in_error ()))
+        v->obj = *objects[i];
       if (!removed_nil) continue;
       for (unsigned i = 0; i < v->obj.links.length; i++)
         // Fix indices to account for removed nil object.
