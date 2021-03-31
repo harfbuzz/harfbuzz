@@ -185,7 +185,7 @@ struct SBIXStrike
   HBUINT16	resolution;	/* The device pixel density (in PPI) for which this
 				 * strike was designed. (E.g., 96 PPI, 192 PPI.) */
   protected:
-  UnsizedArrayOf<LOffsetTo<SBIXGlyph>>
+  UnsizedArrayOf<Offset32To<SBIXGlyph>>
 		imageOffsetsZ;	/* Offset from the beginning of the strike data header
 				 * to bitmap data for an individual glyph ID. */
   public:
@@ -356,7 +356,7 @@ struct sbix
     if (unlikely (!out)) return_trace (false);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
-    hb_vector_t<LOffsetTo<SBIXStrike>*> new_strikes;
+    hb_vector_t<Offset32To<SBIXStrike>*> new_strikes;
     hb_vector_t<hb_serialize_context_t::objidx_t> objidxs;
     for (int i = strikes.len - 1; i >= 0; --i)
     {

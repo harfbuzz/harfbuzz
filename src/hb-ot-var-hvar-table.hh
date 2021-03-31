@@ -425,13 +425,13 @@ struct HVARVVAR
   protected:
   FixedVersion<>version;	/* Version of the metrics variation table
 				 * initially set to 0x00010000u */
-  LOffsetTo<VariationStore>
+  Offset32To<VariationStore>
 		varStore;	/* Offset to item variation store table. */
-  LOffsetTo<DeltaSetIndexMap>
+  Offset32To<DeltaSetIndexMap>
 		advMap;		/* Offset to advance var-idx mapping. */
-  LOffsetTo<DeltaSetIndexMap>
+  Offset32To<DeltaSetIndexMap>
 		lsbMap;		/* Offset to lsb/tsb var-idx mapping. */
-  LOffsetTo<DeltaSetIndexMap>
+  Offset32To<DeltaSetIndexMap>
 		rsbMap;		/* Offset to rsb/bsb var-idx mapping. */
 
   public:
@@ -475,7 +475,7 @@ struct VVAR : HVARVVAR {
   bool subset (hb_subset_context_t *c) const { return HVARVVAR::_subset<VVAR> (c); }
 
   protected:
-  LOffsetTo<DeltaSetIndexMap>
+  Offset32To<DeltaSetIndexMap>
 		vorgMap;	/* Offset to vertical-origin var-idx mapping. */
 
   public:

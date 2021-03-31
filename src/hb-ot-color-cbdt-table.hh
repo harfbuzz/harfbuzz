@@ -510,7 +510,7 @@ struct IndexSubtableRecord
 
   HBGlyphID			firstGlyphIndex;
   HBGlyphID			lastGlyphIndex;
-  LOffsetTo<IndexSubtable>	offsetToSubtable;
+  Offset32To<IndexSubtable>	offsetToSubtable;
   public:
   DEFINE_SIZE_STATIC (8);
 };
@@ -672,7 +672,7 @@ struct BitmapSizeTable
   }
 
   protected:
-  LNNOffsetTo<IndexSubtableArray>
+  NNOffset32To<IndexSubtableArray>
 			indexSubtableArrayOffset;
   HBUINT32		indexTablesSize;
   HBUINT32		numberOfIndexSubtables;

@@ -833,7 +833,7 @@ static inline bool intersects_class (const hb_set_t *glyphs, const HBUINT16 &val
 }
 static inline bool intersects_coverage (const hb_set_t *glyphs, const HBUINT16 &value, const void *data)
 {
-  const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
+  const Offset16To<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   return (data+coverage).intersects (glyphs);
 }
 
@@ -850,7 +850,7 @@ static inline void intersected_class_glyphs (const hb_set_t *glyphs, const void 
 }
 static inline void intersected_coverage_glyphs (const hb_set_t *glyphs, const void *data, unsigned value, hb_set_t *intersected_glyphs)
 {
-  OffsetTo<Coverage> coverage;
+  Offset16To<Coverage> coverage;
   coverage = value;
   (data+coverage).intersected_coverage_glyphs (glyphs, intersected_glyphs);
 }
@@ -879,7 +879,7 @@ static inline void collect_class (hb_set_t *glyphs, const HBUINT16 &value, const
 }
 static inline void collect_coverage (hb_set_t *glyphs, const HBUINT16 &value, const void *data)
 {
-  const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
+  const Offset16To<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   (data+coverage).collect_coverage (glyphs);
 }
 static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
@@ -907,7 +907,7 @@ static inline bool match_class (hb_codepoint_t glyph_id, const HBUINT16 &value, 
 }
 static inline bool match_coverage (hb_codepoint_t glyph_id, const HBUINT16 &value, const void *data)
 {
-  const OffsetTo<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
+  const Offset16To<Coverage> &coverage = (const OffsetTo<Coverage>&)value;
   return (data+coverage).get_coverage (glyph_id) != NOT_COVERED;
 }
 
@@ -1736,7 +1736,7 @@ struct RuleSet
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
-    for (const OffsetTo<Rule>& _ : rule)
+    for (const Offset16To<Rule>& _ : rule)
     {
       if (!_) continue;
       auto *o = out->rule.serialize_append (c->serializer);
@@ -1905,7 +1905,7 @@ struct ContextFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
   OffsetArrayOf<RuleSet>
@@ -1966,7 +1966,7 @@ struct ContextFormat2
     | hb_filter ([&] (unsigned _)
 		 { return class_def.intersects_class (c->cur_intersected_glyphs, _); },
 		 hb_first)
-    | hb_apply ([&] (const hb_pair_t<unsigned, const OffsetTo<RuleSet>&> _)
+    | hb_apply ([&] (const hb_pair_t<unsigned, const Offset16To<RuleSet>&> _)
                 {
                   const RuleSet& rule_set = this+_.second;
                   rule_set.closure (c, _.first, lookup_context);
@@ -2097,10 +2097,10 @@ struct ContextFormat2
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  OffsetTo<ClassDef>
+  Offset16To<ClassDef>
 		classDef;		/* Offset to glyph ClassDef table--from
 					 * beginning of table */
   OffsetArrayOf<RuleSet>
@@ -2218,10 +2218,10 @@ struct ContextFormat3
 
     auto coverages = coverageZ.as_array (glyphCount);
 
-    for (const OffsetTo<Coverage>& offset : coverages)
+    for (const Offset16To<Coverage>& offset : coverages)
     {
       /* TODO(subset) This looks like should not be necessary to write this way. */
-      auto *o = c->serializer->allocate_size<OffsetTo<Coverage>> (OffsetTo<Coverage>::static_size);
+      auto *o = c->serializer->allocate_size<Offset16To<Coverage>> (OffsetTo<Coverage>::static_size);
       if (unlikely (!o)) return_trace (false);
       if (!o->serialize_subset (c, offset, this)) return_trace (false);
     }
@@ -2252,7 +2252,7 @@ struct ContextFormat3
   HBUINT16	glyphCount;		/* Number of glyphs in the input glyph
 					 * sequence */
   HBUINT16	lookupCount;		/* Number of LookupRecords */
-  UnsizedArrayOf<OffsetTo<Coverage>>
+  UnsizedArrayOf<Offset16To<Coverage>>
 		coverageZ;		/* Array of offsets to Coverage
 					 * table in glyph sequence order */
 /*UnsizedArrayOf<LookupRecord>
@@ -2702,7 +2702,7 @@ struct ChainRuleSet
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
-    for (const OffsetTo<ChainRule>& _ : rule)
+    for (const Offset16To<ChainRule>& _ : rule)
     {
       if (!_) continue;
       auto *o = out->rule.serialize_append (c->serializer);
@@ -2873,7 +2873,7 @@ struct ChainContextFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
   OffsetArrayOf<ChainRuleSet>
@@ -2941,7 +2941,7 @@ struct ChainContextFormat2
     | hb_filter ([&] (unsigned _)
 		 { return input_class_def.intersects_class (c->cur_intersected_glyphs, _); },
 		 hb_first)
-    | hb_apply ([&] (const hb_pair_t<unsigned, const OffsetTo<ChainRuleSet>&> _)
+    | hb_apply ([&] (const hb_pair_t<unsigned, const Offset16To<ChainRuleSet>&> _)
                 {
                   const ChainRuleSet& chainrule_set = this+_.second;
                   chainrule_set.closure (c, _.first, lookup_context);
@@ -3066,7 +3066,7 @@ struct ChainContextFormat2
     bool ret = true;
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     auto last_non_zero = c->serializer->snapshot ();
-    for (const OffsetTo<ChainRuleSet>& _ : + hb_enumerate (ruleSet)
+    for (const Offset16To<ChainRuleSet>& _ : + hb_enumerate (ruleSet)
 					   | hb_filter (input_klass_map, hb_first)
 					   | hb_map (hb_second))
     {
@@ -3112,18 +3112,18 @@ struct ChainContextFormat2
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  OffsetTo<ClassDef>
+  Offset16To<ClassDef>
 		backtrackClassDef;	/* Offset to glyph ClassDef table
 					 * containing backtrack sequence
 					 * data--from beginning of table */
-  OffsetTo<ClassDef>
+  Offset16To<ClassDef>
 		inputClassDef;		/* Offset to glyph ClassDef
 					 * table containing input sequence
 					 * data--from beginning of table */
-  OffsetTo<ClassDef>
+  Offset16To<ClassDef>
 		lookaheadClassDef;	/* Offset to glyph ClassDef table
 					 * containing lookahead sequence
 					 * data--from beginning of table */
@@ -3376,7 +3376,7 @@ struct ExtensionFormat1
 
   template <typename X>
   const X& get_subtable () const
-  { return this + reinterpret_cast<const LOffsetTo<typename T::SubTable> &> (extensionOffset); }
+  { return this + reinterpret_cast<const Offset32To<typename T::SubTable> &> (extensionOffset); }
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
@@ -3408,9 +3408,9 @@ struct ExtensionFormat1
     out->extensionLookupType = extensionLookupType;
 
     const auto& src_offset =
-        reinterpret_cast<const LOffsetTo<typename T::SubTable> &> (extensionOffset);
+        reinterpret_cast<const Offset32To<typename T::SubTable> &> (extensionOffset);
     auto& dest_offset =
-        reinterpret_cast<LOffsetTo<typename T::SubTable> &> (out->extensionOffset);
+        reinterpret_cast<Offset32To<typename T::SubTable> &> (out->extensionOffset);
 
     return_trace (dest_offset.serialize_subset (c, src_offset, this, get_type ()));
   }
@@ -3616,15 +3616,15 @@ struct GSUBGPOS
     if (unlikely (!out)) return_trace (false);
 
     typedef LookupOffsetList<TLookup> TLookupList;
-    reinterpret_cast<OffsetTo<TLookupList> &> (out->lookupList)
+    reinterpret_cast<Offset16To<TLookupList> &> (out->lookupList)
 	.serialize_subset (c->subset_context,
-			   reinterpret_cast<const OffsetTo<TLookupList> &> (lookupList),
+			   reinterpret_cast<const Offset16To<TLookupList> &> (lookupList),
 			   this,
 			   c);
 
-    reinterpret_cast<OffsetTo<RecordListOfFeature> &> (out->featureList)
+    reinterpret_cast<Offset16To<RecordListOfFeature> &> (out->featureList)
 	.serialize_subset (c->subset_context,
-			   reinterpret_cast<const OffsetTo<RecordListOfFeature> &> (featureList),
+			   reinterpret_cast<const Offset16To<RecordListOfFeature> &> (featureList),
 			   this,
 			   c);
 
@@ -3750,7 +3750,7 @@ struct GSUBGPOS
 		    likely (version.major == 1) &&
 		    scriptList.sanitize (c, this) &&
 		    featureList.sanitize (c, this) &&
-		    reinterpret_cast<const OffsetTo<TLookupList> &> (lookupList).sanitize (c, this))))
+		    reinterpret_cast<const Offset16To<TLookupList> &> (lookupList).sanitize (c, this))))
       return_trace (false);
 
 #ifndef HB_NO_VAR
@@ -3803,13 +3803,13 @@ struct GSUBGPOS
   protected:
   FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
 				 * to 0x00010000u */
-  OffsetTo<ScriptList>
+  Offset16To<ScriptList>
 		scriptList;	/* ScriptList table */
-  OffsetTo<FeatureList>
+  Offset16To<FeatureList>
 		featureList;	/* FeatureList table */
-  OffsetTo<LookupList>
+  Offset16To<LookupList>
 		lookupList;	/* LookupList table */
-  LOffsetTo<FeatureVariations>
+  Offset32To<FeatureVariations>
 		featureVars;	/* Offset to Feature Variations
 				   table--from beginning of table
 				 * (may be NULL).  Introduced

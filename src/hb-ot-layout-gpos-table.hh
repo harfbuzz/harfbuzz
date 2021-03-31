@@ -89,16 +89,16 @@ struct ValueFormat : HBUINT16
   HBINT16		yAdvance;	/* Vertical adjustment for advance--in
 					 * design units (only used for vertical
 					 * writing) */
-  OffsetTo<Device>	xPlaDevice;	/* Offset to Device table for
+  Offset16To<Device>	xPlaDevice;	/* Offset to Device table for
 					 * horizontal placement--measured from
 					 * beginning of PosTable (may be NULL) */
-  OffsetTo<Device>	yPlaDevice;	/* Offset to Device table for vertical
+  Offset16To<Device>	yPlaDevice;	/* Offset to Device table for vertical
 					 * placement--measured from beginning
 					 * of PosTable (may be NULL) */
-  OffsetTo<Device>	xAdvDevice;	/* Offset to Device table for
+  Offset16To<Device>	xAdvDevice;	/* Offset to Device table for
 					 * horizontal advance--measured from
 					 * beginning of PosTable (may be NULL) */
-  OffsetTo<Device>	yAdvDevice;	/* Offset to Device table for vertical
+  Offset16To<Device>	yAdvDevice;	/* Offset to Device table for vertical
 					 * advance--measured from beginning of
 					 * PosTable (may be NULL) */
 #endif
@@ -232,14 +232,14 @@ struct ValueFormat : HBUINT16
     return true;
   }
 
-  static inline OffsetTo<Device>& get_device (Value* value)
+  static inline Offset16To<Device>& get_device (Value* value)
   {
-    return *static_cast<OffsetTo<Device> *> (value);
+    return *static_cast<Offset16To<Device> *> (value);
   }
-  static inline const OffsetTo<Device>& get_device (const Value* value, bool *worked=nullptr)
+  static inline const Offset16To<Device>& get_device (const Value* value, bool *worked=nullptr)
   {
     if (worked) *worked |= bool (*value);
-    return *static_cast<const OffsetTo<Device> *> (value);
+    return *static_cast<const Offset16To<Device> *> (value);
   }
 
   bool copy_device (hb_serialize_context_t *c, const void *base,
@@ -447,11 +447,11 @@ struct AnchorFormat3
   HBUINT16	format;			/* Format identifier--format = 3 */
   FWORD		xCoordinate;		/* Horizontal value--in design units */
   FWORD		yCoordinate;		/* Vertical value--in design units */
-  OffsetTo<Device>
+  Offset16To<Device>
 		xDeviceTable;		/* Offset to Device table for X
 					 * coordinate-- from beginning of
 					 * Anchor table (may be NULL) */
-  OffsetTo<Device>
+  Offset16To<Device>
 		yDeviceTable;		/* Offset to Device table for Y
 					 * coordinate-- from beginning of
 					 * Anchor table (may be NULL) */
@@ -599,7 +599,7 @@ struct AnchorMatrix
   }
 
   HBUINT16	rows;			/* Number of rows */
-  UnsizedArrayOf<OffsetTo<Anchor>>
+  UnsizedArrayOf<Offset16To<Anchor>>
 		matrixZ;		/* Matrix of offsets to Anchor tables--
 					 * from beginning of AnchorMatrix table */
   public:
@@ -641,7 +641,7 @@ struct MarkRecord
 
   protected:
   HBUINT16	klass;			/* Class defined for this mark */
-  OffsetTo<Anchor>
+  Offset16To<Anchor>
 		markAnchor;		/* Offset to Anchor table--from
 					 * beginning of MarkArray table */
   public:
@@ -800,7 +800,7 @@ struct SinglePosFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
   ValueFormat	valueFormat;		/* Defines the types of data in the
@@ -922,7 +922,7 @@ struct SinglePosFormat2
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
   ValueFormat	valueFormat;		/* Defines the types of data in the
@@ -1218,7 +1218,7 @@ struct PairPosFormat1
     + hb_zip (this+coverage, pairSet)
     | hb_filter (*glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_map ([glyphs, this] (const OffsetTo<PairSet> &_)
+    | hb_map ([glyphs, this] (const Offset16To<PairSet> &_)
 	      { return (this+_).intersects (glyphs, valueFormat); })
     | hb_any
     ;
@@ -1283,7 +1283,7 @@ struct PairPosFormat1
 
     + hb_zip (this+coverage, pairSet)
     | hb_filter (glyphset, hb_first)
-    | hb_filter ([this, c, out] (const OffsetTo<PairSet>& _)
+    | hb_filter ([this, c, out] (const Offset16To<PairSet>& _)
 		 {
 		   auto *o = out->pairSet.serialize_append (c->serializer);
 		   if (unlikely (!o)) return false;
@@ -1328,7 +1328,7 @@ struct PairPosFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
   ValueFormat	valueFormat[2];		/* [0] Defines the types of data in
@@ -1499,7 +1499,7 @@ struct PairPosFormat2
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
   ValueFormat	valueFormat1;		/* ValueRecord definition--for the
@@ -1508,11 +1508,11 @@ struct PairPosFormat2
   ValueFormat	valueFormat2;		/* ValueRecord definition--for the
 					 * second glyph of the pair--may be
 					 * zero (0) */
-  OffsetTo<ClassDef>
+  Offset16To<ClassDef>
 		classDef1;		/* Offset to ClassDef table--from
 					 * beginning of PairPos subtable--for
 					 * the first glyph of the pair */
-  OffsetTo<ClassDef>
+  Offset16To<ClassDef>
 		classDef2;		/* Offset to ClassDef table--from
 					 * beginning of PairPos subtable--for
 					 * the second glyph of the pair */
@@ -1582,11 +1582,11 @@ struct EntryExitRecord
   }
 
   protected:
-  OffsetTo<Anchor>
+  Offset16To<Anchor>
 		entryAnchor;		/* Offset to EntryAnchor table--from
 					 * beginning of CursivePos
 					 * subtable--may be NULL */
-  OffsetTo<Anchor>
+  Offset16To<Anchor>
 		exitAnchor;		/* Offset to ExitAnchor table--from
 					 * beginning of CursivePos
 					 * subtable--may be NULL */
@@ -1777,7 +1777,7 @@ struct CursivePosFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
   ArrayOf<EntryExitRecord>
@@ -2005,17 +2005,17 @@ struct MarkBasePosFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		markCoverage;		/* Offset to MarkCoverage table--from
 					 * beginning of MarkBasePos subtable */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		baseCoverage;		/* Offset to BaseCoverage table--from
 					 * beginning of MarkBasePos subtable */
   HBUINT16	classCount;		/* Number of classes defined for marks */
-  OffsetTo<MarkArray>
+  Offset16To<MarkArray>
 		markArray;		/* Offset to MarkArray table--from
 					 * beginning of MarkBasePos subtable */
-  OffsetTo<BaseArray>
+  Offset16To<BaseArray>
 		baseArray;		/* Offset to BaseArray table--from
 					 * beginning of MarkBasePos subtable */
   public:
@@ -2244,18 +2244,18 @@ struct MarkLigPosFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		markCoverage;		/* Offset to Mark Coverage table--from
 					 * beginning of MarkLigPos subtable */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		ligatureCoverage;	/* Offset to Ligature Coverage
 					 * table--from beginning of MarkLigPos
 					 * subtable */
   HBUINT16	classCount;		/* Number of defined mark classes */
-  OffsetTo<MarkArray>
+  Offset16To<MarkArray>
 		markArray;		/* Offset to MarkArray table--from
 					 * beginning of MarkLigPos subtable */
-  OffsetTo<LigatureArray>
+  Offset16To<LigatureArray>
 		ligatureArray;		/* Offset to LigatureArray table--from
 					 * beginning of MarkLigPos subtable */
   public:
@@ -2465,19 +2465,19 @@ struct MarkMarkPosFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		mark1Coverage;		/* Offset to Combining Mark1 Coverage
 					 * table--from beginning of MarkMarkPos
 					 * subtable */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		mark2Coverage;		/* Offset to Combining Mark2 Coverage
 					 * table--from beginning of MarkMarkPos
 					 * subtable */
   HBUINT16	classCount;		/* Number of defined mark classes */
-  OffsetTo<MarkArray>
+  Offset16To<MarkArray>
 		mark1Array;		/* Offset to Mark1Array table--from
 					 * beginning of MarkMarkPos subtable */
-  OffsetTo<Mark2Array>
+  Offset16To<Mark2Array>
 		mark2Array;		/* Offset to Mark2Array table--from
 					 * beginning of MarkMarkPos subtable */
   public:

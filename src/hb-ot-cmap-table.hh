@@ -1045,9 +1045,9 @@ struct VariationSelectorRecord
   }
 
   HBUINT24	varSelector;	/* Variation selector. */
-  LOffsetTo<DefaultUVS>
+  Offset32To<DefaultUVS>
 		defaultUVS;	/* Offset to Default UVS Table.  May be 0. */
-  LOffsetTo<NonDefaultUVS>
+  Offset32To<NonDefaultUVS>
 		nonDefaultUVS;	/* Offset to Non-Default UVS Table.  May be 0. */
   public:
   DEFINE_SIZE_STATIC (11);
@@ -1344,7 +1344,7 @@ struct EncodingRecord
 
   HBUINT16	platformID;	/* Platform ID. */
   HBUINT16	encodingID;	/* Platform-specific encoding ID. */
-  LOffsetTo<CmapSubtable>
+  Offset32To<CmapSubtable>
 		subtable;	/* Byte offset from beginning of table to the subtable for this encoding. */
   public:
   DEFINE_SIZE_STATIC (8);

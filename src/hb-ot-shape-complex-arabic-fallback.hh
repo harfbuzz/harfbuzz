@@ -208,7 +208,7 @@ struct ManifestLookup
 {
   public:
   OT::Tag tag;
-  OT::OffsetTo<OT::SubstLookup> lookupOffset;
+  OT::Offset16To<OT::SubstLookup> lookupOffset;
   public:
   DEFINE_SIZE_STATIC (6);
 };

@@ -138,7 +138,7 @@ struct SingleSubstFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   HBUINT16	deltaGlyphID;		/* Add to original GlyphID to get
@@ -242,7 +242,7 @@ struct SingleSubstFormat2
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   ArrayOf<HBGlyphID>
@@ -488,7 +488,7 @@ struct MultipleSubstFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   OffsetArrayOf<Sequence>
@@ -727,7 +727,7 @@ struct AlternateSubstFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   OffsetArrayOf<AlternateSet>
@@ -997,7 +997,7 @@ struct LigatureSubstFormat1
     + hb_zip (this+coverage, ligatureSet)
     | hb_filter (*glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_map ([this, glyphs] (const OffsetTo<LigatureSet> &_)
+    | hb_map ([this, glyphs] (const Offset16To<LigatureSet> &_)
 	      { return (this+_).intersects (glyphs); })
     | hb_any
     ;
@@ -1107,7 +1107,7 @@ struct LigatureSubstFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
   OffsetArrayOf<LigatureSet>
@@ -1364,7 +1364,7 @@ struct ReverseChainSingleSubstFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  OffsetTo<Coverage>
+  Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
   OffsetArrayOf<Coverage>

@@ -71,43 +71,43 @@ struct JstfPriority
   }
 
   protected:
-  OffsetTo<JstfModList>
+  Offset16To<JstfModList>
 		shrinkageEnableGSUB;	/* Offset to Shrinkage Enable GSUB
 					 * JstfModList table--from beginning of
 					 * JstfPriority table--may be NULL */
-  OffsetTo<JstfModList>
+  Offset16To<JstfModList>
 		shrinkageDisableGSUB;	/* Offset to Shrinkage Disable GSUB
 					 * JstfModList table--from beginning of
 					 * JstfPriority table--may be NULL */
-  OffsetTo<JstfModList>
+  Offset16To<JstfModList>
 		shrinkageEnableGPOS;	/* Offset to Shrinkage Enable GPOS
 					 * JstfModList table--from beginning of
 					 * JstfPriority table--may be NULL */
-  OffsetTo<JstfModList>
+  Offset16To<JstfModList>
 		shrinkageDisableGPOS;	/* Offset to Shrinkage Disable GPOS
 					 * JstfModList table--from beginning of
 					 * JstfPriority table--may be NULL */
-  OffsetTo<JstfMax>
+  Offset16To<JstfMax>
 		shrinkageJstfMax;	/* Offset to Shrinkage JstfMax table--
 					 * from beginning of JstfPriority table
 					 * --may be NULL */
-  OffsetTo<JstfModList>
+  Offset16To<JstfModList>
 		extensionEnableGSUB;	/* Offset to Extension Enable GSUB
 					 * JstfModList table--from beginning of
 					 * JstfPriority table--may be NULL */
-  OffsetTo<JstfModList>
+  Offset16To<JstfModList>
 		extensionDisableGSUB;	/* Offset to Extension Disable GSUB
 					 * JstfModList table--from beginning of
 					 * JstfPriority table--may be NULL */
-  OffsetTo<JstfModList>
+  Offset16To<JstfModList>
 		extensionEnableGPOS;	/* Offset to Extension Enable GPOS
 					 * JstfModList table--from beginning of
 					 * JstfPriority table--may be NULL */
-  OffsetTo<JstfModList>
+  Offset16To<JstfModList>
 		extensionDisableGPOS;	/* Offset to Extension Disable GPOS
 					 * JstfModList table--from beginning of
 					 * JstfPriority table--may be NULL */
-  OffsetTo<JstfMax>
+  Offset16To<JstfMax>
 		extensionJstfMax;	/* Offset to Extension JstfMax table--
 					 * from beginning of JstfPriority table
 					 * --may be NULL */
@@ -174,10 +174,10 @@ struct JstfScript
   }
 
   protected:
-  OffsetTo<ExtenderGlyphs>
+  Offset16To<ExtenderGlyphs>
 		extenderGlyphs;	/* Offset to ExtenderGlyph table--from beginning
 				 * of JstfScript table-may be NULL */
-  OffsetTo<JstfLangSys>
+  Offset16To<JstfLangSys>
 		defaultLangSys;	/* Offset to DefaultJstfLangSys table--from
 				 * beginning of JstfScript table--may be Null */
   RecordArrayOf<JstfLangSys>

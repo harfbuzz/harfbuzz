@@ -164,7 +164,7 @@ struct LookupSegmentArray
 
   HBGlyphID	last;		/* Last GlyphID in this segment */
   HBGlyphID	first;		/* First GlyphID in this segment */
-  NNOffsetTo<UnsizedArrayOf<T>>
+  NNOffset16To<UnsizedArrayOf<T>>
 		valuesZ;	/* A 16-bit offset from the start of
 				 * the table to the data. */
   public:

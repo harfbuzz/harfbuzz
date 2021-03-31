@@ -384,7 +384,7 @@ struct Record
   }
 
   Tag		tag;		/* 4-byte Tag identifier */
-  OffsetTo<Type>
+  Offset16To<Type>
 		offset;		/* Offset from beginning of object holding
 				 * the Record */
   public:
@@ -394,9 +394,9 @@ struct Record
 template <typename Type>
 struct RecordArrayOf : SortedArrayOf<Record<Type>>
 {
-  const OffsetTo<Type>& get_offset (unsigned int i) const
+  const Offset16To<Type>& get_offset (unsigned int i) const
   { return (*this)[i].offset; }
-  OffsetTo<Type>& get_offset (unsigned int i)
+  Offset16To<Type>& get_offset (unsigned int i)
   { return (*this)[i].offset; }
   const Tag& get_tag (unsigned int i) const
   { return (*this)[i].tag; }
@@ -786,7 +786,7 @@ struct Script
   }
 
   protected:
-  OffsetTo<LangSys>
+  Offset16To<LangSys>
 		defaultLangSys;	/* Offset to DefaultLangSys table--from
 				 * beginning of Script table--may be Null */
   RecordArrayOf<LangSys>
@@ -1153,7 +1153,7 @@ struct Feature
       unsigned int new_offset_int = orig_offset -
 				    (((char *) this) - ((char *) closure->list_base));
 
-      OffsetTo<FeatureParams> new_offset;
+      Offset16To<FeatureParams> new_offset;
       /* Check that it would not overflow. */
       new_offset = new_offset_int;
       if (new_offset == new_offset_int &&
@@ -1165,7 +1165,7 @@ struct Feature
     return_trace (true);
   }
 
-  OffsetTo<FeatureParams>
+  Offset16To<FeatureParams>
 		 featureParams;	/* Offset to Feature Parameters table (if one
 				 * has been defined for the feature), relative
 				 * to the beginning of the Feature Table; = Null
@@ -1286,7 +1286,7 @@ struct Lookup
     const hb_set_t *glyphset = c->plan->glyphset_gsub ();
     unsigned int lookup_type = get_type ();
     + hb_iter (get_subtables <TSubTable> ())
-    | hb_filter ([this, glyphset, lookup_type] (const OffsetTo<TSubTable> &_) { return (this+_).intersects (glyphset, lookup_type); })
+    | hb_filter ([this, glyphset, lookup_type] (const Offset16To<TSubTable> &_) { return (this+_).intersects (glyphset, lookup_type); })
     | hb_apply (subset_offset_array (c, out->get_subtables<TSubTable> (), this, lookup_type))
     ;
 
@@ -2861,7 +2861,7 @@ struct VariationStore
 
   protected:
   HBUINT16				format;
-  LOffsetTo<VarRegionList>		regions;
+  Offset32To<VarRegionList>		regions;
   LOffsetArrayOf<VarData>		dataSets;
   public:
   DEFINE_SIZE_ARRAY (8, dataSets);
@@ -3016,7 +3016,7 @@ struct FeatureTableSubstitutionRecord
 
   protected:
   HBUINT16		featureIndex;
-  LOffsetTo<Feature>	feature;
+  Offset32To<Feature>	feature;
   public:
   DEFINE_SIZE_STATIC (6);
 };
@@ -3122,9 +3122,9 @@ struct FeatureVariationRecord
   }
 
   protected:
-  LOffsetTo<ConditionSet>
+  Offset32To<ConditionSet>
 			conditions;
-  LOffsetTo<FeatureTableSubstitution>
+  Offset32To<FeatureTableSubstitution>
 			substitutions;
   public:
   DEFINE_SIZE_STATIC (8);

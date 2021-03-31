@@ -410,12 +410,14 @@ struct OffsetTo : Offset<OffsetType, has_null>
   DEFINE_SIZE_STATIC (sizeof (OffsetType));
 };
 /* Partial specializations. */
-template <typename Type, bool has_null=true>
-using LOffsetTo = OffsetTo<Type, HBUINT32, has_null>;
-template <typename Type, typename OffsetType=HBUINT16>
-using NNOffsetTo = OffsetTo<Type, OffsetType, false>;
-template <typename Type>
-using LNNOffsetTo = LOffsetTo<Type, false>;
+template <typename Type, bool has_null=true> using Offset16To = OffsetTo<Type, HBUINT16, has_null>;
+template <typename Type, bool has_null=true> using Offset24To = OffsetTo<Type, HBUINT24, has_null>;
+template <typename Type, bool has_null=true> using Offset32To = OffsetTo<Type, HBUINT32, has_null>;
+
+template <typename Type, typename OffsetType> using NNOffsetTo = OffsetTo<Type, OffsetType, false>;
+template <typename Type> using NNOffset16To = Offset16To<Type, false>;
+template <typename Type> using NNOffset24To = Offset24To<Type, false>;
+template <typename Type> using NNOffset32To = Offset32To<Type, false>;
 
 
 /*
