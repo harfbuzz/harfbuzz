@@ -2726,6 +2726,7 @@ struct VarData
 
 struct VariationStore
 {
+  private:
   float get_delta (unsigned int outer, unsigned int inner,
 		   const int *coords, unsigned int coord_count) const
   {
@@ -2741,6 +2742,7 @@ struct VariationStore
 					     this+regions);
   }
 
+  public:
   float get_delta (unsigned int index,
 		   const int *coords, unsigned int coord_count) const
   {
