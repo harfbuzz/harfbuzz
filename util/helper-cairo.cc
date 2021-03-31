@@ -263,7 +263,7 @@ static void
 finalize_png (finalize_closure_t *closure)
 {
   cairo_status_t status;
-  GByteArray *bytes;
+  GByteArray *bytes = nullptr;
   GString *string;
   gchar *base64;
   size_t base64_len;
