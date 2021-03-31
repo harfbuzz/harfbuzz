@@ -697,7 +697,7 @@ struct BitmapSizeTable
 struct GlyphBitmapDataFormat17
 {
   SmallGlyphMetrics	glyphMetrics;
-  LArrayOf<HBUINT8>	data;
+  Array32Of<HBUINT8>	data;
   public:
   DEFINE_SIZE_ARRAY (9, data);
 };
@@ -705,14 +705,14 @@ struct GlyphBitmapDataFormat17
 struct GlyphBitmapDataFormat18
 {
   BigGlyphMetrics	glyphMetrics;
-  LArrayOf<HBUINT8>	data;
+  Array32Of<HBUINT8>	data;
   public:
   DEFINE_SIZE_ARRAY (12, data);
 };
 
 struct GlyphBitmapDataFormat19
 {
-  LArrayOf<HBUINT8>	data;
+  Array32Of<HBUINT8>	data;
   public:
   DEFINE_SIZE_ARRAY (4, data);
 };
@@ -798,7 +798,7 @@ struct CBLC
 
   protected:
   FixedVersion<>		version;
-  LArrayOf<BitmapSizeTable>	sizeTables;
+  Array32Of<BitmapSizeTable>	sizeTables;
   public:
   DEFINE_SIZE_ARRAY (8, sizeTables);
 };

@@ -3204,7 +3204,7 @@ struct FeatureVariations
 
   protected:
   FixedVersion<>	version;	/* Version--0x00010000u */
-  LArrayOf<FeatureVariationRecord>
+  Array32Of<FeatureVariationRecord>
 			varRecords;
   public:
   DEFINE_SIZE_ARRAY_SIZED (8, varRecords);

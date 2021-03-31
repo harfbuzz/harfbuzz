@@ -310,7 +310,7 @@ struct WidthDeltaPair
   DEFINE_SIZE_STATIC (24);
 };
 
-typedef OT::LArrayOf<WidthDeltaPair> WidthDeltaCluster;
+typedef OT::Array32Of<WidthDeltaPair> WidthDeltaCluster;
 
 struct JustificationCategory
 {

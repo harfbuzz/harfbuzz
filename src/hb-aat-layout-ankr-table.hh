@@ -54,7 +54,7 @@ struct Anchor
   DEFINE_SIZE_STATIC (4);
 };
 
-typedef LArrayOf<Anchor> GlyphAnchors;
+typedef Array32Of<Anchor> GlyphAnchors;
 
 struct ankr
 {

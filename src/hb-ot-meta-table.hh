@@ -113,7 +113,7 @@ struct meta
 				 * Offset from the beginning of the table to the data.
 				 * Per OT specification:
 				 * Reserved. Not used; should be set to 0. */
-  LArrayOf<DataMap>
+  Array32Of<DataMap>
 		dataMaps;/* Array of data map records. */
   public:
   DEFINE_SIZE_ARRAY (16, dataMaps);
