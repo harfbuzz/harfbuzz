@@ -352,7 +352,7 @@ struct sbix
   {
     TRACE_SERIALIZE (this);
 
-    auto *out = c->serializer->start_embed<LOffsetLArrayOf<SBIXStrike>> ();
+    auto *out = c->serializer->start_embed<Array32OfOffset32To<SBIXStrike>> ();
     if (unlikely (!out)) return_trace (false);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
@@ -400,7 +400,7 @@ struct sbix
   HBUINT16	version;	/* Table version number — set to 1 */
   HBUINT16	flags;		/* Bit 0: Set to 1. Bit 1: Draw outlines.
 				 * Bits 2 to 15: reserved (set to 0). */
-  LOffsetLArrayOf<SBIXStrike>
+  Array32OfOffset32To<SBIXStrike>
 		strikes;	/* Offsets from the beginning of the 'sbix'
 				 * table to data for each individual bitmap strike. */
   public:

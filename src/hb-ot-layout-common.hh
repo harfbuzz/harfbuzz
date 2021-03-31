@@ -2862,7 +2862,7 @@ struct VariationStore
   protected:
   HBUINT16				format;
   Offset32To<VarRegionList>		regions;
-  LOffsetArrayOf<VarData>		dataSets;
+  Array16OfOffset32To<VarData>		dataSets;
   public:
   DEFINE_SIZE_ARRAY (8, dataSets);
 };
@@ -2975,7 +2975,7 @@ struct ConditionSet
   }
 
   protected:
-  LOffsetArrayOf<Condition>	conditions;
+  Array16OfOffset32To<Condition>	conditions;
   public:
   DEFINE_SIZE_ARRAY (2, conditions);
 };
