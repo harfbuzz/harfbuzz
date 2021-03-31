@@ -392,7 +392,7 @@ struct Record
 };
 
 template <typename Type>
-struct RecordArrayOf : SortedArrayOf<Record<Type>>
+struct RecordArrayOf : SortedArray16Of<Record<Type>>
 {
   const Offset16To<Type>& get_offset (unsigned int i) const
   { return (*this)[i].offset; }
@@ -1447,7 +1447,7 @@ struct CoverageFormat1
 
   protected:
   HBUINT16	coverageFormat;	/* Format identifier--format = 1 */
-  SortedArrayOf<HBGlyphID>
+  SortedArray16Of<HBGlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
   public:
   DEFINE_SIZE_ARRAY (4, glyphArray);
@@ -1623,7 +1623,7 @@ struct CoverageFormat2
 
   protected:
   HBUINT16	coverageFormat;	/* Format identifier--format = 2 */
-  SortedArrayOf<RangeRecord>
+  SortedArray16Of<RangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID. rangeCount entries
 				 * long */
@@ -2274,7 +2274,7 @@ struct ClassDefFormat2
 
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 2 */
-  SortedArrayOf<RangeRecord>
+  SortedArray16Of<RangeRecord>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID */
   public:

@@ -672,7 +672,7 @@ struct CmapSubtableLongSegmented
   HBUINT16	reserved;	/* Reserved; set to 0. */
   HBUINT32	length;		/* Byte length of this subtable. */
   HBUINT32	language;	/* Ignore. */
-  SortedArrayOf<CmapSubtableLongGroup, HBUINT32>
+  SortedArray32Of<CmapSubtableLongGroup>
 		groups;		/* Groupings. */
   public:
   DEFINE_SIZE_ARRAY (16, groups);
@@ -786,7 +786,7 @@ struct UnicodeValueRange
   DEFINE_SIZE_STATIC (4);
 };
 
-struct DefaultUVS : SortedArrayOf<UnicodeValueRange, HBUINT32>
+struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
 {
   void collect_unicodes (hb_set_t *out) const
   {
@@ -880,7 +880,7 @@ struct UVSMapping
   DEFINE_SIZE_STATIC (5);
 };
 
-struct NonDefaultUVS : SortedArrayOf<UVSMapping, HBUINT32>
+struct NonDefaultUVS : SortedArray32Of<UVSMapping>
 {
   void collect_unicodes (hb_set_t *out) const
   {
@@ -1186,7 +1186,7 @@ struct CmapSubtableFormat14
   protected:
   HBUINT16	format;		/* Format number is set to 14. */
   HBUINT32	length;		/* Byte length of this subtable. */
-  SortedArrayOf<VariationSelectorRecord, HBUINT32>
+  SortedArray32Of<VariationSelectorRecord>
 		record;		/* Variation selector records; sorted
 				 * in increasing order of `varSelector'. */
   public:
@@ -1705,7 +1705,7 @@ struct cmap
 
   protected:
   HBUINT16	version;	/* Table version number (0). */
-  SortedArrayOf<EncodingRecord>
+  SortedArray16Of<EncodingRecord>
 		encodingRecord;	/* Encoding tables. */
   public:
   DEFINE_SIZE_ARRAY (4, encodingRecord);

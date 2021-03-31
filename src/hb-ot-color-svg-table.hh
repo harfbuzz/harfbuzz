@@ -107,7 +107,7 @@ struct SVG
 
   protected:
   HBUINT16	version;	/* Table version (starting at 0). */
-  Offset32To<SortedArrayOf<SVGDocumentIndexEntry>>
+  Offset32To<SortedArray16Of<SVGDocumentIndexEntry>>
 		svgDocEntries;	/* Offset (relative to the start of the SVG table) to the
 				 * SVG Documents Index. Must be non-zero. */
 				/* Array of SVG Document Index Entries. */

@@ -220,7 +220,7 @@ struct MinMax
 		maxCoord;	/* Offset to BaseCoord table that defines
 				 * maximum extent value, from the beginning
 				 * of MinMax table (may be NULL) */
-  SortedArrayOf<FeatMinMaxRecord>
+  SortedArray16Of<FeatMinMaxRecord>
 		featMinMaxRecords;
 				/* Array of FeatMinMaxRecords, in alphabetical
 				 * order by featureTableTag */
@@ -311,7 +311,7 @@ struct BaseScript
   Offset16To<MinMax>
 		defaultMinMax;	/* Offset to MinMax table, from beginning of
 				 * BaseScript table (may be NULL) */
-  SortedArrayOf<BaseLangSysRecord>
+  SortedArray16Of<BaseLangSysRecord>
 		baseLangSysRecords;
 				/* Number of BaseLangSysRecords
 				 * defined — may be zero (0) */
@@ -364,7 +364,7 @@ struct BaseScriptList
   }
 
   protected:
-  SortedArrayOf<BaseScriptRecord>
+  SortedArray16Of<BaseScriptRecord>
 			baseScriptRecords;
 
   public:
@@ -426,7 +426,7 @@ struct Axis
   }
 
   protected:
-  Offset16To<SortedArrayOf<Tag>>
+  Offset16To<SortedArray16Of<Tag>>
 		baseTagList;	/* Offset to BaseTagList table, from beginning
 				 * of Axis table (may be NULL)
 				 * Array of 4-byte baseline identification tags — must

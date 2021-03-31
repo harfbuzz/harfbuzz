@@ -891,7 +891,7 @@ struct ArrayOfM1
 };
 
 /* An array with sorted elements.  Supports binary searching. */
-template <typename Type, typename LenType=HBUINT16>
+template <typename Type, typename LenType>
 struct SortedArrayOf : ArrayOf<Type, LenType>
 {
   hb_sorted_array_t<      Type> as_array ()       { return hb_sorted_array (this->arrayZ, this->len); }
@@ -941,6 +941,9 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
 	      unsigned int to_store = (unsigned int) -1) const
   { return as_array ().bfind (x, i, not_found, to_store); }
 };
+
+template <typename Type> using SortedArray16Of = SortedArrayOf<Type, HBUINT16>;
+template <typename Type> using SortedArray32Of = SortedArrayOf<Type, HBUINT32>;
 
 /*
  * Binary-search arrays

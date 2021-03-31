@@ -136,7 +136,7 @@ struct JstfLangSys : List16OfOffset16To<JstfPriority>
  * ExtenderGlyphs -- Extender Glyph Table
  */
 
-typedef SortedArrayOf<HBGlyphID> ExtenderGlyphs;
+typedef SortedArray16Of<HBGlyphID> ExtenderGlyphs;
 
 
 /*
