@@ -196,6 +196,12 @@ DECLARE_NULL_NAMESPACE_BYTES (OT, Index);
 
 typedef Index NameID;
 
+struct VarIdx : HBUINT32 {
+  static constexpr unsigned NO_VARIATION = 0xFFFFFFFFu;
+  VarIdx& operator = (uint32_t i) { HBUINT32::operator= (i); return *this; }
+};
+DECLARE_NULL_NAMESPACE_BYTES (OT, VarIdx);
+
 /* Offset, Null offset = 0 */
 template <typename Type, bool has_null=true>
 struct Offset : Type
