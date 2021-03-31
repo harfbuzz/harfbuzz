@@ -3745,7 +3745,7 @@ struct GSUBGPOS
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    typedef OffsetListOf<TLookup> TLookupList;
+    typedef List16OfOffset16To<TLookup> TLookupList;
     if (unlikely (!(version.sanitize (c) &&
 		    likely (version.major == 1) &&
 		    scriptList.sanitize (c, this) &&

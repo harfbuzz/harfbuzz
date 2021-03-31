@@ -1343,10 +1343,10 @@ struct Lookup
   DEFINE_SIZE_ARRAY (6, subTable);
 };
 
-typedef OffsetListOf<Lookup> LookupList;
+typedef List16OfOffset16To<Lookup> LookupList;
 
 template <typename TLookup>
-struct LookupOffsetList : OffsetListOf<TLookup>
+struct LookupOffsetList : List16OfOffset16To<TLookup>
 {
   bool subset (hb_subset_context_t        *c,
 	       hb_subset_layout_context_t *l) const
@@ -1367,7 +1367,7 @@ struct LookupOffsetList : OffsetListOf<TLookup>
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (OffsetListOf<TLookup>::sanitize (c, this));
+    return_trace (List16OfOffset16To<TLookup>::sanitize (c, this));
   }
 };
 
@@ -2786,7 +2786,7 @@ struct VariationStore
 		  .serialize (c, &(src+src->regions), region_map))) return_trace (false);
 
     /* TODO: The following code could be simplified when
-     * OffsetListOf::subset () can take a custom param to be passed to VarData::serialize ()
+     * List16OfOffset16To::subset () can take a custom param to be passed to VarData::serialize ()
      */
     dataSets.len = set_count;
     unsigned int set_index = 0;

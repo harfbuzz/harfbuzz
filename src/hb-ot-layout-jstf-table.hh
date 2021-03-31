@@ -45,7 +45,7 @@ typedef IndexArray JstfModList;
  * JstfMax -- Justification Maximum Table
  */
 
-typedef OffsetListOf<PosLookup> JstfMax;
+typedef List16OfOffset16To<PosLookup> JstfMax;
 
 
 /*
@@ -121,13 +121,13 @@ struct JstfPriority
  * JstfLangSys -- Justification Language System Table
  */
 
-struct JstfLangSys : OffsetListOf<JstfPriority>
+struct JstfLangSys : List16OfOffset16To<JstfPriority>
 {
   bool sanitize (hb_sanitize_context_t *c,
 		 const Record_sanitize_closure_t * = nullptr) const
   {
     TRACE_SANITIZE (this);
-    return_trace (OffsetListOf<JstfPriority>::sanitize (c));
+    return_trace (List16OfOffset16To<JstfPriority>::sanitize (c));
   }
 };
 

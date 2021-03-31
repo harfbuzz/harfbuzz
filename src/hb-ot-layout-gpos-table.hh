@@ -2049,7 +2049,7 @@ typedef AnchorMatrix LigatureAttach;	/* component-major--
 					 * ordered by class--zero-based. */
 
 /* Array of LigatureAttach tables ordered by LigatureCoverage Index */
-struct LigatureArray : OffsetListOf<LigatureAttach>
+struct LigatureArray : List16OfOffset16To<LigatureAttach>
 {
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>

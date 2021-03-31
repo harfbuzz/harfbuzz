@@ -528,7 +528,7 @@ using UnsizedArray16OfOffsetTo = UnsizedArrayOf<OffsetTo<Type, OffsetType, has_n
 
 /* Unsized array of offsets relative to the beginning of the array itself. */
 template <typename Type, typename OffsetType, bool has_null=true>
-struct UnsizedOffsetListOf : UnsizedArray16OfOffsetTo<Type, OffsetType, has_null>
+struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_null>
 {
   const Type& operator [] (int i_) const
   {
@@ -721,7 +721,7 @@ template <typename Type> using Array32OfOffset32To = ArrayOf<OffsetTo<Type, HBUI
 
 /* Array of offsets relative to the beginning of the array itself. */
 template <typename Type>
-struct OffsetListOf : Array16OfOffset16To<Type>
+struct List16OfOffset16To : Array16OfOffset16To<Type>
 {
   const Type& operator [] (int i_) const
   {
@@ -739,7 +739,7 @@ struct OffsetListOf : Array16OfOffset16To<Type>
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct OffsetListOf<Type> *out = c->serializer->embed (*this);
+    struct List16OfOffset16To<Type> *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
