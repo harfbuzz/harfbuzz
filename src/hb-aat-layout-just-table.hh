@@ -79,7 +79,7 @@ struct DecompositionAction
 				 * to decompose before more frequent ones. The ligatures
 				 * on the line of text will decompose in increasing
 				 * value of this field. */
-  ArrayOf<HBUINT16>
+  Array16Of<HBUINT16>
 		decomposedglyphs;
 				/* Number of 16-bit glyph indexes that follow;
 				 * the ligature will be decomposed into these glyphs.

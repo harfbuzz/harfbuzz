@@ -648,7 +648,7 @@ struct MarkRecord
   DEFINE_SIZE_STATIC (4);
 };
 
-struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage order */
+struct MarkArray : Array16Of<MarkRecord>	/* Array of MarkRecords--in Coverage order */
 {
   bool apply (hb_ot_apply_context_t *c,
 	      unsigned int mark_index, unsigned int glyph_index,
@@ -657,7 +657,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    const MarkRecord &record = ArrayOf<MarkRecord>::operator[](mark_index);
+    const MarkRecord &record = Array16Of<MarkRecord>::operator[](mark_index);
     unsigned int mark_class = record.klass;
 
     const Anchor& mark_anchor = this + record.markAnchor;
@@ -702,7 +702,7 @@ struct MarkArray : ArrayOf<MarkRecord>	/* Array of MarkRecords--in Coverage orde
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (ArrayOf<MarkRecord>::sanitize (c, this));
+    return_trace (Array16Of<MarkRecord>::sanitize (c, this));
   }
 };
 
@@ -1780,7 +1780,7 @@ struct CursivePosFormat1
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of subtable */
-  ArrayOf<EntryExitRecord>
+  Array16Of<EntryExitRecord>
 		entryExitRecord;	/* Array of EntryExit records--in
 					 * Coverage Index order */
   public:

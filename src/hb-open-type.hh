@@ -580,7 +580,7 @@ struct SortedUnsizedArrayOf : UnsizedArrayOf<Type>
 
 
 /* An array with a number of elements. */
-template <typename Type, typename LenType=HBUINT16>
+template <typename Type, typename LenType>
 struct ArrayOf
 {
   typedef Type item_t;
@@ -710,8 +710,8 @@ struct ArrayOf
   public:
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
-template <typename Type>
-using Array32Of = ArrayOf<Type, HBUINT32>;
+template <typename Type> using Array16Of = ArrayOf<Type, HBUINT16>;
+template <typename Type> using Array32Of = ArrayOf<Type, HBUINT32>;
 using PString = ArrayOf<HBUINT8, HBUINT8>;
 
 /* Array of Offset's */

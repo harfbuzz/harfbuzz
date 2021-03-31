@@ -245,7 +245,7 @@ struct SingleSubstFormat2
   Offset16To<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of Substitution table */
-  ArrayOf<HBGlyphID>
+  Array16Of<HBGlyphID>
 		substitute;		/* Array of substitute
 					 * GlyphIDs--ordered by Coverage Index */
   public:
@@ -386,7 +386,7 @@ struct Sequence
   }
 
   protected:
-  ArrayOf<HBGlyphID>
+  Array16Of<HBGlyphID>
 		substitute;		/* String of GlyphIDs to substitute */
   public:
   DEFINE_SIZE_ARRAY (2, substitute);
@@ -616,7 +616,7 @@ struct AlternateSet
   }
 
   protected:
-  ArrayOf<HBGlyphID>
+  Array16Of<HBGlyphID>
 		alternates;		/* Array of alternate GlyphIDs--in
 					 * arbitrary order */
   public:
@@ -1203,7 +1203,7 @@ struct ReverseChainSingleSubstFormat1
     if (!intersects (c->glyphs)) return;
 
     const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
-    const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
+    const Array16Of<HBGlyphID> &substitute = StructAfter<Array16Of<HBGlyphID>> (lookahead);
 
     + hb_zip (this+coverage, substitute)
     | hb_filter (c->parent_active_glyphs (), hb_first)
@@ -1229,7 +1229,7 @@ struct ReverseChainSingleSubstFormat1
     for (unsigned int i = 0; i < count; i++)
       if (unlikely (!(this+lookahead[i]).collect_coverage (c->after))) return;
 
-    const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
+    const Array16Of<HBGlyphID> &substitute = StructAfter<Array16Of<HBGlyphID>> (lookahead);
     count = substitute.len;
     c->output->add_array (substitute.arrayZ, substitute.len);
   }
@@ -1249,7 +1249,7 @@ struct ReverseChainSingleSubstFormat1
     if (likely (index == NOT_COVERED)) return_trace (false);
 
     const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
-    const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
+    const Array16Of<HBGlyphID> &substitute = StructAfter<Array16Of<HBGlyphID>> (lookahead);
 
     if (unlikely (index >= substitute.len)) return_trace (false);
 
@@ -1312,7 +1312,7 @@ struct ReverseChainSingleSubstFormat1
     if (!serialize_coverage_offset_array (c, backtrack_iter)) return_trace (false);
     if (!serialize_coverage_offset_array (c, lookahead_iter)) return_trace (false);
 
-    auto *substitute_out = c->serializer->start_embed<ArrayOf<HBGlyphID>> ();
+    auto *substitute_out = c->serializer->start_embed<Array16Of<HBGlyphID>> ();
     auto substitutes =
     + coverage_subst_iter
     | hb_map (hb_second)
@@ -1337,7 +1337,7 @@ struct ReverseChainSingleSubstFormat1
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
-    const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
+    const Array16Of<HBGlyphID> &substitute = StructAfter<Array16Of<HBGlyphID>> (lookahead);
 
     auto it =
     + hb_zip (this+coverage, substitute)
@@ -1358,7 +1358,7 @@ struct ReverseChainSingleSubstFormat1
     const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
     if (!lookahead.sanitize (c, this))
       return_trace (false);
-    const ArrayOf<HBGlyphID> &substitute = StructAfter<ArrayOf<HBGlyphID>> (lookahead);
+    const Array16Of<HBGlyphID> &substitute = StructAfter<Array16Of<HBGlyphID>> (lookahead);
     return_trace (substitute.sanitize (c));
   }
 
@@ -1375,7 +1375,7 @@ struct ReverseChainSingleSubstFormat1
 		lookaheadX;		/* Array of coverage tables
 					 * in lookahead sequence, in glyph
 					 * sequence order */
-  ArrayOf<HBGlyphID>
+  Array16Of<HBGlyphID>
 		substituteX;		/* Array of substitute
 					 * GlyphIDs--ordered by Coverage Index */
   public:

@@ -659,7 +659,7 @@ struct ClassTable
   }
   protected:
   HBGlyphID		firstGlyph;	/* First glyph index included in the trimmed array. */
-  ArrayOf<HBUCHAR>	classArray;	/* The class codes (indexed by glyph index minus
+  Array16Of<HBUCHAR>	classArray;	/* The class codes (indexed by glyph index minus
 					 * firstGlyph). */
   public:
   DEFINE_SIZE_ARRAY (4, classArray);

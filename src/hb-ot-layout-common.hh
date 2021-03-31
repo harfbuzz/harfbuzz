@@ -517,7 +517,7 @@ struct RangeRecord
 DECLARE_NULL_NAMESPACE_BYTES (OT, RangeRecord);
 
 
-struct IndexArray : ArrayOf<Index>
+struct IndexArray : Array16Of<Index>
 {
   bool intersects (const hb_map_t *indexes) const
   { return hb_any (*this, indexes); }
@@ -1011,7 +1011,7 @@ struct FeatureParamsCharacterVariants
 					 * user-interface labels for the
 					 * feature parameters. (Must be zero
 					 * if numParameters is zero.) */
-  ArrayOf<HBUINT24>
+  Array16Of<HBUINT24>
 		characters;		/* Array of the Unicode Scalar Value
 					 * of the characters for which this
 					 * feature provides glyph variants.
@@ -1334,7 +1334,7 @@ struct Lookup
   private:
   HBUINT16	lookupType;		/* Different enumerations for GSUB and GPOS */
   HBUINT16	lookupFlag;		/* Lookup qualifiers */
-  ArrayOf<Offset16>
+  Array16Of<Offset16>
 		subTable;		/* Array of SubTables */
 /*HBUINT16	markFilteringSetX[HB_VAR_ARRAY];*//* Index (base 0) into GDEF mark glyph sets
 					 * structure. This field is only present if bit
@@ -2044,7 +2044,7 @@ struct ClassDefFormat1
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 1 */
   HBGlyphID	startGlyph;	/* First GlyphID of the classValueArray */
-  ArrayOf<HBUINT16>
+  Array16Of<HBUINT16>
 		classValue;	/* Array of Class Values--one per GlyphID */
   public:
   DEFINE_SIZE_ARRAY (6, classValue);
@@ -2718,7 +2718,7 @@ struct VarData
   protected:
   HBUINT16		itemCount;
   HBUINT16		shortCount;
-  ArrayOf<HBUINT16>	regionIndices;
+  Array16Of<HBUINT16>	regionIndices;
 /*UnsizedArrayOf<HBUINT8>bytesX;*/
   public:
   DEFINE_SIZE_ARRAY (6, regionIndices);
@@ -3078,7 +3078,7 @@ struct FeatureTableSubstitution
 
   protected:
   FixedVersion<>	version;	/* Version--0x00010000u */
-  ArrayOf<FeatureTableSubstitutionRecord>
+  Array16Of<FeatureTableSubstitutionRecord>
 			substitutions;
   public:
   DEFINE_SIZE_ARRAY (6, substitutions);

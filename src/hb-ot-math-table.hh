@@ -185,7 +185,7 @@ struct MathItalicsCorrectionInfo
 						 * from the beginning of
 						 * MathItalicsCorrectionInfo
 						 * table. */
-  ArrayOf<MathValueRecord> italicsCorrection;	/* Array of MathValueRecords
+  Array16Of<MathValueRecord> italicsCorrection;	/* Array of MathValueRecords
 						 * defining italics correction
 						 * values for each
 						 * covered glyph. */
@@ -218,7 +218,7 @@ struct MathTopAccentAttachment
 						 * from the beginning of
 						 * MathTopAccentAttachment
 						 * table. */
-  ArrayOf<MathValueRecord> topAccentAttachment; /* Array of MathValueRecords
+  Array16Of<MathValueRecord> topAccentAttachment; /* Array of MathValueRecords
 						 * defining top accent
 						 * attachment points for each
 						 * covered glyph. */
@@ -351,7 +351,7 @@ struct MathKernInfo
 				/* Offset to Coverage table -
 				 * from the beginning of the
 				 * MathKernInfo table. */
-  ArrayOf<MathKernInfoRecord>
+  Array16Of<MathKernInfoRecord>
 		mathKernInfoRecords;
 				/* Array of MathKernInfoRecords,
 				 * per-glyph information for
@@ -532,7 +532,7 @@ struct MathGlyphAssembly
 				/* Italics correction of this
 				 * MathGlyphAssembly. Should not
 				 * depend on the assembly size. */
-  ArrayOf<MathGlyphPartRecord>
+  Array16Of<MathGlyphPartRecord>
 		partRecords;	/* Array of part records, from
 				 * left to right and bottom to
 				 * top. */
@@ -575,7 +575,7 @@ struct MathGlyphConstruction
   Offset16To<MathGlyphAssembly>	  glyphAssembly;
 
   /* MathGlyphVariantRecords for alternative variants of the glyphs. */
-  ArrayOf<MathGlyphVariantRecord> mathGlyphVariantRecord;
+  Array16Of<MathGlyphVariantRecord> mathGlyphVariantRecord;
 
   public:
   DEFINE_SIZE_ARRAY (4, mathGlyphVariantRecord);

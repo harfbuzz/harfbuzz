@@ -42,7 +42,7 @@ namespace OT {
  */
 
 /* Array of contour point indices--in increasing numerical order */
-struct AttachPoint : ArrayOf<HBUINT16>
+struct AttachPoint : Array16Of<HBUINT16>
 {
   bool subset (hb_subset_context_t *c) const
   {
@@ -460,7 +460,7 @@ struct MarkGlyphSetsFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  ArrayOf<Offset32To<Coverage>>
+  Array16Of<Offset32To<Coverage>>
 		coverage;		/* Array of long offsets to mark set
 					 * coverage tables */
   public:
