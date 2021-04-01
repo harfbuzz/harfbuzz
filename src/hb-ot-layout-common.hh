@@ -3060,6 +3060,15 @@ struct FeatureTableSubstitution
       record.closure_features (this, lookup_indexes, feature_indexes);
   }
 
+  bool intersects_features (const hb_map_t *feature_index_map) const
+  {
+    for (const FeatureTableSubstitutionRecord& record : substitutions)
+    {
+      if (feature_index_map->has (record.featureIndex)) return true;
+    }
+    return false;
+  }
+
   bool subset (hb_subset_context_t        *c,
 	       hb_subset_layout_context_t *l) const
   {
@@ -3111,15 +3120,21 @@ struct FeatureVariationRecord
     (base+substitutions).closure_features (lookup_indexes, feature_indexes);
   }
 
+  bool intersects_features (const void *base, const hb_map_t *feature_index_map) const
+  {
+    return (base+substitutions).intersects_features (feature_index_map);
+  }
+
   bool subset (hb_subset_layout_context_t *c, const void *base) const
   {
     TRACE_SUBSET (this);
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    if (!out->conditions.serialize_subset (c->subset_context, conditions, base))
-      return_trace (false);
-    return_trace (out->substitutions.serialize_subset (c->subset_context, substitutions, base, c));
+    out->conditions.serialize_subset (c->subset_context, conditions, base);
+    out->substitutions.serialize_subset (c->subset_context, substitutions, base, c);
+
+    return_trace (true);
   }
 
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
@@ -3196,9 +3211,18 @@ struct FeatureVariations
     out->version.major = version.major;
     out->version.minor = version.minor;
 
-    + varRecords.iter ()
-    | hb_apply (subset_record_array (l, &(out->varRecords), this))
-    ;
+    int keep_up_to = -1;
+    for (int i = varRecords.len - 1; i >= 0; i--) {
+      if (varRecords[i].intersects_features (this, l->feature_index_map)) {
+        keep_up_to = i;
+        break;
+      }
+    }
+
+    unsigned count = (unsigned) (keep_up_to + 1);
+    for (unsigned i = 0; i < count; i++) {
+      subset_record_array (l, &(out->varRecords), this) (varRecords[i]);
+    }
     return_trace (bool (out->varRecords));
   }
 
