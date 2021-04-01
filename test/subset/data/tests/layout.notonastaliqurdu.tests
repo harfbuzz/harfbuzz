@@ -2,7 +2,7 @@ FONTS:
 NotoNastaliqUrdu-Bold.ttf
 
 PROFILES:
-keep-layout-retain-gids.txt
+retain-gids.txt
 
 SUBSETS:
 الح
