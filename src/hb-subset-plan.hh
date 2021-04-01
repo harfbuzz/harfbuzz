@@ -87,6 +87,10 @@ struct hb_subset_plan_t
   hb_map_t *gsub_features;
   hb_map_t *gpos_features;
 
+  //active layers/palettes we'd like to retain
+  hb_map_t *colrv1_layers;
+  hb_map_t *colrv1_palettes;
+
   //The set of layout item variation store delta set indices to be retained
   hb_set_t *layout_variation_indices;
   //Old -> New layout item variation store delta set index mapping

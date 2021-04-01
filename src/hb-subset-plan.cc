@@ -35,6 +35,7 @@
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-cff1-table.hh"
 #include "hb-ot-color-colr-table.hh"
+#include "hb-ot-color-colrv1-closure.hh"
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-stat-table.hh"
 
@@ -277,6 +278,13 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   }
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
+  
+  hb_set_t layer_indices, palette_indices;
+  colr.closure_forV1 (plan->_glyphset, &layer_indices, &palette_indices);
+  _remap_indexes (&layer_indices, plan->colrv1_layers);
+  _remap_indexes (&palette_indices, plan->colrv1_palettes);
+  colr.fini ();
+  _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
 
 #ifndef HB_NO_VAR
   if (close_over_gdef)
@@ -388,6 +396,8 @@ hb_subset_plan_create (hb_face_t         *face,
 
   plan->gsub_features = hb_map_create ();
   plan->gpos_features = hb_map_create ();
+  plan->colrv1_layers = hb_map_create ();
+  plan->colrv1_palettes = hb_map_create ();
   plan->layout_variation_indices = hb_set_create ();
   plan->layout_variation_idx_map = hb_map_create ();
 
@@ -438,6 +448,8 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_map_destroy (plan->gpos_lookups);
   hb_map_destroy (plan->gsub_features);
   hb_map_destroy (plan->gpos_features);
+  hb_map_destroy (plan->colrv1_layers);
+  hb_map_destroy (plan->colrv1_palettes);
   hb_set_destroy (plan->layout_variation_indices);
   hb_map_destroy (plan->layout_variation_idx_map);
 

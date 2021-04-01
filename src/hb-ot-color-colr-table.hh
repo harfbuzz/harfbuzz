@@ -40,6 +40,63 @@
 
 namespace OT {
 
+struct COLR;
+struct hb_colrv1_closure_context_t :
+       hb_dispatch_context_t<hb_colrv1_closure_context_t>
+{
+  template <typename T>
+  return_t dispatch (const T &obj)
+  {
+    if (paint_visited (&obj))
+      return hb_empty_t ();
+
+    obj.closurev1 (this);
+    return hb_empty_t ();
+  }
+  static return_t default_return_value () { return hb_empty_t (); }
+
+  bool paint_visited (const void *paint)
+  {
+    hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) paint - (uintptr_t) base);
+     if (visited_paint->has (delta))
+      return true;
+
+    visited_paint->add (delta);
+    return false;
+  }
+
+  const COLR* get_colr_table () const
+  { return reinterpret_cast<const COLR *> (base); }
+
+  void add_glyph (unsigned glyph_id)
+  { glyphs->add (glyph_id); }
+
+  void add_layer_indices (unsigned first_layer_index, unsigned num_of_layers)
+  { layer_indices->add_range (first_layer_index, first_layer_index + num_of_layers - 1); }
+
+  void add_palette_index (unsigned palette_index)
+  { palette_indices->add (palette_index); }
+
+  public:
+  const void *base;
+  hb_set_t visited_paint[1];
+  hb_set_t *glyphs;
+  hb_set_t *layer_indices;
+  hb_set_t *palette_indices;
+
+  hb_colrv1_closure_context_t (const void *base_,
+                               hb_set_t *glyphs_,
+                               hb_set_t *layer_indices_,
+                               hb_set_t *palette_indices_) :
+                          base (base_),
+                          glyphs (glyphs_),
+                          layer_indices (layer_indices_),
+                          palette_indices (palette_indices_)
+  {}
+
+  ~hb_colrv1_closure_context_t () { hb_set_clear (visited_paint); }
+};
+
 struct LayerRecord
 {
   operator hb_ot_color_layer_t () const { return {glyphId, colorIdx}; }
@@ -249,6 +306,8 @@ struct Affine2x3
 
 struct PaintColrLayers
 {
+  void closurev1 (hb_colrv1_closure_context_t* c) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -265,6 +324,9 @@ struct PaintColrLayers
 template <template<typename> class Var>
 struct PaintSolid
 {
+  void closurev1 (hb_colrv1_closure_context_t* c) const
+  { c->add_palette_index (color.paletteIndex); }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -280,6 +342,12 @@ struct PaintSolid
 template <template<typename> class Var>
 struct PaintLinearGradient
 {
+  void closurev1 (hb_colrv1_closure_context_t* c) const
+  {
+    for (const auto &stop : (this+colorLine).stops.iter ())
+      c->add_palette_index (stop.color.paletteIndex);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -302,6 +370,12 @@ struct PaintLinearGradient
 template <template<typename> class Var>
 struct PaintRadialGradient
 {
+  void closurev1 (hb_colrv1_closure_context_t* c) const
+  {
+    for (const auto &stop : (this+colorLine).stops.iter ())
+      c->add_palette_index (stop.color.paletteIndex);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -324,6 +398,12 @@ struct PaintRadialGradient
 template <template<typename> class Var>
 struct PaintSweepGradient
 {
+  void closurev1 (hb_colrv1_closure_context_t* c) const
+  {
+    for (const auto &stop : (this+colorLine).stops.iter ())
+      c->add_palette_index (stop.color.paletteIndex);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -345,6 +425,8 @@ struct Paint;
 // Paint a non-COLR glyph, filled as indicated by paint.
 struct PaintGlyph
 {
+  void closurev1 (hb_colrv1_closure_context_t* c) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -360,6 +442,8 @@ struct PaintGlyph
 
 struct PaintColrGlyph
 {
+  void closurev1 (hb_colrv1_closure_context_t* c) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -375,6 +459,8 @@ struct PaintColrGlyph
 template <template<typename> class Var>
 struct PaintTransform
 {
+  HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -391,6 +477,8 @@ struct PaintTransform
 template <template<typename> class Var>
 struct PaintTranslate
 {
+  HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -408,6 +496,8 @@ struct PaintTranslate
 template <template<typename> class Var>
 struct PaintRotate
 {
+  HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -426,6 +516,8 @@ struct PaintRotate
 template <template<typename> class Var>
 struct PaintSkew
 {
+  HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -444,6 +536,8 @@ struct PaintSkew
 
 struct PaintComposite
 {
+  void closurev1 (hb_colrv1_closure_context_t* c) const;
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -592,6 +686,11 @@ struct COLR
 			 hb_set_t *related_ids /* OUT */) const
     { colr->closure_glyphs (glyph, related_ids); }
 
+    void closure_forV1 (hb_set_t *glyphset,
+                        hb_set_t *layer_indices,
+                        hb_set_t *palette_indices) const
+    { colr->closure_forV1 (glyphset, layer_indices, palette_indices); }
+
     private:
     hb_blob_ptr_t<COLR> colr;
   };
@@ -607,6 +706,33 @@ struct COLR
     if (!glyph_layers.length) return;
     related_ids->add_array (&glyph_layers[0].glyphId, glyph_layers.length, LayerRecord::min_size);
   }
+
+  void closure_forV1 (hb_set_t *glyphset,
+                      hb_set_t *layer_indices,
+                      hb_set_t *palette_indices) const
+  {
+    if (version != 1) return;
+    hb_set_t visited_glyphs;
+
+    hb_colrv1_closure_context_t c (this, &visited_glyphs, layer_indices, palette_indices);
+    const BaseGlyphV1List &baseglyphV1_records = this+baseGlyphsV1List;
+
+    for (const BaseGlyphV1Record &baseglyphV1record: baseglyphV1_records.iter ())
+    {
+      unsigned gid = baseglyphV1record.glyphId;
+      if (!glyphset->has (gid)) continue;
+
+      const Paint &paint = &baseglyphV1_records+baseglyphV1record.paint;
+      paint.dispatch (&c);
+    }
+    hb_set_union (glyphset, &visited_glyphs);
+  }
+
+  const LayerV1List& get_layerV1List () const
+  { return (this+layersV1); }
+
+  const BaseGlyphV1List& get_baseglyphV1List () const
+  { return (this+baseGlyphsV1List); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -658,6 +784,14 @@ struct COLR
     if ((unsigned int) gid == 0) // Ignore notdef.
       return nullptr;
     const BaseGlyphRecord* record = &(this+baseGlyphsZ).bsearch (numBaseGlyphs, (unsigned int) gid);
+    if ((record && (hb_codepoint_t) record->glyphId != gid))
+      record = nullptr;
+    return record;
+  }
+
+  const BaseGlyphV1Record* get_base_glyphV1_record (hb_codepoint_t gid) const
+  {
+    const BaseGlyphV1Record* record = &(this+baseGlyphsV1List).bsearch ((unsigned) gid);
     if ((record && (hb_codepoint_t) record->glyphId != gid))
       record = nullptr;
     return record;
