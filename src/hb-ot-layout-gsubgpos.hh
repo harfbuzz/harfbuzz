@@ -3728,6 +3728,13 @@ struct GSUBGPOS
     for (unsigned i : feature_indices->iter())
     {
       const Feature& f = get_feature (i);
+      hb_tag_t tag =  get_feature_tag (i);
+      if (tag == HB_TAG ('p', 'r', 'e', 'f'))
+        // Note: Never ever drop feature 'pref', even if it's empty.
+        // HarfBuzz chooses shaper for Khmer based on presence of this
+        // feature.	See thread at:
+	// http://lists.freedesktop.org/archives/harfbuzz/2012-November/002660.html
+        continue;
 
       if (f.featureParams.is_null ()
 	  && !f.intersects_lookup_indexes (lookup_indices)
