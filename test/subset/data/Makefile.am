@@ -26,6 +26,7 @@ EXTRA_DIST += \
 	expected/layout.gsub5 \
 	expected/layout.gsub6 \
 	expected/layout.gsub8 \
+	expected/layout.khmer \
 	expected/layout.gdef \
 	expected/layout.context \
 	expected/layout.gdef-varstore \
