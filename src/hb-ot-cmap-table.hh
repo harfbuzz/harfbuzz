@@ -884,19 +884,17 @@ struct NonDefaultUVS : SortedArray32Of<UVSMapping>
 {
   void collect_unicodes (hb_set_t *out) const
   {
-    unsigned int count = len;
-    for (unsigned int i = 0; i < count; i++)
-      out->add (arrayZ[i].unicodeValue);
+    for (const auto& a : as_array ())
+      out->add (a.unicodeValue);
   }
 
   void collect_mapping (hb_set_t *unicodes, /* OUT */
 			hb_map_t *mapping /* OUT */) const
   {
-    unsigned count = len;
-    for (unsigned i = 0; i < count; i++)
+    for (const auto& a : as_array ())
     {
-      hb_codepoint_t unicode = arrayZ[i].unicodeValue;
-      hb_codepoint_t glyphid = arrayZ[i].glyphID;
+      hb_codepoint_t unicode = a.unicodeValue;
+      hb_codepoint_t glyphid = a.glyphID;
       unicodes->add (unicode);
       mapping->set (unicode, glyphid);
     }
@@ -1062,9 +1060,8 @@ struct CmapSubtableFormat14
 
   void collect_variation_selectors (hb_set_t *out) const
   {
-    unsigned int count = record.len;
-    for (unsigned int i = 0; i < count; i++)
-      out->add (record.arrayZ[i].varSelector);
+    for (const auto& a : record.as_array ())
+      out->add (a.varSelector);
   }
   void collect_variation_unicodes (hb_codepoint_t variation_selector,
 				   hb_set_t *out) const

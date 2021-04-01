@@ -557,7 +557,7 @@ struct IndexArray : Array16Of<Index>
 
   void add_indexes_to (hb_set_t* output /* OUT */) const
   {
-    output->add_array (arrayZ, len);
+    output->add_array (as_array ());
   }
 };
 
@@ -1406,10 +1406,8 @@ struct CoverageFormat1
   bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
-    unsigned int count = glyphArray.len;
-    const HBGlyphID *arr = glyphArray.arrayZ;
-    for (unsigned int i = 0; i < count; i++)
-      if (glyphs->has (arr[i]))
+    for (const auto& g : glyphArray.as_array ())
+      if (glyphs->has (g))
 	return true;
     return false;
   }
@@ -1426,7 +1424,7 @@ struct CoverageFormat1
 
   template <typename set_t>
   bool collect_coverage (set_t *glyphs) const
-  { return glyphs->add_sorted_array (glyphArray.arrayZ, glyphArray.len); }
+  { return glyphs->add_sorted_array (glyphArray.as_array ()); }
 
   public:
   /* Older compilers need this to be public. */
@@ -1522,20 +1520,16 @@ struct CoverageFormat2
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
     /* TODO(iter) Rewrite as dagger. */
-    unsigned count = rangeRecord.len;
-    const RangeRecord *arr = rangeRecord.arrayZ;
-    for (unsigned i = 0; i < count; i++)
-      if (arr[i].intersects (glyphs))
+    for (const auto& range : rangeRecord.as_array ())
+      if (range.intersects (glyphs))
 	return true;
     return false;
   }
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
     /* TODO(iter) Rewrite as dagger. */
-    unsigned count = rangeRecord.len;
-    const RangeRecord *arr = rangeRecord.arrayZ;
-    for (unsigned i = 0; i < count; i++) {
-      const RangeRecord &range = arr[i];
+    for (const auto& range : rangeRecord.as_array ())
+    {
       if (range.value <= index &&
 	  index < (unsigned int) range.value + (range.last - range.first) &&
 	  range.intersects (glyphs))
@@ -1548,10 +1542,8 @@ struct CoverageFormat2
 
   void intersected_coverage_glyphs (const hb_set_t *glyphs, hb_set_t *intersect_glyphs) const
   {
-    unsigned count = rangeRecord.len;
-    for (unsigned i = 0; i < count; i++)
+    for (const auto& range : rangeRecord.as_array ())
     {
-      const RangeRecord &range = rangeRecord[i];
       if (!range.intersects (glyphs)) continue;
       for (hb_codepoint_t g = range.first; g <= range.last; g++)
         if (glyphs->has (g)) intersect_glyphs->add (g);
