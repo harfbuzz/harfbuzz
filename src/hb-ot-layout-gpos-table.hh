@@ -346,7 +346,9 @@ struct AnchorFormat1
   AnchorFormat1* copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
-    return_trace (c->embed<AnchorFormat1> (this));
+    AnchorFormat1* out = c->embed<AnchorFormat1> (this);
+    out->format = 1;
+    return_trace (out);
   }
 
   protected:
@@ -485,14 +487,20 @@ struct Anchor
     }
   }
 
-  Anchor* copy (hb_serialize_context_t *c, const hb_map_t *layout_variation_idx_map) const
+  bool subset (hb_subset_context_t *c) const
   {
-    TRACE_SERIALIZE (this);
+    TRACE_SUBSET (this);
+    if (c->plan->drop_hints)
+      // AnchorFormat 2 and 3 just containing extra hinting information, so
+      // if hints are being dropped convert to format 1.
+      return_trace (bool (reinterpret_cast<Anchor *> (u.format1.copy (c->serializer))));
+
     switch (u.format) {
-    case 1: return_trace (reinterpret_cast<Anchor *> (u.format1.copy (c)));
-    case 2: return_trace (reinterpret_cast<Anchor *> (u.format2.copy (c)));
-    case 3: return_trace (reinterpret_cast<Anchor *> (u.format3.copy (c, layout_variation_idx_map)));
-    default:return_trace (nullptr);
+    case 1: return_trace (bool (reinterpret_cast<Anchor *> (u.format1.copy (c->serializer))));
+    case 2: return_trace (bool (reinterpret_cast<Anchor *> (u.format2.copy (c->serializer))));
+    case 3: return_trace (bool (reinterpret_cast<Anchor *> (u.format3.copy (c->serializer,
+                                                                              c->plan->layout_variation_idx_map))));
+    default:return_trace (false);
     }
   }
 
@@ -541,48 +549,26 @@ struct AnchorMatrix
   }
 
   template <typename Iterator,
-	    hb_requires (hb_is_iterator (Iterator))>
-  bool serialize (hb_serialize_context_t *c,
-		  unsigned                num_rows,
-		  AnchorMatrix const     *offset_matrix,
-		  const hb_map_t         *layout_variation_idx_map,
-		  Iterator                index_iter)
-  {
-    TRACE_SERIALIZE (this);
-    if (!index_iter) return_trace (false);
-    if (unlikely (!c->extend_min ((*this))))  return_trace (false);
-
-    this->rows = num_rows;
-    for (const unsigned i : index_iter)
-    {
-      auto *offset = c->embed (offset_matrix->matrixZ[i]);
-      if (!offset) return_trace (false);
-      offset->serialize_copy (c, offset_matrix->matrixZ[i],
-			      offset_matrix, c->to_bias (this),
-			      hb_serialize_context_t::Head,
-			      layout_variation_idx_map);
-    }
-
-    return_trace (true);
-  }
-
+      hb_requires (hb_is_iterator (Iterator))>
   bool subset (hb_subset_context_t *c,
-	       unsigned cols,
-	       const hb_map_t *klass_mapping) const
+               unsigned             num_rows,
+               Iterator             index_iter) const
   {
     TRACE_SUBSET (this);
-    auto *out = c->serializer->start_embed (*this);
 
-    auto indexes =
-    + hb_range (rows * cols)
-    | hb_filter ([=] (unsigned index) { return klass_mapping->has (index % cols); })
-    ;
+    auto *out = c->serializer->start_embed (this);
 
-    out->serialize (c->serializer,
-                    (unsigned) rows,
-                    this,
-                    c->plan->layout_variation_idx_map,
-                    indexes);
+    if (!index_iter) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out)))  return_trace (false);
+
+    out->rows = num_rows;
+    for (const unsigned i : index_iter)
+    {
+      auto *offset = c->serializer->embed (matrixZ[i]);
+      if (!offset) return_trace (false);
+      offset->serialize_subset (c, matrixZ[i], this);
+    }
+
     return_trace (true);
   }
 
@@ -618,18 +604,16 @@ struct MarkRecord
     return_trace (c->check_struct (this) && markAnchor.sanitize (c, base));
   }
 
-  MarkRecord *copy (hb_serialize_context_t *c,
-		    const void             *src_base,
-		    unsigned                dst_bias,
-		    const hb_map_t         *klass_mapping,
-		    const hb_map_t         *layout_variation_idx_map) const
+  MarkRecord *subset (hb_subset_context_t    *c,
+                      const void             *src_base,
+                      const hb_map_t         *klass_mapping) const
   {
-    TRACE_SERIALIZE (this);
-    auto *out = c->embed (this);
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
     out->klass = klass_mapping->get (klass);
-    out->markAnchor.serialize_copy (c, markAnchor, src_base, dst_bias, hb_serialize_context_t::Head, layout_variation_idx_map);
+    out->markAnchor.serialize_subset (c, markAnchor, src_base);
     return_trace (out);
   }
 
@@ -684,18 +668,35 @@ struct MarkArray : Array16Of<MarkRecord>	/* Array of MarkRecords--in Coverage or
     return_trace (true);
   }
 
-  template<typename Iterator,
-	   hb_requires (hb_is_source_of (Iterator, MarkRecord))>
-  bool serialize (hb_serialize_context_t *c,
-		  const hb_map_t         *klass_mapping,
-		  const hb_map_t         *layout_variation_idx_map,
-		  const void             *base,
-		  Iterator                it)
+  template <typename Iterator,
+      hb_requires (hb_is_iterator (Iterator))>
+  bool subset (hb_subset_context_t *c,
+               Iterator		    coverage,
+               const hb_map_t      *klass_mapping) const
   {
-    TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
-    if (unlikely (!c->check_assign (len, it.len (), HB_SERIALIZE_ERROR_ARRAY_OVERFLOW))) return_trace (false);
-    c->copy_all (it, base, c->to_bias (this), klass_mapping, layout_variation_idx_map);
+    TRACE_SUBSET (this);
+    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
+
+    auto* out = c->serializer->start_embed (this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    auto mark_iter =
+    + hb_zip (coverage, this->iter ())
+    | hb_filter (glyphset, hb_first)
+    | hb_map (hb_second)
+    ;
+
+    unsigned new_length = 0;
+    for (const auto& mark_record : mark_iter) {
+      if (unlikely (!mark_record.subset (c, this, klass_mapping)))
+        return_trace (false);
+      new_length++;
+    }
+
+    if (unlikely (!c->serializer->check_assign (out->len, new_length,
+                                                HB_SERIALIZE_ERROR_ARRAY_OVERFLOW)))
+      return_trace (false);
+
     return_trace (true);
   }
 
@@ -1567,17 +1568,15 @@ struct EntryExitRecord
     (src_base+exitAnchor).collect_variation_indices (c);
   }
 
-  EntryExitRecord* copy (hb_serialize_context_t *c,
-			 const void *src_base,
-			 const void *dst_base,
-			 const hb_map_t *layout_variation_idx_map) const
+  EntryExitRecord* subset (hb_subset_context_t *c,
+                           const void *src_base) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->embed (this);
+    auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
-    out->entryAnchor.serialize_copy (c, entryAnchor, src_base, c->to_bias (dst_base), hb_serialize_context_t::Head, layout_variation_idx_map);
-    out->exitAnchor.serialize_copy (c, exitAnchor, src_base, c->to_bias (dst_base), hb_serialize_context_t::Head, layout_variation_idx_map);
+    out->entryAnchor.serialize_subset (c, entryAnchor, src_base);
+    out->exitAnchor.serialize_subset (c, exitAnchor, src_base);
     return_trace (out);
   }
 
@@ -1727,25 +1726,24 @@ struct CursivePosFormat1
 
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
-  void serialize (hb_serialize_context_t *c,
+  void serialize (hb_subset_context_t *c,
 		  Iterator it,
-		  const void *src_base,
-		  const hb_map_t *layout_variation_idx_map)
+		  const void *src_base)
   {
-    if (unlikely (!c->extend_min ((*this)))) return;
+    if (unlikely (!c->serializer->extend_min ((*this)))) return;
     this->format = 1;
     this->entryExitRecord.len = it.len ();
 
     for (const EntryExitRecord& entry_record : + it
 					       | hb_map (hb_second))
-      c->copy (entry_record, src_base, this, layout_variation_idx_map);
+      entry_record.subset (c, src_base);
 
     auto glyphs =
     + it
     | hb_map_retains_sorting (hb_first)
     ;
 
-    coverage.serialize (c, this).serialize (c, glyphs);
+    coverage.serialize (c->serializer, this).serialize (c->serializer, glyphs);
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -1765,7 +1763,7 @@ struct CursivePosFormat1
     ;
 
     bool ret = bool (it);
-    out->serialize (c->serializer, it, this, c->plan->layout_variation_idx_map);
+    out->serialize (c, it, this);
     return_trace (ret);
   }
 
@@ -1956,9 +1954,9 @@ struct MarkBasePosFormat1
 			  .serialize (c->serializer, new_coverage.iter ()))
       return_trace (false);
 
-    out->markArray.serialize (c->serializer, out)
-		  .serialize (c->serializer, &klass_mapping, c->plan->layout_variation_idx_map, &(this+markArray), + mark_iter
-										                                   | hb_map (hb_second));
+    out->markArray.serialize_subset (c, markArray, this,
+                                     (this+markCoverage).iter (),
+                                     &klass_mapping);
 
     unsigned basecount = (this+baseArray).rows;
     auto base_iter =
@@ -1987,8 +1985,10 @@ struct MarkBasePosFormat1
       | hb_sink (base_indexes)
       ;
     }
-    out->baseArray.serialize (c->serializer, out)
-		  .serialize (c->serializer, base_iter.len (), &(this+baseArray), c->plan->layout_variation_idx_map, base_indexes.iter ());
+
+    out->baseArray.serialize_subset (c, baseArray, this,
+                                     base_iter.len (),
+                                     base_indexes.iter ());
 
     return_trace (true);
   }
@@ -2054,7 +2054,7 @@ struct LigatureArray : List16OfOffset16To<LigatureAttach>
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
   bool subset (hb_subset_context_t *c,
-	       Iterator		    coverage,
+               Iterator		    coverage,
 	       unsigned		    class_count,
 	       const hb_map_t	   *klass_mapping) const
   {
@@ -2070,11 +2070,16 @@ struct LigatureArray : List16OfOffset16To<LigatureAttach>
       auto *matrix = out->serialize_append (c->serializer);
       if (unlikely (!matrix)) return_trace (false);
 
+      const LigatureAttach& src = (this + _.second);
+      auto indexes =
+          + hb_range (src.rows * class_count)
+          | hb_filter ([=] (unsigned index) { return klass_mapping->has (index % class_count); })
+          ;
       matrix->serialize_subset (c,
 				_.second,
 				this,
-				class_count,
-				klass_mapping);
+                                src.rows,
+                                indexes);
     }
     return_trace (this->len);
   }
@@ -2208,13 +2213,9 @@ struct MarkLigPosFormat1
 			  .serialize (c->serializer, new_mark_coverage))
       return_trace (false);
 
-    out->markArray.serialize (c->serializer, out)
-		  .serialize (c->serializer,
-                              &klass_mapping,
-                              c->plan->layout_variation_idx_map,
-                              &(this+markArray),
-                              + mark_iter
-                              | hb_map (hb_second));
+    out->markArray.serialize_subset (c, markArray, this,
+                                     (this+markCoverage).iter (),
+                                     &klass_mapping);
 
     auto new_ligature_coverage =
     + hb_iter (this + ligatureCoverage)
@@ -2416,9 +2417,9 @@ struct MarkMarkPosFormat1
 			   .serialize (c->serializer, new_coverage.iter ()))
       return_trace (false);
 
-    out->mark1Array.serialize (c->serializer, out)
-		   .serialize (c->serializer, &klass_mapping, c->plan->layout_variation_idx_map, &(this+mark1Array), + mark1_iter
-										                                     | hb_map (hb_second));
+    out->mark1Array.serialize_subset (c, mark1Array, this,
+                                      (this+mark1Coverage).iter (),
+                                      &klass_mapping);
 
     unsigned mark2count = (this+mark2Array).rows;
     auto mark2_iter =
@@ -2447,8 +2448,8 @@ struct MarkMarkPosFormat1
       | hb_sink (mark2_indexes)
       ;
     }
-    out->mark2Array.serialize (c->serializer, out)
-		   .serialize (c->serializer, mark2_iter.len (), &(this+mark2Array), c->plan->layout_variation_idx_map, mark2_indexes.iter ());
+
+    out->mark2Array.serialize_subset (c, mark2Array, this, mark2_iter.len (), mark2_indexes.iter ());
 
     return_trace (true);
   }
