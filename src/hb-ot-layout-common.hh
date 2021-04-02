@@ -1291,6 +1291,14 @@ struct Lookup
     | hb_apply (subset_offset_array (c, out->get_subtables<TSubTable> (), this, lookup_type))
     ;
 
+    if (lookupFlag & LookupFlag::UseMarkFilteringSet)
+    {
+      if (unlikely (!c->serializer->extend (out))) return_trace (false);
+      const HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
+      HBUINT16 &outMarkFilteringSet = StructAfter<HBUINT16> (out->subTable);
+      outMarkFilteringSet = markFilteringSet;
+    }
+
     return_trace (true);
   }
 
