@@ -13,6 +13,7 @@ name-languages.txt
 name-legacy.txt
 gids.txt
 keep-layout.txt
+keep-layout-drop-hints.txt
 
 SUBSETS:
 abc
