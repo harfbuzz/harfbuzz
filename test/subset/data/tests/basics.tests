@@ -12,6 +12,7 @@ name-ids.txt
 name-languages.txt
 name-legacy.txt
 gids.txt
+keep-layout.txt
 
 SUBSETS:
 abc
