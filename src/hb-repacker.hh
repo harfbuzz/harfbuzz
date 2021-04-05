@@ -75,7 +75,8 @@ struct graph_t
       // setting distance = 0 which will force to sort immediately after
       // it's parent where possible.
 
-      int64_t modified_distance = distance + distance_modifier ();
+      int64_t modified_distance =
+          hb_min (hb_max(distance + distance_modifier (), 0), 0x7FFFFFFFFF);
       return (modified_distance << 24) | (0x00FFFFFF & order);
     }
 
