@@ -120,7 +120,7 @@ struct hb_closure_context_t :
     }
 
     hb_set_t *covered_glyph_set = done_lookups_glyph_set->get (lookup_index);
-    if (covered_glyph_set->in_error ())
+    if (unlikely (covered_glyph_set->in_error ()))
       return true;
     if (parent_active_glyphs ()->is_subset (covered_glyph_set))
       return true;
