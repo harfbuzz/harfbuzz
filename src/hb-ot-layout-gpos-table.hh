@@ -347,6 +347,7 @@ struct AnchorFormat1
   {
     TRACE_SERIALIZE (this);
     AnchorFormat1* out = c->embed<AnchorFormat1> (this);
+    if (!out) return_trace (out);
     out->format = 1;
     return_trace (out);
   }
