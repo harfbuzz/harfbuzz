@@ -232,7 +232,7 @@
       different.
     </para>
     <para>
-      Blobs are an abstraction desgined to negotiate lifecycle and
+      Blobs are an abstraction designed to negotiate lifecycle and
       permissions for raw pieces of data.  For example, when you load
       the raw font data into memory and want to pass it to HarfBuzz,
       you do so in a <literal>hb_blob_t</literal> wrapper.

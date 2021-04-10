@@ -2841,7 +2841,6 @@ Deseret
 DESERET
 deserialize
 DESERIALIZE
-desgined
 design
 Design
 DESIGN
