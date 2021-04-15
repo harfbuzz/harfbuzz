@@ -1379,14 +1379,28 @@ struct PairPosFormat2
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
+    if (!intersects (c->glyph_set)) return;
     if ((!valueFormat1.has_device ()) && (!valueFormat2.has_device ())) return;
+
+    hb_set_t klass1_glyphs, klass2_glyphs;
+    if (!(this+classDef1).collect_coverage (&klass1_glyphs)) return;
+    if (!(this+classDef2).collect_coverage (&klass2_glyphs)) return;
 
     hb_set_t class1_set, class2_set;
     for (const unsigned cp : + c->glyph_set->iter () | hb_filter (this + coverage))
     {
-      unsigned klass1 = (this+classDef1).get (cp);
+      if (!klass1_glyphs.has (cp)) class1_set.add (0);
+      else
+      {
+        unsigned klass1 = (this+classDef1).get (cp);
+        class1_set.add (klass1);
+      }
+    }
+
+    class2_set.add (0);
+    for (const unsigned cp : + c->glyph_set->iter () | hb_filter (klass2_glyphs))
+    {
       unsigned klass2 = (this+classDef2).get (cp);
-      class1_set.add (klass1);
       class2_set.add (klass2);
     }
 
@@ -1470,11 +1484,11 @@ struct PairPosFormat2
     out->valueFormat2 = valformat2;
 
     hb_map_t klass1_map;
-    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, &(this + coverage));
+    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, true, &(this + coverage));
     out->class1Count = klass1_map.get_population ();
 
     hb_map_t klass2_map;
-    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map, false);
+    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map, true, false);
     out->class2Count = klass2_map.get_population ();
 
     unsigned len1 = valueFormat1.get_len ();

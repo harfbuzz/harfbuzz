@@ -91,7 +91,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
 					  const hb_map_t &gid_klass_map,
 					  hb_sorted_vector_t<HBGlyphID> &glyphs,
 					  const hb_set_t &klasses,
-                                          bool use_class_zero,
+					  bool use_class_zero,
 					  hb_map_t *klass_map /*INOUT*/);
 
 
@@ -1894,6 +1894,7 @@ struct ClassDefFormat1
 
     if (unlikely (!it))
     {
+      classFormat = 1;
       startGlyph = 0;
       classValue.len = 0;
       return_trace (true);
@@ -1917,6 +1918,7 @@ struct ClassDefFormat1
 
   bool subset (hb_subset_context_t *c,
 	       hb_map_t *klass_map = nullptr /*OUT*/,
+               bool keep_empty_table = true,
                bool use_class_zero = true,
                const Coverage* glyph_filter = nullptr) const
   {
@@ -1950,7 +1952,7 @@ struct ClassDefFormat1
     use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
     ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
 				  glyphs, orig_klasses, use_class_zero, klass_map);
-    return_trace ((bool) glyphs);
+    return_trace (keep_empty_table || (bool) glyphs);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -2071,6 +2073,7 @@ struct ClassDefFormat2
 
     if (unlikely (!it))
     {
+      classFormat = 2;
       rangeRecord.len = 0;
       return_trace (true);
     }
@@ -2117,6 +2120,7 @@ struct ClassDefFormat2
 
   bool subset (hb_subset_context_t *c,
 	       hb_map_t *klass_map = nullptr /*OUT*/,
+               bool keep_empty_table = true,
                bool use_class_zero = true,
                const Coverage* glyph_filter = nullptr) const
   {
@@ -2151,7 +2155,7 @@ struct ClassDefFormat2
     use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
     ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
 				  glyphs, orig_klasses, use_class_zero, klass_map);
-    return_trace ((bool) glyphs);
+    return_trace (keep_empty_table || (bool) glyphs);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -2350,13 +2354,14 @@ struct ClassDef
 
   bool subset (hb_subset_context_t *c,
 	       hb_map_t *klass_map = nullptr /*OUT*/,
+               bool keep_empty_table = true,
                bool use_class_zero = true,
                const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
     switch (u.format) {
-    case 1: return_trace (u.format1.subset (c, klass_map, use_class_zero, glyph_filter));
-    case 2: return_trace (u.format2.subset (c, klass_map, use_class_zero, glyph_filter));
+    case 1: return_trace (u.format1.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+    case 2: return_trace (u.format2.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
     default:return_trace (false);
     }
   }
