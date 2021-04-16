@@ -118,7 +118,6 @@
 #pragma GCC diagnostic ignored "-Wunsafe-loop-optimizations"	// TODO fix
 #pragma GCC diagnostic ignored "-Wunused-parameter"		// TODO fix
 #if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic ignored "-Wunused-macros"		// TODO fix
 #pragma GCC diagnostic ignored "-Wunused-result"		// TODO fix
 #endif
 #endif
