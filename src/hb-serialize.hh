@@ -82,7 +82,7 @@ struct hb_serialize_context_t
 
     struct link_t
     {
-      bool is_wide: 1;
+      unsigned width: 3;
       bool is_signed: 1;
       unsigned whence: 2;
       unsigned position: 28;
@@ -354,7 +354,6 @@ struct hb_serialize_context_t
 		 whence_t whence = Head,
 		 unsigned bias = 0)
   {
-    static_assert (sizeof (T) == 2 || sizeof (T) == 4, "");
     if (unlikely (in_error ())) return;
 
     if (!objidx)
@@ -365,7 +364,7 @@ struct hb_serialize_context_t
 
     auto& link = *current->links.push ();
 
-    link.is_wide = sizeof (T) == 4;
+    link.width = sizeof (T);
     link.is_signed = hb_is_signed (hb_unwrap_type (T));
     link.whence = (unsigned) whence;
     link.position = (const char *) &ofs - current->head;
@@ -405,15 +404,19 @@ struct hb_serialize_context_t
 	offset -= link.bias;
 	if (link.is_signed)
 	{
-	  if (link.is_wide)
+	  assert (link.width == 2 || link.width == 4);
+	  if (link.width == 4)
 	    assign_offset<int32_t> (parent, link, offset);
 	  else
 	    assign_offset<int16_t> (parent, link, offset);
 	}
 	else
 	{
-	  if (link.is_wide)
+	  assert (link.width == 2 || link.width == 3 || link.width == 4);
+	  if (link.width == 4)
 	    assign_offset<uint32_t> (parent, link, offset);
+	  else if (link.width == 3)
+	    assign_offset<uint32_t, 3> (parent, link, offset);
 	  else
 	    assign_offset<uint16_t> (parent, link, offset);
 	}
@@ -566,10 +569,10 @@ struct hb_serialize_context_t
   { return packed; }
 
   private:
-  template <typename T>
+  template <typename T, unsigned Size = sizeof (T)>
   void assign_offset (const object_t* parent, const object_t::link_t &link, unsigned offset)
   {
-    auto &off = * ((BEInt<T> *) (parent->head + link.position));
+    auto &off = * ((BEInt<T, Size> *) (parent->head + link.position));
     assert (0 == off);
     check_assign (off, offset, HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
   }

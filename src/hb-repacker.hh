@@ -531,7 +531,7 @@ struct graph_t
 
         const auto& child = vertices_[link.objidx].obj;
         int64_t child_weight = child.tail - child.head +
-                               (!link.is_wide ? (1 << 16) : ((int64_t) 1 << 32));
+                               ((int64_t) 1 << (link.width * 8));
         int64_t child_distance = next_distance + child_weight;
 
         if (child_distance < vertices_[link.objidx].distance)
@@ -578,15 +578,17 @@ struct graph_t
   {
     if (link.is_signed)
     {
-      if (link.is_wide)
+      if (link.width == 4)
         return offset >= -((int64_t) 1 << 31) && offset < ((int64_t) 1 << 31);
       else
         return offset >= -(1 << 15) && offset < (1 << 15);
     }
     else
     {
-      if (link.is_wide)
+      if (link.width == 4)
         return offset >= 0 && offset < ((int64_t) 1 << 32);
+      else if (link.width == 3)
+        return offset >= 0 && offset < ((int32_t) 1 << 24);
       else
         return offset >= 0 && offset < (1 << 16);
     }
@@ -627,7 +629,7 @@ struct graph_t
                  char* head,
                  hb_serialize_context_t* c) const
   {
-    if (link.is_wide)
+    if (link.width == 4)
     {
       if (link.is_signed)
       {
@@ -635,7 +637,9 @@ struct graph_t
       } else {
         serialize_link_of_type<OT::HBUINT32> (link, head, c);
       }
-    } else {
+    }
+    else if (link.width == 2)
+    {
       if (link.is_signed)
       {
         serialize_link_of_type<OT::HBINT16> (link, head, c);
@@ -643,6 +647,8 @@ struct graph_t
         serialize_link_of_type<OT::HBUINT16> (link, head, c);
       }
     }
+    else
+      serialize_link_of_type<OT::HBUINT24> (link, head, c);
   }
 
  public:

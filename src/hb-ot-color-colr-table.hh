@@ -180,6 +180,15 @@ struct NoVariable
 template <template<typename> class Var>
 struct ColorIndex
 {
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+    return_trace (c->serializer->check_assign (out->paletteIndex, c->plan->colrv1_palettes->get (paletteIndex),
+                                               HB_SERIALIZE_ERROR_INT_OVERFLOW));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -195,6 +204,13 @@ struct ColorIndex
 template <template<typename> class Var>
 struct ColorStop
 {
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    if (unlikely (!c->serializer->embed (stopOffset))) return_trace (false);
+    return_trace (color.subset (c));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -221,6 +237,23 @@ struct Extend : HBUINT8
 template <template<typename> class Var>
 struct ColorLine
 {
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!out)) return_trace (false);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    if (!c->serializer->check_assign (out->extend, extend, HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
+    if (!c->serializer->check_assign (out->stops.len, stops.len, HB_SERIALIZE_ERROR_ARRAY_OVERFLOW)) return_trace (false);
+
+    for (const auto& stop : stops.iter ())
+    {
+      if (!stop.subset (c)) return_trace (false);
+    }
+    return_trace (true);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -306,6 +339,17 @@ struct PaintColrLayers
 {
   void closurev1 (hb_colrv1_closure_context_t* c) const;
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+    return_trace (c->serializer->check_assign (out->firstLayerIndex, c->plan->colrv1_layers->get (firstLayerIndex),
+                                               HB_SERIALIZE_ERROR_INT_OVERFLOW));
+
+    return_trace (true);
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -324,6 +368,13 @@ struct PaintSolid
 {
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { c->add_palette_index (color.paletteIndex); }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    if (unlikely (!c->serializer->embed (format))) return_trace (false);
+    return_trace (color.subset (c));
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -344,6 +395,15 @@ struct PaintLinearGradient
   {
     for (const auto &stop : (this+colorLine).stops.iter ())
       c->add_palette_index (stop.color.paletteIndex);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (out->colorLine.serialize_subset (c, colorLine, this));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -368,6 +428,15 @@ struct PaintLinearGradient
 template <template<typename> class Var>
 struct PaintRadialGradient
 {
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (out->colorLine.serialize_subset (c, colorLine, this));
+  }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     for (const auto &stop : (this+colorLine).stops.iter ())
@@ -396,6 +465,15 @@ struct PaintRadialGradient
 template <template<typename> class Var>
 struct PaintSweepGradient
 {
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (out->colorLine.serialize_subset (c, colorLine, this));
+  }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   {
     for (const auto &stop : (this+colorLine).stops.iter ())
@@ -425,6 +503,19 @@ struct PaintGlyph
 {
   void closurev1 (hb_colrv1_closure_context_t* c) const;
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    if (! c->serializer->check_assign (out->gid, c->plan->glyph_map->get (gid),
+                                       HB_SERIALIZE_ERROR_INT_OVERFLOW))
+      return_trace (false);
+
+    return_trace (out->paint.serialize_subset (c, paint, this));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -441,6 +532,16 @@ struct PaintGlyph
 struct PaintColrGlyph
 {
   void closurev1 (hb_colrv1_closure_context_t* c) const;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (c->serializer->check_assign (out->gid, c->plan->glyph_map->get (gid),
+                                               HB_SERIALIZE_ERROR_INT_OVERFLOW));
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -459,6 +560,15 @@ struct PaintTransform
 {
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (out->src.serialize_subset (c, src, this));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -476,6 +586,15 @@ template <template<typename> class Var>
 struct PaintTranslate
 {
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
+  
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (out->src.serialize_subset (c, src, this));
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -495,6 +614,15 @@ template <template<typename> class Var>
 struct PaintRotate
 {
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (out->src.serialize_subset (c, src, this));
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -516,6 +644,15 @@ struct PaintSkew
 {
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
 
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    return_trace (out->src.serialize_subset (c, src, this));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -535,6 +672,16 @@ struct PaintSkew
 struct PaintComposite
 {
   void closurev1 (hb_colrv1_closure_context_t* c) const;
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    if (!out->src.serialize_subset (c, src, this)) return_trace (false);
+    return_trace (out->backdrop.serialize_subset (c, backdrop, this));
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -615,6 +762,19 @@ struct BaseGlyphV1Record
   int cmp (hb_codepoint_t g) const
   { return g < glyphId ? -1 : g > glyphId ? 1 : 0; }
 
+  bool serialize (hb_serialize_context_t *s, const hb_map_t* glyph_map,
+                  const void* src_base, hb_subset_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = s->embed (this);
+    if (unlikely (!out)) return_trace (false);
+    if (!s->check_assign (out->glyphId, glyph_map->get (glyphId),
+                          HB_SERIALIZE_ERROR_INT_OVERFLOW))
+      return_trace (false);
+
+    return_trace (out->paint.serialize_subset (c, paint, src_base));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -629,12 +789,46 @@ struct BaseGlyphV1Record
   DEFINE_SIZE_STATIC (6);
 };
 
-typedef SortedArray32Of<BaseGlyphV1Record> BaseGlyphV1List;
+struct BaseGlyphV1List : SortedArray32Of<BaseGlyphV1Record>
+{
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!c->serializer->extend_min (out)))  return_trace (false);
+    const hb_set_t* glyphset = c->plan->_glyphset;
+
+    for (const auto& _ : as_array ())
+    {
+      unsigned gid = _.glyphId;
+      if (!glyphset->has (gid)) continue;
+
+      if (_.serialize (c->serializer, c->plan->glyph_map, this, c)) out->len++;
+      else return_trace (false);
+    }
+
+    return_trace (true);
+  }
+};
 
 struct LayerV1List : Array32OfOffset32To<Paint>
 {
   const Paint& get_paint (unsigned i) const
   { return this+(*this)[i]; }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (this);
+    if (unlikely (!c->serializer->extend_min (out)))  return_trace (false);
+
+    for (const auto& offset : as_array ()) {
+      auto *o = out->serialize_append (c->serializer);
+      if (unlikely (!o) || !o->serialize_subset (c, offset, this))
+        return_trace (false);
+    }
+    return_trace (true);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
