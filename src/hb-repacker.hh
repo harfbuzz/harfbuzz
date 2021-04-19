@@ -343,7 +343,9 @@ struct graph_t
     auto* clone = vertices_.push ();
     auto& child = vertices_[child_idx];
     clone_buffer_t* buffer = clone_buffers_.push ();
-    if (!check_success (buffer->copy (child.obj))) {
+    if (vertices_.in_error ()
+        || clone_buffers_.in_error ()
+        || !check_success (buffer->copy (child.obj))) {
       return;
     }
 
