@@ -227,10 +227,10 @@ struct graph_t
     hb_vector_t<unsigned> queue;
     hb_vector_t<vertex_t> sorted_graph;
     hb_vector_t<unsigned> id_map;
-    check_success (id_map.resize (vertices_.length));
+    if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
 
     hb_vector_t<unsigned> removed_edges;
-    check_success (removed_edges.resize (vertices_.length));
+    if (unlikely (!check_success (removed_edges.resize (vertices_.length)))) return;
     update_incoming_edge_count ();
 
     queue.push (root_idx ());
@@ -284,10 +284,10 @@ struct graph_t
     hb_priority_queue_t queue;
     hb_vector_t<vertex_t> sorted_graph;
     hb_vector_t<unsigned> id_map;
-    check_success (id_map.resize (vertices_.length));
+    if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
 
     hb_vector_t<unsigned> removed_edges;
-    check_success (removed_edges.resize (vertices_.length));
+    if (unlikely (!check_success (removed_edges.resize (vertices_.length)))) return;
     update_incoming_edge_count ();
 
     queue.insert (root ().modified_distance (0), root_idx ());
