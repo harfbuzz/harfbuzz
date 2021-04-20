@@ -121,6 +121,11 @@ test_set_basic (void)
   hb_set_del (s, 800);
   g_assert (!hb_set_has (s, 800));
 
+  g_assert_cmpint (hb_set_get_max (s), ==, 799);
+
+  hb_set_del_range (s, 0, 799);
+  g_assert_cmpint (hb_set_get_max (s), ==, HB_SET_VALUE_INVALID);
+
   hb_set_destroy (s);
 }
 
@@ -501,7 +506,7 @@ test_set_delrange (void)
 
   for (unsigned i = 0; i < n; i++)
     hb_set_del_range (s, ranges[i].b, ranges[i].e);
-    
+
   hb_set_del_range (s, P*13+5, P*15-10);	/* Deletion from deleted pages. */
 
   for (unsigned i = 0; i < n; i++)
