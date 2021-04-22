@@ -103,6 +103,8 @@ struct ValueFormat : HBUINT16
 					 * PosTable (may be NULL) */
 #endif
 
+  IntType& operator = (uint16_t i) { v = i; return *this; }
+
   unsigned int get_len () const  { return hb_popcount ((unsigned int) *this); }
   unsigned int get_size () const { return get_len () * Value::static_size; }
 
@@ -758,21 +760,25 @@ struct SinglePosFormat1
 		  ValueFormat valFormat,
 		  const hb_map_t *layout_variation_idx_map)
   {
-    auto out = c->extend_min (*this);
-    if (unlikely (!out)) return;
-    if (unlikely (!c->check_assign (valueFormat, valFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
+    if (unlikely (!c->extend_min (*this))) return;
+    if (unlikely (!c->check_assign (valueFormat,
+                                    valFormat,
+                                    HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
 
-    + it
-    | hb_map (hb_second)
-    | hb_apply ([&] (hb_array_t<const Value> _)
-		{ valFormat.serialize_copy (c, src, &_, layout_variation_idx_map); })
-    ;
+    for (const hb_array_t<const Value>& _ : + it | hb_map (hb_second))
+    {
+      valFormat.serialize_copy (c, src, &_, layout_variation_idx_map);
+      // Only serialize the first entry in the iterator, the rest are assumed to
+      // be the same.
+      break;
+    }
 
     auto glyphs =
     + it
     | hb_map_retains_sorting (hb_first)
     ;
 
+    // TODO(garretrieger): serialize_subset this.
     coverage.serialize (c, this).serialize (c, glyphs);
   }
 
