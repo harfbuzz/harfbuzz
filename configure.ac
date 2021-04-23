@@ -214,6 +214,24 @@ AM_CONDITIONAL(HAVE_CAIRO_FT, $have_cairo_ft)
 
 dnl ==========================================================================
 
+AC_ARG_WITH(chafa,
+	[AS_HELP_STRING([--with-chafa=@<:@yes/no/auto@:>@],
+			[Use chafa @<:@default=auto@:>@])],,
+	[with_chafa=auto])
+have_chafa=false
+if test "x$with_chafa" = "xyes" -o "x$with_chafa" = "xauto"; then
+	PKG_CHECK_MODULES(CHAFA, chafa >= 1.6.0, have_chafa=true, :)
+fi
+if test "x$with_chafa" = "xyes" -a "x$have_chafa" != "xtrue"; then
+	AC_MSG_ERROR([chafa support requested but not found])
+fi
+if $have_chafa; then
+	AC_DEFINE(HAVE_CHAFA, 1, [Have chafa terminal graphics library])
+fi
+AM_CONDITIONAL(HAVE_CHAFA, $have_chafa)
+
+dnl ==========================================================================
+
 AC_ARG_WITH(icu,
 	[AS_HELP_STRING([--with-icu=@<:@yes/no/builtin/auto@:>@],
 			[Use ICU @<:@default=auto@:>@])],,
@@ -448,6 +466,7 @@ Font callbacks (the more the merrier):
 
 Tools used for command-line utilities:
 	Cairo:			${have_cairo}
+	Chafa:			${have_chafa}
 
 Additional shapers:
 	Graphite2:		${have_graphite2}

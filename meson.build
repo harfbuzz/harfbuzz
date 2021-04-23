@@ -154,6 +154,8 @@ if not get_option('cairo').disabled()
   endif
 endif
 
+chafa_dep = dependency('chafa', version: '>= 1.6.0', required: get_option('chafa'))
+
 conf = configuration_data()
 incconfig = include_directories('.')
 
@@ -179,6 +181,10 @@ endif
 
 if cairo_ft_dep.found()
   conf.set('HAVE_CAIRO_FT', 1)
+endif
+
+if chafa_dep.found()
+  conf.set('HAVE_CHAFA', 1)
 endif
 
 if graphite2_dep.found()
@@ -363,6 +369,7 @@ build_summary = {
     },
   'Dependencies used for command-line utilities':
     {'Cairo': conf.get('HAVE_CAIRO', 0) == 1,
+     'Chafa': conf.get('HAVE_CHAFA', 0) == 1,
     },
   'Additional shapers':
     {'Graphite2': conf.get('HAVE_GRAPHITE2', 0) == 1,
