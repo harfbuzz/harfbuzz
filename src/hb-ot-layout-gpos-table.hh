@@ -162,21 +162,55 @@ struct ValueFormat : HBUINT16
     return ret;
   }
 
-  void serialize_copy (hb_serialize_context_t *c, const void *base,
-		       const Value *values, const hb_map_t *layout_variation_idx_map) const
+  unsigned int get_effective_format (const Value *values) const
+  {
+    unsigned int format = *this;
+    if (format & xPlacement) should_drop (*values++, xPlacement, &format);
+    if (format & yPlacement) should_drop (*values++, yPlacement, &format);
+    if (format & xAdvance) should_drop (*values++, xAdvance, &format);
+    if (format & yAdvance) should_drop (*values++, yAdvance, &format);
+    return format;
+  }
+
+  template<typename Iterator,
+      hb_requires (hb_is_iterator (Iterator))>
+  unsigned int get_effective_format (Iterator it) {
+    unsigned int new_format = 0;
+
+    for (const hb_array_t<const Value>& values : it)
+      new_format = new_format | get_effective_format (&values);
+
+    return new_format;
+  }
+
+  void copy_values (hb_serialize_context_t *c,
+                    unsigned int new_format,
+                    const void *base,
+                    const Value *values,
+                    const hb_map_t *layout_variation_idx_map) const
   {
     unsigned int format = *this;
     if (!format) return;
 
-    if (format & xPlacement) c->copy (*values++);
-    if (format & yPlacement) c->copy (*values++);
-    if (format & xAdvance)   c->copy (*values++);
-    if (format & yAdvance)   c->copy (*values++);
+    if (format & xPlacement) copy_value (c, new_format, xPlacement, *values++);
+    if (format & yPlacement) copy_value (c, new_format, xPlacement, *values++);
+    if (format & xAdvance)   copy_value (c, new_format, xPlacement, *values++);
+    if (format & yAdvance)   copy_value (c, new_format, xPlacement, *values++);
 
     if (format & xPlaDevice) copy_device (c, base, values++, layout_variation_idx_map);
     if (format & yPlaDevice) copy_device (c, base, values++, layout_variation_idx_map);
     if (format & xAdvDevice) copy_device (c, base, values++, layout_variation_idx_map);
     if (format & yAdvDevice) copy_device (c, base, values++, layout_variation_idx_map);
+  }
+
+  void copy_value (hb_serialize_context_t *c,
+                   unsigned int new_format,
+                   Flags flag,
+                   Value value) const
+  {
+    // Filter by new format.
+    if (!(new_format & flag)) return;
+    c->copy (value);
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
@@ -319,6 +353,15 @@ struct ValueFormat : HBUINT16
 
     return_trace (true);
   }
+
+ private:
+
+  void should_drop (Value value, Flags flag, unsigned int* format) const
+  {
+    if (value) return;
+    *format = *format & ~flag;
+  }
+
 };
 
 template<typename Iterator>
@@ -755,19 +798,20 @@ struct SinglePosFormat1
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
+                  ValueFormat srcFormat,
 		  const void *src,
 		  Iterator it,
-		  ValueFormat valFormat,
+		  ValueFormat newFormat,
 		  const hb_map_t *layout_variation_idx_map)
   {
     if (unlikely (!c->extend_min (*this))) return;
     if (unlikely (!c->check_assign (valueFormat,
-                                    valFormat,
+                                    newFormat,
                                     HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
 
     for (const hb_array_t<const Value>& _ : + it | hb_map (hb_second))
     {
-      valFormat.serialize_copy (c, src, &_, layout_variation_idx_map);
+      srcFormat.copy_values (c, newFormat, src,  &_, layout_variation_idx_map);
       // Only serialize the first entry in the iterator, the rest are assumed to
       // be the same.
       break;
@@ -873,20 +917,21 @@ struct SinglePosFormat2
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
+                  ValueFormat srcFormat,
 		  const void *src,
 		  Iterator it,
-		  ValueFormat valFormat,
+		  ValueFormat newFormat,
 		  const hb_map_t *layout_variation_idx_map)
   {
     auto out = c->extend_min (*this);
     if (unlikely (!out)) return;
-    if (unlikely (!c->check_assign (valueFormat, valFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
+    if (unlikely (!c->check_assign (valueFormat, newFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
     if (unlikely (!c->check_assign (valueCount, it.len (), HB_SERIALIZE_ERROR_ARRAY_OVERFLOW))) return;
 
     + it
     | hb_map (hb_second)
     | hb_apply ([&] (hb_array_t<const Value> _)
-		{ valFormat.serialize_copy (c, src, &_, layout_variation_idx_map); })
+    { srcFormat.copy_values (c, newFormat, src, &_, layout_variation_idx_map); })
     ;
 
     auto glyphs =
@@ -971,14 +1016,30 @@ struct SinglePos
   {
     if (unlikely (!c->extend_min (u.format))) return;
     unsigned format = 2;
+    ValueFormat new_format = valFormat;
 
-    if (glyph_val_iter_pairs) format = get_format (glyph_val_iter_pairs);
+    if (glyph_val_iter_pairs)
+    {
+      format = get_format (glyph_val_iter_pairs);
+      new_format = valFormat.get_effective_format (+ glyph_val_iter_pairs | hb_map (hb_second));
+      // TODO: modify iterator to iterate over new values
+    }
 
     u.format = format;
     switch (u.format) {
-    case 1: u.format1.serialize (c, src, glyph_val_iter_pairs, valFormat, layout_variation_idx_map);
+      case 1: u.format1.serialize (c,
+                                   valFormat,
+                                   src,
+                                   glyph_val_iter_pairs,
+                                   new_format,
+                                   layout_variation_idx_map);
 	    return;
-    case 2: u.format2.serialize (c, src, glyph_val_iter_pairs, valFormat, layout_variation_idx_map);
+    case 2: u.format2.serialize (c,
+                                 valFormat,
+                                 src,
+                                 glyph_val_iter_pairs,
+                                 new_format,
+                                 layout_variation_idx_map);
 	    return;
     default:return;
     }
