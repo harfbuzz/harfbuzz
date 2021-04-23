@@ -26,9 +26,102 @@
 
 #include "helper-cairo-ansi.hh"
 #include "options.hh"
-
 #include "ansi-print.hh"
 
+#ifdef HAVE_CHAFA
+# include <chafa.h>
+
+/* Similar to ansi-print.cc */
+# define CELL_W 8
+# define CELL_H (2 * CELL_W)
+
+static void
+chafa_print_image_rgb24 (const void *data, int width, int height, int stride)
+{
+  ChafaTermInfo *term_info;
+  ChafaSymbolMap *symbol_map;
+  ChafaCanvasConfig *config;
+  ChafaCanvas *canvas;
+  GString *gs;
+  unsigned int cols = (width +  CELL_W - 1) / CELL_W;
+  unsigned int rows = (height + CELL_H - 1) / CELL_H;
+  gchar **environ;
+  ChafaCanvasMode mode;
+  ChafaPixelMode pixel_mode;
+
+  /* Adapt to terminal; use sixels if available, and fall back to symbols
+   * with as many colors as are supported */
+
+  environ = g_get_environ ();
+  term_info = chafa_term_db_detect (chafa_term_db_get_default (),
+                                    environ);
+
+  pixel_mode = CHAFA_PIXEL_MODE_SYMBOLS;
+
+  if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_BEGIN_SIXELS))
+  {
+    pixel_mode = CHAFA_PIXEL_MODE_SIXELS;
+    mode = CHAFA_CANVAS_MODE_TRUECOLOR;
+  }
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_DIRECT))
+    mode = CHAFA_CANVAS_MODE_TRUECOLOR;
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_256))
+    mode = CHAFA_CANVAS_MODE_INDEXED_240;
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_SET_COLOR_FGBG_16))
+    mode = CHAFA_CANVAS_MODE_INDEXED_16;
+  else if (chafa_term_info_have_seq (term_info, CHAFA_TERM_SEQ_INVERT_COLORS))
+    mode = CHAFA_CANVAS_MODE_FGBG_BGFG;
+  else
+    mode = CHAFA_CANVAS_MODE_FGBG;
+
+  /* Create the configuration */
+
+  symbol_map = chafa_symbol_map_new ();
+  chafa_symbol_map_add_by_tags (symbol_map,
+                                (ChafaSymbolTags) (CHAFA_SYMBOL_TAG_BLOCK
+                                                   | CHAFA_SYMBOL_TAG_SPACE));
+
+  config = chafa_canvas_config_new ();
+  chafa_canvas_config_set_canvas_mode (config, mode);
+  chafa_canvas_config_set_pixel_mode (config, pixel_mode);
+  chafa_canvas_config_set_cell_geometry (config, 10, 20);
+  chafa_canvas_config_set_geometry (config, cols, rows);
+  chafa_canvas_config_set_symbol_map (config, symbol_map);
+  chafa_canvas_config_set_color_extractor (config, CHAFA_COLOR_EXTRACTOR_MEDIAN);
+  chafa_canvas_config_set_work_factor (config, 1.0f);
+
+  /* Create canvas, draw to it and render output string */
+
+  canvas = chafa_canvas_new (config);
+  chafa_canvas_draw_all_pixels (canvas,
+                                /* Cairo byte order is host native */
+                                G_BYTE_ORDER == G_LITTLE_ENDIAN
+                                  ? CHAFA_PIXEL_BGRA8_PREMULTIPLIED
+                                  : CHAFA_PIXEL_ARGB8_PREMULTIPLIED,
+                                (const guint8 *) data,
+                                width,
+                                height,
+                                stride);
+  gs = chafa_canvas_print (canvas, term_info);
+
+  /* Print the string */
+
+  fwrite (gs->str, sizeof (char), gs->len, stdout);
+
+  if (pixel_mode != CHAFA_PIXEL_MODE_SIXELS)
+    fputc ('\n', stdout);
+
+  /* Free resources */
+
+  g_string_free (gs, TRUE);
+  chafa_canvas_unref (canvas);
+  chafa_canvas_config_unref (config);
+  chafa_symbol_map_unref (symbol_map);
+  chafa_term_info_unref (term_info);
+  g_strfreev (environ);
+}
+
+#endif /* HAVE_CHAFA */
 
 cairo_status_t
 helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
@@ -95,7 +188,14 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
     height++; /* Add one last blank row for padding. */
 
   if (width && height)
-    ansi_print_image_rgb24 (data, width, height, stride / 4);
+  {
+#ifdef HAVE_CHAFA
+    if (true)
+      chafa_print_image_rgb24 (data, width, height, stride);
+    else
+#endif
+      ansi_print_image_rgb24 (data, width, height, stride / 4);
+  }
 
   cairo_surface_destroy (surface);
   return CAIRO_STATUS_SUCCESS;

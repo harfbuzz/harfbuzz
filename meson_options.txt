@@ -5,6 +5,8 @@ option('gobject', type: 'feature', value: 'auto',
   description: 'Enable GObject bindings')
 option('cairo', type: 'feature', value: 'auto',
   description: 'Use Cairo graphics library')
+option('chafa', type: 'feature', value: 'auto',
+  description: 'Use Chafa terminal graphics library')
 option('icu', type: 'feature', value: 'auto',
   description: 'Enable ICU library unicode functions')
 option('graphite', type: 'feature', value: 'disabled',
