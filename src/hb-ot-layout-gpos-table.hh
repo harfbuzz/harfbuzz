@@ -1129,6 +1129,21 @@ struct PairValueRecord
       valueFormats[1].collect_variation_indices (c, base, values_array.sub_array (record1_len, record2_len));
   }
 
+  bool intersects (const hb_set_t& glyphset) const
+  {
+    return glyphset.has(secondGlyph);
+  }
+
+  const Value* get_values_1 () const
+  {
+    return &values[0];
+  }
+
+  const Value* get_values_2 (ValueFormat format1) const
+  {
+    return &values[format1.get_len ()];
+  }
+
   protected:
   HBGlyphID	secondGlyph;		/* GlyphID of second glyph in the
 					 * pair--first glyph is listed in the
@@ -1359,6 +1374,12 @@ struct PairPosFormat1
     out->format = format;
     out->valueFormat[0] = valueFormat[0];
     out->valueFormat[1] = valueFormat[1];
+    if (c->plan->drop_hints)
+    {
+      hb_pair_t<unsigned, unsigned> newFormats = compute_effective_value_formats (glyphset);
+      out->valueFormat[0] = newFormats.first;
+      out->valueFormat[1] = newFormats.second;
+    }
 
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
 
@@ -1370,7 +1391,7 @@ struct PairPosFormat1
 		   if (unlikely (!o)) return false;
 		   auto snap = c->serializer->snapshot ();
                    // TODO(grieger): compute new format
-		   bool ret = o->serialize_subset (c, _, this, valueFormat, valueFormat);
+		   bool ret = o->serialize_subset (c, _, this, valueFormat, out->valueFormat);
 		   if (!ret)
 		   {
 		     out->pairSet.pop ();
@@ -1389,6 +1410,36 @@ struct PairPosFormat1
 
     return_trace (bool (new_coverage));
   }
+
+
+  hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_set_t& glyphset) const
+  {
+    unsigned len1 = valueFormat[0].get_len ();
+    unsigned len2 = valueFormat[1].get_len ();
+    unsigned record_size = HBUINT16::static_size + Value::static_size * (len1 + len2);
+
+    unsigned format1 = 0;
+    unsigned format2 = 0;
+    for (const Offset16To<PairSet>& _ :
+             + hb_zip (this+coverage, pairSet) | hb_filter (glyphset, hb_first) | hb_map (hb_second))
+    {
+      const PairSet& set = (this + _);
+      const PairValueRecord *record = &set.firstPairValueRecord;
+
+      for (unsigned i = 0; i < set.len; i++)
+      {
+        if (record->intersects (glyphset))
+        {
+          format1 = format1 | valueFormat[0].get_effective_format (record->get_values_1 ());
+          format2 = format2 | valueFormat[1].get_effective_format (record->get_values_2 (valueFormat[0]));
+        }
+        record = &StructAtOffset<const PairValueRecord> (record, record_size);
+      }
+    }
+
+    return hb_pair (format1, format2);
+  }
+
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
