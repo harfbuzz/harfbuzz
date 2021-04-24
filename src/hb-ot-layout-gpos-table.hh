@@ -165,10 +165,10 @@ struct ValueFormat : HBUINT16
   unsigned int get_effective_format (const Value *values) const
   {
     unsigned int format = *this;
-    if (format & xPlacement) should_drop (*values++, xPlacement, &format);
-    if (format & yPlacement) should_drop (*values++, yPlacement, &format);
-    if (format & xAdvance) should_drop (*values++, xAdvance, &format);
-    if (format & yAdvance) should_drop (*values++, yAdvance, &format);
+    for (unsigned flag = xPlacement; flag <= yAdvDevice; flag = flag << 1) {
+      if (format & flag) should_drop (*values++, (Flags) flag, &format);
+    }
+
     return format;
   }
 
@@ -1390,7 +1390,6 @@ struct PairPosFormat1
 		   auto *o = out->pairSet.serialize_append (c->serializer);
 		   if (unlikely (!o)) return false;
 		   auto snap = c->serializer->snapshot ();
-                   // TODO(grieger): compute new format
 		   bool ret = o->serialize_subset (c, _, this, valueFormat, out->valueFormat);
 		   if (!ret)
 		   {
