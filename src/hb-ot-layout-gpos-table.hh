@@ -1029,7 +1029,6 @@ struct SinglePos
 
     u.format = format;
     switch (u.format) {
-      // TODO(grieger): pass reference to src lookup instead of separate src + format
     case 1: u.format1.serialize (c,
                                  src,
                                  glyph_val_iter_pairs,
@@ -1517,9 +1516,6 @@ struct PairPosFormat2
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
     out->format = format;
-    // TODO(grieger): compute new formats
-    out->valueFormat1 = valueFormat1;
-    out->valueFormat2 = valueFormat2;
 
     hb_map_t klass1_map;
     out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, &(this + coverage));
@@ -1532,21 +1528,22 @@ struct PairPosFormat2
     unsigned len1 = valueFormat1.get_len ();
     unsigned len2 = valueFormat2.get_len ();
 
-    + hb_range ((unsigned) class1Count)
-    | hb_filter (klass1_map)
-    | hb_apply ([&] (const unsigned class1_idx)
-		{
-		  + hb_range ((unsigned) class2Count)
-		  | hb_filter (klass2_map)
-		  | hb_apply ([&] (const unsigned class2_idx)
-			      {
-				unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
-				valueFormat1.copy_values (c->serializer, valueFormat1, this, &values[idx], c->plan->layout_variation_idx_map);
-				valueFormat2.copy_values (c->serializer, valueFormat2, this, &values[idx + len1], c->plan->layout_variation_idx_map);
-			      })
-		  ;
-		})
-    ;
+    hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat1, valueFormat2);
+    if (c->plan->drop_hints)
+      newFormats = compute_effective_value_formats (klass1_map, klass2_map);
+
+    out->valueFormat1 = newFormats.first;
+    out->valueFormat2 = newFormats.second;
+
+    for (unsigned class1_idx : + hb_range ((unsigned) class1Count) | hb_filter (klass1_map))
+    {
+      for (unsigned class2_idx : + hb_range ((unsigned) class2Count) | hb_filter (klass2_map))
+      {
+        unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
+        valueFormat1.copy_values (c->serializer, newFormats.first, this, &values[idx], c->plan->layout_variation_idx_map);
+        valueFormat2.copy_values (c->serializer, newFormats.second, this, &values[idx + len1], c->plan->layout_variation_idx_map);
+      }
+    }
 
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
@@ -1560,6 +1557,30 @@ struct PairPosFormat2
     out->coverage.serialize (c->serializer, out).serialize (c->serializer, it);
     return_trace (out->class1Count && out->class2Count && bool (it));
   }
+
+
+  hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_map_t& klass1_map,
+                                                                 const hb_map_t& klass2_map) const
+  {
+    unsigned len1 = valueFormat1.get_len ();
+    unsigned len2 = valueFormat2.get_len ();
+
+    unsigned format1 = 0;
+    unsigned format2 = 0;
+
+    for (unsigned class1_idx : + hb_range ((unsigned) class1Count) | hb_filter (klass1_map))
+    {
+      for (unsigned class2_idx : + hb_range ((unsigned) class2Count) | hb_filter (klass2_map))
+      {
+        unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
+        format1 = format1 | valueFormat1.get_effective_format (&values[idx]);
+        format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1]);
+      }
+    }
+
+    return hb_pair (format1, format2);
+  }
+
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
