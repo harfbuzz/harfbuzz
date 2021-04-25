@@ -54,7 +54,8 @@ jobs:
             --auto-features=enabled \
             -Ddirectwrite=enabled \
             -Dgdi=enabled \
-            -Dgraphite=enabled
+            -Dgraphite=enabled \
+            -Dchafa=disabled
           ninja -C build
       - name: Test
         run: |
