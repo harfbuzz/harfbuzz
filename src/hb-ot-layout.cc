@@ -331,6 +331,8 @@ hb_ot_layout_get_glyphs_in_class (hb_face_t                  *face,
  *
  * Useful if the client program wishes to cache the list.
  *
+ * Return value: Total number of attachment points for @glyph.
+ *
  **/
 unsigned int
 hb_ot_layout_get_attach_points (hb_face_t      *face,
@@ -356,6 +358,8 @@ hb_ot_layout_get_attach_points (hb_face_t      *face,
  *
  * Fetches a list of the caret positions defined for a ligature glyph in the GDEF
  * table of the font. The list returned will begin at the offset provided.
+ *
+ * Return value: Total number of ligature caret positions for @glyph.
  *
  **/
 unsigned int
@@ -418,6 +422,8 @@ get_gsubgpos_table (hb_face_t *face,
  *
  * Fetches a list of all scripts enumerated in the specified face's GSUB table
  * or GPOS table. The list returned will begin at the offset provided.
+ *
+ * Return value: Total number of script tags.
  *
  **/
 unsigned int
@@ -585,6 +591,8 @@ hb_ot_layout_table_select_script (hb_face_t      *face,
  *
  * Fetches a list of all feature tags in the given face's GSUB or GPOS table.
  *
+ * Return value: Total number of feature tags.
+ *
  **/
 unsigned int
 hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
@@ -646,6 +654,8 @@ hb_ot_layout_table_find_feature (hb_face_t    *face,
  *
  * Fetches a list of language tags in the given face's GSUB or GPOS table, underneath
  * the specified script index. The list returned will begin at the offset provided.
+ *
+ * Return value: Total number of language tags.
  *
  **/
 unsigned int
@@ -818,6 +828,8 @@ hb_ot_layout_language_get_required_feature (hb_face_t    *face,
  * Fetches a list of all features in the specified face's GSUB table
  * or GPOS table, underneath the specified script and language. The list
  * returned will begin at the offset provided.
+ *
+ * Return value: Total number of features.
  **/
 unsigned int
 hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
@@ -850,6 +862,7 @@ hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
  * or GPOS table, underneath the specified script and language. The list
  * returned will begin at the offset provided.
  *
+ * Return value: Total number of feature tags.
  **/
 unsigned int
 hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
@@ -932,6 +945,8 @@ hb_ot_layout_language_find_feature (hb_face_t    *face,
  * the specified face's GSUB table or GPOS table. The list returned will
  * begin at the offset provided.
  *
+ * Return value: Total number of lookups.
+ *
  * Since: 0.9.7
  **/
 unsigned int
@@ -959,6 +974,8 @@ hb_ot_layout_feature_get_lookups (hb_face_t    *face,
  *
  * Fetches the total number of lookups enumerated in the specified
  * face's GSUB table or GPOS table.
+ *
+ * Return value: Total number of lookups.
  *
  * Since: 0.9.22
  **/
@@ -1262,6 +1279,8 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
  * Fetches a list of feature variations in the specified face's GSUB table
  * or GPOS table, at the specified variation coordinates.
  *
+ * Return value: %true if feature variations were found, %false otherwise.
+ *
  **/
 hb_bool_t
 hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
@@ -1290,6 +1309,8 @@ hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
  * Fetches a list of all lookups enumerated for the specified feature, in
  * the specified face's GSUB table or GPOS table, enabled at the specified
  * variations index. The list returned will begin at the offset provided.
+ *
+ * Return value: Total number of lookups.
  *
  **/
 unsigned int
@@ -1935,7 +1956,7 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
  *
  * Fetches a baseline value from the face.
  *
- * Return value: if found baseline value in the font.
+ * Return value: %true if found baseline value in the font.
  *
  * Since: 2.6.0
  **/
@@ -1994,7 +2015,7 @@ struct hb_get_glyph_alternates_dispatch_t :
  *
  * Fetches alternates of a glyph from a given GSUB lookup index.
  *
- * Return value: total number of alternates found in the specific lookup index for the given glyph id.
+ * Return value: Total number of alternates found in the specific lookup index for the given glyph id.
  *
  * Since: 2.6.8
  **/
