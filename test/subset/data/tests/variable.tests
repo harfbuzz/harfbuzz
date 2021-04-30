@@ -2,7 +2,7 @@ FONTS:
 Fraunces.ttf
 
 PROFILES:
-keep-layout.txt
+default.txt
 
 SUBSETS:
 a

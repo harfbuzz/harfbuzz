@@ -2,8 +2,8 @@ FONTS:
 Khmer.ttf
 
 PROFILES:
-keep-layout.txt
-keep-layout-retain-gids.txt
+default.txt
+retain-gids.txt
 
 SUBSETS:
 1

@@ -103,6 +103,8 @@ struct ValueFormat : HBUINT16
 					 * PosTable (may be NULL) */
 #endif
 
+  IntType& operator = (uint16_t i) { v = i; return *this; }
+
   unsigned int get_len () const  { return hb_popcount ((unsigned int) *this); }
   unsigned int get_size () const { return get_len () * Value::static_size; }
 
@@ -160,21 +162,55 @@ struct ValueFormat : HBUINT16
     return ret;
   }
 
-  void serialize_copy (hb_serialize_context_t *c, const void *base,
-		       const Value *values, const hb_map_t *layout_variation_idx_map) const
+  unsigned int get_effective_format (const Value *values) const
+  {
+    unsigned int format = *this;
+    for (unsigned flag = xPlacement; flag <= yAdvDevice; flag = flag << 1) {
+      if (format & flag) should_drop (*values++, (Flags) flag, &format);
+    }
+
+    return format;
+  }
+
+  template<typename Iterator,
+      hb_requires (hb_is_iterator (Iterator))>
+  unsigned int get_effective_format (Iterator it) const {
+    unsigned int new_format = 0;
+
+    for (const hb_array_t<const Value>& values : it)
+      new_format = new_format | get_effective_format (&values);
+
+    return new_format;
+  }
+
+  void copy_values (hb_serialize_context_t *c,
+                    unsigned int new_format,
+                    const void *base,
+                    const Value *values,
+                    const hb_map_t *layout_variation_idx_map) const
   {
     unsigned int format = *this;
     if (!format) return;
 
-    if (format & xPlacement) c->copy (*values++);
-    if (format & yPlacement) c->copy (*values++);
-    if (format & xAdvance)   c->copy (*values++);
-    if (format & yAdvance)   c->copy (*values++);
+    if (format & xPlacement) copy_value (c, new_format, xPlacement, *values++);
+    if (format & yPlacement) copy_value (c, new_format, yPlacement, *values++);
+    if (format & xAdvance)   copy_value (c, new_format, xAdvance, *values++);
+    if (format & yAdvance)   copy_value (c, new_format, yAdvance, *values++);
 
     if (format & xPlaDevice) copy_device (c, base, values++, layout_variation_idx_map);
     if (format & yPlaDevice) copy_device (c, base, values++, layout_variation_idx_map);
     if (format & xAdvDevice) copy_device (c, base, values++, layout_variation_idx_map);
     if (format & yAdvDevice) copy_device (c, base, values++, layout_variation_idx_map);
+  }
+
+  void copy_value (hb_serialize_context_t *c,
+                   unsigned int new_format,
+                   Flags flag,
+                   Value value) const
+  {
+    // Filter by new format.
+    if (!(new_format & flag)) return;
+    c->copy (value);
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c,
@@ -317,13 +353,21 @@ struct ValueFormat : HBUINT16
 
     return_trace (true);
   }
+
+ private:
+
+  void should_drop (Value value, Flags flag, unsigned int* format) const
+  {
+    if (value) return;
+    *format = *format & ~flag;
+  }
+
 };
 
-template<typename Iterator>
+template<typename Iterator, typename SrcLookup>
 static void SinglePos_serialize (hb_serialize_context_t *c,
-				 const void *src,
+				 const SrcLookup *src,
 				 Iterator it,
-				 ValueFormat valFormat,
 				 const hb_map_t *layout_variation_idx_map);
 
 
@@ -491,20 +535,18 @@ struct Anchor
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    if (c->plan->drop_hints)
-    {
-      // AnchorFormat 2 and 3 just containing extra hinting information, so
-      // if hints are being dropped convert to format 1.
-      if (u.format != 1 && u.format != 2 && u.format != 3)
-        return_trace (false);
-      return_trace (bool (reinterpret_cast<Anchor *> (u.format1.copy (c->serializer))));
-    }
-
     switch (u.format) {
     case 1: return_trace (bool (reinterpret_cast<Anchor *> (u.format1.copy (c->serializer))));
-    case 2: return_trace (bool (reinterpret_cast<Anchor *> (u.format2.copy (c->serializer))));
+    case 2:
+      if (c->plan->drop_hints)
+      {
+        // AnchorFormat 2 just containins extra hinting information, so
+        // if hints are being dropped convert to format 1.
+        return_trace (bool (reinterpret_cast<Anchor *> (u.format1.copy (c->serializer))));
+      }
+      return_trace (bool (reinterpret_cast<Anchor *> (u.format2.copy (c->serializer))));
     case 3: return_trace (bool (reinterpret_cast<Anchor *> (u.format3.copy (c->serializer,
-                                                                              c->plan->layout_variation_idx_map))));
+                                                                            c->plan->layout_variation_idx_map))));
     default:return_trace (false);
     }
   }
@@ -739,6 +781,8 @@ struct SinglePosFormat1
 
   const Coverage &get_coverage () const { return this+coverage; }
 
+  ValueFormat get_value_format () const { return valueFormat; }
+
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -753,28 +797,33 @@ struct SinglePosFormat1
   }
 
   template<typename Iterator,
-	   hb_requires (hb_is_iterator (Iterator))>
+      typename SrcLookup,
+      hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
-		  const void *src,
+		  const SrcLookup *src,
 		  Iterator it,
-		  ValueFormat valFormat,
+		  ValueFormat newFormat,
 		  const hb_map_t *layout_variation_idx_map)
   {
-    auto out = c->extend_min (*this);
-    if (unlikely (!out)) return;
-    if (unlikely (!c->check_assign (valueFormat, valFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
+    if (unlikely (!c->extend_min (*this))) return;
+    if (unlikely (!c->check_assign (valueFormat,
+                                    newFormat,
+                                    HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
 
-    + it
-    | hb_map (hb_second)
-    | hb_apply ([&] (hb_array_t<const Value> _)
-		{ valFormat.serialize_copy (c, src, &_, layout_variation_idx_map); })
-    ;
+    for (const hb_array_t<const Value>& _ : + it | hb_map (hb_second))
+    {
+      src->get_value_format ().copy_values (c, newFormat, src,  &_, layout_variation_idx_map);
+      // Only serialize the first entry in the iterator, the rest are assumed to
+      // be the same.
+      break;
+    }
 
     auto glyphs =
     + it
     | hb_map_retains_sorting (hb_first)
     ;
 
+    // TODO(garretrieger): serialize_subset this.
     coverage.serialize (c, this).serialize (c, glyphs);
   }
 
@@ -792,7 +841,7 @@ struct SinglePosFormat1
     ;
 
     bool ret = bool (it);
-    SinglePos_serialize (c->serializer, this, it, valueFormat, c->plan->layout_variation_idx_map);
+    SinglePos_serialize (c->serializer, this, it, c->plan->layout_variation_idx_map);
     return_trace (ret);
   }
 
@@ -849,6 +898,8 @@ struct SinglePosFormat2
 
   const Coverage &get_coverage () const { return this+coverage; }
 
+  ValueFormat get_value_format () const { return valueFormat; }
+
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);
@@ -867,22 +918,23 @@ struct SinglePosFormat2
   }
 
   template<typename Iterator,
-	   hb_requires (hb_is_iterator (Iterator))>
+      typename SrcLookup,
+      hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
-		  const void *src,
+		  const SrcLookup *src,
 		  Iterator it,
-		  ValueFormat valFormat,
+		  ValueFormat newFormat,
 		  const hb_map_t *layout_variation_idx_map)
   {
     auto out = c->extend_min (*this);
     if (unlikely (!out)) return;
-    if (unlikely (!c->check_assign (valueFormat, valFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
+    if (unlikely (!c->check_assign (valueFormat, newFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
     if (unlikely (!c->check_assign (valueCount, it.len (), HB_SERIALIZE_ERROR_ARRAY_OVERFLOW))) return;
 
     + it
     | hb_map (hb_second)
     | hb_apply ([&] (hb_array_t<const Value> _)
-		{ valFormat.serialize_copy (c, src, &_, layout_variation_idx_map); })
+    { src->get_value_format ().copy_values (c, newFormat, src, &_, layout_variation_idx_map); })
     ;
 
     auto glyphs =
@@ -914,7 +966,7 @@ struct SinglePosFormat2
     ;
 
     bool ret = bool (it);
-    SinglePos_serialize (c->serializer, this, it, valueFormat, c->plan->layout_variation_idx_map);
+    SinglePos_serialize (c->serializer, this, it, c->plan->layout_variation_idx_map);
     return_trace (ret);
   }
 
@@ -958,24 +1010,37 @@ struct SinglePos
 
 
   template<typename Iterator,
-	   hb_requires (hb_is_iterator (Iterator))>
+      typename SrcLookup,
+      hb_requires (hb_is_iterator (Iterator))>
   void serialize (hb_serialize_context_t *c,
-		  const void *src,
+		  const SrcLookup* src,
 		  Iterator glyph_val_iter_pairs,
-		  ValueFormat valFormat,
 		  const hb_map_t *layout_variation_idx_map)
   {
     if (unlikely (!c->extend_min (u.format))) return;
     unsigned format = 2;
+    ValueFormat new_format = src->get_value_format ();
 
-    if (glyph_val_iter_pairs) format = get_format (glyph_val_iter_pairs);
+    if (glyph_val_iter_pairs)
+    {
+      format = get_format (glyph_val_iter_pairs);
+      new_format = src->get_value_format ().get_effective_format (+ glyph_val_iter_pairs | hb_map (hb_second));
+    }
 
     u.format = format;
     switch (u.format) {
-    case 1: u.format1.serialize (c, src, glyph_val_iter_pairs, valFormat, layout_variation_idx_map);
-	    return;
-    case 2: u.format2.serialize (c, src, glyph_val_iter_pairs, valFormat, layout_variation_idx_map);
-	    return;
+    case 1: u.format1.serialize (c,
+                                 src,
+                                 glyph_val_iter_pairs,
+                                 new_format,
+                                 layout_variation_idx_map);
+      return;
+    case 2: u.format2.serialize (c,
+                                 src,
+                                 glyph_val_iter_pairs,
+                                 new_format,
+                                 layout_variation_idx_map);
+      return;
     default:return;
     }
   }
@@ -1000,14 +1065,13 @@ struct SinglePos
   } u;
 };
 
-template<typename Iterator>
+template<typename Iterator, typename SrcLookup>
 static void
 SinglePos_serialize (hb_serialize_context_t *c,
-		     const void *src,
+		     const SrcLookup *src,
 		     Iterator it,
-		     ValueFormat valFormat,
 		     const hb_map_t *layout_variation_idx_map)
-{ c->start_embed<SinglePos> ()->serialize (c, src, it, valFormat, layout_variation_idx_map); }
+{ c->start_embed<SinglePos> ()->serialize (c, src, it, layout_variation_idx_map); }
 
 
 struct PairValueRecord
@@ -1017,26 +1081,35 @@ struct PairValueRecord
   int cmp (hb_codepoint_t k) const
   { return secondGlyph.cmp (k); }
 
-  struct serialize_closure_t
+  struct context_t
   {
     const void 		*base;
     const ValueFormat	*valueFormats;
+    const ValueFormat	*newFormats;
     unsigned		len1; /* valueFormats[0].get_len() */
     const hb_map_t 	*glyph_map;
     const hb_map_t      *layout_variation_idx_map;
   };
 
-  bool serialize (hb_serialize_context_t *c,
-		  serialize_closure_t *closure) const
+  bool subset (hb_subset_context_t *c,
+               context_t *closure) const
   {
     TRACE_SERIALIZE (this);
-    auto *out = c->start_embed (*this);
-    if (unlikely (!c->extend_min (out))) return_trace (false);
+    auto *s = c->serializer;
+    auto *out = s->start_embed (*this);
+    if (unlikely (!s->extend_min (out))) return_trace (false);
 
     out->secondGlyph = (*closure->glyph_map)[secondGlyph];
 
-    closure->valueFormats[0].serialize_copy (c, closure->base, &values[0], closure->layout_variation_idx_map);
-    closure->valueFormats[1].serialize_copy (c, closure->base, &values[closure->len1], closure->layout_variation_idx_map);
+    closure->valueFormats[0].copy_values (s,
+                                          closure->newFormats[0],
+                                          closure->base, &values[0],
+                                          closure->layout_variation_idx_map);
+    closure->valueFormats[1].copy_values (s,
+                                          closure->newFormats[1],
+                                          closure->base,
+                                          &values[closure->len1],
+                                          closure->layout_variation_idx_map);
 
     return_trace (true);
   }
@@ -1054,6 +1127,21 @@ struct PairValueRecord
 
     if (valueFormats[1].has_device ())
       valueFormats[1].collect_variation_indices (c, base, values_array.sub_array (record1_len, record2_len));
+  }
+
+  bool intersects (const hb_set_t& glyphset) const
+  {
+    return glyphset.has(secondGlyph);
+  }
+
+  const Value* get_values_1 () const
+  {
+    return &values[0];
+  }
+
+  const Value* get_values_2 (ValueFormat format1) const
+  {
+    return &values[format1.get_len ()];
   }
 
   protected:
@@ -1146,7 +1234,8 @@ struct PairSet
   }
 
   bool subset (hb_subset_context_t *c,
-	       const ValueFormat valueFormats[2]) const
+	       const ValueFormat valueFormats[2],
+               const ValueFormat newFormats[2]) const
   {
     TRACE_SUBSET (this);
     auto snap = c->serializer->snapshot ();
@@ -1162,10 +1251,11 @@ struct PairSet
     unsigned len2 = valueFormats[1].get_len ();
     unsigned record_size = HBUINT16::static_size + Value::static_size * (len1 + len2);
 
-    PairValueRecord::serialize_closure_t closure =
+    PairValueRecord::context_t context =
     {
       this,
       valueFormats,
+      newFormats,
       len1,
       &glyph_map,
       c->plan->layout_variation_idx_map
@@ -1176,7 +1266,7 @@ struct PairSet
     for (unsigned i = 0; i < count; i++)
     {
       if (glyphset.has (record->secondGlyph)
-	 && record->serialize (c->serializer, &closure)) num++;
+	 && record->subset (c, &context)) num++;
       record = &StructAtOffset<const PairValueRecord> (record, record_size);
     }
 
@@ -1284,6 +1374,12 @@ struct PairPosFormat1
     out->format = format;
     out->valueFormat[0] = valueFormat[0];
     out->valueFormat[1] = valueFormat[1];
+    if (c->plan->drop_hints)
+    {
+      hb_pair_t<unsigned, unsigned> newFormats = compute_effective_value_formats (glyphset);
+      out->valueFormat[0] = newFormats.first;
+      out->valueFormat[1] = newFormats.second;
+    }
 
     hb_sorted_vector_t<hb_codepoint_t> new_coverage;
 
@@ -1294,7 +1390,7 @@ struct PairPosFormat1
 		   auto *o = out->pairSet.serialize_append (c->serializer);
 		   if (unlikely (!o)) return false;
 		   auto snap = c->serializer->snapshot ();
-		   bool ret = o->serialize_subset (c, _, this, valueFormat);
+		   bool ret = o->serialize_subset (c, _, this, valueFormat, out->valueFormat);
 		   if (!ret)
 		   {
 		     out->pairSet.pop ();
@@ -1313,6 +1409,36 @@ struct PairPosFormat1
 
     return_trace (bool (new_coverage));
   }
+
+
+  hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_set_t& glyphset) const
+  {
+    unsigned len1 = valueFormat[0].get_len ();
+    unsigned len2 = valueFormat[1].get_len ();
+    unsigned record_size = HBUINT16::static_size + Value::static_size * (len1 + len2);
+
+    unsigned format1 = 0;
+    unsigned format2 = 0;
+    for (const Offset16To<PairSet>& _ :
+             + hb_zip (this+coverage, pairSet) | hb_filter (glyphset, hb_first) | hb_map (hb_second))
+    {
+      const PairSet& set = (this + _);
+      const PairValueRecord *record = &set.firstPairValueRecord;
+
+      for (unsigned i = 0; i < set.len; i++)
+      {
+        if (record->intersects (glyphset))
+        {
+          format1 = format1 | valueFormat[0].get_effective_format (record->get_values_1 ());
+          format2 = format2 | valueFormat[1].get_effective_format (record->get_values_2 (valueFormat[0]));
+        }
+        record = &StructAtOffset<const PairValueRecord> (record, record_size);
+      }
+    }
+
+    return hb_pair (format1, format2);
+  }
+
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -1361,14 +1487,28 @@ struct PairPosFormat2
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
+    if (!intersects (c->glyph_set)) return;
     if ((!valueFormat1.has_device ()) && (!valueFormat2.has_device ())) return;
+
+    hb_set_t klass1_glyphs, klass2_glyphs;
+    if (!(this+classDef1).collect_coverage (&klass1_glyphs)) return;
+    if (!(this+classDef2).collect_coverage (&klass2_glyphs)) return;
 
     hb_set_t class1_set, class2_set;
     for (const unsigned cp : + c->glyph_set->iter () | hb_filter (this + coverage))
     {
-      unsigned klass1 = (this+classDef1).get (cp);
+      if (!klass1_glyphs.has (cp)) class1_set.add (0);
+      else
+      {
+        unsigned klass1 = (this+classDef1).get (cp);
+        class1_set.add (klass1);
+      }
+    }
+
+    class2_set.add (0);
+    for (const unsigned cp : + c->glyph_set->iter () | hb_filter (klass2_glyphs))
+    {
       unsigned klass2 = (this+classDef2).get (cp);
-      class1_set.add (klass1);
       class2_set.add (klass2);
     }
 
@@ -1440,35 +1580,34 @@ struct PairPosFormat2
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
     out->format = format;
-    out->valueFormat1 = valueFormat1;
-    out->valueFormat2 = valueFormat2;
 
     hb_map_t klass1_map;
-    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, &(this + coverage));
+    out->classDef1.serialize_subset (c, classDef1, this, &klass1_map, true, true, &(this + coverage));
     out->class1Count = klass1_map.get_population ();
 
     hb_map_t klass2_map;
-    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map, false);
+    out->classDef2.serialize_subset (c, classDef2, this, &klass2_map, true, false);
     out->class2Count = klass2_map.get_population ();
 
     unsigned len1 = valueFormat1.get_len ();
     unsigned len2 = valueFormat2.get_len ();
 
-    + hb_range ((unsigned) class1Count)
-    | hb_filter (klass1_map)
-    | hb_apply ([&] (const unsigned class1_idx)
-		{
-		  + hb_range ((unsigned) class2Count)
-		  | hb_filter (klass2_map)
-		  | hb_apply ([&] (const unsigned class2_idx)
-			      {
-				unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
-				valueFormat1.serialize_copy (c->serializer, this, &values[idx], c->plan->layout_variation_idx_map);
-				valueFormat2.serialize_copy (c->serializer, this, &values[idx + len1], c->plan->layout_variation_idx_map);
-			      })
-		  ;
-		})
-    ;
+    hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat1, valueFormat2);
+    if (c->plan->drop_hints)
+      newFormats = compute_effective_value_formats (klass1_map, klass2_map);
+
+    out->valueFormat1 = newFormats.first;
+    out->valueFormat2 = newFormats.second;
+
+    for (unsigned class1_idx : + hb_range ((unsigned) class1Count) | hb_filter (klass1_map))
+    {
+      for (unsigned class2_idx : + hb_range ((unsigned) class2Count) | hb_filter (klass2_map))
+      {
+        unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
+        valueFormat1.copy_values (c->serializer, newFormats.first, this, &values[idx], c->plan->layout_variation_idx_map);
+        valueFormat2.copy_values (c->serializer, newFormats.second, this, &values[idx + len1], c->plan->layout_variation_idx_map);
+      }
+    }
 
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
@@ -1482,6 +1621,30 @@ struct PairPosFormat2
     out->coverage.serialize (c->serializer, out).serialize (c->serializer, it);
     return_trace (out->class1Count && out->class2Count && bool (it));
   }
+
+
+  hb_pair_t<unsigned, unsigned> compute_effective_value_formats (const hb_map_t& klass1_map,
+                                                                 const hb_map_t& klass2_map) const
+  {
+    unsigned len1 = valueFormat1.get_len ();
+    unsigned len2 = valueFormat2.get_len ();
+
+    unsigned format1 = 0;
+    unsigned format2 = 0;
+
+    for (unsigned class1_idx : + hb_range ((unsigned) class1Count) | hb_filter (klass1_map))
+    {
+      for (unsigned class2_idx : + hb_range ((unsigned) class2Count) | hb_filter (klass2_map))
+      {
+        unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
+        format1 = format1 | valueFormat1.get_effective_format (&values[idx]);
+        format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1]);
+      }
+    }
+
+    return hb_pair (format1, format2);
+  }
+
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

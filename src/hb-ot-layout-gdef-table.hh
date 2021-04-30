@@ -643,10 +643,10 @@ struct GDEF
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this);
+    bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this, nullptr, false, true);
     bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
     bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
-    bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this);
+    bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
 
     bool subset_markglyphsetsdef = true;
     if (version.to_int () >= 0x00010002u)
