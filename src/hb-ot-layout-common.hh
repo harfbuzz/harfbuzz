@@ -2308,10 +2308,12 @@ struct ClassDef
 
   template<typename Iterator,
 	   hb_requires (hb_is_iterator (Iterator))>
-  bool serialize (hb_serialize_context_t *c, Iterator it)
+  bool serialize (hb_serialize_context_t *c, Iterator it_with_class_zero)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (*this))) return_trace (false);
+
+    auto it = + it_with_class_zero | hb_filter (hb_second);
 
     unsigned format = 2;
     if (likely (it))
@@ -2328,8 +2330,8 @@ struct ClassDef
       {
 	hb_codepoint_t cur_gid = gid_klass_pair.first;
 	unsigned cur_klass = gid_klass_pair.second;
-        if (cur_klass) num_glyphs++;
-	if (cur_gid == glyph_min || !cur_klass) continue;
+        num_glyphs++;
+	if (cur_gid == glyph_min) continue;
         if (cur_gid > glyph_max) glyph_max = cur_gid;
 	if (cur_gid != prev_gid + 1 ||
 	    cur_klass != prev_klass)
