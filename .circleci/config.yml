@@ -76,7 +76,7 @@ jobs:
 
   fedora-valgrind:
     docker:
-      - image: fedora
+      - image: fedora:33
     steps:
       - checkout
       - run: dnf install -y pkg-config ragel valgrind gcc gcc-c++ meson git glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python python-pip || true
