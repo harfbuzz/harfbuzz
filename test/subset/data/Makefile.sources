@@ -6,6 +6,7 @@ TESTS = \
 	tests/cmap.tests \
 	tests/cmap14.tests \
 	tests/colr.tests \
+	tests/colr_with_components.tests \
 	tests/full-font.tests \
 	tests/japanese.tests \
 	tests/layout.context.tests \
