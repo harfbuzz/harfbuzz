@@ -185,7 +185,7 @@ struct ColorIndex
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
-    return_trace (c->serializer->check_assign (out->paletteIndex, c->plan->colrv1_palettes->get (paletteIndex),
+    return_trace (c->serializer->check_assign (out->paletteIndex, c->plan->colr_palettes->get (paletteIndex),
                                                HB_SERIALIZE_ERROR_INT_OVERFLOW));
   }
 
@@ -807,7 +807,7 @@ struct BaseGlyphV1List : SortedArray32Of<BaseGlyphV1Record>
       else return_trace (false);
     }
 
-    return_trace (true);
+    return_trace (out->len != 0);
   }
 };
 
@@ -822,9 +822,12 @@ struct LayerV1List : Array32OfOffset32To<Paint>
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!c->serializer->extend_min (out)))  return_trace (false);
 
-    for (const auto& offset : as_array ()) {
+    for (const auto& _ : + hb_enumerate (*this)
+                         | hb_filter (c->plan->colrv1_layers, hb_first))
+
+    {
       auto *o = out->serialize_append (c->serializer);
-      if (unlikely (!o) || !o->serialize_subset (c, offset, this))
+      if (unlikely (!o) || !o->serialize_subset (c, _.second, this))
         return_trace (false);
     }
     return_trace (true);
@@ -878,6 +881,10 @@ struct COLR
 			 hb_set_t *related_ids /* OUT */) const
     { colr->closure_glyphs (glyph, related_ids); }
 
+    void closure_V0palette_indices (const hb_set_t *glyphs,
+				    hb_set_t *palettes /* OUT */) const
+    { colr->closure_V0palette_indices (glyphs, palettes); }
+
     void closure_forV1 (hb_set_t *glyphset,
                         hb_set_t *layer_indices,
                         hb_set_t *palette_indices) const
@@ -897,6 +904,23 @@ struct COLR
 								       record->numLayers);
     if (!glyph_layers.length) return;
     related_ids->add_array (&glyph_layers[0].glyphId, glyph_layers.length, LayerRecord::min_size);
+  }
+
+  void closure_V0palette_indices (const hb_set_t *glyphs,
+				  hb_set_t *palettes /* OUT */) const
+  {
+    if (!numBaseGlyphs || !numLayers) return;
+    hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
+    hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
+    
+    for (const BaseGlyphRecord record : baseGlyphs)
+    {
+      if (!glyphs->has (record.glyphId)) continue;
+      hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
+                                                                   record.numLayers);
+      for (const LayerRecord layer : glyph_layers)
+        palettes->add (layer.colorIdx);
+    }
   }
 
   void closure_forV1 (hb_set_t *glyphset,
@@ -941,10 +965,10 @@ struct COLR
   template<typename BaseIterator, typename LayerIterator,
 	   hb_requires (hb_is_iterator (BaseIterator)),
 	   hb_requires (hb_is_iterator (LayerIterator))>
-  bool serialize (hb_serialize_context_t *c,
-		  unsigned version,
-		  BaseIterator base_it,
-		  LayerIterator layer_it)
+  bool serialize_V0 (hb_serialize_context_t *c,
+		     unsigned version,
+		     BaseIterator base_it,
+		     LayerIterator layer_it)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (base_it.len () != layer_it.len ()))
@@ -954,6 +978,12 @@ struct COLR
     this->version = version;
     numLayers = 0;
     numBaseGlyphs = base_it.len ();
+    if (base_it.len () == 0)
+    {
+      baseGlyphsZ = 0;
+      layersZ = 0;
+      return_trace (true);
+    }
     baseGlyphsZ = COLR::min_size;
     layersZ = COLR::min_size + numBaseGlyphs * BaseGlyphRecord::min_size;
 
@@ -1036,6 +1066,7 @@ struct COLR
 				  if (unlikely (!c->plan->new_gid_for_old_gid (out_layers[i].glyphId, &new_gid)))
 				    return hb_pair_t<bool, hb_vector_t<LayerRecord>> (false, out_layers);
 				  out_layers[i].glyphId = new_gid;
+				  out_layers[i].colorIdx = c->plan->colr_palettes->get (layers[i].colorIdx);
 				}
 
 				return hb_pair_t<bool, hb_vector_t<LayerRecord>> (true, out_layers);
@@ -1044,11 +1075,29 @@ struct COLR
     | hb_map_retains_sorting (hb_second)
     ;
 
-    if (unlikely (!base_it || !layer_it || base_it.len () != layer_it.len ()))
+    if (version == 0 && (!base_it || !layer_it))
       return_trace (false);
 
     COLR *colr_prime = c->serializer->start_embed<COLR> ();
-    return_trace (colr_prime->serialize (c->serializer, version, base_it, layer_it));
+    bool ret = colr_prime->serialize_V0 (c->serializer, version, base_it, layer_it);
+
+    if (version == 0) return_trace (ret);
+    auto snap = c->serializer->snapshot ();
+    if (!c->serializer->allocate_size<void> (3 * HBUINT32::static_size)) return_trace (false);
+    if (!colr_prime->baseGlyphsV1List.serialize_subset (c, baseGlyphsV1List, this))
+    {
+      if (c->serializer->in_error ()) return_trace (false);
+      //no more COLRv1 glyphs: downgrade to version 0
+      c->serializer->revert (snap);
+      colr_prime->version = 0;
+      return_trace (true);
+    }
+
+    if (!colr_prime->layersV1.serialize_subset (c, layersV1, this)) return_trace (false);
+
+    colr_prime->varStore = 0;
+    //TODO: subset varStore once it's implemented in fonttools
+    return_trace (true);
   }
 
   protected:

@@ -57,6 +57,23 @@ _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
 #endif
 
 static void
+_remap_palette_indexes (const hb_set_t *palette_indexes,
+                        hb_map_t       *mapping /* OUT */)
+{
+  unsigned new_idx = 0;
+  for (unsigned palette_index : palette_indexes->iter ())
+  {
+    if (palette_index == 0xFFFF)
+    {
+      mapping->set (palette_index, palette_index);
+      continue;
+    }
+    mapping->set (palette_index, new_idx);
+    new_idx++;
+  }
+}
+
+static void
 _remap_indexes (const hb_set_t *indexes,
 		hb_map_t       *mapping /* OUT */)
 {
@@ -278,11 +295,14 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   }
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
+
+  hb_set_t palette_indices;
+  colr.closure_V0palette_indices (plan->_glyphset, &palette_indices);
   
-  hb_set_t layer_indices, palette_indices;
+  hb_set_t layer_indices;
   colr.closure_forV1 (plan->_glyphset, &layer_indices, &palette_indices);
   _remap_indexes (&layer_indices, plan->colrv1_layers);
-  _remap_indexes (&palette_indices, plan->colrv1_palettes);
+  _remap_palette_indexes (&palette_indices, plan->colr_palettes);
   colr.fini ();
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
 
@@ -397,7 +417,7 @@ hb_subset_plan_create (hb_face_t         *face,
   plan->gsub_features = hb_map_create ();
   plan->gpos_features = hb_map_create ();
   plan->colrv1_layers = hb_map_create ();
-  plan->colrv1_palettes = hb_map_create ();
+  plan->colr_palettes = hb_map_create ();
   plan->layout_variation_indices = hb_set_create ();
   plan->layout_variation_idx_map = hb_map_create ();
 
@@ -449,7 +469,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_map_destroy (plan->gsub_features);
   hb_map_destroy (plan->gpos_features);
   hb_map_destroy (plan->colrv1_layers);
-  hb_map_destroy (plan->colrv1_palettes);
+  hb_map_destroy (plan->colr_palettes);
   hb_set_destroy (plan->layout_variation_indices);
   hb_map_destroy (plan->layout_variation_idx_map);
 

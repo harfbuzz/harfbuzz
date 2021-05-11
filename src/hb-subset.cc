@@ -39,6 +39,7 @@
 #include "hb-ot-maxp-table.hh"
 #include "hb-ot-color-sbix-table.hh"
 #include "hb-ot-color-colr-table.hh"
+#include "hb-ot-color-cpal-table.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-post-table.hh"
 #include "hb-ot-cff1-table.hh"
@@ -266,6 +267,7 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
   case HB_OT_TAG_OS2 : return _subset<const OT::OS2 > (plan);
   case HB_OT_TAG_post: return _subset<const OT::post> (plan);
   case HB_OT_TAG_COLR: return _subset<const OT::COLR> (plan);
+  case HB_OT_TAG_CPAL: return _subset<const OT::CPAL> (plan);
   case HB_OT_TAG_CBLC: return _subset<const OT::CBLC> (plan);
   case HB_OT_TAG_CBDT: return true; /* skip CBDT, handled by CBLC */
 
