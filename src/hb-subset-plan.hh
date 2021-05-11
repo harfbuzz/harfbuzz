@@ -89,7 +89,7 @@ struct hb_subset_plan_t
 
   //active layers/palettes we'd like to retain
   hb_map_t *colrv1_layers;
-  hb_map_t *colrv1_palettes;
+  hb_map_t *colr_palettes;
 
   //The set of layout item variation store delta set indices to be retained
   hb_set_t *layout_variation_indices;
