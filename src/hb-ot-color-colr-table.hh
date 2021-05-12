@@ -58,10 +58,10 @@ struct hb_colrv1_closure_context_t :
   bool paint_visited (const void *paint)
   {
     hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) paint - (uintptr_t) base);
-     if (visited_paint->has (delta))
+     if (visited_paint.has (delta))
       return true;
 
-    visited_paint->add (delta);
+    visited_paint.add (delta);
     return false;
   }
 
@@ -79,7 +79,7 @@ struct hb_colrv1_closure_context_t :
 
   public:
   const void *base;
-  hb_set_t visited_paint[1];
+  hb_set_t visited_paint;
   hb_set_t *glyphs;
   hb_set_t *layer_indices;
   hb_set_t *palette_indices;
@@ -93,8 +93,6 @@ struct hb_colrv1_closure_context_t :
                           layer_indices (layer_indices_),
                           palette_indices (palette_indices_)
   {}
-
-  ~hb_colrv1_closure_context_t () { hb_set_clear (visited_paint); }
 };
 
 struct LayerRecord
@@ -259,7 +257,7 @@ struct CompositeMode : HBUINT8
     COMPOSITE_DEST_ATOP      = 10,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_dstatop
     COMPOSITE_XOR            = 11,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_xor
     COMPOSITE_PLUS           = 12,  // https://www.w3.org/TR/compositing-1/#porterduffcompositingoperators_plus
-  
+
     // Blend modes
     // https://www.w3.org/TR/compositing-1/#blending
     COMPOSITE_SCREEN         = 13,  // https://www.w3.org/TR/compositing-1/#blendingscreen
@@ -273,7 +271,7 @@ struct CompositeMode : HBUINT8
     COMPOSITE_DIFFERENCE     = 21,  // https://www.w3.org/TR/compositing-1/#blendingdifference
     COMPOSITE_EXCLUSION      = 22,  // https://www.w3.org/TR/compositing-1/#blendingexclusion
     COMPOSITE_MULTIPLY       = 23,  // https://www.w3.org/TR/compositing-1/#blendingmultiply
-  
+
     // Modes that, uniquely, do not operate on components
     // https://www.w3.org/TR/compositing-1/#blendingnonseparable
     COMPOSITE_HSL_HUE        = 24,  // https://www.w3.org/TR/compositing-1/#blendinghue
