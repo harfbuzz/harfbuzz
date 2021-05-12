@@ -629,26 +629,31 @@ struct graph_t
                  char* head,
                  hb_serialize_context_t* c) const
   {
-    if (link.width == 4)
+    switch (link.width)
     {
+    case 4:
       if (link.is_signed)
       {
         serialize_link_of_type<OT::HBINT32> (link, head, c);
       } else {
         serialize_link_of_type<OT::HBUINT32> (link, head, c);
       }
-    }
-    else if (link.width == 2)
-    {
+      return;
+    case 2:
       if (link.is_signed)
       {
         serialize_link_of_type<OT::HBINT16> (link, head, c);
       } else {
         serialize_link_of_type<OT::HBUINT16> (link, head, c);
       }
-    }
-    else
+      return;
+    case 3:
       serialize_link_of_type<OT::HBUINT24> (link, head, c);
+      return;
+    default:
+      // Unexpected link width.
+      assert (0);
+    }
   }
 
  public:
