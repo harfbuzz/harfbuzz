@@ -132,3 +132,6 @@
 /System/Library/Fonts/Supplemental/Apple Chancery.ttf@4ec49cba0d4e68d025ada0498c4df1b2f9fd57ac:--font-funcs ot --features liga=0,dlig=1:U+0066,U+0069,U+0072,U+0073,U+0074:[f=0+639|i=1+606|r=2+853|s_t=3+1438]
 /System/Library/Fonts/Supplemental/Skia.ttf@caee56fc4085009c1a29a863500908050ea6248f:--font-funcs ot:U+0041,U+0056:[A=0+1345|V=1@-12,0+1346]
 /System/Library/Fonts/Supplemental/Devanagari Sangam MN.ttc@214b7ffa672bc936745df5a72644f2b705b24b4b:--font-funcs ot:U+092D,U+0941:[dn_bha=0+1339|dn_u_matra.mrk=0@-296,11+0]
+
+# 11.1
+/System/Library/Fonts/Apple Color Emoji.ttc@6b0fa4926a1c8a32267e93e18c5eff21558de83a:--font-funcs ot:U+1F469,U+1F3FD,U+200D,U+1F91D,U+200D,U+1F468,U+1F3FE:[u1F469.3.L=0+0|space=0+0|space=0+0|u1F468.4.RA=0+800]
