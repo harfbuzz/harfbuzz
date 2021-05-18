@@ -44,6 +44,7 @@ struct hb_subset_plan_t
   bool desubroutinize : 1;
   bool retain_gids : 1;
   bool name_legacy : 1;
+  bool overlaps_flag : 1;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;

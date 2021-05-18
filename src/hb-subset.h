@@ -87,6 +87,13 @@ hb_subset_input_set_name_legacy (hb_subset_input_t *subset_input,
 HB_EXTERN hb_bool_t
 hb_subset_input_get_name_legacy (hb_subset_input_t *subset_input);
 
+HB_EXTERN void
+hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
+                                   hb_bool_t overlaps_flag);
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input);
+
 /* hb_subset () */
 HB_EXTERN hb_face_t *
 hb_subset (hb_face_t *source, hb_subset_input_t *input);
