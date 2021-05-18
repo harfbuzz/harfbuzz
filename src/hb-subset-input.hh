@@ -48,6 +48,7 @@ struct hb_subset_input_t
   bool desubroutinize;
   bool retain_gids;
   bool name_legacy;
+  bool overlaps_flag;
   /* TODO
    *
    * features

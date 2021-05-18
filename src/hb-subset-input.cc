@@ -53,6 +53,7 @@ hb_subset_input_create_or_fail ()
   input->desubroutinize = false;
   input->retain_gids = false;
   input->name_legacy = false;
+  input->overlaps_flag = false;
 
   hb_tag_t default_drop_tables[] = {
     // Layout disabled by default
@@ -223,4 +224,17 @@ HB_EXTERN hb_bool_t
 hb_subset_input_get_name_legacy (hb_subset_input_t *subset_input)
 {
   return subset_input->name_legacy;
+}
+
+HB_EXTERN void
+hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
+                                   hb_bool_t overlaps_flag)
+{
+  subset_input->overlaps_flag = overlaps_flag;
+}
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input)
+{
+  return subset_input->overlaps_flag;
 }

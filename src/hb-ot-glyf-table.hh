@@ -281,6 +281,11 @@ struct glyf
     hb_codepoint_t get_glyph_index ()       const { return glyphIndex; }
 
     void drop_instructions_flag ()  { flags = (uint16_t) flags & ~WE_HAVE_INSTRUCTIONS; }
+    void set_overlaps_flag ()
+    {
+      flags = (uint16_t) flags | OVERLAP_COMPOUND;
+    }
+
     bool has_instructions ()  const { return   flags & WE_HAVE_INSTRUCTIONS; }
 
     bool has_more ()          const { return   flags & MORE_COMPONENTS; }
@@ -427,14 +432,14 @@ struct glyf
   {
     enum simple_glyph_flag_t
     {
-      FLAG_ON_CURVE  = 0x01,
-      FLAG_X_SHORT   = 0x02,
-      FLAG_Y_SHORT   = 0x04,
-      FLAG_REPEAT    = 0x08,
-      FLAG_X_SAME    = 0x10,
-      FLAG_Y_SAME    = 0x20,
-      FLAG_RESERVED1 = 0x40,
-      FLAG_RESERVED2 = 0x80
+      FLAG_ON_CURVE       = 0x01,
+      FLAG_X_SHORT        = 0x02,
+      FLAG_Y_SHORT        = 0x04,
+      FLAG_REPEAT         = 0x08,
+      FLAG_X_SAME         = 0x10,
+      FLAG_Y_SAME         = 0x20,
+      FLAG_OVERLAP_SIMPLE = 0x40,
+      FLAG_RESERVED2      = 0x80
     };
 
     private:
@@ -553,6 +558,17 @@ struct glyf
 	dest_end = bytes.sub_array (glyph_length, bytes.length - glyph_length);
       }
 
+      void set_overlaps_flag ()
+      {
+        if (unlikely (!header.numberOfContours)) return;
+
+        unsigned flags_offset = length (instructions_length ());
+        if (unlikely (length (flags_offset + 1) > bytes.length)) return;
+
+	HBUINT8 &first_flag = (HBUINT8 &) StructAtOffset<HBUINT16> (&bytes, flags_offset);
+        first_flag = (uint8_t) first_flag | FLAG_OVERLAP_SIMPLE;
+      }
+
       static bool read_points (const HBUINT8 *&p /* IN/OUT */,
 			       contour_point_vector_t &points_ /* IN/OUT */,
 			       const hb_bytes_t &bytes,
@@ -666,6 +682,12 @@ struct glyf
       /* Chop instructions off the end */
       void drop_hints_bytes (hb_bytes_t &dest_start) const
       { dest_start = bytes.sub_array (0, bytes.length - instructions_length (bytes)); }
+
+      void set_overlaps_flag ()
+      {
+        const_cast<CompositeGlyphChain &> (StructAfter<CompositeGlyphChain, GlyphHeader> (header))
+                .set_overlaps_flag ();
+      }
     };
 
     enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE };
@@ -691,6 +713,15 @@ struct glyf
       switch (type) {
       case COMPOSITE: CompositeGlyph (*header, bytes).drop_hints (); return;
       case SIMPLE:    SimpleGlyph (*header, bytes).drop_hints (); return;
+      default:        return;
+      }
+    }
+
+    void set_overlaps_flag ()
+    {
+      switch (type) {
+      case COMPOSITE: CompositeGlyph (*header, bytes).set_overlaps_flag (); return;
+      case SIMPLE:    SimpleGlyph (*header, bytes).set_overlaps_flag (); return;
       default:        return;
       }
     }
@@ -1231,6 +1262,9 @@ struct glyf
       }
 
       if (plan->drop_hints) Glyph (dest_glyph).drop_hints ();
+
+      if (plan->overlaps_flag)
+        Glyph (dest_glyph).set_overlaps_flag ();
 
       return_trace (true);
     }

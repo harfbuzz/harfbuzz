@@ -298,7 +298,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   hb_set_t palette_indices;
   colr.closure_V0palette_indices (plan->_glyphset, &palette_indices);
-  
+
   hb_set_t layer_indices;
   colr.closure_forV1 (plan->_glyphset, &layer_indices, &palette_indices);
   _remap_indexes (&layer_indices, plan->colrv1_layers);
@@ -392,6 +392,7 @@ hb_subset_plan_create (hb_face_t         *face,
   plan->desubroutinize = input->desubroutinize;
   plan->retain_gids = input->retain_gids;
   plan->name_legacy = input->name_legacy;
+  plan->overlaps_flag = input->overlaps_flag;
   plan->unicodes = hb_set_create ();
   plan->name_ids = hb_set_reference (input->name_ids);
   _nameid_closure (face, plan->name_ids);
