@@ -65,25 +65,25 @@ HB_INTERNAL void PaintColrGlyph::closurev1 (hb_colrv1_closure_context_t* c) cons
   (&baseglyphV1_list+baseglyphV1_record->paint).dispatch (c);
 }
 
-template <template<typename> typename Var>
+template <template<typename> class Var>
 HB_INTERNAL void PaintTransform<Var>::closurev1 (hb_colrv1_closure_context_t* c) const
 {
   (this+src).dispatch (c);
 }
 
-template <template<typename> typename Var>
+template <template<typename> class Var>
 HB_INTERNAL void PaintTranslate<Var>::closurev1 (hb_colrv1_closure_context_t* c) const
 {
   (this+src).dispatch (c);
 }
 
-template <template<typename> typename Var>
+template <template<typename> class Var>
 HB_INTERNAL void PaintRotate<Var>::closurev1 (hb_colrv1_closure_context_t* c) const
 {
   (this+src).dispatch (c);
 }
 
-template <template<typename> typename Var>
+template <template<typename> class Var>
 HB_INTERNAL void PaintSkew<Var>::closurev1 (hb_colrv1_closure_context_t* c) const
 {
   (this+src).dispatch (c);
