@@ -80,6 +80,31 @@ test_subset_glyf (void)
 }
 
 static void
+test_subset_glyf_set_overlaps_flag (void)
+{
+  hb_face_t *face_abcAE = hb_test_open_font_file ("fonts/Roboto-Regular.abcAE.ttf");
+  hb_face_t *face_bAE = hb_test_open_font_file ("fonts/Roboto-Regular.bAE.ttf");
+
+  hb_set_t *codepoints = hb_set_create();
+  hb_face_t *face_abcAE_subset;
+  hb_set_add (codepoints, 32);
+  hb_set_add (codepoints, 98);
+  hb_set_add (codepoints, 508);
+
+  hb_subset_input_t* input = hb_subset_test_create_input (codepoints);
+  hb_subset_input_set_overlaps_flag (input, true);
+  face_abcAE_subset = hb_subset_test_create_subset (face_abcAE, input);
+  hb_set_destroy (codepoints);
+
+  hb_subset_test_check (face_bAE, face_abcAE_subset, HB_TAG ('l','o','c', 'a'));
+  hb_subset_test_check (face_bAE, face_abcAE_subset, HB_TAG ('g','l','y','f'));
+
+  hb_face_destroy (face_abcAE_subset);
+  hb_face_destroy (face_abcAE);
+  hb_face_destroy (face_bAE);
+}
+
+static void
 test_subset_glyf_with_input_glyphs (void)
 {
   hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
@@ -342,6 +367,7 @@ main (int argc, char **argv)
 
   hb_test_add (test_subset_glyf_noop);
   hb_test_add (test_subset_glyf);
+  hb_test_add (test_subset_glyf_set_overlaps_flag);
   hb_test_add (test_subset_glyf_with_input_glyphs);
   hb_test_add (test_subset_glyf_strip_hints_simple);
   hb_test_add (test_subset_glyf_strip_hints_composite);
