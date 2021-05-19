@@ -216,6 +216,58 @@ static void test_set_union (void)
 }
 
 static void
+test_set_subsets (void)
+{
+  hb_set_t *s = hb_set_create ();
+  hb_set_t *l = hb_set_create ();
+
+  hb_set_add (l, 0x0FFFF);
+  hb_set_add (s, 0x1FFFF);
+  g_assert (!hb_set_is_subset (s, l));
+  hb_set_clear (s);
+
+  hb_set_add (s, 0x0FFF0);
+  g_assert (!hb_set_is_subset (s, l));
+  hb_set_clear (s);
+
+  hb_set_add (s, 0x0AFFF);
+  g_assert (!hb_set_is_subset (s, l));
+
+  hb_set_clear (s);
+  g_assert (hb_set_is_subset (s, l));
+
+  hb_set_clear (l);
+  g_assert (hb_set_is_subset (s, l));
+
+  hb_set_add (s, 0x1FFFF);
+  g_assert (!hb_set_is_subset (s, l));
+  hb_set_clear (s);
+
+  hb_set_add (s, 0xFF);
+  hb_set_add (s, 0x1FFFF);
+  hb_set_add (s, 0x2FFFF);
+
+  hb_set_add (l, 0xFF);
+  hb_set_add (l, 0x1FFFF);
+  hb_set_add (l, 0x2FFFF);
+
+  g_assert (hb_set_is_subset (s, l));
+  hb_set_del (l, 0xFF);
+  g_assert (!hb_set_is_subset (s, l));
+  hb_set_add (l, 0xFF);
+
+  hb_set_del (l, 0x2FFFF);
+  g_assert (!hb_set_is_subset (s, l));
+  hb_set_add (l, 0x2FFFF);
+
+  hb_set_del (l, 0x1FFFF);
+  g_assert (!hb_set_is_subset (s, l));
+
+  hb_set_destroy (s);
+  hb_set_destroy (l);
+}
+
+static void
 test_set_algebra (void)
 {
   hb_set_t *s = hb_set_create ();
@@ -528,6 +580,7 @@ main (int argc, char **argv)
   hb_test_init (&argc, &argv);
 
   hb_test_add (test_set_basic);
+  hb_test_add (test_set_subsets);
   hb_test_add (test_set_algebra);
   hb_test_add (test_set_iter);
   hb_test_add (test_set_empty);
