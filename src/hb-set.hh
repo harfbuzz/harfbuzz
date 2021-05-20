@@ -220,6 +220,7 @@ struct hb_set_t
   hb_object_header_t header;
   bool successful; /* Allocations successful */
   mutable unsigned int population;
+  mutable unsigned int last_page_lookup;
   hb_sorted_vector_t<page_map_t> page_map;
   hb_vector_t<page_t> pages;
 
@@ -227,6 +228,7 @@ struct hb_set_t
   {
     successful = true;
     population = 0;
+    last_page_lookup = 0;
     page_map.init ();
     pages.init ();
   }
@@ -238,6 +240,7 @@ struct hb_set_t
   void fini_shallow ()
   {
     population = 0;
+    last_page_lookup = 0;
     page_map.fini ();
     pages.fini ();
   }
@@ -742,27 +745,43 @@ struct hb_set_t
       return *codepoint != INVALID;
     }
 
-    page_map_t map = {get_major (*codepoint), 0};
-    unsigned int i;
-    page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
-    if (i < page_map.length && page_map[i].major == map.major)
+    unsigned int major = get_major (*codepoint);
+    unsigned int i = last_page_lookup;
+
+    if (unlikely (i >= page_map.length || (page_map.arrayZ[i]).major != major))
     {
-      if (pages[page_map[i].index].next (codepoint))
+      page_map_t map = {major, 0};
+      page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
+      if (i >= page_map.length) {
+        *codepoint = INVALID;
+        return false;
+      }
+    }
+
+    page_map_t &current = page_map.arrayZ[i];
+    if (likely (current.major == major))
+    {
+      if (pages.arrayZ[current.index].next (codepoint))
       {
-	*codepoint += page_map[i].major * page_t::PAGE_BITS;
-	return true;
+        *codepoint += current.major * page_t::PAGE_BITS;
+        last_page_lookup = i;
+        return true;
       }
       i++;
     }
+
     for (; i < page_map.length; i++)
     {
-      hb_codepoint_t m = pages[page_map[i].index].get_min ();
+      const page_map_t &current = page_map.arrayZ[i];
+      hb_codepoint_t m = pages.arrayZ[current.index].get_min ();
       if (m != INVALID)
       {
-	*codepoint = page_map[i].major * page_t::PAGE_BITS + m;
+	*codepoint = current.major * page_t::PAGE_BITS + m;
+        last_page_lookup = i;
 	return true;
       }
     }
+    last_page_lookup = 0;
     *codepoint = INVALID;
     return false;
   }
