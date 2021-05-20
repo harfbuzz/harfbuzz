@@ -201,6 +201,52 @@ parse_name_languages (const char *name,
 }
 
 static gboolean
+parse_layout_features (const char *name,
+		       const char *arg,
+		       gpointer    data,
+		       GError    **error G_GNUC_UNUSED)
+{
+  subset_options_t *subset_opts = (subset_options_t *) data;
+  hb_set_t *layout_features = subset_opts->input->layout_features;
+
+  char last_name_char = name[strlen (name) - 1];
+
+  if (last_name_char != '+' && last_name_char != '-')
+    hb_set_clear (layout_features);
+
+  if (0 == strcmp (arg, "*"))
+  {
+    if (last_name_char == '-')
+      hb_set_clear (layout_features);
+    else
+      subset_opts->input->retain_all_layout_features = true;
+    return true;
+  }
+
+  char *s = strtok((char *) arg, ", ");
+  while (s)
+  {
+    if (strlen (s) > 4) // table tags are at most 4 bytes
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                   "Failed parsing table tag values at: '%s'", s);
+      return false;
+    }
+
+    hb_tag_t tag = hb_tag_from_string (s, strlen (s));
+
+    if (last_name_char != '-')
+      hb_set_add (layout_features, tag);
+    else
+      hb_set_del (layout_features, tag);
+
+    s = strtok(nullptr, ", ");
+  }
+
+  return true;
+}
+
+static gboolean
 parse_drop_tables (const char *name,
 		   const char *arg,
 		   gpointer    data,
@@ -247,8 +293,15 @@ subset_options_t::add_options (option_parser_t *parser)
     {"gids", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of comma/whitespace-separated int numbers or ranges"},
     {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->input->desubroutinize,   "Remove CFF/CFF2 use of subroutines",   nullptr},
     {"name-IDs", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-IDs-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-IDs+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
     {"name-legacy", 0, 0, G_OPTION_ARG_NONE,  &this->input->name_legacy,   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
     {"name-languages", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"name-languages-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"name-languages+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"layout-features", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"layout-features+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"layout-features-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
     {"drop-tables", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {"drop-tables+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {"drop-tables-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
