@@ -43,12 +43,14 @@ struct hb_subset_input_t
   hb_set_t *name_ids;
   hb_set_t *name_languages;
   hb_set_t *drop_tables;
+  hb_set_t *layout_features;
 
   bool drop_hints;
   bool desubroutinize;
   bool retain_gids;
   bool name_legacy;
   bool overlaps_flag;
+  bool retain_all_layout_features;
   /* TODO
    *
    * features

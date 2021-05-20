@@ -45,6 +45,7 @@ struct hb_subset_plan_t
   bool retain_gids : 1;
   bool name_legacy : 1;
   bool overlaps_flag : 1;
+  bool retain_all_layout_features : 1;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;
@@ -54,6 +55,9 @@ struct hb_subset_plan_t
 
   // name_languages we would like to retain
   hb_set_t *name_languages;
+
+  //layout features which will be preserved
+  hb_set_t *layout_features;
 
   //glyph ids requested to retain
   hb_set_t *glyphs_requested;
