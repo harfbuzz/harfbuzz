@@ -741,6 +741,8 @@ struct hb_set_t
   }
   bool next (hb_codepoint_t *codepoint) const
   {
+    // TODO: this should be merged with prev() as both implementations
+    //       are very similar.
     if (unlikely (*codepoint == INVALID)) {
       *codepoint = get_min ();
       return *codepoint != INVALID;
@@ -750,7 +752,7 @@ struct hb_set_t
     unsigned int major = get_major (*codepoint);
     unsigned int i = last_page_lookup;
 
-    if (unlikely (i >= page_map.length || (page_map_array[i]).major != major))
+    if (unlikely (i >= page_map.length || page_map_array[i].major != major))
     {
       page_map.bfind (major, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
       if (i >= page_map.length) {
