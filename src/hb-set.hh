@@ -507,9 +507,7 @@ struct hb_set_t
   bool is_subset (const hb_set_t *larger_set) const
   {
     if (unlikely(larger_set->is_empty ()))
-    {
       return is_empty ();
-    }
 
     uint32_t spi = 0;
     for (uint32_t lpi = 0; spi < page_map.length && lpi < larger_set->page_map.length; lpi++)
@@ -520,30 +518,21 @@ struct hb_set_t
       auto lp = larger_set->page_at (lpi);
 
       if (spm < lpm && !sp.is_empty ())
-      {
         return false;
-      }
 
       if (lpm < spm)
-      {
         continue;
-      }
 
       for (int j = 0; j < ARRAY_LENGTH_CONST (sp.v); j++)
-      {
-        if ((~lp.v[j] & sp.v[j]) != 0) { return false; }
-      }
+        if (~lp.v[j] & sp.v[j])
+	  return false;
 
       spi++;
     }
 
     while (spi < page_map.length)
-    {
       if (!page_at (spi++).is_empty ())
-      {
         return false;
-      }
-    }
 
     return true;
   }
