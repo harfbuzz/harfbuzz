@@ -47,6 +47,7 @@ struct hb_set_t
   struct page_map_t
   {
     int cmp (const page_map_t &o) const { return (int) o.major - (int) major; }
+    int cmp (uint32_t o_major) const { return (int) o_major - (int) major; }
 
     uint32_t major;
     uint32_t index;
@@ -749,23 +750,24 @@ struct hb_set_t
       return *codepoint != INVALID;
     }
 
+    const auto* page_map_array = page_map.arrayZ;
     unsigned int major = get_major (*codepoint);
     unsigned int i = last_page_lookup;
 
-    if (unlikely (i >= page_map.length || (page_map.arrayZ[i]).major != major))
+    if (unlikely (i >= page_map.length || (page_map_array[i]).major != major))
     {
-      page_map_t map = {major, 0};
-      page_map.bfind (map, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
+      page_map.bfind (major, &i, HB_BFIND_NOT_FOUND_STORE_CLOSEST);
       if (i >= page_map.length) {
         *codepoint = INVALID;
         return false;
       }
     }
 
-    page_map_t &current = page_map.arrayZ[i];
+    const auto* pages_array = pages.arrayZ;
+    const page_map_t &current = page_map_array[i];
     if (likely (current.major == major))
     {
-      if (pages.arrayZ[current.index].next (codepoint))
+      if (pages_array[current.index].next (codepoint))
       {
         *codepoint += current.major * page_t::PAGE_BITS;
         last_page_lookup = i;
@@ -777,7 +779,7 @@ struct hb_set_t
     for (; i < page_map.length; i++)
     {
       const page_map_t &current = page_map.arrayZ[i];
-      hb_codepoint_t m = pages.arrayZ[current.index].get_min ();
+      hb_codepoint_t m = pages_array[current.index].get_min ();
       if (m != INVALID)
       {
 	*codepoint = current.major * page_t::PAGE_BITS + m;
