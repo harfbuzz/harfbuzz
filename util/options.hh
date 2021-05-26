@@ -679,6 +679,7 @@ struct subset_options_t : option_group_t
   subset_options_t (option_parser_t *parser)
   {
     input = hb_subset_input_create_or_fail ();
+    num_iterations = 1;
     add_options (parser);
   }
 
@@ -689,6 +690,7 @@ struct subset_options_t : option_group_t
 
   void add_options (option_parser_t *parser) override;
 
+  unsigned num_iterations;
   hb_subset_input_t *input;
 };
 

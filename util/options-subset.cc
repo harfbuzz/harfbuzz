@@ -252,6 +252,9 @@ subset_options_t::add_options (option_parser_t *parser)
     {"drop-tables", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {"drop-tables+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {"drop-tables-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
+    {"num-iterations", 'n', 0, G_OPTION_ARG_INT,
+     &this->num_iterations,
+     "Run subsetter N times (default: 1)", "N"},
 
     {nullptr}
   };
