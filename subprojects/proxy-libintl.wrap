@@ -1,5 +1,0 @@
-[wrap-git]
-directory=proxy-libintl
-url=https://github.com/frida/proxy-libintl.git
-depth=1
-revision=50bd2525261d44d80533a523873b9344a6d741c5
