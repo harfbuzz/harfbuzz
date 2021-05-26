@@ -57,7 +57,7 @@ struct hb_set_t
     void init0 () { v.clear (); }
     void init1 () { v.clear (0xFF); }
 
-    unsigned int len () const
+    constexpr unsigned len () const
     { return ARRAY_LENGTH_CONST (v); }
 
     bool is_empty () const
@@ -70,7 +70,7 @@ struct hb_set_t
 
     void add (hb_codepoint_t g) { elt (g) |= mask (g); }
     void del (hb_codepoint_t g) { elt (g) &= ~mask (g); }
-    bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
+    constexpr bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
 
     void add_range (hb_codepoint_t a, hb_codepoint_t b)
     {
