@@ -106,9 +106,16 @@ struct hb_set_t
       }
     }
 
-    bool is_equal (const page_t *other) const
+    bool is_equal (const page_t &other) const
     {
-      return 0 == hb_memcmp (&v, &other->v, sizeof (v));
+      return 0 == hb_memcmp (&v, &other.v, sizeof (v));
+    }
+    bool is_subset (const page_t &larger_page) const
+    {
+      for (unsigned i = 0; i < len (); i++)
+        if (~larger_page.v[i] & v[i])
+	  return false;
+      return true;
     }
 
     unsigned int get_population () const
@@ -491,7 +498,7 @@ struct hb_set_t
       if (page_at (a).is_empty ()) { a++; continue; }
       if (other->page_at (b).is_empty ()) { b++; continue; }
       if (page_map[a].major != other->page_map[b].major ||
-	  !page_at (a).is_equal (&other->page_at (b)))
+	  !page_at (a).is_equal (other->page_at (b)))
 	return false;
       a++;
       b++;
@@ -523,9 +530,8 @@ struct hb_set_t
       if (lpm < spm)
         continue;
 
-      for (int j = 0; j < ARRAY_LENGTH_CONST (sp.v); j++)
-        if (~lp.v[j] & sp.v[j])
-	  return false;
+      if (!sp.is_subset (lp))
+        return false;
 
       spi++;
     }
