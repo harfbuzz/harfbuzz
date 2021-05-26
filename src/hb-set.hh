@@ -513,6 +513,7 @@ struct hb_set_t
 
   bool is_subset (const hb_set_t *larger_set) const
   {
+    /* TODO: Merge this and is_equal() into something like process(). */
     if (unlikely(larger_set->is_empty ()))
       return is_empty ();
 
