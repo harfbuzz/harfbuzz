@@ -19,7 +19,6 @@ EXTRA_DIST = \
 	replace-enum-strings.cmake \
 	meson.build \
 	meson_options.txt \
-	subprojects/expat.wrap \
 	subprojects/freetype2.wrap \
 	subprojects/glib.wrap \
 	subprojects/libffi.wrap \
