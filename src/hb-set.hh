@@ -210,8 +210,8 @@ struct hb_set_t
     static_assert ((unsigned) PAGE_BITS == (unsigned) BITS, "");
 
     elt_t &elt (hb_codepoint_t g) { return v[(g & MASK) / ELT_BITS]; }
-    elt_t const &elt (hb_codepoint_t g) const { return v[(g & MASK) / ELT_BITS]; }
-    elt_t mask (hb_codepoint_t g) const { return elt_t (1) << (g & ELT_MASK); }
+    constexpr elt_t const &elt (hb_codepoint_t g) const { return v[(g & MASK) / ELT_BITS]; }
+    static constexpr elt_t mask (hb_codepoint_t g) { return elt_t (1) << (g & ELT_MASK); }
 
     vector_t v;
   };
