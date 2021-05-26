@@ -70,7 +70,7 @@ struct hb_set_t
 
     void add (hb_codepoint_t g) { elt (g) |= mask (g); }
     void del (hb_codepoint_t g) { elt (g) &= ~mask (g); }
-    constexpr bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
+    bool get (hb_codepoint_t g) const { return elt (g) & mask (g); }
 
     void add_range (hb_codepoint_t a, hb_codepoint_t b)
     {
@@ -210,7 +210,7 @@ struct hb_set_t
     static_assert ((unsigned) PAGE_BITS == (unsigned) BITS, "");
 
     elt_t &elt (hb_codepoint_t g) { return v[(g & MASK) / ELT_BITS]; }
-    constexpr elt_t const &elt (hb_codepoint_t g) const { return v[(g & MASK) / ELT_BITS]; }
+    const elt_t& elt (hb_codepoint_t g) const { return v[(g & MASK) / ELT_BITS]; }
     static constexpr elt_t mask (hb_codepoint_t g) { return elt_t (1) << (g & ELT_MASK); }
 
     vector_t v;
