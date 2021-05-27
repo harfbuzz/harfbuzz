@@ -107,6 +107,7 @@ _try_subset (const TableType *table,
              hb_subset_context_t* c /* OUT */)
 {
   c->serializer->start_serialize<TableType> ();
+  if (c->serializer->in_error ()) return false;
 
   bool needed = table->subset (c);
   if (!c->serializer->ran_out_of_room ())
