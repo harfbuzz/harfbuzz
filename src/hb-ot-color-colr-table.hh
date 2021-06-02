@@ -775,15 +775,15 @@ struct BaseGlyphV1Record
     return_trace (out->paint.serialize_subset (c, paint, src_base));
   }
 
-  bool sanitize (hb_sanitize_context_t *c) const
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this) && paint.sanitize (c, this)));
+    return_trace (likely (c->check_struct (this) && paint.sanitize (c, base)));
   }
 
   public:
   HBGlyphID		glyphId;    /* Glyph ID of reference glyph */
-  Offset32To<Paint>	paint;      /* Offset (from beginning of BaseGlyphV1Record) to Paint,
+  Offset32To<Paint>	paint;      /* Offset (from beginning of BaseGlyphV1Record array) to Paint,
                                      * Typically PaintColrLayers */
   public:
   DEFINE_SIZE_STATIC (6);
@@ -808,6 +808,12 @@ struct BaseGlyphV1List : SortedArray32Of<BaseGlyphV1Record>
     }
 
     return_trace (out->len != 0);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (SortedArray32Of<BaseGlyphV1Record>::sanitize (c, this));
   }
 };
 
