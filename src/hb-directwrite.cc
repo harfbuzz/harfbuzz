@@ -552,13 +552,12 @@ protected:
  * shaper
  */
 
-static hb_bool_t
-_hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
-			    hb_font_t          *font,
-			    hb_buffer_t        *buffer,
-			    const hb_feature_t *features,
-			    unsigned int        num_features,
-			    float               lineWidth)
+hb_bool_t
+_hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
+		       hb_font_t          *font,
+		       hb_buffer_t        *buffer,
+		       const hb_feature_t *features,
+		       unsigned int        num_features)
 {
   hb_face_t *face = font->face;
   const hb_directwrite_face_data_t *face_data = face->data.directwrite;
@@ -725,91 +724,6 @@ retry_getglyphs:
   if (FAILED (hr))
     FAIL ("Analyzer failed to get glyph placements.");
 
-  IDWriteTextAnalyzer1* analyzer1;
-  analyzer->QueryInterface (&analyzer1);
-
-  if (analyzer1 && lineWidth)
-  {
-    DWRITE_JUSTIFICATION_OPPORTUNITY* justificationOpportunities =
-      new DWRITE_JUSTIFICATION_OPPORTUNITY[maxGlyphCount];
-    hr = analyzer1->GetJustificationOpportunities (fontFace, fontEmSize, runHead->mScript,
-						   textLength, glyphCount, textString,
-						   clusterMap, glyphProperties,
-						   justificationOpportunities);
-
-    if (FAILED (hr))
-      FAIL ("Analyzer failed to get justification opportunities.");
-
-    float* justifiedGlyphAdvances = new float[maxGlyphCount];
-    DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = new DWRITE_GLYPH_OFFSET[glyphCount];
-    hr = analyzer1->JustifyGlyphAdvances (lineWidth, glyphCount, justificationOpportunities,
-					  glyphAdvances, glyphOffsets, justifiedGlyphAdvances,
-					  justifiedGlyphOffsets);
-
-    if (FAILED (hr)) FAIL ("Analyzer failed to get justify glyph advances.");
-
-    DWRITE_SCRIPT_PROPERTIES scriptProperties;
-    hr = analyzer1->GetScriptProperties (runHead->mScript, &scriptProperties);
-    if (FAILED (hr)) FAIL ("Analyzer failed to get script properties.");
-    uint32_t justificationCharacter = scriptProperties.justificationCharacter;
-
-    // if a script justificationCharacter is not space, it can have GetJustifiedGlyphs
-    if (justificationCharacter != 32)
-    {
-      uint16_t* modifiedClusterMap = new uint16_t[textLength];
-    retry_getjustifiedglyphs:
-      uint16_t* modifiedGlyphIndices = new uint16_t[maxGlyphCount];
-      float* modifiedGlyphAdvances = new float[maxGlyphCount];
-      DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = new DWRITE_GLYPH_OFFSET[maxGlyphCount];
-      uint32_t actualGlyphsCount;
-      hr = analyzer1->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
-					  textLength, glyphCount, maxGlyphCount,
-					  clusterMap, glyphIndices, glyphAdvances,
-					  justifiedGlyphAdvances, justifiedGlyphOffsets,
-					  glyphProperties, &actualGlyphsCount,
-					  modifiedClusterMap, modifiedGlyphIndices,
-					  modifiedGlyphAdvances, modifiedGlyphOffsets);
-
-      if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
-      {
-	maxGlyphCount = actualGlyphsCount;
-	delete [] modifiedGlyphIndices;
-	delete [] modifiedGlyphAdvances;
-	delete [] modifiedGlyphOffsets;
-
-	maxGlyphCount = actualGlyphsCount;
-
-	goto retry_getjustifiedglyphs;
-      }
-      if (FAILED (hr))
-	FAIL ("Analyzer failed to get justified glyphs.");
-
-      delete [] clusterMap;
-      delete [] glyphIndices;
-      delete [] glyphAdvances;
-      delete [] glyphOffsets;
-
-      glyphCount = actualGlyphsCount;
-      clusterMap = modifiedClusterMap;
-      glyphIndices = modifiedGlyphIndices;
-      glyphAdvances = modifiedGlyphAdvances;
-      glyphOffsets = modifiedGlyphOffsets;
-
-      delete [] justifiedGlyphAdvances;
-      delete [] justifiedGlyphOffsets;
-    }
-    else
-    {
-      delete [] glyphAdvances;
-      delete [] glyphOffsets;
-
-      glyphAdvances = justifiedGlyphAdvances;
-      glyphOffsets = justifiedGlyphOffsets;
-    }
-
-    delete [] justificationOpportunities;
-  }
-
   /* Ok, we've got everything we need, now compose output buffer,
    * very, *very*, carefully! */
 
@@ -875,36 +789,6 @@ retry_getglyphs:
 
   /* Wow, done! */
   return true;
-}
-
-hb_bool_t
-_hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
-		       hb_font_t          *font,
-		       hb_buffer_t        *buffer,
-		       const hb_feature_t *features,
-		       unsigned int        num_features)
-{
-  return _hb_directwrite_shape_full (shape_plan, font, buffer,
-				     features, num_features, 0);
-}
-
-HB_UNUSED static bool
-_hb_directwrite_shape_experimental_width (hb_font_t          *font,
-					  hb_buffer_t        *buffer,
-					  const hb_feature_t *features,
-					  unsigned int        num_features,
-					  float               width)
-{
-  static const char *shapers = "directwrite";
-  hb_shape_plan_t *shape_plan;
-  shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props,
-					    features, num_features, &shapers);
-  hb_bool_t res = _hb_directwrite_shape_full (shape_plan, font, buffer,
-					      features, num_features, width);
-
-  buffer->unsafe_to_break_all ();
-
-  return res;
 }
 
 struct _hb_directwrite_font_table_context {
