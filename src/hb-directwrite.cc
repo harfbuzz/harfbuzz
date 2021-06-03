@@ -49,16 +49,6 @@ typedef HRESULT (* WINAPI t_DWriteCreateFactory)(
   IUnknown            **factory
 );
 
-/*
- * hb-directwrite uses new/delete syntatically but as we let users
- * to override malloc/free, we will redefine new/delete so users
- * won't need to do that by their own.
- */
-void* operator new (size_t size)        { return malloc (size); }
-void* operator new [] (size_t size)     { return malloc (size); }
-void operator delete (void* pointer)    { free (pointer); }
-void operator delete [] (void* pointer) { free (pointer); }
-
 
 /*
  * DirectWrite font stream helpers
@@ -801,7 +791,7 @@ _hb_directwrite_table_data_release (void *data)
 {
   _hb_directwrite_font_table_context *context = (_hb_directwrite_font_table_context *) data;
   context->face->ReleaseFontTable (context->table_context);
-  delete context;
+  free (context);
 }
 
 static hb_blob_t *
@@ -822,7 +812,7 @@ _hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *
     return nullptr;
   }
 
-  _hb_directwrite_font_table_context *context = new _hb_directwrite_font_table_context;
+  _hb_directwrite_font_table_context *context = (_hb_directwrite_font_table_context *) malloc (sizeof (_hb_directwrite_font_table_context));
   context->face = dw_face;
   context->table_context = table_context;
 
