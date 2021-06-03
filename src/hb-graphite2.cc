@@ -128,7 +128,8 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
     return nullptr;
 
   data->face = face;
-  data->grface = gr_make_face (data, &hb_graphite2_get_table, gr_face_preloadAll);
+  const gr_face_ops ops = {sizeof(gr_face_ops), &hb_graphite2_get_table, NULL};
+  data->grface = gr_make_face_with_ops (data, &ops, gr_face_preloadAll);
 
   if (unlikely (!data->grface)) {
     free (data);
