@@ -37,6 +37,9 @@
  */
 #define HB_OT_TAG_COLR HB_TAG('C','O','L','R')
 
+#ifndef COLRV1_MAX_NESTING_LEVEL
+#define COLRV1_MAX_NESTING_LEVEL	100
+#endif
 
 namespace OT {
 
@@ -47,10 +50,15 @@ struct hb_colrv1_closure_context_t :
   template <typename T>
   return_t dispatch (const T &obj)
   {
+    if (unlikely (nesting_level_left == 0))
+      return hb_empty_t ();
+
     if (paint_visited (&obj))
       return hb_empty_t ();
 
+    nesting_level_left--;
     obj.closurev1 (this);
+    nesting_level_left++;
     return hb_empty_t ();
   }
   static return_t default_return_value () { return hb_empty_t (); }
@@ -83,15 +91,18 @@ struct hb_colrv1_closure_context_t :
   hb_set_t *glyphs;
   hb_set_t *layer_indices;
   hb_set_t *palette_indices;
+  unsigned nesting_level_left;
 
   hb_colrv1_closure_context_t (const void *base_,
                                hb_set_t *glyphs_,
                                hb_set_t *layer_indices_,
-                               hb_set_t *palette_indices_) :
+                               hb_set_t *palette_indices_,
+                               unsigned nesting_level_left_ = COLRV1_MAX_NESTING_LEVEL) :
                           base (base_),
                           glyphs (glyphs_),
                           layer_indices (layer_indices_),
-                          palette_indices (palette_indices_)
+                          palette_indices (palette_indices_),
+                          nesting_level_left (nesting_level_left_)
   {}
 };
 
