@@ -2,9 +2,9 @@ name: linux-ci
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
     - name: generate documentations
       run: ninja -Cbuild harfbuzz-doc
     - name: deploy documentations
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: .ci/deploy-docs.sh
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}
