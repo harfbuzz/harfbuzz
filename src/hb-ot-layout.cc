@@ -144,7 +144,7 @@ bool
 OT::GDEF::is_blocklisted (hb_blob_t *blob,
 			  hb_face_t *face) const
 {
-#ifdef HB_NO_OT_LAYOUT_BLACKLIST
+#ifdef HB_NO_OT_LAYOUT_BLOCKLIST
   return false;
 #endif
   /* The ugly business of blocklisting individual fonts' tables happen here!
@@ -383,7 +383,7 @@ bool
 OT::GSUB::is_blocklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face) const
 {
-#ifdef HB_NO_OT_LAYOUT_BLACKLIST
+#ifdef HB_NO_OT_LAYOUT_BLOCKLIST
   return false;
 #endif
   return false;
@@ -393,7 +393,7 @@ bool
 OT::GPOS::is_blocklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face HB_UNUSED) const
 {
-#ifdef HB_NO_OT_LAYOUT_BLACKLIST
+#ifdef HB_NO_OT_LAYOUT_BLOCKLIST
   return false;
 #endif
   return false;
