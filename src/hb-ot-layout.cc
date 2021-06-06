@@ -131,7 +131,9 @@ hb_ot_layout_kern (const hb_ot_shape_plan_t *plan,
 
   AAT::hb_aat_apply_context_t c (plan, font, buffer, blob);
 
+  if (!buffer->message (font, "start table kern")) return;
   kern.apply (&c);
+  (void) buffer->message (font, "end table kern");
 }
 #endif
 
