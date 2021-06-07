@@ -42,24 +42,6 @@
  * Functions for using HarfBuzz with DirectWrite fonts.
  **/
 
-/* Declare object creator for dynamic support of DWRITE */
-typedef HRESULT (* WINAPI t_DWriteCreateFactory)(
-  DWRITE_FACTORY_TYPE factoryType,
-  REFIID              iid,
-  IUnknown            **factory
-);
-
-/*
- * hb-directwrite uses new/delete syntatically but as we let users
- * to override malloc/free, we will redefine new/delete so users
- * won't need to do that by their own.
- */
-void* operator new (size_t size)        { return malloc (size); }
-void* operator new [] (size_t size)     { return malloc (size); }
-void operator delete (void* pointer)    { free (pointer); }
-void operator delete [] (void* pointer) { free (pointer); }
-
-
 /*
  * DirectWrite font stream helpers
  */
@@ -154,7 +136,6 @@ public:
 
 struct hb_directwrite_face_data_t
 {
-  HMODULE dwrite_dll;
   IDWriteFactory *dwriteFactory;
   IDWriteFontFile *fontFile;
   DWriteFontFileStream *fontFileStream;
@@ -176,33 +157,12 @@ _hb_directwrite_shaper_face_data_create (hb_face_t *face)
     return nullptr; \
   } HB_STMT_END
 
-  data->dwrite_dll = LoadLibrary (TEXT ("DWRITE"));
-  if (unlikely (!data->dwrite_dll))
-    FAIL ("Cannot find DWrite.DLL");
-
-  t_DWriteCreateFactory p_DWriteCreateFactory;
-
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-function-type"
-#endif
-
-  p_DWriteCreateFactory = (t_DWriteCreateFactory)
-			  GetProcAddress (data->dwrite_dll, "DWriteCreateFactory");
-
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
-
-  if (unlikely (!p_DWriteCreateFactory))
-    FAIL ("Cannot find DWriteCreateFactory().");
-
   HRESULT hr;
 
   // TODO: factory and fontFileLoader should be cached separately
   IDWriteFactory* dwriteFactory;
-  hr = p_DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
-			      (IUnknown**) &dwriteFactory);
+  hr = DWriteCreateFactory (DWRITE_FACTORY_TYPE_SHARED, __uuidof (IDWriteFactory),
+			    (IUnknown**) &dwriteFactory);
 
   if (unlikely (hr != S_OK))
     FAIL ("Failed to run DWriteCreateFactory().");
@@ -266,8 +226,6 @@ _hb_directwrite_shaper_face_data_destroy (hb_directwrite_face_data_t *data)
     delete data->fontFileStream;
   if (data->faceBlob)
     hb_blob_destroy (data->faceBlob);
-  if (data->dwrite_dll)
-    FreeLibrary (data->dwrite_dll);
   if (data)
     delete data;
 }
@@ -552,13 +510,12 @@ protected:
  * shaper
  */
 
-static hb_bool_t
-_hb_directwrite_shape_full (hb_shape_plan_t    *shape_plan,
-			    hb_font_t          *font,
-			    hb_buffer_t        *buffer,
-			    const hb_feature_t *features,
-			    unsigned int        num_features,
-			    float               lineWidth)
+hb_bool_t
+_hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
+		       hb_font_t          *font,
+		       hb_buffer_t        *buffer,
+		       const hb_feature_t *features,
+		       unsigned int        num_features)
 {
   hb_face_t *face = font->face;
   const hb_directwrite_face_data_t *face_data = face->data.directwrite;
@@ -725,91 +682,6 @@ retry_getglyphs:
   if (FAILED (hr))
     FAIL ("Analyzer failed to get glyph placements.");
 
-  IDWriteTextAnalyzer1* analyzer1;
-  analyzer->QueryInterface (&analyzer1);
-
-  if (analyzer1 && lineWidth)
-  {
-    DWRITE_JUSTIFICATION_OPPORTUNITY* justificationOpportunities =
-      new DWRITE_JUSTIFICATION_OPPORTUNITY[maxGlyphCount];
-    hr = analyzer1->GetJustificationOpportunities (fontFace, fontEmSize, runHead->mScript,
-						   textLength, glyphCount, textString,
-						   clusterMap, glyphProperties,
-						   justificationOpportunities);
-
-    if (FAILED (hr))
-      FAIL ("Analyzer failed to get justification opportunities.");
-
-    float* justifiedGlyphAdvances = new float[maxGlyphCount];
-    DWRITE_GLYPH_OFFSET* justifiedGlyphOffsets = new DWRITE_GLYPH_OFFSET[glyphCount];
-    hr = analyzer1->JustifyGlyphAdvances (lineWidth, glyphCount, justificationOpportunities,
-					  glyphAdvances, glyphOffsets, justifiedGlyphAdvances,
-					  justifiedGlyphOffsets);
-
-    if (FAILED (hr)) FAIL ("Analyzer failed to get justify glyph advances.");
-
-    DWRITE_SCRIPT_PROPERTIES scriptProperties;
-    hr = analyzer1->GetScriptProperties (runHead->mScript, &scriptProperties);
-    if (FAILED (hr)) FAIL ("Analyzer failed to get script properties.");
-    uint32_t justificationCharacter = scriptProperties.justificationCharacter;
-
-    // if a script justificationCharacter is not space, it can have GetJustifiedGlyphs
-    if (justificationCharacter != 32)
-    {
-      uint16_t* modifiedClusterMap = new uint16_t[textLength];
-    retry_getjustifiedglyphs:
-      uint16_t* modifiedGlyphIndices = new uint16_t[maxGlyphCount];
-      float* modifiedGlyphAdvances = new float[maxGlyphCount];
-      DWRITE_GLYPH_OFFSET* modifiedGlyphOffsets = new DWRITE_GLYPH_OFFSET[maxGlyphCount];
-      uint32_t actualGlyphsCount;
-      hr = analyzer1->GetJustifiedGlyphs (fontFace, fontEmSize, runHead->mScript,
-					  textLength, glyphCount, maxGlyphCount,
-					  clusterMap, glyphIndices, glyphAdvances,
-					  justifiedGlyphAdvances, justifiedGlyphOffsets,
-					  glyphProperties, &actualGlyphsCount,
-					  modifiedClusterMap, modifiedGlyphIndices,
-					  modifiedGlyphAdvances, modifiedGlyphOffsets);
-
-      if (hr == HRESULT_FROM_WIN32 (ERROR_INSUFFICIENT_BUFFER))
-      {
-	maxGlyphCount = actualGlyphsCount;
-	delete [] modifiedGlyphIndices;
-	delete [] modifiedGlyphAdvances;
-	delete [] modifiedGlyphOffsets;
-
-	maxGlyphCount = actualGlyphsCount;
-
-	goto retry_getjustifiedglyphs;
-      }
-      if (FAILED (hr))
-	FAIL ("Analyzer failed to get justified glyphs.");
-
-      delete [] clusterMap;
-      delete [] glyphIndices;
-      delete [] glyphAdvances;
-      delete [] glyphOffsets;
-
-      glyphCount = actualGlyphsCount;
-      clusterMap = modifiedClusterMap;
-      glyphIndices = modifiedGlyphIndices;
-      glyphAdvances = modifiedGlyphAdvances;
-      glyphOffsets = modifiedGlyphOffsets;
-
-      delete [] justifiedGlyphAdvances;
-      delete [] justifiedGlyphOffsets;
-    }
-    else
-    {
-      delete [] glyphAdvances;
-      delete [] glyphOffsets;
-
-      glyphAdvances = justifiedGlyphAdvances;
-      glyphOffsets = justifiedGlyphOffsets;
-    }
-
-    delete [] justificationOpportunities;
-  }
-
   /* Ok, we've got everything we need, now compose output buffer,
    * very, *very*, carefully! */
 
@@ -877,36 +749,6 @@ retry_getglyphs:
   return true;
 }
 
-hb_bool_t
-_hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
-		       hb_font_t          *font,
-		       hb_buffer_t        *buffer,
-		       const hb_feature_t *features,
-		       unsigned int        num_features)
-{
-  return _hb_directwrite_shape_full (shape_plan, font, buffer,
-				     features, num_features, 0);
-}
-
-HB_UNUSED static bool
-_hb_directwrite_shape_experimental_width (hb_font_t          *font,
-					  hb_buffer_t        *buffer,
-					  const hb_feature_t *features,
-					  unsigned int        num_features,
-					  float               width)
-{
-  static const char *shapers = "directwrite";
-  hb_shape_plan_t *shape_plan;
-  shape_plan = hb_shape_plan_create_cached (font->face, &buffer->props,
-					    features, num_features, &shapers);
-  hb_bool_t res = _hb_directwrite_shape_full (shape_plan, font, buffer,
-					      features, num_features, width);
-
-  buffer->unsafe_to_break_all ();
-
-  return res;
-}
-
 struct _hb_directwrite_font_table_context {
   IDWriteFontFace *face;
   void *table_context;
@@ -917,7 +759,7 @@ _hb_directwrite_table_data_release (void *data)
 {
   _hb_directwrite_font_table_context *context = (_hb_directwrite_font_table_context *) data;
   context->face->ReleaseFontTable (context->table_context);
-  delete context;
+  free (context);
 }
 
 static hb_blob_t *
@@ -938,7 +780,7 @@ _hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *
     return nullptr;
   }
 
-  _hb_directwrite_font_table_context *context = new _hb_directwrite_font_table_context;
+  _hb_directwrite_font_table_context *context = (_hb_directwrite_font_table_context *) malloc (sizeof (_hb_directwrite_font_table_context));
   context->face = dw_face;
   context->table_context = table_context;
 
