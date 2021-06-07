@@ -106,9 +106,9 @@ DEFINE_NULL_INSTANCE (hb_face_t) =
  * convenient to provide data for individual tables instead of the whole font
  * data. With the caveat that hb_face_get_table_tags() does not currently work
  * with faces created this way.
- * 
+ *
  * Creates a new face object from the specified @user_data and @reference_table_func,
- * with the @destroy callback. 
+ * with the @destroy callback.
  *
  * Return value: (transfer full): The new face object
  *
@@ -265,7 +265,7 @@ hb_face_reference (hb_face_t *face)
 /**
  * hb_face_destroy: (skip)
  * @face: A face object
- * 
+ *
  * Decreases the reference count on a face object. When the
  * reference count reaches zero, the face is destroyed,
  * freeing all memory.
@@ -302,7 +302,7 @@ hb_face_destroy (hb_face_t *face)
  * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
- * Attaches a user-data key/data pair to the given face object. 
+ * Attaches a user-data key/data pair to the given face object.
  *
  * Return value: %true if success, %false otherwise
  *
@@ -441,7 +441,7 @@ hb_face_set_index (hb_face_t    *face,
  *
  * <note>Note: face indices within a collection are zero-based.</note>
  *
- * Return value: The index of @face. 
+ * Return value: The index of @face.
  *
  * Since: 0.9.2
  **/
