@@ -16,6 +16,7 @@ cp ../build/docs/html/* .
 #cp ../build/docs/CNAME .
 
 git init
+git branch -m main
 git config user.name "Travis CI"
 git config user.email "travis@harfbuzz.org"
 set +x
