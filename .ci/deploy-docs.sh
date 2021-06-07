@@ -29,7 +29,7 @@ git reset upstream/main
 touch .
 git add -A .
 
-if [[ $(git status -s) ]]; then
+#if [[ $(git status -s) ]]; then
   git commit -m "Rebuild docs for https://github.com/harfbuzz/harfbuzz/commit/$REVISION"
   git push -q upstream HEAD:main
-fi
+#fi
