@@ -39,6 +39,15 @@ HB_BEGIN_DECLS
 
 typedef struct hb_subset_input_t hb_subset_input_t;
 
+enum hb_subset_property_t
+{
+  HB_SUBSET_PROPERTY_HINTING =           1,
+  HB_SUBSET_PROPERTY_RETAIN_GIDS =       2,
+  HB_SUBSET_PROPERTY_DESUBROUTINIZE =    3,
+  HB_SUBSET_PROPERTY_NAME_LEGACY =       4,
+  HB_SUBSET_PROPERTY_SET_OVERLAPS_FLAG = 5,
+};
+
 HB_EXTERN hb_subset_input_t *
 hb_subset_input_create_or_fail (void);
 
@@ -71,6 +80,15 @@ hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input);
 
 HB_EXTERN hb_set_t *
 hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input);
+
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_bool (hb_subset_property_t property);
+
+HB_EXTERN void
+hb_subset_input_set_bool (hb_subset_property_t property, hb_bool_t value);
+
+// TODO(garretrieger): remove bool property get/set methods.
 
 HB_EXTERN void
 hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,

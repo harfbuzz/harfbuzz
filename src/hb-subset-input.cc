@@ -276,6 +276,21 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input)
   return subset_input->drop_tables;
 }
 
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_bool (hb_subset_property_t property)
+{
+  // TODO(garretrieger): implement.
+  return false;
+}
+
+HB_EXTERN void
+hb_subset_input_set_bool (hb_subset_property_t property, hb_bool_t value)
+{
+  // TODO(garretrieger): implement.
+}
+
+
 HB_EXTERN void
 hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
 				hb_bool_t drop_hints)
