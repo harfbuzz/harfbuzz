@@ -400,6 +400,13 @@ _nameid_closure (hb_face_t *face,
 #endif
 }
 
+static hb_set_t* copy (const hb_set_t* other)
+{
+  hb_set_t* set = hb_set_create ();
+  set->set (other);
+  return set;
+}
+
 /**
  * hb_subset_plan_create:
  * Computes a plan for subsetting the supplied face according
@@ -412,7 +419,7 @@ _nameid_closure (hb_face_t *face,
  **/
 hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t         *face,
-		       hb_subset_input_t *input)
+		       const hb_subset_input_t *input)
 {
   hb_subset_plan_t *plan;
   if (unlikely (!(plan = hb_object_create<hb_subset_plan_t> ())))
@@ -428,12 +435,12 @@ hb_subset_plan_create (hb_face_t         *face,
   plan->prune_unicode_ranges = !input->no_prune_unicode_ranges;
   plan->retain_all_layout_features = input->retain_all_layout_features;
   plan->unicodes = hb_set_create ();
-  plan->name_ids = hb_set_reference (input->name_ids);
+  plan->name_ids = copy (plan->name_ids);
   _nameid_closure (face, plan->name_ids);
-  plan->name_languages = hb_set_reference (input->name_languages);
-  plan->layout_features = hb_set_reference (input->layout_features);
-  plan->glyphs_requested = hb_set_reference (input->glyphs);
-  plan->drop_tables = hb_set_reference (input->drop_tables);
+  plan->name_languages = copy (input->name_languages);
+  plan->layout_features = copy (input->layout_features);
+  plan->glyphs_requested = copy (input->glyphs);
+  plan->drop_tables = copy (input->drop_tables);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 

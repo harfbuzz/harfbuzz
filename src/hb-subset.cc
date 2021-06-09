@@ -303,7 +303,7 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
  * Subsets a font according to provided input.
  **/
 hb_face_t *
-hb_subset (hb_face_t *source, hb_subset_input_t *input)
+hb_subset (hb_face_t *source, const hb_subset_input_t *input)
 {
   if (unlikely (!input || !source)) return hb_face_get_empty ();
 
