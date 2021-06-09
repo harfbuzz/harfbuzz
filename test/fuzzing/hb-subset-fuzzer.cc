@@ -17,7 +17,7 @@ trySubset (hb_face_t *face,
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   if (!input) return;
-  hb_subset_input_set_drop_hints (input, drop_hints);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, !drop_hints);
   hb_subset_input_set_retain_gids (input, retain_gids);
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
 

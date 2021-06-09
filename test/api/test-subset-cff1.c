@@ -80,7 +80,7 @@ test_subset_cff1_strip_hints (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -126,7 +126,7 @@ test_subset_cff1_desubr_strip_hints (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
   hb_subset_input_set_desubroutinize (input, true);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
@@ -170,7 +170,7 @@ test_subset_cff1_j_strip_hints (void)
   hb_set_add (codepoints, 0x41);
   hb_set_add (codepoints, 0x4C2E);
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
   face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
   hb_set_destroy (codepoints);
 
@@ -216,7 +216,7 @@ test_subset_cff1_j_desubr_strip_hints (void)
   hb_set_add (codepoints, 0x41);
   hb_set_add (codepoints, 0x4C2E);
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
   hb_subset_input_set_desubroutinize (input, true);
   face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
   hb_set_destroy (codepoints);
@@ -279,7 +279,7 @@ test_subset_cff1_dotsection (void)
   hb_face_t *face_test;
   hb_set_add (codepoints, 0x69);  /* i */
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
   face_test = hb_subset_test_create_subset (face, input);
   hb_set_destroy (codepoints);
 

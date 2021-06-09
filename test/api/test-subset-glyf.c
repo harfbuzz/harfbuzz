@@ -239,7 +239,7 @@ test_subset_glyf_strip_hints_simple (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -263,7 +263,7 @@ test_subset_glyf_strip_hints_composite (void)
   hb_face_t *face_generated_subset;
   hb_set_add (codepoints, 0x1fc);
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
 
   face_generated_subset = hb_subset_test_create_subset (face_components, input);
   hb_set_destroy (codepoints);
@@ -298,7 +298,7 @@ test_subset_glyf_strip_hints_invalid (void)
   }
 
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_drop_hints (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
   hb_set_destroy (codepoints);
 
   face_subset = hb_subset_test_create_subset (face, input);
