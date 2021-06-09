@@ -378,3 +378,45 @@ hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input)
   return subset_input->no_prune_unicode_ranges;
 }
 
+/**
+ * hb_subset_input_set_user_data: (skip)
+ * @face: A subset input object
+ * @key: The user-data key to set
+ * @data: A pointer to the user data
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
+ * @replace: Whether to replace an existing data with the same key
+ *
+ * Attaches a user-data key/data pair to the given subset input object.
+ *
+ * Return value: %true if success, %false otherwise
+ *
+ * Since: REPLACE
+ **/
+hb_bool_t
+hb_subset_input_set_user_data (hb_subset_input_t  *input,
+                               hb_user_data_key_t *key,
+                               void *              data,
+                               hb_destroy_func_t   destroy,
+                               hb_bool_t           replace)
+{
+  return hb_object_set_user_data (input, key, data, destroy, replace);
+}
+
+/**
+ * hb_subset_input_get_user_data: (skip)
+ * @face: A subset input object
+ * @key: The user-data key to query
+ *
+ * Fetches the user data associated with the specified key,
+ * attached to the specified subset input object.
+ *
+ * Return value: (transfer none): A pointer to the user data
+ *
+ * Since: REPLACE
+ **/
+void *
+hb_subset_input_get_user_data (const hb_subset_input_t *input,
+                               hb_user_data_key_t     *key)
+{
+  return hb_object_get_user_data (input, key);
+}
