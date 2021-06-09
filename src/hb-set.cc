@@ -186,7 +186,7 @@ hb_set_t *
 hb_set_copy (const hb_set_t *set)
 {
   hb_set_t *copy = hb_set_create ();
-  copy->set (set);
+  copy->set (*set);
   return copy;
 }
 
