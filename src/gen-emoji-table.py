@@ -61,7 +61,7 @@ for typ, s in ranges.items():
 
 	arr = dict()
 	for start,end in s:
-		for i in range(start,end):
+		for i in range(start, end + 1):
 			arr[i] = 1
 
 	sol = packTab.pack_table(arr, 0, compression=3)
