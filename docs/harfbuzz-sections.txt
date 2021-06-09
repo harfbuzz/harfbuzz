@@ -599,6 +599,7 @@ HB_SET_VALUE_INVALID
 hb_set_add
 hb_set_add_range
 hb_set_allocation_successful
+hb_set_copy
 hb_set_clear
 hb_set_create
 hb_set_del
