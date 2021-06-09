@@ -55,6 +55,7 @@ hb_subset_input_create_or_fail ()
   input->retain_gids = false;
   input->name_legacy = false;
   input->overlaps_flag = false;
+  input->notdef_outline = false;
   input->retain_all_layout_features = false;
 
   hb_tag_t default_drop_tables[] = {
@@ -349,3 +350,17 @@ hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input)
 {
   return subset_input->overlaps_flag;
 }
+
+HB_EXTERN void
+hb_subset_input_set_notdef_outline (hb_subset_input_t *subset_input,
+                                    hb_bool_t notdef_outline)
+{
+  subset_input->notdef_outline = notdef_outline;
+}
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_notdef_outline (hb_subset_input_t *subset_input)
+{
+  return subset_input->notdef_outline;
+}
+
