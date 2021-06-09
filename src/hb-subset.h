@@ -96,12 +96,6 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
 
 
 HB_EXTERN void
-hb_subset_input_set_desubroutinize (hb_subset_input_t *subset_input,
-				    hb_bool_t desubroutinize);
-HB_EXTERN hb_bool_t
-hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input);
-
-HB_EXTERN void
 hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
 				 hb_bool_t retain_gids);
 HB_EXTERN hb_bool_t
