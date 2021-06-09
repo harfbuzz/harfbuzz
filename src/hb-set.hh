@@ -43,9 +43,10 @@ struct hb_set_t
   hb_set_t ()  { init (); }
   ~hb_set_t () { fini (); }
 
-  hb_set_t (const hb_set_t& other) : hb_set_t () { set (&other); }
-  void operator= (const hb_set_t& other) { set (&other); }
+  hb_set_t (const hb_set_t& other) : hb_set_t () { set (other); }
+  void operator= (const hb_set_t& other) { set (other); }
   // TODO Add move construtor/assign
+  // TODO Add constructor for Iterator; with specialization for (sorted) vector / array?
 
   struct page_map_t
   {
@@ -480,32 +481,32 @@ struct hb_set_t
     hb_codepoint_t c = first - 1;
     return next (&c) && c <= last;
   }
-  void set (const hb_set_t *other)
+  void set (const hb_set_t &other)
   {
     if (unlikely (!successful)) return;
-    unsigned int count = other->pages.length;
+    unsigned int count = other.pages.length;
     if (!resize (count))
       return;
-    population = other->population;
-    memcpy ((void *) pages, (const void *) other->pages, count * pages.item_size);
-    memcpy ((void *) page_map, (const void *) other->page_map, count * page_map.item_size);
+    population = other.population;
+    memcpy ((void *) pages, (const void *) other.pages, count * pages.item_size);
+    memcpy ((void *) page_map, (const void *) other.page_map, count * page_map.item_size);
   }
 
-  bool is_equal (const hb_set_t *other) const
+  bool is_equal (const hb_set_t &other) const
   {
-    if (get_population () != other->get_population ())
+    if (get_population () != other.get_population ())
       return false;
 
     unsigned int na = pages.length;
-    unsigned int nb = other->pages.length;
+    unsigned int nb = other.pages.length;
 
     unsigned int a = 0, b = 0;
     for (; a < na && b < nb; )
     {
       if (page_at (a).is_empty ()) { a++; continue; }
-      if (other->page_at (b).is_empty ()) { b++; continue; }
-      if (page_map[a].major != other->page_map[b].major ||
-	  !page_at (a).is_equal (other->page_at (b)))
+      if (other.page_at (b).is_empty ()) { b++; continue; }
+      if (page_map[a].major != other.page_map[b].major ||
+	  !page_at (a).is_equal (other.page_at (b)))
 	return false;
       a++;
       b++;
@@ -513,24 +514,24 @@ struct hb_set_t
     for (; a < na; a++)
       if (!page_at (a).is_empty ()) { return false; }
     for (; b < nb; b++)
-      if (!other->page_at (b).is_empty ()) { return false; }
+      if (!other.page_at (b).is_empty ()) { return false; }
 
     return true;
   }
 
-  bool is_subset (const hb_set_t *larger_set) const
+  bool is_subset (const hb_set_t &larger_set) const
   {
     /* TODO: Merge this and is_equal() into something like process(). */
-    if (unlikely(larger_set->is_empty ()))
+    if (unlikely(larger_set.is_empty ()))
       return is_empty ();
 
     uint32_t spi = 0;
-    for (uint32_t lpi = 0; spi < page_map.length && lpi < larger_set->page_map.length; lpi++)
+    for (uint32_t lpi = 0; spi < page_map.length && lpi < larger_set.page_map.length; lpi++)
     {
       uint32_t spm = page_map[spi].major;
-      uint32_t lpm = larger_set->page_map[lpi].major;
+      uint32_t lpm = larger_set.page_map[lpi].major;
       auto sp = page_at (spi);
-      auto lp = larger_set->page_at (lpi);
+      auto lp = larger_set.page_at (lpi);
 
       if (spm < lpm && !sp.is_empty ())
         return false;
@@ -597,7 +598,7 @@ struct hb_set_t
   }
 
   template <typename Op>
-  void process (const Op& op, const hb_set_t *other)
+  void process (const Op& op, const hb_set_t &other)
   {
     const bool passthru_left = op (1, 0);
     const bool passthru_right = op (0, 1);
@@ -607,7 +608,7 @@ struct hb_set_t
     dirty ();
 
     unsigned int na = pages.length;
-    unsigned int nb = other->pages.length;
+    unsigned int nb = other.pages.length;
     unsigned int next_page = na;
 
     unsigned int count = 0, newCount = 0;
@@ -621,7 +622,7 @@ struct hb_set_t
 
     for (; a < na && b < nb; )
     {
-      if (page_map[a].major == other->page_map[b].major)
+      if (page_map[a].major == other.page_map[b].major)
       {
 	if (!passthru_left)
 	{
@@ -638,7 +639,7 @@ struct hb_set_t
 	a++;
 	b++;
       }
-      else if (page_map[a].major < other->page_map[b].major)
+      else if (page_map[a].major < other.page_map[b].major)
       {
 	if (passthru_left)
 	  count++;
@@ -673,15 +674,15 @@ struct hb_set_t
     b = nb;
     for (; a && b; )
     {
-      if (page_map[a - 1].major == other->page_map[b - 1].major)
+      if (page_map[a - 1].major == other.page_map[b - 1].major)
       {
 	a--;
 	b--;
 	count--;
 	page_map[count] = page_map[a];
-	page_at (count).v = op (page_at (a).v, other->page_at (b).v);
+	page_at (count).v = op (page_at (a).v, other.page_at (b).v);
       }
-      else if (page_map[a - 1].major > other->page_map[b - 1].major)
+      else if (page_map[a - 1].major > other.page_map[b - 1].major)
       {
 	a--;
 	if (passthru_left)
@@ -696,9 +697,9 @@ struct hb_set_t
 	if (passthru_right)
 	{
 	  count--;
-	  page_map[count].major = other->page_map[b].major;
+	  page_map[count].major = other.page_map[b].major;
 	  page_map[count].index = next_page++;
-	  page_at (count).v = other->page_at (b).v;
+	  page_at (count).v = other.page_at (b).v;
 	}
       }
     }
@@ -714,9 +715,9 @@ struct hb_set_t
       {
 	b--;
 	count--;
-	page_map[count].major = other->page_map[b].major;
+	page_map[count].major = other.page_map[b].major;
 	page_map[count].index = next_page++;
-	page_at (count).v = other->page_at (b).v;
+	page_at (count).v = other.page_at (b).v;
       }
     assert (!count);
     if (pages.length > newCount)
@@ -726,19 +727,19 @@ struct hb_set_t
       resize (newCount);
   }
 
-  void union_ (const hb_set_t *other)
+  void union_ (const hb_set_t &other)
   {
     process (hb_bitwise_or, other);
   }
-  void intersect (const hb_set_t *other)
+  void intersect (const hb_set_t &other)
   {
     process (hb_bitwise_and, other);
   }
-  void subtract (const hb_set_t *other)
+  void subtract (const hb_set_t &other)
   {
     process (hb_bitwise_sub, other);
   }
-  void symmetric_difference (const hb_set_t *other)
+  void symmetric_difference (const hb_set_t &other)
   {
     process (hb_bitwise_xor, other);
   }

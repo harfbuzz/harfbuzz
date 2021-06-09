@@ -309,7 +309,7 @@ hb_bool_t
 hb_set_is_equal (const hb_set_t *set,
 		 const hb_set_t *other)
 {
-  return set->is_equal (other);
+  return set->is_equal (*other);
 }
 
 /**
@@ -327,7 +327,7 @@ hb_bool_t
 hb_set_is_subset (const hb_set_t *set,
 		  const hb_set_t *larger_set)
 {
-  return set->is_subset (larger_set);
+  return set->is_subset (*larger_set);
 }
 
 /**
@@ -343,7 +343,7 @@ void
 hb_set_set (hb_set_t       *set,
 	    const hb_set_t *other)
 {
-  set->set (other);
+  set->set (*other);
 }
 
 /**
@@ -359,7 +359,7 @@ void
 hb_set_union (hb_set_t       *set,
 	      const hb_set_t *other)
 {
-  set->union_ (other);
+  set->union_ (*other);
 }
 
 /**
@@ -375,7 +375,7 @@ void
 hb_set_intersect (hb_set_t       *set,
 		  const hb_set_t *other)
 {
-  set->intersect (other);
+  set->intersect (*other);
 }
 
 /**
@@ -391,7 +391,7 @@ void
 hb_set_subtract (hb_set_t       *set,
 		 const hb_set_t *other)
 {
-  set->subtract (other);
+  set->subtract (*other);
 }
 
 /**
@@ -408,7 +408,7 @@ void
 hb_set_symmetric_difference (hb_set_t       *set,
 			     const hb_set_t *other)
 {
-  set->symmetric_difference (other);
+  set->symmetric_difference (*other);
 }
 
 #ifndef HB_DISABLE_DEPRECATED

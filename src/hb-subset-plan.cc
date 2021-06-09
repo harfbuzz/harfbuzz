@@ -285,7 +285,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   hb_set_t glyphset_colrv0;
   if (colr.is_valid ())
   {
-    glyphset_colrv0.union_ (cur_glyphset);
+    glyphset_colrv0.union_ (*cur_glyphset);
     for (hb_codepoint_t gid : cur_glyphset->iter ())
       colr.closure_glyphs (gid, &glyphset_colrv0);
     cur_glyphset = &glyphset_colrv0;
