@@ -258,7 +258,7 @@ hb_subset_input_layout_features_set (hb_subset_input_t *subset_input)
 
 HB_EXTERN void
 hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
-                                       hb_bool_t value)
+				       hb_bool_t value)
 {
   subset_input->retain_all_layout_features = value;
 }
@@ -278,18 +278,53 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input)
 
 
 HB_EXTERN hb_bool_t
-hb_subset_input_get_bool (hb_subset_property_t property)
+hb_subset_input_get_flag (hb_subset_input_t *input,
+			  hb_subset_flag_t flag)
 {
-  // TODO(garretrieger): implement.
-  return false;
+  switch (flag)
+  {
+    case HB_SUBSET_FLAG_HINTING:
+      return !input->drop_hints;
+    case HB_SUBSET_FLAG_RETAIN_GIDS:
+      return input->retain_gids;
+    case HB_SUBSET_FLAG_DESUBROUTINIZE:
+      return input->desubroutinize;
+    case HB_SUBSET_FLAG_NAME_LEGACY:
+      return input->name_legacy;
+    case HB_SUBSET_FLAG_SET_OVERLAPS_FLAG:
+      return input->overlaps_flag;
+    default:
+      return false;
+  }
 }
 
 HB_EXTERN void
-hb_subset_input_set_bool (hb_subset_property_t property, hb_bool_t value)
+hb_subset_input_set_flag (hb_subset_input_t *input,
+			  hb_subset_flag_t flag,
+			  hb_bool_t value)
 {
-  // TODO(garretrieger): implement.
+  switch (flag)
+  {
+    case HB_SUBSET_FLAG_HINTING:
+      input->drop_hints = !value;
+      break;
+    case HB_SUBSET_FLAG_RETAIN_GIDS:
+      input->retain_gids = value;
+      break;
+    case HB_SUBSET_FLAG_DESUBROUTINIZE:
+      input->desubroutinize = value;
+      break;
+    case HB_SUBSET_FLAG_NAME_LEGACY:
+      input->name_legacy = value;
+      break;
+    case HB_SUBSET_FLAG_SET_OVERLAPS_FLAG:
+      input->overlaps_flag = value;
+      break;
+    default:
+      // Do nothing.
+      break;
+  }
 }
-
 
 HB_EXTERN void
 hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
@@ -356,7 +391,7 @@ hb_subset_input_get_name_legacy (hb_subset_input_t *subset_input)
 
 HB_EXTERN void
 hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
-                                   hb_bool_t overlaps_flag)
+				   hb_bool_t overlaps_flag)
 {
   subset_input->overlaps_flag = overlaps_flag;
 }
@@ -409,10 +444,10 @@ hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input)
  **/
 hb_bool_t
 hb_subset_input_set_user_data (hb_subset_input_t  *input,
-                               hb_user_data_key_t *key,
-                               void *              data,
-                               hb_destroy_func_t   destroy,
-                               hb_bool_t           replace)
+			       hb_user_data_key_t *key,
+			       void *		   data,
+			       hb_destroy_func_t   destroy,
+			       hb_bool_t	   replace)
 {
   return hb_object_set_user_data (input, key, data, destroy, replace);
 }
@@ -431,7 +466,7 @@ hb_subset_input_set_user_data (hb_subset_input_t  *input,
  **/
 void *
 hb_subset_input_get_user_data (const hb_subset_input_t *input,
-                               hb_user_data_key_t     *key)
+			       hb_user_data_key_t     *key)
 {
   return hb_object_get_user_data (input, key);
 }

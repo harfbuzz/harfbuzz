@@ -39,14 +39,14 @@ HB_BEGIN_DECLS
 
 typedef struct hb_subset_input_t hb_subset_input_t;
 
-enum hb_subset_property_t
+typedef enum
 {
-  HB_SUBSET_PROPERTY_HINTING =           1,
-  HB_SUBSET_PROPERTY_RETAIN_GIDS =       2,
-  HB_SUBSET_PROPERTY_DESUBROUTINIZE =    3,
-  HB_SUBSET_PROPERTY_NAME_LEGACY =       4,
-  HB_SUBSET_PROPERTY_SET_OVERLAPS_FLAG = 5,
-};
+  HB_SUBSET_FLAG_HINTING =	     1,
+  HB_SUBSET_FLAG_RETAIN_GIDS =	     2,
+  HB_SUBSET_FLAG_DESUBROUTINIZE =    3,
+  HB_SUBSET_FLAG_NAME_LEGACY =	     4,
+  HB_SUBSET_FLAG_SET_OVERLAPS_FLAG = 5,
+} hb_subset_flag_t;
 
 HB_EXTERN hb_subset_input_t *
 hb_subset_input_create_or_fail (void);
@@ -74,7 +74,7 @@ hb_subset_input_layout_features_set (hb_subset_input_t *subset_input);
 
 HB_EXTERN void
 hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
-                                         hb_bool_t value);
+					 hb_bool_t value);
 HB_EXTERN hb_bool_t
 hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input);
 
@@ -83,10 +83,13 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input);
 
 
 HB_EXTERN hb_bool_t
-hb_subset_input_get_bool (hb_subset_property_t property);
+hb_subset_input_get_flag (hb_subset_input_t *input,
+			  hb_subset_flag_t flag);
 
 HB_EXTERN void
-hb_subset_input_set_bool (hb_subset_property_t property, hb_bool_t value);
+hb_subset_input_set_flag (hb_subset_input_t *input,
+			  hb_subset_flag_t flag,
+			  hb_bool_t value);
 
 // TODO(garretrieger): remove bool property get/set methods.
 
@@ -116,7 +119,7 @@ hb_subset_input_get_name_legacy (hb_subset_input_t *subset_input);
 
 HB_EXTERN void
 hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
-                                   hb_bool_t overlaps_flag);
+				   hb_bool_t overlaps_flag);
 
 HB_EXTERN hb_bool_t
 hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input);
@@ -141,14 +144,14 @@ hb_subset (hb_face_t *source, const hb_subset_input_t *input);
 
 HB_EXTERN hb_bool_t
 hb_subset_input_set_user_data (hb_subset_input_t  *input,
-                               hb_user_data_key_t *key,
-                               void *              data,
-                               hb_destroy_func_t   destroy,
-                               hb_bool_t           replace);
+			       hb_user_data_key_t *key,
+			       void *		   data,
+			       hb_destroy_func_t   destroy,
+			       hb_bool_t	   replace);
 
 HB_EXTERN void *
 hb_subset_input_get_user_data (const hb_subset_input_t *input,
-                               hb_user_data_key_t      *key);
+			       hb_user_data_key_t	   *key);
 
 HB_END_DECLS
 
