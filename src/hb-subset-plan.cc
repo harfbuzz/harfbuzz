@@ -58,7 +58,7 @@ _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
 
 static void
 _remap_palette_indexes (const hb_set_t *palette_indexes,
-                        hb_map_t       *mapping /* OUT */)
+			hb_map_t       *mapping /* OUT */)
 {
   unsigned new_idx = 0;
   for (unsigned palette_index : palette_indexes->iter ())
@@ -87,12 +87,12 @@ _remap_indexes (const hb_set_t *indexes,
 #ifndef HB_NO_SUBSET_LAYOUT
 typedef void (*layout_collect_func_t) (hb_face_t *face, hb_tag_t table_tag, const hb_tag_t *scripts, const hb_tag_t *languages, const hb_tag_t *features, hb_set_t *lookup_indexes /* OUT */);
 
-static void _collect_subset_layout (hb_face_t            *face,
-				    hb_tag_t              table_tag,
-				    const hb_set_t       *layout_features_to_retain,
-				    bool                  retain_all_features,
+static void _collect_subset_layout (hb_face_t		 *face,
+				    hb_tag_t		  table_tag,
+				    const hb_set_t	 *layout_features_to_retain,
+				    bool		  retain_all_features,
 				    layout_collect_func_t layout_collect_func,
-				    hb_set_t             *lookup_indices /* OUT */)
+				    hb_set_t		 *lookup_indices /* OUT */)
 {
   if (retain_all_features)
   {
@@ -128,12 +128,12 @@ static void _collect_subset_layout (hb_face_t            *face,
 
 template <typename T>
 static inline void
-_closure_glyphs_lookups_features (hb_face_t          *face,
-				  hb_set_t           *gids_to_retain,
+_closure_glyphs_lookups_features (hb_face_t	     *face,
+				  hb_set_t	     *gids_to_retain,
 				  const hb_set_t     *layout_features_to_retain,
-				  bool                retain_all_features,
-				  hb_map_t           *lookups,
-				  hb_map_t           *features,
+				  bool		      retain_all_features,
+				  hb_map_t	     *lookups,
+				  hb_map_t	     *features,
 				  script_langsys_map *langsys_map)
 {
   hb_blob_ptr_t<T> table = hb_sanitize_context_t ().reference_table<T> (face);
@@ -208,9 +208,9 @@ static inline void
 #endif
 
 static inline void
-_cmap_closure (hb_face_t           *face,
-	       const hb_set_t      *unicodes,
-	       hb_set_t            *glyphset)
+_cmap_closure (hb_face_t	   *face,
+	       const hb_set_t	   *unicodes,
+	       hb_set_t		   *glyphset)
 {
   OT::cmap::accelerator_t cmap;
   cmap.init (face);
@@ -341,10 +341,10 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #ifndef HB_NO_VAR
   if (close_over_gdef)
     _collect_layout_variation_indices (plan->source,
-                                       plan->_glyphset_gsub,
-                                       plan->gpos_lookups,
-                                       plan->layout_variation_indices,
-                                       plan->layout_variation_idx_map);
+				       plan->_glyphset_gsub,
+				       plan->gpos_lookups,
+				       plan->layout_variation_indices,
+				       plan->layout_variation_idx_map);
 #endif
 
 #ifndef HB_NO_SUBSET_CFF
@@ -355,11 +355,11 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
 static void
 _create_old_gid_to_new_gid_map (const hb_face_t *face,
-				bool             retain_gids,
-				const hb_set_t  *all_gids_to_retain,
-				hb_map_t        *glyph_map, /* OUT */
-				hb_map_t        *reverse_glyph_map, /* OUT */
-				unsigned int    *num_glyphs /* OUT */)
+				bool		 retain_gids,
+				const hb_set_t	*all_gids_to_retain,
+				hb_map_t	*glyph_map, /* OUT */
+				hb_map_t	*reverse_glyph_map, /* OUT */
+				unsigned int	*num_glyphs /* OUT */)
 {
   if (!retain_gids)
   {
@@ -400,13 +400,6 @@ _nameid_closure (hb_face_t *face,
 #endif
 }
 
-static hb_set_t* copy (const hb_set_t* other)
-{
-  hb_set_t* set = hb_set_create ();
-  set->set (other);
-  return set;
-}
-
 /**
  * hb_subset_plan_create:
  * Computes a plan for subsetting the supplied face according
@@ -418,7 +411,7 @@ static hb_set_t* copy (const hb_set_t* other)
  * Since: 1.7.5
  **/
 hb_subset_plan_t *
-hb_subset_plan_create (hb_face_t         *face,
+hb_subset_plan_create (hb_face_t	 *face,
 		       const hb_subset_input_t *input)
 {
   hb_subset_plan_t *plan;
@@ -435,12 +428,12 @@ hb_subset_plan_create (hb_face_t         *face,
   plan->prune_unicode_ranges = !input->no_prune_unicode_ranges;
   plan->retain_all_layout_features = input->retain_all_layout_features;
   plan->unicodes = hb_set_create ();
-  plan->name_ids = copy (plan->name_ids);
+  plan->name_ids = hb_set_copy (plan->name_ids);
   _nameid_closure (face, plan->name_ids);
-  plan->name_languages = copy (input->name_languages);
-  plan->layout_features = copy (input->layout_features);
-  plan->glyphs_requested = copy (input->glyphs);
-  plan->drop_tables = copy (input->drop_tables);
+  plan->name_languages = hb_set_copy (input->name_languages);
+  plan->layout_features = hb_set_copy (input->layout_features);
+  plan->glyphs_requested = hb_set_copy (input->glyphs);
+  plan->drop_tables = hb_set_copy (input->drop_tables);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 
