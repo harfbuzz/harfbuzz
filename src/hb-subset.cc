@@ -305,12 +305,30 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
 hb_face_t *
 hb_subset (hb_face_t *source, const hb_subset_input_t *input)
 {
+  hb_face_t* result = hb_subset_or_fail (source, input);
+  if (unlikely (!result)) return hb_face_get_empty ();
+  return result;
+}
+
+/**
+ * hb_subset_or_fail:
+ * @source: font face data to be subset.
+ * @input: input to use for the subsetting.
+ *
+ * Subsets a font according to provided input. Returns nullptr
+ * if the subset operation fails.
+ *
+ * Since: REPLACE
+ **/
+hb_face_t *
+hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input)
+{
   if (unlikely (!input || !source)) return hb_face_get_empty ();
 
   hb_subset_plan_t *plan = hb_subset_plan_create (source, input);
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
-    return hb_face_get_empty ();
+    return nullptr;
   }
 
   hb_set_t tags_set;
@@ -331,7 +349,7 @@ hb_subset (hb_face_t *source, const hb_subset_input_t *input)
   }
 end:
 
-  hb_face_t *result = success ? hb_face_reference (plan->dest) : hb_face_get_empty ();
+  hb_face_t *result = success ? hb_face_reference (plan->dest) : nullptr;
 
   hb_subset_plan_destroy (plan);
   return result;

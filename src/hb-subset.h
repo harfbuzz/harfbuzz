@@ -118,6 +118,9 @@ hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input);
 HB_EXTERN hb_face_t *
 hb_subset (hb_face_t *source, const hb_subset_input_t *input);
 
+HB_EXTERN hb_face_t *
+hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
+
 HB_EXTERN hb_bool_t
 hb_subset_input_set_user_data (hb_subset_input_t  *input,
 			       hb_user_data_key_t *key,
