@@ -401,6 +401,7 @@ hb_subset_plan_create (hb_face_t         *face,
   plan->retain_gids = input->retain_gids;
   plan->name_legacy = input->name_legacy;
   plan->overlaps_flag = input->overlaps_flag;
+  plan->notdef_outline = input->notdef_outline;
   plan->retain_all_layout_features = input->retain_all_layout_features;
   plan->unicodes = hb_set_create ();
   plan->name_ids = hb_set_reference (input->name_ids);

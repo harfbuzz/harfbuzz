@@ -209,7 +209,10 @@ struct glyf
 		if (!plan->old_gid_for_new_gid (new_gid, &subset_glyph.old_gid))
 		  return subset_glyph;
 
-		subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, true);
+		if (new_gid == 0 && !plan->notdef_outline)
+		  subset_glyph.source_glyph = Glyph ();
+		else
+		  subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, true);
 		if (plan->drop_hints) subset_glyph.drop_hints_bytes ();
 		else subset_glyph.dest_start = subset_glyph.source_glyph.get_bytes ();
 

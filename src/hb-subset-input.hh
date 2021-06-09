@@ -45,12 +45,14 @@ struct hb_subset_input_t
   hb_set_t *drop_tables;
   hb_set_t *layout_features;
 
-  bool drop_hints;
-  bool desubroutinize;
-  bool retain_gids;
-  bool name_legacy;
-  bool overlaps_flag;
-  bool retain_all_layout_features;
+  //use hb_bool_t to be consistent with G option parser
+  hb_bool_t drop_hints;
+  hb_bool_t desubroutinize;
+  hb_bool_t retain_gids;
+  hb_bool_t name_legacy;
+  hb_bool_t overlaps_flag;
+  hb_bool_t notdef_outline;
+  hb_bool_t retain_all_layout_features;
   /* TODO
    *
    * features

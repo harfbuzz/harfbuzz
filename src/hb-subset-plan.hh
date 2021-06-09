@@ -45,6 +45,7 @@ struct hb_subset_plan_t
   bool retain_gids : 1;
   bool name_legacy : 1;
   bool overlaps_flag : 1;
+  bool notdef_outline : 1;
   bool retain_all_layout_features : 1;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
