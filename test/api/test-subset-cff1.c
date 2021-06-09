@@ -302,7 +302,7 @@ test_subset_cff1_retaingids (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_retain_gids (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_RETAIN_GIDS, true);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -325,7 +325,7 @@ test_subset_cff1_j_retaingids (void)
   hb_set_add (codepoints, 0x41);
   hb_set_add (codepoints, 0x4C2E);
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_retain_gids (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_RETAIN_GIDS, true);
   face_41_3041_4c2e_subset = hb_subset_test_create_subset (face_41_3041_4c2e, input);
   hb_set_destroy (codepoints);
 
