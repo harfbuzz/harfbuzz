@@ -93,7 +93,6 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
 
 // TODO(garretrieger): remove bool property get/set methods.
 
-
 HB_EXTERN void
 hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
 				   hb_bool_t overlaps_flag);

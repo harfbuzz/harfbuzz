@@ -92,7 +92,7 @@ test_subset_glyf_set_overlaps_flag (void)
   hb_set_add (codepoints, 508);
 
   hb_subset_input_t* input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_overlaps_flag (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_SET_OVERLAPS_FLAG, true);
   face_abcAE_subset = hb_subset_test_create_subset (face_abcAE, input);
   hb_set_destroy (codepoints);
 
