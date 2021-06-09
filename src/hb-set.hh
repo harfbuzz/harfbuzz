@@ -40,9 +40,12 @@
 
 struct hb_set_t
 {
-  HB_DELETE_COPY_ASSIGN (hb_set_t);
   hb_set_t ()  { init (); }
   ~hb_set_t () { fini (); }
+
+  hb_set_t (const hb_set_t& other) : hb_set_t () { set (&other); }
+  void operator= (const hb_set_t& other) { set (&other); }
+  // TODO Add move construtor/assign
 
   struct page_map_t
   {
