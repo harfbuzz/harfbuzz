@@ -484,6 +484,14 @@ hb_set_unicode_props (hb_buffer_t *buffer)
     if (unlikely (_hb_glyph_info_get_general_category (&info[i]) == HB_UNICODE_GENERAL_CATEGORY_MODIFIER_SYMBOL &&
 		  hb_in_range<hb_codepoint_t> (info[i].codepoint, 0x1F3FBu, 0x1F3FFu)))
     {
+      _hb_glyph_info_set_continuation (&info[i]);
+    }
+    /* Regional_Indicators are hairy as hell...
+     * https://github.com/harfbuzz/harfbuzz/issues/2265 */
+    else if (unlikely (i && hb_in_range<hb_codepoint_t> (info[i].codepoint, 0x1F1E6u, 0x1F1FFu)))
+    {
+      if (hb_in_range<hb_codepoint_t> (info[i - 1].codepoint, 0x1F1E6u, 0x1F1FFu) &&
+	  !_hb_glyph_info_is_continuation (&info[i - 1]))
 	_hb_glyph_info_set_continuation (&info[i]);
     }
 #ifndef HB_NO_EMOJI_SEQUENCES
