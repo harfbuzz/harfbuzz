@@ -128,6 +128,9 @@ struct hb_buffer_t
   hb_buffer_message_func_t message_func;
   void *message_data;
   hb_destroy_func_t message_destroy;
+  unsigned message_depth; /* How deeply are we inside a message callback? */
+#else
+  static constexpr unsigned message_depth = 0u;
 #endif
 
   /* Internal debugging. */
@@ -400,10 +403,16 @@ struct hb_buffer_t
 #else
     if (!messaging ())
       return true;
+
+    message_depth++;
+
     va_list ap;
     va_start (ap, fmt);
     bool ret = message_impl (font, fmt, ap);
     va_end (ap);
+
+    message_depth--;
+
     return ret;
 #endif
   }
