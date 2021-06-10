@@ -245,8 +245,21 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
 }
 
 static bool
+_passthrough (hb_subset_plan_t *plan, hb_tag_t tag)
+{
+  hb_blob_t *source_table = hb_face_reference_table (plan->source, tag);
+  bool result = plan->add_table (tag, source_table);
+  hb_blob_destroy (source_table);
+  return result;
+}
+
+static bool
 _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
 {
+  if (plan->no_subset_tables->has (tag)) {
+    return _passthrough (plan, tag);
+  }
+
   DEBUG_MSG (SUBSET, nullptr, "subset %c%c%c%c", HB_UNTAG (tag));
   switch (tag)
   {
@@ -288,10 +301,11 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
 #endif
 
   default:
-    hb_blob_t *source_table = hb_face_reference_table (plan->source, tag);
-    bool result = plan->add_table (tag, source_table);
-    hb_blob_destroy (source_table);
-    return result;
+    if (plan->passthrough_unrecognized)
+      return _passthrough (plan, tag);
+
+    // Drop table
+    return true;
   }
 }
 

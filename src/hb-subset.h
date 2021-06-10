@@ -41,11 +41,12 @@ typedef struct hb_subset_input_t hb_subset_input_t;
 
 typedef enum
 {
-  HB_SUBSET_FLAG_HINTING =	     1,
-  HB_SUBSET_FLAG_RETAIN_GIDS =	     2,
-  HB_SUBSET_FLAG_DESUBROUTINIZE =    3,
-  HB_SUBSET_FLAG_NAME_LEGACY =	     4,
-  HB_SUBSET_FLAG_SET_OVERLAPS_FLAG = 5,
+  HB_SUBSET_FLAG_HINTING =		    1,
+  HB_SUBSET_FLAG_RETAIN_GIDS =		    2,
+  HB_SUBSET_FLAG_DESUBROUTINIZE =	    3,
+  HB_SUBSET_FLAG_NAME_LEGACY =		    4,
+  HB_SUBSET_FLAG_SET_OVERLAPS_FLAG =	    5,
+  HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED = 6,
 } hb_subset_flag_t;
 
 HB_EXTERN hb_subset_input_t *
@@ -79,8 +80,10 @@ HB_EXTERN hb_bool_t
 hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input);
 
 HB_EXTERN hb_set_t *
-hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input);
+hb_subset_input_no_subset_tables_set (hb_subset_input_t *subset_input);
 
+HB_EXTERN hb_set_t *
+hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input);
 
 HB_EXTERN hb_bool_t
 hb_subset_input_get_flag (hb_subset_input_t *input,

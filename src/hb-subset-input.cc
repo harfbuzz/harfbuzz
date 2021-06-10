@@ -50,6 +50,7 @@ hb_subset_input_create_or_fail ()
   hb_set_add (input->name_languages, 0x0409);
   input->layout_features = hb_set_create ();
   input->drop_tables = hb_set_create ();
+  input->no_subset_tables = hb_set_create ();
   input->drop_hints = false;
   input->desubroutinize = false;
   input->retain_gids = false;
@@ -58,6 +59,7 @@ hb_subset_input_create_or_fail ()
   input->notdef_outline = false;
   input->no_prune_unicode_ranges = false;
   input->retain_all_layout_features = false;
+  input->passthrough_unrecognized = false;
 
   hb_tag_t default_drop_tables[] = {
     // Layout disabled by default
@@ -83,8 +85,23 @@ hb_subset_input_create_or_fail ()
     HB_TAG ('S', 'i', 'l', 'f'),
     HB_TAG ('S', 'i', 'l', 'l'),
   };
-
   input->drop_tables->add_array (default_drop_tables, ARRAY_LENGTH (default_drop_tables));
+
+  hb_tag_t default_no_subset_tables[] = {
+    HB_TAG ('a', 'v', 'a', 'r'),
+    HB_TAG ('f', 'v', 'a', 'r'),
+    HB_TAG ('g', 'a', 's', 'p'),
+    HB_TAG ('c', 'v', 't', ' '),
+    HB_TAG ('f', 'p', 'g', 'm'),
+    HB_TAG ('p', 'r', 'e', 'p'),
+    HB_TAG ('V', 'D', 'M', 'X'),
+    HB_TAG ('D', 'S', 'I', 'G'),
+    HB_TAG ('M', 'V', 'A', 'R'),
+    HB_TAG ('c', 'v', 'a', 'r'),
+    HB_TAG ('S', 'T', 'A', 'T'),
+  };
+  input->no_subset_tables->add_array (default_no_subset_tables,
+                                      ARRAY_LENGTH (default_no_subset_tables));
 
   //copied from _layout_features_groups in fonttools
   hb_tag_t default_layout_features[] = {
@@ -276,6 +293,11 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input)
   return subset_input->drop_tables;
 }
 
+HB_EXTERN hb_set_t *
+hb_subset_input_no_subset_tables_set (hb_subset_input_t *subset_input)
+{
+  return subset_input->no_subset_tables;
+}
 
 HB_EXTERN hb_bool_t
 hb_subset_input_get_flag (hb_subset_input_t *input,
@@ -293,6 +315,8 @@ hb_subset_input_get_flag (hb_subset_input_t *input,
       return input->name_legacy;
     case HB_SUBSET_FLAG_SET_OVERLAPS_FLAG:
       return input->overlaps_flag;
+    case HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED:
+      return input->passthrough_unrecognized;
     default:
       return false;
   }
@@ -319,6 +343,9 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
       break;
     case HB_SUBSET_FLAG_SET_OVERLAPS_FLAG:
       input->overlaps_flag = value;
+      break;
+    case HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED:
+      input->passthrough_unrecognized = value;
       break;
     default:
       // Do nothing.

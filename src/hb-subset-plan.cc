@@ -427,6 +427,7 @@ hb_subset_plan_create (hb_face_t	 *face,
   plan->notdef_outline = input->notdef_outline;
   plan->prune_unicode_ranges = !input->no_prune_unicode_ranges;
   plan->retain_all_layout_features = input->retain_all_layout_features;
+  plan->passthrough_unrecognized = input->passthrough_unrecognized;
   plan->unicodes = hb_set_create ();
   plan->name_ids = hb_set_copy (input->name_ids);
   _nameid_closure (face, plan->name_ids);
@@ -434,6 +435,7 @@ hb_subset_plan_create (hb_face_t	 *face,
   plan->layout_features = hb_set_copy (input->layout_features);
   plan->glyphs_requested = hb_set_copy (input->glyphs);
   plan->drop_tables = hb_set_copy (input->drop_tables);
+  plan->no_subset_tables = hb_set_copy (input->no_subset_tables);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 
