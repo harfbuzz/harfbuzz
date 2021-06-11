@@ -211,7 +211,7 @@ struct SingleSubstFormat2
       ;
     if (unlikely (!c->extend_min (*this))) return_trace (false);
     if (unlikely (!substitute.serialize (c, substitutes))) return_trace (false);
-    if (unlikely (!coverage.serialize (c, this).serialize (c, glyphs))) return_trace (false);
+    if (unlikely (!coverage.serialize_serialize (c, glyphs))) return_trace (false);
     return_trace (true);
   }
 
@@ -449,12 +449,12 @@ struct MultipleSubstFormat1
     for (unsigned int i = 0; i < glyphs.length; i++)
     {
       unsigned int substitute_len = substitute_len_list[i];
-      if (unlikely (!sequence[i].serialize (c, this)
-				.serialize (c, substitute_glyphs_list.sub_array (0, substitute_len))))
+      if (unlikely (!sequence[i]
+                        .serialize_serialize (c, substitute_glyphs_list.sub_array (0, substitute_len))))
 	return_trace (false);
       substitute_glyphs_list += substitute_len;
     }
-    return_trace (coverage.serialize (c, this).serialize (c, glyphs));
+    return_trace (coverage.serialize_serialize (c, glyphs));
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -475,8 +475,7 @@ struct MultipleSubstFormat1
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
     ;
-    out->coverage.serialize (c->serializer, out)
-		 .serialize (c->serializer, new_coverage.iter ());
+    out->coverage.serialize_serialize (c->serializer, new_coverage.iter ());
     return_trace (bool (new_coverage));
   }
 
@@ -688,12 +687,12 @@ struct AlternateSubstFormat1
     for (unsigned int i = 0; i < glyphs.length; i++)
     {
       unsigned int alternate_len = alternate_len_list[i];
-      if (unlikely (!alternateSet[i].serialize (c, this)
-				    .serialize (c, alternate_glyphs_list.sub_array (0, alternate_len))))
+      if (unlikely (!alternateSet[i]
+                        .serialize_serialize (c, alternate_glyphs_list.sub_array (0, alternate_len))))
 	return_trace (false);
       alternate_glyphs_list += alternate_len;
     }
-    return_trace (coverage.serialize (c, this).serialize (c, glyphs));
+    return_trace (coverage.serialize_serialize (c, glyphs));
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -714,8 +713,7 @@ struct AlternateSubstFormat1
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
     ;
-    out->coverage.serialize (c->serializer, out)
-		 .serialize (c->serializer, new_coverage.iter ());
+    out->coverage.serialize_serialize (c->serializer, new_coverage.iter ());
     return_trace (bool (new_coverage));
   }
 
@@ -952,10 +950,9 @@ struct LigatureSet
     for (unsigned int i = 0; i < ligatures.length; i++)
     {
       unsigned int component_count = (unsigned) hb_max ((int) component_count_list[i] - 1, 0);
-      if (unlikely (!ligature[i].serialize (c, this)
-				.serialize (c,
-					    ligatures[i],
-					    component_list.sub_array (0, component_count))))
+      if (unlikely (!ligature[i].serialize_serialize (c,
+                                                      ligatures[i],
+                                                      component_list.sub_array (0, component_count))))
 	return_trace (false);
       component_list += component_count;
     }
@@ -1065,15 +1062,15 @@ struct LigatureSubstFormat1
     for (unsigned int i = 0; i < first_glyphs.length; i++)
     {
       unsigned int ligature_count = ligature_per_first_glyph_count_list[i];
-      if (unlikely (!ligatureSet[i].serialize (c, this)
-				   .serialize (c,
-					       ligatures_list.sub_array (0, ligature_count),
-					       component_count_list.sub_array (0, ligature_count),
-					       component_list))) return_trace (false);
+      if (unlikely (!ligatureSet[i]
+                        .serialize_serialize (c,
+                                              ligatures_list.sub_array (0, ligature_count),
+                                              component_count_list.sub_array (0, ligature_count),
+                                              component_list))) return_trace (false);
       ligatures_list += ligature_count;
       component_count_list += ligature_count;
     }
-    return_trace (coverage.serialize (c, this).serialize (c, first_glyphs));
+    return_trace (coverage.serialize_serialize (c, first_glyphs));
   }
 
   bool subset (hb_subset_context_t *c) const
@@ -1094,8 +1091,7 @@ struct LigatureSubstFormat1
     | hb_map (glyph_map)
     | hb_sink (new_coverage)
     ;
-    out->coverage.serialize (c->serializer, out)
-		 .serialize (c->serializer, new_coverage.iter ());
+    out->coverage.serialize_serialize (c->serializer, new_coverage.iter ());
     return_trace (bool (new_coverage));
   }
 
@@ -1325,7 +1321,7 @@ struct ReverseChainSingleSubstFormat1
     if (unlikely (! c->serializer->check_success (substitute_out->serialize (c->serializer, substitutes))))
         return_trace (false);
 
-    if (unlikely (!out->coverage.serialize (c->serializer, out).serialize (c->serializer, glyphs)))
+    if (unlikely (!out->coverage.serialize_serialize (c->serializer, glyphs)))
       return_trace (false);
     return_trace (true);
   }
