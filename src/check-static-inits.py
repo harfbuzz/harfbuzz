@@ -5,7 +5,7 @@ import sys, os, shutil, subprocess, glob, re
 builddir = os.getenv ('builddir', os.path.dirname (__file__))
 libs = os.getenv ('libs', '.libs')
 
-objdump = shutil.which ('objdump')
+objdump = os.getenv ('OBJDUMP', shutil.which ('objdump'))
 if not objdump:
 	print ('check-static-inits.py: \'ldd\' not found; skipping test')
 	sys.exit (77)
@@ -22,7 +22,7 @@ if not OBJS:
 stat = 0
 
 for obj in OBJS:
-	result = subprocess.check_output ([objdump, '-t', obj]).decode ('utf-8')
+	result = subprocess.check_output (objdump.split () + ['-t', obj]).decode ('utf-8')
 
 	# Checking that no object file has static initializers
 	for l in re.findall (r'^.*\.[cd]tors.*$', result, re.MULTILINE):
