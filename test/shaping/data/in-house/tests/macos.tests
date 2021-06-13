@@ -1,3 +1,6 @@
+# https://github.com/harfbuzz/harfbuzz/issues/3008
+/System/Library/Fonts/ヒラギノ丸ゴ\ ProN\ W4.ttc:--features=palt:U+FF11:[gid781=0@-78,0+842]
+
 # https://github.com/harfbuzz/harfbuzz/pull/2871
 /System/Library/Fonts/LucidaGrande.ttc:--font-funcs ot --show-flags:U+0041,U+0042,U+0043,U+0044:[A=0+1413|B=1+1178|C=2+1417|D=3+1534]
 

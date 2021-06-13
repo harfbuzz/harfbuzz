@@ -149,13 +149,15 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
    * Decide who does positioning. GPOS, kerx, kern, or fallback.
    */
 
+  bool has_gsub = hb_ot_layout_has_substitution (face);
+  bool has_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
   if (0)
     ;
 #ifndef HB_NO_AAT_SHAPE
-  else if (hb_aat_layout_has_positioning (face))
+  else if (hb_aat_layout_has_positioning (face) && !(has_gsub && has_gpos))
     plan.apply_kerx = true;
 #endif
-  else if (!apply_morx && !disable_gpos && hb_ot_layout_has_positioning (face))
+  else if (!apply_morx && has_gpos)
     plan.apply_gpos = true;
 
   if (!plan.apply_kerx && (!has_gpos_kern || !plan.apply_gpos))
