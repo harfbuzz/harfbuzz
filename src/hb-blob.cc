@@ -72,14 +72,48 @@ hb_blob_create (const char        *data,
 		void              *user_data,
 		hb_destroy_func_t  destroy)
 {
+  if (!length)
+    return hb_blob_get_empty ();
+
+  hb_blob_t *blob = hb_blob_create_or_fail (data, length, mode,
+					    user_data, destroy);
+  return likely (blob) ? blob : hb_blob_get_empty ();
+}
+
+/**
+ * hb_blob_create_or_fail: (skip)
+ * @data: Pointer to blob data.
+ * @length: Length of @data in bytes.
+ * @mode: Memory mode for @data.
+ * @user_data: Data parameter to pass to @destroy.
+ * @destroy: (nullable): Callback to call when @data is not needed anymore.
+ *
+ * Creates a new "blob" object wrapping @data.  The @mode parameter is used
+ * to negotiate ownership and lifecycle of @data.
+ *
+ * Note that this function returns a freshly-allocated empty blob even if @length
+ * is zero. This is in contrast to hb_blob_create(), which returns the singleton
+ * empty blob (as returned by hb_blob_get_empty()) if @length is zero.
+ *
+ * Return value: New blob, or %NULL if failed.  Destroy with hb_blob_destroy().
+ *
+ * Since: REPLACEME
+ **/
+hb_blob_t *
+hb_blob_create_or_fail (const char        *data,
+			unsigned int       length,
+			hb_memory_mode_t   mode,
+			void              *user_data,
+			hb_destroy_func_t  destroy)
+{
   hb_blob_t *blob;
 
-  if (!length ||
-      length >= 1u << 31 ||
-      !(blob = hb_object_create<hb_blob_t> ())) {
+  if (length >= 1u << 31 ||
+      !(blob = hb_object_create<hb_blob_t> ()))
+  {
     if (destroy)
       destroy (user_data);
-    return hb_blob_get_empty ();
+    return nullptr;
   }
 
   blob->data = data;
@@ -91,9 +125,10 @@ hb_blob_create (const char        *data,
 
   if (blob->mode == HB_MEMORY_MODE_DUPLICATE) {
     blob->mode = HB_MEMORY_MODE_READONLY;
-    if (!blob->try_make_writable ()) {
+    if (!blob->try_make_writable ())
+    {
       hb_blob_destroy (blob);
-      return hb_blob_get_empty ();
+      return nullptr;
     }
   }
 
@@ -561,12 +596,32 @@ _open_resource_fork (const char *file_name, hb_mapped_file_t *file)
  * Creates a new blob containing the data from the
  * specified binary font file.
  *
- * Returns: An #hb_blob_t pointer with the content of the file
+ * Returns: An #hb_blob_t pointer with the content of the file,
+ * or hb_blob_get_empty() if failed.
  *
  * Since: 1.7.7
  **/
 hb_blob_t *
 hb_blob_create_from_file (const char *file_name)
+{
+  hb_blob_t *blob = hb_blob_create_from_file_or_fail (file_name);
+  return likely (blob) ? blob : hb_blob_get_empty ();
+}
+
+/**
+ * hb_blob_create_from_file_or_fail:
+ * @file_name: A font filename
+ *
+ * Creates a new blob containing the data from the
+ * specified binary font file.
+ *
+ * Returns: An #hb_blob_t pointer with the content of the file,
+ * or %NULL if failed.
+ *
+ * Since: REPLACEME
+ **/
+hb_blob_t *
+hb_blob_create_from_file_or_fail (const char *file_name)
 {
   /* Adopted from glib's gmappedfile.c with Matthias Clasen and
      Allison Lortie permission but changed a lot to suit our need. */
@@ -601,9 +656,9 @@ hb_blob_create_from_file (const char *file_name)
 
   close (fd);
 
-  return hb_blob_create (file->contents, file->length,
-			 HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE, (void *) file,
-			 (hb_destroy_func_t) _hb_mapped_file_destroy);
+  return hb_blob_create_or_fail (file->contents, file->length,
+				 HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE, (void *) file,
+				 (hb_destroy_func_t) _hb_mapped_file_destroy);
 
 fail:
   close (fd);
@@ -661,9 +716,9 @@ fail_without_close:
   if (unlikely (!file->contents)) goto fail;
 
   CloseHandle (fd);
-  return hb_blob_create (file->contents, file->length,
-			 HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE, (void *) file,
-			 (hb_destroy_func_t) _hb_mapped_file_destroy);
+  return hb_blob_create_or_fail (file->contents, file->length,
+				 HB_MEMORY_MODE_READONLY_MAY_MAKE_WRITABLE, (void *) file,
+				 (hb_destroy_func_t) _hb_mapped_file_destroy);
 
 fail:
   CloseHandle (fd);
@@ -676,7 +731,7 @@ fail_without_close:
      It's used as a fallback for systems without mmap or to read from pipes */
   unsigned long len = 0, allocated = BUFSIZ * 16;
   char *data = (char *) malloc (allocated);
-  if (unlikely (!data)) return hb_blob_get_empty ();
+  if (unlikely (!data)) return nullptr;
 
   FILE *fp = fopen (file_name, "rb");
   if (unlikely (!fp)) goto fread_fail_without_close;
@@ -706,13 +761,13 @@ fail_without_close:
   }
 	fclose (fp);
 
-  return hb_blob_create (data, len, HB_MEMORY_MODE_WRITABLE, data,
-			 (hb_destroy_func_t) free);
+  return hb_blob_create_or_fail (data, len, HB_MEMORY_MODE_WRITABLE, data,
+				 (hb_destroy_func_t) free);
 
 fread_fail:
   fclose (fp);
 fread_fail_without_close:
   free (data);
-  return hb_blob_get_empty ();
+  return nullptr;
 }
 #endif /* !HB_NO_OPEN */

@@ -296,9 +296,9 @@ hb_test_open_font_file (const char *font_path)
   char *path = g_strdup (font_path);
 #endif
 
-  hb_blob_t *blob = hb_blob_create_from_file (path);
+  hb_blob_t *blob = hb_blob_create_from_file_or_fail (path);
   hb_face_t *face;
-  if (hb_blob_get_length (blob) == 0)
+  if (!blob)
     g_error ("Font %s not found.", path);
 
   face = hb_face_create (blob, 0);
