@@ -1061,7 +1061,7 @@ resize_and_retry:
 	hb_glyph_info_t *info = run_info;
 	if (HB_DIRECTION_IS_HORIZONTAL (buffer->props.direction))
 	{
-	  hb_position_t x_offset = (positions[0].x - advances_so_far) * x_mult;
+	  hb_position_t x_offset = round ((positions[0].x - advances_so_far) * x_mult);
 	  for (unsigned int j = 0; j < num_glyphs; j++)
 	  {
 	    CGFloat advance;
@@ -1069,15 +1069,15 @@ resize_and_retry:
 	      advance = positions[j + 1].x - positions[j].x;
 	    else /* last glyph */
 	      advance = run_advance - (positions[j].x - positions[0].x);
-	    info->mask = advance * x_mult;
+	    info->mask = round (advance * x_mult);
 	    info->var1.i32 = x_offset;
-	    info->var2.i32 = positions[j].y * y_mult;
+	    info->var2.i32 = round (positions[j].y * y_mult);
 	    info++;
 	  }
 	}
 	else
 	{
-	  hb_position_t y_offset = (positions[0].y - advances_so_far) * y_mult;
+	  hb_position_t y_offset = round ((positions[0].y - advances_so_far) * y_mult);
 	  for (unsigned int j = 0; j < num_glyphs; j++)
 	  {
 	    CGFloat advance;
@@ -1085,8 +1085,8 @@ resize_and_retry:
 	      advance = positions[j + 1].y - positions[j].y;
 	    else /* last glyph */
 	      advance = run_advance - (positions[j].y - positions[0].y);
-	    info->mask = advance * y_mult;
-	    info->var1.i32 = positions[j].x * x_mult;
+	    info->mask = round (advance * y_mult);
+	    info->var1.i32 = round (positions[j].x * x_mult);
 	    info->var2.i32 = y_offset;
 	    info++;
 	  }
