@@ -1550,10 +1550,6 @@ struct SubstLookup : Lookup
 
   static inline bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
 
-  SubTable& serialize_subtable (hb_serialize_context_t *c,
-				unsigned int i)
-  { return get_subtables<SubTable> ()[i].serialize (c, this); }
-
   bool serialize_single (hb_serialize_context_t *c,
 			 uint32_t lookup_props,
 			 hb_sorted_array_t<const HBGlyphID> glyphs,
@@ -1561,8 +1557,13 @@ struct SubstLookup : Lookup
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Single, lookup_props, 1))) return_trace (false);
-    return_trace (serialize_subtable (c, 0).u.single.
-		  serialize (c, hb_zip (glyphs, substitutes)));
+    if (c->push<SubTable> ()->u.single.serialize (c, hb_zip (glyphs, substitutes)))
+    {
+      c->add_link (get_subtables<SubTable> ()[0], c->pop_pack ());
+      return_trace (true);
+    }
+    c->pop_discard ();
+    return_trace (false);
   }
 
   bool serialize_multiple (hb_serialize_context_t *c,
@@ -1573,11 +1574,17 @@ struct SubstLookup : Lookup
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Multiple, lookup_props, 1))) return_trace (false);
-    return_trace (serialize_subtable (c, 0).u.multiple.
-		  serialize (c,
-			     glyphs,
-			     substitute_len_list,
-			     substitute_glyphs_list));
+    if (c->push<SubTable> ()->u.multiple.
+        serialize (c,
+                   glyphs,
+                   substitute_len_list,
+                   substitute_glyphs_list))
+    {
+      c->add_link (get_subtables<SubTable> ()[0], c->pop_pack ());
+      return_trace (true);
+    }
+    c->pop_discard ();
+    return_trace (false);
   }
 
   bool serialize_alternate (hb_serialize_context_t *c,
@@ -1588,11 +1595,18 @@ struct SubstLookup : Lookup
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Alternate, lookup_props, 1))) return_trace (false);
-    return_trace (serialize_subtable (c, 0).u.alternate.
-		  serialize (c,
-			     glyphs,
-			     alternate_len_list,
-			     alternate_glyphs_list));
+
+    if (c->push<SubTable> ()->u.alternate.
+        serialize (c,
+                   glyphs,
+                   alternate_len_list,
+                   alternate_glyphs_list))
+    {
+      c->add_link (get_subtables<SubTable> ()[0], c->pop_pack ());
+      return_trace (true);
+    }
+    c->pop_discard ();
+    return_trace (false);
   }
 
   bool serialize_ligature (hb_serialize_context_t *c,
@@ -1605,13 +1619,19 @@ struct SubstLookup : Lookup
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Ligature, lookup_props, 1))) return_trace (false);
-    return_trace (serialize_subtable (c, 0).u.ligature.
-		  serialize (c,
-			     first_glyphs,
-			     ligature_per_first_glyph_count_list,
-			     ligatures_list,
-			     component_count_list,
-			     component_list));
+    if (c->push<SubTable> ()->u.ligature.
+        serialize (c,
+                   first_glyphs,
+                   ligature_per_first_glyph_count_list,
+                   ligatures_list,
+                   component_count_list,
+                   component_list))
+    {
+      c->add_link (get_subtables<SubTable> ()[0], c->pop_pack ());
+      return_trace (true);
+    }
+    c->pop_discard ();
+    return_trace (false);
   }
 
   template <typename context_t>
