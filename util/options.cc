@@ -696,10 +696,10 @@ font_options_t::get_font () const
 #endif
   }
 
-  blob = hb_blob_create_from_file (font_path);
+  blob = hb_blob_create_from_file_or_fail (font_path);
 
-  if (blob == hb_blob_get_empty ())
-    fail (false, "Couldn't read or find %s, or it was empty.", font_path);
+  if (!blob)
+    fail (false, "%s: Failed reading file", font_path);
 
   /* Create the face */
   hb_face_t *face = hb_face_create (blob, face_index);

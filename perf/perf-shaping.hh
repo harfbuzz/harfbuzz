@@ -8,18 +8,18 @@ static void shape (benchmark::State &state, const char *text_path,
 {
   hb_font_t *font;
   {
-    hb_blob_t *blob = hb_blob_create_from_file (font_path);
-    assert (hb_blob_get_length (blob));
+    hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_path);
+    assert (blob);
     hb_face_t *face = hb_face_create (blob, 0);
     hb_blob_destroy (blob);
     font = hb_font_create (face);
     hb_face_destroy (face);
   }
 
-  hb_blob_t *text_blob = hb_blob_create_from_file (text_path);
+  hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (text_path);
+  assert (text_blob);
   unsigned text_length;
   const char *text = hb_blob_get_data (text_blob, &text_length);
-  assert (text_length);
 
   hb_buffer_t *buf = hb_buffer_create ();
   for (auto _ : state)

@@ -58,8 +58,8 @@ static void draw (benchmark::State &state, const char *font_path, bool is_var, b
   hb_font_t *font;
   unsigned num_glyphs;
   {
-    hb_blob_t *blob = hb_blob_create_from_file (font_path);
-    assert (hb_blob_get_length (blob));
+    hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_path);
+    assert (blob);
     hb_face_t *face = hb_face_create (blob, 0);
     hb_blob_destroy (blob);
     num_glyphs = hb_face_get_glyph_count (face);

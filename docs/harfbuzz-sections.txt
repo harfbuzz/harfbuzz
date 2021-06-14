@@ -21,7 +21,9 @@ hb_aat_layout_has_tracking
 <SECTION>
 <FILE>hb-blob</FILE>
 hb_blob_create
+hb_blob_create_or_fail
 hb_blob_create_from_file
+hb_blob_create_from_file_or_fail
 hb_blob_create_sub_blob
 hb_blob_copy_writable_or_fail
 hb_blob_destroy
