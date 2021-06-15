@@ -551,6 +551,7 @@ hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
   info.cluster = buffer->cur().cluster;
   info.mask = buffer->cur().mask;
   (void) buffer->output_info (info);
+
   buffer->swap_buffers ();
 }
 
@@ -1126,8 +1127,6 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   c->target_direction = c->buffer->props.direction;
 
   _hb_buffer_allocate_unicode_vars (c->buffer);
-
-  c->buffer->clear_output ();
 
   hb_ot_shape_initialize_masks (c);
   hb_set_unicode_props (c->buffer);

@@ -209,7 +209,6 @@ struct hb_buffer_t
   HB_INTERNAL void guess_segment_properties ();
 
   HB_INTERNAL void swap_buffers ();
-  HB_INTERNAL void remove_output ();
   HB_INTERNAL void clear_output ();
   HB_INTERNAL void clear_positions ();
 
