@@ -547,6 +547,8 @@ struct hb_serialize_context_t
     unsigned int len = (this->head - this->start)
 		     + (this->end  - this->tail);
 
+    // If len is zero don't malloc as the memory won't get properly
+    // cleaned up later.
     if (!len) return hb_bytes_t ();
 
     char *p = (char *) malloc (len);
