@@ -547,6 +547,8 @@ struct hb_serialize_context_t
     unsigned int len = (this->head - this->start)
 		     + (this->end  - this->tail);
 
+    if (!len) return hb_bytes_t ();
+
     char *p = (char *) malloc (len);
     if (unlikely (!p)) return hb_bytes_t ();
 
