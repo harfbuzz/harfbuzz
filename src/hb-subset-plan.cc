@@ -115,7 +115,7 @@ static void _collect_subset_layout (hb_face_t            *face,
     features[i++] = f;
 
   features[i] = 0;
-  
+
   layout_collect_func (face,
 		       table_tag,
 		       nullptr,
@@ -291,6 +291,16 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
     cur_glyphset = &glyphset_colrv0;
   }
 
+  hb_set_t palette_indices;
+  colr.closure_V0palette_indices (cur_glyphset, &palette_indices);
+
+  hb_set_t layer_indices;
+  colr.closure_forV1 (cur_glyphset, &layer_indices, &palette_indices);
+  _remap_indexes (&layer_indices, plan->colrv1_layers);
+  _remap_palette_indexes (&palette_indices, plan->colr_palettes);
+  colr.fini ();
+  _remove_invalid_gids (cur_glyphset, plan->source->get_num_glyphs ());
+
   // Populate a full set of glyphs to retain by adding all referenced
   // composite glyphs.
   for (hb_codepoint_t gid : cur_glyphset->iter ())
@@ -304,15 +314,6 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
 
-  hb_set_t palette_indices;
-  colr.closure_V0palette_indices (plan->_glyphset, &palette_indices);
-
-  hb_set_t layer_indices;
-  colr.closure_forV1 (plan->_glyphset, &layer_indices, &palette_indices);
-  _remap_indexes (&layer_indices, plan->colrv1_layers);
-  _remap_palette_indexes (&palette_indices, plan->colr_palettes);
-  colr.fini ();
-  _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
 
 #ifndef HB_NO_VAR
   if (close_over_gdef)
