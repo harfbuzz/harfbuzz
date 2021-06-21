@@ -73,7 +73,11 @@ hb_blob_create (const char        *data,
 		hb_destroy_func_t  destroy)
 {
   if (!length)
+  {
+    if (destroy)
+      destroy (user_data);
     return hb_blob_get_empty ();
+  }
 
   hb_blob_t *blob = hb_blob_create_or_fail (data, length, mode,
 					    user_data, destroy);
