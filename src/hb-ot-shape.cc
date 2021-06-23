@@ -574,6 +574,35 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
   hb_direction_t direction = buffer->props.direction;
   hb_direction_t horiz_dir = hb_script_get_horizontal_direction (buffer->props.script);
 
+  /* Numeric runs in natively-RTL scripts are actually native-LTR, so we reset
+   * the horiz_dir if the run contains at least one decimal-number char, and no
+   * letter chars (ideally we should be checking for chars with strong
+   * directionality but hb-unicode currently lacks bidi categories).
+   *
+   * This allows digit sequences in Arabic etc to be shaped in "native"
+   * direction, so that features like ligatures will work as intended.
+   *
+   * https://github.com/harfbuzz/harfbuzz/issues/501
+   */
+  if (unlikely (horiz_dir == HB_DIRECTION_RTL && direction == HB_DIRECTION_LTR))
+  {
+    bool found_number = false, found_letter = false;
+    const auto* info = buffer->info;
+    foreach_grapheme (buffer, start, end)
+    {
+      auto gc = _hb_glyph_info_get_general_category (&info[start]);
+      if (gc == HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER)
+        found_number = true;
+      else if (HB_UNICODE_GENERAL_CATEGORY_IS_LETTER (gc))
+      {
+        found_letter = true;
+        break;
+      }
+    }
+    if (found_number && !found_letter)
+      horiz_dir = HB_DIRECTION_LTR;
+  }
+
   /* TODO vertical:
    * The only BTT vertical script is Ogham, but it's not clear to me whether OpenType
    * Ogham fonts are supposed to be implemented BTT or not.  Need to research that
