@@ -1,8 +1,20 @@
 #!/bin/bash
 set -e
 
-meson --cross-file=.ci/win32-cross-file.txt win32build --wrap-mode=forcefallback -Dtests=disabled \
-	-Dglib=enabled -Dfreetype=enabled -Dgdi=enabled -Ddirectwrite=enabled -Dcairo=enabled --buildtype=release $@
+meson 	--cross-file=.ci/win32-cross-file.txt \
+	--wrap-mode=forcefallback \
+	--buildtype=release \
+	-Dtests=disabled \
+	-Dcairo=enabled \
+	-Dcairo:fontconfig=disabled \
+	-Dglib=enabled \
+	-Dfreetype=enabled \
+	-Dgdi=enabled \
+	-Ddirectwrite=enabled \
+	-Dcairo=enabled \
+	win32build \
+	$@
+
 ninja -Cwin32build -j3 # building with all the cores won't work fine with CricleCI for some reason
 
 rm -rf win32build/harfbuzz-win32
