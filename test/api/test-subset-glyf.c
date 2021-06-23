@@ -301,11 +301,10 @@ test_subset_glyf_strip_hints_invalid (void)
   hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
   hb_set_destroy (codepoints);
 
-  face_subset = hb_subset_test_create_subset (face, input);
-  g_assert (face_subset);
-  g_assert (face_subset == hb_face_get_empty ());
+  face_subset = hb_subset_or_fail (face, input);
+  g_assert (!face_subset);
 
-  hb_face_destroy (face_subset);
+  hb_subset_input_destroy (input);
   hb_face_destroy (face);
 }
 

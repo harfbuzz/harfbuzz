@@ -83,7 +83,7 @@ static inline hb_face_t *
 hb_subset_test_create_subset (hb_face_t *source,
 			      hb_subset_input_t *input)
 {
-  hb_face_t *subset = hb_subset (source, input);
+  hb_face_t *subset = hb_subset_or_fail (source, input);
   g_assert (subset);
 
   hb_subset_input_destroy (input);

@@ -31,7 +31,8 @@ trySubset (hb_face_t *face,
   for (int i = 0; i < text_length; i++)
     hb_set_add (codepoints, text[i]);
 
-  hb_face_t *result = hb_subset (face, input);
+  hb_face_t *result = hb_subset_or_fail (face, input);
+  if (result)
   {
     hb_blob_t *blob = hb_face_reference_blob (result);
     unsigned int length;

@@ -310,21 +310,6 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
 }
 
 /**
- * hb_subset:
- * @source: font face data to be subset.
- * @input: input to use for the subsetting.
- *
- * Subsets a font according to provided input.
- **/
-hb_face_t *
-hb_subset (hb_face_t *source, const hb_subset_input_t *input)
-{
-  hb_face_t* result = hb_subset_or_fail (source, input);
-  if (unlikely (!result)) return hb_face_get_empty ();
-  return result;
-}
-
-/**
  * hb_subset_or_fail:
  * @source: font face data to be subset.
  * @input: input to use for the subsetting.
