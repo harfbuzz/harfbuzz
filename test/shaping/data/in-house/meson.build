@@ -14,6 +14,7 @@ in_house_tests = [
   'context-matching.tests',
   'cursive-positioning.tests',
   'default-ignorables.tests',
+  'digits.tests',
   'emoji.tests',
   'fallback-positioning.tests',
   'hangul-jamo.tests',
