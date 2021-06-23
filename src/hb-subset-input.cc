@@ -198,8 +198,6 @@ hb_subset_input_create_or_fail ()
  * hb_subset_input_reference: (skip)
  * @subset_input: a subset_input.
  *
- *
- *
  * Return value:
  *
  * Since: 1.8.0
@@ -235,6 +233,8 @@ hb_subset_input_destroy (hb_subset_input_t *subset_input)
  * hb_subset_input_unicode_set:
  * @subset_input: a subset_input.
  *
+ * Return value: pointer to the set of unicode codepoints to retain.
+ *
  * Since: 1.8.0
  **/
 HB_EXTERN hb_set_t *
@@ -247,6 +247,8 @@ hb_subset_input_unicode_set (hb_subset_input_t *subset_input)
  * hb_subset_input_glyph_set:
  * @subset_input: a subset_input.
  *
+ * Return value: pointer to the set of glyph ids to retain.
+ *
  * Since: 1.8.0
  **/
 HB_EXTERN hb_set_t *
@@ -255,18 +257,43 @@ hb_subset_input_glyph_set (hb_subset_input_t *subset_input)
   return subset_input->glyphs;
 }
 
+/**
+ * hb_subset_input_nameid_set:
+ * @subset_input: a subset_input.
+ *
+ * Return value: pointer to the set of name ids to retain.
+ *
+ * Since: REPLACE
+ **/
 HB_EXTERN hb_set_t *
 hb_subset_input_nameid_set (hb_subset_input_t *subset_input)
 {
   return subset_input->name_ids;
 }
 
+/**
+ * hb_subset_input_namelangid_set:
+ * @subset_input: a subset_input.
+ *
+ * Return value: pointer to the set of name language ids to retain.
+ *
+ * Since: REPLACE
+ **/
 HB_EXTERN hb_set_t *
 hb_subset_input_namelangid_set (hb_subset_input_t *subset_input)
 {
   return subset_input->name_languages;
 }
 
+
+/**
+ * hb_subset_input_layout_features_set:
+ * @subset_input: a subset_input.
+ *
+ * Return value: pointer to the set of feature tags to retain.
+ *
+ * Since: REPLACE
+ **/
 HB_EXTERN hb_set_t *
 hb_subset_input_layout_features_set (hb_subset_input_t *subset_input)
 {
@@ -275,7 +302,7 @@ hb_subset_input_layout_features_set (hb_subset_input_t *subset_input)
 
 HB_EXTERN void
 hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
-				       hb_bool_t value)
+					 hb_bool_t value)
 {
   subset_input->retain_all_layout_features = value;
 }
@@ -287,18 +314,46 @@ hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input)
 }
 
 
+/**
+ * hb_subset_input_drop_tabes_set:
+ * @subset_input: a subset_input.
+ *
+ * Return value: pointer to the set of table tags which specifies tables
+ *		 to be dropped.
+ *
+ * Since: REPLACE
+ **/
 HB_EXTERN hb_set_t *
 hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input)
 {
   return subset_input->drop_tables;
 }
 
+/**
+ * hb_subset_input_no_subset_tabes_set:
+ * @subset_input: a subset_input.
+ *
+ * Return value: pointer to the set of table tags which specifies tables
+ *		 that should not have subsetting applied to them.
+ *
+ * Since: REPLACE
+ **/
 HB_EXTERN hb_set_t *
 hb_subset_input_no_subset_tables_set (hb_subset_input_t *subset_input)
 {
   return subset_input->no_subset_tables;
 }
 
+
+/**
+ * hb_subset_input_get_flag:
+ * @subset_input: a subset_input.
+ * @flag: which flag to check.
+ *
+ * Return value: value of the specified flag.
+ *
+ * Since: REPLACE
+ **/
 HB_EXTERN hb_bool_t
 hb_subset_input_get_flag (hb_subset_input_t *input,
 			  hb_subset_flag_t flag)
@@ -324,6 +379,16 @@ hb_subset_input_get_flag (hb_subset_input_t *input,
   }
 }
 
+/**
+ * hb_subset_input_set_flag:
+ * @subset_input: a subset_input.
+ * @flag: which flag to set.
+ * @value: new value for the flag.
+ *
+ * Set the specified flag to @value.
+ *
+ * Since: REPLACE
+ **/
 HB_EXTERN void
 hb_subset_input_set_flag (hb_subset_input_t *input,
 			  hb_subset_flag_t flag,

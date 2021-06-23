@@ -39,35 +39,40 @@ HB_BEGIN_DECLS
 
 typedef struct hb_subset_input_t hb_subset_input_t;
 
+/**
+ * hb_subset_flag_t:
+ * @HB_SUBSET_FLAG_HINTING: If set hinting instructions will be retained in
+ * the produced subset. Otherwise hinting instructions will be dropped.
+ * Defaults to true.
+ * @HB_SUBSET_FLAG_RETAIN_GIDS: If set glyph indices will not be modified in
+ * the produced subset. If glyphs are dropped their indices will be retained
+ * as an empty glyph. Defaults to false.
+ * @HB_SUBSET_FLAG_DESUBROUTINIZE: If set and subsetting a CFF font the
+ * subsetter will attempt to remove subroutines from the CFF glyphs.
+ * Defaults to false.
+ * @HB_SUBSET_FLAG_NAME_LEGACY: If set non-unicode name records will be
+ * retained in the subset. Defaults to false.
+ * @HB_SUBSET_FLAG_SET_OVERLAPS_FLAG:  If set the subsetter will set the
+ * OVERLAP_SIMPLE flag on each simple glyph. Defaults to false.
+ * @HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED: If set the subsetter will not
+ * drop unrecognized tables and instead pass them through untouched.
+ * Defaults to false.
+ * @HB_SUBSET_FLAG_NOTDEF_OUTLINE: If set the notdef glyph outline will be
+ * retained in the final subset. Defaults to false.
+ *
+ * List of boolean properties that can be configured on the subset input.
+ *
+ * Since: REPLACE
+ **/
 typedef enum
 {
-  // If set hinting instructions will be retained in the produced subset.
-  // Otherwise hinting instructions will be dropped.
-  // Defaults to true.
-  HB_SUBSET_FLAG_HINTING =		    1,
-  // If set glyph indices will not be modified in the produced subset.
-  // If glyphs are dropped their indices will be retained as an empty
-  // glyph.
-  // Defaults to false.
-  HB_SUBSET_FLAG_RETAIN_GIDS =		    2,
-  // If set and subsetting a CFF font the subsetter will attempt to
-  // remove subroutines from the CFF glyphs.
-  // Defaults to false.
-  HB_SUBSET_FLAG_DESUBROUTINIZE =	    3,
-  // If set non-unicode name records will be retained in the subset.
-  // Defaults to false.
-  HB_SUBSET_FLAG_NAME_LEGACY =		    4,
-  // If set the subsetter will set the OVERLAP_SIMPLE flag on each
-  // simple glyph.
-  // Defaults to false.
-  HB_SUBSET_FLAG_SET_OVERLAPS_FLAG =	    5,
-  // If set the subsetter will not drop unrecognized tables and instead
-  // pass them through untouched.
-  // Defaults to false.
-  HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED = 6,
-  // If set the notdef glyph outline will be retained in the final subset.
-  // Defaults to false.
-  HB_SUBSET_FLAG_NOTDEF_OUTLINE =	    7,
+  HB_SUBSET_FLAG_HINTING = 0,
+  HB_SUBSET_FLAG_RETAIN_GIDS,
+  HB_SUBSET_FLAG_DESUBROUTINIZE,
+  HB_SUBSET_FLAG_NAME_LEGACY,
+  HB_SUBSET_FLAG_SET_OVERLAPS_FLAG,
+  HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED,
+  HB_SUBSET_FLAG_NOTDEF_OUTLINE,
 } hb_subset_flag_t;
 
 HB_EXTERN hb_subset_input_t *
