@@ -65,16 +65,18 @@ echo fonttools subset \
 	--glyph-names \
 	--no-hinting \
 	--layout-features='*' \
-	"$dir/font.ttf" \
 	--gids="$glyph_ids" \
-	--text="$text"
+	--text="$text" \
+	--output-file="$dir/font.subset.ttf" \
+	"$dir/font.ttf"
 fonttools subset \
 	--glyph-names \
 	--no-hinting \
 	--layout-features='*' \
-	"$dir/font.ttf" \
 	--gids="$glyph_ids" \
-	--text="$text"
+	--text="$text" \
+	--output-file="$dir/font.subset.ttf" \
+	"$dir/font.ttf"
 if ! test -s "$dir/font.subset.ttf"; then
 	echo "Subsetter didn't produce nonempty subset font in $dir/font.subset.ttf" >&2
 	exit 2
