@@ -101,7 +101,7 @@ hb_subset_input_create_or_fail ()
     HB_TAG ('S', 'T', 'A', 'T'),
   };
   input->no_subset_tables->add_array (default_no_subset_tables,
-                                      ARRAY_LENGTH (default_no_subset_tables));
+				      ARRAY_LENGTH (default_no_subset_tables));
 
   //copied from _layout_features_groups in fonttools
   hb_tag_t default_layout_features[] = {
@@ -317,6 +317,8 @@ hb_subset_input_get_flag (hb_subset_input_t *input,
       return input->overlaps_flag;
     case HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED:
       return input->passthrough_unrecognized;
+    case HB_SUBSET_FLAG_NOTDEF_OUTLINE:
+      return input->notdef_outline;
     default:
       return false;
   }
@@ -347,6 +349,8 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
     case HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED:
       input->passthrough_unrecognized = value;
       break;
+    case HB_SUBSET_FLAG_NOTDEF_OUTLINE:
+      input->notdef_outline = value;
     default:
       // Do nothing.
       break;

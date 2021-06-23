@@ -47,6 +47,7 @@ typedef enum
   HB_SUBSET_FLAG_NAME_LEGACY =		    4,
   HB_SUBSET_FLAG_SET_OVERLAPS_FLAG =	    5,
   HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED = 6,
+  HB_SUBSET_FLAG_NOTDEF_OUTLINE =	    7,
 } hb_subset_flag_t;
 
 HB_EXTERN hb_subset_input_t *
