@@ -52,6 +52,7 @@ struct hb_subset_input_t
   hb_bool_t name_legacy;
   hb_bool_t overlaps_flag;
   hb_bool_t notdef_outline;
+  hb_bool_t no_prune_unicode_ranges;
   hb_bool_t retain_all_layout_features;
   /* TODO
    *
