@@ -311,6 +311,7 @@ subset_options_t::add_options (option_parser_t *parser)
     {"set-overlaps-flag", 0, 0, G_OPTION_ARG_NONE,  &this->input->overlaps_flag,
      "Set the overlaps flag on each glyph.",   nullptr},
     {"notdef-outline", 0, 0, G_OPTION_ARG_NONE,  &this->input->notdef_outline,   "Keep the outline of \'.notdef\' glyph",   nullptr},
+    {"no-prune-unicode-ranges", 0, 0, G_OPTION_ARG_NONE,  &this->input->no_prune_unicode_ranges,   "Don't change the 'OS/2 ulUnicodeRange*' bits.",   nullptr},
     {nullptr}
   };
   parser->add_group (entries,

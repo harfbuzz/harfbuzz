@@ -56,6 +56,7 @@ hb_subset_input_create_or_fail ()
   input->name_legacy = false;
   input->overlaps_flag = false;
   input->notdef_outline = false;
+  input->no_prune_unicode_ranges = false;
   input->retain_all_layout_features = false;
 
   hb_tag_t default_drop_tables[] = {
@@ -362,5 +363,18 @@ HB_EXTERN hb_bool_t
 hb_subset_input_get_notdef_outline (hb_subset_input_t *subset_input)
 {
   return subset_input->notdef_outline;
+}
+
+HB_EXTERN void
+hb_subset_input_set_no_prune_unicode_ranges (hb_subset_input_t *subset_input,
+                                             hb_bool_t no_prune_unicode_ranges)
+{
+  subset_input->no_prune_unicode_ranges = no_prune_unicode_ranges;
+}
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input)
+{
+  return subset_input->no_prune_unicode_ranges;
 }
 

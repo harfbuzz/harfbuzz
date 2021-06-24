@@ -172,6 +172,7 @@ struct OS2
     TRACE_SUBSET (this);
     OS2 *os2_prime = c->serializer->embed (this);
     if (unlikely (!os2_prime)) return_trace (false);
+    if (!c->plan->prune_unicode_ranges) return_trace (true);
 
     hb_set_t unicodes;
     if (!c->plan->glyphs_requested->is_empty ())
