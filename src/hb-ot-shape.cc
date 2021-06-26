@@ -588,9 +588,10 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
   {
     bool found_number = false, found_letter = false;
     const auto* info = buffer->info;
-    foreach_grapheme (buffer, start, end)
+    const auto count = buffer->len;
+    for (unsigned i = 0; i < count; i++)
     {
-      auto gc = _hb_glyph_info_get_general_category (&info[start]);
+      auto gc = _hb_glyph_info_get_general_category (&info[i]);
       if (gc == HB_UNICODE_GENERAL_CATEGORY_DECIMAL_NUMBER)
         found_number = true;
       else if (HB_UNICODE_GENERAL_CATEGORY_IS_LETTER (gc))
