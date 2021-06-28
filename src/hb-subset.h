@@ -79,10 +79,10 @@ HB_EXTERN hb_subset_input_t *
 hb_subset_input_create_or_fail (void);
 
 HB_EXTERN hb_subset_input_t *
-hb_subset_input_reference (hb_subset_input_t *subset_input);
+hb_subset_input_reference (hb_subset_input_t *input);
 
 HB_EXTERN void
-hb_subset_input_destroy (hb_subset_input_t *subset_input);
+hb_subset_input_destroy (hb_subset_input_t *input);
 
 HB_EXTERN hb_bool_t
 hb_subset_input_set_user_data (hb_subset_input_t  *input,
@@ -96,31 +96,31 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
 			       hb_user_data_key_t	   *key);
 
 HB_EXTERN hb_set_t *
-hb_subset_input_unicode_set (hb_subset_input_t *subset_input);
+hb_subset_input_unicode_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
-hb_subset_input_glyph_set (hb_subset_input_t *subset_input);
+hb_subset_input_glyph_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
-hb_subset_input_nameid_set (hb_subset_input_t *subset_input);
+hb_subset_input_nameid_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
-hb_subset_input_namelangid_set (hb_subset_input_t *subset_input);
+hb_subset_input_namelangid_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
-hb_subset_input_layout_features_set (hb_subset_input_t *subset_input);
+hb_subset_input_layout_features_set (hb_subset_input_t *input);
 
 HB_EXTERN void
-hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
+hb_subset_input_set_retain_all_features (hb_subset_input_t *input,
 					 hb_bool_t value);
 HB_EXTERN hb_bool_t
-hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input);
+hb_subset_input_get_retain_all_features (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
-hb_subset_input_no_subset_tables_set (hb_subset_input_t *subset_input);
+hb_subset_input_no_subset_tables_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
-hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input);
+hb_subset_input_drop_tables_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_bool_t
 hb_subset_input_get_flag (hb_subset_input_t *input,

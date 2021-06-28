@@ -402,6 +402,9 @@ _nameid_closure (hb_face_t *face,
 
 /**
  * hb_subset_plan_create:
+ * @face: font face to create the plan for.
+ * @input: a subset input.
+ *
  * Computes a plan for subsetting the supplied face according
  * to a provided input. The plan describes
  * which tables and glyphs should be retained.

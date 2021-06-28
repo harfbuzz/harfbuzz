@@ -196,127 +196,127 @@ hb_subset_input_create_or_fail ()
 
 /**
  * hb_subset_input_reference: (skip)
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Return value:
  *
  * Since: 1.8.0
  **/
 hb_subset_input_t *
-hb_subset_input_reference (hb_subset_input_t *subset_input)
+hb_subset_input_reference (hb_subset_input_t *input)
 {
-  return hb_object_reference (subset_input);
+  return hb_object_reference (input);
 }
 
 /**
  * hb_subset_input_destroy:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Since: 1.8.0
  **/
 void
-hb_subset_input_destroy (hb_subset_input_t *subset_input)
+hb_subset_input_destroy (hb_subset_input_t *input)
 {
-  if (!hb_object_destroy (subset_input)) return;
+  if (!hb_object_destroy (input)) return;
 
-  hb_set_destroy (subset_input->unicodes);
-  hb_set_destroy (subset_input->glyphs);
-  hb_set_destroy (subset_input->name_ids);
-  hb_set_destroy (subset_input->name_languages);
-  hb_set_destroy (subset_input->drop_tables);
-  hb_set_destroy (subset_input->layout_features);
+  hb_set_destroy (input->unicodes);
+  hb_set_destroy (input->glyphs);
+  hb_set_destroy (input->name_ids);
+  hb_set_destroy (input->name_languages);
+  hb_set_destroy (input->drop_tables);
+  hb_set_destroy (input->layout_features);
 
-  hb_free (subset_input);
+  hb_free (input);
 }
 
 /**
  * hb_subset_input_unicode_set:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Return value: pointer to the set of unicode codepoints to retain.
  *
  * Since: 1.8.0
  **/
 HB_EXTERN hb_set_t *
-hb_subset_input_unicode_set (hb_subset_input_t *subset_input)
+hb_subset_input_unicode_set (hb_subset_input_t *input)
 {
-  return subset_input->unicodes;
+  return input->unicodes;
 }
 
 /**
  * hb_subset_input_glyph_set:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Return value: pointer to the set of glyph ids to retain.
  *
  * Since: 1.8.0
  **/
 HB_EXTERN hb_set_t *
-hb_subset_input_glyph_set (hb_subset_input_t *subset_input)
+hb_subset_input_glyph_set (hb_subset_input_t *input)
 {
-  return subset_input->glyphs;
+  return input->glyphs;
 }
 
 /**
  * hb_subset_input_nameid_set:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Return value: pointer to the set of name ids to retain.
  *
  * Since: REPLACE
  **/
 HB_EXTERN hb_set_t *
-hb_subset_input_nameid_set (hb_subset_input_t *subset_input)
+hb_subset_input_nameid_set (hb_subset_input_t *input)
 {
-  return subset_input->name_ids;
+  return input->name_ids;
 }
 
 /**
  * hb_subset_input_namelangid_set:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Return value: pointer to the set of name language ids to retain.
  *
  * Since: REPLACE
  **/
 HB_EXTERN hb_set_t *
-hb_subset_input_namelangid_set (hb_subset_input_t *subset_input)
+hb_subset_input_namelangid_set (hb_subset_input_t *input)
 {
-  return subset_input->name_languages;
+  return input->name_languages;
 }
 
 
 /**
  * hb_subset_input_layout_features_set:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Return value: pointer to the set of feature tags to retain.
  *
  * Since: REPLACE
  **/
 HB_EXTERN hb_set_t *
-hb_subset_input_layout_features_set (hb_subset_input_t *subset_input)
+hb_subset_input_layout_features_set (hb_subset_input_t *input)
 {
-  return subset_input->layout_features;
+  return input->layout_features;
 }
 
 HB_EXTERN void
-hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
+hb_subset_input_set_retain_all_features (hb_subset_input_t *input,
 					 hb_bool_t value)
 {
-  subset_input->retain_all_layout_features = value;
+  input->retain_all_layout_features = value;
 }
 
 HB_EXTERN hb_bool_t
-hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input)
+hb_subset_input_get_retain_all_features (hb_subset_input_t *input)
 {
-  return subset_input->retain_all_layout_features;
+  return input->retain_all_layout_features;
 }
 
 
 /**
  * hb_subset_input_drop_tabes_set:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Return value: pointer to the set of table tags which specifies tables
  *		 to be dropped.
@@ -324,14 +324,14 @@ hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input)
  * Since: REPLACE
  **/
 HB_EXTERN hb_set_t *
-hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input)
+hb_subset_input_drop_tables_set (hb_subset_input_t *input)
 {
-  return subset_input->drop_tables;
+  return input->drop_tables;
 }
 
 /**
  * hb_subset_input_no_subset_tabes_set:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  *
  * Return value: pointer to the set of table tags which specifies tables
  *		 that should not have subsetting applied to them.
@@ -339,15 +339,15 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *subset_input)
  * Since: REPLACE
  **/
 HB_EXTERN hb_set_t *
-hb_subset_input_no_subset_tables_set (hb_subset_input_t *subset_input)
+hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
 {
-  return subset_input->no_subset_tables;
+  return input->no_subset_tables;
 }
 
 
 /**
  * hb_subset_input_get_flag:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  * @flag: which flag to check.
  *
  * Return value: value of the specified flag.
@@ -381,7 +381,7 @@ hb_subset_input_get_flag (hb_subset_input_t *input,
 
 /**
  * hb_subset_input_set_flag:
- * @subset_input: a subset_input.
+ * @input: a subset_input.
  * @flag: which flag to set.
  * @value: new value for the flag.
  *
@@ -463,7 +463,7 @@ hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input)
 
 /**
  * hb_subset_input_set_user_data: (skip)
- * @face: A subset input object
+ * @input: A subset input object
  * @key: The user-data key to set
  * @data: A pointer to the user data
  * @destroy: (nullable): A callback to call when @data is not needed anymore
@@ -487,7 +487,7 @@ hb_subset_input_set_user_data (hb_subset_input_t  *input,
 
 /**
  * hb_subset_input_get_user_data: (skip)
- * @face: A subset input object
+ * @input: A subset input object
  * @key: The user-data key to query
  *
  * Fetches the user data associated with the specified key,
