@@ -2790,8 +2790,8 @@ struct VariationStore
       (src+src->dataSets[i]).collect_region_refs (region_map, inner_maps[i]);
     region_map.sort ();
 
-    if (unlikely (!regions.serialize (c, this)
-		  .serialize (c, &(src+src->regions), region_map))) return_trace (false);
+    if (unlikely (!regions.serialize_serialize (c, &(src+src->regions), region_map)))
+      return_trace (false);
 
     /* TODO: The following code could be simplified when
      * List16OfOffset16To::subset () can take a custom param to be passed to VarData::serialize ()
@@ -2801,8 +2801,8 @@ struct VariationStore
     for (unsigned int i = 0; i < inner_maps.length; i++)
     {
       if (inner_maps[i].get_population () == 0) continue;
-      if (unlikely (!dataSets[set_index++].serialize (c, this)
-		      .serialize (c, &(src+src->dataSets[i]), inner_maps[i], region_map)))
+      if (unlikely (!dataSets[set_index++]
+                        .serialize_serialize (c, &(src+src->dataSets[i]), inner_maps[i], region_map)))
 	return_trace (false);
     }
 
