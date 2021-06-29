@@ -367,15 +367,15 @@ struct HVARVVAR
     TRACE_SERIALIZE (this);
     if (im_plans[index_map_subset_plan_t::ADV_INDEX].is_identity ())
       advMap = 0;
-    else if (unlikely (!advMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::ADV_INDEX])))
+    else if (unlikely (!advMap.serialize_serialize (c, im_plans[index_map_subset_plan_t::ADV_INDEX])))
       return_trace (false);
     if (im_plans[index_map_subset_plan_t::LSB_INDEX].is_identity ())
       lsbMap = 0;
-    else if (unlikely (!lsbMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::LSB_INDEX])))
+    else if (unlikely (!lsbMap.serialize_serialize (c, im_plans[index_map_subset_plan_t::LSB_INDEX])))
       return_trace (false);
     if (im_plans[index_map_subset_plan_t::RSB_INDEX].is_identity ())
       rsbMap = 0;
-    else if (unlikely (!rsbMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::RSB_INDEX])))
+    else if (unlikely (!rsbMap.serialize_serialize (c, im_plans[index_map_subset_plan_t::RSB_INDEX])))
       return_trace (false);
 
     return_trace (true);
@@ -398,8 +398,10 @@ struct HVARVVAR
     out->version.major = 1;
     out->version.minor = 0;
 
-    if (unlikely (!out->varStore.serialize (c->serializer, out)
-		     .serialize (c->serializer, hvar_plan.var_store, hvar_plan.inner_maps.as_array ())))
+    if (unlikely (!out->varStore
+		      .serialize_serialize (c->serializer,
+					    hvar_plan.var_store,
+					    hvar_plan.inner_maps.as_array ())))
       return_trace (false);
 
     return_trace (out->T::serialize_index_maps (c->serializer,
@@ -466,7 +468,7 @@ struct VVAR : HVARVVAR {
       return_trace (false);
     if (!im_plans[index_map_subset_plan_t::VORG_INDEX].get_map_count ())
       vorgMap = 0;
-    else if (unlikely (!vorgMap.serialize (c, this).serialize (c, im_plans[index_map_subset_plan_t::VORG_INDEX])))
+    else if (unlikely (!vorgMap.serialize_serialize (c, im_plans[index_map_subset_plan_t::VORG_INDEX])))
       return_trace (false);
 
     return_trace (true);
