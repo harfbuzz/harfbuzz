@@ -2788,6 +2788,7 @@ struct VariationStore
     hb_inc_bimap_t region_map;
     for (unsigned int i = 0; i < inner_maps.length; i++)
       (src+src->dataSets[i]).collect_region_refs (region_map, inner_maps[i]);
+    if (region_map.in_error()) return_trace (false);
     region_map.sort ();
 
     if (unlikely (!regions.serialize_serialize (c, &(src+src->regions), region_map)))
