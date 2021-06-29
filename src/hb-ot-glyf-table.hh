@@ -45,6 +45,10 @@ namespace OT {
  */
 #define HB_OT_TAG_loca HB_TAG('l','o','c','a')
 
+#ifndef HB_MAX_COMPOSITE_OPERATIONS
+#define HB_MAX_COMPOSITE_OPERATIONS 1000000
+#endif
+
 
 struct loca
 {
@@ -1079,18 +1083,24 @@ struct glyf
       return needs_padding_removal ? glyph.trim_padding () : glyph;
     }
 
-    void
-    add_gid_and_children (hb_codepoint_t gid, hb_set_t *gids_to_retain,
-			  unsigned int depth = 0) const
+    unsigned
+    add_gid_and_children (hb_codepoint_t gid,
+			  hb_set_t *gids_to_retain,
+			  unsigned depth = 0,
+			  unsigned operation_count = 0) const
     {
-      if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return;
+      if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return operation_count;
+      if (unlikely (operation_count++ > HB_MAX_COMPOSITE_OPERATIONS)) return operation_count;
       /* Check if is already visited */
-      if (gids_to_retain->has (gid)) return;
+      if (gids_to_retain->has (gid)) return operation_count;
 
       gids_to_retain->add (gid);
 
       for (auto &item : glyph_for_gid (gid).get_composite_iterator ())
-	add_gid_and_children (item.get_glyph_index (), gids_to_retain, depth);
+	operation_count +=
+	    add_gid_and_children (item.get_glyph_index (), gids_to_retain, depth, operation_count);
+
+      return operation_count;
     }
 
 #ifdef HB_EXPERIMENTAL_API
