@@ -1880,7 +1880,7 @@ struct CursivePosFormat1
     else
       pos[child].x_offset = x_offset;
 
-    /* If parent was attached to child, break them free.
+    /* If parent was attached to child, separate them.
      * https://github.com/harfbuzz/harfbuzz/issues/2469
      */
     if (unlikely (pos[parent].attach_chain() == -pos[child].attach_chain()))

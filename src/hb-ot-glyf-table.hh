@@ -920,7 +920,7 @@ struct glyf
     {
       if (gid >= num_glyphs) return false;
 
-      /* Making this alloc free is not that easy
+      /* Making this allocfree is not that easy
 	 https://github.com/harfbuzz/harfbuzz/issues/2095
 	 mostly because of gvar handling in VF fonts,
 	 perhaps a separate path for non-VF fonts can be considered */

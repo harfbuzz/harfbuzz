@@ -257,11 +257,9 @@ struct hb_language_item_t {
   bool operator == (const char *s) const
   { return lang_equal (lang, s); }
 
-  hb_language_item_t & operator = (const char *s) {
-    /* If a custom allocated is used calling strdup() pairs
-    badly with a call to the custom free() in fini() below.
-    Therefore don't call strdup(), implement its behavior.
-    */
+  hb_language_item_t & operator = (const char *s)
+  {
+    /* We can't call strdup(), because we allow custom allocators. */
     size_t len = strlen(s) + 1;
     lang = (hb_language_t) malloc(len);
     if (likely (lang))
@@ -278,7 +276,7 @@ struct hb_language_item_t {
 };
 
 
-/* Thread-safe lock-free language list */
+/* Thread-safe lockfree language list */
 
 static hb_atomic_ptr_t <hb_language_item_t> langs;
 

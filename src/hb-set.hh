@@ -35,7 +35,7 @@
  * hb_set_t
  */
 
-/* TODO Keep a free-list so we can free pages that are completely zeroed.  At that
+/* TODO Keep a freelist so we can release pages that are completely zeroed.  At that
  * point maybe also use a sentinel value for "all-1" pages? */
 
 struct hb_set_t

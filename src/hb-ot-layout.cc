@@ -1388,7 +1388,8 @@ hb_ot_layout_has_substitution (hb_face_t *face)
  * @lookup_index: The index of the lookup to query
  * @glyphs: The sequence of glyphs to query for substitution
  * @glyphs_length: The length of the glyph sequence
- * @zero_context: #hb_bool_t indicating whether substitutions should be context-free
+ * @zero_context: #hb_bool_t indicating whether pre-/post-context are disallowed
+ * in substitutions
  *
  * Tests whether a specified lookup in the specified face would
  * trigger a substitution on the given glyph sequence.
