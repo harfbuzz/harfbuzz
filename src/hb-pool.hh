@@ -41,7 +41,7 @@ struct hb_pool_t
   {
     next = nullptr;
 
-    for (chunk_t *_ : chunks) ::free (_);
+    for (chunk_t *_ : chunks) free (_);
 
     chunks.fini ();
   }
@@ -65,7 +65,7 @@ struct hb_pool_t
     return obj;
   }
 
-  void free (T* obj)
+  void release (T* obj)
   {
     * (T**) obj = next;
     next = obj;

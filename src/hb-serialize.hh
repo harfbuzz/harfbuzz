@@ -254,7 +254,7 @@ struct hb_serialize_context_t
     current = current->next;
     revert (obj->head, obj->tail);
     obj->fini ();
-    object_pool.free (obj);
+    object_pool.release (obj);
   }
 
   /* Set share to false when an object is unlikely sharable with others
