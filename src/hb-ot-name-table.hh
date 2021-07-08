@@ -214,7 +214,7 @@ struct name
     this->format = 0;
     this->count = it.len ();
 
-    NameRecord *name_records = (NameRecord *) calloc (it.len (), NameRecord::static_size);
+    NameRecord *name_records = (NameRecord *) hb_calloc (it.len (), NameRecord::static_size);
     if (unlikely (!name_records)) return_trace (false);
 
     hb_array_t<NameRecord> records (name_records, it.len ());
@@ -228,7 +228,7 @@ struct name
     records.qsort ();
 
     c->copy_all (records, src_string_pool);
-    free (records.arrayZ);
+    hb_free (records.arrayZ);
 
 
     if (unlikely (c->ran_out_of_room ())) return_trace (false);

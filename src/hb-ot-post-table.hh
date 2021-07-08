@@ -117,7 +117,7 @@ struct post
     void fini ()
     {
       index_to_offset.fini ();
-      free (gids_sorted_by_name.get ());
+      hb_free (gids_sorted_by_name.get ());
       table.destroy ();
     }
 
@@ -148,7 +148,7 @@ struct post
 
       if (unlikely (!gids))
       {
-	gids = (uint16_t *) malloc (count * sizeof (gids[0]));
+	gids = (uint16_t *) hb_malloc (count * sizeof (gids[0]));
 	if (unlikely (!gids))
 	  return false; /* Anything better?! */
 
@@ -158,7 +158,7 @@ struct post
 
 	if (unlikely (!gids_sorted_by_name.cmpexch (nullptr, gids)))
 	{
-	  free (gids);
+	  hb_free (gids);
 	  goto retry;
 	}
       }

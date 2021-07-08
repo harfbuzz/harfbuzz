@@ -109,7 +109,7 @@ hb_set_destroy (hb_set_t *set)
 
   set->fini_shallow ();
 
-  free (set);
+  hb_free (set);
 }
 
 /**

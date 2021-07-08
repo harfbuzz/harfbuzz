@@ -98,7 +98,7 @@ struct glyf
     unsigned num_offsets = padded_offsets.len () + 1;
     bool use_short_loca = max_offset < 0x1FFFF;
     unsigned entry_size = use_short_loca ? 2 : 4;
-    char *loca_prime_data = (char *) calloc (entry_size, num_offsets);
+    char *loca_prime_data = (char *) hb_calloc (entry_size, num_offsets);
 
     if (unlikely (!loca_prime_data)) return false;
 
@@ -115,7 +115,7 @@ struct glyf
 					   entry_size * num_offsets,
 					   HB_MEMORY_MODE_WRITABLE,
 					   loca_prime_data,
-					   free);
+					   hb_free);
 
     bool result = plan->add_table (HB_OT_TAG_loca, loca_blob)
 	       && _add_head_and_set_loca_version (plan, use_short_loca);

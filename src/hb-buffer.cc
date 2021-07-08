@@ -136,8 +136,8 @@ hb_buffer_t::enlarge (unsigned int size)
   if (unlikely (hb_unsigned_mul_overflows (new_allocated, sizeof (info[0]))))
     goto done;
 
-  new_pos = (hb_glyph_position_t *) realloc (pos, new_allocated * sizeof (pos[0]));
-  new_info = (hb_glyph_info_t *) realloc (info, new_allocated * sizeof (info[0]));
+  new_pos = (hb_glyph_position_t *) hb_realloc (pos, new_allocated * sizeof (pos[0]));
+  new_info = (hb_glyph_info_t *) hb_realloc (info, new_allocated * sizeof (info[0]));
 
 done:
   if (unlikely (!new_pos || !new_info))
@@ -717,14 +717,14 @@ hb_buffer_destroy (hb_buffer_t *buffer)
 
   hb_unicode_funcs_destroy (buffer->unicode);
 
-  free (buffer->info);
-  free (buffer->pos);
+  hb_free (buffer->info);
+  hb_free (buffer->pos);
 #ifndef HB_NO_BUFFER_MESSAGE
   if (buffer->message_destroy)
     buffer->message_destroy (buffer->message_data);
 #endif
 
-  free (buffer);
+  hb_free (buffer);
 }
 
 /**

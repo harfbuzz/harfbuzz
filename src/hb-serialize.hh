@@ -547,11 +547,11 @@ struct hb_serialize_context_t
     unsigned int len = (this->head - this->start)
 		     + (this->end  - this->tail);
 
-    // If len is zero don't malloc as the memory won't get properly
+    // If len is zero don't hb_malloc as the memory won't get properly
     // cleaned up later.
     if (!len) return hb_bytes_t ();
 
-    char *p = (char *) malloc (len);
+    char *p = (char *) hb_malloc (len);
     if (unlikely (!p)) return hb_bytes_t ();
 
     memcpy (p, this->start, this->head - this->start);
@@ -566,7 +566,7 @@ struct hb_serialize_context_t
     hb_bytes_t b = copy_bytes ();
     return hb_blob_create (b.arrayZ, b.length,
 			   HB_MEMORY_MODE_WRITABLE,
-			   (char *) b.arrayZ, free);
+			   (char *) b.arrayZ, hb_free);
   }
 
   const hb_vector_t<object_t *>& object_graph() const

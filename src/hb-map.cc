@@ -109,7 +109,7 @@ hb_map_destroy (hb_map_t *map)
 
   map->fini_shallow ();
 
-  free (map);
+  hb_free (map);
 }
 
 /**

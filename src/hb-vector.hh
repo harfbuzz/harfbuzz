@@ -69,7 +69,7 @@ struct hb_vector_t
 
   void fini ()
   {
-    free (arrayZ);
+    hb_free (arrayZ);
     init ();
   }
   void fini_deep ()
@@ -209,7 +209,7 @@ struct hb_vector_t
       (new_allocated < (unsigned) allocated) ||
       hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
     if (likely (!overflows))
-      new_array = (Type *) realloc (arrayZ, new_allocated * sizeof (Type));
+      new_array = (Type *) hb_realloc (arrayZ, new_allocated * sizeof (Type));
 
     if (unlikely (!new_array))
     {

@@ -247,7 +247,7 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
 {
   static hb_uniscribe_shaper_funcs_t *create ()
   {
-    hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
+    hb_uniscribe_shaper_funcs_t *funcs = (hb_uniscribe_shaper_funcs_t *) hb_calloc (1, sizeof (hb_uniscribe_shaper_funcs_t));
     if (unlikely (!funcs))
       return nullptr;
 
@@ -261,7 +261,7 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
   }
   static void destroy (hb_uniscribe_shaper_funcs_t *p)
   {
-    free ((void *) p);
+    hb_free ((void *) p);
   }
   static hb_uniscribe_shaper_funcs_t *get_null ()
   {
@@ -391,7 +391,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
   unsigned int name_table_offset = (length + 3) & ~3;
 
   new_length = name_table_offset + padded_name_table_length;
-  void *new_sfnt_data = calloc (1, new_length);
+  void *new_sfnt_data = hb_calloc (1, new_length);
   if (!new_sfnt_data)
   {
     hb_blob_destroy (blob);
@@ -441,7 +441,7 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
     }
     else if (face_index == 0) /* Fail if first face doesn't have 'name' table. */
     {
-      free (new_sfnt_data);
+      hb_free (new_sfnt_data);
       hb_blob_destroy (blob);
       return nullptr;
     }
@@ -453,20 +453,20 @@ _hb_rename_font (hb_blob_t *blob, wchar_t *new_name)
 
   hb_blob_destroy (blob);
   return hb_blob_create ((const char *) new_sfnt_data, new_length,
-			 HB_MEMORY_MODE_WRITABLE, new_sfnt_data, free);
+			 HB_MEMORY_MODE_WRITABLE, new_sfnt_data, hb_free);
 }
 
 hb_uniscribe_face_data_t *
 _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
 {
-  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) calloc (1, sizeof (hb_uniscribe_face_data_t));
+  hb_uniscribe_face_data_t *data = (hb_uniscribe_face_data_t *) hb_calloc (1, sizeof (hb_uniscribe_face_data_t));
   if (unlikely (!data))
     return nullptr;
 
   data->funcs = hb_uniscribe_shaper_get_funcs ();
   if (unlikely (!data->funcs))
   {
-    free (data);
+    hb_free (data);
     return nullptr;
   }
 
@@ -477,7 +477,7 @@ _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
   blob = _hb_rename_font (blob, data->face_name);
   if (unlikely (!blob))
   {
-    free (data);
+    hb_free (data);
     return nullptr;
   }
 
@@ -488,7 +488,7 @@ _hb_uniscribe_shaper_face_data_create (hb_face_t *face)
   if (unlikely (!data->fh))
   {
     DEBUG_MSG (UNISCRIBE, face, "Face AddFontMemResourceEx() failed");
-    free (data);
+    hb_free (data);
     return nullptr;
   }
 
@@ -499,7 +499,7 @@ void
 _hb_uniscribe_shaper_face_data_destroy (hb_uniscribe_face_data_t *data)
 {
   RemoveFontMemResourceEx (data->fh);
-  free (data);
+  hb_free (data);
 }
 
 
@@ -533,7 +533,7 @@ populate_log_font (LOGFONTW  *lf,
 hb_uniscribe_font_data_t *
 _hb_uniscribe_shaper_font_data_create (hb_font_t *font)
 {
-  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) calloc (1, sizeof (hb_uniscribe_font_data_t));
+  hb_uniscribe_font_data_t *data = (hb_uniscribe_font_data_t *) hb_calloc (1, sizeof (hb_uniscribe_font_data_t));
   if (unlikely (!data))
     return nullptr;
 
@@ -580,7 +580,7 @@ _hb_uniscribe_shaper_font_data_destroy (hb_uniscribe_font_data_t *data)
     DeleteObject (data->hfont);
   if (data->script_cache)
     ScriptFreeCache (&data->script_cache);
-  free (data);
+  hb_free (data);
 }
 
 /**
