@@ -101,7 +101,7 @@ hb_blob_create (const char        *data,
  *
  * Return value: New blob, or %NULL if failed.  Destroy with hb_blob_destroy().
  *
- * Since: REPLACEME
+ * Since: 2.8.2
  **/
 hb_blob_t *
 hb_blob_create_or_fail (const char        *data,
@@ -622,7 +622,7 @@ hb_blob_create_from_file (const char *file_name)
  * Returns: An #hb_blob_t pointer with the content of the file,
  * or %NULL if failed.
  *
- * Since: REPLACEME
+ * Since: 2.8.2
  **/
 hb_blob_t *
 hb_blob_create_from_file_or_fail (const char *file_name)

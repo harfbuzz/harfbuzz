@@ -1,3 +1,19 @@
+Overview of changes leading to 2.8.2
+Tuesday, July 8, 2021
+====================================
+- Shaping LTR digits for RTL scripts now makes the native direction of the
+  digits LTR, applying shaping and positioning rules on the same glyph order as
+  Uniscribe. (Jonathan Kew, Khaled Hosny).
+- Subsetting COLR v1 and CPAL tables is now supported. (Garret Rieger, Qunxin Liu)
+- Various fixes and improvements to the subsetter. (Garret Rieger, Qunxin Liu, Behdad)
+- When applying morx table, mark glyph widths should not be zeroed. (Jonathan Kew)
+- GPOS is preferred over kerx, if GSUB was applied. (Behdad)
+- Regional_Indicator pairs are grouped together when clustering. (Behdad)
+- New API:
++hb_blob_create_or_fail()
++hb_blob_create_from_file_or_fail()
++hb_set_copy()
+
 Overview of changes leading to 2.8.1
 Tuesday, May 4, 2021
 ====================================
