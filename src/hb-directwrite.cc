@@ -921,7 +921,7 @@ _hb_directwrite_table_data_release (void *data)
 {
   _hb_directwrite_font_table_context *context = (_hb_directwrite_font_table_context *) data;
   context->face->ReleaseFontTable (context->table_context);
-  free (context);
+  hb_free (context);
 }
 
 static hb_blob_t *
@@ -942,7 +942,7 @@ _hb_directwrite_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *
     return nullptr;
   }
 
-  _hb_directwrite_font_table_context *context = (_hb_directwrite_font_table_context *) malloc (sizeof (_hb_directwrite_font_table_context));
+  _hb_directwrite_font_table_context *context = (_hb_directwrite_font_table_context *) hb_malloc (sizeof (_hb_directwrite_font_table_context));
   context->face = dw_face;
   context->table_context = table_context;
 

@@ -261,7 +261,7 @@ struct hb_language_item_t {
   {
     /* We can't call strdup(), because we allow custom allocators. */
     size_t len = strlen(s) + 1;
-    lang = (hb_language_t) malloc(len);
+    lang = (hb_language_t) hb_malloc(len);
     if (likely (lang))
     {
       memcpy((unsigned char *) lang, s, len);
@@ -272,7 +272,7 @@ struct hb_language_item_t {
     return *this;
   }
 
-  void fini () { free ((void *) lang); }
+  void fini () { hb_free ((void *) lang); }
 };
 
 
@@ -292,7 +292,7 @@ retry:
   while (first_lang) {
     hb_language_item_t *next = first_lang->next;
     first_lang->fini ();
-    free (first_lang);
+    hb_free (first_lang);
     first_lang = next;
   }
 }
@@ -309,21 +309,21 @@ retry:
       return lang;
 
   /* Not found; allocate one. */
-  hb_language_item_t *lang = (hb_language_item_t *) calloc (1, sizeof (hb_language_item_t));
+  hb_language_item_t *lang = (hb_language_item_t *) hb_calloc (1, sizeof (hb_language_item_t));
   if (unlikely (!lang))
     return nullptr;
   lang->next = first_lang;
   *lang = key;
   if (unlikely (!lang->lang))
   {
-    free (lang);
+    hb_free (lang);
     return nullptr;
   }
 
   if (unlikely (!langs.cmpexch (first_lang, lang)))
   {
     lang->fini ();
-    free (lang);
+    hb_free (lang);
     goto retry;
   }
 

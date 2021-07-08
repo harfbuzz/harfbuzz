@@ -88,7 +88,7 @@ static const void *hb_graphite2_get_table (const void *data, unsigned int tag, s
   {
     blob = face_data->face->reference_table (tag);
 
-    hb_graphite2_tablelist_t *p = (hb_graphite2_tablelist_t *) calloc (1, sizeof (hb_graphite2_tablelist_t));
+    hb_graphite2_tablelist_t *p = (hb_graphite2_tablelist_t *) hb_calloc (1, sizeof (hb_graphite2_tablelist_t));
     if (unlikely (!p)) {
       hb_blob_destroy (blob);
       return nullptr;
@@ -123,7 +123,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
   }
   hb_blob_destroy (silf_blob);
 
-  hb_graphite2_face_data_t *data = (hb_graphite2_face_data_t *) calloc (1, sizeof (hb_graphite2_face_data_t));
+  hb_graphite2_face_data_t *data = (hb_graphite2_face_data_t *) hb_calloc (1, sizeof (hb_graphite2_face_data_t));
   if (unlikely (!data))
     return nullptr;
 
@@ -132,7 +132,7 @@ _hb_graphite2_shaper_face_data_create (hb_face_t *face)
   data->grface = gr_make_face_with_ops (data, &ops, gr_face_preloadAll);
 
   if (unlikely (!data->grface)) {
-    free (data);
+    hb_free (data);
     return nullptr;
   }
 
@@ -149,12 +149,12 @@ _hb_graphite2_shaper_face_data_destroy (hb_graphite2_face_data_t *data)
     hb_graphite2_tablelist_t *old = tlist;
     hb_blob_destroy (tlist->blob);
     tlist = tlist->next;
-    free (old);
+    hb_free (old);
   }
 
   gr_face_destroy (data->grface);
 
-  free (data);
+  hb_free (data);
 }
 
 /**

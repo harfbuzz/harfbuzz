@@ -231,9 +231,9 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 	&& (unsigned int) (arrayZ + length - (const char *) p) >= size;
   }
 
-  /* Only call if you allocated the underlying array using malloc() or similar. */
+  /* Only call if you allocated the underlying array using hb_malloc() or similar. */
   void fini ()
-  { free ((void *) arrayZ); arrayZ = nullptr; length = 0; }
+  { hb_free ((void *) arrayZ); arrayZ = nullptr; length = 0; }
 
   template <typename hb_serialize_context_t>
   hb_array_t copy (hb_serialize_context_t *c) const

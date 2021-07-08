@@ -150,7 +150,7 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
 {
   hb_face_for_data_closure_t *closure;
 
-  closure = (hb_face_for_data_closure_t *) calloc (1, sizeof (hb_face_for_data_closure_t));
+  closure = (hb_face_for_data_closure_t *) hb_calloc (1, sizeof (hb_face_for_data_closure_t));
   if (unlikely (!closure))
     return nullptr;
 
@@ -166,7 +166,7 @@ _hb_face_for_data_closure_destroy (void *data)
   hb_face_for_data_closure_t *closure = (hb_face_for_data_closure_t *) data;
 
   hb_blob_destroy (closure->blob);
-  free (closure);
+  hb_free (closure);
 }
 
 static hb_blob_t *
@@ -281,7 +281,7 @@ hb_face_destroy (hb_face_t *face)
   {
     hb_face_t::plan_node_t *next = node->next;
     hb_shape_plan_destroy (node->shape_plan);
-    free (node);
+    hb_free (node);
     node = next;
   }
 
@@ -291,7 +291,7 @@ hb_face_destroy (hb_face_t *face)
   if (face->destroy)
     face->destroy (face->user_data);
 
-  free (face);
+  hb_free (face);
 }
 
 /**
@@ -642,7 +642,7 @@ struct hb_face_builder_data_t
 static hb_face_builder_data_t *
 _hb_face_builder_data_create ()
 {
-  hb_face_builder_data_t *data = (hb_face_builder_data_t *) calloc (1, sizeof (hb_face_builder_data_t));
+  hb_face_builder_data_t *data = (hb_face_builder_data_t *) hb_calloc (1, sizeof (hb_face_builder_data_t));
   if (unlikely (!data))
     return nullptr;
 
@@ -661,7 +661,7 @@ _hb_face_builder_data_destroy (void *user_data)
 
   data->tables.fini ();
 
-  free (data);
+  hb_free (data);
 }
 
 static hb_blob_t *
@@ -674,7 +674,7 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
   for (unsigned int i = 0; i < table_count; i++)
     face_length += hb_ceil_to_4 (hb_blob_get_length (data->tables[i].blob));
 
-  char *buf = (char *) malloc (face_length);
+  char *buf = (char *) hb_malloc (face_length);
   if (unlikely (!buf))
     return nullptr;
 
@@ -691,11 +691,11 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
 
   if (unlikely (!ret))
   {
-    free (buf);
+    hb_free (buf);
     return nullptr;
   }
 
-  return hb_blob_create (buf, face_length, HB_MEMORY_MODE_WRITABLE, buf, free);
+  return hb_blob_create (buf, face_length, HB_MEMORY_MODE_WRITABLE, buf, hb_free);
 }
 
 static hb_blob_t *

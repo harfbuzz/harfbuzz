@@ -107,7 +107,7 @@ static void _collect_subset_layout (hb_face_t            *face,
 
   if (hb_set_is_empty (layout_features_to_retain)) return;
   unsigned num = layout_features_to_retain->get_population () + 1;
-  hb_tag_t *features = (hb_tag_t *) malloc (num * sizeof (hb_tag_t));
+  hb_tag_t *features = (hb_tag_t *) hb_malloc (num * sizeof (hb_tag_t));
   if (!features) return;
 
   unsigned i = 0;
@@ -123,7 +123,7 @@ static void _collect_subset_layout (hb_face_t            *face,
 		       features,
 		       lookup_indices);
 
-  free (features);
+  hb_free (features);
 }
 
 template <typename T>
@@ -495,7 +495,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 
     hb_object_destroy (plan->gsub_langsys);
     plan->gsub_langsys->fini_shallow ();
-    free (plan->gsub_langsys);
+    hb_free (plan->gsub_langsys);
   }
 
   if (plan->gpos_langsys)
@@ -505,8 +505,8 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 
     hb_object_destroy (plan->gpos_langsys);
     plan->gpos_langsys->fini_shallow ();
-    free (plan->gpos_langsys);
+    hb_free (plan->gpos_langsys);
   }
 
-  free (plan);
+  hb_free (plan);
 }

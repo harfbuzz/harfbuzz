@@ -102,7 +102,7 @@ struct graph_t
     {
       fini ();
       unsigned size = object.tail - object.head;
-      head = (char*) malloc (size);
+      head = (char*) hb_malloc (size);
       if (!head) return false;
 
       memcpy (head, object.head, size);
@@ -116,7 +116,7 @@ struct graph_t
     void fini ()
     {
       if (!head) return;
-      free (head);
+      hb_free (head);
       head = nullptr;
     }
   };

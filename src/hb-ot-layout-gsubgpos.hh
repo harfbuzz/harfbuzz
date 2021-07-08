@@ -3786,7 +3786,7 @@ struct GSUBGPOS
 
       this->lookup_count = table->get_lookup_count ();
 
-      this->accels = (hb_ot_layout_lookup_accelerator_t *) calloc (this->lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
+      this->accels = (hb_ot_layout_lookup_accelerator_t *) hb_calloc (this->lookup_count, sizeof (hb_ot_layout_lookup_accelerator_t));
       if (unlikely (!this->accels))
       {
 	this->lookup_count = 0;
@@ -3802,7 +3802,7 @@ struct GSUBGPOS
     {
       for (unsigned int i = 0; i < this->lookup_count; i++)
 	this->accels[i].fini ();
-      free (this->accels);
+      hb_free (this->accels);
       this->table.destroy ();
     }
 

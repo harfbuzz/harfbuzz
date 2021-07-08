@@ -154,7 +154,7 @@ struct use_shape_plan_t
 static void *
 data_create_use (const hb_ot_shape_plan_t *plan)
 {
-  use_shape_plan_t *use_plan = (use_shape_plan_t *) calloc (1, sizeof (use_shape_plan_t));
+  use_shape_plan_t *use_plan = (use_shape_plan_t *) hb_calloc (1, sizeof (use_shape_plan_t));
   if (unlikely (!use_plan))
     return nullptr;
 
@@ -165,7 +165,7 @@ data_create_use (const hb_ot_shape_plan_t *plan)
     use_plan->arabic_plan = (arabic_shape_plan_t *) data_create_arabic (plan);
     if (unlikely (!use_plan->arabic_plan))
     {
-      free (use_plan);
+      hb_free (use_plan);
       return nullptr;
     }
   }
@@ -181,7 +181,7 @@ data_destroy_use (void *data)
   if (use_plan->arabic_plan)
     data_destroy_arabic (use_plan->arabic_plan);
 
-  free (data);
+  hb_free (data);
 }
 
 static void
