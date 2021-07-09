@@ -133,18 +133,24 @@ typedef struct OpenTypeOffsetTable
     /* Write OffsetTables, alloc for and write actual table blobs. */
     for (unsigned int i = 0; i < tables.len; i++)
     {
-      TableRecord &rec = tables.arrayZ[i];
       hb_blob_t *blob = items[i].blob;
-      rec.tag = items[i].tag;
-      rec.length = blob->length;
-      rec.offset.serialize (c, this);
+      unsigned len = blob->length;
 
       /* Allocate room for the table and copy it. */
-      char *start = (char *) c->allocate_size<void> (rec.length);
+      char *start = (char *) c->allocate_size<void> (len);
       if (unlikely (!start)) return false;
 
-      if (likely (rec.length))
-	memcpy (start, blob->data, rec.length);
+      TableRecord &rec = tables.arrayZ[i];
+      rec.tag = items[i].tag;
+      rec.length = len;
+      rec.offset = 0;
+      if (unlikely (!c->check_assign (rec.offset,
+				      (unsigned) ((char *) start - (char *) this),
+				      HB_SERIALIZE_ERROR_OFFSET_OVERFLOW)))
+        return_trace (false);
+
+      if (likely (len))
+	memcpy (start, blob->data, len);
 
       /* 4-byte alignment. */
       c->align (4);

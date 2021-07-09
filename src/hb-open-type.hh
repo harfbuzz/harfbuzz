@@ -212,15 +212,6 @@ struct Offset : Type
 
   bool is_null () const { return has_null && 0 == *this; }
 
-  void *serialize (hb_serialize_context_t *c, const void *base)
-  {
-    void *t = c->start_embed<void> ();
-    c->check_assign (*this,
-                     (unsigned) ((char *) t - (char *) base),
-                     HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
-    return t;
-  }
-
   public:
   DEFINE_SIZE_STATIC (sizeof (Type));
 };
