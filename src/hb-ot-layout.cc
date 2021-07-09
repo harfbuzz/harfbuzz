@@ -1933,8 +1933,6 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       c.set_auto_zwj (lookups[table_index][i].auto_zwj);
       c.set_auto_zwnj (lookups[table_index][i].auto_zwnj);
       c.set_random (lookups[table_index][i].random);
-      if (c.random)
-	buffer->unsafe_to_break_all ();
 
       apply_string<Proxy> (&c,
 			   proxy.table.get_lookup (lookup_index),

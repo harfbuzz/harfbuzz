@@ -559,7 +559,12 @@ struct AlternateSet
 
     /* If alt_index is MAX_VALUE, randomize feature if it is the rand feature. */
     if (alt_index == HB_OT_MAP_MAX_VALUE && c->random)
+    {
+      /* Maybe we can do better than unsafe-to-break all; but since we are
+       * changing random state, it would be hard to track that.  Good 'nough. */
+      c->buffer->unsafe_to_break_all ();
       alt_index = c->random_number () % count + 1;
+    }
 
     if (unlikely (alt_index > count || alt_index == 0)) return_trace (false);
 
