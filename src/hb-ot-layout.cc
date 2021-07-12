@@ -1900,10 +1900,8 @@ apply_string (OT::hb_ot_apply_context_t *c,
   else
   {
     /* in-place backward substitution/positioning */
-    if (Proxy::table_index == 0u)
-      buffer->remove_output ();
+    assert (!buffer->have_output);
     buffer->idx = buffer->len - 1;
-
     apply_backward (c, accel);
   }
 }

@@ -282,16 +282,6 @@ hb_buffer_t::add_info (const hb_glyph_info_t &glyph_info)
 
 
 void
-hb_buffer_t::remove_output ()
-{
-  have_output = false;
-  have_positions = false;
-
-  out_len = 0;
-  out_info = info;
-}
-
-void
 hb_buffer_t::clear_output ()
 {
   have_output = true;
