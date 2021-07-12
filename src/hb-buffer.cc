@@ -96,14 +96,15 @@ hb_segment_properties_hash (const hb_segment_properties_t *p)
  * As an optimization, both info and out_info may point to the
  * same piece of memory, which is owned by info.  This remains the
  * case as long as out_len doesn't exceed i at any time.
- * In that case, swap_buffers() is no-op and the glyph operations operate
- * mostly in-place.
+ * In that case, swap_buffers() is mostly no-op and the glyph operations
+ * operate mostly in-place.
  *
  * As soon as out_info gets longer than info, out_info is moved over
- * to an alternate buffer (which we reuse the pos buffer for!), and its
+ * to an alternate buffer (which we reuse the pos buffer for), and its
  * current contents (out_len entries) are copied to the new place.
+ *
  * This should all remain transparent to the user.  swap_buffers() then
- * switches info and out_info.
+ * switches info over to out_info and does housekeeping.
  */
 
 

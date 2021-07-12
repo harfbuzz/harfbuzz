@@ -107,7 +107,7 @@ struct hb_buffer_t
 
   unsigned int idx; /* Cursor into ->info and ->pos arrays */
   unsigned int len; /* Length of ->info and ->pos arrays */
-  unsigned int out_len; /* Length of ->out array if have_output */
+  unsigned int out_len; /* Length of ->out_info array if have_output */
 
   unsigned int allocated; /* Length of allocated arrays */
   hb_glyph_info_t     *info;
