@@ -1158,8 +1158,6 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
 
   _hb_buffer_allocate_unicode_vars (c->buffer);
 
-  c->buffer->clear_output ();
-
   hb_ot_shape_initialize_masks (c);
   hb_set_unicode_props (c->buffer);
   hb_insert_dotted_circle (c->buffer, c->font);
