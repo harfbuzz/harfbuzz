@@ -1942,10 +1942,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
     }
 
     if (stage->pause_func)
-    {
-      buffer->clear_output ();
       stage->pause_func (plan, font, buffer);
-    }
   }
 }
 
