@@ -10,19 +10,6 @@ executors:
 
 jobs:
 
-  macos-10_14_4-aat-fonts:
-    macos:
-      xcode: "11.1.0"
-    steps:
-      - checkout
-      - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config ragel freetype glib cairo python3 icu4c graphite2 ninja
-      - run: pip3 install meson --upgrade
-      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Dcoretext=enabled
-      - run: meson compile -Cbuild
-      - run: meson test -Cbuild --print-errorlogs
-      - store_artifacts:
-          path: build/meson-logs/
-
   macos-10_15_3-aat-fonts:
     macos:
       xcode: "11.4.0"
@@ -144,7 +131,6 @@ workflows:
 
   build:
     jobs:
-      - macos-10_14_4-aat-fonts
       - macos-10_15_3-aat-fonts
       - distcheck: # will be dropped with autotools removal
           filters:
