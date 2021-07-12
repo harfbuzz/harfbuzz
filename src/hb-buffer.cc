@@ -297,6 +297,7 @@ hb_buffer_t::clear_output ()
   have_output = true;
   have_positions = false;
 
+  idx = 0;
   out_len = 0;
   out_info = info;
 }
