@@ -189,13 +189,10 @@ struct hb_buffer_t
   hb_glyph_info_t &prev ()      { return out_info[out_len ? out_len - 1 : 0]; }
   hb_glyph_info_t prev () const { return out_info[out_len ? out_len - 1 : 0]; }
 
-  HB_NODISCARD bool has_separate_output () const { return info != out_info; }
-
-
   HB_INTERNAL void reset ();
   HB_INTERNAL void clear ();
 
-  unsigned int backtrack_len () const { return have_output? out_len : idx; }
+  unsigned int backtrack_len () const { return have_output ? out_len : idx; }
   unsigned int lookahead_len () const { return len - idx; }
   unsigned int next_serial () { return serial++; }
 

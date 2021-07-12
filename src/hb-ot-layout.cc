@@ -1894,8 +1894,6 @@ apply_string (OT::hb_ot_apply_context_t *c,
 
     if (!Proxy::inplace)
       buffer->swap_buffers ();
-    else
-      assert (!buffer->has_separate_output ());
   }
   else
   {
