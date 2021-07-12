@@ -10,9 +10,9 @@ executors:
 
 jobs:
 
-  macos-10_15_3-aat-fonts:
+  macos-aat-fonts:
     macos:
-      xcode: "11.4.0"
+      xcode: "12.5.1"
     steps:
       - checkout
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config ragel freetype glib cairo python3 icu4c graphite2 gobject-introspection gtk-doc ninja
@@ -131,7 +131,7 @@ workflows:
 
   build:
     jobs:
-      - macos-10_15_3-aat-fonts
+      - macos-aat-fonts
       - distcheck: # will be dropped with autotools removal
           filters:
             tags:
