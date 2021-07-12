@@ -1886,8 +1886,9 @@ apply_string (OT::hb_ot_apply_context_t *c,
   if (likely (!lookup.is_reverse ()))
   {
     /* in/out forward substitution/positioning */
-    if (Proxy::table_index == 0u)
+    if (!Proxy::inplace)
       buffer->clear_output ();
+
     buffer->idx = 0;
 
     bool ret;
