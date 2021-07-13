@@ -47,7 +47,7 @@ jobs:
     #     fail-on-alert: true
 
     - name: cov
-      run: ninja -Cbuild coverage
+      run: ninja -Cbuild coverage-xml
     - uses: codecov/codecov-action@v1
       with:
         file: build/meson-logs/coverage.xml

@@ -9,7 +9,8 @@ libs = os.getenv ('libs', '.libs')
 
 IGNORED_SYMBOLS = '|'.join(['_fini', '_init', '_fdata', '_ftext', '_fbss',
 	'__bss_start', '__bss_start__', '__bss_end__', '_edata', '_end', '_bss_end__',
-	'__end__', '__gcov_.*', 'llvm_.*', 'flush_fn_list', 'writeout_fn_list', 'mangle_path'])
+	'__end__', '__gcov_.*', 'llvm_.*', 'flush_fn_list', 'writeout_fn_list', 'mangle_path',
+	'lprofDirMode', 'reset_fn_list'])
 
 nm = os.getenv ('NM', shutil.which ('nm'))
 if not nm:
@@ -67,7 +68,7 @@ for soname in ['harfbuzz', 'harfbuzz-subset', 'harfbuzz-icu', 'harfbuzz-gobject'
 			tested = True
 
 if not tested:
-	print ('check-symbols.sh: no shared libraries found; skipping test')
+	print ('check-symbols.py: no shared libraries found; skipping test')
 	sys.exit (77)
 
 sys.exit (stat)
