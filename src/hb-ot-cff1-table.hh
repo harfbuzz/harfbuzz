@@ -713,6 +713,7 @@ struct cff1_top_dict_opset_t : top_dict_opset_t<cff1_top_dict_val_t>
       case OpCode_Notice:
       case OpCode_Copyright:
       case OpCode_FullName:
+      case OpCode_FontName:
       case OpCode_FamilyName:
       case OpCode_Weight:
       case OpCode_PostScript:
