@@ -3,6 +3,7 @@ TESTS = \
 	tests/cbdt.tests \
 	tests/cff-full-font.tests \
 	tests/cff-japanese.tests \
+	tests/cff.notoserifmyanmar.tests \
 	tests/cmap.tests \
 	tests/cmap14.tests \
 	tests/colr.tests \

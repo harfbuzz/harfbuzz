@@ -4,6 +4,7 @@ tests = [
   'cff-full-font',
   'japanese',
   'cff-japanese',
+  'cff.notoserifmyanmar',
   'layout',
   'layout.gpos',
   'layout.gpos2',

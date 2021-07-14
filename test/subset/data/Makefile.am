@@ -12,6 +12,7 @@ EXTRA_DIST += \
 	expected/cff-full-font \
 	expected/japanese \
 	expected/cff-japanese \
+	expected/cff.notoserifmyanmar \
 	expected/layout \
 	expected/layout.gpos \
 	expected/layout.gpos2 \
