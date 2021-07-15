@@ -231,31 +231,14 @@ _remove_invalid_gids (hb_set_t *glyphs,
 }
 
 static void
-_populate_gids_to_retain (hb_subset_plan_t* plan,
-			  const hb_set_t *unicodes,
-			  const hb_set_t *input_glyphs_to_retain,
-			  bool close_over_gsub,
-			  bool close_over_gpos,
-			  bool close_over_gdef)
+_populate_unicodes_to_retain (const hb_set_t *unicodes,
+                              const hb_set_t *glyphs,
+                              hb_subset_plan_t *plan)
 {
   OT::cmap::accelerator_t cmap;
-  OT::glyf::accelerator_t glyf;
-#ifndef HB_NO_SUBSET_CFF
-  OT::cff1::accelerator_t cff;
-#endif
-  OT::COLR::accelerator_t colr;
   cmap.init (plan->source);
-  glyf.init (plan->source);
-#ifndef HB_NO_SUBSET_CFF
-  cff.init (plan->source);
-#endif
-  colr.init (plan->source);
 
-  plan->_glyphset_gsub->add (0); // Not-def
-  hb_set_union (plan->_glyphset_gsub, input_glyphs_to_retain);
-
-  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-  while (unicodes->next (&cp))
+  for (hb_codepoint_t cp : *unicodes)
   {
     hb_codepoint_t gid;
     if (!cmap.get_nominal_glyph (cp, &gid))
@@ -267,6 +250,46 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
     plan->codepoint_to_glyph->set (cp, gid);
     plan->_glyphset_gsub->add (gid);
   }
+
+  if (glyphs->is_empty ())
+  {
+    cmap.fini ();
+    return;
+  }
+
+  hb_map_t unicode_glyphid_map;
+  cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
+  cmap.fini ();
+
+  for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
+       + unicode_glyphid_map.iter () | hb_filter (glyphs, hb_second))
+  {
+    plan->unicodes->add (cp_gid.first);
+    plan->codepoint_to_glyph->set (cp_gid.first, cp_gid.second);
+  }
+}
+
+static void
+_populate_gids_to_retain (hb_subset_plan_t* plan,
+			  const hb_set_t *unicodes,
+			  const hb_set_t *input_glyphs_to_retain,
+			  bool close_over_gsub,
+			  bool close_over_gpos,
+			  bool close_over_gdef)
+{
+  OT::glyf::accelerator_t glyf;
+#ifndef HB_NO_SUBSET_CFF
+  OT::cff1::accelerator_t cff;
+#endif
+  OT::COLR::accelerator_t colr;
+  glyf.init (plan->source);
+#ifndef HB_NO_SUBSET_CFF
+  cff.init (plan->source);
+#endif
+  colr.init (plan->source);
+
+  plan->_glyphset_gsub->add (0); // Not-def
+  hb_set_union (plan->_glyphset_gsub, input_glyphs_to_retain);
 
   _cmap_closure (plan->source, plan->unicodes, plan->_glyphset_gsub);
 
@@ -328,7 +351,6 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   cff.fini ();
 #endif
   glyf.fini ();
-  cmap.fini ();
 }
 
 static void
@@ -438,6 +460,8 @@ hb_subset_plan_create (hb_face_t         *face,
   if (plan->in_error ()) {
     return plan;
   }
+
+  _populate_unicodes_to_retain (input->unicodes, input->glyphs, plan);
 
   _populate_gids_to_retain (plan,
 			    input->unicodes,
