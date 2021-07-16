@@ -53,6 +53,7 @@ in_house_tests = [
   'tibetan-contractions-1.tests',
   'tibetan-contractions-2.tests',
   'tibetan-vowels.tests',
+  'tt-kern-gpos.tests',
   'use-indic3.tests',
   'use-marchen.tests',
   'use-syllable.tests',

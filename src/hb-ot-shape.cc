@@ -151,7 +151,7 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
 
   bool has_gsub = hb_ot_layout_has_substitution (face);
   bool has_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
-  if (0)
+  if (false)
     ;
 #ifndef HB_NO_AAT_SHAPE
   else if (hb_aat_layout_has_positioning (face) && !(has_gsub && has_gpos))
@@ -173,6 +173,8 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
       plan.apply_kern = true;
 #endif
   }
+
+  plan.apply_fallback_kern = !(plan.apply_gpos || plan.apply_kerx || plan.apply_kern);
 
   plan.zero_marks = script_zero_marks &&
 		    !plan.apply_kerx &&
@@ -274,11 +276,12 @@ hb_ot_shape_plan_t::position (hb_font_t   *font,
   else if (this->apply_kerx)
     hb_aat_layout_position (this, font, buffer);
 #endif
+
 #ifndef HB_NO_OT_KERN
-  else if (this->apply_kern)
+  if (this->apply_kern)
     hb_ot_layout_kern (this, font, buffer);
 #endif
-  else
+  else if (this->apply_fallback_kern)
     _hb_ot_shape_fallback_kern (this, font, buffer);
 
 #ifndef HB_NO_AAT_SHAPE

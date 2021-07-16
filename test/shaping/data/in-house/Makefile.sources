@@ -53,6 +53,7 @@ TESTS = \
 	tests/tibetan-contractions-1.tests \
 	tests/tibetan-contractions-2.tests \
 	tests/tibetan-vowels.tests \
+	tests/tt-kern-gpos.tests \
 	tests/use-indic3.tests \
 	tests/use-marchen.tests \
 	tests/use-syllable.tests \
