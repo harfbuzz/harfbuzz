@@ -225,6 +225,7 @@ hb_subset_input_destroy (hb_subset_input_t *input)
   hb_set_destroy (input->name_languages);
   hb_set_destroy (input->drop_tables);
   hb_set_destroy (input->layout_features);
+  hb_set_destroy (input->no_subset_tables);
 
   hb_free (input);
 }

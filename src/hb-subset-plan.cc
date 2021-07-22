@@ -501,6 +501,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_set_destroy (plan->layout_features);
   hb_set_destroy (plan->glyphs_requested);
   hb_set_destroy (plan->drop_tables);
+  hb_set_destroy (plan->no_subset_tables);
   hb_face_destroy (plan->source);
   hb_face_destroy (plan->dest);
   hb_map_destroy (plan->codepoint_to_glyph);
