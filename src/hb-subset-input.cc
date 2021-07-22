@@ -374,6 +374,8 @@ hb_subset_input_get_flag (hb_subset_input_t *input,
       return input->passthrough_unrecognized;
     case HB_SUBSET_FLAG_NOTDEF_OUTLINE:
       return input->notdef_outline;
+    case HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES:
+      return input->no_prune_unicode_ranges;
     default:
       return false;
   }
@@ -416,49 +418,14 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
       break;
     case HB_SUBSET_FLAG_NOTDEF_OUTLINE:
       input->notdef_outline = value;
+      break;
+    case HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES:
+      input->no_prune_unicode_ranges = value;
+      break;
     default:
       // Do nothing.
       break;
   }
-}
-
-HB_EXTERN void
-hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
-				   hb_bool_t overlaps_flag)
-{
-  subset_input->overlaps_flag = overlaps_flag;
-}
-
-HB_EXTERN hb_bool_t
-hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input)
-{
-  return subset_input->overlaps_flag;
-}
-
-HB_EXTERN void
-hb_subset_input_set_notdef_outline (hb_subset_input_t *subset_input,
-                                    hb_bool_t notdef_outline)
-{
-  subset_input->notdef_outline = notdef_outline;
-}
-
-HB_EXTERN hb_bool_t
-hb_subset_input_get_notdef_outline (hb_subset_input_t *subset_input)
-{
-  return subset_input->notdef_outline;
-}
-
-HB_EXTERN void
-hb_subset_input_set_no_prune_unicode_ranges (hb_subset_input_t *subset_input,
-                                             hb_bool_t no_prune_unicode_ranges)
-{
-  subset_input->no_prune_unicode_ranges = no_prune_unicode_ranges;
-}
-
-HB_EXTERN hb_bool_t
-hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input)
-{
-  return subset_input->no_prune_unicode_ranges;
 }
 
 /**

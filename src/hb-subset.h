@@ -59,6 +59,8 @@ typedef struct hb_subset_input_t hb_subset_input_t;
  * Defaults to false.
  * @HB_SUBSET_FLAG_NOTDEF_OUTLINE: If set the notdef glyph outline will be
  * retained in the final subset. Defaults to false.
+ * @HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES: If set then the unicode ranges in
+ * OS/2 will not be recalculated.
  *
  * List of boolean properties that can be configured on the subset input.
  *
@@ -73,6 +75,7 @@ typedef enum
   HB_SUBSET_FLAG_SET_OVERLAPS_FLAG,
   HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED,
   HB_SUBSET_FLAG_NOTDEF_OUTLINE,
+  HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES,
 } hb_subset_flag_t;
 
 HB_EXTERN hb_subset_input_t *
@@ -130,29 +133,6 @@ HB_EXTERN void
 hb_subset_input_set_flag (hb_subset_input_t *input,
 			  hb_subset_flag_t flag,
 			  hb_bool_t value);
-
-// TODO(garretrieger): remove bool property get/set methods.
-
-HB_EXTERN void
-hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
-				   hb_bool_t overlaps_flag);
-
-HB_EXTERN hb_bool_t
-hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input);
-
-HB_EXTERN void
-hb_subset_input_set_notdef_outline (hb_subset_input_t *subset_input,
-                                    hb_bool_t notdef_outline);
-
-HB_EXTERN hb_bool_t
-hb_subset_input_get_notdef_outline (hb_subset_input_t *subset_input);
-
-HB_EXTERN void
-hb_subset_input_set_no_prune_unicode_ranges (hb_subset_input_t *subset_input,
-                                             hb_bool_t no_prune_unicode_ranges);
-
-HB_EXTERN hb_bool_t
-hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input);
 
 /* hb_subset () */
 HB_EXTERN hb_face_t *
