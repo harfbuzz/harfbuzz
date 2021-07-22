@@ -2067,13 +2067,13 @@ hb_font_set_variations (hb_font_t            *font,
   const OT::fvar &fvar = *font->face->table.fvar;
   for (unsigned int i = 0; i < variations_length; i++)
   {
-    hb_ot_var_axis_info_t info;
-    if (fvar.find_axis_info (variations[i].tag, &info) &&
-	info.axis_index < coords_length)
+    unsigned axis_index;
+    if (fvar.find_axis_index (variations[i].tag, &axis_index) &&
+	axis_index < coords_length)
     {
       float v = variations[i].value;
-      design_coords[info.axis_index] = v;
-      normalized[info.axis_index] = fvar.normalize_axis_value (info.axis_index, v);
+      design_coords[axis_index] = v;
+      normalized[axis_index] = fvar.normalize_axis_value (axis_index, v);
     }
   }
   font->face->table.avar->map_coords (normalized, coords_length);
