@@ -220,6 +220,7 @@ struct fvar
   {
     unsigned i;
     auto axes = get_axes ();
+    /* TODO bfind() for larger array? Should then look back to find first entry for tag. */
     return axes.lfind (tag, &i) && (axes[i].get_axis_info (i, info), true);
   }
 
