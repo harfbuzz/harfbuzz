@@ -196,7 +196,7 @@ hb_subset_input_create_or_fail ()
 
 /**
  * hb_subset_input_reference: (skip)
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Return value:
  *
@@ -210,7 +210,7 @@ hb_subset_input_reference (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_destroy:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Since: 1.8.0
  **/
@@ -232,7 +232,7 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_unicode_set:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Return value: pointer to the set of unicode codepoints to retain.
  *
@@ -246,7 +246,7 @@ hb_subset_input_unicode_set (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_glyph_set:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Return value: pointer to the set of glyph ids to retain.
  *
@@ -260,7 +260,7 @@ hb_subset_input_glyph_set (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_nameid_set:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Return value: pointer to the set of name ids to retain.
  *
@@ -274,7 +274,7 @@ hb_subset_input_nameid_set (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_namelangid_set:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Return value: pointer to the set of name language ids to retain.
  *
@@ -289,7 +289,7 @@ hb_subset_input_namelangid_set (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_layout_features_set:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Return value: pointer to the set of feature tags to retain.
  *
@@ -317,7 +317,7 @@ hb_subset_input_get_retain_all_features (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_drop_tabes_set:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Return value: pointer to the set of table tags which specifies tables
  *		 to be dropped.
@@ -332,7 +332,7 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_no_subset_tabes_set:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  *
  * Return value: pointer to the set of table tags which specifies tables
  *		 that should not have subsetting applied to them.
@@ -348,7 +348,7 @@ hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
 
 /**
  * hb_subset_input_get_flag:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  * @flag: which flag to check.
  *
  * Return value: value of the specified flag.
@@ -384,7 +384,7 @@ hb_subset_input_get_flag (hb_subset_input_t *input,
 
 /**
  * hb_subset_input_set_flag:
- * @input: a subset_input.
+ * @input: a #hb_subset_input_t object.
  * @flag: which flag to set.
  * @value: new value for the flag.
  *
@@ -431,7 +431,7 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
 
 /**
  * hb_subset_input_set_user_data: (skip)
- * @input: A subset input object
+ * @input: a #hb_subset_input_t object.
  * @key: The user-data key to set
  * @data: A pointer to the user data
  * @destroy: (nullable): A callback to call when @data is not needed anymore
@@ -455,7 +455,7 @@ hb_subset_input_set_user_data (hb_subset_input_t  *input,
 
 /**
  * hb_subset_input_get_user_data: (skip)
- * @input: A subset input object
+ * @input: a #hb_subset_input_t object.
  * @key: The user-data key to query
  *
  * Fetches the user data associated with the specified key,
