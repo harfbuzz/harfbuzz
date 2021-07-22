@@ -53,6 +53,17 @@
 #include "hb-ot-var-hvar-table.hh"
 #include "hb-repacker.hh"
 
+/**
+ * SECTION:hb-subset
+ * @title: hb-subset
+ * @short_description: Subsets font files.
+ * @include: hb-subset.h
+ *
+ * Subsetting reduces the codepoint coverage of font files and removes all data
+ * that is no longer needed. A subset input describes the desired subset. The input is
+ * provided along with a font to the subsetting operation. Output is a new font file
+ * containing only the data specified in the input.
+ */
 
 static unsigned
 _plan_estimate_subset_table_size (hb_subset_plan_t *plan, unsigned table_len)

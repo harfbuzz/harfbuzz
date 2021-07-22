@@ -134,10 +134,6 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
 			  hb_subset_flag_t flag,
 			  hb_bool_t value);
 
-/* hb_subset () */
-HB_EXTERN hb_face_t *
-hb_subset (hb_face_t *source, const hb_subset_input_t *input);
-
 HB_EXTERN hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
 
