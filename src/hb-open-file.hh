@@ -102,7 +102,7 @@ typedef struct OpenTypeOffsetTable
   {
     Tag t;
     t = tag;
-    return tables.bfind (t, table_index, HB_BFIND_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
+    return tables.bfind (t, table_index, HB_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
   }
   const TableRecord& get_table_by_tag (hb_tag_t tag) const
   {
