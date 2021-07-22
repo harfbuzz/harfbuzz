@@ -211,17 +211,24 @@ struct fvar
     if (!axis_index) axis_index = &i;
     *axis_index = HB_OT_VAR_NO_AXIS_INDEX;
     auto axes = get_axes ();
-    return axes.lfind (tag, axis_index) && (axes[*axis_index].get_axis_deprecated (info), true);
+    return find_axis_index (tag, axis_index) && (axes[*axis_index].get_axis_deprecated (info), true);
   }
 #endif
 
+  /* Returns index of the first occurence of tag, if there are multiple ones. */
+  bool
+  find_axis_index (hb_tag_t tag, unsigned *axis_index) const
+  {
+    auto axes = get_axes ();
+    /* TODO bfind() for larger array? Should then look back to find first entry for tag. */
+    return axes.lfind (tag, axis_index);
+  }
   bool
   find_axis_info (hb_tag_t tag, hb_ot_var_axis_info_t *info) const
   {
     unsigned i;
     auto axes = get_axes ();
-    /* TODO bfind() for larger array? Should then look back to find first entry for tag. */
-    return axes.lfind (tag, &i) && (axes[i].get_axis_info (i, info), true);
+    return find_axis_index (tag, &i) && (axes[i].get_axis_info (i, info), true);
   }
 
   int normalize_axis_value (unsigned int axis_index, float v) const
