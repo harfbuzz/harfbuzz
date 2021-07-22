@@ -142,11 +142,13 @@ struct AxisRecord
     max = hb_max (default_, maxValue / 65536.f);
   }
 
-  protected:
+  public:
   Tag		axisTag;	/* Tag identifying the design variation for the axis. */
+  protected:
   HBFixed	minValue;	/* The minimum coordinate value for the axis. */
   HBFixed	defaultValue;	/* The default coordinate value for the axis. */
   HBFixed	maxValue;	/* The maximum coordinate value for the axis. */
+  public:
   HBUINT16	flags;		/* Axis flags. */
   NameID	axisNameID;	/* The name ID for entries in the 'name' table that
 				 * provide a display name for this axis. */
@@ -215,13 +217,27 @@ struct fvar
   }
 #endif
 
-  /* Returns index of the first occurence of tag, if there are multiple ones. */
   bool
-  find_axis_index (hb_tag_t tag, unsigned *axis_index) const
+  find_axis_index (hb_tag_t tag,
+		   unsigned *axis_index_start,
+		   unsigned *axis_index_end = nullptr) const
   {
     auto axes = get_axes ();
+
     /* TODO bfind() for larger array? Should then look back to find first entry for tag. */
-    return axes.lfind (tag, axis_index);
+    if (!axes.lfind (tag, axis_index_start))
+      return false;
+
+    if (axis_index_end)
+    {
+      unsigned end = *axis_index_start + 1;
+      unsigned count = axes.length;
+      while (end < count && axes[end].axisTag == tag)
+        end++;
+      *axis_index_end = end;
+    }
+
+    return true;
   }
   bool
   find_axis_info (hb_tag_t tag, hb_ot_var_axis_info_t *info) const
