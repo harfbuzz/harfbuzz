@@ -101,16 +101,18 @@ struct subset_consumer_t
     hb_face_t *new_face = nullptr;
     for (unsigned i = 0; i < subset_options.num_iterations; i++) {
       hb_face_destroy (new_face);
-      new_face = hb_subset (face, input);
+      new_face = hb_subset_or_fail (face, input);
     }
-    hb_blob_t *result = hb_face_reference_blob (new_face);
 
-    failed = !hb_blob_get_length (result);
+    failed = !new_face;
     if (!failed)
+    {
+      hb_blob_t *result = hb_face_reference_blob (new_face);
       write_file (options.output_file, result);
+      hb_blob_destroy (result);
+    }
 
     hb_subset_input_destroy (input);
-    hb_blob_destroy (result);
     hb_face_destroy (new_face);
     hb_font_destroy (font);
   }

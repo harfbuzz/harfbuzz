@@ -42,7 +42,8 @@ test_subset_drop_tables (void)
   hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG ('h', 'm', 't', 'x'));
   hb_set_destroy (codepoints);
 
-  hb_face_t* subset = hb_subset (face, input);
+  hb_face_t* subset = hb_subset_or_fail (face, input);
+  g_assert (subset);
 
   hb_blob_t *hdmx = hb_face_reference_table (subset, HB_TAG ('h', 'd', 'm', 'x'));
   hb_blob_t *hmtx = hb_face_reference_table (subset, HB_TAG ('h', 'm', 't', 'x'));

@@ -42,6 +42,7 @@ struct hb_subset_input_t
   hb_set_t *glyphs;
   hb_set_t *name_ids;
   hb_set_t *name_languages;
+  hb_set_t *no_subset_tables;
   hb_set_t *drop_tables;
   hb_set_t *layout_features;
 
@@ -54,6 +55,8 @@ struct hb_subset_input_t
   hb_bool_t notdef_outline;
   hb_bool_t no_prune_unicode_ranges;
   hb_bool_t retain_all_layout_features;
+  hb_bool_t passthrough_unrecognized;
+
   /* TODO
    *
    * features

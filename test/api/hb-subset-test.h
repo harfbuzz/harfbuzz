@@ -75,7 +75,7 @@ hb_subset_test_create_input_from_nameids (const hb_set_t *name_ids)
   hb_set_t *name_langids = hb_subset_input_namelangid_set (input);
   hb_set_add_range (name_langids, 0, 0x5FFF);
 
-  hb_subset_input_set_name_legacy (input, true);
+  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_NAME_LEGACY, true);
   return input;
 }
 
@@ -83,7 +83,7 @@ static inline hb_face_t *
 hb_subset_test_create_subset (hb_face_t *source,
 			      hb_subset_input_t *input)
 {
-  hb_face_t *subset = hb_subset (source, input);
+  hb_face_t *subset = hb_subset_or_fail (source, input);
   g_assert (subset);
 
   hb_subset_input_destroy (input);

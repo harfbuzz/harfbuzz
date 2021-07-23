@@ -488,6 +488,11 @@ struct hb_set_t
     if (!resize (count))
       return;
     population = other.population;
+
+    if (!count)
+      // memcpy is not necessary if the vectors are zero length. This avoids possibly
+      // passing nullptr to memcpy.
+      return;
     memcpy ((void *) pages, (const void *) other.pages, count * pages.item_size);
     memcpy ((void *) page_map, (const void *) other.page_map, count * page_map.item_size);
   }

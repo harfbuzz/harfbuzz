@@ -42,7 +42,7 @@ test_subset_32_tables (void)
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  subset = hb_subset (face, input);
+  subset = hb_subset_or_fail (face, input);
   g_assert (subset);
   g_assert (subset != hb_face_get_empty ());
 
@@ -64,9 +64,8 @@ test_subset_no_inf_loop (void)
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  subset = hb_subset (face, input);
-  g_assert (subset);
-  g_assert (subset == hb_face_get_empty ());
+  subset = hb_subset_or_fail (face, input);
+  g_assert (!subset);
 
   hb_subset_input_destroy (input);
   hb_face_destroy (subset);
@@ -86,9 +85,8 @@ test_subset_crash (void)
   hb_set_add (codepoints, 'b');
   hb_set_add (codepoints, 'c');
 
-  subset = hb_subset (face, input);
-  g_assert (subset);
-  g_assert (subset == hb_face_get_empty ());
+  subset = hb_subset_or_fail (face, input);
+  g_assert (!subset);
 
   hb_subset_input_destroy (input);
   hb_face_destroy (subset);

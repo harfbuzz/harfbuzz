@@ -48,6 +48,7 @@ struct hb_subset_plan_t
   bool notdef_outline : 1;
   bool prune_unicode_ranges : 1;
   bool retain_all_layout_features : 1;
+  bool passthrough_unrecognized : 1;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;
@@ -63,6 +64,9 @@ struct hb_subset_plan_t
 
   //glyph ids requested to retain
   hb_set_t *glyphs_requested;
+
+  // Tables which should not be processed, just pass them through.
+  hb_set_t *no_subset_tables;
 
   // Tables which should be dropped.
   hb_set_t *drop_tables;
@@ -204,7 +208,7 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
 
 HB_INTERNAL hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t           *face,
-		       hb_subset_input_t   *input);
+		       const hb_subset_input_t   *input);
 
 HB_INTERNAL void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);
