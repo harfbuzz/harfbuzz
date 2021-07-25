@@ -325,20 +325,6 @@ hb_subset_input_layout_features_set (hb_subset_input_t *input)
   return input->layout_features;
 }
 
-HB_EXTERN void
-hb_subset_input_set_retain_all_features (hb_subset_input_t *input,
-					 hb_bool_t value)
-{
-  input->retain_all_layout_features = value;
-}
-
-HB_EXTERN hb_bool_t
-hb_subset_input_get_retain_all_features (hb_subset_input_t *input)
-{
-  return input->retain_all_layout_features;
-}
-
-
 /**
  * hb_subset_input_drop_tables_set:
  * @input: a #hb_subset_input_t object.
@@ -407,6 +393,8 @@ hb_subset_input_get_flag (hb_subset_input_t *input,
       return input->notdef_outline;
     case HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES:
       return input->no_prune_unicode_ranges;
+    case HB_SUBSET_FLAG_RETAIN_ALL_FEATURES:
+      return input->retain_all_layout_features;
     default:
       return false;
   }
@@ -452,6 +440,9 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
       break;
     case HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES:
       input->no_prune_unicode_ranges = value;
+      break;
+    case HB_SUBSET_FLAG_RETAIN_ALL_FEATURES:
+      input->retain_all_layout_features = value;
       break;
     default:
       // Do nothing.
