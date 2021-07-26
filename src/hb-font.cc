@@ -2052,7 +2052,9 @@ hb_font_set_variations (hb_font_t            *font,
     return;
   }
 
-  unsigned int coords_length = hb_ot_var_get_axis_count (font->face);
+  const OT::fvar &fvar = *font->face->table.fvar;
+  auto axes = fvar.get_axes ();
+  const unsigned coords_length = axes.length;
 
   int *normalized = coords_length ? (int *) hb_calloc (coords_length, sizeof (int)) : nullptr;
   float *design_coords = coords_length ? (float *) hb_calloc (coords_length, sizeof (float)) : nullptr;
@@ -2064,17 +2066,16 @@ hb_font_set_variations (hb_font_t            *font,
     return;
   }
 
-  const OT::fvar &fvar = *font->face->table.fvar;
   for (unsigned int i = 0; i < variations_length; i++)
   {
-    unsigned axis_index;
-    if (fvar.find_axis_index (variations[i].tag, &axis_index) &&
-	axis_index < coords_length)
-    {
-      float v = variations[i].value;
-      design_coords[axis_index] = v;
-      normalized[axis_index] = fvar.normalize_axis_value (axis_index, v);
-    }
+    const auto tag = variations[i].tag;
+    const auto v = variations[i].value;
+    for (unsigned axis_index = 0; axis_index < coords_length; axis_index++)
+      if (axes[axis_index].axisTag == tag)
+      {
+	design_coords[axis_index] = v;
+	normalized[axis_index] = fvar.normalize_axis_value (axis_index, v);
+      }
   }
   font->face->table.avar->map_coords (normalized, coords_length);
 

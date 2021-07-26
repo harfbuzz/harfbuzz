@@ -213,38 +213,15 @@ struct fvar
     if (!axis_index) axis_index = &i;
     *axis_index = HB_OT_VAR_NO_AXIS_INDEX;
     auto axes = get_axes ();
-    return find_axis_index (tag, axis_index) && (axes[*axis_index].get_axis_deprecated (info), true);
+    return axes.lfind (tag, axis_index) && (axes[*axis_index].get_axis_deprecated (info), true);
   }
 #endif
-
-  bool
-  find_axis_index (hb_tag_t tag,
-		   unsigned *axis_index_start,
-		   unsigned *axis_index_end = nullptr) const
-  {
-    auto axes = get_axes ();
-
-    /* TODO bfind() for larger array? Should then look back to find first entry for tag. */
-    if (!axes.lfind (tag, axis_index_start))
-      return false;
-
-    if (axis_index_end)
-    {
-      unsigned end = *axis_index_start + 1;
-      unsigned count = axes.length;
-      while (end < count && axes[end].axisTag == tag)
-        end++;
-      *axis_index_end = end;
-    }
-
-    return true;
-  }
   bool
   find_axis_info (hb_tag_t tag, hb_ot_var_axis_info_t *info) const
   {
     unsigned i;
     auto axes = get_axes ();
-    return find_axis_index (tag, &i) && (axes[i].get_axis_info (i, info), true);
+    return axes.lfind (tag, &i) && (axes[i].get_axis_info (i, info), true);
   }
 
   int normalize_axis_value (unsigned int axis_index, float v) const
@@ -313,7 +290,7 @@ struct fvar
     ;
   }
 
-  protected:
+  public:
   hb_array_t<const AxisRecord> get_axes () const
   { return hb_array (&(this+firstAxis), axisCount); }
 

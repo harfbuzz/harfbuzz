@@ -58,9 +58,8 @@ TESTS = \
 	tests/use-marchen.tests \
 	tests/use-syllable.tests \
 	tests/use.tests \
-	tests/variations-rounding.tests \
+	tests/variations.tests \
 	tests/variations-rvrn.tests \
-	tests/variations-space.tests \
 	tests/vertical.tests \
 	tests/zero-width-marks.tests \
 	$(NULL)
