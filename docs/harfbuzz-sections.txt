@@ -710,6 +710,7 @@ hb_version_string
 <SECTION>
 <FILE>hb-subset</FILE>
 hb_subset_flag_t
+hb_subset_input_t
 hb_subset_input_create_or_fail
 hb_subset_input_reference
 hb_subset_input_destroy

@@ -31,8 +31,8 @@
 
 HB_BEGIN_DECLS
 
-/*
- * hb_subset_input_t
+/**
+ * hb_subset_input_t:
  *
  * Things that change based on the input. Characters to keep, etc.
  */
