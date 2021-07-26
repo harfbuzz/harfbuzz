@@ -917,12 +917,6 @@ _hb_subset_cff1 (const OT::cff1::accelerator_subset_t  &acc,
   return _serialize_cff1 (c->serializer, cff_plan, acc, c->plan->num_output_glyphs ());
 }
 
-/**
- * hb_subset_cff1:
- * Subsets the CFF table according to a provided plan.
- *
- * Return value: subsetted cff table.
- **/
 bool
 hb_subset_cff1 (hb_subset_context_t *c)
 {

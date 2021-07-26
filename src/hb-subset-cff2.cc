@@ -470,10 +470,6 @@ _hb_subset_cff2 (const OT::cff2::accelerator_subset_t  &acc,
   return _serialize_cff2 (c->serializer, cff2_plan, acc, c->plan->num_output_glyphs ());
 }
 
-/**
- * hb_subset_cff2:
- * Subsets the CFF2 table according to a provided subset context.
- **/
 bool
 hb_subset_cff2 (hb_subset_context_t *c)
 {
