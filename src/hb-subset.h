@@ -59,6 +59,8 @@ typedef struct hb_subset_input_t hb_subset_input_t;
  * Defaults to false.
  * @HB_SUBSET_FLAG_NOTDEF_OUTLINE: If set the notdef glyph outline will be
  * retained in the final subset. Defaults to false.
+ * @HB_SUBSET_FLAG_GLYPH_NAMES: If set the PS glyph names will be retained
+ * in the final subset. Defaults to false.
  * @HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES: If set then the unicode ranges in
  * OS/2 will not be recalculated.
  * @HB_SUBSET_FLAG_RETAIN_ALL_FEATURES: If set all layout features will be
@@ -79,6 +81,7 @@ typedef enum
   HB_SUBSET_FLAG_SET_OVERLAPS_FLAG,
   HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED,
   HB_SUBSET_FLAG_NOTDEF_OUTLINE,
+  HB_SUBSET_FLAG_GLYPH_NAMES,
   HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES,
   HB_SUBSET_FLAG_RETAIN_ALL_FEATURES,
 } hb_subset_flag_t;

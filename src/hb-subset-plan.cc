@@ -429,6 +429,7 @@ hb_subset_plan_create (hb_face_t	 *face,
   plan->name_legacy = input->name_legacy;
   plan->overlaps_flag = input->overlaps_flag;
   plan->notdef_outline = input->notdef_outline;
+  plan->glyph_names = input->glyph_names;
   plan->prune_unicode_ranges = !input->no_prune_unicode_ranges;
   plan->retain_all_layout_features = input->retain_all_layout_features;
   plan->passthrough_unrecognized = input->passthrough_unrecognized;

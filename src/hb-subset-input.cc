@@ -60,6 +60,7 @@ hb_subset_input_create_or_fail (void)
   input->name_legacy = false;
   input->overlaps_flag = false;
   input->notdef_outline = false;
+  input->glyph_names = false;
   input->no_prune_unicode_ranges = false;
   input->retain_all_layout_features = false;
   input->passthrough_unrecognized = false;
@@ -391,6 +392,8 @@ hb_subset_input_get_flag (hb_subset_input_t *input,
       return input->passthrough_unrecognized;
     case HB_SUBSET_FLAG_NOTDEF_OUTLINE:
       return input->notdef_outline;
+    case HB_SUBSET_FLAG_GLYPH_NAMES:
+      return input->glyph_names;
     case HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES:
       return input->no_prune_unicode_ranges;
     case HB_SUBSET_FLAG_RETAIN_ALL_FEATURES:
@@ -437,6 +440,9 @@ hb_subset_input_set_flag (hb_subset_input_t *input,
       break;
     case HB_SUBSET_FLAG_NOTDEF_OUTLINE:
       input->notdef_outline = value;
+      break;
+    case HB_SUBSET_FLAG_GLYPH_NAMES:
+      input->glyph_names = value;
       break;
     case HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES:
       input->no_prune_unicode_ranges = value;
