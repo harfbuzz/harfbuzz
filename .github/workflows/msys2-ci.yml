@@ -46,7 +46,7 @@ jobs:
             mingw-w64-${{ matrix.MSYS2_ARCH }}-ragel
       - name: Install Python Dependencies
         run: |
-          pip install --upgrade fonttools==4.25.1
+          pip install --upgrade fonttools
       - name: Build
         run: |
           meson build \

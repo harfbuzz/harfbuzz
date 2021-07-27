@@ -41,8 +41,8 @@
 #define COLRV1_MAX_NESTING_LEVEL	100
 #endif
 
-#ifndef COLRV1_DISABLE_SUBSETTING
-#define COLRV1_DISABLE_SUBSETTING 1
+#ifndef COLRV1_ENABLE_SUBSETTING
+#define COLRV1_ENABLE_SUBSETTING 0
 #endif
 
 namespace OT {
@@ -974,19 +974,16 @@ struct COLR
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-#if COLRV1_DISABLE_SUBSETTING == 1
     return_trace (c->check_struct (this) &&
                   (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
                   (this+layersZ).sanitize (c, numLayers) &&
-                  (version == 0));
-#else
-    return_trace (c->check_struct (this) &&
-                  (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
-                  (this+layersZ).sanitize (c, numLayers) &&
+#if COLRV1_ENABLE_SUBSETTING == 1
                   (version == 0 || (version == 1 &&
                                     baseGlyphsV1List.sanitize (c, this) &&
                                     layersV1.sanitize (c, this) &&
                                     varStore.sanitize (c, this))));
+#else
+                  (version == 0));
 #endif
   }
 
