@@ -723,7 +723,7 @@ retry:
   static_assert ((sizeof (TEXTRANGE_PROPERTIES) == sizeof (hb_ms_features_t)), "");
   static_assert ((sizeof (OPENTYPE_FEATURE_RECORD) == sizeof (hb_ms_feature_t)), "");
   hb_vector_t<hb_ms_feature_t> feature_records;
-  hb_vector_t<range_record_t> range_records;
+  hb_vector_t<hb_ms_range_record_t> range_records;
   bool has_features = false;
   if (num_features)
     has_features = hb_ms_setup_features (features,

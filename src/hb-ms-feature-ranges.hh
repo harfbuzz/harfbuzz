@@ -31,7 +31,7 @@
 #include "hb.hh"
 
 typedef struct hb_ms_feature_t {
-  hb_tag_t tag;
+  uint32_t tag_le;
   uint32_t value;
 } hb_ms_feature_t;
 
@@ -40,60 +40,60 @@ typedef struct hb_ms_features_t {
   uint32_t         num_features;
 } hb_ms_features_t;
 
-struct active_feature_t {
+struct hb_ms_active_feature_t {
   hb_ms_feature_t fea;
   unsigned int order;
 
   HB_INTERNAL static int cmp (const void *pa, const void *pb) {
-    const active_feature_t *a = (const active_feature_t *) pa;
-    const active_feature_t *b = (const active_feature_t *) pb;
-    return a->fea.tag < b->fea.tag ? -1 : a->fea.tag > b->fea.tag ? 1 :
+    const auto *a = (const hb_ms_active_feature_t *) pa;
+    const auto *b = (const hb_ms_active_feature_t *) pb;
+    return a->fea.tag_le < b->fea.tag_le ? -1 : a->fea.tag_le > b->fea.tag_le ? 1 :
 	   a->order < b->order ? -1 : a->order > b->order ? 1 :
 	   a->fea.value < b->fea.value ? -1 : a->fea.value > b->fea.value ? 1 :
 	   0;
   }
-  bool operator== (const active_feature_t *f)
+  bool operator== (const hb_ms_active_feature_t *f)
   { return cmp (this, f) == 0; }
 };
 
-struct feature_event_t {
+struct hb_ms_feature_event_t {
   unsigned int index;
   bool start;
-  active_feature_t feature;
+  hb_ms_active_feature_t feature;
 
   HB_INTERNAL static int cmp (const void *pa, const void *pb)
   {
-    const feature_event_t *a = (const feature_event_t *) pa;
-    const feature_event_t *b = (const feature_event_t *) pb;
+    const auto *a = (const hb_ms_feature_event_t *) pa;
+    const auto *b = (const hb_ms_feature_event_t *) pb;
     return a->index < b->index ? -1 : a->index > b->index ? 1 :
 	   a->start < b->start ? -1 : a->start > b->start ? 1 :
-	   active_feature_t::cmp (&a->feature, &b->feature);
+	   hb_ms_active_feature_t::cmp (&a->feature, &b->feature);
   }
 };
 
-struct range_record_t {
+struct hb_ms_range_record_t {
   hb_ms_features_t features;
   unsigned int index_first; /* == start */
   unsigned int index_last;  /* == end - 1 */
 };
 
 HB_INTERNAL static bool
-hb_ms_setup_features (const hb_feature_t          *features,
-		      unsigned int                 num_features,
-		      hb_vector_t<hb_ms_feature_t> &feature_records, /* OUT */
-		      hb_vector_t<range_record_t>  &range_records /* OUT */)
+hb_ms_setup_features (const hb_feature_t                *features,
+		      unsigned int                       num_features,
+		      hb_vector_t<hb_ms_feature_t>      &feature_records, /* OUT */
+		      hb_vector_t<hb_ms_range_record_t> &range_records /* OUT */)
 {
 
   /* Sort features by start/end events. */
-  hb_vector_t<feature_event_t> feature_events;
+  hb_vector_t<hb_ms_feature_event_t> feature_events;
   for (unsigned int i = 0; i < num_features; i++)
   {
-    active_feature_t feature;
-    feature.fea.tag = hb_uint32_swap (features[i].tag);
+    hb_ms_active_feature_t feature;
+    feature.fea.tag_le = hb_uint32_swap (features[i].tag);
     feature.fea.value = features[i].value;
     feature.order = i;
 
-    feature_event_t *event;
+    hb_ms_feature_event_t *event;
 
     event = feature_events.push ();
     event->index = features[i].start;
@@ -108,35 +108,34 @@ hb_ms_setup_features (const hb_feature_t          *features,
   feature_events.qsort ();
   /* Add a strategic final event. */
   {
-    active_feature_t feature;
-    feature.fea.tag = 0;
+    hb_ms_active_feature_t feature;
+    feature.fea.tag_le = 0;
     feature.fea.value = 0;
     feature.order = num_features + 1;
 
-    feature_event_t *event = feature_events.push ();
+    auto *event = feature_events.push ();
     event->index = 0; /* This value does magic. */
     event->start = false;
     event->feature = feature;
   }
 
   /* Scan events and save features for each range. */
-  hb_vector_t<active_feature_t> active_features;
+  hb_vector_t<hb_ms_active_feature_t> active_features;
   unsigned int last_index = 0;
   for (unsigned int i = 0; i < feature_events.length; i++)
   {
-    feature_event_t *event = &feature_events[i];
+    auto *event = &feature_events[i];
 
     if (event->index != last_index)
     {
       /* Save a snapshot of active features and the range. */
-      range_record_t *range = range_records.push ();
-
-      unsigned int offset = feature_records.length;
+      auto *range = range_records.push ();
+      auto offset = feature_records.length;
 
       active_features.qsort ();
       for (unsigned int j = 0; j < active_features.length; j++)
       {
-        if (!j || active_features[j].fea.tag != feature_records[feature_records.length - 1].tag)
+        if (!j || active_features[j].fea.tag_le != feature_records[feature_records.length - 1].tag_le)
         {
           feature_records.push (active_features[j].fea);
         }
@@ -163,7 +162,7 @@ hb_ms_setup_features (const hb_feature_t          *features,
     }
     else
     {
-      active_feature_t *feature = active_features.find (&event->feature);
+      auto *feature = active_features.find (&event->feature);
       if (feature)
         active_features.remove (feature - active_features.arrayZ);
     }
@@ -175,7 +174,7 @@ hb_ms_setup_features (const hb_feature_t          *features,
   /* Fixup the pointers. */
   for (unsigned int i = 0; i < range_records.length; i++)
   {
-    range_record_t *range = &range_records[i];
+    auto *range = &range_records[i];
     range->features.features = (hb_ms_feature_t *) feature_records + reinterpret_cast<uintptr_t> (range->features.features);
   }
 
@@ -184,21 +183,21 @@ hb_ms_setup_features (const hb_feature_t          *features,
 }
 
 HB_INTERNAL static void
-hb_ms_make_feature_ranges (hb_vector_t<hb_ms_feature_t>  &feature_records,
-			   hb_vector_t<range_record_t>   &range_records,
-			   unsigned int                   chars_offset,
-			   unsigned int                   chars_len,
-			   uint16_t                      *log_clusters,
-			   hb_vector_t<hb_ms_features_t*> &range_features, /* OUT */
-			   hb_vector_t<uint32_t>          &range_counts /* OUT */)
+hb_ms_make_feature_ranges (hb_vector_t<hb_ms_feature_t>      &feature_records,
+			   hb_vector_t<hb_ms_range_record_t> &range_records,
+			   unsigned int                       chars_offset,
+			   unsigned int                       chars_len,
+			   uint16_t                          *log_clusters,
+			   hb_vector_t<hb_ms_features_t*>    &range_features, /* OUT */
+			   hb_vector_t<uint32_t>             &range_counts /* OUT */)
 {
   range_features.shrink (0);
   range_counts.shrink (0);
 
-  range_record_t *last_range = &range_records[0];
+  auto *last_range = &range_records[0];
   for (unsigned int i = chars_offset; i < chars_len; i++)
   {
-    range_record_t *range = last_range;
+    auto *range = last_range;
     while (log_clusters[i] < range->index_first)
       range--;
     while (log_clusters[i] > range->index_last)
