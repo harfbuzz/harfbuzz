@@ -29,7 +29,9 @@ tests = [
   'cmap14',
   'sbix',
   'colr',
-  'colrv1.notoemoji',
+# TODO: re-enable once colrv1 subsetting is stabilized.
+# 'colrv1.notoemoji',
+# 'colrv1',
   'colr_with_components',
   'cbdt',
   'variable',
