@@ -383,7 +383,7 @@ extern "C" void  hb_free_impl(void *ptr);
 #      define HB_NO_SETLOCALE
 #      define HB_NO_ERRNO
 #    endif
-#  elif WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+#  elif !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 #    ifndef HB_NO_GETENV
 #      define HB_NO_GETENV
 #    endif
