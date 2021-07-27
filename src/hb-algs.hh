@@ -760,6 +760,14 @@ static inline unsigned int ARRAY_LENGTH (const Type (&)[n]) { return n; }
 #define ARRAY_LENGTH_CONST(__array) ((signed int) (sizeof (__array) / sizeof (__array[0])))
 
 
+static inline void *
+hb_memcpy (void *__restrict dst, const void *__restrict src, size_t len)
+{
+  /* It's illegal to pass 0 as size to memcpy. */
+  if (unlikely (!len)) return dst;
+  return memcpy (dst, src, len);
+}
+
 static inline int
 hb_memcmp (const void *a, const void *b, unsigned int len)
 {
