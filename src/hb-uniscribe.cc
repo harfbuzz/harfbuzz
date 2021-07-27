@@ -44,6 +44,7 @@
 
 #include "hb-uniscribe.h"
 
+#include "hb-ms-feature-ranges.hh"
 #include "hb-open-file.hh"
 #include "hb-ot-name-table.hh"
 #include "hb-ot-layout.h"
@@ -282,44 +283,6 @@ hb_uniscribe_shaper_get_funcs ()
 {
   return static_uniscribe_shaper_funcs.get_unconst ();
 }
-
-
-struct active_feature_t {
-  OPENTYPE_FEATURE_RECORD rec;
-  unsigned int order;
-
-  HB_INTERNAL static int cmp (const void *pa, const void *pb) {
-    const active_feature_t *a = (const active_feature_t *) pa;
-    const active_feature_t *b = (const active_feature_t *) pb;
-    return a->rec.tagFeature < b->rec.tagFeature ? -1 : a->rec.tagFeature > b->rec.tagFeature ? 1 :
-	   a->order < b->order ? -1 : a->order > b->order ? 1 :
-	   a->rec.lParameter < b->rec.lParameter ? -1 : a->rec.lParameter > b->rec.lParameter ? 1 :
-	   0;
-  }
-  bool operator== (const active_feature_t *f)
-  { return cmp (this, f) == 0; }
-};
-
-struct feature_event_t {
-  unsigned int index;
-  bool start;
-  active_feature_t feature;
-
-  HB_INTERNAL static int cmp (const void *pa, const void *pb)
-  {
-    const feature_event_t *a = (const feature_event_t *) pa;
-    const feature_event_t *b = (const feature_event_t *) pb;
-    return a->index < b->index ? -1 : a->index > b->index ? 1 :
-	   a->start < b->start ? -1 : a->start > b->start ? 1 :
-	   active_feature_t::cmp (&a->feature, &b->feature);
-  }
-};
-
-struct range_record_t {
-  TEXTRANGE_PROPERTIES props;
-  unsigned int index_first; /* == start */
-  unsigned int index_last;  /* == end - 1 */
-};
 
 
 /*
@@ -635,109 +598,6 @@ _hb_uniscribe_shape (hb_shape_plan_t    *shape_plan,
   const hb_uniscribe_font_data_t *font_data = font->data.uniscribe;
   hb_uniscribe_shaper_funcs_t *funcs = face_data->funcs;
 
-  /*
-   * Set up features.
-   */
-  hb_vector_t<OPENTYPE_FEATURE_RECORD> feature_records;
-  hb_vector_t<range_record_t> range_records;
-  if (num_features)
-  {
-    /* Sort features by start/end events. */
-    hb_vector_t<feature_event_t> feature_events;
-    for (unsigned int i = 0; i < num_features; i++)
-    {
-      active_feature_t feature;
-      feature.rec.tagFeature = hb_uint32_swap (features[i].tag);
-      feature.rec.lParameter = features[i].value;
-      feature.order = i;
-
-      feature_event_t *event;
-
-      event = feature_events.push ();
-      event->index = features[i].start;
-      event->start = true;
-      event->feature = feature;
-
-      event = feature_events.push ();
-      event->index = features[i].end;
-      event->start = false;
-      event->feature = feature;
-    }
-    feature_events.qsort ();
-    /* Add a strategic final event. */
-    {
-      active_feature_t feature;
-      feature.rec.tagFeature = 0;
-      feature.rec.lParameter = 0;
-      feature.order = num_features + 1;
-
-      feature_event_t *event = feature_events.push ();
-      event->index = 0; /* This value does magic. */
-      event->start = false;
-      event->feature = feature;
-    }
-
-    /* Scan events and save features for each range. */
-    hb_vector_t<active_feature_t> active_features;
-    unsigned int last_index = 0;
-    for (unsigned int i = 0; i < feature_events.length; i++)
-    {
-      feature_event_t *event = &feature_events[i];
-
-      if (event->index != last_index)
-      {
-	/* Save a snapshot of active features and the range. */
-	range_record_t *range = range_records.push ();
-
-	unsigned int offset = feature_records.length;
-
-	active_features.qsort ();
-	for (unsigned int j = 0; j < active_features.length; j++)
-	{
-	  if (!j || active_features[j].rec.tagFeature != feature_records[feature_records.length - 1].tagFeature)
-	  {
-	    feature_records.push (active_features[j].rec);
-	  }
-	  else
-	  {
-	    /* Overrides value for existing feature. */
-	    feature_records[feature_records.length - 1].lParameter = active_features[j].rec.lParameter;
-	  }
-	}
-
-	/* Will convert to pointer after all is ready, since feature_records.array
-	 * may move as we grow it. */
-	range->props.potfRecords = reinterpret_cast<OPENTYPE_FEATURE_RECORD *> (offset);
-	range->props.cotfRecords = feature_records.length - offset;
-	range->index_first = last_index;
-	range->index_last  = event->index - 1;
-
-	last_index = event->index;
-      }
-
-      if (event->start)
-      {
-	active_features.push (event->feature);
-      }
-      else
-      {
-	active_feature_t *feature = active_features.find (&event->feature);
-	if (feature)
-	  active_features.remove (feature - active_features.arrayZ);
-      }
-    }
-
-    if (!range_records.length) /* No active feature found. */
-      num_features = 0;
-
-    /* Fixup the pointers. */
-    for (unsigned int i = 0; i < range_records.length; i++)
-    {
-      range_record_t *range = &range_records[i];
-      range->props.potfRecords = (OPENTYPE_FEATURE_RECORD *) feature_records + reinterpret_cast<uintptr_t> (range->props.potfRecords);
-    }
-  }
-
 #define FAIL(...) \
   HB_STMT_START { \
     DEBUG_MSG (UNISCRIBE, nullptr, __VA_ARGS__); \
@@ -856,8 +716,23 @@ retry:
 				       nullptr, nullptr,
 				       &lang_count, &lang_tag);
   OPENTYPE_TAG language_tag = hb_uint32_swap (lang_count ? lang_tag : HB_TAG_NONE);
-  hb_vector_t<TEXTRANGE_PROPERTIES*> range_properties;
-  hb_vector_t<int> range_char_counts;
+
+  /*
+   * Set up features.
+   */
+  static_assert ((sizeof (TEXTRANGE_PROPERTIES) == sizeof (hb_ms_features_t)), "");
+  static_assert ((sizeof (OPENTYPE_FEATURE_RECORD) == sizeof (hb_ms_feature_t)), "");
+  hb_vector_t<hb_ms_feature_t> feature_records;
+  hb_vector_t<range_record_t> range_records;
+  bool has_features = false;
+  if (num_features)
+    has_features = hb_ms_setup_features (features,
+					 num_features,
+					 feature_records,
+					 range_records);
+
+  hb_vector_t<hb_ms_features_t*> range_properties;
+  hb_vector_t<uint32_t> range_char_counts;
 
   unsigned int glyphs_offset = 0;
   unsigned int glyphs_len;
@@ -867,42 +742,14 @@ retry:
     unsigned int chars_offset = items[i].iCharPos;
     unsigned int item_chars_len = items[i + 1].iCharPos - chars_offset;
 
-    if (num_features)
-    {
-      range_properties.shrink (0);
-      range_char_counts.shrink (0);
-
-      range_record_t *last_range = &range_records[0];
-
-      for (unsigned int k = chars_offset; k < chars_offset + item_chars_len; k++)
-      {
-	range_record_t *range = last_range;
-	while (log_clusters[k] < range->index_first)
-	  range--;
-	while (log_clusters[k] > range->index_last)
-	  range++;
-	if (!range_properties.length ||
-	    &range->props != range_properties[range_properties.length - 1])
-	{
-	  TEXTRANGE_PROPERTIES **props = range_properties.push ();
-	  int *c = range_char_counts.push ();
-	  if (unlikely (!props || !c))
-	  {
-	    range_properties.shrink (0);
-	    range_char_counts.shrink (0);
-	    break;
-	  }
-	  *props = &range->props;
-	  *c = 1;
-	}
-	else
-	{
-	  range_char_counts[range_char_counts.length - 1]++;
-	}
-
-	last_range = range;
-      }
-    }
+    if (has_features)
+      hb_ms_make_feature_ranges (feature_records,
+				 range_records,
+				 item_chars_len,
+				 chars_offset,
+				 log_clusters,
+				 range_properties,
+				 range_char_counts);
 
     /* Asking for glyphs in logical order circumvents at least
      * one bug in Uniscribe. */
@@ -914,8 +761,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ,
-				     range_properties.arrayZ,
+				     (int *) range_char_counts.arrayZ,
+				     (TEXTRANGE_PROPERTIES**) range_properties.arrayZ,
 				     range_properties.length,
 				     pchars + chars_offset,
 				     item_chars_len,
@@ -955,8 +802,8 @@ retry:
 				     &items[i].a,
 				     script_tags[i],
 				     language_tag,
-				     range_char_counts.arrayZ,
-				     range_properties.arrayZ,
+				     (int *) range_char_counts.arrayZ,
+				     (TEXTRANGE_PROPERTIES**) range_properties.arrayZ,
 				     range_properties.length,
 				     pchars + chars_offset,
 				     log_clusters + chars_offset,
