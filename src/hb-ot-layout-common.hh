@@ -2517,7 +2517,8 @@ struct VarRegionList
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
-		  axesZ.sanitize (c, (unsigned int) axisCount * (unsigned int) regionCount));
+		  !hb_unsigned_mul_overflows (axisCount * regionCount, VarRegionAxis::static_size) &&
+		  axesZ.sanitize (c, axisCount * regionCount));
   }
 
   bool serialize (hb_serialize_context_t *c, const VarRegionList *src, const hb_bimap_t &region_map)
@@ -2527,7 +2528,9 @@ struct VarRegionList
     if (unlikely (!out)) return_trace (false);
     axisCount = src->axisCount;
     regionCount = region_map.get_population ();
-    if (unlikely (!c->allocate_size<VarRegionList> (get_size () - min_size))) return_trace (false);
+    if (unlikely (hb_unsigned_mul_overflows (axisCount * regionCount,
+					     VarRegionAxis::static_size))) return_trace (false);
+    if (unlikely (!c->extend<VarRegionList> (out))) return_trace (false);
     unsigned int region_count = src->get_region_count ();
     for (unsigned int r = 0; r < regionCount; r++)
     {
