@@ -66,9 +66,10 @@
  * containing only the data specified in the input.
  *
  * Currently most outline and bitmap tables are supported: glyf, CFF, CFF2, sbix,
- * COLRv0, COLRv1, and CBDT/CBLC/EBDT/EBLC. This also includes fonts with variable outlines via open
- * type variations. Layout subsetting is supported only for Open Type Layout tables (GSUB, GPOS, GDEF).
- * Notably subsetting of graphite or AAT tables is not yet supported.
+ * COLR, and CBDT/CBLC. This also includes fonts with variable outlines via open
+ * type variations. Notably EBDT/EBLC and SVG are not supported. Layout subsetting is supported
+ * only for Open Type Layout tables (GSUB, GPOS, GDEF). Notably subsetting of graphite or AAT tables
+ * is not yet supported.
  *
  * Fonts with graphite or AAT tables may still be subsetted but will likely need to use the
  * retain glyph ids option and configure the subset to pass through the layout tables untouched.
