@@ -614,7 +614,7 @@ _hb_directwrite_shape (hb_shape_plan_t    *shape_plan,
   if (num_features)
   {
     hb_vector_t<hb_ms_feature_t> feature_records;
-    hb_vector_t<range_record_t> range_records;
+    hb_vector_t<hb_ms_range_record_t> range_records;
     if (hb_ms_setup_features (features, num_features, feature_records, range_records))
       hb_ms_make_feature_ranges (feature_records,
 				 range_records,
