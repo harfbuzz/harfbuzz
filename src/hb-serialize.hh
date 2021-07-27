@@ -449,16 +449,16 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  Type *allocate_size (unsigned int size)
+  Type *allocate_size (size_t size)
   {
     if (unlikely (in_error ())) return nullptr;
 
-    if (this->tail - this->head < ptrdiff_t (size))
+    if (unlikely (size > INT_MAX || this->tail - this->head < ptrdiff_t (size)))
     {
       err (HB_SERIALIZE_ERROR_OUT_OF_ROOM);
       return nullptr;
     }
-    memset (this->head, 0, size);
+    hb_memset (this->head, 0, size);
     char *ret = this->head;
     this->head += size;
     return reinterpret_cast<Type *> (ret);
