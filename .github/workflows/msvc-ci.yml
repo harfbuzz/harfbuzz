@@ -32,7 +32,7 @@ jobs:
           arch : ${{ matrix.ARCH }}
       - name: Install Dependencies
         run: |
-          pip install --upgrade meson ninja fonttools==4.25.1
+          pip install --upgrade meson ninja fonttools
       - name: Build
         run: |
           # This dir contains a pkg-config which meson will happily use and later fail, so remove it
