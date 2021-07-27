@@ -8,7 +8,6 @@ TESTS = \
 	tests/cmap14.tests \
 	tests/colr.tests \
 	tests/colr_with_components.tests \
-	tests/colrv1.notoemoji.tests \
 	tests/full-font.tests \
 	tests/japanese.tests \
 	tests/layout.context.tests \
@@ -34,6 +33,11 @@ TESTS = \
 	tests/sbix.tests \
 	tests/variable.tests \
 	$(NULL)
+
+# TODO: re-enable once colrv1 subsetting is stabilized.
+#	tests/colrv1.notoemoji.tests
+#	tests/colrv1.tests
+
 
 XFAIL_TESTS = \
 	$(NULL)

@@ -41,6 +41,10 @@
 #define COLRV1_MAX_NESTING_LEVEL	100
 #endif
 
+#ifndef COLRV1_DISABLE_SUBSETTING
+#define COLRV1_DISABLE_SUBSETTING 1
+#endif
+
 namespace OT {
 
 struct COLR;
@@ -597,7 +601,7 @@ template <template<typename> class Var>
 struct PaintTranslate
 {
   HB_INTERNAL void closurev1 (hb_colrv1_closure_context_t* c) const;
-  
+
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
@@ -929,7 +933,7 @@ struct COLR
     if (!numBaseGlyphs || !numLayers) return;
     hb_array_t<const BaseGlyphRecord> baseGlyphs = (this+baseGlyphsZ).as_array (numBaseGlyphs);
     hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
-    
+
     for (const BaseGlyphRecord record : baseGlyphs)
     {
       if (!glyphs->has (record.glyphId)) continue;
@@ -970,6 +974,12 @@ struct COLR
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+#if COLRV1_DISABLE_SUBSETTING == 1
+    return_trace (c->check_struct (this) &&
+                  (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
+                  (this+layersZ).sanitize (c, numLayers) &&
+                  (version == 0));
+#else
     return_trace (c->check_struct (this) &&
                   (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
                   (this+layersZ).sanitize (c, numLayers) &&
@@ -977,6 +987,7 @@ struct COLR
                                     baseGlyphsV1List.sanitize (c, this) &&
                                     layersV1.sanitize (c, this) &&
                                     varStore.sanitize (c, this))));
+#endif
   }
 
   template<typename BaseIterator, typename LayerIterator,
