@@ -343,9 +343,14 @@ struct Sequence
 
     unsigned int klass = _hb_glyph_info_is_ligature (&c->buffer->cur()) ?
 			 HB_OT_LAYOUT_GLYPH_PROPS_BASE_GLYPH : 0;
+    unsigned lig_id = _hb_glyph_info_get_lig_id (&c->buffer->cur());
 
-    for (unsigned int i = 0; i < count; i++) {
-      _hb_glyph_info_set_lig_props_for_component (&c->buffer->cur(), i);
+    for (unsigned int i = 0; i < count; i++)
+    {
+      /* If is attached to a ligature, don't disturb that.
+       * https://github.com/harfbuzz/harfbuzz/issues/3069 */
+      if (!lig_id)
+	_hb_glyph_info_set_lig_props_for_component (&c->buffer->cur(), i);
       c->output_glyph_for_component (substitute.arrayZ[i], klass);
     }
     c->buffer->skip_glyph ();
