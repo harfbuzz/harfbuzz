@@ -245,7 +245,7 @@ bool cmap_test(const char *testName,
         fprintf (tests_file, "%s", buf);
     }
     free (gFeatures);
-    fprintf (tests_file, "\" --no-clusters --no-glyph-names --no-positions:");
+    fprintf (tests_file, "\" --no-clusters --no-glyph-names --no-positions --font-funcs=ot:");
 
     for (unsigned int i = 0; i < nbIn; i++)
     {
