@@ -258,11 +258,19 @@ parse_features (const char *name G_GNUC_UNUSED,
 {
   shape_options_t *shape_opts = (shape_options_t *) data;
   char *s = (char *) arg;
+  size_t l = strlen (s);
   char *p;
 
   shape_opts->num_features = 0;
   g_free (shape_opts->features);
   shape_opts->features = nullptr;
+
+  /* if the string is quoted, strip the quotes */
+  if (s[0] == s[l - 1] && (s[0] == '\"' || s[0] == '\''))
+  {
+    s[l - 1] = '\0';
+    s++;
+  }
 
   if (!*s)
     return true;
