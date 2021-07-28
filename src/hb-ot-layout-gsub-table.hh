@@ -408,7 +408,6 @@ struct MultipleSubstFormat1
     | hb_map (hb_add (this))
     | hb_apply ([c] (const Sequence &_) { _.closure (c); })
     ;
-
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
