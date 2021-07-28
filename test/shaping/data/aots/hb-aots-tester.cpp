@@ -203,6 +203,88 @@ bool gsub_test(const char *testName,
     return ok;
 }
 
+bool cmap_test(const char *testName,
+               const char *fontfileName,
+               int nbIn, unsigned int *in,
+               int nbSelect, unsigned int *select,
+               int nbExpected, unsigned int *expected)
+{
+    hb_buffer_t *buffer = runTest(testName,
+                                  fontfileName,
+                                  in, nbIn,
+                                  select, nbSelect);
+
+    // verify
+    hb_glyph_info_t *actual = hb_buffer_get_glyph_infos(buffer, 0);
+    unsigned int nbActual = hb_buffer_get_length(buffer);
+
+    bool ok = true;
+
+    if (nbActual != nbExpected)
+        ok = false;
+    else {
+        for (int i = 0; i < nbActual; i++) {
+            if (actual[i].codepoint != expected [i]) {
+                ok = false;
+                break;
+            }
+        }
+    }
+
+
+    char test_name[255];
+    sprintf (test_name, "../../tests/%.*s.tests", (int) (strrchr (testName, '_') - testName), testName);
+    FILE *tests_file = fopen (test_name, "a+");
+    if (!ok) fprintf (tests_file, "#");
+    fprintf (tests_file, "../fonts/%s:--features=\"", fontfileName + 9);
+    for (unsigned int i = 0; i < gNbFeatures; i++)
+    {
+        if (i != 0) fprintf (tests_file, ",");
+        char buf[255];
+        hb_feature_to_string (&gFeatures[i], buf, sizeof (buf));
+        fprintf (tests_file, "%s", buf);
+    }
+    free (gFeatures);
+    fprintf (tests_file, "\" --no-clusters --no-glyph-names --no-positions:");
+
+    for (unsigned int i = 0; i < nbIn; i++)
+    {
+        if (i != 0) fprintf (tests_file, ",");
+        fprintf (tests_file, "U+%04X", in[i]);
+    }
+
+    fprintf (tests_file, ":[");
+    for (unsigned int i = 0; i < nbActual; i++)
+    {
+        if (i != 0) fprintf (tests_file, "|");
+        fprintf (tests_file, "%d", expected[i]);
+    }
+    fprintf (tests_file, "]");
+
+    fprintf (tests_file, "\n");
+    fclose (tests_file);
+
+
+    if (! ok) {
+        printf ("******* cmap %s\n", testName);
+
+        printf ("expected %d:", nbExpected);
+        for (int i = 0; i < nbExpected; i++) {
+            printf (" %d", expected[i]); }
+        printf ("\n");
+
+        printf ("  actual %d:", nbActual);
+        for (int i = 0; i < nbActual; i++) {
+            printf (" %d", actual[i].codepoint); }
+        printf ("\n");
+
+    }
+
+    hb_buffer_destroy(buffer);
+
+    return ok;
+}
+
 bool gpos_test(const char *testName,
                const char *fontfileName,
                int nbIn,
