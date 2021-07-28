@@ -513,19 +513,19 @@ struct hb_serialize_context_t
   hb_serialize_context_t& operator << (const Type &obj) & { embed (obj); return *this; }
 
   template <typename Type>
-  Type *extend_size (Type *obj, unsigned int size)
+  Type *extend_size (Type *obj, size_t size)
   {
     if (unlikely (in_error ())) return nullptr;
 
     assert (this->start <= (char *) obj);
     assert ((char *) obj <= this->head);
-    assert (this->head - (char *) obj <= size);
+    assert ((size_t) (this->head - (char *) obj) <= size);
     if (unlikely (((char *) obj + size < (char *) obj) ||
 		  !this->allocate_size<Type> (((char *) obj) + size - this->head))) return nullptr;
     return reinterpret_cast<Type *> (obj);
   }
   template <typename Type>
-  Type *extend_size (Type &obj, unsigned int size)
+  Type *extend_size (Type &obj, size_t size)
   { return extend_size (hb_addressof (obj), size); }
 
   template <typename Type>
