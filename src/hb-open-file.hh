@@ -126,7 +126,7 @@ typedef struct OpenTypeOffsetTable
   {
     TRACE_SERIALIZE (this);
     /* Alloc 12 for the OTHeader. */
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     /* Write sfntVersion (bytes 0..3). */
     sfnt_version = sfnt_tag;
     /* Take space for numTables, searchRange, entrySelector, RangeShift
@@ -496,7 +496,7 @@ struct OpenTypeFontFile
   {
     TRACE_SERIALIZE (this);
     assert (sfnt_tag != TTCTag);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     return_trace (u.fontFace.serialize (c, sfnt_tag, items));
   }
 

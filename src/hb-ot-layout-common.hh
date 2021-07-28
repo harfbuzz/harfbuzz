@@ -1262,13 +1262,13 @@ struct Lookup
 		  unsigned int num_subtables)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     lookupType = lookup_type;
     lookupFlag = lookup_props & 0xFFFFu;
     if (unlikely (!subTable.serialize (c, num_subtables))) return_trace (false);
     if (lookupFlag & LookupFlag::UseMarkFilteringSet)
     {
-      if (unlikely (!c->extend (*this))) return_trace (false);
+      if (unlikely (!c->extend (this))) return_trace (false);
       HBUINT16 &markFilteringSet = StructAfter<HBUINT16> (subTable);
       markFilteringSet = lookup_props >> 16;
     }
@@ -1478,7 +1478,7 @@ struct CoverageFormat2
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
 
     if (unlikely (!glyphs))
     {
@@ -1657,7 +1657,7 @@ struct Coverage
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
 
     unsigned count = 0;
     unsigned num_ranges = 0;
@@ -1890,7 +1890,7 @@ struct ClassDefFormat1
 		  Iterator it)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
 
     if (unlikely (!it))
     {
@@ -2069,7 +2069,7 @@ struct ClassDefFormat2
 		  Iterator it)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
 
     if (unlikely (!it))
     {
@@ -2311,7 +2311,7 @@ struct ClassDef
   bool serialize (hb_serialize_context_t *c, Iterator it_with_class_zero)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
 
     auto it = + it_with_class_zero | hb_filter (hb_second);
 
@@ -2522,7 +2522,7 @@ struct VarRegionList
   bool serialize (hb_serialize_context_t *c, const VarRegionList *src, const hb_bimap_t &region_map)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     axisCount = src->axisCount;
     regionCount = region_map.get_population ();
     if (unlikely (hb_unsigned_mul_overflows (axisCount * regionCount,
@@ -2626,7 +2626,7 @@ struct VarData
 		  const hb_bimap_t &region_map)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     itemCount = inner_map.get_next_value ();
 
     /* Optimize short count */
@@ -2778,7 +2778,7 @@ struct VariationStore
 		  const hb_array_t <hb_inc_bimap_t> &inner_maps)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
 
     unsigned int set_count = 0;
     for (unsigned int i = 0; i < inner_maps.length; i++)

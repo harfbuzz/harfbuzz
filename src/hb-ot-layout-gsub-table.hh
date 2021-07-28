@@ -100,7 +100,7 @@ struct SingleSubstFormat1
 		  unsigned delta)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     if (unlikely (!coverage.serialize_serialize (c, glyphs))) return_trace (false);
     c->check_assign (deltaGlyphID, delta, HB_SERIALIZE_ERROR_INT_OVERFLOW);
     return_trace (true);
@@ -209,7 +209,7 @@ struct SingleSubstFormat2
       + it
       | hb_map_retains_sorting (hb_first)
       ;
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     if (unlikely (!substitute.serialize (c, substitutes))) return_trace (false);
     if (unlikely (!coverage.serialize_serialize (c, glyphs))) return_trace (false);
     return_trace (true);
@@ -448,7 +448,7 @@ struct MultipleSubstFormat1
 		  hb_array_t<const HBGlyphID> substitute_glyphs_list)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     if (unlikely (!sequence.serialize (c, glyphs.length))) return_trace (false);
     for (unsigned int i = 0; i < glyphs.length; i++)
     {
@@ -691,7 +691,7 @@ struct AlternateSubstFormat1
 		  hb_array_t<const HBGlyphID> alternate_glyphs_list)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     if (unlikely (!alternateSet.serialize (c, glyphs.length))) return_trace (false);
     for (unsigned int i = 0; i < glyphs.length; i++)
     {
@@ -855,7 +855,7 @@ struct Ligature
 		  Iterator components /* Starting from second */)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     ligGlyph = ligature;
     if (unlikely (!component.serialize (c, components))) return_trace (false);
     return_trace (true);
@@ -954,7 +954,7 @@ struct LigatureSet
 		  hb_array_t<const HBGlyphID> &component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     if (unlikely (!ligature.serialize (c, ligatures.length))) return_trace (false);
     for (unsigned int i = 0; i < ligatures.length; i++)
     {
@@ -1066,7 +1066,7 @@ struct LigatureSubstFormat1
 		  hb_array_t<const HBGlyphID> component_list /* Starting from second for each ligature */)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     if (unlikely (!ligatureSet.serialize (c, first_glyphs.length))) return_trace (false);
     for (unsigned int i = 0; i < first_glyphs.length; i++)
     {

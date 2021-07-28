@@ -54,7 +54,7 @@ struct DeltaSetIndexMap
     TRACE_SERIALIZE (this);
     if (unlikely (output_map.length && ((((inner_bit_count-1)&~0xF)!=0) || (((width-1)&~0x3)!=0))))
       return_trace (false);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
 
     format = ((width-1)<<4)|(inner_bit_count-1);
     mapCount = output_map.length;

@@ -253,7 +253,7 @@ struct CmapSubtableFormat4
     if (format4_iter.len () == 0) return;
 
     unsigned table_initpos = c->length ();
-    if (unlikely (!c->extend_min (*this))) return;
+    if (unlikely (!c->extend_min (this))) return;
     this->format = 4;
 
     //serialize endCode[]
@@ -693,7 +693,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
   {
     if (it.len () == 0) return;
     unsigned table_initpos = c->length ();
-    if (unlikely (!c->extend_min (*this))) return;
+    if (unlikely (!c->extend_min (this))) return;
 
     hb_codepoint_t startCharCode = 0xFFFF, endCharCode = 0xFFFF;
     hb_codepoint_t glyphID = 0;
@@ -1077,7 +1077,7 @@ struct CmapSubtableFormat14
     unsigned table_initpos = c->length ();
     const char* init_tail = c->tail;
 
-    if (unlikely (!c->extend_min (*this))) return;
+    if (unlikely (!c->extend_min (this))) return;
     this->format = 14;
 
     auto src_tbl = reinterpret_cast<const CmapSubtableFormat14*> (base);

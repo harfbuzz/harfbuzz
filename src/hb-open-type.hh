@@ -479,7 +479,7 @@ struct UnsizedArrayOf
   bool serialize (hb_serialize_context_t *c, unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend (*this, items_len))) return_trace (false);
+    if (unlikely (!c->extend (this, items_len))) return_trace (false);
     return_trace (true);
   }
   template <typename Iterator,
@@ -652,9 +652,9 @@ struct ArrayOf
   HB_NODISCARD bool serialize (hb_serialize_context_t *c, unsigned items_len)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     c->check_assign (len, items_len, HB_SERIALIZE_ERROR_ARRAY_OVERFLOW);
-    if (unlikely (!c->extend (*this))) return_trace (false);
+    if (unlikely (!c->extend (this))) return_trace (false);
     return_trace (true);
   }
   template <typename Iterator,
@@ -675,7 +675,7 @@ struct ArrayOf
   {
     TRACE_SERIALIZE (this);
     len++;
-    if (unlikely (!len || !c->extend (*this)))
+    if (unlikely (!len || !c->extend (this)))
     {
       len--;
       return_trace (nullptr);
@@ -802,9 +802,9 @@ struct HeadlessArrayOf
   bool serialize (hb_serialize_context_t *c, unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
-    if (unlikely (!c->extend_min (*this))) return_trace (false);
+    if (unlikely (!c->extend_min (this))) return_trace (false);
     c->check_assign (lenP1, items_len + 1, HB_SERIALIZE_ERROR_ARRAY_OVERFLOW);
-    if (unlikely (!c->extend (*this))) return_trace (false);
+    if (unlikely (!c->extend (this))) return_trace (false);
     return_trace (true);
   }
   template <typename Iterator,

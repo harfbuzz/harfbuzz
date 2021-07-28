@@ -187,7 +187,7 @@ struct Encoding
 		  const hb_vector_t<code_pair_t>& supp_codes)
   {
     TRACE_SERIALIZE (this);
-    Encoding *dest = c->extend_min (*this);
+    Encoding *dest = c->extend_min (this);
     if (unlikely (!dest)) return_trace (false);
     dest->format = format | ((supp_codes.length > 0) ? 0x80 : 0);
     switch (format) {
@@ -457,7 +457,7 @@ struct Charset
 		  const hb_vector_t<code_pair_t>& sid_ranges)
   {
     TRACE_SERIALIZE (this);
-    Charset *dest = c->extend_min (*this);
+    Charset *dest = c->extend_min (this);
     if (unlikely (!dest)) return_trace (false);
     dest->format = format;
     switch (format)

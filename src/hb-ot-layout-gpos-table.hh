@@ -805,7 +805,7 @@ struct SinglePosFormat1
 		  ValueFormat newFormat,
 		  const hb_map_t *layout_variation_idx_map)
   {
-    if (unlikely (!c->extend_min (*this))) return;
+    if (unlikely (!c->extend_min (this))) return;
     if (unlikely (!c->check_assign (valueFormat,
                                     newFormat,
                                     HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
@@ -925,7 +925,7 @@ struct SinglePosFormat2
 		  ValueFormat newFormat,
 		  const hb_map_t *layout_variation_idx_map)
   {
-    auto out = c->extend_min (*this);
+    auto out = c->extend_min (this);
     if (unlikely (!out)) return;
     if (unlikely (!c->check_assign (valueFormat, newFormat, HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
     if (unlikely (!c->check_assign (valueCount, it.len (), HB_SERIALIZE_ERROR_ARRAY_OVERFLOW))) return;
