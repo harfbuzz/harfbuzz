@@ -2516,9 +2516,7 @@ struct VarRegionList
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  !hb_unsigned_mul_overflows (axisCount * regionCount, VarRegionAxis::static_size) &&
-		  axesZ.sanitize (c, axisCount * regionCount));
+    return_trace (c->check_struct (this) && axesZ.sanitize (c, axisCount * regionCount));
   }
 
   bool serialize (hb_serialize_context_t *c, const VarRegionList *src, const hb_bimap_t &region_map)
