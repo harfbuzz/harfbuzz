@@ -57,6 +57,7 @@ TESTS = \
 	tests/use-indic3.tests \
 	tests/use-marchen.tests \
 	tests/use-syllable.tests \
+	tests/use-vowel-letter-spoofing.tests \
 	tests/use.tests \
 	tests/variations.tests \
 	tests/variations-rvrn.tests \
