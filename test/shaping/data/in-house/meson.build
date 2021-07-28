@@ -16,6 +16,7 @@ in_house_tests = [
   'default-ignorables.tests',
   'digits.tests',
   'emoji.tests',
+  'emoji-clusters.tests',
   'fallback-positioning.tests',
   'hangul-jamo.tests',
   'hyphens.tests',
