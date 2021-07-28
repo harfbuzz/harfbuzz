@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-"""usage: ./gen-emoji-table.py emoji-data.txt
+"""usage: ./gen-emoji-table.py emoji-data.txt emoji-test.txt
 
 Input file:
 * https://www.unicode.org/Public/UCD/latest/ucd/emoji/emoji-data.txt
+* https://www.unicode.org/Public/emoji/latest/emoji-test.txt
 """
 
 import sys
 from collections import OrderedDict
 import packTab
 
-if len (sys.argv) != 2:
+if len (sys.argv) != 3:
 	sys.exit (__doc__)
 
 f = open(sys.argv[1])
@@ -74,3 +75,37 @@ print ()
 print ("#endif /* HB_UNICODE_EMOJI_TABLE_HH */")
 print ()
 print ("/* == End of generated table == */")
+
+
+# Generate test file.
+sequences = []
+with open(sys.argv[2]) as f:
+    for line in f.readlines():
+        if "#" in line:
+            line = line[:line.index("#")]
+        if ";" in line:
+            line = line[:line.index(";")]
+        line = line.strip()
+        if not line:
+            continue
+        line = line.split(" ")
+        if len(line) == 1:
+            continue
+        sequences.append(line)
+
+# Split into number of sequences per line, too small number slows the test, and
+# too big overwhelms the test runner.
+CHUNK = 50
+with open("../test/shaping/data/in-house/tests/emoji-clusters.tests", "w") as f:
+    for i in range(0, len(sequences), CHUNK):
+        outputs = []
+        inputs = []
+        cluster = 0
+        for sequence in sequences[i:i + CHUNK]:
+            outputs.append("|".join(f"1={cluster}" for c in sequence))
+            inputs.append(",".join(sequence))
+            cluster += len(sequence)
+
+        f.write("../fonts/AdobeBlank2.ttf:--no-glyph-names --no-positions --font-funcs=ot")
+        f.write(":" + ",".join(inputs))
+        f.write(":[" + "|".join(outputs) + "]\n")

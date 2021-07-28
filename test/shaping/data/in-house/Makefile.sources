@@ -16,6 +16,7 @@ TESTS = \
 	tests/default-ignorables.tests \
 	tests/digits.tests \
 	tests/emoji.tests \
+	tests/emoji-clusters.tests \
 	tests/fallback-positioning.tests \
 	tests/hangul-jamo.tests \
 	tests/hyphens.tests \
