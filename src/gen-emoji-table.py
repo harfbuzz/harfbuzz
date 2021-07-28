@@ -86,26 +86,13 @@ with open(sys.argv[2]) as f:
         if ";" in line:
             line = line[:line.index(";")]
         line = line.strip()
-        if not line:
-            continue
         line = line.split(" ")
-        if len(line) == 1:
+        if len(line) < 2:
             continue
         sequences.append(line)
 
-# Split into number of sequences per line, too small number slows the test, and
-# too big overwhelms the test runner.
-CHUNK = 50
 with open("../test/shaping/data/in-house/tests/emoji-clusters.tests", "w") as f:
-    for i in range(0, len(sequences), CHUNK):
-        outputs = []
-        inputs = []
-        cluster = 0
-        for sequence in sequences[i:i + CHUNK]:
-            outputs.append("|".join(f"1={cluster}" for c in sequence))
-            inputs.append(",".join(sequence))
-            cluster += len(sequence)
-
+    for sequence in sequences:
         f.write("../fonts/AdobeBlank2.ttf:--no-glyph-names --no-positions --font-funcs=ot")
-        f.write(":" + ",".join(inputs))
-        f.write(":[" + "|".join(outputs) + "]\n")
+        f.write(":" + ",".join(sequence))
+        f.write(":[" + "|".join("1=0" for c in sequence) + "]\n")
