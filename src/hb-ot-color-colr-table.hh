@@ -977,14 +977,11 @@ struct COLR
     return_trace (c->check_struct (this) &&
                   (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
                   (this+layersZ).sanitize (c, numLayers) &&
-#if COLRV1_ENABLE_SUBSETTING == 1
-                  (version == 0 || (version == 1 &&
-                                    baseGlyphsV1List.sanitize (c, this) &&
-                                    layersV1.sanitize (c, this) &&
-                                    varStore.sanitize (c, this))));
-#else
-                  (version == 0));
-#endif
+                  (version == 0 ||
+		   (COLRV1_ENABLE_SUBSETTING && version == 1 &&
+		    baseGlyphsV1List.sanitize (c, this) &&
+		    layersV1.sanitize (c, this) &&
+		    varStore.sanitize (c, this))));
   }
 
   template<typename BaseIterator, typename LayerIterator,
