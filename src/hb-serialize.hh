@@ -519,8 +519,9 @@ struct hb_serialize_context_t
 
     assert (this->start <= (char *) obj);
     assert ((char *) obj <= this->head);
-    assert ((char *) obj + size >= this->head);
-    if (unlikely (!this->allocate_size<Type> (((char *) obj) + size - this->head))) return nullptr;
+    assert (this->head - (char *) obj <= size);
+    if (unlikely (((char *) obj + size < (char *) obj) ||
+		  !this->allocate_size<Type> (((char *) obj) + size - this->head))) return nullptr;
     return reinterpret_cast<Type *> (obj);
   }
   template <typename Type>
