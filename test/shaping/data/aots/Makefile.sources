@@ -7,6 +7,13 @@ TESTS = \
 	tests/classdef2_multiple.tests \
 	tests/classdef2_single.tests \
 	tests/classdef2.tests \
+	tests/cmap0.tests \
+	tests/cmap10.tests \
+	tests/cmap12.tests \
+	tests/cmap2.tests \
+	tests/cmap4.tests \
+	tests/cmap6.tests \
+	tests/cmap8.tests \
 	tests/gpos_chaining1_boundary.tests \
 	tests/gpos_chaining1_lookupflag.tests \
 	tests/gpos_chaining1_multiple_subrules.tests \
