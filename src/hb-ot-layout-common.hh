@@ -2560,7 +2560,10 @@ struct VarData
   { return shortCount + regionIndices.len; }
 
   unsigned int get_size () const
-  { return itemCount * get_row_size (); }
+  { return min_size
+	 - regionIndices.min_size + regionIndices.get_size ()
+	 + itemCount * get_row_size ();
+  }
 
   float get_delta (unsigned int inner,
 		   const int *coords, unsigned int coord_count,
@@ -2665,9 +2668,7 @@ struct VarData
     shortCount = new_short_count;
     regionIndices.len = new_ri_count;
 
-    unsigned int size = regionIndices.get_size () - HBUINT16::static_size/*regionIndices.len*/ + (get_row_size () * itemCount);
-    if (unlikely (!c->allocate_size<HBUINT8> (size)))
-      return_trace (false);
+    if (unlikely (!c->extend (this))) return_trace (false);
 
     for (r = 0; r < ri_count; r++)
       if (delta_sz[r]) regionIndices[ri_map[r]] = region_map[src->regionIndices[r]];
