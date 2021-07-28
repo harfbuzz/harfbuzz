@@ -165,7 +165,7 @@ main (int argc, char **argv)
     {
       size_t l = strlen (buf);
       if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
-      main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0> driver;
+      main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0, EOF> driver;
       char *args[32];
       argc = 0;
       char *p = buf, *e;

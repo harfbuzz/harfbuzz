@@ -47,7 +47,7 @@ locale_to_utf8 (char *s)
   return t;
 }
 
-template <typename consumer_t, int default_font_size, int subpixel_bits>
+template <typename consumer_t, int default_font_size, int subpixel_bits, char eol = '\n'>
 struct main_font_text_t
 {
   main_font_text_t ()
@@ -77,7 +77,7 @@ struct main_font_text_t
 
     unsigned int text_len;
     const char *text;
-    while ((text = input.get_line (&text_len)))
+    while ((text = input.get_line (&text_len, eol)))
       consumer.consume_line (text, text_len, input.text_before, input.text_after);
 
     consumer.finish (&font_opts);

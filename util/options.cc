@@ -771,7 +771,7 @@ font_options_t::get_font () const
 
 
 const char *
-text_options_t::get_line (unsigned int *len)
+text_options_t::get_line (unsigned int *len, char eol)
 {
   if (text) {
     if (!line)
@@ -788,7 +788,7 @@ text_options_t::get_line (unsigned int *len)
     }
 
     const char *ret = line;
-    const char *p = (const char *) memchr (line, '\n', line_len);
+    const char *p = (const char *) memchr (line, eol, line_len);
     unsigned int ret_len;
     if (!p) {
       ret_len = line_len;
@@ -824,7 +824,7 @@ text_options_t::get_line (unsigned int *len)
   char buf[BUFSIZ];
   while (fgets (buf, sizeof (buf), fp)) {
     unsigned int bytes = strlen (buf);
-    if (bytes && buf[bytes - 1] == '\n') {
+    if (bytes && buf[bytes - 1] == eol) {
       bytes--;
       g_string_append_len (gs, buf, bytes);
       break;
