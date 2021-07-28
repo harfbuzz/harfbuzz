@@ -548,7 +548,7 @@ struct text_options_t : option_group_t
 		   "Only one of text and text-file can be set");
   }
 
-  const char *get_line (unsigned int *len, char eol);
+  const char *get_line (unsigned int *len, char eol = '\n');
 
   char *text_before;
   char *text_after;
