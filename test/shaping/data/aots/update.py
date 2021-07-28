@@ -7,7 +7,7 @@ os.chdir (os.getenv ('srcdir', os.path.dirname (__file__)))
 git = shutil.which ('git'); assert git
 make = shutil.which ('make'); assert make
 java = shutil.which ('java'); assert java
-gcc = shutil.which ('gcc'); assert gcc
+cxx = shutil.which ('c++'); assert cxx
 
 pull = False
 if not os.path.exists ('aots'):
@@ -21,7 +21,7 @@ if pull or 'pull' in sys.argv:
 
 shutil.copy ('hb-aots-tester.cpp', 'aots/harfbuzz')
 # TODO: remove *nix assumptions
-subprocess.run ([gcc, '-Wno-narrowing', 'aots/harfbuzz/hb-aots-tester.cpp',
+subprocess.run ([cxx, '-std=c++11', '-Wno-narrowing', 'aots/harfbuzz/hb-aots-tester.cpp',
 	'../../../../src/harfbuzz.cc', '-DHB_NO_MT', '-fno-exceptions', '-lm',
 	'-I../../../../src', '-o', 'aots/harfbuzz/aots'], check=True)
 shutil.rmtree ('tests')
