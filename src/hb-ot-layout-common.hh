@@ -2522,13 +2522,12 @@ struct VarRegionList
   bool serialize (hb_serialize_context_t *c, const VarRegionList *src, const hb_bimap_t &region_map)
   {
     TRACE_SERIALIZE (this);
-    VarRegionList *out = c->allocate_min<VarRegionList> ();
-    if (unlikely (!out)) return_trace (false);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
     axisCount = src->axisCount;
     regionCount = region_map.get_population ();
     if (unlikely (hb_unsigned_mul_overflows (axisCount * regionCount,
 					     VarRegionAxis::static_size))) return_trace (false);
-    if (unlikely (!c->extend<VarRegionList> (out))) return_trace (false);
+    if (unlikely (!c->extend (this))) return_trace (false);
     unsigned int region_count = src->get_region_count ();
     for (unsigned int r = 0; r < regionCount; r++)
     {
@@ -2778,12 +2777,13 @@ struct VariationStore
 		  const hb_array_t <hb_inc_bimap_t> &inner_maps)
   {
     TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+
     unsigned int set_count = 0;
     for (unsigned int i = 0; i < inner_maps.length; i++)
-      if (inner_maps[i].get_population () > 0) set_count++;
+      if (inner_maps[i].get_population ())
+	set_count++;
 
-    unsigned int size = min_size + HBUINT32::static_size * set_count;
-    if (unlikely (!c->allocate_size<HBUINT32> (size))) return_trace (false);
     format = 1;
 
     hb_inc_bimap_t region_map;
@@ -2796,16 +2796,17 @@ struct VariationStore
     if (unlikely (!regions.serialize_serialize (c, &(src+src->regions), region_map)))
       return_trace (false);
 
-    /* TODO: The following code could be simplified when
-     * List16OfOffset16To::subset () can take a custom param to be passed to VarData::serialize ()
-     */
     dataSets.len = set_count;
+    if (unlikely (!c->extend (dataSets))) return_trace (false);
+
+    /* TODO: The following code could be simplified when
+     * List16OfOffset16To::subset () can take a custom param to be passed to VarData::serialize () */
     unsigned int set_index = 0;
     for (unsigned int i = 0; i < inner_maps.length; i++)
     {
-      if (inner_maps[i].get_population () == 0) continue;
+      if (!inner_maps[i].get_population ()) continue;
       if (unlikely (!dataSets[set_index++]
-                        .serialize_serialize (c, &(src+src->dataSets[i]), inner_maps[i], region_map)))
+		     .serialize_serialize (c, &(src+src->dataSets[i]), inner_maps[i], region_map)))
 	return_trace (false);
     }
 
@@ -2875,7 +2876,7 @@ struct VariationStore
   Offset32To<VarRegionList>		regions;
   Array16OfOffset32To<VarData>		dataSets;
   public:
-  DEFINE_SIZE_ARRAY (8, dataSets);
+  DEFINE_SIZE_ARRAY_SIZED (8, dataSets);
 };
 
 /*
