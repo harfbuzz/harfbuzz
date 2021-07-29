@@ -301,6 +301,9 @@ hb_set_del (hb_set_t       *set,
  * Removes all of the elements from @first to @last
  * (inclusive) from @set.
  *
+ * If @last is #HB_SET_VALUE_INVALID, then all values
+ * greater than or equal to @first are removed.
+ *
  * Since: 0.9.7
  **/
 void
