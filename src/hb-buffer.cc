@@ -359,12 +359,11 @@ hb_buffer_t::move_to (unsigned int i)
     /* This will blow in our face if memory allocation fails later
      * in this same lookup...
      *
-     * We used to shift with extra 32 items, instead of the 0 below.
+     * We used to shift with extra 32 items.
      * But that would leave empty slots in the buffer in case of allocation
-     * failures.  Setting to zero for now to avoid other problems (see
-     * comments in shift_forward().  This can cause O(N^2) behavior more
-     * severely than adding 32 empty slots can... */
-    if (unlikely (idx < count && !shift_forward (count + 0))) return false;
+     * failures.  See comments in shift_forward().  This can cause O(N^2)
+     * behavior more severely than adding 32 empty slots can... */
+    if (unlikely (idx < count && !shift_forward (count - idx))) return false;
 
     assert (idx >= count);
 
