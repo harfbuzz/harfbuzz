@@ -491,7 +491,7 @@ struct font_options_t : option_group_t
 
   char *font_file;
   mutable hb_blob_t *blob;
-  int face_index;
+  unsigned face_index;
   hb_variation_t *variations;
   unsigned int num_variations;
   int default_font_size;
@@ -506,6 +506,11 @@ struct font_options_t : option_group_t
 
   private:
   mutable hb_font_t *font;
+
+  static const char *cached_font_path;
+  static hb_blob_t *cached_blob;
+  static unsigned cached_face_index;
+  static hb_face_t *cached_face;
 };
 
 
