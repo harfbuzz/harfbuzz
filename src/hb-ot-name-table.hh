@@ -249,7 +249,11 @@ struct name
     + nameRecordZ.as_array (count)
     | hb_filter (c->plan->name_ids, &NameRecord::nameID)
     | hb_filter (c->plan->name_languages, &NameRecord::languageID)
-    | hb_filter ([&] (const NameRecord& namerecord) { return c->plan->name_legacy || namerecord.isUnicode (); })
+    | hb_filter ([&] (const NameRecord& namerecord) {
+      return
+          (c->plan->flags & HB_SUBSET_FLAGS_NAME_LEGACY)
+          || namerecord.isUnicode ();
+    })
     ;
 
     name_prime->serialize (c->serializer, it, hb_addressof (this + stringOffset));

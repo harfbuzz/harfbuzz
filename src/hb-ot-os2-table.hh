@@ -171,7 +171,8 @@ struct OS2
     TRACE_SUBSET (this);
     OS2 *os2_prime = c->serializer->embed (this);
     if (unlikely (!os2_prime)) return_trace (false);
-    if (!c->plan->prune_unicode_ranges) return_trace (true);
+    if (c->plan->flags & HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES)
+      return_trace (true);
 
     /* when --gids option is not used, no need to do collect_mapping that is
        * iterating all codepoints in each subtable, which is not efficient */

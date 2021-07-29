@@ -538,7 +538,7 @@ struct Anchor
     switch (u.format) {
     case 1: return_trace (bool (reinterpret_cast<Anchor *> (u.format1.copy (c->serializer))));
     case 2:
-      if (c->plan->drop_hints)
+      if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
       {
         // AnchorFormat 2 just containins extra hinting information, so
         // if hints are being dropped convert to format 1.
@@ -1373,7 +1373,7 @@ struct PairPosFormat1
     out->format = format;
     out->valueFormat[0] = valueFormat[0];
     out->valueFormat[1] = valueFormat[1];
-    if (c->plan->drop_hints)
+    if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
     {
       hb_pair_t<unsigned, unsigned> newFormats = compute_effective_value_formats (glyphset);
       out->valueFormat[0] = newFormats.first;
@@ -1591,7 +1591,7 @@ struct PairPosFormat2
     unsigned len2 = valueFormat2.get_len ();
 
     hb_pair_t<unsigned, unsigned> newFormats = hb_pair (valueFormat1, valueFormat2);
-    if (c->plan->drop_hints)
+    if (c->plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
       newFormats = compute_effective_value_formats (klass1_map, klass2_map);
 
     out->valueFormat1 = newFormats.first;

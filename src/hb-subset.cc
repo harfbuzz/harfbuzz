@@ -246,7 +246,7 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
   case HB_TAG ('p','r','e','p'): /* hint table, fallthrough */
   case HB_TAG ('h','d','m','x'): /* hint table, fallthrough */
   case HB_TAG ('V','D','M','X'): /* hint table, fallthrough */
-    return plan->drop_hints;
+    return plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
 
 #ifdef HB_NO_SUBSET_LAYOUT
     // Drop Layout Tables if requested.
@@ -322,7 +322,7 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
 #endif
 
   default:
-    if (plan->passthrough_unrecognized)
+    if (plan->flags & HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED)
       return _passthrough (plan, tag);
 
     // Drop table

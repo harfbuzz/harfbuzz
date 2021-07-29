@@ -262,8 +262,8 @@ struct cff2_subset_plan {
   {
     orig_fdcount = acc.fdArray->count;
 
-    drop_hints = plan->drop_hints;
-    desubroutinize = plan->desubroutinize;
+    drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
+    desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE;
 
     if (desubroutinize)
     {

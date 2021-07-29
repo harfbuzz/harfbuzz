@@ -272,7 +272,7 @@ struct hvarvvar_subset_plan_t
     index_map_plans[0].init (*index_maps[0], outer_map, inner_sets, plan);
     if (index_maps[0] == &Null (DeltaSetIndexMap))
     {
-      retain_adv_map = plan->retain_gids;
+      retain_adv_map = plan->flags & HB_SUBSET_FLAGS_RETAIN_GIDS;
       outer_map.add (0);
       for (hb_codepoint_t gid = 0; gid < plan->num_output_glyphs (); gid++)
       {

@@ -213,13 +213,15 @@ struct glyf
 		if (!plan->old_gid_for_new_gid (new_gid, &subset_glyph.old_gid))
 		  return subset_glyph;
 
-		if (new_gid == 0 && !plan->notdef_outline)
+		if (new_gid == 0 &&
+                    !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
 		  subset_glyph.source_glyph = Glyph ();
 		else
 		  subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, true);
-		if (plan->drop_hints) subset_glyph.drop_hints_bytes ();
-		else subset_glyph.dest_start = subset_glyph.source_glyph.get_bytes ();
-
+		if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
+                  subset_glyph.drop_hints_bytes ();
+		else
+                  subset_glyph.dest_start = subset_glyph.source_glyph.get_bytes ();
 		return subset_glyph;
 	      })
     | hb_sink (glyphs)
@@ -1274,9 +1276,10 @@ struct glyf
 	  const_cast<CompositeGlyphChain &> (_).set_glyph_index (new_gid);
       }
 
-      if (plan->drop_hints) Glyph (dest_glyph).drop_hints ();
+      if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
+        Glyph (dest_glyph).drop_hints ();
 
-      if (plan->overlaps_flag)
+      if (plan->flags & HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG)
         Glyph (dest_glyph).set_overlaps_flag ();
 
       return_trace (true);
