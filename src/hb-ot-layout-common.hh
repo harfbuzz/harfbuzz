@@ -2528,7 +2528,7 @@ struct VarRegionList
     if (unlikely (hb_unsigned_mul_overflows (axisCount * regionCount,
 					     VarRegionAxis::static_size))) return_trace (false);
     if (unlikely (!c->extend (this))) return_trace (false);
-    unsigned int region_count = src->get_region_count ();
+    unsigned int region_count = src->regionCount;
     for (unsigned int r = 0; r < regionCount; r++)
     {
       unsigned int backward = region_map.backward (r);
@@ -2540,11 +2540,11 @@ struct VarRegionList
   }
 
   unsigned int get_size () const { return min_size + VarRegionAxis::static_size * axisCount * regionCount; }
-  unsigned int get_region_count () const { return regionCount; }
 
-  protected:
+  public:
   HBUINT16	axisCount;
   HBUINT16	regionCount;
+  protected:
   UnsizedArrayOf<VarRegionAxis>
 		axesZ;
   public:
@@ -2683,16 +2683,16 @@ struct VarData
     return_trace (true);
   }
 
-  void collect_region_refs (hb_inc_bimap_t &region_map, const hb_inc_bimap_t &inner_map) const
+  void collect_region_refs (hb_set_t &region_indices, const hb_inc_bimap_t &inner_map) const
   {
     for (unsigned int r = 0; r < regionIndices.len; r++)
     {
       unsigned int region = regionIndices[r];
-      if (region_map.has (region)) continue;
+      if (region_indices.has (region)) continue;
       for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
 	if (get_item_delta (inner_map.backward (i), r) != 0)
 	{
-	  region_map.add (region);
+	  region_indices.add (region);
 	  break;
 	}
     }
@@ -2787,14 +2787,22 @@ struct VariationStore
 
     format = 1;
 
-    hb_inc_bimap_t region_map;
+    const auto &src_regions = src+src->regions;
+
+    hb_set_t region_indices;
     for (unsigned int i = 0; i < inner_maps.length; i++)
-      (src+src->dataSets[i]).collect_region_refs (region_map, inner_maps[i]);
+      (src+src->dataSets[i]).collect_region_refs (region_indices, inner_maps[i]);
+    region_indices.del_range ((src_regions).regionCount, region_indices.get_max ());
+
+    /* TODO use constructor when our data-structures support that. */
+    hb_inc_bimap_t region_map;
+    + hb_iter (region_indices)
+    | hb_apply ([&region_map] (unsigned _) { region_map.add(_); })
+    ;
     if (region_map.in_error())
       return_trace (false);
-    region_map.sort ();
 
-    if (unlikely (!regions.serialize_serialize (c, &(src+src->regions), region_map)))
+    if (unlikely (!regions.serialize_serialize (c, &src_regions, region_map)))
       return_trace (false);
 
     dataSets.len = set_count;

@@ -427,7 +427,7 @@ struct hb_set_t
   {
     /* TODO perform op even if !successful. */
     if (unlikely (!successful)) return;
-    if (unlikely (a > b || a == INVALID || b == INVALID)) return;
+    if (unlikely (a > b || a == INVALID)) return;
     dirty ();
     unsigned int ma = get_major (a);
     unsigned int mb = get_major (b);
