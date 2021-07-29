@@ -25,6 +25,8 @@ static const bool verbose = true;
 
 
 hb_feature_t *gFeatures;
+hb_font_t *gFont;
+hb_face_t *gFace;
 int gNbFeatures;
 
  hb_buffer_t *runTest(const char *testName,
@@ -94,13 +96,15 @@ int gNbFeatures;
     }
     gFeatures = features;
     gNbFeatures = nbFeatures;
+    gFont = font;
+    gFace = face;
 
     // shape
     hb_shape(font, buffer, features, nbFeatures);
 
     hb_blob_destroy(blob);
-    hb_font_destroy(font);
-    hb_face_destroy(face);
+    //hb_font_destroy(font);
+    //hb_face_destroy(face);
     //free(features);
 
     return buffer;
@@ -314,9 +318,9 @@ bool gpos_test(const char *testName,
         actualX[i] = curX + pos[i].x_offset;
         actualY[i] = curY + pos[i].y_offset;
 
-        actualX[i] -= 1500 * i;
-
         curX += pos[i].x_advance;
+        if (hb_ot_layout_get_glyph_class (gFace, actualG[i]) != HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+            curX -= 1500;
         curY += pos[i].y_advance;
     }
 
@@ -387,14 +391,17 @@ bool gpos_test(const char *testName,
     }
 
     fprintf (tests_file, ":[");
+    int accumlatedAdvance = 0;
     for (unsigned int i = 0; i < nbActual; i++)
     {
         if (i != 0) fprintf (tests_file, "|");
         fprintf (tests_file, "%d", /*it should be "out[i]"*/ actualG[i]);
 
-        int expected_x = x[i] + 1500*i;
+        int expected_x = x[i] + accumlatedAdvance;
         int expected_y = y[i];
         if (expected_x || expected_y) fprintf (tests_file, "@%d,%d", expected_x, expected_y);
+        if (hb_ot_layout_get_glyph_class (gFace, actualG[i]) != HB_OT_LAYOUT_GLYPH_CLASS_MARK)
+            accumlatedAdvance += 1500;
     }
     fprintf (tests_file, "]");
 
