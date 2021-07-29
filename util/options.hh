@@ -507,10 +507,20 @@ struct font_options_t : option_group_t
   private:
   mutable hb_font_t *font;
 
-  static const char *cached_font_path;
-  static hb_blob_t *cached_blob;
-  static unsigned cached_face_index;
-  static hb_face_t *cached_face;
+  static struct cache_t
+  {
+    ~cache_t ()
+    {
+      free ((void *) font_path);
+      hb_blob_destroy (blob);
+      hb_face_destroy (face);
+    }
+
+    const char *font_path = nullptr;
+    hb_blob_t *blob = nullptr;
+    unsigned face_index = (unsigned) -1;
+    hb_face_t *face = nullptr;
+  } cache;
 };
 
 
