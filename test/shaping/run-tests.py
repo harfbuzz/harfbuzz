@@ -3,7 +3,7 @@
 import sys, os, subprocess, hashlib
 
 def cmd(command):
-	print (command)
+	print (" ".join(command))
 	global process
 	process.stdin.write ((':'.join (command) + '\n').encode ("utf-8"))
 	process.stdin.flush ()
@@ -94,10 +94,6 @@ for filename in args:
 			if not reference:
 				print ('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
 			continue
-
-		if not reference:
-			print ('%s "%s" %s %s --unicodes %s' %
-					 (hb_shape, fontfile, ' '.join(extra_options), ' '.join(options), unicodes))
 
 		if "--font-funcs=ft" in options and not have_freetype:
 			skips += 1
