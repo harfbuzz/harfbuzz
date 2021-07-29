@@ -37,7 +37,7 @@ def fail_test (test, cli_args, message):
 	print ('  test.profile_path %s' % os.path.abspath (test.profile_path))
 	print ('  test.unicodes	    %s' % test.unicodes ())
 	expected_file = os.path.join (test_suite.get_output_directory (),
-				      test.get_font_name ())
+				      test.get_font_ttx_name ())
 	print ('  expected_file	    %s' % os.path.abspath (expected_file))
 	return 1
 
@@ -62,7 +62,7 @@ def run_test (test, should_check_ots):
 	actual_ttx = io.StringIO ()
 	try:
 		with TTFont (out_file) as font:
-			font.saveXML (actual_ttx)
+			font.saveXML (actual_ttx, newlinestr="\n")
 	except Exception as e:
 		print (e)
 		return fail_test (test, cli_args, "ttx failed to parse the actual result")
