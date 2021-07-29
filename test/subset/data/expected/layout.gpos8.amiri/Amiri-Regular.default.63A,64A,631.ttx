@@ -1,0 +1,2587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="uni0631"/>
+    <GlyphID id="2" name="uni063A"/>
+    <GlyphID id="3" name="uni064A"/>
+    <GlyphID id="4" name="glyph00004"/>
+    <GlyphID id="5" name="glyph00005"/>
+    <GlyphID id="6" name="glyph00006"/>
+    <GlyphID id="7" name="glyph00007"/>
+    <GlyphID id="8" name="glyph00008"/>
+    <GlyphID id="9" name="glyph00009"/>
+    <GlyphID id="10" name="glyph00010"/>
+    <GlyphID id="11" name="glyph00011"/>
+    <GlyphID id="12" name="glyph00012"/>
+    <GlyphID id="13" name="glyph00013"/>
+    <GlyphID id="14" name="glyph00014"/>
+    <GlyphID id="15" name="glyph00015"/>
+    <GlyphID id="16" name="glyph00016"/>
+    <GlyphID id="17" name="glyph00017"/>
+    <GlyphID id="18" name="glyph00018"/>
+    <GlyphID id="19" name="glyph00019"/>
+    <GlyphID id="20" name="glyph00020"/>
+    <GlyphID id="21" name="glyph00021"/>
+    <GlyphID id="22" name="glyph00022"/>
+    <GlyphID id="23" name="glyph00023"/>
+    <GlyphID id="24" name="glyph00024"/>
+    <GlyphID id="25" name="glyph00025"/>
+    <GlyphID id="26" name="glyph00026"/>
+    <GlyphID id="27" name="glyph00027"/>
+    <GlyphID id="28" name="glyph00028"/>
+    <GlyphID id="29" name="glyph00029"/>
+    <GlyphID id="30" name="glyph00030"/>
+    <GlyphID id="31" name="glyph00031"/>
+    <GlyphID id="32" name="glyph00032"/>
+    <GlyphID id="33" name="glyph00033"/>
+    <GlyphID id="34" name="glyph00034"/>
+    <GlyphID id="35" name="glyph00035"/>
+    <GlyphID id="36" name="glyph00036"/>
+    <GlyphID id="37" name="glyph00037"/>
+    <GlyphID id="38" name="glyph00038"/>
+    <GlyphID id="39" name="glyph00039"/>
+    <GlyphID id="40" name="glyph00040"/>
+    <GlyphID id="41" name="glyph00041"/>
+    <GlyphID id="42" name="glyph00042"/>
+    <GlyphID id="43" name="glyph00043"/>
+    <GlyphID id="44" name="glyph00044"/>
+    <GlyphID id="45" name="glyph00045"/>
+    <GlyphID id="46" name="glyph00046"/>
+    <GlyphID id="47" name="glyph00047"/>
+    <GlyphID id="48" name="glyph00048"/>
+    <GlyphID id="49" name="glyph00049"/>
+    <GlyphID id="50" name="glyph00050"/>
+    <GlyphID id="51" name="glyph00051"/>
+    <GlyphID id="52" name="glyph00052"/>
+    <GlyphID id="53" name="glyph00053"/>
+    <GlyphID id="54" name="glyph00054"/>
+    <GlyphID id="55" name="glyph00055"/>
+    <GlyphID id="56" name="glyph00056"/>
+    <GlyphID id="57" name="glyph00057"/>
+    <GlyphID id="58" name="glyph00058"/>
+    <GlyphID id="59" name="glyph00059"/>
+    <GlyphID id="60" name="glyph00060"/>
+    <GlyphID id="61" name="glyph00061"/>
+    <GlyphID id="62" name="glyph00062"/>
+    <GlyphID id="63" name="glyph00063"/>
+    <GlyphID id="64" name="glyph00064"/>
+    <GlyphID id="65" name="glyph00065"/>
+    <GlyphID id="66" name="glyph00066"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="0.113"/>
+    <checkSumAdjustment value="0x20285a03"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00000011"/>
+    <unitsPerEm value="1000"/>
+    <created value="Fri May  7 21:08:01 2010"/>
+    <modified value="Thu Jan  1 00:00:00 1970"/>
+    <xMin value="-581"/>
+    <yMin value="-900"/>
+    <xMax value="11467"/>
+    <yMax value="1815"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="6"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="1124"/>
+    <descent value="-634"/>
+    <lineGap value="0"/>
+    <advanceWidthMax value="11435"/>
+    <minLeftSideBearing value="-581"/>
+    <minRightSideBearing value="-977"/>
+    <xMaxExtent value="11467"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="67"/>
+  </hhea>
+
+  <maxp>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="0x10000"/>
+    <numGlyphs value="67"/>
+    <maxPoints value="1116"/>
+    <maxContours value="38"/>
+    <maxCompositePoints value="276"/>
+    <maxCompositeContours value="7"/>
+    <maxZones value="1"/>
+    <maxTwilightPoints value="0"/>
+    <maxStorage value="0"/>
+    <maxFunctionDefs value="0"/>
+    <maxInstructionDefs value="0"/>
+    <maxStackElements value="0"/>
+    <maxSizeOfInstructions value="0"/>
+    <maxComponentElements value="6"/>
+    <maxComponentDepth value="7"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="4"/>
+    <xAvgCharWidth value="454"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="650"/>
+    <ySubscriptYSize value="600"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="75"/>
+    <ySuperscriptXSize value="650"/>
+    <ySuperscriptYSize value="600"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="350"/>
+    <yStrikeoutSize value="50"/>
+    <yStrikeoutPosition value="260"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="0"/>
+      <bSerifStyle value="0"/>
+      <bWeight value="5"/>
+      <bProportion value="0"/>
+      <bContrast value="0"/>
+      <bStrokeVariation value="0"/>
+      <bArmStyle value="0"/>
+      <bLetterForm value="0"/>
+      <bMidline value="0"/>
+      <bXHeight value="0"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00100000 00000000"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="ALIF"/>
+    <fsSelection value="00000000 11000000"/>
+    <usFirstCharIndex value="1585"/>
+    <usLastCharIndex value="1610"/>
+    <sTypoAscender value="1124"/>
+    <sTypoDescender value="-634"/>
+    <sTypoLineGap value="0"/>
+    <usWinAscent value="2546"/>
+    <usWinDescent value="1629"/>
+    <ulCodePageRange1 value="00000000 00000000 00000000 11010011"/>
+    <ulCodePageRange2 value="00000000 00001000 00000000 00000000"/>
+    <sxHeight value="433"/>
+    <sCapHeight value="646"/>
+    <usDefaultChar value="0"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="8"/>
+  </OS_2>
+
+  <hmtx>
+    <mtx name=".notdef" width="364" lsb="33"/>
+    <mtx name="glyph00004" width="493" lsb="28"/>
+    <mtx name="glyph00005" width="477" lsb="-37"/>
+    <mtx name="glyph00006" width="540" lsb="56"/>
+    <mtx name="glyph00007" width="366" lsb="-40"/>
+    <mtx name="glyph00008" width="190" lsb="-26"/>
+    <mtx name="glyph00009" width="244" lsb="-24"/>
+    <mtx name="glyph00010" width="522" lsb="58"/>
+    <mtx name="glyph00011" width="489" lsb="61"/>
+    <mtx name="glyph00012" width="399" lsb="-83"/>
+    <mtx name="glyph00013" width="585" lsb="57"/>
+    <mtx name="glyph00014" width="764" lsb="54"/>
+    <mtx name="glyph00015" width="246" lsb="-44"/>
+    <mtx name="glyph00016" width="445" lsb="62"/>
+    <mtx name="glyph00017" width="203" lsb="-28"/>
+    <mtx name="glyph00018" width="357" lsb="-33"/>
+    <mtx name="glyph00019" width="457" lsb="63"/>
+    <mtx name="glyph00020" width="168" lsb="-33"/>
+    <mtx name="glyph00021" width="410" lsb="-33"/>
+    <mtx name="glyph00022" width="258" lsb="-30"/>
+    <mtx name="glyph00023" width="438" lsb="62"/>
+    <mtx name="glyph00024" width="471" lsb="26"/>
+    <mtx name="glyph00025" width="247" lsb="-51"/>
+    <mtx name="glyph00026" width="307" lsb="-32"/>
+    <mtx name="glyph00027" width="421" lsb="56"/>
+    <mtx name="glyph00028" width="390" lsb="-25"/>
+    <mtx name="glyph00029" width="147" lsb="-13"/>
+    <mtx name="glyph00030" width="0" lsb="-68"/>
+    <mtx name="glyph00031" width="0" lsb="-122"/>
+    <mtx name="glyph00032" width="0" lsb="-120"/>
+    <mtx name="glyph00033" width="244" lsb="-27"/>
+    <mtx name="glyph00034" width="0" lsb="-87"/>
+    <mtx name="glyph00035" width="0" lsb="-67"/>
+    <mtx name="glyph00036" width="258" lsb="-57"/>
+    <mtx name="glyph00037" width="596" lsb="-27"/>
+    <mtx name="glyph00038" width="476" lsb="50"/>
+    <mtx name="glyph00039" width="493" lsb="28"/>
+    <mtx name="glyph00040" width="477" lsb="-37"/>
+    <mtx name="glyph00041" width="366" lsb="-40"/>
+    <mtx name="glyph00042" width="190" lsb="-26"/>
+    <mtx name="glyph00043" width="244" lsb="-24"/>
+    <mtx name="glyph00044" width="343" lsb="-85"/>
+    <mtx name="glyph00045" width="585" lsb="57"/>
+    <mtx name="glyph00046" width="176" lsb="-44"/>
+    <mtx name="glyph00047" width="299" lsb="-84"/>
+    <mtx name="glyph00048" width="203" lsb="-60"/>
+    <mtx name="glyph00049" width="357" lsb="-33"/>
+    <mtx name="glyph00050" width="457" lsb="63"/>
+    <mtx name="glyph00051" width="168" lsb="-33"/>
+    <mtx name="glyph00052" width="410" lsb="-33"/>
+    <mtx name="glyph00053" width="473" lsb="9"/>
+    <mtx name="glyph00054" width="258" lsb="-30"/>
+    <mtx name="glyph00055" width="258" lsb="-30"/>
+    <mtx name="glyph00056" width="291" lsb="-84"/>
+    <mtx name="glyph00057" width="471" lsb="26"/>
+    <mtx name="glyph00058" width="295" lsb="-51"/>
+    <mtx name="glyph00059" width="307" lsb="-32"/>
+    <mtx name="glyph00060" width="421" lsb="56"/>
+    <mtx name="glyph00061" width="390" lsb="-25"/>
+    <mtx name="glyph00062" width="314" lsb="-13"/>
+    <mtx name="glyph00063" width="244" lsb="-27"/>
+    <mtx name="glyph00064" width="258" lsb="-57"/>
+    <mtx name="glyph00065" width="596" lsb="-27"/>
+    <mtx name="glyph00066" width="476" lsb="50"/>
+    <mtx name="uni0631" width="399" lsb="-83"/>
+    <mtx name="uni063A" width="540" lsb="56"/>
+    <mtx name="uni064A" width="764" lsb="54"/>
+  </hmtx>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0x631" name="uni0631"/><!-- ARABIC LETTER REH -->
+      <map code="0x63a" name="uni063A"/><!-- ARABIC LETTER GHAIN -->
+      <map code="0x64a" name="uni064A"/><!-- ARABIC LETTER YEH -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="0" platEncID="4" format="12" reserved="0" length="52" language="0" nGroups="3">
+      <map code="0x631" name="uni0631"/><!-- ARABIC LETTER REH -->
+      <map code="0x63a" name="uni063A"/><!-- ARABIC LETTER GHAIN -->
+      <map code="0x64a" name="uni064A"/><!-- ARABIC LETTER YEH -->
+    </cmap_format_12>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x631" name="uni0631"/><!-- ARABIC LETTER REH -->
+      <map code="0x63a" name="uni063A"/><!-- ARABIC LETTER GHAIN -->
+      <map code="0x64a" name="uni064A"/><!-- ARABIC LETTER YEH -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="3" platEncID="10" format="12" reserved="0" length="52" language="0" nGroups="3">
+      <map code="0x631" name="uni0631"/><!-- ARABIC LETTER REH -->
+      <map code="0x63a" name="uni063A"/><!-- ARABIC LETTER GHAIN -->
+      <map code="0x64a" name="uni064A"/><!-- ARABIC LETTER YEH -->
+    </cmap_format_12>
+  </cmap>
+
+  <prep>
+    <assembly>
+      PUSHW[ ]	/* 1 value pushed */
+      511
+      SCANCTRL[ ]	/* ScanConversionControl */
+      PUSHB[ ]	/* 1 value pushed */
+      4
+      SCANTYPE[ ]	/* ScanType */
+    </assembly>
+  </prep>
+
+  <loca>
+    <!-- The 'loca' table will be calculated by the compiler -->
+  </loca>
+
+  <glyf>
+
+    <!-- The xMin, yMin, xMax and yMax values
+         will be recalculated by the compiler. -->
+
+    <TTGlyph name=".notdef"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00004" xMin="28" yMin="-555" xMax="737" yMax="315">
+      <contour>
+        <pt x="418" y="257" on="1"/>
+        <pt x="463" y="230" on="0"/>
+        <pt x="461" y="204" on="1"/>
+        <pt x="460" y="179" on="0"/>
+        <pt x="439" y="158" on="1"/>
+        <pt x="418" y="137" on="0"/>
+        <pt x="395" y="127" on="1"/>
+        <pt x="387" y="125" on="0"/>
+        <pt x="396" y="120" on="1"/>
+        <pt x="444" y="91" on="0"/>
+        <pt x="493" y="90" on="1"/>
+        <pt x="530" y="88" on="0"/>
+        <pt x="527" y="54" on="1"/>
+        <pt x="523" y="0" on="0"/>
+        <pt x="493" y="0" on="1"/>
+        <pt x="422" y="0" on="0"/>
+        <pt x="315" y="92" on="1"/>
+        <pt x="309" y="96" on="0"/>
+        <pt x="302" y="92" on="1"/>
+        <pt x="109" y="-21" on="0"/>
+        <pt x="101" y="-193" on="1"/>
+        <pt x="92" y="-389" on="0"/>
+        <pt x="315" y="-446" on="1"/>
+        <pt x="378" y="-462" on="0"/>
+        <pt x="583" y="-468" on="0"/>
+        <pt x="724" y="-456" on="1"/>
+        <pt x="735" y="-454" on="0"/>
+        <pt x="736" y="-460" on="1"/>
+        <pt x="737" y="-466" on="0"/>
+        <pt x="727" y="-473" on="1"/>
+        <pt x="696" y="-494" on="0"/>
+        <pt x="622" y="-522" on="1"/>
+        <pt x="549" y="-550" on="0"/>
+        <pt x="514" y="-551" on="1"/>
+        <pt x="445" y="-555" on="0"/>
+        <pt x="325" y="-547" on="0"/>
+        <pt x="275" y="-535" on="1"/>
+        <pt x="28" y="-475" on="0"/>
+        <pt x="69" y="-191" on="1"/>
+        <pt x="93" y="-19" on="0"/>
+        <pt x="218" y="103" on="1"/>
+        <pt x="229" y="113" on="0"/>
+        <pt x="244" y="125" on="0"/>
+        <pt x="248" y="129" on="1"/>
+        <pt x="258" y="137" on="0"/>
+        <pt x="253" y="140" on="1"/>
+        <pt x="228" y="162" on="0"/>
+        <pt x="189" y="165" on="1"/>
+        <pt x="161" y="168" on="0"/>
+        <pt x="167" y="183" on="1"/>
+        <pt x="177" y="207" on="0"/>
+        <pt x="207" y="242" on="0"/>
+        <pt x="226" y="255" on="1"/>
+        <pt x="321" y="315" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00005" xMin="-37" yMin="0" xMax="420" yMax="407">
+      <contour>
+        <pt x="414" y="251" on="1"/>
+        <pt x="394" y="171" on="1"/>
+        <pt x="391" y="163" on="0"/>
+        <pt x="376" y="157" on="1"/>
+        <pt x="347" y="147" on="0"/>
+        <pt x="274" y="118" on="0"/>
+        <pt x="230" y="100" on="1"/>
+        <pt x="0" y="0" on="1"/>
+        <pt x="-23" y="0" on="0"/>
+        <pt x="-30" y="37" on="1"/>
+        <pt x="-37" y="74" on="0"/>
+        <pt x="0" y="90" on="1"/>
+        <pt x="2" y="91" on="0"/>
+        <pt x="37" y="106" on="0"/>
+        <pt x="69" y="119" on="1"/>
+        <pt x="23" y="157" on="0"/>
+        <pt x="34" y="210" on="1"/>
+        <pt x="59" y="341" on="0"/>
+        <pt x="192" y="397" on="1"/>
+        <pt x="216" y="407" on="0"/>
+        <pt x="257" y="386" on="1"/>
+        <pt x="299" y="364" on="0"/>
+        <pt x="328" y="331" on="1"/>
+        <pt x="339" y="319" on="0"/>
+        <pt x="331" y="310" on="1"/>
+        <pt x="323" y="301" on="0"/>
+        <pt x="311" y="306" on="1"/>
+        <pt x="253" y="330" on="0"/>
+        <pt x="180" y="313" on="1"/>
+        <pt x="109" y="297" on="0"/>
+        <pt x="91" y="255" on="1"/>
+        <pt x="84" y="239" on="0"/>
+        <pt x="113" y="213" on="1"/>
+        <pt x="141" y="188" on="0"/>
+        <pt x="169" y="183" on="1"/>
+        <pt x="250" y="171" on="0"/>
+        <pt x="354" y="238" on="1"/>
+        <pt x="365" y="245" on="0"/>
+        <pt x="385" y="257" on="0"/>
+        <pt x="393" y="261" on="1"/>
+        <pt x="420" y="277" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00006" xMin="56" yMin="-477" xMax="730" yMax="472">
+      <contour>
+        <pt x="217" y="459" on="1"/>
+        <pt x="247" y="472" on="0"/>
+        <pt x="288" y="449" on="1"/>
+        <pt x="309" y="437" on="0"/>
+        <pt x="338" y="412" on="0"/>
+        <pt x="346" y="400" on="1"/>
+        <pt x="356" y="386" on="0"/>
+        <pt x="333" y="390" on="1"/>
+        <pt x="209" y="415" on="0"/>
+        <pt x="120" y="304" on="1"/>
+        <pt x="116" y="298" on="0"/>
+        <pt x="123" y="291" on="1"/>
+        <pt x="193" y="227" on="0"/>
+        <pt x="287" y="237" on="1"/>
+        <pt x="301" y="238" on="0"/>
+        <pt x="334" y="257" on="1"/>
+        <pt x="393" y="293" on="0"/>
+        <pt x="459" y="333" on="0"/>
+        <pt x="466" y="337" on="1"/>
+        <pt x="484" y="346" on="0"/>
+        <pt x="475" y="320" on="1"/>
+        <pt x="452" y="256" on="0"/>
+        <pt x="440" y="250" on="1"/>
+        <pt x="400" y="232" on="0"/>
+        <pt x="301" y="171" on="0"/>
+        <pt x="242" y="128" on="1"/>
+        <pt x="112" y="34" on="0"/>
+        <pt x="94" y="-131" on="1"/>
+        <pt x="85" y="-219" on="0"/>
+        <pt x="136" y="-283" on="1"/>
+        <pt x="219" y="-387" on="0"/>
+        <pt x="507" y="-377" on="1"/>
+        <pt x="546" y="-375" on="0"/>
+        <pt x="649" y="-363" on="0"/>
+        <pt x="712" y="-352" on="1"/>
+        <pt x="724" y="-350" on="0"/>
+        <pt x="725" y="-355" on="1"/>
+        <pt x="730" y="-370" on="0"/>
+        <pt x="616" y="-427" on="1"/>
+        <pt x="552" y="-459" on="0"/>
+        <pt x="518" y="-462" on="1"/>
+        <pt x="371" y="-477" on="0"/>
+        <pt x="276" y="-456" on="1"/>
+        <pt x="56" y="-406" on="0"/>
+        <pt x="64" y="-185" on="1"/>
+        <pt x="72" y="37" on="0"/>
+        <pt x="198" y="160" on="1"/>
+        <pt x="119" y="192" on="0"/>
+        <pt x="94" y="226" on="1"/>
+        <pt x="84" y="239" on="0"/>
+        <pt x="85" y="257" on="1"/>
+        <pt x="90" y="305" on="0"/>
+        <pt x="110" y="343" on="1"/>
+        <pt x="156" y="429" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00007" xMin="-40" yMin="-6" xMax="400" yMax="323">
+      <contour>
+        <pt x="366" y="90" on="1"/>
+        <pt x="400" y="90" on="0"/>
+        <pt x="396" y="55" on="1"/>
+        <pt x="388" y="1" on="0"/>
+        <pt x="366" y="0" on="1"/>
+        <pt x="274" y="-6" on="0"/>
+        <pt x="181" y="103" on="1"/>
+        <pt x="55" y="-1" on="0"/>
+        <pt x="0" y="0" on="1"/>
+        <pt x="-23" y="0" on="0"/>
+        <pt x="-31" y="38" on="1"/>
+        <pt x="-40" y="88" on="0"/>
+        <pt x="0" y="90" on="1"/>
+        <pt x="31" y="92" on="0"/>
+        <pt x="90" y="112" on="0"/>
+        <pt x="118" y="131" on="1"/>
+        <pt x="87" y="162" on="0"/>
+        <pt x="27" y="171" on="1"/>
+        <pt x="21" y="172" on="0"/>
+        <pt x="22" y="182" on="1"/>
+        <pt x="26" y="211" on="0"/>
+        <pt x="74" y="253" on="1"/>
+        <pt x="160" y="323" on="0"/>
+        <pt x="267" y="258" on="1"/>
+        <pt x="318" y="227" on="0"/>
+        <pt x="315" y="198" on="1"/>
+        <pt x="312" y="168" on="0"/>
+        <pt x="245" y="126" on="1"/>
+        <pt x="281" y="90" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00008" xMin="-26" yMin="0" xMax="134" yMax="291">
+      <contour>
+        <pt x="60" y="211" on="1"/>
+        <pt x="88" y="273" on="1"/>
+        <pt x="96" y="291" on="0"/>
+        <pt x="106" y="274" on="1"/>
+        <pt x="126" y="237" on="0"/>
+        <pt x="134" y="150" on="0"/>
+        <pt x="121" y="98" on="1"/>
+        <pt x="97" y="0" on="0"/>
+        <pt x="0" y="0" on="1"/>
+        <pt x="-10" y="0" on="0"/>
+        <pt x="-21" y="51" on="1"/>
+        <pt x="-26" y="77" on="0"/>
+        <pt x="-16" y="86" on="1"/>
+        <pt x="-10" y="91" on="0"/>
+        <pt x="0" y="90" on="1"/>
+        <pt x="59" y="87" on="0"/>
+        <pt x="89" y="122" on="1"/>
+        <pt x="91" y="124" on="0"/>
+        <pt x="89" y="129" on="1"/>
+        <pt x="83" y="157" on="0"/>
+        <pt x="62" y="187" on="1"/>
+        <pt x="54" y="198" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00009" xMin="-24" yMin="0" xMax="265" yMax="164">
+      <contour>
+        <pt x="244" y="90" on="1"/>
+        <pt x="262" y="85" on="0"/>
+        <pt x="263" y="79" on="1"/>
+        <pt x="265" y="71" on="0"/>
+        <pt x="263" y="55" on="1"/>
+        <pt x="256" y="0" on="0"/>
+        <pt x="244" y="0" on="1"/>
+        <pt x="190" y="0" on="0"/>
+        <pt x="136" y="61" on="1"/>
+        <pt x="90" y="6" on="0"/>
+        <pt x="0" y="0" on="1"/>
+        <pt x="-10" y="0" on="0"/>
+        <pt x="-13" y="15" on="1"/>
+        <pt x="-21" y="57" on="1"/>
+        <pt x="-24" y="66" on="0"/>
+        <pt x="-17" y="78" on="1"/>
+        <pt x="-11" y="88" on="0"/>
+        <pt x="0" y="90" on="1"/>
+        <pt x="110" y="99" on="0"/>
+        <pt x="148" y="156" on="1"/>
+        <pt x="153" y="164" on="0"/>
+        <pt x="162" y="164" on="1"/>
+        <pt x="171" y="164" on="0"/>
+        <pt x="171" y="155" on="1"/>
+        <pt x="171" y="147" on="0"/>
+        <pt x="173" y="143" on="1"/>
+        <pt x="206" y="98" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00010" xMin="58" yMin="-343" xMax="541" yMax="100">
+      <contour>
+        <pt x="522" y="0" on="1"/>
+        <pt x="435" y="-45" on="0"/>
+        <pt x="378" y="-114" on="1"/>
+        <pt x="352" y="-145" on="0"/>
+        <pt x="312" y="-199" on="0"/>
+        <pt x="298" y="-222" on="1"/>
+        <pt x="224" y="-343" on="0"/>
+        <pt x="149" y="-329" on="1"/>
+        <pt x="107" y="-322" on="0"/>
+        <pt x="81" y="-282" on="1"/>
+        <pt x="58" y="-249" on="0"/>
+        <pt x="64" y="-180" on="1"/>
+        <pt x="70" y="-114" on="0"/>
+        <pt x="126" y="-8" on="1"/>
+        <pt x="130" y="-2" on="0"/>
+        <pt x="136" y="0" on="1"/>
+        <pt x="142" y="2" on="0"/>
+        <pt x="144" y="-3" on="1"/>
+        <pt x="146" y="-9" on="0"/>
+        <pt x="145" y="-12" on="1"/>
+        <pt x="144" y="-14" on="0"/>
+        <pt x="132" y="-39" on="0"/>
+        <pt x="121" y="-62" on="1"/>
+        <pt x="101" y="-102" on="0"/>
+        <pt x="95" y="-142" on="1"/>
+        <pt x="84" y="-220" on="0"/>
+        <pt x="148" y="-241" on="1"/>
+        <pt x="189" y="-255" on="0"/>
+        <pt x="221" y="-232" on="1"/>
+        <pt x="253" y="-211" on="0"/>
+        <pt x="283" y="-158" on="1"/>
+        <pt x="320" y="-93" on="0"/>
+        <pt x="398" y="5" on="0"/>
+        <pt x="441" y="39" on="1"/>
+        <pt x="458" y="53" on="0"/>
+        <pt x="499" y="78" on="0"/>
+        <pt x="522" y="90" on="1"/>
+        <pt x="541" y="100" on="0"/>
+        <pt x="541" y="82" on="1"/>
+        <pt x="540" y="63" on="0"/>
+        <pt x="537" y="28" on="0"/>
+        <pt x="534" y="13" on="1"/>
+        <pt x="533" y="6" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00011" xMin="61" yMin="-284" xMax="514" yMax="158">
+      <contour>
+        <pt x="376" y="62" on="1"/>
+        <pt x="407" y="142" on="1"/>
+        <pt x="414" y="158" on="0"/>
+        <pt x="420" y="148" on="1"/>
+        <pt x="437" y="118" on="0"/>
+        <pt x="452" y="104" on="1"/>
+        <pt x="468" y="90" on="0"/>
+        <pt x="490" y="90" on="1"/>
+        <pt x="514" y="90" on="0"/>
+        <pt x="514" y="46" on="1"/>
+        <pt x="514" y="2" on="0"/>
+        <pt x="490" y="0" on="1"/>
+        <pt x="474" y="-1" on="0"/>
+        <pt x="457" y="0" on="1"/>
+        <pt x="454" y="0" on="0"/>
+        <pt x="452" y="-6" on="1"/>
+        <pt x="449" y="-102" on="0"/>
+        <pt x="384" y="-187" on="1"/>
+        <pt x="319" y="-272" on="0"/>
+        <pt x="263" y="-278" on="1"/>
+        <pt x="207" y="-284" on="0"/>
+        <pt x="169" y="-275" on="1"/>
+        <pt x="150" y="-270" on="0"/>
+        <pt x="101" y="-252" on="0"/>
+        <pt x="72" y="-237" on="1"/>
+        <pt x="64" y="-234" on="0"/>
+        <pt x="63" y="-229" on="1"/>
+        <pt x="61" y="-222" on="0"/>
+        <pt x="65" y="-220" on="1"/>
+        <pt x="69" y="-217" on="0"/>
+        <pt x="75" y="-219" on="1"/>
+        <pt x="140" y="-235" on="0"/>
+        <pt x="189" y="-225" on="1"/>
+        <pt x="240" y="-214" on="0"/>
+        <pt x="333" y="-155" on="0"/>
+        <pt x="376" y="-108" on="1"/>
+        <pt x="412" y="-67" on="0"/>
+        <pt x="421" y="-27" on="1"/>
+        <pt x="423" y="-1" on="0"/>
+        <pt x="380" y="41" on="1"/>
+        <pt x="372" y="49" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00012" xMin="-83" yMin="-233" xMax="342" yMax="286">
+      <contour>
+        <pt x="246" y="279" on="1"/>
+        <pt x="247" y="283" on="0"/>
+        <pt x="249" y="284" on="1"/>
+        <pt x="254" y="286" on="0"/>
+        <pt x="264" y="276" on="1"/>
+        <pt x="303" y="236" on="0"/>
+        <pt x="322" y="169" on="1"/>
+        <pt x="342" y="100" on="0"/>
+        <pt x="336" y="35" on="1"/>
+        <pt x="324" y="-53" on="0"/>
+        <pt x="266" y="-127" on="1"/>
+        <pt x="208" y="-202" on="0"/>
+        <pt x="114" y="-226" on="1"/>
+        <pt x="90" y="-233" on="0"/>
+        <pt x="66" y="-225" on="1"/>
+        <pt x="8" y="-205" on="0"/>
+        <pt x="-65" y="-176" on="0"/>
+        <pt x="-79" y="-167" on="1"/>
+        <pt x="-83" y="-164" on="0"/>
+        <pt x="-83" y="-161" on="1"/>
+        <pt x="-83" y="-157" on="0"/>
+        <pt x="-80" y="-154" on="1"/>
+        <pt x="-77" y="-151" on="0"/>
+        <pt x="-71" y="-153" on="1"/>
+        <pt x="-36" y="-163" on="0"/>
+        <pt x="22" y="-170" on="0"/>
+        <pt x="47" y="-167" on="1"/>
+        <pt x="72" y="-164" on="0"/>
+        <pt x="129" y="-141" on="0"/>
+        <pt x="161" y="-120" on="1"/>
+        <pt x="256" y="-59" on="0"/>
+        <pt x="300" y="24" on="1"/>
+        <pt x="304" y="30" on="0"/>
+        <pt x="302" y="40" on="1"/>
+        <pt x="287" y="93" on="0"/>
+        <pt x="224" y="171" on="1"/>
+        <pt x="221" y="176" on="0"/>
+        <pt x="222" y="179" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00013" xMin="57" yMin="-346" xMax="675" yMax="99">
+      <contour>
+        <pt x="64" y="-116" on="1"/>
+        <pt x="67" y="-67" on="0"/>
+        <pt x="90" y="-6" on="1"/>
+        <pt x="101" y="24" on="0"/>
+        <pt x="123" y="69" on="0"/>
+        <pt x="134" y="84" on="1"/>
+        <pt x="142" y="93" on="0"/>
+        <pt x="150" y="89" on="1"/>
+        <pt x="160" y="84" on="0"/>
+        <pt x="152" y="72" on="1"/>
+        <pt x="73" y="-72" on="0"/>
+        <pt x="111" y="-146" on="1"/>
+        <pt x="165" y="-254" on="0"/>
+        <pt x="314" y="-246" on="1"/>
+        <pt x="487" y="-238" on="0"/>
+        <pt x="615" y="-131" on="1"/>
+        <pt x="625" y="-116" on="0"/>
+        <pt x="597" y="-109" on="1"/>
+        <pt x="569" y="-102" on="0"/>
+        <pt x="508" y="-97" on="1"/>
+        <pt x="447" y="-92" on="0"/>
+        <pt x="442" y="-89" on="1"/>
+        <pt x="393" y="-62" on="0"/>
+        <pt x="429" y="-6" on="1"/>
+        <pt x="451" y="27" on="0"/>
+        <pt x="530" y="74" on="0"/>
+        <pt x="586" y="90" on="1"/>
+        <pt x="617" y="99" on="0"/>
+        <pt x="611" y="58" on="1"/>
+        <pt x="603" y="0" on="0"/>
+        <pt x="586" y="0" on="1"/>
+        <pt x="489" y="0" on="0"/>
+        <pt x="488" y="-26" on="1"/>
+        <pt x="610" y="-30" on="0"/>
+        <pt x="650" y="-61" on="1"/>
+        <pt x="666" y="-73" on="0"/>
+        <pt x="670" y="-91" on="1"/>
+        <pt x="675" y="-109" on="0"/>
+        <pt x="660" y="-146" on="1"/>
+        <pt x="645" y="-184" on="0"/>
+        <pt x="632" y="-197" on="1"/>
+        <pt x="505" y="-331" on="0"/>
+        <pt x="308" y="-340" on="1"/>
+        <pt x="186" y="-346" on="0"/>
+        <pt x="114" y="-280" on="1"/>
+        <pt x="57" y="-227" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00014" xMin="54" yMin="-210" xMax="724" yMax="404">
+      <contour>
+        <pt x="671" y="288" on="1"/>
+        <pt x="610" y="320" on="0"/>
+        <pt x="519" y="269" on="1"/>
+        <pt x="459" y="234" on="0"/>
+        <pt x="436" y="169" on="1"/>
+        <pt x="432" y="157" on="0"/>
+        <pt x="438" y="143" on="1"/>
+        <pt x="459" y="95" on="0"/>
+        <pt x="566" y="89" on="1"/>
+        <pt x="674" y="83" on="0"/>
+        <pt x="678" y="44" on="1"/>
+        <pt x="688" y="-33" on="0"/>
+        <pt x="633" y="-78" on="1"/>
+        <pt x="489" y="-193" on="0"/>
+        <pt x="306" y="-201" on="1"/>
+        <pt x="87" y="-210" on="0"/>
+        <pt x="64" y="-39" on="1"/>
+        <pt x="54" y="39" on="0"/>
+        <pt x="102" y="145" on="1"/>
+        <pt x="116" y="174" on="0"/>
+        <pt x="147" y="224" on="0"/>
+        <pt x="165" y="246" on="1"/>
+        <pt x="175" y="258" on="0"/>
+        <pt x="181" y="248" on="1"/>
+        <pt x="186" y="239" on="0"/>
+        <pt x="180" y="230" on="1"/>
+        <pt x="81" y="91" on="0"/>
+        <pt x="116" y="4" on="1"/>
+        <pt x="161" y="-109" on="0"/>
+        <pt x="316" y="-106" on="1"/>
+        <pt x="506" y="-103" on="0"/>
+        <pt x="624" y="-9" on="1"/>
+        <pt x="634" y="-2" on="0"/>
+        <pt x="625" y="5" on="1"/>
+        <pt x="608" y="19" on="0"/>
+        <pt x="512" y="25" on="1"/>
+        <pt x="414" y="31" on="0"/>
+        <pt x="399" y="75" on="1"/>
+        <pt x="383" y="120" on="0"/>
+        <pt x="401" y="174" on="1"/>
+        <pt x="437" y="282" on="0"/>
+        <pt x="542" y="357" on="1"/>
+        <pt x="568" y="377" on="0"/>
+        <pt x="614" y="397" on="0"/>
+        <pt x="633" y="398" on="1"/>
+        <pt x="724" y="404" on="0"/>
+        <pt x="697" y="305" on="1"/>
+        <pt x="689" y="277" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00015" xMin="-44" yMin="68" xMax="140" yMax="263">
+      <contour>
+        <pt x="120" y="263" on="1"/>
+        <pt x="131" y="263" on="0"/>
+        <pt x="132" y="251" on="1"/>
+        <pt x="140" y="178" on="0"/>
+        <pt x="117" y="131" on="1"/>
+        <pt x="94" y="84" on="0"/>
+        <pt x="37" y="75" on="1"/>
+        <pt x="-1" y="68" on="0"/>
+        <pt x="-31" y="82" on="1"/>
+        <pt x="-44" y="88" on="0"/>
+        <pt x="-39" y="114" on="1"/>
+        <pt x="-24" y="190" on="1"/>
+        <pt x="-22" y="203" on="0"/>
+        <pt x="-17" y="204" on="1"/>
+        <pt x="-12" y="205" on="0"/>
+        <pt x="-6" y="196" on="1"/>
+        <pt x="7" y="177" on="0"/>
+        <pt x="37" y="174" on="1"/>
+        <pt x="67" y="171" on="0"/>
+        <pt x="89" y="190" on="1"/>
+        <pt x="112" y="210" on="0"/>
+        <pt x="110" y="250" on="1"/>
+        <pt x="110" y="263" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00016" xMin="62" yMin="-202" xMax="477" yMax="215">
+      <contour>
+        <pt x="440" y="196" on="1"/>
+        <pt x="465" y="166" on="0"/>
+        <pt x="471" y="137" on="1"/>
+        <pt x="477" y="109" on="0"/>
+        <pt x="473" y="57" on="1"/>
+        <pt x="464" y="-37" on="0"/>
+        <pt x="392" y="-116" on="1"/>
+        <pt x="320" y="-195" on="0"/>
+        <pt x="260" y="-198" on="1"/>
+        <pt x="159" y="-202" on="0"/>
+        <pt x="71" y="-146" on="1"/>
+        <pt x="64" y="-142" on="0"/>
+        <pt x="63" y="-137" on="1"/>
+        <pt x="62" y="-131" on="0"/>
+        <pt x="66" y="-128" on="1"/>
+        <pt x="71" y="-125" on="0"/>
+        <pt x="77" y="-128" on="1"/>
+        <pt x="111" y="-138" on="0"/>
+        <pt x="168" y="-145" on="0"/>
+        <pt x="192" y="-141" on="1"/>
+        <pt x="365" y="-110" on="0"/>
+        <pt x="439" y="41" on="1"/>
+        <pt x="440" y="44" on="0"/>
+        <pt x="440" y="57" on="1"/>
+        <pt x="440" y="65" on="0"/>
+        <pt x="414" y="82" on="1"/>
+        <pt x="402" y="93" on="0"/>
+        <pt x="406" y="114" on="1"/>
+        <pt x="421" y="190" on="1"/>
+        <pt x="426" y="215" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00017" xMin="-28" yMin="135" xMax="108" yMax="321">
+      <contour>
+        <pt x="80" y="305" on="1"/>
+        <pt x="83" y="316" on="0"/>
+        <pt x="89" y="318" on="1"/>
+        <pt x="96" y="321" on="0"/>
+        <pt x="102" y="315" on="1"/>
+        <pt x="108" y="310" on="0"/>
+        <pt x="106" y="299" on="1"/>
+        <pt x="76" y="144" on="0"/>
+        <pt x="-3" y="136" on="1"/>
+        <pt x="-28" y="135" on="0"/>
+        <pt x="-27" y="179" on="1"/>
+        <pt x="-25" y="225" on="0"/>
+        <pt x="5" y="227" on="1"/>
+        <pt x="56" y="230" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00018" xMin="-33" yMin="14" xMax="388" yMax="335">
+      <contour>
+        <pt x="364" y="227" on="1"/>
+        <pt x="388" y="228" on="0"/>
+        <pt x="386" y="183" on="1"/>
+        <pt x="384" y="137" on="0"/>
+        <pt x="355" y="136" on="1"/>
+        <pt x="305" y="135" on="0"/>
+        <pt x="258" y="189" on="1"/>
+        <pt x="211" y="244" on="0"/>
+        <pt x="185" y="244" on="1"/>
+        <pt x="117" y="244" on="0"/>
+        <pt x="46" y="166" on="1"/>
+        <pt x="20" y="137" on="0"/>
+        <pt x="26" y="117" on="1"/>
+        <pt x="37" y="72" on="0"/>
+        <pt x="18" y="37" on="1"/>
+        <pt x="7" y="14" on="0"/>
+        <pt x="-8" y="25" on="1"/>
+        <pt x="-33" y="41" on="0"/>
+        <pt x="-27" y="81" on="1"/>
+        <pt x="-21" y="119" on="0"/>
+        <pt x="2" y="156" on="1"/>
+        <pt x="63" y="254" on="0"/>
+        <pt x="143" y="310" on="1"/>
+        <pt x="180" y="335" on="0"/>
+        <pt x="222" y="330" on="1"/>
+        <pt x="237" y="329" on="0"/>
+        <pt x="279" y="276" on="1"/>
+        <pt x="321" y="224" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00019" xMin="63" yMin="-299" xMax="766" yMax="202">
+      <contour>
+        <pt x="449" y="25" on="1"/>
+        <pt x="434" y="34" on="0"/>
+        <pt x="431" y="55" on="1"/>
+        <pt x="427" y="91" on="0"/>
+        <pt x="454" y="121" on="1"/>
+        <pt x="462" y="129" on="0"/>
+        <pt x="472" y="129" on="1"/>
+        <pt x="481" y="129" on="0"/>
+        <pt x="484" y="118" on="1"/>
+        <pt x="494" y="78" on="0"/>
+        <pt x="686" y="70" on="1"/>
+        <pt x="740" y="69" on="0"/>
+        <pt x="755" y="27" on="1"/>
+        <pt x="766" y="-3" on="0"/>
+        <pt x="747" y="-51" on="1"/>
+        <pt x="727" y="-101" on="0"/>
+        <pt x="705" y="-122" on="1"/>
+        <pt x="548" y="-265" on="0"/>
+        <pt x="330" y="-285" on="1"/>
+        <pt x="177" y="-299" on="0"/>
+        <pt x="114" y="-218" on="1"/>
+        <pt x="63" y="-152" on="0"/>
+        <pt x="63" y="-49" on="1"/>
+        <pt x="64" y="76" on="0"/>
+        <pt x="125" y="193" on="1"/>
+        <pt x="130" y="202" on="0"/>
+        <pt x="138" y="202" on="1"/>
+        <pt x="145" y="202" on="0"/>
+        <pt x="148" y="195" on="1"/>
+        <pt x="153" y="186" on="0"/>
+        <pt x="149" y="179" on="1"/>
+        <pt x="90" y="45" on="0"/>
+        <pt x="108" y="-36" on="1"/>
+        <pt x="141" y="-191" on="0"/>
+        <pt x="325" y="-188" on="1"/>
+        <pt x="507" y="-185" on="0"/>
+        <pt x="697" y="-29" on="1"/>
+        <pt x="702" y="-26" on="0"/>
+        <pt x="696" y="-23" on="1"/>
+        <pt x="676" y="-15" on="0"/>
+        <pt x="578" y="-4" on="1"/>
+        <pt x="529" y="1" on="0"/>
+        <pt x="463" y="15" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00020" xMin="-33" yMin="0" xMax="204" yMax="163">
+      <contour>
+        <pt x="188" y="77" on="1"/>
+        <pt x="167" y="37" on="0"/>
+        <pt x="148" y="48" on="1"/>
+        <pt x="146" y="49" on="0"/>
+        <pt x="132" y="60" on="0"/>
+        <pt x="118" y="70" on="1"/>
+        <pt x="57" y="1" on="0"/>
+        <pt x="0" y="0" on="1"/>
+        <pt x="-21" y="0" on="0"/>
+        <pt x="-27" y="44" on="1"/>
+        <pt x="-33" y="87" on="0"/>
+        <pt x="0" y="91" on="1"/>
+        <pt x="88" y="101" on="0"/>
+        <pt x="125" y="150" on="1"/>
+        <pt x="135" y="163" on="0"/>
+        <pt x="151" y="151" on="1"/>
+        <pt x="153" y="150" on="0"/>
+        <pt x="163" y="141" on="0"/>
+        <pt x="171" y="133" on="1"/>
+        <pt x="204" y="105" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00021" xMin="-33" yMin="-32" xMax="438" yMax="313">
+      <contour>
+        <pt x="94" y="173" on="1"/>
+        <pt x="103" y="228" on="0"/>
+        <pt x="140" y="252" on="1"/>
+        <pt x="237" y="313" on="0"/>
+        <pt x="318" y="259" on="1"/>
+        <pt x="360" y="231" on="0"/>
+        <pt x="372" y="199" on="1"/>
+        <pt x="376" y="189" on="0"/>
+        <pt x="367" y="167" on="1"/>
+        <pt x="357" y="144" on="0"/>
+        <pt x="321" y="118" on="1"/>
+        <pt x="365" y="90" on="0"/>
+        <pt x="411" y="90" on="1"/>
+        <pt x="438" y="90" on="0"/>
+        <pt x="434" y="58" on="1"/>
+        <pt x="426" y="0" on="0"/>
+        <pt x="411" y="0" on="1"/>
+        <pt x="354" y="0" on="0"/>
+        <pt x="248" y="74" on="1"/>
+        <pt x="244" y="77" on="0"/>
+        <pt x="235" y="74" on="1"/>
+        <pt x="158" y="49" on="0"/>
+        <pt x="43" y="1" on="0"/>
+        <pt x="5" y="-23" on="1"/>
+        <pt x="-10" y="-32" on="0"/>
+        <pt x="-21" y="-20" on="1"/>
+        <pt x="-33" y="-5" on="0"/>
+        <pt x="-30" y="16" on="1"/>
+        <pt x="-27" y="29" on="0"/>
+        <pt x="-19" y="37" on="1"/>
+        <pt x="15" y="68" on="0"/>
+        <pt x="174" y="125" on="1"/>
+        <pt x="135" y="152" on="0"/>
+        <pt x="104" y="158" on="1"/>
+        <pt x="92" y="161" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00022" xMin="-30" yMin="0" xMax="291" yMax="311">
+      <contour>
+        <pt x="168" y="309" on="1"/>
+        <pt x="178" y="307" on="0"/>
+        <pt x="179" y="293" on="1"/>
+        <pt x="180" y="286" on="0"/>
+        <pt x="185" y="245" on="0"/>
+        <pt x="189" y="212" on="1"/>
+        <pt x="196" y="147" on="0"/>
+        <pt x="211" y="122" on="1"/>
+        <pt x="226" y="96" on="0"/>
+        <pt x="258" y="90" on="1"/>
+        <pt x="291" y="84" on="0"/>
+        <pt x="283" y="52" on="1"/>
+        <pt x="271" y="0" on="0"/>
+        <pt x="259" y="0" on="1"/>
+        <pt x="195" y="0" on="0"/>
+        <pt x="174" y="60" on="1"/>
+        <pt x="169" y="76" on="0"/>
+        <pt x="160" y="117" on="0"/>
+        <pt x="158" y="143" on="1"/>
+        <pt x="156" y="169" on="0"/>
+        <pt x="153" y="199" on="0"/>
+        <pt x="153" y="201" on="1"/>
+        <pt x="153" y="203" on="0"/>
+        <pt x="151" y="202" on="0"/>
+        <pt x="149" y="198" on="1"/>
+        <pt x="116" y="116" on="0"/>
+        <pt x="24" y="113" on="1"/>
+        <pt x="-16" y="112" on="0"/>
+        <pt x="-24" y="152" on="1"/>
+        <pt x="-30" y="186" on="0"/>
+        <pt x="-18" y="201" on="1"/>
+        <pt x="-6" y="216" on="0"/>
+        <pt x="6" y="208" on="1"/>
+        <pt x="17" y="200" on="0"/>
+        <pt x="23" y="200" on="1"/>
+        <pt x="85" y="194" on="0"/>
+        <pt x="114" y="220" on="1"/>
+        <pt x="133" y="235" on="0"/>
+        <pt x="155" y="300" on="1"/>
+        <pt x="158" y="311" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00023" xMin="62" yMin="-210" xMax="479" yMax="253">
+      <contour>
+        <pt x="71" y="-148" on="1"/>
+        <pt x="64" y="-144" on="0"/>
+        <pt x="63" y="-139" on="1"/>
+        <pt x="62" y="-135" on="0"/>
+        <pt x="66" y="-131" on="1"/>
+        <pt x="69" y="-128" on="0"/>
+        <pt x="76" y="-130" on="1"/>
+        <pt x="172" y="-158" on="0"/>
+        <pt x="247" y="-129" on="1"/>
+        <pt x="376" y="-78" on="0"/>
+        <pt x="434" y="26" on="1"/>
+        <pt x="435" y="28" on="0"/>
+        <pt x="436" y="30" on="0"/>
+        <pt x="436" y="31" on="1"/>
+        <pt x="436" y="68" on="0"/>
+        <pt x="385" y="131" on="1"/>
+        <pt x="383" y="135" on="0"/>
+        <pt x="384" y="137" on="1"/>
+        <pt x="413" y="239" on="1"/>
+        <pt x="417" y="253" on="0"/>
+        <pt x="440" y="216" on="1"/>
+        <pt x="468" y="172" on="0"/>
+        <pt x="475" y="109" on="1"/>
+        <pt x="479" y="79" on="0"/>
+        <pt x="466" y="15" on="1"/>
+        <pt x="453" y="-48" on="0"/>
+        <pt x="389" y="-121" on="1"/>
+        <pt x="326" y="-193" on="0"/>
+        <pt x="270" y="-199" on="1"/>
+        <pt x="169" y="-210" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00024" xMin="26" yMin="-324" xMax="686" yMax="102">
+      <contour>
+        <pt x="451" y="31" on="1"/>
+        <pt x="653" y="29" on="0"/>
+        <pt x="680" y="-42" on="1"/>
+        <pt x="686" y="-56" on="0"/>
+        <pt x="667" y="-103" on="1"/>
+        <pt x="648" y="-150" on="0"/>
+        <pt x="628" y="-167" on="1"/>
+        <pt x="594" y="-196" on="0"/>
+        <pt x="515" y="-247" on="0"/>
+        <pt x="470" y="-267" on="1"/>
+        <pt x="425" y="-287" on="0"/>
+        <pt x="339" y="-310" on="0"/>
+        <pt x="298" y="-313" on="1"/>
+        <pt x="164" y="-324" on="0"/>
+        <pt x="107" y="-247" on="1"/>
+        <pt x="26" y="-138" on="0"/>
+        <pt x="85" y="20" on="1"/>
+        <pt x="93" y="43" on="0"/>
+        <pt x="111" y="79" on="0"/>
+        <pt x="119" y="92" on="1"/>
+        <pt x="125" y="102" on="0"/>
+        <pt x="134" y="96" on="1"/>
+        <pt x="143" y="90" on="0"/>
+        <pt x="132" y="72" on="1"/>
+        <pt x="127" y="63" on="0"/>
+        <pt x="117" y="40" on="0"/>
+        <pt x="112" y="25" on="1"/>
+        <pt x="76" y="-96" on="0"/>
+        <pt x="152" y="-163" on="1"/>
+        <pt x="228" y="-232" on="0"/>
+        <pt x="364" y="-206" on="1"/>
+        <pt x="418" y="-195" on="0"/>
+        <pt x="532" y="-150" on="0"/>
+        <pt x="590" y="-113" on="1"/>
+        <pt x="629" y="-88" on="0"/>
+        <pt x="635" y="-82" on="1"/>
+        <pt x="594" y="-50" on="0"/>
+        <pt x="442" y="-44" on="1"/>
+        <pt x="432" y="-44" on="0"/>
+        <pt x="433" y="-31" on="1"/>
+        <pt x="441" y="21" on="1"/>
+        <pt x="442" y="31" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00025" xMin="-51" yMin="-6" xMax="191" yMax="193">
+      <contour>
+        <pt x="-24" y="52" on="1"/>
+        <pt x="-51" y="70" on="0"/>
+        <pt x="-36" y="109" on="1"/>
+        <pt x="-14" y="148" on="0"/>
+        <pt x="1" y="136" on="1"/>
+        <pt x="76" y="79" on="0"/>
+        <pt x="151" y="81" on="1"/>
+        <pt x="154" y="81" on="0"/>
+        <pt x="154" y="85" on="1"/>
+        <pt x="154" y="90" on="0"/>
+        <pt x="139" y="108" on="1"/>
+        <pt x="136" y="113" on="0"/>
+        <pt x="137" y="118" on="1"/>
+        <pt x="161" y="187" on="1"/>
+        <pt x="163" y="193" on="0"/>
+        <pt x="167" y="193" on="1"/>
+        <pt x="171" y="193" on="0"/>
+        <pt x="173" y="188" on="1"/>
+        <pt x="191" y="143" on="0"/>
+        <pt x="185" y="99" on="1"/>
+        <pt x="177" y="39" on="0"/>
+        <pt x="155" y="20" on="1"/>
+        <pt x="139" y="5" on="0"/>
+        <pt x="128" y="4" on="1"/>
+        <pt x="64" y="-6" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00026" xMin="-32" yMin="-62" xMax="338" yMax="191">
+      <contour>
+        <pt x="308" y="90" on="1"/>
+        <pt x="338" y="84" on="0"/>
+        <pt x="331" y="56" on="1"/>
+        <pt x="317" y="-2" on="0"/>
+        <pt x="308" y="0" on="1"/>
+        <pt x="281" y="1" on="0"/>
+        <pt x="254" y="14" on="1"/>
+        <pt x="228" y="26" on="0"/>
+        <pt x="202" y="64" on="1"/>
+        <pt x="176" y="102" on="0"/>
+        <pt x="153" y="104" on="1"/>
+        <pt x="131" y="105" on="0"/>
+        <pt x="80" y="77" on="1"/>
+        <pt x="30" y="49" on="0"/>
+        <pt x="24" y="30" on="1"/>
+        <pt x="7" y="-29" on="0"/>
+        <pt x="-18" y="-53" on="1"/>
+        <pt x="-28" y="-62" on="0"/>
+        <pt x="-28" y="-54" on="1"/>
+        <pt x="-32" y="-14" on="0"/>
+        <pt x="4" y="45" on="1"/>
+        <pt x="40" y="104" on="0"/>
+        <pt x="93" y="146" on="1"/>
+        <pt x="146" y="189" on="0"/>
+        <pt x="183" y="190" on="1"/>
+        <pt x="206" y="191" on="0"/>
+        <pt x="234" y="144" on="1"/>
+        <pt x="261" y="98" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00027" xMin="56" yMin="-356" xMax="718" yMax="115">
+      <contour>
+        <pt x="436" y="-95" on="1"/>
+        <pt x="397" y="-85" on="0"/>
+        <pt x="394" y="-57" on="1"/>
+        <pt x="391" y="-32" on="0"/>
+        <pt x="429" y="21" on="1"/>
+        <pt x="446" y="45" on="0"/>
+        <pt x="449" y="44" on="1"/>
+        <pt x="451" y="43" on="0"/>
+        <pt x="447" y="30" on="1"/>
+        <pt x="438" y="3" on="0"/>
+        <pt x="472" y="-17" on="1"/>
+        <pt x="504" y="-36" on="0"/>
+        <pt x="551" y="-42" on="1"/>
+        <pt x="652" y="-54" on="0"/>
+        <pt x="676" y="-63" on="1"/>
+        <pt x="700" y="-72" on="0"/>
+        <pt x="710" y="-95" on="1"/>
+        <pt x="715" y="-107" on="0"/>
+        <pt x="718" y="-131" on="0"/>
+        <pt x="716" y="-144" on="1"/>
+        <pt x="713" y="-168" on="0"/>
+        <pt x="700" y="-188" on="1"/>
+        <pt x="675" y="-223" on="0"/>
+        <pt x="574" y="-271" on="1"/>
+        <pt x="473" y="-319" on="0"/>
+        <pt x="349" y="-332" on="1"/>
+        <pt x="132" y="-356" on="0"/>
+        <pt x="75" y="-209" on="1"/>
+        <pt x="56" y="-157" on="0"/>
+        <pt x="72" y="-69" on="1"/>
+        <pt x="88" y="18" on="0"/>
+        <pt x="146" y="109" on="1"/>
+        <pt x="151" y="115" on="0"/>
+        <pt x="157" y="115" on="1"/>
+        <pt x="164" y="115" on="0"/>
+        <pt x="167" y="109" on="1"/>
+        <pt x="170" y="104" on="0"/>
+        <pt x="156" y="80" on="1"/>
+        <pt x="97" y="-25" on="0"/>
+        <pt x="107" y="-99" on="1"/>
+        <pt x="121" y="-195" on="0"/>
+        <pt x="240" y="-233" on="1"/>
+        <pt x="283" y="-245" on="0"/>
+        <pt x="336" y="-241" on="1"/>
+        <pt x="418" y="-234" on="0"/>
+        <pt x="580" y="-185" on="0"/>
+        <pt x="662" y="-144" on="1"/>
+        <pt x="663" y="-144" on="0"/>
+        <pt x="664" y="-143" on="1"/>
+        <pt x="665" y="-141" on="0"/>
+        <pt x="659" y="-135" on="1"/>
+        <pt x="653" y="-129" on="0"/>
+        <pt x="573" y="-120" on="1"/>
+        <pt x="492" y="-111" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00028" xMin="-25" yMin="-7" xMax="340" yMax="394">
+      <contour>
+        <pt x="337" y="163" on="1"/>
+        <pt x="310" y="103" on="1"/>
+        <pt x="303" y="90" on="0"/>
+        <pt x="297" y="86" on="1"/>
+        <pt x="267" y="64" on="0"/>
+        <pt x="189" y="31" on="0"/>
+        <pt x="142" y="18" on="1"/>
+        <pt x="51" y="-7" on="0"/>
+        <pt x="0" y="0" on="1"/>
+        <pt x="-25" y="5" on="0"/>
+        <pt x="-21" y="48" on="1"/>
+        <pt x="-17" y="87" on="0"/>
+        <pt x="-4" y="90" on="1"/>
+        <pt x="-2" y="90" on="0"/>
+        <pt x="0" y="90" on="1"/>
+        <pt x="15" y="88" on="0"/>
+        <pt x="29" y="90" on="1"/>
+        <pt x="2" y="124" on="0"/>
+        <pt x="-3" y="173" on="1"/>
+        <pt x="-12" y="262" on="0"/>
+        <pt x="42" y="314" on="1"/>
+        <pt x="102" y="373" on="0"/>
+        <pt x="157" y="383" on="1"/>
+        <pt x="213" y="394" on="0"/>
+        <pt x="301" y="316" on="1"/>
+        <pt x="313" y="306" on="0"/>
+        <pt x="305" y="293" on="1"/>
+        <pt x="298" y="281" on="0"/>
+        <pt x="284" y="287" on="1"/>
+        <pt x="190" y="323" on="0"/>
+        <pt x="95" y="289" on="1"/>
+        <pt x="53" y="274" on="0"/>
+        <pt x="46" y="252" on="1"/>
+        <pt x="38" y="229" on="0"/>
+        <pt x="72" y="176" on="1"/>
+        <pt x="108" y="120" on="0"/>
+        <pt x="136" y="114" on="1"/>
+        <pt x="199" y="101" on="0"/>
+        <pt x="263" y="142" on="1"/>
+        <pt x="292" y="162" on="1"/>
+        <pt x="325" y="185" on="0"/>
+        <pt x="334" y="176" on="1"/>
+        <pt x="340" y="170" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00029" xMin="-13" yMin="-2" xMax="88" yMax="265">
+      <contour>
+        <pt x="49" y="250" on="1"/>
+        <pt x="53" y="265" on="0"/>
+        <pt x="62" y="255" on="1"/>
+        <pt x="76" y="238" on="0"/>
+        <pt x="84" y="188" on="1"/>
+        <pt x="88" y="164" on="0"/>
+        <pt x="87" y="122" on="0"/>
+        <pt x="83" y="104" on="1"/>
+        <pt x="63" y="10" on="0"/>
+        <pt x="0" y="0" on="1"/>
+        <pt x="-13" y="-2" on="0"/>
+        <pt x="-13" y="45" on="1"/>
+        <pt x="-13" y="92" on="0"/>
+        <pt x="0" y="90" on="1"/>
+        <pt x="22" y="87" on="0"/>
+        <pt x="53" y="93" on="1"/>
+        <pt x="45" y="136" on="0"/>
+        <pt x="35" y="152" on="1"/>
+        <pt x="25" y="168" on="0"/>
+        <pt x="27" y="177" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00030" xMin="-68" yMin="-2" xMax="67" yMax="130">
+      <contour>
+        <pt x="-16" y="127" on="1"/>
+        <pt x="-14" y="130" on="0"/>
+        <pt x="-8" y="129" on="1"/>
+        <pt x="32" y="115" on="0"/>
+        <pt x="63" y="87" on="1"/>
+        <pt x="67" y="83" on="0"/>
+        <pt x="64" y="79" on="1"/>
+        <pt x="17" y="3" on="1"/>
+        <pt x="14" y="-2" on="0"/>
+        <pt x="7" y="4" on="1"/>
+        <pt x="3" y="7" on="0"/>
+        <pt x="-31" y="29" on="0"/>
+        <pt x="-63" y="48" on="1"/>
+        <pt x="-68" y="51" on="0"/>
+        <pt x="-65" y="54" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00031" xMin="-122" yMin="-2" xMax="117" yMax="152">
+      <contour>
+        <pt x="34" y="149" on="1"/>
+        <pt x="36" y="152" on="0"/>
+        <pt x="42" y="151" on="1"/>
+        <pt x="62" y="144" on="0"/>
+        <pt x="97" y="124" on="0"/>
+        <pt x="113" y="110" on="1"/>
+        <pt x="117" y="106" on="0"/>
+        <pt x="114" y="101" on="1"/>
+        <pt x="66" y="25" on="1"/>
+        <pt x="64" y="22" on="0"/>
+        <pt x="57" y="27" on="1"/>
+        <pt x="54" y="30" on="0"/>
+        <pt x="26" y="47" on="0"/>
+        <pt x="0" y="62" on="1"/>
+        <pt x="-38" y="3" on="1"/>
+        <pt x="-41" y="-2" on="0"/>
+        <pt x="-48" y="4" on="1"/>
+        <pt x="-52" y="7" on="0"/>
+        <pt x="-86" y="29" on="0"/>
+        <pt x="-118" y="48" on="1"/>
+        <pt x="-122" y="51" on="0"/>
+        <pt x="-119" y="54" on="1"/>
+        <pt x="-70" y="127" on="1"/>
+        <pt x="-68" y="130" on="0"/>
+        <pt x="-62" y="129" on="1"/>
+        <pt x="-45" y="124" on="0"/>
+        <pt x="-15" y="107" on="0"/>
+        <pt x="-2" y="96" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00032" xMin="-120" yMin="-25" xMax="119" yMax="129">
+      <component glyphName="glyph00031" x="2" y="-23" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00033" xMin="-27" yMin="-1" xMax="269" yMax="374">
+      <contour>
+        <pt x="88" y="308" on="1"/>
+        <pt x="87" y="315" on="0"/>
+        <pt x="98" y="337" on="1"/>
+        <pt x="109" y="358" on="0"/>
+        <pt x="113" y="364" on="1"/>
+        <pt x="123" y="374" on="0"/>
+        <pt x="127" y="354" on="1"/>
+        <pt x="129" y="344" on="0"/>
+        <pt x="138" y="307" on="0"/>
+        <pt x="143" y="281" on="1"/>
+        <pt x="168" y="166" on="0"/>
+        <pt x="182" y="135" on="1"/>
+        <pt x="202" y="94" on="0"/>
+        <pt x="244" y="90" on="1"/>
+        <pt x="256" y="89" on="0"/>
+        <pt x="262" y="78" on="1"/>
+        <pt x="269" y="66" on="0"/>
+        <pt x="264" y="48" on="1"/>
+        <pt x="255" y="0" on="0"/>
+        <pt x="244" y="0" on="1"/>
+        <pt x="158" y="2" on="0"/>
+        <pt x="125" y="127" on="1"/>
+        <pt x="123" y="132" on="0"/>
+        <pt x="122" y="128" on="1"/>
+        <pt x="78" y="8" on="0"/>
+        <pt x="0" y="0" on="1"/>
+        <pt x="-9" y="-1" on="0"/>
+        <pt x="-13" y="12" on="1"/>
+        <pt x="-17" y="26" on="0"/>
+        <pt x="-22" y="57" on="1"/>
+        <pt x="-27" y="89" on="0"/>
+        <pt x="0" y="90" on="1"/>
+        <pt x="83" y="93" on="0"/>
+        <pt x="117" y="151" on="1"/>
+        <pt x="119" y="154" on="0"/>
+        <pt x="111" y="185" on="1"/>
+        <pt x="107" y="200" on="0"/>
+        <pt x="96" y="262" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00034" xMin="-87" yMin="-2" xMax="67" yMax="224">
+      <contour>
+        <pt x="-36" y="220" on="1"/>
+        <pt x="-34" y="224" on="0"/>
+        <pt x="-27" y="222" on="1"/>
+        <pt x="11" y="209" on="0"/>
+        <pt x="43" y="180" on="1"/>
+        <pt x="48" y="175" on="0"/>
+        <pt x="45" y="171" on="1"/>
+        <pt x="13" y="121" on="1"/>
+        <pt x="39" y="109" on="0"/>
+        <pt x="63" y="87" on="1"/>
+        <pt x="67" y="83" on="0"/>
+        <pt x="64" y="79" on="1"/>
+        <pt x="17" y="3" on="1"/>
+        <pt x="14" y="-2" on="0"/>
+        <pt x="7" y="4" on="1"/>
+        <pt x="3" y="7" on="0"/>
+        <pt x="-31" y="29" on="0"/>
+        <pt x="-63" y="48" on="1"/>
+        <pt x="-68" y="51" on="0"/>
+        <pt x="-65" y="54" on="1"/>
+        <pt x="-29" y="108" on="1"/>
+        <pt x="-47" y="119" on="0"/>
+        <pt x="-83" y="141" on="1"/>
+        <pt x="-87" y="144" on="0"/>
+        <pt x="-84" y="147" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00035" xMin="-67" yMin="-95" xMax="87" yMax="131">
+      <component glyphName="glyph00034" x="20" y="-93" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00036" xMin="-57" yMin="65" xMax="164" yMax="487">
+      <contour>
+        <pt x="66" y="468" on="1"/>
+        <pt x="72" y="487" on="0"/>
+        <pt x="83" y="476" on="1"/>
+        <pt x="105" y="455" on="0"/>
+        <pt x="126" y="409" on="1"/>
+        <pt x="137" y="386" on="0"/>
+        <pt x="152" y="339" on="0"/>
+        <pt x="156" y="315" on="1"/>
+        <pt x="164" y="267" on="0"/>
+        <pt x="150" y="217" on="1"/>
+        <pt x="136" y="166" on="0"/>
+        <pt x="107" y="134" on="1"/>
+        <pt x="49" y="68" on="0"/>
+        <pt x="-48" y="65" on="1"/>
+        <pt x="-57" y="65" on="0"/>
+        <pt x="-52" y="74" on="1"/>
+        <pt x="-24" y="131" on="1"/>
+        <pt x="-22" y="133" on="0"/>
+        <pt x="0" y="137" on="1"/>
+        <pt x="80" y="154" on="0"/>
+        <pt x="126" y="206" on="1"/>
+        <pt x="129" y="259" on="0"/>
+        <pt x="103" y="301" on="1"/>
+        <pt x="75" y="345" on="0"/>
+        <pt x="45" y="370" on="1"/>
+        <pt x="37" y="377" on="0"/>
+        <pt x="41" y="392" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00037" xMin="-27" yMin="90" xMax="543" yMax="548">
+      <contour>
+        <pt x="508" y="319" on="1"/>
+        <pt x="502" y="304" on="0"/>
+        <pt x="498" y="303" on="1"/>
+        <pt x="462" y="288" on="0"/>
+        <pt x="351" y="244" on="0"/>
+        <pt x="274" y="215" on="1"/>
+        <pt x="121" y="158" on="0"/>
+        <pt x="68" y="133" on="1"/>
+        <pt x="-25" y="90" on="0"/>
+        <pt x="-27" y="122" on="1"/>
+        <pt x="-27" y="154" on="0"/>
+        <pt x="0" y="169" on="1"/>
+        <pt x="32" y="188" on="0"/>
+        <pt x="124" y="229" on="0"/>
+        <pt x="185" y="253" on="1"/>
+        <pt x="116" y="322" on="0"/>
+        <pt x="125" y="361" on="1"/>
+        <pt x="137" y="416" on="0"/>
+        <pt x="199" y="476" on="1"/>
+        <pt x="231" y="507" on="0"/>
+        <pt x="285" y="539" on="0"/>
+        <pt x="307" y="543" on="1"/>
+        <pt x="333" y="548" on="0"/>
+        <pt x="380" y="524" on="1"/>
+        <pt x="429" y="500" on="0"/>
+        <pt x="452" y="475" on="1"/>
+        <pt x="458" y="469" on="0"/>
+        <pt x="454" y="464" on="1"/>
+        <pt x="450" y="458" on="0"/>
+        <pt x="444" y="461" on="1"/>
+        <pt x="289" y="503" on="0"/>
+        <pt x="188" y="403" on="1"/>
+        <pt x="185" y="398" on="0"/>
+        <pt x="190" y="390" on="1"/>
+        <pt x="224" y="335" on="0"/>
+        <pt x="321" y="317" on="1"/>
+        <pt x="362" y="310" on="0"/>
+        <pt x="484" y="373" on="1"/>
+        <pt x="543" y="404" on="0"/>
+        <pt x="533" y="376" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00038" xMin="50" yMin="-220" xMax="680" yMax="229">
+      <contour>
+        <pt x="451" y="130" on="1"/>
+        <pt x="480" y="133" on="0"/>
+        <pt x="542" y="133" on="0"/>
+        <pt x="574" y="129" on="1"/>
+        <pt x="638" y="122" on="0"/>
+        <pt x="665" y="96" on="1"/>
+        <pt x="680" y="82" on="0"/>
+        <pt x="676" y="51" on="1"/>
+        <pt x="667" y="-15" on="0"/>
+        <pt x="650" y="-37" on="1"/>
+        <pt x="632" y="-61" on="0"/>
+        <pt x="596" y="-88" on="1"/>
+        <pt x="421" y="-220" on="0"/>
+        <pt x="247" y="-215" on="1"/>
+        <pt x="172" y="-212" on="0"/>
+        <pt x="123" y="-172" on="1"/>
+        <pt x="74" y="-132" on="0"/>
+        <pt x="62" y="-70" on="1"/>
+        <pt x="50" y="-8" on="0"/>
+        <pt x="72" y="76" on="1"/>
+        <pt x="83" y="119" on="0"/>
+        <pt x="118" y="190" on="0"/>
+        <pt x="140" y="219" on="1"/>
+        <pt x="149" y="229" on="0"/>
+        <pt x="155" y="222" on="1"/>
+        <pt x="162" y="214" on="0"/>
+        <pt x="156" y="204" on="1"/>
+        <pt x="95" y="111" on="0"/>
+        <pt x="99" y="39" on="1"/>
+        <pt x="108" y="-120" on="0"/>
+        <pt x="281" y="-120" on="1"/>
+        <pt x="455" y="-120" on="0"/>
+        <pt x="627" y="28" on="1"/>
+        <pt x="630" y="31" on="0"/>
+        <pt x="626" y="35" on="1"/>
+        <pt x="595" y="68" on="0"/>
+        <pt x="432" y="69" on="1"/>
+        <pt x="423" y="69" on="0"/>
+        <pt x="428" y="77" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00039" xMin="28" yMin="-555" xMax="737" yMax="526">
+      <component glyphName="glyph00004" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00030" x="293" y="396" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00040" xMin="-37" yMin="0" xMax="420" yMax="599">
+      <component glyphName="glyph00005" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00030" x="146" y="469" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00041" xMin="-40" yMin="-6" xMax="400" yMax="550">
+      <component glyphName="glyph00007" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00030" x="127" y="420" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00042" xMin="-26" yMin="-264" xMax="232" yMax="291">
+      <component glyphName="glyph00008" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="113" y="-239" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00043" xMin="-24" yMin="-215" xMax="265" yMax="164">
+      <component glyphName="glyph00009" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="132" y="-190" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00044" xMin="-85" yMin="-284" xMax="368" yMax="158">
+      <component glyphName="glyph00011" x="-146" y="0" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00045" xMin="57" yMin="-580" xMax="675" yMax="99">
+      <component glyphName="glyph00013" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="366" y="-555" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00046" xMin="-44" yMin="-191" xMax="253" yMax="263">
+      <component glyphName="glyph00015" x="0" y="0" flags="0x1004"/>
+      <component glyphName="glyph00032" x="134" y="-166" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00047" xMin="-84" yMin="-202" xMax="331" yMax="215">
+      <component glyphName="glyph00016" x="-146" y="0" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00048" xMin="-60" yMin="-232" xMax="179" yMax="321">
+      <component glyphName="glyph00017" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="60" y="-207" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00049" xMin="-33" yMin="-396" xMax="388" yMax="335">
+      <component glyphName="glyph00018" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="268" y="-371" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00050" xMin="63" yMin="-528" xMax="766" yMax="202">
+      <component glyphName="glyph00019" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="371" y="-503" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00051" xMin="-33" yMin="-196" xMax="222" yMax="163">
+      <component glyphName="glyph00020" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="103" y="-171" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00052" xMin="-33" yMin="-32" xMax="438" yMax="526">
+      <component glyphName="glyph00021" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00030" x="206" y="396" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00053" xMin="9" yMin="-343" xMax="492" yMax="100">
+      <component glyphName="glyph00010" x="-49" y="0" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00054" xMin="-30" yMin="-230" xMax="291" yMax="311">
+      <component glyphName="glyph00022" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="132" y="-205" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00055" xMin="-30" yMin="-349" xMax="291" yMax="311">
+      <component glyphName="glyph00022" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00035" x="132" y="-254" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00056" xMin="-84" yMin="-210" xMax="333" yMax="253">
+      <component glyphName="glyph00023" x="-146" y="0" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00057" xMin="26" yMin="-554" xMax="686" yMax="102">
+      <component glyphName="glyph00024" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="361" y="-529" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00058" xMin="-51" yMin="-269" xMax="237" yMax="193">
+      <component glyphName="glyph00025" x="0" y="0" flags="0x1004"/>
+      <component glyphName="glyph00032" x="118" y="-244" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00059" xMin="-32" yMin="-484" xMax="369" yMax="191">
+      <component glyphName="glyph00026" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="250" y="-459" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00060" xMin="56" yMin="-577" xMax="718" yMax="115">
+      <component glyphName="glyph00027" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="368" y="-552" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00061" xMin="-25" yMin="-7" xMax="340" yMax="567">
+      <component glyphName="glyph00028" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00030" x="112" y="437" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00062" xMin="-13" yMin="-215" xMax="256" yMax="265">
+      <component glyphName="glyph00029" x="0" y="0" flags="0x1004"/>
+      <component glyphName="glyph00032" x="137" y="-190" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00063" xMin="-27" yMin="-240" xMax="269" yMax="374">
+      <component glyphName="glyph00033" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="135" y="-215" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00064" xMin="-57" yMin="-308" xMax="286" yMax="487">
+      <component glyphName="glyph00036" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="167" y="-283" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00065" xMin="-27" yMin="90" xMax="543" yMax="743">
+      <component glyphName="glyph00037" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00030" x="257" y="613" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00066" xMin="50" yMin="-454" xMax="680" yMax="229">
+      <component glyphName="glyph00038" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="355" y="-429" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="uni0631" xMin="-83" yMin="-233" xMax="342" yMax="286">
+      <component glyphName="glyph00012" x="0" y="0" flags="0x1204"/>
+    </TTGlyph>
+
+    <TTGlyph name="uni063A" xMin="56" yMin="-477" xMax="730" yMax="662">
+      <component glyphName="glyph00006" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00030" x="181" y="532" flags="0x1004"/>
+    </TTGlyph>
+
+    <TTGlyph name="uni064A" xMin="54" yMin="-440" xMax="724" yMax="404">
+      <component glyphName="glyph00014" x="0" y="0" flags="0x1204"/>
+      <component glyphName="glyph00032" x="355" y="-415" flags="0x1004"/>
+    </TTGlyph>
+
+  </glyf>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright 2010-2020 The Amiri Project Authors (https://github.com/alif-type/amiri).
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      Amiri
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      0.113;ALIF;Amiri-Regular
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      Amiri Regular
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version 0.113
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      Amiri-Regular
+    </namerecord>
+  </name>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-512"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <gasp>
+    <gaspRange rangeMaxPPEM="65535" rangeGaspBehavior="15"/>
+  </gasp>
+
+  <GDEF>
+    <Version value="0x00010000"/>
+    <GlyphClassDef>
+      <ClassDef glyph="glyph00039" class="1"/>
+      <ClassDef glyph="glyph00040" class="1"/>
+      <ClassDef glyph="glyph00041" class="1"/>
+      <ClassDef glyph="glyph00042" class="1"/>
+      <ClassDef glyph="glyph00043" class="1"/>
+      <ClassDef glyph="glyph00044" class="1"/>
+      <ClassDef glyph="glyph00045" class="1"/>
+      <ClassDef glyph="glyph00046" class="1"/>
+      <ClassDef glyph="glyph00047" class="1"/>
+      <ClassDef glyph="glyph00048" class="1"/>
+      <ClassDef glyph="glyph00049" class="1"/>
+      <ClassDef glyph="glyph00050" class="1"/>
+      <ClassDef glyph="glyph00051" class="1"/>
+      <ClassDef glyph="glyph00052" class="1"/>
+      <ClassDef glyph="glyph00053" class="1"/>
+      <ClassDef glyph="glyph00054" class="1"/>
+      <ClassDef glyph="glyph00055" class="1"/>
+      <ClassDef glyph="glyph00056" class="1"/>
+      <ClassDef glyph="glyph00057" class="1"/>
+      <ClassDef glyph="glyph00058" class="1"/>
+      <ClassDef glyph="glyph00059" class="1"/>
+      <ClassDef glyph="glyph00060" class="1"/>
+      <ClassDef glyph="glyph00061" class="1"/>
+      <ClassDef glyph="glyph00062" class="1"/>
+      <ClassDef glyph="glyph00063" class="1"/>
+      <ClassDef glyph="glyph00064" class="1"/>
+      <ClassDef glyph="glyph00065" class="1"/>
+      <ClassDef glyph="glyph00066" class="1"/>
+      <ClassDef glyph="uni0631" class="1"/>
+      <ClassDef glyph="uni063A" class="1"/>
+      <ClassDef glyph="uni064A" class="1"/>
+    </GlyphClassDef>
+  </GDEF>
+
+  <GPOS>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=3 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="0"/>
+            <FeatureIndex index="1" value="2"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="arab"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="0"/>
+            <FeatureIndex index="1" value="1"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="2">
+        <ScriptTag value="latn"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="2"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=3 -->
+      <FeatureRecord index="0">
+        <FeatureTag value="curs"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="6"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="1">
+        <FeatureTag value="kern"/>
+        <Feature>
+          <!-- LookupCount=3 -->
+          <LookupListIndex index="0" value="0"/>
+          <LookupListIndex index="1" value="2"/>
+          <LookupListIndex index="2" value="4"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="2">
+        <FeatureTag value="kern"/>
+        <Feature>
+          <!-- LookupCount=3 -->
+          <LookupListIndex index="0" value="0"/>
+          <LookupListIndex index="1" value="2"/>
+          <LookupListIndex index="2" value="4"/>
+        </Feature>
+      </FeatureRecord>
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=7 -->
+      <Lookup index="0">
+        <LookupType value="8"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <ChainContextPos index="0" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=1 -->
+          <InputCoverage index="0">
+            <Glyph value="uni0631"/>
+            <Glyph value="glyph00044"/>
+            <Glyph value="glyph00047"/>
+            <Glyph value="glyph00056"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=1 -->
+          <LookAheadCoverage index="0">
+            <Glyph value="glyph00042"/>
+            <Glyph value="glyph00046"/>
+            <Glyph value="glyph00048"/>
+            <Glyph value="glyph00058"/>
+            <Glyph value="glyph00062"/>
+            <Glyph value="glyph00064"/>
+          </LookAheadCoverage>
+          <!-- PosCount=1 -->
+          <PosLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="1"/>
+          </PosLookupRecord>
+        </ChainContextPos>
+      </Lookup>
+      <Lookup index="1">
+        <LookupType value="1"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <SinglePos index="0" Format="1">
+          <Coverage>
+            <Glyph value="uni0631"/>
+            <Glyph value="glyph00044"/>
+            <Glyph value="glyph00047"/>
+            <Glyph value="glyph00056"/>
+          </Coverage>
+          <ValueFormat value="5"/>
+          <Value XPlacement="83" XAdvance="83"/>
+        </SinglePos>
+      </Lookup>
+      <Lookup index="2">
+        <LookupType value="8"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <ChainContextPos index="0" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=1 -->
+          <InputCoverage index="0">
+            <Glyph value="uni0631"/>
+            <Glyph value="glyph00044"/>
+            <Glyph value="glyph00047"/>
+            <Glyph value="glyph00056"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=1 -->
+          <LookAheadCoverage index="0">
+            <Glyph value="glyph00042"/>
+          </LookAheadCoverage>
+          <!-- PosCount=1 -->
+          <PosLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="3"/>
+          </PosLookupRecord>
+        </ChainContextPos>
+      </Lookup>
+      <Lookup index="3">
+        <LookupType value="1"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <SinglePos index="0" Format="1">
+          <Coverage>
+            <Glyph value="uni0631"/>
+            <Glyph value="glyph00044"/>
+            <Glyph value="glyph00047"/>
+            <Glyph value="glyph00056"/>
+          </Coverage>
+          <ValueFormat value="5"/>
+          <Value XPlacement="39" XAdvance="39"/>
+        </SinglePos>
+      </Lookup>
+      <Lookup index="4">
+        <LookupType value="8"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <ChainContextPos index="0" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=1 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00053"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=1 -->
+          <LookAheadCoverage index="0">
+            <Glyph value="glyph00042"/>
+            <Glyph value="glyph00046"/>
+            <Glyph value="glyph00048"/>
+            <Glyph value="glyph00058"/>
+            <Glyph value="glyph00062"/>
+            <Glyph value="glyph00064"/>
+          </LookAheadCoverage>
+          <!-- PosCount=1 -->
+          <PosLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="5"/>
+          </PosLookupRecord>
+        </ChainContextPos>
+      </Lookup>
+      <Lookup index="5">
+        <LookupType value="1"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <SinglePos index="0" Format="1">
+          <Coverage>
+            <Glyph value="glyph00053"/>
+          </Coverage>
+          <ValueFormat value="5"/>
+          <Value XPlacement="88" XAdvance="88"/>
+        </SinglePos>
+      </Lookup>
+      <Lookup index="6">
+        <LookupType value="3"/>
+        <LookupFlag value="9"/><!-- rightToLeft ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <CursivePos index="0" Format="1">
+          <Coverage>
+            <Glyph value="glyph00052"/>
+          </Coverage>
+          <!-- EntryExitCount=1 -->
+          <EntryExitRecord index="0">
+            <ExitAnchor Format="1">
+              <XCoordinate value="0"/>
+              <YCoordinate value="0"/>
+            </ExitAnchor>
+          </EntryExitRecord>
+        </CursivePos>
+      </Lookup>
+    </LookupList>
+  </GPOS>
+
+  <GSUB>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=3 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=4 -->
+            <FeatureIndex index="0" value="1"/>
+            <FeatureIndex index="1" value="2"/>
+            <FeatureIndex index="2" value="3"/>
+            <FeatureIndex index="3" value="4"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="arab"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=4 -->
+            <FeatureIndex index="0" value="1"/>
+            <FeatureIndex index="1" value="2"/>
+            <FeatureIndex index="2" value="3"/>
+            <FeatureIndex index="3" value="4"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=1 -->
+          <LangSysRecord index="0">
+            <LangSysTag value="ARA "/>
+            <LangSys>
+              <ReqFeatureIndex value="65535"/>
+              <!-- FeatureCount=4 -->
+              <FeatureIndex index="0" value="0"/>
+              <FeatureIndex index="1" value="2"/>
+              <FeatureIndex index="2" value="3"/>
+              <FeatureIndex index="3" value="4"/>
+            </LangSys>
+          </LangSysRecord>
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="2">
+        <ScriptTag value="latn"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=4 -->
+            <FeatureIndex index="0" value="1"/>
+            <FeatureIndex index="1" value="2"/>
+            <FeatureIndex index="2" value="3"/>
+            <FeatureIndex index="3" value="4"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=5 -->
+      <FeatureRecord index="0">
+        <FeatureTag value="calt"/>
+        <Feature>
+          <!-- LookupCount=6 -->
+          <LookupListIndex index="0" value="4"/>
+          <LookupListIndex index="1" value="7"/>
+          <LookupListIndex index="2" value="13"/>
+          <LookupListIndex index="3" value="14"/>
+          <LookupListIndex index="4" value="17"/>
+          <LookupListIndex index="5" value="18"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="1">
+        <FeatureTag value="calt"/>
+        <Feature>
+          <!-- LookupCount=5 -->
+          <LookupListIndex index="0" value="4"/>
+          <LookupListIndex index="1" value="7"/>
+          <LookupListIndex index="2" value="13"/>
+          <LookupListIndex index="3" value="14"/>
+          <LookupListIndex index="4" value="17"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="2">
+        <FeatureTag value="fina"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="2"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="3">
+        <FeatureTag value="init"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="4">
+        <FeatureTag value="medi"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="1"/>
+        </Feature>
+      </FeatureRecord>
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=20 -->
+      <Lookup index="0">
+        <LookupType value="2"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <MultipleSubst index="0">
+          <Substitution in="uni063A" out="glyph00040"/>
+          <Substitution in="uni064A" out="glyph00042"/>
+        </MultipleSubst>
+      </Lookup>
+      <Lookup index="1">
+        <LookupType value="2"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <MultipleSubst index="0">
+          <Substitution in="uni063A" out="glyph00041"/>
+          <Substitution in="uni064A" out="glyph00043"/>
+        </MultipleSubst>
+      </Lookup>
+      <Lookup index="2">
+        <LookupType value="2"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <MultipleSubst index="0">
+          <Substitution in="uni0631" out="glyph00044"/>
+          <Substitution in="uni063A" out="glyph00039"/>
+          <Substitution in="uni064A" out="glyph00045"/>
+        </MultipleSubst>
+      </Lookup>
+      <Lookup index="3">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00043" out="glyph00054"/>
+          <Substitution in="glyph00044" out="glyph00056"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="4">
+        <LookupType value="6"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <ChainContextSubst index="0" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=2 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00043"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00044"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=2 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="3"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="1">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="3"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="5">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00042" out="glyph00058"/>
+          <Substitution in="glyph00043" out="glyph00051"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="6">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00042" out="glyph00062"/>
+          <Substitution in="glyph00043" out="glyph00063"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="7">
+        <LookupType value="6"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=2 -->
+        <ChainContextSubst index="0" Format="3">
+          <!-- BacktrackGlyphCount=1 -->
+          <BacktrackCoverage index="0">
+            <Glyph value="glyph00043"/>
+            <Glyph value="glyph00051"/>
+          </BacktrackCoverage>
+          <!-- InputGlyphCount=1 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00043"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=1 -->
+          <LookAheadCoverage index="0">
+            <Glyph value="glyph00043"/>
+          </LookAheadCoverage>
+          <!-- SubstCount=1 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="6"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+        <ChainContextSubst index="1" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=2 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00042"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00043"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=1 -->
+          <LookAheadCoverage index="0">
+            <Glyph value="glyph00043"/>
+          </LookAheadCoverage>
+          <!-- SubstCount=2 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="6"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="1">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="6"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="8">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00040" out="glyph00065"/>
+          <Substitution in="glyph00042" out="glyph00064"/>
+          <Substitution in="glyph00045" out="glyph00066"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="9">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00042" out="glyph00046"/>
+          <Substitution in="glyph00044" out="glyph00047"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="10">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00042" out="glyph00048"/>
+          <Substitution in="glyph00043" out="glyph00049"/>
+          <Substitution in="glyph00045" out="glyph00050"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="11">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00044" out="glyph00053"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="12">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00041" out="glyph00052"/>
+          <Substitution in="glyph00045" out="glyph00057"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="13">
+        <LookupType value="6"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=6 -->
+        <ChainContextSubst index="0" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=2 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00040"/>
+            <Glyph value="glyph00042"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00045"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=2 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="8"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="1">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="8"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+        <ChainContextSubst index="1" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=2 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00042"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00044"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=2 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="9"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="1">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="9"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+        <ChainContextSubst index="2" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=3 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00042"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00043"/>
+          </InputCoverage>
+          <InputCoverage index="2">
+            <Glyph value="glyph00045"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=3 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="10"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="1">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="10"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="2">
+            <SequenceIndex value="2"/>
+            <LookupListIndex value="10"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+        <ChainContextSubst index="3" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=2 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00040"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00044"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=1 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="11"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+        <ChainContextSubst index="4" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=2 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00041"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00045"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=2 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="12"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="1">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="12"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+        <ChainContextSubst index="5" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=2 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00042"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00043"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=2 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="5"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="1">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="5"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="14">
+        <LookupType value="6"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <ChainContextSubst index="0" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=1 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00040"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=1 -->
+          <LookAheadCoverage index="0">
+            <Glyph value="glyph00054"/>
+            <Glyph value="glyph00055"/>
+            <Glyph value="glyph00063"/>
+          </LookAheadCoverage>
+          <!-- SubstCount=1 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="15"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="15">
+        <LookupType value="1"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00040" out="glyph00061"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="16">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00043" out="glyph00059"/>
+          <Substitution in="glyph00045" out="glyph00060"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="17">
+        <LookupType value="6"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <ChainContextSubst index="0" Format="3">
+          <!-- BacktrackGlyphCount=0 -->
+          <!-- InputGlyphCount=2 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00043"/>
+          </InputCoverage>
+          <InputCoverage index="1">
+            <Glyph value="glyph00045"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=2 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="16"/>
+          </SubstLookupRecord>
+          <SubstLookupRecord index="1">
+            <SequenceIndex value="1"/>
+            <LookupListIndex value="16"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="18">
+        <LookupType value="6"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <ChainContextSubst index="0" Format="3">
+          <!-- BacktrackGlyphCount=1 -->
+          <BacktrackCoverage index="0">
+            <Glyph value="glyph00051"/>
+          </BacktrackCoverage>
+          <!-- InputGlyphCount=1 -->
+          <InputCoverage index="0">
+            <Glyph value="glyph00054"/>
+          </InputCoverage>
+          <!-- LookAheadGlyphCount=0 -->
+          <!-- SubstCount=1 -->
+          <SubstLookupRecord index="0">
+            <SequenceIndex value="0"/>
+            <LookupListIndex value="19"/>
+          </SubstLookupRecord>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="19">
+        <LookupType value="1"/>
+        <LookupFlag value="8"/><!-- ignoreMarks -->
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="glyph00054" out="glyph00055"/>
+        </SingleSubst>
+      </Lookup>
+    </LookupList>
+  </GSUB>
+
+</ttFont>

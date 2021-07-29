@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="space"/>
+    <GlyphID id="2" name="exclam"/>
+    <GlyphID id="3" name="A"/>
+    <GlyphID id="4" name="b"/>
+    <GlyphID id="5" name="c"/>
+    <GlyphID id="6" name="glyph00006"/>
+    <GlyphID id="7" name="glyph00007"/>
+    <GlyphID id="8" name="AEacute"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="2.137"/>
+    <checkSumAdjustment value="0xafec8c2"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00011001"/>
+    <unitsPerEm value="2048"/>
+    <created value="Fri Sep 12 12:29:34 2008"/>
+    <modified value="Wed Mar 29 12:03:00 2017"/>
+    <xMin value="-1509"/>
+    <yMin value="-555"/>
+    <xMax value="2352"/>
+    <yMax value="2163"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="9"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="1900"/>
+    <descent value="-500"/>
+    <lineGap value="0"/>
+    <advanceWidthMax value="2377"/>
+    <minLeftSideBearing value="-1509"/>
+    <minRightSideBearing value="-438"/>
+    <xMaxExtent value="2352"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="8"/>
+  </hhea>
+
+  <maxp>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="0x10000"/>
+    <numGlyphs value="9"/>
+    <maxPoints value="143"/>
+    <maxContours value="22"/>
+    <maxCompositePoints value="84"/>
+    <maxCompositeContours value="5"/>
+    <maxZones value="1"/>
+    <maxTwilightPoints value="0"/>
+    <maxStorage value="0"/>
+    <maxFunctionDefs value="0"/>
+    <maxInstructionDefs value="0"/>
+    <maxStackElements value="0"/>
+    <maxSizeOfInstructions value="0"/>
+    <maxComponentElements value="6"/>
+    <maxComponentDepth value="1"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="3"/>
+    <xAvgCharWidth value="1158"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="1434"/>
+    <ySubscriptYSize value="1331"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="287"/>
+    <ySuperscriptXSize value="1434"/>
+    <ySuperscriptYSize value="1331"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="977"/>
+    <yStrikeoutSize value="102"/>
+    <yStrikeoutPosition value="512"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="2"/>
+      <bSerifStyle value="0"/>
+      <bWeight value="0"/>
+      <bProportion value="0"/>
+      <bContrast value="0"/>
+      <bStrokeVariation value="0"/>
+      <bArmStyle value="0"/>
+      <bLetterForm value="0"/>
+      <bMidline value="0"/>
+      <bXHeight value="0"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00001001"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="GOOG"/>
+    <fsSelection value="00000000 01000000"/>
+    <usFirstCharIndex value="32"/>
+    <usLastCharIndex value="508"/>
+    <sTypoAscender value="1536"/>
+    <sTypoDescender value="-512"/>
+    <sTypoLineGap value="102"/>
+    <usWinAscent value="1946"/>
+    <usWinDescent value="512"/>
+    <ulCodePageRange1 value="00100000 00000000 00000001 10011111"/>
+    <ulCodePageRange2 value="00000000 00000000 00000000 00000000"/>
+    <sxHeight value="1082"/>
+    <sCapHeight value="1456"/>
+    <usDefaultChar value="32"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="3"/>
+  </OS_2>
+
+  <hmtx>
+    <mtx name=".notdef" width="908" lsb="100"/>
+    <mtx name="A" width="1336" lsb="28"/>
+    <mtx name="AEacute" width="1914" lsb="-14"/>
+    <mtx name="b" width="1149" lsb="140"/>
+    <mtx name="c" width="1072" lsb="92"/>
+    <mtx name="exclam" width="527" lsb="160"/>
+    <mtx name="glyph00006" width="642" lsb="123"/>
+    <mtx name="glyph00007" width="1914" lsb="-14"/>
+    <mtx name="space" width="507" lsb="0"/>
+  </hmtx>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0x20" name="space"/><!-- SPACE -->
+      <map code="0x21" name="exclam"/><!-- EXCLAMATION MARK -->
+      <map code="0x41" name="A"/><!-- LATIN CAPITAL LETTER A -->
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+      <map code="0x63" name="c"/><!-- LATIN SMALL LETTER C -->
+      <map code="0x1fc" name="AEacute"/><!-- LATIN CAPITAL LETTER AE WITH ACUTE -->
+    </cmap_format_4>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x20" name="space"/><!-- SPACE -->
+      <map code="0x21" name="exclam"/><!-- EXCLAMATION MARK -->
+      <map code="0x41" name="A"/><!-- LATIN CAPITAL LETTER A -->
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+      <map code="0x63" name="c"/><!-- LATIN SMALL LETTER C -->
+      <map code="0x1fc" name="AEacute"/><!-- LATIN CAPITAL LETTER AE WITH ACUTE -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="3" platEncID="10" format="12" reserved="0" length="64" language="0" nGroups="4">
+      <map code="0x20" name="space"/><!-- SPACE -->
+      <map code="0x21" name="exclam"/><!-- EXCLAMATION MARK -->
+      <map code="0x41" name="A"/><!-- LATIN CAPITAL LETTER A -->
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+      <map code="0x63" name="c"/><!-- LATIN SMALL LETTER C -->
+      <map code="0x1fc" name="AEacute"/><!-- LATIN CAPITAL LETTER AE WITH ACUTE -->
+    </cmap_format_12>
+  </cmap>
+
+  <loca>
+    <!-- The 'loca' table will be calculated by the compiler -->
+  </loca>
+
+  <glyf>
+
+    <!-- The xMin, yMin, xMax and yMax values
+         will be recalculated by the compiler. -->
+
+    <TTGlyph name=".notdef"/><!-- contains no outline data -->
+
+    <TTGlyph name="A" xMin="28" yMin="0" xMax="1309" yMax="1456">
+      <contour>
+        <pt x="973" y="380" on="1"/>
+        <pt x="363" y="380" on="1"/>
+        <pt x="226" y="0" on="1"/>
+        <pt x="28" y="0" on="1"/>
+        <pt x="584" y="1456" on="1"/>
+        <pt x="752" y="1456" on="1"/>
+        <pt x="1309" y="0" on="1"/>
+        <pt x="1112" y="0" on="1"/>
+      </contour>
+      <contour>
+        <pt x="421" y="538" on="1"/>
+        <pt x="916" y="538" on="1"/>
+        <pt x="668" y="1219" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="AEacute" xMin="-14" yMin="0" xMax="1879" yMax="1858">
+      <component glyphName="glyph00007" x="0" y="0" flags="0x204"/>
+      <component glyphName="glyph00006" x="713" y="322" flags="0x4"/>
+    </TTGlyph>
+
+    <TTGlyph name="b" xMin="140" yMin="-20" xMax="1056" yMax="1536">
+      <contour>
+        <pt x="1056" y="529" on="1"/>
+        <pt x="1056" y="281" on="0"/>
+        <pt x="828" y="-20" on="0"/>
+        <pt x="636" y="-20" on="1"/>
+        <pt x="431" y="-20" on="0"/>
+        <pt x="319" y="125" on="1"/>
+        <pt x="310" y="0" on="1"/>
+        <pt x="140" y="0" on="1"/>
+        <pt x="140" y="1536" on="1"/>
+        <pt x="325" y="1536" on="1"/>
+        <pt x="325" y="963" on="1"/>
+        <pt x="437" y="1102" on="0"/>
+        <pt x="831" y="1102" on="0"/>
+        <pt x="1056" y="804" on="0"/>
+        <pt x="1056" y="545" on="1"/>
+      </contour>
+      <contour>
+        <pt x="871" y="550" on="1"/>
+        <pt x="871" y="739" on="0"/>
+        <pt x="725" y="945" on="0"/>
+        <pt x="588" y="945" on="1"/>
+        <pt x="405" y="945" on="0"/>
+        <pt x="325" y="775" on="1"/>
+        <pt x="325" y="307" on="1"/>
+        <pt x="410" y="137" on="0"/>
+        <pt x="590" y="137" on="1"/>
+        <pt x="723" y="137" on="0"/>
+        <pt x="871" y="343" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="c" xMin="92" yMin="-20" xMax="1004" yMax="1102">
+      <contour>
+        <pt x="574" y="131" on="1"/>
+        <pt x="673" y="131" on="0"/>
+        <pt x="821" y="251" on="0"/>
+        <pt x="829" y="341" on="1"/>
+        <pt x="1004" y="341" on="1"/>
+        <pt x="999" y="248" on="0"/>
+        <pt x="881" y="80" on="0"/>
+        <pt x="684" y="-20" on="0"/>
+        <pt x="574" y="-20" on="1"/>
+        <pt x="353" y="-20" on="0"/>
+        <pt x="92" y="275" on="0"/>
+        <pt x="92" y="531" on="1"/>
+        <pt x="92" y="562" on="1"/>
+        <pt x="92" y="720" on="0"/>
+        <pt x="208" y="966" on="0"/>
+        <pt x="425" y="1102" on="0"/>
+        <pt x="573" y="1102" on="1"/>
+        <pt x="755" y="1102" on="0"/>
+        <pt x="996" y="884" on="0"/>
+        <pt x="1004" y="710" on="1"/>
+        <pt x="829" y="710" on="1"/>
+        <pt x="821" y="815" on="0"/>
+        <pt x="678" y="950" on="0"/>
+        <pt x="573" y="950" on="1"/>
+        <pt x="432" y="950" on="0"/>
+        <pt x="277" y="747" on="0"/>
+        <pt x="277" y="555" on="1"/>
+        <pt x="277" y="520" on="1"/>
+        <pt x="277" y="333" on="0"/>
+        <pt x="431" y="131" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="exclam" xMin="160" yMin="-11" xMax="379" yMax="1456">
+      <contour>
+        <pt x="347" y="411" on="1"/>
+        <pt x="180" y="411" on="1"/>
+        <pt x="167" y="1456" on="1"/>
+        <pt x="361" y="1456" on="1"/>
+      </contour>
+      <contour>
+        <pt x="160" y="93" on="1"/>
+        <pt x="160" y="138" on="0"/>
+        <pt x="215" y="199" on="0"/>
+        <pt x="323" y="199" on="0"/>
+        <pt x="379" y="138" on="0"/>
+        <pt x="379" y="48" on="0"/>
+        <pt x="323" y="-11" on="0"/>
+        <pt x="215" y="-11" on="0"/>
+        <pt x="160" y="48" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00006" xMin="123" yMin="1242" xMax="540" yMax="1536">
+      <contour>
+        <pt x="316" y="1536" on="1"/>
+        <pt x="540" y="1536" on="1"/>
+        <pt x="272" y="1242" on="1"/>
+        <pt x="123" y="1242" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00007" xMin="-14" yMin="0" xMax="1879" yMax="1456">
+      <contour>
+        <pt x="1879" y="0" on="1"/>
+        <pt x="996" y="0" on="1"/>
+        <pt x="981" y="353" on="1"/>
+        <pt x="417" y="353" on="1"/>
+        <pt x="212" y="0" on="1"/>
+        <pt x="-14" y="0" on="1"/>
+        <pt x="866" y="1456" on="1"/>
+        <pt x="1817" y="1456" on="1"/>
+        <pt x="1817" y="1304" on="1"/>
+        <pt x="1126" y="1304" on="1"/>
+        <pt x="1146" y="833" on="1"/>
+        <pt x="1736" y="833" on="1"/>
+        <pt x="1736" y="682" on="1"/>
+        <pt x="1152" y="682" on="1"/>
+        <pt x="1174" y="151" on="1"/>
+        <pt x="1879" y="151" on="1"/>
+      </contour>
+      <contour>
+        <pt x="518" y="527" on="1"/>
+        <pt x="974" y="527" on="1"/>
+        <pt x="943" y="1260" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="space"/><!-- contains no outline data -->
+
+  </glyf>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright 2011 Google Inc. All Rights Reserved.
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      Roboto
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      Roboto
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      Roboto
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version 2.137; 2017
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      Roboto-Regular
+    </namerecord>
+  </name>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-150"/>
+    <underlineThickness value="100"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <gasp>
+    <gaspRange rangeMaxPPEM="8" rangeGaspBehavior="2"/>
+    <gaspRange rangeMaxPPEM="65535" rangeGaspBehavior="15"/>
+  </gasp>
+
+  <GDEF>
+    <Version value="0x00010002"/>
+    <GlyphClassDef>
+      <ClassDef glyph="A" class="1"/>
+      <ClassDef glyph="AEacute" class="1"/>
+      <ClassDef glyph="b" class="1"/>
+      <ClassDef glyph="c" class="1"/>
+    </GlyphClassDef>
+    <MarkGlyphSetsDef>
+      <MarkSetTableFormat value="1"/>
+      <!-- MarkSetCount=2 -->
+      <Coverage index="0">
+      </Coverage>
+      <Coverage index="1">
+      </Coverage>
+    </MarkGlyphSetsDef>
+  </GDEF>
+
+  <GPOS>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=4 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="cyrl"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="2">
+        <ScriptTag value="grek"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="3">
+        <ScriptTag value="latn"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=1 -->
+      <FeatureRecord index="0">
+        <FeatureTag value="kern"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=1 -->
+      <Lookup index="0">
+        <LookupType value="2"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <PairPos index="0" Format="2">
+          <Coverage>
+            <Glyph value="A"/>
+            <Glyph value="b"/>
+            <Glyph value="c"/>
+          </Coverage>
+          <ValueFormat1 value="0"/>
+          <ValueFormat2 value="0"/>
+          <ClassDef1>
+            <ClassDef glyph="b" class="1"/>
+            <ClassDef glyph="c" class="2"/>
+          </ClassDef1>
+          <ClassDef2>
+            <ClassDef glyph="A" class="2"/>
+            <ClassDef glyph="c" class="1"/>
+          </ClassDef2>
+          <!-- Class1Count=3 -->
+          <!-- Class2Count=3 -->
+          <Class1Record index="0">
+            <Class2Record index="0">
+            </Class2Record>
+            <Class2Record index="1">
+            </Class2Record>
+            <Class2Record index="2">
+            </Class2Record>
+          </Class1Record>
+          <Class1Record index="1">
+            <Class2Record index="0">
+            </Class2Record>
+            <Class2Record index="1">
+            </Class2Record>
+            <Class2Record index="2">
+            </Class2Record>
+          </Class1Record>
+          <Class1Record index="2">
+            <Class2Record index="0">
+            </Class2Record>
+            <Class2Record index="1">
+            </Class2Record>
+            <Class2Record index="2">
+            </Class2Record>
+          </Class1Record>
+        </PairPos>
+      </Lookup>
+    </LookupList>
+  </GPOS>
+
+  <GSUB>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=4 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=0 -->
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="cyrl"/>
+        <Script>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="2">
+        <ScriptTag value="grek"/>
+        <Script>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="3">
+        <ScriptTag value="latn"/>
+        <Script>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=0 -->
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=0 -->
+    </LookupList>
+  </GSUB>
+
+</ttFont>

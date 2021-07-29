@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="glyph00001"/>
+    <GlyphID id="2" name="glyph00002"/>
+    <GlyphID id="3" name="glyph00003"/>
+    <GlyphID id="4" name="multiply"/>
+    <GlyphID id="5" name="Oslash"/>
+    <GlyphID id="6" name="Thorn"/>
+    <GlyphID id="7" name="Ugrave"/>
+    <GlyphID id="8" name="Uacute"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="2.137"/>
+    <checkSumAdjustment value="0x487d5b7e"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00011001"/>
+    <unitsPerEm value="2048"/>
+    <created value="Fri Sep 12 12:29:34 2008"/>
+    <modified value="Wed Mar 29 12:03:00 2017"/>
+    <xMin value="-1509"/>
+    <yMin value="-555"/>
+    <xMax value="2352"/>
+    <yMax value="2163"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="9"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="1900"/>
+    <descent value="-500"/>
+    <lineGap value="0"/>
+    <advanceWidthMax value="2377"/>
+    <minLeftSideBearing value="-1509"/>
+    <minRightSideBearing value="-438"/>
+    <xMaxExtent value="2352"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="8"/>
+  </hhea>
+
+  <maxp>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="0x10000"/>
+    <numGlyphs value="9"/>
+    <maxPoints value="143"/>
+    <maxContours value="22"/>
+    <maxCompositePoints value="84"/>
+    <maxCompositeContours value="5"/>
+    <maxZones value="1"/>
+    <maxTwilightPoints value="0"/>
+    <maxStorage value="0"/>
+    <maxFunctionDefs value="0"/>
+    <maxInstructionDefs value="0"/>
+    <maxStackElements value="0"/>
+    <maxSizeOfInstructions value="0"/>
+    <maxComponentElements value="6"/>
+    <maxComponentDepth value="1"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="3"/>
+    <xAvgCharWidth value="1158"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="1434"/>
+    <ySubscriptYSize value="1331"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="287"/>
+    <ySuperscriptXSize value="1434"/>
+    <ySuperscriptYSize value="1331"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="977"/>
+    <yStrikeoutSize value="102"/>
+    <yStrikeoutPosition value="512"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="2"/>
+      <bSerifStyle value="0"/>
+      <bWeight value="0"/>
+      <bProportion value="0"/>
+      <bContrast value="0"/>
+      <bStrokeVariation value="0"/>
+      <bArmStyle value="0"/>
+      <bLetterForm value="0"/>
+      <bMidline value="0"/>
+      <bXHeight value="0"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000010"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="GOOG"/>
+    <fsSelection value="00000000 01000000"/>
+    <usFirstCharIndex value="215"/>
+    <usLastCharIndex value="222"/>
+    <sTypoAscender value="1536"/>
+    <sTypoDescender value="-512"/>
+    <sTypoLineGap value="102"/>
+    <usWinAscent value="1946"/>
+    <usWinDescent value="512"/>
+    <ulCodePageRange1 value="00100000 00000000 00000001 10011111"/>
+    <ulCodePageRange2 value="00000000 00000000 00000000 00000000"/>
+    <sxHeight value="1082"/>
+    <sCapHeight value="1456"/>
+    <usDefaultChar value="32"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="3"/>
+  </OS_2>
+
+  <hmtx>
+    <mtx name=".notdef" width="908" lsb="100"/>
+    <mtx name="Oslash" width="1408" lsb="118"/>
+    <mtx name="Thorn" width="1210" lsb="166"/>
+    <mtx name="Uacute" width="1328" lsb="140"/>
+    <mtx name="Ugrave" width="1328" lsb="140"/>
+    <mtx name="glyph00001" width="1328" lsb="140"/>
+    <mtx name="glyph00002" width="633" lsb="57"/>
+    <mtx name="glyph00003" width="642" lsb="123"/>
+    <mtx name="multiply" width="1092" lsb="89"/>
+  </hmtx>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0xd7" name="multiply"/><!-- MULTIPLICATION SIGN -->
+      <map code="0xd8" name="Oslash"/><!-- LATIN CAPITAL LETTER O WITH STROKE -->
+      <map code="0xd9" name="Ugrave"/><!-- LATIN CAPITAL LETTER U WITH GRAVE -->
+      <map code="0xda" name="Uacute"/><!-- LATIN CAPITAL LETTER U WITH ACUTE -->
+      <map code="0xde" name="Thorn"/><!-- LATIN CAPITAL LETTER THORN -->
+    </cmap_format_4>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0xd7" name="multiply"/><!-- MULTIPLICATION SIGN -->
+      <map code="0xd8" name="Oslash"/><!-- LATIN CAPITAL LETTER O WITH STROKE -->
+      <map code="0xd9" name="Ugrave"/><!-- LATIN CAPITAL LETTER U WITH GRAVE -->
+      <map code="0xda" name="Uacute"/><!-- LATIN CAPITAL LETTER U WITH ACUTE -->
+      <map code="0xde" name="Thorn"/><!-- LATIN CAPITAL LETTER THORN -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="3" platEncID="10" format="12" reserved="0" length="52" language="0" nGroups="3">
+      <map code="0xd7" name="multiply"/><!-- MULTIPLICATION SIGN -->
+      <map code="0xd8" name="Oslash"/><!-- LATIN CAPITAL LETTER O WITH STROKE -->
+      <map code="0xd9" name="Ugrave"/><!-- LATIN CAPITAL LETTER U WITH GRAVE -->
+      <map code="0xda" name="Uacute"/><!-- LATIN CAPITAL LETTER U WITH ACUTE -->
+      <map code="0xde" name="Thorn"/><!-- LATIN CAPITAL LETTER THORN -->
+    </cmap_format_12>
+  </cmap>
+
+  <loca>
+    <!-- The 'loca' table will be calculated by the compiler -->
+  </loca>
+
+  <glyf>
+
+    <!-- The xMin, yMin, xMax and yMax values
+         will be recalculated by the compiler. -->
+
+    <TTGlyph name=".notdef"/><!-- contains no outline data -->
+
+    <TTGlyph name="Oslash" xMin="118" yMin="-93" xMax="1309" yMax="1516">
+      <contour>
+        <pt x="1289" y="681" on="1"/>
+        <pt x="1289" y="467" on="0"/>
+        <pt x="1145" y="148" on="0"/>
+        <pt x="881" y="-20" on="0"/>
+        <pt x="705" y="-20" on="1"/>
+        <pt x="534" y="-20" on="0"/>
+        <pt x="403" y="62" on="1"/>
+        <pt x="306" y="-93" on="1"/>
+        <pt x="164" y="-93" on="1"/>
+        <pt x="308" y="138" on="1"/>
+        <pt x="118" y="330" on="0"/>
+        <pt x="118" y="690" on="1"/>
+        <pt x="118" y="773" on="1"/>
+        <pt x="118" y="983" on="0"/>
+        <pt x="264" y="1305" on="0"/>
+        <pt x="531" y="1476" on="0"/>
+        <pt x="703" y="1476" on="1"/>
+        <pt x="917" y="1476" on="0"/>
+        <pt x="1065" y="1351" on="1"/>
+        <pt x="1168" y="1516" on="1"/>
+        <pt x="1309" y="1516" on="1"/>
+        <pt x="1150" y="1261" on="1"/>
+        <pt x="1287" y="1074" on="0"/>
+        <pt x="1289" y="780" on="1"/>
+      </contour>
+      <contour>
+        <pt x="309" y="681" on="1"/>
+        <pt x="309" y="437" on="0"/>
+        <pt x="407" y="296" on="1"/>
+        <pt x="971" y="1200" on="1"/>
+        <pt x="869" y="1311" on="0"/>
+        <pt x="703" y="1311" on="1"/>
+        <pt x="521" y="1311" on="0"/>
+        <pt x="312" y="1034" on="0"/>
+        <pt x="309" y="788" on="1"/>
+      </contour>
+      <contour>
+        <pt x="1098" y="775" on="1"/>
+        <pt x="1098" y="957" on="0"/>
+        <pt x="1042" y="1088" on="1"/>
+        <pt x="493" y="207" on="1"/>
+        <pt x="584" y="143" on="0"/>
+        <pt x="705" y="143" on="1"/>
+        <pt x="891" y="143" on="0"/>
+        <pt x="1095" y="414" on="0"/>
+        <pt x="1098" y="667" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="Thorn" xMin="166" yMin="0" xMax="1117" yMax="1456">
+      <contour>
+        <pt x="352" y="1456" on="1"/>
+        <pt x="352" y="1163" on="1"/>
+        <pt x="631" y="1163" on="1"/>
+        <pt x="778" y="1163" on="0"/>
+        <pt x="998" y="1058" on="0"/>
+        <pt x="1117" y="864" on="0"/>
+        <pt x="1117" y="738" on="1"/>
+        <pt x="1117" y="544" on="0"/>
+        <pt x="853" y="313" on="0"/>
+        <pt x="626" y="313" on="1"/>
+        <pt x="352" y="313" on="1"/>
+        <pt x="352" y="0" on="1"/>
+        <pt x="166" y="0" on="1"/>
+        <pt x="166" y="1456" on="1"/>
+      </contour>
+      <contour>
+        <pt x="352" y="1011" on="1"/>
+        <pt x="352" y="465" on="1"/>
+        <pt x="629" y="465" on="1"/>
+        <pt x="771" y="465" on="0"/>
+        <pt x="931" y="616" on="0"/>
+        <pt x="931" y="736" on="1"/>
+        <pt x="931" y="859" on="0"/>
+        <pt x="771" y="1010" on="0"/>
+        <pt x="635" y="1011" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="Uacute" xMin="140" yMin="-20" xMax="1194" yMax="1846">
+      <component glyphName="glyph00001" x="0" y="0" flags="0x204"/>
+      <component glyphName="glyph00003" x="442" y="310" flags="0x4"/>
+    </TTGlyph>
+
+    <TTGlyph name="Ugrave" xMin="140" yMin="-20" xMax="1194" yMax="1846">
+      <component glyphName="glyph00001" x="0" y="0" flags="0x204"/>
+      <component glyphName="glyph00002" x="299" y="310" flags="0x4"/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00001" xMin="140" yMin="-20" xMax="1194" yMax="1456">
+      <contour>
+        <pt x="1194" y="1456" on="1"/>
+        <pt x="1194" y="466" on="1"/>
+        <pt x="1193" y="260" on="0"/>
+        <pt x="936" y="-2" on="0"/>
+        <pt x="716" y="-18" on="1"/>
+        <pt x="665" y="-20" on="1"/>
+        <pt x="426" y="-20" on="0"/>
+        <pt x="142" y="238" on="0"/>
+        <pt x="140" y="464" on="1"/>
+        <pt x="140" y="1456" on="1"/>
+        <pt x="330" y="1456" on="1"/>
+        <pt x="330" y="470" on="1"/>
+        <pt x="330" y="312" on="0"/>
+        <pt x="504" y="137" on="0"/>
+        <pt x="665" y="137" on="1"/>
+        <pt x="828" y="137" on="0"/>
+        <pt x="1001" y="311" on="0"/>
+        <pt x="1001" y="469" on="1"/>
+        <pt x="1001" y="1456" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00002" xMin="57" yMin="1242" xMax="474" yMax="1536">
+      <contour>
+        <pt x="474" y="1242" on="1"/>
+        <pt x="315" y="1242" on="1"/>
+        <pt x="57" y="1536" on="1"/>
+        <pt x="280" y="1536" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00003" xMin="123" yMin="1242" xMax="540" yMax="1536">
+      <contour>
+        <pt x="316" y="1536" on="1"/>
+        <pt x="540" y="1536" on="1"/>
+        <pt x="272" y="1242" on="1"/>
+        <pt x="123" y="1242" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="multiply" xMin="89" yMin="206" xMax="989" yMax="1123">
+      <contour>
+        <pt x="89" y="329" on="1"/>
+        <pt x="419" y="665" on="1"/>
+        <pt x="91" y="1000" on="1"/>
+        <pt x="210" y="1123" on="1"/>
+        <pt x="539" y="788" on="1"/>
+        <pt x="868" y="1123" on="1"/>
+        <pt x="987" y="1000" on="1"/>
+        <pt x="659" y="665" on="1"/>
+        <pt x="989" y="329" on="1"/>
+        <pt x="870" y="206" on="1"/>
+        <pt x="539" y="543" on="1"/>
+        <pt x="208" y="206" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+  </glyf>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright 2011 Google Inc. All Rights Reserved.
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      Roboto
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      Roboto
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      Roboto
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version 2.137; 2017
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      Roboto-Regular
+    </namerecord>
+  </name>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-150"/>
+    <underlineThickness value="100"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <gasp>
+    <gaspRange rangeMaxPPEM="8" rangeGaspBehavior="2"/>
+    <gaspRange rangeMaxPPEM="65535" rangeGaspBehavior="15"/>
+  </gasp>
+
+  <GDEF>
+    <Version value="0x00010002"/>
+    <GlyphClassDef>
+      <ClassDef glyph="Oslash" class="1"/>
+      <ClassDef glyph="Uacute" class="1"/>
+      <ClassDef glyph="Ugrave" class="1"/>
+    </GlyphClassDef>
+    <MarkGlyphSetsDef>
+      <MarkSetTableFormat value="1"/>
+      <!-- MarkSetCount=2 -->
+      <Coverage index="0">
+      </Coverage>
+      <Coverage index="1">
+      </Coverage>
+    </MarkGlyphSetsDef>
+  </GDEF>
+
+  <GPOS>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=4 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="cyrl"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="2">
+        <ScriptTag value="grek"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="3">
+        <ScriptTag value="latn"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=1 -->
+      <FeatureRecord index="0">
+        <FeatureTag value="kern"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=1 -->
+      <Lookup index="0">
+        <LookupType value="2"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <PairPos index="0" Format="2">
+          <Coverage>
+            <Glyph value="Ugrave"/>
+            <Glyph value="Uacute"/>
+          </Coverage>
+          <ValueFormat1 value="0"/>
+          <ValueFormat2 value="0"/>
+          <ClassDef1>
+          </ClassDef1>
+          <ClassDef2>
+            <ClassDef glyph="Oslash" class="1"/>
+            <ClassDef glyph="Uacute" class="2"/>
+            <ClassDef glyph="Ugrave" class="2"/>
+          </ClassDef2>
+          <!-- Class1Count=1 -->
+          <!-- Class2Count=3 -->
+          <Class1Record index="0">
+            <Class2Record index="0">
+            </Class2Record>
+            <Class2Record index="1">
+            </Class2Record>
+            <Class2Record index="2">
+            </Class2Record>
+          </Class1Record>
+        </PairPos>
+      </Lookup>
+    </LookupList>
+  </GPOS>
+
+  <GSUB>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=4 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=0 -->
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="cyrl"/>
+        <Script>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="2">
+        <ScriptTag value="grek"/>
+        <Script>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="3">
+        <ScriptTag value="latn"/>
+        <Script>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=0 -->
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=0 -->
+    </LookupList>
+  </GSUB>
+
+</ttFont>

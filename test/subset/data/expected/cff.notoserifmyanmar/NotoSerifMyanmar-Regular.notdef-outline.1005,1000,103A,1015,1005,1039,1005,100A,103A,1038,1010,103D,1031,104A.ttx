@@ -1,0 +1,2971 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="OTTO" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="little_section"/>
+    <GlyphID id="2" name="ka"/>
+    <GlyphID id="3" name="ca"/>
+    <GlyphID id="4" name="nnya"/>
+    <GlyphID id="5" name="nnya.thirdtail"/>
+    <GlyphID id="6" name="nnya.notail"/>
+    <GlyphID id="7" name="great_nnya"/>
+    <GlyphID id="8" name="ta"/>
+    <GlyphID id="9" name="pa"/>
+    <GlyphID id="10" name="medial_wa"/>
+    <GlyphID id="11" name="medial_wa_ovl"/>
+    <GlyphID id="12" name="_e"/>
+    <GlyphID id="13" name="visarga"/>
+    <GlyphID id="14" name="virama"/>
+    <GlyphID id="15" name="asat"/>
+    <GlyphID id="16" name="ka.sub"/>
+    <GlyphID id="17" name="ka.sub2"/>
+    <GlyphID id="18" name="ca.sub"/>
+    <GlyphID id="19" name="ca.sub2"/>
+    <GlyphID id="20" name="nnya.sub"/>
+    <GlyphID id="21" name="nnya.sub2"/>
+    <GlyphID id="22" name="ta.sub"/>
+    <GlyphID id="23" name="ta.sub2"/>
+    <GlyphID id="24" name="ta_wa.sub"/>
+    <GlyphID id="25" name="ta_wa.sub2"/>
+    <GlyphID id="26" name="ta_wa_ovl.sub"/>
+    <GlyphID id="27" name="ta_wa_ovl.sub2"/>
+    <GlyphID id="28" name="pa.sub"/>
+    <GlyphID id="29" name="pa.sub2"/>
+    <GlyphID id="30" name="sp5"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="2.001"/>
+    <checkSumAdjustment value="0x64540027"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00000011"/>
+    <unitsPerEm value="1000"/>
+    <created value="Thu Aug 27 21:20:13 2015"/>
+    <modified value="Mon Apr 23 23:26:51 2018"/>
+    <xMin value="-888"/>
+    <yMin value="-1187"/>
+    <xMax value="2202"/>
+    <yMax value="1221"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="6"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="1239"/>
+    <descent value="-1260"/>
+    <lineGap value="0"/>
+    <advanceWidthMax value="2262"/>
+    <minLeftSideBearing value="-888"/>
+    <minRightSideBearing value="-1566"/>
+    <xMaxExtent value="2202"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="31"/>
+  </hhea>
+
+  <maxp>
+    <tableVersion value="0x5000"/>
+    <numGlyphs value="31"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="4"/>
+    <xAvgCharWidth value="568"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="650"/>
+    <ySubscriptYSize value="600"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="75"/>
+    <ySuperscriptXSize value="650"/>
+    <ySuperscriptYSize value="600"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="350"/>
+    <yStrikeoutSize value="50"/>
+    <yStrikeoutPosition value="322"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="2"/>
+      <bSerifStyle value="2"/>
+      <bWeight value="5"/>
+      <bProportion value="2"/>
+      <bContrast value="6"/>
+      <bStrokeVariation value="5"/>
+      <bArmStyle value="5"/>
+      <bLetterForm value="2"/>
+      <bMidline value="2"/>
+      <bXHeight value="4"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000100 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="GOOG"/>
+    <fsSelection value="00000001 01000000"/>
+    <usFirstCharIndex value="4096"/>
+    <usLastCharIndex value="4170"/>
+    <sTypoAscender value="1239"/>
+    <sTypoDescender value="-1260"/>
+    <sTypoLineGap value="0"/>
+    <usWinAscent value="1239"/>
+    <usWinDescent value="1260"/>
+    <ulCodePageRange1 value="00000000 00000000 00000000 00000000"/>
+    <ulCodePageRange2 value="00000000 00000000 00000000 00000000"/>
+    <sxHeight value="536"/>
+    <sCapHeight value="714"/>
+    <usDefaultChar value="0"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="0"/>
+  </OS_2>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright 2016 Google Inc. All Rights Reserved.
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      Noto Serif Myanmar
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      2.001;GOOG;NotoSerifMyanmar-Regular
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      Noto Serif Myanmar Regular
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version 2.001
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      NotoSerifMyanmar-Regular
+    </namerecord>
+  </name>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0x1000" name="ka"/><!-- MYANMAR LETTER KA -->
+      <map code="0x1005" name="ca"/><!-- MYANMAR LETTER CA -->
+      <map code="0x100a" name="nnya"/><!-- MYANMAR LETTER NNYA -->
+      <map code="0x1010" name="ta"/><!-- MYANMAR LETTER TA -->
+      <map code="0x1015" name="pa"/><!-- MYANMAR LETTER PA -->
+      <map code="0x1031" name="_e"/><!-- MYANMAR VOWEL SIGN E -->
+      <map code="0x1038" name="visarga"/><!-- MYANMAR SIGN VISARGA -->
+      <map code="0x1039" name="virama"/><!-- MYANMAR SIGN VIRAMA -->
+      <map code="0x103a" name="asat"/><!-- MYANMAR SIGN ASAT -->
+      <map code="0x103d" name="medial_wa"/><!-- MYANMAR CONSONANT SIGN MEDIAL WA -->
+      <map code="0x104a" name="little_section"/><!-- MYANMAR SIGN LITTLE SECTION -->
+    </cmap_format_4>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x1000" name="ka"/><!-- MYANMAR LETTER KA -->
+      <map code="0x1005" name="ca"/><!-- MYANMAR LETTER CA -->
+      <map code="0x100a" name="nnya"/><!-- MYANMAR LETTER NNYA -->
+      <map code="0x1010" name="ta"/><!-- MYANMAR LETTER TA -->
+      <map code="0x1015" name="pa"/><!-- MYANMAR LETTER PA -->
+      <map code="0x1031" name="_e"/><!-- MYANMAR VOWEL SIGN E -->
+      <map code="0x1038" name="visarga"/><!-- MYANMAR SIGN VISARGA -->
+      <map code="0x1039" name="virama"/><!-- MYANMAR SIGN VIRAMA -->
+      <map code="0x103a" name="asat"/><!-- MYANMAR SIGN ASAT -->
+      <map code="0x103d" name="medial_wa"/><!-- MYANMAR CONSONANT SIGN MEDIAL WA -->
+      <map code="0x104a" name="little_section"/><!-- MYANMAR SIGN LITTLE SECTION -->
+    </cmap_format_4>
+  </cmap>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-100"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <CFF>
+    <major value="1"/>
+    <minor value="0"/>
+    <CFFFont name="NotoSerifMyanmar-Regular">
+      <version value="2.1"/>
+      <Notice value="Noto is a trademark of Google Inc."/>
+      <Copyright value="Copyright 2016 Google Inc. All Rights Reserved."/>
+      <FullName value="Noto Serif Myanmar Regular"/>
+      <FontName value="NotoSerifMyanmar-Regular"/>
+      <FamilyName value="Noto Serif Myanmar"/>
+      <Weight value="Normal"/>
+      <isFixedPitch value="0"/>
+      <ItalicAngle value="0"/>
+      <UnderlinePosition value="-100"/>
+      <UnderlineThickness value="50"/>
+      <PaintType value="0"/>
+      <CharstringType value="2"/>
+      <FontMatrix value="0.001 0 0 0.001 0 0"/>
+      <FontBBox value="-888 -1187 2202 1221"/>
+      <StrokeWidth value="0"/>
+      <!-- charset is dumped separately as the 'GlyphOrder' element -->
+      <Encoding name="StandardEncoding"/>
+      <Private>
+        <BlueValues value="-11 0 536 544 714 726 1239 1255"/>
+        <OtherBlues value="-1276 -1260"/>
+        <BlueScale value="0.046875"/>
+        <BlueShift value="7"/>
+        <BlueFuzz value="0"/>
+        <StdHW value="94"/>
+        <StdVW value="57"/>
+        <StemSnapH value="94"/>
+        <StemSnapV value="57"/>
+        <ForceBold value="0"/>
+        <LanguageGroup value="0"/>
+        <ExpansionFactor value="0.06"/>
+        <initialRandomSeed value="0"/>
+        <defaultWidthX value="200"/>
+        <nominalWidthX value="0"/>
+        <Subrs>
+          <!-- The 'index' attribute is only for humans; it is ignored when parsed. -->
+          <CharString index="0">
+            -119 -81 -56 -128 return
+          </CharString>
+          <CharString index="1">
+            -12 vlineto
+            -107 callsubr
+            return
+          </CharString>
+          <CharString index="2">
+            hlineto
+            77 58 29 45 36 hvcurveto
+            return
+          </CharString>
+          <CharString index="3">
+            81 -16 62 -36 46 vhcurveto
+            54 -42 -67 33 -88 hhcurveto
+            return
+          </CharString>
+          <CharString index="4">
+            88 68 34 53 41 hvcurveto
+            return
+          </CharString>
+          <CharString index="5">
+            vhcurveto
+            -54 -91 hlineto
+            -2 17 20 -1 21 hhcurveto
+            return
+          </CharString>
+          <CharString index="6">
+            36 46 16 60 82 vvcurveto
+            return
+          </CharString>
+          <CharString index="7">
+            -95 callgsubr
+            -53 -41 hvcurveto
+            -37 -53 callsubr
+            -56 callsubr
+            return
+          </CharString>
+          <CharString index="8">
+            128 81 -56 -120 hvcurveto
+            return
+          </CharString>
+          <CharString index="9">
+            128 -82 callsubr
+            return
+          </CharString>
+          <CharString index="10">
+            rmoveto
+            103 -71 57 -58 -74 vvcurveto
+            -74 return
+          </CharString>
+          <CharString index="11">
+            129 80 -56 -120 hvcurveto
+            -12 vlineto
+            return
+          </CharString>
+          <CharString index="12">
+            16 60 82 vvcurveto
+            83 -16 60 return
+          </CharString>
+          <CharString index="13">
+            -107 callsubr
+            vhcurveto
+            return
+          </CharString>
+          <CharString index="14">
+            95 vlineto
+            -70 -6 -50 -29 return
+          </CharString>
+          <CharString index="15">
+            80 46 51 72 73 -46 51 -80 -81 -46 -51 -73 -72 46 -51 81 hvcurveto
+            return
+          </CharString>
+          <CharString index="16">
+            -129 -80 56 119 return
+          </CharString>
+          <CharString index="17">
+            90 64 34 48 39 hvcurveto
+            return
+          </CharString>
+          <CharString index="18">
+            -35 callsubr
+            endchar
+          </CharString>
+          <CharString index="19">
+            117 334 rmoveto
+            69 13 73 44 117 hhcurveto
+            -99 callsubr
+            -12 vlineto
+            -107 callsubr
+            -63 callsubr
+            -52 return
+          </CharString>
+          <CharString index="20">
+            -35 -45 rrcurveto
+            -42 -53 -15 -63 -80 vvcurveto
+            -79 15 -64 42 -50 vhcurveto
+            -48 38 64 -34 91 hhcurveto
+            20 hlineto
+            return
+          </CharString>
+          <CharString index="21">
+            -33 callsubr
+            -54 callsubr
+            return
+          </CharString>
+          <CharString index="22">
+            vhcurveto
+            12 vlineto
+            110 63 54 98 11 vhcurveto
+            return
+          </CharString>
+          <CharString index="23">
+            70 -13 51 -32 40 vhcurveto
+            45 -36 return
+          </CharString>
+          <CharString index="24">
+            -105 callgsubr
+            45 109 return
+          </CharString>
+          <CharString index="25">
+            81 -56 -120 vhcurveto
+            -12 vlineto
+            return
+          </CharString>
+          <CharString index="26">
+            -89 callgsubr
+            endchar
+          </CharString>
+          <CharString index="27">
+            15 60 82 vvcurveto
+            83 -15 60 -73 callsubr
+            return
+          </CharString>
+          <CharString index="28">
+            vhcurveto
+            33 36 55 16 68 hhcurveto
+            return
+          </CharString>
+          <CharString index="29">
+            -110 -68 45 98 hvcurveto
+            10 vlineto
+            97 68 45 110 -89 callsubr
+          </CharString>
+          <CharString index="30">
+            -70 rmoveto
+            -76 -59 -28 -45 -36 hvcurveto
+            -31 -40 -14 -51 -70 vvcurveto
+            return
+          </CharString>
+          <CharString index="31">
+            vvcurveto
+            60 -13 43 -46 callsubr
+            -66 hhcurveto
+            -15 hlineto
+            return
+          </CharString>
+          <CharString index="32">
+            60 vmoveto
+            -58 -26 27 36 36 26 return
+          </CharString>
+          <CharString index="33">
+            36 hvcurveto
+            32 39 13 51 70 vvcurveto
+            return
+          </CharString>
+          <CharString index="34">
+            -37 46 vhcurveto
+            53 -41 -67 34 return
+          </CharString>
+          <CharString index="35">
+            120 80 56 129 return
+          </CharString>
+          <CharString index="36">
+            41 50 15 64 79 vvcurveto
+            return
+          </CharString>
+          <CharString index="37">
+            hhcurveto
+            -20 hlineto
+            -91 -64 -34 return
+          </CharString>
+          <CharString index="38">
+            -95 hhcurveto
+            -21 -20 -1 -3 -17 hvcurveto
+            -90 54 vlineto
+            -99 callsubr
+            -106 callsubr
+            return
+          </CharString>
+          <CharString index="39">
+            -48 -38 hvcurveto
+            -42 -51 -15 -63 -79 vvcurveto
+            -73 callgsubr
+            return
+          </CharString>
+          <CharString index="40">
+            80 -15 63 -42 53 vhcurveto
+            -34 45 -51 29 -70 6 rrcurveto
+            return
+          </CharString>
+          <CharString index="41">
+            -22 hlineto
+            -135 -95 -80 -127 -13 hvcurveto
+            endchar
+          </CharString>
+          <CharString index="42">
+            80 116 107 -83 79 -114 78 hvcurveto
+            return
+          </CharString>
+          <CharString index="43">
+            -457 -58 callsubr
+            128 return
+          </CharString>
+          <CharString index="44">
+            -117 -73 43 70 -13 vhcurveto
+            return
+          </CharString>
+          <CharString index="45">
+            -29 81 -51 callsubr
+            return
+          </CharString>
+          <CharString index="46">
+            53 -6 44 -15 36 vhcurveto
+            33 37 54 16 68 hhcurveto
+            -99 callsubr
+            -106 callsubr
+            return
+          </CharString>
+          <CharString index="47">
+            -68 -55 16 33 -36 vhcurveto
+            14 37 7 44 51 vvcurveto
+            return
+          </CharString>
+          <CharString index="48">
+            -37 -81 vhcurveto
+            -9 vlineto
+            -74 -46 -37 -71 -8 vhcurveto
+            return
+          </CharString>
+          <CharString index="49">
+            rmoveto
+            -96 callgsubr
+            -72 callsubr
+            return
+          </CharString>
+          <CharString index="50">
+            50 -6 44 -15 38 -79 callsubr
+            return
+          </CharString>
+          <CharString index="51">
+            -46 vhcurveto
+            -53 41 67 -34 89 hhcurveto
+            20 hlineto
+            return
+          </CharString>
+          <CharString index="52">
+            -77 hhcurveto
+            -9 -382 -83 callsubr
+            return
+          </CharString>
+          <CharString index="53">
+            -80 callsubr
+            -89 hhcurveto
+            -20 hlineto
+            return
+          </CharString>
+          <CharString index="54">
+            -46 -16 -60 -83 vvcurveto
+            -82 16 -60 37 return
+          </CharString>
+          <CharString index="55">
+            640 -42 callsubr
+            return
+          </CharString>
+          <CharString index="56">
+            hhcurveto
+            20 hlineto
+            89 -33 callsubr
+            return
+          </CharString>
+          <CharString index="57">
+            367 -10 rmoveto
+            -40 callsubr
+            return
+          </CharString>
+          <CharString index="58">
+            -40 -14 -51 -70 vvcurveto
+            -70 14 -51 return
+          </CharString>
+          <CharString index="59">
+            -110 -64 -53 -98 -12 vhcurveto
+            return
+          </CharString>
+          <CharString index="60">
+            58 29 45 36 hvcurveto
+            31 39 return
+          </CharString>
+          <CharString index="61">
+            -27 34 vhcurveto
+            38 -31 -51 25 return
+          </CharString>
+          <CharString index="62">
+            -70 rmoveto
+            -81 callgsubr
+            return
+          </CharString>
+          <CharString index="63">
+            -80 -68 -29 -48 -41 hvcurveto
+            45 return
+          </CharString>
+          <CharString index="64">
+            15 51 69 vvcurveto
+            71 -99 callgsubr
+            -77 hhcurveto
+            -17 hlineto
+            return
+          </CharString>
+          <CharString index="65">
+            367 541 rmoveto
+            -95 vlineto
+            98 -11 64 -54 -110 vvcurveto
+            -12 vlineto
+            return
+          </CharString>
+          <CharString index="66">
+            -518 hlineto
+            -107 32 -44 42 -24 vhcurveto
+            -38 63 117 -4 return
+          </CharString>
+          <CharString index="67">
+            70 6 51 29 34 45 rrcurveto
+            42 53 15 63 80 vvcurveto
+            return
+          </CharString>
+          <CharString index="68">
+            66 51 24 39 32 hvcurveto
+            27 33 12 43 59 vvcurveto
+            return
+          </CharString>
+          <CharString index="69">
+            32 -39 vhcurveto
+            -45 35 59 -29 76 hhcurveto
+            18 hlineto
+            return
+          </CharString>
+          <CharString index="70">
+            -33 callsubr
+            -80 callsubr
+            return
+          </CharString>
+          <CharString index="71">
+            hhcurveto
+            -21 -19 -1 -3 -18 hvcurveto
+            -90 54 vlineto
+            return
+          </CharString>
+          <CharString index="72">
+            109 69 -45 -102 callgsubr
+            return
+          </CharString>
+          <CharString index="73">
+            71 51 25 37 31 hvcurveto
+            27 34 13 return
+          </CharString>
+          <CharString index="74">
+            67 34 53 41 hvcurveto
+            37 46 return
+          </CharString>
+          <CharString index="75">
+            -70 14 -51 31 -39 vhcurveto
+            -45 return
+          </CharString>
+          <CharString index="76">
+            -93 -60 37 81 hvcurveto
+            9 vlineto
+            return
+          </CharString>
+          <CharString index="77">
+            0 -477 -598 rmoveto
+            -66 -51 -24 -39 -31 -62 callgsubr
+            return
+          </CharString>
+          <CharString index="78">
+            -129 -69 -56 16 35 -36 vhcurveto
+            14 36 6 44 50 vvcurveto
+            -104 callsubr
+            -66 callsubr
+          </CharString>
+          <CharString index="79">
+            -51 -40 hvcurveto
+            -38 -48 -16 -60 -83 vvcurveto
+            -82 16 -60 38 -48 vhcurveto
+            -51 40 67 -34 89 hhcurveto
+            20 hlineto
+            return
+          </CharString>
+          <CharString index="80">
+            -68 13 -53 35 -44 vhcurveto
+            31 -39 44 -25 60 -5 rrcurveto
+            86 vlineto
+            -15 callsubr
+            return
+          </CharString>
+          <CharString index="81">
+            -58 -26 27 35 37 26 27 58 57 26 -27 -37 -35 -26 -27 -57 hvcurveto
+            return
+          </CharString>
+          <CharString index="82">
+            0 -284 -598 rmoveto
+            -76 vlineto
+            71 -8 46 -37 -74 vvcurveto
+            -9 vlineto
+            return
+          </CharString>
+          <CharString index="83">
+            61 5 44 25 31 39 rrcurveto
+            35 44 13 53 68 vvcurveto
+            return
+          </CharString>
+          <CharString index="84">
+            36 58 -29 77 hhcurveto
+            18 hlineto
+            76 59 29 45 return
+          </CharString>
+          <CharString index="85">
+            -89 hhcurveto
+            -20 hlineto
+            -80 -68 -29 -48 -41 hvcurveto
+            return
+          </CharString>
+          <CharString index="86">
+            -69 125 -80 vhcurveto
+            18 -12 rlineto
+            return
+          </CharString>
+          <CharString index="87">
+            -70 115 -166 hhcurveto
+            -20 hlineto
+            return
+          </CharString>
+          <CharString index="88">
+            -70 14 -51 -38 callsubr
+            return
+          </CharString>
+          <CharString index="89">
+            -3 -6 -17 hvcurveto
+            41 24 51 20 68 hhcurveto
+            94 61 -40 -85 hvcurveto
+            -9 vlineto
+            -85 -61 -39 -94 -68 -51 20 return
+          </CharString>
+          <CharString index="90">
+            47 -41 -64 30 -83 hhcurveto
+            -10 -64 callsubr
+            -82 callsubr
+            -94 callsubr
+            return
+          </CharString>
+          <CharString index="91">
+            32 36 10 46 57 vvcurveto
+            57 -11 45 -31 39 vhcurveto
+            -26 32 -38 22 -53 4 rrcurveto
+            return
+          </CharString>
+          <CharString index="92">
+            -82 10 -54 43 89 vvcurveto
+            11 vlineto
+            96 69 -84 callgsubr
+            -83 -10 vhcurveto
+            return
+          </CharString>
+          <CharString index="93">
+            -9 vlineto
+            -80 -60 -39 -94 vhcurveto
+            -40 -73 hlineto
+            -1 13 15 -1 15 hhcurveto
+            return
+          </CharString>
+          <CharString index="94">
+            -97 -69 -46 -109 -109 -69 46 97 vhcurveto
+            -72 callgsubr
+            return
+          </CharString>
+          <CharString index="95">
+            hvcurveto
+            -31 -37 -12 -46 -57 vvcurveto
+            -57 12 -45 31 -38 vhcurveto
+            return
+          </CharString>
+          <CharString index="96">
+            -38 48 vhcurveto
+            51 -39 -68 34 -88 hhcurveto
+            -121 -382 rmoveto
+            116 46 28 78 75 -46 32 -116 -37 -29 -4 -9 -23 hvcurveto
+            64 31 70 31 95 -2 callsubr
+            -95 -70 30 65 -31 vhcurveto
+            -9 23 29 -4 37 hhcurveto
+            -7 45 rmoveto
+            -76 -21 23 40 37 21 23 76 75 22 -23 -37 -40 -22 -23 -75 hvcurveto
+            endchar
+          </CharString>
+          <CharString index="97">
+            -60 -51 -21 -34 -30 hvcurveto
+            34 -33 -48 21 -61 3 callsubr
+            93 -100 callgsubr
+            -93 vhcurveto
+            return
+          </CharString>
+          <CharString index="98">
+            385 193 294 rmoveto
+            80 46 50 72 74 -46 51 -80 -81 -46 -51 -74 -72 46 -50 81 hvcurveto
+            60 vmoveto
+            -26 callsubr
+            return
+          </CharString>
+          <CharString index="99">
+            77 68 50 -23 61 -132 -78 -81 -20 -103 hvcurveto
+            -34 vlineto
+            -93 16 -55 55 99 vvcurveto
+            12 vlineto
+            120 80 56 return
+          </CharString>
+          <CharString index="100">
+            -319 -64 rmoveto
+            -21 -14 rlineto
+            -113 -78 -83 -79 -107 vvcurveto
+            -116 75 -80 139 vhcurveto
+            6 hlineto
+            return
+          </CharString>
+          <CharString index="101">
+            -66 -51 -25 -38 -31 hvcurveto
+            -28 -33 -12 -44 -59 vvcurveto
+            -60 12 -43 28 -34 vhcurveto
+            -37 31 51 return
+          </CharString>
+          <CharString index="102">
+            44 -35 -59 29 -77 hhcurveto
+            -12 -391 rmoveto
+            -81 -60 25 52 -27 hvcurveto
+            -7 20 26 -4 30 hhcurveto
+            103 40 24 67 64 -40 26 -103 -30 -26 -3 -8 -20 hvcurveto
+            53 27 60 25 81 hhcurveto
+            111 70 -49 -103 hvcurveto
+            -10 vlineto
+            -104 -70 -48 -111 vhcurveto
+            -98 105 rmoveto
+            -66 -19 21 32 31 19 19 66 65 18 -19 -31 -32 -18 -21 -65 hvcurveto
+            endchar
+          </CharString>
+          <CharString index="103">
+            -67 -32 -56 -42 hvcurveto
+            -35 -47 -19 -64 -77 vvcurveto
+            -80 18 -62 35 -46 vhcurveto
+            -58 45 73 -29 99 hhcurveto
+            12 hlineto
+            177 54 -8 callsubr
+            129 116 74 -44 -69 13 vhcurveto
+            -202 -250 rmoveto
+            -6 -6 0 -5 hhcurveto
+            41 vlineto
+            53 47 14 50 vhcurveto
+            33 hlineto
+            55 35 -15 -33 -36 -38 -24 -99 hvcurveto
+            endchar
+          </CharString>
+          <CharString index="104">
+            0 -274 -797 rmoveto
+            59 -12 44 -28 33 vhcurveto
+            38 -31 -50 25 -67 hhcurveto
+            -15 hlineto
+            -66 -51 -24 -39 -32 hvcurveto
+            -19 -23 -11 -29 -5 -35 rrcurveto
+            46 hlineto
+            50 18 53 24 75 hhcurveto
+            93 59 -37 -81 hvcurveto
+            -10 vlineto
+            -81 -59 -37 -93 -75 -53 24 50 -18 vhcurveto
+            -46 return
+          </CharString>
+          <CharString index="105">
+            hhcurveto
+            130 83 -58 -125 hvcurveto
+            -12 vlineto
+            -125 -83 -57 -130 return
+          </CharString>
+          <CharString index="106">
+            -509 hlineto
+            -111 40 -48 54 -26 vhcurveto
+            -38 78 154 -3 return
+          </CharString>
+          <CharString index="107">
+            -56 hvcurveto
+            -45 17 -21 36 68 vvcurveto
+            363 -98 callgsubr
+            return
+          </CharString>
+          <CharString index="108">
+            15 hlineto
+            66 51 25 38 31 hvcurveto
+            27 33 13 43 60 vvcurveto
+            return
+          </CharString>
+          <CharString index="109">
+            -80 -60 -38 -94 vhcurveto
+            -40 -73 hlineto
+            -1 13 15 -1 15 hhcurveto
+            return
+          </CharString>
+          <CharString index="110">
+            hhcurveto
+            -8 -322 rmoveto
+            -31 callsubr
+            81 60 38 93 return
+          </CharString>
+          <CharString index="111">
+            vvcurveto
+            67 -13 54 -35 44 vhcurveto
+            -31 38 -44 25 -61 6 rrcurveto
+            return
+          </CharString>
+        </Subrs>
+      </Private>
+      <CharStrings>
+        <CharString name=".notdef">
+          600 94 hmoveto
+          411 714 -411 hlineto
+          51 -51 rmoveto
+          309 -612 -309 hlineto
+          endchar
+        </CharString>
+        <CharString name="_e">
+          640 574 -80 callgsubr
+          -4 callsubr
+        </CharString>
+        <CharString name="asat">
+          0 -302 652 rmoveto
+          -113 -78 callgsubr
+          102 67 -39 -102 -101 callgsubr
+          -86 callgsubr
+          87 -21 callsubr
+          endchar
+        </CharString>
+        <CharString name="ca">
+          640 -95 callgsubr
+          -28 callsubr
+          88 68 34 51 39 hvcurveto
+          38 48 -95 callsubr
+          -11 callsubr
+        </CharString>
+        <CharString name="ca.sub">
+          0 -327 -70 rmoveto
+          -77 -59 -29 -44 -35 hvcurveto
+          -32 -49 callsubr
+          32 -59 callgsubr
+          13 51 70 vvcurveto
+          70 -13 51 -32 40 vhcurveto
+          -5 callsubr
+        </CharString>
+        <CharString name="ca.sub2">
+          0 -327 -598 rmoveto
+          -6 callsubr
+          -24 66 hhcurveto
+          15 hlineto
+          66 51 24 37 31 hvcurveto
+          27 34 12 43 60 -66 callgsubr
+          -25 -22 -18 callsubr
+          -71 callgsubr
+        </CharString>
+        <CharString name="great_nnya">
+          1434 -88 callsubr
+          -1 callsubr
+          328 hhcurveto
+          330 157 3 38 77 hvcurveto
+          54 26 37 48 111 vvcurveto
+          37 -53 -10 vlineto
+          -73 -25 -39 -59 -16 vhcurveto
+          -24 -76 -141 -5 -299 hhcurveto
+          -297 -140 5 23 -77 hvcurveto
+          -58 17 -27 39 73 vvcurveto
+          351 -98 callgsubr
+          -85 callgsubr
+          83 64 30 47 -104 callgsubr
+          88 67 34 53 42 hvcurveto
+          36 46 -95 callsubr
+          -36 46 vhcurveto
+          53 -42 -67 34 -95 hhcurveto
+          -20 -20 -1 -3 -18 hvcurveto
+          -90 54 vlineto
+          -96 callsubr
+          -119 -80 -56 -128 -68 -55 16 32 -36 vhcurveto
+          14 37 6 44 52 vvcurveto
+          83 -15 60 -73 callsubr
+          -69 callsubr
+          -60 callsubr
+          -104 callsubr
+          -66 callsubr
+        </CharString>
+        <CharString name="ka">
+          1037 -50 callsubr
+          -57 callsubr
+          -99 callsubr
+          -106 callsubr
+          -102 callsubr
+          95 -86 callsubr
+          -44 callsubr
+          -38 -63 32 -87 -70 callsubr
+          -68 callsubr
+          -98 callsubr
+          -48 callsubr
+          endchar
+        </CharString>
+        <CharString name="ka.sub">
+          0 -451 -97 callgsubr
+          41 -5 37 -107 callgsubr
+          83 -47 callsubr
+          -43 callsubr
+          -69 -60 -25 -40 -35 hvcurveto
+          38 -35 -54 27 -74 hhcurveto
+          -18 hlineto
+          -79 -55 -30 -41 -92 callgsubr
+          -27 callsubr
+          endchar
+        </CharString>
+        <CharString name="ka.sub2">
+          0 -434 -87 callgsubr
+          35 -4 31 -11 26 vhcurveto
+          21 28 40 -94 callgsubr
+          -14 callsubr
+          -34 callsubr
+          43 58 -76 callsubr
+          -60 -51 -21 -35 -31 hvcurveto
+          32 -29 -47 24 -66 hhcurveto
+          -15 hlineto
+          -69 -47 -25 -34 -29 -12 callsubr
+          26 -33 38 -21 53 -88 callgsubr
+          59 -59 callsubr
+          endchar
+        </CharString>
+        <CharString name="little_section">
+          252 155 531 rmoveto
+          -58 -531 58 hlineto
+          endchar
+        </CharString>
+        <CharString name="medial_wa">
+          0 -329 -77 callsubr
+          -19 callsubr
+          77 58 29 45 -74 callsubr
+          -84 callsubr
+          -58 28 -55 callsubr
+          -89 callsubr
+        </CharString>
+        <CharString name="medial_wa_ovl">
+          0 -7 callsubr
+          138 76 -65 callsubr
+          -20 -43 -97 callsubr
+          -81 callsubr
+        </CharString>
+        <CharString name="nnya">
+          1040 -88 callsubr
+          -41 callsubr
+          -68 callgsubr
+          -23 -57 -104 -4 -176 hhcurveto
+          -176 -105 5 21 0 callsubr
+          83 65 29 49 42 hvcurveto
+          -49 40 69 -62 callsubr
+          -95 callsubr
+          -73 callsubr
+          -95 -36 callsubr
+          -96 callsubr
+          -119 -80 -56 -29 callsubr
+        </CharString>
+        <CharString name="nnya.notail">
+          1040 -88 callsubr
+          -70 callgsubr
+          83 65 29 49 42 hvcurveto
+          -49 40 69 -62 callsubr
+          -95 callsubr
+          -73 callsubr
+          -95 -36 callsubr
+          -96 callsubr
+          -119 -80 -56 -29 callsubr
+        </CharString>
+        <CharString name="nnya.sub">
+          0 78 -619 rmoveto
+          -45 hlineto
+          -95 -22 -25 -96 -7 vhcurveto
+          -145 -11 -177 0 -146 11 rrcurveto
+          -96 7 -22 25 95 vvcurveto
+          151 vlineto
+          -44 37 59 -26 72 hhcurveto
+          18 hlineto
+          73 55 24 42 36 hvcurveto
+          -41 36 59 -25 70 hhcurveto
+          17 -105 callsubr
+          -60 callgsubr
+          -59 -48 12 27 -31 vhcurveto
+          12 30 6 37 42 vvcurveto
+          67 -16 53 -32 41 vhcurveto
+          45 -36 -58 28 -74 hhcurveto
+          -18 hlineto
+          -144 -60 -99 -77 -8 hvcurveto
+          -69 callgsubr
+          -2 -278 hlineto
+          -141 47 -40 113 -7 vhcurveto
+          152 -10 169 0 151 10 rrcurveto
+          113 7 48 42 139 vvcurveto
+          endchar
+        </CharString>
+        <CharString name="nnya.sub2">
+          -3 callsubr
+          -174 hlineto
+          -121 41 -34 99 -5 vhcurveto
+          -5 65 70 -2 69 hhcurveto
+          70 69 2 5 66 hvcurveto
+          98 5 41 35 120 vvcurveto
+          17 -40 vlineto
+          -80 -19 -20 -82 -6 vhcurveto
+          -5 -63 -70 -2 -70 hhcurveto
+          -70 -69 2 5 -63 hvcurveto
+          -83 6 -18 20 80 vvcurveto
+          63 vlineto
+          -35 31 50 -20 62 hhcurveto
+          15 hlineto
+          63 48 21 34 31 hvcurveto
+          -35 31 50 -20 61 hhcurveto
+          1 callsubr
+          58 -13 -77 callgsubr
+          -103 callgsubr
+          -65 callgsubr
+        </CharString>
+        <CharString name="nnya.thirdtail">
+          1040 -88 callsubr
+          -41 callsubr
+          134 hhcurveto
+          94 vlineto
+          -104 -105 5 21 0 callsubr
+          83 65 29 49 42 hvcurveto
+          -49 40 69 -62 callsubr
+          -95 callsubr
+          -73 callsubr
+          -95 -36 callsubr
+          -96 callsubr
+          -119 -80 -56 -29 callsubr
+        </CharString>
+        <CharString name="pa">
+          -52 callsubr
+          -107 callsubr
+          -91 callsubr
+          -85 callsubr
+          -93 callsubr
+          -87 callsubr
+          -90 callsubr
+          -71 callsubr
+          -67 callsubr
+          endchar
+        </CharString>
+        <CharString name="pa.sub">
+          -93 callgsubr
+          -13 callsubr
+          -74 callgsubr
+          endchar
+        </CharString>
+        <CharString name="pa.sub2">
+          -25 callsubr
+          -81 -60 -37 -93 -93 -60 37 81 vhcurveto
+          -76 callgsubr
+          -106 callgsubr
+          -16 callsubr
+          endchar
+        </CharString>
+        <CharString name="sp5">
+          100 endchar
+        </CharString>
+        <CharString name="ta">
+          1037 -100 callsubr
+          -103 callsubr
+          -101 callsubr
+          -61 callsubr
+          -102 callsubr
+          95 -37 callsubr
+          -22 callsubr
+          -17 callsubr
+          endchar
+        </CharString>
+        <CharString name="ta.sub">
+          0 -501 -45 callsubr
+          -32 callsubr
+          -23 callsubr
+          -74 callsubr
+          -90 callgsubr
+          -10 vlineto
+          -97 -69 -46 -109 -75 callgsubr
+          83 -47 callsubr
+          -43 callsubr
+          -83 callgsubr
+          -9 -382 rmoveto
+          -78 callsubr
+        </CharString>
+        <CharString name="ta.sub2">
+          -30 callsubr
+          -39 callsubr
+          -61 callgsubr
+          2 callsubr
+          -34 callsubr
+          42 59 -76 callsubr
+          -10 callsubr
+          endchar
+        </CharString>
+        <CharString name="ta_wa.sub">
+          0 30 -309 rmoveto
+          -187 -247 86 -83 -101 vhcurveto
+          -27 -34 -12 -41 -57 vvcurveto
+          -123 66 -69 118 vhcurveto
+          15 hlineto
+          116 68 66 126 64 -17 51 -50 33 hvcurveto
+          72 38 29 67 85 vvcurveto
+          71 -99 callgsubr
+          -77 hhcurveto
+          -17 hlineto
+          -83 callgsubr
+          -18 hlineto
+          -81 callgsubr
+          -32 callsubr
+          -23 callsubr
+          -74 callsubr
+          -90 callgsubr
+          -522 -153 -91 callgsubr
+          345 -297 rmoveto
+          -89 -56 31 71 hvcurveto
+          7 vlineto
+          70 56 32 89 89 55 -32 -70 vhcurveto
+          -7 vlineto
+          -71 -56 -31 -88 vhcurveto
+          endchar
+        </CharString>
+        <CharString name="ta_wa.sub2">
+          -30 callsubr
+          -39 callsubr
+          -61 callgsubr
+          -92 -68 -9 -71 -10 vhcurveto
+          -50 -6 -52 -6 -33 -36 rrcurveto
+          -22 -23 -9 -30 -39 vvcurveto
+          -40 10 -29 21 -22 vhcurveto
+          -26 24 39 -17 52 hhcurveto
+          12 hlineto
+          49 41 16 27 25 hvcurveto
+          21 22 9 29 40 vvcurveto
+          42 -13 31 -32 21 vhcurveto
+          66 32 23 54 75 -76 callsubr
+          -10 callsubr
+          299 -191 rmoveto
+          -67 -43 17 39 hvcurveto
+          3 vlineto
+          39 43 18 67 67 42 -18 -39 vhcurveto
+          -3 vlineto
+          -39 -42 -17 -67 vhcurveto
+          endchar
+        </CharString>
+        <CharString name="ta_wa_ovl.sub">
+          0 -501 -45 callsubr
+          -32 callsubr
+          -23 callsubr
+          -74 callsubr
+          -90 callgsubr
+          -10 vlineto
+          -97 -69 -46 -109 vhcurveto
+          -20 -12 rlineto
+          -120 -66 -66 -61 -92 vvcurveto
+          -91 66 -61 137 vhcurveto
+          7 hlineto
+          136 67 61 91 67 -36 51 -65 48 hvcurveto
+          31 12 25 18 18 23 rrcurveto
+          31 39 -43 callsubr
+          -83 callgsubr
+          -9 -382 -91 callgsubr
+          344 -58 rmoveto
+          108 -56 42 -38 -56 vvcurveto
+          -49 -45 -40 -101 vhcurveto
+          -8 hlineto
+          -101 -45 40 49 56 42 38 108 56 hvcurveto
+          endchar
+        </CharString>
+        <CharString name="ta_wa_ovl.sub2">
+          -30 callsubr
+          -39 callsubr
+          36 -5 31 -9 26 vhcurveto
+          20 27 41 10 49 hhcurveto
+          95 59 -37 -81 hvcurveto
+          -10 vlineto
+          -80 -60 -38 -93 vhcurveto
+          -20 -9 rlineto
+          -99 -48 -31 -49 -50 vvcurveto
+          -65 47 -46 99 vhcurveto
+          6 hlineto
+          100 47 46 65 34 -14 33 -41 33 hvcurveto
+          27 10 19 15 15 18 rrcurveto
+          27 34 13 42 59 -76 callsubr
+          -10 callsubr
+          299 -55 rmoveto
+          67 -34 26 -23 -30 vvcurveto
+          -31 -27 -22 -63 vhcurveto
+          -7 hlineto
+          -63 -27 22 31 30 26 23 68 34 hvcurveto
+          endchar
+        </CharString>
+        <CharString name="virama">
+          0 -91 -327 rmoveto
+          53 -209 vlineto
+          14 200 -66 0 14 -200 rlineto
+          -210 -53 210 hlineto
+          -14 -201 66 0 -14 201 rlineto
+          endchar
+        </CharString>
+        <CharString name="visarga">
+          -9 callsubr
+          -364 vmoveto
+          -92 callsubr
+          -75 callsubr
+          -79 callgsubr
+          endchar
+        </CharString>
+      </CharStrings>
+    </CFFFont>
+
+    <GlobalSubrs>
+      <!-- The 'index' attribute is only for humans; it is ignored when parsed. -->
+      <CharString index="0">
+        -12 32 vhcurveto
+        26 31 47 -63 callgsubr
+        return
+      </CharString>
+      <CharString index="1">
+        -67 callgsubr
+        68 48 25 34 29 hvcurveto
+        return
+      </CharString>
+      <CharString index="2">
+        rmoveto
+        -109 -69 45 98 hvcurveto
+        10 vlineto
+        97 69 return
+      </CharString>
+      <CharString index="3">
+        42 hvcurveto
+        -49 40 69 -28 80 hhcurveto
+        20 hlineto
+        return
+      </CharString>
+      <CharString index="4">
+        -15 -15 -1 -2 -13 hvcurveto
+        -73 40 vlineto
+        94 return
+      </CharString>
+      <CharString index="5">
+        -97 vhcurveto
+        -10 vlineto
+        -98 -69 -45 -109 vhcurveto
+        return
+      </CharString>
+      <CharString index="6">
+        vhcurveto
+        -8 43 vlineto
+        1 6 1 8 10 vvcurveto
+        return
+      </CharString>
+      <CharString index="7">
+        59 -38 -81 vhcurveto
+        -9 vlineto
+        -81 -59 -37 return
+      </CharString>
+      <CharString index="8">
+        -15 50 -31 40 vhcurveto
+        44 -36 -58 30 return
+      </CharString>
+      <CharString index="9">
+        vlineto
+        -44 39 61 -32 88 hhcurveto
+        20 hlineto
+        return
+      </CharString>
+      <CharString index="10">
+        -538 rmoveto
+        -24 callsubr
+        return
+      </CharString>
+      <CharString index="11">
+        -91 callsubr
+        hvcurveto
+        12 vlineto
+        return
+      </CharString>
+      <CharString index="12">
+        310 541 rmoveto
+        -89 -67 -34 return
+      </CharString>
+      <CharString index="13">
+        10 51 hhcurveto
+        93 60 -37 -81 hvcurveto
+        return
+      </CharString>
+      <CharString index="14">
+        0 -279 -82 callgsubr
+        return
+      </CharString>
+      <CharString index="15">
+        -34 hvcurveto
+        -35 -42 -13 -54 -67 vvcurveto
+        return
+      </CharString>
+      <CharString index="16">
+        rmoveto
+        -110 -68 45 98 hvcurveto
+        10 vlineto
+        97 68 45 110 -35 callsubr
+        return
+      </CharString>
+      <CharString index="17">
+        43 -5 36 -12 31 vhcurveto
+        26 31 47 12 59 hhcurveto
+        108 69 -45 -98 hvcurveto
+        return
+      </CharString>
+      <CharString index="18">
+        -47 -54 -109 vhcurveto
+        -8 hlineto
+        -110 -46 54 74 74 57 58 103 71 hvcurveto
+        return
+      </CharString>
+      <CharString index="19">
+        -4 rrcurveto
+        75 vlineto
+        -70 8 -47 37 74 vvcurveto
+        9 vlineto
+        81 59 37 94 93 return
+      </CharString>
+      <CharString index="20">
+        -995 rmoveto
+        53 4 38 21 26 33 rrcurveto
+        32 38 11 45 57 vvcurveto
+        return
+      </CharString>
+      <CharString index="21">
+        133 -77 78 -139 -139 -79 -81 -113 -118 return
+      </CharString>
+      <CharString index="22">
+        82 65 29 48 41 hvcurveto
+        -49 41 68 -28 80 hhcurveto
+        20 hlineto
+        return
+      </CharString>
+      <CharString index="23">
+        47 109 109 69 -47 -96 vhcurveto
+        -11 vlineto
+        -89 -54 -43 return
+      </CharString>
+      <CharString index="24">
+        -69 -59 -24 -41 -35 hvcurveto
+        40 -37 -56 25 -71 hhcurveto
+        return
+      </CharString>
+      <CharString index="25">
+        -70 rmoveto
+        -87 vlineto
+        83 -9 54 -43 -90 vvcurveto
+        -10 vlineto
+        return
+      </CharString>
+      <CharString index="26">
+        -77 -58 -28 -45 -36 hvcurveto
+        -31 -40 -14 -51 -70 vvcurveto
+        return
+      </CharString>
+      <CharString index="27">
+        334 rmoveto
+        92 -8 -20 callsubr
+        -87 return
+      </CharString>
+      <CharString index="28">
+        28 58 57 26 -28 -36 -36 -26 -27 -57 hvcurveto
+        return
+      </CharString>
+      <CharString index="29">
+        68 -60 58 80 vvcurveto
+        72 51 52 112 return
+      </CharString>
+      <CharString index="30">
+        43 -27 34 vhcurveto
+        37 -31 -51 26 -71 hhcurveto
+        return
+      </CharString>
+      <CharString index="31">
+        9 vlineto
+        74 47 37 70 8 vhcurveto
+        76 vlineto
+        return
+      </CharString>
+      <CharString index="32">
+        vhcurveto
+        -46 -83 hlineto
+        -2 15 17 -1 17 hhcurveto
+        return
+      </CharString>
+      <CharString index="33">
+        56 -29 78 hhcurveto
+        18 hlineto
+        79 55 29 42 35 hvcurveto
+        34 42 13 54 67 4 callsubr
+        return
+      </CharString>
+      <CharString index="34">
+        -80 15 -63 42 -53 vhcurveto
+        35 -45 50 -29 70 -6 rrcurveto
+        94 vlineto
+        -98 12 -63 53 110 vvcurveto
+        12 vlineto
+        -72 callsubr
+        return
+      </CharString>
+      <CharString index="35">
+        10 vlineto
+        90 54 43 82 9 vhcurveto
+        87 vlineto
+        -60 -6 -44 -25 -31 -38 rrcurveto
+        -35 -44 -13 -54 -67 vvcurveto
+        -67 13 -54 35 -42 vhcurveto
+        -42 34 return
+      </CharString>
+      <CharString index="36">
+        41 -24 vhcurveto
+        -6 17 21 -3 26 hhcurveto
+        -5 34 rmoveto
+        -58 -16 17 26 27 16 17 58 55 16 -17 -27 -26 -16 -17 -55 hvcurveto
+        endchar
+      </CharString>
+      <CharString index="37">
+        -541 hlineto
+        -141 44 -50 80 5 9 0 1 8 vhcurveto
+        94 -10 vlineto
+        -57 -22 27 92 hvcurveto
+        387 -98 callgsubr
+        return
+      </CharString>
+      <CharString index="38">
+        48 hlineto
+        55 11 62 34 100 hhcurveto
+        108 70 -45 -97 hvcurveto
+        -10 vlineto
+        -97 -70 -46 -108 -100 -62 35 55 -11 vhcurveto
+        -48 hlineto
+        return
+      </CharString>
+      <CharString index="39">
+        204 hhcurveto
+        205 116 4 38 63 hvcurveto
+        42 24 31 44 107 vvcurveto
+        38 -53 -14 vlineto
+        -68 -20 -36 -45 -16 vhcurveto
+        return
+      </CharString>
+      <CharString index="40">
+        -52 -4 -39 -22 -25 -32 rrcurveto
+        -31 -39 -12 -45 -57 vvcurveto
+        -57 11 -46 32 -36 vhcurveto
+        -34 28 48 -25 69 hhcurveto
+        15 hlineto
+        return
+      </CharString>
+      <CharString index="41">
+        vvcurveto
+        59 -11 44 -28 33 vhcurveto
+        38 -31 -51 25 -66 hhcurveto
+        -89 -276 rmoveto
+        89 34 20 57 54 -34 23 -89 return
+      </CharString>
+      <CharString index="42">
+        60 -38 -81 hvcurveto
+        -9 vlineto
+        -80 -60 -38 -93 -51 -41 10 21 -27 vhcurveto
+        10 26 5 30 36 vvcurveto
+        endchar
+      </CharString>
+      <CharString index="43">
+        15 51 70 vvcurveto
+        70 -99 callgsubr
+        -83 hhcurveto
+        -17 -17 -1 -2 -15 hvcurveto
+        -84 46 vlineto
+        109 return
+      </CharString>
+      <CharString index="44">
+        12 59 hhcurveto
+        108 69 -45 -98 hvcurveto
+        -10 vlineto
+        -97 -69 -46 -109 -75 callgsubr
+        return
+      </CharString>
+      <CharString index="45">
+        hvcurveto
+        -27 -33 -12 -44 -59 vvcurveto
+        -59 12 -43 27 -33 vhcurveto
+        -39 31 50 -24 67 hhcurveto
+        15 hlineto
+        return
+      </CharString>
+      <CharString index="46">
+        36 -5 31 -9 26 vhcurveto
+        20 27 40 10 50 hhcurveto
+        94 60 -37 -81 hvcurveto
+        -10 vlineto
+        return
+      </CharString>
+      <CharString index="47">
+        31 39 -64 callgsubr
+        69 -45 -97 hvcurveto
+        -10 vlineto
+        -98 -69 -45 -108 return
+      </CharString>
+      <CharString index="48">
+        -40 vhcurveto
+        -44 35 59 -29 77 hhcurveto
+        17 hlineto
+        77 59 29 44 35 hvcurveto
+        32 40 return
+      </CharString>
+    </GlobalSubrs>
+  </CFF>
+
+  <GDEF>
+    <Version value="0x00010000"/>
+    <GlyphClassDef>
+      <ClassDef glyph="_e" class="1"/>
+      <ClassDef glyph="asat" class="3"/>
+      <ClassDef glyph="ca" class="1"/>
+      <ClassDef glyph="ca.sub" class="3"/>
+      <ClassDef glyph="ca.sub2" class="3"/>
+      <ClassDef glyph="great_nnya" class="1"/>
+      <ClassDef glyph="ka" class="1"/>
+      <ClassDef glyph="ka.sub" class="3"/>
+      <ClassDef glyph="ka.sub2" class="3"/>
+      <ClassDef glyph="medial_wa" class="3"/>
+      <ClassDef glyph="medial_wa_ovl" class="3"/>
+      <ClassDef glyph="nnya" class="1"/>
+      <ClassDef glyph="nnya.notail" class="1"/>
+      <ClassDef glyph="nnya.sub" class="3"/>
+      <ClassDef glyph="nnya.sub2" class="3"/>
+      <ClassDef glyph="nnya.thirdtail" class="1"/>
+      <ClassDef glyph="pa" class="1"/>
+      <ClassDef glyph="pa.sub" class="3"/>
+      <ClassDef glyph="pa.sub2" class="3"/>
+      <ClassDef glyph="ta" class="1"/>
+      <ClassDef glyph="ta.sub" class="3"/>
+      <ClassDef glyph="ta.sub2" class="3"/>
+      <ClassDef glyph="ta_wa.sub" class="3"/>
+      <ClassDef glyph="ta_wa.sub2" class="3"/>
+      <ClassDef glyph="ta_wa_ovl.sub" class="3"/>
+      <ClassDef glyph="ta_wa_ovl.sub2" class="3"/>
+      <ClassDef glyph="virama" class="3"/>
+    </GlyphClassDef>
+    <MarkAttachClassDef>
+      <ClassDef glyph="asat" class="1"/>
+      <ClassDef glyph="ca.sub" class="2"/>
+      <ClassDef glyph="ca.sub2" class="2"/>
+      <ClassDef glyph="ka.sub" class="2"/>
+      <ClassDef glyph="ka.sub2" class="2"/>
+      <ClassDef glyph="medial_wa" class="2"/>
+      <ClassDef glyph="medial_wa_ovl" class="2"/>
+      <ClassDef glyph="nnya.sub" class="2"/>
+      <ClassDef glyph="nnya.sub2" class="2"/>
+      <ClassDef glyph="pa.sub" class="2"/>
+      <ClassDef glyph="pa.sub2" class="2"/>
+      <ClassDef glyph="ta.sub" class="2"/>
+      <ClassDef glyph="ta.sub2" class="2"/>
+      <ClassDef glyph="ta_wa.sub" class="2"/>
+      <ClassDef glyph="ta_wa.sub2" class="2"/>
+      <ClassDef glyph="ta_wa_ovl.sub" class="2"/>
+      <ClassDef glyph="ta_wa_ovl.sub2" class="2"/>
+      <ClassDef glyph="virama" class="3"/>
+    </MarkAttachClassDef>
+  </GDEF>
+
+  <GPOS>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=1 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="mym2"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="0"/>
+            <FeatureIndex index="1" value="1"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=2 -->
+      <FeatureRecord index="0">
+        <FeatureTag value="mark"/>
+        <Feature>
+          <!-- LookupCount=3 -->
+          <LookupListIndex index="0" value="0"/>
+          <LookupListIndex index="1" value="1"/>
+          <LookupListIndex index="2" value="2"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="1">
+        <FeatureTag value="mkmk"/>
+        <Feature>
+          <!-- LookupCount=2 -->
+          <LookupListIndex index="0" value="3"/>
+          <LookupListIndex index="1" value="4"/>
+        </Feature>
+      </FeatureRecord>
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=5 -->
+      <Lookup index="0">
+        <LookupType value="4"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <MarkBasePos index="0" Format="1">
+          <MarkCoverage>
+            <Glyph value="asat"/>
+          </MarkCoverage>
+          <BaseCoverage>
+            <Glyph value="ka"/>
+            <Glyph value="ca"/>
+            <Glyph value="nnya"/>
+            <Glyph value="nnya.thirdtail"/>
+            <Glyph value="nnya.notail"/>
+            <Glyph value="great_nnya"/>
+            <Glyph value="ta"/>
+            <Glyph value="pa"/>
+            <Glyph value="_e"/>
+          </BaseCoverage>
+          <!-- ClassCount=1 -->
+          <MarkArray>
+            <!-- MarkCount=1 -->
+            <MarkRecord index="0">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="601"/>
+              </MarkAnchor>
+            </MarkRecord>
+          </MarkArray>
+          <BaseArray>
+            <!-- BaseCount=9 -->
+            <BaseRecord index="0">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="1">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="2">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="3">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="4">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="5">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="1111"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="6">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="7">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="8">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="601"/>
+              </BaseAnchor>
+            </BaseRecord>
+          </BaseArray>
+        </MarkBasePos>
+      </Lookup>
+      <Lookup index="1">
+        <LookupType value="4"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <MarkBasePos index="0" Format="1">
+          <MarkCoverage>
+            <Glyph value="ka.sub"/>
+            <Glyph value="ka.sub2"/>
+            <Glyph value="nnya.sub"/>
+            <Glyph value="nnya.sub2"/>
+            <Glyph value="ta.sub"/>
+            <Glyph value="ta.sub2"/>
+            <Glyph value="ta_wa.sub"/>
+            <Glyph value="ta_wa.sub2"/>
+            <Glyph value="ta_wa_ovl.sub"/>
+            <Glyph value="ta_wa_ovl.sub2"/>
+          </MarkCoverage>
+          <BaseCoverage>
+            <Glyph value="ka"/>
+            <Glyph value="ca"/>
+            <Glyph value="nnya"/>
+            <Glyph value="nnya.thirdtail"/>
+            <Glyph value="nnya.notail"/>
+            <Glyph value="ta"/>
+            <Glyph value="pa"/>
+            <Glyph value="medial_wa"/>
+            <Glyph value="medial_wa_ovl"/>
+            <Glyph value="_e"/>
+            <Glyph value="virama"/>
+          </BaseCoverage>
+          <!-- ClassCount=1 -->
+          <MarkArray>
+            <!-- MarkCount=10 -->
+            <MarkRecord index="0">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="1">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="2">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="3">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="4">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="5">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="6">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="7">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="8">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="9">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+          </MarkArray>
+          <BaseArray>
+            <!-- BaseCount=11 -->
+            <BaseRecord index="0">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="518"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="1">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="2">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="518"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="3">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="518"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="4">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="518"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="5">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="519"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="6">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="7">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="8">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="9">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="10">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </BaseAnchor>
+            </BaseRecord>
+          </BaseArray>
+        </MarkBasePos>
+      </Lookup>
+      <Lookup index="2">
+        <LookupType value="4"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <MarkBasePos index="0" Format="1">
+          <MarkCoverage>
+            <Glyph value="medial_wa"/>
+            <Glyph value="medial_wa_ovl"/>
+            <Glyph value="virama"/>
+            <Glyph value="ca.sub"/>
+            <Glyph value="ca.sub2"/>
+            <Glyph value="pa.sub"/>
+            <Glyph value="pa.sub2"/>
+          </MarkCoverage>
+          <BaseCoverage>
+            <Glyph value="ka"/>
+            <Glyph value="ca"/>
+            <Glyph value="nnya"/>
+            <Glyph value="nnya.thirdtail"/>
+            <Glyph value="nnya.notail"/>
+            <Glyph value="ta"/>
+            <Glyph value="pa"/>
+            <Glyph value="medial_wa"/>
+            <Glyph value="medial_wa_ovl"/>
+            <Glyph value="_e"/>
+            <Glyph value="virama"/>
+          </BaseCoverage>
+          <!-- ClassCount=1 -->
+          <MarkArray>
+            <!-- MarkCount=7 -->
+            <MarkRecord index="0">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="1">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="2">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="3">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="4">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="5">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="0"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="6">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+          </MarkArray>
+          <BaseArray>
+            <!-- BaseCount=11 -->
+            <BaseRecord index="0">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="1">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="2">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="3">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="4">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="5">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="717"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="6">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="7">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="8">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="9">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="320"/>
+                <YCoordinate value="0"/>
+              </BaseAnchor>
+            </BaseRecord>
+            <BaseRecord index="10">
+              <BaseAnchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </BaseAnchor>
+            </BaseRecord>
+          </BaseArray>
+        </MarkBasePos>
+      </Lookup>
+      <Lookup index="3">
+        <LookupType value="6"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <MarkMarkPos index="0" Format="1">
+          <Mark1Coverage>
+            <Glyph value="ka.sub2"/>
+            <Glyph value="nnya.sub2"/>
+            <Glyph value="ta.sub2"/>
+            <Glyph value="ta_wa.sub2"/>
+            <Glyph value="ta_wa_ovl.sub2"/>
+          </Mark1Coverage>
+          <Mark2Coverage>
+            <Glyph value="ka.sub"/>
+            <Glyph value="ca.sub"/>
+            <Glyph value="nnya.sub"/>
+            <Glyph value="ta.sub"/>
+            <Glyph value="ta_wa.sub"/>
+            <Glyph value="ta_wa_ovl.sub"/>
+            <Glyph value="pa.sub"/>
+          </Mark2Coverage>
+          <!-- ClassCount=1 -->
+          <Mark1Array>
+            <!-- MarkCount=5 -->
+            <MarkRecord index="0">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="1">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="2">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="3">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="4">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+          </Mark1Array>
+          <Mark2Array>
+            <!-- Mark2Count=7 -->
+            <Mark2Record index="0">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="1">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="2">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-828"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="3">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="4">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-828"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="5">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-828"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="6">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </Mark2Anchor>
+            </Mark2Record>
+          </Mark2Array>
+        </MarkMarkPos>
+      </Lookup>
+      <Lookup index="4">
+        <LookupType value="6"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <MarkMarkPos index="0" Format="1">
+          <Mark1Coverage>
+            <Glyph value="ca.sub2"/>
+            <Glyph value="pa.sub2"/>
+          </Mark1Coverage>
+          <Mark2Coverage>
+            <Glyph value="ka.sub"/>
+            <Glyph value="ca.sub"/>
+            <Glyph value="nnya.sub"/>
+            <Glyph value="ta.sub"/>
+            <Glyph value="ta_wa.sub"/>
+            <Glyph value="ta_wa_ovl.sub"/>
+            <Glyph value="pa.sub"/>
+          </Mark2Coverage>
+          <!-- ClassCount=1 -->
+          <Mark1Array>
+            <!-- MarkCount=2 -->
+            <MarkRecord index="0">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+            <MarkRecord index="1">
+              <Class value="0"/>
+              <MarkAnchor Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </MarkAnchor>
+            </MarkRecord>
+          </Mark1Array>
+          <Mark2Array>
+            <!-- Mark2Count=7 -->
+            <Mark2Record index="0">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-148"/>
+                <YCoordinate value="-528"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="1">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="2">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-148"/>
+                <YCoordinate value="-828"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="3">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-148"/>
+                <YCoordinate value="-528"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="4">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-148"/>
+                <YCoordinate value="-828"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="5">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-148"/>
+                <YCoordinate value="-828"/>
+              </Mark2Anchor>
+            </Mark2Record>
+            <Mark2Record index="6">
+              <Mark2Anchor index="0" Format="1">
+                <XCoordinate value="-320"/>
+                <YCoordinate value="-528"/>
+              </Mark2Anchor>
+            </Mark2Record>
+          </Mark2Array>
+        </MarkMarkPos>
+      </Lookup>
+    </LookupList>
+  </GPOS>
+
+  <GSUB>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=1 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="mym2"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="0"/>
+            <FeatureIndex index="1" value="1"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=2 -->
+          <LangSysRecord index="0">
+            <LangSysTag value="KSW "/>
+            <LangSys>
+              <ReqFeatureIndex value="65535"/>
+              <!-- FeatureCount=3 -->
+              <FeatureIndex index="0" value="0"/>
+              <FeatureIndex index="1" value="1"/>
+              <FeatureIndex index="2" value="2"/>
+            </LangSys>
+          </LangSysRecord>
+          <LangSysRecord index="1">
+            <LangSysTag value="MON "/>
+            <LangSys>
+              <ReqFeatureIndex value="65535"/>
+              <!-- FeatureCount=3 -->
+              <FeatureIndex index="0" value="0"/>
+              <FeatureIndex index="1" value="1"/>
+              <FeatureIndex index="2" value="3"/>
+            </LangSys>
+          </LangSysRecord>
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=4 -->
+      <FeatureRecord index="0">
+        <FeatureTag value="blwf"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="1"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="1">
+        <FeatureTag value="blws"/>
+        <Feature>
+          <!-- LookupCount=5 -->
+          <LookupListIndex index="0" value="2"/>
+          <LookupListIndex index="1" value="4"/>
+          <LookupListIndex index="2" value="5"/>
+          <LookupListIndex index="3" value="9"/>
+          <LookupListIndex index="4" value="10"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="2">
+        <FeatureTag value="locl"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="3">
+        <FeatureTag value="locl"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="6"/>
+        </Feature>
+      </FeatureRecord>
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=12 -->
+      <Lookup index="0">
+        <LookupType value="1"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="medial_wa" out="medial_wa_ovl"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="1">
+        <LookupType value="4"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <LigatureSubst index="0">
+          <LigatureSet glyph="virama">
+            <Ligature components="ca" glyph="ca.sub"/>
+            <Ligature components="ka" glyph="ka.sub"/>
+            <Ligature components="nnya" glyph="nnya.sub"/>
+            <Ligature components="pa" glyph="pa.sub"/>
+            <Ligature components="ta" glyph="ta.sub"/>
+          </LigatureSet>
+        </LigatureSubst>
+      </Lookup>
+      <Lookup index="2">
+        <LookupType value="5"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <ContextSubst index="0" Format="2">
+          <Coverage>
+            <Glyph value="ka"/>
+            <Glyph value="ca"/>
+            <Glyph value="nnya"/>
+            <Glyph value="nnya.thirdtail"/>
+            <Glyph value="nnya.notail"/>
+            <Glyph value="great_nnya"/>
+            <Glyph value="ta"/>
+            <Glyph value="pa"/>
+          </Coverage>
+          <ClassDef>
+            <ClassDef glyph="ca" class="1"/>
+            <ClassDef glyph="ca.sub" class="3"/>
+            <ClassDef glyph="great_nnya" class="4"/>
+            <ClassDef glyph="ka" class="5"/>
+            <ClassDef glyph="ka.sub" class="2"/>
+            <ClassDef glyph="nnya" class="4"/>
+            <ClassDef glyph="nnya.notail" class="4"/>
+            <ClassDef glyph="nnya.sub" class="2"/>
+            <ClassDef glyph="nnya.thirdtail" class="4"/>
+            <ClassDef glyph="pa" class="1"/>
+            <ClassDef glyph="pa.sub" class="3"/>
+            <ClassDef glyph="ta" class="5"/>
+            <ClassDef glyph="ta.sub" class="2"/>
+          </ClassDef>
+          <!-- SubClassSetCount=6 -->
+          <SubClassSet index="0" empty="1"/>
+          <SubClassSet index="1">
+            <!-- SubClassRuleCount=4 -->
+            <SubClassRule index="0">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="2"/>
+              <Class index="1" value="3"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="1">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="3"/>
+              <Class index="1" value="2"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="2">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="2"/>
+              <Class index="1" value="2"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="3">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="3"/>
+              <Class index="1" value="3"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+          </SubClassSet>
+          <SubClassSet index="2" empty="1"/>
+          <SubClassSet index="3" empty="1"/>
+          <SubClassSet index="4">
+            <!-- SubClassRuleCount=5 -->
+            <SubClassRule index="0">
+              <!-- GlyphCount=2 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="2"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="1"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="1">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=2 -->
+              <Class index="0" value="2"/>
+              <Class index="1" value="2"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="1"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+              <SubstLookupRecord index="1">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="2">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=2 -->
+              <Class index="0" value="2"/>
+              <Class index="1" value="3"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="1"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+              <SubstLookupRecord index="1">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="3">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=2 -->
+              <Class index="0" value="3"/>
+              <Class index="1" value="2"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="1"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+              <SubstLookupRecord index="1">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="4">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=2 -->
+              <Class index="0" value="3"/>
+              <Class index="1" value="3"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="1"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+              <SubstLookupRecord index="1">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+          </SubClassSet>
+          <SubClassSet index="5">
+            <!-- SubClassRuleCount=4 -->
+            <SubClassRule index="0">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="2"/>
+              <Class index="1" value="2"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="1">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="2"/>
+              <Class index="1" value="3"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="2">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="3"/>
+              <Class index="1" value="2"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+            <SubClassRule index="3">
+              <!-- GlyphCount=3 -->
+              <!-- SubstCount=1 -->
+              <Class index="0" value="3"/>
+              <Class index="1" value="3"/>
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="2"/>
+                <LookupListIndex value="3"/>
+              </SubstLookupRecord>
+            </SubClassRule>
+          </SubClassSet>
+        </ContextSubst>
+      </Lookup>
+      <Lookup index="3">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="ca.sub" out="ca.sub2"/>
+          <Substitution in="ka.sub" out="ka.sub2"/>
+          <Substitution in="nnya.sub" out="nnya.sub2"/>
+          <Substitution in="pa.sub" out="pa.sub2"/>
+          <Substitution in="ta.sub" out="ta.sub2"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="4">
+        <LookupType value="4"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <LigatureSubst index="0">
+          <LigatureSet glyph="ta.sub">
+            <Ligature components="medial_wa" glyph="ta_wa.sub"/>
+            <Ligature components="medial_wa_ovl" glyph="ta_wa_ovl.sub"/>
+          </LigatureSet>
+          <LigatureSet glyph="ta.sub2">
+            <Ligature components="medial_wa" glyph="ta_wa.sub2"/>
+            <Ligature components="medial_wa_ovl" glyph="ta_wa_ovl.sub2"/>
+          </LigatureSet>
+        </LigatureSubst>
+      </Lookup>
+      <Lookup index="5">
+        <LookupType value="6"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <ChainContextSubst index="0" Format="2">
+          <Coverage>
+            <Glyph value="nnya"/>
+            <Glyph value="great_nnya"/>
+          </Coverage>
+          <BacktrackClassDef>
+            <ClassDef glyph="ca" class="2"/>
+            <ClassDef glyph="ca.sub" class="1"/>
+            <ClassDef glyph="ca.sub2" class="1"/>
+            <ClassDef glyph="ka" class="2"/>
+            <ClassDef glyph="ka.sub" class="1"/>
+            <ClassDef glyph="ka.sub2" class="1"/>
+            <ClassDef glyph="medial_wa" class="3"/>
+            <ClassDef glyph="medial_wa_ovl" class="3"/>
+            <ClassDef glyph="nnya" class="4"/>
+            <ClassDef glyph="nnya.sub" class="1"/>
+            <ClassDef glyph="nnya.sub2" class="1"/>
+            <ClassDef glyph="pa" class="2"/>
+            <ClassDef glyph="pa.sub" class="1"/>
+            <ClassDef glyph="pa.sub2" class="1"/>
+            <ClassDef glyph="ta" class="2"/>
+            <ClassDef glyph="ta.sub" class="1"/>
+            <ClassDef glyph="ta.sub2" class="1"/>
+            <ClassDef glyph="ta_wa.sub" class="1"/>
+            <ClassDef glyph="ta_wa.sub2" class="1"/>
+            <ClassDef glyph="ta_wa_ovl.sub" class="1"/>
+            <ClassDef glyph="ta_wa_ovl.sub2" class="1"/>
+          </BacktrackClassDef>
+          <InputClassDef>
+            <ClassDef glyph="great_nnya" class="2"/>
+            <ClassDef glyph="nnya" class="1"/>
+          </InputClassDef>
+          <LookAheadClassDef>
+            <ClassDef glyph="ca.sub" class="2"/>
+            <ClassDef glyph="ca.sub2" class="2"/>
+            <ClassDef glyph="great_nnya" class="3"/>
+            <ClassDef glyph="ka.sub" class="2"/>
+            <ClassDef glyph="ka.sub2" class="2"/>
+            <ClassDef glyph="medial_wa" class="1"/>
+            <ClassDef glyph="medial_wa_ovl" class="1"/>
+            <ClassDef glyph="nnya" class="3"/>
+            <ClassDef glyph="nnya.notail" class="3"/>
+            <ClassDef glyph="nnya.sub" class="2"/>
+            <ClassDef glyph="nnya.sub2" class="2"/>
+            <ClassDef glyph="nnya.thirdtail" class="3"/>
+            <ClassDef glyph="pa.sub" class="2"/>
+            <ClassDef glyph="pa.sub2" class="2"/>
+            <ClassDef glyph="ta.sub" class="2"/>
+            <ClassDef glyph="ta.sub2" class="2"/>
+            <ClassDef glyph="ta_wa.sub" class="2"/>
+            <ClassDef glyph="ta_wa.sub2" class="2"/>
+            <ClassDef glyph="ta_wa_ovl.sub" class="2"/>
+            <ClassDef glyph="ta_wa_ovl.sub2" class="2"/>
+          </LookAheadClassDef>
+          <!-- ChainSubClassSetCount=3 -->
+          <ChainSubClassSet index="0" empty="1"/>
+          <ChainSubClassSet index="1">
+            <!-- ChainSubClassRuleCount=2 -->
+            <ChainSubClassRule index="0">
+              <!-- BacktrackGlyphCount=0 -->
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=1 -->
+              <LookAhead index="0" value="1"/>
+              <!-- SubstCount=1 -->
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="0"/>
+                <LookupListIndex value="8"/>
+              </SubstLookupRecord>
+            </ChainSubClassRule>
+            <ChainSubClassRule index="1">
+              <!-- BacktrackGlyphCount=0 -->
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=1 -->
+              <LookAhead index="0" value="2"/>
+              <!-- SubstCount=1 -->
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="0"/>
+                <LookupListIndex value="7"/>
+              </SubstLookupRecord>
+            </ChainSubClassRule>
+          </ChainSubClassSet>
+          <ChainSubClassSet index="2">
+            <!-- ChainSubClassRuleCount=2 -->
+            <ChainSubClassRule index="0">
+              <!-- BacktrackGlyphCount=0 -->
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=1 -->
+              <LookAhead index="0" value="1"/>
+              <!-- SubstCount=0 -->
+            </ChainSubClassRule>
+            <ChainSubClassRule index="1">
+              <!-- BacktrackGlyphCount=0 -->
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=1 -->
+              <LookAhead index="0" value="2"/>
+              <!-- SubstCount=0 -->
+            </ChainSubClassRule>
+          </ChainSubClassSet>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="6">
+        <LookupType value="4"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <LigatureSubst index="0">
+          <LigatureSet glyph="nnya.notail">
+            <Ligature components="nnya.sub2" glyph="great_nnya"/>
+          </LigatureSet>
+        </LigatureSubst>
+      </Lookup>
+      <Lookup index="7">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="nnya" out="nnya.notail"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="8">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="nnya" out="nnya.thirdtail"/>
+        </SingleSubst>
+      </Lookup>
+      <Lookup index="9">
+        <LookupType value="6"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <ChainContextSubst index="0" Format="2">
+          <Coverage>
+            <Glyph value="ka"/>
+            <Glyph value="ca"/>
+            <Glyph value="nnya"/>
+            <Glyph value="nnya.notail"/>
+            <Glyph value="ta"/>
+            <Glyph value="pa"/>
+          </Coverage>
+          <BacktrackClassDef>
+            <ClassDef glyph="_e" class="1"/>
+            <ClassDef glyph="ca" class="1"/>
+            <ClassDef glyph="ca.sub" class="3"/>
+            <ClassDef glyph="ka" class="1"/>
+            <ClassDef glyph="ka.sub" class="3"/>
+            <ClassDef glyph="little_section" class="1"/>
+            <ClassDef glyph="medial_wa" class="3"/>
+            <ClassDef glyph="medial_wa_ovl" class="3"/>
+            <ClassDef glyph="nnya" class="2"/>
+            <ClassDef glyph="nnya.sub" class="3"/>
+            <ClassDef glyph="pa" class="1"/>
+            <ClassDef glyph="pa.sub" class="3"/>
+            <ClassDef glyph="ta" class="1"/>
+            <ClassDef glyph="ta.sub" class="3"/>
+            <ClassDef glyph="ta_wa.sub" class="3"/>
+            <ClassDef glyph="ta_wa_ovl.sub" class="3"/>
+          </BacktrackClassDef>
+          <InputClassDef>
+            <ClassDef glyph="ca" class="1"/>
+            <ClassDef glyph="ka" class="2"/>
+            <ClassDef glyph="nnya" class="2"/>
+            <ClassDef glyph="nnya.notail" class="2"/>
+            <ClassDef glyph="pa" class="1"/>
+            <ClassDef glyph="ta" class="2"/>
+          </InputClassDef>
+          <LookAheadClassDef>
+            <ClassDef glyph="ka.sub" class="1"/>
+            <ClassDef glyph="nnya.sub" class="1"/>
+            <ClassDef glyph="ta.sub" class="1"/>
+            <ClassDef glyph="ta_wa.sub" class="1"/>
+            <ClassDef glyph="ta_wa_ovl.sub" class="1"/>
+          </LookAheadClassDef>
+          <!-- ChainSubClassSetCount=3 -->
+          <ChainSubClassSet index="0" empty="1"/>
+          <ChainSubClassSet index="1">
+            <!-- ChainSubClassRuleCount=3 -->
+            <ChainSubClassRule index="0">
+              <!-- BacktrackGlyphCount=1 -->
+              <Backtrack index="0" value="2"/>
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=1 -->
+              <LookAhead index="0" value="1"/>
+              <!-- SubstCount=1 -->
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="0"/>
+                <LookupListIndex value="11"/>
+              </SubstLookupRecord>
+            </ChainSubClassRule>
+            <ChainSubClassRule index="1">
+              <!-- BacktrackGlyphCount=1 -->
+              <Backtrack index="0" value="1"/>
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=0 -->
+              <!-- SubstCount=0 -->
+            </ChainSubClassRule>
+            <ChainSubClassRule index="2">
+              <!-- BacktrackGlyphCount=0 -->
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=1 -->
+              <LookAhead index="0" value="1"/>
+              <!-- SubstCount=1 -->
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="0"/>
+                <LookupListIndex value="11"/>
+              </SubstLookupRecord>
+            </ChainSubClassRule>
+          </ChainSubClassSet>
+          <ChainSubClassSet index="2">
+            <!-- ChainSubClassRuleCount=1 -->
+            <ChainSubClassRule index="0">
+              <!-- BacktrackGlyphCount=1 -->
+              <Backtrack index="0" value="1"/>
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=0 -->
+              <!-- SubstCount=0 -->
+            </ChainSubClassRule>
+          </ChainSubClassSet>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="10">
+        <LookupType value="6"/>
+        <LookupFlag value="512"/><!-- markAttachmentType[2] -->
+        <!-- SubTableCount=1 -->
+        <ChainContextSubst index="0" Format="2">
+          <Coverage>
+            <Glyph value="ka"/>
+            <Glyph value="ca"/>
+            <Glyph value="nnya"/>
+            <Glyph value="ta"/>
+            <Glyph value="pa"/>
+            <Glyph value="sp5"/>
+          </Coverage>
+          <BacktrackClassDef>
+            <ClassDef glyph="ca" class="2"/>
+            <ClassDef glyph="ka" class="3"/>
+            <ClassDef glyph="ka.sub" class="1"/>
+            <ClassDef glyph="nnya" class="3"/>
+            <ClassDef glyph="nnya.notail" class="3"/>
+            <ClassDef glyph="nnya.sub" class="1"/>
+            <ClassDef glyph="pa" class="2"/>
+            <ClassDef glyph="sp5" class="4"/>
+            <ClassDef glyph="ta" class="3"/>
+            <ClassDef glyph="ta.sub" class="1"/>
+            <ClassDef glyph="ta_wa.sub" class="1"/>
+            <ClassDef glyph="ta_wa_ovl.sub" class="1"/>
+          </BacktrackClassDef>
+          <InputClassDef>
+            <ClassDef glyph="ca" class="2"/>
+            <ClassDef glyph="ka" class="2"/>
+            <ClassDef glyph="nnya" class="1"/>
+            <ClassDef glyph="pa" class="2"/>
+            <ClassDef glyph="sp5" class="3"/>
+            <ClassDef glyph="ta" class="2"/>
+          </InputClassDef>
+          <LookAheadClassDef>
+            <ClassDef glyph="ca.sub" class="1"/>
+            <ClassDef glyph="ka.sub" class="1"/>
+            <ClassDef glyph="medial_wa" class="1"/>
+            <ClassDef glyph="medial_wa_ovl" class="1"/>
+            <ClassDef glyph="nnya.sub" class="1"/>
+            <ClassDef glyph="pa.sub" class="1"/>
+            <ClassDef glyph="ta.sub" class="1"/>
+            <ClassDef glyph="ta_wa.sub" class="1"/>
+            <ClassDef glyph="ta_wa_ovl.sub" class="1"/>
+          </LookAheadClassDef>
+          <!-- ChainSubClassSetCount=4 -->
+          <ChainSubClassSet index="0" empty="1"/>
+          <ChainSubClassSet index="1">
+            <!-- ChainSubClassRuleCount=1 -->
+            <ChainSubClassRule index="0">
+              <!-- BacktrackGlyphCount=2 -->
+              <Backtrack index="0" value="1"/>
+              <Backtrack index="1" value="2"/>
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=0 -->
+              <!-- SubstCount=1 -->
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="0"/>
+                <LookupListIndex value="11"/>
+              </SubstLookupRecord>
+            </ChainSubClassRule>
+          </ChainSubClassSet>
+          <ChainSubClassSet index="2">
+            <!-- ChainSubClassRuleCount=2 -->
+            <ChainSubClassRule index="0">
+              <!-- BacktrackGlyphCount=2 -->
+              <Backtrack index="0" value="1"/>
+              <Backtrack index="1" value="2"/>
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=1 -->
+              <LookAhead index="0" value="1"/>
+              <!-- SubstCount=1 -->
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="0"/>
+                <LookupListIndex value="11"/>
+              </SubstLookupRecord>
+            </ChainSubClassRule>
+            <ChainSubClassRule index="1">
+              <!-- BacktrackGlyphCount=3 -->
+              <Backtrack index="0" value="4"/>
+              <Backtrack index="1" value="1"/>
+              <Backtrack index="2" value="2"/>
+              <!-- InputGlyphCount=1 -->
+              <!-- LookAheadGlyphCount=1 -->
+              <LookAhead index="0" value="1"/>
+              <!-- SubstCount=1 -->
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="0"/>
+                <LookupListIndex value="11"/>
+              </SubstLookupRecord>
+            </ChainSubClassRule>
+          </ChainSubClassSet>
+          <ChainSubClassSet index="3">
+            <!-- ChainSubClassRuleCount=1 -->
+            <ChainSubClassRule index="0">
+              <!-- BacktrackGlyphCount=2 -->
+              <Backtrack index="0" value="1"/>
+              <Backtrack index="1" value="2"/>
+              <!-- InputGlyphCount=2 -->
+              <Input index="0" value="1"/>
+              <!-- LookAheadGlyphCount=0 -->
+              <!-- SubstCount=1 -->
+              <SubstLookupRecord index="0">
+                <SequenceIndex value="1"/>
+                <LookupListIndex value="11"/>
+              </SubstLookupRecord>
+            </ChainSubClassRule>
+          </ChainSubClassSet>
+        </ChainContextSubst>
+      </Lookup>
+      <Lookup index="11">
+        <LookupType value="2"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <MultipleSubst index="0">
+          <Substitution in="ca" out="sp5,ca"/>
+          <Substitution in="ka" out="sp5,ka"/>
+          <Substitution in="nnya" out="sp5,nnya"/>
+          <Substitution in="nnya.notail" out="sp5,nnya.notail"/>
+          <Substitution in="pa" out="sp5,pa"/>
+          <Substitution in="ta" out="sp5,ta"/>
+        </MultipleSubst>
+      </Lookup>
+    </LookupList>
+  </GSUB>
+
+  <hmtx>
+    <mtx name=".notdef" width="600" lsb="94"/>
+    <mtx name="_e" width="640" lsb="60"/>
+    <mtx name="asat" width="0" lsb="-532"/>
+    <mtx name="ca" width="640" lsb="60"/>
+    <mtx name="ca.sub" width="0" lsb="-544"/>
+    <mtx name="ca.sub2" width="0" lsb="-515"/>
+    <mtx name="great_nnya" width="1434" lsb="65"/>
+    <mtx name="ka" width="1037" lsb="60"/>
+    <mtx name="ka.sub" width="0" lsb="-717"/>
+    <mtx name="ka.sub2" width="0" lsb="-665"/>
+    <mtx name="little_section" width="252" lsb="97"/>
+    <mtx name="medial_wa" width="0" lsb="-545"/>
+    <mtx name="medial_wa_ovl" width="0" lsb="-536"/>
+    <mtx name="nnya" width="1040" lsb="65"/>
+    <mtx name="nnya.notail" width="1040" lsb="65"/>
+    <mtx name="nnya.sub" width="0" lsb="-715"/>
+    <mtx name="nnya.sub2" width="0" lsb="-661"/>
+    <mtx name="nnya.thirdtail" width="1040" lsb="65"/>
+    <mtx name="pa" width="640" lsb="60"/>
+    <mtx name="pa.sub" width="0" lsb="-545"/>
+    <mtx name="pa.sub2" width="0" lsb="-515"/>
+    <mtx name="sp5" width="100" lsb="0"/>
+    <mtx name="ta" width="1037" lsb="60"/>
+    <mtx name="ta.sub" width="0" lsb="-717"/>
+    <mtx name="ta.sub2" width="0" lsb="-664"/>
+    <mtx name="ta_wa.sub" width="0" lsb="-717"/>
+    <mtx name="ta_wa.sub2" width="0" lsb="-664"/>
+    <mtx name="ta_wa_ovl.sub" width="0" lsb="-717"/>
+    <mtx name="ta_wa_ovl.sub2" width="0" lsb="-664"/>
+    <mtx name="virama" width="0" lsb="-548"/>
+    <mtx name="visarga" width="385" lsb="66"/>
+  </hmtx>
+
+</ttFont>

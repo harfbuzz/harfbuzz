@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="uniFEFA"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="1.045"/>
+    <checkSumAdjustment value="0x5e61b5b6"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00000011"/>
+    <unitsPerEm value="1000"/>
+    <created value="Thu Apr  9 15:06:27 2015"/>
+    <modified value="Mon Mar 21 14:38:37 2016"/>
+    <xMin value="0"/>
+    <yMin value="-120"/>
+    <xMax value="876"/>
+    <yMax value="880"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="3"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="880"/>
+    <descent value="-120"/>
+    <lineGap value="0"/>
+    <advanceWidthMax value="1000"/>
+    <minLeftSideBearing value="0"/>
+    <minRightSideBearing value="0"/>
+    <xMaxExtent value="876"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="2"/>
+  </hhea>
+
+  <maxp>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="0x10000"/>
+    <numGlyphs value="2"/>
+    <maxPoints value="16"/>
+    <maxContours value="5"/>
+    <maxCompositePoints value="0"/>
+    <maxCompositeContours value="0"/>
+    <maxZones value="2"/>
+    <maxTwilightPoints value="4"/>
+    <maxStorage value="0"/>
+    <maxFunctionDefs value="15"/>
+    <maxInstructionDefs value="0"/>
+    <maxStackElements value="2048"/>
+    <maxSizeOfInstructions value="0"/>
+    <maxComponentElements value="0"/>
+    <maxComponentDepth value="0"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="3"/>
+    <xAvgCharWidth value="1000"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="650"/>
+    <ySubscriptYSize value="600"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="75"/>
+    <ySuperscriptXSize value="650"/>
+    <ySuperscriptYSize value="600"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="350"/>
+    <yStrikeoutSize value="50"/>
+    <yStrikeoutPosition value="220"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="0"/>
+      <bSerifStyle value="0"/>
+      <bWeight value="0"/>
+      <bProportion value="0"/>
+      <bContrast value="0"/>
+      <bStrokeVariation value="0"/>
+      <bArmStyle value="0"/>
+      <bLetterForm value="0"/>
+      <bMidline value="0"/>
+      <bXHeight value="0"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00001000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="ADBO"/>
+    <fsSelection value="00000000 01000000"/>
+    <usFirstCharIndex value="65274"/>
+    <usLastCharIndex value="65274"/>
+    <sTypoAscender value="880"/>
+    <sTypoDescender value="-120"/>
+    <sTypoLineGap value="0"/>
+    <usWinAscent value="880"/>
+    <usWinDescent value="120"/>
+    <ulCodePageRange1 value="01100000 00101111 00000001 11111111"/>
+    <ulCodePageRange2 value="00000000 00000000 00000000 00000000"/>
+    <sxHeight value="0"/>
+    <sCapHeight value="0"/>
+    <usDefaultChar value="0"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="0"/>
+  </OS_2>
+
+  <hmtx>
+    <mtx name=".notdef" width="1000" lsb="124"/>
+    <mtx name="uniFEFA" width="0" lsb="0"/>
+  </hmtx>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_12 platformID="0" platEncID="4" format="12" reserved="0" length="28" language="0" nGroups="1">
+      <map code="0xfefa" name="uniFEFA"/><!-- ARABIC LIGATURE LAM WITH ALEF WITH HAMZA BELOW FINAL FORM -->
+    </cmap_format_12>
+    <cmap_format_12 platformID="3" platEncID="10" format="12" reserved="0" length="28" language="0" nGroups="1">
+      <map code="0xfefa" name="uniFEFA"/><!-- ARABIC LIGATURE LAM WITH ALEF WITH HAMZA BELOW FINAL FORM -->
+    </cmap_format_12>
+  </cmap>
+
+  <fpgm>
+    <assembly>
+      NPUSHB[ ]	/* 15 values pushed */
+      14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+      FDEF[ ]	/* FunctionDefinition */
+        SLOOP[ ]	/* SetLoopVariable */
+        MDAP[1]	/* MoveDirectAbsPt */
+        ALIGNRP[ ]	/* AlignRelativePt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        MDAP[1]	/* MoveDirectAbsPt */
+        ALIGNRP[ ]	/* AlignRelativePt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP1[ ]	/* SetRefPoint1 */
+        SRP2[ ]	/* SetRefPoint2 */
+        IP[ ]	/* InterpolatePts */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP1[ ]	/* SetRefPoint1 */
+        SRP2[ ]	/* SetRefPoint2 */
+        SLOOP[ ]	/* SetLoopVariable */
+        IP[ ]	/* InterpolatePts */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP0[ ]	/* SetRefPoint0 */
+        SLOOP[ ]	/* SetLoopVariable */
+        MIRP[11101]	/* MoveIndirectRelPt */
+        ALIGNRP[ ]	/* AlignRelativePt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP0[ ]	/* SetRefPoint0 */
+        SLOOP[ ]	/* SetLoopVariable */
+        MIRP[10100]	/* MoveIndirectRelPt */
+        ALIGNRP[ ]	/* AlignRelativePt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP0[ ]	/* SetRefPoint0 */
+        SLOOP[ ]	/* SetLoopVariable */
+        MDRP[11101]	/* MoveDirectRelPt */
+        ALIGNRP[ ]	/* AlignRelativePt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP0[ ]	/* SetRefPoint0 */
+        SLOOP[ ]	/* SetLoopVariable */
+        MDRP[10100]	/* MoveDirectRelPt */
+        ALIGNRP[ ]	/* AlignRelativePt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP0[ ]	/* SetRefPoint0 */
+        MIRP[11101]	/* MoveIndirectRelPt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP0[ ]	/* SetRefPoint0 */
+        MIRP[10100]	/* MoveIndirectRelPt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP0[ ]	/* SetRefPoint0 */
+        MDRP[11101]	/* MoveDirectRelPt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SRP0[ ]	/* SetRefPoint0 */
+        MDRP[10100]	/* MoveDirectRelPt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        MDRP[00100]	/* MoveDirectRelPt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        MDRP[00000]	/* MoveDirectRelPt */
+      ENDF[ ]	/* EndFunctionDefinition */
+      FDEF[ ]	/* FunctionDefinition */
+        SVTCA[0]	/* SetFPVectorToAxis */
+        NPUSHB[ ]	/* 10 values pushed */
+        1 0 0 1 1 2 2 3 3 0
+        SZPS[ ]	/* SetZonePointerS */
+        MIAP[1]	/* MoveIndirectAbsPt */
+        MIAP[1]	/* MoveIndirectAbsPt */
+        MIAP[1]	/* MoveIndirectAbsPt */
+        MIAP[1]	/* MoveIndirectAbsPt */
+        SZPS[ ]	/* SetZonePointerS */
+      ENDF[ ]	/* EndFunctionDefinition */
+    </assembly>
+  </fpgm>
+
+  <prep>
+    <assembly>
+      PUSHB[ ]	/* 2 values pushed */
+      48 0
+      PUSHW[ ]	/* 1 value pushed */
+      292
+      RTG[ ]	/* RoundToGrid */
+      SCANCTRL[ ]	/* ScanConversionControl */
+      SCANTYPE[ ]	/* ScanType */
+      SCVTCI[ ]	/* SetCVTCutIn */
+    </assembly>
+  </prep>
+
+  <cvt>
+    <cv index="0" value="0"/>
+    <cv index="1" value="0"/>
+    <cv index="2" value="0"/>
+    <cv index="3" value="-250"/>
+  </cvt>
+
+  <loca>
+    <!-- The 'loca' table will be calculated by the compiler -->
+  </loca>
+
+  <glyf>
+
+    <!-- The xMin, yMin, xMax and yMax values
+         will be recalculated by the compiler. -->
+
+    <TTGlyph name=".notdef"/><!-- contains no outline data -->
+
+    <TTGlyph name="uniFEFA" xMin="0" yMin="0" xMax="0" yMax="0">
+      <contour>
+        <pt x="0" y="0" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+  </glyf>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright © 2013, 2015 Adobe Systems Incorporated (http://www.adobe.com/).
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      Adobe Blank
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+  </name>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-100"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <gasp>
+    <gaspRange rangeMaxPPEM="8" rangeGaspBehavior="2"/>
+    <gaspRange rangeMaxPPEM="65535" rangeGaspBehavior="3"/>
+  </gasp>
+
+</ttFont>

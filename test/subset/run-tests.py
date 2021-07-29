@@ -56,13 +56,8 @@ def run_test (test, should_check_ots):
 	if return_code:
 		return fail_test (test, cli_args, "%s returned %d" % (' '.join (cli_args), return_code))
 
-	expected_ttx = io.StringIO ()
-	try:
-		with TTFont (os.path.join (test_suite.get_output_directory (), test.get_font_name ())) as font:
-			font.saveXML (expected_ttx)
-	except Exception as e:
-		print (e)
-		return fail_test (test, cli_args, "ttx failed to parse the expected result")
+	with open(os.path.join (test_suite.get_output_directory (), test.get_font_ttx_name ())) as expected_ttx:
+		expected_ttx_text = normalize (expected_ttx.read ())
 
 	actual_ttx = io.StringIO ()
 	try:
@@ -72,9 +67,7 @@ def run_test (test, should_check_ots):
 		print (e)
 		return fail_test (test, cli_args, "ttx failed to parse the actual result")
 
-	expected_ttx_text = strip_check_sum (expected_ttx.getvalue ())
-	expected_ttx.close ()
-	actual_ttx_text = strip_check_sum (actual_ttx.getvalue ())
+	actual_ttx_text = normalize (actual_ttx.getvalue ())
 	actual_ttx.close ()
 
 	if not actual_ttx_text == expected_ttx_text:
@@ -90,10 +83,13 @@ def run_test (test, should_check_ots):
 
 	return 0
 
-def strip_check_sum (ttx_string):
-	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
-		       'checkSumAdjustment value="0x00000000"',
-		       ttx_string, count=1)
+CHECKSUMADJUSTMENT_RE = re.compile('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]')
+TTLIBVERSION_RE = re.compile(' ttLibVersion=".*"')
+
+def normalize (ttx_string):
+	ttx_string = CHECKSUMADJUSTMENT_RE.sub ("", ttx_string, count=1)
+	ttx_string = TTLIBVERSION_RE.sub ("", ttx_string, count=1)
+	return ttx_string
 
 def has_ots ():
 	if not ots_sanitize:
