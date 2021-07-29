@@ -43,7 +43,7 @@ struct subset_consumer_t
 	     const font_options_t *font_opts)
   {
     font = hb_font_reference (font_opts->get_font ());
-    input = hb_subset_input_reference (subset_options.input);
+    input = hb_subset_input_reference (subset_options.get_input ());
   }
 
   void consume_line (const char   *text,

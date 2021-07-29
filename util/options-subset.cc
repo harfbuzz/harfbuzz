@@ -217,9 +217,12 @@ parse_layout_features (const char *name,
   if (0 == strcmp (arg, "*"))
   {
     if (last_name_char == '-')
+    {
       hb_set_clear (layout_features);
-    else
-      subset_opts->input->retain_all_layout_features = true;
+      *subset_opts->bool_for (HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES) = false;
+    } else {
+      *subset_opts->bool_for (HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES) = true;
+    }
     return true;
   }
 
@@ -288,14 +291,14 @@ subset_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  &this->input->drop_hints,   "Whether to drop hints",   nullptr},
-    {"retain-gids", 0, 0, G_OPTION_ARG_NONE,  &this->input->retain_gids,   "If set don't renumber glyph ids in the subset.",   nullptr},
+    {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_NO_HINTING),   "Whether to drop hints",   nullptr},
+    {"retain-gids", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_RETAIN_GIDS),   "If set don't renumber glyph ids in the subset.",   nullptr},
     {"gids", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of comma/whitespace-separated int numbers or ranges"},
-    {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  &this->input->desubroutinize,   "Remove CFF/CFF2 use of subroutines",   nullptr},
+    {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_DESUBROUTINIZE),   "Remove CFF/CFF2 use of subroutines",   nullptr},
     {"name-IDs", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
     {"name-IDs-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
     {"name-IDs+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-legacy", 0, 0, G_OPTION_ARG_NONE,  &this->input->name_legacy,   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
+    {"name-legacy", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_NAME_LEGACY),   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
     {"name-languages", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
     {"name-languages-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
     {"name-languages+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
@@ -308,11 +311,11 @@ subset_options_t::add_options (option_parser_t *parser)
     {"num-iterations", 'n', 0, G_OPTION_ARG_INT,
      &this->num_iterations,
      "Run subsetter N times (default: 1)", "N"},
-    {"set-overlaps-flag", 0, 0, G_OPTION_ARG_NONE,  &this->input->overlaps_flag,
+    {"set-overlaps-flag", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG),
      "Set the overlaps flag on each glyph.",   nullptr},
-    {"notdef-outline", 0, 0, G_OPTION_ARG_NONE,  &this->input->notdef_outline,   "Keep the outline of \'.notdef\' glyph",   nullptr},
-    {"no-prune-unicode-ranges", 0, 0, G_OPTION_ARG_NONE,  &this->input->no_prune_unicode_ranges,   "Don't change the 'OS/2 ulUnicodeRange*' bits.",   nullptr},
-    {"glyph-names", 0, 0, G_OPTION_ARG_NONE,  &this->input->glyph_names,   "Keep PS glyph names in TT-flavored fonts. ",   nullptr},
+    {"notdef-outline", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_NOTDEF_OUTLINE),   "Keep the outline of \'.notdef\' glyph",   nullptr},
+    {"no-prune-unicode-ranges", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES),   "Don't change the 'OS/2 ulUnicodeRange*' bits.",   nullptr},
+    {"glyph-names", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_GLYPH_NAMES),   "Keep PS glyph names in TT-flavored fonts. ",   nullptr},
     {nullptr}
   };
   parser->add_group (entries,

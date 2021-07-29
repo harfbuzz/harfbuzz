@@ -423,16 +423,16 @@ hb_subset_plan_create (hb_face_t	 *face,
     return const_cast<hb_subset_plan_t *> (&Null (hb_subset_plan_t));
 
   plan->successful = true;
-  plan->drop_hints = input->drop_hints;
-  plan->desubroutinize = input->desubroutinize;
-  plan->retain_gids = input->retain_gids;
-  plan->name_legacy = input->name_legacy;
-  plan->overlaps_flag = input->overlaps_flag;
-  plan->notdef_outline = input->notdef_outline;
-  plan->glyph_names = input->glyph_names;
-  plan->prune_unicode_ranges = !input->no_prune_unicode_ranges;
-  plan->retain_all_layout_features = input->retain_all_layout_features;
-  plan->passthrough_unrecognized = input->passthrough_unrecognized;
+  plan->drop_hints = input->flags & HB_SUBSET_FLAGS_NO_HINTING;
+  plan->desubroutinize = input->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE;
+  plan->retain_gids = input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS;
+  plan->name_legacy = input->flags & HB_SUBSET_FLAGS_NAME_LEGACY;
+  plan->overlaps_flag = input->flags & HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG;
+  plan->notdef_outline = input->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE;
+  plan->glyph_names = input->flags & HB_SUBSET_FLAGS_GLYPH_NAMES;
+  plan->prune_unicode_ranges = !(input->flags & HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES);
+  plan->retain_all_layout_features = input->flags & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES;
+  plan->passthrough_unrecognized = input->flags & HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED;
   plan->unicodes = hb_set_create ();
   plan->name_ids = hb_set_copy (input->name_ids);
   _nameid_closure (face, plan->name_ids);
@@ -478,7 +478,7 @@ hb_subset_plan_create (hb_face_t	 *face,
 			    !input->drop_tables->has (HB_OT_TAG_GDEF));
 
   _create_old_gid_to_new_gid_map (face,
-				  input->retain_gids,
+                                  input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
 				  plan->_glyphset,
 				  plan->glyph_map,
 				  plan->reverse_glyph_map,
