@@ -2597,10 +2597,10 @@ struct VarData
    return delta;
   }
 
-  void get_scalars (const int *coords, unsigned int coord_count,
-		    const VarRegionList &regions,
-		    float *scalars /*OUT */,
-		    unsigned int num_scalars) const
+  void get_region_scalars (const int *coords, unsigned int coord_count,
+			   const VarRegionList &regions,
+			   float *scalars /*OUT */,
+			   unsigned int num_scalars) const
   {
     unsigned count = hb_min (num_scalars, regionIndices.len);
     for (unsigned int i = 0; i < count; i++)
@@ -2852,13 +2852,13 @@ struct VariationStore
         && varstore_prime->dataSets);
   }
 
-  unsigned int get_region_index_count (unsigned int ivs) const
-  { return (this+dataSets[ivs]).get_region_index_count (); }
+  unsigned int get_region_index_count (unsigned int major) const
+  { return (this+dataSets[major]).get_region_index_count (); }
 
-  void get_scalars (unsigned int ivs,
-		    const int *coords, unsigned int coord_count,
-		    float *scalars /*OUT*/,
-		    unsigned int num_scalars) const
+  void get_region_scalars (unsigned int major,
+			   const int *coords, unsigned int coord_count,
+			   float *scalars /*OUT*/,
+			   unsigned int num_scalars) const
   {
 #ifdef HB_NO_VAR
     for (unsigned i = 0; i < num_scalars; i++)
@@ -2866,8 +2866,9 @@ struct VariationStore
     return;
 #endif
 
-    (this+dataSets[ivs]).get_scalars (coords, coord_count, this+regions,
-				      &scalars[0], num_scalars);
+    (this+dataSets[major]).get_region_scalars (coords, coord_count,
+					       this+regions,
+					       &scalars[0], num_scalars);
   }
 
   unsigned int get_sub_table_count () const { return dataSets.len; }
