@@ -40,9 +40,8 @@ HB_BEGIN_DECLS
 typedef struct hb_subset_input_t hb_subset_input_t;
 
 /**
- * TODO(garretrieger): update to match added values, and no hinting change.
  * hb_subset_flags_t:
- * @HB_SUBSET_FLAGS_NONE: bit set with no flags set.
+ * @HB_SUBSET_FLAGS_DEFAULT: all flags at their default value.
  * @HB_SUBSET_FLAGS_NO_HINTING: If set hinting instructions will be dropped in
  * the produced subset. Otherwise hinting instructions will be retained.
  * Defaults to true.
@@ -54,7 +53,7 @@ typedef struct hb_subset_input_t hb_subset_input_t;
  * Defaults to false.
  * @HB_SUBSET_FLAGS_NAME_LEGACY: If set non-unicode name records will be
  * retained in the subset. Defaults to false.
- * @HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG:  If set the subsetter will set the
+ * @HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG:	If set the subsetter will set the
  * OVERLAP_SIMPLE flag on each simple glyph. Defaults to false.
  * @HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED: If set the subsetter will not
  * drop unrecognized tables and instead pass them through untouched.
@@ -69,26 +68,23 @@ typedef struct hb_subset_input_t hb_subset_input_t;
  * retained. If unset then the set accessed by
  * hb_subset_input_layout_features_set() will be used to determine the features
  * to be retained.
- * HB_SUBSET_FLAGS_ALL: bit set with all flags set.
  *
  * List of boolean properties that can be configured on the subset input.
  *
  * Since: REPLACE
  **/
-typedef enum
-{
-  HB_SUBSET_FLAGS_NONE = 0,
-  HB_SUBSET_FLAGS_NO_HINTING = 1,
-  HB_SUBSET_FLAGS_RETAIN_GIDS = 1 << 1,
-  HB_SUBSET_FLAGS_DESUBROUTINIZE = 1 << 2,
-  HB_SUBSET_FLAGS_NAME_LEGACY = 1 << 3,
-  HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG = 1 << 4,
-  HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED = 1 << 5,
-  HB_SUBSET_FLAGS_NOTDEF_OUTLINE = 1 << 6,
-  HB_SUBSET_FLAGS_GLYPH_NAMES = 1 << 7,
-  HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES = 1 << 8,
-  HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES = 1 << 9,
-  HB_SUBSET_FLAGS_ALL = -1,
+typedef enum { /*< flags >*/
+  HB_SUBSET_FLAGS_DEFAULT =		     0x00000000u,
+  HB_SUBSET_FLAGS_NO_HINTING =		     0x00000001u,
+  HB_SUBSET_FLAGS_RETAIN_GIDS =		     0x00000002u,
+  HB_SUBSET_FLAGS_DESUBROUTINIZE =	     0x00000004u,
+  HB_SUBSET_FLAGS_NAME_LEGACY =		     0x00000008u,
+  HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG =	     0x00000010u,
+  HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED = 0x00000020u,
+  HB_SUBSET_FLAGS_NOTDEF_OUTLINE =	     0x00000040u,
+  HB_SUBSET_FLAGS_GLYPH_NAMES =		     0x00000080u,
+  HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES =  0x00000100u,
+  HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES =	     0x00000200u,
 } hb_subset_flags_t;
 
 HB_EXTERN hb_subset_input_t *
@@ -137,8 +133,7 @@ hb_subset_input_get_flags (hb_subset_input_t *input);
 
 HB_EXTERN void
 hb_subset_input_set_flags (hb_subset_input_t *input,
-                           hb_subset_flags_t mask,
-                           hb_subset_flags_t value);
+			   unsigned value);
 
 HB_EXTERN hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);

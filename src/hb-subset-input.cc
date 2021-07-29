@@ -55,7 +55,7 @@ hb_subset_input_create_or_fail (void)
   input->drop_tables = hb_set_create ();
   input->no_subset_tables = hb_set_create ();
 
-  input->flags = HB_SUBSET_FLAGS_NONE;
+  input->flags = HB_SUBSET_FLAGS_DEFAULT;
 
   hb_tag_t default_drop_tables[] = {
     // Layout disabled by default
@@ -357,36 +357,31 @@ hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
  * hb_subset_input_get_flags:
  * @input: a #hb_subset_input_t object.
  *
- * Return value: the subsetting flags bit array.
+ * Return value: the subsetting flags bit field.
  *
  * Since: REPLACE
  **/
 HB_EXTERN hb_subset_flags_t
 hb_subset_input_get_flags (hb_subset_input_t *input)
 {
-  return input->flags;
+  return (hb_subset_flags_t) input->flags;
 }
 
 /**
  * hb_subset_input_set_flags:
  * @input: a #hb_subset_input_t object.
- * @flag: which flag to set.
- * @mask: bit mask which specifies which flags to change.
- * @value: bit set of new values for those flags.
+ * @value: bit field of flags
  *
- * Updates the flags specified by the mask to the values in value.
+ * Set all of the flags in the input object to the values
+ * specified by the bit field.
  *
  * Since: REPLACE
  **/
 HB_EXTERN void
 hb_subset_input_set_flags (hb_subset_input_t *input,
-			   hb_subset_flags_t mask,
-			   hb_subset_flags_t value)
+			   unsigned value)
 {
-  // Set desired flags.
-  input->flags = (hb_subset_flags_t) (input->flags | (mask & value));
-  // Clear desired flags.
-  input->flags = (hb_subset_flags_t) (input->flags & ~(mask & ~value));
+  input->flags = (hb_subset_flags_t) value;
 }
 
 /**

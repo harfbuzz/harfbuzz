@@ -11,12 +11,12 @@ static void
 trySubset (hb_face_t *face,
 	   const hb_codepoint_t text[],
 	   int text_length,
-           hb_subset_flags_t flag_bits)
+           unsigned flag_bits)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
   if (!input) return;
 
-  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_ALL, flag_bits);
+  hb_subset_input_set_flags (input, (hb_subset_flags_t) flag_bits);
 
   hb_set_t *codepoints = hb_subset_input_unicode_set (input);
 
@@ -56,7 +56,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   hb_face_collect_unicodes (face, output);
   hb_set_destroy (output);
 
-  hb_subset_flags_t flags = HB_SUBSET_FLAGS_NONE;
+  unsigned flags = HB_SUBSET_FLAGS_DEFAULT;
   const hb_codepoint_t text[] =
       {
 	'A', 'B', 'C', 'D', 'E', 'X', 'Y', 'Z', '1', '2',

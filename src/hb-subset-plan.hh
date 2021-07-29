@@ -40,7 +40,7 @@ struct hb_subset_plan_t
   hb_object_header_t header;
 
   bool successful;
-  hb_subset_flags_t flags;
+  unsigned flags;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;

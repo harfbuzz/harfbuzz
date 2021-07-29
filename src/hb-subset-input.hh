@@ -34,6 +34,8 @@
 
 #include "hb-font.hh"
 
+HB_MARK_AS_FLAG_T (hb_subset_flags_t);
+
 struct hb_subset_input_t
 {
   hb_object_header_t header;
@@ -46,7 +48,7 @@ struct hb_subset_input_t
   hb_set_t *drop_tables;
   hb_set_t *layout_features;
 
-  hb_subset_flags_t flags;
+  unsigned flags;
 
   /* TODO
    *

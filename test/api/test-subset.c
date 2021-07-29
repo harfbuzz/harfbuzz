@@ -98,13 +98,12 @@ test_subset_set_flags (void)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
 
-  g_assert (hb_subset_input_get_flags (input) == HB_SUBSET_FLAGS_NONE);
+  g_assert (hb_subset_input_get_flags (input) == HB_SUBSET_FLAGS_DEFAULT);
 
   hb_subset_input_set_flags (input,
                              HB_SUBSET_FLAGS_NAME_LEGACY |
                              HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
-                             HB_SUBSET_FLAGS_GLYPH_NAMES,
-                             HB_SUBSET_FLAGS_ALL);
+                             HB_SUBSET_FLAGS_GLYPH_NAMES);
 
   g_assert (hb_subset_input_get_flags (input) ==
             (hb_subset_flags_t) (
@@ -113,12 +112,6 @@ test_subset_set_flags (void)
             HB_SUBSET_FLAGS_GLYPH_NAMES));
 
   hb_subset_input_set_flags (input,
-
-                             HB_SUBSET_FLAGS_NAME_LEGACY |
-                             HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
-                             HB_SUBSET_FLAGS_GLYPH_NAMES |
-                             HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES,
-
                              HB_SUBSET_FLAGS_NAME_LEGACY |
                              HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
                              HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);

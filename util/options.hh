@@ -709,7 +709,7 @@ struct subset_options_t : option_group_t
   {
     for (unsigned i = 0; i < sizeof(int) * 8; i++)
     {
-      if (1 << i == flag)
+      if (1u << i == flag)
         return &flags[i];
     }
     return &flags[sizeof(int) * 8 - 1];
@@ -719,12 +719,13 @@ struct subset_options_t : option_group_t
 
   hb_subset_input_t * get_input ()
   {
+    hb_subset_flags_t flags_set = HB_SUBSET_FLAGS_DEFAULT;
     for (unsigned i = 0; i < sizeof(int) * 8; i++)
     {
-      hb_subset_input_set_flags (input,
-                                 (hb_subset_flags_t) (1 << i),
-                                 flags[i] ? HB_SUBSET_FLAGS_ALL : HB_SUBSET_FLAGS_NONE);
+      if (flags[i])
+        flags_set = (hb_subset_flags_t) (flags_set |  (1u << i));
     }
+    hb_subset_input_set_flags (input, flags_set);
     return input;
   }
 

@@ -76,8 +76,7 @@ hb_subset_test_create_input_from_nameids (const hb_set_t *name_ids)
   hb_set_add_range (name_langids, 0, 0x5FFF);
 
   hb_subset_input_set_flags (input,
-                             HB_SUBSET_FLAGS_NAME_LEGACY,
-                             HB_SUBSET_FLAGS_ALL);
+                             HB_SUBSET_FLAGS_NAME_LEGACY);
   return input;
 }
 
