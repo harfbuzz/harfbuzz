@@ -2792,6 +2792,10 @@ struct VariationStore
     hb_set_t region_indices;
     for (unsigned int i = 0; i < inner_maps.length; i++)
       (src+src->dataSets[i]).collect_region_refs (region_indices, inner_maps[i]);
+
+    if (region_indices.in_error ())
+      return_trace (false);
+
     region_indices.del_range ((src_regions).regionCount, hb_set_t::INVALID);
 
     /* TODO use constructor when our data-structures support that. */
