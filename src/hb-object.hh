@@ -37,7 +37,6 @@
 #include "hb-mutex.hh"
 #include "hb-vector.hh"
 
-#include <new>
 
 /*
  * Lockable set
@@ -285,7 +284,6 @@ static inline void hb_object_fini (Type *obj)
   if (user_data)
   {
     user_data->fini ();
-    user_data->~hb_user_data_array_t();
     hb_free (user_data);
     user_data = nullptr;
   }
@@ -308,7 +306,6 @@ retry:
     user_data = (hb_user_data_array_t *) hb_calloc (sizeof (hb_user_data_array_t), 1);
     if (unlikely (!user_data))
       return false;
-    user_data = new (user_data) hb_user_data_array_t;
     user_data->init ();
     if (unlikely (!obj->header.user_data.cmpexch (nullptr, user_data)))
     {
