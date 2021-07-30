@@ -56,7 +56,8 @@ def run_test (test, should_check_ots):
 	if return_code:
 		return fail_test (test, cli_args, "%s returned %d" % (' '.join (cli_args), return_code))
 
-	with open(os.path.join (test_suite.get_output_directory (), test.get_font_ttx_name ())) as expected_ttx:
+	expected_file = os.path.join (test_suite.get_output_directory (), test.get_font_ttx_name ())
+	with open(expected_file, encoding="utf-8") as expected_ttx:
 		expected_ttx_text = normalize (expected_ttx.read ())
 
 	actual_ttx = io.StringIO ()
