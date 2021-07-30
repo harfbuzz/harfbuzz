@@ -34,6 +34,8 @@
 
 #include "hb-font.hh"
 
+HB_MARK_AS_FLAG_T (hb_subset_flags_t);
+
 struct hb_subset_input_t
 {
   hb_object_header_t header;
@@ -46,17 +48,7 @@ struct hb_subset_input_t
   hb_set_t *drop_tables;
   hb_set_t *layout_features;
 
-  //use hb_bool_t to be consistent with G option parser
-  hb_bool_t drop_hints;
-  hb_bool_t desubroutinize;
-  hb_bool_t retain_gids;
-  hb_bool_t name_legacy;
-  hb_bool_t overlaps_flag;
-  hb_bool_t notdef_outline;
-  hb_bool_t glyph_names;
-  hb_bool_t no_prune_unicode_ranges;
-  hb_bool_t retain_all_layout_features;
-  hb_bool_t passthrough_unrecognized;
+  unsigned flags;
 
   /* TODO
    *

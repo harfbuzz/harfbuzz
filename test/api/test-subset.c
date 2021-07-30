@@ -93,6 +93,39 @@ test_subset_crash (void)
   hb_face_destroy (face);
 }
 
+static void
+test_subset_set_flags (void)
+{
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+
+  g_assert (hb_subset_input_get_flags (input) == HB_SUBSET_FLAGS_DEFAULT);
+
+  hb_subset_input_set_flags (input,
+                             HB_SUBSET_FLAGS_NAME_LEGACY |
+                             HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
+                             HB_SUBSET_FLAGS_GLYPH_NAMES);
+
+  g_assert (hb_subset_input_get_flags (input) ==
+            (hb_subset_flags_t) (
+            HB_SUBSET_FLAGS_NAME_LEGACY |
+            HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
+            HB_SUBSET_FLAGS_GLYPH_NAMES));
+
+  hb_subset_input_set_flags (input,
+                             HB_SUBSET_FLAGS_NAME_LEGACY |
+                             HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
+                             HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
+
+  g_assert (hb_subset_input_get_flags (input) ==
+            (hb_subset_flags_t) (
+            HB_SUBSET_FLAGS_NAME_LEGACY |
+            HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
+            HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES));
+
+
+  hb_subset_input_destroy (input);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -101,6 +134,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_32_tables);
   hb_test_add (test_subset_no_inf_loop);
   hb_test_add (test_subset_crash);
+  hb_test_add (test_subset_set_flags);
 
   return hb_test_run();
 }

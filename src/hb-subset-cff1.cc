@@ -543,8 +543,8 @@ struct cff_subset_plan {
 
     num_glyphs = plan->num_output_glyphs ();
     orig_fdcount = acc.fdCount;
-    drop_hints = plan->drop_hints;
-    desubroutinize = plan->desubroutinize;
+    drop_hints = plan->flags & HB_SUBSET_FLAGS_NO_HINTING;
+    desubroutinize = plan->flags & HB_SUBSET_FLAGS_DESUBROUTINIZE;
 
     /* check whether the subset renumbers any glyph IDs */
     gid_renum = false;

@@ -54,16 +54,8 @@ hb_subset_input_create_or_fail (void)
   input->layout_features = hb_set_create ();
   input->drop_tables = hb_set_create ();
   input->no_subset_tables = hb_set_create ();
-  input->drop_hints = false;
-  input->desubroutinize = false;
-  input->retain_gids = false;
-  input->name_legacy = false;
-  input->overlaps_flag = false;
-  input->notdef_outline = false;
-  input->glyph_names = false;
-  input->no_prune_unicode_ranges = false;
-  input->retain_all_layout_features = false;
-  input->passthrough_unrecognized = false;
+
+  input->flags = HB_SUBSET_FLAGS_DEFAULT;
 
   hb_tag_t default_drop_tables[] = {
     // Layout disabled by default
@@ -362,98 +354,34 @@ hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
 
 
 /**
- * hb_subset_input_get_flag:
+ * hb_subset_input_get_flags:
  * @input: a #hb_subset_input_t object.
- * @flag: which flag to check.
  *
- * Get the value of the specified flag.
- *
- * Return value: value of the specified flag.
+ * Return value: the subsetting flags bit field.
  *
  * Since: REPLACE
  **/
-HB_EXTERN hb_bool_t
-hb_subset_input_get_flag (hb_subset_input_t *input,
-			  hb_subset_flag_t flag)
+HB_EXTERN hb_subset_flags_t
+hb_subset_input_get_flags (hb_subset_input_t *input)
 {
-  switch (flag)
-  {
-    case HB_SUBSET_FLAG_HINTING:
-      return !input->drop_hints;
-    case HB_SUBSET_FLAG_RETAIN_GIDS:
-      return input->retain_gids;
-    case HB_SUBSET_FLAG_DESUBROUTINIZE:
-      return input->desubroutinize;
-    case HB_SUBSET_FLAG_NAME_LEGACY:
-      return input->name_legacy;
-    case HB_SUBSET_FLAG_SET_OVERLAPS_FLAG:
-      return input->overlaps_flag;
-    case HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED:
-      return input->passthrough_unrecognized;
-    case HB_SUBSET_FLAG_NOTDEF_OUTLINE:
-      return input->notdef_outline;
-    case HB_SUBSET_FLAG_GLYPH_NAMES:
-      return input->glyph_names;
-    case HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES:
-      return input->no_prune_unicode_ranges;
-    case HB_SUBSET_FLAG_RETAIN_ALL_FEATURES:
-      return input->retain_all_layout_features;
-    default:
-      return false;
-  }
+  return (hb_subset_flags_t) input->flags;
 }
 
 /**
- * hb_subset_input_set_flag:
+ * hb_subset_input_set_flags:
  * @input: a #hb_subset_input_t object.
- * @flag: which flag to set.
- * @value: new value for the flag.
+ * @value: bit field of flags
  *
- * Set the specified flag to @value.
+ * Set all of the flags in the input object to the values
+ * specified by the bit field.
  *
  * Since: REPLACE
  **/
 HB_EXTERN void
-hb_subset_input_set_flag (hb_subset_input_t *input,
-			  hb_subset_flag_t flag,
-			  hb_bool_t value)
+hb_subset_input_set_flags (hb_subset_input_t *input,
+			   unsigned value)
 {
-  switch (flag)
-  {
-    case HB_SUBSET_FLAG_HINTING:
-      input->drop_hints = !value;
-      break;
-    case HB_SUBSET_FLAG_RETAIN_GIDS:
-      input->retain_gids = value;
-      break;
-    case HB_SUBSET_FLAG_DESUBROUTINIZE:
-      input->desubroutinize = value;
-      break;
-    case HB_SUBSET_FLAG_NAME_LEGACY:
-      input->name_legacy = value;
-      break;
-    case HB_SUBSET_FLAG_SET_OVERLAPS_FLAG:
-      input->overlaps_flag = value;
-      break;
-    case HB_SUBSET_FLAG_PASSTHROUGH_UNRECOGNIZED:
-      input->passthrough_unrecognized = value;
-      break;
-    case HB_SUBSET_FLAG_NOTDEF_OUTLINE:
-      input->notdef_outline = value;
-      break;
-    case HB_SUBSET_FLAG_GLYPH_NAMES:
-      input->glyph_names = value;
-      break;
-    case HB_SUBSET_FLAG_NO_PRUNE_UNICODE_RANGES:
-      input->no_prune_unicode_ranges = value;
-      break;
-    case HB_SUBSET_FLAG_RETAIN_ALL_FEATURES:
-      input->retain_all_layout_features = value;
-      break;
-    default:
-      // Do nothing.
-      break;
-  }
+  input->flags = (hb_subset_flags_t) value;
 }
 
 /**

@@ -296,10 +296,24 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #ifndef HB_NO_SUBSET_LAYOUT
   if (close_over_gsub)
     // closure all glyphs/lookups/features needed for GSUB substitutions.
-    _closure_glyphs_lookups_features<OT::GSUB> (plan->source, plan->_glyphset_gsub, plan->layout_features, plan->retain_all_layout_features, plan->gsub_lookups, plan->gsub_features, plan->gsub_langsys);
+    _closure_glyphs_lookups_features<OT::GSUB> (
+        plan->source,
+        plan->_glyphset_gsub,
+        plan->layout_features,
+        plan->flags & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES,
+        plan->gsub_lookups,
+        plan->gsub_features,
+        plan->gsub_langsys);
 
   if (close_over_gpos)
-    _closure_glyphs_lookups_features<OT::GPOS> (plan->source, plan->_glyphset_gsub, plan->layout_features, plan->retain_all_layout_features, plan->gpos_lookups, plan->gpos_features, plan->gpos_langsys);
+    _closure_glyphs_lookups_features<OT::GPOS> (
+        plan->source,
+        plan->_glyphset_gsub,
+        plan->layout_features,
+        plan->flags & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES,
+        plan->gpos_lookups,
+        plan->gpos_features,
+        plan->gpos_langsys);
 #endif
   _remove_invalid_gids (plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
@@ -423,16 +437,7 @@ hb_subset_plan_create (hb_face_t	 *face,
     return const_cast<hb_subset_plan_t *> (&Null (hb_subset_plan_t));
 
   plan->successful = true;
-  plan->drop_hints = input->drop_hints;
-  plan->desubroutinize = input->desubroutinize;
-  plan->retain_gids = input->retain_gids;
-  plan->name_legacy = input->name_legacy;
-  plan->overlaps_flag = input->overlaps_flag;
-  plan->notdef_outline = input->notdef_outline;
-  plan->glyph_names = input->glyph_names;
-  plan->prune_unicode_ranges = !input->no_prune_unicode_ranges;
-  plan->retain_all_layout_features = input->retain_all_layout_features;
-  plan->passthrough_unrecognized = input->passthrough_unrecognized;
+  plan->flags = input->flags;
   plan->unicodes = hb_set_create ();
   plan->name_ids = hb_set_copy (input->name_ids);
   _nameid_closure (face, plan->name_ids);
@@ -478,7 +483,7 @@ hb_subset_plan_create (hb_face_t	 *face,
 			    !input->drop_tables->has (HB_OT_TAG_GDEF));
 
   _create_old_gid_to_new_gid_map (face,
-				  input->retain_gids,
+                                  input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
 				  plan->_glyphset,
 				  plan->glyph_map,
 				  plan->reverse_glyph_map,

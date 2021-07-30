@@ -705,7 +705,32 @@ struct subset_options_t : option_group_t
 
   void add_options (option_parser_t *parser) override;
 
+  hb_bool_t* bool_for(hb_subset_flags_t flag)
+  {
+    for (unsigned i = 0; i < sizeof(int) * 8; i++)
+    {
+      if (1u << i == flag)
+        return &flags[i];
+    }
+    return &flags[sizeof(int) * 8 - 1];
+  }
+
   unsigned num_iterations;
+
+  hb_subset_input_t * get_input ()
+  {
+    hb_subset_flags_t flags_set = HB_SUBSET_FLAGS_DEFAULT;
+    for (unsigned i = 0; i < sizeof(int) * 8; i++)
+    {
+      if (flags[i])
+        flags_set = (hb_subset_flags_t) (flags_set |  (1u << i));
+    }
+    hb_subset_input_set_flags (input, flags_set);
+    return input;
+  }
+
+  hb_bool_t flags[sizeof(int) * 8] = {0};
+
   hb_subset_input_t *input;
 };
 

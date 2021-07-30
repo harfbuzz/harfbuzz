@@ -80,7 +80,7 @@ test_subset_cff2_strip_hints (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -103,7 +103,7 @@ test_subset_cff2_desubr (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_DESUBROUTINIZE, true);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_DESUBROUTINIZE);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -126,8 +126,8 @@ test_subset_cff2_desubr_strip_hints (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_DESUBROUTINIZE, true);
-  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_HINTING, false);
+  hb_subset_input_set_flags (input,
+                             HB_SUBSET_FLAGS_DESUBROUTINIZE | HB_SUBSET_FLAGS_NO_HINTING);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 
@@ -150,7 +150,7 @@ test_subset_cff2_retaingids (void)
   hb_set_add (codepoints, 'a');
   hb_set_add (codepoints, 'c');
   input = hb_subset_test_create_input (codepoints);
-  hb_subset_input_set_flag (input, HB_SUBSET_FLAG_RETAIN_GIDS, true);
+  hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_RETAIN_GIDS);
   face_abc_subset = hb_subset_test_create_subset (face_abc, input);
   hb_set_destroy (codepoints);
 

@@ -39,17 +39,8 @@ struct hb_subset_plan_t
 {
   hb_object_header_t header;
 
-  bool successful : 1;
-  bool drop_hints : 1;
-  bool desubroutinize : 1;
-  bool retain_gids : 1;
-  bool name_legacy : 1;
-  bool overlaps_flag : 1;
-  bool notdef_outline : 1;
-  bool glyph_names : 1;
-  bool prune_unicode_ranges : 1;
-  bool retain_all_layout_features : 1;
-  bool passthrough_unrecognized : 1;
+  bool successful;
+  unsigned flags;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;

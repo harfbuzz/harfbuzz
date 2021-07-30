@@ -98,10 +98,11 @@ struct post
     post *post_prime = c->serializer->start_embed<post> ();
     if (unlikely (!post_prime)) return_trace (false);
 
-    if (!serialize (c->serializer, c->plan->glyph_names))
+    bool glyph_names = c->plan->flags & HB_SUBSET_FLAGS_GLYPH_NAMES;
+    if (!serialize (c->serializer, glyph_names))
       return_trace (false);
 
-    if (c->plan->glyph_names && version.major == 2)
+    if (glyph_names && version.major == 2)
       return_trace (v2X.subset (c));
 
     return_trace (true);
