@@ -57,6 +57,8 @@
  * functions are not thread-safe either.</note>
  **/
 
+#include <new>
+
 
 /* TODO:
  *
@@ -94,6 +96,7 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
   hb_ft_font_t *ft_font = (hb_ft_font_t *) hb_calloc (1, sizeof (hb_ft_font_t));
   if (unlikely (!ft_font)) return nullptr;
 
+  ft_font = new (ft_font) hb_ft_font_t;
   ft_font->lock.init ();
   ft_font->ft_face = ft_face;
   ft_font->symbol = symbol;
@@ -124,6 +127,7 @@ _hb_ft_font_destroy (void *data)
     _hb_ft_face_destroy (ft_font->ft_face);
 
   ft_font->lock.fini ();
+  ft_font->~hb_ft_font_t ();
 
   hb_free (ft_font);
 }
@@ -135,7 +139,7 @@ _hb_ft_font_destroy (void *data)
  *
  * Sets the FT_Load_Glyph load flags for the specified #hb_font_t.
  *
- * For more information, see 
+ * For more information, see
  * https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_xxx
  *
  * Since: 1.0.5
@@ -160,7 +164,7 @@ hb_ft_font_set_load_flags (hb_font_t *font, int load_flags)
  *
  * Fetches the FT_Load_Glyph load flags of the specified #hb_font_t.
  *
- * For more information, see 
+ * For more information, see
  * https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#ft_load_xxx
  *
  * Return value: FT_Load_Glyph flags found
@@ -668,10 +672,10 @@ _hb_ft_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void *user_data
  * This variant of the function does not provide any life-cycle management.
  *
  * Most client programs should use hb_ft_face_create_referenced()
- * (or, perhaps, hb_ft_face_create_cached()) instead. 
+ * (or, perhaps, hb_ft_face_create_cached()) instead.
  *
  * If you know you have valid reasons not to use hb_ft_face_create_referenced(),
- * then it is the client program's responsibility to destroy @ft_face 
+ * then it is the client program's responsibility to destroy @ft_face
  * after the #hb_face_t face object has been destroyed.
  *
  * Return value: (transfer full): the new #hb_face_t face object
@@ -782,13 +786,13 @@ hb_ft_face_create_cached (FT_Face ft_face)
  * This variant of the function does not provide any life-cycle management.
  *
  * Most client programs should use hb_ft_font_create_referenced()
- * instead. 
+ * instead.
  *
  * If you know you have valid reasons not to use hb_ft_font_create_referenced(),
- * then it is the client program's responsibility to destroy @ft_face 
+ * then it is the client program's responsibility to destroy @ft_face
  * after the #hb_font_t font object has been destroyed.
  *
- * HarfBuzz will use the @destroy callback on the #hb_font_t font object 
+ * HarfBuzz will use the @destroy callback on the #hb_font_t font object
  * if it is supplied when you use this function. However, even if @destroy
  * is provided, it is the client program's responsibility to destroy @ft_face,
  * and it is the client program's responsibility to ensure that @ft_face is
