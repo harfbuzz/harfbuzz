@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="b"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="3.104"/>
+    <checkSumAdjustment value="0x3678c918"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00000101"/>
+    <unitsPerEm value="1000"/>
+    <created value="Wed Nov  8 12:54:49 2017"/>
+    <modified value="Wed May 22 22:51:16 2019"/>
+    <xMin value="-212"/>
+    <yMin value="-289"/>
+    <xMax value="1272"/>
+    <yMax value="1264"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="6"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="881"/>
+    <descent value="-234"/>
+    <lineGap value="0"/>
+    <advanceWidthMax value="1307"/>
+    <minLeftSideBearing value="-212"/>
+    <minRightSideBearing value="-850"/>
+    <xMaxExtent value="1272"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="2"/>
+  </hhea>
+
+  <maxp>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="0x10000"/>
+    <numGlyphs value="2"/>
+    <maxPoints value="90"/>
+    <maxContours value="5"/>
+    <maxCompositePoints value="118"/>
+    <maxCompositeContours value="7"/>
+    <maxZones value="1"/>
+    <maxTwilightPoints value="0"/>
+    <maxStorage value="0"/>
+    <maxFunctionDefs value="0"/>
+    <maxInstructionDefs value="0"/>
+    <maxStackElements value="0"/>
+    <maxSizeOfInstructions value="0"/>
+    <maxComponentElements value="3"/>
+    <maxComponentDepth value="3"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="4"/>
+    <xAvgCharWidth value="638"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="650"/>
+    <ySubscriptYSize value="600"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="75"/>
+    <ySuperscriptXSize value="650"/>
+    <ySuperscriptYSize value="600"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="350"/>
+    <yStrikeoutSize value="50"/>
+    <yStrikeoutPosition value="328"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="0"/>
+      <bSerifStyle value="0"/>
+      <bWeight value="0"/>
+      <bProportion value="0"/>
+      <bContrast value="0"/>
+      <bStrokeVariation value="0"/>
+      <bArmStyle value="0"/>
+      <bLetterForm value="0"/>
+      <bMidline value="0"/>
+      <bXHeight value="0"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000001"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="CYRE"/>
+    <fsSelection value="00000000 11000000"/>
+    <usFirstCharIndex value="98"/>
+    <usLastCharIndex value="98"/>
+    <sTypoAscender value="881"/>
+    <sTypoDescender value="-234"/>
+    <sTypoLineGap value="0"/>
+    <usWinAscent value="1285"/>
+    <usWinDescent value="332"/>
+    <ulCodePageRange1 value="00100000 00000000 00000001 10011111"/>
+    <ulCodePageRange2 value="00000000 00000000 00000000 00000000"/>
+    <sxHeight value="547"/>
+    <sCapHeight value="781"/>
+    <usDefaultChar value="0"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="3"/>
+  </OS_2>
+
+  <hmtx>
+    <mtx name=".notdef" width="625" lsb="39"/>
+    <mtx name="b" width="707" lsb="90"/>
+  </hmtx>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+    </cmap_format_4>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+    </cmap_format_4>
+  </cmap>
+
+  <loca>
+    <!-- The 'loca' table will be calculated by the compiler -->
+  </loca>
+
+  <glyf>
+
+    <!-- The xMin, yMin, xMax and yMax values
+         will be recalculated by the compiler. -->
+
+    <TTGlyph name=".notdef"/><!-- contains no outline data -->
+
+    <TTGlyph name="b" xMin="90" yMin="-5" xMax="646" yMax="781">
+      <contour>
+        <pt x="367" y="-5" on="1"/>
+        <pt x="289" y="-5" on="0"/>
+        <pt x="164" y="67" on="0"/>
+        <pt x="91" y="192" on="0"/>
+        <pt x="90" y="270" on="1"/>
+        <pt x="90" y="742" on="1"/>
+        <pt x="90" y="760" on="0"/>
+        <pt x="111" y="781" on="0"/>
+        <pt x="129" y="781" on="1"/>
+        <pt x="146" y="781" on="0"/>
+        <pt x="167" y="760" on="0"/>
+        <pt x="167" y="742" on="1"/>
+        <pt x="167" y="448" on="1"/>
+        <pt x="200" y="495" on="0"/>
+        <pt x="309" y="552" on="0"/>
+        <pt x="376" y="552" on="1"/>
+        <pt x="453" y="552" on="0"/>
+        <pt x="575" y="479" on="0"/>
+        <pt x="646" y="353" on="0"/>
+        <pt x="646" y="274" on="1"/>
+        <pt x="646" y="194" on="0"/>
+        <pt x="573" y="68" on="0"/>
+        <pt x="447" y="-5" on="0"/>
+      </contour>
+      <contour>
+        <pt x="367" y="65" on="1"/>
+        <pt x="425" y="65" on="0"/>
+        <pt x="517" y="120" on="0"/>
+        <pt x="570" y="214" on="0"/>
+        <pt x="570" y="274" on="1"/>
+        <pt x="570" y="333" on="0"/>
+        <pt x="517" y="428" on="0"/>
+        <pt x="425" y="482" on="0"/>
+        <pt x="367" y="482" on="1"/>
+        <pt x="310" y="482" on="0"/>
+        <pt x="218" y="428" on="0"/>
+        <pt x="166" y="333" on="0"/>
+        <pt x="166" y="274" on="1"/>
+        <pt x="166" y="214" on="0"/>
+        <pt x="218" y="120" on="0"/>
+        <pt x="310" y="65" on="0"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+  </glyf>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright 2011 The Comfortaa Project Authors (https://github.com/alexeiva/comfortaa), with Reserved Font Name "Comfortaa".
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      Comfortaa
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      3.104;CYRE;Comfortaa-Regular
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      Comfortaa Regular
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version 3.104; ttfautohint (v1.8.1.43-b0c9)
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      Comfortaa-Regular
+    </namerecord>
+    <namerecord nameID="256" platformID="3" platEncID="1" langID="0x409">
+      Weight
+    </namerecord>
+    <namerecord nameID="257" platformID="3" platEncID="1" langID="0x409">
+      Light
+    </namerecord>
+    <namerecord nameID="258" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="259" platformID="3" platEncID="1" langID="0x409">
+      Bold
+    </namerecord>
+  </name>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-100"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <gasp>
+    <gaspRange rangeMaxPPEM="65535" rangeGaspBehavior="15"/>
+  </gasp>
+
+  <GDEF>
+    <Version value="0x00010002"/>
+    <GlyphClassDef>
+      <ClassDef glyph="b" class="1"/>
+    </GlyphClassDef>
+    <MarkGlyphSetsDef>
+      <MarkSetTableFormat value="1"/>
+      <!-- MarkSetCount=3 -->
+      <Coverage index="0">
+      </Coverage>
+      <Coverage index="1">
+      </Coverage>
+      <Coverage index="2">
+      </Coverage>
+    </MarkGlyphSetsDef>
+  </GDEF>
+
+  <GPOS>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=1 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=0 -->
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=0 -->
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=0 -->
+    </LookupList>
+  </GPOS>
+
+  <GSUB>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=2 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=0 -->
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="latn"/>
+        <Script>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=0 -->
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=0 -->
+    </LookupList>
+  </GSUB>
+
+  <HVAR>
+    <Version value="0x00010000"/>
+    <VarStore Format="1">
+      <Format value="1"/>
+      <VarRegionList>
+        <!-- RegionAxisCount=1 -->
+        <!-- RegionCount=2 -->
+        <Region index="0">
+          <VarRegionAxis index="0">
+            <StartCoord value="-1.0"/>
+            <PeakCoord value="-1.0"/>
+            <EndCoord value="0.0"/>
+          </VarRegionAxis>
+        </Region>
+        <Region index="1">
+          <VarRegionAxis index="0">
+            <StartCoord value="0.0"/>
+            <PeakCoord value="1.0"/>
+            <EndCoord value="1.0"/>
+          </VarRegionAxis>
+        </Region>
+      </VarRegionList>
+      <!-- VarDataCount=2 -->
+      <VarData index="0">
+        <!-- ItemCount=1 -->
+        <NumShorts value="0"/>
+        <!-- VarRegionCount=0 -->
+        <Item index="0" value="[]"/>
+      </VarData>
+      <VarData index="1">
+        <!-- ItemCount=1 -->
+        <NumShorts value="0"/>
+        <!-- VarRegionCount=2 -->
+        <VarRegionIndex index="0" value="0"/>
+        <VarRegionIndex index="1" value="1"/>
+        <Item index="0" value="[2, -4]"/>
+      </VarData>
+    </VarStore>
+    <AdvWidthMap>
+      <Map glyph=".notdef" outer="0" inner="0"/>
+      <Map glyph="b" outer="1" inner="0"/>
+    </AdvWidthMap>
+  </HVAR>
+
+  <STAT>
+    <Version value="0x00010001"/>
+    <DesignAxisRecordSize value="8"/>
+    <!-- DesignAxisCount=1 -->
+    <DesignAxisRecord>
+      <Axis index="0">
+        <AxisTag value="wght"/>
+        <AxisNameID value="256"/>  <!-- Weight -->
+        <AxisOrdering value="0"/>
+      </Axis>
+    </DesignAxisRecord>
+    <!-- AxisValueCount=1 -->
+    <AxisValueArray>
+      <AxisValue index="0" Format="1">
+        <AxisIndex value="0"/>
+        <Flags value="0"/>
+        <ValueNameID value="257"/>  <!-- Light -->
+        <Value value="300.0"/>
+      </AxisValue>
+    </AxisValueArray>
+    <ElidedFallbackNameID value="2"/>  <!-- Regular -->
+  </STAT>
+
+  <fvar>
+
+    <!-- Weight -->
+    <Axis>
+      <AxisTag>wght</AxisTag>
+      <Flags>0x0</Flags>
+      <MinValue>300.0</MinValue>
+      <DefaultValue>400.0</DefaultValue>
+      <MaxValue>700.0</MaxValue>
+      <AxisNameID>256</AxisNameID>
+    </Axis>
+
+    <!-- Regular -->
+    <NamedInstance flags="0x0" subfamilyNameID="258">
+      <coord axis="wght" value="400.0"/>
+    </NamedInstance>
+
+    <!-- Bold -->
+    <NamedInstance flags="0x0" subfamilyNameID="259">
+      <coord axis="wght" value="700.0"/>
+    </NamedInstance>
+  </fvar>
+
+  <gvar>
+    <version value="1"/>
+    <reserved value="0"/>
+    <glyphVariations glyph="b">
+      <tuple>
+        <coord axis="wght" value="-1.0"/>
+        <delta pt="2" x="1" y="-1"/>
+        <delta pt="3" x="1" y="-2"/>
+        <delta pt="4" x="0" y="-2"/>
+        <delta pt="5" x="0" y="9"/>
+        <delta pt="7" x="-4" y="0"/>
+        <delta pt="8" x="-9" y="0"/>
+        <delta pt="9" x="-12" y="0"/>
+        <delta pt="11" x="-17" y="9"/>
+        <delta pt="12" x="-17" y="-9"/>
+        <delta pt="13" x="-18" y="-4"/>
+        <delta pt="14" x="-12" y="1"/>
+        <delta pt="15" x="-7" y="1"/>
+        <delta pt="17" x="1" y="1"/>
+        <delta pt="20" x="3" y="0"/>
+        <delta pt="24" x="7" y="-15"/>
+        <delta pt="25" x="14" y="-11"/>
+        <delta pt="27" x="19" y="0"/>
+        <delta pt="28" x="19" y="5"/>
+        <delta pt="29" x="14" y="10"/>
+        <delta pt="31" x="2" y="15"/>
+        <delta pt="33" x="-11" y="10"/>
+        <delta pt="34" x="-16" y="5"/>
+        <delta pt="35" x="-16" y="0"/>
+        <delta pt="40" x="2" y="0"/>
+        <delta pt="42" x="0" y="1"/>
+      </tuple>
+      <tuple>
+        <coord axis="wght" value="1.0"/>
+        <delta pt="0" x="-2" y="1"/>
+        <delta pt="1" x="-2" y="1"/>
+        <delta pt="2" x="-1" y="2"/>
+        <delta pt="3" x="0" y="3"/>
+        <delta pt="4" x="0" y="4"/>
+        <delta pt="5" x="0" y="-12"/>
+        <delta pt="6" x="0" y="-7"/>
+        <delta pt="7" x="8" y="0"/>
+        <delta pt="8" x="12" y="0"/>
+        <delta pt="9" x="18" y="0"/>
+        <delta pt="10" x="25" y="-7"/>
+        <delta pt="11" x="25" y="-12"/>
+        <delta pt="12" x="25" y="12"/>
+        <delta pt="13" x="27" y="7"/>
+        <delta pt="14" x="17" y="-1"/>
+        <delta pt="15" x="9" y="-1"/>
+        <delta pt="16" x="5" y="-1"/>
+        <delta pt="17" x="-1" y="-1"/>
+        <delta pt="18" x="-5" y="0"/>
+        <delta pt="19" x="-5" y="0"/>
+        <delta pt="20" x="-5" y="1"/>
+        <delta pt="21" x="-5" y="1"/>
+        <delta pt="22" x="-3" y="1"/>
+        <delta pt="23" x="-2" y="21"/>
+        <delta pt="24" x="-9" y="21"/>
+        <delta pt="25" x="-21" y="15"/>
+        <delta pt="26" x="-27" y="7"/>
+        <delta pt="27" x="-27" y="0"/>
+        <delta pt="28" x="-27" y="-5"/>
+        <delta pt="29" x="-21" y="-16"/>
+        <delta pt="30" x="-9" y="-21"/>
+        <delta pt="31" x="-2" y="-21"/>
+        <delta pt="32" x="5" y="-21"/>
+        <delta pt="33" x="16" y="-16"/>
+        <delta pt="34" x="22" y="-5"/>
+        <delta pt="35" x="22" y="0"/>
+        <delta pt="36" x="22" y="7"/>
+        <delta pt="37" x="16" y="15"/>
+        <delta pt="38" x="5" y="21"/>
+        <delta pt="39" x="0" y="0"/>
+        <delta pt="40" x="-4" y="0"/>
+        <delta pt="41" x="0" y="0"/>
+        <delta pt="42" x="0" y="-1"/>
+      </tuple>
+    </glyphVariations>
+  </gvar>
+
+</ttFont>

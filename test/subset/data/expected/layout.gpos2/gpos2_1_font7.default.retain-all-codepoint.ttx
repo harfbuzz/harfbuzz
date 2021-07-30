@@ -1,0 +1,1221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="OTTO" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="g1"/>
+    <GlyphID id="2" name="g2"/>
+    <GlyphID id="3" name="g3"/>
+    <GlyphID id="4" name="g4"/>
+    <GlyphID id="5" name="g5"/>
+    <GlyphID id="6" name="g6"/>
+    <GlyphID id="7" name="g7"/>
+    <GlyphID id="8" name="g8"/>
+    <GlyphID id="9" name="g9"/>
+    <GlyphID id="10" name="g10"/>
+    <GlyphID id="11" name="g11"/>
+    <GlyphID id="12" name="g12"/>
+    <GlyphID id="13" name="g13"/>
+    <GlyphID id="14" name="g14"/>
+    <GlyphID id="15" name="g15"/>
+    <GlyphID id="16" name="g16"/>
+    <GlyphID id="17" name="g17"/>
+    <GlyphID id="18" name="g18"/>
+    <GlyphID id="19" name="g19"/>
+    <GlyphID id="20" name="g20"/>
+    <GlyphID id="21" name="g21"/>
+    <GlyphID id="22" name="g22"/>
+    <GlyphID id="23" name="g23"/>
+    <GlyphID id="24" name="g24"/>
+    <GlyphID id="25" name="g25"/>
+    <GlyphID id="26" name="g26"/>
+    <GlyphID id="27" name="g27"/>
+    <GlyphID id="28" name="g28"/>
+    <GlyphID id="29" name="g29"/>
+    <GlyphID id="30" name="g30"/>
+    <GlyphID id="31" name="g31"/>
+    <GlyphID id="32" name="g32"/>
+    <GlyphID id="33" name="g33"/>
+    <GlyphID id="34" name="g34"/>
+    <GlyphID id="35" name="g35"/>
+    <GlyphID id="36" name="g36"/>
+    <GlyphID id="37" name="g37"/>
+    <GlyphID id="38" name="g38"/>
+    <GlyphID id="39" name="g39"/>
+    <GlyphID id="40" name="g40"/>
+    <GlyphID id="41" name="g41"/>
+    <GlyphID id="42" name="g42"/>
+    <GlyphID id="43" name="g43"/>
+    <GlyphID id="44" name="g44"/>
+    <GlyphID id="45" name="g45"/>
+    <GlyphID id="46" name="g46"/>
+    <GlyphID id="47" name="g47"/>
+    <GlyphID id="48" name="g48"/>
+    <GlyphID id="49" name="g49"/>
+    <GlyphID id="50" name="g50"/>
+    <GlyphID id="51" name="g51"/>
+    <GlyphID id="52" name="g52"/>
+    <GlyphID id="53" name="g53"/>
+    <GlyphID id="54" name="g54"/>
+    <GlyphID id="55" name="g55"/>
+    <GlyphID id="56" name="g56"/>
+    <GlyphID id="57" name="g57"/>
+    <GlyphID id="58" name="g58"/>
+    <GlyphID id="59" name="g59"/>
+    <GlyphID id="60" name="g60"/>
+    <GlyphID id="61" name="g61"/>
+    <GlyphID id="62" name="g62"/>
+    <GlyphID id="63" name="g63"/>
+    <GlyphID id="64" name="g64"/>
+    <GlyphID id="65" name="g65"/>
+    <GlyphID id="66" name="g66"/>
+    <GlyphID id="67" name="g67"/>
+    <GlyphID id="68" name="g68"/>
+    <GlyphID id="69" name="g69"/>
+    <GlyphID id="70" name="g70"/>
+    <GlyphID id="71" name="g71"/>
+    <GlyphID id="72" name="g72"/>
+    <GlyphID id="73" name="g73"/>
+    <GlyphID id="74" name="g74"/>
+    <GlyphID id="75" name="g75"/>
+    <GlyphID id="76" name="g76"/>
+    <GlyphID id="77" name="g77"/>
+    <GlyphID id="78" name="g78"/>
+    <GlyphID id="79" name="g79"/>
+    <GlyphID id="80" name="g80"/>
+    <GlyphID id="81" name="g81"/>
+    <GlyphID id="82" name="g82"/>
+    <GlyphID id="83" name="g83"/>
+    <GlyphID id="84" name="g84"/>
+    <GlyphID id="85" name="g85"/>
+    <GlyphID id="86" name="g86"/>
+    <GlyphID id="87" name="g87"/>
+    <GlyphID id="88" name="g88"/>
+    <GlyphID id="89" name="g89"/>
+    <GlyphID id="90" name="g90"/>
+    <GlyphID id="91" name="g91"/>
+    <GlyphID id="92" name="g92"/>
+    <GlyphID id="93" name="g93"/>
+    <GlyphID id="94" name="g94"/>
+    <GlyphID id="95" name="g95"/>
+    <GlyphID id="96" name="g96"/>
+    <GlyphID id="97" name="g97"/>
+    <GlyphID id="98" name="g98"/>
+    <GlyphID id="99" name="g99"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="1.0"/>
+    <checkSumAdjustment value="0xec694b86"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00000001"/>
+    <unitsPerEm value="1500"/>
+    <created value="Thu Jan  1 00:00:00 1970"/>
+    <modified value="Tue Sep 17 17:36:18 2019"/>
+    <xMin value="22"/>
+    <yMin value="-114"/>
+    <xMax value="1074"/>
+    <yMax value="691"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="3"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="2500"/>
+    <descent value="0"/>
+    <lineGap value="200"/>
+    <advanceWidthMax value="1500"/>
+    <minLeftSideBearing value="300"/>
+    <minRightSideBearing value="161"/>
+    <xMaxExtent value="1339"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="1"/>
+  </hhea>
+
+  <maxp>
+    <tableVersion value="0x5000"/>
+    <numGlyphs value="100"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="2"/>
+    <xAvgCharWidth value="2500"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00001100"/>
+    <ySubscriptXSize value="500"/>
+    <ySubscriptYSize value="500"/>
+    <ySubscriptXOffset value="250"/>
+    <ySubscriptYOffset value="50"/>
+    <ySuperscriptXSize value="500"/>
+    <ySuperscriptYSize value="500"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="500"/>
+    <yStrikeoutSize value="50"/>
+    <yStrikeoutPosition value="500"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="2"/>
+      <bSerifStyle value="10"/>
+      <bWeight value="6"/>
+      <bProportion value="3"/>
+      <bContrast value="6"/>
+      <bStrokeVariation value="5"/>
+      <bArmStyle value="11"/>
+      <bLetterForm value="2"/>
+      <bMidline value="2"/>
+      <bXHeight value="4"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000001"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="ADBE"/>
+    <fsSelection value="00000000 01000000"/>
+    <usFirstCharIndex value="1"/>
+    <usLastCharIndex value="99"/>
+    <sTypoAscender value="2500"/>
+    <sTypoDescender value="0"/>
+    <sTypoLineGap value="200"/>
+    <usWinAscent value="2500"/>
+    <usWinDescent value="0"/>
+    <ulCodePageRange1 value="11100000 00111111 00000001 11111111"/>
+    <ulCodePageRange2 value="11111111 11111111 00000000 00000000"/>
+    <sxHeight value="2500"/>
+    <sCapHeight value="2500"/>
+    <usDefaultChar value="65"/>
+    <usBreakChar value="65"/>
+    <usMaxContext value="0"/>
+  </OS_2>
+
+  <name>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      gpos2_1_font7
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      gpos2_1_font7
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      gpos2_1_font7
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version1.0
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      gpos2_1_font7
+    </namerecord>
+  </name>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x1" name="g1"/><!-- ???? -->
+      <map code="0x2" name="g2"/><!-- ???? -->
+      <map code="0x3" name="g3"/><!-- ???? -->
+      <map code="0x4" name="g4"/><!-- ???? -->
+      <map code="0x5" name="g5"/><!-- ???? -->
+      <map code="0x6" name="g6"/><!-- ???? -->
+      <map code="0x7" name="g7"/><!-- ???? -->
+      <map code="0x8" name="g8"/><!-- ???? -->
+      <map code="0x9" name="g9"/><!-- ???? -->
+      <map code="0xa" name="g10"/><!-- ???? -->
+      <map code="0xb" name="g11"/><!-- ???? -->
+      <map code="0xc" name="g12"/><!-- ???? -->
+      <map code="0xd" name="g13"/><!-- ???? -->
+      <map code="0xe" name="g14"/><!-- ???? -->
+      <map code="0xf" name="g15"/><!-- ???? -->
+      <map code="0x10" name="g16"/><!-- ???? -->
+      <map code="0x11" name="g17"/><!-- ???? -->
+      <map code="0x12" name="g18"/><!-- ???? -->
+      <map code="0x13" name="g19"/><!-- ???? -->
+      <map code="0x14" name="g20"/><!-- ???? -->
+      <map code="0x15" name="g21"/><!-- ???? -->
+      <map code="0x16" name="g22"/><!-- ???? -->
+      <map code="0x17" name="g23"/><!-- ???? -->
+      <map code="0x18" name="g24"/><!-- ???? -->
+      <map code="0x19" name="g25"/><!-- ???? -->
+      <map code="0x1a" name="g26"/><!-- ???? -->
+      <map code="0x1b" name="g27"/><!-- ???? -->
+      <map code="0x1c" name="g28"/><!-- ???? -->
+      <map code="0x1d" name="g29"/><!-- ???? -->
+      <map code="0x1e" name="g30"/><!-- ???? -->
+      <map code="0x1f" name="g31"/><!-- ???? -->
+      <map code="0x20" name="g32"/><!-- SPACE -->
+      <map code="0x21" name="g33"/><!-- EXCLAMATION MARK -->
+      <map code="0x22" name="g34"/><!-- QUOTATION MARK -->
+      <map code="0x23" name="g35"/><!-- NUMBER SIGN -->
+      <map code="0x24" name="g36"/><!-- DOLLAR SIGN -->
+      <map code="0x25" name="g37"/><!-- PERCENT SIGN -->
+      <map code="0x26" name="g38"/><!-- AMPERSAND -->
+      <map code="0x27" name="g39"/><!-- APOSTROPHE -->
+      <map code="0x28" name="g40"/><!-- LEFT PARENTHESIS -->
+      <map code="0x29" name="g41"/><!-- RIGHT PARENTHESIS -->
+      <map code="0x2a" name="g42"/><!-- ASTERISK -->
+      <map code="0x2b" name="g43"/><!-- PLUS SIGN -->
+      <map code="0x2c" name="g44"/><!-- COMMA -->
+      <map code="0x2d" name="g45"/><!-- HYPHEN-MINUS -->
+      <map code="0x2e" name="g46"/><!-- FULL STOP -->
+      <map code="0x2f" name="g47"/><!-- SOLIDUS -->
+      <map code="0x30" name="g48"/><!-- DIGIT ZERO -->
+      <map code="0x31" name="g49"/><!-- DIGIT ONE -->
+      <map code="0x32" name="g50"/><!-- DIGIT TWO -->
+      <map code="0x33" name="g51"/><!-- DIGIT THREE -->
+      <map code="0x34" name="g52"/><!-- DIGIT FOUR -->
+      <map code="0x35" name="g53"/><!-- DIGIT FIVE -->
+      <map code="0x36" name="g54"/><!-- DIGIT SIX -->
+      <map code="0x37" name="g55"/><!-- DIGIT SEVEN -->
+      <map code="0x38" name="g56"/><!-- DIGIT EIGHT -->
+      <map code="0x39" name="g57"/><!-- DIGIT NINE -->
+      <map code="0x3a" name="g58"/><!-- COLON -->
+      <map code="0x3b" name="g59"/><!-- SEMICOLON -->
+      <map code="0x3c" name="g60"/><!-- LESS-THAN SIGN -->
+      <map code="0x3d" name="g61"/><!-- EQUALS SIGN -->
+      <map code="0x3e" name="g62"/><!-- GREATER-THAN SIGN -->
+      <map code="0x3f" name="g63"/><!-- QUESTION MARK -->
+      <map code="0x40" name="g64"/><!-- COMMERCIAL AT -->
+      <map code="0x41" name="g65"/><!-- LATIN CAPITAL LETTER A -->
+      <map code="0x42" name="g66"/><!-- LATIN CAPITAL LETTER B -->
+      <map code="0x43" name="g67"/><!-- LATIN CAPITAL LETTER C -->
+      <map code="0x44" name="g68"/><!-- LATIN CAPITAL LETTER D -->
+      <map code="0x45" name="g69"/><!-- LATIN CAPITAL LETTER E -->
+      <map code="0x46" name="g70"/><!-- LATIN CAPITAL LETTER F -->
+      <map code="0x47" name="g71"/><!-- LATIN CAPITAL LETTER G -->
+      <map code="0x48" name="g72"/><!-- LATIN CAPITAL LETTER H -->
+      <map code="0x49" name="g73"/><!-- LATIN CAPITAL LETTER I -->
+      <map code="0x4a" name="g74"/><!-- LATIN CAPITAL LETTER J -->
+      <map code="0x4b" name="g75"/><!-- LATIN CAPITAL LETTER K -->
+      <map code="0x4c" name="g76"/><!-- LATIN CAPITAL LETTER L -->
+      <map code="0x4d" name="g77"/><!-- LATIN CAPITAL LETTER M -->
+      <map code="0x4e" name="g78"/><!-- LATIN CAPITAL LETTER N -->
+      <map code="0x4f" name="g79"/><!-- LATIN CAPITAL LETTER O -->
+      <map code="0x50" name="g80"/><!-- LATIN CAPITAL LETTER P -->
+      <map code="0x51" name="g81"/><!-- LATIN CAPITAL LETTER Q -->
+      <map code="0x52" name="g82"/><!-- LATIN CAPITAL LETTER R -->
+      <map code="0x53" name="g83"/><!-- LATIN CAPITAL LETTER S -->
+      <map code="0x54" name="g84"/><!-- LATIN CAPITAL LETTER T -->
+      <map code="0x55" name="g85"/><!-- LATIN CAPITAL LETTER U -->
+      <map code="0x56" name="g86"/><!-- LATIN CAPITAL LETTER V -->
+      <map code="0x57" name="g87"/><!-- LATIN CAPITAL LETTER W -->
+      <map code="0x58" name="g88"/><!-- LATIN CAPITAL LETTER X -->
+      <map code="0x59" name="g89"/><!-- LATIN CAPITAL LETTER Y -->
+      <map code="0x5a" name="g90"/><!-- LATIN CAPITAL LETTER Z -->
+      <map code="0x5b" name="g91"/><!-- LEFT SQUARE BRACKET -->
+      <map code="0x5c" name="g92"/><!-- REVERSE SOLIDUS -->
+      <map code="0x5d" name="g93"/><!-- RIGHT SQUARE BRACKET -->
+      <map code="0x5e" name="g94"/><!-- CIRCUMFLEX ACCENT -->
+      <map code="0x5f" name="g95"/><!-- LOW LINE -->
+      <map code="0x60" name="g96"/><!-- GRAVE ACCENT -->
+      <map code="0x61" name="g97"/><!-- LATIN SMALL LETTER A -->
+      <map code="0x62" name="g98"/><!-- LATIN SMALL LETTER B -->
+      <map code="0x63" name="g99"/><!-- LATIN SMALL LETTER C -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="3" platEncID="10" format="12" reserved="0" length="28" language="0" nGroups="1">
+      <map code="0x1" name="g1"/><!-- ???? -->
+      <map code="0x2" name="g2"/><!-- ???? -->
+      <map code="0x3" name="g3"/><!-- ???? -->
+      <map code="0x4" name="g4"/><!-- ???? -->
+      <map code="0x5" name="g5"/><!-- ???? -->
+      <map code="0x6" name="g6"/><!-- ???? -->
+      <map code="0x7" name="g7"/><!-- ???? -->
+      <map code="0x8" name="g8"/><!-- ???? -->
+      <map code="0x9" name="g9"/><!-- ???? -->
+      <map code="0xa" name="g10"/><!-- ???? -->
+      <map code="0xb" name="g11"/><!-- ???? -->
+      <map code="0xc" name="g12"/><!-- ???? -->
+      <map code="0xd" name="g13"/><!-- ???? -->
+      <map code="0xe" name="g14"/><!-- ???? -->
+      <map code="0xf" name="g15"/><!-- ???? -->
+      <map code="0x10" name="g16"/><!-- ???? -->
+      <map code="0x11" name="g17"/><!-- ???? -->
+      <map code="0x12" name="g18"/><!-- ???? -->
+      <map code="0x13" name="g19"/><!-- ???? -->
+      <map code="0x14" name="g20"/><!-- ???? -->
+      <map code="0x15" name="g21"/><!-- ???? -->
+      <map code="0x16" name="g22"/><!-- ???? -->
+      <map code="0x17" name="g23"/><!-- ???? -->
+      <map code="0x18" name="g24"/><!-- ???? -->
+      <map code="0x19" name="g25"/><!-- ???? -->
+      <map code="0x1a" name="g26"/><!-- ???? -->
+      <map code="0x1b" name="g27"/><!-- ???? -->
+      <map code="0x1c" name="g28"/><!-- ???? -->
+      <map code="0x1d" name="g29"/><!-- ???? -->
+      <map code="0x1e" name="g30"/><!-- ???? -->
+      <map code="0x1f" name="g31"/><!-- ???? -->
+      <map code="0x20" name="g32"/><!-- SPACE -->
+      <map code="0x21" name="g33"/><!-- EXCLAMATION MARK -->
+      <map code="0x22" name="g34"/><!-- QUOTATION MARK -->
+      <map code="0x23" name="g35"/><!-- NUMBER SIGN -->
+      <map code="0x24" name="g36"/><!-- DOLLAR SIGN -->
+      <map code="0x25" name="g37"/><!-- PERCENT SIGN -->
+      <map code="0x26" name="g38"/><!-- AMPERSAND -->
+      <map code="0x27" name="g39"/><!-- APOSTROPHE -->
+      <map code="0x28" name="g40"/><!-- LEFT PARENTHESIS -->
+      <map code="0x29" name="g41"/><!-- RIGHT PARENTHESIS -->
+      <map code="0x2a" name="g42"/><!-- ASTERISK -->
+      <map code="0x2b" name="g43"/><!-- PLUS SIGN -->
+      <map code="0x2c" name="g44"/><!-- COMMA -->
+      <map code="0x2d" name="g45"/><!-- HYPHEN-MINUS -->
+      <map code="0x2e" name="g46"/><!-- FULL STOP -->
+      <map code="0x2f" name="g47"/><!-- SOLIDUS -->
+      <map code="0x30" name="g48"/><!-- DIGIT ZERO -->
+      <map code="0x31" name="g49"/><!-- DIGIT ONE -->
+      <map code="0x32" name="g50"/><!-- DIGIT TWO -->
+      <map code="0x33" name="g51"/><!-- DIGIT THREE -->
+      <map code="0x34" name="g52"/><!-- DIGIT FOUR -->
+      <map code="0x35" name="g53"/><!-- DIGIT FIVE -->
+      <map code="0x36" name="g54"/><!-- DIGIT SIX -->
+      <map code="0x37" name="g55"/><!-- DIGIT SEVEN -->
+      <map code="0x38" name="g56"/><!-- DIGIT EIGHT -->
+      <map code="0x39" name="g57"/><!-- DIGIT NINE -->
+      <map code="0x3a" name="g58"/><!-- COLON -->
+      <map code="0x3b" name="g59"/><!-- SEMICOLON -->
+      <map code="0x3c" name="g60"/><!-- LESS-THAN SIGN -->
+      <map code="0x3d" name="g61"/><!-- EQUALS SIGN -->
+      <map code="0x3e" name="g62"/><!-- GREATER-THAN SIGN -->
+      <map code="0x3f" name="g63"/><!-- QUESTION MARK -->
+      <map code="0x40" name="g64"/><!-- COMMERCIAL AT -->
+      <map code="0x41" name="g65"/><!-- LATIN CAPITAL LETTER A -->
+      <map code="0x42" name="g66"/><!-- LATIN CAPITAL LETTER B -->
+      <map code="0x43" name="g67"/><!-- LATIN CAPITAL LETTER C -->
+      <map code="0x44" name="g68"/><!-- LATIN CAPITAL LETTER D -->
+      <map code="0x45" name="g69"/><!-- LATIN CAPITAL LETTER E -->
+      <map code="0x46" name="g70"/><!-- LATIN CAPITAL LETTER F -->
+      <map code="0x47" name="g71"/><!-- LATIN CAPITAL LETTER G -->
+      <map code="0x48" name="g72"/><!-- LATIN CAPITAL LETTER H -->
+      <map code="0x49" name="g73"/><!-- LATIN CAPITAL LETTER I -->
+      <map code="0x4a" name="g74"/><!-- LATIN CAPITAL LETTER J -->
+      <map code="0x4b" name="g75"/><!-- LATIN CAPITAL LETTER K -->
+      <map code="0x4c" name="g76"/><!-- LATIN CAPITAL LETTER L -->
+      <map code="0x4d" name="g77"/><!-- LATIN CAPITAL LETTER M -->
+      <map code="0x4e" name="g78"/><!-- LATIN CAPITAL LETTER N -->
+      <map code="0x4f" name="g79"/><!-- LATIN CAPITAL LETTER O -->
+      <map code="0x50" name="g80"/><!-- LATIN CAPITAL LETTER P -->
+      <map code="0x51" name="g81"/><!-- LATIN CAPITAL LETTER Q -->
+      <map code="0x52" name="g82"/><!-- LATIN CAPITAL LETTER R -->
+      <map code="0x53" name="g83"/><!-- LATIN CAPITAL LETTER S -->
+      <map code="0x54" name="g84"/><!-- LATIN CAPITAL LETTER T -->
+      <map code="0x55" name="g85"/><!-- LATIN CAPITAL LETTER U -->
+      <map code="0x56" name="g86"/><!-- LATIN CAPITAL LETTER V -->
+      <map code="0x57" name="g87"/><!-- LATIN CAPITAL LETTER W -->
+      <map code="0x58" name="g88"/><!-- LATIN CAPITAL LETTER X -->
+      <map code="0x59" name="g89"/><!-- LATIN CAPITAL LETTER Y -->
+      <map code="0x5a" name="g90"/><!-- LATIN CAPITAL LETTER Z -->
+      <map code="0x5b" name="g91"/><!-- LEFT SQUARE BRACKET -->
+      <map code="0x5c" name="g92"/><!-- REVERSE SOLIDUS -->
+      <map code="0x5d" name="g93"/><!-- RIGHT SQUARE BRACKET -->
+      <map code="0x5e" name="g94"/><!-- CIRCUMFLEX ACCENT -->
+      <map code="0x5f" name="g95"/><!-- LOW LINE -->
+      <map code="0x60" name="g96"/><!-- GRAVE ACCENT -->
+      <map code="0x61" name="g97"/><!-- LATIN SMALL LETTER A -->
+      <map code="0x62" name="g98"/><!-- LATIN SMALL LETTER B -->
+      <map code="0x63" name="g99"/><!-- LATIN SMALL LETTER C -->
+    </cmap_format_12>
+  </cmap>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-100"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <CFF>
+    <major value="1"/>
+    <minor value="0"/>
+    <CFFFont name="dummy">
+      <version value="001.000"/>
+      <Notice value="Copyright (c) 2002 Adobe Systems Incorporated. All Rights Reserved."/>
+      <FullName value="dummy"/>
+      <FamilyName value="dummy"/>
+      <Weight value="Regular"/>
+      <isFixedPitch value="0"/>
+      <ItalicAngle value="0"/>
+      <UnderlinePosition value="-125"/>
+      <UnderlineThickness value="50"/>
+      <PaintType value="0"/>
+      <CharstringType value="2"/>
+      <FontMatrix value="0.0008 0 0 0.0008 0 0"/>
+      <UniqueID value="44788"/>
+      <FontBBox value="22 -114 1074 691"/>
+      <StrokeWidth value="0"/>
+      <!-- charset is dumped separately as the 'GlyphOrder' element -->
+      <Encoding name="StandardEncoding"/>
+      <Private>
+        <BlueValues value="-25 0 657 682 439 464 640 653 708 733 475 500"/>
+        <OtherBlues value="283 308 -251 -226 -154 -129 -194 -169"/>
+        <FamilyBlues value="-25 0 657 682 439 464 640 653 708 733 475 500"/>
+        <FamilyOtherBlues value="283 308 -251 -226 -154 -129 -194 -169"/>
+        <BlueScale value="0.039625"/>
+        <BlueShift value="7"/>
+        <BlueFuzz value="1"/>
+        <StdHW value="32"/>
+        <StdVW value="85"/>
+        <StemSnapH value="32"/>
+        <StemSnapV value="85 90"/>
+        <ForceBold value="0"/>
+        <LanguageGroup value="0"/>
+        <ExpansionFactor value="0.06"/>
+        <initialRandomSeed value="0"/>
+        <defaultWidthX value="2500"/>
+        <nominalWidthX value="2500"/>
+        <Subrs>
+          <!-- The 'index' attribute is only for humans; it is ignored when parsed. -->
+          <CharString index="0">
+            145 665 rmoveto
+            -74 -43 -28 -166 -6 -75 -10 -124 21 -220 148 -44 rrcurveto
+            -11 37 40 7 39 hhcurveto
+            6 8 3 4 4 hvcurveto
+            69 60 39 31 2 103 1 44 5 43 -4 43 -7 87 -50 217 -88 45 -24 13 -29 1 -28 7 -12 -1 -8 -4 -6 -7 -16 -2 -16 -3 -13 -8 rrcurveto
+            122 -50 rmoveto
+            97 -69 31 -246 -15 -107 -13 -95 -42 -80 -111 33 -52 16 -30 55 -16 46 -32 98 -1 279 95 68 13 9 18 -2 15 4 1 1 2 1 2 1 14 -2 13 -2 11 -8 rrcurveto
+            233 -615 rmoveto
+            return
+          </CharString>
+          <CharString index="1">
+            175 661 rmoveto
+            1 -215 6 -215 1 -215 4 -42 54 3 2 41 -1 216 -6 214 -1 215 -11 35 -42 0 -7 -37 rrcurveto
+            325 -661 rmoveto
+            return
+          </CharString>
+          <CharString index="2">
+            143 536 rmoveto
+            59 22 61 39 64 3 78 5 3 -97 -32 -48 -76 -117 -268 -55 -9 -168 -2 -31 11 -30 5 -31 5 -10 5 -5 10 -5 50 -15 58 8 50 1 65 1 66 3 65 1 37 7 0 42 -35 11 rrcurveto
+            -106 -2 -108 -7 -107 4 -2 18 -8 18 2 17 16 141 259 55 69 117 72 122 -67 142 -156 -40 -52 -14 -48 -26 -51 -19 -40 -14 16 -51 41 8 rrcurveto
+            357 -536 rmoveto
+            return
+          </CharString>
+          <CharString index="3">
+            92 580 rmoveto
+            13 6 13 7 14 4 54 16 184 1 9 -81 1 -13 -3 -13 -3 -14 -9 -45 -124 -14 -42 -8 rrcurveto
+            -2 -2 1 -1 hhcurveto
+            -2 vlineto
+            -30 -15 5 -40 35 -4 60 -5 62 -4 47 -43 83 -75 -108 -134 -82 -20 -75 -17 -101 91 -42 -14 -22 -8 -7 -18 10 -21 2 -2 2 -2 1 -2 10 -10 11 -3 10 2 rrcurveto
+            2 2 -1 1 hhcurveto
+            16 -7 15 -7 15 -7 33 -14 33 -14 35 -7 103 -18 81 94 48 78 51 83 -64 98 -77 36 -4 1 -3 2 -4 2 17 7 16 9 15 12 77 61 -32 107 -79 40 -91 47 -115 -9 -91 -40 rrcurveto
+            -27 -24 18 -37 36 7 rrcurveto
+            408 -580 rmoveto
+            return
+          </CharString>
+          <CharString index="4">
+            336 627 rmoveto
+            -73 -94 -78 -92 -70 -97 -32 -45 -39 -39 -2 -56 2 -16 5 -7 14 -7 76 -39 130 16 102 10 -2 -44 -2 -44 -1 -43 4 -42 54 3 2 41 1 45 2 45 2 45 rrcurveto
+            6 6 0 1 5 hvcurveto
+            41 8 -6 54 -42 -3 rrcurveto
+            -2 -3 -1 -2 hhcurveto
+            4 135 -3 133 -49 127 -2 3 -3 2 -2 2 -6 6 -8 4 -9 -1 rrcurveto
+            -6 -6 -3 -4 -4 hvcurveto
+            -2 -1 -1 -1 -1 -1 rrcurveto
+            -230 -408 rmoveto
+            9 14 6 14 9 13 16 24 37 51 17 22 48 64 50 62 50 62 29 -105 1 -110 -4 -109 -87 -9 -131 -13 -50 20 rrcurveto
+            394 -219 rmoveto
+            return
+          </CharString>
+          <CharString index="5">
+            41 642 rmoveto
+            1 -2 1 -1 -1 vvcurveto
+            -7 2 -7 5 -5 vhcurveto
+            15 -69 -71 -105 61 -45 71 -50 214 60 48 -116 9 -20 3 -24 -3 -22 -13 -128 -51 -35 -120 -6 -38 -1 -62 -5 -26 34 -29 22 -33 -28 16 -33 39 -51 75 0 59 2 83 5 76 21 49 69 rrcurveto
+            25 36 0 48 11 42 19 72 -43 43 -42 45 -62 68 -159 -25 -76 26 -20 43 44 56 -6 66 101 14 102 -5 103 -1 37 7 0 42 -35 11 -109 1 -110 5 -108 -17 rrcurveto
+            -1 1 0 0 1 vvcurveto
+            -25 33 -45 -26 18 -38 rrcurveto
+            407 -673 rmoveto
+            return
+          </CharString>
+          <CharString index="6">
+            399 660 rmoveto
+            -36 2 -37 10 -35 -8 -152 -32 -56 -137 -37 -134 -35 -130 55 -175 141 -42 156 -46 135 253 -64 123 -39 78 -32 -3 -81 14 -26 5 -36 -14 -24 -10 -36 -15 -28 -18 -26 -26 19 101 63 130 114 18 rrcurveto
+            32 5 31 -8 32 -1 37 7 0 42 -35 11 rrcurveto
+            -263 -360 rmoveto
+            52 57 149 71 42 -110 33 -84 -77 -193 -113 33 -98 30 -29 103 4 92 9 -7 14 -1 14 9 rrcurveto
+            401 -299 rmoveto
+            return
+          </CharString>
+          <CharString index="7">
+            99 610 rmoveto
+            63 14 62 -15 64 -2 rrcurveto
+            22 23 1 2 22 hvcurveto
+            -24 -33 -19 -38 -22 -38 -85 -149 -77 -149 -19 -173 4 -37 43 -4 12 34 19 165 74 145 83 142 34 57 25 61 56 36 21 24 -14 30 -32 -2 rrcurveto
+            -6 -47 -49 -8 -48 hhcurveto
+            -71 2 -67 15 -70 -17 -40 -14 16 -51 41 8 rrcurveto
+            418 -667 rmoveto
+            return
+          </CharString>
+          <CharString index="8">
+            289 676 rmoveto
+            -88 12 -105 -100 -7 -86 -1 -23 -10 -26 9 -22 9 -21 8 -23 13 -20 6 -8 8 -7 9 -5 -42 -15 -31 -26 -21 -57 -31 -83 41 -138 89 -34 25 -9 24 -16 27 1 90 2 -6 -5 70 46 rrcurveto
+            60 39 -5 113 -8 58 -2 24 -13 22 -9 22 -8 20 -18 15 -15 16 -7 7 -9 4 -9 3 3 5 3 5 3 6 43 84 -21 87 -3 90 -6 20 -17 8 -14 -3 -10 9 -11 8 -13 1 rrcurveto
+            -12 -364 rmoveto
+            2 -2 2 -1 3 -1 12 -4 13 -1 9 -8 26 -18 13 -38 6 -28 24 -103 -43 -94 -120 16 -104 15 -73 140 80 83 31 33 22 -2 42 7 19 -4 19 3 17 7 rrcurveto
+            32 196 rmoveto
+            2 -48 -9 -48 -33 -37 -30 -34 -85 64 -8 41 -11 56 73 136 70 -23 8 -3 8 -6 7 -6 2 -31 4 -31 2 -30 rrcurveto
+            191 -508 rmoveto
+            return
+          </CharString>
+          <CharString index="9">
+            379 635 rmoveto
+            -50 16 -48 25 -52 6 -169 23 -32 -255 81 -95 66 -76 -16 4 97 -2 rrcurveto
+            6 9 3 4 4 hvcurveto
+            21 21 19 16 16 17 8 -65 4 -65 -6 -62 -4 -33 -9 -54 -40 -14 -66 -23 -78 47 -54 20 -40 13 -19 -50 37 -19 46 -17 45 -17 45 -16 31 -11 34 12 32 2 104 6 0 190 -4 62 rrcurveto
+            -1 36 -5 36 -5 36 -2 23 -4 24 -3 23 13 51 -17 20 19 51 5 16 -4 13 -9 8 15 11 0 23 -20 16 rrcurveto
+            -72 -84 rmoveto
+            2 -34 4 -35 5 -35 -3 -19 -4 -16 -6 -7 -19 -22 -22 -20 -21 -21 -14 1 -14 0 -15 1 -53 58 -34 59 18 84 5 21 15 17 10 18 21 7 21 16 22 -3 41 -5 38 -19 40 -14 rrcurveto
+            -1 -2 -2 -1 -1 -2 -14 3 -15 -9 -4 -21 rrcurveto
+            193 -551 rmoveto
+            return
+          </CharString>
+          <CharString index="10">
+            500 0 rmoveto
+            return
+          </CharString>
+        </Subrs>
+      </Private>
+      <CharStrings>
+        <CharString name=".notdef">
+          -97 callsubr
+          -97 callsubr
+          endchar
+        </CharString>
+        <CharString name="g1">
+          -107 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g10">
+          -106 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g11">
+          -106 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g12">
+          -106 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g13">
+          -106 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g14">
+          -106 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g15">
+          -106 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g16">
+          -106 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g17">
+          -106 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g18">
+          -106 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g19">
+          -106 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g2">
+          -107 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g20">
+          -105 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g21">
+          -105 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g22">
+          -105 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g23">
+          -105 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g24">
+          -105 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g25">
+          -105 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g26">
+          -105 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g27">
+          -105 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g28">
+          -105 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g29">
+          -105 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g3">
+          -107 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g30">
+          -104 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g31">
+          -104 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g32">
+          -104 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g33">
+          -104 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g34">
+          -104 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g35">
+          -104 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g36">
+          -104 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g37">
+          -104 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g38">
+          -104 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g39">
+          -104 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g4">
+          -107 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g40">
+          -103 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g41">
+          -103 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g42">
+          -103 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g43">
+          -103 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g44">
+          -103 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g45">
+          -103 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g46">
+          -103 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g47">
+          -103 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g48">
+          -103 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g49">
+          -103 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g5">
+          -107 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g50">
+          -102 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g51">
+          -102 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g52">
+          -102 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g53">
+          -102 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g54">
+          -102 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g55">
+          -102 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g56">
+          -102 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g57">
+          -102 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g58">
+          -102 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g59">
+          -102 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g6">
+          -107 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g60">
+          -101 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g61">
+          -101 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g62">
+          -101 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g63">
+          -101 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g64">
+          -101 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g65">
+          -101 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g66">
+          -101 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g67">
+          -101 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g68">
+          -101 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g69">
+          -101 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g7">
+          -107 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g70">
+          -100 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g71">
+          -100 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g72">
+          -100 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g73">
+          -100 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g74">
+          -100 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g75">
+          -100 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g76">
+          -100 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g77">
+          -100 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g78">
+          -100 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g79">
+          -100 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g8">
+          -107 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g80">
+          -99 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g81">
+          -99 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g82">
+          -99 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g83">
+          -99 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g84">
+          -99 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g85">
+          -99 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g86">
+          -99 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g87">
+          -99 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g88">
+          -99 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g89">
+          -99 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g9">
+          -107 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+        <CharString name="g90">
+          -98 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g91">
+          -98 callsubr
+          -106 callsubr
+          endchar
+        </CharString>
+        <CharString name="g92">
+          -98 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g93">
+          -98 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+        <CharString name="g94">
+          -98 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g95">
+          -98 callsubr
+          -102 callsubr
+          endchar
+        </CharString>
+        <CharString name="g96">
+          -98 callsubr
+          -101 callsubr
+          endchar
+        </CharString>
+        <CharString name="g97">
+          -98 callsubr
+          -100 callsubr
+          endchar
+        </CharString>
+        <CharString name="g98">
+          -98 callsubr
+          -99 callsubr
+          endchar
+        </CharString>
+        <CharString name="g99">
+          -98 callsubr
+          -98 callsubr
+          endchar
+        </CharString>
+      </CharStrings>
+    </CFFFont>
+
+    <GlobalSubrs>
+      <!-- The 'index' attribute is only for humans; it is ignored when parsed. -->
+    </GlobalSubrs>
+  </CFF>
+
+  <GPOS>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=0 -->
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=0 -->
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=0 -->
+    </LookupList>
+  </GPOS>
+
+  <hmtx>
+    <mtx name=".notdef" width="1500" lsb="300"/>
+    <mtx name="g1" width="1500" lsb="300"/>
+    <mtx name="g10" width="1500" lsb="300"/>
+    <mtx name="g11" width="1500" lsb="300"/>
+    <mtx name="g12" width="1500" lsb="300"/>
+    <mtx name="g13" width="1500" lsb="300"/>
+    <mtx name="g14" width="1500" lsb="300"/>
+    <mtx name="g15" width="1500" lsb="300"/>
+    <mtx name="g16" width="1500" lsb="300"/>
+    <mtx name="g17" width="1500" lsb="300"/>
+    <mtx name="g18" width="1500" lsb="300"/>
+    <mtx name="g19" width="1500" lsb="300"/>
+    <mtx name="g2" width="1500" lsb="300"/>
+    <mtx name="g20" width="1500" lsb="300"/>
+    <mtx name="g21" width="1500" lsb="300"/>
+    <mtx name="g22" width="1500" lsb="300"/>
+    <mtx name="g23" width="1500" lsb="300"/>
+    <mtx name="g24" width="1500" lsb="300"/>
+    <mtx name="g25" width="1500" lsb="300"/>
+    <mtx name="g26" width="1500" lsb="300"/>
+    <mtx name="g27" width="1500" lsb="300"/>
+    <mtx name="g28" width="1500" lsb="300"/>
+    <mtx name="g29" width="1500" lsb="300"/>
+    <mtx name="g3" width="1500" lsb="300"/>
+    <mtx name="g30" width="1500" lsb="300"/>
+    <mtx name="g31" width="1500" lsb="300"/>
+    <mtx name="g32" width="1500" lsb="300"/>
+    <mtx name="g33" width="1500" lsb="300"/>
+    <mtx name="g34" width="1500" lsb="300"/>
+    <mtx name="g35" width="1500" lsb="300"/>
+    <mtx name="g36" width="1500" lsb="300"/>
+    <mtx name="g37" width="1500" lsb="300"/>
+    <mtx name="g38" width="1500" lsb="300"/>
+    <mtx name="g39" width="1500" lsb="300"/>
+    <mtx name="g4" width="1500" lsb="300"/>
+    <mtx name="g40" width="1500" lsb="300"/>
+    <mtx name="g41" width="1500" lsb="300"/>
+    <mtx name="g42" width="1500" lsb="300"/>
+    <mtx name="g43" width="1500" lsb="300"/>
+    <mtx name="g44" width="1500" lsb="300"/>
+    <mtx name="g45" width="1500" lsb="300"/>
+    <mtx name="g46" width="1500" lsb="300"/>
+    <mtx name="g47" width="1500" lsb="300"/>
+    <mtx name="g48" width="1500" lsb="300"/>
+    <mtx name="g49" width="1500" lsb="300"/>
+    <mtx name="g5" width="1500" lsb="300"/>
+    <mtx name="g50" width="1500" lsb="300"/>
+    <mtx name="g51" width="1500" lsb="300"/>
+    <mtx name="g52" width="1500" lsb="300"/>
+    <mtx name="g53" width="1500" lsb="300"/>
+    <mtx name="g54" width="1500" lsb="300"/>
+    <mtx name="g55" width="1500" lsb="300"/>
+    <mtx name="g56" width="1500" lsb="300"/>
+    <mtx name="g57" width="1500" lsb="300"/>
+    <mtx name="g58" width="1500" lsb="300"/>
+    <mtx name="g59" width="1500" lsb="300"/>
+    <mtx name="g6" width="1500" lsb="300"/>
+    <mtx name="g60" width="1500" lsb="300"/>
+    <mtx name="g61" width="1500" lsb="300"/>
+    <mtx name="g62" width="1500" lsb="300"/>
+    <mtx name="g63" width="1500" lsb="300"/>
+    <mtx name="g64" width="1500" lsb="300"/>
+    <mtx name="g65" width="1500" lsb="300"/>
+    <mtx name="g66" width="1500" lsb="300"/>
+    <mtx name="g67" width="1500" lsb="300"/>
+    <mtx name="g68" width="1500" lsb="300"/>
+    <mtx name="g69" width="1500" lsb="300"/>
+    <mtx name="g7" width="1500" lsb="300"/>
+    <mtx name="g70" width="1500" lsb="300"/>
+    <mtx name="g71" width="1500" lsb="300"/>
+    <mtx name="g72" width="1500" lsb="300"/>
+    <mtx name="g73" width="1500" lsb="300"/>
+    <mtx name="g74" width="1500" lsb="300"/>
+    <mtx name="g75" width="1500" lsb="300"/>
+    <mtx name="g76" width="1500" lsb="300"/>
+    <mtx name="g77" width="1500" lsb="300"/>
+    <mtx name="g78" width="1500" lsb="300"/>
+    <mtx name="g79" width="1500" lsb="300"/>
+    <mtx name="g8" width="1500" lsb="300"/>
+    <mtx name="g80" width="1500" lsb="300"/>
+    <mtx name="g81" width="1500" lsb="300"/>
+    <mtx name="g82" width="1500" lsb="300"/>
+    <mtx name="g83" width="1500" lsb="300"/>
+    <mtx name="g84" width="1500" lsb="300"/>
+    <mtx name="g85" width="1500" lsb="300"/>
+    <mtx name="g86" width="1500" lsb="300"/>
+    <mtx name="g87" width="1500" lsb="300"/>
+    <mtx name="g88" width="1500" lsb="300"/>
+    <mtx name="g89" width="1500" lsb="300"/>
+    <mtx name="g9" width="1500" lsb="300"/>
+    <mtx name="g90" width="1500" lsb="300"/>
+    <mtx name="g91" width="1500" lsb="300"/>
+    <mtx name="g92" width="1500" lsb="300"/>
+    <mtx name="g93" width="1500" lsb="300"/>
+    <mtx name="g94" width="1500" lsb="300"/>
+    <mtx name="g95" width="1500" lsb="300"/>
+    <mtx name="g96" width="1500" lsb="300"/>
+    <mtx name="g97" width="1500" lsb="300"/>
+    <mtx name="g98" width="1500" lsb="300"/>
+    <mtx name="g99" width="1500" lsb="300"/>
+  </hmtx>
+
+</ttFont>

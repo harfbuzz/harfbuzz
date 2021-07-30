@@ -1,0 +1,1044 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="OTTO" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="cid01454"/>
+    <GlyphID id="2" name="cid01456"/>
+    <GlyphID id="3" name="cid01458"/>
+    <GlyphID id="4" name="cid01460"/>
+    <GlyphID id="5" name="cid01462"/>
+    <GlyphID id="6" name="cid01463"/>
+    <GlyphID id="7" name="cid65167"/>
+    <GlyphID id="8" name="cid65169"/>
+    <GlyphID id="9" name="cid65171"/>
+    <GlyphID id="10" name="cid65173"/>
+    <GlyphID id="11" name="cid65175"/>
+    <GlyphID id="12" name="cid65176"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="1.004"/>
+    <checkSumAdjustment value="0xdf896155"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00000011"/>
+    <unitsPerEm value="1000"/>
+    <created value="Mon Jun 15 05:18:06 2015"/>
+    <modified value="Thu Jun  6 21:34:30 2019"/>
+    <xMin value="-56"/>
+    <yMin value="-549"/>
+    <xMax value="1000"/>
+    <yMax value="1323"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="3"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="1160"/>
+    <descent value="-320"/>
+    <lineGap value="0"/>
+    <advanceWidthMax value="1014"/>
+    <minLeftSideBearing value="-56"/>
+    <minRightSideBearing value="-56"/>
+    <xMaxExtent value="1000"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="1"/>
+  </hhea>
+
+  <maxp>
+    <tableVersion value="0x5000"/>
+    <numGlyphs value="13"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="3"/>
+    <xAvgCharWidth value="979"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="650"/>
+    <ySubscriptYSize value="600"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="75"/>
+    <ySuperscriptXSize value="650"/>
+    <ySuperscriptYSize value="600"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="350"/>
+    <yStrikeoutSize value="50"/>
+    <yStrikeoutPosition value="325"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="2"/>
+      <bSerifStyle value="11"/>
+      <bWeight value="5"/>
+      <bProportion value="0"/>
+      <bContrast value="0"/>
+      <bStrokeVariation value="0"/>
+      <bArmStyle value="0"/>
+      <bLetterForm value="0"/>
+      <bMidline value="0"/>
+      <bXHeight value="0"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange2 value="00000000 00000010 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="ADBO"/>
+    <fsSelection value="00000000 01000000"/>
+    <usFirstCharIndex value="12354"/>
+    <usLastCharIndex value="12363"/>
+    <sTypoAscender value="880"/>
+    <sTypoDescender value="-120"/>
+    <sTypoLineGap value="0"/>
+    <usWinAscent value="1160"/>
+    <usWinDescent value="320"/>
+    <ulCodePageRange1 value="01100000 00101110 00000001 00000111"/>
+    <ulCodePageRange2 value="00000000 00000000 00000000 00000000"/>
+    <sxHeight value="543"/>
+    <sCapHeight value="733"/>
+    <usDefaultChar value="0"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="6"/>
+  </OS_2>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright © 2014, 2015 Adobe Systems Incorporated (http://www.adobe.com/), with Reserved Font Name 'Source'.
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      Source Han Sans Regular
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      1.004;ADBO;SourceHanSans-Regular;ADOBE
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      Source Han Sans Regular
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version 1.004;PS 1.004;hotconv 1.0.82;makeotf.lib2.5.63406
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      SourceHanSans-Regular
+    </namerecord>
+  </name>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0x3042" name="cid01454"/><!-- HIRAGANA LETTER A -->
+      <map code="0x3044" name="cid01456"/><!-- HIRAGANA LETTER I -->
+      <map code="0x3046" name="cid01458"/><!-- HIRAGANA LETTER U -->
+      <map code="0x3048" name="cid01460"/><!-- HIRAGANA LETTER E -->
+      <map code="0x304a" name="cid01462"/><!-- HIRAGANA LETTER O -->
+      <map code="0x304b" name="cid01463"/><!-- HIRAGANA LETTER KA -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="0" platEncID="4" format="12" reserved="0" length="76" language="0" nGroups="5">
+      <map code="0x3042" name="cid01454"/><!-- HIRAGANA LETTER A -->
+      <map code="0x3044" name="cid01456"/><!-- HIRAGANA LETTER I -->
+      <map code="0x3046" name="cid01458"/><!-- HIRAGANA LETTER U -->
+      <map code="0x3048" name="cid01460"/><!-- HIRAGANA LETTER E -->
+      <map code="0x304a" name="cid01462"/><!-- HIRAGANA LETTER O -->
+      <map code="0x304b" name="cid01463"/><!-- HIRAGANA LETTER KA -->
+    </cmap_format_12>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x3042" name="cid01454"/><!-- HIRAGANA LETTER A -->
+      <map code="0x3044" name="cid01456"/><!-- HIRAGANA LETTER I -->
+      <map code="0x3046" name="cid01458"/><!-- HIRAGANA LETTER U -->
+      <map code="0x3048" name="cid01460"/><!-- HIRAGANA LETTER E -->
+      <map code="0x304a" name="cid01462"/><!-- HIRAGANA LETTER O -->
+      <map code="0x304b" name="cid01463"/><!-- HIRAGANA LETTER KA -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="3" platEncID="10" format="12" reserved="0" length="76" language="0" nGroups="5">
+      <map code="0x3042" name="cid01454"/><!-- HIRAGANA LETTER A -->
+      <map code="0x3044" name="cid01456"/><!-- HIRAGANA LETTER I -->
+      <map code="0x3046" name="cid01458"/><!-- HIRAGANA LETTER U -->
+      <map code="0x3048" name="cid01460"/><!-- HIRAGANA LETTER E -->
+      <map code="0x304a" name="cid01462"/><!-- HIRAGANA LETTER O -->
+      <map code="0x304b" name="cid01463"/><!-- HIRAGANA LETTER KA -->
+    </cmap_format_12>
+  </cmap>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-125"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <CFF>
+    <major value="1"/>
+    <minor value="0"/>
+    <CFFFont name="SourceHanSans-Regular">
+      <ROS Registry="Adobe" Order="Identity" Supplement="0"/>
+      <Notice value="Copyright 2014, 2015 Adobe Systems Incorporated (http://www.adobe.com/), with Reserved Font Name 'Source'. Source is a trademark of Adobe Systems Incorporated in the United States and/or other countries."/>
+      <FullName value="Source Han Sans Regular"/>
+      <FamilyName value="Source Han Sans"/>
+      <Weight value="Regular"/>
+      <isFixedPitch value="0"/>
+      <ItalicAngle value="0"/>
+      <UnderlinePosition value="-150"/>
+      <UnderlineThickness value="50"/>
+      <PaintType value="0"/>
+      <CharstringType value="2"/>
+      <FontMatrix value="0.001 0 0 0.001 0 0"/>
+      <FontBBox value="-56 -549 1000 1323"/>
+      <StrokeWidth value="0"/>
+      <XUID value="1 11 9274277"/>
+      <CIDFontVersion value="1.004"/>
+      <CIDFontRevision value="0"/>
+      <CIDFontType value="0"/>
+      <CIDCount value="65535"/>
+      <!-- charset is dumped separately as the 'GlyphOrder' element -->
+      <FDSelect format="3"/>
+      <FDArray>
+        <FontDict index="0">
+          <FontName value="SourceHanSans-Regular-Generic"/>
+          <Private>
+            <BlueValues value="-250 -250 1100 1100"/>
+            <BlueScale value="0.039625"/>
+            <BlueShift value="7"/>
+            <BlueFuzz value="1"/>
+            <StdHW value="40"/>
+            <StdVW value="40"/>
+            <StemSnapH value="40 120"/>
+            <StemSnapV value="40 120"/>
+            <ForceBold value="0"/>
+            <LanguageGroup value="1"/>
+            <ExpansionFactor value="0.06"/>
+            <initialRandomSeed value="0"/>
+            <defaultWidthX value="1000"/>
+            <nominalWidthX value="107"/>
+          </Private>
+        </FontDict>
+        <FontDict index="1">
+          <FontName value="SourceHanSans-Regular-Kana"/>
+          <Private>
+            <BlueValues value="-250 -250 1100 1100"/>
+            <BlueScale value="0.039625"/>
+            <BlueShift value="7"/>
+            <BlueFuzz value="1"/>
+            <StdHW value="72"/>
+            <StdVW value="74"/>
+            <ForceBold value="0"/>
+            <LanguageGroup value="1"/>
+            <ExpansionFactor value="0.06"/>
+            <initialRandomSeed value="0"/>
+            <defaultWidthX value="1000"/>
+            <nominalWidthX value="0"/>
+          </Private>
+        </FontDict>
+        <FontDict index="2">
+          <FontName value="SourceHanSans-Regular-VKana"/>
+          <Private>
+            <BlueValues value="-250 -250 1100 1100"/>
+            <BlueScale value="0.039625"/>
+            <BlueShift value="7"/>
+            <BlueFuzz value="1"/>
+            <StdHW value="71"/>
+            <StdVW value="76"/>
+            <ForceBold value="0"/>
+            <LanguageGroup value="1"/>
+            <ExpansionFactor value="0.06"/>
+            <initialRandomSeed value="0"/>
+            <defaultWidthX value="1000"/>
+            <nominalWidthX value="0"/>
+          </Private>
+        </FontDict>
+      </FDArray>
+      <CharStrings>
+        <CharString name=".notdef" fdSelectIndex="0">
+          endchar
+        </CharString>
+        <CharString name="cid01454" fdSelectIndex="1">
+          8 77 355 65 93 69 -66 69 hstemhm
+          113 75 169 70 -56 59 393 79 hintmask 11101101
+          611 440 rmoveto
+          -43 -109 -59 -80 -65 -61 rrcurveto
+          -10 57 -7 60 63 13 0 13 13 vvcurveto
+          17 47 57 14 64 hhcurveto
+          -238 -79 rmoveto
+          -74 9 -79 14 -71 vhcurveto
+          -35 -50 -48 -17 -38 hhcurveto
+          -37 -19 20 40 80 73 98 96 55 hvcurveto
+          348 117 rmoveto
+          6 15 8 27 6 13 -80 20 rcurveline
+          -1 -16 -5 -26 -4 -15 -3 -9 rcurveline
+          1 -12 -12 0 -12 hhcurveto
+          hintmask 11011011
+          -50 -61 -9 -17 -55 hvcurveto
+          3 42 3 42 4 38 121 6 132 13 104 17 -1 75 rcurveline
+          -102 -23 -120 -13 -125 -6 4 29 4 25 4 21 3 13 4 18 5 13 -84 2 rcurveline
+          hintmask 11101011
+          -12 -1 -19 -2 -16 vhcurveto
+          -2 -21 -3 -26 -3 -29 rrcurveto
+          -1 -22 -22 0 -22 hhcurveto
+          -42 -87 7 5 -34 hvcurveto
+          2 -75 rlineto
+          -2 40 77 -4 43 hhcurveto
+          19 20 0 1 21 hvcurveto
+          -4 -46 -5 -50 -2 -50 rrcurveto
+          -136 -62 -111 -131 -127 vvcurveto
+          -85 51 -40 67 53 59 21 33 54 vhcurveto
+          5 -20 6 -18 5 -17 73 22 rcurveline
+          -8 25 -8 27 -8 28 84 71 80 109 55 140 rrcurveto
+          93 -25 49 -68 -75 vvcurveto
+          -128 -110 -92 -178 -19 vhcurveto
+          43 -67 rlineto
+          230 36 94 124 142 vvcurveto
+          hintmask 11101101
+          109 -74 92 -124 33 vhcurveto
+          endchar
+        </CharString>
+        <CharString name="cid01456" fdSelectIndex="1">
+          -4 95 hstem
+          136 89 vstem
+          226 696 rmoveto
+          -96 2 rlineto
+          5 -24 1 -41 -23 vvcurveto
+          -58 1 -120 10 -86 vhcurveto
+          -257 27 90 -93 93 hhcurveto
+          68 61 57 168 59 hvcurveto
+          -63 72 rlineto
+          -100 -26 -46 -102 -51 hhcurveto
+          -70 -48 109 166 -16 hvcurveto
+          -7 81 -1 91 1 62 1 26 3 46 4 24 rrcurveto
+          516 -27 rmoveto
+          -78 -27 94 -116 60 -196 17 -178 rlinecurve
+          81 32 -14 167 -71 203 -89 115 rlinecurve
+          endchar
+        </CharString>
+        <CharString name="cid01458" fdSelectIndex="1">
+          477 75 106 77 hstem
+          717 85 vstem
+          717 335 rmoveto
+          -178 -170 -94 -240 -30 vhcurveto
+          47 -76 rlineto
+          257 38 191 122 215 vvcurveto
+          141 -105 79 -141 -113 -113 -32 -16 -70 vhcurveto
+          -29 -6 -34 -6 -27 -3 25 -92 rcurveline
+          24 9 29 12 30 8 rrcurveto
+          17 59 97 34 114 hhcurveto
+          102 67 -59 -83 hvcurveto
+          -415 446 rmoveto
+          -13 -76 112 -20 200 -20 110 -7 rlinecurve
+          12 77 -97 1 -215 20 -109 25 rlinecurve
+          endchar
+        </CharString>
+        <CharString name="cid01460" fdSelectIndex="1">
+          -33 78 174 64 151 86 140 74 hstem
+          119 785 vstem
+          314 786 rmoveto
+          -13 -73 121 -22 173 -22 99 -9 rlinecurve
+          11 74 -94 6 -189 23 -108 23 rlinecurve
+          411 -283 rmoveto
+          -48 54 -9 -4 -21 -5 -17 -2 rlinecurve
+          -75 -9 -230 -16 -57 -1 -31 -1 -30 1 -23 2 7 -88 rcurveline
+          22 3 26 4 32 2 61 5 166 15 78 5 -98 -98 -270 -270 -40 -39 -18 -19 -18 -16 -13 -10 77 -52 rcurveline
+          56 71 107 112 37 36 rrcurveto
+          22 23 23 14 27 hhcurveto
+          27 21 -18 -34 12 hvcurveto
+          9 -29 15 -58 9 -29 rrcurveto
+          -66 22 50 -18 79 hhcurveto
+          53 91 7 7 42 hvcurveto
+          5 85 rlineto
+          -12 -46 -76 -9 -65 hhcurveto
+          -51 -23 16 37 -11 hvcurveto
+          -11 32 -13 50 -9 29 -14 41 -23 26 -39 4 -9 3 -18 1 -10 -1 37 39 110 102 38 34 11 11 25 21 18 13 rrcurveto
+          endchar
+        </CharString>
+        <CharString name="cid01462" fdSelectIndex="1">
+          -26 83 -79 79 291 69 120 73 hstemhm
+          108 79 138 73 -69 74 381 79 hintmask 10111011
+          294 57 rmoveto
+          -39 -68 39 45 45 59 56 80 38 hvcurveto
+          1 -72 2 -67 -36 vvcurveto
+          -31 -12 -17 -23 vhcurveto
+          hintmask 01111101
+          104 357 rmoveto
+          40 1 47 1 47 vhcurveto
+          72 8 76 13 58 13 -1 79 rcurveline
+          hintmask 01111011
+          -56 -17 -75 -14 -72 -9 1 44 1 39 1 24 1 23 2 27 2 18 rrcurveto
+          -87 hlineto
+          4 -17 2 -33 -20 vvcurveto
+          -18 -1 -43 -1 -52 vhcurveto
+          -2 -27 -26 -1 -23 hhcurveto
+          -36 -36 1 7 -54 hvcurveto
+          2 -76 rlineto
+          hintmask 10111101
+          -4 38 43 -1 45 hhcurveto
+          21 25 1 2 27 hvcurveto
+          -1 -44 0 -46 -40 vvcurveto
+          -56 vlineto
+          -114 -49 -103 -86 -81 vvcurveto
+          -89 129 -75 78 vhcurveto
+          hintmask 10111011
+          53 35 29 92 43 -2 87 -2 84 hvcurveto
+          25 71 70 14 74 hhcurveto
+          94 76 -45 -84 hvcurveto
+          hintmask 01111101
+          -92 -79 -47 -87 -16 vhcurveto
+          -8 -38 -41 1 -37 hhcurveto
+          28 -79 34 1 44 2 44 10 rlinecurve
+          136 33 75 76 120 vvcurveto
+          118 -104 79 -144 -65 -77 -12 -24 -75 vhcurveto
+          285 245 rmoveto
+          63 -34 110 -67 49 -47 40 64 rcurveline
+          -48 40 -108 68 -70 37 rrcurveto
+          endchar
+        </CharString>
+        <CharString name="cid01463" fdSelectIndex="1">
+          -23 77 420 87 -62 73 -58 71 hstemhm
+          596 78 hintmask 10011000
+          346 787 rmoveto
+          hintmask 10101000
+          -67 -11 -77 -14 -71 vhcurveto
+          hintmask 11001000
+          -60 -5 -58 -5 -33 -1 -31 -1 -26 -1 -31 2 8 -87 rcurveline
+          26 4 40 5 23 3 rrcurveto
+          hintmask 10101000
+          26 3 48 5 51 5 -33 -132 -74 -224 -101 -135 82 -33 rcurveline
+          hintmask 10011000
+          105 168 67 222 36 142 rrcurveto
+          4 43 39 3 24 hhcurveto
+          63 41 -16 -90 -108 -15 -128 -31 -67 hvcurveto
+          -43 -21 -29 -8 -37 hhcurveto
+          -27 -53 9 13 -41 hvcurveto
+          13 -84 rlineto
+          -7 31 48 -8 37 hhcurveto
+          65 49 17 66 31 hvcurveto
+          41 83 17 156 118 vvcurveto
+          134 -73 34 -88 -24 -41 -3 -3 -46 vhcurveto
+          11 53 9 58 5 29 4 19 4 21 4 18 rrcurveto
+          267 -137 rmoveto
+          70 -83 78 -174 29 -102 78 37 rcurveline
+          -34 92 -85 182 -62 80 rrcurveto
+          endchar
+        </CharString>
+        <CharString name="cid65167" fdSelectIndex="2">
+          17 75 347 63 91 67 -64 67 hstemhm
+          121 74 165 69 -55 58 -47 65 366 76 hintmask 1110110010000000
+          700 493 rmoveto
+          6 14 8 26 6 13 -78 19 rcurveline
+          -2 -16 -4 -24 -4 -15 -3 -9 rcurveline
+          1 -11 -12 0 -12 hhcurveto
+          hintmask 1101101010000000
+          -48 -60 -9 -16 -54 hvcurveto
+          3 41 3 40 4 38 118 6 129 12 101 17 -1 73 rcurveline
+          hintmask 1101100110000000
+          -99 -22 -117 -14 -123 -5 4 28 5 25 4 21 2 12 4 18 5 12 -83 2 rcurveline
+          hintmask 1110100110000000
+          -11 -1 -19 -1 -15 vhcurveto
+          -8 -75 rlineto
+          -1 -21 -22 0 -21 hhcurveto
+          -42 -84 7 5 -35 hvcurveto
+          3 -74 rlineto
+          hintmask 1110101010000000
+          -2 40 74 -3 43 hhcurveto
+          18 20 0 1 20 hvcurveto
+          -5 -45 -4 -49 -2 -49 rrcurveto
+          -133 -60 -109 -129 -124 vvcurveto
+          -82 51 -39 65 52 58 21 31 53 vhcurveto
+          5 -19 5 -18 5 -16 72 21 rcurveline
+          -8 24 -8 27 -7 27 81 69 78 107 54 137 rrcurveto
+          90 -25 49 -66 -74 vvcurveto
+          -124 -107 -90 -175 -19 vhcurveto
+          42 -66 rlineto
+          225 36 91 122 138 vvcurveto
+          hintmask 1110110010000000
+          107 -73 89 -120 33 vhcurveto
+          -339 -128 rmoveto
+          -72 9 -78 14 -69 vhcurveto
+          -33 -48 -47 -17 -37 hhcurveto
+          -37 -19 19 39 78 71 95 94 54 hvcurveto
+          248 62 rmoveto
+          -41 -107 -57 -77 -64 -61 rrcurveto
+          -11 56 -6 59 61 vvcurveto
+          38 vlineto
+          17 45 57 14 62 hhcurveto
+          endchar
+        </CharString>
+        <CharString name="cid65169" fdSelectIndex="2">
+          4 94 hstem
+          144 81 vstem
+          233 688 rmoveto
+          -94 2 rlineto
+          4 -23 1 -40 -23 vvcurveto
+          -57 1 -117 10 -84 vhcurveto
+          -250 27 88 -92 90 hhcurveto
+          68 58 56 165 59 hvcurveto
+          -63 69 rlineto
+          -97 -24 -45 -99 -51 hhcurveto
+          -68 -46 106 162 -16 hvcurveto
+          -7 79 -1 89 1 60 rrcurveto
+          26 4 44 4 24 vhcurveto
+          504 -26 rmoveto
+          -77 -27 92 -113 59 -191 16 -175 rlinecurve
+          80 31 -14 164 -69 198 -87 113 rlinecurve
+          endchar
+        </CharString>
+        <CharString name="cid65171" fdSelectIndex="2">
+          474 74 103 76 hstem
+          711 84 vstem
+          711 336 rmoveto
+          -173 -163 -93 -235 -29 vhcurveto
+          44 -75 rlineto
+          251 38 187 119 210 vvcurveto
+          138 -102 77 -138 -110 -111 -31 -16 -69 vhcurveto
+          -27 -6 -34 -6 -27 -2 24 -90 rcurveline
+          25 8 28 12 29 8 rrcurveto
+          17 58 95 32 110 hhcurveto
+          101 64 -57 -81 hvcurveto
+          -405 435 rmoveto
+          -12 -74 109 -19 196 -20 107 -7 rlinecurve
+          12 76 -95 1 -210 20 -107 23 rlinecurve
+          endchar
+        </CharString>
+        <CharString name="cid65173" fdSelectIndex="2">
+          -24 77 169 63 148 84 136 73 hstem
+          127 768 vstem
+          319 777 rmoveto
+          -13 -72 118 -22 169 -22 97 -8 rlinecurve
+          10 73 -92 6 -185 23 -104 22 rlinecurve
+          401 -277 rmoveto
+          -47 53 -9 -4 -20 -4 -16 -2 rlinecurve
+          -74 -10 -225 -15 -56 -1 -30 -1 -29 1 -22 2 7 -86 rcurveline
+          21 3 25 3 31 3 59 5 163 14 76 5 -95 -96 -265 -263 -39 -40 -18 -18 -17 -14 -13 -10 75 -52 rcurveline
+          56 70 104 110 37 34 rrcurveto
+          21 22 23 14 25 hhcurveto
+          27 21 -17 -33 11 hvcurveto
+          9 -28 14 -57 10 -29 rrcurveto
+          -64 21 49 -18 78 hhcurveto
+          51 90 7 8 40 hvcurveto
+          5 82 rlineto
+          -12 -45 -75 -8 -63 hhcurveto
+          -49 -23 15 37 -11 hvcurveto
+          -11 31 -12 49 -10 29 -13 38 -22 27 -39 4 -8 2 -18 2 -9 -2 35 38 108 100 37 34 11 10 24 20 18 13 rrcurveto
+          endchar
+        </CharString>
+        <CharString name="cid65175" fdSelectIndex="2">
+          -16 80 -76 76 284 69 115 73 hstemhm
+          117 77 135 71 -67 72 372 78 hintmask 10111011
+          299 64 rmoveto
+          -38 -67 39 44 43 58 55 78 37 hvcurveto
+          1 -70 2 -65 -35 vvcurveto
+          -32 -12 -16 -22 vhcurveto
+          hintmask 01111101
+          101 349 rmoveto
+          39 1 46 1 45 vhcurveto
+          70 8 75 13 57 14 -2 77 rcurveline
+          hintmask 01111011
+          -55 -17 -73 -13 -70 -9 1 43 1 38 1 23 1 22 3 27 1 17 rrcurveto
+          -85 hlineto
+          3 -16 2 -32 -19 -18 -1 -42 -51 vvcurveto
+          -2 -27 -25 -1 -22 hhcurveto
+          -35 -35 1 7 -53 hvcurveto
+          2 -76 rlineto
+          hintmask 10111101
+          -3 36 42 -2 45 hhcurveto
+          20 24 1 2 27 hvcurveto
+          -1 -42 0 -45 -38 vvcurveto
+          -54 vlineto
+          -110 -48 -102 -84 -80 vvcurveto
+          -87 126 -73 76 vhcurveto
+          hintmask 10111011
+          52 34 28 89 42 -2 85 -2 83 hvcurveto
+          24 70 68 13 72 hhcurveto
+          92 74 -43 -82 hvcurveto
+          hintmask 01111101
+          -90 -77 -47 -84 -15 vhcurveto
+          -7 -37 -41 0 -36 hhcurveto
+          27 -76 33 1 44 2 43 9 rlinecurve
+          132 31 74 76 116 vvcurveto
+          116 -102 78 -141 -63 -76 -13 -22 -73 vhcurveto
+          278 238 rmoveto
+          62 -33 108 -65 48 -46 39 63 rcurveline
+          -47 38 -105 66 -69 37 rrcurveto
+          endchar
+        </CharString>
+        <CharString name="cid65176" fdSelectIndex="2">
+          -13 75 434 71 -57 70 hstemhm
+          349 91 154 76 hintmask 11011000
+          349 777 rmoveto
+          -65 -10 -75 -14 -70 vhcurveto
+          -58 -5 -57 -4 -32 -1 -31 -1 -25 -1 -30 2 8 -85 rcurveline
+          25 4 39 5 22 3 26 2 46 5 51 5 -33 -129 -72 -219 -98 -131 79 -32 rcurveline
+          hintmask 10111000
+          101 162 67 217 35 140 rrcurveto
+          3 42 39 3 23 hhcurveto
+          62 40 -15 -87 -106 -15 -125 -30 -66 hvcurveto
+          -41 -21 -28 -8 -36 hhcurveto
+          -26 -53 8 13 -40 hvcurveto
+          13 -82 rlineto
+          -7 31 46 -7 36 hhcurveto
+          64 48 16 64 30 hvcurveto
+          41 82 16 152 115 vvcurveto
+          131 -71 33 -86 -24 -40 -3 -3 -45 vhcurveto
+          10 52 9 57 6 29 3 18 5 20 3 18 rrcurveto
+          262 -135 rmoveto
+          67 -80 76 -170 30 -100 75 37 rcurveline
+          -32 90 -84 177 -61 78 rrcurveto
+          endchar
+        </CharString>
+      </CharStrings>
+    </CFFFont>
+
+    <GlobalSubrs>
+      <!-- The 'index' attribute is only for humans; it is ignored when parsed. -->
+    </GlobalSubrs>
+  </CFF>
+
+  <GPOS>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=7 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="0"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="cyrl"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="1"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="2">
+        <ScriptTag value="grek"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="2"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="3">
+        <ScriptTag value="hang"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="3"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="4">
+        <ScriptTag value="hani"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="4"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="5">
+        <ScriptTag value="kana"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="5"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="6">
+        <ScriptTag value="latn"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=1 -->
+            <FeatureIndex index="0" value="6"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=7 -->
+      <FeatureRecord index="0">
+        <FeatureTag value="vpal"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="1">
+        <FeatureTag value="vpal"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="2">
+        <FeatureTag value="vpal"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="3">
+        <FeatureTag value="vpal"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="4">
+        <FeatureTag value="vpal"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="5">
+        <FeatureTag value="vpal"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="6">
+        <FeatureTag value="vpal"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=1 -->
+      <Lookup index="0">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SinglePos index="0" Format="2">
+          <Coverage>
+            <Glyph value="cid65167"/>
+            <Glyph value="cid65169"/>
+            <Glyph value="cid65171"/>
+            <Glyph value="cid65173"/>
+            <Glyph value="cid65175"/>
+            <Glyph value="cid65176"/>
+          </Coverage>
+          <ValueFormat value="10"/>
+          <!-- ValueCount=6 -->
+          <Value index="0" YPlacement="39" YAdvance="-58"/>
+          <Value index="1" YPlacement="84" YAdvance="-134"/>
+          <Value index="2" YPlacement="20" YAdvance="-63"/>
+          <Value index="3" YPlacement="20" YAdvance="-72"/>
+          <Value index="4" YPlacement="20" YAdvance="-53"/>
+          <Value index="5" YPlacement="30" YAdvance="-52"/>
+        </SinglePos>
+      </Lookup>
+    </LookupList>
+  </GPOS>
+
+  <GSUB>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=7 -->
+      <ScriptRecord index="0">
+        <ScriptTag value="DFLT"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="0"/>
+            <FeatureIndex index="1" value="7"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="1">
+        <ScriptTag value="cyrl"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="1"/>
+            <FeatureIndex index="1" value="8"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="2">
+        <ScriptTag value="grek"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="2"/>
+            <FeatureIndex index="1" value="9"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="3">
+        <ScriptTag value="hang"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="3"/>
+            <FeatureIndex index="1" value="10"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="4">
+        <ScriptTag value="hani"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="4"/>
+            <FeatureIndex index="1" value="11"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="5">
+        <ScriptTag value="kana"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="5"/>
+            <FeatureIndex index="1" value="12"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+      <ScriptRecord index="6">
+        <ScriptTag value="latn"/>
+        <Script>
+          <DefaultLangSys>
+            <ReqFeatureIndex value="65535"/>
+            <!-- FeatureCount=2 -->
+            <FeatureIndex index="0" value="6"/>
+            <FeatureIndex index="1" value="13"/>
+          </DefaultLangSys>
+          <!-- LangSysCount=0 -->
+        </Script>
+      </ScriptRecord>
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=14 -->
+      <FeatureRecord index="0">
+        <FeatureTag value="vert"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="1">
+        <FeatureTag value="vert"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="2">
+        <FeatureTag value="vert"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="3">
+        <FeatureTag value="vert"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="4">
+        <FeatureTag value="vert"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="5">
+        <FeatureTag value="vert"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="6">
+        <FeatureTag value="vert"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="7">
+        <FeatureTag value="vrt2"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="8">
+        <FeatureTag value="vrt2"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="9">
+        <FeatureTag value="vrt2"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="10">
+        <FeatureTag value="vrt2"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="11">
+        <FeatureTag value="vrt2"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="12">
+        <FeatureTag value="vrt2"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+      <FeatureRecord index="13">
+        <FeatureTag value="vrt2"/>
+        <Feature>
+          <!-- LookupCount=1 -->
+          <LookupListIndex index="0" value="0"/>
+        </Feature>
+      </FeatureRecord>
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=1 -->
+      <Lookup index="0">
+        <LookupType value="1"/>
+        <LookupFlag value="0"/>
+        <!-- SubTableCount=1 -->
+        <SingleSubst index="0">
+          <Substitution in="cid01454" out="cid65167"/>
+          <Substitution in="cid01456" out="cid65169"/>
+          <Substitution in="cid01458" out="cid65171"/>
+          <Substitution in="cid01460" out="cid65173"/>
+          <Substitution in="cid01462" out="cid65175"/>
+          <Substitution in="cid01463" out="cid65176"/>
+        </SingleSubst>
+      </Lookup>
+    </LookupList>
+  </GSUB>
+
+  <VORG>
+    <majorVersion value="1"/>
+    <minorVersion value="0"/>
+    <defaultVertOriginY value="880"/>
+    <numVertOriginYMetrics value="0"/>
+  </VORG>
+
+  <hmtx>
+    <mtx name=".notdef" width="1000" lsb="100"/>
+    <mtx name="cid01454" width="1000" lsb="113"/>
+    <mtx name="cid01456" width="1000" lsb="130"/>
+    <mtx name="cid01458" width="1000" lsb="170"/>
+    <mtx name="cid01460" width="1000" lsb="119"/>
+    <mtx name="cid01462" width="1000" lsb="108"/>
+    <mtx name="cid01463" width="1000" lsb="82"/>
+    <mtx name="cid65167" width="1000" lsb="121"/>
+    <mtx name="cid65169" width="1000" lsb="139"/>
+    <mtx name="cid65171" width="1000" lsb="177"/>
+    <mtx name="cid65173" width="1000" lsb="127"/>
+    <mtx name="cid65175" width="1000" lsb="117"/>
+    <mtx name="cid65176" width="1000" lsb="92"/>
+  </hmtx>
+
+  <vhea>
+    <tableVersion value="0x00011000"/>
+    <ascent value="500"/>
+    <descent value="-500"/>
+    <lineGap value="0"/>
+    <advanceHeightMax value="2000"/>
+    <minTopSideBearing value="-202"/>
+    <minBottomSideBearing value="-159"/>
+    <yMaxExtent value="1929"/>
+    <caretSlopeRise value="0"/>
+    <caretSlopeRun value="1"/>
+    <caretOffset value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <reserved4 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfVMetrics value="1"/>
+  </vhea>
+
+  <vmtx>
+    <mtx name=".notdef" height="1000" tsb="0"/>
+    <mtx name="cid01454" height="1000" tsb="89"/>
+    <mtx name="cid01456" height="1000" tsb="182"/>
+    <mtx name="cid01458" height="1000" tsb="99"/>
+    <mtx name="cid01460" height="1000" tsb="94"/>
+    <mtx name="cid01462" height="1000" tsb="84"/>
+    <mtx name="cid01463" height="1000" tsb="93"/>
+    <mtx name="cid65167" height="1000" tsb="99"/>
+    <mtx name="cid65169" height="1000" tsb="190"/>
+    <mtx name="cid65171" height="1000" tsb="109"/>
+    <mtx name="cid65173" height="1000" tsb="103"/>
+    <mtx name="cid65175" height="1000" tsb="94"/>
+    <mtx name="cid65176" height="1000" tsb="103"/>
+  </vmtx>
+
+</ttFont>

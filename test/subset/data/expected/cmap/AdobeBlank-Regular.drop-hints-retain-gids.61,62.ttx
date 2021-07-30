@@ -1,0 +1,606 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="glyph00001"/>
+    <GlyphID id="2" name="glyph00002"/>
+    <GlyphID id="3" name="glyph00003"/>
+    <GlyphID id="4" name="glyph00004"/>
+    <GlyphID id="5" name="glyph00005"/>
+    <GlyphID id="6" name="glyph00006"/>
+    <GlyphID id="7" name="glyph00007"/>
+    <GlyphID id="8" name="glyph00008"/>
+    <GlyphID id="9" name="glyph00009"/>
+    <GlyphID id="10" name="glyph00010"/>
+    <GlyphID id="11" name="glyph00011"/>
+    <GlyphID id="12" name="glyph00012"/>
+    <GlyphID id="13" name="glyph00013"/>
+    <GlyphID id="14" name="glyph00014"/>
+    <GlyphID id="15" name="glyph00015"/>
+    <GlyphID id="16" name="glyph00016"/>
+    <GlyphID id="17" name="glyph00017"/>
+    <GlyphID id="18" name="glyph00018"/>
+    <GlyphID id="19" name="glyph00019"/>
+    <GlyphID id="20" name="glyph00020"/>
+    <GlyphID id="21" name="glyph00021"/>
+    <GlyphID id="22" name="glyph00022"/>
+    <GlyphID id="23" name="glyph00023"/>
+    <GlyphID id="24" name="glyph00024"/>
+    <GlyphID id="25" name="glyph00025"/>
+    <GlyphID id="26" name="glyph00026"/>
+    <GlyphID id="27" name="glyph00027"/>
+    <GlyphID id="28" name="glyph00028"/>
+    <GlyphID id="29" name="glyph00029"/>
+    <GlyphID id="30" name="glyph00030"/>
+    <GlyphID id="31" name="glyph00031"/>
+    <GlyphID id="32" name="glyph00032"/>
+    <GlyphID id="33" name="glyph00033"/>
+    <GlyphID id="34" name="glyph00034"/>
+    <GlyphID id="35" name="glyph00035"/>
+    <GlyphID id="36" name="glyph00036"/>
+    <GlyphID id="37" name="glyph00037"/>
+    <GlyphID id="38" name="glyph00038"/>
+    <GlyphID id="39" name="glyph00039"/>
+    <GlyphID id="40" name="glyph00040"/>
+    <GlyphID id="41" name="glyph00041"/>
+    <GlyphID id="42" name="glyph00042"/>
+    <GlyphID id="43" name="glyph00043"/>
+    <GlyphID id="44" name="glyph00044"/>
+    <GlyphID id="45" name="glyph00045"/>
+    <GlyphID id="46" name="glyph00046"/>
+    <GlyphID id="47" name="glyph00047"/>
+    <GlyphID id="48" name="glyph00048"/>
+    <GlyphID id="49" name="glyph00049"/>
+    <GlyphID id="50" name="glyph00050"/>
+    <GlyphID id="51" name="glyph00051"/>
+    <GlyphID id="52" name="glyph00052"/>
+    <GlyphID id="53" name="glyph00053"/>
+    <GlyphID id="54" name="glyph00054"/>
+    <GlyphID id="55" name="glyph00055"/>
+    <GlyphID id="56" name="glyph00056"/>
+    <GlyphID id="57" name="glyph00057"/>
+    <GlyphID id="58" name="glyph00058"/>
+    <GlyphID id="59" name="glyph00059"/>
+    <GlyphID id="60" name="glyph00060"/>
+    <GlyphID id="61" name="glyph00061"/>
+    <GlyphID id="62" name="glyph00062"/>
+    <GlyphID id="63" name="glyph00063"/>
+    <GlyphID id="64" name="glyph00064"/>
+    <GlyphID id="65" name="glyph00065"/>
+    <GlyphID id="66" name="glyph00066"/>
+    <GlyphID id="67" name="glyph00067"/>
+    <GlyphID id="68" name="glyph00068"/>
+    <GlyphID id="69" name="glyph00069"/>
+    <GlyphID id="70" name="glyph00070"/>
+    <GlyphID id="71" name="glyph00071"/>
+    <GlyphID id="72" name="glyph00072"/>
+    <GlyphID id="73" name="glyph00073"/>
+    <GlyphID id="74" name="glyph00074"/>
+    <GlyphID id="75" name="glyph00075"/>
+    <GlyphID id="76" name="glyph00076"/>
+    <GlyphID id="77" name="glyph00077"/>
+    <GlyphID id="78" name="glyph00078"/>
+    <GlyphID id="79" name="glyph00079"/>
+    <GlyphID id="80" name="glyph00080"/>
+    <GlyphID id="81" name="glyph00081"/>
+    <GlyphID id="82" name="glyph00082"/>
+    <GlyphID id="83" name="glyph00083"/>
+    <GlyphID id="84" name="glyph00084"/>
+    <GlyphID id="85" name="glyph00085"/>
+    <GlyphID id="86" name="glyph00086"/>
+    <GlyphID id="87" name="glyph00087"/>
+    <GlyphID id="88" name="glyph00088"/>
+    <GlyphID id="89" name="glyph00089"/>
+    <GlyphID id="90" name="glyph00090"/>
+    <GlyphID id="91" name="glyph00091"/>
+    <GlyphID id="92" name="glyph00092"/>
+    <GlyphID id="93" name="glyph00093"/>
+    <GlyphID id="94" name="glyph00094"/>
+    <GlyphID id="95" name="glyph00095"/>
+    <GlyphID id="96" name="glyph00096"/>
+    <GlyphID id="97" name="glyph00097"/>
+    <GlyphID id="98" name="a"/>
+    <GlyphID id="99" name="b"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="1.045"/>
+    <checkSumAdjustment value="0x2eacd13d"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00000011"/>
+    <unitsPerEm value="1000"/>
+    <created value="Thu Apr  9 15:06:27 2015"/>
+    <modified value="Mon Mar 21 14:38:37 2016"/>
+    <xMin value="0"/>
+    <yMin value="-120"/>
+    <xMax value="876"/>
+    <yMax value="880"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="3"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="880"/>
+    <descent value="-120"/>
+    <lineGap value="0"/>
+    <advanceWidthMax value="1000"/>
+    <minLeftSideBearing value="0"/>
+    <minRightSideBearing value="0"/>
+    <xMaxExtent value="876"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="2"/>
+  </hhea>
+
+  <maxp>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="0x10000"/>
+    <numGlyphs value="100"/>
+    <maxPoints value="16"/>
+    <maxContours value="5"/>
+    <maxCompositePoints value="0"/>
+    <maxCompositeContours value="0"/>
+    <maxZones value="1"/>
+    <maxTwilightPoints value="0"/>
+    <maxStorage value="0"/>
+    <maxFunctionDefs value="0"/>
+    <maxInstructionDefs value="0"/>
+    <maxStackElements value="0"/>
+    <maxSizeOfInstructions value="0"/>
+    <maxComponentElements value="0"/>
+    <maxComponentDepth value="0"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="3"/>
+    <xAvgCharWidth value="1000"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="650"/>
+    <ySubscriptYSize value="600"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="75"/>
+    <ySuperscriptXSize value="650"/>
+    <ySuperscriptYSize value="600"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="350"/>
+    <yStrikeoutSize value="50"/>
+    <yStrikeoutPosition value="220"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="0"/>
+      <bSerifStyle value="0"/>
+      <bWeight value="0"/>
+      <bProportion value="0"/>
+      <bContrast value="0"/>
+      <bStrokeVariation value="0"/>
+      <bArmStyle value="0"/>
+      <bLetterForm value="0"/>
+      <bMidline value="0"/>
+      <bXHeight value="0"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000001"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="ADBO"/>
+    <fsSelection value="00000000 01000000"/>
+    <usFirstCharIndex value="97"/>
+    <usLastCharIndex value="98"/>
+    <sTypoAscender value="880"/>
+    <sTypoDescender value="-120"/>
+    <sTypoLineGap value="0"/>
+    <usWinAscent value="880"/>
+    <usWinDescent value="120"/>
+    <ulCodePageRange1 value="01100000 00101111 00000001 11111111"/>
+    <ulCodePageRange2 value="00000000 00000000 00000000 00000000"/>
+    <sxHeight value="0"/>
+    <sCapHeight value="0"/>
+    <usDefaultChar value="0"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="0"/>
+  </OS_2>
+
+  <hmtx>
+    <mtx name=".notdef" width="1000" lsb="124"/>
+    <mtx name="a" width="0" lsb="0"/>
+    <mtx name="b" width="0" lsb="0"/>
+    <mtx name="glyph00001" width="0" lsb="0"/>
+    <mtx name="glyph00002" width="0" lsb="0"/>
+    <mtx name="glyph00003" width="0" lsb="0"/>
+    <mtx name="glyph00004" width="0" lsb="0"/>
+    <mtx name="glyph00005" width="0" lsb="0"/>
+    <mtx name="glyph00006" width="0" lsb="0"/>
+    <mtx name="glyph00007" width="0" lsb="0"/>
+    <mtx name="glyph00008" width="0" lsb="0"/>
+    <mtx name="glyph00009" width="0" lsb="0"/>
+    <mtx name="glyph00010" width="0" lsb="0"/>
+    <mtx name="glyph00011" width="0" lsb="0"/>
+    <mtx name="glyph00012" width="0" lsb="0"/>
+    <mtx name="glyph00013" width="0" lsb="0"/>
+    <mtx name="glyph00014" width="0" lsb="0"/>
+    <mtx name="glyph00015" width="0" lsb="0"/>
+    <mtx name="glyph00016" width="0" lsb="0"/>
+    <mtx name="glyph00017" width="0" lsb="0"/>
+    <mtx name="glyph00018" width="0" lsb="0"/>
+    <mtx name="glyph00019" width="0" lsb="0"/>
+    <mtx name="glyph00020" width="0" lsb="0"/>
+    <mtx name="glyph00021" width="0" lsb="0"/>
+    <mtx name="glyph00022" width="0" lsb="0"/>
+    <mtx name="glyph00023" width="0" lsb="0"/>
+    <mtx name="glyph00024" width="0" lsb="0"/>
+    <mtx name="glyph00025" width="0" lsb="0"/>
+    <mtx name="glyph00026" width="0" lsb="0"/>
+    <mtx name="glyph00027" width="0" lsb="0"/>
+    <mtx name="glyph00028" width="0" lsb="0"/>
+    <mtx name="glyph00029" width="0" lsb="0"/>
+    <mtx name="glyph00030" width="0" lsb="0"/>
+    <mtx name="glyph00031" width="0" lsb="0"/>
+    <mtx name="glyph00032" width="0" lsb="0"/>
+    <mtx name="glyph00033" width="0" lsb="0"/>
+    <mtx name="glyph00034" width="0" lsb="0"/>
+    <mtx name="glyph00035" width="0" lsb="0"/>
+    <mtx name="glyph00036" width="0" lsb="0"/>
+    <mtx name="glyph00037" width="0" lsb="0"/>
+    <mtx name="glyph00038" width="0" lsb="0"/>
+    <mtx name="glyph00039" width="0" lsb="0"/>
+    <mtx name="glyph00040" width="0" lsb="0"/>
+    <mtx name="glyph00041" width="0" lsb="0"/>
+    <mtx name="glyph00042" width="0" lsb="0"/>
+    <mtx name="glyph00043" width="0" lsb="0"/>
+    <mtx name="glyph00044" width="0" lsb="0"/>
+    <mtx name="glyph00045" width="0" lsb="0"/>
+    <mtx name="glyph00046" width="0" lsb="0"/>
+    <mtx name="glyph00047" width="0" lsb="0"/>
+    <mtx name="glyph00048" width="0" lsb="0"/>
+    <mtx name="glyph00049" width="0" lsb="0"/>
+    <mtx name="glyph00050" width="0" lsb="0"/>
+    <mtx name="glyph00051" width="0" lsb="0"/>
+    <mtx name="glyph00052" width="0" lsb="0"/>
+    <mtx name="glyph00053" width="0" lsb="0"/>
+    <mtx name="glyph00054" width="0" lsb="0"/>
+    <mtx name="glyph00055" width="0" lsb="0"/>
+    <mtx name="glyph00056" width="0" lsb="0"/>
+    <mtx name="glyph00057" width="0" lsb="0"/>
+    <mtx name="glyph00058" width="0" lsb="0"/>
+    <mtx name="glyph00059" width="0" lsb="0"/>
+    <mtx name="glyph00060" width="0" lsb="0"/>
+    <mtx name="glyph00061" width="0" lsb="0"/>
+    <mtx name="glyph00062" width="0" lsb="0"/>
+    <mtx name="glyph00063" width="0" lsb="0"/>
+    <mtx name="glyph00064" width="0" lsb="0"/>
+    <mtx name="glyph00065" width="0" lsb="0"/>
+    <mtx name="glyph00066" width="0" lsb="0"/>
+    <mtx name="glyph00067" width="0" lsb="0"/>
+    <mtx name="glyph00068" width="0" lsb="0"/>
+    <mtx name="glyph00069" width="0" lsb="0"/>
+    <mtx name="glyph00070" width="0" lsb="0"/>
+    <mtx name="glyph00071" width="0" lsb="0"/>
+    <mtx name="glyph00072" width="0" lsb="0"/>
+    <mtx name="glyph00073" width="0" lsb="0"/>
+    <mtx name="glyph00074" width="0" lsb="0"/>
+    <mtx name="glyph00075" width="0" lsb="0"/>
+    <mtx name="glyph00076" width="0" lsb="0"/>
+    <mtx name="glyph00077" width="0" lsb="0"/>
+    <mtx name="glyph00078" width="0" lsb="0"/>
+    <mtx name="glyph00079" width="0" lsb="0"/>
+    <mtx name="glyph00080" width="0" lsb="0"/>
+    <mtx name="glyph00081" width="0" lsb="0"/>
+    <mtx name="glyph00082" width="0" lsb="0"/>
+    <mtx name="glyph00083" width="0" lsb="0"/>
+    <mtx name="glyph00084" width="0" lsb="0"/>
+    <mtx name="glyph00085" width="0" lsb="0"/>
+    <mtx name="glyph00086" width="0" lsb="0"/>
+    <mtx name="glyph00087" width="0" lsb="0"/>
+    <mtx name="glyph00088" width="0" lsb="0"/>
+    <mtx name="glyph00089" width="0" lsb="0"/>
+    <mtx name="glyph00090" width="0" lsb="0"/>
+    <mtx name="glyph00091" width="0" lsb="0"/>
+    <mtx name="glyph00092" width="0" lsb="0"/>
+    <mtx name="glyph00093" width="0" lsb="0"/>
+    <mtx name="glyph00094" width="0" lsb="0"/>
+    <mtx name="glyph00095" width="0" lsb="0"/>
+    <mtx name="glyph00096" width="0" lsb="0"/>
+    <mtx name="glyph00097" width="0" lsb="0"/>
+  </hmtx>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0x61" name="a"/><!-- LATIN SMALL LETTER A -->
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="0" platEncID="4" format="12" reserved="0" length="28" language="0" nGroups="1">
+      <map code="0x61" name="a"/><!-- LATIN SMALL LETTER A -->
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+    </cmap_format_12>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x61" name="a"/><!-- LATIN SMALL LETTER A -->
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="3" platEncID="10" format="12" reserved="0" length="28" language="0" nGroups="1">
+      <map code="0x61" name="a"/><!-- LATIN SMALL LETTER A -->
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+    </cmap_format_12>
+  </cmap>
+
+  <loca>
+    <!-- The 'loca' table will be calculated by the compiler -->
+  </loca>
+
+  <glyf>
+
+    <!-- The xMin, yMin, xMax and yMax values
+         will be recalculated by the compiler. -->
+
+    <TTGlyph name=".notdef"/><!-- contains no outline data -->
+
+    <TTGlyph name="a" xMin="0" yMin="0" xMax="0" yMax="0">
+      <contour>
+        <pt x="0" y="0" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="b" xMin="0" yMin="0" xMax="0" yMax="0">
+      <contour>
+        <pt x="0" y="0" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+    <TTGlyph name="glyph00001"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00002"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00003"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00004"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00005"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00006"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00007"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00008"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00009"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00010"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00011"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00012"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00013"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00014"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00015"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00016"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00017"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00018"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00019"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00020"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00021"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00022"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00023"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00024"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00025"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00026"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00027"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00028"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00029"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00030"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00031"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00032"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00033"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00034"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00035"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00036"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00037"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00038"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00039"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00040"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00041"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00042"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00043"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00044"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00045"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00046"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00047"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00048"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00049"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00050"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00051"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00052"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00053"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00054"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00055"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00056"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00057"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00058"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00059"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00060"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00061"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00062"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00063"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00064"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00065"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00066"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00067"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00068"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00069"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00070"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00071"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00072"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00073"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00074"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00075"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00076"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00077"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00078"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00079"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00080"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00081"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00082"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00083"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00084"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00085"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00086"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00087"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00088"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00089"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00090"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00091"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00092"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00093"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00094"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00095"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00096"/><!-- contains no outline data -->
+
+    <TTGlyph name="glyph00097"/><!-- contains no outline data -->
+
+  </glyf>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright © 2013, 2015 Adobe Systems Incorporated (http://www.adobe.com/).
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      Adobe Blank
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      1.045;ADBO;AdobeBlank;ADOBE
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      Adobe Blank
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version 1.045;PS 1.045;hotconv 1.0.82;makeotf.lib2.5.63406
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      AdobeBlank-Regular
+    </namerecord>
+  </name>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-100"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <gasp>
+    <gaspRange rangeMaxPPEM="8" rangeGaspBehavior="2"/>
+    <gaspRange rangeMaxPPEM="65535" rangeGaspBehavior="3"/>
+  </gasp>
+
+</ttFont>

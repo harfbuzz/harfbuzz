@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="\x00\x01\x00\x00" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="b"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="2.03"/>
+    <checkSumAdjustment value="0x4ab40085"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00011011"/>
+    <unitsPerEm value="1024"/>
+    <created value="Thu Feb 26 11:51:41 2009"/>
+    <modified value="Fri Feb 23 19:45:12 2018"/>
+    <xMin value="-42"/>
+    <yMin value="-237"/>
+    <xMax value="1137"/>
+    <yMax value="929"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="6"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="819"/>
+    <descent value="-205"/>
+    <lineGap value="256"/>
+    <advanceWidthMax value="1241"/>
+    <minLeftSideBearing value="-42"/>
+    <minRightSideBearing value="-46"/>
+    <xMaxExtent value="1137"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="2"/>
+  </hhea>
+
+  <maxp>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="0x10000"/>
+    <numGlyphs value="2"/>
+    <maxPoints value="447"/>
+    <maxContours value="25"/>
+    <maxCompositePoints value="310"/>
+    <maxCompositeContours value="11"/>
+    <maxZones value="1"/>
+    <maxTwilightPoints value="0"/>
+    <maxStorage value="0"/>
+    <maxFunctionDefs value="0"/>
+    <maxInstructionDefs value="0"/>
+    <maxStackElements value="0"/>
+    <maxSizeOfInstructions value="0"/>
+    <maxComponentElements value="3"/>
+    <maxComponentDepth value="1"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="4"/>
+    <xAvgCharWidth value="969"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00000000"/>
+    <ySubscriptXSize value="205"/>
+    <ySubscriptYSize value="205"/>
+    <ySubscriptXOffset value="0"/>
+    <ySubscriptYOffset value="287"/>
+    <ySuperscriptXSize value="205"/>
+    <ySuperscriptYSize value="205"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="963"/>
+    <yStrikeoutSize value="102"/>
+    <yStrikeoutPosition value="512"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="0"/>
+      <bSerifStyle value="0"/>
+      <bWeight value="0"/>
+      <bProportion value="0"/>
+      <bContrast value="0"/>
+      <bStrokeVariation value="0"/>
+      <bArmStyle value="0"/>
+      <bLetterForm value="0"/>
+      <bMidline value="0"/>
+      <bXHeight value="0"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000001"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="RIXF"/>
+    <fsSelection value="00000000 11000000"/>
+    <usFirstCharIndex value="98"/>
+    <usLastCharIndex value="98"/>
+    <sTypoAscender value="819"/>
+    <sTypoDescender value="-205"/>
+    <sTypoLineGap value="256"/>
+    <usWinAscent value="932"/>
+    <usWinDescent value="247"/>
+    <ulCodePageRange1 value="00000000 00001000 00000000 00000001"/>
+    <ulCodePageRange2 value="00000000 00000000 00000000 00000000"/>
+    <sxHeight value="480"/>
+    <sCapHeight value="755"/>
+    <usDefaultChar value="0"/>
+    <usBreakChar value="32"/>
+    <usMaxContext value="2"/>
+  </OS_2>
+
+  <hmtx>
+    <mtx name=".notdef" width="1024" lsb="0"/>
+    <mtx name="b" width="575" lsb="40"/>
+  </hmtx>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="0" platEncID="3" language="0">
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+    </cmap_format_4>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x62" name="b"/><!-- LATIN SMALL LETTER B -->
+    </cmap_format_4>
+  </cmap>
+
+  <loca>
+    <!-- The 'loca' table will be calculated by the compiler -->
+  </loca>
+
+  <glyf>
+
+    <!-- The xMin, yMin, xMax and yMax values
+         will be recalculated by the compiler. -->
+
+    <TTGlyph name=".notdef"/><!-- contains no outline data -->
+
+    <TTGlyph name="b" xMin="40" yMin="-9" xMax="529" yMax="818">
+      <contour>
+        <pt x="174" y="818" on="1"/>
+        <pt x="171" y="791" on="0"/>
+        <pt x="169" y="730" on="0"/>
+        <pt x="169" y="706" on="1"/>
+        <pt x="169" y="403" on="1"/>
+        <pt x="185" y="418" on="0"/>
+        <pt x="228" y="450" on="0"/>
+        <pt x="251" y="464" on="1"/>
+        <pt x="274" y="478" on="0"/>
+        <pt x="321" y="496" on="0"/>
+        <pt x="341" y="496" on="1"/>
+        <pt x="383" y="496" on="0"/>
+        <pt x="453" y="458" on="0"/>
+        <pt x="477" y="427" on="1"/>
+        <pt x="502" y="396" on="0"/>
+        <pt x="529" y="315" on="0"/>
+        <pt x="529" y="272" on="1"/>
+        <pt x="529" y="215" on="0"/>
+        <pt x="492" y="113" on="0"/>
+        <pt x="460" y="74" on="1"/>
+        <pt x="427" y="36" on="0"/>
+        <pt x="338" y="-9" on="0"/>
+        <pt x="285" y="-9" on="1"/>
+        <pt x="237" y="-9" on="0"/>
+        <pt x="155" y="20" on="0"/>
+        <pt x="133" y="33" on="1"/>
+        <pt x="109" y="5" on="1"/>
+        <pt x="91" y="13" on="1"/>
+        <pt x="98" y="60" on="0"/>
+        <pt x="108" y="157" on="0"/>
+        <pt x="108" y="206" on="1"/>
+        <pt x="108" y="668" on="1"/>
+        <pt x="108" y="694" on="0"/>
+        <pt x="103" y="725" on="0"/>
+        <pt x="95" y="734" on="1"/>
+        <pt x="88" y="742" on="0"/>
+        <pt x="61" y="746" on="0"/>
+        <pt x="40" y="746" on="1"/>
+        <pt x="40" y="766" on="1"/>
+        <pt x="72" y="772" on="0"/>
+        <pt x="133" y="797" on="0"/>
+        <pt x="156" y="818" on="1"/>
+      </contour>
+      <contour>
+        <pt x="169" y="127" on="1"/>
+        <pt x="169" y="80" on="0"/>
+        <pt x="227" y="21" on="0"/>
+        <pt x="290" y="21" on="1"/>
+        <pt x="337" y="21" on="0"/>
+        <pt x="405" y="58" on="0"/>
+        <pt x="426" y="87" on="1"/>
+        <pt x="448" y="117" on="0"/>
+        <pt x="468" y="190" on="0"/>
+        <pt x="468" y="227" on="1"/>
+        <pt x="468" y="321" on="0"/>
+        <pt x="385" y="445" on="0"/>
+        <pt x="314" y="445" on="1"/>
+        <pt x="277" y="445" on="0"/>
+        <pt x="196" y="395" on="0"/>
+        <pt x="169" y="367" on="1"/>
+      </contour>
+      <instructions/>
+    </TTGlyph>
+
+  </glyf>
+
+  <name>
+    <namerecord nameID="0" platformID="3" platEncID="1" langID="0x409">
+      Copyright © 2010 NHN Corporation. All rights reserved. Font designed by FONTRIX.
+    </namerecord>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      NanumMyeongjo
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      2.030;RIXF;NanumMyeongjo
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      NanumMyeongjo
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version 2.030;PS 1;hotconv 1.0.56;makeotf.lib2.0.21325
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      NanumMyeongjo
+    </namerecord>
+  </name>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-260"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <gasp>
+    <gaspRange rangeMaxPPEM="65535" rangeGaspBehavior="15"/>
+  </gasp>
+
+</ttFont>

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ttFont sfntVersion="OTTO" ttLibVersion="4.25">
+
+  <GlyphOrder>
+    <!-- The 'id' attribute is only for humans; it is ignored when parsed. -->
+    <GlyphID id="0" name=".notdef"/>
+    <GlyphID id="1" name="g65"/>
+    <GlyphID id="2" name="g67"/>
+    <GlyphID id="3" name="g68"/>
+  </GlyphOrder>
+
+  <head>
+    <!-- Most of this table will be recalculated by the compiler -->
+    <tableVersion value="1.0"/>
+    <fontRevision value="1.0"/>
+    <checkSumAdjustment value="0xd22c3408"/>
+    <magicNumber value="0x5f0f3cf5"/>
+    <flags value="00000000 00000001"/>
+    <unitsPerEm value="1500"/>
+    <created value="Thu Jan  1 00:00:00 1970"/>
+    <modified value="Wed Feb  5 23:20:46 2020"/>
+    <xMin value="22"/>
+    <yMin value="-114"/>
+    <xMax value="1074"/>
+    <yMax value="691"/>
+    <macStyle value="00000000 00000000"/>
+    <lowestRecPPEM value="3"/>
+    <fontDirectionHint value="2"/>
+    <indexToLocFormat value="0"/>
+    <glyphDataFormat value="0"/>
+  </head>
+
+  <hhea>
+    <tableVersion value="0x00010000"/>
+    <ascent value="2500"/>
+    <descent value="0"/>
+    <lineGap value="200"/>
+    <advanceWidthMax value="1500"/>
+    <minLeftSideBearing value="300"/>
+    <minRightSideBearing value="161"/>
+    <xMaxExtent value="1339"/>
+    <caretSlopeRise value="1"/>
+    <caretSlopeRun value="0"/>
+    <caretOffset value="0"/>
+    <reserved0 value="0"/>
+    <reserved1 value="0"/>
+    <reserved2 value="0"/>
+    <reserved3 value="0"/>
+    <metricDataFormat value="0"/>
+    <numberOfHMetrics value="1"/>
+  </hhea>
+
+  <maxp>
+    <tableVersion value="0x5000"/>
+    <numGlyphs value="4"/>
+  </maxp>
+
+  <OS_2>
+    <!-- The fields 'usFirstCharIndex' and 'usLastCharIndex'
+         will be recalculated by the compiler -->
+    <version value="2"/>
+    <xAvgCharWidth value="2500"/>
+    <usWeightClass value="400"/>
+    <usWidthClass value="5"/>
+    <fsType value="00000000 00001100"/>
+    <ySubscriptXSize value="500"/>
+    <ySubscriptYSize value="500"/>
+    <ySubscriptXOffset value="250"/>
+    <ySubscriptYOffset value="50"/>
+    <ySuperscriptXSize value="500"/>
+    <ySuperscriptYSize value="500"/>
+    <ySuperscriptXOffset value="0"/>
+    <ySuperscriptYOffset value="500"/>
+    <yStrikeoutSize value="50"/>
+    <yStrikeoutPosition value="500"/>
+    <sFamilyClass value="0"/>
+    <panose>
+      <bFamilyType value="2"/>
+      <bSerifStyle value="10"/>
+      <bWeight value="6"/>
+      <bProportion value="3"/>
+      <bContrast value="6"/>
+      <bStrokeVariation value="5"/>
+      <bArmStyle value="11"/>
+      <bLetterForm value="2"/>
+      <bMidline value="2"/>
+      <bXHeight value="4"/>
+    </panose>
+    <ulUnicodeRange1 value="00000000 00000000 00000000 00000001"/>
+    <ulUnicodeRange2 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange3 value="00000000 00000000 00000000 00000000"/>
+    <ulUnicodeRange4 value="00000000 00000000 00000000 00000000"/>
+    <achVendID value="ADBE"/>
+    <fsSelection value="00000000 01000000"/>
+    <usFirstCharIndex value="65"/>
+    <usLastCharIndex value="68"/>
+    <sTypoAscender value="2500"/>
+    <sTypoDescender value="0"/>
+    <sTypoLineGap value="200"/>
+    <usWinAscent value="2500"/>
+    <usWinDescent value="0"/>
+    <ulCodePageRange1 value="11100000 00111111 00000001 11111111"/>
+    <ulCodePageRange2 value="11111111 11111111 00000000 00000000"/>
+    <sxHeight value="2500"/>
+    <sCapHeight value="2500"/>
+    <usDefaultChar value="65"/>
+    <usBreakChar value="65"/>
+    <usMaxContext value="0"/>
+  </OS_2>
+
+  <name>
+    <namerecord nameID="1" platformID="3" platEncID="1" langID="0x409">
+      gpos6_font1
+    </namerecord>
+    <namerecord nameID="2" platformID="3" platEncID="1" langID="0x409">
+      Regular
+    </namerecord>
+    <namerecord nameID="3" platformID="3" platEncID="1" langID="0x409">
+      gpos6_font1
+    </namerecord>
+    <namerecord nameID="4" platformID="3" platEncID="1" langID="0x409">
+      gpos6_font1
+    </namerecord>
+    <namerecord nameID="5" platformID="3" platEncID="1" langID="0x409">
+      Version1.0
+    </namerecord>
+    <namerecord nameID="6" platformID="3" platEncID="1" langID="0x409">
+      gpos6_font1
+    </namerecord>
+  </name>
+
+  <cmap>
+    <tableVersion version="0"/>
+    <cmap_format_4 platformID="3" platEncID="1" language="0">
+      <map code="0x41" name="g65"/><!-- LATIN CAPITAL LETTER A -->
+      <map code="0x43" name="g67"/><!-- LATIN CAPITAL LETTER C -->
+      <map code="0x44" name="g68"/><!-- LATIN CAPITAL LETTER D -->
+    </cmap_format_4>
+    <cmap_format_12 platformID="3" platEncID="10" format="12" reserved="0" length="40" language="0" nGroups="2">
+      <map code="0x41" name="g65"/><!-- LATIN CAPITAL LETTER A -->
+      <map code="0x43" name="g67"/><!-- LATIN CAPITAL LETTER C -->
+      <map code="0x44" name="g68"/><!-- LATIN CAPITAL LETTER D -->
+    </cmap_format_12>
+  </cmap>
+
+  <post>
+    <formatType value="3.0"/>
+    <italicAngle value="0.0"/>
+    <underlinePosition value="-100"/>
+    <underlineThickness value="50"/>
+    <isFixedPitch value="0"/>
+    <minMemType42 value="0"/>
+    <maxMemType42 value="0"/>
+    <minMemType1 value="0"/>
+    <maxMemType1 value="0"/>
+  </post>
+
+  <CFF>
+    <major value="1"/>
+    <minor value="0"/>
+    <CFFFont name="dummy">
+      <version value="001.000"/>
+      <Notice value="Copyright (c) 2002 Adobe Systems Incorporated. All Rights Reserved."/>
+      <FullName value="dummy"/>
+      <FamilyName value="dummy"/>
+      <Weight value="Regular"/>
+      <isFixedPitch value="0"/>
+      <ItalicAngle value="0"/>
+      <UnderlinePosition value="-125"/>
+      <UnderlineThickness value="50"/>
+      <PaintType value="0"/>
+      <CharstringType value="2"/>
+      <FontMatrix value="0.0008 0 0 0.0008 0 0"/>
+      <UniqueID value="44788"/>
+      <FontBBox value="22 -114 1074 691"/>
+      <StrokeWidth value="0"/>
+      <!-- charset is dumped separately as the 'GlyphOrder' element -->
+      <Encoding name="StandardEncoding"/>
+      <Private>
+        <BlueValues value="-25 0 657 682 439 464 640 653 708 733 475 500"/>
+        <OtherBlues value="283 308 -251 -226 -154 -129 -194 -169"/>
+        <FamilyBlues value="-25 0 657 682 439 464 640 653 708 733 475 500"/>
+        <FamilyOtherBlues value="283 308 -251 -226 -154 -129 -194 -169"/>
+        <BlueScale value="0.039625"/>
+        <BlueShift value="7"/>
+        <BlueFuzz value="1"/>
+        <StdHW value="32"/>
+        <StdVW value="85"/>
+        <StemSnapH value="32"/>
+        <StemSnapV value="85 90"/>
+        <ForceBold value="0"/>
+        <LanguageGroup value="0"/>
+        <ExpansionFactor value="0.06"/>
+        <initialRandomSeed value="0"/>
+        <defaultWidthX value="2500"/>
+        <nominalWidthX value="2500"/>
+        <Subrs>
+          <!-- The 'index' attribute is only for humans; it is ignored when parsed. -->
+          <CharString index="0">
+            41 642 rmoveto
+            1 -2 1 -1 -1 vvcurveto
+            -7 2 -7 5 -5 vhcurveto
+            15 -69 -71 -105 61 -45 71 -50 214 60 48 -116 9 -20 3 -24 -3 -22 -13 -128 -51 -35 -120 -6 -38 -1 -62 -5 -26 34 -29 22 -33 -28 16 -33 39 -51 75 0 59 2 83 5 76 21 49 69 rrcurveto
+            25 36 0 48 11 42 19 72 -43 43 -42 45 -62 68 -159 -25 -76 26 -20 43 44 56 -6 66 101 14 102 -5 103 -1 37 7 0 42 -35 11 -109 1 -110 5 -108 -17 rrcurveto
+            -1 1 0 0 1 vvcurveto
+            -25 33 -45 -26 18 -38 rrcurveto
+            407 -673 rmoveto
+            return
+          </CharString>
+          <CharString index="1">
+            399 660 rmoveto
+            -36 2 -37 10 -35 -8 -152 -32 -56 -137 -37 -134 -35 -130 55 -175 141 -42 156 -46 135 253 -64 123 -39 78 -32 -3 -81 14 -26 5 -36 -14 -24 -10 -36 -15 -28 -18 -26 -26 19 101 63 130 114 18 rrcurveto
+            32 5 31 -8 32 -1 37 7 0 42 -35 11 rrcurveto
+            -263 -360 rmoveto
+            52 57 149 71 42 -110 33 -84 -77 -193 -113 33 -98 30 -29 103 4 92 9 -7 14 -1 14 9 rrcurveto
+            401 -299 rmoveto
+            return
+          </CharString>
+          <CharString index="2">
+            99 610 rmoveto
+            63 14 62 -15 64 -2 rrcurveto
+            22 23 1 2 22 hvcurveto
+            -24 -33 -19 -38 -22 -38 -85 -149 -77 -149 -19 -173 4 -37 43 -4 12 34 19 165 74 145 83 142 34 57 25 61 56 36 21 24 -14 30 -32 -2 rrcurveto
+            -6 -47 -49 -8 -48 hhcurveto
+            -71 2 -67 15 -70 -17 -40 -14 16 -51 41 8 rrcurveto
+            418 -667 rmoveto
+            return
+          </CharString>
+          <CharString index="3">
+            289 676 rmoveto
+            -88 12 -105 -100 -7 -86 -1 -23 -10 -26 9 -22 9 -21 8 -23 13 -20 6 -8 8 -7 9 -5 -42 -15 -31 -26 -21 -57 -31 -83 41 -138 89 -34 25 -9 24 -16 27 1 90 2 -6 -5 70 46 rrcurveto
+            60 39 -5 113 -8 58 -2 24 -13 22 -9 22 -8 20 -18 15 -15 16 -7 7 -9 4 -9 3 3 5 3 5 3 6 43 84 -21 87 -3 90 -6 20 -17 8 -14 -3 -10 9 -11 8 -13 1 rrcurveto
+            -12 -364 rmoveto
+            2 -2 2 -1 3 -1 12 -4 13 -1 9 -8 26 -18 13 -38 6 -28 24 -103 -43 -94 -120 16 -104 15 -73 140 80 83 31 33 22 -2 42 7 19 -4 19 3 17 7 rrcurveto
+            32 196 rmoveto
+            2 -48 -9 -48 -33 -37 -30 -34 -85 64 -8 41 -11 56 73 136 70 -23 8 -3 8 -6 7 -6 2 -31 4 -31 2 -30 rrcurveto
+            191 -508 rmoveto
+            return
+          </CharString>
+          <CharString index="4">
+            500 0 rmoveto
+            return
+          </CharString>
+        </Subrs>
+      </Private>
+      <CharStrings>
+        <CharString name=".notdef">
+          -103 callsubr
+          -103 callsubr
+          endchar
+        </CharString>
+        <CharString name="g65">
+          -106 callsubr
+          -107 callsubr
+          endchar
+        </CharString>
+        <CharString name="g67">
+          -106 callsubr
+          -105 callsubr
+          endchar
+        </CharString>
+        <CharString name="g68">
+          -106 callsubr
+          -104 callsubr
+          endchar
+        </CharString>
+      </CharStrings>
+    </CFFFont>
+
+    <GlobalSubrs>
+      <!-- The 'index' attribute is only for humans; it is ignored when parsed. -->
+    </GlobalSubrs>
+  </CFF>
+
+  <GPOS>
+    <Version value="0x00010000"/>
+    <ScriptList>
+      <!-- ScriptCount=0 -->
+    </ScriptList>
+    <FeatureList>
+      <!-- FeatureCount=0 -->
+    </FeatureList>
+    <LookupList>
+      <!-- LookupCount=0 -->
+    </LookupList>
+  </GPOS>
+
+  <hmtx>
+    <mtx name=".notdef" width="1500" lsb="300"/>
+    <mtx name="g65" width="1500" lsb="300"/>
+    <mtx name="g67" width="1500" lsb="300"/>
+    <mtx name="g68" width="1500" lsb="300"/>
+  </hmtx>
+
+</ttFont>
