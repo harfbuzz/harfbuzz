@@ -11,11 +11,6 @@ def cmd(command):
 
 args = sys.argv[1:]
 
-reference = False
-if len (args) and args[0] == "--reference":
-	reference = True
-	args = args[1:]
-
 have_freetype = bool(int(os.getenv ('HAVE_FREETYPE', '1')))
 
 if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
@@ -35,11 +30,10 @@ if not len (args):
 	args = ['-']
 
 for filename in args:
-	if not reference:
-		if filename == '-':
-			print ("Running tests from standard input")
-		else:
-			print ("Running tests in " + filename)
+	if filename == '-':
+		print ("Running tests from standard input")
+	else:
+		print ("Running tests in " + filename)
 
 	if filename == '-':
 		f = sys.stdin
@@ -53,8 +47,7 @@ for filename in args:
 			line = line[1:]
 
 			if line.startswith (' '):
-				if not reference:
-					print ("#%s" % line)
+				print ("#%s" % line)
 				continue
 
 		line = line.strip ()
@@ -91,8 +84,7 @@ for filename in args:
 			extra_options.append("--verify")
 
 		if comment:
-			if not reference:
-				print ('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
+			print ('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
 			continue
 
 		if "--font-funcs=ft" in options and not have_freetype:
@@ -112,10 +104,6 @@ for filename in args:
 			else:
 				passes += 1
 
-		if reference:
-			print (":".join ([fontfile, " ".join(options), unicodes, glyphs1]))
-			continue
-
 		if glyphs1.strip() != glyphs_expected and glyphs_expected != '*':
 			print ("Actual:   " + glyphs1, file=sys.stderr)
 			print ("Expected: " + glyphs_expected, file=sys.stderr)
@@ -123,12 +111,11 @@ for filename in args:
 		else:
 			passes += 1
 
-if not reference:
-	print ("%d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr)
-	if not (fails + passes):
-		print ("No tests ran.")
-	elif not (fails + skips):
-		print ("All tests passed.")
+print ("%d tests passed; %d failed; %d skipped." % (passes, fails, skips), file=sys.stderr)
+if not (fails + passes):
+	print ("No tests ran.")
+elif not (fails + skips):
+	print ("All tests passed.")
 
 if fails:
 	sys.exit (1)
