@@ -130,6 +130,40 @@ struct subset_consumer_t
 int
 main (int argc, char **argv)
 {
+  if (argc == 2 && !strcmp (argv[1], "--batch"))
+  {
+    unsigned int ret = 0;
+    char buf[4092];
+    while (fgets (buf, sizeof (buf), stdin))
+    {
+      size_t l = strlen (buf);
+      if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
+      main_font_text_t<subset_consumer_t, 10, 0, EOF> driver;
+      char *args[32];
+      argc = 0;
+      char *p = buf, *e;
+      args[argc++] = p;
+      unsigned start_offset = 0;
+      while ((e = strchr (p + start_offset, ';')) && argc < (int) ARRAY_LENGTH (args))
+      {
+	*e++ = '\0';
+	while (*e == ':')
+	  e++;
+	args[argc++] = p = e;
+      }
+      int result = driver.main (argc, args);
+      if (result == 0)
+        fprintf (stdout, "success\n");
+      else
+        fprintf (stdout, "failure\n");
+      ret |= result;
+      fflush (stdout);
+
+      if (ret)
+	break;
+    }
+    return ret;
+  }
   main_font_text_t<subset_consumer_t, 10, 0> driver;
   return driver.main (argc, argv);
 }

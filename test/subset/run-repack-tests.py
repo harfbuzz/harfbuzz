@@ -22,6 +22,12 @@ except ImportError:
 
 ots_sanitize = shutil.which ("ots-sanitize")
 
+def subset_cmd (command):
+	global process
+	process.stdin.write ((';'.join (command) + '\n').encode ("utf-8"))
+	process.stdin.flush ()
+	return process.stdout.readline().decode ("utf-8").strip ()
+
 def cmd (command):
 	p = subprocess.Popen (
 		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -45,10 +51,10 @@ def run_test (test, should_check_ots):
 		    "--unicodes=%s" % test.codepoints_string (),
 		    "--drop-tables-=GPOS,GSUB,GDEF",]
 	print (' '.join (cli_args))
-	_, return_code = cmd (cli_args)
+	ret = subset_cmd (cli_args)
 
-	if return_code:
-		return fail_test (test, cli_args, "%s returned %d" % (' '.join (cli_args), return_code))
+	if ret != "success":
+		return fail_test (test, cli_args, "%s failed" % ' '.join (cli_args))
 
 	try:
 		with TTFont (out_file) as font:
@@ -86,6 +92,11 @@ if len (args) != 1:
 	sys.exit ("No tests supplied.")
 
 has_ots = has_ots()
+
+process = subprocess.Popen ([hb_subset, '--batch'],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=sys.stdout)
 
 fails = 0
 
