@@ -22,6 +22,12 @@ except ImportError:
 
 ots_sanitize = shutil.which ("ots-sanitize")
 
+def subset_cmd (command):
+	global process
+	process.stdin.write ((';'.join (command) + '\n').encode ("utf-8"))
+	process.stdin.flush ()
+	return process.stdout.readline().decode ("utf-8").strip ()
+
 def cmd (command):
 	p = subprocess.Popen (
 		command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -51,10 +57,10 @@ def run_test (test, should_check_ots):
 		    "--drop-tables-=sbix"]
 	cli_args.extend (test.get_profile_flags ())
 	print (' '.join (cli_args))
-	_, return_code = cmd (cli_args)
+	ret = subset_cmd (cli_args)
 
-	if return_code:
-		return fail_test (test, cli_args, "%s returned %d" % (' '.join (cli_args), return_code))
+	if ret != "success":
+		return fail_test (test, cli_args, "%s failed" % ' '.join (cli_args))
 
 	expected_file = os.path.join (test_suite.get_output_directory (), test.get_font_ttx_name ())
 	with open(expected_file, encoding="utf-8") as expected_ttx:
@@ -114,6 +120,11 @@ if not len (args):
 	sys.exit ("No tests supplied.")
 
 has_ots = has_ots()
+
+process = subprocess.Popen ([hb_subset, '--batch'],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=sys.stdout)
 
 fails = 0
 for path in args:
