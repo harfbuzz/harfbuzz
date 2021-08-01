@@ -47,7 +47,7 @@ locale_to_utf8 (char *s)
   return t;
 }
 
-template <typename consumer_t, int default_font_size, int subpixel_bits, char eol = '\n'>
+template <typename consumer_t, int default_font_size, int subpixel_bits, int eol = '\n'>
 struct main_font_text_t
 {
   main_font_text_t ()

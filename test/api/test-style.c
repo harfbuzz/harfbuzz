@@ -166,5 +166,5 @@ main (int argc, char **argv)
   return hb_test_run ();
 }
 #else
-int main () {}
+int main (int argc, char **argv) {}
 #endif

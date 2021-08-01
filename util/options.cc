@@ -797,7 +797,7 @@ font_options_t::get_font () const
 
 
 const char *
-text_options_t::get_line (unsigned int *len, char eol)
+text_options_t::get_line (unsigned int *len, int eol)
 {
   if (text) {
     if (!line)
@@ -848,18 +848,19 @@ text_options_t::get_line (unsigned int *len, char eol)
 
   g_string_set_size (gs, 0);
   char buf[BUFSIZ];
-  while (fgets (buf, sizeof (buf), fp)) {
-    unsigned int bytes = strlen (buf);
-    if (bytes && buf[bytes - 1] == eol) {
+  while (fgets (buf, sizeof (buf), fp))
+  {
+    unsigned bytes = strlen (buf);
+    if (bytes && (int) (unsigned char) buf[bytes - 1] == eol)
+    {
       bytes--;
       g_string_append_len (gs, buf, bytes);
       break;
     }
-      g_string_append_len (gs, buf, bytes);
+    g_string_append_len (gs, buf, bytes);
   }
   if (ferror (fp))
-    fail (false, "Failed reading text: %s",
-	  strerror (errno));
+    fail (false, "Failed reading text: %s", strerror (errno));
   *len = gs->len;
   return !*len && feof (fp) ? nullptr : gs->str;
 }
