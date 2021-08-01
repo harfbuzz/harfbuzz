@@ -154,6 +154,9 @@ struct output_buffer_t
   hb_buffer_serialize_flags_t format_flags;
 };
 
+template <int eol = '\n'>
+using driver_t = main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0, eol>;
+
 int
 main (int argc, char **argv)
 {
@@ -165,7 +168,7 @@ main (int argc, char **argv)
     {
       size_t l = strlen (buf);
       if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
-      main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0, EOF> driver;
+
       char *args[32];
       argc = 0;
       char *p = buf, *e;
@@ -180,7 +183,10 @@ main (int argc, char **argv)
 	/* Skip 2 first bytes on first argument if is Windows path, "C:\..." */
 	start_offset = argc == 2 && p[0] != '\0' && p[0] != ':' && p[1] == ':' && (p[2] == '\\' || p[2] == '/') ? 2 : 0;
       }
+
+      driver_t<EOF> driver;
       ret |= driver.main (argc, args);
+
       fflush (stdout);
 
       if (ret)
@@ -188,6 +194,7 @@ main (int argc, char **argv)
     }
     return ret;
   }
-  main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0> driver;
+
+  driver_t<> driver;
   return driver.main (argc, argv);
 }
