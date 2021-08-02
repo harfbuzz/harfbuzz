@@ -42,6 +42,7 @@ TEST_PROGS = \
 	test-object \
 	test-ot-alternates \
 	test-ot-color \
+	test-ot-collect-glyphs \
 	test-ot-face \
 	test-ot-glyphname \
 	test-ot-ligature-carets \
