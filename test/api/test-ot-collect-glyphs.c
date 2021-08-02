@@ -321,11 +321,77 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
   hb_set_destroy (output);
 }
 
+static void
+test_ot_layout_lookup_collect_glyphs_qahiri (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Qahiri-Regular.ttf");
+
+  hb_set_t *before = hb_set_create();
+  hb_set_t *input = hb_set_create();
+  hb_set_t *after = hb_set_create();
+  hb_set_t *output = hb_set_create();
+  hb_codepoint_t g = HB_SET_VALUE_INVALID;
+
+  /* ChainContextSubstFormat1 */
+  BEGIN(HB_OT_TAG_GSUB, 11);
+  g_assert_cmpuint (1, ==, hb_set_get_population (before));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (before, &g));
+  g_assert_cmpuint (39, ==, g);
+
+  g_assert_cmpuint (2, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (154, ==, g);
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (159, ==, g);
+
+  g_assert_cmpuint (1, ==, hb_set_get_population (after));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (after, &g));
+  g_assert_cmpuint (179, ==, g);
+
+  g_assert_cmpuint (2, ==, hb_set_get_population (output));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (155, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (162, ==, g);
+  END();
+
+  /* ReverseChainSingleSubst */
+  BEGIN(HB_OT_TAG_GSUB, 32);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (42, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (47, ==, g);
+
+  g_assert_cmpuint (46, ==, hb_set_get_population (after));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (after, &g));
+  g_assert_cmpuint (61, ==, g);
+
+  g_assert_cmpuint (42, ==, hb_set_get_population (output));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (463, ==, g);
+  END();
+
+  hb_face_destroy (face);
+  hb_set_destroy (before);
+  hb_set_destroy (input);
+  hb_set_destroy (after);
+  hb_set_destroy (output);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_ot_layout_lookup_collect_glyphs_source_sans);
   hb_test_add (test_ot_layout_lookup_collect_glyphs_noto_nastaliq);
+  hb_test_add (test_ot_layout_lookup_collect_glyphs_qahiri);
   return hb_test_run ();
 }
