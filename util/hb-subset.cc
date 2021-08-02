@@ -127,6 +127,9 @@ struct subset_consumer_t
   hb_subset_input_t *input;
 };
 
+template <int eol = '\n'>
+using driver_t = main_font_text_t<subset_consumer_t, FONT_SIZE_UPEM, 0, eol>;
+
 int
 main (int argc, char **argv)
 {
@@ -138,7 +141,7 @@ main (int argc, char **argv)
     {
       size_t l = strlen (buf);
       if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
-      main_font_text_t<subset_consumer_t, 10, 0, EOF> driver;
+
       char *args[32];
       argc = 0;
       char *p = buf, *e;
@@ -151,13 +154,12 @@ main (int argc, char **argv)
 	  e++;
 	args[argc++] = p = e;
       }
+
+      driver_t<EOF> driver;
       int result = driver.main (argc, args);
-      if (result == 0)
-        fprintf (stdout, "success\n");
-      else
-        fprintf (stdout, "failure\n");
-      ret |= result;
+      fprintf (stdout, result == 0 ? "success\n" : "failure\n");
       fflush (stdout);
+      ret |= result;
 
       if (ret)
 	break;
