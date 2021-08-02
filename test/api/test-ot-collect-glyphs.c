@@ -194,6 +194,127 @@ test_ot_layout_lookup_collect_glyphs_source_sans (void)
   END();
 
   hb_face_destroy (face);
+  face = hb_test_open_font_file ("fonts/SourceHanSans-Regular.41,3041,4C2E.otf");
+
+  /* SinglePosFormat2 */
+  BEGIN(HB_OT_TAG_GPOS, 1);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (1, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (4, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+  g_assert_cmpuint (0, ==, hb_set_get_population (output));
+  END();
+
+  hb_face_destroy (face);
+  hb_set_destroy (before);
+  hb_set_destroy (input);
+  hb_set_destroy (after);
+  hb_set_destroy (output);
+}
+
+static void
+test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/NotoNastaliqUrdu-Regular.ttf");
+
+  hb_set_t *before = hb_set_create();
+  hb_set_t *input = hb_set_create();
+  hb_set_t *after = hb_set_create();
+  hb_set_t *output = hb_set_create();
+  hb_codepoint_t g = HB_SET_VALUE_INVALID;
+
+  /* ExtensionSubst -> SingleSubst */
+  BEGIN(HB_OT_TAG_GSUB, 10);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (3, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (228, ==, g);
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (416, ==, g);
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (441, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+
+  g_assert_cmpuint (3, ==, hb_set_get_population (output));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (267, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (268, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (279, ==, g);
+  END();
+
+  /* ExtensionSubst -> ChainContextSubstFormat2 */
+  BEGIN(HB_OT_TAG_GSUB, 16);
+  g_assert_cmpuint (16, ==, hb_set_get_population (before));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (before, &g));
+  g_assert_cmpuint (74, ==, g);
+
+  g_assert_cmpuint (27, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (276, ==, g);
+
+  g_assert_cmpuint (14, ==, hb_set_get_population (after));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (after, &g));
+  g_assert_cmpuint (252, ==, g);
+
+  g_assert_cmpuint (43, ==, hb_set_get_population (output));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (74, ==, g);
+  END();
+
+  /* CursivePos */
+  BEGIN(HB_OT_TAG_GPOS, 0);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (616, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (228, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+  g_assert_cmpuint (0, ==, hb_set_get_population (output));
+  END();
+
+  /* ExtensionSubst -> MarkLigPos */
+  BEGIN(HB_OT_TAG_GPOS, 13);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (46, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (1004, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+  g_assert_cmpuint (0, ==, hb_set_get_population (output));
+  END();
+
+  /* ExtensionSubst -> SinglePosFormat1 */
+  BEGIN(HB_OT_TAG_GPOS, 17);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (242, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (257, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+  g_assert_cmpuint (0, ==, hb_set_get_population (output));
+  END();
+
+  hb_face_destroy (face);
   hb_set_destroy (before);
   hb_set_destroy (input);
   hb_set_destroy (after);
@@ -205,5 +326,6 @@ main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_ot_layout_lookup_collect_glyphs_source_sans);
+  hb_test_add (test_ot_layout_lookup_collect_glyphs_noto_nastaliq);
   return hb_test_run ();
 }
