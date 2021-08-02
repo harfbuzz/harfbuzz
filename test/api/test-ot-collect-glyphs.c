@@ -227,6 +227,31 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
   hb_set_t *output = hb_set_create();
   hb_codepoint_t g = HB_SET_VALUE_INVALID;
 
+  /* ExtensionSubst -> ContextSubstFormat1 */
+  BEGIN(HB_OT_TAG_GSUB, 9);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (3, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (228, ==, g);
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (416, ==, g);
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (441, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+
+  g_assert_cmpuint (3, ==, hb_set_get_population (output));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (267, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (268, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (279, ==, g);
+  END();
+
   /* ExtensionSubst -> SingleSubst */
   BEGIN(HB_OT_TAG_GSUB, 10);
   g_assert_cmpuint (0, ==, hb_set_get_population (before));
@@ -274,6 +299,24 @@ test_ot_layout_lookup_collect_glyphs_noto_nastaliq (void)
   g_assert (hb_set_next (output, &g));
   g_assert_cmpuint (74, ==, g);
   END();
+
+  /* ExtensionSubst -> ContextSubstFormat2 */
+  BEGIN(HB_OT_TAG_GSUB, 39);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (246, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (252, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+
+  g_assert_cmpuint (258, ==, hb_set_get_population (output));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (74, ==, g);
+  END();
+
 
   /* CursivePos */
   BEGIN(HB_OT_TAG_GPOS, 0);
@@ -332,6 +375,35 @@ test_ot_layout_lookup_collect_glyphs_qahiri (void)
   hb_set_t *output = hb_set_create();
   hb_codepoint_t g = HB_SET_VALUE_INVALID;
 
+  /* SingleSubstFormat1 */
+  BEGIN(HB_OT_TAG_GSUB, 0);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (4, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (52, ==, g);
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (60, ==, g);
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (62, ==, g);
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (159, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+
+  g_assert_cmpuint (4, ==, hb_set_get_population (output));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (53, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (61, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (63, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (160, ==, g);
+  END();
+
   /* ChainContextSubstFormat1 */
   BEGIN(HB_OT_TAG_GSUB, 11);
   g_assert_cmpuint (1, ==, hb_set_get_population (before));
@@ -357,6 +429,29 @@ test_ot_layout_lookup_collect_glyphs_qahiri (void)
   g_assert_cmpuint (155, ==, g);
   g_assert (hb_set_next (output, &g));
   g_assert_cmpuint (162, ==, g);
+  END();
+
+  /* ContextSubstFormat3 */
+  BEGIN(HB_OT_TAG_GSUB, 31);
+  g_assert_cmpuint (0, ==, hb_set_get_population (before));
+
+  g_assert_cmpuint (4, ==, hb_set_get_population (input));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (input, &g));
+  g_assert_cmpuint (53, ==, g);
+
+  g_assert_cmpuint (0, ==, hb_set_get_population (after));
+
+  g_assert_cmpuint (4, ==, hb_set_get_population (output));
+  g = HB_SET_VALUE_INVALID;
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (52, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (60, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (62, ==, g);
+  g_assert (hb_set_next (output, &g));
+  g_assert_cmpuint (159, ==, g);
   END();
 
   /* ReverseChainSingleSubst */
