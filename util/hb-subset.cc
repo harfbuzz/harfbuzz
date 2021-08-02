@@ -160,9 +160,6 @@ main (int argc, char **argv)
       fprintf (stdout, result == 0 ? "success\n" : "failure\n");
       fflush (stdout);
       ret |= result;
-
-      if (ret)
-	break;
     }
     return ret;
   }

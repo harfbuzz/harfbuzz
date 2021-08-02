@@ -186,11 +186,7 @@ main (int argc, char **argv)
 
       driver_t<EOF> driver;
       ret |= driver.main (argc, args);
-
       fflush (stdout);
-
-      if (ret)
-	break;
     }
     return ret;
   }
