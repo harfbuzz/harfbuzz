@@ -22,7 +22,6 @@ def generate_expected_output(input_file, unicodes, profile_flags, output_path):
 		     "--output-file=%s" % output_path])
 	args.extend(profile_flags)
 	check_call(args)
-	check_call(["ttx", "-f", output_path])
 
 
 args = sys.argv[1:]
