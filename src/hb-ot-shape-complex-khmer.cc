@@ -42,7 +42,8 @@ khmer_features[] =
 {
   /*
    * Basic features.
-   * These features are applied in order, one at a time, after reordering.
+   * These features are applied all at once, before reordering, constrained
+   * to the syllable.
    */
   {HB_TAG('p','r','e','f'), F_MANUAL_JOINERS},
   {HB_TAG('b','l','w','f'), F_MANUAL_JOINERS},

@@ -47,7 +47,8 @@ use_basic_features[] =
 {
   /*
    * Basic features.
-   * These features are applied all at once, before reordering.
+   * These features are applied all at once, before reordering, constrained
+   * to the syllable.
    */
   HB_TAG('r','k','r','f'),
   HB_TAG('a','b','v','f'),
