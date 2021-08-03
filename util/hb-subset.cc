@@ -51,7 +51,7 @@ struct subset_consumer_t
 		     const char   *text_before,
 		     const char   *text_after)
   {
-    // TODO(Q1) does this only get called with at least 1 codepoint?
+    // TODO does this only get called with at least 1 codepoint?
     hb_set_t *codepoints = hb_subset_input_unicode_set (input);
     if (0 == strcmp (text, "*"))
     {
@@ -163,6 +163,7 @@ main (int argc, char **argv)
     }
     return ret;
   }
-  main_font_text_t<subset_consumer_t, 10, 0> driver;
+
+  driver_t<> driver;
   return driver.main (argc, argv);
 }
