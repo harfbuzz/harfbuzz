@@ -11,6 +11,7 @@ import sys
 import tempfile
 import shutil
 import io
+import hashlib
 
 from subset_test_suite import SubsetTestSuite
 
@@ -62,9 +63,18 @@ def run_test (test, should_check_ots):
 	if ret != "success":
 		return fail_test (test, cli_args, "%s failed" % ' '.join (cli_args))
 
+	expected_file = os.path.join (test_suite.get_output_directory (), test.get_font_name ())
+	with open (expected_file, "rb") as fp:
+		expected_hash = hashlib.sha224(fp.read()).hexdigest()
+	with open (out_file, "rb") as fp:
+		actual_hash = hashlib.sha224(fp.read()).hexdigest()
+
+	if expected_hash == actual_hash:
+		return 0
+
 	expected_ttx = io.StringIO ()
 	try:
-		with TTFont (os.path.join (test_suite.get_output_directory (), test.get_font_name ())) as font:
+		with TTFont (expected_file) as font:
 			font.saveXML (expected_ttx)
 	except Exception as e:
 		print (e)
