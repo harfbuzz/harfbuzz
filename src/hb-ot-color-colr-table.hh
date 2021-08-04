@@ -1043,6 +1043,87 @@ struct LayerList : Array32OfOffset32To<Paint>
   }
 };
 
+struct DeltasetIndexMapFormat0
+{
+  friend struct DeltasetIndexMap;
+
+  private:
+  unsigned int get_width () const
+  { return ((entryFormat >> 4) & 3) + 1; }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  c->check_range (mapDataZ.arrayZ,
+                                  mapCount,
+                                  get_width ()));
+  }
+
+  protected:
+  HBUINT8	format;         /* Format identifier--format = 0 */
+  HBUINT8	entryFormat;    /* A packed field that describes the compressed
+                                 * representation of delta-set indices. */
+  HBUINT16	mapCount;       /* The number of mapping entries. */
+  UnsizedArrayOf<HBUINT8>
+                mapDataZ;       /* The delta-set index mapping data. */
+
+  public:
+  DEFINE_SIZE_ARRAY (4, mapDataZ);
+};
+
+struct DeltasetIndexMapFormat1
+{
+  friend struct DeltasetIndexMap;
+  
+  private:
+  unsigned int get_width () const
+  { return ((entryFormat >> 4) & 3) + 1; }
+  
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) &&
+                  c->check_range (mapDataZ.arrayZ,
+                                  mapCount,
+                                  get_width ()));
+  }
+
+  protected:
+  HBUINT8	format;         /* Format identifier--format = 1 */
+  HBUINT8	entryFormat;    /* A packed field that describes the compressed
+                                 * representation of delta-set indices. */
+  HBUINT32	mapCount;       /* The number of mapping entries. */
+  UnsizedArrayOf<HBUINT8>
+                mapDataZ;       /* The delta-set index mapping data. */
+
+  public:
+  DEFINE_SIZE_ARRAY (6, mapDataZ);
+};
+
+struct DeltasetIndexMap
+{
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (!u.format.sanitize (c)) return_trace (false);
+    switch (u.format) {
+    case 0: return_trace (u.format0.sanitize (c));
+    case 1: return_trace (u.format1.sanitize (c));
+    default:return_trace (true);
+    }
+  }
+
+  protected:
+  union {
+  HBUINT8			format;         /* Format identifier */
+  DeltasetIndexMapFormat0	format0;
+  DeltasetIndexMapFormat1	format1;
+  } u;
+  public:
+  DEFINE_SIZE_UNION (1, format);
+};
+
 struct COLR
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_COLR;
@@ -1287,7 +1368,7 @@ struct COLR
 
     if (version == 0) return_trace (ret);
     auto snap = c->serializer->snapshot ();
-    if (!c->serializer->allocate_size<void> (3 * HBUINT32::static_size)) return_trace (false);
+    if (!c->serializer->allocate_size<void> (4 * HBUINT32::static_size)) return_trace (false);
     if (!colr_prime->baseGlyphList.serialize_subset (c, baseGlyphList, this))
     {
       if (c->serializer->in_error ()) return_trace (false);
@@ -1299,6 +1380,7 @@ struct COLR
 
     if (!colr_prime->layerList.serialize_subset (c, layerList, this)) return_trace (false);
 
+    colr_prime->varIdxMap = 0;
     colr_prime->varStore = 0;
     //TODO: subset varStore once it's implemented in fonttools
     return_trace (true);
@@ -1315,7 +1397,7 @@ struct COLR
   // Version-1 additions
   Offset32To<BaseGlyphList>		baseGlyphList;
   Offset32To<LayerList>			layerList;
-  //Offset32<DeltaSetIndexMap>		varIdxMap;  // Offset to DeltaSetIndexMap table (may be NULL)
+  Offset32To<DeltasetIndexMap>		varIdxMap;  // Offset to DeltasetIndexMap table (may be NULL)
   Offset32To<VariationStore>		varStore;
   public:
   DEFINE_SIZE_MIN (14);
