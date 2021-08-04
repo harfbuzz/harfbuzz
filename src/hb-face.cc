@@ -624,21 +624,22 @@ hb_face_collect_variation_unicodes (hb_face_t *face,
 
 struct hb_face_builder_data_t
 {
-  struct table_entry_t
-  {
-    int cmp (hb_tag_t t) const
-    {
-      if (t < tag) return -1;
-      if (t > tag) return -1;
-      return 0;
-    }
-
-    hb_tag_t   tag;
-    hb_blob_t *blob;
-  };
-
   hb_hashmap_t<hb_tag_t, hb_blob_t*, (unsigned)-1, nullptr> tables;
 };
+
+static int compare_entries (const void* a, const void* b)
+{
+  hb_pair_t <hb_tag_t, hb_blob_t*>* pair_a = (hb_pair_t <hb_tag_t, hb_blob_t*>*) a;
+  hb_pair_t <hb_tag_t, hb_blob_t*>* pair_b = (hb_pair_t <hb_tag_t, hb_blob_t*>*) b;
+
+  // Order by blob size first (smallest to largest) and then table tag.
+  if (hb_blob_get_length (pair_a->second) < hb_blob_get_length (pair_b->second)) return -1;
+  if (hb_blob_get_length (pair_a->second) > hb_blob_get_length (pair_b->second)) return 1;
+
+  if (pair_a->first < pair_b->first) return -1;
+  if (pair_a->first > pair_b->first) return 1;
+  return 0;
+}
 
 static hb_face_builder_data_t *
 _hb_face_builder_data_create ()
@@ -688,18 +689,10 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
   hb_tag_t sfnt_tag = is_cff ? OT::OpenTypeFontFile::CFFTag : OT::OpenTypeFontFile::TrueTypeTag;
 
   // Sort the tags so that produced face is deterministic.
-  hb_set_t tags;
-  + data->tables.keys()
-  | hb_sink (tags)
-  ;
-
-  auto it =
-  + tags.iter()
-  | hb_map ([&] (hb_tag_t _) {
-    return hb_pair (_, data->tables[_]);
-  })
-  ;
-  bool ret = f->serialize_single (&c, sfnt_tag, it);
+  hb_vector_t<hb_pair_t <hb_tag_t, hb_blob_t*>> sorted_entries;
+  data->tables.iter () | hb_sink (sorted_entries);
+  sorted_entries.qsort (compare_entries);
+  bool ret = f->serialize_single (&c, sfnt_tag, + sorted_entries.iter());
 
   c.end_serialize ();
 
@@ -720,10 +713,7 @@ _hb_face_builder_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void 
   if (!tag)
     return _hb_face_builder_data_reference_blob (data);
 
-  if (data->tables.has (tag))
-    return hb_blob_reference (data->tables[tag]);
-
-  return nullptr;
+  return hb_blob_reference (data->tables[tag]);
 }
 
 
