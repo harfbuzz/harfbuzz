@@ -4,8 +4,8 @@ gsub_context2_multiple_subrules_f2.otf
 gsub_context3_successive_f1.otf
 
 PROFILES:
-default.txt
-retain-gids.txt
+notdef-outline.txt
+notdef-outline-retain-gids.txt
 
 SUBSETS:
 A

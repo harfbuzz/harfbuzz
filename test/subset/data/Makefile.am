@@ -38,13 +38,15 @@ EXTRA_DIST += \
 	expected/sbix \
 	expected/colr \
 	expected/colr_with_components \
-	expected/colrv1.notoemoji \
-	expected/colrv1 \
 	expected/cbdt \
 	expected/variable \
 	fonts \
 	profiles \
 	$(NULL)
+
+# TODO: re-able once colrv1 subsetting is stabilized.
+#      	expected/colrv1
+#   	expected/colrv1.notoemoji
 
 # Convenience targets:
 lib:

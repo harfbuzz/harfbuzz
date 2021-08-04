@@ -2,8 +2,8 @@ FONTS:
 gpos1_2_font.otf
 
 PROFILES:
-default.txt
-retain-gids.txt
+notdef-outline.txt
+notdef-outline-retain-gids.txt
 
 SUBSETS:
 A

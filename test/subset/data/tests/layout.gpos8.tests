@@ -4,8 +4,8 @@ gpos_chaining2_multiple_subrules_f1.otf
 gpos_chaining3_simple_f1.otf
 
 PROFILES:
-default.txt
-retain-gids.txt
+notdef-outline.txt
+notdef-outline-retain-gids.txt
 
 SUBSETS:
 0123
