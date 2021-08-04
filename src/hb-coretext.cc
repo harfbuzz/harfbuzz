@@ -332,6 +332,39 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
     return nullptr;
   }
 
+	if (font->coords) {
+		hb_ot_var_axis_info_t info;
+		unsigned int c = 1;
+		CFMutableDictionaryRef variations = CFDictionaryCreateMutable (kCFAllocatorDefault,
+								 font->num_coords,
+								 &kCFTypeDictionaryKeyCallBacks,
+								 &kCFTypeDictionaryValueCallBacks);
+
+		for (unsigned int i=0; i < font->num_coords; i++)
+		{
+			if (font->coords[i] == 0) continue;
+			hb_ot_var_get_axis_infos (font->face, i, &c, &info);
+			CFDictionarySetValue(variations,
+				CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &info.tag),
+				CFNumberCreate (kCFAllocatorDefault, kCFNumberFloatType, &font->design_coords[i])
+			);
+		}
+
+		CFDictionaryRef attributes = CFDictionaryCreate (kCFAllocatorDefault,
+								 (const void **) &kCTFontVariationAttribute,
+								 (const void **) &variations,
+								 1,
+								 &kCFTypeDictionaryKeyCallBacks,
+								 &kCFTypeDictionaryValueCallBacks);
+
+		CTFontDescriptorRef varDesc = CTFontDescriptorCreateWithAttributes(attributes);
+		CTFontRef new_ct_font = CTFontCreateCopyWithAttributes(ct_font, 0, nullptr, varDesc);
+		CFRelease (ct_font);
+		CFRelease (attributes);
+		CFRelease (variations);
+		ct_font = new_ct_font;
+	}
+
   return (hb_coretext_font_data_t *) ct_font;
 }
 
