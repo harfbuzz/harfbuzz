@@ -119,10 +119,10 @@ typedef struct OpenTypeOffsetTable
 
   public:
 
-  template <typename item_t>
+  template <typename Iterator>
   bool serialize (hb_serialize_context_t *c,
 		  hb_tag_t sfnt_tag,
-		  hb_array_t<item_t> items)
+		  Iterator it)
   {
     TRACE_SERIALIZE (this);
     /* Alloc 12 for the OTHeader. */
@@ -131,15 +131,17 @@ typedef struct OpenTypeOffsetTable
     sfnt_version = sfnt_tag;
     /* Take space for numTables, searchRange, entrySelector, RangeShift
      * and the TableRecords themselves.  */
-    if (unlikely (!tables.serialize (c, items.length))) return_trace (false);
+    unsigned num_items = it.len ();
+    if (unlikely (!tables.serialize (c, num_items))) return_trace (false);
 
     const char *dir_end = (const char *) c->head;
     HBUINT32 *checksum_adjustment = nullptr;
 
     /* Write OffsetTables, alloc for and write actual table blobs. */
-    for (unsigned int i = 0; i < tables.len; i++)
+    unsigned i = 0;
+    for (hb_pair_t<hb_tag_t, hb_blob_t*> entry : it)
     {
-      hb_blob_t *blob = items[i].blob;
+      hb_blob_t *blob = entry.second;
       unsigned len = blob->length;
 
       /* Allocate room for the table and copy it. */
@@ -147,7 +149,7 @@ typedef struct OpenTypeOffsetTable
       if (unlikely (!start)) return false;
 
       TableRecord &rec = tables.arrayZ[i];
-      rec.tag = items[i].tag;
+      rec.tag = entry.first;
       rec.length = len;
       rec.offset = 0;
       if (unlikely (!c->check_assign (rec.offset,
@@ -162,7 +164,7 @@ typedef struct OpenTypeOffsetTable
       c->align (4);
       const char *end = (const char *) c->head;
 
-      if (items[i].tag == HB_OT_TAG_head &&
+      if (entry.first == HB_OT_TAG_head &&
 	  (unsigned) (end - start) >= head::static_size)
       {
 	head *h = (head *) start;
@@ -171,6 +173,7 @@ typedef struct OpenTypeOffsetTable
       }
 
       rec.checkSum.set_for_data (start, end - start);
+      i++;
     }
 
     tables.qsort ();
@@ -182,7 +185,7 @@ typedef struct OpenTypeOffsetTable
       /* The following line is a slower version of the following block. */
       //checksum.set_for_data (this, (const char *) c->head - (const char *) this);
       checksum.set_for_data (this, dir_end - (const char *) this);
-      for (unsigned int i = 0; i < items.length; i++)
+      for (unsigned int i = 0; i < num_items; i++)
       {
 	TableRecord &rec = tables.arrayZ[i];
 	checksum = checksum + rec.checkSum;
@@ -489,10 +492,10 @@ struct OpenTypeFontFile
     }
   }
 
-  template <typename item_t>
+  template <typename Iterator>
   bool serialize_single (hb_serialize_context_t *c,
 			 hb_tag_t sfnt_tag,
-			 hb_array_t<item_t> items)
+			 Iterator items)
   {
     TRACE_SERIALIZE (this);
     assert (sfnt_tag != TTCTag);
