@@ -2,9 +2,8 @@ FONTS:
 AdobeVFPrototype.otf
 
 PROFILES:
-default.txt
-drop-hints.txt
-keep-gdef-gpos.txt
+notdef-outline.txt
+notdef-outline-drop-hints.txt
 
 SUBSETS:
 A
