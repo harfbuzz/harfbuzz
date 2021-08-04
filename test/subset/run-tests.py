@@ -18,8 +18,7 @@ from subset_test_suite import SubsetTestSuite
 try:
 	from fontTools.ttLib import TTFont
 except ImportError:
-	print ("fonttools is not present, skipping test.")
-	sys.exit (77)
+    TTFont = None
 
 ots_sanitize = shutil.which ("ots-sanitize")
 
@@ -71,6 +70,10 @@ def run_test (test, should_check_ots):
 
 	if expected_hash == actual_hash:
 		return 0
+
+	if TTFont is None:
+		print ("fonttools is not present, skipping test.")
+		sys.exit (77)
 
 	expected_ttx = io.StringIO ()
 	try:
