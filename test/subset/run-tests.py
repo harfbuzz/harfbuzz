@@ -69,50 +69,41 @@ def run_test (test, should_check_ots):
 		actual_hash = hashlib.sha224(fp.read()).hexdigest()
 
 	if expected_hash == actual_hash:
+		if should_check_ots:
+			print ("Checking output with ots-sanitize.")
+			if not check_ots (out_file):
+				return fail_test (test, cli_args, 'ots for subsetted file fails.')
 		return 0
 
 	if TTFont is None:
-		print ("fonttools is not present, skipping test.")
-		sys.exit (77)
+		print ("fonttools is not present, skipping TTX diff.")
+		return fail_test (test, cli_args, "hash for expected and actual does not match.")
 
-	expected_ttx = io.StringIO ()
-	try:
-		with TTFont (expected_file) as font:
-			font.saveXML (expected_ttx)
-	except Exception as e:
-		print (e)
-		return fail_test (test, cli_args, "ttx failed to parse the expected result")
+	with io.StringIO () as fp:
+		try:
+			with TTFont (expected_file) as font:
+				font.saveXML (fp)
+		except Exception as e:
+			print (e)
+			return fail_test (test, cli_args, "ttx failed to parse the expected result")
+		expected_ttx = fp.getvalue ()
 
-	actual_ttx = io.StringIO ()
-	try:
-		with TTFont (out_file) as font:
-			font.saveXML (actual_ttx)
-	except Exception as e:
-		print (e)
-		return fail_test (test, cli_args, "ttx failed to parse the actual result")
+	with io.StringIO () as fp:
+		try:
+			with TTFont (out_file) as font:
+				font.saveXML (fp)
+		except Exception as e:
+			print (e)
+			return fail_test (test, cli_args, "ttx failed to parse the actual result")
+		actual_ttx = fp.getvalue ()
 
-	expected_ttx_text = strip_check_sum (expected_ttx.getvalue ())
-	expected_ttx.close ()
-	actual_ttx_text = strip_check_sum (actual_ttx.getvalue ())
-	actual_ttx.close ()
-
-	if not actual_ttx_text == expected_ttx_text:
-		for line in unified_diff (expected_ttx_text.splitlines (1), actual_ttx_text.splitlines (1)):
+	if actual_ttx != expected_ttx:
+		for line in unified_diff (expected_ttx.splitlines (1), actual_ttx.splitlines (1)):
 			sys.stdout.write (line)
 		sys.stdout.flush ()
 		return fail_test (test, cli_args, 'ttx for expected and actual does not match.')
 
-	if should_check_ots:
-		print ("Checking output with ots-sanitize.")
-		if not check_ots (out_file):
-			return fail_test (test, cli_args, 'ots for subsetted file fails.')
-
-	return 0
-
-def strip_check_sum (ttx_string):
-	return re.sub ('checkSumAdjustment value=["]0x([0-9a-fA-F])+["]',
-		       'checkSumAdjustment value="0x00000000"',
-		       ttx_string, count=1)
+	return 1
 
 def has_ots ():
 	if not ots_sanitize:
