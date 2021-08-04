@@ -58,7 +58,7 @@ foreach t : tests
     # ideally better to break and let meson handles them in parallel
     timeout: 500,
     workdir: join_paths(meson.current_build_dir(), '..', '..'),
-    suite: ['subset', 'slow'],
+    suite: 'subset',
   )
 endforeach
 
