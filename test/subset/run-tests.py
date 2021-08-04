@@ -103,7 +103,9 @@ def run_test (test, should_check_ots):
 		sys.stdout.flush ()
 		return fail_test (test, cli_args, 'ttx for expected and actual does not match.')
 
-	return 1
+	return fail_test (test, cli_args, 'hash for expected and actual does not match, '
+	                                  'but the ttx matches. Expected file needs to be updated?')
+
 
 def has_ots ():
 	if not ots_sanitize:
