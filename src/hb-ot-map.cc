@@ -150,9 +150,8 @@ void
 hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 			      const hb_ot_shape_plan_key_t &key)
 {
-  static_assert ((!(HB_GLYPH_FLAG_DEFINED & (HB_GLYPH_FLAG_DEFINED + 1))), "");
-  unsigned int global_bit_mask = HB_GLYPH_FLAG_DEFINED + 1;
-  unsigned int global_bit_shift = hb_popcount (HB_GLYPH_FLAG_DEFINED);
+  unsigned int global_bit_shift = 8 * sizeof (hb_mask_t) - 1;
+  unsigned int global_bit_mask = 1u << global_bit_shift;
 
   m.global_mask = global_bit_mask;
 
@@ -205,7 +204,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 
 
   /* Allocate bits now */
-  unsigned int next_bit = global_bit_shift + 1;
+  static_assert ((!(HB_GLYPH_FLAG_DEFINED & (HB_GLYPH_FLAG_DEFINED + 1))), "");
+  unsigned int next_bit = hb_popcount (HB_GLYPH_FLAG_DEFINED) + 1;
 
   for (unsigned int i = 0; i < feature_infos.length; i++)
   {
@@ -220,7 +220,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
       /* Limit bits per feature. */
       bits_needed = hb_min (HB_OT_MAP_MAX_BITS, hb_bit_storage (info->max_value));
 
-    if (!info->max_value || next_bit + bits_needed > 8 * sizeof (hb_mask_t))
+    if (!info->max_value || next_bit + bits_needed >= global_bit_shift)
       continue; /* Feature disabled, or not enough bits. */
 
 
@@ -274,7 +274,6 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
     }
     map->_1_mask = (1u << map->shift) & map->mask;
     map->needs_fallback = !found;
-
   }
   feature_infos.shrink (0); /* Done with these */
 
