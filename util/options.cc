@@ -108,31 +108,6 @@ option_parser_t::add_main_options ()
   g_option_context_add_main_entries (context, entries, nullptr);
 }
 
-static gboolean
-post_parse (GOptionContext *context G_GNUC_UNUSED,
-	    GOptionGroup *group G_GNUC_UNUSED,
-	    gpointer data,
-	    GError **error)
-{
-  option_group_t *option_group = static_cast<option_group_t *>(data);
-  option_group->post_parse (error);
-  return !*error;
-}
-
-void
-option_parser_t::add_group (GOptionEntry   *entries,
-			    const gchar    *name,
-			    const gchar    *description,
-			    const gchar    *help_description,
-			    option_group_t *option_group)
-{
-  GOptionGroup *group = g_option_group_new (name, description, help_description,
-					    static_cast<gpointer>(option_group), nullptr);
-  g_option_group_add_entries (group, entries);
-  g_option_group_set_parse_hooks (group, nullptr, post_parse);
-  g_option_context_add_group (context, group);
-}
-
 void
 option_parser_t::parse (int *argc, char ***argv)
 {

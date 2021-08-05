@@ -82,11 +82,31 @@ struct option_parser_t
 
   void add_main_options ();
 
+  template <typename Type>
+  static gboolean
+  post_parse (GOptionContext *context G_GNUC_UNUSED,
+	      GOptionGroup *group G_GNUC_UNUSED,
+	      gpointer data,
+	      GError **error)
+  {
+    auto *thiz = static_cast<Type *>(data);
+    thiz->post_parse (error);
+    return !*error;
+  }
+
+  template <typename Type>
   void add_group (GOptionEntry   *entries,
 		  const gchar    *name,
 		  const gchar    *description,
 		  const gchar    *help_description,
-		  option_group_t *option_group);
+		  Type           *closure)
+  {
+    GOptionGroup *group = g_option_group_new (name, description, help_description,
+					      static_cast<gpointer>(closure), nullptr);
+    g_option_group_add_entries (group, entries);
+    g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
+    g_option_context_add_group (context, group);
+  }
 
   void free_later (char *p) {
     g_ptr_array_add (to_free, p);
