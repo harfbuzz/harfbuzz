@@ -752,6 +752,9 @@ hb_face_builder_create ()
 hb_bool_t
 hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 {
+  if (tag == HB_MAP_VALUE_INVALID)
+    return false;
+
   if (unlikely (face->destroy != (hb_destroy_func_t) _hb_face_builder_data_destroy))
     return false;
 
