@@ -53,11 +53,6 @@
 
 void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
 
-struct option_group_t
-{
-  virtual ~option_group_t () {}
-};
-
 
 struct option_parser_t
 {
@@ -135,9 +130,9 @@ struct option_parser_t
 #define FONT_SIZE_UPEM 0x7FFFFFFF
 #define FONT_SIZE_NONE 0
 
-struct view_options_t : option_group_t
+struct view_options_t
 {
-  ~view_options_t () override
+  ~view_options_t ()
   {
     g_free (fore);
     g_free (back);
@@ -159,9 +154,9 @@ struct view_options_t : option_group_t
 };
 
 
-struct shape_options_t : option_group_t
+struct shape_options_t
 {
-  ~shape_options_t () override
+  ~shape_options_t ()
   {
     g_free (direction);
     g_free (language);
@@ -443,7 +438,7 @@ struct shape_options_t : option_group_t
 };
 
 
-struct font_options_t : option_group_t
+struct font_options_t
 {
   font_options_t (int default_font_size_,
 		  unsigned int subpixel_bits_)
@@ -452,7 +447,7 @@ struct font_options_t : option_group_t
     font_size_x (default_font_size_),
     font_size_y (default_font_size_)
   {}
-  ~font_options_t () override
+  ~font_options_t ()
   {
     g_free (font_file);
     free (variations);
@@ -499,9 +494,9 @@ struct font_options_t : option_group_t
 };
 
 
-struct text_options_t : option_group_t
+struct text_options_t
 {
-  ~text_options_t () override
+  ~text_options_t ()
   {
     g_free (text_before);
     g_free (text_after);
@@ -539,9 +534,9 @@ struct text_options_t : option_group_t
   unsigned int line_len = UINT_MAX;
 };
 
-struct output_options_t : option_group_t
+struct output_options_t
 {
-  ~output_options_t () override
+  ~output_options_t ()
   {
     g_free (output_file);
     g_free (output_format);
@@ -579,7 +574,7 @@ struct output_options_t : option_group_t
   mutable FILE *fp = nullptr;
 };
 
-struct format_options_t : option_group_t
+struct format_options_t
 {
   void add_options (option_parser_t *parser);
 
@@ -622,12 +617,12 @@ struct format_options_t : option_group_t
   hb_bool_t trace = false;
 };
 
-struct subset_options_t : option_group_t
+struct subset_options_t
 {
   subset_options_t ()
   : input (hb_subset_input_create_or_fail ())
   {}
-  ~subset_options_t () override
+  ~subset_options_t ()
   {
     hb_subset_input_destroy (input);
   }
