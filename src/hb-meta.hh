@@ -259,15 +259,15 @@ using hb_is_arithmetic = hb_bool_constant<
 #define hb_is_arithmetic(T) hb_is_arithmetic<T>::value
 
 
-template <typename T>
-using hb_is_signed = hb_conditional<hb_is_arithmetic (T),
-				    hb_bool_constant<(T) -1 < (T) 0>,
-				    hb_false_type>;
+template <typename T, bool is_arithmetic> struct hb_is_signed_;
+template <typename T> struct hb_is_signed_<T, false>	: hb_false_type {};
+template <typename T> struct hb_is_signed_<T, true>	: hb_bool_constant<(T) -1 < (T) 0> {};
+template <typename T> struct hb_is_signed : hb_is_signed_<T, hb_is_arithmetic (T)> {};
 #define hb_is_signed(T) hb_is_signed<T>::value
-template <typename T>
-using hb_is_unsigned = hb_conditional<hb_is_arithmetic (T),
-				      hb_bool_constant<(T) 0 < (T) -1>,
-				      hb_false_type>;
+template <typename T, bool is_arithmetic> struct hb_is_unsigned_;
+template <typename T> struct hb_is_unsigned_<T, false>	: hb_false_type {};
+template <typename T> struct hb_is_unsigned_<T, true>	: hb_bool_constant<(T) 0 < (T) -1> {};
+template <typename T> struct hb_is_unsigned : hb_is_unsigned_<T, hb_is_arithmetic (T)> {};
 #define hb_is_unsigned(T) hb_is_unsigned<T>::value
 
 template <typename T> struct hb_int_min;
