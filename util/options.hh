@@ -117,10 +117,6 @@ struct option_parser_t
 
 struct view_options_t : option_group_t
 {
-  view_options_t (option_parser_t *parser)
-  {
-    add_options (parser);
-  }
   ~view_options_t () override
   {
     g_free (fore);
@@ -145,10 +141,6 @@ struct view_options_t : option_group_t
 
 struct shape_options_t : option_group_t
 {
-  shape_options_t (option_parser_t *parser)
-  {
-    add_options (parser);
-  }
   ~shape_options_t () override
   {
     g_free (direction);
@@ -433,16 +425,13 @@ struct shape_options_t : option_group_t
 
 struct font_options_t : option_group_t
 {
-  font_options_t (option_parser_t *parser,
-		  int default_font_size_,
+  font_options_t (int default_font_size_,
 		  unsigned int subpixel_bits_)
   : default_font_size (default_font_size_),
     subpixel_bits (subpixel_bits_),
     font_size_x (default_font_size_),
     font_size_y (default_font_size_)
-  {
-    add_options (parser);
-  }
+  {}
   ~font_options_t () override
   {
     g_free (font_file);
@@ -492,10 +481,6 @@ struct font_options_t : option_group_t
 
 struct text_options_t : option_group_t
 {
-  text_options_t (option_parser_t *parser)
-  {
-    add_options (parser);
-  }
   ~text_options_t () override
   {
     g_free (text_before);
@@ -535,12 +520,9 @@ struct text_options_t : option_group_t
 
 struct output_options_t : option_group_t
 {
-  output_options_t (option_parser_t *parser,
-		    const char **supported_formats_ = nullptr)
+  output_options_t (const char **supported_formats_ = nullptr)
   : supported_formats (supported_formats_)
-  {
-    add_options (parser);
-  }
+  {}
   ~output_options_t () override
   {
     g_free (output_file);
@@ -581,10 +563,6 @@ struct output_options_t : option_group_t
 
 struct format_options_t : option_group_t
 {
-  format_options_t (option_parser_t *parser) {
-    add_options (parser);
-  }
-
   void add_options (option_parser_t *parser) override;
 
   void serialize (hb_buffer_t  *buffer,
@@ -628,12 +606,9 @@ struct format_options_t : option_group_t
 
 struct subset_options_t : option_group_t
 {
-  subset_options_t (option_parser_t *parser)
+  subset_options_t ()
   : input (hb_subset_input_create_or_fail ())
-  {
-    add_options (parser);
-  }
-
+  {}
   ~subset_options_t () override
   {
     hb_subset_input_destroy (input);

@@ -51,14 +51,21 @@ template <typename consumer_t, int default_font_size, int subpixel_bits, int eol
 struct main_font_text_t
 {
   main_font_text_t ()
-		  : options ("[FONT-FILE] [TEXT]"),
-		    font_opts (&options, default_font_size, subpixel_bits),
-		    input (&options),
-		    consumer (&options) {}
+  : font_opts (default_font_size, subpixel_bits)
+  {}
+
+  void add_options (option_parser_t *parser)
+  {
+    font_opts.add_options (parser);
+    input.add_options (parser);
+    consumer.add_options (parser);
+  }
 
   int
   main (int argc, char **argv)
   {
+    option_parser_t options ("[FONT-FILE] [TEXT]");
+    add_options (&options);
     options.parse (&argc, &argv);
 
     argc--, argv++;
@@ -86,7 +93,6 @@ struct main_font_text_t
   }
 
   protected:
-  option_parser_t options;
   font_options_t font_opts;
   text_options_t input;
   consumer_t consumer;

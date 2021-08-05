@@ -30,10 +30,15 @@
 
 struct output_buffer_t
 {
-  output_buffer_t (option_parser_t *parser)
-  : options (parser, hb_buffer_serialize_list_formats ()),
-    format (parser)
+  output_buffer_t ()
+  : options (hb_buffer_serialize_list_formats ())
   {}
+
+  void add_options (option_parser_t *parser)
+  {
+    options.add_options (parser);
+    format.add_options (parser);
+  }
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {

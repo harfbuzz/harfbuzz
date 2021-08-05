@@ -34,10 +34,11 @@
 template <typename output_t>
 struct shape_consumer_t
 {
-  shape_consumer_t (option_parser_t *parser)
-  : shaper (parser),
-    output (parser)
-  {}
+  void add_options (option_parser_t *parser)
+  {
+    shaper.add_options (parser);
+    output.add_options (parser);
+  }
 
   void init (hb_buffer_t  *buffer_,
 	     const font_options_t *font_opts)

@@ -32,14 +32,10 @@
 
 struct shape_closure_consumer_t : option_group_t
 {
-  shape_closure_consumer_t (option_parser_t *parser)
-  : shaper (parser)
-  {
-    add_options (parser);
-  }
-
   void add_options (struct option_parser_t *parser) override
   {
+    shaper.add_options (parser);
+
     GOptionEntry entries[] =
     {
       {"no-glyph-names",	0, G_OPTION_FLAG_REVERSE, G_OPTION_ARG_NONE,	&this->show_glyph_names,	"Use glyph indices instead of names",	nullptr},
