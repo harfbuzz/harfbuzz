@@ -31,13 +31,9 @@
 struct output_buffer_t
 {
   output_buffer_t (option_parser_t *parser)
-		  : options (parser, hb_buffer_serialize_list_formats ()),
-		    format (parser),
-		    gs (nullptr),
-		    line_no (0),
-		    font (nullptr),
-		    output_format (HB_BUFFER_SERIALIZE_FORMAT_INVALID),
-		    format_flags (HB_BUFFER_SERIALIZE_FLAG_DEFAULT) {}
+  : options (parser, hb_buffer_serialize_list_formats ()),
+    format (parser)
+  {}
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
@@ -147,11 +143,11 @@ struct output_buffer_t
   output_options_t options;
   format_options_t format;
 
-  GString *gs;
-  unsigned int line_no;
-  hb_font_t *font;
-  hb_buffer_serialize_format_t output_format;
-  hb_buffer_serialize_flags_t format_flags;
+  GString *gs = nullptr;
+  unsigned int line_no = 0;
+  hb_font_t *font = nullptr;
+  hb_buffer_serialize_format_t output_format = HB_BUFFER_SERIALIZE_FORMAT_INVALID;
+  hb_buffer_serialize_flags_t format_flags = HB_BUFFER_SERIALIZE_FLAG_DEFAULT;
 };
 
 template <int eol = '\n'>

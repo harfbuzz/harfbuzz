@@ -35,11 +35,9 @@ template <typename output_t>
 struct shape_consumer_t
 {
   shape_consumer_t (option_parser_t *parser)
-		  : failed (false),
-		    shaper (parser),
-		    output (parser),
-		    font (nullptr),
-		    buffer (nullptr) {}
+  : shaper (parser),
+    output (parser)
+  {}
 
   void init (hb_buffer_t  *buffer_,
 	     const font_options_t *font_opts)
@@ -87,14 +85,14 @@ struct shape_consumer_t
   }
 
   public:
-  bool failed;
+  bool failed = false;
 
   protected:
   shape_options_t shaper;
   output_t output;
 
-  hb_font_t *font;
-  hb_buffer_t *buffer;
+  hb_font_t *font = nullptr;
+  hb_buffer_t *buffer = nullptr;
 };
 
 

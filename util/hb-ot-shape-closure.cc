@@ -32,9 +32,8 @@
 
 struct shape_closure_consumer_t : option_group_t
 {
-  shape_closure_consumer_t (option_parser_t *parser) :
-			    shaper (parser),
-			    show_glyph_names (true)
+  shape_closure_consumer_t (option_parser_t *parser)
+  : shaper (parser)
   {
     add_options (parser);
   }
@@ -104,11 +103,11 @@ struct shape_closure_consumer_t : option_group_t
 
   protected:
   shape_options_t shaper;
-  hb_bool_t show_glyph_names;
+  hb_bool_t show_glyph_names = false;
 
-  hb_set_t *glyphs;
-  hb_font_t *font;
-  hb_buffer_t *buffer;
+  hb_set_t *glyphs = nullptr;
+  hb_font_t *font = nullptr;
+  hb_buffer_t *buffer = nullptr;
 };
 
 int

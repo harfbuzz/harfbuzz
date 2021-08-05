@@ -67,12 +67,10 @@ struct option_group_t
 struct option_parser_t
 {
   option_parser_t (const char *usage)
+  : usage_str (usage),
+    context (g_option_context_new (usage)),
+    to_free (g_ptr_array_new ())
   {
-    memset (this, 0, sizeof (*this));
-    usage_str = usage;
-    context = g_option_context_new (usage);
-    to_free = g_ptr_array_new ();
-
     add_main_options ();
   }
 
@@ -121,14 +119,6 @@ struct view_options_t : option_group_t
 {
   view_options_t (option_parser_t *parser)
   {
-    annotate = false;
-    fore = nullptr;
-    back = nullptr;
-    line_space = 0;
-    have_font_extents = false;
-    font_extents.ascent = font_extents.descent = font_extents.line_gap = 0;
-    margin.t = margin.r = margin.b = margin.l = DEFAULT_MARGIN;
-
     add_options (parser);
   }
   ~view_options_t () override
@@ -139,17 +129,17 @@ struct view_options_t : option_group_t
 
   void add_options (option_parser_t *parser) override;
 
-  hb_bool_t annotate;
-  char *fore;
-  char *back;
-  double line_space;
-  bool have_font_extents;
+  hb_bool_t annotate = false;
+  char *fore = nullptr;
+  char *back = nullptr;
+  double line_space = 0;
+  bool have_font_extents = false;
   struct font_extents_t {
     double ascent, descent, line_gap;
-  } font_extents;
+  } font_extents = {0., 0., 0.};
   struct margin_t {
     double t, r, b, l;
-  } margin;
+  } margin = {DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN};
 };
 
 
@@ -157,18 +147,6 @@ struct shape_options_t : option_group_t
 {
   shape_options_t (option_parser_t *parser)
   {
-    direction = language = script = nullptr;
-    bot = eot = preserve_default_ignorables = remove_default_ignorables = false;
-    features = nullptr;
-    num_features = 0;
-    shapers = nullptr;
-    utf8_clusters = false;
-    invisible_glyph = 0;
-    cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
-    normalize_glyphs = false;
-    verify = false;
-    num_iterations = 1;
-
     add_options (parser);
   }
   ~shape_options_t () override
@@ -431,25 +409,25 @@ struct shape_options_t : option_group_t
   }
 
   /* Buffer properties */
-  char *direction;
-  char *language;
-  char *script;
+  char *direction = nullptr;
+  char *language = nullptr;
+  char *script = nullptr;
 
   /* Buffer flags */
-  hb_bool_t bot;
-  hb_bool_t eot;
-  hb_bool_t preserve_default_ignorables;
-  hb_bool_t remove_default_ignorables;
+  hb_bool_t bot = false;
+  hb_bool_t eot = false;
+  hb_bool_t preserve_default_ignorables = false;
+  hb_bool_t remove_default_ignorables = false;
 
-  hb_feature_t *features;
-  unsigned int num_features;
-  char **shapers;
-  hb_bool_t utf8_clusters;
-  hb_codepoint_t invisible_glyph;
-  hb_buffer_cluster_level_t cluster_level;
-  hb_bool_t normalize_glyphs;
-  hb_bool_t verify;
-  unsigned int num_iterations;
+  hb_feature_t *features = nullptr;
+  unsigned int num_features = 0;
+  char **shapers = nullptr;
+  hb_bool_t utf8_clusters = false;
+  hb_codepoint_t invisible_glyph = 0;
+  hb_buffer_cluster_level_t cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
+  hb_bool_t normalize_glyphs = false;
+  hb_bool_t verify = false;
+  unsigned int num_iterations = 1;
 };
 
 
@@ -458,23 +436,11 @@ struct font_options_t : option_group_t
   font_options_t (option_parser_t *parser,
 		  int default_font_size_,
 		  unsigned int subpixel_bits_)
+  : default_font_size (default_font_size_),
+    subpixel_bits (subpixel_bits_),
+    font_size_x (default_font_size_),
+    font_size_y (default_font_size_)
   {
-    variations = nullptr;
-    num_variations = 0;
-    default_font_size = default_font_size_;
-    x_ppem = 0;
-    y_ppem = 0;
-    ptem = 0.;
-    subpixel_bits = subpixel_bits_;
-    font_file = nullptr;
-    face_index = 0;
-    font_size_x = font_size_y = default_font_size;
-    font_funcs = nullptr;
-    ft_load_flags = 2;
-
-    blob = nullptr;
-    font = nullptr;
-
     add_options (parser);
   }
   ~font_options_t () override
@@ -489,23 +455,23 @@ struct font_options_t : option_group_t
 
   hb_font_t *get_font () const;
 
-  char *font_file;
-  mutable hb_blob_t *blob;
-  unsigned face_index;
-  hb_variation_t *variations;
-  unsigned int num_variations;
-  int default_font_size;
-  int x_ppem;
-  int y_ppem;
-  double ptem;
-  unsigned int subpixel_bits;
-  mutable double font_size_x;
-  mutable double font_size_y;
-  char *font_funcs;
-  int ft_load_flags;
+  char *font_file = nullptr;
+  mutable hb_blob_t *blob = nullptr;
+  unsigned face_index = 0;
+  hb_variation_t *variations = nullptr;
+  unsigned int num_variations = 0;
+  int default_font_size = FONT_SIZE_UPEM;
+  int x_ppem = 0;
+  int y_ppem = 0;
+  double ptem = 0.;
+  unsigned int subpixel_bits = 0;
+  mutable double font_size_x = FONT_SIZE_UPEM;
+  mutable double font_size_y = FONT_SIZE_UPEM;
+  char *font_funcs = nullptr;
+  int ft_load_flags = 2;
 
   private:
-  mutable hb_font_t *font;
+  mutable hb_font_t *font = nullptr;
 
   static struct cache_t
   {
@@ -528,18 +494,6 @@ struct text_options_t : option_group_t
 {
   text_options_t (option_parser_t *parser)
   {
-    text_before = nullptr;
-    text_after = nullptr;
-
-    text_len = -1;
-    text = nullptr;
-    text_file = nullptr;
-
-    fp = nullptr;
-    gs = nullptr;
-    line = nullptr;
-    line_len = UINT_MAX;
-
     add_options (parser);
   }
   ~text_options_t () override
@@ -565,32 +519,26 @@ struct text_options_t : option_group_t
 
   const char *get_line (unsigned int *len, int eol = '\n');
 
-  char *text_before;
-  char *text_after;
+  char *text_before = nullptr;
+  char *text_after = nullptr;
 
-  int text_len;
-  char *text;
-  char *text_file;
+  int text_len = -1;
+  char *text = nullptr;
+  char *text_file = nullptr;
 
   private:
-  FILE *fp;
-  GString *gs;
-  char *line;
-  unsigned int line_len;
+  FILE *fp = nullptr;
+  GString *gs = nullptr;
+  char *line = nullptr;
+  unsigned int line_len = UINT_MAX;
 };
 
 struct output_options_t : option_group_t
 {
   output_options_t (option_parser_t *parser,
 		    const char **supported_formats_ = nullptr)
+  : supported_formats (supported_formats_)
   {
-    output_file = nullptr;
-    output_format = nullptr;
-    supported_formats = supported_formats_;
-    explicit_output_format = false;
-
-    fp = nullptr;
-
     add_options (parser);
   }
   ~output_options_t () override
@@ -623,28 +571,17 @@ struct output_options_t : option_group_t
 
   FILE *get_file_handle ();
 
-  char *output_file;
-  char *output_format;
-  const char **supported_formats;
-  bool explicit_output_format;
+  char *output_file = nullptr;
+  char *output_format = nullptr;
+  const char **supported_formats = nullptr;
+  bool explicit_output_format = false;
 
-  mutable FILE *fp;
+  mutable FILE *fp = nullptr;
 };
 
 struct format_options_t : option_group_t
 {
   format_options_t (option_parser_t *parser) {
-    show_glyph_names = true;
-    show_positions = true;
-    show_advances = true;
-    show_clusters = true;
-    show_text = false;
-    show_unicode = false;
-    show_line_num = false;
-    show_extents = false;
-    show_flags = false;
-    trace = false;
-
     add_options (parser);
   }
 
@@ -677,24 +614,23 @@ struct format_options_t : option_group_t
 				   GString      *gs);
 
 
-  hb_bool_t show_glyph_names;
-  hb_bool_t show_positions;
-  hb_bool_t show_advances;
-  hb_bool_t show_clusters;
-  hb_bool_t show_text;
-  hb_bool_t show_unicode;
-  hb_bool_t show_line_num;
-  hb_bool_t show_extents;
-  hb_bool_t show_flags;
-  hb_bool_t trace;
+  hb_bool_t show_glyph_names = true;
+  hb_bool_t show_positions = true;
+  hb_bool_t show_advances = true;
+  hb_bool_t show_clusters = true;
+  hb_bool_t show_text = false;
+  hb_bool_t show_unicode = false;
+  hb_bool_t show_line_num = false;
+  hb_bool_t show_extents = false;
+  hb_bool_t show_flags = false;
+  hb_bool_t trace = false;
 };
 
 struct subset_options_t : option_group_t
 {
   subset_options_t (option_parser_t *parser)
+  : input (hb_subset_input_create_or_fail ())
   {
-    input = hb_subset_input_create_or_fail ();
-    num_iterations = 1;
     add_options (parser);
   }
 
@@ -715,8 +651,6 @@ struct subset_options_t : option_group_t
     return &flags[sizeof(int) * 8 - 1];
   }
 
-  unsigned num_iterations;
-
   hb_subset_input_t * get_input ()
   {
     hb_subset_flags_t flags_set = HB_SUBSET_FLAGS_DEFAULT;
@@ -729,9 +663,9 @@ struct subset_options_t : option_group_t
     return input;
   }
 
+  unsigned num_iterations = 1;
+  hb_subset_input_t *input = nullptr;
   hb_bool_t flags[sizeof(int) * 8] = {0};
-
-  hb_subset_input_t *input;
 };
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */

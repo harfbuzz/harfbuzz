@@ -35,11 +35,11 @@
 struct view_cairo_t
 {
   view_cairo_t (option_parser_t *parser)
-	       : output_options (parser, helper_cairo_supported_formats),
-		 view_options (parser),
-		 direction (HB_DIRECTION_INVALID),
-		 lines (0), scale_bits (0) {}
-  ~view_cairo_t () {
+  : output_options (parser, helper_cairo_supported_formats),
+    view_options (parser)
+  {}
+  ~view_cairo_t ()
+  {
     cairo_debug_reset_static_data ();
   }
 
@@ -82,14 +82,14 @@ struct view_cairo_t
 
   protected:
 
+  void render (const font_options_t *font_opts);
+
   output_options_t output_options;
   view_options_t view_options;
 
-  void render (const font_options_t *font_opts);
-
-  hb_direction_t direction; // Remove this, make segment_properties accessible
-  GArray *lines;
-  int scale_bits;
+  hb_direction_t direction = HB_DIRECTION_INVALID; // Remove this, make segment_properties accessible
+  GArray *lines = nullptr;
+  int scale_bits = 0;
 };
 
 #endif

@@ -37,7 +37,9 @@
 struct subset_consumer_t
 {
   subset_consumer_t (option_parser_t *parser)
-      : failed (false), options (parser), subset_options (parser), face (nullptr), input (nullptr) {}
+  : options (parser),
+    subset_options (parser)
+  {}
 
   void init (hb_buffer_t  *buffer_,
 	     const font_options_t *font_opts)
@@ -116,14 +118,14 @@ struct subset_consumer_t
   }
 
   public:
-  bool failed;
+  bool failed = false;
 
   private:
   output_options_t options;
   subset_options_t subset_options;
 
-  hb_face_t *face;
-  hb_subset_input_t *input;
+  hb_face_t *face = nullptr;
+  hb_subset_input_t *input = nullptr;
 };
 
 template <int eol = '\n'>
