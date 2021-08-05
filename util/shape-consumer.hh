@@ -40,12 +40,11 @@ struct shape_consumer_t
     output.add_options (parser);
   }
 
-  void init (hb_buffer_t  *buffer_,
-	     const font_options_t *font_opts)
+  void init (const font_options_t *font_opts)
   {
     font = hb_font_reference (font_opts->get_font ());
     failed = false;
-    buffer = hb_buffer_reference (buffer_);
+    buffer = hb_buffer_create ();
 
     output.init (buffer, font_opts);
   }

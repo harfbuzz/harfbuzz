@@ -78,9 +78,7 @@ struct main_font_text_t
     if (!input.text && !input.text_file)
       input.text_file = g_strdup ("-");
 
-    hb_buffer_t *buffer = hb_buffer_create ();
-    consumer.init (buffer, &font_opts);
-    hb_buffer_destroy (buffer);
+    consumer.init (&font_opts);
 
     unsigned int text_len;
     const char *text;

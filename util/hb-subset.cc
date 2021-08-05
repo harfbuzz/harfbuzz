@@ -42,8 +42,7 @@ struct subset_consumer_t
     subset_options.add_options (parser);
   }
 
-  void init (hb_buffer_t  *buffer_,
-	     const font_options_t *font_opts)
+  void init (const font_options_t *font_opts)
   {
     face = hb_face_reference (hb_font_get_face (font_opts->get_font ()));
     input = hb_subset_input_reference (subset_options.get_input ());

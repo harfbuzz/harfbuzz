@@ -48,13 +48,12 @@ struct shape_closure_consumer_t
 		       this);
   }
 
-  void init (hb_buffer_t  *buffer_,
-	     const font_options_t *font_opts)
+  void init (const font_options_t *font_opts)
   {
     glyphs = hb_set_create ();
     font = hb_font_reference (font_opts->get_font ());
     failed = false;
-    buffer = hb_buffer_reference (buffer_);
+    buffer = hb_buffer_create ();
   }
   void consume_line (const char   *text,
 		     unsigned int  text_len,
