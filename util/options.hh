@@ -57,7 +57,6 @@ struct option_group_t
 {
   virtual ~option_group_t () {}
 
-  virtual void pre_parse (GError **error G_GNUC_UNUSED) {}
   virtual void post_parse (GError **error G_GNUC_UNUSED) {}
 };
 
