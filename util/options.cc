@@ -653,7 +653,8 @@ text_options_t::add_options (option_parser_t *parser)
 }
 
 void
-output_options_t::add_options (option_parser_t *parser)
+output_options_t::add_options (option_parser_t *parser,
+			       const char **supported_formats)
 {
   const char *text;
 

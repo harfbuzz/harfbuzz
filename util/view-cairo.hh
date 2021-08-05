@@ -34,9 +34,6 @@
 
 struct view_cairo_t
 {
-  view_cairo_t ()
-  : output_options (helper_cairo_supported_formats)
-  {}
   ~view_cairo_t ()
   {
     cairo_debug_reset_static_data ();
@@ -44,7 +41,7 @@ struct view_cairo_t
 
   void add_options (option_parser_t *parser)
   {
-    output_options.add_options (parser);
+    output_options.add_options (parser, helper_cairo_supported_formats);
     view_options.add_options (parser);
   }
 

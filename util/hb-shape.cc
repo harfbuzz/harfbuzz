@@ -30,13 +30,9 @@
 
 struct output_buffer_t
 {
-  output_buffer_t ()
-  : options (hb_buffer_serialize_list_formats ())
-  {}
-
   void add_options (option_parser_t *parser)
   {
-    options.add_options (parser);
+    options.add_options (parser, hb_buffer_serialize_list_formats ());
     format.add_options (parser);
   }
 
@@ -59,7 +55,7 @@ struct output_buffer_t
       if (options.explicit_output_format)
 	fail (false, "Unknown output format `%s'; supported formats are: %s",
 	      options.output_format,
-	      g_strjoinv ("/", const_cast<char**> (options.supported_formats)));
+	      g_strjoinv ("/", const_cast<char**> (hb_buffer_serialize_list_formats ())));
       else
 	/* Just default to TEXT if not explicitly requested and the
 	 * file extension is not recognized. */
@@ -145,6 +141,7 @@ struct output_buffer_t
 
 
   protected:
+
   output_options_t options;
   format_options_t format;
 

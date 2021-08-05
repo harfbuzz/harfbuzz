@@ -57,8 +57,6 @@ struct option_group_t
 {
   virtual ~option_group_t () {}
 
-  virtual void add_options (struct option_parser_t *parser) = 0;
-
   virtual void pre_parse (GError **error G_GNUC_UNUSED) {}
   virtual void post_parse (GError **error G_GNUC_UNUSED) {}
 };
@@ -123,7 +121,7 @@ struct view_options_t : option_group_t
     g_free (back);
   }
 
-  void add_options (option_parser_t *parser) override;
+  void add_options (option_parser_t *parser);
 
   hb_bool_t annotate = false;
   char *fore = nullptr;
@@ -150,7 +148,7 @@ struct shape_options_t : option_group_t
     g_strfreev (shapers);
   }
 
-  void add_options (option_parser_t *parser) override;
+  void add_options (option_parser_t *parser);
 
   void setup_buffer (hb_buffer_t *buffer)
   {
@@ -440,7 +438,7 @@ struct font_options_t : option_group_t
     hb_font_destroy (font);
   }
 
-  void add_options (option_parser_t *parser) override;
+  void add_options (option_parser_t *parser);
 
   hb_font_t *get_font () const;
 
@@ -493,7 +491,7 @@ struct text_options_t : option_group_t
       fclose (fp);
   }
 
-  void add_options (option_parser_t *parser) override;
+  void add_options (option_parser_t *parser);
 
   void post_parse (GError **error G_GNUC_UNUSED) override {
     if (text && text_file)
@@ -520,9 +518,6 @@ struct text_options_t : option_group_t
 
 struct output_options_t : option_group_t
 {
-  output_options_t (const char **supported_formats_ = nullptr)
-  : supported_formats (supported_formats_)
-  {}
   ~output_options_t () override
   {
     g_free (output_file);
@@ -531,7 +526,8 @@ struct output_options_t : option_group_t
       fclose (fp);
   }
 
-  void add_options (option_parser_t *parser) override;
+  void add_options (option_parser_t *parser,
+		    const char **supported_formats = nullptr);
 
   void post_parse (GError **error G_GNUC_UNUSED) override
   {
@@ -555,7 +551,6 @@ struct output_options_t : option_group_t
 
   char *output_file = nullptr;
   char *output_format = nullptr;
-  const char **supported_formats = nullptr;
   bool explicit_output_format = false;
 
   mutable FILE *fp = nullptr;
@@ -563,7 +558,7 @@ struct output_options_t : option_group_t
 
 struct format_options_t : option_group_t
 {
-  void add_options (option_parser_t *parser) override;
+  void add_options (option_parser_t *parser);
 
   void serialize (hb_buffer_t  *buffer,
 			 hb_font_t    *font,
@@ -614,7 +609,7 @@ struct subset_options_t : option_group_t
     hb_subset_input_destroy (input);
   }
 
-  void add_options (option_parser_t *parser) override;
+  void add_options (option_parser_t *parser);
 
   hb_bool_t* bool_for(hb_subset_flags_t flag)
   {

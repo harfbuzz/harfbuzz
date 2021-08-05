@@ -32,7 +32,7 @@
 
 struct shape_closure_consumer_t : option_group_t
 {
-  void add_options (struct option_parser_t *parser) override
+  void add_options (struct option_parser_t *parser)
   {
     shaper.add_options (parser);
 
