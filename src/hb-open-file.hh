@@ -118,7 +118,8 @@ typedef struct OpenTypeOffsetTable
 
   public:
 
-  template <typename Iterator, hb_requires (hb_is_iterator(Iterator))>
+  template <typename Iterator,
+	    hb_requires (hb_is_iterator(Iterator))>
   bool serialize (hb_serialize_context_t *c,
 		  hb_tag_t sfnt_tag,
 		  Iterator it)
@@ -491,7 +492,8 @@ struct OpenTypeFontFile
     }
   }
 
-  template <typename Iterator, hb_requires (hb_is_iterator (Iterator))>
+  template <typename Iterator,
+	    hb_requires (hb_is_iterator (Iterator))>
   bool serialize_single (hb_serialize_context_t *c,
 			 hb_tag_t sfnt_tag,
 			 Iterator items)
