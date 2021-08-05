@@ -56,8 +56,6 @@ void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GN
 struct option_group_t
 {
   virtual ~option_group_t () {}
-
-  virtual void post_parse (GError **error G_GNUC_UNUSED) {}
 };
 
 
@@ -82,6 +80,12 @@ struct option_parser_t
 
   void add_main_options ();
 
+  static void
+  post_parse_ (void *thiz, GError **error) {}
+  template <typename Type>
+  static auto
+  post_parse_ (Type *thiz, GError **error) -> decltype (thiz->post_parse (error))
+  { thiz->post_parse (error); }
   template <typename Type>
   static gboolean
   post_parse (GOptionContext *context G_GNUC_UNUSED,
@@ -89,8 +93,7 @@ struct option_parser_t
 	      gpointer data,
 	      GError **error)
   {
-    auto *thiz = static_cast<Type *>(data);
-    thiz->post_parse (error);
+    option_parser_t::post_parse_ (static_cast<Type *> (data), error);
     return !*error;
   }
 
@@ -512,7 +515,8 @@ struct text_options_t : option_group_t
 
   void add_options (option_parser_t *parser);
 
-  void post_parse (GError **error G_GNUC_UNUSED) override {
+  void post_parse (GError **error G_GNUC_UNUSED)
+  {
     if (text && text_file)
       g_set_error (error,
 		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
@@ -548,7 +552,7 @@ struct output_options_t : option_group_t
   void add_options (option_parser_t *parser,
 		    const char **supported_formats = nullptr);
 
-  void post_parse (GError **error G_GNUC_UNUSED) override
+  void post_parse (GError **error G_GNUC_UNUSED)
   {
     if (output_format)
       explicit_output_format = true;
