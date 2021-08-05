@@ -757,11 +757,13 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
 
   hb_face_builder_data_t *data = (hb_face_builder_data_t *) face->user_data;
 
+  hb_blob_t* previous = data->tables.get (tag);
   if (!data->tables.set (tag, hb_blob_reference (blob)))
   {
     hb_blob_destroy (blob);
     return false;
   }
 
+  hb_blob_destroy (previous);
   return true;
 }
