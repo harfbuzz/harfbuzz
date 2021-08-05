@@ -50,18 +50,18 @@ locale_to_utf8 (char *s)
 template <typename consumer_t>
 struct main_font_text_t
 {
-  void add_options (option_parser_t *parser)
-  {
-    font_opts.add_options (parser);
-    input.add_options (parser);
-    consumer.add_options (parser);
-  }
-
   int
   main (int argc, char **argv, int eol = '\n')
   {
+
+    font_options_t font_opts;
+    text_options_t input;
+    consumer_t consumer;
+
     option_parser_t options ("[FONT-FILE] [TEXT]");
-    add_options (&options);
+    font_opts.add_options (&options);
+    input.add_options (&options);
+    consumer.add_options (&options);
     options.parse (&argc, &argv);
 
     argc--, argv++;
@@ -85,11 +85,6 @@ struct main_font_text_t
 
     return consumer.failed ? 1 : 0;
   }
-
-  protected:
-  font_options_t font_opts;
-  text_options_t input;
-  consumer_t consumer;
 };
 
 #endif
