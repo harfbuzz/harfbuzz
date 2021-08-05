@@ -374,6 +374,10 @@ hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
       map->add_feature (horizontal_features[i]);
   else
   {
+    /* We only apply `vert` feature. See:
+     * https://github.com/harfbuzz/harfbuzz/commit/d71c0df2d17f4590d5611239577a6cb532c26528
+     * https://lists.freedesktop.org/archives/harfbuzz/2013-August/003490.html */
+
     /* We really want to find a 'vert' feature if there's any in the font, no
      * matter which script/langsys it is listed (or not) under.
      * See various bugs referenced from:
