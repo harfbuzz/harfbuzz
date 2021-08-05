@@ -47,7 +47,7 @@ locale_to_utf8 (char *s)
   return t;
 }
 
-template <typename consumer_t, int default_font_size, int subpixel_bits, int eol = '\n'>
+template <typename consumer_t, int default_font_size, int subpixel_bits>
 struct main_font_text_t
 {
   main_font_text_t ()
@@ -62,7 +62,7 @@ struct main_font_text_t
   }
 
   int
-  main (int argc, char **argv)
+  main (int argc, char **argv, int eol = '\n')
   {
     option_parser_t options ("[FONT-FILE] [TEXT]");
     add_options (&options);

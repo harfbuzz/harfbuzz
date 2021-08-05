@@ -152,12 +152,11 @@ struct output_buffer_t
   hb_buffer_serialize_flags_t format_flags = HB_BUFFER_SERIALIZE_FLAG_DEFAULT;
 };
 
-template <int eol = '\n'>
-using driver_t = main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0, eol>;
-
 int
 main (int argc, char **argv)
 {
+  using driver_t = main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0>;
+
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
     unsigned int ret = 0;
@@ -182,13 +181,13 @@ main (int argc, char **argv)
 	start_offset = argc == 2 && p[0] != '\0' && p[0] != ':' && p[1] == ':' && (p[2] == '\\' || p[2] == '/') ? 2 : 0;
       }
 
-      driver_t<EOF> driver;
-      ret |= driver.main (argc, args);
+      driver_t driver;
+      ret |= driver.main (argc, args, EOF);
       fflush (stdout);
     }
     return ret;
   }
 
-  driver_t<> driver;
+  driver_t driver;
   return driver.main (argc, argv);
 }

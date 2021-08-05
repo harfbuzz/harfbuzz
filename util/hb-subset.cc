@@ -129,12 +129,11 @@ struct subset_consumer_t
   hb_subset_input_t *input = nullptr;
 };
 
-template <int eol = '\n'>
-using driver_t = main_font_text_t<subset_consumer_t, FONT_SIZE_UPEM, 0, eol>;
-
 int
 main (int argc, char **argv)
 {
+  using driver_t = main_font_text_t<subset_consumer_t, FONT_SIZE_UPEM, 0>;
+
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
     unsigned int ret = 0;
@@ -157,8 +156,8 @@ main (int argc, char **argv)
 	args[argc++] = p = e;
       }
 
-      driver_t<EOF> driver;
-      int result = driver.main (argc, args);
+      driver_t driver;
+      int result = driver.main (argc, args, EOF);
       fprintf (stdout, result == 0 ? "success\n" : "failure\n");
       fflush (stdout);
       ret |= result;
@@ -166,6 +165,6 @@ main (int argc, char **argv)
     return ret;
   }
 
-  driver_t<> driver;
+  driver_t driver;
   return driver.main (argc, argv);
 }
