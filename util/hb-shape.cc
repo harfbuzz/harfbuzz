@@ -28,6 +28,9 @@
 #include "main-font-text.hh"
 #include "shape-consumer.hh"
 
+const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
+const unsigned SUBPIXEL_BITS = 0;
+
 struct output_buffer_t
 {
   void add_options (option_parser_t *parser)
@@ -155,7 +158,7 @@ struct output_buffer_t
 int
 main (int argc, char **argv)
 {
-  using driver_t = main_font_text_t<shape_consumer_t<output_buffer_t>, FONT_SIZE_UPEM, 0>;
+  using driver_t = main_font_text_t<shape_consumer_t<output_buffer_t>>;
 
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {

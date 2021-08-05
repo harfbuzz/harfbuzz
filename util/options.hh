@@ -130,6 +130,9 @@ struct option_parser_t
 #define FONT_SIZE_UPEM 0x7FFFFFFF
 #define FONT_SIZE_NONE 0
 
+extern const unsigned DEFAULT_FONT_SIZE;
+extern const unsigned SUBPIXEL_BITS;
+
 struct view_options_t
 {
   ~view_options_t ()
@@ -440,13 +443,6 @@ struct shape_options_t
 
 struct font_options_t
 {
-  font_options_t (int default_font_size_,
-		  unsigned int subpixel_bits_)
-  : default_font_size (default_font_size_),
-    subpixel_bits (subpixel_bits_),
-    font_size_x (default_font_size_),
-    font_size_y (default_font_size_)
-  {}
   ~font_options_t ()
   {
     g_free (font_file);
@@ -464,13 +460,12 @@ struct font_options_t
   unsigned face_index = 0;
   hb_variation_t *variations = nullptr;
   unsigned int num_variations = 0;
-  int default_font_size = FONT_SIZE_UPEM;
   int x_ppem = 0;
   int y_ppem = 0;
   double ptem = 0.;
-  unsigned int subpixel_bits = 0;
-  mutable double font_size_x = FONT_SIZE_UPEM;
-  mutable double font_size_y = FONT_SIZE_UPEM;
+  unsigned int subpixel_bits = SUBPIXEL_BITS;
+  mutable double font_size_x = DEFAULT_FONT_SIZE;
+  mutable double font_size_y = DEFAULT_FONT_SIZE;
   char *font_funcs = nullptr;
   int ft_load_flags = 2;
 

@@ -47,13 +47,9 @@ locale_to_utf8 (char *s)
   return t;
 }
 
-template <typename consumer_t, int default_font_size, int subpixel_bits>
+template <typename consumer_t>
 struct main_font_text_t
 {
-  main_font_text_t ()
-  : font_opts (default_font_size, subpixel_bits)
-  {}
-
   void add_options (option_parser_t *parser)
   {
     font_opts.add_options (parser);

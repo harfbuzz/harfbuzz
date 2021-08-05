@@ -547,11 +547,11 @@ font_options_t::add_options (option_parser_t *parser)
   }
 
   char *font_size_text;
-  if (default_font_size == FONT_SIZE_UPEM)
+  if (DEFAULT_FONT_SIZE == FONT_SIZE_UPEM)
     font_size_text = (char *) "Font size (default: upem)";
   else
   {
-    font_size_text = g_strdup_printf ("Font size (default: %d)", default_font_size);
+    font_size_text = g_strdup_printf ("Font size (default: %d)", DEFAULT_FONT_SIZE);
     parser->free_later (font_size_text);
   }
 
@@ -559,7 +559,7 @@ font_options_t::add_options (option_parser_t *parser)
   {
     {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",				"filename"},
     {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Set face index (default: 0)",			"index"},
-    {"font-size",	0, default_font_size ? 0 : G_OPTION_FLAG_HIDDEN,
+    {"font-size",	0, DEFAULT_FONT_SIZE ? 0 : G_OPTION_FLAG_HIDDEN,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 integers or 'upem'"},
     {"font-ppem",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
     {"font-ptem",	0, 0, G_OPTION_ARG_DOUBLE,	&this->ptem,			"Set font point-size (default: 0; disabled)",	"point-size"},

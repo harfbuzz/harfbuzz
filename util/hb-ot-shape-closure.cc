@@ -26,6 +26,9 @@
 
 #include "main-font-text.hh"
 
+const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
+const unsigned SUBPIXEL_BITS = 0;
+
 #ifdef HAVE_FREETYPE
 #include <hb-ft.h>
 #endif
@@ -108,6 +111,6 @@ struct shape_closure_consumer_t
 int
 main (int argc, char **argv)
 {
-  main_font_text_t<shape_closure_consumer_t, FONT_SIZE_NONE, 0> driver;
+  main_font_text_t<shape_closure_consumer_t> driver;
   return driver.main (argc, argv);
 }

@@ -30,6 +30,9 @@
 #include "main-font-text.hh"
 #include "hb-subset.h"
 
+const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
+const unsigned SUBPIXEL_BITS = 0;
+
 /*
  * Command line interface to the harfbuzz font subsetter.
  */
@@ -131,7 +134,7 @@ struct subset_consumer_t
 int
 main (int argc, char **argv)
 {
-  using driver_t = main_font_text_t<subset_consumer_t, FONT_SIZE_UPEM, 0>;
+  using driver_t = main_font_text_t<subset_consumer_t>;
 
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
