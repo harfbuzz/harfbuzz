@@ -627,18 +627,17 @@ struct hb_face_builder_data_t
   hb_hashmap_t<hb_tag_t, hb_blob_t*, (unsigned)-1, nullptr> tables;
 };
 
-static int compare_entries (const void* a, const void* b)
+static int compare_entries (const void* pa, const void* pb)
 {
-  hb_pair_t <hb_tag_t, hb_blob_t*>* pair_a = (hb_pair_t <hb_tag_t, hb_blob_t*>*) a;
-  hb_pair_t <hb_tag_t, hb_blob_t*>* pair_b = (hb_pair_t <hb_tag_t, hb_blob_t*>*) b;
+  const auto& a = * (const hb_pair_t<hb_tag_t, hb_blob_t*> *) pa;
+  const auto& b = * (const hb_pair_t<hb_tag_t, hb_blob_t*> *) pb;
 
-  // Order by blob size first (smallest to largest) and then table tag.
-  if (hb_blob_get_length (pair_a->second) < hb_blob_get_length (pair_b->second)) return -1;
-  if (hb_blob_get_length (pair_a->second) > hb_blob_get_length (pair_b->second)) return 1;
+  /* Order by blob size first (smallest to largest) and then table tag */
 
-  if (pair_a->first < pair_b->first) return -1;
-  if (pair_a->first > pair_b->first) return 1;
-  return 0;
+  if (a.second->length != b.second->length)
+    return a.second->length < b.second->length ? -1 : +1;
+
+  return a.first < b.first ? -1 : a.first == b.first ? 0 : +1;
 }
 
 static hb_face_builder_data_t *
