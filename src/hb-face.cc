@@ -624,7 +624,7 @@ hb_face_collect_variation_unicodes (hb_face_t *face,
 
 struct hb_face_builder_data_t
 {
-  hb_hashmap_t<hb_tag_t, hb_blob_t*, (unsigned)-1, nullptr> tables;
+  hb_hashmap_t<hb_tag_t, hb_blob_t *> tables;
 };
 
 static int compare_entries (const void* pa, const void* pb)
