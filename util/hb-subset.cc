@@ -37,12 +37,12 @@
 struct subset_consumer_t
 {
   subset_consumer_t (option_parser_t *parser)
-      : failed (false), options (parser), subset_options (parser), font (nullptr), input (nullptr) {}
+      : failed (false), options (parser), subset_options (parser), face (nullptr), input (nullptr) {}
 
   void init (hb_buffer_t  *buffer_,
 	     const font_options_t *font_opts)
   {
-    font = hb_font_reference (font_opts->get_font ());
+    face = hb_face_reference (hb_font_get_face (font_opts->get_font ()));
     input = hb_subset_input_reference (subset_options.get_input ());
   }
 
@@ -55,7 +55,6 @@ struct subset_consumer_t
     hb_set_t *codepoints = hb_subset_input_unicode_set (input);
     if (0 == strcmp (text, "*"))
     {
-      hb_face_t *face = hb_font_get_face (font);
       hb_face_collect_unicodes (face, codepoints);
       return;
     }
@@ -96,10 +95,9 @@ struct subset_consumer_t
 
   void finish (const font_options_t *font_opts)
   {
-    hb_face_t *face = hb_font_get_face (font);
-
     hb_face_t *new_face = nullptr;
-    for (unsigned i = 0; i < subset_options.num_iterations; i++) {
+    for (unsigned i = 0; i < subset_options.num_iterations; i++)
+    {
       hb_face_destroy (new_face);
       new_face = hb_subset_or_fail (face, input);
     }
@@ -114,7 +112,7 @@ struct subset_consumer_t
 
     hb_subset_input_destroy (input);
     hb_face_destroy (new_face);
-    hb_font_destroy (font);
+    hb_face_destroy (face);
   }
 
   public:
@@ -123,7 +121,8 @@ struct subset_consumer_t
   private:
   output_options_t options;
   subset_options_t subset_options;
-  hb_font_t *font;
+
+  hb_face_t *face;
   hb_subset_input_t *input;
 };
 
