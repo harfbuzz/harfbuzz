@@ -282,6 +282,7 @@ template <> struct hb_int_min<signed long>		: hb_integral_constant<signed long,	
 template <> struct hb_int_min<unsigned long>		: hb_integral_constant<unsigned long,		0>		{};
 template <> struct hb_int_min<signed long long>		: hb_integral_constant<signed long long,	LLONG_MIN>	{};
 template <> struct hb_int_min<unsigned long long>	: hb_integral_constant<unsigned long long,	0>		{};
+template <typename T> struct hb_int_min<T *>		: hb_integral_constant<T *,			nullptr>	{};
 #define hb_int_min(T) hb_int_min<T>::value
 template <typename T> struct hb_int_max;
 template <> struct hb_int_max<char>			: hb_integral_constant<char,			CHAR_MAX>	{};
