@@ -690,6 +690,12 @@ _hb_face_builder_data_reference_blob (hb_face_builder_data_t *data)
   // Sort the tags so that produced face is deterministic.
   hb_vector_t<hb_pair_t <hb_tag_t, hb_blob_t*>> sorted_entries;
   data->tables.iter () | hb_sink (sorted_entries);
+  if (unlikely (sorted_entries.in_error ()))
+  {
+    hb_free (buf);
+    return nullptr;
+  }
+
   sorted_entries.qsort (compare_entries);
   bool ret = f->serialize_single (&c, sfnt_tag, + sorted_entries.iter());
 
