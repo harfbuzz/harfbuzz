@@ -28,7 +28,7 @@
 #include <stdio.h>
 
 #include "main-font-text.hh"
-#include "hb-subset.h"
+#include "subset-options.hh"
 
 // XXX Remove eventually
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
@@ -37,6 +37,7 @@ const unsigned SUBPIXEL_BITS = 0;
 /*
  * Command line interface to the harfbuzz font subsetter.
  */
+
 
 struct subset_consumer_t : subset_options_t
 {

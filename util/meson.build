@@ -16,7 +16,6 @@ hb_ot_shape_closure_sources = [
 hb_subset_cli_sources = [
   'hb-subset.cc',
   'options.cc',
-  'options-subset.cc',
 ]
 
 util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
