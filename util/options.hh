@@ -123,37 +123,12 @@ struct option_parser_t
 };
 
 
-#define DEFAULT_MARGIN 16
-#define DEFAULT_FORE "#000000"
-#define DEFAULT_BACK "#FFFFFF"
 #define FONT_SIZE_UPEM 0x7FFFFFFF
 #define FONT_SIZE_NONE 0
 
 extern const unsigned DEFAULT_FONT_SIZE;
 extern const unsigned SUBPIXEL_BITS;
 
-struct view_options_t
-{
-  ~view_options_t ()
-  {
-    g_free (fore);
-    g_free (back);
-  }
-
-  void add_options (option_parser_t *parser);
-
-  hb_bool_t annotate = false;
-  char *fore = nullptr;
-  char *back = nullptr;
-  double line_space = 0;
-  bool have_font_extents = false;
-  struct font_extents_t {
-    double ascent, descent, line_gap;
-  } font_extents = {0., 0., 0.};
-  struct margin_t {
-    double t, r, b, l;
-  } margin = {DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN, DEFAULT_MARGIN};
-};
 
 
 struct shape_options_t

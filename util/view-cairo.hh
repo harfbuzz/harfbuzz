@@ -27,10 +27,8 @@
 #ifndef VIEW_CAIRO_HH
 #define VIEW_CAIRO_HH
 
-#include "hb.hh"
-#include "options.hh"
+#include "view-options.hh"
 #include "helper-cairo.hh"
-
 
 struct view_cairo_t : view_options_t
 {

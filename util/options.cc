@@ -128,50 +128,6 @@ option_parser_t::parse (int *argc, char ***argv)
 
 
 static gboolean
-parse_font_extents (const char *name G_GNUC_UNUSED,
-		    const char *arg,
-		    gpointer    data,
-		    GError    **error G_GNUC_UNUSED)
-{
-  view_options_t *view_opts = (view_options_t *) data;
-  view_options_t::font_extents_t &e = view_opts->font_extents;
-  switch (sscanf (arg, "%lf%*[ ,]%lf%*[ ,]%lf", &e.ascent, &e.descent, &e.line_gap)) {
-    case 1: HB_FALLTHROUGH;
-    case 2: HB_FALLTHROUGH;
-    case 3:
-      view_opts->have_font_extents = true;
-      return true;
-    default:
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one to three space-separated numbers",
-		   name);
-      return false;
-  }
-}
-
-static gboolean
-parse_margin (const char *name G_GNUC_UNUSED,
-	      const char *arg,
-	      gpointer    data,
-	      GError    **error G_GNUC_UNUSED)
-{
-  view_options_t *view_opts = (view_options_t *) data;
-  view_options_t::margin_t &m = view_opts->margin;
-  switch (sscanf (arg, "%lf%*[ ,]%lf%*[ ,]%lf%*[ ,]%lf", &m.t, &m.r, &m.b, &m.l)) {
-    case 1: m.r = m.t; HB_FALLTHROUGH;
-    case 2: m.b = m.t; HB_FALLTHROUGH;
-    case 3: m.l = m.r; HB_FALLTHROUGH;
-    case 4: return true;
-    default:
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "%s argument should be one to four space-separated numbers",
-		   name);
-      return false;
-  }
-}
-
-
-static gboolean
 parse_shapers (const char *name G_GNUC_UNUSED,
 	       const char *arg,
 	       gpointer    data,
@@ -383,26 +339,6 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   return true;
 }
 
-
-void
-view_options_t::add_options (option_parser_t *parser)
-{
-  GOptionEntry entries[] =
-  {
-    {"annotate",	0, 0, G_OPTION_ARG_NONE,	&this->annotate,		"Annotate output rendering",				nullptr},
-    {"background",	0, 0, G_OPTION_ARG_STRING,	&this->back,			"Set background color (default: " DEFAULT_BACK ")",	"rrggbb/rrggbbaa"},
-    {"foreground",	0, 0, G_OPTION_ARG_STRING,	&this->fore,			"Set foreground color (default: " DEFAULT_FORE ")",	"rrggbb/rrggbbaa"},
-    {"line-space",	0, 0, G_OPTION_ARG_DOUBLE,	&this->line_space,		"Set space between lines (default: 0)",			"units"},
-    {"font-extents",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_extents,	"Set font ascent/descent/line-gap (default: auto)","one to three numbers"},
-    {"margin",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_margin,	"Margin around output (default: " G_STRINGIFY(DEFAULT_MARGIN) ")","one to four numbers"},
-    {nullptr}
-  };
-  parser->add_group (entries,
-		     "view",
-		     "View options:",
-		     "Options for output rendering",
-		     this);
-}
 
 void
 shape_options_t::add_options (option_parser_t *parser)
