@@ -47,7 +47,7 @@ locale_to_utf8 (char *s)
   return t;
 }
 
-template <typename consumer_t>
+template <typename consumer_t, typename font_options_t=font_options_t, typename text_options_t=text_options_t>
 struct main_font_text_t
 {
   int
@@ -88,4 +88,3 @@ struct main_font_text_t
 };
 
 #endif
-

@@ -30,6 +30,7 @@
 #include "main-font-text.hh"
 #include "hb-subset.h"
 
+// XXX Remove eventually
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
 const unsigned SUBPIXEL_BITS = 0;
 
@@ -45,9 +46,9 @@ struct subset_consumer_t
     subset_options.add_options (parser);
   }
 
-  void init (const font_options_t *font_opts)
+  void init (const face_options_t *face_opts)
   {
-    face = hb_face_reference (hb_font_get_face (font_opts->get_font ()));
+    face = hb_face_reference (face_opts->get_face ());
     input = hb_subset_input_reference (subset_options.get_input ());
   }
 
@@ -98,7 +99,7 @@ struct subset_consumer_t
     return true;
   }
 
-  void finish (const font_options_t *font_opts)
+  void finish (const face_options_t *face_opts)
   {
     hb_face_t *new_face = nullptr;
     for (unsigned i = 0; i < subset_options.num_iterations; i++)
@@ -134,7 +135,7 @@ struct subset_consumer_t
 int
 main (int argc, char **argv)
 {
-  using driver_t = main_font_text_t<subset_consumer_t>;
+  using driver_t = main_font_text_t<subset_consumer_t, face_options_t>;
 
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
