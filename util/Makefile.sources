@@ -18,6 +18,7 @@ HB_SHAPE_sources = \
 	options.cc \
 	options.hh \
 	shape-consumer.hh \
+	shape-format.hh \
 	shape-options.hh \
 	$(NULL)
 

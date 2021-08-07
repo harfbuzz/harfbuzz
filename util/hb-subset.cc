@@ -27,8 +27,8 @@
 
 #include <stdio.h>
 
-#include "main-font-text.hh"
 #include "subset-options.hh"
+#include "main-font-text.hh"
 
 // XXX Remove eventually
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;

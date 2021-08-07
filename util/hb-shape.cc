@@ -25,8 +25,9 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "main-font-text.hh"
 #include "shape-consumer.hh"
+#include "shape-format.hh"
+#include "main-font-text.hh"
 
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
 const unsigned SUBPIXEL_BITS = 0;
@@ -146,7 +147,7 @@ struct output_buffer_t
   protected:
 
   output_options_t options;
-  format_options_t format;
+  shape_format_options_t format;
 
   GString *gs = nullptr;
   unsigned int line_no = 0;

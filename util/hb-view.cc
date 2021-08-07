@@ -25,9 +25,9 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "main-font-text.hh"
 #include "shape-consumer.hh"
 #include "view-cairo.hh"
+#include "main-font-text.hh"
 
 const unsigned DEFAULT_FONT_SIZE = 256;
 const unsigned SUBPIXEL_BITS = 6;

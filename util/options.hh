@@ -267,48 +267,6 @@ struct output_options_t
   mutable FILE *fp = nullptr;
 };
 
-struct format_options_t
-{
-  void add_options (option_parser_t *parser);
-
-  void serialize (hb_buffer_t  *buffer,
-			 hb_font_t    *font,
-			 hb_buffer_serialize_format_t format,
-			 hb_buffer_serialize_flags_t flags,
-			 GString      *gs);
-  void serialize_line_no (unsigned int  line_no,
-			  GString      *gs);
-  void serialize_buffer_of_text (hb_buffer_t  *buffer,
-				 unsigned int  line_no,
-				 const char   *text,
-				 unsigned int  text_len,
-				 hb_font_t    *font,
-				 GString      *gs);
-  void serialize_message (unsigned int  line_no,
-			  const char   *type,
-			  const char   *msg,
-			  GString      *gs);
-  void serialize_buffer_of_glyphs (hb_buffer_t  *buffer,
-				   unsigned int  line_no,
-				   const char   *text,
-				   unsigned int  text_len,
-				   hb_font_t    *font,
-				   hb_buffer_serialize_format_t output_format,
-				   hb_buffer_serialize_flags_t format_flags,
-				   GString      *gs);
-
-
-  hb_bool_t show_glyph_names = true;
-  hb_bool_t show_positions = true;
-  hb_bool_t show_advances = true;
-  hb_bool_t show_clusters = true;
-  hb_bool_t show_text = false;
-  hb_bool_t show_unicode = false;
-  hb_bool_t show_line_num = false;
-  hb_bool_t show_extents = false;
-  hb_bool_t show_flags = false;
-  hb_bool_t trace = false;
-};
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */
 #if defined (_MSC_VER) && (_MSC_VER < 1800)
