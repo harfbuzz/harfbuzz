@@ -4,7 +4,6 @@ hb_view_sources = [
   'ansi-print.cc',
   'helper-cairo.cc',
   'helper-cairo-ansi.cc',
-  'view-cairo.cc',
 ]
 
 hb_shape_sources = [

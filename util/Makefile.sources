@@ -10,7 +10,6 @@ HB_VIEW_sources = \
 	helper-cairo.hh \
 	helper-cairo-ansi.cc \
 	helper-cairo-ansi.hh \
-	view-cairo.cc \
 	view-cairo.hh \
 	$(NULL)
 
