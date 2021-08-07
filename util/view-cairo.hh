@@ -30,7 +30,7 @@
 #include "view-options.hh"
 #include "helper-cairo.hh"
 
-struct view_cairo_t : view_options_t
+struct view_cairo_t : view_options_t, output_options_t
 {
   ~view_cairo_t ()
   {
@@ -39,8 +39,8 @@ struct view_cairo_t : view_options_t
 
   void add_options (option_parser_t *parser)
   {
-   view_options_t::add_options (parser);
-    output_options.add_options (parser, helper_cairo_supported_formats);
+    view_options_t::add_options (parser);
+    output_options_t::add_options (parser, helper_cairo_supported_formats);
   }
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
@@ -83,8 +83,6 @@ struct view_cairo_t : view_options_t
   protected:
 
   void render (const font_options_t *font_opts);
-
-  output_options_t output_options;
 
   hb_direction_t direction = HB_DIRECTION_INVALID; // Remove this, make segment_properties accessible
   GArray *lines = nullptr;
@@ -142,7 +140,9 @@ view_cairo_t::render (const font_options_t *font_opts)
   /* Create surface. */
   cairo_t *cr = helper_cairo_create_context (w + margin.l + margin.r,
 					     h + margin.t + margin.b,
-					     static_cast<view_options_t *> (this), &output_options, content);
+					     static_cast<view_options_t *> (this),
+					     static_cast<output_options_t *> (this),
+					     content);
   cairo_set_scaled_font (cr, scaled_font);
 
   /* Setup coordinate system. */

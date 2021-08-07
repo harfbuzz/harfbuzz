@@ -36,12 +36,12 @@
  */
 
 
-struct subset_consumer_t : subset_options_t
+struct subset_consumer_t : subset_options_t, output_options_t
 {
   void add_options (option_parser_t *parser)
   {
     subset_options_t::add_options (parser);
-    output_options.add_options (parser);
+    output_options_t::add_options (parser);
   }
 
   void init (const face_options_t *face_opts)
@@ -110,7 +110,7 @@ struct subset_consumer_t : subset_options_t
     if (!failed)
     {
       hb_blob_t *result = hb_face_reference_blob (new_face);
-      write_file (output_options.output_file, result);
+      write_file (output_file, result);
       hb_blob_destroy (result);
     }
 
@@ -121,9 +121,6 @@ struct subset_consumer_t : subset_options_t
 
   public:
   bool failed = false;
-
-  private:
-  output_options_t output_options;
 
   hb_face_t *face = nullptr;
   hb_subset_input_t *input = nullptr;
