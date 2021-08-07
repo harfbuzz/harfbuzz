@@ -27,6 +27,7 @@
 #ifndef HB_SHAPE_CONSUMER_HH
 #define HB_SHAPE_CONSUMER_HH
 
+#include "font-options.hh"
 #include "shape-options.hh"
 
 

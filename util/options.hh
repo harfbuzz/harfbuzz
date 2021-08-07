@@ -205,69 +205,6 @@ option_parser_t::parse (int *argc, char ***argv)
 
 // XXXXXXXXXXXX
 
-#define FONT_SIZE_UPEM 0x7FFFFFFF
-#define FONT_SIZE_NONE 0
-
-extern const unsigned DEFAULT_FONT_SIZE;
-extern const unsigned SUBPIXEL_BITS;
-
-struct face_options_t
-{
-  void add_options (option_parser_t *parser);
-
-  hb_blob_t *get_blob () const;
-  hb_face_t *get_face () const;
-
-  static struct cache_t
-  {
-    ~cache_t ()
-    {
-      free ((void *) font_path);
-      hb_blob_destroy (blob);
-      hb_face_destroy (face);
-    }
-
-    const char *font_path = nullptr;
-    hb_blob_t *blob = nullptr;
-    unsigned face_index = (unsigned) -1;
-    hb_face_t *face = nullptr;
-  } cache;
-
-  char *font_file = nullptr;
-  unsigned face_index = 0;
-  private:
-  mutable hb_face_t *face = nullptr;
-};
-
-struct font_options_t : face_options_t
-{
-  ~font_options_t ()
-  {
-    g_free (font_file);
-    free (variations);
-    g_free (font_funcs);
-    hb_font_destroy (font);
-  }
-
-  void add_options (option_parser_t *parser);
-
-  hb_font_t *get_font () const;
-
-  hb_variation_t *variations = nullptr;
-  unsigned int num_variations = 0;
-  int x_ppem = 0;
-  int y_ppem = 0;
-  double ptem = 0.;
-  unsigned int subpixel_bits = SUBPIXEL_BITS;
-  mutable double font_size_x = DEFAULT_FONT_SIZE;
-  mutable double font_size_y = DEFAULT_FONT_SIZE;
-  char *font_funcs = nullptr;
-  int ft_load_flags = 2;
-
-  private:
-  mutable hb_font_t *font = nullptr;
-};
-
 
 struct text_options_t
 {

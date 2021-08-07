@@ -1,5 +1,7 @@
 HB_VIEW_sources = \
 	ansi-print.hh \
+	face-options.hh \
+	font-options.hh \
 	hb-view.cc \
 	helper-cairo-ansi.hh \
 	helper-cairo.hh \
@@ -13,6 +15,8 @@ HB_VIEW_sources = \
 	$(NULL)
 
 HB_SHAPE_sources = \
+	face-options.hh \
+	font-options.hh \
 	hb-shape.cc \
 	main-font-text.hh \
 	options.cc \
@@ -23,6 +27,8 @@ HB_SHAPE_sources = \
 	$(NULL)
 
 HB_OT_SHAPE_CLOSURE_sources = \
+	face-options.hh \
+	font-options.hh \
 	hb-ot-shape-closure.cc \
 	main-font-text.hh \
 	options.cc \
@@ -30,6 +36,7 @@ HB_OT_SHAPE_CLOSURE_sources = \
 	$(NULL)
 
 HB_SUBSET_CLI_sources = \
+	face-options.hh \
 	hb-subset.cc \
 	main-font-text.hh \
 	options.cc \

@@ -159,7 +159,7 @@ struct output_buffer_t
 int
 main (int argc, char **argv)
 {
-  using driver_t = main_font_text_t<shape_consumer_t<output_buffer_t>>;
+  using driver_t = main_font_text_t<shape_consumer_t<output_buffer_t>, font_options_t, text_options_t>;
 
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {

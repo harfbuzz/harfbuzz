@@ -28,11 +28,8 @@
 #include <stdio.h>
 
 #include "subset-options.hh"
+#include "face-options.hh"
 #include "main-font-text.hh"
-
-// XXX Remove eventually
-const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
-const unsigned SUBPIXEL_BITS = 0;
 
 /*
  * Command line interface to the harfbuzz font subsetter.
@@ -135,7 +132,7 @@ struct subset_consumer_t : subset_options_t
 int
 main (int argc, char **argv)
 {
-  using driver_t = main_font_text_t<subset_consumer_t, face_options_t>;
+  using driver_t = main_font_text_t<subset_consumer_t, face_options_t, text_options_t>;
 
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {

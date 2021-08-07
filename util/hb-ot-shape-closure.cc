@@ -25,6 +25,7 @@
  */
 
 #include "shape-options.hh"
+#include "font-options.hh"
 #include "main-font-text.hh"
 
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
@@ -112,6 +113,6 @@ struct shape_closure_consumer_t
 int
 main (int argc, char **argv)
 {
-  main_font_text_t<shape_closure_consumer_t> driver;
+  main_font_text_t<shape_closure_consumer_t, font_options_t, text_options_t> driver;
   return driver.main (argc, argv);
 }
