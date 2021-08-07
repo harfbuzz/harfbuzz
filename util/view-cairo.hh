@@ -32,7 +32,7 @@
 #include "helper-cairo.hh"
 
 
-struct view_cairo_t
+struct view_cairo_t : view_options_t
 {
   ~view_cairo_t ()
   {
@@ -41,8 +41,8 @@ struct view_cairo_t
 
   void add_options (option_parser_t *parser)
   {
+   view_options_t::add_options (parser);
     output_options.add_options (parser, helper_cairo_supported_formats);
-    view_options.add_options (parser);
   }
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
@@ -87,7 +87,6 @@ struct view_cairo_t
   void render (const font_options_t *font_opts);
 
   output_options_t output_options;
-  view_options_t view_options;
 
   hb_direction_t direction = HB_DIRECTION_INVALID; // Remove this, make segment_properties accessible
   GArray *lines = nullptr;
@@ -106,24 +105,24 @@ view_cairo_t::render (const font_options_t *font_opts)
 
   hb_font_t *font = font_opts->get_font();
 
-  view_options_t::font_extents_t extents = view_options.font_extents;
-  if (!view_options.have_font_extents)
+  if (!have_font_extents)
   {
     hb_font_extents_t hb_extents;
     hb_font_get_extents_for_direction (font, direction, &hb_extents);
-    extents.ascent = scalbn ((double) hb_extents.ascender, scale_bits);
-    extents.descent = -scalbn ((double) hb_extents.descender, scale_bits);
-    extents.line_gap = scalbn ((double) hb_extents.line_gap, scale_bits);
+    font_extents.ascent = scalbn ((double) hb_extents.ascender, scale_bits);
+    font_extents.descent = -scalbn ((double) hb_extents.descender, scale_bits);
+    font_extents.line_gap = scalbn ((double) hb_extents.line_gap, scale_bits);
+    have_font_extents = true;
   }
 
-  double ascent = y_sign * extents.ascent;
-  double descent = y_sign * extents.descent;
-  double line_gap = y_sign * extents.line_gap + view_options.line_space;
+  double ascent = y_sign * font_extents.ascent;
+  double descent = y_sign * font_extents.descent;
+  double line_gap = y_sign * font_extents.line_gap + line_space;
   double leading = ascent + descent + line_gap;
 
   /* Calculate surface size. */
   double w = 0, h = 0;
-  (vertical ? w : h) = (int) lines->len * leading - (extents.line_gap + view_options.line_space);
+  (vertical ? w : h) = (int) lines->len * leading - (font_extents.line_gap + line_space);
   (vertical ? h : w) = 0;
   for (unsigned int i = 0; i < lines->len; i++) {
     helper_cairo_line_t &line = g_array_index (lines, helper_cairo_line_t, i);
@@ -143,13 +142,13 @@ view_cairo_t::render (const font_options_t *font_opts)
     content = CAIRO_CONTENT_COLOR;
 
   /* Create surface. */
-  cairo_t *cr = helper_cairo_create_context (w + view_options.margin.l + view_options.margin.r,
-					     h + view_options.margin.t + view_options.margin.b,
-					     &view_options, &output_options, content);
+  cairo_t *cr = helper_cairo_create_context (w + margin.l + margin.r,
+					     h + margin.t + margin.b,
+					     static_cast<view_options_t *> (this), &output_options, content);
   cairo_set_scaled_font (cr, scaled_font);
 
   /* Setup coordinate system. */
-  cairo_translate (cr, view_options.margin.l, view_options.margin.t);
+  cairo_translate (cr, margin.l, margin.t);
   if (vertical)
     cairo_translate (cr,
 		     w - ascent, /* We currently always stack lines right to left */
@@ -169,7 +168,7 @@ view_cairo_t::render (const font_options_t *font_opts)
 
     cairo_translate (cr, -vert * leading, +horiz * leading);
 
-    if (view_options.annotate) {
+    if (annotate) {
       cairo_save (cr);
 
       /* Draw actual glyph origins */

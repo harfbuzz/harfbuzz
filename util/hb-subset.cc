@@ -38,18 +38,18 @@ const unsigned SUBPIXEL_BITS = 0;
  * Command line interface to the harfbuzz font subsetter.
  */
 
-struct subset_consumer_t
+struct subset_consumer_t : subset_options_t
 {
   void add_options (option_parser_t *parser)
   {
+    subset_options_t::add_options (parser);
     output_options.add_options (parser);
-    subset_options.add_options (parser);
   }
 
   void init (const face_options_t *face_opts)
   {
     face = hb_face_reference (face_opts->get_face ());
-    input = hb_subset_input_reference (subset_options.get_input ());
+    input = hb_subset_input_reference (get_input ());
   }
 
   void consume_line (const char   *text,
@@ -102,7 +102,7 @@ struct subset_consumer_t
   void finish (const face_options_t *face_opts)
   {
     hb_face_t *new_face = nullptr;
-    for (unsigned i = 0; i < subset_options.num_iterations; i++)
+    for (unsigned i = 0; i < num_iterations; i++)
     {
       hb_face_destroy (new_face);
       new_face = hb_subset_or_fail (face, input);
@@ -126,7 +126,6 @@ struct subset_consumer_t
 
   private:
   output_options_t output_options;
-  subset_options_t subset_options;
 
   hb_face_t *face = nullptr;
   hb_subset_input_t *input = nullptr;
