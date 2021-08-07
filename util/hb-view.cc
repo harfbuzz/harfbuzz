@@ -27,6 +27,8 @@
 
 #include "shape-consumer.hh"
 #include "view-cairo.hh"
+#include "font-options.hh"
+#include "text-options.hh"
 #include "main-font-text.hh"
 
 const unsigned DEFAULT_FONT_SIZE = 256;

@@ -25,9 +25,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "output-options.hh"
+#include "font-options.hh"
+#include "text-options.hh"
 #include "shape-consumer.hh"
 #include "shape-format.hh"
-#include "output-options.hh"
 #include "main-font-text.hh"
 
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;

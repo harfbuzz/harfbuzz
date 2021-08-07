@@ -1,30 +1,45 @@
-/*
- * Copyright © 2011,2012  Google, Inc.
- *
- *  This is part of HarfBuzz, a text shaping library.
- *
- * Permission is hereby granted, without written agreement and without
- * license or royalty fees, to use, copy, modify, and distribute this
- * software and its documentation for any purpose, provided that the
- * above copyright notice and the following two paragraphs appear in
- * all copies of this software.
- *
- * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
- * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
- * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
- * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
- *
- * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
- * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
- * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
- * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Google Author(s): Behdad Esfahbod
- */
 
-#include "options.hh"
+struct text_options_t
+{
+  ~text_options_t ()
+  {
+    g_free (text_before);
+    g_free (text_after);
+    g_free (text);
+    g_free (text_file);
+    if (gs)
+      g_string_free (gs, true);
+    if (fp && fp != stdin)
+      fclose (fp);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  void post_parse (GError **error G_GNUC_UNUSED)
+  {
+    if (text && text_file)
+      g_set_error (error,
+		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Only one of text and text-file can be set");
+  }
+
+  const char *get_line (unsigned int *len, int eol = '\n');
+
+  char *text_before = nullptr;
+  char *text_after = nullptr;
+
+  int text_len = -1;
+  char *text = nullptr;
+  char *text_file = nullptr;
+
+  private:
+  FILE *fp = nullptr;
+  GString *gs = nullptr;
+  char *line = nullptr;
+  unsigned int line_len = UINT_MAX;
+};
+
+
 static gboolean
 parse_text (const char *name G_GNUC_UNUSED,
 	    const char *arg,
@@ -102,29 +117,11 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   return true;
 }
 
-void
-text_options_t::add_options (option_parser_t *parser)
-{
-  GOptionEntry entries[] =
-  {
-    {"text",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_text,		"Set input text",			"string"},
-    {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name\n\n    If no text is provided, standard input is used for input.\n",		"filename"},
-    {"unicodes",      'u', 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,		"Set input Unicode codepoints",		"list of hex numbers"},
-    {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
-    {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
-    {nullptr}
-  };
-  parser->add_group (entries,
-		     "text",
-		     "Text options:",
-		     "Options for the input text",
-		     this);
-}
-
 const char *
 text_options_t::get_line (unsigned int *len, int eol)
 {
-  if (text) {
+  if (text)
+  {
     if (!line)
     {
       line = text;
@@ -141,11 +138,14 @@ text_options_t::get_line (unsigned int *len, int eol)
     const char *ret = line;
     const char *p = (const char *) memchr (line, eol, line_len);
     unsigned int ret_len;
-    if (!p) {
+    if (!p)
+    {
       ret_len = line_len;
       line += ret_len;
       line_len = 0;
-    } else {
+    }
+    else
+    {
       ret_len = p - ret;
       line += ret_len + 1;
       line_len -= ret_len + 1;
@@ -155,7 +155,8 @@ text_options_t::get_line (unsigned int *len, int eol)
     return ret;
   }
 
-  if (!fp) {
+  if (!fp)
+  {
     if (!text_file)
       fail (true, "At least one of text or text-file must be set");
 
@@ -188,4 +189,23 @@ text_options_t::get_line (unsigned int *len, int eol)
     fail (false, "Failed reading text: %s", strerror (errno));
   *len = gs->len;
   return !*len && feof (fp) ? nullptr : gs->str;
+}
+
+void
+text_options_t::add_options (option_parser_t *parser)
+{
+  GOptionEntry entries[] =
+  {
+    {"text",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_text,		"Set input text",			"string"},
+    {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name\n\n    If no text is provided, standard input is used for input.\n",		"filename"},
+    {"unicodes",      'u', 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,	"Set input Unicode codepoints",		"list of hex numbers"},
+    {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
+    {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
+    {nullptr}
+  };
+  parser->add_group (entries,
+		     "text",
+		     "Text options:",
+		     "Options for the input text",
+		     this);
 }

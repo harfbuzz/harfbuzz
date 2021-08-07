@@ -6,11 +6,11 @@ HB_VIEW_sources = \
 	helper-cairo-ansi.hh \
 	helper-cairo.hh \
 	main-font-text.hh \
-	options.cc \
 	options.hh \
 	output-options.hh \
 	shape-consumer.hh \
 	shape-options.hh \
+	text-options.hh \
 	view-cairo.hh \
 	view-options.hh \
 	$(NULL)
@@ -20,22 +20,22 @@ HB_SHAPE_sources = \
 	font-options.hh \
 	hb-shape.cc \
 	main-font-text.hh \
-	options.cc \
 	options.hh \
 	output-options.hh \
 	shape-consumer.hh \
 	shape-format.hh \
 	shape-options.hh \
+	text-options.hh \
 	$(NULL)
 
 HB_SUBSET_CLI_sources = \
 	face-options.hh \
 	hb-subset.cc \
 	main-font-text.hh \
-	options.cc \
 	options.hh \
 	output-options.hh \
 	subset-options.hh \
+	text-options.hh \
 	$(NULL)
 
 HB_OT_SHAPE_CLOSURE_sources = \
@@ -43,6 +43,6 @@ HB_OT_SHAPE_CLOSURE_sources = \
 	font-options.hh \
 	hb-ot-shape-closure.cc \
 	main-font-text.hh \
-	options.cc \
 	options.hh \
+	text-options.hh \
 	$(NULL)

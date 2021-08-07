@@ -1,21 +1,17 @@
 hb_view_sources = [
   'hb-view.cc',
-  'options.cc',
 ]
 
 hb_shape_sources = [
   'hb-shape.cc',
-  'options.cc',
 ]
 
 hb_ot_shape_closure_sources = [
   'hb-ot-shape-closure.cc',
-  'options.cc',
 ]
 
 hb_subset_cli_sources = [
   'hb-subset.cc',
-  'options.cc',
 ]
 
 util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]

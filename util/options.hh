@@ -218,49 +218,6 @@ option_parser_t::parse (int *argc, char ***argv)
   }
 }
 
-// XXXXXXXXXXXX
-
-
-struct text_options_t
-{
-  ~text_options_t ()
-  {
-    g_free (text_before);
-    g_free (text_after);
-    g_free (text);
-    g_free (text_file);
-    if (gs)
-      g_string_free (gs, true);
-    if (fp && fp != stdin)
-      fclose (fp);
-  }
-
-  void add_options (option_parser_t *parser);
-
-  void post_parse (GError **error G_GNUC_UNUSED)
-  {
-    if (text && text_file)
-      g_set_error (error,
-		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Only one of text and text-file can be set");
-  }
-
-  const char *get_line (unsigned int *len, int eol = '\n');
-
-  char *text_before = nullptr;
-  char *text_after = nullptr;
-
-  int text_len = -1;
-  char *text = nullptr;
-  char *text_file = nullptr;
-
-  private:
-  FILE *fp = nullptr;
-  GString *gs = nullptr;
-  char *line = nullptr;
-  unsigned int line_len = UINT_MAX;
-};
-
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */
 #if defined (_MSC_VER) && (_MSC_VER < 1800)
