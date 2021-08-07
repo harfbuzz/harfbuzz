@@ -441,36 +441,12 @@ struct shape_options_t
 };
 
 
-struct font_options_t
+struct face_options_t
 {
-  ~font_options_t ()
-  {
-    g_free (font_file);
-    free (variations);
-    g_free (font_funcs);
-    hb_font_destroy (font);
-  }
-
   void add_options (option_parser_t *parser);
 
-  hb_font_t *get_font () const;
-
-  char *font_file = nullptr;
-  mutable hb_blob_t *blob = nullptr;
-  unsigned face_index = 0;
-  hb_variation_t *variations = nullptr;
-  unsigned int num_variations = 0;
-  int x_ppem = 0;
-  int y_ppem = 0;
-  double ptem = 0.;
-  unsigned int subpixel_bits = SUBPIXEL_BITS;
-  mutable double font_size_x = DEFAULT_FONT_SIZE;
-  mutable double font_size_y = DEFAULT_FONT_SIZE;
-  char *font_funcs = nullptr;
-  int ft_load_flags = 2;
-
-  private:
-  mutable hb_font_t *font = nullptr;
+  hb_blob_t *get_blob () const;
+  hb_face_t *get_face () const;
 
   static struct cache_t
   {
@@ -486,6 +462,40 @@ struct font_options_t
     unsigned face_index = (unsigned) -1;
     hb_face_t *face = nullptr;
   } cache;
+
+  char *font_file = nullptr;
+  unsigned face_index = 0;
+  private:
+  mutable hb_face_t *face = nullptr;
+};
+
+struct font_options_t : face_options_t
+{
+  ~font_options_t ()
+  {
+    g_free (font_file);
+    free (variations);
+    g_free (font_funcs);
+    hb_font_destroy (font);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  hb_font_t *get_font () const;
+
+  hb_variation_t *variations = nullptr;
+  unsigned int num_variations = 0;
+  int x_ppem = 0;
+  int y_ppem = 0;
+  double ptem = 0.;
+  unsigned int subpixel_bits = SUBPIXEL_BITS;
+  mutable double font_size_x = DEFAULT_FONT_SIZE;
+  mutable double font_size_y = DEFAULT_FONT_SIZE;
+  char *font_funcs = nullptr;
+  int ft_load_flags = 2;
+
+  private:
+  mutable hb_font_t *font = nullptr;
 };
 
 

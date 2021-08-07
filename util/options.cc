@@ -526,8 +526,26 @@ parse_font_ppem (const char *name G_GNUC_UNUSED,
 }
 
 void
+face_options_t::add_options (option_parser_t *parser)
+{
+  GOptionEntry entries[] =
+  {
+    {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",				"filename"},
+    {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Set face index (default: 0)",			"index"},
+    {nullptr}
+  };
+  parser->add_group (entries,
+		     "face",
+		     "Font-face options:",
+		     "Options for the font face",
+		     this);
+}
+
+void
 font_options_t::add_options (option_parser_t *parser)
 {
+  face_options_t::add_options (parser);
+
   char *text = nullptr;
 
   {
@@ -557,8 +575,6 @@ font_options_t::add_options (option_parser_t *parser)
 
   GOptionEntry entries[] =
   {
-    {"font-file",	0, 0, G_OPTION_ARG_STRING,	&this->font_file,		"Set font file-name",				"filename"},
-    {"face-index",	0, 0, G_OPTION_ARG_INT,		&this->face_index,		"Set face index (default: 0)",			"index"},
     {"font-size",	0, DEFAULT_FONT_SIZE ? 0 : G_OPTION_FLAG_HIDDEN,
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_size,	font_size_text,					"1/2 integers or 'upem'"},
     {"font-ppem",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
@@ -569,8 +585,8 @@ font_options_t::add_options (option_parser_t *parser)
   };
   parser->add_group (entries,
 		     "font",
-		     "Font options:",
-		     "Options for the font",
+		     "Font-instance options:",
+		     "Options for the font instance",
 		     this);
 
   const gchar *variations_help = "Comma-separated list of font variations\n"
@@ -646,15 +662,21 @@ output_options_t::add_options (option_parser_t *parser,
 }
 
 
-font_options_t::cache_t font_options_t::cache {};
+face_options_t::cache_t face_options_t::cache {};
 
-hb_font_t *
-font_options_t::get_font () const
+hb_blob_t *
+face_options_t::get_blob () const
 {
-  if (font)
-    return font;
+  // XXX This does the job for now; will move to post_parse.
+  return cache.blob;
+}
 
-  /* Create the blob */
+hb_face_t *
+face_options_t::get_face () const
+{
+  if (face)
+    return face;
+
   if (!font_file)
     fail (true, "No font file set");
 
@@ -670,40 +692,42 @@ font_options_t::get_font () const
 #endif
   }
 
-  if (cache.font_path && 0 == strcmp (cache.font_path, font_path))
-    blob = hb_blob_reference (cache.blob);
-  else
+  if (!cache.font_path || 0 != strcmp (cache.font_path, font_path))
   {
-    blob = hb_blob_create_from_file_or_fail (font_path);
+    hb_blob_destroy (cache.blob);
+    cache.blob = hb_blob_create_from_file_or_fail (font_path);
 
-    if (!blob)
+    free ((char *) cache.font_path);
+    cache.font_path = strdup (font_path);
+
+    if (!cache.blob)
       fail (false, "%s: Failed reading file", font_path);
-
-    /* Update caches. */
 
     hb_face_destroy (cache.face);
     cache.face = nullptr;
     cache.face_index = (unsigned) -1;
-
-    free ((char *) cache.font_path);
-    cache.font_path = strdup (font_path);
-    hb_blob_destroy (cache.blob);
-    cache.blob = hb_blob_reference (blob);
   }
 
-  hb_face_t *face = nullptr;
-  if (cache.face_index == face_index)
-    face = hb_face_reference (cache.face);
-  else
+  if (cache.face_index != face_index)
   {
-    face = hb_face_create (blob, face_index);
-    hb_blob_destroy (blob);
-
-    cache.face_index = face_index;
     hb_face_destroy (cache.face);
-    cache.face = hb_face_reference (face);
+    cache.face = hb_face_create (cache.blob, face_index);
+    cache.face_index = face_index;
   }
 
+  face = cache.face;
+
+  return face;
+}
+
+
+hb_font_t *
+font_options_t::get_font () const
+{
+  if (font)
+    return font;
+
+  auto *face = get_face ();
 
   font = hb_font_create (face);
 
@@ -718,7 +742,6 @@ font_options_t::get_font () const
   int scale_x = (int) scalbnf (font_size_x, subpixel_bits);
   int scale_y = (int) scalbnf (font_size_y, subpixel_bits);
   hb_font_set_scale (font, scale_x, scale_y);
-  hb_face_destroy (face);
 
   hb_font_set_variations (font, variations, num_variations);
 

@@ -93,7 +93,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
     }
 
     unsigned int blob_length;
-    const char *blob_data = hb_blob_get_data (font_opts->blob, &blob_length);
+    const char *blob_data = hb_blob_get_data (font_opts->get_blob (), &blob_length);
 
     if (FT_New_Memory_Face (ft_library,
 			    (const FT_Byte *) blob_data,
