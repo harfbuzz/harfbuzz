@@ -24,6 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
+#include "shape-options.hh"
 #include "main-font-text.hh"
 
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;

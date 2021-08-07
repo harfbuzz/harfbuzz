@@ -31,8 +31,6 @@
 #endif
 #include <hb-ot.h>
 
-#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
-
 static struct supported_font_funcs_t {
 	char name[4];
 	void (*func) (hb_font_t *);
@@ -128,100 +126,6 @@ option_parser_t::parse (int *argc, char ***argv)
 
 
 static gboolean
-parse_shapers (const char *name G_GNUC_UNUSED,
-	       const char *arg,
-	       gpointer    data,
-	       GError    **error)
-{
-  shape_options_t *shape_opts = (shape_options_t *) data;
-  char **shapers = g_strsplit (arg, ",", 0);
-
-  for (char **shaper = shapers; *shaper; shaper++) {
-    bool found = false;
-    for (const char **hb_shaper = hb_shape_list_shapers (); *hb_shaper; hb_shaper++) {
-      if (strcmp (*shaper, *hb_shaper) == 0) {
-	found = true;
-	break;
-      }
-    }
-    if (!found) {
-      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Unknown or unsupported shaper: %s", *shaper);
-      g_strfreev (shapers);
-      return false;
-    }
-  }
-
-  g_strfreev (shape_opts->shapers);
-  shape_opts->shapers = shapers;
-  return true;
-}
-
-static G_GNUC_NORETURN gboolean
-list_shapers (const char *name G_GNUC_UNUSED,
-	      const char *arg G_GNUC_UNUSED,
-	      gpointer    data G_GNUC_UNUSED,
-	      GError    **error G_GNUC_UNUSED)
-{
-  for (const char **shaper = hb_shape_list_shapers (); *shaper; shaper++)
-    g_printf ("%s\n", *shaper);
-
-  exit(0);
-}
-
-
-static gboolean
-parse_features (const char *name G_GNUC_UNUSED,
-		const char *arg,
-		gpointer    data,
-		GError    **error G_GNUC_UNUSED)
-{
-  shape_options_t *shape_opts = (shape_options_t *) data;
-  char *s = (char *) arg;
-  size_t l = strlen (s);
-  char *p;
-
-  shape_opts->num_features = 0;
-  g_free (shape_opts->features);
-  shape_opts->features = nullptr;
-
-  /* if the string is quoted, strip the quotes */
-  if (s[0] == s[l - 1] && (s[0] == '\"' || s[0] == '\''))
-  {
-    s[l - 1] = '\0';
-    s++;
-  }
-
-  if (!*s)
-    return true;
-
-  /* count the features first, so we can allocate memory */
-  p = s;
-  do {
-    shape_opts->num_features++;
-    p = strchr (p, ',');
-    if (p)
-      p++;
-  } while (p);
-
-  shape_opts->features = (hb_feature_t *) calloc (shape_opts->num_features, sizeof (*shape_opts->features));
-  if (!shape_opts->features)
-    return false;
-
-  /* now do the actual parsing */
-  p = s;
-  shape_opts->num_features = 0;
-  while (p && *p) {
-    char *end = strchr (p, ',');
-    if (hb_feature_from_string (p, end ? end - p : -1, &shape_opts->features[shape_opts->num_features]))
-      shape_opts->num_features++;
-    p = end ? end + 1 : nullptr;
-  }
-
-  return true;
-}
-
-static gboolean
 parse_variations (const char *name G_GNUC_UNUSED,
 		  const char *arg,
 		  gpointer    data,
@@ -313,6 +217,8 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 
     while (s && *s)
     {
+#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
+
       while (*s && strchr (DELIMITERS, *s))
 	s++;
       if (!*s)
@@ -337,87 +243,6 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   text_opts->text_len = gs->len;
   text_opts->text = g_string_free (gs, FALSE);
   return true;
-}
-
-
-void
-shape_options_t::add_options (option_parser_t *parser)
-{
-  GOptionEntry entries[] =
-  {
-    {"list-shapers",	0, G_OPTION_FLAG_NO_ARG,
-			      G_OPTION_ARG_CALLBACK,	(gpointer) &list_shapers,	"List available shapers and quit",	nullptr},
-    {"shaper",		0, G_OPTION_FLAG_HIDDEN,
-			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Hidden duplicate of --shapers",	nullptr},
-    {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Set comma-separated list of shapers to try","list"},
-    {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
-    {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
-    {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
-    {"bot",		0, 0, G_OPTION_ARG_NONE,	&this->bot,			"Treat text as beginning-of-paragraph",	nullptr},
-    {"eot",		0, 0, G_OPTION_ARG_NONE,	&this->eot,			"Treat text as end-of-paragraph",	nullptr},
-    {"preserve-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->preserve_default_ignorables,	"Preserve Default-Ignorable characters",	nullptr},
-    {"remove-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->remove_default_ignorables,	"Remove Default-Ignorable characters",	nullptr},
-    {"invisible-glyph",	0, 0, G_OPTION_ARG_INT,		&this->invisible_glyph,		"Glyph value to replace Default-Ignorables with",	nullptr},
-    {"utf8-clusters",	0, 0, G_OPTION_ARG_NONE,	&this->utf8_clusters,		"Use UTF8 byte indices, not char indices",	nullptr},
-    {"cluster-level",	0, 0, G_OPTION_ARG_INT,		&this->cluster_level,		"Cluster merging level (default: 0)",	"0/1/2"},
-    {"normalize-glyphs",0, 0, G_OPTION_ARG_NONE,	&this->normalize_glyphs,	"Rearrange glyph clusters in nominal order",	nullptr},
-    {"verify",		0, 0, G_OPTION_ARG_NONE,	&this->verify,			"Perform sanity checks on shaping results",	nullptr},
-    {"num-iterations", 'n', 0, G_OPTION_ARG_INT,	&this->num_iterations,		"Run shaper N times (default: 1)",	"N"},
-    {nullptr}
-  };
-  parser->add_group (entries,
-		     "shape",
-		     "Shape options:",
-		     "Options for the shaping process",
-		     this);
-
-  const gchar *features_help = "Comma-separated list of font features\n"
-    "\n"
-    "    Features can be enabled or disabled, either globally or limited to\n"
-    "    specific character ranges.  The format for specifying feature settings\n"
-    "    follows.  All valid CSS font-feature-settings values other than 'normal'\n"
-    "    and the global values are also accepted, though not documented below.\n"
-    "    CSS string escapes are not supported."
-    "\n"
-    "    The range indices refer to the positions between Unicode characters,\n"
-    "    unless the --utf8-clusters is provided, in which case range indices\n"
-    "    refer to UTF-8 byte indices. The position before the first character\n"
-    "    is always 0.\n"
-    "\n"
-    "    The format is Python-esque.  Here is how it all works:\n"
-    "\n"
-    "      Syntax:       Value:    Start:    End:\n"
-    "\n"
-    "    Setting value:\n"
-    "      \"kern\"        1         0         ∞         # Turn feature on\n"
-    "      \"+kern\"       1         0         ∞         # Turn feature on\n"
-    "      \"-kern\"       0         0         ∞         # Turn feature off\n"
-    "      \"kern=0\"      0         0         ∞         # Turn feature off\n"
-    "      \"kern=1\"      1         0         ∞         # Turn feature on\n"
-    "      \"aalt=2\"      2         0         ∞         # Choose 2nd alternate\n"
-    "\n"
-    "    Setting index:\n"
-    "      \"kern[]\"      1         0         ∞         # Turn feature on\n"
-    "      \"kern[:]\"     1         0         ∞         # Turn feature on\n"
-    "      \"kern[5:]\"    1         5         ∞         # Turn feature on, partial\n"
-    "      \"kern[:5]\"    1         0         5         # Turn feature on, partial\n"
-    "      \"kern[3:5]\"   1         3         5         # Turn feature on, range\n"
-    "      \"kern[3]\"     1         3         3+1       # Turn feature on, single char\n"
-    "\n"
-    "    Mixing it all:\n"
-    "\n"
-    "      \"aalt[3:5]=2\" 2         3         5         # Turn 2nd alternate on for range";
-
-  GOptionEntry entries2[] =
-  {
-    {"features",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_features,	features_help,	"list"},
-    {nullptr}
-  };
-  parser->add_group (entries2,
-		     "features",
-		     "Features options:",
-		     "Options for font features used",
-		     this);
 }
 
 static gboolean

@@ -27,8 +27,7 @@
 #ifndef HB_SHAPE_CONSUMER_HH
 #define HB_SHAPE_CONSUMER_HH
 
-#include "hb.hh"
-#include "options.hh"
+#include "shape-options.hh"
 
 
 template <typename output_t>
