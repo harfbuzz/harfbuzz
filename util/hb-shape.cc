@@ -159,7 +159,7 @@ struct output_buffer_t
 int
 main (int argc, char **argv)
 {
-  using driver_t = main_font_text_t<shape_consumer_t<output_buffer_t>, font_options_t, text_options_t>;
+  auto main_func = main_font_text<shape_consumer_t<output_buffer_t>, font_options_t, text_options_t>;
 
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
@@ -185,13 +185,11 @@ main (int argc, char **argv)
 	start_offset = argc == 2 && p[0] != '\0' && p[0] != ':' && p[1] == ':' && (p[2] == '\\' || p[2] == '/') ? 2 : 0;
       }
 
-      driver_t driver;
-      ret |= driver.main (argc, args, EOF);
+      ret |= main_func (argc, args, EOF);
       fflush (stdout);
     }
     return ret;
   }
 
-  driver_t driver;
-  return driver.main (argc, argv);
+  return main_func (argc, argv, '\n');
 }

@@ -70,6 +70,21 @@ fail (hb_bool_t suggest_help, const char *format, ...)
   exit (1);
 }
 
+static inline char *
+locale_to_utf8 (char *s)
+{
+  char *t;
+  GError *error = nullptr;
+
+  t = g_locale_to_utf8 (s, -1, nullptr, nullptr, &error);
+  if (!t)
+  {
+     fail (true, "Failed converting text to UTF-8");
+  }
+
+  return t;
+}
+
 
 struct option_parser_t
 {

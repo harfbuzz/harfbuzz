@@ -35,6 +35,5 @@ const unsigned SUBPIXEL_BITS = 6;
 int
 main (int argc, char **argv)
 {
-  main_font_text_t<shape_consumer_t<view_cairo_t>, font_options_t, text_options_t> driver;
-  return driver.main (argc, argv);
+  return main_font_text<shape_consumer_t<view_cairo_t>, font_options_t, text_options_t> (argc, argv);
 }

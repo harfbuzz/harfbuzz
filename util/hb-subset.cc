@@ -132,7 +132,7 @@ struct subset_consumer_t : subset_options_t
 int
 main (int argc, char **argv)
 {
-  using driver_t = main_font_text_t<subset_consumer_t, face_options_t, text_options_t>;
+  auto main_func = main_font_text<subset_consumer_t, face_options_t, text_options_t>;
 
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
@@ -156,8 +156,7 @@ main (int argc, char **argv)
 	args[argc++] = p = e;
       }
 
-      driver_t driver;
-      int result = driver.main (argc, args, EOF);
+      int result = main_func (argc, args, EOF);
       fprintf (stdout, result == 0 ? "success\n" : "failure\n");
       fflush (stdout);
       ret |= result;
@@ -165,6 +164,5 @@ main (int argc, char **argv)
     return ret;
   }
 
-  driver_t driver;
-  return driver.main (argc, argv);
+  return main_func (argc, argv, '\n');
 }
