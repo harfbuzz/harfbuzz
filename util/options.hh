@@ -50,7 +50,25 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
+
+static inline void fail (hb_bool_t suggest_help, const char *format, ...) G_GNUC_NORETURN G_GNUC_PRINTF (2, 3);
+
+static inline void
+fail (hb_bool_t suggest_help, const char *format, ...)
+{
+  const char *msg;
+
+  va_list vap;
+  va_start (vap, format);
+  msg = g_strdup_vprintf (format, vap);
+  va_end (vap);
+  const char *prgname = g_get_prgname ();
+  g_printerr ("%s: %s\n", prgname, msg);
+  if (suggest_help)
+    g_printerr ("Try `%s --help' for more information.\n", prgname);
+
+  exit (1);
+}
 
 
 struct option_parser_t
@@ -122,6 +140,70 @@ struct option_parser_t
   GPtrArray *to_free;
 };
 
+
+static inline gchar *
+shapers_to_string ()
+{
+  GString *shapers = g_string_new (nullptr);
+  const char **shaper_list = hb_shape_list_shapers ();
+
+  for (; *shaper_list; shaper_list++) {
+    g_string_append (shapers, *shaper_list);
+    g_string_append_c (shapers, ',');
+  }
+  g_string_truncate (shapers, MAX (0, (gint)shapers->len - 1));
+
+  return g_string_free (shapers, false);
+}
+
+static G_GNUC_NORETURN gboolean
+show_version (const char *name G_GNUC_UNUSED,
+	      const char *arg G_GNUC_UNUSED,
+	      gpointer    data G_GNUC_UNUSED,
+	      GError    **error G_GNUC_UNUSED)
+{
+  g_printf ("%s (%s) %s\n", g_get_prgname (), PACKAGE_NAME, PACKAGE_VERSION);
+
+  char *shapers = shapers_to_string ();
+  g_printf ("Available shapers: %s\n", shapers);
+  g_free (shapers);
+  if (strcmp (HB_VERSION_STRING, hb_version_string ()))
+    g_printf ("Linked HarfBuzz library has a different version: %s\n", hb_version_string ());
+
+  exit(0);
+}
+
+inline void
+option_parser_t::add_main_options ()
+{
+  GOptionEntry entries[] =
+  {
+    {"version",		0, G_OPTION_FLAG_NO_ARG,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &show_version,	"Show version numbers",			nullptr},
+    {nullptr}
+  };
+  g_option_context_add_main_entries (context, entries, nullptr);
+}
+
+inline void
+option_parser_t::parse (int *argc, char ***argv)
+{
+  setlocale (LC_ALL, "");
+
+  GError *parse_error = nullptr;
+  if (!g_option_context_parse (context, argc, argv, &parse_error))
+  {
+    if (parse_error)
+    {
+      fail (true, "%s", parse_error->message);
+      //g_error_free (parse_error);
+    }
+    else
+      fail (true, "Option parse error");
+  }
+}
+
+// XXXXXXXXXXXX
 
 #define FONT_SIZE_UPEM 0x7FFFFFFF
 #define FONT_SIZE_NONE 0
