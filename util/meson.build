@@ -2,7 +2,6 @@ hb_view_sources = [
   'hb-view.cc',
   'options.cc',
   'helper-cairo.cc',
-  'helper-cairo-ansi.cc',
 ]
 
 hb_shape_sources = [
