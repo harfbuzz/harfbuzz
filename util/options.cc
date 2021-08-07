@@ -573,7 +573,7 @@ font_options_t::add_options (option_parser_t *parser)
     parser->free_later (font_size_text);
   }
 
-  unsigned font_size_flags = DEFAULT_FONT_SIZE == FONT_SIZE_NONE ? G_OPTION_FLAG_HIDDEN : 0;
+  int font_size_flags = DEFAULT_FONT_SIZE == FONT_SIZE_NONE ? G_OPTION_FLAG_HIDDEN : 0;
   GOptionEntry entries[] =
   {
     {"font-size",	0, font_size_flags,
