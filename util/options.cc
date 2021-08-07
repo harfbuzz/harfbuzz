@@ -125,11 +125,9 @@ void
 output_options_t::add_options (option_parser_t *parser,
 			       const char **supported_formats)
 {
-  const char *text;
+  const char *text = nullptr;
 
-  if (!supported_formats)
-    text = "Set output format";
-  else
+  if (supported_formats)
   {
     char *items = g_strjoinv ("/", const_cast<char **> (supported_formats));
     text = g_strdup_printf ("Set output format\n\n    Supported output formats are: %s", items);
@@ -140,7 +138,8 @@ output_options_t::add_options (option_parser_t *parser,
   GOptionEntry entries[] =
   {
     {"output-file",   'o', 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
-    {"output-format", 'O', 0, G_OPTION_ARG_STRING,	&this->output_format,		text,					"format"},
+    {"output-format", 'O', supported_formats ? 0 : G_OPTION_FLAG_HIDDEN,
+			      G_OPTION_ARG_STRING,	&this->output_format,		text,					"format"},
     {nullptr}
   };
   parser->add_group (entries,
