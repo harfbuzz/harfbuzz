@@ -4,7 +4,6 @@ HB_VIEW_sources = \
 	options.hh \
 	main-font-text.hh \
 	shape-consumer.hh \
-	ansi-print.cc \
 	ansi-print.hh \
 	helper-cairo.cc \
 	helper-cairo.hh \
