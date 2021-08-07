@@ -26,7 +26,6 @@
 
 #include "options.hh"
 
-#include "hb-subset-input.hh"
 
 static gboolean
 parse_gids (const char *name G_GNUC_UNUSED,
@@ -35,7 +34,7 @@ parse_gids (const char *name G_GNUC_UNUSED,
 	    GError    **error G_GNUC_UNUSED)
 {
   subset_options_t *subset_opts = (subset_options_t *) data;
-  hb_set_t *gids = subset_opts->input->glyphs;
+  hb_set_t *gids = hb_subset_input_glyph_set (subset_opts->input);
 
   char *s = (char *) arg;
   char *p;
@@ -95,7 +94,7 @@ parse_nameids (const char *name,
 	       GError    **error G_GNUC_UNUSED)
 {
   subset_options_t *subset_opts = (subset_options_t *) data;
-  hb_set_t *name_ids = subset_opts->input->name_ids;
+  hb_set_t *name_ids = hb_subset_input_nameid_set (subset_opts->input);
 
   char last_name_char = name[strlen (name) - 1];
 
@@ -151,7 +150,7 @@ parse_name_languages (const char *name,
 		      GError    **error G_GNUC_UNUSED)
 {
   subset_options_t *subset_opts = (subset_options_t *) data;
-  hb_set_t *name_languages = subset_opts->input->name_languages;
+  hb_set_t *name_languages = hb_subset_input_namelangid_set (subset_opts->input);
 
   char last_name_char = name[strlen (name) - 1];
 
@@ -207,7 +206,7 @@ parse_layout_features (const char *name,
 		       GError    **error G_GNUC_UNUSED)
 {
   subset_options_t *subset_opts = (subset_options_t *) data;
-  hb_set_t *layout_features = subset_opts->input->layout_features;
+  hb_set_t *layout_features = hb_subset_input_layout_features_set (subset_opts->input);
 
   char last_name_char = name[strlen (name) - 1];
 
@@ -256,7 +255,7 @@ parse_drop_tables (const char *name,
 		   GError    **error G_GNUC_UNUSED)
 {
   subset_options_t *subset_opts = (subset_options_t *) data;
-  hb_set_t *drop_tables = subset_opts->input->drop_tables;
+  hb_set_t *drop_tables = hb_subset_input_drop_tables_set (subset_opts->input);
 
   char last_name_char = name[strlen (name) - 1];
 
