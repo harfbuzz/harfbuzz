@@ -41,27 +41,24 @@ typedef struct hb_subset_input_t hb_subset_input_t;
 
 /**
  * hb_subset_flags_t:
- * @HB_SUBSET_FLAGS_DEFAULT: all flags at their default value.
+ * @HB_SUBSET_FLAGS_DEFAULT: all flags at their default value of false.
  * @HB_SUBSET_FLAGS_NO_HINTING: If set hinting instructions will be dropped in
  * the produced subset. Otherwise hinting instructions will be retained.
- * Defaults to true.
  * @HB_SUBSET_FLAGS_RETAIN_GIDS: If set glyph indices will not be modified in
  * the produced subset. If glyphs are dropped their indices will be retained
- * as an empty glyph. Defaults to false.
+ * as an empty glyph.
  * @HB_SUBSET_FLAGS_DESUBROUTINIZE: If set and subsetting a CFF font the
  * subsetter will attempt to remove subroutines from the CFF glyphs.
- * Defaults to false.
  * @HB_SUBSET_FLAGS_NAME_LEGACY: If set non-unicode name records will be
- * retained in the subset. Defaults to false.
+ * retained in the subset.
  * @HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG:	If set the subsetter will set the
- * OVERLAP_SIMPLE flag on each simple glyph. Defaults to false.
+ * OVERLAP_SIMPLE flag on each simple glyph.
  * @HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED: If set the subsetter will not
  * drop unrecognized tables and instead pass them through untouched.
- * Defaults to false.
  * @HB_SUBSET_FLAGS_NOTDEF_OUTLINE: If set the notdef glyph outline will be
- * retained in the final subset. Defaults to false.
+ * retained in the final subset.
  * @HB_SUBSET_FLAGS_GLYPH_NAMES: If set the PS glyph names will be retained
- * in the final subset. Defaults to false.
+ * in the final subset.
  * @HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES: If set then the unicode ranges in
  * OS/2 will not be recalculated.
  * @HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES: If set all layout features will be
