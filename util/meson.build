@@ -1,7 +1,6 @@
 hb_view_sources = [
   'hb-view.cc',
   'options.cc',
-  'helper-cairo.cc',
 ]
 
 hb_shape_sources = [
