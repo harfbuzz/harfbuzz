@@ -261,46 +261,6 @@ struct text_options_t
   unsigned int line_len = UINT_MAX;
 };
 
-struct output_options_t
-{
-  ~output_options_t ()
-  {
-    g_free (output_file);
-    g_free (output_format);
-    if (fp && fp != stdout)
-      fclose (fp);
-  }
-
-  void add_options (option_parser_t *parser,
-		    const char **supported_formats = nullptr);
-
-  void post_parse (GError **error G_GNUC_UNUSED)
-  {
-    if (output_format)
-      explicit_output_format = true;
-
-    if (output_file && !output_format) {
-      output_format = strrchr (output_file, '.');
-      if (output_format)
-      {
-	  output_format++; /* skip the dot */
-	  output_format = g_strdup (output_format);
-      }
-    }
-
-    if (output_file && 0 == strcmp (output_file, "-"))
-      output_file = nullptr; /* STDOUT */
-  }
-
-  FILE *get_file_handle ();
-
-  char *output_file = nullptr;
-  char *output_format = nullptr;
-  bool explicit_output_format = false;
-
-  mutable FILE *fp = nullptr;
-};
-
 
 /* fallback implementation for scalbn()/scalbnf() for pre-2013 MSVC */
 #if defined (_MSC_VER) && (_MSC_VER < 1800)

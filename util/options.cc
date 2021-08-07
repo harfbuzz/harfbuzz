@@ -121,34 +121,6 @@ text_options_t::add_options (option_parser_t *parser)
 		     this);
 }
 
-void
-output_options_t::add_options (option_parser_t *parser,
-			       const char **supported_formats)
-{
-  const char *text = nullptr;
-
-  if (supported_formats)
-  {
-    char *items = g_strjoinv ("/", const_cast<char **> (supported_formats));
-    text = g_strdup_printf ("Set output format\n\n    Supported output formats are: %s", items);
-    g_free (items);
-    parser->free_later ((char *) text);
-  }
-
-  GOptionEntry entries[] =
-  {
-    {"output-file",   'o', 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
-    {"output-format", 'O', supported_formats ? 0 : G_OPTION_FLAG_HIDDEN,
-			      G_OPTION_ARG_STRING,	&this->output_format,		text,					"format"},
-    {nullptr}
-  };
-  parser->add_group (entries,
-		     "output",
-		     "Output destination & format options:",
-		     "Options for the destination & form of the output",
-		     this);
-}
-
 const char *
 text_options_t::get_line (unsigned int *len, int eol)
 {
@@ -216,26 +188,4 @@ text_options_t::get_line (unsigned int *len, int eol)
     fail (false, "Failed reading text: %s", strerror (errno));
   *len = gs->len;
   return !*len && feof (fp) ? nullptr : gs->str;
-}
-
-
-FILE *
-output_options_t::get_file_handle ()
-{
-  if (fp)
-    return fp;
-
-  if (output_file)
-    fp = fopen (output_file, "wb");
-  else {
-#if defined(_WIN32) || defined(__CYGWIN__)
-    setmode (fileno (stdout), O_BINARY);
-#endif
-    fp = stdout;
-  }
-  if (!fp)
-    fail (false, "Cannot open output file `%s': %s",
-	  g_filename_display_name (output_file), strerror (errno));
-
-  return fp;
 }

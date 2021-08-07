@@ -8,6 +8,7 @@ HB_VIEW_sources = \
 	main-font-text.hh \
 	options.cc \
 	options.hh \
+	output-options.hh \
 	shape-consumer.hh \
 	shape-options.hh \
 	view-cairo.hh \
@@ -21,9 +22,20 @@ HB_SHAPE_sources = \
 	main-font-text.hh \
 	options.cc \
 	options.hh \
+	output-options.hh \
 	shape-consumer.hh \
 	shape-format.hh \
 	shape-options.hh \
+	$(NULL)
+
+HB_SUBSET_CLI_sources = \
+	face-options.hh \
+	hb-subset.cc \
+	main-font-text.hh \
+	options.cc \
+	options.hh \
+	output-options.hh \
+	subset-options.hh \
 	$(NULL)
 
 HB_OT_SHAPE_CLOSURE_sources = \
@@ -33,13 +45,4 @@ HB_OT_SHAPE_CLOSURE_sources = \
 	main-font-text.hh \
 	options.cc \
 	options.hh \
-	$(NULL)
-
-HB_SUBSET_CLI_sources = \
-	face-options.hh \
-	hb-subset.cc \
-	main-font-text.hh \
-	options.cc \
-	options.hh \
-	subset-options.hh \
 	$(NULL)

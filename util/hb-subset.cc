@@ -28,6 +28,7 @@
 #include <stdio.h>
 
 #include "subset-options.hh"
+#include "output-options.hh"
 #include "face-options.hh"
 #include "main-font-text.hh"
 

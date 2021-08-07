@@ -27,8 +27,8 @@
 #ifndef HELPER_CAIRO_HH
 #define HELPER_CAIRO_HH
 
-#include "hb.hh"
-#include "options.hh"
+#include "view-options.hh"
+#include "output-options.hh"
 
 #include <cairo-ft.h>
 #include <hb-ft.h>
