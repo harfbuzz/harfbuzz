@@ -223,7 +223,7 @@ struct hb_graphite2_cluster_t {
   unsigned int base_glyph;
   unsigned int num_glyphs;
   unsigned int cluster;
-  unsigned int advance;
+  int advance;
 };
 
 hb_bool_t
