@@ -42,31 +42,13 @@ struct subset_options_t
 
   void add_options (option_parser_t *parser);
 
-  hb_bool_t* bool_for(hb_subset_flags_t flag)
-  {
-    for (unsigned i = 0; i < sizeof(int) * 8; i++)
-    {
-      if (1u << i == flag)
-        return &flags[i];
-    }
-    return &flags[sizeof(int) * 8 - 1];
-  }
-
   hb_subset_input_t * get_input ()
   {
-    hb_subset_flags_t flags_set = HB_SUBSET_FLAGS_DEFAULT;
-    for (unsigned i = 0; i < sizeof(int) * 8; i++)
-    {
-      if (flags[i])
-        flags_set = (hb_subset_flags_t) (flags_set |  (1u << i));
-    }
-    hb_subset_input_set_flags (input, flags_set);
     return input;
   }
 
   unsigned num_iterations = 1;
   hb_subset_input_t *input = nullptr;
-  hb_bool_t flags[sizeof(int) * 8] = {0};
 };
 
 
@@ -242,6 +224,21 @@ parse_name_languages (const char *name,
   return true;
 }
 
+template <hb_subset_flags_t flag>
+static gboolean
+set_flag (const char *name,
+	  const char *arg,
+	  gpointer    data,
+	  GError    **error G_GNUC_UNUSED)
+{
+  subset_options_t *subset_opts = (subset_options_t *) data;
+
+  hb_subset_input_set_flags (subset_opts->input,
+			     hb_subset_input_get_flags (subset_opts->input) | flag);
+
+  return true;
+}
+
 static gboolean
 parse_layout_features (const char *name,
 		       const char *arg,
@@ -261,9 +258,11 @@ parse_layout_features (const char *name,
     if (last_name_char == '-')
     {
       hb_set_clear (layout_features);
-      *subset_opts->bool_for (HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES) = false;
+      hb_subset_input_set_flags (subset_opts->input,
+				 hb_subset_input_get_flags (subset_opts->input) & ~HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
     } else {
-      *subset_opts->bool_for (HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES) = true;
+      hb_subset_input_set_flags (subset_opts->input,
+				 hb_subset_input_get_flags (subset_opts->input) | HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
     }
     return true;
   }
@@ -333,14 +332,14 @@ subset_options_t::add_options (option_parser_t *parser)
 {
   GOptionEntry entries[] =
   {
-    {"no-hinting", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_NO_HINTING),   "Whether to drop hints",   nullptr},
-    {"retain-gids", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_RETAIN_GIDS),   "If set don't renumber glyph ids in the subset.",   nullptr},
+    {"no-hinting", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,   "Whether to drop hints",   nullptr},
+    {"retain-gids", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,   "If set don't renumber glyph ids in the subset.",   nullptr},
     {"gids", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of comma/whitespace-separated int numbers or ranges"},
-    {"desubroutinize", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_DESUBROUTINIZE),   "Remove CFF/CFF2 use of subroutines",   nullptr},
+    {"desubroutinize", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,   "Remove CFF/CFF2 use of subroutines",   nullptr},
     {"name-IDs", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
     {"name-IDs-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
     {"name-IDs+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-legacy", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_NAME_LEGACY),   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
+    {"name-legacy", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
     {"name-languages", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
     {"name-languages-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
     {"name-languages+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
@@ -353,11 +352,11 @@ subset_options_t::add_options (option_parser_t *parser)
     {"num-iterations", 'n', 0, G_OPTION_ARG_INT,
      &this->num_iterations,
      "Run subsetter N times (default: 1)", "N"},
-    {"set-overlaps-flag", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG),
+    {"set-overlaps-flag", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG>,
      "Set the overlaps flag on each glyph.",   nullptr},
-    {"notdef-outline", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_NOTDEF_OUTLINE),   "Keep the outline of \'.notdef\' glyph",   nullptr},
-    {"no-prune-unicode-ranges", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES),   "Don't change the 'OS/2 ulUnicodeRange*' bits.",   nullptr},
-    {"glyph-names", 0, 0, G_OPTION_ARG_NONE,  this->bool_for (HB_SUBSET_FLAGS_GLYPH_NAMES),   "Keep PS glyph names in TT-flavored fonts. ",   nullptr},
+    {"notdef-outline", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NOTDEF_OUTLINE>,   "Keep the outline of \'.notdef\' glyph",   nullptr},
+    {"no-prune-unicode-ranges", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES>,   "Don't change the 'OS/2 ulUnicodeRange*' bits.",   nullptr},
+    {"glyph-names", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_GLYPH_NAMES>,   "Keep PS glyph names in TT-flavored fonts. ",   nullptr},
     {nullptr}
   };
   parser->add_group (entries,
