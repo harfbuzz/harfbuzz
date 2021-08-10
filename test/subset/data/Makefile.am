@@ -9,6 +9,7 @@ EXTRA_DIST += \
 	$(TESTS) \
 	expected/basics \
 	expected/full-font \
+	expected/glyf_bug_3131 \
 	expected/cff-full-font \
 	expected/japanese \
 	expected/cff-japanese \

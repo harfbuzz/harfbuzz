@@ -5,6 +5,7 @@ tests = [
   'japanese',
   'cff-japanese',
   'cff.notoserifmyanmar',
+  'glyf_bug_3131',
   'layout',
   'layout.gpos',
   'layout.gpos2',

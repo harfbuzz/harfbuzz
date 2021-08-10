@@ -9,6 +9,7 @@ TESTS = \
 	tests/colr.tests \
 	tests/colr_with_components.tests \
 	tests/full-font.tests \
+	tests/glyf_bug_3131.tests \
 	tests/japanese.tests \
 	tests/layout.context.tests \
 	tests/layout.gdef-attachlist.tests \
