@@ -224,7 +224,7 @@ struct hb_hashmap_t
     if (!items[i].is_unused ())
     {
       occupancy--;
-      if (items[i].is_tombstone ())
+      if (!items[i].is_tombstone ())
 	population--;
     }
 
