@@ -23,7 +23,8 @@ except ImportError:
 ots_sanitize = shutil.which ("ots-sanitize")
 
 def subset_cmd (command):
-	global process
+	global hb_subset, process
+	print (hb_subset + ' ' + " ".join(command))
 	process.stdin.write ((';'.join (command) + '\n').encode ("utf-8"))
 	process.stdin.flush ()
 	return process.stdout.readline().decode ("utf-8").strip ()
@@ -45,8 +46,7 @@ def fail_test (test, cli_args, message):
 
 def run_test (test, should_check_ots):
 	out_file = os.path.join (tempfile.mkdtemp (), test.font_name + '-subset.ttf')
-	cli_args = [hb_subset,
-		    "--font-file=" + test.font_path (),
+	cli_args = ["--font-file=" + test.font_path (),
 		    "--output-file=" + out_file,
 		    "--unicodes=%s" % test.codepoints_string (),
 		    "--drop-tables-=GPOS,GSUB,GDEF",]

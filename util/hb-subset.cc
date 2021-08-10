@@ -31,6 +31,7 @@
 #include "output-options.hh"
 #include "face-options.hh"
 #include "text-options.hh"
+#include "batch.hh"
 #include "main-font-text.hh"
 
 /*
@@ -132,36 +133,5 @@ int
 main (int argc, char **argv)
 {
   auto main_func = main_font_text<subset_consumer_t, face_options_t, text_options_t>;
-
-  if (argc == 2 && !strcmp (argv[1], "--batch"))
-  {
-    unsigned int ret = 0;
-    char buf[4092];
-    while (fgets (buf, sizeof (buf), stdin))
-    {
-      size_t l = strlen (buf);
-      if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
-
-      char *args[32];
-      argc = 0;
-      char *p = buf, *e;
-      args[argc++] = p;
-      unsigned start_offset = 0;
-      while ((e = strchr (p + start_offset, ';')) && argc < (int) ARRAY_LENGTH (args))
-      {
-	*e++ = '\0';
-	while (*e == ':')
-	  e++;
-	args[argc++] = p = e;
-      }
-
-      int result = main_func (argc, args);
-      fprintf (stdout, result == 0 ? "success\n" : "failure\n");
-      fflush (stdout);
-      ret |= result;
-    }
-    return ret;
-  }
-
-  return main_func (argc, argv);
+  return batch_main<true> (main_func, argc, argv);
 }

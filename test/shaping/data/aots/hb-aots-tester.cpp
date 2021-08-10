@@ -171,7 +171,7 @@ bool gsub_test(const char *testName,
     sprintf (test_name, "../../tests/%.*s.tests", (int) (strrchr (testName, '_') - testName), testName);
     FILE *tests_file = fopen (test_name, "a+");
     if (!ok) fprintf (tests_file, "#");
-    fprintf (tests_file, "../fonts/%s:--features=\"", fontfileName + 9);
+    fprintf (tests_file, "../fonts/%s;--features=\"", fontfileName + 9);
     for (unsigned int i = 0; i < data.num_features; i++)
     {
         if (i != 0) fprintf (tests_file, ",");
@@ -179,7 +179,7 @@ bool gsub_test(const char *testName,
         hb_feature_to_string (&data.features[i], buf, sizeof (buf));
         fprintf (tests_file, "%s", buf);
     }
-    fprintf (tests_file, "\" --no-clusters --no-glyph-names --no-positions:");
+    fprintf (tests_file, "\" --no-clusters --no-glyph-names --no-positions;");
 
     for (unsigned int i = 0; i < nbIn; i++)
     {
@@ -187,7 +187,7 @@ bool gsub_test(const char *testName,
         fprintf (tests_file, "U+%04X", in[i]);
     }
 
-    fprintf (tests_file, ":[");
+    fprintf (tests_file, ";[");
     for (unsigned int i = 0; i < nbActual; i++)
     {
         if (i != 0) fprintf (tests_file, "|");
@@ -250,7 +250,7 @@ bool cmap_test(const char *testName,
     sprintf (test_name, "../../tests/%.*s.tests", (int) (strrchr (testName, '_') - testName), testName);
     FILE *tests_file = fopen (test_name, "a+");
     if (!ok) fprintf (tests_file, "#");
-    fprintf (tests_file, "../fonts/%s:--features=\"", fontfileName + 9);
+    fprintf (tests_file, "../fonts/%s;--features=\"", fontfileName + 9);
     for (unsigned int i = 0; i < data.num_features; i++)
     {
         if (i != 0) fprintf (tests_file, ",");
@@ -258,7 +258,7 @@ bool cmap_test(const char *testName,
         hb_feature_to_string (&data.features[i], buf, sizeof (buf));
         fprintf (tests_file, "%s", buf);
     }
-    fprintf (tests_file, "\" --no-clusters --no-glyph-names --no-positions --font-funcs=ot:");
+    fprintf (tests_file, "\" --no-clusters --no-glyph-names --no-positions --font-funcs=ot;");
 
     for (unsigned int i = 0; i < nbIn; i++)
     {
@@ -266,7 +266,7 @@ bool cmap_test(const char *testName,
         fprintf (tests_file, "U+%04X", in[i]);
     }
 
-    fprintf (tests_file, ":[");
+    fprintf (tests_file, ";[");
     for (unsigned int i = 0; i < nbActual; i++)
     {
         if (i != 0) fprintf (tests_file, "|");
@@ -380,7 +380,7 @@ bool gpos_test(const char *testName,
     sprintf (test_name, "../../tests/%.*s.tests", (int) (strrchr (testName, '_') - testName), testName);
     FILE *tests_file = fopen (test_name, "a+");
     if (!ok) fprintf (tests_file, "#");
-    fprintf (tests_file, "../fonts/%s:--features=\"", fontfileName + 9);
+    fprintf (tests_file, "../fonts/%s;--features=\"", fontfileName + 9);
     for (unsigned int i = 0; i < data.num_features; i++)
     {
         if (i != 0) fprintf (tests_file, ",");
@@ -388,7 +388,7 @@ bool gpos_test(const char *testName,
         hb_feature_to_string (&data.features[i], buf, sizeof (buf));
         fprintf (tests_file, "%s", buf);
     }
-    fprintf (tests_file, "\" --no-clusters --no-glyph-names --ned:");
+    fprintf (tests_file, "\" --no-clusters --no-glyph-names --ned;");
 
     for (unsigned int i = 0; i < nbIn; i++)
     {
@@ -396,7 +396,7 @@ bool gpos_test(const char *testName,
         fprintf (tests_file, "U+%04X", in[i]);
     }
 
-    fprintf (tests_file, ":[");
+    fprintf (tests_file, ";[");
     int accumlatedAdvance = 0;
     for (unsigned int i = 0; i < nbActual; i++)
     {

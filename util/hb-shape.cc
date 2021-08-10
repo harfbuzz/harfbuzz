@@ -30,6 +30,7 @@
 #include "text-options.hh"
 #include "shape-consumer.hh"
 #include "shape-format.hh"
+#include "batch.hh"
 #include "main-font-text.hh"
 
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
@@ -162,36 +163,5 @@ int
 main (int argc, char **argv)
 {
   auto main_func = main_font_text<shape_consumer_t<output_buffer_t>, font_options_t, text_options_t>;
-
-  if (argc == 2 && !strcmp (argv[1], "--batch"))
-  {
-    unsigned int ret = 0;
-    char buf[4092];
-    while (fgets (buf, sizeof (buf), stdin))
-    {
-      size_t l = strlen (buf);
-      if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
-
-      char *args[32];
-      argc = 0;
-      char *p = buf, *e;
-      args[argc++] = p;
-      unsigned start_offset = 0;
-      while ((e = strchr (p + start_offset, ':')) && argc < (int) ARRAY_LENGTH (args))
-      {
-	*e++ = '\0';
-	while (*e == ':')
-	  e++;
-	args[argc++] = p = e;
-	/* Skip 2 first bytes on first argument if is Windows path, "C:\..." */
-	start_offset = argc == 2 && p[0] != '\0' && p[0] != ':' && p[1] == ':' && (p[2] == '\\' || p[2] == '/') ? 2 : 0;
-      }
-
-      ret |= main_func (argc, args);
-      fflush (stdout);
-    }
-    return ret;
-  }
-
-  return main_func (argc, argv);
+  return batch_main<> (main_func, argc, argv);
 }

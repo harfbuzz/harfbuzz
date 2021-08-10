@@ -16,6 +16,7 @@ HB_VIEW_sources = \
 	$(NULL)
 
 HB_SHAPE_sources = \
+	batch.hh \
 	face-options.hh \
 	font-options.hh \
 	hb-shape.cc \
@@ -29,6 +30,7 @@ HB_SHAPE_sources = \
 	$(NULL)
 
 HB_SUBSET_CLI_sources = \
+	batch.hh \
 	face-options.hh \
 	hb-subset.cc \
 	main-font-text.hh \
