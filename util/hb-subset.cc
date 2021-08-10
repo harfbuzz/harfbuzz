@@ -155,7 +155,7 @@ main (int argc, char **argv)
 	args[argc++] = p = e;
       }
 
-      int result = main_func (argc, args, EOF);
+      int result = main_func (argc, args);
       fprintf (stdout, result == 0 ? "success\n" : "failure\n");
       fflush (stdout);
       ret |= result;
@@ -163,5 +163,5 @@ main (int argc, char **argv)
     return ret;
   }
 
-  return main_func (argc, argv, '\n');
+  return main_func (argc, argv);
 }

@@ -33,7 +33,7 @@
 
 template <typename consumer_t, typename font_options_t, typename text_options_t>
 int
-main_font_text (int argc, char **argv, int eol = '\n')
+main_font_text (int argc, char **argv)
 {
 
   font_options_t font_opts;
@@ -60,7 +60,7 @@ main_font_text (int argc, char **argv, int eol = '\n')
 
   unsigned int text_len;
   const char *text;
-  while ((text = input.get_line (&text_len, eol)))
+  while ((text = input.get_line (&text_len)))
     consumer.consume_line (text, text_len, input.text_before, input.text_after);
 
   consumer.finish (&font_opts);

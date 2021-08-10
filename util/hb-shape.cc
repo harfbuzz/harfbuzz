@@ -187,11 +187,11 @@ main (int argc, char **argv)
 	start_offset = argc == 2 && p[0] != '\0' && p[0] != ':' && p[1] == ':' && (p[2] == '\\' || p[2] == '/') ? 2 : 0;
       }
 
-      ret |= main_func (argc, args, EOF);
+      ret |= main_func (argc, args);
       fflush (stdout);
     }
     return ret;
   }
 
-  return main_func (argc, argv, '\n');
+  return main_func (argc, argv);
 }

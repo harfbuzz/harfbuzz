@@ -23,7 +23,7 @@ struct text_options_t
 		   "Only one of text and text-file can be set");
   }
 
-  const char *get_line (unsigned int *len, int eol = '\n');
+  const char *get_line (unsigned int *len);
 
   char *text_before = nullptr;
   char *text_after = nullptr;
@@ -35,8 +35,6 @@ struct text_options_t
   private:
   FILE *fp = nullptr;
   GString *gs = nullptr;
-  char *line = nullptr;
-  unsigned int line_len = UINT_MAX;
 };
 
 
@@ -118,41 +116,22 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 }
 
 const char *
-text_options_t::get_line (unsigned int *len, int eol)
+text_options_t::get_line (unsigned int *len)
 {
   if (text)
   {
-    if (!line)
+    if (text_len == -2)
     {
-      line = text;
-      line_len = text_len;
-    }
-    if (line_len == UINT_MAX)
-      line_len = strlen (line);
-
-    if (!line_len) {
       *len = 0;
       return nullptr;
     }
 
-    const char *ret = line;
-    const char *p = (const char *) memchr (line, eol, line_len);
-    unsigned int ret_len;
-    if (!p)
-    {
-      ret_len = line_len;
-      line += ret_len;
-      line_len = 0;
-    }
-    else
-    {
-      ret_len = p - ret;
-      line += ret_len + 1;
-      line_len -= ret_len + 1;
-    }
+    if (text_len == -1)
+      text_len = strlen (text);
 
-    *len = ret_len;
-    return ret;
+    *len = text_len;
+    text_len = -2;
+    return text;
   }
 
   if (!fp)
@@ -177,7 +156,7 @@ text_options_t::get_line (unsigned int *len, int eol)
   while (fgets (buf, sizeof (buf), fp))
   {
     unsigned bytes = strlen (buf);
-    if (bytes && (int) (unsigned char) buf[bytes - 1] == eol)
+    if (bytes && buf[bytes - 1] == '\n')
     {
       bytes--;
       g_string_append_len (gs, buf, bytes);
