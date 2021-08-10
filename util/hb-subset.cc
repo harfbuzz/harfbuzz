@@ -50,7 +50,6 @@ struct subset_consumer_t : subset_options_t, output_options_t
   void init (const face_options_t *face_opts)
   {
     face = hb_face_reference (face_opts->get_face ());
-    input = hb_subset_input_reference (get_input ());
   }
 
   void consume_line (const char   *text,
@@ -117,7 +116,6 @@ struct subset_consumer_t : subset_options_t, output_options_t
       hb_blob_destroy (result);
     }
 
-    hb_subset_input_destroy (input);
     hb_face_destroy (new_face);
     hb_face_destroy (face);
   }
@@ -126,7 +124,6 @@ struct subset_consumer_t : subset_options_t, output_options_t
   bool failed = false;
 
   hb_face_t *face = nullptr;
-  hb_subset_input_t *input = nullptr;
 };
 
 int

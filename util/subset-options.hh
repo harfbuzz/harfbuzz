@@ -42,11 +42,6 @@ struct subset_options_t
 
   void add_options (option_parser_t *parser);
 
-  hb_subset_input_t * get_input ()
-  {
-    return input;
-  }
-
   unsigned num_iterations = 1;
   hb_subset_input_t *input = nullptr;
 };
