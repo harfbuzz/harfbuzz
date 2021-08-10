@@ -509,8 +509,8 @@ struct glyf
       const Glyph trim_padding () const
       {
 	/* based on FontTools _g_l_y_f.py::trim */
-	const char *glyph = bytes.arrayZ;
-	const char *glyph_end = glyph + bytes.length;
+	const uint8_t *glyph = (uint8_t*) bytes.arrayZ;
+	const uint8_t *glyph_end = glyph + bytes.length;
 	/* simple glyph w/contours, possibly trimmable */
 	glyph += instruction_len_offset ();
 
