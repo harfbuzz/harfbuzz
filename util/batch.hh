@@ -40,19 +40,17 @@ batch_main (main_func_t main_func, int argc, char **argv)
       size_t l = strlen (buf);
       if (l && buf[l - 1] == '\n') buf[l - 1] = '\0';
 
-      char *args[32];
+      char *args[64];
       argc = 0;
+      args[argc++] = argv[0];
       char *p = buf, *e;
       args[argc++] = p;
-      unsigned start_offset = 0;
-      while ((e = strchr (p + start_offset, ':')) && argc < (int) ARRAY_LENGTH (args))
+      while ((e = strchr (p, ';')) && argc < (int) ARRAY_LENGTH (args))
       {
 	*e++ = '\0';
-	while (*e == ':')
+	while (*e == ';')
 	  e++;
 	args[argc++] = p = e;
-	/* UGH. Skip 2 first bytes on first argument if is Windows path, "C:\..." */
-	start_offset = argc == 2 && p[0] != '\0' && p[0] != ':' && p[1] == ':' && (p[2] == '\\' || p[2] == '/') ? 2 : 0;
       }
 
       int result = main_func (argc, args);

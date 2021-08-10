@@ -2,10 +2,10 @@
 
 import sys, os, subprocess, hashlib
 
-def cmd(command):
-	print (" ".join(command))
-	global process
-	process.stdin.write ((':'.join (command) + '\n').encode ("utf-8"))
+def shape_cmd(command):
+	global hb_shape, process
+	print (hb_shape + ' ' + " ".join(command))
+	process.stdin.write ((';'.join (command) + '\n').encode ("utf-8"))
 	process.stdin.flush ()
 	return process.stdout.readline().decode ("utf-8").strip ()
 
@@ -54,7 +54,7 @@ for filename in args:
 		if not line:
 			continue
 
-		fontfile, options, unicodes, glyphs_expected = line.split (":")
+		fontfile, options, unicodes, glyphs_expected = line.split (';')
 		options = options.split ()
 		if fontfile.startswith ('/') or fontfile.startswith ('"/'):
 			if os.name == 'nt': # Skip on Windows
@@ -92,10 +92,10 @@ for filename in args:
 			continue
 
 		if "--font-funcs=ot" in options or not have_freetype:
-			glyphs1 = cmd ([hb_shape, fontfile, "--font-funcs=ot"] + extra_options + ["--unicodes", unicodes] + options)
+			glyphs1 = shape_cmd ([fontfile, "--font-funcs=ot"] + extra_options + ["--unicodes", unicodes] + options)
 		else:
-			glyphs1 = cmd ([hb_shape, fontfile, "--font-funcs=ft"] + extra_options + ["--unicodes", unicodes] + options)
-			glyphs2 = cmd ([hb_shape, fontfile, "--font-funcs=ot"] + extra_options + ["--unicodes", unicodes] + options)
+			glyphs1 = shape_cmd ([fontfile, "--font-funcs=ft"] + extra_options + ["--unicodes", unicodes] + options)
+			glyphs2 = shape_cmd ([fontfile, "--font-funcs=ot"] + extra_options + ["--unicodes", unicodes] + options)
 
 			if glyphs1 != glyphs2 and glyphs_expected != '*':
 				print ("FT funcs: " + glyphs1, file=sys.stderr)
