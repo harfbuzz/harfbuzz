@@ -127,6 +127,7 @@ font_options_t::get_font () const
 	  g_string_append_c (s, '/');
 	g_string_append (s, supported_font_funcs[i].name);
       }
+      g_string_append_c (s, '\n');
       char *p = g_string_free (s, FALSE);
       fail (false, "Unknown font function implementation `%s'; supported values are: %s; default is %s",
 	    font_funcs,
@@ -289,7 +290,7 @@ font_options_t::add_options (option_parser_t *parser)
     "    number. For example:\n"
     "\n"
     "      \"wght=500\"\n"
-    "      \"slnt=-7.5\"\n";
+    "      \"slnt=-7.5\"";
 
   GOptionEntry entries2[] =
   {
