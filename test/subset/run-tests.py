@@ -24,7 +24,7 @@ ots_sanitize = shutil.which ("ots-sanitize")
 
 def subset_cmd (command):
 	global process
-	process.stdin.write ((';'.join (command) + '\n').encode ("utf-8"))
+	process.stdin.write ((':'.join (command) + '\n').encode ("utf-8"))
 	process.stdin.flush ()
 	return process.stdout.readline().decode ("utf-8").strip ()
 
