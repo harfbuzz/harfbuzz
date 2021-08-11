@@ -28,7 +28,7 @@ def strip_check_sum (ttx_string):
 
 
 def generate_expected_output(input_file, unicodes, profile_flags, output_directory, font_name):
-	fonttools_path = os.path.join(output_directory, font_name)
+	fonttools_path = os.path.join(tempfile.mkdtemp (), font_name)
 	args = ["fonttools", "subset", input_file]
 	args.extend(["--drop-tables+=DSIG",
 		     "--drop-tables-=sbix",
@@ -57,7 +57,7 @@ def generate_expected_output(input_file, unicodes, profile_flags, output_directo
 		harfbuzz_ttx = strip_check_sum (fp.getvalue ())
 
 	if harfbuzz_ttx != fonttools_ttx:
-		for line in unified_diff (fonttools_ttx.splitlines (1), harfbuzz_ttx.splitlines (1)):
+		for line in unified_diff (fonttools_ttx.splitlines (1), harfbuzz_ttx.splitlines (1), fonttools_path, harfbuzz_path):
 			sys.stdout.write (line)
 		sys.stdout.flush ()
 		raise Exception ('ttx for fonttools and harfbuzz does not match.')
