@@ -114,5 +114,5 @@ struct shape_closure_consumer_t
 int
 main (int argc, char **argv)
 {
-  return main_font_text<shape_closure_consumer_t, font_options_t, text_options_t> () (argc, argv);
+  return main_font_text_t<shape_closure_consumer_t, font_options_t, text_options_t> () (argc, argv);
 }

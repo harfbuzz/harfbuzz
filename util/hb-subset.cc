@@ -129,6 +129,6 @@ struct subset_consumer_t : subset_options_t, output_options_t
 int
 main (int argc, char **argv)
 {
-  using main_t = main_font_text<subset_consumer_t, face_options_t, text_options_t>;
+  using main_t = main_font_text_t<subset_consumer_t, face_options_t, text_options_t>;
   return batch_main<main_t, true> (argc, argv);
 }

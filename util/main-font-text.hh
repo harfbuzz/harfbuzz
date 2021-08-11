@@ -32,7 +32,7 @@
 /* main() body for utilities taking font and processing text.*/
 
 template <typename consumer_t, typename font_options_t, typename text_options_t>
-struct main_font_text : font_options_t, text_options_t, consumer_t
+struct main_font_text_t : font_options_t, text_options_t, consumer_t
 {
   void add_options (struct option_parser_t *parser)
   {
