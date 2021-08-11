@@ -132,12 +132,52 @@ test_ot_layout_table_get_feature_tags (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_layout_script_get_language_tags (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/Estedad-VF.ttf");
+
+  unsigned int total = 0;
+  unsigned int count = STATIC_ARRAY_SIZE;
+  unsigned int offset = 0;
+  hb_tag_t tags[STATIC_ARRAY_SIZE];
+  while (count == STATIC_ARRAY_SIZE)
+  {
+    total = hb_ot_layout_script_get_language_tags (face, HB_OT_TAG_GSUB, 0, offset, &count, tags);
+    g_assert_cmpuint (2, ==, total);
+    offset += count;
+    if (count)
+    {
+      g_assert_cmpuint (2, ==, count);
+      g_assert_cmpuint (HB_TAG ('F','A','R',' '), ==, tags[0]);
+      g_assert_cmpuint (HB_TAG ('K','U','R',' '), ==, tags[1]);
+    }
+  }
+  count = STATIC_ARRAY_SIZE;
+  offset = 0;
+  while (count == STATIC_ARRAY_SIZE)
+  {
+    total = hb_ot_layout_script_get_language_tags (face, HB_OT_TAG_GPOS, 1, offset, &count, tags);
+    g_assert_cmpuint (2, ==, total);
+    offset += count;
+    if (count)
+    {
+      g_assert_cmpuint (2, ==, count);
+      g_assert_cmpuint (HB_TAG ('F','A','R',' '), ==, tags[0]);
+      g_assert_cmpuint (HB_TAG ('K','U','R',' '), ==, tags[1]);
+    }
+  }
+
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_ot_layout_table_get_script_tags);
   hb_test_add (test_ot_layout_table_find_script);
+  hb_test_add (test_ot_layout_script_get_language_tags);
   hb_test_add (test_ot_layout_table_get_feature_tags);
   return hb_test_run ();
 }
