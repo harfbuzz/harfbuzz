@@ -46,7 +46,7 @@ namespace OT {
 #define HB_OT_TAG_loca HB_TAG('l','o','c','a')
 
 #ifndef HB_MAX_COMPOSITE_OPERATIONS
-#define HB_MAX_COMPOSITE_OPERATIONS 1000000
+#define HB_MAX_COMPOSITE_OPERATIONS 100000
 #endif
 
 
@@ -397,9 +397,12 @@ struct glyf
   {
     typedef const CompositeGlyphChain *__item_t__;
     composite_iter_t (hb_bytes_t glyph_, __item_t__ current_) :
-      glyph (glyph_), current (current_)
-    { if (!check_range (current)) current = nullptr; }
-    composite_iter_t () : glyph (hb_bytes_t ()), current (nullptr) {}
+        glyph (glyph_), current (nullptr), current_size (0)
+    {
+      set_next (current_);
+    }
+
+    composite_iter_t () : glyph (hb_bytes_t ()), current (nullptr), current_size (0) {}
 
     const CompositeGlyphChain &__item__ () const { return *current; }
     bool __more__ () const { return current; }
@@ -407,23 +410,36 @@ struct glyf
     {
       if (!current->has_more ()) { current = nullptr; return; }
 
-      const CompositeGlyphChain *possible = &StructAfter<CompositeGlyphChain,
-							 CompositeGlyphChain> (*current);
-      if (!check_range (possible)) { current = nullptr; return; }
-      current = possible;
+      set_next (&StructAtOffset<CompositeGlyphChain> (current, current_size));
     }
     bool operator != (const composite_iter_t& o) const
     { return glyph != o.glyph || current != o.current; }
 
-    bool check_range (const CompositeGlyphChain *composite) const
+
+    void set_next (const CompositeGlyphChain *composite)
     {
-      return glyph.check_range (composite, CompositeGlyphChain::min_size)
-	  && glyph.check_range (composite, composite->get_size ());
+      if (!glyph.check_range (composite, CompositeGlyphChain::min_size))
+      {
+        current = nullptr;
+        current_size = 0;
+        return;
+      }
+      unsigned size = composite->get_size ();
+      if (!glyph.check_range (composite, size))
+      {
+        current = nullptr;
+        current_size = 0;
+        return;
+      }
+
+      current = composite;
+      current_size = size;
     }
 
     private:
     hb_bytes_t glyph;
     __item_t__ current;
+    unsigned current_size;
   };
 
   enum phantom_point_index_t
@@ -1098,9 +1114,13 @@ struct glyf
 
       gids_to_retain->add (gid);
 
-      for (auto &item : glyph_for_gid (gid).get_composite_iterator ())
-	operation_count +=
-	    add_gid_and_children (item.get_glyph_index (), gids_to_retain, depth, operation_count);
+      auto it = glyph_for_gid (gid).get_composite_iterator ();
+      while (it)
+      {
+        auto item = *(it++);
+        operation_count +=
+            add_gid_and_children (item.get_glyph_index (), gids_to_retain, depth, operation_count);
+      }
 
       return operation_count;
     }
