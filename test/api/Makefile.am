@@ -46,6 +46,7 @@ TEST_PROGS = \
 	test-ot-face \
 	test-ot-glyphname \
 	test-ot-ligature-carets \
+	test-ot-layout \
 	test-ot-name \
 	test-ot-meta \
 	test-ot-metrics \
