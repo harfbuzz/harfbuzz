@@ -92,9 +92,7 @@ struct option_parser_t
   : usage_str (usage),
     context (g_option_context_new (usage)),
     to_free (g_ptr_array_new ())
-  {
-    add_main_options ();
-  }
+  {}
 
   static void _g_free_g_func (void *p, void * G_GNUC_UNUSED) { g_free (p); }
 
@@ -203,6 +201,8 @@ option_parser_t::add_main_options ()
 inline void
 option_parser_t::parse (int *argc, char ***argv)
 {
+  add_main_options ();
+
   setlocale (LC_ALL, "");
 
   GError *parse_error = nullptr;
