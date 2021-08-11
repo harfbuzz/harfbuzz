@@ -91,11 +91,53 @@ test_ot_layout_table_find_script (void)
   hb_face_destroy (face);
 }
 
+static void
+test_ot_layout_table_get_feature_tags (void)
+{
+  hb_face_t *face = hb_test_open_font_file ("fonts/NotoNastaliqUrdu-Regular.ttf");
+
+  unsigned int total = 0;
+  unsigned int count = STATIC_ARRAY_SIZE;
+  unsigned int offset = 0;
+  hb_tag_t tags[STATIC_ARRAY_SIZE];
+  while (count == STATIC_ARRAY_SIZE)
+  {
+    total = hb_ot_layout_table_get_feature_tags (face, HB_OT_TAG_GSUB, offset, &count, tags);
+    g_assert_cmpuint (14, ==, total);
+    offset += count;
+    if (count)
+    {
+      g_assert_cmpuint (14, ==, count);
+      g_assert_cmpuint (HB_TAG ('c','c','m','p'), ==, tags[0]);
+      g_assert_cmpuint (HB_TAG ('i','s','o','l'), ==, tags[10]);
+      g_assert_cmpuint (HB_TAG ('r','l','i','g'), ==, tags[13]);
+    }
+  }
+  count = STATIC_ARRAY_SIZE;
+  offset = 0;
+  while (count == STATIC_ARRAY_SIZE)
+  {
+    total = hb_ot_layout_table_get_feature_tags (face, HB_OT_TAG_GPOS, offset, &count, tags);
+    g_assert_cmpuint (3, ==, total);
+    offset += count;
+    if (count)
+    {
+      g_assert_cmpuint (3, ==, count);
+      g_assert_cmpuint (HB_TAG ('c','u','r','s'), ==, tags[0]);
+      g_assert_cmpuint (HB_TAG ('m','a','r','k'), ==, tags[1]);
+      g_assert_cmpuint (HB_TAG ('m','k','m','k'), ==, tags[2]);
+    }
+  }
+
+  hb_face_destroy (face);
+}
+
 int
 main (int argc, char **argv)
 {
   hb_test_init (&argc, &argv);
   hb_test_add (test_ot_layout_table_get_script_tags);
   hb_test_add (test_ot_layout_table_find_script);
+  hb_test_add (test_ot_layout_table_get_feature_tags);
   return hb_test_run ();
 }
