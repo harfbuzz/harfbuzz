@@ -103,7 +103,7 @@ struct option_parser_t
     g_ptr_array_free (to_free, TRUE);
   }
 
-  void add_main_options ();
+  void add_options ();
 
   static void
   post_parse_ (void *thiz, GError **error) {}
@@ -187,7 +187,7 @@ show_version (const char *name G_GNUC_UNUSED,
 }
 
 inline void
-option_parser_t::add_main_options ()
+option_parser_t::add_options ()
 {
   GOptionEntry entries[] =
   {
@@ -201,7 +201,7 @@ option_parser_t::add_main_options ()
 inline void
 option_parser_t::parse (int *argc, char ***argv)
 {
-  add_main_options ();
+  add_options ();
 
   setlocale (LC_ALL, "");
 
