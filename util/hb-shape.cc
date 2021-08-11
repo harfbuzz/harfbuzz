@@ -162,6 +162,6 @@ struct output_buffer_t : output_options_t
 int
 main (int argc, char **argv)
 {
-  auto main_func = main_font_text<shape_consumer_t<output_buffer_t>, font_options_t, text_options_t>;
-  return batch_main<> (main_func, argc, argv);
+  using main_t = main_font_text<shape_consumer_t<output_buffer_t>, font_options_t, text_options_t>;
+  return batch_main<main_t> (argc, argv);
 }

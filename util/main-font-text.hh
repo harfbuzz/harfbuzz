@@ -32,40 +32,43 @@
 /* main() body for utilities taking font and processing text.*/
 
 template <typename consumer_t, typename font_options_t, typename text_options_t>
-int
-main_font_text (int argc, char **argv)
+struct main_font_text : font_options_t, text_options_t, consumer_t
 {
+  void add_options (struct option_parser_t *parser)
+  {
+    font_options_t::add_options (parser);
+    text_options_t::add_options (parser);
+    consumer_t::add_options (parser);
+  }
 
-  font_options_t font_opts;
-  text_options_t input;
-  consumer_t consumer;
+  int
+  operator () (int argc, char **argv)
+  {
+    option_parser_t options ("[FONT-FILE] [TEXT]");
+    add_options (&options);
+    options.parse (&argc, &argv);
 
-  option_parser_t options ("[FONT-FILE] [TEXT]");
-  font_opts.add_options (&options);
-  input.add_options (&options);
-  consumer.add_options (&options);
-  options.parse (&argc, &argv);
+    argc--, argv++;
+    if (argc && !this->font_file) this->font_file = locale_to_utf8 (argv[0]), argc--, argv++;
+    if (argc && !this->text && !this->text_file) this->text = locale_to_utf8 (argv[0]), argc--, argv++;
+    if (argc)
+      fail (true, "Too many arguments on the command line");
+    if (!this->font_file)
+      options.usage ();
+    if (!this->text && !this->text_file)
+      this->text_file = g_strdup ("-");
 
-  argc--, argv++;
-  if (argc && !font_opts.font_file) font_opts.font_file = locale_to_utf8 (argv[0]), argc--, argv++;
-  if (argc && !input.text && !input.text_file) input.text = locale_to_utf8 (argv[0]), argc--, argv++;
-  if (argc)
-    fail (true, "Too many arguments on the command line");
-  if (!font_opts.font_file)
-    options.usage ();
-  if (!input.text && !input.text_file)
-    input.text_file = g_strdup ("-");
+    this->init (this);
 
-  consumer.init (&font_opts);
+    unsigned int line_len;
+    const char *line;
+    while ((line = this->get_line (&line_len)))
+      this->consume_line (line, line_len, this->text_before, this->text_after);
 
-  unsigned int text_len;
-  const char *text;
-  while ((text = input.get_line (&text_len)))
-    consumer.consume_line (text, text_len, input.text_before, input.text_after);
+    this->finish (this);
 
-  consumer.finish (&font_opts);
-
-  return consumer.failed ? 1 : 0;
-}
+    return this->failed ? 1 : 0;
+  }
+};
 
 #endif
