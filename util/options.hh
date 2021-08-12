@@ -73,8 +73,7 @@ fail (hb_bool_t suggest_help, const char *format, ...)
 struct option_parser_t
 {
   option_parser_t (const char *usage = nullptr)
-  : usage_str (usage),
-    context (g_option_context_new (usage)),
+  : context (g_option_context_new (usage)),
     to_free (g_ptr_array_new ())
   {}
 
@@ -137,13 +136,7 @@ struct option_parser_t
 
   void parse (int *argc, char ***argv);
 
-  G_GNUC_NORETURN void usage () {
-    g_printerr ("Usage: %s [OPTION...] %s\n", g_get_prgname (), usage_str);
-    exit (1);
-  }
-
   protected:
-  const char *usage_str;
   GOptionContext *context;
   GPtrArray *to_free;
 };
