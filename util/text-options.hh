@@ -1,6 +1,9 @@
 
 struct text_options_t
 {
+  text_options_t ()
+  : gs (g_string_new (nullptr))
+  {}
   ~text_options_t ()
   {
     g_free (text_before);
@@ -17,13 +20,29 @@ struct text_options_t
 
   void post_parse (GError **error G_GNUC_UNUSED)
   {
-    if (!this->text && !this->text_file)
-      this->text_file = g_strdup ("-");
+    if (!text && !text_file)
+      text_file = g_strdup ("-");
 
     if (text && text_file)
+    {
       g_set_error (error,
 		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Only one of text and text-file can be set");
+      return;
+    }
+
+    if (text_file)
+    {
+      if (0 != strcmp (text_file, "-"))
+	fp = fopen (text_file, "r");
+      else
+	fp = stdin;
+
+      if (!fp)
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		     "Failed opening text file `%s': %s",
+		     text_file, strerror (errno));
+    }
   }
 
   const char *get_line (unsigned int *len);
@@ -135,22 +154,6 @@ text_options_t::get_line (unsigned int *len)
     *len = text_len;
     text_len = -2;
     return text;
-  }
-
-  if (!fp)
-  {
-    assert (text_file);
-
-    if (0 != strcmp (text_file, "-"))
-      fp = fopen (text_file, "r");
-    else
-      fp = stdin;
-
-    if (!fp)
-      fail (false, "Failed opening text file `%s': %s",
-	    text_file, strerror (errno));
-
-    gs = g_string_new (nullptr);
   }
 
   g_string_set_size (gs, 0);
