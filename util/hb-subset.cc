@@ -586,6 +586,8 @@ subset_main_t::collect_rest (const char *name,
 void
 subset_main_t::add_options ()
 {
+  set_summary ("Subset fonts to specification.");
+
   face_options_t::add_options (this);
 
   GOptionEntry glyphset_entries[] =

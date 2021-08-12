@@ -72,8 +72,8 @@ fail (hb_bool_t suggest_help, const char *format, ...)
 
 struct option_parser_t
 {
-  option_parser_t (const char *usage = nullptr)
-  : context (g_option_context_new (usage)),
+  option_parser_t (const char *parameter_string = nullptr)
+  : context (g_option_context_new (parameter_string)),
     to_free (g_ptr_array_new ())
   {}
 
@@ -128,6 +128,15 @@ struct option_parser_t
     g_option_group_add_entries (group, entries);
     g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
     g_option_context_set_main_group (context, group);
+  }
+
+  void set_summary (const char *summary)
+  {
+    g_option_context_set_summary (context, summary);
+  }
+  void set_description (const char *description)
+  {
+    g_option_context_set_description (context, description);
   }
 
   void free_later (char *p) {

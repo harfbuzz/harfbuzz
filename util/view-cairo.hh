@@ -40,6 +40,7 @@ struct view_cairo_t : view_options_t, output_options_t<>
 
   void add_options (option_parser_t *parser)
   {
+    parser->set_summary ("View text with given font.");
     view_options_t::add_options (parser);
     output_options_t::add_options (parser, helper_cairo_supported_formats);
   }

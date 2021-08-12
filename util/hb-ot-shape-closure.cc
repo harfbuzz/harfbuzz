@@ -37,6 +37,7 @@ struct shape_closure_consumer_t
 {
   void add_options (struct option_parser_t *parser)
   {
+    parser->set_summary ("Find glyph set from input text under shaping closure.");
     shaper.add_options (parser);
 
     GOptionEntry entries[] =
