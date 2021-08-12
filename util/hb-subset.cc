@@ -46,8 +46,37 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     hb_subset_input_destroy (input);
   }
 
+  void parse_face (int argc, const char * const *argv)
+  {
+    option_parser_t parser;
+    face_options_t face_opts;
+
+    face_opts.add_options (&parser);
+
+    GOptionEntry entries[] =
+    {
+      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_face,	nullptr,	"[FONT-FILE] [TEXT]"},
+      {nullptr}
+    };
+    parser.add_main_group (entries, &face_opts);
+
+    g_option_context_set_ignore_unknown_options (parser.context, true);
+    g_option_context_set_help_enabled (parser.context, false);
+
+    char **args = (char **) g_memdup (argv, argc * sizeof (*argv));
+    parser.parse (&argc, &args, true);
+    g_free (args);
+
+    set_face (face_opts.face);
+  }
+
   void parse (int argc, char **argv)
   {
+    /* Do a preliminary parse to load font-face, such that we can use it
+     * during main option parsing. */
+    parse_face (argc, argv);
+
     add_options ();
     option_parser_t::parse (&argc, &argv);
   }
@@ -102,6 +131,11 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   void post_parse (GError **error);
 
   protected:
+  static gboolean
+  collect_face (const char *name,
+		const char *arg,
+		gpointer    data,
+		GError    **error);
   static gboolean
   collect_rest (const char *name,
 		const char *arg,
@@ -561,6 +595,23 @@ parse_file_for (const char *name,
   while (!feof (fp));
 
   g_string_free (gs, false);
+
+  return true;
+}
+
+gboolean
+subset_main_t::collect_face (const char *name,
+			     const char *arg,
+			     gpointer    data,
+			     GError    **error)
+{
+  face_options_t *thiz = (face_options_t *) data;
+
+  if (!thiz->font_file)
+  {
+    thiz->font_file = g_strdup (arg);
+    return true;
+  }
 
   return true;
 }
