@@ -100,7 +100,7 @@ view_cairo_t::render (const font_options_t *font_opts)
   int x_sign = font_opts->font_size_x < 0 ? -1 : +1;
   int y_sign = font_opts->font_size_y < 0 ? -1 : +1;
 
-  hb_font_t *font = font_opts->get_font();
+  hb_font_t *font = font_opts->font;
 
   if (!have_font_extents)
   {

@@ -42,7 +42,7 @@ struct shape_consumer_t : shape_options_t
 
   void init (const font_options_t *font_opts)
   {
-    font = hb_font_reference (font_opts->get_font ());
+    font = hb_font_reference (font_opts->font);
     failed = false;
     buffer = hb_buffer_create ();
 

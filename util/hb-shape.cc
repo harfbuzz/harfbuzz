@@ -49,7 +49,7 @@ struct output_buffer_t : output_options_t
     get_file_handle ();
     gs = g_string_new (nullptr);
     line_no = 0;
-    font = hb_font_reference (font_opts->get_font ());
+    font = hb_font_reference (font_opts->font);
 
     if (!output_format)
       serialize_format = HB_BUFFER_SERIALIZE_FORMAT_TEXT;

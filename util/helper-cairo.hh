@@ -79,7 +79,7 @@ void free_ft_library ()
 static inline cairo_scaled_font_t *
 helper_cairo_create_scaled_font (const font_options_t *font_opts)
 {
-  hb_font_t *font = hb_font_reference (font_opts->get_font ());
+  hb_font_t *font = hb_font_reference (font_opts->font);
 
   cairo_font_face_t *cairo_face;
   /* We cannot use the FT_Face from hb_font_t, as doing so will confuse hb_font_t because

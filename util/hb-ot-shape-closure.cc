@@ -57,7 +57,7 @@ struct shape_closure_consumer_t
   void init (const font_options_t *font_opts)
   {
     glyphs = hb_set_create ();
-    font = hb_font_reference (font_opts->get_font ());
+    font = hb_font_reference (font_opts->font);
     failed = false;
     buffer = hb_buffer_create ();
   }
