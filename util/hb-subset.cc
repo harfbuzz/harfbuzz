@@ -52,17 +52,19 @@ struct subset_consumer_t : subset_options_t, output_options_t
     face = hb_face_reference (face_opts->face);
   }
 
-  void consume_line (const char   *text,
-		     unsigned int  text_len,
-		     const char   *text_before,
-		     const char   *text_after)
+  bool consume_line (text_options_t &text_opts)
   {
+    unsigned int text_len;
+    const char *text;
+    if (!(text = text_opts.get_line (&text_len)))
+      return false;
+
     // TODO does this only get called with at least 1 codepoint?
     hb_set_t *codepoints = hb_subset_input_unicode_set (input);
     if (0 == strcmp (text, "*"))
     {
       hb_face_collect_unicodes (face, codepoints);
-      return;
+      return true;
     }
 
     gchar *c = (gchar *)text;
@@ -71,6 +73,8 @@ struct subset_consumer_t : subset_options_t, output_options_t
       hb_codepoint_t hb_cp = cp;
       hb_set_add (codepoints, hb_cp);
     } while ((c = g_utf8_find_next_char(c, text + text_len)));
+
+    return true;
   }
 
   hb_bool_t

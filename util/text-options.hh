@@ -1,3 +1,33 @@
+/*
+ * Copyright © 2011  Google, Inc.
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Google Author(s): Behdad Esfahbod
+ */
+
+#ifndef TEXT_OPTIONS_HH
+#define TEXT_OPTIONS_HH
+
+#include "options.hh"
 
 struct text_options_t
 {
@@ -6,8 +36,6 @@ struct text_options_t
   {}
   ~text_options_t ()
   {
-    g_free (text_before);
-    g_free (text_after);
     g_free (text);
     g_free (text_file);
     if (gs)
@@ -47,9 +75,6 @@ struct text_options_t
 
   const char *get_line (unsigned int *len);
 
-  char *text_before = nullptr;
-  char *text_after = nullptr;
-
   int text_len = -1;
   char *text = nullptr;
   char *text_file = nullptr;
@@ -57,6 +82,20 @@ struct text_options_t
   private:
   FILE *fp = nullptr;
   GString *gs = nullptr;
+};
+
+struct shape_text_options_t : text_options_t
+{
+  ~shape_text_options_t ()
+  {
+    g_free (text_before);
+    g_free (text_after);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  char *text_before = nullptr;
+  char *text_after = nullptr;
 };
 
 
@@ -182,9 +221,7 @@ text_options_t::add_options (option_parser_t *parser)
   {
     {"text",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_text,		"Set input text",			"string"},
     {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name",		"filename"},
-    {"unicodes",      'u', 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,	"Set input Unicode codepoints\n\n    If no text is provided, standard input is used for input.\n",		"list of hex numbers"},
-    {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
-    {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
+    {"unicodes",      'u', 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,	"Set input Unicode codepoints\n\n    If no text is provided, standard input is used for input.",		"list of hex numbers"},
     {nullptr}
   };
   parser->add_group (entries,
@@ -193,3 +230,23 @@ text_options_t::add_options (option_parser_t *parser)
 		     "Options for the input text",
 		     this);
 }
+
+void
+shape_text_options_t::add_options (option_parser_t *parser)
+{
+  text_options_t::add_options (parser);
+
+  GOptionEntry entries[] =
+  {
+    {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
+    {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
+    {nullptr}
+  };
+  parser->add_group (entries,
+		     "text-context",
+		     "Textual context options:",
+		     "Options for the input context text",
+		     this);
+}
+
+#endif

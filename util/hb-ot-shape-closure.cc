@@ -61,16 +61,19 @@ struct shape_closure_consumer_t
     failed = false;
     buffer = hb_buffer_create ();
   }
-  void consume_line (const char   *text,
-		     unsigned int  text_len,
-		     const char   *text_before,
-		     const char   *text_after)
+  template <typename text_options_t>
+  bool consume_line (text_options_t &text_opts)
   {
+    unsigned int text_len;
+    const char *text;
+    if (!(text = text_opts.get_line (&text_len)))
+      return false;
+
     hb_set_clear (glyphs);
     shaper.shape_closure (text, text_len, font, buffer, glyphs);
 
     if (hb_set_is_empty (glyphs))
-      return;
+      return true;
 
     /* Print it out! */
     bool first = true;
@@ -88,6 +91,8 @@ struct shape_closure_consumer_t
       } else
 	printf ("%u", i);
     }
+
+    return true;
   }
   void finish (const font_options_t *font_opts)
   {

@@ -41,10 +41,8 @@ struct main_font_text_t : option_parser_t, font_options_t, text_options_t, consu
 
     this->init (this);
 
-    unsigned int line_len;
-    const char *line;
-    while ((line = this->get_line (&line_len)))
-      this->consume_line (line, line_len, this->text_before, this->text_after);
+    while (this->consume_line (*this))
+      ;
 
     this->finish (this);
 
