@@ -96,7 +96,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   void add_options ();
 
   public:
-  void post_parse (GError **error G_GNUC_UNUSED);
+  void post_parse (GError **error);
 
   protected:
   static gboolean
@@ -119,7 +119,7 @@ static gboolean
 parse_gids (const char *name G_GNUC_UNUSED,
 	    const char *arg,
 	    gpointer    data,
-	    GError    **error G_GNUC_UNUSED)
+	    GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
@@ -222,7 +222,7 @@ static gboolean
 parse_unicodes (const char *name G_GNUC_UNUSED,
 		const char *arg,
 		gpointer    data,
-		GError    **error G_GNUC_UNUSED)
+		GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
 
@@ -267,7 +267,7 @@ static gboolean
 parse_nameids (const char *name,
 	       const char *arg,
 	       gpointer    data,
-	       GError    **error G_GNUC_UNUSED)
+	       GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_set_t *name_ids = hb_subset_input_nameid_set (subset_main->input);
@@ -323,7 +323,7 @@ static gboolean
 parse_name_languages (const char *name,
 		      const char *arg,
 		      gpointer    data,
-		      GError    **error G_GNUC_UNUSED)
+		      GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_set_t *name_languages = hb_subset_input_namelangid_set (subset_main->input);
@@ -445,7 +445,7 @@ static gboolean
 parse_drop_tables (const char *name,
 		   const char *arg,
 		   gpointer    data,
-		   GError    **error G_GNUC_UNUSED)
+		   GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_set_t *drop_tables = hb_subset_input_drop_tables_set (subset_main->input);
@@ -478,6 +478,71 @@ parse_drop_tables (const char *name,
   return true;
 }
 
+template <GOptionArgFunc line_parser, bool allow_comments=true>
+static gboolean
+parse_file_for (const char *name,
+		const char *arg,
+		gpointer    data,
+		GError    **error)
+{
+  FILE *fp = nullptr;
+  if (0 != strcmp (arg, "-"))
+    fp = fopen (arg, "r");
+  else
+    fp = stdin;
+
+  if (!fp)
+  {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		 "Failed opening file `%s': %s",
+		 arg, strerror (errno));
+    return false;
+  }
+
+  GString *gs = g_string_new (nullptr);
+  do
+  {
+    g_string_set_size (gs, 0);
+    char buf[BUFSIZ];
+    while (fgets (buf, sizeof (buf), fp))
+    {
+      unsigned bytes = strlen (buf);
+      if (bytes && buf[bytes - 1] == '\n')
+      {
+	bytes--;
+	g_string_append_len (gs, buf, bytes);
+	break;
+      }
+      g_string_append_len (gs, buf, bytes);
+    }
+    if (ferror (fp))
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		   "Failed reading file `%s': %s",
+		   arg, strerror (errno));
+      return false;
+    }
+    g_string_append_c (gs, '\0');
+
+    if (allow_comments)
+    {
+      char *comment = strchr (gs->str, '#');
+      if (comment)
+        *comment = '\0';
+    }
+
+    line_parser (name, gs->str, data, error);
+
+    if (*error)
+      break;
+  }
+  while (!feof (fp));
+
+  g_string_free (gs, false);
+
+  return true;
+}
+
 gboolean
 subset_main_t::collect_rest (const char *name,
 			     const char *arg,
@@ -503,14 +568,14 @@ subset_main_t::add_options ()
 
   GOptionEntry glyphset_entries[] =
   {
-    {"gids",		0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges"},
-    // gids-file
-    {"glyphs",		0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_glyphs,  "Specify glyph names to include in the subset", "list of glyph names"},
-    // glyphs-file
-    {"text",		0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_text,  "Specify text to include in the subset", "string"},
-    // text-file
-    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_unicodes,  "Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
-    // unicodes-file
+    {"gids",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges"},
+    {"gids-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_gids>,  "Specify file to read glyph IDs or ranges from", "filename"},
+    {"glyphs",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyphs,  "Specify glyph names to include in the subset", "list of glyph names"},
+    {"glyphs-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_glyphs>,  "Specify file to read glyph names fromt", "filename"},
+    {"text",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_text,  "Specify text to include in the subset", "string"},
+    {"text-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_text, false>,  "Specify file to read text from", "filename"},
+    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,  "Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
+    {"unicodes-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_unicodes>,  "Specify file to read Unicode codepoints or ranges from", "filename"},
     {nullptr}
   };
   add_group (glyphset_entries,
@@ -521,18 +586,18 @@ subset_main_t::add_options ()
 
   GOptionEntry other_entries[] =
   {
-    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-IDs-",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-IDs+",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"name-languages-",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"name-languages+",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"layout-features+",0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"layout-features-",0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
-    {"drop-tables+",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
-    {"drop-tables-",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
+    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-IDs-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-IDs+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"name-languages-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"name-languages+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"layout-features+",0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"layout-features-",0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
+    {"drop-tables+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
+    {"drop-tables-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {nullptr}
   };
   add_group (other_entries,
@@ -586,7 +651,7 @@ subset_main_t::add_options ()
 }
 
 void
-subset_main_t::post_parse (GError **error G_GNUC_UNUSED)
+subset_main_t::post_parse (GError **error)
 {
   /* This WILL get called multiple times. Oh well... */
 
