@@ -86,8 +86,6 @@ font_options_t::get_font () const
   if (font)
     return font;
 
-  auto *face = get_face ();
-
   font = hb_font_create (face);
 
   if (font_size_x == FONT_SIZE_UPEM)

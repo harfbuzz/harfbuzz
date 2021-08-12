@@ -49,7 +49,7 @@ struct subset_consumer_t : subset_options_t, output_options_t
 
   void init (const face_options_t *face_opts)
   {
-    face = hb_face_reference (face_opts->get_face ());
+    face = hb_face_reference (face_opts->face);
   }
 
   void consume_line (const char   *text,
