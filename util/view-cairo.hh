@@ -141,8 +141,8 @@ view_cairo_t::render (const font_options_t *font_opts)
   /* Create surface. */
   cairo_t *cr = helper_cairo_create_context (w + margin.l + margin.r,
 					     h + margin.t + margin.b,
-					     static_cast<view_options_t *> (this),
-					     static_cast<output_options_t *> (this),
+					     this,
+					     this,
 					     content);
   cairo_set_scaled_font (cr, scaled_font);
 
