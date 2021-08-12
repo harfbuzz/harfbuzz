@@ -119,7 +119,6 @@ parse_text (const char *name G_GNUC_UNUSED,
   return true;
 }
 
-
 static gboolean
 parse_unicodes (const char *name G_GNUC_UNUSED,
 		const char *arg,
@@ -161,7 +160,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
       {
 	g_string_free (gs, TRUE);
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		     "Failed parsing Unicode values at: '%s'", s);
+		     "Failed parsing Unicode value at: '%s'", s);
 	return false;
       }
 

@@ -27,47 +27,31 @@
 
 #include <stdio.h>
 
-#include "subset-options.hh"
 #include "output-options.hh"
 #include "face-options.hh"
-#include "text-options.hh"
 #include "batch.hh"
 #include "main-font-text.hh"
+
+#include <hb-subset.h>
 
 /*
  * Command line interface to the harfbuzz font subsetter.
  */
 
-struct subset_main_t : option_parser_t, face_options_t, text_options_t, subset_options_t, output_options_t<false>
+struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
 {
+  subset_main_t ()
+  : input (hb_subset_input_create_or_fail ())
+  {}
+  ~subset_main_t ()
+  {
+    hb_subset_input_destroy (input);
+  }
+
   int operator () (int argc, char **argv)
   {
     add_options ();
     parse (&argc, &argv);
-
-    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
-    unsigned int text_len;
-    const char *text;
-    while ((text = get_line (&text_len)))
-    {
-      if (0 == strcmp (text, "*"))
-      {
-	hb_face_collect_unicodes (face, codepoints);
-	continue;
-      }
-
-      if (*text)
-      {
-	gchar *c = (gchar *)text;
-	do
-	{
-	  gunichar cp = g_utf8_get_char(c);
-	  hb_codepoint_t hb_cp = cp;
-	  hb_set_add (codepoints, hb_cp);
-	}
-	while ((c = g_utf8_find_next_char(c, text + text_len)));
-      }
-    }
 
     hb_face_t *new_face = nullptr;
     for (unsigned i = 0; i < num_iterations; i++)
@@ -109,52 +93,488 @@ struct subset_main_t : option_parser_t, face_options_t, text_options_t, subset_o
     return true;
   }
 
+  void add_options ();
+
+  public:
+  void post_parse (GError **error G_GNUC_UNUSED);
+
   protected:
-
-  void add_options ()
-  {
-    face_options_t::add_options (this);
-    text_options_t::add_options (this);
-    subset_options_t::add_options (this);
-    output_options_t::add_options (this);
-
-    GOptionEntry entries[] =
-    {
-      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
-				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE] [TEXT]"},
-      {nullptr}
-    };
-    add_main_group (entries, this);
-    option_parser_t::add_options ();
-  }
-
-  private:
-
   static gboolean
-  collect_rest (const char *name G_GNUC_UNUSED,
+  collect_rest (const char *name,
 		const char *arg,
 		gpointer    data,
-		GError    **error)
-  {
-    subset_main_t *thiz = (subset_main_t *) data;
+		GError    **error);
 
-    if (!thiz->font_file)
-    {
-      thiz->font_file = g_strdup (arg);
-      return true;
-    }
+  public:
 
-    if (!thiz->text && !thiz->text_file)
-    {
-      thiz->text = g_strdup (arg);
-      return true;
-    }
+  unsigned num_iterations = 1;
+  hb_subset_input_t *input = nullptr;
 
-    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
-		 "Too many arguments on the command line");
-    return false;
-  }
+  bool all_unicodes = false;
 };
+
+static gboolean
+parse_gids (const char *name G_GNUC_UNUSED,
+	    const char *arg,
+	    gpointer    data,
+	    GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+  hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
+
+  char *s = (char *) arg;
+  char *p;
+
+  while (s && *s)
+  {
+    while (*s && strchr (", ", *s))
+      s++;
+    if (!*s)
+      break;
+
+    errno = 0;
+    hb_codepoint_t start_code = strtoul (s, &p, 10);
+    if (s[0] == '-' || errno || s == p)
+    {
+      hb_set_destroy (gids);
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing glyph-index at: '%s'", s);
+      return false;
+    }
+
+    if (p && p[0] == '-') // ranges
+    {
+      s = ++p;
+      hb_codepoint_t end_code = strtoul (s, &p, 10);
+      if (s[0] == '-' || errno || s == p)
+      {
+	hb_set_destroy (gids);
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Failed parsing glyph-index at: '%s'", s);
+	return false;
+      }
+
+      if (end_code < start_code)
+      {
+	hb_set_destroy (gids);
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Invalid gid-index range %u-%u", start_code, end_code);
+	return false;
+      }
+      hb_set_add_range (gids, start_code, end_code);
+    }
+    else
+    {
+      hb_set_add (gids, start_code);
+    }
+    s = p;
+  }
+
+  return true;
+}
+
+static gboolean
+parse_text (const char *name G_GNUC_UNUSED,
+	    const char *arg,
+	    gpointer    data,
+	    GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+
+  if (0 == strcmp (arg, "*"))
+  {
+    subset_main->all_unicodes = true;
+    return true;
+  }
+
+  hb_set_t *codepoints = hb_subset_input_unicode_set (subset_main->input);
+  for (gchar *c = (gchar *) arg;
+       *c;
+       c = g_utf8_find_next_char(c, nullptr))
+  {
+    gunichar cp = g_utf8_get_char(c);
+    hb_set_add (codepoints, cp);
+  }
+  return true;
+}
+
+static gboolean
+parse_unicodes (const char *name G_GNUC_UNUSED,
+		const char *arg,
+		gpointer    data,
+		GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+
+  if (0 == strcmp (arg, "*"))
+  {
+    subset_main->all_unicodes = true;
+    return true;
+  }
+
+  hb_set_t *codepoints = hb_subset_input_unicode_set (subset_main->input);
+  {
+    char *s = (char *) arg;
+    char *p;
+
+    while (s && *s)
+    {
+#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
+
+      while (*s && strchr (DELIMITERS, *s))
+	s++;
+      if (!*s)
+	break;
+
+      errno = 0;
+      hb_codepoint_t u = strtoul (s, &p, 16);
+      if (errno || s == p)
+      {
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Failed parsing Unicode value at: '%s'", s);
+	return false;
+      }
+      hb_set_add (codepoints, u);
+
+      s = p;
+    }
+  }
+  return true;
+}
+
+static gboolean
+parse_nameids (const char *name,
+	       const char *arg,
+	       gpointer    data,
+	       GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+  hb_set_t *name_ids = hb_subset_input_nameid_set (subset_main->input);
+
+  char last_name_char = name[strlen (name) - 1];
+
+  if (last_name_char != '+' && last_name_char != '-')
+    hb_set_clear (name_ids);
+
+  if (0 == strcmp (arg, "*"))
+  {
+    if (last_name_char == '-')
+      hb_set_del_range (name_ids, 0, 0x7FFF);
+    else
+      hb_set_add_range (name_ids, 0, 0x7FFF);
+    return true;
+  }
+
+  char *s = (char *) arg;
+  char *p;
+
+  while (s && *s)
+  {
+    while (*s && strchr (", ", *s))
+      s++;
+    if (!*s)
+      break;
+
+    errno = 0;
+    hb_codepoint_t u = strtoul (s, &p, 10);
+    if (errno || s == p)
+    {
+      hb_set_destroy (name_ids);
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing nameID value at: '%s'", s);
+      return false;
+    }
+
+    if (last_name_char != '-')
+    {
+      hb_set_add (name_ids, u);
+    } else {
+      hb_set_del (name_ids, u);
+    }
+
+    s = p;
+  }
+
+  return true;
+}
+
+static gboolean
+parse_name_languages (const char *name,
+		      const char *arg,
+		      gpointer    data,
+		      GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+  hb_set_t *name_languages = hb_subset_input_namelangid_set (subset_main->input);
+
+  char last_name_char = name[strlen (name) - 1];
+
+  if (last_name_char != '+' && last_name_char != '-')
+    hb_set_clear (name_languages);
+
+  if (0 == strcmp (arg, "*"))
+  {
+    if (last_name_char == '-')
+      hb_set_del_range (name_languages, 0, 0x5FFF);
+    else
+      hb_set_add_range (name_languages, 0, 0x5FFF);
+    return true;
+  }
+
+  char *s = (char *) arg;
+  char *p;
+
+  while (s && *s)
+  {
+    while (*s && strchr (", ", *s))
+      s++;
+    if (!*s)
+      break;
+
+    errno = 0;
+    hb_codepoint_t u = strtoul (s, &p, 10);
+    if (errno || s == p)
+    {
+      hb_set_destroy (name_languages);
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing name-language code at: '%s'", s);
+      return false;
+    }
+
+    if (last_name_char != '-')
+    {
+      hb_set_add (name_languages, u);
+    } else {
+      hb_set_del (name_languages, u);
+    }
+
+    s = p;
+  }
+
+  return true;
+}
+
+template <hb_subset_flags_t flag>
+static gboolean
+set_flag (const char *name,
+	  const char *arg,
+	  gpointer    data,
+	  GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+
+  hb_subset_input_set_flags (subset_main->input,
+			     hb_subset_input_get_flags (subset_main->input) | flag);
+
+  return true;
+}
+
+static gboolean
+parse_layout_features (const char *name,
+		       const char *arg,
+		       gpointer    data,
+		       GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+  hb_set_t *layout_features = hb_subset_input_layout_features_set (subset_main->input);
+
+  char last_name_char = name[strlen (name) - 1];
+
+  if (last_name_char != '+' && last_name_char != '-')
+    hb_set_clear (layout_features);
+
+  if (0 == strcmp (arg, "*"))
+  {
+    if (last_name_char == '-')
+    {
+      hb_set_clear (layout_features);
+      hb_subset_input_set_flags (subset_main->input,
+				 hb_subset_input_get_flags (subset_main->input) & ~HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
+    } else {
+      hb_subset_input_set_flags (subset_main->input,
+				 hb_subset_input_get_flags (subset_main->input) | HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
+    }
+    return true;
+  }
+
+  char *s = strtok((char *) arg, ", ");
+  while (s)
+  {
+    if (strlen (s) > 4) // table tags are at most 4 bytes
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                   "Failed parsing table tag value at: '%s'", s);
+      return false;
+    }
+
+    hb_tag_t tag = hb_tag_from_string (s, strlen (s));
+
+    if (last_name_char != '-')
+      hb_set_add (layout_features, tag);
+    else
+      hb_set_del (layout_features, tag);
+
+    s = strtok(nullptr, ", ");
+  }
+
+  return true;
+}
+
+static gboolean
+parse_drop_tables (const char *name,
+		   const char *arg,
+		   gpointer    data,
+		   GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+  hb_set_t *drop_tables = hb_subset_input_drop_tables_set (subset_main->input);
+
+  char last_name_char = name[strlen (name) - 1];
+
+  if (last_name_char != '+' && last_name_char != '-')
+    hb_set_clear (drop_tables);
+
+  char *s = strtok((char *) arg, ", ");
+  while (s)
+  {
+    if (strlen (s) > 4) // Table tags are at most 4 bytes.
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing table tag value at: '%s'", s);
+      return false;
+    }
+
+    hb_tag_t tag = hb_tag_from_string (s, strlen (s));
+
+    if (last_name_char != '-')
+      hb_set_add (drop_tables, tag);
+    else
+      hb_set_del (drop_tables, tag);
+
+    s = strtok(nullptr, ", ");
+  }
+
+  return true;
+}
+
+gboolean
+subset_main_t::collect_rest (const char *name,
+			     const char *arg,
+			     gpointer    data,
+			     GError    **error)
+{
+  subset_main_t *thiz = (subset_main_t *) data;
+
+  if (!thiz->font_file)
+  {
+    thiz->font_file = g_strdup (arg);
+    return true;
+  }
+
+  parse_text (name, arg, data, error);
+  return true;
+}
+
+void
+subset_main_t::add_options ()
+{
+  face_options_t::add_options (this);
+
+  GOptionEntry glyphset_entries[] =
+  {
+    {"gids",		0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges"},
+    // gids-file
+    // glyphs
+    // glyphs-file
+    {"text",		0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_text,  "Specify text to include in the subset", "string"},
+    // text-file
+    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_unicodes,  "Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
+    {nullptr}
+  };
+  add_group (glyphset_entries,
+	     "subset-glyphset",
+	     "Subset glyph-set option:",
+	     "Subsetting glyph-set options",
+	     this);
+
+  GOptionEntry other_entries[] =
+  {
+    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-IDs-",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-IDs+",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
+    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"name-languages-",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"name-languages+",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"layout-features+",0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"layout-features-",0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
+    {"drop-tables+",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
+    {"drop-tables-",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
+    {nullptr}
+  };
+  add_group (other_entries,
+	     "subset-other",
+	     "Subset other option:",
+	     "Subsetting other options",
+	     this);
+
+  GOptionEntry flag_entries[] =
+  {
+    {"no-hinting",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,   "Whether to drop hints",   nullptr},
+    {"retain-gids",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,   "If set don't renumber glyph ids in the subset.",   nullptr},
+    {"desubroutinize",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,   "Remove CFF/CFF2 use of subroutines",   nullptr},
+    {"name-legacy", 0,	G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
+    {"set-overlaps-flag",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG>,
+     "Set the overlaps flag on each glyph.",   nullptr},
+    {"notdef-outline", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NOTDEF_OUTLINE>,   "Keep the outline of \'.notdef\' glyph",   nullptr},
+    {"no-prune-unicode-ranges",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES>,   "Don't change the 'OS/2 ulUnicodeRange*' bits.",   nullptr},
+    {"glyph-names", 0,	G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_GLYPH_NAMES>,   "Keep PS glyph names in TT-flavored fonts. ",   nullptr},
+    {nullptr}
+  };
+  add_group (flag_entries,
+	     "subset-flags",
+	     "Subset boolean option:",
+	     "Subsetting boolean options",
+	     this);
+
+  GOptionEntry app_entries[] =
+  {
+    {"num-iterations",	'n', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_INT,
+     &this->num_iterations,
+     "Run subsetter N times (default: 1)", "N"},
+    {nullptr}
+  };
+  add_group (app_entries,
+	     "subset-app",
+	     "Subset app option:",
+	     "Subsetting application options",
+	     this);
+
+  output_options_t::add_options (this);
+
+  GOptionEntry entries[] =
+  {
+    {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+			      G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE] [TEXT]"},
+    {nullptr}
+  };
+  add_main_group (entries, this);
+  option_parser_t::add_options ();
+}
+
+void
+subset_main_t::post_parse (GError **error G_GNUC_UNUSED)
+{
+  /* This WILL get called multiple times. Oh well... */
+
+  if (all_unicodes)
+  {
+    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+    hb_face_collect_unicodes (face, codepoints);
+    all_unicodes = false;
+  }
+}
 
 int
 main (int argc, char **argv)
