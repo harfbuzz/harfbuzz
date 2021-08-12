@@ -325,16 +325,27 @@ parse_drop_tables (const char *name,
 void
 subset_options_t::add_options (option_parser_t *parser)
 {
-  GOptionEntry entries[] =
+  GOptionEntry glyphset_entries[] =
   {
-    {"no-hinting", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,   "Whether to drop hints",   nullptr},
-    {"retain-gids", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,   "If set don't renumber glyph ids in the subset.",   nullptr},
     {"gids", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of comma/whitespace-separated int numbers or ranges"},
-    {"desubroutinize", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,   "Remove CFF/CFF2 use of subroutines",   nullptr},
+    // gids-file
+    // glyphs
+    // glyphs-file
+    // text
+    // text-file
+    {nullptr}
+  };
+  parser->add_group (glyphset_entries,
+	 "subset-glyphset",
+	 "Subset glyph-set option:",
+	 "Subsetting glyph-set options",
+	 this);
+
+  GOptionEntry other_entries[] =
+  {
     {"name-IDs", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
     {"name-IDs-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
     {"name-IDs+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-legacy", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
     {"name-languages", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
     {"name-languages-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
     {"name-languages+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
@@ -344,9 +355,20 @@ subset_options_t::add_options (option_parser_t *parser)
     {"drop-tables", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {"drop-tables+", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
     {"drop-tables-", 0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
-    {"num-iterations", 'n', 0, G_OPTION_ARG_INT,
-     &this->num_iterations,
-     "Run subsetter N times (default: 1)", "N"},
+    {nullptr}
+  };
+  parser->add_group (other_entries,
+	 "subset-other",
+	 "Subset other option:",
+	 "Subsetting other options",
+	 this);
+
+  GOptionEntry flag_entries[] =
+  {
+    {"no-hinting", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,   "Whether to drop hints",   nullptr},
+    {"retain-gids", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,   "If set don't renumber glyph ids in the subset.",   nullptr},
+    {"desubroutinize", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,   "Remove CFF/CFF2 use of subroutines",   nullptr},
+    {"name-legacy", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
     {"set-overlaps-flag", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG>,
      "Set the overlaps flag on each glyph.",   nullptr},
     {"notdef-outline", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NOTDEF_OUTLINE>,   "Keep the outline of \'.notdef\' glyph",   nullptr},
@@ -354,10 +376,23 @@ subset_options_t::add_options (option_parser_t *parser)
     {"glyph-names", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_GLYPH_NAMES>,   "Keep PS glyph names in TT-flavored fonts. ",   nullptr},
     {nullptr}
   };
-  parser->add_group (entries,
-	 "subset",
-	 "Subset options:",
-	 "Options subsetting",
+  parser->add_group (flag_entries,
+	 "subset-flags",
+	 "Subset boolean option:",
+	 "Subsetting boolean options",
+	 this);
+
+  GOptionEntry app_entries[] =
+  {
+    {"num-iterations", 'n', G_OPTION_FLAG_IN_MAIN, G_OPTION_ARG_INT,
+     &this->num_iterations,
+     "Run subsetter N times (default: 1)", "N"},
+    {nullptr}
+  };
+  parser->add_group (app_entries,
+	 "subset-app",
+	 "Subset app option:",
+	 "Subsetting application options",
 	 this);
 }
 
