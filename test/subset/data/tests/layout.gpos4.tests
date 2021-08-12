@@ -2,8 +2,8 @@ FONTS:
 gpos4_multiple_anchors_1.otf
 
 PROFILES:
-notdef-outline.txt
-notdef-outline-retain-gids.txt
+layout-test.txt
+layout-test-retain-gids.txt
 
 SUBSETS:
 A
