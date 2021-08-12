@@ -139,8 +139,7 @@ text_options_t::get_line (unsigned int *len)
 
   if (!fp)
   {
-    if (!text_file)
-      fail (true, "At least one of text or text-file must be set");
+    assert (text_file);
 
     if (0 != strcmp (text_file, "-"))
       fp = fopen (text_file, "r");
