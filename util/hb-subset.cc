@@ -138,7 +138,6 @@ parse_gids (const char *name G_GNUC_UNUSED,
     hb_codepoint_t start_code = strtoul (s, &p, 10);
     if (s[0] == '-' || errno || s == p)
     {
-      hb_set_destroy (gids);
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Failed parsing glyph-index at: '%s'", s);
       return false;
@@ -150,7 +149,6 @@ parse_gids (const char *name G_GNUC_UNUSED,
       hb_codepoint_t end_code = strtoul (s, &p, 10);
       if (s[0] == '-' || errno || s == p)
       {
-	hb_set_destroy (gids);
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		     "Failed parsing glyph-index at: '%s'", s);
 	return false;
@@ -158,7 +156,6 @@ parse_gids (const char *name G_GNUC_UNUSED,
 
       if (end_code < start_code)
       {
-	hb_set_destroy (gids);
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		     "Invalid gid-index range %u-%u", start_code, end_code);
 	return false;
@@ -300,7 +297,6 @@ parse_nameids (const char *name,
     hb_codepoint_t u = strtoul (s, &p, 10);
     if (errno || s == p)
     {
-      hb_set_destroy (name_ids);
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Failed parsing nameID value at: '%s'", s);
       return false;
@@ -356,7 +352,6 @@ parse_name_languages (const char *name,
     hb_codepoint_t u = strtoul (s, &p, 10);
     if (errno || s == p)
     {
-      hb_set_destroy (name_languages);
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Failed parsing name-language code at: '%s'", s);
       return false;
