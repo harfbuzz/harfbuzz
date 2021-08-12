@@ -32,31 +32,12 @@
 /* main() body for utilities taking font and processing text.*/
 
 template <typename consumer_t, typename font_options_t, typename text_options_t>
-struct main_font_text_t : font_options_t, text_options_t, consumer_t
+struct main_font_text_t : option_parser_t, font_options_t, text_options_t, consumer_t
 {
-  void add_options (struct option_parser_t *parser)
+  int operator () (int argc, char **argv)
   {
-    font_options_t::add_options (parser);
-    text_options_t::add_options (parser);
-    consumer_t::add_options (parser);
-  }
-
-  int
-  operator () (int argc, char **argv)
-  {
-    option_parser_t options ("[FONT-FILE] [TEXT]");
-    add_options (&options);
-    options.parse (&argc, &argv);
-
-    argc--, argv++;
-    if (argc && !this->font_file) this->font_file = locale_to_utf8 (argv[0]), argc--, argv++;
-    if (argc && !this->text && !this->text_file) this->text = locale_to_utf8 (argv[0]), argc--, argv++;
-    if (argc)
-      fail (true, "Too many arguments on the command line");
-    if (!this->font_file)
-      options.usage ();
-    if (!this->text && !this->text_file)
-      this->text_file = g_strdup ("-");
+    add_options ();
+    parse (&argc, &argv);
 
     this->init (this);
 
@@ -68,6 +49,51 @@ struct main_font_text_t : font_options_t, text_options_t, consumer_t
     this->finish (this);
 
     return this->failed ? 1 : 0;
+  }
+
+  protected:
+
+  void add_options ()
+  {
+    font_options_t::add_options (this);
+    text_options_t::add_options (this);
+    consumer_t::add_options (this);
+
+    GOptionEntry entries[] =
+    {
+      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE] [TEXT]"},
+      {nullptr}
+    };
+    add_main_group (entries, this);
+    option_parser_t::add_options ();
+  }
+
+  private:
+
+  static gboolean
+  collect_rest (const char *name G_GNUC_UNUSED,
+		const char *arg,
+		gpointer    data,
+		GError    **error)
+  {
+    main_font_text_t *thiz = (main_font_text_t *) data;
+
+    if (!thiz->font_file)
+    {
+      thiz->font_file = g_strdup (arg);
+      return true;
+    }
+
+    if (!thiz->text && !thiz->text_file)
+    {
+      thiz->text = g_strdup (arg);
+      return true;
+    }
+
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		 "Too many arguments on the command line");
+    return false;
   }
 };
 

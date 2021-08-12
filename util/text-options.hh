@@ -17,6 +17,9 @@ struct text_options_t
 
   void post_parse (GError **error G_GNUC_UNUSED)
   {
+    if (!this->text && !this->text_file)
+      this->text_file = g_strdup ("-");
+
     if (text && text_file)
       g_set_error (error,
 		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,

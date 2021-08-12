@@ -70,25 +70,9 @@ fail (hb_bool_t suggest_help, const char *format, ...)
   exit (1);
 }
 
-static inline char *
-locale_to_utf8 (char *s)
-{
-  char *t;
-  GError *error = nullptr;
-
-  t = g_locale_to_utf8 (s, -1, nullptr, nullptr, &error);
-  if (!t)
-  {
-     fail (true, "Failed converting text to UTF-8");
-  }
-
-  return t;
-}
-
-
 struct option_parser_t
 {
-  option_parser_t (const char *usage)
+  option_parser_t (const char *usage = nullptr)
   : usage_str (usage),
     context (g_option_context_new (usage)),
     to_free (g_ptr_array_new ())
@@ -136,6 +120,17 @@ struct option_parser_t
     g_option_context_add_group (context, group);
   }
 
+  template <typename Type>
+  void add_main_group (GOptionEntry   *entries,
+		       Type           *closure)
+  {
+    GOptionGroup *group = g_option_group_new (nullptr, nullptr, nullptr,
+					      static_cast<gpointer>(closure), nullptr);
+    g_option_group_add_entries (group, entries);
+    g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
+    g_option_context_set_main_group (context, group);
+  }
+
   void free_later (char *p) {
     g_ptr_array_add (to_free, p);
   }
@@ -147,7 +142,7 @@ struct option_parser_t
     exit (1);
   }
 
-  private:
+  protected:
   const char *usage_str;
   GOptionContext *context;
   GPtrArray *to_free;
@@ -201,8 +196,6 @@ option_parser_t::add_options ()
 inline void
 option_parser_t::parse (int *argc, char ***argv)
 {
-  add_options ();
-
   setlocale (LC_ALL, "");
 
   GError *parse_error = nullptr;

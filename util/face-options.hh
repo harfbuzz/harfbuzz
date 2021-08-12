@@ -31,7 +31,19 @@
 
 struct face_options_t
 {
+  ~face_options_t ()
+  {
+    g_free (font_file);
+  }
+
   void add_options (option_parser_t *parser);
+
+  void post_parse (GError **error)
+  {
+    if (!this->font_file)
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		   "No font file set");
+  }
 
   hb_blob_t *get_blob () const;
   hb_face_t *get_face () const;
@@ -40,12 +52,12 @@ struct face_options_t
   {
     ~cache_t ()
     {
-      free ((void *) font_path);
+      g_free (font_path);
       hb_blob_destroy (blob);
       hb_face_destroy (face);
     }
 
-    const char *font_path = nullptr;
+    char *font_path = nullptr;
     hb_blob_t *blob = nullptr;
     unsigned face_index = (unsigned) -1;
     hb_face_t *face = nullptr;
@@ -73,8 +85,7 @@ face_options_t::get_face () const
   if (face)
     return face;
 
-  if (!font_file)
-    fail (true, "No font file set");
+  assert (font_file);
 
   const char *font_path = font_file;
 
@@ -94,7 +105,7 @@ face_options_t::get_face () const
     cache.blob = hb_blob_create_from_file_or_fail (font_path);
 
     free ((char *) cache.font_path);
-    cache.font_path = strdup (font_path);
+    cache.font_path = g_strdup (font_path);
 
     if (!cache.blob)
       fail (false, "%s: Failed reading file", font_path);

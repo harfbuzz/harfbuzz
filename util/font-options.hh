@@ -44,7 +44,6 @@ struct font_options_t : face_options_t
 {
   ~font_options_t ()
   {
-    g_free (font_file);
     free (variations);
     g_free (font_funcs);
     hb_font_destroy (font);
