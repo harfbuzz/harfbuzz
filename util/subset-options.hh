@@ -72,11 +72,11 @@ parse_gids (const char *name G_GNUC_UNUSED,
     {
       hb_set_destroy (gids);
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Failed parsing gids values at: '%s'", s);
+		   "Failed parsing glyph-index at: '%s'", s);
       return false;
     }
 
-    if (p && p[0] == '-') //gid ranges
+    if (p && p[0] == '-') // ranges
     {
       s = ++p;
       hb_codepoint_t end_code = strtoul (s, &p, 10);
@@ -84,7 +84,7 @@ parse_gids (const char *name G_GNUC_UNUSED,
       {
 	hb_set_destroy (gids);
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		     "Failed parsing gids values at: '%s'", s);
+		     "Failed parsing glyph-index at: '%s'", s);
 	return false;
       }
 
@@ -92,7 +92,7 @@ parse_gids (const char *name G_GNUC_UNUSED,
       {
 	hb_set_destroy (gids);
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		     "Invalid gids range value %u-%u", start_code, end_code);
+		     "Invalid gid-index range %u-%u", start_code, end_code);
 	return false;
       }
       hb_set_add_range (gids, start_code, end_code);
