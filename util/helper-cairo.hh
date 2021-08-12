@@ -426,6 +426,8 @@ static const char *helper_cairo_supported_formats[] =
   nullptr
 };
 
+template <typename view_options_t,
+	 typename output_options_t>
 static inline cairo_t *
 helper_cairo_create_context (double w, double h,
 			     view_options_t *view_opts,

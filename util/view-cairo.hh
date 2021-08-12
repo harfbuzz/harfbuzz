@@ -31,7 +31,7 @@
 #include "output-options.hh"
 #include "helper-cairo.hh"
 
-struct view_cairo_t : view_options_t, output_options_t
+struct view_cairo_t : view_options_t, output_options_t<>
 {
   ~view_cairo_t ()
   {

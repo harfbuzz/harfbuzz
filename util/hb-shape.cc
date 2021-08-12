@@ -36,7 +36,7 @@
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
 const unsigned SUBPIXEL_BITS = 0;
 
-struct output_buffer_t : output_options_t
+struct output_buffer_t : output_options_t<>
 {
   void add_options (option_parser_t *parser)
   {

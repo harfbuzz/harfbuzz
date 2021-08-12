@@ -29,6 +29,7 @@
 
 #include "options.hh"
 
+template <bool default_stdout = true>
 struct output_options_t
 {
   ~output_options_t ()
@@ -40,9 +41,71 @@ struct output_options_t
   }
 
   void add_options (option_parser_t *parser,
-		    const char **supported_formats = nullptr);
+		    const char **supported_formats = nullptr)
+  {
+    const char *text = nullptr;
 
-  void post_parse (GError **error G_GNUC_UNUSED);
+    if (supported_formats)
+    {
+      char *items = g_strjoinv ("/", const_cast<char **> (supported_formats));
+      text = g_strdup_printf ("Set output format\n\n    Supported output formats are: %s", items);
+      g_free (items);
+      parser->free_later ((char *) text);
+    }
+
+    GOptionEntry entries[] =
+    {
+      {"output-file",   'o', 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
+      {"output-format", 'O', supported_formats ? 0 : G_OPTION_FLAG_HIDDEN,
+				G_OPTION_ARG_STRING,	&this->output_format,		text,					"format"},
+      {nullptr}
+    };
+    parser->add_group (entries,
+		       "output",
+		       "Output destination & format options:",
+		       "Options for the destination & form of the output",
+		       this);
+  }
+
+  void post_parse (GError **error)
+  {
+    if (output_format)
+      explicit_output_format = true;
+
+    if (output_file && !output_format)
+    {
+      output_format = strrchr (output_file, '.');
+      if (output_format)
+      {
+	  output_format++; /* skip the dot */
+	  output_format = g_strdup (output_format);
+      }
+    }
+
+    if (output_file && 0 != strcmp (output_file, "-"))
+      out_fp = fopen (output_file, "wb");
+    else
+    {
+      if (!default_stdout && !output_file)
+      {
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		     "No output file was specified");
+        return;
+      }
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+      setmode (fileno (stdout), O_BINARY);
+#endif
+      out_fp = stdout;
+    }
+    if (!out_fp)
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		   "Cannot open output file `%s': %s",
+		   g_filename_display_name (output_file), strerror (errno));
+      return;
+    }
+  }
 
   char *output_file = nullptr;
   char *output_format = nullptr;
@@ -50,70 +113,5 @@ struct output_options_t
   bool explicit_output_format = false;
   FILE *out_fp = nullptr;
 };
-
-void
-output_options_t::post_parse (GError **error)
-{
-  if (output_format)
-    explicit_output_format = true;
-
-  if (output_file && !output_format)
-  {
-    output_format = strrchr (output_file, '.');
-    if (output_format)
-    {
-	output_format++; /* skip the dot */
-	output_format = g_strdup (output_format);
-    }
-  }
-
-  if (output_file && 0 == strcmp (output_file, "-"))
-    output_file = nullptr; /* STDOUT */
-
-  if (output_file)
-    out_fp = fopen (output_file, "wb");
-  else
-  {
-#if defined(_WIN32) || defined(__CYGWIN__)
-    setmode (fileno (stdout), O_BINARY);
-#endif
-    out_fp = stdout;
-  }
-  if (!out_fp)
-  {
-    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
-		 "Cannot open output file `%s': %s",
-		 g_filename_display_name (output_file), strerror (errno));
-    return;
-  }
-}
-
-void
-output_options_t::add_options (option_parser_t *parser,
-			       const char **supported_formats)
-{
-  const char *text = nullptr;
-
-  if (supported_formats)
-  {
-    char *items = g_strjoinv ("/", const_cast<char **> (supported_formats));
-    text = g_strdup_printf ("Set output format\n\n    Supported output formats are: %s", items);
-    g_free (items);
-    parser->free_later ((char *) text);
-  }
-
-  GOptionEntry entries[] =
-  {
-    {"output-file",   'o', 0, G_OPTION_ARG_STRING,	&this->output_file,		"Set output file-name (default: stdout)","filename"},
-    {"output-format", 'O', supported_formats ? 0 : G_OPTION_FLAG_HIDDEN,
-			      G_OPTION_ARG_STRING,	&this->output_format,		text,					"format"},
-    {nullptr}
-  };
-  parser->add_group (entries,
-		     "output",
-		     "Output destination & format options:",
-		     "Options for the destination & form of the output",
-		     this);
-}
 
 #endif

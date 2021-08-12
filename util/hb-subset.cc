@@ -38,7 +38,7 @@
  * Command line interface to the harfbuzz font subsetter.
  */
 
-struct subset_main_t : option_parser_t, face_options_t, text_options_t, subset_options_t, output_options_t
+struct subset_main_t : option_parser_t, face_options_t, text_options_t, subset_options_t, output_options_t<false>
 {
   int operator () (int argc, char **argv)
   {
@@ -92,8 +92,7 @@ struct subset_main_t : option_parser_t, face_options_t, text_options_t, subset_o
   bool
   write_file (const char *output_file, hb_blob_t *blob)
   {
-    if (!output_file)
-      fail (true, "No output file was specified");
+    assert (out_fp);
 
     unsigned int size;
     const char* data = hb_blob_get_data (blob, &size);
