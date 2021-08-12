@@ -95,13 +95,13 @@ struct output_buffer_t : output_options_t
   {
     g_string_set_size (gs, 0);
     format.serialize_buffer_of_text (buffer, line_no, text, text_len, font, gs);
-    fprintf (fp, "%s", gs->str);
+    fprintf (out_fp, "%s", gs->str);
   }
   void error (const char *message)
   {
     g_string_set_size (gs, 0);
     format.serialize_message (line_no, "error", message, gs);
-    fprintf (fp, "%s", gs->str);
+    fprintf (out_fp, "%s", gs->str);
   }
   void consume_glyphs (hb_buffer_t  *buffer,
 		       const char   *text,
@@ -111,7 +111,7 @@ struct output_buffer_t : output_options_t
     g_string_set_size (gs, 0);
     format.serialize_buffer_of_glyphs (buffer, line_no, text, text_len, font,
 				       serialize_format, serialize_flags, gs);
-    fprintf (fp, "%s", gs->str);
+    fprintf (out_fp, "%s", gs->str);
   }
   void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
@@ -143,7 +143,7 @@ struct output_buffer_t : output_options_t
     g_string_append_printf (gs, "trace: %s	buffer: ", message);
     format.serialize (buffer, font, serialize_format, serialize_flags, gs);
     g_string_append_c (gs, '\n');
-    fprintf (fp, "%s", gs->str);
+    fprintf (out_fp, "%s", gs->str);
   }
 
 

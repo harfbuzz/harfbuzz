@@ -38,73 +38,37 @@
  * Command line interface to the harfbuzz font subsetter.
  */
 
-
-struct subset_consumer_t : subset_options_t, output_options_t
+struct subset_main_t : option_parser_t, face_options_t, text_options_t, subset_options_t, output_options_t
 {
-  void add_options (option_parser_t *parser)
+  int operator () (int argc, char **argv)
   {
-    subset_options_t::add_options (parser);
-    output_options_t::add_options (parser);
-  }
+    add_options ();
+    parse (&argc, &argv);
 
-  void init (const face_options_t *face_opts)
-  {
-    face = hb_face_reference (face_opts->face);
-  }
-
-  bool consume_line (text_options_t &text_opts)
-  {
+    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
     unsigned int text_len;
     const char *text;
-    if (!(text = text_opts.get_line (&text_len)))
-      return false;
-
-    // TODO does this only get called with at least 1 codepoint?
-    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
-    if (0 == strcmp (text, "*"))
+    while ((text = get_line (&text_len)))
     {
-      hb_face_collect_unicodes (face, codepoints);
-      return true;
+      if (0 == strcmp (text, "*"))
+      {
+	hb_face_collect_unicodes (face, codepoints);
+	continue;
+      }
+
+      if (*text)
+      {
+	gchar *c = (gchar *)text;
+	do
+	{
+	  gunichar cp = g_utf8_get_char(c);
+	  hb_codepoint_t hb_cp = cp;
+	  hb_set_add (codepoints, hb_cp);
+	}
+	while ((c = g_utf8_find_next_char(c, text + text_len)));
+      }
     }
 
-    gchar *c = (gchar *)text;
-    do {
-      gunichar cp = g_utf8_get_char(c);
-      hb_codepoint_t hb_cp = cp;
-      hb_set_add (codepoints, hb_cp);
-    } while ((c = g_utf8_find_next_char(c, text + text_len)));
-
-    return true;
-  }
-
-  hb_bool_t
-  write_file (const char *output_file, hb_blob_t *blob) {
-    unsigned int size;
-    const char* data = hb_blob_get_data (blob, &size);
-
-    if (!output_file)
-      fail (true, "No output file was specified");
-
-    FILE *fp = fopen(output_file, "wb");
-    if (!fp)
-      fail (false, "Cannot open output file `%s': %s",
-	    g_filename_display_name (output_file), strerror (errno));
-
-    while (size) {
-      size_t ret = fwrite (data, 1, size, fp);
-      size -= ret;
-      data += ret;
-      if (size && ferror (fp))
-        fail (false, "Failed to write output: %s", strerror (errno));
-    }
-
-    fclose (fp);
-
-    return true;
-  }
-
-  void finish (const face_options_t *face_opts)
-  {
     hb_face_t *new_face = nullptr;
     for (unsigned i = 0; i < num_iterations; i++)
     {
@@ -112,8 +76,8 @@ struct subset_consumer_t : subset_options_t, output_options_t
       new_face = hb_subset_or_fail (face, input);
     }
 
-    failed = !new_face;
-    if (!failed)
+    bool success = new_face;
+    if (success)
     {
       hb_blob_t *result = hb_face_reference_blob (new_face);
       write_file (output_file, result);
@@ -121,18 +85,80 @@ struct subset_consumer_t : subset_options_t, output_options_t
     }
 
     hb_face_destroy (new_face);
-    hb_face_destroy (face);
+
+    return success ? 0 : 1;
   }
 
-  public:
-  bool failed = false;
+  bool
+  write_file (const char *output_file, hb_blob_t *blob)
+  {
+    if (!output_file)
+      fail (true, "No output file was specified");
 
-  hb_face_t *face = nullptr;
+    unsigned int size;
+    const char* data = hb_blob_get_data (blob, &size);
+
+    while (size)
+    {
+      size_t ret = fwrite (data, 1, size, out_fp);
+      size -= ret;
+      data += ret;
+      if (size && ferror (out_fp))
+        fail (false, "Failed to write output: %s", strerror (errno));
+    }
+
+    return true;
+  }
+
+  protected:
+
+  void add_options ()
+  {
+    face_options_t::add_options (this);
+    text_options_t::add_options (this);
+    subset_options_t::add_options (this);
+    output_options_t::add_options (this);
+
+    GOptionEntry entries[] =
+    {
+      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_rest,	nullptr,	"[FONT-FILE] [TEXT]"},
+      {nullptr}
+    };
+    add_main_group (entries, this);
+    option_parser_t::add_options ();
+  }
+
+  private:
+
+  static gboolean
+  collect_rest (const char *name G_GNUC_UNUSED,
+		const char *arg,
+		gpointer    data,
+		GError    **error)
+  {
+    subset_main_t *thiz = (subset_main_t *) data;
+
+    if (!thiz->font_file)
+    {
+      thiz->font_file = g_strdup (arg);
+      return true;
+    }
+
+    if (!thiz->text && !thiz->text_file)
+    {
+      thiz->text = g_strdup (arg);
+      return true;
+    }
+
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		 "Too many arguments on the command line");
+    return false;
+  }
 };
 
 int
 main (int argc, char **argv)
 {
-  using main_t = main_font_text_t<subset_consumer_t, face_options_t, text_options_t>;
-  return batch_main<main_t, true> (argc, argv);
+  return batch_main<subset_main_t, true> (argc, argv);
 }

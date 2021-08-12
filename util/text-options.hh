@@ -40,8 +40,8 @@ struct text_options_t
     g_free (text_file);
     if (gs)
       g_string_free (gs, true);
-    if (fp && fp != stdin)
-      fclose (fp);
+    if (in_fp && in_fp != stdin)
+      fclose (in_fp);
   }
 
   void add_options (option_parser_t *parser);
@@ -62,11 +62,11 @@ struct text_options_t
     if (text_file)
     {
       if (0 != strcmp (text_file, "-"))
-	fp = fopen (text_file, "r");
+	in_fp = fopen (text_file, "r");
       else
-	fp = stdin;
+	in_fp = stdin;
 
-      if (!fp)
+      if (!in_fp)
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
 		     "Failed opening text file `%s': %s",
 		     text_file, strerror (errno));
@@ -80,7 +80,7 @@ struct text_options_t
   char *text_file = nullptr;
 
   private:
-  FILE *fp = nullptr;
+  FILE *in_fp = nullptr;
   GString *gs = nullptr;
 };
 
@@ -197,7 +197,7 @@ text_options_t::get_line (unsigned int *len)
 
   g_string_set_size (gs, 0);
   char buf[BUFSIZ];
-  while (fgets (buf, sizeof (buf), fp))
+  while (fgets (buf, sizeof (buf), in_fp))
   {
     unsigned bytes = strlen (buf);
     if (bytes && buf[bytes - 1] == '\n')
@@ -208,10 +208,10 @@ text_options_t::get_line (unsigned int *len)
     }
     g_string_append_len (gs, buf, bytes);
   }
-  if (ferror (fp))
+  if (ferror (in_fp))
     fail (false, "Failed reading text: %s", strerror (errno));
   *len = gs->len;
-  return !*len && feof (fp) ? nullptr : gs->str;
+  return !*len && feof (in_fp) ? nullptr : gs->str;
 }
 
 void

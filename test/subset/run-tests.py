@@ -56,7 +56,6 @@ def run_test (test, should_check_ots):
 		    "--drop-tables+=DSIG",
 		    "--drop-tables-=sbix"]
 	cli_args.extend (test.get_profile_flags ())
-	print (' '.join (cli_args))
 	ret = subset_cmd (cli_args)
 
 	if ret != "success":

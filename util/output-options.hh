@@ -35,8 +35,8 @@ struct output_options_t
   {
     g_free (output_file);
     g_free (output_format);
-    if (fp && fp != stdout)
-      fclose (fp);
+    if (out_fp && out_fp != stdout)
+      fclose (out_fp);
   }
 
   void add_options (option_parser_t *parser,
@@ -48,7 +48,7 @@ struct output_options_t
   char *output_format = nullptr;
 
   bool explicit_output_format = false;
-  FILE *fp = nullptr;
+  FILE *out_fp = nullptr;
 };
 
 void
@@ -71,18 +71,21 @@ output_options_t::post_parse (GError **error)
     output_file = nullptr; /* STDOUT */
 
   if (output_file)
-    fp = fopen (output_file, "wb");
+    out_fp = fopen (output_file, "wb");
   else
   {
 #if defined(_WIN32) || defined(__CYGWIN__)
     setmode (fileno (stdout), O_BINARY);
 #endif
-    fp = stdout;
+    out_fp = stdout;
   }
-  if (!fp)
+  if (!out_fp)
+  {
     g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
 		 "Cannot open output file `%s': %s",
 		 g_filename_display_name (output_file), strerror (errno));
+    return;
+  }
 }
 
 void

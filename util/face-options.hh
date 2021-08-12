@@ -69,8 +69,11 @@ void
 face_options_t::post_parse (GError **error)
 {
   if (!font_file)
+  {
     g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
 		 "No font file set");
+    return;
+  }
 
   assert (font_file);
 
@@ -95,8 +98,11 @@ face_options_t::post_parse (GError **error)
     cache.font_path = g_strdup (font_path);
 
     if (!cache.blob)
+    {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
 		   "%s: Failed reading file", font_path);
+      return;
+    }
 
     hb_face_destroy (cache.face);
     cache.face = nullptr;
