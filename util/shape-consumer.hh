@@ -29,6 +29,7 @@
 
 #include "font-options.hh"
 #include "shape-options.hh"
+#include "text-options.hh"
 
 
 template <typename output_t>
@@ -42,24 +43,26 @@ struct shape_consumer_t : shape_options_t
 
   void init (const font_options_t *font_opts)
   {
-    font = hb_font_reference (font_opts->get_font ());
+    font = hb_font_reference (font_opts->font);
     failed = false;
     buffer = hb_buffer_create ();
 
     output.init (buffer, font_opts);
   }
-  void consume_line (const char   *text,
-		     unsigned int  text_len,
-		     const char   *text_before,
-		     const char   *text_after)
+  bool consume_line (shape_text_options_t &text_opts)
   {
+    unsigned int text_len;
+    const char *text;
+    if (!(text = text_opts.get_line (&text_len)))
+      return false;
+
     output.new_line ();
 
     for (unsigned int n = num_iterations; n; n--)
     {
       const char *error = nullptr;
 
-      populate_buffer (buffer, text, text_len, text_before, text_after);
+      populate_buffer (buffer, text, text_len, text_opts.text_before, text_opts.text_after);
       if (n == 1)
 	output.consume_text (buffer, text, text_len, utf8_clusters);
       if (!shape (font, buffer, &error))
@@ -69,11 +72,12 @@ struct shape_consumer_t : shape_options_t
 	if (hb_buffer_get_content_type (buffer) == HB_BUFFER_CONTENT_TYPE_GLYPHS)
 	  break;
 	else
-	  return;
+	  return true;
       }
     }
 
     output.consume_glyphs (buffer, text, text_len, utf8_clusters);
+    return true;
   }
   void finish (const font_options_t *font_opts)
   {

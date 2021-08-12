@@ -32,10 +32,6 @@
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
 const unsigned SUBPIXEL_BITS = 0;
 
-#ifdef HAVE_FREETYPE
-#include <hb-ft.h>
-#endif
-
 struct shape_closure_consumer_t
 {
   void add_options (struct option_parser_t *parser)
@@ -57,20 +53,23 @@ struct shape_closure_consumer_t
   void init (const font_options_t *font_opts)
   {
     glyphs = hb_set_create ();
-    font = hb_font_reference (font_opts->get_font ());
+    font = hb_font_reference (font_opts->font);
     failed = false;
     buffer = hb_buffer_create ();
   }
-  void consume_line (const char   *text,
-		     unsigned int  text_len,
-		     const char   *text_before,
-		     const char   *text_after)
+  template <typename text_options_t>
+  bool consume_line (text_options_t &text_opts)
   {
+    unsigned int text_len;
+    const char *text;
+    if (!(text = text_opts.get_line (&text_len)))
+      return false;
+
     hb_set_clear (glyphs);
     shaper.shape_closure (text, text_len, font, buffer, glyphs);
 
     if (hb_set_is_empty (glyphs))
-      return;
+      return true;
 
     /* Print it out! */
     bool first = true;
@@ -88,6 +87,8 @@ struct shape_closure_consumer_t
       } else
 	printf ("%u", i);
     }
+
+    return true;
   }
   void finish (const font_options_t *font_opts)
   {
@@ -114,5 +115,5 @@ struct shape_closure_consumer_t
 int
 main (int argc, char **argv)
 {
-  return main_font_text<shape_closure_consumer_t, font_options_t, text_options_t> (argc, argv);
+  return main_font_text_t<shape_closure_consumer_t, font_options_t, text_options_t> () (argc, argv);
 }

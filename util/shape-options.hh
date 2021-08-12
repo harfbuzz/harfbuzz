@@ -322,15 +322,18 @@ parse_shapers (const char *name G_GNUC_UNUSED,
   shape_options_t *shape_opts = (shape_options_t *) data;
   char **shapers = g_strsplit (arg, ",", 0);
 
-  for (char **shaper = shapers; *shaper; shaper++) {
+  for (char **shaper = shapers; *shaper; shaper++)
+  {
     bool found = false;
     for (const char **hb_shaper = hb_shape_list_shapers (); *hb_shaper; hb_shaper++) {
-      if (strcmp (*shaper, *hb_shaper) == 0) {
+      if (strcmp (*shaper, *hb_shaper) == 0)
+      {
 	found = true;
 	break;
       }
     }
-    if (!found) {
+    if (!found)
+    {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Unknown or unsupported shaper: %s", *shaper);
       g_strfreev (shapers);
@@ -429,7 +432,8 @@ shape_options_t::add_options (option_parser_t *parser)
     {"cluster-level",	0, 0, G_OPTION_ARG_INT,		&this->cluster_level,		"Cluster merging level (default: 0)",	"0/1/2"},
     {"normalize-glyphs",0, 0, G_OPTION_ARG_NONE,	&this->normalize_glyphs,	"Rearrange glyph clusters in nominal order",	nullptr},
     {"verify",		0, 0, G_OPTION_ARG_NONE,	&this->verify,			"Perform sanity checks on shaping results",	nullptr},
-    {"num-iterations", 'n', 0, G_OPTION_ARG_INT,	&this->num_iterations,		"Run shaper N times (default: 1)",	"N"},
+    {"num-iterations", 'n', G_OPTION_FLAG_IN_MAIN,
+			      G_OPTION_ARG_INT,		&this->num_iterations,		"Run shaper N times (default: 1)",	"N"},
     {nullptr}
   };
   parser->add_group (entries,

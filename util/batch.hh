@@ -27,9 +27,9 @@
 
 typedef int (*main_func_t) (int argc, char **argv);
 
-template <bool report_status=false>
+template <typename main_t, bool report_status=false>
 int
-batch_main (main_func_t main_func, int argc, char **argv)
+batch_main (int argc, char **argv)
 {
   if (argc == 2 && !strcmp (argv[1], "--batch"))
   {
@@ -53,7 +53,7 @@ batch_main (main_func_t main_func, int argc, char **argv)
 	args[argc++] = p = e;
       }
 
-      int result = main_func (argc, args);
+      int result = main_t () (argc, args);
 
       if (report_status)
 	fprintf (stdout, result == 0 ? "success\n" : "failure\n");
@@ -64,7 +64,7 @@ batch_main (main_func_t main_func, int argc, char **argv)
     return ret;
   }
 
-  return main_func (argc, argv);
+  return main_t () (argc, argv);
 }
 
 #endif

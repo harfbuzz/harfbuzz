@@ -1,40 +1,101 @@
+/*
+ * Copyright © 2011  Google, Inc.
+ *
+ *  This is part of HarfBuzz, a text shaping library.
+ *
+ * Permission is hereby granted, without written agreement and without
+ * license or royalty fees, to use, copy, modify, and distribute this
+ * software and its documentation for any purpose, provided that the
+ * above copyright notice and the following two paragraphs appear in
+ * all copies of this software.
+ *
+ * IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR
+ * DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
+ * ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN
+ * IF THE COPYRIGHT HOLDER HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING,
+ * BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
+ * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
+ * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+ *
+ * Google Author(s): Behdad Esfahbod
+ */
+
+#ifndef TEXT_OPTIONS_HH
+#define TEXT_OPTIONS_HH
+
+#include "options.hh"
 
 struct text_options_t
 {
+  text_options_t ()
+  : gs (g_string_new (nullptr))
+  {}
   ~text_options_t ()
   {
-    g_free (text_before);
-    g_free (text_after);
     g_free (text);
     g_free (text_file);
     if (gs)
       g_string_free (gs, true);
-    if (fp && fp != stdin)
-      fclose (fp);
+    if (in_fp && in_fp != stdin)
+      fclose (in_fp);
   }
 
   void add_options (option_parser_t *parser);
 
   void post_parse (GError **error G_GNUC_UNUSED)
   {
+    if (!text && !text_file)
+      text_file = g_strdup ("-");
+
     if (text && text_file)
+    {
       g_set_error (error,
 		   G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
 		   "Only one of text and text-file can be set");
+      return;
+    }
+
+    if (text_file)
+    {
+      if (0 != strcmp (text_file, "-"))
+	in_fp = fopen (text_file, "r");
+      else
+	in_fp = stdin;
+
+      if (!in_fp)
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		     "Failed opening text file `%s': %s",
+		     text_file, strerror (errno));
+    }
   }
 
   const char *get_line (unsigned int *len);
-
-  char *text_before = nullptr;
-  char *text_after = nullptr;
 
   int text_len = -1;
   char *text = nullptr;
   char *text_file = nullptr;
 
   private:
-  FILE *fp = nullptr;
+  FILE *in_fp = nullptr;
   GString *gs = nullptr;
+};
+
+struct shape_text_options_t : text_options_t
+{
+  ~shape_text_options_t ()
+  {
+    g_free (text_before);
+    g_free (text_after);
+  }
+
+  void add_options (option_parser_t *parser);
+
+  char *text_before = nullptr;
+  char *text_after = nullptr;
 };
 
 
@@ -58,7 +119,6 @@ parse_text (const char *name G_GNUC_UNUSED,
   return true;
 }
 
-
 static gboolean
 parse_unicodes (const char *name G_GNUC_UNUSED,
 		const char *arg,
@@ -81,14 +141,13 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   }
   else
   {
+#define DELIMITERS "<+->{},;&#\\xXuUnNiI\n\t\v\f\r "
 
     char *s = (char *) arg;
     char *p;
 
     while (s && *s)
     {
-#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
-
       while (*s && strchr (DELIMITERS, *s))
 	s++;
       if (!*s)
@@ -100,7 +159,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
       {
 	g_string_free (gs, TRUE);
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		     "Failed parsing Unicode values at: '%s'", s);
+		     "Failed parsing Unicode value at: '%s'", s);
 	return false;
       }
 
@@ -134,26 +193,9 @@ text_options_t::get_line (unsigned int *len)
     return text;
   }
 
-  if (!fp)
-  {
-    if (!text_file)
-      fail (true, "At least one of text or text-file must be set");
-
-    if (0 != strcmp (text_file, "-"))
-      fp = fopen (text_file, "r");
-    else
-      fp = stdin;
-
-    if (!fp)
-      fail (false, "Failed opening text file `%s': %s",
-	    text_file, strerror (errno));
-
-    gs = g_string_new (nullptr);
-  }
-
   g_string_set_size (gs, 0);
   char buf[BUFSIZ];
-  while (fgets (buf, sizeof (buf), fp))
+  while (fgets (buf, sizeof (buf), in_fp))
   {
     unsigned bytes = strlen (buf);
     if (bytes && buf[bytes - 1] == '\n')
@@ -164,10 +206,10 @@ text_options_t::get_line (unsigned int *len)
     }
     g_string_append_len (gs, buf, bytes);
   }
-  if (ferror (fp))
+  if (ferror (in_fp))
     fail (false, "Failed reading text: %s", strerror (errno));
   *len = gs->len;
-  return !*len && feof (fp) ? nullptr : gs->str;
+  return !*len && feof (in_fp) ? nullptr : gs->str;
 }
 
 void
@@ -176,10 +218,8 @@ text_options_t::add_options (option_parser_t *parser)
   GOptionEntry entries[] =
   {
     {"text",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_text,		"Set input text",			"string"},
-    {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name\n\n    If no text is provided, standard input is used for input.\n",		"filename"},
-    {"unicodes",      'u', 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,	"Set input Unicode codepoints",		"list of hex numbers"},
-    {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
-    {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
+    {"text-file",	0, 0, G_OPTION_ARG_STRING,	&this->text_file,		"Set input text file-name",		"filename"},
+    {"unicodes",      'u', 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes,	"Set input Unicode codepoints\n\n    If no text is provided, standard input is used for input.",		"list of hex numbers"},
     {nullptr}
   };
   parser->add_group (entries,
@@ -188,3 +228,23 @@ text_options_t::add_options (option_parser_t *parser)
 		     "Options for the input text",
 		     this);
 }
+
+void
+shape_text_options_t::add_options (option_parser_t *parser)
+{
+  text_options_t::add_options (parser);
+
+  GOptionEntry entries[] =
+  {
+    {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
+    {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
+    {nullptr}
+  };
+  parser->add_group (entries,
+		     "text-context",
+		     "Textual context options:",
+		     "Options for the input context text",
+		     this);
+}
+
+#endif

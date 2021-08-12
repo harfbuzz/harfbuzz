@@ -36,7 +36,6 @@ HB_SUBSET_CLI_sources = \
 	main-font-text.hh \
 	options.hh \
 	output-options.hh \
-	subset-options.hh \
 	text-options.hh \
 	$(NULL)
 

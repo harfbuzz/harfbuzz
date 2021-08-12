@@ -31,21 +31,25 @@
 
 struct face_options_t
 {
+  ~face_options_t ()
+  {
+    g_free (font_file);
+  }
+
   void add_options (option_parser_t *parser);
 
-  hb_blob_t *get_blob () const;
-  hb_face_t *get_face () const;
+  void post_parse (GError **error);
 
   static struct cache_t
   {
     ~cache_t ()
     {
-      free ((void *) font_path);
+      g_free (font_path);
       hb_blob_destroy (blob);
       hb_face_destroy (face);
     }
 
-    const char *font_path = nullptr;
+    char *font_path = nullptr;
     hb_blob_t *blob = nullptr;
     unsigned face_index = (unsigned) -1;
     hb_face_t *face = nullptr;
@@ -53,28 +57,25 @@ struct face_options_t
 
   char *font_file = nullptr;
   unsigned face_index = 0;
-  private:
-  mutable hb_face_t *face = nullptr;
+
+  hb_blob_t *blob = nullptr;
+  hb_face_t *face = nullptr;
 };
 
 
 face_options_t::cache_t face_options_t::cache {};
 
-hb_blob_t *
-face_options_t::get_blob () const
+void
+face_options_t::post_parse (GError **error)
 {
-  // XXX This does the job for now; will move to post_parse.
-  return cache.blob;
-}
-
-hb_face_t *
-face_options_t::get_face () const
-{
-  if (face)
-    return face;
-
   if (!font_file)
-    fail (true, "No font file set");
+  {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		 "No font file set");
+    return;
+  }
+
+  assert (font_file);
 
   const char *font_path = font_file;
 
@@ -94,10 +95,14 @@ face_options_t::get_face () const
     cache.blob = hb_blob_create_from_file_or_fail (font_path);
 
     free ((char *) cache.font_path);
-    cache.font_path = strdup (font_path);
+    cache.font_path = g_strdup (font_path);
 
     if (!cache.blob)
-      fail (false, "%s: Failed reading file", font_path);
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		   "%s: Failed reading file", font_path);
+      return;
+    }
 
     hb_face_destroy (cache.face);
     cache.face = nullptr;
@@ -111,9 +116,8 @@ face_options_t::get_face () const
     cache.face_index = face_index;
   }
 
+  blob = cache.blob;
   face = cache.face;
-
-  return face;
 }
 
 void

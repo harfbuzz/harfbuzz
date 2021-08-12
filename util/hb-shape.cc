@@ -36,7 +36,7 @@
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
 const unsigned SUBPIXEL_BITS = 0;
 
-struct output_buffer_t : output_options_t
+struct output_buffer_t : output_options_t<>
 {
   void add_options (option_parser_t *parser)
   {
@@ -46,10 +46,9 @@ struct output_buffer_t : output_options_t
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
-    get_file_handle ();
     gs = g_string_new (nullptr);
     line_no = 0;
-    font = hb_font_reference (font_opts->get_font ());
+    font = hb_font_reference (font_opts->font);
 
     if (!output_format)
       serialize_format = HB_BUFFER_SERIALIZE_FORMAT_TEXT;
@@ -96,13 +95,13 @@ struct output_buffer_t : output_options_t
   {
     g_string_set_size (gs, 0);
     format.serialize_buffer_of_text (buffer, line_no, text, text_len, font, gs);
-    fprintf (fp, "%s", gs->str);
+    fprintf (out_fp, "%s", gs->str);
   }
   void error (const char *message)
   {
     g_string_set_size (gs, 0);
     format.serialize_message (line_no, "error", message, gs);
-    fprintf (fp, "%s", gs->str);
+    fprintf (out_fp, "%s", gs->str);
   }
   void consume_glyphs (hb_buffer_t  *buffer,
 		       const char   *text,
@@ -112,7 +111,7 @@ struct output_buffer_t : output_options_t
     g_string_set_size (gs, 0);
     format.serialize_buffer_of_glyphs (buffer, line_no, text, text_len, font,
 				       serialize_format, serialize_flags, gs);
-    fprintf (fp, "%s", gs->str);
+    fprintf (out_fp, "%s", gs->str);
   }
   void finish (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
@@ -144,7 +143,7 @@ struct output_buffer_t : output_options_t
     g_string_append_printf (gs, "trace: %s	buffer: ", message);
     format.serialize (buffer, font, serialize_format, serialize_flags, gs);
     g_string_append_c (gs, '\n');
-    fprintf (fp, "%s", gs->str);
+    fprintf (out_fp, "%s", gs->str);
   }
 
 
@@ -162,6 +161,6 @@ struct output_buffer_t : output_options_t
 int
 main (int argc, char **argv)
 {
-  auto main_func = main_font_text<shape_consumer_t<output_buffer_t>, font_options_t, text_options_t>;
-  return batch_main<> (main_func, argc, argv);
+  using main_t = main_font_text_t<shape_consumer_t<output_buffer_t>, font_options_t, shape_text_options_t>;
+  return batch_main<main_t> (argc, argv);
 }
