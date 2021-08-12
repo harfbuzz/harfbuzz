@@ -435,7 +435,7 @@ struct subr_subset_param_t
   void init (parsed_cs_str_t *parsed_charstring_,
 	     parsed_cs_str_vec_t *parsed_global_subrs_, parsed_cs_str_vec_t *parsed_local_subrs_,
 	     hb_set_t *global_closure_, hb_set_t *local_closure_,
-	     bool drop_hints_)
+	     bool drop_hints_, bool closure_subrs_ = true)
   {
     parsed_charstring = parsed_charstring_;
     current_parsed_str = parsed_charstring;
@@ -444,6 +444,7 @@ struct subr_subset_param_t
     global_closure = global_closure_;
     local_closure = local_closure_;
     drop_hints = drop_hints_;
+    closure_subrs = closure_subrs_;
   }
 
   parsed_cs_str_t *get_parsed_str_for_context (call_context_t &context)
@@ -492,6 +493,7 @@ struct subr_subset_param_t
   hb_set_t      *global_closure;
   hb_set_t      *local_closure;
   bool	  drop_hints;
+  bool	  closure_subrs;
 };
 
 struct subr_remap_t : hb_inc_bimap_t
@@ -639,7 +641,8 @@ struct subr_subsetter_t
       param.init (&parsed_charstrings[i],
 		  &parsed_global_subrs,  &parsed_local_subrs[fd],
 		  closures.global_closure, closures.local_closures[fd],
-		  plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
+		  plan->flags & HB_SUBSET_FLAGS_NO_HINTING,
+		  i != 0 || (plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE));
 
       if (unlikely (!interp.interpret (param)))
 	return false;
@@ -663,7 +666,7 @@ struct subr_subsetter_t
 	param.init (&parsed_charstrings[i],
 		    &parsed_global_subrs,  &parsed_local_subrs[fd],
 		    closures.global_closure, closures.local_closures[fd],
-                    plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
+		    plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
 
 	drop_hints_param_t  drop;
 	if (drop_hints_in_str (parsed_charstrings[i], param, drop))
@@ -680,6 +683,9 @@ struct subr_subsetter_t
       {
 	hb_codepoint_t  glyph;
 	if (!plan->old_gid_for_new_gid (i, &glyph))
+	  continue;
+	if (i == 0 &&
+	    !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
 	  continue;
 	unsigned int fd = acc.fdSelect->get_fd (glyph);
 	if (unlikely (fd >= acc.fdCount))
@@ -710,6 +716,13 @@ struct subr_subsetter_t
 	/* add an endchar only charstring for a missing glyph if CFF1 */
 	if (endchar_op != OpCode_Invalid) buffArray[i].push (endchar_op);
 	continue;
+      }
+
+      if (i == 0 &&
+          !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+      {
+        if (endchar_op != OpCode_Invalid) encode_endchar_str (parsed_charstrings[i], buffArray[i]);
+        continue;
       }
       unsigned int  fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
@@ -949,6 +962,21 @@ struct subr_subsetter_t
 	}
       }
     }
+    return !encoder.is_error ();
+  }
+
+  bool encode_endchar_str (const parsed_cs_str_t &str, str_buff_t &buff) const
+  {
+    buff.init ();
+    str_encoder_t  encoder (buff);
+    encoder.reset ();
+    if (str.has_prefix ())
+    {
+      encoder.encode_num (str.prefix_num ());
+      if (str.prefix_op () != OpCode_Invalid)
+        encoder.encode_op (str.prefix_op ());
+    }
+    encoder.encode_op (endchar_op);
     return !encoder.is_error ();
   }
 

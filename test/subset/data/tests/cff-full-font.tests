@@ -2,6 +2,7 @@ FONTS:
 SourceSansPro-Regular.otf
 
 PROFILES:
+default.txt
 notdef-outline.txt
 notdef-outline-drop-hints.txt
 notdef-outline-drop-hints-retain-gids.txt
