@@ -46,7 +46,6 @@ struct output_buffer_t : output_options_t
 
   void init (hb_buffer_t *buffer, const font_options_t *font_opts)
   {
-    get_file_handle ();
     gs = g_string_new (nullptr);
     line_no = 0;
     font = hb_font_reference (font_opts->font);

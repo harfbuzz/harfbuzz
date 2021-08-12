@@ -447,7 +447,7 @@ helper_cairo_create_context (double w, double h,
   const char *extension = out_opts->output_format;
   if (!extension) {
 #if HAVE_ISATTY
-    if (isatty (fileno (out_opts->get_file_handle ())))
+    if (isatty (fileno (out_opts->fp)))
     {
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
       const char *name;
@@ -526,7 +526,7 @@ helper_cairo_create_context (double w, double h,
     content = CAIRO_CONTENT_COLOR_ALPHA;
 
   cairo_surface_t *surface;
-  FILE *f = out_opts->get_file_handle ();
+  FILE *f = out_opts->fp;
   if (constructor)
     surface = constructor (stdio_write_func, f, w, h);
   else if (constructor2)

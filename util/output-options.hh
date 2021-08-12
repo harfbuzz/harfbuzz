@@ -42,55 +42,48 @@ struct output_options_t
   void add_options (option_parser_t *parser,
 		    const char **supported_formats = nullptr);
 
-  void post_parse (GError **error G_GNUC_UNUSED)
-  {
-    if (output_format)
-      explicit_output_format = true;
-
-    if (output_file && !output_format) {
-      output_format = strrchr (output_file, '.');
-      if (output_format)
-      {
-	  output_format++; /* skip the dot */
-	  output_format = g_strdup (output_format);
-      }
-    }
-
-    if (output_file && 0 == strcmp (output_file, "-"))
-      output_file = nullptr; /* STDOUT */
-  }
-
-  FILE *get_file_handle ();
+  void post_parse (GError **error G_GNUC_UNUSED);
 
   char *output_file = nullptr;
   char *output_format = nullptr;
-  bool explicit_output_format = false;
 
-  mutable FILE *fp = nullptr;
+  bool explicit_output_format = false;
+  FILE *fp = nullptr;
 };
 
-
-FILE *
-output_options_t::get_file_handle ()
+void
+output_options_t::post_parse (GError **error)
 {
-  if (fp)
-    return fp;
+  if (output_format)
+    explicit_output_format = true;
+
+  if (output_file && !output_format)
+  {
+    output_format = strrchr (output_file, '.');
+    if (output_format)
+    {
+	output_format++; /* skip the dot */
+	output_format = g_strdup (output_format);
+    }
+  }
+
+  if (output_file && 0 == strcmp (output_file, "-"))
+    output_file = nullptr; /* STDOUT */
 
   if (output_file)
     fp = fopen (output_file, "wb");
-  else {
+  else
+  {
 #if defined(_WIN32) || defined(__CYGWIN__)
     setmode (fileno (stdout), O_BINARY);
 #endif
     fp = stdout;
   }
   if (!fp)
-    fail (false, "Cannot open output file `%s': %s",
-	  g_filename_display_name (output_file), strerror (errno));
-
-  return fp;
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_FAILED,
+		 "Cannot open output file `%s': %s",
+		 g_filename_display_name (output_file), strerror (errno));
 }
-
 
 void
 output_options_t::add_options (option_parser_t *parser,
