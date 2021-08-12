@@ -46,10 +46,15 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     hb_subset_input_destroy (input);
   }
 
-  int operator () (int argc, char **argv)
+  void parse (int argc, char **argv)
   {
     add_options ();
-    parse (&argc, &argv);
+    option_parser_t::parse (&argc, &argv);
+  }
+
+  int operator () (int argc, char **argv)
+  {
+    parse (argc, argv);
 
     hb_face_t *new_face = nullptr;
     for (unsigned i = 0; i < num_iterations; i++)
