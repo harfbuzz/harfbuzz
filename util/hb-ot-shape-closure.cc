@@ -24,10 +24,11 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#include "shape-options.hh"
+#include "batch.hh"
 #include "font-options.hh"
-#include "text-options.hh"
 #include "main-font-text.hh"
+#include "shape-options.hh"
+#include "text-options.hh"
 
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
 const unsigned SUBPIXEL_BITS = 0;
@@ -115,5 +116,6 @@ struct shape_closure_consumer_t
 int
 main (int argc, char **argv)
 {
-  return main_font_text_t<shape_closure_consumer_t, font_options_t, text_options_t> () (argc, argv);
+  using main_t = main_font_text_t<shape_closure_consumer_t, font_options_t, text_options_t>;
+  return batch_main<main_t> (argc, argv);
 }

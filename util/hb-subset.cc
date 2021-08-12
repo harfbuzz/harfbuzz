@@ -25,12 +25,10 @@
  * Google Author(s): Garret Rieger, Rod Sheeter
  */
 
-#include <stdio.h>
-
-#include "output-options.hh"
-#include "face-options.hh"
 #include "batch.hh"
+#include "face-options.hh"
 #include "main-font-text.hh"
+#include "output-options.hh"
 
 #include <hb-subset.h>
 
