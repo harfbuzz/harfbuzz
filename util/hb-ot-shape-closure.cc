@@ -32,10 +32,6 @@
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_NONE;
 const unsigned SUBPIXEL_BITS = 0;
 
-#ifdef HAVE_FREETYPE
-#include <hb-ft.h>
-#endif
-
 struct shape_closure_consumer_t
 {
   void add_options (struct option_parser_t *parser)
