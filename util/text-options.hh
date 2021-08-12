@@ -141,14 +141,13 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   }
   else
   {
+#define DELIMITERS "<+->{},;&#\\xXuUnNiI\n\t\v\f\r "
 
     char *s = (char *) arg;
     char *p;
 
     while (s && *s)
     {
-#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
-
       while (*s && strchr (DELIMITERS, *s))
 	s++;
       if (!*s)

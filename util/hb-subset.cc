@@ -157,7 +157,7 @@ parse_gids (const char *name G_GNUC_UNUSED,
       if (end_code < start_code)
       {
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		     "Invalid gid-index range %u-%u", start_code, end_code);
+		     "Invalid glyph-index range %u-%u", start_code, end_code);
 	return false;
       }
       hb_set_add_range (gids, start_code, end_code);
@@ -166,6 +166,7 @@ parse_gids (const char *name G_GNUC_UNUSED,
     {
       hb_set_add (gids, start_code);
     }
+
     s = p;
   }
 
@@ -204,13 +205,13 @@ parse_text (const char *name G_GNUC_UNUSED,
     return true;
   }
 
-  hb_set_t *codepoints = hb_subset_input_unicode_set (subset_main->input);
+  hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
   for (gchar *c = (gchar *) arg;
        *c;
        c = g_utf8_find_next_char(c, nullptr))
   {
     gunichar cp = g_utf8_get_char(c);
-    hb_set_add (codepoints, cp);
+    hb_set_add (unicodes, cp);
   }
   return true;
 }
@@ -230,33 +231,56 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
   }
 
   // XXX TODO Ranges
-  hb_set_t *codepoints = hb_subset_input_unicode_set (subset_main->input);
+  hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
+
+#define DELIMITERS "<+->{},;&#\\xXuUnNiI\n\t\v\f\r "
+
+  char *s = (char *) arg;
+  char *p;
+
+  while (s && *s)
   {
-    char *s = (char *) arg;
-    char *p;
+    while (*s && strchr (DELIMITERS, *s))
+      s++;
+    if (!*s)
+      break;
 
-    while (s && *s)
+    errno = 0;
+    hb_codepoint_t start_code = strtoul (s, &p, 16);
+    if (errno || s == p)
     {
-#define DELIMITERS "<+>{},;&#\\xXuUnNiI\n\t\v\f\r "
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing Unicode at: '%s'", s);
+      return false;
+    }
 
-      while (*s && strchr (DELIMITERS, *s))
-	s++;
-      if (!*s)
-	break;
-
-      errno = 0;
-      hb_codepoint_t u = strtoul (s, &p, 16);
-      if (errno || s == p)
+    if (p && p[0] == '-') // ranges
+    {
+      s = ++p;
+      hb_codepoint_t end_code = strtoul (s, &p, 16);
+      if (s[0] == '-' || errno || s == p)
       {
 	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		     "Failed parsing Unicode value at: '%s'", s);
+		     "Failed parsing Unicode at: '%s'", s);
 	return false;
       }
-      hb_set_add (codepoints, u);
 
-      s = p;
+      if (end_code < start_code)
+      {
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Invalid Unicode range %u-%u", start_code, end_code);
+	return false;
+      }
+      hb_set_add_range (unicodes, start_code, end_code);
     }
+    else
+    {
+      hb_set_add (unicodes, start_code);
+    }
+
+    s = p;
   }
+
   return true;
 }
 
@@ -298,7 +322,7 @@ parse_nameids (const char *name,
     if (errno || s == p)
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Failed parsing nameID value at: '%s'", s);
+		   "Failed parsing nameID at: '%s'", s);
       return false;
     }
 
@@ -419,7 +443,7 @@ parse_layout_features (const char *name,
     if (strlen (s) > 4) // table tags are at most 4 bytes
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-                   "Failed parsing table tag value at: '%s'", s);
+                   "Failed parsing table tag at: '%s'", s);
       return false;
     }
 
@@ -456,7 +480,7 @@ parse_drop_tables (const char *name,
     if (strlen (s) > 4) // Table tags are at most 4 bytes.
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		   "Failed parsing table tag value at: '%s'", s);
+		   "Failed parsing table tag at: '%s'", s);
       return false;
     }
 
