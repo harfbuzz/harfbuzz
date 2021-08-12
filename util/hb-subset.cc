@@ -110,7 +110,9 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   unsigned num_iterations = 1;
   hb_subset_input_t *input = nullptr;
 
+  /* Internal, ouch. */
   bool all_unicodes = false;
+  GString *glyph_names = nullptr;
 };
 
 static gboolean
@@ -174,6 +176,24 @@ parse_gids (const char *name G_GNUC_UNUSED,
 }
 
 static gboolean
+parse_glyphs (const char *name G_GNUC_UNUSED,
+	      const char *arg,
+	      gpointer    data,
+	      GError    **error G_GNUC_UNUSED)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+
+  if (!subset_main->glyph_names)
+    subset_main->glyph_names = g_string_new (nullptr);
+  else
+    g_string_append_c (subset_main->glyph_names, ' ');
+
+  g_string_append (subset_main->glyph_names, arg);
+
+  return true;
+}
+
+static gboolean
 parse_text (const char *name G_GNUC_UNUSED,
 	    const char *arg,
 	    gpointer    data,
@@ -212,6 +232,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
     return true;
   }
 
+  // XXX TODO Ranges
   hb_set_t *codepoints = hb_subset_input_unicode_set (subset_main->input);
   {
     char *s = (char *) arg;
@@ -484,11 +505,12 @@ subset_main_t::add_options ()
   {
     {"gids",		0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges"},
     // gids-file
-    // glyphs
+    {"glyphs",		0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_glyphs,  "Specify glyph names to include in the subset", "list of glyph names"},
     // glyphs-file
     {"text",		0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_text,  "Specify text to include in the subset", "string"},
     // text-file
     {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK,  (gpointer) &parse_unicodes,  "Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
+    // unicodes-file
     {nullptr}
   };
   add_group (glyphset_entries,
@@ -573,6 +595,45 @@ subset_main_t::post_parse (GError **error G_GNUC_UNUSED)
     hb_set_t *codepoints = hb_subset_input_unicode_set (input);
     hb_face_collect_unicodes (face, codepoints);
     all_unicodes = false;
+  }
+
+  if (glyph_names)
+  {
+    char *p = glyph_names->str;
+    char *p_end = p + glyph_names->len;
+
+    hb_set_t *gids = hb_subset_input_glyph_set (input);
+
+    hb_font_t *font = hb_font_create (face);
+    while (p < p_end)
+    {
+      while (p < p_end && (*p == ' ' || *p == ','))
+	p++;
+
+      char *end = p;
+      while (end < p_end && *end != ' ' && *end != ',')
+	end++;
+      *end = '\0';
+
+      if (p < end)
+      {
+        hb_codepoint_t gid;
+	if (!hb_font_get_glyph_from_name (font, p, -1, &gid))
+	{
+	  g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		       "Failed parsing glyph name: '%s'", p);
+	  return;
+	}
+
+	hb_set_add (gids, gid);
+      }
+
+      p = end + 1;
+    }
+    hb_font_destroy (font);
+
+    g_string_free (glyph_names, false);
+    glyph_names = nullptr;
   }
 }
 
