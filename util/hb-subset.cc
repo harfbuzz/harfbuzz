@@ -125,6 +125,13 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     return true;
   }
 
+  void
+  add_all_unicodes ()
+  {
+    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+    hb_face_collect_unicodes (face, codepoints);
+  }
+
   void add_options ();
 
   public:
@@ -148,7 +155,6 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   hb_subset_input_t *input = nullptr;
 
   /* Internal, ouch. */
-  bool all_unicodes = false;
   GString *glyph_names = nullptr;
 };
 
@@ -238,7 +244,7 @@ parse_text (const char *name G_GNUC_UNUSED,
 
   if (0 == strcmp (arg, "*"))
   {
-    subset_main->all_unicodes = true;
+    subset_main->add_all_unicodes ();
     return true;
   }
 
@@ -263,7 +269,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 
   if (0 == strcmp (arg, "*"))
   {
-    subset_main->all_unicodes = true;
+    subset_main->add_all_unicodes ();
     return true;
   }
 
@@ -729,13 +735,6 @@ void
 subset_main_t::post_parse (GError **error)
 {
   /* This WILL get called multiple times. Oh well... */
-
-  if (all_unicodes)
-  {
-    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
-    hb_face_collect_unicodes (face, codepoints);
-    all_unicodes = false;
-  }
 
   if (glyph_names)
   {
