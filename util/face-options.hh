@@ -36,6 +36,9 @@ struct face_options_t
     g_free (font_file);
   }
 
+  void set_face (hb_face_t *face_)
+  { face = face_; }
+
   void add_options (option_parser_t *parser);
 
   void post_parse (GError **error);

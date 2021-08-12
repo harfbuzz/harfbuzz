@@ -126,7 +126,8 @@ struct option_parser_t
     GOptionGroup *group = g_option_group_new (nullptr, nullptr, nullptr,
 					      static_cast<gpointer>(closure), nullptr);
     g_option_group_add_entries (group, entries);
-    g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
+    /* https://gitlab.gnome.org/GNOME/glib/-/issues/2460 */
+    //g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
     g_option_context_set_main_group (context, group);
   }
 
@@ -143,10 +144,10 @@ struct option_parser_t
     g_ptr_array_add (to_free, p);
   }
 
-  void parse (int *argc, char ***argv);
+  bool parse (int *argc, char ***argv, bool ignore_error = false);
 
-  protected:
   GOptionContext *context;
+  protected:
   GPtrArray *to_free;
 };
 
@@ -195,8 +196,8 @@ option_parser_t::add_options ()
   g_option_context_add_main_entries (context, entries, nullptr);
 }
 
-inline void
-option_parser_t::parse (int *argc, char ***argv)
+inline bool
+option_parser_t::parse (int *argc, char ***argv, bool ignore_error)
 {
   setlocale (LC_ALL, "");
 
@@ -205,12 +206,18 @@ option_parser_t::parse (int *argc, char ***argv)
   {
     if (parse_error)
     {
-      fail (true, "%s", parse_error->message);
-      //g_error_free (parse_error);
+      if (!ignore_error)
+	fail (true, "%s", parse_error->message);
+      g_error_free (parse_error);
     }
     else
-      fail (true, "Option parse error");
+    {
+      if (!ignore_error)
+	fail (true, "Option parse error");
+    }
+    return false;
   }
+  return true;
 }
 
 

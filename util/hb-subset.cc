@@ -46,8 +46,37 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     hb_subset_input_destroy (input);
   }
 
+  void parse_face (int argc, const char * const *argv)
+  {
+    option_parser_t parser;
+    face_options_t face_opts;
+
+    face_opts.add_options (&parser);
+
+    GOptionEntry entries[] =
+    {
+      {G_OPTION_REMAINING,	0, G_OPTION_FLAG_IN_MAIN,
+				G_OPTION_ARG_CALLBACK,	(gpointer) &collect_face,	nullptr,	"[FONT-FILE] [TEXT]"},
+      {nullptr}
+    };
+    parser.add_main_group (entries, &face_opts);
+
+    g_option_context_set_ignore_unknown_options (parser.context, true);
+    g_option_context_set_help_enabled (parser.context, false);
+
+    char **args = (char **) g_memdup (argv, argc * sizeof (*argv));
+    parser.parse (&argc, &args, true);
+    g_free (args);
+
+    set_face (face_opts.face);
+  }
+
   void parse (int argc, char **argv)
   {
+    /* Do a preliminary parse to load font-face, such that we can use it
+     * during main option parsing. */
+    parse_face (argc, argv);
+
     add_options ();
     option_parser_t::parse (&argc, &argv);
   }
@@ -96,12 +125,21 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     return true;
   }
 
+  void
+  add_all_unicodes ()
+  {
+    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
+    hb_face_collect_unicodes (face, codepoints);
+  }
+
   void add_options ();
 
-  public:
-  void post_parse (GError **error);
-
   protected:
+  static gboolean
+  collect_face (const char *name,
+		const char *arg,
+		gpointer    data,
+		GError    **error);
   static gboolean
   collect_rest (const char *name,
 		const char *arg,
@@ -112,10 +150,6 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
 
   unsigned num_iterations = 1;
   hb_subset_input_t *input = nullptr;
-
-  /* Internal, ouch. */
-  bool all_unicodes = false;
-  GString *glyph_names = nullptr;
 };
 
 static gboolean
@@ -183,13 +217,37 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
 	      GError    **error G_GNUC_UNUSED)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
 
-  if (!subset_main->glyph_names)
-    subset_main->glyph_names = g_string_new (nullptr);
-  else
-    g_string_append_c (subset_main->glyph_names, ' ');
+  const char *p = arg;
+  const char *p_end = arg + strlen (arg);
 
-  g_string_append (subset_main->glyph_names, arg);
+  hb_font_t *font = hb_font_create (subset_main->face);
+  while (p < p_end)
+  {
+    while (p < p_end && (*p == ' ' || *p == ','))
+      p++;
+
+    const char *end = p;
+    while (end < p_end && *end != ' ' && *end != ',')
+      end++;
+
+    if (p < end)
+    {
+      hb_codepoint_t gid;
+      if (!hb_font_get_glyph_from_name (font, p, end - p, &gid))
+      {
+	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		     "Failed parsing glyph name: '%s'", p);
+	return false;
+      }
+
+      hb_set_add (gids, gid);
+    }
+
+    p = end + 1;
+  }
+  hb_font_destroy (font);
 
   return true;
 }
@@ -204,7 +262,7 @@ parse_text (const char *name G_GNUC_UNUSED,
 
   if (0 == strcmp (arg, "*"))
   {
-    subset_main->all_unicodes = true;
+    subset_main->add_all_unicodes ();
     return true;
   }
 
@@ -229,7 +287,7 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 
   if (0 == strcmp (arg, "*"))
   {
-    subset_main->all_unicodes = true;
+    subset_main->add_all_unicodes ();
     return true;
   }
 
@@ -566,6 +624,23 @@ parse_file_for (const char *name,
 }
 
 gboolean
+subset_main_t::collect_face (const char *name,
+			     const char *arg,
+			     gpointer    data,
+			     GError    **error)
+{
+  face_options_t *thiz = (face_options_t *) data;
+
+  if (!thiz->font_file)
+  {
+    thiz->font_file = g_strdup (arg);
+    return true;
+  }
+
+  return true;
+}
+
+gboolean
 subset_main_t::collect_rest (const char *name,
 			     const char *arg,
 			     gpointer    data,
@@ -592,14 +667,14 @@ subset_main_t::add_options ()
 
   GOptionEntry glyphset_entries[] =
   {
-    {"gids",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,  "Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges"},
-    {"gids-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_gids>,  "Specify file to read glyph IDs or ranges from", "filename"},
-    {"glyphs",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyphs,  "Specify glyph names to include in the subset", "list of glyph names"},
-    {"glyphs-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_glyphs>,  "Specify file to read glyph names fromt", "filename"},
-    {"text",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_text,  "Specify text to include in the subset", "string"},
-    {"text-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_text, false>,  "Specify file to read text from", "filename"},
-    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,  "Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
-    {"unicodes-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_unicodes>,  "Specify file to read Unicode codepoints or ranges from", "filename"},
+    {"gids",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,			"Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges"},
+    {"gids-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_gids>,	"Specify file to read glyph IDs or ranges from", "filename"},
+    {"glyphs",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyphs,			"Specify glyph names to include in the subset", "list of glyph names"},
+    {"glyphs-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_glyphs>,	"Specify file to read glyph names fromt", "filename"},
+    {"text",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_text,			"Specify text to include in the subset", "string"},
+    {"text-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_text, false>,"Specify file to read text from", "filename"},
+    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,		"Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
+    {"unicodes-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_unicodes>,"Specify file to read Unicode codepoints or ranges from", "filename"},
     {nullptr}
   };
   add_group (glyphset_entries,
@@ -610,18 +685,18 @@ subset_main_t::add_options ()
 
   GOptionEntry other_entries[] =
   {
-    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-IDs-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-IDs+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,  "Subset specified nameids", "list of int numbers"},
-    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"name-languages-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"name-languages+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,  "Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"layout-features+",0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"layout-features-",0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,  "Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
-    {"drop-tables+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
-    {"drop-tables-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,  "Drop the specified tables.", "list of string table tags."},
+    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers"},
+    {"name-IDs-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers"},
+    {"name-IDs+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers"},
+    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"name-languages-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"name-languages+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers"},
+    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"layout-features+",0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"layout-features-",0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags."},
+    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags."},
+    {"drop-tables+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags."},
+    {"drop-tables-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags."},
     {nullptr}
   };
   add_group (other_entries,
@@ -632,15 +707,14 @@ subset_main_t::add_options ()
 
   GOptionEntry flag_entries[] =
   {
-    {"no-hinting",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,   "Whether to drop hints",   nullptr},
-    {"retain-gids",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,   "If set don't renumber glyph ids in the subset.",   nullptr},
-    {"desubroutinize",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,   "Remove CFF/CFF2 use of subroutines",   nullptr},
-    {"name-legacy", 0,	G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,   "Keep legacy (non-Unicode) 'name' table entries",   nullptr},
-    {"set-overlaps-flag",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG>,
-     "Set the overlaps flag on each glyph.",   nullptr},
-    {"notdef-outline", 0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NOTDEF_OUTLINE>,   "Keep the outline of \'.notdef\' glyph",   nullptr},
-    {"no-prune-unicode-ranges",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES>,   "Don't change the 'OS/2 ulUnicodeRange*' bits.",   nullptr},
-    {"glyph-names", 0,	G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_GLYPH_NAMES>,   "Keep PS glyph names in TT-flavored fonts. ",   nullptr},
+    {"no-hinting",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_HINTING>,		"Whether to drop hints", nullptr},
+    {"retain-gids",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_RETAIN_GIDS>,		"If set don't renumber glyph ids in the subset.", nullptr},
+    {"desubroutinize",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_DESUBROUTINIZE>,		"Remove CFF/CFF2 use of subroutines", nullptr},
+    {"name-legacy",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NAME_LEGACY>,		"Keep legacy (non-Unicode) 'name' table entries", nullptr},
+    {"set-overlaps-flag",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG>,	"Set the overlaps flag on each glyph.", nullptr},
+    {"notdef-outline",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NOTDEF_OUTLINE>,		"Keep the outline of \'.notdef\' glyph", nullptr},
+    {"no-prune-unicode-ranges",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES>,	"Don't change the 'OS/2 ulUnicodeRange*' bits.", nullptr},
+    {"glyph-names",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_GLYPH_NAMES>,		"Keep PS glyph names in TT-flavored fonts. ", nullptr},
     {nullptr}
   };
   add_group (flag_entries,
@@ -672,58 +746,6 @@ subset_main_t::add_options ()
   };
   add_main_group (entries, this);
   option_parser_t::add_options ();
-}
-
-void
-subset_main_t::post_parse (GError **error)
-{
-  /* This WILL get called multiple times. Oh well... */
-
-  if (all_unicodes)
-  {
-    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
-    hb_face_collect_unicodes (face, codepoints);
-    all_unicodes = false;
-  }
-
-  if (glyph_names)
-  {
-    char *p = glyph_names->str;
-    char *p_end = p + glyph_names->len;
-
-    hb_set_t *gids = hb_subset_input_glyph_set (input);
-
-    hb_font_t *font = hb_font_create (face);
-    while (p < p_end)
-    {
-      while (p < p_end && (*p == ' ' || *p == ','))
-	p++;
-
-      char *end = p;
-      while (end < p_end && *end != ' ' && *end != ',')
-	end++;
-      *end = '\0';
-
-      if (p < end)
-      {
-        hb_codepoint_t gid;
-	if (!hb_font_get_glyph_from_name (font, p, -1, &gid))
-	{
-	  g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		       "Failed parsing glyph name: '%s'", p);
-	  return;
-	}
-
-	hb_set_add (gids, gid);
-      }
-
-      p = end + 1;
-    }
-    hb_font_destroy (font);
-
-    g_string_free (glyph_names, false);
-    glyph_names = nullptr;
-  }
 }
 
 int
