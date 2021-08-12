@@ -123,11 +123,13 @@ font_options_t::post_parse (GError **error)
       }
       g_string_append_c (s, '\n');
       char *p = g_string_free (s, FALSE);
-      fail (false, "Unknown font function implementation `%s'; supported values are: %s; default is %s",
-	    font_funcs,
-	    p,
-	    supported_font_funcs[0].name);
-      //free (p);
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Unknown font function implementation `%s'; supported values are: %s; default is %s",
+		   font_funcs,
+		   p,
+		   supported_font_funcs[0].name);
+      free (p);
+      return;
     }
   }
   set_font_funcs (font);
