@@ -135,6 +135,67 @@ hb_subset_input_set_flags (hb_subset_input_t *input,
 HB_EXTERN hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
 
+
+/*
+ * ### Legacy API ###
+ * The methods below are part of the legacy harfbuzz subsetting API and will be
+ * Removed as of version 3.0.0
+ */
+
+HB_EXTERN void
+hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
+                                         hb_bool_t value);
+HB_EXTERN hb_bool_t
+hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input);
+
+HB_EXTERN void
+hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
+				hb_bool_t drop_hints);
+HB_EXTERN hb_bool_t
+hb_subset_input_get_drop_hints (hb_subset_input_t *subset_input);
+
+HB_EXTERN void
+hb_subset_input_set_desubroutinize (hb_subset_input_t *subset_input,
+				    hb_bool_t desubroutinize);
+HB_EXTERN hb_bool_t
+hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input);
+
+HB_EXTERN void
+hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
+				 hb_bool_t retain_gids);
+HB_EXTERN hb_bool_t
+hb_subset_input_get_retain_gids (hb_subset_input_t *subset_input);
+
+HB_EXTERN void
+hb_subset_input_set_name_legacy (hb_subset_input_t *subset_input,
+				 hb_bool_t name_legacy);
+HB_EXTERN hb_bool_t
+hb_subset_input_get_name_legacy (hb_subset_input_t *subset_input);
+
+HB_EXTERN void
+hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
+                                   hb_bool_t overlaps_flag);
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input);
+
+HB_EXTERN void
+hb_subset_input_set_notdef_outline (hb_subset_input_t *subset_input,
+                                    hb_bool_t notdef_outline);
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_notdef_outline (hb_subset_input_t *subset_input);
+
+HB_EXTERN void
+hb_subset_input_set_no_prune_unicode_ranges (hb_subset_input_t *subset_input,
+                                             hb_bool_t no_prune_unicode_ranges);
+
+HB_EXTERN hb_bool_t
+hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input);
+
+HB_EXTERN hb_face_t *
+hb_subset (hb_face_t *source, hb_subset_input_t *input);
+
 HB_END_DECLS
 
 #endif /* HB_SUBSET_H */
