@@ -426,3 +426,133 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
 {
   return hb_object_get_user_data (input, key);
 }
+
+
+static void set_flag_value (hb_subset_input_t *input, hb_subset_flags_t flag, hb_bool_t value)
+{
+  hb_subset_input_set_flags (input,
+                             value
+                             ? hb_subset_input_get_flags (input) | flag
+                             : hb_subset_input_get_flags (input) & ~flag);
+}
+
+void
+hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
+                                         hb_bool_t value)
+{
+  return set_flag_value (subset_input,
+                         HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES,
+                         value);
+}
+
+hb_bool_t
+hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input)
+{
+  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES;
+}
+
+void
+hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
+				hb_bool_t drop_hints)
+{
+  return set_flag_value (subset_input,
+                         HB_SUBSET_FLAGS_NO_HINTING,
+                         drop_hints);
+}
+
+hb_bool_t
+hb_subset_input_get_drop_hints (hb_subset_input_t *subset_input)
+{
+  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NO_HINTING;
+}
+
+void
+hb_subset_input_set_desubroutinize (hb_subset_input_t *subset_input,
+				    hb_bool_t desubroutinize)
+{
+  return set_flag_value (subset_input,
+                         HB_SUBSET_FLAGS_DESUBROUTINIZE,
+                         desubroutinize);
+}
+
+hb_bool_t
+hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input)
+{
+  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_DESUBROUTINIZE;
+}
+
+void
+hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
+				 hb_bool_t retain_gids)
+{
+  return set_flag_value (subset_input,
+                         HB_SUBSET_FLAGS_RETAIN_GIDS,
+                         retain_gids);
+}
+
+hb_bool_t
+hb_subset_input_get_retain_gids (hb_subset_input_t *subset_input)
+{
+  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_GIDS;
+}
+
+void
+hb_subset_input_set_name_legacy (hb_subset_input_t *subset_input,
+				 hb_bool_t name_legacy)
+{
+  return set_flag_value (subset_input,
+                         HB_SUBSET_FLAGS_NAME_LEGACY,
+                         name_legacy);
+}
+
+hb_bool_t
+hb_subset_input_get_name_legacy (hb_subset_input_t *subset_input)
+{
+  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NAME_LEGACY;
+}
+
+void
+hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
+                                   hb_bool_t overlaps_flag)
+{
+  return set_flag_value (subset_input,
+                         HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG,
+                         overlaps_flag);
+}
+
+hb_bool_t
+hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input)
+{
+  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG;
+}
+
+void
+hb_subset_input_set_notdef_outline (hb_subset_input_t *subset_input,
+                                    hb_bool_t notdef_outline)
+{
+  return set_flag_value (subset_input,
+                         HB_SUBSET_FLAGS_NOTDEF_OUTLINE,
+                         notdef_outline);
+}
+
+hb_bool_t
+hb_subset_input_get_notdef_outline (hb_subset_input_t *subset_input)
+{
+  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NOTDEF_OUTLINE;
+}
+
+void
+hb_subset_input_set_no_prune_unicode_ranges (hb_subset_input_t *subset_input,
+                                             hb_bool_t no_prune_unicode_ranges)
+{
+  return set_flag_value (subset_input,
+                         HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES,
+                         no_prune_unicode_ranges);
+}
+
+
+hb_bool_t
+hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input)
+{
+  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES;
+}
