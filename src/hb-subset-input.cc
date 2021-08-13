@@ -448,7 +448,7 @@ hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
 hb_bool_t
 hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input)
 {
-  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES;
+  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
 }
 
 void
@@ -463,7 +463,7 @@ hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
 hb_bool_t
 hb_subset_input_get_drop_hints (hb_subset_input_t *subset_input)
 {
-  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NO_HINTING;
+  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NO_HINTING);
 }
 
 void
@@ -478,7 +478,7 @@ hb_subset_input_set_desubroutinize (hb_subset_input_t *subset_input,
 hb_bool_t
 hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input)
 {
-  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_DESUBROUTINIZE;
+  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_DESUBROUTINIZE);
 }
 
 void
@@ -493,7 +493,7 @@ hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
 hb_bool_t
 hb_subset_input_get_retain_gids (hb_subset_input_t *subset_input)
 {
-  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_GIDS;
+  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_GIDS);
 }
 
 void
@@ -508,7 +508,7 @@ hb_subset_input_set_name_legacy (hb_subset_input_t *subset_input,
 hb_bool_t
 hb_subset_input_get_name_legacy (hb_subset_input_t *subset_input)
 {
-  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NAME_LEGACY;
+  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NAME_LEGACY);
 }
 
 void
@@ -523,7 +523,7 @@ hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
 hb_bool_t
 hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input)
 {
-  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG;
+  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG);
 }
 
 void
@@ -538,7 +538,7 @@ hb_subset_input_set_notdef_outline (hb_subset_input_t *subset_input,
 hb_bool_t
 hb_subset_input_get_notdef_outline (hb_subset_input_t *subset_input)
 {
-  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NOTDEF_OUTLINE;
+  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NOTDEF_OUTLINE);
 }
 
 void
@@ -554,5 +554,5 @@ hb_subset_input_set_no_prune_unicode_ranges (hb_subset_input_t *subset_input,
 hb_bool_t
 hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input)
 {
-  return hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES;
+  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES);
 }
