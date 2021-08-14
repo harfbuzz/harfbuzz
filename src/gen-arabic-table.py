@@ -161,6 +161,7 @@ LIGATURES = (
 	0xFCB0, 0xFCC9, 0xFCCA, 0xFCCB, 0xFCCC, 0xFCCD, 0xFCCE, 0xFCCF, 0xFCD0,
 	0xFCD1, 0xFCD2, 0xFCD3, 0xFCD5, 0xFCDA, 0xFCDB, 0xFCDC, 0xFCDD, 0xFD30,
 	0xFD88, 0xFEF5, 0xFEF6, 0xFEF7, 0xFEF8, 0xFEF9, 0xFEFA, 0xFEFB, 0xFEFC,
+	0xF201, 0xF211, 0xF2EE,
 )
 
 def print_shaping_table(f):
@@ -168,7 +169,13 @@ def print_shaping_table(f):
 	shapes = {}
 	ligatures = {}
 	names = {}
-	for line in f:
+	lines = f.readlines()
+	lines += [
+		"F201;PUA ARABIC LIGATURE LELLAH ISOLATED FORM;Lo;0;AL;<isolated> 0644 0644 0647;;;;N;;;;;",
+		"F211;PUA ARABIC LIGATURE LAM WITH MEEM WITH JEEM INITIAL FORM;Lo;0;AL;<initial> 0644 0645 062C;;;;N;;;;;",
+		"F2EE;PUA ARABIC LIGATURE SHADDA WITH FATHATAN ISOLATED FORM;Lo;0;AL;<isolated> 0020 064B 0651;;;;N;;;;;",
+	]
+	for line in lines:
 
 		fields = [x.strip () for x in line.split (';')]
 		if fields[5][0:1] != '<':
