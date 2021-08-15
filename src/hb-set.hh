@@ -50,7 +50,7 @@ struct hb_set_t
 
   struct page_map_t
   {
-    int cmp (const page_map_t &o) const { return (int) o.major - (int) major; }
+    int cmp (const page_map_t &o) const { return cmp (o.major); }
     int cmp (uint32_t o_major) const { return (int) o_major - (int) major; }
 
     uint32_t major;
