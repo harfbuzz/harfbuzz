@@ -387,9 +387,9 @@ struct hb_set_t
     return true;
   }
 
-  bool allocate_compact_workspace(hb_vector_t<unsigned>& workspace)
+  bool allocate_compact_workspace (hb_vector_t<unsigned>& workspace)
   {
-    if (unlikely(!workspace.resize (pages.length)))
+    if (unlikely (!workspace.resize (pages.length)))
     {
       successful = false;
       return false;
