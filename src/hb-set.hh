@@ -94,7 +94,6 @@ struct hb_set_t
 	*lb |= ((mask (b) << 1) - 1);
       }
     }
-
     void del_range (hb_codepoint_t a, hb_codepoint_t b)
     {
       elt_t *la = &elt (a);
@@ -111,6 +110,8 @@ struct hb_set_t
 	*lb &= ~((mask (b) << 1) - 1);
       }
     }
+    void set_range (hb_codepoint_t a, hb_codepoint_t b, bool v)
+    { if (v) add_range (a, b); else del_range (a, b); }
 
     bool is_equal (const page_t &other) const
     {
