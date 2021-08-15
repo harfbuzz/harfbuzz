@@ -186,18 +186,24 @@ struct hb_set_t
       *codepoint = INVALID;
       return false;
     }
-    hb_codepoint_t get_min () const
+    hb_codepoint_t get_min (bool inverted = false) const
     {
       for (unsigned int i = 0; i < len (); i++)
-	if (v[i])
-	  return i * ELT_BITS + elt_get_min (v[i]);
+      {
+        elt_t e = inverted ? ~v[i] : v[i];
+	if (e)
+	  return i * ELT_BITS + elt_get_min (e);
+      }
       return INVALID;
     }
-    hb_codepoint_t get_max () const
+    hb_codepoint_t get_max (bool inverted = false) const
     {
       for (int i = len () - 1; i >= 0; i--)
-	if (v[i])
-	  return i * ELT_BITS + elt_get_max (v[i]);
+      {
+        elt_t e = inverted ? ~v[i] : v[i];
+	if (e)
+	  return i * ELT_BITS + elt_get_max (e);
+      }
       return 0;
     }
 
