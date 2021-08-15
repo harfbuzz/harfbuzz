@@ -107,7 +107,7 @@ jobs:
     executor: win32-executor
     steps:
       - checkout
-      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build binutils gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip git g++-mingw-w64-i686 zip
+      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build gtk-doc-tools python3 python3-pip git g++-mingw-w64-i686 zip
       - run: pip3 install meson==0.56.0 --upgrade
       - run: .ci/build-win32.sh
       - store_artifacts:
