@@ -190,7 +190,7 @@ struct hb_set_t
     {
       for (unsigned int i = 0; i < len (); i++)
       {
-        elt_t e = inverted ? ~v[i] : v[i];
+        elt_t e = elt_maybe_invert (v[i], inverted);
 	if (e)
 	  return i * ELT_BITS + elt_get_min (e);
       }
@@ -200,7 +200,7 @@ struct hb_set_t
     {
       for (int i = len () - 1; i >= 0; i--)
       {
-        elt_t e = inverted ? ~v[i] : v[i];
+        elt_t e = elt_maybe_invert (v[i], inverted);
 	if (e)
 	  return i * ELT_BITS + elt_get_max (e);
       }
@@ -213,6 +213,7 @@ struct hb_set_t
 
     static unsigned int elt_get_min (const elt_t &elt) { return hb_ctz (elt); }
     static unsigned int elt_get_max (const elt_t &elt) { return hb_bit_storage (elt) - 1; }
+    static elt_t elt_maybe_invert (elt_t elt, bool inverted) { return inverted ? ~elt : elt; }
 
     typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
 
