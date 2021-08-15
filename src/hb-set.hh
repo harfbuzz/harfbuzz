@@ -145,10 +145,10 @@ struct hb_set_t
       unsigned int j = m & ELT_MASK;
 
       const elt_t vv = v[i] & ~((elt_t (1) << j) - 1);
-      for (const elt_t *p = &vv; i < len (); p = &v[++i])
-	if (*p)
+      for (elt_t p = vv; i < len (); p = v[++i])
+	if (p)
 	{
-	  *codepoint = i * ELT_BITS + elt_get_min (*p);
+	  *codepoint = i * ELT_BITS + elt_get_min (p);
 	  return true;
 	}
 
@@ -171,16 +171,16 @@ struct hb_set_t
 			 ((elt_t (1) << (j + 1)) - 1) :
 			 (elt_t) -1;
       const elt_t vv = v[i] & mask;
-      const elt_t *p = &vv;
+      elt_t p = vv;
       while (true)
       {
-	if (*p)
+	if (p)
 	{
-	  *codepoint = i * ELT_BITS + elt_get_max (*p);
+	  *codepoint = i * ELT_BITS + elt_get_max (p);
 	  return true;
 	}
 	if ((int) i <= 0) break;
-	p = &v[--i];
+	p = v[--i];
       }
 
       *codepoint = INVALID;
