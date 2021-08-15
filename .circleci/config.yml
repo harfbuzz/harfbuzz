@@ -156,10 +156,7 @@ workflows:
   build:
     jobs:
       - macos-aat-fonts
-      - distcheck: # will be dropped with autotools removal
-          filters:
-            tags:
-              only: /^\d+.\d+.\d+$/
+      - distcheck
       - publish-dist:
           requires:
             - distcheck
@@ -172,10 +169,7 @@ workflows:
       - alpine
      #- archlinux
       - sanitizers
-      - crossbuild-win32:
-          filters:
-            tags:
-              only: /^\d+.\d+.\d+$/
+      - crossbuild-win32
       - crossbuild-win64
       - publish-win32:
           requires:
