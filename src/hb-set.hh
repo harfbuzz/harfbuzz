@@ -133,7 +133,7 @@ struct hb_set_t
       return pop;
     }
 
-    bool next (hb_codepoint_t *codepoint) const
+    bool next (hb_codepoint_t *codepoint, bool inverted = false) const
     {
       unsigned int m = (*codepoint + 1) & MASK;
       if (!m)
@@ -145,7 +145,9 @@ struct hb_set_t
       unsigned int j = m & ELT_MASK;
 
       const elt_t vv = v[i] & ~((elt_t (1) << j) - 1);
-      for (elt_t p = vv; i < len (); p = v[++i])
+      for (elt_t p = elt_maybe_invert (vv, inverted);
+	   i < len ();
+	   p = elt_maybe_invert (v[++i], inverted))
 	if (p)
 	{
 	  *codepoint = i * ELT_BITS + elt_get_min (p);
@@ -155,7 +157,7 @@ struct hb_set_t
       *codepoint = INVALID;
       return false;
     }
-    bool previous (hb_codepoint_t *codepoint) const
+    bool previous (hb_codepoint_t *codepoint, bool inverted = false) const
     {
       unsigned int m = (*codepoint - 1) & MASK;
       if (m == MASK)
@@ -171,7 +173,7 @@ struct hb_set_t
 			 ((elt_t (1) << (j + 1)) - 1) :
 			 (elt_t) -1;
       const elt_t vv = v[i] & mask;
-      elt_t p = vv;
+      elt_t p = elt_maybe_invert (vv, inverted);
       while (true)
       {
 	if (p)
@@ -180,7 +182,7 @@ struct hb_set_t
 	  return true;
 	}
 	if ((int) i <= 0) break;
-	p = v[--i];
+	p = elt_maybe_invert (v[--i], inverted);
       }
 
       *codepoint = INVALID;
