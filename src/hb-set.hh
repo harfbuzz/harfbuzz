@@ -65,10 +65,10 @@ struct hb_set_t
     constexpr unsigned len () const
     { return ARRAY_LENGTH_CONST (v); }
 
-    bool is_empty () const
+    bool is_empty (bool inverted = false) const
     {
       for (unsigned int i = 0; i < len (); i++)
-	if (v[i])
+	if (elt_maybe_invert (v[i], inverted))
 	  return false;
       return true;
     }
