@@ -107,7 +107,7 @@ jobs:
     executor: win32-executor
     steps:
       - checkout
-      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build binutils gcc g++ pkg-config ragel gtk-doc-tools libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip git g++-mingw-w64-i686 zip
+      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build gtk-doc-tools python3 python3-pip git g++-mingw-w64-i686 zip
       - run: pip3 install meson==0.56.0 --upgrade
       - run: .ci/build-win32.sh
       - store_artifacts:
@@ -126,16 +126,37 @@ jobs:
           mv harfbuzz-win32{,-$CIRCLE_TAG}.zip
           .ci/publish_release_artifact.sh harfbuzz-win32-$CIRCLE_TAG.zip
 
+  crossbuild-win64:
+    executor: win32-executor
+    steps:
+      - checkout
+      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y ninja-build gtk-doc-tools python3 python3-pip git g++-mingw-w64-x86-64 zip
+      - run: pip3 install meson==0.56.0 --upgrade
+      - run: bash .ci/build-win64.sh
+      - store_artifacts:
+          path: harfbuzz-win64.zip
+      - persist_to_workspace:
+          root: .
+          paths: harfbuzz-win64.zip
+
+  publish-win64:
+    executor: win32-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: |
+          mv harfbuzz-win64{,-$CIRCLE_TAG}.zip
+          .ci/publish_release_artifact.sh harfbuzz-win64-$CIRCLE_TAG.zip
+
+
 workflows:
   version: 2
 
   build:
     jobs:
       - macos-aat-fonts
-      - distcheck: # will be dropped with autotools removal
-          filters:
-            tags:
-              only: /^\d+.\d+.\d+$/
+      - distcheck
       - publish-dist:
           requires:
             - distcheck
@@ -148,13 +169,19 @@ workflows:
       - alpine
      #- archlinux
       - sanitizers
-      - crossbuild-win32:
-          filters:
-            tags:
-              only: /^\d+.\d+.\d+$/
+      - crossbuild-win32
+      - crossbuild-win64
       - publish-win32:
           requires:
             - crossbuild-win32
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+            branches:
+              ignore: /.*/
+      - publish-win64:
+          requires:
+            - crossbuild-win64
           filters:
             tags:
               only: /^\d+\.\d+\.\d+$/
