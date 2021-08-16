@@ -235,7 +235,6 @@ struct shape_options_t
       hb_buffer_clear_contents (fragment);
       copy_buffer_properties (fragment, buffer);
 
-      /* TODO: Add pre/post context text. */
       hb_buffer_flags_t flags = hb_buffer_get_flags (fragment);
       if (0 < text_start)
 	flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_BOT);
