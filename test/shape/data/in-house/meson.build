@@ -31,6 +31,7 @@ in_house_tests = [
   'indic-special-cases.tests',
   'indic-syllable.tests',
   'indic-vowel-letter-spoofing.tests',
+  'item-context.tests',
   'kern-format2.tests',
   'khmer-mark-order.tests',
   'khmer-misc.tests',
