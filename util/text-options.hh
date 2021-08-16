@@ -119,6 +119,43 @@ parse_text (const char *name G_GNUC_UNUSED,
   return true;
 }
 
+static bool
+encode_unicodes (const char *unicodes,
+		 GString    *gs,
+		 GError    **error)
+{
+#define DELIMITERS "<+->{},;&#\\xXuUnNiI\n\t\v\f\r "
+
+  char *s = (char *) unicodes;
+  char *p;
+
+  while (s && *s)
+  {
+    while (*s && strchr (DELIMITERS, *s))
+      s++;
+    if (!*s)
+      break;
+
+    errno = 0;
+    hb_codepoint_t u = strtoul (s, &p, 16);
+    if (errno || s == p)
+    {
+      g_string_free (gs, TRUE);
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing Unicode value at: '%s'", s);
+      return false;
+    }
+
+    g_string_append_unichar (gs, u);
+
+    s = p;
+  }
+
+#undef DELIMITERS
+
+  return true;
+}
+
 static gboolean
 parse_unicodes (const char *name G_GNUC_UNUSED,
 		const char *arg,
@@ -136,41 +173,98 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 
   GString *gs = g_string_new (nullptr);
   if (0 == strcmp (arg, "*"))
-  {
     g_string_append_c (gs, '*');
-  }
   else
-  {
-#define DELIMITERS "<+->{},;&#\\xXuUnNiI\n\t\v\f\r "
-
-    char *s = (char *) arg;
-    char *p;
-
-    while (s && *s)
-    {
-      while (*s && strchr (DELIMITERS, *s))
-	s++;
-      if (!*s)
-	break;
-
-      errno = 0;
-      hb_codepoint_t u = strtoul (s, &p, 16);
-      if (errno || s == p)
-      {
-	g_string_free (gs, TRUE);
-	g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
-		     "Failed parsing Unicode value at: '%s'", s);
-	return false;
-      }
-
-      g_string_append_unichar (gs, u);
-
-      s = p;
-    }
-  }
+    if (!encode_unicodes (arg, gs, error))
+      return false;
 
   text_opts->text_len = gs->len;
   text_opts->text = g_string_free (gs, FALSE);
+  return true;
+}
+
+static gboolean
+parse_text_before (const char *name G_GNUC_UNUSED,
+		   const char *arg,
+		   gpointer    data,
+		   GError    **error)
+{
+  auto *opts = (shape_text_options_t *) data;
+
+  if (opts->text_before)
+  {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		 "Either --text-before or --unicodes-before can be provided but not both");
+    return false;
+  }
+
+  opts->text_before = g_strdup (arg);
+  fprintf(stderr, "%s\n", opts->text_before);
+  return true;
+}
+
+static gboolean
+parse_unicodes_before (const char *name G_GNUC_UNUSED,
+		       const char *arg,
+		       gpointer    data,
+		       GError    **error)
+{
+  auto *opts = (shape_text_options_t *) data;
+
+  if (opts->text_before)
+  {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		 "Either --text-before or --unicodes-before can be provided but not both");
+    return false;
+  }
+
+  GString *gs = g_string_new (nullptr);
+  if (!encode_unicodes (arg, gs, error))
+    return false;
+
+  opts->text_before = g_string_free (gs, FALSE);
+  return true;
+}
+
+static gboolean
+parse_text_after (const char *name G_GNUC_UNUSED,
+		  const char *arg,
+		  gpointer    data,
+		  GError    **error)
+{
+  auto *opts = (shape_text_options_t *) data;
+
+  if (opts->text_after)
+  {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		 "Either --text-after or --unicodes-after can be provided but not both");
+    return false;
+  }
+
+  opts->text_after = g_strdup (arg);
+  return true;
+}
+
+static gboolean
+parse_unicodes_after (const char *name G_GNUC_UNUSED,
+		      const char *arg,
+		      gpointer    data,
+		      GError    **error)
+{
+  auto *opts = (shape_text_options_t *) data;
+
+  if (opts->text_after)
+  {
+    g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		 "Either --text-after or --unicodes-after can be provided but not both");
+    return false;
+  }
+
+  GString *gs = g_string_new (nullptr);
+  if (!encode_unicodes (arg, gs, error))
+    return false;
+
+  opts->text_after = g_string_free (gs, FALSE);
   return true;
 }
 
@@ -236,8 +330,10 @@ shape_text_options_t::add_options (option_parser_t *parser)
 
   GOptionEntry entries[] =
   {
-    {"text-before",	0, 0, G_OPTION_ARG_STRING,	&this->text_before,		"Set text context before each line",	"string"},
-    {"text-after",	0, 0, G_OPTION_ARG_STRING,	&this->text_after,		"Set text context after each line",	"string"},
+    {"text-before",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_text_before,		"Set text context before each line",	"string"},
+    {"text-after",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_text_after,		"Set text context after each line",	"string"},
+    {"unicodes-before",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes_before,	"Set Unicode codepoints context before each line",	"list of hex numbers"},
+    {"unicodes-after",	0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_unicodes_after,	"Set Unicode codepoints context after each line",	"list of hex numbers"},
     {nullptr}
   };
   parser->add_group (entries,
