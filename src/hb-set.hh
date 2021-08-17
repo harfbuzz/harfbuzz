@@ -32,10 +32,11 @@
 #include "hb-bit-set.hh"
 
 
-struct hb_set_t
+template <typename impl_t>
+struct hb_intset_t
 {
   hb_object_header_t header;
-  hb_bit_set_t s;
+  impl_t s;
 
   void init_shallow ()
   {
@@ -98,24 +99,24 @@ struct hb_set_t
   bool operator () (hb_codepoint_t k) const { return has (k); }
 
   /* Sink interface. */
-  hb_set_t& operator << (hb_codepoint_t v)
+  hb_intset_t& operator << (hb_codepoint_t v)
   { add (v); return *this; }
-  hb_set_t& operator << (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& range)
+  hb_intset_t& operator << (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& range)
   { add_range (range.first, range.second); return *this; }
 
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   { return s.intersects (first, last); }
 
-  void set (const hb_set_t &other) { s.set (other.s); }
+  void set (const hb_intset_t &other) { s.set (other.s); }
 
-  bool is_equal (const hb_set_t &other) const { return s.is_equal (other.s); }
+  bool is_equal (const hb_intset_t &other) const { return s.is_equal (other.s); }
 
-  bool is_subset (const hb_set_t &larger_set) const { return s.is_subset (larger_set.s); }
+  bool is_subset (const hb_intset_t &larger_set) const { return s.is_subset (larger_set.s); }
 
-  void union_ (const hb_set_t &other) { s.process (hb_bitwise_or, other.s); }
-  void intersect (const hb_set_t &other) { s.process (hb_bitwise_and, other.s); }
-  void subtract (const hb_set_t &other) { s.process (hb_bitwise_sub, other.s); }
-  void symmetric_difference (const hb_set_t &other) { s.process (hb_bitwise_xor, other.s); }
+  void union_ (const hb_intset_t &other) { s.process (hb_bitwise_or, other.s); }
+  void intersect (const hb_intset_t &other) { s.process (hb_bitwise_and, other.s); }
+  void subtract (const hb_intset_t &other) { s.process (hb_bitwise_sub, other.s); }
+  void symmetric_difference (const hb_intset_t &other) { s.process (hb_bitwise_xor, other.s); }
 
   bool next (hb_codepoint_t *codepoint) const { return s.next (codepoint); }
   bool previous (hb_codepoint_t *codepoint) const { return s.previous (codepoint); }
@@ -128,16 +129,19 @@ struct hb_set_t
   hb_codepoint_t get_min () const { return s.get_min (); }
   hb_codepoint_t get_max () const { return s.get_max (); }
 
-  static constexpr hb_codepoint_t INVALID = hb_bit_set_t::INVALID;
-  static_assert (INVALID == HB_SET_VALUE_INVALID, "");
+  static constexpr hb_codepoint_t INVALID = impl_t::INVALID;
 
   /*
    * Iterator implementation.
    */
-  using iter_t = hb_bit_set_t::iter_t;
+  using iter_t = typename impl_t::iter_t;
   iter_t iter () const { return iter_t (this->s); }
   operator iter_t () const { return iter (); }
 };
+
+struct hb_set_t : hb_intset_t<hb_bit_set_t> {};
+
+static_assert (hb_set_t::INVALID == HB_SET_VALUE_INVALID, "");
 
 
 #endif /* HB_SET_HH */
