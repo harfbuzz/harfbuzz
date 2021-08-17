@@ -404,7 +404,7 @@ _hb_shape_plan_execute_internal (hb_shape_plan_t    *shape_plan,
 
   buffer->assert_unicode ();
 
-  if (unlikely (hb_object_is_inert (shape_plan)))
+  if (unlikely (!hb_object_is_valid (shape_plan)))
     return false;
 
   assert (shape_plan->face_unsafe == font->face);
@@ -529,7 +529,7 @@ hb_shape_plan_create_cached2 (hb_face_t                     *face,
 retry:
   hb_face_t::plan_node_t *cached_plan_nodes = face->shape_plans;
 
-  bool dont_cache = hb_object_is_inert (face);
+  bool dont_cache = !hb_object_is_valid (face);
 
   if (likely (!dont_cache))
   {
