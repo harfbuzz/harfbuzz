@@ -169,7 +169,7 @@ hb_set_get_user_data (hb_set_t           *set,
 hb_bool_t
 hb_set_allocation_successful (const hb_set_t  *set)
 {
-  return set->successful;
+  return !set->in_error ();
 }
 
 /**
