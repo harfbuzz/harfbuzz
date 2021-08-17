@@ -35,14 +35,8 @@
 
 struct hb_bit_set_t
 {
-  hb_bit_set_t ()
-  {
-    init ();
-  }
-  ~hb_bit_set_t ()
-  {
-    fini ();
-  }
+  hb_bit_set_t () { init (); }
+  ~hb_bit_set_t () { fini (); }
 
   void init ()
   {
@@ -557,6 +551,11 @@ struct hb_bit_set_t
       // which will always succeed if the set is not in_error().
       resize (newCount);
   }
+
+  void union_ (const hb_bit_set_t &other) { process (hb_bitwise_or, other); }
+  void intersect (const hb_bit_set_t &other) { process (hb_bitwise_and, other); }
+  void subtract (const hb_bit_set_t &other) { process (hb_bitwise_sub, other); }
+  void symmetric_difference (const hb_bit_set_t &other) { process (hb_bitwise_xor, other); }
 
   bool next (hb_codepoint_t *codepoint) const
   {

@@ -29,28 +29,25 @@
 #define HB_SET_HH
 
 #include "hb.hh"
-#include "hb-bit-set.hh"
+#include "hb-bit-set-invertible.hh"
 
 
 template <typename impl_t>
-struct hb_intset_t
+struct hb_sparseset_t
 {
   hb_object_header_t header;
   impl_t s;
 
-  void init_shallow ()
-  {
-    s.init ();
-  }
+  hb_sparseset_t () { init (); }
+  ~hb_sparseset_t () { fini (); }
+
+  void init_shallow () { s.init (); }
   void init ()
   {
     hb_object_init (this);
     init_shallow ();
   }
-  void fini_shallow ()
-  {
-    s.fini ();
-  }
+  void fini_shallow () { s.fini (); }
   void fini ()
   {
     hb_object_fini (this);
@@ -63,9 +60,8 @@ struct hb_intset_t
   bool in_error () const { return s.in_error (); }
 
   void reset () { s.reset (); }
-
   void clear () { s.clear (); }
-
+  void invert () { s.invert (); }
   bool is_empty () const { return s.is_empty (); }
 
   void add (hb_codepoint_t g) { s.add (g); }
@@ -99,24 +95,24 @@ struct hb_intset_t
   bool operator () (hb_codepoint_t k) const { return has (k); }
 
   /* Sink interface. */
-  hb_intset_t& operator << (hb_codepoint_t v)
+  hb_sparseset_t& operator << (hb_codepoint_t v)
   { add (v); return *this; }
-  hb_intset_t& operator << (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& range)
+  hb_sparseset_t& operator << (const hb_pair_t<hb_codepoint_t, hb_codepoint_t>& range)
   { add_range (range.first, range.second); return *this; }
 
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
   { return s.intersects (first, last); }
 
-  void set (const hb_intset_t &other) { s.set (other.s); }
+  void set (const hb_sparseset_t &other) { s.set (other.s); }
 
-  bool is_equal (const hb_intset_t &other) const { return s.is_equal (other.s); }
+  bool is_equal (const hb_sparseset_t &other) const { return s.is_equal (other.s); }
 
-  bool is_subset (const hb_intset_t &larger_set) const { return s.is_subset (larger_set.s); }
+  bool is_subset (const hb_sparseset_t &larger_set) const { return s.is_subset (larger_set.s); }
 
-  void union_ (const hb_intset_t &other) { s.process (hb_bitwise_or, other.s); }
-  void intersect (const hb_intset_t &other) { s.process (hb_bitwise_and, other.s); }
-  void subtract (const hb_intset_t &other) { s.process (hb_bitwise_sub, other.s); }
-  void symmetric_difference (const hb_intset_t &other) { s.process (hb_bitwise_xor, other.s); }
+  void union_ (const hb_sparseset_t &other) { s.union_ (other.s); }
+  void intersect (const hb_sparseset_t &other) { s.intersect (other.s); }
+  void subtract (const hb_sparseset_t &other) { s.subtract (other.s); }
+  void symmetric_difference (const hb_sparseset_t &other) { s.symmetric_difference (other.s); }
 
   bool next (hb_codepoint_t *codepoint) const { return s.next (codepoint); }
   bool previous (hb_codepoint_t *codepoint) const { return s.previous (codepoint); }
@@ -139,7 +135,7 @@ struct hb_intset_t
   operator iter_t () const { return iter (); }
 };
 
-struct hb_set_t : hb_intset_t<hb_bit_set_t> {};
+struct hb_set_t : hb_sparseset_t<hb_bit_set_invertible_t> {};
 
 static_assert (hb_set_t::INVALID == HB_SET_VALUE_INVALID, "");
 
