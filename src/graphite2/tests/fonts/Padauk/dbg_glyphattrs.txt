@@ -1,0 +1,4892 @@
+GLYPH ATTRIBUTE IDS
+
+0: *actualForPseudo*
+1: breakweight
+2: directionality
+3: BDS.x
+4: BDS.gpoint
+5: BDS.xoffset
+6: BDS.y
+7: BDS.yoffset
+8: BSS.x
+9: BSS.gpoint
+10: BSS.xoffset
+11: BSS.y
+12: BSS.yoffset
+13: LS.x
+14: LS.gpoint
+15: LS.xoffset
+16: LS.y
+17: LS.yoffset
+18: RM.x
+19: RM.gpoint
+20: RM.xoffset
+21: RM.y
+22: RM.yoffset
+23: US.x
+24: US.gpoint
+25: US.xoffset
+26: US.y
+27: US.yoffset
+28: order
+29: LLS.x
+30: LLS.gpoint
+31: LLS.xoffset
+32: LLS.y
+33: LLS.yoffset
+34: BDM.x
+35: BDM.gpoint
+36: BDM.xoffset
+37: BDM.y
+38: BDM.yoffset
+39: origWidth
+40: BSM.x
+41: BSM.gpoint
+42: BSM.xoffset
+43: BSM.y
+44: BSM.yoffset
+45: UM.x
+46: UM.gpoint
+47: UM.xoffset
+48: UM.y
+49: UM.yoffset
+50: YM.x
+51: YM.gpoint
+52: YM.xoffset
+53: YM.y
+54: YM.yoffset
+55: dotS.x
+56: dotS.gpoint
+57: dotS.xoffset
+58: dotS.y
+59: dotS.yoffset
+60: xkern
+61: YS.x
+62: YS.gpoint
+63: YS.xoffset
+64: YS.y
+65: YS.yoffset
+66: rkern
+67: FAKES.x
+68: FAKES.gpoint
+69: FAKES.xoffset
+70: FAKES.y
+71: FAKES.yoffset
+72: LM.x
+73: LM.gpoint
+74: LM.xoffset
+75: LM.y
+76: LM.yoffset
+77: RS.x
+78: RS.gpoint
+79: RS.xoffset
+80: RS.y
+81: RS.yoffset
+82: advx
+83: LRS.x
+84: LRS.gpoint
+85: LRS.xoffset
+86: LRS.y
+87: LRS.yoffset
+
+
+
+GLYPH ATTRIBUTE VALUES
+
+0x0000  (0)
+   breakweight = -30 (0xffe2)
+
+
+0x0001  (1)
+   breakweight = -30 (0xffe2)
+
+
+0x0002  (2)
+   breakweight = -30 (0xffe2)
+
+
+0x0003  (3)
+   breakweight = 10 (0x000a)
+   directionality = 9
+
+
+0x0004  (4)
+   breakweight = -30 (0xffe2)
+
+
+0x0005  (5)
+   breakweight = -30 (0xffe2)
+
+
+0x0006  (6)
+   breakweight = -30 (0xffe2)
+   directionality = 6
+
+
+0x0007  (7)
+   breakweight = -30 (0xffe2)
+   directionality = 6
+
+
+0x0008  (8)
+   breakweight = -30 (0xffe2)
+   directionality = 6
+
+
+0x0009  (9)
+   breakweight = -30 (0xffe2)
+
+
+0x000a  (10)
+   breakweight = -30 (0xffe2)
+
+
+0x000b  (11)
+   breakweight = -15 (0xfff1)
+
+
+0x000c  (12)
+   breakweight = 10 (0x000a)
+   order = 1
+
+
+0x000d  (13)
+   breakweight = -30 (0xffe2)
+
+
+0x000e  (14)
+   breakweight = -30 (0xffe2)
+   directionality = 5
+
+
+0x000f  (15)
+   breakweight = -30 (0xffe2)
+   directionality = 8
+
+
+0x0010  (16)
+   breakweight = -30 (0xffe2)
+   directionality = 5
+
+
+0x0011  (17)
+   breakweight = -30 (0xffe2)
+   directionality = 8
+
+
+0x0012  (18)
+   breakweight = -30 (0xffe2)
+   directionality = 8
+
+
+0x0013  (19)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x0014  (20)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x0015  (21)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x0016  (22)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x0017  (23)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x0018  (24)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x0019  (25)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x001a  (26)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x001b  (27)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x001c  (28)
+   breakweight = -30 (0xffe2)
+   directionality = 4
+
+
+0x001d  (29)
+   breakweight = -30 (0xffe2)
+   directionality = 8
+
+
+0x001e  (30)
+   breakweight = -30 (0xffe2)
+
+
+0x001f  (31)
+   breakweight = -30 (0xffe2)
+
+
+0x0020  (32)
+   breakweight = -30 (0xffe2)
+
+
+0x0021  (33)
+   breakweight = -30 (0xffe2)
+
+
+0x0022  (34)
+   breakweight = -30 (0xffe2)
+
+
+0x0023  (35)
+   breakweight = -30 (0xffe2)
+
+
+0x0024  (36)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0025  (37)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0026  (38)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0027  (39)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0028  (40)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0029  (41)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x002a  (42)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x002b  (43)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x002c  (44)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x002d  (45)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x002e  (46)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x002f  (47)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0030  (48)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0031  (49)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0032  (50)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0033  (51)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0034  (52)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0035  (53)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0036  (54)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0037  (55)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0038  (56)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0039  (57)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x003a  (58)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x003b  (59)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x003c  (60)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x003d  (61)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x003e  (62)
+   breakweight = -30 (0xffe2)
+
+
+0x003f  (63)
+   breakweight = -30 (0xffe2)
+
+
+0x0040  (64)
+   breakweight = -30 (0xffe2)
+
+
+0x0041  (65)
+   breakweight = -30 (0xffe2)
+   UM.x = 226 (0x00e2)
+   UM.y = 495 (0x01ef)
+
+
+0x0042  (66)
+   breakweight = -30 (0xffe2)
+
+
+0x0043  (67)
+   breakweight = -30 (0xffe2)
+
+
+0x0044  (68)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0045  (69)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0046  (70)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0047  (71)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0048  (72)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0049  (73)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x004a  (74)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x004b  (75)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x004c  (76)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x004d  (77)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x004e  (78)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x004f  (79)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0050  (80)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0051  (81)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0052  (82)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0053  (83)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0054  (84)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0055  (85)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0056  (86)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0057  (87)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0058  (88)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0059  (89)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x005a  (90)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x005b  (91)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x005c  (92)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x005d  (93)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x005e  (94)
+   breakweight = -30 (0xffe2)
+
+
+0x005f  (95)
+   breakweight = -30 (0xffe2)
+
+
+0x0060  (96)
+   breakweight = -30 (0xffe2)
+
+
+0x0061  (97)
+   breakweight = -30 (0xffe2)
+
+
+0x0062  (98)
+   breakweight = -30 (0xffe2)
+
+
+0x0063  (99)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 508 (0x01fc)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0064  (100)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -872 (0xfc98)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -398 (0xfe72)
+   BDM.y = -53 (0xffcb)
+   origWidth = 798 (0x031e)
+
+
+0x0065  (101)
+   breakweight = -30 (0xffe2)
+   BDS.x = 1236 (0x04d4)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1236 (0x04d4)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1236 (0x04d4)
+   LS.y = -53 (0xffcb)
+   US.x = 940 (0x03ac)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 394 (0x018a)
+   LLS.y = -53 (0xffcb)
+
+
+0x0066  (102)
+   breakweight = -30 (0xffe2)
+   order = 1
+
+
+0x0067  (103)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 283 (0x011b)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 283 (0x011b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 283 (0x011b)
+   LS.y = -53 (0xffcb)
+   US.x = 283 (0x011b)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0068  (104)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -557 (0xfdd3)
+   LLS.y = -53 (0xffcb)
+   origWidth = 468 (0x01d4)
+   BSM.x = -237 (0xff13)
+   BSM.y = -53 (0xffcb)
+
+
+0x0069  (105)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x006a  (106)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -566 (0xfdca)
+   LLS.y = -53 (0xffcb)
+   origWidth = 477 (0x01dd)
+   BSM.x = -239 (0xff11)
+   BSM.y = -53 (0xffcb)
+
+
+0x006b  (107)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 712 (0x02c8)
+   BSS.y = -53 (0xffcb)
+   LS.x = 712 (0x02c8)
+   LS.y = -53 (0xffcb)
+   US.x = 712 (0x02c8)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x006c  (108)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -884 (0xfc8c)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -401 (0xfe6f)
+   BDM.y = -53 (0xffcb)
+   origWidth = 795 (0x031b)
+
+
+0x006d  (109)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x006e  (110)
+   breakweight = -30 (0xffe2)
+   BSS.x = 69 (0x0045)
+   BSS.y = -41 (0xffd7)
+   LS.x = 69 (0x0045)
+   LS.y = -41 (0xffd7)
+   order = 2
+   LLS.x = -428 (0xfe54)
+   LLS.y = -41 (0xffd7)
+   origWidth = 42 (0x002a)
+   BSM.x = -179 (0xff4d)
+   BSM.y = -41 (0xffd7)
+
+
+0x006f  (111)
+   breakweight = -50 (0xffce)
+   order = 11 (0x000b)
+   UM.x = -92 (0xffa4)
+   UM.y = 495 (0x01ef)
+   YM.x = -20 (0xffec)
+   YM.y = 495 (0x01ef)
+
+
+0x0070  (112)
+   breakweight = -50 (0xffce)
+   order = 11 (0x000b)
+   UM.x = -296 (0xfed8)
+   UM.y = 495 (0x01ef)
+   YM.x = -20 (0xffec)
+   YM.y = 495 (0x01ef)
+
+
+0x0071  (113)
+   breakweight = -50 (0xffce)
+   order = 11 (0x000b)
+   UM.x = -296 (0xfed8)
+   UM.y = 466 (0x01d2)
+   YM.x = -20 (0xffec)
+   YM.y = 466 (0x01d2)
+
+
+0x0072  (114)
+   breakweight = -50 (0xffce)
+   order = 11 (0x000b)
+   UM.x = -296 (0xfed8)
+   UM.y = 466 (0x01d2)
+
+
+0x0073  (115)
+   breakweight = -30 (0xffe2)
+   order = 11 (0x000b)
+   UM.x = -296 (0xfed8)
+   UM.y = 495 (0x01ef)
+   YM.x = -20 (0xffec)
+   YM.y = 495 (0x01ef)
+
+
+0x0074  (116)
+   breakweight = -50 (0xffce)
+   order = 11 (0x000b)
+   UM.x = -258 (0xfefe)
+   UM.y = 495 (0x01ef)
+
+
+0x0075  (117)
+   breakweight = -50 (0xffce)
+   order = 3
+   UM.x = -296 (0xfed8)
+   UM.y = 495 (0x01ef)
+   YM.x = -20 (0xffec)
+   YM.y = 495 (0x01ef)
+
+
+0x0076  (118)
+   breakweight = -30 (0xffe2)
+   order = 11 (0x000b)
+   UM.x = -376 (0xfe88)
+   UM.y = 466 (0x01d2)
+   YM.x = -185 (0xff47)
+   YM.y = 466 (0x01d2)
+
+
+0x0077  (119)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 288 (0x0120)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 288 (0x0120)
+   BSS.y = -53 (0xffcb)
+   LS.x = 288 (0x0120)
+   LS.y = -53 (0xffcb)
+   US.x = 288 (0x0120)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0078  (120)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -557 (0xfdd3)
+   LLS.y = -53 (0xffcb)
+   origWidth = 468 (0x01d4)
+   BSM.x = -234 (0xff16)
+   BSM.y = -53 (0xffcb)
+
+
+0x0079  (121)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x007a  (122)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -878 (0xfc92)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -395 (0xfe75)
+   BDM.y = -53 (0xffcb)
+   origWidth = 789 (0x0315)
+
+
+0x007b  (123)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 286 (0x011e)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 286 (0x011e)
+   BSS.y = -53 (0xffcb)
+   LS.x = 286 (0x011e)
+   LS.y = -53 (0xffcb)
+   US.x = 288 (0x0120)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x007c  (124)
+   breakweight = -30 (0xffe2)
+   BSS.x = 25 (0x0019)
+   BSS.y = -53 (0xffcb)
+   LS.x = 25 (0x0019)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -596 (0xfdac)
+   LLS.y = -53 (0xffcb)
+   origWidth = 507 (0x01fb)
+   BSM.x = -272 (0xfef0)
+   BSM.y = -53 (0xffcb)
+
+
+0x007d  (125)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 810 (0x032a)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 810 (0x032a)
+   BSS.y = -53 (0xffcb)
+   LS.x = 810 (0x032a)
+   LS.y = -53 (0xffcb)
+   US.x = 549 (0x0225)
+   US.y = 486 (0x01e6)
+   order = 1
+   LLS.x = 208 (0x00d0)
+   LLS.y = -53 (0xffcb)
+
+
+0x007e  (126)
+   breakweight = -30 (0xffe2)
+   BSS.x = 250 (0x00fa)
+   BSS.y = -53 (0xffcb)
+   LS.x = 250 (0x00fa)
+   LS.y = -53 (0xffcb)
+   US.y = 495 (0x01ef)
+   order = 2
+   origWidth = 162 (0x00a2)
+   dotS.x = -218 (0xff26)
+   dotS.y = -53 (0xffcb)
+
+
+0x007f  (127)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 450 (0x01c2)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 450 (0x01c2)
+   BSS.y = -53 (0xffcb)
+   LS.x = 276 (0x0114)
+   LS.y = -53 (0xffcb)
+   US.x = 276 (0x0114)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 724 (0x02d4)
+   LLS.y = -53 (0xffcb)
+
+
+0x0080  (128)
+   breakweight = -30 (0xffe2)
+   BDS.x = 1063 (0x0427)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1063 (0x0427)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0081  (129)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 1063 (0x0427)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1063 (0x0427)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0082  (130)
+   breakweight = -30 (0xffe2)
+   BDS.x = 486 (0x01e6)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0083  (131)
+   breakweight = -30 (0xffe2)
+   BSS.x = 110 (0x006e)
+   BSS.y = -53 (0xffcb)
+   LS.x = 110 (0x006e)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -832 (0xfcc0)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -368 (0xfe90)
+   BDM.y = -53 (0xffcb)
+   origWidth = 729 (0x02d9)
+
+
+0x0084  (132)
+   breakweight = -30 (0xffe2)
+   BDS.x = 1063 (0x0427)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1063 (0x0427)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0085  (133)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 657 (0x0291)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 657 (0x0291)
+   BSS.y = -53 (0xffcb)
+   LS.x = 657 (0x0291)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0086  (134)
+   breakweight = -30 (0xffe2)
+   BDS.x = 60 (0x003c)
+   BDS.y = -173 (0xff53)
+   BSS.x = 207 (0x00cf)
+   BSS.y = -173 (0xff53)
+   LS.x = 642 (0x0282)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 292 (0x0124)
+   LLS.y = -53 (0xffcb)
+
+
+0x0087  (135)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -416 (0xfe60)
+   LLS.y = -53 (0xffcb)
+   origWidth = 327 (0x0147)
+   BSM.x = -161 (0xff5f)
+   BSM.y = -53 (0xffcb)
+
+
+0x0088  (136)
+   breakweight = -30 (0xffe2)
+   BDS.x = 657 (0x0291)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 657 (0x0291)
+   BSS.y = -53 (0xffcb)
+   LS.x = 657 (0x0291)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0089  (137)
+   breakweight = -30 (0xffe2)
+   BDS.x = 642 (0x0282)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 642 (0x0282)
+   BSS.y = -53 (0xffcb)
+   LS.x = 642 (0x0282)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x008a  (138)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 657 (0x0291)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 657 (0x0291)
+   BSS.y = -53 (0xffcb)
+   LS.x = 657 (0x0291)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x008b  (139)
+   breakweight = -30 (0xffe2)
+   BSS.x = 89 (0x0059)
+   BSS.y = -53 (0xffcb)
+   LS.x = 89 (0x0059)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -900 (0xfc7c)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -405 (0xfe6b)
+   BDM.y = -53 (0xffcb)
+   origWidth = 811 (0x032b)
+
+
+0x008c  (140)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 30 (0x001e)
+   BDS.y = -173 (0xff53)
+   BSS.x = 168 (0x00a8)
+   BSS.y = -173 (0xff53)
+   LS.x = 612 (0x0264)
+   LS.y = -53 (0xffcb)
+   US.x = 276 (0x0114)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 280 (0x0118)
+   LLS.y = -51 (0xffcd)
+
+
+0x008d  (141)
+   breakweight = -30 (0xffe2)
+   BSS.x = 50 (0x0032)
+   BSS.y = -53 (0xffcb)
+   LS.x = 50 (0x0032)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -465 (0xfe2f)
+   LLS.y = -53 (0xffcb)
+   origWidth = 376 (0x0178)
+   BSM.x = -204 (0xff34)
+   BSM.y = -53 (0xffcb)
+
+
+0x008e  (142)
+   breakweight = -30 (0xffe2)
+   BDS.x = 627 (0x0273)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 627 (0x0273)
+   BSS.y = -53 (0xffcb)
+   LS.x = 627 (0x0273)
+   LS.y = -53 (0xffcb)
+   US.x = 276 (0x0114)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x008f  (143)
+   breakweight = -30 (0xffe2)
+   BDS.x = 454 (0x01c6)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 454 (0x01c6)
+   BSS.y = -53 (0xffcb)
+   LS.x = 454 (0x01c6)
+   LS.y = -53 (0xffcb)
+   US.x = 285 (0x011d)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 115 (0x0073)
+   LLS.y = -53 (0xffcb)
+
+
+0x0090  (144)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 285 (0x011d)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 285 (0x011d)
+   BSS.y = -53 (0xffcb)
+   LS.x = 285 (0x011d)
+   LS.y = -53 (0xffcb)
+   US.x = 285 (0x011d)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0091  (145)
+   breakweight = -30 (0xffe2)
+   BSS.x = 95 (0x005f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 95 (0x005f)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -559 (0xfdd1)
+   LLS.y = -53 (0xffcb)
+   origWidth = 470 (0x01d6)
+   BSM.x = -238 (0xff12)
+   BSM.y = -53 (0xffcb)
+
+
+0x0092  (146)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 516 (0x0204)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 759 (0x02f7)
+   BSS.y = -53 (0xffcb)
+   LS.x = 759 (0x02f7)
+   LS.y = -53 (0xffcb)
+   US.x = 759 (0x02f7)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0093  (147)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -908 (0xfc74)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -410 (0xfe66)
+   BDM.y = -53 (0xffcb)
+   origWidth = 819 (0x0333)
+
+
+0x0094  (148)
+   breakweight = -30 (0xffe2)
+   BDS.x = 963 (0x03c3)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 963 (0x03c3)
+   BSS.y = -53 (0xffcb)
+   LS.x = 963 (0x03c3)
+   LS.y = -53 (0xffcb)
+   US.x = 759 (0x02f7)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 372 (0x0174)
+   LLS.y = -53 (0xffcb)
+
+
+0x0095  (149)
+   breakweight = -30 (0xffe2)
+   BDS.x = 84 (0x0054)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 84 (0x0054)
+   BSS.y = -53 (0xffcb)
+   LS.x = 84 (0x0054)
+   LS.y = -53 (0xffcb)
+   US.x = 759 (0x02f7)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 30 (0x001e)
+   LLS.y = -53 (0xffcb)
+
+
+0x0096  (150)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 501 (0x01f5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 709 (0x02c5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 709 (0x02c5)
+   LS.y = -53 (0xffcb)
+   US.x = 709 (0x02c5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0097  (151)
+   breakweight = -30 (0xffe2)
+   BSS.x = 104 (0x0068)
+   BSS.y = -53 (0xffcb)
+   LS.x = 104 (0x0068)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -867 (0xfc9d)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -379 (0xfe85)
+   BDM.y = -53 (0xffcb)
+   origWidth = 763 (0x02fb)
+
+
+0x0098  (152)
+   breakweight = -30 (0xffe2)
+   BSS.x = 89 (0x0059)
+   BSS.y = -53 (0xffcb)
+   LS.x = 89 (0x0059)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -553 (0xfdd7)
+   LLS.y = -53 (0xffcb)
+   origWidth = 466 (0x01d2)
+   BSM.x = -231 (0xff19)
+   BSM.y = -53 (0xffcb)
+
+
+0x0099  (153)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x009a  (154)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = -878 (0xfc92)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = 88 (0x0058)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -395 (0xfe75)
+   BDM.y = -53 (0xffcb)
+   origWidth = 789 (0x0315)
+
+
+0x009b  (155)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 267 (0x010b)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 267 (0x010b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 267 (0x010b)
+   LS.y = -53 (0xffcb)
+   US.x = 267 (0x010b)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x009c  (156)
+   breakweight = -30 (0xffe2)
+   BSS.x = 82 (0x0052)
+   BSS.y = -53 (0xffcb)
+   LS.x = 82 (0x0052)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -533 (0xfdeb)
+   LLS.y = -53 (0xffcb)
+   origWidth = 444 (0x01bc)
+   BSM.x = -225 (0xff1f)
+   BSM.y = -53 (0xffcb)
+
+
+0x009d  (157)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 288 (0x0120)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 288 (0x0120)
+   BSS.y = -53 (0xffcb)
+   LS.x = 288 (0x0120)
+   LS.y = -53 (0xffcb)
+   US.x = 288 (0x0120)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x009e  (158)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -557 (0xfdd3)
+   LLS.y = -53 (0xffcb)
+   origWidth = 468 (0x01d4)
+   BSM.x = -234 (0xff16)
+   BSM.y = -53 (0xffcb)
+
+
+0x009f  (159)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 474 (0x01da)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 474 (0x01da)
+   BSS.y = -53 (0xffcb)
+   LS.x = 474 (0x01da)
+   LS.y = -53 (0xffcb)
+   RM.x = 12 (0x000c)
+   US.x = 273 (0x0111)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00a0  (160)
+   breakweight = -30 (0xffe2)
+   BDS.x = 271 (0x010f)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 271 (0x010f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 271 (0x010f)
+   LS.y = -53 (0xffcb)
+   US.x = 271 (0x010f)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00a1  (161)
+   breakweight = -30 (0xffe2)
+   BSS.x = 89 (0x0059)
+   BSS.y = -53 (0xffcb)
+   LS.x = 89 (0x0059)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -522 (0xfdf6)
+   LLS.y = -53 (0xffcb)
+   origWidth = 433 (0x01b1)
+   BSM.x = -210 (0xff2e)
+   BSM.y = -53 (0xffcb)
+
+
+0x00a2  (162)
+   breakweight = -30 (0xffe2)
+   BDS.x = 997 (0x03e5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 997 (0x03e5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 997 (0x03e5)
+   LS.y = -53 (0xffcb)
+   US.x = 765 (0x02fd)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00a3  (163)
+   breakweight = -30 (0xffe2)
+   BDS.x = 841 (0x0349)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 841 (0x0349)
+   BSS.y = -53 (0xffcb)
+   LS.x = 841 (0x0349)
+   LS.y = -53 (0xffcb)
+   order = 1
+
+
+0x00a4  (164)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00a5  (165)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -566 (0xfdca)
+   LLS.y = -53 (0xffcb)
+   origWidth = 477 (0x01dd)
+   BSM.x = -239 (0xff11)
+   BSM.y = -53 (0xffcb)
+
+
+0x00a6  (166)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00a7  (167)
+   breakweight = -30 (0xffe2)
+   BSS.x = -566 (0xfdca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   origWidth = 477 (0x01dd)
+   BSM.x = -239 (0xff11)
+   BSM.y = -53 (0xffcb)
+
+
+0x00a8  (168)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00a9  (169)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -567 (0xfdc9)
+   LLS.y = -53 (0xffcb)
+   origWidth = 477 (0x01dd)
+   BSM.x = -240 (0xff10)
+   BSM.y = -53 (0xffcb)
+
+
+0x00aa  (170)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 492 (0x01ec)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 699 (0x02bb)
+   BSS.y = -53 (0xffcb)
+   LS.x = 699 (0x02bb)
+   LS.y = -53 (0xffcb)
+   US.x = 699 (0x02bb)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00ab  (171)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -875 (0xfc95)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -393 (0xfe77)
+   BDM.y = -53 (0xffcb)
+   origWidth = 786 (0x0312)
+
+
+0x00ac  (172)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 294 (0x0126)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 294 (0x0126)
+   BSS.y = -53 (0xffcb)
+   LS.x = 294 (0x0126)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00ad  (173)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -566 (0xfdca)
+   LLS.y = -53 (0xffcb)
+   origWidth = 477 (0x01dd)
+   BSM.x = -239 (0xff11)
+   BSM.y = -53 (0xffcb)
+
+
+0x00ae  (174)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 504 (0x01f8)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 706 (0x02c2)
+   BSS.y = -53 (0xffcb)
+   LS.x = 706 (0x02c2)
+   LS.y = -53 (0xffcb)
+   US.x = 706 (0x02c2)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00af  (175)
+   breakweight = -30 (0xffe2)
+   BSS.x = 69 (0x0045)
+   BSS.y = -53 (0xffcb)
+   LS.x = 69 (0x0045)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -866 (0xfc9e)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -392 (0xfe78)
+   BDM.y = -53 (0xffcb)
+   origWidth = 797 (0x031d)
+
+
+0x00b0  (176)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 87 (0x0057)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 247 (0x00f7)
+   BSS.y = -53 (0xffcb)
+   LS.x = 646 (0x0286)
+   LS.y = -53 (0xffcb)
+   US.x = 295 (0x0127)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 292 (0x0124)
+   LLS.y = -53 (0xffcb)
+
+
+0x00b1  (177)
+   breakweight = -30 (0xffe2)
+   BDS.x = 247 (0x00f7)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 348 (0x015c)
+   BSS.y = -53 (0xffcb)
+   LS.x = 676 (0x02a4)
+   LS.y = -53 (0xffcb)
+   RM.x = 3
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 87 (0x0057)
+   LLS.y = -53 (0xffcb)
+
+
+0x00b2  (178)
+   breakweight = -30 (0xffe2)
+   BDS.x = 247 (0x00f7)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 676 (0x02a4)
+   LS.y = -53 (0xffcb)
+   RM.x = 3
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 87 (0x0057)
+   LLS.y = -53 (0xffcb)
+
+
+0x00b3  (179)
+   breakweight = -30 (0xffe2)
+   BSS.x = 97 (0x0061)
+   BSS.y = -53 (0xffcb)
+   LS.x = 97 (0x0061)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -550 (0xfdda)
+   LLS.y = -53 (0xffcb)
+   origWidth = 428 (0x01ac)
+   BSM.x = -225 (0xff1f)
+   BSM.y = -53 (0xffcb)
+
+
+0x00b4  (180)
+   breakweight = -50 (0xffce)
+   order = 11 (0x000b)
+   UM.x = -114 (0xff8e)
+   UM.y = 495 (0x01ef)
+
+
+0x00b5  (181)
+   breakweight = -50 (0xffce)
+   order = 8
+   UM.x = -304 (0xfed0)
+   UM.y = 492 (0x01ec)
+   YM.x = -20 (0xffec)
+   YM.y = 495 (0x01ef)
+
+
+0x00b6  (182)
+   breakweight = -50 (0xffce)
+   order = 8
+   UM.x = -304 (0xfed0)
+   UM.y = 492 (0x01ec)
+   YM.x = -20 (0xffec)
+   YM.y = 495 (0x01ef)
+
+
+0x00b7  (183)
+   breakweight = -50 (0xffce)
+   order = 3
+   UM.x = -114 (0xff8e)
+   UM.y = 495 (0x01ef)
+
+
+0x00b8  (184)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 480 (0x01e0)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 679 (0x02a7)
+   BSS.y = -53 (0xffcb)
+   LS.x = 679 (0x02a7)
+   LS.y = -53 (0xffcb)
+   US.x = 679 (0x02a7)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00b9  (185)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -854 (0xfcaa)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -390 (0xfe7a)
+   BDM.y = -53 (0xffcb)
+   origWidth = 765 (0x02fd)
+
+
+0x00ba  (186)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 286 (0x011e)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 286 (0x011e)
+   BSS.y = -53 (0xffcb)
+   LS.x = 286 (0x011e)
+   LS.y = -53 (0xffcb)
+   US.x = 286 (0x011e)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00bb  (187)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 492 (0x01ec)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00bc  (188)
+   breakweight = -30 (0xffe2)
+   BSS.x = 85 (0x0055)
+   BSS.y = -53 (0xffcb)
+   LS.x = 85 (0x0055)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -878 (0xfc92)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -396 (0xfe74)
+   BDM.y = -53 (0xffcb)
+   origWidth = 789 (0x0315)
+
+
+0x00bd  (189)
+   breakweight = -30 (0xffe2)
+   BDS.x = 1263 (0x04ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1263 (0x04ef)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1263 (0x04ef)
+   LS.y = -53 (0xffcb)
+   order = 1
+
+
+0x00be  (190)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 504 (0x01f8)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00bf  (191)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 654 (0x028e)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 654 (0x028e)
+   BSS.y = -53 (0xffcb)
+   LS.x = 654 (0x028e)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00c0  (192)
+   breakweight = -30 (0xffe2)
+   BDS.x = 30 (0x001e)
+   BDS.y = -173 (0xff53)
+   BSS.x = 168 (0x00a8)
+   BSS.y = -173 (0xff53)
+   LS.x = 612 (0x0264)
+   LS.y = -53 (0xffcb)
+   US.x = 276 (0x0114)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 280 (0x0118)
+   LLS.y = -51 (0xffcd)
+
+
+0x00c1  (193)
+   breakweight = -30 (0xffe2)
+   BDS.x = 657 (0x0291)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 657 (0x0291)
+   BSS.y = -53 (0xffcb)
+   LS.x = 657 (0x0291)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00c2  (194)
+   breakweight = -30 (0xffe2)
+   BSS.x = 657 (0x0291)
+   BSS.y = -53 (0xffcb)
+   LS.x = 657 (0x0291)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+   origWidth = 583 (0x0247)
+
+
+0x00c3  (195)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 465 (0x01d1)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 648 (0x0288)
+   BSS.y = -53 (0xffcb)
+   LS.x = 648 (0x0288)
+   LS.y = -53 (0xffcb)
+   US.x = 648 (0x0288)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00c4  (196)
+   breakweight = -30 (0xffe2)
+   BSS.x = 150 (0x0096)
+   BSS.y = -53 (0xffcb)
+   LS.x = 150 (0x0096)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -813 (0xfcd3)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -331 (0xfeb5)
+   BDM.y = -53 (0xffcb)
+   origWidth = 724 (0x02d4)
+
+
+0x00c5  (197)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 712 (0x02c8)
+   BSS.y = -53 (0xffcb)
+   LS.x = 712 (0x02c8)
+   LS.y = -53 (0xffcb)
+   US.x = 712 (0x02c8)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00c6  (198)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 993 (0x03e1)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 993 (0x03e1)
+   BSS.y = -53 (0xffcb)
+   LS.x = 993 (0x03e1)
+   LS.y = -53 (0xffcb)
+   US.x = 715 (0x02cb)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 15 (0x000f)
+   LLS.y = -53 (0xffcb)
+
+
+0x00c7  (199)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x00c8  (200)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 276 (0x0114)
+   BSS.x = 276 (0x0114)
+   LS.x = 276 (0x0114)
+   LS.y = -53 (0xffcb)
+   US.x = 276 (0x0114)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00c9  (201)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 276 (0x0114)
+   BSS.x = 276 (0x0114)
+   LS.x = 276 (0x0114)
+   LS.y = -53 (0xffcb)
+   US.x = 276 (0x0114)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00ca  (202)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00cb  (203)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 570 (0x023a)
+   order = 1
+
+
+0x00cc  (204)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 1263 (0x04ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1263 (0x04ef)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1263 (0x04ef)
+   LS.y = -53 (0xffcb)
+   order = 1
+
+
+0x00cd  (205)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x00ce  (206)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 96 (0x0060)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 96 (0x0060)
+   BSS.y = -53 (0xffcb)
+   LS.x = 96 (0x0060)
+   LS.y = -53 (0xffcb)
+   order = 15 (0x000f)
+   xkern = 270 (0x010e)
+
+
+0x00cf  (207)
+   breakweight = -30 (0xffe2)
+   BDS.x = 96 (0x0060)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 96 (0x0060)
+   BSS.y = -53 (0xffcb)
+   LS.x = 96 (0x0060)
+   LS.y = -53 (0xffcb)
+   order = 15 (0x000f)
+   xkern = 270 (0x010e)
+
+
+0x00d0  (208)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 133 (0x0085)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 133 (0x0085)
+   BSS.y = -53 (0xffcb)
+   LS.x = 133 (0x0085)
+   LS.y = -53 (0xffcb)
+   US.x = 133 (0x0085)
+   US.y = 495 (0x01ef)
+   order = 15 (0x000f)
+
+
+0x00d1  (209)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -234 (0xff16)
+   UM.y = 495 (0x01ef)
+   YM.x = -75 (0xffb5)
+   YM.y = 495 (0x01ef)
+
+
+0x00d2  (210)
+   breakweight = -50 (0xffce)
+   order = 11 (0x000b)
+   UM.x = -269 (0xfef3)
+   UM.y = 495 (0x01ef)
+   YM.x = -20 (0xffec)
+   YM.y = 495 (0x01ef)
+
+
+0x00d3  (211)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -237 (0xff13)
+   UM.y = 495 (0x01ef)
+   YM.x = -75 (0xffb5)
+   YM.y = 495 (0x01ef)
+
+
+0x00d4  (212)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   BDS.x = 235 (0x00eb)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 235 (0x00eb)
+   BSS.y = -53 (0xffcb)
+   LS.x = 235 (0x00eb)
+   LS.y = -53 (0xffcb)
+   US.x = 67 (0x0043)
+   US.y = 496 (0x01f0)
+   order = 12 (0x000c)
+   YS.x = 67 (0x0043)
+   YS.y = 496 (0x01f0)
+
+
+0x00d5  (213)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 12 (0x000c)
+   LLS.x = -251 (0xff05)
+   LLS.y = -53 (0xffcb)
+   origWidth = 162 (0x00a2)
+   BSM.x = -81 (0xffaf)
+   BSM.y = -53 (0xffcb)
+   rkern = 2
+
+
+0x00d6  (214)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   BDS.x = 384 (0x0180)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 384 (0x0180)
+   BSS.y = -53 (0xffcb)
+   LS.x = 384 (0x0180)
+   LS.y = -53 (0xffcb)
+   US.x = 214 (0x00d6)
+   US.y = 495 (0x01ef)
+   order = 12 (0x000c)
+   YS.x = 214 (0x00d6)
+   YS.y = 495 (0x01ef)
+
+
+0x00d7  (215)
+   breakweight = -30 (0xffe2)
+   BSS.x = 89 (0x0059)
+   BSS.y = -53 (0xffcb)
+   LS.x = 89 (0x0059)
+   LS.y = -53 (0xffcb)
+   order = 12 (0x000c)
+   LLS.x = -399 (0xfe71)
+   LLS.y = -53 (0xffcb)
+   origWidth = 310 (0x0136)
+   BSM.x = -156 (0xff64)
+   BSM.y = -53 (0xffcb)
+   rkern = 43 (0x002b)
+
+
+0x00d8  (216)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 9
+
+
+0x00d9  (217)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -247 (0xff09)
+   UM.y = 532 (0x0214)
+   YM.x = -84 (0xffac)
+   YM.y = 532 (0x0214)
+
+
+0x00da  (218)
+   breakweight = -50 (0xffce)
+   order = 11 (0x000b)
+   UM.x = -354 (0xfe9e)
+   UM.y = 495 (0x01ef)
+   YM.x = -20 (0xffec)
+   YM.y = 495 (0x01ef)
+
+
+0x00db  (219)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -234 (0xff16)
+   UM.y = 495 (0x01ef)
+   YM.x = -75 (0xffb5)
+   YM.y = 495 (0x01ef)
+
+
+0x00dc  (220)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -193 (0xff3f)
+   UM.y = 532 (0x0214)
+   YM.x = -75 (0xffb5)
+   YM.y = 532 (0x0214)
+
+
+0x00dd  (221)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -231 (0xff19)
+   UM.y = 495 (0x01ef)
+   YM.x = -75 (0xffb5)
+   YM.y = 495 (0x01ef)
+
+
+0x00de  (222)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -129 (0xff7f)
+   UM.y = 495 (0x01ef)
+   YM.x = -70 (0xffba)
+   YM.y = 495 (0x01ef)
+
+
+0x00df  (223)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   order = 13 (0x000d)
+   LM.x = -74 (0xffb6)
+   LM.y = -53 (0xffcb)
+
+
+0x00e0  (224)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x00e1  (225)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   BSS.x = 144 (0x0090)
+   BSS.y = -53 (0xffcb)
+   LS.x = 144 (0x0090)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -501 (0xfe0b)
+   LLS.y = -53 (0xffcb)
+   BSM.x = -178 (0xff4e)
+   BSM.y = -53 (0xffcb)
+
+
+0x00e2  (226)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 3
+   UM.x = -231 (0xff19)
+   UM.y = 477 (0x01dd)
+
+
+0x00e3  (227)
+   breakweight = -30 (0xffe2)
+   order = 12 (0x000c)
+   UM.x = -231 (0xff19)
+   UM.y = 477 (0x01dd)
+
+
+0x00e4  (228)
+   breakweight = -50 (0xffce)
+   directionality = 1
+   BDS.x = 250 (0x00fa)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 250 (0x00fa)
+   BSS.y = -53 (0xffcb)
+   LS.x = 250 (0x00fa)
+   LS.y = -53 (0xffcb)
+   US.x = -36 (0xffdc)
+   US.y = 495 (0x01ef)
+   order = 4
+   LLS.x = -351 (0xfea1)
+   LLS.y = -53 (0xffcb)
+   dotS.x = -248 (0xff08)
+   dotS.y = -53 (0xffcb)
+   YS.x = 81 (0x0051)
+   YS.y = 495 (0x01ef)
+
+
+0x00e5  (229)
+   breakweight = -30 (0xffe2)
+   BSS.x = 250 (0x00fa)
+   BSS.y = -53 (0xffcb)
+   LS.x = 250 (0x00fa)
+   LS.y = -53 (0xffcb)
+   US.x = -36 (0xffdc)
+   US.y = 495 (0x01ef)
+   order = 4
+   LLS.x = -540 (0xfde4)
+   LLS.y = -53 (0xffcb)
+   origWidth = 162 (0x00a2)
+   dotS.x = -218 (0xff26)
+   dotS.y = -53 (0xffcb)
+
+
+0x00e6  (230)
+   breakweight = -30 (0xffe2)
+   BSS.x = 250 (0x00fa)
+   BSS.y = -53 (0xffcb)
+   LS.x = 250 (0x00fa)
+   LS.y = -53 (0xffcb)
+   US.x = -36 (0xffdc)
+   US.y = 495 (0x01ef)
+   order = 4
+   LLS.x = -540 (0xfde4)
+   LLS.y = -53 (0xffcb)
+   origWidth = 162 (0x00a2)
+   dotS.x = -218 (0xff26)
+   dotS.y = -53 (0xffcb)
+
+
+0x00e7  (231)
+   breakweight = -30 (0xffe2)
+   BSS.x = 250 (0x00fa)
+   BSS.y = -53 (0xffcb)
+   LS.x = 250 (0x00fa)
+   LS.y = -53 (0xffcb)
+   US.x = -36 (0xffdc)
+   US.y = 495 (0x01ef)
+   order = 4
+   LLS.x = -401 (0xfe6f)
+   LLS.y = 79 (0x004f)
+   origWidth = 202 (0x00ca)
+   dotS.x = -263 (0xfef9)
+   dotS.y = -53 (0xffcb)
+
+
+0x00e8  (232)
+   breakweight = -50 (0xffce)
+   directionality = 1
+   BDS.x = 841 (0x0349)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 841 (0x0349)
+   BSS.y = -53 (0xffcb)
+   LS.x = 841 (0x0349)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 502 (0x01f6)
+   LLS.y = -53 (0xffcb)
+   RS.x = 172 (0x00ac)
+   advx = 753 (0x02f1)
+
+
+0x00e9  (233)
+   breakweight = -30 (0xffe2)
+   BDS.x = 841 (0x0349)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 841 (0x0349)
+   BSS.y = -53 (0xffcb)
+   LS.x = 841 (0x0349)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 502 (0x01f6)
+   LLS.y = -53 (0xffcb)
+   RS.x = 172 (0x00ac)
+   advx = 753 (0x02f1)
+
+
+0x00ea  (234)
+   breakweight = -30 (0xffe2)
+   BDS.x = 1263 (0x04ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1263 (0x04ef)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1263 (0x04ef)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 924 (0x039c)
+   LLS.y = -53 (0xffcb)
+   RS.x = 172 (0x00ac)
+   advx = 1174 (0x0496)
+
+
+0x00eb  (235)
+   breakweight = -30 (0xffe2)
+   BDS.x = 1263 (0x04ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1263 (0x04ef)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1263 (0x04ef)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 924 (0x039c)
+   LLS.y = -53 (0xffcb)
+   RS.x = 172 (0x00ac)
+   advx = 1174 (0x0496)
+
+
+0x00ec  (236)
+   breakweight = -30 (0xffe2)
+   BSS.x = 796 (0x031c)
+   BSS.y = -53 (0xffcb)
+   LS.x = 796 (0x031c)
+   LS.y = -53 (0xffcb)
+   order = 5
+   origWidth = 172 (0x00ac)
+   RS.x = 172 (0x00ac)
+   advx = 753 (0x02f1)
+
+
+0x00ed  (237)
+   breakweight = -30 (0xffe2)
+   BSS.x = 1198 (0x04ae)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1198 (0x04ae)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 553 (0x0229)
+   LLS.y = -53 (0xffcb)
+   origWidth = 172 (0x00ac)
+   RS.x = 172 (0x00ac)
+   advx = 1174 (0x0496)
+
+
+0x00ee  (238)
+   breakweight = -30 (0xffe2)
+   BSS.x = 796 (0x031c)
+   BSS.y = -53 (0xffcb)
+   LS.x = 796 (0x031c)
+   LS.y = -53 (0xffcb)
+   order = 5
+   origWidth = 172 (0x00ac)
+   RS.x = 172 (0x00ac)
+   advx = 753 (0x02f1)
+
+
+0x00ef  (239)
+   breakweight = -30 (0xffe2)
+   BSS.x = 1198 (0x04ae)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1198 (0x04ae)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 553 (0x0229)
+   LLS.y = -53 (0xffcb)
+   origWidth = 172 (0x00ac)
+   RS.x = 172 (0x00ac)
+   advx = 1174 (0x0496)
+
+
+0x00f0  (240)
+   breakweight = -30 (0xffe2)
+   BDS.x = 781 (0x030d)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 781 (0x030d)
+   BSS.y = -53 (0xffcb)
+   LS.x = 781 (0x030d)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 295 (0x0127)
+   LLS.y = -53 (0xffcb)
+   RS.x = 172 (0x00ac)
+   advx = 753 (0x02f1)
+
+
+0x00f1  (241)
+   breakweight = -30 (0xffe2)
+   BDS.x = 1195 (0x04ab)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1195 (0x04ab)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1195 (0x04ab)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 709 (0x02c5)
+   LLS.y = -53 (0xffcb)
+   RS.x = 172 (0x00ac)
+   advx = 1174 (0x0496)
+
+
+0x00f2  (242)
+   breakweight = -30 (0xffe2)
+   BDS.x = 781 (0x030d)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 781 (0x030d)
+   BSS.y = -53 (0xffcb)
+   LS.x = 781 (0x030d)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 295 (0x0127)
+   LLS.y = -53 (0xffcb)
+   RS.x = 172 (0x00ac)
+   advx = 753 (0x02f1)
+
+
+0x00f3  (243)
+   breakweight = -30 (0xffe2)
+   BDS.x = 1195 (0x04ab)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1195 (0x04ab)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1195 (0x04ab)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 709 (0x02c5)
+   LLS.y = -53 (0xffcb)
+   RS.x = 172 (0x00ac)
+   advx = 1174 (0x0496)
+
+
+0x00f4  (244)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   BSS.x = 89 (0x0059)
+   BSS.y = -53 (0xffcb)
+   LS.x = 89 (0x0059)
+   LS.y = -53 (0xffcb)
+   order = 6
+   LLS.x = -556 (0xfdd4)
+   LLS.y = -53 (0xffcb)
+   origWidth = 55 (0x0037)
+   BSM.x = -233 (0xff17)
+   BSM.y = -53 (0xffcb)
+
+
+0x00f5  (245)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 6
+   LLS.x = -611 (0xfd9d)
+   LLS.y = -53 (0xffcb)
+   origWidth = 522 (0x020a)
+   BSM.x = -234 (0xff16)
+   BSM.y = -53 (0xffcb)
+
+
+0x00f6  (246)
+   breakweight = -30 (0xffe2)
+   order = 6
+   origWidth = 615 (0x0267)
+   BSM.x = -254 (0xff02)
+   BSM.y = -53 (0xffcb)
+
+
+0x00f7  (247)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   BSS.x = 89 (0x0059)
+   BSS.y = -53 (0xffcb)
+   LS.x = 89 (0x0059)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = -250 (0xff06)
+   LLS.y = -53 (0xffcb)
+   origWidth = 55 (0x0037)
+   BSM.x = -81 (0xffaf)
+   BSM.y = -53 (0xffcb)
+
+
+0x00f8  (248)
+   breakweight = -30 (0xffe2)
+   BSS.x = 18 (0x0012)
+   BSS.y = -53 (0xffcb)
+   LS.x = 18 (0x0012)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = -318 (0xfec2)
+   LLS.y = 45 (0x002d)
+   origWidth = 55 (0x0037)
+   BSM.x = -88 (0xffa8)
+   BSM.y = -53 (0xffcb)
+
+
+0x00f9  (249)
+   breakweight = -30 (0xffe2)
+   BSS.x = 21 (0x0015)
+   BSS.y = -53 (0xffcb)
+   LS.x = 21 (0x0015)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = -466 (0xfe2e)
+   LLS.y = -53 (0xffcb)
+   origWidth = 445 (0x01bd)
+   BSM.x = -223 (0xff21)
+   BSM.y = -53 (0xffcb)
+   rkern = 78 (0x004e)
+
+
+0x00fa  (250)
+   breakweight = -30 (0xffe2)
+   BSS.x = 21 (0x0015)
+   BSS.y = -53 (0xffcb)
+   LS.x = 21 (0x0015)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = -609 (0xfd9f)
+   LLS.y = -53 (0xffcb)
+   origWidth = 588 (0x024c)
+   BSM.x = -294 (0xfeda)
+   BSM.y = -53 (0xffcb)
+   rkern = 90 (0x005a)
+
+
+0x00fb  (251)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 702 (0x02be)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 1123 (0x0463)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1123 (0x0463)
+   LS.y = -53 (0xffcb)
+   US.x = 1123 (0x0463)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00fc  (252)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+
+
+0x00fd  (253)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 418 (0x01a2)
+   BDS.y = -80 (0xffb0)
+   BSS.x = 418 (0x01a2)
+   BSS.y = -80 (0xffb0)
+   LS.x = 418 (0x01a2)
+   LS.y = -80 (0xffb0)
+   US.x = 418 (0x01a2)
+   US.y = 742 (0x02e6)
+   order = 1
+
+
+0x00fe  (254)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 252 (0x00fc)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 252 (0x00fc)
+   BSS.y = -53 (0xffcb)
+   LS.x = 252 (0x00fc)
+   LS.y = -53 (0xffcb)
+   US.x = 252 (0x00fc)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x00ff  (255)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 279 (0x0117)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 279 (0x0117)
+   BSS.y = -53 (0xffcb)
+   LS.x = 279 (0x0117)
+   LS.y = -53 (0xffcb)
+   US.x = 279 (0x0117)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0100  (256)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 297 (0x0129)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 297 (0x0129)
+   BSS.y = -53 (0xffcb)
+   LS.x = 297 (0x0129)
+   LS.y = -53 (0xffcb)
+   US.x = 297 (0x0129)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0101  (257)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 283 (0x011b)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 283 (0x011b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 283 (0x011b)
+   LS.y = -53 (0xffcb)
+   US.x = 283 (0x011b)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0102  (258)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 315 (0x013b)
+   US.y = 570 (0x023a)
+   order = 1
+
+
+0x0103  (259)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 286 (0x011e)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 286 (0x011e)
+   BSS.y = -53 (0xffcb)
+   LS.x = 286 (0x011e)
+   LS.y = -53 (0xffcb)
+   US.x = 286 (0x011e)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0104  (260)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 1
+
+
+0x0105  (261)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0106  (262)
+   breakweight = 10 (0x000a)
+   directionality = 1
+
+
+0x0107  (263)
+   breakweight = 10 (0x000a)
+   directionality = 1
+
+
+0x0108  (264)
+   breakweight = 10 (0x000a)
+   directionality = 1
+   BDS.x = 624 (0x0270)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 624 (0x0270)
+   BSS.y = -53 (0xffcb)
+   LS.x = 624 (0x0270)
+   LS.y = -53 (0xffcb)
+
+
+0x0109  (265)
+   breakweight = 10 (0x000a)
+   directionality = 1
+
+
+0x010a  (266)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x010b  (267)
+   breakweight = 10 (0x000a)
+   directionality = 1
+
+
+0x010c  (268)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x010d  (269)
+   breakweight = -30 (0xffe2)
+   BSS.x = 86 (0x0056)
+   BSS.y = -53 (0xffcb)
+   LS.x = 86 (0x0056)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -568 (0xfdc8)
+   LLS.y = -53 (0xffcb)
+   origWidth = 479 (0x01df)
+   BSM.x = -251 (0xff05)
+   BSM.y = -53 (0xffcb)
+
+
+0x010e  (270)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x010f  (271)
+   breakweight = -30 (0xffe2)
+   BSS.x = 86 (0x0056)
+   BSS.y = -53 (0xffcb)
+   LS.x = 86 (0x0056)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -568 (0xfdc8)
+   LLS.y = -53 (0xffcb)
+   origWidth = 479 (0x01df)
+   BSM.x = -251 (0xff05)
+   BSM.y = -53 (0xffcb)
+
+
+0x0110  (272)
+   breakweight = -30 (0xffe2)
+   BDS.x = 60 (0x003c)
+   BDS.y = -173 (0xff53)
+   BSS.x = 207 (0x00cf)
+   BSS.y = -173 (0xff53)
+   LS.x = 642 (0x0282)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 292 (0x0124)
+   LLS.y = -53 (0xffcb)
+
+
+0x0111  (273)
+   breakweight = -30 (0xffe2)
+   BDS.x = 60 (0x003c)
+   BDS.y = -173 (0xff53)
+   BSS.x = 207 (0x00cf)
+   BSS.y = -173 (0xff53)
+   LS.x = 642 (0x0282)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 292 (0x0124)
+   LLS.y = -53 (0xffcb)
+
+
+0x0112  (274)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 285 (0x011d)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 285 (0x011d)
+   BSS.y = -53 (0xffcb)
+   LS.x = 285 (0x011d)
+   LS.y = -53 (0xffcb)
+   US.x = 285 (0x011d)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0113  (275)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 315 (0x013b)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 315 (0x013b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 315 (0x013b)
+   LS.y = -53 (0xffcb)
+   RM.x = 30 (0x001e)
+   US.x = 315 (0x013b)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0114  (276)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 283 (0x011b)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 283 (0x011b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 283 (0x011b)
+   LS.y = -53 (0xffcb)
+   US.x = 283 (0x011b)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0115  (277)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 283 (0x011b)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 283 (0x011b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 283 (0x011b)
+   LS.y = -53 (0xffcb)
+   US.x = 283 (0x011b)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0116  (278)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 174 (0x00ae)
+   BDS.y = -51 (0xffcd)
+   BSS.x = 174 (0x00ae)
+   BSS.y = -51 (0xffcd)
+   LS.x = 174 (0x00ae)
+   LS.y = -51 (0xffcd)
+   US.x = 251 (0x00fb)
+   US.y = 496 (0x01f0)
+   order = 1
+
+
+0x0117  (279)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 183 (0x00b7)
+   BDS.y = -51 (0xffcd)
+   BSS.x = 183 (0x00b7)
+   BSS.y = -51 (0xffcd)
+   LS.x = 183 (0x00b7)
+   LS.y = -51 (0xffcd)
+   US.x = 260 (0x0104)
+   US.y = 496 (0x01f0)
+   order = 1
+
+
+0x0118  (280)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   BDS.x = -495 (0xfe11)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 32 (0x0020)
+   BSS.y = -53 (0xffcb)
+   LS.x = 32 (0x0020)
+   LS.y = -53 (0xffcb)
+   US.x = -293 (0xfedb)
+   US.y = 495 (0x01ef)
+   order = 6
+   LLS.x = -613 (0xfd9b)
+   LLS.y = -53 (0xffcb)
+   BSM.x = -293 (0xfedb)
+   BSM.y = -53 (0xffcb)
+   LRS.x = 61 (0x003d)
+   LRS.y = -53 (0xffcb)
+
+
+0x0119  (281)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   BDS.x = -495 (0xfe11)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 25 (0x0019)
+   BSS.y = -53 (0xffcb)
+   LS.x = 25 (0x0019)
+   LS.y = -53 (0xffcb)
+   US.x = -293 (0xfedb)
+   US.y = 495 (0x01ef)
+   order = 6
+   LLS.x = -620 (0xfd94)
+   LLS.y = -53 (0xffcb)
+   BSM.x = -293 (0xfedb)
+   BSM.y = -53 (0xffcb)
+   LRS.x = 61 (0x003d)
+   LRS.y = -53 (0xffcb)
+
+
+0x011a  (282)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x011b  (283)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -377 (0xfe87)
+   LLS.y = -53 (0xffcb)
+   origWidth = 288 (0x0120)
+   BSM.x = -146 (0xff6e)
+   BSM.y = -53 (0xffcb)
+
+
+0x011c  (284)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 286 (0x011e)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 286 (0x011e)
+   BSS.y = -53 (0xffcb)
+   LS.x = 286 (0x011e)
+   LS.y = -53 (0xffcb)
+   US.x = 288 (0x0120)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x011d  (285)
+   breakweight = -30 (0xffe2)
+   BSS.x = 250 (0x00fa)
+   BSS.y = -53 (0xffcb)
+   LS.x = 250 (0x00fa)
+   LS.y = -53 (0xffcb)
+   US.x = -36 (0xffdc)
+   US.y = 495 (0x01ef)
+   order = 2
+   LLS.x = -540 (0xfde4)
+   LLS.y = -53 (0xffcb)
+   origWidth = 162 (0x00a2)
+   dotS.x = -218 (0xff26)
+   dotS.y = -53 (0xffcb)
+
+
+0x011e  (286)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 290 (0x0122)
+   BDS.y = -69 (0xffbb)
+   BSS.x = 290 (0x0122)
+   BSS.y = -69 (0xffbb)
+   LS.x = 290 (0x0122)
+   LS.y = -69 (0xffbb)
+   US.x = 290 (0x0122)
+   US.y = 643 (0x0283)
+   order = 1
+
+
+0x011f  (287)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -557 (0xfdd3)
+   LLS.y = -53 (0xffcb)
+   origWidth = 468 (0x01d4)
+   BSM.x = -234 (0xff16)
+   BSM.y = -53 (0xffcb)
+
+
+0x0120  (288)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 294 (0x0126)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 294 (0x0126)
+   BSS.y = -53 (0xffcb)
+   LS.x = 294 (0x0126)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0121  (289)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   BSS.x = 89 (0x0059)
+   BSS.y = -53 (0xffcb)
+   LS.x = 89 (0x0059)
+   LS.y = -53 (0xffcb)
+   order = 4
+   LLS.x = -250 (0xff06)
+   LLS.y = -53 (0xffcb)
+   BSM.x = -80 (0xffb0)
+   BSM.y = -53 (0xffcb)
+
+
+0x0122  (290)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   BSS.x = 89 (0x0059)
+   BSS.y = -53 (0xffcb)
+   LS.x = 89 (0x0059)
+   LS.y = -53 (0xffcb)
+   order = 4
+   LLS.x = -250 (0xff06)
+   LLS.y = -53 (0xffcb)
+   BSM.x = -80 (0xffb0)
+   BSM.y = -53 (0xffcb)
+
+
+0x0123  (291)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   LS.x = 89 (0x0059)
+   LS.y = -63 (0xffc1)
+   order = 7
+   LLS.x = -556 (0xfdd4)
+   LLS.y = -63 (0xffc1)
+   LM.x = -235 (0xff15)
+   LM.y = -63 (0xffc1)
+
+
+0x0124  (292)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 87 (0x0057)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 247 (0x00f7)
+   BSS.y = -53 (0xffcb)
+   LS.x = 646 (0x0286)
+   LS.y = -53 (0xffcb)
+   US.x = 295 (0x0127)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 236 (0x00ec)
+   LLS.y = -53 (0xffcb)
+
+
+0x0125  (293)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 192 (0x00c0)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 192 (0x00c0)
+   BSS.y = -53 (0xffcb)
+   LS.x = 192 (0x00c0)
+   LS.y = -53 (0xffcb)
+   US.x = 192 (0x00c0)
+   US.y = 495 (0x01ef)
+   order = 13 (0x000d)
+
+
+0x0126  (294)
+   breakweight = -30 (0xffe2)
+   BDS.x = 216 (0x00d8)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 216 (0x00d8)
+   BSS.y = -53 (0xffcb)
+   LS.x = 216 (0x00d8)
+   LS.y = -53 (0xffcb)
+   order = 13 (0x000d)
+
+
+0x0127  (295)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 276 (0x0114)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 276 (0x0114)
+   BSS.y = -53 (0xffcb)
+   LS.x = 276 (0x0114)
+   LS.y = -53 (0xffcb)
+   US.x = 276 (0x0114)
+   US.y = 495 (0x01ef)
+   order = 15 (0x000f)
+
+
+0x0128  (296)
+   breakweight = -30 (0xffe2)
+   BDS.x = 276 (0x0114)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 276 (0x0114)
+   BSS.y = -53 (0xffcb)
+   LS.x = 276 (0x0114)
+   LS.y = -53 (0xffcb)
+   order = 15 (0x000f)
+
+
+0x0129  (297)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 192 (0x00c0)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 192 (0x00c0)
+   BSS.y = -53 (0xffcb)
+   LS.x = 192 (0x00c0)
+   LS.y = -53 (0xffcb)
+   US.x = 192 (0x00c0)
+   US.y = 495 (0x01ef)
+   order = 17 (0x0011)
+
+
+0x012a  (298)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x012b  (299)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x012c  (300)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 138 (0x008a)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 138 (0x008a)
+   BSS.y = -53 (0xffcb)
+   LS.x = 138 (0x008a)
+   LS.y = -53 (0xffcb)
+   US.x = 210 (0x00d2)
+   US.y = 495 (0x01ef)
+   order = 15 (0x000f)
+
+
+0x012d  (301)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 134 (0x0086)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 134 (0x0086)
+   BSS.y = -53 (0xffcb)
+   LS.x = 134 (0x0086)
+   LS.y = -53 (0xffcb)
+   order = 15 (0x000f)
+
+
+0x012e  (302)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 180 (0x00b4)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 180 (0x00b4)
+   BSS.y = -53 (0xffcb)
+   LS.x = 180 (0x00b4)
+   LS.y = -53 (0xffcb)
+   US.x = 186 (0x00ba)
+   US.y = 496 (0x01f0)
+   order = 17 (0x0011)
+
+
+0x012f  (303)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 154 (0x009a)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 154 (0x009a)
+   BSS.y = -53 (0xffcb)
+   LS.x = 154 (0x009a)
+   LS.y = -53 (0xffcb)
+   US.x = 225 (0x00e1)
+   US.y = 495 (0x01ef)
+   order = 17 (0x0011)
+
+
+0x0130  (304)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 210 (0x00d2)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 210 (0x00d2)
+   BSS.y = -53 (0xffcb)
+   LS.x = 210 (0x00d2)
+   LS.y = -53 (0xffcb)
+   US.x = 138 (0x008a)
+   US.y = 495 (0x01ef)
+   order = 17 (0x0011)
+
+
+0x0131  (305)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 138 (0x008a)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 138 (0x008a)
+   BSS.y = -53 (0xffcb)
+   LS.x = 138 (0x008a)
+   LS.y = -53 (0xffcb)
+   US.x = 66 (0x0042)
+   US.y = 495 (0x01ef)
+   order = 17 (0x0011)
+
+
+0x0132  (306)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 174 (0x00ae)
+   BDS.y = -51 (0xffcd)
+   BSS.x = 174 (0x00ae)
+   BSS.y = -51 (0xffcd)
+   LS.x = 174 (0x00ae)
+   LS.y = -51 (0xffcd)
+   US.x = 168 (0x00a8)
+   US.y = 496 (0x01f0)
+   order = 17 (0x0011)
+
+
+0x0133  (307)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 592 (0x0250)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 898 (0x0382)
+   BSS.y = -53 (0xffcb)
+   LS.x = 898 (0x0382)
+   LS.y = -53 (0xffcb)
+   US.x = 898 (0x0382)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0134  (308)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 504 (0x01f8)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0135  (309)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 712 (0x02c8)
+   BSS.y = -53 (0xffcb)
+   LS.x = 712 (0x02c8)
+   LS.y = -53 (0xffcb)
+   US.x = 712 (0x02c8)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0136  (310)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   BDS.x = -495 (0xfe11)
+   BDS.y = -53 (0xffcb)
+   BSS.x = -293 (0xfedb)
+   BSS.y = -53 (0xffcb)
+   LS.x = -90 (0xffa6)
+   LS.y = -53 (0xffcb)
+   order = 11 (0x000b)
+   LLS.x = -665 (0xfd67)
+   LLS.y = -53 (0xffcb)
+   UM.x = -293 (0xfedb)
+   UM.y = 495 (0x01ef)
+   LRS.x = 61 (0x003d)
+   LRS.y = -53 (0xffcb)
+
+
+0x0137  (311)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -286 (0xfee2)
+   UM.y = 477 (0x01dd)
+
+
+0x0138  (312)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   BDS.x = -495 (0xfe11)
+   BDS.y = -53 (0xffcb)
+   BSS.x = -293 (0xfedb)
+   BSS.y = -53 (0xffcb)
+   LS.x = -90 (0xffa6)
+   LS.y = -53 (0xffcb)
+   order = 11 (0x000b)
+   LLS.x = -665 (0xfd67)
+   LLS.y = -53 (0xffcb)
+   UM.x = -293 (0xfedb)
+   UM.y = 495 (0x01ef)
+   YM.x = -86 (0xffaa)
+   YM.y = 495 (0x01ef)
+   LRS.x = 61 (0x003d)
+   LRS.y = -53 (0xffcb)
+
+
+0x0139  (313)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -282 (0xfee6)
+   UM.y = 495 (0x01ef)
+   YM.x = -75 (0xffb5)
+   YM.y = 495 (0x01ef)
+
+
+0x013a  (314)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 285 (0x011d)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 285 (0x011d)
+   BSS.y = -53 (0xffcb)
+   LS.x = 285 (0x011d)
+   LS.y = -53 (0xffcb)
+   US.x = 285 (0x011d)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x013b  (315)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 289 (0x0121)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 289 (0x0121)
+   BSS.y = -53 (0xffcb)
+   LS.x = 289 (0x0121)
+   LS.y = -53 (0xffcb)
+   US.x = 289 (0x0121)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x013c  (316)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 285 (0x011d)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 285 (0x011d)
+   BSS.y = -53 (0xffcb)
+   LS.x = 285 (0x011d)
+   LS.y = -53 (0xffcb)
+   US.x = 285 (0x011d)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x013d  (317)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 501 (0x01f5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 709 (0x02c5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 709 (0x02c5)
+   LS.y = -53 (0xffcb)
+   US.x = 709 (0x02c5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x013e  (318)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 288 (0x0120)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 288 (0x0120)
+   BSS.y = -53 (0xffcb)
+   LS.x = 288 (0x0120)
+   LS.y = -53 (0xffcb)
+   US.x = 288 (0x0120)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x013f  (319)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 720 (0x02d0)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 720 (0x02d0)
+   BSS.y = -53 (0xffcb)
+   LS.x = 720 (0x02d0)
+   LS.y = -53 (0xffcb)
+   US.x = 720 (0x02d0)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 286 (0x011e)
+   LLS.y = -53 (0xffcb)
+
+
+0x0140  (320)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 288 (0x0120)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 288 (0x0120)
+   BSS.y = -53 (0xffcb)
+   LS.x = 288 (0x0120)
+   LS.y = -53 (0xffcb)
+   US.x = 288 (0x0120)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0141  (321)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 474 (0x01da)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 703 (0x02bf)
+   BSS.y = -53 (0xffcb)
+   LS.x = 703 (0x02bf)
+   LS.y = -53 (0xffcb)
+   US.x = 703 (0x02bf)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0142  (322)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 504 (0x01f8)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0143  (323)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 504 (0x01f8)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0144  (324)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0145  (325)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 501 (0x01f5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 709 (0x02c5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 709 (0x02c5)
+   LS.y = -53 (0xffcb)
+   US.x = 709 (0x02c5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0146  (326)
+   breakweight = -50 (0xffce)
+   directionality = 1
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0147  (327)
+   breakweight = -50 (0xffce)
+   directionality = 16 (0x0010)
+   BDS.x = -495 (0xfe11)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 25 (0x0019)
+   BSS.y = -53 (0xffcb)
+   LS.x = 25 (0x0019)
+   LS.y = -53 (0xffcb)
+   US.x = -293 (0xfedb)
+   US.y = 495 (0x01ef)
+   order = 6
+   LLS.x = -770 (0xfcfe)
+   LLS.y = -53 (0xffcb)
+   BSM.x = -293 (0xfedb)
+   BSM.y = -53 (0xffcb)
+   LRS.x = 61 (0x003d)
+   LRS.y = -53 (0xffcb)
+
+
+0x0148  (328)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   US.x = 173 (0x00ad)
+   US.y = 495 (0x01ef)
+   order = 15 (0x000f)
+
+
+0x0149  (329)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 9
+
+
+0x014a  (330)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   order = 11 (0x000b)
+   UM.x = -219 (0xff25)
+   UM.y = 495 (0x01ef)
+   YM.x = -84 (0xffac)
+   YM.y = 495 (0x01ef)
+
+
+0x014b  (331)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   order = 14 (0x000e)
+   UM.x = -169 (0xff57)
+   UM.y = 495 (0x01ef)
+   YM.x = -75 (0xffb5)
+   YM.y = 495 (0x01ef)
+
+
+0x014c  (332)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x014d  (333)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x014e  (334)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x014f  (335)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x0150  (336)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x0151  (337)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x0152  (338)
+   breakweight = -30 (0xffe2)
+   directionality = 16 (0x0010)
+   BDS.x = -495 (0xfe11)
+   BDS.y = -53 (0xffcb)
+   BSS.x = -672 (0xfd60)
+   BSS.y = -53 (0xffcb)
+   LS.x = 2
+   LS.y = -53 (0xffcb)
+   US.x = -293 (0xfedb)
+   US.y = 495 (0x01ef)
+   order = 21 (0x0015)
+   LLS.x = -672 (0xfd60)
+   LLS.y = -53 (0xffcb)
+   BSM.x = -293 (0xfedb)
+   BSM.y = -53 (0xffcb)
+   LRS.x = 61 (0x003d)
+   LRS.y = -53 (0xffcb)
+
+
+0x0153  (339)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 288 (0x0120)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 288 (0x0120)
+   BSS.y = -53 (0xffcb)
+   LS.x = 288 (0x0120)
+   LS.y = -53 (0xffcb)
+   US.x = 288 (0x0120)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0154  (340)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x0155  (341)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 283 (0x011b)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 283 (0x011b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 283 (0x011b)
+   LS.y = -53 (0xffcb)
+   US.x = 283 (0x011b)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0156  (342)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   US.x = 154 (0x009a)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0157  (343)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 1
+
+
+0x0158  (344)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   US.x = 182 (0x00b6)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0159  (345)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   US.x = 200 (0x00c8)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x015a  (346)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   RM.x = 2
+   order = 1
+
+
+0x015b  (347)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   RM.x = 2
+   order = 1
+
+
+0x015c  (348)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   US.x = 218 (0x00da)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x015d  (349)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 290 (0x0122)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 290 (0x0122)
+   BSS.y = -53 (0xffcb)
+   LS.x = 290 (0x0122)
+   LS.y = -53 (0xffcb)
+   US.x = 290 (0x0122)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x015e  (350)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 290 (0x0122)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 290 (0x0122)
+   BSS.y = -53 (0xffcb)
+   LS.x = 290 (0x0122)
+   LS.y = -53 (0xffcb)
+   US.x = 290 (0x0122)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x015f  (351)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x0160  (352)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x0161  (353)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x0162  (354)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+   UM.x = -114 (0xff8e)
+   UM.y = 495 (0x01ef)
+
+
+0x0163  (355)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   US.x = 173 (0x00ad)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0164  (356)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 1
+
+
+0x0165  (357)
+   breakweight = 10 (0x000a)
+   directionality = 10 (0x000a)
+
+
+0x0166  (358)
+   breakweight = -30 (0xffe2)
+   directionality = 10 (0x000a)
+
+
+0x0167  (359)
+   breakweight = -30 (0xffe2)
+   directionality = 10 (0x000a)
+
+
+0x0168  (360)
+   breakweight = -15 (0xfff1)
+
+
+0x0169  (361)
+   breakweight = 10 (0x000a)
+
+
+0x016a  (362)
+   breakweight = -15 (0xfff1)
+
+
+0x016b  (363)
+   breakweight = 10 (0x000a)
+
+
+0x016c  (364)
+   breakweight = -30 (0xffe2)
+
+
+0x016d  (365)
+   breakweight = -30 (0xffe2)
+
+
+0x016e  (366)
+   breakweight = -30 (0xffe2)
+   directionality = 10 (0x000a)
+
+
+0x016f  (367)
+   breakweight = -30 (0xffe2)
+
+
+0x0170  (368)
+   breakweight = -15 (0xfff1)
+   BDS.x = 318 (0x013e)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 318 (0x013e)
+   BSS.y = -53 (0xffcb)
+   LS.x = 318 (0x013e)
+   LS.y = -53 (0xffcb)
+   US.x = 318 (0x013e)
+   US.gpoint = 38 (0x0026)
+   US.y = 493 (0x01ed)
+   order = 1
+
+
+0x0171  (369)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 318 (0x013e)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 318 (0x013e)
+   BSS.y = -53 (0xffcb)
+   LS.x = 318 (0x013e)
+   LS.y = -53 (0xffcb)
+   US.x = 318 (0x013e)
+   US.gpoint = 38 (0x0026)
+   US.y = 493 (0x01ed)
+   order = 1
+
+
+0x0172  (370)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x0173  (371)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 465 (0x01d1)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 645 (0x0285)
+   BSS.y = -53 (0xffcb)
+   LS.x = 645 (0x0285)
+   LS.y = -53 (0xffcb)
+   US.x = 645 (0x0285)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0174  (372)
+   breakweight = -30 (0xffe2)
+   BSS.x = 68 (0x0044)
+   BSS.y = -53 (0xffcb)
+   LS.x = 68 (0x0044)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -826 (0xfcc6)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -382 (0xfe82)
+   BDM.y = -53 (0xffcb)
+   origWidth = 757 (0x02f5)
+
+
+0x0175  (373)
+   breakweight = -30 (0xffe2)
+   BSS.x = 68 (0x0044)
+   BSS.y = -53 (0xffcb)
+   LS.x = 68 (0x0044)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -826 (0xfcc6)
+   LLS.y = -53 (0xffcb)
+   BDM.x = -382 (0xfe82)
+   BDM.y = -53 (0xffcb)
+   origWidth = 757 (0x02f5)
+
+
+0x0176  (374)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 505 (0x01f9)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 705 (0x02c1)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0177  (375)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 303 (0x012f)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 303 (0x012f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 303 (0x012f)
+   LS.y = -53 (0xffcb)
+   RM.x = 15 (0x000f)
+   US.x = 303 (0x012f)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0178  (376)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 500 (0x01f4)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 701 (0x02bd)
+   BSS.y = -53 (0xffcb)
+   LS.x = 701 (0x02bd)
+   LS.y = -53 (0xffcb)
+   US.x = 701 (0x02bd)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0179  (377)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 508 (0x01fc)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x017a  (378)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 718 (0x02ce)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 718 (0x02ce)
+   BSS.y = -53 (0xffcb)
+   LS.x = 718 (0x02ce)
+   LS.y = -53 (0xffcb)
+   US.x = 718 (0x02ce)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 292 (0x0124)
+   LLS.y = -53 (0xffcb)
+
+
+0x017b  (379)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 501 (0x01f5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 709 (0x02c5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 709 (0x02c5)
+   LS.y = -53 (0xffcb)
+   US.x = 709 (0x02c5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x017c  (380)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x017d  (381)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 288 (0x0120)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 288 (0x0120)
+   BSS.y = -53 (0xffcb)
+   LS.x = 288 (0x0120)
+   LS.y = -53 (0xffcb)
+   US.x = 288 (0x0120)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x017e  (382)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x017f  (383)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 702 (0x02be)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0180  (384)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 421 (0x01a5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 421 (0x01a5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 421 (0x01a5)
+   LS.y = -53 (0xffcb)
+   US.x = 421 (0x01a5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0181  (385)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 717 (0x02cd)
+   BSS.y = -53 (0xffcb)
+   LS.x = 717 (0x02cd)
+   LS.y = -53 (0xffcb)
+   US.x = 717 (0x02cd)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0182  (386)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 555 (0x022b)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 555 (0x022b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 555 (0x022b)
+   LS.y = -53 (0xffcb)
+   US.x = 663 (0x0297)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0183  (387)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 480 (0x01e0)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 679 (0x02a7)
+   BSS.y = -53 (0xffcb)
+   LS.x = 679 (0x02a7)
+   LS.y = -53 (0xffcb)
+   US.x = 679 (0x02a7)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0184  (388)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 303 (0x012f)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 303 (0x012f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 303 (0x012f)
+   LS.y = -53 (0xffcb)
+   US.x = 303 (0x012f)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0185  (389)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 22 (0x0016)
+
+
+0x0186  (390)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 508 (0x01fc)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0187  (391)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 721 (0x02d1)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 917 (0x0395)
+   BSS.y = -53 (0xffcb)
+   LS.x = 917 (0x0395)
+   LS.y = -53 (0xffcb)
+   RM.x = -2 (0xfffe)
+   US.x = 917 (0x0395)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0188  (392)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 303 (0x012f)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 303 (0x012f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 303 (0x012f)
+   LS.y = -53 (0xffcb)
+   US.x = 303 (0x012f)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0189  (393)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   order = 1
+
+
+0x018a  (394)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   order = 1
+
+
+0x018b  (395)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   order = 1
+
+
+0x018c  (396)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 264 (0x0108)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 264 (0x0108)
+   BSS.y = -53 (0xffcb)
+   LS.x = 646 (0x0286)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   LLS.x = 292 (0x0124)
+   LLS.y = -53 (0xffcb)
+
+
+0x018d  (397)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+
+
+0x018e  (398)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   BDS.x = 247 (0x00f7)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 247 (0x00f7)
+   BSS.y = -53 (0xffcb)
+   LS.x = 646 (0x0286)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 292 (0x0124)
+   LLS.y = -53 (0xffcb)
+
+
+0x018f  (399)
+   breakweight = -15 (0xfff1)
+   directionality = 1
+   BDS.x = 596 (0x0254)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 795 (0x031b)
+   BSS.y = -53 (0xffcb)
+   LS.x = 795 (0x031b)
+   LS.y = -53 (0xffcb)
+   US.x = 795 (0x031b)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0190  (400)
+   breakweight = -30 (0xffe2)
+   directionality = 1
+   order = 21 (0x0015)
+
+
+0x0191  (401)
+   breakweight = -15 (0xfff1)
+   BDS.x = 508 (0x01fc)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0192  (402)
+   breakweight = -15 (0xfff1)
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0193  (403)
+   breakweight = -15 (0xfff1)
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0194  (404)
+   breakweight = -15 (0xfff1)
+   BDS.x = 501 (0x01f5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 709 (0x02c5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 709 (0x02c5)
+   LS.y = -53 (0xffcb)
+   US.x = 709 (0x02c5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0195  (405)
+   breakweight = -15 (0xfff1)
+   BDS.x = 292 (0x0124)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 292 (0x0124)
+   BSS.y = -53 (0xffcb)
+   LS.x = 292 (0x0124)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0196  (406)
+   breakweight = -15 (0xfff1)
+   BDS.x = 294 (0x0126)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 294 (0x0126)
+   BSS.y = -53 (0xffcb)
+   LS.x = 294 (0x0126)
+   LS.y = -53 (0xffcb)
+   US.x = 292 (0x0124)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0197  (407)
+   breakweight = -15 (0xfff1)
+   BDS.x = 504 (0x01f8)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 706 (0x02c2)
+   BSS.y = -53 (0xffcb)
+   LS.x = 706 (0x02c2)
+   LS.y = -53 (0xffcb)
+   US.x = 706 (0x02c2)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0198  (408)
+   breakweight = -15 (0xfff1)
+   BDS.x = 480 (0x01e0)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 679 (0x02a7)
+   BSS.y = -53 (0xffcb)
+   LS.x = 679 (0x02a7)
+   LS.y = -53 (0xffcb)
+   US.x = 679 (0x02a7)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x0199  (409)
+   breakweight = -15 (0xfff1)
+   BDS.x = 505 (0x01f9)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 705 (0x02c1)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x019a  (410)
+   breakweight = -30 (0xffe2)
+   order = 12 (0x000c)
+   UM.x = -158 (0xff62)
+   UM.y = 504 (0x01f8)
+
+
+0x019b  (411)
+   breakweight = -15 (0xfff1)
+   BDS.x = 457 (0x01c9)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 457 (0x01c9)
+   BSS.y = -53 (0xffcb)
+   LS.x = 457 (0x01c9)
+   LS.y = -53 (0xffcb)
+   US.x = 457 (0x01c9)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x019c  (412)
+   breakweight = -15 (0xfff1)
+   BDS.x = 508 (0x01fc)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x019d  (413)
+   breakweight = -15 (0xfff1)
+   BDS.x = 501 (0x01f5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 709 (0x02c5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 709 (0x02c5)
+   LS.y = -53 (0xffcb)
+   US.x = 709 (0x02c5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x019e  (414)
+   breakweight = -15 (0xfff1)
+   BDS.x = 465 (0x01d1)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 645 (0x0285)
+   BSS.y = -53 (0xffcb)
+   LS.x = 645 (0x0285)
+   LS.y = -53 (0xffcb)
+   US.x = 645 (0x0285)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x019f  (415)
+   breakweight = -15 (0xfff1)
+   BDS.x = 505 (0x01f9)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 702 (0x02be)
+   BSS.y = -53 (0xffcb)
+   LS.x = 702 (0x02be)
+   LS.y = -53 (0xffcb)
+   US.x = 705 (0x02c1)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a0  (416)
+   breakweight = -15 (0xfff1)
+   BDS.x = 303 (0x012f)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 303 (0x012f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 303 (0x012f)
+   LS.y = -53 (0xffcb)
+   RM.x = 15 (0x000f)
+   US.x = 303 (0x012f)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a1  (417)
+   breakweight = -15 (0xfff1)
+   BDS.x = 500 (0x01f4)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 701 (0x02bd)
+   BSS.y = -53 (0xffcb)
+   LS.x = 701 (0x02bd)
+   LS.y = -53 (0xffcb)
+   US.x = 701 (0x02bd)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a2  (418)
+   breakweight = -15 (0xfff1)
+   BDS.x = 508 (0x01fc)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 714 (0x02ca)
+   BSS.y = -53 (0xffcb)
+   LS.x = 714 (0x02ca)
+   LS.y = -53 (0xffcb)
+   US.x = 714 (0x02ca)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a3  (419)
+   breakweight = -15 (0xfff1)
+   BDS.x = 718 (0x02ce)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 718 (0x02ce)
+   BSS.y = -53 (0xffcb)
+   LS.x = 718 (0x02ce)
+   LS.y = -53 (0xffcb)
+   US.x = 718 (0x02ce)
+   US.y = 495 (0x01ef)
+   order = 1
+   LLS.x = 292 (0x0124)
+   LLS.y = -53 (0xffcb)
+
+
+0x01a4  (420)
+   breakweight = -15 (0xfff1)
+   BDS.x = 501 (0x01f5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 709 (0x02c5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 709 (0x02c5)
+   LS.y = -53 (0xffcb)
+   US.x = 709 (0x02c5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a5  (421)
+   breakweight = -15 (0xfff1)
+   BDS.x = 421 (0x01a5)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 421 (0x01a5)
+   BSS.y = -53 (0xffcb)
+   LS.x = 421 (0x01a5)
+   LS.y = -53 (0xffcb)
+   US.x = 421 (0x01a5)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a6  (422)
+   breakweight = -15 (0xfff1)
+   BDS.x = 495 (0x01ef)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 717 (0x02cd)
+   BSS.y = -53 (0xffcb)
+   LS.x = 717 (0x02cd)
+   LS.y = -53 (0xffcb)
+   US.x = 717 (0x02cd)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a7  (423)
+   breakweight = -15 (0xfff1)
+   BDS.x = 303 (0x012f)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 303 (0x012f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 303 (0x012f)
+   LS.y = -53 (0xffcb)
+   RM.x = 15 (0x000f)
+   US.x = 303 (0x012f)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a8  (424)
+   breakweight = -15 (0xfff1)
+   BDS.x = 303 (0x012f)
+   BDS.y = -53 (0xffcb)
+   BSS.x = 303 (0x012f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 303 (0x012f)
+   LS.y = -53 (0xffcb)
+   RM.x = 15 (0x000f)
+   US.x = 303 (0x012f)
+   US.y = 495 (0x01ef)
+   order = 1
+
+
+0x01a9  (425)
+   breakweight = -15 (0xfff1)
+   order = 1
+
+
+0x01aa  (426)
+   breakweight = -15 (0xfff1)
+   order = 1
+
+
+0x01ab  (427)
+   breakweight = -30 (0xffe2)
+   order = 12 (0x000c)
+   UM.x = -158 (0xff62)
+   UM.y = 504 (0x01f8)
+
+
+0x01ac  (428)
+   breakweight = -30 (0xffe2)
+   order = 3
+   UM.x = -231 (0xff19)
+   UM.y = 477 (0x01dd)
+
+
+0x01ad  (429)
+   breakweight = -30 (0xffe2)
+   order = 11 (0x000b)
+   UM.x = -74 (0xffb6)
+   UM.y = 495 (0x01ef)
+
+
+0x01ae  (430)
+   breakweight = -30 (0xffe2)
+   order = 21 (0x0015)
+
+
+0x01af  (431)
+   breakweight = -30 (0xffe2)
+   order = 21 (0x0015)
+
+
+0x01b0  (432)
+   breakweight = -30 (0xffe2)
+   order = 21 (0x0015)
+
+
+0x01b1  (433)
+   breakweight = -30 (0xffe2)
+   order = 21 (0x0015)
+
+
+0x01b2  (434)
+   breakweight = -30 (0xffe2)
+   order = 21 (0x0015)
+
+
+0x01b3  (435)
+   breakweight = -30 (0xffe2)
+   order = 21 (0x0015)
+
+
+0x01b4  (436)
+   breakweight = -30 (0xffe2)
+   order = 21 (0x0015)
+
+
+0x01b5  (437)
+   breakweight = -30 (0xffe2)
+   order = 21 (0x0015)
+
+
+0x01b6  (438)
+   breakweight = -30 (0xffe2)
+   BSS.x = 88 (0x0058)
+   BSS.y = -53 (0xffcb)
+   LS.x = 88 (0x0058)
+   LS.y = -53 (0xffcb)
+   order = 2
+   LLS.x = -554 (0xfdd6)
+   LLS.y = -53 (0xffcb)
+   origWidth = 465 (0x01d1)
+   BSM.x = -231 (0xff19)
+   BSM.y = -51 (0xffcd)
+
+
+0x01b7  (439)
+   breakweight = -30 (0xffe2)
+   BSS.x = 250 (0x00fa)
+   BSS.y = -53 (0xffcb)
+   LS.x = 250 (0x00fa)
+   LS.y = -53 (0xffcb)
+   US.x = -36 (0xffdc)
+   US.y = 495 (0x01ef)
+   order = 4
+   LLS.x = -519 (0xfdf9)
+   LLS.y = -53 (0xffcb)
+   origWidth = 162 (0x00a2)
+   dotS.x = -218 (0xff26)
+   dotS.y = -53 (0xffcb)
+
+
+0x01b8  (440)
+   breakweight = -30 (0xffe2)
+   BSS.x = 250 (0x00fa)
+   BSS.y = -53 (0xffcb)
+   LS.x = 250 (0x00fa)
+   LS.y = -53 (0xffcb)
+   US.x = -36 (0xffdc)
+   US.y = 495 (0x01ef)
+   order = 3
+   LLS.x = -540 (0xfde4)
+   LLS.y = -53 (0xffcb)
+   origWidth = 162 (0x00a2)
+   dotS.x = -218 (0xff26)
+   dotS.y = -53 (0xffcb)
+
+
+0x01b9  (441)
+   breakweight = -30 (0xffe2)
+   BSS.x = 744 (0x02e8)
+   BSS.y = -53 (0xffcb)
+   LS.x = 744 (0x02e8)
+   LS.y = -53 (0xffcb)
+   order = 5
+   origWidth = 172 (0x00ac)
+   RS.x = 172 (0x00ac)
+   advx = 753 (0x02f1)
+
+
+0x01ba  (442)
+   breakweight = -30 (0xffe2)
+   BSS.x = 1135 (0x046f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1135 (0x046f)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 607 (0x025f)
+   LLS.y = -53 (0xffcb)
+   origWidth = 172 (0x00ac)
+   RS.x = 172 (0x00ac)
+   advx = 1174 (0x0496)
+
+
+0x01bb  (443)
+   breakweight = -30 (0xffe2)
+   BSS.x = 744 (0x02e8)
+   BSS.y = -53 (0xffcb)
+   LS.x = 744 (0x02e8)
+   LS.y = -53 (0xffcb)
+   order = 5
+   origWidth = 172 (0x00ac)
+   RS.x = 172 (0x00ac)
+   advx = 753 (0x02f1)
+
+
+0x01bc  (444)
+   breakweight = -30 (0xffe2)
+   BSS.x = 1135 (0x046f)
+   BSS.y = -53 (0xffcb)
+   LS.x = 1135 (0x046f)
+   LS.y = -53 (0xffcb)
+   order = 5
+   LLS.x = 607 (0x025f)
+   LLS.y = -53 (0xffcb)
+   origWidth = 172 (0x00ac)
+   RS.x = 172 (0x00ac)
+   advx = 1174 (0x0496)
+
+
+0x01bd  (445)
+   breakweight = -30 (0xffe2)
+   BSS.x = 82 (0x0052)
+   BSS.y = -53 (0xffcb)
+   LS.x = 82 (0x0052)
+   LS.y = -53 (0xffcb)
+   order = 6
+   LLS.x = -530 (0xfdee)
+   LLS.y = -53 (0xffcb)
+   origWidth = 450 (0x01c2)
+   BSM.x = -222 (0xff22)
+   BSM.y = -53 (0xffcb)
+
+
+0x01be  (446)
+   breakweight = -30 (0xffe2)
+   BSS.x = 82 (0x0052)
+   BSS.y = -53 (0xffcb)
+   LS.x = 82 (0x0052)
+   LS.y = -53 (0xffcb)
+   order = 6
+   LLS.x = -530 (0xfdee)
+   LLS.y = -53 (0xffcb)
+   origWidth = 441 (0x01b9)
+   BSM.x = -225 (0xff1f)
+   BSM.y = -53 (0xffcb)
+
+
+0x01bf  (447)
+   breakweight = -30 (0xffe2)
+   order = 5
+   origWidth = 514 (0x0202)
+   BSM.x = -197 (0xff3b)
+   BSM.y = -53 (0xffcb)
+
+
+0x01c0  (448)
+   breakweight = -30 (0xffe2)
+   BSS.x = 77 (0x004d)
+   BSS.y = -53 (0xffcb)
+   LS.x = 77 (0x004d)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = -262 (0xfefa)
+   LLS.y = -53 (0xffcb)
+   origWidth = 256 (0x0100)
+   BSM.x = -30 (0xffe2)
+   BSM.y = -53 (0xffcb)
+
+
+0x01c1  (449)
+   breakweight = -30 (0xffe2)
+   BSS.x = 77 (0x004d)
+   BSS.y = -53 (0xffcb)
+   LS.x = 77 (0x004d)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = -262 (0xfefa)
+   LLS.y = -53 (0xffcb)
+   origWidth = 256 (0x0100)
+   BSM.x = -148 (0xff6c)
+   BSM.y = -53 (0xffcb)
+
+
+0x01c2  (450)
+   breakweight = -30 (0xffe2)
+   BSS.x = -466 (0xfe2e)
+   BSS.y = -53 (0xffcb)
+   LS.x = -466 (0xfe2e)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = 21 (0x0015)
+   LLS.y = -53 (0xffcb)
+   origWidth = 445 (0x01bd)
+   BSM.x = -223 (0xff21)
+   BSM.y = -53 (0xffcb)
+
+
+0x01c3  (451)
+   breakweight = -30 (0xffe2)
+   BSS.x = -466 (0xfe2e)
+   BSS.y = -53 (0xffcb)
+   LS.x = -466 (0xfe2e)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = 21 (0x0015)
+   LLS.y = -53 (0xffcb)
+   origWidth = 445 (0x01bd)
+   BSM.x = -223 (0xff21)
+   BSM.y = -53 (0xffcb)
+
+
+0x01c4  (452)
+   breakweight = -30 (0xffe2)
+   BSS.x = -609 (0xfd9f)
+   BSS.y = -53 (0xffcb)
+   LS.x = -609 (0xfd9f)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = 21 (0x0015)
+   LLS.y = -53 (0xffcb)
+   origWidth = 588 (0x024c)
+   BSM.x = -294 (0xfeda)
+   BSM.y = -53 (0xffcb)
+
+
+0x01c5  (453)
+   breakweight = -30 (0xffe2)
+   BSS.x = -609 (0xfd9f)
+   BSS.y = -53 (0xffcb)
+   LS.x = -609 (0xfd9f)
+   LS.y = -53 (0xffcb)
+   order = 7
+   LLS.x = 21 (0x0015)
+   LLS.y = -53 (0xffcb)
+   origWidth = 588 (0x024c)
+   BSM.x = -294 (0xfeda)
+   BSM.y = -53 (0xffcb)
+
+
+0x01c6  (454)
+   breakweight = 30 (0x001e)
+
+
+0x01c7  (455)
+   breakweight = 30 (0x001e)
+
+

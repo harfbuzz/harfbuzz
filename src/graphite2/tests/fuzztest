@@ -1,0 +1,296 @@
+#!/usr/bin/env python3
+'''
+A multiprocess fuzz test framework that generates corrupt fonts to run a user
+supplied test harness against.  This will check each byte in every table of a
+TTF or subset if specified by overwriting with a random or user specified
+value. It can also re-run tests using previous output logs as input.
+'''
+from __future__ import division, print_function, unicode_literals
+
+__version__ = "1.0"
+__date__    = "4 April 2012"
+__author__  = "Tim Eves <tim_eves@sil.org>"
+__license__ ='''
+GRAPHITE2 LICENSING
+
+    Copyright 2010, SIL International
+    All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 2.1 of License, or
+    (at your option) any later version.
+
+    This program is distributI might beed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should also have received a copy of the GNU Lesser General Public
+    License along with this library in the file named "LICENSE".
+    If not, write to the Free Software Foundation, 51 Franklin Street,
+    Suite 500, Boston, MA 02110-1335, USA or visit their web page on the
+    internet at http://www.fsf.org/licenses/lgpl.html.
+
+Alternatively, the contents of this file may be used under the terms of the
+Mozilla Public License (http://mozilla.org/MPL) or the GNU General Public
+License, as published by the Free Software Foundation, either version 2
+of the License or (at your option) any later version.
+'''
+import collections, operator, struct
+from contextlib import closing, contextmanager
+from itertools import chain, cycle, repeat, starmap
+from random import uniform, seed
+
+import multiprocessing.dummy as multiprocessing
+import shutil, tempfile
+import os, re, resource, sys, time
+from subprocess import call
+
+from optparse import OptionParser, OptionGroup
+
+
+
+tablerecord = collections.namedtuple("tablerecord", "tag start end")
+
+class font:
+    __recm = re.compile('^(?:-?\d+)?\s*,\s*(0[xX][\da-fA-F]+)\s*,\s*(0[xX][\da-fA-F]+|\d+)\s*')
+    random_bytes = map(int, starmap(uniform, repeat((0,256))))
+
+    @staticmethod
+    def __initialise_worker(fnt):
+        self = multiprocessing.current_process()
+        self.count = 0
+        self.tmpdir = fnt._tmpdir
+        self.file = tempfile.NamedTemporaryFile('r+b', suffix='.ttf', prefix="font", dir=self.tmpdir)
+        self.nolog = open('/dev/null','wt')
+        with open(fnt._font_path, "rb") as font_file:
+            shutil.copyfileobj(font_file, self.file)
+
+    def __init__(self, font_path, inclusion, exclusion):
+        fpath = os.path.splitext(os.path.basename(font_path))[0]
+        self._tmpdir = tempfile.mkdtemp(prefix='fuzztest-' + fpath + '-')
+        self._font_path = font_path
+        self.__table_dir = self.read_tabledir()
+        inclusion = set(inclusion or (tr.tag for tr in self.__table_dir)) - set(exclusion)
+        self.__table_dir = filter(lambda tr: tr.tag in inclusion, self.read_tabledir())
+        if not opts.quiet :
+            sys.stdout.write("Font: {0}\n".format(fpath))
+            sys.stdout.write("tables tested: {0!s}\n".format(','.join(tr.tag for tr in self.__table_dir)))
+        self.pool = multiprocessing.Pool(initializer=self.__initialise_worker, initargs=[self], processes=opts.jobs)
+
+    def close(self):
+        self.pool.terminate()
+        self.pool.join()
+        #shutil.rmtree(self._tmpdir, True)
+
+    def table_from_offset(self, o):
+        return next((tr for tr in self.__table_dir if tr.start <= o < tr.end), None)
+
+    def tests_per_pass(self):
+        return sum(tr.end-tr.start for tr in self.__table_dir)
+
+    def input(self,path):
+        return [(int(m.group(1),0), int(m.group(2),0)) for m in map(self.__recm.match, open(path, "rt")) if m]
+
+
+    def linear(self, value=[], start=0, passes=0):
+        tables = chain.from_iterable(repeat(self.__table_dir, passes)) if passes else cycle(self.__table_dir)
+        locs = chain.from_iterable(xrange(tr.start, tr.end) for tr in tables)
+        vals = cycle(value) if value else self.random_bytes
+        next(slice(locs, start, start),None)
+        next(slice(vals, start, start),None)
+        return zip(locs, vals)
+
+    def position(self, loc, val=[]):
+        return zip(repeat(loc), val if val else [next(random_bytes)])
+
+    def read_tabledir(self):
+        import mmap
+        _offset_table = b">i4H"
+        _table_record = b">4s3L"
+        with open(self._font_path, "rb") as font:
+            sfnt = mmap.mmap(font.fileno(), 0, access=mmap.ACCESS_READ)
+            num_tables = struct.unpack_from(_offset_table, sfnt)[1]
+            off = struct.calcsize(_offset_table)
+            tdir = [tablerecord(b'',0,off + num_tables*struct.calcsize(_table_record))]
+            for s in range(off, tdir[0].end, struct.calcsize(_table_record)):
+                tag,cs,o,l = struct.unpack_from(_table_record, sfnt, s)
+                tdir.append(tablerecord(tag, o, o+l))
+        tdir.sort(key=operator.itemgetter(1))
+        return tdir
+
+
+def rlimit() :
+    if opts.timeout :
+        resource.setrlimit(resource.RLIMIT_CPU, (opts.timeout, opts.timeout))
+    if opts.memory :
+        mem = opts.memory * 1024 * 1024
+        resource.setrlimit(resource.RLIMIT_AS, (mem, mem))
+
+@contextmanager
+def bug(f, offset, value):
+    f.seek(offset, os.SEEK_SET)
+    orig = ord(f.read(1))
+    f.seek(offset, os.SEEK_SET)
+    f.write(bytes([value]))
+    #f.write(chr(value))
+    f.flush()
+    yield (offset, orig)
+    f.seek(offset, os.SEEK_SET)
+    f.write(bytes([orig]))
+    #f.write(chr(orig))
+    f.flush()
+
+def test(cr):
+    try:
+        self = multiprocessing.current_process()
+        log_path = "{0}.err.log.{1:d}".format(self.file.name, self.count)
+        log_path = os.path.join(self.tmpdir, log_path)
+        with bug(self.file, *cr):
+            with open(log_path, "wt") as log:
+                proc = args[:]
+                proc[proc.index('{}')] = self.file.name
+                retval = call(proc,
+                              stdout=self.nolog, stderr=log, preexec_fn=rlimit, close_fds = True)
+                self.count += 1
+                self.count %= 10000
+                if not log.tell():  os.unlink(log.name)
+                return (retval, cr, log.tell() and log.name)
+    except KeyboardInterrupt:
+        return (0, cr, log_path)
+
+class estimator:
+    def __init__(self, max):
+        self.__base = time.time()
+        self.__max = float(max)
+        self.__m = 0
+        self.__t = 1
+        self.__st = self.__base
+
+    def sample(self, current):
+        ct = time.time()
+        if (ct - self.__st <= opts.status):
+            return None
+        x = current / (ct-self.__base)
+        k = (ct-self.__base)/opts.status+1
+        m = self.__m + (x - self.__m)/k
+        s = (k-1) and (self.__t + (x - self.__m)*(x - m)) / (k-1)
+        m = bayes(x, s, self.__m, self.__t)
+        self.__t = s
+        self.__m = m
+        self.__st = ct
+        return (x, time.ctime(ct + (self.__max - current)/m) if m else 'never')
+
+def bayes(x, s, m, t):
+    st = s + t
+    return m*s/st + x*t/st
+
+
+predefined_tablesets = {
+    'fontdir'   : [''],
+    'required'  : ['cmap','glyf','head','hhea','hmtx','loca','maxp','name','post'],
+    'graphite'  : ['Feat','Glat','Gloc','Sile','Silf','Sill'],
+    'volt'      : ['TSIV','TSID','TSIP','TSIS'],
+    'opentype'  : ['BASE','DSIG','GDEF','GPOS','GSUB','LTSH','OS/2','PCLT','VDMX','cvt','fpgm','prep','gasp','hdmx','kern','vhea','vmtx'],
+    'advtypo'   : ['acnt','cvar','bdat','bloc','bsln','feat','fdsc','fvar','gvar','just','kern','lcar','mort','morx','opbd','prop','trak','vhea','vmtx']
+}
+
+def tableset(tags):
+    return [(t+'   ')[:4] for t in chain.from_iterable(predefined_tablesets.get(n,[n]) for n in tags)]
+
+parser = OptionParser(usage="usage: %prog -f font [options] -- command\n" + __doc__, version = __version__)
+parser.add_option("-l", "--logfile", help="Log results to this file")
+parser.add_option("-f", "--font", help="Required font file to corrupt")
+parser.add_option("-p", "--position", help="Specifies position to corrupt (hex)")
+parser.add_option("-v", "--value", default=[], help="Specifies value(s) to use (default: varying random number)")
+parser.add_option("-i", "--input", help=".log file to read test values from")
+parser.add_option("-V", "--verbose", action="store_true", help="Be noisy")
+parser.add_option("-q", "--quiet", action="store_true", help="Be quiet, don't print to stdout")
+parser.add_option("-t", "--timeout", type="int", help="limit subprocess time in seconds")
+parser.add_option("--memory", type="int", help="limit subprocess address space in MB")
+parser.add_option("-s","--status",type='int',help='update status every STATUS seconds (default: None)')
+parser.add_option("-P","--passes",type='int', default=0, help='Run this many passes (default: forever)')
+parser.add_option("-j","--jobs",type='int', default=None, help='Number of subprocesses to run in parallel (default: cpu count)')
+parser.add_option("-r","--random",help="Seed the random number generator with the given string")
+parser.add_option("--valgrind",action="store_true",help="Run tests with valgrind and report errors")
+parser.add_option("-k","--keep",action="store_true",help="Keep going. Don't return error status")
+testset = OptionGroup(parser, 'Test sets',
+'Explicitly specify which tables to include or exclude from testing. '
+'By default all tables (including the font directory) are included.'
+' If both include and exclude sets are supplied any excluded tables'
+' are removed from the specified inclusion set.'
+' Sets may be either table tags or predefined tablesets from this list: ' + ', '.join(sorted(predefined_tablesets)))
+testset.add_option("-x", "--exclude", default=[], help="A comma separated list of tables to exclude")
+testset.add_option("-I", "--include", default=[], help="A comma spearated list of the only tables to test")
+parser.add_option_group(testset)
+
+CHUNK_SIZE=10
+
+if __name__ == '__main__':
+    (opts, args) = parser.parse_args()
+
+    if opts.random :    seed(opts.random)
+    if opts.valgrind :
+        args = ["valgrind", "-q"] + args
+        opts.verbose = True
+    opts.position = opts.position and int(opts.position,0)
+    opts.value    = opts.value and [int(n,0) for n in opts.value.split(',')]
+    opts.exclude  = opts.exclude and tableset(opts.exclude.split(','))
+    opts.include  = opts.include and tableset(opts.include.split(','))
+    if opts.quiet : opts.status = None
+
+    if '{}' not in args: args += ['{}']
+
+    try:
+        exitrv = 0
+        log = open(opts.logfile, "at") if opts.logfile else sys.stdout
+        with closing(font(opts.font, opts.include, opts.exclude)) as fnt:
+            if   opts.input:    cs = fnt.input(opts.input)
+            elif opts.position: cs = fnt.position(opts.position, opts.value)
+            else:               cs = fnt.linear(opts.value, opts.position, opts.passes)
+
+            if opts.input or opts.position:
+                opts.passes = 1
+                total_tests = len(cs)
+            else:
+                total_tests = fnt.tests_per_pass()
+
+            if opts.status:
+                sys.stdout.write("tests per pass: {0}\t\tpasses: {1}\n".format(total_tests, opts.passes if opts.passes else 'until killed'))
+                sys.stdout.write("% {0}complete\ttests per second\testimated time to {0}complete\n".format('' if opts.passes else 'pass '))
+                total_tests *= opts.passes or 1
+
+            estimate = estimator(total_tests)
+            for count,(rv,cr,errlog) in enumerate(fnt.pool.imap_unordered(test, cs, CHUNK_SIZE)):
+                try:
+                    if opts.status and count % CHUNK_SIZE == 0:
+                        sam = estimate.sample(count)
+                        if sam:
+                            pc =  100*count // total_tests
+                            sys.stdout.write("{0: 3d}%\t\t{1: 8.2f}\t\t{2}\r".format(pc, sam[0], sam[1]))
+                            sys.stdout.flush()
+                    if rv < 0 or errlog :
+                        exitrv = 2
+                    if rv < 0 :
+                        (t,s,_) = fnt.table_from_offset(cr[0]) or (0,0,fontlen)
+                        log.write("{0:d},{1[0]:#010X},{1[1]: >3d},{2!s}{3:#010X}\n".format(rv, cr, t + '+' if t else '', cr[0]-s))
+                    elif opts.verbose and errlog:
+                        (t,s,_) = fnt.table_from_offset(cr[0]) or (0,0,fontlen)
+                        log.write(",{0[0]:#010X},{0[1]: >3d},{1!s}{2:#010X}\n".format(cr, t + '+' if t else '', cr[0]-s))
+                        log.flush()
+                        if errlog :
+                            with open(errlog,'r') as logpart:  shutil.copyfileobj(logpart, log)
+                            os.unlink(errlog)
+                except KeyboardInterrupt: fnt.pool.close()
+                log.flush()
+    except IOError as io:
+        sys.stderr.write("{0}: {1!s}\n".format(os.path.basename(sys.argv[0]), io))
+        sys.exit(1)
+    except KeyboardInterrupt:
+        sys.stdout.write('\n')
+        sys.exit(exitrv)
+    if opts.status :
+        sys.stdout.write("Finished at {0}\n".format(time.ctime()))
+    if not opts.keep :
+        sys.exit(exitrv)

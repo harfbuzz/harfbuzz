@@ -1,0 +1,1359 @@
+/*******************************************************************
+
+	File: annapurna_main.gdh
+	
+	Rules for Devanagari script, included in annapurna.gdl
+	
+	Author: Sharon Correll
+
+*******************************************************************/
+
+#include "stddef.gdh"
+
+Bidi = false;
+
+// Glyph forms
+#define form user1
+#define F_NOMINAL	0
+#define F_LIVE		1	// live consonant, including RA
+#define F_HALCONS	2	// explicit halant form, followed by another consonant
+#define F_HALANT	3	// explicit halant form, at the end of a word
+#define F_CONJ1		4	// dead (viramacized consonant) - first half of conjunct (never on RA)
+						// TODO: figure out if we need to distinguish between F_CONJ1 and F_HALF
+#define F_HALF		5	// dead - half-form, if any (including RA)
+#define	F_NOHALANT	6	// functions like half-form in that any explicit halant is removed; following consonant "connects" backwards
+////#define F_VSIGN		7	// vowel sign, vowels only
+
+// Ra forms
+#define raform user2
+#define R_NOMINAl	0
+#define R_REPH		1
+#define R_RAKAR		2
+#define R_EYELASH	3
+
+#define attached user3
+
+#define mergedHalant user4 // double up usage, since they are different contexts
+#define useNarrow user4
+
+// Substitution passes
+#define PASS_RRA		1
+#define PASS_MARKSYL	2
+#define PASS_RA			3
+#define PASS_VORDER		4
+#define PASS_NUKTA		5
+#define PASS_AHKAND		5
+#define PASS_REPHRAKAR	5
+#define PASS_HALFFORMS	6
+#define PASS_RAKARFULL	6
+#define PASS_FULLCONJ	7
+#define PASS_MATRAWIDTH	7
+#define	PASS_LIGBELOW	8
+#define PASS_HALANT		8
+#define PASS_FIXUPPERS	8
+#define PASS_FRACTIONS	8
+#define PASS_ALTERNATES	8 // 9??
+#define PASS_LATINDIAC	8
+#define PASS_SUB4POS	8 // substitutions that help positioning
+//Positioning passes
+#define PASS_ATTACH		1
+#define PASS_ADJUST		2
+
+
+/*******************************************************************
+
+	MORE GLYPH DEFINITIONS
+
+*******************************************************************/
+
+table(glyph) {AttributeOverride = false}
+
+	//	Underlying consonant forms
+
+	cls_consNom = (
+		g0915	g0916	g0917	g0918	g0919	g091a	g091b	g091c	g091d	g091d
+		g091e	g091f	g0920	g0921	g0922	g0923	g0924	g0925	g0926	g0927
+		g0928	g0929	g092a	g092b	g092c	g092d	g092e	g092f	g0930	g0931
+		g0932	g0933	g0934	g0935	g0936	g0937	g0938	g0939	g0958	g0959
+		g095a	g095b	g095c	g095d	g095e	g095f
+	);
+		
+	g_ra = g0930;
+	
+	g_rra = g0931;
+	g_rraEyelash = g0930_094d_half;
+	
+	g_zwj = unicode(0x200D);
+	g_zwnj = unicode(0x200C);
+
+	//	Consonant groups - for handling matra widths
+	
+	cls_fullKa		= (g0915	g0958			g0915_094d_0930		g0958_094d_0930		g0915_094d_0930_alt); 	//	g0915_093c_094d_0930_alt
+	cls_fullKha		= (g0916	g0959			g0916_094d_0930		g0959_094d_0930);
+	cls_fullGa		= (g0917	g095a			g0917_094d_0930		g095a_094d_0930);
+	cls_fullGha		= (g0918	g0918_093c		g0918_094d_0930		g0918_093c_094d_0930);
+	cls_fullNga		= (g0919	g0919_093c		g0919_094d_0930		g0919_093c_094d_0930);
+	cls_fullCa		= (g091a	g091a_093c		g091a_094d_0930		g091a_093c_094d_0930);
+	cls_fullCha		= (g091b	g091b_093c		g091b_094d_0930		g091b_093c_094d_0930);
+	cls_fullJa		= (g091c	g095b			g091d_094d_0930		g095b_094d_0930);
+	cls_fullJha		= (g091d	g091d_093c		g091d_094d_0930		g091d_093c_094d_0930);
+	cls_fullJha_alt
+				= (g091d_alt	g091d_093c_alt	g091d_094d_0930_alt	g091d_093c_094d_0930_alt);
+	cls_fullJha_alt2
+				= (g091d_alt2 g091d_093c_alt2	g091d_094d_0930_alt2	g091d_093c_094d_0930_alt2);
+	cls_fullNya		= (g091e	g091e_093c		g091e_094d_0930	g091e_093c_094d_0930);
+	cls_fullTta		= (g091f	g091f_093c		g091f_094d_0930	g091f_093c_094d_0930);
+	cls_fullTtha	= (g0920	g0920_093c		g0920_094d_0930	g0920_093c_094d_0930);
+	cls_fullDda		= (g0921	g095c			g0921_094d_0930	g095c_094d_0930);
+	cls_fullDdha	= (g0922	g095d			g0922_094d_0930	g095d_094d_0930);
+	cls_fullNna		= (g0923	g0923_093c		g0923_094d_0930	g0923_093c_094d_0930	g0923_archaic);
+	cls_fullTa		= (g0924	g0924_093c		g0924_094d_0930	g0924_093c_094d_0930	g0924_094d_0930_alt	g0924_093c_094d_0930_alt);
+	cls_fullTha		= (g0925	g0925_093c		g0925_094d_0930	g0925_093c_094d_0930);
+	cls_fullDa		= (g0926	g0926_093c		g0926_094d_0930	g0926_093c_094d_0930);
+	cls_fullDha		= (g0927	g0927_093c		g0927_094d_0930	g0927_093c_094d_0930);
+	cls_fullNa		= (g0928	g0929			g0928_094d_0930	g0929_094d_0930);
+	cls_fullPa		= (g092a	g092a_093c		g092a_094d_0930	g092a_093c_094d_0930);
+	cls_fullPha		= (g092b	g095e			g092b_094d_0930	g095e_094d_0930);
+	cls_fullBa		= (g092c	g092c_093c		g092c_094d_0930	g092c_093c_094d_0930);
+	cls_fullBha		= (g092d	g092d_093c		g092d_094d_0930	g092d_093c_094d_0930);
+	cls_fullMa		= (g092e	g092e_093c		g092e_094d_0930	g092e_093c_094d_0930);
+	cls_fullYa		= (g092f	g095f			g092f_094d_0930	g095f_094d_0930);
+	cls_fullYa_alt	= (g092f_alt  g095f_alt	g092f_094d_0930_alt	g095f_094d_0930_alt);
+	cls_fullRa		= (g0930	g0931);
+	cls_fullLa		= (g0932	g0932_093c		g0932_094d_0930	g0932_093c_094d_0930);
+	cls_fullLla		= (g0933	g0934			g0933_094d_0930	g0934_094d_0930);
+	cls_fullWa		= (g0935	g0935_093c		g0935_094d_0930	g0935_093c_094d_0930);
+	cls_fullSha		= (g0936	g0936_093c		g0936_094d_0930	g0936_093c_094d_0930	g0936_094d_0930_alt	g0936_093c_094d_0930_alt);
+	cls_fullSsa		= (g0937	g0937_093c		g0937_094d_0930	g0937_093c_094d_0930);
+	cls_fullSa		= (g0938	g0938_093c		g0938_094d_0930	g0938_093c_094d_0930);
+	cls_fullHa		= (g0939	g0939_093c		g0939_094d_0930	g0939_093c_094d_0930);
+	cls_fullGga		= (g097b	g097b_093c		g097b_094d_0930	g097b_093c_094d_0930);
+	cls_fullJja		= (g097c	g097c_093c		g097c_094d_0930	g097c_093c_094d_0930);
+	cls_fullDdda	= (g097e	g097e_093c		g097e_094d_0930	g097e_093c_094d_0930);
+	cls_fullBba		= (g097f	g097f_093c		g097f_094d_0930	g097f_093c_094d_0930);
+
+	//	Vowels
+	
+	cls_vowelLeft = (g093f);
+	cls_vowelRight = (g093e, g0940, g0949, g094a, g094b, g094c);	// these can have RAs attached
+	
+
+	//	Nukta
+
+	g_nukta = g093c;
+	cls_woNukta = (
+		g0915		g0916		g0917		g0918		g0919		g091a		g091b		g091c		g091d
+		g091e		g091f		g0920		g0921		g0922		g0923		g0924		g0925		g0926
+		g0927		g0928		g092a		g092b		g092c		g092d		g092e		g092f		g0930
+		g0932		g0933		g0935		g0936		g0937		g0938		g0939		g0904		g0905
+		g0906		g0907		g0908		g0909		g090a		g090b		g090c		g0960		g0961
+		g090d		g090e		g090f		g0910		g0911		g0912		g0913		g0914		g0972
+		g093e		g093f		g0940		g0941		g0942		g0943		g0944		g0962		g0963
+		g0945		g0946		g0947		g0948		g0949		g094a		g094b		g094c		g097b
+		g097c		g097e		g097f);
+				
+	cls_wNukta  = (
+		g0958		g0959		g095a		g0918_093c g0919_093c g091a_093c g091b_093c g095b		g091d_093c
+		g091e_093c	g091f_093c	g0920_093c	g095c		g095d		g0923_093c g0924_093c g0925_093c g0926_093c
+		g0927_093c	g0929		g092a_093c	g095e		g092c_093c	g092d_093c	g092e_093c	g095f		g0931
+		g0932_093c	g0934		g0935_093c	g0936_093c	g0937_093c	g0938_093c	g0939_093c	g0904_093c	g0905_093c
+		g0906_093c	g0907_093c	g0908_093c	g0909_093c	g090a_093c	g090b_093c	g090c_093c	g0960_093c	g0961_093c
+		g090d_093c	g090e_093c	g090f_093c	g0910_093c	g0911_093c	g0912_093c	g0913_093c	g0914_093c	g0972_093c
+		g093e_093c	g093f_093c	g0940_093c	g0941_093c	g0942_093c	g0943_093c	g0944_093c	g0962_093c	g0963_093c
+		g0945_093c	g0946_093c	g0947_093c	g0948_093c	g0949_093c	g094a_093c	g094b_093c	g094c_093c	g097b_093c
+		g097c_093c	g097e_093c	g097f_093c);
+
+
+	//	Akhand
+	
+	g_akhand = g094d;
+
+
+	//	Half forms
+	
+	cls_nHalf = (
+		g0915				g0958			g0916				g0959			g0917				g095a			g0918
+		g0918_093c			g0919			g0919_093c			g091a			g091a_093c			g091b			g091b_093c
+		g091c				g095b			g091d				g091d_093c		g091d_alt			g091d_093c_alt	g091d_alt2
+		g091d_093c_alt2	g091e				g091e				g091e_093c		g091f				g091f_093c
+		g0920				g0920_093c		g0921				g095c			g0922				g095d			g0923
+		g0923_093c			g0924			g0924_093c			g0924_094d_0930	 	g0924_093c_094d_0930			g0925
+		g0925_093c			g0926			g0926_093c			g0927			g0927_093c			g0928			g0929
+		g092a				g092a_093c		g092b				g095e			g092c				g092c_093c
+		g092d				g092d_093c		g092e				g092e_093c		g092f				g095f			
+		g092f_alt			g095f_alt		g0930				g0931
+		g0932				g0932_093c		g0933				g0934			g0935				g0935_093c		g0936
+		g0937				g0937_093c		g0938				g0938_093c		g0939				g0939_093c		g097b
+		g097b_093c			g097c			g097c_093c			g097e			g097e_093c			g097f
+		g097f_093c			g0923_archaic	g0915_094d_0937		g0915_094d_0937_archaic				g091c_094d_091e	g0924_094d_0924);
+
+	cls_half = (
+		g0915_094d_half			g0958_094d_half			g0916_094d_half			g0959_094d_half			g0917_094d_half			g095a_094d_half				g0918_094d_half
+		g0918_093c_094d_half	g0919_094d_half			g0919_093c_094d_half	g091a_094d_half			g091a_093c_094d_half	g091b_094d_half				g091b_093c_094d_half
+		g091c_094d_half			g095b_094d_half			g091d_094d_half			g091d_093c_094d_half	g091d_094d_half_alt		g091d_093c_094d_half_alt	g091d_094d_half_alt2
+		g091d_093c_094d_half_alt2						g091e_094d_half			g091e_094d_half			g091e_093c_094d_half	g091f_094d_half				g091f_093c_094d_half
+		g0920_094d_half			g0920_093c_094d_half	g0921_094d_half			g095c_094d_half			g0922_094d_half			g095d_094d_half				g0923_094d_half
+		g0923_093c_094d_half	g0924_094d_half			g0924_093c_094d_half	g0924_094d_0930_094d_half		g0924_093c_094d_0930_094d_half				g0925_094d_half
+		g0925_093c_094d_half	g0926_094d_half			g0926_093c_094d_half	g0927_094d_half			g0927_093c_094d_half	g0928_094d_half				g0929_094d_half
+		g092a_094d_half			g092a_093c_094d_half	g092b_094d_half			g095e_094d_half			g092c_094d_half			g092c_093c_094d_half
+		g092d_094d_half			g092d_093c_094d_half	g092e_094d_half			g092e_093c_094d_half	g092f_094d_half			g095f_094d_half
+		g092f_094d_half_alt		g095f_094d_half_alt		g0930_094d_half			g0931_094d_half
+		g0932_094d_half			g0932_093c_094d_half	g0933_094d_half			g0934_094d_half			g0935_094d_half			g0935_093c_094d_half		g0936_094d_half
+		g0937_094d_half			g0937_093c_094d_half	g0938_094d_half			g0938_093c_094d_half	g0939_094d_half			g0939_093c_094d_half		g097b_094d_half
+		g097b_093c_094d_half	g097c_094d_half			g097c_093c_094d_half	g097e_094d_half			g097e_093c_094d_half	g097f_094d_half
+		g097f_093c_094d_half	g0923_094d_half_archaic	g0915_094d_0937_094d_half	g0915_094d_0937_094d_half_archaic			g091c_094d_091e_094d_half	g0924_094d_0924_094d_half);
+
+
+	//	Full conjuncts
+	
+	cls_0915_2ndhalf	= (g0915				g0924);
+	cls_0915_conj 		= (g0915_094d_0915		g0915_094d_0924);
+//	cls_0915_conj_cpress= (g0915_094d_0915_alt	g0915_094d_0924);
+	
+	cls_0919_2ndhalf	= (g0915				g0916				g0917				g0918				g0919				g0939);
+	cls_0919_conj		= (g0919_094d_0915		g0919_094d_0916		g0919_094d_0917		g0919_094d_0918		g0919_094d_0919		g0919_094d_0939);
+//	cls_0919_conj_cpress= (g0919_094d_0915_alt	g0919_094d_0916_alt	g0919_094d_0917_alt	g0919_094d_0918_alt	g0919_094d_0919_alt	g0919_094d_0939_alt);
+
+	cls_091a_2ndhalf	= (g091a);
+	cls_091a_conj		= (g091a_094d_091a);
+//	cls_091a_conj_cpress= (g091a_094d_091a_alt);
+	
+	cls_091f_2ndhalf	= (g091f				g0920);
+	cls_091f_conj		= (g091f_094d_091f		g091f_094d_0920);
+//	cls_091f_conj_cpress= (g091f_094d_091f_alt	g091f_094d_0920_alt);
+	
+	cls_0920_2ndhalf	= (g0920);
+	cls_0920_conj		= (g0920_094d_0920);
+//	cls_0920_conj_cpress= (g0920_094d_0920_alt);
+	
+	cls_0921_2ndhalf	= (g0921);
+	cls_0921_conj		= (g0921_094d_0921);
+//	cls_0921_conj_cpress= (g0921_094d_0921_alt);
+	
+	cls_0926_2ndhalf	= (g0926			g0927				g092e				g092f				g0935);
+	cls_0926_conj		= (g0926_094d_0926	g0926_094d_0927	g0926_094d_092e	g0926_094d_092f	g0926_094d_0935);
+	
+	cls_0936_2ndhalf	= (g091a			g0935);
+	cls_0936_conj		= (g0936_094d_091a	g0936_094d_0935);
+	
+	cls_0937_2ndhalf	= (g091f			g0920);
+	cls_0937_conj		= (g0937_094d_091f	g0937_094d_0920);
+	
+	cls_0939_2ndhalf	= (g0928			g092e				g092f				g0932				g0935);
+	cls_0939_conj		= (g0939_094d_0928	g0939_094d_092e	g0939_094d_092f	g0939_094d_0932	g0939_094d_0935);
+
+	cls_1sthalf_0924	= (g0924_094d_half		g092a_094d_half);
+	cls_1sthalf_0924_nom= (g0924				g092a);
+	cls_conj_0924		= (g0924_094d_0924		g092a_094d_0924);
+	
+	cls_1sthalf_0928	= (g0928_094d_half		g0938_094d_half	g0939_094d_half);
+	cls_1sthalf_0928_nom= (g0928				g0938				g0939);
+	cls_conj_0928		= (g0928_094d_0928		g0938_094d_0928	g0939_094d_0928);
+	
+	cls_1sthalf_0932	= (g092e_094d_half		g0932_094d_half);
+	cls_1sthalf_0932_nom= (g092e				g0932);
+	cls_conj_0932		= (g092e_094d_0932		g0932_094d_0932);
+//	cls_conj_0932_cpress= (g092e_094d_0932_alt	g0932_094d_0932_alt);
+	
+	// Compressed stacked conjuncts
+	
+	cStackComprs = (
+	    g0915_094d_0915_alt, g0919_094d_0915_alt, g0919_094d_0916_alt, g0919_094d_0917_alt, g0919_094d_0918_alt, 
+	    g0919_094d_0919_alt, g0919_094d_0939_alt, g091a_094d_091a_alt, g091f_094d_091f_alt, g091f_094d_0920_alt,
+	    g0920_094d_0920_alt, g0921_094d_0921_alt, g092e_094d_0932_alt, g0932_094d_0932_alt);
+
+	cno_stackComprs = (
+	    g0915_094d_0915, g0919_094d_0915, g0919_094d_0916, g0919_094d_0917, g0919_094d_0918, 
+	    g0919_094d_0919, g0919_094d_0939, g091a_094d_091a, g091f_094d_091f, g091f_094d_0920, 
+	    g0920_094d_0920, g0921_094d_0921, g092e_094d_0932, g0932_094d_0932);
+	    
+	// Lower matras cause the compression:
+	cls_matraLower = (g0941  g0942  g0943  g0944  g0961  g0962
+					g0941_093c  g0942_093c  g0943_093c  g0944_093c  g0961_093c  g0962_093c);
+
+	
+	//	Conjunct components
+	
+	cls_conjSideBySide = (g0915_094d_0924, g0926_094d_092e, g0926_094d_092f, g0939_094d_092e, g0939_094d_092f)
+			{ component { c1 = box(0,bb.bottom,  aw/2,bb.top);
+			              c2 = box(aw/2,bb.bottom,  aw,bb.top) } };
+			             
+	cStackComprs
+			{ component { c1 = box(0, bb.bottom + bb.height/2,  aw, bb.top + 50m);
+			              c2 = box(0, bb.bottom,  aw, bb.bottom + bb.height/2) } };
+			              
+	//	All other conjuncts are split horizontally through the middle.
+	//	(Because AttributeOverride is false, the side-by-side ones will retain their values.)
+	cls_conjAll = (cls_0915_conj, cls_0919_conj, cls_091a_conj, cls_091f_conj, cls_0920_conj,
+		cls_0921_conj, cls_0926_conj, cls_0936_conj, cls_0937_conj, cls_0939_conj, cls_conj_0924,
+		cls_conj_0928, cls_conj_0932)
+			{ component { c1 = box(0, bb.bottom + bb.height/2,  aw, bb.top + 50m);
+			              c2 = box(0, bb.bottom,  aw, bb.bottom + bb.height/2) } };
+	
+
+	// Rakar full forms
+	
+	cls_woRakar = (
+		g0915		g0916		g0917		g0918		g0919		g091a		g091b		g091c		g091d
+		g091e		g091f		g0920		g0921		g0922		g0923		g0924		g0925		g0926
+		g0927		g0928		g092a		g092b		g092c		g092d		g092e		g092f		g0932
+		g0933		g0935		g0936		g0937		g0938		g0939		g097b		g097c		g097e
+		g097f		g0958		g0959		g095a		g0918_093c	g0919_093c	g091a_093c	g091b_093c	g095b
+		g091d_093c	g091e_093c	g091f_093c	g0920_093c	g095c		g095d		g0923_093c	g0924_093c	g0925_093c
+		g0926_093c	g0927_093c	g0929		g092a_093c	g095e		g092c_093c	g092d_093c	g092e_093c	g095f
+		g092f		g092f_alt
+		g0932_093c	g0934		g0935_093c	g0936_093c	g0937_093c	g0938_093c	g0939_093c	g097b_093c	g097c_093c
+		g097e_093c	g097f_093c	g0915_094d_0937		g091c_094d_091e);
+
+	cls_wRakar = (
+		g0915_094d_0930		g0916_094d_0930		g0917_094d_0930		g0918_094d_0930		g0919_094d_0930		g091a_094d_0930		g091b_094d_0930		g091c_094d_0930		g091d_094d_0930
+		g091e_094d_0930		g091f_094d_0930		g0920_094d_0930		g0921_094d_0930		g0922_094d_0930		g0923_094d_0930		g0924_094d_0930		g0925_094d_0930		g0926_094d_0930
+		g0927_094d_0930		g0928_094d_0930		g092a_094d_0930		g092b_094d_0930		g092c_094d_0930		g092d_094d_0930		g092e_094d_0930		g092f_094d_0930		g0932_094d_0930
+		g0933_094d_0930		g0935_094d_0930		g0936_094d_0930		g0937_094d_0930		g0938_094d_0930		g0939_094d_0930		g097b_094d_0930		g097c_094d_0930		g097e_094d_0930
+		g097f_094d_0930		g0958_094d_0930		g0959_094d_0930		g095a_094d_0930		g0918_093c_094d_0930	g0919_093c_094d_0930	g091a_093c_094d_0930	g091b_093c_094d_0930	g095b_094d_0930
+		g091d_093c_094d_0930	g091e_093c_094d_0930	g091f_093c_094d_0930	g0920_093c_094d_0930	g095c_094d_0930		g095d_094d_0930		g0923_093c_094d_0930	g0924_093c_094d_0930	g0925_093c_094d_0930
+		g0926_093c_094d_0930	g0927_093c_094d_0930	g0929_094d_0930		g092a_093c_094d_0930	g095e_094d_0930		g092c_093c_094d_0930	g092d_093c_094d_0930	g092e_093c_094d_0930	g095f_094d_0930
+		g092f_094d_0930		g092f_094d_0930_alt
+		g0932_093c_094d_0930	g0934_094d_0930		g0935_093c_094d_0930	g0936_093c_094d_0930	g0937_093c_094d_0930	g0938_093c_094d_0930	g0939_093c_094d_0930	g097b_093c_094d_0930	g097c_093c_094d_0930
+		g097e_093c_094d_0930	g097f_093c_094d_0930	g0915_094d_0937_094d_0930		g091c_094d_091e_094d_0930 );
+	
+	//	The "rakar" shows up in different forms in these glyphs. The following classes holds glyphs
+	//	that show the rakar looking like a real rakar at the bottom of the glyph. Since they are
+	//	so distinct, we make a real ligature out of them so the rakar can be manipulated.
+	
+	//	These first few have the rakars slightly higher.
+	cls_wRakarCaretHigh = (g0933_094d_0930  g0934_094d_0930)
+		{ comp    { cons  = box(0,-descent+600m,  aw,ascent);
+					rakar = box(0,-descent,  aw,-descent+600m) }};
+	
+	cls_wRakarCaret = (
+		g0919_094d_0930		g091b_094d_0930		g091c_094d_0930	g091d_094d_0930_alt2	g091f_094d_0930
+		g0920_094d_0930		g0921_094d_0930		g0922_094d_0930	g0933_094d_0930
+		g0934_094d_0930		g095c_094d_0930		g095d_094d_0930	g097c_094d_0930
+		// w/ nuktas
+		g0919_093c_094d_0930	g091b_093c_094d_0930	g091d_093c_094d_0930_alt2	g091f_093c_094d_0930
+		g0920_093c_094d_0930	g097c_093c_094d_0930
+	)
+		{ comp    { cons  = box(0,-descent+400m,  aw,ascent);
+					rakar = box(0,-descent,  aw,-descent+400m) }};
+					
+	cls_woRakarCaret = (
+		g0919		g091b		g091c		g091d_alt2		g091f
+		g0920		g0921		g0922		g0933
+		g0934		g095c		g095d		g097c
+		// w/ nuktas
+		g0919_093c		g091b_093c		g091d_093c_alt2	g091f_093c
+		g0920_093c		g097c_093c
+	)
+
+	//	These form a true ligature, where the rakar looks like a little slash buried in the glyph.
+	//	For now we're not defining components for these.
+/****
+	cls_wRakarSlash = (
+		g0915_094d_0930	g0916_094d_0930	g0917_094d_0930	g0918_094d_0930		g091a_094d_0930	g091d_094d_0930	g091d_094d_0930_alt
+		g091e_094d_0930	g0923_094d_0930	g0924_094d_0930	g0924_094d_0930_alt	g0922_094d_0930	g0926_094d_0930
+		g0927_094d_0930	g0928_094d_0930	g0929_094d_0930	g092a_094d_0930		g092b_094d_0930	g092c_094d_0930	g092d_094d_0930
+		g092e_094d_0930	g092f_094d_0930	g092f_094d_0930_alt	g0932_094d_0930	g0935_094d_0930	g0936_094d_0930	g0936_094d_0930_alt
+		g0937_094d_0930	g0938_094d_0930	g0939_094d_0930	g0958_094d_0930		g0959_094d_0930	g095a_094d_0930	g095b_094d_0930
+		g095e_094d_0930	g095f_094d_0930	g095f_094d_0930_alt	g097b_094d_0930	g097c_094d_0930	g097f_094d_0930
+		// w/ nuktas
+//		g0915_093c_094d_0930_alt	
+		g0918_093c_094d_0930	g091a_093c_094d_0930	g091d_093c_094d_0930		g091d_093c_094d_0930_alt
+		g091e_093c_094d_0930		g0923_093c_094d_0930	g0924_093c_094d_0930	g0924_093c_094d_0930_alt	g0925_093c_094d_0930	g0926_093c_094d_0930
+		g0927_093c_094d_0930		g092a_093c_094d_0930	g092c_093c_094d_0930	g092d_093c_094d_0930
+		g092e_093c_094d_0930		g0932_093c_094d_0930	g0935_093c_094d_0930	g0936_093c_094d_0930		g0936_093c_094d_0930_alt
+		g0937_093c_094d_0930		g0938_093c_094d_0930	g0939_093c_094d_0930	g097b_093c_094d_0930		g097c_093c_094d_0930	g097f_093c_094d_0930
+		// conjuncts
+		g0915_094d_0937_094d_0930	g091c_094d_091e_094d_0930
+	);
+****/
+
+	//	Matras
+	
+	cls_matraI = (g093f, g093f_093c);
+	cls_matraI_width20 = (g093f_width20, g093f_093c_width20);
+	cls_matraI_width30 = (g093f_width30, g093f_093c_width30);
+	cls_matraI_width40 = (g093f_width40, g093f_093c_width40);
+	
+	cls_matraII = (g0940, g0940_093c);
+	cls_matraII_width20 = (g0940_width20, g0940_093c_width20);
+	cls_matraII_width30 = (g0940_width30, g0940_093c_width30);
+		
+	// classes to choose correct width of matra
+	
+	consWidth20_matraI = (cls_fullKa, cls_fullGa, cls_fullGha, cls_fullNga, cls_fullTta, cls_fullTtha, 
+		cls_fullDda, cls_fullDdha, cls_fullTa, cls_fullDa, cls_fullNa, cls_fullPa, cls_fullPha, cls_fullBa, 
+		cls_fullBha, cls_fullMa, cls_fullYa, cls_fullWa, cls_fullSsa, cls_fullHa, cls_fullGga, cls_fullDdda, 
+		cls_fullBba, g0915_094d_0915, g0915_094d_0924, g0919_094d_0915, g0919_094d_0916, g091c_094d_091e, 
+		g091c_094d_091e_094d_0930, g0924_094d_0924, g0926_094d_0926, g0926_094d_0935, g0928_094d_0928, 
+		g092a_094d_0924, g092e_094d_0932, g0932_094d_0932, g0937_094d_091f, g0937_094d_0920, g0939_094d_0928, 
+		g0939_094d_0932, g0939_094d_0935);
+	
+	consWidth30_matraI = (cls_fullKha, cls_fullCa, cls_fullCha, cls_fullJa, cls_fullJha, cls_fullJha_alt, 
+		cls_fullNya, cls_fullNna, cls_fullTha, cls_fullDha, cls_fullYa_alt, cls_fullLa, cls_fullLla, 
+		cls_fullSha, cls_fullSa, cls_fullJja, g0923_archaic, g0915_094d_0937, g0915_094d_0937_094d_0930, 
+		g0915_094d_0937_archaic, g091a_094d_091a, g0926_094d_0927, g0926_094d_092e, g0926_094d_092f, 
+		g0936_094d_091a, g0936_094d_0935, g0938_094d_0928);
+
+	consWidth40_matraI = (g0939_094d_092e, g0939_094d_092f, cls_half);
+	
+	// Would these consonants look better with the larger matra-I? I guess Peter thinks not...
+//	consWidth20_matraI += (cls_fullKa, cls_fullTta, cls_fullTtha, cls_fullTa, cls_fullDa,
+//		cls_fullDa_0928, cls_fullDa_092A, cls_fullDa_092b, cls_fullSsa, cls_fullSa, cls_fullHa);
+
+	consWidth20_matraII = (cls_fullNga, cls_fullCha, cls_fullJha_alt2, cls_fullTtha, cls_fullLla, 
+		g097d, g097d_alt, g0919_094d_0915);
+
+	consWidth30_matraII = (cls_fullKa, cls_fullJha, cls_fullPha, g0915_094d_0915, g0915_094d_0924);
+
+
+	//	Ligatures below
+	
+	cls_noLigBelow_0939 = (g0943);
+	cls_ligBelow_0939   = (g0939_0943);
+	
+	cls_noLigBelow_0930 = (g0941		g0942);
+	cls_ligBelow_0930   = (g0930_0941	g0930_0942);
+	
+	cls_noLigRephZwjU	= (g0941			g0942);
+	cls_ligRephZwjU		= (g0930_200d_0941	g0930_200d_0942)
+			{ component { c1 = box(0, bb.top + 50m,      aw, bb.bottom + 550m);
+						  c2 = box(0, bb.bottom + 550m,  aw, bb.bottom) } };
+
+
+	//	Halant (virama)
+	
+	g_halant = g094d;
+	
+	//	explicit halant forms: only needed if we have a feature to prefer the halant over the half-form
+	//	for this character
+//	cls_woHalant = (g0939		 		g0939_093c);
+//	cls_wHalant  = (g0939_094d_halant	g0939_093c_094d_halant);
+	
+	//	These forms "look like" they have an explicit halant in them, so they do not have the
+	//	matra-I reorder around them; the I goes after these forms. We are probably being a little
+	//	"smarter" than absolutely necessary.
+	//	Note that the place where we do the reordering is before we've actually substituted the
+	//	halant form, so we test for the nominal form.
+	cls_hasExplicitHalant = (g0919, g095c, g091b, g091f, g0920, g0921, g0922, g0926);
+				// add g0939 if we add a feature to use halant form
+	
+	cls_halantExplicit = (g0939_094d_halant, g0939_093c_094d_halant,
+		g0919_094d_half, g0919_093c_094d_half, g095c_094d_half,
+		g091f_094d_half, g091f_093c_094d_half, 
+		g0920_094d_half, g0920_093c_094d_half, 
+		g0921_094d_half, g0922_094d_half, g095d_094d_half,
+		g0926_094d_half, g0926_093c_094d_half);
+		
+	//	Alternate YA form
+	
+	cls_ya		= (g092f		g092f_094d_half		g092f_094d_0930);
+	cls_ya_alt	= (g092f_alt	g092f_094d_half_alt	g092f_094d_0930_alt);
+	
+	//	This glyph causes any explicit halant in the previous consonant to be removed.
+	//	It in essence forms a connection backwards to the previous consonant.
+	cls_openBack = (g092f);
+	
+
+	//	Forms that collide with reph and anusvara:
+	//	break into two pieces so that we can shift the upper Candra form.
+	
+	//	0949 (Candra-O)  =>  0945 (Candra-E) + 093E (AA)
+	g0949_top = pseudo(unicode(0x0945))			// Candra-E
+		{UpperM.x = g0945.UpperM.x; UpperM.y = g0945.UpperM.y};
+	g0949_bottom = pseudo(unicode(0x093E))		// vowel-sign AA  - also defines HalantS
+		{UpperS.x = g093e.UpperS.x; UpperS.y = g093e.UpperS.y};
+		 
+	//	0949 (Candra-O) & nukta  =>  0945 (Candra-E)   +   AA-nukta
+	g0949_093c_top = pseudo(unicode(0x0945)) 	// Candra-E - TODO: merge with g0949_top
+		{UpperM.x = g0945.UpperM.x; UpperM.y = g0945.UpperM.y};
+	g0949_093c_bottom = pseudo(glyphid(286))	// AA & nukta, g093e_093c - FIX THIS # FOR A NEW SET OF GLYPHS  
+		{UpperS.x = g093e_093c.UpperS.x; UpperS.y = g093e_093c.UpperS.y};	// also defines HalantS
+	
+	//	Candra-E  &  nukta  =>  back to its two original pieces
+	g0945_093c_top = pseudo(unicode(0x0945)) 	// Candra-E
+		{UpperM.x = g0945.UpperM.x; UpperM.y = g0945.UpperM.y};
+	g0945_093c_bottom = pseudo(unicode(0x093C))	// nukta
+		{NuktaM.x = g093c.NuktaM.x; NuktaM.y = g093c.NuktaM.y};	// also defines NuktaAltM
+			
+	cls_0949_top    = (g0949_top,    g0949_093c_top);
+	cls_0949_bottom = (g0949_bottom, g0949_093c_bottom);
+
+	cUpperDia += (g0949_top, g0949_093c_top, g0945_093c_top);
+	cTakesUpperDia += (g0949_bottom, g0949_093c_bottom);
+	cNuktaDia += (g0945_093c_bottom);
+
+	cls_0940 = (g0940, g0940_093c, g0940_width20, g0940_093c_width20, g0940_width30, g0940_093c_width30);
+	cls_0949 = (g0949, g0949_093c);
+	cls_094a = (g094a, g094a_093c);
+	cls_094b = (g094b, g094b_093c);
+	cls_094c = (g094c, g094c_093c);
+	
+	cls_0945 = (g0945, g0945_093c, g0945_093c_top, g0949_top, g0949_093c_top);
+	cls_0946 = (g0946, g0946_093c);
+	cls_0947 = (g0947, g0947_093c, g0947_093c_alt);
+	cls_0948 = (g0948, g0948_093c);
+	
+	
+	//	Attachments never happen across these glyphs:
+	cls_noAttach = (g_space, g_zwnj);	// TODO: add punctuation?
+	
+	
+	// Small candrabindu:
+	g0901_alt {CaM.x = bb.left + (bb.width/2); CaM.y = bb.bottom};
+	g0902 {CaM.x = bb.left + (bb.width/2); CaM.y = bb.bottom};
+	
+	// Allow candrabindu/anusvara to attach to candra-E and other dep vowels:
+	g0945 {CaS.x = UpperM.x - 50m; CaS.y = bb.top};
+	g0946 {CaS = point(0m, bb.bottom + 110m)};
+	g0947 {CaS = point(-150m, bb.bottom + 110m)};
+	g0948 {CaS = point(-130m, bb.bottom + 110m)};
+	
+	g0945_093c		{CaS.x = g0945.CaS.x; CaS.y = g0945.CaS.y};
+	g0946_093c		{CaS.x = g0946.CaS.x; CaS.y = g0946.CaS.y};
+	g0947_093c		{CaS.x = g0947.CaS.x; CaS.y = g0947.CaS.y};
+	g0947_093c_alt	{CaS.x = g0947.CaS.x; CaS.y = g0947.CaS.y};
+	g0948_093c		{CaS.x = g0948.CaS.x; CaS.y = g0948.CaS.y};
+
+	g0945_093c_top	{CaS.x = g0945.CaS.x; CaS.y = g0945.CaS.y};	// pseudo-glyphs that use g0945 (candra-E)
+	g0949_top		{CaS.x = g0945.CaS.x; CaS.y = g0945.CaS.y};
+	g0949_093c_top	{CaS.x = g0945.CaS.x; CaS.y = g0945.CaS.y};
+		
+	cls_0940 {CaS.x = UpperS.x; CaS.y = UpperS.y + 300m};
+	cls_0949 {CaS.x = UpperS.x - 50m; CaS.y = bb.top};	// looks like 0945
+	cls_094a {CaS.x = 525m; CaS.y = g0946.CaS.y};		// looks like 0946
+	cls_094b {CaS.x = 400m; CaS.y = g0947.CaS.y};		// looks like 0947
+	cls_094c {CaS.x = 450m; CaS.y = g0948.CaS.y};		// looks like 0948
+	
+	cTakesCa = (cls_0940  cls_0945  cls_0946  cls_0947  cls_0948  cls_0949  cls_094a  cls_094b  cls_094c);
+	cCa = (g0901_alt, g0902);
+	
+	
+	//	These have special glyphs for superscript reph (with or without candrabindu/anusvara).
+	//	Also, nuktas have to be kept as separate glyphs and attached.
+	cls_vowelRtHigh					= 	(g094a					g094b					g094c
+										 g0940					g0940_width20);	// currently no real-life uses of width30
+	
+	cls_vowelRtHigh_0930_094d		=	(g094a_0930_094d		g094b_0930_094d			g094c_0930_094d
+										 g0940_0930_094d		g0940_0930_094d_width20)									
+			{ component { c1 = box(0,bb.bottom,    aw,(2*bb.top)/3);
+			              c2 = box(0,(2*bb.top)/3, aw,bb.top+100m) };
+			  NuktaS = point(275m, -160m) };	
+			              
+	cls_vowelRtHigh_0930_094d_0901	=	(g094a_0930_094d_0901	g094b_0930_094d_0901	g094c_0930_094d_0901
+										 g0940_0930_094d_0901	g0940_0930_094d_0901_width20)
+			{ component { c1 = box(0,bb.bottom,       aw,(2*bb.top)/3);
+			              c2 = box(0,(2*bb.top)/3,    aw/2+200m,bb.top);
+			              c3 = box(aw/2,(2*bb.top)/3, aw+300m,bb.top-100m) };
+			  NuktaS = point(275m, -160m) };	
+			              
+	cls_vowelRtHigh_0930_094d_0902	=	(g094a_0930_094d_0902	g094b_0930_094d_0902	g094c_0930_094d_0902
+										 g0940_0930_094d_0902	g0940_0930_094d_0902_width20)
+			{ component { c1 = box(0,bb.bottom,       aw,(2*bb.top)/3);
+			              c2 = box(0,(2*bb.top)/3,    aw/2+50m,bb.top);
+			              c3 = box(aw/2,(2*bb.top)/3, aw,bb.top-200m) };
+			  NuktaS = point(275m, -160m) };	
+			  
+	cTakesNuktaDia += (cls_vowelRtHigh_0930_094d, cls_vowelRtHigh_0930_094d_0901, cls_vowelRtHigh_0930_094d_0902);
+	
+	g0930_094d_0901 {component {c1 = box(bb.left,bb.bottom,            bb.left+bb.width/2+100m,bb.top);
+								c2 = box(bb.left+bb.width/2,bb.bottom, bb.right,bb.top-100m)}};
+	g0930_094d_0902 {component {c1 = box(bb.left,bb.bottom,            bb.left+bb.width/2+50m,bb.top);
+								c2 = box(bb.left+bb.width/2,bb.bottom, bb.right,bb.top-100m)}};
+
+endtable;
+
+/*******************************************************************
+
+	FEATURES
+
+*******************************************************************/
+
+#include "annapurna_features.gdh"
+
+
+/*******************************************************************
+
+	RULES
+
+*******************************************************************/
+
+table(substitution)
+
+pass(PASS_RRA)	// 1
+	//	RA forms
+	//	Unfortunately this needs to be in a pass by itself, otherwise the rule below
+	//	that marks rakar conjuncts gets confused.
+	g_ra  g_nukta  >  g_rra:(1 2)  _;
+endpass;
+
+
+pass(PASS_MARKSYL)	// 2
+
+	//	Mark the live and dead consonants based on the syllable structure.
+
+	//	Recognize and mark conjuncts.
+	//	NOTE: These rules must match those below that actually form the conjuncts.
+	//	TODO: figure out if we really need to distinguish between F_CONJ1 and F_HALF.
+	
+	g0915 {form = F_CONJ1}  g_nukta?  g_halant  cls_0915_2ndhalf  /  _  _  _ ^ _;
+	g0919 {form = F_CONJ1}  g_nukta?  g_halant  cls_0919_2ndhalf  /  _  _  _ ^ _;
+	g091a {form = F_CONJ1}  g_nukta?  g_halant  cls_091a_2ndhalf  /  _  _  _ ^ _;
+	g091f {form = F_CONJ1}  g_nukta?  g_halant  cls_091f_2ndhalf  /  _  _  _ ^ _;
+	g0920 {form = F_CONJ1}  g_nukta?  g_halant  cls_0920_2ndhalf  /  _  _  _ ^ _;
+	g0921 {form = F_CONJ1}  g_nukta?  g_halant  cls_0921_2ndhalf  /  _  _  _ ^ _;
+	g0926 {form = F_CONJ1}  g_nukta?  g_halant  cls_0926_2ndhalf  /  _  _  _ ^ _;
+	g0936 {form = F_CONJ1}  g_nukta?  g_halant  cls_0936_2ndhalf  /  _  _  _ ^ _;
+	g0937 {form = F_CONJ1}  g_nukta?  g_halant  cls_0937_2ndhalf  /  _  _  _ ^ _;
+	g0939 {form = F_CONJ1}  g_nukta?  g_halant  cls_0939_2ndhalf  /  _  _  _ ^ _;
+
+	cls_1sthalf_0924_nom {form = F_CONJ1}  g_nukta?  g_halant  g0924  /  _  _  _ ^ _;
+	cls_1sthalf_0928_nom {form = F_CONJ1}  g_nukta?  g_halant  g0928  /  _  _  _ ^ _;
+	cls_1sthalf_0932_nom {form = F_CONJ1}  g_nukta?  g_halant  g0932  /  _  _  _ ^ _;
+	
+	//	Rakar conjuncts (note that cls_woRakar includes forms with nuktas attached, but this rule
+	//	just won't recognize them).
+	cls_woRakar {form = F_CONJ1}  g_ra  /  _=C  g_nukta?  g_halant ^ _=R;
+	
+	//	Three-way conjuncts:
+	g0915 {form = F_CONJ1}  g_halant  g0937 {form = F_CONJ1}  g_halant  g_ra  /  _  _  _  _ ^ _;
+	g091c {form = F_CONJ1}  g_halant  g091e {form = F_CONJ1}  g_halant  g_ra  /  _  _  _  _ ^ _;
+	
+	//	ZWNJ forces an explicit halant:
+	cls_consNom {form = F_HALANT}  /  _  g_nukta?  g_halant  g_zwnj ^;
+	
+	//	Exception to rule below: a ya has a form that "connects" with the previous consonant,
+	//	even if it would normally use an explicit halant.
+	cls_hasExplicitHalant {form = F_NOHALANT}  /    _  g_nukta?  g_halant ^ g_zwj?  g0952?  cls_openBack;
+	
+	//	These are half-forms that "look like" they have an explicit halant, so make them
+	//	behave that way.
+	cls_hasExplicitHalant {form = F_HALCONS}  /  _  g_nukta?  g_halant ^ g_zwj?  g0952?  cls_consNom;
+	
+	//	These have true half-forms:
+	cls_nHalf {form = F_HALF}  /  _  g_nukta?  g_halant ^ g_zwj?  g0952?  cls_consNom;
+	
+	//	Default to halant form if there is a halant.
+	cls_consNom {form = F_HALANT}  /  _  g_nukta?  g_halant ^;
+	
+	//	No halant--just a standard live consonant.
+	cls_consNom {form = F_LIVE}  /  _  g_nukta? ^;
+	
+endpass;
+
+
+pass(PASS_RA)	// 3
+
+	//	Deal with behavior of RA. These rules are based roughly on the Devanagari description
+	//	in the Unicode Standard book.
+	
+	//	If RA+virama is to be applied to a dead consonant, then the mark is positioned after
+	//	the whole cluster (cluster may be conjunct or half-form-plus-base) and it uses the
+	//	reph (superscript) form.
+	g_ra  g_halant  _  _  >  _  _  @Rd {raform = R_REPH}  @H
+		/  _=Rd /*dead, !rakar*/  _=H
+			cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT}  g_nukta?  g_halant
+			cls_consNom {form == F_LIVE}  g_nukta?
+			[cls_vowelRight g_nukta?]?
+			_  _;
+		
+	//	Otherwise, if a dead RA precedes a (plain live) consonant or halant form, it is
+	//	replaced by the reph (superscript) form and reordered to be after the last element.
+	g_ra  g_halant  _  _  >  _  _  @Rd {raform = R_REPH}  @H
+		/  _=Rd {raform != R_RAKAR} /*dead*/  _=H
+			cls_consNom {F_LIVE <= form || form <= F_HALANT}  g_nukta?  g_halant?
+			[cls_vowelRight g_nukta?]?
+			_  _ ;
+
+	//	According to the Unicode Standard, page 304, two RAs get reordered:
+	g_ra  g_halant  g_ra  >  @R2  @R1 {raform = R_REPH}  @H
+		/  _=R1 /*dead*/  _=H  _=R2 /*live*/;
+		
+	//	This is an odd sequence, but Steve Smith says it's the way fonts seem to work.
+	g_rra  g_ra {raform = R_RAKAR}  /  _ /*dead*/  g_halant  _ {form == F_LIVE};
+	
+	//	In comformance with the ISCII standard, the half-consonant RRA is represented as
+	//	eyelash-RA.
+	g_rra  >  @R {raform = R_EYELASH}  /  _=R /*dead*/  g_halant;
+	
+	//	If the dead RA precedes ZWJ, use the eyelash-RA.
+	g_ra  >  @R {raform = R_EYELASH}  /  _=R /*dead*/  g_halant  g_zwj ;
+	
+	//	When a dead consonant (other than RA--see rule above) precedes a live RA, then the
+	//	consonant is replaced with its nominal form and RA is given the rakar (subscript) form.
+	//	No reordering happens. Eventually the halant will be deleted, but not yet.
+	cls_consNom    g_ra  >  @Cd {form = F_CONJ1}  @Rl {raform = R_RAKAR}
+		/  _=Cd /*dead*/  g_nukta?  g_halant  _=Rl {form == F_LIVE};
+	
+	//	Use rakar otherwise. Back up and possibly process the RA further.
+	//	For a rakar conjunct, the deadness of the rakar remains to possibly permit a further
+	//	conjunct. 
+	cls_consNom  g_ra  >  @Cd /*conj1*/  @Rd {raform = R_RAKAR} // form = F_HALF
+		/  _=Cd /*dead*/  g_nukta?  g_halant ^ _=Rd {form == F_HALF}  g_halant ;
+		
+endpass;
+
+pass(PASS_VORDER)	// 4
+
+	//	Reorder I vowel (i-kaar, matra-I).
+	//	TODO: possibly add yet another consonant in the chain.
+
+
+	//	Matra-I does not reorder before explicit halants.
+///	cls_hasExplicitHalant  _  _  cls_vowelLeft  g_nukta  >  @Ch  @V  @N  _  _
+///		/  [ cls_consNom /*dead*/  g_nukta?  g_halant]?  _=Ch /*dead*/ {form != F_CONJ1}  g_nukta?  g_halant  _  _  cls_consNom /*live*/  g_nukta?  _=V  _=N;
+///	cls_hasExplicitHalant  _  cls_vowelLeft  >  @Ch  @V  _
+///		/  [ cls_consNom /*dead*/  g_nukta?  g_halant]?  _=Ch /*dead*/ {form != F_CONJ1}  g_nukta?  g_halant  _  cls_consNom /*live*/  g_nukta?  _=V;
+
+	// 	Matra-I does not reorder before ZWNJ.
+///	g_zwnj _  _  cls_vowelLeft  g_nukta  >  @Z  @V  @N  _  _
+///		/  [ cls_consNom /*dead*/  g_nukta?  g_halant]?  cls_consNom /*dead*/  g_nukta?  g_halant  _=Z  _  _  cls_consNom /*live*/  g_nukta?  _=V  _=N;
+///	g_zwnj _  cls_vowelLeft  >  @Z @V  _
+///		/  [ cls_consNom /*dead*/  g_nukta?  g_halant]?  cls_consNom /*dead*/  g_nukta?  g_halant  _=Z  _  cls_consNom /*live*/  g_nukta?  _=V;
+
+
+	//	Explicit halant case: move vowel to just after the halant.
+	//	NOTE: we include the explicit-halant consonant in the LHS and RHS (not just the context)
+	//	in order to ensure that the rule gets recognized earlier enough in the process.
+	cls_consNom  _  _  cls_vowelLeft  g_nukta  >  @Chal  @V  @N  _  _
+		/	[ cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT && raform != R_REPH}  g_nukta?  g_halant  g_zwj? ]?
+			_=Chal {form == F_HALCONS}  g_nukta?  g_halant  g_zwnj?
+			_  _ /* insert here */
+			cls_consNom /*live*/  g_nukta?
+			_=V  _=N;
+	cls_consNom  _  cls_vowelLeft  >  @Chal  @V  _
+		/	[ cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT && raform != R_REPH}  g_nukta?  g_halant  g_zwj? ]?
+			_=Chal {form == F_HALCONS}  g_nukta?  g_halant  g_zwnj?
+			_ /* insert here */
+			cls_consNom /*live*/  g_nukta?
+			_=V;
+
+	//	Normal case: move vowel to beginning of consonant cluster.
+	_  _  cls_vowelLeft  g_nukta  >  @V  @N  _  _
+		/	_  _ /* insert here */
+			[ [ cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT && raform != R_REPH}  g_nukta?  g_halant  g_zwj? ]?
+			  cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT && raform != R_REPH}  g_nukta?  g_halant  g_zwj? ]?  
+			cls_consNom /*live*/  g_nukta?  g_zwj? 
+			_=V  _=N;
+	_  cls_vowelLeft  >  @V  _
+		/	_  /* insert here */
+			[ [ cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT && raform != R_REPH}  g_nukta?  g_halant  g_zwj? ]?
+			  cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT && raform != R_REPH}  g_nukta?  g_halant  g_zwj? ]?
+			cls_consNom /*live*/  g_nukta?  g_zwj? 
+			_=V;
+
+	//	Handle the fact that reph has been reordered.
+	_  _  cls_vowelLeft  g_nukta  >  @V  @N  _  _
+		/	_  _ /* insert here */
+			[ cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT}  g_nukta?  g_halant  g_zwj?  ]?
+			cls_consNom /*live*/  g_nukta?  g_zwj? 
+			g_ra {raform == R_REPH}  g_halant
+			_=V  _=N;
+	_  cls_vowelLeft  >  @V  _
+		/	_ /* insert here */
+			[ cls_consNom {F_CONJ1 <= form && form <= F_NOHALANT}  g_nukta?  g_halant  g_zwj?  ]?
+			cls_consNom /*live*/  g_nukta?  g_zwj? 
+			g_ra {raform == R_REPH}  g_halant
+			_=V;
+		
+endpass;
+		
+pass(PASS_NUKTA)	// 5
+	//	Combine nuktas.
+	
+	// But DON'T do it for high vowels with reph (superscript); they use a special ligature form:
+	cls_vowelRtHigh  g_nukta  g_ra  g_halant  >  @V  @N  g0930_094d_reph:(3 4)  _
+		/ _=V  _=N  _=R {raform == R_REPH}  _=H;
+	
+	cls_woNukta  g_nukta  >  cls_wNukta:(1 2)  _ / ^ _  _;	// reprocess for rakar
+endpass;
+
+pass(PASS_AHKAND)	// 5
+	//	Akhand
+	g0915  g_akhand  g0937  >  g0915_094d_0937:(1 2 3)  _  _;
+	g091c  g_akhand  g091e  >  g091c_094d_091e:(1 2 3)  _  _;
+endpass;
+
+pass(PASS_REPHRAKAR)	// 5
+	//	Reph & Rakar
+	g_ra  g_halant  >  g0930_094d_reph:(1 2)   _  /  _=R {raform == R_REPH}   _=H;
+	
+	g_ra  >  g094d_0930_rakar  /  _=R {raform == R_RAKAR} ;
+	// Otherwise RA functions as the base consonant of the syllable.
+endpass;
+
+
+pass(PASS_HALFFORMS)	// 6
+	//	Odd exceptional case:
+	g_rra  g_halant  >  g_rra:(1 2)  _  /  _  _  g094d_0930_rakar;
+	
+	//	Use an alternate form of YA when the previous consonant would have an explicit halant.
+	//	DON'T use so-called half form (which will have the explicit halant--we want to remove it).
+	//	Back up and reprocess the YA (eg, to make a rakar ligature).
+	cls_nHalf  g_halant  cls_ya  >  cls_nHalf:(C1 H)  _  cls_ya_alt 
+	/  _=C1 {form == F_NOHALANT}  _=H  g0930_094d_reph? ^ _=Y;
+
+	//	Don't do any combining if a ZWNJ is present.
+	cls_nHalf  g_halant  g_zwnj  /  _  _  g0930_094d_reph? _ ;
+	
+	//	Create half forms (later we will turn some of them into conjuncts).
+	cls_nHalf  g_halant  >  cls_half:(1 2)  _  /  _ {form == F_HALF || form == F_CONJ1}  _ ;
+endpass;
+
+pass(PASS_RAKARFULL)	// 6
+	//	Rakar full forms
+	//	First do the ones that have components defined:
+	
+	//	Kludge: First merge consonant and halant together so they can occupy the same component:
+	cls_woRakarCaret  g_halant  >  @C:(C H) {mergedHalant = true}  _
+		/ ^ _=C  _=H  g094d_0930_rakar {raform == R_RAKAR} ;
+	//	Then substitute the conjunct:
+	cls_woRakarCaret  g094d_0930_rakar 
+		>  cls_wRakarCaret:(C R) {comp {cons.ref=@C; rakar.ref=@R}}  _ 
+		/  _=C {mergedHalant}  _=R;
+		
+	// No components defined:
+	cls_woRakar  g_halant  g094d_0930_rakar 
+		>  cls_wRakar:(1 2 3)  _  _ ;
+	
+	//	If no conjunct, at least just delete the halant.
+	cls_consNom  g_halant  g094d_0930_rakar  >  cls_consNom:(1 2)  _  @3;
+	
+endpass;
+  
+
+table(glyph)
+	cls_narrowIBeforeCandrab = (g0916, g0959, g0917, g095a, g0918, g0918_093c,
+		g0919, g0919_093c, g091f, g091f_093c, g095c, g091a, g091a_093c, g091b, g091b_093c,
+		g091c, g095b, g091d, g091d_093c, g091e, g091e_093c, g0921, g095c,
+		g0922, g095d, g0923, g0923_093c, g0924, g0924_093c,
+		g0925, g0925_093c, g0926, g0926_093c, g0927, g0927_093c, g0928, g0929,
+		g092a, g092a_093c, g092c, g092c_093c, g092d, g092d_093c, g092e, g092e_093c, g092f,
+		g095f, g0932, g0932_093c, g0933, g0934, g0935, g0935_093c,
+		g0936, g0936_093c, g0937, g0937_093c, g0938, g0938_093c, g0939, g0939_093c
+		
+	);
+	cls_narrowIBeforeAnusv = (g0917, g095a, g0918, g0918_093c,
+		g0919, g0919_093c, g095c, g091a, g091a_093c, g091b, g091b_093c, g091c, g095b,
+		g091d, g091d_093c, g091e, g091e_093c, g0921, g095c, g0922, g095d,
+		g0923, g0923_093c, g0925, g0925_093c, g0927, g0927_093c, g092c, g092c_093c,
+		g092d, g092d_093c, g092e, g092e_093c, g092f, g095f, g0935, g0935_093c,
+		g0936, g0936_093c
+	);
+	cls_shiftCandrabAfterI = (g0930, g0931); // narrow reph forms
+endtable;
+
+pass(6)
+	//	If the swoop of the matra-I (ikar) is going to collide with a candrabindu or anusvara,
+	//	use a narrower version. Here we just mark it as needing the narrower version, and we
+	//	do the subtitution below.
+	cls_matraI {useNarrow = true}  /  _  cls_narrowIBeforeCandrab  g093c?  g0901 ;
+	cls_matraI {useNarrow = true}  /  _  cls_narrowIBeforeAnusv  g093c?  g0902 ;
+endpass;
+
+pass(PASS_FULLCONJ)	//  7
+
+	//	Full conjuncts
+	//	NOTE: these rules must match those above that recognize conjuncts.
+	
+#define SETCOMP {component { c1.reference=@1; c2.reference=@2 }}
+
+//	g0915_094d_half  cls_0915_2ndhalf  >  _  cls_0915_conj_cpress:(1 2) SETCOMP  / _  _  cls_matraLower;
+//	g0919_094d_half  cls_0919_2ndhalf  >  _  cls_0919_conj_cpress:(1 2) SETCOMP  / _  _  cls_matraLower;
+//	g091a_094d_half  cls_091a_2ndhalf  >  _  cls_091a_conj_cpress:(1 2) SETCOMP  / _  _  cls_matraLower;
+//	g091f_094d_half  cls_091f_2ndhalf  >  _  cls_091f_conj_cpress:(1 2) SETCOMP  / _  _  cls_matraLower;
+//	g0920_094d_half  cls_0920_2ndhalf  >  _  cls_0920_conj_cpress:(1 2) SETCOMP  / _  _  cls_matraLower;
+//	g0921_094d_half  cls_0921_2ndhalf  >  _  cls_0921_conj_cpress:(1 2) SETCOMP  / _  _  cls_matraLower;
+//	cls_1sthalf_0932  g0932  >  cls_conj_0932_cpress:(1 2) SETCOMP  _  / _  _  cls_matraLower;
+
+	g0915_094d_half  cls_0915_2ndhalf  >  _  cls_0915_conj:(1 2) SETCOMP;
+	g0919_094d_half  cls_0919_2ndhalf  >  _  cls_0919_conj:(1 2) SETCOMP;
+	g091a_094d_half  cls_091a_2ndhalf  >  _  cls_091a_conj:(1 2) SETCOMP;
+	g091f_094d_half  cls_091f_2ndhalf  >  _  cls_091f_conj:(1 2) SETCOMP;
+	g0920_094d_half  cls_0920_2ndhalf  >  _  cls_0920_conj:(1 2) SETCOMP;
+	g0921_094d_half  cls_0921_2ndhalf  >  _  cls_0921_conj:(1 2) SETCOMP;
+	g0926_094d_half  cls_0926_2ndhalf  >  _  cls_0926_conj:(1 2) SETCOMP;
+	g0936_094d_half  cls_0936_2ndhalf  >  _  cls_0936_conj:(1 2) SETCOMP;
+	g0937_094d_half  cls_0937_2ndhalf  >  _  cls_0937_conj:(1 2) SETCOMP;
+	g0939_094d_half  cls_0939_2ndhalf  >  _  cls_0939_conj:(1 2) SETCOMP;
+	
+	cls_1sthalf_0924  g0924  >  cls_conj_0924:(1 2) SETCOMP  _;
+	cls_1sthalf_0928  g0928  >  cls_conj_0928:(1 2) SETCOMP  _;
+	cls_1sthalf_0932  g0932  >  cls_conj_0932:(1 2) SETCOMP  _;
+
+endpass;
+
+pass(PASS_MATRAWIDTH)	// 7
+
+	//	Choose good width for matras.
+	
+	//	Narrower-than-normal versions to avoid conflict with candrabindu and anusvara.
+	cls_matraI  >  @1  /  _ {useNarrow == true}  consWidth20_matraI;
+	cls_matraI  >  cls_matraI_width20  /  _ {useNarrow == true}  consWidth30_matraI;
+	cls_matraI  >  cls_matraI_width30  /  _ {useNarrow == true}  consWidth40_matraI;
+	
+	cls_matraI  >  cls_matraI_width20  /  _ consWidth20_matraI;
+	cls_matraI  >  cls_matraI_width30  /  _ consWidth30_matraI;
+	cls_matraI  >  cls_matraI_width40  /  _ consWidth40_matraI;
+		
+	cls_matraII  >  cls_matraII_width20  /  consWidth20_matraII  _;
+	cls_matraII  >  cls_matraII_width30  /  consWidth30_matraII  _;
+endpass;
+
+pass(PASS_LIGBELOW)		// 8
+	//	Compress stacked conjuncts where necessary. In theory we should be able to replace one conjunct with
+	//	a different form, but Graphite seems to lose the ligature components. So we use separate original
+	//	rules above.
+	cno_stackComprs  >  cStackComprs  /  _  cls_matraLower;
+	
+	//	Ligatures below
+	g0939  cls_noLigBelow_0939  >  _  cls_ligBelow_0939:(1 2);
+	g0930  cls_noLigBelow_0930  >  _  cls_ligBelow_0930:(1 2);
+	
+	// This rule produces a warning because the ZWJ does not form a component; that's okay.
+	g0930  g200d  cls_noLigRephZwjU
+		>  _  _  cls_ligRephZwjU:(1 2 3) { component { c1.ref = @1; c2.ref = @3 } };
+endpass;
+
+///pass(PASS_HALANT) -- do we want a feature to turn these on?	// 8
+///	//	Explicit halant forms
+///	cls_woHalant  g_halant  >  cls_wHalant:(1 2)  _ ;
+///endpass;
+
+
+pass(PASS_FIXUPPERS)	// 8
+	//	Use ligatures for high right vowels with reph (possibly with anusvara or candrabindu),
+	//	to avoid collisions.
+	cls_vowelRtHigh  g0930_094d_reph           >   cls_vowelRtHigh_0930_094d:(V R)
+														{component {c1.ref = @V; c2.ref = @R}}
+													_
+		/ _=V  g_nukta?  _=R ;
+	cls_vowelRtHigh  g0930_094d_reph  g0901    >   cls_vowelRtHigh_0930_094d_0901:(V R A)
+														{component {c1.ref = @V; c2.ref = @R; c3.ref = @A}}
+													_  _
+		/ _=V  g_nukta?  _=R  _=A ;
+	cls_vowelRtHigh  g0930_094d_reph  g0902    >   cls_vowelRtHigh_0930_094d_0902:(V R C)
+														{component {c1.ref = @V; c2.ref = @R; c3.ref = @C}}
+													_  _
+		/ _=V  g_nukta?  _=R  _=C ;
+		
+	//	Any other case of reph + upper mark:
+	g0930_094d_reph  g0901   >   g0930_094d_0901:(1 2) {component {c1.ref = @1; c2.ref = @2}}  _;
+	g0930_094d_reph  g0902   >   g0930_094d_0902:(1 2) {component {c1.ref = @1; c2.ref = @2}}  _;
+	
+	//	Use small candrabindu whenever there is something else above the baseline.
+	g0901  >  g0901_alt  /  (cls_0945  cls_0946  cls_0947  cls_0948)  _;			// dependent vowels
+	g0901  >  g0901_alt  /  (cls_0940  cls_0949  cls_094a  cls_094b  cls_094c)  _;	// tall vowels
+	
+endpass;
+
+pass(PASS_FRACTIONS)	// 8
+	//	Fractions
+	g0967  (g_fraction g_slash)  g096a  >  g0967_2044_096a:(1 2 3)  _  _;
+	g0967  (g_fraction g_slash)  g0968  >  g0967_2044_0968:(1 2 3)  _  _;
+	g0969  (g_fraction g_slash)  g096a  >  g0969_2044_096a:(1 2 3)  _  _;
+endpass;
+
+//	Classes for features
+table(glyph)
+	c_091d_noalt = (
+		g091d		g091d_094d_half		g091d_093c			g091d_093c_094d_half
+		g091d_094d_0930					g091d_093c_094d_0930);
+
+	c_091d_alt1 = (
+		g091d_alt	g091d_094d_half_alt	g091d_093c_alt		g091d_093c_094d_half_alt
+		g091d_094d_0930_alt				g091d_093c_094d_0930_alt);
+		
+	c_091d_alt2 = (
+		g091d_alt2	g091d_094d_half_alt2	g091d_093c_alt2	g091d_093c_094d_half_alt2
+		g091d_094d_0930_alt2				g091d_093c_094d_0930_alt2);
+		
+
+	c_kra_noalt	= (g0915_094d_0930);
+	c_kra_alt	= (g0915_094d_0930_alt);
+	
+	c_tra_noalt	= (g0924_094d_0930		g0924_093c_094d_0930);
+	c_tra_alt	= (g0924_094d_0930_alt	g0924_093c_094d_0930_alt);
+
+	c_shra_noalt= (g0936_094d_0930		g0936_093c_094d_0930);
+	c_shra_alt	= (g0936_094d_0930_alt	g0936_093c_094d_0930_alt);
+	
+	c_ukar_noalt= (g0941_093c			g0942_093c);
+	c_ukar_alt	= (g0941_093c_alt		g0942_093c_alt);
+	c_ukar_alt2 = (g0941_093c_alt2		g0942_093c_alt2);
+
+	c_ekar_noalt= (g0947_093c);
+	c_ekar_alt	= (g0947_093c_alt);
+	
+
+endtable; // glyph
+
+pass(PASS_ALTERNATES)	// 8
+
+if (jha == nepal)
+	c_091d_alt1  >  c_091d_noalt;
+	c_091d_alt2  >  c_091d_noalt;
+endif;
+
+if (jha == india)
+	c_091d_noalt  >  c_091d_alt1;
+	c_091d_alt2   >  c_091d_alt1;
+endif;
+
+if (jha == newar)
+	c_091d_noalt  >  c_091d_alt2;
+	c_091d_alt1   >  c_091d_alt2;
+endif;
+
+
+if (kra)
+	c_kra_noalt  >  c_kra_alt;
+else
+	c_kra_alt  >  c_kra_noalt;
+endif;
+
+if (tra)
+	c_tra_noalt  >  c_tra_alt;
+else
+	c_tra_alt  >  c_tra_noalt;
+endif;
+
+if (shra)
+	c_shra_noalt  >  c_shra_alt;
+else
+	c_shra_alt  >  c_shra_noalt;
+endif;
+
+if (ukar)
+	c_ukar_noalt  >  c_ukar_alt2  /  cStackComprs _ ;
+	c_ukar_noalt  >  c_ukar_alt;
+else
+	c_ukar_alt   >  c_ukar_noalt;
+	c_ukar_alt2  >  c_ukar_noalt;
+endif;
+
+if (ekar)
+	c_ekar_noalt  >  c_ekar_alt;
+else
+	c_ekar_alt  >  c_ekar_noalt;
+endif;
+
+
+if (digit5)
+	g096b  >  g096b_alt;
+else
+	g096b_alt  >  g096b;
+endif;
+
+if (digit8)
+	g096e  >  g096e_alt;
+else
+	g096e_alt  >  g096e;
+endif;
+
+if (digit9 == form1)
+	g096f_alt  >  g096f;
+	g096f_alt2 >  g096f;
+endif;
+if (digit9 == form2)
+	g096f      >  g096f_alt;
+	g096f_alt2 >  g096f_alt;
+endif;
+if (digit9 == form3)
+	g096f     >  g096f_alt2;
+	g096f_alt >  g096f_alt2;
+endif;
+
+
+if (visargabar)
+	g0903  >  g0903_alt;
+else
+	g0903_alt  >  g0903;
+endif;
+
+if (glottalbar) // alternate form has no bar
+	g097d_alt  >  g097d;
+else
+	g097d  >  g097d_alt;
+endif;
+
+
+if (archaic)
+	cno_archaic  >  carchaic;
+else
+	carchaic  >  cno_archaic;
+endif;
+
+endpass; // PASS_ALTERNATES
+
+
+pass(PASS_LATINDIAC)	// 8
+
+endpass; // PASS_LATINDIAC
+
+pass(PASS_SUB4POS)	// 8
+	//	The candra-O (w & w/o nukta) collides with the reph:
+	//	break it into two glyphs so that we can adjust it.
+	cls_0949    _  >  cls_0949_bottom:1  cls_0949_top$1:1       /  _  _  g0930_094d_reph;
+	//	Same for candra-E + nukta
+	g0945_093c  _  >  g0945_093c_top:2   g0945_093c_bottom:2  /  g0930_094d_reph  _  _  ;
+	
+	//	The candra-O/E collides with the anusvara: break into two pieces.
+	cls_0949    _  >  cls_0949_bottom:1  g0949_top:1          /  _  _  g0902=A;
+	g0945_093c  _  >  g0945_093c_top:1   g0945_093c_bottom:1  /  _  _  g0902=A;
+	
+	// Two matching diacritics in a row should have an intervening dotted circle.
+	g0901  _  g0901   >   @1  g25cc:3  @3;
+	g0902  _  g0902   >   @1  g25cc:3  @3;
+	g093c  _  g093c   >   @1  g25cc:3  @3;
+	g0941  _  g0941   >   @1  g25cc:3  @3;
+	g0942  _  g0942   >   @1  g25cc:3  @3;
+	g0943  _  g0943   >   @1  g25cc:3  @3;
+	g0944  _  g0944   >   @1  g25cc:3  @3;
+	g0945  _  g0945   >   @1  g25cc:3  @3;
+	g0946  _  g0946   >   @1  g25cc:3  @3;
+	g0947  _  g0947   >   @1  g25cc:3  @3;
+	g0948  _  g0948   >   @1  g25cc:3  @3;
+	g094d  _  g094d   >   @1  g25cc:3  @3;
+	g0951  _  g0951   >   @1  g25cc:3  @3;
+	g0952  _  g0952   >   @1  g25cc:3  @3;
+	g0953  _  g0953   >   @1  g25cc:3  @3;
+	g0954  _  g0954   >   @1  g25cc:3  @3;
+endpass;
+
+endtable; // substitution
+
+
+table(glyph)
+
+	// Redefine these classes to include only diacritics (this is due to an infelicity in the
+	// behavior of makegdl):
+	cnUpperDiaX = (g093c, g0941, g0941_093c, g0941_093c_alt, g0942, g0942_093c,
+		g0942_093c_alt, g0943, g0943_093c, g0944, g0944_093c,
+		g094d, g0952, g0953, g0954,
+		g0962, g0962_093c, g0963, g0963_093c,
+		g0930_094d_reph); // handle using Reph, not Upper
+	cnUpperCenterDiaX = (g0930_094d_reph, g093c, g0941, g0941_093c, g0941_093c_alt, g0942, g0942_093c,
+		g0942_093c_alt, g0943, g0943_093c, g0944, g0944_093c,
+		g0945_093c, g0946, g0946_093c, g0947, g0947_093c, g0947_093c_alt, g0948, g0948_093c,
+		g094d, g0952, g0962, g0962_093c, g0963, g0963_093c,
+		g0901, g0902, g0945); // these last three don't really use UpperCenter even though it is defined
+	cnLowerDiaX = (g0901, g0902, g0930_094d_reph, g093c, 
+		g0945, g0945_093c, g0946, g0946_093c, g0947, g0947_093c, g0947_093c_alt, g0948, g0948_093c,
+		g094d, g0951, g0952, g0953, g0954);
+	cnLowerCenterDiaX = (g0901, g0902, g0930_094d_reph, g093c,
+		g0941, g0941_093c, g0941_093c_alt, g0942, g0942_093c,
+		g0942_093c_alt, g0943, g0943_093c, g0944, g0944_093c,
+		g0945, g0945_093c, g0946, g0946_093c, g0947, g0947_093c, g0947_093c_alt, g0948, g0948_093c,
+		g094d, g0951, g0953, g0954,
+		g0962, g0962_093c, g0963, g0963_093c);
+	cnLowerAltDiaX = (g0901, g0902, g0930_094d_reph, g093c,		// used for attaching 0952 to half-forms
+		g0941, g0941_093c, g0941_093c_alt, g0942, g0942_093c,
+		g0942_093c_alt, g0943, g0943_093c, g0944, g0944_093c,
+		g0945, g0945_093c, g0946, g0946_093c, g0947, g0947_093c, g0947_093c_alt, g0948, g0948_093c,
+		g094d, g0951, g0953, g0954,
+		g0962, g0962_093c, g0963, g0963_093c);
+	cnNuktaDiaX = (g0901, g0902, g0930_094d_reph,
+		g0941, g0941_093c, g0941_093c_alt, g0942, g0942_093c,
+		g0942_093c_alt, g0943, g0943_093c, g0944, g0944_093c,
+		g0945, g0945_093c, g0946, g0946_093c, g0947, g0947_093c, g0947_093c_alt, g0948, g0948_093c,
+		g094d, g0951, g0952, g0953, g0954,
+		g0962, g0962_093c, g0963, g0963_093c);
+	cnHalantDiaX = (g0901, g0902, g0930_094d_reph, g093c,
+		g0941, g0941_093c, g0941_093c_alt, g0942, g0942_093c,
+		g0942_093c_alt, g0943, g0943_093c, g0944, g0944_093c,
+		g0945, g0945_093c, g0946, g0946_093c, g0947, g0947_093c, g0947_093c_alt, g0948, g0948_093c,
+		g0951, g0952, g0953, g0954,
+		g0962, g0962_093c, g0963, g0963_093c);
+	
+	//	To handle the fact that both reph and vowel-diacritics need to attach at the same
+	//	place (assumes order is C R V): we include reph in the cnUpperDiaX class (above)
+	//	so that first the V will be attached using the Upper rule. Then we attach
+	//	the reph using the Reph rule, which actually uses the Upper APs. This works
+	//	because in Graphite the longest rule is attached first.
+
+	cRephDia = (g0930_094d_reph);
+	cTakesRephDia = cTakesUpperDia;
+	cnTakesRephDia = cnTakesUpperDia;
+	cnRephDiaX = (g0901, g0902, g093c,
+		g0941, g0941_093c, g0941_093c_alt, g0942, g0942_093c,
+		g0942_093c_alt, g0943, g0943_093c, g0944, g0944_093c,
+		g0945, g0945_093c, g0946, g0946_093c, g0947, g0947_093c, g0947_093c_alt, g0948, g0948_093c,
+		g094d, g0951, g0952, g0953, g0954,
+		g0962, g0962_093c, g0963, g0963_093c);
+		
+	//	The UpperCenter AP shouldn't really be used for anything but the acute and grave accents.
+	cUpperCenterDiaX = (g0953, g0954);
+	
+	cnCaX = (g0902);	// kind of bogus, but the way we do positioning, we expect a class like this
+
+endtable; // glyph
+
+table(positioning)
+
+pass(PASS_ATTACH)	// 9
+
+// Optional diacritic sequence
+#define DIASEQ3(x) [ x [ x x? ]? ]?
+#define DIASEQ2(x) [ x x? ]?
+
+#define pos_rule(  t, x, a, w, n)   t  x {attach {to = @1; at = a; with = w}; attached = 1} / ^ _ DIASEQ2(n) _ {attached == 0}
+#define pos_ruleSD(t, x, a, w, n)   t  x {attach {to = @1; at = a; with = w}; insert = 1; attached = 1} / ^ _ DIASEQ2(n) _ {attached == 0}
+
+// Since we don't have ligature components for the base-plus-nukta forms, to be consistent we don't
+// allow insertions before the nuktas below.
+
+//if (select_diac)
+	pos_ruleSD(cTakesCa,			cCa,			CaS,			CaM,			cnCaX);
+	pos_ruleSD(cTakesUpperDia,		cUpperDia,		UpperS,			UpperM, 		cnUpperDiaX);
+	pos_ruleSD(cTakesUpperCenterDia,cUpperCenterDiaX,UpperCenterS,	UpperCenterM,	cnUpperCenterDiaX);
+	pos_ruleSD(cTakesLowerDia,		cLowerDia,		LowerS,			LowerM, 		cnLowerDiaX);
+	pos_ruleSD(cTakesLowerCenterDia,cLowerCenterDia,LowerCenterS,	LowerCenterM,	cnLowerCenterDiaX);
+	pos_ruleSD(cTakesLowerAltDia,	cLowerAltDia,	LowerAltS,		LowerAltM,		cnLowerAltDiaX);
+	pos_ruleSD(cTakesHalantDia,		cHalantDia,		HalantS,		HalantM,		cnHalantDiaX);
+	// Don't allow the nukta to be seleted independently:
+//	pos_ruleSD(cTakesNuktaDia,		cNuktaDia,		NuktaS,			NuktaM,			cnNuktaDiaX);
+	pos_ruleSD(cTakesRephDia,		cRephDia,		UpperS,			UpperM,			cnRephDiaX);
+//else
+//	pos_rule(cTakesCa,				cCa,			CaS,			CaM,			cnCaX);
+//	pos_rule(cTakesUpperDia,		cUpperDia,		UpperS,			UpperM, 		cnUpperDiaX);
+//	pos_rule(cTakesUpperCenterDia,	cUpperCenterDiaX,UpperCenterS,	UpperCenterM,	cnUpperCenterDiaX);
+//	pos_rule(cTakesLowerDia,		cLowerDia,		LowerS,			LowerM, 		cnLowerDiaX);
+//	pos_rule(cTakesLowerCenterDia,	cLowerCenterDia,LowerCenterS,	LowerCenterM,	cnLowerCenterDiaX);
+//	pos_rule(cTakesLowerAltDia,		cLowerAltDia,	LowerAltS,		LowerAltM,		cnLowerAltDiaX);
+//	pos_rule(cTakesHalantDia,		cHalantDia,		HalantS,		HalantM,		cnHalantDiaX);
+	// Don't allow the nukta to be seleted independently:
+	pos_rule(cTakesNuktaDia,		cNuktaDia,		NuktaS,			NuktaM,			cnNuktaDiaX);	
+//	pos_rule(cTakesRephDia,			cRephDia,		UpperS,			UpperM,			cnRephDiaX);
+//endif;
+
+endpass;
+
+table(glyph)
+	cls_vowelWWideRt = (cls_fullKa);	// cls_fullTtha, cls_fullRa
+	
+	cls_nukta = (g_nukta, g0945_093c_bottom);
+endtable;
+
+pass(PASS_ADJUST) // 10
+
+	//	Adjust positions
+
+	//	Modifiers above
+	
+	(g0945, g0945_093c)  g0901 {shift {x = 700m}};
+	
+	(g0945, g0945_093c_top, g0949_top, g0949_093c_top)  g0902 {shift {x = 600m; y = -300m}}  /  cls_vowelWWideRt  _  cls_nukta?  _ ;
+	(g0945, g0945_093c_top, g0949_top, g0949_093c_top) {shift.x = -300m}  g0902 {shift {x = 600m; y = -300m}}  /  _  cls_nukta?  _ ;
+	
+	(g0946, g0946_093c)  g0901_alt {shift.x = 70m};
+	(g0948, g0948_093c)  g0901_alt {shift.x = 80m};
+	(g094a, g094a_093c)  g0901_alt {shift.x = 50m};
+	(g094c, g094c_093c)  g0901_alt {shift.x = 70m};
+	
+
+	//	Signs above
+
+	g0901                g0951 {shift {x =-160m; y = 560m}};
+	g0901                g0953 {shift {x =  80m; y = 500m}};
+	g0901                g0954 {shift {          y = 500m}};
+	g0902                g0951 {shift {x =  90m; y = 320m}};
+	g0902                g0953 {shift {x = 300m; y = 260m}};
+	g0902                g0954 {shift {x = 200m; y = 260m}};
+	(g0945, g0945_093c)  g0951 {shift {x =-130m; y = 250m}};
+	(g0945, g0945_093c)  g0953 {shift {          y = 250m}};
+	(g0945, g0945_093c)  g0954 {shift {x = 200m; y = 250m}};
+	(g0946, g0946_093c)  g0951 {shift {          y = 250m}};
+	(g0946, g0946_093c)  g0953 {shift {          y = 250m}};
+	(g0946, g0946_093c)  g0954 {shift {          y = 250m}};
+	(g0948, g0948_093c)  g0951 {shift {          y = 160m}};
+	(g0948, g0948_093c)  g0953 {shift {          y = 250m}};
+	(g0948, g0948_093c)  g0954 {shift {x = 230m; y = 280m}};
+	g0930_094d_reph      g0953 {shift {x =-250m; y = 350m}};
+	g0930_094d_reph      g0954 {shift {x = 100m; y = 500m}};
+	
+	(g0947, g0947_093c, g0947_093c_alt)  g0951 {shift {y = 160m}};
+	(g0947, g0947_093c, g0947_093c_alt)  g0953 {shift {y = 160m}};
+	(g0947, g0947_093c, g0947_093c_alt)  g0954 {shift {y = 250m}};
+
+	//	Signs below
+	
+	g0941  g0952 {shift {          y =-560m}};
+	g0942  g0952 {shift {x = 500m; y =-600m}};
+	g0943  g0952 {shift {x = 200m; y =-560m}};
+	g0944  g0952 {shift {          y =-650m}};
+	g0962  g0952 {shift {x = 100m; y =-620m}};
+	g0963  g0952 {shift {x = 100m; y =-650m}};
+	
+	//	Reph and vowel sign collisions
+	//	Note that the reph has been reordered away from its original position.
+	
+	cls_0949_bottom  cls_0949_top {shift.x = -350m}  g0930_094d_reph {shift.x = 300m};
+	
+//	g0930_094d_reph {shift.x = 300m}  g0945_093c_top {shift.x = -375m}  g0945_093c_bottom {shift.x = 375m}; 
+	g0930_094d_reph {shift.x = 300m}  cls_0945 {shift.x = -375m};
+	g0930_094d_reph {shift.x = 100m}  cls_0946;
+	g0930_094d_reph {shift.x =  90m}  cls_0947;
+	g0930_094d_reph {shift.x = 120m}  cls_0948;
+	
+	// swoop of the matra-I (ikar) hits candrabindu with narrow consonant in between
+	cls_matraI  cls_shiftCandrabAfterI  g0901 {shift.x = 250m; shift.y = 75m};
+	
+endpass;
+
+endtable; // positioning
+
+
+/******************
+// OpenType classes not used by Graphite
+table(glyph)
+	cls_fullCons = (	// cDevFullCForms
+		g0915	g0916	g0917	g0918	g0919	g091a	g091b	g091c	g091d	g091e	g091f
+		g0920	g0921	g0922	g0923	g0924	g0925	g0926	g0927	g0928	g092A	g092b
+		g092c	g092d	g092e	g092f	g0930	g0932	g0933	g0935	g0936	g0937	g0938
+		g0939	g097b	g097c	g097e	g097f	g097D);
+	cls_consNoHaNoHalf = (	// cDevFullCForms_noHa_noHalf
+		g0915	g0916	g0917	g0918	g091a	g091c	g091d	g091e	g0923	g0924	g0925 
+		g0927	g0928	g092A	g092b	g092c	g092d	g092e	g092f	g0930	g0932	g0933
+		g0935	g0936	g0937	g0938	g097b	g097c	g097f	g097D);
+	cls_fullConsNukta = (	// cDevFullCNukta
+		g0958		g0959		g095a		g0918_093c	g0919_093c	g091a_093c	g091b_093c	g095b 
+		g091d_093c	g091e_093c g091f_093c	g0920_093c	g095c		g095d		g0923_093c g0924_093c
+		g0925_093c	g0926_093c	g0927_093c	g0929		g092A_093c	g095e		g092c_093c	g092d_093c
+		g092e_093c	g095f		g0931		g0932_093c	g0934		g0935_093c	g0936_093c	g0937_093c
+		g0938_093c	g0939_093c	g097b_093c	g097c_093c	g097e_093c	g097f_093c);
+	cls_fullConsNuktaRakar = (	// cDevFullCNuktaRakar
+		g0958_094d_0930		g0959_094d_0930		g095a_094d_0930		g0918_093c_094d_0930
+		g0919_093c_094d_0930	g091a_093c_094d_0930	g091b_093c_094d_0930	g095b_094d_0930
+		g091d_093c_094d_0930	g091e_093c_094d_0930	g091f_093c_094d_0930	g0920_093c_094d_0930
+		g095c_094d_0930		g095d_094d_0930		g0923_093c_094d_0930	g0924_093c_094d_0930
+		g0925_093c_094d_0930	g0926_093c_094d_0930	g0927_093c_094d_0930	g0929_094d_0930
+		g092A_093c_094d_0930	g095e_094d_0930		g092c_093c_094d_0930	g092d_093c_094d_0930
+		g092e_093c_094d_0930	g095f_094d_0930		g0932_093c_094d_0930	g0934_094d_0930
+		g0935_093c_094d_0930	g0936_093c_094d_0930	g0937_093c_094d_0930	g0938_093c_094d_0930
+		g0939_093c_094d_0930	g097b_093c_094d_0930	g097c_093c_094d_0930	g097e_093c_094d_0930
+		g097f_093c_094d_0930);
+	cls_fullConsNuktaNoHaNoHalf = (	// cDevFullCNukta_noHa_noHalf
+		g0958		g0959		g095a		g0918_093c	g091a_093c	g095b		g091d_093c	g091e_093c 
+		g0923_093c	g0924_093c	g0925_093c	g0927_093c	g0929		g092A_093c	g095e		g092c_093c 
+		g092d_093c	g092e_093c	g095f		g0931		g0932_093c	g0934		g0935_093c	g0936_093c 
+		g0937_093c	g0938_093c	g097b_093c	g097c_093c	g097f_093c);
+	cls_fullConsRakar = (	// cDevFullCRakar
+		g0915_094d_0930	g0916_094d_0930	g0917_094d_0930	g0918_094d_0930	g0919_094d_0930
+		g091a_094d_0930	g091b_094d_0930	g091c_094d_0930	g091d_094d_0930	g091e_094d_0930
+		g091f_094d_0930	g0920_094d_0930	g0921_094d_0930	g0922_094d_0930	g0923_094d_0930
+		g0924_094d_0930	g0925_094d_0930	g0926_094d_0930	g0927_094d_0930	g0928_094d_0930
+		g092A_094d_0930	g092b_094d_0930	g092c_094d_0930	g092d_094d_0930	g092e_094d_0930
+		g092f_094d_0930	g0932_094d_0930	g0933_094d_0930	g0935_094d_0930	g0936_094d_0930 
+		g0937_094d_0930	g0938_094d_0930	g0939_094d_0930	g097b_094d_0930	g097c_094d_0930
+		g097e_094d_0930	g097f_094d_0930);
+	cls_fullVowels = (	// cDevFullVowels
+		g0904	g0905	g0906	g0907	g0908	g0909	g090a	g090b	g0960 g090c	g0961	g090d
+		g090e	g090f	g0910	g0911	g0912	g0913	g0914	g0972);
+	cls_fullVowelsNukta = (	// cDevFullVowelsNukta
+		g0904_093c	g0905_093c	g0906_093c	g0907_093c	g0908_093c	g0909_093c	g090a_093c	g090b_093c
+		g0960_093c g090c_093c	g0961_093c	g090d_093c	g090e_093c	g090f_093c	g0910_093c	g0911_093c
+		g0912_093c	g0913_093c	g0914_093c	g0972_093c);
+	// cDevFullVowelsNukta_noE-Ai...
+endtable;
+********************/

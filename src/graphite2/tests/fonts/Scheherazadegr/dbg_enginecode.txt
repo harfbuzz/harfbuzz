@@ -1,0 +1,4204 @@
+ENGINE CODE FOR RULES
+
+
+TABLE: substitution
+
+PASS: 0
+
+PASS CONSTRAINTS: none
+
+PASS: 1
+
+PASS CONSTRAINTS: none
+
+RULE 1.0, Scheherazade.gdl(119):  _  cAlefPlusMark  >  absAlef:2  cAlefMark  ;
+
+ACTIONS:
+Insert
+PutGlyph(V1&2) 3
+Assoc 1 1
+Next
+PutSubs(V1&2) 0 43 8
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 1.1, Scheherazade.gdl(121):  *GC1*  >  *GC0*  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 39 0
+Next
+RetZero
+
+CONSTRAINTS: none
+
+PASS: 2
+
+PASS CONSTRAINTS: none
+
+RULE 2.0, Scheherazade.gdl(136):  _  cMark234  cMark1  >  @5:5  @2  _   /  _  _  ^  cMark234  cMark234  _  ;
+
+ACTIONS:
+Insert
+PutCopy 4
+Assoc 1 4
+Next
+PutCopy 0
+Next
+CopyNext
+CopyNext
+Delete
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 2.1, Scheherazade.gdl(136):  _  cMark234  cMark1  >  @4:4  @2  _   /  _  _  ^  cMark234  _  ;
+
+ACTIONS:
+Insert
+PutCopy 3
+Assoc 1 3
+Next
+PutCopy 0
+Next
+CopyNext
+Delete
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 2.2, Scheherazade.gdl(136):  _  cMark234  cMark1  >  @3:3  @2  _   /  _  _  ^  _  ;
+
+ACTIONS:
+Insert
+PutCopy 2
+Assoc 1 2
+Next
+PutCopy 0
+Next
+Delete
+Next
+PushByte 0
+PopRet
+
+CONSTRAINTS: none
+
+RULE 2.3, Scheherazade.gdl(137):  _  cMark34  cMark2  >  @5:5  @2  _   /  _  _  ^  cMark34  cMark34  _  ;
+
+ACTIONS:
+Insert
+PutCopy 4
+Assoc 1 4
+Next
+PutCopy 0
+Next
+CopyNext
+CopyNext
+Delete
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 2.4, Scheherazade.gdl(137):  _  cMark34  cMark2  >  @4:4  @2  _   /  _  _  ^  cMark34  _  ;
+
+ACTIONS:
+Insert
+PutCopy 3
+Assoc 1 3
+Next
+PutCopy 0
+Next
+CopyNext
+Delete
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 2.5, Scheherazade.gdl(137):  _  cMark34  cMark2  >  @3:3  @2  _   /  _  _  ^  _  ;
+
+ACTIONS:
+Insert
+PutCopy 2
+Assoc 1 2
+Next
+PutCopy 0
+Next
+Delete
+Next
+PushByte 0
+PopRet
+
+CONSTRAINTS: none
+
+RULE 2.6, Scheherazade.gdl(138):  _  cMark4  cMark3  >  @5:5  @2  _   /  _  _  ^  cMark4  cMark4  _  ;
+
+ACTIONS:
+Insert
+PutCopy 4
+Assoc 1 4
+Next
+PutCopy 0
+Next
+CopyNext
+CopyNext
+Delete
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 2.7, Scheherazade.gdl(138):  _  cMark4  cMark3  >  @4:4  @2  _   /  _  _  ^  cMark4  _  ;
+
+ACTIONS:
+Insert
+PutCopy 3
+Assoc 1 3
+Next
+PutCopy 0
+Next
+CopyNext
+Delete
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 2.8, Scheherazade.gdl(138):  _  cMark4  cMark3  >  @3:3  @2  _   /  _  _  ^  _  ;
+
+ACTIONS:
+Insert
+PutCopy 2
+Assoc 1 2
+Next
+PutCopy 0
+Next
+Delete
+Next
+PushByte 0
+PopRet
+
+CONSTRAINTS: none
+
+PASS: 3
+
+PASS CONSTRAINTS: none
+
+RULE 3.0, Scheherazade.gdl(150):  if (shaddaKasra == 0) if (selectDiac) absShadda  cShaddaKasraMarks  >  _  cShaddaKasraLigatures:(1 2) { comp.shadda.ref = @1; comp.kasra.ref = @2;  }  ; endif;  endif; 
+
+ACTIONS:
+Delete
+Next
+PutSubs(V1&2) 0 51 24
+Assoc 2 -1 0
+PushByte -1
+IAttrSetSlot comp_ref 3
+PushByte 0
+IAttrSetSlot comp_ref 2
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 0 0
+PushByte 0
+Equal
+PushFeat 10 0
+And
+PopRet
+
+RULE 3.1, Scheherazade.gdl(153):  if (shaddaKasra == 0) if (!(selectDiac)) absShadda  cShaddaKasraMarks  >  _  cShaddaKasraLigatures:(1 2)  ; endif;  endif; 
+
+ACTIONS:
+Delete
+Next
+PutSubs(V1&2) 0 51 24
+Assoc 2 -1 0
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 0 0
+PushByte 0
+Equal
+PushFeat 10 0
+Not
+And
+PopRet
+
+PASS: 4
+
+PASS CONSTRAINTS: none
+
+RULE 4.0, Scheherazade.gdl(176):  cLamIso  cAlefIso  >  cLamIniBeforeAlef { user1 = 0;  }  cAlefFinAfterLamIni   /  _  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 49 19
+PushByte 0
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 42 6
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.1, Scheherazade.gdl(176):  cLamIso  cAlefIso  >  cLamIniBeforeAlef { user1 = 0;  }  cAlefFinAfterLamIni   /  _  cAnyMarks  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 49 19
+PushByte 0
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 42 6
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.2, Scheherazade.gdl(176):  cLamIso  cAlefIso  >  cLamIniBeforeAlef { user1 = 0;  }  cAlefFinAfterLamIni   /  _  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 49 19
+PushByte 0
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 42 6
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.3, Scheherazade.gdl(176):  cLamIso  cAlefIso  >  cLamIniBeforeAlef { user1 = 0;  }  cAlefFinAfterLamIni   /  _  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 49 19
+PushByte 0
+IAttrSet user 0
+Next
+CopyNext
+PutSubs(V1&2) 0 42 6
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.4, Scheherazade.gdl(176):  cLamIso  cAlefIso  >  cLamIniBeforeAlef { user1 = 0;  }  cAlefFinAfterLamIni   /  _  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 49 19
+PushByte 0
+IAttrSet user 0
+Next
+PutSubs(V1&2) 0 42 6
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.5, Scheherazade.gdl(177):  cLamFin  cAlefIso  >  cLamMedBeforeAlef { user1 = 0;  }  cAlefFinAfterLamMed   /  _  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 48 20
+PushByte 0
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 42 7
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.6, Scheherazade.gdl(177):  cLamFin  cAlefIso  >  cLamMedBeforeAlef { user1 = 0;  }  cAlefFinAfterLamMed   /  _  cAnyMarks  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 48 20
+PushByte 0
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 42 7
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.7, Scheherazade.gdl(177):  cLamFin  cAlefIso  >  cLamMedBeforeAlef { user1 = 0;  }  cAlefFinAfterLamMed   /  _  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 48 20
+PushByte 0
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 42 7
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.8, Scheherazade.gdl(177):  cLamFin  cAlefIso  >  cLamMedBeforeAlef { user1 = 0;  }  cAlefFinAfterLamMed   /  _  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 48 20
+PushByte 0
+IAttrSet user 0
+Next
+CopyNext
+PutSubs(V1&2) 0 42 7
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.9, Scheherazade.gdl(177):  cLamFin  cAlefIso  >  cLamMedBeforeAlef { user1 = 0;  }  cAlefFinAfterLamMed   /  _  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 48 20
+PushByte 0
+IAttrSet user 0
+Next
+PutSubs(V1&2) 0 42 7
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.10, Scheherazade.gdl(181):  *GC4*  *GC5*  >  *GC2*  *GC3*   /  _  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 40 1
+Next
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 41 2
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.11, Scheherazade.gdl(181):  *GC4*  *GC5*  >  *GC2*  *GC3*   /  _  cAnyMarks  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 40 1
+Next
+CopyNext
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 41 2
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.12, Scheherazade.gdl(181):  *GC4*  *GC5*  >  *GC2*  *GC3*   /  _  cAnyMarks  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 40 1
+Next
+CopyNext
+CopyNext
+PutSubs(V1&2) 0 41 2
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.13, Scheherazade.gdl(181):  *GC4*  *GC5*  >  *GC2*  *GC3*   /  _  cAnyMarks  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 40 1
+Next
+CopyNext
+PutSubs(V1&2) 0 41 2
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.14, Scheherazade.gdl(181):  *GC4*  *GC5*  >  *GC2*  *GC3*   /  _  ^  _  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 40 1
+Next
+PutSubs(V1&2) 0 41 2
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 4.15, Scheherazade.gdl(188):  cSignTakes4  cDigitsAny  cDigitsAny  cDigitsAny  cDigitsAny  >  cSign4  cDigitsAnyMedium  cDigitsAnyMedium  cDigitsAnyMedium  cDigitsAnyMedium  ;
+
+ACTIONS:
+PutGlyph(V1&2) 29
+Next
+PutSubs(V1&2) 0 44 9
+Next
+PutSubs(V1&2) 0 44 9
+Next
+PutSubs(V1&2) 0 44 9
+Next
+PutSubs(V1&2) 0 44 9
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 4.16, Scheherazade.gdl(191):  cSignTakes3Medium  cDigitsAny  cDigitsAny  cDigitsAny  >  cSign3Medium  cDigitsAnyMedium  cDigitsAnyMedium  cDigitsAnyMedium  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 54 27
+Next
+PutSubs(V1&2) 0 44 9
+Next
+PutSubs(V1&2) 0 44 9
+Next
+PutSubs(V1&2) 0 44 9
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 4.17, Scheherazade.gdl(194):  cSignTakes3Small  cDigitsAny  cDigitsAny  cDigitsAny  >  cSign3Small  cDigitsAnySmall  cDigitsAnySmall  cDigitsAnySmall  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 55 28
+Next
+PutSubs(V1&2) 0 44 10
+Next
+PutSubs(V1&2) 0 44 10
+Next
+PutSubs(V1&2) 0 44 10
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 4.18, Scheherazade.gdl(197):  cSignTakes2  cDigitsAny  cDigitsAny  >  cSign2  cDigitsAnyMedium  cDigitsAnyMedium  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 53 26
+Next
+PutSubs(V1&2) 0 44 9
+Next
+PutSubs(V1&2) 0 44 9
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 4.19, Scheherazade.gdl(200):  cSignTakes1  cDigitsAny  >  cSign1  cDigitsAnyMedium  ;
+
+ACTIONS:
+PutSubs(V1&2) 0 52 25
+Next
+PutSubs(V1&2) 0 44 9
+Next
+RetZero
+
+CONSTRAINTS: none
+
+PASS: 5
+
+PASS CONSTRAINTS: none
+
+RULE 5.0, Scheherazade.gdl(207):  absSuperscriptAlef  >  absSuperscriptAlef_large   /  cTakesLargeDaggerAlef  _  ;
+
+ACTIONS:
+PutGlyph(V1&2) 5
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 5.1, Scheherazade.gdl(210):  if (selectDiac) cLowHamzaBase  absHamzaAbove  >  cLowHamzaComposed:(2 3) { comp.base.ref = @2; comp.hamza.ref = @3;  }  _   /  ANY  _  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 50 21
+Assoc 2 0 1
+PushByte 0
+IAttrSetSlot comp_ref 0
+PushByte 1
+IAttrSetSlot comp_ref 1
+Next
+Delete
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 10 0
+PopRet
+
+RULE 5.2, Scheherazade.gdl(213):  if (!(selectDiac)) cLowHamzaBase  absHamzaAbove  >  cLowHamzaComposed:(2 3)  _   /  ANY  _  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 50 21
+Assoc 2 0 1
+Next
+Delete
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 10 0
+Not
+PopRet
+
+RULE 5.3, Scheherazade.gdl(219):  if (meemAlt == 1) cno_Meem  >  cMeemSindhi   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 58 22
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 1 0
+PushByte 1
+Equal
+PopRet
+
+RULE 5.4, Scheherazade.gdl(223):  if (hehAlt == 1) cno_Heh  >  cHehKurdish   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 57 16
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 2 0
+PushByte 1
+Equal
+PopRet
+
+RULE 5.5, Scheherazade.gdl(226):  if (hehAlt == 2) cno_Heh  >  cHehSindhi   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 57 17
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 2 0
+PushByte 2
+Equal
+PopRet
+
+RULE 5.6, Scheherazade.gdl(229):  if (hehAlt == 3) cno_Heh  >  cHehUrdu   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 57 18
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 2 0
+PushByte 3
+Equal
+PopRet
+
+RULE 5.7, Scheherazade.gdl(233):  if (easternDigits == 1) cEasternDigit  >  cEasternDigitSindhi   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 45 12
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 3 0
+PushByte 1
+Equal
+PopRet
+
+RULE 5.8, Scheherazade.gdl(236):  if (easternDigits == 2) cEasternDigit  >  cEasternDigitUrdu   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 45 13
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 3 0
+PushByte 2
+Equal
+PopRet
+
+RULE 5.9, Scheherazade.gdl(240):  if (sukunAlt == 1) cno_Sukun  >  cSukunDownOpen   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutGlyph(V1&2) 31
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 4 0
+PushByte 1
+Equal
+PopRet
+
+RULE 5.10, Scheherazade.gdl(243):  if (sukunAlt == 2) cno_Sukun  >  cSukunLeftOpen   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutGlyph(V1&2) 32
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 4 0
+PushByte 2
+Equal
+PopRet
+
+RULE 5.11, Scheherazade.gdl(247):  if (headOfKhahAlt == 1) cno_OpenLeft  >  cOpenLeft   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutGlyph(V1&2) 23
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 5 0
+PushByte 1
+Equal
+PopRet
+
+RULE 5.12, Scheherazade.gdl(251):  if (commaAlt) cno_Downward  >  cDownward   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 56 11
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 6 0
+PopRet
+
+RULE 5.13, Scheherazade.gdl(255):  if (dammatanAlt) cno_SixNine  >  cSixNine   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutGlyph(V1&2) 30
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 7 0
+PopRet
+
+RULE 5.14, Scheherazade.gdl(259):  if (endOfAyah == 1) cEndOfAyah  >  cEndOfAyahCircle   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 46 14
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 8 0
+PushByte 1
+Equal
+PopRet
+
+RULE 5.15, Scheherazade.gdl(262):  if (endOfAyah == 2) cEndOfAyah  >  cEndOfAyahSquare   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutSubs(V1&2) 0 46 15
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 8 0
+PushByte 2
+Equal
+PopRet
+
+RULE 5.16, Scheherazade.gdl(268):  if (!(invis)) cInvisible  >  zeroWidthSpace { dir = @2.dir;  }   /  ANY  _  ; endif; 
+
+ACTIONS:
+PutGlyph(V1&2) 33
+PushSlotAttr dir 0
+AttrSet dir
+Next
+RetZero
+
+CONSTRAINTS:
+PushFeat 11 0
+Not
+PopRet
+
+PASS: 6
+
+PASS CONSTRAINTS: none
+
+RULE 6.0, Scheherazade.gdl(379):  cKafLikeIniMed  _  >  @1  absAutoKashida:7   /  _  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  _  absRnoonMed  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.1, Scheherazade.gdl(379):  cKafLikeIniMed  _  >  @1  absAutoKashida:6   /  _  cAnyMarks  cAnyMarks  cAnyMarks  _  absRnoonMed  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.2, Scheherazade.gdl(379):  cKafLikeIniMed  _  >  @1  absAutoKashida:5   /  _  cAnyMarks  cAnyMarks  _  absRnoonMed  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.3, Scheherazade.gdl(379):  cKafLikeIniMed  _  >  @1  absAutoKashida:4   /  _  cAnyMarks  _  absRnoonMed  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.4, Scheherazade.gdl(379):  cKafLikeIniMed  _  >  @1  absAutoKashida:3   /  _  _  absRnoonMed  ;
+
+ACTIONS:
+PutCopy 0
+Next
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.5, Scheherazade.gdl(380):  absFarsiYehIni  _  >  @1  absAutoKashida:7   /  _  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  _  *GC12*  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.6, Scheherazade.gdl(380):  absFarsiYehIni  _  >  @1  absAutoKashida:6   /  _  cAnyMarks  cAnyMarks  cAnyMarks  _  *GC12*  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.7, Scheherazade.gdl(380):  absFarsiYehIni  _  >  @1  absAutoKashida:5   /  _  cAnyMarks  cAnyMarks  _  *GC12*  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.8, Scheherazade.gdl(380):  absFarsiYehIni  _  >  @1  absAutoKashida:4   /  _  cAnyMarks  _  *GC12*  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.9, Scheherazade.gdl(380):  absFarsiYehIni  _  >  @1  absAutoKashida:3   /  _  _  *GC12*  ;
+
+ACTIONS:
+PutCopy 0
+Next
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.10, Scheherazade.gdl(381):  *GC13*  _  >  @1  absAutoKashida:7   /  _  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  _  absRrehFin  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.11, Scheherazade.gdl(381):  *GC13*  _  >  @1  absAutoKashida:6   /  _  cAnyMarks  cAnyMarks  cAnyMarks  _  absRrehFin  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.12, Scheherazade.gdl(381):  *GC13*  _  >  @1  absAutoKashida:5   /  _  cAnyMarks  cAnyMarks  _  absRrehFin  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.13, Scheherazade.gdl(381):  *GC13*  _  >  @1  absAutoKashida:4   /  _  cAnyMarks  _  absRrehFin  ;
+
+ACTIONS:
+PutCopy 0
+Next
+CopyNext
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 6.14, Scheherazade.gdl(381):  *GC13*  _  >  @1  absAutoKashida:3   /  _  _  absRrehFin  ;
+
+ACTIONS:
+PutCopy 0
+Next
+Insert
+PutGlyph(V1&2) 4
+Assoc 1 1
+Next
+RetZero
+
+CONSTRAINTS: none
+
+PASS 7: bidi
+
+TABLE: positioning
+
+PASS: 0
+
+PASS CONSTRAINTS: none
+
+PASS: 8
+
+PASS CONSTRAINTS: none
+
+RULE 8.0, Scheherazade.gdl(284):  cHasExit { user1 = 1;  }  cHasEntry {  attach {to = @1; at = exit; with = entry; } insert = 1;  }   /  ^  _ { user1 == 0 }  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  _  ;
+
+ACTIONS:
+PutCopy 0
+PushByte 1
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -5
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 79 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 82 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 80 0
+AttrSet attach_at_gpoint
+PushAttToGlyphAttr(V1&2) 81 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 83 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 41 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 44 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 43 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 45 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PushByte -6
+PopRet
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+PopRet
+
+RULE 8.1, Scheherazade.gdl(284):  cHasExit { user1 = 1;  }  cHasEntry {  attach {to = @1; at = exit; with = entry; } insert = 1;  }   /  ^  _ { user1 == 0 }  cAnyMarks  cAnyMarks  cAnyMarks  _  ;
+
+ACTIONS:
+PutCopy 0
+PushByte 1
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 79 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 82 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 80 0
+AttrSet attach_at_gpoint
+PushAttToGlyphAttr(V1&2) 81 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 83 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 41 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 44 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 43 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 45 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PushByte -5
+PopRet
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+PopRet
+
+RULE 8.2, Scheherazade.gdl(284):  cHasExit { user1 = 1;  }  cHasEntry {  attach {to = @1; at = exit; with = entry; } insert = 1;  }   /  ^  _ { user1 == 0 }  cAnyMarks  cAnyMarks  _  ;
+
+ACTIONS:
+PutCopy 0
+PushByte 1
+IAttrSet user 0
+Next
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 79 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 82 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 80 0
+AttrSet attach_at_gpoint
+PushAttToGlyphAttr(V1&2) 81 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 83 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 41 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 44 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 43 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 45 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+PopRet
+
+RULE 8.3, Scheherazade.gdl(284):  cHasExit { user1 = 1;  }  cHasEntry {  attach {to = @1; at = exit; with = entry; } insert = 1;  }   /  ^  _ { user1 == 0 }  cAnyMarks  _  ;
+
+ACTIONS:
+PutCopy 0
+PushByte 1
+IAttrSet user 0
+Next
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 79 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 82 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 80 0
+AttrSet attach_at_gpoint
+PushAttToGlyphAttr(V1&2) 81 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 83 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 41 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 44 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 43 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 45 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+PopRet
+
+RULE 8.4, Scheherazade.gdl(284):  cHasExit { user1 = 1;  }  cHasEntry {  attach {to = @1; at = exit; with = entry; } insert = 1;  }   /  ^  _ { user1 == 0 }  _  ;
+
+ACTIONS:
+PutCopy 0
+PushByte 1
+IAttrSet user 0
+Next
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 79 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 82 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 80 0
+AttrSet attach_at_gpoint
+PushAttToGlyphAttr(V1&2) 81 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 83 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 41 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 44 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 43 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 45 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS:
+CntxtItem 0 7
+PushISlotAttr user 0 0
+PushByte 0
+Equal
+PopRet
+
+RULE 8.5, Scheherazade.gdl(291):  cBaseAny  cMarkSuperscriptAlefs {  attach {to = @1; at = alef; with = alef_; } insert = 1;  }   /  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 21 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 24 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 23 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 25 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 74 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 77 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 76 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 78 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.6, Scheherazade.gdl(294):  absShadda  *GC6* {  attach {to = @1; at.x = diaA.x; at.y = diaA.y - 80; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  cAnyMarksBelow  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+PushByte 80
+Sub
+AttrSet attach_at_y
+PushByte 0
+AttrSet attach_at_xoffset
+PushByte 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.7, Scheherazade.gdl(294):  absShadda  *GC6* {  attach {to = @1; at.x = diaA.x; at.y = diaA.y - 80; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+PushByte 80
+Sub
+AttrSet attach_at_y
+PushByte 0
+AttrSet attach_at_xoffset
+PushByte 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.8, Scheherazade.gdl(294):  absShadda  *GC6* {  attach {to = @1; at.x = diaA.x; at.y = diaA.y - 80; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+PushByte 80
+Sub
+AttrSet attach_at_y
+PushByte 0
+AttrSet attach_at_xoffset
+PushByte 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.9, Scheherazade.gdl(294):  absShadda  *GC6* {  attach {to = @1; at.x = diaA.x; at.y = diaA.y - 80; with = diaA_; } insert = selectDiac;  }   /  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+PushByte 80
+Sub
+AttrSet attach_at_y
+PushByte 0
+AttrSet attach_at_xoffset
+PushByte 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.10, Scheherazade.gdl(299):  absHamzaAbove  *GC7* {  attach {to = @1; at.x = diaA.x + 40; at.y = diaA.y - 80; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  cAnyMarksBelow  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+PushByte 40
+Add
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+PushByte 80
+Sub
+AttrSet attach_at_y
+PushByte 0
+AttrSet attach_at_xoffset
+PushByte 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.11, Scheherazade.gdl(299):  absHamzaAbove  *GC7* {  attach {to = @1; at.x = diaA.x + 40; at.y = diaA.y - 80; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+PushByte 40
+Add
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+PushByte 80
+Sub
+AttrSet attach_at_y
+PushByte 0
+AttrSet attach_at_xoffset
+PushByte 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.12, Scheherazade.gdl(299):  absHamzaAbove  *GC7* {  attach {to = @1; at.x = diaA.x + 40; at.y = diaA.y - 80; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+PushByte 40
+Add
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+PushByte 80
+Sub
+AttrSet attach_at_y
+PushByte 0
+AttrSet attach_at_xoffset
+PushByte 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.13, Scheherazade.gdl(299):  absHamzaAbove  *GC7* {  attach {to = @1; at.x = diaA.x + 40; at.y = diaA.y - 80; with = diaA_; } insert = selectDiac;  }   /  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+PushByte 40
+Add
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+PushByte 80
+Sub
+AttrSet attach_at_y
+PushByte 0
+AttrSet attach_at_xoffset
+PushByte 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.14, Scheherazade.gdl(306):  *GC8*  *GC9* {  attach {to = @1; at = diaA; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  cAnyMarksBelow  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 28 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 30 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.15, Scheherazade.gdl(306):  *GC8*  *GC9* {  attach {to = @1; at = diaA; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 28 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 30 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.16, Scheherazade.gdl(306):  *GC8*  *GC9* {  attach {to = @1; at = diaA; with = diaA_; } insert = selectDiac;  }   /  _  ^  cAnyMarksBelow  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 28 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 30 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.17, Scheherazade.gdl(306):  *GC8*  *GC9* {  attach {to = @1; at = diaA; with = diaA_; } insert = selectDiac;  }   /  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 26 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 29 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 28 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 30 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 48 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 51 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 50 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 52 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 8.18, Scheherazade.gdl(313):  cSign4  cSignDigit {  attach {to = @3; at = digit; with = digit_; } insert = 1;  }  cSignDigit {  attach {to = @4; at = digit; with = digit_; } insert = 1;  }  cSignDigit {  attach {to = @5; at = digit; with = digit_; } insert = 1;  }  cSignDigit {  attach {to = @1; at = digit; with = digit_; } insert = 1;  }  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte 1
+AttrSetSlot attach_to
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PutCopy 0
+PushByte 0
+AttrSetSlot insert
+PushByte 1
+AttrSetSlot attach_to
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PutCopy 0
+PushByte 0
+AttrSetSlot insert
+PushByte 1
+AttrSetSlot attach_to
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PutCopy 0
+PushByte 0
+AttrSetSlot insert
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 8.19, Scheherazade.gdl(319):  cSign3  cSignDigit {  attach {to = @3; at = digit; with = digit_; } insert = 1;  }  cSignDigit {  attach {to = @4; at = digit; with = digit_; } insert = 1;  }  cSignDigit {  attach {to = @1; at = digit; with = digit_; } insert = 1;  }  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte 1
+AttrSetSlot attach_to
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PutCopy 0
+PushByte 0
+AttrSetSlot insert
+PushByte 1
+AttrSetSlot attach_to
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PutCopy 0
+PushByte 0
+AttrSetSlot insert
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 8.20, Scheherazade.gdl(324):  cSign2  cSignDigit {  attach {to = @3; at = digit; with = digit_; } insert = 1;  }  cSignDigit {  attach {to = @1; at = digit; with = digit_; } insert = 1;  }  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte 1
+AttrSetSlot attach_to
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+PutCopy 0
+PushByte 0
+AttrSetSlot insert
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 8.21, Scheherazade.gdl(328):  cSign1  cSignDigit {  attach {to = @1; at = digit; with = digit_; } insert = 1;  }  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 63 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 66 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 64 0
+AttrSet attach_at_gpoint
+PushAttToGlyphAttr(V1&2) 65 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 67 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 68 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 71 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 70 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 72 0
+AttrSet attach_with_yoffset
+PushByte 1
+AttrSet insert
+Next
+RetZero
+
+CONSTRAINTS: none
+
+PASS: 9
+
+PASS CONSTRAINTS: none
+
+RULE 9.0, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  cAnyMarksBelow  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ^  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.1, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  cAnyMarksBelow  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ^  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.2, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  cAnyMarksBelow  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ^  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.3, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  cAnyMarksBelow  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.4, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  cAnyMarksBelow  cAnyMarksAbove  cAnyMarksAbove  _  ^  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.5, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  cAnyMarksBelow  cAnyMarksAbove  cAnyMarksAbove  _  ^  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.6, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  cAnyMarksBelow  cAnyMarksAbove  cAnyMarksAbove  _  ^  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.7, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  cAnyMarksBelow  cAnyMarksAbove  cAnyMarksAbove  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.8, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  ANY  cAnyMarksBelow  cAnyMarksAbove  _  ^  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.9, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  ANY  cAnyMarksBelow  cAnyMarksAbove  _  ^  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.10, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  ANY  cAnyMarksBelow  cAnyMarksAbove  _  ^  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.11, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  ANY  cAnyMarksBelow  cAnyMarksAbove  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.12, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  ANY  ANY  cAnyMarksBelow  _  ^  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.13, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  ANY  ANY  cAnyMarksBelow  _  ^  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.14, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  ANY  ANY  cAnyMarksBelow  _  ^  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.15, Scheherazade.gdl(337):  cAllAlefFinAfterLam  cAnyMarksBelow {  attach {to = @5; at = dia2B; with = dia2B_; } insert = selectDiac;  }   /  ANY  ANY  ANY  cAnyMarksBelow  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 36 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 39 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 38 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 40 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 53 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 56 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 55 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 57 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.16, Scheherazade.gdl(342):  *GC10*  *GC11* {  attach {to = @5; at = diaB; with = diaB_; } insert = selectDiac;  }   /  ANY  ANY  ANY  ANY  _  ^  cAnyMarksAbove  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -4
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 31 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 34 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 33 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 35 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 58 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 61 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 60 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 62 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -4
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.17, Scheherazade.gdl(342):  *GC10*  *GC11* {  attach {to = @5; at = diaB; with = diaB_; } insert = selectDiac;  }   /  ANY  ANY  ANY  ANY  _  ^  cAnyMarksAbove  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -3
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 31 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 34 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 33 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 35 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 58 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 61 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 60 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 62 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -3
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.18, Scheherazade.gdl(342):  *GC10*  *GC11* {  attach {to = @5; at = diaB; with = diaB_; } insert = selectDiac;  }   /  ANY  ANY  ANY  ANY  _  ^  cAnyMarksAbove  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -2
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 31 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 34 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 33 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 35 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 58 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 61 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 60 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 62 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -2
+PopRet
+
+CONSTRAINTS: none
+
+RULE 9.19, Scheherazade.gdl(342):  *GC10*  *GC11* {  attach {to = @5; at = diaB; with = diaB_; } insert = selectDiac;  }   /  ANY  ANY  ANY  ANY  _  ^  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -1
+AttrSetSlot attach_to
+PushByte 0
+AttrSetSlot insert
+PushAttToGlyphAttr(V1&2) 31 0
+AttrSet attach_at_x
+PushAttToGlyphAttr(V1&2) 34 0
+AttrSet attach_at_y
+PushAttToGlyphAttr(V1&2) 33 0
+AttrSet attach_at_xoffset
+PushAttToGlyphAttr(V1&2) 35 0
+AttrSet attach_at_yoffset
+PushGlyphAttr(V1&2) 58 0
+AttrSet attach_with_x
+PushGlyphAttr(V1&2) 61 0
+AttrSet attach_with_y
+PushGlyphAttr(V1&2) 60 0
+AttrSet attach_with_xoffset
+PushGlyphAttr(V1&2) 62 0
+AttrSet attach_with_yoffset
+PushFeat 10 0
+AttrSet insert
+Next
+PushByte -1
+PopRet
+
+CONSTRAINTS: none
+
+PASS: 10
+
+PASS CONSTRAINTS: none
+
+RULE 10.0, Scheherazade.gdl(394):  cKafLikeIniMed  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  absRnoonMed { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.1, Scheherazade.gdl(394):  cKafLikeIniMed  cAnyMarks  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  absRnoonMed { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.2, Scheherazade.gdl(394):  cKafLikeIniMed  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  absRnoonMed { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.3, Scheherazade.gdl(394):  cKafLikeIniMed  cAnyMarks  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  absRnoonMed { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.4, Scheherazade.gdl(394):  cKafLikeIniMed  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  absRnoonMed { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.5, Scheherazade.gdl(397):  absFarsiYehIni  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  *GC14* { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.6, Scheherazade.gdl(397):  absFarsiYehIni  cAnyMarks  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  *GC14* { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.7, Scheherazade.gdl(397):  absFarsiYehIni  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  *GC14* { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.8, Scheherazade.gdl(397):  absFarsiYehIni  cAnyMarks  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  *GC14* { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.9, Scheherazade.gdl(397):  absFarsiYehIni  absAutoKashida { shift.x = -30; advance.x = aw + -30;  }  *GC14* { shift.x = -30; advance.x = aw + -30;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.10, Scheherazade.gdl(400):  *GC15*  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -40; advance.x = aw + -40;  }  absRrehFin { shift.x = -40; advance.x = aw + -40;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.11, Scheherazade.gdl(400):  *GC15*  cAnyMarks  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -40; advance.x = aw + -40;  }  absRrehFin { shift.x = -40; advance.x = aw + -40;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.12, Scheherazade.gdl(400):  *GC15*  cAnyMarks  cAnyMarks  absAutoKashida { shift.x = -40; advance.x = aw + -40;  }  absRrehFin { shift.x = -40; advance.x = aw + -40;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.13, Scheherazade.gdl(400):  *GC15*  cAnyMarks  absAutoKashida { shift.x = -40; advance.x = aw + -40;  }  absRrehFin { shift.x = -40; advance.x = aw + -40;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.14, Scheherazade.gdl(400):  *GC15*  absAutoKashida { shift.x = -40; advance.x = aw + -40;  }  absRrehFin { shift.x = -40; advance.x = aw + -40;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte -40
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.15, Scheherazade.gdl(406):  absAlef  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absRreh { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.16, Scheherazade.gdl(406):  absAlef  cAnyMarks  cAnyMarks  cAnyMarks  absRreh { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.17, Scheherazade.gdl(406):  absAlef  cAnyMarks  cAnyMarks  absRreh { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.18, Scheherazade.gdl(406):  absAlef  cAnyMarks  absRreh { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.19, Scheherazade.gdl(406):  absAlef  absRreh { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.20, Scheherazade.gdl(409):  *GC16*  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  *GC17*  absNameMarker { shift.y = 220;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushShort 220
+AttrSet shift_y
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.21, Scheherazade.gdl(409):  *GC16*  cAnyMarks  cAnyMarks  cAnyMarks  *GC17*  absNameMarker { shift.y = 220;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushShort 220
+AttrSet shift_y
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.22, Scheherazade.gdl(409):  *GC16*  cAnyMarks  cAnyMarks  *GC17*  absNameMarker { shift.y = 220;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushShort 220
+AttrSet shift_y
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.23, Scheherazade.gdl(409):  *GC16*  cAnyMarks  *GC17*  absNameMarker { shift.y = 220;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushShort 220
+AttrSet shift_y
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.24, Scheherazade.gdl(409):  *GC16*  *GC17*  absNameMarker { shift.y = 220;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushShort 220
+AttrSet shift_y
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.25, Scheherazade.gdl(413):  cNoonGhunna  *GC19* { shift.y = -75;  }   /  *GC18*  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -75
+AttrSet shift_y
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.26, Scheherazade.gdl(415):  cNoonGhunna  *GC20* { shift.y = -150;  }   /  ANY  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushShort -150
+AttrSet shift_y
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.27, Scheherazade.gdl(419):  if (kasraTcheh == 2) cBehLikeIniMed  absKasra { shift.x = -60; shift.y = 125;  }  cTchehLikeFin   /  ANY  _  _  _  ; endif; 
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -60
+AttrSet shift_x
+PushByte 125
+AttrSet shift_y
+Next
+CopyNext
+RetZero
+
+CONSTRAINTS:
+PushFeat 9 0
+PushByte 2
+Equal
+PopRet
+
+RULE 10.28, Scheherazade.gdl(420):  if (kasraTcheh == 2) cBehLikeIniMed  absKasratan { shift.x = -100; shift.y = 30;  }  cTchehLikeFin   /  ANY  _  _  _  ; endif; 
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -100
+AttrSet shift_x
+PushByte 30
+AttrSet shift_y
+Next
+CopyNext
+RetZero
+
+CONSTRAINTS:
+PushFeat 9 0
+PushByte 2
+Equal
+PopRet
+
+RULE 10.29, Scheherazade.gdl(423):  if (kasraTcheh == 1) cBehLikeIniMed  absKasra { shift.x = -40; shift.y = -200;  }  cTchehLikeFin   /  ANY  _  _  _  ; endif; 
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -40
+AttrSet shift_x
+PushShort -200
+AttrSet shift_y
+Next
+CopyNext
+RetZero
+
+CONSTRAINTS:
+PushFeat 9 0
+PushByte 1
+Equal
+PopRet
+
+RULE 10.30, Scheherazade.gdl(424):  if (kasraTcheh == 1) cBehLikeIniMed  absKasratan { shift.x = -60; shift.y = -130;  }  cTchehLikeFin   /  ANY  _  _  _  ; endif; 
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -60
+AttrSet shift_x
+PushShort -130
+AttrSet shift_y
+Next
+CopyNext
+RetZero
+
+CONSTRAINTS:
+PushFeat 9 0
+PushByte 1
+Equal
+PopRet
+
+RULE 10.31, Scheherazade.gdl(426):  cPehLikeIniMed  absKasra { shift.y = -50;  }  cTchehLikeFin   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -50
+AttrSet shift_y
+Next
+CopyNext
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.32, Scheherazade.gdl(427):  cPehLikeIniMed  absKasratan { shift.x = -50;  }  cTchehLikeFin   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -50
+AttrSet shift_x
+Next
+CopyNext
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.33, Scheherazade.gdl(428):  cTehLikeIniMed  absKasratan { shift.x = -80;  }  cTchehLikeFin   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -80
+AttrSet shift_x
+Next
+CopyNext
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.34, Scheherazade.gdl(431):  absAlef  absMaddahAbove { shift.x = -130;  }  absGaf { shift.x = 30; advance.x = aw + 30;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushShort -130
+AttrSet shift_x
+Next
+PutCopy 0
+PushByte 30
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 30
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.35, Scheherazade.gdl(432):  absAlef  absMaddahAbove { shift.x = -120;  }  absGafIni { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte -120
+AttrSet shift_x
+Next
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.36, Scheherazade.gdl(435):  cBehLikeIniMed  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absRehBarFin { shift.x = 50; advance.x = aw + 50;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 50
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 50
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.37, Scheherazade.gdl(435):  cBehLikeIniMed  cAnyMarks  cAnyMarks  cAnyMarks  absRehBarFin { shift.x = 50; advance.x = aw + 50;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 50
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 50
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.38, Scheherazade.gdl(435):  cBehLikeIniMed  cAnyMarks  cAnyMarks  absRehBarFin { shift.x = 50; advance.x = aw + 50;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 50
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 50
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.39, Scheherazade.gdl(435):  cBehLikeIniMed  cAnyMarks  absRehBarFin { shift.x = 50; advance.x = aw + 50;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 50
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 50
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.40, Scheherazade.gdl(435):  cBehLikeIniMed  absRehBarFin { shift.x = 50; advance.x = aw + 50;  }   /  ANY  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte 50
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 50
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.41, Scheherazade.gdl(436):  cPehLikeIniMed  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absRehBarFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.42, Scheherazade.gdl(436):  cPehLikeIniMed  cAnyMarks  cAnyMarks  cAnyMarks  absRehBarFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.43, Scheherazade.gdl(436):  cPehLikeIniMed  cAnyMarks  cAnyMarks  absRehBarFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.44, Scheherazade.gdl(436):  cPehLikeIniMed  cAnyMarks  absRehBarFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.45, Scheherazade.gdl(436):  cPehLikeIniMed  absRehBarFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.46, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.47, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.48, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.49, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.50, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.51, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.52, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.53, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.54, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.55, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cAnyMarks  cMark2Above  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.56, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.57, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.58, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.59, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cMark2Above  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.60, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cAnyMarks  cMark2Above  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.61, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.62, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.63, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cMark2Above  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.64, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cMark2Above  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.65, Scheherazade.gdl(439):  *GC21*  cAnyMarks  cMark2Above  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.66, Scheherazade.gdl(439):  *GC21*  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.67, Scheherazade.gdl(439):  *GC21*  cMark2Above  cAnyMarks  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.68, Scheherazade.gdl(439):  *GC21*  cMark2Above  cAnyMarks  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.69, Scheherazade.gdl(439):  *GC21*  cMark2Above  cAnyMarks  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.70, Scheherazade.gdl(439):  *GC21*  cMark2Above  absRehSmallTahTwoDotsFin { shift.x = 65; advance.x = aw + 65;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 65
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 65
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.71, Scheherazade.gdl(442):  *GC22*  cAnyMarks  cAnyMarks  cAnyMarks  cAnyMarks  cKehehLikeFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.72, Scheherazade.gdl(442):  *GC22*  cAnyMarks  cAnyMarks  cAnyMarks  cKehehLikeFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.73, Scheherazade.gdl(442):  *GC22*  cAnyMarks  cAnyMarks  cKehehLikeFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.74, Scheherazade.gdl(442):  *GC22*  cAnyMarks  cKehehLikeFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  _  ;
+
+ACTIONS:
+CopyNext
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none
+
+RULE 10.75, Scheherazade.gdl(442):  *GC22*  cKehehLikeFin { shift.x = 70; advance.x = aw + 70;  }   /  ANY  _  _  ;
+
+ACTIONS:
+CopyNext
+PutCopy 0
+PushByte 70
+AttrSet shift_x
+PushGlyphMetric aw 0 0
+PushByte 70
+Add
+AttrSet advance_x
+Next
+RetZero
+
+CONSTRAINTS: none

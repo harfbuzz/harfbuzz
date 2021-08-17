@@ -1,0 +1,2366 @@
+/*
+    Glyph information for font Awami Nastaliq at Thu Jul  2 12:33:15 2015
+*/
+
+table(glyph) {MUnits = 2048};
+g_Notdef = glyphid(0);
+g_NULL = glyphid(1);
+g_nonmarkingreturn = glyphid(2);
+g_space = glyphid(3);
+gAlefHamzaAbove = glyphid(4);
+gAlefHamzaBelow = glyphid(5);
+gAlefHamzaFin = glyphid(6);
+gAlefMaddaAbove = glyphid(7) {mLowerS = point(239m, -43m); mUpperS = point(357m, 2386m)};
+gAlefMaddaShifted = glyphid(8);
+gAlefMaddaFin = glyphid(9);
+gAlefMaddaGaf = glyphid(10);
+gAlefWavyHamzaAbove = glyphid(11);
+gAlefWavyHamzaBelow = glyphid(12);
+gBeh = glyphid(13);
+gBehFin = glyphid(14) {n1LowerS = point(1104m, -335m); nUpperS = point(1104m, 491m); tahUpperS = point(1180m, 503m); entr_behFinal = point(2106m, 341m); n23LowerS = point(1101m, -333m)};
+gBehIni = glyphid(15) {n23LowerS = point(144m, -225m); nUpperS = point(264m, 658m); tahUpperS = point(307m, 650m); exit_lamKaf = point(0m, 617m); n1LowerS = point(138m, -220m)};
+gBehIniAi = glyphid(16);
+gBehIniBe = glyphid(17) {nUpperS = point(116m, 884m); tahUpperS = point(162m, 904m); n23LowerS = point(198m, 376m); n1LowerS = point(193m, 382m); exit_beh = point(0m, 702m)};
+gBehIniBeHg = glyphid(18);
+gBehIniBeM1 = glyphid(19) {tahUpperS = point(374m, 1269m); nUpperS = point(301m, 1231m); n23LowerS = point(242m, 262m); exit_behLowTooth = point(0m, 583m); n1LowerS = point(225m, 262m)};
+gBehIniBeM2 = glyphid(20) {nUpperS = point(421m, 848m); tahUpperS = point(444m, 862m); n23LowerS = point(247m, 166m); exit_behHighTooth = point(0m, 438m); n1LowerS = point(239m, 173m)};
+gBehIniBeNn = glyphid(21) {nUpperS = point(267m, 1205m); exit_behPreNoon = point(0m, 1250m); tahUpperS = point(311m, 1184m); n23LowerS = point(90m, 328m); n1LowerS = point(88m, 330m)};
+gBehIniBeRe = glyphid(22) {exit_behPreReh = point(0m, 515m)};
+gBehIniBy = glyphid(23) {hamzaUpperS = point(759m, 1532m); exit_bariyeh = point(0m, 229m)};
+gBehIniCh = glyphid(24);
+gBehIniFe = glyphid(25) {n23LowerS = point(33m, 40m); nUpperS = point(192m, 1355m); tahUpperS = point(189m, 1357m); exit_feh = point(-236m, 289m); n1LowerS = point(36m, 35m)};
+gBehIniHd = glyphid(26) {exit_hehdoach = point(0m, 327m); n1LowerS = point(357m, 338m); n23LowerS = point(489m, 314m); nUpperS = point(466m, 992m); tahUpperS = point(447m, 977m)};
+gBehIniHgF = glyphid(27);
+gBehIniHgM = glyphid(28) {exit_hehgoalMedial = point(0m, 68m); tahUpperS = point(281m, 954m); nUpperS = point(287m, 947m); n23LowerS = point(272m, -26m); n1LowerS = point(267m, -20m)};
+gBehIniJm = glyphid(29) {n1LowerS = point(711m, 1081m); n23LowerS = point(865m, 1078m); exit_jeem = point(-69m, 670m); tahUpperS = point(273m, 1438m); nUpperS = point(301m, 1454m)};
+gBehIniKfX = glyphid(30) {n1LowerS = point(257m, 580m); exit_kafAlt = point(0m, 1067m); nUpperS = point(261m, 1141m)};
+gBehIniMm = glyphid(31);
+gBehIniMmM = glyphid(32);
+gBehIniMmX = glyphid(33);
+gBehIniNn = glyphid(34) {n23LowerS = point(271m, 712m); tahUpperS = point(266m, 1299m); nUpperS = point(250m, 1290m); n1LowerS = point(171m, 716m); exitNoon = point(0m, 948m)};
+gBehIniQf = glyphid(35) {n1LowerS = point(324m, 330m); tahUpperS = point(246m, 1564m); nUpperS = point(240m, 1558m); exit_qafWaw = point(-10m, 579m); n23LowerS = point(441m, 264m)};
+gBehIniRe = glyphid(36) {exit_rehJkl = point(-4m, 320m)};
+gBehIniSd = glyphid(37) {n23LowerS = point(465m, 584m); tahUpperS = point(747m, 2026m); nUpperS = point(734m, 2020m); n1LowerS = point(432m, 620m); exit_sad = point(0m, 690m)};
+gBehIniSn = glyphid(38) {n23LowerS = point(219m, 731m); tahUpperS = point(282m, 2046m); nUpperS = point(267m, 2033m); n1LowerS = point(144m, 761m); exit_seen = point(0m, 1052m)};
+gBehIniTaF = glyphid(39);
+gBehIniTaM = glyphid(40);
+gBehMed = glyphid(41) {exit_lamKaf = point(0m, 617m); entr_behHighTooth = point(465m, 391m); n1LowerS = point(143m, -204m); n23LowerS = point(146m, -210m); nUpperS = point(307m, 607m); tahUpperS = point(348m, 608m)};
+gBehMedBeF_ss = glyphid(42) {exit_behFinal = point(0m, 295m); entr_behLowTooth = point(522m, 456m)};
+gBehMedAi = glyphid(43) {entr_beh = point(673m, 1314m)};
+gBehMedAi_ss = glyphid(44) {entr_behLowTooth = point(503m, 1100m)};
+gBehMedBe = glyphid(45) {tahUpperS = point(162m, 1452m); nUpperS = point(116m, 1445m); entr_behLowTooth = point(255m, 1300m); n23LowerS = point(226m, 999m); n1LowerS = point(193m, 1001m); exit_beh = point(0m, 1274m)};
+gBehMedBeF = glyphid(46) {entr_beh = point(672m, 702m); n1LowerS = point(501m, 202m); exit_behFinal = point(0m, 321m); tahUpperS = point(301m, 670m); nUpperS = point(305m, 656m); n23LowerS = point(505m, 89m)};
+gBehMedBeHg = glyphid(47) {nUpperS = point(202m, 526m); entr_behLowTooth = point(480m, 435m); n23LowerS = point(263m, -38m); exit_behLowTooth = point(-51m, 279m); n1LowerS = point(234m, -31m)};
+gBehMedBeM1 = glyphid(48) {entr_behHighTooth = point(497m, 846m); n1LowerS = point(217m, 251m); exit_behLowTooth = point(0m, 583m); n23LowerS = point(235m, 241m); tahUpperS = point(410m, 1223m); nUpperS = point(388m, 1217m)};
+gBehMedBeM2 = glyphid(49) {tahUpperS = point(279m, 703m); nUpperS = point(286m, 689m); entr_behLowTooth = point(414m, 565m); n23LowerS = point(251m, 155m); n1LowerS = point(236m, 160m); exit_behHighTooth = point(0m, 438m)};
+gBehMedBeNn = glyphid(50) {exit_behPreNoon = point(0m, 1468m); nUpperS = point(311m, 1389m); tahUpperS = point(336m, 1405m); n23LowerS = point(103m, 530m); entr_behHighTooth = point(408m, 1121m); n1LowerS = point(98m, 541m)};
+gBehMedBeRe = glyphid(51) {entr_behPreFinalHehGoal = point(284m, 593m); entr_behLowTooth = point(285m, 595m); exit_behPreReh = point(0m, 518m)};
+gBehMedBy = glyphid(52) {n1LowerS = point(388m, 277m); entr_beh = point(778m, 850m); exit_bariyeh = point(1m, 251m); n23LowerS = point(397m, 261m); nUpperS = point(388m, 853m); tahUpperS = point(404m, 869m)};
+gBehMedCh = glyphid(53) {entr_beh = point(500m, 1169m); n1LowerS = point(474m, 797m); exit_chotiyeh = point(-85m, 640m); n23LowerS = point(693m, 649m); tahUpperS = point(273m, 1295m); nUpperS = point(256m, 1274m)};
+gBehMedFe = glyphid(54) {entr_beh = point(356m, 706m)};
+gBehMedFe_ss = glyphid(55) {n23LowerS = point(275m, 465m); entr_behLowTooth = point(503m, 1101m); nUpperS = point(192m, 1139m); tahUpperS = point(194m, 1197m); n1LowerS = point(259m, 499m); exit_feh = point(0m, 888m)};
+gBehMedHd = glyphid(56) {tahUpperS = point(205m, 798m); nUpperS = point(194m, 790m); n23LowerS = point(301m, 213m); exit_hehdoach = point(-49m, 327m); n1LowerS = point(243m, 330m); entr_beh = point(412m, 702m)};
+gBehMedHgF = glyphid(57) {entr_behPreFinalHehGoal = point(469m, 295m); exit_hehgoalFinal = point(0m, 254m); nUpperS = point(312m, 522m)};
+gBehMedHgF_be = glyphid(58) {entr_behHighTooth = point(524m, 287m)};
+gBehMedHgM = glyphid(59) {entr_beh = point(307m, 664m); exit_hehgoalMedial = point(-1m, 74m); nUpperS = point(0m, 1000m)};
+gBehMedJm = glyphid(60) {nUpperS = point(282m, 1598m); tahUpperS = point(268m, 1610m); n23LowerS = point(743m, 1079m); exit_jeem = point(-62m, 945m); n1LowerS = point(731m, 1100m); entr_beh = point(545m, 1509m)};
+gBehMedKfX = glyphid(61) {n1LowerS = point(214m, 552m); entr_beh = point(582m, 1149m); tahUpperS = point(298m, 1187m); exit_kafAlt = point(0m, 1067m); nUpperS = point(261m, 1170m); n23LowerS = point(237m, 538m)};
+gBehMedMm = glyphid(62) {entr_beh = point(492m, 1284m)};
+gBehMedMmX = glyphid(63) {entr_beh = point(371m, 763m); n1LowerS = point(193m, 382m); exit_meemAlt = point(-56m, 404m); n23LowerS = point(198m, 376m); tahUpperS = point(125m, 891m); nUpperS = point(113m, 867m)};
+gBehMedNn = glyphid(64) {nUpperS = point(213m, 1071m); tahUpperS = point(213m, 1172m); exit_noon = point(0m, 948m); n23LowerS = point(227m, 568m); entr_behPreNoon = point(463m, 1195m); n1LowerS = point(225m, 572m)};
+gBehMedNn_hgbm = glyphid(65) {exit_noon = point(0m, 1059m); n23LowerS = point(227m, 624m); entr_behPreNoon = point(485m, 1249m); nUpperS = point(216m, 1192m); tahUpperS = point(216m, 1289m); n1LowerS = point(225m, 630m)};
+gBehMedQf = glyphid(66) {nUpperS = point(-75m, 855m); tahUpperS = point(-85m, 893m); n23LowerS = point(211m, 343m); n1LowerS = point(143m, 437m); entr_beh = point(244m, 964m)};
+gBehMedQf_ss = glyphid(67) {entr_behLowTooth = point(89m, 794m)};
+gBehMedRe = glyphid(68) {exit_rehSshg = point(0m, 426m); n1LowerS = point(169m, 82m); tahUpperS = point(197m, 696m); nUpperS = point(186m, 680m); entr_behPreReh = point(320m, 515m); n23LowerS = point(179m, 56m)};
+gBehMedSd = glyphid(69) {exit_sad = point(-96m, 696m); n1LowerS = point(546m, 714m); entr_beh = point(913m, 1293m); nUpperS = point(381m, 1084m); tahUpperS = point(403m, 1107m); n23LowerS = point(588m, 686m)};
+gBehMedSd_ss = glyphid(70) {entr_behLowTooth = point(751m, 1130m)};
+gBehMedSn = glyphid(71) {n23LowerS = point(210m, 742m); entr_behLowTooth = point(184m, 1122m); nUpperS = point(103m, 1240m); tahUpperS = point(24m, 1320m); exit_seen = point(0m, 1052m); n1LowerS = point(102m, 836m)};
+gBehMedTaF_ss = glyphid(72) {entr_behLowTooth = point(469m, 409m)};
+gBehMedTaM = glyphid(73) {tahUpperS = point(28m, 768m); nUpperS = point(70m, 733m); n23LowerS = point(268m, 282m); exit_tah = point(-440m, 276m); n1LowerS = point(162m, 330m); entr_beh = point(569m, 1003m)};
+gBehMedTaM_ss = glyphid(74) {entr_behLowTooth = point(469m, 409m)};
+gBehMedTaF = glyphid(75);
+gTeh = glyphid(76);
+gTehFin = glyphid(77) {entr_behFinal = point(2106m, 341m)};
+gTehFin_bfkl = glyphid(78) {entr_behHighTooth = point(2103m, 438m)};
+gTheh = glyphid(79);
+gThehFin = glyphid(80) {entr_behFinal = point(2106m, 341m)};
+gThehFin_bfkl = glyphid(81);
+gPeh = glyphid(82);
+gPehFin = glyphid(83) {entr_behFinal = point(2106m, 341m)};
+gPehFin_bfkl = glyphid(84);
+gTteh = glyphid(85);
+gTteheh = glyphid(86);
+gTtehFin = glyphid(87) {entr_behFinal = point(2106m, 341m)};
+gTtehFin_bfkl = glyphid(88);
+gFeh = glyphid(89);
+gFehFin = glyphid(90) {entr_feh = point(1994m, 289m); nUpperS = point(1108m, 655m); n1LowerS = point(1104m, -335m)};
+gFehIni = glyphid(91) {n1LowerS = point(182m, -225m); exit_lamKaf = point(0m, 612m); nUpperS = point(416m, 1111m)};
+gFehIniAi = glyphid(92);
+gFehIniBe = glyphid(93) {n1LowerS = point(146m, 886m); exit_beh = point(0m, 1275m); nUpperS = point(146m, 2056m)};
+gFehIniBeF = glyphid(94) {exit_behFinal = point(0m, 320m)};
+gFehIniBeHg = glyphid(95) {n1LowerS = point(248m, -42m); exit_behLowTooth = point(0m, 316m); nUpperS = point(348m, 1162m)};
+gFehIniBeM1 = glyphid(96) {exit_behLowTooth = point(0m, 583m)};
+gFehIniBeM2 = glyphid(97) {nUpperS = point(270m, 1330m); n1LowerS = point(267m, 164m); exit_behHighTooth = point(0m, 456m)};
+gFehIniBeNn = glyphid(98) {n1LowerS = point(147m, 341m); exit_behPreNoon = point(0m, 1280m); nUpperS = point(388m, 1690m); tahUpperS = point(393m, 1684m); n23LowerS = point(140m, 350m)};
+gFehIniBeRe = glyphid(99) {exit_behPreReh = point(4m, 520m)};
+gFehIniBy = glyphid(100);
+gFehIniCh = glyphid(101);
+gFehIniFe = glyphid(102);
+gFehIniHd = glyphid(103);
+gFehIniHgF = glyphid(104);
+gFehIniHgM = glyphid(105);
+gFehIniJm = glyphid(106) {exit_jeem = point(-65m, 952m)};
+gFehIniKfX = glyphid(107);
+gFehIniMm = glyphid(108);
+gFehIniMmX = glyphid(109);
+gFehIniNn = glyphid(110);
+gFehIniQf = glyphid(111);
+gFehIniRe = glyphid(112) {exit_reh = point(0m, 340m)};
+gFehIniSd = glyphid(113);
+gFehIniSn = glyphid(114) {nUpperS = point(20m, 1864m); exit_seen = point(0m, 1048m); n1LowerS = point(199m, 857m)};
+gFehIniTaF = glyphid(115);
+gFehIniTaM = glyphid(116);
+gFehMed = glyphid(117) {nUpperS = point(459m, 973m); n1LowerS = point(173m, -197m); exit_lamKaf = point(0m, 623m)};
+gFehMedAi = glyphid(118);
+gFehMedBe = glyphid(119) {exit_beh = point(0m, 1275m)};
+gFehMedBeF = glyphid(120) {exit_behFinal = point(0m, 321m)};
+gFehMedBeHg = glyphid(121) {exit_behLowTooth = point(0m, 297m); n1LowerS = point(241m, -68m); nUpperS = point(520m, 1114m); exit_behPreFinalHehGoal = point(3m, 301m)};
+gFehMedBeM1 = glyphid(122) {nUpperS = point(529m, 1422m); entr_feh = point(532m, 721m); exit_behLowTooth = point(0m, 582m); n1LowerS = point(291m, 240m)};
+gFehMedBeM2 = glyphid(123) {exit_behHighTooth = point(0m, 438m)};
+gFehMedBeNn = glyphid(124) {n1LowerS = point(145m, 338m); exit_behPreNoon = point(0m, 1265m); nUpperS = point(464m, 1514m)};
+gFehMedBeRe = glyphid(125) {exit_behPreReh = point(0m, 518m)};
+gFehMedBy = glyphid(126);
+gFehMedCh = glyphid(127);
+gFehMedFe = glyphid(128);
+gFehMedHd = glyphid(129);
+gFehMedHgF = glyphid(130);
+gFehMedHgM = glyphid(131);
+gFehMedJm = glyphid(132) {exit_jeem = point(-78m, 935m)};
+gFehMedKfX = glyphid(133);
+gFehMedMm = glyphid(134);
+gFehMedMmX = glyphid(135);
+gFehMedNn = glyphid(136);
+gFehMedQf = glyphid(137);
+gFehMedRe = glyphid(138) {exit_reh = point(0m, 379m)};
+gFehMedSd = glyphid(139);
+gFehMedSn = glyphid(140) {n1LowerS = point(229m, 884m); exit_seen = point(0m, 1052m); nUpperS = point(289m, 1900m)};
+gFehMedTaM = glyphid(141);
+gQaf = glyphid(142) {mUpperS = point(1191m, 1189m); mLowerS = point(677m, -783m)};
+gQafFin = glyphid(143) {nUpperS = point(1189m, 1137m); entr_qafWaw = point(1423m, 826m); n1LowerS = point(654m, -784m)};
+gQafFin_stfh = glyphid(144);
+gBariyeh = glyphid(145);
+gBariyehFin = glyphid(146) {entr_bariyeh = point(0m, 379m); nUpperS = point(1062m, 290m); n1LowerS = point(1062m, -270m)};
+gBariyehHamza = glyphid(147);
+gAin = glyphid(148);
+gAinFin = glyphid(149);
+gAinIni = glyphid(150) {nUpperS = point(517m, 869m); exit_lamKaf = point(0m, 612m); n1LowerS = point(203m, -230m)};
+gAinIniAi = glyphid(151);
+gAinIniBe = glyphid(152) {exit_beh = point(0m, 1274m)};
+gAinIniBeF = glyphid(153) {exit_behFinal = point(0m, 320m)};
+gAinIniBeHg = glyphid(154) {exit_behLowTooth = point(0m, 446m); n1LowerS = point(603m, 279m); nUpperS = point(710m, 1343m)};
+gAinIniBeM1 = glyphid(155) {exit_behLowTooth = point(0m, 583m)};
+gAinIniBeNn = glyphid(156) {n1LowerS = point(176m, 355m); exit_behPreNoon = point(0m, 1292m); nUpperS = point(478m, 1437m)};
+gAinIniBeRe = glyphid(157) {exit_behPreReh = point(0m, 518m)};
+gAinIniBy = glyphid(158);
+gAinIniCh = glyphid(159);
+gAinIniFe = glyphid(160);
+gAinIniHd = glyphid(161);
+gAinIniHgF = glyphid(162);
+gAinIniHgM = glyphid(163);
+gAinIniJm = glyphid(164) {exit_jeem = point(-29m, 856m)};
+gAinIniKfX = glyphid(165);
+gAinIniMm = glyphid(166);
+gAinIniMmX = glyphid(167);
+gAinIniNn = glyphid(168);
+gAinIniQf = glyphid(169);
+gAinIniRe = glyphid(170) {exit_reh = point(-10m, 338m)};
+gAinIniSd = glyphid(171);
+gAinIniSn = glyphid(172) {n1LowerS = point(424m, 1082m); exit_seen = point(0m, 1052m); nUpperS = point(434m, 1979m)};
+gAinIniTaF = glyphid(173);
+gAinIniTaM = glyphid(174);
+gAinIniBeM2 = glyphid(175) {exit_behHighTooth = point(0m, 438m)};
+gAinMed = glyphid(176) {nUpperS = point(433m, 871m); exit_lamKaf = point(0m, 618m); n1LowerS = point(219m, -183m)};
+gAinMedAi = glyphid(177);
+gAinMedBe = glyphid(178) {exit_beh = point(0m, 1275m)};
+gAinMedBeF = glyphid(179) {exit_behFinal = point(0m, 347m)};
+gAinMedBeHg = glyphid(180) {n1LowerS = point(226m, -54m); exit_behLowTooth = point(0m, 307m); nUpperS = point(368m, 893m)};
+gAinMedBeM1 = glyphid(181) {exit_behLowTooth = point(0m, 583m)};
+gAinMedBeM2 = glyphid(182) {exit_behHighTooth = point(0m, 438m)};
+gAinMedBeNn = glyphid(183) {n1LowerS = point(187m, 330m); exit_behPreNoon = point(0m, 1236m); nUpperS = point(223m, 1380m)};
+gAinMedBeRe = glyphid(184) {exit_behPreReh = point(0m, 518m)};
+gAinMedBy = glyphid(185);
+gAinMedCh = glyphid(186);
+gAinMedFe = glyphid(187);
+gAinMedHd = glyphid(188);
+gAinMedHgF = glyphid(189);
+gAinMedHgM = glyphid(190);
+gAinMedJm = glyphid(191) {exit_jeem = point(-78m, 955m)};
+gAinMedKfX = glyphid(192);
+gAinMedMm = glyphid(193);
+gAinMedMmX = glyphid(194);
+gAinMedNn = glyphid(195);
+gAinMedQf = glyphid(196);
+gAinMedRe = glyphid(197) {exit_reh = point(0m, 403m)};
+gAinMedSd = glyphid(198);
+gAinMedSn = glyphid(199) {nUpperS = point(145m, 1649m); exit_seen = point(0m, 1030m); n1LowerS = point(217m, 863m)};
+gAinMedTaF = glyphid(200);
+gAinMedTaM = glyphid(201);
+gGhain = glyphid(202);
+gGhainFin = glyphid(203);
+gHah = glyphid(204);
+gHahHamzaAbove = glyphid(205);
+gHahSmallTahBelow = glyphid(206);
+gHahSmallTahTwoDots = glyphid(207);
+gHahThreeDotsAbove = glyphid(208);
+gJeem = glyphid(209);
+gJeemFin = glyphid(210) {n1LowerS = point(820m, 501m); tahLowerS = point(811m, 618m); entr_jeem = point(235m, 912m); nUpperS = point(874m, 1274m); n23LowerS = point(808m, 592m)};
+gJeemIni = glyphid(211) {exit_lamKaf = point(0m, 617m); n1LowerS = point(219m, -200m); nUpperS = point(443m, 782m); tahUpperS = point(465m, 780m); n23LowerS = point(224m, -209m)};
+gJeemIniAi = glyphid(212);
+gJeemIniBe = glyphid(213) {tahLowerS = point(310m, 952m); n1LowerS = point(313m, 1043m); exit_beh = point(0m, 1275m); nUpperS = point(94m, 1838m); n23LowerS = point(367m, 959m)};
+gJeemIniBeF = glyphid(214) {exit_behFinal = point(0m, 320m)};
+gJeemIniBeHg = glyphid(215) {nUpperS = point(273m, 966m); n23LowerS = point(282m, -56m); exit_behLowTooth = point(0m, 310m); tahLowerS = point(231m, -37m); n1LowerS = point(233m, -53m)};
+gJeemIniBeM1 = glyphid(216) {n23LowerS = point(234m, 231m); nUpperS = point(472m, 1221m); tahLowerS = point(263m, 254m); n1LowerS = point(222m, 249m); exit_behLowTooth = point(0m, 583m)};
+gJeemIniBeM2 = glyphid(217) {exit_behHighTooth = point(0m, 438m)};
+gJeemIniBeNn = glyphid(218) {n1LowerS = point(141m, 358m); n23LowerS = point(148m, 355m); tahUpperS = point(397m, 1343m); exit_behPreNoon = point(0m, 1284m); nUpperS = point(406m, 1336m)};
+gJeemIniBeRe = glyphid(219) {nUpperS = point(143m, 1159m); exit_behPreReh = point(0m, 518m); n23LowerS = point(435m, 169m); tahLowerS = point(308m, 240m); n1LowerS = point(327m, 270m)};
+gJeemIniBy = glyphid(220);
+gJeemIniCh = glyphid(221);
+gJeemIniFe = glyphid(222);
+gJeemIniHd = glyphid(223);
+gJeemIniHgF = glyphid(224);
+gJeemIniHgM = glyphid(225);
+gJeemIniJm = glyphid(226) {exit_jeem = point(-60m, 918m)};
+gJeemIniKfX = glyphid(227);
+gJeemIniMm = glyphid(228);
+gJeemIniMmX = glyphid(229);
+gJeemIniNn = glyphid(230);
+gJeemIniQf = glyphid(231) {n1LowerS = point(378m, 481m); exit_qafWaw = point(0m, 581m)};
+gJeemIniRe = glyphid(232) {exit_rehJkl = point(-34m, 269m)};
+gJeemIniSd = glyphid(233);
+gJeemIniSn = glyphid(234) {tahUpperS = point(12m, 1637m); nUpperS = point(-8m, 1631m); n23LowerS = point(302m, 758m); n1LowerS = point(274m, 861m); exit_seen = point(0m, 1052m)};
+gJeemIniTaF = glyphid(235);
+gJeemIniTaM = glyphid(236);
+gJeemMed = glyphid(237) {exit_lamKaf = point(0m, 634m); entr_jeem = point(198m, 533m); tahLowerS = point(199m, -194m); n1LowerS = point(180m, -204m); n23LowerS = point(194m, -212m); nUpperS = point(213m, 1091m)};
+gJeemMedAi = glyphid(238) {entr_jeem = point(123m, 1229m)};
+gJeemMedBe = glyphid(239) {n23LowerS = point(143m, 855m); nUpperS = point(-370m, 1740m); n1LowerS = point(103m, 905m); exit_beh = point(0m, 1274m); tahLowerS = point(125m, 877m); entr_jeem = point(-83m, 1449m); hamzaUpperS = point(418m, 1723m)};
+gJeemMedBeF = glyphid(240) {entr_jeem = point(178m, 668m); exit_behFinal = point(0m, 321m)};
+gJeemMedBeHg = glyphid(241) {nUpperS = point(607m, 822m); n23LowerS = point(242m, -71m); exit_behLowTooth = point(0m, 297m); n1LowerS = point(231m, -60m); tahLowerS = point(246m, -37m); entr_jeem = point(83m, 518m)};
+gJeemMedBeM1 = glyphid(242) {exit_behLowTooth = point(0m, 583m); entr_jeem = point(282m, 953m)};
+gJeemMedBeM2 = glyphid(243) {n23LowerS = point(472m, 282m); nUpperS = point(-217m, 1005m); n1LowerS = point(409m, 284m); tahLowerS = point(442m, 235m); entr_jeem = point(78m, 722m); exit_behHighTooth = point(0m, 438m)};
+gJeemMedBeNn = glyphid(244) {entr_jeem = point(169m, 1129m); n1LowerS = point(130m, 330m); n23LowerS = point(133m, 328m); nUpperS = point(-96m, 1422m); exit_behPreNoon = point(0m, 1323m); tahUpperS = point(-86m, 1432m)};
+gJeemMedBeRe = glyphid(245) {entr_jeem = point(-83m, 715m); exit_behPreReh = point(0m, 518m)};
+gJeemMedBy = glyphid(246) {nUpperS = point(-50m, 1039m); n23LowerS = point(1093m, 652m); hamzaUpperS = point(-41m, 1048m); exit_bariyeh = point(-34m, 142m); n1LowerS = point(862m, 536m); tahLowerS = point(909m, 680m); entr_jeem = point(245m, 733m)};
+gJeemMedCh = glyphid(247) {nUpperS = point(-234m, 1447m); n23LowerS = point(649m, 833m); hamzaUpperS = point(-223m, 1455m); n1LowerS = point(539m, 833m); exit_chotiyeh = point(-97m, 587m); entr_jeem = point(55m, 1163m); tahLowerS = point(671m, 956m)};
+gJeemMedFe = glyphid(248) {entr_jeem = point(120m, 740m)};
+gJeemMedHd = glyphid(249) {nUpperS = point(-157m, 1002m); n23LowerS = point(643m, 495m); hamzaUpperS = point(-149m, 1010m); entr_jeem = point(116m, 730m); tahLowerS = point(596m, 545m); n1LowerS = point(613m, 531m); exit_hehdoach = point(-4m, 354m)};
+gJeemMedHgF = glyphid(250) {entr_jeem = point(153m, 375m)};
+gJeemMedHgM = glyphid(251) {entr_jeem = point(-2m, 644m)};
+gJeemMedJm = glyphid(252) {entr_jeem = point(266m, 1578m); exit_jeem = point(0m, 918m)};
+gJeemMedKfX = glyphid(253) {entr_jeem = point(317m, 1143m)};
+gJeemMedMm = glyphid(254) {entr_jeem = point(116m, 730m)};
+gJeemMedMmX = glyphid(255) {entr_jeem = point(-77m, 718m)};
+gJeemMedNn = glyphid(256) {entr_jeem = point(-83m, 1449m); exit_noon = point(-2m, 1274m); nUpperS = point(-189m, 1770m)};
+gJeemMedQf = glyphid(257) {entr_jeem = point(13m, 917m)};
+gJeemMedRe = glyphid(258) {exit_reh = point(0m, 352m); entr_jeem = point(226m, 697m)};
+gJeemMedSd = glyphid(259) {entr_jeem = point(396m, 1384m)};
+gJeemMedSn = glyphid(260) {entr_jeem = point(-1m, 1230m); tahLowerS = point(388m, 730m); n1LowerS = point(435m, 878m); exit_seen = point(226m, 1043m); nUpperS = point(-112m, 1609m); n23LowerS = point(428m, 721m)};
+gJeemMedTaF = glyphid(261) {entr_jeem = point(121m, 710m)};
+gJeemMedTaM = glyphid(262) {entr_jeem = point(117m, 1144m)};
+gKhah = glyphid(263);
+gKhahFin = glyphid(264) {entr_jeem = point(235m, 932m)};
+gTcheh = glyphid(265);
+gTcheheh = glyphid(266);
+gTchehFin = glyphid(267) {entr_jeem = point(235m, 932m)};
+gBeeh = glyphid(268);
+gSad = glyphid(269);
+gSadFin = glyphid(270);
+gSadIni = glyphid(271) {nUpperS = point(1065m, 971m); exit_lamKaf = point(0m, 592m); n1LowerS = point(793m, -69m)};
+gSadIniAi = glyphid(272);
+gSadIniBe = glyphid(273) {nUpperS = point(919m, 2001m); n1LowerS = point(567m, 945m); exit_beh = point(0m, 1275m)};
+gSadIniBeF = glyphid(274) {nUpperS = point(1141m, 1190m); n1LowerS = point(778m, 129m); exit_behFinal = point(0m, 320m)};
+gSadIniBeHg = glyphid(275) {nUpperS = point(1084m, 1079m); n1LowerS = point(714m, 35m); exit_behLowTooth = point(0m, 320m)};
+gSadIniBeM1 = glyphid(276) {exit_behLowTooth = point(-1m, 583m)};
+gSadIniBeM2 = glyphid(277) {exit_behHighTooth = point(0m, 438m)};
+gSadIniBeNn = glyphid(278) {n1LowerS = point(514m, 394m); exit_behPreNoon = point(0m, 1236m); nUpperS = point(450m, 1243m)};
+gSadIniBeRe = glyphid(279) {exit_behPreReh = point(0m, 518m)};
+gSadIniBy = glyphid(280);
+gSadIniCh = glyphid(281);
+gSadIniFe = glyphid(282);
+gSadIniHd = glyphid(283);
+gSadIniHgF = glyphid(284);
+gSadIniJm = glyphid(285) {exit_jeem = point(-38m, 914m)};
+gSadIniKfX = glyphid(286);
+gSadIniMm = glyphid(287);
+gSadIniMmX = glyphid(288);
+gSadIniQf = glyphid(289) {exit_qafWaw = point(0m, 649m); nUpperS = point(370m, 1388m)};
+gSadIniRe = glyphid(290) {exit_rehSshg = point(0m, 385m)};
+gSadIniSd = glyphid(291);
+gSadIniSn = glyphid(292) {n1LowerS = point(570m, 758m); exit_seen = point(0m, 1052m); nUpperS = point(860m, 1817m)};
+gSadIniTaF = glyphid(293);
+gSadIniTaM = glyphid(294);
+gSadMedAi = glyphid(295) {entr_sad = point(760m, 866m); exit_ain = point(0m, 888m); nUpperS = point(1167m, 1738m); n1LowerS = point(883m, 687m)};
+gSadMedBe = glyphid(296) {n1LowerS = point(567m, 945m); exit_beh = point(0m, 1275m); nUpperS = point(919m, 2001m); entr_sad = point(524m, 1125m)};
+gSadMedBeF = glyphid(297) {exit_behFinal = point(0m, 320m); n1LowerS = point(778m, 129m); entr_sad = point(725m, 316m); nUpperS = point(1141m, 1190m)};
+gSadMedBeHg = glyphid(298) {nUpperS = point(1084m, 1079m); entr_sad = point(664m, 206m); exit_behLowTooth = point(0m, 320m); n1LowerS = point(714m, 35m)};
+gSadMedBeM1 = glyphid(299) {n1LowerS = point(714m, 488m); exit_behLowTooth = point(0m, 583m); entr_sad = point(684m, 628m); nUpperS = point(1121m, 1500m)};
+gSadMedBeNn = glyphid(300) {nUpperS = point(1024m, 1531m); exit_behPreNoon = point(0m, 1195m); n1LowerS = point(630m, 465m)};
+gSadMedBeRe = glyphid(301) {n1LowerS = point(597m, 241m); exit_behPreReh = point(0m, 518m); nUpperS = point(962m, 1288m); entr_sad = point(521m, 416m)};
+gSadMedBy = glyphid(302) {exit_bariyeh = point(0m, 217m); n1LowerS = point(915m, 222m); nUpperS = point(1315m, 1273m); entr_sad = point(891m, 403m)};
+gSadMedCh = glyphid(303) {entr_sad = point(818m, 806m); nUpperS = point(1254m, 1677m); exit_chotiyeh = point(0m, 610m); n1LowerS = point(863m, 625m)};
+gSadMedFe = glyphid(304) {entr_sad = point(799m, 401m); nUpperS = point(1208m, 1271m); exit_feh = point(0m, 289m); n1LowerS = point(842m, 220m)};
+gSadMedHd = glyphid(305) {nUpperS = point(1031m, 1192m); entr_sad = point(615m, 318m); exit_hehdoach = point(0m, 357m); n1LowerS = point(657m, 137m)};
+gSadMedHgF = glyphid(306) {n1LowerS = point(799m, -105m); exit_hehgoalFinal = point(0m, 233m); entr_sad = point(768m, 74m); nUpperS = point(1201m, 947m)};
+gSadMedHgM = glyphid(307) {n1LowerS = point(602m, 160m); entr_sad = point(540m, 340m); nUpperS = point(961m, 1215m); exit_hehgoalMedial = point(0m, 103m)};
+gSadMedJm = glyphid(308) {n1LowerS = point(806m, 956m); nUpperS = point(1186m, 2008m); exit_jeem = point(-38m, 914m); entr_sad = point(752m, 1136m)};
+gSadMedKfX = glyphid(309) {nUpperS = point(1202m, 1739m); exit_kafAlt = point(0m, 1067m); entr_sad = point(760m, 866m); n1LowerS = point(812m, 686m)};
+gSadMedMm = glyphid(310) {n1LowerS = point(689m, 649m); entr_sad = point(635m, 825m); nUpperS = point(1072m, 1698m); exit_meem = point(0m, 861m)};
+gSadMedMmX = glyphid(311) {n1LowerS = point(628m, 220m); exit_meemAlt = point(0m, 338m); entr_sad = point(599m, 399m); nUpperS = point(1031m, 1271m)};
+gSadMedNn = glyphid(312) {entr_sad = point(519m, 857m); exit_noon = point(0m, 1015m); nUpperS = point(919m, 1730m); n1LowerS = point(556m, 675m)};
+gSadMedQf = glyphid(313);
+gSadMedRe = glyphid(314) {exit_rehSshg = point(0m, 385m)};
+gSadMedSd = glyphid(315);
+gSadMedSn = glyphid(316) {n1LowerS = point(487m, 761m); exit_seen = point(0m, 1052m); nUpperS = point(822m, 1821m)};
+gSadMedTaF = glyphid(317);
+gSadMedTaM = glyphid(318);
+gDad = glyphid(319);
+gDadFin = glyphid(320);
+gSeen = glyphid(321);
+gSeenDotBelowDotAbove = glyphid(322);
+gSeenFin = glyphid(323) {n1LowerS = point(633m, -805m); entr_seen = point(1810m, 1134m); nUpperS = point(1352m, 1165m)};
+gSeenIni = glyphid(324) {nUpperS = point(555m, 733m); exit_lamKaf = point(0m, 613m); n1LowerS = point(168m, -218m)};
+gSeenIniAi = glyphid(325);
+gSeenIniBe = glyphid(326) {exit_beh = point(0m, 1275m)};
+gSeenIniBeF = glyphid(327) {exit_behFinal = point(0m, 320m)};
+gSeenIniBeHg = glyphid(328) {nUpperS = point(442m, 642m); exit_behLowTooth = point(0m, 320m); n1LowerS = point(452m, 101m)};
+gSeenIniBeM1 = glyphid(329) {exit_behLowTooth = point(0m, 583m); n1LowerS = point(225m, 239m); nUpperS = point(506m, 1109m)};
+gSeenIniBeM2 = glyphid(330) {exit_behHighTooth = point(0m, 438m)};
+gSeenIniBeNn = glyphid(331) {exit_behPreNoon = point(0m, 1277m); nUpperS = point(443m, 1266m); n1LowerS = point(533m, 520m)};
+gSeenIniBeRe = glyphid(332) {exit_behPreReh = point(0m, 515m)};
+gSeenIniBy = glyphid(333);
+gSeenIniCh = glyphid(334);
+gSeenIniFe = glyphid(335);
+gSeenIniHd = glyphid(336);
+gSeenIniHgF = glyphid(337);
+gSeenIniHgM = glyphid(338);
+gSeenIniJm = glyphid(339) {exit_jeem = point(-62m, 895m)};
+gSeenIniKfX = glyphid(340);
+gSeenIniMm = glyphid(341);
+gSeenIniMmX = glyphid(342);
+gSeenIniNn = glyphid(343);
+gSeenIniQf = glyphid(344);
+gSeenIniRe = glyphid(345) {exit_rehSshg = point(0m, 420m)};
+gSeenIniSd = glyphid(346);
+gSeenIniSn = glyphid(347) {nUpperS = point(245m, 1430m); exit_seen = point(0m, 1052m); n1LowerS = point(296m, 880m)};
+gSeenIniTaF = glyphid(348);
+gSeenIniTaM = glyphid(349);
+gSeenMed = glyphid(350) {exit_lamKaf = point(0m, 587m); entr_seen = point(954m, 643m); n1LowerS = point(553m, 39m); nUpperS = point(578m, 654m)};
+gSeenMedAi = glyphid(351) {n1LowerS = point(687m, 853m); entr_seen = point(981m, 1337m); nUpperS = point(798m, 1475m)};
+gSeenMedBe = glyphid(352) {nUpperS = point(272m, 1587m); exit_beh = point(0m, 1275m); n1LowerS = point(321m, 1003m); entr_seen = point(558m, 1520m)};
+gSeenMedBeF = glyphid(353) {nUpperS = point(603m, 808m); entr_seen = point(972m, 797m); n1LowerS = point(565m, 256m); exit_behFinal = point(0m, 305m)};
+gSeenMedBeHg = glyphid(354) {nUpperS = point(602m, 732m); n1LowerS = point(701m, 105m); entr_seen = point(974m, 722m); exit_behLowTooth = point(0m, 306m)};
+gSeenMedBeM1 = glyphid(355) {nUpperS = point(667m, 1123m); n1LowerS = point(553m, 437m); entr_seen = point(1032m, 1103m); exit_behLowTooth = point(0m, 583m)};
+gSeenMedBeM2 = glyphid(356) {exit_behHighTooth = point(0m, 438m); n1LowerS = point(335m, 152m); entr_seen = point(697m, 734m); nUpperS = point(370m, 799m)};
+gSeenMedBeNn = glyphid(357) {exit_behPreNoon = point(0m, 1321m); nUpperS = point(787m, 1380m); n1LowerS = point(713m, 726m); entr_seen = point(970m, 1251m)};
+gSeenMedBeRe = glyphid(358) {n1LowerS = point(429m, 203m); entr_seen = point(727m, 737m); exit_behPreReh = point(0m, 515m); nUpperS = point(568m, 900m)};
+gSeenMedBy = glyphid(359) {nUpperS = point(930m, 999m); n1LowerS = point(851m, 351m); entr_seen = point(1114m, 869m); exit_bariyeh = point(0m, 217m)};
+gSeenMedCh = glyphid(360) {n1LowerS = point(750m, 691m); entr_seen = point(1039m, 1206m); nUpperS = point(853m, 1340m)};
+gSeenMedFe = glyphid(361) {n1LowerS = point(448m, 344m); entr_seen = point(744m, 826m); nUpperS = point(564m, 957m)};
+gSeenMedHd = glyphid(362) {nUpperS = point(581m, 971m); n1LowerS = point(483m, 321m); entr_seen = point(768m, 839m)};
+gSeenMedHgF = glyphid(363) {entr_seen = point(941m, 436m); n1LowerS = point(645m, -99m); nUpperS = point(779m, 600m); exit_hehgoalFinal = point(0m, 243m)};
+gSeenMedHgM = glyphid(364) {nUpperS = point(349m, 850m); entr_seen = point(719m, 839m); n1LowerS = point(444m, 321m)};
+gSeenMedJm = glyphid(365) {exit_jeem = point(0m, 950m); nUpperS = point(566m, 1680m); n1LowerS = point(531m, 1161m); entr_seen = point(934m, 1668m)};
+gSeenMedKfX = glyphid(366) {entr_seen = point(941m, 1237m); n1LowerS = point(673m, 752m); nUpperS = point(755m, 1370m)};
+gSeenMedMm = glyphid(367) {nUpperS = point(665m, 1055m); entr_seen = point(845m, 921m); n1LowerS = point(460m, 410m)};
+gSeenMedMmX = glyphid(368) {n1LowerS = point(556m, 360m); entr_seen = point(909m, 867m); nUpperS = point(731m, 999m)};
+gSeenMedNn = glyphid(369) {exit_noon = point(0m, 914m); nUpperS = point(344m, 1339m); entr_seen = point(530m, 1209m); n1LowerS = point(335m, 771m)};
+gSeenMedQf = glyphid(370) {nUpperS = point(385m, 1093m); exit_qafWawStfh = point(0m, 664m); entr_seen = point(727m, 1034m); n1LowerS = point(394m, 550m)};
+gSeenMedRe = glyphid(371) {nUpperS = point(578m, 654m); entr_seen = point(820m, 663m); exit_rehSshg = point(0m, 389m); n1LowerS = point(553m, 39m)};
+gSeenMedSd = glyphid(372) {nUpperS = point(578m, 1391m); entr_seen = point(1257m, 1424m); n1LowerS = point(578m, 724m); exit_sad = point(-102m, 696m)};
+gSeenMedSn = glyphid(373) {nUpperS = point(205m, 1420m); entr_seen = point(530m, 1345m); exit_seen = point(0m, 1050m); n1LowerS = point(286m, 891m)};
+gSeenMedTaF = glyphid(374) {nUpperS = point(910m, 834m); entr_seen = point(1279m, 824m); n1LowerS = point(976m, 313m)};
+gSeenMedTaM = glyphid(375) {entr_seen = point(934m, 1150m); n1LowerS = point(631m, 635m); nUpperS = point(566m, 1170m)};
+gSeenSmallTahTwoDots = glyphid(376);
+gSeenTwoVertAbove = glyphid(377);
+gSheen = glyphid(378);
+gSheenFin = glyphid(379);
+gChotiyeh = glyphid(380);
+gChotiyehFin = glyphid(381) {n1LowerS = point(642m, -808m); entr_chotiyeh = point(969m, 684m); nUpperS = point(560m, 941m)};
+gChotiyehFin_bfkl = glyphid(382) {entr_chotiyehBfkl = point(1027m, 913m)};
+gLam = glyphid(383) {exit = point(1412m, 1333m)};
+gLamBar = glyphid(384);
+gLamFin = glyphid(385) {entr_lamKaf = point(1414m, 1124m); n1LowerS = point(609m, -805m); mUpperS = point(813m, 1229m); nUpperS = point(818m, 1173m); mLowerS = point(611m, -821m)};
+gLamIni = glyphid(386) {exit_lamKaf = point(0m, 617m); n1LowerS = point(160m, -227m); nUpperS = point(157m, 941m)};
+gLamIniAi = glyphid(387);
+gLamIniBe = glyphid(388) {exit_beh = point(0m, 1275m)};
+gLamIniBeHg = glyphid(389) {nUpperS = point(53m, 1081m); exit_behLowTooth = point(0m, 305m); n1LowerS = point(240m, -58m)};
+gLamIniBeM1 = glyphid(390) {exit_behLowTooth = point(0m, 583m)};
+gLamIniBeM2 = glyphid(391) {exit_behHighTooth = point(0m, 456m)};
+gLamIniBeNn = glyphid(392) {nUpperS = point(59m, 1556m); exit_behPreNoon = point(0m, 1320m); n1LowerS = point(123m, 390m)};
+gLamIniBeRe = glyphid(393) {exit_behPreReh = point(0m, 518m)};
+gLamIniBy = glyphid(394);
+gLamIniCh = glyphid(395);
+gLamIniFe = glyphid(396);
+gLamIniHd = glyphid(397);
+gLamIniHgF = glyphid(398);
+gLamIniHgM = glyphid(399);
+gLamIniJm = glyphid(400) {exit_jeem = point(-61m, 914m)};
+gLamIniKfX = glyphid(401);
+gLamIniMm = glyphid(402);
+gLamIniNn = glyphid(403);
+gLamIniQf = glyphid(404);
+gLamIniRe = glyphid(405) {exit_rehJkl = point(0m, 320m)};
+gLamIniSd = glyphid(406);
+gLamIniSn = glyphid(407) {nUpperS = point(152m, 2341m); exit_seen = point(-1m, 1052m); n1LowerS = point(212m, 868m)};
+gLamIniTaF = glyphid(408);
+gLamIniTaM = glyphid(409);
+gLamMed = glyphid(410) {exit_lamKaf = point(0m, 625m); n1LowerS = point(188m, -204m); entr_lamKaf = point(552m, 772m); nUpperS = point(143m, 999m)};
+gLamMedAi = glyphid(411) {exit_ain = point(0m, 868m); nUpperS = point(125m, 1871m); entr_lamKaf = point(582m, 1536m); n1LowerS = point(231m, 530m)};
+gLamMedBe = glyphid(412) {entr_lamKaf = point(328m, 1680m); exit_beh = point(0m, 1275m); n1LowerS = point(223m, 919m); nUpperS = point(-85m, 2017m)};
+gLamMedBeF = glyphid(413) {n1LowerS = point(226m, -3m); entr_lamKaf = point(548m, 899m); exit_behFinal = point(0m, 321m); nUpperS = point(94m, 1164m)};
+gLamMedBeHg = glyphid(414) {nUpperS = point(71m, 1144m); entr_lamKaf = point(525m, 804m); n1LowerS = point(241m, -40m); exit_behLowTooth = point(0m, 324m)};
+gLamMedBeM1 = glyphid(415) {exit_behLowTooth = point(0m, 583m); entr_lamKaf = point(598m, 1222m); n1LowerS = point(222m, 244m); nUpperS = point(171m, 1463m)};
+gLamMedBeM2 = glyphid(416) {entr_lamKaf = point(468m, 987m); n1LowerS = point(212m, 160m); exit_behHighTooth = point(0m, 438m); nUpperS = point(-2m, 1327m)};
+gLamMedBeNn = glyphid(417) {exit_behPreNoon = point(0m, 1323m); nUpperS = point(128m, 1712m); entr_lamKaf = point(536m, 1372m); n1LowerS = point(207m, 410m)};
+gLamMedBeRe = glyphid(418) {entr_lamKaf = point(328m, 950m); n1LowerS = point(241m, 153m); exit_behPreReh = point(0m, 518m); nUpperS = point(-50m, 1289m)};
+gLamMedBy = glyphid(419) {nUpperS = point(327m, 1367m); n1LowerS = point(448m, 300m); entr_lamKaf = point(825m, 1029m); exit_bariyeh = point(0m, 259m)};
+gLamMedCh = glyphid(420) {n1LowerS = point(313m, 608m); entr_lamKaf = point(302m, 1407m); exit_meem = point(0m, 608m); nUpperS = point(-99m, 1746m)};
+gLamMedFe = glyphid(421) {nUpperS = point(91m, 1304m); entr_lamKaf = point(555m, 966m); exit_feh = point(0m, 293m); exit_tah = point(0m, -116m)};
+gLamMedHd = glyphid(422) {nUpperS = point(-220m, 1519m); n1LowerS = point(280m, 350m); entr_lamKaf = point(205m, 1179m)};
+gLamMedHgF = glyphid(423) {n1LowerS = point(173m, -239m); entr_lamKaf = point(531m, 759m); exit_hehgoalFinal = point(0m, 246m); nUpperS = point(61m, 1002m)};
+gLamMedHgM = glyphid(424) {nUpperS = point(-220m, 1145m); n1LowerS = point(283m, -36m); entr_lamKaf = point(228m, 805m)};
+gLamMedJm = glyphid(425) {n1LowerS = point(347m, 1092m); entr_lamKaf = point(770m, 1577m); exit_jeem = point(-59m, 961m); nUpperS = point(310m, 1915m)};
+gLamMedKfX = glyphid(426) {nUpperS = point(114m, 1711m); entr_lamKaf = point(536m, 1372m); n1LowerS = point(238m, 553m); exit_behLowTooth = point(-84m, 545m)};
+gLamMedMm = glyphid(427) {n1LowerS = point(316m, 811m); entr_lamKaf = point(302m, 1624m); exit_meem = point(0m, 825m); nUpperS = point(-99m, 1962m)};
+gLamMedNn = glyphid(428) {exit_noon = point(0m, 1000m); nUpperS = point(28m, 1929m); n1LowerS = point(404m, 779m); entr_lamKaf = point(462m, 1591m)};
+gLamMedQf = glyphid(429) {exit_qafWaw = point(0m, 513m); nUpperS = point(-52m, 1523m); n1LowerS = point(287m, 343m); entr_lamKaf = point(333m, 1183m)};
+gLamMedRe = glyphid(430) {nUpperS = point(-36m, 1440m); exit_rehJkl = point(-7m, 312m); entr_lamKaf = point(435m, 1102m); n1LowerS = point(297m, 202m)};
+gLamMedSd = glyphid(431) {nUpperS = point(479m, 1932m); exit_sad = point(0m, 690m); entr_lamKaf = point(942m, 1594m); n1LowerS = point(595m, 644m)};
+gLamMedSn = glyphid(432) {nUpperS = point(-118m, 1821m); exit_seen = point(60m, 1010m); entr_lamKaf = point(312m, 1486m); n1LowerS = point(149m, 773m)};
+gLamMedTaF = glyphid(433) {nUpperS = point(475m, 1108m); entr_lamKaf = point(1089m, 770m); exit_tah = point(0m, -116m); n1LowerS = point(615m, -99m)};
+gLamMedTaM = glyphid(434) {nUpperS = point(475m, 1108m); entr_lamKaf = point(1089m, 770m); exit_tah = point(0m, -116m); n1LowerS = point(615m, -99m)};
+gLamAlef = glyphid(435);
+gLamAlefFin = glyphid(436) {entr_lamKaf = point(755m, 741m); n1LowerS = point(430m, -266m); mUpperS = point(541m, 1659m); nUpperS = point(529m, 1680m); mLowerS = point(442m, -289m)};
+gLamAlefHamzaFin = glyphid(437);
+gLamAlefMadda = glyphid(438);
+gLamAlefMaddaFin = glyphid(439);
+gNoon = glyphid(440) {mLowerS = point(977m, -635m)};
+gNoonFin = glyphid(441) {entr_noon = point(1351m, 1006m); nUpperS = point(847m, 291m); n1LowerS = point(603m, -805m)};
+gNoonGhunna = glyphid(442);
+gNoonGhunnaFin = glyphid(443) {entr_noon = point(1354m, 1006m)};
+gNoonGhunnaMark = glyphid(444);
+gNoonRetro = glyphid(445);
+gNoonRing = glyphid(446);
+gNoonSmallV = glyphid(447);
+gDecimalSeparator = glyphid(448);
+gDyeh = glyphid(449);
+gE = glyphid(450);
+gEasternEight = glyphid(451);
+gEasternFive = glyphid(452);
+gEasternFour = glyphid(453);
+gEasternNine = glyphid(454);
+gEasternOne = glyphid(455);
+gEasternSeven = glyphid(456);
+gEasternSix = glyphid(457);
+gEasternThree = glyphid(458);
+gEasternTwo = glyphid(459);
+gEasternZero = glyphid(460);
+gEmptyCentreLowStop = glyphid(461);
+gEndOfAyah = glyphid(462);
+gFathaTwoDots = glyphid(463);
+gFivePointedStar = glyphid(464);
+gFootnoteSign = glyphid(465);
+gArabicKaf = glyphid(466);
+gKafFin = glyphid(467) {entr_lamKaf = point(2191m, 517m); n1LowerS = point(1087m, -366m); mUpperS = point(2275m, 1755m); nUpperS = point(1086m, 447m); mLowerS = point(1104m, -390m)};
+gKafMed = glyphid(468) {nUpperS = point(458m, 1579m); entr_sad = point(221m, -101m); exit_lamKaf = point(16m, 529m); n1LowerS = point(228m, -289m)};
+gArabicKafRing = glyphid(469);
+gGaf = glyphid(470);
+gGafIniKf = glyphid(471);
+gGafIni = glyphid(472) {nUpperS = point(229m, 1575m); n1LowerS = point(214m, -270m); exit_lamKaf = point(0m, 576m)};
+gGafIniAi = glyphid(473);
+gGafIniAi_alt = glyphid(474);
+gGafIniBe_alt = glyphid(475);
+gGafIniBeHg_alt = glyphid(476);
+gGafIniBeM1_alt = glyphid(477);
+gGafIniBeM2 = glyphid(478) {exit_behHighTooth = point(0m, 456m)};
+gGafIniBeNn_alt = glyphid(479) {n1LowerS = point(178m, 400m); exit_behPreNoon = point(0m, 1336m); nUpperS = point(83m, 1965m)};
+gGafIniBeRe_alt = glyphid(480);
+gGafIniBy = glyphid(481);
+gGafIniCh = glyphid(482) {exit_chotiyehBfkl = point(-140m, 770m)};
+gGafIniFe = glyphid(483);
+gGafIniFe_alt = glyphid(484);
+gGafIniHd = glyphid(485);
+gGafIniHd_alt = glyphid(486);
+gGafIniHgF = glyphid(487);
+gGafIniHgM_alt = glyphid(488);
+gGafIniJm_alt = glyphid(489);
+gGafIniKfX_alt = glyphid(490);
+gGafIniLm = glyphid(491) {exit_lamKaf = point(8m, 1317m); n1LowerS = point(130m, 700m); nUpperS = point(185m, 2250m)};
+gGafIniMm = glyphid(492);
+gGafIniMm_alt = glyphid(493);
+gGafIniMmX_alt = glyphid(494);
+gGafIniNn = glyphid(495);
+gGafIniQf = glyphid(496);
+gGafIniRe = glyphid(497) {exit_rehJkl = point(0m, 322m)};
+gGafIniSd = glyphid(498);
+gGafIniSd_alt = glyphid(499);
+gGafIniDk = glyphid(500) {n1LowerS = point(152m, -200m); exit_lamKaf = point(0m, 624m); nUpperS = point(444m, 2033m)};
+gGafIniSn = glyphid(501) {nUpperS = point(177m, 2702m); exit_seen = point(0m, 1052m); n1LowerS = point(193m, 884m)};
+gGafIniSn_alt = glyphid(502) {nUpperS = point(-99m, 2215m); exit_seen = point(0m, 1052m); n1LowerS = point(193m, 884m)};
+gGafIniTaF = glyphid(503);
+gGafIniTaF_alt = glyphid(504);
+gGafIniTaM = glyphid(505);
+gGafIniTaM_alt = glyphid(506);
+gGafMed = glyphid(507) {n1LowerS = point(214m, -270m); exit_lamKaf = point(0m, 576m); nUpperS = point(229m, 1708m); entr_sad = point(212m, -91m)};
+gGafMedAi = glyphid(508) {entr_lamKaf = point(583m, 1536m); n1LowerS = point(159m, 501m); nUpperS = point(529m, 2900m)};
+gGafMedAi_alt = glyphid(509);
+gGafMedBe_alt = glyphid(510) {exit_beh = point(0m, 1275m); n1LowerS = point(69m, 882m); nUpperS = point(-89m, 2272m); entr_kafAlt = point(299m, 1539m)};
+gGafMedBeF = glyphid(511) {nUpperS = point(585m, 2256m); exit_behFinal = point(0m, 321m); n1LowerS = point(227m, -5m); entr_lamKaf = point(636m, 964m)};
+gGafMedBeF_alt = glyphid(512) {exit_behFinal = point(0m, 321m); entr_kafAlt = point(580m, 822m)};
+gGafMedBeHg = glyphid(513) {nUpperS = point(395m, 2055m); exit_behLowTooth = point(0m, 326m); entr_lamKaf = point(459m, 754m); n1LowerS = point(246m, -42m)};
+gGafMedBeM2 = glyphid(514) {nUpperS = point(407m, 2335m); entr_lamKaf = point(447m, 944m); n1LowerS = point(212m, 160m); exit_behHighTooth = point(0m, 438m)};
+gGafMedBeM2_alt = glyphid(515);
+gGafMedBeNn = glyphid(516) {nUpperS = point(486m, 2603m); exit_behPreNoon = point(0m, 1336m); n1LowerS = point(179m, 402m); entr_lamKaf = point(543m, 1307m)};
+gGafMedBeRe_alt = glyphid(517) {exit_behPreReh = point(0m, 518m)};
+gGafMedBeM1_alt = glyphid(518) {nUpperS = point(298m, 1919m); entr_kafAlt = point(672m, 1098m); exit_behLowTooth = point(-31m, 572m); n1LowerS = point(268m, 229m)};
+gGafMedBy = glyphid(519) {nUpperS = point(752m, 2383m); n1LowerS = point(461m, 304m); entr_lamKaf = point(811m, 1053m)};
+gGafMedCh = glyphid(520) {nUpperS = point(172m, 2853m); entr_lamKaf = point(233m, 1494m); n1LowerS = point(217m, 583m)};
+gGafMedFe = glyphid(521) {nUpperS = point(494m, 2336m); n1LowerS = point(281m, 49m); entr_lamKaf = point(558m, 966m)};
+gGafMedFe_alt = glyphid(522);
+gGafMedHd = glyphid(523) {nUpperS = point(122m, 2600m); n1LowerS = point(280m, 350m); entr_lamKaf = point(186m, 1249m)};
+gGafMedHd_alt = glyphid(524);
+gGafMedHgF = glyphid(525) {entr_lamKaf = point(531m, 759m); n1LowerS = point(148m, -157m); nUpperS = point(461m, 2101m)};
+gGafMedHgM_alt = glyphid(526);
+gGafMedJm_alt = glyphid(527);
+gGafMedKfX = glyphid(528) {entr_lamKaf = point(537m, 1372m); n1LowerS = point(241m, 552m); exit_kafAlt = point(0m, 1066m); nUpperS = point(481m, 2674m)};
+gGafMedMm = glyphid(529) {nUpperS = point(227m, 2942m); entr_lamKaf = point(283m, 1595m); n1LowerS = point(264m, 672m)};
+gGafMedMm_alt = glyphid(530);
+gGafMedMmX = glyphid(531) {nUpperS = point(380m, 2600m); exit_meemAlt = point(0m, 349m); n1LowerS = point(375m, 439m); entr_lamKaf = point(440m, 1291m)};
+gGafMedNn = glyphid(532) {entr_lamKaf = point(464m, 1591m); n1LowerS = point(249m, 616m); nUpperS = point(409m, 2953m)};
+gGafMedQf = glyphid(533) {n1LowerS = point(185m, 138m); entr_lamKaf = point(334m, 1183m); nUpperS = point(288m, 2529m)};
+gGafMedRe = glyphid(534) {entr_lamKaf = point(496m, 1154m); n1LowerS = point(369m, 240m); nUpperS = point(429m, 2553m); exit_rehJkl = point(0m, 300m)};
+gGafMedSd = glyphid(535) {n1LowerS = point(580m, 630m); entr_lamKaf = point(923m, 1594m); nUpperS = point(862m, 2956m)};
+gGafMedSd_alt = glyphid(536);
+gGafMedDk = glyphid(537) {n1LowerS = point(152m, -200m); entr_lamKaf = point(507m, 758m); exit_lamKaf = point(0m, 624m); nUpperS = point(444m, 2068m)};
+gGafMedSn = glyphid(538) {entr_lamKaf = point(252m, 1531m); exit_seen = point(0m, 1055m); n1LowerS = point(116m, 827m); nUpperS = point(196m, 2904m)};
+gGafMedSn_alt = glyphid(539) {n1LowerS = point(193m, 884m); exit_seen = point(0m, 1052m); entr_kafAlt = point(258m, 1435m); nUpperS = point(-99m, 2215m)};
+gGafMedTaF = glyphid(540) {nUpperS = point(986m, 2283m); n1LowerS = point(719m, -111m); entr_lamKaf = point(1052m, 912m)};
+gGafMedTaM_alt = glyphid(541);
+gMeem = glyphid(542);
+gMeemFin = glyphid(543);
+gMeemIni = glyphid(544) {exit_lamKaf = point(11m, 627m); n1LowerS = point(160m, -235m); nUpperS = point(324m, 700m)};
+gMeemIniAi = glyphid(545);
+gMeemIniBe = glyphid(546) {exit_beh = point(0m, 1275m)};
+gMeemIniBeF = glyphid(547) {exit_behFinal = point(0m, 321m)};
+gMeemIniBeHg = glyphid(548) {nUpperS = point(684m, 1051m); exit_behLowTooth = point(0m, 323m); n1LowerS = point(661m, 262m)};
+gMeemIniBeM1 = glyphid(549) {exit_behLowTooth = point(0m, 583m)};
+gMeemIniBeM2 = glyphid(550) {exit_behHighTooth = point(0m, 438m)};
+gMeemIniBeNn = glyphid(551) {n1LowerS = point(110m, 549m); nUpperS = point(236m, 1516m); exit_behPreNoon = point(0m, 1477m)};
+gMeemIniBeRe = glyphid(552) {exit_behPreReh = point(9m, 509m)};
+gMeemIniBy = glyphid(553);
+gMeemIniCh = glyphid(554);
+gMeemIniFe = glyphid(555);
+gMeemIniHd = glyphid(556);
+gMeemIniHgF = glyphid(557);
+gMeemIniHgM = glyphid(558);
+gMeemIniJm = glyphid(559) {exit_jeem = point(-61m, 965m)};
+gMeemIniKfX = glyphid(560);
+gMeemIniMm = glyphid(561);
+gMeemIniMmX = glyphid(562);
+gMeemIniNn = glyphid(563);
+gMeemIniQf = glyphid(564);
+gMeemIniRe = glyphid(565) {exit_reh = point(-2m, 334m)};
+gMeemIniSd = glyphid(566) {nUpperS = point(1096m, 1889m); n1LowerS = point(1075m, 1140m); exit_sad = point(0m, 691m)};
+gMeemIniSn = glyphid(567) {nUpperS = point(283m, 1728m); n1LowerS = point(283m, 896m); exit_seen = point(0m, 1056m)};
+gMeemIniTaF = glyphid(568);
+gMeemIniTaM = glyphid(569) {mUpperS = point(714m, 1425m); exit_tah = point(-440m, 276m)};
+gMeemMed = glyphid(570) {exit_lamKaf = point(0m, 608m); n1LowerS = point(162m, -227m); nUpperS = point(590m, 802m)};
+gMeemMed_alt = glyphid(571) {n1LowerS = point(139m, -200m); exit_lamKaf = point(0m, 627m); nUpperS = point(89m, 843m); entr_meemAlt = point(198m, 419m)};
+gMeemMedAi = glyphid(572);
+gMeemMedBe = glyphid(573) {exit_beh = point(0m, 1275m)};
+gMeemMedBeF = glyphid(574) {exit_behFinal = point(0m, 321m)};
+gMeemMedBeHg = glyphid(575) {n1LowerS = point(245m, -50m); exit_behLowTooth = point(0m, 311m); nUpperS = point(621m, 964m)};
+gMeemMedBeM1 = glyphid(576) {exit_behLowTooth = point(0m, 583m)};
+gMeemMedBeM2 = glyphid(577) {exit_behHighTooth = point(0m, 438m)};
+gMeemMedBeNn = glyphid(578) {exit_behPreNoon = point(0m, 1304m); nUpperS = point(331m, 1352m); n1LowerS = point(134m, 375m)};
+gMeemMedBeNn_alt = glyphid(579) {nUpperS = point(51m, 1489m); exit_behPreNoon = point(0m, 1327m); entr_meemAlt = point(185m, 1017m); n1LowerS = point(151m, 402m)};
+gMeemMedBeRe = glyphid(580) {exit_behPreReh = point(0m, 518m)};
+gMeemMedBy = glyphid(581);
+gMeemMedCh = glyphid(582);
+gMeemMedFe = glyphid(583);
+gMeemMedHd = glyphid(584);
+gMeemMedHgF = glyphid(585);
+gMeemMedHgM = glyphid(586);
+gMeemMedJm = glyphid(587) {exit_jeem = point(-61m, 965m)};
+gMeemMedKfX = glyphid(588);
+gMeemMedMm = glyphid(589);
+gMeemMedMmX = glyphid(590) {exit_meemAlt = point(0m, 344m)};
+gMeemMedNn = glyphid(591);
+gMeemMedQf = glyphid(592);
+gMeemMedRe = glyphid(593) {exit_reh = point(0m, 340m)};
+gMeemMedSd = glyphid(594);
+gMeemMedSn = glyphid(595) {n1LowerS = point(338m, 976m); exit_seen = point(0m, 1042m); nUpperS = point(370m, 1774m)};
+gMeemMedTaF = glyphid(596);
+gMeemMedTaM = glyphid(597);
+gArabicHamza = glyphid(598);
+gHamzaAbove = glyphid(599);
+gHamzaBelow = glyphid(600);
+gHeh = glyphid(601);
+gHehDo = glyphid(602);
+gHehDoFin = glyphid(603);
+gHehDoIni = glyphid(604) {nUpperS = point(434m, 987m); exit_lamKaf = point(0m, 623m); n1LowerS = point(219m, -210m)};
+gHehDoIniAi = glyphid(605);
+gHehDoIniBe = glyphid(606) {exit_beh = point(0m, 1275m)};
+gHehDoIniBeF = glyphid(607) {exit_behFinal = point(0m, 351m)};
+gDal = glyphid(608) {mUpperS = point(322m, 1010m); mLowerS = point(181m, -193m)};
+gDalFin = glyphid(609) {mUpperS = point(685m, 923m); nUpperS = point(303m, 645m); mLowerS = point(355m, -305m); tahUpperS = point(594m, 864m); n1LowerS = point(353m, -220m); entr_lamKaf = point(692m, 606m)};
+gDalFourDotsAbove = glyphid(610);
+gDalRing = glyphid(611);
+gDalTwoVertBelowSmallTah = glyphid(612);
+gThal = glyphid(613) {mUpperS = point(303m, 1671m); mLowerS = point(143m, -202m)};
+gThalFin = glyphid(614) {entr_lamKaf = point(682m, 427m); mLowerS = point(355m, -305m); mUpperS = point(478m, 1273m)};
+gDdal = glyphid(615);
+gDdalFin = glyphid(616) {entr_lamKaf = point(682m, 427m); mLowerS = point(355m, -305m); mUpperS = point(358m, 525m)};
+gWaw = glyphid(617);
+gWawFin = glyphid(618) {mLowerS = point(141m, -215m); nUpperS = point(280m, 973m); invVS = point(188m, -201m); mUpperS = point(303m, 954m); entr_qafWaw = point(470m, 593m); hamzaUpperS = point(264m, 978m); n1LowerS = point(173m, -196m)};
+gWawFin_stfh = glyphid(619) {hamzaUpperS = point(494m, 1030m); n1LowerS = point(498m, -126m); nUpperS = point(496m, 1027m); entr_qafWawStfh = point(699m, 408m)};
+gWawHamzaAbove = glyphid(620);
+gReh = glyphid(621) {mUpperS = point(448m, 783m); mLowerS = point(382m, -212m)};
+gRehDotBelowDotAbove = glyphid(622);
+gRehFin = glyphid(623) {n1LowerS = point(73m, -418m); tahUpperS = point(-34m, 448m); entr_reh = point(363m, 443m); nUpperS = point(-53m, 423m)};
+gRehFin_hgM = glyphid(624) {tahUpperS = point(-34m, 448m); entr_rehHgM = point(470m, 633m); nUpperS = point(-53m, 423m); n1LowerS = point(219m, -364m)};
+gRehFin_jkl = glyphid(625) {n1LowerS = point(252m, -201m); entr_rehJkl = point(520m, 425m); nUpperS = point(219m, 390m); mLowerS = point(268m, -216m); tahUpperS = point(210m, 384m)};
+gRehFin_sshg = glyphid(626) {entr_rehSshg = point(363m, 443m); n1LowerS = point(73m, -418m); nUpperS = point(-53m, 423m); tahUpperS = point(-34m, 448m)};
+gRehFourDotsAbove = glyphid(627);
+gRehHamzaAbove = glyphid(628);
+gRehRing = glyphid(629);
+gRehSmallTahTwoDots = glyphid(630);
+gRehTwoDotsAbove = glyphid(631);
+gRehTwoVertAbove = glyphid(632);
+gZain = glyphid(633);
+gZainFin = glyphid(634) {entr_reh = point(363m, 363m)};
+gZainFin_hgM = glyphid(635) {entr_rehHgM = point(470m, 633m)};
+gZainFin_jkl = glyphid(636) {entr_rehJkl = point(520m, 330m)};
+gZainFin_sshg = glyphid(637) {entr_rehSshg = point(363m, 363m)};
+gRreh = glyphid(638);
+gRrehFin = glyphid(639) {entr_reh = point(363m, 443m)};
+gRrehFin_hgM = glyphid(640) {entr_rehHgM = point(470m, 633m)};
+gRrehFin_jkl = glyphid(641) {entr_rehJkl = point(520m, 330m)};
+gRrehFin_sshg = glyphid(642) {entr_rehSshg = point(363m, 443m)};
+gJeh = glyphid(643);
+gJehFin = glyphid(644) {entr_reh = point(365m, 439m)};
+gJehFin_hgM = glyphid(645) {entr_rehHgM = point(470m, 633m)};
+gJehFin_jkl = glyphid(646) {entr_rehJkl = point(520m, 330m)};
+gJehFin_sshg = glyphid(647) {entr_rehSshg = point(363m, 443m)};
+gHehDoIniBeHg = glyphid(648) {n1LowerS = point(466m, 23m); exit_behLowTooth = point(0m, 316m); nUpperS = point(454m, 1133m)};
+gHehDoIniBeM1 = glyphid(649) {exit_behLowTooth = point(0m, 583m)};
+gHehDoIniBeM2 = glyphid(650) {exit_behHighTooth = point(0m, 438m)};
+gHehDoIniBeNn = glyphid(651) {nUpperS = point(197m, 1496m); exit_behPreNoon = point(0m, 1281m); n1LowerS = point(185m, 355m)};
+gHehDoIniBeRe = glyphid(652) {exit_behPreReh = point(0m, 518m)};
+gHehDoIniBy = glyphid(653);
+gHehDoIniCh = glyphid(654);
+gHehDoIniFe = glyphid(655);
+gHehDoIniHd = glyphid(656);
+gHehDoIniHgF = glyphid(657);
+gHehDoIniHgM = glyphid(658);
+gHehDoIniJm = glyphid(659);
+gHehDoIniKfX = glyphid(660);
+gHehDoIniMm = glyphid(661);
+gHehDoIniMmX = glyphid(662);
+gHehDoIniNn = glyphid(663);
+gHehDoIniQf = glyphid(664);
+gHehDoIniRe = glyphid(665) {exit_reh = point(0m, 270m)};
+gHehDoIniSd = glyphid(666);
+gHehDoIniSn = glyphid(667) {nUpperS = point(229m, 1943m); n1LowerS = point(272m, 916m); exit_seen = point(0m, 1052m)};
+gHehDoIniTaF = glyphid(668);
+gHehDoIniTaM = glyphid(669);
+gHehDoMed = glyphid(670) {nUpperS = point(558m, 945m); exit_lamKaf = point(0m, 614m); n1LowerS = point(247m, -186m)};
+gHehDoMedAi = glyphid(671);
+gHehDoMedBe = glyphid(672) {exit_beh = point(0m, 1275m); entr_hehdoach = point(541m, 1588m)};
+gHehDoMedBeF = glyphid(673) {exit_behFinal = point(0m, 320m)};
+gHehDoMedBeHg = glyphid(674) {exit_behLowTooth = point(0m, 300m); n1LowerS = point(567m, 88m); nUpperS = point(650m, 1097m)};
+gHehDoMedBeM1 = glyphid(675) {exit_behLowTooth = point(0m, 583m)};
+gHehDoMedBeM2 = glyphid(676) {exit_behHighTooth = point(0m, 438m)};
+gHehDoMedBeNn = glyphid(677) {n1LowerS = point(222m, 408m); exit_behPreNoon = point(0m, 1309m); nUpperS = point(247m, 1502m)};
+gHehDoMedBeRe = glyphid(678) {entr_hehdoach = point(542m, 799m); exit_behPreReh = point(0m, 518m)};
+gHehDoMedBy = glyphid(679) {nUpperS = point(482m, 1330m); entr_hehdoach = point(932m, 1005m); n1LowerS = point(486m, 298m); exit_bariyeh = point(0m, 259m)};
+gTah = glyphid(680);
+gTahFin = glyphid(681);
+gTahIni = glyphid(682) {nUpperS = point(86m, 1054m); n1LowerS = point(275m, -250m); exit_lamKaf = point(0m, 599m)};
+gTahIniAi = glyphid(683);
+gTahIniBe = glyphid(684) {exit_beh = point(0m, 1275m)};
+gTahIniBeF = glyphid(685) {exit_behFinal = point(0m, 299m)};
+gTahIniBeHg = glyphid(686) {n1LowerS = point(255m, 17m); exit_behLowTooth = point(0m, 380m); nUpperS = point(355m, 1925m)};
+gTahIniBeM1 = glyphid(687) {exit_behLowTooth = point(0m, 583m)};
+gTahIniBeM2 = glyphid(688) {exit_behHighTooth = point(0m, 438m)};
+gTahIniBeNn = glyphid(689) {nUpperS = point(28m, 1580m); exit_behPreNoon = point(0m, 1301m); n1LowerS = point(247m, 375m)};
+gTahIniBeRe = glyphid(690) {exit_behPreReh = point(0m, 518m)};
+gTahIniBy = glyphid(691);
+gTahIniCh = glyphid(692);
+gTahIniFe = glyphid(693);
+gTahIniHd = glyphid(694);
+gTahIniHgF = glyphid(695);
+gTahIniHgM = glyphid(696);
+gTahIniJm = glyphid(697) {exit_jeem = point(-62m, 873m)};
+gTahIniKfX = glyphid(698);
+gTahIniMm = glyphid(699);
+gTahIniMmX = glyphid(700);
+gTahIniNn = glyphid(701);
+gTahIniQf = glyphid(702);
+gTahIniRe = glyphid(703) {exit_reh = point(0m, 346m)};
+gTahIniSd = glyphid(704);
+gTahIniSn = glyphid(705) {n1LowerS = point(395m, 952m); exit_seen = point(0m, 1052m); nUpperS = point(246m, 2702m)};
+gTahIniTaF = glyphid(706);
+gTahIniTaM = glyphid(707);
+gTahMed = glyphid(708) {exit_lamKaf = point(0m, 482m); n1LowerS = point(237m, -256m); entr_tah = point(294m, -59m); nUpperS = point(744m, 973m)};
+gTahMedAi = glyphid(709);
+gTahMedBe = glyphid(710) {exit_beh = point(0m, 1275m)};
+gTahMedBeF = glyphid(711) {exit_behFinal = point(0m, 299m)};
+gTahMedBeHg = glyphid(712) {nUpperS = point(-21m, 1083m); n1LowerS = point(263m, -59m); exit_behLowTooth = point(0m, 305m)};
+gTahMedBeM1 = glyphid(713) {exit_behLowTooth = point(0m, 583m)};
+gTahMedBeM2 = glyphid(714) {exit_behHighTooth = point(0m, 438m)};
+gTahMedBeNn = glyphid(715) {exit_behPreNoon = point(0m, 1342m); nUpperS = point(21m, 1645m); n1LowerS = point(270m, 421m)};
+gTahMedBeRe = glyphid(716) {exit_behPreReh = point(0m, 518m)};
+gTahMedBy = glyphid(717);
+gTahMedCh = glyphid(718);
+gTahMedFe = glyphid(719);
+gTahMedHd = glyphid(720);
+gTahMedHgF = glyphid(721);
+gTahMedHgM = glyphid(722);
+gTahMedJm = glyphid(723) {exit_jeem = point(-62m, 873m)};
+gTahMedKfX = glyphid(724);
+gTahMedMm = glyphid(725);
+gTahMedMmX = glyphid(726);
+gTahMedNn = glyphid(727);
+gTahMedQf = glyphid(728);
+gTahMedRe = glyphid(729) {exit_reh = point(0m, 346m)};
+gTahMedSd = glyphid(730);
+gTahMedSn = glyphid(731) {nUpperS = point(246m, 2702m); exit_seen = point(0m, 1052m); n1LowerS = point(395m, 952m)};
+gTahMedTaF = glyphid(732);
+gTahMedTaM = glyphid(733);
+gZah = glyphid(734);
+gZahFin = glyphid(735);
+gHehDoMedCh = glyphid(736);
+gHehDoMedFe = glyphid(737);
+gHehDoMedHd = glyphid(738);
+gHehDoMedHgF = glyphid(739);
+gHehDoMedHgM = glyphid(740);
+gHehDoMedJm = glyphid(741) {exit_jeem = point(-59m, 948m)};
+gHehDoMedKfX = glyphid(742);
+gHehDoMedMm = glyphid(743);
+gHehDoMedMmX = glyphid(744);
+gHehDoMedNn = glyphid(745);
+gHehDoMedQf = glyphid(746);
+gHehDoMedRe = glyphid(747) {exit_reh = point(0m, 403m)};
+gHehDoMedSd = glyphid(748);
+gHehDoMedSn = glyphid(749) {nUpperS = point(453m, 1868m); n1LowerS = point(441m, 875m); exit_seen = point(0m, 1052m)};
+gHehDoMedTaF = glyphid(750);
+gHehDoMedTaM = glyphid(751);
+gHehFin = glyphid(752);
+gHehGoal = glyphid(753);
+gHehGoalFin = glyphid(754) {entr_hehgoalFinal = point(408m, 255m)};
+gHehGoalFin_stfh = glyphid(755) {entr_hehGoalFinalStfh = point(549m, 255m)};
+gHehGoalHamza = glyphid(756);
+gHehGoalHamzaFin = glyphid(757);
+gHehGoalHamzaFin_stfh = glyphid(758);
+gHehGoalIniAi = glyphid(759);
+gHehGoalIniBe = glyphid(760) {nUpperS = point(385m, 1640m); n1LowerS = point(484m, 1032m); exit_beh = point(0m, 1275m); hehhookS = point(484m, 680m)};
+gHehGoalIniBeF = glyphid(761) {exit_behFinal = point(0m, 325m)};
+gHehGoalIniBeHg = glyphid(762) {n1LowerS = point(557m, 142m); exit_behLowTooth = point(0m, 326m); nUpperS = point(580m, 794m)};
+gHehGoalIniBeM1 = glyphid(763) {hehhookS = point(230m, -160m); exit_behLowTooth = point(0m, 583m); n1LowerS = point(230m, 235m); nUpperS = point(385m, 1173m)};
+gHehGoalIniBeM2 = glyphid(764) {exit_behHighTooth = point(0m, 438m)};
+gHehGoalIniBeNn = glyphid(765) {hehhookS = point(148m, 44m); n1LowerS = point(110m, 549m); nUpperS = point(236m, 1516m); exit_behPreNoon = point(0m, 1477m)};
+gHehGoalIniBeRe = glyphid(766) {exit_behPreReh = point(0m, 518m)};
+gHehGoalIniBy = glyphid(767);
+gHehGoalIniCh = glyphid(768);
+gHehGoalIniFe = glyphid(769);
+gHehGoalIniHd = glyphid(770);
+gHehGoalIniHgF = glyphid(771);
+gHehGoalIniHgM = glyphid(772);
+gHehGoalIniJm = glyphid(773) {exit_jeem = point(-9m, 989m)};
+gHehGoalIniKfX = glyphid(774);
+gHehGoalIniMm = glyphid(775);
+gHehGoalIniMmX = glyphid(776);
+gHehGoalIniNn = glyphid(777);
+gHehGoalIniQf = glyphid(778) {nUpperS = point(295m, 1144m); exit_qafWaw = point(0m, 649m); hehhookS = point(337m, 238m)};
+gHehGoalIniRe = glyphid(779) {exit_rehSshg = point(0m, 411m)};
+gHehGoalIniSd = glyphid(780);
+gHehGoalIniSn = glyphid(781) {nUpperS = point(304m, 1471m); n1LowerS = point(391m, 872m); exit_seen = point(0m, 1052m); hehhookS = point(393m, 547m)};
+gHehGoalIniTaF = glyphid(782);
+gHehGoalIniTaM = glyphid(783);
+gHehGoalMed = glyphid(784) {nUpperS = point(440m, 528m); entr_hehgoalMedial = point(693m, 48m); n1LowerS = point(144m, -290m); exit_lamKaf = point(0m, 340m); hehhookS = point(143m, -635m)};
+gHehGoalMedAi = glyphid(785);
+gHehGoalMedBe = glyphid(786) {exit_beh = point(0m, 1275m)};
+gHehGoalMedBeF = glyphid(787) {exit_behFinal = point(0m, 320m)};
+gHehGoalMedBeHg = glyphid(788) {exit_behLowTooth = point(0m, 309m); n1LowerS = point(487m, 100m); nUpperS = point(273m, 619m)};
+gHehGoalMedBeM1 = glyphid(789) {exit_behLowTooth = point(0m, 583m)};
+gHehGoalMedBeM2 = glyphid(790) {exit_behHighTooth = point(0m, 438m)};
+gHehGoalMedBeNn = glyphid(791) {nUpperS = point(348m, 1265m); exit_behPreNoon = point(0m, 1359m); entr_hehgoalMedial = point(669m, 710m); n1LowerS = point(149m, 430m)};
+gHehGoalMedBeRe = glyphid(792) {exit_behPreReh = point(0m, 518m)};
+gHehGoalMedBy = glyphid(793);
+gHehGoalMedCh = glyphid(794);
+gHehGoalMedFe = glyphid(795);
+gHehGoalMedHd = glyphid(796);
+gHehGoalMedHgF = glyphid(797);
+gHehGoalMedHgM = glyphid(798);
+gHehGoalMedJm = glyphid(799) {exit_jeem = point(-65m, 912m)};
+gHehGoalMedKfX = glyphid(800);
+gHehGoalMedMm = glyphid(801);
+gHehGoalMedMmX = glyphid(802);
+gHehGoalMedNn = glyphid(803);
+gHehGoalMedQf = glyphid(804);
+gHehGoalMedRe = glyphid(805) {exit_rehHgM = point(0m, 592m)};
+gHehGoalMedSd = glyphid(806);
+gHehGoalMedSn = glyphid(807) {hehhookS = point(229m, 429m); n1LowerS = point(206m, 820m); exit_seen = point(0m, 1052m); nUpperS = point(335m, 1451m)};
+gHehGoalMedTaF = glyphid(808);
+gHehGoalMedTaM = glyphid(809);
+gTehMarbuta = glyphid(810);
+gTehMarbutaGoal = glyphid(811);
+gTehMarbutaGoalFin = glyphid(812);
+gTehMarbutaGoalFin_stfh = glyphid(813);
+gHehYehAbove = glyphid(814);
+gHighHamzaAlef = glyphid(815);
+gKashmiriYeh = glyphid(816);
+gKashmiriYehFin = glyphid(817);
+gKashmiriYehFin_bfkl = glyphid(818);
+gKaf = glyphid(819);
+gKafIniKf = glyphid(820);
+gKafIni = glyphid(821) {exit_lamKaf = point(0m, 576m); n1LowerS = point(214m, -280m); nUpperS = point(229m, 1354m)};
+gKafIniAi = glyphid(822);
+gKafIniAi_alt = glyphid(823);
+gKafIniBe_alt = glyphid(824);
+gKafIniBeHg_alt = glyphid(825);
+gKafIniBeM1_alt = glyphid(826) {n1LowerS = point(268m, 229m); exit_behLowTooth = point(-31m, 572m); nUpperS = point(298m, 1611m)};
+gKafIniBeM2 = glyphid(827) {exit_behHighTooth = point(0m, 456m); n1LowerS = point(207m, 155m); nUpperS = point(388m, 1997m)};
+gKafIniBeM2_alt = glyphid(828) {mUpperS = point(312m, 1577m); exit_behHighTooth = point(0m, 438m)};
+gKafIniBeNn_alt = glyphid(829) {nUpperS = point(83m, 1628m); exit_behPreNoon = point(0m, 1336m); n1LowerS = point(178m, 400m)};
+gKafIniBeRe_alt = glyphid(830);
+gKafIniBy = glyphid(831);
+gKafIniCh = glyphid(832);
+gKafIniFe = glyphid(833);
+gKafIniFe_alt = glyphid(834);
+gKafIniHd = glyphid(835);
+gKafIniHd_alt = glyphid(836);
+gKafIniHgF = glyphid(837) {exit_hehgoalFinal = point(0m, 255m)};
+gKafIniHgM_alt = glyphid(838);
+gKafIniJm = glyphid(839) {exit_jeem = point(-61m, 914m)};
+gKafIniJm_alt = glyphid(840);
+gKafIniKfX_alt = glyphid(841);
+gKafIniLm = glyphid(842) {nUpperS = point(185m, 2032m); n1LowerS = point(130m, 700m); exit_lamKaf = point(8m, 1317m)};
+gKafIniMm = glyphid(843);
+gKafIniMm_alt = glyphid(844);
+gKafIniMmX_alt = glyphid(845);
+gKafIniNn = glyphid(846);
+gKafIniQf = glyphid(847);
+gKafIniRe = glyphid(848) {exit_rehJkl = point(0m, 322m)};
+gKafIniSd = glyphid(849);
+gKafIniSd_alt = glyphid(850);
+gKafIniDk = glyphid(851) {exit_lamKaf = point(0m, 624m); n1LowerS = point(152m, -200m); nUpperS = point(444m, 1718m)};
+gKafIniSn = glyphid(852) {nUpperS = point(177m, 2443m); n1LowerS = point(193m, 822m); exit_seen = point(0m, 1052m)};
+gKafIniSn_alt = glyphid(853) {exit_seen = point(0m, 1052m); n1LowerS = point(193m, 884m); nUpperS = point(-96m, 1948m)};
+gKafIniTaF = glyphid(854);
+gKafIniTaF_alt = glyphid(855);
+gKafIniTaM = glyphid(856) {exit_tah = point(0m, 284m)};
+gKafIniTaM_alt = glyphid(857);
+gKafMedAi = glyphid(858) {entr_lamKaf = point(583m, 1536m); n1LowerS = point(159m, 501m); nUpperS = point(529m, 2485m)};
+gKafMedAi_alt = glyphid(859);
+gKafMedBe_alt = glyphid(860);
+gKafMedBeF = glyphid(861) {exit_behFinal = point(0m, 321m); entr_lamKaf = point(636m, 964m); n1LowerS = point(343m, 103m); nUpperS = point(623m, 1896m)};
+gKafMedBeF_alt = glyphid(862) {exit_behFinal = point(0m, 321m)};
+gKafMedBeHg = glyphid(863) {exit_behLowTooth = point(0m, 326m); entr_lamKaf = point(459m, 754m); n1LowerS = point(246m, -42m); nUpperS = point(395m, 1717m)};
+gKafMedBeM2 = glyphid(864) {exit_behHighTooth = point(0m, 438m); entr_lamKaf = point(447m, 944m); n1LowerS = point(212m, 160m); nUpperS = point(407m, 1902m)};
+gKafMedBeM2_alt = glyphid(865);
+gKafMedBeNn = glyphid(866) {n1LowerS = point(179m, 402m); entr_lamKaf = point(543m, 1307m); exit_behPreNoon = point(0m, 1336m); nUpperS = point(486m, 2265m)};
+gKafMedBeRe_alt = glyphid(867) {n1LowerS = point(28m, -148m); entr_lamKaf = point(413m, 759m); nUpperS = point(349m, 1717m); exit_behPreReh = point(0m, 324m)};
+gKafMedBeM1_alt = glyphid(868);
+gKafMedBy = glyphid(869) {n1LowerS = point(461m, 304m); entr_lamKaf = point(811m, 1053m); nUpperS = point(752m, 2012m)};
+gKafMedCh = glyphid(870) {nUpperS = point(172m, 2452m); entr_lamKaf = point(233m, 1494m); n1LowerS = point(217m, 583m)};
+gKafMedFe = glyphid(871) {n1LowerS = point(11m, 49m); entr_lamKaf = point(288m, 966m); nUpperS = point(224m, 1949m)};
+gKafMedFe_alt = glyphid(872);
+gKafMedHd = glyphid(873) {n1LowerS = point(280m, 350m); entr_lamKaf = point(186m, 1249m); nUpperS = point(122m, 2207m)};
+gKafMedHd_alt = glyphid(874);
+gKafMedHgF = glyphid(875) {nUpperS = point(461m, 1719m); exit_hehgoalFinal = point(0m, 334m); n1LowerS = point(148m, -157m); entr_lamKaf = point(531m, 759m)};
+gKafMedHgM_alt = glyphid(876);
+gKafMedJm = glyphid(877) {entr_lamKaf = point(808m, 1657m); n1LowerS = point(444m, 1008m); exit_jeem = point(0m, 944m); nUpperS = point(766m, 2517m)};
+gKafMedJm_alt = glyphid(878);
+gKafMedKfX = glyphid(879) {entr_lamKaf = point(537m, 1372m); n1LowerS = point(241m, 552m); exit_kafAlt = point(0m, 1066m); nUpperS = point(481m, 2330m)};
+gKafMedMm = glyphid(880) {n1LowerS = point(264m, 672m); entr_lamKaf = point(283m, 1595m); nUpperS = point(227m, 2607m)};
+gKafMedMm_alt = glyphid(881);
+gKafMedMmX = glyphid(882) {nUpperS = point(380m, 2249m); exit_meemAlt = point(0m, 349m); entr_lamKaf = point(440m, 1291m); n1LowerS = point(375m, 439m)};
+gKafMedNn = glyphid(883) {n1LowerS = point(249m, 616m); entr_lamKaf = point(464m, 1591m); nUpperS = point(409m, 2639m)};
+gKafMedQf = glyphid(884) {entr_lamKaf = point(334m, 1183m); n1LowerS = point(185m, 138m); nUpperS = point(288m, 2275m)};
+gKafMedRe = glyphid(885) {entr_lamKaf = point(496m, 1154m); n1LowerS = point(369m, 240m); exit_rehJkl = point(0m, 300m); nUpperS = point(428m, 2153m)};
+gKafMedSd = glyphid(886) {exit_sad = point(0m, 690m); entr_lamKaf = point(923m, 1594m); n1LowerS = point(580m, 630m); nUpperS = point(862m, 2579m)};
+gKafMedSd_alt = glyphid(887);
+gKafMedDk = glyphid(888) {nUpperS = point(444m, 1718m); entr_lamKaf = point(507m, 758m); n1LowerS = point(152m, -200m); exit_lamKaf = point(0m, 624m)};
+gKafMedSn = glyphid(889) {entr_lamKaf = point(252m, 1531m); exit_seen = point(0m, 1055m); n1LowerS = point(116m, 827m); nUpperS = point(196m, 2554m)};
+gKafMedSn_alt = glyphid(890) {exit_seen = point(0m, 1052m); n1LowerS = point(193m, 884m); nUpperS = point(-96m, 1948m)};
+gKafMedTaF = glyphid(891) {n1LowerS = point(719m, -111m); entr_lamKaf = point(1052m, 912m); nUpperS = point(986m, 1893m)};
+gKafMedTaM_alt = glyphid(892);
+gGafMedJm = glyphid(893) {exit_jeem = point(-61m, 944m); nUpperS = point(696m, 2909m); entr_lamKaf = point(748m, 1656m); n1LowerS = point(588m, 1133m)};
+gKirghizOe = glyphid(894);
+gLigatureAllah = glyphid(895);
+gLigatureB_smallah = glyphid(896);
+gLigatureJallah = glyphid(897);
+gLigatureMuhammad = glyphid(898);
+gLigatureSallallahu = glyphid(899);
+gMaddaAbove = glyphid(900);
+gMaddaAboveLarge = glyphid(901);
+gMisraSign = glyphid(902);
+gNameMarker = glyphid(903) {mUpperM = point(-50m, -161m)};
+gNyeh = glyphid(904);
+gOe = glyphid(905);
+gSadIniHgM = glyphid(906);
+gSemicolon = glyphid(907);
+gShadda = glyphid(908) {mUpperM = point(9m, -161m)};
+gShortVowelMark = glyphid(909);
+gSmallHighAinMark = glyphid(910);
+gSmallHighRehDadMark = glyphid(911);
+gSmallHighRehHahMark = glyphid(912);
+gSmallHighSadMark = glyphid(913);
+gSmallHighTah = glyphid(914);
+gTehRing = glyphid(915);
+gTehThreeDotsAboveDownwards = glyphid(916);
+gThousandsSeparator = glyphid(917);
+gU = glyphid(918);
+gUltaPesh = glyphid(919);
+gVerseSign = glyphid(920);
+gVowelInvSmallV = glyphid(921);
+gVowelSmallV = glyphid(922);
+gWavyHamzaBelow = glyphid(923);
+gWawHamzaFin = glyphid(924);
+gWawHamzaAboveFin_stfh = glyphid(925);
+gWawRing = glyphid(926);
+gYearSign = glyphid(927);
+gYeh = glyphid(928);
+gYehHamzaAbove = glyphid(929);
+gYehHamzaAboveFin = glyphid(930);
+gYehTail = glyphid(931);
+gYehTailFin = glyphid(932);
+gYehTailFin_bfkl = glyphid(933);
+gDopesh = glyphid(934);
+gDozabar = glyphid(935);
+gDozair = glyphid(936);
+gHamza2 = glyphid(937);
+gJazm = glyphid(938);
+gKharizabar = glyphid(939);
+gKharizair = glyphid(940);
+gPesh = glyphid(941) {mUpperM = point(180m, 1m)};
+gZabar = glyphid(942) {mUpperM = point(157m, 0m)};
+g_ornateLeftParen = glyphid(943);
+g_ornateRightParen = glyphid(944);
+gNumberSign = glyphid(945);
+gQuestionMark = glyphid(946);
+gPageSign = glyphid(947);
+gDateSeparator = glyphid(948);
+gPercentSign = glyphid(949);
+g_wordBaghshish = glyphid(950);
+g_wordBebeo = glyphid(951);
+g_wordChamcho = glyphid(952);
+g_wordChapchapa = glyphid(953);
+g_wordChatakhna = glyphid(954);
+g_wordChatakhneo = glyphid(955);
+g_wordChataktein = glyphid(956);
+g_wordChatneo = glyphid(957);
+g_wordCheshteo = glyphid(958);
+g_wordChesteya = glyphid(959);
+g_wordChetakhnea = glyphid(960);
+g_wordJallah = glyphid(961);
+g_wordArabicKafnass = glyphid(962);
+g_wordKhankna = glyphid(963);
+g_wordLashqa = glyphid(964);
+g_wordMaftesh = glyphid(965);
+g_wordNastaleeq = glyphid(966);
+g_wordPapeha = glyphid(967);
+g_wordPapehay = glyphid(968);
+g_wordPapeho = glyphid(969);
+g_wordPecheed = glyphid(970);
+g_wordPtahkhta = glyphid(971);
+g_wordPtakhten = glyphid(972);
+g_wordPucktagi = glyphid(973);
+g_wordRahmatullah = glyphid(974);
+g_wordRaziAllah = glyphid(975);
+g_wordSepeo = glyphid(976);
+g_wordSubuctey = glyphid(977);
+g_wordTakta = glyphid(978);
+g__attachedRing = glyphid(979);
+g__bar = glyphid(980);
+g__beh = glyphid(981);
+g__nukta = glyphid(982);
+g__nukta2 = glyphid(983);
+g__nukta3 = glyphid(984);
+g__nukta3inv = glyphid(985);
+g__dot1l = glyphid(986) {mLowerS = point(0m, -360m); n1LowerM = point(0m, 200m)};
+g__dot1u = glyphid(987) {mUpperS = point(0m, 360m); nUpperM = point(0m, -178m)};
+g__dot1l_dot1u = glyphid(988);
+g__dot1u_smallTah = glyphid(989) {nUpperM = point(0m, -178m); mUpperS = point(0m, 360m)};
+g__dot1u_smallV = glyphid(990);
+g__dot2l = glyphid(991) {mLowerS = point(0m, -360m); n23LowerM = point(0m, 190m)};
+g__dot2l_smallTah = glyphid(992);
+g__dot2u = glyphid(993) {nUpperM = point(0m, -187m); mUpperS = point(0m, 369m)};
+g__dot2vl = glyphid(994) {n1LowerM = point(0m, 381m)};
+g__dot3l = glyphid(995) {mLowerS = point(12m, -515m); n23LowerM = point(0m, 340m)};
+g__dot3u = glyphid(996) {mUpperS = point(0m, 510m); nUpperM = point(0m, -334m)};
+g__dot3u_small = glyphid(997);
+g__dot4u = glyphid(998);
+g__hehHook_big = glyphid(999);
+g__hehHook_small = glyphid(1000) {hehhookM = point(126m, 91m)};
+g__kafSquiggle = glyphid(1001);
+g__ring = glyphid(1002);
+g__smallTah = glyphid(1003) {tahUpperM = point(347m, -206m); tahLowerM = point(350m, 430m)};
+g__dot2vl_smallTah = glyphid(1004) {nUpplerM = point(0m, -361m)};
+g__tah = glyphid(1005);
+g__hamza = glyphid(1006) {hamzaUpperM = point(287m, 1170m); nUpperM = point(282m, 1195m)};
+gAlefFin = glyphid(1007) {mUpperS = point(208m, 1479m); nUpperS = point(242m, 1578m); mLowerS = point(308m, -343m); n1LowerS = point(321m, -319m); entr_lamKaf = point(272m, 564m)};
+g_Agrave = glyphid(1008);
+g_tab = glyphid(1009);
+g_exclam = glyphid(1010);
+g_exclamArab = glyphid(1011);
+g_quotedbl = glyphid(1012);
+g_numbersign = glyphid(1013);
+g_dollar = glyphid(1014);
+g_percent = glyphid(1015);
+g_ampersand = glyphid(1016);
+g_quotesingle = glyphid(1017);
+g_parenleft = glyphid(1018);
+g_parenright = glyphid(1019);
+g_parenleftArab = glyphid(1020);
+g_parenrightArab = glyphid(1021);
+g_asterisk = glyphid(1022);
+g_asteriskArab = glyphid(1023);
+g_plus = glyphid(1024);
+g_comma = glyphid(1025);
+g_hyphenminus = glyphid(1026);
+g_period = glyphid(1027);
+g_slash = glyphid(1028);
+g_zero = glyphid(1029);
+g_one = glyphid(1030);
+g_two = glyphid(1031);
+g_three = glyphid(1032);
+g_four = glyphid(1033);
+g_five = glyphid(1034);
+g_six = glyphid(1035);
+g_seven = glyphid(1036);
+g_eight = glyphid(1037);
+g_nine = glyphid(1038);
+g_colon = glyphid(1039);
+g_colonArab = glyphid(1040);
+g_semicolon = glyphid(1041);
+g_less = glyphid(1042);
+g_equal = glyphid(1043);
+g_greater = glyphid(1044);
+g_question = glyphid(1045);
+g_at = glyphid(1046);
+g_A = glyphid(1047);
+g_B = glyphid(1048);
+g_C = glyphid(1049);
+g_D = glyphid(1050);
+g_E = glyphid(1051);
+g_F = glyphid(1052);
+g_G = glyphid(1053);
+g_H = glyphid(1054);
+g_I = glyphid(1055);
+g_J = glyphid(1056);
+g_K = glyphid(1057);
+g_L = glyphid(1058);
+g_M = glyphid(1059);
+g_N = glyphid(1060);
+g_O = glyphid(1061);
+g_P = glyphid(1062);
+g_Q = glyphid(1063);
+g_R = glyphid(1064);
+g_S = glyphid(1065);
+g_T = glyphid(1066);
+g_U = glyphid(1067);
+g_V = glyphid(1068);
+g_W = glyphid(1069);
+g_X = glyphid(1070);
+g_Y = glyphid(1071);
+g_Z = glyphid(1072);
+g_bracketleft = glyphid(1073);
+g_backslash = glyphid(1074);
+g_bracketright = glyphid(1075);
+g_asciicircum = glyphid(1076);
+g_underscore = glyphid(1077);
+g_grave = glyphid(1078);
+g_a = glyphid(1079);
+g_b = glyphid(1080);
+g_c = glyphid(1081);
+g_d = glyphid(1082);
+g_e = glyphid(1083);
+g_f = glyphid(1084);
+g_g = glyphid(1085);
+g_h = glyphid(1086);
+g_i = glyphid(1087);
+g_j = glyphid(1088);
+g_k = glyphid(1089);
+g_l = glyphid(1090);
+g_m = glyphid(1091);
+g_n = glyphid(1092);
+g_o = glyphid(1093);
+g_p = glyphid(1094);
+g_q = glyphid(1095);
+g_r = glyphid(1096);
+g_s = glyphid(1097);
+g_t = glyphid(1098);
+g_u = glyphid(1099);
+g_v = glyphid(1100);
+g_w = glyphid(1101);
+g_x = glyphid(1102);
+g_y = glyphid(1103);
+g_z = glyphid(1104);
+g_braceleft = glyphid(1105);
+g_bar = glyphid(1106);
+g_braceright = glyphid(1107);
+g_asciitilde = glyphid(1108);
+g_Euro = glyphid(1109);
+g_quotesinglbase = glyphid(1110);
+g_florin = glyphid(1111);
+g_quotedblbase = glyphid(1112);
+g_ellipsis = glyphid(1113);
+g_dagger = glyphid(1114);
+g_daggerdbl = glyphid(1115);
+g_circumflex = glyphid(1116);
+g_perthousand = glyphid(1117);
+g_Scaron = glyphid(1118);
+g_guilsinglleft = glyphid(1119);
+g_OE = glyphid(1120);
+g_Zcaron = glyphid(1121);
+g_caron = glyphid(1122);
+g_ring = glyphid(1123);
+g_quoteleft = glyphid(1124);
+g_quoteright = glyphid(1125);
+g_quotedblleft = glyphid(1126);
+g_quotedblright = glyphid(1127);
+g_quoteleftArab = glyphid(1128);
+g_quoterightArab = glyphid(1129);
+g_quotedblleftArab = glyphid(1130);
+g_quotedblrightArab = glyphid(1131);
+g_bullet = glyphid(1132);
+g_endash = glyphid(1133);
+g_emdash = glyphid(1134);
+g_tilde = glyphid(1135);
+g_trademark = glyphid(1136);
+g_scaron = glyphid(1137);
+g_guilsinglright = glyphid(1138);
+g_oe = glyphid(1139);
+g_zcaron = glyphid(1140);
+g_Ydieresis = glyphid(1141);
+g_nobreakspace = glyphid(1142);
+g_exclamdown = glyphid(1143);
+g_cent = glyphid(1144);
+g_sterling = glyphid(1145);
+g_currency = glyphid(1146);
+g_yen = glyphid(1147);
+g_brokenbar = glyphid(1148);
+g_section = glyphid(1149);
+g_dieresis = glyphid(1150);
+g_copyright = glyphid(1151);
+g_ordfeminine = glyphid(1152);
+g_guillemotleft = glyphid(1153);
+g_logicalnot = glyphid(1154);
+g_sfthyphen = glyphid(1155);
+g_registered = glyphid(1156);
+g_macron = glyphid(1157);
+g_modMacron = glyphid(1158);
+g_degree = glyphid(1159);
+g_plusminus = glyphid(1160);
+g_twosuperior = glyphid(1161);
+g_threesuperior = glyphid(1162);
+g_acute = glyphid(1163);
+g_micro = glyphid(1164);
+g_paragraph = glyphid(1165);
+g_periodcentered = glyphid(1166);
+g_bulletOperator = glyphid(1167);
+g_cedilla = glyphid(1168);
+g_onesuperior = glyphid(1169);
+g_ordmasculine = glyphid(1170);
+g_guillemotright = glyphid(1171);
+g_onequarter = glyphid(1172);
+g_onehalf = glyphid(1173);
+g_threequarters = glyphid(1174);
+g_questiondown = glyphid(1175);
+g_Aacute = glyphid(1176);
+g_Acircumflex = glyphid(1177);
+g_Atilde = glyphid(1178);
+g_Adieresis = glyphid(1179);
+g_Aring = glyphid(1180);
+g_AE = glyphid(1181);
+g_Ccedilla = glyphid(1182);
+g_Egrave = glyphid(1183);
+g_Eacute = glyphid(1184);
+g_Ecircumflex = glyphid(1185);
+g_Edieresis = glyphid(1186);
+g_Igrave = glyphid(1187);
+g_Iacute = glyphid(1188);
+g_Icircumflex = glyphid(1189);
+g_Idieresis = glyphid(1190);
+g_Eth = glyphid(1191);
+g_Ntilde = glyphid(1192);
+g_Ograve = glyphid(1193);
+g_Oacute = glyphid(1194);
+g_Ocircumflex = glyphid(1195);
+g_Otilde = glyphid(1196);
+g_Odieresis = glyphid(1197);
+g_multiply = glyphid(1198);
+g_Oslash = glyphid(1199);
+g_Ugrave = glyphid(1200);
+g_Uacute = glyphid(1201);
+g_Ucircumflex = glyphid(1202);
+g_Udieresis = glyphid(1203);
+g_Yacute = glyphid(1204);
+g_Thorn = glyphid(1205);
+g_germandbls = glyphid(1206);
+g_agrave = glyphid(1207);
+g_aacute = glyphid(1208);
+g_acircumflex = glyphid(1209);
+g_atilde = glyphid(1210);
+g_adieresis = glyphid(1211);
+g_aring = glyphid(1212);
+g_ae = glyphid(1213);
+g_ccedilla = glyphid(1214);
+g_egrave = glyphid(1215);
+g_eacute = glyphid(1216);
+g_ecircumflex = glyphid(1217);
+g_edieresis = glyphid(1218);
+g_igrave = glyphid(1219);
+g_iacute = glyphid(1220);
+g_icircumflex = glyphid(1221);
+g_idieresis = glyphid(1222);
+g_eth = glyphid(1223);
+g_ntilde = glyphid(1224);
+g_ograve = glyphid(1225);
+g_oacute = glyphid(1226);
+g_ocircumflex = glyphid(1227);
+g_otilde = glyphid(1228);
+g_odieresis = glyphid(1229);
+g_divide = glyphid(1230);
+g_oslash = glyphid(1231);
+g_ugrave = glyphid(1232);
+g_uacute = glyphid(1233);
+g_ucircumflex = glyphid(1234);
+g_udieresis = glyphid(1235);
+g_yacute = glyphid(1236);
+g_thorn = glyphid(1237);
+g_ydieresis = glyphid(1238);
+g_dotlessi = glyphid(1239);
+g_enQuad = glyphid(1240);
+g_emQuad = glyphid(1241);
+g_enSpace = glyphid(1242);
+g_emSpace = glyphid(1243);
+g_threePerEmSpace = glyphid(1244);
+g_fourPerEmSpace = glyphid(1245);
+g_sixPerEmSpace = glyphid(1246);
+g_figureSpace = glyphid(1247);
+g_punctuationSpace = glyphid(1248);
+g_thinSpace = glyphid(1249);
+g_hairSpace = glyphid(1250);
+g_zerospace = glyphid(1251);
+g_zeronojoin = glyphid(1252);
+g_zerojoin = glyphid(1253);
+g_leftToRightMark = glyphid(1254);
+g_rightToLeftMark = glyphid(1255);
+g_hyphen = glyphid(1256);
+g_noBreakHyphen = glyphid(1257);
+g_figureDash = glyphid(1258);
+g_horizontalBar = glyphid(1259);
+g_hyphenationPoint = glyphid(1260);
+g_lineSeparator = glyphid(1261);
+g_paragraphSeparator = glyphid(1262);
+g_leftToRightEmbedding = glyphid(1263);
+g_rightToLeftEmbedding = glyphid(1264);
+g_popDirectionalFormatting = glyphid(1265);
+g_leftToRightOverride = glyphid(1266);
+g_rightToLeftOverride = glyphid(1267);
+g_narrowNoBreakSpace = glyphid(1268);
+g_wordJoiner = glyphid(1269);
+g_inhibitArabicFormShaping = glyphid(1270);
+g_activateArabicFormShaping = glyphid(1271);
+g_leftToRightIsolate = glyphid(1272);
+g_rightToLeftIsolate = glyphid(1273);
+g_firstStrongIsolate = glyphid(1274);
+g_popDirectionalIsolate = glyphid(1275);
+g_minus = glyphid(1276);
+g_circledash = glyphid(1277);
+g_FontBslnSideBrngMrkrLft = glyphid(1278);
+g_FontBslnSideBrngMrkrRt = glyphid(1279);
+g_zeroWidthNoBreakSpace = glyphid(1280);
+gBehFin_bfkl = glyphid(1281) {entr_behHighTooth = point(2103m, 438m); n1LowerS = point(1104m, -335m); n23LowerS = point(1101m, -333m); nUpperS = point(1104m, 491m)};
+g__gafStroke = glyphid(1282);
+gComma = glyphid(1283);
+gAlef = glyphid(1284) {mUpperS = point(249m, 1849m); mLowerS = point(183m, -52m)};
+gSadIniNn = glyphid(1285);
+gSadMedBeM2 = glyphid(1286) {exit_behHighTooth = point(0m, 438m)};
+gFehMedTaF = glyphid(1287);
+gWawHamzaAboveFin = glyphid(1288);
+gLamAlefHamza = glyphid(1289);
+gGafIniJm = glyphid(1290) {exit_jeem = point(-61m, 914m)};
+gGafIniBeM2_alt = glyphid(1291) {nUpperS = point(113m, 1723m); n1LowerS = point(334m, 165m); exit_behHighTooth = point(0m, 438m)};
+gGafMed_short = glyphid(1292) {exit_lamKaf = point(0m, 621m); n1LowerS = point(181m, -200m); entr_lamKaf = point(508m, 636m); nUpperS = point(444m, 1732m)};
+g__smallTah2 = glyphid(1293);
+gGafIniBeM2_1 = glyphid(1294);
+gTchehehFin = glyphid(1295);
+gTchehehFin_bfkl = glyphid(1296);
+gDyehFin = glyphid(1297);
+gLamBarFin = glyphid(1298);
+gYehHamzaAboveFin_bfkl = glyphid(1299);
+gHahFin = glyphid(1300) {entr_jeem = point(235m, 912m)};
+g__behfin_bfkl = glyphid(1301);
+g__JeemFin = glyphid(1302);
+g__RehFin_sshg = glyphid(1303);
+gZair = glyphid(1304) {mLowerM = point(154m, 337m)};
+gHehGoalIni = glyphid(1305) {nUpperS = point(324m, 700m); n1LowerS = point(160m, -235m); exit_lamKaf = point(11m, 627m); hehhookS = point(176m, -616m)};
+gSadMed = glyphid(1306) {nUpperS = point(1063m, 981m); entr_sad = point(686m, 104m); exit_lamKaf = point(0m, 592m); n1LowerS = point(742m, -78m)};
+gGafFin = glyphid(1307) {n1LowerS = point(1087m, -366m); entr_lamKaf = point(2059m, 517m); mUpperS = point(2275m, 2076m); nUpperS = point(1086m, 447m); mLowerS = point(1104m, -390m)};
+g_kaf_exclude = glyphid(1308);
+g_kafBe_exclude = glyphid(1309);
+g_kafJm_exclude = glyphid(1310);
+g_kaf_alt_exclude = glyphid(1311);
+gThalDotBelow = glyphid(1312);
+gGueh = glyphid(1313);
+
+
+/*-----   Classes   -----*/
+
+/* Attachment points */
+
+c_entr_bariyeh = (gBariyehFin);
+
+c_entr_beh = (gBehMedAi, gBehMedBeF, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedHd, gBehMedHgM, gBehMedJm,
+    gBehMedKfX, gBehMedMm, gBehMedMmX, gBehMedQf, gBehMedSd, gBehMedTaM);
+
+c_entr_behFinal = (gBehFin, gTehFin, gThehFin, gPehFin, gTtehFin);
+
+c_entr_behHighTooth = (gBehMed, gBehMedBeM1, gBehMedBeNn, gBehMedHgF_be, gTehFin_bfkl, gBehFin_bfkl);
+
+c_entr_behLowTooth = (gBehMedBeF_ss, gBehMedAi_ss, gBehMedBe, gBehMedBeHg, gBehMedBeM2, gBehMedBeRe, gBehMedFe_ss, gBehMedQf_ss,
+    gBehMedSd_ss, gBehMedSn, gBehMedTaF_ss, gBehMedTaM_ss);
+
+c_entr_behPreFinalHehGoal = (gBehMedBeRe, gBehMedHgF);
+
+c_entr_behPreNoon = (gBehMedNn, gBehMedNn_hgbm);
+
+c_entr_behPreReh = (gBehMedRe);
+
+c_entr_chotiyeh = (gChotiyehFin);
+
+c_entr_chotiyehBfkl = (gChotiyehFin_bfkl);
+
+c_entr_feh = (gFehFin, gFehMedBeM1);
+
+c_entr_hehGoalFinalStfh = (gHehGoalFin_stfh);
+
+c_entr_hehdoach = (gHehDoMedBe, gHehDoMedBeRe, gHehDoMedBy);
+
+c_entr_hehgoalFinal = (gHehGoalFin);
+
+c_entr_hehgoalMedial = (gHehGoalMed, gHehGoalMedBeNn);
+
+c_entr_jeem = (gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe, gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2,
+    gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh, gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM,
+    gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX, gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd,
+    gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin, gTchehFin, gHahFin);
+
+c_entr_kafAlt = (gGafMedBe_alt, gGafMedBeF_alt, gGafMedBeM1_alt, gGafMedSn_alt);
+
+c_entr_lamKaf = (gLamFin, gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2,
+    gLamMedBeNn, gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM,
+    gLamMedJm, gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn,
+    gLamMedTaF, gLamMedTaM, gLamAlefFin, gKafFin, gGafMedAi, gGafMedBeF, gGafMedBeHg, gGafMedBeM2,
+    gGafMedBeNn, gGafMedBy, gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm,
+    gGafMedMmX, gGafMedNn, gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedTaF,
+    gDalFin, gThalFin, gDdalFin, gKafMedAi, gKafMedBeF, gKafMedBeHg, gKafMedBeM2, gKafMedBeNn,
+    gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd, gKafMedHgF, gKafMedJm, gKafMedKfX,
+    gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe, gKafMedSd, gKafMedDk, gKafMedSn,
+    gKafMedTaF, gGafMedJm, gAlefFin, gGafMed_short, gGafFin);
+
+c_entr_meemAlt = (gMeemMed_alt, gMeemMedBeNn_alt);
+
+c_entr_noon = (gNoonFin, gNoonGhunnaFin);
+
+c_entr_qafWaw = (gQafFin, gWawFin);
+
+c_entr_qafWawStfh = (gWawFin_stfh);
+
+c_entr_reh = (gRehFin, gZainFin, gRrehFin, gJehFin);
+
+c_entr_rehHgM = (gRehFin_hgM, gZainFin_hgM, gRrehFin_hgM, gJehFin_hgM);
+
+c_entr_rehJkl = (gRehFin_jkl, gZainFin_jkl, gRrehFin_jkl, gJehFin_jkl);
+
+c_entr_rehSshg = (gRehFin_sshg, gZainFin_sshg, gRrehFin_sshg, gJehFin_sshg);
+
+c_entr_sad = (gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy, gSadMedCh,
+    gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm, gSadMedMmX,
+    gSadMedNn, gKafMed, gGafMed, gSadMed);
+
+c_entr_seen = (gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg, gSeenMedBeM1, gSeenMedBeM2,
+    gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd, gSeenMedHgF, gSeenMedHgM,
+    gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf, gSeenMedRe, gSeenMedSd,
+    gSeenMedSn, gSeenMedTaF, gSeenMedTaM);
+
+c_entr_tah = (gTahMed);
+
+chamzaUpperDia = (g__hamza);
+
+cnhamzaUpperDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l,
+    g__dot3u, g__hehHook_small, g__smallTah, g__dot2vl_smallTah, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin,
+    gZair, gSadMed, gGafFin);
+
+chehhookDia = (g__hehHook_small);
+
+cnhehhookDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l,
+    g__dot3u, g__smallTah, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin,
+    gZair, gSadMed, gGafFin);
+
+cmLowerDia = (gZair);
+
+cnmLowerDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l,
+    g__dot3u, g__hehHook_small, g__smallTah, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short,
+    gHahFin, gSadMed, gGafFin);
+
+cmUpperDia = (gNameMarker, gShadda, gPesh, gZabar);
+
+cnmUpperDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, g__dot1l, g__dot1u, g__dot1u_smallTah,
+    g__dot2l, g__dot2u, g__dot2vl, g__dot3l, g__dot3u, g__hehHook_small, g__smallTah, g__dot2vl_smallTah,
+    g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin, gZair, gSadMed, gGafFin);
+
+cn1LowerDia = (g__dot1l, g__dot2vl);
+
+cnn1LowerDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot3l, g__dot3u, g__hehHook_small,
+    g__smallTah, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin, gZair,
+    gSadMed, gGafFin);
+
+cn23LowerDia = (g__dot2l, g__dot3l);
+
+cnn23LowerDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2u, g__dot2vl, g__dot3u, g__hehHook_small,
+    g__smallTah, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin, gZair,
+    gSadMed, gGafFin);
+
+cnUpperDia = (g__dot1u, g__dot1u_smallTah, g__dot2u, g__dot3u, g__hamza);
+
+cnnUpperDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot2l, g__dot2vl, g__dot3l, g__hehHook_small, g__smallTah, g__dot2vl_smallTah,
+    gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin, gZair, gSadMed, gGafFin);
+
+cnUpplerDia = (g__dot2vl_smallTah);
+
+cnnUpplerDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l,
+    g__dot3u, g__hehHook_small, g__smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin,
+    gZair, gSadMed, gGafFin);
+
+ctahLowerDia = (g__smallTah);
+
+cntahLowerDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l,
+    g__dot3u, g__hehHook_small, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin,
+    gZair, gSadMed, gGafFin);
+
+ctahUpperDia = (g__smallTah);
+
+cntahUpperDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l,
+    g__dot3u, g__hehHook_small, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin,
+    gZair, gSadMed, gGafFin);
+
+c_exit = (gLam);
+
+c_exitNoon = (gBehIniNn);
+
+c_exit_ain = (gSadMedAi, gLamMedAi);
+
+c_exit_bariyeh = (gBehIniBy, gBehMedBy, gJeemMedBy, gSadMedBy, gSeenMedBy, gLamMedBy, gHehDoMedBy);
+
+c_exit_beh = (gBehIniBe, gBehMedBe, gFehIniBe, gFehMedBe, gAinIniBe, gAinMedBe, gJeemIniBe, gJeemMedBe,
+    gSadIniBe, gSadMedBe, gSeenIniBe, gSeenMedBe, gLamIniBe, gLamMedBe, gGafMedBe_alt, gMeemIniBe,
+    gMeemMedBe, gHehDoIniBe, gHehDoMedBe, gTahIniBe, gTahMedBe, gHehGoalIniBe, gHehGoalMedBe);
+
+c_exit_behFinal = (gBehMedBeF_ss, gBehMedBeF, gFehIniBeF, gFehMedBeF, gAinIniBeF, gAinMedBeF, gJeemIniBeF, gJeemMedBeF,
+    gSadIniBeF, gSadMedBeF, gSeenIniBeF, gSeenMedBeF, gLamMedBeF, gGafMedBeF, gGafMedBeF_alt, gMeemIniBeF,
+    gMeemMedBeF, gHehDoIniBeF, gHehDoMedBeF, gTahIniBeF, gTahMedBeF, gHehGoalIniBeF, gHehGoalMedBeF, gKafMedBeF,
+    gKafMedBeF_alt);
+
+c_exit_behHighTooth = (gBehIniBeM2, gBehMedBeM2, gFehIniBeM2, gFehMedBeM2, gAinIniBeM2, gAinMedBeM2, gJeemIniBeM2, gJeemMedBeM2,
+    gSadIniBeM2, gSeenIniBeM2, gSeenMedBeM2, gLamIniBeM2, gLamMedBeM2, gGafIniBeM2, gGafMedBeM2, gMeemIniBeM2,
+    gMeemMedBeM2, gHehDoIniBeM2, gHehDoMedBeM2, gTahIniBeM2, gTahMedBeM2, gHehGoalIniBeM2, gHehGoalMedBeM2, gKafIniBeM2,
+    gKafIniBeM2_alt, gKafMedBeM2, gSadMedBeM2, gGafIniBeM2_alt);
+
+c_exit_behLowTooth = (gBehIniBeM1, gBehMedBeHg, gBehMedBeM1, gFehIniBeHg, gFehIniBeM1, gFehMedBeHg, gFehMedBeM1, gAinIniBeHg,
+    gAinIniBeM1, gAinMedBeHg, gAinMedBeM1, gJeemIniBeHg, gJeemIniBeM1, gJeemMedBeHg, gJeemMedBeM1, gSadIniBeHg,
+    gSadIniBeM1, gSadMedBeHg, gSadMedBeM1, gSeenIniBeHg, gSeenIniBeM1, gSeenMedBeHg, gSeenMedBeM1, gLamIniBeHg,
+    gLamIniBeM1, gLamMedBeHg, gLamMedBeM1, gLamMedKfX, gGafMedBeHg, gGafMedBeM1_alt, gMeemIniBeHg, gMeemIniBeM1,
+    gMeemMedBeHg, gMeemMedBeM1, gHehDoIniBeHg, gHehDoIniBeM1, gHehDoMedBeHg, gHehDoMedBeM1, gTahIniBeHg, gTahIniBeM1,
+    gTahMedBeHg, gTahMedBeM1, gHehGoalIniBeHg, gHehGoalIniBeM1, gHehGoalMedBeHg, gHehGoalMedBeM1, gKafIniBeM1_alt, gKafMedBeHg);
+
+c_exit_behPreFinalHehGoal = (gFehMedBeHg);
+
+c_exit_behPreNoon = (gBehIniBeNn, gBehMedBeNn, gFehIniBeNn, gFehMedBeNn, gAinIniBeNn, gAinMedBeNn, gJeemIniBeNn, gJeemMedBeNn,
+    gSadIniBeNn, gSadMedBeNn, gSeenIniBeNn, gSeenMedBeNn, gLamIniBeNn, gLamMedBeNn, gGafIniBeNn_alt, gGafMedBeNn,
+    gMeemIniBeNn, gMeemMedBeNn, gMeemMedBeNn_alt, gHehDoIniBeNn, gHehDoMedBeNn, gTahIniBeNn, gTahMedBeNn, gHehGoalIniBeNn,
+    gHehGoalMedBeNn, gKafIniBeNn_alt, gKafMedBeNn);
+
+c_exit_behPreReh = (gBehIniBeRe, gBehMedBeRe, gFehIniBeRe, gFehMedBeRe, gAinIniBeRe, gAinMedBeRe, gJeemIniBeRe, gJeemMedBeRe,
+    gSadIniBeRe, gSadMedBeRe, gSeenIniBeRe, gSeenMedBeRe, gLamIniBeRe, gLamMedBeRe, gGafMedBeRe_alt, gMeemIniBeRe,
+    gMeemMedBeRe, gHehDoIniBeRe, gHehDoMedBeRe, gTahIniBeRe, gTahMedBeRe, gHehGoalIniBeRe, gHehGoalMedBeRe, gKafMedBeRe_alt);
+
+c_exit_chotiyeh = (gBehMedCh, gJeemMedCh, gSadMedCh);
+
+c_exit_chotiyehBfkl = (gGafIniCh);
+
+c_exit_feh = (gBehIniFe, gBehMedFe_ss, gSadMedFe, gLamMedFe);
+
+c_exit_hehdoach = (gBehIniHd, gBehMedHd, gJeemMedHd, gSadMedHd);
+
+c_exit_hehgoalFinal = (gBehMedHgF, gSadMedHgF, gSeenMedHgF, gLamMedHgF, gKafIniHgF, gKafMedHgF);
+
+c_exit_hehgoalMedial = (gBehIniHgM, gBehMedHgM, gSadMedHgM);
+
+c_exit_jeem = (gBehIniJm, gBehMedJm, gFehIniJm, gFehMedJm, gAinIniJm, gAinMedJm, gJeemIniJm, gJeemMedJm,
+    gSadIniJm, gSadMedJm, gSeenIniJm, gSeenMedJm, gLamIniJm, gLamMedJm, gMeemIniJm, gMeemMedJm,
+    gTahIniJm, gTahMedJm, gHehDoMedJm, gHehGoalIniJm, gHehGoalMedJm, gKafIniJm, gKafMedJm, gGafMedJm,
+    gGafIniJm);
+
+c_exit_kafAlt = (gBehIniKfX, gBehMedKfX, gSadMedKfX, gGafMedKfX, gKafMedKfX);
+
+c_exit_lamKaf = (gBehIni, gBehMed, gFehIni, gFehMed, gAinIni, gAinMed, gJeemIni, gJeemMed,
+    gSadIni, gSeenIni, gSeenMed, gLamIni, gLamMed, gKafMed, gGafIni, gGafIniLm,
+    gGafIniDk, gGafMed, gGafMedDk, gMeemIni, gMeemMed, gMeemMed_alt, gHehDoIni, gHehDoMed,
+    gTahIni, gTahMed, gHehGoalMed, gKafIni, gKafIniLm, gKafIniDk, gKafMedDk, gGafMed_short,
+    gHehGoalIni, gSadMed);
+
+c_exit_meem = (gSadMedMm, gLamMedCh, gLamMedMm);
+
+c_exit_meemAlt = (gBehMedMmX, gSadMedMmX, gGafMedMmX, gMeemMedMmX, gKafMedMmX);
+
+c_exit_noon = (gBehMedNn, gBehMedNn_hgbm, gJeemMedNn, gSadMedNn, gSeenMedNn, gLamMedNn);
+
+c_exit_qafWaw = (gBehIniQf, gJeemIniQf, gSadIniQf, gLamMedQf, gHehGoalIniQf);
+
+c_exit_qafWawStfh = (gSeenMedQf);
+
+c_exit_reh = (gFehIniRe, gFehMedRe, gAinIniRe, gAinMedRe, gJeemMedRe, gMeemIniRe, gMeemMedRe, gHehDoIniRe,
+    gTahIniRe, gTahMedRe, gHehDoMedRe);
+
+c_exit_rehHgM = (gHehGoalMedRe);
+
+c_exit_rehJkl = (gBehIniRe, gJeemIniRe, gLamIniRe, gLamMedRe, gGafIniRe, gGafMedRe, gKafIniRe, gKafMedRe);
+
+c_exit_rehSshg = (gBehMedRe, gSadIniRe, gSadMedRe, gSeenIniRe, gSeenMedRe, gHehGoalIniRe);
+
+c_exit_sad = (gBehIniSd, gBehMedSd, gSeenMedSd, gLamMedSd, gMeemIniSd, gKafMedSd);
+
+c_exit_seen = (gBehIniSn, gBehMedSn, gFehIniSn, gFehMedSn, gAinIniSn, gAinMedSn, gJeemIniSn, gJeemMedSn,
+    gSadIniSn, gSadMedSn, gSeenIniSn, gSeenMedSn, gLamIniSn, gLamMedSn, gGafIniSn, gGafIniSn_alt,
+    gGafMedSn, gGafMedSn_alt, gMeemIniSn, gMeemMedSn, gHehDoIniSn, gTahIniSn, gTahMedSn, gHehDoMedSn,
+    gHehGoalIniSn, gHehGoalMedSn, gKafIniSn, gKafIniSn_alt, gKafMedSn, gKafMedSn_alt);
+
+c_exit_tah = (gBehMedTaM, gLamMedFe, gLamMedTaF, gLamMedTaM, gMeemIniTaM, gKafIniTaM);
+
+cTakes_hamzaUpperDia = (gBehIniBy, gJeemMedBe, gJeemMedBy, gJeemMedCh, gJeemMedHd, gWawFin, gWawFin_stfh);
+
+cnTakes_hamzaUpperDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBeF,
+    gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedFe, gJeemMedHgF, gJeemMedHgM,
+    gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX, gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd,
+    gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin, gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF,
+    gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy, gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF,
+    gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm, gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed,
+    gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg, gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe,
+    gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd, gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX,
+    gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf, gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF,
+    gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin, gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF,
+    gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn, gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe,
+    gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm, gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf,
+    gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF, gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin,
+    gKafFin, gKafMed, gGafMed, gGafMedAi, gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg,
+    gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy, gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF,
+    gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn, gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk,
+    gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt, gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin,
+    gRehFin, gRehFin_hgM, gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg,
+    gRrehFin, gRrehFin_hgM, gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg,
+    gHehDoMedBe, gHehDoMedBeRe, gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn,
+    gKafMedAi, gKafMedBeF, gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh,
+    gKafMedFe, gKafMedHd, gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn,
+    gKafMedQf, gKafMedRe, gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker,
+    gShadda, gPesh, gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u,
+    g__dot2vl, g__dot3l, g__dot3u, g__hehHook_small, g__smallTah, g__dot2vl_smallTah, gAlefFin, gBehFin_bfkl,
+    gGafMed_short, gHahFin, gZair, gSadMed, gGafFin);
+
+cTakes_hehhookDia = (gHehGoalIniBe, gHehGoalIniBeM1, gHehGoalIniBeNn, gHehGoalIniQf, gHehGoalIniSn, gHehGoalMed, gHehGoalMedSn, gHehGoalIni);
+
+cnTakes_hehhookDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF, gKafMedBeHg,
+    gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd, gKafMedHgF,
+    gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe, gKafMedSd,
+    gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh, gZabar,
+    g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l, g__dot3u,
+    g__smallTah, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin, gZair,
+    gSadMed, gGafFin);
+
+cTakes_invVDia = (gWawFin);
+
+cnTakes_invVDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin_stfh, gRehFin, gRehFin_hgM, gRehFin_jkl,
+    gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM, gRrehFin_jkl,
+    gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe, gHehDoMedBy,
+    gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF, gKafMedBeHg,
+    gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd, gKafMedHgF,
+    gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe, gKafMedSd,
+    gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh, gZabar,
+    g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l, g__dot3u,
+    g__hehHook_small, g__smallTah, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin,
+    gZair, gSadMed, gGafFin);
+
+cTakes_mLowerDia = (gAlefMaddaAbove, gQaf, gLamFin, gLamAlefFin, gNoon, gKafFin, gDal, gDalFin,
+    gThal, gThalFin, gDdalFin, gWawFin, gReh, gRehFin_jkl, g__dot1l, g__dot2l,
+    g__dot3l, gAlefFin, gAlef, gGafFin);
+
+cnTakes_mLowerDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamMed,
+    gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn, gLamMedBeRe,
+    gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm, gLamMedKfX,
+    gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF, gLamMedTaM,
+    gNoonFin, gNoonGhunnaFin, gKafMed, gGafMed, gGafMedAi, gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt,
+    gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy, gGafMedCh, gGafMedFe, gGafMedHd,
+    gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn, gGafMedQf, gGafMedRe, gGafMedSd,
+    gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt, gMeemMedBeNn_alt, gWawFin_stfh, gRehFin,
+    gRehFin_hgM, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1u, g__dot1u_smallTah, g__dot2u, g__dot2vl, g__dot3u, g__hehHook_small, g__smallTah,
+    g__dot2vl_smallTah, g__hamza, gBehFin_bfkl, gGafMed_short, gHahFin, gSadMed);
+
+cTakes_mUpperDia = (gAlefMaddaAbove, gQaf, gLamFin, gLamAlefFin, gKafFin, gMeemIniTaM, gDal, gDalFin,
+    gThal, gThalFin, gDdalFin, gWawFin, gReh, gKafIniBeM2_alt, g__dot1u, g__dot1u_smallTah,
+    g__dot2u, g__dot3u, gAlefFin, gAlef, gGafFin);
+
+cnTakes_mUpperDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin, gJeemMed, gJeemMedAi, gJeemMedBe,
+    gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeNn, gJeemMedBeRe, gJeemMedBy, gJeemMedCh,
+    gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamMed,
+    gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn, gLamMedBeRe,
+    gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm, gLamMedKfX,
+    gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF, gLamMedTaM,
+    gNoonFin, gNoonGhunnaFin, gKafMed, gGafMed, gGafMedAi, gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt,
+    gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy, gGafMedCh, gGafMedFe, gGafMedHd,
+    gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn, gGafMedQf, gGafMedRe, gGafMedSd,
+    gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt, gMeemMedBeNn_alt, gWawFin_stfh, gRehFin,
+    gRehFin_hgM, gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin,
+    gRrehFin_hgM, gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe,
+    gHehDoMedBeRe, gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi,
+    gKafMedBeF, gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe,
+    gKafMedHd, gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf,
+    gKafMedRe, gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, g__dot1l, g__dot2l,
+    g__dot2vl, g__dot3l, g__hehHook_small, g__smallTah, g__dot2vl_smallTah, g__hamza, gBehFin_bfkl, gGafMed_short,
+    gHahFin, gZair, gSadMed);
+
+cTakes_n1LowerDia = (gBehFin, gBehIni, gBehIniBe, gBehIniBeM1, gBehIniBeM2, gBehIniBeNn, gBehIniFe, gBehIniHd,
+    gBehIniHgM, gBehIniJm, gBehIniKfX, gBehIniNn, gBehIniQf, gBehIniSd, gBehIniSn, gBehMed,
+    gBehMedBe, gBehMedBeF, gBehMedBeHg, gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBy, gBehMedCh,
+    gBehMedFe_ss, gBehMedHd, gBehMedJm, gBehMedKfX, gBehMedMmX, gBehMedNn, gBehMedNn_hgbm, gBehMedQf,
+    gBehMedRe, gBehMedSd, gBehMedSn, gBehMedTaM, gFehFin, gFehIni, gFehIniBe, gFehIniBeHg,
+    gFehIniBeM2, gFehIniBeNn, gFehIniSn, gFehMed, gFehMedBeHg, gFehMedBeM1, gFehMedBeNn, gFehMedSn,
+    gQafFin, gBariyehFin, gAinIni, gAinIniBeHg, gAinIniBeNn, gAinIniSn, gAinMed, gAinMedBeHg,
+    gAinMedBeNn, gAinMedSn, gJeemFin, gJeemIni, gJeemIniBe, gJeemIniBeHg, gJeemIniBeM1, gJeemIniBeNn,
+    gJeemIniBeRe, gJeemIniQf, gJeemIniSn, gJeemMed, gJeemMedBe, gJeemMedBeHg, gJeemMedBeM2, gJeemMedBeNn,
+    gJeemMedBy, gJeemMedCh, gJeemMedHd, gJeemMedSn, gSadIni, gSadIniBe, gSadIniBeF, gSadIniBeHg,
+    gSadIniBeNn, gSadIniSn, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeNn,
+    gSadMedBeRe, gSadMedBy, gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm,
+    gSadMedKfX, gSadMedMm, gSadMedMmX, gSadMedNn, gSadMedSn, gSeenFin, gSeenIni, gSeenIniBeHg,
+    gSeenIniBeM1, gSeenIniBeNn, gSeenIniSn, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gLamFin, gLamIni,
+    gLamIniBeHg, gLamIniBeNn, gLamIniSn, gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg,
+    gLamMedBeM1, gLamMedBeM2, gLamMedBeNn, gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedHd, gLamMedHgF,
+    gLamMedHgM, gLamMedJm, gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd,
+    gLamMedSn, gLamMedTaF, gLamMedTaM, gLamAlefFin, gNoonFin, gKafFin, gKafMed, gGafIni,
+    gGafIniBeNn_alt, gGafIniLm, gGafIniDk, gGafIniSn, gGafIniSn_alt, gGafMed, gGafMedAi, gGafMedBe_alt,
+    gGafMedBeF, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy, gGafMedCh, gGafMedFe,
+    gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn, gGafMedQf, gGafMedRe,
+    gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemIni, gMeemIniBeHg, gMeemIniBeNn,
+    gMeemIniSd, gMeemIniSn, gMeemMed, gMeemMed_alt, gMeemMedBeHg, gMeemMedBeNn, gMeemMedBeNn_alt, gMeemMedSn,
+    gHehDoIni, gDalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM, gRehFin_jkl, gRehFin_sshg,
+    gHehDoIniBeHg, gHehDoIniBeNn, gHehDoIniSn, gHehDoMed, gHehDoMedBeHg, gHehDoMedBeNn, gHehDoMedBy, gTahIni,
+    gTahIniBeHg, gTahIniBeNn, gTahIniSn, gTahMed, gTahMedBeHg, gTahMedBeNn, gTahMedSn, gHehDoMedSn,
+    gHehGoalIniBe, gHehGoalIniBeHg, gHehGoalIniBeM1, gHehGoalIniBeNn, gHehGoalIniSn, gHehGoalMed, gHehGoalMedBeHg, gHehGoalMedBeNn,
+    gHehGoalMedSn, gKafIni, gKafIniBeM1_alt, gKafIniBeM2, gKafIniBeNn_alt, gKafIniLm, gKafIniDk, gKafIniSn,
+    gKafIniSn_alt, gKafMedAi, gKafMedBeF, gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy,
+    gKafMedCh, gKafMedFe, gKafMedHd, gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX,
+    gKafMedNn, gKafMedQf, gKafMedRe, gKafMedSd, gKafMedDk, gKafMedSn, gKafMedSn_alt, gKafMedTaF,
+    gGafMedJm, gAlefFin, gBehFin_bfkl, gGafIniBeM2_alt, gGafMed_short, gHehGoalIni, gSadMed, gGafFin);
+
+cnTakes_n1LowerDia = (gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBeRe, gBehMedFe, gBehMedHgF, gBehMedHgF_be, gBehMedHgM,
+    gBehMedMm, gBehMedQf_ss, gBehMedSd_ss, gBehMedTaF_ss, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin,
+    gPehFin, gTtehFin, gJeemMedAi, gJeemMedBeF, gJeemMedBeM1, gJeemMedBeRe, gJeemMedFe, gJeemMedHgF,
+    gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX, gJeemMedNn, gJeemMedQf, gJeemMedRe,
+    gJeemMedSd, gJeemMedTaF, gJeemMedTaM, gKhahFin, gTchehFin, gChotiyehFin_bfkl, gLamMedFe, gNoonGhunnaFin,
+    gGafMedBeF_alt, gThalFin, gDdalFin, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin,
+    gRrehFin_hgM, gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe,
+    gHehDoMedBeRe, gHehGoalFin, gHehGoalFin_stfh, gNameMarker, gShadda, gPesh, gZabar, g__dot1u,
+    g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot3l, g__dot3u, g__hehHook_small, g__smallTah, g__dot2vl_smallTah,
+    g__hamza, gHahFin, gZair);
+
+cTakes_n23LowerDia = (gBehFin, gBehIni, gBehIniBe, gBehIniBeM1, gBehIniBeM2, gBehIniBeNn, gBehIniFe, gBehIniHd,
+    gBehIniHgM, gBehIniJm, gBehIniNn, gBehIniQf, gBehIniSd, gBehIniSn, gBehMed, gBehMedBe,
+    gBehMedBeF, gBehMedBeHg, gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBy, gBehMedCh, gBehMedFe_ss,
+    gBehMedHd, gBehMedJm, gBehMedKfX, gBehMedMmX, gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedRe,
+    gBehMedSd, gBehMedSn, gBehMedTaM, gFehIniBeNn, gJeemFin, gJeemIni, gJeemIniBe, gJeemIniBeHg,
+    gJeemIniBeM1, gJeemIniBeNn, gJeemIniBeRe, gJeemIniSn, gJeemMed, gJeemMedBe, gJeemMedBeHg, gJeemMedBeM2,
+    gJeemMedBeNn, gJeemMedBy, gJeemMedCh, gJeemMedHd, gJeemMedSn, gBehFin_bfkl);
+
+cnTakes_n23LowerDia = (gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBeRe, gBehMedFe, gBehMedHgF, gBehMedHgF_be, gBehMedHgM,
+    gBehMedMm, gBehMedQf_ss, gBehMedSd_ss, gBehMedTaF_ss, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin,
+    gPehFin, gTtehFin, gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemMedAi, gJeemMedBeF,
+    gJeemMedBeM1, gJeemMedBeRe, gJeemMedFe, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm,
+    gJeemMedMmX, gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedTaF, gJeemMedTaM, gKhahFin,
+    gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy,
+    gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm,
+    gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg,
+    gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd,
+    gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf,
+    gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin,
+    gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn,
+    gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm,
+    gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF,
+    gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi,
+    gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy,
+    gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn,
+    gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt,
+    gMeemMedBeNn_alt, gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM,
+    gRehFin_jkl, gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM,
+    gRrehFin_jkl, gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe,
+    gHehDoMedBy, gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh,
+    gZabar, g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2u, g__dot2vl, g__dot3u, g__hehHook_small,
+    g__smallTah, g__dot2vl_smallTah, g__hamza, gAlefFin, gGafMed_short, gHahFin, gZair, gSadMed,
+    gGafFin);
+
+cTakes_nUpperDia = (gBehFin, gBehIni, gBehIniBe, gBehIniBeM1, gBehIniBeM2, gBehIniBeNn, gBehIniFe, gBehIniHd,
+    gBehIniHgM, gBehIniJm, gBehIniKfX, gBehIniNn, gBehIniQf, gBehIniSd, gBehIniSn, gBehMed,
+    gBehMedBe, gBehMedBeF, gBehMedBeHg, gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBy, gBehMedCh,
+    gBehMedFe_ss, gBehMedHd, gBehMedHgF, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMmX, gBehMedNn,
+    gBehMedNn_hgbm, gBehMedQf, gBehMedRe, gBehMedSd, gBehMedSn, gBehMedTaM, gFehFin, gFehIni,
+    gFehIniBe, gFehIniBeHg, gFehIniBeM2, gFehIniBeNn, gFehIniSn, gFehMed, gFehMedBeHg, gFehMedBeM1,
+    gFehMedBeNn, gFehMedSn, gQafFin, gBariyehFin, gAinIni, gAinIniBeHg, gAinIniBeNn, gAinIniSn,
+    gAinMed, gAinMedBeHg, gAinMedBeNn, gAinMedSn, gJeemFin, gJeemIni, gJeemIniBe, gJeemIniBeHg,
+    gJeemIniBeM1, gJeemIniBeNn, gJeemIniBeRe, gJeemIniSn, gJeemMed, gJeemMedBe, gJeemMedBeHg, gJeemMedBeM2,
+    gJeemMedBeNn, gJeemMedBy, gJeemMedCh, gJeemMedHd, gJeemMedNn, gJeemMedSn, gSadIni, gSadIniBe,
+    gSadIniBeF, gSadIniBeHg, gSadIniBeNn, gSadIniQf, gSadIniSn, gSadMedAi, gSadMedBe, gSadMedBeF,
+    gSadMedBeHg, gSadMedBeM1, gSadMedBeNn, gSadMedBeRe, gSadMedBy, gSadMedCh, gSadMedFe, gSadMedHd,
+    gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm, gSadMedMmX, gSadMedNn, gSadMedSn,
+    gSeenFin, gSeenIni, gSeenIniBeHg, gSeenIniBeM1, gSeenIniBeNn, gSeenIniSn, gSeenMed, gSeenMedAi,
+    gSeenMedBe, gSeenMedBeF, gSeenMedBeHg, gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy,
+    gSeenMedCh, gSeenMedFe, gSeenMedHd, gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm,
+    gSeenMedMmX, gSeenMedNn, gSeenMedQf, gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM,
+    gChotiyehFin, gLamFin, gLamIni, gLamIniBeHg, gLamIniBeNn, gLamIniSn, gLamMed, gLamMedAi,
+    gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn, gLamMedBeRe, gLamMedBy,
+    gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm, gLamMedKfX, gLamMedMm,
+    gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF, gLamMedTaM, gLamAlefFin,
+    gNoonFin, gKafFin, gKafMed, gGafIni, gGafIniBeNn_alt, gGafIniLm, gGafIniDk, gGafIniSn,
+    gGafIniSn_alt, gGafMed, gGafMedAi, gGafMedBe_alt, gGafMedBeF, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn,
+    gGafMedBeM1_alt, gGafMedBy, gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm,
+    gGafMedMmX, gGafMedNn, gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt,
+    gGafMedTaF, gMeemIni, gMeemIniBeHg, gMeemIniBeNn, gMeemIniSd, gMeemIniSn, gMeemMed, gMeemMed_alt,
+    gMeemMedBeHg, gMeemMedBeNn, gMeemMedBeNn_alt, gMeemMedSn, gHehDoIni, gDalFin, gWawFin, gWawFin_stfh,
+    gRehFin, gRehFin_hgM, gRehFin_jkl, gRehFin_sshg, gHehDoIniBeHg, gHehDoIniBeNn, gHehDoIniSn, gHehDoMed,
+    gHehDoMedBeHg, gHehDoMedBeNn, gHehDoMedBy, gTahIni, gTahIniBeHg, gTahIniBeNn, gTahIniSn, gTahMed,
+    gTahMedBeHg, gTahMedBeNn, gTahMedSn, gHehDoMedSn, gHehGoalIniBe, gHehGoalIniBeHg, gHehGoalIniBeM1, gHehGoalIniBeNn,
+    gHehGoalIniQf, gHehGoalIniSn, gHehGoalMed, gHehGoalMedBeHg, gHehGoalMedBeNn, gHehGoalMedSn, gKafIni, gKafIniBeM1_alt,
+    gKafIniBeM2, gKafIniBeNn_alt, gKafIniLm, gKafIniDk, gKafIniSn, gKafIniSn_alt, gKafMedAi, gKafMedBeF,
+    gKafMedBeHg, gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd,
+    gKafMedHgF, gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe,
+    gKafMedSd, gKafMedDk, gKafMedSn, gKafMedSn_alt, gKafMedTaF, gGafMedJm, gAlefFin, gBehFin_bfkl,
+    gGafIniBeM2_alt, gGafMed_short, gHehGoalIni, gSadMed, gGafFin);
+
+cnTakes_nUpperDia = (gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBeRe, gBehMedFe, gBehMedHgF_be, gBehMedMm, gBehMedQf_ss,
+    gBehMedSd_ss, gBehMedTaF_ss, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gJeemMedAi, gJeemMedBeF, gJeemMedBeM1, gJeemMedBeRe, gJeemMedFe, gJeemMedHgF, gJeemMedHgM, gJeemMedJm,
+    gJeemMedKfX, gJeemMedMm, gJeemMedMmX, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedTaF, gJeemMedTaM,
+    gKhahFin, gTchehFin, gChotiyehFin_bfkl, gNoonGhunnaFin, gGafMedBeF_alt, gThalFin, gDdalFin, gZainFin,
+    gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM, gRrehFin_jkl, gRrehFin_sshg, gJehFin,
+    gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe, gHehGoalFin, gHehGoalFin_stfh, gNameMarker,
+    gShadda, gPesh, gZabar, g__dot1l, g__dot2l, g__dot2vl, g__dot3l, g__hehHook_small,
+    g__smallTah, g__dot2vl_smallTah, gHahFin, gZair);
+
+cTakes_tahLowerDia = (gJeemFin, gJeemIniBe, gJeemIniBeHg, gJeemIniBeM1, gJeemIniBeRe, gJeemMed, gJeemMedBe, gJeemMedBeHg,
+    gJeemMedBeM2, gJeemMedBy, gJeemMedCh, gJeemMedHd, gJeemMedSn);
+
+cnTakes_tahLowerDia = (gBehFin, gBehMed, gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBe, gBehMedBeF, gBehMedBeHg,
+    gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBeRe, gBehMedBy, gBehMedCh, gBehMedFe, gBehMedFe_ss,
+    gBehMedHd, gBehMedHgF, gBehMedHgF_be, gBehMedHgM, gBehMedJm, gBehMedKfX, gBehMedMm, gBehMedMmX,
+    gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedQf_ss, gBehMedRe, gBehMedSd, gBehMedSd_ss, gBehMedSn,
+    gBehMedTaF_ss, gBehMedTaM, gBehMedTaM_ss, gTehFin, gTehFin_bfkl, gThehFin, gPehFin, gTtehFin,
+    gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemMedAi, gJeemMedBeF, gJeemMedBeM1, gJeemMedBeNn,
+    gJeemMedBeRe, gJeemMedFe, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX, gJeemMedMm, gJeemMedMmX,
+    gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedTaF, gJeemMedTaM, gKhahFin, gTchehFin,
+    gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1, gSadMedBeRe, gSadMedBy, gSadMedCh,
+    gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm, gSadMedKfX, gSadMedMm, gSadMedMmX,
+    gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe, gSeenMedBeF, gSeenMedBeHg, gSeenMedBeM1,
+    gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh, gSeenMedFe, gSeenMedHd, gSeenMedHgF,
+    gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX, gSeenMedNn, gSeenMedQf, gSeenMedRe,
+    gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin, gChotiyehFin_bfkl, gLamFin, gLamMed,
+    gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1, gLamMedBeM2, gLamMedBeNn, gLamMedBeRe,
+    gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF, gLamMedHgM, gLamMedJm, gLamMedKfX,
+    gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd, gLamMedSn, gLamMedTaF, gLamMedTaM,
+    gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed, gGafMed, gGafMedAi, gGafMedBe_alt,
+    gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn, gGafMedBeM1_alt, gGafMedBy, gGafMedCh,
+    gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm, gGafMedMmX, gGafMedNn, gGafMedQf,
+    gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt, gGafMedTaF, gMeemMed_alt, gMeemMedBeNn_alt,
+    gDalFin, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gRehFin, gRehFin_hgM, gRehFin_jkl,
+    gRehFin_sshg, gZainFin, gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM, gRrehFin_jkl,
+    gRrehFin_sshg, gJehFin, gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe, gHehDoMedBy,
+    gTahMed, gHehGoalFin, gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF, gKafMedBeHg,
+    gKafMedBeM2, gKafMedBeNn, gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd, gKafMedHgF,
+    gKafMedJm, gKafMedKfX, gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe, gKafMedSd,
+    gKafMedDk, gKafMedSn, gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh, gZabar,
+    g__dot1l, g__dot1u, g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l, g__dot3u,
+    g__hehHook_small, g__dot2vl_smallTah, g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin, gZair,
+    gSadMed, gGafFin);
+
+cTakes_tahUpperDia = (gBehFin, gBehIni, gBehIniBe, gBehIniBeM1, gBehIniBeM2, gBehIniBeNn, gBehIniFe, gBehIniHd,
+    gBehIniHgM, gBehIniJm, gBehIniNn, gBehIniQf, gBehIniSd, gBehIniSn, gBehMed, gBehMedBe,
+    gBehMedBeF, gBehMedBeM1, gBehMedBeM2, gBehMedBeNn, gBehMedBy, gBehMedCh, gBehMedFe_ss, gBehMedHd,
+    gBehMedJm, gBehMedKfX, gBehMedMmX, gBehMedNn, gBehMedNn_hgbm, gBehMedQf, gBehMedRe, gBehMedSd,
+    gBehMedSn, gBehMedTaM, gFehIniBeNn, gJeemIni, gJeemIniBeNn, gJeemIniSn, gJeemMedBeNn, gDalFin,
+    gRehFin, gRehFin_hgM, gRehFin_jkl, gRehFin_sshg);
+
+cnTakes_tahUpperDia = (gBehMedBeF_ss, gBehMedAi, gBehMedAi_ss, gBehMedBeHg, gBehMedBeRe, gBehMedFe, gBehMedHgF, gBehMedHgF_be,
+    gBehMedHgM, gBehMedMm, gBehMedQf_ss, gBehMedSd_ss, gBehMedTaF_ss, gBehMedTaM_ss, gTehFin, gTehFin_bfkl,
+    gThehFin, gPehFin, gTtehFin, gFehFin, gFehMedBeM1, gQafFin, gBariyehFin, gJeemFin,
+    gJeemMed, gJeemMedAi, gJeemMedBe, gJeemMedBeF, gJeemMedBeHg, gJeemMedBeM1, gJeemMedBeM2, gJeemMedBeRe,
+    gJeemMedBy, gJeemMedCh, gJeemMedFe, gJeemMedHd, gJeemMedHgF, gJeemMedHgM, gJeemMedJm, gJeemMedKfX,
+    gJeemMedMm, gJeemMedMmX, gJeemMedNn, gJeemMedQf, gJeemMedRe, gJeemMedSd, gJeemMedSn, gJeemMedTaF,
+    gJeemMedTaM, gKhahFin, gTchehFin, gSadMedAi, gSadMedBe, gSadMedBeF, gSadMedBeHg, gSadMedBeM1,
+    gSadMedBeRe, gSadMedBy, gSadMedCh, gSadMedFe, gSadMedHd, gSadMedHgF, gSadMedHgM, gSadMedJm,
+    gSadMedKfX, gSadMedMm, gSadMedMmX, gSadMedNn, gSeenFin, gSeenMed, gSeenMedAi, gSeenMedBe,
+    gSeenMedBeF, gSeenMedBeHg, gSeenMedBeM1, gSeenMedBeM2, gSeenMedBeNn, gSeenMedBeRe, gSeenMedBy, gSeenMedCh,
+    gSeenMedFe, gSeenMedHd, gSeenMedHgF, gSeenMedHgM, gSeenMedJm, gSeenMedKfX, gSeenMedMm, gSeenMedMmX,
+    gSeenMedNn, gSeenMedQf, gSeenMedRe, gSeenMedSd, gSeenMedSn, gSeenMedTaF, gSeenMedTaM, gChotiyehFin,
+    gChotiyehFin_bfkl, gLamFin, gLamMed, gLamMedAi, gLamMedBe, gLamMedBeF, gLamMedBeHg, gLamMedBeM1,
+    gLamMedBeM2, gLamMedBeNn, gLamMedBeRe, gLamMedBy, gLamMedCh, gLamMedFe, gLamMedHd, gLamMedHgF,
+    gLamMedHgM, gLamMedJm, gLamMedKfX, gLamMedMm, gLamMedNn, gLamMedQf, gLamMedRe, gLamMedSd,
+    gLamMedSn, gLamMedTaF, gLamMedTaM, gLamAlefFin, gNoonFin, gNoonGhunnaFin, gKafFin, gKafMed,
+    gGafMed, gGafMedAi, gGafMedBe_alt, gGafMedBeF, gGafMedBeF_alt, gGafMedBeHg, gGafMedBeM2, gGafMedBeNn,
+    gGafMedBeM1_alt, gGafMedBy, gGafMedCh, gGafMedFe, gGafMedHd, gGafMedHgF, gGafMedKfX, gGafMedMm,
+    gGafMedMmX, gGafMedNn, gGafMedQf, gGafMedRe, gGafMedSd, gGafMedDk, gGafMedSn, gGafMedSn_alt,
+    gGafMedTaF, gMeemMed_alt, gMeemMedBeNn_alt, gThalFin, gDdalFin, gWawFin, gWawFin_stfh, gZainFin,
+    gZainFin_hgM, gZainFin_jkl, gZainFin_sshg, gRrehFin, gRrehFin_hgM, gRrehFin_jkl, gRrehFin_sshg, gJehFin,
+    gJehFin_hgM, gJehFin_jkl, gJehFin_sshg, gHehDoMedBe, gHehDoMedBeRe, gHehDoMedBy, gTahMed, gHehGoalFin,
+    gHehGoalFin_stfh, gHehGoalMed, gHehGoalMedBeNn, gKafMedAi, gKafMedBeF, gKafMedBeHg, gKafMedBeM2, gKafMedBeNn,
+    gKafMedBeRe_alt, gKafMedBy, gKafMedCh, gKafMedFe, gKafMedHd, gKafMedHgF, gKafMedJm, gKafMedKfX,
+    gKafMedMm, gKafMedMmX, gKafMedNn, gKafMedQf, gKafMedRe, gKafMedSd, gKafMedDk, gKafMedSn,
+    gKafMedTaF, gGafMedJm, gNameMarker, gShadda, gPesh, gZabar, g__dot1l, g__dot1u,
+    g__dot1u_smallTah, g__dot2l, g__dot2u, g__dot2vl, g__dot3l, g__dot3u, g__hehHook_small, g__dot2vl_smallTah,
+    g__hamza, gAlefFin, gBehFin_bfkl, gGafMed_short, gHahFin, gZair, gSadMed, gGafFin);
+
+
+/* Glyph alternates */
+
+cai = (gBehIniAi, gBehMedAi, gFehIniAi, gFehMedAi, gAinIniAi, gAinMedAi, gJeemIniAi, gJeemMedAi,
+    gSadIniAi, gSadMedAi, gSeenIniAi, gSeenMedAi, gLamIniAi, gLamMedAi, gGafIniAi, gGafMedAi,
+    gMeemIniAi, gMeemMedAi, gHehDoIniAi, gHehDoMedAi, gTahIniAi, gTahMedAi, gHehGoalIniAi, gHehGoalMedAi,
+    gKafIniAi, gKafMedAi);
+
+carab = (g_exclamArab, g_parenleftArab, g_parenrightArab, g_asteriskArab, g_colonArab, g_quoteleftArab, g_quoterightArab, g_quotedblleftArab,
+    g_quotedblrightArab);
+
+cbe = (gBehIniBe, gBehMedBe, gFehIniBe, gFehMedBe, gAinIniBe, gAinMedBe, gJeemIniBe, gJeemMedBe,
+    gSadIniBe, gSadMedBe, gSeenIniBe, gSeenMedBe, gLamIniBe, gLamMedBe, gMeemIniBe, gMeemMedBe,
+    gHehDoIniBe, gHehDoMedBe, gTahIniBe, gTahMedBe, gHehGoalIniBe, gHehGoalMedBe);
+
+cbeF = (gBehMedBeF, gFehIniBeF, gFehMedBeF, gAinIniBeF, gAinMedBeF, gJeemIniBeF, gJeemMedBeF, gSadIniBeF,
+    gSadMedBeF, gSeenIniBeF, gSeenMedBeF, gLamMedBeF, gGafMedBeF, gMeemIniBeF, gMeemMedBeF, gHehDoIniBeF,
+    gHehDoMedBeF, gTahIniBeF, gTahMedBeF, gHehGoalIniBeF, gHehGoalMedBeF, gKafMedBeF);
+
+cbeM1 = (gBehIniBeM1, gBehMedBeM1, gFehIniBeM1, gFehMedBeM1, gAinIniBeM1, gAinMedBeM1, gJeemIniBeM1, gJeemMedBeM1,
+    gSadIniBeM1, gSadMedBeM1, gSeenIniBeM1, gSeenMedBeM1, gLamIniBeM1, gLamMedBeM1, gMeemIniBeM1, gMeemMedBeM1,
+    gHehDoIniBeM1, gHehDoMedBeM1, gTahIniBeM1, gTahMedBeM1, gHehGoalIniBeM1, gHehGoalMedBeM1);
+
+cbeM2 = (gBehIniBeM2, gBehMedBeM2, gFehIniBeM2, gFehMedBeM2, gAinIniBeM2, gAinMedBeM2, gJeemIniBeM2, gJeemMedBeM2,
+    gSadIniBeM2, gSeenIniBeM2, gSeenMedBeM2, gLamIniBeM2, gLamMedBeM2, gGafIniBeM2, gGafMedBeM2, gMeemIniBeM2,
+    gMeemMedBeM2, gHehDoIniBeM2, gHehDoMedBeM2, gTahIniBeM2, gTahMedBeM2, gHehGoalIniBeM2, gHehGoalMedBeM2, gKafIniBeM2,
+    gKafMedBeM2, gSadMedBeM2);
+
+cbehg = (gBehIniBeHg, gBehMedBeHg, gFehIniBeHg, gFehMedBeHg, gAinIniBeHg, gAinMedBeHg, gJeemIniBeHg, gJeemMedBeHg,
+    gSadIniBeHg, gSadMedBeHg, gSeenIniBeHg, gSeenMedBeHg, gLamIniBeHg, gLamMedBeHg, gGafMedBeHg, gMeemIniBeHg,
+    gMeemMedBeHg, gHehDoIniBeHg, gHehDoMedBeHg, gTahIniBeHg, gTahMedBeHg, gHehGoalIniBeHg, gHehGoalMedBeHg, gKafMedBeHg);
+
+cbenn = (gBehIniBeNn, gBehMedBeNn, gFehIniBeNn, gFehMedBeNn, gAinIniBeNn, gAinMedBeNn, gJeemIniBeNn, gJeemMedBeNn,
+    gSadIniBeNn, gSadMedBeNn, gSeenIniBeNn, gSeenMedBeNn, gLamIniBeNn, gLamMedBeNn, gGafMedBeNn, gMeemIniBeNn,
+    gMeemMedBeNn, gHehDoIniBeNn, gHehDoMedBeNn, gTahIniBeNn, gTahMedBeNn, gHehGoalIniBeNn, gHehGoalMedBeNn, gKafMedBeNn);
+
+cbere = (gBehIniBeRe, gBehMedBeRe, gFehIniBeRe, gFehMedBeRe, gAinIniBeRe, gAinMedBeRe, gJeemIniBeRe, gJeemMedBeRe,
+    gSadIniBeRe, gSadMedBeRe, gSeenIniBeRe, gSeenMedBeRe, gLamIniBeRe, gLamMedBeRe, gMeemIniBeRe, gMeemMedBeRe,
+    gHehDoIniBeRe, gHehDoMedBeRe, gTahIniBeRe, gTahMedBeRe, gHehGoalIniBeRe, gHehGoalMedBeRe);
+
+cbig = (g__hehHook_big);
+
+cby = (gBehIniBy, gBehMedBy, gFehIniBy, gFehMedBy, gAinIniBy, gAinMedBy, gJeemIniBy, gJeemMedBy,
+    gSadIniBy, gSadMedBy, gSeenIniBy, gSeenMedBy, gLamIniBy, gLamMedBy, gGafIniBy, gGafMedBy,
+    gMeemIniBy, gMeemMedBy, gHehDoIniBy, gHehDoMedBy, gTahIniBy, gTahMedBy, gHehGoalIniBy, gHehGoalMedBy,
+    gKafIniBy, gKafMedBy);
+
+cch = (gBehIniCh, gBehMedCh, gFehIniCh, gFehMedCh, gAinIniCh, gAinMedCh, gJeemIniCh, gJeemMedCh,
+    gSadIniCh, gSadMedCh, gSeenIniCh, gSeenMedCh, gLamIniCh, gLamMedCh, gGafIniCh, gGafMedCh,
+    gMeemIniCh, gMeemMedCh, gHehDoIniCh, gTahIniCh, gTahMedCh, gHehDoMedCh, gHehGoalIniCh, gHehGoalMedCh,
+    gKafIniCh, gKafMedCh);
+
+cdk = (gGafIniDk, gGafMedDk, gKafIniDk, gKafMedDk);
+
+cfe = (gBehIniFe, gBehMedFe, gFehIniFe, gFehMedFe, gAinIniFe, gAinMedFe, gJeemIniFe, gJeemMedFe,
+    gSadIniFe, gSadMedFe, gSeenIniFe, gSeenMedFe, gLamIniFe, gLamMedFe, gGafIniFe, gGafMedFe,
+    gMeemIniFe, gMeemMedFe, gHehDoIniFe, gTahIniFe, gTahMedFe, gHehDoMedFe, gHehGoalIniFe, gHehGoalMedFe,
+    gKafIniFe, gKafMedFe);
+
+chd = (gBehIniHd, gBehMedHd, gFehIniHd, gFehMedHd, gAinIniHd, gAinMedHd, gJeemIniHd, gJeemMedHd,
+    gSadIniHd, gSadMedHd, gSeenIniHd, gSeenMedHd, gLamIniHd, gLamMedHd, gGafIniHd, gGafMedHd,
+    gMeemIniHd, gMeemMedHd, gHehDoIniHd, gTahIniHd, gTahMedHd, gHehDoMedHd, gHehGoalIniHd, gHehGoalMedHd,
+    gKafIniHd, gKafMedHd);
+
+chgF = (gBehIniHgF, gBehMedHgF, gFehIniHgF, gFehMedHgF, gAinIniHgF, gAinMedHgF, gJeemIniHgF, gJeemMedHgF,
+    gSadIniHgF, gSadMedHgF, gSeenIniHgF, gSeenMedHgF, gLamIniHgF, gLamMedHgF, gGafIniHgF, gGafMedHgF,
+    gMeemIniHgF, gMeemMedHgF, gHehDoIniHgF, gTahIniHgF, gTahMedHgF, gHehDoMedHgF, gHehGoalIniHgF, gHehGoalMedHgF,
+    gKafIniHgF, gKafMedHgF);
+
+chgM = (gBehIniHgM, gBehMedHgM, gFehIniHgM, gFehMedHgM, gAinIniHgM, gAinMedHgM, gJeemIniHgM, gJeemMedHgM,
+    gSadMedHgM, gSeenIniHgM, gSeenMedHgM, gLamIniHgM, gLamMedHgM, gMeemIniHgM, gMeemMedHgM, gHehDoIniHgM,
+    gTahIniHgM, gTahMedHgM, gHehDoMedHgM, gHehGoalIniHgM, gHehGoalMedHgM, gSadIniHgM);
+
+cjm = (gBehIniJm, gBehMedJm, gFehIniJm, gFehMedJm, gAinIniJm, gAinMedJm, gJeemIniJm, gJeemMedJm,
+    gSadIniJm, gSadMedJm, gSeenIniJm, gSeenMedJm, gLamIniJm, gLamMedJm, gMeemIniJm, gMeemMedJm,
+    gHehDoIniJm, gTahIniJm, gTahMedJm, gHehDoMedJm, gHehGoalIniJm, gHehGoalMedJm, gKafIniJm, gKafMedJm,
+    gGafMedJm, gGafIniJm);
+
+ckf = (gGafIniKf, gKafIniKf);
+
+ckfX = (gBehIniKfX, gBehMedKfX, gFehIniKfX, gFehMedKfX, gAinIniKfX, gAinMedKfX, gJeemIniKfX, gJeemMedKfX,
+    gSadIniKfX, gSadMedKfX, gSeenIniKfX, gSeenMedKfX, gLamIniKfX, gLamMedKfX, gGafMedKfX, gMeemIniKfX,
+    gMeemMedKfX, gHehDoIniKfX, gTahIniKfX, gTahMedKfX, gHehDoMedKfX, gHehGoalIniKfX, gHehGoalMedKfX, gKafMedKfX);
+
+clarge = (gMaddaAboveLarge);
+
+clm = (gGafIniLm, gKafIniLm);
+
+cmm = (gBehIniMm, gBehMedMm, gFehIniMm, gFehMedMm, gAinIniMm, gAinMedMm, gJeemIniMm, gJeemMedMm,
+    gSadIniMm, gSadMedMm, gSeenIniMm, gSeenMedMm, gLamIniMm, gLamMedMm, gGafIniMm, gGafMedMm,
+    gMeemIniMm, gMeemMedMm, gHehDoIniMm, gTahIniMm, gTahMedMm, gHehDoMedMm, gHehGoalIniMm, gHehGoalMedMm,
+    gKafIniMm, gKafMedMm);
+
+cmmM = (gBehIniMmM);
+
+cmmX = (gBehIniMmX, gBehMedMmX, gFehIniMmX, gFehMedMmX, gAinIniMmX, gAinMedMmX, gJeemIniMmX, gJeemMedMmX,
+    gSadIniMmX, gSadMedMmX, gSeenIniMmX, gSeenMedMmX, gGafMedMmX, gMeemIniMmX, gMeemMedMmX, gHehDoIniMmX,
+    gTahIniMmX, gTahMedMmX, gHehDoMedMmX, gHehGoalIniMmX, gHehGoalMedMmX, gKafMedMmX);
+
+cnn = (gBehIniNn, gBehMedNn, gFehIniNn, gFehMedNn, gAinIniNn, gAinMedNn, gJeemIniNn, gJeemMedNn,
+    gSadMedNn, gSeenIniNn, gSeenMedNn, gLamIniNn, gLamMedNn, gGafIniNn, gGafMedNn, gMeemIniNn,
+    gMeemMedNn, gHehDoIniNn, gTahIniNn, gTahMedNn, gHehDoMedNn, gHehGoalIniNn, gHehGoalMedNn, gKafIniNn,
+    gKafMedNn, gSadIniNn);
+
+cqf = (gBehIniQf, gBehMedQf, gFehIniQf, gFehMedQf, gAinIniQf, gAinMedQf, gJeemIniQf, gJeemMedQf,
+    gSadIniQf, gSadMedQf, gSeenIniQf, gSeenMedQf, gLamIniQf, gLamMedQf, gGafIniQf, gGafMedQf,
+    gMeemIniQf, gMeemMedQf, gHehDoIniQf, gTahIniQf, gTahMedQf, gHehDoMedQf, gHehGoalIniQf, gHehGoalMedQf,
+    gKafIniQf, gKafMedQf);
+
+cre = (gBehIniRe, gBehMedRe, gFehIniRe, gFehMedRe, gAinIniRe, gAinMedRe, gJeemIniRe, gJeemMedRe,
+    gSadIniRe, gSadMedRe, gSeenIniRe, gSeenMedRe, gLamIniRe, gLamMedRe, gGafIniRe, gGafMedRe,
+    gMeemIniRe, gMeemMedRe, gHehDoIniRe, gTahIniRe, gTahMedRe, gHehDoMedRe, gHehGoalIniRe, gHehGoalMedRe,
+    gKafIniRe, gKafMedRe);
+
+csd = (gBehIniSd, gBehMedSd, gFehIniSd, gFehMedSd, gAinIniSd, gAinMedSd, gJeemIniSd, gJeemMedSd,
+    gSadIniSd, gSadMedSd, gSeenIniSd, gSeenMedSd, gLamIniSd, gLamMedSd, gGafIniSd, gGafMedSd,
+    gMeemIniSd, gMeemMedSd, gHehDoIniSd, gTahIniSd, gTahMedSd, gHehDoMedSd, gHehGoalIniSd, gHehGoalMedSd,
+    gKafIniSd, gKafMedSd);
+
+cshifted = (gAlefMaddaShifted);
+
+cshort = (gGafMed_short);
+
+csmall = (g__dot3u_small);
+
+csn = (gBehIniSn, gBehMedSn, gFehIniSn, gFehMedSn, gAinIniSn, gAinMedSn, gJeemIniSn, gJeemMedSn,
+    gSadIniSn, gSadMedSn, gSeenIniSn, gSeenMedSn, gLamIniSn, gLamMedSn, gGafIniSn, gGafMedSn,
+    gMeemIniSn, gMeemMedSn, gHehDoIniSn, gTahIniSn, gTahMedSn, gHehDoMedSn, gHehGoalIniSn, gHehGoalMedSn,
+    gKafIniSn, gKafMedSn);
+
+ctaF = (gBehIniTaF, gBehMedTaF, gFehIniTaF, gAinIniTaF, gAinMedTaF, gJeemIniTaF, gJeemMedTaF, gSadIniTaF,
+    gSadMedTaF, gSeenIniTaF, gSeenMedTaF, gLamIniTaF, gLamMedTaF, gGafIniTaF, gGafMedTaF, gMeemIniTaF,
+    gMeemMedTaF, gHehDoIniTaF, gTahIniTaF, gTahMedTaF, gHehDoMedTaF, gHehGoalIniTaF, gHehGoalMedTaF, gKafIniTaF,
+    gKafMedTaF, gFehMedTaF);
+
+ctaM = (gBehIniTaM, gBehMedTaM, gFehIniTaM, gFehMedTaM, gAinIniTaM, gAinMedTaM, gJeemIniTaM, gJeemMedTaM,
+    gSadIniTaM, gSadMedTaM, gSeenIniTaM, gSeenMedTaM, gLamIniTaM, gLamMedTaM, gGafIniTaM, gMeemIniTaM,
+    gMeemMedTaM, gHehDoIniTaM, gTahIniTaM, gTahMedTaM, gHehDoMedTaM, gHehGoalIniTaM, gHehGoalMedTaM, gKafIniTaM);
+
+
+/* Ligatures */
+
+endtable;
+
+#define MAXGLYPH 1313
+
+#include "../nastaliq_rules.gdl"

@@ -1,0 +1,93 @@
+,0X00020B70, 52,Silf+0X00007EA8
+,0X0002A7C1, 36,Silf+0X00011AF9
+,0X0002A8F0, 38,Silf+0X00011C28
+,0X0002ADE1, 35,Silf+0X00012119
+,0X000343CB, 31,Silf+0X0001B703
+,0X0003440C, 40,Silf+0X0001B744
+,0X0003464C, 41,Silf+0X0001B984
+,0X00034651, 43,Silf+0X0001B989
+,0X00034785, 37,Silf+0X0001BABD
+,0X00034E0D, 43,Silf+0X0001C145
+,0X00035019, 33,Silf+0X0001C351
+,0X00035145, 41,Silf+0X0001C47D
+,0X00035167, 28,Silf+0X0001C49F
+,0X000351B3, 40,Silf+0X0001C4EB
+Invalid read of size 8
+    at  graphite2::Segment::newJustify() (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Slot::setAttr(graphite2::Segment*, gr_attrCode, unsigned char, short, graphite2::SlotMap const&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  gr_make_seg (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  Gr2Renderer::renderText(char const*, unsigned long, RenderedLine*, _IO_FILE*) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  CompareRenderer::runTests(_IO_FILE*, int) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  main (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+  Address 0x64399f0 is 0 bytes after a block of size 0 alloc'd
+    at  calloc (vg_replace_malloc.c:467)
+    by  graphite2::Segment::newJustify() (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Slot::setAttr(graphite2::Segment*, gr_attrCode, unsigned char, short, graphite2::SlotMap const&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  gr_make_seg (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  Gr2Renderer::renderText(char const*, unsigned long, RenderedLine*, _IO_FILE*) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  CompareRenderer::runTests(_IO_FILE*, int) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+ 
+ Invalid write of size 8
+    at  graphite2::Segment::newJustify() (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Slot::setAttr(graphite2::Segment*, gr_attrCode, unsigned char, short, graphite2::SlotMap const&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  gr_make_seg (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  Gr2Renderer::renderText(char const*, unsigned long, RenderedLine*, _IO_FILE*) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  CompareRenderer::runTests(_IO_FILE*, int) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  main (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+  Address 0x64399f0 is 0 bytes after a block of size 0 alloc'd
+    at  calloc (vg_replace_malloc.c:467)
+    by  graphite2::Segment::newJustify() (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Slot::setAttr(graphite2::Segment*, gr_attrCode, unsigned char, short, graphite2::SlotMap const&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  gr_make_seg (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  Gr2Renderer::renderText(char const*, unsigned long, RenderedLine*, _IO_FILE*) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  CompareRenderer::runTests(_IO_FILE*, int) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+ 
+ Invalid write of size 2
+    at  graphite2::Slot::setAttr(graphite2::Segment*, gr_attrCode, unsigned char, short, graphite2::SlotMap const&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  gr_make_seg (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  Gr2Renderer::renderText(char const*, unsigned long, RenderedLine*, _IO_FILE*) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  CompareRenderer::runTests(_IO_FILE*, int) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  main (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+  Address 0x64399fc is 12 bytes after a block of size 0 alloc'd
+    at  calloc (vg_replace_malloc.c:467)
+    by  graphite2::Segment::newJustify() (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Slot::setAttr(graphite2::Segment*, gr_attrCode, unsigned char, short, graphite2::SlotMap const&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  gr_make_seg (in /home/tim/workspace/graphitedev/master/build/src/libgraphite2.so.3.0.1)
+    by  Gr2Renderer::renderText(char const*, unsigned long, RenderedLine*, _IO_FILE*) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)
+    by  CompareRenderer::runTests(_IO_FILE*, int) (in /home/tim/workspace/graphitedev/master/build/tests/comparerenderer/comparerenderer)

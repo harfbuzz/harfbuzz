@@ -1,0 +1,553 @@
+/*
+ 	File: nastaliq_classes.gdh
+ 	
+ 	Graphite classes for Awami beyond the basic stuff
+*/
+
+
+// nuqta and mark constants
+#define nNone			0
+#define n1L				1
+#define n2L				2
+#define n3L				3
+#define n1U				4
+#define n2U				5
+#define n3U 			6
+#define tahU			7
+#define w_hamza			8
+#define w_hook			9	
+#define n1U_tahU		10
+#define tahU_n2vl		11
+#define invertedv		12
+#define n2vL			13
+#define n1L_n1U			14
+
+
+table(glyph) {MUnits = 2048};
+
+g_lrm = pseudo(postscript("space"), 0x200E);	// some data uses LRM incorrectly instead of ZWNJ to break context
+g_zwnj = pseudo(postscript("space"), 0x200C);
+g_zwj = pseudo(postscript("space"), 0x200D);
+
+
+cNuqtaUpper = (g__dot1u  g__dot2u  g__dot3u  g__dot4u) ;
+cNuqtaLower = (g__dot1l  g__dot2l  g__dot3l  g__dot2vl) ;
+cNuqta = (cNuqtaUpper  cNuqtaLower) ;
+
+cNuqtaLikeUpper = (cNuqtaUpper  g__smallTah  g__hamza);
+cNuqtaLikeLower = (cNuqtaLower  g__hehHook_small);
+cNuqtaLike = (cNuqtaLikeUpper  cNuqtaLikeLower)
+
+
+
+// TODO: remove nuqtaG glyph attribute
+
+
+// Dual-link
+// The 0 pseudo-glyphs represent forms with the nuqtas removed but recorded as glyph attributes.
+
+gBehIni0 = pseudo(postscript("absBehIni"))	{nuqtaG = n1L};
+gTehIni0 = pseudo(postscript("absBehIni"))	{nuqtaG = n2U};
+gThehIni0 = pseudo(postscript("absBehIni"))	{nuqtaG = n3U};
+gTtehIni0 = pseudo(postscript("absBehIni"))	{nuqtaG = tahU};
+gPehIni0 = pseudo(postscript("absBehIni"))	{nuqtaG = n3L};
+gBeehIni0 = pseudo(postscript("absBehIni"))	{nuqtaG = n2vL};
+gJeemIni0 = pseudo(postscript("absJeemIni"))	{nuqtaG = n1U};
+gTchehIni0 = pseudo(postscript("absJeemIni"))	{nuqtaG = n1L};
+gHahIni0 = pseudo(postscript("absJeemIni"))		{nuqtaG = nNone};
+gKhahIni0 = pseudo(postscript("absJeemIni"))	{nuqtaG = n1U};
+gDyehIni0 = pseudo(postscript("absJeemIni"))	{nuqtaG = n2vL};
+gSeenIni0 = pseudo(postscript("absSeenIni"))	{nuqtaG = nNone};
+gSheenIni0 = pseudo(postscript("absSeenIni"))	{nuqtaG = n2U};
+gSadIni0 = pseudo(postscript("absSadIni"))		{nuqtaG = nNone};
+gDadIni0 = pseudo(postscript("absSadIni"))		{nuqtaG = n1U};
+gTahIni0 = pseudo(postscript("absTahIni"))		{nuqtaG = nNone};
+gZahIni0 = pseudo(postscript("absTahIni"))		{nuqtaG = n1U};
+gAinIni0  = pseudo(postscript("absAinIni"))		{nuqtaG = nNone};
+gGhainIni0 = pseudo(postscript("absAinIni"))	{nuqtaG = n1U};
+gFehIni0 = pseudo(postscript("absFehIni"))		{nuqtaG = n1U};
+gQafIni0 = pseudo(postscript("absFehIni"))		{nuqtaG = n2U};
+gKafIni0 = pseudo(postscript("absKehehIni"))	{nuqtaG = nNone};
+gGafIni0 = pseudo(postscript("absGafIni"))		{nuqtaG = nNone};
+gGuehIni0 = pseudo(postscript("absGafIni"))		{nuqtaG = n2vL};
+gLamIni0 = pseudo(postscript("absLamIni"))		{nuqtaG = nNone};
+gMeemIni0 = pseudo(postscript("absMeemIni"))	{nuqtaG = nNone};
+gNoonIni0 = pseudo(postscript("absBehIni"))		{nuqtaG = n1U};
+gNoonGhunnaIni0 = pseudo(postscript("absBehIni"))	{nuqtaG = n1U};
+gNoonRetroIni0 = pseudo(postscript("absBehIni"))	{nuqtaG= n1U_tahU}
+gHehGoalIni0 = pseudo(postscript("absHehGoalIni"))	{nuqtaG = w_hook};
+gTehMarbutaGoalIni0 = pseudo(postscript("absHehGoalIni"))	{nuqtaG = nNone};	//  is this correct? (goal-tay)
+gHehGoalHamzaIni0 = pseudo(postscript("absHehGoalIni"))		{nuqtaG = w_hamza};		//  is this correct? (hay-hamza)
+gHehDoIni0 = pseudo(postscript("absHehDoachashmeeIni"))		{nuqtaG = nNone};
+gChotiyehIni0 = pseudo(postscript("absBehIni"))			{nuqtaG = n2L};
+gYehHamzaAboveIni0 = pseudo(postscript("absBehIni"))	{nuqtaG = w_hamza};
+gBariyehIni0 = pseudo(postscript("absBehIni"))			{nuqtaG = n2L};
+
+
+gBehMed0 = pseudo(postscript("absBehMed"))	{nuqtaG = n1L};
+gTehMed0 = pseudo(postscript("absBehMed"))	{nuqtaG = n2U};
+gThehMed0 = pseudo(postscript("absBehMed"))	{nuqtaG = n3U};
+gTtehMed0 = pseudo(postscript("absBehMed"))	{nuqtaG = tahU};
+gPehMed0 = pseudo(postscript("absBehMed"))	{nuqtaG = n3L};
+gBeehMed0 = pseudo(postscript("absBehMed"))	{nuqtaG = n2vL};
+gJeemMed0 = pseudo(postscript("absJeemMed"))	{nuqtaG = n1U};
+gTchehMed0 = pseudo(postscript("absJeemMed"))	{nuqtaG = n1L};
+gHahMed0 = pseudo(postscript("absJeemMed"))		{nuqtaG = nNone};
+gKhahMed0 = pseudo(postscript("absJeemMed"))	{nuqtaG = n1U};
+gDyehMed0 = pseudo(postscript("absJeemMed"))	{nuqtaG = n2vL};
+gSeenMed0 = pseudo(postscript("absSeenMed"))	{nuqtaG = nNone};
+gSheenMed0 = pseudo(postscript("absSeenMed"))	{nuqtaG = n3U};
+gSadMed0 = pseudo(postscript("absSadMed"))		{nuqtaG = nNone};
+gDadMed0 = pseudo(postscript("absSadMed"))		{nuqtaG = n1U};
+gTahMed0 = pseudo(postscript("absTahMed"))		{nuqtaG = nNone};
+gZahMed0 = pseudo(postscript("absTahMed"))		{nuqtaG = n1U};
+gAinMed0 = pseudo(postscript("absAinMed"))		{nuqtaG = nNone};
+gGhainMed0 = pseudo(postscript("absAinMed"))	{nuqtaG = n1U};
+gFehMed0 = pseudo(postscript("absFehMed"))		{nuqtaG = n1U};
+gQafMed0 = pseudo(postscript("absFehMed"))		{nuqtaG = n2U};
+gKafMed0 = pseudo(postscript("absKehehMed"))	{nuqtaG = nNone};
+gGafMed0 = pseudo(postscript("absGafMed"))		{nuqtaG = nNone};
+gGuehMed0 = pseudo(postscript("absGafMed"))		{nuqtaG = n2vL};
+gLamMed0 = pseudo(postscript("absLamMed"))		{nuqtaG = nNone};
+gMeemMed0 = pseudo(postscript("absMeemMed"))	{nuqtaG = nNone};
+gNoonMed0 = pseudo(postscript("absBehMed"))		{nuqtaG = n1U};
+gNoonGhunnaMed0 = pseudo(postscript("absBehMed"))	{nuqtaG = n1U};
+gNoonRetroMed0 = pseudo(postscript("absBehMed")) 	{nuqtaG = n1U_tahU};
+gHehGoalMed0 = pseudo(postscript("absHehGoalMed"))	{nuqtaG = nNone};	// TODO: add a feature to include this
+gTehMarbutaGoalMed0 = pseudo(postscript("absHehGoalMed"))	{nuqtaG = nNone};  // is this correct? (goal-tay)
+gHehGoalHamzaMed0 = pseudo(postscript("absHehGoalMed")) 	{nuqtaG = w_hamza};  // is this correct? (hay-hamza)
+gHehDoMed0 = pseudo(postscript("absHehDoachashmeeMed"))		{nuqtaG = nNone};
+gChotiyehMed0 = pseudo(postscript("absBehIni"))			{nuqtaG = n2L};
+gYehHamzaAboveMed0 = pseudo(postscript("absBehIni"))	{nuqtaG = w_hamza};
+gBariyehMed0 = pseudo(postscript("absBehIni"))			{nuqtaG = n2L};
+
+
+gBehFin0 = pseudo(postscript("absBehFin"))	{nuqtaG = n1L};
+gTehFin0 = pseudo(postscript("absBehFin"))	{nuqtaG = n2U};
+gThehFin0 = pseudo(postscript("absBehFin"))	{nuqtaG = n3U};
+gTtehFin0 = pseudo(postscript("absBehFin"))	{nuqtaG = tahU};
+gPehFin0 = pseudo(postscript("absBehFin"))	{nuqtaG = n3L};
+gBeehFin0 = pseudo(postscript("absBehFin"))	{nuqtaG = n2vL};
+gJeemFin0 = pseudo(postscript("absJeemFin"))	{nuqtaG = n1U};
+gTchehFin0 = pseudo(postscript("absJeemFin"))	{nuqtaG = n3L};
+gHahFin0 = pseudo(postscript("absJeemFin"))		{nuqtaG = nNone};
+gKhahFin0 = pseudo(postscript("absJeemFin"))	{nuqtaG = n1U};
+gDyehFin0 = pseudo(postscript("absJeemFin"))	{nuqtaG = n2vL};
+gSeenFin0 = pseudo(postscript("absSeenFin"))	{nuqtaG = nNone};
+gSheenFin0 = pseudo(postscript("absSeenFin"))	{nuqtaG = n1U};
+gSadFin0 = pseudo(postscript("absSadFin"))		{nuqtaG = nNone};
+gDadFin0 = pseudo(postscript("absSadFin"))		{nuqtaG = n1U};
+gTahFin0 = pseudo(postscript("absTahFin"))		{nuqtaG = nNone};
+gZahFin0 = pseudo(postscript("absTahFin"))		{nuqtaG = n1U};
+gAinFin0  = pseudo(postscript("absAinFin"))		{nuqtaG = nNone};
+gGhainFin0 = pseudo(postscript("absAinFin"))	{nuqtaG = n1U};
+gFehFin0 = pseudo(postscript("absFehFin"))		{nuqtaG = n1U};
+gQafFin0 = pseudo(postscript("absFehFin"))		{nuqtaG = n2U};
+gKafFin0 = pseudo(postscript("absKehehFin"))	{nuqtaG = nNone};
+gGafFin0 = pseudo(postscript("absGafFin"))		{nuqtaG = nNone};
+gGuehFin0 = pseudo(postscript("absGafFin"))		{nuqtaG = n2vL};
+gLamFin0 = pseudo(postscript("absLamFin"))		{nuqtaG = nNone};
+gMeemFin0 = pseudo(postscript("absMeemFin"))	{nuqtaG = nNone};
+gNoonFin0 = pseudo(postscript("absBehFin"))		{nuqtaG = n1U};
+gNoonGhunnaFin0 = pseudo(postscript("absBehFin"))	{nuqtaG = n1U};
+gNoonRetroFin0 = pseudo(postscript("absBehFin"))	{nuqtaG= n1U_tahU}
+gHehGoalFin0 = pseudo(postscript("absHehGoalFin"))	{nuqtaG = nNone};
+gTehMarbutaGoalFin0 = pseudo(postscript("absHehGoalFin"))	{nuqtaG = nNone};	//  is this correct? ("teh_goal")
+gHehGoalHamzaFin0 = pseudo(postscript("absHehGoalFin"))		{nuqtaG = w_hamza};	//  is this correct? ("heh-hamza")
+gHehDoFin0 = pseudo(postscript("absHehDoachashmeeFin"))		{nuqtaG = nNone};
+gChotiyehFin0 = pseudo(postscript("absBehFin"))			{nuqtaG = nNone};
+gYehHamzaAboveFin0 = pseudo(postscript("absBehFin"))	{nuqtaG = w_hamza};
+gBariyehFin0 = pseudo(postscript("absBehFin"))			{nuqtaG = nNone};
+
+
+// The "raw" forms indicate that initial/medial processing has not been done yet.
+
+gBehIni_raw = pseudo(postscript("absBehIni"));
+gJeemIni_raw = pseudo(postscript("absJeemIni"));
+gSeenIni_raw = pseudo(postscript("absSeenIni"));
+gSadIni_raw = pseudo(postscript("absSadIni"));
+gTahIni_raw = pseudo(postscript("absTahIni"));
+gAinIni_raw = pseudo(postscript("absAinIni"));
+gFehIni_raw = pseudo(postscript("absFehIni"));
+gKafIni_raw = pseudo(postscript("absKehehIni"));
+gGafIni_raw = pseudo(postscript("absGafIni"));
+gLamIni_raw = pseudo(postscript("absLamIni"));
+gMeemIni_raw = pseudo(postscript("absMeemIni"));
+gHehGoalIni_raw = pseudo(postscript("absHehGoalIni"));
+gHehDoIni_raw = pseudo(postscript("absHehDoachashmeeIni"));
+
+gBehMed_raw = pseudo(postscript("absBehMed"));
+gJeemMed_raw = pseudo(postscript("absJeemMed"));
+gSeenMed_raw = pseudo(postscript("absSeenMed"));
+gSadMed_raw = pseudo(postscript("absSadMed"));
+gTahMed_raw = pseudo(postscript("absTahMed"));
+gAinMed_raw = pseudo(postscript("absAinMed"));
+gFehMed_raw = pseudo(postscript("absFehMed"));
+gKafMed_raw = pseudo(postscript("absKehehMed"));
+gGafMed_raw = pseudo(postscript("absGafMed"));
+gLamMed_raw = pseudo(postscript("absLamMed"));
+gMeemMed_raw = pseudo(postscript("absMeemMed"));
+gHehGoalMed_raw = pseudo(postscript("absHehGoalMed"));
+gTehMarbutaGoal_raw = pseudo(postscript("absHehGoalIni"));	// teh-goal
+gHehGoalHamza_raw = pseudo(postscript("absHehGoalIni"));	// heh-hamza
+gHehDoMed_raw = pseudo(postscript("absHehDoachashmeeMed"));
+
+gMeemMed_alt_raw = pseudo(postscript("absMeemMed._alt"));
+gBehMed_SS_raw = pseudo(postscript("absBehMed.beF_ss"));  // absBehMed.beF_ss / absBehMed._ss
+
+
+// "0" classes are generated by the initial contextual shaping
+
+cBehIso = (gBeh, gTeh, gTheh, gTteh, gPeh, gBeeh);
+cBehIni0 = (gBehIni0, gTehIni0, gThehIni0, gTtehIni0, gPehIni0, gBeehIni0);
+cBehMed0 = (gBehMed0, gTehMed0, gThehMed0, gTtehMed0, gPehMed0, gBeehMed0);
+cBehFin0 = (gBehFin0, gTehFin0, gThehFin0, gTtehFin0, gPehFin0, gBeehFin0);
+
+cBehFin = ( gBehFin			gTehFin			gThehFin		gTtehFin		gPehFin 
+			gBehFin_bfkl	gTehFin_bfkl	gThehFin_bfkl	gTtehFin_bfkl	gPehFin_bfkl) ;
+
+cJeemIso = (gJeem, gTcheh, gHah, gKhah, gDyeh);
+cJeemIni0 = (gJeemIni0, gTchehIni0, gHahIni0, gKhahIni0, gDyehIni0);
+cJeemMed0 = (gJeemMed0, gTchehMed0, gHahMed0, gKhahMed0, gDyehMed0);
+cJeemFin0 = (gJeemFin0, gTchehFin0, gHahFin0, gKhahFin0, gDyehFin0);
+
+cJeemFin = ( gJeemFin, gTchehFin, gHahFin, gKhahFin, gDyehFin ) ;  // gTchehehFin
+
+cSeenIso = (gSeen, gSheen);
+cSeenIni0 = (gSeenIni0, gSheenIni0);
+cSeenMed0 = (gSeenMed0, gSheenMed0);
+cSeenFin0 = (gSeenFin0, gSheenFin0);
+
+cSeenFin = (gSeenFin, gSheenFin);
+
+cSadIso = (gSad, gDad);
+cSadIni0 = (gSadIni0, gDadIni0);
+cSadMed0 = (gSadMed0, gDadMed0);
+cSadFin0 = (gSadFin0, gDadFin0);
+
+cSadFin = (gSadFin, gDadFin);
+
+cTahIso = (gTah, gZah);
+cTahIni0 = (gTahIni0, gZahIni0);
+cTahMed0 = (gTahMed0, gZahMed0);
+cTahFin0 = (gTahFin0, gZahFin0);
+
+cTahFin = (gTahFin, gZahFin);
+
+cAinIso = (gAin, gGhain);
+cAinIni0 = (gAinIni0, gGhainIni0);
+cAinMed0 = (gAinMed0, gGhainMed0);
+cAinFin0 = (gAinFin0, gGhainFin0);
+
+cAinFin = (gAinFin, gGhainFin);
+
+cFehIso = (gFeh);
+cFehIni0 = (gFehIni0);
+cFehMed0 = (gFehMed0);
+cFehFin0 = (gFehFin0);
+
+cQafIso = (gQaf);
+cQafIni0 = (gQafIni0);
+cQafMed0 = (gQafMed0);
+cQafFin0 = (gQafFin0);
+
+cKafIso = (gKaf, gGaf, gArabicKaf, gGueh);
+cKafIni0 = (gKafIni0, gGafIni0, gKafIni0, gGuehIni0);
+cKafMed0 = (gKafMed0, gGafMed0, gKafMed0, gGuehMed0);
+cKafFin0 = (gKafFin0, gGafFin0, gKafFin0, gGuehFin0);  // maybe we need a separate gArabicKafFin
+
+cLamIso = (gLam);
+cLamIni0 = (gLamIni0);
+cLamMed0 = (gLamMed0);
+cLamFin0 = (gLamFin0);
+
+cMeemIso = (gMeem);
+cMeemIni0 = (gMeemIni0);
+cMeemMed0 = (gMeemMed0);
+cMeemFin0 = (gMeemFin0);
+
+cNoonIso = (gNoon, gNoonGhunna, gNoonRetro);
+cNoonIni0 = (gNoonIni0, gNoonGhunnaIni0, gNoonRetroIni0);
+cNoonMed0 = (gNoonMed0, gNoonGhunnaMed0, gNoonRetroMed0);
+cNoonFin0 = (gNoonFin0, gNoonGhunnaFin0, gNoonRetroFin0);
+
+cNoonFin = (gNoonFin, gNoonGhunnaFin); // gNoonRetroFin - not defined
+
+cHehGoalIso = (gHehGoal, gTehMarbutaGoal, gHehGoalHamza);
+cHehGoalIni0 = (gHehGoalIni0, gTehMarbutaGoalIni0, gHehGoalHamzaIni0);
+cHehGoalMed0 = (gHehGoalMed0, gTehMarbutaGoalMed0, gHehGoalHamzaMed0);
+cHehGoalFin0 = (gHehGoalFin0, gTehMarbutaGoalFin0, gHehGoalHamzaFin0);
+
+cHehGoalFin = (
+	gHehGoalFin,		gTehMarbutaGoalFin,			gHehGoalHamzaFin
+	gHehGoalFin_stfh,	gTehMarbutaGoalFin_stfh,	gHehGoalHamzaFin_stfh);
+
+
+cHehDoIso = (gHehDo);
+cHehDoIni0 = (gHehDoIni0);
+cHehDoMed0 = (gHehDoMed0);
+cHehDoFin0 = (gHehDoFin0);
+
+cChotiyehIso = (gChotiyeh, gYehHamzaAbove, gBariyeh);
+cChotiyehIni0 = (gChotiyehIni0, gYehHamzaAboveIni0, gBariyehIni0);
+cChotiyehMed0 = (gChotiyehMed0, gYehHamzaAboveMed0, gBariyehMed0);
+cChotiyehFin0 = (gChotiyehFin0, gYehHamzaAboveFin0, gBariyehFin0);
+
+cChotiyehFin = (gChotiyehFin, gChotiyehFin_bfkl);
+
+
+//	not encoded: 0629 (teh marbuta), 063b & 063c (keheh), 063d-063f (farsi yeh),
+//	0643 (kaf), 0647 (heh), 0649 (alef maksura), 064a (yeh)
+
+// Classes for basic initial/medial/final shaping.
+
+cDualLinkIso = (	g_zwj,		cBehIso,	cJeemIso,	cSeenIso,	cSadIso,	cTahIso,
+	cAinIso,		cFehIso,	cQafIso,	cKafIso,	cLamIso,	cMeemIso,	cNoonIso,
+	cHehGoalIso,	cHehDoIso,	cChotiyehIso);
+	
+cDualLinkIni = (	g_zwj,		cBehIni0,	cJeemIni0,	cSeenIni0,	cSadIni0,	cTahIni0,
+	cAinIni0,		cFehIni0,	cQafIni0,	cKafIni0,	cLamIni0,	cMeemIni0,	cNoonIni0,
+	cHehGoalIni0,	cHehDoIni0,	cChotiyehIni0);
+		
+cDualLinkMed = (	g_zwj,		cBehMed0,	cJeemMed0,	cSeenMed0,	cSadMed0,	cTahMed0,
+	cAinMed0,		cFehMed0,	cQafMed0,	cKafMed0,	cLamMed0,	cMeemMed0,	cNoonMed0,
+	cHehGoalMed0,	cHehDoMed0,	cChotiyehMed0);
+
+cDualLinkFin = (	g_zwj,		cBehFin0,	cJeemFin0,	cSeenFin0,	cSadFin0,	cTahFin0,
+	cAinFin0,		cFehFin0,	cQafFin0,	cKafFin0,	cLamFin0,	cMeemFin0,	cNoonFin0,
+	cHehGoalFin0,	cHehDoFin0,	cChotiyehFin0);
+// yeh barree w hamza above -> bay + hamza + bariyah
+
+
+cIniMed0 = (cDualLinkIni, cDualLinkMed);
+
+
+// Right-link
+// The 0 pseudo-glyphs represent forms with the nuqtas removed but recorded as glyph attributes.
+
+
+gAlefFin0 = pseudo(postscript("absAlefFin"))		{nuqtaG = nNone};
+gAlefHamzaFin0 = pseudo(postscript("absAlefFin"))	{nuqtaG = w_hamza};
+
+gDalFin0 = pseudo(postscript("absDalFin"))			{nuqtaG = nNone};
+gThalFin0 = pseudo(postscript("absDalFin"))			{nuqtaG = n1U};
+gDdalFin0 = pseudo(postscript("absDalFin"))			{nuqtaG = tahU};
+gDalTwoVertBelowSmallTahFin0
+		= pseudo(postscript("absDalFin"))			{nuqtaG = tahU_n2vl};
+gThalDotBelowFin0 = pseudo(postscript("absDalFin"))		{nuqtaG = n1L};
+
+gRehFin0 = pseudo(postscript("absRehFin"))			{nuqtaG = nNone};
+gZainFin0 = pseudo(postscript("absRehFin"))			{nuqtaG = n1U};
+gRrehFin0 = pseudo(postscript("absRehFin"))			{nuqtaG = tahU};
+gJehFin0 = pseudo(postscript("absRehFin"))			{nuqtaG = n3U};
+gRehDotBelowDotAboveFin0 = pseudo(postscript("absRehFin"))	{nuqtaG = n1L_n1U};
+
+gWawFin0 = pseudo(postscript("absWawFin"))			{nuqtaG = nNone};
+gWawHamzaAboveFin0 = pseudo(postscript("absWawFin")) {nuqtaG = w_hamza};
+
+
+// Special cases
+
+gBariyehHamzaFin0 = pseudo(postscript("nlqBariyehFin")) {nuqtaG = w_hamza};
+
+gBariyeh0 = pseudo(postscript("absBehIni")) {nuqtaG = n2L};
+
+//gBariyehFin0 = pseudo(postscript("nlqBariyehFin"))		{nuqtaG = nNone};  -- defined above with dual-connectors
+
+
+gDalTwoVertBelowSmallTahFin = pseudo(postscript("absDalFin"));
+gThalDotBelowFin = pseudo(postscript("absDalFin"));
+gRehDotBelowDotAboveFin = pseudo(postscript("absRehFin"));
+
+
+cAlefIso = (gAlef, gAlefHamzaAbove, gAlefMaddaAbove);
+cAlefFin0 = (gAlefFin0, gAlefHamzaFin0, gAlefMaddaFin);
+
+cDalIso = (gDal, gThal, gDdal, gDalTwoVertBelowSmallTah, gThalDotBelow);
+cDalFin0 = (gDalFin0, gThalFin0, gDdalFin0, gDalTwoVertBelowSmallTahFin0, gThalDotBelowFin0);
+
+cDalFin = ( gDalFin gDdalFin gThalFin, gDalTwoVertBelowSmallTahFin, gThalDotBelowFin0 ) ;
+
+cRehIso = (gReh, gZain, gRreh, gJeh, gRehDotBelowDotAbove);
+cRehFin0 = (gRehFin0, gZainFin0, gRrehFin0, gJehFin0, gRehDotBelowDotAboveFin0);
+
+cRehFin = ( gRehFin			gRrehFin		gZainFin		gJehFin 	gRehDotBelowDotAboveFin0
+			gRehFin_jkl		gRrehFin_jkl	gZainFin_jkl	gJehFin_jkl 
+			gRehFin_sshg	gRrehFin_sshg	gZainFin_sshg	gJehFin_sshg
+			gRehFin_hgM		gRrehFin_hgM	gZainFin_hgM	gJehFin_hgM ) ;
+
+
+cWawIso = (gWaw, gWawHamzaAbove);
+cWawFin0 = (gWawFin0, gWawHamzaAboveFin0);
+
+cBariyehIso = (gBariyeh, gBariyehHamza);		// bariyeh -> behIni + 2Nlower
+cBariyehFin0 = (gBariyehFin0, gBariyehHamzaFin0);  // bariyeh+hamza eventually replaced with beh + bariyeh
+		
+// What about 0698 = jeh?
+
+cRightLinkIso = (	g_zwj,	cAlefIso,	cDalIso,	cRehIso,	cWawIso,	cBariyehIso);
+
+cRightLinkFin = (	g_zwj,	cAlefFin0,	cDalFin0,	cRehFin0,	cWawFin0,	cBariyehFin0);
+
+
+
+// NFD > NFC
+
+// TODO: add more characters here: waw, alef...
+c_nfd_noHamza = (gChotiyeh, gHehGoal);		// chotiyah, goal-hay
+c_nfc_hamza   = (gYehHamzaAbove, gHehGoalHamza);		// hamza-yay, hay-hamza
+
+
+// Classes of initials and medials
+
+cBehIni = ( gBehIniBeM1 gBehIniBeM2 gBehIniJm gBehIniRe gBehIniSn gBehIniSd 
+    gBehIniTaF gBehIniTaM gBehIniAi gBehIniFe gBehIniQf gBehIniMm gBehIniNn 
+    gBehIniHgF gBehIniHgM gBehIniHd gBehIniCh gBehIniBy gBehIniBe gBehIniBeRe 
+    gBehIniBeNn gBehIniMmX gBehIniMmM gBehIniKfX ) ;
+cJeemIni = ( gJeemIni gJeemIniBeM1 gJeemIniBeF gJeemIniBeM2 gJeemIniJm gJeemIniRe 
+    gJeemIniSn gJeemIniSd gJeemIniTaF gJeemIniTaM gJeemIniAi gJeemIniFe gJeemIniQf 
+    gJeemIniMm gJeemIniNn gJeemIniHgF gJeemIniHgM gJeemIniHd gJeemIniCh gJeemIniBy 
+    gJeemIniBe gJeemIniBeRe gJeemIniBeNn gJeemIniBeHg gJeemIniMmX gJeemIniKfX ) ;
+cSeenIni = ( gSeenIni gSeenIniBeM1 gSeenIniBeF gSeenIniBeM2 gSeenIniJm gSeenIniRe 
+    gSeenIniSn gSeenIniSd gSeenIniTaF gSeenIniTaM gSeenIniAi gSeenIniFe gSeenIniQf 
+    gSeenIniMm gSeenIniNn gSeenIniHgF gSeenIniHgM gSeenIniHd gSeenIniCh gSeenIniBy 
+    gSeenIniBe gSeenIniBeRe gSeenIniBeNn gSeenIniBeHg gSeenIniMmX gSeenIniKfX ) ;
+cSadIni = ( gSadIni gSadIniBeM1 gSadIniBeF gSadIniBeM2 gSadIniJm gSadIniRe 
+    gSadIniSn gSadIniSd gSadIniTaF gSadIniTaM gSadIniAi gSadIniFe gSadIniQf 
+    gSadIniMm gSadIniNn gSadIniHgF gSadIniHgM gSadIniHd gSadIniCh gSadIniBy 
+    gSadIniBe gSadIniBeRe gSadIniBeNn gSadIniBeHg gSadIniMmX gSadIniKfX ) ;
+cTahIni = ( gTahIni gTahIniBeM1 gTahIniBeF gTahIniBeM2 gTahIniJm gTahIniRe 
+    gTahIniSn gTahIniSd gTahIniTaF gTahIniTaM gTahIniAi gTahIniFe gTahIniQf 
+    gTahIniMm gTahIniNn gTahIniHgF gTahIniHgM gTahIniHd gTahIniCh gTahIniBy 
+    gTahIniBe gTahIniBeRe gTahIniBeNn gTahIniBeHg gTahIniMmX gTahIniKfX ) ;
+cAinIni = ( gAinIni gAinIniBeM1 gAinIniBeF gAinIniBeM2 gAinIniJm gAinIniRe 
+    gAinIniSn gAinIniSd gAinIniTaF gAinIniTaM gAinIniAi gAinIniFe gAinIniQf 
+    gAinIniMm gAinIniNn gAinIniHgF gAinIniHgM gAinIniHd gAinIniCh gAinIniBy 
+    gAinIniBe gAinIniBeRe gAinIniBeNn gAinIniBeHg gAinIniMmX gAinIniKfX ) ;
+cFehIni = ( gFehIni gFehIniBeM1 gFehIniBeF gFehIniBeM2 gFehIniJm gFehIniRe 
+    gFehIniSn gFehIniSd gFehIniTaF gFehIniTaM gFehIniAi gFehIniFe gFehIniQf 
+    gFehIniMm gFehIniNn gFehIniHgF gFehIniHgM gFehIniHd gFehIniCh gFehIniBy 
+    gFehIniBe gFehIniBeRe gFehIniBeNn gFehIniBeHg gFehIniMmX gFehIniKfX ) ;
+cHehGoalIni = ( gHehGoalIni gHehGoalIniBeM1 gHehGoalIniBeF gHehGoalIniBeM2 gHehGoalIniJm 
+    gHehGoalIniRe gHehGoalIniSn gHehGoalIniSd gHehGoalIniTaF gHehGoalIniTaM gHehGoalIniAi 
+    gHehGoalIniFe gHehGoalIniQf gHehGoalIniMm gHehGoalIniNn gHehGoalIniHgF gHehGoalIniHgM 
+    gHehGoalIniHd gHehGoalIniCh gHehGoalIniBy gHehGoalIniBe gHehGoalIniBeRe gHehGoalIniBeNn 
+    gHehGoalIniBeHg gHehGoalIniMmX gHehGoalIniKfX ) ;
+cKafIni = ( gKafIni /*gKafIniBeF*/ gKafIniBeM2 gKafIniJm gKafIniRe gKafIniSn 
+    gKafIniSd gKafIniTaF gKafIniAi gKafIniFe gKafIniQf gKafIniMm gKafIniNn 
+    gKafIniHgF gKafIniHd gKafIniCh gKafIniBy gKafIniDk gGafIni /*gGafIniBeF*/
+    gGafIniBeM2 gGafIniJm gGafIniRe gGafIniSn gGafIniSd gGafIniTaF gGafIniAi 
+    gGafIniFe gGafIniQf gGafIniMm gGafIniNn gGafIniHgF gGafIniHd gGafIniCh 
+    gGafIniBy gGafIniDk ) ;
+cKafIni_alt = ( gKafIniBeM1_alt gKafIniBeM2_alt gKafIniJm_alt gKafIniSn_alt gKafIniSd_alt gKafIniTaF_alt 
+	gKafIniTaM_alt gKafIniAi_alt gKafIniFe_alt gKafIniMm_alt gKafIniHgM_alt gKafIniHd_alt
+	gKafIniBe_alt gKafIniBeRe_alt gKafIniBeNn_alt gKafIniBeHg_alt gKafIniMmX_alt gKafIniKfX_alt
+    gGafIniBeM1_alt gGafIniBeM2_alt gGafIniJm_alt gGafIniSn_alt gGafIniSd_alt gGafIniTaF_alt 
+	gGafIniTaM_alt gGafIniAi_alt gGafIniFe_alt gGafIniMm_alt gGafIniHgM_alt gGafIniHd_alt
+	gGafIniBe_alt gGafIniBeRe_alt gGafIniBeNn_alt gGafIniBeHg_alt gGafIniMmX_alt gGafIniKfX_alt ) ;
+
+
+cBehMed = ( gBehMed gBehMedBeM1 gBehMedBeF gBehMedBeM2 gBehMedJm gBehMedRe 
+    gBehMedSn gBehMedSd gBehMedTaF gBehMedTaM gBehMedAi gBehMedFe gBehMedQf 
+    gBehMedMm gBehMedNn gBehMedHgF gBehMedHgM gBehMedHd gBehMedCh gBehMedBy 
+    gBehMedBe gBehMedBeRe gBehMedBeNn gBehMedBeHg gBehMedMmX gBehMedKfX gBehMedBeF_ss 
+    gBehMedSd_ss gBehMedTaF_ss gBehMedTaM_ss gBehMedAi_ss gBehMedFe_ss gBehMedQf_ss gBehMedHgF_be ) ;
+cJeemMed = ( gJeemMed gJeemMedBeM1 gJeemMedBeF gJeemMedBeM2 gJeemMedJm gJeemMedRe 
+    gJeemMedSn gJeemMedSd gJeemMedTaF gJeemMedTaM gJeemMedAi gJeemMedFe gJeemMedQf 
+    gJeemMedMm gJeemMedNn gJeemMedHgF gJeemMedHgM gJeemMedHd gJeemMedCh gJeemMedBy 
+    gJeemMedBe gJeemMedBeRe gJeemMedBeNn gJeemMedBeHg gJeemMedMmX gJeemMedKfX ) ;
+cSeenMed = ( gSeenMed gSeenMedBeM1 gSeenMedBeF gSeenMedBeM2 gSeenMedJm gSeenMedRe 
+    gSeenMedSn gSeenMedSd gSeenMedTaF gSeenMedTaM gSeenMedAi gSeenMedFe gSeenMedQf 
+    gSeenMedMm gSeenMedNn gSeenMedHgF gSeenMedHgM gSeenMedHd gSeenMedCh gSeenMedBy 
+    gSeenMedBe gSeenMedBeRe gSeenMedBeNn gSeenMedBeHg gSeenMedMmX gSeenMedKfX ) ;
+cSadMed = ( gSadMed gSadMedBeM1 gSadMedBeF gSadMedBeM2 gSadMedJm gSadMedRe 
+    gSadMedSn gSadMedSd gSadMedTaF gSadMedTaM gSadMedAi gSadMedFe gSadMedQf 
+    gSadMedMm gSadMedNn gSadMedHgF gSadMedHgM gSadMedHd gSadMedCh gSadMedBy 
+    gSadMedBe gSadMedBeRe gSadMedBeNn gSadMedBeHg gSadMedMmX gSadMedKfX ) ;
+cAinMed = ( gAinMed gAinMedBeM1 gAinMedBeF gAinMedBeM2 gAinMedJm gAinMedRe 
+    gAinMedSn gAinMedSd gAinMedTaF gAinMedTaM gAinMedAi gAinMedFe gAinMedQf 
+    gAinMedMm gAinMedNn gAinMedHgF gAinMedHgM gAinMedHd gAinMedCh gAinMedBy 
+    gAinMedBe gAinMedBeRe gAinMedBeNn gAinMedBeHg gAinMedMmX gAinMedKfX ) ;
+cTahMed = ( gTahMed gTahMedBeM1 gTahMedBeF gTahMedBeM2 gTahMedJm gTahMedRe 
+    gTahMedSn gTahMedSd gTahMedTaF gTahMedTaM gTahMedAi gTahMedFe gTahMedQf 
+    gTahMedMm gTahMedNn gTahMedHgF gTahMedHgM gTahMedHd gTahMedCh gTahMedBy 
+    gTahMedBe gTahMedBeRe gTahMedBeNn gTahMedBeHg gTahMedMmX gTahMedKfX ) ;
+cFehMed = ( gFehMed gFehMedBeM1 gFehMedBeF gFehMedBeM2 gFehMedJm gFehMedRe 
+    gFehMedSn gFehMedSd gFehMedTaF gFehMedTaM gFehMedAi gFehMedFe gFehMedQf 
+    gFehMedMm gFehMedNn gFehMedHgF gFehMedHgM gFehMedHd gFehMedCh gFehMedBy 
+    gFehMedBe gFehMedBeRe gFehMedBeNn gFehMedBeHg gFehMedMmX gFehMedKfX ) ;
+cLamMed = ( gLamMed gLamMedBeM1 gLamMedBeF gLamMedBeM2 gLamMedJm gLamMedRe 
+    gLamMedSn gLamMedSd gLamMedTaF gLamMedTaM gLamMedAi gLamMedFe gLamMedQf 
+    gLamMedMm gLamMedNn gLamMedHgF gLamMedHgM gLamMedHd gLamMedCh gLamMedBy 
+    gLamMedBe gLamMedBeRe gLamMedBeNn gLamMedBeHg gLamMedKfX ) ;
+cMeemMed = ( gMeemMed gMeemMedBeM1 gMeemMedBeF gMeemMedBeM2 gMeemMedJm gMeemMedRe 
+    gMeemMedSn gMeemMedSd gMeemMedTaF gMeemMedTaM gMeemMedAi gMeemMedFe gMeemMedQf 
+    gMeemMedMm gMeemMedNn gMeemMedHgF gMeemMedHgM gMeemMedHd gMeemMedCh gMeemMedBy 
+    gMeemMedBe gMeemMedBeRe gMeemMedBeNn gMeemMedBeHg gMeemMedMmX gMeemMedKfX ) ;
+cHehGoalMed = ( gHehGoalMed gHehGoalMedBeM1 gHehGoalMedBeF gHehGoalMedBeM2 
+    gHehGoalMedJm gHehGoalMedRe gHehGoalMedSn gHehGoalMedSd gHehGoalMedTaF gHehGoalMedTaM 
+    gHehGoalMedAi gHehGoalMedFe gHehGoalMedQf gHehGoalMedMm gHehGoalMedNn gHehGoalMedHgF 
+    gHehGoalMedHgM gHehGoalMedHd gHehGoalMedCh gHehGoalMedBy gHehGoalMedBe 
+    gHehGoalMedBeRe gHehGoalMedBeNn gHehGoalMedBeHg gHehGoalMedMmX gHehGoalMedKfX ) ;
+cKafMed = ( gKafMed gKafMedBeF gKafMedBeM2 gKafMedJm gKafMedRe gKafMedSn 
+    gKafMedSd gKafMedTaF gKafMedAi gKafMedFe gKafMedQf gKafMedMm gKafMedNn 
+    gKafMedHgF gKafMedHd gKafMedCh gKafMedBy gKafMedDk gGafMed gGafMedBeF 
+    gGafMedBeM2 gGafMedJm gGafMedRe gGafMedSn gGafMedSd gGafMedTaF gGafMedAi 
+    gGafMedFe gGafMedQf gGafMedMm gGafMedNn gGafMedHgF gGafMedHd gGafMedCh 
+    gGafMedBy gGafMedDk ) ;
+cHehDoMed = ( gHehDoMed gHehDoMedBeM1 gHehDoMedBeF 
+    gHehDoMedBeM2 gHehDoMedJm gHehDoMedRe gHehDoMedSn 
+    gHehDoMedSd gHehDoMedTaF gHehDoMedTaM gHehDoMedAi 
+    gHehDoMedFe gHehDoMedQf gHehDoMedMm gHehDoMedNn 
+    gHehDoMedHgF gHehDoMedHgM gHehDoMedHd gHehDoMedCh 
+    gHehDoMedBy gHehDoMedBe gHehDoMedBeRe gHehDoMedBeNn 
+    gHehDoMedBeHg gHehDoMedMmX gHehDoMedKfX ) ;
+
+// Here we treat the non-alt forms as part of the alt class, just to fill out the class.
+cKafMed_alt = ( gKafMedBeM1_alt gKafMedBeF_alt gKafMedBeM2_alt gKafMedJm_alt gKafMedSn_alt 
+    gKafMedSd_alt gKafMedHd_alt gKafMedTaM_alt gKafMedAi_alt gKafMedFe_alt gKafMedMm_alt 
+    gKafMedHgM_alt gKafMedBe_alt gKafMedBeRe gKafMedBeNn gKafMedBeHg gKafMedMmX
+    gKafMedKfX gGafMedBeM1_alt gGafMedBeF_alt gGafMedBeM2_alt gGafMedJm_alt gGafMedSn_alt 
+    gGafMedSd_alt gGafMedHd_alt gGafMedTaM_alt gGafMedAi_alt gGafMedFe_alt gGafMedMm_alt 
+    gGafMedHgM_alt gGafMedBe_alt gGafMedBeRe gGafMedBeNn gGafMedBeHg
+    gGafMedMmX gGafMedKfX ) ;
+cMeemMed_alt = ( gMeemMed_alt gMeemMedBeNn_alt ) ;
+
+
+c_Med_ss = ( gBehMedBeF_ss gBehMedSd_ss gBehMedTaF_ss gBehMedTaM_ss gBehMedAi_ss gBehMedFe_ss 
+	gBehMedQf_ss gBehMedHgF_be ) ;
+
+
+// Does not initiate alternate (rounded) kaf:
+c_dkg_noKalt = ( gDalFin gDdalFin gThalFin gDalTwoVertBelowSmallTahFin gThalDotBelowFin
+	gKafFin gGafFin 
+	gKafMedBeF gKafMedBeM2 gKafMedJm gKafMedRe gKafMedSn gKafMedSd gKafMedTaF
+	gKafMedAi gKafMedFe gKafMedQf gKafMedMm gKafMedNn gKafMedHgF gKafMedHd gKafMedCh 
+	gKafMedBy gKafMedDk 
+    gGafMedBeF gGafMedBeM2 gGafMedJm gGafMedRe gGafMedSn gGafMedSd gGafMedTaF 
+    gGafMedAi gGafMedFe gGafMedQf gGafMedMm gGafMedNn gGafMedHgF gGafMedHd gGafMedCh
+    gGafMedBy gGafMedDk ) ;
+
+// initiates alternate (rounded) kaf:
+c_al_postKalt = ( gAlefFin gLamFin gLamAlefFin cLamMed ) ;
+
+// Requires alternate meem and kaf
+c_dkgal_postAlt = ( c_dkg_noKalt, c_al_postKalt ) ;
+
+// Alternate qaf and waw forms
+c_qw = ( gQafFin gQafFin_stfh gWawFin gWawFin_stfh gWawHamzaAboveFin gWawHamzaAboveFin_stfh ) ;
+
+
+// Diacritics
+
+cDiacriticUpper = ( gHamzaAbove gZabar gPesh gShadda gJazm gKharizabar gDozabar 
+    gDopesh gUltaPesh gNoonGhunnaMark gSmallHighSadMark gSmallHighAinMark gSmallHighRehDadMark 
+    gSmallHighRehHahMark gNameMarker gMaddaAbove, g__dot1u_smallTah
+) ;
+cDiacriticLower = ( gZair gKharizair gDozair ) ;
+
+cDiacritic = (cDiacriticUpper cDiacriticLower);
+
+
+endtable;  // glyph
+

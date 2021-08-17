@@ -1,0 +1,177 @@
+/*******************************************************************
+
+	File: annapurna_features.gdh
+	
+	Features for Annapurna font
+	
+	Author: Sharon Correll
+
+*******************************************************************/
+
+#include "stddef.gdh"
+
+#define bool default = ffalse; \
+    settings { \
+        ffalse { \
+            value = 0; \
+            name.1033 = string("False"); \
+        } \
+        ftrue { \
+            value = 1; \
+            name.1033 = string("True"); \
+        } \
+    }
+
+#define boolWDefTrue default = ftrue; \
+    settings { \
+        ffalse { \
+            value = 0; \
+            name.1033 = string("False"); \
+        } \
+        ftrue { \
+            value = 1; \
+            name.1033 = string("True"); \
+        } \
+    }
+
+// Note that the order in which the features are listed below is how they will be presented
+// in the combo-box in WorldPad.
+
+
+table(feature)
+
+jha {
+	id = 2001;
+	name.1033 = string("Jha alternates");
+	default = 0;
+	settings {
+		nepal {
+			value = 0;
+			name.1033 = string("Nepal");
+		}
+		india {
+			value = 1;
+			name.1033 = string("India");
+		}
+		newar {
+			value = 2;
+			name.1033 = string("Newar");
+		}
+	}
+}
+
+kra {
+	id = 2002;
+	name.1033 = string("Kra alternate");
+	bool
+}
+
+tra {
+	id = 2003;
+	name.1033 = string("Tra alternate");
+	bool
+}
+
+shra {
+	id = 2004;
+	name.1033 = string("Shra alternate");
+	bool
+}
+
+ukar {
+	id = 2005;
+	name.1033 = string("Ukar nukta position");
+	default = 0;
+	settings {
+		inside {
+			value = 0;
+			name.1033 = string("Inside");
+		}
+		outside {
+			value = 1;
+			name.1033 = string("Outside");
+		}
+	}
+}
+
+ekar {
+	id = 2006;
+	name.1033 = string("Ekar nukta position");
+	default = 0;
+	settings {
+		high {
+			value = 0;
+			name.1033 = string("Low");
+		}
+		low {
+			value = 1;
+			name.1033 = string("High");
+		}
+	}
+}
+
+/****
+ukar {
+	id = 2005;
+	name.1033 = string("Ukar nukta outside");
+	bool	
+}
+
+ekar {
+	id = 2006;
+	name.1033 = string("Ekar nukta high");
+	bool
+}
+****/
+
+digit5 {
+	id = 2007;
+	name.1033 = string("Digit five alternate");
+	bool
+}
+
+digit8 {
+	id = 2008;
+	name.1033 = string("Digit eight alternate");
+	bool
+}
+
+digit9 {
+	id = 2009;
+	name.1033 = string("Digit nine alternate");
+	default = 0;
+	settings {
+		form1 {
+			value = 0;
+			name.1033 = string("Form 1");
+		}
+		form2 {
+			value = 1;
+			name.1033 = string("Form 2");
+		}
+		form3 {
+			value = 2;
+			name.1033 = string("Form 3");
+		}
+	}
+}
+
+visargabar {
+	id = 2010;
+	name.1033 = string("Visarga connecting bar");
+	bool
+}
+
+glottalbar {
+	id = 2011;
+	name.1033 = string("Limbu glottal stop connecting bar");
+	boolWDefTrue
+}
+
+archaic {
+	id = 2012;
+	name.1033 = string("Archaic forms");
+	bool
+}
+
+endtable;	// feature

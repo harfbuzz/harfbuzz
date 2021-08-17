@@ -1,0 +1,28 @@
+#!/bin/sh
+
+TESTSDIR=$(dirname $0)
+FONT=$1
+TEXT=$2
+shift 2
+RTL=$1
+if [ "z$RTL" = "z-r" ] ; then
+    shift ;
+else
+    RTL= ;
+fi
+NLIM=$1
+if [ "z$NLIM" = "z--nolimit" ] ; then
+    shift ;
+    NLIM="" ;
+else
+    NLIM="-t 10 --memory=200";
+fi
+${TESTSDIR}/fuzztest \
+    -l fuzzfont-${FONT##**/}-${TEXT##**/}.log \
+    -f ${TESTSDIR}/fonts/${FONT}.ttf \
+    ${NLIM} -s 60 \
+    --include=required,graphite \
+    --exclude=fontdir,opentype,volt,advtypo,post,glyf \
+    "$@" -- comparerenderer/comparerenderer \
+        -q -s 12 -n ${RTL} \
+        -f {} -t ${TESTSDIR}/texts/${TEXT}.txt

@@ -1,0 +1,49 @@
+,0X000159A0, 51,Glat+0X00000234
+,0X000159A4,126,Glat+0X00000238
+,0X000159AC,127,Glat+0X00000240
+,0X000159B0, 57,Glat+0X00000244
+,0X000159B4,176,Glat+0X00000248
+,0X000159B8,230,Glat+0X0000024C
+,0X000159C8,136,Glat+0X0000025C
+,0X000159CC,164,Glat+0X00000260
+,0X000159DA,180,Glat+0X0000026E
+,0X000159DE,242,Glat+0X00000272
+,0X000159E2,136,Glat+0X00000276
+,0X00015A28,136,Glat+0X000002BC
+,0X00015A2C,134,Glat+0X000002C0
+,0X00015A30,213,Glat+0X000002C4
+,0X00015A34,230,Glat+0X000002C8
+,0X00015A38,240,Glat+0X000002CC
+,0X00015A3C,130,Glat+0X000002D0
+,0X00015A4C,148,Glat+0X000002E0
+,0X00015A50,171,Glat+0X000002E4
+,0X00015A54,191,Glat+0X000002E8
+,0X00015A5C, 91,Glat+0X000002F0
+,0X00015A62,111,Glat+0X000002F6
+,0X00015A66,254,Glat+0X000002FA
+,0X00015A78, 67,Glat+0X0000030C
+==7527== Invalid read of size 2
+==7527==    at 0x4E482D2: graphite2::sparse::operator[](unsigned short) const (Sparse.cpp:47)
+==7527==    by 0x4E370D1: (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (Segment.h:129)
+==7527==    by 0x4E36869: graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (direct_machine.cpp:112)
+==7527==    by 0x4E4377B: graphite2::Pass::doAction(graphite2::vm::Machine::Code const*, graphite2::Slot*&, graphite2::vm::Machine&) const (Pass.cpp:571)
+==7527==    by 0x4E43ADD: graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:447)
+==7527==    by 0x4E43D18: graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:341)
+==7527==    by 0x4E46AB6: graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char, int) const (Silf.cpp:400)
+==7527==    by 0x4E3D378: graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (Face.cpp:161)
+==7527==    by 0x4E398C4: gr_make_seg (Segment.h:92)
+==7527==    by 0x404A44: Gr2Renderer::renderText(char const*, unsigned long, RenderedLine*, _IO_FILE*) (Gr2Renderer.h:109)
+==7527==    by 0x4058BA: CompareRenderer::runTests(_IO_FILE*, int) (CompareRenderer.cpp:232)
+==7527==    by 0x403FA2: main (CompareRenderer.cpp:460)
+==7527==  Address 0x632051a is 4 bytes after a block of size 38 alloc'd
+==7527==    at 0x4C2ABB4: calloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==7527==    by 0x4E3F7C4: graphite2::GlyphCache::Loader::read_glyph(unsigned short, graphite2::GlyphFace&) const (Main.h:96)
+==7527==    by 0x4E3FEE1: graphite2::GlyphCache::GlyphCache(graphite2::Face const&, unsigned int) (GlyphCache.cpp:132)
+==7527==    by 0x4E3DE6F: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:92)
+==7527==    by 0x4E38175: (anonymous namespace)::load_face(graphite2::Face&, unsigned int) (gr_face.cpp:54)
+==7527==    by 0x4E382E0: gr_make_face_with_ops (gr_face.cpp:89)
+==7527==    by 0x4E387D6: gr_make_file_face (gr_face.cpp:242)
+==7527==    by 0x4050AF: Gr2Face::Gr2Face(char const*, int, std::string const&, bool) (Gr2Renderer.h:42)
+==7527==    by 0x4039EE: main (CompareRenderer.cpp:344)
+==7527== 
+

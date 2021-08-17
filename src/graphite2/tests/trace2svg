@@ -1,0 +1,286 @@
+#!/usr/bin/env python
+
+from fontTools import ttLib
+from fontTools.pens.basePen import BasePen
+from fontTools.misc import arrayTools
+from argparse import ArgumentParser
+from xml.etree import cElementTree as ET
+import json, copy
+
+class SVGPen(BasePen) :
+
+    def __init__(self, glyphSet, scale=1.0) :
+        super(SVGPen, self).__init__(glyphSet);
+        self.__commands = []
+        self.__scale = scale
+
+    def __str__(self) :
+        return " ".join(self.__commands)
+
+    def scale(self, pt) :
+        return (pt[0] * self.__scale, pt[1] * self.__scale)
+
+    def _moveTo(self, pt):
+        self.__commands.append("M {0[0]} {0[1]}".format(self.scale(pt)))
+
+    def _lineTo(self, pt):
+        self.__commands.append("L {0[0]} {0[1]}".format(self.scale(pt)))
+
+    def _curveToOne(self, pt1, pt2, pt3) :
+        self.__commands.append("C {0[0]} {0[1]} {1[0]} {1[1]} {2[0]} {2[1]}".format(self.scale(pt1), self.scale(pt2), self.scale(pt3)))
+
+    def _closePath(self) :
+        self.__commands.append("Z")
+
+    def clear(self) :
+        self.__commands = []
+
+class FGlyphs(object) :
+
+    def __init__(self, font, scale=1.0) :
+        self._font = font
+        self._glyphSet = font.getGlyphSet()
+        self._bbox = (0, 0, 0, 0)
+        self._glyphs = set()
+        self._scale = scale
+
+    def addGlyph(self, gid, pt) :
+        if gid >= self._font['maxp'].numGlyphs : return
+        gname = self._font.getGlyphName(gid)
+        g = self._glyphSet[gname]._glyph
+        if g is None or not hasattr(g, 'xMin') :
+            gbox = (0, 0, 0, 0)
+        else :
+            gbox = (g.xMin, g.yMin, g.xMax, g.yMax)
+        self._bbox = arrayTools.unionRect(self._bbox, arrayTools.offsetRect(gbox, pt[0], pt[1]))
+        self._glyphs.add(gname)
+
+    def bbox(self) :
+#        return map(lambda x: x*self._scale, self._bbox)
+        return self._bbox
+
+    def asSVG(self, scale) :
+        res = "<defs><g>\n"
+        p = SVGPen(self._glyphSet, scale)
+        for k in sorted(self._glyphs) :
+            res = res + '<symbol overflow="visible" id="{}">\n'.format(k)
+            g = self._glyphSet[k]
+            p.clear()
+            g.draw(p)
+            res = res + '<path style="stroke:none;" d="' + str(p) + '"/>\n</symbol>\n'
+        return res + '</g></defs>\n'
+
+class Slot(object) :
+
+    def __init__(self, ident, font, before=None, after=None) :
+        self.ident = ident
+        self.font = font
+        self.before = before
+        self.after = after
+        self.events = []
+        self.final = 0
+
+    def addEvent(self, gid, pt, t) :
+        if gid >= self.font['maxp'].numGlyphs : return
+        self.events.append((gid, pt, t))
+        if t > self.final : self.final = t
+
+    def asSVG(self, final, scale, indent='    ', dur=1, trans=.5) :
+        res = '{}<g id="{}">\n'.format(indent, self.ident)
+#        res = ""
+        indent += '  '
+        gid = None
+        currt = 0
+        finalt = 0
+        currpos = (0, 0)
+        start = 0
+        keys = []
+        valx = []
+        valy = []
+        for i, e in enumerate(self.events + [[None, None, None]]):
+            currt = e[2]
+            if gid != e[0] :
+                if gid != None :
+                    if len(keys) > 1 :
+                        keys.append(1)
+                        valx.append(valx[-1])
+                        valy.append(valy[-1])
+                        ks = ';'.join(map(str,keys))
+                        xs = ';'.join(map(str,valx))
+                        ys = ';'.join(map(str,valy))
+                        res += '{0}  <animate attributeName="x" attributeType="XML" begin="{1}s" dur="{2}s" keyTimes="{3}" values="{4}" fill="freeze"/>\n'.format(indent, start * dur, (finalt-start) * dur, ks, xs)
+                        res += '{0}  <animate attributeName="y" attributeType="XML" begin="{1}s" dur="{2}s" keyTimes="{3}" values="{4}" fill="freeze"/>\n'.format(indent, start * dur, (finalt-start) * dur, ks, ys)
+                    res += '{}</use>\n'.format(indent)
+
+                if e[0] == None : break
+                gid = e[0]
+                start = e[2]
+                res += '{0}<use xlink:href="#{1}" x="{2}" y="{3}" visibility="hidden">\n'.format(indent,
+                    self.font.getGlyphName(gid), e[1][0]*scale, e[1][1]*scale)
+                currpos = e[1]
+                valx = [e[1][0] * scale]
+                valy = [e[1][1] * scale]
+                keys = [0]
+                finalt = self.final + 1
+                if i < len(self.events) - 1 :
+                    for temp in self.events[i+1:] :
+                        if temp[0] != gid :
+                            finalt = temp[2]
+                            break
+                res += '{0}  <set attributeName="visibility" attributeType="CSS" to="visible" begin="{1}s" dur="{2}s" fill="{3}"/>\n'.format(indent, start*dur, (finalt-start)*dur, "freeze" if finalt >= final else "reset")
+            elif e[1] != currpos :
+                valx.append(valx[-1])
+                valx.append(e[1][0] * scale)
+                valy.append(valy[-1])
+                valy.append(e[1][1] * scale)
+                currpos = e[1]
+                keys.append((float(currt)-start-trans/dur)/(finalt-start))
+                keys.append((float(currt)-start)/(finalt-start))
+        return res + '{0}</g>\n'.format(indent[:-2])
+#        return res
+
+
+class SlotSequence(object) :
+
+    def __init__(self, font) :
+        self.allSlots = {}
+        self.slots = []
+        self.font = font
+
+    def addRun(self, run, t=0) :
+        for i in range(len(run)) :
+            r = run[i]
+            if r[0] not in self.allSlots :
+                before = run[i-1] if i > 0 else None
+                after = run[i+1] if i < len(run) - 1 else None
+                slot = Slot(r[0], self.font, before=before, after=after)
+                self.allSlots[r[0]] = slot
+                try :
+                    pb = self.slots.index(before)
+                except ValueError :
+                    pb = -1
+                try :
+                    pa = self.slots.index(after)
+                except ValueError :
+                    pa = -1
+                if pa == -1 :
+                    self.slots.append(r[0])
+                elif pb == -1 :
+                    self.slots.insert(0, r[0])
+                elif pa < pb :
+                    raise ValueError('bad slot order')
+                else :
+                    self.slots.insert(pa, r[0])
+            else :
+                slot = self.allSlots[r[0]]
+            slot.addEvent(r[1], r[2], t)
+
+    def asSVG(self, final, scale, bbox, dur=1, trans=0.5) :
+        res = '<g id="surface1" transform="matrix(1,0,0,-1,{},{})">\n'.format(-bbox[0], bbox[3] + 10)
+        res += '  <rect x="{}" y="{}" width="{}" height="{}" style="fill:white;stroke:none"/>\n'.format(
+            bbox[0], bbox[1], bbox[2]-bbox[0], bbox[3] + 10)
+        res += '  <g style="fill:black">\n'
+        for s in self.slots :
+            res += self.allSlots[s].asSVG(final, scale, indent='    ', dur=dur, trans=trans)
+        res += '  </g>\n'
+        res += '</g>'
+        return res
+
+def closeEnough(run1, run2, errorx, errory) :
+    if len(run1) != len(run2) : return False
+    for r1, r2 in zip(run1, run2) :
+        if r1[0] != r2[0] or r1[1] != r2[1] : return False
+        if abs(r1[2][0] - r2[2][0]) > errorx or abs(r1[2][1] - r2[2][1]) > errory : return False
+    return True
+
+def processrun(ss, fg, curr, lastrun, t, error=0, pseudomap={}) :
+    run = []
+    for j in curr :
+        gid = int(j['gid'])
+        gid = pseudomap.get(gid, gid)
+        fg.addGlyph(gid, j['origin'])
+        run.append((j['id'], gid, j['origin']))
+    bbox = fg.bbox()
+    if closeEnough(run, lastrun, bbox[2] * error, bbox[3] * error) :
+        return lastrun, t
+    ss.addRun(run, t=t)
+    return run, t+1
+
+parser = ArgumentParser()
+parser.add_argument('infile', help='Input trace.json file')
+parser.add_argument('-f','--font', help='Font to render')
+parser.add_argument('-o','--output', help='Output file')
+parser.add_argument('-s','--scale', default=1, type=float, help='Multiplier for all values')
+parser.add_argument('-d','--duration', default=1, type=float, help='Time between events in s')
+parser.add_argument('-t','--transition', default=0.5, type=float, help='Transition time in s')
+parser.add_argument('-e','--error',default=0.04, type=float, help='What constitutes identical?')
+parser.add_argument('-g','--gdx', help='GDX file for font to help with pseudoglyphs')
+args = parser.parse_args()
+
+def scale(pt) : return (pt[0] * args.scale, pt[1] * args.scale)
+font = ttLib.TTFont(args.font)
+fg = FGlyphs(font, scale=args.scale)
+
+pseudomap = {}
+if args.gdx :
+    ingdx = open(args.gdx, "r")
+    et = ET.parse(ingdx)
+    ingdx.close()
+    for e in et.findall('.//glyph') :
+        g = e.get('glyphid', None)
+        p = e.find('glyphAttrValue[@name="*actualForPseudo*"]')
+        if g is not None and p is not None :
+            pseudomap[int(g)] = int(p.get('value', 0))
+
+tracefile = open(args.infile, "r")
+trace = json.load(tracefile)
+tracefile.close()
+
+fout = open(args.output, "w")
+fout.write('<?xml version="1.0"?>\n')
+fout.write('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">\n')
+
+t = 0
+ss = SlotSequence(font)
+lastrun = []
+for p in trace[-1]['passes'] :
+    curr = p['slots'][:]
+    lastrun, t = processrun(ss, fg, curr, lastrun, t, error=args.error, pseudomap=pseudomap)
+    if 'rules' in p :
+        for rule in p['rules'] :
+            if rule['output'] is None : continue
+            start = 0
+            end = len(curr)
+            for i, r in enumerate(curr) :
+                if r['id'] == rule['output']['range']['start'] :
+                    start = i
+                if r['id'] == rule['output']['range']['end'] :
+                    end = i
+                    break
+            curr[start:end] = rule['output']['slots'][:]
+            lastrun, t = processrun(ss, fg, curr, lastrun, t, error=args.error, pseudomap=pseudomap)
+    if 'collisions' in p :
+        base = copy.deepcopy(curr)
+        for coll in p['collisions'] :
+            if 'moves' not in coll : continue
+            for m in coll['moves'] :
+                s = m['slot']
+                adj = m['result']
+                for i, r in enumerate(curr) :
+                    if r['id'] == s :
+                        if 'vectors' in m :
+                            r['origin'] = map (lambda x : int(x[0]) + int(x[1]), zip(base[i]['origin'], adj))
+                        elif 'slices' in m :
+                            r['origin'] = (int(base[i]['origin'][0]) + int(adj), r['origin'][1])
+                        break
+                lastrun, t = processrun(ss, fg, curr, lastrun, t, error=args.error, pseudomap=pseudomap)
+
+strjson = trace[-1]['output']
+lastrun, t = processrun(ss, fg, strjson, lastrun, t, error=0, pseudomap=pseudomap)
+bbox = map(lambda x:x * args.scale, fg.bbox())
+
+fout.write(fg.asSVG(args.scale))
+fout.write(ss.asSVG(t, args.scale, bbox, dur=args.duration, trans=args.transition))
+
+fout.write('</svg>\n')
+fout.close()

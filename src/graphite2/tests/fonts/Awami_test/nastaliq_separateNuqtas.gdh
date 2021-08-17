@@ -1,0 +1,76 @@
+/*
+ 	File: nastaliq_separateNuqtas.gdh
+ 	
+ 	Graphite rules to separate base forms from nuqtas (keeping the nuqtas in the glyph stream).
+*/
+
+
+(gBehIni0 gBehMed0 gBehFin0)		_	>	(gBehIni_raw gBehMed_raw gBehFin):1		g__dot1l:1;
+(gTehIni0 gTehMed0 gTehFin0)		_	>	(gBehIni_raw gBehMed_raw gBehFin):1		g__dot2u:1;
+(gThehIni0 gThehMed0 gThehFin0)		_	>	(gBehIni_raw gBehMed_raw gBehFin):1		g__dot3u:1;
+(gTtehIni0 gTtehMed0 gTtehFin0)		_	>	(gBehIni_raw gBehMed_raw gBehFin):1		g__smallTah:1;
+(gPehIni0 gPehMed0 gPehFin0)		_	>	(gBehIni_raw gBehMed_raw gBehFin):1		g__dot3l:1;
+(gBeehIni0 gBeehMed0 gBeehFin0)		_	>	(gBehIni_raw gBehMed_raw gBehFin):1		g__dot2vl:1;
+(gJeemIni0 gJeemMed0 gJeemFin0)		_	>	(gJeemIni_raw gJeemMed_raw gJeemFin):1	g__dot1l:1;
+(gTchehIni0 gTchehMed0 gTchehFin0)	_	>	(gJeemIni_raw gJeemMed_raw gJeemFin):1	g__dot3l:1;
+(gHahIni0 gHahMed0 gHahFin0)      		>	(gJeemIni_raw gJeemMed_raw gJeemFin);
+(gKhahIni0 gKhahMed0 gKhahFin0)		_	>	(gJeemIni_raw gJeemMed_raw gJeemFin):1	g__dot1u:1;
+(gDyehIni0 gDyehMed0 gDyehFin0)		_	>	(gJeemIni_raw gJeemMed_raw gJeemFin):1	g__dot2vl:1;
+(gSeenIni0 gSeenMed0 gSeenFin0)			>	(gSeenIni_raw gSeenMed_raw gSeenFin);
+(gSheenIni0 gSheenMed0 gSheenFin0)	_	>	(gSeenIni_raw gSeenMed_raw gSeenFin):1	g__dot3u:1;
+(gSadIni0 gSadMed0 gSadFin0)			>	(gSadIni_raw gSadMed_raw gSadFin);
+(gDadIni0 gDadMed0 gDadFin0)		_	>	(gSadIni_raw gSadMed_raw gSadFin):1		g__dot1u:1;
+(gTahIni0 gTahMed0 gTahFin0)			>	(gTahIni_raw gTahMed_raw gTahFin);
+(gZahIni0 gZahMed0 gZahFin0)		_	>	(gTahIni_raw gTahMed_raw gZahFin):1		g__dot1u:1;
+(gAinIni0 gAinMed0 gAinFin0)			>	(gAinIni_raw gAinMed_raw gAinFin);
+(gGhainIni0 gGhainMed0 gGhainFin0)	_	>	(gAinIni_raw gAinMed_raw gAinFin):1		g__dot1u:1;
+(gFehIni0 gFehMed0 gFehFin0)		_	>	(gFehIni_raw gFehMed_raw gFehFin):1		g__dot1u:1;
+(gQafIni0 gQafMed0 gQafFin0)		_	>	(gFehIni_raw gFehMed_raw gQafFin):1		g__dot2u:1;
+(gKafIni0 gKafMed0 gKafFin0)			>	(gKafIni_raw gKafMed_raw gKafFin);
+(gGafIni0 gGafMed0 gGafFin0)			>	(gGafIni_raw gGafMed_raw gGafFin);
+(gGuehIni0 gGuehMed0 gGuehFin0)		_	>	(gGafIni_raw gGafMed_raw gGafFin)		g__dot2vl:1;
+(gLamIni0 gLamMed0 gLamFin0)			>	(gLamIni_raw gLamMed_raw gLamFin);
+(gMeemIni0 gMeemMed0 gMeemFin0)			>	(gMeemIni_raw gMeemMed_raw gMeemFin);
+(gNoonIni0 gNoonMed0 gNoonFin0)		_	>	(gBehIni_raw gBehMed_raw gNoonFin):1	g__dot1u:1;
+(gNoonGhunnaIni0 gNoonGhunnaMed0)	_	>	(gBehIni_raw gBehMed_raw):1				g__dot1u:1;
+gNoonGhunnaFin0							>	gNoonFin;  // no dot on final form
+(gNoonRetroIni0 gNoonRetroMed0 gNoonRetroFin0)	_	>   (gBehIni_raw gBehMed_raw gNoonFin):1		g__dot1u_smallTah:1;
+gHehGoalIni0					_	>	gHehGoalIni_raw:1				g__hehHook_small:1;
+gHehGoalMed0						>	gHehGoalMed_raw;  	// TODO: add a feature to include the hook
+gHehGoalFin0						>	gHehGoalFin;
+//g06c3 - goal-teh
+//g06c2 - hay-hamza
+(gHehDoIni0 gHehDoMed0 gHehDoFin0)			>	(gHehDoIni_raw gHehDoMed_raw gHehDoFin);
+
+(gChotiyehIni0 gChotiyehMed0)			_	>	(gBehIni_raw gBehMed_raw):1		g__dot2l:1;
+(gYehHamzaAboveIni0 gYehHamzaAboveMed0)  _	>	(gBehIni_raw gBehMed_raw):1		g__hamza:1;
+(gBariyehIni0 gBariyehMed0)			_	>   (gBehIni_raw gBehMed_raw):1		g__dot2l:1;
+
+gYehHamzaAboveFin0  		_  >  gChotiyehFin  g__hamza:1;
+gChotiyehFin0  >  gChotiyehFin;
+gBariyehFin0  >  gBariyehFin;
+
+//gYehHamzaAboveFin0		_	>	pseudo(postscript("absYehHamzaAbove"))	gArabicHamza:1;	// temporary final form
+
+
+
+// Right-link
+gBariyeh0			_	>	gBehIni:1	g__dot2l:1;
+//gArabicBariyehHamzaFin0 _	>	pseudo(postscript("nlqBariyehHamza")):1	 g__hamza:1;	// eventually replaced with beh + bariyeh
+
+
+gAlefFin0					>	gAlefFin;
+gDalFin0					>	gDalFin;
+gThalFin0				_	>	gDalFin		g__dot1u:1;
+gDdalFin0				_	>	gDalFin		g__smallTah:1;
+gDalTwoVertBelowSmallTahFin0
+						_	>	gDalFin		g__dot2vl_smallTah:1;
+gThalDotBelowFin0		_	>	gDalFin		g__dot1l:1;
+gRehFin0					>	gRehFin;
+gRehDotBelowDotAboveFin0 _	>	gRehFin		g__dot1l_dot1u:1;
+gZainFin0				_	>	gRehFin		g__dot1u:1;
+gRrehFin0				_	>	gRehFin		g__smallTah:1;
+gJehFin0				_	>	gRehFin		g__dot3u:1;
+gWawFin0					>	gWawFin;
+gWawHamzaAboveFin0		_	>	gWawFin		g__hamza:1;
+

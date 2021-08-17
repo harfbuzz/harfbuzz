@@ -1,0 +1,76 @@
+/*
+	Standard GDL abbreviations
+	
+	
+	This file is part of Gentium Plus font family 
+	(http://scripts.sil.org/Gentium) and is 
+	Copyright (c) 2003-2010 SIL International (http://www.sil.org/),
+	with Reserved Font Names "Gentium" and "SIL".
+
+	This Font Software is licensed under the SIL Open Font License,
+	Version 1.1.
+
+	You should have received a copy of the license along with this Font Software.
+	If this is not the case, go to (http://scripts.sil.org/OFL) for all the
+	details including a FAQ.
+
+*/
+
+#define adv advance
+#define ah advanceheight
+#define att attach
+#define aw advancewidth
+#define bb boundingbox
+#define break breakweight
+#define comp component
+#define dir directionality
+#define endenv endenvironment
+#define env environment
+#define just justification
+#define lb linebreak
+#define lsb leftsidebearing
+#define pos position
+#define ref reference
+#define rsb rightsidebearing
+#define sub substitution
+#define subs substitution
+
+
+//	Standard defined constants:
+
+#define DIR_OTHERNEUTRAL 0
+#define DIR_OTHERNEUTRALS 0
+#define DIR_LEFT 1
+#define DIR_RIGHT 2
+#define DIR_ARABIC 3
+#define DIR_EURONUMBER 4
+#define DIR_EUROSEPARATOR 5
+#define DIR_EUROTERMINATOR 6
+#define DIR_ARABICNUMBER 7
+#define DIR_COMMONSEPARATOR 8
+#define DIR_WHITESPACE 9
+#define DIR_BOUNDARYNEUTRAL 10
+#define DIR_LRO 11
+#define DIR_RLO 12
+#define DIR_LRE 13
+#define DIR_RLE 14
+#define DIR_PDF 15
+
+#define BREAK_WHITESPACE 10
+#define BREAK_WORD 15
+#define BREAK_INTRA 20
+#define BREAK_LETTER 30
+#define BREAK_CLIP 40
+
+#define HORIZONTAL_LEFT_TO_RIGHT 1
+#define HORIZONTAL_RIGHT_TO_LEFT 2
+#define VERTICAL_FROM_LEFT 4
+#define VERTICAL_FROM_RIGHT 8
+
+#define JMODE_NORMAL 0
+#define JMODE_MEASURE 1
+#define JMODE_JUSTIFY 2
+
+#define LG_USENG 0x0409
+
+

@@ -1,0 +1,236 @@
+Font features
+
+Use extended font names in OpenOffice.org to change font features, eg.
+
+Magyar Linux Libertine G:200=1 (small caps)
+
+Magyar Linux Libertine G:200=1&214=1  (proportional numbers and TeX-mode)
+
+= 200 small caps =
+
+- 0 none (default)
+- 1 small caps
+
+= 201 superiors/inferiors =
+
+- 0 none (default)
+- 1 superiors
+- 2 inferiors
+
+= 202 old style numbers =
+
+- 0 none (default)
+- 1 old style numbers
+
+= 203 proportional numbers =
+
+- 0 default for the variant
+- 1 other
+
+Note: the default is the monospaced numbers for the plain numbers,
+and the proportional for the old style numbers, so
+
+Magyar Linux Libertine G:202=0&203=1
+
+extended font name sets proportional numbers, and
+
+Magyar Linux Libertine G:202=1&203=1
+
+extended font name sets monospaced old style numbers.
+
+= 204 ligatures =
+
+- 0 none
+- 1 default (f ligatures and Qu ligature)
+- 2 old (also st and ct ligatures)
+
+= 205 thousand separators =
+
+Use narrow non-breaking spaces for thousand separators (space is the ISO-standard)
+
+- 0 none
+- 1 default (from 10000)
+- 2 table (from 1000)
+
+= 206 minus sign =
+
+- 0 none
+- 1 default (replace hyphen (ASCII minus) character to Unicode minus sign
+
+= 207 fraction =
+
+- 0 none (default)
+- 1 fraction: numbers up to 4 digits separated by slash converted to
+  typographical form.
+
+= 208 Umlaut =
+
+- 0 none
+- 1 umlaut: capital letter A, O, and U with umlaut converted to German
+  letter variants of Linux Libertine
+
+= 209 Capitalization =
+
+- 0 none (eg. fifty-five thousand)
+- 1 sentence capitalization (Fifty-five thousand)
+- 2 all (FIFTY-FIVE THOUSAND)
+- 3 title variant (Fifty-Five Thousand)
+- 4 title variant (Fifty-five Thousand)
+
+ Note: capitalization doesn't work correctly with hyphenation yet (hyphenated
+ word parts will be capitalized in the beginning of the lines, too).
+
+= 210 and 211: number to cardinal and ordinal number names =
+
+- 0 none
+- 1 English (0-999999)
+- 36 Hungarian (0-999999999)
+- 49 German (0-999999)
+
+= 212 ordinal abbreviation =
+
+- 0 none
+- 1 English (0th, 1st, 2nd, 3rd, 4th ..)
+
+= 213 language variation =
+
+- 0 basic
+- 1 special -> English ordinal abbrevation with superscript letters
+
+= 214 TeX-mode =
+
+- 0 none
+- 1 TeX-like conversions:
+
+   - ^ and _ -> superscript and subscript, eg. cm^2 -> cm²
+
+   - Greek alphabet:
+
+\alpha α
+\beta β
+\gamma γ
+\delta δ
+\epsilon ϵ
+\varepsilon ε
+\zeta ζ
+\eta η
+\theta θ
+\vartheta ϑ
+\iota ι
+\kappa κ
+\lamda λ
+\mu μ
+\nu ν
+\xi ξ
+\pi π
+\varpi ϖ
+\rho ρ
+\varrho ϱ
+\varsigma ς
+\sigma σ
+\tau τ
+\upsilon υ
+\phi ϕ
+\varphi φ
+\chi χ
+\psi ψ
+\omega ω
+
+\Gamma Γ
+\Delta Δ
+\Theta Θ
+\Lamda Λ
+\Xi Ξ
+\Pi Π
+\Sigma Σ
+\Upsilon Υ
+\Phi Φ
+\Psi Ψ
+\Omega Ω
+
+- other TeX symbols:
+
+\pm ±
+\mp ∓
+\times ×
+\setminus ∖
+\cap ∩
+\cup ∪
+\wedge ∧
+\vee ∨
+\leq ≤
+\geq ≥
+\le ≤
+\ge ≥
+\not\le ≰
+\not\ge ≱
+\ll ≪
+\gg ≫
+\neq ≠
+\in ∈
+\not\in ∉
+\ni ∋
+\not\ni ∌
+\subset ⊂
+\supset ⊃
+\not\subset ⊄
+\not\supset ⊅
+\sim ∼
+\nsim ≁
+\approx ≈
+\mid ∣
+\nmid ∤
+\| ∥
+\not< ≮
+\not> ≯
+\parallel ∥
+\not\| ∦
+\nparallel ∦
+
+\gets ←
+\leftarrow ←
+\uparrow ↑
+\rightarrow →
+\to →
+\downarrow ↓
+\leftrightarrow ↔
+
+\Leftarrow ⇐
+\Uparrow ⇑
+\Rightarrow ⇒
+\Downarrow ⇓
+\Leftrightarrow ⇔
+
+\hbar ℏ
+\Re ℜ
+\ell ℓ
+\aleph ℵ
+\emptyset ∅
+\forall ∀
+\exists ∃
+\triangle ∆
+\infty ∞
+\partial ∂
+\angle ∠
+\perp ⟂
+
+\surd √
+\sum ∑
+\int ∫
+\iint ∬
+\iiint ∭
+\oint ∮
+\prod ∏
+\prime ′
+
+\mathbb{C} ℂ
+\mathbb{H} ℍ
+\mathbb{N} ℕ
+\mathbb{P} ℙ
+\mathbb{Q} ℚ
+\mathbb{R} ℝ
+\mathbb{Z} ℤ
+
+= 215 Capital eszett ==
+
+215=1 Switch on capital eszett in small caps or capitalization (209=2)

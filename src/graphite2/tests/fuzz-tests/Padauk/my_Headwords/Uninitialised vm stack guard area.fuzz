@@ -1,0 +1,93 @@
+,0X0002A715, 15,Silf+0X00011A4D
+,0X00034406,  4,Silf+0X0001B73E
+==28801== Conditional jump or move depends on uninitialised value(s)
+==28801==    at 0x402AADC: (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (opcodes.h:159)
+==28801==    by 0x402B7C9: graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (direct_machine.cpp:113)
+==28801==    by 0x40306C1: graphite2::vm::Machine::Code::run(graphite2::vm::Machine&, graphite2::Slot**&) const (Code.cpp:602)
+==28801==    by 0x40367DE: graphite2::Pass::doAction(graphite2::vm::Machine::Code const*, graphite2::Slot*&, graphite2::vm::Machine&) const (Pass.cpp:517)
+==28801==    by 0x4036FDF: graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:388)
+==28801==    by 0x40371A9: graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:300)
+==28801==    by 0x403B034: graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (Silf.cpp:377)
+==28801==    by 0x4032283: graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (Face.cpp:119)
+==28801==    by 0x402D311: gr_make_seg (Segment.h:81)
+==28801==    by 0x804B8EB: Gr2Renderer::renderText(char const*, unsigned int, RenderedLine*) (Gr2Renderer.h:82)
+==28801==    by 0x804BBB5: CompareRenderer::runTests(_IO_FILE*, int) (CompareRenderer.cpp:230)
+==28801==    by 0x804B209: main (CompareRenderer.cpp:449)
+==28801== 
+,0X00020F1A, 11,Silf+0X00008252
+,0X0002A7A6, 11,Silf+0X00011ADE
+,0X00034E6F, 14,Silf+0X0001C1A7
+==4211== Conditional jump or move depends on uninitialised value(s)
+==4211==    at 0x402ABAD: (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (opcodes.h:142)
+==4211==    by 0x402B7C9: graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (direct_machine.cpp:113)
+==4211==    by 0x40306C1: graphite2::vm::Machine::Code::run(graphite2::vm::Machine&, graphite2::Slot**&) const (Code.cpp:602)
+==4211==    by 0x40367DE: graphite2::Pass::doAction(graphite2::vm::Machine::Code const*, graphite2::Slot*&, graphite2::vm::Machine&) const (Pass.cpp:517)
+==4211==    by 0x4036FDF: graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:388)
+==4211==    by 0x40371A9: graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:300)
+==4211==    by 0x403B034: graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (Silf.cpp:377)
+==4211==    by 0x4032283: graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (Face.cpp:119)
+==4211==    by 0x402D311: gr_make_seg (Segment.h:81)
+==4211==    by 0x804B8EB: Gr2Renderer::renderText(char const*, unsigned int, RenderedLine*) (Gr2Renderer.h:82)
+==4211==    by 0x804BBB5: CompareRenderer::runTests(_IO_FILE*, int) (CompareRenderer.cpp:230)
+==4211==    by 0x804B209: main (CompareRenderer.cpp:449)
+==4211== 
+,0X0002106D, 10,Silf+0X000083A5
+,0X0002A9B6, 10,Silf+0X00011CEE
+,0X0002AB59, 10,Silf+0X00011E91
+,0X00034775, 10,Silf+0X0001BAAD
+,0X000348DC, 10,Silf+0X0001BC14
+,0X00034A25, 10,Silf+0X0001BD5D
+,0X00034E44, 10,Silf+0X0001C17C
+,0X00035054, 10,Silf+0X0001C38C
+==5750== Conditional jump or move depends on uninitialised value(s)
+==5750==    at 0x402ABED: (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (opcodes.h:137)
+==5750==    by 0x402B7C9: graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (direct_machine.cpp:113)
+==5750==    by 0x40306C1: graphite2::vm::Machine::Code::run(graphite2::vm::Machine&, graphite2::Slot**&) const (Code.cpp:602)
+==5750==    by 0x40367DE: graphite2::Pass::doAction(graphite2::vm::Machine::Code const*, graphite2::Slot*&, graphite2::vm::Machine&) const (Pass.cpp:517)
+==5750==    by 0x4036FDF: graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:388)
+==5750==    by 0x40371A9: graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:300)
+==5750==    by 0x403B034: graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (Silf.cpp:377)
+==5750==    by 0x4032283: graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (Face.cpp:119)
+==5750==    by 0x402D311: gr_make_seg (Segment.h:81)
+==5750==    by 0x804B8EB: Gr2Renderer::renderText(char const*, unsigned int, RenderedLine*) (Gr2Renderer.h:82)
+==5750==    by 0x804BBB5: CompareRenderer::runTests(_IO_FILE*, int) (CompareRenderer.cpp:230)
+==5750==    by 0x804B209: main (CompareRenderer.cpp:449)
+==5750== 
+,0X0001FD9A,  9,Silf+0X000070D2
+,0X00034650,  7,Silf+0X0001B988
+,0X0003468D, 23,Silf+0X0001B9C5
+,0X00034881,  8,Silf+0X0001BBB9
+,0X00034A09,  9,Silf+0X0001BD41
+,0X00035158, 21,Silf+0X0001C490
+==6556== Conditional jump or move depends on uninitialised value(s)
+==6556==    at 0x402AC27: (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (opcodes.h:131)
+==6556==    by 0x402B7C9: graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (direct_machine.cpp:113)
+==6556==    by 0x40306C1: graphite2::vm::Machine::Code::run(graphite2::vm::Machine&, graphite2::Slot**&) const (Code.cpp:602)
+==6556==    by 0x40367DE: graphite2::Pass::doAction(graphite2::vm::Machine::Code const*, graphite2::Slot*&, graphite2::vm::Machine&) const (Pass.cpp:517)
+==6556==    by 0x4036FDF: graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:388)
+==6556==    by 0x40371A9: graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:300)
+==6556==    by 0x403B034: graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (Silf.cpp:377)
+==6556==    by 0x4032283: graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (Face.cpp:119)
+==6556==    by 0x402D311: gr_make_seg (Segment.h:81)
+==6556==    by 0x804B8EB: Gr2Renderer::renderText(char const*, unsigned int, RenderedLine*) (Gr2Renderer.h:82)
+==6556==    by 0x804BBB5: CompareRenderer::runTests(_IO_FILE*, int) (CompareRenderer.cpp:230)
+==6556==    by 0x804B209: main (CompareRenderer.cpp:449)
+==6556== 
+,0X00034874, 53,Silf+0X0001BBAC
+,0X000348DE, 31,Silf+0X0001BC16
+,0X00034D47, 33,Silf+0X0001C07F
+==3401== Conditional jump or move depends on uninitialised value(s)
+==3401==    at 0x403BB2B: graphite2::Slot::setAttr(graphite2::Segment*, gr_attrCode, unsigned char, short, graphite2::SlotMap const&) (Slot.h:97)
+==3401==    by 0x402A657: (anonymous namespace)::direct_run(bool, void* const*, unsigned char const*, int*, graphite2::Slot**&, graphite2::SlotMap*) (opcodes.h:411)
+==3401==    by 0x402B7C9: graphite2::vm::Machine::run(void* const*, unsigned char const*, graphite2::Slot**&) (direct_machine.cpp:113)
+==3401==    by 0x40306C1: graphite2::vm::Machine::Code::run(graphite2::vm::Machine&, graphite2::Slot**&) const (Code.cpp:602)
+==3401==    by 0x40367DE: graphite2::Pass::doAction(graphite2::vm::Machine::Code const*, graphite2::Slot*&, graphite2::vm::Machine&) const (Pass.cpp:517)
+==3401==    by 0x4036FDF: graphite2::Pass::findNDoRule(graphite2::Slot*&, graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:388)
+==3401==    by 0x40371A9: graphite2::Pass::runGraphite(graphite2::vm::Machine&, graphite2::FiniteStateMachine&) const (Pass.cpp:300)
+==3401==    by 0x403B034: graphite2::Silf::runGraphite(graphite2::Segment*, unsigned char, unsigned char) const (Silf.cpp:377)
+==3401==    by 0x4032283: graphite2::Face::runGraphite(graphite2::Segment*, graphite2::Silf const*) const (Face.cpp:119)
+==3401==    by 0x402D311: gr_make_seg (Segment.h:81)
+==3401==    by 0x804B8EB: Gr2Renderer::renderText(char const*, unsigned int, RenderedLine*) (Gr2Renderer.h:82)
+==3401==    by 0x804BBB5: CompareRenderer::runTests(_IO_FILE*, int) (CompareRenderer.cpp:230)
+==3401== 
+

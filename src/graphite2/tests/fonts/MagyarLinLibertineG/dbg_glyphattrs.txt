@@ -1,0 +1,11857 @@
+GLYPH ATTRIBUTE IDS
+
+0: component.c1
+1: component.c2
+2: component.c3
+3: component.c1.top
+4: component.c1.bottom
+5: component.c1.left
+6: component.c1.right
+7: component.c2.top
+8: component.c2.bottom
+9: component.c2.left
+10: component.c2.right
+11: component.c3.top
+12: component.c3.bottom
+13: component.c3.left
+14: component.c3.right
+15: *actualForPseudo*
+16: breakweight
+17: directionality
+
+
+
+GLYPH ATTRIBUTE VALUES
+
+0x0000  (0)
+   breakweight = 30 (0x001e)
+
+
+0x0001  (1)
+   breakweight = 30 (0x001e)
+
+
+0x0002  (2)
+   breakweight = 30 (0x001e)
+
+
+0x0003  (3)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0004  (4)
+   breakweight = 30 (0x001e)
+
+
+0x0005  (5)
+   breakweight = 30 (0x001e)
+
+
+0x0006  (6)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0007  (7)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0008  (8)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0009  (9)
+   breakweight = 30 (0x001e)
+
+
+0x000a  (10)
+   breakweight = 30 (0x001e)
+
+
+0x000b  (11)
+   breakweight = 30 (0x001e)
+
+
+0x000c  (12)
+   breakweight = 30 (0x001e)
+
+
+0x000d  (13)
+   breakweight = 30 (0x001e)
+
+
+0x000e  (14)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x000f  (15)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x0010  (16)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x0011  (17)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x0012  (18)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x0013  (19)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0014  (20)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0015  (21)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0016  (22)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0017  (23)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0018  (24)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0019  (25)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001a  (26)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001b  (27)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001c  (28)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001d  (29)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x001e  (30)
+   breakweight = 30 (0x001e)
+
+
+0x001f  (31)
+   breakweight = 30 (0x001e)
+
+
+0x0020  (32)
+   breakweight = 30 (0x001e)
+
+
+0x0021  (33)
+   breakweight = 30 (0x001e)
+
+
+0x0022  (34)
+   breakweight = 30 (0x001e)
+
+
+0x0023  (35)
+   breakweight = 30 (0x001e)
+
+
+0x0024  (36)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0025  (37)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0026  (38)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0027  (39)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0028  (40)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0029  (41)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002a  (42)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002b  (43)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002c  (44)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002d  (45)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002e  (46)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002f  (47)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0030  (48)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0031  (49)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0032  (50)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0033  (51)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0034  (52)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0035  (53)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0036  (54)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0037  (55)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0038  (56)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0039  (57)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003a  (58)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003b  (59)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003c  (60)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003d  (61)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003e  (62)
+   breakweight = 30 (0x001e)
+
+
+0x003f  (63)
+   breakweight = 30 (0x001e)
+
+
+0x0040  (64)
+   breakweight = 30 (0x001e)
+
+
+0x0041  (65)
+   breakweight = 30 (0x001e)
+
+
+0x0042  (66)
+   breakweight = 30 (0x001e)
+
+
+0x0043  (67)
+   breakweight = 30 (0x001e)
+
+
+0x0044  (68)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0045  (69)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0046  (70)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0047  (71)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0048  (72)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0049  (73)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004a  (74)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004b  (75)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004c  (76)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004d  (77)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004e  (78)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004f  (79)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0050  (80)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0051  (81)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0052  (82)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0053  (83)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0054  (84)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0055  (85)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0056  (86)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0057  (87)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0058  (88)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0059  (89)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005a  (90)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005b  (91)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005c  (92)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005d  (93)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005e  (94)
+   breakweight = 30 (0x001e)
+
+
+0x005f  (95)
+   breakweight = 30 (0x001e)
+
+
+0x0060  (96)
+   breakweight = 30 (0x001e)
+
+
+0x0061  (97)
+   breakweight = 30 (0x001e)
+
+
+0x0062  (98)
+   breakweight = 15 (0x000f)
+   directionality = 8
+
+
+0x0063  (99)
+   breakweight = 30 (0x001e)
+
+
+0x0064  (100)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0065  (101)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0066  (102)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0067  (103)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0068  (104)
+   breakweight = 30 (0x001e)
+
+
+0x0069  (105)
+   breakweight = 30 (0x001e)
+
+
+0x006a  (106)
+   breakweight = 30 (0x001e)
+
+
+0x006b  (107)
+   breakweight = 30 (0x001e)
+
+
+0x006c  (108)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x006d  (109)
+   breakweight = 30 (0x001e)
+
+
+0x006e  (110)
+   breakweight = 30 (0x001e)
+
+
+0x006f  (111)
+   breakweight = 20 (0x0014)
+   directionality = 10 (0x000a)
+
+
+0x0070  (112)
+   breakweight = 30 (0x001e)
+
+
+0x0071  (113)
+   breakweight = 30 (0x001e)
+
+
+0x0072  (114)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0073  (115)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0074  (116)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0075  (117)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0076  (118)
+   breakweight = 30 (0x001e)
+
+
+0x0077  (119)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0078  (120)
+   breakweight = 30 (0x001e)
+
+
+0x0079  (121)
+   breakweight = 30 (0x001e)
+
+
+0x007a  (122)
+   breakweight = 30 (0x001e)
+
+
+0x007b  (123)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x007c  (124)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x007d  (125)
+   breakweight = 30 (0x001e)
+
+
+0x007e  (126)
+   breakweight = 30 (0x001e)
+
+
+0x007f  (127)
+   breakweight = 30 (0x001e)
+
+
+0x0080  (128)
+   breakweight = 30 (0x001e)
+
+
+0x0081  (129)
+   breakweight = 30 (0x001e)
+
+
+0x0082  (130)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0083  (131)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0084  (132)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0085  (133)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0086  (134)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0087  (135)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0088  (136)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0089  (137)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008a  (138)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008b  (139)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008c  (140)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008d  (141)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008e  (142)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008f  (143)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0090  (144)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0091  (145)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0092  (146)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0093  (147)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0094  (148)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0095  (149)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0096  (150)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0097  (151)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0098  (152)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0099  (153)
+   breakweight = 30 (0x001e)
+
+
+0x009a  (154)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009b  (155)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009c  (156)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009d  (157)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009e  (158)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009f  (159)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a0  (160)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a1  (161)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a2  (162)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a3  (163)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a4  (164)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a5  (165)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a6  (166)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a7  (167)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a8  (168)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a9  (169)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00aa  (170)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ab  (171)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ac  (172)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ad  (173)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ae  (174)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00af  (175)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b0  (176)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b1  (177)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b2  (178)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b3  (179)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b4  (180)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b5  (181)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b6  (182)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b7  (183)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b8  (184)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b9  (185)
+   breakweight = 30 (0x001e)
+
+
+0x00ba  (186)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00bb  (187)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00bc  (188)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00bd  (189)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00be  (190)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00bf  (191)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c0  (192)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c1  (193)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c2  (194)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c3  (195)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c4  (196)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c5  (197)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c6  (198)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c7  (199)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c8  (200)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c9  (201)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ca  (202)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00cb  (203)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00cc  (204)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00cd  (205)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ce  (206)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00cf  (207)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d0  (208)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d1  (209)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d2  (210)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d3  (211)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d4  (212)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d5  (213)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d6  (214)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d7  (215)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d8  (216)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d9  (217)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00da  (218)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00db  (219)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00dc  (220)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00dd  (221)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00de  (222)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00df  (223)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e0  (224)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e1  (225)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e2  (226)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e3  (227)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e4  (228)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e5  (229)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e6  (230)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e7  (231)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e8  (232)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e9  (233)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ea  (234)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00eb  (235)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ec  (236)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ed  (237)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ee  (238)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ef  (239)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f0  (240)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f1  (241)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f2  (242)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f3  (243)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f4  (244)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f5  (245)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f6  (246)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f7  (247)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f8  (248)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f9  (249)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00fa  (250)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00fb  (251)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00fc  (252)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00fd  (253)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00fe  (254)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ff  (255)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0100  (256)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0101  (257)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0102  (258)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0103  (259)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0104  (260)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0105  (261)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0106  (262)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0107  (263)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0108  (264)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0109  (265)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x010a  (266)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x010b  (267)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x010c  (268)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x010d  (269)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x010e  (270)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x010f  (271)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0110  (272)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0111  (273)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0112  (274)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0113  (275)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0114  (276)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0115  (277)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0116  (278)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0117  (279)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0118  (280)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0119  (281)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x011a  (282)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x011b  (283)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x011c  (284)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x011d  (285)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x011e  (286)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x011f  (287)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0120  (288)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0121  (289)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0122  (290)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0123  (291)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0124  (292)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0125  (293)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0126  (294)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0127  (295)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0128  (296)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0129  (297)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x012a  (298)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x012b  (299)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x012c  (300)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x012d  (301)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x012e  (302)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x012f  (303)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0130  (304)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0131  (305)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0132  (306)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0133  (307)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0134  (308)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0135  (309)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0136  (310)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0137  (311)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0138  (312)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0139  (313)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x013a  (314)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x013b  (315)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x013c  (316)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x013d  (317)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x013e  (318)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x013f  (319)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0140  (320)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0141  (321)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0142  (322)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0143  (323)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0144  (324)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0145  (325)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0146  (326)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0147  (327)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0148  (328)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0149  (329)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x014a  (330)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x014b  (331)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x014c  (332)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x014d  (333)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x014e  (334)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x014f  (335)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0150  (336)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0151  (337)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0152  (338)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0153  (339)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0154  (340)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0155  (341)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0156  (342)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0157  (343)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0158  (344)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0159  (345)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x015a  (346)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x015b  (347)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x015c  (348)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x015d  (349)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x015e  (350)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x015f  (351)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0160  (352)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0161  (353)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0162  (354)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0163  (355)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0164  (356)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0165  (357)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0166  (358)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0167  (359)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0168  (360)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0169  (361)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x016a  (362)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x016b  (363)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x016c  (364)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x016d  (365)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x016e  (366)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x016f  (367)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0170  (368)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0171  (369)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0172  (370)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0173  (371)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0174  (372)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0175  (373)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0176  (374)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0177  (375)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0178  (376)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0179  (377)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x017a  (378)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x017b  (379)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x017c  (380)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x017d  (381)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x017e  (382)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x017f  (383)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0180  (384)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0181  (385)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0182  (386)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0183  (387)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0184  (388)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0185  (389)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0186  (390)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0187  (391)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0188  (392)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0189  (393)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x018a  (394)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x018b  (395)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x018c  (396)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x018d  (397)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x018e  (398)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x018f  (399)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0190  (400)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0191  (401)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0192  (402)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0193  (403)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0194  (404)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0195  (405)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0196  (406)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0197  (407)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0198  (408)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0199  (409)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x019a  (410)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x019b  (411)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x019c  (412)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x019d  (413)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x019e  (414)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x019f  (415)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a0  (416)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a1  (417)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a2  (418)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a3  (419)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a4  (420)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a5  (421)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a6  (422)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a7  (423)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a8  (424)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01a9  (425)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01aa  (426)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ab  (427)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ac  (428)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ad  (429)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ae  (430)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01af  (431)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b0  (432)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b1  (433)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b2  (434)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b3  (435)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b4  (436)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b5  (437)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b6  (438)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b7  (439)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b8  (440)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01b9  (441)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ba  (442)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01bb  (443)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01bc  (444)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01bd  (445)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01be  (446)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01bf  (447)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c0  (448)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c1  (449)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c2  (450)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c3  (451)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c4  (452)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c5  (453)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c6  (454)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c7  (455)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c8  (456)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01c9  (457)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ca  (458)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01cb  (459)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01cc  (460)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01cd  (461)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ce  (462)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01cf  (463)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d0  (464)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d1  (465)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d2  (466)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d3  (467)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d4  (468)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d5  (469)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d6  (470)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d7  (471)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d8  (472)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01d9  (473)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01da  (474)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01db  (475)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01dc  (476)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01dd  (477)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01de  (478)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01df  (479)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e0  (480)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e1  (481)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e2  (482)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e3  (483)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e4  (484)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e5  (485)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e6  (486)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e7  (487)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e8  (488)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01e9  (489)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ea  (490)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01eb  (491)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ec  (492)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ed  (493)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ee  (494)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ef  (495)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f0  (496)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f1  (497)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f2  (498)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f3  (499)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f4  (500)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f5  (501)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f6  (502)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f7  (503)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f8  (504)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01f9  (505)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01fa  (506)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01fb  (507)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01fc  (508)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01fd  (509)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01fe  (510)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x01ff  (511)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0200  (512)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0201  (513)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0202  (514)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0203  (515)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0204  (516)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0205  (517)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0206  (518)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0207  (519)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0208  (520)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0209  (521)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x020a  (522)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x020b  (523)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x020c  (524)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x020d  (525)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x020e  (526)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x020f  (527)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0210  (528)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0211  (529)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0212  (530)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0213  (531)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0214  (532)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0215  (533)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0216  (534)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0217  (535)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0218  (536)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0219  (537)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x021a  (538)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x021b  (539)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x021c  (540)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x021d  (541)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x021e  (542)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x021f  (543)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0220  (544)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0221  (545)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0222  (546)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0223  (547)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0224  (548)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0225  (549)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0226  (550)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0227  (551)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0228  (552)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0229  (553)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x022a  (554)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x022b  (555)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x022c  (556)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x022d  (557)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x022e  (558)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x022f  (559)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0230  (560)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0231  (561)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0232  (562)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0233  (563)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0234  (564)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0235  (565)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0236  (566)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0237  (567)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0238  (568)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0239  (569)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x023a  (570)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x023b  (571)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x023c  (572)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x023d  (573)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x023e  (574)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x023f  (575)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0240  (576)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0241  (577)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0242  (578)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0243  (579)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0244  (580)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0245  (581)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0246  (582)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0247  (583)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0248  (584)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0249  (585)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x024a  (586)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x024b  (587)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x024c  (588)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x024d  (589)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x024e  (590)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x024f  (591)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0250  (592)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0251  (593)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0252  (594)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0253  (595)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0254  (596)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0255  (597)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0256  (598)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0257  (599)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0258  (600)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0259  (601)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x025a  (602)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x025b  (603)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x025c  (604)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x025d  (605)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x025e  (606)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x025f  (607)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0260  (608)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0261  (609)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0262  (610)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0263  (611)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0264  (612)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0265  (613)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0266  (614)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0267  (615)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0268  (616)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0269  (617)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x026a  (618)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x026b  (619)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x026c  (620)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x026d  (621)
+   breakweight = 30 (0x001e)
+
+
+0x026e  (622)
+   breakweight = 30 (0x001e)
+
+
+0x026f  (623)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0270  (624)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0271  (625)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0272  (626)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0273  (627)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0274  (628)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0275  (629)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0276  (630)
+   breakweight = 30 (0x001e)
+
+
+0x0277  (631)
+   breakweight = 30 (0x001e)
+
+
+0x0278  (632)
+   breakweight = 30 (0x001e)
+
+
+0x0279  (633)
+   breakweight = 30 (0x001e)
+
+
+0x027a  (634)
+   breakweight = 30 (0x001e)
+
+
+0x027b  (635)
+   breakweight = 30 (0x001e)
+
+
+0x027c  (636)
+   breakweight = 30 (0x001e)
+
+
+0x027d  (637)
+   breakweight = 30 (0x001e)
+
+
+0x027e  (638)
+   breakweight = 30 (0x001e)
+
+
+0x027f  (639)
+   breakweight = 30 (0x001e)
+
+
+0x0280  (640)
+   breakweight = 30 (0x001e)
+
+
+0x0281  (641)
+   breakweight = 30 (0x001e)
+
+
+0x0282  (642)
+   breakweight = 30 (0x001e)
+
+
+0x0283  (643)
+   breakweight = 30 (0x001e)
+
+
+0x0284  (644)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0285  (645)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0286  (646)
+   breakweight = 30 (0x001e)
+
+
+0x0287  (647)
+   breakweight = 30 (0x001e)
+
+
+0x0288  (648)
+   breakweight = 30 (0x001e)
+
+
+0x0289  (649)
+   breakweight = 30 (0x001e)
+
+
+0x028a  (650)
+   breakweight = 30 (0x001e)
+
+
+0x028b  (651)
+   breakweight = 30 (0x001e)
+
+
+0x028c  (652)
+   breakweight = 30 (0x001e)
+
+
+0x028d  (653)
+   breakweight = 30 (0x001e)
+
+
+0x028e  (654)
+   breakweight = 30 (0x001e)
+
+
+0x028f  (655)
+   breakweight = 30 (0x001e)
+
+
+0x0290  (656)
+   breakweight = 30 (0x001e)
+
+
+0x0291  (657)
+   breakweight = 30 (0x001e)
+
+
+0x0292  (658)
+   breakweight = 30 (0x001e)
+
+
+0x0293  (659)
+   breakweight = 30 (0x001e)
+
+
+0x0294  (660)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0295  (661)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0296  (662)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0297  (663)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0298  (664)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0299  (665)
+   breakweight = 30 (0x001e)
+
+
+0x029a  (666)
+   breakweight = 30 (0x001e)
+
+
+0x029b  (667)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x029c  (668)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x029d  (669)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x029e  (670)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x029f  (671)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a0  (672)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a1  (673)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a2  (674)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a3  (675)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a4  (676)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a5  (677)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a6  (678)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a7  (679)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a8  (680)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02a9  (681)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02aa  (682)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02ab  (683)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02ac  (684)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02ad  (685)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02ae  (686)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02af  (687)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b0  (688)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b1  (689)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b2  (690)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b3  (691)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b4  (692)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b5  (693)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b6  (694)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b7  (695)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b8  (696)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02b9  (697)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02ba  (698)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02bb  (699)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02bc  (700)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02bd  (701)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02be  (702)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02bf  (703)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c0  (704)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c1  (705)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c2  (706)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c3  (707)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c4  (708)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c5  (709)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c6  (710)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c7  (711)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c8  (712)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02c9  (713)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02ca  (714)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02cb  (715)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02cc  (716)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02cd  (717)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02ce  (718)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02cf  (719)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d0  (720)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d1  (721)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d2  (722)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d3  (723)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d4  (724)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d5  (725)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d6  (726)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d7  (727)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d8  (728)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02d9  (729)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02da  (730)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02db  (731)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02dc  (732)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02dd  (733)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02de  (734)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02df  (735)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x02e0  (736)
+   breakweight = 30 (0x001e)
+
+
+0x02e1  (737)
+   breakweight = 30 (0x001e)
+
+
+0x02e2  (738)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02e3  (739)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02e4  (740)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02e5  (741)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02e6  (742)
+   breakweight = 30 (0x001e)
+
+
+0x02e7  (743)
+   breakweight = 30 (0x001e)
+
+
+0x02e8  (744)
+   breakweight = 30 (0x001e)
+
+
+0x02e9  (745)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02ea  (746)
+   breakweight = 30 (0x001e)
+
+
+0x02eb  (747)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02ec  (748)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02ed  (749)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02ee  (750)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02ef  (751)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f0  (752)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f1  (753)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f2  (754)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f3  (755)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f4  (756)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f5  (757)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f6  (758)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f7  (759)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f8  (760)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02f9  (761)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02fa  (762)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02fb  (763)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02fc  (764)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02fd  (765)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02fe  (766)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02ff  (767)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0300  (768)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0301  (769)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0302  (770)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0303  (771)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0304  (772)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0305  (773)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0306  (774)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0307  (775)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0308  (776)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0309  (777)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x030a  (778)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x030b  (779)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x030c  (780)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x030d  (781)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x030e  (782)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x030f  (783)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0310  (784)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0311  (785)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0312  (786)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0313  (787)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0314  (788)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0315  (789)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0316  (790)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0317  (791)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0318  (792)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0319  (793)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x031a  (794)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x031b  (795)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x031c  (796)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x031d  (797)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x031e  (798)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x031f  (799)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0320  (800)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0321  (801)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0322  (802)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0323  (803)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0324  (804)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0325  (805)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0326  (806)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0327  (807)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0328  (808)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0329  (809)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x032a  (810)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x032b  (811)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x032c  (812)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x032d  (813)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x032e  (814)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x032f  (815)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0330  (816)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0331  (817)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0332  (818)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0333  (819)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0334  (820)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0335  (821)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0336  (822)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0337  (823)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0338  (824)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0339  (825)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x033a  (826)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x033b  (827)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x033c  (828)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x033d  (829)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x033e  (830)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x033f  (831)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0340  (832)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0341  (833)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0342  (834)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0343  (835)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0344  (836)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0345  (837)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0346  (838)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0347  (839)
+   breakweight = 30 (0x001e)
+
+
+0x0348  (840)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0349  (841)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x034a  (842)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x034b  (843)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x034c  (844)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x034d  (845)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x034e  (846)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x034f  (847)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0350  (848)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0351  (849)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0352  (850)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0353  (851)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0354  (852)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0355  (853)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0356  (854)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0357  (855)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0358  (856)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0359  (857)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x035a  (858)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x035b  (859)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x035c  (860)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x035d  (861)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x035e  (862)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x035f  (863)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0360  (864)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0361  (865)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0362  (866)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0363  (867)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0364  (868)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0365  (869)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0366  (870)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0367  (871)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0368  (872)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0369  (873)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x036a  (874)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x036b  (875)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x036c  (876)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x036d  (877)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x036e  (878)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x036f  (879)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0370  (880)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0371  (881)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0372  (882)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0373  (883)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0374  (884)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0375  (885)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0376  (886)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0377  (887)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0378  (888)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0379  (889)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x037a  (890)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x037b  (891)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x037c  (892)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x037d  (893)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x037e  (894)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x037f  (895)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0380  (896)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0381  (897)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0382  (898)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0383  (899)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0384  (900)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0385  (901)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0386  (902)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0387  (903)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0388  (904)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0389  (905)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x038a  (906)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x038b  (907)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x038c  (908)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x038d  (909)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x038e  (910)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x038f  (911)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0390  (912)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0391  (913)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0392  (914)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0393  (915)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0394  (916)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0395  (917)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0396  (918)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0397  (919)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0398  (920)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0399  (921)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x039a  (922)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x039b  (923)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x039c  (924)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x039d  (925)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x039e  (926)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x039f  (927)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a0  (928)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a1  (929)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a2  (930)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a3  (931)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a4  (932)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a5  (933)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a6  (934)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a7  (935)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a8  (936)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03a9  (937)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03aa  (938)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ab  (939)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ac  (940)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ad  (941)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ae  (942)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03af  (943)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b0  (944)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b1  (945)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b2  (946)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b3  (947)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b4  (948)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b5  (949)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b6  (950)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b7  (951)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b8  (952)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03b9  (953)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ba  (954)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03bb  (955)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03bc  (956)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03bd  (957)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03be  (958)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03bf  (959)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c0  (960)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c1  (961)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c2  (962)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c3  (963)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c4  (964)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c5  (965)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c6  (966)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c7  (967)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c8  (968)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03c9  (969)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ca  (970)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x03cb  (971)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03cc  (972)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03cd  (973)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ce  (974)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03cf  (975)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d0  (976)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d1  (977)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d2  (978)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d3  (979)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d4  (980)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d5  (981)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d6  (982)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d7  (983)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d8  (984)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03d9  (985)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03da  (986)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03db  (987)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03dc  (988)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03dd  (989)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03de  (990)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03df  (991)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e0  (992)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e1  (993)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e2  (994)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e3  (995)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e4  (996)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e5  (997)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e6  (998)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e7  (999)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e8  (1000)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03e9  (1001)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ea  (1002)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03eb  (1003)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ec  (1004)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ed  (1005)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ee  (1006)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ef  (1007)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f0  (1008)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f1  (1009)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f2  (1010)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f3  (1011)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f4  (1012)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f5  (1013)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f6  (1014)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f7  (1015)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f8  (1016)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03f9  (1017)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03fa  (1018)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03fb  (1019)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03fc  (1020)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03fd  (1021)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03fe  (1022)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x03ff  (1023)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0400  (1024)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0401  (1025)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0402  (1026)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0403  (1027)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0404  (1028)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0405  (1029)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0406  (1030)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0407  (1031)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0408  (1032)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0409  (1033)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x040a  (1034)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x040b  (1035)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x040c  (1036)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x040d  (1037)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x040e  (1038)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x040f  (1039)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0410  (1040)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0411  (1041)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0412  (1042)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0413  (1043)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0414  (1044)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0415  (1045)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0416  (1046)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0417  (1047)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0418  (1048)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0419  (1049)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x041a  (1050)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x041b  (1051)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x041c  (1052)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x041d  (1053)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x041e  (1054)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x041f  (1055)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0420  (1056)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0421  (1057)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0422  (1058)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0423  (1059)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0424  (1060)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0425  (1061)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0426  (1062)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0427  (1063)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0428  (1064)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0429  (1065)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x042a  (1066)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x042b  (1067)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x042c  (1068)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x042d  (1069)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x042e  (1070)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x042f  (1071)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0430  (1072)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0431  (1073)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0432  (1074)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0433  (1075)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0434  (1076)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0435  (1077)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0436  (1078)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0437  (1079)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0438  (1080)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0439  (1081)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x043a  (1082)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x043b  (1083)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x043c  (1084)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x043d  (1085)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x043e  (1086)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x043f  (1087)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0440  (1088)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0441  (1089)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0442  (1090)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0443  (1091)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0444  (1092)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0445  (1093)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0446  (1094)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x0447  (1095)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0448  (1096)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0449  (1097)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x044a  (1098)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x044b  (1099)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x044c  (1100)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x044d  (1101)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x044e  (1102)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x044f  (1103)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0450  (1104)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0451  (1105)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0452  (1106)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0453  (1107)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0454  (1108)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0455  (1109)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0456  (1110)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0457  (1111)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0458  (1112)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0459  (1113)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x045a  (1114)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x045b  (1115)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x045c  (1116)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x045d  (1117)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x045e  (1118)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x045f  (1119)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0460  (1120)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0461  (1121)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0462  (1122)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0463  (1123)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0464  (1124)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0465  (1125)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0466  (1126)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0467  (1127)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0468  (1128)
+   breakweight = 30 (0x001e)
+   directionality = 2
+
+
+0x0469  (1129)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x046a  (1130)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x046b  (1131)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x046c  (1132)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x046d  (1133)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x046e  (1134)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x046f  (1135)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0470  (1136)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0471  (1137)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0472  (1138)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0473  (1139)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0474  (1140)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0475  (1141)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0476  (1142)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0477  (1143)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0478  (1144)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0479  (1145)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x047a  (1146)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x047b  (1147)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x047c  (1148)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x047d  (1149)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x047e  (1150)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x047f  (1151)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0480  (1152)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0481  (1153)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0482  (1154)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0483  (1155)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0484  (1156)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0485  (1157)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0486  (1158)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0487  (1159)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0488  (1160)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0489  (1161)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x048a  (1162)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x048b  (1163)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x048c  (1164)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x048d  (1165)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x048e  (1166)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x048f  (1167)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0490  (1168)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0491  (1169)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0492  (1170)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0493  (1171)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0494  (1172)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0495  (1173)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0496  (1174)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0497  (1175)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0498  (1176)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0499  (1177)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x049a  (1178)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x049b  (1179)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x049c  (1180)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x049d  (1181)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x049e  (1182)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x049f  (1183)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a0  (1184)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a1  (1185)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a2  (1186)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a3  (1187)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a4  (1188)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a5  (1189)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a6  (1190)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a7  (1191)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a8  (1192)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04a9  (1193)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04aa  (1194)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ab  (1195)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ac  (1196)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ad  (1197)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ae  (1198)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04af  (1199)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b0  (1200)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b1  (1201)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b2  (1202)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b3  (1203)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b4  (1204)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b5  (1205)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b6  (1206)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b7  (1207)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b8  (1208)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04b9  (1209)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ba  (1210)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04bb  (1211)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04bc  (1212)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04bd  (1213)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04be  (1214)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04bf  (1215)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c0  (1216)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c1  (1217)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c2  (1218)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c3  (1219)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c4  (1220)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c5  (1221)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c6  (1222)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c7  (1223)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c8  (1224)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04c9  (1225)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ca  (1226)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04cb  (1227)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04cc  (1228)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04cd  (1229)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ce  (1230)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04cf  (1231)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d0  (1232)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d1  (1233)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d2  (1234)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d3  (1235)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d4  (1236)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d5  (1237)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d6  (1238)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d7  (1239)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d8  (1240)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04d9  (1241)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04da  (1242)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04db  (1243)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04dc  (1244)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04dd  (1245)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04de  (1246)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04df  (1247)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e0  (1248)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e1  (1249)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e2  (1250)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e3  (1251)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e4  (1252)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e5  (1253)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e6  (1254)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e7  (1255)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e8  (1256)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04e9  (1257)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ea  (1258)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04eb  (1259)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ec  (1260)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ed  (1261)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ee  (1262)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ef  (1263)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f0  (1264)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f1  (1265)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f2  (1266)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f3  (1267)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f4  (1268)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f5  (1269)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f6  (1270)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f7  (1271)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f8  (1272)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04f9  (1273)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04fa  (1274)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04fb  (1275)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04fc  (1276)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04fd  (1277)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04fe  (1278)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x04ff  (1279)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0500  (1280)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0501  (1281)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0502  (1282)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0503  (1283)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0504  (1284)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0505  (1285)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0506  (1286)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0507  (1287)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0508  (1288)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0509  (1289)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x050a  (1290)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x050b  (1291)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x050c  (1292)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x050d  (1293)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x050e  (1294)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x050f  (1295)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0510  (1296)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0511  (1297)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0512  (1298)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0513  (1299)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0514  (1300)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0515  (1301)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0516  (1302)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0517  (1303)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0518  (1304)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0519  (1305)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x051a  (1306)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x051b  (1307)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x051c  (1308)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x051d  (1309)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x051e  (1310)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x051f  (1311)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0520  (1312)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0521  (1313)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0522  (1314)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0523  (1315)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0524  (1316)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0525  (1317)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0526  (1318)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0527  (1319)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0528  (1320)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0529  (1321)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x052a  (1322)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x052b  (1323)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x052c  (1324)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x052d  (1325)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x052e  (1326)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x052f  (1327)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0530  (1328)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0531  (1329)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0532  (1330)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0533  (1331)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0534  (1332)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0535  (1333)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0536  (1334)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0537  (1335)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0538  (1336)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0539  (1337)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x053a  (1338)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x053b  (1339)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x053c  (1340)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x053d  (1341)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x053e  (1342)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x053f  (1343)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0540  (1344)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0541  (1345)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0542  (1346)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0543  (1347)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0544  (1348)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0545  (1349)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0546  (1350)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0547  (1351)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0548  (1352)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0549  (1353)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x054a  (1354)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x054b  (1355)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x054c  (1356)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x054d  (1357)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x054e  (1358)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x054f  (1359)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0550  (1360)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0551  (1361)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0552  (1362)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0553  (1363)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0554  (1364)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0555  (1365)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0556  (1366)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0557  (1367)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0558  (1368)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0559  (1369)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x055a  (1370)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x055b  (1371)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x055c  (1372)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x055d  (1373)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x055e  (1374)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x055f  (1375)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0560  (1376)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0561  (1377)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0562  (1378)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0563  (1379)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0564  (1380)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0565  (1381)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0566  (1382)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0567  (1383)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0568  (1384)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0569  (1385)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x056a  (1386)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x056b  (1387)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x056c  (1388)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x056d  (1389)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x056e  (1390)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x056f  (1391)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0570  (1392)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0571  (1393)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0572  (1394)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0573  (1395)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0574  (1396)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0575  (1397)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0576  (1398)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0577  (1399)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0578  (1400)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0579  (1401)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x057a  (1402)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x057b  (1403)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x057c  (1404)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x057d  (1405)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x057e  (1406)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x057f  (1407)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0580  (1408)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0581  (1409)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0582  (1410)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0583  (1411)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0584  (1412)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0585  (1413)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0586  (1414)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0587  (1415)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0588  (1416)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0589  (1417)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x058a  (1418)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x058b  (1419)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x058c  (1420)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x058d  (1421)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x058e  (1422)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x058f  (1423)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0590  (1424)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0591  (1425)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0592  (1426)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0593  (1427)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0594  (1428)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0595  (1429)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0596  (1430)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0597  (1431)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0598  (1432)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0599  (1433)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x059a  (1434)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x059b  (1435)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x059c  (1436)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x059d  (1437)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x059e  (1438)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x059f  (1439)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a0  (1440)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a1  (1441)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a2  (1442)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a3  (1443)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a4  (1444)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a5  (1445)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a6  (1446)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a7  (1447)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a8  (1448)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05a9  (1449)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05aa  (1450)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ab  (1451)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ac  (1452)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ad  (1453)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ae  (1454)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05af  (1455)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b0  (1456)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b1  (1457)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b2  (1458)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b3  (1459)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b4  (1460)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b5  (1461)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b6  (1462)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b7  (1463)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b8  (1464)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05b9  (1465)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ba  (1466)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05bb  (1467)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05bc  (1468)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05bd  (1469)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05be  (1470)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05bf  (1471)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c0  (1472)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c1  (1473)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c2  (1474)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c3  (1475)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c4  (1476)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c5  (1477)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c6  (1478)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c7  (1479)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c8  (1480)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05c9  (1481)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ca  (1482)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05cb  (1483)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05cc  (1484)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05cd  (1485)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ce  (1486)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05cf  (1487)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d0  (1488)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d1  (1489)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d2  (1490)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d3  (1491)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d4  (1492)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d5  (1493)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d6  (1494)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d7  (1495)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d8  (1496)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05d9  (1497)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05da  (1498)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05db  (1499)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05dc  (1500)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05dd  (1501)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05de  (1502)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05df  (1503)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e0  (1504)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e1  (1505)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e2  (1506)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e3  (1507)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e4  (1508)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e5  (1509)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e6  (1510)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e7  (1511)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e8  (1512)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05e9  (1513)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ea  (1514)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05eb  (1515)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ec  (1516)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ed  (1517)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ee  (1518)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ef  (1519)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f0  (1520)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f1  (1521)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f2  (1522)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f3  (1523)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f4  (1524)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f5  (1525)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f6  (1526)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f7  (1527)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f8  (1528)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05f9  (1529)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05fa  (1530)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05fb  (1531)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05fc  (1532)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05fd  (1533)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05fe  (1534)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x05ff  (1535)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0600  (1536)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0601  (1537)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0602  (1538)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0603  (1539)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0604  (1540)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0605  (1541)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0606  (1542)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0607  (1543)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0608  (1544)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0609  (1545)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x060a  (1546)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x060b  (1547)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x060c  (1548)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x060d  (1549)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x060e  (1550)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x060f  (1551)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0610  (1552)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0611  (1553)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0612  (1554)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0613  (1555)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0614  (1556)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0615  (1557)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0616  (1558)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0617  (1559)
+   breakweight = 30 (0x001e)
+
+
+0x0618  (1560)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0619  (1561)
+   breakweight = 30 (0x001e)
+
+
+0x061a  (1562)
+   breakweight = 30 (0x001e)
+
+
+0x061b  (1563)
+   breakweight = 30 (0x001e)
+
+
+0x061c  (1564)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x061d  (1565)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x061e  (1566)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x061f  (1567)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0620  (1568)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0621  (1569)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0622  (1570)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0623  (1571)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0624  (1572)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0625  (1573)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0626  (1574)
+   breakweight = 30 (0x001e)
+
+
+0x0627  (1575)
+   breakweight = 30 (0x001e)
+
+
+0x0628  (1576)
+   breakweight = 30 (0x001e)
+
+
+0x0629  (1577)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x062a  (1578)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x062b  (1579)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x062c  (1580)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x062d  (1581)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x062e  (1582)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x062f  (1583)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0630  (1584)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0631  (1585)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0632  (1586)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0633  (1587)
+   breakweight = 30 (0x001e)
+
+
+0x0634  (1588)
+   breakweight = 30 (0x001e)
+
+
+0x0635  (1589)
+   breakweight = 30 (0x001e)
+
+
+0x0636  (1590)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0637  (1591)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0638  (1592)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0639  (1593)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x063a  (1594)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x063b  (1595)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x063c  (1596)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x063d  (1597)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x063e  (1598)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x063f  (1599)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0640  (1600)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0641  (1601)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0642  (1602)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0643  (1603)
+   breakweight = 30 (0x001e)
+
+
+0x0644  (1604)
+   breakweight = 30 (0x001e)
+
+
+0x0645  (1605)
+   breakweight = 30 (0x001e)
+
+
+0x0646  (1606)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0647  (1607)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0648  (1608)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0649  (1609)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x064a  (1610)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x064b  (1611)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x064c  (1612)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x064d  (1613)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x064e  (1614)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x064f  (1615)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0650  (1616)
+   breakweight = 30 (0x001e)
+
+
+0x0651  (1617)
+   breakweight = 30 (0x001e)
+
+
+0x0652  (1618)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0653  (1619)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0654  (1620)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0655  (1621)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0656  (1622)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0657  (1623)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0658  (1624)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0659  (1625)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x065a  (1626)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x065b  (1627)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x065c  (1628)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x065d  (1629)
+   breakweight = 30 (0x001e)
+   directionality = 10 (0x000a)
+
+
+0x065e  (1630)
+   breakweight = 30 (0x001e)
+   directionality = 10 (0x000a)
+
+
+0x065f  (1631)
+   breakweight = 30 (0x001e)
+
+
+0x0660  (1632)
+   breakweight = 30 (0x001e)
+
+
+0x0661  (1633)
+   breakweight = 30 (0x001e)
+
+
+0x0662  (1634)
+   breakweight = 30 (0x001e)
+
+
+0x0663  (1635)
+   breakweight = 30 (0x001e)
+
+
+0x0664  (1636)
+   breakweight = 30 (0x001e)
+
+
+0x0665  (1637)
+   breakweight = 30 (0x001e)
+
+
+0x0666  (1638)
+   breakweight = 30 (0x001e)
+
+
+0x0667  (1639)
+   breakweight = 30 (0x001e)
+
+
+0x0668  (1640)
+   breakweight = 30 (0x001e)
+
+
+0x0669  (1641)
+   breakweight = 30 (0x001e)
+
+
+0x066a  (1642)
+   breakweight = 30 (0x001e)
+
+
+0x066b  (1643)
+   breakweight = 30 (0x001e)
+
+
+0x066c  (1644)
+   breakweight = 30 (0x001e)
+
+
+0x066d  (1645)
+   breakweight = 30 (0x001e)
+
+
+0x066e  (1646)
+   breakweight = 30 (0x001e)
+
+
+0x066f  (1647)
+   breakweight = 30 (0x001e)
+
+
+0x0670  (1648)
+   breakweight = 30 (0x001e)
+
+
+0x0671  (1649)
+   breakweight = 30 (0x001e)
+
+
+0x0672  (1650)
+   breakweight = 30 (0x001e)
+
+
+0x0673  (1651)
+   breakweight = 30 (0x001e)
+
+
+0x0674  (1652)
+   breakweight = 30 (0x001e)
+
+
+0x0675  (1653)
+   breakweight = 30 (0x001e)
+
+
+0x0676  (1654)
+   breakweight = 30 (0x001e)
+
+
+0x0677  (1655)
+   breakweight = 15 (0x000f)
+   directionality = 8
+
+
+0x0678  (1656)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0679  (1657)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x067a  (1658)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x067b  (1659)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x067c  (1660)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x067d  (1661)
+   breakweight = 30 (0x001e)
+
+
+0x067e  (1662)
+   breakweight = 30 (0x001e)
+
+
+0x067f  (1663)
+   breakweight = 30 (0x001e)
+
+
+0x0680  (1664)
+   breakweight = 30 (0x001e)
+
+
+0x0681  (1665)
+   breakweight = 30 (0x001e)
+
+
+0x0682  (1666)
+   breakweight = 30 (0x001e)
+
+
+0x0683  (1667)
+   breakweight = 30 (0x001e)
+
+
+0x0684  (1668)
+   breakweight = 30 (0x001e)
+
+
+0x0685  (1669)
+   breakweight = 30 (0x001e)
+
+
+0x0686  (1670)
+   breakweight = 30 (0x001e)
+
+
+0x0687  (1671)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x0688  (1672)
+   breakweight = 30 (0x001e)
+
+
+0x0689  (1673)
+   breakweight = 30 (0x001e)
+
+
+0x068a  (1674)
+   breakweight = 30 (0x001e)
+
+
+0x068b  (1675)
+   breakweight = 30 (0x001e)
+
+
+0x068c  (1676)
+   breakweight = 30 (0x001e)
+
+
+0x068d  (1677)
+   breakweight = 30 (0x001e)
+
+
+0x068e  (1678)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x068f  (1679)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0690  (1680)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0691  (1681)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0692  (1682)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0693  (1683)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0694  (1684)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0695  (1685)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0696  (1686)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x0697  (1687)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x0698  (1688)
+   breakweight = 30 (0x001e)
+
+
+0x0699  (1689)
+   breakweight = 30 (0x001e)
+
+
+0x069a  (1690)
+   breakweight = 30 (0x001e)
+
+
+0x069b  (1691)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x069c  (1692)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x069d  (1693)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x069e  (1694)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x069f  (1695)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x06a0  (1696)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x06a1  (1697)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x06a2  (1698)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x06a3  (1699)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x06a4  (1700)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x06a5  (1701)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x06a6  (1702)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x06a7  (1703)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x06a8  (1704)
+   breakweight = 30 (0x001e)
+
+
+0x06a9  (1705)
+   breakweight = 30 (0x001e)
+
+
+0x06aa  (1706)
+   breakweight = 30 (0x001e)
+
+
+0x06ab  (1707)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ac  (1708)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ad  (1709)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ae  (1710)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06af  (1711)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06b0  (1712)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06b1  (1713)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06b2  (1714)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06b3  (1715)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06b4  (1716)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06b5  (1717)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06b6  (1718)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06b7  (1719)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06b8  (1720)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06b9  (1721)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06ba  (1722)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06bb  (1723)
+   breakweight = 30 (0x001e)
+
+
+0x06bc  (1724)
+   breakweight = 30 (0x001e)
+
+
+0x06bd  (1725)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06be  (1726)
+   breakweight = 30 (0x001e)
+
+
+0x06bf  (1727)
+   breakweight = 30 (0x001e)
+
+
+0x06c0  (1728)
+   breakweight = 30 (0x001e)
+
+
+0x06c1  (1729)
+   breakweight = 30 (0x001e)
+
+
+0x06c2  (1730)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06c3  (1731)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06c4  (1732)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06c5  (1733)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06c6  (1734)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06c7  (1735)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06c8  (1736)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06c9  (1737)
+   breakweight = 30 (0x001e)
+
+
+0x06ca  (1738)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06cb  (1739)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06cc  (1740)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06cd  (1741)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ce  (1742)
+   breakweight = 30 (0x001e)
+
+
+0x06cf  (1743)
+   breakweight = 30 (0x001e)
+
+
+0x06d0  (1744)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06d1  (1745)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06d2  (1746)
+   breakweight = 30 (0x001e)
+
+
+0x06d3  (1747)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x06d4  (1748)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06d5  (1749)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06d6  (1750)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06d7  (1751)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06d8  (1752)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06d9  (1753)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06da  (1754)
+   breakweight = 30 (0x001e)
+
+
+0x06db  (1755)
+   breakweight = 30 (0x001e)
+
+
+0x06dc  (1756)
+   breakweight = 30 (0x001e)
+
+
+0x06dd  (1757)
+   breakweight = 30 (0x001e)
+
+
+0x06de  (1758)
+   breakweight = 30 (0x001e)
+
+
+0x06df  (1759)
+   breakweight = 30 (0x001e)
+
+
+0x06e0  (1760)
+   breakweight = 30 (0x001e)
+
+
+0x06e1  (1761)
+   breakweight = 30 (0x001e)
+
+
+0x06e2  (1762)
+   breakweight = 30 (0x001e)
+
+
+0x06e3  (1763)
+   breakweight = 30 (0x001e)
+
+
+0x06e4  (1764)
+   breakweight = 30 (0x001e)
+
+
+0x06e5  (1765)
+   breakweight = 30 (0x001e)
+
+
+0x06e6  (1766)
+   breakweight = 30 (0x001e)
+
+
+0x06e7  (1767)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06e8  (1768)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06e9  (1769)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ea  (1770)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06eb  (1771)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ec  (1772)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ed  (1773)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ee  (1774)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ef  (1775)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f0  (1776)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f1  (1777)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f2  (1778)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f3  (1779)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f4  (1780)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f5  (1781)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f6  (1782)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f7  (1783)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f8  (1784)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06f9  (1785)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06fa  (1786)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06fb  (1787)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06fc  (1788)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06fd  (1789)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06fe  (1790)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x06ff  (1791)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0700  (1792)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0701  (1793)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0702  (1794)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0703  (1795)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0704  (1796)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0705  (1797)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0706  (1798)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0707  (1799)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0708  (1800)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0709  (1801)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x070a  (1802)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x070b  (1803)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x070c  (1804)
+   breakweight = 30 (0x001e)
+
+
+0x070d  (1805)
+   breakweight = 30 (0x001e)
+
+
+0x070e  (1806)
+   breakweight = 30 (0x001e)
+
+
+0x070f  (1807)
+   breakweight = 30 (0x001e)
+
+
+0x0710  (1808)
+   breakweight = 30 (0x001e)
+
+
+0x0711  (1809)
+   breakweight = 30 (0x001e)
+
+
+0x0712  (1810)
+   breakweight = 30 (0x001e)
+
+
+0x0713  (1811)
+   breakweight = 30 (0x001e)
+
+
+0x0714  (1812)
+   breakweight = 30 (0x001e)
+
+
+0x0715  (1813)
+   breakweight = 30 (0x001e)
+
+
+0x0716  (1814)
+   breakweight = 30 (0x001e)
+
+
+0x0717  (1815)
+   breakweight = 30 (0x001e)
+
+
+0x0718  (1816)
+   breakweight = 30 (0x001e)
+
+
+0x0719  (1817)
+   breakweight = 30 (0x001e)
+
+
+0x071a  (1818)
+   breakweight = 30 (0x001e)
+
+
+0x071b  (1819)
+   breakweight = 30 (0x001e)
+
+
+0x071c  (1820)
+   breakweight = 30 (0x001e)
+
+
+0x071d  (1821)
+   breakweight = 30 (0x001e)
+
+
+0x071e  (1822)
+   breakweight = 30 (0x001e)
+
+
+0x071f  (1823)
+   breakweight = 30 (0x001e)
+
+
+0x0720  (1824)
+   breakweight = 30 (0x001e)
+
+
+0x0721  (1825)
+   breakweight = 30 (0x001e)
+
+
+0x0722  (1826)
+   breakweight = 30 (0x001e)
+
+
+0x0723  (1827)
+   breakweight = 30 (0x001e)
+
+
+0x0724  (1828)
+   breakweight = 30 (0x001e)
+
+
+0x0725  (1829)
+   breakweight = 30 (0x001e)
+
+
+0x0726  (1830)
+   breakweight = 30 (0x001e)
+
+
+0x0727  (1831)
+   breakweight = 30 (0x001e)
+
+
+0x0728  (1832)
+   breakweight = 30 (0x001e)
+
+
+0x0729  (1833)
+   breakweight = 30 (0x001e)
+
+
+0x072a  (1834)
+   breakweight = 30 (0x001e)
+
+
+0x072b  (1835)
+   breakweight = 30 (0x001e)
+
+
+0x072c  (1836)
+   breakweight = 30 (0x001e)
+
+
+0x072d  (1837)
+   breakweight = 30 (0x001e)
+
+
+0x072e  (1838)
+   breakweight = 30 (0x001e)
+
+
+0x072f  (1839)
+   breakweight = 30 (0x001e)
+
+
+0x0730  (1840)
+   breakweight = 30 (0x001e)
+
+
+0x0731  (1841)
+   breakweight = 30 (0x001e)
+
+
+0x0732  (1842)
+   breakweight = 30 (0x001e)
+
+
+0x0733  (1843)
+   breakweight = 30 (0x001e)
+
+
+0x0734  (1844)
+   breakweight = 30 (0x001e)
+
+
+0x0735  (1845)
+   breakweight = 30 (0x001e)
+
+
+0x0736  (1846)
+   breakweight = 30 (0x001e)
+
+
+0x0737  (1847)
+   breakweight = 30 (0x001e)
+
+
+0x0738  (1848)
+   breakweight = 30 (0x001e)
+
+
+0x0739  (1849)
+   breakweight = 30 (0x001e)
+
+
+0x073a  (1850)
+   breakweight = 30 (0x001e)
+
+
+0x073b  (1851)
+   breakweight = 30 (0x001e)
+
+
+0x073c  (1852)
+   breakweight = 30 (0x001e)
+
+
+0x073d  (1853)
+   breakweight = 30 (0x001e)
+
+
+0x073e  (1854)
+   breakweight = 30 (0x001e)
+
+
+0x073f  (1855)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x0740  (1856)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0741  (1857)
+   breakweight = 30 (0x001e)
+
+
+0x0742  (1858)
+   breakweight = 30 (0x001e)
+
+
+0x0743  (1859)
+   breakweight = 30 (0x001e)
+
+
+0x0744  (1860)
+   breakweight = 30 (0x001e)
+
+
+0x0745  (1861)
+   breakweight = 30 (0x001e)
+
+
+0x0746  (1862)
+   breakweight = 30 (0x001e)
+
+
+0x0747  (1863)
+   breakweight = 30 (0x001e)
+
+
+0x0748  (1864)
+   breakweight = 30 (0x001e)
+
+
+0x0749  (1865)
+   breakweight = 30 (0x001e)
+
+
+0x074a  (1866)
+   breakweight = 30 (0x001e)
+
+
+0x074b  (1867)
+   breakweight = 30 (0x001e)
+
+
+0x074c  (1868)
+   breakweight = 30 (0x001e)
+
+
+0x074d  (1869)
+   breakweight = 30 (0x001e)
+
+
+0x074e  (1870)
+   breakweight = 30 (0x001e)
+
+
+0x074f  (1871)
+   breakweight = 30 (0x001e)
+
+
+0x0750  (1872)
+   breakweight = 30 (0x001e)
+
+
+0x0751  (1873)
+   breakweight = 30 (0x001e)
+
+
+0x0752  (1874)
+   breakweight = 30 (0x001e)
+
+
+0x0753  (1875)
+   breakweight = 30 (0x001e)
+
+
+0x0754  (1876)
+   breakweight = 30 (0x001e)
+
+
+0x0755  (1877)
+   breakweight = 30 (0x001e)
+
+
+0x0756  (1878)
+   breakweight = 30 (0x001e)
+
+
+0x0757  (1879)
+   breakweight = 30 (0x001e)
+
+
+0x0758  (1880)
+   breakweight = 30 (0x001e)
+
+
+0x0759  (1881)
+   breakweight = 30 (0x001e)
+
+
+0x075a  (1882)
+   breakweight = 30 (0x001e)
+
+
+0x075b  (1883)
+   breakweight = 30 (0x001e)
+
+
+0x075c  (1884)
+   breakweight = 30 (0x001e)
+
+
+0x075d  (1885)
+   breakweight = 30 (0x001e)
+
+
+0x075e  (1886)
+   breakweight = 30 (0x001e)
+
+
+0x075f  (1887)
+   breakweight = 30 (0x001e)
+
+
+0x0760  (1888)
+   breakweight = 30 (0x001e)
+
+
+0x0761  (1889)
+   breakweight = 30 (0x001e)
+
+
+0x0762  (1890)
+   breakweight = 30 (0x001e)
+
+
+0x0763  (1891)
+   breakweight = 30 (0x001e)
+
+
+0x0764  (1892)
+   breakweight = 30 (0x001e)
+
+
+0x0765  (1893)
+   breakweight = 30 (0x001e)
+
+
+0x0766  (1894)
+   breakweight = 30 (0x001e)
+
+
+0x0767  (1895)
+   breakweight = 30 (0x001e)
+
+
+0x0768  (1896)
+   breakweight = 30 (0x001e)
+
+
+0x0769  (1897)
+   breakweight = 30 (0x001e)
+
+
+0x076a  (1898)
+   breakweight = 30 (0x001e)
+
+
+0x076b  (1899)
+   breakweight = 30 (0x001e)
+
+
+0x076c  (1900)
+   breakweight = 30 (0x001e)
+
+
+0x076d  (1901)
+   breakweight = 30 (0x001e)
+
+
+0x076e  (1902)
+   breakweight = 30 (0x001e)
+
+
+0x076f  (1903)
+   breakweight = 30 (0x001e)
+
+
+0x0770  (1904)
+   breakweight = 30 (0x001e)
+
+
+0x0771  (1905)
+   breakweight = 30 (0x001e)
+
+
+0x0772  (1906)
+   breakweight = 30 (0x001e)
+
+
+0x0773  (1907)
+   breakweight = 30 (0x001e)
+
+
+0x0774  (1908)
+   breakweight = 30 (0x001e)
+
+
+0x0775  (1909)
+   breakweight = 30 (0x001e)
+
+
+0x0776  (1910)
+   breakweight = 30 (0x001e)
+
+
+0x0777  (1911)
+   breakweight = 30 (0x001e)
+
+
+0x0778  (1912)
+   breakweight = 30 (0x001e)
+
+
+0x0779  (1913)
+   breakweight = 30 (0x001e)
+
+
+0x077a  (1914)
+   breakweight = 30 (0x001e)
+
+
+0x077b  (1915)
+   breakweight = 30 (0x001e)
+
+
+0x077c  (1916)
+   breakweight = 30 (0x001e)
+
+
+0x077d  (1917)
+   breakweight = 30 (0x001e)
+
+
+0x077e  (1918)
+   breakweight = 30 (0x001e)
+
+
+0x077f  (1919)
+   breakweight = 30 (0x001e)
+
+
+0x0780  (1920)
+   breakweight = 30 (0x001e)
+
+
+0x0781  (1921)
+   breakweight = 30 (0x001e)
+
+
+0x0782  (1922)
+   breakweight = 30 (0x001e)
+
+
+0x0783  (1923)
+   breakweight = 30 (0x001e)
+
+
+0x0784  (1924)
+   breakweight = 30 (0x001e)
+
+
+0x0785  (1925)
+   breakweight = 30 (0x001e)
+
+
+0x0786  (1926)
+   breakweight = 30 (0x001e)
+
+
+0x0787  (1927)
+   breakweight = 30 (0x001e)
+
+
+0x0788  (1928)
+   breakweight = 30 (0x001e)
+
+
+0x0789  (1929)
+   breakweight = 30 (0x001e)
+
+
+0x078a  (1930)
+   breakweight = 30 (0x001e)
+
+
+0x078b  (1931)
+   breakweight = 30 (0x001e)
+
+
+0x078c  (1932)
+   breakweight = 30 (0x001e)
+
+
+0x078d  (1933)
+   breakweight = 30 (0x001e)
+
+
+0x078e  (1934)
+   breakweight = 30 (0x001e)
+
+
+0x078f  (1935)
+   breakweight = 30 (0x001e)
+
+
+0x0790  (1936)
+   breakweight = 30 (0x001e)
+
+
+0x0791  (1937)
+   breakweight = 30 (0x001e)
+
+
+0x0792  (1938)
+   breakweight = 30 (0x001e)
+
+
+0x0793  (1939)
+   breakweight = 30 (0x001e)
+
+
+0x0794  (1940)
+   breakweight = 30 (0x001e)
+
+
+0x0795  (1941)
+   breakweight = 30 (0x001e)
+
+
+0x0796  (1942)
+   breakweight = 30 (0x001e)
+
+
+0x0797  (1943)
+   breakweight = 30 (0x001e)
+
+
+0x0798  (1944)
+   breakweight = 30 (0x001e)
+
+
+0x0799  (1945)
+   breakweight = 30 (0x001e)
+
+
+0x079a  (1946)
+   breakweight = 30 (0x001e)
+
+
+0x079b  (1947)
+   breakweight = 30 (0x001e)
+
+
+0x079c  (1948)
+   breakweight = 30 (0x001e)
+
+
+0x079d  (1949)
+   breakweight = 30 (0x001e)
+
+
+0x079e  (1950)
+   breakweight = 30 (0x001e)
+
+
+0x079f  (1951)
+   breakweight = 30 (0x001e)
+
+
+0x07a0  (1952)
+   breakweight = 30 (0x001e)
+
+
+0x07a1  (1953)
+   breakweight = 30 (0x001e)
+
+
+0x07a2  (1954)
+   breakweight = 30 (0x001e)
+
+
+0x07a3  (1955)
+   breakweight = 30 (0x001e)
+
+
+0x07a4  (1956)
+   breakweight = 30 (0x001e)
+
+
+0x07a5  (1957)
+   breakweight = 30 (0x001e)
+
+
+0x07a6  (1958)
+   breakweight = 30 (0x001e)
+
+
+0x07a7  (1959)
+   breakweight = 30 (0x001e)
+
+
+0x07a8  (1960)
+   breakweight = 30 (0x001e)
+
+
+0x07a9  (1961)
+   breakweight = 30 (0x001e)
+
+
+0x07aa  (1962)
+   breakweight = 30 (0x001e)
+
+
+0x07ab  (1963)
+   breakweight = 30 (0x001e)
+
+
+0x07ac  (1964)
+   breakweight = 30 (0x001e)
+
+
+0x07ad  (1965)
+   breakweight = 30 (0x001e)
+
+
+0x07ae  (1966)
+   breakweight = 30 (0x001e)
+
+
+0x07af  (1967)
+   breakweight = 30 (0x001e)
+
+
+0x07b0  (1968)
+   breakweight = 30 (0x001e)
+
+
+0x07b1  (1969)
+   breakweight = 30 (0x001e)
+
+
+0x07b2  (1970)
+   breakweight = 30 (0x001e)
+
+
+0x07b3  (1971)
+   breakweight = 30 (0x001e)
+
+
+0x07b4  (1972)
+   breakweight = 30 (0x001e)
+
+
+0x07b5  (1973)
+   breakweight = 30 (0x001e)
+
+
+0x07b6  (1974)
+   breakweight = 30 (0x001e)
+
+
+0x07b7  (1975)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07b8  (1976)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07b9  (1977)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07ba  (1978)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07bb  (1979)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07bc  (1980)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07bd  (1981)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07be  (1982)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07bf  (1983)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c0  (1984)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c1  (1985)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c2  (1986)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c3  (1987)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c4  (1988)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c5  (1989)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c6  (1990)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c7  (1991)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c8  (1992)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07c9  (1993)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07ca  (1994)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07cb  (1995)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07cc  (1996)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07cd  (1997)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07ce  (1998)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07cf  (1999)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d0  (2000)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d1  (2001)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d2  (2002)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d3  (2003)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d4  (2004)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d5  (2005)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d6  (2006)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d7  (2007)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d8  (2008)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07d9  (2009)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07da  (2010)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07db  (2011)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07dc  (2012)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07dd  (2013)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07de  (2014)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07df  (2015)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e0  (2016)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e1  (2017)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e2  (2018)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e3  (2019)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e4  (2020)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e5  (2021)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e6  (2022)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e7  (2023)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e8  (2024)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07e9  (2025)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07ea  (2026)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x07eb  (2027)
+   breakweight = 30 (0x001e)
+
+
+0x07ec  (2028)
+   breakweight = 30 (0x001e)
+
+
+0x07ed  (2029)
+   breakweight = 30 (0x001e)
+
+
+0x07ee  (2030)
+   breakweight = 30 (0x001e)
+
+
+0x07ef  (2031)
+   breakweight = 30 (0x001e)
+
+
+0x07f0  (2032)
+   breakweight = 30 (0x001e)
+
+
+0x07f1  (2033)
+   breakweight = 30 (0x001e)
+
+
+0x07f2  (2034)
+   breakweight = 30 (0x001e)
+
+
+0x07f3  (2035)
+   breakweight = 30 (0x001e)
+
+
+0x07f4  (2036)
+   breakweight = 30 (0x001e)
+
+
+0x07f5  (2037)
+   breakweight = 30 (0x001e)
+
+
+0x07f6  (2038)
+   breakweight = 30 (0x001e)
+
+
+0x07f7  (2039)
+   breakweight = 30 (0x001e)
+
+
+0x07f8  (2040)
+   breakweight = 30 (0x001e)
+
+
+0x07f9  (2041)
+   breakweight = 30 (0x001e)
+
+
+0x07fa  (2042)
+   breakweight = 30 (0x001e)
+
+
+0x07fb  (2043)
+   breakweight = 30 (0x001e)
+
+
+0x07fc  (2044)
+   breakweight = 30 (0x001e)
+
+
+0x07fd  (2045)
+   breakweight = 30 (0x001e)
+
+
+0x07fe  (2046)
+   breakweight = 30 (0x001e)
+
+
+0x07ff  (2047)
+   breakweight = 30 (0x001e)
+
+
+0x0800  (2048)
+   breakweight = 30 (0x001e)
+
+
+0x0801  (2049)
+   breakweight = 30 (0x001e)
+
+
+0x0802  (2050)
+   breakweight = 30 (0x001e)
+
+
+0x0803  (2051)
+   breakweight = 30 (0x001e)
+
+
+0x0804  (2052)
+   breakweight = 30 (0x001e)
+
+
+0x0805  (2053)
+   breakweight = 30 (0x001e)
+
+
+0x0806  (2054)
+   breakweight = 30 (0x001e)
+
+
+0x0807  (2055)
+   breakweight = 30 (0x001e)
+
+
+0x0808  (2056)
+   breakweight = 30 (0x001e)
+
+
+0x0809  (2057)
+   breakweight = 30 (0x001e)
+
+
+0x080a  (2058)
+   breakweight = 30 (0x001e)
+
+
+0x080b  (2059)
+   breakweight = 30 (0x001e)
+
+
+0x080c  (2060)
+   breakweight = 30 (0x001e)
+
+
+0x080d  (2061)
+   breakweight = 30 (0x001e)
+
+
+0x080e  (2062)
+   breakweight = 30 (0x001e)
+
+
+0x080f  (2063)
+   breakweight = 30 (0x001e)
+
+
+0x0810  (2064)
+   breakweight = 30 (0x001e)
+
+
+0x0811  (2065)
+   breakweight = 30 (0x001e)
+
+
+0x0812  (2066)
+   breakweight = 30 (0x001e)
+
+
+0x0813  (2067)
+   breakweight = 30 (0x001e)
+
+
+0x0814  (2068)
+   breakweight = 30 (0x001e)
+
+
+0x0815  (2069)
+   breakweight = 30 (0x001e)
+
+
+0x0816  (2070)
+   breakweight = 30 (0x001e)
+
+
+0x0817  (2071)
+   breakweight = 30 (0x001e)
+
+
+0x0818  (2072)
+   breakweight = 30 (0x001e)
+
+
+0x0819  (2073)
+   breakweight = 30 (0x001e)
+
+
+0x081a  (2074)
+   breakweight = 30 (0x001e)
+
+
+0x081b  (2075)
+   breakweight = 30 (0x001e)
+
+
+0x081c  (2076)
+   breakweight = 30 (0x001e)
+
+
+0x081d  (2077)
+   breakweight = 30 (0x001e)
+
+
+0x081e  (2078)
+   breakweight = 30 (0x001e)
+
+
+0x081f  (2079)
+   breakweight = 30 (0x001e)
+
+
+0x0820  (2080)
+   breakweight = 30 (0x001e)
+
+
+0x0821  (2081)
+   breakweight = 30 (0x001e)
+
+
+0x0822  (2082)
+   breakweight = 30 (0x001e)
+
+
+0x0823  (2083)
+   breakweight = 30 (0x001e)
+
+
+0x0824  (2084)
+   breakweight = 30 (0x001e)
+
+
+0x0825  (2085)
+   breakweight = 30 (0x001e)
+
+
+0x0826  (2086)
+   breakweight = 30 (0x001e)
+
+
+0x0827  (2087)
+   breakweight = 30 (0x001e)
+
+
+0x0828  (2088)
+   breakweight = 30 (0x001e)
+
+
+0x0829  (2089)
+   breakweight = 30 (0x001e)
+
+
+0x082a  (2090)
+   breakweight = 30 (0x001e)
+
+
+0x082b  (2091)
+   breakweight = 30 (0x001e)
+
+
+0x082c  (2092)
+   breakweight = 30 (0x001e)
+
+
+0x082d  (2093)
+   breakweight = 30 (0x001e)
+
+
+0x082e  (2094)
+   breakweight = 30 (0x001e)
+
+
+0x082f  (2095)
+   breakweight = 30 (0x001e)
+
+
+0x0830  (2096)
+   breakweight = 30 (0x001e)
+
+
+0x0831  (2097)
+   breakweight = 30 (0x001e)
+
+
+0x0832  (2098)
+   breakweight = 30 (0x001e)
+
+
+0x0833  (2099)
+   breakweight = 30 (0x001e)
+
+
+0x0834  (2100)
+   breakweight = 30 (0x001e)
+
+
+0x0835  (2101)
+   breakweight = 30 (0x001e)
+
+
+0x0836  (2102)
+   breakweight = 30 (0x001e)
+
+
+0x0837  (2103)
+   breakweight = 30 (0x001e)
+
+
+0x0838  (2104)
+   breakweight = 30 (0x001e)
+
+
+0x0839  (2105)
+   breakweight = 30 (0x001e)
+
+
+0x083a  (2106)
+   breakweight = 30 (0x001e)
+
+
+0x083b  (2107)
+   breakweight = 30 (0x001e)
+
+
+0x083c  (2108)
+   breakweight = 30 (0x001e)
+
+
+0x083d  (2109)
+   breakweight = 30 (0x001e)
+
+
+0x083e  (2110)
+   breakweight = 30 (0x001e)
+
+
+0x083f  (2111)
+   breakweight = 30 (0x001e)
+
+
+0x0840  (2112)
+   breakweight = 30 (0x001e)
+
+
+0x0841  (2113)
+   breakweight = 30 (0x001e)
+
+
+0x0842  (2114)
+   breakweight = 30 (0x001e)
+
+
+0x0843  (2115)
+   breakweight = 30 (0x001e)
+
+
+0x0844  (2116)
+   breakweight = 30 (0x001e)
+
+
+0x0845  (2117)
+   breakweight = 30 (0x001e)
+
+
+0x0846  (2118)
+   breakweight = 30 (0x001e)
+
+
+0x0847  (2119)
+   breakweight = 30 (0x001e)
+
+
+0x0848  (2120)
+   breakweight = 30 (0x001e)
+
+
+0x0849  (2121)
+   breakweight = 30 (0x001e)
+
+
+0x084a  (2122)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x084b  (2123)
+   breakweight = 30 (0x001e)
+
+
+0x084c  (2124)
+   breakweight = 30 (0x001e)
+
+
+0x084d  (2125)
+   breakweight = 30 (0x001e)
+
+
+0x084e  (2126)
+   breakweight = 30 (0x001e)
+
+
+0x084f  (2127)
+   breakweight = 30 (0x001e)
+
+
+0x0850  (2128)
+   breakweight = 30 (0x001e)
+
+
+0x0851  (2129)
+   breakweight = 30 (0x001e)
+
+
+0x0852  (2130)
+   breakweight = 30 (0x001e)
+
+
+0x0853  (2131)
+   breakweight = 30 (0x001e)
+
+
+0x0854  (2132)
+   breakweight = 30 (0x001e)
+
+
+0x0855  (2133)
+   breakweight = 30 (0x001e)
+
+
+0x0856  (2134)
+   breakweight = 30 (0x001e)
+
+
+0x0857  (2135)
+   breakweight = 30 (0x001e)
+
+
+0x0858  (2136)
+   breakweight = 30 (0x001e)
+
+
+0x0859  (2137)
+   breakweight = 30 (0x001e)
+
+
+0x085a  (2138)
+   breakweight = 30 (0x001e)
+
+
+0x085b  (2139)
+   breakweight = 30 (0x001e)
+
+
+0x085c  (2140)
+   breakweight = 30 (0x001e)
+
+
+0x085d  (2141)
+   breakweight = 30 (0x001e)
+
+
+0x085e  (2142)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x085f  (2143)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0860  (2144)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0861  (2145)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0862  (2146)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0863  (2147)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0864  (2148)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0865  (2149)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0866  (2150)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0867  (2151)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0868  (2152)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0869  (2153)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x086a  (2154)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x086b  (2155)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x086c  (2156)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x086d  (2157)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x086e  (2158)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x086f  (2159)
+   breakweight = 30 (0x001e)
+
+
+0x0870  (2160)
+   breakweight = 30 (0x001e)
+
+
+0x0871  (2161)
+   breakweight = 30 (0x001e)
+
+
+0x0872  (2162)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0873  (2163)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0874  (2164)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0875  (2165)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0876  (2166)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0877  (2167)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0878  (2168)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0879  (2169)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x087a  (2170)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x087b  (2171)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x087c  (2172)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x087d  (2173)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x087e  (2174)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x087f  (2175)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0880  (2176)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0881  (2177)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0882  (2178)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0883  (2179)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0884  (2180)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0885  (2181)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0886  (2182)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0887  (2183)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0888  (2184)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0889  (2185)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x088a  (2186)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x088b  (2187)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x088c  (2188)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x088d  (2189)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x088e  (2190)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x088f  (2191)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0890  (2192)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0891  (2193)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0892  (2194)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0893  (2195)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0894  (2196)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0895  (2197)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0896  (2198)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0897  (2199)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0898  (2200)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0899  (2201)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x089a  (2202)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x089b  (2203)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x089c  (2204)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x089d  (2205)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x089e  (2206)
+   component.c1 = 3
+   component.c2 = 7
+   component.c3 = 11 (0x000b)
+   component.c1.top = 700 (0x02bc)
+   component.c1.bottom = -221 (0xff23)
+   component.c1.left = 18 (0x0012)
+   component.c1.right = 233 (0x00e9)
+   component.c2.top = 700 (0x02bc)
+   component.c2.bottom = -221 (0xff23)
+   component.c2.left = 233 (0x00e9)
+   component.c2.right = 466 (0x01d2)
+   component.c3.top = 700 (0x02bc)
+   component.c3.bottom = -221 (0xff23)
+   component.c3.left = 466 (0x01d2)
+   component.c3.right = 718 (0x02ce)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x089f  (2207)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a0  (2208)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a1  (2209)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a2  (2210)
+   component.c1 = 3
+   component.c2 = 7
+   component.c1.top = 698 (0x02ba)
+   component.c1.bottom = -221 (0xff23)
+   component.c1.left = 18 (0x0012)
+   component.c1.right = 217 (0x00d9)
+   component.c2.top = 698 (0x02ba)
+   component.c2.bottom = -221 (0xff23)
+   component.c2.left = 217 (0x00d9)
+   component.c2.right = 452 (0x01c4)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a3  (2211)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a4  (2212)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a5  (2213)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a6  (2214)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a7  (2215)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a8  (2216)
+   component.c1 = 3
+   component.c2 = 7
+   component.c1.top = 698 (0x02ba)
+   component.c1.bottom = -12 (0xfff4)
+   component.c1.left = 37 (0x0025)
+   component.c1.right = 331 (0x014b)
+   component.c2.top = 698 (0x02ba)
+   component.c2.bottom = -12 (0xfff4)
+   component.c2.left = 331 (0x014b)
+   component.c2.right = 699 (0x02bb)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08a9  (2217)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08aa  (2218)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ab  (2219)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ac  (2220)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ad  (2221)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ae  (2222)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08af  (2223)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b0  (2224)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b1  (2225)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b2  (2226)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b3  (2227)
+   component.c1 = 3
+   component.c2 = 7
+   component.c1.top = 658 (0x0292)
+   component.c1.bottom = -226 (0xff1e)
+   component.c1.left = 37 (0x0025)
+   component.c1.right = 596 (0x0254)
+   component.c2.top = 658 (0x0292)
+   component.c2.bottom = -226 (0xff1e)
+   component.c2.left = 596 (0x0254)
+   component.c2.right = 1230 (0x04ce)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b4  (2228)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b5  (2229)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b6  (2230)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b7  (2231)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b8  (2232)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08b9  (2233)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ba  (2234)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08bb  (2235)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08bc  (2236)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08bd  (2237)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08be  (2238)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08bf  (2239)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c0  (2240)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c1  (2241)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c2  (2242)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c3  (2243)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c4  (2244)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c5  (2245)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c6  (2246)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c7  (2247)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c8  (2248)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08c9  (2249)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ca  (2250)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08cb  (2251)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08cc  (2252)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08cd  (2253)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ce  (2254)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08cf  (2255)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d0  (2256)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d1  (2257)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d2  (2258)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d3  (2259)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d4  (2260)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d5  (2261)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d6  (2262)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d7  (2263)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d8  (2264)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08d9  (2265)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08da  (2266)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08db  (2267)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08dc  (2268)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08dd  (2269)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08de  (2270)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08df  (2271)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e0  (2272)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e1  (2273)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e2  (2274)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e3  (2275)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e4  (2276)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e5  (2277)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e6  (2278)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e7  (2279)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e8  (2280)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08e9  (2281)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ea  (2282)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08eb  (2283)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ec  (2284)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ed  (2285)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ee  (2286)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ef  (2287)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f0  (2288)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f1  (2289)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f2  (2290)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f3  (2291)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f4  (2292)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f5  (2293)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f6  (2294)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f7  (2295)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f8  (2296)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08f9  (2297)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08fa  (2298)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08fb  (2299)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08fc  (2300)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08fd  (2301)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08fe  (2302)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x08ff  (2303)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0900  (2304)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0901  (2305)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0902  (2306)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0903  (2307)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0904  (2308)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0905  (2309)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0906  (2310)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0907  (2311)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0908  (2312)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0909  (2313)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x090a  (2314)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x090b  (2315)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x090c  (2316)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x090d  (2317)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x090e  (2318)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x090f  (2319)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0910  (2320)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0911  (2321)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0912  (2322)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0913  (2323)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0914  (2324)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0915  (2325)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0916  (2326)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0917  (2327)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0918  (2328)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0919  (2329)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x091a  (2330)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x091b  (2331)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x091c  (2332)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x091d  (2333)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x091e  (2334)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x091f  (2335)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0920  (2336)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0921  (2337)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0922  (2338)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0923  (2339)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0924  (2340)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0925  (2341)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0926  (2342)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0927  (2343)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0928  (2344)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0929  (2345)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x092a  (2346)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x092b  (2347)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x092c  (2348)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x092d  (2349)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x092e  (2350)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x092f  (2351)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0930  (2352)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0931  (2353)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0932  (2354)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0933  (2355)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0934  (2356)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0935  (2357)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0936  (2358)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0937  (2359)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0938  (2360)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0939  (2361)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x093a  (2362)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x093b  (2363)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x093c  (2364)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x093d  (2365)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x093e  (2366)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x093f  (2367)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0940  (2368)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0941  (2369)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0942  (2370)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0943  (2371)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0944  (2372)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0945  (2373)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0946  (2374)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0947  (2375)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0948  (2376)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0949  (2377)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x094a  (2378)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x094b  (2379)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x094c  (2380)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x094d  (2381)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x094e  (2382)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x094f  (2383)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0950  (2384)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0951  (2385)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0952  (2386)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0953  (2387)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0954  (2388)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0955  (2389)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0956  (2390)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0957  (2391)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0958  (2392)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0959  (2393)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x095a  (2394)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x095b  (2395)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x095c  (2396)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x095d  (2397)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x095e  (2398)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x095f  (2399)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0960  (2400)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0961  (2401)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0962  (2402)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0963  (2403)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0964  (2404)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0965  (2405)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0966  (2406)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0967  (2407)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0968  (2408)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0969  (2409)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x096a  (2410)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x096b  (2411)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x096c  (2412)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x096d  (2413)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x096e  (2414)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x096f  (2415)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0970  (2416)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0971  (2417)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0972  (2418)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0973  (2419)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0974  (2420)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0975  (2421)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0976  (2422)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0977  (2423)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0978  (2424)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0979  (2425)
+   component.c1 = 3
+   component.c2 = 7
+   component.c1.top = 698 (0x02ba)
+   component.c1.bottom = -2 (0xfffe)
+   component.c1.left = 18 (0x0012)
+   component.c1.right = 311 (0x0137)
+   component.c2.top = 698 (0x02ba)
+   component.c2.bottom = -2 (0xfffe)
+   component.c2.left = 311 (0x0137)
+   component.c2.right = 640 (0x0280)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x097a  (2426)
+   component.c1 = 3
+   component.c2 = 7
+   component.c1.top = 698 (0x02ba)
+   component.c1.bottom = -2 (0xfffe)
+   component.c1.left = 22 (0x0016)
+   component.c1.right = 252 (0x00fc)
+   component.c2.top = 698 (0x02ba)
+   component.c2.bottom = -2 (0xfffe)
+   component.c2.left = 252 (0x00fc)
+   component.c2.right = 526 (0x020e)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x097b  (2427)
+   component.c1 = 3
+   component.c2 = 7
+   component.c1.top = 698 (0x02ba)
+   component.c1.bottom = -2 (0xfffe)
+   component.c1.left = 22 (0x0016)
+   component.c1.right = 246 (0x00f6)
+   component.c2.top = 698 (0x02ba)
+   component.c2.bottom = -2 (0xfffe)
+   component.c2.left = 246 (0x00f6)
+   component.c2.right = 514 (0x0202)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x097c  (2428)
+   component.c1 = 3
+   component.c2 = 7
+   component.c3 = 11 (0x000b)
+   component.c1.top = 698 (0x02ba)
+   component.c1.bottom = -2 (0xfffe)
+   component.c1.left = 18 (0x0012)
+   component.c1.right = 256 (0x0100)
+   component.c2.top = 698 (0x02ba)
+   component.c2.bottom = -2 (0xfffe)
+   component.c2.left = 256 (0x0100)
+   component.c2.right = 513 (0x0201)
+   component.c3.top = 698 (0x02ba)
+   component.c3.bottom = -2 (0xfffe)
+   component.c3.left = 513 (0x0201)
+   component.c3.right = 788 (0x0314)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x097d  (2429)
+   component.c1 = 3
+   component.c2 = 7
+   component.c3 = 11 (0x000b)
+   component.c1.top = 698 (0x02ba)
+   component.c1.bottom = -2 (0xfffe)
+   component.c1.left = 18 (0x0012)
+   component.c1.right = 250 (0x00fa)
+   component.c2.top = 698 (0x02ba)
+   component.c2.bottom = -2 (0xfffe)
+   component.c2.left = 250 (0x00fa)
+   component.c2.right = 500 (0x01f4)
+   component.c3.top = 698 (0x02ba)
+   component.c3.bottom = -2 (0xfffe)
+   component.c3.left = 500 (0x01f4)
+   component.c3.right = 768 (0x0300)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x097e  (2430)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x097f  (2431)
+   component.c1 = 3
+   component.c2 = 7
+   component.c1.top = 698 (0x02ba)
+   component.c1.bottom = -12 (0xfff4)
+   component.c1.left = 43 (0x002b)
+   component.c1.right = 310 (0x0136)
+   component.c2.top = 698 (0x02ba)
+   component.c2.bottom = -12 (0xfff4)
+   component.c2.left = 310 (0x0136)
+   component.c2.right = 664 (0x0298)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0980  (2432)
+   breakweight = 30 (0x001e)
+
+
+0x0981  (2433)
+   breakweight = 30 (0x001e)
+
+
+0x0982  (2434)
+   breakweight = 30 (0x001e)
+
+

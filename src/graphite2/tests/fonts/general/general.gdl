@@ -1,0 +1,30 @@
+#define p(x) postscript(x)
+
+table(glyph);
+g_a = unicode(0x0061);
+g0e01 = pseudo(unicode(0x0060), 0x0E01);
+g_b = unicode(0x0062);
+g_period = p("period");
+g_ellipsis = p("ellipsis");
+endtable;
+
+// g_a _ > g_a:1 g_a:1 / ^ _ _ ;
+#define r(n) pass(n);  \
+g_a _ _ > g_a:1 g_a:1 g_a:1 / ^ _ _ _ ; \
+endpass;
+
+table(substitution);
+r(1)
+r(2)
+r(3)
+r(4)
+r(5)
+//r(6)
+endtable;
+
+table(positioning);
+pass(1);
+g_b{shift.x -= 30m};
+g_period {kern.x = 200m; } / g_ellipsis g_period? _;
+endpass;
+endtable;

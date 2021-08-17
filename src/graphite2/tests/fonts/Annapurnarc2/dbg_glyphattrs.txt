@@ -1,0 +1,8190 @@
+GLYPH ATTRIBUTE IDS
+
+0: component.c1
+1: component.c2
+2: component.c3
+3: component.cons
+4: component.rakar
+5: component.c1.top
+6: component.c1.bottom
+7: component.c1.left
+8: component.c1.right
+9: component.c2.top
+10: component.c2.bottom
+11: component.c2.left
+12: component.c2.right
+13: component.c3.top
+14: component.c3.bottom
+15: component.c3.left
+16: component.c3.right
+17: component.cons.top
+18: component.cons.bottom
+19: component.cons.left
+20: component.cons.right
+21: component.rakar.top
+22: component.rakar.bottom
+23: component.rakar.left
+24: component.rakar.right
+25: *actualForPseudo*
+26: breakweight
+27: CaS.x
+28: CaS.gpoint
+29: CaS.y
+30: NuktaS.x
+31: NuktaS.gpoint
+32: NuktaS.xoffset
+33: NuktaS.y
+34: NuktaS.yoffset
+35: directionality
+36: UpperCenterM.x
+37: UpperCenterM.gpoint
+38: UpperCenterM.xoffset
+39: UpperCenterM.y
+40: UpperCenterM.yoffset
+41: UpperM.x
+42: UpperM.gpoint
+43: UpperM.xoffset
+44: UpperM.y
+45: UpperM.yoffset
+46: CaM.x
+47: CaM.gpoint
+48: CaM.y
+49: HalantS.x
+50: HalantS.gpoint
+51: HalantS.xoffset
+52: HalantS.y
+53: HalantS.yoffset
+54: LowerCenterS.x
+55: LowerCenterS.gpoint
+56: LowerCenterS.xoffset
+57: LowerCenterS.y
+58: LowerCenterS.yoffset
+59: LowerS.x
+60: LowerS.gpoint
+61: LowerS.xoffset
+62: LowerS.y
+63: LowerS.yoffset
+64: UpperCenterS.x
+65: UpperCenterS.gpoint
+66: UpperCenterS.xoffset
+67: UpperCenterS.y
+68: UpperCenterS.yoffset
+69: UpperS.x
+70: UpperS.gpoint
+71: UpperS.xoffset
+72: UpperS.y
+73: UpperS.yoffset
+74: LowerAltS.x
+75: LowerAltS.gpoint
+76: LowerAltS.xoffset
+77: LowerAltS.y
+78: LowerAltS.yoffset
+79: NuktaAltM.x
+80: NuktaAltM.gpoint
+81: NuktaAltM.xoffset
+82: NuktaAltM.y
+83: NuktaAltM.yoffset
+84: NuktaM.x
+85: NuktaM.gpoint
+86: NuktaM.xoffset
+87: NuktaM.y
+88: NuktaM.yoffset
+89: LowerM.x
+90: LowerM.gpoint
+91: LowerM.xoffset
+92: LowerM.y
+93: LowerM.yoffset
+94: NuktaAltS.x
+95: NuktaAltS.gpoint
+96: NuktaAltS.xoffset
+97: NuktaAltS.y
+98: NuktaAltS.yoffset
+99: CaS.xoffset
+100: CaS.yoffset
+101: HalantM.x
+102: HalantM.gpoint
+103: HalantM.xoffset
+104: HalantM.y
+105: HalantM.yoffset
+106: RaM.x
+107: RaM.gpoint
+108: RaM.xoffset
+109: RaM.y
+110: RaM.yoffset
+111: LowerAltM.x
+112: LowerAltM.gpoint
+113: LowerAltM.xoffset
+114: LowerAltM.y
+115: LowerAltM.yoffset
+116: LowerCenterM.x
+117: LowerCenterM.gpoint
+118: LowerCenterM.xoffset
+119: LowerCenterM.y
+120: LowerCenterM.yoffset
+
+
+
+GLYPH ATTRIBUTE VALUES
+
+0x0000  (0)
+   breakweight = 30 (0x001e)
+
+
+0x0001  (1)
+   breakweight = 30 (0x001e)
+
+
+0x0002  (2)
+   breakweight = 30 (0x001e)
+
+
+0x0003  (3)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0004  (4)
+   breakweight = 30 (0x001e)
+
+
+0x0005  (5)
+   breakweight = 30 (0x001e)
+
+
+0x0006  (6)
+   breakweight = 30 (0x001e)
+
+
+0x0007  (7)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0008  (8)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0009  (9)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x000a  (10)
+   breakweight = 30 (0x001e)
+
+
+0x000b  (11)
+   breakweight = 30 (0x001e)
+
+
+0x000c  (12)
+   breakweight = 30 (0x001e)
+
+
+0x000d  (13)
+   breakweight = 30 (0x001e)
+
+
+0x000e  (14)
+   breakweight = 30 (0x001e)
+
+
+0x000f  (15)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x0010  (16)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x0011  (17)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x0012  (18)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x0013  (19)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x0014  (20)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0015  (21)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0016  (22)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0017  (23)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0018  (24)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0019  (25)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001a  (26)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001b  (27)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001c  (28)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001d  (29)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x001e  (30)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x001f  (31)
+   breakweight = 30 (0x001e)
+
+
+0x0020  (32)
+   breakweight = 30 (0x001e)
+
+
+0x0021  (33)
+   breakweight = 30 (0x001e)
+
+
+0x0022  (34)
+   breakweight = 30 (0x001e)
+
+
+0x0023  (35)
+   breakweight = 30 (0x001e)
+
+
+0x0024  (36)
+   breakweight = 30 (0x001e)
+
+
+0x0025  (37)
+   breakweight = 30 (0x001e)
+
+
+0x0026  (38)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0027  (39)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0028  (40)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0029  (41)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002a  (42)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002b  (43)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002c  (44)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002d  (45)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002e  (46)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x002f  (47)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0030  (48)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0031  (49)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0032  (50)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0033  (51)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0034  (52)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0035  (53)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0036  (54)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0037  (55)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0038  (56)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0039  (57)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003a  (58)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003b  (59)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003c  (60)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003d  (61)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003e  (62)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x003f  (63)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0040  (64)
+   breakweight = 30 (0x001e)
+
+
+0x0041  (65)
+   breakweight = 30 (0x001e)
+
+
+0x0042  (66)
+   breakweight = 30 (0x001e)
+
+
+0x0043  (67)
+   breakweight = 30 (0x001e)
+
+
+0x0044  (68)
+   breakweight = 30 (0x001e)
+
+
+0x0045  (69)
+   breakweight = 30 (0x001e)
+
+
+0x0046  (70)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0047  (71)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0048  (72)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0049  (73)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004a  (74)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004b  (75)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004c  (76)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004d  (77)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004e  (78)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x004f  (79)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0050  (80)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0051  (81)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0052  (82)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0053  (83)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0054  (84)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0055  (85)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0056  (86)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0057  (87)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0058  (88)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0059  (89)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005a  (90)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005b  (91)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005c  (92)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005d  (93)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005e  (94)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x005f  (95)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0060  (96)
+   breakweight = 30 (0x001e)
+
+
+0x0061  (97)
+   breakweight = 30 (0x001e)
+
+
+0x0062  (98)
+   breakweight = 30 (0x001e)
+
+
+0x0063  (99)
+   breakweight = 30 (0x001e)
+
+
+0x0064  (100)
+   breakweight = 15 (0x000f)
+   directionality = 8
+
+
+0x0065  (101)
+   breakweight = 30 (0x001e)
+
+
+0x0066  (102)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0067  (103)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0068  (104)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0069  (105)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x006a  (106)
+   breakweight = 30 (0x001e)
+
+
+0x006b  (107)
+   breakweight = 30 (0x001e)
+
+
+0x006c  (108)
+   breakweight = 30 (0x001e)
+
+
+0x006d  (109)
+   breakweight = 30 (0x001e)
+
+
+0x006e  (110)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x006f  (111)
+   breakweight = 30 (0x001e)
+
+
+0x0070  (112)
+   breakweight = 30 (0x001e)
+
+
+0x0071  (113)
+   breakweight = 30 (0x001e)
+   directionality = 10 (0x000a)
+
+
+0x0072  (114)
+   breakweight = 30 (0x001e)
+
+
+0x0073  (115)
+   breakweight = 30 (0x001e)
+
+
+0x0074  (116)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0075  (117)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0076  (118)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0077  (119)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0078  (120)
+   breakweight = 30 (0x001e)
+
+
+0x0079  (121)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x007a  (122)
+   breakweight = 30 (0x001e)
+
+
+0x007b  (123)
+   breakweight = 30 (0x001e)
+
+
+0x007c  (124)
+   breakweight = 30 (0x001e)
+
+
+0x007d  (125)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x007e  (126)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x007f  (127)
+   breakweight = 30 (0x001e)
+
+
+0x0080  (128)
+   breakweight = 30 (0x001e)
+
+
+0x0081  (129)
+   breakweight = 30 (0x001e)
+
+
+0x0082  (130)
+   breakweight = 30 (0x001e)
+
+
+0x0083  (131)
+   breakweight = 30 (0x001e)
+
+
+0x0084  (132)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0085  (133)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0086  (134)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0087  (135)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0088  (136)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0089  (137)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008a  (138)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008b  (139)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008c  (140)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008d  (141)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008e  (142)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x008f  (143)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0090  (144)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0091  (145)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0092  (146)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0093  (147)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0094  (148)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0095  (149)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0096  (150)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0097  (151)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0098  (152)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0099  (153)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009a  (154)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009b  (155)
+   breakweight = 30 (0x001e)
+
+
+0x009c  (156)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009d  (157)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009e  (158)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x009f  (159)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a0  (160)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a1  (161)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a2  (162)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a3  (163)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a4  (164)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a5  (165)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a6  (166)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a7  (167)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a8  (168)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00a9  (169)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00aa  (170)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ab  (171)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ac  (172)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ad  (173)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ae  (174)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00af  (175)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b0  (176)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b1  (177)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b2  (178)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b3  (179)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b4  (180)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b5  (181)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b6  (182)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b7  (183)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b8  (184)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00b9  (185)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ba  (186)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00bb  (187)
+   breakweight = 30 (0x001e)
+
+
+0x00bc  (188)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00bd  (189)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00be  (190)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00bf  (191)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c0  (192)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c1  (193)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c2  (194)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c3  (195)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c4  (196)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c5  (197)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c6  (198)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c7  (199)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c8  (200)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00c9  (201)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ca  (202)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00cb  (203)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00cc  (204)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00cd  (205)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00ce  (206)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00cf  (207)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d0  (208)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d1  (209)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d2  (210)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d3  (211)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d4  (212)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d5  (213)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d6  (214)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d7  (215)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d8  (216)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00d9  (217)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00da  (218)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00db  (219)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00dc  (220)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00dd  (221)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00de  (222)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00df  (223)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e0  (224)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e1  (225)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e2  (226)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e3  (227)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e4  (228)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e5  (229)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e6  (230)
+   breakweight = 30 (0x001e)
+
+
+0x00e7  (231)
+   breakweight = 30 (0x001e)
+
+
+0x00e8  (232)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00e9  (233)
+   breakweight = 30 (0x001e)
+
+
+0x00ea  (234)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00eb  (235)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00ec  (236)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00ed  (237)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00ee  (238)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00ef  (239)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f0  (240)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f1  (241)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f2  (242)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f3  (243)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f4  (244)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f5  (245)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f6  (246)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f7  (247)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+
+
+0x00f8  (248)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x00f9  (249)
+   breakweight = 30 (0x001e)
+
+
+0x00fa  (250)
+   breakweight = 30 (0x001e)
+
+
+0x00fb  (251)
+   breakweight = 30 (0x001e)
+
+
+0x00fc  (252)
+   breakweight = 30 (0x001e)
+
+
+0x00fd  (253)
+   breakweight = 30 (0x001e)
+
+
+0x00fe  (254)
+   breakweight = 30 (0x001e)
+
+
+0x00ff  (255)
+   breakweight = 30 (0x001e)
+
+
+0x0100  (256)
+   breakweight = 30 (0x001e)
+
+
+0x0101  (257)
+   breakweight = 30 (0x001e)
+
+
+0x0102  (258)
+   breakweight = 30 (0x001e)
+
+
+0x0103  (259)
+   breakweight = 30 (0x001e)
+
+
+0x0104  (260)
+   breakweight = 30 (0x001e)
+
+
+0x0105  (261)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0106  (262)
+   breakweight = 30 (0x001e)
+
+
+0x0107  (263)
+   breakweight = 30 (0x001e)
+
+
+0x0108  (264)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x0109  (265)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x010a  (266)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x010b  (267)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x010c  (268)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x010d  (269)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x010e  (270)
+   breakweight = 30 (0x001e)
+   directionality = 4
+
+
+0x010f  (271)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x0110  (272)
+   breakweight = 30 (0x001e)
+
+
+0x0111  (273)
+   breakweight = 30 (0x001e)
+   directionality = 5
+
+
+0x0112  (274)
+   breakweight = 30 (0x001e)
+
+
+0x0113  (275)
+   breakweight = 30 (0x001e)
+
+
+0x0114  (276)
+   breakweight = 30 (0x001e)
+
+
+0x0115  (277)
+   breakweight = 30 (0x001e)
+
+
+0x0116  (278)
+   breakweight = 30 (0x001e)
+
+
+0x0117  (279)
+   breakweight = 30 (0x001e)
+
+
+0x0118  (280)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   UpperCenterM.x = -427 (0xfe55)
+   UpperCenterM.y = 1330 (0x0532)
+   UpperM.x = -427 (0xfe55)
+   UpperM.y = 1270 (0x04f6)
+
+
+0x0119  (281)
+   breakweight = 30 (0x001e)
+   UpperCenterM.x = -427 (0xfe55)
+   UpperCenterM.y = 1330 (0x0532)
+   UpperM.x = -427 (0xfe55)
+   UpperM.y = 1270 (0x04f6)
+   CaM.x = -394 (0xfe76)
+   CaM.y = 1389 (0x056d)
+
+
+0x011a  (282)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   UpperCenterM.x = -165 (0xff5b)
+   UpperCenterM.y = 1390 (0x056e)
+   UpperM.x = -165 (0xff5b)
+   UpperM.y = 1310 (0x051e)
+   CaM.x = -165 (0xff5b)
+   CaM.gpoint = 15 (0x000f)
+   CaM.y = 1454 (0x05ae)
+
+
+0x011b  (283)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x011c  (284)
+   breakweight = 30 (0x001e)
+
+
+0x011d  (285)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x011e  (286)
+   breakweight = 30 (0x001e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x011f  (287)
+   breakweight = 30 (0x001e)
+   CaS.x = 229 (0x00e5)
+   CaS.y = 1719 (0x06b7)
+   directionality = 1
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0120  (288)
+   breakweight = 30 (0x001e)
+   CaS.x = 229 (0x00e5)
+   CaS.y = 1719 (0x06b7)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0121  (289)
+   breakweight = 30 (0x001e)
+   CaS.x = 525 (0x020d)
+   CaS.y = 1395 (0x0573)
+   directionality = 1
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0122  (290)
+   breakweight = 30 (0x001e)
+   CaS.x = 525 (0x020d)
+   CaS.y = 1395 (0x0573)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0123  (291)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 2030 (0x07ee)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0124  (292)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1930 (0x078a)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 327 (0x0147)
+   component.c3.top = 1730 (0x06c2)
+   component.c3.bottom = 1286 (0x0506)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0125  (293)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1930 (0x078a)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 477 (0x01dd)
+   component.c3.top = 1830 (0x0726)
+   component.c3.bottom = 1286 (0x0506)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 855 (0x0357)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0126  (294)
+   breakweight = 30 (0x001e)
+   CaS.x = 400 (0x0190)
+   CaS.y = 1418 (0x058a)
+   directionality = 1
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0127  (295)
+   breakweight = 30 (0x001e)
+   CaS.x = 400 (0x0190)
+   CaS.y = 1418 (0x058a)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0128  (296)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 2030 (0x07ee)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0129  (297)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1930 (0x078a)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 327 (0x0147)
+   component.c3.top = 1730 (0x06c2)
+   component.c3.bottom = 1286 (0x0506)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x012a  (298)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1930 (0x078a)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 477 (0x01dd)
+   component.c3.top = 1830 (0x0726)
+   component.c3.bottom = 1286 (0x0506)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 855 (0x0357)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x012b  (299)
+   breakweight = 30 (0x001e)
+   CaS.x = 450 (0x01c2)
+   CaS.y = 1418 (0x058a)
+   directionality = 1
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x012c  (300)
+   breakweight = 30 (0x001e)
+   CaS.x = 450 (0x01c2)
+   CaS.y = 1418 (0x058a)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x012d  (301)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1292 (0x050c)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 2039 (0x07f7)
+   component.c2.bottom = 1292 (0x050c)
+   component.c2.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x012e  (302)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1292 (0x050c)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1939 (0x0793)
+   component.c2.bottom = 1292 (0x050c)
+   component.c2.right = 327 (0x0147)
+   component.c3.top = 1739 (0x06cb)
+   component.c3.bottom = 1292 (0x050c)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x012f  (303)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1292 (0x050c)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1939 (0x0793)
+   component.c2.bottom = 1292 (0x050c)
+   component.c2.right = 477 (0x01dd)
+   component.c3.top = 1839 (0x072f)
+   component.c3.bottom = 1292 (0x050c)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 855 (0x0357)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0130  (304)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 278 (0x0116)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0131  (305)
+   breakweight = 30 (0x001e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 278 (0x0116)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0132  (306)
+   breakweight = 30 (0x001e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 278 (0x0116)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0133  (307)
+   breakweight = 30 (0x001e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 278 (0x0116)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0134  (308)
+   breakweight = 30 (0x001e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 278 (0x0116)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0135  (309)
+   breakweight = 30 (0x001e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 278 (0x0116)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0136  (310)
+   breakweight = 30 (0x001e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 278 (0x0116)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0137  (311)
+   breakweight = 30 (0x001e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 278 (0x0116)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0138  (312)
+   breakweight = 30 (0x001e)
+   CaS.x = 286 (0x011e)
+   CaS.y = 1630 (0x065e)
+   directionality = 1
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0139  (313)
+   breakweight = 30 (0x001e)
+   CaS.x = 286 (0x011e)
+   CaS.y = 1630 (0x065e)
+   HalantS.x = 278 (0x0116)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x013a  (314)
+   breakweight = 30 (0x001e)
+   CaS.x = 286 (0x011e)
+   CaS.y = 1630 (0x065e)
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x013b  (315)
+   breakweight = 30 (0x001e)
+   CaS.x = 286 (0x011e)
+   CaS.y = 1630 (0x065e)
+   HalantS.x = 279 (0x0117)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x013c  (316)
+   breakweight = 30 (0x001e)
+   CaS.x = 286 (0x011e)
+   CaS.y = 1630 (0x065e)
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x013d  (317)
+   breakweight = 30 (0x001e)
+   CaS.x = 286 (0x011e)
+   CaS.y = 1630 (0x065e)
+   HalantS.x = 280 (0x0118)
+   HalantS.y = -400 (0xfe70)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x013e  (318)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 2030 (0x07ee)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x013f  (319)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 2030 (0x07ee)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0140  (320)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1930 (0x078a)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 327 (0x0147)
+   component.c3.top = 1730 (0x06c2)
+   component.c3.bottom = 1286 (0x0506)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0141  (321)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1930 (0x078a)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 327 (0x0147)
+   component.c3.top = 1730 (0x06c2)
+   component.c3.bottom = 1286 (0x0506)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 555 (0x022b)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0142  (322)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1930 (0x078a)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 477 (0x01dd)
+   component.c3.top = 1830 (0x0726)
+   component.c3.bottom = 1286 (0x0506)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 855 (0x0357)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0143  (323)
+   component.c1 = 5
+   component.c2 = 9
+   component.c3 = 13 (0x000d)
+   component.c1.top = 1286 (0x0506)
+   component.c1.right = 555 (0x022b)
+   component.c2.top = 1930 (0x078a)
+   component.c2.bottom = 1286 (0x0506)
+   component.c2.right = 477 (0x01dd)
+   component.c3.top = 1830 (0x0726)
+   component.c3.bottom = 1286 (0x0506)
+   component.c3.left = 277 (0x0115)
+   component.c3.right = 855 (0x0357)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 275 (0x0113)
+   NuktaS.y = -160 (0xff60)
+   HalantS.x = 285 (0x011d)
+   HalantS.y = -100 (0xff9c)
+   UpperS.x = 286 (0x011e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0144  (324)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   LowerM.x = -390 (0xfe7a)
+   LowerM.y = -60 (0xffc4)
+   NuktaAltS.x = -390 (0xfe7a)
+   NuktaAltS.y = -760 (0xfd08)
+
+
+0x0145  (325)
+   breakweight = 30 (0x001e)
+   LowerM.x = -390 (0xfe7a)
+   LowerM.y = -60 (0xffc4)
+
+
+0x0146  (326)
+   breakweight = 30 (0x001e)
+   LowerM.x = -390 (0xfe7a)
+   LowerM.y = -60 (0xffc4)
+
+
+0x0147  (327)
+   breakweight = 30 (0x001e)
+   LowerM.x = -390 (0xfe7a)
+   LowerM.y = -60 (0xffc4)
+
+
+0x0148  (328)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   LowerM.x = -35 (0xffdd)
+   LowerM.y = -60 (0xffc4)
+   NuktaAltS.x = -31 (0xffe1)
+   NuktaAltS.y = -760 (0xfd08)
+
+
+0x0149  (329)
+   breakweight = 30 (0x001e)
+   LowerM.x = -35 (0xffdd)
+   LowerM.y = -60 (0xffc4)
+
+
+0x014a  (330)
+   breakweight = 30 (0x001e)
+   LowerM.x = -35 (0xffdd)
+   LowerM.y = -60 (0xffc4)
+
+
+0x014b  (331)
+   breakweight = 30 (0x001e)
+   LowerM.x = -35 (0xffdd)
+   LowerM.y = -60 (0xffc4)
+
+
+0x014c  (332)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   LowerM.x = -360 (0xfe98)
+   LowerM.y = -60 (0xffc4)
+
+
+0x014d  (333)
+   breakweight = 30 (0x001e)
+   LowerM.x = -360 (0xfe98)
+   LowerM.y = -60 (0xffc4)
+
+
+0x014e  (334)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   LowerM.x = -407 (0xfe69)
+   LowerM.y = -60 (0xffc4)
+
+
+0x014f  (335)
+   breakweight = 30 (0x001e)
+   LowerM.x = -407 (0xfe69)
+   LowerM.y = -60 (0xffc4)
+
+
+0x0150  (336)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   LowerM.x = -520 (0xfdf8)
+   LowerM.y = -60 (0xffc4)
+
+
+0x0151  (337)
+   breakweight = 30 (0x001e)
+   LowerM.x = -520 (0xfdf8)
+   LowerM.y = -60 (0xffc4)
+
+
+0x0152  (338)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   LowerM.x = -520 (0xfdf8)
+   LowerM.y = -60 (0xffc4)
+
+
+0x0153  (339)
+   breakweight = 30 (0x001e)
+   LowerM.x = -520 (0xfdf8)
+   LowerM.y = -60 (0xffc4)
+
+
+0x0154  (340)
+   breakweight = 30 (0x001e)
+   CaS.x = -431 (0xfe51)
+   CaS.y = 1719 (0x06b7)
+   directionality = 16 (0x0010)
+   UpperCenterM.x = -375 (0xfe89)
+   UpperCenterM.y = 1330 (0x0532)
+   UpperM.x = -381 (0xfe83)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0155  (341)
+   breakweight = 30 (0x001e)
+   CaS.x = -431 (0xfe51)
+   CaS.y = 1719 (0x06b7)
+   UpperM.x = -381 (0xfe83)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0156  (342)
+   breakweight = 30 (0x001e)
+   CaS.y = 1395 (0x0573)
+   directionality = 16 (0x0010)
+   UpperM.x = -230 (0xff1a)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0157  (343)
+   breakweight = 30 (0x001e)
+   CaS.y = 1395 (0x0573)
+   UpperM.x = -230 (0xff1a)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0158  (344)
+   breakweight = 30 (0x001e)
+   UpperM.x = -575 (0xfdc1)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0159  (345)
+   breakweight = 30 (0x001e)
+   UpperM.x = -575 (0xfdc1)
+   UpperM.y = 1330 (0x0532)
+
+
+0x015a  (346)
+   breakweight = 30 (0x001e)
+   UpperM.x = -575 (0xfdc1)
+   UpperM.y = 1330 (0x0532)
+
+
+0x015b  (347)
+   breakweight = 30 (0x001e)
+   CaS.x = -150 (0xff6a)
+   CaS.y = 1418 (0x058a)
+   directionality = 16 (0x0010)
+   UpperM.x = -297 (0xfed7)
+   UpperM.y = 1330 (0x0532)
+   NuktaAltS.x = -1060 (0xfbdc)
+   NuktaAltS.y = 1600 (0x0640)
+
+
+0x015c  (348)
+   breakweight = 30 (0x001e)
+   CaS.x = -150 (0xff6a)
+   CaS.y = 1418 (0x058a)
+   UpperM.x = -297 (0xfed7)
+   UpperM.y = 1330 (0x0532)
+
+
+0x015d  (349)
+   breakweight = 30 (0x001e)
+   CaS.x = -150 (0xff6a)
+   CaS.y = 1418 (0x058a)
+   UpperM.x = -297 (0xfed7)
+   UpperM.y = 1330 (0x0532)
+
+
+0x015e  (350)
+   breakweight = 30 (0x001e)
+   UpperM.x = -493 (0xfe13)
+   UpperM.y = 1330 (0x0532)
+
+
+0x015f  (351)
+   breakweight = 30 (0x001e)
+   UpperM.x = -493 (0xfe13)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0160  (352)
+   breakweight = 30 (0x001e)
+   UpperM.x = -493 (0xfe13)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0161  (353)
+   breakweight = 30 (0x001e)
+   CaS.x = -130 (0xff7e)
+   CaS.y = 1418 (0x058a)
+   directionality = 16 (0x0010)
+   UpperM.x = -312 (0xfec8)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0162  (354)
+   breakweight = 30 (0x001e)
+   CaS.x = -130 (0xff7e)
+   CaS.y = 1418 (0x058a)
+   UpperM.x = -312 (0xfec8)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0163  (355)
+   breakweight = 30 (0x001e)
+   UpperM.x = -547 (0xfddd)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0164  (356)
+   breakweight = 30 (0x001e)
+   UpperM.x = -547 (0xfddd)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0165  (357)
+   breakweight = 30 (0x001e)
+   UpperM.x = -547 (0xfddd)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0166  (358)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1405 (0x057d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 828 (0x033c)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1405 (0x057d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 831 (0x033f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1405 (0x057d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0167  (359)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1405 (0x057d)
+   HalantS.y = -400 (0xfe70)
+   LowerCenterS.x = 648 (0x0288)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1405 (0x057d)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 651 (0x028b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1405 (0x057d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0168  (360)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1405 (0x057d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 828 (0x033c)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1405 (0x057d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 831 (0x033f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1405 (0x057d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0169  (361)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1405 (0x057d)
+   HalantS.y = -400 (0xfe70)
+   LowerCenterS.x = 868 (0x0364)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1405 (0x057d)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 871 (0x0367)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1405 (0x057d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x016a  (362)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1405 (0x057d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 648 (0x0288)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1405 (0x057d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 651 (0x028b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1405 (0x057d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x016b  (363)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1405 (0x057d)
+   HalantS.y = -400 (0xfe70)
+   LowerCenterS.x = 648 (0x0288)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1406 (0x057e)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 651 (0x028b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1405 (0x057d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x016c  (364)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1940 (0x0794)
+   UpperS.y = 1330 (0x0532)
+
+
+0x016d  (365)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -400 (0xfe70)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x016e  (366)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x016f  (367)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -400 (0xfe70)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0170  (368)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0171  (369)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -400 (0xfe70)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0172  (370)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0173  (371)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -400 (0xfe70)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0174  (372)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0175  (373)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1936 (0x0790)
+   HalantS.y = -400 (0xfe70)
+   LowerCenterS.x = 818 (0x0332)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1936 (0x0790)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 821 (0x0335)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1936 (0x0790)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0176  (374)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 446 (0x01be)
+   HalantS.y = -218 (0xff26)
+   LowerCenterS.x = 577 (0x0241)
+   LowerCenterS.y = -227 (0xff1d)
+   LowerS.x = 446 (0x01be)
+   LowerS.y = -140 (0xff74)
+   UpperCenterS.x = 569 (0x0239)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 787 (0x0313)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0177  (375)
+   breakweight = 30 (0x001e)
+   HalantS.x = 446 (0x01be)
+   HalantS.y = -385 (0xfe7f)
+   LowerCenterS.x = 577 (0x0241)
+   LowerCenterS.y = -401 (0xfe6f)
+   LowerS.x = 446 (0x01be)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 569 (0x0239)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 787 (0x0313)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0178  (376)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 446 (0x01be)
+   HalantS.y = -218 (0xff26)
+   LowerCenterS.x = 577 (0x0241)
+   LowerCenterS.y = -227 (0xff1d)
+   LowerS.x = 446 (0x01be)
+   LowerS.y = -140 (0xff74)
+   UpperCenterS.x = 569 (0x0239)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 787 (0x0313)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0179  (377)
+   breakweight = 30 (0x001e)
+   HalantS.x = 446 (0x01be)
+   HalantS.y = -385 (0xfe7f)
+   LowerCenterS.x = 577 (0x0241)
+   LowerCenterS.y = -401 (0xfe6f)
+   LowerS.x = 446 (0x01be)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 569 (0x0239)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 787 (0x0313)
+   UpperS.y = 1330 (0x0532)
+
+
+0x017a  (378)
+   breakweight = 30 (0x001e)
+   HalantS.x = 446 (0x01be)
+   HalantS.y = -218 (0xff26)
+   LowerCenterS.x = 577 (0x0241)
+   LowerCenterS.y = -227 (0xff1d)
+   LowerS.x = 446 (0x01be)
+   LowerS.y = -140 (0xff74)
+   UpperCenterS.x = 569 (0x0239)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 787 (0x0313)
+   UpperS.y = 1330 (0x0532)
+
+
+0x017b  (379)
+   breakweight = 30 (0x001e)
+   HalantS.x = 446 (0x01be)
+   HalantS.y = -218 (0xff26)
+   LowerCenterS.x = 577 (0x0241)
+   LowerCenterS.y = -227 (0xff1d)
+   LowerS.x = 446 (0x01be)
+   LowerS.y = -140 (0xff74)
+   UpperCenterS.x = 569 (0x0239)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 787 (0x0313)
+   UpperS.y = 1330 (0x0532)
+
+
+0x017c  (380)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 610 (0x0262)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 610 (0x0262)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 610 (0x0262)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 504 (0x01f8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 504 (0x01f8)
+   UpperS.y = 1330 (0x0532)
+
+
+0x017d  (381)
+   breakweight = 30 (0x001e)
+   HalantS.x = 610 (0x0262)
+   HalantS.y = -344 (0xfea8)
+   LowerCenterS.x = 610 (0x0262)
+   LowerCenterS.y = -358 (0xfe9a)
+   LowerS.x = 610 (0x0262)
+   LowerS.y = -320 (0xfec0)
+   UpperCenterS.x = 504 (0x01f8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 504 (0x01f8)
+   UpperS.y = 1330 (0x0532)
+
+
+0x017e  (382)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 610 (0x0262)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 610 (0x0262)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 610 (0x0262)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 700 (0x02bc)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 700 (0x02bc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x017f  (383)
+   breakweight = 30 (0x001e)
+   HalantS.x = 610 (0x0262)
+   HalantS.y = -344 (0xfea8)
+   LowerCenterS.x = 610 (0x0262)
+   LowerCenterS.y = -358 (0xfe9a)
+   LowerS.x = 610 (0x0262)
+   LowerS.y = -320 (0xfec0)
+   UpperCenterS.x = 700 (0x02bc)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 700 (0x02bc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0180  (384)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 892 (0x037c)
+   HalantS.y = -99 (0xff9d)
+   LowerCenterS.x = 892 (0x037c)
+   LowerCenterS.y = -115 (0xff8d)
+   LowerS.x = 892 (0x037c)
+   LowerS.y = -37 (0xffdb)
+   UpperCenterS.x = 891 (0x037b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 891 (0x037b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0181  (385)
+   breakweight = 30 (0x001e)
+   HalantS.x = 892 (0x037c)
+   HalantS.y = -406 (0xfe6a)
+   LowerCenterS.x = 892 (0x037c)
+   LowerCenterS.y = -398 (0xfe72)
+   LowerS.x = 892 (0x037c)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 891 (0x037b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 891 (0x037b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0182  (386)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 892 (0x037c)
+   HalantS.y = -99 (0xff9d)
+   LowerCenterS.x = 892 (0x037c)
+   LowerCenterS.y = -115 (0xff8d)
+   LowerS.x = 892 (0x037c)
+   LowerS.y = -37 (0xffdb)
+   UpperCenterS.x = 891 (0x037b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 891 (0x037b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0183  (387)
+   breakweight = 30 (0x001e)
+   HalantS.x = 892 (0x037c)
+   HalantS.y = -406 (0xfe6a)
+   LowerCenterS.x = 892 (0x037c)
+   LowerCenterS.y = -398 (0xfe72)
+   LowerS.x = 892 (0x037c)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 891 (0x037b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 891 (0x037b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0184  (388)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1032 (0x0408)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 776 (0x0308)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1033 (0x0409)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 753 (0x02f1)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1032 (0x0408)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0185  (389)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1033 (0x0409)
+   HalantS.y = -395 (0xfe75)
+   LowerCenterS.x = 776 (0x0308)
+   LowerCenterS.y = -388 (0xfe7c)
+   LowerS.x = 1033 (0x0409)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 753 (0x02f1)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1032 (0x0408)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0186  (390)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1032 (0x0408)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 783 (0x030f)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1033 (0x0409)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 783 (0x030f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1062 (0x0426)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0187  (391)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1033 (0x0409)
+   HalantS.y = -395 (0xfe75)
+   LowerCenterS.x = 783 (0x030f)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1033 (0x0409)
+   LowerS.y = -360 (0xfe98)
+   UpperCenterS.x = 783 (0x030f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1062 (0x0426)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0188  (392)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 561 (0x0231)
+   HalantS.y = -53 (0xffcb)
+   LowerCenterS.x = 561 (0x0231)
+   LowerCenterS.y = -62 (0xffc2)
+   LowerS.x = 561 (0x0231)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 570 (0x023a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 810 (0x032a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0189  (393)
+   breakweight = 30 (0x001e)
+   HalantS.x = 561 (0x0231)
+   HalantS.y = -328 (0xfeb8)
+   LowerCenterS.x = 561 (0x0231)
+   LowerCenterS.y = -321 (0xfebf)
+   LowerS.x = 561 (0x0231)
+   LowerS.y = -300 (0xfed4)
+   UpperCenterS.x = 570 (0x023a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 810 (0x032a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x018a  (394)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 561 (0x0231)
+   HalantS.y = -121 (0xff87)
+   LowerCenterS.x = 561 (0x0231)
+   LowerCenterS.y = -110 (0xff92)
+   LowerS.x = 561 (0x0231)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 570 (0x023a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 810 (0x032a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x018b  (395)
+   breakweight = 30 (0x001e)
+   HalantS.x = 561 (0x0231)
+   HalantS.y = -328 (0xfeb8)
+   LowerCenterS.x = 561 (0x0231)
+   LowerCenterS.y = -321 (0xfebf)
+   LowerS.x = 561 (0x0231)
+   LowerS.y = -300 (0xfed4)
+   UpperCenterS.x = 570 (0x023a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 810 (0x032a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x018c  (396)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 561 (0x0231)
+   HalantS.y = -121 (0xff87)
+   LowerCenterS.x = 561 (0x0231)
+   LowerCenterS.y = -110 (0xff92)
+   LowerS.x = 561 (0x0231)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 570 (0x023a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 810 (0x032a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x018d  (397)
+   breakweight = 30 (0x001e)
+   HalantS.x = 561 (0x0231)
+   HalantS.y = -328 (0xfeb8)
+   LowerCenterS.x = 561 (0x0231)
+   LowerCenterS.y = -321 (0xfebf)
+   LowerS.x = 561 (0x0231)
+   LowerS.y = -300 (0xfed4)
+   UpperCenterS.x = 570 (0x023a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 810 (0x032a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x018e  (398)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 561 (0x0231)
+   HalantS.y = -121 (0xff87)
+   LowerCenterS.x = 561 (0x0231)
+   LowerCenterS.y = -110 (0xff92)
+   LowerS.x = 561 (0x0231)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 570 (0x023a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 810 (0x032a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x018f  (399)
+   breakweight = 30 (0x001e)
+   HalantS.x = 561 (0x0231)
+   HalantS.y = -328 (0xfeb8)
+   LowerCenterS.x = 561 (0x0231)
+   LowerCenterS.y = -321 (0xfebf)
+   LowerS.x = 561 (0x0231)
+   LowerS.y = -300 (0xfed4)
+   UpperCenterS.x = 570 (0x023a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 810 (0x032a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0190  (400)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 900 (0x0384)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 900 (0x0384)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 900 (0x0384)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 901 (0x0385)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 900 (0x0384)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0191  (401)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 609 (0x0261)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0192  (402)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 900 (0x0384)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 900 (0x0384)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 900 (0x0384)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 901 (0x0385)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 900 (0x0384)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0193  (403)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 609 (0x0261)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0194  (404)
+   breakweight = 30 (0x001e)
+   HalantS.x = 895 (0x037f)
+   HalantS.y = -90 (0xffa6)
+   LowerCenterS.x = 895 (0x037f)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 895 (0x037f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 896 (0x0380)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 897 (0x0381)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0195  (405)
+   breakweight = 30 (0x001e)
+   HalantS.x = 895 (0x037f)
+   HalantS.y = -90 (0xffa6)
+   LowerCenterS.x = 895 (0x037f)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 895 (0x037f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 896 (0x0380)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 897 (0x0381)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0196  (406)
+   breakweight = 30 (0x001e)
+   HalantS.x = 909 (0x038d)
+   HalantS.y = -92 (0xffa4)
+   LowerCenterS.x = 909 (0x038d)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 909 (0x038d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 910 (0x038e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 910 (0x038e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0197  (407)
+   breakweight = 30 (0x001e)
+   HalantS.x = 909 (0x038d)
+   HalantS.y = -92 (0xffa4)
+   LowerCenterS.x = 909 (0x038d)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 909 (0x038d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 910 (0x038e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 910 (0x038e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0198  (408)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1432 (0x0598)
+   HalantS.y = -87 (0xffa9)
+   LowerCenterS.x = 863 (0x035f)
+   LowerCenterS.y = -186 (0xff46)
+   LowerS.x = 1432 (0x0598)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 863 (0x035f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1427 (0x0593)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0199  (409)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 649 (0x0289)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x019a  (410)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1432 (0x0598)
+   HalantS.y = -87 (0xffa9)
+   LowerCenterS.x = 863 (0x035f)
+   LowerCenterS.y = -186 (0xff46)
+   LowerS.x = 1432 (0x0598)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 863 (0x035f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1427 (0x0593)
+   UpperS.y = 1330 (0x0532)
+
+
+0x019b  (411)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 649 (0x0289)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x019c  (412)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1432 (0x0598)
+   HalantS.y = -87 (0xffa9)
+   LowerCenterS.x = 863 (0x035f)
+   LowerCenterS.y = -186 (0xff46)
+   LowerS.x = 1432 (0x0598)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 863 (0x035f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1427 (0x0593)
+   UpperS.y = 1330 (0x0532)
+
+
+0x019d  (413)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1432 (0x0598)
+   HalantS.y = -87 (0xffa9)
+   LowerCenterS.x = 863 (0x035f)
+   LowerCenterS.y = -186 (0xff46)
+   LowerS.x = 1432 (0x0598)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 863 (0x035f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1427 (0x0593)
+   UpperS.y = 1330 (0x0532)
+
+
+0x019e  (414)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 945 (0x03b1)
+   HalantS.y = -92 (0xffa4)
+   LowerCenterS.x = 594 (0x0252)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 945 (0x03b1)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 595 (0x0253)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 944 (0x03b0)
+   UpperS.y = 1330 (0x0532)
+
+
+0x019f  (415)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 345 (0x0159)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01a0  (416)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 945 (0x03b1)
+   HalantS.y = -92 (0xffa4)
+   LowerCenterS.x = 594 (0x0252)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 945 (0x03b1)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 595 (0x0253)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 944 (0x03b0)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01a1  (417)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 345 (0x0159)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01a2  (418)
+   breakweight = 30 (0x001e)
+   HalantS.x = 945 (0x03b1)
+   HalantS.y = -92 (0xffa4)
+   LowerCenterS.x = 594 (0x0252)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 945 (0x03b1)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 595 (0x0253)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 944 (0x03b0)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01a3  (419)
+   breakweight = 30 (0x001e)
+   HalantS.x = 945 (0x03b1)
+   HalantS.y = -92 (0xffa4)
+   LowerCenterS.x = 594 (0x0252)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 945 (0x03b1)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 595 (0x0253)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 944 (0x03b0)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01a4  (420)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1028 (0x0404)
+   HalantS.y = -90 (0xffa6)
+   LowerCenterS.x = 692 (0x02b4)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1028 (0x0404)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 691 (0x02b3)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1028 (0x0404)
+   UpperS.y = 1329 (0x0531)
+
+
+0x01a5  (421)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 528 (0x0210)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01a6  (422)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1028 (0x0404)
+   HalantS.y = -90 (0xffa6)
+   LowerCenterS.x = 692 (0x02b4)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1028 (0x0404)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 691 (0x02b3)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1028 (0x0404)
+   UpperS.y = 1329 (0x0531)
+
+
+0x01a7  (423)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 528 (0x0210)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01a8  (424)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1028 (0x0404)
+   HalantS.y = -90 (0xffa6)
+   LowerCenterS.x = 668 (0x029c)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1028 (0x0404)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 667 (0x029b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1027 (0x0403)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01a9  (425)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1028 (0x0404)
+   HalantS.y = -90 (0xffa6)
+   LowerCenterS.x = 668 (0x029c)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1028 (0x0404)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 667 (0x029b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1027 (0x0403)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01aa  (426)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 820 (0x0334)
+   HalantS.y = -70 (0xffba)
+   LowerCenterS.x = 681 (0x02a9)
+   LowerCenterS.y = -118 (0xff8a)
+   LowerS.x = 938 (0x03aa)
+   LowerS.y = -53 (0xffcb)
+   UpperCenterS.x = 681 (0x02a9)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 938 (0x03aa)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01ab  (427)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 680 (0x02a8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 937 (0x03a9)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 698 (0x02ba)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01ac  (428)
+   breakweight = 30 (0x001e)
+   HalantS.x = 820 (0x0334)
+   HalantS.y = -70 (0xffba)
+   LowerCenterS.x = 680 (0x02a8)
+   LowerCenterS.y = -412 (0xfe64)
+   LowerS.x = 937 (0x03a9)
+   LowerS.y = -320 (0xfec0)
+   UpperCenterS.x = 680 (0x02a8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 937 (0x03a9)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01ad  (429)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 680 (0x02a8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 937 (0x03a9)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 698 (0x02ba)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01ae  (430)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1396 (0x0574)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1396 (0x0574)
+   breakweight = 30 (0x001e)
+   HalantS.x = 820 (0x0334)
+   HalantS.y = -363 (0xfe95)
+   LowerCenterS.x = 680 (0x02a8)
+   LowerCenterS.y = -418 (0xfe5e)
+   LowerS.x = 937 (0x03a9)
+   LowerS.y = -370 (0xfe8e)
+   UpperCenterS.x = 680 (0x02a8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 937 (0x03a9)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01af  (431)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1396 (0x0574)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1396 (0x0574)
+   breakweight = 30 (0x001e)
+   HalantS.x = 820 (0x0334)
+   HalantS.y = -363 (0xfe95)
+   LowerCenterS.x = 680 (0x02a8)
+   LowerCenterS.y = -418 (0xfe5e)
+   LowerS.x = 937 (0x03a9)
+   LowerS.y = -370 (0xfe8e)
+   UpperCenterS.x = 680 (0x02a8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 937 (0x03a9)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01b0  (432)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1133 (0x046d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 678 (0x02a6)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1133 (0x046d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 678 (0x02a6)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1133 (0x046d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01b1  (433)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 524 (0x020c)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01b2  (434)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1133 (0x046d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 472 (0x01d8)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1133 (0x046d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 472 (0x01d8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1133 (0x046d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01b3  (435)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 524 (0x020c)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01b4  (436)
+   breakweight = 30 (0x001e)
+   HalantS.x = 668 (0x029c)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 669 (0x029d)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1133 (0x046d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 669 (0x029d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1133 (0x046d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01b5  (437)
+   breakweight = 30 (0x001e)
+   HalantS.x = 668 (0x029c)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 669 (0x029d)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1133 (0x046d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 669 (0x029d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1133 (0x046d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01b6  (438)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 905 (0x0389)
+   HalantS.y = -70 (0xffba)
+   LowerCenterS.x = 694 (0x02b6)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1100 (0x044c)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 693 (0x02b5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1100 (0x044c)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01b7  (439)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 693 (0x02b5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1100 (0x044c)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 786 (0x0312)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01b8  (440)
+   breakweight = 30 (0x001e)
+   HalantS.x = 894 (0x037e)
+   HalantS.y = -370 (0xfe8e)
+   LowerCenterS.x = 694 (0x02b6)
+   LowerCenterS.y = -412 (0xfe64)
+   LowerS.x = 1100 (0x044c)
+   LowerS.y = -310 (0xfeca)
+   UpperCenterS.x = 693 (0x02b5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1100 (0x044c)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01b9  (441)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 693 (0x02b5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1100 (0x044c)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 786 (0x0312)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01ba  (442)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1573 (0x0625)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1573 (0x0625)
+   breakweight = 30 (0x001e)
+   HalantS.x = 894 (0x037e)
+   HalantS.y = -440 (0xfe48)
+   LowerCenterS.x = 694 (0x02b6)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 1100 (0x044c)
+   LowerS.y = -470 (0xfe2a)
+   UpperCenterS.x = 693 (0x02b5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1100 (0x044c)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01bb  (443)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1573 (0x0625)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1573 (0x0625)
+   breakweight = 30 (0x001e)
+   HalantS.x = 894 (0x037e)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 694 (0x02b6)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 1100 (0x044c)
+   LowerS.y = -470 (0xfe2a)
+   UpperCenterS.x = 693 (0x02b5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1100 (0x044c)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01bc  (444)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 670 (0x029e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 670 (0x029e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1142 (0x0476)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 670 (0x029e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1143 (0x0477)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01bd  (445)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 497 (0x01f1)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01be  (446)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 670 (0x029e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 670 (0x029e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1142 (0x0476)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 670 (0x029e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1143 (0x0477)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01bf  (447)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 497 (0x01f1)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01c0  (448)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1422 (0x058e)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1422 (0x058e)
+   breakweight = 30 (0x001e)
+   HalantS.x = 681 (0x02a9)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 681 (0x02a9)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1150 (0x047e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 681 (0x02a9)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1150 (0x047e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01c1  (449)
+   breakweight = 30 (0x001e)
+   HalantS.x = 681 (0x02a9)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 681 (0x02a9)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1150 (0x047e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 681 (0x02a9)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1150 (0x047e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01c2  (450)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1099 (0x044b)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1099 (0x044b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1099 (0x044b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1099 (0x044b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1099 (0x044b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01c3  (451)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 757 (0x02f5)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01c4  (452)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1099 (0x044b)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1099 (0x044b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1099 (0x044b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1099 (0x044b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1099 (0x044b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01c5  (453)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 757 (0x02f5)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01c6  (454)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1099 (0x044b)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1099 (0x044b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1099 (0x044b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1099 (0x044b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1099 (0x044b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01c7  (455)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1099 (0x044b)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1099 (0x044b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1099 (0x044b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1099 (0x044b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1099 (0x044b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01c8  (456)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1214 (0x04be)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 783 (0x030f)
+   LowerCenterS.y = -212 (0xff2c)
+   LowerS.x = 1214 (0x04be)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 783 (0x030f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1215 (0x04bf)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01c9  (457)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 616 (0x0268)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 787 (0x0313)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 555 (0x022b)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01ca  (458)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1214 (0x04be)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 616 (0x0268)
+   LowerCenterS.y = -212 (0xff2c)
+   LowerS.x = 1214 (0x04be)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 783 (0x030f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1215 (0x04bf)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01cb  (459)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 616 (0x0268)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 787 (0x0313)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 555 (0x022b)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01cc  (460)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1214 (0x04be)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 783 (0x030f)
+   LowerCenterS.y = -212 (0xff2c)
+   LowerS.x = 1214 (0x04be)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 783 (0x030f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1215 (0x04bf)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01cd  (461)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1214 (0x04be)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 783 (0x030f)
+   LowerCenterS.y = -212 (0xff2c)
+   LowerS.x = 1214 (0x04be)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 783 (0x030f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1215 (0x04bf)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01ce  (462)
+   breakweight = 30 (0x001e)
+   HalantS.x = 792 (0x0318)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 792 (0x0318)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 700 (0x02bc)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 792 (0x0318)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 700 (0x02bc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01cf  (463)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 639 (0x027f)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01d0  (464)
+   breakweight = 30 (0x001e)
+   HalantS.x = 792 (0x0318)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 792 (0x0318)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 700 (0x02bc)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 792 (0x0318)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 700 (0x02bc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01d1  (465)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 639 (0x027f)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01d2  (466)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1535 (0x05ff)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1535 (0x05ff)
+   breakweight = 30 (0x001e)
+   HalantS.x = 792 (0x0318)
+   HalantS.y = -200 (0xff38)
+   LowerCenterS.x = 792 (0x0318)
+   LowerCenterS.y = -212 (0xff2c)
+   LowerS.x = 700 (0x02bc)
+   LowerS.y = -130 (0xff7e)
+   UpperCenterS.x = 792 (0x0318)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 700 (0x02bc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01d3  (467)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1535 (0x05ff)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1535 (0x05ff)
+   breakweight = 30 (0x001e)
+   HalantS.x = 792 (0x0318)
+   HalantS.y = -200 (0xff38)
+   LowerCenterS.x = 792 (0x0318)
+   LowerCenterS.y = -212 (0xff2c)
+   LowerS.x = 700 (0x02bc)
+   LowerS.y = -130 (0xff7e)
+   UpperCenterS.x = 792 (0x0318)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 700 (0x02bc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01d4  (468)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1146 (0x047a)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 656 (0x0290)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1146 (0x047a)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 656 (0x0290)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1146 (0x047a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01d5  (469)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 489 (0x01e9)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01d6  (470)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1146 (0x047a)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 656 (0x0290)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1145 (0x0479)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 656 (0x0290)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1146 (0x047a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01d7  (471)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 489 (0x01e9)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01d8  (472)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1146 (0x047a)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 656 (0x0290)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1145 (0x0479)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 656 (0x0290)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1146 (0x047a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01d9  (473)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1146 (0x047a)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 656 (0x0290)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1145 (0x0479)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 656 (0x0290)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1146 (0x047a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01da  (474)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 630 (0x0276)
+   HalantS.y = -60 (0xffc4)
+   LowerCenterS.x = 574 (0x023e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 849 (0x0351)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 574 (0x023e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01db  (475)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 574 (0x023e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 563 (0x0233)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01dc  (476)
+   breakweight = 30 (0x001e)
+   HalantS.x = 630 (0x0276)
+   HalantS.y = -370 (0xfe8e)
+   LowerCenterS.x = 574 (0x023e)
+   LowerCenterS.y = -412 (0xfe64)
+   LowerS.x = 850 (0x0352)
+   LowerS.y = -340 (0xfeac)
+   UpperCenterS.x = 574 (0x023e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01dd  (477)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 574 (0x023e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 563 (0x0233)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01de  (478)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1127 (0x0467)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1127 (0x0467)
+   breakweight = 30 (0x001e)
+   HalantS.x = 630 (0x0276)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 574 (0x023e)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 850 (0x0352)
+   LowerS.y = -400 (0xfe70)
+   UpperCenterS.x = 574 (0x023e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01df  (479)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1127 (0x0467)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1127 (0x0467)
+   breakweight = 30 (0x001e)
+   HalantS.x = 630 (0x0276)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 574 (0x023e)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 850 (0x0352)
+   LowerS.y = -400 (0xfe70)
+   UpperCenterS.x = 574 (0x023e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01e0  (480)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 740 (0x02e4)
+   HalantS.y = -70 (0xffba)
+   LowerCenterS.x = 686 (0x02ae)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 874 (0x036a)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 686 (0x02ae)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 874 (0x036a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01e1  (481)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 686 (0x02ae)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 874 (0x036a)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 672 (0x02a0)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01e2  (482)
+   breakweight = 30 (0x001e)
+   HalantS.x = 740 (0x02e4)
+   HalantS.y = -370 (0xfe8e)
+   LowerCenterS.x = 686 (0x02ae)
+   LowerCenterS.y = -412 (0xfe64)
+   LowerS.x = 874 (0x036a)
+   LowerS.y = -340 (0xfeac)
+   UpperCenterS.x = 686 (0x02ae)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 874 (0x036a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01e3  (483)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 686 (0x02ae)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 874 (0x036a)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 672 (0x02a0)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01e4  (484)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1344 (0x0540)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1344 (0x0540)
+   breakweight = 30 (0x001e)
+   HalantS.x = 740 (0x02e4)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 686 (0x02ae)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 874 (0x036a)
+   LowerS.y = -420 (0xfe5c)
+   UpperCenterS.x = 686 (0x02ae)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 874 (0x036a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01e5  (485)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1344 (0x0540)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1344 (0x0540)
+   breakweight = 30 (0x001e)
+   HalantS.x = 740 (0x02e4)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 686 (0x02ae)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 874 (0x036a)
+   LowerS.y = -420 (0xfe5c)
+   UpperCenterS.x = 686 (0x02ae)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 874 (0x036a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01e6  (486)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 711 (0x02c7)
+   HalantS.y = -70 (0xffba)
+   LowerCenterS.x = 572 (0x023c)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 935 (0x03a7)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 573 (0x023d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 935 (0x03a7)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01e7  (487)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 573 (0x023d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 935 (0x03a7)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 678 (0x02a6)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01e8  (488)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 711 (0x02c7)
+   HalantS.y = -370 (0xfe8e)
+   LowerCenterS.x = 573 (0x023d)
+   LowerCenterS.y = -412 (0xfe64)
+   LowerS.x = 935 (0x03a7)
+   LowerS.y = -340 (0xfeac)
+   UpperCenterS.x = 573 (0x023d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 935 (0x03a7)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01e9  (489)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 573 (0x023d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 935 (0x03a7)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 678 (0x02a6)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01ea  (490)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1357 (0x054d)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1357 (0x054d)
+   breakweight = 30 (0x001e)
+   HalantS.x = 711 (0x02c7)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 573 (0x023d)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 935 (0x03a7)
+   LowerS.y = -420 (0xfe5c)
+   UpperCenterS.x = 573 (0x023d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 935 (0x03a7)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01eb  (491)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1357 (0x054d)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1357 (0x054d)
+   breakweight = 30 (0x001e)
+   HalantS.x = 711 (0x02c7)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 573 (0x023d)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 935 (0x03a7)
+   LowerS.y = -420 (0xfe5c)
+   UpperCenterS.x = 573 (0x023d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 935 (0x03a7)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01ec  (492)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 718 (0x02ce)
+   HalantS.y = -70 (0xffba)
+   LowerCenterS.x = 609 (0x0261)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 948 (0x03b4)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 609 (0x0261)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 948 (0x03b4)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01ed  (493)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 609 (0x0261)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 948 (0x03b4)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 657 (0x0291)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01ee  (494)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 718 (0x02ce)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 609 (0x0261)
+   LowerCenterS.y = -412 (0xfe64)
+   LowerS.x = 948 (0x03b4)
+   LowerS.y = -340 (0xfeac)
+   UpperCenterS.x = 609 (0x0261)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 948 (0x03b4)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01ef  (495)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 609 (0x0261)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 948 (0x03b4)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 657 (0x0291)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x01f0  (496)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1314 (0x0522)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1314 (0x0522)
+   breakweight = 30 (0x001e)
+   HalantS.x = 718 (0x02ce)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 609 (0x0261)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 948 (0x03b4)
+   LowerS.y = -440 (0xfe48)
+   UpperCenterS.x = 609 (0x0261)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 948 (0x03b4)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01f1  (497)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1314 (0x0522)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1314 (0x0522)
+   breakweight = 30 (0x001e)
+   HalantS.x = 718 (0x02ce)
+   HalantS.y = -420 (0xfe5c)
+   LowerCenterS.x = 609 (0x0261)
+   LowerCenterS.y = -460 (0xfe34)
+   LowerS.x = 948 (0x03b4)
+   LowerS.y = -440 (0xfe48)
+   UpperCenterS.x = 609 (0x0261)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 948 (0x03b4)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01f2  (498)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1122 (0x0462)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 687 (0x02af)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1122 (0x0462)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 687 (0x02af)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1121 (0x0461)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01f3  (499)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 498 (0x01f2)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01f4  (500)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1122 (0x0462)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 687 (0x02af)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1122 (0x0462)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 687 (0x02af)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1121 (0x0461)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01f5  (501)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 498 (0x01f2)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01f6  (502)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1122 (0x0462)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 687 (0x02af)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1122 (0x0462)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 687 (0x02af)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1121 (0x0461)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01f7  (503)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1122 (0x0462)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 687 (0x02af)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1122 (0x0462)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 687 (0x02af)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1121 (0x0461)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01f8  (504)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 917 (0x0395)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 603 (0x025b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 917 (0x0395)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 603 (0x025b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 917 (0x0395)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01f9  (505)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 384 (0x0180)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01fa  (506)
+   breakweight = 30 (0x001e)
+   HalantS.x = 917 (0x0395)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 603 (0x025b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 917 (0x0395)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 603 (0x025b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 917 (0x0395)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01fb  (507)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 384 (0x0180)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01fc  (508)
+   breakweight = 30 (0x001e)
+   HalantS.x = 892 (0x037c)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 563 (0x0233)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 895 (0x037f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 563 (0x0233)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 894 (0x037e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01fd  (509)
+   breakweight = 30 (0x001e)
+   HalantS.x = 892 (0x037c)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 563 (0x0233)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 895 (0x037f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 563 (0x0233)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 894 (0x037e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x01fe  (510)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 434 (0x01b2)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x01ff  (511)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 434 (0x01b2)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0200  (512)
+   breakweight = 30 (0x001e)
+   HalantS.x = 917 (0x0395)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 603 (0x025b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 917 (0x0395)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 603 (0x025b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 917 (0x0395)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0201  (513)
+   breakweight = 30 (0x001e)
+   HalantS.x = 917 (0x0395)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 603 (0x025b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 917 (0x0395)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 603 (0x025b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 917 (0x0395)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0202  (514)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1123 (0x0463)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 757 (0x02f5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1123 (0x0463)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 757 (0x02f5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1124 (0x0464)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0203  (515)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 479 (0x01df)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0204  (516)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1123 (0x0463)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 757 (0x02f5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1123 (0x0463)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 757 (0x02f5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1124 (0x0464)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0205  (517)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 479 (0x01df)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0206  (518)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1123 (0x0463)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 757 (0x02f5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1123 (0x0463)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 757 (0x02f5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1124 (0x0464)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0207  (519)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1123 (0x0463)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 757 (0x02f5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1123 (0x0463)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 757 (0x02f5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1124 (0x0464)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0208  (520)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 620 (0x026c)
+   HalantS.y = -70 (0xffba)
+   LowerCenterS.x = 582 (0x0246)
+   LowerCenterS.y = -132 (0xff7c)
+   LowerS.x = 851 (0x0353)
+   LowerS.y = -90 (0xffa6)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0209  (521)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 564 (0x0234)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x020a  (522)
+   breakweight = 30 (0x001e)
+   HalantS.x = 620 (0x026c)
+   HalantS.y = -130 (0xff7e)
+   LowerCenterS.x = 582 (0x0246)
+   LowerCenterS.y = -132 (0xff7c)
+   LowerS.x = 850 (0x0352)
+   LowerS.y = -90 (0xffa6)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+
+
+0x020b  (523)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 850 (0x0352)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 564 (0x0234)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x020c  (524)
+   breakweight = 30 (0x001e)
+   HalantS.x = 853 (0x0355)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 584 (0x0248)
+   LowerCenterS.y = -132 (0xff7c)
+   LowerS.x = 853 (0x0355)
+   LowerS.y = -90 (0xffa6)
+   UpperCenterS.x = 583 (0x0247)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 853 (0x0355)
+   UpperS.y = 1330 (0x0532)
+
+
+0x020d  (525)
+   breakweight = 30 (0x001e)
+   HalantS.x = 853 (0x0355)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 584 (0x0248)
+   LowerCenterS.y = -132 (0xff7c)
+   LowerS.x = 853 (0x0355)
+   LowerS.y = -90 (0xffa6)
+   UpperCenterS.x = 583 (0x0247)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 853 (0x0355)
+   UpperS.y = 1330 (0x0532)
+
+
+0x020e  (526)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1220 (0x04c4)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 799 (0x031f)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1219 (0x04c3)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 799 (0x031f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1219 (0x04c3)
+   UpperS.y = 1330 (0x0532)
+
+
+0x020f  (527)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 520 (0x0208)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0210  (528)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1220 (0x04c4)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 799 (0x031f)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1219 (0x04c3)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 799 (0x031f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1219 (0x04c3)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0211  (529)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 520 (0x0208)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0212  (530)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1220 (0x04c4)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 799 (0x031f)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1219 (0x04c3)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 799 (0x031f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1219 (0x04c3)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0213  (531)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1220 (0x04c4)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 799 (0x031f)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1219 (0x04c3)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 799 (0x031f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1219 (0x04c3)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0214  (532)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 830 (0x033e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 528 (0x0210)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 830 (0x033e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 529 (0x0211)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 830 (0x033e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0215  (533)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 384 (0x0180)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0216  (534)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 830 (0x033e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 528 (0x0210)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 830 (0x033e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 529 (0x0211)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 830 (0x033e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0217  (535)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 384 (0x0180)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0218  (536)
+   breakweight = 30 (0x001e)
+   HalantS.x = 830 (0x033e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 528 (0x0210)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 830 (0x033e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 529 (0x0211)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 830 (0x033e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0219  (537)
+   breakweight = 30 (0x001e)
+   HalantS.x = 830 (0x033e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 528 (0x0210)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 830 (0x033e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 529 (0x0211)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 830 (0x033e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x021a  (538)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 891 (0x037b)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 585 (0x0249)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 891 (0x037b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 585 (0x0249)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 891 (0x037b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x021b  (539)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 393 (0x0189)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x021c  (540)
+   breakweight = 30 (0x001e)
+   HalantS.x = 891 (0x037b)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 585 (0x0249)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 891 (0x037b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 585 (0x0249)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 891 (0x037b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x021d  (541)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 393 (0x0189)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x021e  (542)
+   breakweight = 30 (0x001e)
+   HalantS.x = 891 (0x037b)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 585 (0x0249)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 891 (0x037b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 585 (0x0249)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 891 (0x037b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x021f  (543)
+   breakweight = 30 (0x001e)
+   HalantS.x = 891 (0x037b)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 585 (0x0249)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 891 (0x037b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 585 (0x0249)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 891 (0x037b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0220  (544)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 836 (0x0344)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 836 (0x0344)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 836 (0x0344)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 836 (0x0344)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 836 (0x0344)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0221  (545)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 569 (0x0239)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0222  (546)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 836 (0x0344)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 836 (0x0344)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 836 (0x0344)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 836 (0x0344)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 836 (0x0344)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0223  (547)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 569 (0x0239)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0224  (548)
+   breakweight = 30 (0x001e)
+   HalantS.x = 836 (0x0344)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 836 (0x0344)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 836 (0x0344)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 836 (0x0344)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 836 (0x0344)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0225  (549)
+   breakweight = 30 (0x001e)
+   HalantS.x = 836 (0x0344)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 836 (0x0344)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 836 (0x0344)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 836 (0x0344)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 836 (0x0344)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0226  (550)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1029 (0x0405)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 638 (0x027e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1029 (0x0405)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 638 (0x027e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1030 (0x0406)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0227  (551)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 469 (0x01d5)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0228  (552)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1029 (0x0405)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 638 (0x027e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1029 (0x0405)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 638 (0x027e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1030 (0x0406)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0229  (553)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 469 (0x01d5)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x022a  (554)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1029 (0x0405)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 638 (0x027e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1029 (0x0405)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 638 (0x027e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1030 (0x0406)
+   UpperS.y = 1330 (0x0532)
+
+
+0x022b  (555)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1029 (0x0405)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 638 (0x027e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1029 (0x0405)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 638 (0x027e)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1030 (0x0406)
+   UpperS.y = 1330 (0x0532)
+
+
+0x022c  (556)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1060 (0x0424)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 787 (0x0313)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1060 (0x0424)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 787 (0x0313)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1059 (0x0423)
+   UpperS.y = 1330 (0x0532)
+
+
+0x022d  (557)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 543 (0x021f)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x022e  (558)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1060 (0x0424)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 787 (0x0313)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1060 (0x0424)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 787 (0x0313)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1059 (0x0423)
+   UpperS.y = 1330 (0x0532)
+
+
+0x022f  (559)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 543 (0x021f)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0230  (560)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1060 (0x0424)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 787 (0x0313)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1060 (0x0424)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 787 (0x0313)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1059 (0x0423)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0231  (561)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1060 (0x0424)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 787 (0x0313)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1060 (0x0424)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 787 (0x0313)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1059 (0x0423)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0232  (562)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 942 (0x03ae)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 555 (0x022b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 942 (0x03ae)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 555 (0x022b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 942 (0x03ae)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0233  (563)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 381 (0x017d)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0234  (564)
+   breakweight = 30 (0x001e)
+   HalantS.x = 942 (0x03ae)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 555 (0x022b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 942 (0x03ae)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 555 (0x022b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 942 (0x03ae)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0235  (565)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 381 (0x017d)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0236  (566)
+   breakweight = 30 (0x001e)
+   HalantS.x = 942 (0x03ae)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 555 (0x022b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 942 (0x03ae)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 555 (0x022b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 942 (0x03ae)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0237  (567)
+   breakweight = 30 (0x001e)
+   HalantS.x = 942 (0x03ae)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 555 (0x022b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 942 (0x03ae)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 555 (0x022b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 942 (0x03ae)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0238  (568)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 951 (0x03b7)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 571 (0x023b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 951 (0x03b7)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 571 (0x023b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 952 (0x03b8)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0239  (569)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 411 (0x019b)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x023a  (570)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 951 (0x03b7)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 571 (0x023b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 951 (0x03b7)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 571 (0x023b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 952 (0x03b8)
+   UpperS.y = 1330 (0x0532)
+
+
+0x023b  (571)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 411 (0x019b)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x023c  (572)
+   breakweight = 30 (0x001e)
+   HalantS.x = 951 (0x03b7)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 571 (0x023b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 951 (0x03b7)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 571 (0x023b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 952 (0x03b8)
+   UpperS.y = 1330 (0x0532)
+
+
+0x023d  (573)
+   breakweight = 30 (0x001e)
+   HalantS.x = 951 (0x03b7)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 571 (0x023b)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 951 (0x03b7)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 571 (0x023b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 952 (0x03b8)
+   UpperS.y = 1330 (0x0532)
+
+
+0x023e  (574)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1195 (0x04ab)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 721 (0x02d1)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1195 (0x04ab)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 720 (0x02d0)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1196 (0x04ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x023f  (575)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 548 (0x0224)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0240  (576)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1195 (0x04ab)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 721 (0x02d1)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1195 (0x04ab)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 720 (0x02d0)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1196 (0x04ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0241  (577)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 548 (0x0224)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0242  (578)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1195 (0x04ab)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 721 (0x02d1)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1195 (0x04ab)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 720 (0x02d0)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1196 (0x04ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0243  (579)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1195 (0x04ab)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 721 (0x02d1)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1195 (0x04ab)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 720 (0x02d0)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1196 (0x04ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0244  (580)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 526 (0x020e)
+   HalantS.y = -97 (0xff9f)
+   LowerCenterS.x = 526 (0x020e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 526 (0x020e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 527 (0x020f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 525 (0x020d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0245  (581)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 399 (0x018f)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0246  (582)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 526 (0x020e)
+   HalantS.y = -97 (0xff9f)
+   LowerCenterS.x = 526 (0x020e)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 526 (0x020e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 527 (0x020f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 525 (0x020d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0247  (583)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 399 (0x018f)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0248  (584)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1227 (0x04cb)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 725 (0x02d5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1228 (0x04cc)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 724 (0x02d4)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1230 (0x04ce)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0249  (585)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 529 (0x0211)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x024a  (586)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1227 (0x04cb)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 725 (0x02d5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1228 (0x04cc)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 724 (0x02d4)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1230 (0x04ce)
+   UpperS.y = 1330 (0x0532)
+
+
+0x024b  (587)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 529 (0x0211)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x024c  (588)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1227 (0x04cb)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 725 (0x02d5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1228 (0x04cc)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 724 (0x02d4)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1230 (0x04ce)
+   UpperS.y = 1330 (0x0532)
+
+
+0x024d  (589)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1227 (0x04cb)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 725 (0x02d5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1228 (0x04cc)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 724 (0x02d4)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1230 (0x04ce)
+   UpperS.y = 1330 (0x0532)
+
+
+0x024e  (590)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1150 (0x047e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 806 (0x0326)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1150 (0x047e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 806 (0x0326)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1150 (0x047e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x024f  (591)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 834 (0x0342)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0250  (592)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1150 (0x047e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 806 (0x0326)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1150 (0x047e)
+   LowerS.y = -70 (0xffba)
+   UpperCenterS.x = 806 (0x0326)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1150 (0x047e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0251  (593)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 834 (0x0342)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0252  (594)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -384 (0xfe80)
+   component.cons.right = 1669 (0x0685)
+   component.rakar.top = -384 (0xfe80)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1669 (0x0685)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1150 (0x047e)
+   HalantS.y = -250 (0xff06)
+   LowerCenterS.x = 806 (0x0326)
+   LowerCenterS.y = -250 (0xff06)
+   LowerS.x = 1150 (0x047e)
+   LowerS.y = -260 (0xfefc)
+   UpperCenterS.x = 806 (0x0326)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1150 (0x047e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0253  (595)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -384 (0xfe80)
+   component.cons.right = 1669 (0x0685)
+   component.rakar.top = -384 (0xfe80)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1669 (0x0685)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1150 (0x047e)
+   HalantS.y = -250 (0xff06)
+   LowerCenterS.x = 806 (0x0326)
+   LowerCenterS.y = -250 (0xff06)
+   LowerS.x = 1150 (0x047e)
+   LowerS.y = -260 (0xfefc)
+   UpperCenterS.x = 806 (0x0326)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1150 (0x047e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0254  (596)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1054 (0x041e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 688 (0x02b0)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1054 (0x041e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 687 (0x02af)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1054 (0x041e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0255  (597)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 501 (0x01f5)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0256  (598)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1054 (0x041e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 688 (0x02b0)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1054 (0x041e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 687 (0x02af)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1054 (0x041e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0257  (599)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 501 (0x01f5)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0258  (600)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1054 (0x041e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 688 (0x02b0)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1054 (0x041e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 687 (0x02af)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1054 (0x041e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0259  (601)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1054 (0x041e)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 688 (0x02b0)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1054 (0x041e)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 687 (0x02af)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1054 (0x041e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x025a  (602)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1127 (0x0467)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 685 (0x02ad)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1127 (0x0467)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 685 (0x02ad)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1127 (0x0467)
+   UpperS.y = 1330 (0x0532)
+
+
+0x025b  (603)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 525 (0x020d)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x025c  (604)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1127 (0x0467)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 685 (0x02ad)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1127 (0x0467)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 685 (0x02ad)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1127 (0x0467)
+   UpperS.y = 1330 (0x0532)
+
+
+0x025d  (605)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 525 (0x020d)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x025e  (606)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1047 (0x0417)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 605 (0x025d)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1047 (0x0417)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 605 (0x025d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1047 (0x0417)
+   UpperS.y = 1330 (0x0532)
+
+
+0x025f  (607)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1047 (0x0417)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 605 (0x025d)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1047 (0x0417)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 605 (0x025d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1047 (0x0417)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0260  (608)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1127 (0x0467)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 685 (0x02ad)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1127 (0x0467)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 685 (0x02ad)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1127 (0x0467)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0261  (609)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1127 (0x0467)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 685 (0x02ad)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1127 (0x0467)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 685 (0x02ad)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1127 (0x0467)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0262  (610)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 893 (0x037d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 615 (0x0267)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 893 (0x037d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 615 (0x0267)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 893 (0x037d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0263  (611)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 386 (0x0182)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0264  (612)
+   breakweight = 30 (0x001e)
+   HalantS.x = 893 (0x037d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 615 (0x0267)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 893 (0x037d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 615 (0x0267)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 893 (0x037d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0265  (613)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 387 (0x0183)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0266  (614)
+   breakweight = 30 (0x001e)
+   HalantS.x = 893 (0x037d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 615 (0x0267)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 893 (0x037d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 615 (0x0267)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 893 (0x037d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0267  (615)
+   breakweight = 30 (0x001e)
+   HalantS.x = 893 (0x037d)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 615 (0x0267)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 893 (0x037d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 615 (0x0267)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 893 (0x037d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0268  (616)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1144 (0x0478)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 702 (0x02be)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1144 (0x0478)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 702 (0x02be)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1145 (0x0479)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0269  (617)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 484 (0x01e4)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x026a  (618)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1144 (0x0478)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 702 (0x02be)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1144 (0x0478)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 702 (0x02be)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1145 (0x0479)
+   UpperS.y = 1330 (0x0532)
+
+
+0x026b  (619)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 484 (0x01e4)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x026c  (620)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1194 (0x04aa)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 752 (0x02f0)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1194 (0x04aa)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 752 (0x02f0)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1195 (0x04ab)
+   UpperS.y = 1330 (0x0532)
+
+
+0x026d  (621)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1194 (0x04aa)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 752 (0x02f0)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1194 (0x04aa)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 752 (0x02f0)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1195 (0x04ab)
+   UpperS.y = 1330 (0x0532)
+
+
+0x026e  (622)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 658 (0x0292)
+   HalantS.y = -105 (0xff97)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -150 (0xff6a)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -128 (0xff80)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1332 (0x0534)
+
+
+0x026f  (623)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 567 (0x0237)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0270  (624)
+   breakweight = 30 (0x001e)
+   HalantS.x = 780 (0x030c)
+   HalantS.y = -150 (0xff6a)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -270 (0xfef2)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -128 (0xff80)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1332 (0x0534)
+
+
+0x0271  (625)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 567 (0x0237)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0272  (626)
+   breakweight = 30 (0x001e)
+   HalantS.x = 658 (0x0292)
+   HalantS.y = -105 (0xff97)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -150 (0xff6a)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -128 (0xff80)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1332 (0x0534)
+
+
+0x0273  (627)
+   breakweight = 30 (0x001e)
+   HalantS.x = 780 (0x030c)
+   HalantS.y = -150 (0xff6a)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -270 (0xfef2)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -128 (0xff80)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1332 (0x0534)
+
+
+0x0274  (628)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1332 (0x0534)
+   LowerAltS.x = 567 (0x0237)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x0275  (629)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1332 (0x0534)
+   LowerAltS.x = 567 (0x0237)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x0276  (630)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 963 (0x03c3)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 634 (0x027a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 963 (0x03c3)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 633 (0x0279)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 963 (0x03c3)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0277  (631)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 352 (0x0160)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0278  (632)
+   breakweight = 30 (0x001e)
+   HalantS.x = 963 (0x03c3)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 634 (0x027a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 963 (0x03c3)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 633 (0x0279)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 963 (0x03c3)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0279  (633)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 352 (0x0160)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x027a  (634)
+   breakweight = 30 (0x001e)
+   HalantS.x = 963 (0x03c3)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 634 (0x027a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 963 (0x03c3)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 633 (0x0279)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 963 (0x03c3)
+   UpperS.y = 1330 (0x0532)
+
+
+0x027b  (635)
+   breakweight = 30 (0x001e)
+   HalantS.x = 963 (0x03c3)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 634 (0x027a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 963 (0x03c3)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 633 (0x0279)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 963 (0x03c3)
+   UpperS.y = 1330 (0x0532)
+
+
+0x027c  (636)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1143 (0x0477)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 678 (0x02a6)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1143 (0x0477)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 679 (0x02a7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1143 (0x0477)
+   UpperS.y = 1330 (0x0532)
+
+
+0x027d  (637)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 550 (0x0226)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x027e  (638)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1143 (0x0477)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 678 (0x02a6)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1143 (0x0477)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 679 (0x02a7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1143 (0x0477)
+   UpperS.y = 1330 (0x0532)
+
+
+0x027f  (639)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 550 (0x0226)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x0280  (640)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1462 (0x05b6)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1462 (0x05b6)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1183 (0x049f)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 718 (0x02ce)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1183 (0x049f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 719 (0x02cf)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1183 (0x049f)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0281  (641)
+   component.cons = 17 (0x0011)
+   component.rakar = 21 (0x0015)
+   component.cons.top = 1939 (0x0793)
+   component.cons.bottom = -584 (0xfdb8)
+   component.cons.right = 1462 (0x05b6)
+   component.rakar.top = -584 (0xfdb8)
+   component.rakar.bottom = -984 (0xfc28)
+   component.rakar.right = 1462 (0x05b6)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1183 (0x049f)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 718 (0x02ce)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1183 (0x049f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 719 (0x02cf)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1183 (0x049f)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0282  (642)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 890 (0x037a)
+   HalantS.y = -239 (0xff11)
+   LowerCenterS.x = 583 (0x0247)
+   LowerCenterS.y = -237 (0xff13)
+   LowerS.x = 940 (0x03ac)
+   LowerS.y = -200 (0xff38)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 940 (0x03ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0283  (643)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 940 (0x03ac)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 678 (0x02a6)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x0284  (644)
+   breakweight = 30 (0x001e)
+   HalantS.x = 890 (0x037a)
+   HalantS.y = -239 (0xff11)
+   LowerCenterS.x = 583 (0x0247)
+   LowerCenterS.y = -237 (0xff13)
+   LowerS.x = 940 (0x03ac)
+   LowerS.y = -200 (0xff38)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 940 (0x03ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0285  (645)
+   breakweight = 30 (0x001e)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 940 (0x03ac)
+   UpperS.y = 1330 (0x0532)
+   LowerAltS.x = 678 (0x02a6)
+   LowerAltS.y = -612 (0xfd9c)
+
+
+0x0286  (646)
+   breakweight = 30 (0x001e)
+   HalantS.x = 940 (0x03ac)
+   HalantS.y = -550 (0xfdda)
+   LowerCenterS.x = 582 (0x0246)
+   LowerCenterS.y = -600 (0xfda8)
+   LowerS.x = 940 (0x03ac)
+   LowerS.y = -570 (0xfdc6)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 940 (0x03ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0287  (647)
+   breakweight = 30 (0x001e)
+   HalantS.x = 940 (0x03ac)
+   HalantS.y = -550 (0xfdda)
+   LowerCenterS.x = 583 (0x0247)
+   LowerCenterS.y = -600 (0xfda8)
+   LowerS.x = 940 (0x03ac)
+   LowerS.y = -570 (0xfdc6)
+   UpperCenterS.x = 582 (0x0246)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 940 (0x03ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0288  (648)
+   breakweight = 30 (0x001e)
+   directionality = 1
+   HalantS.x = 1055 (0x041f)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 677 (0x02a5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1055 (0x041f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 678 (0x02a6)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1055 (0x041f)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0289  (649)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 476 (0x01dc)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x028a  (650)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1055 (0x041f)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 677 (0x02a5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1055 (0x041f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 678 (0x02a6)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1055 (0x041f)
+   UpperS.y = 1330 (0x0532)
+
+
+0x028b  (651)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 476 (0x01dc)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x028c  (652)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1055 (0x041f)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 677 (0x02a5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1055 (0x041f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 678 (0x02a6)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1055 (0x041f)
+   UpperS.y = 1330 (0x0532)
+
+
+0x028d  (653)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1055 (0x041f)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 677 (0x02a5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1055 (0x041f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 678 (0x02a6)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1055 (0x041f)
+   UpperS.y = 1330 (0x0532)
+
+
+0x028e  (654)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   NuktaAltM.x = -403 (0xfe6d)
+   NuktaAltM.y = -129 (0xff7f)
+   NuktaM.x = -403 (0xfe6d)
+   NuktaM.y = -139 (0xff75)
+
+
+0x028f  (655)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   HalantM.x = -240 (0xff10)
+   HalantM.y = -70 (0xffba)
+
+
+0x0290  (656)
+   breakweight = 30 (0x001e)
+   UpperM.x = -230 (0xff1a)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0291  (657)
+   breakweight = 30 (0x001e)
+   UpperM.x = -325 (0xfebb)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0292  (658)
+   breakweight = 30 (0x001e)
+   UpperM.x = -230 (0xff1a)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0293  (659)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1930 (0x078a)
+   component.c1.bottom = 1310 (0x051e)
+   component.c1.left = -718 (0xfd32)
+   component.c1.right = -452 (0xfe3c)
+   component.c2.top = 1830 (0x0726)
+   component.c2.bottom = 1310 (0x051e)
+   component.c2.left = -502 (0xfe0a)
+   component.c2.right = -285 (0xfee3)
+   breakweight = 30 (0x001e)
+   UpperM.x = -470 (0xfe2a)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0294  (660)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1930 (0x078a)
+   component.c1.bottom = 1310 (0x051e)
+   component.c1.left = -718 (0xfd32)
+   component.c1.right = -259 (0xfefd)
+   component.c2.top = 1830 (0x0726)
+   component.c2.bottom = 1310 (0x051e)
+   component.c2.left = -359 (0xfe99)
+   component.c2.right = 1
+   breakweight = 30 (0x001e)
+   UpperM.x = -470 (0xfe2a)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0295  (661)
+   breakweight = 30 (0x001e)
+   RaM.x = -380 (0xfe84)
+   RaM.y = 38 (0x0026)
+
+
+0x0296  (662)
+   breakweight = 30 (0x001e)
+   RaM.x = -380 (0xfe84)
+   RaM.y = 38 (0x0026)
+
+
+0x0297  (663)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0298  (664)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0299  (665)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   UpperM.x = -263 (0xfef9)
+   UpperM.y = 1300 (0x0514)
+
+
+0x029a  (666)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   LowerAltM.x = -547 (0xfddd)
+   LowerAltM.y = -112 (0xff90)
+   LowerCenterM.x = -547 (0xfddd)
+   LowerCenterM.y = -112 (0xff90)
+
+
+0x029b  (667)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   UpperCenterM.x = -380 (0xfe84)
+   UpperCenterM.y = 1390 (0x056e)
+
+
+0x029c  (668)
+   breakweight = 30 (0x001e)
+   directionality = 16 (0x0010)
+   UpperCenterM.x = -380 (0xfe84)
+   UpperCenterM.y = 1390 (0x056e)
+
+
+0x029d  (669)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x029e  (670)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x029f  (671)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a0  (672)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a1  (673)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a2  (674)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a3  (675)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a4  (676)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a5  (677)
+   breakweight = 30 (0x001e)
+
+
+0x02a6  (678)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a7  (679)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a8  (680)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02a9  (681)
+   breakweight = 30 (0x001e)
+
+
+0x02aa  (682)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02ab  (683)
+   breakweight = 30 (0x001e)
+
+
+0x02ac  (684)
+   breakweight = 30 (0x001e)
+
+
+0x02ad  (685)
+   breakweight = 30 (0x001e)
+
+
+0x02ae  (686)
+   breakweight = 30 (0x001e)
+
+
+0x02af  (687)
+   breakweight = 30 (0x001e)
+
+
+0x02b0  (688)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02b1  (689)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x02b2  (690)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 345 (0x0159)
+   NuktaS.y = -140 (0xff74)
+   directionality = 1
+   HalantS.x = 345 (0x0159)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 439 (0x01b7)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 345 (0x0159)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 440 (0x01b8)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 345 (0x0159)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02b3  (691)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 484 (0x01e4)
+   NuktaS.y = -140 (0xff74)
+   HalantS.x = 484 (0x01e4)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 592 (0x0250)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 484 (0x01e4)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 592 (0x0250)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 484 (0x01e4)
+   UpperS.y = 1367 (0x0557)
+
+
+0x02b4  (692)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 1032 (0x0408)
+   NuktaS.y = -140 (0xff74)
+   HalantS.x = 1032 (0x0408)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 696 (0x02b8)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1032 (0x0408)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 695 (0x02b7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1032 (0x0408)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02b5  (693)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 1413 (0x0585)
+   NuktaS.y = -140 (0xff74)
+   HalantS.x = 1413 (0x0585)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 696 (0x02b8)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1413 (0x0585)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 695 (0x02b7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1413 (0x0585)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02b6  (694)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 1413 (0x0585)
+   NuktaS.y = -140 (0xff74)
+   HalantS.x = 1413 (0x0585)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 850 (0x0352)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1413 (0x0585)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 695 (0x02b7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1413 (0x0585)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02b7  (695)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 1413 (0x0585)
+   NuktaS.y = -140 (0xff74)
+   HalantS.x = 1413 (0x0585)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 850 (0x0352)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1413 (0x0585)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 930 (0x03a2)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1413 (0x0585)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02b8  (696)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 647 (0x0287)
+   NuktaS.y = 254 (0x00fe)
+   HalantS.x = 1250 (0x04e2)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 865 (0x0361)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1300 (0x0514)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 865 (0x0361)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 865 (0x0361)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02b9  (697)
+   breakweight = 30 (0x001e)
+   NuktaS.x = 647 (0x0287)
+   NuktaS.y = 254 (0x00fe)
+   HalantS.x = 865 (0x0361)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 641 (0x0281)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 865 (0x0361)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 641 (0x0281)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 865 (0x0361)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ba  (698)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 410 (0x019a)
+   component.c1.right = 1577 (0x0629)
+   component.c2.top = 410 (0x019a)
+   component.c2.bottom = -500 (0xfe0c)
+   component.c2.right = 1577 (0x0629)
+   breakweight = 30 (0x001e)
+   HalantS.x = 838 (0x0346)
+   HalantS.y = -598 (0xfdaa)
+   LowerCenterS.x = 838 (0x0346)
+   LowerCenterS.y = -612 (0xfd9c)
+   LowerS.x = 838 (0x0346)
+   LowerS.y = -530 (0xfdee)
+   UpperCenterS.x = 832 (0x0340)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 842 (0x034a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02bb  (699)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 558 (0x022e)
+   component.c1.right = 1577 (0x0629)
+   component.c2.top = 558 (0x022e)
+   component.c2.bottom = -203 (0xff35)
+   component.c2.right = 1577 (0x0629)
+   breakweight = 30 (0x001e)
+   HalantS.x = 838 (0x0346)
+   HalantS.y = -301 (0xfed3)
+   LowerCenterS.x = 838 (0x0346)
+   LowerCenterS.y = -315 (0xfec5)
+   LowerS.x = 838 (0x0346)
+   LowerS.y = -233 (0xff17)
+   UpperCenterS.x = 832 (0x0340)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 842 (0x034a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02bc  (700)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1320 (0x0528)
+   component.c1.right = 918 (0x0396)
+   component.c2.top = 1320 (0x0528)
+   component.c2.left = 918 (0x0396)
+   component.c2.right = 1836 (0x072c)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1031 (0x0407)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 1031 (0x0407)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1031 (0x0407)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 986 (0x03da)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1031 (0x0407)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02bd  (701)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1291 (0x050b)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 893 (0x037d)
+   LowerCenterS.y = -280 (0xfee8)
+   LowerS.x = 1291 (0x050b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 893 (0x037d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1291 (0x050b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02be  (702)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 567 (0x0237)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x02bf  (703)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1291 (0x050b)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 893 (0x037d)
+   LowerCenterS.y = -280 (0xfee8)
+   LowerS.x = 1291 (0x050b)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 893 (0x037d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1291 (0x050b)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c0  (704)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1160 (0x0488)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 772 (0x0304)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1160 (0x0488)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 772 (0x0304)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1160 (0x0488)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c1  (705)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 548 (0x0224)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x02c2  (706)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 406 (0x0196)
+   component.c1.right = 1455 (0x05af)
+   component.c2.top = 406 (0x0196)
+   component.c2.bottom = -508 (0xfe04)
+   component.c2.right = 1455 (0x05af)
+   breakweight = 30 (0x001e)
+   HalantS.x = 779 (0x030b)
+   HalantS.y = -613 (0xfd9b)
+   LowerCenterS.x = 779 (0x030b)
+   LowerCenterS.y = -622 (0xfd92)
+   LowerS.x = 779 (0x030b)
+   LowerS.y = -545 (0xfddf)
+   UpperCenterS.x = 772 (0x0304)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 928 (0x03a0)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c3  (707)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 543 (0x021f)
+   component.c1.right = 1455 (0x05af)
+   component.c2.top = 543 (0x021f)
+   component.c2.bottom = -233 (0xff17)
+   component.c2.right = 1455 (0x05af)
+   breakweight = 30 (0x001e)
+   HalantS.x = 779 (0x030b)
+   HalantS.y = -338 (0xfeae)
+   LowerCenterS.x = 779 (0x030b)
+   LowerCenterS.y = -347 (0xfea5)
+   LowerS.x = 779 (0x030b)
+   LowerS.y = -270 (0xfef2)
+   UpperCenterS.x = 772 (0x0304)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 928 (0x03a0)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c4  (708)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 413 (0x019d)
+   component.c1.right = 1264 (0x04f0)
+   component.c2.top = 413 (0x019d)
+   component.c2.bottom = -494 (0xfe12)
+   component.c2.right = 1264 (0x04f0)
+   breakweight = 30 (0x001e)
+   HalantS.x = 910 (0x038e)
+   HalantS.y = -598 (0xfdaa)
+   LowerCenterS.x = 690 (0x02b2)
+   LowerCenterS.y = -612 (0xfd9c)
+   LowerS.x = 910 (0x038e)
+   LowerS.y = -530 (0xfdee)
+   UpperCenterS.x = 690 (0x02b2)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 846 (0x034e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c5  (709)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 547 (0x0223)
+   component.c1.right = 1264 (0x04f0)
+   component.c2.top = 547 (0x0223)
+   component.c2.bottom = -226 (0xff1e)
+   component.c2.right = 1264 (0x04f0)
+   breakweight = 30 (0x001e)
+   HalantS.x = 910 (0x038e)
+   HalantS.y = -330 (0xfeb6)
+   LowerCenterS.x = 690 (0x02b2)
+   LowerCenterS.y = -344 (0xfea8)
+   LowerS.x = 910 (0x038e)
+   LowerS.y = -262 (0xfefa)
+   UpperCenterS.x = 690 (0x02b2)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 846 (0x034e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c6  (710)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 446 (0x01be)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 446 (0x01be)
+   component.c2.bottom = -428 (0xfe54)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 790 (0x0316)
+   HalantS.y = -528 (0xfdf0)
+   LowerCenterS.x = 578 (0x0242)
+   LowerCenterS.y = -542 (0xfde2)
+   LowerS.x = 790 (0x0316)
+   LowerS.y = -460 (0xfe34)
+   UpperCenterS.x = 577 (0x0241)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 764 (0x02fc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c7  (711)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 544 (0x0220)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 544 (0x0220)
+   component.c2.bottom = -232 (0xff18)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 790 (0x0316)
+   HalantS.y = -332 (0xfeb4)
+   LowerCenterS.x = 578 (0x0242)
+   LowerCenterS.y = -346 (0xfea6)
+   LowerS.x = 790 (0x0316)
+   LowerS.y = -264 (0xfef8)
+   UpperCenterS.x = 577 (0x0241)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 764 (0x02fc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c8  (712)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 446 (0x01be)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 446 (0x01be)
+   component.c2.bottom = -428 (0xfe54)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 834 (0x0342)
+   HalantS.y = -528 (0xfdf0)
+   LowerCenterS.x = 553 (0x0229)
+   LowerCenterS.y = -542 (0xfde2)
+   LowerS.x = 834 (0x0342)
+   LowerS.y = -460 (0xfe34)
+   UpperCenterS.x = 553 (0x0229)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 764 (0x02fc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02c9  (713)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 543 (0x021f)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 543 (0x021f)
+   component.c2.bottom = -234 (0xff16)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 834 (0x0342)
+   HalantS.y = -334 (0xfeb2)
+   LowerCenterS.x = 553 (0x0229)
+   LowerCenterS.y = -348 (0xfea4)
+   LowerS.x = 834 (0x0342)
+   LowerS.y = -266 (0xfef6)
+   UpperCenterS.x = 553 (0x0229)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 764 (0x02fc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ca  (714)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 404 (0x0194)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 404 (0x0194)
+   component.c2.bottom = -512 (0xfe00)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 776 (0x0308)
+   HalantS.y = -578 (0xfdbe)
+   LowerCenterS.x = 537 (0x0219)
+   LowerCenterS.y = -592 (0xfdb0)
+   LowerS.x = 773 (0x0305)
+   LowerS.y = -560 (0xfdd0)
+   UpperCenterS.x = 537 (0x0219)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 773 (0x0305)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02cb  (715)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 561 (0x0231)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 561 (0x0231)
+   component.c2.bottom = -198 (0xff3a)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 776 (0x0308)
+   HalantS.y = -248 (0xff08)
+   LowerCenterS.x = 537 (0x0219)
+   LowerCenterS.y = -262 (0xfefa)
+   LowerS.x = 773 (0x0305)
+   LowerS.y = -230 (0xff1a)
+   UpperCenterS.x = 537 (0x0219)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 773 (0x0305)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02cc  (716)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 308 (0x0134)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 308 (0x0134)
+   component.c2.bottom = -704 (0xfd40)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 550 (0x0226)
+   HalantS.y = -823 (0xfcc9)
+   LowerCenterS.x = 550 (0x0226)
+   LowerCenterS.y = -837 (0xfcbb)
+   LowerS.x = 550 (0x0226)
+   LowerS.y = -755 (0xfd0d)
+   UpperCenterS.x = 552 (0x0228)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 764 (0x02fc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02cd  (717)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 495 (0x01ef)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 495 (0x01ef)
+   component.c2.bottom = -330 (0xfeb6)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 550 (0x0226)
+   HalantS.y = -413 (0xfe63)
+   LowerCenterS.x = 550 (0x0226)
+   LowerCenterS.y = -427 (0xfe55)
+   LowerS.x = 550 (0x0226)
+   LowerS.y = -345 (0xfea7)
+   UpperCenterS.x = 552 (0x0228)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 764 (0x02fc)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ce  (718)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 405 (0x0195)
+   component.c1.right = 1409 (0x0581)
+   component.c2.top = 405 (0x0195)
+   component.c2.bottom = -510 (0xfe02)
+   component.c2.right = 1409 (0x0581)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1134 (0x046e)
+   HalantS.y = -610 (0xfd9e)
+   LowerCenterS.x = 684 (0x02ac)
+   LowerCenterS.y = -621 (0xfd93)
+   LowerS.x = 1134 (0x046e)
+   LowerS.y = -542 (0xfde2)
+   UpperCenterS.x = 679 (0x02a7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1134 (0x046e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02cf  (719)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 541 (0x021d)
+   component.c1.right = 1409 (0x0581)
+   component.c2.top = 541 (0x021d)
+   component.c2.bottom = -237 (0xff13)
+   component.c2.right = 1409 (0x0581)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1134 (0x046e)
+   HalantS.y = -337 (0xfeaf)
+   LowerCenterS.x = 684 (0x02ac)
+   LowerCenterS.y = -348 (0xfea4)
+   LowerS.x = 1134 (0x046e)
+   LowerS.y = -269 (0xfef3)
+   UpperCenterS.x = 679 (0x02a7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1134 (0x046e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d0  (720)
+   breakweight = 30 (0x001e)
+   HalantS.x = 994 (0x03e2)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 628 (0x0274)
+   LowerCenterS.y = -280 (0xfee8)
+   LowerS.x = 994 (0x03e2)
+   LowerS.y = -130 (0xff7e)
+   UpperCenterS.x = 628 (0x0274)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 994 (0x03e2)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d1  (721)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 450 (0x01c2)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x02d2  (722)
+   breakweight = 30 (0x001e)
+   HalantS.x = 994 (0x03e2)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 628 (0x0274)
+   LowerCenterS.y = -280 (0xfee8)
+   LowerS.x = 994 (0x03e2)
+   LowerS.y = -130 (0xff7e)
+   UpperCenterS.x = 628 (0x0274)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 994 (0x03e2)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d3  (723)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 431 (0x01af)
+   component.c1.right = 1068 (0x042c)
+   component.c2.top = 431 (0x01af)
+   component.c2.bottom = -457 (0xfe37)
+   component.c2.right = 1068 (0x042c)
+   breakweight = 30 (0x001e)
+   HalantS.x = 646 (0x0286)
+   HalantS.y = -558 (0xfdd2)
+   LowerCenterS.x = 485 (0x01e5)
+   LowerCenterS.y = -672 (0xfd60)
+   LowerS.x = 646 (0x0286)
+   LowerS.y = -490 (0xfe16)
+   UpperCenterS.x = 481 (0x01e1)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 682 (0x02aa)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d4  (724)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 560 (0x0230)
+   component.c1.right = 1068 (0x042c)
+   component.c2.top = 560 (0x0230)
+   component.c2.bottom = -200 (0xff38)
+   component.c2.right = 1068 (0x042c)
+   breakweight = 30 (0x001e)
+   HalantS.x = 646 (0x0286)
+   HalantS.y = -301 (0xfed3)
+   LowerCenterS.x = 485 (0x01e5)
+   LowerCenterS.y = -415 (0xfe61)
+   LowerS.x = 646 (0x0286)
+   LowerS.y = -233 (0xff17)
+   UpperCenterS.x = 481 (0x01e1)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 682 (0x02aa)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d5  (725)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 435 (0x01b3)
+   component.c1.right = 1099 (0x044b)
+   component.c2.top = 435 (0x01b3)
+   component.c2.bottom = -449 (0xfe3f)
+   component.c2.right = 1099 (0x044b)
+   breakweight = 30 (0x001e)
+   HalantS.x = 601 (0x0259)
+   HalantS.y = -548 (0xfddc)
+   LowerCenterS.x = 601 (0x0259)
+   LowerCenterS.y = -562 (0xfdce)
+   LowerS.x = 601 (0x0259)
+   LowerS.y = -480 (0xfe20)
+   UpperCenterS.x = 490 (0x01ea)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 684 (0x02ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d6  (726)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 560 (0x0230)
+   component.c1.right = 1099 (0x044b)
+   component.c2.top = 560 (0x0230)
+   component.c2.bottom = -200 (0xff38)
+   component.c2.right = 1099 (0x044b)
+   breakweight = 30 (0x001e)
+   HalantS.x = 601 (0x0259)
+   HalantS.y = -299 (0xfed5)
+   LowerCenterS.x = 601 (0x0259)
+   LowerCenterS.y = -313 (0xfec7)
+   LowerS.x = 601 (0x0259)
+   LowerS.y = -231 (0xff19)
+   UpperCenterS.x = 490 (0x01ea)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 684 (0x02ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d7  (727)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 435 (0x01b3)
+   component.c1.right = 1099 (0x044b)
+   component.c2.top = 435 (0x01b3)
+   component.c2.bottom = -449 (0xfe3f)
+   component.c2.right = 1099 (0x044b)
+   breakweight = 30 (0x001e)
+   HalantS.x = 575 (0x023f)
+   HalantS.y = -548 (0xfddc)
+   LowerCenterS.x = 575 (0x023f)
+   LowerCenterS.y = -562 (0xfdce)
+   LowerS.x = 575 (0x023f)
+   LowerS.y = -480 (0xfe20)
+   UpperCenterS.x = 494 (0x01ee)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 684 (0x02ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d8  (728)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 560 (0x0230)
+   component.c1.right = 1099 (0x044b)
+   component.c2.top = 560 (0x0230)
+   component.c2.bottom = -200 (0xff38)
+   component.c2.right = 1099 (0x044b)
+   breakweight = 30 (0x001e)
+   HalantS.x = 575 (0x023f)
+   HalantS.y = -299 (0xfed5)
+   LowerCenterS.x = 575 (0x023f)
+   LowerCenterS.y = -313 (0xfec7)
+   LowerS.x = 575 (0x023f)
+   LowerS.y = -231 (0xff19)
+   UpperCenterS.x = 494 (0x01ee)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 684 (0x02ac)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02d9  (729)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 404 (0x0194)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 404 (0x0194)
+   component.c2.bottom = -512 (0xfe00)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 769 (0x0301)
+   HalantS.y = -578 (0xfdbe)
+   LowerCenterS.x = 541 (0x021d)
+   LowerCenterS.y = -592 (0xfdb0)
+   LowerS.x = 769 (0x0301)
+   LowerS.y = -560 (0xfdd0)
+   UpperCenterS.x = 541 (0x021d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 769 (0x0301)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02da  (730)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 560 (0x0230)
+   component.c1.right = 1152 (0x0480)
+   component.c2.top = 560 (0x0230)
+   component.c2.bottom = -200 (0xff38)
+   component.c2.right = 1152 (0x0480)
+   breakweight = 30 (0x001e)
+   HalantS.x = 769 (0x0301)
+   HalantS.y = -266 (0xfef6)
+   LowerCenterS.x = 541 (0x021d)
+   LowerCenterS.y = -280 (0xfee8)
+   LowerS.x = 769 (0x0301)
+   LowerS.y = -248 (0xff08)
+   UpperCenterS.x = 541 (0x021d)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 769 (0x0301)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02db  (731)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 660 (0x0294)
+   component.c1.right = 1309 (0x051d)
+   component.c2.top = 660 (0x0294)
+   component.c2.right = 1309 (0x051d)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1033 (0x0409)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 630 (0x0276)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1033 (0x0409)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 630 (0x0276)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1033 (0x0409)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02dc  (732)
+   breakweight = 30 (0x001e)
+   LowerAltS.x = 455 (0x01c7)
+   LowerAltS.y = -112 (0xff90)
+
+
+0x02dd  (733)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 520 (0x0208)
+   component.c1.right = 1191 (0x04a7)
+   component.c2.top = 520 (0x0208)
+   component.c2.bottom = -279 (0xfee9)
+   component.c2.right = 1191 (0x04a7)
+   breakweight = 30 (0x001e)
+   HalantS.x = 825 (0x0339)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 581 (0x0245)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 825 (0x0339)
+   LowerS.y = -100 (0xff9c)
+   UpperCenterS.x = 581 (0x0245)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 825 (0x0339)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02de  (734)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 636 (0x027c)
+   component.c1.right = 1378 (0x0562)
+   component.c2.top = 636 (0x027c)
+   component.c2.bottom = -48 (0xffd0)
+   component.c2.right = 1378 (0x0562)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1093 (0x0445)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 789 (0x0315)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1093 (0x0445)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 785 (0x0311)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1093 (0x0445)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02df  (735)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1320 (0x0528)
+   component.c1.right = 833 (0x0341)
+   component.c2.top = 1320 (0x0528)
+   component.c2.left = 833 (0x0341)
+   component.c2.right = 1667 (0x0683)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1391 (0x056f)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 876 (0x036c)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1391 (0x056f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 876 (0x036c)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1391 (0x056f)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e0  (736)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1320 (0x0528)
+   component.c1.right = 743 (0x02e7)
+   component.c2.top = 1320 (0x0528)
+   component.c2.left = 743 (0x02e7)
+   component.c2.right = 1487 (0x05cf)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1211 (0x04bb)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 758 (0x02f6)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1211 (0x04bb)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 758 (0x02f6)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1211 (0x04bb)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e1  (737)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 644 (0x0284)
+   component.c1.right = 1131 (0x046b)
+   component.c2.top = 644 (0x0284)
+   component.c2.bottom = -31 (0xffe1)
+   component.c2.right = 1131 (0x046b)
+   breakweight = 30 (0x001e)
+   HalantS.x = 815 (0x032f)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 562 (0x0232)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 815 (0x032f)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 562 (0x0232)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 815 (0x032f)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e2  (738)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 637 (0x027d)
+   component.c1.right = 1195 (0x04ab)
+   component.c2.top = 637 (0x027d)
+   component.c2.bottom = -46 (0xffd2)
+   component.c2.right = 1195 (0x04ab)
+   breakweight = 30 (0x001e)
+   HalantS.x = 919 (0x0397)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 627 (0x0273)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 919 (0x0397)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 627 (0x0273)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 919 (0x0397)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e3  (739)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 660 (0x0294)
+   component.c1.right = 1195 (0x04ab)
+   component.c2.top = 660 (0x0294)
+   component.c2.right = 1195 (0x04ab)
+   breakweight = 30 (0x001e)
+   HalantS.x = 920 (0x0398)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 628 (0x0274)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 920 (0x0398)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 628 (0x0274)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 920 (0x0398)
+   UpperS.y = 1334 (0x0536)
+
+
+0x02e4  (740)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 423 (0x01a7)
+   component.c1.right = 1311 (0x051f)
+   component.c2.top = 423 (0x01a7)
+   component.c2.bottom = -474 (0xfe26)
+   component.c2.right = 1311 (0x051f)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1036 (0x040c)
+   HalantS.y = -568 (0xfdc8)
+   LowerCenterS.x = 665 (0x0299)
+   LowerCenterS.y = -582 (0xfdba)
+   LowerS.x = 1036 (0x040c)
+   LowerS.y = -500 (0xfe0c)
+   UpperCenterS.x = 665 (0x0299)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1036 (0x040c)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e5  (741)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 540 (0x021c)
+   component.c1.right = 1311 (0x051f)
+   component.c2.top = 540 (0x021c)
+   component.c2.bottom = -239 (0xff11)
+   component.c2.right = 1311 (0x051f)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1036 (0x040c)
+   HalantS.y = -333 (0xfeb3)
+   LowerCenterS.x = 665 (0x0299)
+   LowerCenterS.y = -347 (0xfea5)
+   LowerS.x = 1036 (0x040c)
+   LowerS.y = -265 (0xfef7)
+   UpperCenterS.x = 665 (0x0299)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1036 (0x040c)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e6  (742)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 415 (0x019f)
+   component.c1.right = 1311 (0x051f)
+   component.c2.top = 415 (0x019f)
+   component.c2.bottom = -490 (0xfe16)
+   component.c2.right = 1311 (0x051f)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1034 (0x040a)
+   HalantS.y = -568 (0xfdc8)
+   LowerCenterS.x = 669 (0x029d)
+   LowerCenterS.y = -582 (0xfdba)
+   LowerS.x = 1034 (0x040a)
+   LowerS.y = -500 (0xfe0c)
+   UpperCenterS.x = 665 (0x0299)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1034 (0x040a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e7  (743)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 540 (0x021c)
+   component.c1.right = 1311 (0x051f)
+   component.c2.top = 540 (0x021c)
+   component.c2.bottom = -239 (0xff11)
+   component.c2.right = 1311 (0x051f)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1034 (0x040a)
+   HalantS.y = -333 (0xfeb3)
+   LowerCenterS.x = 669 (0x029d)
+   LowerCenterS.y = -347 (0xfea5)
+   LowerS.x = 1034 (0x040a)
+   LowerS.y = -265 (0xfef7)
+   UpperCenterS.x = 665 (0x0299)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1034 (0x040a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e8  (744)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 660 (0x0294)
+   component.c1.right = 1455 (0x05af)
+   component.c2.top = 660 (0x0294)
+   component.c2.right = 1455 (0x05af)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1178 (0x049a)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 708 (0x02c4)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1178 (0x049a)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 708 (0x02c4)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1178 (0x049a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02e9  (745)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 660 (0x0294)
+   component.c1.right = 1455 (0x05af)
+   component.c2.top = 660 (0x0294)
+   component.c2.right = 1455 (0x05af)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1178 (0x049a)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 720 (0x02d0)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1178 (0x049a)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 720 (0x02d0)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1178 (0x049a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ea  (746)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 643 (0x0283)
+   component.c1.right = 1215 (0x04bf)
+   component.c2.top = 643 (0x0283)
+   component.c2.bottom = -33 (0xffdf)
+   component.c2.right = 1215 (0x04bf)
+   breakweight = 30 (0x001e)
+   HalantS.x = 858 (0x035a)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 593 (0x0251)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 593 (0x0251)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02eb  (747)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 634 (0x027a)
+   component.c1.right = 1296 (0x0510)
+   component.c2.top = 634 (0x027a)
+   component.c2.bottom = -51 (0xffcd)
+   component.c2.right = 1296 (0x0510)
+   breakweight = 30 (0x001e)
+   HalantS.x = 862 (0x035e)
+   HalantS.y = -148 (0xff6c)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -162 (0xff5e)
+   LowerS.x = 862 (0x035e)
+   LowerS.y = -80 (0xffb0)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 862 (0x035e)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ec  (748)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 660 (0x0294)
+   component.c1.right = 1444 (0x05a4)
+   component.c2.top = 660 (0x0294)
+   component.c2.right = 1444 (0x05a4)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1168 (0x0490)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 725 (0x02d5)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 1168 (0x0490)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 725 (0x02d5)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1168 (0x0490)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ed  (749)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 605 (0x025d)
+   component.c1.right = 1256 (0x04e8)
+   component.c2.top = 605 (0x025d)
+   component.c2.bottom = -110 (0xff92)
+   component.c2.right = 1256 (0x04e8)
+   breakweight = 30 (0x001e)
+   HalantS.x = 658 (0x0292)
+   HalantS.y = -150 (0xff6a)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -150 (0xff6a)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -128 (0xff80)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ee  (750)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1320 (0x0528)
+   component.c1.bottom = -110 (0xff92)
+   component.c1.right = 912 (0x0390)
+   component.c2.top = 1320 (0x0528)
+   component.c2.bottom = -110 (0xff92)
+   component.c2.left = 912 (0x0390)
+   component.c2.right = 1824 (0x0720)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1549 (0x060d)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 906 (0x038a)
+   LowerCenterS.y = -150 (0xff6a)
+   LowerS.x = 1549 (0x060d)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 906 (0x038a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1549 (0x060d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ef  (751)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1320 (0x0528)
+   component.c1.bottom = -110 (0xff92)
+   component.c1.right = 916 (0x0394)
+   component.c2.top = 1320 (0x0528)
+   component.c2.bottom = -110 (0xff92)
+   component.c2.left = 916 (0x0394)
+   component.c2.right = 1832 (0x0728)
+   breakweight = 30 (0x001e)
+   HalantS.x = 1555 (0x0613)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 941 (0x03ad)
+   LowerCenterS.y = -150 (0xff6a)
+   LowerS.x = 1555 (0x0613)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 941 (0x03ad)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 1555 (0x0613)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f0  (752)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 605 (0x025d)
+   component.c1.right = 1256 (0x04e8)
+   component.c2.top = 605 (0x025d)
+   component.c2.bottom = -110 (0xff92)
+   component.c2.right = 1256 (0x04e8)
+   breakweight = 30 (0x001e)
+   HalantS.x = 658 (0x0292)
+   HalantS.y = -150 (0xff6a)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -150 (0xff6a)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -128 (0xff80)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f1  (753)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = 1370 (0x055a)
+   component.c1.bottom = 605 (0x025d)
+   component.c1.right = 1256 (0x04e8)
+   component.c2.top = 605 (0x025d)
+   component.c2.bottom = -110 (0xff92)
+   component.c2.right = 1256 (0x04e8)
+   breakweight = 30 (0x001e)
+   HalantS.x = 658 (0x0292)
+   HalantS.y = -150 (0xff6a)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -150 (0xff6a)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -128 (0xff80)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f2  (754)
+   breakweight = 30 (0x001e)
+   HalantS.x = 658 (0x0292)
+   HalantS.y = -150 (0xff6a)
+   LowerCenterS.x = 576 (0x0240)
+   LowerCenterS.y = -150 (0xff6a)
+   LowerS.x = 858 (0x035a)
+   LowerS.y = -128 (0xff80)
+   UpperCenterS.x = 576 (0x0240)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 858 (0x035a)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f3  (755)
+   breakweight = 30 (0x001e)
+   HalantS.x = 524 (0x020c)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 525 (0x020d)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 524 (0x020c)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 523 (0x020b)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 524 (0x020c)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f4  (756)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = -33 (0xffdf)
+   component.c1.bottom = 1370 (0x055a)
+   component.c1.right = 868 (0x0364)
+   component.c2.top = -583 (0xfdb9)
+   component.c2.bottom = -33 (0xffdf)
+   component.c2.right = 868 (0x0364)
+   breakweight = 30 (0x001e)
+   LowerCenterS.x = 526 (0x020e)
+   LowerCenterS.y = -112 (0xff90)
+   UpperCenterS.x = 527 (0x020f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 525 (0x020d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f5  (757)
+   breakweight = 30 (0x001e)
+   HalantS.x = 524 (0x020c)
+   HalantS.y = -98 (0xff9e)
+   LowerCenterS.x = 790 (0x0316)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 524 (0x020c)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 790 (0x0316)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 524 (0x020c)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f6  (758)
+   component.c1 = 5
+   component.c2 = 9
+   component.c1.top = -62 (0xffc2)
+   component.c1.bottom = 1370 (0x055a)
+   component.c1.right = 868 (0x0364)
+   component.c2.top = -612 (0xfd9c)
+   component.c2.bottom = -62 (0xffc2)
+   component.c2.right = 868 (0x0364)
+   breakweight = 30 (0x001e)
+   LowerCenterS.x = 526 (0x020e)
+   LowerCenterS.y = -112 (0xff90)
+   UpperCenterS.x = 527 (0x020f)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 525 (0x020d)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f7  (759)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2595 (0x0a23)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2120 (0x0848)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2595 (0x0a23)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2120 (0x0848)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2595 (0x0a23)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f8  (760)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2770 (0x0ad2)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2295 (0x08f7)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2770 (0x0ad2)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2295 (0x08f7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2770 (0x0ad2)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02f9  (761)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02fa  (762)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2540 (0x09ec)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2065 (0x0811)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2540 (0x09ec)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2065 (0x0811)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2540 (0x09ec)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02fb  (763)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2555 (0x09fb)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2080 (0x0820)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2555 (0x09fb)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2080 (0x0820)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2555 (0x09fb)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02fc  (764)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2510 (0x09ce)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2035 (0x07f3)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2510 (0x09ce)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2035 (0x07f3)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2510 (0x09ce)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02fd  (765)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02fe  (766)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x02ff  (767)
+   breakweight = 30 (0x001e)
+
+
+0x0300  (768)
+   breakweight = 30 (0x001e)
+
+
+0x0301  (769)
+   breakweight = 30 (0x001e)
+
+
+0x0302  (770)
+   breakweight = 30 (0x001e)
+
+
+0x0303  (771)
+   breakweight = 30 (0x001e)
+
+
+0x0304  (772)
+   breakweight = 30 (0x001e)
+
+
+0x0305  (773)
+   breakweight = 30 (0x001e)
+
+
+0x0306  (774)
+   breakweight = 30 (0x001e)
+
+
+0x0307  (775)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2595 (0x0a23)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2120 (0x0848)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2595 (0x0a23)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2120 (0x0848)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2595 (0x0a23)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0308  (776)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2770 (0x0ad2)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2295 (0x08f7)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2770 (0x0ad2)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2295 (0x08f7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2770 (0x0ad2)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0309  (777)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x030a  (778)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2540 (0x09ec)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2065 (0x0811)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2540 (0x09ec)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2065 (0x0811)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2540 (0x09ec)
+   UpperS.y = 1330 (0x0532)
+
+
+0x030b  (779)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2555 (0x09fb)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2080 (0x0820)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2555 (0x09fb)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2080 (0x0820)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2555 (0x09fb)
+   UpperS.y = 1330 (0x0532)
+
+
+0x030c  (780)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2510 (0x09ce)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2035 (0x07f3)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2510 (0x09ce)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2035 (0x07f3)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2510 (0x09ce)
+   UpperS.y = 1330 (0x0532)
+
+
+0x030d  (781)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2327 (0x0917)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1852 (0x073c)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2327 (0x0917)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1852 (0x073c)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2327 (0x0917)
+   UpperS.y = 1330 (0x0532)
+
+
+0x030e  (782)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2327 (0x0917)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1852 (0x073c)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2327 (0x0917)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1852 (0x073c)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2327 (0x0917)
+   UpperS.y = 1330 (0x0532)
+
+
+0x030f  (783)
+   breakweight = 30 (0x001e)
+
+
+0x0310  (784)
+   breakweight = 30 (0x001e)
+
+
+0x0311  (785)
+   breakweight = 30 (0x001e)
+
+
+0x0312  (786)
+   breakweight = 30 (0x001e)
+
+
+0x0313  (787)
+   breakweight = 30 (0x001e)
+
+
+0x0314  (788)
+   breakweight = 30 (0x001e)
+
+
+0x0315  (789)
+   breakweight = 30 (0x001e)
+
+
+0x0316  (790)
+   breakweight = 30 (0x001e)
+
+
+0x0317  (791)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2595 (0x0a23)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2120 (0x0848)
+   LowerCenterS.y = -118 (0xff8a)
+   LowerS.x = 2595 (0x0a23)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2120 (0x0848)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2595 (0x0a23)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0318  (792)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2770 (0x0ad2)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2295 (0x08f7)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2770 (0x0ad2)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2295 (0x08f7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2770 (0x0ad2)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0319  (793)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x031a  (794)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2540 (0x09ec)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2065 (0x0811)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2540 (0x09ec)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2065 (0x0811)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2540 (0x09ec)
+   UpperS.y = 1330 (0x0532)
+
+
+0x031b  (795)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2555 (0x09fb)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2080 (0x0820)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2555 (0x09fb)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2080 (0x0820)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2555 (0x09fb)
+   UpperS.y = 1330 (0x0532)
+
+
+0x031c  (796)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2510 (0x09ce)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2035 (0x07f3)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2510 (0x09ce)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2035 (0x07f3)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2510 (0x09ce)
+   UpperS.y = 1330 (0x0532)
+
+
+0x031d  (797)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x031e  (798)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x031f  (799)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2595 (0x0a23)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2120 (0x0848)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2595 (0x0a23)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2120 (0x0848)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2595 (0x0a23)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0320  (800)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2770 (0x0ad2)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2295 (0x08f7)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2770 (0x0ad2)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2295 (0x08f7)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2770 (0x0ad2)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0321  (801)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0322  (802)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2540 (0x09ec)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2065 (0x0811)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2540 (0x09ec)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2065 (0x0811)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2540 (0x09ec)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0323  (803)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2555 (0x09fb)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2080 (0x0820)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2555 (0x09fb)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2080 (0x0820)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2555 (0x09fb)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0324  (804)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2510 (0x09ce)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 2035 (0x07f3)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2510 (0x09ce)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 2035 (0x07f3)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2510 (0x09ce)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0325  (805)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0326  (806)
+   breakweight = 30 (0x001e)
+   HalantS.x = 2325 (0x0915)
+   HalantS.y = -100 (0xff9c)
+   LowerCenterS.x = 1850 (0x073a)
+   LowerCenterS.y = -112 (0xff90)
+   LowerS.x = 2325 (0x0915)
+   LowerS.y = -30 (0xffe2)
+   UpperCenterS.x = 1850 (0x073a)
+   UpperCenterS.y = 1390 (0x056e)
+   UpperS.x = 2325 (0x0915)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0327  (807)
+   breakweight = 15 (0x000f)
+   directionality = 9
+
+
+0x0328  (808)
+   breakweight = 30 (0x001e)
+   directionality = 10 (0x000a)
+
+
+0x0329  (809)
+   breakweight = 30 (0x001e)
+   directionality = 10 (0x000a)
+
+
+0x032a  (810)
+   breakweight = 30 (0x001e)
+   directionality = 10 (0x000a)
+
+
+0x032b  (811)
+   breakweight = 15 (0x000f)
+   directionality = 8
+
+
+0x032c  (812)
+   breakweight = 30 (0x001e)
+   directionality = 8
+
+
+0x032d  (813)
+   breakweight = 30 (0x001e)
+   directionality = 6
+
+
+0x032e  (814)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x032f  (815)
+   breakweight = 30 (0x001e)
+
+
+0x0330  (816)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0331  (817)
+   breakweight = 30 (0x001e)
+   directionality = 1
+
+
+0x0332  (818)
+   breakweight = 30 (0x001e)
+
+
+0x0333  (819)
+   *actualForPseudo* = 340 (0x0154)
+   breakweight = 30 (0x001e)
+   CaS.x = -431 (0xfe51)
+   CaS.y = 1719 (0x06b7)
+   UpperM.x = -381 (0xfe83)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0334  (820)
+   *actualForPseudo* = 285 (0x011d)
+   breakweight = 30 (0x001e)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0335  (821)
+   *actualForPseudo* = 340 (0x0154)
+   breakweight = 30 (0x001e)
+   CaS.x = -431 (0xfe51)
+   CaS.y = 1719 (0x06b7)
+   UpperM.x = -381 (0xfe83)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0336  (822)
+   *actualForPseudo* = 286 (0x011e)
+   breakweight = 30 (0x001e)
+   UpperS.x = 279 (0x0117)
+   UpperS.y = 1330 (0x0532)
+
+
+0x0337  (823)
+   *actualForPseudo* = 340 (0x0154)
+   breakweight = 30 (0x001e)
+   CaS.x = -431 (0xfe51)
+   CaS.y = 1719 (0x06b7)
+   UpperM.x = -381 (0xfe83)
+   UpperM.y = 1330 (0x0532)
+
+
+0x0338  (824)
+   *actualForPseudo* = 654 (0x028e)
+   breakweight = 30 (0x001e)
+   NuktaM.x = -403 (0xfe6d)
+   NuktaM.y = -139 (0xff75)
+
+
+0x0339  (825)
+   breakweight = 30 (0x001e)
+
+

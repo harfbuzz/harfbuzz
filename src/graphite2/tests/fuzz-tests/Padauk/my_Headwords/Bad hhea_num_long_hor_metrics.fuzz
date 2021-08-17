@@ -1,0 +1,70 @@
+,0X0006AA8E, 29,hhea+0X00000022
+==16150== Invalid read of size 2
+==16150==    at 0x403CD77: graphite2::TtfUtil::HorMetrics(unsigned short, void const*, unsigned int, void const*, int&, unsigned int&) (TtfUtil.cpp:802)
+==16150==    by 0x4034638: graphite2::GlyphFace::GlyphFace(graphite2::GlyphFaceCacheHeader const&, unsigned short) (GlyphFace.cpp:91)
+==16150==    by 0x4034CF2: graphite2::GlyphFaceCache::loadAllGlyphs() (GlyphFaceCache.cpp:131)
+==16150==    by 0x40327EC: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:74)
+==16150==    by 0x402C254: gr_make_face (gr_face.cpp:54)
+==16150==    by 0x402C319: gr_make_file_face (gr_face.cpp:216)
+==16150==    by 0x804B292: main (Gr2Renderer.h:40)
+==16150==  Address 0x43ca910 is 0 bytes after a block of size 1,800 alloc'd
+==16150==    at 0x4023F50: malloc (vg_replace_malloc.c:236)
+==16150==    by 0x4031B71: graphite2::FileFace::table_fn(void const*, unsigned int, unsigned int*) (Main.h:51)
+==16150==    by 0x4035033: graphite2::GlyphFaceCacheHeader::initialize(graphite2::Face const&, bool) (Face.h:107)
+==16150==    by 0x403271A: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:56)
+==16150==    by 0x402C254: gr_make_face (gr_face.cpp:54)
+==16150==    by 0x402C319: gr_make_file_face (gr_face.cpp:216)
+==16150==    by 0x804B292: main (Gr2Renderer.h:40)
+==16150== 
+==16150== Invalid read of size 2
+==16150==    at 0x403CD8A: graphite2::TtfUtil::HorMetrics(unsigned short, void const*, unsigned int, void const*, int&, unsigned int&) (TtfUtil.cpp:802)
+==16150==    by 0x4034638: graphite2::GlyphFace::GlyphFace(graphite2::GlyphFaceCacheHeader const&, unsigned short) (GlyphFace.cpp:91)
+==16150==    by 0x4034CF2: graphite2::GlyphFaceCache::loadAllGlyphs() (GlyphFaceCache.cpp:131)
+==16150==    by 0x40327EC: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:74)
+==16150==    by 0x402C254: gr_make_face (gr_face.cpp:54)
+==16150==    by 0x402C319: gr_make_file_face (gr_face.cpp:216)
+==16150==    by 0x804B292: main (Gr2Renderer.h:40)
+==16150==  Address 0x43ca912 is 2 bytes after a block of size 1,800 alloc'd
+==16150==    at 0x4023F50: malloc (vg_replace_malloc.c:236)
+==16150==    by 0x4031B71: graphite2::FileFace::table_fn(void const*, unsigned int, unsigned int*) (Main.h:51)
+==16150==    by 0x4035033: graphite2::GlyphFaceCacheHeader::initialize(graphite2::Face const&, bool) (Face.h:107)
+==16150==    by 0x403271A: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:56)
+==16150==    by 0x402C254: gr_make_face (gr_face.cpp:54)
+==16150==    by 0x402C319: gr_make_file_face (gr_face.cpp:216)
+==16150==    by 0x804B292: main (Gr2Renderer.h:40)
+==16150== 
+,0X0006AA8E,  0,hhea+0X00000022
+==9814== Invalid read of size 1
+==9814==    at 0x403CDC4: graphite2::TtfUtil::HorMetrics(unsigned short, void const*, unsigned int, void const*, int&, unsigned int&) (TtfUtil.cpp:816)
+==9814==    by 0x4034608: graphite2::GlyphFace::GlyphFace(graphite2::GlyphFaceCacheHeader const&, unsigned short) (GlyphFace.cpp:91)
+==9814==    by 0x4034CC2: graphite2::GlyphFaceCache::loadAllGlyphs() (GlyphFaceCache.cpp:133)
+==9814==    by 0x40327BC: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:74)
+==9814==    by 0x402C224: gr_make_face (gr_face.cpp:54)
+==9814==    by 0x402C2E9: gr_make_file_face (gr_face.cpp:216)
+==9814==    by 0x804B2D9: main (Gr2Renderer.h:40)
+==9814==  Address 0x43ca911 is 1 bytes after a block of size 1,800 alloc'd
+==9814==    at 0x4023F50: malloc (vg_replace_malloc.c:236)
+==9814==    by 0x4031B41: graphite2::FileFace::table_fn(void const*, unsigned int, unsigned int*) (Main.h:51)
+==9814==    by 0x4035003: graphite2::GlyphFaceCacheHeader::initialize(graphite2::Face const&, bool) (Face.h:107)
+==9814==    by 0x40326EA: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:56)
+==9814==    by 0x402C224: gr_make_face (gr_face.cpp:54)
+==9814==    by 0x402C2E9: gr_make_file_face (gr_face.cpp:216)
+==9814==    by 0x804B2D9: main (Gr2Renderer.h:40)
+==9814== 
+==9814== Invalid read of size 1
+==9814==    at 0x403CDC8: graphite2::TtfUtil::HorMetrics(unsigned short, void const*, unsigned int, void const*, int&, unsigned int&) (TtfUtil.cpp:816)
+==9814==    by 0x4034608: graphite2::GlyphFace::GlyphFace(graphite2::GlyphFaceCacheHeader const&, unsigned short) (GlyphFace.cpp:91)
+==9814==    by 0x4034CC2: graphite2::GlyphFaceCache::loadAllGlyphs() (GlyphFaceCache.cpp:133)
+==9814==    by 0x40327BC: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:74)
+==9814==    by 0x402C224: gr_make_face (gr_face.cpp:54)
+==9814==    by 0x402C2E9: gr_make_file_face (gr_face.cpp:216)
+==9814==    by 0x804B2D9: main (Gr2Renderer.h:40)
+==9814==  Address 0x43ca910 is 0 bytes after a block of size 1,800 alloc'd
+==9814==    at 0x4023F50: malloc (vg_replace_malloc.c:236)
+==9814==    by 0x4031B41: graphite2::FileFace::table_fn(void const*, unsigned int, unsigned int*) (Main.h:51)
+==9814==    by 0x4035003: graphite2::GlyphFaceCacheHeader::initialize(graphite2::Face const&, bool) (Face.h:107)
+==9814==    by 0x40326EA: graphite2::Face::readGlyphs(unsigned int) (Face.cpp:56)
+==9814==    by 0x402C224: gr_make_face (gr_face.cpp:54)
+==9814==    by 0x402C2E9: gr_make_file_face (gr_face.cpp:216)
+==9814==    by 0x804B2D9: main (Gr2Renderer.h:40)
+==9814== 

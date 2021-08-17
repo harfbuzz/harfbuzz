@@ -1,0 +1,1536 @@
+RULE PRECEDENCE
+
+
+TABLE: substitution
+
+PASS: 1
+
+0 - RULE 1.22, pitches.gdh(602):  g_space  >  g_pitchSpace   /  *GC4*  _  *GC5*  ;
+
+
+1 - RULE 1.2, main.gdh(381):  cLDblDia  cUDblDia  >  @3  @2   /  ANY  _  _  ;
+
+
+2 - RULE 1.5, pitches.gdh(237):  cRightTone1  cRightTone  >  cRightTone1Contour$3  cRightStaff_no$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+3 - RULE 1.6, pitches.gdh(238):  cRightTone2  cRightTone  >  cRightTone2Contour$3  cRightStaff_no$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+4 - RULE 1.7, pitches.gdh(239):  cRightTone3  cRightTone  >  cRightTone3Contour$3  cRightStaff_no$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+5 - RULE 1.8, pitches.gdh(240):  cRightTone4  cRightTone  >  cRightTone4Contour$3  cRightStaff_no$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+6 - RULE 1.9, pitches.gdh(241):  cRightTone5  cRightTone  >  cRightTone5Contour$3  cRightStaff_no$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+7 - RULE 1.10, pitches.gdh(245):  cRightTone1  cRightTone  >  cRightTone1Contour$3  cRightStaff$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+8 - RULE 1.11, pitches.gdh(246):  cRightTone2  cRightTone  >  cRightTone2Contour$3  cRightStaff$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+9 - RULE 1.12, pitches.gdh(247):  cRightTone3  cRightTone  >  cRightTone3Contour$3  cRightStaff$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+10 - RULE 1.13, pitches.gdh(248):  cRightTone4  cRightTone  >  cRightTone4Contour$3  cRightStaff$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+11 - RULE 1.14, pitches.gdh(249):  cRightTone5  cRightTone  >  cRightTone5Contour$3  cRightStaff$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+12 - RULE 1.15, pitches.gdh(255):  cLeftTone  >  cLeftStaff_no$2   /  ANY  ^  _  cLeftTone  ;
+
+
+13 - RULE 1.16, pitches.gdh(258):  cLeftTone  >  cLeftStaff$2   /  ANY  ^  _  cLeftTone  ;
+
+
+14 - RULE 1.17, pitches.gdh(263):  cLeftContourOrStaff1  cLeftTone  >  @2  cLeftTone1Contour$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+15 - RULE 1.18, pitches.gdh(264):  cLeftContourOrStaff2  cLeftTone  >  @2  cLeftTone2Contour$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+16 - RULE 1.19, pitches.gdh(265):  cLeftContourOrStaff3  cLeftTone  >  @2  cLeftTone3Contour$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+17 - RULE 1.20, pitches.gdh(266):  cLeftContourOrStaff4  cLeftTone  >  @2  cLeftTone4Contour$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+18 - RULE 1.21, pitches.gdh(267):  cLeftContourOrStaff5  cLeftTone  >  @2  cLeftTone5Contour$3 { user1=...;  }   /  ANY  _  ^  _  ;
+
+
+19 - RULE 1.23, pitches.gdh(605):  g_pitchSpace  >  @2   /  ANY  _  cno_LinesXXX  ;
+
+
+20 - RULE 1.24, pitches.gdh(607):  *GC6*  >  g_noPitchSpace   /  ^  g_pitchSpace  _  ;
+
+
+21 - RULE 1.26, pitches.gdh(617):  *GC7*  c9PitchX  >  @2 { user1=1;  }  c9Pitch1X   /  ANY  _  ^  _  ;
+
+
+22 - RULE 1.27, pitches.gdh(618):  *GC8*  c9PitchX  >  @2 { user1=1;  }  c9Pitch2X   /  ANY  _  ^  _  ;
+
+
+23 - RULE 1.28, pitches.gdh(619):  *GC9*  c9PitchX  >  @2 { user1=1;  }  c9Pitch3X   /  ANY  _  ^  _  ;
+
+
+24 - RULE 1.29, pitches.gdh(620):  *GC10*  c9PitchX  >  @2 { user1=1;  }  c9Pitch4X   /  ANY  _  ^  _  ;
+
+
+25 - RULE 1.30, pitches.gdh(621):  *GC11*  c9PitchX  >  @2 { user1=1;  }  c9Pitch5X   /  ANY  _  ^  _  ;
+
+
+26 - RULE 1.31, pitches.gdh(622):  *GC12*  c9PitchX  >  @2 { user1=1;  }  c9Pitch6X   /  ANY  _  ^  _  ;
+
+
+27 - RULE 1.32, pitches.gdh(623):  *GC13*  c9PitchX  >  @2 { user1=1;  }  c9Pitch7X   /  ANY  _  ^  _  ;
+
+
+28 - RULE 1.33, pitches.gdh(624):  *GC14*  c9PitchX  >  @2 { user1=1;  }  c9Pitch8X   /  ANY  _  ^  _  ;
+
+
+29 - RULE 1.34, pitches.gdh(625):  *GC15*  c9PitchX  >  @2 { user1=1;  }  c9Pitch9X   /  ANY  _  ^  _  ;
+
+
+30 - RULE 1.0, main.gdh(372):  c_pua  >  c_noPua { user5=1;  }   /  ANY  ^  _  ;
+
+
+31 - RULE 1.1, main.gdh(375):  cno_SC  >  cSC   /  ANY  _  ;
+
+
+32 - RULE 1.3, pitches.gdh(219):  cRightTone  >  cSupNum   /  ANY  _  ;
+
+
+33 - RULE 1.4, pitches.gdh(220):  cLeftTone  >  cSupNum   /  ANY  _  ;
+
+
+34 - RULE 1.25, pitches.gdh(609):  g_pitchSpace  >  g_noPitchSpace   /  ANY  _  ;
+
+
+PASS: 2
+
+0 - RULE 2.0, main.gdh(391):  gfe20  gfe21  >  g0361:(3 10)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  cDia  cDia  cDia  cDia  _  ;
+
+
+1 - RULE 2.6, main.gdh(392):  gfe22  gfe23  >  g0360:(3 10)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  cDia  cDia  cDia  cDia  _  ;
+
+
+2 - RULE 2.1, main.gdh(391):  gfe20  gfe21  >  g0361:(3 9)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  cDia  cDia  cDia  _  ;
+
+
+3 - RULE 2.7, main.gdh(392):  gfe22  gfe23  >  g0360:(3 9)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  cDia  cDia  cDia  _  ;
+
+
+4 - RULE 2.2, main.gdh(391):  gfe20  gfe21  >  g0361:(3 8)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  cDia  cDia  _  ;
+
+
+5 - RULE 2.8, main.gdh(392):  gfe22  gfe23  >  g0360:(3 8)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  cDia  cDia  _  ;
+
+
+6 - RULE 2.14, main.gdh(402):  cOgonekBase  g0328  >  cOgonekComposite:(3 8)  _   /  ANY  ANY  ^  _  cnODiaX  cnODiaX  cnODiaX  cnODiaX  _  ;
+
+
+7 - RULE 2.19, main.gdh(407):  cCedillaBase  g0327  >  cCedillaComposite:(3 8)  _   /  ANY  ANY  ^  _  cnHDiaX  cnHDiaX  cnHDiaX  cnHDiaX  _  ;
+
+
+8 - RULE 2.24, main.gdh(409):  cHornBase  g031b  >  cHornComposite:(3 8)  _   /  ANY  ANY  _  cnRDiaX  cnRDiaX  cnRDiaX  cnRDiaX  _  ;
+
+
+9 - RULE 2.30, main.gdh(420):  g0302  cDiacComb  >  c_g0302DiacComb$8:(3 8)  _   /  ANY  ANY  _  cnUDiaX  cnUDiaX  cnUDiaX  cnUDiaX  _  ;
+
+
+10 - RULE 2.35, main.gdh(421):  g0306  cDiacComb  >  c_g0306DiacComb$8:(3 8)  _   /  ANY  ANY  _  cnUDiaX  cnUDiaX  cnUDiaX  cnUDiaX  _  ;
+
+
+11 - RULE 2.3, main.gdh(391):  gfe20  gfe21  >  g0361:(3 7)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  cDia  _  ;
+
+
+12 - RULE 2.9, main.gdh(392):  gfe22  gfe23  >  g0360:(3 7)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  cDia  _  ;
+
+
+13 - RULE 2.15, main.gdh(402):  cOgonekBase  g0328  >  cOgonekComposite:(3 7)  _   /  ANY  ANY  ^  _  cnODiaX  cnODiaX  cnODiaX  _  ;
+
+
+14 - RULE 2.20, main.gdh(407):  cCedillaBase  g0327  >  cCedillaComposite:(3 7)  _   /  ANY  ANY  ^  _  cnHDiaX  cnHDiaX  cnHDiaX  _  ;
+
+
+15 - RULE 2.25, main.gdh(409):  cHornBase  g031b  >  cHornComposite:(3 7)  _   /  ANY  ANY  _  cnRDiaX  cnRDiaX  cnRDiaX  _  ;
+
+
+16 - RULE 2.31, main.gdh(420):  g0302  cDiacComb  >  c_g0302DiacComb$7:(3 7)  _   /  ANY  ANY  _  cnUDiaX  cnUDiaX  cnUDiaX  _  ;
+
+
+17 - RULE 2.36, main.gdh(421):  g0306  cDiacComb  >  c_g0306DiacComb$7:(3 7)  _   /  ANY  ANY  _  cnUDiaX  cnUDiaX  cnUDiaX  _  ;
+
+
+18 - RULE 2.42, main.gdh(430):  g0308  >  g0308_uU   /  g__l  g035f  _  g035f  g__l  ;
+
+
+19 - RULE 2.46, main.gdh(431):  g0308  >  g0308_uL   /  g__l  g035f  _  g035f  g_l  ;
+
+
+20 - RULE 2.50, main.gdh(432):  g0308  >  g0308_lL   /  g_l  g035f  _  g035f  g_l  ;
+
+
+21 - RULE 2.54, main.gdh(435):  cno_BrInvBreve  >  cBrInvBreve_uU   /  g__o  g035f  _  g035f  g__u  ;
+
+
+22 - RULE 2.58, main.gdh(436):  cno_BrInvBreve  >  cBrInvBreve_uL   /  g__o  g035f  _  g035f  g_u  ;
+
+
+23 - RULE 2.62, main.gdh(437):  cno_BrInvBreve  >  cBrInvBreve_lL   /  g_o  g035f  _  g035f  g_u  ;
+
+
+24 - RULE 2.155, pitches.gdh(644):  g9Pitch1  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch11  g9Pitch11  g9Pitch11  g9Pitch11 {...}  ;
+
+
+25 - RULE 2.159, pitches.gdh(645):  g9Pitch2  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch22  g9Pitch22  g9Pitch22  g9Pitch22 {...}  ;
+
+
+26 - RULE 2.163, pitches.gdh(646):  g9Pitch3  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch33  g9Pitch33  g9Pitch33  g9Pitch33 {...}  ;
+
+
+27 - RULE 2.167, pitches.gdh(647):  g9Pitch4  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch44  g9Pitch44  g9Pitch44  g9Pitch44 {...}  ;
+
+
+28 - RULE 2.171, pitches.gdh(648):  g9Pitch5  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch55  g9Pitch55  g9Pitch55  g9Pitch55 {...}  ;
+
+
+29 - RULE 2.175, pitches.gdh(649):  g9Pitch6  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch66  g9Pitch66  g9Pitch66  g9Pitch66 {...}  ;
+
+
+30 - RULE 2.179, pitches.gdh(650):  g9Pitch7  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch77  g9Pitch77  g9Pitch77  g9Pitch77 {...}  ;
+
+
+31 - RULE 2.183, pitches.gdh(651):  g9Pitch8  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch88  g9Pitch88  g9Pitch88  g9Pitch88 {...}  ;
+
+
+32 - RULE 2.187, pitches.gdh(652):  g9Pitch9  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch99  g9Pitch99  g9Pitch99  g9Pitch99 {...}  ;
+
+
+33 - RULE 2.4, main.gdh(391):  gfe20  gfe21  >  g0361:(3 6)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  _  ;
+
+
+34 - RULE 2.10, main.gdh(392):  gfe22  gfe23  >  g0360:(3 6)  _   /  ANY  ANY  ^  _  cTakesUDia  cDia  _  ;
+
+
+35 - RULE 2.16, main.gdh(402):  cOgonekBase  g0328  >  cOgonekComposite:(3 6)  _   /  ANY  ANY  ^  _  cnODiaX  cnODiaX  _  ;
+
+
+36 - RULE 2.21, main.gdh(407):  cCedillaBase  g0327  >  cCedillaComposite:(3 6)  _   /  ANY  ANY  ^  _  cnHDiaX  cnHDiaX  _  ;
+
+
+37 - RULE 2.26, main.gdh(409):  cHornBase  g031b  >  cHornComposite:(3 6)  _   /  ANY  ANY  _  cnRDiaX  cnRDiaX  _  ;
+
+
+38 - RULE 2.32, main.gdh(420):  g0302  cDiacComb  >  c_g0302DiacComb$6:(3 6)  _   /  ANY  ANY  _  cnUDiaX  cnUDiaX  _  ;
+
+
+39 - RULE 2.37, main.gdh(421):  g0306  cDiacComb  >  c_g0306DiacComb$6:(3 6)  _   /  ANY  ANY  _  cnUDiaX  cnUDiaX  _  ;
+
+
+40 - RULE 2.43, main.gdh(430):  g0308  >  g0308_uU   /  g__l  g035f  _  g__l  ;
+
+
+41 - RULE 2.44, main.gdh(430):  g0308  >  g0308_uU   /  ANY  g__l  _  g035f  g__l  ;
+
+
+42 - RULE 2.47, main.gdh(431):  g0308  >  g0308_uL   /  g__l  g035f  _  g_l  ;
+
+
+43 - RULE 2.48, main.gdh(431):  g0308  >  g0308_uL   /  ANY  g__l  _  g035f  g_l  ;
+
+
+44 - RULE 2.51, main.gdh(432):  g0308  >  g0308_lL   /  g_l  g035f  _  g_l  ;
+
+
+45 - RULE 2.52, main.gdh(432):  g0308  >  g0308_lL   /  ANY  g_l  _  g035f  g_l  ;
+
+
+46 - RULE 2.55, main.gdh(435):  cno_BrInvBreve  >  cBrInvBreve_uU   /  g__o  g035f  _  g__u  ;
+
+
+47 - RULE 2.56, main.gdh(435):  cno_BrInvBreve  >  cBrInvBreve_uU   /  ANY  g__o  _  g035f  g__u  ;
+
+
+48 - RULE 2.59, main.gdh(436):  cno_BrInvBreve  >  cBrInvBreve_uL   /  g__o  g035f  _  g_u  ;
+
+
+49 - RULE 2.60, main.gdh(436):  cno_BrInvBreve  >  cBrInvBreve_uL   /  ANY  g__o  _  g035f  g_u  ;
+
+
+50 - RULE 2.63, main.gdh(437):  cno_BrInvBreve  >  cBrInvBreve_lL   /  g_o  g035f  _  g_u  ;
+
+
+51 - RULE 2.64, main.gdh(437):  cno_BrInvBreve  >  cBrInvBreve_lL   /  ANY  g_o  _  g035f  g_u  ;
+
+
+52 - RULE 2.93, main.gdh(570):  g_f  g_f  cffLigC3  >  g_f_slant_italic  g_f_slant_italic  cffLigC3_slantItalic   /  ANY  ANY  _  _  _  cDia  ;
+
+
+53 - RULE 2.99, main.gdh(580):  g_f  g_f  cffLigC3  >  @3  @4  @5   /  ANY  ANY  _  _  _  cDia  ;
+
+
+54 - RULE 2.156, pitches.gdh(644):  g9Pitch1  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch11  g9Pitch11  g9Pitch11 {...}  ;
+
+
+55 - RULE 2.160, pitches.gdh(645):  g9Pitch2  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch22  g9Pitch22  g9Pitch22 {...}  ;
+
+
+56 - RULE 2.164, pitches.gdh(646):  g9Pitch3  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch33  g9Pitch33  g9Pitch33 {...}  ;
+
+
+57 - RULE 2.168, pitches.gdh(647):  g9Pitch4  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch44  g9Pitch44  g9Pitch44 {...}  ;
+
+
+58 - RULE 2.172, pitches.gdh(648):  g9Pitch5  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch55  g9Pitch55  g9Pitch55 {...}  ;
+
+
+59 - RULE 2.176, pitches.gdh(649):  g9Pitch6  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch66  g9Pitch66  g9Pitch66 {...}  ;
+
+
+60 - RULE 2.180, pitches.gdh(650):  g9Pitch7  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch77  g9Pitch77  g9Pitch77 {...}  ;
+
+
+61 - RULE 2.184, pitches.gdh(651):  g9Pitch8  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch88  g9Pitch88  g9Pitch88 {...}  ;
+
+
+62 - RULE 2.188, pitches.gdh(652):  g9Pitch9  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch99  g9Pitch99  g9Pitch99 {...}  ;
+
+
+63 - RULE 2.5, main.gdh(391):  gfe20  gfe21  >  g0361:(3 5)  _   /  ANY  ANY  ^  _  cTakesUDia  _  ;
+
+
+64 - RULE 2.11, main.gdh(392):  gfe22  gfe23  >  g0360:(3 5)  _   /  ANY  ANY  ^  _  cTakesUDia  _  ;
+
+
+65 - RULE 2.17, main.gdh(402):  cOgonekBase  g0328  >  cOgonekComposite:(3 5)  _   /  ANY  ANY  ^  _  cnODiaX  _  ;
+
+
+66 - RULE 2.22, main.gdh(407):  cCedillaBase  g0327  >  cCedillaComposite:(3 5)  _   /  ANY  ANY  ^  _  cnHDiaX  _  ;
+
+
+67 - RULE 2.27, main.gdh(409):  cHornBase  g031b  >  cHornComposite:(3 5)  _   /  ANY  ANY  _  cnRDiaX  _  ;
+
+
+68 - RULE 2.33, main.gdh(420):  g0302  cDiacComb  >  c_g0302DiacComb$5:(3 5)  _   /  ANY  ANY  _  cnUDiaX  _  ;
+
+
+69 - RULE 2.38, main.gdh(421):  g0306  cDiacComb  >  c_g0306DiacComb$5:(3 5)  _   /  ANY  ANY  _  cnUDiaX  _  ;
+
+
+70 - RULE 2.45, main.gdh(430):  g0308  >  g0308_uU   /  ANY  g__l  _  g__l  ;
+
+
+71 - RULE 2.49, main.gdh(431):  g0308  >  g0308_uL   /  ANY  g__l  _  g_l  ;
+
+
+72 - RULE 2.53, main.gdh(432):  g0308  >  g0308_lL   /  ANY  g_l  _  g_l  ;
+
+
+73 - RULE 2.57, main.gdh(435):  cno_BrInvBreve  >  cBrInvBreve_uU   /  ANY  g__o  _  g__u  ;
+
+
+74 - RULE 2.61, main.gdh(436):  cno_BrInvBreve  >  cBrInvBreve_uL   /  ANY  g__o  _  g_u  ;
+
+
+75 - RULE 2.65, main.gdh(437):  cno_BrInvBreve  >  cBrInvBreve_lL   /  ANY  g_o  _  g_u  ;
+
+
+76 - RULE 2.91, main.gdh(567):  g_f  cfLigC2  >  g_f_slant_italic  cfLigC2_slantItalic   /  ANY  ANY  _  _  cDia  ;
+
+
+77 - RULE 2.94, main.gdh(571):  g_f  g_f  cffLigC3  >  _  _  cffLig_slantItalic:(3 4 5) { comp.f1.ref=@3; comp.f2.ref=@4; comp.f3.ref=@5;  }   /  ANY  ANY  _  _  _  ;
+
+
+78 - RULE 2.97, main.gdh(577):  g_f  cfLigC2  >  @3  @4   /  ANY  ANY  _  _  cDia  ;
+
+
+79 - RULE 2.100, main.gdh(581):  g_f  g_f  cffLigC3  >  _  _  cffLig:(3 4 5) { comp.f1.ref=@3; comp.f2.ref=@4; comp.f3.ref=@5;  }   /  ANY  ANY  _  _  _  ;
+
+
+80 - RULE 2.157, pitches.gdh(644):  g9Pitch1  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch11  g9Pitch11 {...}  ;
+
+
+81 - RULE 2.161, pitches.gdh(645):  g9Pitch2  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch22  g9Pitch22 {...}  ;
+
+
+82 - RULE 2.165, pitches.gdh(646):  g9Pitch3  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch33  g9Pitch33 {...}  ;
+
+
+83 - RULE 2.169, pitches.gdh(647):  g9Pitch4  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch44  g9Pitch44 {...}  ;
+
+
+84 - RULE 2.173, pitches.gdh(648):  g9Pitch5  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch55  g9Pitch55 {...}  ;
+
+
+85 - RULE 2.177, pitches.gdh(649):  g9Pitch6  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch66  g9Pitch66 {...}  ;
+
+
+86 - RULE 2.181, pitches.gdh(650):  g9Pitch7  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch77  g9Pitch77 {...}  ;
+
+
+87 - RULE 2.185, pitches.gdh(651):  g9Pitch8  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch88  g9Pitch88 {...}  ;
+
+
+88 - RULE 2.189, pitches.gdh(652):  g9Pitch9  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch99  g9Pitch99 {...}  ;
+
+
+89 - RULE 2.18, main.gdh(402):  cOgonekBase  g0328  >  cOgonekComposite:(3 4)  _   /  ANY  ANY  ^  _  _  ;
+
+
+90 - RULE 2.23, main.gdh(407):  cCedillaBase  g0327  >  cCedillaComposite:(3 4)  _   /  ANY  ANY  ^  _  _  ;
+
+
+91 - RULE 2.28, main.gdh(409):  cHornBase  g031b  >  cHornComposite:(3 4)  _   /  ANY  ANY  _  _  ;
+
+
+92 - RULE 2.34, main.gdh(420):  g0302  cDiacComb  >  c_g0302DiacComb$4:(3 4)  _   /  ANY  ANY  _  _  ;
+
+
+93 - RULE 2.39, main.gdh(421):  g0306  cDiacComb  >  c_g0306DiacComb$4:(3 4)  _   /  ANY  ANY  _  _  ;
+
+
+94 - RULE 2.92, main.gdh(568):  g_f  cfLigC2  >  _  cfLig_slantItalic:(3 4) { comp.f1.ref=@3; comp.f2.ref=@4;  }   /  ANY  ANY  _  _  ;
+
+
+95 - RULE 2.98, main.gdh(578):  g_f  cfLigC2  >  _  cfLig:(3 4) { comp.f1.ref=@3; comp.f2.ref=@4;  }   /  ANY  ANY  _  _  ;
+
+
+96 - RULE 2.139, main.gdh(711):  cno_CaronEuro  g030c  >  cCaronEuro:(3 4) { comp.base.ref=@3; comp.caron.ref=@4;  }  _   /  ANY  ANY  _  _  ;
+
+
+97 - RULE 2.140, main.gdh(713):  cno_CaronEuro  g030c  >  cCaronEuro:(3 4)  _   /  ANY  ANY  _  _  ;
+
+
+98 - RULE 2.150, pitches.gdh(286):  cLeftContourOrStaff { user2=1;  }   /  ANY  ANY  _ {...}  cLeftContour {...}  ;
+
+
+99 - RULE 2.151, pitches.gdh(289):  cLeftContour { user2=2;  }   /  ANY  ^  cLeftContourOrStaff {...}  _ {...}  ;
+
+
+100 - RULE 2.152, pitches.gdh(294):  cLeftStaff  _  >  @3  cLeftToneHoriz$3:3   /  ANY  ANY  _  _  cLeftContour {...}  ;
+
+
+101 - RULE 2.153, pitches.gdh(296):  cLeftStaff_no  _  >  @3  cLeftToneHoriz$3:3   /  ANY  ANY  _  _  cLeftContour {...}  ;
+
+
+102 - RULE 2.158, pitches.gdh(644):  g9Pitch1  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch11 {...}  ;
+
+
+103 - RULE 2.162, pitches.gdh(645):  g9Pitch2  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch22 {...}  ;
+
+
+104 - RULE 2.166, pitches.gdh(646):  g9Pitch3  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch33 {...}  ;
+
+
+105 - RULE 2.170, pitches.gdh(647):  g9Pitch4  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch44 {...}  ;
+
+
+106 - RULE 2.174, pitches.gdh(648):  g9Pitch5  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch55 {...}  ;
+
+
+107 - RULE 2.178, pitches.gdh(649):  g9Pitch6  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch66 {...}  ;
+
+
+108 - RULE 2.182, pitches.gdh(650):  g9Pitch7  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch77 {...}  ;
+
+
+109 - RULE 2.186, pitches.gdh(651):  g9Pitch8  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch88 {...}  ;
+
+
+110 - RULE 2.190, pitches.gdh(652):  g9Pitch9  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  g9Pitch99 {...}  ;
+
+
+111 - RULE 2.191, pitches.gdh(655):  c9PitchX  c9PitchXX  >  _  @4:(3 4) { comp.p1.ref=@3; comp.p2.ref=@4;  }   /  ANY  ANY  _ {...}  ^  _  ;
+
+
+112 - RULE 2.12, main.gdh(396):  cno_ChinantecTn  >  cChinantecTn   /  ANY  ANY  _  ;
+
+
+113 - RULE 2.13, main.gdh(398):  cChinantecTn  >  cno_ChinantecTn   /  ANY  ANY  _  ;
+
+
+114 - RULE 2.29, main.gdh(418):  _  c_aStack_noLit  >  g_a_sng_story:4  c_diacComb_vN   /  ANY  ANY  _  _ {...}  ;
+
+
+115 - RULE 2.40, main.gdh(422):  cno_VN  >  cVN   /  ANY  ANY  _  ;
+
+
+116 - RULE 2.41, main.gdh(424):  cVN  >  cno_VN   /  ANY  ANY  _  ;
+
+
+117 - RULE 2.66, main.gdh(470):  c_eng_BaselineHook  >  c_eng_Descender   /  ANY  ANY  _  ;
+
+
+118 - RULE 2.67, main.gdh(471):  c_eng_UCStyle  >  c_eng_Descender   /  ANY  ANY  _  ;
+
+
+119 - RULE 2.68, main.gdh(472):  c_eng_Kom  >  c_eng_Descender   /  ANY  ANY  _  ;
+
+
+120 - RULE 2.69, main.gdh(476):  c_eng_Descender  >  c_eng_BaselineHook   /  ANY  ANY  _  ;
+
+
+121 - RULE 2.70, main.gdh(477):  c_eng_UCStyle  >  c_eng_BaselineHook   /  ANY  ANY  _  ;
+
+
+122 - RULE 2.71, main.gdh(478):  c_eng_Kom  >  c_eng_BaselineHook   /  ANY  ANY  _  ;
+
+
+123 - RULE 2.72, main.gdh(482):  c_eng_Descender  >  c_eng_UCStyle   /  ANY  ANY  _  ;
+
+
+124 - RULE 2.73, main.gdh(483):  c_eng_BaselineHook  >  c_eng_UCStyle   /  ANY  ANY  _  ;
+
+
+125 - RULE 2.74, main.gdh(484):  c_eng_Kom  >  c_eng_UCStyle   /  ANY  ANY  _  ;
+
+
+126 - RULE 2.75, main.gdh(488):  c_eng_Descender  >  c_eng_Kom   /  ANY  ANY  _  ;
+
+
+127 - RULE 2.76, main.gdh(489):  c_eng_BaselineHook  >  c_eng_Kom   /  ANY  ANY  _  ;
+
+
+128 - RULE 2.77, main.gdh(490):  c_eng_UCStyle  >  c_eng_Kom   /  ANY  ANY  _  ;
+
+
+129 - RULE 2.78, main.gdh(496):  *GC0*  >  g0264   /  ANY  ANY  _  ;
+
+
+130 - RULE 2.79, main.gdh(500):  *GC1*  >  g0264_lrgBowl   /  ANY  ANY  _  ;
+
+
+131 - RULE 2.80, main.gdh(504):  *GC2*  >  g0264_gammaStyle   /  ANY  ANY  _  ;
+
+
+132 - RULE 2.81, main.gdh(510):  cno_MongolStyle  >  cMongolStyle   /  ANY  ANY  _  ;
+
+
+133 - RULE 2.82, main.gdh(512):  cMongolStyle  >  cno_MongolStyle   /  ANY  ANY  _  ;
+
+
+134 - RULE 2.83, main.gdh(529):  cno_CyShortMrkAlt  >  cCyShortMrkAlt   /  ANY  ANY  _  ;
+
+
+135 - RULE 2.84, main.gdh(531):  cCyShortMrkAlt  >  cno_CyShortMrkAlt   /  ANY  ANY  _  ;
+
+
+136 - RULE 2.85, main.gdh(535):  cno_ShowInv  >  cShowInv   /  ANY  ANY  _  ;
+
+
+137 - RULE 2.86, main.gdh(552):  cno_SngBowl  >  cSngBowl   /  ANY  ANY  _  ;
+
+
+138 - RULE 2.87, main.gdh(553):  cno_SngStory  >  cSngStory   /  ANY  ANY  _  ;
+
+
+139 - RULE 2.88, main.gdh(555):  g01e5  >  g01e5_barBowl_sngBowl   /  ANY  ANY  _  ;
+
+
+140 - RULE 2.89, main.gdh(558):  cSngBowl  >  cno_SngBowl   /  ANY  ANY  _  ;
+
+
+141 - RULE 2.90, main.gdh(559):  cSngStory  >  cno_SngStory   /  ANY  ANY  _  ;
+
+
+142 - RULE 2.95, main.gdh(573):  cno_SlantItalic  >  cSlantItalic   /  ANY  ANY  _  ;
+
+
+143 - RULE 2.96, main.gdh(574):  cno_2StorySlantItalic  >  c2StorySlantItalic   /  ANY  ANY  _  ;
+
+
+144 - RULE 2.101, main.gdh(583):  cSlantItalic  >  cno_SlantItalic   /  ANY  ANY  _  ;
+
+
+145 - RULE 2.102, main.gdh(584):  c2StorySlantItalic  >  cno_2StorySlantItalic   /  ANY  ANY  _  ;
+
+
+146 - RULE 2.103, main.gdh(590):  cno_BarBowl  >  cBarBowl   /  ANY  ANY  _  ;
+
+
+147 - RULE 2.104, main.gdh(594):  cBarBowl  >  cno_BarBowl   /  ANY  ANY  _  ;
+
+
+148 - RULE 2.105, main.gdh(599):  cno_DblSerif  >  cDblSerif   /  ANY  ANY  _  ;
+
+
+149 - RULE 2.106, main.gdh(601):  cDblSerif  >  cno_DblSerif   /  ANY  ANY  _  ;
+
+
+150 - RULE 2.107, main.gdh(606):  cno_TopSerif  >  cTopSerif   /  ANY  ANY  _  ;
+
+
+151 - RULE 2.108, main.gdh(608):  cTopSerif  >  cno_TopSerif   /  ANY  ANY  _  ;
+
+
+152 - RULE 2.109, main.gdh(613):  c_vhook_StraightLeft  >  c_vhook_Curved   /  ANY  ANY  _  ;
+
+
+153 - RULE 2.110, main.gdh(614):  c_vhook_HighHook  >  c_vhook_Curved   /  ANY  ANY  _  ;
+
+
+154 - RULE 2.111, main.gdh(617):  c_vhook_Curved  >  c_vhook_StraightLeft   /  ANY  ANY  _  ;
+
+
+155 - RULE 2.112, main.gdh(618):  c_vhook_HighHook  >  c_vhook_StraightLeft   /  ANY  ANY  _  ;
+
+
+156 - RULE 2.113, main.gdh(621):  c_vhook_Curved  >  c_vhook_HighHook   /  ANY  ANY  _  ;
+
+
+157 - RULE 2.114, main.gdh(622):  c_vhook_StraightLeft  >  c_vhook_HighHook   /  ANY  ANY  _  ;
+
+
+158 - RULE 2.115, main.gdh(627):  cno_RtHookYhook  >  cRtHookYhook   /  ANY  ANY  _  ;
+
+
+159 - RULE 2.116, main.gdh(629):  cRtHookYhook  >  cno_RtHookYhook   /  ANY  ANY  _  ;
+
+
+160 - RULE 2.117, main.gdh(633):  cno_LCStyleNhook  >  cLCStyleNhook   /  ANY  ANY  _  ;
+
+
+161 - RULE 2.118, main.gdh(635):  cLCStyleNhook  >  cno_LCStyleNhook   /  ANY  ANY  _  ;
+
+
+162 - RULE 2.119, main.gdh(640):  g0293  >  g0293_lrgBowl   /  ANY  ANY  _  ;
+
+
+163 - RULE 2.120, main.gdh(642):  g0293_lrgBowl  >  g0293   /  ANY  ANY  _  ;
+
+
+164 - RULE 2.121, main.gdh(646):  cno_RtHookThook  >  cRtHookThook   /  ANY  ANY  _  ;
+
+
+165 - RULE 2.122, main.gdh(648):  cRtHookThook  >  cno_RtHookThook   /  ANY  ANY  _  ;
+
+
+166 - RULE 2.123, main.gdh(652):  cno_TopBar  >  cTopBar   /  ANY  ANY  _  ;
+
+
+167 - RULE 2.124, main.gdh(654):  cTopBar  >  cno_TopBar   /  ANY  ANY  _  ;
+
+
+168 - RULE 2.125, main.gdh(658):  cno_VertStrk  >  cVertStrk   /  ANY  ANY  _  ;
+
+
+169 - RULE 2.126, main.gdh(661):  cVertStrk  >  cno_VertStrk   /  ANY  ANY  _  ;
+
+
+170 - RULE 2.127, main.gdh(666):  cno_LCStyleRtail  >  cLCStyleRtail   /  ANY  ANY  _  ;
+
+
+171 - RULE 2.128, main.gdh(668):  cLCStyleRtail  >  cno_LCStyleRtail   /  ANY  ANY  _  ;
+
+
+172 - RULE 2.129, main.gdh(672):  cno_BowlHook  >  cBowlHook   /  ANY  ANY  _  ;
+
+
+173 - RULE 2.130, main.gdh(674):  cBowlHook  >  cno_BowlHook   /  ANY  ANY  _  ;
+
+
+174 - RULE 2.131, main.gdh(678):  cno_CommaStyle  >  cCommaStyle   /  ANY  ANY  _  ;
+
+
+175 - RULE 2.132, main.gdh(680):  cCommaStyle  >  cno_CommaStyle   /  ANY  ANY  _  ;
+
+
+176 - RULE 2.133, main.gdh(684):  cno_RevSigmaStyle  >  cRevSigmaStyle   /  ANY  ANY  _  ;
+
+
+177 - RULE 2.134, main.gdh(686):  cRevSigmaStyle  >  cno_RevSigmaStyle   /  ANY  ANY  _  ;
+
+
+178 - RULE 2.135, main.gdh(693):  cno_Lrg  >  cLrg   /  ANY  ANY  _  ;
+
+
+179 - RULE 2.136, main.gdh(695):  cLrg  >  cno_Lrg   /  ANY  ANY  _  ;
+
+
+180 - RULE 2.137, main.gdh(699):  cno_Wide  >  cWide   /  ANY  ANY  _  ;
+
+
+181 - RULE 2.138, main.gdh(702):  cWide  >  cno_Wide   /  ANY  ANY  _  ;
+
+
+182 - RULE 2.141, main.gdh(718):  cCaronEuro  _  >  cno_CaronEuro:3  g030c:3   /  ANY  ANY  _  _  ;
+
+
+183 - RULE 2.142, main.gdh(722):  cno_OpenTop  >  cOpenTop   /  ANY  ANY  _  ;
+
+
+184 - RULE 2.143, main.gdh(724):  cOpenTop  >  cno_OpenTop   /  ANY  ANY  _  ;
+
+
+185 - RULE 2.144, main.gdh(728):  cno_SlashZero  >  cSlashZero   /  ANY  ANY  _  ;
+
+
+186 - RULE 2.145, main.gdh(730):  cSlashZero  >  cno_SlashZero   /  ANY  ANY  _  ;
+
+
+187 - RULE 2.146, main.gdh(743):  cno_UCStyleCyrShha  >  cUCStyleCyrShha   /  ANY  ANY  _  ;
+
+
+188 - RULE 2.147, main.gdh(745):  cUCStyleCyrShha  >  cno_UCStyleCyrShha   /  ANY  ANY  _  ;
+
+
+189 - RULE 2.148, pitches.gdh(276):  _  cRightStaff  >  cRightToneHoriz$4:4  @4   /  ANY  ANY  _  _ {...}  ;
+
+
+190 - RULE 2.149, pitches.gdh(277):  _  cRightStaff_no  >  cRightToneHoriz$4:4  @4   /  ANY  ANY  _  _ {...}  ;
+
+
+191 - RULE 2.154, pitches.gdh(639):  c9PitchX  >  @3 { user2=1;  }   /  ANY  ANY  ^  _ {...}  ;
+
+
+192 - RULE 2.192, pitches.gdh(662):  cno_LinesXXX  >  cLinesXXX   /  ANY  ANY  _  ;
+
+
+PASS: 3
+
+0 - RULE 3.0, main.gdh(835):  cno_Dotless  >  cDotless   /  ANY  _  cnUDiaX  cnUDiaX  cnUDiaX  cnUDiaX  cUDia  ;
+
+
+1 - RULE 3.5, main.gdh(837):  cSpecialDotted  _  >  g_i_dotless  cSpecialDottedDia$2:2   /  ANY  _  _  cnUDiaX  cnUDiaX  cnUDiaX  cnUDiaX  cUDia  ;
+
+
+2 - RULE 3.1, main.gdh(835):  cno_Dotless  >  cDotless   /  ANY  _  cnUDiaX  cnUDiaX  cnUDiaX  cUDia  ;
+
+
+3 - RULE 3.6, main.gdh(837):  cSpecialDotted  _  >  g_i_dotless  cSpecialDottedDia$2:2   /  ANY  _  _  cnUDiaX  cnUDiaX  cnUDiaX  cUDia  ;
+
+
+4 - RULE 3.2, main.gdh(835):  cno_Dotless  >  cDotless   /  ANY  _  cnUDiaX  cnUDiaX  cUDia  ;
+
+
+5 - RULE 3.7, main.gdh(837):  cSpecialDotted  _  >  g_i_dotless  cSpecialDottedDia$2:2   /  ANY  _  _  cnUDiaX  cnUDiaX  cUDia  ;
+
+
+6 - RULE 3.3, main.gdh(835):  cno_Dotless  >  cDotless   /  ANY  _  cnUDiaX  cUDia  ;
+
+
+7 - RULE 3.8, main.gdh(837):  cSpecialDotted  _  >  g_i_dotless  cSpecialDottedDia$2:2   /  ANY  _  _  cnUDiaX  cUDia  ;
+
+
+8 - RULE 3.4, main.gdh(835):  cno_Dotless  >  cDotless   /  ANY  _  cUDia  ;
+
+
+9 - RULE 3.9, main.gdh(837):  cSpecialDotted  _  >  g_i_dotless  cSpecialDottedDia$2:2   /  ANY  _  _  cUDia  ;
+
+
+10 - RULE 3.12, main.gdh(867):  cno_Sup  >  cSup   /  *GC3*  _  ;
+
+
+11 - RULE 3.10, main.gdh(843):  cno_RetroHookStyle  >  cRetroHookStyle   /  ANY  _  ;
+
+
+12 - RULE 3.11, main.gdh(845):  cRetroHookStyle  >  cno_RetroHookStyle   /  ANY  _  ;
+
+
+13 - RULE 3.13, main.gdh(874):  cno_Dep51  >  cDep51   /  ANY  _ {...}  ;
+
+
+14 - RULE 3.14, main.gdh(877):  cno_Dep50  >  cDep50   /  ANY  _ {...}  ;
+
+
+15 - RULE 3.15, main.gdh(880):  cno_Dep41  >  cDep41   /  ANY  _ {...}  ;
+
+
+16 - RULE 3.16, main.gdh(883):  cno_Dep40  >  cDep40   /  ANY  _ {...}  ;
+
+
+TABLE: positioning
+
+PASS: 4
+
+0 - RULE 4.2, main.gdh(907):  cTakesHDia  cHDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnHDiaX  cnHDiaX  cnHDiaX  cnHDiaX  _ {...}  ;
+
+
+1 - RULE 4.7, main.gdh(908):  cTakesLDia  cLDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnLDiaX  cnLDiaX  cnLDiaX  cnLDiaX  _ {...}  ;
+
+
+2 - RULE 4.12, main.gdh(909):  cTakesODia  cODia { attach {...} insert=1; user1=1;  }   /  ^  _  cnODiaX  cnODiaX  cnODiaX  cnODiaX  _ {...}  ;
+
+
+3 - RULE 4.17, main.gdh(910):  cTakesRDia  cRDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnRDiaX  cnRDiaX  cnRDiaX  cnRDiaX  _ {...}  ;
+
+
+4 - RULE 4.22, main.gdh(911):  cTakesUDia  cUDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnUDiaX  cnUDiaX  cnUDiaX  cnUDiaX  _ {...}  ;
+
+
+5 - RULE 4.27, main.gdh(913):  cTakesHDia  cHDia { attach {...} user1=1;  }   /  ^  _  cnHDiaX  cnHDiaX  cnHDiaX  cnHDiaX  _ {...}  ;
+
+
+6 - RULE 4.32, main.gdh(914):  cTakesLDia  cLDia { attach {...} user1=1;  }   /  ^  _  cnLDiaX  cnLDiaX  cnLDiaX  cnLDiaX  _ {...}  ;
+
+
+7 - RULE 4.37, main.gdh(915):  cTakesODia  cODia { attach {...} user1=1;  }   /  ^  _  cnODiaX  cnODiaX  cnODiaX  cnODiaX  _ {...}  ;
+
+
+8 - RULE 4.42, main.gdh(916):  cTakesRDia  cRDia { attach {...} user1=1;  }   /  ^  _  cnRDiaX  cnRDiaX  cnRDiaX  cnRDiaX  _ {...}  ;
+
+
+9 - RULE 4.47, main.gdh(917):  cTakesUDia  cUDia { attach {...} user1=1;  }   /  ^  _  cnUDiaX  cnUDiaX  cnUDiaX  cnUDiaX  _ {...}  ;
+
+
+10 - RULE 4.3, main.gdh(907):  cTakesHDia  cHDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnHDiaX  cnHDiaX  cnHDiaX  _ {...}  ;
+
+
+11 - RULE 4.8, main.gdh(908):  cTakesLDia  cLDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnLDiaX  cnLDiaX  cnLDiaX  _ {...}  ;
+
+
+12 - RULE 4.13, main.gdh(909):  cTakesODia  cODia { attach {...} insert=1; user1=1;  }   /  ^  _  cnODiaX  cnODiaX  cnODiaX  _ {...}  ;
+
+
+13 - RULE 4.18, main.gdh(910):  cTakesRDia  cRDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnRDiaX  cnRDiaX  cnRDiaX  _ {...}  ;
+
+
+14 - RULE 4.23, main.gdh(911):  cTakesUDia  cUDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnUDiaX  cnUDiaX  cnUDiaX  _ {...}  ;
+
+
+15 - RULE 4.28, main.gdh(913):  cTakesHDia  cHDia { attach {...} user1=1;  }   /  ^  _  cnHDiaX  cnHDiaX  cnHDiaX  _ {...}  ;
+
+
+16 - RULE 4.33, main.gdh(914):  cTakesLDia  cLDia { attach {...} user1=1;  }   /  ^  _  cnLDiaX  cnLDiaX  cnLDiaX  _ {...}  ;
+
+
+17 - RULE 4.38, main.gdh(915):  cTakesODia  cODia { attach {...} user1=1;  }   /  ^  _  cnODiaX  cnODiaX  cnODiaX  _ {...}  ;
+
+
+18 - RULE 4.43, main.gdh(916):  cTakesRDia  cRDia { attach {...} user1=1;  }   /  ^  _  cnRDiaX  cnRDiaX  cnRDiaX  _ {...}  ;
+
+
+19 - RULE 4.48, main.gdh(917):  cTakesUDia  cUDia { attach {...} user1=1;  }   /  ^  _  cnUDiaX  cnUDiaX  cnUDiaX  _ {...}  ;
+
+
+20 - RULE 4.4, main.gdh(907):  cTakesHDia  cHDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnHDiaX  cnHDiaX  _ {...}  ;
+
+
+21 - RULE 4.9, main.gdh(908):  cTakesLDia  cLDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnLDiaX  cnLDiaX  _ {...}  ;
+
+
+22 - RULE 4.14, main.gdh(909):  cTakesODia  cODia { attach {...} insert=1; user1=1;  }   /  ^  _  cnODiaX  cnODiaX  _ {...}  ;
+
+
+23 - RULE 4.19, main.gdh(910):  cTakesRDia  cRDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnRDiaX  cnRDiaX  _ {...}  ;
+
+
+24 - RULE 4.24, main.gdh(911):  cTakesUDia  cUDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnUDiaX  cnUDiaX  _ {...}  ;
+
+
+25 - RULE 4.29, main.gdh(913):  cTakesHDia  cHDia { attach {...} user1=1;  }   /  ^  _  cnHDiaX  cnHDiaX  _ {...}  ;
+
+
+26 - RULE 4.34, main.gdh(914):  cTakesLDia  cLDia { attach {...} user1=1;  }   /  ^  _  cnLDiaX  cnLDiaX  _ {...}  ;
+
+
+27 - RULE 4.39, main.gdh(915):  cTakesODia  cODia { attach {...} user1=1;  }   /  ^  _  cnODiaX  cnODiaX  _ {...}  ;
+
+
+28 - RULE 4.44, main.gdh(916):  cTakesRDia  cRDia { attach {...} user1=1;  }   /  ^  _  cnRDiaX  cnRDiaX  _ {...}  ;
+
+
+29 - RULE 4.49, main.gdh(917):  cTakesUDia  cUDia { attach {...} user1=1;  }   /  ^  _  cnUDiaX  cnUDiaX  _ {...}  ;
+
+
+30 - RULE 4.5, main.gdh(907):  cTakesHDia  cHDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnHDiaX  _ {...}  ;
+
+
+31 - RULE 4.10, main.gdh(908):  cTakesLDia  cLDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnLDiaX  _ {...}  ;
+
+
+32 - RULE 4.15, main.gdh(909):  cTakesODia  cODia { attach {...} insert=1; user1=1;  }   /  ^  _  cnODiaX  _ {...}  ;
+
+
+33 - RULE 4.20, main.gdh(910):  cTakesRDia  cRDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnRDiaX  _ {...}  ;
+
+
+34 - RULE 4.25, main.gdh(911):  cTakesUDia  cUDia { attach {...} insert=1; user1=1;  }   /  ^  _  cnUDiaX  _ {...}  ;
+
+
+35 - RULE 4.30, main.gdh(913):  cTakesHDia  cHDia { attach {...} user1=1;  }   /  ^  _  cnHDiaX  _ {...}  ;
+
+
+36 - RULE 4.35, main.gdh(914):  cTakesLDia  cLDia { attach {...} user1=1;  }   /  ^  _  cnLDiaX  _ {...}  ;
+
+
+37 - RULE 4.40, main.gdh(915):  cTakesODia  cODia { attach {...} user1=1;  }   /  ^  _  cnODiaX  _ {...}  ;
+
+
+38 - RULE 4.45, main.gdh(916):  cTakesRDia  cRDia { attach {...} user1=1;  }   /  ^  _  cnRDiaX  _ {...}  ;
+
+
+39 - RULE 4.50, main.gdh(917):  cTakesUDia  cUDia { attach {...} user1=1;  }   /  ^  _  cnUDiaX  _ {...}  ;
+
+
+40 - RULE 4.0, pitches.gdh(308):  cRightContour { user3=...; user4=...;  }  cRightContourOrStaff { attach {...} insert=1;  }   /  _  ^  _  ;
+
+
+41 - RULE 4.1, pitches.gdh(312):  cLeftContourOrStaff  cLeftContour { attach {...} insert=1;  }   /  _  ^  _  ;
+
+
+42 - RULE 4.6, main.gdh(907):  cTakesHDia  cHDia { attach {...} insert=1; user1=1;  }   /  ^  _  _ {...}  ;
+
+
+43 - RULE 4.11, main.gdh(908):  cTakesLDia  cLDia { attach {...} insert=1; user1=1;  }   /  ^  _  _ {...}  ;
+
+
+44 - RULE 4.16, main.gdh(909):  cTakesODia  cODia { attach {...} insert=1; user1=1;  }   /  ^  _  _ {...}  ;
+
+
+45 - RULE 4.21, main.gdh(910):  cTakesRDia  cRDia { attach {...} insert=1; user1=1;  }   /  ^  _  _ {...}  ;
+
+
+46 - RULE 4.26, main.gdh(911):  cTakesUDia  cUDia { attach {...} insert=1; user1=1;  }   /  ^  _  _ {...}  ;
+
+
+47 - RULE 4.31, main.gdh(913):  cTakesHDia  cHDia { attach {...} user1=1;  }   /  ^  _  _ {...}  ;
+
+
+48 - RULE 4.36, main.gdh(914):  cTakesLDia  cLDia { attach {...} user1=1;  }   /  ^  _  _ {...}  ;
+
+
+49 - RULE 4.41, main.gdh(915):  cTakesODia  cODia { attach {...} user1=1;  }   /  ^  _  _ {...}  ;
+
+
+50 - RULE 4.46, main.gdh(916):  cTakesRDia  cRDia { attach {...} user1=1;  }   /  ^  _  _ {...}  ;
+
+
+51 - RULE 4.51, main.gdh(917):  cTakesUDia  cUDia { attach {...} user1=1;  }   /  ^  _  _ {...}  ;
+
+
+52 - RULE 4.52, main.gdh(924):  cBridgeDiac { advance.x=0;  }  ;
+
+
+PASS: 5
+
+0 - RULE 5.0, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesUDia  cDia  cDia  cDia  cLDblDia  _  cDia  cDia  cDia  cTakesUDia  ;
+
+
+1 - RULE 5.1, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesUDia  cDia  cDia  cDia  cLDblDia  _  cDia  cDia  cTakesUDia  ;
+
+
+2 - RULE 5.4, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cDia  _  cDia  cDia  cDia  cTakesUDia  ;
+
+
+3 - RULE 5.8, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cLDblDia  _  cDia  cDia  cDia  cTakesUDia  ;
+
+
+4 - RULE 5.2, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesUDia  cDia  cDia  cDia  cLDblDia  _  cDia  cTakesUDia  ;
+
+
+5 - RULE 5.5, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cDia  _  cDia  cDia  cTakesUDia  ;
+
+
+6 - RULE 5.9, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cLDblDia  _  cDia  cDia  cTakesUDia  ;
+
+
+7 - RULE 5.12, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cDia  _  cDia  cDia  cDia  cTakesUDia  ;
+
+
+8 - RULE 5.16, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cLDblDia  _  cDia  cDia  cDia  cTakesUDia  ;
+
+
+9 - RULE 5.32, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  cTakesUDia  cDia  cDia  cDia  cDia  cDia  cLDblDia  _  ;
+
+
+10 - RULE 5.44, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  cDia  cDia  cDia  cDia  cDia  cLDblDia  _  cTakesUDia  ;
+
+
+11 - RULE 5.3, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesUDia  cDia  cDia  cDia  cLDblDia  _  cTakesUDia  ;
+
+
+12 - RULE 5.6, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cDia  _  cDia  cTakesUDia  ;
+
+
+13 - RULE 5.10, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cLDblDia  _  cDia  cTakesUDia  ;
+
+
+14 - RULE 5.13, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cDia  _  cDia  cDia  cTakesUDia  ;
+
+
+15 - RULE 5.17, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cLDblDia  _  cDia  cDia  cTakesUDia  ;
+
+
+16 - RULE 5.20, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cDia  _  cDia  cDia  cDia  cTakesUDia  ;
+
+
+17 - RULE 5.24, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cLDblDia  _  cDia  cDia  cDia  cTakesUDia  ;
+
+
+18 - RULE 5.33, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  cTakesUDia  cDia  cDia  cDia  cDia  cDia  _  ;
+
+
+19 - RULE 5.34, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  cTakesUDia  cDia  cDia  cDia  cDia  cLDblDia  _  ;
+
+
+20 - RULE 5.45, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  cDia  cDia  cDia  cDia  cDia  _  cTakesUDia  ;
+
+
+21 - RULE 5.46, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  cDia  cDia  cDia  cDia  cLDblDia  _  cTakesUDia  ;
+
+
+22 - RULE 5.7, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cDia  _  cTakesUDia  ;
+
+
+23 - RULE 5.11, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cLDblDia  _  cTakesUDia  ;
+
+
+24 - RULE 5.14, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cDia  _  cDia  cTakesUDia  ;
+
+
+25 - RULE 5.18, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cLDblDia  _  cDia  cTakesUDia  ;
+
+
+26 - RULE 5.21, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cDia  _  cDia  cDia  cTakesUDia  ;
+
+
+27 - RULE 5.25, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cLDblDia  _  cDia  cDia  cTakesUDia  ;
+
+
+28 - RULE 5.28, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesUDia  _  cDia  cDia  cDia  cTakesUDia  ;
+
+
+29 - RULE 5.35, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  cTakesUDia  cDia  cDia  cDia  cDia  _  ;
+
+
+30 - RULE 5.36, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  cTakesUDia  cDia  cDia  cDia  cLDblDia  _  ;
+
+
+31 - RULE 5.47, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  cDia  cDia  cDia  cDia  _  cTakesUDia  ;
+
+
+32 - RULE 5.48, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  cDia  cDia  cDia  cLDblDia  _  cTakesUDia  ;
+
+
+33 - RULE 5.15, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cDia  _  cTakesUDia  ;
+
+
+34 - RULE 5.19, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cLDblDia  _  cTakesUDia  ;
+
+
+35 - RULE 5.22, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cDia  _  cDia  cTakesUDia  ;
+
+
+36 - RULE 5.26, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cLDblDia  _  cDia  cTakesUDia  ;
+
+
+37 - RULE 5.29, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesUDia  _  cDia  cDia  cTakesUDia  ;
+
+
+38 - RULE 5.37, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cDia  _  ;
+
+
+39 - RULE 5.38, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  cTakesUDia  cDia  cDia  cLDblDia  _  ;
+
+
+40 - RULE 5.49, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cDia  cDia  cDia  _  cTakesUDia  ;
+
+
+41 - RULE 5.50, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cDia  cDia  cLDblDia  _  cTakesUDia  ;
+
+
+42 - RULE 5.23, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cDia  _  cTakesUDia  ;
+
+
+43 - RULE 5.27, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cLDblDia  _  cTakesUDia  ;
+
+
+44 - RULE 5.30, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesUDia  _  cDia  cTakesUDia  ;
+
+
+45 - RULE 5.39, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cDia  _  ;
+
+
+46 - RULE 5.40, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesUDia  cDia  cLDblDia  _  ;
+
+
+47 - RULE 5.51, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cDia  cDia  _  cTakesUDia  ;
+
+
+48 - RULE 5.52, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cDia  cLDblDia  _  cTakesUDia  ;
+
+
+49 - RULE 5.31, main.gdh(938):  cUDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesUDia  _  cTakesUDia  ;
+
+
+50 - RULE 5.41, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cDia  _  ;
+
+
+51 - RULE 5.42, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesUDia  cLDblDia  _  ;
+
+
+52 - RULE 5.53, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cDia  _  cTakesUDia  ;
+
+
+53 - RULE 5.54, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cLDblDia  _  cTakesUDia  ;
+
+
+54 - RULE 5.43, main.gdh(942):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesUDia  _  ;
+
+
+55 - RULE 5.55, main.gdh(945):  cUDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  ANY  _  cTakesUDia  ;
+
+
+PASS: 6
+
+0 - RULE 6.0, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+1 - RULE 6.64, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+2 - RULE 6.1, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+3 - RULE 6.4, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+4 - RULE 6.8, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+5 - RULE 6.16, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+6 - RULE 6.65, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+7 - RULE 6.68, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+8 - RULE 6.72, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+9 - RULE 6.80, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+10 - RULE 6.2, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+11 - RULE 6.5, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cDia  cDia  cTakesLDia  ;
+
+
+12 - RULE 6.9, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+13 - RULE 6.12, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+14 - RULE 6.17, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+15 - RULE 6.20, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+16 - RULE 6.24, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+17 - RULE 6.32, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+18 - RULE 6.66, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+19 - RULE 6.69, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cDia  cDia  cTakesLDia  ;
+
+
+20 - RULE 6.73, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+21 - RULE 6.76, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+22 - RULE 6.81, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+23 - RULE 6.84, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+24 - RULE 6.88, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+25 - RULE 6.96, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+26 - RULE 6.3, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cUDblDia  cTakesLDia  ;
+
+
+27 - RULE 6.6, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cDia  cTakesLDia  ;
+
+
+28 - RULE 6.10, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+29 - RULE 6.13, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cDia  cDia  cTakesLDia  ;
+
+
+30 - RULE 6.18, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+31 - RULE 6.21, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cDia  cDia  cTakesLDia  ;
+
+
+32 - RULE 6.25, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+33 - RULE 6.28, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+34 - RULE 6.33, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+35 - RULE 6.36, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+36 - RULE 6.40, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+37 - RULE 6.48, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+38 - RULE 6.67, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cUDblDia  cTakesLDia  ;
+
+
+39 - RULE 6.70, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cDia  cTakesLDia  ;
+
+
+40 - RULE 6.74, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+41 - RULE 6.77, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cDia  cDia  cTakesLDia  ;
+
+
+42 - RULE 6.82, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+43 - RULE 6.85, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cDia  cDia  cTakesLDia  ;
+
+
+44 - RULE 6.89, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+45 - RULE 6.92, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+46 - RULE 6.97, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+47 - RULE 6.100, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+48 - RULE 6.104, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+49 - RULE 6.112, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+50 - RULE 6.128, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  cTakesLDia  cDia  cDia  cDia  cDia  cDia  cUDblDia  _  ;
+
+
+51 - RULE 6.140, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  cDia  cDia  cDia  cDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+52 - RULE 6.7, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+53 - RULE 6.11, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cUDblDia  cTakesLDia  ;
+
+
+54 - RULE 6.14, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cDia  cTakesLDia  ;
+
+
+55 - RULE 6.19, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cUDblDia  cTakesLDia  ;
+
+
+56 - RULE 6.22, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cDia  cTakesLDia  ;
+
+
+57 - RULE 6.26, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+58 - RULE 6.29, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cDia  cDia  cTakesLDia  ;
+
+
+59 - RULE 6.34, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+60 - RULE 6.37, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cDia  cDia  cTakesLDia  ;
+
+
+61 - RULE 6.41, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+62 - RULE 6.44, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+63 - RULE 6.49, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+64 - RULE 6.52, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+65 - RULE 6.56, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+66 - RULE 6.71, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+67 - RULE 6.75, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cUDblDia  cTakesLDia  ;
+
+
+68 - RULE 6.78, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cDia  cTakesLDia  ;
+
+
+69 - RULE 6.83, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cUDblDia  cTakesLDia  ;
+
+
+70 - RULE 6.86, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cDia  cTakesLDia  ;
+
+
+71 - RULE 6.90, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+72 - RULE 6.93, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cDia  cDia  cTakesLDia  ;
+
+
+73 - RULE 6.98, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+74 - RULE 6.101, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cDia  cDia  cTakesLDia  ;
+
+
+75 - RULE 6.105, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+76 - RULE 6.108, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+77 - RULE 6.113, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+78 - RULE 6.116, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+79 - RULE 6.120, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cUDblDia  cDia  cDia  cDia  cTakesLDia  ;
+
+
+80 - RULE 6.129, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  cTakesLDia  cDia  cDia  cDia  cDia  cDia  _  ;
+
+
+81 - RULE 6.130, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  cTakesLDia  cDia  cDia  cDia  cDia  cUDblDia  _  ;
+
+
+82 - RULE 6.141, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  cDia  cDia  cDia  cDia  cDia  _  cTakesLDia  ;
+
+
+83 - RULE 6.142, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  cDia  cDia  cDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+84 - RULE 6.15, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cTakesLDia  ;
+
+
+85 - RULE 6.23, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+86 - RULE 6.27, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cUDblDia  cTakesLDia  ;
+
+
+87 - RULE 6.30, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cDia  cTakesLDia  ;
+
+
+88 - RULE 6.35, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cUDblDia  cTakesLDia  ;
+
+
+89 - RULE 6.38, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cDia  cTakesLDia  ;
+
+
+90 - RULE 6.42, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+91 - RULE 6.45, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cDia  cDia  cTakesLDia  ;
+
+
+92 - RULE 6.50, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+93 - RULE 6.53, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cDia  cDia  cTakesLDia  ;
+
+
+94 - RULE 6.57, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+95 - RULE 6.60, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+96 - RULE 6.79, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  cTakesLDia  ;
+
+
+97 - RULE 6.87, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+98 - RULE 6.91, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cUDblDia  cTakesLDia  ;
+
+
+99 - RULE 6.94, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cDia  cTakesLDia  ;
+
+
+100 - RULE 6.99, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cUDblDia  cTakesLDia  ;
+
+
+101 - RULE 6.102, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cDia  cTakesLDia  ;
+
+
+102 - RULE 6.106, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+103 - RULE 6.109, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cDia  cDia  cTakesLDia  ;
+
+
+104 - RULE 6.114, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+105 - RULE 6.117, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cDia  cDia  cTakesLDia  ;
+
+
+106 - RULE 6.121, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cUDblDia  cDia  cDia  cTakesLDia  ;
+
+
+107 - RULE 6.124, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cDia  cDia  cDia  cTakesLDia  ;
+
+
+108 - RULE 6.131, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cDia  _  ;
+
+
+109 - RULE 6.132, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  cTakesLDia  cDia  cDia  cDia  cUDblDia  _  ;
+
+
+110 - RULE 6.143, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  cDia  cDia  cDia  cDia  _  cTakesLDia  ;
+
+
+111 - RULE 6.144, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  cDia  cDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+112 - RULE 6.31, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cTakesLDia  ;
+
+
+113 - RULE 6.39, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+114 - RULE 6.43, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cUDblDia  cTakesLDia  ;
+
+
+115 - RULE 6.46, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cDia  cTakesLDia  ;
+
+
+116 - RULE 6.51, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cUDblDia  cTakesLDia  ;
+
+
+117 - RULE 6.54, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cDia  cTakesLDia  ;
+
+
+118 - RULE 6.58, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+119 - RULE 6.61, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cDia  cDia  cTakesLDia  ;
+
+
+120 - RULE 6.95, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  cTakesLDia  ;
+
+
+121 - RULE 6.103, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+122 - RULE 6.107, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cUDblDia  cTakesLDia  ;
+
+
+123 - RULE 6.110, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cDia  cTakesLDia  ;
+
+
+124 - RULE 6.115, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cUDblDia  cTakesLDia  ;
+
+
+125 - RULE 6.118, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cDia  cTakesLDia  ;
+
+
+126 - RULE 6.122, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cUDblDia  cDia  cTakesLDia  ;
+
+
+127 - RULE 6.125, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cDia  cDia  cTakesLDia  ;
+
+
+128 - RULE 6.133, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cDia  _  ;
+
+
+129 - RULE 6.134, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  cTakesLDia  cDia  cDia  cUDblDia  _  ;
+
+
+130 - RULE 6.145, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cDia  cDia  cDia  _  cTakesLDia  ;
+
+
+131 - RULE 6.146, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cDia  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+132 - RULE 6.47, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cTakesLDia  ;
+
+
+133 - RULE 6.55, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cTakesLDia  ;
+
+
+134 - RULE 6.59, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cUDblDia  cTakesLDia  ;
+
+
+135 - RULE 6.62, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cDia  cTakesLDia  ;
+
+
+136 - RULE 6.111, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  cTakesLDia  ;
+
+
+137 - RULE 6.119, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  cTakesLDia  ;
+
+
+138 - RULE 6.123, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cUDblDia  cTakesLDia  ;
+
+
+139 - RULE 6.126, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cDia  cTakesLDia  ;
+
+
+140 - RULE 6.135, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cDia  _  ;
+
+
+141 - RULE 6.136, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  cTakesLDia  cDia  cUDblDia  _  ;
+
+
+142 - RULE 6.147, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cDia  cDia  _  cTakesLDia  ;
+
+
+143 - RULE 6.148, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cDia  cUDblDia  _  cTakesLDia  ;
+
+
+144 - RULE 6.63, main.gdh(956):  g035f { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cTakesLDia  ;
+
+
+145 - RULE 6.127, main.gdh(959):  cLDblDia { shift.y=...; shift.x=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  cTakesLDia  ;
+
+
+146 - RULE 6.137, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cDia  _  ;
+
+
+147 - RULE 6.138, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  cTakesLDia  cUDblDia  _  ;
+
+
+148 - RULE 6.149, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cDia  _  cTakesLDia  ;
+
+
+149 - RULE 6.150, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cUDblDia  _  cTakesLDia  ;
+
+
+150 - RULE 6.139, main.gdh(962):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  cTakesLDia  _  ;
+
+
+151 - RULE 6.151, main.gdh(964):  cLDblDia { shift.y=...; insert=1;  }   /  ANY  ANY  ANY  ANY  ANY  ANY  ANY  _  cTakesLDia  ;
+

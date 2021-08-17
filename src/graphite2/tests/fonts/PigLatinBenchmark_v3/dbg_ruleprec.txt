@@ -1,0 +1,33 @@
+RULE PRECEDENCE
+
+
+TABLE: substitution
+
+PASS: 1
+
+0 - RULE 1.0, PigLatinMain.gdl(46):  clsConsUC  clsCons  clsCons  clsWfLC  >  clsWfUC$4:4  clsConsLC$1:1 { user1=1;  }  @2 { user1=1;  }  @3 { user1=1;  }   /  _ {...}  ^  _ {...}  _ {...}  _  ;
+
+
+1 - RULE 1.3, PigLatinMain.gdl(58):  clsCons  clsCons  clsCons  clsWf  >  @4  @1 { user1=1;  }  @2 { user1=1;  }  @3 { user1=1;  }   /  _  ^  _ {...}  _ {...}  _ {...}  ;
+
+
+2 - RULE 1.1, PigLatinMain.gdl(49):  clsConsUC  clsCons  clsWfLC  >  clsWfUC$3:3  clsConsLC$1:1 { user1=1;  }  @2 { user1=1;  }   /  _ {...}  ^  _ {...}  _  ;
+
+
+3 - RULE 1.4, PigLatinMain.gdl(61):  clsCons  clsCons  clsWf  >  @3  @1 { user1=1;  }  @2 { user1=1;  }   /  _  ^  _ {...}  _ {...}  ;
+
+
+4 - RULE 1.6, PigLatinMain.gdl(68):  clsCons  clsCons  clsCons  _  _  >  @1  @2  @3  g_aIns:3  g_yIns:3   /  _ {...}  _ {...}  _ {...}  _  _  ;
+
+
+5 - RULE 1.2, PigLatinMain.gdl(52):  clsConsUC  clsWfLC  >  clsWfUC$2:2  clsConsLC$1:1 { user1=1;  }   /  _ {...}  ^  _  ;
+
+
+6 - RULE 1.5, PigLatinMain.gdl(64):  clsCons  clsWf  >  @2  @1 { user1=1;  }   /  _  ^  _ {...}  ;
+
+
+7 - RULE 1.7, PigLatinMain.gdl(70):  clsCons  clsCons  _  _  >  @1  @2  g_aIns:2  g_yIns:2   /  _ {...}  _ {...}  _  _  ;
+
+
+8 - RULE 1.8, PigLatinMain.gdl(72):  clsCons  _  _  >  @1  g_aIns:1  g_yIns:1   /  _ {...}  _  _  ;
+

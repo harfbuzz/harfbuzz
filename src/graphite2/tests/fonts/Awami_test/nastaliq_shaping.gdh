@@ -1,0 +1,671 @@
+/*
+    File: nastaliq_shaping.gdl
+
+    Graphite substitution rules for Awami Nastaliq
+*/
+
+table(substitution)
+
+//
+//	BASIC CONTEXTUAL SHAPING - generate initial, medial, and final forms
+//
+
+
+pass(1)
+
+	// NFD -> NFC
+	gAlef  gMaddaAbove  >  gAlefMaddaAbove:(1 2)  _  /  ^ _  _;
+
+	// Yay + hamza = hamzayay (move zair or zabar out of the way):
+	gChotiyeh=Y  cDiacritic=D  gHamzaAbove=H  >  @Y  @H  @D  /  ^ [(cDualLinkIso cDualLinkFin) DIACS]?  _  _  _;
+
+	(cDualLinkFin cRightLinkFin cDualLinkIso cRightLinkIso)
+        c_nfd_noHamza=B  gHamzaAbove=H  >  @1  c_nfc_hamza:(B H)  _  /  ^ _  DIACS  _  _;
+    c_nfd_noHamza=B  gHamzaAbove=H  >  c_nfc_hamza:(B H)  _  /  ^ _  _;
+
+
+	// Create basic contextual forms. 
+	
+	cDualLinkIso  cDualLinkIso   >  cDualLinkIni  cDualLinkFin  / _  DIACS ^ _ ;
+	
+	cDualLinkIso  cRightLinkIso  >  cDualLinkIni  cRightLinkFin  /  _ DIACS ^ _ ;
+		
+	cDualLinkFin  cDualLinkIso   >  cDualLinkMed  cDualLinkFin  / _ DIACS ^ _ ;
+	
+	cDualLinkFin  cRightLinkIso  >  cDualLinkMed  cRightLinkFin  / _ DIACS ^ _ ;
+
+endpass; // 1
+
+// nuqta slot attribute:
+// TODO: remove when we get rid of STRIP_NUQTAS
+#define nuqtaS user1
+
+pass(2)
+	// Special finals
+
+	gBariyehHamzaFin0  _  >  gBehMedBy {nuqtaS = nuqtaG}  gBariyehFin:1;
+
+	// illegal - no these are legal!
+	//gYehHamzaAboveFin  _  >  gBehMed {nuqtaS = nuqtaG}  circledash:1  /  c_medial  _  _;
+	//gYehHamzaAboveFin  _  >  gBehIni {nuqtaS = nuqtaG}  circledash:1;
+
+
+#if STRIP_NUQTAS
+
+	// Replace pseudo-glyphs with nuqta-less generic glyphs; record the information about the nuqtas
+	// in a slot attribute.
+
+	cBehIni0     >  gBehIni_raw		{nuqtaS = nuqtaG};
+	cJeemIni0    >  gJeemIni_raw	{nuqtaS = nuqtaG};
+	cSeenIni0    >  gSeenIni_raw	{nuqtaS = nuqtaG};
+	cSadIni0     >  gSadIni_raw		{nuqtaS = nuqtaG};
+	cTahIni0     >  gTahIni_raw		{nuqtaS = nuqtaG};
+	cAinIni0     >  gAinIni_raw		{nuqtaS = nuqtaG};
+	cFehIni0     >  gFehIni_raw		{nuqtaS = nuqtaG};
+	cNoonIni0    >  gBehIni_raw		{nuqtaS = nuqtaG};
+	cHehGoalIni0 >  gHehGoalIni_raw	{nuqtaS = nuqtaG};
+
+	cBehMed0     >  gBehMed_raw		{nuqtaS = nuqtaG};
+	cJeemMed0    >  gJeemMed_raw	{nuqtaS = nuqtaG};
+	cSeenMed0    >  gSeenMed_raw	{nuqtaS = nuqtaG};
+	cSadMed0     >  gSadMed_raw		{nuqtaS = nuqtaG};
+	cTahMed0     >  gTahMed_raw		{nuqtaS = nuqtaG};
+	cAinMed0     >  gAinMed_raw		{nuqtaS = nuqtaG};
+	cFehMed0     >  gFehMed_raw		{nuqtaS = nuqtaG};
+	cNoonMed0    >  gBehMed_raw		{nuqtaS = nuqtaG};
+
+////////	gYehHamzaAbovefina0  >  gChotiyehFin_raw {nuqtaS = nuqtaG};
+
+#else
+
+#include "nastaliq_separateNuqtas.gdh"
+
+#endif
+
+endpass;	// 2
+
+
+//
+//	FURTHER CONTEXTUAL SHAPING
+//
+
+table(glyph)
+
+cMed_raw = (gBehMed_raw, gBehMed_SS_raw, gJeemMed_raw, gSeenMed_raw, gSadMed_raw, gTahMed_raw,
+		gAinMed_raw, gFehMed_raw, gKafMed_raw, gGafMed_raw, gLamMed_raw, gMeemMed_raw,
+		gHehGoalMed_raw, gHehDoMed_raw);
+
+cMed_raw_any = (cMed_raw, gMeemMed_alt_raw);
+
+
+// Note: these all have an extra beh form to account for the _SS alternate.
+cMed = (gBehMed, gBehMed, gJeemMed, gSeenMed, gSadMed, gTahMed, gAinMed, gFehMed,
+		gKafMed, gGafMed, gLamMed, gMeemMed, gHehGoalMed, gHehDoMed);
+cMedBeF = (gBehMedBeF, gBehMedBeF_ss, gJeemMedBeF, gSeenMedBeF, gSadMedBeF, gTahMedBeF, gAinMedBeF, gFehMedBeF,
+		gKafMedBeF, gGafMedBeF, gLamMedBeF, gMeemMedBeF, gHehGoalMedBeF, gHehDoMedBeF);
+cMedJm = (gBehMedJm, gBehMedJm, gJeemMedJm, gSeenMedJm, gSadMedJm, gTahMedJm, gAinMedJm, gFehMedJm,
+		gKafMedJm, gGafMedJm, gLamMedJm, gMeemMedJm, gHehGoalMedJm, gHehDoMedJm);
+cMedRe = (gBehMedRe, gBehMedRe, gJeemMedRe, gSeenMedRe, gSadMedRe, gTahMedRe, gAinMedRe, gFehMedRe,
+		gKafMedRe, gGafMedRe, gLamMedRe, gMeemMedRe, gHehGoalMedRe, gHehDoMedRe);
+cMedSn = (gBehMedSn, gBehMedSn, gJeemMedSn, gSeenMedSn, gSadMedSn, gTahMedSn, gAinMedSn, gFehMedSn,
+		gKafMedSn, gGafMedSn, gLamMedSn, gMeemMedSn, gHehGoalMedSn, gHehDoMedSn);
+cMedSd = (gBehMedSd, gBehMedSd_ss, gJeemMedSd, gSeenMedSd, gSadMedSd, gTahMedSd, gAinMedSd, gFehMedSd,
+		gKafMedSd, gGafMedSd, gLamMedSd, gMeemMedSd, gHehGoalMedSd, gHehDoMedSd);
+cMedSd_kx = (gBehMedSd, gBehMedSd_ss, gJeemMedSd, gSeenMedSd, gSadMedSd, gTahMedSd, gAinMedSd, gFehMedSd,
+		gKafMedSd_alt, gGafMedSd_alt, gLamMedSd, gMeemMedSd, gHehGoalMedSd, gHehDoMedSd);
+cMedTaF = (gBehMedTaF, gBehMedTaF_ss, gJeemMedTaF, gSeenMedTaF, gSadMedTaF, gTahMedTaF, gAinMedTaF, gFehMedTaF,
+		gKafMedTaF, gGafMedTaF, gLamMedTaF, gMeemMedTaF, gHehGoalMedTaF, gHehDoMedTaF);
+cMedTaM_kx = (gBehMedTaM, gBehMedTaM_ss, gJeemMedTaM, gSeenMedTaM, gSadMedTaM, gTahMedTaM, gAinMedTaM, gFehMedTaM,
+		gKafMedTaM_alt, gGafMedTaM_alt, gLamMedTaM, gMeemMedTaM, gHehGoalMedTaM, gHehDoMedTaM);
+cMedAi = (gBehMedAi, gBehMedAi_ss, gJeemMedAi, gSeenMedAi, gSadMedAi, gTahMedAi, gAinMedAi, gFehMedAi,
+		gKafMedAi, gGafMedAi, gLamMedAi, gMeemMedAi, gHehGoalMedAi, gHehDoMedAi);
+cMedFe = (gBehMedFe, gBehMedFe_ss, gJeemMedFe, gSeenMedFe, gSadMedFe, gTahMedFe, gAinMedFe, gFehMedFe,
+		gKafMedFe, gGafMedFe, gLamMedFe, gMeemMedFe, gHehGoalMedFe, gHehDoMedFe);
+cMedQf = (gBehMedQf, gBehMedQf_ss, gJeemMedQf, gSeenMedQf, gSadMedQf, gTahMedQf, gAinMedQf, gFehMedQf,
+		gKafMedQf, gGafMedQf, gLamMedQf, gMeemMedQf, gHehGoalMedQf, gHehDoMedQf);
+cMedMm = (gBehMedMm, gBehMedMm, gJeemMedMm, gSeenMedMm, gSadMedMm, gTahMedMm, gAinMedMm, gFehMedMm,
+		gKafMedMm, gGafMedMm, gLamMedMm, gMeemMedMm, gHehGoalMedMm, gHehDoMedMm);
+cMedNn = (gBehMedNn, gBehMedNn, gJeemMedNn, gSeenMedNn, gSadMedNn, gTahMedNn, gAinMedNn, gFehMedNn,
+		gKafMedNn, gGafMedNn, gLamMedNn, gMeemMedNn, gHehGoalMedNn, gHehDoMedNn);
+cMedHgF = (gBehMedHgF, gBehMedHgF, gJeemMedHgF, gSeenMedHgF, gSadMedHgF, gTahMedHgF, gAinMedHgF, gFehMedHgF,
+		gKafMedHgF, gGafMedHgF, gLamMedHgF, gMeemMedHgF, gHehGoalMedHgF, gHehDoMedHgF);
+cMedHgM = (gBehMedHgM, gBehMedHgM, gJeemMedHgM, gSeenMedHgM, gSadMedHgM, gTahMedHgM, gAinMedHgM, gFehMedHgM,
+		gKafMedHgM_alt, gGafMedHgM_alt, gLamMedHgM, gMeemMedHgM, gHehGoalMedHgM, gHehDoMedHgM);
+cMedHd = (gBehMedHd, gBehMedHd, gJeemMedHd, gSeenMedHd, gSadMedHd, gTahMedHd, gAinMedHd, gFehMedHd,
+		gKafMedHd, gGafMedHd, gLamMedHd, gMeemMedHd, gHehGoalMedHd, gHehDoMedHd);
+cMedCh = (gBehMedCh, gBehMedCh, gJeemMedCh, gSeenMedCh, gSadMedCh, gTahMedCh, gAinMedCh, gFehMedCh,
+		gKafMedCh, gGafMedCh, gLamMedCh, gMeemMedCh, gHehGoalMedCh, gHehDoMedCh);
+cMedBy = (gBehMedBy, gBehMedBy, gJeemMedBy, gSeenMedBy, gSadMedBy, gTahMedBy, gAinMedBy, gFehMedBy,
+		gKafMedBy, gGafMedBy, gLamMedBy, gMeemMedBy, gHehGoalMedBy, gHehDoMedBy);
+cMedBe_kx = (gBehMedBe, gBehMedBe, gJeemMedBe, gSeenMedBe, gSadMedBe, gTahMedBe, gAinMedBe, gFehMedBe,
+		gKafMedBe_alt, gGafMedBe_alt, gLamMedBe, gMeemMedBe, gHehGoalMedBe, gHehDoMedBe);
+cMedBeRe_kx = (gBehMedBeRe, gBehMedBeRe, gJeemMedBeRe, gSeenMedBeRe, gSadMedBeRe, gTahMedBeRe, gAinMedBeRe, gFehMedBeRe,
+		gKafMedBeRe, gGafMedBeRe, gLamMedBeRe, gMeemMedBeRe, gHehGoalMedBeRe, gHehDoMedBeRe);
+cMedBeNn_kx = (gBehMedBeNn, gBehMedBeNn, gJeemMedBeNn, gSeenMedBeNn, gSadMedBeNn, gTahMedBeNn, gAinMedBeNn, gFehMedBeNn,
+		gKafMedBeNn, gGafMedBeNn, gLamMedBeNn, gMeemMedBeNn, gHehGoalMedBeNn, gHehDoMedBeNn);
+cMedBeHg_kx = (gBehMedBeHg, gBehMedBeHg, gJeemMedBeHg, gSeenMedBeHg, gSadMedBeHg, gTahMedBeHg, gAinMedBeHg, gFehMedBeHg,
+		gKafMedBeHg, gGafMedBeHg, gLamMedBeHg, gMeemMedBeHg, gHehGoalMedBeHg, gHehDoMedBeHg);
+// NOTE gLamMedMm in this class:
+cMedMmX_kx = (gBehMedMmX, gBehMedMmX, gJeemMedMmX, gSeenMedMmX, gSadMedMmX, gTahMedMmX, gAinMedMmX, gFehMedMmX,
+		gKafMedMmX, gGafMedMmX, gLamMedMm, gMeemMedMmX, gHehGoalMedMmX, gHehDoMedMmX);
+cMedKfX_kx = (gBehMedKfX, gBehMedKfX, gJeemMedKfX, gSeenMedKfX, gSadMedKfX, gTahMedKfX, gAinMedKfX, gFehMedKfX,
+		gKafMedKfX, gGafMedKfX, gLamMedKfX, gMeemMedKfX, gHehGoalMedKfX, gHehDoMedKfX);
+
+// Note: these include an extra beh form to account for the _SS alternate
+cMedBeM1_kx = (gBehMedBeM1, gBehMedBeM1, gJeemMedBeM1, gSeenMedBeM1, gSadMedBeM1, gTahMedBeM1, gAinMedBeM1, gFehMedBeM1,
+		gKafMedBeM1_alt, gGafMedBeM1_alt, gLamMedBeM1, gMeemMedBeM1, gHehGoalMedBeM1, gHehDoMedBeM1);
+cMedBeM2_kx = (gBehMedBeM2, gBehMedBeM2, gJeemMedBeM2, gSeenMedBeM2, gSadMedBeM2, gTahMedBeM2, gAinMedBeM2, gFehMedBeM2,
+		gKafMedBeM2_alt, gGafMedBeM2_alt, gLamMedBeM2, gMeemMedBeM2, gHehGoalMedBeM2, gHehDoMedBeM2);
+
+//--cMed_noS = (gBehMed, gJeemMed, gTahMed, gAinMed, gFehMed,
+//--		gKafMed, gGafMed, gLamMed, gMeemMed, gHehGoalMed, gHehDoMed);
+cMed_raw_noS = (gBehMed_raw, gJeemMed_raw, gTahMed_raw, gAinMed_raw, gFehMed_raw,
+		gKafMed_raw, gGafMed_raw, gLamMed_raw, gMeemMed_raw, gHehGoalMed_raw, gHehDoMed_raw);
+cMedBeM1_noS_kx = (gBehMedBeM1, gJeemMedBeM1, gTahMedBeM1, gAinMedBeM1, gFehMedBeM1,
+		gKafMedBeM1_alt, gGafMedBeM1_alt, gLamMedBeM1, gMeemMedBeM1, gHehGoalMedBeM1, gHehDoMedBeM1);
+cMedBe_noS_kx = (gBehMedBe, gJeemMedBe, gTahMedBe, gAinMedBe, gFehMedBe,
+		gKafMedBe_alt, gGafMedBe_alt, gLamMedBe, gMeemMedBe, gHehGoalMedBe, gHehDoMedBe);
+	
+cMed_KG_DK = (gBehMed, gJeemMed, gSeenMed, gSadMed, gTahMed, gAinMed, gFehMed,
+		gKafMedDk, gGafMedDk, gLamMed, gMeemMed, gHehGoalMed, gHehDoMed);
+		
+
+
+cBehMed_postBeM = (gBehMedBeF, gBehMedJm, gBehMedSd, gBehMedTaF, gBehMedTaM, gBehMedAi, gBehMedFe,
+		gBehMedQf, gBehMedMm, gBehMedHgM, gBehMedHd, gBehMedCh, gBehMedBy, gBehMedMmX,
+		gBehMedKfX);	// gBehMedKfX not included in Caltmedialtkaf23, but it is in Caltmedi23
+		
+cBehMed_postSBeM = (gBehMedJm, gBehMedMm, gBehMedHgM, gBehMedHd, gBehMedCh,
+		gBehMedBy, gBehMedMmX, gBehMedKfX);
+		
+cBehMed_postSmedBeM1 = (gBehMedBeM2, gBehMedBeF_ss, gBehMedSn, gBehMedSd_ss, gBehMedTaF_ss,
+		gBehMedTaM_ss, gBehMedAi_ss, gBehMedFe_ss, gBehMedQf_ss, gBehMedBe, gBehMedBeHg,
+		gBehMedHgF_be, gBehMedBeRe);
+
+//cJeemMed1a_KfX? = glyphid(492..516);
+		
+cIni_raw = (gBehIni_raw, gJeemIni_raw, gSeenIni_raw, gSadIni_raw, gTahIni_raw, gAinIni_raw, gFehIni_raw,
+		gKafIni_raw, gGafIni_raw, gLamIni_raw, gMeemIni_raw, gHehGoalIni_raw, gHehDoIni_raw);
+
+cIni = (gBehIni, gJeemIni, gSeenIni, gSadIni, gTahIni, gAinIni, gFehIni,
+		gKafIni, gGafIni, gLamIni, gMeemIni, gHehGoalIni, gHehDoIni);
+cIniBeM1_kx = (gBehIniBeM1, gJeemIniBeM1, gSeenIniBeM1, gSadIniBeM1, gTahIniBeM1, gAinIniBeM1, gFehIniBeM1,
+		gKafIniBeM1_alt, gGafIniBeM1_alt, gLamIniBeM1, gMeemIniBeM1, gHehGoalIniBeM1, gHehDoIniBeM1);
+cIniBeM2 = (gBehIniBeM2, gJeemIniBeM2, gSeenIniBeM2, gSadIniBeM2, gTahIniBeM2, gAinIniBeM2, gFehIniBeM2,
+		gKafIniBeM2, gGafIniBeM2, gLamIniBeM2, gMeemIniBeM2, gHehGoalIniBeM2, gHehDoIniBeM2);
+cIniBeM2_kx = (gBehIniBeM2, gJeemIniBeM2, gSeenIniBeM2, gSadIniBeM2, gTahIniBeM2, gAinIniBeM2, gFehIniBeM2,
+		gKafIniBeM2_alt, gGafIniBeM2_alt, gLamIniBeM2, gMeemIniBeM2, gHehGoalIniBeM2, gHehDoIniBeM2);
+cIniBeM2F = (gBehIniBeM2, gJeemIniBeF, gSeenIniBeF, gSadIniBeF, gTahIniBeF, gAinIniBeF, gFehIniBeM2,
+		gKafIniBeM2, gGafIniBeM2, gLamIniBeM2, gMeemIniBeF, gHehGoalIniBeF, gHehDoIniBeF);
+cIniJm = (gBehIniJm, gJeemIniJm, gSeenIniJm, gSadIniJm, gTahIniJm, gAinIniJm, gFehIniJm,
+		gKafIniJm, gGafIniJm, gLamIniJm, gMeemIniJm, gHehGoalIniJm, gHehDoIniJm);
+cIniRe = (gBehIniRe, gJeemIniRe, gSeenIniRe, gSadIniRe, gTahIniRe, gAinIniRe, gFehIniRe,
+		gKafIniRe, gGafIniRe, gLamIniRe, gMeemIniRe, gHehGoalIniRe, gHehDoIniRe);
+cIniSn = (gBehIniSn, gJeemIniSn, gSeenIniSn, gSadIniSn, gTahIniSn, gAinIniSn, gFehIniSn,
+		gKafIniSn, gGafIniSn, gLamIniSn, gMeemIniSn, gHehGoalIniSn, gHehDoIniSn);
+cIniSd = (gBehIniSd, gJeemIniSd, gSeenIniSd, gSadIniSd, gTahIniSd, gAinIniSd, gFehIniSd,
+		gKafIniSd, gGafIniSd, gLamIniSd, gMeemIniSd, gHehGoalIniSd, gHehDoIniSd);
+cIniSd_kx = (gBehIniSd, gJeemIniSd, gSeenIniSd, gSadIniSd, gTahIniSd, gAinIniSd, gFehIniSd,
+		gKafIniSd_alt, gGafIniSd_alt, gLamIniSd, gMeemIniSd, gHehGoalIniSd, gHehDoIniSd);
+cIniTaF = (gBehIniTaF, gJeemIniTaF, gSeenIniTaF, gSadIniTaF, gTahIniTaF, gAinIniTaF, gFehIniTaF,
+		gKafIniTaF, gGafIniTaF, gLamIniTaF, gMeemIniTaF, gHehGoalIniTaF, gHehDoIniTaF);
+cIniTaM = (gBehIniTaM, gJeemIniTaM, gSeenIniTaM, gSadIniTaM, gTahIniTaM, gAinIniTaM, gFehIniTaM,
+		gKafIniTaM, gGafIniTaM, gLamIniTaM, gMeemIniTaM, gHehGoalIniTaM, gHehDoIniTaM);
+cIniAi = (gBehIniAi, gJeemIniAi, gSeenIniAi, gSadIniAi, gTahIniAi, gAinIniAi, gFehIniAi,
+		gKafIniAi, gGafIniAi, gLamIniAi, gMeemIniAi, gHehGoalIniAi, gHehDoIniAi);
+cIniFe = (gBehIniFe, gJeemIniFe, gSeenIniFe, gSadIniFe, gTahIniFe, gAinIniFe, gFehIniFe,
+		gKafIniFe, gGafIniFe, gLamIniFe, gMeemIniFe, gHehGoalIniFe, gHehDoIniFe);					
+cIniQf = (gBehIniQf, gJeemIniQf, gSeenIniQf, gSadIniQf, gTahIniQf, gAinIniQf, gFehIniQf,
+		gKafIniQf, gGafIniQf, gLamIniQf, gMeemIniQf, gHehGoalIniQf, gHehDoIniQf);
+cIniMm = (gBehIniMm, gJeemIniMm, gSeenIniMm, gSadIniMm, gTahIniMm, gAinIniMm, gFehIniMm,
+		gKafIniMm, gGafIniMm, gLamIniMm, gMeemIniMm, gHehGoalIniMm, gHehDoIniMm);
+cIniNn = (gBehIniNn, gJeemIniNn, gSeenIniNn, gSadIniNn, gTahIniNn, gAinIniNn, gFehIniNn,
+		gKafIniNn, gGafIniNn, gLamIniNn, gMeemIniNn, gHehGoalIniNn, gHehDoIniNn);
+cIniHgF = (gBehIniHgF, gJeemIniHgF, gSeenIniHgF, gSadIniHgF, gTahIniHgF, gAinIniHgF, gFehIniHgF,
+		gKafIniHgF, gGafIniHgF, gLamIniHgF, gMeemIniHgF, gHehGoalIniHgF, gHehDoIniHgF);
+cIniHgM_kx = (gBehIniHgM, gJeemIniHgM, gSeenIniHgM, gSadIniHgM, gTahIniHgM, gAinIniHgM, gFehIniHgM,
+		gKafIniHgM_alt, gGafIniHgM_alt, gLamIniHgM, gMeemIniHgM, gHehGoalIniHgM, gHehDoIniHgM);
+cIniHd= (gBehIniHd, gJeemIniHd, gSeenIniHd, gSadIniHd, gTahIniHd, gAinIniHd, gFehIniHd,
+		gKafIniHd, gGafIniHd, gLamIniHd, gMeemIniHd, gHehGoalIniHd, gHehDoIniHd);
+cIniCh = (gBehIniCh, gJeemIniCh, gSeenIniCh, gSadIniCh, gTahIniCh, gAinIniCh, gFehIniCh,
+		gKafIniCh, gGafIniCh, gLamIniCh, gMeemIniCh, gHehGoalIniCh, gHehDoIniCh);
+cIniBy = (gBehIniBy, gJeemIniBy, gSeenIniBy, gSadIniBy, gTahIniBy, gAinIniBy, gFehIniBy,
+		gKafIniBy, gGafIniBy, gLamIniBy, gMeemIniBy, gHehGoalIniBy, gHehDoIniBy);
+cIniBeRe_kx = (gBehIniBeRe, gJeemIniBeRe, gSeenIniBeRe, gSadIniBeRe, gTahIniBeRe, gAinIniBeRe, gFehIniBeRe,
+		gKafIniBeRe_alt, gGafIniBeRe_alt, gLamIniBeRe, gMeemIniBeRe, gHehGoalIniBeRe, gHehDoIniBeRe);
+cIniBeNn_kx = (gBehIniBeNn, gJeemIniBeNn, gSeenIniBeNn, gSadIniBeNn, gTahIniBeNn, gAinIniBeNn, gFehIniBeNn,
+		gKafIniBeNn_alt, gGafIniBeNn_alt, gLamIniBeNn, gMeemIniBeNn, gHehGoalIniBeNn, gHehDoIniBeNn);
+cIniBeHg_kx = (gBehIniBeHg, gJeemIniBeHg, gSeenIniBeHg, gSadIniBeHg, gTahIniBeHg, gAinIniBeHg, gFehIniBeHg,
+		gKafIniBeHg_alt, gGafIniBeHg_alt, gLamIniBeHg, gMeemIniBeHg, gHehGoalIniBeHg, gHehDoIniBeHg);
+// Note gLamIni in this class:
+cIniMmX_kx = (gBehIniMmX, gJeemIniMmX, gSeenIniMmX, gSadIniMmX, gTahIniMmX, gAinIniMmX, gFehIniMmX,
+		gKafIniMmX_alt, gGafIniMmX_alt, gLamIni, gMeemIniMmX, gHehGoalIniMmX, gHehDoIniMmX);
+cIniKfX_kx = (gBehIniKfX, gJeemIniKfX, gSeenIniKfX, gSadIniKfX, gTahIniKfX, gAinIniKfX, gFehIniKfX,
+		gKafIniKfX_alt, gGafIniKfX_alt, gLamIniKfX, gMeemIniKfX, gHehGoalIniKfX, gHehDoIniKfX);
+	
+
+//--cIni_noS = (gBehIni, gJeemIni, gTahIni, gAinIni, gFehIni,
+//--		gKafIni, gGafIni, gLamIni, gMeemIni, gHehGoalIni, gHehDoIni);
+cIni_raw_noS = (gBehIni_raw, gJeemIni_raw, gTahIni_raw, gAinIni_raw, gFehIni_raw,
+		gKafIni_raw, gGafIni_raw, gLamIni_raw, gMeemIni_raw, gHehGoalIni_raw, gHehDoIni_raw);
+cIniBe_noS_kx = (gBehIniBe, gJeemIniBe, gTahIniBe, gAinIniBe, gFehIniBe,
+		gKafIniBe_alt, gGafIniBe_alt, gLamIniBe, gMeemIniBe, gHehGoalIniBe, gHehDoIniBe);
+cIniBeM1_noS_kx = (gBehIniBeM1, gJeemIniBeM1, gTahIniBeM1, gAinIniBeM1, gFehIniBeM1,
+		gKafIniBeM1_alt, gGafIniBeM1_alt, gLamIniBeM1, gMeemIniBeM1, gHehGoalIniBeM1, gHehDoIniBeM1);
+
+// before gBehMedBeRe:
+cIniBeHg_BeRe = (gBehIniBeM1, gJeemIniBeHg, gSeenIniBeM1, gSadIniBeHg, gTahIniBeHg, gAinIniBeHg, gFehIniBeHg,
+		gKafIniBeHg_alt, gGafIniBeHg_alt, gLamIniBeHg, gMeemIniBeHg, gHehGoalIniBeHg, gHehDoIniBeHg);
+
+// Unprocessed initials and medials:
+cIMraw = (cIni_raw, cMed_raw, gMeemMed_alt_raw, gTehMarbutaGoal_raw, gHehGoalHamza_raw gBehMed_SS_raw, g_zwj);
+
+endtable;
+
+
+pass(3)
+
+// Laam-alif ligatures
+
+gLamIni_raw  gAlefFin  >  gLamAlef:(1 2)  _;
+
+gLamMed_raw  gAlefFin  >  gLamAlefFin:(1 2)  _;
+
+gLamIni_raw  gAlefMaddaFin  >  gLamAlefMadda:(1 2)  _;
+
+gLamMed_raw  gAlefMaddaFin  >  gLamAlefMaddaFin:(1 2)  _;
+
+gLamIni_raw  gAlefHamzaFin  >  gLamAlefHamza:(1 2)  _;
+
+gLamMed_raw  gAlefHamzaFin  >  gLamAlefHamzaFin:(1 2)  _;
+
+gAlef  gLamIni_raw  gLamMed_raw  gHehGoalFin  >  gLigatureAllah:(1 2 3 4) _  _  _;
+
+
+// And other common ligatures
+
+gMeemIni_raw  gJeemMed_raw  gMeemMed_raw  gDalFin  >  gLigatureMuhammad:(1 2 3 4) _  _  _;
+
+// Restore eventually if we use this:
+////gAlefMaddaAbove gGaf  >  g_alefMaddaGaf:(1 2)  _;
+
+
+// Finals
+
+(gAlef gAlefMaddaAbove gAlefHamzaAbove)
+	>  (gAlefFin gAlefMaddaFin gAlefHamzaFin)  /  (c_initial c_medial)  MARKS  _;
+
+// CaltfinaBclass
+(gWawFin gWawHamzaAboveFin gQafFin)  >  (gWawFin_stfh gWawHamzaAboveFin_stfh gQafFin_stfh)
+		/  (gSeenIni_raw gTahIni_raw gSeenMed_raw gTahMed_raw gFehMed_raw gHehDoMed_raw)  MARKS
+			_;
+
+table(glyph)
+
+c_preBe_bfkl = ( gBehIni_raw gFehIni_raw gKafIni_raw gLamIni_raw );
+c_preChF_bfkl = ( gBehIni_raw gFehIni_raw gKafIni_raw gGafIni_raw gLamIni_raw gKafMed_raw gGafMed_raw gLamMed_raw );
+c_preHgF_stfh = ( gSeenIni_raw gTahIni_raw gFehIni_raw gKafIni_raw gGafIni_raw
+    gLamIni_raw gMeemIni_raw gHehGoalIni_raw gSeenMed_raw gTahMed_raw gFehMed_raw gKafMed_raw 
+    gGafMed_raw gLamMed_raw gHehGoalMed_raw );
+c_preReF_jkl = ( gBehIni_raw gJeemIni_raw gKafIni_raw gGafIni_raw gLamIni_raw gKafMed_raw gGafMed_raw gLamMed_raw );   
+c_preReF_sshg = ( gSeenIni_raw gSadIni_raw gHehGoalIni_raw gBehMed_raw gSeenMed_raw gSadMed_raw );
+c_preReF_hgM = (gHehGoalMed_raw);
+
+endtable;
+
+
+(gBehFin gPehFin gTehFin gTtehFin gThehFin)  >  (gBehFin_bfkl gPehFin_bfkl gTehFin_bfkl gTtehFin_bfkl gThehFin_bfkl)
+	/  ^  c_preBe_bfkl MARKS  _;
+
+(gRehFin gRrehFin gZainFin gJehFin)  >  (gRehFin_jkl gRrehFin_jkl gZainFin_jkl gJehFin_jkl)
+	/  ^ c_preReF_jkl MARKS  _;
+(gRehFin gRrehFin gZainFin gJehFin)  >  (gRehFin_sshg gRrehFin_sshg gZainFin_sshg gJehFin_sshg)
+	/  ^ c_preReF_sshg MARKS  _;
+(gRehFin gRrehFin gZainFin gJehFin)  >  (gRehFin_hgM gRrehFin_hgM gZainFin_hgM gJehFin_hgM)
+	/  ^ c_preReF_hgM MARKS  _;
+
+// We've decided not to use the extra heh-goal-final form, since it is so similar.
+////(gHehGoalFin gTehMarbutaGoalFin gHehGoalHamzaFin)  >  (gHehGoalFin_stfh gTehMarbutaGoalFin_stfh gHehGoalHamzaFin_stfh)
+////	/  ^ c_preHgF_stfh MARKS  _;
+
+gChotiyehFin  >  gChotiyehFin_bfkl  /  ^ c_preChF_bfkl MARKS  _ ;
+
+// Situations where characters before have an effect:
+
+table(glyph)
+
+c_kgPreMm_alt = ( gKafIni_raw gGafIni_raw gKafMed_raw gKafIni_raw gKafMed_raw ) ;
+c_preMm_alt = ( gAinIni_raw gAinMed_raw gMeemMed_alt_raw gBehIni_raw gBehMed_raw
+	gHehDoIni_raw gHehDoMed_raw gFehIni_raw gFehMed_raw gHehGoalIni_raw gHehGoalMed_raw
+	gJeemIni_raw gJeemMed_raw gMeemIni_raw gMeemMed_raw gSeenIni_raw gSeenMed_raw 
+    gSadIni_raw gSadMed_raw gTahIni_raw gTahMed_raw ) ;
+    
+cA_raw = (gDalFin gDdalFin gThalFin gKafFin gGafFin gLamFin gLamAlefFin gAlefFin
+	//// gDalTwoVertBelowSmallTahFin
+	gKafMed_raw gGafMed_raw gLamMed_raw);
+
+c_preBehSS_raw = (gSeenIni_raw gSadIni_raw gSeenMed_raw gSadMed_raw);
+
+endtable;
+
+/****
+// Version of rules if final and medials are processed in a single pass:
+
+// Note that we include the final bit of the context to "anchor" the rules
+// to the situations where the immediate next character has been processed.
+
+gMeemMed_raw  >  gMeemMed_alt_raw  /  c_kgPreMm_alt  MARKS  ^ _ MARKS  (cA cDalFin); // kafs and ghafs
+gMeemMed_raw  >  gMeemMed_alt_raw  /  c_preMm_alt   MARKS  ^ _ MARKS  cA;			// others
+
+// also see below
+gBehMed_raw  >  gBehMed_SS_raw  / c_preBehSS_raw MARKS  ^ _ MARKS  (c_medial cFinals);
+****/
+
+// Version of above rules if finals and medials are separated into separate passes:
+
+gMeemMed_raw  >  gMeemMed_alt_raw  /  c_kgPreMm_alt  MARKS   _ MARKS  (cA_raw cDalFin); // kafs and ghafs
+gMeemMed_raw  >  gMeemMed_alt_raw  /  c_preMm_alt   MARKS   _ MARKS  cA_raw;			// others
+
+// also see below
+gBehMed_raw  >  gBehMed_SS_raw  / c_preBehSS_raw MARKS  _ ;
+
+endpass;
+
+	
+pass(4) { MaxBackup = 50; MaxRuleLoop = 200 }
+	
+//-----  Medials  -----
+
+// Included in all medial rules to handle the pre-context to back up over:
+#define MPRECXT   cIMraw MARKS
+
+#if (QUICKCOMPILE == 0)
+
+gBehIni_raw  gBehMed_raw  >  gBehIniBeM2  gBehMedHgF_be
+	/  _  MARKS  _  MARKS  (gHehGoalFin gTehMarbutaGoalFin gHehGoalHamzaFin);
+
+////gBehMed_raw  >  gBehMedHg_Be  /  ^ MPRECXT  _ MARKS  (gHehGoalFin gTehMarbutaGoalFin gHehGoalHamzaAboveFin);
+
+
+cMed_raw_noS  >  cMedBeM1_noS_kx  /  ^ MPRECXT  _ MARKS  (gBehMedBeM2 gBehMedSn gBehMedBe gBehMedBeHg);
+
+cMed_raw  >  cMedBeM1_kx  /  ^ MPRECXT  _ MARKS  gBehMedBeM2 MARKS  gBehMed  c_dkgal_postAlt;
+cMed_raw  >  cMedBeM1_kx  /  ^ MPRECXT  _ MARKS  gBehMedBeM2 MARKS  gBehMedBeNn;
+cMed_raw  >  cMedBeM1_kx  /  ^ MPRECXT  _ MARKS  (gBehMedSn gBehMedBe  gBehMedBeHg);
+
+cMed_raw  >  cMedBeM2_kx  /  ^ MPRECXT  _ MARKS  gBehMedBeM1;
+
+cMed_raw  >  cMedBeM1_kx  /  ^ MPRECXT  _ MARKS  gBehMedBeM2;
+cMed_raw  gBehMed  >  cMedBeM1_kx  gBehMedBeM2  /  ^ MPRECXT  _ MARKS  _ MARKS  gBehMed MARKS  c_dkgal_postAlt;
+cMed_raw  gBehMed  >  cMedBeM1_kx  gBehMedBeM2  /  ^ MPRECXT  _ MARKS  _ MARKS  (gBehMedBeNn  gBehMedBeM1);
+
+cMed_raw  >  cMedBeM2_kx  /  ^ MPRECXT  _ MARKS  gBehMedBeM1;
+
+(gKafMed_raw gGafMed_raw)	>  (gKafMedBeM2 gGafMedBeM2)
+	/  ^ MPRECXT  _ gBehMed  MARKS  c_dkgal_postAlt;
+
+cMed_raw  >  cMedBeM2_kx  /  ^ MPRECXT  _ MARKS  gBehMed MARKS  c_dkgal_postAlt;
+cMed_raw  >  cMedBeM2_kx  /  ^ MPRECXT  _ MARKS  (gBehMedBeNn  gBehMedBeM1);
+
+(gSeenMed_raw gSadMed_raw)  >  (gSeenMedBeM1 gSadMedBeM1) /  ^ MPRECXT  _ MARKS  cBehMed_postSmedBeM1;
+
+(gSeenMed_raw gSadMed_raw)  >  (gSeenMedBe gSadMedBe)  / ^ MPRECXT  _ MARKS  cBehMed_postSBeM;
+
+// the rule below just keeps the next one from firing:
+////(gSeenMed gSadMed)  >  @1
+////		/  ^ MPRECXT  _ MARKS  (gBehMedBeF gBehMedSd, gBehMedTaF, gBehMedTaM, gBehMedAi, gBehMedFe gBehMedQf);
+
+table(glyph)
+cBehMed_defaultEntrance = (cBehMed_postBeM  gBehMedHd);
+endtable;
+
+cMed_raw  >  cMedBe_kx  / ^ MPRECXT  _ MARKS  cBehMed_defaultEntrance;
+
+cMed_raw  >  cMedSd_kx  /  ^ MPRECXT  _  MARKS  (gKafMed gGafMed)  MARKS  c_al_postKalt;
+
+(gKafMed_raw gGafMed_raw)  >  (gKafMedDk gGafMedDk)  / ^ MPRECXT _  MARKS  (c_dkg_noKalt cKafMed);
+
+(cMed_raw gMeemMed_alt_raw)  >  (cMedKfX_kx gMeemMedKfX)  / ^ MPRECXT  _ MARKS cKafMed_alt;
+
+
+gMeemMed_raw  >  gMeemMedBeNn_alt  / ^ c_preMm_alt MARKS  _  MARKS  gBehMedNn;
+// obsolete kludge:
+//--gMeemMed_raw  >  gMeemMedBeNn     / ^  gLamIni_raw MARKS  _ MARKS  gBehMedNn; // exception to rule below
+//--gMeemMed_raw  >  gMeemMedBeNn_alt  / ^  cIni_raw MARKS  _ MARKS  gBehMedNn; // 
+
+cMed_raw  >  cMedMmX_kx  / ^ MPRECXT  _  MARKS  (gMeemMed_alt gMeemMedBeNn_alt);
+
+cMed_raw  >  cMedBeRe_kx  / ^ MPRECXT  _ MARKS  gBehMedRe;
+cMed_raw  >  cMedBeNn_kx  / ^ MPRECXT  _ MARKS  (gBehMedNn gBehMedNn_hgbm);
+cMed_raw  >  cMedBeHg_kx  / ^ MPRECXT  _ MARKS  (gBehMedHgF gBehMedBeRe);
+cMed_raw  >  cMedBe_kx  / ^ MPRECXT  _ MARKS  cBehMed_postBeM;
+cMed_raw  >  cMedBe_kx  / ^ MPRECXT  _ MARKS  gBehMed  cKafMed_alt;
+
+gBehMed_SS_raw  >  gBehMedBeRe  /  ^ MPRECXT  _ MARKS  gBehMedRe;
+
+cMed_raw  >  cMedBeM2_kx  / ^ MPRECXT  _  MARKS  gBehMedBeNn;
+cMed_raw  >  cMedBeM2_kx  / ^ MPRECXT  _  MARKS  gBehMed  MARKS  c_dkgal_postAlt;
+
+// TODO: do we need this? -
+//(gKafMed_alt_raw gGafMed_alt_raw)	>  (gKafMedBeM2 gGafMedBeM2)
+//	/ ^ MPRECXT _  MARKS  ^ gBehMed  MARKS  cA;
+
+// Alternate kaf forms (different from NGA)
+(gKafMed_raw gGafMed_raw)	>  (gKafMedSn_alt gGafMedSn_alt)	/ ^ MPRECXT  _  MARKS  cSeenMed; // collision fix testing
+/****
+(gKafMed_raw gGafMed_raw)	>  (gKafMedJm_alt gGafMedJm_alt)	/ ^ MPRECXT  _  MARKS  cJeemMed;
+(gKafMed_raw gGafMed_raw)	>  (gKafMedSn_alt gGafMedSn_alt)	/ ^ MPRECXT  _  MARKS  cSeenMed;
+(gKafMed_raw gGafMed_raw)	>  (gKafMedSd_alt gGafMedSd_alt)	/ ^ MPRECXT  _  MARKS  cSadMed;
+(gKafMed_raw gGafMed_raw)  >  (gKafMedTaM_alt gGafMedTaM_alt)	/ ^ MPRECXT  _  MARKS  cTahMed;
+(gKafMed_raw gGafMed_raw)	>  (gKafMedAi_alt gGafMedAi_alt)	/ ^ MPRECXT  _  MARKS  cAinMed;
+(gKafMed_raw gGafMed_raw)	>  (gKafMedFe_alt gGafMedFe_alt)	/ ^ MPRECXT  _  MARKS  cFehMed;
+(gKafMed_raw gGafMed_raw)	>  (gKafMedMm_alt gGafMedMm_alt)	/ ^ MPRECXT  _  MARKS  cMeemMed;
+(gKafMed_raw gGafMed_raw)	>  (gKafMedHd_alt gGafMedHd_alt)	/ ^ MPRECXT  _  MARKS  cHehDoMed;
+****/
+
+
+// Basic rules
+cMed_raw  >  cMedBeF	/  ^ MPRECXT  _ MARKS  cBehFin;
+cMed_raw  >  cMedJm		/  ^ MPRECXT  _ MARKS  (cJeemFin cJeemMed);
+cMed_raw  >  cMedRe		/  ^ MPRECXT  _ MARKS  cRehFin;
+cMed_raw  >  cMedSn		/  ^ MPRECXT  _ MARKS  (cSeenFin cSeenMed);
+cMed_raw  >  cMedSd		/  ^ MPRECXT  _ MARKS  (cSadFin cSadMed);
+cMed_raw  >  cMedTaF	/  ^ MPRECXT  _ MARKS  cTahFin;
+cMed_raw  >  cMedTaM_kx	/  ^ MPRECXT  _ MARKS  cTahMed;
+cMed_raw  >  cMedAi		/  ^ MPRECXT  _ MARKS  (cAinFin cAinMed);
+cMed_raw  >  cMedFe		/  ^ MPRECXT  _ MARKS  (gFehFin cFehMed);
+cMed_raw  >  cMedQf		/  ^ MPRECXT  _ MARKS  c_qw; // qaf, waw
+cMed_raw  >  cMedMm		/  ^ MPRECXT  _ MARKS  (gMeemFin cMeemMed);
+cMed_raw  >  cMedNn		/  ^ MPRECXT  _ MARKS  cNoonFin;
+cMed_raw  >  cMedHgF	/  ^ MPRECXT _  MARKS  cHehGoalFin;
+cMed_raw  >  cMedHgM	/  ^ MPRECXT _  MARKS  cHehGoalMed;
+cMed_raw  >  cMedHd		/  ^ MPRECXT _  MARKS  (gHehDoFin cHehDoMed);
+cMed_raw  >  cMedCh		/  ^ MPRECXT _  MARKS  cChotiyehFin;
+cMed_raw  >  cMedBy		/  ^ MPRECXT _  MARKS   gBariyehFin;
+
+// No contextual forms for this glyph:
+gMeemMed_alt_raw  >  gMeemMed_alt	/ ^ MPRECXT _  MARKS  (c_medial c_final);
+
+#endif // !QUICKCOMPILE
+
+// Last resort:
+
+cMed_raw  >  cMed	/ ^ MPRECXT _  MARKS  (c_medial c_final g_zwj);
+
+
+endpass;
+
+
+pass(5)
+
+// -----  Initials  -----
+
+#if (QUICKCOMPILE == 0)
+
+(gKafIni_raw gGafIni_raw)  >  (gKafIniBeM2 gGafIniBeM2)  /  _ MARKS  gBehMed MARKS  c_dkgal_postAlt;
+
+cIni_raw      >  cIniBeM2_kx  /  _ MARKS  (gBehMed gBehMedBeM1 gBehMedBeNn);  // kinked kafs for collision fix testing
+//// Don't use kinked kafs for now:
+//cIni_raw  >  cIniBeM2  /  _ MARKS  (gBehMed gBehMedBeM1 gBehMedBeNn);
+
+cIni_raw_noS  >  cIniBeM1_noS_kx  /  _ MARKS  (gBehMedBeM2 gBehMedSn gBehMedBe gBehMedBeHg);
+
+cIni_raw      >  cIniBeHg_BeRe  / _ MARKS  gBehMedBeRe;
+
+cIni_raw  >  cIniBeRe_kx  /  _ MARKS  gBehMedRe;
+cIni_raw  >  cIniBeNn_kx  /  _ MARKS  (gBehMedNn gBehMedNn_hgbm);
+cIni_raw  >  cIniBeHg_kx  /  _ MARKS  gBehMedHgF;
+
+(gSeenIni_raw gSadIni_raw)  >  (gSeenIniBeM1 gSadIniBeM1)
+	/  _ MARKS  (gBehMedSn gBehMedBeM2 gBehMedBeF_ss gBehMedBe gBehMedSd_ss gBehMedTaF_ss gBehMedTaM_ss
+					gBehMedAi_ss gBehMedFe_ss gBehMedQf_ss gBehMedBeHg);
+
+(gSeenIni_raw gSadIni_raw)  >  (gSeenIniBe gSadIniBe)  /  _ MARKS  cBehMed_postSBeM;
+cIni_raw_noS  >  cIniBe_noS_kx                         /  _ MARKS  (cBehMed_postBeM gBehMedHd);
+
+
+gBehIni_raw  >  gBehIniMmM  /  _ MARKS  cMeemMed;
+
+gLamIni_raw  >  gLamIniMm /  _ MARKS  (gMeemMed_alt gMeemMedBeNn_alt); // exception to rule below
+cIni_raw      >  cIniMmX_kx /  _ MARKS  (gMeemMed_alt gMeemMedBeNn_alt);
+
+
+(gKafIni_raw gGafIni_raw)  >  (gKafIniLm  gGafIniLm)  /  _ MARKS  gLamFin;
+
+cIni_raw  >  cIniSd_kx  /  ^ _  MARKS  (gKafMed gGafMed) MARKS  c_al_postKalt;
+
+// GDL QUESTION
+(gKafIni_raw gGafIni_raw)  >  (gKafIniKf gGafIniKf)  /  _ MARKS  (gKafFin gGafFin cKafMed);
+(gKafIni_raw gGafIni_raw)  >  (gKafIniDk gGafIniDk)
+	/  _ MARKS (c_dkg_noKalt gKafMed gGafMed); // REVIEW: can this rule ever fire? - eg, \u06a9\u062f
+
+// Alternate kaf forms
+// TODO: make a feature out of these
+/***
+(gKafIni_raw gGafIni_raw)  >  (gKafIniJm_alt gGafIniJm_alt)  /  _ MARKS  gJeemMed MARKS  (cDalFin c_al_postKalt);
+     // exception to rule below:
+(gKafIni_raw gGafIni_raw)  >  (gKafIniJm gGafIniJm)          /  _ MARKS  gJeemMed;		// eg, \u06A9\u062C\u0644
+(gKafIni_raw gGafIni_raw)  >  (gKafIniJm_alt gGafIniJm_alt)  /  _ MARKS  cJeemMed;
+//(gKafIni_raw gGafIni_raw)>  (gKafIniSn_alt gGafIniSn_alt)  /  _ MARKS  cSeenMed;
+(gKafIni_raw gGafIni_raw)  >  (gKafIniSd_alt gGafIniSd_alt)  /  _ MARKS  cSadMed;
+(gKafIni_raw gGafIni_raw)  >  (gKafIniAi_alt gGafIniAi_alt)  /  _ MARKS  cAinMed;
+(gKafIni_raw gGafIni_raw)  >  (gKafIniFe_alt gGafIniFe_alt)  /  _ MARKS  cFehMed;
+(gKafIni_raw gGafIni_raw)  >  (gKafIniMm_alt gGafIniMm_alt)  /  _ MARKS  cMeemMed;
+(gKafIni_raw gGafIni_raw)  >  (gKafIniHd_alt gGafIniHd_alt)  /  _ MARKS  cHehDoMed;
+***/
+
+cIni_raw  >  cIniKfX_kx  /  _ MARKS  cKafMed_alt;
+
+
+cIni_raw_noS  >  cIniBeM1_noS_kx  /  _ MARKS  cBehMed_postBeM;
+
+
+// Basic rules
+cIni_raw  >  cIniBeM2F	/ _ MARKS  cBehFin;
+cIni_raw  >  cIniJm		/ _ MARKS  (gJeemFin gTchehFin gHehFin gKhahFin cJeemMed);
+cIni_raw  >  cIniRe		/ _ MARKS  cRehFin;
+cIni_raw  >  cIniSn		/ _ MARKS  (gSeenFin gSheenFin cSeenMed);
+cIni_raw  >  cIniSd		/ _ MARKS  (gSadFin gDadFin cSadMed);
+cIni_raw  >  cIniTaF	/ _ MARKS  (gTahFin gZahFin);
+cIni_raw  >  cIniTaM 	/ _ MARKS  cTahMed;
+cIni_raw  >  cIniAi		/ _ MARKS  (gAinFin gGhainFin cAinMed);
+cIni_raw  >  cIniFe		/ _ MARKS  (gFehFin cFehMed);
+cIni_raw  >  cIniQf		/ _ MARKS  c_qw; // qaf, waw
+cIni_raw  >  cIniMm		/ _ MARKS  (gMeemFin cMeemMed);
+cIni_raw  >  cIniNn		/ _ MARKS  (gNoonFin gNoonGhunnaFin);
+cIni_raw  >  cIniHgF	/ _ MARKS  cHehGoalFin;
+cIni_raw  >  cIniHgM_kx	/ _ MARKS  cHehGoalMed;
+cIni_raw  >  cIniHd  	/ _ MARKS  (gHehDoFin cHehDoMed);
+cIni_raw  >  cIniCh		/ _ MARKS  (gChotiyehFin_bfkl gChotiyehFin);
+cIni_raw  >  cIniBy  	/ _ MARKS  gBariyehFin;
+
+gBehIni_raw  >  gBehIniBeM2	/ _ MARKS  cBehFin;
+gBehIni_raw  >  gBehIniJm	/ _ MARKS  (gJeemFin gTchehFin gHehFin gKhahFin cJeemMed);
+gBehIni_raw  >  gBehIniRe	/ _ MARKS  cRehFin;
+gBehIni_raw  >  gBehIniSn	/ _ MARKS  (gSeenFin gSheenFin cSeenMed);
+gBehIni_raw  >  gBehIniSd	/ _ MARKS  (gSadFin gDadFin cSadMed);
+gBehIni_raw  >  gBehIniTaF	/ _ MARKS  (gTahFin gZahFin);
+gBehIni_raw  >  gBehIniTaM 	/ _ MARKS  cTahMed;
+gBehIni_raw  >  gBehIniAi	/ _ MARKS  (gAinFin gGhainFin cAinMed);
+gBehIni_raw  >  gBehIniFe	/ _ MARKS  (gFehFin cFehMed);
+gBehIni_raw  >  gBehIniQf	/ _ MARKS  c_qw; // qaf, waw
+gBehIni_raw  >  gBehIniMm	/ _ MARKS  (gMeemFin cMeemMed);
+gBehIni_raw  >  gBehIniNn	/ _ MARKS  (gNoonFin gNoonGhunnaFin);
+gBehIni_raw  >  gBehIniHgF	/ _ MARKS  cHehGoalFin;
+gBehIni_raw  >  gBehIniHgM	/ _ MARKS  cHehGoalMed;
+gBehIni_raw  >  gBehIniHd  	/ _ MARKS  (gHehDoFin cHehDoMed);
+gBehIni_raw  >  gBehIniCh 	/ _ MARKS  (gChotiyehFin_bfkl gChotiyehFin);
+gBehIni_raw  >  gBehIniBy  	/ _ MARKS  gBariyehFin;
+
+#endif // !QUICKCOMPILE
+
+
+// Last resort:
+
+cIni_raw  >  cIni	/ _  MARKS  (c_medial c_final);
+
+
+// Final clean-ups
+
+gBehMedNn  >  gBehMedNn_hgbm  /  (gHehGoalIni gHehGoalIniBeNn gBehMed gMeemIni gMeemIniBeNn)  MARKS  _;
+
+g__hehHook_small  >  g__hehHook_big  /  _  MARKS  gAlefFin;
+
+
+// TODO: fix the precontext
+(cMed_KG_DK gMeemMed_alt)? (gKafMedSn_alt gGafMedSn_alt)  >  @1 (gKafMedSn gGafMedSn)
+		/  _ MARKS  _ MARKS  gSeenMed g__dot3u  (cKafMed_alt cKafMed);
+
+/// REVIEW: I don't think this can ever happen, because gGafIniLm is only generated before gLaamFin:
+gGafMedDk  >  gGafMed_short  /  _ MARKS  (gKafFin gGafFin cKafMed);
+
+endpass; // 5
+
+
+table(glyph)
+
+cLowerUpper = (g__dot2l_smallTah, g__dot2vl_smallTah, g__dot1l_dot1u);
+cLowerNoUpper = (g__dot2l, g__dot2vl, g__dot1l);
+cUpperNoLower = (g__smallTah, g__smallTah, g__dot1u);
+
+endtable; // glyph
+
+
+pass(6)
+
+// Break lower-and-upper-nuqta glyphs into two separate glyphs, so they can be positioned separately.
+
+cLowerUpper  _  >  cLowerNoUpper  cUpperNoLower$1:1;
+
+endpass;
+
+
+#if STRIP_NUQTAS
+
+/****
+pass(6)
+
+// Add back in the nuqtas
+
+// TODO: make the classes here more complex so that not so many are matched and most of the
+// contexts tests can be avoided.
+
+(c_initial c_medial)  _  >  @1  g__dot1l:1   /  _ {nuqtaS == n1L}   _;
+(c_initial c_medial)  _  >  @1  g__dot2l:1   /  _ {nuqtaS == n2L}   _;
+(c_initial c_medial)  _  >  @1  g__dot3l:1 /  _ {nuqtaS == n3L} _;
+(c_initial c_medial)  _  >  @1  g__dot1u:1   /  _ {nuqtaS == n1U}   _;
+(c_initial c_medial)  _  >  @1  g__dot2u:1   /  _ {nuqtaS == n2U}   _;
+(c_initial c_medial)  _  >  @1  g__dot3u:1 /  _ {nuqtaS == n3U} _;
+(c_initial c_medial)  _  >  @1  g__smallTah:1        /  _ {nuqtaS == tahU}   _;
+(c_initial c_medial)  _  >  @1  gHamzaAbove2:1          /  _ {nuqtaS == w_hamza}   _;
+(c_initial c_medial)  _  >  @1  g__hehHook_small:1    /  _ {nuqtaS == w_hook}   _;
+
+///(c_initial c_medial)  _  _  >  @1  g__dot1l:1  g__smallTah:1  /  _ {nuqtaS == n1U_tahU}  _  _;
+
+endpass;	// 6
+****/
+
+#endif // STRIP_NUQTAS
+
+endtable;	// sub
+

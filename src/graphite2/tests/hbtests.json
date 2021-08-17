@@ -1,0 +1,15 @@
+[
+  {
+    "font" : "/usr/share/fonts/opentype/scheherazade/Scheherazade-Regular.ttf",
+    "textfile" : "texts/udhr_arb.txt",
+    "textline" : 11,
+    "rtl" : 1,
+    "label" : "ar (Scheherazade)"
+  },
+  {
+    "font" : "/usr/share/fonts/opentype/annapurna/AnnapurnaSIL-Regular.ttf",
+    "textfile" : "texts/udhr_nep.txt",
+    "textline" : 3,
+    "label" : "nep (Annapurna)"
+  }
+]
