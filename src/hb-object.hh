@@ -140,8 +140,6 @@ struct hb_lockable_set_t
  * Reference-count.
  */
 
-#define HB_REFERENCE_COUNT_INIT {0}
-
 struct hb_reference_count_t
 {
   mutable hb_atomic_int_t ref_count;
