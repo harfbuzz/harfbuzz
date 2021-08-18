@@ -357,6 +357,8 @@ hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
  * hb_subset_input_get_flags:
  * @input: a #hb_subset_input_t object.
  *
+ * Gets all of the subsetting flags in the input object.
+ *
  * Return value: the subsetting flags bit field.
  *
  * Since: 2.9.0
@@ -372,8 +374,8 @@ hb_subset_input_get_flags (hb_subset_input_t *input)
  * @input: a #hb_subset_input_t object.
  * @value: bit field of flags
  *
- * Set all of the flags in the input object to the values
- * specified by the bit field.
+ * Sets all of the flags in the input object to the values specified by the bit
+ * field.
  *
  * Since: 2.9.0
  **/
