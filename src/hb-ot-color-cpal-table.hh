@@ -83,8 +83,13 @@ struct CPALV1Tail
     auto *out = c->allocate_size<CPALV1Tail> (static_size);
     if (unlikely (!out)) return_trace (false);
 
-    out->paletteFlagsZ.serialize_copy (c, paletteFlagsZ, base, 0, hb_serialize_context_t::Head, palette_count);
-    out->paletteLabelsZ.serialize_copy (c, paletteLabelsZ, base, 0, hb_serialize_context_t::Head, palette_count);
+    out->paletteFlagsZ = 0;
+    if (paletteFlagsZ)
+      out->paletteFlagsZ.serialize_copy (c, paletteFlagsZ, base, 0, hb_serialize_context_t::Head, palette_count);
+
+    out->paletteLabelsZ = 0;
+    if (paletteLabelsZ)
+      out->paletteLabelsZ.serialize_copy (c, paletteLabelsZ, base, 0, hb_serialize_context_t::Head, palette_count);
 
     const hb_array_t<const NameID> colorLabels = (base+colorLabelsZ).as_array (color_count);
     if (colorLabelsZ)
@@ -234,7 +239,7 @@ struct CPAL
 
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
-    
+
     out->version = version;
     out->numColors = retained_color_indices.get_population ();
     out->numPalettes = numPalettes;
