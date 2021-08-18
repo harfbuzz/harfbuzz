@@ -124,6 +124,8 @@ struct CPALV1Tail
   }
 
   protected:
+  // TODO(garretrieger): these offsets can hold nulls so we should not be using non-null offsets
+  //                     here. Currently they are needed since UnsizedArrayOf doesn't define null_size
   NNOffset32To<UnsizedArrayOf<HBUINT32>>
 		paletteFlagsZ;		/* Offset from the beginning of CPAL table to
 					 * the Palette Type Array. Set to 0 if no array
