@@ -68,7 +68,7 @@ typedef struct hb_subset_input_t hb_subset_input_t;
  *
  * List of boolean properties that can be configured on the subset input.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 typedef enum { /*< flags >*/
   HB_SUBSET_FLAGS_DEFAULT =		     0x00000000u,

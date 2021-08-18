@@ -1,3 +1,23 @@
+Overview of changes leading to 2.9.0
+Wednesday, August 18, 2021
+History Repeats Itself (Afghanistan)
+====================================
+- Subsetter API is being stabilized, with the first stable API to happen in
+  3.0.0 release (https://github.com/harfbuzz/harfbuzz/issues/3078).
+- Support multiple variation axes with same tag, aka HOI.
+- The “coretext” testing shaper now passes font variations to CoreText.
+- hb-shape/hb-view does not break line at new lines unless text is read from
+  file.
+- hb-view and hb-subset has a --batch now, similar to hb-shape.
+- The --batch mode now uses ; as argument separator instead of : used previously.
+- The --batch in hb-shape does not expect 0th argument anymore. That is, the
+  lines read are interpreted as argv[1:], instead of argv[0:].
+- The --batch option has been undocumented. We are ready to document it; send
+  feedback if you find it useful.
+- hb-subset got arguments revamps. Added much-requested --gids-file, --glyphs,
+  --glyphs-file, --unicodes-file, supporting ranges in --unicodes.
+- Various bug fixes.
+
 Overview of changes leading to 2.8.2
 Tuesday, July 8, 2021
 ====================================

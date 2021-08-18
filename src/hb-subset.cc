@@ -346,7 +346,7 @@ hb_subset (hb_face_t *source, hb_subset_input_t *input)
  * Subsets a font according to provided input. Returns nullptr
  * if the subset operation fails.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input)

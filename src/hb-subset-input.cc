@@ -275,7 +275,7 @@ hb_subset_input_glyph_set (hb_subset_input_t *input)
  *
  * Return value: (transfer none): pointer to the #hb_set_t of name IDs.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN hb_set_t *
 hb_subset_input_nameid_set (hb_subset_input_t *input)
@@ -292,7 +292,7 @@ hb_subset_input_nameid_set (hb_subset_input_t *input)
  *
  * Return value: (transfer none): pointer to the #hb_set_t of language IDs.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN hb_set_t *
 hb_subset_input_namelangid_set (hb_subset_input_t *input)
@@ -310,7 +310,7 @@ hb_subset_input_namelangid_set (hb_subset_input_t *input)
  *
  * Return value: (transfer none): pointer to the #hb_set_t of feature tags.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN hb_set_t *
 hb_subset_input_layout_features_set (hb_subset_input_t *input)
@@ -327,7 +327,7 @@ hb_subset_input_layout_features_set (hb_subset_input_t *input)
  *
  * Return value: (transfer none): pointer to the #hb_set_t of table tags.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN hb_set_t *
 hb_subset_input_drop_tables_set (hb_subset_input_t *input)
@@ -344,7 +344,7 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *input)
  *
  * Return value: (transfer none): pointer to the #hb_set_t of table tags.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN hb_set_t *
 hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
@@ -359,7 +359,7 @@ hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
  *
  * Return value: the subsetting flags bit field.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN hb_subset_flags_t
 hb_subset_input_get_flags (hb_subset_input_t *input)
@@ -375,7 +375,7 @@ hb_subset_input_get_flags (hb_subset_input_t *input)
  * Set all of the flags in the input object to the values
  * specified by the bit field.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN void
 hb_subset_input_set_flags (hb_subset_input_t *input,
@@ -396,7 +396,7 @@ hb_subset_input_set_flags (hb_subset_input_t *input,
  *
  * Return value: %true if success, %false otherwise
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 hb_bool_t
 hb_subset_input_set_user_data (hb_subset_input_t  *input,
@@ -418,7 +418,7 @@ hb_subset_input_set_user_data (hb_subset_input_t  *input,
  *
  * Return value: (transfer none): A pointer to the user data
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 void *
 hb_subset_input_get_user_data (const hb_subset_input_t *input,
