@@ -156,7 +156,10 @@ workflows:
   build:
     jobs:
       - macos-aat-fonts
-      - distcheck
+      - distcheck:
+          filters: # must have filter or won't work as a dependency
+            tags:
+              only: /.*/
       - publish-dist:
           requires:
             - distcheck
@@ -169,8 +172,14 @@ workflows:
       - alpine
      #- archlinux
       - sanitizers
-      - crossbuild-win32
-      - crossbuild-win64
+      - crossbuild-win32:
+          filters: # must have filter or won't work as a dependency
+            tags:
+              only: /.*/
+      - crossbuild-win64:
+          filters: # must have filter or won't work as a dependency
+            tags:
+              only: /.*/
       - publish-win32:
           requires:
             - crossbuild-win32
