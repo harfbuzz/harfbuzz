@@ -577,7 +577,7 @@ struct hb_bit_set_t
 
   void union_ (const hb_bit_set_t &other) { process (hb_bitwise_or, other); }
   void intersect (const hb_bit_set_t &other) { process (hb_bitwise_and, other); }
-  void subtract (const hb_bit_set_t &other) { process (hb_bitwise_sub, other); }
+  void subtract (const hb_bit_set_t &other) { process (hb_bitwise_gt, other); }
   void symmetric_difference (const hb_bit_set_t &other) { process (hb_bitwise_xor, other); }
 
   bool next (hb_codepoint_t *codepoint) const

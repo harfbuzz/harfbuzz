@@ -108,18 +108,69 @@ struct hb_bit_set_invertible_t
     return inverted ? larger_set.s.is_subset (s) : s.is_subset (larger_set.s);
   }
 
+  protected:
   template <typename Op>
   void process (const Op& op, const hb_bit_set_invertible_t &other)
-  { s.process (op, other.s); }
-
-  /*XXX(inverted)*/
-  void union_ (const hb_bit_set_invertible_t &other) { process (hb_bitwise_or, other); }
-  /*XXX(inverted)*/
-  void intersect (const hb_bit_set_invertible_t &other) { process (hb_bitwise_and, other); }
-  /*XXX(inverted)*/
-  void subtract (const hb_bit_set_invertible_t &other) { process (hb_bitwise_sub, other); }
-  /*XXX(inverted)*/
-  void symmetric_difference (const hb_bit_set_invertible_t &other) { process (hb_bitwise_xor, other); }
+  {
+    s.process (op, other.s);
+    inverted = bool (op (int (inverted), int (other.inverted)));
+  }
+  public:
+  void union_ (const hb_bit_set_invertible_t &other)
+  {
+    if (inverted == other.inverted)
+    {
+      if (inverted)
+	process (hb_bitwise_and, other);
+      else
+	process (hb_bitwise_or, other); /* Main branch. */
+    }
+    else
+    {
+      if (inverted)
+	process (hb_bitwise_gt, other);
+      else
+	process (hb_bitwise_lt, other);
+    }
+  }
+  void intersect (const hb_bit_set_invertible_t &other)
+  {
+    if (inverted == other.inverted)
+    {
+      if (inverted)
+	process (hb_bitwise_or, other);
+      else
+	process (hb_bitwise_and, other); /* Main branch. */
+    }
+    else
+    {
+      if (inverted)
+	process (hb_bitwise_ge, other);
+      else
+	process (hb_bitwise_le, other);
+    }
+  }
+  void subtract (const hb_bit_set_invertible_t &other)
+  {
+    if (inverted == other.inverted)
+    {
+      if (inverted)
+	process (hb_bitwise_lt, other);
+      else
+	process (hb_bitwise_gt, other); /* Main branch. */
+    }
+    else
+    {
+      if (inverted)
+	process (hb_bitwise_non, other);
+      else
+	process (hb_bitwise_and, other);
+    }
+  }
+  void symmetric_difference (const hb_bit_set_invertible_t &other)
+  {
+    process (hb_bitwise_xor, other);
+  }
 
   bool next (hb_codepoint_t *codepoint) const
   {

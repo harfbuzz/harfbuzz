@@ -1180,9 +1180,33 @@ HB_FUNCOBJ (hb_bitwise_xor);
 struct
 { HB_PARTIALIZE(2);
   template <typename T> constexpr auto
+  operator () (const T &a, const T &b) const HB_AUTO_RETURN (~a & b)
+}
+HB_FUNCOBJ (hb_bitwise_lt);
+struct
+{ HB_PARTIALIZE(2);
+  template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
 }
-HB_FUNCOBJ (hb_bitwise_sub);
+HB_FUNCOBJ (hb_bitwise_gt); // aka sub
+struct
+{ HB_PARTIALIZE(2);
+  template <typename T> constexpr auto
+  operator () (const T &a, const T &b) const HB_AUTO_RETURN (~a & ~b)
+}
+HB_FUNCOBJ (hb_bitwise_non);
+struct
+{ HB_PARTIALIZE(2);
+  template <typename T> constexpr auto
+  operator () (const T &a, const T &b) const HB_AUTO_RETURN (~a | b)
+}
+HB_FUNCOBJ (hb_bitwise_le);
+struct
+{ HB_PARTIALIZE(2);
+  template <typename T> constexpr auto
+  operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | ~b)
+}
+HB_FUNCOBJ (hb_bitwise_ge);
 struct
 {
   template <typename T> constexpr auto
@@ -1202,6 +1226,12 @@ struct
   operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (a - b)
 }
 HB_FUNCOBJ (hb_sub);
+struct
+{ HB_PARTIALIZE(2);
+  template <typename T, typename T2> constexpr auto
+  operator () (const T &a, const T2 &b) const HB_AUTO_RETURN (b - a)
+}
+HB_FUNCOBJ (hb_rsub);
 struct
 { HB_PARTIALIZE(2);
   template <typename T, typename T2> constexpr auto
