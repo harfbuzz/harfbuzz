@@ -121,7 +121,7 @@ struct hb_bit_set_t
     if (unlikely (!successful)) return;
     if (unlikely (g == INVALID)) return;
     dirty ();
-    page_t *page = page_for_insert (g); if (unlikely (!page)) return;
+    page_t *page = page_for (g, true); if (unlikely (!page)) return;
     page->add (g);
   }
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
@@ -133,21 +133,21 @@ struct hb_bit_set_t
     unsigned int mb = get_major (b);
     if (ma == mb)
     {
-      page_t *page = page_for_insert (a); if (unlikely (!page)) return false;
+      page_t *page = page_for (a, true); if (unlikely (!page)) return false;
       page->add_range (a, b);
     }
     else
     {
-      page_t *page = page_for_insert (a); if (unlikely (!page)) return false;
+      page_t *page = page_for (a, true); if (unlikely (!page)) return false;
       page->add_range (a, major_start (ma + 1) - 1);
 
       for (unsigned int m = ma + 1; m < mb; m++)
       {
-	page = page_for_insert (major_start (m)); if (unlikely (!page)) return false;
+	page = page_for (major_start (m), true); if (unlikely (!page)) return false;
 	page->init1 ();
       }
 
-      page = page_for_insert (b); if (unlikely (!page)) return false;
+      page = page_for (b, true); if (unlikely (!page)) return false;
       page->add_range (major_start (mb), b);
     }
     return true;
@@ -163,7 +163,7 @@ struct hb_bit_set_t
     while (count)
     {
       unsigned int m = get_major (g);
-      page_t *page = page_for_insert (g); if (unlikely (!page)) return;
+      page_t *page = page_for (g, true); if (unlikely (!page)) return;
       unsigned int start = major_start (m);
       unsigned int end = major_start (m + 1);
       do
@@ -192,7 +192,7 @@ struct hb_bit_set_t
     while (count)
     {
       unsigned int m = get_major (g);
-      page_t *page = page_for_insert (g); if (unlikely (!page)) return false;
+      page_t *page = page_for (g, true); if (unlikely (!page)) return false;
       unsigned int end = major_start (m + 1);
       do
       {
@@ -743,12 +743,15 @@ struct hb_bit_set_t
 
   protected:
 
-  page_t *page_for_insert (hb_codepoint_t g)
+  page_t *page_for (hb_codepoint_t g, bool insert = false)
   {
     page_map_t map = {get_major (g), pages.length};
     unsigned int i;
     if (!page_map.bfind (map, &i, HB_NOT_FOUND_STORE_CLOSEST))
     {
+      if (!insert)
+        return nullptr;
+
       if (!resize (pages.length + 1))
 	return nullptr;
 
@@ -759,14 +762,6 @@ struct hb_bit_set_t
       page_map[i] = map;
     }
     return &pages[page_map[i].index];
-  }
-  page_t *page_for (hb_codepoint_t g)
-  {
-    page_map_t key = {get_major (g)};
-    const page_map_t *found = page_map.bsearch (key);
-    if (found)
-      return &pages[found->index];
-    return nullptr;
   }
   const page_t *page_for (hb_codepoint_t g) const
   {
