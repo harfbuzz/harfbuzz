@@ -181,21 +181,24 @@ struct hb_bit_set_invertible_t
       return s.next (codepoint);
 
     auto old = *codepoint;
-    do
+    auto v = old;
+    s.next (&v);
+    if (old + 1 < v)
     {
-      auto v = old;
-      s.next (&v);
-      if (old + 1 < v)
-      {
-	*codepoint = old + 1;
-	return true;
-      }
-      old++;
+      *codepoint = old + 1;
+      return true;
     }
-    while (old != INVALID);
 
-    *codepoint = INVALID;
-    return false;
+    if (unlikely (old + 1 == INVALID))
+    {
+      *codepoint = INVALID;
+      return false;
+    }
+
+    s.next_range (&old, &v);
+
+    *codepoint = v + 1;
+    return *codepoint != INVALID;
   }
   bool previous (hb_codepoint_t *codepoint) const
   {
@@ -203,21 +206,24 @@ struct hb_bit_set_invertible_t
       return s.previous (codepoint);
 
     auto old = *codepoint;
-    do
+    auto v = old;
+    s.previous (&v);
+    if (old - 1 > v)
     {
-      auto v = old;
-      s.previous (&v);
-      if (old - 1 > v)
-      {
-	*codepoint = old - 1;
-	return true;
-      }
-      old--;
+      *codepoint = old - 1;
+      return true;
     }
-    while (old != INVALID);
 
-    *codepoint = INVALID;
-    return false;
+    if (unlikely (old - 1 == INVALID))
+    {
+      *codepoint = INVALID;
+      return false;
+    }
+
+    s.previous_range (&v, &old);
+
+    *codepoint = v - 1;
+    return *codepoint != INVALID;
   }
   bool next_range (hb_codepoint_t *first, hb_codepoint_t *last) const
   {
