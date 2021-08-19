@@ -1159,25 +1159,25 @@ hb_codepoint_parse (const char *s, unsigned int len, int base, hb_codepoint_t *o
 
 /* Operators. */
 
-struct hb_bitwise_and
+struct
 { HB_PARTIALIZE(2);
   template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & b)
 }
 HB_FUNCOBJ (hb_bitwise_and);
-struct hb_bitwise_or
+struct
 { HB_PARTIALIZE(2);
   template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a | b)
 }
 HB_FUNCOBJ (hb_bitwise_or);
-struct hb_bitwise_xor
+struct
 { HB_PARTIALIZE(2);
   template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a ^ b)
 }
 HB_FUNCOBJ (hb_bitwise_xor);
-struct hb_bitwise_sub
+struct
 { HB_PARTIALIZE(2);
   template <typename T> constexpr auto
   operator () (const T &a, const T &b) const HB_AUTO_RETURN (a & ~b)
