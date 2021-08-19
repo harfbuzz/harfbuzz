@@ -50,7 +50,12 @@ struct hb_bit_set_invertible_t
   void clear () { s.clear (); inverted = false; }
   void invert () { if (!s.in_error ()) inverted = !inverted; }
 
-  bool is_empty () const { return inverted ? /*XXX*/false : s.is_empty (); }
+  bool is_empty () const
+  {
+    hb_codepoint_t v = INVALID;
+    next (&v);
+    return v == INVALID;
+  }
 
   void add (hb_codepoint_t g) { unlikely (inverted) ? s.del (g) : s.add (g); }
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
