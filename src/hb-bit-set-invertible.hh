@@ -123,11 +123,10 @@ struct hb_bit_set_invertible_t
 
   bool is_subset (const hb_bit_set_invertible_t &larger_set) const
   {
-    if (unlikely (inverted && !larger_set.inverted)) return false; /*XXX*/
-    if (unlikely (!inverted && larger_set.inverted))
+    if (unlikely (inverted != larger_set.inverted))
       return hb_all (hb_iter (s) | hb_map (larger_set.s));
-    /* inverted == larger_set.inverted */
-    return unlikely (inverted) ? larger_set.s.is_subset (s) : s.is_subset (larger_set.s);
+    else
+      return unlikely (inverted) ? larger_set.s.is_subset (s) : s.is_subset (larger_set.s);
   }
 
   protected:

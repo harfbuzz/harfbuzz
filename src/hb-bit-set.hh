@@ -342,7 +342,8 @@ struct hb_bit_set_t
 
   bool is_equal (const hb_bit_set_t &other) const
   {
-    if (get_population () != other.get_population ())
+    if (has_population () && other.has_population () &&
+	get_population () != other.get_population ())
       return false;
 
     unsigned int na = pages.length;
@@ -369,9 +370,11 @@ struct hb_bit_set_t
 
   bool is_subset (const hb_bit_set_t &larger_set) const
   {
-    /* TODO: Merge this and is_equal() into something like process(). */
-    if (unlikely(larger_set.is_empty ()))
-      return is_empty ();
+//    /* TODO: Merge this and is_equal() into something like process(). */
+
+    if (has_population () && larger_set.has_population () &&
+	get_population () != larger_set.get_population ())
+      return false;
 
     uint32_t spi = 0;
     for (uint32_t lpi = 0; spi < page_map.length && lpi < larger_set.page_map.length; lpi++)
@@ -698,9 +701,10 @@ struct hb_bit_set_t
     return true;
   }
 
+  bool has_population () const { return population != UINT_MAX; }
   unsigned int get_population () const
   {
-    if (population != UINT_MAX)
+    if (has_population ())
       return population;
 
     unsigned int pop = 0;
