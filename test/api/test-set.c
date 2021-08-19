@@ -574,6 +574,222 @@ test_set_delrange (void)
   hb_set_destroy (s);
 }
 
+// Inverted tests:
+// iteration: next/prev/next_range/prev_range
+// is_empty()
+// max/min
+// has/get/[]
+// add/del/add_range/del_range
+// is_equal
+// get_population
+//
+// Interesting cases:
+// - empty inverted (ie. all numbers)
+// - inverted with things removed at either extreme
+// - inverted with things removed in the middle.
+//
+// Set operations: (for II, NN, IN, NI)
+// - union
+// - intersercts
+// - sym diff
+// - subtraction
+
+static const unsigned max_set_elements = -1;
+
+static void
+test_set_inverted_basics (void)
+{
+  // Tests:
+  // add, del, has, get_population, is_empty, get_min, get_max
+  // for inverted sets.
+  hb_set_t *s = hb_set_create ();
+  hb_set_invert (s);
+
+  g_assert_cmpint (hb_set_get_population (s), ==, max_set_elements);
+  g_assert (hb_set_has (s, 0));
+  g_assert (hb_set_has (s, 13));
+  g_assert (hb_set_has (s, max_set_elements - 1));
+  g_assert (!hb_set_is_empty (s));
+  g_assert_cmpint (hb_set_get_min (s), ==, 0);
+  g_assert_cmpint (hb_set_get_max (s), ==, max_set_elements - 1);
+
+  hb_set_del (s, 13);
+  g_assert (!hb_set_has (s, 13));
+  g_assert_cmpint (hb_set_get_population (s), ==, max_set_elements - 1);
+  g_assert_cmpint (hb_set_get_min (s), ==, 0);
+  g_assert_cmpint (hb_set_get_max (s), ==, max_set_elements - 1);
+
+  hb_set_add (s, 13);
+  g_assert (hb_set_has (s, 13));
+  g_assert_cmpint (hb_set_get_population (s), ==, max_set_elements);
+
+  hb_set_del (s, 0);
+  hb_set_del (s, max_set_elements - 1);
+  g_assert (!hb_set_has (s, 0));
+  g_assert (hb_set_has (s, 13));
+  g_assert (!hb_set_has (s, max_set_elements - 1));
+  g_assert (!hb_set_is_empty (s));
+  g_assert_cmpint (hb_set_get_population (s), ==, max_set_elements - 2);
+  g_assert_cmpint (hb_set_get_min (s), ==, 1);
+  g_assert_cmpint (hb_set_get_max (s), ==, max_set_elements - 2);
+
+  hb_set_destroy (s);
+}
+
+static void
+test_set_inverted_ranges (void)
+{
+  // Tests:
+  // add_range, del_range, has, get_population, is_empty, get_min, get_max
+  // for inverted sets.
+  hb_set_t *s = hb_set_create ();
+  hb_set_invert (s);
+
+  hb_set_del_range (s, 41, 4000);
+  hb_set_add_range (s, 78, 601);
+
+  g_assert (hb_set_has (s, 40));
+  g_assert (!hb_set_has (s, 41));
+  g_assert (!hb_set_has (s, 64));
+  g_assert (!hb_set_has (s, 77));
+  g_assert (hb_set_has (s, 78));
+  g_assert (hb_set_has (s, 300));
+  g_assert (hb_set_has (s, 601));
+  g_assert (!hb_set_has (s, 602));
+  g_assert (!hb_set_has (s, 3000));
+  g_assert (!hb_set_has (s, 4000));
+  g_assert (hb_set_has (s, 4001));
+
+  g_assert (!hb_set_is_empty (s));
+  g_assert_cmpint (hb_set_get_population (s), ==, max_set_elements - 3436);
+  g_assert_cmpint (hb_set_get_min (s), ==, 0);
+  g_assert_cmpint (hb_set_get_max (s), ==, max_set_elements - 1);
+
+  hb_set_del_range (s, 0, 37);
+  g_assert (!hb_set_has (s, 0));
+  g_assert (!hb_set_has (s, 37));
+  g_assert (hb_set_has (s, 38));
+  g_assert (!hb_set_is_empty (s));
+  g_assert_cmpint (hb_set_get_population (s), ==,
+                   max_set_elements - 3436 - 38);
+  g_assert_cmpint (hb_set_get_min (s), ==, 38);
+  g_assert_cmpint (hb_set_get_max (s), ==, max_set_elements - 1);
+
+  hb_set_del_range (s, max_set_elements - 13, max_set_elements - 1);
+  g_assert (!hb_set_has (s, max_set_elements - 1));
+  g_assert (!hb_set_has (s, max_set_elements - 13));
+  g_assert (hb_set_has (s, max_set_elements - 14));
+
+  g_assert (!hb_set_is_empty (s));
+  g_assert_cmpint (hb_set_get_population (s), ==,
+                   max_set_elements - 3436 - 38 - 13);
+  g_assert_cmpint (hb_set_get_min (s), ==, 38);
+  g_assert_cmpint (hb_set_get_max (s), ==, max_set_elements - 14);
+}
+
+static void
+test_set_inverted_iteration_next (void)
+{
+  // Tests:
+  // next, next_range
+  hb_set_t *s = hb_set_create ();
+  hb_set_invert (s);
+
+  hb_set_del_range (s, 41, 4000);
+  hb_set_add_range (s, 78, 601);
+
+  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+  hb_codepoint_t start = 0;
+  hb_codepoint_t end = 0;
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, 0);
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, 1);
+
+  g_assert (hb_set_next_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 1);
+  g_assert_cmpint (end, ==, 40);
+
+  start = 40;
+  end = 40;
+  g_assert (hb_set_next_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 78);
+  g_assert_cmpint (end, ==, 601);
+
+  start = 40;
+  end = 57;
+  g_assert (hb_set_next_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 78);
+  g_assert_cmpint (end, ==, 601);
+
+  cp = 39;
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, 40);
+
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, 78);
+
+  cp = 56;
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, 78);
+
+  cp = 78;
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, 79);
+
+  cp = 601;
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, 4001);
+
+  cp = HB_SET_VALUE_INVALID;
+  hb_set_del (s, 0);
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, 1);
+
+  start = 0;
+  end = 0;
+  g_assert (hb_set_next_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 1);
+  g_assert_cmpint (end, ==, 40);
+
+  cp = max_set_elements - 1;
+  g_assert (!hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, HB_SET_VALUE_INVALID);
+
+  start = 4000;
+  end = 4000;
+  g_assert (hb_set_next_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 4001);
+  g_assert_cmpint (end, ==, max_set_elements - 1);
+
+  start = max_set_elements - 1;
+  end = max_set_elements - 1;
+  g_assert (!hb_set_next_range (s, &start, &end));
+  g_assert_cmpint (start, ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (end, ==, HB_SET_VALUE_INVALID);
+
+  cp = max_set_elements - 3;
+  hb_set_del (s, max_set_elements - 1);
+  g_assert (hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, max_set_elements - 2);
+  g_assert (!hb_set_next (s, &cp));
+  g_assert_cmpint (cp, ==, HB_SET_VALUE_INVALID);
+
+
+  start = max_set_elements - 2;
+  end = max_set_elements - 2;
+  g_assert (!hb_set_next_range (s, &start, &end));
+  g_assert_cmpint (start, ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (end, ==, HB_SET_VALUE_INVALID);
+
+  start = max_set_elements - 3;
+  end = max_set_elements - 3;
+  g_assert (hb_set_next_range (s, &start, &end));
+  g_assert_cmpint (start, ==, max_set_elements - 2);
+  g_assert_cmpint (end, ==, max_set_elements - 2);
+}
+
+
 int
 main (int argc, char **argv)
 {
@@ -589,6 +805,10 @@ main (int argc, char **argv)
   hb_test_add (test_set_intersect_empty);
   hb_test_add (test_set_intersect_page_reduction);
   hb_test_add (test_set_union);
+
+  hb_test_add (test_set_inverted_basics);
+  hb_test_add (test_set_inverted_ranges);
+  hb_test_add (test_set_inverted_iteration_next);
 
   return hb_test_run();
 }
