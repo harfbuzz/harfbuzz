@@ -713,18 +713,28 @@ struct hb_bit_set_t
   }
   hb_codepoint_t get_min () const
   {
-    unsigned int count = pages.length;
-    for (unsigned int i = 0; i < count; i++)
-      if (!page_at (i).is_empty ())
-	return page_map[i].major * page_t::PAGE_BITS + page_at (i).get_min ();
+    unsigned count = pages.length;
+    for (unsigned i = 0; i < count; i++)
+    {
+      const auto& map = page_map[i];
+      const auto& page = pages[map.index];
+
+      if (!page.is_empty ())
+	return map.major * page_t::PAGE_BITS + page.get_min ();
+    }
     return INVALID;
   }
   hb_codepoint_t get_max () const
   {
-    unsigned int count = pages.length;
-    for (int i = count - 1; i >= 0; i--)
-      if (!page_at (i).is_empty ())
-	return page_map[(unsigned) i].major * page_t::PAGE_BITS + page_at (i).get_max ();
+    unsigned count = pages.length;
+    for (signed i = count - 1; i >= 0; i--)
+    {
+      const auto& map = page_map[(unsigned) i];
+      const auto& page = pages[map.index];
+
+      if (!page.is_empty ())
+	return map.major * page_t::PAGE_BITS + page.get_max ();
+    }
     return INVALID;
   }
 
