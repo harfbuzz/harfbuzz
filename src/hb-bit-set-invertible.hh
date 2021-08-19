@@ -145,9 +145,9 @@ struct hb_bit_set_invertible_t
     else
     {
       if (unlikely (inverted))
-	process (hb_bitwise_ge, other);
+	process (hb_bitwise_lt, other);
       else
-	process (hb_bitwise_le, other);
+	process (hb_bitwise_gt, other);
     }
     inverted = inverted && other.inverted;
   }
