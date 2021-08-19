@@ -574,14 +574,8 @@ test_set_delrange (void)
   hb_set_destroy (s);
 }
 
-// Inverted tests:
-// iteration: next/prev/next_range/prev_range
-// is_empty()
-// max/min
-// has/get/[]
-// add/del/add_range/del_range
+// TODO(garretrieger): Inverted tests:
 // is_equal
-// get_population
 //
 // Interesting cases:
 // - empty inverted (ie. all numbers)
@@ -893,7 +887,6 @@ test_set_inverted_iteration_prev (void)
   g_assert (hb_set_previous_range (s, &start, &end));
   g_assert_cmpint (start, ==, 1);
   g_assert_cmpint (end, ==, 1);
-  return; // TODO
 }
 
 
