@@ -154,7 +154,7 @@ struct hb_bit_set_t
   }
 
   template <typename T>
-  void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  void set_array (bool v, const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
     if (unlikely (!successful)) return;
     if (!count) return;
@@ -163,12 +163,13 @@ struct hb_bit_set_t
     while (count)
     {
       unsigned int m = get_major (g);
-      page_t *page = page_for (g, true); if (unlikely (!page)) return;
+      page_t *page = page_for (g, v); if (unlikely (v && !page)) return;
       unsigned int start = major_start (m);
       unsigned int end = major_start (m + 1);
       do
       {
-	page->add (g);
+        if (v || page) /* The v check is to optimize out the page check if v is true. */
+	  page->set (g, v);
 
 	array = &StructAtOffsetUnaligned<T> (array, stride);
 	count--;
@@ -176,13 +177,23 @@ struct hb_bit_set_t
       while (count && (g = *array, start <= g && g < end));
     }
   }
+
+  template <typename T>
+  void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  { set_array (true, array, count, stride); }
   template <typename T>
   void add_array (const hb_array_t<const T>& arr) { add_array (&arr, arr.len ()); }
+
+  template <typename T>
+  void del_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  { set_array (false, array, count, stride); }
+  template <typename T>
+  void del_array (const hb_array_t<const T>& arr) { del_array (&arr, arr.len ()); }
 
   /* Might return false if array looks unsorted.
    * Used for faster rejection of corrupt data. */
   template <typename T>
-  bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  bool set_sorted_array (bool v, const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
     if (unlikely (!successful)) return true; /* https://github.com/harfbuzz/harfbuzz/issues/657 */
     if (!count) return true;
@@ -192,7 +203,7 @@ struct hb_bit_set_t
     while (count)
     {
       unsigned int m = get_major (g);
-      page_t *page = page_for (g, true); if (unlikely (!page)) return false;
+      page_t *page = page_for (g, v); if (unlikely (v && !page)) return false;
       unsigned int end = major_start (m + 1);
       do
       {
@@ -200,7 +211,9 @@ struct hb_bit_set_t
 	 * Not sure if it's worth it. */
 	if (g < last_g) return false;
 	last_g = g;
-	page->add (g);
+
+        if (v || page) /* The v check is to optimize out the page check if v is true. */
+	  page->add (g);
 
 	array = (const T *) ((const char *) array + stride);
 	count--;
@@ -209,8 +222,18 @@ struct hb_bit_set_t
     }
     return true;
   }
+
+  template <typename T>
+  bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  { return set_sorted_array (true, array, count, stride); }
   template <typename T>
   bool add_sorted_array (const hb_sorted_array_t<const T>& arr) { return add_sorted_array (&arr, arr.len ()); }
+
+  template <typename T>
+  bool del_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
+  { return set_sorted_array (false, array, count, stride); }
+  template <typename T>
+  bool del_sorted_array (const hb_sorted_array_t<const T>& arr) { return del_sorted_array (&arr, arr.len ()); }
 
   void del (hb_codepoint_t g)
   {
