@@ -103,13 +103,7 @@ struct hb_bit_set_invertible_t
   {
     if (inverted && !larger_set.inverted) return false; /*XXX*/
     if (!inverted && larger_set.inverted)
-    {
-      /* TODO(iter) Write as hb_all dagger. */
-      for (auto c: s)
-        if (larger_set.s.has (c))
-	  return false;
-      return true;
-    }
+      return hb_all (hb_iter (s) | hb_map (larger_set.s));
     /* inverted == larger_set.inverted */
     return inverted ? larger_set.s.is_subset (s) : s.is_subset (larger_set.s);
   }
