@@ -57,9 +57,6 @@ struct hb_bit_set_t
   // TODO Add move construtor/assign
   // TODO Add constructor for Iterator; with specialization for (sorted) vector / array?
 
-  /* TODO Keep a freelist so we can release pages that are completely zeroed.  At that
-   * point maybe also use a sentinel value for "all-1" pages? */
-
   using page_t = hb_bit_page_t;
   struct page_map_t
   {
@@ -237,7 +234,6 @@ struct hb_bit_set_t
 
   void del (hb_codepoint_t g)
   {
-    /* TODO perform op even if !successful. */
     if (unlikely (!successful)) return;
     page_t *page = page_for (g);
     if (!page)
@@ -272,7 +268,6 @@ struct hb_bit_set_t
   public:
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    /* TODO perform op even if !successful. */
     if (unlikely (!successful)) return;
     if (unlikely (a > b || a == INVALID)) return;
     dirty ();
@@ -370,8 +365,6 @@ struct hb_bit_set_t
 
   bool is_subset (const hb_bit_set_t &larger_set) const
   {
-//    /* TODO: Merge this and is_equal() into something like process(). */
-
     if (has_population () && larger_set.has_population () &&
 	get_population () != larger_set.get_population ())
       return false;
@@ -426,7 +419,6 @@ struct hb_bit_set_t
     hb_vector_t<unsigned>& old_index_to_page_map_index = workspace;
 
     hb_fill (old_index_to_page_map_index.writer(), 0xFFFFFFFF);
-    /* TODO(iter) Rewrite as dagger? */
     for (unsigned i = 0; i < length; i++)
       old_index_to_page_map_index[page_map[i].index] =  i;
 
