@@ -239,7 +239,7 @@ struct hb_bit_set_invertible_t
     auto old = *codepoint;
     auto v = old;
     s.previous (&v);
-    if (old - 1 > v)
+    if (old - 1 > v || v == INVALID)
     {
       *codepoint = old - 1;
       return true;
