@@ -188,6 +188,7 @@ hb_map_set (hb_map_t       *map,
 	    hb_codepoint_t  key,
 	    hb_codepoint_t  value)
 {
+  /* Immutable-safe. */
   map->set (key, value);
 }
 
@@ -220,6 +221,7 @@ void
 hb_map_del (hb_map_t       *map,
 	    hb_codepoint_t  key)
 {
+  /* Immutable-safe. */
   map->del (key);
 }
 
