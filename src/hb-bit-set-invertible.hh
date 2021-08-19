@@ -119,7 +119,18 @@ struct hb_bit_set_invertible_t
   void set (const hb_bit_set_invertible_t &other) { s.set (other.s); inverted = other.inverted; }
 
   bool is_equal (const hb_bit_set_invertible_t &other) const
-  { return inverted == other.inverted /*XXX*/ && s.is_equal (other.s); }
+  {
+    if (likely (inverted == other.inverted))
+      return s.is_equal (other.s);
+    else
+    {
+      /* TODO Add iter_ranges() and use here. */
+      auto it1 = iter ();
+      auto it2 = other.iter ();
+      return hb_all (+ hb_zip (it1, it2)
+		     | hb_map ([](hb_pair_t<hb_codepoint_t, hb_codepoint_t> _) { return _.first == _.second; }));
+    }
+  }
 
   bool is_subset (const hb_bit_set_invertible_t &larger_set) const
   {
