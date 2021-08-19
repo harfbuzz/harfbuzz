@@ -711,16 +711,26 @@ struct hb_bit_set_t
     population = pop;
     return pop;
   }
-  hb_codepoint_t get_min () const
+  hb_codepoint_t get_min (bool inverted = false) const
   {
+    unsigned last_major = (unsigned) -1;
+
     unsigned count = pages.length;
     for (unsigned i = 0; i < count; i++)
     {
       const auto& map = page_map[i];
       const auto& page = pages[map.index];
 
-      if (!page.is_empty ())
-	return map.major * page_t::PAGE_BITS + page.get_min ();
+      if (inverted)
+      {
+        if (last_major + 1 != map.major)
+	  return (last_major + 1) * page_t::PAGE_BITS;
+
+	last_major = map.major;
+      }
+
+      if (!page.is_empty (inverted))
+	return map.major * page_t::PAGE_BITS + page.get_min (inverted);
     }
     return INVALID;
   }

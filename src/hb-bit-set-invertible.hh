@@ -146,9 +146,9 @@ struct hb_bit_set_invertible_t
   { return inverted ? INVALID - s.get_population () : s.get_population (); }
 
   hb_codepoint_t get_min () const
-  { return /*XXX(inverted)*/s.get_min (); }
+  { return s.get_min (inverted); }
   hb_codepoint_t get_max () const
-  { return /*XXX(inverted)*/s.get_max (); }
+  { return inverted ? /*XXX*/ INVALID - 1 : s.get_max (); }
 
   static constexpr hb_codepoint_t INVALID = hb_bit_set_t::INVALID;
 
