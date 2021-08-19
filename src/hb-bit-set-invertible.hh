@@ -52,8 +52,9 @@ struct hb_bit_set_invertible_t
 
   bool is_empty () const { return inverted ? /*XXX*/false : s.is_empty (); }
 
-  void add (hb_codepoint_t g) { inverted ? s.del (g) : s.add (g); }
-  bool add_range (hb_codepoint_t a, hb_codepoint_t b) { return inverted ? (s.del_range (a, b), true) : s.add_range (a, b); }
+  void add (hb_codepoint_t g) { unlikely (inverted) ? s.del (g) : s.add (g); }
+  bool add_range (hb_codepoint_t a, hb_codepoint_t b)
+  { return unlikely (inverted) ? (s.del_range (a, b), true) : s.add_range (a, b); }
 
   template <typename T>
   void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
@@ -69,8 +70,9 @@ struct hb_bit_set_invertible_t
   template <typename T>
   bool add_sorted_array (const hb_sorted_array_t<const T>& arr) { return add_sorted_array (&arr, arr.len ()); }
 
-  void del (hb_codepoint_t g) { inverted ? s.add (g) : s.del (g); }
-  void del_range (hb_codepoint_t a, hb_codepoint_t b) { inverted ? (void) s.add_range (a, b) : s.del_range (a, b); }
+  void del (hb_codepoint_t g) { unlikely (inverted) ? s.add (g) : s.del (g); }
+  void del_range (hb_codepoint_t a, hb_codepoint_t b)
+  { unlikely (inverted) ? (void) s.add_range (a, b) : s.del_range (a, b); }
 
   bool get (hb_codepoint_t g) const { return s.get (g) ^ inverted; }
 
@@ -101,11 +103,11 @@ struct hb_bit_set_invertible_t
 
   bool is_subset (const hb_bit_set_invertible_t &larger_set) const
   {
-    if (inverted && !larger_set.inverted) return false; /*XXX*/
-    if (!inverted && larger_set.inverted)
+    if (unlikely (inverted && !larger_set.inverted)) return false; /*XXX*/
+    if (unlikely (!inverted && larger_set.inverted))
       return hb_all (hb_iter (s) | hb_map (larger_set.s));
     /* inverted == larger_set.inverted */
-    return inverted ? larger_set.s.is_subset (s) : s.is_subset (larger_set.s);
+    return unlikely (inverted) ? larger_set.s.is_subset (s) : s.is_subset (larger_set.s);
   }
 
   protected:
@@ -118,16 +120,16 @@ struct hb_bit_set_invertible_t
   public:
   void union_ (const hb_bit_set_invertible_t &other)
   {
-    if (inverted == other.inverted)
+    if (likely (inverted == other.inverted))
     {
-      if (inverted)
+      if (unlikely (inverted))
 	process (hb_bitwise_and, other);
       else
 	process (hb_bitwise_or, other); /* Main branch. */
     }
     else
     {
-      if (inverted)
+      if (unlikely (inverted))
 	process (hb_bitwise_gt, other);
       else
 	process (hb_bitwise_lt, other);
@@ -135,16 +137,16 @@ struct hb_bit_set_invertible_t
   }
   void intersect (const hb_bit_set_invertible_t &other)
   {
-    if (inverted == other.inverted)
+    if (likely (inverted == other.inverted))
     {
-      if (inverted)
+      if (unlikely (inverted))
 	process (hb_bitwise_or, other);
       else
 	process (hb_bitwise_and, other); /* Main branch. */
     }
     else
     {
-      if (inverted)
+      if (unlikely (inverted))
 	process (hb_bitwise_ge, other);
       else
 	process (hb_bitwise_le, other);
@@ -152,16 +154,16 @@ struct hb_bit_set_invertible_t
   }
   void subtract (const hb_bit_set_invertible_t &other)
   {
-    if (inverted == other.inverted)
+    if (likely (inverted == other.inverted))
     {
-      if (inverted)
+      if (unlikely (inverted))
 	process (hb_bitwise_lt, other);
       else
 	process (hb_bitwise_gt, other); /* Main branch. */
     }
     else
     {
-      if (inverted)
+      if (unlikely (inverted))
 	process (hb_bitwise_non, other);
       else
 	process (hb_bitwise_and, other);
@@ -199,7 +201,7 @@ struct hb_bit_set_invertible_t
   hb_codepoint_t get_min () const
   { return s.get_min (inverted); }
   hb_codepoint_t get_max () const
-  { return inverted ? /*XXX*/ INVALID - 1 : s.get_max (); }
+  { return unlikely (inverted) ? /*XXX*/ INVALID - 1 : s.get_max (); }
 
   static constexpr hb_codepoint_t INVALID = hb_bit_set_t::INVALID;
 
