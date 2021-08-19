@@ -177,16 +177,53 @@ struct hb_bit_set_invertible_t
 
   bool next (hb_codepoint_t *codepoint) const
   {
-    /*XXX(inverted)*/
-    return s.next (codepoint);
+    if (likely (!inverted))
+      return s.next (codepoint);
+
+    auto old = *codepoint;
+    do
+    {
+      auto v = old;
+      s.next (&v);
+      if (old + 1 < v)
+      {
+	*codepoint = old + 1;
+	return true;
+      }
+      old++;
+    }
+    while (old != INVALID);
+
+    *codepoint = INVALID;
+    return false;
   }
   bool previous (hb_codepoint_t *codepoint) const
   {
-    /*XXX(inverted)*/
-    return s.previous (codepoint);
+    if (likely (!inverted))
+      return s.previous (codepoint);
+
+    auto old = *codepoint;
+    do
+    {
+      auto v = old;
+      s.previous (&v);
+      if (old - 1 > v)
+      {
+	*codepoint = old - 1;
+	return true;
+      }
+      old--;
+    }
+    while (old != INVALID);
+
+    *codepoint = INVALID;
+    return false;
   }
   bool next_range (hb_codepoint_t *first, hb_codepoint_t *last) const
   {
+    if (likely (!inverted))
+      return s.next_range (first, last);
+
     hb_codepoint_t i;
 
     i = *last;
@@ -205,6 +242,9 @@ struct hb_bit_set_invertible_t
   }
   bool previous_range (hb_codepoint_t *first, hb_codepoint_t *last) const
   {
+    if (likely (!inverted))
+      return s.previous_range (first, last);
+
     hb_codepoint_t i;
 
     i = *first;
