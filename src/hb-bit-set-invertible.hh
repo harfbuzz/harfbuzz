@@ -155,9 +155,35 @@ struct hb_bit_set_invertible_t
   /*
    * Iterator implementation.
    */
-  /*XXX(inverted)*/
-  using iter_t = hb_bit_set_t::iter_t;
-  iter_t iter () const { return iter_t (this->s); }
+  struct iter_t : hb_iter_with_fallback_t<iter_t, hb_codepoint_t>
+  {
+    static constexpr bool is_sorted_iterator = true;
+    iter_t (const hb_bit_set_invertible_t &s_ = Null (hb_bit_set_invertible_t),
+	    bool init = true) : s (&s_), v (INVALID), l(0)
+    {
+      if (init)
+      {
+	l = s->get_population () + 1;
+	__next__ ();
+      }
+    }
+
+    typedef hb_codepoint_t __item_t__;
+    hb_codepoint_t __item__ () const { return v; }
+    bool __more__ () const { return v != INVALID; }
+    void __next__ () { s->next (&v); if (l) l--; }
+    void __prev__ () { s->previous (&v); }
+    unsigned __len__ () const { return l; }
+    iter_t end () const { return iter_t (*s, false); }
+    bool operator != (const iter_t& o) const
+    { return s != o.s || v != o.v; }
+
+    protected:
+    const hb_bit_set_invertible_t *s;
+    hb_codepoint_t v;
+    unsigned l;
+  };
+  iter_t iter () const { return iter_t (*this); }
   operator iter_t () const { return iter (); }
 };
 
