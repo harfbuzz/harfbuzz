@@ -48,7 +48,7 @@ struct hb_bit_set_invertible_t
 
   void reset () { s.reset (); inverted = false; }
   void clear () { s.clear (); inverted = false; }
-  void invert () { if (!s.in_error ()) inverted = !inverted; }
+  void invert () { inverted = !inverted; }
 
   bool is_empty () const
   {
