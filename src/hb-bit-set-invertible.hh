@@ -57,7 +57,7 @@ struct hb_bit_set_invertible_t
 
   template <typename T>
   void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
-  { /*XXX(inverted)*/s.add_array (array, count, stride); }
+  { inverted ? s.del_array (array, count, stride) : s.add_array (array, count, stride); }
   template <typename T>
   void add_array (const hb_array_t<const T>& arr) { add_array (&arr, arr.len ()); }
 
@@ -65,7 +65,7 @@ struct hb_bit_set_invertible_t
    * Used for faster rejection of corrupt data. */
   template <typename T>
   bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
-  { return /*XXX(inverted)*/s.add_sorted_array (array, count, stride); }
+  { return inverted ? s.del_sorted_array (array, count, stride) : s.add_sorted_array (array, count, stride); }
   template <typename T>
   bool add_sorted_array (const hb_sorted_array_t<const T>& arr) { return add_sorted_array (&arr, arr.len ()); }
 
@@ -89,7 +89,10 @@ struct hb_bit_set_invertible_t
   { add_range (range.first, range.second); return *this; }
 
   bool intersects (hb_codepoint_t first, hb_codepoint_t last) const
-  { return /*XXX(inverted)*/s.intersects (first, last); }
+  {
+    hb_codepoint_t c = first - 1;
+    return next (&c) && c <= last;
+  }
 
   void set (const hb_bit_set_invertible_t &other) { s.set (other.s); inverted = other.inverted; }
 
