@@ -56,6 +56,21 @@ struct hb_bit_set_invertible_t
     next (&v);
     return v == INVALID;
   }
+  hb_codepoint_t get_min () const
+  {
+    hb_codepoint_t v = INVALID;
+    next (&v);
+    return v;
+  }
+  hb_codepoint_t get_max () const
+  {
+    hb_codepoint_t v = INVALID;
+    previous (&v);
+    return v;
+  }
+  unsigned int get_population () const
+  { return inverted ? INVALID - s.get_population () : s.get_population (); }
+
 
   void add (hb_codepoint_t g) { unlikely (inverted) ? s.del (g) : s.add (g); }
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
@@ -263,22 +278,6 @@ struct hb_bit_set_invertible_t
     s.previous (first);
     ++*first;
     return true;
-  }
-
-  unsigned int get_population () const
-  { return inverted ? INVALID - s.get_population () : s.get_population (); }
-
-  hb_codepoint_t get_min () const
-  {
-    hb_codepoint_t v = INVALID;
-    next (&v);
-    return v;
-  }
-  hb_codepoint_t get_max () const
-  {
-    hb_codepoint_t v = INVALID;
-    previous (&v);
-    return v;
   }
 
   static constexpr hb_codepoint_t INVALID = hb_bit_set_t::INVALID;
