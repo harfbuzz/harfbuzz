@@ -575,7 +575,6 @@ test_set_delrange (void)
 }
 
 // TODO(garretrieger): Inverted tests:
-// is_equal
 //
 // Interesting cases:
 // - empty inverted (ie. all numbers)
@@ -890,6 +889,60 @@ test_set_inverted_iteration_prev (void)
 }
 
 
+static void
+test_set_inverted_equality (void)
+{
+  hb_set_t *a = hb_set_create ();
+  hb_set_t *b = hb_set_create ();
+  hb_set_invert (a);
+  hb_set_invert (b);
+
+  g_assert (hb_set_is_equal (a, b));
+  g_assert (hb_set_is_equal (b, a));
+
+  hb_set_add (a, 10);
+  g_assert (hb_set_is_equal (a, b));
+  g_assert (hb_set_is_equal (b, a));
+
+  hb_set_del (a, 42);
+  g_assert (!hb_set_is_equal (a, b));
+  g_assert (!hb_set_is_equal (b, a));
+
+  hb_set_del (b, 42);
+  g_assert (hb_set_is_equal (a, b));
+  g_assert (hb_set_is_equal (b, a));
+
+  hb_set_del_range (a, 43, 50);
+  hb_set_del_range (a, 51, 76);
+  hb_set_del_range (b, 43, 76);
+  g_assert (hb_set_is_equal (a, b));
+  g_assert (hb_set_is_equal (b, a));
+
+  hb_set_del (a, 0);
+  g_assert (!hb_set_is_equal (a, b));
+  g_assert (!hb_set_is_equal (b, a));
+
+  hb_set_del (b, 0);
+  g_assert (hb_set_is_equal (a, b));
+  g_assert (hb_set_is_equal (b, a));
+
+  hb_set_del (a, max_set_elements - 1);
+  g_assert (!hb_set_is_equal (a, b));
+  g_assert (!hb_set_is_equal (b, a));
+
+  hb_set_del (b, max_set_elements - 1);
+  g_assert (hb_set_is_equal (a, b));
+  g_assert (hb_set_is_equal (b, a));
+
+  hb_set_invert (a);
+  g_assert (!hb_set_is_equal (a, b));
+  g_assert (!hb_set_is_equal (b, a));
+
+  hb_set_invert (b);
+  g_assert (hb_set_is_equal (a, b));
+  g_assert (hb_set_is_equal (b, a));
+}
+
 int
 main (int argc, char **argv)
 {
@@ -910,6 +963,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_ranges);
   hb_test_add (test_set_inverted_iteration_next);
   hb_test_add (test_set_inverted_iteration_prev);
+  hb_test_add (test_set_inverted_equality);
 
   return hb_test_run();
 }
