@@ -113,10 +113,7 @@ struct hb_bit_set_invertible_t
   protected:
   template <typename Op>
   void process (const Op& op, const hb_bit_set_invertible_t &other)
-  {
-    s.process (op, other.s);
-    inverted = bool (op (int (inverted), int (other.inverted)));
-  }
+  { s.process (op, other.s); }
   public:
   void union_ (const hb_bit_set_invertible_t &other)
   {
@@ -134,6 +131,7 @@ struct hb_bit_set_invertible_t
       else
 	process (hb_bitwise_lt, other);
     }
+    inverted = inverted || other.inverted;
   }
   void intersect (const hb_bit_set_invertible_t &other)
   {
@@ -151,6 +149,7 @@ struct hb_bit_set_invertible_t
       else
 	process (hb_bitwise_le, other);
     }
+    inverted = inverted && other.inverted;
   }
   void subtract (const hb_bit_set_invertible_t &other)
   {
@@ -168,10 +167,12 @@ struct hb_bit_set_invertible_t
       else
 	process (hb_bitwise_and, other);
     }
+    inverted = inverted && !other.inverted;
   }
   void symmetric_difference (const hb_bit_set_invertible_t &other)
   {
     process (hb_bitwise_xor, other);
+    inverted = inverted ^ other.inverted;
   }
 
   bool next (hb_codepoint_t *codepoint) const
