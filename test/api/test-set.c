@@ -789,6 +789,113 @@ test_set_inverted_iteration_next (void)
   g_assert_cmpint (end, ==, max_set_elements - 2);
 }
 
+static void
+test_set_inverted_iteration_prev (void)
+{
+  // Tests:
+  // previous, previous_range
+  hb_set_t *s = hb_set_create ();
+  hb_set_invert (s);
+
+  hb_set_del_range (s, 41, 4000);
+  hb_set_add_range (s, 78, 601);
+
+  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
+  hb_codepoint_t start = max_set_elements - 1;
+  hb_codepoint_t end = max_set_elements - 1;
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, max_set_elements - 1);
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, max_set_elements - 2);
+
+  g_assert (hb_set_previous_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 4001);
+  g_assert_cmpint (end, ==, max_set_elements - 2);
+
+  start = 4001;
+  end = 4001;
+  g_assert (hb_set_previous_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 78);
+  g_assert_cmpint (end, ==, 601);
+
+  start = 2500;
+  end = 3000;
+  g_assert (hb_set_previous_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 78);
+  g_assert_cmpint (end, ==, 601);
+
+  cp = 4002;
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, 4001);
+
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, 601);
+
+  cp = 3500;
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, 601);
+
+  cp = 601;
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, 600);
+
+  cp = 78;
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, 40);
+
+  cp = HB_SET_VALUE_INVALID;
+  hb_set_del (s, max_set_elements - 1);
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, max_set_elements - 2);
+
+  start = max_set_elements - 1;
+  end = max_set_elements - 1;
+  g_assert (hb_set_previous_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 4001);
+  g_assert_cmpint (end, ==, max_set_elements - 2);
+
+  cp = 0;
+  g_assert (!hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, HB_SET_VALUE_INVALID);
+
+  cp = 40;
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, 39);
+
+  start = 40;
+  end = 40;
+  g_assert (hb_set_previous_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 0);
+  g_assert_cmpint (end, ==, 39);
+
+  start = 0;
+  end = 0;
+  g_assert (!hb_set_previous_range (s, &start, &end));
+  g_assert_cmpint (start, ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (end, ==, HB_SET_VALUE_INVALID);
+
+
+  cp = 2;
+  hb_set_del (s, 0);
+  g_assert (hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, 1);
+  g_assert (!hb_set_previous (s, &cp));
+  g_assert_cmpint (cp, ==, HB_SET_VALUE_INVALID);
+
+  start = 1;
+  end = 1;
+  g_assert (!hb_set_previous_range (s, &start, &end));
+  g_assert_cmpint (start, ==, HB_SET_VALUE_INVALID);
+  g_assert_cmpint (end, ==, HB_SET_VALUE_INVALID);
+
+  start = 2;
+  end = 2;
+  g_assert (hb_set_previous_range (s, &start, &end));
+  g_assert_cmpint (start, ==, 1);
+  g_assert_cmpint (end, ==, 1);
+  return; // TODO
+}
+
 
 int
 main (int argc, char **argv)
@@ -809,6 +916,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_basics);
   hb_test_add (test_set_inverted_ranges);
   hb_test_add (test_set_inverted_iteration_next);
+  hb_test_add (test_set_inverted_iteration_prev);
 
   return hb_test_run();
 }
