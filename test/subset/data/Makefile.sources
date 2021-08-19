@@ -33,6 +33,7 @@ TESTS = \
 	tests/layout.tests \
 	tests/sbix.tests \
 	tests/variable.tests \
+	tests/glyph_names.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.

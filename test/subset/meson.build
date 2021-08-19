@@ -36,6 +36,7 @@ tests = [
   'colr_with_components',
   'cbdt',
   'variable',
+  'glyph_names',
 ]
 
 repack_tests = [
