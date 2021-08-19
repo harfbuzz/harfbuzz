@@ -211,18 +211,18 @@ struct hb_bit_set_invertible_t
       return s.next (codepoint);
 
     auto old = *codepoint;
+    if (unlikely (old + 1 == INVALID))
+    {
+      *codepoint = INVALID;
+      return false;
+    }
+
     auto v = old;
     s.next (&v);
     if (old + 1 < v)
     {
       *codepoint = old + 1;
       return true;
-    }
-
-    if (unlikely (old + 1 == INVALID))
-    {
-      *codepoint = INVALID;
-      return false;
     }
 
     v = old;
@@ -237,18 +237,19 @@ struct hb_bit_set_invertible_t
       return s.previous (codepoint);
 
     auto old = *codepoint;
-    auto v = old;
-    s.previous (&v);
-    if (old - 1 > v || v == INVALID)
-    {
-      *codepoint = old - 1;
-      return true;
-    }
-
     if (unlikely (old - 1 == INVALID))
     {
       *codepoint = INVALID;
       return false;
+    }
+
+    auto v = old;
+    s.previous (&v);
+
+    if (old - 1 > v || v == INVALID)
+    {
+      *codepoint = old - 1;
+      return true;
     }
 
     v = old;
