@@ -195,6 +195,7 @@ struct hb_bit_set_invertible_t
       return false;
     }
 
+    v = old;
     s.next_range (&old, &v);
 
     *codepoint = v + 1;
@@ -220,6 +221,7 @@ struct hb_bit_set_invertible_t
       return false;
     }
 
+    v = old;
     s.previous_range (&v, &old);
 
     *codepoint = v - 1;
