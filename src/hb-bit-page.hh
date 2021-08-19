@@ -118,14 +118,17 @@ struct hb_bit_page_t
     unsigned int j = m & ELT_MASK;
 
     const elt_t vv = v[i] & ~((elt_t (1) << j) - 1);
-    for (elt_t p = elt_maybe_invert (vv, inverted);
+    for (const elt_t *pp = &vv;
 	 i < len ();
-	 p = elt_maybe_invert (v[++i], inverted))
+	 pp = &v[++i])
+    {
+      const elt_t p = elt_maybe_invert (*pp, inverted);
       if (p)
       {
 	*codepoint = i * ELT_BITS + elt_get_min (p);
 	return true;
       }
+    }
 
     *codepoint = INVALID;
     return false;
@@ -146,16 +149,17 @@ struct hb_bit_page_t
 		       ((elt_t (1) << (j + 1)) - 1) :
 		       (elt_t) -1;
     const elt_t vv = v[i] & mask;
-    elt_t p = elt_maybe_invert (vv, inverted);
+    const elt_t *pp = &vv;
     while (true)
     {
+      const elt_t p = elt_maybe_invert (*pp, inverted);
       if (p)
       {
 	*codepoint = i * ELT_BITS + elt_get_max (p);
 	return true;
       }
       if ((int) i <= 0) break;
-      p = elt_maybe_invert (v[--i], inverted);
+      pp = &v[--i];
     }
 
     *codepoint = INVALID;
