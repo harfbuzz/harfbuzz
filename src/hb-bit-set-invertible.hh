@@ -163,7 +163,7 @@ struct hb_bit_set_invertible_t
     else
     {
       if (unlikely (inverted))
-	process (hb_bitwise_non, other);
+	process (hb_bitwise_or, other);
       else
 	process (hb_bitwise_and, other);
     }
