@@ -38,10 +38,10 @@ struct hb_bit_page_t
   constexpr unsigned len () const
   { return ARRAY_LENGTH_CONST (v); }
 
-  bool is_empty (bool inverted = false) const
+  bool is_empty () const
   {
     for (unsigned int i = 0; i < len (); i++)
-      if (elt_maybe_invert (v[i], inverted))
+      if (v[i])
 	return false;
     return true;
   }
@@ -106,7 +106,7 @@ struct hb_bit_page_t
     return pop;
   }
 
-  bool next (hb_codepoint_t *codepoint, bool inverted = false) const
+  bool next (hb_codepoint_t *codepoint) const
   {
     unsigned int m = (*codepoint + 1) & MASK;
     if (!m)
@@ -118,22 +118,17 @@ struct hb_bit_page_t
     unsigned int j = m & ELT_MASK;
 
     const elt_t vv = v[i] & ~((elt_t (1) << j) - 1);
-    for (const elt_t *pp = &vv;
-	 i < len ();
-	 pp = &v[++i])
-    {
-      const elt_t p = elt_maybe_invert (*pp, inverted);
-      if (p)
+    for (const elt_t *p = &vv; i < len (); p = &v[++i])
+      if (*p)
       {
-	*codepoint = i * ELT_BITS + elt_get_min (p);
+	*codepoint = i * ELT_BITS + elt_get_min (*p);
 	return true;
       }
-    }
 
     *codepoint = INVALID;
     return false;
   }
-  bool previous (hb_codepoint_t *codepoint, bool inverted = false) const
+  bool previous (hb_codepoint_t *codepoint) const
   {
     unsigned int m = (*codepoint - 1) & MASK;
     if (m == MASK)
@@ -149,40 +144,33 @@ struct hb_bit_page_t
 		       ((elt_t (1) << (j + 1)) - 1) :
 		       (elt_t) -1;
     const elt_t vv = v[i] & mask;
-    const elt_t *pp = &vv;
+    const elt_t *p = &vv;
     while (true)
     {
-      const elt_t p = elt_maybe_invert (*pp, inverted);
-      if (p)
+      if (*p)
       {
-	*codepoint = i * ELT_BITS + elt_get_max (p);
+	*codepoint = i * ELT_BITS + elt_get_max (*p);
 	return true;
       }
       if ((int) i <= 0) break;
-      pp = &v[--i];
+      p = &v[--i];
     }
 
     *codepoint = INVALID;
     return false;
   }
-  hb_codepoint_t get_min (bool inverted = false) const
+  hb_codepoint_t get_min () const
   {
     for (unsigned int i = 0; i < len (); i++)
-    {
-      elt_t e = elt_maybe_invert (v[i], inverted);
-      if (e)
-	return i * ELT_BITS + elt_get_min (e);
-    }
+      if (v[i])
+	return i * ELT_BITS + elt_get_min (v[i]);
     return INVALID;
   }
-  hb_codepoint_t get_max (bool inverted = false) const
+  hb_codepoint_t get_max () const
   {
     for (int i = len () - 1; i >= 0; i--)
-    {
-      elt_t e = elt_maybe_invert (v[i], inverted);
-      if (e)
-	return i * ELT_BITS + elt_get_max (e);
-    }
+      if (v[i])
+	return i * ELT_BITS + elt_get_max (v[i]);
     return 0;
   }
 
@@ -194,7 +182,6 @@ struct hb_bit_page_t
 
   static unsigned int elt_get_min (const elt_t &elt) { return hb_ctz (elt); }
   static unsigned int elt_get_max (const elt_t &elt) { return hb_bit_storage (elt) - 1; }
-  static elt_t elt_maybe_invert (elt_t elt, bool inverted) { return inverted ? ~elt : elt; }
 
   typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
 
