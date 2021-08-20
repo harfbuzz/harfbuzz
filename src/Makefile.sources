@@ -19,6 +19,9 @@ HB_BASE_sources = \
 	hb-array.hh \
 	hb-atomic.hh \
 	hb-bimap.hh \
+	hb-bit-page.hh \
+	hb-bit-set.hh \
+	hb-bit-set-invertible.hh \
 	hb-blob.cc \
 	hb-blob.hh \
 	hb-buffer-serialize.cc \

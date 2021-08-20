@@ -3719,8 +3719,9 @@ struct GSUBGPOS
     hb_set_t alternate_feature_indices;
     if (version.to_int () >= 0x00010001u)
       (this+featureVars).closure_features (lookup_indices, &alternate_feature_indices);
-    if (unlikely (alternate_feature_indices.in_error())) {
-      feature_indices->successful = false;
+    if (unlikely (alternate_feature_indices.in_error()))
+    {
+      feature_indices->err ();
       return;
     }
 #endif

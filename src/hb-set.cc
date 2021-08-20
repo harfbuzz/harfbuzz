@@ -169,7 +169,7 @@ hb_set_get_user_data (hb_set_t           *set,
 hb_bool_t
 hb_set_allocation_successful (const hb_set_t  *set)
 {
-  return set->successful;
+  return !set->in_error ();
 }
 
 /**
@@ -254,6 +254,7 @@ void
 hb_set_add (hb_set_t       *set,
 	    hb_codepoint_t  codepoint)
 {
+  /* Immutible-safe. */
   set->add (codepoint);
 }
 
@@ -273,6 +274,7 @@ hb_set_add_range (hb_set_t       *set,
 		  hb_codepoint_t  first,
 		  hb_codepoint_t  last)
 {
+  /* Immutible-safe. */
   set->add_range (first, last);
 }
 
@@ -289,6 +291,7 @@ void
 hb_set_del (hb_set_t       *set,
 	    hb_codepoint_t  codepoint)
 {
+  /* Immutible-safe. */
   set->del (codepoint);
 }
 
@@ -311,6 +314,7 @@ hb_set_del_range (hb_set_t       *set,
 		  hb_codepoint_t  first,
 		  hb_codepoint_t  last)
 {
+  /* Immutible-safe. */
   set->del_range (first, last);
 }
 
@@ -364,6 +368,9 @@ void
 hb_set_set (hb_set_t       *set,
 	    const hb_set_t *other)
 {
+  if (unlikely (hb_object_is_immutable (set)))
+    return;
+
   set->set (*other);
 }
 
@@ -380,6 +387,9 @@ void
 hb_set_union (hb_set_t       *set,
 	      const hb_set_t *other)
 {
+  if (unlikely (hb_object_is_immutable (set)))
+    return;
+
   set->union_ (*other);
 }
 
@@ -396,6 +406,9 @@ void
 hb_set_intersect (hb_set_t       *set,
 		  const hb_set_t *other)
 {
+  if (unlikely (hb_object_is_immutable (set)))
+    return;
+
   set->intersect (*other);
 }
 
@@ -412,6 +425,9 @@ void
 hb_set_subtract (hb_set_t       *set,
 		 const hb_set_t *other)
 {
+  if (unlikely (hb_object_is_immutable (set)))
+    return;
+
   set->subtract (*other);
 }
 
@@ -429,25 +445,28 @@ void
 hb_set_symmetric_difference (hb_set_t       *set,
 			     const hb_set_t *other)
 {
+  if (unlikely (hb_object_is_immutable (set)))
+    return;
+
   set->symmetric_difference (*other);
 }
 
-#ifndef HB_DISABLE_DEPRECATED
 /**
  * hb_set_invert:
  * @set: A set
  *
  * Inverts the contents of @set.
  *
- * Since: 0.9.10
- *
- * Deprecated: 1.6.1
+ * Since: 3.0.0
  **/
 void
-hb_set_invert (hb_set_t *set HB_UNUSED)
+hb_set_invert (hb_set_t *set)
 {
+  if (unlikely (hb_object_is_immutable (set)))
+    return;
+
+  set->invert ();
 }
-#endif
 
 /**
  * hb_set_get_population:

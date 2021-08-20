@@ -140,8 +140,6 @@ struct hb_lockable_set_t
  * Reference-count.
  */
 
-#define HB_REFERENCE_COUNT_INIT {0}
-
 struct hb_reference_count_t
 {
   mutable hb_atomic_int_t ref_count;
@@ -197,6 +195,8 @@ struct hb_object_header_t
   hb_reference_count_t ref_count;
   mutable hb_atomic_int_t writable = 0;
   hb_atomic_ptr_t<hb_user_data_array_t> user_data;
+
+  bool is_inert () const { return !ref_count.get_relaxed (); }
 };
 #define HB_OBJECT_HEADER_STATIC {}
 
@@ -234,11 +234,6 @@ static inline void hb_object_init (Type *obj)
   obj->header.user_data.init ();
 }
 template <typename Type>
-static inline bool hb_object_is_inert (const Type *obj)
-{
-  return unlikely (obj->header.ref_count.is_inert ());
-}
-template <typename Type>
 static inline bool hb_object_is_valid (const Type *obj)
 {
   return likely (obj->header.ref_count.is_valid ());
@@ -257,7 +252,7 @@ template <typename Type>
 static inline Type *hb_object_reference (Type *obj)
 {
   hb_object_trace (obj, HB_FUNC);
-  if (unlikely (!obj || hb_object_is_inert (obj)))
+  if (unlikely (!obj || obj->header.is_inert ()))
     return obj;
   assert (hb_object_is_valid (obj));
   obj->header.ref_count.inc ();
@@ -267,7 +262,7 @@ template <typename Type>
 static inline bool hb_object_destroy (Type *obj)
 {
   hb_object_trace (obj, HB_FUNC);
-  if (unlikely (!obj || hb_object_is_inert (obj)))
+  if (unlikely (!obj || obj->header.is_inert ()))
     return false;
   assert (hb_object_is_valid (obj));
   if (obj->header.ref_count.dec () != 1)
@@ -295,7 +290,7 @@ static inline bool hb_object_set_user_data (Type               *obj,
 					    hb_destroy_func_t   destroy,
 					    hb_bool_t           replace)
 {
-  if (unlikely (!obj || hb_object_is_inert (obj)))
+  if (unlikely (!obj || obj->header.is_inert ()))
     return false;
   assert (hb_object_is_valid (obj));
 
@@ -322,7 +317,7 @@ template <typename Type>
 static inline void *hb_object_get_user_data (Type               *obj,
 					     hb_user_data_key_t *key)
 {
-  if (unlikely (!obj || hb_object_is_inert (obj)))
+  if (unlikely (!obj || obj->header.is_inert ()))
     return nullptr;
   assert (hb_object_is_valid (obj));
   hb_user_data_array_t *user_data = obj->header.user_data.get ();

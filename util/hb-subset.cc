@@ -64,7 +64,13 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     g_option_context_set_ignore_unknown_options (parser.context, true);
     g_option_context_set_help_enabled (parser.context, false);
 
-    char **args = (char **) g_memdup (argv, argc * sizeof (*argv));
+    char **args = (char **)
+#if GLIB_CHECK_VERSION (2, 68, 0)
+      g_memdup2
+#else
+      g_memdup
+#endif
+      (argv, argc * sizeof (*argv));
     parser.parse (&argc, &args, true);
     g_free (args);
 
