@@ -678,6 +678,8 @@ test_set_inverted_ranges (void)
                    max_set_elements - 3436 - 38 - 13);
   g_assert_cmpint (hb_set_get_min (s), ==, 38);
   g_assert_cmpint (hb_set_get_max (s), ==, max_set_elements - 14);
+
+  hb_set_destroy (s);
 }
 
 static void
@@ -780,6 +782,8 @@ test_set_inverted_iteration_next (void)
   g_assert (hb_set_next_range (s, &start, &end));
   g_assert_cmpint (start, ==, max_set_elements - 2);
   g_assert_cmpint (end, ==, max_set_elements - 2);
+
+  hb_set_destroy (s);
 }
 
 static void
@@ -886,6 +890,8 @@ test_set_inverted_iteration_prev (void)
   g_assert (hb_set_previous_range (s, &start, &end));
   g_assert_cmpint (start, ==, 1);
   g_assert_cmpint (end, ==, 1);
+
+  hb_set_destroy (s);
 }
 
 
@@ -941,6 +947,124 @@ test_set_inverted_equality (void)
   hb_set_invert (b);
   g_assert (hb_set_is_equal (a, b));
   g_assert (hb_set_is_equal (b, a));
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+}
+
+typedef enum {
+  UNION = 0,
+  INTERSECT,
+  SUBTRACT,
+  SYM_DIFF,
+  LAST,
+} set_operation;
+
+static hb_set_t* prepare_set(hb_bool_t has_x,
+                             hb_bool_t inverted,
+                             hb_bool_t has_page)
+{
+  static const hb_codepoint_t x = 13;
+  hb_set_t* s = hb_set_create ();
+  if (inverted) hb_set_invert (s);
+  if (has_page)
+  {
+    // Ensure a page exists for x.
+    inverted ? hb_set_del (s, x) : hb_set_add (s, x);
+  }
+  if (has_x)
+    hb_set_add (s, x);
+  else
+    hb_set_del (s, x);
+
+  return s;
+}
+
+static hb_bool_t
+check_set_operations(hb_bool_t a_has_x,
+                     hb_bool_t a_inverted,
+                     hb_bool_t a_has_page,
+                     hb_bool_t b_has_x,
+                     hb_bool_t b_inverted,
+                     hb_bool_t b_has_page,
+                     set_operation op)
+{
+  hb_codepoint_t x = 13;
+  hb_set_t* a = prepare_set (a_has_x, a_inverted, a_has_page);
+  hb_set_t* b = prepare_set (b_has_x, b_inverted, b_has_page);
+
+  char* op_name;
+  hb_bool_t has_expected;
+  hb_bool_t should_have_x;
+  switch (op) {
+  case UNION:
+  default:
+    op_name = "union";
+    should_have_x = (a_has_x || b_has_x);
+    hb_set_union (a, b);
+    has_expected = (hb_set_has (a, x) == should_have_x);
+    break;
+  case INTERSECT:
+    op_name = "intersect";
+    should_have_x = (a_has_x && b_has_x);
+    hb_set_intersect (a, b);
+    has_expected = (hb_set_has (a, x) == should_have_x);
+    break;
+  case SUBTRACT:
+    op_name = "subtract";
+    should_have_x = (a_has_x && !b_has_x);
+    hb_set_subtract (a, b);
+    has_expected = (hb_set_has (a, x) == should_have_x);
+    break;
+  case SYM_DIFF:
+    op_name = "sym_diff";
+    should_have_x = (a_has_x ^ b_has_x);
+    hb_set_symmetric_difference (a, b);
+    has_expected = (hb_set_has (a, x) == should_have_x);
+    break;
+  }
+
+  printf ("%s%s%s %-9s %s%s%s == %s  [%s]\n",
+          a_inverted ? "i" : " ",
+          a_has_page ? "p" : " ",
+          a_has_x ? "{13}" : "{}  ",
+          op_name,
+          b_inverted ? "i" : " ",
+          b_has_page ? "p" : " ",
+          b_has_x ? "{13}" : "{}  ",
+          should_have_x ? "{13}" : "{}  ",
+          has_expected ? "succeeded" : "failed");
+
+  hb_set_destroy (a);
+  hb_set_destroy (b);
+
+  return has_expected;
+}
+
+static void
+test_set_inverted_operations (void)
+{
+  hb_bool_t all_succeeded = 1;
+  for (hb_bool_t a_has_x = 0; a_has_x <= 1; a_has_x++) {
+    for (hb_bool_t a_inverted = 0; a_inverted <= 1; a_inverted++) {
+      for (hb_bool_t b_has_x = 0; b_has_x <= 1; b_has_x++) {
+        for (hb_bool_t b_inverted = 0; b_inverted <= 1; b_inverted++) {
+          for (hb_bool_t a_has_page = 0; a_has_page <= !(a_has_x ^ a_inverted); a_has_page++) {
+            for (hb_bool_t b_has_page = 0; b_has_page <= !(b_has_x ^ b_inverted); b_has_page++) {
+              for (set_operation op = UNION; op < LAST; op++) {
+                all_succeeded = check_set_operations (a_has_x, a_inverted, a_has_page,
+                                                      b_has_x, b_inverted, b_has_page,
+                                                      op)
+                                && all_succeeded;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  g_assert (all_succeeded);
 }
 
 int
@@ -964,6 +1088,7 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_iteration_next);
   hb_test_add (test_set_inverted_iteration_prev);
   hb_test_add (test_set_inverted_equality);
+  hb_test_add (test_set_inverted_operations);
 
   return hb_test_run();
 }
