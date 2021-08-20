@@ -574,19 +574,6 @@ test_set_delrange (void)
   hb_set_destroy (s);
 }
 
-// TODO(garretrieger): Inverted tests:
-//
-// Interesting cases:
-// - empty inverted (ie. all numbers)
-// - inverted with things removed at either extreme
-// - inverted with things removed in the middle.
-//
-// Set operations: (for II, NN, IN, NI)
-// - union
-// - intersercts
-// - sym diff
-// - subtraction
-
 static const unsigned max_set_elements = -1;
 
 static void
