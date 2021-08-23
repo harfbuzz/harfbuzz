@@ -149,7 +149,9 @@ hb_ot_shape_planner_t::compile (hb_ot_shape_plan_t           &plan,
    * Decide who does positioning. GPOS, kerx, kern, or fallback.
    */
 
+#ifndef HB_NO_AAT_SHAPE
   bool has_gsub = hb_ot_layout_has_substitution (face);
+#endif
   bool has_gpos = !disable_gpos && hb_ot_layout_has_positioning (face);
   if (false)
     ;
