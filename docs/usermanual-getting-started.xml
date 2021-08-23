@@ -51,7 +51,7 @@
 
     <para>
       Although the default <function>hb_shape()</function> function is
-      sufficient for most use cases, a variant is also provide that
+      sufficient for most use cases, a variant is also provided that
       lets you specify which of HarfBuzz's shapers to use on a buffer. 
     </para>
 
