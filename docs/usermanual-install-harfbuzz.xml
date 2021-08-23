@@ -335,7 +335,7 @@
 	  <term><command>-Ddocs=enabled</command></term>
 	  <listitem>
 	    <para>
-	      Use <ulink url="https://www.gtk.org/gtk-doc/">GTK-Doc</ulink>. <emphasis>(Default = no)</emphasis>
+	      Use <ulink url="https://github.com/GNOME/gtk-doc">GTK-Doc</ulink>. <emphasis>(Default = no)</emphasis>
 	    </para>
 	    <para>
 	      This option enables the building of the documentation.
