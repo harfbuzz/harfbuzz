@@ -55,6 +55,18 @@ hb_subset_input_create_or_fail (void)
   input->drop_tables = hb_set_create ();
   input->no_subset_tables = hb_set_create ();
 
+  if (unlikely (input->unicodes->in_error ()
+                || input->glyphs->in_error ()
+                || input->name_ids->in_error ()
+                || input->name_languages->in_error ()
+                || input->layout_features->in_error ()
+                || input->drop_tables->in_error ()
+                || input->no_subset_tables->in_error ()))
+  {
+    hb_subset_input_destroy (input);
+    return nullptr;
+  }
+
   input->flags = HB_SUBSET_FLAGS_DEFAULT;
 
   hb_tag_t default_drop_tables[] = {
