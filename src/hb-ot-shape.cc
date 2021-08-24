@@ -319,16 +319,17 @@ horizontal_features[] =
 };
 
 static void
-hb_ot_shape_collect_features (hb_ot_shape_planner_t          *planner,
-			      const hb_feature_t             *user_features,
-			      unsigned int                    num_user_features)
+hb_ot_shape_collect_features (hb_ot_shape_planner_t *planner,
+			      const hb_feature_t    *user_features,
+			      unsigned int           num_user_features)
 {
   hb_ot_map_builder_t *map = &planner->map;
 
   map->enable_feature (HB_TAG('r','v','r','n'));
   map->add_gsub_pause (nullptr);
 
-  switch (planner->props.direction) {
+  switch (planner->props.direction)
+  {
     case HB_DIRECTION_LTR:
       map->enable_feature (HB_TAG ('l','t','r','a'));
       map->enable_feature (HB_TAG ('l','t','r','m'));
