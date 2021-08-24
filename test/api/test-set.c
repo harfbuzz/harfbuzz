@@ -949,9 +949,13 @@ typedef enum {
 
 static hb_set_t* prepare_set(hb_bool_t has_x,
                              hb_bool_t inverted,
-                             hb_bool_t has_page)
+                             hb_bool_t has_page,
+                             hb_bool_t is_null)
 {
   static const hb_codepoint_t x = 13;
+  if (is_null)
+    return hb_set_get_empty ();
+
   hb_set_t* s = hb_set_create ();
   if (inverted) hb_set_invert (s);
   if (has_page)
@@ -971,14 +975,16 @@ static hb_bool_t
 check_set_operations(hb_bool_t a_has_x,
                      hb_bool_t a_inverted,
                      hb_bool_t a_has_page,
+                     hb_bool_t a_is_null,
                      hb_bool_t b_has_x,
                      hb_bool_t b_inverted,
                      hb_bool_t b_has_page,
+                     hb_bool_t b_is_null,
                      set_operation op)
 {
   hb_codepoint_t x = 13;
-  hb_set_t* a = prepare_set (a_has_x, a_inverted, a_has_page);
-  hb_set_t* b = prepare_set (b_has_x, b_inverted, b_has_page);
+  hb_set_t* a = prepare_set (a_has_x, a_inverted, a_has_page, a_is_null);
+  hb_set_t* b = prepare_set (b_has_x, b_inverted, b_has_page, b_is_null);
 
   char* op_name;
   hb_bool_t has_expected;
@@ -987,37 +993,39 @@ check_set_operations(hb_bool_t a_has_x,
   case UNION:
   default:
     op_name = "union";
-    should_have_x = (a_has_x || b_has_x);
+    should_have_x = (a_has_x || b_has_x) && !a_is_null;
     hb_set_union (a, b);
     has_expected = (hb_set_has (a, x) == should_have_x);
     break;
   case INTERSECT:
     op_name = "intersect";
-    should_have_x = (a_has_x && b_has_x);
+    should_have_x = (a_has_x && b_has_x) && !a_is_null;
     hb_set_intersect (a, b);
     has_expected = (hb_set_has (a, x) == should_have_x);
     break;
   case SUBTRACT:
     op_name = "subtract";
-    should_have_x = (a_has_x && !b_has_x);
+    should_have_x = (a_has_x && !b_has_x) && !a_is_null;
     hb_set_subtract (a, b);
     has_expected = (hb_set_has (a, x) == should_have_x);
     break;
   case SYM_DIFF:
     op_name = "sym_diff";
-    should_have_x = (a_has_x ^ b_has_x);
+    should_have_x = (a_has_x ^ b_has_x) && !a_is_null;
     hb_set_symmetric_difference (a, b);
     has_expected = (hb_set_has (a, x) == should_have_x);
     break;
   }
 
-  printf ("%s%s%s %-9s %s%s%s == %s  [%s]\n",
+  printf ("%s%s%s%s %-9s %s%s%s%s == %s  [%s]\n",
           a_inverted ? "i" : " ",
           a_has_page ? "p" : " ",
+          a_is_null ? "n" : " ",
           a_has_x ? "{13}" : "{}  ",
           op_name,
           b_inverted ? "i" : " ",
           b_has_page ? "p" : " ",
+          b_is_null ? "n" : " ",
           b_has_x ? "{13}" : "{}  ",
           should_have_x ? "{13}" : "{}  ",
           has_expected ? "succeeded" : "failed");
@@ -1038,11 +1046,15 @@ test_set_inverted_operations (void)
         for (hb_bool_t b_inverted = 0; b_inverted <= 1; b_inverted++) {
           for (hb_bool_t a_has_page = 0; a_has_page <= !(a_has_x ^ a_inverted); a_has_page++) {
             for (hb_bool_t b_has_page = 0; b_has_page <= !(b_has_x ^ b_inverted); b_has_page++) {
-              for (set_operation op = UNION; op < LAST; op++) {
-                all_succeeded = check_set_operations (a_has_x, a_inverted, a_has_page,
-                                                      b_has_x, b_inverted, b_has_page,
-                                                      op)
-                                && all_succeeded;
+              for (hb_bool_t a_is_null = 0; a_is_null <= (!a_has_x && !a_has_page && !a_inverted); a_is_null++) {
+                for (hb_bool_t b_is_null = 0; b_is_null <= (!b_has_x && !b_has_page && !b_inverted); b_is_null++) {
+                  for (set_operation op = UNION; op < LAST; op++) {
+                    all_succeeded = check_set_operations (a_has_x, a_inverted, a_has_page, a_is_null,
+                                                          b_has_x, b_inverted, b_has_page, b_is_null,
+                                                          op)
+                                    && all_succeeded;
+                  }
+                }
               }
             }
           }
