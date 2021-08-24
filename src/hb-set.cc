@@ -201,9 +201,7 @@ hb_set_copy (const hb_set_t *set)
 void
 hb_set_clear (hb_set_t *set)
 {
-  if (unlikely (hb_object_is_immutable (set)))
-    return;
-
+  /* Immutible-safe. */
   set->clear ();
 }
 
@@ -368,9 +366,7 @@ void
 hb_set_set (hb_set_t       *set,
 	    const hb_set_t *other)
 {
-  if (unlikely (hb_object_is_immutable (set)))
-    return;
-
+  /* Immutible-safe. */
   set->set (*other);
 }
 
@@ -387,9 +383,7 @@ void
 hb_set_union (hb_set_t       *set,
 	      const hb_set_t *other)
 {
-  if (unlikely (hb_object_is_immutable (set)))
-    return;
-
+  /* Immutible-safe. */
   set->union_ (*other);
 }
 
@@ -406,9 +400,7 @@ void
 hb_set_intersect (hb_set_t       *set,
 		  const hb_set_t *other)
 {
-  if (unlikely (hb_object_is_immutable (set)))
-    return;
-
+  /* Immutible-safe. */
   set->intersect (*other);
 }
 
@@ -425,9 +417,7 @@ void
 hb_set_subtract (hb_set_t       *set,
 		 const hb_set_t *other)
 {
-  if (unlikely (hb_object_is_immutable (set)))
-    return;
-
+  /* Immutible-safe. */
   set->subtract (*other);
 }
 
@@ -445,9 +435,7 @@ void
 hb_set_symmetric_difference (hb_set_t       *set,
 			     const hb_set_t *other)
 {
-  if (unlikely (hb_object_is_immutable (set)))
-    return;
-
+  /* Immutible-safe. */
   set->symmetric_difference (*other);
 }
 
@@ -462,9 +450,7 @@ hb_set_symmetric_difference (hb_set_t       *set,
 void
 hb_set_invert (hb_set_t *set)
 {
-  if (unlikely (hb_object_is_immutable (set)))
-    return;
-
+  /* Immutible-safe. */
   set->invert ();
 }
 

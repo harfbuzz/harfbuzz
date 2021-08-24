@@ -169,6 +169,8 @@ struct hb_hashmap_t
 
   void clear ()
   {
+    if (unlikely (!successful)) return;
+
     if (items)
       for (auto &_ : hb_iter (items, mask + 1))
 	_.clear ();

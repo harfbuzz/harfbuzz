@@ -46,9 +46,22 @@ struct hb_bit_set_invertible_t
   bool in_error () const { return s.in_error (); }
   explicit operator bool () const { return !is_empty (); }
 
-  void reset () { s.reset (); inverted = false; }
-  void clear () { s.clear (); inverted = false; }
-  void invert () { inverted = !inverted; }
+  void reset ()
+  {
+    s.reset ();
+    inverted = false;
+  }
+  void clear ()
+  {
+    s.clear ();
+    if (likely (s.successful))
+      inverted = false;
+  }
+  void invert ()
+  {
+    if (likely (s.successful))
+      inverted = !inverted;
+  }
 
   bool is_empty () const
   {
@@ -116,7 +129,12 @@ struct hb_bit_set_invertible_t
     return next (&c) && c <= last;
   }
 
-  void set (const hb_bit_set_invertible_t &other) { s.set (other.s); inverted = other.inverted; }
+  void set (const hb_bit_set_invertible_t &other)
+  {
+    s.set (other.s);
+    if (likely (s.successful))
+      inverted = other.inverted;
+  }
 
   bool is_equal (const hb_bit_set_invertible_t &other) const
   {
@@ -161,7 +179,8 @@ struct hb_bit_set_invertible_t
       else
 	process (hb_bitwise_lt, other);
     }
-    inverted = inverted || other.inverted;
+    if (likely (s.successful))
+      inverted = inverted || other.inverted;
   }
   void intersect (const hb_bit_set_invertible_t &other)
   {
@@ -179,7 +198,8 @@ struct hb_bit_set_invertible_t
       else
 	process (hb_bitwise_gt, other);
     }
-    inverted = inverted && other.inverted;
+    if (likely (s.successful))
+      inverted = inverted && other.inverted;
   }
   void subtract (const hb_bit_set_invertible_t &other)
   {
@@ -197,12 +217,14 @@ struct hb_bit_set_invertible_t
       else
 	process (hb_bitwise_and, other);
     }
-    inverted = inverted && !other.inverted;
+    if (likely (s.successful))
+      inverted = inverted && !other.inverted;
   }
   void symmetric_difference (const hb_bit_set_invertible_t &other)
   {
     process (hb_bitwise_xor, other);
-    inverted = inverted ^ other.inverted;
+    if (likely (s.successful))
+      inverted = inverted ^ other.inverted;
   }
 
   bool next (hb_codepoint_t *codepoint) const
