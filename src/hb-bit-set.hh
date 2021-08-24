@@ -79,7 +79,6 @@ struct hb_bit_set_t
   bool resize (unsigned int count)
   {
     if (unlikely (!successful)) return false;
-    if (count <= pages.length) return true;
     if (unlikely (!pages.resize (count) || !page_map.resize (count)))
     {
       pages.resize (page_map.length);
