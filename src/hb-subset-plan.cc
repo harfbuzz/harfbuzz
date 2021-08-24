@@ -87,43 +87,48 @@ _remap_indexes (const hb_set_t *indexes,
 #ifndef HB_NO_SUBSET_LAYOUT
 typedef void (*layout_collect_func_t) (hb_face_t *face, hb_tag_t table_tag, const hb_tag_t *scripts, const hb_tag_t *languages, const hb_tag_t *features, hb_set_t *lookup_indexes /* OUT */);
 
+template <typename T>
 static void _collect_subset_layout (hb_face_t		 *face,
-				    hb_tag_t		  table_tag,
+                                    const T&              table,
 				    const hb_set_t	 *layout_features_to_retain,
-				    bool		  retain_all_features,
 				    layout_collect_func_t layout_collect_func,
 				    hb_set_t		 *lookup_indices /* OUT */)
 {
-  if (retain_all_features)
+  hb_vector_t<hb_tag_t> features;
+  if (!features.alloc (table.get_feature_count () + 1))
+    return;
+
+  for (unsigned i = 0; i < table.get_feature_count (); i++)
   {
+    hb_tag_t tag = table.get_feature_tag (i);
+    if (tag && layout_features_to_retain->has (tag))
+      features.push (tag);
+  }
+
+  if (!features)
+    return;
+
+  // The collect function needs a null element to signal end of the array.
+  features.push (0);
+
+  if (features.get_size () == table.get_feature_count () + 1)
+  {
+    // Looking for all features, trigger the faster collection method.
     layout_collect_func (face,
-			 table_tag,
-			 nullptr,
-			 nullptr,
-			 nullptr,
-			 lookup_indices);
+                         T::tableTag,
+                         nullptr,
+                         nullptr,
+                         nullptr,
+                         lookup_indices);
     return;
   }
 
-  if (hb_set_is_empty (layout_features_to_retain)) return;
-  unsigned num = layout_features_to_retain->get_population () + 1;
-  hb_tag_t *features = (hb_tag_t *) hb_malloc (num * sizeof (hb_tag_t));
-  if (!features) return;
-
-  unsigned i = 0;
-  for (hb_tag_t f : layout_features_to_retain->iter ())
-    features[i++] = f;
-
-  features[i] = 0;
-
   layout_collect_func (face,
-		       table_tag,
+                       T::tableTag,
 		       nullptr,
 		       nullptr,
-		       features,
+		       features.arrayZ,
 		       lookup_indices);
-
-  hb_free (features);
 }
 
 template <typename T>
@@ -131,7 +136,6 @@ static inline void
 _closure_glyphs_lookups_features (hb_face_t	     *face,
 				  hb_set_t	     *gids_to_retain,
 				  const hb_set_t     *layout_features_to_retain,
-				  bool		      retain_all_features,
 				  hb_map_t	     *lookups,
 				  hb_map_t	     *features,
 				  script_langsys_map *langsys_map)
@@ -139,12 +143,11 @@ _closure_glyphs_lookups_features (hb_face_t	     *face,
   hb_blob_ptr_t<T> table = hb_sanitize_context_t ().reference_table<T> (face);
   hb_tag_t table_tag = table->tableTag;
   hb_set_t lookup_indices;
-  _collect_subset_layout (face,
-			  table_tag,
-			  layout_features_to_retain,
-			  retain_all_features,
-			  hb_ot_layout_collect_lookups,
-			  &lookup_indices);
+  _collect_subset_layout<T> (face,
+                             *table,
+                             layout_features_to_retain,
+                             hb_ot_layout_collect_lookups,
+                             &lookup_indices);
 
   if (table_tag == HB_OT_TAG_GSUB)
     hb_ot_layout_lookups_substitute_closure (face,
@@ -157,12 +160,11 @@ _closure_glyphs_lookups_features (hb_face_t	     *face,
 
   // Collect and prune features
   hb_set_t feature_indices;
-  _collect_subset_layout (face,
-			  table_tag,
-			  layout_features_to_retain,
-			  retain_all_features,
-			  hb_ot_layout_collect_features,
-			  &feature_indices);
+  _collect_subset_layout<T> (face,
+                             *table,
+                             layout_features_to_retain,
+                             hb_ot_layout_collect_features,
+                             &feature_indices);
 
   table->prune_features (lookups, &feature_indices);
   hb_map_t duplicate_feature_map;
@@ -300,7 +302,6 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         plan->source,
         plan->_glyphset_gsub,
         plan->layout_features,
-        plan->flags & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES,
         plan->gsub_lookups,
         plan->gsub_features,
         plan->gsub_langsys);
@@ -310,7 +311,6 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         plan->source,
         plan->_glyphset_gsub,
         plan->layout_features,
-        plan->flags & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES,
         plan->gpos_lookups,
         plan->gpos_features,
         plan->gpos_langsys);

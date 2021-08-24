@@ -61,10 +61,6 @@ typedef struct hb_subset_input_t hb_subset_input_t;
  * in the final subset.
  * @HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES: If set then the unicode ranges in
  * OS/2 will not be recalculated.
- * @HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES: If set all layout features will be
- * retained. If unset then the set accessed by
- * hb_subset_input_layout_features_set() will be used to determine the features
- * to be retained.
  *
  * List of boolean properties that can be configured on the subset input.
  *
@@ -81,7 +77,6 @@ typedef enum { /*< flags >*/
   HB_SUBSET_FLAGS_NOTDEF_OUTLINE =	     0x00000040u,
   HB_SUBSET_FLAGS_GLYPH_NAMES =		     0x00000080u,
   HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES =  0x00000100u,
-  HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES =	     0x00000200u,
 } hb_subset_flags_t;
 
 HB_EXTERN hb_subset_input_t *
@@ -141,12 +136,6 @@ hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
  * The methods below are part of the legacy harfbuzz subsetting API and will be
  * Removed as of version 3.0.0
  */
-
-HB_EXTERN void
-hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
-                                         hb_bool_t value);
-HB_EXTERN hb_bool_t
-hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input);
 
 HB_EXTERN void
 hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,

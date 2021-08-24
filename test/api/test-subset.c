@@ -114,13 +114,13 @@ test_subset_set_flags (void)
   hb_subset_input_set_flags (input,
                              HB_SUBSET_FLAGS_NAME_LEGACY |
                              HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
-                             HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
+                             HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES);
 
   g_assert (hb_subset_input_get_flags (input) ==
             (hb_subset_flags_t) (
             HB_SUBSET_FLAGS_NAME_LEGACY |
             HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
-            HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES));
+            HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES));
 
 
   hb_subset_input_destroy (input);
