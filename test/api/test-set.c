@@ -986,12 +986,13 @@ check_set_operations(hb_bool_t a_has_x,
   hb_set_t* a = prepare_set (a_has_x, a_inverted, a_has_page, a_is_null);
   hb_set_t* b = prepare_set (b_has_x, b_inverted, b_has_page, b_is_null);
 
-  char* op_name;
+  const char* op_name;
   hb_bool_t has_expected;
   hb_bool_t should_have_x;
   switch (op) {
-  case UNION:
   default:
+  case LAST:
+  case UNION:
     op_name = "union";
     should_have_x = (a_has_x || b_has_x) && !a_is_null;
     hb_set_union (a, b);
