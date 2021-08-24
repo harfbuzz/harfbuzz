@@ -492,15 +492,9 @@ parse_layout_features (const char *name,
 
   if (0 == strcmp (arg, "*"))
   {
-    if (last_name_char == '-')
-    {
-      hb_set_clear (layout_features);
-      hb_subset_input_set_flags (subset_main->input,
-				 hb_subset_input_get_flags (subset_main->input) & ~HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
-    } else {
-      hb_subset_input_set_flags (subset_main->input,
-				 hb_subset_input_get_flags (subset_main->input) | HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
-    }
+    hb_set_clear (layout_features);
+    if (last_name_char != '-')
+      hb_set_invert (layout_features);
     return true;
   }
 

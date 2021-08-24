@@ -451,21 +451,6 @@ static void set_flag_value (hb_subset_input_t *input, hb_subset_flags_t flag, hb
 }
 
 void
-hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
-                                         hb_bool_t value)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES,
-                         value);
-}
-
-hb_bool_t
-hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input)
-{
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
-}
-
-void
 hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
 				hb_bool_t drop_hints)
 {
