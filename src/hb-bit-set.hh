@@ -79,7 +79,7 @@ struct hb_bit_set_t
   bool resize (unsigned int count)
   {
     if (unlikely (count > pages.length && !successful)) return false;
-    if (!pages.resize (count) || !page_map.resize (count))
+    if (unlikely (!pages.resize (count) || !page_map.resize (count)))
     {
       pages.resize (page_map.length);
       successful = false;
@@ -96,7 +96,8 @@ struct hb_bit_set_t
 
   void clear ()
   {
-    if (resize (0))
+    resize (0);
+    if (likely (successful))
       population = 0;
   }
   bool is_empty () const
