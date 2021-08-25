@@ -31,6 +31,8 @@
 #include "hb.hh"
 
 #include "hb-subset.h"
+#include "hb-map.hh"
+#include "hb-set.hh"
 
 #include "hb-font.hh"
 
@@ -40,23 +42,90 @@ struct hb_subset_input_t
 {
   hb_object_header_t header;
 
-  hb_set_t *unicodes;         // invert safe
-  hb_set_t *glyphs;           // invert safe
-  hb_set_t *name_ids;         // invert safe
-  hb_set_t *name_languages;   // invert safe
-  hb_set_t *no_subset_tables; // invert safe
-  hb_set_t *drop_tables;      // invert safe
-  hb_set_t *layout_features;  // invert safe
+  hb_hashmap_t<unsigned, hb_set_t*> sets;
 
   unsigned flags;
 
-  /* TODO
-   *
-   * features
-   * lookups
-   * name_ids
-   * ...
-   */
+  inline hb_set_t* unicodes()
+  {
+    return sets.get (HB_SUBSET_SETS_UNICODE);
+  }
+
+  inline const hb_set_t* unicodes() const
+  {
+    return sets.get (HB_SUBSET_SETS_UNICODE);
+  }
+
+  inline hb_set_t* glyphs ()
+  {
+    return sets.get (HB_SUBSET_SETS_GLYPH_INDEX);
+  }
+
+  inline const hb_set_t* glyphs () const
+  {
+    return sets.get (HB_SUBSET_SETS_GLYPH_INDEX);
+  }
+
+  inline hb_set_t* name_ids ()
+  {
+    return sets.get (HB_SUBSET_SETS_NAME_ID);
+  }
+
+  inline const hb_set_t* name_ids () const
+  {
+    return sets.get (HB_SUBSET_SETS_NAME_ID);
+  }
+
+  inline hb_set_t* name_languages ()
+  {
+    return sets.get (HB_SUBSET_SETS_NAME_LANG_ID);
+  }
+
+  inline const hb_set_t* name_languages () const
+  {
+    return sets.get (HB_SUBSET_SETS_NAME_LANG_ID);
+  }
+
+  inline hb_set_t* no_subset_tables ()
+  {
+    return sets.get (HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG);
+  }
+
+  inline const hb_set_t* no_subset_tables () const
+  {
+    return sets.get (HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG);
+  }
+
+  inline hb_set_t* drop_tables ()
+  {
+    return sets.get (HB_SUBSET_SETS_DROP_TABLE_TAG);
+  }
+
+  inline const hb_set_t* drop_tables () const
+  {
+    return sets.get (HB_SUBSET_SETS_DROP_TABLE_TAG);
+  }
+
+  inline hb_set_t* layout_features ()
+  {
+    return sets.get (HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  }
+
+  inline const hb_set_t* layout_features () const
+  {
+    return sets.get (HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  }
+
+  bool in_error () const
+  {
+    if (sets.in_error ()) return true;
+    for (const hb_set_t* set : sets.values ())
+    {
+      if (unlikely (set->in_error ()))
+        return true;
+    }
+    return false;
+  }
 };
 
 
