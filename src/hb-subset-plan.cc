@@ -240,12 +240,13 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 {
   OT::cmap::accelerator_t cmap;
   cmap.init (plan->source);
-  constexpr static const int size_threshold = 4000;
 
-  if (unicodes->get_population () < size_threshold && glyphs->is_empty ())
+  constexpr static const int size_threshold = 4096;
+
+  if (glyphs->is_empty () && unicodes->get_population () < size_threshold)
   {
-    // This is the fast path if it's anticipated that size of unicodes
-    // is << than the number of codepoints in the font.
+    /* This is the fast path if it's anticipated that size of unicodes
+     * is << than the number of codepoints in the font. */
     for (hb_codepoint_t cp : *unicodes)
     {
       hb_codepoint_t gid;
@@ -257,34 +258,37 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 
       plan->codepoint_to_glyph->set (cp, gid);
     }
-    cmap.fini ();
-  } else {
+  }
+  else
+  {
     hb_map_t unicode_glyphid_map;
     cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
-    cmap.fini ();
 
     for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
-             + unicode_glyphid_map.iter ())
+	 + unicode_glyphid_map.iter ())
     {
       if (!unicodes->has (cp_gid.first) && !glyphs->has (cp_gid.second))
-        continue;
+	continue;
 
       plan->codepoint_to_glyph->set (cp_gid.first, cp_gid.second);
     }
 
-    // Add gids which where requested, but not mapped in cmap
-    // TODO(garretrieger): once https://github.com/harfbuzz/harfbuzz/issues/3169
-    //                     is implemented, this can be done with union and del_range
+    /* Add gids which where requested, but not mapped in cmap */
+    // TODO(garretrieger):
+    // Once https://github.com/harfbuzz/harfbuzz/issues/3169
+    // is implemented, this can be done with union and del_range
     for (hb_codepoint_t gid : glyphs->iter ())
     {
       if (gid >= plan->source->get_num_glyphs ())
-        break;
+	break;
       plan->_glyphset_gsub->add (gid);
     }
   }
 
-  + plan->codepoint_to_glyph->keys () | hb_sink (plan->unicodes);
+  + plan->codepoint_to_glyph->keys ()   | hb_sink (plan->unicodes);
   + plan->codepoint_to_glyph->values () | hb_sink (plan->_glyphset_gsub);
+
+  cmap.fini ();
 }
 
 static void
