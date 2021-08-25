@@ -81,10 +81,12 @@ typedef enum { /*< flags >*/
 
 /**
  * hb_subset_sets_t:
+ * HB_SUBSET_SETS_GLYPH_INDEX: the set of glyph indexes to retain in the subset.
+ * HB_SUBSET_SETS_UNICODE: the set of unicode codepoints to retain in the subset.
  * @HB_SUBSET_SETS_LAYOUT_FEATURE_TAG: the set of layout feature tags that will be retained
  * in the subset.
- * @HB_SUBSET_SETS_NAME_INDEX: the set of name ids that will be retained.
- * @HB_SUBSET_SETS_NAME_LANG_INDEX: the set of name lang ids that will be retained.
+ * @HB_SUBSET_SETS_NAME_ID: the set of name ids that will be retained.
+ * @HB_SUBSET_SETS_NAME_LANG_ID: the set of name lang ids that will be retained.
  * @HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG: the set of table tags which specifies tables that should not be
  * subsetted.
  * @HB_SUBSET_SETS_DROP_TABLE_TAG: the set of table tags which specifies tables which will be dropped
@@ -95,11 +97,11 @@ typedef enum { /*< flags >*/
  * Since: REPLACE
  **/
 typedef enum {
-  HB_SUBSET_SETS_UNICODE_CODEPOINT = 0,
-  HB_SUBSET_SETS_GLYPH_INDEX,
+  HB_SUBSET_SETS_GLYPH_INDEX = 0,
+  HB_SUBSET_SETS_UNICODE,
   HB_SUBSET_SETS_LAYOUT_FEATURE_TAG,
-  HB_SUBSET_SETS_NAME_INDEX,
-  HB_SUBSET_SETS_NAME_LANG_INDEX,
+  HB_SUBSET_SETS_NAME_ID,
+  HB_SUBSET_SETS_NAME_LANG_ID,
   HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG,
   HB_SUBSET_SETS_DROP_TABLE_TAG,
 } hb_subset_sets_t;
