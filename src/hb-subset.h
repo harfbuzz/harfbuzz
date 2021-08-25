@@ -94,7 +94,7 @@ typedef enum { /*< flags >*/
  *
  * Since: REPLACE
  **/
-typedef enum { /*< flags >*/
+typedef enum {
   HB_SUBSET_SETS_UNICODE_CODEPOINT = 0,
   HB_SUBSET_SETS_GLYPH_INDEX,
   HB_SUBSET_SETS_LAYOUT_FEATURE_TAG,
@@ -102,7 +102,6 @@ typedef enum { /*< flags >*/
   HB_SUBSET_SETS_NAME_LANG_INDEX,
   HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG,
   HB_SUBSET_SETS_DROP_TABLE_TAG,
-  HB_SUBSET_SETS_COUNT
 } hb_subset_sets_t;
 
 HB_EXTERN hb_subset_input_t *
