@@ -265,20 +265,26 @@ parse_text (const char *name G_GNUC_UNUSED,
 	    GError    **error G_GNUC_UNUSED)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
 
+  hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
   if (0 == strcmp (arg, "*"))
   {
-    subset_main->add_all_unicodes ();
+    hb_set_clear (unicodes);
+    if (!is_remove)
+      hb_set_invert (unicodes);
     return true;
   }
 
-  hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
   for (gchar *c = (gchar *) arg;
        *c;
        c = g_utf8_find_next_char(c, nullptr))
   {
     gunichar cp = g_utf8_get_char(c);
-    hb_set_add (unicodes, cp);
+    if (!is_remove)
+      hb_set_add (unicodes, cp);
+    else
+      hb_set_del (unicodes, cp);
   }
   return true;
 }
@@ -674,6 +680,9 @@ subset_main_t::add_options ()
     {"text",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_text,			"Specify text to include in the subset", "string"},
     {"text-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_text, false>,"Specify file to read text from", "filename"},
     {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,		"Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
+    {"unicodes-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,		"Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
+    {"unicodes+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,		"Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
+
     {"unicodes-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_unicodes>,"Specify file to read Unicode codepoints or ranges from", "filename"},
     {nullptr}
   };
