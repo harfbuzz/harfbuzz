@@ -240,42 +240,55 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 {
   OT::cmap::accelerator_t cmap;
   cmap.init (plan->source);
+  constexpr static const int size_threshold = 4000;
 
-  for (hb_codepoint_t cp : *unicodes)
+  if (unicodes->get_population () < size_threshold && glyphs->is_empty ())
   {
-    hb_codepoint_t gid;
-    if (!cmap.get_nominal_glyph (cp, &gid))
+    // This is the fast path if it's anticipated that size of unicodes
+    // is << than the number of codepoints in the font.
+    for (hb_codepoint_t cp : *unicodes)
     {
-      DEBUG_MSG(SUBSET, nullptr, "Drop U+%04X; no gid", cp);
-      continue;
+      hb_codepoint_t gid;
+      if (!cmap.get_nominal_glyph (cp, &gid))
+      {
+        DEBUG_MSG(SUBSET, nullptr, "Drop U+%04X; no gid", cp);
+        continue;
+      }
+
+      plan->codepoint_to_glyph->set (cp, gid);
     }
-    plan->unicodes->add (cp);
-    plan->codepoint_to_glyph->set (cp, gid);
-    plan->_glyphset_gsub->add (gid);
-  }
-
-  if (glyphs->is_empty ())
-  {
     cmap.fini ();
-    return;
+  } else {
+    hb_map_t unicode_glyphid_map;
+    cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
+    cmap.fini ();
+
+    for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
+             + unicode_glyphid_map.iter ())
+    {
+      if (!unicodes->has (cp_gid.first) && !glyphs->has (cp_gid.second))
+        continue;
+
+      plan->codepoint_to_glyph->set (cp_gid.first, cp_gid.second);
+    }
+
+    // Add gids which where requested, but not mapped in cmap
+    // TODO(garretrieger): once https://github.com/harfbuzz/harfbuzz/issues/3169
+    //                     is implemented, this can be done with union and del_range
+    for (hb_codepoint_t gid : glyphs->iter ())
+    {
+      if (gid >= plan->source->get_num_glyphs ())
+        break;
+      plan->_glyphset_gsub->add (gid);
+    }
   }
 
-  hb_map_t unicode_glyphid_map;
-  cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
-  cmap.fini ();
-
-  for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
-       + unicode_glyphid_map.iter () | hb_filter (glyphs, hb_second))
-  {
-    plan->unicodes->add (cp_gid.first);
-    plan->codepoint_to_glyph->set (cp_gid.first, cp_gid.second);
-  }
+  + plan->codepoint_to_glyph->keys () | hb_sink (plan->unicodes);
+  + plan->codepoint_to_glyph->values () | hb_sink (plan->_glyphset_gsub);
 }
 
 static void
 _populate_gids_to_retain (hb_subset_plan_t* plan,
-			  const hb_set_t *unicodes,
-			  const hb_set_t *input_glyphs_to_retain,
 			  bool close_over_gsub,
 			  bool close_over_gpos,
 			  bool close_over_gdef)
@@ -292,7 +305,6 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   colr.init (plan->source);
 
   plan->_glyphset_gsub->add (0); // Not-def
-  hb_set_union (plan->_glyphset_gsub, input_glyphs_to_retain);
 
   _cmap_closure (plan->source, plan->unicodes, plan->_glyphset_gsub);
 
@@ -477,8 +489,6 @@ hb_subset_plan_create (hb_face_t	 *face,
   _populate_unicodes_to_retain (input->unicodes, input->glyphs, plan);
 
   _populate_gids_to_retain (plan,
-			    input->unicodes,
-			    input->glyphs,
 			    !input->drop_tables->has (HB_OT_TAG_GSUB),
 			    !input->drop_tables->has (HB_OT_TAG_GPOS),
 			    !input->drop_tables->has (HB_OT_TAG_GDEF));

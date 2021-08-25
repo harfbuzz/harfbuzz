@@ -131,13 +131,6 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     return true;
   }
 
-  void
-  add_all_unicodes ()
-  {
-    hb_set_t *codepoints = hb_subset_input_unicode_set (input);
-    hb_face_collect_unicodes (face, codepoints);
-  }
-
   void add_options ();
 
   protected:
@@ -165,7 +158,16 @@ parse_gids (const char *name G_GNUC_UNUSED,
 	    GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
+
+  if (0 == strcmp (arg, "*"))
+  {
+    hb_set_clear (gids);
+    if (!is_remove)
+      hb_set_invert (gids);
+    return true;
+  }
 
   char *s = (char *) arg;
   char *p;
@@ -203,11 +205,17 @@ parse_gids (const char *name G_GNUC_UNUSED,
 		     "Invalid glyph-index range %u-%u", start_code, end_code);
 	return false;
       }
-      hb_set_add_range (gids, start_code, end_code);
+      if (!is_remove)
+        hb_set_add_range (gids, start_code, end_code);
+      else
+        hb_set_del_range (gids, start_code, end_code);
     }
     else
     {
-      hb_set_add (gids, start_code);
+      if (!is_remove)
+        hb_set_add (gids, start_code);
+      else
+        hb_set_del (gids, start_code);
     }
 
     s = p;
@@ -223,7 +231,16 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
 	      GError    **error G_GNUC_UNUSED)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
+
+  if (0 == strcmp (arg, "*"))
+  {
+    hb_set_clear (gids);
+    if (!is_remove)
+      hb_set_invert (gids);
+    return true;
+  }
 
   const char *p = arg;
   const char *p_end = arg + strlen (arg);
@@ -248,7 +265,10 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
 	return false;
       }
 
-      hb_set_add (gids, gid);
+      if (!is_remove)
+        hb_set_add (gids, gid);
+      else
+        hb_set_del (gids, gid);
     }
 
     p = end + 1;
@@ -265,20 +285,26 @@ parse_text (const char *name G_GNUC_UNUSED,
 	    GError    **error G_GNUC_UNUSED)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
 
+  hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
   if (0 == strcmp (arg, "*"))
   {
-    subset_main->add_all_unicodes ();
+    hb_set_clear (unicodes);
+    if (!is_remove)
+      hb_set_invert (unicodes);
     return true;
   }
 
-  hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
   for (gchar *c = (gchar *) arg;
        *c;
        c = g_utf8_find_next_char(c, nullptr))
   {
     gunichar cp = g_utf8_get_char(c);
-    hb_set_add (unicodes, cp);
+    if (!is_remove)
+      hb_set_add (unicodes, cp);
+    else
+      hb_set_del (unicodes, cp);
   }
   return true;
 }
@@ -290,16 +316,18 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 		GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
 
+  hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
   if (0 == strcmp (arg, "*"))
   {
-    subset_main->add_all_unicodes ();
+    hb_set_clear (unicodes);
+    if (!is_remove)
+      hb_set_invert (unicodes);
     return true;
   }
 
   // XXX TODO Ranges
-  hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
-
 #define DELIMITERS "<+->{},;&#\\xXuUnNiI\n\t\v\f\r "
 
   char *s = (char *) arg;
@@ -338,11 +366,17 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 		     "Invalid Unicode range %u-%u", start_code, end_code);
 	return false;
       }
-      hb_set_add_range (unicodes, start_code, end_code);
+      if (!is_remove)
+        hb_set_add_range (unicodes, start_code, end_code);
+      else
+        hb_set_del_range (unicodes, start_code, end_code);
     }
     else
     {
-      hb_set_add (unicodes, start_code);
+      if (!is_remove)
+        hb_set_add (unicodes, start_code);
+      else
+        hb_set_del (unicodes, start_code);
     }
 
     s = p;
@@ -667,13 +701,39 @@ subset_main_t::add_options ()
 
   GOptionEntry glyphset_entries[] =
   {
-    {"gids",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,			"Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges"},
+    {"gids",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,
+     "Specify glyph IDs or ranges to include in the subset.\n"
+     "                                                    "
+     "Use --gids-=... to subtract codepoints from the current set.", "list of glyph indices/ranges or *"},
+    {"gids-",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,			"Specify glyph IDs or ranges to remove from the subset", "list of glyph indices/ranges or *"},
+    {"gids+",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,			"Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges or *"},
     {"gids-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_gids>,	"Specify file to read glyph IDs or ranges from", "filename"},
-    {"glyphs",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyphs,			"Specify glyph names to include in the subset", "list of glyph names"},
+    {"glyphs",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyphs,			"Specify glyph names to include in the subset. Use --glyphs-=... to subtract glyphs from the current set.", "list of glyph names or *"},
+    {"glyphs+",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyphs,			"Specify glyph names to include in the subset", "list of glyph names"},
+    {"glyphs-",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_glyphs,			"Specify glyph names to remove from the subset", "list of glyph names"},
+
+
     {"glyphs-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_glyphs>,	"Specify file to read glyph names fromt", "filename"},
-    {"text",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_text,			"Specify text to include in the subset", "string"},
+
+    {"text",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_text,			"Specify text to include in the subset. Use --text-=... to subtract codepoints from the current set.", "string"},
+    {"text-",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_text,			"Specify text to remove from the subset", "string"},
+    {"text+",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_text,			"Specify text to include in the subset", "string"},
+
+
     {"text-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_text, false>,"Specify file to read text from", "filename"},
-    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,		"Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges"},
+    {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,
+     "Specify Unicode codepoints or ranges to include in the subset. Use * to include all codepoints.\n"
+     "                                                    "
+     "--unicodes-=... can be used to subtract codepoints "
+     "from the current set.\n"
+     "                                                    "
+     "For example: --unicodes=* --unicodes-=41,42,43 would create a subset with all codepoints\n"
+     "                                                    "
+     "except for 41, 42, 43.",
+     "list of hex numbers/ranges or *"},
+    {"unicodes-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes, "Specify Unicode codepoints or ranges to remove from the subset", "list of hex numbers/ranges or *"},
+    {"unicodes+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes, "Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges or *"},
+
     {"unicodes-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_unicodes>,"Specify file to read Unicode codepoints or ranges from", "filename"},
     {nullptr}
   };
