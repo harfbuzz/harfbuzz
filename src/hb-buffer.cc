@@ -1758,13 +1758,20 @@ hb_buffer_append (hb_buffer_t *buffer,
 
   if (source->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE)
   {
+    /* See similar logic in add_utf. */
+
     /* pre-context */
-    while (start > 0 && buffer->context_len[0] < buffer->CONTEXT_LENGTH)
-      buffer->context[0][buffer->context_len[0]++] = source->info[--start].codepoint;
-    for (auto i = 0u; i < source->context_len[0] && buffer->context_len[0] < buffer->CONTEXT_LENGTH; i++)
-      buffer->context[0][buffer->context_len[0]++] = source->context[0][i];
+    if (!orig_len && start + source->context_len[0] > 0)
+    {
+      buffer->clear_context (0);
+      while (start > 0 && buffer->context_len[0] < buffer->CONTEXT_LENGTH)
+	buffer->context[0][buffer->context_len[0]++] = source->info[--start].codepoint;
+      for (auto i = 0u; i < source->context_len[0] && buffer->context_len[0] < buffer->CONTEXT_LENGTH; i++)
+	buffer->context[0][buffer->context_len[0]++] = source->context[0][i];
+    }
 
     /* post-context */
+    buffer->clear_context (1);
     while (end < source->len && buffer->context_len[1] < buffer->CONTEXT_LENGTH)
       buffer->context[1][buffer->context_len[1]++] = source->info[end++].codepoint;
     for (auto i = 0u; i < source->context_len[1] && buffer->context_len[1] < buffer->CONTEXT_LENGTH; i++)
