@@ -701,7 +701,10 @@ subset_main_t::add_options ()
 
   GOptionEntry glyphset_entries[] =
   {
-    {"gids",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,			"Specify glyph IDs or ranges to include in the subset. Use --gids-=... to subtract codepoints from the current set.", "list of glyph indices/ranges or *"},
+    {"gids",		0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,
+     "Specify glyph IDs or ranges to include in the subset.\n"
+     "                                                    "
+     "Use --gids-=... to subtract codepoints from the current set.", "list of glyph indices/ranges or *"},
     {"gids-",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,			"Specify glyph IDs or ranges to remove from the subset", "list of glyph indices/ranges or *"},
     {"gids+",		0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_gids,			"Specify glyph IDs or ranges to include in the subset", "list of glyph indices/ranges or *"},
     {"gids-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_gids>,	"Specify file to read glyph IDs or ranges from", "filename"},
@@ -719,8 +722,14 @@ subset_main_t::add_options ()
 
     {"text-file",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_file_for<parse_text, false>,"Specify file to read text from", "filename"},
     {"unicodes",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes,
-     "Specify Unicode codepoints or ranges to include in the subset. Use * to include all codepoints. --unicodes-=... can be used to subtract codepoints "
-     "from the current set. For example: --unicodes=* --unicodes-=41,42,43 would create a subset with all codepoints except for 41, 42, 43.",
+     "Specify Unicode codepoints or ranges to include in the subset. Use * to include all codepoints.\n"
+     "                                                    "
+     "--unicodes-=... can be used to subtract codepoints "
+     "from the current set.\n"
+     "                                                    "
+     "For example: --unicodes=* --unicodes-=41,42,43 would create a subset with all codepoints\n"
+     "                                                    "
+     "except for 41, 42, 43.",
      "list of hex numbers/ranges or *"},
     {"unicodes-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes, "Specify Unicode codepoints or ranges to remove from the subset", "list of hex numbers/ranges or *"},
     {"unicodes+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_unicodes, "Specify Unicode codepoints or ranges to include in the subset", "list of hex numbers/ranges or *"},
