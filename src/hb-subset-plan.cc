@@ -93,7 +93,7 @@ static void _collect_layout_indices (hb_face_t		  *face,
                                      const T&              table,
                                      const hb_set_t	  *layout_features_to_retain,
                                      layout_collect_func_t layout_collect_func,
-                                     hb_set_t		  *lookup_indices /* OUT */)
+                                     hb_set_t		  *indices /* OUT */)
 {
   hb_vector_t<hb_tag_t> features;
   if (!features.alloc (table.get_feature_count () + 1))
@@ -120,7 +120,7 @@ static void _collect_layout_indices (hb_face_t		  *face,
                          nullptr,
                          nullptr,
                          nullptr,
-                         lookup_indices);
+                         indices);
     return;
   }
 
@@ -129,7 +129,7 @@ static void _collect_layout_indices (hb_face_t		  *face,
 		       nullptr,
 		       nullptr,
 		       features.arrayZ,
-		       lookup_indices);
+		       indices);
 }
 
 template <typename T>
