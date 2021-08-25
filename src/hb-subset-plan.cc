@@ -87,12 +87,13 @@ _remap_indexes (const hb_set_t *indexes,
 #ifndef HB_NO_SUBSET_LAYOUT
 typedef void (*layout_collect_func_t) (hb_face_t *face, hb_tag_t table_tag, const hb_tag_t *scripts, const hb_tag_t *languages, const hb_tag_t *features, hb_set_t *lookup_indexes /* OUT */);
 
+
 template <typename T>
-static void _collect_subset_layout (hb_face_t		 *face,
-                                    const T&              table,
-				    const hb_set_t	 *layout_features_to_retain,
-				    layout_collect_func_t layout_collect_func,
-				    hb_set_t		 *lookup_indices /* OUT */)
+static void _collect_layout_indices (hb_face_t		  *face,
+                                     const T&              table,
+                                     const hb_set_t	  *layout_features_to_retain,
+                                     layout_collect_func_t layout_collect_func,
+                                     hb_set_t		  *lookup_indices /* OUT */)
 {
   hb_vector_t<hb_tag_t> features;
   if (!features.alloc (table.get_feature_count () + 1))
@@ -143,11 +144,11 @@ _closure_glyphs_lookups_features (hb_face_t	     *face,
   hb_blob_ptr_t<T> table = hb_sanitize_context_t ().reference_table<T> (face);
   hb_tag_t table_tag = table->tableTag;
   hb_set_t lookup_indices;
-  _collect_subset_layout<T> (face,
-                             *table,
-                             layout_features_to_retain,
-                             hb_ot_layout_collect_lookups,
-                             &lookup_indices);
+  _collect_layout_indices<T> (face,
+                              *table,
+                              layout_features_to_retain,
+                              hb_ot_layout_collect_lookups,
+                              &lookup_indices);
 
   if (table_tag == HB_OT_TAG_GSUB)
     hb_ot_layout_lookups_substitute_closure (face,
@@ -160,11 +161,11 @@ _closure_glyphs_lookups_features (hb_face_t	     *face,
 
   // Collect and prune features
   hb_set_t feature_indices;
-  _collect_subset_layout<T> (face,
-                             *table,
-                             layout_features_to_retain,
-                             hb_ot_layout_collect_features,
-                             &feature_indices);
+  _collect_layout_indices<T> (face,
+                              *table,
+                              layout_features_to_retain,
+                              hb_ot_layout_collect_features,
+                              &feature_indices);
 
   table->prune_features (lookups, &feature_indices);
   hb_map_t duplicate_feature_map;
