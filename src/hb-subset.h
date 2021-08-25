@@ -133,6 +133,21 @@ HB_EXTERN hb_set_t *
 hb_subset_input_glyph_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
+hb_subset_input_nameid_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_namelangid_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_layout_features_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_no_subset_tables_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_drop_tables_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
 hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type);
 
 HB_EXTERN hb_subset_flags_t
