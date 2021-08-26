@@ -102,10 +102,11 @@ struct hb_serialize_context_t
     char *tail;
     object_t *current; // Just for sanity check
     unsigned num_links;
+    hb_serialize_error_t errors;
   };
 
   snapshot_t snapshot ()
-  { return snapshot_t { head, tail, current, current->links.length }; }
+  { return snapshot_t { head, tail, current, current->links.length, errors }; }
 
   hb_serialize_context_t (void *start_, unsigned int size) :
     start ((char *) start_),
@@ -136,6 +137,12 @@ struct hb_serialize_context_t
   HB_NODISCARD bool ran_out_of_room () const { return errors & HB_SERIALIZE_ERROR_OUT_OF_ROOM; }
   HB_NODISCARD bool offset_overflow () const { return errors & HB_SERIALIZE_ERROR_OFFSET_OVERFLOW; }
   HB_NODISCARD bool only_offset_overflow () const { return errors == HB_SERIALIZE_ERROR_OFFSET_OVERFLOW; }
+  HB_NODISCARD bool only_overflow () const
+  {
+    return errors == HB_SERIALIZE_ERROR_OFFSET_OVERFLOW
+        || errors == HB_SERIALIZE_ERROR_INT_OVERFLOW
+        || errors == HB_SERIALIZE_ERROR_ARRAY_OVERFLOW;
+  }
 
   void reset (void *start_, unsigned int size)
   {
@@ -317,9 +324,11 @@ struct hb_serialize_context_t
 
   void revert (snapshot_t snap)
   {
-    if (unlikely (in_error ())) return;
+    // Overflows that happened after the snapshot will be erased by the revert.
+    if (unlikely (in_error () && !only_overflow ())) return;
     assert (snap.current == current);
     current->links.shrink (snap.num_links);
+    errors = snap.errors;
     revert (snap.head, snap.tail);
   }
 
@@ -363,6 +372,8 @@ struct hb_serialize_context_t
     assert (current->head <= (const char *) &ofs);
 
     auto& link = *current->links.push ();
+    if (current->links.in_error ())
+      err (HB_SERIALIZE_ERROR_OTHER);
 
     link.width = sizeof (T);
     link.is_signed = hb_is_signed (hb_unwrap_type (T));
