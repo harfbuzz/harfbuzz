@@ -660,7 +660,7 @@ parse_file_for (const char *name,
         *comment = '\0';
     }
 
-    line_parser (name, gs->str, data, error);
+    line_parser ("+", gs->str, data, error);
 
     if (*error)
       break;
