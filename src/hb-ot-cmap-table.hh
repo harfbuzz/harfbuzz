@@ -282,9 +282,17 @@ struct CmapSubtableFormat4
     HBUINT16 *idRangeOffset = serialize_rangeoffset_glyid (c, format4_iter, endCode, startCode, idDelta, segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return;
 
-    if (unlikely (!c->check_assign(this->length,
-                                   c->length () - table_initpos,
-                                   HB_SERIALIZE_ERROR_INT_OVERFLOW))) return;
+    this->length = c->length () - table_initpos;
+    if ((long long) this->length != (long long) c->length () - table_initpos)
+    {
+      // Length overflowed. Discard the current object before setting the error condition, otherwise
+      // discard is a noop which prevents the higher level code from reverting the serializer to the
+      // pre-error state in cmap4 overflow handling code.
+      c->pop_discard ();
+      c->err (HB_SERIALIZE_ERROR_INT_OVERFLOW);
+      return;
+    }
+
     this->segCountX2 = segcount * 2;
     this->entrySelector = hb_max (1u, hb_bit_storage (segcount)) - 1;
     this->searchRange = 2 * (1u << this->entrySelector);
@@ -1389,26 +1397,45 @@ struct cmap
 
   template<typename Iterator, typename EncodingRecIter,
 	   hb_requires (hb_is_iterator (EncodingRecIter))>
-  void serialize (hb_serialize_context_t *c,
+  bool serialize (hb_serialize_context_t *c,
 		  Iterator it,
 		  EncodingRecIter encodingrec_iter,
 		  const void *base,
-		  const hb_subset_plan_t *plan)
+		  const hb_subset_plan_t *plan,
+                  bool drop_format_4 = false)
   {
-    if (unlikely (!c->extend_min ((*this))))  return;
+    if (unlikely (!c->extend_min ((*this))))  return false;
     this->version = 0;
 
     unsigned format4objidx = 0, format12objidx = 0, format14objidx = 0;
+    auto snap = c->snapshot ();
 
     for (const EncodingRecord& _ : encodingrec_iter)
     {
+      if (c->in_error ())
+        return false;
+
       unsigned format = (base+_.subtable).u.format;
       if (format != 4 && format != 12 && format != 14) continue;
 
       hb_set_t unicodes_set;
       (base+_.subtable).collect_unicodes (&unicodes_set);
 
-      if (format == 4) c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, base, plan, &format4objidx);
+      if (!drop_format_4 && format == 4)
+      {
+        c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, base, plan, &format4objidx);
+        if (c->in_error () && c->only_overflow ())
+        {
+          // cmap4 overflowed, reset and retry serialization without format 4 subtables.
+          c->revert (snap);
+          return serialize (c, it,
+                            encodingrec_iter,
+                            base,
+                            plan,
+                            true);
+        }
+      }
+
       else if (format == 12)
       {
         if (_can_drop (_, unicodes_set, base, + it | hb_map (hb_first), encodingrec_iter)) continue;
@@ -1416,10 +1443,12 @@ struct cmap
       }
       else if (format == 14) c->copy (_, it, 14u, base, plan, &format14objidx);
     }
-
     c->check_assign(this->encodingRecord.len,
                     (c->length () - cmap::min_size)/EncodingRecord::static_size,
                     HB_SERIALIZE_ERROR_INT_OVERFLOW);
+
+    // Fail if format 4 was dropped and there is no cmap12.
+    return !drop_format_4 || format12objidx;
   }
 
   template<typename Iterator, typename EncodingRecordIterator,
@@ -1540,8 +1569,8 @@ struct cmap
     | hb_filter ([&] (const hb_pair_t<hb_codepoint_t, hb_codepoint_t> _)
 		 { return (_.second != HB_MAP_VALUE_INVALID); })
     ;
-    cmap_prime->serialize (c->serializer, it, encodingrec_iter, this, c->plan);
-    return_trace (true);
+
+    return_trace (cmap_prime->serialize (c->serializer, it, encodingrec_iter, this, c->plan));
   }
 
   const CmapSubtable *find_best_subtable (bool *symbol = nullptr) const
