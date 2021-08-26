@@ -159,7 +159,10 @@ parse_gids (const char *name G_GNUC_UNUSED,
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
+  hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
+
+  if (!is_remove && !is_add) hb_set_clear (gids);
 
   if (0 == strcmp (arg, "*"))
   {
@@ -232,7 +235,10 @@ parse_glyphs (const char *name G_GNUC_UNUSED,
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
+  hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *gids = hb_subset_input_glyph_set (subset_main->input);
+
+  if (!is_remove && !is_add) hb_set_clear (gids);
 
   if (0 == strcmp (arg, "*"))
   {
@@ -286,8 +292,11 @@ parse_text (const char *name G_GNUC_UNUSED,
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
-
+  hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
+
+  if (!is_remove && !is_add) hb_set_clear (unicodes);
+
   if (0 == strcmp (arg, "*"))
   {
     hb_set_clear (unicodes);
@@ -317,8 +326,11 @@ parse_unicodes (const char *name G_GNUC_UNUSED,
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
-
+  hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *unicodes = hb_subset_input_unicode_set (subset_main->input);
+
+  if (!is_remove && !is_add) hb_set_clear (unicodes);
+
   if (0 == strcmp (arg, "*"))
   {
     hb_set_clear (unicodes);
@@ -392,19 +404,18 @@ parse_nameids (const char *name,
 	       GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
+  hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *name_ids = hb_subset_input_nameid_set (subset_main->input);
 
-  char last_name_char = name[strlen (name) - 1];
 
-  if (last_name_char != '+' && last_name_char != '-')
-    hb_set_clear (name_ids);
+  if (!is_remove && !is_add) hb_set_clear (name_ids);
 
   if (0 == strcmp (arg, "*"))
   {
-    if (last_name_char == '-')
-      hb_set_del_range (name_ids, 0, 0x7FFF);
-    else
-      hb_set_add_range (name_ids, 0, 0x7FFF);
+    hb_set_clear (name_ids);
+    if (!is_remove)
+      hb_set_invert (name_ids);
     return true;
   }
 
@@ -427,7 +438,7 @@ parse_nameids (const char *name,
       return false;
     }
 
-    if (last_name_char != '-')
+    if (!is_remove)
     {
       hb_set_add (name_ids, u);
     } else {
@@ -447,19 +458,17 @@ parse_name_languages (const char *name,
 		      GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
+  hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *name_languages = hb_subset_input_namelangid_set (subset_main->input);
 
-  char last_name_char = name[strlen (name) - 1];
-
-  if (last_name_char != '+' && last_name_char != '-')
-    hb_set_clear (name_languages);
+  if (!is_remove && !is_add) hb_set_clear (name_languages);
 
   if (0 == strcmp (arg, "*"))
   {
-    if (last_name_char == '-')
-      hb_set_del_range (name_languages, 0, 0x5FFF);
-    else
-      hb_set_add_range (name_languages, 0, 0x5FFF);
+    hb_set_clear (name_languages);
+    if (!is_remove)
+      hb_set_invert (name_languages);
     return true;
   }
 
@@ -482,7 +491,7 @@ parse_name_languages (const char *name,
       return false;
     }
 
-    if (last_name_char != '-')
+    if (!is_remove)
     {
       hb_set_add (name_languages, u);
     } else {
@@ -517,17 +526,16 @@ parse_layout_features (const char *name,
 		       GError    **error G_GNUC_UNUSED)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
+  hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *layout_features = hb_subset_input_layout_features_set (subset_main->input);
 
-  char last_name_char = name[strlen (name) - 1];
-
-  if (last_name_char != '+' && last_name_char != '-')
-    hb_set_clear (layout_features);
+  if (!is_remove && !is_add) hb_set_clear (layout_features);
 
   if (0 == strcmp (arg, "*"))
   {
     hb_set_clear (layout_features);
-    if (last_name_char != '-')
+    if (!is_remove)
       hb_set_invert (layout_features);
     return true;
   }
@@ -544,7 +552,7 @@ parse_layout_features (const char *name,
 
     hb_tag_t tag = hb_tag_from_string (s, strlen (s));
 
-    if (last_name_char != '-')
+    if (!is_remove)
       hb_set_add (layout_features, tag);
     else
       hb_set_del (layout_features, tag);
@@ -562,12 +570,19 @@ parse_drop_tables (const char *name,
 		   GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
+  hb_bool_t is_add = (name[strlen (name) - 1] == '+');
   hb_set_t *drop_tables = hb_subset_input_drop_tables_set (subset_main->input);
 
-  char last_name_char = name[strlen (name) - 1];
+  if (!is_remove && !is_add) hb_set_clear (drop_tables);
 
-  if (last_name_char != '+' && last_name_char != '-')
+  if (0 == strcmp (arg, "*"))
+  {
     hb_set_clear (drop_tables);
+    if (!is_remove)
+      hb_set_invert (drop_tables);
+    return true;
+  }
 
   char *s = strtok((char *) arg, ", ");
   while (s)
@@ -581,7 +596,7 @@ parse_drop_tables (const char *name,
 
     hb_tag_t tag = hb_tag_from_string (s, strlen (s));
 
-    if (last_name_char != '-')
+    if (!is_remove)
       hb_set_add (drop_tables, tag);
     else
       hb_set_del (drop_tables, tag);
@@ -745,18 +760,18 @@ subset_main_t::add_options ()
 
   GOptionEntry other_entries[] =
   {
-    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers"},
-    {"name-IDs-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers"},
-    {"name-IDs+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers"},
-    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"name-languages-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"name-languages+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers"},
-    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"layout-features+",0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"layout-features-",0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags."},
-    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags."},
-    {"drop-tables+",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags."},
-    {"drop-tables-",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags."},
+    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids. Use --name-IDs-=... to substract from the current set.", "list of int numbers or *"},
+    {"name-IDs-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers or *"},
+    {"name-IDs+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers or *"},
+    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs. Use --name-languages-=... to substract from the current set.", "list of int numbers or *"},
+    {"name-languages-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers or *"},
+    {"name-languages+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers or *"},
+    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved. Use --layout-features-=... to substract from the current set.", "list of string table tags or *"},
+    {"layout-features+",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags or *"},
+    {"layout-features-",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags or *"},
+    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables. Use --drop-tables-=... to substract from the current set.", "list of string table tags or *"},
+    {"drop-tables+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
+    {"drop-tables-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
     {nullptr}
   };
   add_group (other_entries,
