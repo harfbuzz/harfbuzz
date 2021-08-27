@@ -128,6 +128,35 @@ test_subset_set_flags (void)
 
 
 static void
+test_subset_sets (void)
+{
+  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
+  hb_set_t* set = hb_set_create ();
+
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_GLYPH_INDEX), 83);
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_UNICODE), 85);
+
+  hb_set_clear (hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG), 87);
+
+  hb_set_add (set, 83);
+  g_assert (hb_set_is_equal (hb_subset_input_glyph_set (input), set));
+  hb_set_clear (set);
+
+  hb_set_add (set, 85);
+  g_assert (hb_set_is_equal (hb_subset_input_unicode_set (input), set));
+  hb_set_clear (set);
+
+  hb_set_add (set, 87);
+  g_assert (hb_set_is_equal (hb_subset_input_layout_features_set (input), set));
+  hb_set_clear (set);
+
+  hb_set_destroy (set);
+  hb_subset_input_destroy (input);
+}
+
+
+static void
 test_subset_legacy_api (void)
 {
   hb_subset_input_t *input = hb_subset_input_create_or_fail ();
@@ -185,6 +214,7 @@ main (int argc, char **argv)
   hb_test_add (test_subset_no_inf_loop);
   hb_test_add (test_subset_crash);
   hb_test_add (test_subset_set_flags);
+  hb_test_add (test_subset_sets);
   hb_test_add (test_subset_legacy_api);
 
   return hb_test_run();

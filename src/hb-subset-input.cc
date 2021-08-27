@@ -352,7 +352,6 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type)
 {
-  // TODO(garretrieger): add test for this method.
   return input->sets_iter () [set_type];
 }
 
