@@ -52,14 +52,14 @@ struct hb_subset_input_t
       hb_set_t *name_languages;
       hb_set_t *layout_features;
     } sets;
-    hb_set_t* set_ptrs[1];
+    hb_set_t* set_ptrs[sizeof (sets) / sizeof (hb_set_t*)];
   };
 
   unsigned flags;
 
   inline unsigned num_sets () const
   {
-    return sizeof (sets) / sizeof (hb_set_t*);
+    return sizeof (set_ptrs) / sizeof (hb_set_t*);
   }
 
   inline hb_array_t<hb_set_t*> sets_iter ()
