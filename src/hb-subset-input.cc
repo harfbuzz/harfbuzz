@@ -45,14 +45,8 @@ hb_subset_input_create_or_fail (void)
   if (unlikely (!input))
     return nullptr;
 
-  input->sets.init ();
-  input->sets.set (HB_SUBSET_SETS_GLYPH_INDEX, hb_set_create ());
-  input->sets.set (HB_SUBSET_SETS_UNICODE, hb_set_create ());
-  input->sets.set (HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG, hb_set_create ());
-  input->sets.set (HB_SUBSET_SETS_DROP_TABLE_TAG, hb_set_create ());
-  input->sets.set (HB_SUBSET_SETS_NAME_ID, hb_set_create ());
-  input->sets.set (HB_SUBSET_SETS_NAME_LANG_ID, hb_set_create ());
-  input->sets.set (HB_SUBSET_SETS_LAYOUT_FEATURE_TAG, hb_set_create ());
+  for (auto& set : input->sets_iter ())
+    set = hb_set_create ();
 
   if (input->in_error ())
   {
@@ -234,10 +228,8 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 {
   if (!hb_object_destroy (input)) return;
 
-  for (hb_set_t* set : input->sets.values ())
+  for (hb_set_t* set : input->sets_iter ())
     hb_set_destroy (set);
-
-  input->sets.fini ();
 
   hb_free (input);
 }
@@ -361,7 +353,7 @@ HB_EXTERN hb_set_t *
 hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type)
 {
   // TODO(garretrieger): add test for this method.
-  return input->sets.get (set_type);
+  return input->sets_iter () [set_type];
 }
 
 /**

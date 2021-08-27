@@ -42,86 +42,106 @@ struct hb_subset_input_t
 {
   hb_object_header_t header;
 
-  hb_hashmap_t<unsigned, hb_set_t*> sets;
+  union {
+    struct {
+      hb_set_t *glyphs;
+      hb_set_t *unicodes;
+      hb_set_t *no_subset_tables;
+      hb_set_t *drop_tables;
+      hb_set_t *name_ids;
+      hb_set_t *name_languages;
+      hb_set_t *layout_features;
+    } sets;
+    hb_set_t* set_ptrs[1];
+  };
 
   unsigned flags;
 
+  inline unsigned num_sets () const
+  {
+    return sizeof (sets) / sizeof (hb_set_t*);
+  }
+
+  inline hb_array_t<hb_set_t*> sets_iter ()
+  {
+    return hb_array_t<hb_set_t*> (set_ptrs, num_sets ());
+  }
+
   inline hb_set_t* unicodes()
   {
-    return sets.get (HB_SUBSET_SETS_UNICODE);
+    return sets.unicodes;
   }
 
   inline const hb_set_t* unicodes() const
   {
-    return sets.get (HB_SUBSET_SETS_UNICODE);
+    return sets.unicodes;
   }
 
   inline hb_set_t* glyphs ()
   {
-    return sets.get (HB_SUBSET_SETS_GLYPH_INDEX);
+    return sets.glyphs;
   }
 
   inline const hb_set_t* glyphs () const
   {
-    return sets.get (HB_SUBSET_SETS_GLYPH_INDEX);
+    return sets.glyphs;
   }
 
   inline hb_set_t* name_ids ()
   {
-    return sets.get (HB_SUBSET_SETS_NAME_ID);
+    return sets.name_ids;
   }
 
   inline const hb_set_t* name_ids () const
   {
-    return sets.get (HB_SUBSET_SETS_NAME_ID);
+    return sets.name_ids;
   }
 
   inline hb_set_t* name_languages ()
   {
-    return sets.get (HB_SUBSET_SETS_NAME_LANG_ID);
+    return sets.name_languages;
   }
 
   inline const hb_set_t* name_languages () const
   {
-    return sets.get (HB_SUBSET_SETS_NAME_LANG_ID);
+    return sets.name_languages;
   }
 
   inline hb_set_t* no_subset_tables ()
   {
-    return sets.get (HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG);
+    return sets.no_subset_tables;
   }
 
   inline const hb_set_t* no_subset_tables () const
   {
-    return sets.get (HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG);
+    return sets.no_subset_tables;
   }
 
   inline hb_set_t* drop_tables ()
   {
-    return sets.get (HB_SUBSET_SETS_DROP_TABLE_TAG);
+    return sets.drop_tables;
   }
 
   inline const hb_set_t* drop_tables () const
   {
-    return sets.get (HB_SUBSET_SETS_DROP_TABLE_TAG);
+    return sets.drop_tables;
   }
 
   inline hb_set_t* layout_features ()
   {
-    return sets.get (HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+    return sets.layout_features;
   }
 
   inline const hb_set_t* layout_features () const
   {
-    return sets.get (HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+    return sets.layout_features;
   }
 
   bool in_error () const
   {
-    if (sets.in_error ()) return true;
-    for (const hb_set_t* set : sets.values ())
+    for (unsigned i = 0; i < num_sets (); i++)
     {
-      if (unlikely (set->in_error ()))
+      if (unlikely (set_ptrs[i]->in_error ()))
         return true;
     }
     return false;
