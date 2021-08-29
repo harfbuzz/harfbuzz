@@ -332,6 +332,7 @@ struct hb_bit_set_t
       return;
     population = other.population;
 
+    /* TODO switch to vector operator =. */
     hb_memcpy ((void *) pages, (const void *) other.pages, count * pages.item_size);
     hb_memcpy ((void *) page_map, (const void *) other.page_map, count * page_map.item_size);
   }
