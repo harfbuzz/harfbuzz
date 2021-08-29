@@ -38,6 +38,11 @@ struct hb_bit_set_t
   hb_bit_set_t () { init (); }
   ~hb_bit_set_t () { fini (); }
 
+  hb_bit_set_t (const hb_bit_set_t& other) : hb_bit_set_t () { set (other); }
+  void operator= (const hb_bit_set_t& other) { set (other); }
+  // TODO Add move construtor/assign
+  // TODO Add constructor for Iterator; with specialization for (sorted) vector / array?
+
   void init ()
   {
     successful = true;
@@ -51,11 +56,6 @@ struct hb_bit_set_t
     page_map.fini ();
     pages.fini ();
   }
-
-  hb_bit_set_t (const hb_bit_set_t& other) : hb_bit_set_t () { set (other); }
-  void operator= (const hb_bit_set_t& other) { set (other); }
-  // TODO Add move construtor/assign
-  // TODO Add constructor for Iterator; with specialization for (sorted) vector / array?
 
   using page_t = hb_bit_page_t;
   struct page_map_t

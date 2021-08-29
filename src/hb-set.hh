@@ -41,6 +41,11 @@ struct hb_sparseset_t
   hb_sparseset_t () { init (); }
   ~hb_sparseset_t () { fini (); }
 
+  hb_sparseset_t (const hb_sparseset_t& other) : hb_sparseset_t () { set (other); }
+  void operator= (const hb_sparseset_t& other) { set (other); }
+  // TODO Add move construtor/assign
+  // TODO Add constructor for Iterator
+
   void init_shallow () { s.init (); }
   void init ()
   {
