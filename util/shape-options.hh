@@ -108,7 +108,7 @@ struct shape_options_t
     if (!hb_shape_full (font, buffer, features, num_features, shapers))
     {
       if (error)
-	*error = "all shapers failed.";
+	*error = "All shapers failed.";
       goto fail;
     }
 
@@ -246,7 +246,7 @@ struct shape_options_t
       if (!hb_shape_full (font, fragment, features, num_features, shapers))
       {
 	if (error)
-	  *error = "all shapers failed while shaping fragment.";
+	  *error = "All shapers failed while shaping fragment.";
 	hb_buffer_destroy (reconstruction);
 	hb_buffer_destroy (fragment);
 	return false;
