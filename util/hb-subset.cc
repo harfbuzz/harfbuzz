@@ -71,7 +71,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
       g_memdup
 #endif
       (argv, argc * sizeof (*argv));
-    parser.parse (&argc, &args, true);
+    parser.parse (&argc, &args);
     g_free (args);
 
     set_face (face_opts.face);
