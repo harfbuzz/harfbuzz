@@ -218,29 +218,24 @@ struct CmapSubtableFormat4
 					 HBINT16 *idDelta,
 					 unsigned segcount)
   {
+    hb_hashmap_t<hb_codepoint_t, hb_codepoint_t> cp_to_gid;
+    + it | hb_sink (cp_to_gid);
+
     HBUINT16 *idRangeOffset = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return nullptr;
     if (unlikely ((char *)idRangeOffset - (char *)idDelta != (int) segcount * (int) HBINT16::static_size)) return nullptr;
 
-    + hb_range (segcount)
-    | hb_filter ([&] (const unsigned _) { return idDelta[_] == 0; })
-    | hb_apply ([&] (const unsigned i)
-		{
-		  idRangeOffset[i] = 2 * (c->start_embed<HBUINT16> () - idRangeOffset - i);
-
-		  + it
-		  | hb_filter ([&] (const hb_item_type<Iterator> _) { return _.first >= startCode[i] && _.first <= endCode[i]; })
-		  | hb_apply ([&] (const hb_item_type<Iterator> _)
-			      {
-				HBUINT16 glyID;
-				glyID = _.second;
-				c->copy<HBUINT16> (glyID);
-			      })
-		  ;
-
-
-		})
-    ;
+    for (unsigned i : + hb_range (segcount)
+             | hb_filter ([&] (const unsigned _) { return idDelta[_] == 0; }))
+    {
+      idRangeOffset[i] = 2 * (c->start_embed<HBUINT16> () - idRangeOffset - i);
+      for (hb_codepoint_t cp = startCode[i]; cp <= endCode[i]; cp++)
+      {
+        HBUINT16 gid;
+        gid = cp_to_gid[cp];
+        c->copy<HBUINT16> (gid);
+      }
+    }
 
     return idRangeOffset;
   }
