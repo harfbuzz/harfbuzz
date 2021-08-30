@@ -94,7 +94,7 @@ typedef enum { /*< flags >*/
  *
  * List of sets that can be configured on the subset input.
  *
- * Since: REPLACE
+ * Since: REPLACEME
  **/
 typedef enum {
   HB_SUBSET_SETS_GLYPH_INDEX = 0,
