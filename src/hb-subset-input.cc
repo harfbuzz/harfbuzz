@@ -45,29 +45,19 @@ hb_subset_input_create_or_fail (void)
   if (unlikely (!input))
     return nullptr;
 
-  input->unicodes = hb_set_create ();
-  input->glyphs = hb_set_create ();
-  input->name_ids = hb_set_create ();
-  hb_set_add_range (input->name_ids, 0, 6);
-  input->name_languages = hb_set_create ();
-  hb_set_add (input->name_languages, 0x0409);
-  input->layout_features = hb_set_create ();
-  input->drop_tables = hb_set_create ();
-  input->no_subset_tables = hb_set_create ();
+  for (auto& set : input->sets_iter ())
+    set = hb_set_create ();
 
-  if (unlikely (input->unicodes->in_error ()
-                || input->glyphs->in_error ()
-                || input->name_ids->in_error ()
-                || input->name_languages->in_error ()
-                || input->layout_features->in_error ()
-                || input->drop_tables->in_error ()
-                || input->no_subset_tables->in_error ()))
+  if (input->in_error ())
   {
     hb_subset_input_destroy (input);
     return nullptr;
   }
 
   input->flags = HB_SUBSET_FLAGS_DEFAULT;
+
+  hb_set_add_range (input->sets.name_ids, 0, 6);
+  hb_set_add (input->sets.name_languages, 0x0409);
 
   hb_tag_t default_drop_tables[] = {
     // Layout disabled by default
@@ -93,7 +83,7 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('S', 'i', 'l', 'f'),
     HB_TAG ('S', 'i', 'l', 'l'),
   };
-  input->drop_tables->add_array (default_drop_tables, ARRAY_LENGTH (default_drop_tables));
+  input->sets.drop_tables->add_array (default_drop_tables, ARRAY_LENGTH (default_drop_tables));
 
   hb_tag_t default_no_subset_tables[] = {
     HB_TAG ('a', 'v', 'a', 'r'),
@@ -108,8 +98,8 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('c', 'v', 'a', 'r'),
     HB_TAG ('S', 'T', 'A', 'T'),
   };
-  input->no_subset_tables->add_array (default_no_subset_tables,
-				      ARRAY_LENGTH (default_no_subset_tables));
+  input->sets.no_subset_tables->add_array (default_no_subset_tables,
+                                         ARRAY_LENGTH (default_no_subset_tables));
 
   //copied from _layout_features_groups in fonttools
   hb_tag_t default_layout_features[] = {
@@ -198,7 +188,13 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('b', 'l', 'w', 'm'),
   };
 
-  input->layout_features->add_array (default_layout_features, ARRAY_LENGTH (default_layout_features));
+  input->sets.layout_features->add_array (default_layout_features, ARRAY_LENGTH (default_layout_features));
+
+  if (input->in_error ())
+  {
+    hb_subset_input_destroy (input);
+    return nullptr;
+  }
   return input;
 }
 
@@ -232,13 +228,8 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 {
   if (!hb_object_destroy (input)) return;
 
-  hb_set_destroy (input->unicodes);
-  hb_set_destroy (input->glyphs);
-  hb_set_destroy (input->name_ids);
-  hb_set_destroy (input->name_languages);
-  hb_set_destroy (input->drop_tables);
-  hb_set_destroy (input->layout_features);
-  hb_set_destroy (input->no_subset_tables);
+  for (hb_set_t* set : input->sets_iter ())
+    hb_set_destroy (set);
 
   hb_free (input);
 }
@@ -258,7 +249,7 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_unicode_set (hb_subset_input_t *input)
 {
-  return input->unicodes;
+  return input->sets.unicodes;
 }
 
 /**
@@ -275,7 +266,7 @@ hb_subset_input_unicode_set (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_glyph_set (hb_subset_input_t *input)
 {
-  return input->glyphs;
+  return input->sets.glyphs;
 }
 
 /**
@@ -292,7 +283,7 @@ hb_subset_input_glyph_set (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_nameid_set (hb_subset_input_t *input)
 {
-  return input->name_ids;
+  return input->sets.name_ids;
 }
 
 /**
@@ -309,7 +300,7 @@ hb_subset_input_nameid_set (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_namelangid_set (hb_subset_input_t *input)
 {
-  return input->name_languages;
+  return input->sets.name_languages;
 }
 
 
@@ -327,7 +318,7 @@ hb_subset_input_namelangid_set (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_layout_features_set (hb_subset_input_t *input)
 {
-  return input->layout_features;
+  return input->sets.layout_features;
 }
 
 /**
@@ -344,7 +335,24 @@ hb_subset_input_layout_features_set (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_drop_tables_set (hb_subset_input_t *input)
 {
-  return input->drop_tables;
+  return input->sets.drop_tables;
+}
+
+/**
+ * hb_subset_input_set:
+ * @input: a #hb_subset_input_t object.
+ * @set_type: a #hb_subset_sets_t set type.
+ *
+ * Gets the set of the specified type.
+ *
+ * Return value: (transfer none): pointer to the #hb_set_t of the specified type.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN hb_set_t *
+hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type)
+{
+  return input->sets_iter () [set_type];
 }
 
 /**
@@ -361,7 +369,7 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
 {
-  return input->no_subset_tables;
+  return input->sets.no_subset_tables;
 }
 
 

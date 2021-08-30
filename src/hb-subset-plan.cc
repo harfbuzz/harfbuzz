@@ -456,13 +456,13 @@ hb_subset_plan_create (hb_face_t	 *face,
   plan->successful = true;
   plan->flags = input->flags;
   plan->unicodes = hb_set_create ();
-  plan->name_ids = hb_set_copy (input->name_ids);
+  plan->name_ids = hb_set_copy (input->sets.name_ids);
   _nameid_closure (face, plan->name_ids);
-  plan->name_languages = hb_set_copy (input->name_languages);
-  plan->layout_features = hb_set_copy (input->layout_features);
-  plan->glyphs_requested = hb_set_copy (input->glyphs);
-  plan->drop_tables = hb_set_copy (input->drop_tables);
-  plan->no_subset_tables = hb_set_copy (input->no_subset_tables);
+  plan->name_languages = hb_set_copy (input->sets.name_languages);
+  plan->layout_features = hb_set_copy (input->sets.layout_features);
+  plan->glyphs_requested = hb_set_copy (input->sets.glyphs);
+  plan->drop_tables = hb_set_copy (input->sets.drop_tables);
+  plan->no_subset_tables = hb_set_copy (input->sets.no_subset_tables);
   plan->source = hb_face_reference (face);
   plan->dest = hb_face_builder_create ();
 
@@ -490,12 +490,12 @@ hb_subset_plan_create (hb_face_t	 *face,
     return plan;
   }
 
-  _populate_unicodes_to_retain (input->unicodes, input->glyphs, plan);
+  _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, plan);
 
   _populate_gids_to_retain (plan,
-			    !input->drop_tables->has (HB_OT_TAG_GSUB),
-			    !input->drop_tables->has (HB_OT_TAG_GPOS),
-			    !input->drop_tables->has (HB_OT_TAG_GDEF));
+			    !input->sets.drop_tables->has (HB_OT_TAG_GSUB),
+			    !input->sets.drop_tables->has (HB_OT_TAG_GPOS),
+			    !input->sets.drop_tables->has (HB_OT_TAG_GDEF));
 
   _create_old_gid_to_new_gid_map (face,
                                   input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,

@@ -79,6 +79,33 @@ typedef enum { /*< flags >*/
   HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES =  0x00000100u,
 } hb_subset_flags_t;
 
+/**
+ * hb_subset_sets_t:
+ * HB_SUBSET_SETS_GLYPH_INDEX: the set of glyph indexes to retain in the subset.
+ * HB_SUBSET_SETS_UNICODE: the set of unicode codepoints to retain in the subset.
+ * @HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG: the set of table tags which specifies tables that should not be
+ * subsetted.
+ * @HB_SUBSET_SETS_DROP_TABLE_TAG: the set of table tags which specifies tables which will be dropped
+ * in the subset.
+ * @HB_SUBSET_SETS_NAME_ID: the set of name ids that will be retained.
+ * @HB_SUBSET_SETS_NAME_LANG_ID: the set of name lang ids that will be retained.
+ * @HB_SUBSET_SETS_LAYOUT_FEATURE_TAG: the set of layout feature tags that will be retained
+ * in the subset.
+ *
+ * List of sets that can be configured on the subset input.
+ *
+ * Since: REPLACEME
+ **/
+typedef enum {
+  HB_SUBSET_SETS_GLYPH_INDEX = 0,
+  HB_SUBSET_SETS_UNICODE,
+  HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG,
+  HB_SUBSET_SETS_DROP_TABLE_TAG,
+  HB_SUBSET_SETS_NAME_ID,
+  HB_SUBSET_SETS_NAME_LANG_ID,
+  HB_SUBSET_SETS_LAYOUT_FEATURE_TAG,
+} hb_subset_sets_t;
+
 HB_EXTERN hb_subset_input_t *
 hb_subset_input_create_or_fail (void);
 
@@ -119,6 +146,9 @@ hb_subset_input_no_subset_tables_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
 hb_subset_input_drop_tables_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type);
 
 HB_EXTERN hb_subset_flags_t
 hb_subset_input_get_flags (hb_subset_input_t *input);

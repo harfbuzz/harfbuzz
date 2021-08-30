@@ -31,6 +31,8 @@
 #include "hb.hh"
 
 #include "hb-subset.h"
+#include "hb-map.hh"
+#include "hb-set.hh"
 
 #include "hb-font.hh"
 
@@ -40,23 +42,40 @@ struct hb_subset_input_t
 {
   hb_object_header_t header;
 
-  hb_set_t *unicodes;         // invert safe
-  hb_set_t *glyphs;           // invert safe
-  hb_set_t *name_ids;         // invert safe
-  hb_set_t *name_languages;   // invert safe
-  hb_set_t *no_subset_tables; // invert safe
-  hb_set_t *drop_tables;      // invert safe
-  hb_set_t *layout_features;  // invert safe
+  union {
+    struct {
+      hb_set_t *glyphs;
+      hb_set_t *unicodes;
+      hb_set_t *no_subset_tables;
+      hb_set_t *drop_tables;
+      hb_set_t *name_ids;
+      hb_set_t *name_languages;
+      hb_set_t *layout_features;
+    } sets;
+    hb_set_t* set_ptrs[sizeof (sets) / sizeof (hb_set_t*)];
+  };
 
   unsigned flags;
 
-  /* TODO
-   *
-   * features
-   * lookups
-   * name_ids
-   * ...
-   */
+  inline unsigned num_sets () const
+  {
+    return sizeof (set_ptrs) / sizeof (hb_set_t*);
+  }
+
+  inline hb_array_t<hb_set_t*> sets_iter ()
+  {
+    return hb_array_t<hb_set_t*> (set_ptrs, num_sets ());
+  }
+
+  bool in_error () const
+  {
+    for (unsigned i = 0; i < num_sets (); i++)
+    {
+      if (unlikely (set_ptrs[i]->in_error ()))
+        return true;
+    }
+    return false;
+  }
 };
 
 
