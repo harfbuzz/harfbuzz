@@ -60,6 +60,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
       {nullptr}
     };
     parser.add_main_group (entries, &face_opts);
+    parser.add_options ();
 
     g_option_context_set_ignore_unknown_options (parser.context, true);
     g_option_context_set_help_enabled (parser.context, false);
@@ -79,9 +80,20 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
 
   void parse (int argc, char **argv)
   {
-    /* Do a preliminary parse to load font-face, such that we can use it
-     * during main option parsing. */
-    parse_face (argc, argv);
+    bool help = false;
+    for (auto i = 1; i < argc; i++)
+      if (!strncmp ("--help", argv[i], 6))
+      {
+	help = true;
+	break;
+      }
+
+    if (likely (!help))
+    {
+      /* Do a preliminary parse to load font-face, such that we can use it
+       * during main option parsing. */
+      parse_face (argc, argv);
+    }
 
     add_options ();
     option_parser_t::parse (&argc, &argv);
