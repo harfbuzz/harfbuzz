@@ -26,6 +26,7 @@ tests = [
   'layout.gdef-varstore',
   'layout.gdef-attachlist',
   'layout.notonastaliqurdu',
+  'layout.tinos',
   'cmap',
   'cmap14',
   'sbix',
