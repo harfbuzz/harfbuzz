@@ -702,7 +702,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
   data_destroy_arabic,
   nullptr, /* preprocess_text */
   postprocess_glyphs_arabic,
-  HB_OT_SHAPE_NORMALIZATION_MODE_DECOMPOSED,
+  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT,
   nullptr, /* decompose */
   nullptr, /* compose */
   setup_masks_arabic,
