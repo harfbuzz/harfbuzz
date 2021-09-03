@@ -1,6 +1,7 @@
 TESTS = \
 	tests/aat-morx.tests \
 	tests/aat-trak.tests \
+	tests/arabic-decomposition.tests \
 	tests/arabic-fallback-shaping.tests \
 	tests/arabic-feature-order.tests \
 	tests/arabic-like-joining.tests \
