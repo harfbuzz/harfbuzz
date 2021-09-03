@@ -9,7 +9,7 @@ env = environment()
 env.set('HAVE_FREETYPE', '@0@'.format(conf.get('HAVE_FREETYPE', 0)))
 
 foreach file_name : in_house_tests
-  test_name = file_name.split('.')[0].underscorify()
+  test_name = file_name.split('.')[0]
 
   test(test_name, shaping_run_tests_py,
     args: [
@@ -23,7 +23,7 @@ foreach file_name : in_house_tests
 endforeach
 
 foreach file_name : aots_tests
-  test_name = file_name.split('.')[0].underscorify()
+  test_name = file_name.split('.')[0]
 
   test(test_name, shaping_run_tests_py,
     args: [
@@ -37,7 +37,7 @@ foreach file_name : aots_tests
 endforeach
 
 foreach file_name : text_rendering_tests
-  test_name = file_name.split('.')[0].underscorify()
+  test_name = file_name.split('.')[0]
 
   test(test_name, shaping_run_tests_py,
     args: [
