@@ -1,12 +1,12 @@
 TESTS = \
 	tests/aat-morx.tests \
 	tests/aat-trak.tests \
-	tests/arabic-decomposition.tests \
 	tests/arabic-fallback-shaping.tests \
 	tests/arabic-feature-order.tests \
 	tests/arabic-like-joining.tests \
 	tests/arabic-mark-attach.tests \
 	tests/arabic-mark-order.tests \
+	tests/arabic-normalization.tests \
 	tests/arabic-stch.tests \
 	tests/automatic-fractions.tests \
 	tests/cluster.tests \

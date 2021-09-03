@@ -1,12 +1,12 @@
 in_house_tests = [
   'aat-morx.tests',
   'aat-trak.tests',
-  'arabic-decomposition.tests',
   'arabic-fallback-shaping.tests',
   'arabic-feature-order.tests',
   'arabic-like-joining.tests',
   'arabic-mark-attach.tests',
   'arabic-mark-order.tests',
+  'arabic-normalization.tests',
   'arabic-stch.tests',
   'automatic-fractions.tests',
   'cluster.tests',
