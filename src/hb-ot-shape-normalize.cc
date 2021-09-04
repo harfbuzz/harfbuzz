@@ -122,12 +122,10 @@ skip_char (hb_buffer_t *buffer)
 
 /* Returns 0 if didn't decompose, number of resulting characters otherwise. */
 static inline unsigned int
-decompose (const hb_ot_shape_normalize_context_t *c,
-	   hb_buffer_t *buffer,
-	   bool shortest,
-	   hb_codepoint_t ab)
+decompose (const hb_ot_shape_normalize_context_t *c, bool shortest, hb_codepoint_t ab)
 {
   hb_codepoint_t a = 0, b = 0, a_glyph = 0, b_glyph = 0;
+  hb_buffer_t * const buffer = c->buffer;
   hb_font_t * const font = c->font;
 
   if (!c->decompose (c, ab, &a, &b) ||
@@ -146,7 +144,7 @@ decompose (const hb_ot_shape_normalize_context_t *c,
   }
 
   unsigned int ret;
-  if ((ret = decompose (c, buffer, shortest, a))) {
+  if ((ret = decompose (c, shortest, a))) {
     if (b) {
       output_char (buffer, b, b_glyph);
       return ret + 1;
@@ -167,10 +165,9 @@ decompose (const hb_ot_shape_normalize_context_t *c,
 }
 
 static inline void
-decompose_current_character (const hb_ot_shape_normalize_context_t *c,
-			     hb_buffer_t *buffer,
-			     bool shortest)
+decompose_current_character (const hb_ot_shape_normalize_context_t *c, bool shortest)
 {
+  hb_buffer_t * const buffer = c->buffer;
   hb_codepoint_t u = buffer->cur().codepoint;
   hb_codepoint_t glyph = 0;
 
@@ -180,7 +177,7 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c,
     return;
   }
 
-  if (decompose (c, buffer, shortest, u))
+  if (decompose (c, shortest, u))
   {
     skip_char (buffer);
     return;
@@ -222,11 +219,11 @@ decompose_current_character (const hb_ot_shape_normalize_context_t *c,
 
 static inline void
 handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
-				   hb_buffer_t *buffer,
 				   unsigned int end,
 				   bool short_circuit HB_UNUSED)
 {
   /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
+  hb_buffer_t * const buffer = c->buffer;
   hb_font_t * const font = c->font;
   for (; buffer->idx < end - 1 && buffer->successful;) {
     if (unlikely (buffer->unicode->is_variation_selector (buffer->cur(+1).codepoint))) {
@@ -266,19 +263,17 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
 }
 
 static inline void
-decompose_multi_char_cluster (const hb_ot_shape_normalize_context_t *c,
-			      hb_buffer_t *buffer,
-			      unsigned int end,
-			      bool short_circuit)
+decompose_multi_char_cluster (const hb_ot_shape_normalize_context_t *c, unsigned int end, bool short_circuit)
 {
+  hb_buffer_t * const buffer = c->buffer;
   for (unsigned int i = buffer->idx; i < end && buffer->successful; i++)
     if (unlikely (buffer->unicode->is_variation_selector (buffer->info[i].codepoint))) {
-      handle_variation_selector_cluster (c, buffer, end, short_circuit);
+      handle_variation_selector_cluster (c, end, short_circuit);
       return;
     }
 
   while (buffer->idx < end && buffer->successful)
-    decompose_current_character (c, buffer, short_circuit);
+    decompose_current_character (c, short_circuit);
 }
 
 
@@ -314,6 +309,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 
   const hb_ot_shape_normalize_context_t c = {
     plan,
+    buffer,
     font,
     buffer->unicode,
     plan->shaper->decompose ? plan->shaper->decompose : decompose_unicode,
@@ -361,7 +357,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 	if (unlikely (!buffer->next_glyphs (done))) break;
       }
       while (buffer->idx < end && buffer->successful)
-	decompose_current_character (&c, buffer, might_short_circuit);
+	decompose_current_character (&c, might_short_circuit);
 
       if (buffer->idx == count || !buffer->successful)
 	break;
@@ -374,7 +370,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 	  break;
 
       /* idx to end is one non-simple cluster. */
-      decompose_multi_char_cluster (&c, buffer, end, always_short_circuit);
+      decompose_multi_char_cluster (&c, end, always_short_circuit);
     }
     while (buffer->idx < count && buffer->successful);
     buffer->swap_buffers ();
