@@ -347,7 +347,7 @@ hb_subset_input_drop_tables_set (hb_subset_input_t *input)
  *
  * Return value: (transfer none): pointer to the #hb_set_t of the specified type.
  *
- * Since: REPLACEME
+ * Since: 2.9.1
  **/
 HB_EXTERN hb_set_t *
 hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type)

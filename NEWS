@@ -1,3 +1,19 @@
+Overview of changes leading to 2.9.1
+Tuesday, September 7, 2021
+====================================
+- Final subset API is in place and if no issues are discovered, it will be the
+  stable subset API of HarfBuzz 3.0.0. Old API is kept to ease transition, but
+  will be removed in 3.0.0.
+- Various fuzzer-found bug fixes.
+- hb_buffer_append() now handles the pre- and post-context which previously
+  were left unchanged in the destination buffer.
+- hb-view / hb-shape now accept following new arguments:
+  o --unicodes: takes a list of hex numbers that represent Unicode
+    codepoints.
+- Undeprecated API:
+  hb_set_invert()
+
+
 Overview of changes leading to 2.9.0
 Wednesday, August 18, 2021
 History Repeats Itself (Afghanistan)
@@ -18,6 +34,7 @@ History Repeats Itself (Afghanistan)
   --glyphs-file, --unicodes-file, supporting ranges in --unicodes.
 - Various bug fixes.
 
+
 Overview of changes leading to 2.8.2
 Tuesday, July 8, 2021
 ====================================
@@ -33,6 +50,7 @@ Tuesday, July 8, 2021
 +hb_blob_create_or_fail()
 +hb_blob_create_from_file_or_fail()
 +hb_set_copy()
+
 
 Overview of changes leading to 2.8.1
 Tuesday, May 4, 2021
@@ -64,6 +82,7 @@ Sunday, December 27, 2020
 - Fix missing --enable-introspection configure option from previous release
   tarball.
 - Documentation updates.
+
 
 Overview of changes leading to 2.7.3
 Wednesday, December 23, 2020
