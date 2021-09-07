@@ -758,6 +758,53 @@ struct graph_t
   bool successful;
 };
 
+static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& overflows,
+                                hb_set_t& priority_bumped_parents,
+                                graph_t& sorted_graph)
+{
+  bool resolution_attempted = false;
+
+  // Try resolving the furthest overflows first.
+  for (int i = overflows.length - 1; i >= 0; i--)
+  {
+    const graph_t::overflow_record_t& r = overflows[i];
+    const auto& child = sorted_graph.vertices_[r.child];
+    if (child.is_shared ())
+    {
+      // The child object is shared, we may be able to eliminate the overflow
+      // by duplicating it.
+      sorted_graph.duplicate (r.parent, r.child);
+      return true;
+    }
+
+    if (child.is_leaf () && !priority_bumped_parents.has (r.parent))
+    {
+      // This object is too far from it's parent, attempt to move it closer.
+      //
+      // TODO(garretrieger): initially limiting this to leaf's since they can be
+      //                     moved closer with fewer consequences. However, this can
+      //                     likely can be used for non-leafs as well.
+      // TODO(garretrieger): add a maximum priority, don't try to raise past this.
+      // TODO(garretrieger): also try lowering priority of the parent. Make it
+      //                     get placed further up in the ordering, closer to it's children.
+      //                     this is probably preferable if the total size of the parent object
+      //                     is < then the total size of the children (and the parent can be moved).
+      //                     Since in that case moving the parent will cause a smaller increase in
+      //                     the length of other offsets.
+      sorted_graph.raise_childrens_priority (r.parent);
+      priority_bumped_parents.add (r.parent);
+      resolution_attempted = true;
+      continue;
+    }
+
+    // TODO(garretrieger): add additional offset resolution strategies
+    // - Promotion to extension lookups.
+    // - Isolate the sub graphs of extension sub tables.
+    // - Table splitting.
+  }
+
+  return resolution_attempted;
+}
 
 /*
  * Attempts to modify the topological sorting of the provided object graph to
@@ -793,60 +840,14 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
     DEBUG_MSG (SUBSET_REPACK, nullptr, "=== Over flow resolution round %d ===", round);
     sorted_graph.print_overflows (overflows);
 
-    bool resolution_attempted = false;
     hb_set_t priority_bumped_parents;
-    // Try resolving the furthest overflows first.
-    for (int i = overflows.length - 1; i >= 0; i--)
+    if (!_process_overflows (overflows, priority_bumped_parents, sorted_graph))
     {
-      const graph_t::overflow_record_t& r = overflows[i];
-      const auto& child = sorted_graph.vertices_[r.child];
-      if (child.is_shared ())
-      {
-        // The child object is shared, we may be able to eliminate the overflow
-        // by duplicating it.
-        sorted_graph.duplicate (r.parent, r.child);
-        resolution_attempted = true;
-
-        // Stop processing overflows for this round so that object order can be
-        // updated to account for the newly added object.
-        break;
-      }
-
-      if (child.is_leaf () && !priority_bumped_parents.has (r.parent))
-      {
-        // This object is too far from it's parent, attempt to move it closer.
-        //
-        // TODO(garretrieger): initially limiting this to leaf's since they can be
-        //                     moved closer with fewer consequences. However, this can
-        //                     likely can be used for non-leafs as well.
-        // TODO(garretrieger): add a maximum priority, don't try to raise past this.
-        // TODO(garretrieger): also try lowering priority of the parent. Make it
-        //                     get placed further up in the ordering, closer to it's children.
-        //                     this is probably preferable if the total size of the parent object
-        //                     is < then the total size of the children (and the parent can be moved).
-        //                     Since in that case moving the parent will cause a smaller increase in
-        //                     the length of other offsets.
-        sorted_graph.raise_childrens_priority (r.parent);
-        priority_bumped_parents.add (r.parent);
-        resolution_attempted = true;
-        continue;
-      }
-
-      // TODO(garretrieger): add additional offset resolution strategies
-      // - Promotion to extension lookups.
-      // - Isolate the sub graphs of extension sub tables.
-      // - Table splitting.
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
+      break;
     }
 
-    if (resolution_attempted)
-    {
-      sorted_graph.sort_shortest_distance ();
-      continue;
-    }
-
-    DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
-    c->err (HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
-    return;
+    sorted_graph.sort_shortest_distance ();
   }
 
   if (sorted_graph.in_error ())
@@ -863,6 +864,5 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
   }
   sorted_graph.serialize (c);
 }
-
 
 #endif /* HB_REPACKER_HH */
