@@ -430,9 +430,13 @@ struct graph_t
     update_incoming_edge_count ();
     for (const auto& o : overflows)
     {
+      const auto& parent = vertices_[o.parent];
       const auto& child = vertices_[o.child];
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "  overflow from %d => %d (%d incoming , %d outgoing)",
+      DEBUG_MSG (SUBSET_REPACK, nullptr,
+                 "  overflow from %d (%d in, %d out) => %d (%d in, %d out)",
                  o.parent,
+                 parent.incoming_edges,
+                 parent.obj.links.length,
                  o.child,
                  child.incoming_edges,
                  child.obj.links.length);
@@ -760,6 +764,13 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
   if (sorted_graph.in_error ())
   {
     c->err (HB_SERIALIZE_ERROR_OTHER);
+    return;
+  }
+
+  if (sorted_graph.will_overflow ())
+  {
+    c->err (HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "Offset overflow resolution failed.");
     return;
   }
   sorted_graph.serialize (c);
