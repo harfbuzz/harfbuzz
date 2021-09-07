@@ -81,8 +81,8 @@ typedef enum { /*< flags >*/
 
 /**
  * hb_subset_sets_t:
- * HB_SUBSET_SETS_GLYPH_INDEX: the set of glyph indexes to retain in the subset.
- * HB_SUBSET_SETS_UNICODE: the set of unicode codepoints to retain in the subset.
+ * @HB_SUBSET_SETS_GLYPH_INDEX: the set of glyph indexes to retain in the subset.
+ * @HB_SUBSET_SETS_UNICODE: the set of unicode codepoints to retain in the subset.
  * @HB_SUBSET_SETS_NO_SUBSET_TABLE_TAG: the set of table tags which specifies tables that should not be
  * subsetted.
  * @HB_SUBSET_SETS_DROP_TABLE_TAG: the set of table tags which specifies tables which will be dropped
@@ -125,27 +125,6 @@ hb_subset_input_set_user_data (hb_subset_input_t  *input,
 HB_EXTERN void *
 hb_subset_input_get_user_data (const hb_subset_input_t *input,
 			       hb_user_data_key_t	   *key);
-
-HB_EXTERN hb_set_t *
-hb_subset_input_unicode_set (hb_subset_input_t *input);
-
-HB_EXTERN hb_set_t *
-hb_subset_input_glyph_set (hb_subset_input_t *input);
-
-HB_EXTERN hb_set_t *
-hb_subset_input_nameid_set (hb_subset_input_t *input);
-
-HB_EXTERN hb_set_t *
-hb_subset_input_namelangid_set (hb_subset_input_t *input);
-
-HB_EXTERN hb_set_t *
-hb_subset_input_layout_features_set (hb_subset_input_t *input);
-
-HB_EXTERN hb_set_t *
-hb_subset_input_no_subset_tables_set (hb_subset_input_t *input);
-
-HB_EXTERN hb_set_t *
-hb_subset_input_drop_tables_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_set_t *
 hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type);
@@ -211,6 +190,27 @@ hb_subset_input_set_no_prune_unicode_ranges (hb_subset_input_t *subset_input,
 
 HB_EXTERN hb_bool_t
 hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_unicode_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_glyph_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_nameid_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_namelangid_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_layout_features_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_no_subset_tables_set (hb_subset_input_t *input);
+
+HB_EXTERN hb_set_t *
+hb_subset_input_drop_tables_set (hb_subset_input_t *input);
 
 HB_EXTERN hb_face_t *
 hb_subset (hb_face_t *source, hb_subset_input_t *input);
