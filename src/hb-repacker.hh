@@ -329,24 +329,71 @@ struct graph_t
   }
 
   /*
-   * Creates a copy of child and re-assigns the link from
-   * parent to the clone. The copy is a shallow copy, objects
-   * linked from child are not duplicated.
+   * Finds any links using 32 bits and isolates the subgraphs they point too.
    */
-  void duplicate (unsigned parent_idx, unsigned child_idx)
+  void isolate_32bit_links ()
   {
-    DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %d => %d",
-               parent_idx, child_idx);
+    for (const vertex_t& v : vertices_)
+    {
+      for (auto& l : v.obj.links)
+      {
+        if (l.width == 4 && !l.is_signed)
+          isolate_subgraph (l.objidx);
+      }
+    }
+  }
 
+  /*
+   * Isolates the subgraph of nodes reachable from root. Any links to nodes in the subgraph
+   * that originate from outside of the subgraph will be removed by duplicating the linked to
+   * object.
+   */
+  void isolate_subgraph (unsigned root_idx)
+  {
+    hb_hashmap_t<unsigned, unsigned> subgraph;
+    hb_hashmap_t<unsigned, unsigned> index_map;
+    find_subgraph(root_idx, subgraph);
+
+    for (auto entry : subgraph.iter ())
+    {
+      const auto& node = vertices_[entry.first];
+      unsigned subgraph_incoming_edges = entry.second;
+
+      if (node.incoming_edges <= subgraph_incoming_edges)
+        // Only  de-dup objects with incoming links from outside the subgraph.
+        index_map.set (entry.first, duplicate (entry.first));
+    }
+
+    remap_obj_indices (index_map, subgraph.keys ());
+  }
+
+  void find_subgraph (unsigned node_idx, hb_hashmap_t<unsigned, unsigned>& subgraph)
+  {
+    if (subgraph.has (node_idx))
+    {
+      subgraph.set (node_idx, subgraph[node_idx] + 1);
+      return;
+    }
+
+    subgraph.set (node_idx, 1);
+    for (const auto& link : vertices_[node_idx].obj.links)
+      find_subgraph (link.objidx, subgraph);
+  }
+
+  /*
+   * Creates a copy of node_idx and returns it's new index.
+   */
+  unsigned duplicate (unsigned node_idx)
+  {
     positions_invalid = true;
 
     auto* clone = vertices_.push ();
-    auto& child = vertices_[child_idx];
+    auto& child = vertices_[node_idx];
     clone_buffer_t* buffer = clone_buffers_.push ();
     if (vertices_.in_error ()
         || clone_buffers_.in_error ()
         || !check_success (buffer->copy (child.obj))) {
-      return;
+      return -1;
     }
 
     clone->obj.head = buffer->head;
@@ -358,25 +405,44 @@ struct graph_t
 
     check_success (!clone->obj.links.in_error ());
 
-    auto& parent = vertices_[parent_idx];
-    unsigned clone_idx = vertices_.length - 2;
-    for (unsigned i = 0; i < parent.obj.links.length; i++)
-    {
-      auto& l = parent.obj.links[i];
-      if (l.objidx == child_idx)
-      {
-        l.objidx = clone_idx;
-        clone->incoming_edges++;
-        child.incoming_edges--;
-      }
-    }
-
     // The last object is the root of the graph, so swap back the root to the end.
     // The root's obj idx does change, however since it's root nothing else refers to it.
     // all other obj idx's will be unaffected.
     vertex_t root = vertices_[vertices_.length - 2];
     vertices_[vertices_.length - 2] = *clone;
     vertices_[vertices_.length - 1] = root;
+
+    return vertices_.length - 2;
+  }
+
+  /*
+   * Creates a copy of child and re-assigns the link from
+   * parent to the clone. The copy is a shallow copy, objects
+   * linked from child are not duplicated.
+   */
+  void duplicate (unsigned parent_idx, unsigned child_idx)
+  {
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %d => %d",
+               parent_idx, child_idx);
+
+    unsigned clone_idx = duplicate (child_idx);
+    if (clone_idx == (unsigned) -1) return;
+    // duplicate shifts the root node idx, so if parent_idx was root update it.
+    if (parent_idx == clone_idx) parent_idx++;
+    auto& clone = vertices_[clone_idx];
+    auto& child = vertices_[child_idx];
+
+    auto& parent = vertices_[parent_idx];
+    for (unsigned i = 0; i < parent.obj.links.length; i++)
+    {
+      auto& l = parent.obj.links[i];
+      if (l.objidx == child_idx)
+      {
+        l.objidx = clone_idx;
+        clone.incoming_edges++;
+        child.incoming_edges--;
+      }
+    }
   }
 
   /*
@@ -599,6 +665,27 @@ struct graph_t
   }
 
   /*
+   * Updates all objidx's in all links using the provided mapping. Corrects incoming edge counts.
+   */
+  template<typename Iterator, hb_requires (hb_is_iterator (Iterator))>
+  void remap_obj_indices (const hb_hashmap_t<unsigned, unsigned>& id_map,
+                          Iterator subgraph)
+  {
+    if (!id_map) return;
+    for (unsigned i : subgraph)
+    {
+      for (unsigned j = 0; j < vertices_[i].obj.links.length; j++)
+      {
+        auto& link = vertices_[i].obj.links[j];
+        if (!id_map.has (link.objidx)) continue;
+        vertices_[link.objidx].incoming_edges--;
+        link.objidx = id_map[link.objidx];
+        vertices_[link.objidx].incoming_edges++;
+      }
+    }
+  }
+
+  /*
    * Updates all objidx's in all links using the provided mapping.
    */
   void remap_obj_indices (const hb_vector_t<unsigned>& id_map,
@@ -747,6 +834,7 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
 
       // TODO(garretrieger): add additional offset resolution strategies
       // - Promotion to extension lookups.
+      // - Isolate the sub graphs of extension sub tables.
       // - Table splitting.
     }
 
