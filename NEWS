@@ -8,7 +8,7 @@ Tuesday, September 7, 2021
 - hb_buffer_append() now handles the pre- and post-context which previously
   were left unchanged in the destination buffer.
 - hb-view / hb-shape now accept following new arguments:
-  o --unicodes: takes a list of hex numbers that represent Unicode
+  o --unicodes-before/after: takes a list of hex numbers that represent Unicode
     codepoints.
 - Undeprecated API:
   hb_set_invert()
