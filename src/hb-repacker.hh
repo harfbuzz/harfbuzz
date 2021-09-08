@@ -331,16 +331,20 @@ struct graph_t
   /*
    * Finds any links using 32 bits and isolates the subgraphs they point too.
    */
-  void isolate_32bit_links ()
+  bool isolate_32bit_links ()
   {
-    for (const vertex_t& v : vertices_)
+    bool made_changes = false;
+    hb_set_t target_links;
+    unsigned root_index = root_idx ();
+    for (unsigned i = 0; i < root_index; i++)
     {
-      for (auto& l : v.obj.links)
+      for (auto& l : vertices_[i].obj.links)
       {
         if (l.width == 4 && !l.is_signed)
-          isolate_subgraph (l.objidx);
+          made_changes = made_changes || isolate_subgraph (l.objidx);
       }
     }
+    return made_changes;
   }
 
   /*
@@ -348,23 +352,31 @@ struct graph_t
    * that originate from outside of the subgraph will be removed by duplicating the linked to
    * object.
    */
-  void isolate_subgraph (unsigned root_idx)
+  bool isolate_subgraph (unsigned root_idx)
   {
     hb_hashmap_t<unsigned, unsigned> subgraph;
     hb_hashmap_t<unsigned, unsigned> index_map;
     find_subgraph(root_idx, subgraph);
 
+    bool made_changes = false;
     for (auto entry : subgraph.iter ())
     {
       const auto& node = vertices_[entry.first];
       unsigned subgraph_incoming_edges = entry.second;
 
-      if (node.incoming_edges <= subgraph_incoming_edges)
+      if (entry.first != root_idx && subgraph_incoming_edges < node.incoming_edges)
+      {
         // Only  de-dup objects with incoming links from outside the subgraph.
+        made_changes = true;
         index_map.set (entry.first, duplicate (entry.first));
+      }
     }
 
+    if (!made_changes)
+      return false;
+
     remap_obj_indices (index_map, subgraph.keys ());
+    return true;
   }
 
   void find_subgraph (unsigned node_idx, hb_hashmap_t<unsigned, unsigned>& subgraph)
@@ -818,6 +830,7 @@ static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& o
  */
 inline void
 hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& packed,
+                      hb_tag_t table_tag,
                       hb_serialize_context_t* c) {
   // Kahn sort is ~twice as fast as shortest distance sort and works for many fonts
   // so try it first to save time.
@@ -831,13 +844,25 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
 
   sorted_graph.sort_shortest_distance ();
 
+
+  if ((table_tag == HB_OT_TAG_GPOS
+       ||  table_tag == HB_OT_TAG_GSUB)
+      && sorted_graph.will_overflow ())
+  {
+    if (sorted_graph.isolate_32bit_links ())
+    {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Isolated extension sub tables.");
+      sorted_graph.sort_shortest_distance ();
+    }
+  }
+
   unsigned round = 0;
   hb_vector_t<graph_t::overflow_record_t> overflows;
   // TODO(garretrieger): select a good limit for max rounds.
   while (!sorted_graph.in_error ()
          && sorted_graph.will_overflow (&overflows)
          && round++ < 10) {
-    DEBUG_MSG (SUBSET_REPACK, nullptr, "=== Over flow resolution round %d ===", round);
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "=== Overflow resolution round %d ===", round);
     sorted_graph.print_overflows (overflows);
 
     hb_set_t priority_bumped_parents;

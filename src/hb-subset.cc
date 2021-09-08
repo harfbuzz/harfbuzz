@@ -110,7 +110,7 @@ _repack (hb_tag_t tag, const hb_serialize_context_t& c)
     return nullptr;
 
   hb_serialize_context_t repacked ((void *) buf, buf_size);
-  hb_resolve_overflows (c.object_graph (), &repacked);
+  hb_resolve_overflows (c.object_graph (), tag, &repacked);
 
   if (unlikely (repacked.in_error ()))
     // TODO(garretrieger): refactor so we can share the resize/retry logic with the subset
