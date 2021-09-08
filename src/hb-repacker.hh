@@ -364,11 +364,11 @@ struct graph_t
       const auto& node = vertices_[entry.first];
       unsigned subgraph_incoming_edges = entry.second;
 
-      if (entry.first != root_idx && subgraph_incoming_edges < node.incoming_edges)
+      if (subgraph_incoming_edges < node.incoming_edges)
       {
         // Only  de-dup objects with incoming links from outside the subgraph.
         made_changes = true;
-        index_map.set (entry.first, duplicate (entry.first));
+        duplicate_subgraph (entry.first, index_map);
       }
     }
 
@@ -390,6 +390,22 @@ struct graph_t
     subgraph.set (node_idx, 1);
     for (const auto& link : vertices_[node_idx].obj.links)
       find_subgraph (link.objidx, subgraph);
+  }
+
+  /*
+   * duplicates all nodes in the subgraph reachable from node_idx. Does not re-assign
+   * links. index_map is updated with mappings from old id to new id. If a duplication has already
+   * been performed for a given index, then it will be skipped.
+   */
+  void duplicate_subgraph (unsigned node_idx, hb_hashmap_t<unsigned, unsigned>& index_map)
+  {
+    if (index_map.has (node_idx))
+      return;
+
+    index_map.set (node_idx, duplicate (node_idx));
+    for (const auto& l : object (node_idx).links) {
+      duplicate_subgraph (l.objidx, index_map);
+    }
   }
 
   /*
