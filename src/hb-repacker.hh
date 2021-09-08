@@ -40,6 +40,7 @@ struct graph_t
   {
     vertex_t () :
         distance (0),
+        space (1),
         incoming_edges (0),
         start (0),
         end (0),
@@ -49,6 +50,7 @@ struct graph_t
 
     hb_serialize_context_t::object_t obj;
     int64_t distance;
+    int64_t space;
     unsigned incoming_edges;
     unsigned start;
     unsigned end;
@@ -336,6 +338,7 @@ struct graph_t
     bool made_changes = false;
     hb_set_t target_links;
     unsigned root_index = root_idx ();
+    int64_t next_space = 1;
     for (unsigned i = 0; i <= root_index; i++)
     {
       if (i == root_index && root_idx () > i)
@@ -345,7 +348,12 @@ struct graph_t
       for (auto& l : vertices_[i].obj.links)
       {
         if (l.width == 4 && !l.is_signed)
-          made_changes = isolate_subgraph (l.objidx) || made_changes;
+        {
+          isolate_subgraph (l.objidx);
+          vertices_[l.objidx].space = next_space++;
+          distance_invalid = true;
+          made_changes = true;
+        }
       }
     }
     return made_changes;
@@ -635,7 +643,7 @@ struct graph_t
 
         const auto& child = vertices_[link.objidx].obj;
         int64_t child_weight = child.tail - child.head +
-                               ((int64_t) 1 << (link.width * 8));
+                               ((int64_t) 1 << (link.width * 8)) * vertices_[link.objidx].space;
         int64_t child_distance = next_distance + child_weight;
 
         if (child_distance < vertices_[link.objidx].distance)
