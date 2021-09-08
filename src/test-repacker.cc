@@ -520,6 +520,9 @@ static void test_resolve_overflows_via_isolation ()
   free (out_buffer);
 }
 
+// TODO(grieger): test for recursively duplicated nodes during isolation.
+// TODO(grieger): test that isolated subgraphs are packed tightly within the subgraph.
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add a test(s) using a real font.
 // TODO(garretrieger): add tests for priority raising.
