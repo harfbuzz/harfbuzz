@@ -56,6 +56,14 @@ static void add_offset (unsigned id,
   c->add_link (*offset, id);
 }
 
+static void add_wide_offset (unsigned id,
+                             hb_serialize_context_t* c)
+{
+  OT::Offset32* offset = c->start_embed<OT::Offset32> ();
+  c->extend_min (offset);
+  c->add_link (*offset, id);
+}
+
 static void
 populate_serializer_simple (hb_serialize_context_t* c)
 {
@@ -107,6 +115,30 @@ populate_serializer_with_dedup_overflow (hb_serialize_context_t* c)
   add_offset (obj_2, c);
   add_offset (obj_1, c);
   c->pop_pack (false);
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_with_isolation_overflow (hb_serialize_context_t* c)
+{
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned obj_4 = add_object ("4", 1, c);
+
+  start_object (large_string.c_str(), 60000, c);
+  add_offset (obj_4, c);
+  unsigned obj_3 = c->pop_pack ();
+
+  start_object (large_string.c_str(), 10000, c);
+  add_offset (obj_4, c);
+  unsigned obj_2 = c->pop_pack ();
+
+  start_object ("1", 1, c);
+  add_wide_offset (obj_3, c);
+  add_offset (obj_2, c);
+  c->pop_pack ();
 
   c->end_serialize();
 }
@@ -464,6 +496,30 @@ static void test_resolve_overflows_via_duplication ()
   free (out_buffer);
 }
 
+
+static void test_resolve_overflows_via_isolation ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_isolation_overflow (&c);
+  graph_t graph (c.object_graph ());
+
+  void* out_buffer = malloc (buffer_size);
+  hb_serialize_context_t out (out_buffer, buffer_size);
+
+  assert (c.offset_overflow ());
+  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out);
+  assert (!out.offset_overflow ());
+  hb_bytes_t result = out.copy_bytes ();
+  assert (result.length == (1 + 10000 + 60000 + 1 + 1
+                            + 4 + 3 * 2));
+
+  result.fini ();
+  free (buffer);
+  free (out_buffer);
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add a test(s) using a real font.
 // TODO(garretrieger): add tests for priority raising.
@@ -480,6 +536,7 @@ main (int argc, char **argv)
   test_will_overflow_3 ();
   test_resolve_overflows_via_sort ();
   test_resolve_overflows_via_duplication ();
+  test_resolve_overflows_via_isolation ();
   test_duplicate_leaf ();
   test_duplicate_interior ();
 }

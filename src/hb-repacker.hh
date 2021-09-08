@@ -336,12 +336,16 @@ struct graph_t
     bool made_changes = false;
     hb_set_t target_links;
     unsigned root_index = root_idx ();
-    for (unsigned i = 0; i < root_index; i++)
+    for (unsigned i = 0; i <= root_index; i++)
     {
+      if (i == root_index && root_idx () > i)
+        // root index may have moved due to graph modifications.
+        i = root_idx ();
+
       for (auto& l : vertices_[i].obj.links)
       {
         if (l.width == 4 && !l.is_signed)
-          made_changes = made_changes || isolate_subgraph (l.objidx);
+          made_changes = isolate_subgraph (l.objidx) || made_changes;
       }
     }
     return made_changes;
@@ -414,6 +418,8 @@ struct graph_t
   unsigned duplicate (unsigned node_idx)
   {
     positions_invalid = true;
+    distance_invalid = true;
+    // TODO(grieger): compute new distance instead of invalidation.
 
     auto* clone = vertices_.push ();
     auto& child = vertices_[node_idx];
