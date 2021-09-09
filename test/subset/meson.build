@@ -46,6 +46,7 @@ repack_tests = [
   'basic',
   'prioritization',
   'table_duplication',
+  'isolation',
 ]
 
 
