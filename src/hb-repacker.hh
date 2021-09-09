@@ -865,7 +865,8 @@ static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& o
 inline void
 hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& packed,
                       hb_tag_t table_tag,
-                      hb_serialize_context_t* c) {
+                      hb_serialize_context_t* c,
+                      unsigned max_rounds = 10) {
   // Kahn sort is ~twice as fast as shortest distance sort and works for many fonts
   // so try it first to save time.
   graph_t sorted_graph (packed);
@@ -894,7 +895,7 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
   // TODO(garretrieger): select a good limit for max rounds.
   while (!sorted_graph.in_error ()
          && sorted_graph.will_overflow (&overflows)
-         && round++ < 10) {
+         && round++ < max_rounds) {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "=== Overflow resolution round %d ===", round);
     sorted_graph.print_overflows (overflows);
 
