@@ -40,7 +40,7 @@ struct graph_t
   {
     vertex_t () :
         distance (0),
-        space (1),
+        space (0),
         incoming_edges (0),
         start (0),
         end (0),
@@ -338,7 +338,7 @@ struct graph_t
     bool made_changes = false;
     hb_set_t target_links;
     unsigned root_index = root_idx ();
-    int64_t next_space = 1;
+    int64_t next_space = 0;
     for (unsigned i = 0; i <= root_index; i++)
     {
       if (i == root_index && root_idx () > i)
@@ -441,6 +441,7 @@ struct graph_t
     clone->obj.head = buffer->head;
     clone->obj.tail = buffer->tail;
     clone->distance = child.distance;
+    clone->space = child.space;
 
     for (const auto& l : child.obj.links)
       clone->obj.links.push (l);
@@ -642,8 +643,8 @@ struct graph_t
         if (visited.has (link.objidx)) continue;
 
         const auto& child = vertices_[link.objidx].obj;
-        int64_t child_weight = child.tail - child.head +
-                               ((int64_t) 1 << (link.width * 8)) * vertices_[link.objidx].space;
+        int64_t child_weight = (child.tail - child.head) +
+                               ((int64_t) 1 << (link.width * 8)) * (vertices_[link.objidx].space + 1);
         int64_t child_distance = next_distance + child_weight;
 
         if (child_distance < vertices_[link.objidx].distance)
@@ -873,7 +874,6 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
   }
 
   sorted_graph.sort_shortest_distance ();
-
 
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
