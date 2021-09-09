@@ -63,12 +63,24 @@ typedef enum
   HB_STYLE_TAG_ITALIC		= HB_TAG ('i','t','a','l'),
   HB_STYLE_TAG_OPTICAL_SIZE	= HB_TAG ('o','p','s','z'),
   HB_STYLE_TAG_SLANT_ANGLE	= HB_TAG ('s','l','n','t'),
+  HB_STYLE_TAG_SLANT_RATIO	= HB_TAG ('s','l','n','T'),
   HB_STYLE_TAG_WIDTH		= HB_TAG ('w','d','t','h'),
   HB_STYLE_TAG_WEIGHT		= HB_TAG ('w','g','h','t'),
 
   /*< private >*/
   _HB_STYLE_TAG_MAX_VALUE	= HB_TAG_MAX_SIGNED /*< skip >*/
 } hb_style_tag_t;
+
+static inline float
+_hb_angle_to_ratio (float a)
+{
+  return tanf (a * (M_PI / 180.f));
+}
+static inline float
+_hb_ratio_to_angle (float r)
+{
+  return atanf (r) * (180.f / M_PI);
+}
 
 /**
  * hb_style_get_value:
@@ -86,6 +98,9 @@ typedef enum
 float
 hb_style_get_value (hb_font_t *font, hb_tag_t tag)
 {
+  if (unlikely (tag == HB_STYLE_TAG_SLANT_RATIO))
+    return _hb_angle_to_ratio (hb_style_get_value (HB_STYLE_TAG_SLANT_ANGLE));
+
   hb_style_tag_t style_tag = (hb_style_tag_t) tag;
   hb_face_t *face = font->face;
 
