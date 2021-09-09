@@ -427,7 +427,6 @@ struct graph_t
   {
     positions_invalid = true;
     distance_invalid = true;
-    // TODO(grieger): compute new distance instead of invalidation.
 
     auto* clone = vertices_.push ();
     auto& child = vertices_[node_idx];
@@ -442,9 +441,13 @@ struct graph_t
     clone->obj.tail = buffer->tail;
     clone->distance = child.distance;
     clone->space = child.space;
+    clone->incoming_edges = 0;
 
     for (const auto& l : child.obj.links)
+    {
       clone->obj.links.push (l);
+      vertices_[l.objidx].incoming_edges++;
+    }
 
     check_success (!clone->obj.links.in_error ());
 
