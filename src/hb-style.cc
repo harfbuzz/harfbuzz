@@ -42,7 +42,7 @@
  * be interpreted as (fully) italic.
  * @HB_STYLE_TAG_OPTICAL_SIZE: Used to vary design to suit different text sizes.
  * Non-zero. Values can be interpreted as text size, in points.
- * @HB_STYLE_TAG_SLANT: Used to vary between upright and slanted text. Values
+ * @HB_STYLE_TAG_SLANT_ANGLE: Used to vary between upright and slanted text. Values
  * must be greater than -90 and less than +90. Values can be interpreted as
  * the angle, in counter-clockwise degrees, of oblique slant from whatever the
  * designer considers to be upright for that font design.
@@ -58,10 +58,11 @@
  *
  * Since: EXPERIMENTAL
  **/
-typedef enum {
+typedef enum
+{
   HB_STYLE_TAG_ITALIC		= HB_TAG ('i','t','a','l'),
   HB_STYLE_TAG_OPTICAL_SIZE	= HB_TAG ('o','p','s','z'),
-  HB_STYLE_TAG_SLANT		= HB_TAG ('s','l','n','t'),
+  HB_STYLE_TAG_SLANT_ANGLE	= HB_TAG ('s','l','n','t'),
   HB_STYLE_TAG_WIDTH		= HB_TAG ('w','d','t','h'),
   HB_STYLE_TAG_WEIGHT		= HB_TAG ('w','g','h','t'),
 
@@ -119,7 +120,7 @@ hb_style_get_value (hb_font_t *font, hb_tag_t tag)
 	   ? design / 10.
 	   : 12.f;
   }
-  case HB_STYLE_TAG_SLANT:
+  case HB_STYLE_TAG_SLANT_ANGLE:
     return face->table.post->table->italicAngle.to_float ();
   case HB_STYLE_TAG_WIDTH:
     return face->table.OS2->has_data ()

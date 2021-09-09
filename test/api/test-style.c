@@ -33,7 +33,7 @@
 
 #define HB_STYLE_TAG_ITALIC		HB_TAG ('i','t','a','l')
 #define HB_STYLE_TAG_OPTICAL_SIZE	HB_TAG ('o','p','s','z')
-#define HB_STYLE_TAG_SLANT		HB_TAG ('s','l','n','t')
+#define HB_STYLE_TAG_SLANT_ANGLE	HB_TAG ('s','l','n','t')
 #define HB_STYLE_TAG_WIDTH		HB_TAG ('w','d','t','h')
 #define HB_STYLE_TAG_WEIGHT		HB_TAG ('w','g','h','t')
 
@@ -44,7 +44,7 @@ test_empty_face (void)
 
   assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (empty, HB_STYLE_TAG_WEIGHT), 400);
 }
@@ -57,7 +57,7 @@ test_regular_face (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 400);
 
@@ -73,7 +73,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 389.34f); /* its default weight */
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 0);
@@ -82,7 +82,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 200);
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 0);
@@ -91,7 +91,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 300);
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 0);
@@ -100,7 +100,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 400);
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 0);
@@ -109,7 +109,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT),600);
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 0);
@@ -118,7 +118,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 700);
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 0);
@@ -127,7 +127,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 900);
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 0);
@@ -136,7 +136,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 900);
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 50);
@@ -145,7 +145,7 @@ test_face_user_setting (void)
 
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_ITALIC), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_OPTICAL_SIZE), 12);
-  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT), 0);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), 0);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WIDTH), 100);
   assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_WEIGHT), 900);
   assert_cmpfloat (hb_style_get_value (font, (hb_style_tag_t) HB_TAG ('C','N','T','R')), 100);
