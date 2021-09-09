@@ -79,7 +79,7 @@ struct graph_t
 
       int64_t modified_distance =
           hb_min (hb_max(distance + distance_modifier (), 0), 0x7FFFFFFFFF);
-      return (modified_distance << 24) | (0x00FFFFFF & order);
+      return (modified_distance << 22) | (0x003FFFFF & order);
     }
 
     int64_t distance_modifier () const
@@ -845,7 +845,6 @@ static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& o
 
     // TODO(garretrieger): add additional offset resolution strategies
     // - Promotion to extension lookups.
-    // - Isolate the sub graphs of extension sub tables.
     // - Table splitting.
   }
 
