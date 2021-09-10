@@ -97,6 +97,11 @@
         <xi:include href="xml/hb-directwrite.xml"/>
       </chapter>
 
+      <chapter id="style-api">
+        <title>Style API</title>
+        <xi:include href="xml/hb-style.xml"/>
+      </chapter>
+
       <chapter id="subset-api">
         <title>Subset API</title>
         <xi:include href="xml/hb-subset.xml"/>

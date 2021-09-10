@@ -34,6 +34,15 @@
 #include "hb-ot-post-table.hh"
 #include "hb-ot-face.hh"
 
+/**
+ * SECTION:hb-style
+ * @title: hb-style
+ * @short_description: Font Styles
+ * @include: hb.h
+ *
+ * Functions for fetching style information from fonts.
+ **/
+
 static inline float
 _hb_angle_to_ratio (float a)
 {
@@ -52,7 +61,7 @@ _hb_ratio_to_angle (float r)
  * @font: a #hb_font_t object.
  * @style_tag: a style tag.
  *
- * Searches variation axes of a hb_font_t object for a specific axis first,
+ * Searches variation axes of a #hb_font_t object for a specific axis first,
  * if not set, then tries to get default style values from different
  * tables of the font.
  *
