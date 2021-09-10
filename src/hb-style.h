@@ -44,6 +44,7 @@ HB_BEGIN_DECLS
  * must be greater than -90 and less than +90. Values can be interpreted as
  * the angle, in counter-clockwise degrees, of oblique slant from whatever the
  * designer considers to be upright for that font design.
+ * @HB_STYLE_TAG_SLANT_RATIO: same as @HB_STYLE_TAG_SLANT_ANGLE expression as ratio.
  * @HB_STYLE_TAG_WIDTH: Used to vary width of text from narrower to wider.
  * Non-zero. Values can be interpreted as a percentage of whatever the font
  * designer considers “normal width” for that font design.
@@ -52,7 +53,7 @@ HB_BEGIN_DECLS
  * comparison to values for usWeightClass in the OS/2 table,
  * or the CSS font-weight property.
  *
- * Defined by https://docs.microsoft.com/en-us/typography/opentype/spec/dvaraxisreg
+ * Defined by [OpenType Design-Variation Axis Tag Registry](https://docs.microsoft.com/en-us/typography/opentype/spec/dvaraxisreg).
  *
  * Since: REPLACEME
  **/

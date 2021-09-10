@@ -708,6 +708,12 @@ hb_version_string
 </SECTION>
 
 <SECTION>
+<FILE>hb-style</FILE>
+hb_style_tag_t
+hb_style_get_value
+</SECTION>
+
+<SECTION>
 <FILE>hb-subset</FILE>
 hb_subset_flags_t
 hb_subset_input_t
