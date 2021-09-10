@@ -366,10 +366,15 @@ struct graph_t
    */
   bool isolate_subgraph (unsigned root_idx)
   {
+    update_incoming_edge_count ();
     hb_hashmap_t<unsigned, unsigned> subgraph;
-    hb_hashmap_t<unsigned, unsigned> index_map;
+
+    // incoming edges to root_idx should be all 32 bit in length so we don't need to de-dup these
+    // set the subgraph incoming edge count to match all of root_idx's incoming edges
+    subgraph.set (root_idx, vertices_[root_idx].incoming_edges);
     find_subgraph(root_idx, subgraph);
 
+    hb_hashmap_t<unsigned, unsigned> index_map;
     bool made_changes = false;
     for (auto entry : subgraph.iter ())
     {
@@ -393,15 +398,16 @@ struct graph_t
 
   void find_subgraph (unsigned node_idx, hb_hashmap_t<unsigned, unsigned>& subgraph)
   {
-    if (subgraph.has (node_idx))
-    {
-      subgraph.set (node_idx, subgraph[node_idx] + 1);
-      return;
-    }
-
-    subgraph.set (node_idx, 1);
     for (const auto& link : vertices_[node_idx].obj.links)
+    {
+      if (subgraph.has (link.objidx))
+      {
+        subgraph.set (link.objidx, subgraph[link.objidx] + 1);
+        continue;
+      }
+      subgraph.set (link.objidx, 1);
       find_subgraph (link.objidx, subgraph);
+    }
   }
 
   /*
@@ -466,13 +472,30 @@ struct graph_t
    * parent to the clone. The copy is a shallow copy, objects
    * linked from child are not duplicated.
    */
-  void duplicate (unsigned parent_idx, unsigned child_idx)
+  bool duplicate (unsigned parent_idx, unsigned child_idx)
   {
+    update_incoming_edge_count ();
+
+    unsigned links_to_child = 0;
+    for (const auto& l : vertices_[parent_idx].obj.links)
+    {
+      if (l.objidx == child_idx) links_to_child++;
+    }
+
+    if (vertices_[child_idx].incoming_edges <= links_to_child)
+    {
+      // Can't duplicate this node, doing so would orphan the original one as all remaining links
+      // to child are from parent.
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "  Not duplicating %d => %d",
+                 parent_idx, child_idx);
+      return false;
+    }
+
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %d => %d",
                parent_idx, child_idx);
 
     unsigned clone_idx = duplicate (child_idx);
-    if (clone_idx == (unsigned) -1) return;
+    if (clone_idx == (unsigned) -1) return false;
     // duplicate shifts the root node idx, so if parent_idx was root update it.
     if (parent_idx == clone_idx) parent_idx++;
     auto& clone = vertices_[clone_idx];
@@ -489,6 +512,8 @@ struct graph_t
         child.incoming_edges--;
       }
     }
+
+    return true;
   }
 
   /*
@@ -819,7 +844,7 @@ static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& o
     {
       // The child object is shared, we may be able to eliminate the overflow
       // by duplicating it.
-      sorted_graph.duplicate (r.parent, r.child);
+      if (!sorted_graph.duplicate (r.parent, r.child)) continue;
       return true;
     }
 
