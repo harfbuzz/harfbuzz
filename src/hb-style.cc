@@ -26,6 +26,7 @@
 
 #ifndef HB_NO_STYLE
 
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "hb-ot-var-avar-table.hh"
