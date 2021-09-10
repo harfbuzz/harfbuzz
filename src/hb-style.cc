@@ -76,11 +76,13 @@ _hb_angle_to_ratio (float a)
 {
   return tanf (a * (M_PI / 180.f));
 }
+#if 0
 static inline float
 _hb_ratio_to_angle (float r)
 {
   return atanf (r) * (180.f / M_PI);
 }
+#endif
 
 /**
  * hb_style_get_value:
@@ -99,7 +101,7 @@ float
 hb_style_get_value (hb_font_t *font, hb_tag_t tag)
 {
   if (unlikely (tag == HB_STYLE_TAG_SLANT_RATIO))
-    return _hb_angle_to_ratio (hb_style_get_value (HB_STYLE_TAG_SLANT_ANGLE));
+    return _hb_angle_to_ratio (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE));
 
   hb_style_tag_t style_tag = (hb_style_tag_t) tag;
   hb_face_t *face = font->face;
