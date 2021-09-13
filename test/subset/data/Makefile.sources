@@ -32,6 +32,7 @@ TESTS = \
 	tests/layout.notonastaliqurdu.tests \
 	tests/layout.tests \
 	tests/layout.tinos.tests \
+	tests/layout.duplicate_features.tests \
 	tests/sbix.tests \
 	tests/variable.tests \
 	tests/glyph_names.tests \

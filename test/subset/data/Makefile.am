@@ -35,6 +35,7 @@ EXTRA_DIST += \
 	expected/layout.gdef-attachlist \
 	expected/layout.notonastaliqurdu \
 	expected/layout.tinos \
+	expected/layout.duplicate_features \
 	expected/cmap \
 	expected/cmap14 \
 	expected/sbix \

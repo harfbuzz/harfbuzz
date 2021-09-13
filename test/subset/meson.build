@@ -27,6 +27,7 @@ tests = [
   'layout.gdef-attachlist',
   'layout.notonastaliqurdu',
   'layout.tinos',
+  'layout.duplicate_features',
   'cmap',
   'cmap14',
   'sbix',
