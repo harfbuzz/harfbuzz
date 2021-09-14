@@ -109,7 +109,7 @@ hb_style_get_value (hb_font_t *font, hb_tag_t tag)
     return face->table.OS2->v5 ().get_optical_size (&lower, &upper)
 	   ? (float) (lower + upper) / 2.f
 	   : hb_ot_layout_get_size_params (face, &design, nullptr, nullptr, nullptr, nullptr)
-	   ? design / 10.
+	   ? design / 10.f
 	   : 12.f;
   }
   case HB_STYLE_TAG_SLANT_ANGLE:
