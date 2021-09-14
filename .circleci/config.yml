@@ -68,7 +68,7 @@ jobs:
     steps:
       - checkout
       - run: apk update && apk add ragel gcc g++ glib-dev freetype-dev cairo-dev git py3-pip ninja
-      - run: pip3 install meson==0.47.0
+      - run: pip3 install meson==0.52.0
       - run: meson build --buildtype=minsize
       - run: ninja -Cbuild -j9
       - run: meson test -Cbuild --print-errorlogs

@@ -290,7 +290,7 @@ hb_gobject_headers = files(
   'hb-gobject-structs.h',
 )
 
-ragel = find_program('ragel', required: false)
+ragel = find_program('ragel', version: '6.10', required: false)
 if not ragel.found()
   warning('You have to install ragel if you are going to develop HarfBuzz itself')
 else
