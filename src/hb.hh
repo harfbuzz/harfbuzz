@@ -449,7 +449,8 @@ static int HB_UNUSED _hb_errno = 0;
 #  ifdef HAVE_ATEXIT
 #    define hb_atexit atexit
 #  else
-#    error "atexit not found."
+     template <void (*function) (void)> struct hb_atexit_t { ~hb_atexit_t () { function (); } };
+#    define hb_atexit(f) static hb_atexit_t<f> _hb_atexit_##__LINE__;
 #  endif
 #endif
 
