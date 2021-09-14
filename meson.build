@@ -2,7 +2,6 @@ project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.52.0',
   version: '2.9.1',
   default_options: [
-    'cpp_eh=none',          # Just to support msvc, we are passing -fno-rtti also anyway
     'cpp_rtti=false',       # Just to support msvc, we are passing -fno-exceptions also anyway
     'cpp_std=c++11',
     'wrap_mode=nofallback', # Use --wrap-mode=default to revert, https://github.com/harfbuzz/harfbuzz/pull/2548
@@ -37,6 +36,8 @@ if cpp.get_id() == 'msvc'
   add_project_arguments(msvc_args, language: ['c', 'cpp'])
   # Disable SAFESEH with MSVC for libs that use external deps that are built with MinGW
   # noseh_link_args = ['/SAFESEH:NO']
+  # disable exception handling
+  add_project_arguments(['/EHs-', '/EHc-'], language: 'cpp')
 endif
 
 add_project_link_arguments(cpp.get_supported_link_arguments([
