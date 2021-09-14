@@ -41,19 +41,20 @@ struct shape_consumer_t : shape_options_t
     output.add_options (parser);
   }
 
-  void init (const font_options_t *font_opts)
+  template <typename app_t>
+  void init (const app_t *app)
   {
-    font = hb_font_reference (font_opts->font);
     failed = false;
     buffer = hb_buffer_create ();
 
-    output.init (buffer, font_opts);
+    output.init (buffer, app);
   }
-  bool consume_line (shape_text_options_t &text_opts)
+  template <typename app_t>
+  bool consume_line (app_t &app)
   {
     unsigned int text_len;
     const char *text;
-    if (!(text = text_opts.get_line (&text_len)))
+    if (!(text = app.get_line (&text_len)))
       return false;
 
     output.new_line ();
@@ -62,10 +63,10 @@ struct shape_consumer_t : shape_options_t
     {
       const char *error = nullptr;
 
-      populate_buffer (buffer, text, text_len, text_opts.text_before, text_opts.text_after);
+      populate_buffer (buffer, text, text_len, app.text_before, app.text_after);
       if (n == 1)
 	output.consume_text (buffer, text, text_len, utf8_clusters);
-      if (!shape (font, buffer, &error))
+      if (!shape (app.font, buffer, &error))
       {
 	failed = true;
 	output.error (error);
@@ -79,11 +80,10 @@ struct shape_consumer_t : shape_options_t
     output.consume_glyphs (buffer, text, text_len, utf8_clusters);
     return true;
   }
-  void finish (const font_options_t *font_opts)
+  template <typename app_t>
+  void finish (const app_t *app)
   {
-    output.finish (buffer, font_opts);
-    hb_font_destroy (font);
-    font = nullptr;
+    output.finish (buffer, app);
     hb_buffer_destroy (buffer);
     buffer = nullptr;
   }
@@ -94,7 +94,6 @@ struct shape_consumer_t : shape_options_t
   protected:
   output_t output;
 
-  hb_font_t *font = nullptr;
   hb_buffer_t *buffer = nullptr;
 };
 
