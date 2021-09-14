@@ -405,6 +405,9 @@ static int HB_UNUSED _hb_errno = 0;
 #  define errno _hb_errno
 #endif
 
+#define HB_STMT_START do
+#define HB_STMT_END   while (0)
+
 #if defined(HAVE_ATEXIT) && !defined(HB_USE_ATEXIT)
 /* atexit() is only safe to be called from shared libraries on certain
  * platforms.  Whitelist.
@@ -433,16 +436,22 @@ static int HB_UNUSED _hb_errno = 0;
  */
 #    define HB_USE_ATEXIT 1
 #  endif
-#endif
+#endif /* defined(HAVE_ATEXIT) && !defined(HB_USE_ATEXIT) */
 #ifdef HB_NO_ATEXIT
 #  undef HB_USE_ATEXIT
 #endif
 #ifndef HB_USE_ATEXIT
 #  define HB_USE_ATEXIT 0
 #endif
-
-#define HB_STMT_START do
-#define HB_STMT_END   while (0)
+#if !HB_USE_ATEXIT
+#  define hb_atexit(_) HB_STMT_START { if (0) (_) (); } HB_STMT_END
+#else /* HB_USE_ATEXIT */
+#  ifdef HAVE_ATEXIT
+#    define hb_atexit atexit
+#  else
+#    error "atexit not found."
+#  endif
+#endif
 
 /* Lets assert int types.  Saves trouble down the road. */
 static_assert ((sizeof (hb_codepoint_t) == 4), "");
