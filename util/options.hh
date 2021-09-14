@@ -110,12 +110,14 @@ struct option_parser_t
 		  const gchar    *name,
 		  const gchar    *description,
 		  const gchar    *help_description,
-		  Type           *closure)
+		  Type           *closure,
+		  bool		  add_parse_hooks = true)
   {
     GOptionGroup *group = g_option_group_new (name, description, help_description,
 					      static_cast<gpointer>(closure), nullptr);
     g_option_group_add_entries (group, entries);
-    g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
+    if (add_parse_hooks)
+      g_option_group_set_parse_hooks (group, nullptr, post_parse<Type>);
     g_option_context_add_group (context, group);
   }
 

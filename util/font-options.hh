@@ -83,6 +83,7 @@ static struct supported_font_funcs_t {
 void
 font_options_t::post_parse (GError **error)
 {
+  assert (!font);
   font = hb_font_create (face);
 
   if (font_size_x == FONT_SIZE_UPEM)
@@ -272,7 +273,8 @@ font_options_t::add_options (option_parser_t *parser)
 		     "font",
 		     "Font-instance options:",
 		     "Options for the font instance",
-		     this);
+		     this,
+		     false /* We add below. */);
 
   const gchar *variations_help = "Comma-separated list of font variations\n"
     "\n"
