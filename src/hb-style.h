@@ -72,7 +72,7 @@ typedef enum
 
 
 HB_EXTERN float
-hb_style_get_value (hb_font_t *font, hb_tag_t style_tag);
+hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag);
 
 HB_END_DECLS
 

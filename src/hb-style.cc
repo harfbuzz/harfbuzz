@@ -73,12 +73,11 @@ _hb_ratio_to_angle (float r)
  * Since: REPLACEME
  **/
 float
-hb_style_get_value (hb_font_t *font, hb_tag_t tag)
+hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag)
 {
-  if (unlikely (tag == HB_STYLE_TAG_SLANT_RATIO))
+  if (unlikely (style_tag == HB_STYLE_TAG_SLANT_RATIO))
     return _hb_angle_to_ratio (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE));
 
-  hb_style_tag_t style_tag = (hb_style_tag_t) tag;
   hb_face_t *face = font->face;
 
 #ifndef HB_NO_VAR
