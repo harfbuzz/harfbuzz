@@ -373,6 +373,8 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
     /* Unicode-13.0 additions */
     case HB_SCRIPT_CHORASMIAN:
     case HB_SCRIPT_DIVES_AKURU:
+    case HB_SCRIPT_KHITAN_SMALL_SCRIPT:
+    case HB_SCRIPT_YEZIDI:
 
     /* Unicode-14.0 additions */
     case HB_SCRIPT_CYPRO_MINOAN:
