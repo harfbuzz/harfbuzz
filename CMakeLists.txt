@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.1)
 project(harfbuzz)
 
 message(WARN "HarfBuzz has a Meson port and tries to migrate all the other build systems to it, please consider using it as we might remove our cmake port soon.")
@@ -102,9 +102,13 @@ if (${HAVE_STDBOOL_H})
   add_definitions(-DHAVE_STDBOOL_H)
 endif ()
 
-# https://github.com/harfbuzz/harfbuzz/pull/2874#issuecomment-782859099
-if (NOT WIN32)
-  add_definitions("-DHAVE_PTHREAD")
+if (NOT MSVC)
+  set(THREADS_PREFER_PTHREAD_FLAG ON)
+  find_package(Threads)
+  if (CMAKE_USE_PTHREADS_INIT)
+    add_definitions("-DHAVE_PTHREAD")
+    list(APPEND THIRD_PARTY_LIBS Threads::Threads)
+  endif ()
 endif ()
 
 if (MSVC)
