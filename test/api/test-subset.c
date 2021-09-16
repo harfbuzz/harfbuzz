@@ -148,60 +148,10 @@ test_subset_sets (void)
   hb_set_clear (set);
 
   hb_set_add (set, 87);
-  g_assert (hb_set_is_equal (hb_subset_input_layout_features_set (input), set));
+  g_assert (hb_set_is_equal (hb_subset_input_set (input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG), set));
   hb_set_clear (set);
 
   hb_set_destroy (set);
-  hb_subset_input_destroy (input);
-}
-
-
-static void
-test_subset_legacy_api (void)
-{
-  hb_subset_input_t *input = hb_subset_input_create_or_fail ();
-
-  g_assert (hb_subset_input_get_flags (input) == HB_SUBSET_FLAGS_DEFAULT);
-
-  hb_subset_input_set_flags (input,
-                             HB_SUBSET_FLAGS_NAME_LEGACY |
-                             HB_SUBSET_FLAGS_NOTDEF_OUTLINE);
-
-  g_assert (hb_subset_input_get_name_legacy (input));
-  g_assert (hb_subset_input_get_notdef_outline (input));
-  g_assert (!hb_subset_input_get_desubroutinize (input));
-  g_assert (!hb_subset_input_get_drop_hints (input));
-
-  hb_subset_input_set_drop_hints (input, true);
-  hb_subset_input_set_name_legacy (input, false);
-  g_assert (!hb_subset_input_get_name_legacy (input));
-  g_assert (hb_subset_input_get_notdef_outline (input));
-  g_assert (!hb_subset_input_get_desubroutinize (input));
-  g_assert (hb_subset_input_get_drop_hints (input));
-
-
-  hb_face_t *face_abc = hb_test_open_font_file ("fonts/Roboto-Regular.abc.ttf");
-
-  hb_set_t *codepoints = hb_set_create();
-  hb_set_add (codepoints, 97);
-  hb_set_add (codepoints, 99);
-  hb_set_union (hb_subset_input_unicode_set (input), codepoints);
-  hb_set_destroy (codepoints);
-
-  hb_face_t *face_abc_subset_new = hb_subset (face_abc, input);
-  hb_face_t *face_abc_subset_legacy = hb_subset_or_fail (face_abc, input);
-
-
-  hb_blob_t* a = hb_face_reference_blob (face_abc_subset_new);
-  hb_blob_t* b = hb_face_reference_blob (face_abc_subset_new);
-  hb_test_assert_blobs_equal (a, b);
-
-  hb_blob_destroy (a);
-  hb_blob_destroy (b);
-  hb_face_destroy (face_abc_subset_new);
-  hb_face_destroy (face_abc_subset_legacy);
-  hb_face_destroy (face_abc);
-
   hb_subset_input_destroy (input);
 }
 
@@ -215,7 +165,6 @@ main (int argc, char **argv)
   hb_test_add (test_subset_crash);
   hb_test_add (test_subset_set_flags);
   hb_test_add (test_subset_sets);
-  hb_test_add (test_subset_legacy_api);
 
   return hb_test_run();
 }

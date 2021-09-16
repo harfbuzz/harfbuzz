@@ -418,7 +418,7 @@ parse_nameids (const char *name,
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_bool_t is_add = (name[strlen (name) - 1] == '+');
-  hb_set_t *name_ids = hb_subset_input_nameid_set (subset_main->input);
+  hb_set_t *name_ids = hb_subset_input_set (subset_main->input, HB_SUBSET_SETS_NAME_ID);
 
 
   if (!is_remove && !is_add) hb_set_clear (name_ids);
@@ -472,7 +472,7 @@ parse_name_languages (const char *name,
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_bool_t is_add = (name[strlen (name) - 1] == '+');
-  hb_set_t *name_languages = hb_subset_input_namelangid_set (subset_main->input);
+  hb_set_t *name_languages = hb_subset_input_set (subset_main->input, HB_SUBSET_SETS_NAME_LANG_ID);
 
   if (!is_remove && !is_add) hb_set_clear (name_languages);
 
@@ -540,7 +540,7 @@ parse_layout_features (const char *name,
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_bool_t is_add = (name[strlen (name) - 1] == '+');
-  hb_set_t *layout_features = hb_subset_input_layout_features_set (subset_main->input);
+  hb_set_t *layout_features = hb_subset_input_set (subset_main->input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
 
   if (!is_remove && !is_add) hb_set_clear (layout_features);
 
@@ -584,7 +584,7 @@ parse_drop_tables (const char *name,
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_bool_t is_add = (name[strlen (name) - 1] == '+');
-  hb_set_t *drop_tables = hb_subset_input_drop_tables_set (subset_main->input);
+  hb_set_t *drop_tables = hb_subset_input_set (subset_main->input, HB_SUBSET_SETS_DROP_TABLE_TAG);
 
   if (!is_remove && !is_add) hb_set_clear (drop_tables);
 
