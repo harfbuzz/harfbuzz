@@ -38,8 +38,8 @@ test_subset_drop_tables (void)
   hb_set_add (codepoints, 97);
   hb_set_add (codepoints, 99);
   hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
-  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG ('h', 'd', 'm', 'x'));
-  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG ('h', 'm', 't', 'x'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG ('h', 'd', 'm', 'x'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG ('h', 'm', 't', 'x'));
   hb_set_destroy (codepoints);
 
   hb_face_t* subset = hb_subset_or_fail (face, input);
