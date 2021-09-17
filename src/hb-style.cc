@@ -67,7 +67,7 @@ _hb_ratio_to_angle (float r)
  *
  * Returns: Corresponding axis or default value to a style tag.
  *
- * Since: REPLACEME
+ * Since: 3.0.0
  **/
 float
 hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag)

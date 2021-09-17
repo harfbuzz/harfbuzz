@@ -55,7 +55,7 @@ HB_BEGIN_DECLS
  *
  * Defined by [OpenType Design-Variation Axis Tag Registry](https://docs.microsoft.com/en-us/typography/opentype/spec/dvaraxisreg).
  *
- * Since: REPLACEME
+ * Since: 3.0.0
  **/
 typedef enum
 {

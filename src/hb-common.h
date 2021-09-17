@@ -476,11 +476,11 @@ hb_language_get_default (void);
  * @HB_SCRIPT_DIVES_AKURU: `Diak`, Since: 2.6.7
  * @HB_SCRIPT_KHITAN_SMALL_SCRIPT: `Kits`, Since: 2.6.7
  * @HB_SCRIPT_YEZIDI: `Yezi`, Since: 2.6.7
- * @HB_SCRIPT_CYPRO_MINOAN: `Cpmn`, Since: REPLACEME
- * @HB_SCRIPT_OLD_UYGHUR: `Ougr`, Since: REPLACEME
- * @HB_SCRIPT_TANGSA: `Tnsa`, Since: REPLACEME
- * @HB_SCRIPT_TOTO: `Toto`, Since: REPLACEME
- * @HB_SCRIPT_VITHKUQI: `Vith`, Since: REPLACEME
+ * @HB_SCRIPT_CYPRO_MINOAN: `Cpmn`, Since: 3.0.0
+ * @HB_SCRIPT_OLD_UYGHUR: `Ougr`, Since: 3.0.0
+ * @HB_SCRIPT_TANGSA: `Tnsa`, Since: 3.0.0
+ * @HB_SCRIPT_TOTO: `Toto`, Since: 3.0.0
+ * @HB_SCRIPT_VITHKUQI: `Vith`, Since: 3.0.0
  * @HB_SCRIPT_INVALID: No script set
  *
  * Data type for scripts. Each #hb_script_t's value is an #hb_tag_t corresponding
@@ -689,7 +689,7 @@ typedef enum
   HB_SCRIPT_YEZIDI			= HB_TAG ('Y','e','z','i'), /*13.0*/
 
   /*
-   * Since REPLACEME
+   * Since 3.0.0
    */
   HB_SCRIPT_CYPRO_MINOAN		= HB_TAG ('C','p','m','n'), /*14.0*/
   HB_SCRIPT_OLD_UYGHUR			= HB_TAG ('O','u','g','r'), /*14.0*/
