@@ -3,8 +3,8 @@ Friday, September 17, 2021
 ====================================
 - Unicode 14.0 support (David Corbett).
 - The hb-subset API and the harfbuzz-subset library's ABI are now declared
-  stable. The harfbuzz-subset library work was not possible without the
-  work of Garret Rieger and Qunxin Liu of Google Fonts, and earlier work
+  stable. The harfbuzz-subset library would not have been possible without the
+  work of Garret Rieger and Qunxin Liu from Google Fonts, and the earlier work
   of Michiharu Ariza from Adobe.
 - The hb-style API is now stable and no longer experimental.
 
