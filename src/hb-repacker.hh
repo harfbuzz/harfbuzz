@@ -91,7 +91,7 @@ struct graph_t
   struct overflow_record_t
   {
     unsigned parent;
-    const hb_serialize_context_t::object_t::link_t* link;
+    unsigned child;
   };
 
   struct clone_buffer_t
@@ -414,7 +414,7 @@ struct graph_t
 
         overflow_record_t r;
         r.parent = parent_idx;
-        r.link = &link;
+        r.child = link.objidx;
         overflows->push (r);
       }
     }
@@ -430,10 +430,10 @@ struct graph_t
     update_incoming_edge_count ();
     for (const auto& o : overflows)
     {
-      const auto& child = vertices_[o.link->objidx];
+      const auto& child = vertices_[o.child];
       DEBUG_MSG (SUBSET_REPACK, nullptr, "  overflow from %d => %d (%d incoming , %d outgoing)",
                  o.parent,
-                 o.link->objidx,
+                 o.child,
                  child.incoming_edges,
                  child.obj.links.length);
     }
@@ -708,12 +708,12 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
     for (int i = overflows.length - 1; i >= 0; i--)
     {
       const graph_t::overflow_record_t& r = overflows[i];
-      const auto& child = sorted_graph.vertices_[r.link->objidx];
+      const auto& child = sorted_graph.vertices_[r.child];
       if (child.is_shared ())
       {
         // The child object is shared, we may be able to eliminate the overflow
         // by duplicating it.
-        sorted_graph.duplicate (r.parent, r.link->objidx);
+        sorted_graph.duplicate (r.parent, r.child);
         resolution_attempted = true;
 
         // Stop processing overflows for this round so that object order can be
