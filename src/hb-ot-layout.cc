@@ -688,8 +688,8 @@ hb_ot_layout_script_get_language_tags (hb_face_t    *face,
  *
  * Return value: %true if the language tag is found, %false otherwise
  *
- * Since: ??
- * Deprecated: ??
+ * Since: 0.6.0
+ * Deprecated: 2.0.0
  **/
 hb_bool_t
 hb_ot_layout_script_find_language (hb_face_t    *face,
