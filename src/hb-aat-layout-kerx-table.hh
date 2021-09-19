@@ -82,8 +82,8 @@ struct KernPair
   }
 
   protected:
-  HBGlyphID	left;
-  HBGlyphID	right;
+  HBGlyphID16	left;
+  HBGlyphID16	right;
   FWORD		value;
   public:
   DEFINE_SIZE_STATIC (6);

@@ -121,7 +121,7 @@ struct LayerRecord
   }
 
   public:
-  HBGlyphID	glyphId;	/* Glyph ID of layer glyph */
+  HBGlyphID16	glyphId;	/* Glyph ID of layer glyph */
   Index		colorIdx;	/* Index value to use with a
 				 * selected color palette.
 				 * An index value of 0xFFFF
@@ -148,7 +148,7 @@ struct BaseGlyphRecord
   }
 
   public:
-  HBGlyphID	glyphId;	/* Glyph ID of reference glyph */
+  HBGlyphID16	glyphId;	/* Glyph ID of reference glyph */
   HBUINT16	firstLayerIdx;	/* Index (from beginning of
 				 * the Layer Records) to the
 				 * layer record. There will be
@@ -797,7 +797,7 @@ struct BaseGlyphV1Record
   }
 
   public:
-  HBGlyphID		glyphId;    /* Glyph ID of reference glyph */
+  HBGlyphID16		glyphId;    /* Glyph ID of reference glyph */
   Offset32To<Paint>	paint;      /* Offset (from beginning of BaseGlyphV1Record array) to Paint,
                                      * Typically PaintColrLayers */
   public:

@@ -182,9 +182,9 @@ struct Tag : HBUINT32
 };
 
 /* Glyph index number, same as uint16 (length = 16 bits) */
-struct HBGlyphID : HBUINT16
+struct HBGlyphID16 : HBUINT16
 {
-  HBGlyphID& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
+  HBGlyphID16& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
 };
 
 /* Script/language-system/feature index */

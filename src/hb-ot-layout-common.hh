@@ -89,7 +89,7 @@ static inline void ClassDef_serialize (hb_serialize_context_t *c,
 
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
 					  const hb_map_t &gid_klass_map,
-					  hb_sorted_vector_t<HBGlyphID> &glyphs,
+					  hb_sorted_vector_t<HBGlyphID16> &glyphs,
 					  const hb_set_t &klasses,
 					  bool use_class_zero,
 					  hb_map_t *klass_map /*INOUT*/);
@@ -508,8 +508,8 @@ struct RangeRecord
   bool collect_coverage (set_t *glyphs) const
   { return glyphs->add_range (first, last); }
 
-  HBGlyphID	first;		/* First GlyphID in the range */
-  HBGlyphID	last;		/* Last GlyphID in the range */
+  HBGlyphID16	first;		/* First GlyphID in the range */
+  HBGlyphID16	last;		/* Last GlyphID in the range */
   HBUINT16	value;		/* Value */
   public:
   DEFINE_SIZE_STATIC (6);
@@ -1454,7 +1454,7 @@ struct CoverageFormat1
 
   protected:
   HBUINT16	coverageFormat;	/* Format identifier--format = 1 */
-  SortedArray16Of<HBGlyphID>
+  SortedArray16Of<HBGlyphID16>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
   public:
   DEFINE_SIZE_ARRAY (4, glyphArray);
@@ -1832,7 +1832,7 @@ Coverage_serialize (hb_serialize_context_t *c,
 
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
 					  const hb_map_t &gid_klass_map,
-					  hb_sorted_vector_t<HBGlyphID> &glyphs,
+					  hb_sorted_vector_t<HBGlyphID16> &glyphs,
 					  const hb_set_t &klasses,
                                           bool use_class_zero,
 					  hb_map_t *klass_map /*INOUT*/)
@@ -1859,7 +1859,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
 
   auto it =
   + glyphs.iter ()
-  | hb_map_retains_sorting ([&] (const HBGlyphID& gid) -> hb_pair_t<hb_codepoint_t, unsigned>
+  | hb_map_retains_sorting ([&] (const HBGlyphID16& gid) -> hb_pair_t<hb_codepoint_t, unsigned>
 			    {
 			      unsigned new_klass = klass_map->get (gid_klass_map[gid]);
 			      return hb_pair ((hb_codepoint_t)gid, new_klass);
@@ -1926,7 +1926,7 @@ struct ClassDefFormat1
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    hb_sorted_vector_t<HBGlyphID> glyphs;
+    hb_sorted_vector_t<HBGlyphID16> glyphs;
     hb_set_t orig_klasses;
     hb_map_t gid_org_klass_map;
 
@@ -2046,7 +2046,7 @@ struct ClassDefFormat1
 
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 1 */
-  HBGlyphID	startGlyph;	/* First GlyphID of the classValueArray */
+  HBGlyphID16	startGlyph;	/* First GlyphID of the classValueArray */
   Array16Of<HBUINT16>
 		classValue;	/* Array of Class Values--one per GlyphID */
   public:
@@ -2128,7 +2128,7 @@ struct ClassDefFormat2
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    hb_sorted_vector_t<HBGlyphID> glyphs;
+    hb_sorted_vector_t<HBGlyphID16> glyphs;
     hb_set_t orig_klasses;
     hb_map_t gid_org_klass_map;
 

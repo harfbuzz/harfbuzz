@@ -1144,7 +1144,7 @@ struct PairValueRecord
   }
 
   protected:
-  HBGlyphID	secondGlyph;		/* GlyphID of second glyph in the
+  HBGlyphID16	secondGlyph;		/* GlyphID of second glyph in the
 					 * pair--first glyph is listed in the
 					 * Coverage table */
   ValueRecord	values;			/* Positioning data for the first glyph

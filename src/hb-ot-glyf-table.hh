@@ -388,7 +388,7 @@ struct glyf
 
     protected:
     HBUINT16	flags;
-    HBGlyphID	glyphIndex;
+    HBGlyphID16	glyphIndex;
     public:
     DEFINE_SIZE_MIN (4);
   };
