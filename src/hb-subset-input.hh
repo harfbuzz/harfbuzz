@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018  Google, Inc.
+ * Copyright Â© 2018  Google, Inc.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
