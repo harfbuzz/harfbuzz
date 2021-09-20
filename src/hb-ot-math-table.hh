@@ -426,6 +426,9 @@ struct MathGlyphVariantRecord
     return_trace (c->check_struct (this));
   }
 
+  void closure_glyphs (hb_set_t *variant_glyphs) const
+  { variant_glyphs->add (variantGlyph); }
+
   protected:
   HBGlyphID16 variantGlyph;       /* Glyph ID for the variant. */
   HBUINT16  advanceMeasurement; /* Advance width/height, in design units, of the
@@ -473,6 +476,9 @@ struct MathGlyphPartRecord
 		(unsigned int)
 		(partFlags & PartFlags::Defined);
   }
+
+  void closure_glyphs (hb_set_t *variant_glyphs) const
+  { variant_glyphs->add (glyph); }
 
   protected:
   HBGlyphID16	glyph;		/* Glyph ID for the part. */
@@ -526,6 +532,12 @@ struct MathGlyphAssembly
     return partRecords.len;
   }
 
+  void closure_glyphs (hb_set_t *variant_glyphs) const
+  {
+    for (const auto& _ : partRecords.iter ())
+      _.closure_glyphs (variant_glyphs);
+  }
+
   protected:
   MathValueRecord
 		italicsCorrection;
@@ -569,6 +581,14 @@ struct MathGlyphConstruction
     return mathGlyphVariantRecord.len;
   }
 
+  void closure_glyphs (hb_set_t *variant_glyphs) const
+  {
+    (this+glyphAssembly).closure_glyphs (variant_glyphs);
+
+    for (const auto& _ : mathGlyphVariantRecord.iter ())
+      _.closure_glyphs (variant_glyphs);
+  }
+
   protected:
   /* Offset to MathGlyphAssembly table for this shape - from the beginning of
      MathGlyphConstruction table.  May be NULL. */
@@ -583,6 +603,33 @@ struct MathGlyphConstruction
 
 struct MathVariants
 {
+  void closure_glyphs (const hb_set_t *glyph_set,
+                       hb_set_t *variant_glyphs) const
+  {
+    const hb_array_t<const Offset16To<MathGlyphConstruction>> glyph_construction_offsets = glyphConstruction.as_array (vertGlyphCount + horizGlyphCount);
+
+    if (vertGlyphCoverage)
+    {
+      const auto vert_offsets = glyph_construction_offsets.sub_array (0, vertGlyphCount);
+      + hb_zip (this+vertGlyphCoverage, vert_offsets)
+      | hb_filter (glyph_set, hb_first)
+      | hb_map (hb_second)
+      | hb_map (hb_add (this))
+      | hb_apply ([=] (const MathGlyphConstruction &_) { _.closure_glyphs (variant_glyphs); })
+      ;
+    }
+
+    if (horizGlyphCoverage)
+    {
+      const auto hori_offsets = glyph_construction_offsets.sub_array (vertGlyphCount, horizGlyphCount);
+      + hb_zip (this+horizGlyphCoverage, hori_offsets)
+      | hb_filter (glyph_set, hb_first)
+      | hb_map (hb_second)
+      | hb_map (hb_add (this))
+      | hb_apply ([=] (const MathGlyphConstruction &_) { _.closure_glyphs (variant_glyphs); })
+      ;
+    }
+  }
   bool sanitize_offsets (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -689,6 +736,16 @@ struct MATH
   static constexpr hb_tag_t tableTag = HB_OT_TAG_MATH;
 
   bool has_data () const { return version.to_int (); }
+
+  void closure_glyphs (hb_set_t *glyph_set) const
+  {
+    if (mathVariants)
+    {
+      hb_set_t variant_glyphs;
+      (this+mathVariants).closure_glyphs (glyph_set, &variant_glyphs);
+      hb_set_union (glyph_set, &variant_glyphs);
+    }
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
