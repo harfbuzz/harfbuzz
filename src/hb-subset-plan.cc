@@ -38,6 +38,7 @@
 #include "hb-ot-color-colrv1-closure.hh"
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-stat-table.hh"
+#include "hb-ot-math-table.hh"
 
 
 typedef hb_hashmap_t<unsigned, hb_set_t *, (unsigned)-1, nullptr> script_langsys_map;
@@ -222,6 +223,17 @@ _cmap_closure (hb_face_t	   *face,
 }
 
 static inline void
+_math_closure (hb_face_t           *face,
+               hb_set_t            *glyphset)
+{
+  hb_blob_ptr_t<OT::MATH> math = hb_sanitize_context_t ().reference_table<OT::MATH> (face);
+  if (math->has_data ())
+    math->closure_glyphs (glyphset);
+  math.destroy ();
+}
+
+
+static inline void
 _remove_invalid_gids (hb_set_t *glyphs,
 		      unsigned int num_glyphs)
 {
@@ -334,8 +346,12 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #endif
   _remove_invalid_gids (plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
+  hb_set_set (plan->_glyphset_mathed, plan->_glyphset_gsub);
+  _math_closure (plan->source, plan->_glyphset_mathed);
+  _remove_invalid_gids (plan->_glyphset_mathed, plan->source->get_num_glyphs ());
+
   // Collect all glyphs referenced by COLRv0
-  hb_set_t* cur_glyphset = plan->_glyphset_gsub;
+  hb_set_t* cur_glyphset = plan->_glyphset_mathed;
   hb_set_t glyphset_colrv0;
   if (colr.is_valid ())
   {
@@ -468,6 +484,7 @@ hb_subset_plan_create (hb_face_t	 *face,
 
   plan->_glyphset = hb_set_create ();
   plan->_glyphset_gsub = hb_set_create ();
+  plan->_glyphset_mathed = hb_set_create ();
   plan->codepoint_to_glyph = hb_map_create ();
   plan->glyph_map = hb_map_create ();
   plan->reverse_glyph_map = hb_map_create ();
@@ -535,6 +552,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_map_destroy (plan->reverse_glyph_map);
   hb_set_destroy (plan->_glyphset);
   hb_set_destroy (plan->_glyphset_gsub);
+  hb_set_destroy (plan->_glyphset_mathed);
   hb_map_destroy (plan->gsub_lookups);
   hb_map_destroy (plan->gpos_lookups);
   hb_map_destroy (plan->gsub_features);

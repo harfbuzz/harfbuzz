@@ -52,6 +52,7 @@
 #include "hb-ot-layout-gpos-table.hh"
 #include "hb-ot-var-gvar-table.hh"
 #include "hb-ot-var-hvar-table.hh"
+#include "hb-ot-math-table.hh"
 #include "hb-repacker.hh"
 
 /**
@@ -305,6 +306,7 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
   case HB_OT_TAG_CPAL: return _subset<const OT::CPAL> (plan);
   case HB_OT_TAG_CBLC: return _subset<const OT::CBLC> (plan);
   case HB_OT_TAG_CBDT: return true; /* skip CBDT, handled by CBLC */
+  case HB_OT_TAG_MATH: return _subset<const OT::MATH> (plan);
 
 #ifndef HB_NO_SUBSET_CFF
   case HB_OT_TAG_cff1: return _subset<const OT::cff1> (plan);

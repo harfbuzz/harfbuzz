@@ -44,6 +44,7 @@ EXTRA_DIST += \
 	expected/cbdt \
 	expected/variable \
 	expected/glyph_names \
+	expected/math \
 	fonts \
 	profiles \
 	$(NULL)
