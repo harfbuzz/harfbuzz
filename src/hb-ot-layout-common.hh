@@ -2543,7 +2543,7 @@ struct VarRegionList
 
   public:
   HBUINT16	axisCount;
-  HBUINT16	regionCount;
+  HBUINT15	regionCount;
   protected:
   UnsizedArrayOf<VarRegionAxis>
 		axesZ;

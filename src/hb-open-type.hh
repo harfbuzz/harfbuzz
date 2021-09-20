@@ -122,6 +122,15 @@ typedef IntType<int32_t>  HBINT32;	/* 32-bit signed integer. */
  * Works for unsigned, but not signed, since we rely on compiler for sign-extension. */
 typedef IntType<uint32_t, 3> HBUINT24;	/* 24-bit unsigned integer. */
 
+/* 15-bit unsigned number; top bit used for extension. */
+struct HBUINT15 : HBUINT16
+{
+  /* TODO Flesh out; actually mask top bit. */
+  HBUINT15& operator = (uint16_t i ) { HBUINT16::operator= (i); return *this; }
+  public:
+  DEFINE_SIZE_STATIC (2);
+};
+
 /* 16-bit signed integer (HBINT16) that describes a quantity in FUnits. */
 typedef HBINT16 FWORD;
 
