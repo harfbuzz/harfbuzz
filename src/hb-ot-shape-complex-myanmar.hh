@@ -56,6 +56,7 @@ enum myanmar_category_t {
   OT_VS   = 30, /* Variation selectors */
   OT_P    = 31, /* Punctuation */
   OT_D    = 32, /* Digits except zero */
+  OT_ML   = 33, /* Various consonant medial types */
 };
 
 using myanmar_position_t = indic_position_t;
@@ -115,8 +116,12 @@ set_myanmar_properties (hb_glyph_info_t &info)
       cat = OT_D; /* XXX The spec says D0, but Uniscribe doesn't seem to do. */
       break;
 
-    case 0x103Eu: case 0x1060u:
+    case 0x103Eu:
       cat = OT_MH;
+      break;
+
+    case 0x1060u:
+      cat = OT_ML;
       break;
 
     case 0x103Cu:
