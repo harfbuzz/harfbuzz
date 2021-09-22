@@ -237,9 +237,9 @@ struct subset_offset_array_t
   template <typename T>
   bool operator () (T&& offset)
   {
+    auto snap = subset_context->serializer->snapshot ();
     auto *o = out.serialize_append (subset_context->serializer);
     if (unlikely (!o)) return false;
-    auto snap = subset_context->serializer->snapshot ();
     bool ret = o->serialize_subset (subset_context, offset, base);
     if (!ret)
     {
@@ -268,9 +268,9 @@ struct subset_offset_array_arg_t
   template <typename T>
   bool operator () (T&& offset)
   {
+    auto snap = subset_context->serializer->snapshot ();
     auto *o = out.serialize_append (subset_context->serializer);
     if (unlikely (!o)) return false;
-    auto snap = subset_context->serializer->snapshot ();
     bool ret = o->serialize_subset (subset_context, offset, base, arg);
     if (!ret)
     {

@@ -1386,9 +1386,9 @@ struct PairPosFormat1
     | hb_filter (glyphset, hb_first)
     | hb_filter ([this, c, out] (const Offset16To<PairSet>& _)
 		 {
+                   auto snap = c->serializer->snapshot ();
 		   auto *o = out->pairSet.serialize_append (c->serializer);
 		   if (unlikely (!o)) return false;
-		   auto snap = c->serializer->snapshot ();
 		   bool ret = o->serialize_subset (c, _, this, valueFormat, out->valueFormat);
 		   if (!ret)
 		   {

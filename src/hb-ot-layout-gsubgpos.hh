@@ -1752,10 +1752,10 @@ struct RuleSet
     for (const Offset16To<Rule>& _ : rule)
     {
       if (!_) continue;
+      auto o_snap = c->serializer->snapshot ();
       auto *o = out->rule.serialize_append (c->serializer);
       if (unlikely (!o)) continue;
 
-      auto o_snap = c->serializer->snapshot ();
       if (!o->serialize_subset (c, _, this, lookup_map, klass_map))
       {
 	out->rule.pop ();
@@ -2724,10 +2724,10 @@ struct ChainRuleSet
     for (const Offset16To<ChainRule>& _ : rule)
     {
       if (!_) continue;
+      auto o_snap = c->serializer->snapshot ();
       auto *o = out->rule.serialize_append (c->serializer);
       if (unlikely (!o)) continue;
 
-      auto o_snap = c->serializer->snapshot ();
       if (!o->serialize_subset (c, _, this,
 				lookup_map,
 				backtrack_klass_map,
