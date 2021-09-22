@@ -529,7 +529,7 @@ static void test_resolve_overflows_via_sort ()
   void* out_buffer = malloc (buffer_size);
   hb_serialize_context_t out (out_buffer, buffer_size);
 
-  hb_resolve_overflows (c.object_graph (), 0, &out);
+  hb_resolve_overflows (c.object_graph (), HB_TAG_NONE, &out);
   assert (!out.offset_overflow ());
   hb_bytes_t result = out.copy_bytes ();
   assert (result.length == (80000 + 3 + 3 * 2));
@@ -550,7 +550,7 @@ static void test_resolve_overflows_via_duplication ()
   void* out_buffer = malloc (buffer_size);
   hb_serialize_context_t out (out_buffer, buffer_size);
 
-  hb_resolve_overflows (c.object_graph (), 0, &out);
+  hb_resolve_overflows (c.object_graph (), HB_TAG_NONE, &out);
   assert (!out.offset_overflow ());
   hb_bytes_t result = out.copy_bytes ();
   assert (result.length == (10000 + 2 * 2 + 60000 + 2 + 3 * 2));
