@@ -828,8 +828,9 @@ struct graph_t
         if (visited[link.objidx]) continue;
 
         const auto& child = vertices_[link.objidx].obj;
+        unsigned link_width = link.width ? link.width : 4; // treat virtual offsets as 32 bits wide
         int64_t child_weight = (child.tail - child.head) +
-                               ((int64_t) 1 << (link.width * 8)) * (vertices_[link.objidx].space + 1);
+                               ((int64_t) 1 << (link_width * 8)) * (vertices_[link.objidx].space + 1);
         int64_t child_distance = next_distance + child_weight;
 
         if (child_distance < vertices_[link.objidx].distance)
@@ -874,6 +875,10 @@ struct graph_t
   bool is_valid_offset (int64_t offset,
                         const hb_serialize_context_t::object_t::link_t& link) const
   {
+    if (unlikely (!link.width))
+      // Virtual links can't overflow.
+      return link.is_signed || offset >= 0;
+
     if (link.is_signed)
     {
       if (link.width == 4)
@@ -966,6 +971,9 @@ struct graph_t
   {
     switch (link.width)
     {
+    case 0:
+      // Virtual links aren't serialized.
+      return;
     case 4:
       if (link.is_signed)
       {
