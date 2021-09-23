@@ -364,6 +364,30 @@ struct hb_serialize_context_t
       assert (packed.tail ()->head == tail);
   }
 
+  void add_link (VirtualOffset &ofs, objidx_t objidx)
+  {
+    // This link is not associated with an actual offset and exists merely to enforce
+    // an ordering constraint.
+    if (unlikely (in_error ())) return;
+
+    if (!objidx)
+      return;
+
+    assert (current);
+    assert (current->head <= (const char *) &ofs);
+
+    auto& link = *current->links.push ();
+    if (current->links.in_error ())
+      err (HB_SERIALIZE_ERROR_OTHER);
+
+    link.width = 0;
+    link.objidx = objidx;
+    link.is_signed = 0;
+    link.whence = 0;
+    link.position = 0;
+    link.bias = 0;
+  }
+
   template <typename T>
   void add_link (T &ofs, objidx_t objidx,
 		 whence_t whence = Head,
