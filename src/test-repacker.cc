@@ -64,6 +64,13 @@ static void add_wide_offset (unsigned id,
   c->add_link (*offset, id);
 }
 
+static void add_virtual_offset (unsigned id,
+                                hb_serialize_context_t* c)
+{
+  VirtualOffset* offset = c->start_embed<VirtualOffset> ();
+  c->add_link (*offset, id);
+}
+
 static void
 populate_serializer_simple (hb_serialize_context_t* c)
 {
@@ -278,6 +285,33 @@ populate_serializer_complex_3 (hb_serialize_context_t* c)
   add_offset (obj_2, c);
   add_offset (obj_4, c);
   add_offset (obj_5, c);
+  c->pop_pack ();
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_virtual_link (hb_serialize_context_t* c)
+{
+  c->start_serialize<char> ();
+
+  unsigned obj_d = add_object ("d", 1, c);
+
+  start_object ("b", 1, c);
+  add_offset (obj_d, c);
+  unsigned obj_b = c->pop_pack ();
+
+  start_object ("e", 1, c);
+  add_virtual_offset (obj_b, c);
+  unsigned obj_e = c->pop_pack();
+
+  start_object ("c", 1, c);
+  add_offset (obj_e, c);
+  unsigned obj_c = c->pop_pack ();
+
+  start_object ("a", 1, c);
+  add_offset (obj_b, c);
+  add_offset (obj_c, c);
   c->pop_pack ();
 
   c->end_serialize();
@@ -634,6 +668,32 @@ static void test_resolve_overflows_via_isolation_spaces ()
   free (out_buffer);
 }
 
+static void test_virtual_link ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_virtual_link (&c);
+
+  void* out_buffer = malloc (buffer_size);
+  hb_serialize_context_t out (out_buffer, buffer_size);
+
+  hb_resolve_overflows (c.object_graph (), HB_TAG_NONE, &out);
+  assert (!out.offset_overflow ());
+
+  hb_bytes_t result = out.copy_bytes ();
+  assert (result.length == 5 + 4 * 2);
+  assert (result[0]  == 'a');
+  assert (result[5]  == 'c');
+  assert (result[8]  == 'e');
+  assert (result[9]  == 'b');
+  assert (result[12] == 'd');
+
+  result.fini ();
+  free (buffer);
+  free (out_buffer);
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
@@ -654,4 +714,5 @@ main (int argc, char **argv)
   test_resolve_overflows_via_isolation_spaces ();
   test_duplicate_leaf ();
   test_duplicate_interior ();
+  test_virtual_link ();
 }
