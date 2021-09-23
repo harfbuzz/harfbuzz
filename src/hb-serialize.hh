@@ -51,6 +51,12 @@ enum hb_serialize_error_t {
 };
 HB_MARK_AS_FLAG_T (hb_serialize_error_t);
 
+// This is a 0 byte wide offset, used to add virtual links to the serializer object graph.
+// It does not correspond to a real offset and exists soley to enforce an ordering constraint
+// in the graph's packed order.
+struct VirtualOffset {
+};
+
 struct hb_serialize_context_t
 {
   typedef unsigned objidx_t;
@@ -376,11 +382,22 @@ struct hb_serialize_context_t
       err (HB_SERIALIZE_ERROR_OTHER);
 
     link.width = sizeof (T);
+    link.objidx = objidx;
+    if (unlikely (!sizeof (T)))
+    {
+      // This link is not associated with an actual offset and exists merely to enforce
+      // an ordering constraint.
+      link.is_signed = 0;
+      link.whence = 0;
+      link.position = 0;
+      link.bias = 0;
+      return;
+    }
+
     link.is_signed = hb_is_signed (hb_unwrap_type (T));
     link.whence = (unsigned) whence;
     link.position = (const char *) &ofs - current->head;
     link.bias = bias;
-    link.objidx = objidx;
   }
 
   unsigned to_bias (const void *base) const
@@ -402,6 +419,8 @@ struct hb_serialize_context_t
     for (const object_t* parent : ++hb_iter (packed))
       for (const object_t::link_t &link : parent->links)
       {
+        if (unlikely (!link.width)) continue; // Don't need to resolve virtual offsets
+
 	const object_t* child = packed[link.objidx];
 	if (unlikely (!child)) { err (HB_SERIALIZE_ERROR_OTHER); return; }
 	unsigned offset = 0;
