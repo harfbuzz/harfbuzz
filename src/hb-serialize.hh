@@ -51,12 +51,6 @@ enum hb_serialize_error_t {
 };
 HB_MARK_AS_FLAG_T (hb_serialize_error_t);
 
-// This is a 0 byte wide offset, used to add virtual links to the serializer object graph.
-// It does not correspond to a real offset and exists soley to enforce an ordering constraint
-// in the graph's packed order.
-struct VirtualOffset {
-};
-
 struct hb_serialize_context_t
 {
   typedef unsigned objidx_t;
@@ -364,7 +358,7 @@ struct hb_serialize_context_t
       assert (packed.tail ()->head == tail);
   }
 
-  void add_link (VirtualOffset &ofs, objidx_t objidx)
+  void add_virtual_link (objidx_t objidx)
   {
     // This link is not associated with an actual offset and exists merely to enforce
     // an ordering constraint.
@@ -374,7 +368,6 @@ struct hb_serialize_context_t
       return;
 
     assert (current);
-    assert (current->head <= (const char *) &ofs);
 
     auto& link = *current->links.push ();
     if (current->links.in_error ())

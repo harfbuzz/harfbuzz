@@ -67,8 +67,7 @@ static void add_wide_offset (unsigned id,
 static void add_virtual_offset (unsigned id,
                                 hb_serialize_context_t* c)
 {
-  VirtualOffset* offset = c->start_embed<VirtualOffset> ();
-  c->add_link (*offset, id);
+  c->add_virtual_link (id);
 }
 
 static void
