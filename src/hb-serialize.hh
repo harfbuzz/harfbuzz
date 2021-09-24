@@ -358,10 +358,16 @@ struct hb_serialize_context_t
       assert (packed.tail ()->head == tail);
   }
 
+  // Adds a virtual link from the current object to objidx. A virtual link is not associated with
+  // an actual offset field. They are solely used to enforce ordering constraints between objects.
+  // Adding a virtual link from object a to object b will ensure that object b is always packed after
+  // object a in the final serialized order.
+  //
+  // This is useful in certain situtations where there needs to be a specific ordering in the
+  // final serialization. Such as when platform bugs require certain orderings, or to provide
+  //  guidance to the repacker for better offset overflow resolution.
   void add_virtual_link (objidx_t objidx)
   {
-    // This link is not associated with an actual offset and exists merely to enforce
-    // an ordering constraint.
     if (unlikely (in_error ())) return;
 
     if (!objidx)
