@@ -372,7 +372,7 @@ struct graph_t
     // incoming edges to root_idx should be all 32 bit in length so we don't need to de-dup these
     // set the subgraph incoming edge count to match all of root_idx's incoming edges
     subgraph.set (root_idx, vertices_[root_idx].incoming_edges);
-    find_subgraph(root_idx, subgraph);
+    find_subgraph (root_idx, subgraph);
 
     hb_hashmap_t<unsigned, unsigned> index_map;
     bool made_changes = false;
@@ -392,7 +392,14 @@ struct graph_t
     if (!made_changes)
       return false;
 
-    remap_obj_indices (index_map, subgraph.keys ());
+    auto new_subgraph =
+        + subgraph.keys ()
+        | hb_map([&] (unsigned node_idx) {
+          if (index_map.has (node_idx)) return index_map[node_idx];
+          return node_idx;
+        })
+        ;
+    remap_obj_indices (index_map, new_subgraph);
     return true;
   }
 
