@@ -41,7 +41,7 @@ struct graph_t
     vertex_t () :
         distance (0),
         space (0),
-        incoming_edges (0),
+        parents (),
         start (0),
         end (0),
         priority(0) {}
@@ -51,14 +51,44 @@ struct graph_t
     hb_serialize_context_t::object_t obj;
     int64_t distance;
     int64_t space;
-    unsigned incoming_edges;
+    hb_vector_t<unsigned> parents;
     unsigned start;
     unsigned end;
     unsigned priority;
 
     bool is_shared () const
     {
-      return incoming_edges > 1;
+      return parents.length > 1;
+    }
+
+    unsigned incoming_edges () const
+    {
+      return parents.length;
+    }
+
+    void remove_parent (unsigned parent_index)
+    {
+      for (unsigned i = 0; i < parents.length; i++)
+      {
+        if (parents[i] != parent_index) continue;
+        parents.remove (i);
+        break;
+      }
+    }
+
+    void remap_parents (const hb_vector_t<unsigned>& id_map)
+    {
+      for (unsigned i = 0; i < parents.length; i++)
+        parents[i] = id_map[parents[i]];
+    }
+
+    void remap_parent (unsigned old_index, unsigned new_index)
+    {
+      for (unsigned i = 0; i < parents.length; i++)
+      {
+        if (parents[i] == old_index)
+          parents[i] = new_index;
+      }
     }
 
     bool is_leaf () const
@@ -131,7 +161,7 @@ struct graph_t
    * serializer
    */
   graph_t (const hb_vector_t<hb_serialize_context_t::object_t *>& objects)
-      : edge_count_invalid (true),
+      : parents_invalid (true),
         distance_invalid (true),
         positions_invalid (true),
         successful (true)
@@ -233,7 +263,7 @@ struct graph_t
 
     hb_vector_t<unsigned> removed_edges;
     if (unlikely (!check_success (removed_edges.resize (vertices_.length)))) return;
-    update_incoming_edge_count ();
+    update_parents ();
 
     queue.push (root_idx ());
     int new_id = vertices_.length - 1;
@@ -249,7 +279,7 @@ struct graph_t
 
       for (const auto& link : next.obj.links) {
         removed_edges[link.objidx]++;
-        if (!(vertices_[link.objidx].incoming_edges - removed_edges[link.objidx]))
+        if (!(vertices_[link.objidx].incoming_edges () - removed_edges[link.objidx]))
           queue.push (link.objidx);
       }
     }
@@ -259,7 +289,7 @@ struct graph_t
     if (!check_success (new_id == -1))
       DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
 
-    remap_obj_indices (id_map, &sorted_graph);
+    remap_all_obj_indices (id_map, &sorted_graph);
 
     sorted_graph.as_array ().reverse ();
 
@@ -290,7 +320,7 @@ struct graph_t
 
     hb_vector_t<unsigned> removed_edges;
     if (unlikely (!check_success (removed_edges.resize (vertices_.length)))) return;
-    update_incoming_edge_count ();
+    update_parents ();
 
     queue.insert (root ().modified_distance (0), root_idx ());
     int new_id = root_idx ();
@@ -305,7 +335,7 @@ struct graph_t
 
       for (const auto& link : next.obj.links) {
         removed_edges[link.objidx]++;
-        if (!(vertices_[link.objidx].incoming_edges - removed_edges[link.objidx]))
+        if (!(vertices_[link.objidx].incoming_edges () - removed_edges[link.objidx]))
           // Add the order that the links were encountered to the priority.
           // This ensures that ties between priorities objects are broken in a consistent
           // way. More specifically this is set up so that if a set of objects have the same
@@ -321,7 +351,7 @@ struct graph_t
     if (!check_success (new_id == -1))
       DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
 
-    remap_obj_indices (id_map, &sorted_graph);
+    remap_all_obj_indices (id_map, &sorted_graph);
 
     sorted_graph.as_array ().reverse ();
 
@@ -366,12 +396,12 @@ struct graph_t
    */
   bool isolate_subgraph (unsigned root_idx)
   {
-    update_incoming_edge_count ();
+    update_parents ();
     hb_hashmap_t<unsigned, unsigned> subgraph;
 
     // incoming edges to root_idx should be all 32 bit in length so we don't need to de-dup these
     // set the subgraph incoming edge count to match all of root_idx's incoming edges
-    subgraph.set (root_idx, vertices_[root_idx].incoming_edges);
+    subgraph.set (root_idx, vertices_[root_idx].incoming_edges ());
     find_subgraph (root_idx, subgraph);
 
     hb_hashmap_t<unsigned, unsigned> index_map;
@@ -381,7 +411,7 @@ struct graph_t
       const auto& node = vertices_[entry.first];
       unsigned subgraph_incoming_edges = entry.second;
 
-      if (subgraph_incoming_edges < node.incoming_edges)
+      if (subgraph_incoming_edges < node.incoming_edges ())
       {
         // Only  de-dup objects with incoming links from outside the subgraph.
         made_changes = true;
@@ -454,12 +484,13 @@ struct graph_t
     clone->obj.tail = buffer->tail;
     clone->distance = child.distance;
     clone->space = child.space;
-    clone->incoming_edges = 0;
+    clone->parents.reset ();
 
+    unsigned clone_idx = vertices_.length - 2;
     for (const auto& l : child.obj.links)
     {
       clone->obj.links.push (l);
-      vertices_[l.objidx].incoming_edges++;
+      vertices_[l.objidx].parents.push (clone_idx);
     }
 
     check_success (!clone->obj.links.in_error ());
@@ -468,10 +499,10 @@ struct graph_t
     // The root's obj idx does change, however since it's root nothing else refers to it.
     // all other obj idx's will be unaffected.
     vertex_t root = vertices_[vertices_.length - 2];
-    vertices_[vertices_.length - 2] = *clone;
+    vertices_[clone_idx] = *clone;
     vertices_[vertices_.length - 1] = root;
 
-    return vertices_.length - 2;
+    return clone_idx;
   }
 
   /*
@@ -481,7 +512,7 @@ struct graph_t
    */
   bool duplicate (unsigned parent_idx, unsigned child_idx)
   {
-    update_incoming_edge_count ();
+    update_parents ();
 
     unsigned links_to_child = 0;
     for (const auto& l : vertices_[parent_idx].obj.links)
@@ -489,7 +520,7 @@ struct graph_t
       if (l.objidx == child_idx) links_to_child++;
     }
 
-    if (vertices_[child_idx].incoming_edges <= links_to_child)
+    if (vertices_[child_idx].incoming_edges () <= links_to_child)
     {
       // Can't duplicate this node, doing so would orphan the original one as all remaining links
       // to child are from parent.
@@ -504,20 +535,19 @@ struct graph_t
     unsigned clone_idx = duplicate (child_idx);
     if (clone_idx == (unsigned) -1) return false;
     // duplicate shifts the root node idx, so if parent_idx was root update it.
+    unsigned original_parent_idx = parent_idx;
     if (parent_idx == clone_idx) parent_idx++;
-    auto& clone = vertices_[clone_idx];
-    auto& child = vertices_[child_idx];
 
     auto& parent = vertices_[parent_idx];
     for (unsigned i = 0; i < parent.obj.links.length; i++)
     {
       auto& l = parent.obj.links[i];
-      if (l.objidx == child_idx)
-      {
-        l.objidx = clone_idx;
-        clone.incoming_edges++;
-        child.incoming_edges--;
-      }
+      if (original_parent_idx != parent_idx)
+        vertices_[l.objidx].remap_parent (original_parent_idx, parent_idx);
+      if (l.objidx != child_idx)
+        continue;
+
+      reassign_link (l, parent_idx, clone_idx);
     }
 
     return true;
@@ -571,7 +601,7 @@ struct graph_t
   {
     if (!DEBUG_ENABLED(SUBSET_REPACK)) return;
 
-    update_incoming_edge_count ();
+    update_parents ();
     for (const auto& o : overflows)
     {
       const auto& parent = vertices_[o.parent];
@@ -579,10 +609,10 @@ struct graph_t
       DEBUG_MSG (SUBSET_REPACK, nullptr,
                  "  overflow from %d (%d in, %d out) => %d (%d in, %d out)",
                  o.parent,
-                 parent.incoming_edges,
+                 parent.incoming_edges (),
                  parent.obj.links.length,
                  o.child,
-                 child.incoming_edges,
+                 child.incoming_edges (),
                  child.obj.links.length);
     }
   }
@@ -597,22 +627,20 @@ struct graph_t
   /*
    * Creates a map from objid to # of incoming edges.
    */
-  void update_incoming_edge_count ()
+  void update_parents ()
   {
-    if (!edge_count_invalid) return;
+    if (!parents_invalid) return;
 
     for (unsigned i = 0; i < vertices_.length; i++)
-      vertices_[i].incoming_edges = 0;
+      vertices_[i].parents.reset ();
 
-    for (const vertex_t& v : vertices_)
+    for (unsigned p = 0; p < vertices_.length; p++)
     {
-      for (auto& l : v.obj.links)
-      {
-        vertices_[l.objidx].incoming_edges++;
-      }
+      for (auto& l : vertices_[p].obj.links)
+        vertices_[l.objidx].parents.push (p);
     }
 
-    edge_count_invalid = false;
+    parents_invalid = false;
   }
 
   /*
@@ -743,6 +771,20 @@ struct graph_t
   }
 
   /*
+   * Updates a link in the graph to point to a different object. Corrects the
+   * parents vector on the previous and new child nodes.
+   */
+  void reassign_link (hb_serialize_context_t::object_t::link_t& link,
+                      unsigned parent_idx,
+                      unsigned new_idx)
+  {
+    unsigned old_idx = link.objidx;
+    link.objidx = new_idx;
+    vertices_[old_idx].remove_parent (parent_idx);
+    vertices_[new_idx].parents.push (parent_idx);
+  }
+
+  /*
    * Updates all objidx's in all links using the provided mapping. Corrects incoming edge counts.
    */
   template<typename Iterator, hb_requires (hb_is_iterator (Iterator))>
@@ -756,9 +798,8 @@ struct graph_t
       {
         auto& link = vertices_[i].obj.links[j];
         if (!id_map.has (link.objidx)) continue;
-        vertices_[link.objidx].incoming_edges--;
-        link.objidx = id_map[link.objidx];
-        vertices_[link.objidx].incoming_edges++;
+
+        reassign_link (link, i, id_map[link.objidx]);
       }
     }
   }
@@ -766,11 +807,12 @@ struct graph_t
   /*
    * Updates all objidx's in all links using the provided mapping.
    */
-  void remap_obj_indices (const hb_vector_t<unsigned>& id_map,
-                          hb_vector_t<vertex_t>* sorted_graph) const
+  void remap_all_obj_indices (const hb_vector_t<unsigned>& id_map,
+                              hb_vector_t<vertex_t>* sorted_graph) const
   {
     for (unsigned i = 0; i < sorted_graph->length; i++)
     {
+      (*sorted_graph)[i].remap_parents (id_map);
       for (unsigned j = 0; j < (*sorted_graph)[i].obj.links.length; j++)
       {
         auto& link = (*sorted_graph)[i].obj.links[j];
@@ -830,7 +872,7 @@ struct graph_t
   hb_vector_t<vertex_t> vertices_;
  private:
   hb_vector_t<clone_buffer_t> clone_buffers_;
-  bool edge_count_invalid;
+  bool parents_invalid;
   bool distance_invalid;
   bool positions_invalid;
   bool successful;
