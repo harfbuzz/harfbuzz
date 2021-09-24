@@ -861,13 +861,15 @@ struct Ligature
     return_trace (true);
   }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c, unsigned coverage_idx) const
   {
     TRACE_SUBSET (this);
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     if (!intersects (&glyphset) || !glyphset.has (ligGlyph)) return_trace (false);
+    // Ensure Coverage table is always packed after this.
+    c->serializer->add_virtual_link (coverage_idx);
 
     auto it =
       + hb_iter (component)
@@ -968,16 +970,21 @@ struct LigatureSet
     return_trace (true);
   }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c, unsigned coverage_idx) const
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
 
     + hb_iter (ligature)
-    | hb_filter (subset_offset_array (c, out->ligature, this))
+    | hb_filter (subset_offset_array (c, out->ligature, this, coverage_idx))
     | hb_drain
     ;
+
+    if (bool (out->ligature))
+      // Ensure Coverage table is always packed after this.
+      c->serializer->add_virtual_link (coverage_idx);
+
     return_trace (bool (out->ligature));
   }
 
@@ -1092,15 +1099,38 @@ struct LigatureSubstFormat1
     if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
     out->format = format;
 
-    hb_sorted_vector_t<hb_codepoint_t> new_coverage;
-    + hb_zip (this+coverage, ligatureSet)
+    // Due to a bug in some older versions of windows 7 the Coverage table must be
+    // packed after the LigatureSet and Ligature tables, so serialize Coverage first
+    // which places it last in the packed order.
+    hb_set_t new_coverage;
+    + hb_zip (this+coverage, hb_iter (ligatureSet) | hb_map (hb_add (this)))
     | hb_filter (glyphset, hb_first)
-    | hb_filter (subset_offset_array (c, out->ligatureSet, this), hb_second)
+    | hb_filter ([&] (const LigatureSet& _) {
+      return _.intersects (&glyphset);
+    }, hb_second)
     | hb_map (hb_first)
-    | hb_map (glyph_map)
-    | hb_sink (new_coverage)
+    | hb_sink (new_coverage);
+
+    if (!c->serializer->push<Coverage> ()
+        ->serialize (c->serializer,
+                     + new_coverage.iter () | hb_map_retains_sorting (glyph_map)))
+    {
+      c->serializer->pop_discard ();
+      return_trace (false);
+    }
+
+    unsigned coverage_idx = c->serializer->pop_pack ();
+     c->serializer->add_link (out->coverage, coverage_idx);
+
+    + hb_zip (this+coverage, ligatureSet)
+    | hb_filter (new_coverage, hb_first)
+    | hb_map (hb_second)
+    // to ensure that the repacker always orders the coverage table after the LigatureSet
+    // and LigatureSubtable's they will be linked to the Coverage table via a virtual link
+    // the coverage table object idx is passed down to facilitate this.
+    | hb_apply (subset_offset_array (c, out->ligatureSet, this, coverage_idx))
     ;
-    out->coverage.serialize_serialize (c->serializer, new_coverage.iter ());
+
     return_trace (bool (new_coverage));
   }
 
