@@ -155,7 +155,7 @@ populate_serializer_with_isolation_overflow_complex (hb_serialize_context_t* c)
   add_offset (obj_f, c);
   unsigned obj_e = c->pop_pack ();
 
-  start_object ("c", 1, c);
+  start_object ("cc", 2, c);
   add_offset (obj_e, c);
   unsigned obj_c = c->pop_pack ();
 
@@ -180,6 +180,54 @@ populate_serializer_with_isolation_overflow_complex (hb_serialize_context_t* c)
   c->end_serialize();
 }
 
+static void
+populate_serializer_with_isolation_overflow_complex_expected (hb_serialize_context_t* c)
+{
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  // 32 bit subgraph
+  unsigned obj_f_prime = add_object ("f", 1, c);
+
+  start_object ("e", 1, c);
+  add_offset (obj_f_prime, c);
+  unsigned obj_e_prime = c->pop_pack ();
+
+  start_object ("cc", 2, c);
+  add_offset (obj_e_prime, c);
+  unsigned obj_c = c->pop_pack ();
+
+  start_object ("d", 1, c);
+  add_offset (obj_e_prime, c);
+  unsigned obj_d_prime = c->pop_pack ();
+
+  start_object (large_string.c_str(), 60000, c);
+  add_offset (obj_c, c);
+  add_offset (obj_d_prime, c);
+  unsigned obj_b = c->pop_pack ();
+
+  // 16 bit subgraph
+  unsigned obj_f = add_object ("f", 1, c);
+
+  start_object ("e", 1, c);
+  add_offset (obj_f, c);
+  unsigned obj_e = c->pop_pack ();
+
+  start_object ("d", 1, c);
+  add_offset (obj_e, c);
+  unsigned obj_d = c->pop_pack ();
+
+  start_object (large_string.c_str(), 10000, c);
+  add_offset (obj_d, c);
+  unsigned obj_g = c->pop_pack ();
+
+  start_object ("a", 1, c);
+  add_wide_offset (obj_b, c);
+  add_offset (obj_g, c);
+  c->pop_pack ();
+
+  c->end_serialize();
+}
 
 static void
 populate_serializer_with_isolation_overflow_spaces (hb_serialize_context_t* c)
@@ -600,12 +648,20 @@ static void test_resolve_overflows_via_isolation_with_recursive_duplication ()
   assert (!out.offset_overflow ());
   hb_bytes_t result = out.copy_bytes ();
 
-  unsigned expected_length = 8 + 10000 + 60000; // objects
-  expected_length += 4 + 2 * 9; // links
-  assert (result.length == expected_length);
+  void* expected_buffer = malloc (buffer_size);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  assert (!e.offset_overflow ());
+  populate_serializer_with_isolation_overflow_complex_expected (&e);
+  hb_bytes_t expected_result = e.copy_bytes ();
+
+  assert (result.length == expected_result.length);
+  for (unsigned i = 0; i < result.length; i++)
+    assert (result[i] == expected_result[i]);
 
   result.fini ();
+  expected_result.fini ();
   free (buffer);
+  free (expected_buffer);
   free (out_buffer);
 }
 
