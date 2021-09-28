@@ -75,7 +75,7 @@ populate_serializer_simple (hb_serialize_context_t* c)
   start_object ("abc", 3, c);
   add_offset (obj_2, c);
   add_offset (obj_1, c);
-  c->pop_pack ();
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -94,7 +94,7 @@ populate_serializer_with_overflow (hb_serialize_context_t* c)
   add_offset (obj_3, c);
   add_offset (obj_2, c);
   add_offset (obj_1, c);
-  c->pop_pack ();
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -129,16 +129,16 @@ populate_serializer_with_isolation_overflow (hb_serialize_context_t* c)
 
   start_object (large_string.c_str(), 60000, c);
   add_offset (obj_4, c);
-  unsigned obj_3 = c->pop_pack ();
+  unsigned obj_3 = c->pop_pack (false);
 
   start_object (large_string.c_str(), 10000, c);
   add_offset (obj_4, c);
-  unsigned obj_2 = c->pop_pack ();
+  unsigned obj_2 = c->pop_pack (false);
 
   start_object ("1", 1, c);
   add_wide_offset (obj_3, c);
   add_offset (obj_2, c);
-  c->pop_pack ();
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -153,29 +153,33 @@ populate_serializer_with_isolation_overflow_complex (hb_serialize_context_t* c)
 
   start_object ("e", 1, c);
   add_offset (obj_f, c);
-  unsigned obj_e = c->pop_pack ();
+  unsigned obj_e = c->pop_pack (false);
 
   start_object ("cc", 2, c);
   add_offset (obj_e, c);
-  unsigned obj_c = c->pop_pack ();
+  unsigned obj_c = c->pop_pack (false);
 
   start_object ("d", 1, c);
   add_offset (obj_e, c);
-  unsigned obj_d = c->pop_pack ();
+  unsigned obj_d = c->pop_pack (false);
+
+  start_object (large_string.c_str(), 60000, c);
+  add_offset (obj_d, c);
+  unsigned obj_h = c->pop_pack (false);
 
   start_object (large_string.c_str(), 60000, c);
   add_offset (obj_c, c);
-  add_offset (obj_d, c);
-  unsigned obj_b = c->pop_pack ();
+  add_offset (obj_h, c);
+  unsigned obj_b = c->pop_pack (false);
 
   start_object (large_string.c_str(), 10000, c);
   add_offset (obj_d, c);
-  unsigned obj_g = c->pop_pack ();
+  unsigned obj_g = c->pop_pack (false);
 
   start_object ("a", 1, c);
   add_wide_offset (obj_b, c);
   add_offset (obj_g, c);
-  c->pop_pack ();
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -256,6 +260,57 @@ populate_serializer_with_isolation_overflow_spaces (hb_serialize_context_t* c)
 }
 
 static void
+populate_serializer_spaces (hb_serialize_context_t* c, bool with_overflow)
+{
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned obj_i;
+
+  if (with_overflow)
+    obj_i = add_object ("i", 1, c);
+
+  // Space 2
+  unsigned obj_h = add_object ("h", 1, c);
+
+  start_object (large_string.c_str(), 30000, c);
+  add_offset (obj_h, c);
+  unsigned obj_e = c->pop_pack (false);
+
+  start_object ("b", 1, c);
+  add_offset (obj_e, c);
+  unsigned obj_b = c->pop_pack (false);
+
+  // Space 1
+  if (!with_overflow)
+    obj_i = add_object ("i", 1, c);
+
+  start_object (large_string.c_str(), 30000, c);
+  add_offset (obj_i, c);
+  unsigned obj_g = c->pop_pack (false);
+
+  start_object (large_string.c_str(), 30000, c);
+  add_offset (obj_i, c);
+  unsigned obj_f = c->pop_pack (false);
+
+  start_object ("d", 1, c);
+  add_offset (obj_g, c);
+  unsigned obj_d = c->pop_pack (false);
+
+  start_object ("c", 1, c);
+  add_offset (obj_f, c);
+  unsigned obj_c = c->pop_pack (false);
+
+  start_object ("a", 1, c);
+  add_wide_offset (obj_b, c);
+  add_wide_offset (obj_c, c);
+  add_wide_offset (obj_d, c);
+  c->pop_pack (false);
+
+  c->end_serialize();
+}
+
+static void
 populate_serializer_complex_1 (hb_serialize_context_t* c)
 {
   c->start_serialize<char> ();
@@ -270,7 +325,7 @@ populate_serializer_complex_1 (hb_serialize_context_t* c)
   start_object ("abc", 3, c);
   add_offset (obj_2, c);
   add_offset (obj_4, c);
-  c->pop_pack ();
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -296,7 +351,7 @@ populate_serializer_complex_2 (hb_serialize_context_t* c)
   add_offset (obj_2, c);
   add_offset (obj_4, c);
   add_offset (obj_5, c);
-  c->pop_pack ();
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -326,7 +381,7 @@ populate_serializer_complex_3 (hb_serialize_context_t* c)
   add_offset (obj_2, c);
   add_offset (obj_4, c);
   add_offset (obj_5, c);
-  c->pop_pack ();
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -608,6 +663,38 @@ static void test_resolve_overflows_via_duplication ()
   free (out_buffer);
 }
 
+static void test_resolve_overflows_via_space_assignment ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_spaces (&c, true);
+  graph_t graph (c.object_graph ());
+
+  void* out_buffer = malloc (buffer_size);
+  hb_serialize_context_t out (out_buffer, buffer_size);
+
+  assert (c.offset_overflow ());
+  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, 0);
+  assert (!out.offset_overflow ());
+  hb_bytes_t result = out.copy_bytes ();
+
+  void* expected_buffer = malloc (buffer_size);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  assert (!e.offset_overflow ());
+  populate_serializer_spaces (&e, false);
+  hb_bytes_t expected_result = e.copy_bytes ();
+
+  assert (result.length == expected_result.length);
+  for (unsigned i = 0; i < result.length; i++)
+    assert (result[i] == expected_result[i]);
+
+  result.fini ();
+  expected_result.fini ();
+  free (buffer);
+  free (expected_buffer);
+  free (out_buffer);
+}
 
 static void test_resolve_overflows_via_isolation ()
 {
@@ -621,7 +708,7 @@ static void test_resolve_overflows_via_isolation ()
   hb_serialize_context_t out (out_buffer, buffer_size);
 
   assert (c.offset_overflow ());
-  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, 0);
+  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, 1);
   assert (!out.offset_overflow ());
   hb_bytes_t result = out.copy_bytes ();
   assert (result.length == (1 + 10000 + 60000 + 1 + 1
@@ -644,7 +731,7 @@ static void test_resolve_overflows_via_isolation_with_recursive_duplication ()
   hb_serialize_context_t out (out_buffer, buffer_size);
 
   assert (c.offset_overflow ());
-  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, 0);
+  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, 1);
   assert (!out.offset_overflow ());
   hb_bytes_t result = out.copy_bytes ();
 
@@ -705,6 +792,7 @@ main (int argc, char **argv)
   test_will_overflow_3 ();
   test_resolve_overflows_via_sort ();
   test_resolve_overflows_via_duplication ();
+  test_resolve_overflows_via_space_assignment ();
   test_resolve_overflows_via_isolation ();
   test_resolve_overflows_via_isolation_with_recursive_duplication ();
   test_resolve_overflows_via_isolation_spaces ();

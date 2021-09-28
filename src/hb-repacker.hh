@@ -361,6 +361,50 @@ struct graph_t
   }
 
   /*
+   * Assign unique space numbers to each connected subgraph of 32 bit offset(s).
+   */
+  bool assign_32bit_spaces ()
+  {
+    unsigned root_index = root_idx ();
+    hb_set_t visited;
+    hb_set_t roots;
+    for (unsigned i = 0; i <= root_index; i++)
+    {
+      for (auto& l : vertices_[i].obj.links)
+      {
+        if (l.width == 4 && !l.is_signed)
+        {
+          visited.add (i);
+          roots.add (l.objidx);
+        }
+      }
+    }
+
+    if (!roots) return false;
+
+    unsigned space = 0;
+    while (roots)
+    {
+      unsigned next = HB_SET_VALUE_INVALID;
+      if (!roots.next (&next)) break;
+
+      hb_set_t connected_roots;
+      find_connected_nodes (next, roots, visited, connected_roots);
+
+      space++;
+      for (unsigned root : connected_roots)
+      {
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Subgraph %u gets space %u", root, space);
+        vertices_[root].space = space;
+        distance_invalid = true;
+        positions_invalid = true;
+      }
+    }
+
+    return true;
+  }
+
+  /*
    * Finds any links using 32 bits and isolates the subgraphs they point too.
    */
   bool isolate_32bit_links ()
@@ -867,6 +911,37 @@ struct graph_t
     }
   }
 
+  /*
+   * Finds all nodes in targets that are reachable from start_idx, nodes in visited will be skipped.
+   * For this search the graph is treated as being undirected.
+   *
+   * Connected targets will be added to connected and removed from targets. All visited nodes
+   * will be added to visited.
+   */
+  void find_connected_nodes (unsigned start_idx,
+                             hb_set_t& targets,
+                             hb_set_t& visited,
+                             hb_set_t& connected)
+  {
+    if (visited.has (start_idx)) return;
+    visited.add (start_idx);
+
+    if (targets.has (start_idx))
+    {
+      targets.del (start_idx);
+      connected.add (start_idx);
+    }
+
+    const auto& v = vertices_[start_idx];
+
+    // Graph is treated as undirected so search children and parents of start_idx
+    for (const auto& l : v.obj.links)
+      find_connected_nodes (l.objidx, targets, visited, connected);
+
+    for (unsigned p : v.parents)
+      find_connected_nodes (p, targets, visited, connected);
+  }
+
  public:
   // TODO(garretrieger): make private, will need to move most of offset overflow code into graph.
   hb_vector_t<vertex_t> vertices_;
@@ -956,9 +1031,9 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
        ||  table_tag == HB_OT_TAG_GSUB)
       && sorted_graph.will_overflow ())
   {
-    if (sorted_graph.isolate_32bit_links ())
+    if (sorted_graph.assign_32bit_spaces ())
     {
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "Isolated extension sub tables.");
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
       sorted_graph.sort_shortest_distance ();
     }
   }
