@@ -374,16 +374,18 @@ struct graph_t
       {
         if (l.width == 4 && !l.is_signed)
         {
-          visited.add (i);
           roots.add (l.objidx);
+          find_subgraph (l.objidx, visited);
         }
       }
     }
 
+    // Mark everything not in the subgraphs of 32 bit roots as visited.
+    // This prevents 32 bit subgraphs from being connected via nodes not in the 32 bit subgraphs.
+    visited.invert ();
+
     if (!roots) return false;
 
-    // TODO(grieger): add 16 bit only space to visited so it can't be used to connect 32 bit
-    //                subgraphs.
     unsigned space = 0;
     while (roots)
     {
@@ -471,6 +473,14 @@ struct graph_t
       subgraph.set (link.objidx, 1);
       find_subgraph (link.objidx, subgraph);
     }
+  }
+
+  void find_subgraph (unsigned node_idx, hb_set_t& subgraph)
+  {
+    if (subgraph.has (node_idx)) return;
+    subgraph.add (node_idx);
+    for (const auto& link : vertices_[node_idx].obj.links)
+      find_subgraph (link.objidx, subgraph);
   }
 
   /*
@@ -1013,11 +1023,9 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
        ||  table_tag == HB_OT_TAG_GSUB)
       && sorted_graph.will_overflow ())
   {
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
     if (sorted_graph.assign_32bit_spaces ())
-    {
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
       sorted_graph.sort_shortest_distance ();
-    }
   }
 
   unsigned round = 0;
