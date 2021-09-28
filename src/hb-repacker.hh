@@ -382,6 +382,8 @@ struct graph_t
 
     if (!roots) return false;
 
+    // TODO(grieger): add 16 bit only space to visited so it can't be used to connect 32 bit
+    //                subgraphs.
     unsigned space = 0;
     while (roots)
     {
@@ -399,38 +401,12 @@ struct graph_t
         distance_invalid = true;
         positions_invalid = true;
       }
+      // TODO(grieger): special case for GSUB/GPOS use extension promotions to move 16 bit space
+      //                into the 32 bit space as needed, instead of using isolation.
+      isolate_subgraph (connected_roots);
     }
 
     return true;
-  }
-
-  /*
-   * Finds any links using 32 bits and isolates the subgraphs they point too.
-   */
-  bool isolate_32bit_links ()
-  {
-    bool made_changes = false;
-    hb_set_t target_links;
-    unsigned root_index = root_idx ();
-    int64_t next_space = 0;
-    for (unsigned i = 0; i <= root_index; i++)
-    {
-      if (i == root_index && root_idx () > i)
-        // root index may have moved due to graph modifications.
-        i = root_idx ();
-
-      for (auto& l : vertices_[i].obj.links)
-      {
-        if (l.width == 4 && !l.is_signed)
-        {
-          isolate_subgraph (l.objidx);
-          vertices_[l.objidx].space = next_space++;
-          distance_invalid = true;
-          made_changes = true;
-        }
-      }
-    }
-    return made_changes;
   }
 
   /*
@@ -438,15 +414,21 @@ struct graph_t
    * that originate from outside of the subgraph will be removed by duplicating the linked to
    * object.
    */
-  bool isolate_subgraph (unsigned root_idx)
+  bool isolate_subgraph (hb_set_t roots)
   {
     update_parents ();
     hb_hashmap_t<unsigned, unsigned> subgraph;
 
     // incoming edges to root_idx should be all 32 bit in length so we don't need to de-dup these
     // set the subgraph incoming edge count to match all of root_idx's incoming edges
-    subgraph.set (root_idx, vertices_[root_idx].incoming_edges ());
-    find_subgraph (root_idx, subgraph);
+    //
+    // TODO(grieger): the above assumption does not always hold, as there are 16 bit incoming
+    //                edges, handle that case here by not including them in the count.
+    for (unsigned root_idx : roots)
+    {
+      subgraph.set (root_idx, vertices_[root_idx].incoming_edges ());
+      find_subgraph (root_idx, subgraph);
+    }
 
     hb_hashmap_t<unsigned, unsigned> index_map;
     bool made_changes = false;
