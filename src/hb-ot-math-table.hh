@@ -836,12 +836,16 @@ struct MathVariants
   void collect_coverage_and_indices (hb_sorted_vector_t<hb_codepoint_t>& new_coverage,
                                      const Offset16To<Coverage>& coverage,
                                      unsigned i,
+                                     unsigned end_index,
                                      hb_set_t& indices,
                                      const hb_set_t& glyphset,
                                      const hb_map_t& glyph_map) const
   {
+    if (!coverage) return;
+
     for (const auto _ : (this+coverage).iter ())
     {
+      if (i >= end_index) return;
       if (glyphset.has (_))
       {
         unsigned new_gid = glyph_map.get (_);
@@ -866,8 +870,8 @@ struct MathVariants
     hb_sorted_vector_t<hb_codepoint_t> new_vert_coverage;
     hb_sorted_vector_t<hb_codepoint_t> new_hori_coverage;
     hb_set_t indices;
-    collect_coverage_and_indices (new_vert_coverage, vertGlyphCoverage, 0, indices, glyphset, glyph_map);
-    collect_coverage_and_indices (new_hori_coverage, horizGlyphCoverage, vertGlyphCount, indices, glyphset, glyph_map);
+    collect_coverage_and_indices (new_vert_coverage, vertGlyphCoverage, 0, vertGlyphCount, indices, glyphset, glyph_map);
+    collect_coverage_and_indices (new_hori_coverage, horizGlyphCoverage, vertGlyphCount, vertGlyphCount + horizGlyphCount, indices, glyphset, glyph_map);
     
     if (!c->serializer->check_assign (out->vertGlyphCount, new_vert_coverage.length, HB_SERIALIZE_ERROR_INT_OVERFLOW))
       return_trace (false);
