@@ -416,22 +416,21 @@ struct graph_t
    * that originate from outside of the subgraph will be removed by duplicating the linked to
    * object.
    */
-  bool isolate_subgraph (hb_set_t roots)
+  bool isolate_subgraph (const hb_set_t& roots)
   {
     update_parents ();
     hb_hashmap_t<unsigned, unsigned> subgraph;
 
     // incoming edges to root_idx should be all 32 bit in length so we don't need to de-dup these
     // set the subgraph incoming edge count to match all of root_idx's incoming edges
-    //
-    // TODO(grieger): the above assumption does not always hold, as there are 16 bit incoming
-    //                edges, handle that case here by not including them in the count.
+    hb_set_t parents;
     for (unsigned root_idx : roots)
     {
-      subgraph.set (root_idx, vertices_[root_idx].incoming_edges ());
+      subgraph.set (root_idx, wide_parents (root_idx, parents));
       find_subgraph (root_idx, subgraph);
     }
 
+    unsigned original_root_idx = root_idx ();
     hb_hashmap_t<unsigned, unsigned> index_map;
     bool made_changes = false;
     for (auto entry : subgraph.iter ())
@@ -450,6 +449,14 @@ struct graph_t
     if (!made_changes)
       return false;
 
+    if (original_root_idx != root_idx ()
+        && parents.has (original_root_idx))
+    {
+      // If the root idx has changed since parents was determined, update root idx in parents
+      parents.add (root_idx ());
+      parents.del (original_root_idx);
+    }
+
     auto new_subgraph =
         + subgraph.keys ()
         | hb_map([&] (unsigned node_idx) {
@@ -457,7 +464,10 @@ struct graph_t
           return node_idx;
         })
         ;
+
     remap_obj_indices (index_map, new_subgraph);
+    remap_obj_indices (index_map, parents.iter ());
+
     return true;
   }
 
@@ -538,6 +548,10 @@ struct graph_t
     vertices_[clone_idx] = *clone;
     vertices_[vertices_.length - 1] = root;
 
+    // Since the root moved, update the parents arrays of all children on the root.
+    for (const auto& l : root.obj.links)
+      vertices_[l.objidx].remap_parent (root_idx () - 1, root_idx ());
+
     return clone_idx;
   }
 
@@ -571,15 +585,12 @@ struct graph_t
     unsigned clone_idx = duplicate (child_idx);
     if (clone_idx == (unsigned) -1) return false;
     // duplicate shifts the root node idx, so if parent_idx was root update it.
-    unsigned original_parent_idx = parent_idx;
     if (parent_idx == clone_idx) parent_idx++;
 
     auto& parent = vertices_[parent_idx];
     for (unsigned i = 0; i < parent.obj.links.length; i++)
     {
       auto& l = parent.obj.links[i];
-      if (original_parent_idx != parent_idx)
-        vertices_[l.objidx].remap_parent (original_parent_idx, parent_idx);
       if (l.objidx != child_idx)
         continue;
 
@@ -657,6 +668,26 @@ struct graph_t
 
  private:
 
+  /*
+   * Returns the numbers of incoming edges that are 32bits wide.
+   */
+  unsigned wide_parents (unsigned node_idx, hb_set_t& parents) const
+  {
+    unsigned count = 0;
+    for (unsigned p : vertices_[node_idx].parents)
+    {
+      for (const auto& l : vertices_[p].obj.links)
+      {
+        if (l.objidx == node_idx && l.width == 4 && !l.is_signed)
+        {
+          count++;
+          parents.add (p);
+        }
+      }
+    }
+    return count;
+  }
+
   bool check_success (bool success)
   { return this->successful && (success || (err_other_error (), false)); }
 
@@ -673,7 +704,9 @@ struct graph_t
     for (unsigned p = 0; p < vertices_.length; p++)
     {
       for (auto& l : vertices_[p].obj.links)
+      {
         vertices_[l.objidx].parents.push (p);
+      }
     }
 
     parents_invalid = false;
