@@ -17,17 +17,19 @@
  * # Override values For Indic_Syllabic_Category
  * # Not derivable
  * # Initial version based on Unicode 7.0 by Andrew Glass 2014-03-17
- * # Updated  for Unicode 10.0 by Andrew Glass 2017-07-25
- * # Updated  for Unicode 12.1 by Andrew Glass 2019-05-24
- * # Updated  for Unicode 13.0 by Andrew Glass 2020-07-28
+ * # Updated for Unicode 10.0 by Andrew Glass 2017-07-25
+ * # Updated for Unicode 12.1 by Andrew Glass 2019-05-24
+ * # Updated for Unicode 13.0 by Andrew Glass 2020-07-28
+ * # Updated for Unicode 14.0 by Andrew Glass 2021-09-25
  * # Override values For Indic_Positional_Category
  * # Not derivable
  * # Initial version based on Unicode 7.0 by Andrew Glass 2014-03-17
- * # Updated  for Unicode 10.0 by Andrew Glass 2017-07-25
+ * # Updated for Unicode 10.0 by Andrew Glass 2017-07-25
  * # Ammended for Unicode 10.0 by Andrew Glass 2018-09-21
- * # Updated  for L2/19-083    by Andrew Glass 2019-05-06
- * # Updated  for Unicode 12.1 by Andrew Glass 2019-05-30
- * # Updated  for Unicode 13.0 by Andrew Glass 2020-07-28
+ * # Updated for L2/19-083    by Andrew Glass 2019-05-06
+ * # Updated for Unicode 12.1 by Andrew Glass 2019-05-30
+ * # Updated for Unicode 13.0 by Andrew Glass 2020-07-28
+ * # Updated for Unicode 14.0 by Andrew Glass 2021-09-28
  * UnicodeData.txt does not have a header.
  */
 
@@ -552,7 +554,18 @@ static const uint8_t use_table[] = {
   /* ABE0 */     B,     B,     B,  VPst,  VPst,  VAbv,  VPst,  VPst,  VBlw,  VPst,  VPst,     O, VMPst,  VBlw,     O,     O,
   /* ABF0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x10a00u 4008
+#define use_offset_0x10570u 4008
+
+
+  /* Vithkuqi */
+
+  /* 10570 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,
+  /* 10580 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     B,     B,
+  /* 10590 */     B,     B,     B,     O,     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 105A0 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 105B0 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     O,     O,     O,
+
+#define use_offset_0x10a00u 4088
 
 
   /* Kharoshthi */
@@ -563,7 +576,7 @@ static const uint8_t use_table[] = {
   /* 10A30 */     B,     B,     B,     B,     B,     B,     O,     O, CMAbv, CMBlw, CMBlw,     O,     O,     O,     O,     H,
   /* 10A40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x10ac0u 4088
+#define use_offset_0x10ac0u 4168
 
 
   /* Manichaean */
@@ -572,7 +585,7 @@ static const uint8_t use_table[] = {
   /* 10AD0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 10AE0 */     B,     B,     B,     B,     B, CMBlw, CMBlw,     O,
 
-#define use_offset_0x10b80u 4128
+#define use_offset_0x10b80u 4208
 
 
   /* Psalter Pahlavi */
@@ -581,7 +594,7 @@ static const uint8_t use_table[] = {
   /* 10B90 */     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 10BA0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,     B,     B,     O,
 
-#define use_offset_0x10d00u 4176
+#define use_offset_0x10d00u 4256
 
 
   /* Hanifi Rohingya */
@@ -591,7 +604,7 @@ static const uint8_t use_table[] = {
   /* 10D20 */     B,     B,     B,     B, VMAbv, VMAbv, VMAbv, CMAbv,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 10D30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x10e80u 4240
+#define use_offset_0x10e80u 4320
 
 
   /* Yezidi */
@@ -601,17 +614,22 @@ static const uint8_t use_table[] = {
   /* 10EA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,  VAbv,  VAbv,     O,     O,     O,
   /* 10EB0 */     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x10f30u 4296
+#define use_offset_0x10f30u 4376
 
 
   /* Sogdian */
 
   /* 10F30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 10F40 */     B,     B,     B,     B,     B,     B, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw, VMBlw,
-  /* 10F50 */ VMBlw,     B,     B,     B,     B,     O,     O,     O,
+  /* 10F50 */ VMBlw,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 10F60 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 10F70 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x10fb0u 4336
+  /* Old Uyghur */
 
+  /* 10F80 */     O,     O, CMBlw, CMBlw, CMBlw, CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 10F90 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 10FA0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Chorasmian */
 
@@ -640,7 +658,7 @@ static const uint8_t use_table[] = {
   /* 110B0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VAbv,  VAbv,  VPst,  VPst,     H, CMBlw,     O,     O,     O,     O,     O,
   /* 110C0 */     O,     O,  VBlw,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11100u 4616
+#define use_offset_0x11100u 4784
 
 
   /* Chakma */
@@ -678,7 +696,7 @@ static const uint8_t use_table[] = {
   /* 11220 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,  VPst,  VPst,  VBlw,
   /* 11230 */  VAbv,  VAbv,  VAbv,  VAbv, VMAbv,     H, CMAbv, CMAbv,     O,     O,     O,     O,     O,     O, VMAbv,     O,
 
-#define use_offset_0x11280u 4936
+#define use_offset_0x11280u 5104
 
 
   /* Multani */
@@ -706,7 +724,7 @@ static const uint8_t use_table[] = {
   /* 11360 */     B,     B,  VPst,  VPst,     O,     O, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
   /* 11370 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
 
-#define use_offset_0x11400u 5184
+#define use_offset_0x11400u 5352
 
 
   /* Newa */
@@ -729,7 +747,7 @@ static const uint8_t use_table[] = {
   /* 114C0 */ VMAbv, VMAbv,     H, CMBlw,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 114D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11580u 5408
+#define use_offset_0x11580u 5576
 
 
   /* Siddham */
@@ -773,7 +791,7 @@ static const uint8_t use_table[] = {
   /* 11730 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,
   /* 11740 */     B,     B,     B,     B,     B,     B,     B,     O,
 
-#define use_offset_0x11800u 5864
+#define use_offset_0x11800u 6032
 
 
   /* Dogra */
@@ -783,7 +801,7 @@ static const uint8_t use_table[] = {
   /* 11820 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,  VPre,  VPst,  VBlw,
   /* 11830 */  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv, VMAbv, VMPst,     H, CMBlw,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11900u 5928
+#define use_offset_0x11900u 6096
 
 
   /* Dives Akuru */
@@ -795,7 +813,7 @@ static const uint8_t use_table[] = {
   /* 11940 */  MPst,     R,  MPst, CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11950 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x119a0u 6024
+#define use_offset_0x119a0u 6192
 
 
   /* Nandinagari */
@@ -823,7 +841,7 @@ static const uint8_t use_table[] = {
   /* 11A80 */     B,     B,     B,     B,     R,     R,     R,     R,     R,     R,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,
   /* 11A90 */  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw, VMAbv, VMPst, CMAbv,     H,     O,     O,     O,     B,     O,     O,
 
-#define use_offset_0x11c00u 6280
+#define use_offset_0x11c00u 6448
 
 
   /* Bhaiksuki */
@@ -844,7 +862,7 @@ static const uint8_t use_table[] = {
   /* 11CA0 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,     O,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,
   /* 11CB0 */  VBlw,  VPre,  VBlw,  VAbv,  VPst, VMAbv, VMAbv,     O,
 
-#define use_offset_0x11d00u 6464
+#define use_offset_0x11d00u 6632
 
 
   /* Masaram Gondi */
@@ -864,7 +882,7 @@ static const uint8_t use_table[] = {
   /* 11D90 */  VAbv,  VAbv,     O,  VPst,  VPst, VMAbv, VMPst,     H,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11DA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11ee0u 6640
+#define use_offset_0x11ee0u 6808
 
 
   /* Makasar */
@@ -872,15 +890,92 @@ static const uint8_t use_table[] = {
   /* 11EE0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11EF0 */     B,     B,    GB,  VAbv,  VBlw,  VPre,  VPst,     O,
 
-#define use_offset_0x13430u 6664
+#define use_offset_0x13000u 6832
 
+
+  /* Egyptian Hieroglyphs */
+
+  /* 13000 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13010 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13020 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13030 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13040 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13050 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13060 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13070 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13080 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13090 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 130A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 130B0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 130C0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 130D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 130E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 130F0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13100 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13110 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13120 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13130 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13140 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13150 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13160 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13170 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13180 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13190 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 131A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 131B0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 131C0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 131D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 131E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 131F0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13200 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13210 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13220 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13230 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13240 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13250 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13260 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13270 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13280 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13290 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 132A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 132B0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 132C0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 132D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 132E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 132F0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13300 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13310 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13320 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13330 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13340 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13350 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13360 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13370 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13380 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13390 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 133A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 133B0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 133C0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 133D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 133E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 133F0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13400 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13410 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 13420 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,
 
   /* Egyptian Hieroglyph Format Controls */
 
-  /* 13430 */     H,     H,     H,     H,     H,     H,     H,     O,
+  /* 13430 */     H,     H,     H,     H,     H,     H,     H,     B,     B,     O,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x16b00u 6672
+#define use_offset_0x16ac0u 7920
 
+
+  /* Tangsa */
+
+  /* 16AC0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
+  /* 16AD0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 16AE0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 16AF0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Pahawh Hmong */
 
@@ -889,7 +984,7 @@ static const uint8_t use_table[] = {
   /* 16B20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 16B30 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,
 
-#define use_offset_0x16f00u 6728
+#define use_offset_0x16f00u 8040
 
 
   /* Miao */
@@ -905,14 +1000,14 @@ static const uint8_t use_table[] = {
   /* 16F80 */  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,     O,     O,     O,     O,     O, VMBlw,
   /* 16F90 */ VMBlw, VMBlw, VMBlw,     O,     O,     O,     O,     O,
 
-#define use_offset_0x16fe0u 6880
+#define use_offset_0x16fe0u 8192
 
 
   /* Ideographic Symbols and Punctuation */
 
   /* 16FE0 */     O,     O,     O,     O,     B,     O,     O,     O,
 
-#define use_offset_0x18b00u 6888
+#define use_offset_0x18b00u 8200
 
 
   /* Khitan Small Script */
@@ -948,7 +1043,7 @@ static const uint8_t use_table[] = {
   /* 18CC0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 18CD0 */     B,     B,     B,     B,     B,     B,     O,     O,
 
-#define use_offset_0x1bc00u 7360
+#define use_offset_0x1bc00u 8672
 
 
   /* Duployan */
@@ -964,7 +1059,7 @@ static const uint8_t use_table[] = {
   /* 1BC80 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,
   /* 1BC90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O, CMBlw, CMBlw,     O,
 
-#define use_offset_0x1e100u 7520
+#define use_offset_0x1e100u 8832
 
 
   /* Nyiakeng Puachue Hmong */
@@ -975,8 +1070,14 @@ static const uint8_t use_table[] = {
   /* 1E130 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     B,     B,     B,     B,     B,     B,     B,     O,     O,
   /* 1E140 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     B,     B,
 
-#define use_offset_0x1e2c0u 7600
+#define use_offset_0x1e290u 8912
 
+
+  /* Toto */
+
+  /* 1E290 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
+  /* 1E2A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMAbv,     O,
+  /* 1E2B0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Wancho */
 
@@ -985,7 +1086,7 @@ static const uint8_t use_table[] = {
   /* 1E2E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMAbv, VMAbv, VMAbv, VMAbv,
   /* 1E2F0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x1e900u 7664
+#define use_offset_0x1e900u 9024
 
 
   /* Adlam */
@@ -997,7 +1098,7 @@ static const uint8_t use_table[] = {
   /* 1E940 */     B,     B,     B,     B, CMAbv, CMAbv, CMAbv, CMAbv, CMAbv, CMAbv, CMAbv,     B,     O,     O,     O,     O,
   /* 1E950 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-}; /* Table items: 7760; occupancy: 76% */
+}; /* Table items: 9120; occupancy: 78% */
 
 static inline uint8_t
 hb_use_get_category (hb_codepoint_t u)
@@ -1037,17 +1138,17 @@ hb_use_get_category (hb_codepoint_t u)
       break;
 
     case 0x10u:
+      if (hb_in_range<hb_codepoint_t> (u, 0x10570u, 0x105BFu)) return use_table[u - 0x10570u + use_offset_0x10570u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10A00u, 0x10A4Fu)) return use_table[u - 0x10A00u + use_offset_0x10a00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10AC0u, 0x10AE7u)) return use_table[u - 0x10AC0u + use_offset_0x10ac0u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10B80u, 0x10BAFu)) return use_table[u - 0x10B80u + use_offset_0x10b80u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10D00u, 0x10D3Fu)) return use_table[u - 0x10D00u + use_offset_0x10d00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10E80u, 0x10EB7u)) return use_table[u - 0x10E80u + use_offset_0x10e80u];
-      if (hb_in_range<hb_codepoint_t> (u, 0x10F30u, 0x10F57u)) return use_table[u - 0x10F30u + use_offset_0x10f30u];
-      if (hb_in_range<hb_codepoint_t> (u, 0x10FB0u, 0x110C7u)) return use_table[u - 0x10FB0u + use_offset_0x10fb0u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x10F30u, 0x110C7u)) return use_table[u - 0x10F30u + use_offset_0x10f30u];
       break;
 
     case 0x11u:
-      if (hb_in_range<hb_codepoint_t> (u, 0x10FB0u, 0x110C7u)) return use_table[u - 0x10FB0u + use_offset_0x10fb0u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x10F30u, 0x110C7u)) return use_table[u - 0x10F30u + use_offset_0x10f30u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11100u, 0x1123Fu)) return use_table[u - 0x11100u + use_offset_0x11100u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11280u, 0x11377u)) return use_table[u - 0x11280u + use_offset_0x11280u];
       if (hb_in_range<hb_codepoint_t> (u, 0x11400u, 0x114DFu)) return use_table[u - 0x11400u + use_offset_0x11400u];
@@ -1061,11 +1162,11 @@ hb_use_get_category (hb_codepoint_t u)
       break;
 
     case 0x13u:
-      if (hb_in_range<hb_codepoint_t> (u, 0x13430u, 0x13437u)) return use_table[u - 0x13430u + use_offset_0x13430u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x13000u, 0x1343Fu)) return use_table[u - 0x13000u + use_offset_0x13000u];
       break;
 
     case 0x16u:
-      if (hb_in_range<hb_codepoint_t> (u, 0x16B00u, 0x16B37u)) return use_table[u - 0x16B00u + use_offset_0x16b00u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x16AC0u, 0x16B37u)) return use_table[u - 0x16AC0u + use_offset_0x16ac0u];
       if (hb_in_range<hb_codepoint_t> (u, 0x16F00u, 0x16F97u)) return use_table[u - 0x16F00u + use_offset_0x16f00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x16FE0u, 0x16FE7u)) return use_table[u - 0x16FE0u + use_offset_0x16fe0u];
       break;
@@ -1080,7 +1181,7 @@ hb_use_get_category (hb_codepoint_t u)
 
     case 0x1Eu:
       if (hb_in_range<hb_codepoint_t> (u, 0x1E100u, 0x1E14Fu)) return use_table[u - 0x1E100u + use_offset_0x1e100u];
-      if (hb_in_range<hb_codepoint_t> (u, 0x1E2C0u, 0x1E2FFu)) return use_table[u - 0x1E2C0u + use_offset_0x1e2c0u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x1E290u, 0x1E2FFu)) return use_table[u - 0x1E290u + use_offset_0x1e290u];
       if (hb_in_range<hb_codepoint_t> (u, 0x1E900u, 0x1E95Fu)) return use_table[u - 0x1E900u + use_offset_0x1e900u];
       break;
 
