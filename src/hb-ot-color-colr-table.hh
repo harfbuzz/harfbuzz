@@ -872,6 +872,79 @@ struct PaintComposite
   DEFINE_SIZE_STATIC (8);
 };
 
+struct ClipBoxTemplate
+{
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this));
+  }
+
+  public:
+  HBUINT8	format; /* format = 1(noVar) or 2(Var)*/
+  FWORD		xMin;
+  FWORD		yMin;
+  FWORD		xMax;
+  FWORD		yMax;
+  public:
+  DEFINE_SIZE_STATIC (1 + 4 * FWORD::static_size);
+};
+
+struct ClipBoxFormat1 : ClipBoxTemplate {};
+struct ClipBoxFormat2 : Variable<ClipBoxTemplate> {};
+
+struct ClipBox
+{
+  template <typename context_t, typename ...Ts>
+  typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
+  {
+    TRACE_DISPATCH (this, u.format);
+    if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
+    switch (u.format) {
+    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    default:return_trace (c->default_return_value ());
+    }
+  }
+
+  protected:
+  union {
+  HBUINT16		format;         /* Format identifier */
+  ClipBoxFormat1	format1;
+  ClipBoxFormat2	format2;
+  } u;
+};
+
+struct ClipRecord
+{
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && clipBox.sanitize (c, base));
+  }
+
+  public:
+  HBUINT16		startGlyphID;  // first gid clip applies to
+  HBUINT16		endGlyphID;    // last gid clip applies to, inclusive
+  Offset24To<ClipBox>	clipBox;   // Box or VarBox
+  public:
+  DEFINE_SIZE_STATIC (7);
+};
+
+struct ClipList
+{
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && clips.sanitize (c, this));
+  }
+
+  HBUINT8			format;  // Set to 1.
+  Array32Of<ClipRecord>		clips;  // Clip records, sorted by startGlyphID
+  public:
+  DEFINE_SIZE_ARRAY_SIZED (5, clips);
+};
+
 struct Paint
 {
   template <typename context_t, typename ...Ts>
@@ -1244,6 +1317,8 @@ struct COLR
 		   (COLRV1_ENABLE_SUBSETTING && version == 1 &&
 		    baseGlyphList.sanitize (c, this) &&
 		    layerList.sanitize (c, this) &&
+		    clipList.sanitize (c, this) &&
+		    varIdxMap.sanitize (c, this) &&
 		    varStore.sanitize (c, this))));
   }
 
@@ -1397,6 +1472,7 @@ struct COLR
   // Version-1 additions
   Offset32To<BaseGlyphList>		baseGlyphList;
   Offset32To<LayerList>			layerList;
+  Offset32To<ClipList>			clipList;   // Offset to ClipList table (may be NULL)
   Offset32To<DeltasetIndexMap>		varIdxMap;  // Offset to DeltasetIndexMap table (may be NULL)
   Offset32To<VariationStore>		varStore;
   public:
