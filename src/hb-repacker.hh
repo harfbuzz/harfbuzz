@@ -166,6 +166,7 @@ struct graph_t
         positions_invalid (true),
         successful (true)
   {
+    num_roots_for_space.push (1);
     bool removed_nil = false;
     for (unsigned i = 0; i < objects.length; i++)
     {
@@ -386,7 +387,6 @@ struct graph_t
 
     if (!roots) return false;
 
-    unsigned space = 0;
     while (roots)
     {
       unsigned next = HB_SET_VALUE_INVALID;
@@ -395,11 +395,14 @@ struct graph_t
       hb_set_t connected_roots;
       find_connected_nodes (next, roots, visited, connected_roots);
 
-      space++;
+
+      unsigned next_space = this->next_space ();
+      num_roots_for_space.push (0);
       for (unsigned root : connected_roots)
       {
-        DEBUG_MSG (SUBSET_REPACK, nullptr, "Subgraph %u gets space %u", root, space);
-        vertices_[root].space = space;
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Subgraph %u gets space %u", root, next_space);
+        vertices_[root].space = next_space;
+        num_roots_for_space[next_space] = num_roots_for_space[next_space] + 1;
         distance_invalid = true;
         positions_invalid = true;
       }
@@ -654,14 +657,56 @@ struct graph_t
       const auto& parent = vertices_[o.parent];
       const auto& child = vertices_[o.child];
       DEBUG_MSG (SUBSET_REPACK, nullptr,
-                 "  overflow from %d (%d in, %d out) => %d (%d in, %d out)",
+                 "  overflow from "
+                 "%4d (%4d in, %4d out, space %2d) => "
+                 "%4d (%4d in, %4d out, space %2d)",
                  o.parent,
                  parent.incoming_edges (),
                  parent.obj.links.length,
+                 space_for (o.parent),
                  o.child,
                  child.incoming_edges (),
-                 child.obj.links.length);
+                 child.obj.links.length,
+                 space_for (o.child));
     }
+  }
+
+  unsigned num_roots_in_space (unsigned space) const
+  {
+    return num_roots_for_space[space];
+  }
+
+  unsigned next_space () const
+  {
+    return num_roots_for_space.length;
+  }
+
+  void move_to_new_space (unsigned index)
+  {
+    auto& node = vertices_[index];
+    num_roots_for_space.push (1);
+    num_roots_for_space[node.space] = num_roots_for_space[node.space] - 1;
+    node.space = num_roots_for_space.length - 1;
+  }
+
+  unsigned space_for (unsigned index, unsigned* root = nullptr) const
+  {
+    const auto& node = vertices_[index];
+    if (node.space)
+    {
+      if (root != nullptr)
+        *root = index;
+      return node.space;
+    }
+
+    if (!node.parents)
+    {
+      if (root)
+        *root = index;
+      return 0;
+    }
+
+    return space_for (node.parents[0], root);
   }
 
   void err_other_error () { this->successful = false; }
@@ -976,7 +1021,33 @@ struct graph_t
   bool distance_invalid;
   bool positions_invalid;
   bool successful;
+  hb_vector_t<unsigned> num_roots_for_space;
 };
+
+static bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record_t>& overflows,
+                                      graph_t& sorted_graph)
+{
+  for (int i = overflows.length - 1; i >= 0; i--)
+  {
+    const graph_t::overflow_record_t& r = overflows[i];
+    unsigned root = 0;
+    unsigned space = sorted_graph.space_for (r.parent, &root);
+    if (!space) continue;
+    if (sorted_graph.num_roots_in_space (space) <= 1) continue;
+
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "Overflow in space %d moving subgraph %d to space %d.",
+               space,
+               root,
+               sorted_graph.next_space ());
+
+    hb_set_t roots;
+    roots.add (root);
+    sorted_graph.isolate_subgraph (roots);
+    sorted_graph.move_to_new_space (root);
+    return true;
+  }
+  return false;
+}
 
 static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& overflows,
                                 hb_set_t& priority_bumped_parents,
@@ -1071,10 +1142,14 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
     sorted_graph.print_overflows (overflows);
 
     hb_set_t priority_bumped_parents;
-    if (!_process_overflows (overflows, priority_bumped_parents, sorted_graph))
+
+    if (!_try_isolating_subgraphs (overflows, sorted_graph))
     {
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
-      break;
+      if (!_process_overflows (overflows, priority_bumped_parents, sorted_graph))
+      {
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "No resolution available :(");
+        break;
+      }
     }
 
     sorted_graph.sort_shortest_distance ();
