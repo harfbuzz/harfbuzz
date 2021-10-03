@@ -40,6 +40,7 @@ EXTRA_DIST += \
 	expected/cmap14 \
 	expected/sbix \
 	expected/colr \
+	expected/colrv1 \
 	expected/colr_with_components \
 	expected/cbdt \
 	expected/variable \

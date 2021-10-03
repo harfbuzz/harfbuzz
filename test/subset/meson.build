@@ -35,7 +35,7 @@ tests = [
   'math',
 # TODO: re-enable once colrv1 subsetting is stabilized.
 # 'colrv1.notoemoji',
-# 'colrv1',
+  'colrv1',
   'colr_with_components',
   'cbdt',
   'variable',
