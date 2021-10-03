@@ -42,7 +42,7 @@
 #endif
 
 #ifndef COLRV1_ENABLE_SUBSETTING
-#define COLRV1_ENABLE_SUBSETTING 0
+#define COLRV1_ENABLE_SUBSETTING 1
 #endif
 
 namespace OT {
@@ -163,6 +163,12 @@ struct BaseGlyphRecord
 template <typename T>
 struct Variable
 {
+  Variable<T>* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (this));
+  }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { value.closurev1 (c); }
 
@@ -189,6 +195,12 @@ struct Variable
 template <typename T>
 struct NoVariable
 {
+  NoVariable<T>* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (this));
+  }
+
   void closurev1 (hb_colrv1_closure_context_t* c) const
   { value.closurev1 (c); }
 
@@ -578,21 +590,23 @@ struct PaintTransform
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
-
+    if (!out->transform.serialize_copy (c->serializer, transform, this)) return_trace (false);
     return_trace (out->src.serialize_subset (c, src, this));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && src.sanitize (c, this));
+    return_trace (c->check_struct (this) &&
+                  src.sanitize (c, this) &&
+                  transform.sanitize (c, this));
   }
 
-  HBUINT8		format; /* format = 12(noVar) or 13 (Var) */
-  Offset24To<Paint>	src; /* Offset (from beginning of PaintTransform table) to Paint subtable. */
-  Var<Affine2x3>	transform;
+  HBUINT8			format; /* format = 12(noVar) or 13 (Var) */
+  Offset24To<Paint>		src; /* Offset (from beginning of PaintTransform table) to Paint subtable. */
+  Offset24To<Var<Affine2x3>>	transform;
   public:
-  DEFINE_SIZE_STATIC (4 + Var<Affine2x3>::static_size);
+  DEFINE_SIZE_STATIC (7);
 };
 
 struct PaintTranslate
@@ -895,6 +909,16 @@ struct ClipBoxFormat2 : Variable<ClipBoxTemplate> {};
 
 struct ClipBox
 {
+  ClipBox* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    switch (u.format) {
+    case 1: return_trace (reinterpret_cast<ClipBox *> (c->embed (u.format1)));
+    case 2: return_trace (reinterpret_cast<ClipBox *> (c->embed (u.format2)));
+    default:return_trace (nullptr);
+    }
+  }
+
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
   {
@@ -909,7 +933,7 @@ struct ClipBox
 
   protected:
   union {
-  HBUINT16		format;         /* Format identifier */
+  HBUINT8		format;         /* Format identifier */
   ClipBoxFormat1	format1;
   ClipBoxFormat2	format2;
   } u;
@@ -917,6 +941,15 @@ struct ClipBox
 
 struct ClipRecord
 {
+  ClipRecord* copy (hb_serialize_context_t *c, const void *base) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->embed (this);
+    if (unlikely (!out)) return_trace (nullptr);
+    if (!out->clipBox.serialize_copy (c, clipBox, base)) return_trace (nullptr);
+    return_trace (out);
+  }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);
@@ -933,6 +966,84 @@ struct ClipRecord
 
 struct ClipList
 {
+  unsigned serialize_clip_records (hb_serialize_context_t *c,
+                                   const hb_set_t& gids,
+                                   const hb_map_t& gid_offset_map) const
+  {
+    TRACE_SERIALIZE (this);
+    unsigned count  = 0;
+
+    hb_codepoint_t start_gid= gids.get_min ();
+    hb_codepoint_t prev_gid = start_gid;
+
+    unsigned offset = gid_offset_map.get (start_gid);
+    unsigned prev_offset = offset;
+    for (const hb_codepoint_t _ : gids.iter ())
+    {
+      if (_ == start_gid) continue;
+      
+      offset = gid_offset_map.get (_);
+      if (_ == prev_gid + 1 &&  offset == prev_offset)
+      {
+        prev_gid = _;
+        continue;
+      }
+
+      ClipRecord record;
+      record.startGlyphID = start_gid;
+      record.endGlyphID = prev_gid;
+      record.clipBox = prev_offset;
+
+      if (!c->copy (record, this)) return_trace (0);
+      count++;
+
+      start_gid = _;
+      prev_gid = _;
+      prev_offset = offset;
+    }
+
+    //last one
+    {
+      ClipRecord record;
+      record.startGlyphID = start_gid;
+      record.endGlyphID = prev_gid;
+      record.clipBox = prev_offset;
+      if (!c->copy (record, this)) return_trace (0);
+      count++;
+    }
+    return_trace (count);
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+    if (!c->serializer->check_assign (out->format, format, HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
+
+    const hb_set_t& glyphset = *c->plan->_glyphset;
+    const hb_map_t &glyph_map = *c->plan->glyph_map;
+    
+    hb_map_t new_gid_offset_map;
+    hb_set_t new_gids;
+    for (const ClipRecord& record : clips.iter ())
+    {
+      unsigned start_gid = record.startGlyphID;
+      unsigned end_gid = record.endGlyphID;
+      for (unsigned gid = start_gid; gid <= end_gid; gid++)
+      {
+        if (!glyphset.has (gid) || !glyph_map.has (gid)) continue;
+        unsigned new_gid = glyph_map.get (gid);
+        new_gid_offset_map.set (new_gid, record.clipBox);
+        new_gids.add (new_gid);
+      }
+    }
+
+    unsigned count = serialize_clip_records (c->serializer, new_gids, new_gid_offset_map);
+    if (!count) return_trace (false);
+    return_trace (c->serializer->check_assign (out->clips.len, count, HB_SERIALIZE_ERROR_INT_OVERFLOW));
+  }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
@@ -1121,6 +1232,20 @@ struct DeltasetIndexMapFormat0
   friend struct DeltasetIndexMap;
 
   private:
+  DeltasetIndexMapFormat0* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (this);
+    if (unlikely (!out)) return_trace (nullptr);
+
+    unsigned total_size = min_size + mapCount * get_width ();
+    HBUINT8 *p = c->allocate_size<HBUINT8> (total_size);
+    if (unlikely (!p)) return_trace (nullptr);
+
+    memcpy (p, this, HBUINT8::static_size * total_size);
+    return_trace (out);
+  }
+
   unsigned int get_width () const
   { return ((entryFormat >> 4) & 3) + 1; }
 
@@ -1150,6 +1275,20 @@ struct DeltasetIndexMapFormat1
   friend struct DeltasetIndexMap;
   
   private:
+  DeltasetIndexMapFormat1* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    auto *out = c->start_embed (this);
+    if (unlikely (!out)) return_trace (nullptr);
+
+    unsigned total_size = min_size + mapCount * get_width ();
+    HBUINT8 *p = c->allocate_size<HBUINT8> (total_size);
+    if (unlikely (!p)) return_trace (nullptr);
+    
+    memcpy (p, this, HBUINT8::static_size * total_size);
+    return_trace (out);
+  }
+
   unsigned int get_width () const
   { return ((entryFormat >> 4) & 3) + 1; }
   
@@ -1184,6 +1323,16 @@ struct DeltasetIndexMap
     case 0: return_trace (u.format0.sanitize (c));
     case 1: return_trace (u.format1.sanitize (c));
     default:return_trace (true);
+    }
+  }
+
+  DeltasetIndexMap* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    switch (u.format) {
+    case 0: return_trace (reinterpret_cast<DeltasetIndexMap *> (u.format0.copy (c)));
+    case 1: return_trace (reinterpret_cast<DeltasetIndexMap *> (u.format1.copy (c)));
+    default:return_trace (nullptr);
     }
   }
 
@@ -1334,19 +1483,17 @@ struct COLR
     if (unlikely (base_it.len () != layer_it.len ()))
       return_trace (false);
 
-    if (unlikely (!c->extend_min (this))) return_trace (false);
     this->version = version;
     numLayers = 0;
     numBaseGlyphs = base_it.len ();
-    if (base_it.len () == 0)
+    if (numBaseGlyphs == 0)
     {
       baseGlyphsZ = 0;
       layersZ = 0;
       return_trace (true);
     }
-    baseGlyphsZ = COLR::min_size;
-    layersZ = COLR::min_size + numBaseGlyphs * BaseGlyphRecord::min_size;
 
+    c->push ();
     for (const hb_item_type<BaseIterator> _ : + base_it.iter ())
     {
       auto* record = c->embed (_);
@@ -1354,9 +1501,13 @@ struct COLR
       record->firstLayerIdx = numLayers;
       numLayers += record->numLayers;
     }
+    c->add_link (baseGlyphsZ, c->pop_pack ());
 
+    c->push ();
     for (const hb_item_type<LayerIterator>& _ : + layer_it.iter ())
       _.as_array ().copy (c);
+
+    c->add_link (layersZ, c->pop_pack ());
 
     return_trace (true);
   }
@@ -1439,24 +1590,26 @@ struct COLR
       return_trace (false);
 
     COLR *colr_prime = c->serializer->start_embed<COLR> ();
-    bool ret = colr_prime->serialize_V0 (c->serializer, version, base_it, layer_it);
+    if (unlikely (!c->serializer->extend_min (colr_prime)))  return_trace (false);
 
-    if (version == 0) return_trace (ret);
+    if (version == 0)
+    return_trace (colr_prime->serialize_V0 (c->serializer, version, base_it, layer_it));
+
     auto snap = c->serializer->snapshot ();
-    if (!c->serializer->allocate_size<void> (4 * HBUINT32::static_size)) return_trace (false);
+    if (!c->serializer->allocate_size<void> (5 * HBUINT32::static_size)) return_trace (false);
     if (!colr_prime->baseGlyphList.serialize_subset (c, baseGlyphList, this))
     {
       if (c->serializer->in_error ()) return_trace (false);
       //no more COLRv1 glyphs: downgrade to version 0
       c->serializer->revert (snap);
-      colr_prime->version = 0;
-      return_trace (true);
+      return_trace (colr_prime->serialize_V0 (c->serializer, 0, base_it, layer_it));
     }
 
-    if (!colr_prime->layerList.serialize_subset (c, layerList, this)) return_trace (false);
+    if (!colr_prime->serialize_V0 (c->serializer, version, base_it, layer_it)) return_trace (false);
 
-    colr_prime->varIdxMap = 0;
-    colr_prime->varStore = 0;
+    colr_prime->layerList.serialize_subset (c, layerList, this);
+    colr_prime->clipList.serialize_subset (c, clipList, this);
+    colr_prime->varIdxMap.serialize_copy (c->serializer, varIdxMap, this);
     //TODO: subset varStore once it's implemented in fonttools
     return_trace (true);
   }
