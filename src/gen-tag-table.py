@@ -774,7 +774,6 @@ ot.add_language ('qxr', 'QVI')
 ot.add_language ('qxt', 'QWH')
 ot.add_language ('qxw', 'QWH')
 
-bcp_47.macrolanguages['ro'].remove ('mo')
 bcp_47.macrolanguages['ro-MD'].add ('mo')
 
 ot.remove_language_ot ('SYRE')
@@ -1014,6 +1013,8 @@ for initial, items in sorted (complex_tags.items ()):
 	if initial != 'und':
 		continue
 	for lt, tags in items:
+		if not tags:
+			continue
 		if lt.variant in bcp_47.prefixes:
 			expect (next (iter (bcp_47.prefixes[lt.variant])) == lt.language,
 					'%s is not a valid prefix of %s' % (lt.language, lt.variant))
@@ -1048,6 +1049,8 @@ for initial, items in sorted (complex_tags.items ()):
 		continue
 	print ("  case '%s':" % initial)
 	for lt, tags in items:
+		if not tags:
+			continue
 		print ('    if (', end='')
 		script = lt.script
 		region = lt.region

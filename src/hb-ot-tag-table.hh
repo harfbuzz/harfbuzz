@@ -940,6 +940,7 @@ static const LangTag ot_languages[] = {
   {"mnw",	HB_TAG('M','O','N','T')},	/* Mon -> Thailand Mon */
   {"mnx",	HB_TAG_NONE	       },	/* Manikion != Manx */
   {"mo",	HB_TAG('M','O','L',' ')},	/* Moldavian (retired code) */
+  {"mo",	HB_TAG('R','O','M',' ')},	/* Moldavian (retired code) -> Romanian */
   {"mod",	HB_TAG('C','P','P',' ')},	/* Mobilian -> Creoles */
 /*{"moh",	HB_TAG('M','O','H',' ')},*/	/* Mohawk */
   {"mok",	HB_TAG_NONE	       },	/* Morori != Moksha */
@@ -2623,8 +2624,14 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
 	&& subtag_matches (lang_str, limit, "-md"))
     {
       /* Romanian; Moldova */
-      tags[0] = HB_TAG('M','O','L',' ');  /* Moldavian */
-      *count = 1;
+      unsigned int i;
+      hb_tag_t possible_tags[] = {
+	HB_TAG('M','O','L',' '),  /* Moldavian */
+	HB_TAG('R','O','M',' '),  /* Romanian */
+      };
+      for (i = 0; i < 2 && i < *count; i++)
+	tags[i] = possible_tags[i];
+      *count = i;
       return true;
     }
     break;
@@ -2930,6 +2937,8 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("qwh", -1);  /* Huaylas Ancash Quechua */
   case HB_TAG('R','A','J',' '):  /* Rajasthani */
     return hb_language_from_string ("raj", -1);  /* Rajasthani [macrolanguage] */
+  case HB_TAG('R','O','M',' '):  /* Romanian */
+    return hb_language_from_string ("ro", -1);  /* Romanian */
   case HB_TAG('R','O','Y',' '):  /* Romany */
     return hb_language_from_string ("rom", -1);  /* Romany [macrolanguage] */
   case HB_TAG('S','Q','I',' '):  /* Albanian */
