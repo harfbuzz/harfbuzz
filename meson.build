@@ -96,7 +96,8 @@ glib_dep = dependency('glib-2.0', required: get_option('glib'),
                       fallback: ['glib', 'libglib_dep'])
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'),
                          fallback: ['glib', 'libgobject_dep'])
-graphite2_dep = dependency('graphite2', required: get_option('graphite'))
+graphite2_dep = dependency('graphite2', required: get_option('graphite2'))
+graphite_dep = dependency('graphite2', required: get_option('graphite'))
 
 icu_dep = null_dep
 if not get_option('icu').disabled()
@@ -188,7 +189,7 @@ if chafa_dep.found()
   conf.set('HAVE_CHAFA', 1)
 endif
 
-if graphite2_dep.found()
+if graphite2_dep.found() or graphite_dep.found()
   conf.set('HAVE_GRAPHITE2', 1)
 endif
 
