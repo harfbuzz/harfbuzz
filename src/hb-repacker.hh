@@ -46,7 +46,10 @@ struct graph_t
         end (0),
         priority(0) {}
 
-    void fini () { obj.fini (); }
+    void fini () {
+      obj.fini ();
+      parents.fini ();
+    }
 
     hb_serialize_context_t::object_t obj;
     int64_t distance;
