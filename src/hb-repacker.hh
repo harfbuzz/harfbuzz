@@ -166,7 +166,7 @@ struct graph_t
         positions_invalid (true),
         successful (true)
   {
-    num_roots_for_space.push (1);
+    num_roots_for_space_.push (1);
     bool removed_nil = false;
     for (unsigned i = 0; i < objects.length; i++)
     {
@@ -198,7 +198,10 @@ struct graph_t
 
   bool in_error () const
   {
-    return !successful || vertices_.in_error () || clone_buffers_.in_error ();
+    return !successful ||
+        vertices_.in_error () ||
+        clone_buffers_.in_error () ||
+        num_roots_for_space_.in_error ();
   }
 
   const vertex_t& root () const
@@ -288,7 +291,7 @@ struct graph_t
     check_success (!queue.in_error ());
     check_success (!sorted_graph.in_error ());
     if (!check_success (new_id == -1))
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
+      print_orphaned_nodes ();
 
     remap_all_obj_indices (id_map, &sorted_graph);
 
@@ -350,7 +353,7 @@ struct graph_t
     check_success (!queue.in_error ());
     check_success (!sorted_graph.in_error ());
     if (!check_success (new_id == -1))
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
+      print_orphaned_nodes ();
 
     remap_all_obj_indices (id_map, &sorted_graph);
 
@@ -394,21 +397,21 @@ struct graph_t
 
       hb_set_t connected_roots;
       find_connected_nodes (next, roots, visited, connected_roots);
-
+      isolate_subgraph (connected_roots);
 
       unsigned next_space = this->next_space ();
-      num_roots_for_space.push (0);
+      num_roots_for_space_.push (0);
       for (unsigned root : connected_roots)
       {
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Subgraph %u gets space %u", root, next_space);
         vertices_[root].space = next_space;
-        num_roots_for_space[next_space] = num_roots_for_space[next_space] + 1;
+        num_roots_for_space_[next_space] = num_roots_for_space_[next_space] + 1;
         distance_invalid = true;
         positions_invalid = true;
       }
+
       // TODO(grieger): special case for GSUB/GPOS use extension promotions to move 16 bit space
       //                into the 32 bit space as needed, instead of using isolation.
-      isolate_subgraph (connected_roots);
     }
 
     return true;
@@ -418,8 +421,10 @@ struct graph_t
    * Isolates the subgraph of nodes reachable from root. Any links to nodes in the subgraph
    * that originate from outside of the subgraph will be removed by duplicating the linked to
    * object.
+   *
+   * Indices stored in roots will be updated if any of the roots are duplicated to new indices.
    */
-  bool isolate_subgraph (const hb_set_t& roots)
+  bool isolate_subgraph (hb_set_t& roots)
   {
     update_parents ();
     hb_hashmap_t<unsigned, unsigned> subgraph;
@@ -470,6 +475,18 @@ struct graph_t
 
     remap_obj_indices (index_map, new_subgraph);
     remap_obj_indices (index_map, parents.iter ());
+
+    // Update roots set with new indices as needed.
+    unsigned next = HB_SET_VALUE_INVALID;
+    while (roots.next (&next))
+    {
+      if (index_map.has (next))
+      {
+        printf ("Updated root %u to %u.\n", next, index_map[next]);
+        roots.del (next);
+        roots.add (index_map[next]);
+      }
+    }
 
     return true;
   }
@@ -647,6 +664,22 @@ struct graph_t
     return overflows->length;
   }
 
+  void print_orphaned_nodes ()
+  {
+    if (!DEBUG_ENABLED(SUBSET_REPACK)) return;
+
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
+    parents_invalid = true;
+    update_parents();
+
+    for (unsigned i = 0; i < root_idx (); i++)
+    {
+      const auto& v = vertices_[i];
+      if (!v.parents)
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Node %u is orphaned.", i);
+    }
+  }
+
   void print_overflows (const hb_vector_t<overflow_record_t>& overflows)
   {
     if (!DEBUG_ENABLED(SUBSET_REPACK)) return;
@@ -671,22 +704,22 @@ struct graph_t
     }
   }
 
-  unsigned num_roots_in_space (unsigned space) const
+  unsigned num_roots_for_space (unsigned space) const
   {
-    return num_roots_for_space[space];
+    return num_roots_for_space_[space];
   }
 
   unsigned next_space () const
   {
-    return num_roots_for_space.length;
+    return num_roots_for_space_.length;
   }
 
   void move_to_new_space (unsigned index)
   {
     auto& node = vertices_[index];
-    num_roots_for_space.push (1);
-    num_roots_for_space[node.space] = num_roots_for_space[node.space] - 1;
-    node.space = num_roots_for_space.length - 1;
+    num_roots_for_space_.push (1);
+    num_roots_for_space_[node.space] = num_roots_for_space_[node.space] - 1;
+    node.space = num_roots_for_space_.length - 1;
   }
 
   unsigned space_for (unsigned index, unsigned* root = nullptr) const
@@ -835,7 +868,7 @@ struct graph_t
     check_success (!queue.in_error ());
     if (!check_success (queue.is_empty ()))
     {
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
+      print_orphaned_nodes ();
       return;
     }
 
@@ -1021,7 +1054,7 @@ struct graph_t
   bool distance_invalid;
   bool positions_invalid;
   bool successful;
-  hb_vector_t<unsigned> num_roots_for_space;
+  hb_vector_t<unsigned> num_roots_for_space_;
 };
 
 static bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record_t>& overflows,
@@ -1033,7 +1066,7 @@ static bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record
     unsigned root = 0;
     unsigned space = sorted_graph.space_for (r.parent, &root);
     if (!space) continue;
-    if (sorted_graph.num_roots_in_space (space) <= 1) continue;
+    if (sorted_graph.num_roots_for_space (space) <= 1) continue;
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Overflow in space %d moving subgraph %d to space %d.",
                space,
