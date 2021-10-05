@@ -39,7 +39,6 @@
 #define USE(Cat) use_syllable_machine_ex_##Cat
 
 enum use_syllable_type_t {
-  use_independent_cluster,
   use_virama_terminated_cluster,
   use_sakot_terminated_cluster,
   use_standard_cluster,
@@ -75,7 +74,6 @@ export H	= 12; # HALANT
 export HN	= 13; # HALANT_NUM
 export ZWNJ	= 14; # Zero width non-joiner
 export R	= 18; # REPHA
-export S	= 19; # SYM
 export CS	= 43; # CONS_WITH_STACKER
 export HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
 export Sk	= 48; # SAKOT
@@ -155,13 +153,11 @@ broken_cluster =
 
 number_joiner_terminated_cluster = N number_joiner_terminated_cluster_tail;
 numeral_cluster = N numeral_cluster_tail?;
-symbol_cluster = (S | GB) symbol_cluster_tail?;
+symbol_cluster = (O | GB) symbol_cluster_tail?;
 hieroglyph_cluster = SB+ | SB* G SE* (J SE* (G SE*)?)*;
-independent_cluster = O;
 other = any;
 
 main := |*
-	independent_cluster			=> { found_syllable (use_independent_cluster); };
 	virama_terminated_cluster		=> { found_syllable (use_virama_terminated_cluster); };
 	sakot_terminated_cluster		=> { found_syllable (use_sakot_terminated_cluster); };
 	standard_cluster			=> { found_syllable (use_standard_cluster); };
