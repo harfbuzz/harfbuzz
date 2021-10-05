@@ -516,6 +516,40 @@ populate_serializer_with_split_spaces (hb_serialize_context_t* c)
 }
 
 static void
+populate_serializer_with_split_spaces_2 (hb_serialize_context_t* c)
+{
+  // Overflow needs to be resolved by splitting the single space
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned obj_f = add_object ("f", 1, c);
+
+  start_object (large_string.c_str(), 40000, c);
+  add_offset (obj_f, c);
+  unsigned obj_d = c->pop_pack (false);
+
+  start_object (large_string.c_str(), 40000, c);
+  add_offset (obj_f, c);
+  unsigned obj_e = c->pop_pack (false);
+
+  start_object ("b", 1, c);
+  add_offset (obj_d, c);
+  unsigned obj_b = c->pop_pack (false);
+
+  start_object ("c", 1, c);
+  add_offset (obj_e, c);
+  unsigned obj_c = c->pop_pack (false);
+
+  start_object ("a", 1, c);
+  add_offset (obj_b, c);
+  add_wide_offset (obj_b, c);
+  add_wide_offset (obj_c, c);
+  c->pop_pack (false);
+
+  c->end_serialize();
+}
+
+static void
 populate_serializer_with_split_spaces_expected (hb_serialize_context_t* c)
 {
   // Overflow needs to be resolved by splitting the single space
@@ -545,6 +579,60 @@ populate_serializer_with_split_spaces_expected (hb_serialize_context_t* c)
 
   start_object ("a", 1, c);
   add_wide_offset (obj_b, c);
+  add_wide_offset (obj_c, c);
+  c->pop_pack (false);
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_with_split_spaces_expected_2 (hb_serialize_context_t* c)
+{
+  // Overflow needs to be resolved by splitting the single space
+
+  std::string large_string(70000, 'a');
+  c->start_serialize<char> ();
+
+  // Space 2
+
+  unsigned obj_f_double_prime = add_object ("f", 1, c);
+
+  start_object (large_string.c_str(), 40000, c);
+  add_offset (obj_f_double_prime, c);
+  unsigned obj_d_prime = c->pop_pack (false);
+
+  start_object ("b", 1, c);
+  add_offset (obj_d_prime, c);
+  unsigned obj_b_prime = c->pop_pack (false);
+
+  // Space 1
+
+  unsigned obj_f_prime = add_object ("f", 1, c);
+
+  start_object (large_string.c_str(), 40000, c);
+  add_offset (obj_f_prime, c);
+  unsigned obj_e = c->pop_pack (false);
+
+  start_object ("c", 1, c);
+  add_offset (obj_e, c);
+  unsigned obj_c = c->pop_pack (false);
+
+  // Space 0
+
+  unsigned obj_f = add_object ("f", 1, c);
+
+  start_object (large_string.c_str(), 40000, c);
+  add_offset (obj_f, c);
+  unsigned obj_d = c->pop_pack (false);
+
+  start_object ("b", 1, c);
+  add_offset (obj_d, c);
+  unsigned obj_b = c->pop_pack (false);
+
+  // Root
+  start_object ("a", 1, c);
+  add_offset (obj_b, c);
+  add_wide_offset (obj_b_prime, c);
   add_wide_offset (obj_c, c);
   c->pop_pack (false);
 
@@ -1124,6 +1212,42 @@ static void test_resolve_overflows_via_splitting_spaces ()
 
 }
 
+static void test_resolve_overflows_via_splitting_spaces_2 ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_split_spaces_2 (&c);
+  graph_t graph (c.object_graph ());
+
+  void* out_buffer = malloc (buffer_size);
+  hb_serialize_context_t out (out_buffer, buffer_size);
+
+  assert (c.offset_overflow ());
+  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, 1);
+  assert (!out.offset_overflow ());
+  hb_bytes_t result = out.copy_bytes ();
+
+  void* expected_buffer = malloc (buffer_size);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  assert (!e.offset_overflow ());
+  populate_serializer_with_split_spaces_expected_2 (&e);
+  hb_bytes_t expected_result = e.copy_bytes ();
+
+  assert (result.length == expected_result.length);
+  for (unsigned i = 0; i < expected_result.length; i++)
+  {
+    assert (result[i] == expected_result[i]);
+  }
+
+  result.fini ();
+  expected_result.fini ();
+  free (buffer);
+  free (expected_buffer);
+  free (out_buffer);
+
+}
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
@@ -1146,6 +1270,7 @@ main (int argc, char **argv)
   test_resolve_overflows_via_isolating_16bit_space ();
   test_resolve_overflows_via_isolating_16bit_space_2 ();
   test_resolve_overflows_via_splitting_spaces ();
+  test_resolve_overflows_via_splitting_spaces_2 ();
   test_duplicate_leaf ();
   test_duplicate_interior ();
 }

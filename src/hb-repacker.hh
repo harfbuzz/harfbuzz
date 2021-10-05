@@ -474,7 +474,7 @@ struct graph_t
         ;
 
     remap_obj_indices (index_map, new_subgraph);
-    remap_obj_indices (index_map, parents.iter ());
+    remap_obj_indices (index_map, parents.iter (), true);
 
     // Update roots set with new indices as needed.
     unsigned next = HB_SET_VALUE_INVALID;
@@ -482,7 +482,6 @@ struct graph_t
     {
       if (index_map.has (next))
       {
-        printf ("Updated root %u to %u.\n", next, index_map[next]);
         roots.del (next);
         roots.add (index_map[next]);
       }
@@ -752,8 +751,12 @@ struct graph_t
   unsigned wide_parents (unsigned node_idx, hb_set_t& parents) const
   {
     unsigned count = 0;
+    hb_set_t visited;
     for (unsigned p : vertices_[node_idx].parents)
     {
+      if (visited.has (p)) continue;
+      visited.add (p);
+
       for (const auto& l : vertices_[p].obj.links)
       {
         if (l.objidx == node_idx && l.width == 4 && !l.is_signed)
@@ -936,7 +939,8 @@ struct graph_t
    */
   template<typename Iterator, hb_requires (hb_is_iterator (Iterator))>
   void remap_obj_indices (const hb_hashmap_t<unsigned, unsigned>& id_map,
-                          Iterator subgraph)
+                          Iterator subgraph,
+                          bool only_wide = false)
   {
     if (!id_map) return;
     for (unsigned i : subgraph)
@@ -945,6 +949,7 @@ struct graph_t
       {
         auto& link = vertices_[i].obj.links[j];
         if (!id_map.has (link.objidx)) continue;
+        if (only_wide && !(link.width == 4 && !link.is_signed)) continue;
 
         reassign_link (link, i, id_map[link.objidx]);
       }
