@@ -236,6 +236,7 @@ struct graph_t
 
     hb_vector_t<unsigned> queue;
     hb_vector_t<vertex_t> sorted_graph;
+    if (unlikely (!check_success (sorted_graph.resize (vertices_.length)))) return;
     hb_vector_t<unsigned> id_map;
     if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
 
@@ -252,7 +253,7 @@ struct graph_t
       queue.remove (0);
 
       vertex_t& next = vertices_[next_id];
-      sorted_graph.push (next);
+      sorted_graph[new_id] = next;
       id_map[next_id] = new_id--;
 
       for (const auto& link : next.obj.links) {
@@ -269,10 +270,7 @@ struct graph_t
 
     remap_all_obj_indices (id_map, &sorted_graph);
 
-    sorted_graph.as_array ().reverse ();
-
-    vertices_.fini_deep ();
-    vertices_ = sorted_graph;
+    vertices_.swap (sorted_graph);
     sorted_graph.fini_deep ();
   }
 
@@ -293,6 +291,7 @@ struct graph_t
 
     hb_priority_queue_t queue;
     hb_vector_t<vertex_t> sorted_graph;
+    if (unlikely (!check_success (sorted_graph.resize (vertices_.length)))) return;
     hb_vector_t<unsigned> id_map;
     if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
 
@@ -308,7 +307,7 @@ struct graph_t
       unsigned next_id = queue.pop_minimum().second;
 
       vertex_t& next = vertices_[next_id];
-      sorted_graph.push (next);
+      sorted_graph[new_id] = next;
       id_map[next_id] = new_id--;
 
       for (const auto& link : next.obj.links) {
@@ -331,10 +330,7 @@ struct graph_t
 
     remap_all_obj_indices (id_map, &sorted_graph);
 
-    sorted_graph.as_array ().reverse ();
-
-    vertices_.fini_deep ();
-    vertices_ = sorted_graph;
+    vertices_.swap (sorted_graph);
     sorted_graph.fini_deep ();
   }
 
@@ -812,19 +808,20 @@ struct graph_t
     hb_priority_queue_t queue;
     queue.insert (0, vertices_.length - 1);
 
-    hb_set_t visited;
+    hb_vector_t<bool> visited;
+    visited.resize (vertices_.length);
 
     while (!queue.in_error () && !queue.is_empty ())
     {
       unsigned next_idx = queue.pop_minimum ().second;
-      if (visited.has (next_idx)) continue;
+      if (visited[next_idx]) continue;
       const auto& next = vertices_[next_idx];
       int64_t next_distance = vertices_[next_idx].distance;
-      visited.add (next_idx);
+      visited[next_idx] = true;
 
       for (const auto& link : next.obj.links)
       {
-        if (visited.has (link.objidx)) continue;
+        if (visited[link.objidx]) continue;
 
         const auto& child = vertices_[link.objidx].obj;
         int64_t child_weight = (child.tail - child.head) +

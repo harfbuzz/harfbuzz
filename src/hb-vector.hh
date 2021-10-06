@@ -87,6 +87,21 @@ struct hb_vector_t
     resize (0);
   }
 
+  void swap (hb_vector_t& other)
+  {
+    int allocated_copy = allocated;
+    unsigned int length_copy = length;
+    Type *arrayZ_copy = arrayZ;
+
+    allocated = other.allocated;
+    length = other.length;
+    arrayZ = other.arrayZ;
+
+    other.allocated = allocated_copy;
+    other.length = length_copy;
+    other.arrayZ = arrayZ_copy;
+  }
+
   hb_vector_t& operator = (const hb_vector_t &o)
   {
     reset ();
