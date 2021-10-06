@@ -129,33 +129,6 @@ struct graph_t
     unsigned child;
   };
 
-  struct clone_buffer_t
-  {
-    clone_buffer_t () : head (nullptr), tail (nullptr) {}
-
-    bool copy (const hb_serialize_context_t::object_t& object)
-    {
-      fini ();
-      unsigned size = object.tail - object.head;
-      head = (char*) hb_malloc (size);
-      if (!head) return false;
-
-      memcpy (head, object.head, size);
-      tail = head + size;
-      return true;
-    }
-
-    char* head;
-    char* tail;
-
-    void fini ()
-    {
-      if (!head) return;
-      hb_free (head);
-      head = nullptr;
-    }
-  };
-
   /*
    * A topological sorting of an object graph. Ordered
    * in reverse serialization order (first object in the
@@ -196,14 +169,12 @@ struct graph_t
   ~graph_t ()
   {
     vertices_.fini_deep ();
-    clone_buffers_.fini_deep ();
   }
 
   bool in_error () const
   {
     return !successful ||
         vertices_.in_error () ||
-        clone_buffers_.in_error () ||
         num_roots_for_space_.in_error ();
   }
 
@@ -541,15 +512,12 @@ struct graph_t
 
     auto* clone = vertices_.push ();
     auto& child = vertices_[node_idx];
-    clone_buffer_t* buffer = clone_buffers_.push ();
-    if (vertices_.in_error ()
-        || clone_buffers_.in_error ()
-        || !check_success (buffer->copy (child.obj))) {
+    if (vertices_.in_error ()) {
       return -1;
     }
 
-    clone->obj.head = buffer->head;
-    clone->obj.tail = buffer->tail;
+    clone->obj.head = child.obj.head;
+    clone->obj.tail = child.obj.tail;
     clone->distance = child.distance;
     clone->space = child.space;
     clone->parents.reset ();
@@ -1057,7 +1025,6 @@ struct graph_t
   // TODO(garretrieger): make private, will need to move most of offset overflow code into graph.
   hb_vector_t<vertex_t> vertices_;
  private:
-  hb_vector_t<clone_buffer_t> clone_buffers_;
   bool parents_invalid;
   bool distance_invalid;
   bool positions_invalid;
