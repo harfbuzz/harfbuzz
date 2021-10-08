@@ -21,7 +21,7 @@ hb-ot-tag-table.hh: gen-tag-table.py languagetags language-subtag-registry
 	./$^ > $@ || ($(RM) $@; false)
 hb-ucd-table.hh: gen-ucd-table.py ucd.nounihan.grouped.zip hb-common.h
 	./$^ > $@ || ($(RM) $@; false)
-hb-ot-shape-complex-use-table.hh: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt DerivedCoreProperties.txt UnicodeData.txt ArabicShaping.txt Blocks.txt ms-use/IndicSyllabicCategory-Additional.txt ms-use/IndicPositionalCategory-Additional.txt
+hb-ot-shape-complex-use-table.hh: gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt ArabicShaping.txt DerivedCoreProperties.txt UnicodeData.txt Blocks.txt Scripts.txt ms-use/IndicSyllabicCategory-Additional.txt ms-use/IndicPositionalCategory-Additional.txt
 	./$^ > $@ || ($(RM) $@; false)
 hb-ot-shape-complex-vowel-constraints.cc: gen-vowel-constraints.py ms-use/IndicShapingInvalidCluster.txt Scripts.txt
 	./$^ > $@ || ($(RM) $@; false)
