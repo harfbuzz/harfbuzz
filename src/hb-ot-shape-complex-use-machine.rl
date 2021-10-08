@@ -68,6 +68,7 @@ export O	= 0; # OTHER
 export B	= 1; # BASE
 export N	= 4; # BASE_NUM
 export GB	= 5; # BASE_OTHER
+export CGJ	= 6; # CGJ
 export SUB	= 11; # CONS_SUB
 export H	= 12; # HALANT
 
@@ -225,8 +226,8 @@ HB_FUNCOBJ (machine_index);
 
 
 static bool
-not_standard_default_ignorable (const hb_glyph_info_t &i)
-{ return !(i.use_category() == USE(O) && _hb_glyph_info_is_default_ignorable (&i)); }
+not_ccs_default_ignorable (const hb_glyph_info_t &i)
+{ return !(i.use_category() == USE(CGJ) && _hb_glyph_info_is_default_ignorable (&i)); }
 
 static inline void
 find_syllables_use (hb_buffer_t *buffer)
@@ -235,13 +236,13 @@ find_syllables_use (hb_buffer_t *buffer)
   auto p =
     + hb_iter (info, buffer->len)
     | hb_enumerate
-    | hb_filter ([] (const hb_glyph_info_t &i) { return not_standard_default_ignorable (i); },
+    | hb_filter ([] (const hb_glyph_info_t &i) { return not_ccs_default_ignorable (i); },
 		 hb_second)
     | hb_filter ([&] (const hb_pair_t<unsigned, const hb_glyph_info_t &> p)
 		 {
 		   if (p.second.use_category() == USE(ZWNJ))
 		     for (unsigned i = p.first + 1; i < buffer->len; ++i)
-		       if (not_standard_default_ignorable (info[i]))
+		       if (not_ccs_default_ignorable (info[i]))
 			 return !_hb_glyph_info_is_unicode_mark (&info[i]);
 		   return true;
 		 })
