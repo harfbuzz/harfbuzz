@@ -56,7 +56,6 @@
 #define N	USE(N)	/* BASE_NUM */
 #define O	USE(O)	/* OTHER */
 #define R	USE(R)	/* REPHA */
-#define S	USE(S)	/* SYM */
 #define SB	USE(SB)	/* HIEROGLYPH_SEGMENT_BEGIN */
 #define SE	USE(SE)	/* HIEROGLYPH_SEGMENT_END */
 #define SUB	USE(SUB)	/* CONS_SUB */
@@ -387,7 +386,7 @@ static const uint8_t use_table[] = {
   /* 1B30 */     B,     B,     B,     B, CMAbv,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VPre,  VPre,
   /* 1B40 */  VPre,  VPre,  VAbv,  VAbv,     H,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,
   /* 1B50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,    GB,    GB,     O,     O,    GB,
-  /* 1B60 */     O,     S,    GB,     S,     S,     S,     S,     S,    GB,     S,     S, SMAbv, SMBlw, SMAbv, SMAbv, SMAbv,
+  /* 1B60 */     O,     O,    GB,     O,     O,     O,     O,     O,    GB,     O,     O, SMAbv, SMBlw, SMAbv, SMAbv, SMAbv,
   /* 1B70 */ SMAbv, SMAbv, SMAbv, SMAbv,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Sundanese */
@@ -1249,7 +1248,6 @@ hb_use_get_category (hb_codepoint_t u)
 #undef N
 #undef O
 #undef R
-#undef S
 #undef SB
 #undef SE
 #undef SUB
