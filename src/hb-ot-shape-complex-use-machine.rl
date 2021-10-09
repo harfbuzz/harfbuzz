@@ -132,15 +132,21 @@ number_joiner_terminated_cluster_tail = (HN N)* HN;
 numeral_cluster_tail = (HN N)+;
 symbol_cluster_tail = SMAbv+ SMBlw* | SMBlw+;
 
-virama_terminated_cluster =
-	complex_syllable_start
+virama_terminated_cluster_tail =
 	consonant_modifiers
 	h
 ;
-sakot_terminated_cluster =
+virama_terminated_cluster =
 	complex_syllable_start
+	virama_terminated_cluster_tail
+;
+sakot_terminated_cluster_tail =
 	complex_syllable_middle
 	Sk
+;
+sakot_terminated_cluster =
+	complex_syllable_start
+	sakot_terminated_cluster_tail
 ;
 standard_cluster =
 	complex_syllable_start
@@ -148,7 +154,7 @@ standard_cluster =
 ;
 broken_cluster =
 	R?
-	(complex_syllable_tail | number_joiner_terminated_cluster_tail | numeral_cluster_tail | symbol_cluster_tail)
+	(complex_syllable_tail | number_joiner_terminated_cluster_tail | numeral_cluster_tail | symbol_cluster_tail | virama_terminated_cluster_tail | sakot_terminated_cluster_tail)
 ;
 
 number_joiner_terminated_cluster = N number_joiner_terminated_cluster_tail;
