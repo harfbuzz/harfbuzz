@@ -271,9 +271,8 @@ def is_HALANT(U, UISC, UDI, UGC, AJT):
 		and not is_SAKOT(U, UISC, UDI, UGC, AJT))
 def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UDI, UGC, AJT):
 	# Split off of HALANT
-	# https://github.com/harfbuzz/harfbuzz/issues/1102
 	# https://github.com/harfbuzz/harfbuzz/issues/1379
-	return U in [0x11046, 0x1134D]
+	return U == 0x1134D
 def is_HALANT_NUM(U, UISC, UDI, UGC, AJT):
 	return UISC == Number_Joiner
 def is_HIEROGLYPH(U, UISC, UDI, UGC, AJT):
