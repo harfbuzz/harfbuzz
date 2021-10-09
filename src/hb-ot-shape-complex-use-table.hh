@@ -660,7 +660,7 @@ static const uint8_t use_table[] = {
   /* 11010 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11020 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11030 */     B,     B,     B,     B,     B,     B,     B,     B,  VAbv,  VAbv,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,
-  /* 11040 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,   HVM,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 11040 */  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,     H,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11050 */     O,     O,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,     N,
   /* 11060 */     N,     N,     N,     N,     N,     N,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11070 */  VAbv,     B,     B,  VAbv,  VAbv,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,    HN,
