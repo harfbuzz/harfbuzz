@@ -437,6 +437,7 @@ endif ()
 ## Define harfbuzz-subset library
 if (HB_BUILD_SUBSET)
   add_library(harfbuzz-subset ${subset_project_sources} ${subset_project_headers})
+  list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-subset.h)
   add_dependencies(harfbuzz-subset harfbuzz)
   target_link_libraries(harfbuzz-subset harfbuzz ${THIRD_PARTY_LIBS})
 
@@ -701,6 +702,11 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       FRAMEWORK DESTINATION Library/Frameworks
     )
+  endif ()
+  if (HB_BUILD_SUBSET)
+  install(TARGETS harfbuzz-subset
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
   endif ()
   if (HB_BUILD_UTILS)
     if (WIN32 AND BUILD_SHARED_LIBS)
