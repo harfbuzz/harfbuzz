@@ -704,8 +704,8 @@ if (NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
     )
   endif ()
   if (HB_BUILD_SUBSET)
-  install(TARGETS harfbuzz-subset
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    install(TARGETS harfbuzz-subset
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   )
   endif ()
   if (HB_BUILD_UTILS)
