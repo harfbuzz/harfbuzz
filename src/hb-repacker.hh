@@ -33,6 +33,10 @@
 #include "hb-serialize.hh"
 #include "hb-vector.hh"
 
+/*
+ * For a detailed writeup on the overflow resolution algorithm see:
+ * docs/overflow_resolution.md
+ */
 
 struct graph_t
 {
@@ -892,6 +896,9 @@ static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& o
  * If necessary the structure of the graph may be modified in ways that do not
  * affect the functionality of the graph. For example shared objects may be
  * duplicated.
+ *
+ * For a detailed writeup describing how the algorithm operates see:
+ * docs/overflow_resolution.md
  */
 inline void
 hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& packed,
