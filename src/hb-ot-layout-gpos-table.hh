@@ -1220,9 +1220,9 @@ struct PairSet
 						record_size);
     if (record)
     {
-      /* Note the intentional use of "|" instead of short-circuit "||". */
-      if (valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos()) |
-	  valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]))
+      bool applied_first = valueFormats[0].apply_value (c, this, &record->values[0], buffer->cur_pos());
+      bool applied_second = valueFormats[1].apply_value (c, this, &record->values[len1], buffer->pos[pos]);
+      if (applied_first || applied_second)
 	buffer->unsafe_to_break (buffer->idx, pos + 1);
       if (len2)
 	pos++;
@@ -1560,9 +1560,9 @@ struct PairPosFormat2
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count)) return_trace (false);
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    /* Note the intentional use of "|" instead of short-circuit "||". */
-    if (valueFormat1.apply_value (c, this, v, buffer->cur_pos()) |
-	valueFormat2.apply_value (c, this, v + len1, buffer->pos[skippy_iter.idx]))
+    bool applied_first = valueFormat1.apply_value (c, this, v, buffer->cur_pos());
+    bool applied_second = valueFormat2.apply_value (c, this, v + len1, buffer->pos[skippy_iter.idx]);
+    if (applied_first || applied_second)
       buffer->unsafe_to_break (buffer->idx, skippy_iter.idx + 1);
 
     buffer->idx = skippy_iter.idx;
