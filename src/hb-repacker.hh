@@ -1048,7 +1048,8 @@ static bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record
     hb_set_t roots;
     roots.add (root);
     sorted_graph.isolate_subgraph (roots);
-    sorted_graph.move_to_new_space (root);
+    for (unsigned new_root : roots)
+      sorted_graph.move_to_new_space (new_root);
     return true;
   }
   return false;
