@@ -147,6 +147,7 @@ hb_base_sources = files(
   'hb-ot-tag-table.hh',
   'hb-ot-tag.cc',
   'hb-ot-var-avar-table.hh',
+  'hb-ot-var-common.hh',
   'hb-ot-var-fvar-table.hh',
   'hb-ot-var-gvar-table.hh',
   'hb-ot-var-hvar-table.hh',
