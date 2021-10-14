@@ -30,6 +30,7 @@
 
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
+#include "hb-ot-var-common.hh"
 
 /*
  * COLR -- Color
@@ -176,7 +177,7 @@ struct Variable
   {
     TRACE_SUBSET (this);
     if (!value.subset (c)) return_trace (false);
-    return_trace (c->serializer->embed (varIndexBase));
+    return_trace (c->serializer->embed (varIdxBase));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -187,7 +188,7 @@ struct Variable
 
   protected:
   T      value;
-  VarIdx varIndexBase;
+  VarIdx varIdxBase;
   public:
   DEFINE_SIZE_STATIC (4 + T::static_size);
 };
@@ -886,7 +887,7 @@ struct PaintComposite
   DEFINE_SIZE_STATIC (8);
 };
 
-struct ClipBoxTemplate
+struct ClipBoxFormat1
 {
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -904,8 +905,7 @@ struct ClipBoxTemplate
   DEFINE_SIZE_STATIC (1 + 4 * FWORD::static_size);
 };
 
-struct ClipBoxFormat1 : ClipBoxTemplate {};
-struct ClipBoxFormat2 : Variable<ClipBoxTemplate> {};
+struct ClipBoxFormat2 : Variable<ClipBoxFormat1> {};
 
 struct ClipBox
 {
@@ -1227,125 +1227,6 @@ struct LayerList : Array32OfOffset32To<Paint>
   }
 };
 
-struct DeltasetIndexMapFormat0
-{
-  friend struct DeltasetIndexMap;
-
-  private:
-  DeltasetIndexMapFormat0* copy (hb_serialize_context_t *c) const
-  {
-    TRACE_SERIALIZE (this);
-    auto *out = c->start_embed (this);
-    if (unlikely (!out)) return_trace (nullptr);
-
-    unsigned total_size = min_size + mapCount * get_width ();
-    HBUINT8 *p = c->allocate_size<HBUINT8> (total_size);
-    if (unlikely (!p)) return_trace (nullptr);
-
-    memcpy (p, this, HBUINT8::static_size * total_size);
-    return_trace (out);
-  }
-
-  unsigned int get_width () const
-  { return ((entryFormat >> 4) & 3) + 1; }
-
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-                  c->check_range (mapDataZ.arrayZ,
-                                  mapCount,
-                                  get_width ()));
-  }
-
-  protected:
-  HBUINT8	format;         /* Format identifier--format = 0 */
-  HBUINT8	entryFormat;    /* A packed field that describes the compressed
-                                 * representation of delta-set indices. */
-  HBUINT16	mapCount;       /* The number of mapping entries. */
-  UnsizedArrayOf<HBUINT8>
-                mapDataZ;       /* The delta-set index mapping data. */
-
-  public:
-  DEFINE_SIZE_ARRAY (4, mapDataZ);
-};
-
-struct DeltasetIndexMapFormat1
-{
-  friend struct DeltasetIndexMap;
-  
-  private:
-  DeltasetIndexMapFormat1* copy (hb_serialize_context_t *c) const
-  {
-    TRACE_SERIALIZE (this);
-    auto *out = c->start_embed (this);
-    if (unlikely (!out)) return_trace (nullptr);
-
-    unsigned total_size = min_size + mapCount * get_width ();
-    HBUINT8 *p = c->allocate_size<HBUINT8> (total_size);
-    if (unlikely (!p)) return_trace (nullptr);
-    
-    memcpy (p, this, HBUINT8::static_size * total_size);
-    return_trace (out);
-  }
-
-  unsigned int get_width () const
-  { return ((entryFormat >> 4) & 3) + 1; }
-  
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-                  c->check_range (mapDataZ.arrayZ,
-                                  mapCount,
-                                  get_width ()));
-  }
-
-  protected:
-  HBUINT8	format;         /* Format identifier--format = 1 */
-  HBUINT8	entryFormat;    /* A packed field that describes the compressed
-                                 * representation of delta-set indices. */
-  HBUINT32	mapCount;       /* The number of mapping entries. */
-  UnsizedArrayOf<HBUINT8>
-                mapDataZ;       /* The delta-set index mapping data. */
-
-  public:
-  DEFINE_SIZE_ARRAY (6, mapDataZ);
-};
-
-struct DeltasetIndexMap
-{
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    if (!u.format.sanitize (c)) return_trace (false);
-    switch (u.format) {
-    case 0: return_trace (u.format0.sanitize (c));
-    case 1: return_trace (u.format1.sanitize (c));
-    default:return_trace (true);
-    }
-  }
-
-  DeltasetIndexMap* copy (hb_serialize_context_t *c) const
-  {
-    TRACE_SERIALIZE (this);
-    switch (u.format) {
-    case 0: return_trace (reinterpret_cast<DeltasetIndexMap *> (u.format0.copy (c)));
-    case 1: return_trace (reinterpret_cast<DeltasetIndexMap *> (u.format1.copy (c)));
-    default:return_trace (nullptr);
-    }
-  }
-
-  protected:
-  union {
-  HBUINT8			format;         /* Format identifier */
-  DeltasetIndexMapFormat0	format0;
-  DeltasetIndexMapFormat1	format1;
-  } u;
-  public:
-  DEFINE_SIZE_UNION (1, format);
-};
-
 struct COLR
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_COLR;
@@ -1626,7 +1507,7 @@ struct COLR
   Offset32To<BaseGlyphList>		baseGlyphList;
   Offset32To<LayerList>			layerList;
   Offset32To<ClipList>			clipList;   // Offset to ClipList table (may be NULL)
-  Offset32To<DeltasetIndexMap>		varIdxMap;  // Offset to DeltasetIndexMap table (may be NULL)
+  Offset32To<DeltaSetIndexMap>		varIdxMap;  // Offset to DeltaSetIndexMap table (may be NULL)
   Offset32To<VariationStore>		varStore;
   public:
   DEFINE_SIZE_MIN (14);
