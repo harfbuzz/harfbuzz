@@ -608,6 +608,7 @@ DEFINE_NULL_INSTANCE (hb_buffer_t) =
   HB_BUFFER_CLUSTER_LEVEL_DEFAULT,
   HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
   0, /* invisible */
+  -1, /* target_length */
   HB_BUFFER_SCRATCH_FLAG_DEFAULT,
   HB_BUFFER_MAX_LEN_DEFAULT,
   HB_BUFFER_MAX_OPS_DEFAULT,
@@ -1156,6 +1157,41 @@ hb_codepoint_t
 hb_buffer_get_invisible_glyph (hb_buffer_t    *buffer)
 {
   return buffer->invisible;
+}
+
+
+/**
+ * hb_buffer_set_target_length:
+ * @buffer: An #hb_buffer_t
+ * @target_length: the desired (sub)buffer contents length #hb_position_t
+ *
+ * Set the target length for justification. The maximum possible part of 
+ * buffer which fits into the target length, is justified to fit it exactly.
+ * If set to -1 (default), nothing is done.
+ **/
+void
+hb_buffer_set_target_length (hb_buffer_t    *buffer,
+			     hb_position_t   target_length)
+{
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
+  buffer->target_length = target_length;
+}
+
+/**
+ * hb_buffer_get_target_length:
+ * @buffer: An #hb_buffer_t
+ *
+ * See hb_buffer_set_target_length().
+ *
+ * Return value:
+ * The @buffer target length #hb_position_t
+ **/
+HB_EXTERN hb_position_t
+hb_buffer_get_target_length (hb_buffer_t    *buffer)
+{
+  return buffer->target_length;
 }
 
 
