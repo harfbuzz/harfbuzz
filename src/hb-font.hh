@@ -217,9 +217,10 @@ struct hb_font_t
   }
 
   hb_bool_t get_nominal_glyph (hb_codepoint_t unicode,
-			       hb_codepoint_t *glyph)
+			       hb_codepoint_t *glyph,
+			       hb_codepoint_t not_found = 0)
   {
-    *glyph = 0;
+    *glyph = not_found;
     return klass->get.f.nominal_glyph (this, user_data,
 				       unicode, glyph,
 				       klass->user_data.nominal_glyph);
@@ -238,9 +239,10 @@ struct hb_font_t
   }
 
   hb_bool_t get_variation_glyph (hb_codepoint_t unicode, hb_codepoint_t variation_selector,
-				 hb_codepoint_t *glyph)
+				 hb_codepoint_t *glyph,
+				 hb_codepoint_t not_found = 0)
   {
-    *glyph = 0;
+    *glyph = not_found;
     return klass->get.f.variation_glyph (this, user_data,
 					 unicode, variation_selector, glyph,
 					 klass->user_data.variation_glyph);
