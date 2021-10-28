@@ -69,7 +69,8 @@ HB_BEGIN_DECLS
  * There are predefined name IDs, as well as name IDs return from other
  * API.  These can be used to fetch name strings from a font face.
  *
- * For more information on these fields, see the OpenType spec.
+ * For more information on these fields, see the
+ * [OpenType spec](https://docs.microsoft.com/en-us/typography/opentype/spec/name#name-ids).
  *
  * Since: 2.0.0
  **/
