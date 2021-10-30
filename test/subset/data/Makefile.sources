@@ -27,6 +27,7 @@ TESTS = \
 	tests/layout.gpos9.tests \
 	tests/layout.gsub3.tests \
 	tests/layout.gsub5.tests \
+	tests/layout.gsub5_format2.tests \
 	tests/layout.gsub6.tests \
 	tests/layout.gsub8.tests \
 	tests/layout.khmer.tests \

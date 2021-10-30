@@ -26,6 +26,7 @@ EXTRA_DIST += \
 	expected/layout.gpos9 \
 	expected/layout.gsub3 \
 	expected/layout.gsub5 \
+	expected/layout.gsub5_format2 \
 	expected/layout.gsub6 \
 	expected/layout.gsub8 \
 	expected/layout.khmer \

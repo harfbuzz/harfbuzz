@@ -1336,7 +1336,7 @@ struct Lookup
       outMarkFilteringSet = markFilteringSet;
     }
 
-    return_trace (true);
+    return_trace (out->subTable.len);
   }
 
   template <typename TSubTable>
@@ -2081,6 +2081,22 @@ struct ClassDefFormat1
         intersect_glyphs->add (startGlyph + i);
   }
 
+  void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
+  {
+    if (glyphs->is_empty ()) return;
+    hb_codepoint_t end_glyph = startGlyph + classValue.len - 1;
+    if (glyphs->get_min () < startGlyph ||
+        glyphs->get_max () > end_glyph)
+      intersect_classes->add (0);
+
+    for (const auto& _ : + hb_enumerate (classValue))
+    {
+      hb_codepoint_t g = startGlyph + _.first;
+      if (glyphs->has (g))
+        intersect_classes->add (_.second);
+    }
+  }
+
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 1 */
   HBGlyphID16	startGlyph;	/* First GlyphID of the classValueArray */
@@ -2314,6 +2330,31 @@ struct ClassDefFormat2
     }
   }
 
+  void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
+  {
+    if (glyphs->is_empty ()) return;
+
+    unsigned count = rangeRecord.len;
+    hb_codepoint_t g = HB_SET_VALUE_INVALID;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (!hb_set_next (glyphs, &g))
+        break;
+      if (g < rangeRecord[i].first)
+      {
+        intersect_classes->add (0);
+        break;
+      }
+      g = rangeRecord[i].last;
+    }
+    if (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
+      intersect_classes->add (0);
+
+    for (const RangeRecord& record : rangeRecord.iter ())
+      if (record.intersects (glyphs))
+        intersect_classes->add (record.value);
+  }
+
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 2 */
   SortedArray16Of<RangeRecord>
@@ -2465,6 +2506,16 @@ struct ClassDef
     default:return;
     }
   }
+
+  void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.intersected_classes (glyphs, intersect_classes);
+    case 2: return u.format2.intersected_classes (glyphs, intersect_classes);
+    default:return;
+    }
+  }
+
 
   protected:
   union {
