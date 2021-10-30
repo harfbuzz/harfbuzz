@@ -18,6 +18,7 @@ tests = [
   'layout.gpos9',
   'layout.gsub3',
   'layout.gsub5',
+  'layout.gsub5_format2',
   'layout.gsub6',
   'layout.gsub8',
   'layout.gdef',

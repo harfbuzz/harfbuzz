@@ -1950,12 +1950,20 @@ struct ContextFormat2
       &class_def
     };
 
+    hb_set_t retained_coverage_glyphs;
+    (this+coverage).intersected_coverage_glyphs (glyphs, &retained_coverage_glyphs);
+
+    hb_set_t coverage_glyph_classes;
+    class_def.intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
+
+
     return
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
     | hb_enumerate
     | hb_map ([&] (const hb_pair_t<unsigned, const RuleSet &> p)
 	      { return class_def.intersects_class (glyphs, p.first) &&
+		       coverage_glyph_classes.has (p.first) &&
 		       p.second.intersects (glyphs, lookup_context); })
     | hb_any
     ;
@@ -2076,9 +2084,16 @@ struct ContextFormat2
     hb_map_t klass_map;
     out->classDef.serialize_subset (c, classDef, this, &klass_map);
 
+    const hb_set_t* glyphset = c->plan->glyphset_gsub ();
+    hb_set_t retained_coverage_glyphs;
+    (this+coverage).intersected_coverage_glyphs (glyphset, &retained_coverage_glyphs);
+    
+    hb_set_t coverage_glyph_classes;
+    (this+classDef).intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
+
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     bool ret = true;
-    int non_zero_index = 0, index = 0;
+    int non_zero_index = -1, index = 0;
     for (const auto& _ : + hb_enumerate (ruleSet)
 			 | hb_filter (klass_map, hb_first))
     {
@@ -2089,13 +2104,14 @@ struct ContextFormat2
 	break;
       }
 
-      if (o->serialize_subset (c, _.second, this, lookup_map, &klass_map))
+      if (coverage_glyph_classes.has (_.first) &&
+	  o->serialize_subset (c, _.second, this, lookup_map, &klass_map))
 	non_zero_index = index;
 
       index++;
     }
 
-    if (!ret) return_trace (ret);
+    if (!ret || non_zero_index == -1) return_trace (false);
 
     //prune empty trailing ruleSets
     --index;
@@ -2910,12 +2926,19 @@ struct ChainContextFormat2
        &lookahead_class_def}
     };
 
+    hb_set_t retained_coverage_glyphs;
+    (this+coverage).intersected_coverage_glyphs (glyphs, &retained_coverage_glyphs);
+
+    hb_set_t coverage_glyph_classes;
+    input_class_def.intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
+
     return
     + hb_iter (ruleSet)
     | hb_map (hb_add (this))
     | hb_enumerate
     | hb_map ([&] (const hb_pair_t<unsigned, const ChainRuleSet &> p)
 	      { return input_class_def.intersects_class (glyphs, p.first) &&
+		       coverage_glyph_classes.has (p.first) &&
 		       p.second.intersects (glyphs, lookup_context); })
     | hb_any
     ;
@@ -3070,13 +3093,19 @@ struct ChainContextFormat2
 						   lookahead_klass_map)))
       return_trace (false);
 
+    const hb_set_t* glyphset = c->plan->glyphset_gsub ();
+    hb_set_t retained_coverage_glyphs;
+    (this+coverage).intersected_coverage_glyphs (glyphset, &retained_coverage_glyphs);
+
+    hb_set_t coverage_glyph_classes;
+    (this+inputClassDef).intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
+
     int non_zero_index = -1, index = 0;
     bool ret = true;
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
     auto last_non_zero = c->serializer->snapshot ();
-    for (const Offset16To<ChainRuleSet>& _ : + hb_enumerate (ruleSet)
-					   | hb_filter (input_klass_map, hb_first)
-					   | hb_map (hb_second))
+    for (const auto& _ : + hb_enumerate (ruleSet)
+			 | hb_filter (input_klass_map, hb_first))
     {
       auto *o = out->ruleSet.serialize_append (c->serializer);
       if (unlikely (!o))
@@ -3084,7 +3113,8 @@ struct ChainContextFormat2
 	ret = false;
 	break;
       }
-      if (o->serialize_subset (c, _, this,
+      if (coverage_glyph_classes.has (_.first) &&
+          o->serialize_subset (c, _.second, this,
 			       lookup_map,
 			       &backtrack_klass_map,
 			       &input_klass_map,
@@ -3097,7 +3127,7 @@ struct ChainContextFormat2
       index++;
     }
 
-    if (!ret) return_trace (ret);
+    if (!ret || non_zero_index == -1) return_trace (false);
 
     // prune empty trailing ruleSets
     if (index > non_zero_index) {
