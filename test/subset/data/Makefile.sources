@@ -34,6 +34,7 @@ TESTS = \
 	tests/layout.tests \
 	tests/layout.tinos.tests \
 	tests/layout.duplicate_features.tests \
+	tests/layout.unsorted_featurelist.tests \
 	tests/sbix.tests \
 	tests/variable.tests \
 	tests/glyph_names.tests \

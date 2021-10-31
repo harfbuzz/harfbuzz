@@ -3658,24 +3658,33 @@ struct GSUBGPOS
                                 const hb_set_t *feature_indices,
                                 hb_map_t *duplicate_feature_map /* OUT */) const
   {
-    hb_set_t unique_features;
-    hb_tag_t prev_t = get_feature_tag (feature_indices->get_min ());
+    if (feature_indices->is_empty ()) return;
+    hb_hashmap_t<hb_tag_t, hb_set_t *, (unsigned)-1, nullptr> unique_features;
     //find out duplicate features after subset
     for (unsigned i : feature_indices->iter ())
     {
       hb_tag_t t = get_feature_tag (i);
-      if (t != prev_t)
+      if (!unique_features.has (t))
       {
-        prev_t = t;
-        unique_features.clear ();
-        unique_features.add (i);
+        hb_set_t* indices = hb_set_create ();
+        if (unlikely (indices == hb_set_get_empty () ||
+                      !unique_features.set (t, indices)))
+        {
+          hb_set_destroy (indices);
+          for (auto _ : unique_features.iter ())
+            hb_set_destroy (_.second);
+          return;
+        }
+        if (unique_features.get (t))
+          unique_features.get (t)->add (i);
         duplicate_feature_map->set (i, i);
         continue;
       }
 
       bool found = false;
 
-      for (unsigned other_f_index : unique_features.iter ())
+      hb_set_t* same_tag_features = unique_features.get (t);
+      for (unsigned other_f_index : same_tag_features->iter ())
       {
         const Feature& f = get_feature (i);
         const Feature& other_f = get_feature (other_f_index);
@@ -3707,10 +3716,13 @@ struct GSUBGPOS
       
       if (found == false)
       {
-        unique_features.add (i);
+        same_tag_features->add (i);
         duplicate_feature_map->set (i, i);
       }
     }
+
+    for (auto _ : unique_features.iter ())
+      hb_set_destroy (_.second);
   }
 
   void prune_features (const hb_map_t *lookup_indices, /* IN */

@@ -1013,24 +1013,15 @@ struct hb_collect_features_context_t
     }
 
     has_feature_filter = true;
+    hb_set_t features_set;
     for (; *features; features++)
+      features_set.add (*features);
+    
+    for (unsigned i = 0; i < g.get_feature_count (); i++)
     {
-      hb_tag_t tag = *features;
-      unsigned index;
-      g.find_feature_index (tag, &index);
-      if (index == OT::Index::NOT_FOUND_INDEX) continue;
-
-      feature_indices_filter.add(index);
-      for (int i = (int) index - 1; i >= 0; i--)
-      {
-        if (g.get_feature_tag (i) != tag) break;
+      hb_tag_t tag = g.get_feature_tag (i);
+      if (features_set.has (tag))
         feature_indices_filter.add(i);
-      }
-      for (unsigned i = index + 1; i < g.get_feature_count (); i++)
-      {
-        if (g.get_feature_tag (i) != tag) break;
-        feature_indices_filter.add(i);
-      }
     }
   }
 
