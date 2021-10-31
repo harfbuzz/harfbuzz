@@ -28,6 +28,7 @@ tests = [
   'layout.notonastaliqurdu',
   'layout.tinos',
   'layout.duplicate_features',
+  'layout.unsorted_featurelist',
   'cmap',
   'cmap14',
   'sbix',
