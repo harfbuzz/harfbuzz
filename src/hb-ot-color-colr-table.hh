@@ -971,7 +971,10 @@ struct ClipList
                                    const hb_map_t& gid_offset_map) const
   {
     TRACE_SERIALIZE (this);
-    if (gids.is_empty ()) return_trace (0);
+    if (gids.is_empty () ||
+        gid_offset_map.get_population () != gids.get_population ())
+      return_trace (0);
+
     unsigned count  = 0;
 
     hb_codepoint_t start_gid= gids.get_min ();
