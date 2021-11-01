@@ -14,6 +14,7 @@ tests = [
   'test-common.c',
   'test-draw.c',
   'test-font.c',
+  'test-font-scale.c',
   'test-map.c',
   'test-object.c',
   'test-ot-alternates.c',

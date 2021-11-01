@@ -38,6 +38,7 @@ TEST_PROGS = \
 	test-common \
 	test-draw \
 	test-font \
+	test-font-scale \
 	test-map \
 	test-object \
 	test-ot-alternates \
