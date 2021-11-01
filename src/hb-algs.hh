@@ -34,6 +34,7 @@
 #include "hb-null.hh"
 #include "hb-number.hh"
 
+#include <algorithm>
 
 /*
  * Flags
@@ -533,6 +534,16 @@ struct
 }
 HB_FUNCOBJ (hb_clamp);
 
+struct
+{
+  template <typename T> void
+  operator () (T& a, T& b) const
+  {
+    using std::swap; // allow ADL
+    swap (a, b);
+  }
+}
+HB_FUNCOBJ (hb_swap);
 
 /*
  * Bithacks.

@@ -274,7 +274,7 @@ struct graph_t
 
     remap_all_obj_indices (id_map, &sorted_graph);
 
-    vertices_.swap (sorted_graph);
+    hb_swap (vertices_, sorted_graph);
     sorted_graph.fini_deep ();
   }
 
@@ -334,7 +334,7 @@ struct graph_t
 
     remap_all_obj_indices (id_map, &sorted_graph);
 
-    vertices_.swap (sorted_graph);
+    hb_swap (vertices_, sorted_graph);
     sorted_graph.fini_deep ();
   }
 
