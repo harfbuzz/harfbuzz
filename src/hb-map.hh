@@ -159,17 +159,15 @@ struct hb_hashmap_t
 	if (old_items[i].is_real ())
 	  set_with_hash (old_items[i].key,
 			 old_items[i].hash,
-			 old_items[i].value);
+			 hb_move (old_items[i].value));
 
     hb_free (old_items);
 
     return true;
   }
 
-  bool set (K key, V value)
-  {
-    return set_with_hash (key, hb_hash (key), value);
-  }
+  bool set (K key, const V& value) { return set_with_hash (key, hb_hash (key), value); }
+  bool set (K key, V&& value) { return set_with_hash (key, hb_hash (key), hb_move (value)); }
 
   V get (K key) const
   {
@@ -239,7 +237,8 @@ struct hb_hashmap_t
 
   protected:
 
-  bool set_with_hash (K key, uint32_t hash, V value)
+  template <typename VV>
+  bool set_with_hash (K key, uint32_t hash, VV&& value)
   {
     if (unlikely (!successful)) return false;
     if (unlikely (key == kINVALID)) return true;
