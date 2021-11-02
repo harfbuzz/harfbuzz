@@ -44,6 +44,8 @@ struct hb_bit_set_t
   hb_bit_set_t& operator= (hb_bit_set_t&& other) { hb_swap (*this, other); return *this; }
   friend void swap (hb_bit_set_t &a, hb_bit_set_t &b)
   {
+    if (likely (!a.successful || !b.successful))
+      return;
     hb_swap (a.successful, b.successful);
     hb_swap (a.population, b.population);
     hb_swap (a.last_page_lookup, b.last_page_lookup);

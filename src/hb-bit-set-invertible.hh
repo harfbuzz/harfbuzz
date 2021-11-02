@@ -44,6 +44,8 @@ struct hb_bit_set_invertible_t
   hb_bit_set_invertible_t& operator= (hb_bit_set_invertible_t&& o) = default;
   friend void swap (hb_bit_set_invertible_t &a, hb_bit_set_invertible_t &b)
   {
+    if (likely (!a.s.successful || !b.s.successful))
+      return;
     hb_swap (a.inverted, b.inverted);
     hb_swap (a.s, b.s);
   }
