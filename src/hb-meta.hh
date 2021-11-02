@@ -175,17 +175,11 @@ using hb_is_cr_convertible = hb_bool_constant<
 >;
 #define hb_is_cr_convertible(From,To) hb_is_cr_convertible<From, To>::value
 
-/* std::forward */
-
-template <typename T>
-static constexpr T&& hb_forward (hb_remove_reference<T>& t) { return (T&&) t; }
-template <typename T>
-static constexpr T&& hb_forward (hb_remove_reference<T>&& t) { return (T&&) t; }
 
 struct
 {
   template <typename T> constexpr auto
-  operator () (T&& v) const HB_AUTO_RETURN (hb_forward<T> (v))
+  operator () (T&& v) const HB_AUTO_RETURN (std::forward<T> (v))
 
   template <typename T> constexpr auto
   operator () (T *v) const HB_AUTO_RETURN (*v)
@@ -195,7 +189,7 @@ HB_FUNCOBJ (hb_deref);
 struct
 {
   template <typename T> constexpr auto
-  operator () (T&& v) const HB_AUTO_RETURN (hb_forward<T> (v))
+  operator () (T&& v) const HB_AUTO_RETURN (std::forward<T> (v))
 
   template <typename T> constexpr auto
   operator () (T& v) const HB_AUTO_RETURN (hb_addressof (v))

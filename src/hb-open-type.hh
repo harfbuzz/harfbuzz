@@ -341,7 +341,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
     s->push ();
 
-    bool ret = c->dispatch (src_base+src, hb_forward<Ts> (ds)...);
+    bool ret = c->dispatch (src_base+src, std::forward<Ts> (ds)...);
 
     if (ret || !has_null)
       s->add_link (*this, s->pop_pack ());
@@ -358,7 +358,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
     *this = 0;
 
     Type* obj = c->push<Type> ();
-    bool ret = obj->serialize (c, hb_forward<Ts> (ds)...);
+    bool ret = obj->serialize (c, std::forward<Ts> (ds)...);
 
     if (ret)
       c->add_link (*this, c->pop_pack ());
@@ -384,7 +384,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
 
     c->push ();
 
-    bool ret = c->copy (src_base+src, hb_forward<Ts> (ds)...);
+    bool ret = c->copy (src_base+src, std::forward<Ts> (ds)...);
 
     c->add_link (*this, c->pop_pack (), whence, dst_bias);
 
@@ -410,7 +410,7 @@ struct OffsetTo : Offset<OffsetType, has_null>
     TRACE_SANITIZE (this);
     return_trace (sanitize_shallow (c, base) &&
 		  (this->is_null () ||
-		   c->dispatch (StructAtOffset<Type> (base, *this), hb_forward<Ts> (ds)...) ||
+		   c->dispatch (StructAtOffset<Type> (base, *this), std::forward<Ts> (ds)...) ||
 		   neuter (c)));
   }
 
@@ -520,7 +520,7 @@ struct UnsizedArrayOf
     if (unlikely (!sanitize_shallow (c, count))) return_trace (false);
     if (!sizeof... (Ts) && std::is_trivially_copyable<Type>::value) return_trace (true);
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], std::forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -565,7 +565,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_
   {
     TRACE_SANITIZE (this);
     return_trace ((UnsizedArray16OfOffsetTo<Type, OffsetType, has_null>
-		   ::sanitize (c, count, this, hb_forward<Ts> (ds)...)));
+		   ::sanitize (c, count, this, std::forward<Ts> (ds)...)));
   }
 };
 
@@ -710,7 +710,7 @@ struct ArrayOf
     if (!sizeof... (Ts) && std::is_trivially_copyable<Type>::value) return_trace (true);
     unsigned int count = len;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], std::forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -768,7 +768,7 @@ struct List16OfOffset16To : Array16OfOffset16To<Type>
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
-    return_trace (Array16OfOffset16To<Type>::sanitize (c, this, hb_forward<Ts> (ds)...));
+    return_trace (Array16OfOffset16To<Type>::sanitize (c, this, std::forward<Ts> (ds)...));
   }
 };
 
@@ -838,7 +838,7 @@ struct HeadlessArrayOf
     if (!sizeof... (Ts) && std::is_trivially_copyable<Type>::value) return_trace (true);
     unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], std::forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -887,7 +887,7 @@ struct ArrayOfM1
     if (!sizeof... (Ts) && std::is_trivially_copyable<Type>::value) return_trace (true);
     unsigned int count = lenM1 + 1;
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!c->dispatch (arrayZ[i], hb_forward<Ts> (ds)...)))
+      if (unlikely (!c->dispatch (arrayZ[i], std::forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }
@@ -1073,7 +1073,7 @@ struct VarSizedBinSearchArrayOf
     if (!sizeof... (Ts) && std::is_trivially_copyable<Type>::value) return_trace (true);
     unsigned int count = get_length ();
     for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!(*this)[i].sanitize (c, hb_forward<Ts> (ds)...)))
+      if (unlikely (!(*this)[i].sanitize (c, std::forward<Ts> (ds)...)))
 	return_trace (false);
     return_trace (true);
   }

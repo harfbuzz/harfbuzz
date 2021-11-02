@@ -1050,8 +1050,8 @@ struct SinglePos
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1702,8 +1702,8 @@ struct PairPos
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1959,7 +1959,7 @@ struct CursivePos
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -2194,7 +2194,7 @@ struct MarkBasePos
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -2434,7 +2434,7 @@ struct MarkLigPos
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -2653,7 +2653,7 @@ struct MarkMarkPos
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
+    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -2704,15 +2704,15 @@ struct PosLookupSubTable
   {
     TRACE_DISPATCH (this, lookup_type);
     switch (lookup_type) {
-    case Single:		return_trace (u.single.dispatch (c, hb_forward<Ts> (ds)...));
-    case Pair:			return_trace (u.pair.dispatch (c, hb_forward<Ts> (ds)...));
-    case Cursive:		return_trace (u.cursive.dispatch (c, hb_forward<Ts> (ds)...));
-    case MarkBase:		return_trace (u.markBase.dispatch (c, hb_forward<Ts> (ds)...));
-    case MarkLig:		return_trace (u.markLig.dispatch (c, hb_forward<Ts> (ds)...));
-    case MarkMark:		return_trace (u.markMark.dispatch (c, hb_forward<Ts> (ds)...));
-    case Context:		return_trace (u.context.dispatch (c, hb_forward<Ts> (ds)...));
-    case ChainContext:		return_trace (u.chainContext.dispatch (c, hb_forward<Ts> (ds)...));
-    case Extension:		return_trace (u.extension.dispatch (c, hb_forward<Ts> (ds)...));
+    case Single:		return_trace (u.single.dispatch (c, std::forward<Ts> (ds)...));
+    case Pair:			return_trace (u.pair.dispatch (c, std::forward<Ts> (ds)...));
+    case Cursive:		return_trace (u.cursive.dispatch (c, std::forward<Ts> (ds)...));
+    case MarkBase:		return_trace (u.markBase.dispatch (c, std::forward<Ts> (ds)...));
+    case MarkLig:		return_trace (u.markLig.dispatch (c, std::forward<Ts> (ds)...));
+    case MarkMark:		return_trace (u.markMark.dispatch (c, std::forward<Ts> (ds)...));
+    case Context:		return_trace (u.context.dispatch (c, std::forward<Ts> (ds)...));
+    case ChainContext:		return_trace (u.chainContext.dispatch (c, std::forward<Ts> (ds)...));
+    case Extension:		return_trace (u.extension.dispatch (c, std::forward<Ts> (ds)...));
     default:			return_trace (c->default_return_value ());
     }
   }
@@ -2800,7 +2800,7 @@ struct PosLookup : Lookup
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
-  { return Lookup::dispatch<SubTable> (c, hb_forward<Ts> (ds)...); }
+  { return Lookup::dispatch<SubTable> (c, std::forward<Ts> (ds)...); }
 
   bool subset (hb_subset_context_t *c) const
   { return Lookup::subset<SubTable> (c); }

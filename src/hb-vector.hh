@@ -150,7 +150,7 @@ struct hb_vector_t
 
   /* Sink interface. */
   template <typename T>
-  hb_vector_t& operator << (T&& v) { push (hb_forward<T> (v)); return *this; }
+  hb_vector_t& operator << (T&& v) { push (std::forward<T> (v)); return *this; }
 
   hb_array_t<      Type> as_array ()       { return hb_array (arrayZ, length); }
   hb_array_t<const Type> as_array () const { return hb_array (arrayZ, length); }
@@ -198,7 +198,7 @@ struct hb_vector_t
       // the created copy to leak memory since we won't have stored a
       // reference to it.
       return p;
-    *p = hb_forward<T> (v);
+    *p = std::forward<T> (v);
     return p;
   }
 
