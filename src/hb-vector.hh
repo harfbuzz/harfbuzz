@@ -41,11 +41,11 @@ struct hb_vector_t
   static constexpr unsigned item_size = hb_static_size (Type);
 
   hb_vector_t () = default;
-  hb_vector_t (std::initializer_list<Type> l) : hb_vector_t ()
+  hb_vector_t (std::initializer_list<Type> lst) : hb_vector_t ()
   {
-    alloc (l.size ());
-    for (auto&& i : l)
-      push (i);
+    alloc (lst.size ());
+    for (auto&& item : lst)
+      push (item);
   }
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
@@ -314,7 +314,7 @@ template <typename Type>
 struct hb_sorted_vector_t : hb_vector_t<Type>
 {
   hb_sorted_vector_t () : hb_vector_t<Type> () {}
-  hb_sorted_vector_t (std::initializer_list<Type> l) : hb_vector_t<Type> (l) {}
+  hb_sorted_vector_t (std::initializer_list<Type> lst) : hb_vector_t<Type> (lst) {}
   hb_sorted_vector_t (hb_sorted_vector_t& o) : hb_vector_t<Type> (o) {}
 
   hb_sorted_array_t<      Type> as_array ()       { return hb_sorted_array (this->arrayZ, this->length); }
