@@ -30,6 +30,7 @@ EXTRA_DIST += \
 	expected/layout.gsub8 \
 	expected/layout.khmer \
 	expected/layout.gdef \
+	expected/layout.gdef.glyphset \
 	expected/layout.context \
 	expected/layout.gdef-varstore \
 	expected/layout.gdef-attachlist \
