@@ -95,9 +95,6 @@ main (int argc, char **argv)
   static_assert (hb_is_base_of (X, const Y), "");
   static_assert (!hb_is_base_of (Y, X), "");
 
-  static_assert (hb_is_signed (hb_unwrap_type (U<U<U<int>>>)), "");
-  static_assert (hb_is_unsigned (hb_unwrap_type (U<U<U<U<unsigned>>>>)), "");
-
   /* TODO Add more meaningful tests. */
 
   return 0;

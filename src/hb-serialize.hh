@@ -376,7 +376,7 @@ struct hb_serialize_context_t
       err (HB_SERIALIZE_ERROR_OTHER);
 
     link.width = sizeof (T);
-    link.is_signed = hb_is_signed (hb_unwrap_type (T));
+    link.is_signed = std::is_signed<hb_unwrap_type (T)>::value;
     link.whence = (unsigned) whence;
     link.position = (const char *) &ofs - current->head;
     link.bias = bias;

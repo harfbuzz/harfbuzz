@@ -220,50 +220,6 @@ struct hb_reference_wrapper<T&>
 
 /* Type traits */
 
-template <typename T>
-using hb_is_integral = hb_bool_constant<
-  hb_is_same (hb_decay<T>, char) ||
-  hb_is_same (hb_decay<T>, signed char) ||
-  hb_is_same (hb_decay<T>, unsigned char) ||
-  hb_is_same (hb_decay<T>, signed int) ||
-  hb_is_same (hb_decay<T>, unsigned int) ||
-  hb_is_same (hb_decay<T>, signed short) ||
-  hb_is_same (hb_decay<T>, unsigned short) ||
-  hb_is_same (hb_decay<T>, signed long) ||
-  hb_is_same (hb_decay<T>, unsigned long) ||
-  hb_is_same (hb_decay<T>, signed long long) ||
-  hb_is_same (hb_decay<T>, unsigned long long) ||
-  false
->;
-#define hb_is_integral(T) hb_is_integral<T>::value
-template <typename T>
-using hb_is_floating_point = hb_bool_constant<
-  hb_is_same (hb_decay<T>, float) ||
-  hb_is_same (hb_decay<T>, double) ||
-  hb_is_same (hb_decay<T>, long double) ||
-  false
->;
-#define hb_is_floating_point(T) hb_is_floating_point<T>::value
-template <typename T>
-using hb_is_arithmetic = hb_bool_constant<
-  hb_is_integral (T) ||
-  hb_is_floating_point (T) ||
-  false
->;
-#define hb_is_arithmetic(T) hb_is_arithmetic<T>::value
-
-
-template <typename T, bool is_arithmetic> struct hb_is_signed_;
-template <typename T> struct hb_is_signed_<T, false>	: hb_false_type {};
-template <typename T> struct hb_is_signed_<T, true>	: hb_bool_constant<(T) -1 < (T) 0> {};
-template <typename T> struct hb_is_signed : hb_is_signed_<T, hb_is_arithmetic (T)> {};
-#define hb_is_signed(T) hb_is_signed<T>::value
-template <typename T, bool is_arithmetic> struct hb_is_unsigned_;
-template <typename T> struct hb_is_unsigned_<T, false>	: hb_false_type {};
-template <typename T> struct hb_is_unsigned_<T, true>	: hb_bool_constant<(T) 0 < (T) -1> {};
-template <typename T> struct hb_is_unsigned : hb_is_unsigned_<T, hb_is_arithmetic (T)> {};
-#define hb_is_unsigned(T) hb_is_unsigned<T>::value
-
 template <typename T> struct hb_int_min;
 template <> struct hb_int_min<char>			: hb_integral_constant<char,			CHAR_MIN>	{};
 template <> struct hb_int_min<signed char>		: hb_integral_constant<signed char,		SCHAR_MIN>	{};

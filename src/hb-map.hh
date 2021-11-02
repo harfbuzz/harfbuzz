@@ -35,8 +35,8 @@
  */
 
 template <typename K, typename V,
-	  K kINVALID = hb_is_pointer (K) ? 0 : hb_is_signed (K) ? hb_int_min (K) : (K) -1,
-	  V vINVALID = hb_is_pointer (V) ? 0 : hb_is_signed (V) ? hb_int_min (V) : (V) -1>
+	  K kINVALID = hb_is_pointer (K) ? 0 : std::is_signed<K>::value ? hb_int_min (K) : (K) -1,
+	  V vINVALID = hb_is_pointer (V) ? 0 : std::is_signed<V>::value ? hb_int_min (V) : (V) -1>
 struct hb_hashmap_t
 {
   hb_hashmap_t ()  { init (); }
@@ -59,8 +59,8 @@ struct hb_hashmap_t
     hb_copy (o, *this);
   }
 
-  static_assert (hb_is_integral (K) || hb_is_pointer (K), "");
-  static_assert (hb_is_integral (V) || hb_is_pointer (V), "");
+  static_assert (std::is_integral<K>::value || hb_is_pointer (K), "");
+  static_assert (std::is_integral<V>::value || hb_is_pointer (V), "");
 
   struct item_t
   {

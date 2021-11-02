@@ -128,7 +128,7 @@ struct BEInt<Type, 2>
 template <typename Type>
 struct BEInt<Type, 3>
 {
-  static_assert (!hb_is_signed (Type), "");
+  static_assert (!std::is_signed<Type>::value, "");
   public:
   BEInt () = default;
   constexpr BEInt (Type V) : v {uint8_t ((V >> 16) & 0xFF),
@@ -218,7 +218,7 @@ struct
   impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
   template <typename T,
-	    hb_enable_if (hb_is_integral (T))> constexpr auto
+	    hb_enable_if (std::is_integral<T>::value)> constexpr auto
   impl (const T& v, hb_priority<0>) const HB_AUTO_RETURN
   (
     /* Knuth's multiplicative method: */
@@ -808,7 +808,7 @@ hb_ceil_to_4 (unsigned int v)
 template <typename T> static inline bool
 hb_in_range (T u, T lo, T hi)
 {
-  static_assert (!hb_is_signed<T>::value, "");
+  static_assert (!std::is_signed<T>::value, "");
 
   /* The casts below are important as if T is smaller than int,
    * the subtract results will become a signed int! */

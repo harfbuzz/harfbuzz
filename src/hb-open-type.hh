@@ -64,7 +64,7 @@ struct IntType
   IntType& operator = (Type i) { v = i; return *this; }
   /* For reason we define cast out operator for signed/unsigned, instead of Type, see:
    * https://github.com/harfbuzz/harfbuzz/pull/2875/commits/09836013995cab2b9f07577a179ad7b024130467 */
-  operator hb_conditional<hb_is_signed (Type), signed, unsigned> () const { return v; }
+  operator hb_conditional<std::is_signed<Type>::value, signed, unsigned> () const { return v; }
 
   bool operator == (const IntType &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType &o) const { return !(*this == o); }
@@ -86,7 +86,7 @@ struct IntType
     return pb->cmp (*pa);
   }
   template <typename Type2,
-	    hb_enable_if (hb_is_integral (Type2) &&
+	    hb_enable_if (std::is_integral<Type2>::value &&
 			  sizeof (Type2) < sizeof (int) &&
 			  sizeof (Type) < sizeof (int))>
   int cmp (Type2 a) const
