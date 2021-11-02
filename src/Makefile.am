@@ -350,6 +350,7 @@ COMPILED_TESTS = \
 	test-number \
 	test-ot-tag \
 	test-priority-queue \
+	test-set \
 	test-unicode-ranges \
 	test-vector \
 	test-bimap \
@@ -392,9 +393,17 @@ test_ot_tag_SOURCES = hb-ot-tag.cc
 test_ot_tag_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_ot_tag_LDADD = $(COMPILED_TESTS_LDADD)
 
+test_set_SOURCES = test-set.cc hb-static.cc
+test_set_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_set_LDADD = $(COMPILED_TESTS_LDADD)
+
 test_unicode_ranges_SOURCES = test-unicode-ranges.cc
 test_unicode_ranges_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_unicode_ranges_LDADD = $(COMPILED_TESTS_LDADD)
+
+test_vector_SOURCES = test-vector.cc hb-static.cc
+test_vector_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_vector_LDADD = $(COMPILED_TESTS_LDADD)
 
 test_bimap_SOURCES = test-bimap.cc hb-static.cc
 test_bimap_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
