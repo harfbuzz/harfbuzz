@@ -52,6 +52,12 @@ struct hb_hashmap_t
     for (auto&& item : lst)
       set (item.first, item.second);
   }
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  hb_hashmap_t (const Iterable &o) : hb_hashmap_t ()
+  {
+    hb_copy (o, *this);
+  }
 
   static_assert (hb_is_integral (K) || hb_is_pointer (K), "");
   static_assert (hb_is_integral (V) || hb_is_pointer (V), "");

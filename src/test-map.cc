@@ -64,6 +64,30 @@ main (int argc, char **argv)
     v = hb_map_t {};
   }
 
+  /* Test initializing from iterable. */
+  {
+    hb_map_t s;
+
+    s.set (1, 2);
+    s.set (3, 4);
+
+    hb_map_t v (s);
+
+    assert (v.get_population () == 2);
+  }
+
+  /* Test initializing from iterator. */
+  {
+    hb_map_t s;
+
+    s.set (1, 2);
+    s.set (3, 4);
+
+    hb_map_t v (hb_iter (s));
+
+    assert (v.get_population () == 2);
+  }
+
   /* Test initializing from initializer list and swapping. */
   {
     using pair_t = hb_pair_t<hb_codepoint_t, hb_codepoint_t>;
