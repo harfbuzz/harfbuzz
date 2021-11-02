@@ -36,6 +36,7 @@ main (int argc, char **argv)
   {
     hb_vector_t<int> v1 {1, 2};
     hb_vector_t<int> v2 {v1};
+    hb_vector_t<int> V2 {v1};
     assert (v1.length == 2);
     assert (v1[0] == 1);
     assert (v1[1] == 2);
@@ -48,6 +49,7 @@ main (int argc, char **argv)
   {
     hb_vector_t<int> v1 {1, 2};
     hb_vector_t<int> v2 = v1;
+    hb_vector_t<int> V2 = v1;
     assert (v1.length == 2);
     assert (v1[0] == 1);
     assert (v1[1] == 2);
@@ -59,6 +61,7 @@ main (int argc, char **argv)
   /* Test move constructor. */
   {
     hb_vector_t<int> v {hb_vector_t<int> {1, 2}};
+    hb_vector_t<int> V {hb_vector_t<int> {1, 2}};
     assert (v.length == 2);
     assert (v[0] == 1);
     assert (v[1] == 2);
@@ -67,12 +70,14 @@ main (int argc, char **argv)
   /* Test move assignment. */
   {
     hb_vector_t<int> v;
+    hb_sorted_vector_t<int> V;
     v = hb_vector_t<int> {1, 2};
+    V = hb_sorted_vector_t<int> {1, 2};
     assert (v.length == 2);
     assert (v[0] == 1);
     assert (v[1] == 2);
   }
-  /* Test initializing vector from iterable. */
+  /* Test initializing from iterable. */
   {
     hb_set_t s;
 
@@ -80,13 +85,17 @@ main (int argc, char **argv)
     s.add (12);
 
     hb_vector_t<int> v (s);
+    hb_sorted_vector_t<int> V (s);
 
     assert (v.length == 2);
+    assert (V.length == 2);
     assert (v[0] == 12);
+    assert (V[0] == 12);
     assert (v[1] == 18);
+    assert (V[1] == 18);
   }
 
-  /* Test initializing vector from iterator. */
+  /* Test initializing from iterator. */
   {
     hb_set_t s;
 
@@ -94,13 +103,17 @@ main (int argc, char **argv)
     s.add (12);
 
     hb_vector_t<int> v (hb_iter (s));
+    hb_vector_t<int> V (hb_iter (s));
 
     assert (v.length == 2);
+    assert (V.length == 2);
     assert (v[0] == 12);
+    assert (V[0] == 12);
     assert (v[1] == 18);
+    assert (V[1] == 18);
   }
 
-  /* Test initializing vector from initializer list and swapping. */
+  /* Test initializing from initializer list and swapping. */
   {
     hb_vector_t<int> v1 {1, 2, 3};
     hb_vector_t<int> v2 {4, 5};

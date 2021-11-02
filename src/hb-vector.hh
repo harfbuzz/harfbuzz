@@ -313,9 +313,16 @@ struct hb_vector_t
 template <typename Type>
 struct hb_sorted_vector_t : hb_vector_t<Type>
 {
-  hb_sorted_vector_t () : hb_vector_t<Type> () {}
+  hb_sorted_vector_t () = default;
+  ~hb_sorted_vector_t () = default;
+  hb_sorted_vector_t (hb_sorted_vector_t& o) = default;
+  hb_sorted_vector_t (hb_sorted_vector_t &&o) = default;
   hb_sorted_vector_t (std::initializer_list<Type> lst) : hb_vector_t<Type> (lst) {}
-  hb_sorted_vector_t (hb_sorted_vector_t& o) : hb_vector_t<Type> (o) {}
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  hb_sorted_vector_t (const Iterable &o) : hb_vector_t<Type> (o) {}
+  hb_sorted_vector_t& operator = (const hb_sorted_vector_t &o) = default;
+  hb_sorted_vector_t& operator = (hb_sorted_vector_t &&o) = default;
   friend void swap (hb_sorted_vector_t& a, hb_sorted_vector_t& b)
   { hb_swap ((hb_vector_t<Type>&) (a), (hb_vector_t<Type>&) (b)); }
 
