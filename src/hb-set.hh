@@ -42,7 +42,7 @@ struct hb_sparseset_t
   ~hb_sparseset_t () { fini (); }
 
   hb_sparseset_t (const hb_sparseset_t& other) : hb_sparseset_t () { set (other); }
-  hb_sparseset_t (hb_sparseset_t&& other) : hb_sparseset_t () { s = hb_move (other.s); }
+  hb_sparseset_t (hb_sparseset_t&& other) : hb_sparseset_t () { s = std::move (other.s); }
   hb_sparseset_t& operator= (const hb_sparseset_t& other) { set (other); return *this; }
   hb_sparseset_t& operator= (hb_sparseset_t&& other) { hb_swap (*this, other); return *this; }
   friend void swap (hb_sparseset_t& a, hb_sparseset_t& b) { hb_swap (a.s, b.s); }

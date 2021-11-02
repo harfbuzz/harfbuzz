@@ -159,7 +159,7 @@ struct hb_hashmap_t
 	if (old_items[i].is_real ())
 	  set_with_hash (old_items[i].key,
 			 old_items[i].hash,
-			 hb_move (old_items[i].value));
+			 std::move (old_items[i].value));
 
     hb_free (old_items);
 
@@ -167,7 +167,7 @@ struct hb_hashmap_t
   }
 
   bool set (K key, const V& value) { return set_with_hash (key, hb_hash (key), value); }
-  bool set (K key, V&& value) { return set_with_hash (key, hb_hash (key), hb_move (value)); }
+  bool set (K key, V&& value) { return set_with_hash (key, hb_hash (key), std::move (value)); }
 
   V get (K key) const
   {

@@ -30,6 +30,7 @@
 #include "hb.hh"
 
 #include <type_traits>
+#include <utility>
 
 
 /*
@@ -174,10 +175,7 @@ using hb_is_cr_convertible = hb_bool_constant<
 >;
 #define hb_is_cr_convertible(From,To) hb_is_cr_convertible<From, To>::value
 
-/* std::move and std::forward */
-
-template <typename T>
-static constexpr hb_remove_reference<T>&& hb_move (T&& t) { return (hb_remove_reference<T>&&) (t); }
+/* std::forward */
 
 template <typename T>
 static constexpr T&& hb_forward (hb_remove_reference<T>& t) { return (T&&) t; }

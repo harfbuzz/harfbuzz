@@ -255,7 +255,7 @@ struct hb_vector_t
   Type pop ()
   {
     if (!length) return Null (Type);
-    return hb_move (arrayZ[--length]); /* Does this move actually work? */
+    return std::move (arrayZ[--length]); /* Does this move actually work? */
   }
 
   void remove (unsigned int i)
