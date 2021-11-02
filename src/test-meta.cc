@@ -95,19 +95,6 @@ main (int argc, char **argv)
   static_assert (hb_is_base_of (X, const Y), "");
   static_assert (!hb_is_base_of (Y, X), "");
 
-  static_assert (hb_is_constructible (int), "");
-  static_assert (hb_is_constructible (int, int), "");
-  static_assert (hb_is_constructible (int, char), "");
-  static_assert (hb_is_constructible (int, long), "");
-  static_assert (!hb_is_constructible (int, X), "");
-  static_assert (!hb_is_constructible (int, int, int), "");
-  static_assert (hb_is_constructible (X), "");
-  static_assert (!hb_is_constructible (X, int), "");
-  static_assert (hb_is_constructible (X, X), "");
-  static_assert (!hb_is_constructible (X, X, X), "");
-  static_assert (hb_is_constructible (X, Y), "");
-  static_assert (!hb_is_constructible (Y, X), "");
-
   static_assert (hb_is_signed (hb_unwrap_type (U<U<U<int>>>)), "");
   static_assert (hb_is_unsigned (hb_unwrap_type (U<U<U<U<unsigned>>>>)), "");
 

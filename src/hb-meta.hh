@@ -311,52 +311,6 @@ template <> struct hb_int_max<unsigned long long>	: hb_integral_constant<unsigne
   TypeName(const TypeName&) = delete; \
   void operator=(const TypeName&) = delete
 
-template <typename T, typename>
-struct _hb_is_destructible : hb_false_type {};
-template <typename T>
-struct _hb_is_destructible<T, hb_void_t<decltype (hb_declval (T).~T ())>> : hb_true_type {};
-template <typename T>
-using hb_is_destructible = _hb_is_destructible<T, void>;
-#define hb_is_destructible(T) hb_is_destructible<T>::value
-
-template <typename T, typename, typename ...Ts>
-struct _hb_is_constructible : hb_false_type {};
-template <typename T, typename ...Ts>
-struct _hb_is_constructible<T, hb_void_t<decltype (T (hb_declval (Ts)...))>, Ts...> : hb_true_type {};
-template <typename T, typename ...Ts>
-using hb_is_constructible = _hb_is_constructible<T, void, Ts...>;
-#define hb_is_constructible(...) hb_is_constructible<__VA_ARGS__>::value
-
-template <typename T>
-using hb_is_default_constructible = hb_is_constructible<T>;
-#define hb_is_default_constructible(T) hb_is_default_constructible<T>::value
-
-template <typename T>
-using hb_is_copy_constructible = hb_is_constructible<T, hb_add_lvalue_reference<hb_add_const<T>>>;
-#define hb_is_copy_constructible(T) hb_is_copy_constructible<T>::value
-
-template <typename T>
-using hb_is_move_constructible = hb_is_constructible<T, hb_add_rvalue_reference<hb_add_const<T>>>;
-#define hb_is_move_constructible(T) hb_is_move_constructible<T>::value
-
-template <typename T, typename U, typename>
-struct _hb_is_assignable : hb_false_type {};
-template <typename T, typename U>
-struct _hb_is_assignable<T, U, hb_void_t<decltype (hb_declval (T) = hb_declval (U))>> : hb_true_type {};
-template <typename T, typename U>
-using hb_is_assignable = _hb_is_assignable<T, U, void>;
-#define hb_is_assignable(T,U) hb_is_assignable<T, U>::value
-
-template <typename T>
-using hb_is_copy_assignable = hb_is_assignable<hb_add_lvalue_reference<T>,
-					       hb_add_lvalue_reference<hb_add_const<T>>>;
-#define hb_is_copy_assignable(T) hb_is_copy_assignable<T>::value
-
-template <typename T>
-using hb_is_move_assignable = hb_is_assignable<hb_add_lvalue_reference<T>,
-					       hb_add_rvalue_reference<T>>;
-#define hb_is_move_assignable(T) hb_is_move_assignable<T>::value
-
 /* hb_unwrap_type (T)
  * If T has no T::type, returns T. Otherwise calls itself on T::type recursively.
  */
