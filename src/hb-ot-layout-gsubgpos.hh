@@ -1632,7 +1632,7 @@ struct Rule
 
     const UnsizedArrayOf<LookupRecord> &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 						       (inputZ.as_array ((inputCount ? inputCount - 1 : 0)));
-   
+
     unsigned count = serialize_lookuprecord_array (c, lookupRecord.as_array (lookupCount), lookup_map);
     return_trace (c->check_assign (out->lookupCount, count, HB_SERIALIZE_ERROR_INT_OVERFLOW));
   }
@@ -2087,7 +2087,7 @@ struct ContextFormat2
     const hb_set_t* glyphset = c->plan->glyphset_gsub ();
     hb_set_t retained_coverage_glyphs;
     (this+coverage).intersected_coverage_glyphs (glyphset, &retained_coverage_glyphs);
-    
+
     hb_set_t coverage_glyph_classes;
     (this+classDef).intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
 
@@ -2262,7 +2262,7 @@ struct ContextFormat3
 
     const UnsizedArrayOf<LookupRecord>& lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>> (coverageZ.as_array (glyphCount));
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
-    
+
 
     unsigned count = serialize_lookuprecord_array (c->serializer, lookupRecord.as_array (lookupCount), lookup_map);
     return_trace (c->serializer->check_assign (out->lookupCount, count, HB_SERIALIZE_ERROR_INT_OVERFLOW));
@@ -3338,7 +3338,7 @@ struct ChainContextFormat3
 
     const Array16Of<LookupRecord> &lookupRecord = StructAfter<Array16Of<LookupRecord>> (lookahead);
     const hb_map_t *lookup_map = c->table_tag == HB_OT_TAG_GSUB ? c->plan->gsub_lookups : c->plan->gpos_lookups;
-  
+
     HBUINT16 *lookupCount = c->serializer->copy<HBUINT16> (lookupRecord.len);
     if (!lookupCount) return_trace (false);
 
@@ -3694,6 +3694,7 @@ struct GSUBGPOS
     for (unsigned i : feature_indices->iter ())
     {
       hb_tag_t t = get_feature_tag (i);
+      if (t == unique_features.INVALID_KEY) continue;
       if (!unique_features.has (t))
       {
         hb_set_t* indices = hb_set_create ();
@@ -3723,12 +3724,12 @@ struct GSUBGPOS
         + hb_iter (f.lookupIndex)
         | hb_filter (lookup_indices)
         ;
-  
+
         auto other_f_iter =
         + hb_iter (other_f.lookupIndex)
         | hb_filter (lookup_indices)
         ;
-  
+
         bool is_equal = true;
         for (; f_iter && other_f_iter; f_iter++, other_f_iter++)
         {
@@ -3738,12 +3739,12 @@ struct GSUBGPOS
         }
 
         if (is_equal == false || f_iter || other_f_iter) continue;
-        
+
         found = true;
         duplicate_feature_map->set (i, other_f_index);
         break;
       }
-      
+
       if (found == false)
       {
         same_tag_features->add (i);
