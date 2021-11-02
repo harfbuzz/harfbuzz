@@ -47,6 +47,12 @@ struct hb_hashmap_t
   hb_hashmap_t& operator= (const hb_hashmap_t&& o)  { hb_copy (o, *this); return *this; }
   hb_hashmap_t& operator= (hb_hashmap_t&& o)  { hb_swap (*this, o); return *this; }
 
+  hb_hashmap_t (std::initializer_list<hb_pair_t<K, V>> lst) : hb_hashmap_t ()
+  {
+    for (auto&& item : lst)
+      set (item.first, item.second);
+  }
+
   static_assert (hb_is_integral (K) || hb_is_pointer (K), "");
   static_assert (hb_is_integral (V) || hb_is_pointer (V), "");
 
@@ -336,7 +342,22 @@ struct hb_hashmap_t
 struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
 			       hb_codepoint_t,
 			       HB_MAP_VALUE_INVALID,
-			       HB_MAP_VALUE_INVALID> {};
+			       HB_MAP_VALUE_INVALID>
+{
+  using hashmap = hb_hashmap_t<hb_codepoint_t,
+			       hb_codepoint_t,
+			       HB_MAP_VALUE_INVALID,
+			       HB_MAP_VALUE_INVALID>;
 
+  hb_map_t () = default;
+  ~hb_map_t () = default;
+  hb_map_t (hb_map_t& o) = default;
+  hb_map_t& operator= (const hb_map_t& other) = default;
+  hb_map_t& operator= (hb_map_t&& other) = default;
+  hb_map_t (std::initializer_list<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> lst) : hashmap (lst) {}
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  hb_map_t (const Iterable &o) : hashmap (o) {}
+};
 
 #endif /* HB_MAP_HH */

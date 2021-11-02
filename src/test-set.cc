@@ -60,7 +60,7 @@ main (int argc, char **argv)
     assert (v.get_population () == 2);
   }
 
-  /* Test initializing set from iterable. */
+  /* Test initializing from iterable. */
   {
     hb_set_t s;
 
@@ -72,7 +72,7 @@ main (int argc, char **argv)
     assert (v.get_population () == 2);
   }
 
-  /* Test initializing set from iterator. */
+  /* Test initializing from iterator. */
   {
     hb_set_t s;
 
@@ -84,7 +84,7 @@ main (int argc, char **argv)
     assert (v.get_population () == 2);
   }
 
-  /* Test initializing set from initializer list and swapping. */
+  /* Test initializing from initializer list and swapping. */
   {
     hb_set_t v1 {1, 2, 3};
     hb_set_t v2 {4, 5};

@@ -64,5 +64,15 @@ main (int argc, char **argv)
     v = hb_map_t {};
   }
 
+  /* Test initializing from initializer list and swapping. */
+  {
+    using pair_t = hb_pair_t<hb_codepoint_t, hb_codepoint_t>;
+    hb_map_t v1 {pair_t{1,2}, pair_t{4,5}};
+    hb_map_t v2 {pair_t{3,4}};
+    hb_swap (v1, v2);
+    assert (v1.get_population () == 1);
+    assert (v2.get_population () == 2);
+  }
+
   return 0;
 }
