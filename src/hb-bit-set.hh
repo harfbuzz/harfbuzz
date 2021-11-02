@@ -46,7 +46,6 @@ struct hb_bit_set_t
   {
     if (likely (!a.successful || !b.successful))
       return;
-    hb_swap (a.successful, b.successful);
     hb_swap (a.population, b.population);
     hb_swap (a.last_page_lookup, b.last_page_lookup);
     hb_swap (a.page_map, b.page_map);

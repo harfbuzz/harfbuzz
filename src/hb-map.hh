@@ -90,7 +90,6 @@ struct hb_hashmap_t
   {
     if (unlikely (!a.successful || !b.successful))
       return;
-    hb_swap (a.successful, b.successful);
     hb_swap (a.population, b.population);
     hb_swap (a.occupancy, b.occupancy);
     hb_swap (a.mask, b.mask);
