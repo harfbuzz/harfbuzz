@@ -26,6 +26,7 @@
 
 #include "hb.hh"
 #include "hb-algs.hh"
+#include "hb-set.hh"
 
 
 static char *
@@ -91,6 +92,35 @@ main (int argc, char **argv)
   assert (++hb_inc (x) == 3);
   assert (x == 3);
 
+  /* Test initializing vector from iterable. */
+  {
+    hb_set_t s;
+
+    s.add (18);
+    s.add (12);
+
+    hb_vector_t<int> v (s);
+
+    assert (v.length == 2);
+    assert (v[0] == 12);
+    assert (v[1] == 18);
+  }
+
+  /* Test initializing vector from iterator. */
+  {
+    hb_set_t s;
+
+    s.add (18);
+    s.add (12);
+
+    hb_vector_t<int> v (hb_iter (s));
+
+    assert (v.length == 2);
+    assert (v[0] == 12);
+    assert (v[1] == 18);
+  }
+
+  /* Test initializing vector from initializer list and swapping. */
   {
     hb_vector_t<int> v1 {1, 2, 3};
     hb_vector_t<int> v2 {4, 5};
@@ -101,6 +131,7 @@ main (int argc, char **argv)
     assert (v2[2] == 3);
   }
 
+  /* Test initializing sorted-vector from initializer list and swapping. */
   {
     hb_sorted_vector_t<int> v1 {1, 2, 3};
     hb_sorted_vector_t<int> v2 {4, 5};
