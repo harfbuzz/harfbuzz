@@ -342,7 +342,19 @@ test_gsub_would_substitute_SOURCES = test-gsub-would-substitute.cc
 test_gsub_would_substitute_CPPFLAGS = $(HBCFLAGS) $(FREETYPE_CFLAGS)
 test_gsub_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 
-COMPILED_TESTS = test-algs test-array test-iter test-meta test-number test-ot-tag test-priority-queue test-unicode-ranges test-bimap test-repacker
+COMPILED_TESTS = \
+	test-algs \
+	test-array \
+	test-iter \
+	test-meta \
+	test-number \
+	test-ot-tag \
+	test-priority-queue \
+	test-unicode-ranges \
+	test-vector \
+	test-bimap \
+	test-repacker \
+	$(NULL)
 COMPILED_TESTS_CPPFLAGS = $(HBCFLAGS) -DMAIN -UNDEBUG
 COMPILED_TESTS_LDADD = libharfbuzz.la $(HBLIBS)
 check_PROGRAMS += $(COMPILED_TESTS)
