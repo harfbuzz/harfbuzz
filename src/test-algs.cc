@@ -91,25 +91,5 @@ main (int argc, char **argv)
   assert (++hb_inc (x) == 3);
   assert (x == 3);
 
-  {
-    hb_vector_t<int> v1 {1, 2, 3};
-    hb_vector_t<int> v2 {4, 5};
-    hb_swap (v1, v2);
-    assert (v1.length == 2);
-    assert (v1[0] == 4);
-    assert (v2.length == 3);
-    assert (v2[2] == 3);
-  }
-
-  {
-    hb_sorted_vector_t<int> v1 {1, 2, 3};
-    hb_sorted_vector_t<int> v2 {4, 5};
-    hb_swap (v1, v2);
-    assert (v1.length == 2);
-    assert (v1[0] == 4);
-    assert (v2.length == 3);
-    assert (v2[2] == 3);
-  }
-
   return 0;
 }
