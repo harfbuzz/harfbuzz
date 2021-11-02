@@ -31,6 +31,47 @@
 int
 main (int argc, char **argv)
 {
+
+  /* Test copy constructor. */
+  {
+    hb_vector_t<int> v1 {1, 2};
+    hb_vector_t<int> v2 {v1};
+    assert (v1.length == 2);
+    assert (v1[0] == 1);
+    assert (v1[1] == 2);
+    assert (v2.length == 2);
+    assert (v2[0] == 1);
+    assert (v2[1] == 2);
+  }
+
+  /* Test copy assignment. */
+  {
+    hb_vector_t<int> v1 {1, 2};
+    hb_vector_t<int> v2 = v1;
+    assert (v1.length == 2);
+    assert (v1[0] == 1);
+    assert (v1[1] == 2);
+    assert (v2.length == 2);
+    assert (v2[0] == 1);
+    assert (v2[1] == 2);
+  }
+
+  /* Test move constructor. */
+  {
+    hb_vector_t<int> v {hb_vector_t<int> {1, 2}};
+    assert (v.length == 2);
+    assert (v[0] == 1);
+    assert (v[1] == 2);
+  }
+
+  /* Test move assignment. */
+  {
+    hb_vector_t<int> v;
+    v = hb_vector_t<int> {1, 2};
+    assert (v.length == 2);
+    assert (v[0] == 1);
+    assert (v[1] == 2);
+  }
   /* Test initializing vector from iterable. */
   {
     hb_set_t s;
