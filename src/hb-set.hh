@@ -157,14 +157,15 @@ struct hb_sparseset_t
 
 struct hb_set_t : hb_sparseset_t<hb_bit_set_invertible_t>
 {
-  hb_set_t () : hb_sparseset_t<hb_bit_set_invertible_t> () {}
+  hb_set_t () = default;
+  ~hb_set_t () = default;
+  hb_set_t (hb_set_t& o) = default;
+  hb_set_t& operator= (const hb_set_t& other) = default;
+  hb_set_t& operator= (hb_set_t&& other) = default;
   hb_set_t (std::initializer_list<hb_codepoint_t> l) : hb_sparseset_t<hb_bit_set_invertible_t> (l) {}
-  hb_set_t (hb_set_t& o) : hb_sparseset_t<hb_bit_set_invertible_t> (o) {}
   template <typename Iterable,
 	    hb_requires (hb_is_iterable (Iterable))>
   hb_set_t (const Iterable &o) : hb_sparseset_t<hb_bit_set_invertible_t> (o) {}
-  hb_set_t& operator= (const hb_set_t& other) { hb_sparseset_t<hb_bit_set_invertible_t>::operator= (other); return *this; }
-  hb_set_t& operator= (hb_set_t&& other) { hb_sparseset_t<hb_bit_set_invertible_t>::operator= (hb_move (other)); return *this; }
 };
 
 static_assert (hb_set_t::INVALID == HB_SET_VALUE_INVALID, "");
