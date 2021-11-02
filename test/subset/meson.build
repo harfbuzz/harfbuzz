@@ -21,6 +21,7 @@ tests = [
   'layout.gsub6',
   'layout.gsub8',
   'layout.gdef',
+  'layout.gdef.glyphset',
   'layout.khmer',
   'layout.context',
   'layout.gdef-varstore',

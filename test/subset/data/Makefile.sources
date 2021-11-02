@@ -16,6 +16,7 @@ TESTS = \
 	tests/layout.gdef-attachlist.tests \
 	tests/layout.gdef-varstore.tests \
 	tests/layout.gdef.tests \
+	tests/layout.gdef.glyphset.tests \
 	tests/layout.gpos.tests \
 	tests/layout.gpos2.tests \
 	tests/layout.gpos3.tests \
