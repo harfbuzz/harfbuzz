@@ -316,6 +316,8 @@ struct hb_sorted_vector_t : hb_vector_t<Type>
   hb_sorted_vector_t () : hb_vector_t<Type> () {}
   hb_sorted_vector_t (std::initializer_list<Type> lst) : hb_vector_t<Type> (lst) {}
   hb_sorted_vector_t (hb_sorted_vector_t& o) : hb_vector_t<Type> (o) {}
+  friend void swap (hb_sorted_vector_t& a, hb_sorted_vector_t& b)
+  { hb_swap ((hb_vector_t<Type>&) (a), (hb_vector_t<Type>&) (b)); }
 
   hb_sorted_array_t<      Type> as_array ()       { return hb_sorted_array (this->arrayZ, this->length); }
   hb_sorted_array_t<const Type> as_array () const { return hb_sorted_array (this->arrayZ, this->length); }
