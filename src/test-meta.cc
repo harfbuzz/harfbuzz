@@ -108,22 +108,6 @@ main (int argc, char **argv)
   static_assert (hb_is_constructible (X, Y), "");
   static_assert (!hb_is_constructible (Y, X), "");
 
-  static_assert (hb_is_trivially_default_constructible (X), "");
-  static_assert (hb_is_trivially_default_constructible (Y), "");
-  static_assert (hb_is_trivially_copy_constructible (X), "");
-  static_assert (hb_is_trivially_copy_constructible (Y), "");
-  static_assert (hb_is_trivially_move_constructible (X), "");
-  static_assert (hb_is_trivially_move_constructible (Y), "");
-  static_assert (hb_is_trivially_destructible (Y), "");
-
-  static_assert (hb_is_trivially_copyable (int), "");
-  static_assert (hb_is_trivially_copyable (X), "");
-  static_assert (hb_is_trivially_copyable (Y), "");
-
-  static_assert (hb_is_trivial (int), "");
-  static_assert (hb_is_trivial (X), "");
-  static_assert (hb_is_trivial (Y), "");
-
   static_assert (hb_is_signed (hb_unwrap_type (U<U<U<int>>>)), "");
   static_assert (hb_is_unsigned (hb_unwrap_type (U<U<U<U<unsigned>>>>)), "");
 

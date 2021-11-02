@@ -29,6 +29,8 @@
 
 #include "hb.hh"
 
+#include <type_traits>
+
 
 /*
  * C++ template meta-programming & fundamentals used with them.
@@ -354,62 +356,6 @@ template <typename T>
 using hb_is_move_assignable = hb_is_assignable<hb_add_lvalue_reference<T>,
 					       hb_add_rvalue_reference<T>>;
 #define hb_is_move_assignable(T) hb_is_move_assignable<T>::value
-
-/* Trivial versions. */
-
-template <typename T> union hb_trivial { T value; };
-
-template <typename T>
-using hb_is_trivially_destructible= hb_is_destructible<hb_trivial<T>>;
-#define hb_is_trivially_destructible(T) hb_is_trivially_destructible<T>::value
-
-/* Don't know how to do the following. */
-//template <typename T, typename ...Ts>
-//using hb_is_trivially_constructible= hb_is_constructible<hb_trivial<T>, hb_trivial<Ts>...>;
-//#define hb_is_trivially_constructible(...) hb_is_trivially_constructible<__VA_ARGS__>::value
-
-template <typename T>
-using hb_is_trivially_default_constructible= hb_is_default_constructible<hb_trivial<T>>;
-#define hb_is_trivially_default_constructible(T) hb_is_trivially_default_constructible<T>::value
-
-template <typename T>
-using hb_is_trivially_copy_constructible= hb_is_copy_constructible<hb_trivial<T>>;
-#define hb_is_trivially_copy_constructible(T) hb_is_trivially_copy_constructible<T>::value
-
-template <typename T>
-using hb_is_trivially_move_constructible= hb_is_move_constructible<hb_trivial<T>>;
-#define hb_is_trivially_move_constructible(T) hb_is_trivially_move_constructible<T>::value
-
-/* Don't know how to do the following. */
-//template <typename T, typename U>
-//using hb_is_trivially_assignable= hb_is_assignable<hb_trivial<T>, hb_trivial<U>>;
-//#define hb_is_trivially_assignable(T,U) hb_is_trivially_assignable<T, U>::value
-
-template <typename T>
-using hb_is_trivially_copy_assignable= hb_is_copy_assignable<hb_trivial<T>>;
-#define hb_is_trivially_copy_assignable(T) hb_is_trivially_copy_assignable<T>::value
-
-template <typename T>
-using hb_is_trivially_move_assignable= hb_is_move_assignable<hb_trivial<T>>;
-#define hb_is_trivially_move_assignable(T) hb_is_trivially_move_assignable<T>::value
-
-template <typename T>
-using hb_is_trivially_copyable= hb_bool_constant<
-  hb_is_trivially_destructible (T) &&
-  (!hb_is_move_assignable (T) || hb_is_trivially_move_assignable (T)) &&
-  (!hb_is_move_constructible (T) || hb_is_trivially_move_constructible (T)) &&
-  (!hb_is_copy_assignable (T) || hb_is_trivially_copy_assignable (T)) &&
-  (!hb_is_copy_constructible (T) || hb_is_trivially_copy_constructible (T)) &&
-  true
->;
-#define hb_is_trivially_copyable(T) hb_is_trivially_copyable<T>::value
-
-template <typename T>
-using hb_is_trivial= hb_bool_constant<
-  hb_is_trivially_copyable (T) &&
-  hb_is_trivially_default_constructible (T)
->;
-#define hb_is_trivial(T) hb_is_trivial<T>::value
 
 /* hb_unwrap_type (T)
  * If T has no T::type, returns T. Otherwise calls itself on T::type recursively.
