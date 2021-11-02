@@ -489,7 +489,6 @@ if get_option('tests').enabled()
     'test-priority-queue': ['test-priority-queue.cc', 'hb-static.cc'],
     'test-iter': ['test-iter.cc', 'hb-static.cc'],
     'test-map': ['test-map.cc', 'hb-static.cc'],
-    'test-meta': ['test-meta.cc', 'hb-static.cc'],
     'test-number': ['test-number.cc', 'hb-number.cc'],
     'test-ot-tag': ['hb-ot-tag.cc'],
     'test-set': ['test-set.cc', 'hb-static.cc'],

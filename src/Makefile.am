@@ -347,7 +347,6 @@ COMPILED_TESTS = \
 	test-array \
 	test-iter \
 	test-map \
-	test-meta \
 	test-number \
 	test-ot-tag \
 	test-priority-queue \
@@ -385,10 +384,6 @@ test_iter_LDADD = $(COMPILED_TESTS_LDADD)
 test_map_SOURCES = test-map.cc hb-static.cc
 test_map_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_map_LDADD = $(COMPILED_TESTS_LDADD)
-
-test_meta_SOURCES = test-meta.cc hb-static.cc
-test_meta_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
-test_meta_LDADD = $(COMPILED_TESTS_LDADD)
 
 test_number_SOURCES = test-number.cc hb-number.cc
 test_number_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
