@@ -110,11 +110,7 @@ struct hb_vector_t
   }
   hb_vector_t& operator = (hb_vector_t &&o)
   {
-    fini ();
-    allocated = o.allocated;
-    length = o.length;
-    arrayZ = o.arrayZ;
-    o.init ();
+    hb_swap (*this, o);
     return *this;
   }
 
