@@ -40,7 +40,7 @@ struct hb_vector_t
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
 
-  hb_vector_t ()  { init (); }
+  hb_vector_t () = default;
   hb_vector_t (std::initializer_list<Type> l) : hb_vector_t ()
   {
     alloc (l.size ());
@@ -70,11 +70,11 @@ struct hb_vector_t
   ~hb_vector_t () { fini (); }
 
   private:
-  int allocated; /* == -1 means allocation failed. */
+  int allocated = 0; /* == -1 means allocation failed. */
   public:
-  unsigned int length;
+  unsigned int length = 0;
   public:
-  Type *arrayZ;
+  Type *arrayZ = nullptr;
 
   void init ()
   {
