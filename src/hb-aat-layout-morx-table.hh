@@ -906,11 +906,11 @@ struct ChainSubtable
     unsigned int subtable_type = get_type ();
     TRACE_DISPATCH (this, subtable_type);
     switch (subtable_type) {
-    case Rearrangement:		return_trace (c->dispatch (u.rearrangement, hb_forward<Ts> (ds)...));
-    case Contextual:		return_trace (c->dispatch (u.contextual, hb_forward<Ts> (ds)...));
-    case Ligature:		return_trace (c->dispatch (u.ligature, hb_forward<Ts> (ds)...));
-    case Noncontextual:		return_trace (c->dispatch (u.noncontextual, hb_forward<Ts> (ds)...));
-    case Insertion:		return_trace (c->dispatch (u.insertion, hb_forward<Ts> (ds)...));
+    case Rearrangement:		return_trace (c->dispatch (u.rearrangement, std::forward<Ts> (ds)...));
+    case Contextual:		return_trace (c->dispatch (u.contextual, std::forward<Ts> (ds)...));
+    case Ligature:		return_trace (c->dispatch (u.ligature, std::forward<Ts> (ds)...));
+    case Noncontextual:		return_trace (c->dispatch (u.noncontextual, std::forward<Ts> (ds)...));
+    case Insertion:		return_trace (c->dispatch (u.insertion, std::forward<Ts> (ds)...));
     default:			return_trace (c->default_return_value ());
     }
   }

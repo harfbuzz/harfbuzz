@@ -73,7 +73,6 @@ typedef CRITICAL_SECTION hb_mutex_impl_t;
 #elif !defined(HB_NO_MT)
 
 #include <mutex>
-#include <new>
 typedef std::mutex              hb_mutex_impl_t;
 #define hb_mutex_impl_init(M)   HB_STMT_START { new (M) hb_mutex_impl_t; } HB_STMT_END
 #define hb_mutex_impl_lock(M)   (M)->lock ()

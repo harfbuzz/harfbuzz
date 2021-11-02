@@ -925,8 +925,8 @@ struct ClipBox
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.format1, hb_forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.format2, hb_forward<Ts> (ds)...));
+    case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }
@@ -1065,38 +1065,38 @@ struct Paint
     TRACE_DISPATCH (this, u.format);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
     switch (u.format) {
-    case 1: return_trace (c->dispatch (u.paintformat1, hb_forward<Ts> (ds)...));
-    case 2: return_trace (c->dispatch (u.paintformat2, hb_forward<Ts> (ds)...));
-    case 3: return_trace (c->dispatch (u.paintformat3, hb_forward<Ts> (ds)...));
-    case 4: return_trace (c->dispatch (u.paintformat4, hb_forward<Ts> (ds)...));
-    case 5: return_trace (c->dispatch (u.paintformat5, hb_forward<Ts> (ds)...));
-    case 6: return_trace (c->dispatch (u.paintformat6, hb_forward<Ts> (ds)...));
-    case 7: return_trace (c->dispatch (u.paintformat7, hb_forward<Ts> (ds)...));
-    case 8: return_trace (c->dispatch (u.paintformat8, hb_forward<Ts> (ds)...));
-    case 9: return_trace (c->dispatch (u.paintformat9, hb_forward<Ts> (ds)...));
-    case 10: return_trace (c->dispatch (u.paintformat10, hb_forward<Ts> (ds)...));
-    case 11: return_trace (c->dispatch (u.paintformat11, hb_forward<Ts> (ds)...));
-    case 12: return_trace (c->dispatch (u.paintformat12, hb_forward<Ts> (ds)...));
-    case 13: return_trace (c->dispatch (u.paintformat13, hb_forward<Ts> (ds)...));
-    case 14: return_trace (c->dispatch (u.paintformat14, hb_forward<Ts> (ds)...));
-    case 15: return_trace (c->dispatch (u.paintformat15, hb_forward<Ts> (ds)...));
-    case 16: return_trace (c->dispatch (u.paintformat16, hb_forward<Ts> (ds)...));
-    case 17: return_trace (c->dispatch (u.paintformat17, hb_forward<Ts> (ds)...));
-    case 18: return_trace (c->dispatch (u.paintformat18, hb_forward<Ts> (ds)...));
-    case 19: return_trace (c->dispatch (u.paintformat19, hb_forward<Ts> (ds)...));
-    case 20: return_trace (c->dispatch (u.paintformat20, hb_forward<Ts> (ds)...));
-    case 21: return_trace (c->dispatch (u.paintformat21, hb_forward<Ts> (ds)...));
-    case 22: return_trace (c->dispatch (u.paintformat22, hb_forward<Ts> (ds)...));
-    case 23: return_trace (c->dispatch (u.paintformat23, hb_forward<Ts> (ds)...));
-    case 24: return_trace (c->dispatch (u.paintformat24, hb_forward<Ts> (ds)...));
-    case 25: return_trace (c->dispatch (u.paintformat25, hb_forward<Ts> (ds)...));
-    case 26: return_trace (c->dispatch (u.paintformat26, hb_forward<Ts> (ds)...));
-    case 27: return_trace (c->dispatch (u.paintformat27, hb_forward<Ts> (ds)...));
-    case 28: return_trace (c->dispatch (u.paintformat28, hb_forward<Ts> (ds)...));
-    case 29: return_trace (c->dispatch (u.paintformat29, hb_forward<Ts> (ds)...));
-    case 30: return_trace (c->dispatch (u.paintformat30, hb_forward<Ts> (ds)...));
-    case 31: return_trace (c->dispatch (u.paintformat31, hb_forward<Ts> (ds)...));
-    case 32: return_trace (c->dispatch (u.paintformat32, hb_forward<Ts> (ds)...));
+    case 1: return_trace (c->dispatch (u.paintformat1, std::forward<Ts> (ds)...));
+    case 2: return_trace (c->dispatch (u.paintformat2, std::forward<Ts> (ds)...));
+    case 3: return_trace (c->dispatch (u.paintformat3, std::forward<Ts> (ds)...));
+    case 4: return_trace (c->dispatch (u.paintformat4, std::forward<Ts> (ds)...));
+    case 5: return_trace (c->dispatch (u.paintformat5, std::forward<Ts> (ds)...));
+    case 6: return_trace (c->dispatch (u.paintformat6, std::forward<Ts> (ds)...));
+    case 7: return_trace (c->dispatch (u.paintformat7, std::forward<Ts> (ds)...));
+    case 8: return_trace (c->dispatch (u.paintformat8, std::forward<Ts> (ds)...));
+    case 9: return_trace (c->dispatch (u.paintformat9, std::forward<Ts> (ds)...));
+    case 10: return_trace (c->dispatch (u.paintformat10, std::forward<Ts> (ds)...));
+    case 11: return_trace (c->dispatch (u.paintformat11, std::forward<Ts> (ds)...));
+    case 12: return_trace (c->dispatch (u.paintformat12, std::forward<Ts> (ds)...));
+    case 13: return_trace (c->dispatch (u.paintformat13, std::forward<Ts> (ds)...));
+    case 14: return_trace (c->dispatch (u.paintformat14, std::forward<Ts> (ds)...));
+    case 15: return_trace (c->dispatch (u.paintformat15, std::forward<Ts> (ds)...));
+    case 16: return_trace (c->dispatch (u.paintformat16, std::forward<Ts> (ds)...));
+    case 17: return_trace (c->dispatch (u.paintformat17, std::forward<Ts> (ds)...));
+    case 18: return_trace (c->dispatch (u.paintformat18, std::forward<Ts> (ds)...));
+    case 19: return_trace (c->dispatch (u.paintformat19, std::forward<Ts> (ds)...));
+    case 20: return_trace (c->dispatch (u.paintformat20, std::forward<Ts> (ds)...));
+    case 21: return_trace (c->dispatch (u.paintformat21, std::forward<Ts> (ds)...));
+    case 22: return_trace (c->dispatch (u.paintformat22, std::forward<Ts> (ds)...));
+    case 23: return_trace (c->dispatch (u.paintformat23, std::forward<Ts> (ds)...));
+    case 24: return_trace (c->dispatch (u.paintformat24, std::forward<Ts> (ds)...));
+    case 25: return_trace (c->dispatch (u.paintformat25, std::forward<Ts> (ds)...));
+    case 26: return_trace (c->dispatch (u.paintformat26, std::forward<Ts> (ds)...));
+    case 27: return_trace (c->dispatch (u.paintformat27, std::forward<Ts> (ds)...));
+    case 28: return_trace (c->dispatch (u.paintformat28, std::forward<Ts> (ds)...));
+    case 29: return_trace (c->dispatch (u.paintformat29, std::forward<Ts> (ds)...));
+    case 30: return_trace (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...));
+    case 31: return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
+    case 32: return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
     }
   }

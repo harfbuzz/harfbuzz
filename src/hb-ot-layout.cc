@@ -2011,14 +2011,14 @@ struct hb_get_glyph_alternates_dispatch_t :
   private:
   template <typename T, typename ...Ts> auto
   _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
-  ( obj.get_glyph_alternates (hb_forward<Ts> (ds)...) )
+  ( obj.get_glyph_alternates (std::forward<Ts> (ds)...) )
   template <typename T, typename ...Ts> auto
   _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
   ( default_return_value () )
   public:
   template <typename T, typename ...Ts> auto
   dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
-  ( _dispatch (obj, hb_prioritize, hb_forward<Ts> (ds)...) )
+  ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
 };
 
 /**
