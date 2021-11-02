@@ -51,6 +51,8 @@ struct hb_vector_t
 	    hb_requires (hb_is_iterable (Iterable))>
   hb_vector_t (const Iterable &o) : hb_vector_t ()
   {
+    if (hb_iter (o).is_random_access_iterator)
+      alloc (hb_len (hb_iter (o)));
     hb_copy (o, *this);
   }
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
