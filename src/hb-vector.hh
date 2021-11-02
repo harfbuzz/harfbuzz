@@ -31,8 +31,6 @@
 #include "hb-array.hh"
 #include "hb-null.hh"
 
-#include <initializer_list>
-
 
 template <typename Type>
 struct hb_vector_t

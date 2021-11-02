@@ -31,8 +31,6 @@
 #include "hb.hh"
 #include "hb-bit-set-invertible.hh"
 
-#include <initializer_list>
-
 
 template <typename impl_t>
 struct hb_sparseset_t

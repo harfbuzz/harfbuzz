@@ -35,6 +35,7 @@
 #include "hb-number.hh"
 
 #include <algorithm>
+#include <initializer_list>
 
 /*
  * Flags
