@@ -132,31 +132,7 @@ template <typename T> using hb_add_pointer = decltype (_hb_try_add_pointer<T> (h
 /* TODO Add feature-parity to std::decay. */
 template <typename T> using hb_decay = hb_remove_const<hb_remove_reference<T>>;
 
-template <typename From, typename To>
-struct hb_is_convertible
-{
-  private:
-  static constexpr bool   from_void = hb_is_same (void, hb_decay<From>);
-  static constexpr bool     to_void = hb_is_same (void, hb_decay<To>  );
-  static constexpr bool either_void = from_void || to_void;
-  static constexpr bool   both_void = from_void && to_void;
-
-  static hb_true_type impl2 (typename std::conditional<to_void, int, To>::type);
-
-  template <typename T>
-  static auto impl (hb_priority<1>) -> decltype (impl2 (hb_declval (T)));
-  template <typename T>
-  static hb_false_type impl (hb_priority<0>);
-  public:
-  static constexpr bool value = both_void ||
-		       (!either_void &&
-			decltype (impl<typename std::conditional<from_void, int, From>::type> (hb_prioritize))::value);
-};
-#define hb_is_convertible(From,To) hb_is_convertible<From, To>::value
-
-template <typename Base, typename Derived>
-using hb_is_base_of = hb_is_convertible<hb_decay<Derived> *, hb_decay<Base> *>;
-#define hb_is_base_of(Base,Derived) hb_is_base_of<Base, Derived>::value
+#define hb_is_convertible(From,To) std::is_convertible<From, To>::value
 
 template <typename From, typename To>
 using hb_is_cr_convertible = hb_bool_constant<

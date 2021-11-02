@@ -81,20 +81,6 @@ main (int argc, char **argv)
   static_assert (hb_is_convertible (int *, void *), "");
   static_assert (!hb_is_convertible (void *, int *), "");
 
-  static_assert (hb_is_base_of (void, void), "");
-  static_assert (hb_is_base_of (void, int), "");
-  static_assert (!hb_is_base_of (int, void), "");
-
-  static_assert (hb_is_base_of (int, int), "");
-  static_assert (hb_is_base_of (const int, int), "");
-  static_assert (hb_is_base_of (int, const int), "");
-
-  static_assert (hb_is_base_of (X, X), "");
-  static_assert (hb_is_base_of (X, Y), "");
-  static_assert (hb_is_base_of (const X, Y), "");
-  static_assert (hb_is_base_of (X, const Y), "");
-  static_assert (!hb_is_base_of (Y, X), "");
-
   /* TODO Add more meaningful tests. */
 
   return 0;
