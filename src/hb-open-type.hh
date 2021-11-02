@@ -64,7 +64,7 @@ struct IntType
   IntType& operator = (Type i) { v = i; return *this; }
   /* For reason we define cast out operator for signed/unsigned, instead of Type, see:
    * https://github.com/harfbuzz/harfbuzz/pull/2875/commits/09836013995cab2b9f07577a179ad7b024130467 */
-  operator hb_conditional<std::is_signed<Type>::value, signed, unsigned> () const { return v; }
+  operator typename std::conditional<std::is_signed<Type>::value, signed, unsigned>::type () const { return v; }
 
   bool operator == (const IntType &o) const { return (Type) v == (Type) o.v; }
   bool operator != (const IntType &o) const { return !(*this == o); }
