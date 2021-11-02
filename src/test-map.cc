@@ -24,7 +24,7 @@
  */
 
 #include "hb.hh"
-#include "hb-set.hh"
+#include "hb-map.hh"
 
 
 int
@@ -33,64 +33,35 @@ main (int argc, char **argv)
 
   /* Test copy constructor. */
   {
-    hb_set_t v1 {1, 2};
-    hb_set_t v2 {v1};
-    assert (v1.get_population () == 2);
-    assert (v2.get_population () == 2);
+    hb_map_t v1;
+    v1.set (1, 2);
+    hb_map_t v2 {v1};
+    assert (v1.get_population () == 1);
+    assert (v2.get_population () == 1);
+    assert (v1[1] == 2);
+    assert (v2[1] == 2);
   }
 
   /* Test copy assignment. */
   {
-    hb_set_t v1 {1, 2};
-    hb_set_t v2 = v1;
-    assert (v1.get_population () == 2);
-    assert (v2.get_population () == 2);
+    hb_map_t v1;
+    v1.set (1, 2);
+    hb_map_t v2 = v1;
+    assert (v1.get_population () == 1);
+    assert (v2.get_population () == 1);
+    assert (v1[1] == 2);
+    assert (v2[1] == 2);
   }
 
   /* Test move constructor. */
   {
-    hb_set_t v {hb_set_t {1, 2}};
-    assert (v.get_population () == 2);
+    hb_map_t v {hb_map_t {}};
   }
 
   /* Test move assignment. */
   {
-    hb_set_t v;
-    v = hb_set_t {1, 2};
-    assert (v.get_population () == 2);
-  }
-
-  /* Test initializing set from iterable. */
-  {
-    hb_set_t s;
-
-    s.add (18);
-    s.add (12);
-
-    hb_set_t v (s);
-
-    assert (v.get_population () == 2);
-  }
-
-  /* Test initializing set from iterator. */
-  {
-    hb_set_t s;
-
-    s.add (18);
-    s.add (12);
-
-    hb_set_t v (hb_iter (s));
-
-    assert (v.get_population () == 2);
-  }
-
-  /* Test initializing set from initializer list and swapping. */
-  {
-    hb_set_t v1 {1, 2, 3};
-    hb_set_t v2 {4, 5};
-    hb_swap (v1, v2);
-    assert (v1.get_population () == 2);
-    assert (v2.get_population () == 3);
+    hb_map_t v;
+    v = hb_map_t {};
   }
 
   return 0;

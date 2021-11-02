@@ -77,6 +77,7 @@ main (int argc, char **argv)
     assert (v[0] == 1);
     assert (v[1] == 2);
   }
+
   /* Test initializing from iterable. */
   {
     hb_set_t s;

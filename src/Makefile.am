@@ -346,6 +346,7 @@ COMPILED_TESTS = \
 	test-algs \
 	test-array \
 	test-iter \
+	test-map \
 	test-meta \
 	test-number \
 	test-ot-tag \
@@ -380,6 +381,10 @@ test_repacker_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
 test_iter_SOURCES = test-iter.cc hb-static.cc
 test_iter_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_iter_LDADD = $(COMPILED_TESTS_LDADD)
+
+test_map_SOURCES = test-map.cc hb-static.cc
+test_map_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_map_LDADD = $(COMPILED_TESTS_LDADD)
 
 test_meta_SOURCES = test-meta.cc hb-static.cc
 test_meta_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)

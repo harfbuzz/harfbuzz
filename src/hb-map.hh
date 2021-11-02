@@ -39,9 +39,13 @@ template <typename K, typename V,
 	  V vINVALID = hb_is_pointer (V) ? 0 : hb_is_signed (V) ? hb_int_min (V) : (V) -1>
 struct hb_hashmap_t
 {
-  HB_DELETE_COPY_ASSIGN (hb_hashmap_t);
   hb_hashmap_t ()  { init (); }
   ~hb_hashmap_t () { fini (); }
+
+  hb_hashmap_t (const hb_hashmap_t& o) : hb_hashmap_t () { hb_copy (o, *this); }
+  hb_hashmap_t (hb_hashmap_t&& o) : hb_hashmap_t () { hb_swap (*this, o); }
+  hb_hashmap_t& operator= (const hb_hashmap_t&& o)  { hb_copy (o, *this); return *this; }
+  hb_hashmap_t& operator= (hb_hashmap_t&& o)  { hb_swap (*this, o); return *this; }
 
   static_assert (hb_is_integral (K) || hb_is_pointer (K), "");
   static_assert (hb_is_integral (V) || hb_is_pointer (V), "");
@@ -70,6 +74,17 @@ struct hb_hashmap_t
   unsigned int prime;
   item_t *items;
 
+  friend void swap (hb_hashmap_t& a, hb_hashmap_t& b)
+  {
+    if (unlikely (!a.successful || !b.successful))
+      return;
+    hb_swap (a.successful, b.successful);
+    hb_swap (a.population, b.population);
+    hb_swap (a.occupancy, b.occupancy);
+    hb_swap (a.mask, b.mask);
+    hb_swap (a.prime, b.prime);
+    hb_swap (a.items, b.items);
+  }
   void init_shallow ()
   {
     successful = true;
