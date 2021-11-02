@@ -31,6 +31,8 @@
 #include "hb-array.hh"
 #include "hb-null.hh"
 
+#include <initializer_list>
+
 
 template <typename Type>
 struct hb_vector_t
@@ -39,9 +41,14 @@ struct hb_vector_t
   static constexpr unsigned item_size = hb_static_size (Type);
 
   hb_vector_t ()  { init (); }
-  hb_vector_t (const hb_vector_t &o)
+  hb_vector_t (std::initializer_list<Type> l) : hb_vector_t ()
   {
-    init ();
+    alloc (l.size ());
+    for (auto&& i : l)
+      push (i);
+  }
+  hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
+  {
     alloc (o.length);
     hb_copy (o, *this);
   }
@@ -302,6 +309,10 @@ struct hb_vector_t
 template <typename Type>
 struct hb_sorted_vector_t : hb_vector_t<Type>
 {
+  hb_sorted_vector_t () : hb_vector_t<Type> () {}
+  hb_sorted_vector_t (std::initializer_list<Type> l) : hb_vector_t<Type> (l) {}
+  hb_sorted_vector_t (hb_sorted_vector_t& o) : hb_vector_t<Type> (o) {}
+
   hb_sorted_array_t<      Type> as_array ()       { return hb_sorted_array (this->arrayZ, this->length); }
   hb_sorted_array_t<const Type> as_array () const { return hb_sorted_array (this->arrayZ, this->length); }
 
