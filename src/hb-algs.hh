@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <new>
 
 /*
  * Flags
