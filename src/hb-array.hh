@@ -51,7 +51,6 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
    * Constructors.
    */
   hb_array_t () = default;
-  ~hb_array_t () = default;
   hb_array_t (Type *array_, unsigned int length_) : arrayZ (array_), length (length_) {}
   template <unsigned int length_>
   hb_array_t (Type (&array_)[length_]) : hb_array_t (array_, length_) {}
