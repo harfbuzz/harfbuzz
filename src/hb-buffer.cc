@@ -1171,7 +1171,7 @@ hb_buffer_get_invisible_glyph (hb_buffer_t    *buffer)
  * The not-found glyph defaults to zero, sometimes knows as the
  * ".notdef" glyph.  This API allows for differentiating the two.
  *
- * Since: REPLACEME
+ * Since: 3.1.0
  **/
 void
 hb_buffer_set_not_found_glyph (hb_buffer_t    *buffer,
@@ -1192,7 +1192,7 @@ hb_buffer_set_not_found_glyph (hb_buffer_t    *buffer,
  * Return value:
  * The @buffer not-found #hb_codepoint_t
  *
- * Since: REPLACEME
+ * Since: 3.1.0
  **/
 hb_codepoint_t
 hb_buffer_get_not_found_glyph (hb_buffer_t    *buffer)
