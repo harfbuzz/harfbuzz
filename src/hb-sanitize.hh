@@ -116,11 +116,16 @@
 #ifndef HB_SANITIZE_MAX_SUBTABLES
 #define HB_SANITIZE_MAX_SUBTABLES 0x4000
 #endif
+#ifndef HB_SANITIZE_MAX_DEPTH
+#define HB_SANITIZE_MAX_DEPTH 5000
+#endif
+
 
 struct hb_sanitize_context_t :
        hb_dispatch_context_t<hb_sanitize_context_t, bool, HB_DEBUG_SANITIZE>
 {
   hb_sanitize_context_t () :
+        max_depth (0),
 	start (nullptr), end (nullptr),
 	max_ops (0), max_subtables (0),
 	writable (false), edit_count (0),
@@ -143,6 +148,7 @@ struct hb_sanitize_context_t :
   }
 
   private:
+  int max_depth;
   template <typename T, typename ...Ts> auto
   _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
   ( obj.sanitize (this, std::forward<Ts> (ds)...) )
@@ -152,8 +158,9 @@ struct hb_sanitize_context_t :
   public:
   template <typename T, typename ...Ts> auto
   dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
-  ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
-
+  ( --max_depth > 0
+    ? _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) && max_depth++
+    : false )
 
   void init (hb_blob_t *b)
   {
@@ -197,6 +204,7 @@ struct hb_sanitize_context_t :
   void start_processing ()
   {
     reset_object ();
+    this->max_depth = HB_SANITIZE_MAX_DEPTH;
     if (unlikely (hb_unsigned_mul_overflows (this->end - this->start, HB_SANITIZE_MAX_OPS_FACTOR)))
       this->max_ops = HB_SANITIZE_MAX_OPS_MAX;
     else
