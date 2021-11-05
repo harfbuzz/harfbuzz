@@ -97,10 +97,13 @@ struct hb_mutex_t
   /* Create space for, but do not initialize m. */
   alignas(hb_mutex_impl_t) char m[sizeof (hb_mutex_impl_t)];
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align"
   void init   () { hb_mutex_impl_init   ((hb_mutex_impl_t *) m); }
   void lock   () { hb_mutex_impl_lock   ((hb_mutex_impl_t *) m); }
   void unlock () { hb_mutex_impl_unlock ((hb_mutex_impl_t *) m); }
   void fini   () { hb_mutex_impl_finish ((hb_mutex_impl_t *) m); }
+#pragma GCC diagnostic pop
 };
 
 struct hb_lock_t
