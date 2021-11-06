@@ -717,10 +717,14 @@ hb_ot_layout_script_find_language (hb_face_t    *face,
  * @language_tags: The array of language tags
  * @language_index: (out): The index of the requested language
  *
- * Fetches the index of a given language tag in the specified face's GSUB table
- * or GPOS table, underneath the specified script index.
+ * Fetches the index of the first language tag fom @language_tags that is present
+ * in the specified face's GSUB or GPOS table, underneath the specified script
+ * index.
  *
- * Return value: %true if the language tag is found, %false otherwise
+ * If none of the given language tags is found, %false is returned and
+ * @language_index is set to the default language index.
+ *
+ * Return value: %true if one of the given language tags is found, %false otherwise
  *
  * Since: 2.0.0
  **/
@@ -1016,7 +1020,7 @@ struct hb_collect_features_context_t
     hb_set_t features_set;
     for (; *features; features++)
       features_set.add (*features);
-    
+
     for (unsigned i = 0; i < g.get_feature_count (); i++)
     {
       hb_tag_t tag = g.get_feature_tag (i);
