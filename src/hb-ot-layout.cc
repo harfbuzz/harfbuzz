@@ -750,7 +750,8 @@ hb_ot_layout_script_select_language (hb_face_t      *face,
   if (s.find_lang_sys_index (HB_OT_TAG_DEFAULT_LANGUAGE, language_index))
     return false;
 
-  if (language_index) *language_index = HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX;
+  if (language_index)
+    *language_index = HB_OT_LAYOUT_DEFAULT_LANGUAGE_INDEX;
   return false;
 }
 
