@@ -613,7 +613,7 @@ hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
  * hb_ot_layout_table_find_feature:
  * @face: #hb_face_t to work upon
  * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
- * @feature_tag: The #hb_tag_t og the requested feature tag
+ * @feature_tag: The #hb_tag_t of the requested feature tag
  * @feature_index: (out): The index of the requested feature
  *
  * Fetches the index for a given feature tag in the specified face's GSUB table
