@@ -1,3 +1,10 @@
+Overview of changes leading to 3.1.1
+Wednesday, November 8, 2021
+====================================
+- Work around GCC cast-align error/warning on some platforms. (Behdad Esfahbod)
+- Documentation improvements. (Matthias Clasen)
+
+
 Overview of changes leading to 3.1.0
 Wednesday, November 3, 2021
 ====================================
