@@ -45,6 +45,7 @@ tests = [
   'cbdt',
   'variable',
   'glyph_names',
+  'post',
 ]
 
 repack_tests = [
