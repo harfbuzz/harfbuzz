@@ -51,6 +51,7 @@ EXTRA_DIST += \
 	expected/variable \
 	expected/glyph_names \
 	expected/math \
+	expected/post \
 	fonts \
 	profiles \
 	$(NULL)

@@ -43,6 +43,7 @@ TESTS = \
 	tests/variable.tests \
 	tests/glyph_names.tests \
 	tests/math.tests \
+	tests/post.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.
