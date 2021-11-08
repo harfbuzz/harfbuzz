@@ -117,17 +117,16 @@
 #define HB_SANITIZE_MAX_SUBTABLES 0x4000
 #endif
 #ifndef HB_SANITIZE_MAX_DEPTH
-#define HB_SANITIZE_MAX_DEPTH 5000
+#define HB_SANITIZE_MAX_DEPTH 2500
 #endif
-
 
 struct hb_sanitize_context_t :
        hb_dispatch_context_t<hb_sanitize_context_t, bool, HB_DEBUG_SANITIZE>
 {
   hb_sanitize_context_t () :
-        max_depth (0),
 	start (nullptr), end (nullptr),
 	max_ops (0), max_subtables (0),
+        recursion_depth (0),
 	writable (false), edit_count (0),
 	blob (nullptr),
 	num_glyphs (65536),
@@ -148,7 +147,6 @@ struct hb_sanitize_context_t :
   }
 
   private:
-  int max_depth;
   template <typename T, typename ...Ts> auto
   _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
   ( obj.sanitize (this, std::forward<Ts> (ds)...) )
@@ -158,9 +156,8 @@ struct hb_sanitize_context_t :
   public:
   template <typename T, typename ...Ts> auto
   dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
-  ( --max_depth > 0
-    ? _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) && max_depth++
-    : false )
+  ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
+
 
   void init (hb_blob_t *b)
   {
@@ -204,7 +201,6 @@ struct hb_sanitize_context_t :
   void start_processing ()
   {
     reset_object ();
-    this->max_depth = HB_SANITIZE_MAX_DEPTH;
     if (unlikely (hb_unsigned_mul_overflows (this->end - this->start, HB_SANITIZE_MAX_OPS_FACTOR)))
       this->max_ops = HB_SANITIZE_MAX_OPS_MAX;
     else
@@ -213,6 +209,7 @@ struct hb_sanitize_context_t :
 				(unsigned) HB_SANITIZE_MAX_OPS_MAX);
     this->edit_count = 0;
     this->debug_depth = 0;
+    this->recursion_depth = 0;
 
     DEBUG_MSG_LEVEL (SANITIZE, start, 0, +1,
 		     "start [%p..%p] (%lu bytes)",
@@ -284,6 +281,18 @@ struct hb_sanitize_context_t :
 		    unsigned int b) const
   {
     return this->check_range (base, a, b, hb_static_size (T));
+  }
+
+  bool check_start_recursion ()
+  {
+    if (unlikely (recursion_depth >= HB_SANITIZE_MAX_DEPTH)) return false;
+    return ++recursion_depth;
+  }
+
+  bool end_recursion (bool result)
+  {
+    recursion_depth--;
+    return result;
   }
 
   template <typename Type>
@@ -397,6 +406,7 @@ struct hb_sanitize_context_t :
   const char *start, *end;
   mutable int max_ops, max_subtables;
   private:
+  int recursion_depth;
   bool writable;
   unsigned int edit_count;
   hb_blob_t *blob;
