@@ -116,9 +116,6 @@
 #ifndef HB_SANITIZE_MAX_SUBTABLES
 #define HB_SANITIZE_MAX_SUBTABLES 0x4000
 #endif
-#ifndef HB_SANITIZE_MAX_DEPTH
-#define HB_SANITIZE_MAX_DEPTH 2500
-#endif
 
 struct hb_sanitize_context_t :
        hb_dispatch_context_t<hb_sanitize_context_t, bool, HB_DEBUG_SANITIZE>
@@ -283,9 +280,9 @@ struct hb_sanitize_context_t :
     return this->check_range (base, a, b, hb_static_size (T));
   }
 
-  bool check_start_recursion ()
+  bool check_start_recursion (int max_depth)
   {
-    if (unlikely (recursion_depth >= HB_SANITIZE_MAX_DEPTH)) return false;
+    if (unlikely (recursion_depth >= max_depth)) return false;
     return ++recursion_depth;
   }
 
