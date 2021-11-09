@@ -38,8 +38,8 @@
  */
 #define HB_OT_TAG_COLR HB_TAG('C','O','L','R')
 
-#ifndef COLRV1_MAX_NESTING_LEVEL
-#define COLRV1_MAX_NESTING_LEVEL	100
+#ifndef HB_COLRV1_MAX_NESTING_LEVEL
+#define HB_COLRV1_MAX_NESTING_LEVEL	100
 #endif
 
 #ifndef COLRV1_ENABLE_SUBSETTING
@@ -102,7 +102,7 @@ struct hb_colrv1_closure_context_t :
                                hb_set_t *glyphs_,
                                hb_set_t *layer_indices_,
                                hb_set_t *palette_indices_,
-                               unsigned nesting_level_left_ = COLRV1_MAX_NESTING_LEVEL) :
+                               unsigned nesting_level_left_ = HB_COLRV1_MAX_NESTING_LEVEL) :
                           base (base_),
                           glyphs (glyphs_),
                           layer_indices (layer_indices_),
@@ -1068,7 +1068,8 @@ struct Paint
   {
     TRACE_SANITIZE (this);
     if (unlikely (!c->may_dispatch (this, &u.format))) return_trace (c->no_dispatch_return_value ());
-    if (unlikely (!c->check_start_recursion ())) return_trace (c->no_dispatch_return_value ());
+    if (unlikely (!c->check_start_recursion (HB_COLRV1_MAX_NESTING_LEVEL)))
+      return_trace (c->no_dispatch_return_value ());
 
     switch (u.format) {
     case 1: return_trace (c->end_recursion (c->dispatch (u.paintformat1, std::forward<Ts> (ds)...)));
@@ -1103,7 +1104,7 @@ struct Paint
     case 30: return_trace (c->end_recursion (c->dispatch (u.paintformat30, std::forward<Ts> (ds)...)));
     case 31: return_trace (c->end_recursion (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...)));
     case 32: return_trace (c->end_recursion (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...)));
-      default:return_trace (c->end_recursion (c->default_return_value ()));
+    default:return_trace (c->end_recursion (c->default_return_value ()));
     }
   }
 
