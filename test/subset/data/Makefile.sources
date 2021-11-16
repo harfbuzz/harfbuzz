@@ -36,6 +36,7 @@ TESTS = \
 	tests/layout.notonastaliqurdu.tests \
 	tests/layout.tests \
 	tests/layout.tinos.tests \
+	tests/layout.default_features.tests \
 	tests/layout.duplicate_features.tests \
 	tests/layout.unsorted_featurelist.tests \
 	tests/layout.drop_feature.tests \
