@@ -38,6 +38,7 @@ EXTRA_DIST += \
 	expected/layout.gdef-attachlist \
 	expected/layout.notonastaliqurdu \
 	expected/layout.tinos \
+	expected/layout.default_features \
 	expected/layout.duplicate_features \
 	expected/layout.unsorted_featurelist \
 	expected/layout.drop_feature \
