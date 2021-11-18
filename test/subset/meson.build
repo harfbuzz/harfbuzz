@@ -31,6 +31,7 @@ tests = [
   'layout.tinos',
   'layout.duplicate_features',
   'layout.unsorted_featurelist',
+  'layout.drop_feature',
   'cmap',
   'cmap14',
   'sbix',

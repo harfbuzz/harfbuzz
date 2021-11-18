@@ -3784,8 +3784,12 @@ struct GSUBGPOS
 	// http://lists.freedesktop.org/archives/harfbuzz/2012-November/002660.html
         continue;
 
-      if (f.featureParams.is_null ()
-	  && !f.intersects_lookup_indexes (lookup_indices)
+
+      if (!f.featureParams.is_null () &&
+          tag == HB_TAG ('s', 'i', 'z', 'e'))
+        continue;
+
+      if (!f.intersects_lookup_indexes (lookup_indices)
 #ifndef HB_NO_VAR
           && !alternate_feature_indices.has (i)
 #endif

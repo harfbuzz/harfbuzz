@@ -39,6 +39,7 @@ EXTRA_DIST += \
 	expected/layout.tinos \
 	expected/layout.duplicate_features \
 	expected/layout.unsorted_featurelist \
+	expected/layout.drop_feature \
 	expected/cmap \
 	expected/cmap14 \
 	expected/sbix \
