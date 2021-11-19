@@ -129,7 +129,9 @@ struct shape_options_t
   {
     if (!verify_buffer_monotone (buffer, error))
       return false;
-    if (!verify_buffer_safe_to_break (buffer, text_buffer, font, error))
+    if (!verify_buffer_unsafe_to_break (buffer, text_buffer, font, error))
+      return false;
+    if (!verify_buffer_unsafe_to_concat (buffer, text_buffer, font, error))
       return false;
     return true;
   }
@@ -158,17 +160,15 @@ struct shape_options_t
     return true;
   }
 
-  bool verify_buffer_safe_to_break (hb_buffer_t  *buffer,
-				    hb_buffer_t  *text_buffer,
-				    hb_font_t    *font,
-				    const char  **error=nullptr)
+  bool verify_buffer_unsafe_to_break (hb_buffer_t  *buffer,
+				      hb_buffer_t  *text_buffer,
+				      hb_font_t    *font,
+				      const char  **error=nullptr)
   {
     if (cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES &&
 	cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
     {
-      /* Cannot perform this check without monotone clusters.
-       * Then again, unsafe-to-break flag is much harder to use without
-       * monotone clusters. */
+      /* Cannot perform this check without monotone clusters. */
       return true;
     }
 
@@ -255,7 +255,7 @@ struct shape_options_t
     if (diff)
     {
       if (error)
-	*error = "Safe-to-break test failed.";
+	*error = "unsafe-to-break test failed.";
       ret = false;
 
       /* Return the reconstructed result instead so it can be inspected. */
@@ -265,6 +265,186 @@ struct shape_options_t
 
     hb_buffer_destroy (reconstruction);
     hb_buffer_destroy (fragment);
+
+    return ret;
+  }
+
+  bool verify_buffer_unsafe_to_concat (hb_buffer_t  *buffer,
+				       hb_buffer_t  *text_buffer,
+				       hb_font_t    *font,
+				       const char  **error=nullptr)
+  {
+    if (cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES &&
+	cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
+    {
+      /* Cannot perform this check without monotone clusters. */
+      return true;
+    }
+
+    /* Check that shuffling up text before shaping at safe-to-concat points
+     * is indeed safe. */
+
+    /* This is what we do:
+     *
+     * 1. We shape text once. Then segment the text at all the safe-to-concat
+     *    points;
+     *
+     * 2. Then we create two buffers, one containing all the even segments and
+     *    one all the odd segments.
+     *
+     * 3. Because all these segments were safe-to-concat at both ends, we
+     *    expect that concatenating them and shaping should NOT change the
+     *    shaping results of each segment.  As such, we expect that after
+     *    shaping the two buffers, we still get cluster boundaries at the
+     *    segment boundaries, and that those all are safe-to-concat points.
+     *    Moreover, that there are NOT any safe-to-concat points within the
+     *    segments.
+     *
+     * 4. Finally, we reconstruct the shaping results of the original text by
+     *    simply interleaving the shaping results of the segments from the two
+     *    buffers, and assert that the total shaping results is the same as
+     *    the one from original buffer in step 1.
+     */
+
+    hb_buffer_t *fragments[2] {hb_buffer_create_similar (buffer),
+			       hb_buffer_create_similar (buffer)};
+    hb_buffer_t *reconstruction = hb_buffer_create_similar (buffer);
+    hb_segment_properties_t props;
+    hb_buffer_get_segment_properties (buffer, &props);
+    hb_buffer_set_segment_properties (fragments[0], &props);
+    hb_buffer_set_segment_properties (fragments[1], &props);
+    hb_buffer_set_segment_properties (reconstruction, &props);
+
+    unsigned num_glyphs;
+    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &num_glyphs);
+
+    unsigned num_chars;
+    hb_glyph_info_t *text = hb_buffer_get_glyph_infos (text_buffer, &num_chars);
+
+    bool forward = HB_DIRECTION_IS_FORWARD (hb_buffer_get_direction (buffer));
+
+    if (!forward)
+      hb_buffer_reverse (buffer);
+
+    /*
+     * Split text into segments and collect into to fragment streams.
+     */
+    {
+      unsigned fragment_idx = 0;
+      unsigned start = 0;
+      unsigned text_start = 0;
+      unsigned text_end = 0;
+      for (unsigned end = 1; end < num_glyphs + 1; end++)
+      {
+	if (end < num_glyphs &&
+	    (info[end].cluster == info[end-1].cluster ||
+	     info[end].mask & HB_GLYPH_FLAG_UNSAFE_TO_CONCAT))
+	    continue;
+
+	/* Accumulate segment corresponding to glyphs start..end. */
+	if (end == num_glyphs)
+	  text_end = num_chars;
+	else
+	{
+	  unsigned cluster = info[end].cluster;
+	  while (text_end < num_chars && text[text_end].cluster < cluster)
+	    text_end++;
+	}
+	assert (text_start < text_end);
+
+	if (0)
+	  printf("start %d end %d text start %d end %d\n", start, end, text_start, text_end);
+
+#if 0
+	hb_buffer_flags_t flags = hb_buffer_get_flags (fragment);
+	if (0 < text_start)
+	  flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_BOT);
+	if (text_end < num_chars)
+	  flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_EOT);
+	hb_buffer_set_flags (fragment, flags);
+#endif
+
+	hb_buffer_append (fragments[fragment_idx], text_buffer, text_start, text_end);
+
+	start = end;
+	text_start = text_end;
+	fragment_idx = 1 - fragment_idx;
+      }
+    }
+
+    bool ret = true;
+    hb_buffer_diff_flags_t diff;
+
+    /*
+     * Shape the two fragment streams.
+     */
+    if (!hb_shape_full (font, fragments[0], features, num_features, shapers) ||
+	!hb_shape_full (font, fragments[1], features, num_features, shapers))
+    {
+      if (error)
+	*error = "All shapers failed while shaping fragments.";
+      ret = false;
+      goto out;
+    }
+
+    if (!forward)
+    {
+      hb_buffer_reverse (fragments[0]);
+      hb_buffer_reverse (fragments[1]);
+    }
+
+    /*
+     * Reconstruct results.
+     */
+    {
+      unsigned fragment_idx = 0;
+      unsigned fragment_start[2] {0, 0};
+      unsigned fragment_num_glyphs[2];
+      hb_glyph_info_t *fragment_info[2];
+      for (unsigned i = 0; i < 2; i++)
+	fragment_info[i] = hb_buffer_get_glyph_infos (fragments[i], &fragment_num_glyphs[i]);
+      while (fragment_start[0] < fragment_num_glyphs[0] ||
+	     fragment_start[1] < fragment_num_glyphs[1])
+      {
+	unsigned fragment_end = fragment_start[fragment_idx] + 1;
+	while (fragment_end < fragment_num_glyphs[fragment_idx] &&
+	       (fragment_info[fragment_idx][fragment_end].cluster == fragment_info[fragment_idx][fragment_end - 1].cluster ||
+	        fragment_info[fragment_idx][fragment_end].mask & HB_GLYPH_FLAG_UNSAFE_TO_CONCAT))
+	  fragment_end++;
+
+	hb_buffer_append (reconstruction, fragments[fragment_idx], fragment_start[fragment_idx], fragment_end);
+
+	fragment_start[fragment_idx] = fragment_end;
+	fragment_idx = 1 - fragment_idx;
+      }
+    }
+
+    if (!forward)
+    {
+      hb_buffer_reverse (buffer);
+      hb_buffer_reverse (reconstruction);
+    }
+
+    /*
+     * Diff results.
+     */
+    diff = hb_buffer_diff (reconstruction, buffer, (hb_codepoint_t) -1, 0);
+    if (diff)
+    {
+      if (error)
+	*error = "unsafe-to-concat test failed.";
+      ret = false;
+
+      /* Return the reconstructed result instead so it can be inspected. */
+      hb_buffer_set_length (buffer, 0);
+      hb_buffer_append (buffer, reconstruction, 0, -1);
+    }
+
+
+  out:
+    hb_buffer_destroy (reconstruction);
+    hb_buffer_destroy (fragments[0]);
+    hb_buffer_destroy (fragments[1]);
 
     return ret;
   }
