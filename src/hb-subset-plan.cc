@@ -41,7 +41,7 @@
 #include "hb-ot-math-table.hh"
 
 
-typedef hb_hashmap_t<unsigned, hb_set_t *, (unsigned)-1, nullptr> script_langsys_map;
+typedef hb_hashmap_t<unsigned, hb_set_t *> script_langsys_map;
 #ifndef HB_NO_SUBSET_CFF
 static inline void
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,

@@ -163,7 +163,7 @@ struct hb_closure_context_t :
 			hb_set_t *glyphs_,
 			hb_set_t *cur_intersected_glyphs_,
 			hb_map_t *done_lookups_glyph_count_,
-			hb_hashmap_t<unsigned, hb_set_t *, (unsigned)-1, nullptr> *done_lookups_glyph_set_,
+			hb_hashmap_t<unsigned, hb_set_t *> *done_lookups_glyph_set_,
 			unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
@@ -192,7 +192,7 @@ struct hb_closure_context_t :
 
   private:
   hb_map_t *done_lookups_glyph_count;
-  hb_hashmap_t<unsigned, hb_set_t *, (unsigned)-1, nullptr> *done_lookups_glyph_set;
+  hb_hashmap_t<unsigned, hb_set_t *> *done_lookups_glyph_set;
   unsigned int lookup_count;
 };
 
@@ -3630,7 +3630,7 @@ struct GSUBGPOS
   }
 
   void prune_langsys (const hb_map_t *duplicate_feature_map,
-                      hb_hashmap_t<unsigned, hb_set_t *, (unsigned)-1, nullptr> *script_langsys_map,
+                      hb_hashmap_t<unsigned, hb_set_t *> *script_langsys_map,
                       hb_set_t       *new_feature_indexes /* OUT */) const
   {
     hb_prune_langsys_context_t c (this, script_langsys_map, duplicate_feature_map, new_feature_indexes);
@@ -3688,7 +3688,7 @@ struct GSUBGPOS
                                 hb_map_t *duplicate_feature_map /* OUT */) const
   {
     if (feature_indices->is_empty ()) return;
-    hb_hashmap_t<hb_tag_t, hb_set_t *, (unsigned)-1, nullptr> unique_features;
+    hb_hashmap_t<hb_tag_t, hb_set_t *> unique_features;
     //find out duplicate features after subset
     for (unsigned i : feature_indices->iter ())
     {
