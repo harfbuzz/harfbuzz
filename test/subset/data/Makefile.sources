@@ -13,6 +13,7 @@ TESTS = \
 	tests/glyf_bug_3131.tests \
 	tests/japanese.tests \
 	tests/layout.context.tests \
+	tests/layout.context_format2.tests \
 	tests/layout.gdef-attachlist.tests \
 	tests/layout.gdef-varstore.tests \
 	tests/layout.gdef.tests \
