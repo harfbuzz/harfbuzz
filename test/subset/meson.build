@@ -25,6 +25,7 @@ tests = [
   'layout.gdef.glyphset',
   'layout.khmer',
   'layout.context',
+  'layout.context_format2',
   'layout.gdef-varstore',
   'layout.gdef-attachlist',
   'layout.notonastaliqurdu',

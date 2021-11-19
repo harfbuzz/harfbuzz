@@ -1642,9 +1642,8 @@ struct Rule
 	       const hb_map_t *klass_map = nullptr) const
   {
     TRACE_SUBSET (this);
-
-    const hb_array_t<const HBUINT16> input = inputZ.as_array ((inputCount ? inputCount - 1 : 0));
-    if (!input.length) return_trace (false);
+    if (unlikely (!inputCount)) return_trace (false);
+    const hb_array_t<const HBUINT16> input = inputZ.as_array (inputCount - 1);
 
     const hb_map_t *mapping = klass_map == nullptr ? c->plan->glyph_map : klass_map;
     if (!hb_all (input, mapping)) return_trace (false);

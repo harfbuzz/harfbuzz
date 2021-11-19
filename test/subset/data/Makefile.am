@@ -33,6 +33,7 @@ EXTRA_DIST += \
 	expected/layout.gdef \
 	expected/layout.gdef.glyphset \
 	expected/layout.context \
+	expected/layout.context_format2 \
 	expected/layout.gdef-varstore \
 	expected/layout.gdef-attachlist \
 	expected/layout.notonastaliqurdu \
