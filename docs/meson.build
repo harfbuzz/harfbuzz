@@ -49,8 +49,8 @@ ignore_headers = [
 
 gnome.gtkdoc('harfbuzz',
   main_sgml: 'harfbuzz-docs.xml',
-  src_dir: [join_paths(meson.current_source_dir(), '../src'),
-            join_paths(meson.current_build_dir(), '../src'),
+  src_dir: [meson.current_source_dir() / '..' / 'src',
+            meson.current_build_dir() / '..' / 'src',
            ],
   scan_args: ['--deprecated-guards=HB_DISABLE_DEPRECATED',
               '--ignore-decorators=HB_EXTERN|HB_DEPRECATED',

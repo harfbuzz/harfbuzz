@@ -66,12 +66,12 @@ foreach t : tests
   test(t, run_test,
     args: [
       hb_subset,
-      join_paths(meson.current_source_dir(), 'data', 'tests', fname),
+      meson.current_source_dir() / 'data' / 'tests' / fname,
     ],
     # as the tests are ran concurrently let's raise acceptable time here
     # ideally better to break and let meson handles them in parallel
     timeout: 500,
-    workdir: join_paths(meson.current_build_dir(), '..', '..'),
+    workdir: meson.current_build_dir() / '..' / '..',
     suite: 'subset',
   )
 endforeach
@@ -84,9 +84,9 @@ foreach t : repack_tests
   test(t, run_repack_test,
     args: [
       hb_subset,
-      join_paths(meson.current_source_dir(), 'data', 'repack_tests', fname),
+      meson.current_source_dir() / 'data' / 'repack_tests' / fname,
     ],
-    workdir: join_paths(meson.current_build_dir(), '..', '..'),
+    workdir: meson.current_build_dir() / '..' / '..',
     suite: ['subset', 'repack'],
   )
 endforeach
