@@ -67,8 +67,10 @@ struct hb_kern_machine_t
       }
 
       skippy_iter.reset (idx, 1);
-      if (!skippy_iter.next ())
+      unsigned unsafe_to;
+      if (!skippy_iter.next (&unsafe_to))
       {
+        buffer->unsafe_to_concat (idx, unsafe_to);
 	idx++;
 	continue;
       }
