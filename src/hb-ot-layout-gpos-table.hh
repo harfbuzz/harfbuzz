@@ -1642,7 +1642,7 @@ struct PairPosFormat2
     if (applied_first || applied_second)
       buffer->unsafe_to_break (buffer->idx, skippy_iter.idx + 1);
     else
-      buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
+     buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
 
     boring:
 
