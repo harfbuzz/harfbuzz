@@ -12,10 +12,10 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-2016, windows-latest]
+        os: [windows-2019, windows-latest]
         include:
-          - name: msvc-2017-x86
-            os: windows-2016
+          - name: msvc-2019-x86
+            os: windows-2019
             ARCH: x86
           - name: msvc-2019-amd64
             os: windows-latest
