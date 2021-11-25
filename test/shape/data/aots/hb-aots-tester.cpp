@@ -179,7 +179,7 @@ bool gsub_test(const char *testName,
         hb_feature_to_string (&data.features[i], buf, sizeof (buf));
         fprintf (tests_file, "%s", buf);
     }
-    fprintf (tests_file, "\" --no-clusters --no-glyph-names --no-positions;");
+    fprintf (tests_file, "\" --single-par --no-clusters --no-glyph-names --no-positions;");
 
     for (unsigned int i = 0; i < nbIn; i++)
     {
