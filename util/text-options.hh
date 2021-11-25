@@ -82,6 +82,8 @@ struct text_options_t
   private:
   FILE *in_fp = nullptr;
   GString *gs = nullptr;
+  char *line = nullptr;
+  unsigned line_len = UINT_MAX;
 };
 
 struct shape_text_options_t : text_options_t
@@ -273,18 +275,38 @@ text_options_t::get_line (unsigned int *len)
 {
   if (text)
   {
-    if (text_len == -2)
+    if (!line)
+    {
+      line = text;
+      line_len = text_len;
+    }
+    if (line_len == UINT_MAX)
+      line_len = strlen (line);
+
+    if (!line_len)
     {
       *len = 0;
       return nullptr;
     }
 
-    if (text_len == -1)
-      text_len = strlen (text);
+    const char *ret = line;
+    const char *p = (const char *) memchr (line, '\n', line_len);
+    unsigned int ret_len;
+    if (!p)
+    {
+      ret_len = line_len;
+      line += ret_len;
+      line_len = 0;
+    }
+    else
+    {
+      ret_len = p - ret;
+      line += ret_len + 1;
+      line_len -= ret_len + 1;
+    }
 
-    *len = text_len;
-    text_len = -2;
-    return text;
+    *len = ret_len;
+    return ret;
   }
 
   g_string_set_size (gs, 0);
