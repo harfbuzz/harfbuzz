@@ -93,22 +93,16 @@ struct glyf
   template<typename Iterator,
 	   hb_requires (hb_is_source_of (Iterator, unsigned int))>
   static bool
-  _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets)
+  _add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets, bool use_short_loca)
   {
-    unsigned max_offset =
-    + padded_offsets
-    | hb_reduce (hb_add, 0)
-    ;
     unsigned num_offsets = padded_offsets.len () + 1;
-    bool use_short_loca = max_offset < 0x1FFFF;
     unsigned entry_size = use_short_loca ? 2 : 4;
     char *loca_prime_data = (char *) hb_calloc (entry_size, num_offsets);
 
     if (unlikely (!loca_prime_data)) return false;
 
-    DEBUG_MSG (SUBSET, nullptr, "loca entry_size %d num_offsets %d "
-				"max_offset %d size %d",
-	       entry_size, num_offsets, max_offset, entry_size * num_offsets);
+    DEBUG_MSG (SUBSET, nullptr, "loca entry_size %d num_offsets %d size %d",
+	       entry_size, num_offsets, entry_size * num_offsets);
 
     if (use_short_loca)
       _write_loca (padded_offsets, 1, hb_array ((HBUINT16 *) loca_prime_data, num_offsets));
@@ -151,11 +145,12 @@ struct glyf
   template <typename Iterator>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator it,
+                  bool use_short_loca,
 		  const hb_subset_plan_t *plan)
   {
     TRACE_SERIALIZE (this);
     unsigned init_len = c->length ();
-    for (const auto &_ : it) _.serialize (c, plan);
+    for (const auto &_ : it) _.serialize (c, use_short_loca, plan);
 
     /* As a special case when all glyph in the font are empty, add a zero byte
      * to the table, so that OTS doesn’t reject it, and to make the table work
@@ -183,16 +178,28 @@ struct glyf
     hb_vector_t<SubsetGlyph> glyphs;
     _populate_subset_glyphs (c->plan, &glyphs);
 
-    glyf_prime->serialize (c->serializer, hb_iter (glyphs), c->plan);
-
     auto padded_offsets =
     + hb_iter (glyphs)
     | hb_map (&SubsetGlyph::padded_size)
     ;
 
+    unsigned max_offset = + padded_offsets | hb_reduce (hb_add, 0);
+    bool use_short_loca = max_offset < 0x1FFFF;
+
+
+    glyf_prime->serialize (c->serializer, hb_iter (glyphs), use_short_loca, c->plan);
+    if (!use_short_loca) {
+      padded_offsets =
+          + hb_iter (glyphs)
+          | hb_map (&SubsetGlyph::length)
+          ;
+    }
+
+
     if (unlikely (c->serializer->in_error ())) return_trace (false);
     return_trace (c->serializer->check_success (_add_loca_and_head (c->plan,
-								    padded_offsets)));
+								    padded_offsets,
+                                                                    use_short_loca)));
   }
 
   template <typename SubsetGlyph>
@@ -1269,13 +1276,14 @@ struct glyf
     hb_bytes_t dest_end;    /* region of source_glyph to copy second */
 
     bool serialize (hb_serialize_context_t *c,
+                    bool use_short_loca,
 		    const hb_subset_plan_t *plan) const
     {
       TRACE_SERIALIZE (this);
 
       hb_bytes_t dest_glyph = dest_start.copy (c);
       dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + dest_end.copy (c).length);
-      unsigned int pad_length = padding ();
+      unsigned int pad_length = use_short_loca ? padding () : 0;
       DEBUG_MSG (SUBSET, nullptr, "serialize %d byte glyph, width %d pad %d", dest_glyph.length, dest_glyph.length + pad_length, pad_length);
 
       HBUINT8 pad;
