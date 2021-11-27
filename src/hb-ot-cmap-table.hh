@@ -99,23 +99,26 @@ struct CmapSubtableFormat4
 	   hb_requires (hb_is_iterator (Iterator))>
   void to_ranges (Iterator it, Writer& range_writer)
   {
-    hb_codepoint_t start_cp, run_start_cp, end_cp, last_gid;
-    int run_length, delta;
+    hb_codepoint_t start_cp, prev_run_start_cp, run_start_cp, end_cp, last_gid;
+    int run_length, delta, prev_delta;
 
     enum {
-      FIRST_RANGE,
-      FOLLOWING_RANGE,
+      FIRST_SUB_RANGE,
+      FOLLOWING_SUB_RANGE,
     } mode;
 
     while (it) {
       // Start a new range
       start_cp = (*it).first;
+      prev_run_start_cp = (*it).first;
       run_start_cp = (*it).first;
       end_cp = (*it).first;
       last_gid = (*it).second;
       run_length = 1;
+      prev_delta = 0;
+
       delta = (*it).second - (*it).first;
-      mode = FIRST_RANGE;
+      mode = FIRST_SUB_RANGE;
       it++;
 
       while (it) {
@@ -137,17 +140,26 @@ struct CmapSubtableFormat4
         }
 
         // A new run is starting, decide if we want to commit the current run.
-        int split_cost = (mode == FIRST_RANGE) ? 8 : 16;
+        int split_cost = (mode == FIRST_SUB_RANGE) ? 8 : 16;
         int run_cost = run_length * 2;
         if (run_cost >= split_cost) {
-          commit_current_range(start_cp, run_start_cp, end_cp, delta, split_cost, range_writer);
-          mode = FOLLOWING_RANGE;
+          commit_current_range(start_cp,
+                               prev_run_start_cp,
+                               run_start_cp,
+                               end_cp,
+                               delta,
+                               prev_delta,
+                               split_cost,
+                               range_writer);
           start_cp = next_cp;
         }
 
         // Start the new run
+        mode = FOLLOWING_SUB_RANGE;
+        prev_run_start_cp = run_start_cp;
         run_start_cp = next_cp;
         end_cp = next_cp;
+        prev_delta = delta;
         delta = next_gid - run_start_cp;
         run_length = 1;
         last_gid = next_gid;
@@ -155,7 +167,14 @@ struct CmapSubtableFormat4
       }
 
       // Finalize range
-      commit_current_range (start_cp, run_start_cp, end_cp, delta, 8, range_writer);
+      commit_current_range (start_cp,
+                            prev_run_start_cp,
+                            run_start_cp,
+                            end_cp,
+                            delta,
+                            prev_delta,
+                            8,
+                            range_writer);
     }
 
     if (likely (end_cp != 0xFFFF)) {
@@ -168,9 +187,11 @@ struct CmapSubtableFormat4
    */
   template<typename Writer>
   void commit_current_range (hb_codepoint_t start,
+                             hb_codepoint_t prev_run_start,
                              hb_codepoint_t run_start,
                              hb_codepoint_t end,
                              int run_delta,
+                             int previous_run_delta,
                              int split_cost,
                              Writer& range_writer) {
     bool should_split = false;
@@ -181,8 +202,12 @@ struct CmapSubtableFormat4
       }
     }
 
+    // TODO(grieger): handle case where delta is legitimately 0, mark range offset array instead?
     if (should_split) {
-      range_writer (start, run_start - 1, 0);
+      if (start == prev_run_start)
+        range_writer (start, run_start - 1, previous_run_delta);
+      else
+        range_writer (start, run_start - 1, 0);
       range_writer (run_start, end, run_delta);
       return;
     }
@@ -195,8 +220,7 @@ struct CmapSubtableFormat4
     }
 
     // Write only a single non-run range.
-    run_delta = (start == end) ? run_delta : 0;
-    range_writer (start, end, run_delta);
+    range_writer (start, end, 0);
   }
 
   template<typename Iterator,
