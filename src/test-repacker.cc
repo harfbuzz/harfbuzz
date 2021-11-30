@@ -763,20 +763,20 @@ populate_serializer_virtual_link (hb_serialize_context_t* c)
 
   start_object ("b", 1, c);
   add_offset (obj_d, c);
-  unsigned obj_b = c->pop_pack ();
+  unsigned obj_b = c->pop_pack (false);
 
   start_object ("e", 1, c);
   add_virtual_offset (obj_b, c);
-  unsigned obj_e = c->pop_pack();
+  unsigned obj_e = c->pop_pack (false);
 
   start_object ("c", 1, c);
   add_offset (obj_e, c);
-  unsigned obj_c = c->pop_pack ();
+  unsigned obj_c = c->pop_pack (false);
 
   start_object ("a", 1, c);
   add_offset (obj_b, c);
   add_offset (obj_c, c);
-  c->pop_pack ();
+  c->pop_pack (false);
 
   c->end_serialize();
 }
@@ -792,19 +792,19 @@ static void test_sort_kahn_1 ()
   graph.sort_kahn ();
 
   assert(strncmp (graph.object (3).head, "abc", 3) == 0);
-  assert(graph.object (3).links.length == 2);
-  assert(graph.object (3).links[0].objidx == 2);
-  assert(graph.object (3).links[1].objidx == 1);
+  assert(graph.object (3).real_links.length == 2);
+  assert(graph.object (3).real_links[0].objidx == 2);
+  assert(graph.object (3).real_links[1].objidx == 1);
 
   assert(strncmp (graph.object (2).head, "def", 3) == 0);
-  assert(graph.object (2).links.length == 1);
-  assert(graph.object (2).links[0].objidx == 0);
+  assert(graph.object (2).real_links.length == 1);
+  assert(graph.object (2).real_links[0].objidx == 0);
 
   assert(strncmp (graph.object (1).head, "jkl", 3) == 0);
-  assert(graph.object (1).links.length == 0);
+  assert(graph.object (1).real_links.length == 0);
 
   assert(strncmp (graph.object (0).head, "ghi", 3) == 0);
-  assert(graph.object (0).links.length == 0);
+  assert(graph.object (0).real_links.length == 0);
 
   free (buffer);
 }
@@ -821,24 +821,24 @@ static void test_sort_kahn_2 ()
 
 
   assert(strncmp (graph.object (4).head, "abc", 3) == 0);
-  assert(graph.object (4).links.length == 3);
-  assert(graph.object (4).links[0].objidx == 3);
-    assert(graph.object (4).links[1].objidx == 0);
-  assert(graph.object (4).links[2].objidx == 2);
+  assert(graph.object (4).real_links.length == 3);
+  assert(graph.object (4).real_links[0].objidx == 3);
+    assert(graph.object (4).real_links[1].objidx == 0);
+  assert(graph.object (4).real_links[2].objidx == 2);
 
   assert(strncmp (graph.object (3).head, "def", 3) == 0);
-  assert(graph.object (3).links.length == 1);
-  assert(graph.object (3).links[0].objidx == 1);
+  assert(graph.object (3).real_links.length == 1);
+  assert(graph.object (3).real_links[0].objidx == 1);
 
   assert(strncmp (graph.object (2).head, "mn", 2) == 0);
-  assert(graph.object (2).links.length == 0);
+  assert(graph.object (2).real_links.length == 0);
 
   assert(strncmp (graph.object (1).head, "ghi", 3) == 0);
-  assert(graph.object (1).links.length == 1);
-  assert(graph.object (1).links[0].objidx == 0);
+  assert(graph.object (1).real_links.length == 1);
+  assert(graph.object (1).real_links[0].objidx == 0);
 
   assert(strncmp (graph.object (0).head, "jkl", 3) == 0);
-  assert(graph.object (0).links.length == 0);
+  assert(graph.object (0).real_links.length == 0);
 
   free (buffer);
 }
@@ -854,24 +854,24 @@ static void test_sort_shortest ()
   graph.sort_shortest_distance ();
 
   assert(strncmp (graph.object (4).head, "abc", 3) == 0);
-  assert(graph.object (4).links.length == 3);
-  assert(graph.object (4).links[0].objidx == 2);
-  assert(graph.object (4).links[1].objidx == 0);
-  assert(graph.object (4).links[2].objidx == 3);
+  assert(graph.object (4).real_links.length == 3);
+  assert(graph.object (4).real_links[0].objidx == 2);
+  assert(graph.object (4).real_links[1].objidx == 0);
+  assert(graph.object (4).real_links[2].objidx == 3);
 
   assert(strncmp (graph.object (3).head, "mn", 2) == 0);
-  assert(graph.object (3).links.length == 0);
+  assert(graph.object (3).real_links.length == 0);
 
   assert(strncmp (graph.object (2).head, "def", 3) == 0);
-  assert(graph.object (2).links.length == 1);
-  assert(graph.object (2).links[0].objidx == 1);
+  assert(graph.object (2).real_links.length == 1);
+  assert(graph.object (2).real_links[0].objidx == 1);
 
   assert(strncmp (graph.object (1).head, "ghi", 3) == 0);
-  assert(graph.object (1).links.length == 1);
-  assert(graph.object (1).links[0].objidx == 0);
+  assert(graph.object (1).real_links.length == 1);
+  assert(graph.object (1).real_links[0].objidx == 0);
 
   assert(strncmp (graph.object (0).head, "jkl", 3) == 0);
-  assert(graph.object (0).links.length == 0);
+  assert(graph.object (0).real_links.length == 0);
 
   free (buffer);
 }
@@ -887,27 +887,27 @@ static void test_duplicate_leaf ()
   graph.duplicate (4, 1);
 
   assert(strncmp (graph.object (5).head, "abc", 3) == 0);
-  assert(graph.object (5).links.length == 3);
-  assert(graph.object (5).links[0].objidx == 3);
-  assert(graph.object (5).links[1].objidx == 4);
-  assert(graph.object (5).links[2].objidx == 0);
+  assert(graph.object (5).real_links.length == 3);
+  assert(graph.object (5).real_links[0].objidx == 3);
+  assert(graph.object (5).real_links[1].objidx == 4);
+  assert(graph.object (5).real_links[2].objidx == 0);
 
   assert(strncmp (graph.object (4).head, "jkl", 3) == 0);
-  assert(graph.object (4).links.length == 0);
+  assert(graph.object (4).real_links.length == 0);
 
   assert(strncmp (graph.object (3).head, "def", 3) == 0);
-  assert(graph.object (3).links.length == 1);
-  assert(graph.object (3).links[0].objidx == 2);
+  assert(graph.object (3).real_links.length == 1);
+  assert(graph.object (3).real_links[0].objidx == 2);
 
   assert(strncmp (graph.object (2).head, "ghi", 3) == 0);
-  assert(graph.object (2).links.length == 1);
-  assert(graph.object (2).links[0].objidx == 1);
+  assert(graph.object (2).real_links.length == 1);
+  assert(graph.object (2).real_links[0].objidx == 1);
 
   assert(strncmp (graph.object (1).head, "jkl", 3) == 0);
-  assert(graph.object (1).links.length == 0);
+  assert(graph.object (1).real_links.length == 0);
 
   assert(strncmp (graph.object (0).head, "mn", 2) == 0);
-  assert(graph.object (0).links.length == 0);
+  assert(graph.object (0).real_links.length == 0);
 
   free (buffer);
 }
@@ -923,32 +923,32 @@ static void test_duplicate_interior ()
   graph.duplicate (3, 2);
 
   assert(strncmp (graph.object (6).head, "abc", 3) == 0);
-  assert(graph.object (6).links.length == 3);
-  assert(graph.object (6).links[0].objidx == 4);
-  assert(graph.object (6).links[1].objidx == 2);
-  assert(graph.object (6).links[2].objidx == 1);
+  assert(graph.object (6).real_links.length == 3);
+  assert(graph.object (6).real_links[0].objidx == 4);
+  assert(graph.object (6).real_links[1].objidx == 2);
+  assert(graph.object (6).real_links[2].objidx == 1);
 
   assert(strncmp (graph.object (5).head, "jkl", 3) == 0);
-  assert(graph.object (5).links.length == 1);
-  assert(graph.object (5).links[0].objidx == 0);
+  assert(graph.object (5).real_links.length == 1);
+  assert(graph.object (5).real_links[0].objidx == 0);
 
   assert(strncmp (graph.object (4).head, "def", 3) == 0);
-  assert(graph.object (4).links.length == 1);
-  assert(graph.object (4).links[0].objidx == 3);
+  assert(graph.object (4).real_links.length == 1);
+  assert(graph.object (4).real_links[0].objidx == 3);
 
   assert(strncmp (graph.object (3).head, "ghi", 3) == 0);
-  assert(graph.object (3).links.length == 1);
-  assert(graph.object (3).links[0].objidx == 5);
+  assert(graph.object (3).real_links.length == 1);
+  assert(graph.object (3).real_links[0].objidx == 5);
 
   assert(strncmp (graph.object (2).head, "jkl", 3) == 0);
-  assert(graph.object (2).links.length == 1);
-  assert(graph.object (2).links[0].objidx == 0);
+  assert(graph.object (2).real_links.length == 1);
+  assert(graph.object (2).real_links[0].objidx == 0);
 
   assert(strncmp (graph.object (1).head, "mn", 2) == 0);
-  assert(graph.object (1).links.length == 0);
+  assert(graph.object (1).real_links.length == 0);
 
   assert(strncmp (graph.object (0).head, "opqrst", 6) == 0);
-  assert(graph.object (0).links.length == 0);
+  assert(graph.object (0).real_links.length == 0);
 
   free (buffer);
 }
@@ -1247,6 +1247,43 @@ static void test_virtual_link ()
   free (out_buffer);
 }
 
+static void
+test_shared_node_with_virtual_links ()
+{
+  size_t buffer_size = 100;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+
+  c.start_serialize<char> ();
+
+  unsigned obj_b = add_object ("b", 1, &c);
+  unsigned obj_c = add_object ("c", 1, &c);
+
+  start_object ("d", 1, &c);
+  add_virtual_offset (obj_b, &c);
+  unsigned obj_d_1 = c.pop_pack ();
+
+  start_object ("d", 1, &c);
+  add_virtual_offset (obj_c, &c);
+  unsigned obj_d_2 = c.pop_pack ();
+
+  assert (obj_d_1 == obj_d_2);
+
+  start_object ("a", 1, &c);
+  add_offset (obj_b, &c);
+  add_offset (obj_c, &c);
+  add_offset (obj_d_1, &c);
+  add_offset (obj_d_2, &c);
+  c.pop_pack ();
+  c.end_serialize ();
+
+  assert(c.object_graph() [obj_d_1]->virtual_links.length == 2);
+  assert(c.object_graph() [obj_d_1]->virtual_links[0].objidx == obj_b);
+  assert(c.object_graph() [obj_d_1]->virtual_links[1].objidx == obj_c);
+  free(buffer);
+}
+
+
 // TODO(garretrieger): update will_overflow tests to check the overflows array.
 // TODO(garretrieger): add tests for priority raising.
 
@@ -1273,4 +1310,5 @@ main (int argc, char **argv)
   test_duplicate_leaf ();
   test_duplicate_interior ();
   test_virtual_link ();
+  test_shared_node_with_virtual_links ();
 }
