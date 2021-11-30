@@ -114,6 +114,37 @@ test_iterable (const Iterable &lst = Null (Iterable))
   test_iterator (lst.iter ());
 }
 
+template <typename It>
+static void check_sequential (It it)
+{
+  int i = 1;
+  for (int v : +it) {
+    assert (v == i++);
+  }
+}
+
+static void test_concat ()
+{
+  hb_vector_t<int> a = {1, 2, 3};
+  hb_vector_t<int> b = {4, 5};
+
+  hb_vector_t<int> c = {};
+  hb_vector_t<int> d = {1, 2, 3, 4, 5};
+
+  auto it1 = hb_concat (a, b);
+  auto it2 = hb_concat (c, d);
+  auto it3 = hb_concat (d, c);
+  for (int i = 0; i < 5; i++) {
+    assert(it1[i] == i + 1);
+    assert(it2[i] == i + 1);
+    assert(it3[i] == i + 1);
+  }
+
+  check_sequential (it1);
+  check_sequential (it2);
+  check_sequential (it3);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -281,6 +312,8 @@ main (int argc, char **argv)
   assert (hb_range (-2, -9, -3).len () == 3);
   assert (hb_range (-2, -8, -3).len () == 2);
   assert (hb_range (-2, -7, -3).len () == 2);
+
+  test_concat ();
 
   return 0;
 }
