@@ -165,8 +165,7 @@ struct graph_t
         v->obj = *objects[i];
       if (!removed_nil) continue;
       // Fix indices to account for removed nil object.
-      for (auto& l : hb_concat (v->obj.real_links.writer (),
-                                v->obj.virtual_links.writer ())) {
+      for (auto& l : v->obj.all_links_writer ()) {
         l.objidx--;
       }
     }
@@ -263,7 +262,7 @@ struct graph_t
       sorted_graph[new_id] = next;
       id_map[next_id] = new_id--;
 
-      for (const auto& link : hb_concat (next.obj.real_links, next.obj.virtual_links)) {
+      for (const auto& link : next.obj.all_links ()) {
         removed_edges[link.objidx]++;
         if (!(vertices_[link.objidx].incoming_edges () - removed_edges[link.objidx]))
           queue.push (link.objidx);
@@ -317,7 +316,7 @@ struct graph_t
       sorted_graph[new_id] = next;
       id_map[next_id] = new_id--;
 
-      for (const auto& link : hb_concat (next.obj.real_links, next.obj.virtual_links)) {
+      for (const auto& link : next.obj.all_links ()) {
         removed_edges[link.objidx]++;
         if (!(vertices_[link.objidx].incoming_edges () - removed_edges[link.objidx]))
           // Add the order that the links were encountered to the priority.
@@ -470,8 +469,7 @@ struct graph_t
 
   void find_subgraph (unsigned node_idx, hb_hashmap_t<unsigned, unsigned>& subgraph)
   {
-    for (const auto& link : hb_concat (vertices_[node_idx].obj.real_links,
-                                       vertices_[node_idx].obj.virtual_links))
+    for (const auto& link : vertices_[node_idx].obj.all_links ())
     {
       if (subgraph.has (link.objidx))
       {
@@ -487,8 +485,7 @@ struct graph_t
   {
     if (subgraph.has (node_idx)) return;
     subgraph.add (node_idx);
-    for (const auto& link : hb_concat (vertices_[node_idx].obj.real_links,
-                                       vertices_[node_idx].obj.virtual_links))
+    for (const auto& link : vertices_[node_idx].obj.all_links ())
       find_subgraph (link.objidx, subgraph);
   }
 
@@ -503,8 +500,7 @@ struct graph_t
       return;
 
     index_map.set (node_idx, duplicate (node_idx));
-    for (const auto& l : hb_concat (object (node_idx).real_links,
-                                    object (node_idx).virtual_links)) {
+    for (const auto& l : object (node_idx).all_links ()) {
       duplicate_subgraph (l.objidx, index_map);
     }
   }
@@ -552,8 +548,7 @@ struct graph_t
     vertices_[vertices_.length - 1] = root;
 
     // Since the root moved, update the parents arrays of all children on the root.
-    for (const auto& l : hb_concat (root.obj.real_links,
-                                    root.obj.virtual_links))
+    for (const auto& l : root.obj.all_links ())
       vertices_[l.objidx].remap_parent (root_idx () - 1, root_idx ());
 
     return clone_idx;
@@ -569,8 +564,7 @@ struct graph_t
     update_parents ();
 
     unsigned links_to_child = 0;
-    for (const auto& l : hb_concat (vertices_[parent_idx].obj.real_links,
-                                    vertices_[parent_idx].obj.virtual_links))
+    for (const auto& l : vertices_[parent_idx].obj.all_links ())
     {
       if (l.objidx == child_idx) links_to_child++;
     }
@@ -593,8 +587,7 @@ struct graph_t
     if (parent_idx == clone_idx) parent_idx++;
 
     auto& parent = vertices_[parent_idx];
-    for (auto& l : hb_concat (parent.obj.real_links.writer (),
-                              parent.obj.virtual_links.writer ()))
+    for (auto& l : parent.obj.all_links_writer ())
     {
       if (l.objidx != child_idx)
         continue;
@@ -616,8 +609,7 @@ struct graph_t
     // to invalidate positions. It does not change graph structure so no need
     // to update distances or edge counts.
     auto& parent = vertices_[parent_idx].obj;
-    for (auto& l : hb_concat (parent.real_links.writer (),
-                              parent.virtual_links.writer ()))
+    for (auto& l : parent.all_links_writer ())
       vertices_[l.objidx].raise_priority ();
   }
 
@@ -773,8 +765,7 @@ struct graph_t
 
     for (unsigned p = 0; p < vertices_.length; p++)
     {
-      for (auto& l : hb_concat (vertices_[p].obj.real_links,
-                                vertices_[p].obj.virtual_links))
+      for (auto& l : vertices_[p].obj.all_links ())
       {
         vertices_[l.objidx].parents.push (p);
       }
@@ -842,8 +833,7 @@ struct graph_t
       int64_t next_distance = vertices_[next_idx].distance;
       visited[next_idx] = true;
 
-      for (const auto& link : hb_concat (next.obj.real_links,
-                                         next.obj.virtual_links))
+      for (const auto& link : next.obj.all_links ())
       {
         if (visited[link.objidx]) continue;
 
@@ -942,8 +932,7 @@ struct graph_t
     if (!id_map) return;
     for (unsigned i : subgraph)
     {
-      for (auto& link : hb_concat (vertices_[i].obj.real_links.writer (),
-                                   vertices_[i].obj.virtual_links.writer ()))
+      for (auto& link : vertices_[i].obj.all_links_writer ())
       {
         if (!id_map.has (link.objidx)) continue;
         if (only_wide && !(link.width == 4 && !link.is_signed)) continue;
@@ -962,9 +951,7 @@ struct graph_t
     for (unsigned i = 0; i < sorted_graph->length; i++)
     {
       (*sorted_graph)[i].remap_parents (id_map);
-      for (auto& link : hb_concat ((*sorted_graph)[i].obj.real_links.writer (),
-                                   (*sorted_graph)[i].obj.virtual_links.writer ()))
-
+      for (auto& link : (*sorted_graph)[i].obj.all_links_writer ())
       {
         link.objidx = id_map[link.objidx];
       }
@@ -1044,8 +1031,7 @@ struct graph_t
     const auto& v = vertices_[start_idx];
 
     // Graph is treated as undirected so search children and parents of start_idx
-    for (const auto& l : hb_concat (v.obj.real_links,
-                                    v.obj.virtual_links))
+    for (const auto& l : v.obj.all_links ())
       find_connected_nodes (l.objidx, targets, visited, connected);
 
     for (unsigned p : v.parents)
