@@ -627,10 +627,12 @@ struct hb_concat_iter_t :
   void __forward__ (unsigned n)
   {
     if (n > a.len ()) {
-      a.__forward__ (a.len ());
       n -= a.len ();
+      a.__forward__ (a.len ());
+      b.__forward__ (n);
+    } else {
+      a.__forward__ (n);
     }
-    b.__forward (n);
   }
 
   hb_concat_iter_t __end__ () const { return hb_concat_iter_t (a.end (), b.end ()); }
