@@ -1,4 +1,4 @@
-in_house_tests = [
+in_house_tests_base = [
   'aat-morx.tests',
   'aat-trak.tests',
   'arabic-fallback-shaping.tests',
@@ -66,4 +66,16 @@ in_house_tests = [
   'variations-rvrn.tests',
   'vertical.tests',
   'zero-width-marks.tests',
+]
+
+in_house_tests_coretext = [
+  'coretext.tests',
+]
+
+in_house_tests_uniscribe = [
+  'uniscribe.tests',
+]
+
+in_house_tests_directwrite = [
+  'directwrite.tests',
 ]
