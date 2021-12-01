@@ -132,8 +132,11 @@ static void test_concat ()
   hb_vector_t<int> d = {1, 2, 3, 4, 5};
 
   auto it1 = hb_concat (a, b);
+  assert (it1.len () == 5);
   auto it2 = hb_concat (c, d);
+  assert (it2.len () == 5);
   auto it3 = hb_concat (d, c);
+  assert (it3.len () == 5);
   for (int i = 0; i < 5; i++) {
     assert(it1[i] == i + 1);
     assert(it2[i] == i + 1);
@@ -143,6 +146,25 @@ static void test_concat ()
   check_sequential (it1);
   check_sequential (it2);
   check_sequential (it3);
+
+  auto it4 = +it1;
+  it4 += 2;
+  assert (*it4 == 3);
+  assert (it4);
+  assert (it4.len () == 3);
+
+  it4 += 2;
+  assert (*it4 == 5);
+  assert (it4);
+  assert (it4.len () == 1);
+
+  it4++;
+  assert (!it4);
+  assert (it4.len () == 0);
+
+  auto it5 = +it1;
+  it5 += 3;
+  assert (*it5 == 4);
 }
 
 int
