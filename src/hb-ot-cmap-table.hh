@@ -99,8 +99,8 @@ struct CmapSubtableFormat4
 	   hb_requires (hb_is_iterator (Iterator))>
   void to_ranges (Iterator it, Writer& range_writer)
   {
-    hb_codepoint_t start_cp, prev_run_start_cp, run_start_cp, end_cp, last_gid = 0;
-    int run_length, delta, prev_delta = 0;
+    hb_codepoint_t start_cp = 0, prev_run_start_cp = 0, run_start_cp = 0, end_cp = 0, last_gid = 0;
+    int run_length = 0 , delta = 0, prev_delta = 0;
 
     enum {
       FIRST_SUB_RANGE,
