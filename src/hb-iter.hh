@@ -607,9 +607,10 @@ struct hb_concat_iter_t :
 
   __item_t__ __item_at__ (unsigned i) const
   {
-    if (i < a.len())
+    unsigned a_len = a.len ();
+    if (i < a_len)
       return a[i];
-    return b[i - a.len()];
+    return b[i - a_len];
   }
 
   bool __more__ () const { return bool (a) || bool (b); }
@@ -626,9 +627,18 @@ struct hb_concat_iter_t :
 
   void __forward__ (unsigned n)
   {
-    if (n > a.len ()) {
-      n -= a.len ();
-      a.__forward__ (a.len ());
+    if (!n) return;
+    if (!is_random_access_iterator) {
+      while (n-- && *this) {
+        (*this)++;
+      }
+      return;
+    }
+
+    unsigned a_len = a.len ();
+    if (n > a_len) {
+      n -= a_len;
+      a.__forward__ (a_len);
       b.__forward__ (n);
     } else {
       a.__forward__ (n);
