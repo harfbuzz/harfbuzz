@@ -133,6 +133,7 @@ static void test_concat ()
 
   auto it1 = hb_concat (a, b);
   assert (it1.len () == 5);
+  assert (it1.is_random_access_iterator);
   auto it2 = hb_concat (c, d);
   assert (it2.len () == 5);
   auto it3 = hb_concat (d, c);
@@ -148,6 +149,9 @@ static void test_concat ()
   check_sequential (it3);
 
   auto it4 = +it1;
+  it4 += 0;
+  assert (*it4 == 1);
+
   it4 += 2;
   assert (*it4 == 3);
   assert (it4);
@@ -165,6 +169,21 @@ static void test_concat ()
   auto it5 = +it1;
   it5 += 3;
   assert (*it5 == 4);
+
+  hb_set_t s_a = {1, 2, 3};
+  hb_set_t s_b = {4, 5};
+  auto it6 = hb_concat (s_a, s_b);
+  assert (!it6.is_random_access_iterator);
+  check_sequential (it6);
+  assert (it6.len () == 5);
+
+  it6 += 0;
+  assert (*it6 == 1);
+
+  it6 += 3;
+  assert (*it6 == 4);
+  assert (it6);
+  assert (it6.len () == 2);
 }
 
 int
