@@ -370,6 +370,22 @@ _hb_next_grapheme (hb_buffer_t *buffer, unsigned int start)
   return start;
 }
 
+static inline void
+_reverse_buffer_preserve_graphemes (hb_buffer_t* buffer) {
+    if (buffer->cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS) {
+      foreach_grapheme (buffer, start, end) {
+        buffer->merge_clusters (start, end);
+        buffer->reverse_range (start, end);
+      }
+    } else {
+      foreach_grapheme (buffer, start, end) {
+        /* form_clusters() merged clusters already, we don't merge. */
+        buffer->reverse_range (start, end);
+      }
+    }
+    buffer->reverse();
+}
+
 static inline bool
 _hb_glyph_info_is_unicode_format (const hb_glyph_info_t *info)
 {

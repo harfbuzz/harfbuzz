@@ -204,6 +204,7 @@ struct hb_buffer_t
   HB_INTERNAL void reverse_range (unsigned int start, unsigned int end);
   HB_INTERNAL void reverse ();
   HB_INTERNAL void reverse_clusters ();
+  HB_INTERNAL void reverse_preserve_graphemes ();
   HB_INTERNAL void guess_segment_properties ();
 
   HB_INTERNAL void swap_buffers ();

@@ -1037,13 +1037,15 @@ struct Chain
       if (!c->buffer->message (c->font, "start chainsubtable %d", c->lookup_index))
 	goto skip;
 
-      if (reverse)
-	c->buffer->reverse ();
+      if (reverse) {
+        _reverse_buffer_preserve_graphemes(c->buffer);
+      }
 
       subtable->apply (c);
 
-      if (reverse)
-	c->buffer->reverse ();
+      if (reverse) {
+        _reverse_buffer_preserve_graphemes(c->buffer);
+      }
 
       (void) c->buffer->message (c->font, "end chainsubtable %d", c->lookup_index);
 
