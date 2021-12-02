@@ -82,11 +82,11 @@ struct hb_closure_context_t :
   }
 
   bool lookup_limit_exceeded ()
-  { return lookup_count > HB_MAX_LOOKUP_INDICES; }
+  { return lookup_count > HB_MAX_LOOKUP_VISIT_COUNT; }
 
   bool should_visit_lookup (unsigned int lookup_index)
   {
-    if (lookup_count++ > HB_MAX_LOOKUP_INDICES)
+    if (lookup_count++ > HB_MAX_LOOKUP_VISIT_COUNT)
       return false;
 
     if (is_lookup_done (lookup_index))
@@ -226,12 +226,20 @@ struct hb_closure_lookups_context_t :
   { inactive_lookups->add (lookup_index); }
 
   bool lookup_limit_exceeded ()
-  { return lookup_count > HB_MAX_LOOKUP_INDICES; }
+  {
+    bool ret = lookup_count > HB_MAX_LOOKUP_VISIT_COUNT;
+    if (ret)
+      DEBUG_MSG (SUBSET, nullptr, "lookup visit count limit exceeded in lookup closure!");
+    return ret; }
 
   bool is_lookup_visited (unsigned lookup_index)
   {
-    if (unlikely (lookup_count++ > HB_MAX_LOOKUP_INDICES))
+    if (unlikely (lookup_count++ > HB_MAX_LOOKUP_VISIT_COUNT))
+    {
+      DEBUG_MSG (SUBSET, nullptr, "total visited lookup count %u exceeds max limit, lookup %u is dropped.",
+                 lookup_count, lookup_index);
       return true;
+    }
 
     if (unlikely (visited_lookups->in_error ()))
       return true;
@@ -1303,8 +1311,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
     }
 
     hb_set_add (covered_seq_indicies, seqIndex);
-    if (pos_glyphs)
-      c->push_cur_active_glyphs (pos_glyphs);
+    c->push_cur_active_glyphs (pos_glyphs ? pos_glyphs : c->glyphs);
 
     unsigned endIndex = inputCount;
     if (context_format == ContextFormat::CoverageBasedContext)
@@ -1312,10 +1319,9 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
 
     c->recurse (lookupRecord[i].lookupListIndex, covered_seq_indicies, seqIndex, endIndex);
 
-    if (pos_glyphs) {
-      c->pop_cur_done_glyphs ();
+    c->pop_cur_done_glyphs ();
+    if (pos_glyphs)
       hb_set_destroy (pos_glyphs);
-    }
   }
 
   hb_set_destroy (covered_seq_indicies);
