@@ -52,6 +52,7 @@ EXTRA_DIST += \
 	expected/variable \
 	expected/glyph_names \
 	expected/math \
+	expected/math_coverage_offset \
 	expected/post \
 	fonts \
 	profiles \

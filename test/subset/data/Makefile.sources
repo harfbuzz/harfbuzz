@@ -44,6 +44,7 @@ TESTS = \
 	tests/variable.tests \
 	tests/glyph_names.tests \
 	tests/math.tests \
+	tests/math_coverage_offset.tests \
 	tests/post.tests \
 	$(NULL)
 
