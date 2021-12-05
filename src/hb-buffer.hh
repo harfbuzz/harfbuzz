@@ -498,7 +498,19 @@ struct hb_buffer_t
       inf.mask = (inf.mask & ~HB_GLYPH_FLAG_DEFINED) | (mask & HB_GLYPH_FLAG_DEFINED);
     inf.cluster = cluster;
   }
-
+  void
+  _infos_set_glyph_flags (hb_glyph_info_t *infos,
+			  unsigned int start, unsigned int end,
+			  unsigned int cluster,
+			  hb_mask_t mask)
+  {
+    for (unsigned int i = start; i < end; i++)
+      if (cluster != infos[i].cluster)
+      {
+	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+	infos[i].mask |= mask;
+      }
+  }
   static unsigned
   _infos_find_min_cluster (const hb_glyph_info_t *infos,
 			   unsigned start, unsigned end,
@@ -507,19 +519,6 @@ struct hb_buffer_t
     for (unsigned int i = start; i < end; i++)
       cluster = hb_min (cluster, infos[i].cluster);
     return cluster;
-  }
-  void
-  _unsafe_to_break_set_mask (hb_glyph_info_t *infos,
-			     unsigned int start, unsigned int end,
-			     unsigned int cluster,
-			     hb_mask_t mask)
-  {
-    for (unsigned int i = start; i < end; i++)
-      if (cluster != infos[i].cluster)
-      {
-	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
-	infos[i].mask |= mask;
-      }
   }
 
   void clear_glyph_flags (hb_mask_t mask = 0)

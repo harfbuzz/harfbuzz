@@ -577,7 +577,7 @@ hb_buffer_t::unsafe_to_break_impl (unsigned int start, unsigned int end, hb_mask
 {
   unsigned int cluster = UINT_MAX;
   cluster = _infos_find_min_cluster (info, start, end, cluster);
-  _unsafe_to_break_set_mask (info, start, end, cluster, mask);
+  _infos_set_glyph_flags (info, start, end, cluster, mask);
 }
 void
 hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end, hb_mask_t mask)
@@ -595,8 +595,8 @@ hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int en
   cluster = _infos_find_min_cluster (out_info, start, out_len, cluster);
   cluster = _infos_find_min_cluster (info, idx, end, cluster);
 
-  _unsafe_to_break_set_mask (out_info, start, out_len, cluster, mask);
-  _unsafe_to_break_set_mask (info, idx, end, cluster, mask);
+  _infos_set_glyph_flags (out_info, start, out_len, cluster, mask);
+  _infos_set_glyph_flags (info, idx, end, cluster, mask);
 }
 
 void
