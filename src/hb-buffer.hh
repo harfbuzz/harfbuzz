@@ -385,26 +385,74 @@ struct hb_buffer_t
   /* Merge clusters for deleting current glyph, and skip it. */
   HB_INTERNAL void delete_glyph ();
 
-  void unsafe_to_break (unsigned int start,
-			unsigned int end)
+
+  void set_glyph_flags (unsigned start,
+			unsigned end,
+			hb_mask_t mask,
+			bool interior = false,
+			bool from_out_buffer = false)
   {
-    if (end - start < 2)
+    if (interior && !from_out_buffer && end - start < 2)
       return;
-    unsafe_to_break_impl (start, end);
+
+    scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+
+    if (!from_out_buffer || !have_output)
+    {
+      if (!interior)
+      {
+	for (unsigned i = start; i < end; i++)
+	  info[i].mask |= mask;
+      }
+      else
+      {
+	unsigned cluster = _infos_find_min_cluster (info, start, end);
+	_infos_set_glyph_flags (info, start, end, cluster, mask);
+      }
+    }
+    else
+    {
+      assert (start <= out_len);
+      assert (idx <= end);
+
+      if (!interior)
+      {
+	for (unsigned i = start; i < out_len; i++)
+	  out_info[i].mask |= mask;
+	for (unsigned i = idx; i < end; i++)
+	  info[i].mask |= mask;
+      }
+      else
+      {
+	unsigned cluster = _infos_find_min_cluster (info, idx, end);
+	cluster = _infos_find_min_cluster (out_info, start, out_len, cluster);
+
+	_infos_set_glyph_flags (out_info, start, out_len, cluster, mask);
+	_infos_set_glyph_flags (info, idx, end, cluster, mask);
+      }
+    }
   }
-  void unsafe_to_concat (unsigned int start,
-			 unsigned int end)
+
+  void unsafe_to_break (unsigned int start, unsigned int end)
   {
-    if (end - start < 2)
-      return;
-    unsafe_to_break_impl (start, end, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
+    set_glyph_flags (start, end, HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     true);
   }
-  HB_INTERNAL void unsafe_to_break_impl (unsigned int start, unsigned int end,
-					 hb_mask_t mask = HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
-  HB_INTERNAL void unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end,
-						   hb_mask_t mask = HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
+  void unsafe_to_concat (unsigned int start, unsigned int end)
+  {
+    set_glyph_flags (start, end, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     true);
+  }
+  void unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end)
+  {
+    set_glyph_flags (start, end, HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     true, true);
+  }
   void unsafe_to_concat_from_outbuffer (unsigned int start, unsigned int end)
-  { unsafe_to_break_from_outbuffer (start, end, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT); }
+  {
+    set_glyph_flags (start, end, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     true, true);
+  }
 
 
   /* Internal methods */

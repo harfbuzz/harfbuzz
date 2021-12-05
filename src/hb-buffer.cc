@@ -573,31 +573,6 @@ done:
 }
 
 void
-hb_buffer_t::unsafe_to_break_impl (unsigned int start, unsigned int end, hb_mask_t mask)
-{
-  unsigned cluster = _infos_find_min_cluster (info, start, end);
-  _infos_set_glyph_flags (info, start, end, cluster, mask);
-}
-void
-hb_buffer_t::unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end, hb_mask_t mask)
-{
-  if (!have_output)
-  {
-    unsafe_to_break_impl (start, end);
-    return;
-  }
-
-  assert (start <= out_len);
-  assert (idx <= end);
-
-  unsigned cluster = _infos_find_min_cluster (info, idx, end);
-  cluster = _infos_find_min_cluster (out_info, start, out_len, cluster);
-
-  _infos_set_glyph_flags (out_info, start, out_len, cluster, mask);
-  _infos_set_glyph_flags (info, idx, end, cluster, mask);
-}
-
-void
 hb_buffer_t::guess_segment_properties ()
 {
   assert_unicode ();
