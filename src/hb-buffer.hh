@@ -514,7 +514,7 @@ struct hb_buffer_t
   static unsigned
   _infos_find_min_cluster (const hb_glyph_info_t *infos,
 			   unsigned start, unsigned end,
-			   unsigned cluster)
+			   unsigned cluster = UINT_MAX)
   {
     for (unsigned int i = start; i < end; i++)
       cluster = hb_min (cluster, infos[i].cluster);
