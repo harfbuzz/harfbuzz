@@ -520,7 +520,7 @@ struct hb_ot_apply_context_t :
     may_skip (const hb_glyph_info_t &info) const
     { return matcher.may_skip (c, info); }
 
-    bool next ()
+    bool next (unsigned *unsafe_to = nullptr)
     {
       assert (num_items > 0);
       while (idx + num_items < end)
@@ -543,11 +543,17 @@ struct hb_ot_apply_context_t :
 	}
 
 	if (skip == matcher_t::SKIP_NO)
+	{
+	  if (unsafe_to)
+	    *unsafe_to = idx + 1;
 	  return false;
+	}
       }
+      if (unsafe_to)
+        *unsafe_to = end;
       return false;
     }
-    bool prev ()
+    bool prev (unsigned *unsafe_from = nullptr)
     {
       assert (num_items > 0);
       while (idx > num_items - 1)
@@ -570,8 +576,14 @@ struct hb_ot_apply_context_t :
 	}
 
 	if (skip == matcher_t::SKIP_NO)
+	{
+	  if (unsafe_from)
+	    *unsafe_from = hb_max (1u, idx) - 1u;
 	  return false;
+	}
       }
+      if (unsafe_from)
+        *unsafe_from = 0;
       return false;
     }
 
@@ -1008,7 +1020,12 @@ static inline bool match_input (hb_ot_apply_context_t *c,
   match_positions[0] = buffer->idx;
   for (unsigned int i = 1; i < count; i++)
   {
-    if (!skippy_iter.next ()) return_trace (false);
+    unsigned unsafe_to;
+    if (!skippy_iter.next (&unsafe_to))
+    {
+      c->buffer->unsafe_to_concat (c->buffer->idx, unsafe_to);
+      return_trace (false);
+    }
 
     match_positions[i] = skippy_iter.idx;
 
@@ -1197,8 +1214,14 @@ static inline bool match_backtrack (hb_ot_apply_context_t *c,
   skippy_iter.set_match_func (match_func, match_data, backtrack);
 
   for (unsigned int i = 0; i < count; i++)
-    if (!skippy_iter.prev ())
+  {
+    unsigned unsafe_from;
+    if (!skippy_iter.prev (&unsafe_from))
+    {
+      c->buffer->unsafe_to_concat_from_outbuffer (unsafe_from, c->buffer->idx);
       return_trace (false);
+    }
+  }
 
   *match_start = skippy_iter.idx;
 
@@ -1220,8 +1243,14 @@ static inline bool match_lookahead (hb_ot_apply_context_t *c,
   skippy_iter.set_match_func (match_func, match_data, lookahead);
 
   for (unsigned int i = 0; i < count; i++)
-    if (!skippy_iter.next ())
+  {
+    unsigned unsafe_to;
+    if (!skippy_iter.next (&unsafe_to))
+    {
+      c->buffer->unsafe_to_concat (c->buffer->idx + offset, unsafe_to);
       return_trace (false);
+    }
+  }
 
   *end_index = skippy_iter.idx + 1;
 

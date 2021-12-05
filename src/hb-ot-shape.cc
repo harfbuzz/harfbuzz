@@ -1120,7 +1120,7 @@ hb_propagate_flags (hb_buffer_t *buffer)
   /* Propagate cluster-level glyph flags to be the same on all cluster glyphs.
    * Simplifies using them. */
 
-  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK))
+  if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS))
     return;
 
   hb_glyph_info_t *info = buffer->info;
@@ -1129,11 +1129,7 @@ hb_propagate_flags (hb_buffer_t *buffer)
   {
     unsigned int mask = 0;
     for (unsigned int i = start; i < end; i++)
-      if (info[i].mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
-      {
-	 mask = HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
-	 break;
-      }
+      mask |= info[i].mask & HB_GLYPH_FLAG_DEFINED;
     if (mask)
       for (unsigned int i = start; i < end; i++)
 	info[i].mask |= mask;

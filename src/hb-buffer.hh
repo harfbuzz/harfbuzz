@@ -67,8 +67,8 @@ enum hb_buffer_scratch_flags_t {
   HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES		= 0x00000002u,
   HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK		= 0x00000004u,
   HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT		= 0x00000008u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK		= 0x00000010u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_CGJ			= 0x00000020u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_CGJ			= 0x00000010u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS		= 0x00000020u,
 
   /* Reserved for complex shapers' internal use. */
   HB_BUFFER_SCRATCH_FLAG_COMPLEX0			= 0x01000000u,
@@ -392,8 +392,19 @@ struct hb_buffer_t
       return;
     unsafe_to_break_impl (start, end);
   }
-  HB_INTERNAL void unsafe_to_break_impl (unsigned int start, unsigned int end);
-  HB_INTERNAL void unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end);
+  void unsafe_to_concat (unsigned int start,
+			 unsigned int end)
+  {
+    if (end - start < 2)
+      return;
+    unsafe_to_break_impl (start, end, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
+  }
+  HB_INTERNAL void unsafe_to_break_impl (unsigned int start, unsigned int end,
+					 hb_mask_t mask = HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
+  HB_INTERNAL void unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end,
+						   hb_mask_t mask = HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
+  void unsafe_to_concat_from_outbuffer (unsigned int start, unsigned int end)
+  { unsafe_to_break_from_outbuffer (start, end, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT); }
 
 
   /* Internal methods */
@@ -484,12 +495,7 @@ struct hb_buffer_t
   set_cluster (hb_glyph_info_t &inf, unsigned int cluster, unsigned int mask = 0)
   {
     if (inf.cluster != cluster)
-    {
-      if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
-	inf.mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
-      else
-	inf.mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
-    }
+      inf.mask = (inf.mask & ~HB_GLYPH_FLAG_DEFINED) | (mask & HB_GLYPH_FLAG_DEFINED);
     inf.cluster = cluster;
   }
 
@@ -505,13 +511,14 @@ struct hb_buffer_t
   void
   _unsafe_to_break_set_mask (hb_glyph_info_t *infos,
 			     unsigned int start, unsigned int end,
-			     unsigned int cluster)
+			     unsigned int cluster,
+			     hb_mask_t mask)
   {
     for (unsigned int i = start; i < end; i++)
       if (cluster != infos[i].cluster)
       {
-	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK;
-	infos[i].mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+	infos[i].mask |= mask;
       }
   }
 
