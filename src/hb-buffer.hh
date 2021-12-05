@@ -450,11 +450,10 @@ struct hb_buffer_t
       }
   }
 
-  void unsafe_to_break_all () { unsafe_to_break_impl (0, len); }
-  void safe_to_break_all ()
+  void clear_glyph_flags (hb_mask_t mask = 0)
   {
     for (unsigned int i = 0; i < len; i++)
-      info[i].mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+      info[i].mask = (info[i].mask & ~HB_GLYPH_FLAG_DEFINED) | (mask & HB_GLYPH_FLAG_DEFINED);
   }
 };
 DECLARE_NULL_INSTANCE (hb_buffer_t);
