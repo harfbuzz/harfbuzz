@@ -74,14 +74,13 @@ static void run_resolve_overflow_test (const char* name,
 
   graph_t graph (overflowing.object_graph ());
 
-  unsigned buffer_size = overflowing.end - overflowing.start;
-  void* out_buffer = malloc (buffer_size);
-  hb_serialize_context_t out (out_buffer, buffer_size);
 
   assert (overflowing.offset_overflow ());
-  hb_resolve_overflows (overflowing.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, num_iterations);
-  assert (!out.offset_overflow ());
-  hb_bytes_t result = out.copy_bytes ();
+  hb_blob_t* out = hb_resolve_overflows (overflowing.object_graph (),
+                                         HB_TAG ('G', 'S', 'U', 'B'), num_iterations);
+  assert (out);
+
+  hb_bytes_t result = out->as_bytes ();
 
   assert (!expected.offset_overflow ());
   hb_bytes_t expected_result = expected.copy_bytes ();
@@ -92,9 +91,8 @@ static void run_resolve_overflow_test (const char* name,
     assert (result[i] == expected_result[i]);
   }
 
-  result.fini ();
   expected_result.fini ();
-  free (out_buffer);
+  hb_blob_destroy (out);
 }
 
 static void add_virtual_offset (unsigned id,
@@ -962,19 +960,14 @@ test_serialize ()
   populate_serializer_simple (&c1);
   hb_bytes_t expected = c1.copy_bytes ();
 
-  void* buffer_2 = malloc (buffer_size);
-  hb_serialize_context_t c2 (buffer_2, buffer_size);
-
   graph_t graph (c1.object_graph ());
-  graph.serialize (&c2);
-  hb_bytes_t actual = c2.copy_bytes ();
-
-  assert (actual == expected);
-
-  actual.fini ();
-  expected.fini ();
+  hb_blob_t* out = graph.serialize ();
   free (buffer_1);
-  free (buffer_2);
+
+  hb_bytes_t actual = out->as_bytes ();
+  assert (actual == expected);
+  expected.fini ();
+  hb_blob_destroy (out);
 }
 
 static void test_will_overflow_1 ()
@@ -1024,17 +1017,13 @@ static void test_resolve_overflows_via_sort ()
   populate_serializer_with_overflow (&c);
   graph_t graph (c.object_graph ());
 
-  void* out_buffer = malloc (buffer_size);
-  hb_serialize_context_t out (out_buffer, buffer_size);
-
-  hb_resolve_overflows (c.object_graph (), HB_TAG_NONE, &out);
-  assert (!out.offset_overflow ());
-  hb_bytes_t result = out.copy_bytes ();
+  hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE);
+  assert (out);
+  hb_bytes_t result = out->as_bytes ();
   assert (result.length == (80000 + 3 + 3 * 2));
 
-  result.fini ();
   free (buffer);
-  free (out_buffer);
+  hb_blob_destroy (out);
 }
 
 static void test_resolve_overflows_via_duplication ()
@@ -1045,17 +1034,13 @@ static void test_resolve_overflows_via_duplication ()
   populate_serializer_with_dedup_overflow (&c);
   graph_t graph (c.object_graph ());
 
-  void* out_buffer = malloc (buffer_size);
-  hb_serialize_context_t out (out_buffer, buffer_size);
-
-  hb_resolve_overflows (c.object_graph (), HB_TAG_NONE, &out);
-  assert (!out.offset_overflow ());
-  hb_bytes_t result = out.copy_bytes ();
+  hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE);
+  assert (out);
+  hb_bytes_t result = out->as_bytes ();
   assert (result.length == (10000 + 2 * 2 + 60000 + 2 + 3 * 2));
 
-  result.fini ();
   free (buffer);
-  free (out_buffer);
+  hb_blob_destroy (out);
 }
 
 static void test_resolve_overflows_via_space_assignment ()
@@ -1085,19 +1070,15 @@ static void test_resolve_overflows_via_isolation ()
   populate_serializer_with_isolation_overflow (&c);
   graph_t graph (c.object_graph ());
 
-  void* out_buffer = malloc (buffer_size);
-  hb_serialize_context_t out (out_buffer, buffer_size);
-
   assert (c.offset_overflow ());
-  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, 0);
-  assert (!out.offset_overflow ());
-  hb_bytes_t result = out.copy_bytes ();
+  hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), 0);
+  assert (out);
+  hb_bytes_t result = out->as_bytes ();
   assert (result.length == (1 + 10000 + 60000 + 1 + 1
                             + 4 + 3 * 2));
 
-  result.fini ();
   free (buffer);
-  free (out_buffer);
+  hb_blob_destroy (out);
 }
 
 static void test_resolve_overflows_via_isolation_with_recursive_duplication ()
@@ -1164,21 +1145,17 @@ static void test_resolve_overflows_via_isolation_spaces ()
   populate_serializer_with_isolation_overflow_spaces (&c);
   graph_t graph (c.object_graph ());
 
-  void* out_buffer = malloc (buffer_size);
-  hb_serialize_context_t out (out_buffer, buffer_size);
-
   assert (c.offset_overflow ());
-  hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), &out, 0);
-  assert (!out.offset_overflow ());
-  hb_bytes_t result = out.copy_bytes ();
+  hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG ('G', 'S', 'U', 'B'), 0);
+  assert (out);
+  hb_bytes_t result = out->as_bytes ();
 
   unsigned expected_length = 3 + 2 * 60000; // objects
   expected_length += 2 * 4 + 2 * 2; // links
   assert (result.length == expected_length);
 
-  result.fini ();
   free (buffer);
-  free (out_buffer);
+  hb_blob_destroy (out);
 }
 
 static void test_resolve_overflows_via_splitting_spaces ()
@@ -1228,13 +1205,10 @@ static void test_virtual_link ()
   hb_serialize_context_t c (buffer, buffer_size);
   populate_serializer_virtual_link (&c);
 
-  void* out_buffer = malloc (buffer_size);
-  hb_serialize_context_t out (out_buffer, buffer_size);
+  hb_blob_t* out = hb_resolve_overflows (c.object_graph (), HB_TAG_NONE);
+  assert (out);
 
-  hb_resolve_overflows (c.object_graph (), HB_TAG_NONE, &out);
-  assert (!out.offset_overflow ());
-
-  hb_bytes_t result = out.copy_bytes ();
+  hb_bytes_t result = out->as_bytes ();
   assert (result.length == 5 + 4 * 2);
   assert (result[0]  == 'a');
   assert (result[5]  == 'c');
@@ -1242,9 +1216,8 @@ static void test_virtual_link ()
   assert (result[9]  == 'b');
   assert (result[12] == 'd');
 
-  result.fini ();
   free (buffer);
-  free (out_buffer);
+  hb_blob_destroy (out);
 }
 
 static void

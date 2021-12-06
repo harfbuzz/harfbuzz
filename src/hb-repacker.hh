@@ -204,27 +204,46 @@ struct graph_t
   /*
    * serialize graph into the provided serialization buffer.
    */
-  void serialize (hb_serialize_context_t* c) const
+  hb_blob_t* serialize () const
   {
-    c->start_serialize<void> ();
+    hb_vector_t<char> buffer;
+    size_t size = serialized_length ();
+    if (!buffer.alloc (size)) {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Unable to allocate output buffer.");
+      return nullptr;
+    }
+    hb_serialize_context_t c((void *) buffer, size);
+
+    c.start_serialize<void> ();
     for (unsigned i = 0; i < vertices_.length; i++) {
-      c->push ();
+      c.push ();
 
       size_t size = vertices_[i].obj.tail - vertices_[i].obj.head;
-      char* start = c->allocate_size <char> (size);
-      if (!start) return;
+      char* start = c.allocate_size <char> (size);
+      if (!start) {
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Buffer out of space.");
+        return nullptr;
+      }
 
       memcpy (start, vertices_[i].obj.head, size);
 
       // Only real links needs to be serialized.
       for (const auto& link : vertices_[i].obj.real_links)
-        serialize_link (link, start, c);
+        serialize_link (link, start, &c);
 
       // All duplications are already encoded in the graph, so don't
       // enable sharing during packing.
-      c->pop_pack (false);
+      c.pop_pack (false);
     }
-    c->end_serialize ();
+    c.end_serialize ();
+
+    if (c.in_error ()) {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Error during serialization. Err flag: %d",
+                 c.errors);
+      return nullptr;
+    }
+
+    return c.copy_blob ();
   }
 
   /*
@@ -725,6 +744,15 @@ struct graph_t
 
  private:
 
+  size_t serialized_length () const {
+    size_t total_size = 0;
+    for (unsigned i = 0; i < vertices_.length; i++) {
+      size_t size = vertices_[i].obj.tail - vertices_[i].obj.head;
+      total_size += size;
+    }
+    return total_size;
+  }
+
   /*
    * Returns the numbers of incoming edges that are 32bits wide.
    */
@@ -1135,10 +1163,9 @@ static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& o
  * For a detailed writeup describing how the algorithm operates see:
  * docs/repacker.md
  */
-inline void
+inline hb_blob_t*
 hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& packed,
                       hb_tag_t table_tag,
-                      hb_serialize_context_t* c,
                       unsigned max_rounds = 10) {
   // Kahn sort is ~twice as fast as shortest distance sort and works for many fonts
   // so try it first to save time.
@@ -1146,8 +1173,7 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
   sorted_graph.sort_kahn ();
   if (!sorted_graph.will_overflow ())
   {
-    sorted_graph.serialize (c);
-    return;
+    return sorted_graph.serialize ();
   }
 
   sorted_graph.sort_shortest_distance ();
@@ -1186,17 +1212,17 @@ hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& pac
 
   if (sorted_graph.in_error ())
   {
-    c->err (HB_SERIALIZE_ERROR_OTHER);
-    return;
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "Sorted graph in error state.");
+    return nullptr;
   }
 
   if (sorted_graph.will_overflow ())
   {
-    c->err (HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Offset overflow resolution failed.");
-    return;
+    return nullptr;
   }
-  sorted_graph.serialize (c);
+
+  return sorted_graph.serialize ();
 }
 
 #endif /* HB_REPACKER_HH */
