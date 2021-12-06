@@ -7,6 +7,7 @@ TESTS = \
 	tests/cmap.tests \
 	tests/cmap14.tests \
 	tests/colr.tests \
+	tests/colr_glyphs.tests \
 	tests/colrv1.tests \
 	tests/colr_with_components.tests \
 	tests/full-font.tests \
