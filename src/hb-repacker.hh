@@ -115,8 +115,8 @@ struct graph_t
       // it's parent where possible.
 
       int64_t modified_distance =
-          hb_min (hb_max(distance + distance_modifier (), 0), 0x7FFFFFFFFF);
-      return (modified_distance << 22) | (0x003FFFFF & order);
+          hb_min (hb_max(distance + distance_modifier (), 0), 0x7FFFFFFFFFF);
+      return (modified_distance << 18) | (0x003FFFF & order);
     }
 
     int64_t distance_modifier () const
@@ -712,12 +712,17 @@ struct graph_t
     return num_roots_for_space_.length;
   }
 
-  void move_to_new_space (unsigned index)
+  void move_to_new_space (const hb_set_t& indices)
   {
-    auto& node = vertices_[index];
-    num_roots_for_space_.push (1);
-    num_roots_for_space_[node.space] = num_roots_for_space_[node.space] - 1;
-    node.space = num_roots_for_space_.length - 1;
+    num_roots_for_space_.push (0);
+    unsigned new_space = num_roots_for_space_.length - 1;
+
+    for (unsigned index : indices) {
+      auto& node = vertices_[index];
+      num_roots_for_space_[node.space] = num_roots_for_space_[node.space] - 1;
+      num_roots_for_space_[new_space] = num_roots_for_space_[new_space] + 1;
+      node.space = new_space;
+    }
   }
 
   unsigned space_for (unsigned index, unsigned* root = nullptr) const
@@ -738,6 +743,15 @@ struct graph_t
     }
 
     return space_for (node.parents[0], root);
+  }
+
+  void roots_with_space (unsigned space, hb_set_t* roots) const
+  {
+    for (unsigned i = 0; i < vertices_.length; i++) {
+      if (vertices_[i].space == space) {
+        roots->add (i);
+      }
+    }
   }
 
   void err_other_error () { this->successful = false; }
@@ -1080,27 +1094,38 @@ struct graph_t
 static bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record_t>& overflows,
                                       graph_t& sorted_graph)
 {
+  unsigned space = 0;
+  hb_set_t roots_to_isolate;
+
   for (int i = overflows.length - 1; i >= 0; i--)
   {
     const graph_t::overflow_record_t& r = overflows[i];
-    unsigned root = 0;
-    unsigned space = sorted_graph.space_for (r.parent, &root);
-    if (!space) continue;
-    if (sorted_graph.num_roots_for_space (space) <= 1) continue;
 
-    DEBUG_MSG (SUBSET_REPACK, nullptr, "Overflow in space %d moving subgraph %d to space %d.",
-               space,
-               root,
-               sorted_graph.next_space ());
+    unsigned root;
+    unsigned overflow_space = sorted_graph.space_for (r.parent, &root);
+    if (!overflow_space) continue;
 
-    hb_set_t roots;
-    roots.add (root);
-    sorted_graph.isolate_subgraph (roots);
-    for (unsigned new_root : roots)
-      sorted_graph.move_to_new_space (new_root);
-    return true;
+    if (!space) {
+      space = overflow_space;
+    }
+
+    if (space == overflow_space)
+      roots_to_isolate.add(root);
   }
-  return false;
+
+  if (!roots_to_isolate) return false;
+
+  DEBUG_MSG (SUBSET_REPACK, nullptr,
+             "Overflow in space %d (%d roots). Moving %d roots to space %d.",
+             space,
+             sorted_graph.num_roots_for_space (space),
+             roots_to_isolate.get_population (),
+             sorted_graph.next_space ());
+
+  sorted_graph.isolate_subgraph (roots_to_isolate);
+  sorted_graph.move_to_new_space (roots_to_isolate);
+
+  return true;
 }
 
 static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& overflows,
