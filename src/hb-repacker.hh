@@ -745,15 +745,6 @@ struct graph_t
     return space_for (node.parents[0], root);
   }
 
-  void roots_with_space (unsigned space, hb_set_t* roots) const
-  {
-    for (unsigned i = 0; i < vertices_.length; i++) {
-      if (vertices_[i].space == space) {
-        roots->add (i);
-      }
-    }
-  }
-
   void err_other_error () { this->successful = false; }
 
  private:
@@ -1104,6 +1095,7 @@ static bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record
     unsigned root;
     unsigned overflow_space = sorted_graph.space_for (r.parent, &root);
     if (!overflow_space) continue;
+    if (sorted_graph.num_roots_for_space (overflow_space) <= 1) continue;
 
     if (!space) {
       space = overflow_space;
@@ -1114,6 +1106,17 @@ static bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record
   }
 
   if (!roots_to_isolate) return false;
+
+  unsigned maximum_to_move = hb_max ((sorted_graph.num_roots_for_space (space) / 2u), 1u);
+  if (roots_to_isolate.get_population () > maximum_to_move) {
+    // Only move at most half of the roots in a space at a time.
+    unsigned extra = roots_to_isolate.get_population () - maximum_to_move;
+    while (extra--) {
+      unsigned root = HB_SET_VALUE_INVALID;
+      roots_to_isolate.previous (&root);
+      roots_to_isolate.del (root);
+    }
+  }
 
   DEBUG_MSG (SUBSET_REPACK, nullptr,
              "Overflow in space %d (%d roots). Moving %d roots to space %d.",
