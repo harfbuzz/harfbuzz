@@ -163,9 +163,11 @@ hb_ot_metrics_get_position (hb_font_t           *font,
   case HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE:       return GET_METRIC_Y (hhea, caretSlopeRise);
   case HB_OT_METRICS_TAG_HORIZONTAL_CARET_RUN:        return GET_METRIC_X (hhea, caretSlopeRun);
   case HB_OT_METRICS_TAG_HORIZONTAL_CARET_OFFSET:     return GET_METRIC_X (hhea, caretOffset);
+#ifndef HB_NO_VERTICAL
   case HB_OT_METRICS_TAG_VERTICAL_CARET_RISE:         return GET_METRIC_X (vhea, caretSlopeRise);
   case HB_OT_METRICS_TAG_VERTICAL_CARET_RUN:          return GET_METRIC_Y (vhea, caretSlopeRun);
   case HB_OT_METRICS_TAG_VERTICAL_CARET_OFFSET:       return GET_METRIC_Y (vhea, caretOffset);
+#endif
   case HB_OT_METRICS_TAG_X_HEIGHT:                    return GET_METRIC_Y (OS2->v2 (), sxHeight);
   case HB_OT_METRICS_TAG_CAP_HEIGHT:                  return GET_METRIC_Y (OS2->v2 (), sCapHeight);
   case HB_OT_METRICS_TAG_SUBSCRIPT_EM_X_SIZE:         return GET_METRIC_X (OS2, ySubscriptXSize);

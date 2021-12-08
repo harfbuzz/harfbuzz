@@ -1061,7 +1061,11 @@ struct glyf
 	success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms));
 
       if (unlikely (!success))
-	return is_vertical ? vmtx->get_advance (gid) : hmtx->get_advance (gid);
+	return
+#ifndef HB_NO_VERTICAL
+	  is_vertical ? vmtx->get_advance (gid) :
+#endif
+	  hmtx->get_advance (gid);
 
       float result = is_vertical
 		   ? phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y
@@ -1077,7 +1081,11 @@ struct glyf
 
       contour_point_t phantoms[PHANTOM_COUNT];
       if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms))))
-	return is_vertical ? vmtx->get_side_bearing (gid) : hmtx->get_side_bearing (gid);
+	return
+#ifndef HB_NO_VERTICAL
+	  is_vertical ? vmtx->get_side_bearing (gid) :
+#endif
+	  hmtx->get_side_bearing (gid);
 
       return is_vertical
 	   ? ceilf (phantoms[PHANTOM_TOP].y) - extents.y_bearing
