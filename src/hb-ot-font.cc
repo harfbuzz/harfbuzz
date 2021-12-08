@@ -150,14 +150,12 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
 
   *x = font->get_glyph_h_advance (glyph) / 2;
 
-#ifndef HB_NO_OT_FONT_CFF
   const OT::VORG &VORG = *ot_face->VORG;
   if (VORG.has_data ())
   {
     *y = font->em_scale_y (VORG.get_y_origin (glyph));
     return true;
   }
-#endif
 
   hb_glyph_extents_t extents = {0};
   if (ot_face->glyf->get_extents (font, glyph, &extents))
