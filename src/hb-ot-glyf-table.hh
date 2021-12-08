@@ -799,10 +799,23 @@ struct glyf
       hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
       {
 	for (unsigned i = 0; i < PHANTOM_COUNT; ++i) phantoms[i].init ();
-	int h_delta = (int) header->xMin - glyf_accelerator.hmtx->get_side_bearing (gid);
-	int v_orig  = (int) header->yMax + glyf_accelerator.vmtx->get_side_bearing (gid);
+	int h_delta = (int) header->xMin -
+		      glyf_accelerator.hmtx->get_side_bearing (gid);
+	int v_orig  = (int) header->yMax +
+#ifndef HB_NO_VERTICAL
+		      glyf_accelerator.vmtx->get_side_bearing (gid)
+#else
+		      0
+#endif
+		      ;
 	unsigned h_adv = glyf_accelerator.hmtx->get_advance (gid);
-	unsigned v_adv = glyf_accelerator.vmtx->get_advance (gid);
+	unsigned v_adv =
+#ifndef HB_NO_VERTICAL
+			 glyf_accelerator.vmtx->get_advance (gid)
+#else
+			 - font->face->get_upem ()
+#endif
+			 ;
 	phantoms[PHANTOM_LEFT].x = h_delta;
 	phantoms[PHANTOM_RIGHT].x = h_adv + h_delta;
 	phantoms[PHANTOM_TOP].y = v_orig;
@@ -917,7 +930,9 @@ struct glyf
       gvar = nullptr;
 #endif
       hmtx = nullptr;
+#ifndef HB_NO_VERTICAL
       vmtx = nullptr;
+#endif
       face = face_;
       const OT::head &head = *face->table.head;
       if (head.indexToLocFormat > 1 || head.glyphDataFormat > 0)
@@ -931,7 +946,9 @@ struct glyf
       gvar = face->table.gvar;
 #endif
       hmtx = face->table.hmtx;
+#ifndef HB_NO_VERTICAL
       vmtx = face->table.vmtx;
+#endif
 
       num_glyphs = hb_max (1u, loca_table.get_length () / (short_offset ? 2 : 4)) - 1;
       num_glyphs = hb_min (num_glyphs, face->get_num_glyphs ());
@@ -1257,7 +1274,9 @@ struct glyf
     const gvar_accelerator_t *gvar;
 #endif
     const hmtx_accelerator_t *hmtx;
+#ifndef HB_NO_VERTICAL
     const vmtx_accelerator_t *vmtx;
+#endif
 
     private:
     bool short_offset;

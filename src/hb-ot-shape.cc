@@ -651,6 +651,7 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
  * Substitute
  */
 
+#ifndef HB_NO_VERTICAL
 static hb_codepoint_t
 hb_vert_char_for (hb_codepoint_t u)
 {
@@ -701,6 +702,7 @@ hb_vert_char_for (hb_codepoint_t u)
 
   return u;
 }
+#endif
 
 static inline void
 hb_ot_rotate_chars (const hb_ot_shape_context_t *c)
@@ -723,6 +725,7 @@ hb_ot_rotate_chars (const hb_ot_shape_context_t *c)
     }
   }
 
+#ifndef HB_NO_VERTICAL
   if (HB_DIRECTION_IS_VERTICAL (c->target_direction) && !c->plan->has_vert)
   {
     for (unsigned int i = 0; i < count; i++) {
@@ -731,6 +734,7 @@ hb_ot_rotate_chars (const hb_ot_shape_context_t *c)
 	info[i].codepoint = codepoint;
     }
   }
+#endif
 }
 
 static inline void
