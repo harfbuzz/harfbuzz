@@ -103,9 +103,15 @@ struct graph_t
       return !obj.real_links.length && !obj.virtual_links.length;
     }
 
-    void raise_priority ()
+    bool raise_priority ()
     {
+      if (has_max_priority ()) return false;
       priority++;
+      return true;
+    }
+
+    bool has_max_priority () const {
+      return priority >= 3;
     }
 
     int64_t modified_distance (unsigned order) const
@@ -116,6 +122,9 @@ struct graph_t
 
       int64_t modified_distance =
           hb_min (hb_max(distance + distance_modifier (), 0), 0x7FFFFFFFFFF);
+      if (has_max_priority ()) {
+        modified_distance = 0;
+      }
       return (modified_distance << 18) | (0x003FFFF & order);
     }
 
@@ -123,7 +132,11 @@ struct graph_t
     {
       if (!priority) return 0;
       int64_t table_size = obj.tail - obj.head;
-      return -(table_size - table_size / (1 << hb_min(priority, 16u)));
+
+      if (priority == 1)
+        return -table_size / 2;
+
+      return -table_size;
     }
   };
 
@@ -620,7 +633,7 @@ struct graph_t
   /*
    * Raises the sorting priority of all children.
    */
-  void raise_childrens_priority (unsigned parent_idx)
+  bool raise_childrens_priority (unsigned parent_idx)
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Raising priority of all children of %d",
                parent_idx);
@@ -628,8 +641,10 @@ struct graph_t
     // to invalidate positions. It does not change graph structure so no need
     // to update distances or edge counts.
     auto& parent = vertices_[parent_idx].obj;
+    bool made_change = false;
     for (auto& l : parent.all_links_writer ())
-      vertices_[l.objidx].raise_priority ();
+      made_change |= vertices_[l.objidx].raise_priority ();
+    return made_change;
   }
 
   /*
@@ -683,8 +698,10 @@ struct graph_t
     if (!DEBUG_ENABLED(SUBSET_REPACK)) return;
 
     update_parents ();
+    int limit = 10;
     for (const auto& o : overflows)
     {
+      if (!limit--) break;
       const auto& parent = vertices_[o.parent];
       const auto& child = vertices_[o.child];
       DEBUG_MSG (SUBSET_REPACK, nullptr,
@@ -699,6 +716,9 @@ struct graph_t
                  child.incoming_edges (),
                  child.obj.real_links.length + child.obj.virtual_links.length,
                  space_for (o.child));
+    }
+    if (overflows.length > 10) {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "  ... plus %d more overflows.", overflows.length - 10);
     }
   }
 
@@ -1157,16 +1177,16 @@ static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& o
       // TODO(garretrieger): initially limiting this to leaf's since they can be
       //                     moved closer with fewer consequences. However, this can
       //                     likely can be used for non-leafs as well.
-      // TODO(garretrieger): add a maximum priority, don't try to raise past this.
       // TODO(garretrieger): also try lowering priority of the parent. Make it
       //                     get placed further up in the ordering, closer to it's children.
       //                     this is probably preferable if the total size of the parent object
       //                     is < then the total size of the children (and the parent can be moved).
       //                     Since in that case moving the parent will cause a smaller increase in
       //                     the length of other offsets.
-      sorted_graph.raise_childrens_priority (r.parent);
-      priority_bumped_parents.add (r.parent);
-      resolution_attempted = true;
+      if (sorted_graph.raise_childrens_priority (r.parent)) {
+        priority_bumped_parents.add (r.parent);
+        resolution_attempted = true;
+      }
       continue;
     }
 
@@ -1194,7 +1214,7 @@ static bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& o
 inline hb_blob_t*
 hb_resolve_overflows (const hb_vector_t<hb_serialize_context_t::object_t *>& packed,
                       hb_tag_t table_tag,
-                      unsigned max_rounds = 10) {
+                      unsigned max_rounds = 20) {
   // Kahn sort is ~twice as fast as shortest distance sort and works for many fonts
   // so try it first to save time.
   graph_t sorted_graph (packed);
