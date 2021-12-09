@@ -138,6 +138,7 @@ hb_ot_metrics_get_position (hb_font_t           *font,
 			    hb_ot_metrics_tag_t  metrics_tag,
 			    hb_position_t       *position     /* OUT.  May be NULL. */)
 {
+  hb_position_t position_tmp;
   hb_face_t *face = font->face;
   switch ((unsigned) metrics_tag)
   {
@@ -158,6 +159,14 @@ hb_ot_metrics_get_position (hb_font_t           *font,
 #define GET_METRIC_Y(TABLE, ATTR) \
   (face->table.TABLE->has_data () && \
     (position && (*position = font->em_scalef_y (face->table.TABLE->ATTR + GET_VAR)), true))
+#define GET_METRIC_X_CHECK(TABLE, ATTR, CHECK) \
+  (face->table.TABLE->has_data () && \
+    ((position || (position = &position_tmp)) && \
+     (*position = font->em_scalef_x (face->table.TABLE->ATTR + GET_VAR)), (CHECK)))
+#define GET_METRIC_Y_CHECK(TABLE, ATTR, CHECK) \
+  (face->table.TABLE->has_data () && \
+    ((position || (position = &position_tmp)) && \
+     (*position = font->em_scalef_y (face->table.TABLE->ATTR + GET_VAR)), (CHECK)))
   case HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_ASCENT:  return GET_METRIC_Y (OS2, usWinAscent);
   case HB_OT_METRICS_TAG_HORIZONTAL_CLIPPING_DESCENT: return GET_METRIC_Y (OS2, usWinDescent);
   case HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE:       return GET_METRIC_Y (hhea, caretSlopeRise);
@@ -178,10 +187,10 @@ hb_ot_metrics_get_position (hb_font_t           *font,
   case HB_OT_METRICS_TAG_SUPERSCRIPT_EM_Y_SIZE:       return GET_METRIC_Y (OS2, ySuperscriptYSize);
   case HB_OT_METRICS_TAG_SUPERSCRIPT_EM_X_OFFSET:     return GET_METRIC_X (OS2, ySuperscriptXOffset);
   case HB_OT_METRICS_TAG_SUPERSCRIPT_EM_Y_OFFSET:     return GET_METRIC_Y (OS2, ySuperscriptYOffset);
-  case HB_OT_METRICS_TAG_STRIKEOUT_SIZE:              return GET_METRIC_Y (OS2, yStrikeoutSize);
-  case HB_OT_METRICS_TAG_STRIKEOUT_OFFSET:            return GET_METRIC_Y (OS2, yStrikeoutPosition);
-  case HB_OT_METRICS_TAG_UNDERLINE_SIZE:              return GET_METRIC_Y (post->table, underlineThickness);
-  case HB_OT_METRICS_TAG_UNDERLINE_OFFSET:            return GET_METRIC_Y (post->table, underlinePosition);
+  case HB_OT_METRICS_TAG_STRIKEOUT_SIZE:              return GET_METRIC_Y_CHECK (OS2, yStrikeoutSize, *position);
+  case HB_OT_METRICS_TAG_STRIKEOUT_OFFSET:            return GET_METRIC_Y_CHECK (OS2, yStrikeoutPosition, *position);
+  case HB_OT_METRICS_TAG_UNDERLINE_SIZE:              return GET_METRIC_Y_CHECK (post->table, underlineThickness, *position);
+  case HB_OT_METRICS_TAG_UNDERLINE_OFFSET:            return GET_METRIC_Y_CHECK (post->table, underlinePosition, *position);
 
   /* Private tags */
   case _HB_OT_METRICS_TAG_HORIZONTAL_ASCENDER_OS2:    return GET_METRIC_Y (OS2, sTypoAscender);
@@ -190,6 +199,8 @@ hb_ot_metrics_get_position (hb_font_t           *font,
   case _HB_OT_METRICS_TAG_HORIZONTAL_DESCENDER_HHEA:  return GET_METRIC_Y (hhea, descender);
   case _HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP_OS2:    return GET_METRIC_Y (OS2, sTypoLineGap);
   case _HB_OT_METRICS_TAG_HORIZONTAL_LINE_GAP_HHEA:   return GET_METRIC_Y (hhea, lineGap);
+#undef GET_METRIC_Y_CHECK
+#undef GET_METRIC_X_CHECK
 #undef GET_METRIC_Y
 #undef GET_METRIC_X
 #undef GET_VAR
