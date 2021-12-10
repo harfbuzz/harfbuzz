@@ -81,6 +81,9 @@ struct hb_closure_context_t :
     nesting_level_left++;
   }
 
+  void reset_lookup_visit_count ()
+  { lookup_count = 0; }
+
   bool lookup_limit_exceeded ()
   { return lookup_count > HB_MAX_LOOKUP_VISIT_COUNT; }
 
