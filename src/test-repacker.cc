@@ -137,6 +137,58 @@ populate_serializer_with_overflow (hb_serialize_context_t* c)
 }
 
 static void
+populate_serializer_with_priority_overflow (hb_serialize_context_t* c)
+{
+  std::string large_string(50000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned obj_e = add_object ("e", 1, c);
+  unsigned obj_d = add_object ("d", 1, c);
+
+  start_object (large_string.c_str (), 50000, c);
+  add_offset (obj_e, c);
+  unsigned obj_c = c->pop_pack (false);
+
+  start_object (large_string.c_str (), 20000, c);
+  add_offset (obj_d, c);
+  unsigned obj_b = c->pop_pack (false);
+
+  start_object ("a", 1, c);
+  add_offset (obj_b, c);
+  add_offset (obj_c, c);
+  c->pop_pack (false);
+
+  c->end_serialize();
+}
+
+static void
+populate_serializer_with_priority_overflow_expected (hb_serialize_context_t* c)
+{
+  std::string large_string(50000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned obj_e = add_object ("e", 1, c);
+
+  start_object (large_string.c_str (), 50000, c);
+  add_offset (obj_e, c);
+  unsigned obj_c = c->pop_pack (false);
+
+  unsigned obj_d = add_object ("d", 1, c);
+
+  start_object (large_string.c_str (), 20000, c);
+  add_offset (obj_d, c);
+  unsigned obj_b = c->pop_pack (false);
+
+  start_object ("a", 1, c);
+  add_offset (obj_b, c);
+  add_offset (obj_c, c);
+  c->pop_pack (false);
+
+  c->end_serialize();
+}
+
+
+static void
 populate_serializer_with_dedup_overflow (hb_serialize_context_t* c)
 {
   std::string large_string(70000, 'a');
@@ -1198,6 +1250,26 @@ static void test_resolve_overflows_via_splitting_spaces_2 ()
   free (expected_buffer);
 }
 
+static void test_resolve_overflows_via_priority ()
+{
+  size_t buffer_size = 160000;
+  void* buffer = malloc (buffer_size);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_priority_overflow (&c);
+
+  void* expected_buffer = malloc (buffer_size);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_priority_overflow_expected (&e);
+
+  run_resolve_overflow_test ("test_resolve_overflows_via_priority",
+                             c,
+                             e,
+                             3);
+  free (buffer);
+  free (expected_buffer);
+}
+
+
 static void test_virtual_link ()
 {
   size_t buffer_size = 100;
@@ -1272,6 +1344,7 @@ main (int argc, char **argv)
   test_will_overflow_3 ();
   test_resolve_overflows_via_sort ();
   test_resolve_overflows_via_duplication ();
+  test_resolve_overflows_via_priority ();
   test_resolve_overflows_via_space_assignment ();
   test_resolve_overflows_via_isolation ();
   test_resolve_overflows_via_isolation_with_recursive_duplication ();
