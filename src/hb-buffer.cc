@@ -396,29 +396,6 @@ hb_buffer_t::set_masks (hb_mask_t    value,
 }
 
 void
-hb_buffer_t::reverse_range (unsigned int start,
-			    unsigned int end)
-{
-  if (end - start < 2)
-    return;
-
-  hb_array_t<hb_glyph_info_t> (info, len).reverse (start, end);
-
-  if (have_positions) {
-    hb_array_t<hb_glyph_position_t> (pos, len).reverse (start, end);
-  }
-}
-
-void
-hb_buffer_t::reverse ()
-{
-  if (unlikely (!len))
-    return;
-
-  reverse_range (0, len);
-}
-
-void
 hb_buffer_t::reverse_clusters ()
 {
   unsigned int i, start, count, last_cluster;

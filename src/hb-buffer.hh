@@ -201,8 +201,14 @@ struct hb_buffer_t
 			unsigned int    cluster);
   HB_INTERNAL void add_info (const hb_glyph_info_t &glyph_info);
 
-  HB_INTERNAL void reverse_range (unsigned int start, unsigned int end);
-  HB_INTERNAL void reverse ();
+  void reverse_range (unsigned start, unsigned end)
+  {
+    hb_array_t<hb_glyph_info_t> (info, len).reverse (start, end);
+    if (have_positions)
+      hb_array_t<hb_glyph_position_t> (pos, len).reverse (start, end);
+  }
+  void reverse () { reverse_range (0, len); }
+
   HB_INTERNAL void reverse_clusters ();
   HB_INTERNAL void guess_segment_properties ();
 
