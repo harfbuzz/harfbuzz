@@ -1,3 +1,6 @@
+# https://github.com/harfbuzz/harfbuzz/issues/3314
+/System/Library/Fonts/Apple\ Color\ Emoji.ttc;;U+05D0,U+1F1FA,U+1F1F8,U+1F1EE,U+1F1F1;[u1F1EE_u1F1F1=3+800|u1F1FA_u1F1F8=1+800|.notdef=0+800]
+
 # https;//github.com/harfbuzz/harfbuzz/issues/3008
 /System/Library/Fonts/ヒラギノ丸ゴ\ ProN\ W4.ttc;--features=palt;U+FF11;[gid781=0@-78,0+842]
 
