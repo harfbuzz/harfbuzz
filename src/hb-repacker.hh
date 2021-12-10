@@ -742,6 +742,8 @@ struct graph_t
       num_roots_for_space_[node.space] = num_roots_for_space_[node.space] - 1;
       num_roots_for_space_[new_space] = num_roots_for_space_[new_space] + 1;
       node.space = new_space;
+      distance_invalid = true;
+      positions_invalid = true;
     }
   }
 
