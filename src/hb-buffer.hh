@@ -216,8 +216,6 @@ struct hb_buffer_t
     if (unlikely (!len))
       return;
 
-    reverse ();
-
     unsigned start = 0;
     unsigned i;
     for (i = 1; i < len; i++)
@@ -233,6 +231,8 @@ struct hb_buffer_t
     if (merge_clusters)
       this->merge_clusters (start, i);
     reverse_range (start, i);
+
+    reverse ();
   }
 
   template <typename FuncType>
