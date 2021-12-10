@@ -209,7 +209,31 @@ struct hb_buffer_t
   }
   void reverse () { reverse_range (0, len); }
 
-  HB_INTERNAL void reverse_clusters ();
+  template <typename FuncType>
+  void reverse_groups (const FuncType& group)
+  {
+    if (unlikely (!len))
+      return;
+
+    reverse ();
+
+    unsigned count = len;
+    unsigned start = 0;
+    unsigned i;
+    for (i = 1; i < count; i++)
+    {
+      if (!group (info[i - 1], info[i]))
+      {
+	reverse_range (start, i);
+	start = i;
+      }
+    }
+    reverse_range (start, i);
+  }
+
+  void reverse_clusters ()
+  { reverse_groups ([] (const hb_glyph_info_t& a, const hb_glyph_info_t& b) -> bool { return a.cluster == b.cluster; }); }
+
   HB_INTERNAL void guess_segment_properties ();
 
   HB_INTERNAL void swap_buffers ();

@@ -396,29 +396,6 @@ hb_buffer_t::set_masks (hb_mask_t    value,
 }
 
 void
-hb_buffer_t::reverse_clusters ()
-{
-  unsigned int i, start, count, last_cluster;
-
-  if (unlikely (!len))
-    return;
-
-  reverse ();
-
-  count = len;
-  start = 0;
-  last_cluster = info[0].cluster;
-  for (i = 1; i < count; i++) {
-    if (last_cluster != info[i].cluster) {
-      reverse_range (start, i);
-      start = i;
-      last_cluster = info[i].cluster;
-    }
-  }
-  reverse_range (start, i);
-}
-
-void
 hb_buffer_t::merge_clusters_impl (unsigned int start,
 				  unsigned int end)
 {
