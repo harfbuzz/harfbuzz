@@ -350,25 +350,15 @@ _hb_glyph_info_is_continuation (const hb_glyph_info_t *info)
 {
   return info->unicode_props() & UPROPS_MASK_CONTINUATION;
 }
-/* Loop over grapheme. Based on foreach_cluster(). */
+
+static inline bool
+_hb_grapheme_group_func (const hb_glyph_info_t& a HB_UNUSED,
+			 const hb_glyph_info_t& b)
+{ return _hb_glyph_info_is_continuation (&b); }
+
 #define foreach_grapheme(buffer, start, end) \
-  for (unsigned int \
-       _count = buffer->len, \
-       start = 0, end = _count ? _hb_next_grapheme (buffer, 0) : 0; \
-       start < _count; \
-       start = end, end = _hb_next_grapheme (buffer, start))
+	foreach_group (buffer, start, end, _hb_grapheme_group_func)
 
-static inline unsigned int
-_hb_next_grapheme (hb_buffer_t *buffer, unsigned int start)
-{
-  hb_glyph_info_t *info = buffer->info;
-  unsigned int count = buffer->len;
-
-  while (++start < count && _hb_glyph_info_is_continuation (&info[start]))
-    ;
-
-  return start;
-}
 
 static inline bool
 _hb_glyph_info_is_unicode_format (const hb_glyph_info_t *info)
