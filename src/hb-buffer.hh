@@ -210,7 +210,8 @@ struct hb_buffer_t
   void reverse () { reverse_range (0, len); }
 
   template <typename FuncType>
-  void reverse_groups (const FuncType& group)
+  void reverse_groups (const FuncType& group,
+		       bool merge_clusters = false)
   {
     if (unlikely (!len))
       return;
@@ -223,10 +224,14 @@ struct hb_buffer_t
     {
       if (!group (info[i - 1], info[i]))
       {
+	if (merge_clusters)
+	  this->merge_clusters (start, i);
 	reverse_range (start, i);
 	start = i;
       }
     }
+    if (merge_clusters)
+      this->merge_clusters (start, i);
     reverse_range (start, i);
   }
 
