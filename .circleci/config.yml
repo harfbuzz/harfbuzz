@@ -60,7 +60,7 @@ jobs:
       - run: meson build --buildtype=debugoptimized
       - run: ninja -Cbuild -j9
       # TOOD: increase timeouts and remove --no-suite=slow
-      - run: RUN_VALGRIND=1 meson test -Cbuild --no-suite=slow --wrap='valgrind --leak-check=full --error-exitcode=1' --print-errorlogs --num-processes=$(nproc)
+      - run: RUN_VALGRIND=1 meson test -Cbuild --no-suite=slow --wrap='valgrind --leak-check=full --error-exitcode=1' --print-errorlogs --num-processes=$(($(nproc)/2 + 1))
 
   alpine:
     docker:
