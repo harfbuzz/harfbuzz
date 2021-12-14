@@ -402,11 +402,15 @@ struct graph_t
     while (roots)
     {
       unsigned next = HB_SET_VALUE_INVALID;
+      if (unlikely (!check_success (!roots.in_error ()))) break;
       if (!roots.next (&next)) break;
 
       hb_set_t connected_roots;
       find_connected_nodes (next, roots, visited, connected_roots);
+      if (unlikely (!check_success (!connected_roots.in_error ()))) break;
+
       isolate_subgraph (connected_roots);
+      if (unlikely (!check_success (!connected_roots.in_error ()))) break;
 
       unsigned next_space = this->next_space ();
       num_roots_for_space_.push (0);
@@ -422,6 +426,8 @@ struct graph_t
       // TODO(grieger): special case for GSUB/GPOS use extension promotions to move 16 bit space
       //                into the 32 bit space as needed, instead of using isolation.
     }
+
+
 
     return true;
   }
@@ -1074,6 +1080,7 @@ struct graph_t
                              hb_set_t& visited,
                              hb_set_t& connected)
   {
+    if (unlikely (!check_success (!visited.in_error ()))) return;
     if (visited.has (start_idx)) return;
     visited.add (start_idx);
 
