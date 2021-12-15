@@ -128,7 +128,7 @@ struct hb_prune_langsys_context_t
   bool visited (const T *p, hb_set_t &visited_set)
   {
     hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) p - (uintptr_t) table);
-     if (visited_set.has (delta))
+    if (visited_set.in_error () || visited_set.has (delta))
       return true;
 
     visited_set.add (delta);
@@ -655,7 +655,6 @@ struct LangSys
   void collect_features (hb_prune_langsys_context_t *c) const
   {
     if (!has_required_feature () && !get_feature_count ()) return;
-    if (c->visitedLangsys (this)) return;
     if (has_required_feature () &&
         c->duplicate_feature_map->has (reqFeatureIndex))
       c->new_feature_indexes->add (get_required_feature_index ());
@@ -750,11 +749,15 @@ struct Script
     {
       //only collect features from non-redundant langsys
       const LangSys& d = get_default_lang_sys ();
-      d.collect_features (c);
+      if (!c->visitedLangsys (&d)) {
+        d.collect_features (c);
+      }
 
       for (auto _ : + hb_zip (langSys, hb_range (langsys_count)))
       {
+
         const LangSys& l = this+_.first.offset;
+        if (c->visitedLangsys (&l)) continue;
         if (l.compare (d, c->duplicate_feature_map)) continue;
 
         l.collect_features (c);
@@ -766,6 +769,7 @@ struct Script
       for (auto _ : + hb_zip (langSys, hb_range (langsys_count)))
       {
         const LangSys& l = this+_.first.offset;
+        if (c->visitedLangsys (&l)) continue;
         l.collect_features (c);
         c->script_langsys_map->get (script_index)->add (_.second);
       }
