@@ -109,6 +109,7 @@ struct hb_font_t
 
   int32_t x_scale;
   int32_t y_scale;
+  float slant;
   int64_t x_mult;
   int64_t y_mult;
 

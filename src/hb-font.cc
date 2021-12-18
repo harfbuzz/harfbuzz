@@ -1477,6 +1477,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
 
   1000, /* x_scale */
   1000, /* y_scale */
+  0., /* slant */
   1<<16, /* x_mult */
   1<<16, /* y_mult */
 
@@ -2015,12 +2016,49 @@ hb_font_set_ptem (hb_font_t *font,
  *
  * Return value: Point size.  A value of zero means "not set."
  *
- * Since: 0.9.2
+ * Since: 1.6.0
  **/
 float
 hb_font_get_ptem (hb_font_t *font)
 {
   return font->ptem;
+}
+
+/**
+ * hb_font_set_synthetic_slant:
+ * @font: #hb_font_t to work upon
+ * @ptem: font size in points.
+ *
+ * Sets the XXX "point size" of a font.  By default is zero.
+ *
+ * <note>Note: XXX There are 72 points in an inch.</note>
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN void
+hb_font_set_synthetic_slant (hb_font_t *font, float slant)
+{
+  if (hb_object_is_immutable (font))
+    return;
+
+  font->slant = slant;
+  font->mults_changed ();
+}
+
+/**
+ * hb_font_get_synthetic_slant:
+ * @font: #hb_font_t to work upon
+ *
+ * Fetches the "point size" of a font.
+ *
+ * Return value: XXX Point size.  By default is zero.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN float
+hb_font_get_synthetic_slant (hb_font_t *font)
+{
+  return font->slant;
 }
 
 #ifndef HB_NO_VAR
