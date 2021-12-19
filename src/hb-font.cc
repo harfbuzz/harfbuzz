@@ -1478,6 +1478,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   1000, /* x_scale */
   1000, /* y_scale */
   0., /* slant */
+  0., /* slant_xy; */
   1<<16, /* x_mult */
   1<<16, /* y_mult */
 
