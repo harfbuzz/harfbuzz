@@ -525,6 +525,15 @@ _hb_ot_shape_fallback_spaces (const hb_ot_shape_plan_t *plan HB_UNUSED,
   for (unsigned int i = 0; i < count; i++)
     if (_hb_glyph_info_is_unicode_space (&info[i]) && !_hb_glyph_info_ligated (&info[i]))
     {
+      /* If font had no ASCII space and we used the invisible glyph, give it a 1/4 EM default advance. */
+      if (buffer->invisible && info[i].codepoint == buffer->invisible)
+      {
+        if (horizontal)
+	  pos[i].x_advance = +font->x_scale / 4;
+        else
+	  pos[i].y_advance = -font->y_scale / 4;
+      }
+
       hb_unicode_funcs_t::space_t space_type = _hb_glyph_info_get_unicode_space_fallback_type (&info[i]);
       hb_codepoint_t glyph;
       typedef hb_unicode_funcs_t t;
