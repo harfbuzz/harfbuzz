@@ -266,6 +266,7 @@ struct fvar
 							 .sub_array (0, *coords_length);
       for (unsigned int i = 0; i < instanceCoords.length; i++)
 	coords[i] = instanceCoords.arrayZ[i].to_float ();
+      *coords_length = instanceCoords.length;
     }
     return axisCount;
   }
