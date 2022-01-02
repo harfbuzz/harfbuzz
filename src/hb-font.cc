@@ -1477,6 +1477,8 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
 
   1000, /* x_scale */
   1000, /* y_scale */
+  0., /* slant */
+  0., /* slant_xy; */
   1<<16, /* x_mult */
   1<<16, /* y_mult */
 
@@ -1588,6 +1590,7 @@ hb_font_create_sub_font (hb_font_t *parent)
 
   font->x_scale = parent->x_scale;
   font->y_scale = parent->y_scale;
+  font->slant = parent->slant;
   font->mults_changed ();
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
@@ -2025,12 +2028,55 @@ hb_font_set_ptem (hb_font_t *font,
  *
  * Return value: Point size.  A value of zero means "not set."
  *
- * Since: 0.9.2
+ * Since: 1.6.0
  **/
 float
 hb_font_get_ptem (hb_font_t *font)
 {
   return font->ptem;
+}
+
+/**
+ * hb_font_set_synthetic_slant:
+ * @font: #hb_font_t to work upon
+ * @ptem: font size in points.
+ *
+ * Sets the "synthetic slant" of a font.  By default is zero.
+ * Synthetic slant is the graphical skew that the renderer
+ * applies to the font at rendering time.
+ *
+ * HarfBuzz needs to know this value to adjust shaping results,
+ * metrics, and style values to match the slanted rendering.
+ *
+ * <note>Note: The slant value is a ratio.  For example, a
+ * 20% slant would be represented as a 0.2 value.</note>
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN void
+hb_font_set_synthetic_slant (hb_font_t *font, float slant)
+{
+  if (hb_object_is_immutable (font))
+    return;
+
+  font->slant = slant;
+  font->mults_changed ();
+}
+
+/**
+ * hb_font_get_synthetic_slant:
+ * @font: #hb_font_t to work upon
+ *
+ * Fetches the "synthetic slant" of a font.
+ *
+ * Return value: Synthetic slant.  By default is zero.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN float
+hb_font_get_synthetic_slant (hb_font_t *font)
+{
+  return font->slant;
 }
 
 #ifndef HB_NO_VAR
