@@ -166,7 +166,7 @@ hb_ot_metrics_get_position (hb_font_t           *font,
   {
     unsigned rise = face->table.hhea->caretSlopeRise;
     unsigned upem = face->get_upem ();
-    unsigned mult = rise < upem ? upem / rise : 1;
+    unsigned mult = (rise && rise < upem) ? hb_min (upem / rise, 256u) : 1u;
 
     if (metrics_tag == HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE)
       return mult * GET_METRIC_Y (hhea, caretSlopeRise);
