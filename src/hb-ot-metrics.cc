@@ -174,15 +174,32 @@ hb_ot_metrics_get_position (hb_font_t           *font,
     }
 
     if (metrics_tag == HB_OT_METRICS_TAG_HORIZONTAL_CARET_RISE)
-      return mult * GET_METRIC_Y (hhea, caretSlopeRise);
+    {
+      bool ret = GET_METRIC_Y (hhea, caretSlopeRise);
+
+      if (position)
+	*position *= mult;
+
+      return ret;
+    }
     else
     {
-      unsigned run = mult * GET_METRIC_X (hhea, caretSlopeRun);
+      hb_position_t rise = 0;
 
-      if (font->slant)
-	run += _hb_roundf (mult * GET_METRIC_Y (hhea, caretSlopeRise) * font->slant);
+      if (font->slant && position && GET_METRIC_Y (hhea, caretSlopeRise))
+	rise = *position;
 
-      return run;
+      bool ret = GET_METRIC_X (hhea, caretSlopeRun);
+
+      if (position)
+      {
+	*position *= mult;
+
+	if (font->slant)
+	  *position += _hb_roundf (mult * rise * font->slant);
+      }
+
+      return ret;
     }
   }
   case HB_OT_METRICS_TAG_HORIZONTAL_CARET_OFFSET:     return GET_METRIC_X (hhea, caretOffset);
