@@ -1033,11 +1033,9 @@ hb_font_set_var_coords_design (hb_font_t *font,
 			       const float *coords,
 			       unsigned int coords_length);
 
-#ifdef HB_EXPERIMENTAL_API
 HB_EXTERN const float *
 hb_font_get_var_coords_design (hb_font_t *font,
 			       unsigned int *length);
-#endif
 
 HB_EXTERN void
 hb_font_set_var_coords_normalized (hb_font_t *font,
