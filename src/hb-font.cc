@@ -2031,9 +2031,15 @@ hb_font_get_ptem (hb_font_t *font)
  * @font: #hb_font_t to work upon
  * @ptem: font size in points.
  *
- * Sets the XXX "point size" of a font.  By default is zero.
+ * Sets the "synthetic slant" of a font.  By default is zero.
+ * Synthetic slant is the graphical skew that the renderer
+ * applies to the font at rendering time.
  *
- * <note>Note: XXX There are 72 points in an inch.</note>
+ * HarfBuzz needs to know this value to adjust shaping results,
+ * metrics, and style values to match the slanted rendering.
+ *
+ * <note>Note: The slant value is a ratio.  For example, a
+ * 20% slant would be represented as a 0.2 value.</note>
  *
  * Since: REPLACEME
  **/
@@ -2051,9 +2057,9 @@ hb_font_set_synthetic_slant (hb_font_t *font, float slant)
  * hb_font_get_synthetic_slant:
  * @font: #hb_font_t to work upon
  *
- * Fetches the "point size" of a font.
+ * Fetches the "synthetic slant" of a font.
  *
- * Return value: XXX Point size.  By default is zero.
+ * Return value: Synthetic slant.  By default is zero.
  *
  * Since: REPLACEME
  **/
