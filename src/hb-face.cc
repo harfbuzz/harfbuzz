@@ -205,6 +205,10 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
  * is ignored.  Otherwise, only the lower 16-bits of @index are used.
  * The unmodified @index can be accessed via hb_face_get_index().</note>
  *
+ * <note>Note: The high 16-bits of @index, if non-zero, are used by
+ * hb_font_create() to load named-instances in variable fonts.  See
+ * hb_font_create() for details.</note>
+ *
  * Return value: (transfer full): The new face object
  *
  * Since: 0.9.2

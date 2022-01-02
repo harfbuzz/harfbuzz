@@ -1521,6 +1521,13 @@ _hb_font_create (hb_face_t *face)
  *
  * Constructs a new font object from the specified face.
  *
+ * <note>Note: If @face's index value (as passed to hb_face_create()
+ * has non-zero top 16-bits, those bits minus one are passed to
+ * hb_font_set_var_named_instance(), effectively loading a named-instance
+ * of a variable font, instead of the default-instance.  This allows
+ * specifying which named-instance to load by default when creating the
+ * face.</note>
+ *
  * Return value: (transfer full): The new font object
  *
  * Since: 0.9.2
@@ -1534,6 +1541,9 @@ hb_font_create (hb_face_t *face)
   /* Install our in-house, very lightweight, funcs. */
   hb_ot_font_set_funcs (font);
 #endif
+
+  if (face && face->index >> 16)
+    hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
 
   return font;
 }
