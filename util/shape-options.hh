@@ -62,6 +62,7 @@ struct shape_options_t
 
   static void copy_buffer_properties (hb_buffer_t *dst, hb_buffer_t *src)
   {
+    hb_buffer_set_unicode_funcs (dst, hb_buffer_get_unicode_funcs (src));
     hb_buffer_set_flags (dst, hb_buffer_get_flags (src));
     hb_buffer_set_cluster_level (dst, hb_buffer_get_cluster_level (src));
   }
