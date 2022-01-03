@@ -62,9 +62,6 @@ struct shape_options_t
 
   static void copy_buffer_properties (hb_buffer_t *dst, hb_buffer_t *src)
   {
-    hb_segment_properties_t props;
-    hb_buffer_get_segment_properties (src, &props);
-    hb_buffer_set_segment_properties (dst, &props);
     hb_buffer_set_flags (dst, hb_buffer_get_flags (src));
     hb_buffer_set_cluster_level (dst, hb_buffer_get_cluster_level (src));
   }
