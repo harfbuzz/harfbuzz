@@ -104,7 +104,7 @@ hb_segment_properties_hash (const hb_segment_properties_t *p)
  *
  * Since: REPLACEME
  **/
-HB_EXTERN void
+void
 hb_segment_properties_overlay (hb_segment_properties_t *p,
 			       const hb_segment_properties_t *src)
 {
@@ -254,6 +254,18 @@ hb_buffer_t::get_scratch_buffer (unsigned int *size)
 
 
 /* HarfBuzz-Internal API */
+
+void
+hb_buffer_t::similar (const hb_buffer_t &src)
+{
+  hb_unicode_funcs_destroy (unicode);
+  unicode = hb_unicode_funcs_reference (src.unicode);
+  flags = src.flags;
+  cluster_level = src.cluster_level;
+  replacement = src.invisible;
+  invisible = src.invisible;
+  not_found = src.not_found;
+}
 
 void
 hb_buffer_t::reset ()
@@ -647,6 +659,47 @@ hb_buffer_create ()
   buffer->reset ();
 
   return buffer;
+}
+
+/**
+ * hb_buffer_create_similar:
+ * @src: An #hb_buffer_t
+ *
+ * Resets the buffer to its initial status, as if it was just newly created
+ * with hb_buffer_create().
+ *
+ * Return value: (transfer full):
+ * A newly allocated #hb_buffer_t, similar to hb_buffer_create(). The only
+ * difference is that the buffer is configured similarly to @src.
+ *
+ * Since: REPLACEME
+ **/
+hb_buffer_t *
+hb_buffer_create_similar (const hb_buffer_t *src)
+{
+  hb_buffer_t *buffer = hb_buffer_create ();
+
+  buffer->similar (*src);
+
+  return buffer;
+}
+
+/**
+ * hb_buffer_reset:
+ * @buffer: An #hb_buffer_t
+ *
+ * Resets the buffer to its initial status, as if it was just newly created
+ * with hb_buffer_create().
+ *
+ * Since: 0.9.2
+ **/
+void
+hb_buffer_reset (hb_buffer_t *buffer)
+{
+  if (unlikely (hb_object_is_immutable (buffer)))
+    return;
+
+  buffer->reset ();
 }
 
 /**
@@ -1195,24 +1248,6 @@ hb_buffer_get_not_found_glyph (hb_buffer_t    *buffer)
   return buffer->not_found;
 }
 
-
-/**
- * hb_buffer_reset:
- * @buffer: An #hb_buffer_t
- *
- * Resets the buffer to its initial status, as if it was just newly created
- * with hb_buffer_create().
- *
- * Since: 0.9.2
- **/
-void
-hb_buffer_reset (hb_buffer_t *buffer)
-{
-  if (unlikely (hb_object_is_immutable (buffer)))
-    return;
-
-  buffer->reset ();
-}
 
 /**
  * hb_buffer_clear_contents:

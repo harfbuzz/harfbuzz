@@ -60,13 +60,6 @@ struct shape_options_t
     hb_buffer_guess_segment_properties (buffer);
   }
 
-  static void copy_buffer_properties (hb_buffer_t *dst, hb_buffer_t *src)
-  {
-    hb_buffer_set_unicode_funcs (dst, hb_buffer_get_unicode_funcs (src));
-    hb_buffer_set_flags (dst, hb_buffer_get_flags (src));
-    hb_buffer_set_cluster_level (dst, hb_buffer_get_cluster_level (src));
-  }
-
   void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len,
 			const char *text_before, const char *text_after)
   {
@@ -181,10 +174,8 @@ struct shape_options_t
 
     /* Check that breaking up shaping at safe-to-break is indeed safe. */
 
-    hb_buffer_t *fragment = hb_buffer_create ();
-    copy_buffer_properties (fragment, buffer);
-    hb_buffer_t *reconstruction = hb_buffer_create ();
-    copy_buffer_properties (reconstruction, buffer);
+    hb_buffer_t *fragment = hb_buffer_create_similar (buffer);
+    hb_buffer_t *reconstruction = hb_buffer_create_similar (buffer);
 
     unsigned int num_glyphs;
     hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &num_glyphs);

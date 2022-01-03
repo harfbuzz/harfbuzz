@@ -45,6 +45,7 @@ hb_memory_mode_t
 HB_SEGMENT_PROPERTIES_DEFAULT
 HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT
 hb_buffer_create
+hb_buffer_create_similar
 hb_buffer_reference
 hb_buffer_get_empty
 hb_buffer_destroy

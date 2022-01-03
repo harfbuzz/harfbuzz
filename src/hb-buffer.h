@@ -188,6 +188,13 @@ HB_EXTERN hb_buffer_t *
 hb_buffer_create (void);
 
 HB_EXTERN hb_buffer_t *
+hb_buffer_create_similar (const hb_buffer_t *src);
+
+HB_EXTERN void
+hb_buffer_reset (hb_buffer_t *buffer);
+
+
+HB_EXTERN hb_buffer_t *
 hb_buffer_get_empty (void);
 
 HB_EXTERN hb_buffer_t *
@@ -394,8 +401,9 @@ HB_EXTERN hb_codepoint_t
 hb_buffer_get_not_found_glyph (hb_buffer_t    *buffer);
 
 
-HB_EXTERN void
-hb_buffer_reset (hb_buffer_t *buffer);
+/*
+ * Content API.
+ */
 
 HB_EXTERN void
 hb_buffer_clear_contents (hb_buffer_t *buffer);
