@@ -87,18 +87,21 @@ struct hb_buffer_t
 {
   hb_object_header_t header;
 
-  /* Information about how the text in the buffer should be treated */
+  /*
+   * Information about how the text in the buffer should be treated.
+   */
+
   hb_unicode_funcs_t *unicode; /* Unicode functions */
   hb_buffer_flags_t flags; /* BOT / EOT / etc. */
   hb_buffer_cluster_level_t cluster_level;
   hb_codepoint_t replacement; /* U+FFFD or something else. */
   hb_codepoint_t invisible; /* 0 or something else. */
   hb_codepoint_t not_found; /* 0 or something else. */
-  hb_buffer_scratch_flags_t scratch_flags; /* Have space-fallback, etc. */
-  unsigned int max_len; /* Maximum allowed len. */
-  int max_ops; /* Maximum allowed operations. */
 
-  /* Buffer contents */
+  /*
+   * Buffer contents
+   */
+
   hb_buffer_content_type_t content_type;
   hb_segment_properties_t props; /* Script, language, direction */
 
@@ -115,14 +118,22 @@ struct hb_buffer_t
   hb_glyph_info_t     *out_info;
   hb_glyph_position_t *pos;
 
-  unsigned int serial;
-
   /* Text before / after the main buffer contents.
    * Always in Unicode, and ordered outward.
    * Index 0 is for "pre-context", 1 for "post-context". */
   static constexpr unsigned CONTEXT_LENGTH = 5u;
   hb_codepoint_t context[2][CONTEXT_LENGTH];
   unsigned int context_len[2];
+
+  /*
+   * Not part of content.
+   */
+
+  hb_buffer_scratch_flags_t scratch_flags; /* Have space-fallback, etc. */
+  unsigned int serial;
+
+  unsigned int max_len; /* Maximum allowed len. */
+  int max_ops; /* Maximum allowed operations. */
 
   /* Debugging API */
 #ifndef HB_NO_BUFFER_MESSAGE

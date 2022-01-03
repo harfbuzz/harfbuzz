@@ -261,6 +261,7 @@ hb_buffer_t::reset ()
   hb_unicode_funcs_destroy (unicode);
   unicode = hb_unicode_funcs_reference (hb_unicode_funcs_get_default ());
   flags = HB_BUFFER_FLAG_DEFAULT;
+  cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
   replacement = HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT;
   invisible = 0;
   not_found = 0;
@@ -271,11 +272,10 @@ hb_buffer_t::reset ()
 void
 hb_buffer_t::clear ()
 {
+  content_type = HB_BUFFER_CONTENT_TYPE_INVALID;
   hb_segment_properties_t default_props = HB_SEGMENT_PROPERTIES_DEFAULT;
   props = default_props;
-  scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
 
-  content_type = HB_BUFFER_CONTENT_TYPE_INVALID;
   successful = true;
   have_output = false;
   have_positions = false;
@@ -283,12 +283,14 @@ hb_buffer_t::clear ()
   idx = 0;
   len = 0;
   out_len = 0;
-  out_info = info;
 
-  serial = 0;
+  out_info = info;
 
   memset (context, 0, sizeof context);
   memset (context_len, 0, sizeof context_len);
+
+  scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
+  serial = 0;
 
   deallocate_var_all ();
 }
@@ -604,12 +606,11 @@ DEFINE_NULL_INSTANCE (hb_buffer_t) =
   HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT,
   0, /* invisible */
   0, /* not_found */
-  HB_BUFFER_SCRATCH_FLAG_DEFAULT,
-  HB_BUFFER_MAX_LEN_DEFAULT,
-  HB_BUFFER_MAX_OPS_DEFAULT,
+
 
   HB_BUFFER_CONTENT_TYPE_INVALID,
   HB_SEGMENT_PROPERTIES_DEFAULT,
+
   false, /* successful */
   false, /* have_output */
   true  /* have_positions */
