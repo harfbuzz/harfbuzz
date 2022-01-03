@@ -1788,6 +1788,8 @@ hb_buffer_append (hb_buffer_t *buffer,
   if (!buffer->have_positions && source->have_positions)
     buffer->clear_positions ();
 
+  hb_segment_properties_overlay (&buffer->props, &source->props);
+
   memcpy (buffer->info + orig_len, source->info + start, (end - start) * sizeof (buffer->info[0]));
   if (buffer->have_positions)
     memcpy (buffer->pos + orig_len, source->pos + start, (end - start) * sizeof (buffer->pos[0]));
