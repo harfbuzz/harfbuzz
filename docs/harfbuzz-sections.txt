@@ -103,6 +103,7 @@ hb_buffer_serialize_format_to_string
 hb_buffer_serialize_list_formats
 hb_segment_properties_equal
 hb_segment_properties_hash
+hb_segment_properties_overlay
 hb_buffer_diff
 hb_buffer_set_message_func
 hb_buffer_t

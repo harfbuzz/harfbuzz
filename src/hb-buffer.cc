@@ -86,7 +86,46 @@ hb_segment_properties_hash (const hb_segment_properties_t *p)
 	 (intptr_t) (p->language);
 }
 
+/**
+ * hb_segment_properties_overlay:
+ * @p: #hb_segment_properties_t to fill in.
+ * @src: #hb_segment_properties_t to fill in from.
+ *
+ * Fills in missing fields of @p from @src in a considered manner.
+ *
+ * First, if @p does not have direction set, direction is copied from @src.
+ *
+ * Next, if @p and @src have the same direction (which can be unset), if @p
+ * does not have script set, script is copied from @src.
+ *
+ * Finally, if @p and @src have the same direction and script (which either
+ * can be unset), if @p does not have language set, language is copied from
+ * @src.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN void
+hb_segment_properties_overlay (hb_segment_properties_t *p,
+			       const hb_segment_properties_t *src)
+{
+  if (unlikely (!p || !src))
+    return;
 
+  if (!p->direction)
+    p->direction = src->direction;
+
+  if (p->direction != src->direction)
+    return;
+
+  if (!p->script)
+    p->script = src->script;
+
+  if (p->script != src->script)
+    return;
+
+  if (!p->language)
+    p->language = src->language;
+}
 
 /* Here is how the buffer works internally:
  *

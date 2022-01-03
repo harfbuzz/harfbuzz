@@ -170,6 +170,9 @@ hb_segment_properties_equal (const hb_segment_properties_t *a,
 HB_EXTERN unsigned int
 hb_segment_properties_hash (const hb_segment_properties_t *p);
 
+HB_EXTERN void
+hb_segment_properties_overlay (hb_segment_properties_t *p,
+			       const hb_segment_properties_t *src);
 
 
 /**
