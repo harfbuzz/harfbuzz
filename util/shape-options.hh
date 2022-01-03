@@ -184,6 +184,7 @@ struct shape_options_t
     /* Check that breaking up shaping at safe-to-break is indeed safe. */
 
     hb_buffer_t *fragment = hb_buffer_create ();
+    copy_buffer_properties (fragment, buffer);
     hb_buffer_t *reconstruction = hb_buffer_create ();
     copy_buffer_properties (reconstruction, buffer);
 
@@ -234,7 +235,6 @@ struct shape_options_t
 	printf("start %d end %d text start %d end %d\n", start, end, text_start, text_end);
 
       hb_buffer_clear_contents (fragment);
-      copy_buffer_properties (fragment, buffer);
 
       hb_buffer_flags_t flags = hb_buffer_get_flags (fragment);
       if (0 < text_start)
