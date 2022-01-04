@@ -45,6 +45,7 @@ hb_memory_mode_t
 HB_SEGMENT_PROPERTIES_DEFAULT
 HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT
 hb_buffer_create
+hb_buffer_create_similar
 hb_buffer_reference
 hb_buffer_get_empty
 hb_buffer_destroy
@@ -103,6 +104,7 @@ hb_buffer_serialize_format_to_string
 hb_buffer_serialize_list_formats
 hb_segment_properties_equal
 hb_segment_properties_hash
+hb_segment_properties_overlay
 hb_buffer_diff
 hb_buffer_set_message_func
 hb_buffer_t

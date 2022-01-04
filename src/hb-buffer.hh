@@ -87,18 +87,21 @@ struct hb_buffer_t
 {
   hb_object_header_t header;
 
-  /* Information about how the text in the buffer should be treated */
+  /*
+   * Information about how the text in the buffer should be treated.
+   */
+
   hb_unicode_funcs_t *unicode; /* Unicode functions */
   hb_buffer_flags_t flags; /* BOT / EOT / etc. */
   hb_buffer_cluster_level_t cluster_level;
   hb_codepoint_t replacement; /* U+FFFD or something else. */
   hb_codepoint_t invisible; /* 0 or something else. */
   hb_codepoint_t not_found; /* 0 or something else. */
-  hb_buffer_scratch_flags_t scratch_flags; /* Have space-fallback, etc. */
-  unsigned int max_len; /* Maximum allowed len. */
-  int max_ops; /* Maximum allowed operations. */
 
-  /* Buffer contents */
+  /*
+   * Buffer contents
+   */
+
   hb_buffer_content_type_t content_type;
   hb_segment_properties_t props; /* Script, language, direction */
 
@@ -115,8 +118,6 @@ struct hb_buffer_t
   hb_glyph_info_t     *out_info;
   hb_glyph_position_t *pos;
 
-  unsigned int serial;
-
   /* Text before / after the main buffer contents.
    * Always in Unicode, and ordered outward.
    * Index 0 is for "pre-context", 1 for "post-context". */
@@ -124,7 +125,25 @@ struct hb_buffer_t
   hb_codepoint_t context[2][CONTEXT_LENGTH];
   unsigned int context_len[2];
 
-  /* Debugging API */
+
+  /*
+   * Managed by enter / leave
+   */
+
+#ifndef HB_NDEBUG
+  uint8_t allocated_var_bits;
+#endif
+  uint8_t serial;
+  hb_buffer_scratch_flags_t scratch_flags; /* Have space-fallback, etc. */
+  unsigned int max_len; /* Maximum allowed len. */
+  int max_ops; /* Maximum allowed operations. */
+  /* The bits here reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
+
+
+  /*
+   * Messaging callback
+   */
+
 #ifndef HB_NO_BUFFER_MESSAGE
   hb_buffer_message_func_t message_func;
   void *message_data;
@@ -134,11 +153,6 @@ struct hb_buffer_t
   static constexpr unsigned message_depth = 0u;
 #endif
 
-  /* Internal debugging. */
-  /* The bits here reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
-#ifndef HB_NDEBUG
-  uint8_t allocated_var_bits;
-#endif
 
 
   /* Methods */
@@ -190,12 +204,17 @@ struct hb_buffer_t
   hb_glyph_info_t &prev ()      { return out_info[out_len ? out_len - 1 : 0]; }
   hb_glyph_info_t prev () const { return out_info[out_len ? out_len - 1 : 0]; }
 
+  HB_INTERNAL void similar (const hb_buffer_t &src);
   HB_INTERNAL void reset ();
   HB_INTERNAL void clear ();
 
+  /* Called around shape() */
+  HB_INTERNAL void enter ();
+  HB_INTERNAL void leave ();
+
   unsigned int backtrack_len () const { return have_output ? out_len : idx; }
   unsigned int lookahead_len () const { return len - idx; }
-  unsigned int next_serial () { return serial++; }
+  uint8_t next_serial () { return ++serial ? serial : ++serial; }
 
   HB_INTERNAL void add (hb_codepoint_t  codepoint,
 			unsigned int    cluster);
