@@ -1890,7 +1890,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
     apply_forward (c, accel);
 
     if (!Proxy::inplace)
-      buffer->swap_buffers ();
+      buffer->sync ();
   }
   else
   {

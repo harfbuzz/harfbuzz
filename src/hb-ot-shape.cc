@@ -566,7 +566,7 @@ hb_insert_dotted_circle (hb_buffer_t *buffer, hb_font_t *font)
   info.mask = buffer->cur().mask;
   (void) buffer->output_info (info);
 
-  buffer->swap_buffers ();
+  buffer->sync ();
 }
 
 static void

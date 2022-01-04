@@ -375,7 +375,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       decompose_multi_char_cluster (&c, end, always_short_circuit);
     }
     while (buffer->idx < count && buffer->successful);
-    buffer->swap_buffers ();
+    buffer->sync ();
   }
 
 
@@ -478,7 +478,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
       if (info_cc (buffer->prev()) == 0)
 	starter = buffer->out_len - 1;
     }
-    buffer->swap_buffers ();
+    buffer->sync ();
   }
 }
 

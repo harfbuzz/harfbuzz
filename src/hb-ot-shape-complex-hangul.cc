@@ -392,7 +392,7 @@ preprocess_text_hangul (const hb_ot_shape_plan_t *plan HB_UNUSED,
      */
     (void) buffer->next_glyph ();
   }
-  buffer->swap_buffers ();
+  buffer->sync ();
 }
 
 static void
