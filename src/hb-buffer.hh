@@ -125,8 +125,9 @@ struct hb_buffer_t
   hb_codepoint_t context[2][CONTEXT_LENGTH];
   unsigned int context_len[2];
 
+
   /*
-   * Not part of content.
+   * Managed by enter / leave
    */
 
 #ifndef HB_NDEBUG
@@ -138,7 +139,11 @@ struct hb_buffer_t
   int max_ops; /* Maximum allowed operations. */
   /* The bits here reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
 
-  /* Debugging API */
+
+  /*
+   * Messaging callback
+   */
+
 #ifndef HB_NO_BUFFER_MESSAGE
   hb_buffer_message_func_t message_func;
   void *message_data;
@@ -202,6 +207,10 @@ struct hb_buffer_t
   HB_INTERNAL void similar (const hb_buffer_t &src);
   HB_INTERNAL void reset ();
   HB_INTERNAL void clear ();
+
+  /* Called around shape() */
+  HB_INTERNAL void enter ();
+  HB_INTERNAL void leave ();
 
   unsigned int backtrack_len () const { return have_output ? out_len : idx; }
   unsigned int lookahead_len () const { return len - idx; }

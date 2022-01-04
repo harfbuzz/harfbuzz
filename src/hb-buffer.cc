@@ -307,6 +307,33 @@ hb_buffer_t::clear ()
 }
 
 void
+hb_buffer_t::enter ()
+{
+  deallocate_var_all ();
+  serial = 0;
+  scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
+  if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_LEN_FACTOR)))
+  {
+    max_len = hb_max (len * HB_BUFFER_MAX_LEN_FACTOR,
+		      (unsigned) HB_BUFFER_MAX_LEN_MIN);
+  }
+  if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_OPS_FACTOR)))
+  {
+    max_ops = hb_max (len * HB_BUFFER_MAX_OPS_FACTOR,
+		      (unsigned) HB_BUFFER_MAX_OPS_MIN);
+  }
+}
+void
+hb_buffer_t::leave ()
+{
+  max_len = HB_BUFFER_MAX_LEN_DEFAULT;
+  max_ops = HB_BUFFER_MAX_OPS_DEFAULT;
+  deallocate_var_all ();
+  serial = 0;
+}
+
+
+void
 hb_buffer_t::add (hb_codepoint_t  codepoint,
 		  unsigned int    cluster)
 {
