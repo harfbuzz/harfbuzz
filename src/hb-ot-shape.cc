@@ -1146,6 +1146,7 @@ static void
 hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
   c->buffer->deallocate_var_all ();
+  c->buffer->serial = 0;
   c->buffer->scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
   if (likely (!hb_unsigned_mul_overflows (c->buffer->len, HB_BUFFER_MAX_LEN_FACTOR)))
   {
@@ -1191,6 +1192,7 @@ hb_ot_shape_internal (hb_ot_shape_context_t *c)
   c->buffer->max_len = HB_BUFFER_MAX_LEN_DEFAULT;
   c->buffer->max_ops = HB_BUFFER_MAX_OPS_DEFAULT;
   c->buffer->deallocate_var_all ();
+  c->buffer->serial = 0;
 }
 
 

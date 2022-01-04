@@ -301,10 +301,9 @@ hb_buffer_t::clear ()
   memset (context, 0, sizeof context);
   memset (context_len, 0, sizeof context_len);
 
-  scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
-  serial = 0;
-
   deallocate_var_all ();
+  serial = 0;
+  scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
 }
 
 void

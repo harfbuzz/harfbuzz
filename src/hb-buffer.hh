@@ -129,11 +129,14 @@ struct hb_buffer_t
    * Not part of content.
    */
 
+#ifndef HB_NDEBUG
+  uint8_t allocated_var_bits;
+#endif
+  uint8_t serial;
   hb_buffer_scratch_flags_t scratch_flags; /* Have space-fallback, etc. */
-  unsigned int serial;
-
   unsigned int max_len; /* Maximum allowed len. */
   int max_ops; /* Maximum allowed operations. */
+  /* The bits here reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
 
   /* Debugging API */
 #ifndef HB_NO_BUFFER_MESSAGE
@@ -145,11 +148,6 @@ struct hb_buffer_t
   static constexpr unsigned message_depth = 0u;
 #endif
 
-  /* Internal debugging. */
-  /* The bits here reflect current allocations of the bytes in glyph_info_t's var1 and var2. */
-#ifndef HB_NDEBUG
-  uint8_t allocated_var_bits;
-#endif
 
 
   /* Methods */
@@ -207,7 +205,7 @@ struct hb_buffer_t
 
   unsigned int backtrack_len () const { return have_output ? out_len : idx; }
   unsigned int lookahead_len () const { return len - idx; }
-  unsigned int next_serial () { return serial++; }
+  uint8_t next_serial () { return ++serial ? serial : ++serial; }
 
   HB_INTERNAL void add (hb_codepoint_t  codepoint,
 			unsigned int    cluster);
