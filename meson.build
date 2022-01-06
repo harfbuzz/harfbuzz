@@ -61,6 +61,7 @@ check_headers = [
   ['unistd.h'],
   ['sys/mman.h'],
   ['stdbool.h'],
+  ['xlocale.h'],
 ]
 
 check_funcs = [
@@ -70,6 +71,8 @@ check_funcs = [
   ['getpagesize'],
   ['mmap'],
   ['isatty'],
+  ['uselocale'],
+  ['newlocale'],
 ]
 
 m_dep = cpp.find_library('m', required: false)

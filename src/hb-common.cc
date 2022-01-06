@@ -31,6 +31,11 @@
 
 #include <locale.h>
 
+#ifdef HAVE_XLOCALE_H
+// Needed on BSD/OS X for uselocale
+#include <xlocale.h>
+#endif
+
 #ifdef HB_NO_SETLOCALE
 #define setlocale(Category, Locale) "C"
 #endif
@@ -122,7 +127,7 @@ hb_tag_from_string (const char *str, int len)
  * @tag: #hb_tag_t to convert
  * @buf: (out caller-allocates) (array fixed-size=4) (element-type uint8_t): Converted string
  *
- * Converts an #hb_tag_t to a string and returns it in @buf. 
+ * Converts an #hb_tag_t to a string and returns it in @buf.
  * Strings will be four characters long.
  *
  * Since: 0.9.5
@@ -151,13 +156,13 @@ const char direction_strings[][4] = {
  * @str: (array length=len) (element-type uint8_t): String to convert
  * @len: Length of @str, or -1 if it is %NULL-terminated
  *
- * Converts a string to an #hb_direction_t. 
+ * Converts a string to an #hb_direction_t.
  *
  * Matching is loose and applies only to the first letter. For
  * examples, "LTR" and "left-to-right" will both return #HB_DIRECTION_LTR.
  *
  * Unmatched strings will return #HB_DIRECTION_INVALID.
- * 
+ *
  * Return value: The #hb_direction_t matching @str
  *
  * Since: 0.9.2
@@ -1039,6 +1044,21 @@ hb_variation_from_string (const char *str, int len,
   return false;
 }
 
+#if !defined(HARFBUZZ_NO_SETLOCALE) && defined(HAVE_NEWLOCALE) && defined(HAVE_USELOCALE)
+static locale_t
+get_C_locale (void)
+{
+  static locale_t C_locale = NULL;
+
+  if (!C_locale)
+    C_locale = newlocale (LC_ALL_MASK, "C", NULL);
+
+  return C_locale;
+}
+#else
+#define uselocale(Locale) ((locale_t)0)
+#endif
+
 /**
  * hb_variation_to_string:
  * @variation: an #hb_variation_t to convert
@@ -1055,6 +1075,8 @@ void
 hb_variation_to_string (hb_variation_t *variation,
 			char *buf, unsigned int size)
 {
+  locale_t oldlocale;
+
   if (unlikely (!size)) return;
 
   char s[128];
@@ -1064,7 +1086,9 @@ hb_variation_to_string (hb_variation_t *variation,
   while (len && s[len - 1] == ' ')
     len--;
   s[len++] = '=';
+  oldlocale = uselocale (get_C_locale ());
   len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
+  uselocale (oldlocale);
 
   assert (len < ARRAY_LENGTH (s));
   len = hb_min (len, size - 1);
