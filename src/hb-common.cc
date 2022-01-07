@@ -1045,15 +1045,33 @@ hb_variation_from_string (const char *str, int len,
 }
 
 #if !defined(HARFBUZZ_NO_SETLOCALE) && defined(HAVE_NEWLOCALE) && defined(HAVE_USELOCALE)
+static hb_atomic_ptr_t <void> C_locale;
+
+static void
+free_C_locale (void)
+{
+  void *locale = C_locale;
+
+  C_locale.cmpexch (C_locale, NULL);
+
+  if (locale)
+    freelocale ((locale_t) locale);
+}
+
 static locale_t
 get_C_locale (void)
 {
-  static locale_t C_locale = NULL;
+  void *locale = C_locale;
 
-  if (!C_locale)
-    C_locale = newlocale (LC_ALL_MASK, "C", NULL);
+  if (unlikely (locale == NULL))
+  {
+    locale = newlocale (LC_ALL_MASK, "C", NULL);
+    C_locale.cmpexch (NULL, locale);
 
-  return C_locale;
+    hb_atexit (free_C_locale);
+  }
+
+  return (locale_t) locale;
 }
 #else
 #define uselocale(Locale) ((locale_t)0)
