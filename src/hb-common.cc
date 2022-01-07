@@ -1075,8 +1075,6 @@ void
 hb_variation_to_string (hb_variation_t *variation,
 			char *buf, unsigned int size)
 {
-  locale_t oldlocale;
-
   if (unlikely (!size)) return;
 
   char s[128];
@@ -1086,7 +1084,7 @@ hb_variation_to_string (hb_variation_t *variation,
   while (len && s[len - 1] == ' ')
     len--;
   s[len++] = '=';
-  oldlocale = uselocale (get_C_locale ());
+  locale_t oldlocale = uselocale (get_C_locale ());
   len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
   uselocale (oldlocale);
 
