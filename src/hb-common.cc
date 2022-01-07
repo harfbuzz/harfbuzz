@@ -1047,6 +1047,10 @@ hb_variation_from_string (const char *str, int len,
 #if !defined(HARFBUZZ_NO_SETLOCALE) && defined(HAVE_NEWLOCALE) && defined(HAVE_USELOCALE)
 static hb_atomic_ptr_t <void> C_locale;
 
+#ifdef WIN32
+using locale_t = _locale_t;
+#endif
+
 static void
 free_C_locale (void)
 {
@@ -1074,6 +1078,9 @@ get_C_locale (void)
   return (locale_t) locale;
 }
 #else
+#ifdef WIN32
+#define locale_t void*
+#endif
 #define uselocale(Locale) ((locale_t)0)
 #endif
 
@@ -1102,9 +1109,11 @@ hb_variation_to_string (hb_variation_t *variation,
   while (len && s[len - 1] == ' ')
     len--;
   s[len++] = '=';
-  locale_t oldlocale = uselocale (get_C_locale ());
+
+  locale_t oldlocale HB_UNUSED;
+  oldlocale = uselocale (get_C_locale ());
   len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
-  uselocale (oldlocale);
+  (void) uselocale (oldlocale);
 
   assert (len < ARRAY_LENGTH (s));
   len = hb_min (len, size - 1);
