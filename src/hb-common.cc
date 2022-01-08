@@ -1044,7 +1044,6 @@ hb_variation_from_string (const char *str, int len,
 }
 
 #if !defined(HARFBUZZ_NO_SETLOCALE) && defined(HAVE_NEWLOCALE) && defined(HAVE_USELOCALE)
-static hb_atomic_ptr_t <void> C_locale;
 
 #ifdef WIN32
 using locale_t = _locale_t;
