@@ -32,8 +32,7 @@
 #include <locale.h>
 
 #ifdef HAVE_XLOCALE_H
-// Needed on BSD/OS X for uselocale
-#include <xlocale.h>
+#include <xlocale.h> // Needed on BSD/OS X for uselocale
 #endif
 
 #ifdef HB_NO_SETLOCALE
@@ -1079,9 +1078,9 @@ get_C_locale (void)
 }
 #else
 #ifdef WIN32
-#define locale_t void*
+#define locale_t void *
 #endif
-#define uselocale(Locale) ((locale_t)0)
+#define uselocale(Locale) ((locale_t) 0)
 #endif
 
 /**
