@@ -1050,32 +1050,43 @@ static hb_atomic_ptr_t <void> C_locale;
 using locale_t = _locale_t;
 #endif
 
-static void
-free_C_locale (void)
+static inline void free_static_C_locale ();
+
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<locale_t>,
+							     hb_C_locale_lazy_loader_t>
 {
-  void *locale = C_locale;
+  static locale_t create ()
+  {
+    locale_t l = newlocale (LC_ALL_MASK, "C", NULL);
+    if (!l)
+      return l;
 
-  C_locale.cmpexch (C_locale, NULL);
+    hb_atexit (free_static_C_locale);
 
-  if (locale)
-    freelocale ((locale_t) locale);
+    return l;
+  }
+  static void destroy (locale_t l)
+  {
+    freelocale (l);
+  }
+  static locale_t get_null ()
+  {
+    return (locale_t) 0;
+  }
+} static_C_locale;
+
+static inline
+void free_static_C_locale ()
+{
+  static_C_locale.free_instance ();
 }
 
 static locale_t
-get_C_locale (void)
+get_C_locale ()
 {
-  void *locale = C_locale;
-
-  if (unlikely (locale == NULL))
-  {
-    locale = newlocale (LC_ALL_MASK, "C", NULL);
-    C_locale.cmpexch (NULL, locale);
-
-    hb_atexit (free_C_locale);
-  }
-
-  return (locale_t) locale;
+  return static_C_locale.get_unconst ();
 }
+
 #else
 #ifdef WIN32
 #define locale_t void *
