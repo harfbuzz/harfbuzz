@@ -79,9 +79,23 @@ struct hb_hashmap_t
 
     bool operator == (const K &o) { return hb_deref (key) == hb_deref (o); }
     bool operator == (const item_t &o) { return *this == o.key; }
-    bool is_unused () const    { return key == kINVALID; }
-    bool is_tombstone () const { return key != kINVALID && value == vINVALID; }
-    bool is_real () const { return key != kINVALID && value != vINVALID; }
+    bool is_unused () const
+    {
+      const K inv = kINVALID;
+      return key == inv;
+    }
+    bool is_tombstone () const
+    {
+      const K kinv = kINVALID;
+      const V vinv = vINVALID;
+      return key != kinv && value == vinv;
+    }
+    bool is_real () const
+    {
+      const K kinv = kINVALID;
+      const V vinv = vINVALID;
+      return key != kinv && value != vinv;
+    }
     hb_pair_t<K, V> get_pair() const { return hb_pair_t<K, V> (key, value); }
   };
 
@@ -248,11 +262,13 @@ struct hb_hashmap_t
   bool set_with_hash (K key, uint32_t hash, VV&& value)
   {
     if (unlikely (!successful)) return false;
-    if (unlikely (key == kINVALID)) return true;
+    const K kinv = kINVALID;
+    if (unlikely (key == kinv)) return true;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
     unsigned int i = bucket_for_hash (key, hash);
 
-    if (value == vINVALID && items[i].key != key)
+    const V vinv = vINVALID;
+    if (value == vinv && items[i].key != key)
       return true; /* Trying to delete non-existent key. */
 
     if (!items[i].is_unused ())
