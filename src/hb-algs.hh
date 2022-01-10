@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <functional>
 #include <new>
 
 /*
@@ -215,7 +216,10 @@ struct
   private:
 
   template <typename T> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
+  impl (const T& v, hb_priority<2>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
+
+  template <typename T> constexpr auto
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, std::hash<decltype (hb_deref (v))>{} (hb_deref (v)))
 
   template <typename T,
 	    hb_enable_if (std::is_integral<T>::value)> constexpr auto
