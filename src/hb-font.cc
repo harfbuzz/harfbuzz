@@ -2092,6 +2092,10 @@ hb_font_get_synthetic_slant (hb_font_t *font)
  *
  * Applies a list of font-variation settings to a font.
  *
+ * Note that this overrides all existing variations set on @font.
+ * Axes not included in @variations will be effectively set to their
+ * default values.
+ *
  * Since: 1.4.2
  */
 void
@@ -2146,6 +2150,10 @@ hb_font_set_variations (hb_font_t            *font,
  *
  * Applies a list of variation coordinates (in design-space units)
  * to a font.
+ *
+ * Note that this overrides all existing variations set on @font.
+ * Axes not included in @coords will be effectively set to their
+ * default values.
  *
  * Since: 1.4.2
  */
@@ -2209,6 +2217,10 @@ hb_font_set_var_named_instance (hb_font_t *font,
  *
  * Applies a list of variation coordinates (in normalized units)
  * to a font.
+ *
+ * Note that this overrides all existing variations set on @font.
+ * Axes not included in @coords will be effectively set to their
+ * default values.
  *
  * <note>Note: Coordinates should be normalized to 2.14.</note>
  *
