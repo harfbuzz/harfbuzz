@@ -300,6 +300,12 @@ OT_TABLE_END
 /*
  * Clean up
  */
+
+#undef G
+
+#undef MANIFEST
+#undef MANIFEST_LOOKUP
+
 #undef OT_TABLE_START
 #undef OT_TABLE_END
 #undef OT_LABEL_START
@@ -308,6 +314,16 @@ OT_TABLE_END
 #undef OT_UINT16
 #undef OT_DISTANCE
 #undef OT_COUNT
+
+#undef OT_LABEL
+
+#undef OT_LIST
+#undef OT_TAG
+#undef OT_OFFSET
+#undef OT_GLYPHID
+#undef OT_UARRAY
+#undef OT_UHEAD
+
 
 /*
  * Include a second time to get the table data...
