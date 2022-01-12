@@ -29,14 +29,30 @@
 #include "hb.hh"
 #include "hb-machinery.hh"
 
-#include <locale.h>
+#if !defined(HAVE_NEWLOCALE) || !defined(HAVE_USELOCALE)
+#define HB_NO_SETLOCALE 1
+#endif
 
+#ifndef HB_NO_SETLOCALE
+
+#include <locale.h>
 #ifdef HAVE_XLOCALE_H
 #include <xlocale.h> // Needed on BSD/OS X for uselocale
 #endif
 
-#ifdef HB_NO_SETLOCALE
+#ifdef WIN32
+using hb_locale_t = _locale_t;
+#else
+using hb_locale_t = locale_t;
+#endif
+
+#else
+
+using hb_locale_t = void *;
+#define hb_locale_t void *
 #define setlocale(Category, Locale) "C"
+#define uselocale(Locale) ((hb_locale_t) 0)
+
 #endif
 
 /**
@@ -1043,20 +1059,16 @@ hb_variation_from_string (const char *str, int len,
   return false;
 }
 
-#if !defined(HARFBUZZ_NO_SETLOCALE) && defined(HAVE_NEWLOCALE) && defined(HAVE_USELOCALE)
-
-#ifdef WIN32
-using locale_t = _locale_t;
-#endif
+#ifndef HB_NO_SETLOCALE
 
 static inline void free_static_C_locale ();
 
-static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<locale_t>,
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<hb_locale_t>,
 							     hb_C_locale_lazy_loader_t>
 {
-  static locale_t create ()
+  static hb_locale_t create ()
   {
-    locale_t l = newlocale (LC_ALL_MASK, "C", NULL);
+    hb_locale_t l = newlocale (LC_ALL_MASK, "C", NULL);
     if (!l)
       return l;
 
@@ -1064,13 +1076,13 @@ static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<loc
 
     return l;
   }
-  static void destroy (locale_t l)
+  static void destroy (hb_locale_t l)
   {
     freelocale (l);
   }
-  static locale_t get_null ()
+  static hb_locale_t get_null ()
   {
-    return (locale_t) 0;
+    return (hb_locale_t) 0;
   }
 } static_C_locale;
 
@@ -1080,17 +1092,12 @@ void free_static_C_locale ()
   static_C_locale.free_instance ();
 }
 
-static locale_t
+static hb_locale_t
 get_C_locale ()
 {
   return static_C_locale.get_unconst ();
 }
 
-#else
-#ifdef WIN32
-#define locale_t void *
-#endif
-#define uselocale(Locale) ((locale_t) 0)
 #endif
 
 /**
@@ -1119,7 +1126,7 @@ hb_variation_to_string (hb_variation_t *variation,
     len--;
   s[len++] = '=';
 
-  locale_t oldlocale HB_UNUSED;
+  hb_locale_t oldlocale HB_UNUSED;
   oldlocale = uselocale (get_C_locale ());
   len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
   (void) uselocale (oldlocale);
