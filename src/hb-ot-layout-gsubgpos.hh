@@ -712,7 +712,7 @@ struct hb_ot_apply_context_t :
     return true;
   }
 
-  void _set_glyph_props (hb_codepoint_t glyph_index,
+  void _set_glyph_class (hb_codepoint_t glyph_index,
 			  unsigned int class_guess = 0,
 			  bool ligature = false,
 			  bool component = false) const
@@ -748,24 +748,24 @@ struct hb_ot_apply_context_t :
 
   void replace_glyph (hb_codepoint_t glyph_index) const
   {
-    _set_glyph_props (glyph_index);
+    _set_glyph_class (glyph_index);
     (void) buffer->replace_glyph (glyph_index);
   }
   void replace_glyph_inplace (hb_codepoint_t glyph_index) const
   {
-    _set_glyph_props (glyph_index);
+    _set_glyph_class (glyph_index);
     buffer->cur().codepoint = glyph_index;
   }
   void replace_glyph_with_ligature (hb_codepoint_t glyph_index,
 				    unsigned int class_guess) const
   {
-    _set_glyph_props (glyph_index, class_guess, true);
+    _set_glyph_class (glyph_index, class_guess, true);
     (void) buffer->replace_glyph (glyph_index);
   }
   void output_glyph_for_component (hb_codepoint_t glyph_index,
 				   unsigned int class_guess) const
   {
-    _set_glyph_props (glyph_index, class_guess, false, true);
+    _set_glyph_class (glyph_index, class_guess, false, true);
     (void) buffer->output_glyph (glyph_index);
   }
 };
