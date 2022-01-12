@@ -717,8 +717,7 @@ struct hb_ot_apply_context_t :
 			  bool ligature = false,
 			  bool component = false) const
   {
-    unsigned int add_in = _hb_glyph_info_get_glyph_props (&buffer->cur()) &
-			  HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
+    unsigned int add_in = _hb_glyph_info_get_glyph_props (&buffer->cur());
     add_in |= HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
     if (ligature)
     {
@@ -734,9 +733,17 @@ struct hb_ot_apply_context_t :
     if (component)
       add_in |= HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
     if (likely (has_glyph_classes))
+    {
+      add_in &= HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
       _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in | gdef.get_glyph_props (glyph_index));
+    }
     else if (class_guess)
+    {
+      add_in &= HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
       _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in | class_guess);
+    }
+    else
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in);
   }
 
   void replace_glyph (hb_codepoint_t glyph_index) const
