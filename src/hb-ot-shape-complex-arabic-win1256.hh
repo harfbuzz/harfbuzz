@@ -87,6 +87,8 @@
 
 #define OT_GLYPHID /* GlyphID */ \
 	OT_UINT16
+/* Shorthand. */
+#define G	OT_GLYPHID
 
 #define OT_UARRAY(Name, Items) \
 	OT_LABEL_START(Name) \
@@ -183,8 +185,6 @@
 	Tag \
 	OT_OFFSET(manifest, Name)
 
-/* Shorthand. */
-#define G	OT_GLYPHID
 
 /*
  * Table Start
@@ -301,8 +301,6 @@ OT_TABLE_END
  * Clean up
  */
 
-#undef G
-
 #undef MANIFEST
 #undef MANIFEST_LOOKUP
 
@@ -312,17 +310,29 @@ OT_TABLE_END
 #undef OT_LABEL_END
 #undef OT_UINT8
 #undef OT_UINT16
-#undef OT_DISTANCE
 #undef OT_COUNT
+#undef OT_DISTANCE
 
 #undef OT_LABEL
-
 #undef OT_LIST
+
 #undef OT_TAG
 #undef OT_OFFSET
 #undef OT_GLYPHID
+#undef G
 #undef OT_UARRAY
-#undef OT_UHEAD
+#undef OT_UHEADLESSARRAY
+
+#undef OT_LOOKUP_FLAG_IGNORE_MARKS
+#undef OT_LOOKUP
+#undef OT_SUBLOOKUP
+#undef OT_COVERAGE1
+#undef OT_LOOKUP_TYPE_SUBST_SINGLE
+#undef OT_LOOKUP_TYPE_SUBST_LIGATURE
+#undef OT_SUBLOOKUP_SINGLE_SUBST_FORMAT2
+#undef OT_SUBLOOKUP_LIGATURE_SUBST_FORMAT1
+#undef OT_LIGATURE_SET
+#undef OT_LIGATURE
 
 
 /*
