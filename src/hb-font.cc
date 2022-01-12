@@ -2039,7 +2039,7 @@ hb_font_get_ptem (hb_font_t *font)
 /**
  * hb_font_set_synthetic_slant:
  * @font: #hb_font_t to work upon
- * @ptem: font size in points.
+ * @slant: synthetic slant value.
  *
  * Sets the "synthetic slant" of a font.  By default is zero.
  * Synthetic slant is the graphical skew that the renderer
