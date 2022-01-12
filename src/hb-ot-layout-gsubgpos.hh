@@ -717,33 +717,33 @@ struct hb_ot_apply_context_t :
 			  bool ligature = false,
 			  bool component = false) const
   {
-    unsigned int add_in = _hb_glyph_info_get_glyph_props (&buffer->cur());
-    add_in |= HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
+    unsigned int props = _hb_glyph_info_get_glyph_props (&buffer->cur());
+    props |= HB_OT_LAYOUT_GLYPH_PROPS_SUBSTITUTED;
     if (ligature)
     {
-      add_in |= HB_OT_LAYOUT_GLYPH_PROPS_LIGATED;
+      props |= HB_OT_LAYOUT_GLYPH_PROPS_LIGATED;
       /* In the only place that the MULTIPLIED bit is used, Uniscribe
        * seems to only care about the "last" transformation between
        * Ligature and Multiple substitutions.  Ie. if you ligate, expand,
        * and ligate again, it forgives the multiplication and acts as
        * if only ligation happened.  As such, clear MULTIPLIED bit.
        */
-      add_in &= ~HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
+      props &= ~HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
     }
     if (component)
-      add_in |= HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
+      props |= HB_OT_LAYOUT_GLYPH_PROPS_MULTIPLIED;
     if (likely (has_glyph_classes))
     {
-      add_in &= HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
-      _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in | gdef.get_glyph_props (glyph_index));
+      props &= HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), props | gdef.get_glyph_props (glyph_index));
     }
     else if (class_guess)
     {
-      add_in &= HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
-      _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in | class_guess);
+      props &= HB_OT_LAYOUT_GLYPH_PROPS_PRESERVE;
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), props | class_guess);
     }
     else
-      _hb_glyph_info_set_glyph_props (&buffer->cur(), add_in);
+      _hb_glyph_info_set_glyph_props (&buffer->cur(), props);
   }
 
   void replace_glyph (hb_codepoint_t glyph_index) const
