@@ -71,7 +71,7 @@ struct hb_colrv1_closure_context_t :
   bool paint_visited (const void *paint)
   {
     hb_codepoint_t delta = (hb_codepoint_t) ((uintptr_t) paint - (uintptr_t) base);
-     if (visited_paint.has (delta))
+    if (visited_paint.in_error() || visited_paint.has (delta))
       return true;
 
     visited_paint.add (delta);
