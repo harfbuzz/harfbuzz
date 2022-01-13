@@ -75,7 +75,14 @@ struct hb_hashmap_t
     V value;
     uint32_t hash;
 
-    void clear () { key = kINVALID; value = vINVALID; hash = 0; }
+    void clear ()
+    {
+      new (hb_addressof (key)) K ();
+      key = kINVALID;
+      new (hb_addressof (value)) V ();
+      value = vINVALID;
+      hash = 0;
+    }
 
     bool operator == (const K &o) { return hb_deref (key) == hb_deref (o); }
     bool operator == (const item_t &o) { return *this == o.key; }
