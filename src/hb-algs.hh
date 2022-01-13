@@ -219,7 +219,7 @@ struct
   impl (const T& v, hb_priority<2>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
   template <typename T> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, std::hash<decltype (hb_deref (v))>{} (hb_deref (v)))
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))
 
   template <typename T,
 	    hb_enable_if (std::is_integral<T>::value)> constexpr auto
