@@ -61,9 +61,6 @@ struct hb_hashmap_t
     hb_copy (o, *this);
   }
 
-  static_assert (std::is_trivially_destructible<K>::value, "");
-  static_assert (std::is_trivially_destructible<V>::value, "");
-
   struct item_t
   {
     K key;
@@ -134,6 +131,9 @@ struct hb_hashmap_t
   }
   void fini_shallow ()
   {
+    unsigned size = mask + 1;
+    for (unsigned i = 0; i < size; i++)
+      items[i].~item_t ();
     hb_free (items);
     items = nullptr;
     population = occupancy = 0;
@@ -179,10 +179,15 @@ struct hb_hashmap_t
     /* Insert back old items. */
     if (old_items)
       for (unsigned int i = 0; i < old_size; i++)
+      {
 	if (old_items[i].is_real ())
+	{
 	  set_with_hash (old_items[i].key,
 			 old_items[i].hash,
 			 std::move (old_items[i].value));
+	}
+	old_items[i].~item_t ();
+      }
 
     hb_free (old_items);
 

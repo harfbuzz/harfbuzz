@@ -110,7 +110,6 @@ main (int argc, char **argv)
     assert (m3.get_population () == 0);
   }
 
-#if 0
   {
     hb_hashmap_t<int, int, int, int, 0, 0> m0;
     hb_hashmap_t<std::string, int, const std::string*, int, &invalid, 0> m1;
@@ -127,7 +126,6 @@ main (int argc, char **argv)
       m3.set (s, s);
     }
   }
-#endif
 
   return 0;
 }
