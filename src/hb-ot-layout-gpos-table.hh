@@ -1566,10 +1566,72 @@ struct PairPosFormat2
     if (unlikely (klass1 >= class1Count || klass2 >= class2Count)) return_trace (false);
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
-    bool applied_first = valueFormat1.apply_value (c, this, v, buffer->cur_pos());
-    bool applied_second = valueFormat2.apply_value (c, this, v + len1, buffer->pos[skippy_iter.idx]);
+
+    bool applied_first = false, applied_second = false;
+
+
+    /* Isolate simple kerning and apply it half to each side.
+     * Results in better cursor positinoing / underline drawing. */
+    {
+      if (!len2)
+      {
+	const hb_direction_t dir = buffer->props.direction;
+	const bool horizontal = HB_DIRECTION_IS_HORIZONTAL (dir);
+	const bool backward = HB_DIRECTION_IS_BACKWARD (dir);
+	unsigned mask = horizontal ? ValueFormat::xAdvance : ValueFormat::yAdvance;
+	if (backward)
+	  mask |= mask >> 2; /* Add eg. xPlacement in RTL. */
+	/* Add Devices. */
+	mask |= mask << 4;
+
+	if (valueFormat1 & !mask)
+	  goto bail;
+
+	/* Is simple kern. Apply value on an empty position slot,
+	 * then split it between sides. */
+
+	hb_glyph_position_t pos{};
+	if (valueFormat1.apply_value (c, this, v, pos))
+	{
+	  hb_position_t *src  = &pos.x_advance;
+	  hb_position_t *dst1 = &buffer->cur_pos().x_advance;
+	  hb_position_t *dst2 = &buffer->pos[skippy_iter.idx].x_advance;
+	  unsigned i = horizontal ? 0 : 1;
+
+	  hb_position_t kern  = src[i];
+	  hb_position_t kern1 = kern >> 1;
+	  hb_position_t kern2 = kern - kern1;
+
+	  if (!backward)
+	  {
+	    dst1[i] += kern1;
+	    dst2[i] += kern2;
+	    dst2[i + 2] += kern2;
+	  }
+	  else
+	  {
+	    dst1[i] += kern1;
+	    dst1[i + 2] += src[i + 2] - kern2;
+	    dst2[i] += kern2;
+	  }
+
+	  applied_first = applied_second = kern != 0;
+	  goto success;
+	}
+	goto boring;
+      }
+    }
+    bail:
+
+
+    applied_first = valueFormat1.apply_value (c, this, v, buffer->cur_pos());
+    applied_second = valueFormat2.apply_value (c, this, v + len1, buffer->pos[skippy_iter.idx]);
+
+    success:
     if (applied_first || applied_second)
       buffer->unsafe_to_break (buffer->idx, skippy_iter.idx + 1);
+
+    boring:
 
     buffer->idx = skippy_iter.idx;
     if (len2)
