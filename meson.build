@@ -90,15 +90,12 @@ if not get_option('freetype').disabled()
   if not freetype_dep.found()
     # https://github.com/harfbuzz/harfbuzz/pull/2498
     freetype_dep = dependency('freetype2', required: get_option('freetype'),
-                              fallback: ['freetype2', 'freetype_dep'],
                               default_options: ['harfbuzz=disabled'])
   endif
 endif
 
-glib_dep = dependency('glib-2.0', required: get_option('glib'),
-                      fallback: ['glib', 'libglib_dep'])
-gobject_dep = dependency('gobject-2.0', required: get_option('gobject'),
-                         fallback: ['glib', 'libgobject_dep'])
+glib_dep = dependency('glib-2.0', required: get_option('glib'))
+gobject_dep = dependency('gobject-2.0', required: get_option('gobject'))
 graphite2_dep = dependency('graphite2', required: get_option('graphite2'))
 graphite_dep = dependency('graphite2', required: get_option('graphite'))
 
@@ -148,8 +145,8 @@ if not get_option('cairo').disabled()
     # dependency cycle here because we have configured freetype2 above with
     # harfbuzz support disabled, so when cairo will lookup freetype2 dependency
     # it will be forced to use that one.
-    cairo_dep = dependency('cairo', fallback: 'cairo', required: get_option('cairo'))
-    cairo_ft_dep = dependency('cairo-ft', fallback: 'cairo', required: get_option('cairo'))
+    cairo_dep = dependency('cairo', required: get_option('cairo'))
+    cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
   endif
 endif
 

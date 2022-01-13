@@ -4,3 +4,7 @@ url=https://gitlab.gnome.org/GNOME/glib.git
 depth=1
 push-url=git@gitlab.gnome.org:GNOME/glib.git
 revision=2.58.1
+
+[provide]
+glib-2.0 = libglib_dep
+gobject-2.0 = libgobject_dep
