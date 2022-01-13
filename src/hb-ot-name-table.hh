@@ -256,7 +256,7 @@ struct name
     })
     ;
 
-    name_prime->serialize (c->serializer, it, hb_addressof (this + stringOffset));
+    name_prime->serialize (c->serializer, it, std::addressof (this + stringOffset));
     return_trace (name_prime->count);
   }
 

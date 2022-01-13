@@ -85,22 +85,6 @@ template <>             struct hb_priority<0> {};
 template <typename T> struct hb_type_identity_t { typedef T type; };
 template <typename T> using hb_type_identity = typename hb_type_identity_t<T>::type;
 
-struct
-{
-  template <typename T> constexpr T*
-  operator () (T& arg) const
-  {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wcast-align"
-    /* https://en.cppreference.com/w/cpp/memory/addressof */
-    return reinterpret_cast<T*> (
-	     &const_cast<char&> (
-		reinterpret_cast<const volatile char&> (arg)));
-#pragma GCC diagnostic pop
-  }
-}
-HB_FUNCOBJ (hb_addressof);
-
 template <typename T> static inline T hb_declval ();
 #define hb_declval(T) (hb_declval<T> ())
 
@@ -157,7 +141,7 @@ struct
   operator () (T&& v) const HB_AUTO_RETURN (std::forward<T> (v))
 
   template <typename T> constexpr auto
-  operator () (T& v) const HB_AUTO_RETURN (hb_addressof (v))
+  operator () (T& v) const HB_AUTO_RETURN (std::addressof (v))
 }
 HB_FUNCOBJ (hb_ref);
 
@@ -174,7 +158,7 @@ struct hb_reference_wrapper
 template <typename T>
 struct hb_reference_wrapper<T&>
 {
-  hb_reference_wrapper (T& v) : v (hb_addressof (v)) {}
+  hb_reference_wrapper (T& v) : v (std::addressof (v)) {}
   bool operator == (const hb_reference_wrapper& o) const { return v == o.v; }
   bool operator != (const hb_reference_wrapper& o) const { return v != o.v; }
   operator T& () const { return *v; }

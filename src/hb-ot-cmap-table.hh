@@ -1607,7 +1607,7 @@ struct cmap
       unsigned format = (this + _.subtable).u.format;
       if (format == 12) has_format12 = true;
 
-      const EncodingRecord *table = hb_addressof (_);
+      const EncodingRecord *table = std::addressof (_);
       if      (_.platformID == 0 && _.encodingID ==  3) unicode_bmp = table;
       else if (_.platformID == 0 && _.encodingID ==  4) unicode_ucs4 = table;
       else if (_.platformID == 3 && _.encodingID ==  1) ms_bmp = table;

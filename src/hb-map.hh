@@ -69,9 +69,9 @@ struct hb_hashmap_t
 
     void clear ()
     {
-      new (hb_addressof (key)) K ();
+      new (std::addressof (key)) K ();
       key = hb_coerce<K> (kINVALID);
-      new (hb_addressof (value)) V ();
+      new (std::addressof (value)) V ();
       value = hb_coerce<V> (vINVALID);
       hash = 0;
     }

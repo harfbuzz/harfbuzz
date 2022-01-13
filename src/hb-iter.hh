@@ -91,7 +91,7 @@ struct hb_iter_t
    * TODO Use a wrapper return type to fix for non-reference type. */
   template <typename T = item_t,
 	    hb_enable_if (std::is_reference<T>::value)>
-  hb_remove_reference<item_t>* operator -> () const { return hb_addressof (**thiz()); }
+  hb_remove_reference<item_t>* operator -> () const { return std::addressof (**thiz()); }
   item_t operator * () const { return thiz()->__item__ (); }
   item_t operator * () { return thiz()->__item__ (); }
   item_t operator [] (unsigned i) const { return thiz()->__item_at__ (i); }
