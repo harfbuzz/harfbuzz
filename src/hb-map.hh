@@ -41,8 +41,8 @@ template <typename K, typename V,
 	  v_invalid_t vINVALID = hb_is_pointer (V) ? 0 : std::is_signed<V>::value ? hb_int_min (V) : (V) -1>
 struct hb_hashmap_t
 {
-  static constexpr K INVALID_KEY   = kINVALID;
-  static constexpr V INVALID_VALUE = vINVALID;
+  static constexpr k_invalid_t INVALID_KEY   = kINVALID;
+  static constexpr v_invalid_t INVALID_VALUE = vINVALID;
 
   hb_hashmap_t ()  { init (); }
   ~hb_hashmap_t () { fini (); }
@@ -200,14 +200,14 @@ struct hb_hashmap_t
   void del (K key) { set (key, vINVALID); }
 
   /* Has interface. */
-  static constexpr V SENTINEL = vINVALID;
   typedef V value_t;
   value_t operator [] (K k) const { return get (k); }
   bool has (K k, V *vp = nullptr) const
   {
     V v = (*this)[k];
     if (vp) *vp = v;
-    return v != SENTINEL;
+    const V vinv = vINVALID;
+    return v != vinv;
   }
   /* Projection. */
   V operator () (K k) const { return get (k); }
