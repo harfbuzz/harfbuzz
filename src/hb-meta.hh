@@ -135,16 +135,6 @@ struct
 }
 HB_FUNCOBJ (hb_deref);
 
-struct
-{
-  template <typename T> constexpr auto
-  operator () (T&& v) const HB_AUTO_RETURN (std::forward<T> (v))
-
-  template <typename T> constexpr auto
-  operator () (T& v) const HB_AUTO_RETURN (std::addressof (v))
-}
-HB_FUNCOBJ (hb_ref);
-
 template <typename T>
 struct hb_reference_wrapper
 {
