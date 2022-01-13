@@ -41,9 +41,6 @@ template <typename K, typename V,
 	  v_invalid_t vINVALID = hb_is_pointer (V) ? 0 : std::is_signed<V>::value ? hb_int_min (V) : (V) -1>
 struct hb_hashmap_t
 {
-  static constexpr k_invalid_t INVALID_KEY   = kINVALID;
-  static constexpr v_invalid_t INVALID_VALUE = vINVALID;
-
   hb_hashmap_t ()  { init (); }
   ~hb_hashmap_t () { fini (); }
 

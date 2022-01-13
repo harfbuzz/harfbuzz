@@ -3706,7 +3706,7 @@ struct GSUBGPOS
     for (unsigned i : feature_indices->iter ())
     {
       hb_tag_t t = get_feature_tag (i);
-      if (t == unique_features.INVALID_KEY) continue;
+      if (t == HB_MAP_VALUE_INVALID) continue;
       if (!unique_features.has (t))
       {
         hb_set_t* indices = hb_set_create ();
