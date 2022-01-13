@@ -109,6 +109,7 @@ template <typename T> struct hb_match_const<const T>	: hb_type_identity_t<T>, hb
 template <typename T> using hb_remove_const = typename hb_match_const<T>::type;
 template <typename T> using hb_add_const = const T;
 #define hb_is_const(T) hb_match_const<T>::value
+
 template <typename T> struct hb_match_reference		: hb_type_identity_t<T>, hb_false_type	{};
 template <typename T> struct hb_match_reference<T &>	: hb_type_identity_t<T>, hb_true_type	{};
 template <typename T> struct hb_match_reference<T &&>	: hb_type_identity_t<T>, hb_true_type	{};
@@ -119,7 +120,7 @@ template <typename T> using hb_add_lvalue_reference = decltype (_hb_try_add_lval
 template <typename T> auto _hb_try_add_rvalue_reference (hb_priority<1>) -> hb_type_identity<T&&>;
 template <typename T> auto _hb_try_add_rvalue_reference (hb_priority<0>) -> hb_type_identity<T>;
 template <typename T> using hb_add_rvalue_reference = decltype (_hb_try_add_rvalue_reference<T> (hb_prioritize));
-#define hb_is_reference(T) hb_match_reference<T>::value
+
 template <typename T> struct hb_match_pointer		: hb_type_identity_t<T>, hb_false_type	{};
 template <typename T> struct hb_match_pointer<T *>	: hb_type_identity_t<T>, hb_true_type	{};
 template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::type;
@@ -137,7 +138,7 @@ template <typename From, typename To>
 using hb_is_cr_convertible = hb_bool_constant<
   hb_is_same (hb_decay<From>, hb_decay<To>) &&
   (!hb_is_const (From) || hb_is_const (To)) &&
-  (!hb_is_reference (To) || hb_is_const (To) || hb_is_reference (To))
+  (!std::is_reference<To>::value || hb_is_const (To) || std::is_reference<To>::value)
 >;
 #define hb_is_cr_convertible(From,To) hb_is_cr_convertible<From, To>::value
 

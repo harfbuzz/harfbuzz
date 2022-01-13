@@ -90,7 +90,7 @@ struct hb_iter_t
    * it will be returning pointer to temporary rvalue.
    * TODO Use a wrapper return type to fix for non-reference type. */
   template <typename T = item_t,
-	    hb_enable_if (hb_is_reference (T))>
+	    hb_enable_if (std::is_reference<T>::value)>
   hb_remove_reference<item_t>* operator -> () const { return hb_addressof (**thiz()); }
   item_t operator * () const { return thiz()->__item__ (); }
   item_t operator * () { return thiz()->__item__ (); }
