@@ -70,6 +70,9 @@
       through the setter and getter functions described in the API
       Reference manual.
     </para>
+      Note that many object types can be marked as read-only or immutable,
+      facilitating their use in multi-threaded environments.
+    </para>
     <para>
       Key object types provided by HarfBuzz include:
     </para>
@@ -252,6 +255,10 @@
       is deconstructed.  Consequently, the user code can stop worrying
       about freeing memory and let the reference-counting machinery
       take care of that.
+    </para>
+    <para>
+      Most of the time, blobs are read-only, facilitating their use in
+      immutable objects.
     </para>
   </section>
 
