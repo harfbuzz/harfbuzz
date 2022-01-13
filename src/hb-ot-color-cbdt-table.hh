@@ -360,6 +360,16 @@ struct IndexSubtable
 
 struct IndexSubtableRecord
 {
+  /* XXX Remove this and fix by not inserting it into vector. */
+  IndexSubtableRecord& operator = (const IndexSubtableRecord &o)
+  {
+    firstGlyphIndex = o.firstGlyphIndex;
+    lastGlyphIndex = o.lastGlyphIndex;
+    offsetToSubtable = (unsigned) o.offsetToSubtable;
+    assert (offsetToSubtable.is_null ());
+    return *this;
+  }
+
   bool sanitize (hb_sanitize_context_t *c, const void *base) const
   {
     TRACE_SANITIZE (this);

@@ -204,6 +204,32 @@ struct hb_vector_t
 
   bool in_error () const { return allocated < 0; }
 
+  template <typename T = Type,
+	    hb_enable_if (std::is_trivially_copy_assignable<T>::value)>
+  Type *
+  realloc_vector (unsigned new_allocated)
+  {
+    return (Type *) hb_realloc (arrayZ, new_allocated * sizeof (Type));
+  }
+  template <typename T = Type,
+	    hb_enable_if (!std::is_trivially_copy_assignable<T>::value)>
+  Type *
+  realloc_vector (unsigned new_allocated)
+  {
+    Type *new_array = (Type *) hb_malloc (new_allocated * sizeof (Type));
+    if (likely (new_array))
+    {
+      for (unsigned i = 0; i < length; i++)
+	new (std::addressof (new_array[i])) Type ();
+      for (unsigned i = 0; i < (unsigned) length; i++)
+	new_array[i] = std::move (arrayZ[i]);
+      for (unsigned i = 0; i < (unsigned) length; i++)
+	arrayZ[i].~Type ();
+      hb_free (arrayZ);
+    }
+    return new_array;
+  }
+
   /* Allocate for size but don't adjust length. */
   bool alloc (unsigned int size)
   {
@@ -225,7 +251,7 @@ struct hb_vector_t
       (new_allocated < (unsigned) allocated) ||
       hb_unsigned_mul_overflows (new_allocated, sizeof (Type));
     if (likely (!overflows))
-      new_array = (Type *) hb_realloc (arrayZ, new_allocated * sizeof (Type));
+      new_array = realloc_vector (new_allocated);
 
     if (unlikely (!new_array))
     {
@@ -246,6 +272,7 @@ struct hb_vector_t
       return false;
 
     if (size > length)
+      // XXX reconstruct objects?! / destruct objects...
       memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
 
     length = size;
@@ -256,6 +283,7 @@ struct hb_vector_t
   {
     if (!length) return Null (Type);
     return std::move (arrayZ[--length]); /* Does this move actually work? */
+    // XXX Destruct?
   }
 
   void remove (unsigned int i)
