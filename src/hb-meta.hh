@@ -126,7 +126,6 @@ template <typename T> using hb_remove_pointer = typename hb_match_pointer<T>::ty
 template <typename T> auto _hb_try_add_pointer (hb_priority<1>) -> hb_type_identity<hb_remove_reference<T>*>;
 template <typename T> auto _hb_try_add_pointer (hb_priority<1>) -> hb_type_identity<T>;
 template <typename T> using hb_add_pointer = decltype (_hb_try_add_pointer<T> (hb_prioritize));
-#define hb_is_pointer(T) hb_match_pointer<T>::value
 
 
 /* TODO Add feature-parity to std::decay. */
