@@ -107,7 +107,6 @@ template <typename T> static inline T hb_declval ();
 template <typename T> struct hb_match_const		: hb_type_identity_t<T>, hb_false_type	{};
 template <typename T> struct hb_match_const<const T>	: hb_type_identity_t<T>, hb_true_type	{};
 template <typename T> using hb_remove_const = typename hb_match_const<T>::type;
-template <typename T> using hb_add_const = const T;
 
 template <typename T> struct hb_match_reference		: hb_type_identity_t<T>, hb_false_type	{};
 template <typename T> struct hb_match_reference<T &>	: hb_type_identity_t<T>, hb_true_type	{};
