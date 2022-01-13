@@ -10,6 +10,16 @@ namespace GSUB {
 
 struct SingleSubstFormat1
 {
+  protected:
+  HBUINT16      format;                 /* Format identifier--format = 1 */
+  Offset16To<Coverage>
+                coverage;               /* Offset to Coverage table--from
+                                         * beginning of Substitution table */
+  HBUINT16      deltaGlyphID;           /* Add to original GlyphID to get
+                                         * substitute GlyphID, modulo 0x10000 */
+
+  public:
+
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
@@ -103,13 +113,6 @@ struct SingleSubstFormat1
     return_trace (coverage.sanitize (c, this) && deltaGlyphID.sanitize (c));
   }
 
-  protected:
-  HBUINT16      format;                 /* Format identifier--format = 1 */
-  Offset16To<Coverage>
-                coverage;               /* Offset to Coverage table--from
-                                         * beginning of Substitution table */
-  HBUINT16      deltaGlyphID;           /* Add to original GlyphID to get
-                                         * substitute GlyphID, modulo 0x10000 */
   public:
   DEFINE_SIZE_STATIC (6);
 };

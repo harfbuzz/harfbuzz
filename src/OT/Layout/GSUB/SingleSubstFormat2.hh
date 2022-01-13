@@ -1,5 +1,5 @@
-#ifndef OT_LAYOUT_GSUB_SINGLE_SUBST_FORMAT2
-#define OT_LAYOUT_GSUB_SINGLE_SUBST_FORMAT2
+#ifndef OT_LAYOUT_GSUB_SINGLE_SUBST_FORMAT_2
+#define OT_LAYOUT_GSUB_SINGLE_SUBST_FORMAT_2
 
 #include "Common.hh"
 #include "hb-ot-layout-gsubgpos.hh"
@@ -10,6 +10,17 @@ namespace GSUB {
 
 struct SingleSubstFormat2
 {
+  protected:
+  HBUINT16      format;                 /* Format identifier--format = 2 */
+  Offset16To<Coverage>
+                coverage;               /* Offset to Coverage table--from
+                                         * beginning of Substitution table */
+  Array16Of<HBGlyphID16>
+                substitute;             /* Array of substitute
+                                         * GlyphIDs--ordered by Coverage Index */
+
+  public:
+
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
@@ -101,14 +112,6 @@ struct SingleSubstFormat2
     return_trace (coverage.sanitize (c, this) && substitute.sanitize (c));
   }
 
-  protected:
-  HBUINT16      format;                 /* Format identifier--format = 2 */
-  Offset16To<Coverage>
-                coverage;               /* Offset to Coverage table--from
-                                         * beginning of Substitution table */
-  Array16Of<HBGlyphID16>
-                substitute;             /* Array of substitute
-                                         * GlyphIDs--ordered by Coverage Index */
   public:
   DEFINE_SIZE_ARRAY (6, substitute);
 };
