@@ -211,6 +211,9 @@ struct
 }
 HB_FUNCOBJ (hb_bool);
 
+template <typename T> T hb_coerce (const T v) { return v; }
+template <typename T> T hb_coerce (const T *v) { return *v; }
+
 struct
 {
   private:
