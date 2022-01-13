@@ -70,6 +70,7 @@
       through the setter and getter functions described in the API
       Reference manual.
     </para>
+    <para>
       Note that many object types can be marked as read-only or immutable,
       facilitating their use in multi-threaded environments.
     </para>
