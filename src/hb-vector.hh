@@ -82,7 +82,7 @@ struct hb_vector_t
 
   void fini ()
   {
-    // XXX Destruct
+    shrink_vector (0);
     hb_free (arrayZ);
     init ();
   }
@@ -224,12 +224,33 @@ struct hb_vector_t
 	new (std::addressof (new_array[i])) Type ();
       for (unsigned i = 0; i < (unsigned) length; i++)
 	new_array[i] = std::move (arrayZ[i]);
-      for (unsigned i = 0; i < (unsigned) length; i++)
-	arrayZ[i].~Type ();
+      unsigned old_length = length;
+      shrink_vector (0);
+      length = old_length;
       hb_free (arrayZ);
     }
     return new_array;
   }
+
+  template <typename T = Type,
+	    hb_enable_if (std::is_trivially_copy_assignable<T>::value)>
+  void
+  shrink_vector (unsigned size)
+  {
+    length = size;
+  }
+  template <typename T = Type,
+	    hb_enable_if (!std::is_trivially_copy_assignable<T>::value)>
+  void
+  shrink_vector (unsigned size)
+  {
+    while ((unsigned) length > size)
+    {
+      arrayZ[(unsigned) length - 1].~Type ();
+      length--;
+    }
+  }
+
 
   /* Allocate for size but don't adjust length. */
   bool alloc (unsigned int size)
@@ -276,8 +297,7 @@ struct hb_vector_t
       // XXX construct objects.
       memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
     else if (size < length)
-      // XXX destroy objects.
-    {}
+      shrink_vector (size);
 
     length = size;
     return true;
@@ -307,9 +327,7 @@ struct hb_vector_t
     if (size >= length)
       return;
 
-    // XXX Destruct.
-
-    length = size;
+    shrink_vector (size);
   }
 
   template <typename T>
