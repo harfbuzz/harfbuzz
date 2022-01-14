@@ -82,6 +82,7 @@ struct hb_vector_t
 
   void fini ()
   {
+    // XXX Destruct
     hb_free (arrayZ);
     init ();
   }
@@ -272,8 +273,11 @@ struct hb_vector_t
       return false;
 
     if (size > length)
-      // XXX reconstruct objects?! / destruct objects...
+      // XXX construct objects.
       memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
+    else if (size < length)
+      // XXX destroy objects.
+    {}
 
     length = size;
     return true;
@@ -290,6 +294,7 @@ struct hb_vector_t
   {
     if (unlikely (i >= length))
       return;
+    // XXX Swap / move / destruct.
     memmove (static_cast<void *> (&arrayZ[i]),
 	     static_cast<void *> (&arrayZ[i + 1]),
 	     (length - i - 1) * sizeof (Type));
@@ -299,8 +304,12 @@ struct hb_vector_t
   void shrink (int size_)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
-     if (size < length)
-       length = size;
+    if (size >= length)
+      return;
+
+    // XXX Destruct.
+
+    length = size;
   }
 
   template <typename T>
