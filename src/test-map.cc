@@ -78,6 +78,14 @@ main (int argc, char **argv)
     assert (v.get_population () == 2);
   }
 
+  /* Test call fini() twice. */
+  {
+    hb_map_t s;
+    for (int i = 0; i < 16; i++)
+      s.set(i, i+1);
+    s.fini();
+  }
+
   /* Test initializing from iterator. */
   {
     hb_map_t s;
