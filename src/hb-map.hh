@@ -131,7 +131,7 @@ struct hb_hashmap_t
   }
   void fini_shallow ()
   {
-    if (unlikely (!items)) {
+    if (likely (items)) {
       unsigned size = mask + 1;
       for (unsigned i = 0; i < size; i++)
         items[i].~item_t ();
