@@ -29,6 +29,7 @@
 
 #include "hb.hh"
 
+#include <memory>
 #include <type_traits>
 #include <utility>
 
