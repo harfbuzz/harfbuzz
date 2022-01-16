@@ -271,6 +271,23 @@ struct hb_vector_t
     }
   }
 
+  template <typename T = Type,
+	    hb_enable_if (std::is_trivially_copy_assignable<T>::value)>
+  void
+  shift_down_vector (unsigned i)
+  {
+    memmove (static_cast<void *> (&arrayZ[i - 1]),
+	     static_cast<void *> (&arrayZ[i]),
+	     (length - i) * sizeof (Type));
+  }
+  template <typename T = Type,
+	    hb_enable_if (!std::is_trivially_copy_assignable<T>::value)>
+  void
+  shift_down_vector (unsigned i)
+  {
+    for (; i < length; i++)
+      arrayZ[i - 1] = std::move (arrayZ[i]);
+  }
 
   /* Allocate for size but don't adjust length. */
   bool alloc (unsigned int size)
@@ -335,10 +352,8 @@ struct hb_vector_t
   {
     if (unlikely (i >= length))
       return;
-    // XXX Swap / move / destruct.
-    memmove (static_cast<void *> (&arrayZ[i]),
-	     static_cast<void *> (&arrayZ[i + 1]),
-	     (length - i - 1) * sizeof (Type));
+    arrayZ[i].~Type ();
+    shift_down_vector (i + 1);
     length--;
   }
 
