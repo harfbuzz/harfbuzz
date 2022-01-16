@@ -233,7 +233,8 @@ struct hb_vector_t
   }
 
   template <typename T = Type,
-	    hb_enable_if (std::is_trivially_copy_assignable<T>::value)>
+	    hb_enable_if (std::is_trivially_constructible<T>::value ||
+			  !std::is_default_constructible<T>::value)>
   void
   grow_vector (unsigned size)
   {
@@ -241,7 +242,8 @@ struct hb_vector_t
     length = size;
   }
   template <typename T = Type,
-	    hb_enable_if (!std::is_trivially_copy_assignable<T>::value)>
+	    hb_enable_if (!std::is_trivially_constructible<T>::value &&
+			   std::is_default_constructible<T>::value)>
   void
   grow_vector (unsigned size)
   {
@@ -253,14 +255,14 @@ struct hb_vector_t
   }
 
   template <typename T = Type,
-	    hb_enable_if (std::is_trivially_copy_assignable<T>::value)>
+	    hb_enable_if (std::is_trivially_destructible<T>::value)>
   void
   shrink_vector (unsigned size)
   {
     length = size;
   }
   template <typename T = Type,
-	    hb_enable_if (!std::is_trivially_copy_assignable<T>::value)>
+	    hb_enable_if (!std::is_trivially_destructible<T>::value)>
   void
   shrink_vector (unsigned size)
   {
