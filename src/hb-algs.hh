@@ -212,10 +212,10 @@ struct
 HB_FUNCOBJ (hb_bool);
 
 template <typename T>
-T hb_coerce (const T v) { return v; }
+HB_INTERNAL T hb_coerce (const T v) { return v; }
 template <typename T, typename V,
 	  hb_enable_if (!hb_is_same (hb_decay<T>, hb_decay<V>) && std::is_pointer<V>::value)>
-T hb_coerce (const V v) { return *v; }
+HB_INTERNAL T hb_coerce (const V v) { return *v; }
 
 struct
 {
