@@ -41,17 +41,18 @@
 #endif
 
 #ifdef WIN32
-using hb_locale_t = _locale_t;
+#define hb_locale_t _locale_t;
 #else
-using hb_locale_t = locale_t;
+#define hb_locale_t locale_t;
 #endif
+#define hb_setlocale setlocale
+#define hb_uselocale uselocale
 
 #else
 
-using hb_locale_t = void *;
 #define hb_locale_t void *
-#define setlocale(Category, Locale) "C"
-#define uselocale(Locale) ((hb_locale_t) 0)
+#define hb_setlocale(Category, Locale) "C"
+#define hb_uselocale(Locale) ((hb_locale_t) 0)
 
 #endif
 
@@ -433,7 +434,7 @@ hb_language_get_default ()
   hb_language_t language = default_language;
   if (unlikely (language == HB_LANGUAGE_INVALID))
   {
-    language = hb_language_from_string (setlocale (LC_CTYPE, nullptr), -1);
+    language = hb_language_from_string (hb_setlocale (LC_CTYPE, nullptr), -1);
     (void) default_language.cmpexch (HB_LANGUAGE_INVALID, language);
   }
 
@@ -1127,9 +1128,9 @@ hb_variation_to_string (hb_variation_t *variation,
   s[len++] = '=';
 
   hb_locale_t oldlocale HB_UNUSED;
-  oldlocale = uselocale (get_C_locale ());
+  oldlocale = hb_uselocale (get_C_locale ());
   len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
-  (void) uselocale (oldlocale);
+  (void) hb_uselocale (oldlocale);
 
   assert (len < ARRAY_LENGTH (s));
   len = hb_min (len, size - 1);
