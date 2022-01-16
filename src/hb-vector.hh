@@ -235,6 +235,26 @@ struct hb_vector_t
   template <typename T = Type,
 	    hb_enable_if (std::is_trivially_copy_assignable<T>::value)>
   void
+  grow_vector (unsigned size)
+  {
+    memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
+    length = size;
+  }
+  template <typename T = Type,
+	    hb_enable_if (!std::is_trivially_copy_assignable<T>::value)>
+  void
+  grow_vector (unsigned size)
+  {
+    while (length < size)
+    {
+      length++;
+      new (std::addressof (arrayZ[length - 1])) Type ();
+    }
+  }
+
+  template <typename T = Type,
+	    hb_enable_if (std::is_trivially_copy_assignable<T>::value)>
+  void
   shrink_vector (unsigned size)
   {
     length = size;
@@ -294,8 +314,7 @@ struct hb_vector_t
       return false;
 
     if (size > length)
-      // XXX construct objects.
-      memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
+      grow_vector (size);
     else if (size < length)
       shrink_vector (size);
 
