@@ -41,9 +41,9 @@
 #endif
 
 #ifdef WIN32
-#define hb_locale_t _locale_t;
+#define hb_locale_t _locale_t
 #else
-#define hb_locale_t locale_t;
+#define hb_locale_t locale_t
 #endif
 #define hb_setlocale setlocale
 #define hb_uselocale uselocale
