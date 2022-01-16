@@ -849,7 +849,7 @@ struct FeatureParamsSize
     if (unlikely (!c->check_struct (this))) return_trace (false);
 
     /* This subtable has some "history", if you will.  Some earlier versions of
-     * Adobe tools calculated the offset of the FeatureParams sutable from the
+     * Adobe tools calculated the offset of the FeatureParams subtable from the
      * beginning of the FeatureList table!  Now, that is dealt with in the
      * Feature implementation.  But we still need to be able to tell junk from
      * real data.  Note: We don't check that the nameID actually exists.

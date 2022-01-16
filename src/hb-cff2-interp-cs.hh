@@ -202,7 +202,7 @@ struct cff2_cs_opset_t : cs_opset_t<blend_arg_t, OPSET, cff2_cs_interp_env_t, PA
     switch (op) {
       case OpCode_callsubr:
       case OpCode_callgsubr:
-	/* a subroutine number shoudln't be a blended value */
+	/* a subroutine number shouldn't be a blended value */
 	if (unlikely (env.argStack.peek ().blending ()))
 	{
 	  env.set_error ();

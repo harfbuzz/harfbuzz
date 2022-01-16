@@ -40,7 +40,7 @@ Other implementations exist, such as in
 
 There's four key pieces to the harfbuzz approach:
 
-*  Subtable Graph: a table's internal structure is abstraced out into a lightweight graph
+*  Subtable Graph: a table's internal structure is abstracted out into a lightweight graph
    representation where each subtable is a node and each offset forms an edge. The nodes only need
    to know how many bytes the corresponding subtable occupies. This lightweight representation can
    be easily modified to test new ordering's and strategies as the repacking algorithm iterates.
@@ -54,7 +54,7 @@ There's four key pieces to the harfbuzz approach:
    to calculate the final position of each subtable and then check if any offsets to it will
    overflow.
    
-*  Offset resolution strategies: given a particular occurence of an overflow these strategies
+*  Offset resolution strategies: given a particular occurrence of an overflow these strategies
    modify the graph to attempt to resolve the overflow.
    
 # High Level Algorithm
@@ -111,7 +111,7 @@ to be as fast as possible. There's a few things that are done to speed up subseq
 operations:
 
 *  The number of incoming edges to each node is cached. This is required by the Kahn's algorithm
-   portion of boths sorts. Where possible when the graph is modified we manually update the cached
+   portion of both sorts. Where possible when the graph is modified we manually update the cached
    edge counts of affected nodes.
    
 *  The distance to each node is cached. Where possible when the graph is modified we manually update
@@ -165,7 +165,7 @@ The above is an ideal situation where the subgraphs are disconnected from each o
 this is often not this case. So this idea can be generalized as follows:
 
 If there is a subgraph that is only reachable from one or more 32 bit offsets, then:
-*  That subgraph can be treated as an indepedent unit and all nodes of the subgraph packed in isolation
+*  That subgraph can be treated as an independent unit and all nodes of the subgraph packed in isolation
    from the rest of the graph.
 *  In a table that occupies less than 4gb of space (in practice all fonts), that packed independent
    subgraph can be placed anywhere after the parent nodes without overflowing the 32 bit offsets from
@@ -217,7 +217,7 @@ and then assign each such subgraph to a unique non-zero space. The algorithm is 
 ## Manual Iterative Resolutions
 
 For each overflow in each iteration the algorithm will attempt to apply offset overflow resolution
-strategies to eliminate the overflow. The type of strategy applied is dependant on the characteristics
+strategies to eliminate the overflow. The type of strategy applied is dependent on the characteristics
 of the overflowing link:
 
 *  If the overflowing offset is inside a space other than space 0 and the subgraph space has more
@@ -235,7 +235,7 @@ of the overflowing link:
 
 The harfbuzz repacker has tests defined using generic graphs: https://github.com/harfbuzz/harfbuzz/blob/main/src/test-repacker.cc
    
-# Future Improvments
+# Future Improvements
 
 The above resolution strategies are not sufficient to resolve all overflows. For example consider
 the case where a single subtable is 65k and the graph structure requires an offset to point over it.

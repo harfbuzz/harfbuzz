@@ -312,7 +312,7 @@ test_get_glyph_kerning (void)
   openFont("fonts/MathTestFontFull.otf");
   g_assert(hb_font_get_glyph_from_name (hb_font, "I", -1, &glyph));
 
-  g_assert_cmpint(hb_ot_math_get_glyph_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 7), ==, 62); // lower than min heigth
+  g_assert_cmpint(hb_ot_math_get_glyph_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 7), ==, 62); // lower than min height
   g_assert_cmpint(hb_ot_math_get_glyph_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 14), ==, 62); // equal to min height
   g_assert_cmpint(hb_ot_math_get_glyph_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 20), ==, 104);
   g_assert_cmpint(hb_ot_math_get_glyph_kerning (hb_font, glyph, HB_OT_MATH_KERN_TOP_RIGHT, 23), ==, 104);

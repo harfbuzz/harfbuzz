@@ -871,7 +871,7 @@ struct graph_t
     // Redundant ones are filtered out later on by the visited set.
     // According to https://www3.cs.stonybrook.edu/~rezaul/papers/TR-07-54.pdf
     // for practical performance this is faster then using a more advanced queue
-    // (such as a fibonaacci queue) with a fast decrease priority.
+    // (such as a fibonacci queue) with a fast decrease priority.
     for (unsigned i = 0; i < vertices_.length; i++)
     {
       if (i == vertices_.length - 1)

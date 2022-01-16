@@ -8,7 +8,7 @@
 #include "hb.h"
 
 // Only allow ~5,000 set values between the two input sets.
-// Arbitarily long input sets do not trigger any meaningful
+// Arbitrarily long input sets do not trigger any meaningful
 // differences in behaviour so there's no benefit from allowing
 // the fuzzer to create super large sets.
 #define MAX_INPUT_SIZE 20000

@@ -1034,7 +1034,7 @@ hb_ot_position_complex (const hb_ot_shape_context_t *c)
    * hanging over the next glyph after the final reordering.
    *
    * Note: If fallback positinoing happens, we don't care about
-   * this as it will be overriden.
+   * this as it will be overridden.
    */
   bool adjust_offsets_when_zeroing = c->plan->adjust_mark_positioning_when_zeroing &&
 				     HB_DIRECTION_IS_FORWARD (c->buffer->props.direction);

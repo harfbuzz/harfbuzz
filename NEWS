@@ -384,7 +384,7 @@ Friday, May 24, 2019
   code-base changes.  We now require C++11.  Support for gcc 4.8 and earlier has been
   dropped.
 - New hb-config.hh facility for compiling smaller library for embedded and web usecases.
-- New Unicode Character Databse implementation that is half the size of previously-used
+- New Unicode Character Database implementation that is half the size of previously-used
   UCDN.
 - Subsetter improvements.
 - Improved documentation, thanks to Nathan Willis.
@@ -1232,7 +1232,7 @@ Thursday, February 25, 2016
   due to bug in glyph class of ASCII double-quote character.  This should
   address "regression" introduced in 1.2.0 when we switched mark zeroing
   in most shapers from BY_UNICODE_LATE to BY_GDEF_LATE.
-  This fourth release in a week should finally stablize things...
+  This fourth release in a week should finally stabilize things...
 
 - hb-ot-font's get_glyph() implementation saw some optimizations.  Though,
   might be really hard to measure in real-world situations.
@@ -2280,7 +2280,7 @@ o Changed API:
   - hb_buffer_create() takes zero arguments now.
     Use hb_buffer_pre_allocate() to pre-allocate.
 
-  - hb_buffer_add_utf*() now accept -1 for length parameteres,
+  - hb_buffer_add_utf*() now accept -1 for length parameters,
     meaning "nul-terminated".
 
   - hb_direction_t enum values changed.

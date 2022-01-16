@@ -249,7 +249,7 @@ block_best (const biimage_t &bi, bool *inverse)
       total_i += c_i;
     }
 
-  /* Make the sums cummulative */
+  /* Make the sums cumulative */
   for (unsigned int i = 1; i < bi.height; i++) {
     row_sum[i] += row_sum[i - 1];
     row_sum_i[i] += row_sum_i[i - 1];

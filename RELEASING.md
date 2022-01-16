@@ -28,7 +28,7 @@
 - [ ] Commit NEWS, meson.build, configure.ac, and src/hb-version.h, as well as any REPLACEME changes you made.
         The commit message is simply the release number, e. g. "1.4.7"
 
-- [ ] Do a `meson dist -Cbuild` that runs the tests against the latest commited changes.
+- [ ] Do a `meson dist -Cbuild` that runs the tests against the latest committed changes.
    If doesn't pass, something fishy is going on, reset the repo and start over.
 
 - [ ] Tag the release and sign it: e.g. `git tag -s 1.4.7 -m 1.4.7`.
