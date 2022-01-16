@@ -399,7 +399,7 @@ struct gvar
 				  get_offset (glyphCount) - get_offset (0)));
   }
 
-  /* GlyphVariationData not sanitized here; must be checked while accessing each glyph varation data */
+  /* GlyphVariationData not sanitized here; must be checked while accessing each glyph variation data */
   bool sanitize (hb_sanitize_context_t *c) const
   { return sanitize_shallow (c); }
 

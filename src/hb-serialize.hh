@@ -279,7 +279,7 @@ struct hb_serialize_context_t
     object_pool.release (obj);
   }
 
-  /* Set share to false when an object is unlikely sharable with others
+  /* Set share to false when an object is unlikely shareable with others
    * so not worth an attempt, or a contiguous table is serialized as
    * multiple consecutive objects in the reverse order so can't be shared.
    */
@@ -381,7 +381,7 @@ struct hb_serialize_context_t
   // Adding a virtual link from object a to object b will ensure that object b is always packed after
   // object a in the final serialized order.
   //
-  // This is useful in certain situtations where there needs to be a specific ordering in the
+  // This is useful in certain situations where there needs to be a specific ordering in the
   // final serialization. Such as when platform bugs require certain orderings, or to provide
   //  guidance to the repacker for better offset overflow resolution.
   void add_virtual_link (objidx_t objidx)
