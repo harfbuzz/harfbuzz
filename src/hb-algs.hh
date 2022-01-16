@@ -482,6 +482,10 @@ struct hb_pair_t
   typedef T2 second_t;
   typedef hb_pair_t<T1, T2> pair_t;
 
+  template <typename U1 = T1, typename U2 = T2,
+	    hb_enable_if (std::is_default_constructible<U1>::value &&
+			  std::is_default_constructible<U2>::value)>
+  hb_pair_t () : first (), second () {}
   hb_pair_t (T1 a, T2 b) : first (a), second (b) {}
 
   template <typename Q1, typename Q2,
