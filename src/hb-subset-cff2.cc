@@ -242,7 +242,6 @@ struct cff2_subset_plan {
       desubroutinize (false)
   {
     subset_fdselect_ranges.init ();
-    fdmap.init ();
     subset_charstrings.init ();
     subset_globalsubrs.init ();
     subset_localsubrs.init ();
@@ -251,7 +250,6 @@ struct cff2_subset_plan {
   ~cff2_subset_plan ()
   {
     subset_fdselect_ranges.fini ();
-    fdmap.fini ();
     subset_charstrings.fini_deep ();
     subset_globalsubrs.fini_deep ();
     subset_localsubrs.fini_deep ();

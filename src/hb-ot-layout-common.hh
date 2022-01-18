@@ -2930,8 +2930,6 @@ struct VariationStore
 
     hb_vector_t<hb_inc_bimap_t> inner_maps;
     inner_maps.resize ((unsigned) dataSets.len);
-    for (unsigned i = 0; i < inner_maps.length; i++)
-      inner_maps[i].init ();
 
     for (unsigned idx : c->plan->layout_variation_indices->iter ())
     {
@@ -2939,17 +2937,10 @@ struct VariationStore
       uint16_t minor = idx & 0xFFFF;
 
       if (major >= inner_maps.length)
-      {
-	for (unsigned i = 0; i < inner_maps.length; i++)
-	  inner_maps[i].fini ();
 	return_trace (false);
-      }
       inner_maps[major].add (minor);
     }
     varstore_prime->serialize (c->serializer, this, inner_maps.as_array ());
-
-    for (unsigned i = 0; i < inner_maps.length; i++)
-      inner_maps[i].fini ();
 
     return_trace (
         !c->serializer->in_error()

@@ -371,14 +371,10 @@ struct cff_subset_plan {
   {
     topdict_mod.init ();
     subset_fdselect_ranges.init ();
-    fdmap.init ();
     subset_charstrings.init ();
     subset_globalsubrs.init ();
-    subset_localsubrs.init ();
-    fontdicts_mod.init ();
     subset_enc_code_ranges.init ();
     subset_charset_ranges.init ();
-    sidmap.init ();
     for (unsigned int i = 0; i < name_dict_values_t::ValCount; i++)
       topDictModSIDs[i] = CFF_UNDEF_SID;
   }
@@ -387,14 +383,10 @@ struct cff_subset_plan {
   {
     topdict_mod.fini ();
     subset_fdselect_ranges.fini ();
-    fdmap.fini ();
     subset_charstrings.fini_deep ();
     subset_globalsubrs.fini_deep ();
-    subset_localsubrs.fini_deep ();
-    fontdicts_mod.fini ();
     subset_enc_code_ranges.fini ();
     subset_charset_ranges.fini ();
-    sidmap.fini ();
   }
 
   void plan_subset_encoding (const OT::cff1::accelerator_subset_t &acc, hb_subset_plan_t *plan)

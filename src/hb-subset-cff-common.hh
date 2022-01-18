@@ -526,19 +526,9 @@ struct subr_remap_t : hb_inc_bimap_t
 
 struct subr_remaps_t
 {
-  subr_remaps_t ()
-  {
-    global_remap.init ();
-    local_remaps.init ();
-  }
-
-  ~subr_remaps_t () { fini (); }
-
   void init (unsigned int fdCount)
   {
-    if (unlikely (!local_remaps.resize (fdCount))) return;
-    for (unsigned int i = 0; i < fdCount; i++)
-      local_remaps[i].init ();
+    local_remaps.resize (fdCount);
   }
 
   bool in_error()
@@ -551,12 +541,6 @@ struct subr_remaps_t
     global_remap.create (closures.global_closure);
     for (unsigned int i = 0; i < local_remaps.length; i++)
       local_remaps[i].create (closures.local_closures[i]);
-  }
-
-  void fini ()
-  {
-    global_remap.fini ();
-    local_remaps.fini_deep ();
   }
 
   subr_remap_t	       global_remap;
@@ -577,7 +561,6 @@ struct subr_subsetter_t
   ~subr_subsetter_t ()
   {
     closures.fini ();
-    remaps.fini ();
     parsed_charstrings.fini_deep ();
     parsed_global_subrs.fini_deep ();
     parsed_local_subrs.fini_deep ();
