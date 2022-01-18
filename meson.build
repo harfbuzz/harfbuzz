@@ -123,6 +123,13 @@ if not get_option('icu').disabled()
   endif
 endif
 
+if icu_dep.found()
+  icu_defs = icu_dep.get_variable(pkgconfig: 'DEFS', default_value: '')
+  if icu_defs != ''
+    add_project_arguments(icu_defs, language: ['c', 'cpp'])
+  endif
+endif
+
 cairo_dep = null_dep
 cairo_ft_dep = null_dep
 if not get_option('cairo').disabled()
