@@ -6,6 +6,4 @@ source_hash = 5f156edb65d20b856d638dd9ee2dfb43285914d9aa2b6ec779dac0270cd56c3f
 patch_directory = ragel
 
 [provide]
-ragel = ragel
-
-
+program_names = ragel

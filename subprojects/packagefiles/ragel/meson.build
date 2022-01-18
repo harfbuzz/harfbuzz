@@ -3,6 +3,7 @@ project('ragel', 'c', 'cpp',
   default_options: [
     'cpp_eh=default',
   ],
+  meson_version: '>=0.50.0',
 )
 
 cpp = meson.get_compiler('cpp')
@@ -64,3 +65,5 @@ ragel = executable(
   include_directories : ['aapl', 'ragel'],
   native : true,
 )
+
+meson.override_find_program('ragel', ragel)
