@@ -383,7 +383,7 @@ struct cff_stack_t
     for (unsigned int i = 0; i < elements.length; i++)
       elements[i].init ();
   }
-  void fini () { elements.fini_deep (); }
+  void fini () { elements.fini (); }
 
   ELEM& operator [] (unsigned int i)
   {
@@ -553,7 +553,7 @@ struct parsed_values_t
     opStart = 0;
     values.init ();
   }
-  void fini () { values.fini_deep (); }
+  void fini () { values.fini (); }
 
   void add_op (op_code_t op, const byte_str_ref_t& str_ref = byte_str_ref_t ())
   {

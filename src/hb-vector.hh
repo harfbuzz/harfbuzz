@@ -86,13 +86,6 @@ struct hb_vector_t
     hb_free (arrayZ);
     init ();
   }
-  void fini_deep ()
-  {
-    unsigned int count = length;
-    for (unsigned int i = 0; i < count; i++)
-      arrayZ[i].fini ();
-    fini ();
-  }
 
   void reset ()
   {
