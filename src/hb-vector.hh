@@ -86,13 +86,6 @@ struct hb_vector_t
     hb_free (arrayZ);
     init ();
   }
-  void fini_deep ()
-  {
-    unsigned int count = length;
-    for (unsigned int i = 0; i < count; i++)
-      arrayZ[i].fini ();
-    fini ();
-  }
 
   void reset ()
   {
@@ -193,6 +186,7 @@ struct hb_vector_t
   template <typename T>
   Type *push (T&& v)
   {
+    /* TODO Emplace? */
     Type *p = push ();
     if (p == &Crap (Type))
       // If push failed to allocate then don't copy v, since this may cause
