@@ -416,16 +416,6 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
 
 struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
 {
-  void init (unsigned int len_ = 0)
-  {
-    SUPER::init ();
-    if (unlikely (!resize (len_)))
-      return;
-    for (unsigned int i = 0; i < length; i++)
-      (*this)[i].init ();
-  }
-  void fini () { SUPER::fini_deep (); }
-
   private:
   typedef hb_vector_t<parsed_cs_str_t> SUPER;
 };
@@ -552,19 +542,7 @@ struct subr_subsetter_t
 {
   subr_subsetter_t (ACC &acc_, const hb_subset_plan_t *plan_)
     : acc (acc_), plan (plan_)
-  {
-    parsed_charstrings.init ();
-    parsed_global_subrs.init ();
-    parsed_local_subrs.init ();
-  }
-
-  ~subr_subsetter_t ()
-  {
-    closures.fini ();
-    parsed_charstrings.fini_deep ();
-    parsed_global_subrs.fini_deep ();
-    parsed_local_subrs.fini_deep ();
-  }
+  {}
 
   /* Subroutine subsetting with --no-desubroutinize runs in phases:
    *
@@ -585,8 +563,8 @@ struct subr_subsetter_t
     closures.init (acc.fdCount);
     remaps.init (acc.fdCount);
 
-    parsed_charstrings.init (plan->num_output_glyphs ());
-    parsed_global_subrs.init (acc.globalSubrs->count);
+    parsed_charstrings.resize (plan->num_output_glyphs ());
+    parsed_global_subrs.resize (acc.globalSubrs->count);
 
     if (unlikely (remaps.in_error()
                   || parsed_charstrings.in_error ()
@@ -598,7 +576,7 @@ struct subr_subsetter_t
 
     for (unsigned int i = 0; i < acc.fdCount; i++)
     {
-      parsed_local_subrs[i].init (acc.privateDicts[i].localSubrs->count);
+      parsed_local_subrs[i].resize (acc.privateDicts[i].localSubrs->count);
       if (unlikely (parsed_local_subrs[i].in_error ())) return false;
     }
     if (unlikely (!closures.valid))
