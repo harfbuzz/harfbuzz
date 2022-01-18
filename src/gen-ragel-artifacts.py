@@ -7,7 +7,8 @@ import os, os.path, sys, subprocess, shutil
 uninstalled_error = """
 'ragel' is missing on your system. In order to develop HarfBuzz itself,
 specifically, by editing the *.rl source files, you have to install ragel
-in order to transpile them to C++ headers.
+in order to transpile them to C++ headers. Try configuring meson with
+`--wrap-mode=default -Dragel=enabled`
 """.strip()
 
 ragel = sys.argv[1]

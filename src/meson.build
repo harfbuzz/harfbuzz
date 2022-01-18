@@ -411,12 +411,8 @@ hb_gobject_headers = files(
   'hb-gobject-structs.h',
 )
 
-ragel = find_program('ragel', version: '6.10', required: false)
+ragel = find_program('ragel', version: '6.10', required: get_option('ragel'))
 has_ragel = ragel.found()
-if not has_ragel and get_option('ragel_subproject')
-    ragel = subproject('ragel').get_variable('ragel')
-    has_ragel = true
-endif
 if not has_ragel
   if not meson.is_subproject()
     message('You have to install ragel if you are going to develop HarfBuzz itself')
