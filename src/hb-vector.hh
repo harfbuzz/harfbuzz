@@ -82,6 +82,7 @@ struct hb_vector_t
 
   void fini ()
   {
+    shrink_vector (0);
     hb_free (arrayZ);
     init ();
   }
@@ -223,11 +224,71 @@ struct hb_vector_t
 	new (std::addressof (new_array[i])) Type ();
       for (unsigned i = 0; i < (unsigned) length; i++)
 	new_array[i] = std::move (arrayZ[i]);
-      for (unsigned i = 0; i < (unsigned) length; i++)
-	arrayZ[i].~Type ();
+      unsigned old_length = length;
+      shrink_vector (0);
+      length = old_length;
       hb_free (arrayZ);
     }
     return new_array;
+  }
+
+  template <typename T = Type,
+	    hb_enable_if (std::is_trivially_constructible<T>::value ||
+			  !std::is_default_constructible<T>::value)>
+  void
+  grow_vector (unsigned size)
+  {
+    memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
+    length = size;
+  }
+  template <typename T = Type,
+	    hb_enable_if (!std::is_trivially_constructible<T>::value &&
+			   std::is_default_constructible<T>::value)>
+  void
+  grow_vector (unsigned size)
+  {
+    while (length < size)
+    {
+      length++;
+      new (std::addressof (arrayZ[length - 1])) Type ();
+    }
+  }
+
+  template <typename T = Type,
+	    hb_enable_if (std::is_trivially_destructible<T>::value)>
+  void
+  shrink_vector (unsigned size)
+  {
+    length = size;
+  }
+  template <typename T = Type,
+	    hb_enable_if (!std::is_trivially_destructible<T>::value)>
+  void
+  shrink_vector (unsigned size)
+  {
+    while ((unsigned) length > size)
+    {
+      arrayZ[(unsigned) length - 1].~Type ();
+      length--;
+    }
+  }
+
+  template <typename T = Type,
+	    hb_enable_if (std::is_trivially_copy_assignable<T>::value)>
+  void
+  shift_down_vector (unsigned i)
+  {
+    memmove (static_cast<void *> (&arrayZ[i - 1]),
+	     static_cast<void *> (&arrayZ[i]),
+	     (length - i) * sizeof (Type));
+  }
+  template <typename T = Type,
+	    hb_enable_if (!std::is_trivially_copy_assignable<T>::value)>
+  void
+  shift_down_vector (unsigned i)
+  {
+    for (; i < length; i++)
+      arrayZ[i - 1] = std::move (arrayZ[i]);
   }
 
   /* Allocate for size but don't adjust length. */
@@ -272,8 +333,9 @@ struct hb_vector_t
       return false;
 
     if (size > length)
-      // XXX reconstruct objects?! / destruct objects...
-      memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
+      grow_vector (size);
+    else if (size < length)
+      shrink_vector (size);
 
     length = size;
     return true;
@@ -282,25 +344,28 @@ struct hb_vector_t
   Type pop ()
   {
     if (!length) return Null (Type);
-    return std::move (arrayZ[--length]); /* Does this move actually work? */
-    // XXX Destruct?
+    Type v = std::move (arrayZ[length - 1]);
+    arrayZ[length - 1].~Type ();
+    length--;
+    return v;
   }
 
   void remove (unsigned int i)
   {
     if (unlikely (i >= length))
       return;
-    memmove (static_cast<void *> (&arrayZ[i]),
-	     static_cast<void *> (&arrayZ[i + 1]),
-	     (length - i - 1) * sizeof (Type));
+    arrayZ[i].~Type ();
+    shift_down_vector (i + 1);
     length--;
   }
 
   void shrink (int size_)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
-     if (size < length)
-       length = size;
+    if (size >= length)
+      return;
+
+    shrink_vector (size);
   }
 
   template <typename T>

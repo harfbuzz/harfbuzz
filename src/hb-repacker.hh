@@ -186,7 +186,7 @@ struct graph_t
 
   ~graph_t ()
   {
-    vertices_.fini_deep ();
+    vertices_.fini ();
   }
 
   bool in_error () const
@@ -309,7 +309,7 @@ struct graph_t
     remap_all_obj_indices (id_map, &sorted_graph);
 
     hb_swap (vertices_, sorted_graph);
-    sorted_graph.fini_deep ();
+    sorted_graph.fini ();
   }
 
   /*
@@ -369,7 +369,7 @@ struct graph_t
     remap_all_obj_indices (id_map, &sorted_graph);
 
     hb_swap (vertices_, sorted_graph);
-    sorted_graph.fini_deep ();
+    sorted_graph.fini ();
   }
 
   /*
