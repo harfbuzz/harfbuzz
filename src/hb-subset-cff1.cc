@@ -377,7 +377,6 @@ struct cff_subset_plan {
     subset_localsubrs.init ();
     fontdicts_mod.init ();
     subset_enc_code_ranges.init ();
-    subset_enc_supp_codes.init ();
     subset_charset_ranges.init ();
     sidmap.init ();
     for (unsigned int i = 0; i < name_dict_values_t::ValCount; i++)
@@ -394,7 +393,6 @@ struct cff_subset_plan {
     subset_localsubrs.fini_deep ();
     fontdicts_mod.fini ();
     subset_enc_code_ranges.fini ();
-    subset_enc_supp_codes.fini ();
     subset_charset_ranges.fini ();
     sidmap.fini ();
   }
