@@ -217,9 +217,6 @@ inline unsigned int OpCode_Size (op_code_t op) { return Is_OpCode_ESC (op) ? 2: 
 
 struct number_t
 {
-  void init () { set_real (0.0); }
-  void fini () {}
-
   void set_int (int v)       { value = v; }
   int to_int () const        { return value; }
 
@@ -245,7 +242,7 @@ struct number_t
   }
 
   protected:
-  double value;
+  double value = 0.;
 };
 
 /* byte string */
@@ -380,8 +377,6 @@ struct cff_stack_t
     count = 0;
     elements.init ();
     elements.resize (kSizeLimit);
-    for (unsigned int i = 0; i < elements.length; i++)
-      elements[i].init ();
   }
   void fini () { elements.fini (); }
 
