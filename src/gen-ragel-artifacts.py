@@ -4,22 +4,32 @@
 
 import os, os.path, sys, subprocess, shutil
 
-ragel = sys.argv[1]
-if not ragel:
-	sys.exit ('You have to install ragel if you are going to develop HarfBuzz itself')
+uninstalled_error = """
+'ragel' is missing on your system. In order to develop HarfBuzz itself,
+specifically, by editing the *.rl source files, you have to install ragel
+in order to transpile them to C++ headers.
+""".strip()
 
-if len (sys.argv) < 4:
+ragel = sys.argv[1]
+
+if len (sys.argv) != 5:
 	sys.exit (__doc__)
 
-OUTPUT = sys.argv[2]
+hh = sys.argv[2]
 CURRENT_SOURCE_DIR = sys.argv[3]
-INPUT = sys.argv[4]
+rl = sys.argv[4]
 
-outdir = os.path.dirname (OUTPUT)
-shutil.copy (INPUT, outdir)
-rl = os.path.basename (INPUT)
-hh = rl.replace ('.rl', '.hh')
-subprocess.Popen (ragel.split() + ['-e', '-F1', '-o', hh, rl], cwd=outdir).wait ()
+outdir = os.path.dirname (hh)
+hh_in_src = os.path.join (CURRENT_SOURCE_DIR, os.path.basename (hh))
 
-# copy it also to src/
-shutil.copyfile (os.path.join (outdir, hh), os.path.join (CURRENT_SOURCE_DIR, hh))
+# We check to see if rl sources are newer than the generated files, with a 1
+# second tolerance (pretend they are a bit older than they actually are) since
+# git clone has a habit of producing inconsistent timestamps.
+if (os.stat (rl).st_mtime - 1) <= os.stat (hh_in_src).st_mtime:
+	shutil.copy (hh_in_src, hh)
+else:
+	if ragel == 'error' or not os.path.exists (ragel):
+		sys.exit (uninstalled_error)
+	subprocess.check_call ([ragel, '-e', '-F1', '-o', hh, rl])
+	# copy it also to src/
+	shutil.copyfile (hh, hh_in_src)
