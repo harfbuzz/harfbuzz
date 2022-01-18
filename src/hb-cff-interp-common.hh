@@ -518,9 +518,6 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
 /* an operator prefixed by its operands in a byte string */
 struct op_str_t
 {
-  void init () {}
-  void fini () {}
-
   op_code_t  op;
   byte_str_t str;
 };

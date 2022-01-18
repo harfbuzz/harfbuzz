@@ -299,14 +299,11 @@ struct parsed_cs_op_t : op_str_t
 {
   void init (unsigned int subr_num_ = 0)
   {
-    op_str_t::init ();
     subr_num = subr_num_;
     drop_flag = false;
     keep_flag = false;
     skip_flag = false;
   }
-
-  void fini () { op_str_t::fini (); }
 
   bool for_drop () const { return drop_flag; }
   void set_drop ()       { if (!for_keep ()) drop_flag = true; }
