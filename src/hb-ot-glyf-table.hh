@@ -595,7 +595,7 @@ struct glyf
         if (unlikely (!header.numberOfContours)) return;
 
         unsigned flags_offset = length (instructions_length ());
-        if (unlikely (length (flags_offset + 1) > bytes.length)) return;
+        if (unlikely (flags_offset + 1 > bytes.length)) return;
 
 	HBUINT8 &first_flag = (HBUINT8 &) StructAtOffset<HBUINT16> (&bytes, flags_offset);
         first_flag = (uint8_t) first_flag | FLAG_OVERLAP_SIMPLE;
