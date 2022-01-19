@@ -57,6 +57,12 @@ if host_machine.cpu_family() == 'arm' and cpp.alignment('struct { char c; }') !=
   endif
 endif
 
+if host_machine.system() == 'windows'
+  add_project_arguments(cpp.get_supported_arguments([
+    '-Wa,-mbig-obj'
+  ]), language : 'cpp')
+endif
+
 check_headers = [
   ['unistd.h'],
   ['sys/mman.h'],
