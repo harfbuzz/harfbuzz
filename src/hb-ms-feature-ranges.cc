@@ -114,7 +114,7 @@ hb_ms_setup_features (const hb_feature_t                *features,
     }
     else
     {
-      auto *feature = active_features.find (&event->feature);
+      auto *feature = active_features.lsearch (event->feature);
       if (feature)
         active_features.remove (feature - active_features.arrayZ);
     }
