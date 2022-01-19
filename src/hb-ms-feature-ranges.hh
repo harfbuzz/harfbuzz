@@ -52,8 +52,8 @@ struct hb_ms_active_feature_t {
 	   a->fea.value < b->fea.value ? -1 : a->fea.value > b->fea.value ? 1 :
 	   0;
   }
-  bool operator== (const hb_ms_active_feature_t *f)
-  { return cmp (this, f) == 0; }
+  bool operator== (const hb_ms_active_feature_t f) const
+  { return cmp (this, &f) == 0; }
 };
 
 struct hb_ms_feature_event_t {
