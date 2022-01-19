@@ -155,7 +155,7 @@ template <typename Iterable>
 using hb_item_type = decltype (*hb_deref (hb_declval (Iterable)).iter ());
 
 
-template <typename> struct hb_array_t;
+template <typename, bool> struct hb_array_t;
 template <typename> struct hb_sorted_array_t;
 
 struct
@@ -166,13 +166,13 @@ struct
 
   /* Specialization for C arrays. */
 
-  template <typename Type> inline hb_array_t<Type>
+  template <typename Type> inline hb_array_t<Type, false>
   operator () (Type *array, unsigned int length) const
-  { return hb_array_t<Type> (array, length); }
+  { return hb_array_t<Type, false> (array, length); }
 
-  template <typename Type, unsigned int length> hb_array_t<Type>
+  template <typename Type, unsigned int length> hb_array_t<Type, false>
   operator () (Type (&array)[length]) const
-  { return hb_array_t<Type> (array, length); }
+  { return hb_array_t<Type, false> (array, length); }
 
 }
 HB_FUNCOBJ (hb_iter);
@@ -843,8 +843,8 @@ struct
 
   /* Specialization arrays. */
 
-  template <typename Type> inline hb_array_t<Type>
-  operator () (hb_array_t<Type> array, unsigned count) const
+  template <typename Type> inline hb_array_t<Type, false>
+  operator () (hb_array_t<Type, false> array, unsigned count) const
   { return array.sub_array (0, count); }
 
   template <typename Type> inline hb_sorted_array_t<Type>

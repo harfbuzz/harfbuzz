@@ -30,6 +30,7 @@
 #include "hb.hh"
 #include "hb-algs.hh"
 #include "hb-iter.hh"
+#include "hb-meta.hh"
 #include "hb-null.hh"
 
 
@@ -44,8 +45,11 @@ enum hb_not_found_t
 };
 
 
-template <typename Type>
-struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
+template <typename Type,
+	  bool sorted=false>
+struct hb_array_t :
+       hb_iter_with_fallback_t<hb_array_t<Type>, Type&>,
+       std::conditional<sorted, hb_array_t<Type, false>, hb_empty_t>::type
 {
   /*
    * Constructors.
@@ -140,6 +144,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     return b->cmp (*a);
   }
 
+  /* Unsorted search API. */
   template <typename T>
   Type *lsearch (const T &x, Type *not_found = nullptr)
   {
@@ -184,6 +189,67 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     return false;
   }
 
+  /* Sorted search API. */
+  template <typename T,
+	    bool Sorted=sorted, hb_enable_if (Sorted)>
+  Type *bsearch (const T &x, Type *not_found = nullptr)
+  {
+    unsigned int i;
+    return bfind (x, &i) ? &this->arrayZ[i] : not_found;
+  }
+  template <typename T,
+	    bool Sorted=sorted, hb_enable_if (Sorted)>
+  const Type *bsearch (const T &x, const Type *not_found = nullptr) const
+  {
+    unsigned int i;
+    return bfind (x, &i) ? &this->arrayZ[i] : not_found;
+  }
+  template <typename T,
+	    bool Sorted=sorted, hb_enable_if (Sorted)>
+  bool bfind (const T &x, unsigned int *i = nullptr,
+	      hb_not_found_t not_found = HB_NOT_FOUND_DONT_STORE,
+	      unsigned int to_store = (unsigned int) -1) const
+  {
+    unsigned pos;
+
+    if (bsearch_impl (x, &pos))
+    {
+      if (i)
+	*i = pos;
+      return true;
+    }
+
+    if (i)
+    {
+      switch (not_found)
+      {
+	case HB_NOT_FOUND_DONT_STORE:
+	  break;
+
+	case HB_NOT_FOUND_STORE:
+	  *i = to_store;
+	  break;
+
+	case HB_NOT_FOUND_STORE_CLOSEST:
+	  *i = pos;
+	  break;
+      }
+    }
+    return false;
+  }
+  template <typename T,
+	    bool Sorted=sorted, hb_enable_if (Sorted)>
+  bool bsearch_impl (const T &x, unsigned *pos) const
+  {
+    return hb_bsearch_impl (pos,
+			    x,
+			    this->arrayZ,
+			    this->length,
+			    sizeof (Type),
+			    _hb_cmp_method<T, Type>);
+  }
+
+  /* Sort API. */
   hb_sorted_array_t<Type> qsort (int (*cmp_)(const void*, const void*))
   {
     if (likely (length))
@@ -402,8 +468,8 @@ template <typename T, unsigned int length_> inline hb_sorted_array_t<T>
 hb_sorted_array (T (&array_)[length_])
 { return hb_sorted_array_t<T> (array_); }
 
-template <typename T>
-bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
+template <typename T, bool Sorted>
+bool hb_array_t<T, Sorted>::operator == (const hb_array_t<T, Sorted> &o) const
 {
   if (o.length != this->length) return false;
   for (unsigned int i = 0; i < this->length; i++) {
