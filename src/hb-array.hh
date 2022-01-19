@@ -35,7 +35,7 @@
 
 
 template <typename Type>
-struct hb_sorted_array_t;
+using hb_sorted_array_t = hb_array_t<Type, true>;
 
 enum hb_not_found_t
 {
@@ -48,7 +48,9 @@ enum hb_not_found_t
 template <typename Type,
 	  bool sorted=false>
 struct hb_array_t :
-       hb_iter_with_fallback_t<hb_array_t<Type>, Type&>,
+       std::conditional<sorted,
+			hb_iter_t<hb_array_t<Type, true>, Type&>,
+			hb_iter_with_fallback_t<hb_array_t<Type>, Type&>>::type,
        std::conditional<sorted, hb_array_t<Type, false>, hb_empty_t>::type
 {
   /*
@@ -78,8 +80,13 @@ struct hb_array_t :
   /*
    * Iterator implementation.
    */
-  typedef Type& __item_t__;
+  using iter_base_t = typename std::conditional<sorted,
+						hb_iter_t<hb_array_t<Type, true>, Type&>,
+						hb_array_t<Type, false>>::type;
+  HB_ITER_USING (iter_base_t);
   static constexpr bool is_random_access_iterator = true;
+  static constexpr bool is_sorted_iterator = sorted;
+  typedef Type& __item_t__;
   Type& __item_at__ (unsigned i) const
   {
     if (unlikely (i >= length)) return CrapOrNull (Type);
@@ -364,103 +371,7 @@ template <typename T, unsigned int length_> inline hb_array_t<T>
 hb_array (T (&array_)[length_])
 { return hb_array_t<T> (array_); }
 
-template <typename Type>
-struct hb_sorted_array_t :
-	hb_iter_t<hb_sorted_array_t<Type>, Type&>,
-	hb_array_t<Type>
-{
-  typedef hb_iter_t<hb_sorted_array_t, Type&> iter_base_t;
-  HB_ITER_USING (iter_base_t);
-  static constexpr bool is_random_access_iterator = true;
-  static constexpr bool is_sorted_iterator = true;
 
-  hb_sorted_array_t () = default;
-  hb_sorted_array_t (const hb_sorted_array_t&) = default;
-  ~hb_sorted_array_t () = default;
-  hb_sorted_array_t& operator= (const hb_sorted_array_t&) = default;
-  hb_sorted_array_t& operator= (hb_sorted_array_t&&) = default;
-
-  constexpr hb_sorted_array_t (std::nullptr_t) : hb_sorted_array_t () {}
-  constexpr hb_sorted_array_t (Type *array_, unsigned int length_) : hb_array_t<Type> (array_, length_) {}
-  template <unsigned int length_>
-  constexpr hb_sorted_array_t (Type (&array_)[length_]) : hb_array_t<Type> (array_) {}
-
-  template <typename U,
-	    hb_enable_if (hb_is_cr_convertible(U, Type))>
-  constexpr hb_sorted_array_t (const hb_array_t<U> &o) :
-    hb_iter_t<hb_sorted_array_t, Type&> (),
-    hb_array_t<Type> (o) {}
-  template <typename U,
-	    hb_enable_if (hb_is_cr_convertible(U, Type))>
-  hb_sorted_array_t& operator = (const hb_array_t<U> &o)
-  { hb_array_t<Type> (*this) = o; return *this; }
-
-  /* Iterator implementation. */
-  bool operator != (const hb_sorted_array_t& o) const
-  { return this->arrayZ != o.arrayZ || this->length != o.length; }
-
-  hb_sorted_array_t sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
-  { return hb_sorted_array_t (((const hb_array_t<Type> *) (this))->sub_array (start_offset, seg_count)); }
-  hb_sorted_array_t sub_array (unsigned int start_offset, unsigned int seg_count) const
-  { return sub_array (start_offset, &seg_count); }
-
-  hb_sorted_array_t truncate (unsigned length) const { return sub_array (0, length); }
-
-  template <typename T>
-  Type *bsearch (const T &x, Type *not_found = nullptr)
-  {
-    unsigned int i;
-    return bfind (x, &i) ? &this->arrayZ[i] : not_found;
-  }
-  template <typename T>
-  const Type *bsearch (const T &x, const Type *not_found = nullptr) const
-  {
-    unsigned int i;
-    return bfind (x, &i) ? &this->arrayZ[i] : not_found;
-  }
-  template <typename T>
-  bool bfind (const T &x, unsigned int *i = nullptr,
-	      hb_not_found_t not_found = HB_NOT_FOUND_DONT_STORE,
-	      unsigned int to_store = (unsigned int) -1) const
-  {
-    unsigned pos;
-
-    if (bsearch_impl (x, &pos))
-    {
-      if (i)
-	*i = pos;
-      return true;
-    }
-
-    if (i)
-    {
-      switch (not_found)
-      {
-	case HB_NOT_FOUND_DONT_STORE:
-	  break;
-
-	case HB_NOT_FOUND_STORE:
-	  *i = to_store;
-	  break;
-
-	case HB_NOT_FOUND_STORE_CLOSEST:
-	  *i = pos;
-	  break;
-      }
-    }
-    return false;
-  }
-  template <typename T>
-  bool bsearch_impl (const T &x, unsigned *pos) const
-  {
-    return hb_bsearch_impl (pos,
-			    x,
-			    this->arrayZ,
-			    this->length,
-			    sizeof (Type),
-			    _hb_cmp_method<T, Type>);
-  }
-};
 template <typename T> inline hb_sorted_array_t<T>
 hb_sorted_array (T *array, unsigned int length)
 { return hb_sorted_array_t<T> (array, length); }
