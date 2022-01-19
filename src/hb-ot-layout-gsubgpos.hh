@@ -419,7 +419,12 @@ struct hb_ot_apply_context_t :
 
     void set_ignore_zwnj (bool ignore_zwnj_) { ignore_zwnj = ignore_zwnj_; }
     void set_ignore_zwj (bool ignore_zwj_) { ignore_zwj = ignore_zwj_; }
-    void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
+    void set_lookup_props (unsigned int lookup_props_)
+    {
+      /* The following two flags are not respected by the matcher.
+       * https://github.com/harfbuzz/harfbuzz/pull/3390 */
+      lookup_props = lookup_props_ & ~(LookupFlag::IgnoreBaseGlyphs | LookupFlag::IgnoreLigatures);
+    }
     void set_mask (hb_mask_t mask_) { mask = mask_; }
     void set_syllable (uint8_t syllable_)  { syllable = syllable_; }
     void set_match_func (match_func_t match_func_,
