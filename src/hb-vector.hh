@@ -32,8 +32,9 @@
 #include "hb-null.hh"
 
 
-template <typename Type>
-struct hb_vector_t
+template <typename Type,
+	  bool sorted=false>
+struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty_t>::type
 {
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
@@ -362,11 +363,14 @@ struct hb_vector_t
     shrink_vector (size);
   }
 
+
+  /* Sorting API. */
   void qsort (int (*cmp)(const void*, const void*))
   { as_array ().qsort (cmp); }
   void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
   { as_array ().qsort (start, end); }
 
+  /* Unsorted search API. */
   template <typename T>
   Type *lsearch (const T &x, Type *not_found = nullptr)
   { return as_array ().lsearch (x, not_found); }
@@ -376,6 +380,22 @@ struct hb_vector_t
   template <typename T>
   bool lfind (const T &x, unsigned *pos = nullptr) const
   { return as_array ().lfind (x, pos); }
+
+  /* Sorted search API. */
+  template <typename T,
+	    bool Sorted=sorted, hb_enable_if (Sorted)>
+  Type *bsearch (const T &x, Type *not_found = nullptr)
+  { return as_array ().bsearch (x, not_found); }
+  template <typename T,
+	    bool Sorted=sorted, hb_enable_if (Sorted)>
+  const Type *bsearch (const T &x, const Type *not_found = nullptr) const
+  { return as_array ().bsearch (x, not_found); }
+  template <typename T,
+	    bool Sorted=sorted, hb_enable_if (Sorted)>
+  bool bfind (const T &x, unsigned int *i = nullptr,
+	      hb_not_found_t not_found = HB_NOT_FOUND_DONT_STORE,
+	      unsigned int to_store = (unsigned int) -1) const
+  { return as_array ().bfind (x, i, not_found, to_store); }
 };
 
 template <typename Type>
