@@ -706,7 +706,7 @@ struct MarkArray : Array16Of<MarkRecord>	/* Array of MarkRecords--in Coverage or
 
     float mark_x, mark_y, base_x, base_y;
 
-    buffer->unsafe_to_break (glyph_pos, buffer->idx);
+    buffer->unsafe_to_break (glyph_pos, buffer->idx + 1);
     mark_anchor.get_anchor (c, buffer->cur().codepoint, &mark_x, &mark_y);
     glyph_anchor.get_anchor (c, buffer->info[glyph_pos].codepoint, &base_x, &base_y);
 
