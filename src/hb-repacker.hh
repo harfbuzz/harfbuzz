@@ -42,26 +42,13 @@ struct graph_t
 {
   struct vertex_t
   {
-    vertex_t () :
-        distance (0),
-        space (0),
-        parents (),
-        start (0),
-        end (0),
-        priority(0) {}
-
-    void fini () {
-      obj.fini ();
-      parents.fini ();
-    }
-
     hb_serialize_context_t::object_t obj;
-    int64_t distance;
-    int64_t space;
+    int64_t distance = 0 ;
+    int64_t space = 0 ;
     hb_vector_t<unsigned> parents;
-    unsigned start;
-    unsigned end;
-    unsigned priority;
+    unsigned start = 0;
+    unsigned end = 0;
+    unsigned priority = 0;
 
     bool is_shared () const
     {
