@@ -38,6 +38,8 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
 {
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
+  using array_t = typename std::conditional<sorted, hb_sorted_array_t<Type>, hb_array_t<Type>>::type;
+  using c_array_t = typename std::conditional<sorted, hb_sorted_array_t<const Type>, hb_array_t<const Type>>::type;
 
   hb_vector_t () = default;
   hb_vector_t (std::initializer_list<Type> lst) : hb_vector_t ()
@@ -147,24 +149,24 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   template <typename T>
   hb_vector_t& operator << (T&& v) { push (std::forward<T> (v)); return *this; }
 
-  hb_array_t<      Type> as_array ()       { return hb_array (arrayZ, length); }
-  hb_array_t<const Type> as_array () const { return hb_array (arrayZ, length); }
+  array_t   as_array ()       { return hb_array (arrayZ, length); }
+  c_array_t as_array () const { return hb_array (arrayZ, length); }
 
   /* Iterator. */
-  typedef hb_array_t<const Type>   iter_t;
-  typedef hb_array_t<      Type> writer_t;
+  typedef c_array_t   iter_t;
+  typedef array_t   writer_t;
     iter_t   iter () const { return as_array (); }
   writer_t writer ()       { return as_array (); }
   operator   iter_t () const { return   iter (); }
   operator writer_t ()       { return writer (); }
 
-  hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int count) const
+  c_array_t sub_array (unsigned int start_offset, unsigned int count) const
   { return as_array ().sub_array (start_offset, count); }
-  hb_array_t<const Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
+  c_array_t sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
   { return as_array ().sub_array (start_offset, count); }
-  hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int count)
+  array_t sub_array (unsigned int start_offset, unsigned int count)
   { return as_array ().sub_array (start_offset, count); }
-  hb_array_t<Type> sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
+  array_t sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
   { return as_array ().sub_array (start_offset, count); }
 
   hb_sorted_array_t<Type> as_sorted_array ()
@@ -399,44 +401,6 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
 };
 
 template <typename Type>
-struct hb_sorted_vector_t : hb_vector_t<Type>
-{
-  hb_sorted_vector_t () = default;
-  ~hb_sorted_vector_t () = default;
-  hb_sorted_vector_t (hb_sorted_vector_t& o) = default;
-  hb_sorted_vector_t (hb_sorted_vector_t &&o) = default;
-  hb_sorted_vector_t (std::initializer_list<Type> lst) : hb_vector_t<Type> (lst) {}
-  template <typename Iterable,
-	    hb_requires (hb_is_iterable (Iterable))>
-  hb_sorted_vector_t (const Iterable &o) : hb_vector_t<Type> (o) {}
-  hb_sorted_vector_t& operator = (const hb_sorted_vector_t &o) = default;
-  hb_sorted_vector_t& operator = (hb_sorted_vector_t &&o) = default;
-  friend void swap (hb_sorted_vector_t& a, hb_sorted_vector_t& b)
-  { hb_swap ((hb_vector_t<Type>&) (a), (hb_vector_t<Type>&) (b)); }
-
-  hb_sorted_array_t<      Type> as_array ()       { return hb_sorted_array (this->arrayZ, this->length); }
-  hb_sorted_array_t<const Type> as_array () const { return hb_sorted_array (this->arrayZ, this->length); }
-
-  /* Iterator. */
-  typedef hb_sorted_array_t<const Type> const_iter_t;
-  typedef hb_sorted_array_t<      Type>       iter_t;
-  const_iter_t  iter () const { return as_array (); }
-  const_iter_t citer () const { return as_array (); }
-	iter_t  iter ()       { return as_array (); }
-  operator       iter_t ()       { return iter (); }
-  operator const_iter_t () const { return iter (); }
-
-  template <typename T>
-  Type *bsearch (const T &x, Type *not_found = nullptr)
-  { return as_array ().bsearch (x, not_found); }
-  template <typename T>
-  const Type *bsearch (const T &x, const Type *not_found = nullptr) const
-  { return as_array ().bsearch (x, not_found); }
-  template <typename T>
-  bool bfind (const T &x, unsigned int *i = nullptr,
-	      hb_not_found_t not_found = HB_NOT_FOUND_DONT_STORE,
-	      unsigned int to_store = (unsigned int) -1) const
-  { return as_array ().bfind (x, i, not_found, to_store); }
-};
+using hb_sorted_vector_t = hb_vector_t<Type, true>;
 
 #endif /* HB_VECTOR_HH */
