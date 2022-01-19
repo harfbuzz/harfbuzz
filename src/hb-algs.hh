@@ -447,21 +447,27 @@ struct
   private:
 
   template <typename T1, typename T2> auto
-  impl (T1&& v1, T2 &&v2, hb_priority<2>) const HB_AUTO_RETURN
+  impl (T1&& v1, T2 &&v2, hb_priority<3>) const HB_AUTO_RETURN
   (
     std::forward<T2> (v2).cmp (std::forward<T1> (v1)) == 0
   )
 
   template <typename T1, typename T2> auto
-  impl (T1&& v1, T2 &&v2, hb_priority<1>) const HB_AUTO_RETURN
+  impl (T1&& v1, T2 &&v2, hb_priority<2>) const HB_AUTO_RETURN
   (
     std::forward<T1> (v1).cmp (std::forward<T2> (v2)) == 0
   )
 
   template <typename T1, typename T2> auto
-  impl (T1&& v1, T2 &&v2, hb_priority<0>) const HB_AUTO_RETURN
+  impl (T1&& v1, T2 &&v2, hb_priority<1>) const HB_AUTO_RETURN
   (
     std::forward<T1> (v1) == std::forward<T2> (v2)
+  )
+
+  template <typename T1, typename T2> auto
+  impl (T1&& v1, T2 &&v2, hb_priority<0>) const HB_AUTO_RETURN
+  (
+    std::forward<T2> (v2) == std::forward<T1> (v1)
   )
 
   public:

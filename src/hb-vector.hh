@@ -362,23 +362,6 @@ struct hb_vector_t
     shrink_vector (size);
   }
 
-  template <typename T>
-  Type *find (T v)
-  {
-    for (unsigned int i = 0; i < length; i++)
-      if (arrayZ[i] == v)
-	return &arrayZ[i];
-    return nullptr;
-  }
-  template <typename T>
-  const Type *find (T v) const
-  {
-    for (unsigned int i = 0; i < length; i++)
-      if (arrayZ[i] == v)
-	return &arrayZ[i];
-    return nullptr;
-  }
-
   void qsort (int (*cmp)(const void*, const void*))
   { as_array ().qsort (cmp); }
   void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
