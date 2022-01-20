@@ -229,9 +229,9 @@ _cmap_closure (hb_face_t	   *face,
 	       hb_set_t		   *glyphset)
 {
   OT::cmap::accelerator_t cmap;
-  cmap.init (face);
+  cmap.Xinit (face);
   cmap.table->closure_glyphs (unicodes, glyphset);
-  cmap.fini ();
+  cmap.Xfini ();
 }
 
 static void _colr_closure (hb_face_t *face,
@@ -295,7 +295,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
                               hb_subset_plan_t *plan)
 {
   OT::cmap::accelerator_t cmap;
-  cmap.init (plan->source);
+  cmap.Xinit (plan->source);
 
   constexpr static const int size_threshold = 4096;
 
@@ -344,7 +344,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   + plan->codepoint_to_glyph->keys ()   | hb_sink (plan->unicodes);
   + plan->codepoint_to_glyph->values () | hb_sink (plan->_glyphset_gsub);
 
-  cmap.fini ();
+  cmap.Xfini ();
 }
 
 static void
@@ -357,9 +357,9 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #ifndef HB_NO_SUBSET_CFF
   OT::cff1::accelerator_t cff;
 #endif
-  glyf.init (plan->source);
+  glyf.Xinit (plan->source);
 #ifndef HB_NO_SUBSET_CFF
-  cff.init (plan->source);
+  cff.Xinit (plan->source);
 #endif
 
   plan->_glyphset_gsub->add (0); // Not-def
@@ -421,9 +421,9 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 #endif
 
 #ifndef HB_NO_SUBSET_CFF
-  cff.fini ();
+  cff.Xfini ();
 #endif
-  glyf.fini ();
+  glyf.Xfini ();
 }
 
 static void

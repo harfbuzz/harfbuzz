@@ -1270,7 +1270,7 @@ struct cff1
 
   struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
   {
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     {
       SUPER::init (face);
 
@@ -1296,7 +1296,7 @@ struct cff1
       glyph_names.qsort ();
     }
 
-    void fini ()
+    void Xfini ()
     {
       glyph_names.fini ();
 

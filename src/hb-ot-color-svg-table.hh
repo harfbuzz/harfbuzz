@@ -79,9 +79,9 @@ struct SVG
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     { table = hb_sanitize_context_t ().reference_table<SVG> (face); }
-    void fini () { table.destroy (); }
+    void Xfini () { table.destroy (); }
 
     hb_blob_t *reference_blob_for_glyph (hb_codepoint_t glyph_id) const
     {

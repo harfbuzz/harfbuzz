@@ -71,9 +71,9 @@ struct meta
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     { table = hb_sanitize_context_t ().reference_table<meta> (face); }
-    void fini () { table.destroy (); }
+    void Xfini () { table.destroy (); }
 
     hb_blob_t *reference_entry (hb_tag_t tag) const
     { return table->dataMaps.lsearch (tag).reference_entry (table.get_blob ()); }

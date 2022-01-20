@@ -819,7 +819,7 @@ struct CBDT
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     {
       cblc = hb_sanitize_context_t ().reference_table<CBLC> (face);
       cbdt = hb_sanitize_context_t ().reference_table<CBDT> (face);
@@ -827,7 +827,7 @@ struct CBDT
       upem = hb_face_get_upem (face);
     }
 
-    void fini ()
+    void Xfini ()
     {
       this->cblc.destroy ();
       this->cbdt.destroy ();

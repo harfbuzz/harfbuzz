@@ -128,7 +128,7 @@ struct hmtxvmtx
     if (unlikely (!table_prime)) return_trace (false);
 
     accelerator_t _mtx;
-    _mtx.init (c->plan->source);
+    _mtx.Xinit (c->plan->source);
     unsigned num_advances = _mtx.num_advances_for_subset (c->plan);
 
     auto it =
@@ -144,7 +144,7 @@ struct hmtxvmtx
 
     table_prime->serialize (c->serializer, it, num_advances);
 
-    _mtx.fini ();
+    _mtx.Xfini ();
 
     if (unlikely (c->serializer->in_error ()))
       return_trace (false);
@@ -160,7 +160,7 @@ struct hmtxvmtx
   {
     friend struct hmtxvmtx;
 
-    void init (hb_face_t *face,
+    void Xinit (hb_face_t *face,
 	       unsigned int default_advance_ = 0)
     {
       default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
@@ -194,7 +194,7 @@ struct hmtxvmtx
       var_table = hb_sanitize_context_t ().reference_table<HVARVVAR> (face, T::variationsTag);
     }
 
-    void fini ()
+    void Xfini ()
     {
       table.destroy ();
       var_table.destroy ();

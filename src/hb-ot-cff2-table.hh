@@ -397,7 +397,7 @@ struct cff2
   template <typename PRIVOPSET, typename PRIVDICTVAL>
   struct accelerator_templ_t
   {
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     {
       topDict.init ();
       fontDicts.init ();
@@ -412,15 +412,15 @@ struct cff2
       const OT::cff2 *cff2 = this->blob->template as<OT::cff2> ();
 
       if (cff2 == &Null (OT::cff2))
-      { fini (); return; }
+      { Xfini (); return; }
 
       { /* parse top dict */
 	byte_str_t topDictStr (cff2 + cff2->topDict, cff2->topDictSize);
-	if (unlikely (!topDictStr.sanitize (&sc))) { fini (); return; }
+	if (unlikely (!topDictStr.sanitize (&sc))) { Xfini (); return; }
 	cff2_top_dict_interpreter_t top_interp;
 	top_interp.env.init (topDictStr);
 	topDict.init ();
-	if (unlikely (!top_interp.interpret (topDict))) { fini (); return; }
+	if (unlikely (!top_interp.interpret (topDict))) { Xfini (); return; }
       }
 
       globalSubrs = &StructAtOffset<CFF2Subrs> (cff2, cff2->topDict + cff2->topDictSize);
@@ -434,44 +434,44 @@ struct cff2
 	  (globalSubrs == &Null (CFF2Subrs)) || unlikely (!globalSubrs->sanitize (&sc)) ||
 	  (fdArray == &Null (CFF2FDArray)) || unlikely (!fdArray->sanitize (&sc)) ||
 	  (((fdSelect != &Null (CFF2FDSelect)) && unlikely (!fdSelect->sanitize (&sc, fdArray->count)))))
-      { fini (); return; }
+      { Xfini (); return; }
 
       num_glyphs = charStrings->count;
       if (num_glyphs != sc.get_num_glyphs ())
-      { fini (); return; }
+      { Xfini (); return; }
 
       fdCount = fdArray->count;
       if (!privateDicts.resize (fdCount))
-      { fini (); return; }
+      { Xfini (); return; }
 
       /* parse font dicts and gather private dicts */
       for (unsigned int i = 0; i < fdCount; i++)
       {
 	const byte_str_t fontDictStr = (*fdArray)[i];
-	if (unlikely (!fontDictStr.sanitize (&sc))) { fini (); return; }
+	if (unlikely (!fontDictStr.sanitize (&sc))) { Xfini (); return; }
 	cff2_font_dict_values_t  *font;
 	cff2_font_dict_interpreter_t font_interp;
 	font_interp.env.init (fontDictStr);
 	font = fontDicts.push ();
-	if (unlikely (font == &Crap (cff2_font_dict_values_t))) { fini (); return; }
+	if (unlikely (font == &Crap (cff2_font_dict_values_t))) { Xfini (); return; }
 	font->init ();
-	if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
+	if (unlikely (!font_interp.interpret (*font))) { Xfini (); return; }
 
 	const byte_str_t privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
-	if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
+	if (unlikely (!privDictStr.sanitize (&sc))) { Xfini (); return; }
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL, cff2_priv_dict_interp_env_t>  priv_interp;
 	priv_interp.env.init(privDictStr);
 	privateDicts[i].init ();
-	if (unlikely (!priv_interp.interpret (privateDicts[i]))) { fini (); return; }
+	if (unlikely (!priv_interp.interpret (privateDicts[i]))) { Xfini (); return; }
 
 	privateDicts[i].localSubrs = &StructAtOffsetOrNull<CFF2Subrs> (&privDictStr[0], privateDicts[i].subrsOffset);
 	if (privateDicts[i].localSubrs != &Null (CFF2Subrs) &&
 	  unlikely (!privateDicts[i].localSubrs->sanitize (&sc)))
-	{ fini (); return; }
+	{ Xfini (); return; }
       }
     }
 
-    void fini ()
+    void Xfini ()
     {
       sc.end_processing ();
       topDict.fini ();

@@ -451,9 +451,9 @@ bool
 hb_subset_cff2 (hb_subset_context_t *c)
 {
   OT::cff2::accelerator_subset_t acc;
-  acc.init (c->plan->source);
+  acc.Xinit (c->plan->source);
   bool result = likely (acc.is_valid ()) && _hb_subset_cff2 (acc, c);
-  acc.fini ();
+  acc.Xfini ();
 
   return result;
 }

@@ -279,7 +279,7 @@ struct name
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     {
       this->table = hb_sanitize_context_t ().reference_table<name> (face);
       assert (this->table.get_length () >= this->table->stringOffset);
@@ -319,7 +319,7 @@ struct name
       this->names.resize (j);
     }
 
-    void fini ()
+    void Xfini ()
     {
       this->names.fini ();
       this->table.destroy ();

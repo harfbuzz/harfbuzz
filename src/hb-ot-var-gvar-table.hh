@@ -498,9 +498,9 @@ struct gvar
   public:
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     { table = hb_sanitize_context_t ().reference_table<gvar> (face); }
-    void fini () { table.destroy (); }
+    void Xfini () { table.destroy (); }
 
     private:
     struct x_getter { static float get (const contour_point_t &p) { return p.x; } };

@@ -111,7 +111,7 @@ struct post
   struct accelerator_t
   {
     friend struct postV2Tail;
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     {
       index_to_offset.init ();
 
@@ -132,7 +132,7 @@ struct post
 	   data += 1 + *data)
 	index_to_offset.push (data - pool);
     }
-    void fini ()
+    void Xfini ()
     {
       index_to_offset.fini ();
       hb_free (gids_sorted_by_name.get ());

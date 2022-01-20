@@ -208,7 +208,7 @@ struct glyf
 			   hb_vector_t<SubsetGlyph> *glyphs /* OUT */) const
   {
     OT::glyf::accelerator_t glyf;
-    glyf.init (plan->source);
+    glyf.Xinit (plan->source);
 
     + hb_range (plan->num_output_glyphs ())
     | hb_map ([&] (hb_codepoint_t new_gid)
@@ -234,7 +234,7 @@ struct glyf
     | hb_sink (glyphs)
     ;
 
-    glyf.fini ();
+    glyf.Xfini ();
   }
 
   static bool
@@ -920,7 +920,7 @@ struct glyf
 
   struct accelerator_t
   {
-    void init (hb_face_t *face_)
+    void Xinit (hb_face_t *face_)
     {
       short_offset = false;
       num_glyphs = 0;
@@ -954,7 +954,7 @@ struct glyf
       num_glyphs = hb_min (num_glyphs, face->get_num_glyphs ());
     }
 
-    void fini ()
+    void Xfini ()
     {
       loca_table.destroy ();
       glyf_table.destroy ();

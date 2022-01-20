@@ -3846,7 +3846,7 @@ struct GSUBGPOS
   template <typename T>
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    void Xinit (hb_face_t *face)
     {
       this->table = hb_sanitize_context_t ().reference_table<T> (face);
       if (unlikely (this->table->is_blocklisted (this->table.get_blob (), face)))
@@ -3869,7 +3869,7 @@ struct GSUBGPOS
 	this->accels[i].init (table->get_lookup (i));
     }
 
-    void fini ()
+    void Xfini ()
     {
       for (unsigned int i = 0; i < this->lookup_count; i++)
 	this->accels[i].fini ();
