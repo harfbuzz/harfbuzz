@@ -1,5 +1,5 @@
-#ifndef OT_LAYOUT_GSUB_SINGLE_SUBST_FORMAT_2
-#define OT_LAYOUT_GSUB_SINGLE_SUBST_FORMAT_2
+#ifndef OT_LAYOUT_GSUB_SINGLESUBSTFORMAT2_HH
+#define OT_LAYOUT_GSUB_SINGLESUBSTFORMAT2_HH
 
 #include "Common.hh"
 #include "hb-ot-layout-gsubgpos.hh"
@@ -120,4 +120,4 @@ struct SingleSubstFormat2
 }
 }
 
-#endif
+#endif /* OT_LAYOUT_GSUB_SINGLESUBSTFORMAT2_HH */
