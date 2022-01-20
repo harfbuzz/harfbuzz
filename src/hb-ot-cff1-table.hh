@@ -1270,7 +1270,7 @@ struct cff1
 
   struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
   {
-    void Xinit (hb_face_t *face)
+    accelerator_t (hb_face_t *face)
     {
       SUPER::init (face);
 
@@ -1295,8 +1295,7 @@ struct cff1
       }
       glyph_names.qsort ();
     }
-
-    void Xfini ()
+    ~accelerator_t ()
     {
       glyph_names.fini ();
 
@@ -1398,7 +1397,10 @@ struct cff1
   DEFINE_SIZE_STATIC (4);
 };
 
-struct cff1_accelerator_t : cff1::accelerator_t {};
+struct cff1_accelerator_t : cff1::accelerator_t {
+  cff1_accelerator_t (hb_face_t *face) : cff1::accelerator_t (face) {}
+};
+
 } /* namespace OT */
 
 #endif /* HB_OT_CFF1_TABLE_HH */

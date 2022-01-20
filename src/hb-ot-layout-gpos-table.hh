@@ -2973,7 +2973,9 @@ GPOS::position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
 }
 
 
-struct GPOS_accelerator_t : GPOS::accelerator_t {};
+struct GPOS_accelerator_t : GPOS::accelerator_t {
+  GPOS_accelerator_t (hb_face_t *face) : GPOS::accelerator_t (face) {}
+};
 
 
 /* Out-of-class implementation for methods recursing */

@@ -1739,7 +1739,9 @@ struct GSUB : GSUBGPOS
 };
 
 
-struct GSUB_accelerator_t : GSUB::accelerator_t {};
+struct GSUB_accelerator_t : GSUB::accelerator_t {
+  GSUB_accelerator_t (hb_face_t *face) : GSUB::accelerator_t (face) {}
+};
 
 
 /* Out-of-class implementation for methods recursing */
