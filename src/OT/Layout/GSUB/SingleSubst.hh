@@ -1,5 +1,5 @@
-#ifndef OT_LAYOUT_GSUB_SINGLE_SUBST
-#define OT_LAYOUT_GSUB_SINGLE_SUBST
+#ifndef OT_LAYOUT_GSUB_SINGLESUBST_HH
+#define OT_LAYOUT_GSUB_SINGLESUBST_HH
 
 #include "Common.hh"
 #include "SingleSubstFormat1.hh"
@@ -71,4 +71,4 @@ SingleSubst_serialize (hb_serialize_context_t *c,
 }
 }
 
-#endif
+#endif /* OT_LAYOUT_GSUB_SINGLESUBST_HH */

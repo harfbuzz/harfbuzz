@@ -1,5 +1,5 @@
-#ifndef OT_LAYOUT_GSUB_COMMON
-#define OT_LAYOUT_GSUB_COMMON
+#ifndef OT_LAYOUT_GSUB_COMMON_HH
+#define OT_LAYOUT_GSUB_COMMON_HH
 
 #include "hb-serialize.hh"
 
@@ -17,4 +17,4 @@ static void SingleSubst_serialize (hb_serialize_context_t *c,
 }
 }
 
-#endif
+#endif /* OT_LAYOUT_GSUB_COMMON_HH */
