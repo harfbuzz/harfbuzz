@@ -237,8 +237,7 @@ static void _colr_closure (hb_face_t *face,
                            hb_map_t *palettes_map,
                            hb_set_t *glyphs_colred)
 {
-  OT::COLR::accelerator_t colr;
-  colr.init (face);
+  OT::COLR::accelerator_t colr (face);
   if (!colr.is_valid ()) return;
 
   unsigned iteration_count = 0;
@@ -261,7 +260,6 @@ static void _colr_closure (hb_face_t *face,
   colr.closure_V0palette_indices (glyphs_colred, &palette_indices);
   _remap_indexes (&layer_indices, layers_map);
   _remap_palette_indexes (&palette_indices, palettes_map);
-  colr.fini ();
 }
 
 static inline void

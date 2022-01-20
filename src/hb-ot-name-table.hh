@@ -288,7 +288,6 @@ struct name
       const hb_array_t<const NameRecord> all_names (this->table->nameRecordZ.arrayZ,
 						    this->table->count);
 
-      this->names.init ();
       this->names.alloc (all_names.length);
 
       for (unsigned int i = 0; i < all_names.length; i++)
@@ -320,7 +319,6 @@ struct name
     }
     ~accelerator_t ()
     {
-      this->names.fini ();
       this->table.destroy ();
     }
 

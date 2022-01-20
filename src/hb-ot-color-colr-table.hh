@@ -1270,13 +1270,9 @@ struct COLR
 
   struct accelerator_t
   {
-    accelerator_t () {}
-    ~accelerator_t () { fini (); }
-
-    void init (hb_face_t *face)
+    accelerator_t (hb_face_t *face)
     { colr = hb_sanitize_context_t ().reference_table<COLR> (face); }
-
-    void fini () { this->colr.destroy (); }
+    ~accelerator_t () { this->colr.destroy (); }
 
     bool is_valid () { return colr.get_blob ()->length; }
 
@@ -1533,6 +1529,10 @@ struct COLR
   Offset32To<VariationStore>		varStore;
   public:
   DEFINE_SIZE_MIN (14);
+};
+
+struct COLR_accelerator_t : COLR::accelerator_t {
+  COLR_accelerator_t (hb_face_t *face) : COLR::accelerator_t (face) {}
 };
 
 } /* namespace OT */

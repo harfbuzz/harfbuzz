@@ -114,8 +114,6 @@ struct post
 
     accelerator_t (hb_face_t *face)
     {
-      index_to_offset.init ();
-
       table = hb_sanitize_context_t ().reference_table<post> (face);
       unsigned int table_length = table.get_length ();
 
@@ -135,7 +133,6 @@ struct post
     }
     ~accelerator_t ()
     {
-      index_to_offset.fini ();
       hb_free (gids_sorted_by_name.get ());
       table.destroy ();
     }
