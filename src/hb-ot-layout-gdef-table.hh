@@ -585,7 +585,7 @@ struct GDEF
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    accelerator_t (hb_face_t *face)
     {
       this->table = hb_sanitize_context_t ().reference_table<GDEF> (face);
       if (unlikely (this->table->is_blocklisted (this->table.get_blob (), face)))
@@ -594,8 +594,7 @@ struct GDEF
 	this->table = hb_blob_get_empty ();
       }
     }
-
-    void fini () { this->table.destroy (); }
+    ~accelerator_t () { this->table.destroy (); }
 
     hb_blob_ptr_t<GDEF> table;
   };
@@ -715,7 +714,9 @@ struct GDEF
   DEFINE_SIZE_MIN (12);
 };
 
-struct GDEF_accelerator_t : GDEF::accelerator_t {};
+struct GDEF_accelerator_t : GDEF::accelerator_t {
+  GDEF_accelerator_t (hb_face_t *face) : GDEF::accelerator_t (face) {}
+};
 
 } /* namespace OT */
 

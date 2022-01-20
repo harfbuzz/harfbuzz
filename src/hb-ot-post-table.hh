@@ -111,7 +111,8 @@ struct post
   struct accelerator_t
   {
     friend struct postV2Tail;
-    void init (hb_face_t *face)
+
+    accelerator_t (hb_face_t *face)
     {
       index_to_offset.init ();
 
@@ -132,7 +133,7 @@ struct post
 	   data += 1 + *data)
 	index_to_offset.push (data - pool);
     }
-    void fini ()
+    ~accelerator_t ()
     {
       index_to_offset.fini ();
       hb_free (gids_sorted_by_name.get ());
@@ -307,7 +308,10 @@ struct post
   DEFINE_SIZE_MIN (32);
 };
 
-struct post_accelerator_t : post::accelerator_t {};
+struct post_accelerator_t : post::accelerator_t {
+  post_accelerator_t (hb_face_t *face) : post::accelerator_t (face) {}
+};
+
 
 } /* namespace OT */
 

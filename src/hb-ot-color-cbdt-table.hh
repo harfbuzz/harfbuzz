@@ -819,15 +819,14 @@ struct CBDT
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    accelerator_t (hb_face_t *face)
     {
-      cblc = hb_sanitize_context_t ().reference_table<CBLC> (face);
-      cbdt = hb_sanitize_context_t ().reference_table<CBDT> (face);
+      this->cblc = hb_sanitize_context_t ().reference_table<CBLC> (face);
+      this->cbdt = hb_sanitize_context_t ().reference_table<CBDT> (face);
 
       upem = hb_face_get_upem (face);
     }
-
-    void fini ()
+    ~accelerator_t ()
     {
       this->cblc.destroy ();
       this->cbdt.destroy ();
@@ -988,7 +987,10 @@ CBLC::subset (hb_subset_context_t *c) const
   return_trace (CBLC::sink_cbdt (c, &cbdt_prime));
 }
 
-struct CBDT_accelerator_t : CBDT::accelerator_t {};
+struct CBDT_accelerator_t : CBDT::accelerator_t {
+  CBDT_accelerator_t (hb_face_t *face) : CBDT::accelerator_t (face) {}
+};
+
 
 } /* namespace OT */
 

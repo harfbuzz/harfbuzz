@@ -279,7 +279,7 @@ struct name
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    accelerator_t (hb_face_t *face)
     {
       this->table = hb_sanitize_context_t ().reference_table<name> (face);
       assert (this->table.get_length () >= this->table->stringOffset);
@@ -318,8 +318,7 @@ struct name
       }
       this->names.resize (j);
     }
-
-    void fini ()
+    ~accelerator_t ()
     {
       this->names.fini ();
       this->table.destroy ();
@@ -373,7 +372,9 @@ struct name
 #undef entry_index
 #undef entry_score
 
-struct name_accelerator_t : name::accelerator_t {};
+struct name_accelerator_t : name::accelerator_t {
+  name_accelerator_t (hb_face_t *face) : name::accelerator_t (face) {}
+};
 
 } /* namespace OT */
 
