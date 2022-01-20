@@ -406,6 +406,7 @@ struct KerxSubTableFormat2
     accelerator_t accel (*this, c);
     hb_kern_machine_t<accelerator_t> machine (accel, header.coverage & header.CrossStream);
     machine.kern (c->font, c->buffer, c->plan->kern_mask);
+    c->buffer->set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
 
     return_trace (true);
   }

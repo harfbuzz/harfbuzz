@@ -386,12 +386,15 @@ struct hb_buffer_t
   HB_INTERNAL void delete_glyph ();
 
 
-  void set_glyph_flags (unsigned start,
-			unsigned end,
-			hb_mask_t mask,
+  void set_glyph_flags (hb_mask_t mask,
+			unsigned start = 0,
+			unsigned end = (unsigned) -1,
 			bool interior = false,
 			bool from_out_buffer = false)
   {
+    if (end == (unsigned) -1)
+      end = len;
+
     if (interior && !from_out_buffer && end - start < 2)
       return;
 
@@ -435,22 +438,26 @@ struct hb_buffer_t
 
   void unsafe_to_break (unsigned int start, unsigned int end)
   {
-    set_glyph_flags (start, end, HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+    set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     start, end,
 		     true);
   }
   void unsafe_to_concat (unsigned int start, unsigned int end)
   {
-    set_glyph_flags (start, end, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+    set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     start, end,
 		     true);
   }
   void unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end)
   {
-    set_glyph_flags (start, end, HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+    set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     start, end,
 		     true, true);
   }
   void unsafe_to_concat_from_outbuffer (unsigned int start, unsigned int end)
   {
-    set_glyph_flags (start, end, HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+    set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     start, end,
 		     true, true);
   }
 
