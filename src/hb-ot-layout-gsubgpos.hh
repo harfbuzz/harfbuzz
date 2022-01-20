@@ -2490,34 +2490,38 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 					       const LookupRecord lookupRecord[],
 					       ChainContextApplyLookupContext &lookup_context)
 {
-  unsigned start_index = c->buffer->out_len, end_index = c->buffer->idx;
+  unsigned end_index = c->buffer->idx;
   unsigned match_end = 0;
   unsigned match_positions[HB_MAX_CONTEXT_LENGTH];
-  if (match_input (c,
-		   inputCount, input,
-		   lookup_context.funcs.match, lookup_context.match_data[1],
-		   &match_end, match_positions) && (end_index = match_end)
-      && match_backtrack (c,
-			  backtrackCount, backtrack,
-			  lookup_context.funcs.match, lookup_context.match_data[0],
-			  &start_index)
-      && match_lookahead (c,
-			  lookaheadCount, lookahead,
-			  lookup_context.funcs.match, lookup_context.match_data[2],
-			  match_end, &end_index))
+  if (!(match_input (c,
+		     inputCount, input,
+		     lookup_context.funcs.match, lookup_context.match_data[1],
+		     &match_end, match_positions) && (end_index = match_end)
+       && match_lookahead (c,
+			   lookaheadCount, lookahead,
+			   lookup_context.funcs.match, lookup_context.match_data[2],
+			   match_end, &end_index)))
   {
-    c->buffer->unsafe_to_break_from_outbuffer (start_index, end_index);
-    apply_lookup (c,
-		  inputCount, match_positions,
-		  lookupCount, lookupRecord,
-		  match_end);
-    return true;
+    c->buffer->unsafe_to_concat (c->buffer->idx, end_index);
+    return false;
   }
-  else
+
+  unsigned start_index = c->buffer->out_len;
+  if (!match_backtrack (c,
+			backtrackCount, backtrack,
+			lookup_context.funcs.match, lookup_context.match_data[0],
+			&start_index))
   {
     c->buffer->unsafe_to_concat_from_outbuffer (start_index, end_index);
     return false;
   }
+
+  c->buffer->unsafe_to_break_from_outbuffer (start_index, end_index);
+  apply_lookup (c,
+		inputCount, match_positions,
+		lookupCount, lookupRecord,
+		match_end);
+  return true;
 }
 
 struct ChainRule
