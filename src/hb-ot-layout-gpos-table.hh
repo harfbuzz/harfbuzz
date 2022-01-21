@@ -1574,7 +1574,11 @@ struct PairPosFormat2
 
     unsigned int klass1 = (this+classDef1).get_class (buffer->cur().codepoint);
     unsigned int klass2 = (this+classDef2).get_class (buffer->info[skippy_iter.idx].codepoint);
-    if (unlikely (klass1 >= class1Count || klass2 >= class2Count)) return_trace (false);
+    if (unlikely (klass1 >= class1Count || klass2 >= class2Count))
+    {
+      buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
+      return_trace (false);
+    }
 
     const Value *v = &values[record_len * (klass1 * class2Count + klass2)];
 
@@ -1642,9 +1646,9 @@ struct PairPosFormat2
     if (applied_first || applied_second)
       buffer->unsafe_to_break (buffer->idx, skippy_iter.idx + 1);
     else
-     buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
-
     boring:
+      buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
+
 
     buffer->idx = skippy_iter.idx;
     if (len2)
