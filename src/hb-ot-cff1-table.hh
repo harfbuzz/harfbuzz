@@ -1245,27 +1245,27 @@ struct cff1
     }
 
     protected:
-    hb_blob_t	           *blob;
+    hb_blob_t	           *blob = nullptr;
     hb_sanitize_context_t   sc;
 
     public:
-    const Encoding	    *encoding;
-    const Charset	    *charset;
-    const CFF1NameIndex     *nameIndex;
-    const CFF1TopDictIndex  *topDictIndex;
-    const CFF1StringIndex   *stringIndex;
-    const CFF1Subrs	    *globalSubrs;
-    const CFF1CharStrings   *charStrings;
-    const CFF1FDArray       *fdArray;
-    const CFF1FDSelect      *fdSelect;
-    unsigned int	     fdCount;
+    const Encoding	    *encoding = nullptr;
+    const Charset	    *charset = nullptr;
+    const CFF1NameIndex     *nameIndex = nullptr;
+    const CFF1TopDictIndex  *topDictIndex = nullptr;
+    const CFF1StringIndex   *stringIndex = nullptr;
+    const CFF1Subrs	    *globalSubrs = nullptr;
+    const CFF1CharStrings   *charStrings = nullptr;
+    const CFF1FDArray       *fdArray = nullptr;
+    const CFF1FDSelect      *fdSelect = nullptr;
+    unsigned int	     fdCount = 0;
 
     cff1_top_dict_values_t   topDict;
     hb_vector_t<cff1_font_dict_values_t>
 			     fontDicts;
     hb_vector_t<PRIVDICTVAL> privateDicts;
 
-    unsigned int	     num_glyphs;
+    unsigned int	     num_glyphs = 0;
   };
 
   struct accelerator_t : accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t>
