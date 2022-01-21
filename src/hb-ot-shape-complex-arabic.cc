@@ -321,6 +321,10 @@ arabic_joining (hb_buffer_t *buffer)
       info[prev].arabic_shaping_action() = entry->prev_action;
       buffer->unsafe_to_break (prev, i + 1);
     }
+    else if (2 <= state && state <= 5) /* States that have a possible prev_action. */
+    {
+      buffer->unsafe_to_concat (prev, i + 1);
+    }
 
     info[i].arabic_shaping_action() = entry->curr_action;
 
