@@ -1584,7 +1584,7 @@ struct PairPosFormat2
 	/* Add Devices. */
 	mask |= mask << 4;
 
-	if (valueFormat1 & !mask)
+	if (valueFormat1 & ~mask)
 	  goto bail;
 
 	/* Is simple kern. Apply value on an empty position slot,
