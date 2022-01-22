@@ -52,7 +52,7 @@ struct hb_kern_machine_t
     if (!buffer->message (font, "start kern"))
       return;
 
-    buffer->set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
+    buffer->unsafe_to_concat ();
     OT::hb_ot_apply_context_t c (1, font, buffer);
     c.set_lookup_mask (kern_mask);
     c.set_lookup_props (OT::LookupFlag::IgnoreMarks);

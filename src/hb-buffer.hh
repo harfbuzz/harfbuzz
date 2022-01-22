@@ -435,28 +435,28 @@ struct hb_buffer_t
     }
   }
 
-  void unsafe_to_break (unsigned int start, unsigned int end)
+  void unsafe_to_break (unsigned int start = 0, unsigned int end = -1)
   {
     set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
-		     start, end,
+		     start = start, end = end,
 		     true);
   }
-  void unsafe_to_concat (unsigned int start, unsigned int end)
+  void unsafe_to_concat (unsigned int start = 0, unsigned int end = -1)
   {
     set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
-		     start, end,
+		     start = start, end = end,
 		     true);
   }
-  void unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end)
+  void unsafe_to_break_from_outbuffer (unsigned int start = 0, unsigned int end = -1)
   {
     set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
-		     start, end,
+		     start = start, end = end,
 		     true, true);
   }
-  void unsafe_to_concat_from_outbuffer (unsigned int start, unsigned int end)
+  void unsafe_to_concat_from_outbuffer (unsigned int start = 0, unsigned int end = -1)
   {
     set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
-		     start, end,
+		     start = start, end = end,
 		     false, true);
   }
 
