@@ -2430,14 +2430,22 @@ struct MarkLigPosFormat1
 
     unsigned int j = skippy_iter.idx;
     unsigned int lig_index = (this+ligatureCoverage).get_coverage  (buffer->info[j].codepoint);
-    if (lig_index == NOT_COVERED) return_trace (false);
+    if (lig_index == NOT_COVERED)
+    {
+      buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx + 1);
+      return_trace (false);
+    }
 
     const LigatureArray& lig_array = this+ligatureArray;
     const LigatureAttach& lig_attach = lig_array[lig_index];
 
     /* Find component to attach to */
     unsigned int comp_count = lig_attach.rows;
-    if (unlikely (!comp_count)) return_trace (false);
+    if (unlikely (!comp_count))
+    {
+      buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx + 1);
+      return_trace (false);
+    }
 
     /* We must now check whether the ligature ID of the current mark glyph
      * is identical to the ligature ID of the found ligature.  If yes, we
