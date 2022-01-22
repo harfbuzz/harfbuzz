@@ -1886,7 +1886,11 @@ struct CursivePosFormat1
     }
 
     const EntryExitRecord &prev_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
-    if (!prev_record.exitAnchor) return_trace (false);
+    if (!prev_record.exitAnchor)
+    {
+      buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx);
+      return_trace (false);
+    }
 
     unsigned int i = skippy_iter.idx;
     unsigned int j = buffer->idx;
