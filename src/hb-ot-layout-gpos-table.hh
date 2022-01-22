@@ -1881,14 +1881,14 @@ struct CursivePosFormat1
     unsigned unsafe_from;
     if (!skippy_iter.prev (&unsafe_from))
     {
-      buffer->unsafe_to_concat_from_outbuffer (unsafe_from, buffer->idx);
+      buffer->unsafe_to_concat_from_outbuffer (unsafe_from, buffer->idx + 1);
       return_trace (false);
     }
 
     const EntryExitRecord &prev_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
     if (!prev_record.exitAnchor)
     {
-      buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx);
+      buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx + 1);
       return_trace (false);
     }
 
@@ -2157,7 +2157,7 @@ struct MarkBasePosFormat1
       unsigned unsafe_from;
       if (!skippy_iter.prev (&unsafe_from))
       {
-	buffer->unsafe_to_concat_from_outbuffer (unsafe_from, buffer->idx);
+	buffer->unsafe_to_concat_from_outbuffer (unsafe_from, buffer->idx + 1);
 	return_trace (false);
       }
 
@@ -2417,7 +2417,7 @@ struct MarkLigPosFormat1
     unsigned unsafe_from;
     if (!skippy_iter.prev (&unsafe_from))
     {
-      buffer->unsafe_to_concat_from_outbuffer (unsafe_from, buffer->idx);
+      buffer->unsafe_to_concat_from_outbuffer (unsafe_from, buffer->idx + 1);
       return_trace (false);
     }
 
@@ -2619,7 +2619,7 @@ struct MarkMarkPosFormat1
     unsigned unsafe_from;
     if (!skippy_iter.prev (&unsafe_from))
     {
-      buffer->unsafe_to_concat_from_outbuffer (unsafe_from, buffer->idx);
+      buffer->unsafe_to_concat_from_outbuffer (unsafe_from, buffer->idx + 1);
       return_trace (false);
     }
 
