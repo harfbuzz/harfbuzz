@@ -392,8 +392,7 @@ struct hb_buffer_t
 			bool interior = false,
 			bool from_out_buffer = false)
   {
-    if (end == (unsigned) -1)
-      end = len;
+    end = hb_min (end, len);
 
     if (interior && !from_out_buffer && end - start < 2)
       return;
