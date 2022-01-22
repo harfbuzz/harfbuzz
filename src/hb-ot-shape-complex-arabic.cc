@@ -321,9 +321,19 @@ arabic_joining (hb_buffer_t *buffer)
       info[prev].arabic_shaping_action() = entry->prev_action;
       buffer->unsafe_to_break (prev, i + 1);
     }
-    else if (2 <= state && state <= 5) /* States that have a possible prev_action. */
+    else
     {
-      buffer->unsafe_to_concat (prev, i + 1);
+      if (prev == UINT_MAX)
+      {
+        if (this_type >= JOINING_TYPE_R)
+	  buffer->unsafe_to_concat_from_outbuffer (0, i + 1);
+      }
+      else
+      {
+	if (this_type >= JOINING_TYPE_R ||
+	    (2 <= state && state <= 5) /* States that have a possible prev_action. */)
+	  buffer->unsafe_to_concat (prev, i + 1);
+      }
     }
 
     info[i].arabic_shaping_action() = entry->curr_action;
