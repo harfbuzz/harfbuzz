@@ -836,7 +836,10 @@ struct Ligature
 			      &match_end,
 			      match_positions,
 			      &total_component_count)))
+    {
+      c->buffer->unsafe_to_concat (c->buffer->idx, match_end);
       return_trace (false);
+    }
 
     ligate_input (c,
 		  count,
