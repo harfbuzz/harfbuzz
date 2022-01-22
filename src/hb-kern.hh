@@ -49,6 +49,7 @@ struct hb_kern_machine_t
 	     hb_mask_t    kern_mask,
 	     bool         scale = true) const
   {
+    buffer->set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT);
     OT::hb_ot_apply_context_t c (1, font, buffer);
     c.set_lookup_mask (kern_mask);
     c.set_lookup_props (OT::LookupFlag::IgnoreMarks);
@@ -70,7 +71,6 @@ struct hb_kern_machine_t
       unsigned unsafe_to;
       if (!skippy_iter.next (&unsafe_to))
       {
-        buffer->unsafe_to_concat (idx, unsafe_to);
 	idx++;
 	continue;
       }
