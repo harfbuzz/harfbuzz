@@ -458,7 +458,7 @@ struct hb_buffer_t
   {
     set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
 		     start, end,
-		     true, true);
+		     false, true);
   }
 
 
