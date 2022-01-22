@@ -341,7 +341,14 @@ arabic_joining (hb_buffer_t *buffer)
 
     const arabic_state_table_entry *entry = &arabic_state_table[state][this_type];
     if (entry->prev_action != NONE && prev != UINT_MAX)
+    {
       info[prev].arabic_shaping_action() = entry->prev_action;
+      buffer->unsafe_to_break (prev, buffer->len);
+    }
+    else if (2 <= state && state <= 5) /* States that have a possible prev_action. */
+    {
+      buffer->unsafe_to_concat (prev, buffer->len);
+    }
     break;
   }
 }
