@@ -2635,7 +2635,11 @@ struct MarkMarkPosFormat1
       return_trace (false);
     }
 
-    if (!_hb_glyph_info_is_mark (&buffer->info[skippy_iter.idx])) { return_trace (false); }
+    if (!_hb_glyph_info_is_mark (&buffer->info[skippy_iter.idx]))
+    {
+      buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx + 1);
+      return_trace (false);
+    }
 
     unsigned int j = skippy_iter.idx;
 
@@ -2660,11 +2664,16 @@ struct MarkMarkPosFormat1
     }
 
     /* Didn't match. */
+    buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx + 1);
     return_trace (false);
 
     good:
     unsigned int mark2_index = (this+mark2Coverage).get_coverage  (buffer->info[j].codepoint);
-    if (mark2_index == NOT_COVERED) return_trace (false);
+    if (mark2_index == NOT_COVERED)
+    {
+      buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx + 1);
+      return_trace (false);
+    }
 
     return_trace ((this+mark1Array).apply (c, mark1_index, mark2_index, this+mark2Array, classCount, j));
   }
