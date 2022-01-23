@@ -37,7 +37,7 @@ main (int argc, char **argv)
 
   hb_sorted_vector_t<hb_codepoint_t> v{1, 2, 5};
 
-  HB_UNUSED auto c = s.start_serialize<OT::Coverage> ();
+  auto c = s.start_serialize<OT::Coverage> ();
 
   c->serialize (&s, hb_iter (v));
 
