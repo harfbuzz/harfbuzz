@@ -111,8 +111,8 @@ typedef struct hb_glyph_info_t {
  * 				   happens at line-break position, in the following
  * 				   way:
  *
- * 				   1. Iterate back from the line-break position till
- * 				   the the first cluster start position that is
+ * 				   1. Iterate back from the line-break position
+ * 				   until the first cluster start position that is
  * 				   NOT unsafe-to-concat, 2. shape the segment from
  * 				   there till the end of line, 3. check whether the
  * 				   resulting glyph-run also is clear of the
@@ -123,7 +123,19 @@ typedef struct hb_glyph_info_t {
  * 				   from there, and repeat.
  *
  * 				   At the start of next line a similar algorithm can
- * 				   be implemented. A slight complication will arise,
+ * 				   be implemented. That is: 1. Iterate forward from
+ * 				   the line-break position untill the first cluster
+ * 				   start position that is NOT unsafe-to-concat, 2.
+ * 				   shape the segment from beginning of the line to
+ * 				   that position, 3. check whether the resulting
+ * 				   glyph-run also is clear of the unsafe-to-concat
+ * 				   at its end-of-text position; if it is, just splice
+ * 				   it into place and the beginning is shaped; If not,
+ * 				   move on to a position further forward that is clear
+ * 				   of unsafe-to-concat and retry up to there, and repeat.
+ *
+ * 				   A slight complication will arise in the
+ * 				   implementation of the algorithm above,
  * 				   because while our buffer API has a way to
  * 				   return flags for position corresponding to
  * 				   start-of-text, there is currently no position
