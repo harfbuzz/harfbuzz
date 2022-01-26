@@ -19,6 +19,13 @@ struct SingleSubstFormat1
                                          * substitute GlyphID, modulo 0x10000 */
 
   public:
+  DEFINE_SIZE_STATIC (6);
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (coverage.sanitize (c, this) && deltaGlyphID.sanitize (c));
+  }
 
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
@@ -106,15 +113,6 @@ struct SingleSubstFormat1
     SingleSubst_serialize (c->serializer, it);
     return_trace (ret);
   }
-
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (coverage.sanitize (c, this) && deltaGlyphID.sanitize (c));
-  }
-
-  public:
-  DEFINE_SIZE_STATIC (6);
 };
 
 }
