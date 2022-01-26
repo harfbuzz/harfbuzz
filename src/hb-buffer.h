@@ -77,7 +77,6 @@ typedef struct hb_glyph_info_t {
  * 				   beginning of the cluster this glyph is part of,
  * 				   then both sides need to be re-shaped, as the
  * 				   result might be different.
- *
  * 				   On the flip side, it means that when this
  * 				   flag is not present, then it is safe to break
  * 				   the glyph-run at the beginning of this
@@ -85,21 +84,17 @@ typedef struct hb_glyph_info_t {
  * 				   exact same result one would get if breaking
  * 				   input text at the beginning of this cluster
  * 				   and shaping the two sides separately.
- *
  * 				   This can be used to optimize paragraph
  * 				   layout, by avoiding re-shaping of each line
  * 				   after line-breaking.
- *
  * @HB_GLYPH_FLAG_UNSAFE_TO_CONCAT: Indicates that if input text is changed on one
  * 				   side of the beginning of the cluster this glyph
  * 				   is part of, then the shaping results for the
  * 				   other side might change.
- *
  * 				   Note that the absence of this flag will NOT by
  * 				   itself mean that it IS safe to concat text.
  * 				   Only two pieces of text both of which clear of
  * 				   this flag can be concatenated safely.
- *
  * 				   This can be used to optimize paragraph
  * 				   layout, by avoiding re-shaping of each line
  * 				   after line-breaking, by limiting the
@@ -110,7 +105,6 @@ typedef struct hb_glyph_info_t {
  * 				   hyphenation or other text transformation
  * 				   happens at line-break position, in the following
  * 				   way:
- *
  * 				   1. Iterate back from the line-break position
  * 				   until the first cluster start position that is
  * 				   NOT unsafe-to-concat, 2. shape the segment from
@@ -121,7 +115,6 @@ typedef struct hb_glyph_info_t {
  * 				   is shaped; If not, move on to a position further
  * 				   back that is clear of unsafe-to-concat and retry
  * 				   from there, and repeat.
- *
  * 				   At the start of next line a similar algorithm can
  * 				   be implemented. That is: 1. Iterate forward from
  * 				   the line-break position untill the first cluster
@@ -133,7 +126,6 @@ typedef struct hb_glyph_info_t {
  * 				   it into place and the beginning is shaped; If not,
  * 				   move on to a position further forward that is clear
  * 				   of unsafe-to-concat and retry up to there, and repeat.
- *
  * 				   A slight complication will arise in the
  * 				   implementation of the algorithm above,
  * 				   because while our buffer API has a way to
@@ -143,12 +135,9 @@ typedef struct hb_glyph_info_t {
  * 				   can be alleviated by shaping more text than needed
  * 				   and looking for unsafe-to-concat flag within text
  * 				   clusters.
- *
  * 				   The #HB_GLYPH_FLAG_UNSAFE_TO_BREAK flag will
  * 				   always imply this flag.
- *
  * 				   Since: REPLACEME
- *
  * @HB_GLYPH_FLAG_DEFINED: All the currently defined flags.
  *
  * Flags for #hb_glyph_info_t.
