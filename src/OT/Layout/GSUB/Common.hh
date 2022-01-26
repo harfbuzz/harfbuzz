@@ -1,7 +1,8 @@
 #ifndef OT_LAYOUT_GSUB_COMMON_HH
 #define OT_LAYOUT_GSUB_COMMON_HH
 
-#include "hb-serialize.hh"
+#include "../../../hb-serialize.hh"
+#include "../../../hb-ot-layout-gsubgpos.hh"
 
 namespace OT {
 namespace Layout {
