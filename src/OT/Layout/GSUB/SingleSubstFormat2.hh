@@ -2,7 +2,6 @@
 #define OT_LAYOUT_GSUB_SINGLESUBSTFORMAT2_HH
 
 #include "Common.hh"
-#include "hb-ot-layout-gsubgpos.hh"
 
 namespace OT {
 namespace Layout {
