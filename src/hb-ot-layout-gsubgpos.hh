@@ -520,7 +520,7 @@ struct hb_ot_apply_context_t :
     may_skip (const hb_glyph_info_t &info) const
     { return matcher.may_skip (c, info); }
 
-    bool next ()
+    bool next (unsigned *unsafe_to = nullptr)
     {
       assert (num_items > 0);
       while (idx + num_items < end)
@@ -543,11 +543,17 @@ struct hb_ot_apply_context_t :
 	}
 
 	if (skip == matcher_t::SKIP_NO)
+	{
+	  if (unsafe_to)
+	    *unsafe_to = idx + 1;
 	  return false;
+	}
       }
+      if (unsafe_to)
+        *unsafe_to = end;
       return false;
     }
-    bool prev ()
+    bool prev (unsigned *unsafe_from = nullptr)
     {
       assert (num_items > 0);
       while (idx > num_items - 1)
@@ -570,8 +576,14 @@ struct hb_ot_apply_context_t :
 	}
 
 	if (skip == matcher_t::SKIP_NO)
+	{
+	  if (unsafe_from)
+	    *unsafe_from = hb_max (1u, idx) - 1u;
 	  return false;
+	}
       }
+      if (unsafe_from)
+        *unsafe_from = 0;
       return false;
     }
 
@@ -955,7 +967,7 @@ static inline bool match_input (hb_ot_apply_context_t *c,
 				const HBUINT16 input[], /* Array of input values--start with second glyph */
 				match_func_t match_func,
 				const void *match_data,
-				unsigned int *end_offset,
+				unsigned int *end_position,
 				unsigned int match_positions[HB_MAX_CONTEXT_LENGTH],
 				unsigned int *p_total_component_count = nullptr)
 {
@@ -1008,7 +1020,12 @@ static inline bool match_input (hb_ot_apply_context_t *c,
   match_positions[0] = buffer->idx;
   for (unsigned int i = 1; i < count; i++)
   {
-    if (!skippy_iter.next ()) return_trace (false);
+    unsigned unsafe_to;
+    if (!skippy_iter.next (&unsafe_to))
+    {
+      *end_position = unsafe_to;
+      return_trace (false);
+    }
 
     match_positions[i] = skippy_iter.idx;
 
@@ -1062,7 +1079,7 @@ static inline bool match_input (hb_ot_apply_context_t *c,
     total_component_count += _hb_glyph_info_get_lig_num_comps (&buffer->info[skippy_iter.idx]);
   }
 
-  *end_offset = skippy_iter.idx - buffer->idx + 1;
+  *end_position = skippy_iter.idx + 1;
 
   if (p_total_component_count)
     *p_total_component_count = total_component_count;
@@ -1072,7 +1089,7 @@ static inline bool match_input (hb_ot_apply_context_t *c,
 static inline bool ligate_input (hb_ot_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
 				 const unsigned int match_positions[HB_MAX_CONTEXT_LENGTH], /* Including the first glyph */
-				 unsigned int match_length,
+				 unsigned int match_end,
 				 hb_codepoint_t lig_glyph,
 				 unsigned int total_component_count)
 {
@@ -1080,7 +1097,7 @@ static inline bool ligate_input (hb_ot_apply_context_t *c,
 
   hb_buffer_t *buffer = c->buffer;
 
-  buffer->merge_clusters (buffer->idx, buffer->idx + match_length);
+  buffer->merge_clusters (buffer->idx, match_end);
 
   /* - If a base and one or more marks ligate, consider that as a base, NOT
    *   ligature, such that all following marks can still attach to it.
@@ -1197,11 +1214,16 @@ static inline bool match_backtrack (hb_ot_apply_context_t *c,
   skippy_iter.set_match_func (match_func, match_data, backtrack);
 
   for (unsigned int i = 0; i < count; i++)
-    if (!skippy_iter.prev ())
+  {
+    unsigned unsafe_from;
+    if (!skippy_iter.prev (&unsafe_from))
+    {
+      *match_start = unsafe_from;
       return_trace (false);
+    }
+  }
 
   *match_start = skippy_iter.idx;
-
   return_trace (true);
 }
 
@@ -1210,21 +1232,26 @@ static inline bool match_lookahead (hb_ot_apply_context_t *c,
 				    const HBUINT16 lookahead[],
 				    match_func_t match_func,
 				    const void *match_data,
-				    unsigned int offset,
+				    unsigned int start_index,
 				    unsigned int *end_index)
 {
   TRACE_APPLY (nullptr);
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
-  skippy_iter.reset (c->buffer->idx + offset - 1, count);
+  skippy_iter.reset (start_index - 1, count);
   skippy_iter.set_match_func (match_func, match_data, lookahead);
 
   for (unsigned int i = 0; i < count; i++)
-    if (!skippy_iter.next ())
+  {
+    unsigned unsafe_to;
+    if (!skippy_iter.next (&unsafe_to))
+    {
+      *end_index = unsafe_to;
       return_trace (false);
+    }
+  }
 
   *end_index = skippy_iter.idx + 1;
-
   return_trace (true);
 }
 
@@ -1350,15 +1377,13 @@ static inline void recurse_lookups (context_t *c,
     c->recurse (lookupRecord[i].lookupListIndex);
 }
 
-static inline bool apply_lookup (hb_ot_apply_context_t *c,
+static inline void apply_lookup (hb_ot_apply_context_t *c,
 				 unsigned int count, /* Including the first glyph */
 				 unsigned int match_positions[HB_MAX_CONTEXT_LENGTH], /* Including the first glyph */
 				 unsigned int lookupCount,
 				 const LookupRecord lookupRecord[], /* Array of LookupRecords--in design order */
-				 unsigned int match_length)
+				 unsigned int match_end)
 {
-  TRACE_APPLY (nullptr);
-
   hb_buffer_t *buffer = c->buffer;
   int end;
 
@@ -1366,7 +1391,7 @@ static inline bool apply_lookup (hb_ot_apply_context_t *c,
    * Adjust. */
   {
     unsigned int bl = buffer->backtrack_len ();
-    end = bl + match_length;
+    end = bl + match_end - buffer->idx;
 
     int delta = bl - buffer->idx;
     /* Convert positions to new indexing. */
@@ -1468,8 +1493,6 @@ static inline bool apply_lookup (hb_ot_apply_context_t *c,
   }
 
   (void) buffer->move_to (end);
-
-  return_trace (true);
 }
 
 
@@ -1557,17 +1580,25 @@ static inline bool context_apply_lookup (hb_ot_apply_context_t *c,
 					 const LookupRecord lookupRecord[],
 					 ContextApplyLookupContext &lookup_context)
 {
-  unsigned int match_length = 0;
-  unsigned int match_positions[HB_MAX_CONTEXT_LENGTH];
-  return match_input (c,
-		      inputCount, input,
-		      lookup_context.funcs.match, lookup_context.match_data,
-		      &match_length, match_positions)
-      && (c->buffer->unsafe_to_break (c->buffer->idx, c->buffer->idx + match_length),
-	  apply_lookup (c,
-		       inputCount, match_positions,
-		       lookupCount, lookupRecord,
-		       match_length));
+  unsigned match_end = 0;
+  unsigned match_positions[HB_MAX_CONTEXT_LENGTH];
+  if (match_input (c,
+		   inputCount, input,
+		   lookup_context.funcs.match, lookup_context.match_data,
+		   &match_end, match_positions))
+  {
+    c->buffer->unsafe_to_break (c->buffer->idx, match_end);
+    apply_lookup (c,
+		  inputCount, match_positions,
+		  lookupCount, lookupRecord,
+		  match_end);
+    return true;
+  }
+  else
+  {
+    c->buffer->unsafe_to_concat (c->buffer->idx, match_end);
+    return false;
+  }
 }
 
 struct Rule
@@ -2459,25 +2490,38 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 					       const LookupRecord lookupRecord[],
 					       ChainContextApplyLookupContext &lookup_context)
 {
-  unsigned int start_index = 0, match_length = 0, end_index = 0;
-  unsigned int match_positions[HB_MAX_CONTEXT_LENGTH];
-  return match_input (c,
-		      inputCount, input,
-		      lookup_context.funcs.match, lookup_context.match_data[1],
-		      &match_length, match_positions)
-      && match_backtrack (c,
-			  backtrackCount, backtrack,
-			  lookup_context.funcs.match, lookup_context.match_data[0],
-			  &start_index)
-      && match_lookahead (c,
-			  lookaheadCount, lookahead,
-			  lookup_context.funcs.match, lookup_context.match_data[2],
-			  match_length, &end_index)
-      && (c->buffer->unsafe_to_break_from_outbuffer (start_index, end_index),
-	  apply_lookup (c,
-			inputCount, match_positions,
-			lookupCount, lookupRecord,
-			match_length));
+  unsigned end_index = c->buffer->idx;
+  unsigned match_end = 0;
+  unsigned match_positions[HB_MAX_CONTEXT_LENGTH];
+  if (!(match_input (c,
+		     inputCount, input,
+		     lookup_context.funcs.match, lookup_context.match_data[1],
+		     &match_end, match_positions) && (end_index = match_end)
+       && match_lookahead (c,
+			   lookaheadCount, lookahead,
+			   lookup_context.funcs.match, lookup_context.match_data[2],
+			   match_end, &end_index)))
+  {
+    c->buffer->unsafe_to_concat (c->buffer->idx, end_index);
+    return false;
+  }
+
+  unsigned start_index = c->buffer->out_len;
+  if (!match_backtrack (c,
+			backtrackCount, backtrack,
+			lookup_context.funcs.match, lookup_context.match_data[0],
+			&start_index))
+  {
+    c->buffer->unsafe_to_concat_from_outbuffer (start_index, end_index);
+    return false;
+  }
+
+  c->buffer->unsafe_to_break_from_outbuffer (start_index, end_index);
+  apply_lookup (c,
+		inputCount, match_positions,
+		lookupCount, lookupRecord,
+		match_end);
+  return true;
 }
 
 struct ChainRule

@@ -67,8 +67,8 @@ enum hb_buffer_scratch_flags_t {
   HB_BUFFER_SCRATCH_FLAG_HAS_DEFAULT_IGNORABLES		= 0x00000002u,
   HB_BUFFER_SCRATCH_FLAG_HAS_SPACE_FALLBACK		= 0x00000004u,
   HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT		= 0x00000008u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK		= 0x00000010u,
-  HB_BUFFER_SCRATCH_FLAG_HAS_CGJ			= 0x00000020u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_CGJ			= 0x00000010u,
+  HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS		= 0x00000020u,
 
   /* Reserved for complex shapers' internal use. */
   HB_BUFFER_SCRATCH_FLAG_COMPLEX0			= 0x01000000u,
@@ -385,15 +385,80 @@ struct hb_buffer_t
   /* Merge clusters for deleting current glyph, and skip it. */
   HB_INTERNAL void delete_glyph ();
 
-  void unsafe_to_break (unsigned int start,
-			unsigned int end)
+
+  void set_glyph_flags (hb_mask_t mask,
+			unsigned start = 0,
+			unsigned end = (unsigned) -1,
+			bool interior = false,
+			bool from_out_buffer = false)
   {
-    if (end - start < 2)
+    end = hb_min (end, len);
+
+    if (interior && !from_out_buffer && end - start < 2)
       return;
-    unsafe_to_break_impl (start, end);
+
+    scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+
+    if (!from_out_buffer || !have_output)
+    {
+      if (!interior)
+      {
+	for (unsigned i = start; i < end; i++)
+	  info[i].mask |= mask;
+      }
+      else
+      {
+	unsigned cluster = _infos_find_min_cluster (info, start, end);
+	_infos_set_glyph_flags (info, start, end, cluster, mask);
+      }
+    }
+    else
+    {
+      assert (start <= out_len);
+      assert (idx <= end);
+
+      if (!interior)
+      {
+	for (unsigned i = start; i < out_len; i++)
+	  out_info[i].mask |= mask;
+	for (unsigned i = idx; i < end; i++)
+	  info[i].mask |= mask;
+      }
+      else
+      {
+	unsigned cluster = _infos_find_min_cluster (info, idx, end);
+	cluster = _infos_find_min_cluster (out_info, start, out_len, cluster);
+
+	_infos_set_glyph_flags (out_info, start, out_len, cluster, mask);
+	_infos_set_glyph_flags (info, idx, end, cluster, mask);
+      }
+    }
   }
-  HB_INTERNAL void unsafe_to_break_impl (unsigned int start, unsigned int end);
-  HB_INTERNAL void unsafe_to_break_from_outbuffer (unsigned int start, unsigned int end);
+
+  void unsafe_to_break (unsigned int start = 0, unsigned int end = -1)
+  {
+    set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     start, end,
+		     true);
+  }
+  void unsafe_to_concat (unsigned int start = 0, unsigned int end = -1)
+  {
+    set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     start, end,
+		     true);
+  }
+  void unsafe_to_break_from_outbuffer (unsigned int start = 0, unsigned int end = -1)
+  {
+    set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     start, end,
+		     true, true);
+  }
+  void unsafe_to_concat_from_outbuffer (unsigned int start = 0, unsigned int end = -1)
+  {
+    set_glyph_flags (HB_GLYPH_FLAG_UNSAFE_TO_CONCAT,
+		     start, end,
+		     false, true);
+  }
 
 
   /* Internal methods */
@@ -484,35 +549,30 @@ struct hb_buffer_t
   set_cluster (hb_glyph_info_t &inf, unsigned int cluster, unsigned int mask = 0)
   {
     if (inf.cluster != cluster)
-    {
-      if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
-	inf.mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
-      else
-	inf.mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
-    }
+      inf.mask = (inf.mask & ~HB_GLYPH_FLAG_DEFINED) | (mask & HB_GLYPH_FLAG_DEFINED);
     inf.cluster = cluster;
   }
-
-  static unsigned
-  _infos_find_min_cluster (const hb_glyph_info_t *infos,
-			   unsigned start, unsigned end,
-			   unsigned cluster)
-  {
-    for (unsigned int i = start; i < end; i++)
-      cluster = hb_min (cluster, infos[i].cluster);
-    return cluster;
-  }
   void
-  _unsafe_to_break_set_mask (hb_glyph_info_t *infos,
-			     unsigned int start, unsigned int end,
-			     unsigned int cluster)
+  _infos_set_glyph_flags (hb_glyph_info_t *infos,
+			  unsigned int start, unsigned int end,
+			  unsigned int cluster,
+			  hb_mask_t mask)
   {
     for (unsigned int i = start; i < end; i++)
       if (cluster != infos[i].cluster)
       {
-	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_UNSAFE_TO_BREAK;
-	infos[i].mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK;
+	scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS;
+	infos[i].mask |= mask;
       }
+  }
+  static unsigned
+  _infos_find_min_cluster (const hb_glyph_info_t *infos,
+			   unsigned start, unsigned end,
+			   unsigned cluster = UINT_MAX)
+  {
+    for (unsigned int i = start; i < end; i++)
+      cluster = hb_min (cluster, infos[i].cluster);
+    return cluster;
   }
 
   void clear_glyph_flags (hb_mask_t mask = 0)

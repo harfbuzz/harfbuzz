@@ -59,6 +59,7 @@ TESTS = \
 	tests/tibetan-contractions-2.tests \
 	tests/tibetan-vowels.tests \
 	tests/tt-kern-gpos.tests \
+	tests/unsafe-to-concat.tests \
 	tests/use-indic3.tests \
 	tests/use-marchen.tests \
 	tests/use-syllable.tests \
