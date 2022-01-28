@@ -1544,8 +1544,10 @@ hb_font_create (hb_face_t *face)
   hb_ot_font_set_funcs (font);
 #endif
 
+#ifndef HB_NO_VAR
   if (face && face->index >> 16)
     hb_font_set_var_named_instance (font, (face->index >> 16) - 1);
+#endif
 
   return font;
 }
