@@ -357,6 +357,14 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  *                      flag indicating that a dotted circle should
  *                      not be inserted in the rendering of incorrect
  *                      character sequences (such at <0905 093E>). Since: 2.4
+ * @HB_BUFFER_FLAG_VERIFY:
+ *                      flag indicating that the hb_shape() call and its variants
+ *                      should perform various verification processes on the results
+ *                      of the shaping operation on the buffer.  If the verification
+ *                      fails, then either a buffer message is sent, if a message
+ *                      handler is installed on the buffer, or a message is written
+ *                      to standard error.  In either case, the shaping result might
+ *                      be modified to show the failed output.
  *
  * Flags for #hb_buffer_t.
  *
