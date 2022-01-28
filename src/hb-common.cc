@@ -29,7 +29,7 @@
 #include "hb.hh"
 #include "hb-machinery.hh"
 
-#if !defined(HAVE_NEWLOCALE) || !defined(HAVE_USELOCALE)
+#if !defined(HB_NO_SETLOCALE) && (!defined(HAVE_NEWLOCALE) || !defined(HAVE_USELOCALE))
 #define HB_NO_SETLOCALE 1
 #endif
 
