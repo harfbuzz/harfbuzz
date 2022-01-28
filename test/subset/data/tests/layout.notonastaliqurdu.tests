@@ -1,5 +1,6 @@
 FONTS:
 NotoNastaliqUrdu-Bold.ttf
+NotoNastaliqUrdu-Regular.ttf
 
 PROFILES:
 default.txt
@@ -11,4 +12,5 @@ SUBSETS:
 غير
 سماء لا
 الحب
+سے
 *
