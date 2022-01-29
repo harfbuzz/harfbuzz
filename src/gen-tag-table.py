@@ -570,7 +570,7 @@ class BCP47Parser (object):
 						if scope == 'macrolanguage':
 							scope = ' [macrolanguage]'
 						elif scope == 'collection':
-							scope = ' [family]'
+							scope = ' [collection]'
 						else:
 							continue
 						self.scopes[subtag] = scope
@@ -1127,7 +1127,7 @@ def verify_disambiguation_dict ():
 			else:
 				macrolanguages = [t for t in primary_tags if bcp_47.scopes.get (t) == ' [macrolanguage]']
 			if len (macrolanguages) != 1:
-				macrolanguages = list (t for t in primary_tags if bcp_47.scopes.get (t) == ' [family]')
+				macrolanguages = list (t for t in primary_tags if bcp_47.scopes.get (t) == ' [collection]')
 			if len (macrolanguages) != 1:
 				macrolanguages = list (t for t in primary_tags if 'retired code' not in bcp_47.scopes.get (t, ''))
 			if len (macrolanguages) != 1:
