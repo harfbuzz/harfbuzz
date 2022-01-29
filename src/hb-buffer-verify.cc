@@ -31,15 +31,32 @@
 #include "hb-buffer.hh"
 
 
+#define BUFFER_VERIFY_ERROR "buffer verify error: "
 static inline void
 buffer_verify_error (hb_buffer_t *buffer,
 		     hb_font_t *font,
-		     const char *message)
+		     const char *fmt,
+		     ...) HB_PRINTF_FUNC(3, 4);
+
+static inline void
+buffer_verify_error (hb_buffer_t *buffer,
+		     hb_font_t *font,
+		     const char *fmt,
+		     ...)
 {
+  va_list ap;
+  va_start (ap, fmt);
   if (buffer->messaging ())
-    buffer->message (font, "%s", message);
+  {
+    buffer->message_impl (font, fmt, ap);
+  }
   else
-    fprintf (stderr, "%s\n", message);
+  {
+    fprintf (stderr, "harfbuzz ");
+    vfprintf (stderr, fmt, ap);
+    fprintf (stderr, "\n");
+  }
+  va_end (ap);
 }
 
 static bool
@@ -59,7 +76,7 @@ buffer_verify_monotone (hb_buffer_t *buffer,
       if (info[i-1].cluster != info[i].cluster &&
 	  (info[i-1].cluster < info[i].cluster) != is_forward)
       {
-	buffer_verify_error (buffer, font, "clusters are not monotone.");
+	buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "clusters are not monotone.");
 	return false;
       }
   }
@@ -147,7 +164,7 @@ buffer_verify_unsafe_to_break (hb_buffer_t  *buffer,
     hb_buffer_append (fragment, text_buffer, text_start, text_end);
     if (!hb_shape_full (font, fragment, features, num_features, shapers))
     {
-      buffer_verify_error (buffer, font, "All shapers failed while shaping fragment.");
+      buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "shaping failed while shaping fragment.");
       hb_buffer_destroy (reconstruction);
       hb_buffer_destroy (fragment);
       return false;
@@ -165,7 +182,7 @@ buffer_verify_unsafe_to_break (hb_buffer_t  *buffer,
   hb_buffer_diff_flags_t diff = hb_buffer_diff (reconstruction, buffer, (hb_codepoint_t) -1, 0);
   if (diff)
   {
-    buffer_verify_error (buffer, font, "unsafe-to-break test failed.");
+    buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "unsafe-to-break test failed.");
     ret = false;
 
     /* Return the reconstructed result instead so it can be inspected. */
@@ -296,13 +313,13 @@ buffer_verify_unsafe_to_concat (hb_buffer_t        *buffer,
    */
   if (!hb_shape_full (font, fragments[0], features, num_features, shapers))
   {
-    buffer_verify_error (buffer, font, "All shapers failed while shaping fragment.");
+    buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "shaping failed while shaping fragment.");
     ret = false;
     goto out;
   }
   if (!hb_shape_full (font, fragments[1], features, num_features, shapers))
   {
-    buffer_verify_error (buffer, font, "All shapers failed while shaping fragment.");
+    buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "shaping failed while shaping fragment.");
     ret = false;
     goto out;
   }
@@ -351,7 +368,7 @@ buffer_verify_unsafe_to_concat (hb_buffer_t        *buffer,
   diff = hb_buffer_diff (reconstruction, buffer, (hb_codepoint_t) -1, 0);
   if (diff)
   {
-    buffer_verify_error (buffer, font, "unsafe-to-concat test failed.");
+    buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "unsafe-to-concat test failed.");
     ret = false;
 
     /* Return the reconstructed result instead so it can be inspected. */
@@ -382,6 +399,21 @@ hb_buffer_t::verify (hb_buffer_t        *text_buffer,
     ret = false;
   if (!buffer_verify_unsafe_to_concat (this, text_buffer, font, features, num_features, shapers))
     ret = false;
+  if (!ret)
+  {
+    unsigned len = text_buffer->len;
+    hb_vector_t<char> bytes;
+    if (likely (bytes.resize (len * 10 + 16)))
+    {
+      hb_buffer_serialize_unicode (text_buffer,
+				   0, len,
+				   bytes.arrayZ, bytes.length,
+				   &len,
+				   HB_BUFFER_SERIALIZE_FORMAT_TEXT,
+				   HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS);
+      buffer_verify_error (this, font, BUFFER_VERIFY_ERROR "text was: %s.", bytes.arrayZ);
+    }
+  }
   return ret;
 }
 
