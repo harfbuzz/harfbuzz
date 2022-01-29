@@ -256,6 +256,8 @@ static const LangTag ot_languages[] = {
   {"chh",	HB_TAG_NONE	       },	/* Chinook != Chattisgarhi */
   {"chj",	HB_TAG('C','C','H','N')},	/* Ojitlán Chinantec -> Chinantec */
   {"chk",	HB_TAG('C','H','K','0')},	/* Chuukese */
+  {"chm",	HB_TAG('H','M','A',' ')},	/* Mari (Russia) [macrolanguage] -> High Mari */
+  {"chm",	HB_TAG('L','M','A',' ')},	/* Mari (Russia) [macrolanguage] -> Low Mari */
   {"chn",	HB_TAG('C','P','P',' ')},	/* Chinook jargon -> Creoles */
 /*{"cho",	HB_TAG('C','H','O',' ')},*/	/* Choctaw */
   {"chp",	HB_TAG('C','H','P',' ')},	/* Chipewyan */
@@ -1311,6 +1313,9 @@ static const LangTag ot_languages[] = {
   {"sgo",	HB_TAG_NONE	       },	/* Songa (retired code) != Sango */
 /*{"sgs",	HB_TAG('S','G','S',' ')},*/	/* Samogitian */
   {"sgw",	HB_TAG('C','H','G',' ')},	/* Sebat Bet Gurage -> Chaha Gurage */
+  {"sh",	HB_TAG('B','O','S',' ')},	/* Serbo-Croatian [macrolanguage] -> Bosnian */
+  {"sh",	HB_TAG('H','R','V',' ')},	/* Serbo-Croatian [macrolanguage] -> Croatian */
+  {"sh",	HB_TAG('S','R','B',' ')},	/* Serbo-Croatian [macrolanguage] -> Serbian */
   {"shi",	HB_TAG('S','H','I',' ')},	/* Tachelhit */
   {"shi",	HB_TAG('B','B','R',' ')},	/* Tachelhit -> Berber */
   {"shl",	HB_TAG('Q','I','N',' ')},	/* Shendu -> Chin */
@@ -2841,6 +2846,8 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("fa", -1);  /* Persian [macrolanguage] */
   case HB_TAG('G','O','N',' '):  /* Gondi */
     return hb_language_from_string ("gon", -1);  /* Gondi [macrolanguage] */
+  case HB_TAG('H','M','A',' '):  /* High Mari */
+    return hb_language_from_string ("mrj", -1);  /* Western Mari */
   case HB_TAG('H','M','N',' '):  /* Hmong */
     return hb_language_from_string ("hmn", -1);  /* Hmong [macrolanguage] */
   case HB_TAG('H','N','D',' '):  /* Hindko */
@@ -2881,6 +2888,8 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("uki", -1);  /* Kui (India) */
   case HB_TAG('K','U','R',' '):  /* Kurdish */
     return hb_language_from_string ("ku", -1);  /* Kurdish [macrolanguage] */
+  case HB_TAG('L','M','A',' '):  /* Low Mari */
+    return hb_language_from_string ("mhr", -1);  /* Eastern Mari */
   case HB_TAG('L','U','H',' '):  /* Luyia */
     return hb_language_from_string ("luy", -1);  /* Luyia [macrolanguage] */
   case HB_TAG('L','V','I',' '):  /* Latvian */

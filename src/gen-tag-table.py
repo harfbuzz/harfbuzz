@@ -329,6 +329,10 @@ class OpenTypeRegistryParser (HTMLParser):
 		from_bcp_47 (DefaultDict[str, AbstractSet[str]]): ``to_bcp_47``
 			inverted. Its values start as unsorted sets;
 			``sort_languages`` converts them to sorted lists.
+		from_bcp_47_uninherited (Optional[Dict[str, AbstractSet[str]]]):
+			A copy of ``from_bcp_47``. It starts as ``None`` and is
+			populated at the beginning of the first call to
+			``inherit_from_macrolanguages``.
 
 	"""
 	def __init__ (self):
@@ -338,6 +342,7 @@ class OpenTypeRegistryParser (HTMLParser):
 		self.ranks = collections.defaultdict (int)
 		self.to_bcp_47 = collections.defaultdict (set)
 		self.from_bcp_47 = collections.defaultdict (set)
+		self.from_bcp_47_uninherited = None
 		# Whether the parser is in a <td> element
 		self._td = False
 		# Whether the parser is after a <br> element within the current <tr> element
@@ -463,29 +468,24 @@ class OpenTypeRegistryParser (HTMLParser):
 		to SQI.
 
 		If a BCP 47 tag for a macrolanguage has no OpenType mapping but
-		all of its individual languages do and they all map to the same
-		tags, the mapping is copied to the macrolanguage.
+		some of its individual languages do, their mappings are copied
+		to the macrolanguage.
 		"""
 		global bcp_47
-		original_ot_from_bcp_47 = dict (self.from_bcp_47)
+		first_time = self.from_bcp_47_uninherited is None
+		if first_time:
+			self.from_bcp_47_uninherited = dict (self.from_bcp_47)
 		for macrolanguage, languages in dict (bcp_47.macrolanguages).items ():
-			ot_macrolanguages = set (original_ot_from_bcp_47.get (macrolanguage, set ()))
+			ot_macrolanguages = set (self.from_bcp_47_uninherited.get (macrolanguage, set ()))
 			if ot_macrolanguages:
 				for ot_macrolanguage in ot_macrolanguages:
 					for language in languages:
 						self.add_language (language, ot_macrolanguage)
 						self.ranks[ot_macrolanguage] += 1
-			else:
+			elif first_time:
 				for language in languages:
-					if language in original_ot_from_bcp_47:
-						if ot_macrolanguages:
-							ml = original_ot_from_bcp_47[language]
-							if ml:
-								ot_macrolanguages &= ml
-							else:
-								pass
-						else:
-							ot_macrolanguages |= original_ot_from_bcp_47[language]
+					if language in self.from_bcp_47_uninherited:
+						ot_macrolanguages |= self.from_bcp_47_uninherited[language]
 					else:
 						ot_macrolanguages.clear ()
 					if not ot_macrolanguages:
@@ -1121,7 +1121,11 @@ def verify_disambiguation_dict ():
 		elif len (primary_tags) == 0:
 			expect (ot_tag not in disambiguation, 'There is no possible valid disambiguation for %s' % ot_tag)
 		else:
-			macrolanguages = list (t for t in primary_tags if bcp_47.scopes.get (t) == ' [macrolanguage]')
+			original_languages = [t for t in primary_tags if t in ot.from_bcp_47_uninherited and 'retired code' not in bcp_47.scopes.get (t, '')]
+			if len (original_languages) == 1:
+				macrolanguages = original_languages
+			else:
+				macrolanguages = [t for t in primary_tags if bcp_47.scopes.get (t) == ' [macrolanguage]']
 			if len (macrolanguages) != 1:
 				macrolanguages = list (t for t in primary_tags if bcp_47.scopes.get (t) == ' [family]')
 			if len (macrolanguages) != 1:
