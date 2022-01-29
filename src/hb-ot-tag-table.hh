@@ -6,8 +6,8 @@
  *
  * on files with these headers:
  *
- * <meta name="updated_at" content="2021-12-09 12:01 AM" />
- * File-Date: 2021-08-06
+ * <meta name="updated_at" content="2022-01-28 10:00 PM" />
+ * File-Date: 2021-12-29
  */
 
 #ifndef HB_OT_TAG_TABLE_HH
@@ -624,7 +624,9 @@ static const LangTag ot_languages[] = {
   {"ijs",	HB_TAG('I','J','O',' ')},	/* Southeast Ijo -> Ijo */
   {"ik",	HB_TAG('I','P','K',' ')},	/* Inupiaq [macrolanguage] -> Inupiat */
   {"ike",	HB_TAG('I','N','U',' ')},	/* Eastern Canadian Inuktitut -> Inuktitut */
+  {"ike",	HB_TAG('I','N','U','K')},	/* Eastern Canadian Inuktitut -> Nunavik Inuktitut */
   {"ikt",	HB_TAG('I','N','U',' ')},	/* Inuinnaqtun -> Inuktitut */
+  {"ikt",	HB_TAG('I','N','U','K')},	/* Inuinnaqtun -> Nunavik Inuktitut */
 /*{"ilo",	HB_TAG('I','L','O',' ')},*/	/* Iloko -> Ilokano */
   {"in",	HB_TAG('I','N','D',' ')},	/* Indonesian (retired code) */
   {"in",	HB_TAG('M','L','Y',' ')},	/* Indonesian (retired code) -> Malay */
@@ -638,6 +640,7 @@ static const LangTag ot_languages[] = {
   {"it",	HB_TAG('I','T','A',' ')},	/* Italian */
   {"itz",	HB_TAG('M','Y','N',' ')},	/* Itzá -> Mayan */
   {"iu",	HB_TAG('I','N','U',' ')},	/* Inuktitut [macrolanguage] */
+  {"iu",	HB_TAG('I','N','U','K')},	/* Inuktitut [macrolanguage] -> Nunavik Inuktitut */
   {"iw",	HB_TAG('I','W','R',' ')},	/* Hebrew (retired code) */
   {"ixl",	HB_TAG('M','Y','N',' ')},	/* Ixil -> Mayan */
   {"ja",	HB_TAG('J','A','N',' ')},	/* Japanese */
