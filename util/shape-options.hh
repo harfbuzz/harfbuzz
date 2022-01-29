@@ -94,7 +94,7 @@ struct shape_options_t
     if (!hb_shape_full (font, buffer, features, num_features, shapers))
     {
       if (error)
-	*error = "All shapers failed.";
+	*error = "Shaping failed.";
       goto fail;
     }
 
