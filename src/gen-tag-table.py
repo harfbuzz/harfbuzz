@@ -467,6 +467,14 @@ class OpenTypeRegistryParser (HTMLParser):
 		explicit mapping, so it inherits from sq (Albanian) the mapping
 		to SQI.
 
+		However, if an OpenType tag maps to a BCP 47 macrolanguage and
+		some but not all of its individual languages, the mapping is not
+		inherited from the macrolanguage to the missing individual
+		languages. For example, INUK (Nunavik Inuktitut) is mapped to
+		ike (Eastern Canadian Inuktitut) and iu (Inuktitut) but not to
+		ikt (Inuinnaqtun, which is an individual language of iu), so
+		this method does not add a mapping from ikt to INUK.
+
 		If a BCP 47 tag for a macrolanguage has no OpenType mapping but
 		some of its individual languages do, their mappings are copied
 		to the macrolanguage.
@@ -476,12 +484,30 @@ class OpenTypeRegistryParser (HTMLParser):
 		if first_time:
 			self.from_bcp_47_uninherited = dict (self.from_bcp_47)
 		for macrolanguage, languages in dict (bcp_47.macrolanguages).items ():
-			ot_macrolanguages = set (self.from_bcp_47_uninherited.get (macrolanguage, set ()))
+			ot_macrolanguages = {
+				ot_macrolanguage for ot_macrolanguage in self.from_bcp_47_uninherited.get (macrolanguage, set ())
+			}
+			blocked_ot_macrolanguages = set ()
+			if 'retired code' not in bcp_47.scopes.get (macrolanguage, ''):
+				for ot_macrolanguage in ot_macrolanguages:
+					round_trip_macrolanguages = {
+						l for l in self.to_bcp_47[ot_macrolanguage]
+						if 'retired code' not in bcp_47.scopes.get (l, '')
+					}
+					round_trip_languages = {
+						l for l in languages
+						if 'retired code' not in bcp_47.scopes.get (l, '')
+					}
+					intersection = round_trip_macrolanguages & round_trip_languages
+					if intersection and intersection != round_trip_languages:
+						blocked_ot_macrolanguages.add (ot_macrolanguage)
 			if ot_macrolanguages:
 				for ot_macrolanguage in ot_macrolanguages:
-					for language in languages:
-						self.add_language (language, ot_macrolanguage)
-						self.ranks[ot_macrolanguage] += 1
+					if ot_macrolanguage not in blocked_ot_macrolanguages:
+						for language in languages:
+							self.add_language (language, ot_macrolanguage)
+							if not blocked_ot_macrolanguages:
+								self.ranks[ot_macrolanguage] += 1
 			elif first_time:
 				for language in languages:
 					if language in self.from_bcp_47_uninherited:
@@ -715,6 +741,7 @@ ot.add_language ('no', 'NOR')
 
 ot.add_language ('oc-provenc', 'PRO')
 
+ot.remove_language_ot ('QUZ')
 ot.add_language ('qu', 'QUZ')
 ot.add_language ('qub', 'QWH')
 ot.add_language ('qud', 'QVI')

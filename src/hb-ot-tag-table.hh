@@ -628,7 +628,6 @@ static const LangTag ot_languages[] = {
   {"ike",	HB_TAG('I','N','U',' ')},	/* Eastern Canadian Inuktitut -> Inuktitut */
   {"ike",	HB_TAG('I','N','U','K')},	/* Eastern Canadian Inuktitut -> Nunavik Inuktitut */
   {"ikt",	HB_TAG('I','N','U',' ')},	/* Inuinnaqtun -> Inuktitut */
-  {"ikt",	HB_TAG('I','N','U','K')},	/* Inuinnaqtun -> Nunavik Inuktitut */
 /*{"ilo",	HB_TAG('I','L','O',' ')},*/	/* Iloko -> Ilokano */
   {"in",	HB_TAG('I','N','D',' ')},	/* Indonesian (retired code) */
   {"in",	HB_TAG('M','L','Y',' ')},	/* Indonesian (retired code) -> Malay */
@@ -1044,7 +1043,6 @@ static const LangTag ot_languages[] = {
   {"nln",	HB_TAG('N','A','H',' ')},	/* Durango Nahuatl (retired code) -> Nahuatl */
   {"nlv",	HB_TAG('N','A','H',' ')},	/* Orizaba Nahuatl -> Nahuatl */
   {"nn",	HB_TAG('N','Y','N',' ')},	/* Norwegian Nynorsk (Nynorsk, Norwegian) */
-  {"nn",	HB_TAG('N','O','R',' ')},	/* Norwegian Nynorsk -> Norwegian */
   {"nnh",	HB_TAG('B','M','L',' ')},	/* Ngiemboon -> Bamileke */
   {"nnz",	HB_TAG('B','M','L',' ')},	/* Nda'nda' -> Bamileke */
   {"no",	HB_TAG('N','O','R',' ')},	/* Norwegian [macrolanguage] */
@@ -2615,14 +2613,8 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
     if (0 == strcmp (&lang_str[1], "o-nyn"))
     {
       /* Norwegian Nynorsk (retired code) */
-      unsigned int i;
-      hb_tag_t possible_tags[] = {
-	HB_TAG('N','Y','N',' '),  /* Norwegian Nynorsk (Nynorsk, Norwegian) */
-	HB_TAG('N','O','R',' '),  /* Norwegian */
-      };
-      for (i = 0; i < 2 && i < *count; i++)
-	tags[i] = possible_tags[i];
-      *count = i;
+      tags[0] = HB_TAG('N','Y','N',' ');  /* Norwegian Nynorsk (Nynorsk, Norwegian) */
+      *count = 1;
       return true;
     }
     break;
