@@ -1,24 +1,31 @@
+Overview of changes leading to 3.3.1
+Monday, January 31, 2022
+====================================
+- Fix heap-use-after-free in harfbuzz-subset introduced in previous release.
+  (Garret Rieger)
+
+
 Overview of changes leading to 3.3.0
 Monday, January 31, 2022
 ====================================
-- Improved documentation.
-- Internal code cleanup, using C++ standard library more.
+- Improved documentation. (Matthias Clasen)
+- Internal code cleanup, using C++ standard library more. (Behdad Esfahbod)
 - The low 16-bits of face index will be used by hb_face_create() to select a
   face inside a font collection file format, while the high 16-bits will be
-  used by hb_font_create() to load the named instance.
+  used by hb_font_create() to load the named instance. (Behdad Esfahbod)
 - Glyph positions and other font metrics now apply synthetic slant set by
   hb_font_set_synthetic_slant(), for improved positioning for synthetically
-  slanted fonts.
+  slanted fonts. (Behdad Esfahbod)
 - Fixed unintentional locale dependency in hb_variation_to_string() for decimal
-  point representation.
+  point representation. (Matthias Clasen)
 - When applying pair positioning (kerning) the positioning value is split
   between the two sides of the pair for improved cursor positioning between
-  such pairs.
+  such pairs. (Behdad Esfahbod)
 - Introduced new HB_GLYPH_FLAG_UNSAFE_TO_CONCAT, to be used in conjunction
   with HB_GLYPH_FLAG_UNSAFE_TO_BREAK for optimizing re-shaping during line
-  breaking. Check the documentation for further details.
+  breaking. Check the documentation for further details. (Behdad Esfahbod)
 - Improved handling of macrolanguages when mapping BCP 47 codes to OpenType
-  tags.
+  tags. (David Corbett)
 
 - New API:
 +HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
