@@ -2053,7 +2053,7 @@ hb_font_get_ptem (hb_font_t *font)
  * <note>Note: The slant value is a ratio.  For example, a
  * 20% slant would be represented as a 0.2 value.</note>
  *
- * Since: REPLACEME
+ * Since: 3.3.0
  **/
 HB_EXTERN void
 hb_font_set_synthetic_slant (hb_font_t *font, float slant)
@@ -2073,7 +2073,7 @@ hb_font_set_synthetic_slant (hb_font_t *font, float slant)
  *
  * Return value: Synthetic slant.  By default is zero.
  *
- * Since: REPLACEME
+ * Since: 3.3.0
  **/
 HB_EXTERN float
 hb_font_get_synthetic_slant (hb_font_t *font)
@@ -2266,7 +2266,7 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
 /**
  * hb_font_get_var_coords_normalized:
  * @font: #hb_font_t to work upon
- * @length: Number of coordinates retrieved
+ * @length: (out): Number of coordinates retrieved
  *
  * Fetches the list of normalized variation coordinates currently
  * set on a font.
@@ -2276,6 +2276,8 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
  *
  * Return value is valid as long as variation coordinates of the font
  * are not modified.
+ *
+ * Return value: coordinates array
  *
  * Since: 1.4.2
  */
@@ -2292,18 +2294,21 @@ hb_font_get_var_coords_normalized (hb_font_t    *font,
 /**
  * hb_font_get_var_coords_design:
  * @font: #hb_font_t to work upon
- * @length: (out): number of coordinates
+ * @length: (out): Number of coordinates retrieved
  *
- * Return value is valid as long as variation coordinates of the font
- * are not modified.
+ * Fetches the list of variation coordinates (in design-space units) currently
+ * set on a font.
  *
  * Note that this returned array may only contain values for some
  * (or none) of the axes; omitted axes effectively have their default
  * values.
  *
+ * Return value is valid as long as variation coordinates of the font
+ * are not modified.
+ *
  * Return value: coordinates array
  *
- * Since: REPLACEME
+ * Since: 3.3.0
  */
 const float *
 hb_font_get_var_coords_design (hb_font_t *font,

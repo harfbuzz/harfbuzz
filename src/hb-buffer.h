@@ -137,7 +137,7 @@ typedef struct hb_glyph_info_t {
  * 				   clusters.
  * 				   The #HB_GLYPH_FLAG_UNSAFE_TO_BREAK flag will
  * 				   always imply this flag.
- * 				   Since: REPLACEME
+ * 				   Since: 3.3.0
  * @HB_GLYPH_FLAG_DEFINED: All the currently defined flags.
  *
  * Flags for #hb_glyph_info_t.

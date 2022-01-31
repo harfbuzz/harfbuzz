@@ -1,7 +1,37 @@
+Overview of changes leading to 3.3.0
+Monday, January 31, 2022
+====================================
+- Improved documentation.
+- Internal code cleanup, using C++ standard library more.
+- The low 16-bits of face index will be used by hb_face_create() to select a
+  face inside a font collection file format, while the high 16-bits will be
+  used by hb_font_create() to load the named instance.
+- Glyph positions and other font metrics now apply synthetic slant set by
+  hb_font_set_synthetic_slant(), for improved positioning for synthetically
+  slanted fonts.
+- Fixed unintentional locale dependency in hb_variation_to_string() for decimal
+  point representation.
+- When applying pair positioning (kerning) the positioning value is split
+  between the two sides of the pair for improved cursor positioning between
+  such pairs.
+- Introduced new HB_GLYPH_FLAG_UNSAFE_TO_CONCAT, to be used in conjunction
+  with HB_GLYPH_FLAG_UNSAFE_TO_BREAK for optimizing re-shaping during line
+  breaking. Check the documentation for further details.
+- Improved handling of macrolanguages when mapping BCP 47 codes to OpenType
+  tags.
+
+- New API:
++HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
++hb_segment_properties_overlay()
++hb_buffer_create_similar()
++hb_font_set_synthetic_slant()
++hb_font_get_synthetic_slant()
++hb_font_get_var_coords_design()
+
+
 Overview of changes leading to 3.2.0
 Friday, November 26, 2021
 ====================================
-
 “harfbuzz” library improvements:
 - Fixed shaping of Apple Color Emoji flags in right-to-left context. (Behdad Esfahbod)
 - Fixed positioning of CFF fonts in HB_TINY profile. (Behdad Esfahbod)

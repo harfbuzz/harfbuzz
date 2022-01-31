@@ -102,7 +102,7 @@ hb_segment_properties_hash (const hb_segment_properties_t *p)
  * can be unset), if @p does not have language set, language is copied from
  * @src.
  *
- * Since: REPLACEME
+ * Since: 3.3.0
  **/
 void
 hb_segment_properties_overlay (hb_segment_properties_t *p,
@@ -664,14 +664,13 @@ hb_buffer_create ()
  * hb_buffer_create_similar:
  * @src: An #hb_buffer_t
  *
- * Resets the buffer to its initial status, as if it was just newly created
- * with hb_buffer_create().
- *
- * Return value: (transfer full):
- * A newly allocated #hb_buffer_t, similar to hb_buffer_create(). The only
+ * Creates a new #hb_buffer_t, similar to hb_buffer_create(). The only
  * difference is that the buffer is configured similarly to @src.
  *
- * Since: REPLACEME
+ * Return value: (transfer full):
+ * A newly allocated #hb_buffer_t, similar to hb_buffer_create().
+ *
+ * Since: 3.3.0
  **/
 hb_buffer_t *
 hb_buffer_create_similar (const hb_buffer_t *src)
