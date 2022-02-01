@@ -1361,8 +1361,10 @@ struct Lookup
     if (unlikely (!get_subtables<TSubTable> ().sanitize (c, this, get_type ())))
       return_trace (false);
 
-    if (unlikely (get_type () == TSubTable::Extension && subtables && !c->get_edit_count ()))
+    if (unlikely (get_type () == TSubTable::Extension && subtables))
     {
+      if (c->get_edit_count ())
+        return_trace (false);
       /* The spec says all subtables of an Extension lookup should
        * have the same type, which shall not be the Extension type
        * itself (but we already checked for that).
