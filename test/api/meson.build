@@ -32,6 +32,7 @@ tests = [
   'test-ot-tag.c',
   'test-ot-extents-cff.c',
   'test-ot-metrics-tt-var.c',
+  'test-subset-repacker.c',
   'test-set.c',
   'test-shape.c',
   'test-style.c',
