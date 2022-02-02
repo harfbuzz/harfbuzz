@@ -140,6 +140,8 @@ struct hb_font_t
   hb_position_t em_scalef_y (float v) { return em_scalef (v, y_scale); }
   float em_fscale_x (int16_t v) { return em_fscale (v, x_scale); }
   float em_fscale_y (int16_t v) { return em_fscale (v, y_scale); }
+  float em_fscalef_x (float v) { return em_fscalef (v, x_scale); }
+  float em_fscalef_y (float v) { return em_fscalef (v, y_scale); }
   hb_position_t em_scale_dir (int16_t v, hb_direction_t direction)
   { return em_mult (v, dir_mult (direction)); }
 
