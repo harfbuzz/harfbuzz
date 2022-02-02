@@ -25,7 +25,6 @@
 #include "hb.hh"
 
 #ifndef HB_NO_DRAW
-#ifdef HB_EXPERIMENTAL_API
 
 #include "hb-draw.hh"
 #include "hb-ot.h"
@@ -257,5 +256,4 @@ hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
   return false;
 }
 
-#endif
 #endif

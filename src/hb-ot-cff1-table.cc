@@ -442,7 +442,6 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
   return true;
 }
 
-#ifdef HB_EXPERIMENTAL_API
 struct cff1_path_param_t
 {
   cff1_path_param_t (const OT::cff1::accelerator_t *cff_, hb_font_t *font_,
@@ -564,7 +563,6 @@ bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, d
 
   return _get_path (this, font, glyph, draw_helper);
 }
-#endif
 
 struct get_seac_param_t
 {
