@@ -52,6 +52,13 @@ HB_BEGIN_DECLS
 				  ((const char *) s)[2], \
 				  ((const char *) s)[3]))
 
+#define HB_FACE_ADD_TABLE(face, tag, data) \
+	hb_face_builder_add_table ((face), \
+				   HB_TAG_CHAR4(tag), \
+				   hb_blob_create_or_fail ((data), \
+							    sizeof (data), \
+							    HB_MEMORY_MODE_READONLY, \
+							    NULL, NULL))
 
 static inline const char *
 srcdir (void)

@@ -30,6 +30,7 @@ noinst_PROGRAMS = $(TEST_PROGS)
 TEST_PROGS = \
 	test-aat-layout \
 	test-baseline \
+	test-be-num-glyphs \
 	test-blob \
 	test-buffer \
 	test-c \

@@ -185,7 +185,7 @@ struct hmtxvmtx
 
       table = hb_sanitize_context_t ().reference_table<hmtxvmtx> (face, T::tableTag);
 
-      /* Cap num_metrics() and num_advances() based on table length. */
+      /* Cap num_metrics and num_advances based on table length. */
       unsigned int len = table.get_length ();
       if (unlikely (num_advances * 4 > len))
 	num_advances = len / 4;
