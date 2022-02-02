@@ -625,7 +625,9 @@ struct hb_font_t
   hb_position_t em_mult (int16_t v, int64_t mult)
   { return (hb_position_t) ((v * mult + 32768) >> 16); }
   hb_position_t em_scalef (float v, int scale)
-  { return (hb_position_t) roundf (v * scale / face->get_upem ()); }
+  { return (hb_position_t) roundf (em_fscalef (v, scale)); }
+  float em_fscalef (float v, int scale)
+  { return v * scale / face->get_upem (); }
   float em_fscale (int16_t v, int scale)
   { return (float) v * scale / face->get_upem (); }
 };
