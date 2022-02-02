@@ -27,10 +27,6 @@
 #ifndef HB_NO_DRAW
 
 #include "hb-draw.hh"
-#include "hb-ot.h"
-#include "hb-ot-glyf-table.hh"
-#include "hb-ot-cff1-table.hh"
-#include "hb-ot-cff2-table.hh"
 
 /**
  * hb_draw_funcs_set_move_to_func:
@@ -223,37 +219,6 @@ hb_bool_t
 hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs)
 {
   return hb_object_is_immutable (funcs);
-}
-
-/**
- * hb_font_draw_glyph:
- * @font: a font object
- * @glyph: a glyph id
- * @funcs: draw callbacks object
- * @user_data: parameter you like be passed to the callbacks when are called
- *
- * Draw a glyph.
- *
- * Returns: Whether the font had the glyph and the operation completed successfully.
- * Since: REPLACEME
- **/
-hb_bool_t
-hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
-		    const hb_draw_funcs_t *funcs,
-		    void *user_data)
-{
-  if (unlikely (funcs == &Null (hb_draw_funcs_t) ||
-		glyph >= font->face->get_num_glyphs ()))
-    return false;
-
-  draw_helper_t draw_helper (funcs, user_data);
-  if (font->face->table.glyf->get_path (font, glyph, draw_helper)) return true;
-#ifndef HB_NO_CFF
-  if (font->face->table.cff1->get_path (font, glyph, draw_helper)) return true;
-  if (font->face->table.cff2->get_path (font, glyph, draw_helper)) return true;
-#endif
-
-  return false;
 }
 
 #endif
