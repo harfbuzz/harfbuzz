@@ -136,33 +136,33 @@ struct user_data_t
 };
 
 static void
-move_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
+move_to (float to_x, float to_y, user_data_t &user_data)
 {
-  fprintf (user_data.f, "M%d,%d", to_x, user_data.ascender - to_y);
+  fprintf (user_data.f, "M%g,%g", to_x, user_data.ascender - to_y);
 }
 
 static void
-line_to (hb_position_t to_x, hb_position_t to_y, user_data_t &user_data)
+line_to (float to_x, float to_y, user_data_t &user_data)
 {
-  fprintf (user_data.f, "L%d,%d", to_x, user_data.ascender - to_y);
+  fprintf (user_data.f, "L%g,%g", to_x, user_data.ascender - to_y);
 }
 
 static void
-quadratic_to (hb_position_t control_x, hb_position_t control_y,
-	      hb_position_t to_x, hb_position_t to_y,
+quadratic_to (float control_x, float control_y,
+	      float to_x, float to_y,
 	      user_data_t &user_data)
 {
-  fprintf (user_data.f, "Q%d,%d %d,%d", control_x, user_data.ascender - control_y,
+  fprintf (user_data.f, "Q%g,%g %g,%g", control_x, user_data.ascender - control_y,
 					to_x, user_data.ascender - to_y);
 }
 
 static void
-cubic_to (hb_position_t control1_x, hb_position_t control1_y,
-	  hb_position_t control2_x, hb_position_t control2_y,
-	  hb_position_t to_x, hb_position_t to_y,
+cubic_to (float control1_x, float control1_y,
+	  float control2_x, float control2_y,
+	  float to_x, float to_y,
 	  user_data_t &user_data)
 {
-  fprintf (user_data.f, "C%d,%d %d,%d %d,%d", control1_x, user_data.ascender - control1_y,
+  fprintf (user_data.f, "C%g,%g %g,%g %g,%g", control1_x, user_data.ascender - control1_y,
 					       control2_x, user_data.ascender - control2_y,
 					       to_x, user_data.ascender - to_y);
 }
