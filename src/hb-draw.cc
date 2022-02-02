@@ -39,7 +39,7 @@
  *
  * Sets move-to callback to the draw functions object.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 void
 hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
@@ -56,7 +56,7 @@ hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
  *
  * Sets line-to callback to the draw functions object.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 void
 hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
@@ -73,7 +73,7 @@ hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
  *
  * Sets quadratic-to callback to the draw functions object.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 void
 hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
@@ -91,7 +91,7 @@ hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
  *
  * Sets cubic-to callback to the draw functions object.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 void
 hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
@@ -108,7 +108,7 @@ hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
  *
  * Sets close-path callback to the draw functions object.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 void
 hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *funcs,
@@ -143,7 +143,7 @@ _close_path_nil (void *user_data HB_UNUSED) {}
  *
  * Creates a new draw callbacks object.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 hb_draw_funcs_t *
 hb_draw_funcs_create ()
@@ -168,7 +168,7 @@ hb_draw_funcs_create ()
  * Add to callbacks object refcount.
  *
  * Returns: The same object.
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 hb_draw_funcs_t *
 hb_draw_funcs_reference (hb_draw_funcs_t *funcs)
@@ -183,7 +183,7 @@ hb_draw_funcs_reference (hb_draw_funcs_t *funcs)
  * Decreases refcount of callbacks object and deletes the object if it reaches
  * to zero.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 void
 hb_draw_funcs_destroy (hb_draw_funcs_t *funcs)
@@ -199,7 +199,7 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *funcs)
  *
  * Makes funcs object immutable.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 void
 hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs)
@@ -217,7 +217,7 @@ hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs)
  * Checks whether funcs is immutable.
  *
  * Returns: If is immutable.
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 hb_bool_t
 hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs)
@@ -235,7 +235,7 @@ hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs)
  * Draw a glyph.
  *
  * Returns: Whether the font had the glyph and the operation completed successfully.
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 hb_bool_t
 hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
