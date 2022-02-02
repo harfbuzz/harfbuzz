@@ -42,23 +42,22 @@
  * Returns: Whether the font had the glyph and the operation completed successfully.
  * Since: REPLACEME
  **/
-hb_bool_t
-hb_font_draw_glyph (hb_font_t *font, hb_codepoint_t glyph,
+void
+hb_font_draw_glyph (hb_font_t *font,
+		    hb_codepoint_t glyph,
 		    const hb_draw_funcs_t *funcs,
 		    void *user_data)
 {
   if (unlikely (funcs == &Null (hb_draw_funcs_t) ||
 		glyph >= font->face->get_num_glyphs ()))
-    return false;
+    return;
 
   draw_helper_t draw_helper (funcs, user_data);
-  if (font->face->table.glyf->get_path (font, glyph, draw_helper)) return true;
+  if (font->face->table.glyf->get_path (font, glyph, draw_helper)) return;
 #ifndef HB_NO_CFF
-  if (font->face->table.cff1->get_path (font, glyph, draw_helper)) return true;
-  if (font->face->table.cff2->get_path (font, glyph, draw_helper)) return true;
+  if (font->face->table.cff1->get_path (font, glyph, draw_helper)) return;
+  if (font->face->table.cff2->get_path (font, glyph, draw_helper)) return;
 #endif
-
-  return false;
 }
 
 #endif

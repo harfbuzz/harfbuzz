@@ -232,8 +232,7 @@ layered_glyph_dump (hb_font_t *font, hb_draw_funcs_t *funcs, unsigned face_index
 	  if (hb_color_get_alpha (color) != 255)
 	    fprintf (f, "fill-opacity=\"%.3f\"", (double) hb_color_get_alpha (color) / 255.);
 	  fprintf (f, "d=\"");
-	  if (!hb_font_draw_glyph (font, layers[layer].glyph, funcs, &user_data))
-	    printf ("Failed to decompose layer %d while %d\n", layers[layer].glyph, gid);
+	  hb_font_draw_glyph (font, layers[layer].glyph, funcs, &user_data);
 	  fprintf (f, "\"/>\n");
 	}
 
@@ -272,8 +271,7 @@ dump_glyphs (hb_font_t *font, hb_draw_funcs_t *funcs, unsigned face_index)
     user_data_t user_data;
     user_data.ascender = font_extents.ascender;
     user_data.f = f;
-    if (!hb_font_draw_glyph (font, gid, funcs, &user_data))
-      printf ("Failed to decompose gid: %d\n", gid);
+    hb_font_draw_glyph (font, gid, funcs, &user_data);
     fprintf (f, "\"/></svg>");
     fclose (f);
   }
