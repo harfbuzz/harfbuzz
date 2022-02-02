@@ -50,14 +50,14 @@ struct draw_helper_t
   }
   ~draw_helper_t () { end_path (); }
 
-  void move_to (hb_position_t x, hb_position_t y)
+  void move_to (float x, float y)
   {
     if (path_open) end_path ();
     current_x = path_start_x = x;
     current_y = path_start_y = y;
   }
 
-  void line_to (hb_position_t x, hb_position_t y)
+  void line_to (float x, float y)
   {
     if (equal_to_current (x, y)) return;
     if (!path_open) start_path ();
@@ -67,8 +67,8 @@ struct draw_helper_t
   }
 
   void
-  quadratic_to (hb_position_t control_x, hb_position_t control_y,
-		hb_position_t to_x, hb_position_t to_y)
+  quadratic_to (float control_x, float control_y,
+		float to_x, float to_y)
   {
     if (equal_to_current (control_x, control_y) && equal_to_current (to_x, to_y))
       return;
@@ -86,9 +86,9 @@ struct draw_helper_t
   }
 
   void
-  cubic_to (hb_position_t control1_x, hb_position_t control1_y,
-	    hb_position_t control2_x, hb_position_t control2_y,
-	    hb_position_t to_x, hb_position_t to_y)
+  cubic_to (float control1_x, float control1_y,
+	    float control2_x, float control2_y,
+	    float to_x, float to_y)
   {
     if (equal_to_current (control1_x, control1_y) &&
 	equal_to_current (control2_x, control2_y) &&
@@ -113,7 +113,7 @@ struct draw_helper_t
   }
 
   protected:
-  bool equal_to_current (hb_position_t x, hb_position_t y)
+  bool equal_to_current (float x, float y)
   { return current_x == x && current_y == y; }
 
   void start_path ()
@@ -123,11 +123,11 @@ struct draw_helper_t
     funcs->move_to (path_start_x, path_start_y, user_data);
   }
 
-  hb_position_t path_start_x;
-  hb_position_t path_start_y;
+  float path_start_x;
+  float path_start_y;
 
-  hb_position_t current_x;
-  hb_position_t current_y;
+  float current_x;
+  float current_y;
 
   bool path_open;
   const hb_draw_funcs_t *funcs;

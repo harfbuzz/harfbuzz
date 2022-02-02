@@ -152,16 +152,16 @@ struct cff2_path_param_t
   }
 
   void move_to (const point_t &p)
-  { draw_helper->move_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ())); }
+  { draw_helper->move_to (font->em_fscalef_x (p.x.to_real ()), font->em_fscalef_y (p.y.to_real ())); }
 
   void line_to (const point_t &p)
-  { draw_helper->line_to (font->em_scalef_x (p.x.to_real ()), font->em_scalef_y (p.y.to_real ())); }
+  { draw_helper->line_to (font->em_fscalef_x (p.x.to_real ()), font->em_fscalef_y (p.y.to_real ())); }
 
   void cubic_to (const point_t &p1, const point_t &p2, const point_t &p3)
   {
-    draw_helper->cubic_to (font->em_scalef_x (p1.x.to_real ()), font->em_scalef_y (p1.y.to_real ()),
-			   font->em_scalef_x (p2.x.to_real ()), font->em_scalef_y (p2.y.to_real ()),
-			   font->em_scalef_x (p3.x.to_real ()), font->em_scalef_y (p3.y.to_real ()));
+    draw_helper->cubic_to (font->em_fscalef_x (p1.x.to_real ()), font->em_fscalef_y (p1.y.to_real ()),
+			   font->em_fscalef_x (p2.x.to_real ()), font->em_fscalef_y (p2.y.to_real ()),
+			   font->em_fscalef_x (p3.x.to_real ()), font->em_fscalef_y (p3.y.to_real ()));
   }
 
   protected:
