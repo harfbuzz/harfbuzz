@@ -33,6 +33,25 @@
 
 HB_BEGIN_DECLS
 
+
+typedef struct hb_draw_state_t {
+  hb_bool_t path_open;
+
+  float path_start_x;
+  float path_start_y;
+
+  float current_x;
+  float current_y;
+
+  /*< private >*/
+  hb_var_num_t   reserved1;
+  hb_var_num_t   reserved2;
+  hb_var_num_t   reserved3;
+} hb_draw_state_t;
+
+#define HB_DRAW_STATE_DEFAULT {0, 0.f, 0.f, 0.f, 0.f, {0.}, {0.}, {0.}}
+
+
 /**
  * hb_draw_funcs_t:
  *
