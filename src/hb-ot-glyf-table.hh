@@ -1155,7 +1155,7 @@ struct glyf
     struct path_builder_t
     {
       hb_font_t *font;
-      draw_helper_t *draw_helper;
+      draw_session_t *draw_session;
 
       struct optional_point_t
       {
@@ -1170,10 +1170,10 @@ struct glyf
 	{ return optional_point_t (x + t * (p.x - x), y + t * (p.y - y)); }
       } first_oncurve, first_offcurve, last_offcurve;
 
-      path_builder_t (hb_font_t *font_, draw_helper_t &draw_helper_)
+      path_builder_t (hb_font_t *font_, draw_session_t &draw_session_)
       {
 	font = font_;
-	draw_helper = &draw_helper_;
+	draw_session = &draw_session_;
 	first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
       }
 
@@ -1194,7 +1194,7 @@ struct glyf
 	  if (is_on_curve)
 	  {
 	    first_oncurve = p;
-	    draw_helper->move_to (font->em_fscalef_x (p.x), font->em_fscalef_y (p.y));
+	    draw_session->move_to (font->em_fscalef_x (p.x), font->em_fscalef_y (p.y));
 	  }
 	  else
 	  {
@@ -1203,7 +1203,7 @@ struct glyf
 	      optional_point_t mid = first_offcurve.lerp (p, .5f);
 	      first_oncurve = mid;
 	      last_offcurve = p;
-	      draw_helper->move_to (font->em_fscalef_x (mid.x), font->em_fscalef_y (mid.y));
+	      draw_session->move_to (font->em_fscalef_x (mid.x), font->em_fscalef_y (mid.y));
 	    }
 	    else
 	      first_offcurve = p;
@@ -1215,14 +1215,14 @@ struct glyf
 	  {
 	    if (is_on_curve)
 	    {
-	      draw_helper->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
+	      draw_session->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
 					 font->em_fscalef_x (p.x), font->em_fscalef_y (p.y));
 	      last_offcurve = optional_point_t ();
 	    }
 	    else
 	    {
 	      optional_point_t mid = last_offcurve.lerp (p, .5f);
-	      draw_helper->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
+	      draw_session->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
 					 font->em_fscalef_x (mid.x), font->em_fscalef_y (mid.y));
 	      last_offcurve = p;
 	    }
@@ -1230,7 +1230,7 @@ struct glyf
 	  else
 	  {
 	    if (is_on_curve)
-	      draw_helper->line_to (font->em_fscalef_x (p.x), font->em_fscalef_y (p.y));
+	      draw_session->line_to (font->em_fscalef_x (p.x), font->em_fscalef_y (p.y));
 	    else
 	      last_offcurve = p;
 	  }
@@ -1241,24 +1241,24 @@ struct glyf
 	  if (first_offcurve.has_data && last_offcurve.has_data)
 	  {
 	    optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
-	    draw_helper->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
+	    draw_session->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
 				       font->em_fscalef_x (mid.x), font->em_fscalef_y (mid.y));
 	    last_offcurve = optional_point_t ();
 	    /* now check the rest */
 	  }
 
 	  if (first_offcurve.has_data && first_oncurve.has_data)
-	    draw_helper->quadratic_to (font->em_fscalef_x (first_offcurve.x), font->em_fscalef_y (first_offcurve.y),
+	    draw_session->quadratic_to (font->em_fscalef_x (first_offcurve.x), font->em_fscalef_y (first_offcurve.y),
 				       font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
 	  else if (last_offcurve.has_data && first_oncurve.has_data)
-	    draw_helper->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
+	    draw_session->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
 				       font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
 	  else if (first_oncurve.has_data)
-	    draw_helper->line_to (font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
+	    draw_session->line_to (font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
 
 	  /* Getting ready for the next contour */
 	  first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
-	  draw_helper->close_path ();
+	  draw_session->close_path ();
 	}
       }
       void points_end () {}
@@ -1268,8 +1268,8 @@ struct glyf
     };
 
     bool
-    get_path (hb_font_t *font, hb_codepoint_t gid, draw_helper_t &draw_helper) const
-    { return get_points (font, gid, path_builder_t (font, draw_helper)); }
+    get_path (hb_font_t *font, hb_codepoint_t gid, draw_session_t &draw_session) const
+    { return get_points (font, gid, path_builder_t (font, draw_session)); }
 
 #ifndef HB_NO_VAR
     const gvar_accelerator_t *gvar;
