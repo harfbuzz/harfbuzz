@@ -238,4 +238,55 @@ hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs)
   return hb_object_is_immutable (funcs);
 }
 
+
+void
+hb_draw_move_to (hb_draw_funcs_t *funcs, void *draw_data,
+		 hb_draw_state_t *st,
+		 float to_x, float to_y)
+{
+  funcs->move_to (draw_data, *st,
+		  to_x, to_y);
+}
+
+void
+hb_draw_line_to (hb_draw_funcs_t *funcs, void *draw_data,
+		 hb_draw_state_t *st,
+		 float to_x, float to_y)
+{
+  funcs->line_to (draw_data, *st,
+		  to_x, to_y);
+}
+
+void
+hb_draw_quadratic_to (hb_draw_funcs_t *funcs, void *draw_data,
+		      hb_draw_state_t *st,
+		      float control_x, float control_y,
+		      float to_x, float to_y)
+{
+  funcs->quadratic_to (draw_data, *st,
+		       control_x, control_y,
+		       to_x, to_y);
+}
+
+void
+hb_draw_cubic_to (hb_draw_funcs_t *funcs, void *draw_data,
+		  hb_draw_state_t *st,
+		  float control1_x, float control1_y,
+		  float control2_x, float control2_y,
+		  float to_x, float to_y)
+{
+  funcs->cubic_to (draw_data, *st,
+		   control1_x, control1_y,
+		   control2_x, control2_y,
+		   to_x, to_y);
+}
+
+void
+hb_draw_close_path (hb_draw_funcs_t *funcs, void *draw_data,
+		    hb_draw_state_t *st)
+{
+  funcs->close_path (draw_data, *st);
+}
+
+
 #endif
