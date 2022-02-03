@@ -100,28 +100,24 @@ DECLARE_NULL_INSTANCE (hb_draw_funcs_t);
 struct draw_helper_t
 {
   draw_helper_t (hb_draw_funcs_t *funcs_, void *draw_data_)
-  {
-    funcs = funcs_;
-    draw_data = draw_data_;
-    path_open = false;
-    path_start_x = current_x = path_start_y = current_y = 0;
-  }
+    : funcs {funcs_}, draw_data {draw_data_}, st HB_DRAW_STATE_DEFAULT {}
+
   ~draw_helper_t () { end_path (); }
 
   void move_to (float x, float y)
   {
-    if (path_open) end_path ();
-    current_x = path_start_x = x;
-    current_y = path_start_y = y;
+    if (st.path_open) end_path ();
+    st.current_x = st.path_start_x = x;
+    st.current_y = st.path_start_y = y;
   }
 
   void line_to (float x, float y)
   {
     if (equal_to_current (x, y)) return;
-    if (!path_open) start_path ();
+    if (!st.path_open) start_path ();
     funcs->line_to (draw_data, x, y);
-    current_x = x;
-    current_y = y;
+    st.current_x = x;
+    st.current_y = y;
   }
 
   void
@@ -130,18 +126,18 @@ struct draw_helper_t
   {
     if (equal_to_current (control_x, control_y) && equal_to_current (to_x, to_y))
       return;
-    if (!path_open) start_path ();
+    if (!st.path_open) start_path ();
     if (funcs->quadratic_to_is_set ())
       funcs->quadratic_to (draw_data, control_x, control_y, to_x, to_y);
     else
       funcs->cubic_to (draw_data,
-		       (current_x + 2.f * control_x) / 3.f,
-		       (current_y + 2.f * control_y) / 3.f,
+		       (st.current_x + 2.f * control_x) / 3.f,
+		       (st.current_y + 2.f * control_y) / 3.f,
 		       (to_x + 2.f * control_x) / 3.f,
 		       (to_y + 2.f * control_y) / 3.f,
 		       to_x, to_y);
-    current_x = to_x;
-    current_y = to_y;
+    st.current_x = to_x;
+    st.current_y = to_y;
   }
 
   void
@@ -153,44 +149,38 @@ struct draw_helper_t
 	equal_to_current (control2_x, control2_y) &&
 	equal_to_current (to_x, to_y))
       return;
-    if (!path_open) start_path ();
+    if (!st.path_open) start_path ();
     funcs->cubic_to (draw_data, control1_x, control1_y, control2_x, control2_y, to_x, to_y);
-    current_x = to_x;
-    current_y = to_y;
+    st.current_x = to_x;
+    st.current_y = to_y;
   }
 
   void end_path ()
   {
-    if (path_open)
+    if (st.path_open)
     {
-      if ((path_start_x != current_x) || (path_start_y != current_y))
-	funcs->line_to (draw_data, path_start_x, path_start_y);
+      if ((st.path_start_x != st.current_x) || (st.path_start_y != st.current_y))
+	funcs->line_to (draw_data, st.path_start_x, st.path_start_y);
       funcs->close_path (draw_data);
     }
-    path_open = false;
-    path_start_x = current_x = path_start_y = current_y = 0;
+    st.path_open = false;
+    st.path_start_x = st.current_x = st.path_start_y = st.current_y = 0;
   }
 
   protected:
   bool equal_to_current (float x, float y)
-  { return current_x == x && current_y == y; }
+  { return st.current_x == x && st.current_y == y; }
 
   void start_path ()
   {
-    if (path_open) end_path ();
-    path_open = true;
-    funcs->move_to (draw_data, path_start_x, path_start_y);
+    if (st.path_open) end_path ();
+    st.path_open = true;
+    funcs->move_to (draw_data, st.path_start_x, st.path_start_y);
   }
 
-  float path_start_x;
-  float path_start_y;
-
-  float current_x;
-  float current_y;
-
-  bool path_open;
   hb_draw_funcs_t *funcs;
   void *draw_data;
+  hb_draw_state_t st;
 };
 
 #endif /* HB_DRAW_HH */
