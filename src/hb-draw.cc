@@ -28,6 +28,63 @@
 
 #include "hb-draw.hh"
 
+static void
+hb_draw_move_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+		     float to_x HB_UNUSED, float to_y HB_UNUSED,
+		     void *user_data HB_UNUSED) {}
+
+static void
+hb_draw_line_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+		     float to_x HB_UNUSED, float to_y HB_UNUSED,
+		     void *user_data HB_UNUSED) {}
+
+static void
+hb_draw_quadratic_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+			  float control_x HB_UNUSED, float control_y HB_UNUSED,
+			  float to_x HB_UNUSED, float to_y HB_UNUSED,
+			  void *user_data HB_UNUSED) {}
+
+static void
+hb_draw_cubic_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+		      float control1_x HB_UNUSED, float control1_y HB_UNUSED,
+		      float control2_x HB_UNUSED, float control2_y HB_UNUSED,
+		      float to_x HB_UNUSED, float to_y HB_UNUSED,
+		      void *user_data HB_UNUSED) {}
+
+static void
+hb_draw_close_path_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+			void *user_data HB_UNUSED) {}
+
+
+#define HB_DRAW_FUNC_IMPLEMENT(name)						\
+										\
+void										\
+hb_draw_funcs_set_##name##_func (hb_draw_funcs_t	 *dfuncs,		\
+				 hb_draw_##name##_func_t  func,			\
+				 void			 *user_data,		\
+				 hb_destroy_func_t	  destroy)		\
+{										\
+  if (hb_object_is_immutable (dfuncs))						\
+    return;									\
+										\
+  if (dfuncs->destroy.name)							\
+    dfuncs->destroy.name (dfuncs->user_data.name);				\
+										\
+  if (func) {									\
+    dfuncs->func.name = func;							\
+    dfuncs->user_data.name = user_data;						\
+    dfuncs->destroy.name = destroy;						\
+  } else {									\
+    dfuncs->func.name = hb_draw_##name##_nil;					\
+    dfuncs->user_data.name = nullptr;						\
+    dfuncs->destroy.name = nullptr;						\
+  }										\
+}
+
+HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_DRAW_FUNC_IMPLEMENT
+
+
 /**
  * hb_draw_funcs_set_move_to_func:
  * @funcs: draw functions object
@@ -37,13 +94,6 @@
  *
  * Since: REPLACEME
  **/
-void
-hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_move_to_func_t  move_to)
-{
-  if (unlikely (hb_object_is_immutable (funcs))) return;
-  funcs->move_to = move_to;
-}
 
 /**
  * hb_draw_funcs_set_line_to_func:
@@ -54,13 +104,6 @@ hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
  *
  * Since: REPLACEME
  **/
-void
-hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_line_to_func_t  line_to)
-{
-  if (unlikely (hb_object_is_immutable (funcs))) return;
-  funcs->line_to = line_to;
-}
 
 /**
  * hb_draw_funcs_set_quadratic_to_func:
@@ -71,14 +114,6 @@ hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
  *
  * Since: REPLACEME
  **/
-void
-hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
-				     hb_draw_quadratic_to_func_t  quadratic_to)
-{
-  if (unlikely (hb_object_is_immutable (funcs))) return;
-  funcs->quadratic_to = quadratic_to;
-  funcs->is_quadratic_to_set = true;
-}
 
 /**
  * hb_draw_funcs_set_cubic_to_func:
@@ -89,13 +124,6 @@ hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
  *
  * Since: REPLACEME
  **/
-void
-hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
-				 hb_draw_cubic_to_func_t  cubic_to)
-{
-  if (unlikely (hb_object_is_immutable (funcs))) return;
-  funcs->cubic_to = cubic_to;
-}
 
 /**
  * hb_draw_funcs_set_close_path_func:
@@ -106,33 +134,6 @@ hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
  *
  * Since: REPLACEME
  **/
-void
-hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *funcs,
-				   hb_draw_close_path_func_t  close_path)
-{
-  if (unlikely (hb_object_is_immutable (funcs))) return;
-  funcs->close_path = close_path;
-}
-
-static void
-_move_to_nil (float to_x HB_UNUSED, float to_y HB_UNUSED, void *user_data HB_UNUSED) {}
-
-static void
-_line_to_nil (float to_x HB_UNUSED, float to_y HB_UNUSED, void *user_data HB_UNUSED) {}
-
-static void
-_quadratic_to_nil (float control_x HB_UNUSED, float control_y HB_UNUSED,
-		   float to_x HB_UNUSED, float to_y HB_UNUSED,
-		   void *user_data HB_UNUSED) {}
-
-static void
-_cubic_to_nil (float control1_x HB_UNUSED, float control1_y HB_UNUSED,
-	       float control2_x HB_UNUSED, float control2_y HB_UNUSED,
-	       float to_x HB_UNUSED, float to_y HB_UNUSED,
-	       void *user_data HB_UNUSED) {}
-
-static void
-_close_path_nil (void *user_data HB_UNUSED) {}
 
 /**
  * hb_draw_funcs_create:
@@ -148,14 +149,30 @@ hb_draw_funcs_create ()
   if (unlikely (!(funcs = hb_object_create<hb_draw_funcs_t> ())))
     return const_cast<hb_draw_funcs_t *> (&Null (hb_draw_funcs_t));
 
-  funcs->move_to = (hb_draw_move_to_func_t) _move_to_nil;
-  funcs->line_to = (hb_draw_line_to_func_t) _line_to_nil;
-  funcs->quadratic_to = (hb_draw_quadratic_to_func_t) _quadratic_to_nil;
-  funcs->is_quadratic_to_set = false;
-  funcs->cubic_to = (hb_draw_cubic_to_func_t) _cubic_to_nil;
-  funcs->close_path = (hb_draw_close_path_func_t) _close_path_nil;
+  /* XXX Clean up. Use nil object. */
+  funcs->func.move_to =  hb_draw_move_to_nil;
+  funcs->func.line_to = hb_draw_line_to_nil;
+  funcs->func.quadratic_to = hb_draw_quadratic_to_nil;
+  funcs->func.cubic_to = hb_draw_cubic_to_nil;
+  funcs->func.close_path = hb_draw_close_path_nil;
   return funcs;
 }
+
+DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
+{
+  HB_OBJECT_HEADER_STATIC,
+
+  {
+#define HB_DRAW_FUNC_IMPLEMENT(name) hb_draw_##name##_nil,
+    HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_DRAW_FUNC_IMPLEMENT
+  }
+};
+
+/* XXX Remove. */
+
+bool
+hb_draw_funcs_t::quadratic_to_is_set () { return func.quadratic_to != hb_draw_quadratic_to_nil; }
 
 /**
  * hb_draw_funcs_reference:

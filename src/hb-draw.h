@@ -33,26 +33,6 @@
 
 HB_BEGIN_DECLS
 
-typedef void (*hb_draw_move_to_func_t) (float to_x,
-					float to_y,
-					void *user_data);
-typedef void (*hb_draw_line_to_func_t) (float to_x,
-					float to_y,
-					void *user_data);
-typedef void (*hb_draw_quadratic_to_func_t) (float control_x,
-					     float control_y,
-					     float to_x,
-					     float to_y,
-					     void *user_data);
-typedef void (*hb_draw_cubic_to_func_t) (float control1_x,
-					 float control1_y,
-					 float control2_x,
-					 float control2_y,
-					 float to_x,
-					 float to_y,
-					 void *user_data);
-typedef void (*hb_draw_close_path_func_t) (void *user_data);
-
 /**
  * hb_draw_funcs_t:
  *
@@ -63,27 +43,51 @@ typedef void (*hb_draw_close_path_func_t) (void *user_data);
  *
  * Since: REPLACEME
  **/
+
 typedef struct hb_draw_funcs_t hb_draw_funcs_t;
+
+typedef void (*hb_draw_move_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
+					float to_x, float to_y,
+					void *user_data);
+typedef void (*hb_draw_line_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
+					float to_x, float to_y,
+					void *user_data);
+typedef void (*hb_draw_quadratic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
+					     float control_x, float control_y,
+					     float to_x, float to_y,
+					     void *user_data);
+typedef void (*hb_draw_cubic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
+					 float control1_x, float control1_y,
+					 float control2_x, float control2_y,
+					 float to_x, float to_y,
+					 void *user_data);
+typedef void (*hb_draw_close_path_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
+					   void *user_data);
 
 HB_EXTERN void
 hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_move_to_func_t  move_to);
+				hb_draw_move_to_func_t  move_to,
+				void *user_data, hb_destroy_func_t destroy);
 
 HB_EXTERN void
 hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_line_to_func_t  line_to);
+				hb_draw_line_to_func_t  line_to,
+				void *user_data, hb_destroy_func_t destroy);
 
 HB_EXTERN void
 hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
-				     hb_draw_quadratic_to_func_t  quadratic_to);
+				     hb_draw_quadratic_to_func_t  quadratic_to,
+				     void *user_data, hb_destroy_func_t destroy);
 
 HB_EXTERN void
 hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
-				 hb_draw_cubic_to_func_t  cubic_to);
+				 hb_draw_cubic_to_func_t  cubic_to,
+				 void *user_data, hb_destroy_func_t destroy);
 
 HB_EXTERN void
 hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *funcs,
-				   hb_draw_close_path_func_t  close_path);
+				   hb_draw_close_path_func_t  close_path,
+				   void *user_data, hb_destroy_func_t destroy);
 
 HB_EXTERN hb_draw_funcs_t *
 hb_draw_funcs_create (void);
