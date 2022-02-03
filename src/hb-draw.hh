@@ -167,12 +167,12 @@ struct hb_draw_funcs_t
 };
 DECLARE_NULL_INSTANCE (hb_draw_funcs_t);
 
-struct draw_helper_t
+struct draw_session_t
 {
-  draw_helper_t (hb_draw_funcs_t *funcs_, void *draw_data_)
+  draw_session_t (hb_draw_funcs_t *funcs_, void *draw_data_)
     : funcs {funcs_}, draw_data {draw_data_}, st HB_DRAW_STATE_DEFAULT {}
 
-  ~draw_helper_t () { close_path (); }
+  ~draw_session_t () { close_path (); }
 
   void move_to (float to_x, float to_y)
   {
