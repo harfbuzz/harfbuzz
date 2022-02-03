@@ -937,7 +937,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_font_kit_glyphs_tests);
   hb_test_add (test_hb_draw_font_kit_variations_tests);
   hb_test_add (test_hb_draw_estedad_vf);
-//  hb_test_add (test_hb_draw_stroking);
+ if(0) hb_test_add (test_hb_draw_stroking);
   hb_test_add (test_hb_draw_immutable);
   unsigned result = hb_test_run ();
 
