@@ -30,22 +30,26 @@
 
 static void
 hb_draw_move_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+		     hb_draw_state_t *st HB_UNUSED,
 		     float to_x HB_UNUSED, float to_y HB_UNUSED,
 		     void *user_data HB_UNUSED) {}
 
 static void
 hb_draw_line_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+		     hb_draw_state_t *st HB_UNUSED,
 		     float to_x HB_UNUSED, float to_y HB_UNUSED,
 		     void *user_data HB_UNUSED) {}
 
 static void
 hb_draw_quadratic_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+			  hb_draw_state_t *st HB_UNUSED,
 			  float control_x HB_UNUSED, float control_y HB_UNUSED,
 			  float to_x HB_UNUSED, float to_y HB_UNUSED,
 			  void *user_data HB_UNUSED) {}
 
 static void
 hb_draw_cubic_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+		      hb_draw_state_t *st HB_UNUSED,
 		      float control1_x HB_UNUSED, float control1_y HB_UNUSED,
 		      float control2_x HB_UNUSED, float control2_y HB_UNUSED,
 		      float to_x HB_UNUSED, float to_y HB_UNUSED,
@@ -53,6 +57,7 @@ hb_draw_cubic_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUS
 
 static void
 hb_draw_close_path_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
+			hb_draw_state_t *st HB_UNUSED,
 			void *user_data HB_UNUSED) {}
 
 

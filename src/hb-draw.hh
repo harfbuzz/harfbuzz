@@ -62,34 +62,34 @@ struct hb_draw_funcs_t
 #undef HB_DRAW_FUNC_IMPLEMENT
   } destroy;
 
-  void emit_move_to (void *draw_data,
+  void emit_move_to (void *draw_data, hb_draw_state_t &st,
 		     float to_x, float to_y)
-  { func.move_to (this, draw_data,
+  { func.move_to (this, draw_data, &st,
 		  to_x, to_y,
 		  user_data.move_to); }
-  void emit_line_to (void *draw_data,
+  void emit_line_to (void *draw_data, hb_draw_state_t &st,
 		     float to_x, float to_y)
-  { func.line_to (this, draw_data,
+  { func.line_to (this, draw_data, &st,
 		  to_x, to_y,
 		  user_data.line_to); }
-  void emit_quadratic_to (void *draw_data,
+  void emit_quadratic_to (void *draw_data, hb_draw_state_t &st,
 			  float control_x, float control_y,
 			  float to_x, float to_y)
-  { func.quadratic_to (this, draw_data,
+  { func.quadratic_to (this, draw_data, &st,
 		       control_x, control_y,
 		       to_x, to_y,
 		       user_data.quadratic_to); }
-  void emit_cubic_to (void *draw_data,
+  void emit_cubic_to (void *draw_data, hb_draw_state_t &st,
 		      float control1_x, float control1_y,
 		      float control2_x, float control2_y,
 		      float to_x, float to_y)
-  { func.cubic_to (this, draw_data,
+  { func.cubic_to (this, draw_data, &st,
 		   control1_x, control1_y,
 		   control2_x, control2_y,
 		   to_x, to_y,
 		   user_data.cubic_to); }
-  void emit_close_path (void *draw_data)
-  { func.close_path (this, draw_data,
+  void emit_close_path (void *draw_data, hb_draw_state_t &st)
+  { func.close_path (this, draw_data, &st,
 		     user_data.close_path); }
 
   /* XXX Remove */
@@ -107,7 +107,7 @@ struct hb_draw_funcs_t
 		float to_x, float to_y)
   {
     if (!st.path_open) start_path (draw_data, st);
-    emit_line_to (draw_data, to_x, to_y);
+    emit_line_to (draw_data, st, to_x, to_y);
     st.current_x = to_x;
     st.current_y = to_y;
   }
@@ -119,9 +119,9 @@ struct hb_draw_funcs_t
   {
     if (!st.path_open) start_path (draw_data, st);
     if (quadratic_to_is_set ())
-      emit_quadratic_to (draw_data, control_x, control_y, to_x, to_y);
+      emit_quadratic_to (draw_data, st, control_x, control_y, to_x, to_y);
     else
-      emit_cubic_to (draw_data,
+      emit_cubic_to (draw_data, st,
 		     (st.current_x + 2.f * control_x) / 3.f,
 		     (st.current_y + 2.f * control_y) / 3.f,
 		     (to_x + 2.f * control_x) / 3.f,
@@ -138,7 +138,7 @@ struct hb_draw_funcs_t
 	    float to_x, float to_y)
   {
     if (!st.path_open) start_path (draw_data, st);
-    emit_cubic_to (draw_data, control1_x, control1_y, control2_x, control2_y, to_x, to_y);
+    emit_cubic_to (draw_data, st, control1_x, control1_y, control2_x, control2_y, to_x, to_y);
     st.current_x = to_x;
     st.current_y = to_y;
   }
@@ -149,8 +149,8 @@ struct hb_draw_funcs_t
     if (st.path_open)
     {
       if ((st.path_start_x != st.current_x) || (st.path_start_y != st.current_y))
-	emit_line_to (draw_data, st.path_start_x, st.path_start_y);
-      emit_close_path (draw_data);
+	emit_line_to (draw_data, st, st.path_start_x, st.path_start_y);
+      emit_close_path (draw_data, st);
     }
     st.path_open = false;
     st.path_start_x = st.current_x = st.path_start_y = st.current_y = 0;
@@ -162,7 +162,7 @@ struct hb_draw_funcs_t
   {
     assert (!st.path_open);
     st.path_open = true;
-    emit_move_to (draw_data, st.path_start_x, st.path_start_y);
+    emit_move_to (draw_data, st, st.path_start_x, st.path_start_y);
   }
 };
 DECLARE_NULL_INSTANCE (hb_draw_funcs_t);
