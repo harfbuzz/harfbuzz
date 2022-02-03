@@ -49,7 +49,7 @@ static void _hb_reverse (char *buf, unsigned int len)
 }
 static unsigned _hb_itoa (float fnum, char *buf)
 {
-  int32_t num = (int32_t) roundf (fnum);
+  int32_t num = (int32_t) floorf (fnum + .5f);
   unsigned int i = 0;
   hb_bool_t is_negative = num < 0;
   if (is_negative) num = -num;
@@ -934,8 +934,8 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_cff1_rline);
   hb_test_add (test_hb_draw_cff2);
   hb_test_add (test_hb_draw_ttf_parser_tests);
-if(0)  hb_test_add (test_hb_draw_font_kit_glyphs_tests);
-if(0)  hb_test_add (test_hb_draw_font_kit_variations_tests);
+  hb_test_add (test_hb_draw_font_kit_glyphs_tests);
+  hb_test_add (test_hb_draw_font_kit_variations_tests);
   hb_test_add (test_hb_draw_estedad_vf);
   hb_test_add (test_hb_draw_stroking);
   hb_test_add (test_hb_draw_immutable);
