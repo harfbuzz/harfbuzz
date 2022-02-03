@@ -135,10 +135,10 @@ struct draw_helper_t
       funcs->quadratic_to (draw_data, control_x, control_y, to_x, to_y);
     else
       funcs->cubic_to (draw_data,
-		       roundf ((current_x + 2.f * control_x) / 3.f),
-		       roundf ((current_y + 2.f * control_y) / 3.f),
-		       roundf ((to_x + 2.f * control_x) / 3.f),
-		       roundf ((to_y + 2.f * control_y) / 3.f),
+		       (current_x + 2.f * control_x) / 3.f,
+		       (current_y + 2.f * control_y) / 3.f,
+		       (to_x + 2.f * control_x) / 3.f,
+		       (to_y + 2.f * control_y) / 3.f,
 		       to_x, to_y);
     current_x = to_x;
     current_y = to_y;
