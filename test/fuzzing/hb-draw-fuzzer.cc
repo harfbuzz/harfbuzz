@@ -9,14 +9,14 @@ struct _user_data_t
 {
   bool is_open;
   unsigned path_len;
-  hb_position_t path_start_x;
-  hb_position_t path_start_y;
-  hb_position_t path_last_x;
-  hb_position_t path_last_y;
+  float path_start_x;
+  float path_start_y;
+  float path_last_x;
+  float path_last_y;
 };
 
 static void
-_move_to (hb_position_t to_x, hb_position_t to_y, void *user_data_)
+_move_to (float to_x, float to_y, void *user_data_)
 {
   _user_data_t *user_data = (_user_data_t *) user_data_;
   assert (!user_data->is_open);
@@ -26,7 +26,7 @@ _move_to (hb_position_t to_x, hb_position_t to_y, void *user_data_)
 }
 
 static void
-_line_to (hb_position_t to_x, hb_position_t to_y, void *user_data_)
+_line_to (float to_x, float to_y, void *user_data_)
 {
   _user_data_t *user_data = (_user_data_t *) user_data_;
   assert (user_data->is_open);
@@ -37,8 +37,8 @@ _line_to (hb_position_t to_x, hb_position_t to_y, void *user_data_)
 }
 
 static void
-_quadratic_to (hb_position_t control_x, hb_position_t control_y,
-	       hb_position_t to_x, hb_position_t to_y, void *user_data_)
+_quadratic_to (float control_x, float control_y,
+	       float to_x, float to_y, void *user_data_)
 {
   _user_data_t *user_data = (_user_data_t *) user_data_;
   assert (user_data->is_open);
@@ -50,9 +50,9 @@ _quadratic_to (hb_position_t control_x, hb_position_t control_y,
 }
 
 static void
-_cubic_to (hb_position_t control1_x, hb_position_t control1_y,
-	   hb_position_t control2_x, hb_position_t control2_y,
-	   hb_position_t to_x, hb_position_t to_y, void *user_data_)
+_cubic_to (float control1_x, float control1_y,
+	   float control2_x, float control2_y,
+	   float to_x, float to_y, void *user_data_)
 {
   _user_data_t *user_data = (_user_data_t *) user_data_;
   assert (user_data->is_open);
