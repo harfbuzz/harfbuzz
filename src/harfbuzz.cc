@@ -5,6 +5,7 @@
 #include "hb-buffer-verify.cc"
 #include "hb-buffer.cc"
 #include "hb-common.cc"
+#include "hb-draw-glyph.cc"
 #include "hb-draw.cc"
 #include "hb-face.cc"
 #include "hb-fallback-shape.cc"
