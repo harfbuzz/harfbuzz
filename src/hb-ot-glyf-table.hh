@@ -1258,7 +1258,7 @@ struct glyf
 
 	  /* Getting ready for the next contour */
 	  first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
-	  draw_helper->end_path ();
+	  draw_helper->close_path ();
 	}
       }
       void points_end () {}

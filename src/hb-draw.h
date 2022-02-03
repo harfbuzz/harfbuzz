@@ -65,6 +65,7 @@ typedef struct hb_draw_state_t {
 
 typedef struct hb_draw_funcs_t hb_draw_funcs_t;
 
+
 typedef void (*hb_draw_move_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
 					float to_x, float to_y,
 					void *user_data);
@@ -108,6 +109,7 @@ hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *funcs,
 				   hb_draw_close_path_func_t  close_path,
 				   void *user_data, hb_destroy_func_t destroy);
 
+
 HB_EXTERN hb_draw_funcs_t *
 hb_draw_funcs_create (void);
 
@@ -122,6 +124,35 @@ hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs);
 
 HB_EXTERN hb_bool_t
 hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs);
+
+
+HB_EXTERN void
+hb_draw_move_to (hb_draw_funcs_t *funcs, void *draw_data,
+		 hb_draw_state_t *st,
+		 float to_x, float to_y);
+
+HB_EXTERN void
+hb_draw_line_to (hb_draw_funcs_t *funcs, void *draw_data,
+		 hb_draw_state_t *st,
+		 float to_x, float to_y);
+
+HB_EXTERN void
+hb_draw_quadratic_to (hb_draw_funcs_t *funcs, void *draw_data,
+		      hb_draw_state_t *st,
+		      float control_x, float control_y,
+		      float to_x, float to_y);
+
+HB_EXTERN void
+hb_draw_cubic_to (hb_draw_funcs_t *funcs, void *draw_data,
+		  hb_draw_state_t *st,
+		  float control1_x, float control1_y,
+		  float control2_x, float control2_y,
+		  float to_x, float to_y);
+
+HB_EXTERN void
+hb_draw_close_path (hb_draw_funcs_t *funcs, void *draw_data,
+		    hb_draw_state_t *st);
+
 
 HB_END_DECLS
 

@@ -481,7 +481,7 @@ struct cff1_path_param_t
 			   font->em_fscalef_x (point3.x.to_real ()), font->em_fscalef_y (point3.y.to_real ()));
   }
 
-  void end_path () { draw_helper->end_path (); }
+  void end_path () { draw_helper->close_path (); }
 
   hb_font_t *font;
   draw_helper_t *draw_helper;
