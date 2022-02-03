@@ -525,6 +525,7 @@ typedef hb_bool_t (*hb_font_get_glyph_from_name_func_t) (hb_font_t *font, void *
  *
  *
  * Return value: %true if data found, %false otherwise
+ * Since: REPLACEME
  *
  **/
 typedef void (*hb_font_get_glyph_shape_func_t) (hb_font_t *font, void *font_data,
