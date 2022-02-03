@@ -27,24 +27,82 @@
 
 #include "hb.hh"
 
+
+/*
+ * hb_draw_funcs_t
+ */
+
+#define HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS \
+  HB_DRAW_FUNC_IMPLEMENT (move_to) \
+  HB_DRAW_FUNC_IMPLEMENT (line_to) \
+  HB_DRAW_FUNC_IMPLEMENT (quadratic_to) \
+  HB_DRAW_FUNC_IMPLEMENT (cubic_to) \
+  HB_DRAW_FUNC_IMPLEMENT (close_path) \
+  /* ^--- Add new callbacks here */
+
 struct hb_draw_funcs_t
 {
   hb_object_header_t header;
 
-  hb_draw_move_to_func_t move_to;
-  hb_draw_line_to_func_t line_to;
-  hb_draw_quadratic_to_func_t quadratic_to;
-  bool is_quadratic_to_set;
-  hb_draw_cubic_to_func_t cubic_to;
-  hb_draw_close_path_func_t close_path;
+  struct {
+#define HB_DRAW_FUNC_IMPLEMENT(name) hb_draw_##name##_func_t name;
+    HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_DRAW_FUNC_IMPLEMENT
+  } func;
+
+  struct {
+#define HB_DRAW_FUNC_IMPLEMENT(name) void *name;
+    HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_DRAW_FUNC_IMPLEMENT
+  } user_data;
+
+  struct {
+#define HB_DRAW_FUNC_IMPLEMENT(name) hb_destroy_func_t name;
+    HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_DRAW_FUNC_IMPLEMENT
+  } destroy;
+
+  void move_to (void *draw_data,
+		float to_x, float to_y)
+  { func.move_to (this, draw_data,
+		  to_x, to_y,
+		  user_data.move_to); }
+  void line_to (void *draw_data,
+		float to_x, float to_y)
+  { func.line_to (this, draw_data,
+		  to_x, to_y,
+		  user_data.line_to); }
+  void quadratic_to (void *draw_data,
+		     float control_x, float control_y,
+		     float to_x, float to_y)
+  { func.quadratic_to (this, draw_data,
+		       control_x, control_y,
+		       to_x, to_y,
+		       user_data.quadratic_to); }
+  void cubic_to (void *draw_data,
+		 float control1_x, float control1_y,
+		 float control2_x, float control2_y,
+		 float to_x, float to_y)
+  { func.cubic_to (this, draw_data,
+		   control1_x, control1_y,
+		   control2_x, control2_y,
+		   to_x, to_y,
+		   user_data.cubic_to); }
+  void close_path (void *draw_data)
+  { func.close_path (this, draw_data,
+		     user_data.close_path); }
+
+  /* XXX Remove */
+  HB_INTERNAL bool quadratic_to_is_set ();
 };
+DECLARE_NULL_INSTANCE (hb_draw_funcs_t);
 
 struct draw_helper_t
 {
-  draw_helper_t (const hb_draw_funcs_t *funcs_, void *user_data_)
+  draw_helper_t (hb_draw_funcs_t *funcs_, void *draw_data_)
   {
     funcs = funcs_;
-    user_data = user_data_;
+    draw_data = draw_data_;
     path_open = false;
     path_start_x = current_x = path_start_y = current_y = 0;
   }
@@ -61,7 +119,7 @@ struct draw_helper_t
   {
     if (equal_to_current (x, y)) return;
     if (!path_open) start_path ();
-    funcs->line_to (x, y, user_data);
+    funcs->line_to (draw_data, x, y);
     current_x = x;
     current_y = y;
   }
@@ -73,14 +131,15 @@ struct draw_helper_t
     if (equal_to_current (control_x, control_y) && equal_to_current (to_x, to_y))
       return;
     if (!path_open) start_path ();
-    if (funcs->is_quadratic_to_set)
-      funcs->quadratic_to (control_x, control_y, to_x, to_y, user_data);
+    if (funcs->quadratic_to_is_set ())
+      funcs->quadratic_to (draw_data, control_x, control_y, to_x, to_y);
     else
-      funcs->cubic_to (roundf ((current_x + 2.f * control_x) / 3.f),
+      funcs->cubic_to (draw_data,
+		       roundf ((current_x + 2.f * control_x) / 3.f),
 		       roundf ((current_y + 2.f * control_y) / 3.f),
 		       roundf ((to_x + 2.f * control_x) / 3.f),
 		       roundf ((to_y + 2.f * control_y) / 3.f),
-		       to_x, to_y, user_data);
+		       to_x, to_y);
     current_x = to_x;
     current_y = to_y;
   }
@@ -95,7 +154,7 @@ struct draw_helper_t
 	equal_to_current (to_x, to_y))
       return;
     if (!path_open) start_path ();
-    funcs->cubic_to (control1_x, control1_y, control2_x, control2_y, to_x, to_y, user_data);
+    funcs->cubic_to (draw_data, control1_x, control1_y, control2_x, control2_y, to_x, to_y);
     current_x = to_x;
     current_y = to_y;
   }
@@ -105,8 +164,8 @@ struct draw_helper_t
     if (path_open)
     {
       if ((path_start_x != current_x) || (path_start_y != current_y))
-	funcs->line_to (path_start_x, path_start_y, user_data);
-      funcs->close_path (user_data);
+	funcs->line_to (draw_data, path_start_x, path_start_y);
+      funcs->close_path (draw_data);
     }
     path_open = false;
     path_start_x = current_x = path_start_y = current_y = 0;
@@ -120,7 +179,7 @@ struct draw_helper_t
   {
     if (path_open) end_path ();
     path_open = true;
-    funcs->move_to (path_start_x, path_start_y, user_data);
+    funcs->move_to (draw_data, path_start_x, path_start_y);
   }
 
   float path_start_x;
@@ -130,8 +189,8 @@ struct draw_helper_t
   float current_y;
 
   bool path_open;
-  const hb_draw_funcs_t *funcs;
-  void *user_data;
+  hb_draw_funcs_t *funcs;
+  void *draw_data;
 };
 
 #endif /* HB_DRAW_HH */

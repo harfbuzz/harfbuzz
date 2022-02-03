@@ -45,7 +45,7 @@
 void
 hb_font_draw_glyph (hb_font_t *font,
 		    hb_codepoint_t glyph,
-		    const hb_draw_funcs_t *funcs,
+		    hb_draw_funcs_t *funcs,
 		    void *user_data)
 {
   if (unlikely (funcs == &Null (hb_draw_funcs_t) ||
