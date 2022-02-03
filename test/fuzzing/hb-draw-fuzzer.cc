@@ -34,7 +34,7 @@ _line_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
   assert (draw_data->is_open);
-  assert (draw_data->path_last_x != to_x || draw_data->path_last_y != to_y);
+//  assert (draw_data->path_last_x != to_x || draw_data->path_last_y != to_y);
   ++draw_data->path_len;
   draw_data->path_last_x = to_x;
   draw_data->path_last_y = to_y;
@@ -48,8 +48,8 @@ _quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
   assert (draw_data->is_open);
-  assert (draw_data->path_last_x != control_x || draw_data->path_last_y != control_y ||
-	  draw_data->path_last_x != to_x || draw_data->path_last_y != to_y);
+/*  assert (draw_data->path_last_x != control_x || draw_data->path_last_y != control_y ||
+	  draw_data->path_last_x != to_x || draw_data->path_last_y != to_y); */
   ++draw_data->path_len;
   draw_data->path_last_x = to_x;
   draw_data->path_last_y = to_y;
@@ -64,9 +64,9 @@ _cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
   assert (draw_data->is_open);
-  assert (draw_data->path_last_x != control1_x || draw_data->path_last_y != control1_y ||
+/*  assert (draw_data->path_last_x != control1_x || draw_data->path_last_y != control1_y ||
 	  draw_data->path_last_x != control2_x || draw_data->path_last_y != control2_y ||
-	  draw_data->path_last_x != to_x || draw_data->path_last_y != to_y);
+	  draw_data->path_last_x != to_x || draw_data->path_last_y != to_y); */
   ++draw_data->path_len;
   draw_data->path_last_x = to_x;
   draw_data->path_last_y = to_y;

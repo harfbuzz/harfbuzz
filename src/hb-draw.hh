@@ -113,7 +113,6 @@ struct draw_helper_t
 
   void line_to (float x, float y)
   {
-    if (equal_to_current (x, y)) return;
     if (!st.path_open) start_path ();
     funcs->line_to (draw_data, x, y);
     st.current_x = x;
@@ -124,8 +123,6 @@ struct draw_helper_t
   quadratic_to (float control_x, float control_y,
 		float to_x, float to_y)
   {
-    if (equal_to_current (control_x, control_y) && equal_to_current (to_x, to_y))
-      return;
     if (!st.path_open) start_path ();
     if (funcs->quadratic_to_is_set ())
       funcs->quadratic_to (draw_data, control_x, control_y, to_x, to_y);
@@ -145,10 +142,6 @@ struct draw_helper_t
 	    float control2_x, float control2_y,
 	    float to_x, float to_y)
   {
-    if (equal_to_current (control1_x, control1_y) &&
-	equal_to_current (control2_x, control2_y) &&
-	equal_to_current (to_x, to_y))
-      return;
     if (!st.path_open) start_path ();
     funcs->cubic_to (draw_data, control1_x, control1_y, control2_x, control2_y, to_x, to_y);
     st.current_x = to_x;
@@ -168,8 +161,6 @@ struct draw_helper_t
   }
 
   protected:
-  bool equal_to_current (float x, float y)
-  { return st.current_x == x && st.current_y == y; }
 
   void start_path ()
   {
