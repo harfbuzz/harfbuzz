@@ -33,14 +33,23 @@
 
 HB_BEGIN_DECLS
 
-typedef void (*hb_draw_move_to_func_t) (float to_x, float to_y, void *user_data);
-typedef void (*hb_draw_line_to_func_t) (float to_x, float to_y, void *user_data);
-typedef void (*hb_draw_quadratic_to_func_t) (float control_x, float control_y,
-					     float to_x, float to_y,
+typedef void (*hb_draw_move_to_func_t) (float to_x,
+					float to_y,
+					void *user_data);
+typedef void (*hb_draw_line_to_func_t) (float to_x,
+					float to_y,
+					void *user_data);
+typedef void (*hb_draw_quadratic_to_func_t) (float control_x,
+					     float control_y,
+					     float to_x,
+					     float to_y,
 					     void *user_data);
-typedef void (*hb_draw_cubic_to_func_t) (float control1_x, float control1_y,
-					 float control2_x, float control2_y,
-					 float to_x, float to_y,
+typedef void (*hb_draw_cubic_to_func_t) (float control1_x,
+					 float control1_y,
+					 float control2_x,
+					 float control2_y,
+					 float to_x,
+					 float to_y,
 					 void *user_data);
 typedef void (*hb_draw_close_path_func_t) (void *user_data);
 
