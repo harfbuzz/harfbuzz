@@ -41,11 +41,19 @@ hb_draw_line_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSE
 		     void *user_data HB_UNUSED) {}
 
 static void
-hb_draw_quadratic_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
-			  hb_draw_state_t *st HB_UNUSED,
-			  float control_x HB_UNUSED, float control_y HB_UNUSED,
-			  float to_x HB_UNUSED, float to_y HB_UNUSED,
-			  void *user_data HB_UNUSED) {}
+hb_draw_quadratic_to_nil (hb_draw_funcs_t *dfuncs, void *draw_data,
+			  hb_draw_state_t *st,
+			  float control_x, float control_y,
+			  float to_x, float to_y,
+			  void *user_data)
+{
+  dfuncs->emit_cubic_to (draw_data, *st,
+			 (st->current_x + 2.f * control_x) / 3.f,
+			 (st->current_y + 2.f * control_y) / 3.f,
+			 (to_x + 2.f * control_x) / 3.f,
+			 (to_y + 2.f * control_y) / 3.f,
+			 to_x, to_y);
+}
 
 static void
 hb_draw_cubic_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
@@ -174,10 +182,6 @@ DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
   }
 };
 
-/* XXX Remove. */
-
-bool
-hb_draw_funcs_t::quadratic_to_is_set () { return func.quadratic_to != hb_draw_quadratic_to_nil; }
 
 /**
  * hb_draw_funcs_reference:

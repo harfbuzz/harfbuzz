@@ -92,8 +92,6 @@ struct hb_draw_funcs_t
   { func.close_path (this, draw_data, &st,
 		     user_data.close_path); }
 
-  /* XXX Remove */
-  HB_INTERNAL bool quadratic_to_is_set ();
 
   void move_to (void *draw_data, hb_draw_state_t &st,
 		float to_x, float to_y)
@@ -118,15 +116,7 @@ struct hb_draw_funcs_t
 		float to_x, float to_y)
   {
     if (!st.path_open) start_path (draw_data, st);
-    if (quadratic_to_is_set ())
-      emit_quadratic_to (draw_data, st, control_x, control_y, to_x, to_y);
-    else
-      emit_cubic_to (draw_data, st,
-		     (st.current_x + 2.f * control_x) / 3.f,
-		     (st.current_y + 2.f * control_y) / 3.f,
-		     (to_x + 2.f * control_x) / 3.f,
-		     (to_y + 2.f * control_y) / 3.f,
-		     to_x, to_y);
+    emit_quadratic_to (draw_data, st, control_x, control_y, to_x, to_y);
     st.current_x = to_x;
     st.current_y = to_y;
   }
