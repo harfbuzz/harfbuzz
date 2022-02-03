@@ -61,7 +61,7 @@ typedef void (*hb_draw_close_path_func_t) (void *user_data);
  * _move_to, _line_to and _cubic_to calls are necessary to be defined but we
  * translate _quadratic_to calls to _cubic_to if the callback isn't defined.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 typedef struct hb_draw_funcs_t hb_draw_funcs_t;
 
