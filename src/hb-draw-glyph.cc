@@ -35,7 +35,7 @@
  * @font: a font object
  * @glyph: a glyph id
  * @funcs: draw callbacks object
- * @user_data: parameter you like be passed to the callbacks when are called
+ * @draw_data: parameter you like be passed to the callbacks when are called
  *
  * Draw a glyph.
  *
@@ -46,13 +46,13 @@ void
 hb_font_draw_glyph (hb_font_t *font,
 		    hb_codepoint_t glyph,
 		    hb_draw_funcs_t *funcs,
-		    void *user_data)
+		    void *draw_data)
 {
   if (unlikely (funcs == &Null (hb_draw_funcs_t) ||
 		glyph >= font->face->get_num_glyphs ()))
     return;
 
-  draw_helper_t draw_helper (funcs, user_data);
+  draw_helper_t draw_helper (funcs, draw_data);
   if (font->face->table.glyf->get_path (font, glyph, draw_helper)) return;
 #ifndef HB_NO_CFF
   if (font->face->table.cff1->get_path (font, glyph, draw_helper)) return;
