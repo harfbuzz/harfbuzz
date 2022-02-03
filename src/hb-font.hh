@@ -57,6 +57,7 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_contour_point) \
   HB_FONT_FUNC_IMPLEMENT (glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_shape) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t
@@ -373,6 +374,15 @@ struct hb_font_t
 					 name, len,
 					 glyph,
 					 klass->user_data.glyph_from_name);
+  }
+
+  void get_glyph_shape (hb_codepoint_t glyph,
+			hb_draw_funcs_t *draw_funcs, void *draw_data)
+  {
+    klass->get.f.glyph_shape (this, user_data,
+			      glyph,
+			      draw_funcs, draw_data,
+			      klass->user_data.glyph_shape);
   }
 
 

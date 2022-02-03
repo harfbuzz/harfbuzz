@@ -41,7 +41,6 @@ hb_base_sources = files(
   'hb-config.hh',
   'hb-debug.hh',
   'hb-dispatch.hh',
-  'hb-draw-glyph.cc',
   'hb-draw.cc',
   'hb-draw.hh',
   'hb-face.cc',
