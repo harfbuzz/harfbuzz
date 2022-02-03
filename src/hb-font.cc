@@ -519,6 +519,7 @@ hb_font_get_glyph_shape_default (hb_font_t       *font HB_UNUSED,
 				 void            *draw_data,
 				 void            *user_data HB_UNUSED)
 {
+  /* TODO Get parent shape and scale. */
 }
 
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
