@@ -137,6 +137,7 @@ struct draw_data_t
 
 static void
 move_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	 hb_draw_state_t *st,
 	 float to_x, float to_y,
 	 void *)
 {
@@ -145,6 +146,7 @@ move_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 
 static void
 line_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	 hb_draw_state_t *st,
 	 float to_x, float to_y,
 	 void *)
 {
@@ -153,6 +155,7 @@ line_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 
 static void
 quadratic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	      hb_draw_state_t *st,
 	      float control_x, float control_y,
 	      float to_x, float to_y,
 	      void *)
@@ -163,6 +166,7 @@ quadratic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 
 static void
 cubic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	  hb_draw_state_t *st,
 	  float control1_x, float control1_y,
 	  float control2_x, float control2_y,
 	  float to_x, float to_y,
@@ -175,6 +179,7 @@ cubic_to (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
 
 static void
 close_path (hb_draw_funcs_t *dfuncs, draw_data_t *draw_data,
+	    hb_draw_state_t *st,
 	    void *)
 {
   fprintf (draw_data->f, "Z");

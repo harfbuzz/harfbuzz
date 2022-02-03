@@ -17,6 +17,7 @@ struct _draw_data_t
 
 static void
 _move_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	  hb_draw_state_t *st,
 	  float to_x, float to_y,
 	  void *user_data)
 {
@@ -29,6 +30,7 @@ _move_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 
 static void
 _line_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	  hb_draw_state_t *st,
 	  float to_x, float to_y,
 	  void *user_data)
 {
@@ -42,6 +44,7 @@ _line_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 
 static void
 _quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	       hb_draw_state_t *st,
 	       float control_x, float control_y,
 	       float to_x, float to_y,
 	       void *user_data)
@@ -57,6 +60,7 @@ _quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 
 static void
 _cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	   hb_draw_state_t *st,
 	   float control1_x, float control1_y,
 	   float control2_x, float control2_y,
 	   float to_x, float to_y,
@@ -74,6 +78,7 @@ _cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 
 static void
 _close_path (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	     hb_draw_state_t *st,
 	     void *user_data)
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
