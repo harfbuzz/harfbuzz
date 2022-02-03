@@ -501,6 +501,26 @@ hb_font_get_glyph_from_name_default (hb_font_t      *font,
   return font->parent->get_glyph_from_name (name, len, glyph);
 }
 
+static void
+hb_font_get_glyph_shape_nil (hb_font_t       *font HB_UNUSED,
+			     void            *font_data HB_UNUSED,
+			     hb_codepoint_t   glyph,
+			     hb_draw_funcs_t *draw_funcs,
+			     void            *draw_data,
+			     void            *user_data HB_UNUSED)
+{
+}
+
+static void
+hb_font_get_glyph_shape_default (hb_font_t       *font HB_UNUSED,
+				 void            *font_data HB_UNUSED,
+				 hb_codepoint_t   glyph,
+				 hb_draw_funcs_t *draw_funcs,
+				 void            *draw_data,
+				 void            *user_data HB_UNUSED)
+{
+}
+
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
 {
   HB_OBJECT_HEADER_STATIC,
@@ -1168,6 +1188,24 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
   return font->get_glyph_from_name (name, len, glyph);
 }
 
+/**
+ * hb_font_get_glyph_shape:
+ * @font: #hb_font_t to work upon
+ * @glyph: : The glyph ID
+ * @dfuncs:
+ * @draw_data:
+ *
+ * Fetches the glyph shape that corresponds to a glyph in the specified @font.
+ *
+ * Since: REPLACE
+ **/
+void
+hb_font_get_glyph_shape (hb_font_t *font,
+			 hb_codepoint_t glyph,
+			 hb_draw_funcs_t *dfuncs, void *draw_data)
+{
+  font->get_glyph_shape (glyph, dfuncs, draw_data);
+}
 
 /* A bit higher-level, and with fallback */
 
