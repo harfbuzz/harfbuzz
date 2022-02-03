@@ -164,7 +164,7 @@ struct draw_helper_t
 
   void start_path ()
   {
-    if (st.path_open) end_path ();
+    assert (!st.path_open);
     st.path_open = true;
     funcs->move_to (draw_data, st.path_start_x, st.path_start_y);
   }
