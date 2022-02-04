@@ -39,6 +39,7 @@ jobs:
           $env:path = ($env:path.Split(';') | Where-Object { $_ -ne 'C:\Strawberry\perl\bin' }) -join ';'
 
           meson setup build `
+            --backend=vs `
             --wrap-mode=default `
             --buildtype=release `
             -Dglib=enabled `
