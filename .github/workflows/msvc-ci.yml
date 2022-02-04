@@ -39,15 +39,16 @@ jobs:
           $env:path = ($env:path.Split(';') | Where-Object { $_ -ne 'C:\Strawberry\perl\bin' }) -join ';'
 
           meson setup build `
-            --backend=vs `
             --wrap-mode=default `
             --buildtype=release `
+            -Dfreetype2:zlib=disabled `
+            -Dfreetype2:png=disabled `
             -Dglib=enabled `
             -Dfreetype=enabled `
             -Dgdi=enabled `
             -Ddirectwrite=enabled
 
-          meson compile -C build -v -j1
+          meson compile -C build
       - name: Test
         run: |
           meson test --print-errorlogs --suite=harfbuzz -C build
