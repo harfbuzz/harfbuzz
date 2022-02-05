@@ -162,12 +162,8 @@ hb_draw_funcs_create ()
   if (unlikely (!(funcs = hb_object_create<hb_draw_funcs_t> ())))
     return const_cast<hb_draw_funcs_t *> (&Null (hb_draw_funcs_t));
 
-  /* XXX Clean up. Use nil object. */
-  funcs->func.move_to =  hb_draw_move_to_nil;
-  funcs->func.line_to = hb_draw_line_to_nil;
-  funcs->func.quadratic_to = hb_draw_quadratic_to_nil;
-  funcs->func.cubic_to = hb_draw_cubic_to_nil;
-  funcs->func.close_path = hb_draw_close_path_nil;
+  funcs->func =  Null (hb_draw_funcs_t).func;
+
   return funcs;
 }
 
