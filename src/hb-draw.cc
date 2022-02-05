@@ -45,7 +45,7 @@ hb_draw_quadratic_to_nil (hb_draw_funcs_t *dfuncs, void *draw_data,
 			  hb_draw_state_t *st,
 			  float control_x, float control_y,
 			  float to_x, float to_y,
-			  void *user_data)
+			  void *user_data HB_UNUSED)
 {
   dfuncs->emit_cubic_to (draw_data, *st,
 			 (st->current_x + 2.f * control_x) / 3.f,

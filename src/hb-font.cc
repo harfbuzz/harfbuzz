@@ -29,6 +29,7 @@
 #include "hb.hh"
 
 #include "hb-font.hh"
+#include "hb-draw.hh"
 #include "hb-machinery.hh"
 
 #include "hb-ot.h"
@@ -511,15 +512,127 @@ hb_font_get_glyph_shape_nil (hb_font_t       *font HB_UNUSED,
 {
 }
 
+
+typedef struct hb_font_get_glyph_shape_default_adaptor_t {
+  hb_draw_funcs_t *draw_funcs;
+  void		  *draw_data;
+  float		   x_scale;
+  float		   y_scale;
+} hb_font_get_glyph_shape_default_adaptor_t;
+
 static void
-hb_font_get_glyph_shape_default (hb_font_t       *font HB_UNUSED,
+hb_draw_move_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED,
+			 void *draw_data,
+			 hb_draw_state_t *st,
+			 float to_x, float to_y,
+			 void *user_data HB_UNUSED)
+{
+  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  float x_scale = adaptor->x_scale;
+  float y_scale = adaptor->y_scale;
+
+  st->path_start_x *= x_scale;
+  st->path_start_y *= y_scale;
+
+  adaptor->draw_funcs->emit_move_to (adaptor->draw_data, *st,
+				     x_scale * to_x, y_scale * to_y);
+}
+
+static void
+hb_draw_line_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
+			 hb_draw_state_t *st,
+			 float to_x, float to_y,
+			 void *user_data HB_UNUSED)
+{
+  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  float x_scale = adaptor->x_scale;
+  float y_scale = adaptor->y_scale;
+
+  st->current_x *= x_scale;
+  st->current_y *= y_scale;
+
+  adaptor->draw_funcs->emit_line_to (adaptor->draw_data, *st,
+				     x_scale * to_x, y_scale * to_y);
+}
+
+static void
+hb_draw_quadratic_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
+			      hb_draw_state_t *st,
+			      float control_x, float control_y,
+			      float to_x, float to_y,
+			      void *user_data HB_UNUSED)
+{
+  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  float x_scale = adaptor->x_scale;
+  float y_scale = adaptor->y_scale;
+
+  st->current_x *= x_scale;
+  st->current_y *= y_scale;
+
+  adaptor->draw_funcs->emit_quadratic_to (adaptor->draw_data, *st,
+					  x_scale * control_x, y_scale * control_y,
+					  x_scale * to_x, y_scale * to_y);
+}
+
+static void
+hb_draw_cubic_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
+			  hb_draw_state_t *st,
+			  float control1_x, float control1_y,
+			  float control2_x, float control2_y,
+			  float to_x, float to_y,
+			  void *user_data HB_UNUSED)
+{
+  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  float x_scale = adaptor->x_scale;
+  float y_scale = adaptor->y_scale;
+
+  st->current_x *= x_scale;
+  st->current_y *= y_scale;
+
+  adaptor->draw_funcs->emit_cubic_to (adaptor->draw_data, *st,
+				      x_scale * control1_x, y_scale * control1_y,
+				      x_scale * control2_x, y_scale * control2_y,
+				      x_scale * to_x, y_scale * to_y);
+}
+
+static void
+hb_draw_close_path_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
+			    hb_draw_state_t *st,
+			    void *user_data HB_UNUSED)
+{
+  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+
+  adaptor->draw_funcs->emit_close_path (adaptor->draw_data, *st);
+}
+
+static const hb_draw_funcs_t _hb_draw_funcs_default = {
+  HB_OBJECT_HEADER_STATIC,
+
+  {
+#define HB_DRAW_FUNC_IMPLEMENT(name) hb_draw_##name##_default,
+    HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_DRAW_FUNC_IMPLEMENT
+  }
+};
+
+static void
+hb_font_get_glyph_shape_default (hb_font_t       *font,
 				 void            *font_data HB_UNUSED,
 				 hb_codepoint_t   glyph,
 				 hb_draw_funcs_t *draw_funcs,
 				 void            *draw_data,
 				 void            *user_data HB_UNUSED)
 {
-  /* TODO Get parent shape and scale. */
+  hb_font_get_glyph_shape_default_adaptor_t adaptor = {
+    draw_funcs,
+    draw_data,
+    (float) font->x_scale / (float) font->parent->x_scale,
+    (float) font->y_scale / (float) font->parent->y_scale
+  };
+
+  font->parent->get_glyph_shape (glyph,
+				 const_cast<hb_draw_funcs_t *> (&_hb_draw_funcs_default),
+				 &adaptor);
 }
 
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
