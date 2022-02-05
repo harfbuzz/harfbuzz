@@ -445,7 +445,7 @@ bool OT::cff1::accelerator_t::get_extents (hb_font_t *font, hb_codepoint_t glyph
 struct cff1_path_param_t
 {
   cff1_path_param_t (const OT::cff1::accelerator_t *cff_, hb_font_t *font_,
-		     draw_session_t &draw_session_, point_t *delta_)
+		     hb_draw_session_t &draw_session_, point_t *delta_)
   {
     draw_session = &draw_session_;
     cff = cff_;
@@ -484,7 +484,7 @@ struct cff1_path_param_t
   void end_path () { draw_session->close_path (); }
 
   hb_font_t *font;
-  draw_session_t *draw_session;
+  hb_draw_session_t *draw_session;
   point_t *delta;
 
   const OT::cff1::accelerator_t *cff;
@@ -512,7 +512,7 @@ struct cff1_path_procs_path_t : path_procs_t<cff1_path_procs_path_t, cff1_cs_int
 };
 
 static bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph,
-		       draw_session_t &draw_session, bool in_seac = false, point_t *delta = nullptr);
+		       hb_draw_session_t &draw_session, bool in_seac = false, point_t *delta = nullptr);
 
 struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_param_t, cff1_path_procs_path_t>
 {
@@ -536,7 +536,7 @@ struct cff1_cs_opset_path_t : cff1_cs_opset_t<cff1_cs_opset_path_t, cff1_path_pa
 };
 
 bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoint_t glyph,
-		draw_session_t &draw_session, bool in_seac, point_t *delta)
+		hb_draw_session_t &draw_session, bool in_seac, point_t *delta)
 {
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
 
@@ -554,7 +554,7 @@ bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoin
   return true;
 }
 
-bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, draw_session_t &draw_session) const
+bool OT::cff1::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */
