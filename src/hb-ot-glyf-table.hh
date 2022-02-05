@@ -1155,7 +1155,7 @@ struct glyf
     struct path_builder_t
     {
       hb_font_t *font;
-      draw_session_t *draw_session;
+      hb_draw_session_t *draw_session;
 
       struct optional_point_t
       {
@@ -1170,7 +1170,7 @@ struct glyf
 	{ return optional_point_t (x + t * (p.x - x), y + t * (p.y - y)); }
       } first_oncurve, first_offcurve, last_offcurve;
 
-      path_builder_t (hb_font_t *font_, draw_session_t &draw_session_)
+      path_builder_t (hb_font_t *font_, hb_draw_session_t &draw_session_)
       {
 	font = font_;
 	draw_session = &draw_session_;
@@ -1268,7 +1268,7 @@ struct glyf
     };
 
     bool
-    get_path (hb_font_t *font, hb_codepoint_t gid, draw_session_t &draw_session) const
+    get_path (hb_font_t *font, hb_codepoint_t gid, hb_draw_session_t &draw_session) const
     { return get_points (font, gid, path_builder_t (font, draw_session)); }
 
 #ifndef HB_NO_VAR

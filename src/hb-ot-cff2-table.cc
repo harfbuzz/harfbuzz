@@ -145,7 +145,7 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
 struct cff2_path_param_t
 {
-  cff2_path_param_t (hb_font_t *font_, draw_session_t &draw_session_)
+  cff2_path_param_t (hb_font_t *font_, hb_draw_session_t &draw_session_)
   {
     draw_session = &draw_session_;
     font = font_;
@@ -165,7 +165,7 @@ struct cff2_path_param_t
   }
 
   protected:
-  draw_session_t *draw_session;
+  hb_draw_session_t *draw_session;
   hb_font_t *font;
 };
 
@@ -192,7 +192,7 @@ struct cff2_path_procs_path_t : path_procs_t<cff2_path_procs_path_t, cff2_cs_int
 
 struct cff2_cs_opset_path_t : cff2_cs_opset_t<cff2_cs_opset_path_t, cff2_path_param_t, cff2_path_procs_path_t> {};
 
-bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, draw_session_t &draw_session) const
+bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session) const
 {
 #ifdef HB_NO_OT_FONT_CFF
   /* XXX Remove check when this code moves to .hh file. */

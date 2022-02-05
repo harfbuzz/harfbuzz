@@ -1347,7 +1347,7 @@ struct cff1
 
     HB_INTERNAL bool get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const;
     HB_INTERNAL bool get_seac_components (hb_codepoint_t glyph, hb_codepoint_t *base, hb_codepoint_t *accent) const;
-    HB_INTERNAL bool get_path (hb_font_t *font, hb_codepoint_t glyph, draw_session_t &draw_session) const;
+    HB_INTERNAL bool get_path (hb_font_t *font, hb_codepoint_t glyph, hb_draw_session_t &draw_session) const;
 
     private:
     struct gname_t
