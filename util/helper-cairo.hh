@@ -69,8 +69,7 @@ _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
 static inline bool
 helper_cairo_use_hb_draw (const font_options_t *font_opts)
 {
-  return cairo_version () >= CAIRO_VERSION_ENCODE (1, 17, 5) &&
-	 (font_opts->font_funcs && strcmp (font_opts->font_funcs, "ft"));
+  return cairo_version () >= CAIRO_VERSION_ENCODE (1, 17, 5);
 }
 
 static inline cairo_scaled_font_t *
