@@ -32,6 +32,8 @@
 #include <cairo.h>
 #include <hb.h>
 
+#include "hb-blob.hh"
+
 static void
 move_to (hb_draw_funcs_t *dfuncs,
 	 cairo_t *cr,
@@ -112,15 +114,99 @@ render_glyph (cairo_scaled_font_t  *scaled_font,
   return CAIRO_STATUS_SUCCESS;
 }
 
+#ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
+
+static cairo_status_t
+_hb_bytes_read_func (hb_bytes_t	*src,
+		     char	*data,
+		     unsigned	 length)
+{
+  if (unlikely (src->length < length))
+    return CAIRO_STATUS_READ_ERROR;
+
+  memcpy (data, src->arrayZ, length);
+  *src += length;
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static cairo_status_t
+render_color_glyph (cairo_scaled_font_t  *scaled_font,
+		    unsigned long         glyph,
+		    cairo_t              *cr,
+		    cairo_text_extents_t *extents)
+{
+  hb_font_t *font = (hb_font_t *) (cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
+								  &_hb_font_cairo_user_data_key));
+
+  hb_blob_t *blob = hb_ot_color_glyph_reference_png (font, glyph);
+  if (blob == hb_blob_get_empty ())
+    return CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED;
+
+  hb_position_t x_scale, y_scale;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  cairo_scale (cr, +1./x_scale, -1./y_scale);
+
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  /* Draw PNG. */
+  hb_bytes_t bytes = blob->as_bytes ();
+  cairo_surface_t *surface = cairo_image_surface_create_from_png_stream ((cairo_read_func_t) _hb_bytes_read_func,
+									 std::addressof (bytes));
+  hb_blob_destroy (blob);
+
+  if (unlikely (cairo_surface_status (surface)) != CAIRO_STATUS_SUCCESS)
+  {
+    cairo_surface_destroy (surface);
+    return CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED;
+  }
+
+  int width = cairo_image_surface_get_width (surface);
+  int height = cairo_image_surface_get_width (surface);
+
+  hb_glyph_extents_t hb_extents;
+  if (unlikely (!hb_font_get_glyph_extents (font, glyph, &hb_extents)))
+  {
+    cairo_surface_destroy (surface);
+    return CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED;
+  }
+
+  cairo_pattern_t *pattern = cairo_pattern_create_for_surface (surface);
+  cairo_pattern_set_extend (pattern, CAIRO_EXTEND_PAD);
+
+  cairo_matrix_t matrix = {(double) width, 0, 0, (double) height, 0, 0};
+  cairo_pattern_set_matrix (pattern, &matrix);
+
+  cairo_translate (cr, hb_extents.x_bearing, hb_extents.y_bearing);
+  cairo_scale (cr, hb_extents.width, hb_extents.height);
+  cairo_set_source (cr, pattern);
+
+  cairo_rectangle (cr, 0, 0, 1, 1);
+  cairo_fill (cr);
+  cairo_pattern_destroy (pattern);
+
+  cairo_surface_destroy (surface);
+  return CAIRO_STATUS_SUCCESS;
+#endif
+  return CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED;
+}
+#endif
+
 static inline cairo_font_face_t *
 helper_cairo_create_user_font_face (const font_options_t *font_opts)
 {
   cairo_font_face_t *cairo_face = cairo_user_font_face_create ();
-  cairo_user_font_face_set_render_glyph_func (cairo_face, render_glyph);
+
   cairo_font_face_set_user_data (cairo_face,
 				 &_hb_font_cairo_user_data_key,
 				 hb_font_reference (font_opts->font),
 				 (cairo_destroy_func_t) hb_font_destroy);
+
+  cairo_user_font_face_set_render_glyph_func (cairo_face, render_glyph);
+#ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
+  if (hb_ot_color_has_png (hb_font_get_face (font_opts->font)))
+    cairo_user_font_face_set_render_color_glyph_func (cairo_face, render_color_glyph);
+#endif
+
   return cairo_face;
 }
 
