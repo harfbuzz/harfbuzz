@@ -1,3 +1,10 @@
+Overview of changes leading to 3.3.2
+Sunday, February 6, 2022
+====================================
+- Revert splitting of pair positioning values introduced in 3.3.0 as it proved
+  problematic. (Behdad Esfahbod)
+
+
 Overview of changes leading to 3.3.1
 Monday, January 31, 2022
 ====================================
