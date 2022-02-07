@@ -634,7 +634,7 @@ hb_ft_get_glyph_shape (hb_font_t *font HB_UNUSED,
     0, /* delta */
   };
 
-  hb_draw_session_t draw_session (draw_funcs, draw_data);
+  hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
 
   FT_Outline_Decompose (&ft_face->glyph->outline,
 			&outline_funcs,

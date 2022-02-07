@@ -265,7 +265,7 @@ hb_ot_get_glyph_shape (hb_font_t *font,
 		       hb_draw_funcs_t *draw_funcs, void *draw_data,
 		       void *user_data)
 {
-  hb_draw_session_t draw_session (draw_funcs, draw_data);
+  hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
   if (font->face->table.glyf->get_path (font, glyph, draw_session)) return;
 #ifndef HB_NO_CFF
   if (font->face->table.cff1->get_path (font, glyph, draw_session)) return;
