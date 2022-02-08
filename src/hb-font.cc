@@ -1310,6 +1310,8 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
  * @draw_data:
  *
  * Fetches the glyph shape that corresponds to a glyph in the specified @font.
+ * The shape is returned by way of calls to the callsbacks of the @dfuncs
+ * objects, with @draw_data passed to them.
  *
  * Since: REPLACE
  **/
