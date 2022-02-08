@@ -56,6 +56,7 @@
         <xi:include href="xml/hb-blob.xml"/>
         <xi:include href="xml/hb-buffer.xml"/>
         <xi:include href="xml/hb-common.xml"/>
+        <xi:include href="xml/hb-draw.xml"/>
         <xi:include href="xml/hb-deprecated.xml"/>
         <xi:include href="xml/hb-face.xml"/>
         <xi:include href="xml/hb-font.xml"/>

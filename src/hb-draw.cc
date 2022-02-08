@@ -244,6 +244,18 @@ hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs)
 }
 
 
+/**
+ * hb_draw_move_to:
+ * @funcs: draw functions
+ * @draw_data: associated draw data passed by the caller
+ * @st: current draw state
+ * @to_x: X component of target point
+ * @to_y: Y component of target point
+ *
+ * Perform a "move-to" draw operation.
+ *
+ * Since: REPLACEME
+ **/
 void
 hb_draw_move_to (hb_draw_funcs_t *funcs, void *draw_data,
 		 hb_draw_state_t *st,
@@ -253,6 +265,18 @@ hb_draw_move_to (hb_draw_funcs_t *funcs, void *draw_data,
 		  to_x, to_y);
 }
 
+/**
+ * hb_draw_line_to:
+ * @funcs: draw functions
+ * @draw_data: associated draw data passed by the caller
+ * @st: current draw state
+ * @to_x: X component of target point
+ * @to_y: Y component of target point
+ *
+ * Perform a "line-to" draw operation.
+ *
+ * Since: REPLACEME
+ **/
 void
 hb_draw_line_to (hb_draw_funcs_t *funcs, void *draw_data,
 		 hb_draw_state_t *st,
@@ -262,6 +286,20 @@ hb_draw_line_to (hb_draw_funcs_t *funcs, void *draw_data,
 		  to_x, to_y);
 }
 
+/**
+ * hb_draw_quadratic_to:
+ * @funcs: draw functions
+ * @draw_data: associated draw data passed by the caller
+ * @st: current draw state
+ * @control_x: X component of control point
+ * @control_y: Y component of control point
+ * @to_x: X component of target point
+ * @to_y: Y component of target point
+ *
+ * Perform a "quadratic-to" draw operation.
+ *
+ * Since: REPLACEME
+ **/
 void
 hb_draw_quadratic_to (hb_draw_funcs_t *funcs, void *draw_data,
 		      hb_draw_state_t *st,
@@ -273,6 +311,22 @@ hb_draw_quadratic_to (hb_draw_funcs_t *funcs, void *draw_data,
 		       to_x, to_y);
 }
 
+/**
+ * hb_draw_cubic_to:
+ * @funcs: draw functions
+ * @draw_data: associated draw data passed by the caller
+ * @st: current draw state
+ * @control1_x: X component of first control point
+ * @control1_y: Y component of first control point
+ * @control2_x: X component of second control point
+ * @control2_y: Y component of second control point
+ * @to_x: X component of target point
+ * @to_y: Y component of target point
+ *
+ * Perform a "cubic-to" draw operation.
+ *
+ * Since: REPLACEME
+ **/
 void
 hb_draw_cubic_to (hb_draw_funcs_t *funcs, void *draw_data,
 		  hb_draw_state_t *st,
@@ -286,6 +340,16 @@ hb_draw_cubic_to (hb_draw_funcs_t *funcs, void *draw_data,
 		   to_x, to_y);
 }
 
+/**
+ * hb_draw_close_path:
+ * @funcs: draw functions
+ * @draw_data: associated draw data passed by the caller
+ * @st: current draw state
+ *
+ * Perform a "close-path" draw operation.
+ *
+ * Since: REPLACEME
+ **/
 void
 hb_draw_close_path (hb_draw_funcs_t *funcs, void *draw_data,
 		    hb_draw_state_t *st)
