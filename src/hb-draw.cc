@@ -28,6 +28,15 @@
 
 #include "hb-draw.hh"
 
+/**
+ * SECTION:hb-draw
+ * @title: hb-draw
+ * @short_description: Glyph drawing
+ * @include: hb.h
+ *
+ * Functions for drawing (extracting) glyph shapes.
+ **/
+
 static void
 hb_draw_move_to_nil (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data HB_UNUSED,
 		     hb_draw_state_t *st HB_UNUSED,

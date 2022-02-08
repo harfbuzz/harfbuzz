@@ -517,7 +517,7 @@ typedef hb_bool_t (*hb_font_get_glyph_from_name_func_t) (hb_font_t *font, void *
  * @font_data: @font user data pointer
  * @glyph: The glyph ID to query
  * @draw_funcs: The draw functions to send the shape data to
- * @draw_data The data accompnaying the draw functions
+ * @draw_data: The data accompanying the draw functions
  * @user_data: User data pointer passed by the caller
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
