@@ -50,14 +50,18 @@ HB_BEGIN_DECLS
 #define HB_OT_TAG_MATH HB_TAG('M','A','T','H')
 
 /**
- * HB_OT_MATH_SCRIPT:
+ * HB_OT_TAG_MATH_SCRIPT:
  *
- * OpenType script tag for math shaping, for use with
- * Use with hb_buffer_set_script().
+ * OpenType script tag, `math`, for features specific to math shaping.
  *
- * Since: 1.3.3
+ * <note>#HB_OT_TAG_MATH_SCRIPT is not a valid #hb_script_t and should only be
+ * used with functions that accept raw OpenType script tags, such as
+ * #hb_ot_layout_collect_features. In other cases, #HB_SCRIPT_MATH should be
+ * used instead.</note>
+ *
+ * Since: REPLACEME
  */
-#define HB_OT_MATH_SCRIPT HB_TAG('m','a','t','h')
+#define HB_OT_TAG_MATH_SCRIPT HB_TAG('m','a','t','h')
 
 /* Types */
 
