@@ -116,7 +116,8 @@ render_glyph (cairo_scaled_font_t  *scaled_font,
 
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
 
-static cairo_status_t
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+static inline cairo_status_t
 _hb_bytes_read_func (hb_bytes_t	*src,
 		     char	*data,
 		     unsigned	 length)
@@ -131,10 +132,10 @@ _hb_bytes_read_func (hb_bytes_t	*src,
 }
 
 static cairo_status_t
-render_color_glyph (cairo_scaled_font_t  *scaled_font,
-		    unsigned long         glyph,
-		    cairo_t              *cr,
-		    cairo_text_extents_t *extents)
+render_color_glyph_png (cairo_scaled_font_t  *scaled_font,
+			unsigned long         glyph,
+			cairo_t              *cr,
+			cairo_text_extents_t *extents)
 {
   hb_font_t *font = (hb_font_t *) (cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
 								  &_hb_font_cairo_user_data_key));
@@ -147,7 +148,6 @@ render_color_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
-#ifdef CAIRO_HAS_PNG_FUNCTIONS
   /* Draw PNG. */
   hb_bytes_t bytes = blob->as_bytes ();
   cairo_surface_t *surface = cairo_image_surface_create_from_png_stream ((cairo_read_func_t) _hb_bytes_read_func,
@@ -186,9 +186,90 @@ render_color_glyph (cairo_scaled_font_t  *scaled_font,
 
   cairo_surface_destroy (surface);
   return CAIRO_STATUS_SUCCESS;
-#endif
-  return CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED;
 }
+#endif
+
+static cairo_status_t
+render_color_glyph_layers (cairo_scaled_font_t  *scaled_font,
+			   unsigned long         glyph,
+			   cairo_t              *cr,
+			   cairo_text_extents_t *extents)
+{
+  hb_font_t *font = (hb_font_t *) (cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
+								  &_hb_font_cairo_user_data_key));
+  hb_face_t *face = hb_font_get_face (font);
+
+  unsigned count = hb_ot_color_glyph_get_layers (face, glyph, 0, nullptr, nullptr);
+  if (!count)
+    return CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED;
+
+  hb_ot_color_layer_t layers[16];
+  unsigned offset = 0, len;
+  do {
+    len = ARRAY_LENGTH (layers);
+    hb_ot_color_glyph_get_layers (face, glyph,
+				  offset,
+				  &len,
+				  layers);
+    for (unsigned i = 0; i < len; i++)
+    {
+      hb_color_t color;
+      unsigned clen = 1;
+      unsigned color_index = layers[i].color_index;
+      bool is_foreground = color_index == 65535;
+
+      if (!is_foreground)
+      {
+	hb_ot_color_palette_get_colors (face,
+					0/*palette_index*/,
+					color_index/*start_offset*/,
+					&clen/*color_count*/,
+					&color);
+	if (clen < 1)
+	  continue;
+      }
+
+      cairo_save (cr);
+      {
+	if (!is_foreground)
+	  cairo_set_source_rgba (cr,
+				 hb_color_get_red (color) / 255.,
+				 hb_color_get_green (color) / 255.,
+				 hb_color_get_blue (color) / 255.,
+				 hb_color_get_alpha (color) / 255.);
+
+	cairo_status_t ret = render_glyph (scaled_font, layers[i].glyph, cr, extents);
+	if (ret != CAIRO_STATUS_SUCCESS)
+	  return ret;
+      }
+      cairo_restore (cr);
+    }
+  }
+  while (len == ARRAY_LENGTH (layers));
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static cairo_status_t
+render_color_glyph (cairo_scaled_font_t  *scaled_font,
+		    unsigned long         glyph,
+		    cairo_t              *cr,
+		    cairo_text_extents_t *extents)
+{
+  cairo_status_t ret = CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED;
+
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  ret = render_color_glyph_png (scaled_font, glyph, cr, extents);
+  if (ret != CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED)
+    return ret;
+#endif
+
+  ret = render_color_glyph_layers (scaled_font, glyph, cr, extents);
+  if (ret != CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED)
+    return ret;
+
+  return ret;
+}
+
 #endif
 
 static inline cairo_font_face_t *
@@ -203,7 +284,8 @@ helper_cairo_create_user_font_face (const font_options_t *font_opts)
 
   cairo_user_font_face_set_render_glyph_func (cairo_face, render_glyph);
 #ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
-  if (hb_ot_color_has_png (hb_font_get_face (font_opts->font)))
+  hb_face_t *face = hb_font_get_face (font_opts->font);
+  if (hb_ot_color_has_png (face) || hb_ot_color_has_layers (face))
     cairo_user_font_face_set_render_color_glyph_func (cairo_face, render_color_glyph);
 #endif
 
@@ -222,7 +304,8 @@ helper_cairo_user_scaled_font_has_color (cairo_scaled_font_t *scaled_font)
   /* Ignoring SVG for now, since we cannot render it. */
   hb_font_t *font = (hb_font_t *) (cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
 								  &_hb_font_cairo_user_data_key));
-  return hb_ot_color_has_png (hb_font_get_face (font));
+  hb_face_t *face = hb_font_get_face (font);
+  return hb_ot_color_has_png (face) || hb_ot_color_has_layers (face);
 }
 
 #endif
