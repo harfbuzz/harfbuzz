@@ -78,8 +78,10 @@ typedef struct hb_draw_state_t {
  *
  * Glyph draw callbacks.
  *
- * _move_to, _line_to and _cubic_to calls are necessary to be defined but we
- * translate _quadratic_to calls to _cubic_to if the callback isn't defined.
+ * #hb_draw_move_to_func_t, #hb_draw_line_to_func_t and
+ * #hb_draw_cubic_to_func_t calls are necessary to be defined but we translate
+ * #hb_draw_quadratic_to_func_t calls to #hb_draw_cubic_to_func_t if the
+ * callback isn't defined.
  *
  * Since: REPLACEME
  **/
