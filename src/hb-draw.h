@@ -34,6 +34,18 @@
 HB_BEGIN_DECLS
 
 
+/**
+ * hb_draw_state_t
+ * @path_open: Whether there is an open path
+ * @path_start_x: X component of the start of current path
+ * @path_start_y: Y component of the start of current path
+ * @current_x: X component of current point
+ * @current_y: Y component of current point
+ *
+ * Current drawing state.
+ *
+ * Since: REPLACEME
+ **/
 typedef struct hb_draw_state_t {
   hb_bool_t path_open;
 
@@ -93,29 +105,84 @@ typedef void (*hb_draw_close_path_func_t) (hb_draw_funcs_t *dfuncs, void *draw_d
 					   hb_draw_state_t *st,
 					   void *user_data);
 
+/**
+ * hb_draw_funcs_set_move_to_func:
+ * @dfuncs: draw functions object
+ * @func: move-to callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
+ *
+ * Sets move-to callback to the draw functions object.
+ *
+ * Since: REPLACEME
+ **/
 HB_EXTERN void
-hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_move_to_func_t  move_to,
+hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *dfuncs,
+				hb_draw_move_to_func_t  func,
 				void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_draw_funcs_set_line_to_func:
+ * @dfuncs: draw functions object
+ * @func: line-to callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
+ *
+ * Sets line-to callback to the draw functions object.
+ *
+ * Since: REPLACEME
+ **/
 HB_EXTERN void
-hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *funcs,
-				hb_draw_line_to_func_t  line_to,
+hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *dfuncs,
+				hb_draw_line_to_func_t  func,
 				void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_draw_funcs_set_quadratic_to_func:
+ * @dfuncs: draw functions object
+ * @func: quadratic-to callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
+ *
+ * Sets quadratic-to callback to the draw functions object.
+ *
+ * Since: REPLACEME
+ **/
 HB_EXTERN void
-hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *funcs,
-				     hb_draw_quadratic_to_func_t  quadratic_to,
+hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *dfuncs,
+				     hb_draw_quadratic_to_func_t  func,
 				     void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_draw_funcs_set_cubic_to_func:
+ * @dfuncs: draw functions
+ * @func: cubic-to callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
+ *
+ * Sets cubic-to callback to the draw functions object.
+ *
+ * Since: REPLACEME
+ **/
 HB_EXTERN void
-hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *funcs,
-				 hb_draw_cubic_to_func_t  cubic_to,
+hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *dfuncs,
+				 hb_draw_cubic_to_func_t  func,
 				 void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_draw_funcs_set_close_path_func:
+ * @dfuncs: draw functions object
+ * @func: close-path callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): The function to call when @user_data is not needed anymore
+ *
+ * Sets close-path callback to the draw functions object.
+ *
+ * Since: REPLACEME
+ **/
 HB_EXTERN void
-hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *funcs,
-				   hb_draw_close_path_func_t  close_path,
+hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *dfuncs,
+				   hb_draw_close_path_func_t  func,
 				   void *user_data, hb_destroy_func_t destroy);
 
 
@@ -123,43 +190,43 @@ HB_EXTERN hb_draw_funcs_t *
 hb_draw_funcs_create (void);
 
 HB_EXTERN hb_draw_funcs_t *
-hb_draw_funcs_reference (hb_draw_funcs_t *funcs);
+hb_draw_funcs_reference (hb_draw_funcs_t *dfuncs);
 
 HB_EXTERN void
-hb_draw_funcs_destroy (hb_draw_funcs_t *funcs);
+hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs);
 
 HB_EXTERN void
-hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs);
+hb_draw_funcs_make_immutable (hb_draw_funcs_t *dfuncs);
 
 HB_EXTERN hb_bool_t
-hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs);
+hb_draw_funcs_is_immutable (hb_draw_funcs_t *dfuncs);
 
 
 HB_EXTERN void
-hb_draw_move_to (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_move_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		 hb_draw_state_t *st,
 		 float to_x, float to_y);
 
 HB_EXTERN void
-hb_draw_line_to (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_line_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		 hb_draw_state_t *st,
 		 float to_x, float to_y);
 
 HB_EXTERN void
-hb_draw_quadratic_to (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		      hb_draw_state_t *st,
 		      float control_x, float control_y,
 		      float to_x, float to_y);
 
 HB_EXTERN void
-hb_draw_cubic_to (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		  hb_draw_state_t *st,
 		  float control1_x, float control1_y,
 		  float control2_x, float control2_y,
 		  float to_x, float to_y);
 
 HB_EXTERN void
-hb_draw_close_path (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
 		    hb_draw_state_t *st);
 
 

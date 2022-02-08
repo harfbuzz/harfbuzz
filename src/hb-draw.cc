@@ -97,57 +97,6 @@ hb_draw_funcs_set_##name##_func (hb_draw_funcs_t	 *dfuncs,		\
 HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_DRAW_FUNC_IMPLEMENT
 
-
-/**
- * hb_draw_funcs_set_move_to_func:
- * @funcs: draw functions object
- * @move_to: move-to callback
- *
- * Sets move-to callback to the draw functions object.
- *
- * Since: REPLACEME
- **/
-
-/**
- * hb_draw_funcs_set_line_to_func:
- * @funcs: draw functions object
- * @line_to: line-to callback
- *
- * Sets line-to callback to the draw functions object.
- *
- * Since: REPLACEME
- **/
-
-/**
- * hb_draw_funcs_set_quadratic_to_func:
- * @funcs: draw functions object
- * @move_to: quadratic-to callback
- *
- * Sets quadratic-to callback to the draw functions object.
- *
- * Since: REPLACEME
- **/
-
-/**
- * hb_draw_funcs_set_cubic_to_func:
- * @funcs: draw functions
- * @cubic_to: cubic-to callback
- *
- * Sets cubic-to callback to the draw functions object.
- *
- * Since: REPLACEME
- **/
-
-/**
- * hb_draw_funcs_set_close_path_func:
- * @funcs: draw functions object
- * @close_path: close-path callback
- *
- * Sets close-path callback to the draw functions object.
- *
- * Since: REPLACEME
- **/
-
 /**
  * hb_draw_funcs_create:
  *
@@ -158,13 +107,13 @@ HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
 hb_draw_funcs_t *
 hb_draw_funcs_create ()
 {
-  hb_draw_funcs_t *funcs;
-  if (unlikely (!(funcs = hb_object_create<hb_draw_funcs_t> ())))
+  hb_draw_funcs_t *dfuncs;
+  if (unlikely (!(dfuncs = hb_object_create<hb_draw_funcs_t> ())))
     return const_cast<hb_draw_funcs_t *> (&Null (hb_draw_funcs_t));
 
-  funcs->func =  Null (hb_draw_funcs_t).func;
+  dfuncs->func =  Null (hb_draw_funcs_t).func;
 
-  return funcs;
+  return dfuncs;
 }
 
 DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
@@ -181,7 +130,7 @@ DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
 
 /**
  * hb_draw_funcs_reference:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  *
  * Add to callbacks object refcount.
  *
@@ -189,14 +138,14 @@ DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
  * Since: REPLACEME
  **/
 hb_draw_funcs_t *
-hb_draw_funcs_reference (hb_draw_funcs_t *funcs)
+hb_draw_funcs_reference (hb_draw_funcs_t *dfuncs)
 {
-  return hb_object_reference (funcs);
+  return hb_object_reference (dfuncs);
 }
 
 /**
  * hb_draw_funcs_destroy:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  *
  * Decreases refcount of callbacks object and deletes the object if it reaches
  * to zero.
@@ -204,49 +153,49 @@ hb_draw_funcs_reference (hb_draw_funcs_t *funcs)
  * Since: REPLACEME
  **/
 void
-hb_draw_funcs_destroy (hb_draw_funcs_t *funcs)
+hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
 {
-  if (!hb_object_destroy (funcs)) return;
+  if (!hb_object_destroy (dfuncs)) return;
 
-  hb_free (funcs);
+  hb_free (dfuncs);
 }
 
 /**
  * hb_draw_funcs_make_immutable:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  *
- * Makes funcs object immutable.
+ * Makes dfuncs object immutable.
  *
  * Since: REPLACEME
  **/
 void
-hb_draw_funcs_make_immutable (hb_draw_funcs_t *funcs)
+hb_draw_funcs_make_immutable (hb_draw_funcs_t *dfuncs)
 {
-  if (hb_object_is_immutable (funcs))
+  if (hb_object_is_immutable (dfuncs))
     return;
 
-  hb_object_make_immutable (funcs);
+  hb_object_make_immutable (dfuncs);
 }
 
 /**
  * hb_draw_funcs_is_immutable:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  *
- * Checks whether funcs is immutable.
+ * Checks whether dfuncs is immutable.
  *
  * Returns: If is immutable.
  * Since: REPLACEME
  **/
 hb_bool_t
-hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs)
+hb_draw_funcs_is_immutable (hb_draw_funcs_t *dfuncs)
 {
-  return hb_object_is_immutable (funcs);
+  return hb_object_is_immutable (dfuncs);
 }
 
 
 /**
  * hb_draw_move_to:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  * @draw_data: associated draw data passed by the caller
  * @st: current draw state
  * @to_x: X component of target point
@@ -257,17 +206,17 @@ hb_draw_funcs_is_immutable (hb_draw_funcs_t *funcs)
  * Since: REPLACEME
  **/
 void
-hb_draw_move_to (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_move_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		 hb_draw_state_t *st,
 		 float to_x, float to_y)
 {
-  funcs->move_to (draw_data, *st,
-		  to_x, to_y);
+  dfuncs->move_to (draw_data, *st,
+		   to_x, to_y);
 }
 
 /**
  * hb_draw_line_to:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  * @draw_data: associated draw data passed by the caller
  * @st: current draw state
  * @to_x: X component of target point
@@ -278,17 +227,17 @@ hb_draw_move_to (hb_draw_funcs_t *funcs, void *draw_data,
  * Since: REPLACEME
  **/
 void
-hb_draw_line_to (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_line_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		 hb_draw_state_t *st,
 		 float to_x, float to_y)
 {
-  funcs->line_to (draw_data, *st,
-		  to_x, to_y);
+  dfuncs->line_to (draw_data, *st,
+		   to_x, to_y);
 }
 
 /**
  * hb_draw_quadratic_to:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  * @draw_data: associated draw data passed by the caller
  * @st: current draw state
  * @control_x: X component of control point
@@ -301,19 +250,19 @@ hb_draw_line_to (hb_draw_funcs_t *funcs, void *draw_data,
  * Since: REPLACEME
  **/
 void
-hb_draw_quadratic_to (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		      hb_draw_state_t *st,
 		      float control_x, float control_y,
 		      float to_x, float to_y)
 {
-  funcs->quadratic_to (draw_data, *st,
-		       control_x, control_y,
-		       to_x, to_y);
+  dfuncs->quadratic_to (draw_data, *st,
+			control_x, control_y,
+			to_x, to_y);
 }
 
 /**
  * hb_draw_cubic_to:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  * @draw_data: associated draw data passed by the caller
  * @st: current draw state
  * @control1_x: X component of first control point
@@ -328,21 +277,21 @@ hb_draw_quadratic_to (hb_draw_funcs_t *funcs, void *draw_data,
  * Since: REPLACEME
  **/
 void
-hb_draw_cubic_to (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
 		  hb_draw_state_t *st,
 		  float control1_x, float control1_y,
 		  float control2_x, float control2_y,
 		  float to_x, float to_y)
 {
-  funcs->cubic_to (draw_data, *st,
-		   control1_x, control1_y,
-		   control2_x, control2_y,
-		   to_x, to_y);
+  dfuncs->cubic_to (draw_data, *st,
+		    control1_x, control1_y,
+		    control2_x, control2_y,
+		    to_x, to_y);
 }
 
 /**
  * hb_draw_close_path:
- * @funcs: draw functions
+ * @dfuncs: draw functions
  * @draw_data: associated draw data passed by the caller
  * @st: current draw state
  *
@@ -351,10 +300,10 @@ hb_draw_cubic_to (hb_draw_funcs_t *funcs, void *draw_data,
  * Since: REPLACEME
  **/
 void
-hb_draw_close_path (hb_draw_funcs_t *funcs, void *draw_data,
+hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
 		    hb_draw_state_t *st)
 {
-  funcs->close_path (draw_data, *st);
+  dfuncs->close_path (draw_data, *st);
 }
 
 
