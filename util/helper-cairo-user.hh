@@ -41,7 +41,8 @@ move_to (hb_draw_funcs_t *dfuncs,
 	 float to_x, float to_y,
 	 void *)
 {
-  cairo_move_to (cr, to_x, to_y);
+  cairo_move_to (cr,
+		 (double) to_x, (double) to_y);
 }
 
 static void
@@ -51,7 +52,8 @@ line_to (hb_draw_funcs_t *dfuncs,
 	 float to_x, float to_y,
 	 void *)
 {
-  cairo_line_to (cr, to_x, to_y);
+  cairo_line_to (cr,
+		 (double) to_x, (double) to_y);
 }
 
 static void
@@ -63,7 +65,10 @@ cubic_to (hb_draw_funcs_t *dfuncs,
 	  float to_x, float to_y,
 	  void *)
 {
-  cairo_curve_to (cr, control1_x, control1_y, control2_x, control2_y, to_x, to_y);
+  cairo_curve_to (cr,
+		  (double) control1_x, (double) control1_y,
+		  (double) control2_x, (double) control2_y,
+		  (double) to_x, (double) to_y);
 }
 
 static void
