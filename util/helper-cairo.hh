@@ -69,16 +69,18 @@ _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
 static inline bool
 helper_cairo_use_hb_draw (const font_options_t *font_opts)
 {
-  return cairo_version () >= CAIRO_VERSION_ENCODE (1, 17, 5);
+  const char *env = getenv ("HB_DRAW");
+  return env && atoi (env);
 }
 
 static inline cairo_scaled_font_t *
 helper_cairo_create_scaled_font (const font_options_t *font_opts)
 {
+  bool use_hb_draw = helper_cairo_use_hb_draw (font_opts);
   hb_font_t *font = hb_font_reference (font_opts->font);
 
   cairo_font_face_t *cairo_face;
-  if (helper_cairo_use_hb_draw (font_opts))
+  if (use_hb_draw)
     cairo_face = helper_cairo_create_user_font_face (font_opts);
   else
     cairo_face = helper_cairo_create_ft_font_face (font_opts);
@@ -90,7 +92,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   cairo_matrix_init_scale (&font_matrix,
 			   font_opts->font_size_x,
 			   font_opts->font_size_y);
-  if (!helper_cairo_use_hb_draw (font_opts))
+  if (use_hb_draw)
     font_matrix.xy = -font_opts->slant * font_opts->font_size_x;
 
   font_options = cairo_font_options_create ();
