@@ -191,6 +191,7 @@ HB_SCRIPT_CANADIAN_ABORIGINAL
 hb_font_funcs_set_glyph_func
 hb_font_get_glyph_func_t
 HB_MATH_GLYPH_PART_FLAG_EXTENDER
+HB_OT_MATH_SCRIPT
 hb_ot_layout_table_choose_script
 hb_ot_layout_table_find_script
 hb_ot_tag_from_language
@@ -542,7 +543,7 @@ hb_ot_layout_glyph_sequence_func_t
 <SECTION>
 <FILE>hb-ot-math</FILE>
 HB_OT_TAG_MATH
-HB_OT_MATH_SCRIPT
+HB_OT_TAG_MATH_SCRIPT
 hb_ot_math_constant_t
 hb_ot_math_kern_t
 hb_ot_math_glyph_variant_t
