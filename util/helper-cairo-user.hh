@@ -272,7 +272,7 @@ render_color_glyph (cairo_scaled_font_t  *scaled_font,
   if (ret != CAIRO_STATUS_USER_FONT_NOT_IMPLEMENTED)
     return ret;
 
-  return ret;
+  return render_glyph (scaled_font, glyph, cr, extents);
 }
 
 #endif
