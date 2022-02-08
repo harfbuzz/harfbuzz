@@ -82,25 +82,108 @@ typedef struct hb_draw_state_t {
 typedef struct hb_draw_funcs_t hb_draw_funcs_t;
 
 
+/**
+ * hb_draw_move_to_func_t:
+ * @dfuncs: draw functions object
+ * @draw_data: The data accompanying the draw functions
+ * @st: current draw state
+ * @to_x: X component of target point
+ * @to_y: Y component of target point
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_draw_funcs_t to perform a "move-to" draw
+ * operation.
+ *
+ * Since: REPLACEME
+ *
+ **/
 typedef void (*hb_draw_move_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
 					hb_draw_state_t *st,
 					float to_x, float to_y,
 					void *user_data);
+
+/**
+ * hb_draw_line_to_func_t:
+ * @dfuncs: draw functions object
+ * @draw_data: The data accompanying the draw functions
+ * @st: current draw state
+ * @to_x: X component of target point
+ * @to_y: Y component of target point
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_draw_funcs_t to perform a "line-to" draw
+ * operation.
+ *
+ * Since: REPLACEME
+ *
+ **/
 typedef void (*hb_draw_line_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
 					hb_draw_state_t *st,
 					float to_x, float to_y,
 					void *user_data);
+
+/**
+ * hb_draw_quadratic_to_func_t:
+ * @dfuncs: draw functions object
+ * @draw_data: The data accompanying the draw functions
+ * @st: current draw state
+ * @control_x: X component of control point
+ * @control_y: Y component of control point
+ * @to_x: X component of target point
+ * @to_y: Y component of target point
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_draw_funcs_t to perform a "quadratic-to" draw
+ * operation.
+ *
+ * Since: REPLACEME
+ *
+ **/
 typedef void (*hb_draw_quadratic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
 					     hb_draw_state_t *st,
 					     float control_x, float control_y,
 					     float to_x, float to_y,
 					     void *user_data);
+
+/**
+ * hb_draw_cubic_to_func_t:
+ * @dfuncs: draw functions object
+ * @draw_data: The data accompanying the draw functions
+ * @st: current draw state
+ * @control1_x: X component of first control point
+ * @control1_y: Y component of first control point
+ * @control2_x: X component of second control point
+ * @control2_y: Y component of second control point
+ * @to_x: X component of target point
+ * @to_y: Y component of target point
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_draw_funcs_t to perform a "cubic-to" draw
+ * operation.
+ *
+ * Since: REPLACEME
+ *
+ **/
 typedef void (*hb_draw_cubic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
 					 hb_draw_state_t *st,
 					 float control1_x, float control1_y,
 					 float control2_x, float control2_y,
 					 float to_x, float to_y,
 					 void *user_data);
+
+/**
+ * hb_draw_close_path_func_t:
+ * @dfuncs: draw functions object
+ * @draw_data: The data accompanying the draw functions
+ * @st: current draw state
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_draw_funcs_t to perform a "close-path" draw
+ * operation.
+ *
+ * Since: REPLACEME
+ *
+ **/
 typedef void (*hb_draw_close_path_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
 					   hb_draw_state_t *st,
 					   void *user_data);
