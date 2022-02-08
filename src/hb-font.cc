@@ -2196,11 +2196,15 @@ hb_font_get_ptem (hb_font_t *font)
  * @slant: synthetic slant value.
  *
  * Sets the "synthetic slant" of a font.  By default is zero.
- * Synthetic slant is the graphical skew that the renderer
- * applies to the font at rendering time.
+ * Synthetic slant is the graphical skew applied to the font
+ * at rendering time.
  *
  * HarfBuzz needs to know this value to adjust shaping results,
  * metrics, and style values to match the slanted rendering.
+ *
+ * <note>Note: The glyph shape fetched via the
+ * hb_font_get_glyph_shape() is slanted to reflect this value
+ * as well.</note>
  *
  * <note>Note: The slant value is a ratio.  For example, a
  * 20% slant would be represented as a 0.2 value.</note>
