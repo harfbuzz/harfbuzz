@@ -65,6 +65,11 @@ typedef struct hb_draw_state_t {
   hb_var_num_t   reserved7;
 } hb_draw_state_t;
 
+/**
+ * HB_DRAW_STATE_DEFAULT:
+ *
+ * The default #hb_draw_state_t at the start of glyph drawing.
+ */
 #define HB_DRAW_STATE_DEFAULT {0, 0.f, 0.f, 0.f, 0.f, {0.}, {0.}, {0.}}
 
 
