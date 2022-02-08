@@ -157,6 +157,12 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
 {
   if (!hb_object_destroy (dfuncs)) return;
 
+#define HB_DRAW_FUNC_IMPLEMENT(name) \
+  if (dfuncs->destroy.name) dfuncs->destroy.name (dfuncs->user_data.name);
+    HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
+#undef HB_DRAW_FUNC_IMPLEMENT
+
+
   hb_free (dfuncs);
 }
 
