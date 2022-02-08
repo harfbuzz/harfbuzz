@@ -90,6 +90,9 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   cairo_matrix_init_scale (&font_matrix,
 			   font_opts->font_size_x,
 			   font_opts->font_size_y);
+  if (!helper_cairo_use_hb_draw (font_opts))
+    font_matrix.xy = -font_opts->slant * font_opts->font_size_x;
+
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
