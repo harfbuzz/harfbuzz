@@ -74,10 +74,10 @@ static struct supported_font_funcs_t {
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
 {
+  {"ot",	hb_ot_font_set_funcs},
 #ifdef HAVE_FREETYPE
   {"ft",	hb_ft_font_set_funcs},
 #endif
-  {"ot",	hb_ot_font_set_funcs},
 };
 
 
