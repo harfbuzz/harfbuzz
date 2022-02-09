@@ -70,7 +70,9 @@ static inline bool
 helper_cairo_use_hb_draw (const font_options_t *font_opts)
 {
   const char *env = getenv ("HB_DRAW");
-  return env && atoi (env);
+  if (!env)
+    return cairo_version () >= CAIRO_VERSION_ENCODE (1, 17, 5);
+  return atoi (env);
 }
 
 static inline cairo_scaled_font_t *
