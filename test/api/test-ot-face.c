@@ -131,6 +131,7 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_math_get_glyph_top_accent_attachment (font, cp);
   hb_ot_math_is_glyph_extended_shape (face, cp);
   hb_ot_math_get_glyph_kerning (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0);
+  hb_ot_math_get_glyph_kernings (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0, NULL, NULL);
   hb_ot_math_get_glyph_variants (font, cp, HB_DIRECTION_TTB, 0, NULL, NULL);
   hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_RTL);
   hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_BTT, 0, NULL, NULL, NULL);
