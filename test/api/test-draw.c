@@ -952,6 +952,48 @@ test_hb_draw_drawing_fo_funcs (void)
 }
 
 static void
+test_hb_draw_synthetic_slant (void)
+{
+  char str[2048];
+  draw_data_t draw_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/OpenSans-Regular.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+    hb_font_set_synthetic_slant (font, 0.2f);
+
+    draw_data.consumed = 0;
+    hb_font_get_glyph_shape (font, 37, funcs, &draw_data);
+    char expected[] = "M493,1462L906,1462Q1197,1462 1310,1375Q1423,1288 1385,1100"
+		      "Q1359,970 1270,886Q1180,801 1036,776L1034,766Q1356,709 1297,416"
+		      "Q1258,220 1104,110Q949,0 711,0L201,0L493,1462ZM538,836L818,836"
+		      "Q998,836 1089,893Q1179,949 1206,1083Q1230,1206 1153,1261"
+		      "Q1076,1315 884,1315L634,1315L538,836ZM509,692L400,145L705,145"
+		      "Q882,145 985,214Q1088,282 1118,428Q1145,564 1066,628Q987,692 800,692L509,692Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
+    hb_font_t *font = hb_font_create (face);
+    hb_face_destroy (face);
+    hb_font_set_synthetic_slant (font, 0.2f);
+
+    draw_data.consumed = 0;
+    hb_font_get_glyph_shape (font, 5, funcs, &draw_data);
+    char expected[] = "M90,0L258,0C456,0 588,122 630,331C672,539 587,656 385,656L221,656L90,0Z"
+		      "M187,68L291,588L366,588C519,588 577,496 544,331C511,165 415,68 262,68L187,68Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+}
+
+static void
 test_hb_draw_immutable (void)
 {
   hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
@@ -991,8 +1033,9 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_font_kit_variations_tests);
   hb_test_add (test_hb_draw_estedad_vf);
  if(0) hb_test_add (test_hb_draw_stroking);
-  hb_test_add (test_hb_draw_immutable);
   hb_test_add (test_hb_draw_drawing_fo_funcs);
+  hb_test_add (test_hb_draw_synthetic_slant);
+  hb_test_add (test_hb_draw_immutable);
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);
