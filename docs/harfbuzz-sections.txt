@@ -546,6 +546,7 @@ HB_OT_TAG_MATH
 HB_OT_TAG_MATH_SCRIPT
 hb_ot_math_constant_t
 hb_ot_math_kern_t
+hb_ot_math_kern_entry_t
 hb_ot_math_glyph_variant_t
 hb_ot_math_glyph_part_flags_t
 hb_ot_math_glyph_part_t
@@ -554,6 +555,7 @@ hb_ot_math_get_constant
 hb_ot_math_get_glyph_italics_correction
 hb_ot_math_get_glyph_top_accent_attachment
 hb_ot_math_get_glyph_kerning
+hb_ot_math_get_glyph_kernings
 hb_ot_math_is_glyph_extended_shape
 hb_ot_math_get_glyph_variants
 hb_ot_math_get_min_connector_overlap
