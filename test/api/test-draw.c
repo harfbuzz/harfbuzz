@@ -904,6 +904,54 @@ test_hb_draw_stroking (void)
 }
 
 static void
+test_hb_draw_drawing_fo_funcs (void)
+{
+  char str[2048];
+  draw_data_t draw_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+
+  {
+    hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+    draw_data.consumed = 0;
+    hb_draw_move_to (funcs, &draw_data, &st, 90.f, 0.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 258.f, 0.f);
+    hb_draw_cubic_to (funcs, &draw_data, &st, 456.f, 0.f, 564.f, 122.f, 564.f, 331.f);
+    hb_draw_cubic_to (funcs, &draw_data, &st, 564.f, 539.f, 456.f, 656.f, 254.f, 656.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 90.f, 656.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 90.f, 0.f);
+    hb_draw_close_path (funcs, &draw_data, &st);
+
+    char expected[] = "M90,0L258,0C456,0 564,122 564,331C564,539 456,656 254,656L90,656L90,0Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
+  }
+
+  {
+    hb_draw_state_t st = HB_DRAW_STATE_DEFAULT;
+    draw_data.consumed = 0;
+    hb_draw_move_to (funcs, &draw_data, &st, 155.f, 624.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 155.f, 84.f);
+    hb_draw_quadratic_to (funcs, &draw_data, &st, 150.f, 90.f, 146.f, 95.f);
+    hb_draw_quadratic_to (funcs, &draw_data, &st, 141.f, 99.f, 136.f, 105.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 292.f, 105.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 292.f, 0.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 156.f, 0.f);
+    hb_draw_quadratic_to (funcs, &draw_data, &st, 128.f, 0.f, 104.f, 14.f);
+    hb_draw_quadratic_to (funcs, &draw_data, &st, 79.f, 27.f, 65.f, 51.f);
+    hb_draw_quadratic_to (funcs, &draw_data, &st, 50.f, 74.f, 50.f, 104.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 50.f, 624.f);
+    hb_draw_line_to (funcs, &draw_data, &st, 155.f, 624.f);
+    hb_draw_close_path (funcs, &draw_data, &st);
+
+    char expected[] = "M155,624L155,84Q150,90 146,95Q141,99 136,105"
+		       "L292,105L292,0L156,0Q128,0 104,14Q79,27 65,51"
+		       "Q50,74 50,104L50,624L155,624Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
+  }
+}
+
+static void
 test_hb_draw_immutable (void)
 {
   hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
@@ -944,6 +992,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_estedad_vf);
  if(0) hb_test_add (test_hb_draw_stroking);
   hb_test_add (test_hb_draw_immutable);
+  hb_test_add (test_hb_draw_drawing_fo_funcs);
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);
