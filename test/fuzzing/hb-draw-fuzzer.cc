@@ -7,7 +7,6 @@
 
 struct _draw_data_t
 {
-  bool is_open;
   unsigned path_len;
   float path_start_x;
   float path_start_y;
@@ -22,8 +21,7 @@ _move_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 	  void *user_data)
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
-  assert (!draw_data->is_open);
-  draw_data->is_open = true;
+  assert (!st->path_open);
   draw_data->path_start_x = draw_data->path_last_x = to_x;
   draw_data->path_start_y = draw_data->path_last_y = to_y;
 }
@@ -35,8 +33,7 @@ _line_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 	  void *user_data)
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
-  assert (draw_data->is_open);
-//  assert (draw_data->path_last_x != to_x || draw_data->path_last_y != to_y);
+  assert (st->path_open);
   ++draw_data->path_len;
   draw_data->path_last_x = to_x;
   draw_data->path_last_y = to_y;
@@ -50,9 +47,7 @@ _quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 	       void *user_data)
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
-  assert (draw_data->is_open);
-/*  assert (draw_data->path_last_x != control_x || draw_data->path_last_y != control_y ||
-	  draw_data->path_last_x != to_x || draw_data->path_last_y != to_y); */
+  assert (st->path_open);
   ++draw_data->path_len;
   draw_data->path_last_x = to_x;
   draw_data->path_last_y = to_y;
@@ -67,10 +62,7 @@ _cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 	   void *user_data)
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
-  assert (draw_data->is_open);
-/*  assert (draw_data->path_last_x != control1_x || draw_data->path_last_y != control1_y ||
-	  draw_data->path_last_x != control2_x || draw_data->path_last_y != control2_y ||
-	  draw_data->path_last_x != to_x || draw_data->path_last_y != to_y); */
+  assert (st->path_open);
   ++draw_data->path_len;
   draw_data->path_last_x = to_x;
   draw_data->path_last_y = to_y;
@@ -82,9 +74,8 @@ _close_path (hb_draw_funcs_t *dfuncs, void *draw_data_,
 	     void *user_data)
 {
   _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
-  assert (draw_data->is_open && draw_data->path_len != 0);
+  assert (st->path_open && draw_data->path_len != 0);
   draw_data->path_len = 0;
-  draw_data->is_open = false;
   assert (draw_data->path_start_x == draw_data->path_last_x &&
 	  draw_data->path_start_y == draw_data->path_last_y);
 }
@@ -147,7 +138,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   unsigned glyph_count = hb_face_get_glyph_count (face);
   glyph_count = glyph_count > 16 ? 16 : glyph_count;
 
-  _draw_data_t draw_data = {false, 0, 0, 0, 0, 0};
+  _draw_data_t draw_data = {0, 0, 0, 0, 0};
 
   hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
   hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) _move_to, nullptr, nullptr);
@@ -160,7 +151,6 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   for (unsigned gid = 0; gid < glyph_count; ++gid)
   {
     hb_font_get_glyph_shape (font, gid, funcs, &draw_data);
-    assert (!draw_data.is_open);
 
     /* Glyph extents also may practices the similar path, call it now that is related */
     hb_glyph_extents_t extents;
