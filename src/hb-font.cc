@@ -531,12 +531,6 @@ hb_draw_move_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED,
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
 
-  st->path_start_x *= x_scale;
-  st->path_start_y *= y_scale;
-
-  st->current_x *= x_scale;
-  st->current_y *= y_scale;
-
   adaptor->draw_funcs->emit_move_to (adaptor->draw_data, *st,
 				     x_scale * to_x, y_scale * to_y);
 }

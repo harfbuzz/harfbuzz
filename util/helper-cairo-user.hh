@@ -113,7 +113,17 @@ render_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
+#if 0
+  // Test sub-font scaling...
+  // TODO: Turn this into a util-wide feature...
+  hb_font_t *font2 = hb_font_create_sub_font (font);
+  signed x, y;
+  hb_font_get_scale (font, &x, &y);
+  hb_font_set_scale (font2, x/2, y/2);
+  hb_font_get_glyph_shape (font2, glyph, get_cairo_draw_funcs (), cr);
+#else
   hb_font_get_glyph_shape (font, glyph, get_cairo_draw_funcs (), cr);
+#endif
   cairo_fill (cr);
 
   return CAIRO_STATUS_SUCCESS;
