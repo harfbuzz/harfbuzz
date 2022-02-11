@@ -97,7 +97,6 @@ struct hb_draw_funcs_t
 		float to_x, float to_y)
   {
     if (st.path_open) close_path (draw_data, st);
-    emit_move_to (draw_data, st, to_x, to_y);
     st.current_x = to_x;
     st.current_y = to_y;
   }
@@ -152,6 +151,7 @@ struct hb_draw_funcs_t
   void start_path (void *draw_data, hb_draw_state_t &st)
   {
     assert (!st.path_open);
+    emit_move_to (draw_data, st, st.current_x, st.current_y);
     st.path_open = true;
     st.path_start_x = st.current_x;
     st.path_start_y = st.current_y;
