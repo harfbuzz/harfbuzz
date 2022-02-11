@@ -198,7 +198,7 @@ typedef void (*hb_draw_close_path_func_t) (hb_draw_funcs_t *dfuncs, void *draw_d
 /**
  * hb_draw_funcs_set_move_to_func:
  * @dfuncs: draw functions object
- * @func: move-to callback
+ * @func: (closure user_data) (destroy destroy) (scope notified): move-to callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
@@ -214,7 +214,7 @@ hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *dfuncs,
 /**
  * hb_draw_funcs_set_line_to_func:
  * @dfuncs: draw functions object
- * @func: line-to callback
+ * @func: (closure user_data) (destroy destroy) (scope notified): line-to callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
@@ -230,7 +230,7 @@ hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *dfuncs,
 /**
  * hb_draw_funcs_set_quadratic_to_func:
  * @dfuncs: draw functions object
- * @func: quadratic-to callback
+ * @func: (closure user_data) (destroy destroy) (scope notified): quadratic-to callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
@@ -246,7 +246,7 @@ hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *dfuncs,
 /**
  * hb_draw_funcs_set_cubic_to_func:
  * @dfuncs: draw functions
- * @func: cubic-to callback
+ * @func: (closure user_data) (destroy destroy) (scope notified): cubic-to callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
@@ -262,7 +262,7 @@ hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *dfuncs,
 /**
  * hb_draw_funcs_set_close_path_func:
  * @dfuncs: draw functions object
- * @func: close-path callback
+ * @func: (closure user_data) (destroy destroy) (scope notified): close-path callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *

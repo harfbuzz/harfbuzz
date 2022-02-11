@@ -522,9 +522,6 @@ typedef hb_bool_t (*hb_font_get_glyph_from_name_func_t) (hb_font_t *font, void *
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
- *
- *
- * Return value: %true if data found, %false otherwise
  * Since: REPLACEME
  *
  **/

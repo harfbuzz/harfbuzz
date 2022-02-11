@@ -107,9 +107,16 @@ HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_DRAW_FUNC_IMPLEMENT
 
 /**
- * hb_draw_funcs_create:
+ * hb_draw_funcs_create: (Xconstructor)
  *
  * Creates a new draw callbacks object.
+ *
+ * Return value: (transfer full):
+ * A newly allocated #hb_draw_funcs_t with a reference count of 1. The initial
+ * reference count should be released with hb_draw_funcs_destroy when you are
+ * done using the #hb_draw_funcs_t. This function never returns %NULL. If
+ * memory cannot be allocated, a special singleton #hb_draw_funcs_t object will
+ * be returned.
  *
  * Since: REPLACEME
  **/
@@ -138,12 +145,15 @@ DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
 
 
 /**
- * hb_draw_funcs_reference:
+ * hb_draw_funcs_reference: (skip)
  * @dfuncs: draw functions
  *
- * Add to callbacks object refcount.
+ * Increases the reference count on @dfuncs by one. This prevents @buffer from
+ * being destroyed until a matching call to hb_draw_funcs_destroy() is made.
  *
- * Returns: The same object.
+ * Return value: (transfer full):
+ * The referenced #hb_draw_funcs_t.
+ *
  * Since: REPLACEME
  **/
 hb_draw_funcs_t *
@@ -153,11 +163,12 @@ hb_draw_funcs_reference (hb_draw_funcs_t *dfuncs)
 }
 
 /**
- * hb_draw_funcs_destroy:
+ * hb_draw_funcs_destroy: (skip)
  * @dfuncs: draw functions
  *
- * Decreases refcount of callbacks object and deletes the object if it reaches
- * to zero.
+ * Deallocate the @dfuncs.
+ * Decreases the reference count on @dfuncs by one. If the result is zero, then
+ * @dfuncs and all associated resources are freed. See hb_draw_funcs_reference().
  *
  * Since: REPLACEME
  **/
@@ -179,7 +190,7 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
  * hb_draw_funcs_make_immutable:
  * @dfuncs: draw functions
  *
- * Makes dfuncs object immutable.
+ * Makes @dfuncs object immutable.
  *
  * Since: REPLACEME
  **/
@@ -196,9 +207,10 @@ hb_draw_funcs_make_immutable (hb_draw_funcs_t *dfuncs)
  * hb_draw_funcs_is_immutable:
  * @dfuncs: draw functions
  *
- * Checks whether dfuncs is immutable.
+ * Checks whether @dfuncs is immutable.
  *
- * Returns: If is immutable.
+ * Return value: %true if @dfuncs is immutable, %false otherwise
+ *
  * Since: REPLACEME
  **/
 hb_bool_t
