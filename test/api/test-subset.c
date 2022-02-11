@@ -180,7 +180,7 @@ test_subset_plan (void)
   mapping = hb_subset_plan_codepoint_to_old_glyph_mapping (plan);
   g_assert (hb_map_get (mapping, 0x63) == 3);
 
-  hb_face_t* face_abc_subset = hb_subset_from_plan_or_fail (plan);
+  hb_face_t* face_abc_subset = hb_subset_plan_execute_or_fail (plan);
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));

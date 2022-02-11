@@ -349,7 +349,7 @@ hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input)
     return nullptr;
   }
 
-  hb_face_t * result = hb_subset_from_plan_or_fail (plan);
+  hb_face_t * result = hb_subset_plan_execute_or_fail (plan);
   hb_subset_plan_destroy (plan);
   return result;
 }
@@ -365,7 +365,7 @@ hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input)
  * Since: REPLACEME
  **/
 hb_face_t *
-hb_subset_from_plan_or_fail (hb_subset_plan_t *plan)
+hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
 {
   if (unlikely (plan->in_error ())) {
     return nullptr;

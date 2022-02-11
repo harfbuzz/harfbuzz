@@ -641,3 +641,62 @@ hb_subset_plan_codepoint_to_old_glyph_mapping (const hb_subset_plan_t *plan)
 {
   return plan->codepoint_to_glyph;
 }
+
+/**
+ * hb_subset_plan_reference: (skip)
+ * @plan: a #hb_subset_plan_t object.
+ *
+ * Increases the reference count on @plan.
+ *
+ * Return value: @plan.
+ *
+ * Since: REPLACEME
+ **/
+hb_subset_plan_t *
+hb_subset_plan_reference (hb_subset_plan_t *plan)
+{
+  return hb_object_reference (plan);
+}
+
+/**
+ * hb_subset_plan_set_user_data: (skip)
+ * @plan: a #hb_subset_plan_t object.
+ * @key: The user-data key to set
+ * @data: A pointer to the user data
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
+ * @replace: Whether to replace an existing data with the same key
+ *
+ * Attaches a user-data key/data pair to the given subset plan object.
+ *
+ * Return value: %true if success, %false otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_subset_plan_set_user_data (hb_subset_plan_t   *plan,
+                              hb_user_data_key_t *key,
+                              void               *data,
+                              hb_destroy_func_t   destroy,
+                              hb_bool_t	          replace)
+{
+  return hb_object_set_user_data (plan, key, data, destroy, replace);
+}
+
+/**
+ * hb_subset_plan_get_user_data: (skip)
+ * @plan: a #hb_subset_plan_t object.
+ * @key: The user-data key to query
+ *
+ * Fetches the user data associated with the specified key,
+ * attached to the specified subset plan object.
+ *
+ * Return value: (transfer none): A pointer to the user data
+ *
+ * Since: REPLACEME
+ **/
+void *
+hb_subset_plan_get_user_data (const hb_subset_plan_t *plan,
+                              hb_user_data_key_t     *key)
+{
+  return hb_object_get_user_data (plan, key);
+}

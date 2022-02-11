@@ -133,7 +133,7 @@ hb_subset_input_set_user_data (hb_subset_input_t  *input,
 
 HB_EXTERN void *
 hb_subset_input_get_user_data (const hb_subset_input_t *input,
-			       hb_user_data_key_t	   *key);
+			       hb_user_data_key_t      *key);
 
 HB_EXTERN hb_set_t *
 hb_subset_input_unicode_set (hb_subset_input_t *input);
@@ -155,10 +155,10 @@ HB_EXTERN hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
 
 HB_EXTERN hb_face_t *
-hb_subset_from_plan_or_fail (hb_subset_plan_t *plan);
+hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan);
 
 HB_EXTERN hb_subset_plan_t *
-hb_subset_plan_create (hb_face_t           *face,
+hb_subset_plan_create (hb_face_t                 *face,
 		       const hb_subset_input_t   *input);
 
 HB_EXTERN void
@@ -172,6 +172,22 @@ hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan);
 
 HB_EXTERN const hb_map_t*
 hb_subset_plan_codepoint_to_old_glyph_mapping (const hb_subset_plan_t *plan);
+
+
+HB_EXTERN hb_subset_plan_t *
+hb_subset_plan_reference (hb_subset_plan_t *plan);
+
+HB_EXTERN hb_bool_t
+hb_subset_plan_set_user_data (hb_subset_plan_t   *plan,
+                              hb_user_data_key_t *key,
+                              void               *data,
+                              hb_destroy_func_t   destroy,
+                              hb_bool_t	          replace);
+
+HB_EXTERN void *
+hb_subset_plan_get_user_data (const hb_subset_plan_t *plan,
+                              hb_user_data_key_t     *key);
+
 
 HB_END_DECLS
 
