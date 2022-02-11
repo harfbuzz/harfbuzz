@@ -365,6 +365,13 @@ hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input)
     }
     offset += num_tables;
   }
+
+  if (!(input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS)) {
+    + plan->glyph_map->iter()
+    | hb_sink(input->old_gid_for_new_gid)
+    ;
+  }
+
 end:
 
   hb_face_t *result = success ? hb_face_reference (plan->dest) : nullptr;

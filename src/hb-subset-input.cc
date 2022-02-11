@@ -59,6 +59,8 @@ hb_subset_input_create_or_fail (void)
   hb_set_add_range (input->sets.name_ids, 0, 6);
   hb_set_add (input->sets.name_languages, 0x0409);
 
+  input->old_gid_for_new_gid = hb_map_create();
+
   hb_tag_t default_drop_tables[] = {
     // Layout disabled by default
     HB_TAG ('m', 'o', 'r', 'x'),
@@ -231,6 +233,8 @@ hb_subset_input_destroy (hb_subset_input_t *input)
   for (hb_set_t* set : input->sets_iter ())
     hb_set_destroy (set);
 
+  hb_map_destroy(input->old_gid_for_new_gid);
+
   hb_free (input);
 }
 
@@ -317,6 +321,23 @@ hb_subset_input_set_flags (hb_subset_input_t *input,
 			   unsigned value)
 {
   input->flags = (hb_subset_flags_t) value;
+}
+
+/**
+ * hb_subset_input_get_new_gid_for_old_gid:
+ * @input: a #hb_codepoint_t before subsetting.
+ * @value: new #hb_codepoint_t for the same glyph in the subsetted font.
+ *
+ * Gets the new glyph id in the font after subsetting.
+ *
+ **/
+HB_EXTERN hb_codepoint_t
+hb_subset_input_get_new_gid_for_old_gid (hb_subset_input_t *input, hb_codepoint_t old)
+{
+  if (input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS) {
+    return old;
+  }
+  return hb_map_get(input->old_gid_for_new_gid, old);
 }
 
 /**

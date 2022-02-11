@@ -52,6 +52,8 @@ struct hb_subset_input_t
     hb_set_t *layout_features;
   };
 
+  hb_map_t *old_gid_for_new_gid;
+
   union {
     sets_t sets;
     hb_set_t* set_ptrs[sizeof (sets_t) / sizeof (hb_set_t*)];

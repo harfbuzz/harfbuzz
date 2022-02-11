@@ -142,6 +142,9 @@ HB_EXTERN void
 hb_subset_input_set_flags (hb_subset_input_t *input,
 			   unsigned value);
 
+HB_EXTERN hb_codepoint_t
+hb_subset_input_get_new_gid_for_old_gid (hb_subset_input_t *input, hb_codepoint_t old);
+
 HB_EXTERN hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
 
