@@ -53,6 +53,7 @@ struct font_options_t : face_options_t
 
   void post_parse (GError **error);
 
+  hb_bool_t sub_font = false;
   hb_variation_t *variations = nullptr;
   unsigned int num_variations = 0;
   int x_ppem = 0;
@@ -140,6 +141,14 @@ font_options_t::post_parse (GError **error)
 #ifdef HAVE_FREETYPE
   hb_ft_font_set_load_flags (font, ft_load_flags);
 #endif
+
+  if (sub_font)
+  {
+    hb_font_t *old_font = font;
+    font = hb_font_create_sub_font (old_font);
+    hb_font_set_scale (old_font, scale_x * 2, scale_y * 2);
+    hb_font_destroy (old_font);
+  }
 }
 
 
@@ -271,6 +280,8 @@ font_options_t::add_options (option_parser_t *parser)
     {"font-slant",	0, 0,
 			      G_OPTION_ARG_DOUBLE,	&this->slant,			"Set synthetic slant (default: 0)",		 "slant ratio; eg. 0.2"},
     {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,						"impl"},
+    {"sub-font",	0, G_OPTION_FLAG_HIDDEN,
+			      G_OPTION_ARG_NONE,	&this->sub_font,		"Create a sub-font (default: false)",		"boolean"},
     {"ft-load-flags",	0, 0, G_OPTION_ARG_INT,		&this->ft_load_flags,		"Set FreeType load-flags (default: 2)",		"integer"},
     {nullptr}
   };
