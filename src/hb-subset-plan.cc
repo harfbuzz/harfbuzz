@@ -111,7 +111,7 @@ static void _collect_layout_indices (hb_face_t		  *face,
       retain_all_features = false;
       continue;
     }
-    
+
     if (visited_features.has (tag))
       continue;
 
@@ -249,9 +249,9 @@ static void _colr_closure (hb_face_t *face,
     hb_set_t glyphset_colrv0;
     for (hb_codepoint_t gid : glyphs_colred->iter ())
       colr.closure_glyphs (gid, &glyphset_colrv0);
-    
+
     glyphs_colred->union_ (glyphset_colrv0);
-    
+
     //closure for COLRv1
     colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices);
   } while (iteration_count++ <= HB_CLOSURE_MAX_STAGES &&
@@ -469,7 +469,7 @@ _nameid_closure (hb_face_t *face,
  * Return value: (transfer full): New subset plan. Destroy with
  * hb_subset_plan_destroy().
  *
- * Since: 1.7.5
+ * Since: REPLACEME
  **/
 hb_subset_plan_t *
 hb_subset_plan_create (hb_face_t	 *face,
@@ -542,7 +542,7 @@ hb_subset_plan_create (hb_face_t	 *face,
  * Decreases the reference count on @plan, and if it reaches zero, destroys
  * @plan, freeing all memory.
  *
- * Since: 1.7.5
+ * Since: REPLACEME
  **/
 void
 hb_subset_plan_destroy (hb_subset_plan_t *plan)
@@ -595,4 +595,49 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   }
 
   hb_free (plan);
+}
+
+/**
+ * hb_subset_plan_old_to_new_glyph_mapping:
+ * @plan: a subsetting plan.
+ *
+ * Returns the mapping between glyphs in the original font to glyphs
+ * in the subset that will be produced by @plan.
+ *
+ * Since: REPLACEME
+ **/
+const hb_map_t*
+hb_subset_plan_old_to_new_glyph_mapping (const hb_subset_plan_t *plan)
+{
+  return plan->glyph_map;
+}
+
+/**
+ * hb_subset_plan_old_to_new_glyph_mapping:
+ * @plan: a subsetting plan.
+ *
+ * Returns the mapping between glyphs in the subset that will be produced by
+ * @plan and the glyph in the original font.
+ *
+ * Since: REPLACEME
+ **/
+const hb_map_t*
+hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan)
+{
+  return plan->reverse_glyph_map;
+}
+
+/**
+ * hb_subset_plan_old_to_new_glyph_mapping:
+ * @plan: a subsetting plan.
+ *
+ * Returns the mapping between codepoints in the original font and the
+ * associated glyph id in the original font.
+ *
+ * Since: REPLACEME
+ **/
+const hb_map_t*
+hb_subset_plan_codepoint_to_old_glyph_mapping (const hb_subset_plan_t *plan)
+{
+  return plan->codepoint_to_glyph;
 }

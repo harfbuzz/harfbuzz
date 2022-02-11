@@ -40,6 +40,15 @@ HB_BEGIN_DECLS
 typedef struct hb_subset_input_t hb_subset_input_t;
 
 /**
+ * hb_subset_plan_t:
+ *
+ * Contains information about how the subset operation will be executed.
+ * Such as mappings from the old glyph ids to the new ones in the subset.
+ */
+
+typedef struct hb_subset_plan_t hb_subset_plan_t;
+
+/**
  * hb_subset_flags_t:
  * @HB_SUBSET_FLAGS_DEFAULT: all flags at their default value of false.
  * @HB_SUBSET_FLAGS_NO_HINTING: If set hinting instructions will be dropped in
@@ -144,6 +153,25 @@ hb_subset_input_set_flags (hb_subset_input_t *input,
 
 HB_EXTERN hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
+
+HB_EXTERN hb_face_t *
+hb_subset_from_plan_or_fail (hb_subset_plan_t *plan);
+
+HB_EXTERN hb_subset_plan_t *
+hb_subset_plan_create (hb_face_t           *face,
+		       const hb_subset_input_t   *input);
+
+HB_EXTERN void
+hb_subset_plan_destroy (hb_subset_plan_t *plan);
+
+HB_EXTERN const hb_map_t*
+hb_subset_plan_old_to_new_glyph_mapping (const hb_subset_plan_t *plan);
+
+HB_EXTERN const hb_map_t*
+hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan);
+
+HB_EXTERN const hb_map_t*
+hb_subset_plan_codepoint_to_old_glyph_mapping (const hb_subset_plan_t *plan);
 
 HB_END_DECLS
 
