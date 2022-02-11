@@ -1183,10 +1183,6 @@ struct glyf
 	 * https://stackoverflow.com/a/20772557 */
       void consume_point (const contour_point_t &point)
       {
-	/* Skip empty contours */
-	if (unlikely (point.is_end_point && !first_oncurve.has_data && !first_offcurve.has_data))
-	  return;
-
 	bool is_on_curve = point.flag & Glyph::FLAG_ON_CURVE;
 	optional_point_t p (point.x, point.y);
 	if (!first_oncurve.has_data)
