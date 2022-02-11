@@ -994,6 +994,73 @@ test_hb_draw_synthetic_slant (void)
 }
 
 static void
+test_hb_draw_subfont_scale (void)
+{
+  char str[2048];
+  draw_data_t draw_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  signed x, y;
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/OpenSans-Regular.ttf");
+    hb_font_t *font1 = hb_font_create (face);
+    hb_font_t *font2 = hb_font_create_sub_font (font1);
+
+    hb_font_get_scale (font1, &x, &y);
+    hb_font_set_scale (font2, x*2, y*2);
+
+    draw_data.consumed = 0;
+    hb_font_get_glyph_shape (font1, 37, funcs, &draw_data);
+    char expected1[] = "M201,1462L614,1462Q905,1462 1035,1375Q1165,1288 1165,1100"
+		       "Q1165,970 1093,886Q1020,801 881,776L881,766Q1214,709 1214,416"
+		       "Q1214,220 1082,110Q949,0 711,0L201,0L201,1462ZM371,836L651,836"
+		       "Q831,836 910,893Q989,949 989,1083Q989,1206 901,1261"
+		       "Q813,1315 621,1315L371,1315L371,836ZM371,692L371,145L676,145"
+		       "Q853,145 943,214Q1032,282 1032,428Q1032,564 941,628Q849,692 662,692L371,692Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected1, sizeof (expected1) - 1);
+
+    draw_data.consumed = 0;
+    hb_font_get_glyph_shape (font2, 37, funcs, &draw_data);
+    char expected2[] = "M402,2924L1228,2924Q1810,2924 2070,2750Q2330,2576 2330,2200"
+		       "Q2330,1940 2185,1771Q2040,1602 1762,1552L1762,1532Q2428,1418 2428,832"
+		       "Q2428,440 2163,220Q1898,0 1422,0L402,0L402,2924ZM742,1672L1302,1672"
+		       "Q1662,1672 1820,1785Q1978,1898 1978,2166Q1978,2412 1802,2521"
+		       "Q1626,2630 1242,2630L742,2630L742,1672ZM742,1384L742,290L1352,290"
+		       "Q1706,290 1885,427Q2064,564 2064,856Q2064,1128 1881,1256Q1698,1384 1324,1384L742,1384Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected2, sizeof (expected2) - 1);
+
+    hb_font_destroy (font1);
+    hb_font_destroy (font2);
+    hb_face_destroy (face);
+  }
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/SourceSansPro-Regular.otf");
+    hb_font_t *font1 = hb_font_create (face);
+    hb_font_t *font2 = hb_font_create_sub_font (font1);
+
+    hb_font_get_scale (font1, &x, &y);
+    hb_font_set_scale (font2, x*2, y*2);
+
+    draw_data.consumed = 0;
+    hb_font_get_glyph_shape (font1, 5, funcs, &draw_data);
+    char expected1[] = "M90,0L258,0C456,0 564,122 564,331C564,539 456,656 254,656L90,656L90,0Z"
+		       "M173,68L173,588L248,588C401,588 478,496 478,331C478,165 401,68 248,68L173,68Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected1, sizeof (expected1) - 1);
+
+    draw_data.consumed = 0;
+    hb_font_get_glyph_shape (font2, 5, funcs, &draw_data);
+    char expected2[] = "M180,0L516,0C912,0 1128,244 1128,662C1128,1078 912,1312 508,1312L180,1312L180,0Z"
+		       "M346,136L346,1176L496,1176C802,1176 956,992 956,662C956,330 802,136 496,136L346,136Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected2, sizeof (expected2) - 1);
+
+    hb_font_destroy (font1);
+    hb_font_destroy (font2);
+    hb_face_destroy (face);
+  }
+}
+
+static void
 test_hb_draw_immutable (void)
 {
   hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
@@ -1035,6 +1102,7 @@ main (int argc, char **argv)
  if(0) hb_test_add (test_hb_draw_stroking);
   hb_test_add (test_hb_draw_drawing_fo_funcs);
   hb_test_add (test_hb_draw_synthetic_slant);
+  hb_test_add (test_hb_draw_subfont_scale);
   hb_test_add (test_hb_draw_immutable);
   unsigned result = hb_test_run ();
 
