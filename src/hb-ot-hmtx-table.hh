@@ -128,7 +128,19 @@ struct hmtxvmtx
     if (unlikely (!table_prime)) return_trace (false);
 
     accelerator_t _mtx (c->plan->source);
-    unsigned num_advances = _mtx.num_advances_for_subset (c->plan);
+    unsigned num_advances;
+    {
+      /* Determine num_advances to encode. */
+      auto& plan = c->plan;
+      num_advances = plan->num_output_glyphs ();
+      hb_codepoint_t old_gid = 0;
+      unsigned int last_advance = plan->old_gid_for_new_gid (num_advances - 1, &old_gid) ? _mtx.get_advance (old_gid) : 0;
+      while (num_advances > 1 &&
+	     last_advance == (plan->old_gid_for_new_gid (num_advances - 2, &old_gid) ? _mtx.get_advance (old_gid) : 0))
+      {
+	num_advances--;
+      }
+    }
 
     auto it =
     + hb_range (c->plan->num_output_glyphs ())
@@ -257,20 +269,6 @@ struct hmtxvmtx
 #else
       return advance;
 #endif
-    }
-
-    unsigned int num_advances_for_subset (const hb_subset_plan_t *plan) const
-    {
-      unsigned int num_advances = plan->num_output_glyphs ();
-      hb_codepoint_t old_gid = 0;
-      unsigned int last_advance = plan->old_gid_for_new_gid (num_advances - 1, &old_gid) ? get_advance (old_gid) : 0;
-      while (num_advances > 1 &&
-	     last_advance == (plan->old_gid_for_new_gid (num_advances - 2, &old_gid) ? get_advance (old_gid) : 0))
-      {
-	num_advances--;
-      }
-
-      return num_advances;
     }
 
     protected:
