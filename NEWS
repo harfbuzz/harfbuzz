@@ -10,8 +10,8 @@ Sunday, February 13, 2022
   ‘math’ tag. (Alexis King)
 - It is now possible to get at once all math kerning values for a given glyph
   at a given corner. (Alexis King)
-- Fix locale_t portability issues on systems the typdef’s it to a void pointer.
-  (Behdad Esfahbod)
+- Fix locale_t portability issues on systems the typedef’s it to a void
+  pointer. (Behdad Esfahbod)
 
 - New API:
 +HB_BUFFER_FLAG_VERIFY
