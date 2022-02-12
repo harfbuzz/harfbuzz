@@ -516,6 +516,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->layout_variation_idx_map = hb_map_create ();
 
   if (unlikely (plan->in_error ())) {
+    hb_subset_plan_destroy (plan);
     return nullptr;
   }
 
@@ -534,6 +535,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 				  &plan->_num_output_glyphs);
 
   if (unlikely (plan->in_error ())) {
+    hb_subset_plan_destroy (plan);
     return nullptr;
   }
   return plan;
