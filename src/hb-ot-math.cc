@@ -211,7 +211,7 @@ hb_ot_math_get_glyph_kerning (hb_font_t *font,
  *
  * Return value: the total number of kern values available or zero
  *
- * Since: REPLACEME
+ * Since: 3.4.0
  **/
 unsigned int
 hb_ot_math_get_glyph_kernings (hb_font_t *font,

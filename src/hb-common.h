@@ -481,7 +481,7 @@ hb_language_get_default (void);
  * @HB_SCRIPT_TANGSA: `Tnsa`, Since: 3.0.0
  * @HB_SCRIPT_TOTO: `Toto`, Since: 3.0.0
  * @HB_SCRIPT_VITHKUQI: `Vith`, Since: 3.0.0
- * @HB_SCRIPT_MATH: `Zmth`, Since: REPLACEME
+ * @HB_SCRIPT_MATH: `Zmth`, Since: 3.4.0
  * @HB_SCRIPT_INVALID: No script set
  *
  * Data type for scripts. Each #hb_script_t's value is an #hb_tag_t corresponding
@@ -699,7 +699,7 @@ typedef enum
   HB_SCRIPT_VITHKUQI			= HB_TAG ('V','i','t','h'), /*14.0*/
 
   /*
-   * Since REPLACEME
+   * Since 3.4.0
    */
   HB_SCRIPT_MATH			= HB_TAG ('Z','m','t','h'),
 
