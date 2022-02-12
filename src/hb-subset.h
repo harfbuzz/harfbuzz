@@ -158,8 +158,8 @@ HB_EXTERN hb_face_t *
 hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan);
 
 HB_EXTERN hb_subset_plan_t *
-hb_subset_plan_create (hb_face_t                 *face,
-		       const hb_subset_input_t   *input);
+hb_subset_plan_create_or_fail (hb_face_t                 *face,
+                               const hb_subset_input_t   *input);
 
 HB_EXTERN void
 hb_subset_plan_destroy (hb_subset_plan_t *plan);

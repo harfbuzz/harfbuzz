@@ -458,7 +458,7 @@ _nameid_closure (hb_face_t *face,
 }
 
 /**
- * hb_subset_plan_create:
+ * hb_subset_plan_create_or_fail:
  * @face: font face to create the plan for.
  * @input: a #hb_subset_input_t input.
  *
@@ -467,17 +467,18 @@ _nameid_closure (hb_face_t *face,
  * which tables and glyphs should be retained.
  *
  * Return value: (transfer full): New subset plan. Destroy with
- * hb_subset_plan_destroy().
+ * hb_subset_plan_destroy(). If there is a failure creating the plan
+ * nullptr will be returned.
  *
  * Since: REPLACEME
  **/
 hb_subset_plan_t *
-hb_subset_plan_create (hb_face_t	 *face,
-		       const hb_subset_input_t *input)
+hb_subset_plan_create_or_fail (hb_face_t	 *face,
+                               const hb_subset_input_t *input)
 {
   hb_subset_plan_t *plan;
   if (unlikely (!(plan = hb_object_create<hb_subset_plan_t> ())))
-    return const_cast<hb_subset_plan_t *> (&Null (hb_subset_plan_t));
+    return nullptr;
 
   plan->successful = true;
   plan->flags = input->flags;
@@ -514,8 +515,8 @@ hb_subset_plan_create (hb_face_t	 *face,
   plan->layout_variation_indices = hb_set_create ();
   plan->layout_variation_idx_map = hb_map_create ();
 
-  if (plan->in_error ()) {
-    return plan;
+  if (unlikely (plan->in_error ())) {
+    return nullptr;
   }
 
   _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, plan);
@@ -532,6 +533,9 @@ hb_subset_plan_create (hb_face_t	 *face,
 				  plan->reverse_glyph_map,
 				  &plan->_num_output_glyphs);
 
+  if (unlikely (plan->in_error ())) {
+    return nullptr;
+  }
   return plan;
 }
 

@@ -343,9 +343,8 @@ hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input)
 {
   if (unlikely (!input || !source)) return hb_face_get_empty ();
 
-  hb_subset_plan_t *plan = hb_subset_plan_create (source, input);
-  if (unlikely (plan->in_error ())) {
-    hb_subset_plan_destroy (plan);
+  hb_subset_plan_t *plan = hb_subset_plan_create_or_fail (source, input);
+  if (unlikely (!plan)) {
     return nullptr;
   }
 
@@ -367,7 +366,7 @@ hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input)
 hb_face_t *
 hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
 {
-  if (unlikely (plan->in_error ())) {
+  if (unlikely (!plan || plan->in_error ())) {
     return nullptr;
   }
 

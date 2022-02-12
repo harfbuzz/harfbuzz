@@ -167,7 +167,8 @@ test_subset_plan (void)
   hb_subset_input_t* input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
 
-  hb_subset_plan_t* plan = hb_subset_plan_create (face_abc, input);
+  hb_subset_plan_t* plan = hb_subset_plan_create_or_fail (face_abc, input);
+  g_assert (plan);
 
   const hb_map_t* mapping = hb_subset_plan_old_to_new_glyph_mapping (plan);
   g_assert (hb_map_get (mapping, 1) == 1);
