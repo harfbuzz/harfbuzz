@@ -1095,13 +1095,8 @@ static void test_hb_draw_ft (void)
     }
     {
       draw_data.consumed = 0;
-      hb_font_get_glyph_shape (font, 6, funcs, &draw_data);
-      printf ("%.*s", draw_data.consumed, str);
-      char expected[] = "M346,468L211,468L211,0L123,0L123,468L29,468L29,509L123,539"
-			"L123,570Q123,674 169,719Q215,765 297,765Q329,765 355,759"
-			"Q382,754 401,747L378,678Q362,683 341,688Q320,693 298,693"
-			"Q254,693 232,663Q211,634 211,571L211,536L346,536L346,468Z"
-			"M15,0Q15,0 15,0Z";
+      hb_font_get_glyph_shape (font, 5, funcs, &draw_data);
+      char expected[] = "M15,0Q15,0 15,0Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
     hb_font_destroy (font);
