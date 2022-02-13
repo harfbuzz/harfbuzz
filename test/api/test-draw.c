@@ -908,7 +908,7 @@ test_hb_draw_stroking (void)
 }
 
 static void
-test_hb_draw_drawing_fo_funcs (void)
+test_hb_draw_drawing_funcs (void)
 {
   char str[2048];
   draw_data_t draw_data = {
@@ -1157,7 +1157,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_font_kit_variations_tests);
   hb_test_add (test_hb_draw_estedad_vf);
  if(0) hb_test_add (test_hb_draw_stroking);
-  hb_test_add (test_hb_draw_drawing_fo_funcs);
+  hb_test_add (test_hb_draw_drawing_funcs);
   hb_test_add (test_hb_draw_synthetic_slant);
   hb_test_add (test_hb_draw_subfont_scale);
   hb_test_add (test_hb_draw_immutable);
