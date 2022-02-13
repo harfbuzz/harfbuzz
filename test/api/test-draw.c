@@ -26,6 +26,9 @@
 #include <math.h>
 
 #include <hb.h>
+#ifdef HAVE_FREETYPE
+#include <hb-ft.h>
+#endif
 
 typedef struct draw_data_t
 {
@@ -1071,6 +1074,59 @@ test_hb_draw_immutable (void)
   hb_draw_funcs_destroy (draw_funcs);
 }
 
+#ifdef HAVE_FREETYPE
+static void test_hb_draw_ft (void)
+{
+  char str[1024];
+  draw_data_t draw_data = {
+    .str = str,
+    .size = sizeof (str)
+  };
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/glyphs.ttf");
+    hb_font_t *font = hb_font_create (face);
+    hb_ft_font_set_funcs (font);
+    hb_face_destroy (face);
+    {
+      draw_data.consumed = 0;
+      hb_font_get_glyph_shape (font, 0, funcs, &draw_data);
+      char expected[] = "M50,0L50,750L450,750L450,0L50,0Z";
+      g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
+    }
+    {
+      draw_data.consumed = 0;
+      hb_font_get_glyph_shape (font, 6, funcs, &draw_data);
+      printf ("%.*s", draw_data.consumed, str);
+      char expected[] = "M346,468L211,468L211,0L123,0L123,468L29,468L29,509L123,539"
+			"L123,570Q123,674 169,719Q215,765 297,765Q329,765 355,759"
+			"Q382,754 401,747L378,678Q362,683 341,688Q320,693 298,693"
+			"Q254,693 232,663Q211,634 211,571L211,536L346,536L346,468Z"
+			"M15,0Q15,0 15,0Z";
+      g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
+    }
+    hb_font_destroy (font);
+  }
+  {
+    hb_face_t *face = hb_test_open_font_file ("fonts/cff1_flex.otf");
+    hb_font_t *font = hb_font_create (face);
+    hb_ft_font_set_funcs (font);
+    hb_face_destroy (face);
+
+    draw_data.consumed = 0;
+    hb_font_get_glyph_shape (font, 1, funcs, &draw_data);
+    char expected[] = "M0,0C100,0 150,-20 250,-20C350,-20 400,0 500,0C500,100 520,150 520,250"
+		      "C520,350 500,400 500,500C400,500 350,520 250,520C150,520 100,500 0,500"
+		      "C0,400 -20,350 -20,250C-20,150 0,100 0,0ZM50,50C50,130 34,170 34,250"
+		      "C34,330 50,370 50,450C130,450 170,466 250,466C330,466 370,450 450,450"
+		      "C450,370 466,330 466,250C466,170 450,130 450,50C370,50 330,34 250,34"
+		      "C170,34 130,50 50,50Z";
+    g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
+
+    hb_font_destroy (font);
+  }
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -1105,6 +1161,9 @@ main (int argc, char **argv)
   hb_test_add (test_hb_draw_synthetic_slant);
   hb_test_add (test_hb_draw_subfont_scale);
   hb_test_add (test_hb_draw_immutable);
+#ifdef HAVE_FREETYPE
+  hb_test_add (test_hb_draw_ft);
+#endif
   unsigned result = hb_test_run ();
 
   hb_draw_funcs_destroy (funcs);
