@@ -369,7 +369,7 @@ test_hb_draw_ttf_parser_tests (void)
     {
       draw_data.consumed = 0;
       hb_font_get_glyph_shape (font, 5, funcs, &draw_data);
-      char expected[] = "";
+      char expected[] = "M15,0Q15,0 15,0Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
     {
@@ -378,7 +378,8 @@ test_hb_draw_ttf_parser_tests (void)
       char expected[] = "M346,468L211,468L211,0L123,0L123,468L29,468L29,509L123,539"
 			"L123,570Q123,674 169,720Q215,765 297,765Q329,765 356,760"
 			"Q382,754 401,747L378,678Q362,683 341,688Q320,693 298,693"
-			"Q254,693 233,664Q211,634 211,571L211,536L346,536L346,468Z";
+			"Q254,693 233,664Q211,634 211,571L211,536L346,536L346,468Z"
+			"M15,0Q15,0 15,0Z";
       g_assert_cmpmem (str, draw_data.consumed, expected, sizeof (expected) - 1);
     }
 

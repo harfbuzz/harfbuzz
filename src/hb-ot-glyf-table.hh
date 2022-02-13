@@ -1251,6 +1251,12 @@ struct glyf
 				       font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
 	  else if (first_oncurve.has_data)
 	    draw_session->line_to (font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
+	  else if (first_offcurve.has_data)
+	  {
+	    float x = font->em_fscalef_x (first_offcurve.x), y = font->em_fscalef_x (first_offcurve.y);
+	    draw_session->move_to (x, y);
+	    draw_session->quadratic_to (x, y, x, y);
+	  }
 
 	  /* Getting ready for the next contour */
 	  first_oncurve = first_offcurve = last_offcurve = optional_point_t ();
