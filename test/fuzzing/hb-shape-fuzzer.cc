@@ -33,7 +33,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   {
     const char text[] = "ABCDEXYZ123@_%&)*$!";
     hb_buffer_t *buffer = hb_buffer_create ();
- //   hb_buffer_set_flags (buffer, HB_BUFFER_FLAG_VERIFY);
+    hb_buffer_set_flags (buffer, HB_BUFFER_FLAG_VERIFY);
     hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
     hb_buffer_guess_segment_properties (buffer);
     hb_shape (font, buffer, nullptr, 0);
