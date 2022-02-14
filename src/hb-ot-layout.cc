@@ -1984,11 +1984,81 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
 {
   bool result = font->face->table.BASE->get_baseline (font, baseline_tag, direction, script_tag, language_tag, coord);
 
-  if (result && coord)
-    *coord = HB_DIRECTION_IS_HORIZONTAL (direction) ? font->em_scale_y (*coord) : font->em_scale_x (*coord);
+  if (coord)
+  {
+    if (result)
+    {
+      *coord = HB_DIRECTION_IS_HORIZONTAL (direction) ? font->em_scale_y (*coord) : font->em_scale_x (*coord);
+    }
+    else
+    {
+      /* Synthesize missing baselines.
+       * See https://www.w3.org/TR/css-inline-3/#baseline-synthesis-fonts
+       */
+      hb_font_extents_t extents;
+
+      if (baseline_tag == HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_TOP_OR_RIGHT)
+      {
+        if (font->face->table.BASE->get_baseline (font,
+                                                  HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_BOTTOM_OR_LEFT,
+                                                  direction, script_tag, language_tag, coord))
+          *coord += font->y_ppem;
+        else if (hb_font_get_h_extents (font, &extents))
+          *coord = extents.ascender;
+      }
+
+      if (baseline_tag == HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_BOTTOM_OR_LEFT)
+      {
+        if (font->face->table.BASE->get_baseline (font,
+                                                  HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_TOP_OR_RIGHT,
+                                                  direction, script_tag, language_tag, coord))
+          *coord -= font->y_ppem;
+        else if (hb_font_get_h_extents (font, &extents))
+          *coord = extents.descender;
+      }
+
+      if (baseline_tag == HB_OT_LAYOUT_BASELINE_TAG_HANGING)
+      {
+        hb_codepoint_t ch = 0;
+
+        switch (script_tag)
+        {
+        case HB_SCRIPT_DEVANAGARI:
+          ch = 0x915;
+          break;
+        case HB_SCRIPT_BENGALI:
+          ch = 0x995;
+          break;
+        case HB_SCRIPT_GURMUKHI:
+          ch = 0xa15;
+          break;
+        case HB_SCRIPT_HEBREW:
+          ch = 0x5d4;
+          break;
+        case HB_SCRIPT_TIBETAN:
+          ch = 0xf40;
+          break;
+        default:
+          *coord = 0.6 * font->y_ppem;
+        }
+
+        if (ch != 0)
+          {
+            hb_codepoint_t glyph;
+            hb_glyph_extents_t extents;
+
+            hb_font_get_nominal_glyph (font, ch, &glyph);
+            hb_font_get_glyph_extents (font, glyph, &extents);
+
+            *coord = extents.height;
+          }
+      }
+    }
+  }
 
   return result;
 }
+
 #endif
 
 
