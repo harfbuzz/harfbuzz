@@ -1190,7 +1190,7 @@ hb_font_get_extents_for_direction (hb_font_t         *font,
 				   hb_direction_t     direction,
 				   hb_font_extents_t *extents)
 {
-  return font->get_extents_for_direction (direction, extents);
+  font->get_extents_for_direction (direction, extents);
 }
 /**
  * hb_font_get_glyph_advance_for_direction:
@@ -1215,7 +1215,7 @@ hb_font_get_glyph_advance_for_direction (hb_font_t      *font,
 					 hb_position_t  *x,
 					 hb_position_t  *y)
 {
-  return font->get_glyph_advance_for_direction (glyph, direction, x, y);
+  font->get_glyph_advance_for_direction (glyph, direction, x, y);
 }
 /**
  * hb_font_get_glyph_advances_for_direction:
