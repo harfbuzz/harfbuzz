@@ -272,6 +272,7 @@ struct hmtxvmtx
     }
 
     protected:
+    // 0 <= num_long_metrics <= num_bearings
     unsigned int num_long_metrics;
     unsigned int num_bearings;
     unsigned int default_advance;
