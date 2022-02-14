@@ -185,17 +185,17 @@ struct hmtxvmtx
 
       table = hb_sanitize_context_t ().reference_table<hmtxvmtx> (face, T::tableTag);
 
-      /* Cap num_metrics and num_advances based on table length. */
+      /* Cap num_bearings and num_advances based on table length. */
       unsigned int len = table.get_length ();
       if (unlikely (num_advances * 4 > len))
 	num_advances = len / 4;
-      num_metrics = num_advances + (len - 4 * num_advances) / 2;
+      num_bearings = num_advances + (len - 4 * num_advances) / 2;
 
-      /* We MUST set num_metrics to zero if num_advances is zero.
+      /* We MUST set num_bearings to zero if num_advances is zero.
        * Our get_advance() depends on that. */
       if (unlikely (!num_advances))
       {
-	num_metrics = num_advances = 0;
+	num_bearings = num_advances = 0;
 	table.destroy ();
 	table = hb_blob_get_empty ();
       }
@@ -213,7 +213,7 @@ struct hmtxvmtx
       if (glyph < num_advances)
 	return table->longMetricZ[glyph].sb;
 
-      if (unlikely (glyph >= num_metrics))
+      if (unlikely (glyph >= num_bearings))
 	return 0;
 
       const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_advances];
@@ -225,7 +225,7 @@ struct hmtxvmtx
       int side_bearing = get_side_bearing (glyph);
 
 #ifndef HB_NO_VAR
-      if (unlikely (glyph >= num_metrics) || !font->num_coords)
+      if (unlikely (glyph >= num_bearings) || !font->num_coords)
 	return side_bearing;
 
       if (var_table.get_length ())
@@ -239,12 +239,12 @@ struct hmtxvmtx
 
     unsigned int get_advance (hb_codepoint_t glyph) const
     {
-      if (unlikely (glyph >= num_metrics))
+      if (unlikely (glyph >= num_bearings))
       {
-	/* If num_metrics is zero, it means we don't have the metrics table
+	/* If num_bearings is zero, it means we don't have the metrics table
 	 * for this direction: return default advance.  Otherwise, it means that the
 	 * glyph index is out of bound: return zero. */
-	if (num_metrics)
+	if (num_bearings)
 	  return 0;
 	else
 	  return default_advance;
@@ -259,7 +259,7 @@ struct hmtxvmtx
       unsigned int advance = get_advance (glyph);
 
 #ifndef HB_NO_VAR
-      if (unlikely (glyph >= num_metrics) || !font->num_coords)
+      if (unlikely (glyph >= num_bearings) || !font->num_coords)
 	return advance;
 
       if (var_table.get_length ())
@@ -272,8 +272,8 @@ struct hmtxvmtx
     }
 
     protected:
-    unsigned int num_metrics;
     unsigned int num_advances;
+    unsigned int num_bearings;
     unsigned int default_advance;
 
     private:
