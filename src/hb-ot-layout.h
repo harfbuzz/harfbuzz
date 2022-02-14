@@ -511,6 +511,9 @@ typedef enum {
   _HB_OT_LAYOUT_BASELINE_TAG_MAX_VALUE = HB_TAG_MAX_SIGNED /*< skip >*/
 } hb_ot_layout_baseline_tag_t;
 
+HB_EXTERN hb_ot_layout_baseline_tag_t
+hb_ot_layout_get_horizontal_baseline_tag_for_script (hb_script_t script);
+
 HB_EXTERN hb_bool_t
 hb_ot_layout_get_baseline (hb_font_t                   *font,
 			   hb_ot_layout_baseline_tag_t  baseline_tag,
