@@ -522,6 +522,14 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
 			   hb_tag_t                     language_tag,
 			   hb_position_t               *coord        /* OUT.  May be NULL. */);
 
+HB_EXTERN void
+hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
+					 hb_ot_layout_baseline_tag_t  baseline_tag,
+					 hb_direction_t               direction,
+					 hb_tag_t                     script_tag,
+					 hb_tag_t                     language_tag,
+					 hb_position_t               *coord        /* OUT */);
+
 HB_END_DECLS
 
 #endif /* HB_OT_LAYOUT_H */
