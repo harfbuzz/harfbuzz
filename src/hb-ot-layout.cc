@@ -1967,6 +1967,76 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
 
 #ifndef HB_NO_BASE
 /**
+ * hb_ot_layout_get_horizontal_baseline_tag_for_script:
+ * @script: a script tag.
+ *
+ * Fetches the dominant horizontal baseline tag used by @script.
+ *
+ * Return value: dominant baseline tag for the @script.
+ *
+ * Since: REPLACEME
+ **/
+hb_ot_layout_baseline_tag_t
+hb_ot_layout_get_horizontal_baseline_tag_for_script (hb_script_t script)
+{
+  switch ((int) script)
+  {
+    /* Unicode-1.1 additions */
+    case HB_SCRIPT_BENGALI:
+    case HB_SCRIPT_DEVANAGARI:
+    case HB_SCRIPT_GUJARATI:
+    case HB_SCRIPT_GURMUKHI:
+    /* Unicode-2.0 additions */
+    case HB_SCRIPT_TIBETAN:
+    /* Unicode-4.0 additions */
+    case HB_SCRIPT_LIMBU:
+    /* Unicode-4.1 additions */
+    case HB_SCRIPT_SYLOTI_NAGRI:
+    /* Unicode-5.0 additions */
+    case HB_SCRIPT_PHAGS_PA:
+    /* Unicode-5.2 additions */
+    case HB_SCRIPT_MEETEI_MAYEK:
+    /* Unicode-6.1 additions */
+    case HB_SCRIPT_SHARADA:
+    case HB_SCRIPT_TAKRI:
+    /* Unicode-7.0 additions */
+    case HB_SCRIPT_MODI:
+    case HB_SCRIPT_SIDDHAM:
+    case HB_SCRIPT_TIRHUTA:
+    /* Unicode-9.0 additions */
+    case HB_SCRIPT_MARCHEN:
+    case HB_SCRIPT_NEWA:
+    /* Unicode-10.0 additions */
+    case HB_SCRIPT_SOYOMBO:
+    case HB_SCRIPT_ZANABAZAR_SQUARE:
+    /* Unicode-11.0 additions */
+    case HB_SCRIPT_DOGRA:
+    case HB_SCRIPT_GUNJALA_GONDI:
+    /* Unicode-12.0 additions */
+    case HB_SCRIPT_NANDINAGARI:
+      return HB_OT_LAYOUT_BASELINE_TAG_HANGING;
+
+    /* Unicode-1.1 additions */
+    case HB_SCRIPT_HANGUL:
+    case HB_SCRIPT_HAN:
+    case HB_SCRIPT_HIRAGANA:
+    case HB_SCRIPT_KATAKANA:
+    /* Unicode-3.0 additions */
+    case HB_SCRIPT_BOPOMOFO:
+    /* Unicode-9.0 additions */
+    case HB_SCRIPT_TANGUT:
+    /* Unicode-10.0 additions */
+    case HB_SCRIPT_NUSHU:
+    /* Unicode-13.0 additions */
+    case HB_SCRIPT_KHITAN_SMALL_SCRIPT:
+      return HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_BOTTOM_OR_LEFT;
+
+    default:
+      return HB_OT_LAYOUT_BASELINE_TAG_ROMAN;
+  }
+}
+
+/**
  * hb_ot_layout_get_baseline:
  * @font: a font
  * @baseline_tag: a baseline tag
