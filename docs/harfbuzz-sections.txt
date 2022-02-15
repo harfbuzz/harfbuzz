@@ -600,6 +600,7 @@ hb_ot_meta_reference_entry
 <FILE>hb-ot-metrics</FILE>
 hb_ot_metrics_tag_t
 hb_ot_metrics_get_position
+hb_ot_metrics_get_position_with_fallback
 hb_ot_metrics_get_variation
 hb_ot_metrics_get_x_variation
 hb_ot_metrics_get_y_variation
