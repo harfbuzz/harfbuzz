@@ -261,6 +261,10 @@ struct hmtxvmtx
       if (unlikely (!num_advances))
 	return default_advance;
 
+#ifdef HB_NO_BORING_EXPANSION
+      return 0;
+#endif
+
       if (unlikely (glyph >= num_glyphs))
         return 0;
 

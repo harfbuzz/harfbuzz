@@ -77,9 +77,11 @@ test_maxp_and_hmtx (void)
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 2), ==, 3);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 3), ==, 3);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 4), ==, 3);
+#ifndef HB_NO_BORING_EXPANSION
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 5), ==, 8);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 6), ==, 9);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 7), ==, 9);
+#endif
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 8), ==, 0);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font, 9), ==, 0);
   g_assert_cmpuint (hb_font_get_glyph_h_advance (font,10), ==, 0);
