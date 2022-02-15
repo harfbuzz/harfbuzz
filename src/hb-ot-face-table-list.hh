@@ -47,6 +47,7 @@
 
 /* OpenType fundamentals. */
 HB_OT_TABLE (OT, head)
+HB_OT_TABLE (OT, maxp)
 #if !defined(HB_NO_FACE_COLLECT_UNICODES) || !defined(HB_NO_OT_FONT)
 HB_OT_ACCELERATOR (OT, cmap)
 #endif

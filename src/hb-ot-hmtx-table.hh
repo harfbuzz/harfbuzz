@@ -28,6 +28,7 @@
 #define HB_OT_HMTX_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-maxp-table.hh"
 #include "hb-ot-hhea-table.hh"
 #include "hb-ot-var-hvar-table.hh"
 #include "hb-ot-metrics.hh"
@@ -172,7 +173,16 @@ struct hmtxvmtx
     accelerator_t (hb_face_t *face,
 		   unsigned int default_advance_ = 0)
     {
+      table = hb_sanitize_context_t ().reference_table<hmtxvmtx> (face, T::tableTag);
+      var_table = hb_sanitize_context_t ().reference_table<HVARVVAR> (face, T::variationsTag);
+
       default_advance = default_advance_ ? default_advance_ : hb_face_get_upem (face);
+
+      /* Populate count variables and sort them out as we go */
+
+      unsigned int len = table.get_length ();
+      if (len & 1)
+        len--;
 
       num_long_metrics = T::is_horizontal ?
 			 face->table.hhea->numberOfLongMetrics :
@@ -182,25 +192,27 @@ struct hmtxvmtx
 			 0
 #endif
 			 ;
-
-      table = hb_sanitize_context_t ().reference_table<hmtxvmtx> (face, T::tableTag);
-
-      /* Cap num_bearings and num_long_metrics based on table length. */
-      unsigned int len = table.get_length ();
       if (unlikely (num_long_metrics * 4 > len))
 	num_long_metrics = len / 4;
-      num_bearings = num_long_metrics + (len - 4 * num_long_metrics) / 2;
+      len -= num_long_metrics * 4;
+
+      num_bearings = face->table.maxp->get_num_glyphs ();
+
+      if (unlikely (num_bearings < num_long_metrics))
+        num_bearings = num_long_metrics;
+      if (unlikely ((num_bearings - num_long_metrics) * 2 > len))
+        num_bearings = num_long_metrics + len / 2;
+      len -= (num_bearings - num_long_metrics) * 2;
 
       /* We MUST set num_bearings to zero if num_long_metrics is zero.
        * Our get_advance() depends on that. */
       if (unlikely (!num_long_metrics))
-      {
 	num_bearings = num_long_metrics = 0;
-	table.destroy ();
-	table = hb_blob_get_empty ();
-      }
 
-      var_table = hb_sanitize_context_t ().reference_table<HVARVVAR> (face, T::variationsTag);
+      num_advances = num_bearings + len / 2;
+      num_glyphs = face->get_num_glyphs ();
+      if (num_glyphs < num_advances)
+        num_glyphs = num_advances;
     }
     ~accelerator_t ()
     {
@@ -239,18 +251,31 @@ struct hmtxvmtx
 
     unsigned int get_advance (hb_codepoint_t glyph) const
     {
-      if (unlikely (glyph >= num_bearings))
-      {
-	/* If num_bearings is zero, it means we don't have the metrics table
-	 * for this direction: return default advance.  Otherwise, it means that the
-	 * glyph index is out of bound: return zero. */
-	if (num_bearings)
-	  return 0;
-	else
-	  return default_advance;
-      }
+      /* OpenType case. */
+      if (glyph < num_bearings)
+	return table->longMetricZ[hb_min (glyph, (uint32_t) num_long_metrics - 1)].advance;
 
-      return table->longMetricZ[hb_min (glyph, (uint32_t) num_long_metrics - 1)].advance;
+      /* If num_advances is zero, it means we don't have the metrics table
+       * for this direction: return default advance.  Otherwise, there's a
+       * well-defined answer. */
+      if (unlikely (!num_advances))
+	return default_advance;
+
+      if (unlikely (glyph >= num_glyphs))
+        return 0;
+
+      /* num_bearings <= glyph < num_glyphs;
+       * num_bearings <= num_advances */
+
+      /* TODO Optimize */
+
+      if (num_bearings == num_advances)
+        return get_advance (num_bearings - 1);
+
+      const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_long_metrics];
+      const UFWORD *advances = (const UFWORD *) &bearings[num_bearings - num_long_metrics];
+
+      return advances[hb_min (glyph - num_bearings, num_advances - num_bearings - 1)];
     }
 
     unsigned int get_advance (hb_codepoint_t  glyph,
@@ -272,9 +297,12 @@ struct hmtxvmtx
     }
 
     protected:
-    // 0 <= num_long_metrics <= num_bearings
-    unsigned int num_long_metrics;
-    unsigned int num_bearings;
+    // 0 <= num_long_metrics <= num_bearings <= num_advances <= num_glyphs
+    unsigned num_long_metrics;
+    unsigned num_bearings;
+    unsigned num_advances;
+    unsigned num_glyphs;
+
     unsigned int default_advance;
 
     private:
@@ -306,6 +334,8 @@ struct hmtxvmtx
 				 * the end. This allows a monospaced
 				 * font to vary the side bearing
 				 * values for each glyph. */
+/*UnsizedArrayOf<UFWORD>advancesX;*/
+				/* TODO Document. */
   public:
   DEFINE_SIZE_ARRAY (0, longMetricZ);
 };
