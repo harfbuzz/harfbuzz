@@ -85,12 +85,10 @@ hb_face_t::load_num_glyphs () const
   unsigned ret = 0;
 
 #ifndef HB_NO_BORING_EXPANSION
-  if (!ret)
-    ret = load_num_glyphs_from_loca (this);
+  ret = hb_max (ret, load_num_glyphs_from_loca (this));
 #endif
 
-  if (!ret)
-    ret = load_num_glyphs_from_maxp (this);
+  ret = hb_max (ret, load_num_glyphs_from_maxp (this));
 
   num_glyphs.set_relaxed (ret);
   return ret;
