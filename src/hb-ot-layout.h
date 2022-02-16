@@ -332,31 +332,6 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
 				    hb_set_t     *glyphs_after,  /* OUT.  May be NULL */
 				    hb_set_t     *glyphs_output  /* OUT.  May be NULL */);
 
-#ifdef HB_NOT_IMPLEMENTED
-typedef struct
-{
-  const hb_codepoint_t *before,
-  unsigned int          before_length,
-  const hb_codepoint_t *input,
-  unsigned int          input_length,
-  const hb_codepoint_t *after,
-  unsigned int          after_length,
-} hb_ot_layout_glyph_sequence_t;
-
-typedef hb_bool_t
-(*hb_ot_layout_glyph_sequence_func_t) (hb_font_t    *font,
-				       hb_tag_t      table_tag,
-				       unsigned int  lookup_index,
-				       const hb_ot_layout_glyph_sequence_t *sequence,
-				       void         *user_data);
-
-HB_EXTERN void
-Xhb_ot_layout_lookup_enumerate_sequences (hb_face_t    *face,
-					 hb_tag_t      table_tag,
-					 unsigned int  lookup_index,
-					 hb_ot_layout_glyph_sequence_func_t callback,
-					 void         *user_data);
-#endif
 
 /* Variations support */
 
@@ -411,34 +386,12 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
 					 hb_set_t       *glyphs);
 
 
-#ifdef HB_NOT_IMPLEMENTED
-/* Note: You better have GDEF when using this API, or marks won't do much. */
-HB_EXTERN hb_bool_t
-Xhb_ot_layout_lookup_substitute (hb_font_t            *font,
-				unsigned int          lookup_index,
-				const hb_ot_layout_glyph_sequence_t *sequence,
-				unsigned int          out_size,
-				hb_codepoint_t       *glyphs_out,   /* OUT */
-				unsigned int         *clusters_out, /* OUT */
-				unsigned int         *out_length    /* OUT */);
-#endif
-
-
 /*
  * GPOS
  */
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_has_positioning (hb_face_t *face);
-
-#ifdef HB_NOT_IMPLEMENTED
-/* Note: You better have GDEF when using this API, or marks won't do much. */
-HB_EXTERN hb_bool_t
-Xhb_ot_layout_lookup_position (hb_font_t            *font,
-			      unsigned int          lookup_index,
-			      const hb_ot_layout_glyph_sequence_t *sequence,
-			      hb_glyph_position_t  *positions /* IN / OUT */);
-#endif
 
 /* Optical 'size' feature info.  Returns true if found.
  * https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#size */

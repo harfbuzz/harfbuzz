@@ -564,12 +564,6 @@ hb_ot_layout_table_get_lookup_count
 hb_ot_layout_table_select_script
 hb_ot_shape_plan_collect_lookups
 hb_ot_layout_language_get_required_feature_index
-<SUBSECTION Private>
-Xhb_ot_layout_lookup_enumerate_sequences
-Xhb_ot_layout_lookup_position
-Xhb_ot_layout_lookup_substitute
-hb_ot_layout_glyph_sequence_t
-hb_ot_layout_glyph_sequence_func_t
 </SECTION>
 
 <SECTION>
