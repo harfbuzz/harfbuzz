@@ -31,8 +31,8 @@
 
 /* main() body for utilities taking font and processing text.*/
 
-template <typename consumer_t, typename font_options_t, typename text_options_t>
-struct main_font_text_t : option_parser_t, font_options_t, text_options_t, consumer_t
+template <typename consumer_t, typename font_options_t, typename text_options_type>
+struct main_font_text_t : option_parser_t, font_options_t, text_options_type, consumer_t
 {
   int operator () (int argc, char **argv)
   {
@@ -54,7 +54,7 @@ struct main_font_text_t : option_parser_t, font_options_t, text_options_t, consu
   void add_options ()
   {
     font_options_t::add_options (this);
-    text_options_t::add_options (this);
+    text_options_type::add_options (this);
     consumer_t::add_options (this);
 
     GOptionEntry entries[] =
