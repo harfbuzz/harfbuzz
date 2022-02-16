@@ -2241,6 +2241,46 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
       *coord = font->x_scale * 6 / 10; // FIXME makes assumptions about origin
     break;
 
+  case HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_CENTRAL:
+    {
+      hb_position_t top, bottom;
+      hb_ot_layout_get_baseline_with_fallback (font,
+                                               HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_TOP_OR_RIGHT,
+                                               direction,
+                                               script_tag,
+                                               language_tag,
+                                               &top);
+      hb_ot_layout_get_baseline_with_fallback (font,
+                                               HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_BOTTOM_OR_LEFT,
+                                               direction,
+                                               script_tag,
+                                               language_tag,
+                                               &bottom);
+      *coord = (top + bottom) / 2;
+
+    }
+    break;
+
+  case HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_CENTRAL:
+    {
+      hb_position_t top, bottom;
+      hb_ot_layout_get_baseline_with_fallback (font,
+                                               HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_TOP_OR_RIGHT,
+                                               direction,
+                                               script_tag,
+                                               language_tag,
+                                               &top);
+      hb_ot_layout_get_baseline_with_fallback (font,
+                                               HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_BOTTOM_OR_LEFT,
+                                               direction,
+                                               script_tag,
+                                               language_tag,
+                                               &bottom);
+      *coord = (top + bottom) / 2;
+
+    }
+    break;
+
   case _HB_OT_LAYOUT_BASELINE_TAG_MAX_VALUE:
   default:
     *coord = 0;
