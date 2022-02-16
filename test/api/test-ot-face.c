@@ -163,11 +163,9 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_var_normalize_variations (face, NULL, 0, NULL, 0);
   hb_ot_var_normalize_coords (face, 0, NULL, NULL);
 
-#ifdef HB_EXPERIMENTAL_API
   hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
-  hb_font_draw_glyph (font, cp, funcs, NULL);
+  hb_font_get_glyph_shape (font, cp, funcs, NULL);
   hb_draw_funcs_destroy (funcs);
-#endif
 
   hb_set_destroy (set);
 
