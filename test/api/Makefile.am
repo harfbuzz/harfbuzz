@@ -81,6 +81,9 @@ TEST_PROGS = \
 	test-version \
 	$(NULL)
 
+test_draw_CPPFLAGS = $(AM_CPPFLAGS)
+test_draw_LDADD = $(LDADD)
+
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_drop_tables_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
@@ -123,6 +126,9 @@ endif
 endif
 
 if HAVE_FREETYPE
+test_draw_CPPFLAGS += $(FREETYPE_CFLAGS)
+test_draw_LDADD += $(FREETYPE_LIBS)
+
 TEST_PROGS += \
 	test-ot-math \
 	$(NULL)
