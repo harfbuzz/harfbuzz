@@ -60,23 +60,14 @@ static inline unsigned
 load_num_glyphs_from_loca (const hb_face_t *face)
 {
   unsigned ret = 0;
-  hb_sanitize_context_t c = hb_sanitize_context_t ();
-  c.set_num_glyphs (0); /* So we don't recurse ad infinitum. */
 
-  /* We cannot use table.head because that would use sanitizer,
-   * which would try accessing face.num_glyphs, which would
-   * recurse here again... */
-  hb_blob_t *head_blob = c.reference_table<OT::head> (face);
-  const OT::head *head_table = head_blob->as<OT::head> ();
-  unsigned indexToLocFormat = head_table->indexToLocFormat;
-  hb_blob_destroy (head_blob);
+  unsigned indexToLocFormat = face->table.head->indexToLocFormat;
 
   if (indexToLocFormat <= 1)
   {
     bool short_offset = 0 == indexToLocFormat;
-    hb_blob_t *loca_blob = c.reference_table<OT::loca> (face);
+    hb_blob_t *loca_blob = face->table.loca.get_blob ();
     ret = hb_max (1u, loca_blob->length / (short_offset ? 2 : 4)) - 1;
-    hb_blob_destroy (loca_blob);
   }
 
   return ret;
@@ -85,16 +76,7 @@ load_num_glyphs_from_loca (const hb_face_t *face)
 static inline unsigned
 load_num_glyphs_from_maxp (const hb_face_t *face)
 {
-  unsigned ret = 0;
-  hb_sanitize_context_t c = hb_sanitize_context_t ();
-  c.set_num_glyphs (0); /* So we don't recurse ad infinitum. */
-
-  hb_blob_t *maxp_blob = c.reference_table<OT::maxp> (face);
-  const OT::maxp *maxp_table = maxp_blob->as<OT::maxp> ();
-  ret = maxp_table->get_num_glyphs ();
-  hb_blob_destroy (maxp_blob);
-
-  return ret;
+  return face->table.maxp->get_num_glyphs ();
 }
 
 unsigned int

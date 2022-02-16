@@ -80,6 +80,7 @@ HB_OT_TABLE (OT, VORG)
 #endif
 
 /* TrueType outlines. */
+HB_OT_CORE_TABLE (OT, loca) // Also used to determine number of glyphs
 HB_OT_ACCELERATOR (OT, glyf)
 
 /* CFF outlines. */

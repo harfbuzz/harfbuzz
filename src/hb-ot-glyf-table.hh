@@ -936,7 +936,7 @@ struct glyf
 	return;
       short_offset = 0 == head.indexToLocFormat;
 
-      loca_table = hb_sanitize_context_t ().reference_table<loca> (face);
+      loca_table = face->table.loca.get_blob (); // Needs no destruct!
       glyf_table = hb_sanitize_context_t ().reference_table<glyf> (face);
 #ifndef HB_NO_VAR
       gvar = face->table.gvar;
@@ -951,7 +951,6 @@ struct glyf
     }
     ~accelerator_t ()
     {
-      loca_table.destroy ();
       glyf_table.destroy ();
     }
 
