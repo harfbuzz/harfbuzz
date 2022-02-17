@@ -18,7 +18,8 @@ meson like above.
 
 On Windows, meson can build the project like above if a working MSVC's cl.exe (`vcvarsall.bat`)
 or gcc/clang is already on your path, and if you use something like `meson build --wrap-mode=default`
-it fetches and compiles most of the dependencies also.
+it fetches and compiles most of the dependencies also.  It is recommended to install CMake either
+manually or via the Visual Studio installer when building with MSVC when building with meson.
 
 Our CI configurations is also a good source of learning how to build HarfBuzz.
 
