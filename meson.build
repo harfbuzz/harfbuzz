@@ -83,22 +83,10 @@ check_funcs = [
 
 m_dep = cpp.find_library('m', required: false)
 
-freetype_dep = null_dep
-if not get_option('freetype').disabled()
-  freetype_dep = dependency('freetype2', required: false)
-
-  if (not freetype_dep.found() and
-      cpp.get_id() == 'msvc' and
-      cpp.has_header('ft2build.h'))
-    freetype_dep = cpp.find_library('freetype', required: false)
-  endif
-
-  if not freetype_dep.found()
-    # https://github.com/harfbuzz/harfbuzz/pull/2498
-    freetype_dep = dependency('freetype2', required: get_option('freetype'),
-                              default_options: ['harfbuzz=disabled'])
-  endif
-endif
+# https://github.com/harfbuzz/harfbuzz/pull/2498
+freetype_dep = dependency(cpp.get_argument_syntax() == 'msvc' ? 'freetype' : 'freetype2',
+                          required: get_option('freetype'),
+                          default_options: ['harfbuzz=disabled'])
 
 glib_dep = dependency('glib-2.0', required: get_option('glib'))
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'))
