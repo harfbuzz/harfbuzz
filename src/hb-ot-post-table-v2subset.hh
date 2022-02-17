@@ -131,4 +131,14 @@ HB_INTERNAL bool postV2Tail::subset (hb_subset_context_t *c) const
 }
 
 } /* namespace OT */
+
+/* Sadly, we must specialize std::hash for hb_bytes_t for Visual Studio 2015 */
+namespace std
+{
+  template <>
+  struct hash<hb_bytes_t>
+    {
+      size_t operator ()(hb_bytes_t value) const {return value.hash();}
+    };
+}
 #endif /* HB_OT_POST_TABLE_V2SUBSET_HH */

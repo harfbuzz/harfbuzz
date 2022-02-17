@@ -680,4 +680,15 @@ struct hb_serialize_context_t
 	       nullptr, 0> packed_map;
 };
 
+
+/* Sadly, we must specialize std::hash for struct hb_serialize_context_t::object_t for Visual Studio 2015 */
+namespace std
+{
+  template <>
+  struct hash<struct hb_serialize_context_t::object_t>
+    {
+      size_t operator ()(struct hb_serialize_context_t::object_t value) const {return value.hash();}
+    };
+}
+
 #endif /* HB_SERIALIZE_HH */
