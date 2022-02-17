@@ -83,50 +83,25 @@ check_funcs = [
 
 m_dep = cpp.find_library('m', required: false)
 
-freetype_dep = null_dep
-if not get_option('freetype').disabled()
-  freetype_dep = dependency('freetype2', required: false)
-
-  if (not freetype_dep.found() and
-      cpp.get_id() == 'msvc' and
-      cpp.has_header('ft2build.h'))
-    freetype_dep = cpp.find_library('freetype', required: false)
-  endif
-
-  if not freetype_dep.found()
-    # https://github.com/harfbuzz/harfbuzz/pull/2498
-    freetype_dep = dependency('freetype2', required: get_option('freetype'),
-                              default_options: ['harfbuzz=disabled'])
-  endif
-endif
+# https://github.com/harfbuzz/harfbuzz/pull/2498
+freetype_dep = dependency(cpp.get_argument_syntax() == 'msvc' ? 'freetype' : 'freetype2',
+                          required: get_option('freetype'),
+                          default_options: ['harfbuzz=disabled'])
 
 glib_dep = dependency('glib-2.0', required: get_option('glib'))
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'))
 graphite2_dep = dependency('graphite2', required: get_option('graphite2'))
 graphite_dep = dependency('graphite2', required: get_option('graphite'))
 
-icu_dep = null_dep
-if not get_option('icu').disabled()
-  icu_dep = dependency('icu-uc', required: false)
-
-  if (not icu_dep.found() and
-      cpp.get_id() == 'msvc' and
-      cpp.has_header('unicode/uchar.h') and
-      cpp.has_header('unicode/unorm2.h') and
-      cpp.has_header('unicode/ustring.h') and
-      cpp.has_header('unicode/utf16.h') and
-      cpp.has_header('unicode/uversion.h') and
-      cpp.has_header('unicode/uscript.h'))
-    if get_option('buildtype') == 'debug'
-      icu_dep = cpp.find_library('icuucd', required: false)
-    else
-      icu_dep = cpp.find_library('icuuc', required: false)
-    endif
-  endif
-
-  if not icu_dep.found()
-    icu_dep = dependency('icu-uc', required: get_option('icu'))
-  endif
+if cpp.get_argument_syntax() == 'msvc'
+  icu_dep = dependency('ICU',
+                       required: get_option('icu'),
+                       components: 'uc',
+                       method: 'cmake')
+else
+  icu_dep = dependency('icu-uc',
+                       required: get_option('icu'),
+                       method: 'pkg-config')
 endif
 
 if icu_dep.found() and icu_dep.type_name() == 'pkgconfig'
