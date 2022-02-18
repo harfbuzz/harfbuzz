@@ -72,8 +72,7 @@ float
 hb_style_get_value (hb_font_t *font, hb_style_tag_t style_tag)
 {
   if (unlikely (style_tag == HB_STYLE_TAG_SLANT_RATIO))
-    return _hb_angle_to_ratio (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE))
-	 + font->slant;
+    return _hb_angle_to_ratio (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE));
 
   hb_face_t *face = font->face;
 
