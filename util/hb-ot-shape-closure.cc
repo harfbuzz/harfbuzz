@@ -59,8 +59,8 @@ struct shape_closure_consumer_t
     failed = false;
     buffer = hb_buffer_create ();
   }
-  template <typename text_options_t>
-  bool consume_line (text_options_t &text_opts)
+  template <typename text_options_type>
+  bool consume_line (text_options_type &text_opts)
   {
     unsigned int text_len;
     const char *text;

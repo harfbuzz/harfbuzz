@@ -377,11 +377,11 @@ static const char *helper_cairo_supported_formats[] =
 };
 
 template <typename view_options_t,
-	 typename output_options_t>
+	 typename output_options_type>
 static inline cairo_t *
 helper_cairo_create_context (double w, double h,
 			     view_options_t *view_opts,
-			     output_options_t *out_opts,
+			     output_options_type *out_opts,
 			     cairo_content_t content)
 {
   cairo_surface_t *(*constructor) (cairo_write_func_t write_func,
