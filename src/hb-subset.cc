@@ -355,11 +355,14 @@ hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input)
 
 
 /**
- * hb_subset_from_plan_or_fail:
+ * hb_subset_plan_execute_or_fail:
  * @plan: a subsetting plan.
  *
- * Subsets a font according to provided plan. Returns nullptr
- * if the subset operation fails.
+ * Executes the provided subsetting @plan.
+ *
+ * Return value:
+ * on success returns a reference to generated font subset. If the subsetting operation fails
+ * returns nullptr.
  *
  * Since: REPLACEME
  **/

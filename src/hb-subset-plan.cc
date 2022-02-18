@@ -607,7 +607,8 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
  * hb_subset_plan_old_to_new_glyph_mapping:
  * @plan: a subsetting plan.
  *
- * Returns the mapping between glyphs in the original font to glyphs
+ * Return value:
+ * the mapping between glyphs in the original font to glyphs
  * in the subset that will be produced by @plan.
  *
  * Since: REPLACEME
