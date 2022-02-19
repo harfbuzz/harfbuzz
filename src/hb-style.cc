@@ -46,13 +46,13 @@
 static inline float
 _hb_angle_to_ratio (float a)
 {
-  return tanf (a * float (M_PI / 180.));
+  return - tanf (a * float (M_PI / 180.));
 }
 
 static inline float
 _hb_ratio_to_angle (float r)
 {
-  return atanf (r) * float (180. / M_PI);
+  return - atanf (r) * float (180. / M_PI);
 }
 
 /**
