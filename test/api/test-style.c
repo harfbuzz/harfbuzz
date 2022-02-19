@@ -161,6 +161,18 @@ test_synthetic_slant (void)
 
   hb_font_destroy (font);
   hb_face_destroy (face);
+
+  face = hb_test_open_font_file ("fonts/notosansitalic.ttf");
+  font = hb_font_create (face);
+
+  /* We expect a negative angle for a typical italic font,
+   * which should give us a positive ratio
+   */
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_ANGLE), -12);
+  assert_cmpfloat (hb_style_get_value (font, HB_STYLE_TAG_SLANT_RATIO), 0.21);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
 }
 
 int
