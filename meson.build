@@ -105,8 +105,8 @@ else
 endif
 
 if icu_dep.found() and icu_dep.type_name() == 'pkgconfig'
-  icu_defs = icu_dep.get_variable(pkgconfig: 'DEFS', default_value: '')
-  if icu_defs != ''
+  icu_defs = icu_dep.get_variable(pkgconfig: 'DEFS', default_value: '').split()
+  if icu_defs.length() > 0
     add_project_arguments(icu_defs, language: ['c', 'cpp'])
   endif
 endif
