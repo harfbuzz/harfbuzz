@@ -373,6 +373,7 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  *                      flag indicating that the @HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
  *                      glyph-flag should be produced by the shaper. By default
  *                      it will not be produced since it incurs a cost. Since: REPLACEME
+ *
  * Flags for #hb_buffer_t.
  *
  * Since: 0.9.20

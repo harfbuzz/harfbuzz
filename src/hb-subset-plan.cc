@@ -607,9 +607,11 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
  * hb_subset_plan_old_to_new_glyph_mapping:
  * @plan: a subsetting plan.
  *
- * Return value:
- * the mapping between glyphs in the original font to glyphs
- * in the subset that will be produced by @plan.
+ * Returns the mapping between glyphs in the original font to glyphs in the
+ * subset that will be produced by @plan
+ *
+ * Return value: (transfer none):
+ * A pointer to the #hb_map_t of the mapping.
  *
  * Since: REPLACEME
  **/
@@ -620,11 +622,14 @@ hb_subset_plan_old_to_new_glyph_mapping (const hb_subset_plan_t *plan)
 }
 
 /**
- * hb_subset_plan_old_to_new_glyph_mapping:
+ * hb_subset_plan_new_to_old_glyph_mapping:
  * @plan: a subsetting plan.
  *
  * Returns the mapping between glyphs in the subset that will be produced by
  * @plan and the glyph in the original font.
+ *
+ * Return value: (transfer none):
+ * A pointer to the #hb_map_t of the mapping.
  *
  * Since: REPLACEME
  **/
@@ -635,11 +640,14 @@ hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan)
 }
 
 /**
- * hb_subset_plan_old_to_new_glyph_mapping:
+ * hb_subset_plan_codepoint_to_old_glyph_mapping:
  * @plan: a subsetting plan.
  *
  * Returns the mapping between codepoints in the original font and the
  * associated glyph id in the original font.
+ *
+ * Return value: (transfer none):
+ * A pointer to the #hb_map_t of the mapping.
  *
  * Since: REPLACEME
  **/
