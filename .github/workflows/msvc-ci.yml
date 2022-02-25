@@ -30,10 +30,9 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
         with:
           arch : ${{ matrix.ARCH }}
-      # https://github.com/mesonbuild/meson/issues/9955#issuecomment-1030843844
-      - name: Downgrade pip
+      - name: Upgrade pip
         run: |
-          python -m pip install -U pip==21.3.1
+          python -m pip install -U pip
       - name: Install Dependencies
         run: |
           pip install --upgrade meson ninja fonttools
