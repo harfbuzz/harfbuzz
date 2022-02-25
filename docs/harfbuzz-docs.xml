@@ -141,7 +141,6 @@
       <index id="api-index-1-8-1" role="1.8.1"><title>Index of new symbols in 1.8.1</title><xi:include href="xml/api-index-1.8.1.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-8-0" role="1.8.0"><title>Index of new symbols in 1.8.0</title><xi:include href="xml/api-index-1.8.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-7-7" role="1.7.7"><title>Index of new symbols in 1.7.7</title><xi:include href="xml/api-index-1.7.7.xml"><xi:fallback /></xi:include></index>
-      <index id="api-index-1-7-5" role="1.7.5"><title>Index of new symbols in 1.7.5</title><xi:include href="xml/api-index-1.7.5.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-7-2" role="1.7.2"><title>Index of new symbols in 1.7.2</title><xi:include href="xml/api-index-1.7.2.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-6-0" role="1.6.0"><title>Index of new symbols in 1.6.0</title><xi:include href="xml/api-index-1.6.0.xml"><xi:fallback /></xi:include></index>
       <index id="api-index-1-5-0" role="1.5.0"><title>Index of new symbols in 1.5.0</title><xi:include href="xml/api-index-1.5.0.xml"><xi:fallback /></xi:include></index>
