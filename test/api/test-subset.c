@@ -178,7 +178,7 @@ test_subset_plan (void)
   g_assert (hb_map_get (mapping, 1) == 1);
   g_assert (hb_map_get (mapping, 2) == 3);
 
-  mapping = hb_subset_plan_codepoint_to_old_glyph_mapping (plan);
+  mapping = hb_subset_plan_unicode_to_old_glyph_mapping (plan);
   g_assert (hb_map_get (mapping, 0x63) == 3);
 
   hb_face_t* face_abc_subset = hb_subset_plan_execute_or_fail (plan);
