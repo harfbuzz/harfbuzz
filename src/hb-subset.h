@@ -171,7 +171,7 @@ HB_EXTERN const hb_map_t*
 hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan);
 
 HB_EXTERN const hb_map_t*
-hb_subset_plan_codepoint_to_old_glyph_mapping (const hb_subset_plan_t *plan);
+hb_subset_plan_unicode_to_old_glyph_mapping (const hb_subset_plan_t *plan);
 
 
 HB_EXTERN hb_subset_plan_t *
