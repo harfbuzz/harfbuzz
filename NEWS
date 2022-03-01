@@ -1,3 +1,93 @@
+Overview of changes leading to 4.0.0
+Tuesday, March 1, 2022
+====================================
+- New public API to create subset plan and gather information on things like
+  glyph mappings in the final subset. The plan can then be passed on to perform
+  the subsetting operation. (Garret Rieger)
+- Draw API for extracting glyph shapes have been extended and finalized and is
+  no longer an experimental API. The draw API supports glyf, CFF and CFF2
+  glyph outlines tables, and applies variation settings set on the font as well
+  as synthetic slant. The new public API is not backward compatible with the
+  previous, non-public, experimental API. (Behdad Esfahbod)
+- The hb-view tool will use HarfBuzz draw API to render the glyphs instead of
+  cairo-ft when compiled with Cairo 1.17.5 or newer, setting HB_DRAW
+  environment variable to 1 or 0 will force using or not use the draw API,
+  respectively. (Behdad Esfahbod)
+- The hb-shape and hb-view tools now default to using HarfBuzz’s own font
+  loading functions (ot) instead of FreeType ones (ft). They also have a new
+  option, --font-slant, to apply synthetic slant to the font. (Behdad Esfahbod)
+- HarfBuzz now supports more than 65535 (the OpenType limit) glyph shapes and
+  metrics. See https://github.com/be-fonts/boring-expansion-spec/issues/6 and
+  https://github.com/be-fonts/boring-expansion-spec/issues/7 for details.
+  (Behdad Esfahbod)
+- New API to get the dominant horizontal baseline tag for a given script.
+  (Behdad Esfahbod)
+- New API to get the baseline positions from the font, and synthesize missing
+  ones. As well as new API to get font metrics and synthesize missing ones.
+  (Matthias Clasen)
+- Improvements to finding dependencies on Windows when building with Visual
+  Studio. (Chun-wei Fan)
+- New buffer flag, HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT, that must be set
+  during shaping for HB_GLYPH_FLAG_UNSAFE_TO_CONCAT flag to be reliably
+  produced. This is to limit the performance hit of producing this flag to when
+  it is actually needed. (Behdad Esfahbod)
+- Documentation improvements. (Matthias Clasen)
+
+- New API
+ - General:
+   +HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT
+   +hb_var_num_t
+
+ - Draw:
+   +hb_draw_funcs_t
+   +hb_draw_funcs_create
+   +hb_draw_funcs_reference
+   +hb_draw_funcs_destroy
+   +hb_draw_funcs_is_immutable
+   +hb_draw_funcs_make_immutable
+   +hb_draw_move_to_func_t
+   +hb_draw_funcs_set_move_to_func
+   +hb_draw_line_to_func_t
+   +hb_draw_funcs_set_line_to_func
+   +hb_draw_quadratic_to_func_t
+   +hb_draw_funcs_set_quadratic_to_func
+   +hb_draw_cubic_to_func_t
+   +hb_draw_funcs_set_cubic_to_func
+   +hb_draw_close_path_func_t
+   +hb_draw_funcs_set_close_path_func
+   +hb_draw_state_t
+   +HB_DRAW_STATE_DEFAULT
+   +hb_draw_move_to
+   +hb_draw_line_to
+   +hb_draw_quadratic_to
+   +hb_draw_cubic_to
+   +hb_draw_close_path
+   +hb_font_get_glyph_shape_func_t
+   +hb_font_funcs_set_glyph_shape_func()
+   +hb_font_get_glyph_shape()
+
+ - OpenType layout
+   +HB_OT_LAYOUT_BASELINE_TAG_IDEO_FACE_CENTRAL
+   +HB_OT_LAYOUT_BASELINE_TAG_IDEO_EMBOX_CENTRAL
+   +hb_ot_layout_get_horizontal_baseline_tag_for_script()
+   +hb_ot_layout_get_baseline_with_fallback
+
+ - Metrics:
+   +hb_ot_metrics_get_position_with_fallback
+
+ - Subset:
+   +hb_subset_plan_t
+   +hb_subset_plan_create_or_fail
+   +hb_subset_plan_reference
+   +hb_subset_plan_destroy
+   +hb_subset_plan_set_user_data
+   +hb_subset_plan_get_user_data
+   +hb_subset_plan_execute_or_fail
+   +hb_subset_plan_unicode_to_old_glyph_mapping
+   +hb_subset_plan_new_to_old_glyph_mapping
+   +hb_subset_plan_old_to_new_glyph_mapping
+
+
 Overview of changes leading to 3.4.0
 Sunday, February 13, 2022
 ====================================
@@ -18,7 +108,7 @@ Sunday, February 13, 2022
 +HB_OT_TAG_MATH_SCRIPT
 +HB_SCRIPT_MATH
 +hb_ot_math_kern_entry_t
-+hb_ot_math_get_glyph_kernings
++hb_ot_math_get_glyph_kernings()
 
 - Deprecated API
 +HB_OT_MATH_SCRIPT

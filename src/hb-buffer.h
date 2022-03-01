@@ -141,7 +141,7 @@ typedef struct hb_glyph_info_t {
  *				   @HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT during
  *				   shaping, otherwise the buffer flag will not be
  *				   reliably produced.
- * 				   Since: REPLACEME
+ * 				   Since: 4.0.0
  * @HB_GLYPH_FLAG_DEFINED: All the currently defined flags.
  *
  * Flags for #hb_glyph_info_t.
@@ -372,7 +372,7 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  * @HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT:
  *                      flag indicating that the @HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
  *                      glyph-flag should be produced by the shaper. By default
- *                      it will not be produced since it incurs a cost. Since: REPLACEME
+ *                      it will not be produced since it incurs a cost. Since: 4.0.0
  *
  * Flags for #hb_buffer_t.
  *

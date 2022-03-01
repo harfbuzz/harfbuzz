@@ -1310,7 +1310,7 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
  * The shape is returned by way of calls to the callsbacks of the @dfuncs
  * objects, with @draw_data passed to them.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_font_get_glyph_shape (hb_font_t *font,

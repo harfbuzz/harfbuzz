@@ -1974,7 +1974,7 @@ hb_ot_layout_substitute_lookup (OT::hb_ot_apply_context_t *c,
  *
  * Return value: dominant baseline tag for the @script.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 hb_ot_layout_baseline_tag_t
 hb_ot_layout_get_horizontal_baseline_tag_for_script (hb_script_t script)
@@ -2080,7 +2080,7 @@ hb_ot_layout_get_baseline (hb_font_t                   *font,
  * Fetches a baseline value from the face, and synthesizes
  * it if the font does not have it.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,

@@ -44,7 +44,7 @@ HB_BEGIN_DECLS
  *
  * Current drawing state.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 typedef struct hb_draw_state_t {
   hb_bool_t path_open;
@@ -83,7 +83,7 @@ typedef struct hb_draw_state_t {
  * #hb_draw_quadratic_to_func_t calls to #hb_draw_cubic_to_func_t if the
  * callback isn't defined.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 
 typedef struct hb_draw_funcs_t hb_draw_funcs_t;
@@ -101,7 +101,7 @@ typedef struct hb_draw_funcs_t hb_draw_funcs_t;
  * A virtual method for the #hb_draw_funcs_t to perform a "move-to" draw
  * operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  *
  **/
 typedef void (*hb_draw_move_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -121,7 +121,7 @@ typedef void (*hb_draw_move_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data
  * A virtual method for the #hb_draw_funcs_t to perform a "line-to" draw
  * operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  *
  **/
 typedef void (*hb_draw_line_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -143,7 +143,7 @@ typedef void (*hb_draw_line_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data
  * A virtual method for the #hb_draw_funcs_t to perform a "quadratic-to" draw
  * operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  *
  **/
 typedef void (*hb_draw_quadratic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -168,7 +168,7 @@ typedef void (*hb_draw_quadratic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw
  * A virtual method for the #hb_draw_funcs_t to perform a "cubic-to" draw
  * operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  *
  **/
 typedef void (*hb_draw_cubic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -188,7 +188,7 @@ typedef void (*hb_draw_cubic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_dat
  * A virtual method for the #hb_draw_funcs_t to perform a "close-path" draw
  * operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  *
  **/
 typedef void (*hb_draw_close_path_func_t) (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -204,7 +204,7 @@ typedef void (*hb_draw_close_path_func_t) (hb_draw_funcs_t *dfuncs, void *draw_d
  *
  * Sets move-to callback to the draw functions object.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 HB_EXTERN void
 hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *dfuncs,
@@ -220,7 +220,7 @@ hb_draw_funcs_set_move_to_func (hb_draw_funcs_t        *dfuncs,
  *
  * Sets line-to callback to the draw functions object.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 HB_EXTERN void
 hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *dfuncs,
@@ -236,7 +236,7 @@ hb_draw_funcs_set_line_to_func (hb_draw_funcs_t        *dfuncs,
  *
  * Sets quadratic-to callback to the draw functions object.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 HB_EXTERN void
 hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *dfuncs,
@@ -252,7 +252,7 @@ hb_draw_funcs_set_quadratic_to_func (hb_draw_funcs_t             *dfuncs,
  *
  * Sets cubic-to callback to the draw functions object.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 HB_EXTERN void
 hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *dfuncs,
@@ -268,7 +268,7 @@ hb_draw_funcs_set_cubic_to_func (hb_draw_funcs_t         *dfuncs,
  *
  * Sets close-path callback to the draw functions object.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 HB_EXTERN void
 hb_draw_funcs_set_close_path_func (hb_draw_funcs_t           *dfuncs,

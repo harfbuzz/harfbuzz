@@ -522,7 +522,7 @@ typedef hb_bool_t (*hb_font_get_glyph_from_name_func_t) (hb_font_t *font, void *
  *
  * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  *
  **/
 typedef void (*hb_font_get_glyph_shape_func_t) (hb_font_t *font, void *font_data,
@@ -798,7 +798,7 @@ hb_font_funcs_set_glyph_from_name_func (hb_font_funcs_t *ffuncs,
  *
  * Sets the implementation function for #hb_font_get_glyph_shape_func_t.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 HB_EXTERN void
 hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t *ffuncs,

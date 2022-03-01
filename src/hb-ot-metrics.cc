@@ -247,7 +247,7 @@ hb_ot_metrics_get_position (hb_font_t           *font,
  * Fetches metrics value corresponding to @metrics_tag from @font,
  * and synthesizes a value if it the value is missing in the font.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_ot_metrics_get_position_with_fallback (hb_font_t           *font,

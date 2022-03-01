@@ -118,7 +118,7 @@ HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
  * memory cannot be allocated, a special singleton #hb_draw_funcs_t object will
  * be returned.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 hb_draw_funcs_t *
 hb_draw_funcs_create ()
@@ -154,7 +154,7 @@ DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
  * Return value: (transfer full):
  * The referenced #hb_draw_funcs_t.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 hb_draw_funcs_t *
 hb_draw_funcs_reference (hb_draw_funcs_t *dfuncs)
@@ -170,7 +170,7 @@ hb_draw_funcs_reference (hb_draw_funcs_t *dfuncs)
  * Decreases the reference count on @dfuncs by one. If the result is zero, then
  * @dfuncs and all associated resources are freed. See hb_draw_funcs_reference().
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
@@ -192,7 +192,7 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
  *
  * Makes @dfuncs object immutable.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_draw_funcs_make_immutable (hb_draw_funcs_t *dfuncs)
@@ -211,7 +211,7 @@ hb_draw_funcs_make_immutable (hb_draw_funcs_t *dfuncs)
  *
  * Return value: %true if @dfuncs is immutable, %false otherwise
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 hb_bool_t
 hb_draw_funcs_is_immutable (hb_draw_funcs_t *dfuncs)
@@ -230,7 +230,7 @@ hb_draw_funcs_is_immutable (hb_draw_funcs_t *dfuncs)
  *
  * Perform a "move-to" draw operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_draw_move_to (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -251,7 +251,7 @@ hb_draw_move_to (hb_draw_funcs_t *dfuncs, void *draw_data,
  *
  * Perform a "line-to" draw operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_draw_line_to (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -274,7 +274,7 @@ hb_draw_line_to (hb_draw_funcs_t *dfuncs, void *draw_data,
  *
  * Perform a "quadratic-to" draw operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_draw_quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -301,7 +301,7 @@ hb_draw_quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
  *
  * Perform a "cubic-to" draw operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_draw_cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
@@ -324,7 +324,7 @@ hb_draw_cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data,
  *
  * Perform a "close-path" draw operation.
  *
- * Since: REPLACEME
+ * Since: 4.0.0
  **/
 void
 hb_draw_close_path (hb_draw_funcs_t *dfuncs, void *draw_data,
