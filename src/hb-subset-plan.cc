@@ -640,7 +640,7 @@ hb_subset_plan_new_to_old_glyph_mapping (const hb_subset_plan_t *plan)
 }
 
 /**
- * hb_subset_plan_unicode_old_glyph_mapping:
+ * hb_subset_plan_unicode_to_old_glyph_mapping:
  * @plan: a subsetting plan.
  *
  * Returns the mapping between codepoints in the original font and the
