@@ -73,6 +73,7 @@ export H	= 12; # HALANT
 
 export HN	= 13; # HALANT_NUM
 export ZWNJ	= 14; # Zero width non-joiner
+export WJ	= 16; # Word joiner
 export R	= 18; # REPHA
 export CS	= 43; # CONS_WITH_STACKER
 export HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
