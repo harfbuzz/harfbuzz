@@ -62,6 +62,7 @@
 #define SE	USE(SE)	/* HIEROGLYPH_SEGMENT_END */
 #define SUB	USE(SUB)	/* CONS_SUB */
 #define Sk	USE(Sk)	/* SAKOT */
+#define WJ	USE(WJ)	/* Word_Joiner */
 #define ZWNJ	USE(ZWNJ)	/* ZWNJ */
 #define CMAbv	USE(CMAbv)
 #define CMBlw	USE(CMBlw)
@@ -102,7 +103,7 @@ static const uint8_t use_table[] = {
 
   /* Latin-1 Supplement */
 
-  /* 00A0 */    GB,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 00A0 */    GB,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,    WJ,     O,     O,
   /* 00B0 */     O,     O, FMPst, FMPst,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 00C0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 00D0 */     O,     O,     O,     O,     O,     O,     O,    GB,
@@ -321,7 +322,7 @@ static const uint8_t use_table[] = {
 
   /* Mongolian */
 
-  /* 1800 */     B,     O,     O,     O,     O,     O,     O,     B,     O,     O,     B,   CGJ,   CGJ,   CGJ,     O,   CGJ,
+  /* 1800 */     B,     O,     O,     O,     O,     O,     O,     B,     O,     O,     B,   CGJ,   CGJ,   CGJ,    WJ,   CGJ,
   /* 1810 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 1820 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1830 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
@@ -432,31 +433,33 @@ static const uint8_t use_table[] = {
 
 
   /* General Punctuation */
-                                                                         O,     O,     O,     O,  ZWNJ,   CGJ,     O,     O,
-  /* 2010 */    GB,    GB,    GB,    GB,    GB,     O,     O,     O,
-
-#define use_offset_0x2070u 3072
-
+                                                                         O,     O,     O,    WJ,  ZWNJ,   CGJ,    WJ,    WJ,
+  /* 2010 */    GB,    GB,    GB,    GB,    GB,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 2020 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,    WJ,    WJ,    WJ,    WJ,    WJ,     O,
+  /* 2030 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 2040 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 2050 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 2060 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
 
   /* Superscripts and Subscripts */
 
   /* 2070 */     O,     O,     O,     O, FMPst,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 2080 */     O,     O, FMPst, FMPst, FMPst,     O,     O,     O,
 
-#define use_offset_0x20f0u 3096
+#define use_offset_0x20f0u 3184
 
 
   /* Combining Diacritical Marks for Symbols */
 
   /* 20F0 */ VMAbv,     O,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x25c8u 3104
+#define use_offset_0x25c8u 3192
 
 
   /* Geometric Shapes */
                                                                          O,     O,     O,     O,     B,     O,     O,     O,
 
-#define use_offset_0x2d30u 3112
+#define use_offset_0x2d30u 3200
 
 
   /* Tifinagh */
@@ -467,7 +470,7 @@ static const uint8_t use_table[] = {
   /* 2D60 */     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,     B,
   /* 2D70 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     H,
 
-#define use_offset_0xa800u 3192
+#define use_offset_0xa800u 3280
 
 
   /* Syloti Nagri */
@@ -554,7 +557,7 @@ static const uint8_t use_table[] = {
   /* AAE0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPre,  VBlw,  VAbv,  VPre,  VPst,
   /* AAF0 */     O,     O,     O,     O,     O, VMPst,     H,     O,
 
-#define use_offset_0xabc0u 3952
+#define use_offset_0xabc0u 4040
 
 
   /* Meetei Mayek */
@@ -564,14 +567,27 @@ static const uint8_t use_table[] = {
   /* ABE0 */     B,     B,     B,  VPst,  VPst,  VAbv,  VPst,  VPst,  VBlw,  VPst,  VPst,     O, VMPst,  VBlw,     O,     O,
   /* ABF0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0xfe00u 4016
+#define use_offset_0xfe00u 4104
 
 
   /* Variation Selectors */
 
   /* FE00 */   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,
 
-#define use_offset_0x10570u 4032
+#define use_offset_0xfef8u 4120
+
+
+  /* Arabic Presentation Forms-B */
+                                                                         O,     O,     O,     O,     O,     O,     O,    WJ,
+
+#define use_offset_0xfff0u 4128
+
+
+  /* Specials */
+
+  /* FFF0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,     O,     O,     O,     O,     O,     O,     O,
+
+#define use_offset_0x10570u 4144
 
 
   /* Vithkuqi */
@@ -582,7 +598,7 @@ static const uint8_t use_table[] = {
   /* 105A0 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 105B0 */     B,     B,     O,     B,     B,     B,     B,     B,     B,     B,     O,     B,     B,     O,     O,     O,
 
-#define use_offset_0x10a00u 4112
+#define use_offset_0x10a00u 4224
 
 
   /* Kharoshthi */
@@ -593,7 +609,7 @@ static const uint8_t use_table[] = {
   /* 10A30 */     B,     B,     B,     B,     B,     B,     O,     O, CMAbv, CMBlw, CMBlw,     O,     O,     O,     O,     H,
   /* 10A40 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x10ac0u 4192
+#define use_offset_0x10ac0u 4304
 
 
   /* Manichaean */
@@ -602,7 +618,7 @@ static const uint8_t use_table[] = {
   /* 10AD0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 10AE0 */     B,     B,     B,     B,     B, CMBlw, CMBlw,     O,     O,     O,     O,     B,     B,     B,     B,     B,
 
-#define use_offset_0x10b80u 4240
+#define use_offset_0x10b80u 4352
 
 
   /* Psalter Pahlavi */
@@ -611,7 +627,7 @@ static const uint8_t use_table[] = {
   /* 10B90 */     B,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 10BA0 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     B,     B,     B,     B,     B,     B,     O,
 
-#define use_offset_0x10d00u 4288
+#define use_offset_0x10d00u 4400
 
 
   /* Hanifi Rohingya */
@@ -621,7 +637,7 @@ static const uint8_t use_table[] = {
   /* 10D20 */     B,     B,     B,     B, VMAbv, VMAbv, VMAbv, CMAbv,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 10D30 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x10e80u 4352
+#define use_offset_0x10e80u 4464
 
 
   /* Yezidi */
@@ -631,7 +647,7 @@ static const uint8_t use_table[] = {
   /* 10EA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,  VAbv,  VAbv,     O,     O,     O,
   /* 10EB0 */     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x10f30u 4408
+#define use_offset_0x10f30u 4520
 
 
   /* Sogdian */
@@ -675,7 +691,7 @@ static const uint8_t use_table[] = {
   /* 110B0 */  VPst,  VPre,  VPst,  VBlw,  VBlw,  VAbv,  VAbv,  VPst,  VPst,     H, CMBlw,     O,     O,     O,     O,     O,
   /* 110C0 */     O,     O,  VBlw,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11100u 4816
+#define use_offset_0x11100u 4928
 
 
   /* Chakma */
@@ -713,7 +729,7 @@ static const uint8_t use_table[] = {
   /* 11220 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,  VPst,  VPst,  VBlw,
   /* 11230 */  VAbv,  VAbv,  VAbv,  VAbv, VMAbv,     H, CMAbv, CMAbv,     O,     O,     O,     O,     O,     O, VMAbv,     O,
 
-#define use_offset_0x11280u 5136
+#define use_offset_0x11280u 5248
 
 
   /* Multani */
@@ -741,7 +757,7 @@ static const uint8_t use_table[] = {
   /* 11360 */     B,     B,  VPst,  VPst,     O,     O, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
   /* 11370 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,     O,     O,
 
-#define use_offset_0x11400u 5384
+#define use_offset_0x11400u 5496
 
 
   /* Newa */
@@ -764,7 +780,7 @@ static const uint8_t use_table[] = {
   /* 114C0 */ VMAbv, VMAbv,     H, CMBlw,     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 114D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11580u 5608
+#define use_offset_0x11580u 5720
 
 
   /* Siddham */
@@ -808,7 +824,7 @@ static const uint8_t use_table[] = {
   /* 11730 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,
   /* 11740 */     B,     B,     B,     B,     B,     B,     B,     O,
 
-#define use_offset_0x11800u 6064
+#define use_offset_0x11800u 6176
 
 
   /* Dogra */
@@ -818,7 +834,7 @@ static const uint8_t use_table[] = {
   /* 11820 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,  VPre,  VPst,  VBlw,
   /* 11830 */  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv, VMAbv, VMPst,     H, CMBlw,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11900u 6128
+#define use_offset_0x11900u 6240
 
 
   /* Dives Akuru */
@@ -830,7 +846,7 @@ static const uint8_t use_table[] = {
   /* 11940 */  MPst,     R,  MPst, CMBlw,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11950 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x119a0u 6224
+#define use_offset_0x119a0u 6336
 
 
   /* Nandinagari */
@@ -858,7 +874,7 @@ static const uint8_t use_table[] = {
   /* 11A80 */     B,     B,     B,     B,     R,     R,     R,     R,     R,     R,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,
   /* 11A90 */  FBlw,  FBlw,  FBlw,  FBlw,  FBlw,  FBlw, VMAbv, VMPst, CMAbv,     H,     O,     O,     O,     B,     O,     O,
 
-#define use_offset_0x11c00u 6480
+#define use_offset_0x11c00u 6592
 
 
   /* Bhaiksuki */
@@ -879,7 +895,7 @@ static const uint8_t use_table[] = {
   /* 11CA0 */   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,     O,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,   SUB,
   /* 11CB0 */  VBlw,  VPre,  VBlw,  VAbv,  VPst, VMAbv, VMAbv,     O,
 
-#define use_offset_0x11d00u 6664
+#define use_offset_0x11d00u 6776
 
 
   /* Masaram Gondi */
@@ -899,7 +915,7 @@ static const uint8_t use_table[] = {
   /* 11D90 */  VAbv,  VAbv,     O,  VPst,  VPst, VMAbv, VMPst,     H,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11DA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x11ee0u 6840
+#define use_offset_0x11ee0u 6952
 
 
   /* Makasar */
@@ -907,7 +923,7 @@ static const uint8_t use_table[] = {
   /* 11EE0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11EF0 */     B,     B,    GB,  VAbv,  VBlw,  VPre,  VPst,     O,
 
-#define use_offset_0x13000u 6864
+#define use_offset_0x13000u 6976
 
 
   /* Egyptian Hieroglyphs */
@@ -984,7 +1000,7 @@ static const uint8_t use_table[] = {
 
   /* 13430 */     H,     H,     H,     H,     H,     H,     H,     B,     B,     O,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x16ac0u 7952
+#define use_offset_0x16ac0u 8064
 
 
   /* Tangsa */
@@ -1001,7 +1017,7 @@ static const uint8_t use_table[] = {
   /* 16B20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 16B30 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     O,
 
-#define use_offset_0x16f00u 8072
+#define use_offset_0x16f00u 8184
 
 
   /* Miao */
@@ -1017,14 +1033,14 @@ static const uint8_t use_table[] = {
   /* 16F80 */  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,     O,     O,     O,     O,     O,     O,     O, VMBlw,
   /* 16F90 */ VMBlw, VMBlw, VMBlw,     O,     O,     O,     O,     O,
 
-#define use_offset_0x16fe0u 8224
+#define use_offset_0x16fe0u 8336
 
 
   /* Ideographic Symbols and Punctuation */
 
   /* 16FE0 */     O,     O,     O,     O,     B,     O,     O,     O,
 
-#define use_offset_0x18b00u 8232
+#define use_offset_0x18b00u 8344
 
 
   /* Khitan Small Script */
@@ -1060,7 +1076,7 @@ static const uint8_t use_table[] = {
   /* 18CC0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 18CD0 */     B,     B,     B,     B,     B,     B,     O,     O,
 
-#define use_offset_0x1bc00u 8704
+#define use_offset_0x1bc00u 8816
 
 
   /* Duployan */
@@ -1076,7 +1092,14 @@ static const uint8_t use_table[] = {
   /* 1BC80 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,     O,
   /* 1BC90 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O, CMBlw, CMBlw,     O,
 
-#define use_offset_0x1e100u 8864
+#define use_offset_0x1d170u 8976
+
+
+  /* Musical Symbols */
+
+  /* 1D170 */     O,     O,     O,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,     O,     O,     O,     O,     O,
+
+#define use_offset_0x1e100u 8992
 
 
   /* Nyiakeng Puachue Hmong */
@@ -1087,7 +1110,7 @@ static const uint8_t use_table[] = {
   /* 1E130 */ VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv, VMAbv,     B,     B,     B,     B,     B,     B,     B,     O,     O,
   /* 1E140 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     B,     B,
 
-#define use_offset_0x1e290u 8944
+#define use_offset_0x1e290u 9072
 
 
   /* Toto */
@@ -1103,7 +1126,7 @@ static const uint8_t use_table[] = {
   /* 1E2E0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B, VMAbv, VMAbv, VMAbv, VMAbv,
   /* 1E2F0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0x1e900u 9056
+#define use_offset_0x1e900u 9184
 
 
   /* Adlam */
@@ -1115,8 +1138,30 @@ static const uint8_t use_table[] = {
   /* 1E940 */     B,     B,     B,     B, CMAbv, CMAbv, CMAbv, CMAbv, CMAbv, CMAbv, CMAbv,     B,     O,     O,     O,     O,
   /* 1E950 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
 
-#define use_offset_0xe0100u 9152
+#define use_offset_0xe0000u 9280
 
+
+  /* Tags */
+
+  /* E0000 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0010 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0020 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0030 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0040 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0050 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0060 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0070 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+
+  /* No_Block */
+
+  /* E0080 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0090 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E00A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E00B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E00C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E00D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E00E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E00F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
 
   /* Variation Selectors Supplement */
 
@@ -1136,7 +1181,235 @@ static const uint8_t use_table[] = {
   /* E01D0 */   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,
   /* E01E0 */   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,   CGJ,
 
-}; /* Table items: 9392; occupancy: 79% */
+  /* No_Block */
+
+  /* E01F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0200 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0210 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0220 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0230 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0240 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0250 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0260 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0270 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0280 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0290 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E02A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E02B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E02C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E02D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E02E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E02F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0300 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0310 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0320 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0330 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0340 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0350 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0360 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0370 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0380 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0390 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E03A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E03B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E03C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E03D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E03E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E03F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0400 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0410 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0420 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0430 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0440 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0450 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0460 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0470 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0480 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0490 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E04A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E04B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E04C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E04D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E04E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E04F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0500 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0510 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0520 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0530 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0540 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0550 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0560 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0570 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0580 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0590 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E05A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E05B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E05C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E05D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E05E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E05F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0600 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0610 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0620 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0630 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0640 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0650 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0660 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0670 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0680 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0690 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E06A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E06B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E06C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E06D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E06E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E06F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0700 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0710 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0720 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0730 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0740 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0750 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0760 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0770 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0780 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0790 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E07A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E07B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E07C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E07D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E07E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E07F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0800 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0810 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0820 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0830 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0840 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0850 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0860 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0870 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0880 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0890 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E08A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E08B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E08C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E08D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E08E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E08F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0900 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0910 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0920 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0930 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0940 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0950 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0960 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0970 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0980 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0990 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E09A0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E09B0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E09C0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E09D0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E09E0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E09F0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A00 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A10 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A20 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A30 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A40 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A50 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A60 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A70 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A80 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0A90 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0AA0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0AB0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0AC0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0AD0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0AE0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0AF0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B00 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B10 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B20 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B30 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B40 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B50 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B60 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B70 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B80 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0B90 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0BA0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0BB0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0BC0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0BD0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0BE0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0BF0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C00 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C10 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C20 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C30 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C40 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C50 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C60 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C70 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C80 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0C90 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0CA0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0CB0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0CC0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0CD0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0CE0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0CF0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D00 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D10 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D20 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D30 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D40 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D50 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D60 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D70 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D80 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0D90 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0DA0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0DB0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0DC0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0DD0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0DE0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0DF0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E00 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E10 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E20 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E30 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E40 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E50 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E60 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E70 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E80 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0E90 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0EA0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0EB0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0EC0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0ED0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0EE0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0EF0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F00 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F10 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F20 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F30 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F40 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F50 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F60 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F70 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F80 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0F90 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0FA0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0FB0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0FC0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0FD0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0FE0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+  /* E0FF0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,
+
+}; /* Table items: 13376; occupancy: 84% */
 
 static inline uint8_t
 hb_use_get_category (hb_codepoint_t u)
@@ -1164,8 +1437,7 @@ hb_use_get_category (hb_codepoint_t u)
       break;
 
     case 0x2u:
-      if (hb_in_range<hb_codepoint_t> (u, 0x2008u, 0x2017u)) return use_table[u - 0x2008u + use_offset_0x2008u];
-      if (hb_in_range<hb_codepoint_t> (u, 0x2070u, 0x2087u)) return use_table[u - 0x2070u + use_offset_0x2070u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x2008u, 0x2087u)) return use_table[u - 0x2008u + use_offset_0x2008u];
       if (hb_in_range<hb_codepoint_t> (u, 0x20F0u, 0x20F7u)) return use_table[u - 0x20F0u + use_offset_0x20f0u];
       if (hb_in_range<hb_codepoint_t> (u, 0x25C8u, 0x25CFu)) return use_table[u - 0x25C8u + use_offset_0x25c8u];
       if (hb_in_range<hb_codepoint_t> (u, 0x2D30u, 0x2D7Fu)) return use_table[u - 0x2D30u + use_offset_0x2d30u];
@@ -1178,9 +1450,12 @@ hb_use_get_category (hb_codepoint_t u)
 
     case 0xFu:
       if (hb_in_range<hb_codepoint_t> (u, 0xFE00u, 0xFE0Fu)) return use_table[u - 0xFE00u + use_offset_0xfe00u];
+      if (hb_in_range<hb_codepoint_t> (u, 0xFEF8u, 0xFEFFu)) return use_table[u - 0xFEF8u + use_offset_0xfef8u];
+      if (hb_in_range<hb_codepoint_t> (u, 0xFFF0u, 0xFFFFu)) return use_table[u - 0xFFF0u + use_offset_0xfff0u];
       break;
 
     case 0x10u:
+      if (hb_in_range<hb_codepoint_t> (u, 0xFFF0u, 0xFFFFu)) return use_table[u - 0xFFF0u + use_offset_0xfff0u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10570u, 0x105BFu)) return use_table[u - 0x10570u + use_offset_0x10570u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10A00u, 0x10A4Fu)) return use_table[u - 0x10A00u + use_offset_0x10a00u];
       if (hb_in_range<hb_codepoint_t> (u, 0x10AC0u, 0x10AEFu)) return use_table[u - 0x10AC0u + use_offset_0x10ac0u];
@@ -1222,6 +1497,10 @@ hb_use_get_category (hb_codepoint_t u)
       if (hb_in_range<hb_codepoint_t> (u, 0x1BC00u, 0x1BC9Fu)) return use_table[u - 0x1BC00u + use_offset_0x1bc00u];
       break;
 
+    case 0x1Du:
+      if (hb_in_range<hb_codepoint_t> (u, 0x1D170u, 0x1D17Fu)) return use_table[u - 0x1D170u + use_offset_0x1d170u];
+      break;
+
     case 0x1Eu:
       if (hb_in_range<hb_codepoint_t> (u, 0x1E100u, 0x1E14Fu)) return use_table[u - 0x1E100u + use_offset_0x1e100u];
       if (hb_in_range<hb_codepoint_t> (u, 0x1E290u, 0x1E2FFu)) return use_table[u - 0x1E290u + use_offset_0x1e290u];
@@ -1229,7 +1508,11 @@ hb_use_get_category (hb_codepoint_t u)
       break;
 
     case 0xE0u:
-      if (hb_in_range<hb_codepoint_t> (u, 0xE0100u, 0xE01EFu)) return use_table[u - 0xE0100u + use_offset_0xe0100u];
+      if (hb_in_range<hb_codepoint_t> (u, 0xE0000u, 0xE0FFFu)) return use_table[u - 0xE0000u + use_offset_0xe0000u];
+      break;
+
+    case 0xE1u:
+      if (hb_in_range<hb_codepoint_t> (u, 0xE0000u, 0xE0FFFu)) return use_table[u - 0xE0000u + use_offset_0xe0000u];
       break;
 
     default:
@@ -1254,6 +1537,7 @@ hb_use_get_category (hb_codepoint_t u)
 #undef SE
 #undef SUB
 #undef Sk
+#undef WJ
 #undef ZWNJ
 #undef CMAbv
 #undef CMBlw

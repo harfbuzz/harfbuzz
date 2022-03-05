@@ -226,8 +226,8 @@ def is_BASE_OTHER(U, UISC, UDI, UGC, AJT):
 	if UISC == Consonant_Placeholder: return True
 	return U in [0x2015, 0x2022, 0x25FB, 0x25FC, 0x25FD, 0x25FE]
 def is_CGJ(U, UISC, UDI, UGC, AJT):
-	# Also includes VARIATION_SELECTOR, WJ, and ZWJ
-	return U == 0x200D or UDI and UGC in [Mc, Me, Mn]
+	# Also includes VARIATION_SELECTOR and ZWJ
+	return UISC == Joiner or UDI and UGC in [Mc, Me, Mn]
 def is_CONS_FINAL(U, UISC, UDI, UGC, AJT):
 	return ((UISC == Consonant_Final and UGC != Lo) or
 		UISC == Consonant_Succeeding_Repha)
@@ -271,6 +271,7 @@ def is_OTHER(U, UISC, UDI, UGC, AJT):
 		and not is_BASE_OTHER(U, UISC, UDI, UGC, AJT)
 		and not is_CGJ(U, UISC, UDI, UGC, AJT)
 		and not is_SYM_MOD(U, UISC, UDI, UGC, AJT)
+		and not is_Word_Joiner(U, UISC, UDI, UGC, AJT)
 	)
 def is_REPHA(U, UISC, UDI, UGC, AJT):
 	return UISC in [Consonant_Preceding_Repha, Consonant_Prefixed]
@@ -287,6 +288,11 @@ def is_VOWEL_MOD(U, UISC, UDI, UGC, AJT):
 	# https://github.com/harfbuzz/harfbuzz/issues/376
 	return (UISC in [Tone_Mark, Cantillation_Mark, Register_Shifter, Visarga] or
 		(UGC != Lo and (UISC == Bindu or U in [0xAA29])))
+def is_Word_Joiner(U, UISC, UDI, UGC, AJT):
+	return (UDI and U not in [0x115F, 0x1160, 0x3164, 0xFFA0, 0x1BCA0, 0x1BCA1, 0x1BCA2, 0x1BCA3]
+		and UISC == Other
+		and not is_CGJ(U, UISC, UDI, UGC, AJT)
+	)
 
 use_mapping = {
 	'B':	is_BASE,
@@ -313,6 +319,7 @@ use_mapping = {
 	'SM':	is_SYM_MOD,
 	'V':	is_VOWEL,
 	'VM':	is_VOWEL_MOD,
+	'WJ':	is_Word_Joiner,
 }
 
 use_positions = {
