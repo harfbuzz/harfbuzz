@@ -233,7 +233,7 @@ HB_FUNCOBJ (machine_index);
 
 static bool
 not_ccs_default_ignorable (const hb_glyph_info_t &i)
-{ return !(i.use_category() == USE(CGJ) && _hb_glyph_info_is_default_ignorable (&i)); }
+{ return i.use_category() != USE(CGJ); }
 
 static inline void
 find_syllables_use (hb_buffer_t *buffer)
