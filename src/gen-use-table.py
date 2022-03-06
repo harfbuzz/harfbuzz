@@ -78,17 +78,6 @@ for i, f in enumerate (files):
 
 defaults = ('Other', 'Not_Applicable', 'jt_X', '', 'Cn', 'No_Block', 'Unknown')
 
-# TODO Characters that are not in Unicode Indic files, but used in USE
-unicode_data[0][0x1B61] = defaults[0]
-unicode_data[0][0x1B63] = defaults[0]
-unicode_data[0][0x1B64] = defaults[0]
-unicode_data[0][0x1B65] = defaults[0]
-unicode_data[0][0x1B66] = defaults[0]
-unicode_data[0][0x1B67] = defaults[0]
-unicode_data[0][0x1B69] = defaults[0]
-unicode_data[0][0x1B6A] = defaults[0]
-unicode_data[0][0x2060] = defaults[0]
-
 # Merge data into one dict:
 for i,v in enumerate (defaults):
 	values[i][v] = values[i].get (v, 0) + 1
@@ -268,13 +257,11 @@ def is_SAKOT(U, UISC, UDI, UGC, AJT):
 def is_SYM_MOD(U, UISC, UDI, UGC, AJT):
 	return U in [0x1B6B, 0x1B6C, 0x1B6D, 0x1B6E, 0x1B6F, 0x1B70, 0x1B71, 0x1B72, 0x1B73]
 def is_VOWEL(U, UISC, UDI, UGC, AJT):
-	# https://github.com/harfbuzz/harfbuzz/issues/376
 	return (UISC == Pure_Killer or
-		(UGC != Lo and UISC in [Vowel, Vowel_Dependent] and U not in [0xAA29]))
+		UGC != Lo and UISC in [Vowel, Vowel_Dependent])
 def is_VOWEL_MOD(U, UISC, UDI, UGC, AJT):
-	# https://github.com/harfbuzz/harfbuzz/issues/376
 	return (UISC in [Tone_Mark, Cantillation_Mark, Register_Shifter, Visarga] or
-		(UGC != Lo and (UISC == Bindu or U in [0xAA29])))
+		UGC != Lo and UISC == Bindu)
 def is_Word_Joiner(U, UISC, UDI, UGC, AJT):
 	# Also includes Rsv
 	return (UDI and U not in [0x115F, 0x1160, 0x3164, 0xFFA0, 0x1BCA0, 0x1BCA1, 0x1BCA2, 0x1BCA3]
@@ -374,9 +361,6 @@ def map_to_use(data):
 		# TODO: U+1CED should only be allowed after some of
 		# the nasalization marks, maybe only for U+1CE9..U+1CF1.
 		if U == 0x1CED: UISC = Tone_Mark
-
-		# TODO: https://github.com/microsoft/font-tools/issues/1
-		if U == 0xA982: UISC = Consonant_Succeeding_Repha
 
 		values = [k for k,v in items if v(U, UISC, UDI, UGC, AJT)]
 		assert len(values) == 1, "%s %s %s %s %s %s" % (hex(U), UISC, UDI, UGC, AJT, values)
