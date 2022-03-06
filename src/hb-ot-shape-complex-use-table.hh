@@ -388,8 +388,8 @@ static const uint8_t use_table[] = {
   /* 1B20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 1B30 */     B,     B,     B,     B, CMAbv,  VPst,  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VPre,  VPre,
   /* 1B40 */  VPre,  VPre,  VAbv,  VAbv,     H,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,
-  /* 1B50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,    GB,    GB,     O,     O,    GB,
-  /* 1B60 */     O,     O,    GB,     O,     O,     O,     O,     O,    GB,     O,     O, SMAbv, SMBlw, SMAbv, SMAbv, SMAbv,
+  /* 1B50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,     O,
+  /* 1B60 */     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O, SMAbv, SMBlw, SMAbv, SMAbv, SMAbv,
   /* 1B70 */ SMAbv, SMAbv, SMAbv, SMAbv,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
 
   /* Sundanese */
@@ -714,7 +714,7 @@ static const uint8_t use_table[] = {
   /* 11190 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 111A0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 111B0 */     B,     B,     B,  VPst,  VPre,  VPst,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,  VAbv,  VAbv,  VAbv,  VAbv,
-  /* 111C0 */     H,     B,     R,     R,     O,     O,     O,     O,    GB, FMBlw, CMBlw,  VAbv,  VBlw,     O,  VPre, VMAbv,
+  /* 111C0 */     H,     B,     R,     R,     O,     O,     O,     O,     O, FMBlw, CMBlw,  VAbv,  VBlw,     O,  VPre, VMAbv,
   /* 111D0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,     O,     O,
 
   /* Sinhala Archaic Numbers */
@@ -883,7 +883,7 @@ static const uint8_t use_table[] = {
   /* 11C10 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11C20 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,  VPst,
   /* 11C30 */  VAbv,  VAbv,  VBlw,  VBlw,  VBlw,  VBlw,  VBlw,     O,  VAbv,  VAbv,  VAbv,  VAbv, VMAbv, VMAbv, VMPst,     H,
-  /* 11C40 */     B,     O,     O,     O,    GB,    GB,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
+  /* 11C40 */     B,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,     O,
   /* 11C50 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 11C60 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     O,     O,     O,
 

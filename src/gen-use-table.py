@@ -88,17 +88,6 @@ data[0][0x1B67] = defaults[0]
 data[0][0x1B69] = defaults[0]
 data[0][0x1B6A] = defaults[0]
 data[0][0x2060] = defaults[0]
-# TODO https://github.com/harfbuzz/harfbuzz/pull/1685
-data[0][0x1B5B] = 'Consonant_Placeholder'
-data[0][0x1B5C] = 'Consonant_Placeholder'
-data[0][0x1B5F] = 'Consonant_Placeholder'
-data[0][0x1B62] = 'Consonant_Placeholder'
-data[0][0x1B68] = 'Consonant_Placeholder'
-# TODO https://github.com/harfbuzz/harfbuzz/issues/1035
-data[0][0x11C44] = 'Consonant_Placeholder'
-data[0][0x11C45] = 'Consonant_Placeholder'
-# TODO https://github.com/harfbuzz/harfbuzz/pull/1399
-data[0][0x111C8] = 'Consonant_Placeholder'
 
 # Merge data into one dict:
 for i,v in enumerate (defaults):
