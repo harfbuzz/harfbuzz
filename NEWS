@@ -1,3 +1,23 @@
+Overview of changes leading to 4.0.1
+Friday, March 11, 2022
+====================================
+- Update OpenType to AAT mappings for “hist” and “vrtr” features.
+  (Florian Pircher)
+- Update IANA Language Subtag Registry to 2022-03-02. (David Corbett)
+- Update USE shaper to allow any non-numeric tail in a symbol cluster, and
+  remove obsolete data overrides. (David Corbett)
+- Fix handling of baseline variations to return correctly scaled values.
+  (Matthias Clasen)
+- A new experimental hb_subset_repack_or_fail() to repack an array of objects,
+  eliminating offset overflows. The API is not available unless HarfBuzz is
+  built with experimental APIs enabled. (Qunxin Liu)
+
+- New experimental API
++hb_link_t
++hb_object_t
++hb_subset_repack_or_fail()
+
+
 Overview of changes leading to 4.0.0
 Tuesday, March 1, 2022
 ====================================
