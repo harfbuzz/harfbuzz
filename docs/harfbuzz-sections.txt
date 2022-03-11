@@ -767,6 +767,7 @@ hb_subset_input_set_flags
 hb_subset_input_unicode_set
 hb_subset_input_glyph_set
 hb_subset_input_set
+hb_subset_or_fail
 hb_subset_plan_create_or_fail
 hb_subset_plan_reference
 hb_subset_plan_destroy
@@ -776,5 +777,8 @@ hb_subset_plan_execute_or_fail
 hb_subset_plan_unicode_to_old_glyph_mapping
 hb_subset_plan_new_to_old_glyph_mapping
 hb_subset_plan_old_to_new_glyph_mapping
-hb_subset_or_fail
+<SUBSECTION Private>
+hb_link_t
+hb_object_t
+hb_subset_repack_or_fail
 </SECTION>
