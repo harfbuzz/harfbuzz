@@ -350,7 +350,7 @@ record_pref_use (const hb_ot_shape_plan_t *plan HB_UNUSED,
 static inline bool
 is_halant_use (const hb_glyph_info_t &info)
 {
-  return (info.use_category() == USE(H) || info.use_category() == USE(HVM)) &&
+  return (info.use_category() == USE(H) || info.use_category() == USE(IS)) &&
 	 !_hb_glyph_info_ligated (&info);
 }
 

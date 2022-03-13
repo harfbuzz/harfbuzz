@@ -76,7 +76,7 @@ export ZWNJ	= 14; # Zero width non-joiner
 export WJ	= 16; # Word joiner
 export R	= 18; # REPHA
 export CS	= 43; # CONS_WITH_STACKER
-export HVM	= 44; # HALANT_OR_VOWEL_MODIFIER
+export IS	= 44; # INVISIBLE_STACKER
 export Sk	= 48; # SAKOT
 export G	= 49; # HIEROGLYPH
 export J	= 50; # HIEROGLYPH_JOINER
@@ -107,12 +107,12 @@ export FMBlw	= 46; # CONS_FINAL_MOD	UIPC = Bottom
 export FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
 
 
-h = H | HVM | Sk;
+h = H | IS | Sk;
 
 consonant_modifiers = CMAbv* CMBlw* ((h B | SUB) CMAbv? CMBlw*)*;
 medial_consonants = MPre? MAbv? MBlw? MPst?;
-dependent_vowels = VPre* VAbv* VBlw* VPst*;
-vowel_modifiers = HVM? VMPre* VMAbv* VMBlw* VMPst*;
+dependent_vowels = VPre* VAbv* VBlw* VPst* | H;
+vowel_modifiers = VMPre* VMAbv* VMBlw* VMPst*;
 final_consonants = FAbv* FBlw* FPst*;
 final_modifiers = FMAbv* FMBlw* | FMPst?;
 
@@ -135,7 +135,7 @@ symbol_cluster_tail = SMAbv+ SMBlw* | SMBlw+;
 
 virama_terminated_cluster_tail =
 	consonant_modifiers
-	h
+	IS
 ;
 virama_terminated_cluster =
 	complex_syllable_start
