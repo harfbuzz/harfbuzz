@@ -221,13 +221,7 @@ def is_CONS_SUB(U, UISC, UDI, UGC, AJT):
 def is_CONS_WITH_STACKER(U, UISC, UDI, UGC, AJT):
 	return UISC == Consonant_With_Stacker
 def is_HALANT(U, UISC, UDI, UGC, AJT):
-	return (UISC in [Virama, Invisible_Stacker]
-		and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UDI, UGC, AJT)
-		and not is_SAKOT(U, UISC, UDI, UGC, AJT))
-def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UDI, UGC, AJT):
-	# Split off of HALANT
-	# https://github.com/harfbuzz/harfbuzz/issues/1379
-	return U == 0x1134D
+	return UISC == Virama
 def is_HALANT_NUM(U, UISC, UDI, UGC, AJT):
 	return UISC == Number_Joiner
 def is_HIEROGLYPH(U, UISC, UDI, UGC, AJT):
@@ -238,6 +232,11 @@ def is_HIEROGLYPH_SEGMENT_BEGIN(U, UISC, UDI, UGC, AJT):
 	return UISC == Hieroglyph_Segment_Begin
 def is_HIEROGLYPH_SEGMENT_END(U, UISC, UDI, UGC, AJT):
 	return UISC == Hieroglyph_Segment_End
+def is_INVISIBLE_STACKER(U, UISC, UDI, UGC, AJT):
+	# Split off of HALANT
+	return (UISC == Invisible_Stacker
+		and not is_SAKOT(U, UISC, UDI, UGC, AJT)
+	)
 def is_ZWNJ(U, UISC, UDI, UGC, AJT):
 	return UISC == Non_Joiner
 def is_OTHER(U, UISC, UDI, UGC, AJT):
@@ -281,8 +280,8 @@ use_mapping = {
 	'SUB':	is_CONS_SUB,
 	'CS':	is_CONS_WITH_STACKER,
 	'H':	is_HALANT,
-	'HVM':	is_HALANT_OR_VOWEL_MODIFIER,
 	'HN':	is_HALANT_NUM,
+	'IS':	is_INVISIBLE_STACKER,
 	'G':	is_HIEROGLYPH,
 	'J':	is_HIEROGLYPH_JOINER,
 	'SB':	is_HIEROGLYPH_SEGMENT_BEGIN,
@@ -330,7 +329,7 @@ use_positions = {
 		'Blw': [Bottom],
 	},
 	'H': None,
-	'HVM': None,
+	'IS': None,
 	'B': None,
 	'FM': {
 		'Abv': [Top],
