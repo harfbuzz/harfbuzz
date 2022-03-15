@@ -2115,8 +2115,10 @@ hb_ot_layout_get_baseline_with_fallback (hb_font_t                   *font,
       }
       else
       {
-	hb_position_t x_height = 0;
+	hb_position_t x_height = font->y_scale / 2;
+#ifndef HB_NO_METRICS
 	hb_ot_metrics_get_position_with_fallback (font, HB_OT_METRICS_TAG_X_HEIGHT, &x_height);
+#endif
 	*coord = x_height / 2;
       }
     }
