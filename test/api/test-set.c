@@ -1102,6 +1102,7 @@ test_export_to_array (void)
     g_assert_cmpint(array[i], ==, i);
   for (int i=0; i<100; i++)
     g_assert (array[600 + i] == 6000 + i);
+  hb_set_destroy (set);
 }
 
 static void
@@ -1121,6 +1122,7 @@ test_export_to_array_restricted (void)
   for (int i=0; i<9; i++)
     g_assert_cmpint(array[i], ==, i);
   g_assert_cmpint(array[9], ==, 0);
+  hb_set_destroy (set);
 }
 
 int
