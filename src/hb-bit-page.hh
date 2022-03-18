@@ -42,7 +42,7 @@ struct hb_bit_page_t
   {
     for (unsigned int i = 0; i < len (); i++)
       if (v[i])
-	return false;
+        return false;
     return true;
   }
 
@@ -86,6 +86,21 @@ struct hb_bit_page_t
   void set_range (hb_codepoint_t a, hb_codepoint_t b, bool v)
   { if (v) add_range (a, b); else del_range (a, b); }
 
+  // Writes out page values to the array p. Returns a pointer to where the next
+  // value should be written, after the values we wrote (if any).
+  hb_codepoint_t* export_array (uint32_t base, hb_codepoint_t *p) const
+  {
+    for (unsigned i = 0; i < len (); i++)
+    {
+      elt_t bits = v[i];
+      uint32_t v_offset = i << ELT_BITS_LG_2;
+      for (unsigned int j = 0; j < ELT_BITS; j++)
+        if ((elt_t (1) << j) & bits)
+          *p++ = base | v_offset | j;
+    }
+    return p;
+  }
+
   bool is_equal (const hb_bit_page_t &other) const
   {
     return 0 == hb_memcmp (&v, &other.v, sizeof (v));
@@ -94,7 +109,7 @@ struct hb_bit_page_t
   {
     for (unsigned i = 0; i < len (); i++)
       if (~larger_page.v[i] & v[i])
-	return false;
+        return false;
     return true;
   }
 
@@ -121,8 +136,8 @@ struct hb_bit_page_t
     for (const elt_t *p = &vv; i < len (); p = &v[++i])
       if (*p)
       {
-	*codepoint = i * ELT_BITS + elt_get_min (*p);
-	return true;
+        *codepoint = i * ELT_BITS + elt_get_min (*p);
+        return true;
       }
 
     *codepoint = INVALID;
@@ -141,16 +156,16 @@ struct hb_bit_page_t
 
     /* Fancy mask to avoid shifting by elt_t bitsize, which is undefined. */
     const elt_t mask = j < 8 * sizeof (elt_t) - 1 ?
-		       ((elt_t (1) << (j + 1)) - 1) :
-		       (elt_t) -1;
+               ((elt_t (1) << (j + 1)) - 1) :
+               (elt_t) -1;
     const elt_t vv = v[i] & mask;
     const elt_t *p = &vv;
     while (true)
     {
       if (*p)
       {
-	*codepoint = i * ELT_BITS + elt_get_max (*p);
-	return true;
+        *codepoint = i * ELT_BITS + elt_get_max (*p);
+        return true;
       }
       if ((int) i <= 0) break;
       p = &v[--i];
@@ -163,14 +178,14 @@ struct hb_bit_page_t
   {
     for (unsigned int i = 0; i < len (); i++)
       if (v[i])
-	return i * ELT_BITS + elt_get_min (v[i]);
+        return i * ELT_BITS + elt_get_min (v[i]);
     return INVALID;
   }
   hb_codepoint_t get_max () const
   {
     for (int i = len () - 1; i >= 0; i--)
       if (v[i])
-	return i * ELT_BITS + elt_get_max (v[i]);
+        return i * ELT_BITS + elt_get_max (v[i]);
     return 0;
   }
 
@@ -179,6 +194,8 @@ struct hb_bit_page_t
   typedef unsigned long long elt_t;
   static constexpr unsigned PAGE_BITS = 512;
   static_assert ((PAGE_BITS & ((PAGE_BITS) - 1)) == 0, "");
+  static constexpr unsigned PAGE_BITS_LG_2 = 9;
+  static_assert (1 << PAGE_BITS_LG_2 == PAGE_BITS, "");
 
   static unsigned int elt_get_min (const elt_t &elt) { return hb_ctz (elt); }
   static unsigned int elt_get_max (const elt_t &elt) { return hb_bit_storage (elt) - 1; }
@@ -186,6 +203,9 @@ struct hb_bit_page_t
   typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
 
   static constexpr unsigned ELT_BITS = sizeof (elt_t) * 8;
+  static constexpr unsigned ELT_BITS_LG_2 = 6;
+  static_assert (1 << ELT_BITS_LG_2 == ELT_BITS, "");
+
   static constexpr unsigned ELT_MASK = ELT_BITS - 1;
   static constexpr unsigned BITS = sizeof (vector_t) * 8;
   static constexpr unsigned MASK = BITS - 1;

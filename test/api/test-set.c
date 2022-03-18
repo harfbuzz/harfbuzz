@@ -1067,6 +1067,40 @@ test_set_inverted_operations (void)
   g_assert (all_succeeded);
 }
 
+static void
+test_create_from_sorted (void)
+{
+  hb_codepoint_t array[7] = {1, 2, 3, 1000, 2000, 2001, 2002};
+  hb_set_t *set = hb_set_create_from_sorted (array, 7);
+  g_assert_cmpint (hb_set_get_population (set), ==, 7);
+  g_assert (hb_set_has (set, 1));
+  g_assert (hb_set_has (set, 2));
+  g_assert (hb_set_has (set, 3));
+  g_assert (hb_set_has (set, 1000));
+  g_assert (hb_set_has (set, 2000));
+  g_assert (hb_set_has (set, 2001));
+  g_assert (hb_set_has (set, 2002));
+}
+
+static void
+test_export_to_array (void)
+{
+  hb_set_t *set = hb_set_create ();
+  for (int i=0; i<600; i++)
+    hb_set_add (set, i);
+  for (int i=6000; i<6100; i++)
+    hb_set_add (set, i);
+  g_assert(hb_set_get_population (set) == 700);
+  hb_codepoint_t array[700];
+
+  hb_set_export_array (set, array);
+
+  for (int i=0; i<600; i++)
+    g_assert_cmpint(array[i], ==, i);
+  for (int i=0; i<100; i++)
+    g_assert (array[600 + i] == 6000 + i);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1089,6 +1123,9 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_iteration_prev);
   hb_test_add (test_set_inverted_equality);
   hb_test_add (test_set_inverted_operations);
+
+  hb_test_add (test_create_from_sorted);
+  hb_test_add (test_export_to_array);
 
   return hb_test_run();
 }

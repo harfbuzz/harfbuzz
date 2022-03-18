@@ -99,6 +99,10 @@ struct hb_sparseset_t
   template <typename T>
   bool add_sorted_array (const hb_sorted_array_t<const T>& arr) { return add_sorted_array (&arr, arr.len ()); }
 
+  // Writes out contents in order to array[0 .. get_population()-1].
+  template <typename T>
+  void export_array (T *array) const { s.export_array(array); }
+
   void del (hb_codepoint_t g) { s.del (g); }
   void del_range (hb_codepoint_t a, hb_codepoint_t b) { s.del_range (a, b); }
 

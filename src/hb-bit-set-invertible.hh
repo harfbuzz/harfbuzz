@@ -117,6 +117,13 @@ struct hb_bit_set_invertible_t
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
   { unlikely (inverted) ? (void) s.add_range (a, b) : s.del_range (a, b); }
 
+  /* Warning: always exports the non-inverted set contents. */
+  template <typename T>
+  void export_array (T *array) const
+  {
+    s.template export_array (array);
+  }
+
   bool get (hb_codepoint_t g) const { return s.get (g) ^ inverted; }
 
   /* Has interface. */
