@@ -222,7 +222,7 @@ struct hb_bit_set_t
         if (v || page) /* The v check is to optimize out the page check if v is true. */
 	  page->add (g);
 
-	array = (const T *) ((const char *) array + stride);
+	array = &StructAtOffsetUnaligned<T> (array, stride);
 	count--;
       }
       while (count && (g = *array, g < end));
