@@ -1095,8 +1095,9 @@ test_export_to_array (void)
   g_assert(hb_set_get_population (set) == 700);
   hb_codepoint_t array[700];
 
-  hb_set_export_array (set, array, 700);
+  unsigned int n = hb_set_export_array (set, array, 700);
 
+  g_assert_cmpint(n, ==, 700);
   for (int i=0; i<600; i++)
     g_assert_cmpint(array[i], ==, i);
   for (int i=0; i<100; i++)
@@ -1114,8 +1115,9 @@ test_export_to_array_restricted (void)
   g_assert(hb_set_get_population (set) == 700);
   hb_codepoint_t array[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  hb_set_export_array (set, array, 9);
+  unsigned int n = hb_set_export_array (set, array, 9);
 
+  g_assert_cmpint(n, ==, 9);
   for (int i=0; i<9; i++)
     g_assert_cmpint(array[i], ==, i);
   g_assert_cmpint(array[9], ==, 0);

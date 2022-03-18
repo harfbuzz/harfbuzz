@@ -121,7 +121,7 @@ struct hb_bit_set_invertible_t
   template <typename T>
   unsigned int export_array (T *array, unsigned int size) const
   {
-    return s.template export_array (array, size);
+    return s.export_array (array, size);
   }
 
   bool get (hb_codepoint_t g) const { return s.get (g) ^ inverted; }
