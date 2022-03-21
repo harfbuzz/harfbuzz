@@ -809,8 +809,8 @@ struct hb_bit_set_t
   }
   page_t &page_at (unsigned int i) { return pages[page_map[i].index]; }
   const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }
-  unsigned int get_major (hb_codepoint_t g) const { return g >> page_t::PAGE_BITS_LG_2; }
-  hb_codepoint_t major_start (unsigned int major) const { return major << page_t::PAGE_BITS_LG_2; }
+  unsigned int get_major (hb_codepoint_t g) const { return g >> page_t::PAGE_BITS_LOG_2; }
+  hb_codepoint_t major_start (unsigned int major) const { return major << page_t::PAGE_BITS_LOG_2; }
 };
 
 
