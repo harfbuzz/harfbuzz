@@ -62,22 +62,6 @@ hb_set_create ()
 }
 
 /**
- * Creates a set initially populated with num_codepoint codepoints, which must
- * be in increasing order.
- *
- * Since: REPLACEME
- */
-HB_EXTERN void
-hb_set_add_sorted_array (hb_set_t             *set,
-		         const hb_codepoint_t *sorted_codepoints,
-		         unsigned int          num_codepoints)
-{
-  set->add_sorted_array (sorted_codepoints,
-		         num_codepoints,
-		         sizeof(hb_codepoint_t));
-}
-
-/**
  * hb_set_get_empty:
  *
  * Fetches the singleton empty #hb_set_t.
@@ -270,6 +254,23 @@ hb_set_add (hb_set_t       *set,
 {
   /* Immutible-safe. */
   set->add (codepoint);
+}
+
+/**
+ * Adds num_codepoints codepoints to a set at once.
+ * The codepoints array must be in increasing order,
+ * with size at least num_codepoints.
+ *
+ * Since: REPLACEME
+ */
+HB_EXTERN void
+hb_set_add_sorted_array (hb_set_t             *set,
+		         const hb_codepoint_t *sorted_codepoints,
+		         unsigned int          num_codepoints)
+{
+  set->add_sorted_array (sorted_codepoints,
+		         num_codepoints,
+		         sizeof(hb_codepoint_t));
 }
 
 /**
