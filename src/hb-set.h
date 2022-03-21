@@ -60,6 +60,11 @@ typedef struct hb_set_t hb_set_t;
 HB_EXTERN hb_set_t *
 hb_set_create (void);
 
+HB_EXTERN void
+hb_set_add_sorted_array (hb_set_t             *set,
+		         const hb_codepoint_t *sorted_codepoints,
+		         unsigned int          num_codepoints);
+
 HB_EXTERN hb_set_t *
 hb_set_get_empty (void);
 
