@@ -637,7 +637,7 @@ hb_ot_var_normalize_coords
 HB_SET_VALUE_INVALID
 hb_set_add
 hb_set_add_range
-hb_set_add_sorted_codepoints
+hb_set_add_sorted_array
 hb_set_allocation_successful
 hb_set_copy
 hb_set_clear

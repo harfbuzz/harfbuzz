@@ -259,7 +259,7 @@ hb_set_add (hb_set_t       *set,
 /**
  * hb_set_add_sorted_array:
  * @set: A set
- * @sorted_codepoints: (array length=num_codepoints) Array of codepoints to add
+ * @sorted_codepoints: (array length=num_codepoints): Array of codepoints to add
  * @num_codepoints: Length of @sorted_codepoints
  *
  * Adds @num_codepoints codepoints to a set at once.
