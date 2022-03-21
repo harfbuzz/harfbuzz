@@ -72,8 +72,6 @@ hb_set_add_sorted_array (hb_set_t             *set,
 		         const hb_codepoint_t *sorted_codepoints,
 		         unsigned int          num_codepoints)
 {
-  if (unlikely(!set || !sorted_codepoints || !num_codepoints)) return;
-
   set->add_sorted_array (sorted_codepoints,
 		         num_codepoints,
 		         sizeof(hb_codepoint_t));
