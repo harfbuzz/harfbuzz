@@ -249,7 +249,7 @@ struct hb_bit_set_t
     unsigned int initial_size = size;
     for (unsigned int i = 0; i < page_map.length && size > 0; i++) {
       uint32_t base = major_start (page_map[i].major);
-      unsigned int n = pages[i].export_array(base, array, size);
+      unsigned int n = pages[page_map[i].index].export_array (base, array, size);
       array += n;
       size -= n;
     }
@@ -263,7 +263,7 @@ struct hb_bit_set_t
     T next_value(0);
     for (unsigned int i = 0; i < page_map.length && size > 0; i++) {
       uint32_t base = major_start (page_map[i].major);
-      unsigned int n = pages[i].export_array_inverted(base, array, size, &next_value);
+      unsigned int n = pages[page_map[i].index].export_array_inverted (base, array, size, &next_value);
       array += n;
       size -= n;
     }
