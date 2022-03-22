@@ -404,6 +404,7 @@ hb_buffer_t::sync ()
 
 reset:
   have_output = false;
+  out_info = info;
   out_len = 0;
   idx = 0;
 }
