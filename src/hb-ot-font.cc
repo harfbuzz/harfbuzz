@@ -175,12 +175,21 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   }
 
   hb_glyph_extents_t extents = {0};
-  if (ot_face->vmtx->has_data () &&
-      ot_face->glyf->get_extents (font, glyph, &extents))
+  if (ot_face->glyf->get_extents (font, glyph, &extents))
   {
-    const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
-    hb_position_t tsb = vmtx.get_side_bearing (font, glyph);
-    *y = extents.y_bearing + font->em_scale_y (tsb);
+    if (ot_face->vmtx->has_data ())
+    {
+      const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
+      hb_position_t tsb = vmtx.get_side_bearing (font, glyph);
+      *y = extents.y_bearing + font->em_scale_y (tsb);
+      return true;
+    }
+
+    hb_font_extents_t font_extents;
+    font->get_h_extents_with_fallback (&font_extents);
+    hb_position_t advance = font_extents.ascender - font_extents.descender;
+    int diff = advance - -extents.height;
+    *y = extents.y_bearing + (diff >> 1);
     return true;
   }
 
