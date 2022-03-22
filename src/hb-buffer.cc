@@ -2116,8 +2116,16 @@ hb_buffer_set_message_func (hb_buffer_t *buffer,
 bool
 hb_buffer_t::message_impl (hb_font_t *font, const char *fmt, va_list ap)
 {
+  assert (!have_output || (out_info == info && out_len == idx));
+
+  message_depth++;
+
   char buf[100];
   vsnprintf (buf, sizeof (buf), fmt, ap);
-  return (bool) this->message_func (this, font, buf, this->message_data);
+  bool ret = (bool) this->message_func (this, font, buf, this->message_data);
+
+  message_depth--;
+
+  return ret;
 }
 #endif
