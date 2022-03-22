@@ -131,11 +131,25 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   const hb_ot_face_t *ot_face = (const hb_ot_face_t *) font_data;
   const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
 
-  for (unsigned int i = 0; i < count; i++)
+  if (vmtx.has_data ())
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance = font->em_scale_y (-(int) vmtx.get_advance (*first_glyph, font));
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+  else
   {
-    *first_advance = font->em_scale_y (-(int) vmtx.get_advance (*first_glyph, font));
-    first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
-    first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    hb_font_extents_t font_extents;
+    font->get_h_extents_with_fallback (&font_extents);
+    hb_position_t advance = -(font_extents.ascender - font_extents.descender);
+
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance = advance;
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
   }
 }
 #endif
