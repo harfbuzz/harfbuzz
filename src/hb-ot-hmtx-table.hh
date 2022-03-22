@@ -220,6 +220,8 @@ struct hmtxvmtx
       var_table.destroy ();
     }
 
+    bool has_data () const { return (bool) num_bearings; }
+
     int get_side_bearing (hb_codepoint_t glyph) const
     {
       if (glyph < num_long_metrics)

@@ -161,7 +161,8 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   }
 
   hb_glyph_extents_t extents = {0};
-  if (ot_face->glyf->get_extents (font, glyph, &extents))
+  if (ot_face->vmtx->has_data () &&
+      ot_face->glyf->get_extents (font, glyph, &extents))
   {
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     hb_position_t tsb = vmtx.get_side_bearing (font, glyph);
