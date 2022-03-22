@@ -242,6 +242,38 @@ struct hb_bit_set_t
   template <typename T>
   bool del_sorted_array (const hb_sorted_array_t<const T>& arr) { return del_sorted_array (&arr, arr.len ()); }
 
+
+  template <typename T>
+  unsigned int export_array (T *array, unsigned int size) const
+  {
+    unsigned int initial_size = size;
+    for (unsigned int i = 0; i < page_map.length && size > 0; i++) {
+      uint32_t base = major_start (page_map[i].major);
+      unsigned int n = pages[i].export_array(base, array, size);
+      array += n;
+      size -= n;
+    }
+    return initial_size - size;
+  }
+
+  template <typename T>
+  unsigned int export_array_inverted (T *array, unsigned int size) const
+  {
+    unsigned int initial_size = size;
+    T next_value(0);
+    for (unsigned int i = 0; i < page_map.length && size > 0; i++) {
+      uint32_t base = major_start (page_map[i].major);
+      unsigned int n = pages[i].export_array_inverted(base, array, size, &next_value);
+      array += n;
+      size -= n;
+    }
+    while (next_value < HB_SET_VALUE_INVALID && size > 0) {
+      *array++ = next_value++;
+      size--;
+    }
+    return initial_size - size;
+  }
+
   void del (hb_codepoint_t g)
   {
     if (unlikely (!successful)) return;

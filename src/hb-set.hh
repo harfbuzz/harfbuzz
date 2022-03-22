@@ -109,6 +109,11 @@ struct hb_sparseset_t
   typedef bool value_t;
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+
+  // Writes out contents in order to array[0 .. N], N = min(get_population(), size).
+  template <typename T>
+  unsigned int export_array (T *array, unsigned int size) const { return s.export_array(array, size); }
+
   /* Predicate. */
   bool operator () (hb_codepoint_t k) const { return has (k); }
 

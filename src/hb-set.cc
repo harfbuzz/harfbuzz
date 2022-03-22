@@ -240,6 +240,23 @@ hb_set_has (const hb_set_t *set,
 }
 
 /**
+ * Exports the contents of the set to an array of hb_codepoint_t with the given
+ * size. The minimum of size and hb_set_get_population(set) codepoints will be
+ * written out. Returns the number of codepoints written.
+ *
+ * Since: REPLACEME
+ */
+HB_EXTERN unsigned int
+hb_set_export_array (const hb_set_t *set,
+		      hb_codepoint_t *codepoints,
+		      unsigned int    size)
+{
+  if (unlikely(!set || !codepoints || !size)) return 0;
+
+  return set->export_array (codepoints, size);
+}
+
+/**
  * hb_set_add:
  * @set: A set
  * @codepoint: The element to add to @set

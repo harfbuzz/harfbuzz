@@ -1084,6 +1084,88 @@ test_hb_set_add_sorted_array (void)
   hb_set_destroy (set);
 }
 
+static void
+test_export_to_array (void)
+{
+  hb_set_t *set = hb_set_create ();
+  for (int i=0; i<600; i++)
+    hb_set_add (set, i);
+  for (int i=6000; i<6100; i++)
+    hb_set_add (set, i);
+  g_assert (hb_set_get_population (set) == 700);
+  hb_codepoint_t array[700];
+
+  hb_set_export_array (set, array, 700);
+
+  for (int i=0; i<600; i++)
+    g_assert_cmpint (array[i], ==, i);
+  for (int i=0; i<100; i++)
+    g_assert (array[600 + i] == 6000 + i);
+  hb_set_destroy (set);
+}
+
+static void
+test_export_to_array_restricted (void)
+{
+  hb_set_t *set = hb_set_create ();
+  for (int i=0; i<600; i++)
+    hb_set_add (set, i);
+  for (int i=6000; i<6100; i++)
+    hb_set_add (set, i);
+  g_assert (hb_set_get_population (set) == 700);
+  hb_codepoint_t array[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  hb_set_export_array (set, array, 9);
+
+  for (int i=0; i<9; i++)
+    g_assert_cmpint (array[i], ==, i);
+  g_assert_cmpint (array[9], ==, 0);
+  hb_set_destroy (set);
+}
+
+static void
+test_export_to_array_inverted (void)
+{
+  hb_set_t *set = hb_set_create ();
+  hb_set_add (set, 1);
+  hb_set_add (set, 3);
+  hb_set_invert (set);
+
+  hb_codepoint_t array[] = {0, 0, 0, 0, 0, 999};
+
+  // Single page.
+  hb_set_export_array (set, array, 5);
+
+  g_assert_cmpint (array[0], ==, 0);
+  g_assert_cmpint (array[1], ==, 2);
+  g_assert_cmpint (array[2], ==, 4);
+  g_assert_cmpint (array[3], ==, 5);
+  g_assert_cmpint (array[4], ==, 6);
+  g_assert_cmpint (array[5], ==, 999);
+
+  // Multiple pages.
+  hb_set_invert (set);
+  hb_set_add (set, 1000);
+  hb_set_invert (set);
+
+  hb_codepoint_t array2[1000];
+  hb_set_export_array (set, array2, 1000);
+  g_assert_cmpint (array2[0], ==, 0);
+  g_assert_cmpint (array2[1], ==, 2);
+  g_assert_cmpint (array2[2], ==, 4);
+  g_assert_cmpint (array2[3], ==, 5);
+  for (int i=4; i<997; i++)
+  {
+    g_assert_cmpint (array2[i], ==, i + 2);
+  }
+  g_assert_cmpint (array2[997], ==, 999);
+  // Value 1000 skipped.
+  g_assert_cmpint (array2[998], ==, 1001);
+  g_assert_cmpint (array2[999], ==, 1002);
+
+  hb_set_destroy (set);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1108,6 +1190,9 @@ main (int argc, char **argv)
   hb_test_add (test_set_inverted_operations);
 
   hb_test_add (test_hb_set_add_sorted_array);
+  hb_test_add (test_export_to_array);
+  hb_test_add (test_export_to_array_restricted);
+  hb_test_add (test_export_to_array_inverted);
 
   return hb_test_run();
 }

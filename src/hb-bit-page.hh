@@ -86,6 +86,58 @@ struct hb_bit_page_t
   void set_range (hb_codepoint_t a, hb_codepoint_t b, bool v)
   { if (v) add_range (a, b); else del_range (a, b); }
 
+
+  // Writes out page values to the array p. Returns the number of values
+  // written. At most size codepoints will be written.
+  unsigned int export_array (uint32_t base, hb_codepoint_t *p, unsigned int size) const
+  {
+    unsigned int count = 0;
+    for (unsigned i = 0; i < len () && count < size; i++)
+    {
+      elt_t bits = v[i];
+      uint32_t v_offset = i << ELT_BITS_LOG_2;
+      for (unsigned int j = 0; j < ELT_BITS && count < size; j++)
+	if ((elt_t (1) << j) & bits)
+	{
+	  *p++ = base | v_offset | j;
+	  count++;
+	}
+    }
+    return count;
+  }
+
+  // Writes out the values NOT in this page to the array p. Returns the
+  // number of values written. At most size codepoints will be written.
+  // Returns the number of codepoints written. next_value holds the next value
+  // that should be written (if not present in this page). This is used to fill
+  // any missing value gaps between this page and the previous page, if any.
+  // next_value is updated to one more than the last value present in this page.
+  unsigned int export_array_inverted (uint32_t        base,
+				       hb_codepoint_t *p,
+				       unsigned int    size,
+				       hb_codepoint_t *next_value) const
+  {
+    unsigned int count = 0;
+    for (unsigned i = 0; i < len () && count < size; i++)
+    {
+      elt_t bits = v[i];
+      uint32_t v_offset = i << ELT_BITS_LOG_2;
+      for (unsigned int j = 0; j < ELT_BITS && count < size; j++)
+	if ((elt_t (1) << j) & bits)
+	{
+	  hb_codepoint_t value = base | v_offset | j;
+	  // Emit all the missing values from next_value up to value - 1.
+	  for (hb_codepoint_t k = *next_value; k < value && count < size; k++) {
+		*p++ = k;
+		count++;
+	  }
+	  // Skip over this value;
+	  *next_value = value + 1;
+	}
+    }
+    return count;
+  }
+
   bool is_equal (const hb_bit_page_t &other) const
   {
     return 0 == hb_memcmp (&v, &other.v, sizeof (v));
