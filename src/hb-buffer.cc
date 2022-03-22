@@ -295,7 +295,6 @@ hb_buffer_t::clear ()
   idx = 0;
   len = 0;
   out_len = 0;
-
   out_info = info;
 
   memset (context, 0, sizeof context);
@@ -404,8 +403,8 @@ hb_buffer_t::sync ()
 
 reset:
   have_output = false;
-  out_info = info;
   out_len = 0;
+  out_info = info;
   idx = 0;
 }
 
