@@ -9,9 +9,8 @@
 using OT::Layout::GSUB::SubstLookup;
 
 namespace OT {
-// TODO(garretrieger): move this ot layout::GSUB namespace
-//namespace Layout {
-//namespace GSUB {
+namespace Layout {
+namespace GSUB {
 
 /*
  * GSUB -- Glyph Substitution
@@ -46,14 +45,14 @@ struct GSUB : GSUBGPOS
 };
 
 
-struct GSUB_accelerator_t : GSUB::accelerator_t {
-  GSUB_accelerator_t (hb_face_t *face) : GSUB::accelerator_t (face) {}
+}
+}
+
+struct GSUB_accelerator_t : Layout::GSUB::GSUB::accelerator_t {
+  GSUB_accelerator_t (hb_face_t *face) : Layout::GSUB::GSUB::accelerator_t (face) {}
 };
 
 
-
-//}
-//}
 }
 
 #endif  /* OT_LAYOUT_GSUB_GSUB_HH */
