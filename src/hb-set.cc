@@ -251,8 +251,6 @@ hb_set_export_array (const hb_set_t *set,
 		      hb_codepoint_t *codepoints,
 		      unsigned int    size)
 {
-  if (unlikely(!set || !codepoints || !size)) return 0;
-
   return set->export_array (codepoints, size);
 }
 

@@ -95,11 +95,11 @@ struct hb_bit_page_t
     for (unsigned i = 0; i < len () && count < size; i++)
     {
       elt_t bits = v[i];
-      uint32_t v_offset = i << ELT_BITS_LOG_2;
+      uint32_t v_base = base | (i << ELT_BITS_LOG_2);
       for (unsigned int j = 0; j < ELT_BITS && count < size; j++)
 	if ((elt_t (1) << j) & bits)
 	{
-	  *p++ = base | v_offset | j;
+	  *p++ = v_base | j;
 	  count++;
 	}
     }

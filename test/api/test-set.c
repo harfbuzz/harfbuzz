@@ -1166,6 +1166,19 @@ test_export_to_array_inverted (void)
   hb_set_destroy (set);
 }
 
+static void
+test_export_to_array_out_of_order_pages (void) {
+  hb_set_t* set = hb_set_create();
+  hb_set_add(set, 1957);
+  hb_set_add(set, 69);
+  hb_codepoint_t results[2];
+  unsigned int result_size = hb_set_export_array(set, results, 2);
+  g_assert_cmpint(result_size, == , 2);
+  g_assert_cmpint(results[0], == , 69);
+  g_assert_cmpint(results[1], == , 1957);
+  hb_set_destroy(set);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -1193,6 +1206,7 @@ main (int argc, char **argv)
   hb_test_add (test_export_to_array);
   hb_test_add (test_export_to_array_restricted);
   hb_test_add (test_export_to_array_inverted);
+  hb_test_add (test_export_to_array_out_of_order_pages);
 
   return hb_test_run();
 }
