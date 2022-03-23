@@ -104,6 +104,12 @@ HB_BASE_sources = \
 	OT/Layout/GSUB/Ligature.hh \
 	OT/Layout/GSUB/ReverseChainSingleSubst.hh \
 	OT/Layout/GSUB/ReverseChainSingleSubstFormat1.hh \
+	OT/Layout/GSUB/ContextSubst.hh \
+	OT/Layout/GSUB/ChainContextSubst.hh \
+	OT/Layout/GSUB/ExtensionSubst.hh \
+	OT/Layout/GSUB/SubstLookupSubTable.hh \
+	OT/Layout/GSUB/SubstLookup.hh \
+	OT/Layout/GSUB/GSUB.hh \
 	hb-ot-layout-gsubgpos.hh \
 	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout.cc \
