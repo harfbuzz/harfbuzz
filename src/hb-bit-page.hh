@@ -121,11 +121,11 @@ struct hb_bit_page_t
     for (unsigned i = 0; i < len () && count < size; i++)
     {
       elt_t bits = v[i];
-      uint32_t v_offset = i << ELT_BITS_LOG_2;
+      uint32_t v_base = base | (i << ELT_BITS_LOG_2);
       for (unsigned int j = 0; j < ELT_BITS && count < size; j++)
 	if ((elt_t (1) << j) & bits)
 	{
-	  hb_codepoint_t value = base | v_offset | j;
+	  hb_codepoint_t value = v_base | j;
 	  // Emit all the missing values from next_value up to value - 1.
 	  for (hb_codepoint_t k = *next_value; k < value && count < size; k++) {
 		*p++ = k;
