@@ -106,6 +106,8 @@ hb_base_sources = files(
   'OT/Layout/GSUB/LigatureSubst.hh',
   'OT/Layout/GSUB/LigatureSet.hh',
   'OT/Layout/GSUB/Ligature.hh',
+  'OT/Layout/GSUB/ReverseChainSingleSubst.hh',
+  'OT/Layout/GSUB/ReverseChainSingleSubstFormat1.hh',
   'hb-ot-layout-gsubgpos.hh',
   'hb-ot-layout-jstf-table.hh',
   'hb-ot-layout.cc',
