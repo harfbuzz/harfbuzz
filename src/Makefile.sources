@@ -95,6 +95,9 @@ HB_BASE_sources = \
 	OT/Layout/GSUB/SingleSubst.hh \
 	OT/Layout/GSUB/MultipleSubstFormat1.hh \
 	OT/Layout/GSUB/MultipleSubst.hh \
+	OT/Layout/GSUB/AlternateSubstFormat1.hh \
+	OT/Layout/GSUB/AlternateSubst.hh \
+	OT/Layout/GSUB/AlternateSet.hh \
 	hb-ot-layout-gsubgpos.hh \
 	hb-ot-layout-jstf-table.hh \
 	hb-ot-layout.cc \
