@@ -7,6 +7,7 @@ meson 	--cross-file=.ci/win64-cross-file.txt \
 	-Dcairo=enabled \
 	-Dcairo:fontconfig=disabled \
 	-Dcairo:freetype=disabled \
+	-Dcairo:dwrite=disabled \
 	-Dglib=enabled \
 	-Dfreetype=disabled \
 	-Dgdi=enabled \
