@@ -2,7 +2,7 @@
 #define OT_LAYOUT_GSUB_CHAINCONTEXTSUBST_HH
 
 // TODO(garretrieger): move to new layout.
-#include "hb-ot-layout-gsubgpos.hh"
+#include "../../../hb-ot-layout-gsubgpos.hh"
 #include "Common.hh"
 
 namespace OT {
