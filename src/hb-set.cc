@@ -266,7 +266,7 @@ hb_set_add (hb_set_t       *set,
  * The codepoints array must be in increasing order,
  * with size at least @num_codepoints.
  *
- * Since: REPLACEME
+ * Since: 4.1.0
  */
 HB_EXTERN void
 hb_set_add_sorted_array (hb_set_t             *set,

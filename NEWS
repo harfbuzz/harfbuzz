@@ -1,3 +1,17 @@
+Overview of changes leading to 4.1.0
+Wednesday, March 23, 2022
+====================================
+- Various OSS-Fuzz fixes. (Behdad Esfahbod)
+- Make fallback vertical-origin match FreeType’s. (Behdad Esfahbod)
+- Treat visible viramas like dependent vowels in USE shaper. (David Corbett)
+- Apply presentation forms features and discretionary features in one go in
+  Indic shaper, which seems to match Uniscribe and CoreText behaviour.
+  (Behdad Esfahbod, David Corbett)
+- Various bug fixes.
+
+- New API
++hb_set_add_sorted_array()
+
 Overview of changes leading to 4.0.1
 Friday, March 11, 2022
 ====================================
