@@ -1477,7 +1477,7 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
     }
     else
     {
-      /* NOTE: delta is negative. */
+      /* NOTE: delta is non-positive. */
       delta = hb_max (delta, (int) next - (int) count);
       next -= delta;
     }
