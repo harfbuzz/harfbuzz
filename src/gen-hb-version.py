@@ -31,3 +31,6 @@ with open (INPUT, "r", encoding='utf-8') as template:
 			.replace ("@HB_VERSION_MICRO@", micro)
 			.replace ("@HB_VERSION@", version)
 			.encode ())
+
+# copy it also to src/
+shutil.copyfile (OUTPUT, os.path.join (CURRENT_SOURCE_DIR, os.path.basename (OUTPUT)))
