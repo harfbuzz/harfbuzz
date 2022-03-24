@@ -1415,13 +1415,18 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
     if (unlikely (idx == 0 && lookupRecord[i].lookupListIndex == c->lookup_index))
       continue;
 
+    unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();
+
+    /* This can happen if earlier recursed lookups deleted many entries. */
+    if (unlikely (match_positions[idx] >= orig_len))
+      continue;
+
     if (unlikely (!buffer->move_to (match_positions[idx])))
       break;
 
     if (unlikely (buffer->max_ops <= 0))
       break;
 
-    unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();
     if (!c->recurse (lookupRecord[i].lookupListIndex))
       continue;
 
@@ -1457,15 +1462,18 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
      */
 
     end += delta;
-    if (end <= int (match_positions[idx]))
+    if (end < int (match_positions[idx]))
     {
       /* End might end up being smaller than match_positions[idx] if the recursed
-       * lookup ended up removing many items, more than we have had matched.
-       * Just never rewind end back and get out of here.
-       * https://bugs.chromium.org/p/chromium/issues/detail?id=659496 */
+       * lookup ended up removing many items.
+       * Just never rewind end beyond start of current position, since that is
+       * not possible in the recursed lookup.  Also adjust delta as such.
+       *
+       * https://bugs.chromium.org/p/chromium/issues/detail?id=659496
+       * https://github.com/harfbuzz/harfbuzz/issues/1611
+       */
+      delta += match_positions[idx] - end;
       end = match_positions[idx];
-      /* There can't be any further changes. */
-      break;
     }
 
     unsigned int next = idx + 1; /* next now is the position after the recursed lookup. */
