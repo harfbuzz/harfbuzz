@@ -71,5 +71,15 @@ TESTS = \
 	tests/zero-width-marks.tests \
 	$(NULL)
 
+if HAVE_CORETEXT
+TESTS += tests/coretext.tests
+endif
+if HAVE_DIRECTWRITE
+TESTS += tests/directwrite.tests
+endif
+if HAVE_UNISCRIBE
+TESTS += tests/uniscribe.tests
+endif
+
 DISABLED_TESTS = \
 	$(NULL)
