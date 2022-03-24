@@ -7,17 +7,9 @@ shape_run_tests_py = find_program('run-tests.py')
 
 env = environment()
 env.set('HAVE_FREETYPE', '@0@'.format(conf.get('HAVE_FREETYPE', 0)))
-
-in_house_tests = in_house_tests_base
-if conf.get('HAVE_CORETEXT', 0) == 1
-  in_house_tests += in_house_tests_coretext
-endif
-if conf.get('HAVE_UNISCRIBE', 0) == 1
-  in_house_tests += in_house_tests_uniscribe
-endif
-if conf.get('HAVE_DIRECTWRITE', 0) == 1
-  in_house_tests += in_house_tests_directwrite
-endif
+env.set('HAVE_CORETEXT', '@0@'.format(conf.get('HAVE_CORETEXT', 0)))
+env.set('HAVE_DIRECTWRITE', '@0@'.format(conf.get('HAVE_DIRECTWRITE', 0)))
+env.set('HAVE_UNISCRIBE', '@0@'.format(conf.get('HAVE_UNISCRIBE', 0)))
 
 foreach file_name : in_house_tests
   test_name = file_name.split('.')[0]
