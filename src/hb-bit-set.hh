@@ -700,9 +700,9 @@ struct hb_bit_set_t
     return true;
   }
 
-  unsigned int set_next_many (hb_codepoint_t  codepoint,
-			      hb_codepoint_t *out,
-			      unsigned int    size) const
+  unsigned int next_many (hb_codepoint_t  codepoint,
+			  hb_codepoint_t *out,
+			  unsigned int    size) const
   {
     // By default, start at the first bit of the first page of values.
     unsigned int start_page = 0;
@@ -740,9 +740,9 @@ struct hb_bit_set_t
     return initial_size - size;
   }
 
-  unsigned int set_next_many_inverted (hb_codepoint_t  codepoint,
-				       hb_codepoint_t *out,
-				       unsigned int    size) const
+  unsigned int next_many_inverted (hb_codepoint_t  codepoint,
+				   hb_codepoint_t *out,
+				   unsigned int    size) const
   {
     unsigned int initial_size = size;
     // By default, start at the first bit of the first page of values.

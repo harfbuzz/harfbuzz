@@ -658,6 +658,7 @@ hb_set_is_equal
 hb_set_is_subset
 hb_set_next
 hb_set_next_range
+hb_set_next_many
 hb_set_previous
 hb_set_previous_range
 hb_set_reference

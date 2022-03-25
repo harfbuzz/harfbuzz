@@ -619,8 +619,8 @@ hb_set_previous_range (const hb_set_t *set,
  * hb_set_next_many:
  * @set: A set
  * @codepoint: Outputting codepoints starting after this one.
- *             Use HB_SET_VALUE_INVALID to get started.
- * @out: An array of codepoints to write to.
+ *             Use #HB_SET_VALUE_INVALID to get started.
+ * @out: (array length=size) An array of codepoints to write to.
  * @size: The maximum number of codepoints to write out.
  *
  * Finds the next element in @set that is greater than @codepoint. Writes out
@@ -637,5 +637,5 @@ hb_set_next_many (const hb_set_t *set,
 		  hb_codepoint_t *out,
 		  unsigned int    size)
 {
-  return set->set_next_many (codepoint, out, size);
+  return set->next_many (codepoint, out, size);
 }

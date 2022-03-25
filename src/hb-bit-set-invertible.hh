@@ -323,12 +323,12 @@ struct hb_bit_set_invertible_t
     return true;
   }
 
-  unsigned int set_next_many (hb_codepoint_t  codepoint,
-			      hb_codepoint_t *out,
-			      unsigned int    size) const
+  unsigned int next_many (hb_codepoint_t  codepoint,
+			  hb_codepoint_t *out,
+			  unsigned int    size) const
   {
-    return inverted ? s.set_next_many_inverted(codepoint, out, size)
-		    : s.set_next_many(codepoint, out, size);
+    return inverted ? s.next_many_inverted (codepoint, out, size)
+		    : s.next_many (codepoint, out, size);
   }
 
   static constexpr hb_codepoint_t INVALID = hb_bit_set_t::INVALID;
