@@ -117,13 +117,6 @@ struct hb_bit_set_invertible_t
   void del_range (hb_codepoint_t a, hb_codepoint_t b)
   { unlikely (inverted) ? (void) s.add_range (a, b) : s.del_range (a, b); }
 
-  template <typename T>
-  unsigned int export_array (T *array, unsigned int size) const
-  {
-    return unlikely(inverted) ? s.export_array_inverted(array, size)
-                              : s.export_array(array, size);
-  }
-
   bool get (hb_codepoint_t g) const { return s.get (g) ^ inverted; }
 
   /* Has interface. */
@@ -328,6 +321,14 @@ struct hb_bit_set_invertible_t
     s.previous (first);
     ++*first;
     return true;
+  }
+
+  unsigned int set_next_many (hb_codepoint_t  codepoint,
+			      hb_codepoint_t *out,
+			      unsigned int    size) const
+  {
+    return inverted ? s.set_next_many_inverted(codepoint, out, size)
+		    : s.set_next_many(codepoint, out, size);
   }
 
   static constexpr hb_codepoint_t INVALID = hb_bit_set_t::INVALID;

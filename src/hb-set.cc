@@ -240,21 +240,6 @@ hb_set_has (const hb_set_t *set,
 }
 
 /**
- * Exports the contents of the set to an array of hb_codepoint_t with the given
- * size. The minimum of size and hb_set_get_population(set) codepoints will be
- * written out. Returns the number of codepoints written.
- *
- * Since: REPLACEME
- */
-HB_EXTERN unsigned int
-hb_set_export_array (const hb_set_t *set,
-		      hb_codepoint_t *codepoints,
-		      unsigned int    size)
-{
-  return set->export_array (codepoints, size);
-}
-
-/**
  * hb_set_add:
  * @set: A set
  * @codepoint: The element to add to @set
@@ -628,4 +613,29 @@ hb_set_previous_range (const hb_set_t *set,
 		       hb_codepoint_t *last)
 {
   return set->previous_range (first, last);
+}
+
+/**
+ * hb_set_next_many:
+ * @set: A set
+ * @codepoint: Outputting codepoints starting after this one.
+ *             Use HB_SET_VALUE_INVALID to get started.
+ * @out: An array of codepoints to write to.
+ * @size: The maximum number of codepoints to write out.
+ *
+ * Finds the next element in @set that is greater than @codepoint. Writes out
+ * codepoints to @out, until either the set runs out of elements, or @size
+ * codepoints are written, whichever comes first.
+ *
+ * Return value: the number of values written.
+ *
+ * Since: REPLACEME
+ **/
+unsigned int
+hb_set_next_many (const hb_set_t *set,
+		  hb_codepoint_t  codepoint,
+		  hb_codepoint_t *out,
+		  unsigned int    size)
+{
+  return set->set_next_many (codepoint, out, size);
 }

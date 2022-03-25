@@ -110,10 +110,6 @@ struct hb_sparseset_t
   value_t operator [] (hb_codepoint_t k) const { return get (k); }
   bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
 
-  // Writes out contents in order to array[0 .. N], N = min(get_population(), size).
-  template <typename T>
-  unsigned int export_array (T *array, unsigned int size) const { return s.export_array(array, size); }
-
   /* Predicate. */
   bool operator () (hb_codepoint_t k) const { return has (k); }
 
@@ -143,6 +139,8 @@ struct hb_sparseset_t
   { return s.next_range (first, last); }
   bool previous_range (hb_codepoint_t *first, hb_codepoint_t *last) const
   { return s.previous_range (first, last); }
+  unsigned int set_next_many (hb_codepoint_t codepoint, hb_codepoint_t *out, unsigned int size) const
+  { return s.set_next_many(codepoint, out, size); }
 
   unsigned int get_population () const { return s.get_population (); }
   hb_codepoint_t get_min () const { return s.get_min (); }
