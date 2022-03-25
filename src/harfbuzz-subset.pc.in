@@ -3,7 +3,7 @@ exec_prefix=%exec_prefix%
 libdir=%libdir%
 includedir=%includedir%
 
-Name: harfbuzz
+Name: harfbuzz subsetter
 Description: HarfBuzz font subsetter
 Version: %VERSION%
 
