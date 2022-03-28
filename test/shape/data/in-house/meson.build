@@ -26,6 +26,7 @@ in_house_tests = [
   'hyphens.tests',
   'indic-consonant-with-stacker.tests',
   'indic-decompose.tests',
+  'indic-feature-order.tests',
   'indic-init.tests',
   'indic-joiner-candrabindu.tests',
   'indic-joiners.tests',

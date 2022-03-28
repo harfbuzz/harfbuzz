@@ -26,6 +26,7 @@ TESTS = \
 	tests/hyphens.tests \
 	tests/indic-consonant-with-stacker.tests \
 	tests/indic-decompose.tests \
+	tests/indic-feature-order.tests \
 	tests/indic-init.tests \
 	tests/indic-joiner-candrabindu.tests \
 	tests/indic-joiners.tests \
