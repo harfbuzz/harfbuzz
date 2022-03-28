@@ -141,3 +141,6 @@
 
 # 11.1
 /System/Library/Fonts/Apple Color Emoji.ttc@6b0fa4926a1c8a32267e93e18c5eff21558de83a;--font-funcs ot;U+1F469,U+1F3FD,U+200D,U+1F91D,U+200D,U+1F468,U+1F3FE;[u1F469.3.L=0+0|space=0+0|space=0+0|u1F468.4.RA=0+800]
+
+# 12.3
+/System/Library/Fonts/Apple Color Emoji.ttc@8fa6ac4564651899da0b37d310d980db4de967d6;--font-funcs ot;1FAF1,1F3FF,200D,1FAF2,1F3FC;[u1FAF1.5.L=0+800|u1FAF2.2.R=0@-800,0+0]
