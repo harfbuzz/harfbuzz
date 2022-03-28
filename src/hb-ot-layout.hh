@@ -97,10 +97,13 @@ HB_MARK_AS_FLAG_T (hb_ot_layout_glyph_props_flags_t);
  */
 
 
-/* Should be called before all the substitute_lookup's are done. */
 HB_INTERNAL void
 hb_ot_layout_substitute_start (hb_font_t    *font,
 			       hb_buffer_t  *buffer);
+
+HB_INTERNAL void
+hb_ot_layout_substitute_finish (hb_font_t    *font,
+				hb_buffer_t  *buffer);
 
 HB_INTERNAL void
 hb_ot_layout_delete_glyphs_inplace (hb_buffer_t *buffer,
@@ -177,6 +180,8 @@ _hb_clear_syllables (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		     hb_font_t *font HB_UNUSED,
 		     hb_buffer_t *buffer)
 {
+  buffer->scratch_flags &= ~HB_BUFFER_SCRATCH_FLAG_HAS_SYLLABLES;
+
   hb_glyph_info_t *info = buffer->info;
   unsigned int count = buffer->len;
   for (unsigned int i = 0; i < count; i++)

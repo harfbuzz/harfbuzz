@@ -925,6 +925,8 @@ hb_ot_substitute_complex (const hb_ot_shape_context_t *c)
     hb_synthesize_glyph_classes (c->buffer);
 
   c->plan->substitute (c->font, buffer);
+
+  hb_ot_layout_substitute_finish (c->font, buffer);
 }
 
 static inline void

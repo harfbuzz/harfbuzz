@@ -198,7 +198,6 @@ collect_features_indic (hb_ot_shape_planner_t *plan)
   }
 
   map->add_gsub_pause (final_reordering_indic);
-  map->add_gsub_pause (_hb_clear_syllables);
 
   for (; i < INDIC_NUM_FEATURES; i++)
     map->add_feature (indic_features[i]);
@@ -357,6 +356,7 @@ setup_syllables_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		       hb_font_t *font HB_UNUSED,
 		       hb_buffer_t *buffer)
 {
+  buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_SYLLABLES;
   find_syllables_indic (buffer);
   foreach_syllable (buffer, start, end)
     buffer->unsafe_to_break (start, end);

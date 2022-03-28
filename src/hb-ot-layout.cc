@@ -1418,20 +1418,19 @@ hb_ot_layout_lookup_would_substitute (hb_face_t            *face,
 }
 
 
-/**
- * hb_ot_layout_substitute_start:
- * @font: #hb_font_t to use
- * @buffer: #hb_buffer_t buffer to work upon
- *
- * Called before substitution lookups are performed, to ensure that glyph
- * class and other properties are set on the glyphs in the buffer.
- *
- **/
 void
 hb_ot_layout_substitute_start (hb_font_t    *font,
 			       hb_buffer_t  *buffer)
 {
   _hb_ot_layout_set_glyph_props (font, buffer);
+}
+
+void
+hb_ot_layout_substitute_finish (hb_font_t    *font,
+				hb_buffer_t  *buffer)
+{
+  if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_SYLLABLES)
+    _hb_clear_syllables (nullptr, font, buffer);
 }
 
 void
