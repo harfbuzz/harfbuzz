@@ -408,9 +408,10 @@ struct hb_ot_apply_context_t :
   {
     matcher_t () :
 	     lookup_props (0),
+	     mask (-1),
 	     ignore_zwnj (false),
 	     ignore_zwj (false),
-	     mask (-1),
+	     per_syllable (false),
 	     syllable {0},
 	     match_func (nullptr),
 	     match_data (nullptr) {}
@@ -421,7 +422,8 @@ struct hb_ot_apply_context_t :
     void set_ignore_zwj (bool ignore_zwj_) { ignore_zwj = ignore_zwj_; }
     void set_lookup_props (unsigned int lookup_props_) { lookup_props = lookup_props_; }
     void set_mask (hb_mask_t mask_) { mask = mask_; }
-    void set_syllable (uint8_t syllable_)  { syllable = syllable_; }
+    void set_per_syllable (bool per_syllable_) { per_syllable = per_syllable_; }
+    void set_syllable (uint8_t syllable_)  { syllable = per_syllable ? syllable_ : 0; }
     void set_match_func (match_func_t match_func_,
 			 const void *match_data_)
     { match_func = match_func_; match_data = match_data_; }
@@ -467,9 +469,10 @@ struct hb_ot_apply_context_t :
 
     protected:
     unsigned int lookup_props;
+    hb_mask_t mask;
     bool ignore_zwnj;
     bool ignore_zwj;
-    hb_mask_t mask;
+    bool per_syllable;
     uint8_t syllable;
     match_func_t match_func;
     const void *match_data;
@@ -488,6 +491,7 @@ struct hb_ot_apply_context_t :
       /* Ignore ZWJ if we are matching context, or asked to. */
       matcher.set_ignore_zwj  (context_match || c->auto_zwj);
       matcher.set_mask (context_match ? -1 : c->lookup_mask);
+      matcher.set_per_syllable (c->per_syllable);
     }
     void set_lookup_props (unsigned int lookup_props)
     {
@@ -634,6 +638,7 @@ struct hb_ot_apply_context_t :
   bool has_glyph_classes;
   bool auto_zwnj;
   bool auto_zwj;
+  bool per_syllable;
   bool random;
 
   uint32_t random_state;
@@ -662,6 +667,7 @@ struct hb_ot_apply_context_t :
 			has_glyph_classes (gdef.has_glyph_classes ()),
 			auto_zwnj (true),
 			auto_zwj (true),
+			per_syllable (false),
 			random (false),
 			random_state (1) { init_iters (); }
 
@@ -674,6 +680,7 @@ struct hb_ot_apply_context_t :
   void set_lookup_mask (hb_mask_t mask) { lookup_mask = mask; init_iters (); }
   void set_auto_zwj (bool auto_zwj_) { auto_zwj = auto_zwj_; init_iters (); }
   void set_auto_zwnj (bool auto_zwnj_) { auto_zwnj = auto_zwnj_; init_iters (); }
+  void set_per_syllable (bool per_syllable_) { per_syllable = per_syllable_; init_iters (); }
   void set_random (bool random_) { random = random_; }
   void set_recurse_func (recurse_func_t func) { recurse_func = func; }
   void set_lookup_index (unsigned int lookup_index_) { lookup_index = lookup_index_; }
