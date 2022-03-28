@@ -411,9 +411,7 @@ struct hb_ot_apply_context_t :
 	     ignore_zwnj (false),
 	     ignore_zwj (false),
 	     mask (-1),
-#define arg1(arg) (arg) /* Remove the macro to see why it's needed! */
-	     syllable arg1(0),
-#undef arg1
+	     syllable {0},
 	     match_func (nullptr),
 	     match_data (nullptr) {}
 
