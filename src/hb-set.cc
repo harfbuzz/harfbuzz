@@ -629,7 +629,7 @@ hb_set_previous_range (const hb_set_t *set,
  *
  * Return value: the number of values written.
  *
- * Since: REPLACEME
+ * Since: 4.2.0
  **/
 unsigned int
 hb_set_next_many (const hb_set_t *set,

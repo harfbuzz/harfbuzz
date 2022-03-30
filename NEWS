@@ -1,3 +1,22 @@
+Overview of changes leading to 4.2.0
+Wednesday, March 30, 2022
+====================================
+- Source code reorganization, splitting large hb-ot-layout files into smaller,
+  per-subtable ones under OT/Layout/*. Code for more tables will follow suit in
+  later releases. (Garret Rieger, Behdad Esfahbod)
+- Revert Indic shaper change in previous release that broke some fonts and
+  instead make per-syllable restriction of “GSUB” application limited to
+  script-specific Indic features, while applying them and discretionary
+  features in one go. (Behdad Esfahbod)
+- Fix decoding of private in gvar table. (Behdad Esfahbod)
+- Fix handling of contextual lookups that delete too many glyphs. (Behdad Esfahbod)
+- Make “morx” deleted glyphs don’t block “GPOS” application. (Behdad Esfahbod)
+- Various build fixes. (Chun-wei Fan, Khaled Hosny)
+
+- New API
++hb_set_next_many() (Andrew John)
+
+
 Overview of changes leading to 4.1.0
 Wednesday, March 23, 2022
 ====================================
@@ -10,7 +29,8 @@ Wednesday, March 23, 2022
 - Various bug fixes.
 
 - New API
-+hb_set_add_sorted_array()
++hb_set_add_sorted_array() (Andrew John)
+
 
 Overview of changes leading to 4.0.1
 Friday, March 11, 2022
