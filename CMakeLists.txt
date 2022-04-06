@@ -462,7 +462,9 @@ if (UNIX OR MINGW)
     link_libraries(-Bsymbolic-functions)
   endif ()
 
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  # As of CMake 3.0.0, the compiler id for Apple-provided Clang is now "AppleClang";
+  # thus we use MATCHES instead of STREQUAL to include either regular Clang or AppleClang
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Make sure we don't link to libstdc++
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
     set (CMAKE_CXX_IMPLICIT_LINK_LIBRARIES "m") # libm
