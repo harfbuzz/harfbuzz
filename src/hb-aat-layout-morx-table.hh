@@ -992,6 +992,8 @@ struct Chain
     unsigned int count = subtableCount;
     for (unsigned int i = 0; i < count; i++)
     {
+      bool logical;
+      bool backwards;
       bool reverse;
 
       if (!(subtable->subFeatureFlags & flags))
@@ -1029,21 +1031,31 @@ struct Chain
 				(the order opposite that of the characters, which
 				may be right-to-left or left-to-right).
        */
-      reverse = subtable->get_coverage () & ChainSubtable<Types>::Logical ?
-		bool (subtable->get_coverage () & ChainSubtable<Types>::Backwards) :
-		bool (subtable->get_coverage () & ChainSubtable<Types>::Backwards) !=
-		HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
+      logical = subtable->get_coverage () & ChainSubtable<Types>::Logical;
+      backwards = subtable->get_coverage () & ChainSubtable<Types>::Backwards;
+      reverse = logical ? backwards : backwards != HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction);
 
       if (!c->buffer->message (c->font, "start chainsubtable %d", c->lookup_index))
 	goto skip;
 
+      // https://github.com/harfbuzz/harfbuzz/issues/3528#issuecomment-1090869393
       if (reverse)
-	_hb_ot_layout_reverse_graphemes (c->buffer);
+      {
+	if (backwards)
+	  hb_buffer_reverse (c->buffer);
+	else
+	  _hb_ot_layout_reverse_graphemes (c->buffer);
+      }
 
       subtable->apply (c);
 
       if (reverse)
-	_hb_ot_layout_reverse_graphemes (c->buffer);
+      {
+	if (backwards)
+	  hb_buffer_reverse (c->buffer);
+	else
+	  _hb_ot_layout_reverse_graphemes (c->buffer);
+      }
 
       (void) c->buffer->message (c->font, "end chainsubtable %d", c->lookup_index);
 
