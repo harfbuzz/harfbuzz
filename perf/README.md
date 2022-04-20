@@ -4,7 +4,7 @@ To build the benchmarks in this directory you need to set the benchmark
 option while configuring the build with meson:
 
 ```
-meson configure build -Dbenchmark=enabled
+meson configure build -Dbenchmark=enabled --buildtype=release
 ```
 
 Then build the benchmark binaries with ninja:
