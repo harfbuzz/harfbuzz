@@ -1,3 +1,6 @@
+/*
+ * Benchmarks for hb_set_t operations.
+ */
 #include "benchmark/benchmark.h"
 
 #include <cstdlib>
@@ -17,6 +20,8 @@ void RandomSet(unsigned size, unsigned max_value, hb_set_t* out) {
     }
   }
 }
+
+// TODO(garretrieger): benchmark union/subtract/intersection etc.
 
 /* Insert a single value into set of varying sizes. */
 static void BM_SetInsert(benchmark::State& state) {
