@@ -23,13 +23,19 @@ benchmark('perf', executable('perf', 'perf.cc',
 
 benchmark('benchmark-set', executable('benchmark-set', 'benchmark-set.cc',
   dependencies: [
-    google_benchmark_dep, freetype_dep,
-
-    # the last two, thread and dl, aren't nice as ttf-parser isn't no_std yet
-    # https://github.com/RazrFalcon/ttf-parser/issues/29
-    ttf_parser_dep, thread_dep, cpp.find_library('dl'),
+    google_benchmark_dep,
   ],
-  cpp_args: ttf_parser_dep.found() ? ['-DHAVE_TTFPARSER'] : [],
+  cpp_args: [],
+  include_directories: [incconfig, incsrc],
+  link_with: [libharfbuzz],
+  install: false,
+), workdir: meson.current_source_dir() / '..', timeout: 100)
+
+benchmark('benchmark-map', executable('benchmark-map', 'benchmark-map.cc',
+  dependencies: [
+    google_benchmark_dep,
+  ],
+  cpp_args: [],
   include_directories: [incconfig, incsrc],
   link_with: [libharfbuzz],
   install: false,
