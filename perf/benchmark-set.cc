@@ -44,10 +44,9 @@ static void BM_SetInsert_1000(benchmark::State& state) {
 }
 BENCHMARK(BM_SetInsert_1000)
     ->Unit(benchmark::kMicrosecond)
-    ->ArgsProduct({
-        benchmark::CreateRange(1 << 10, 1 << 16, 8), // Set size
-        benchmark::CreateRange(2, 400, 8) // Density
-      });
+    ->Ranges(
+        {{1 << 10, 1 << 16}, // Set Size
+         {2, 512}});          // Density
 
 /* Insert a 1000 values into set of varying sizes. */
 static void BM_SetOrderedInsert_1000(benchmark::State& state) {
@@ -70,10 +69,9 @@ static void BM_SetOrderedInsert_1000(benchmark::State& state) {
 }
 BENCHMARK(BM_SetOrderedInsert_1000)
     ->Unit(benchmark::kMicrosecond)
-    ->ArgsProduct({
-        benchmark::CreateRange(1 << 10, 1 << 16, 8), // Set size
-        benchmark::CreateRange(2, 400, 8) // Density
-      });
+    ->Ranges(
+        {{1 << 10, 1 << 16}, // Set Size
+         {2, 512}});          // Density
 
 /* Single value lookup on sets of various sizes. */
 static void BM_SetLookup(benchmark::State& state) {
@@ -92,10 +90,9 @@ static void BM_SetLookup(benchmark::State& state) {
   hb_set_destroy(original);
 }
 BENCHMARK(BM_SetLookup)
-    ->ArgsProduct({
-        benchmark::CreateRange(1 << 10, 1 << 16, 8), // Set size
-        benchmark::CreateRange(2, 400, 8) // Density
-      });
+    ->Ranges(
+        {{1 << 10, 1 << 16}, // Set Size
+         {2, 512}});          // Density
 
 /* Full iteration of sets of varying sizes. */
 static void BM_SetIteration(benchmark::State& state) {
@@ -114,9 +111,8 @@ static void BM_SetIteration(benchmark::State& state) {
   hb_set_destroy(original);
 }
 BENCHMARK(BM_SetIteration)
-    ->ArgsProduct({
-        benchmark::CreateRange(1 << 10, 1 << 16, 8), // Set size
-        benchmark::CreateRange(2, 400, 8) // Density
-      });
+    ->Ranges(
+        {{1 << 10, 1 << 16}, // Set Size
+         {2, 512}});          // Density
 
 BENCHMARK_MAIN();
