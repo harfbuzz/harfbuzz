@@ -12,24 +12,19 @@
 #define HB_UNUSED __attribute__((unused))
 
 static void
-_hb_move_to (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
+_hb_move_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, void *) {}
 
 static void
-_hb_line_to (hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED, void *user_data HB_UNUSED) {}
+_hb_line_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, void *) {}
 
 static void
-_hb_quadratic_to (hb_position_t control_x HB_UNUSED, hb_position_t control_y HB_UNUSED,
-		  hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
-		  void *user_data HB_UNUSED) {}
+_hb_quadratic_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, float, float, void *) {}
 
 static void
-_hb_cubic_to (hb_position_t control1_x HB_UNUSED, hb_position_t control1_y HB_UNUSED,
-	      hb_position_t control2_x HB_UNUSED, hb_position_t control2_y HB_UNUSED,
-	      hb_position_t to_x HB_UNUSED, hb_position_t to_y HB_UNUSED,
-	      void *user_data HB_UNUSED) {}
+_hb_cubic_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, float, float, float, float, void *) {}
 
 static void
-_hb_close_path (void *user_data HB_UNUSED) {}
+_hb_close_path (hb_draw_funcs_t *, void *, hb_draw_state_t *, void *) {}
 
 static void
 _ft_move_to (const FT_Vector* to HB_UNUSED, void* user HB_UNUSED) {}
@@ -75,15 +70,15 @@ static void draw (benchmark::State &state, const char *font_path, bool is_var, b
       hb_font_set_variations (font, &wght, 1);
     }
     hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
-    hb_draw_funcs_set_move_to_func (draw_funcs, _hb_move_to);
-    hb_draw_funcs_set_line_to_func (draw_funcs, _hb_line_to);
-    hb_draw_funcs_set_quadratic_to_func (draw_funcs, _hb_quadratic_to);
-    hb_draw_funcs_set_cubic_to_func (draw_funcs, _hb_cubic_to);
-    hb_draw_funcs_set_close_path_func (draw_funcs, _hb_close_path);
+    hb_draw_funcs_set_move_to_func (draw_funcs, _hb_move_to, nullptr, nullptr);
+    hb_draw_funcs_set_line_to_func (draw_funcs, _hb_line_to, nullptr, nullptr);
+    hb_draw_funcs_set_quadratic_to_func (draw_funcs, _hb_quadratic_to, nullptr, nullptr);
+    hb_draw_funcs_set_cubic_to_func (draw_funcs, _hb_cubic_to, nullptr, nullptr);
+    hb_draw_funcs_set_close_path_func (draw_funcs, _hb_close_path, nullptr, nullptr);
 
     for (auto _ : state)
       for (unsigned gid = 0; gid < num_glyphs; ++gid)
-	hb_font_draw_glyph (font, gid, draw_funcs, nullptr);
+	hb_font_get_glyph_shape (font, gid, draw_funcs, nullptr);
 
     hb_draw_funcs_destroy (draw_funcs);
   }
