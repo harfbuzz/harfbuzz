@@ -2,6 +2,9 @@
 
 #include "hb-subset.h"
 
+// TODO(garretrieger): TrueType CJK font.
+// TODO(garretrieger): Amiri + Devanagari
+
 void AddCodepoints(const hb_set_t* codepoints_in_font,
                    unsigned subset_size,
                    hb_subset_input_t* input)
