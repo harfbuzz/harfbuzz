@@ -56,6 +56,9 @@ static void extents (benchmark::State &state, const char *font_path, bool is_var
 
     hb_blob_destroy (blob);
     free (tp_font);
+#else
+    state.SkipWithError("ttfparser not available.");
+    return;
 #endif
   }
 

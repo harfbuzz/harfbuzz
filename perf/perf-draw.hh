@@ -130,6 +130,9 @@ static void draw (benchmark::State &state, const char *font_path, bool is_var, b
 
     hb_blob_destroy (blob);
     free (tp_font);
+#else
+    state.SkipWithError("ttfparser not available.");
+    return;
 #endif
   }
   else abort ();
