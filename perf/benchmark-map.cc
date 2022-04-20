@@ -39,7 +39,7 @@ static void BM_MapInsert(benchmark::State& state) {
   hb_map_destroy(original);
 }
 BENCHMARK(BM_MapInsert)
-    ->Range(1 << 10, 1 << 16);
+    ->Range(1 << 4, 1 << 20);
 
 /* Single value lookup on map of various sizes. */
 static void BM_MapLookup(benchmark::State& state) {
@@ -57,7 +57,7 @@ static void BM_MapLookup(benchmark::State& state) {
   hb_map_destroy(original);
 }
 BENCHMARK(BM_MapLookup)
-    ->Range(1 << 10, 1 << 16); // Set size
+    ->Range(1 << 4, 1 << 20); // Map size
 
 
 BENCHMARK_MAIN();
