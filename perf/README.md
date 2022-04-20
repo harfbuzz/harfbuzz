@@ -31,6 +31,7 @@ Configure the build to include debug information for profiling:
 
 ```
 CXXFLAGS="-fno-omit-frame-pointer" meson --reconfigure build -Dbenchmark=enabled --buildtype=debug
+ninja -Cbuild
 ```
 
 Then run the benchmark with perf:
