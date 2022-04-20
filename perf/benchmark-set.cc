@@ -23,8 +23,8 @@ void RandomSet(unsigned size, unsigned max_value, hb_set_t* out) {
 
 // TODO(garretrieger): benchmark union/subtract/intersection etc.
 
-/* Insert a single value into set of varying sizes. */
-static void BM_SetInsert(benchmark::State& state) {
+/* Insert a 1000 values into set of varying sizes. */
+static void BM_SetInsert_1000(benchmark::State& state) {
   unsigned set_size = state.range(0);
   unsigned max_value = state.range(0) * state.range(1);
 
@@ -33,23 +33,46 @@ static void BM_SetInsert(benchmark::State& state) {
   assert(hb_set_get_population(original) == set_size);
 
   for (auto _ : state) {
-    state.PauseTiming();
     hb_set_t* data = hb_set_copy(original);
-    state.ResumeTiming();
-
-    hb_set_add(data, rand() % max_value);
-
-    state.PauseTiming();
+    for (int i = 0; i < 1000; i++) {
+      hb_set_add(data, rand() % max_value);
+    }
     hb_set_destroy(data);
-    state.ResumeTiming();
   }
 
   hb_set_destroy(original);
 }
-BENCHMARK(BM_SetInsert)
+BENCHMARK(BM_SetInsert_1000)
+    ->Unit(benchmark::kMicrosecond)
     ->ArgsProduct({
         benchmark::CreateRange(1 << 10, 1 << 16, 8), // Set size
-        benchmark::CreateDenseRange(2, 8, /*step=*/2) // Density
+        benchmark::CreateRange(2, 400, 8) // Density
+      });
+
+/* Insert a 1000 values into set of varying sizes. */
+static void BM_SetOrderedInsert_1000(benchmark::State& state) {
+  unsigned set_size = state.range(0);
+  unsigned max_value = state.range(0) * state.range(1);
+
+  hb_set_t* original = hb_set_create ();
+  RandomSet(set_size, max_value, original);
+  assert(hb_set_get_population(original) == set_size);
+
+  for (auto _ : state) {
+    hb_set_t* data = hb_set_copy(original);
+    for (int i = 0; i < 1000; i++) {
+      hb_set_add(data, i);
+    }
+    hb_set_destroy(data);
+  }
+
+  hb_set_destroy(original);
+}
+BENCHMARK(BM_SetOrderedInsert_1000)
+    ->Unit(benchmark::kMicrosecond)
+    ->ArgsProduct({
+        benchmark::CreateRange(1 << 10, 1 << 16, 8), // Set size
+        benchmark::CreateRange(2, 400, 8) // Density
       });
 
 /* Single value lookup on sets of various sizes. */
@@ -71,7 +94,7 @@ static void BM_SetLookup(benchmark::State& state) {
 BENCHMARK(BM_SetLookup)
     ->ArgsProduct({
         benchmark::CreateRange(1 << 10, 1 << 16, 8), // Set size
-        benchmark::CreateDenseRange(2, 8, /*step=*/2) // Density
+        benchmark::CreateRange(2, 400, 8) // Density
       });
 
 /* Full iteration of sets of varying sizes. */
@@ -83,20 +106,17 @@ static void BM_SetIteration(benchmark::State& state) {
   RandomSet(set_size, max_value, original);
   assert(hb_set_get_population(original) == set_size);
 
+  hb_codepoint_t cp = HB_SET_VALUE_INVALID;
   for (auto _ : state) {
-    hb_codepoint_t cp = HB_SET_VALUE_INVALID;
-    while (hb_set_next (original, &cp)) {
-      continue;
-    }
+    hb_set_next (original, &cp);
   }
 
   hb_set_destroy(original);
 }
 BENCHMARK(BM_SetIteration)
-    ->Unit(benchmark::kMicrosecond)
     ->ArgsProduct({
         benchmark::CreateRange(1 << 10, 1 << 16, 8), // Set size
-        benchmark::CreateDenseRange(2, 8, /*step=*/2) // Density
+        benchmark::CreateRange(2, 400, 8) // Density
       });
 
 BENCHMARK_MAIN();
