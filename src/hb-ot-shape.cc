@@ -600,7 +600,7 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
    * https://github.com/harfbuzz/harfbuzz/issues/501
    *
    * Similar thing about Regional_Indicators; They are bidi=L, but Script=Common.
-   * If they are presentin a run of natively-RTL text, they get assigned a script
+   * If they are present in a run of natively-RTL text, they get assigned a script
    * with natively RTL direction, which would result in wrong shaping if we
    * assign such native RTL direction to them then. Detect that as well.
    *
