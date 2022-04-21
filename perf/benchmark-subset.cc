@@ -75,7 +75,7 @@ BENCHMARK_CAPTURE (BM_subset_codepoints, subset_noto_devangari,
     ->Range(10, 1000);
 
 BENCHMARK_CAPTURE (BM_subset_codepoints, subset_mplus1p,
-                   "perf/fonts/Mplus1p-Regular.ttf")
+                   "test/subset/data/fonts/Mplus1p-Regular.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 10000);
 
