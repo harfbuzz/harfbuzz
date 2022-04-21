@@ -5,7 +5,6 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/89c872f5ce1c42af802602bfcd15d90a)](https://www.codacy.com/gh/harfbuzz/harfbuzz/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=harfbuzz/harfbuzz&amp;utm_campaign=Badge_Grade)
 [![Codecov Code Coverage](https://codecov.io/gh/harfbuzz/harfbuzz/branch/main/graph/badge.svg)](https://codecov.io/gh/harfbuzz/harfbuzz)
 [![Packaging status](https://repology.org/badge/tiny-repos/harfbuzz.svg)](https://repology.org/project/harfbuzz/versions)
-[ABI Tracker](http://abi-laboratory.pro/tracker/timeline/harfbuzz/)
 
 This is HarfBuzz, a text shaping library.
 
