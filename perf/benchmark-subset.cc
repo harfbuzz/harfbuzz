@@ -79,9 +79,11 @@ BENCHMARK_CAPTURE (BM_subset_codepoints, subset_mplus1p,
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 10000);
 
+#if 0
 BENCHMARK_CAPTURE (BM_subset_codepoints, subset_notocjk,
                    "perf/fonts/NotoSansCJKsc-VF.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 100000);
+#endif
 
 BENCHMARK_MAIN();
