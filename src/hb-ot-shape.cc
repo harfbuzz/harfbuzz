@@ -47,6 +47,9 @@
 
 #include "hb-aat-layout.hh"
 
+static inline bool
+_hb_codepoint_is_regional_indicator (hb_codepoint_t u)
+{ return hb_in_range<hb_codepoint_t> (u, 0x1F1E6u, 0x1F1FFu); }
 
 #ifndef HB_NO_AAT_SHAPE
 static inline bool
@@ -504,9 +507,9 @@ hb_set_unicode_props (hb_buffer_t *buffer)
     }
     /* Regional_Indicators are hairy as hell...
      * https://github.com/harfbuzz/harfbuzz/issues/2265 */
-    else if (unlikely (i && hb_in_range<hb_codepoint_t> (info[i].codepoint, 0x1F1E6u, 0x1F1FFu)))
+    else if (unlikely (i && _hb_codepoint_is_regional_indicator (info[i].codepoint)))
     {
-      if (hb_in_range<hb_codepoint_t> (info[i - 1].codepoint, 0x1F1E6u, 0x1F1FFu) &&
+      if (_hb_codepoint_is_regional_indicator (info[i - 1].codepoint) &&
 	  !_hb_glyph_info_is_continuation (&info[i - 1]))
 	_hb_glyph_info_set_continuation (&info[i]);
     }
@@ -621,7 +624,7 @@ hb_ensure_native_direction (hb_buffer_t *buffer)
 	found_letter = true;
 	break;
       }
-      else if (hb_in_range<hb_codepoint_t> (info[i].codepoint, 0x1F1E6u, 0x1F1FFu))
+      else if (_hb_codepoint_is_regional_indicator (info[i].codepoint))
 	found_ri = true;
     }
     if ((found_number || found_ri) && !found_letter)
