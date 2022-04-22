@@ -1415,11 +1415,6 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
     if (idx >= count)
       continue;
 
-    /* Don't recurse to ourself at same position.
-     * Note that this test is too naive, it doesn't catch longer loops. */
-    if (unlikely (idx == 0 && lookupRecord[i].lookupListIndex == c->lookup_index))
-      continue;
-
     unsigned int orig_len = buffer->backtrack_len () + buffer->lookahead_len ();
 
     /* This can happen if earlier recursed lookups deleted many entries. */
