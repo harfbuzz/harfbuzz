@@ -1,3 +1,15 @@
+Overview of changes leading to 4.2.1
+Sunday, April 24, 2022
+====================================
+- Make sure hb_blob_create_from_file_or_fail() always returns nullptr in case
+  of failure and not empty blob sometimes. (Khaled Hosny)
+- Add --passthrough-tables option to hb-subset. (Cosimo Lupo)
+- Reinstate a pause after basic features in Khmer shaper, fixing a regression
+  introduced in previous release. (Behdad Esfahbod)
+- Better handling of Regional_Indicator when shaped with RTL-native scripts,
+  reverting earlier fix that caused regressions in AAT shaping. (Behdad Esfahbod)
+
+
 Overview of changes leading to 4.2.0
 Wednesday, March 30, 2022
 ====================================
