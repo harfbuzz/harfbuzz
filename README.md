@@ -65,6 +65,21 @@ For a comparison of old vs new HarfBuzz memory consumption see [this][10].
 
 <!--See past and upcoming [HarfBuzz Hackfests](https://freedesktop.org/wiki/Software/HarfBuzz/Hackfests/)!-->
 
+## Name
+
+HarfBuzz (حرف‌باز) is my Persian translation of “[OpenType][1]”,
+transliterated using the Latin script. It sports a second meaning, but that
+ain’t translatable.
+
+> Background: Originally there was this font format called TrueType. People and
+> companies started calling their type engines all things ending in Type:
+> FreeType, CoolType, ClearType, etc. And then came OpenType, which is the
+> successor of TrueType. So, for my OpenType implementation, I decided to stick
+> with the concept but use the Persian translation. Which is fitting given that
+> Persian is written in the Arabic script, and OpenType is an extension of
+> TrueType that adds support for complex script rendering, and HarfBuzz is an
+> implementation of OpenType complex text shaping.
+
 <details>
   <summary>Packaging status of HarfBuzz</summary>
 
