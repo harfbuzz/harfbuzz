@@ -284,7 +284,7 @@ struct CFFIndex
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely ((c->check_struct (this) && count == 0) || /* empty INDEX */
+    return_trace (likely ((c->check_struct (&count) && count == 0) || /* empty INDEX */
 			  (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
 			   c->check_array (offsets, offSize, count + 1) &&
 			   c->check_array ((const HBUINT8*) data_base (), 1, max_offset () - 1))));
