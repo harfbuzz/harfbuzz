@@ -285,14 +285,16 @@ struct CmapSubtableFormat4
     return true;
   }
 
+  template<typename Iterator,
+          hb_requires (hb_is_iterator (Iterator))>
   HBUINT16* serialize_rangeoffset_glyid (hb_serialize_context_t *c,
-                                         const hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>>& cp_to_gid_vector,
+                                         Iterator it,
 					 HBUINT16 *endCode,
 					 HBUINT16 *startCode,
 					 HBINT16 *idDelta,
 					 unsigned segcount)
   {
-    hb_hashmap_t<hb_codepoint_t, hb_codepoint_t> cp_to_gid {cp_to_gid_vector.iter()};
+    hb_hashmap_t<hb_codepoint_t, hb_codepoint_t> cp_to_gid { it };
 
     HBUINT16 *idRangeOffset = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return nullptr;
@@ -330,8 +332,10 @@ struct CmapSubtableFormat4
     if (unlikely (!c->extend_min (this))) return;
     this->format = 4;
 
-    hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> cp_to_gid;
-    + format4_iter | hb_sink (cp_to_gid);
+    // TODO(grieger): does pre-alloc make this faster?
+    hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> cp_to_gid {
+      format4_iter
+    };
 
     //serialize endCode[], startCode[], idDelta[]
     HBUINT16* endCode = c->start_embed<HBUINT16> ();
@@ -343,7 +347,7 @@ struct CmapSubtableFormat4
     HBINT16 *idDelta = ((HBINT16*)startCode) + segcount;
 
     HBUINT16 *idRangeOffset = serialize_rangeoffset_glyid (c,
-                                                           cp_to_gid,
+                                                           cp_to_gid.iter (),
                                                            endCode,
                                                            startCode,
                                                            idDelta,
