@@ -42,16 +42,27 @@ static void BM_Shape (benchmark::State &state, const test_input_t &input)
 
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
   assert (text_blob);
-  unsigned text_length;
-  const char *text = hb_blob_get_data (text_blob, &text_length);
+  unsigned orig_text_length;
+  const char *orig_text = hb_blob_get_data (text_blob, &orig_text_length);
 
   hb_buffer_t *buf = hb_buffer_create ();
   for (auto _ : state)
   {
-    hb_buffer_add_utf8 (buf, text, text_length, 0, -1);
-    hb_buffer_guess_segment_properties (buf);
-    hb_shape (font, buf, nullptr, 0);
-    hb_buffer_clear_contents (buf);
+    unsigned text_length = orig_text_length;
+    const char *text = orig_text;
+
+    const char *end;
+    while ((end = (const char *) memchr (text, '\n', text_length)))
+    {
+      hb_buffer_clear_contents (buf);
+      hb_buffer_add_utf8 (buf, text, text_length, 0, end - text);
+      hb_buffer_guess_segment_properties (buf);
+      hb_shape (font, buf, nullptr, 0);
+
+      unsigned skip = end - text + 1;
+      text_length -= skip;
+      text += skip;
+    }
   }
   hb_buffer_destroy (buf);
 
