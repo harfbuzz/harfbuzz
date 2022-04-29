@@ -109,22 +109,26 @@ struct CmapSubtableFormat4
 
     while (it) {
       // Start a new range
-      start_cp = (*it).first;
-      prev_run_start_cp = (*it).first;
-      run_start_cp = (*it).first;
-      end_cp = (*it).first;
-      last_gid = (*it).second;
-      run_length = 1;
-      prev_delta = 0;
+      {
+        const auto& pair = *it;
+        start_cp = pair.first;
+        prev_run_start_cp = start_cp;
+        run_start_cp = start_cp;
+        end_cp = start_cp;
+        last_gid = pair.second;
+        run_length = 1;
+        prev_delta = 0;
+      }
 
-      delta = (*it).second - (*it).first;
+      delta = last_gid - start_cp;
       mode = FIRST_SUB_RANGE;
       it++;
 
       while (it) {
         // Process range
-        hb_codepoint_t next_cp = (*it).first;
-        hb_codepoint_t next_gid = (*it).second;
+        const auto& pair = *it;
+        hb_codepoint_t next_cp = pair.first;
+        hb_codepoint_t next_gid = pair.second;
         if (next_cp != end_cp + 1) {
           // Current range is over, stop processing.
           break;
@@ -323,7 +327,7 @@ struct CmapSubtableFormat4
 		 { return _.first <= 0xFFFF; })
     ;
 
-    if (format4_iter.len () == 0) return;
+    if (!format4_iter) return;
 
     unsigned table_initpos = c->length ();
     if (unlikely (!c->extend_min (this))) return;
@@ -1474,7 +1478,7 @@ struct SubtableUnicodesCache {
       hb_set_t* new_set = hb_set_create ();
       if (!cached_unicodes.set ((intptr_t) record, new_set)) {
         hb_set_destroy (new_set);
-        return hb_set_empty ();
+        return hb_set_get_empty ();
       }
       (base+record->subtable).collect_unicodes (cached_unicodes.get ((intptr_t) record));
     }
