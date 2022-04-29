@@ -471,6 +471,8 @@ struct CmapSubtableFormat4
     void collect_mapping (hb_set_t *unicodes, /* OUT */
 			  hb_map_t *mapping /* OUT */) const
     {
+      // TODO(grieger): optimize similar to collect_unicodes
+      // (ie. use add_range())
       unsigned count = this->segCount;
       if (count && this->startCount[count - 1] == 0xFFFFu)
 	count--; /* Skip sentinel segment. */
@@ -1450,6 +1452,33 @@ struct EncodingRecord
   DEFINE_SIZE_STATIC (8);
 };
 
+struct SubtableUnicodesCache {
+
+ private:
+  const void* base;
+  hb_hashmap_t<const void*, hb_set_t*> cached_unicodes;
+
+ public:
+  SubtableUnicodesCache(const void* cmap_base)
+      : base(cmap_base), cached_unicodes() {}
+  ~SubtableUnicodesCache()
+  {
+    for (hb_set_t* s : cached_unicodes.values()) {
+      hb_set_destroy (s);
+    }
+  }
+
+  hb_set_t* set_for(const EncodingRecord* record)
+  {
+    if (!cached_unicodes.has (record)) {
+      cached_unicodes.set (record, hb_set_create ());
+      (base+record->subtable).collect_unicodes (cached_unicodes.get (record));
+    }
+    return cached_unicodes.get (record);
+  }
+
+};
+
 struct cmap
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_cmap;
@@ -1469,6 +1498,7 @@ struct cmap
     unsigned format4objidx = 0, format12objidx = 0, format14objidx = 0;
     auto snap = c->snapshot ();
 
+    SubtableUnicodesCache unicodes_cache (base);
     for (const EncodingRecord& _ : encodingrec_iter)
     {
       if (c->in_error ())
@@ -1477,12 +1507,11 @@ struct cmap
       unsigned format = (base+_.subtable).u.format;
       if (format != 4 && format != 12 && format != 14) continue;
 
-      hb_set_t unicodes_set;
-      (base+_.subtable).collect_unicodes (&unicodes_set);
+      hb_set_t* unicodes_set = unicodes_cache.set_for (&_);
 
       if (!drop_format_4 && format == 4)
       {
-        c->copy (_, + it | hb_filter (unicodes_set, hb_first), 4u, base, plan, &format4objidx);
+        c->copy (_, + it | hb_filter (*unicodes_set, hb_first), 4u, base, plan, &format4objidx);
         if (c->in_error () && c->only_overflow ())
         {
           // cmap4 overflowed, reset and retry serialization without format 4 subtables.
@@ -1497,8 +1526,8 @@ struct cmap
 
       else if (format == 12)
       {
-        if (_can_drop (_, unicodes_set, base, + it | hb_map (hb_first), encodingrec_iter)) continue;
-        c->copy (_, + it | hb_filter (unicodes_set, hb_first), 12u, base, plan, &format12objidx);
+        if (_can_drop (_, *unicodes_set, base, unicodes_cache, + it | hb_map (hb_first), encodingrec_iter)) continue;
+        c->copy (_, + it | hb_filter (*unicodes_set, hb_first), 12u, base, plan, &format12objidx);
       }
       else if (format == 14) c->copy (_, it, 14u, base, plan, &format14objidx);
     }
@@ -1516,6 +1545,7 @@ struct cmap
   bool _can_drop (const EncodingRecord& cmap12,
                   const hb_set_t& cmap12_unicodes,
                   const void* base,
+                  SubtableUnicodesCache& unicodes_cache,
                   Iterator subset_unicodes,
                   EncodingRecordIterator encoding_records)
   {
@@ -1546,11 +1576,10 @@ struct cmap
           || (base+_.subtable).get_language() != target_language)
         continue;
 
-      hb_set_t sibling_unicodes;
-      (base+_.subtable).collect_unicodes (&sibling_unicodes);
+      hb_set_t* sibling_unicodes = unicodes_cache.set_for (&_);
 
       auto cmap12 = + subset_unicodes | hb_filter (cmap12_unicodes);
-      auto sibling = + subset_unicodes | hb_filter (sibling_unicodes);
+      auto sibling = + subset_unicodes | hb_filter (*sibling_unicodes);
       for (; cmap12 && sibling; cmap12++, sibling++)
       {
         unsigned a = *cmap12;
