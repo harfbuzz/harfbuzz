@@ -440,14 +440,14 @@ struct CmapSubtableFormat4
 	hb_codepoint_t start = this->startCount[i];
 	hb_codepoint_t end = this->endCount[i];
 	unsigned int rangeOffset = this->idRangeOffset[i];
+        out->add_range(start, end);
 	if (rangeOffset == 0)
 	{
 	  for (hb_codepoint_t codepoint = start; codepoint <= end; codepoint++)
 	  {
 	    hb_codepoint_t gid = (codepoint + this->idDelta[i]) & 0xFFFFu;
 	    if (unlikely (!gid))
-	      continue;
-	    out->add (codepoint);
+              out->del(codepoint);
 	  }
 	}
 	else
@@ -456,11 +456,13 @@ struct CmapSubtableFormat4
 	  {
 	    unsigned int index = rangeOffset / 2 + (codepoint - this->startCount[i]) + i - this->segCount;
 	    if (unlikely (index >= this->glyphIdArrayLength))
+            {
+              out->del_range (codepoint, end);
 	      break;
+            }
 	    hb_codepoint_t gid = this->glyphIdArray[index];
 	    if (unlikely (!gid))
-	      continue;
-	    out->add (codepoint);
+              out->del(codepoint);
 	  }
 	}
       }
