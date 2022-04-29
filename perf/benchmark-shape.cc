@@ -1,14 +1,38 @@
 #include "benchmark/benchmark.h"
+#include <cstring>
 
 #include "hb.h"
 
-static void shape (benchmark::State &state, const char *text_path,
-		   hb_direction_t direction, hb_script_t script,
-		   const char *font_path)
+struct test_input_t
+{
+  const char *text_path;
+  const char *font_path;
+} tests[] =
+{
+  {"perf/texts/fa-thelittleprince.txt",
+   "perf/fonts/Amiri-Regular.ttf"},
+
+  {"perf/texts/fa-thelittleprince.txt",
+   "perf/fonts/NotoNastaliqUrdu-Regular.ttf"},
+
+  {"perf/texts/fa-monologue.txt",
+   "perf/fonts/Amiri-Regular.ttf"},
+
+  {"perf/texts/fa-monologue.txt",
+   "perf/fonts/NotoNastaliqUrdu-Regular.ttf"},
+
+  {"perf/texts/en-thelittleprince.txt",
+   "perf/fonts/Roboto-Regular.ttf"},
+
+  {"perf/texts/en-words.txt",
+   "perf/fonts/Roboto-Regular.ttf"},
+};
+
+static void BM_Shape (benchmark::State &state, const test_input_t &input)
 {
   hb_font_t *font;
   {
-    hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_path);
+    hb_blob_t *blob = hb_blob_create_from_file_or_fail (input.font_path);
     assert (blob);
     hb_face_t *face = hb_face_create (blob, 0);
     hb_blob_destroy (blob);
@@ -16,7 +40,7 @@ static void shape (benchmark::State &state, const char *text_path,
     hb_face_destroy (face);
   }
 
-  hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (text_path);
+  hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
   assert (text_blob);
   unsigned text_length;
   const char *text = hb_blob_get_data (text_blob, &text_length);
@@ -25,8 +49,7 @@ static void shape (benchmark::State &state, const char *text_path,
   for (auto _ : state)
   {
     hb_buffer_add_utf8 (buf, text, text_length, 0, -1);
-    hb_buffer_set_direction (buf, direction);
-    hb_buffer_set_script (buf, script);
+    hb_buffer_guess_segment_properties (buf);
     hb_shape (font, buf, nullptr, 0);
     hb_buffer_clear_contents (buf);
   }
@@ -36,32 +59,19 @@ static void shape (benchmark::State &state, const char *text_path,
   hb_font_destroy (font);
 }
 
-BENCHMARK_CAPTURE (shape, fa-thelittleprince.txt - Amiri,
-		   "perf/texts/fa-thelittleprince.txt",
-		   HB_DIRECTION_RTL, HB_SCRIPT_ARABIC,
-		   "perf/fonts/Amiri-Regular.ttf");
-BENCHMARK_CAPTURE (shape, fa-thelittleprince.txt - NotoNastaliqUrdu,
-		   "perf/texts/fa-thelittleprince.txt",
-		   HB_DIRECTION_RTL, HB_SCRIPT_ARABIC,
-		   "perf/fonts/NotoNastaliqUrdu-Regular.ttf");
+int main(int argc, char** argv)
+{
+  for (auto& test_input : tests)
+  {
+    char name[1024] = "BM_Shape";
+    strcat (name, strrchr (test_input.text_path, '/'));
+    strcat (name, strrchr (test_input.font_path, '/'));
 
-BENCHMARK_CAPTURE (shape, fa-monologue.txt - Amiri,
-		   "perf/texts/fa-monologue.txt",
-		   HB_DIRECTION_RTL, HB_SCRIPT_ARABIC,
-		   "perf/fonts/Amiri-Regular.ttf");
-BENCHMARK_CAPTURE (shape, fa-monologue.txt - NotoNastaliqUrdu,
-		   "perf/texts/fa-monologue.txt",
-		   HB_DIRECTION_RTL, HB_SCRIPT_ARABIC,
-		   "perf/fonts/NotoNastaliqUrdu-Regular.ttf");
+    benchmark::RegisterBenchmark (name, BM_Shape, test_input)
+     ->Unit(benchmark::kMillisecond);
+  }
 
-BENCHMARK_CAPTURE (shape, en-thelittleprince.txt - Roboto,
-		   "perf/texts/en-thelittleprince.txt",
-		   HB_DIRECTION_LTR, HB_SCRIPT_LATIN,
-		   "perf/fonts/Roboto-Regular.ttf");
-
-BENCHMARK_CAPTURE (shape, en-words.txt - Roboto,
-		   "perf/texts/en-words.txt",
-		   HB_DIRECTION_LTR, HB_SCRIPT_LATIN,
-		   "perf/fonts/Roboto-Regular.ttf");
-
-BENCHMARK_MAIN();
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
+}
