@@ -1471,7 +1471,11 @@ struct SubtableUnicodesCache {
   hb_set_t* set_for(const EncodingRecord* record)
   {
     if (!cached_unicodes.has ((intptr_t) record)) {
-      cached_unicodes.set ((intptr_t) record, hb_set_create ());
+      hb_set_t* new_set = hb_set_create ();
+      if (!cached_unicodes.set ((intptr_t) record, new_set)) {
+        hb_set_destroy (new_set);
+        return hb_set_empty ();
+      }
       (base+record->subtable).collect_unicodes (cached_unicodes.get ((intptr_t) record));
     }
     return cached_unicodes.get ((intptr_t) record);
