@@ -82,9 +82,10 @@ static void BM_SetLookup(benchmark::State& state) {
   RandomSet(set_size, max_value, original);
   assert(hb_set_get_population(original) == set_size);
 
+  auto needle = max_value / 2;
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        hb_set_has (original, rand() % max_value));
+        hb_set_has (original, needle));
   }
 
   hb_set_destroy(original);
