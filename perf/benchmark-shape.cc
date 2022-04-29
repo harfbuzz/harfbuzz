@@ -63,3 +63,5 @@ BENCHMARK_CAPTURE (shape, en-words.txt - Roboto,
 		   "perf/texts/en-words.txt",
 		   HB_DIRECTION_LTR, HB_SCRIPT_LATIN,
 		   "perf/fonts/Roboto-Regular.ttf");
+
+BENCHMARK_MAIN();

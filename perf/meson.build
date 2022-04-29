@@ -21,6 +21,16 @@ benchmark('perf', executable('perf', 'perf.cc',
 ), workdir: meson.current_source_dir() / '..', timeout: 100)
 
 
+benchmark('benchmark-shape', executable('benchmark-shape', 'benchmark-shape.cc',
+  dependencies: [
+    google_benchmark_dep,
+  ],
+  cpp_args: [],
+  include_directories: [incconfig, incsrc],
+  link_with: [libharfbuzz],
+  install: false,
+), workdir: meson.current_source_dir() / '..', timeout: 100)
+
 benchmark('benchmark-set', executable('benchmark-set', 'benchmark-set.cc',
   dependencies: [
     google_benchmark_dep,
