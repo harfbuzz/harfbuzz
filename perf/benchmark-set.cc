@@ -85,7 +85,7 @@ static void BM_SetLookup(benchmark::State& state) {
   auto needle = max_value / 2;
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        hb_set_has (original, needle++));
+        hb_set_has (original, needle++ % max_value));
   }
 
   hb_set_destroy(original);
