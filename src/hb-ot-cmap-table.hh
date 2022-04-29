@@ -285,17 +285,14 @@ struct CmapSubtableFormat4
     return true;
   }
 
-  template<typename Iterator,
-	   hb_requires (hb_is_iterator (Iterator))>
   HBUINT16* serialize_rangeoffset_glyid (hb_serialize_context_t *c,
-					 Iterator it,
+                                         const hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>>& cp_to_gid_vector,
 					 HBUINT16 *endCode,
 					 HBUINT16 *startCode,
 					 HBINT16 *idDelta,
 					 unsigned segcount)
   {
-    hb_hashmap_t<hb_codepoint_t, hb_codepoint_t> cp_to_gid;
-    + it | hb_sink (cp_to_gid);
+    hb_hashmap_t<hb_codepoint_t, hb_codepoint_t> cp_to_gid {cp_to_gid_vector.iter()};
 
     HBUINT16 *idRangeOffset = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return nullptr;
@@ -333,16 +330,24 @@ struct CmapSubtableFormat4
     if (unlikely (!c->extend_min (this))) return;
     this->format = 4;
 
+    hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> cp_to_gid;
+    + format4_iter | hb_sink (cp_to_gid);
+
     //serialize endCode[], startCode[], idDelta[]
     HBUINT16* endCode = c->start_embed<HBUINT16> ();
-    unsigned segcount = serialize_find_segcount (format4_iter);
-    if (unlikely (!serialize_start_end_delta_arrays (c, format4_iter, segcount)))
+    unsigned segcount = serialize_find_segcount (cp_to_gid.iter());
+    if (unlikely (!serialize_start_end_delta_arrays (c, cp_to_gid.iter(), segcount)))
       return;
 
     HBUINT16 *startCode = endCode + segcount + 1;
     HBINT16 *idDelta = ((HBINT16*)startCode) + segcount;
 
-    HBUINT16 *idRangeOffset = serialize_rangeoffset_glyid (c, format4_iter, endCode, startCode, idDelta, segcount);
+    HBUINT16 *idRangeOffset = serialize_rangeoffset_glyid (c,
+                                                           cp_to_gid,
+                                                           endCode,
+                                                           startCode,
+                                                           idDelta,
+                                                           segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return;
 
     this->length = c->length () - table_initpos;
