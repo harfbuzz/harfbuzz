@@ -1456,7 +1456,7 @@ struct SubtableUnicodesCache {
 
  private:
   const void* base;
-  hb_hashmap_t<const void*, hb_set_t*> cached_unicodes;
+  hb_hashmap_t<intptr_t, hb_set_t*> cached_unicodes;
 
  public:
   SubtableUnicodesCache(const void* cmap_base)
@@ -1470,11 +1470,11 @@ struct SubtableUnicodesCache {
 
   hb_set_t* set_for(const EncodingRecord* record)
   {
-    if (!cached_unicodes.has (record)) {
-      cached_unicodes.set (record, hb_set_create ());
-      (base+record->subtable).collect_unicodes (cached_unicodes.get (record));
+    if (!cached_unicodes.has ((intptr_t) record)) {
+      cached_unicodes.set ((intptr_t) record, hb_set_create ());
+      (base+record->subtable).collect_unicodes (cached_unicodes.get ((intptr_t) record));
     }
-    return cached_unicodes.get (record);
+    return cached_unicodes.get ((intptr_t) record);
   }
 
 };
