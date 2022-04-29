@@ -908,11 +908,25 @@ struct hb_bit_set_t
   }
   const page_t *page_for (hb_codepoint_t g) const
   {
-    page_map_t key = {get_major (g)};
-    const page_map_t *found = page_map.bsearch (key);
-    if (found)
-      return &pages[found->index];
-    return nullptr;
+    unsigned major = get_major (g);
+
+    /* The extra page_map length is necessary; can't just rely on vector here,
+     * since the next check would be tricked because a null page also has
+     * major==0, which we can't distinguish from an actualy major==0 page... */
+    if (likely (last_page_lookup < page_map.length))
+    {
+      auto &cached_page = page_map.arrayZ[last_page_lookup];
+      if (cached_page.major == major)
+	return &pages[cached_page.index];
+    }
+
+    page_map_t key = {major};
+    unsigned int i;
+    if (!page_map.bfind (key, &i))
+      return nullptr;
+
+    last_page_lookup = i;
+    return &pages[page_map[i].index];
   }
   page_t &page_at (unsigned int i) { return pages[page_map[i].index]; }
   const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }
