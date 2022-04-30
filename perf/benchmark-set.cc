@@ -74,7 +74,7 @@ BENCHMARK(BM_SetOrderedInsert_1000)
          {2, 512}});          // Density
 
 /* Single value lookup on sets of various sizes. */
-static void BM_SetLookup(benchmark::State& state) {
+static void BM_SetLookup(benchmark::State& state, unsigned interval) {
   unsigned set_size = state.range(0);
   unsigned max_value = state.range(0) * state.range(1);
 
@@ -82,14 +82,19 @@ static void BM_SetLookup(benchmark::State& state) {
   RandomSet(set_size, max_value, original);
   assert(hb_set_get_population(original) == set_size);
 
+  auto needle = max_value / 2;
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        hb_set_has (original, rand() % max_value));
+        hb_set_has (original, (needle += interval) % max_value));
   }
 
   hb_set_destroy(original);
 }
-BENCHMARK(BM_SetLookup)
+BENCHMARK_CAPTURE(BM_SetLookup, ordered, 3)
+    ->Ranges(
+        {{1 << 10, 1 << 16}, // Set Size
+         {2, 512}});          // Density
+BENCHMARK_CAPTURE(BM_SetLookup, random, 12345)
     ->Ranges(
         {{1 << 10, 1 << 16}, // Set Size
          {2, 512}});          // Density

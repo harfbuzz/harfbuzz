@@ -437,6 +437,7 @@ test/shape/data/text-rendering-tests/Makefile
 test/subset/Makefile
 test/subset/data/Makefile
 test/subset/data/repack_tests/Makefile
+perf/Makefile
 docs/Makefile
 docs/version.xml
 ])

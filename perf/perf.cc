@@ -4,7 +4,6 @@
 #include "config.h"
 #endif
 
-#include "perf-shaping.hh"
 #ifdef HAVE_FREETYPE
 enum backend_t { HARFBUZZ, FREETYPE, TTF_PARSER };
 #include "perf-extents.hh"

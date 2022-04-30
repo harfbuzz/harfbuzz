@@ -874,7 +874,19 @@ struct hb_bit_set_t
 
   page_t *page_for (hb_codepoint_t g, bool insert = false)
   {
-    page_map_t map = {get_major (g), pages.length};
+    unsigned major = get_major (g);
+
+    /* The extra page_map length is necessary; can't just rely on vector here,
+     * since the next check would be tricked because a null page also has
+     * major==0, which we can't distinguish from an actualy major==0 page... */
+    if (likely (last_page_lookup < page_map.length))
+    {
+      auto &cached_page = page_map.arrayZ[last_page_lookup];
+      if (cached_page.major == major)
+	return &pages[cached_page.index];
+    }
+
+    page_map_t map = {major, pages.length};
     unsigned int i;
     if (!page_map.bfind (map, &i, HB_NOT_FOUND_STORE_CLOSEST))
     {
@@ -890,15 +902,31 @@ struct hb_bit_set_t
 	       (page_map.length - 1 - i) * page_map.item_size);
       page_map[i] = map;
     }
+
+    last_page_lookup = i;
     return &pages[page_map[i].index];
   }
   const page_t *page_for (hb_codepoint_t g) const
   {
-    page_map_t key = {get_major (g)};
-    const page_map_t *found = page_map.bsearch (key);
-    if (found)
-      return &pages[found->index];
-    return nullptr;
+    unsigned major = get_major (g);
+
+    /* The extra page_map length is necessary; can't just rely on vector here,
+     * since the next check would be tricked because a null page also has
+     * major==0, which we can't distinguish from an actualy major==0 page... */
+    if (likely (last_page_lookup < page_map.length))
+    {
+      auto &cached_page = page_map.arrayZ[last_page_lookup];
+      if (cached_page.major == major)
+	return &pages[cached_page.index];
+    }
+
+    page_map_t key = {major};
+    unsigned int i;
+    if (!page_map.bfind (key, &i))
+      return nullptr;
+
+    last_page_lookup = i;
+    return &pages[page_map[i].index];
   }
   page_t &page_at (unsigned int i) { return pages[page_map[i].index]; }
   const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }

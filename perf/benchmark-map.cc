@@ -29,11 +29,13 @@ static void BM_MapInsert(benchmark::State& state) {
   RandomMap(map_size, original);
   assert(hb_map_get_population(original) == map_size);
 
+  auto needle = map_size / 2;
+  auto v = 0;
   for (auto _ : state) {
     // TODO(garretrieger): create a copy of the original map.
     //                     Needs a hb_map_copy(..) in public api.
 
-    hb_map_set (original, rand (), rand ());
+    hb_map_set (original, needle++, v++);
   }
 
   hb_map_destroy(original);
@@ -49,9 +51,11 @@ static void BM_MapLookup(benchmark::State& state) {
   RandomMap(map_size, original);
   assert(hb_map_get_population(original) == map_size);
 
+  auto needle = map_size / 2;
+
   for (auto _ : state) {
     benchmark::DoNotOptimize(
-        hb_map_get (original, rand()));
+        hb_map_get (original, needle++));
   }
 
   hb_map_destroy(original);
