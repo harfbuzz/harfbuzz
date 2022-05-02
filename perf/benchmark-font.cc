@@ -4,12 +4,31 @@
 #include "hb-ot.h"
 #include "hb-ft.h"
 
+
+#define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
+
+struct test_input_t
+{
+  const char *font_path;
+} tests[] =
+{
+  {SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
+  {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
+  {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
+  {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
+  {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
+  {SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
+  {SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
+  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
+};
+
+
 enum backend_t { HARFBUZZ, FREETYPE };
 
 enum operation_t
 {
-  GLYPH_EXTENTS,
-  GLYPH_SHAPE,
+  glyph_extents,
+  glyph_shape,
 };
 
 static void
@@ -39,12 +58,14 @@ _draw_funcs_create (void)
   return draw_funcs;
 }
 
-static void BM_test (benchmark::State &state, const char *font_path, bool is_var, backend_t backend, operation_t operation)
+static void BM_Font (benchmark::State &state,
+		     bool is_var, backend_t backend, operation_t operation,
+		     const test_input_t &test_input)
 {
   hb_font_t *font;
   unsigned num_glyphs;
   {
-    hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_path);
+    hb_blob_t *blob = hb_blob_create_from_file_or_fail (test_input.font_path);
     assert (blob);
     hb_face_t *face = hb_face_create (blob, 0);
     hb_blob_destroy (blob);
@@ -72,7 +93,7 @@ static void BM_test (benchmark::State &state, const char *font_path, bool is_var
 
   switch (operation)
   {
-    case GLYPH_EXTENTS:
+    case glyph_extents:
     {
       hb_glyph_extents_t extents;
       for (auto _ : state)
@@ -80,7 +101,7 @@ static void BM_test (benchmark::State &state, const char *font_path, bool is_var
 	  hb_font_get_glyph_extents (font, gid, &extents);
       break;
     }
-    case GLYPH_SHAPE:
+    case glyph_shape:
     {
       hb_draw_funcs_t *draw_funcs = _draw_funcs_create ();
       for (auto _ : state)
@@ -95,56 +116,42 @@ static void BM_test (benchmark::State &state, const char *font_path, bool is_var
   hb_font_destroy (font);
 }
 
-#define FONT_BASE_PATH "test/subset/data/fonts/"
+static void test_backend (backend_t backend,
+			  const char *backend_name,
+			  operation_t op,
+			  const char *op_name,
+			  const test_input_t &test_input)
+{
+  char name[1024] = "BM_Font/";
+  strcat (name, op_name);
+  strcat (name, "/");
+  strcat (name, backend_name);
+  strcat (name, strrchr (test_input.font_path, '/'));
 
+  benchmark::RegisterBenchmark (name, BM_Font, false, backend, op, test_input)
+   ->Unit(benchmark::kMicrosecond);
+}
 
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/cff - ot - SourceSansPro, FONT_BASE_PATH "SourceSansPro-Regular.otf", false, HARFBUZZ, GLYPH_EXTENTS);
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/cff - ft - SourceSansPro, FONT_BASE_PATH "SourceSansPro-Regular.otf", false, FREETYPE, GLYPH_EXTENTS);
+static void test_operation (operation_t op,
+			    const char *op_name)
+{
+  for (auto& test_input : tests)
+  {
+    test_backend (HARFBUZZ, "hb", op, op_name, test_input);
+    test_backend (FREETYPE, "ft", op, op_name, test_input);
+  }
+}
 
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/cff2 - ot - AdobeVFPrototype, FONT_BASE_PATH "AdobeVFPrototype.otf", false, HARFBUZZ, GLYPH_EXTENTS);
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/cff2 - ft - AdobeVFPrototype, FONT_BASE_PATH "AdobeVFPrototype.otf", false, FREETYPE, GLYPH_EXTENTS);
+int main(int argc, char** argv)
+{
+#define TEST_OPERATION(op) test_operation (op, #op)
 
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/cff2/vf - ot - AdobeVFPrototype, FONT_BASE_PATH "AdobeVFPrototype.otf", true, HARFBUZZ, GLYPH_EXTENTS);
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/cff2/vf - ft - AdobeVFPrototype, FONT_BASE_PATH "AdobeVFPrototype.otf", true, FREETYPE, GLYPH_EXTENTS);
+  TEST_OPERATION (glyph_extents);
+  TEST_OPERATION (glyph_shape);
 
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf - ot - SourceSerifVariable, FONT_BASE_PATH "SourceSerifVariable-Roman.ttf", false, HARFBUZZ, GLYPH_EXTENTS);
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf - ft - SourceSerifVariable, FONT_BASE_PATH "SourceSerifVariable-Roman.ttf", false, FREETYPE, GLYPH_EXTENTS);
+#undef TEST_OPERATION
 
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf/vf - ot - SourceSerifVariable, FONT_BASE_PATH "SourceSerifVariable-Roman.ttf", true, HARFBUZZ, GLYPH_EXTENTS);
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf/vf - ft - SourceSerifVariable, FONT_BASE_PATH "SourceSerifVariable-Roman.ttf", true, FREETYPE, GLYPH_EXTENTS);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf - ot - Comfortaa, FONT_BASE_PATH "Comfortaa-Regular-new.ttf", false, HARFBUZZ, GLYPH_EXTENTS);
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf - ft - Comfortaa, FONT_BASE_PATH "Comfortaa-Regular-new.ttf", false, FREETYPE, GLYPH_EXTENTS);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf/vf - ot - Comfortaa, FONT_BASE_PATH "Comfortaa-Regular-new.ttf", true, HARFBUZZ, GLYPH_EXTENTS);
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf/vf - ft - Comfortaa, FONT_BASE_PATH "Comfortaa-Regular-new.ttf", true, FREETYPE, GLYPH_EXTENTS);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf - ot - Roboto, FONT_BASE_PATH "Roboto-Regular.ttf", false, HARFBUZZ, GLYPH_EXTENTS);
-BENCHMARK_CAPTURE (BM_test, GLYPH_EXTENTS/glyf - ft - Roboto, FONT_BASE_PATH "Roboto-Regular.ttf", false, FREETYPE, GLYPH_EXTENTS);
-
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/cff - ot - SourceSansPro, FONT_BASE_PATH "SourceSansPro-Regular.otf", false, HARFBUZZ, GLYPH_SHAPE);
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/cff - ft - SourceSansPro, FONT_BASE_PATH "SourceSansPro-Regular.otf", false, FREETYPE, GLYPH_SHAPE);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/cff2 - ot - AdobeVFPrototype, FONT_BASE_PATH "AdobeVFPrototype.otf", false, HARFBUZZ, GLYPH_SHAPE);
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/cff2 - ft - AdobeVFPrototype, FONT_BASE_PATH "AdobeVFPrototype.otf", false, FREETYPE, GLYPH_SHAPE);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/cff2/vf - ot - AdobeVFPrototype, FONT_BASE_PATH "AdobeVFPrototype.otf", true, HARFBUZZ, GLYPH_SHAPE);
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/cff2/vf - ft - AdobeVFPrototype, FONT_BASE_PATH "AdobeVFPrototype.otf", true, FREETYPE, GLYPH_SHAPE);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf - ot - SourceSerifVariable, FONT_BASE_PATH "SourceSerifVariable-Roman.ttf", false, HARFBUZZ, GLYPH_SHAPE);
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf - ft - SourceSerifVariable, FONT_BASE_PATH "SourceSerifVariable-Roman.ttf", false, FREETYPE, GLYPH_SHAPE);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf/vf - ot - SourceSerifVariable, FONT_BASE_PATH "SourceSerifVariable-Roman.ttf", true, HARFBUZZ, GLYPH_SHAPE);
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf/vf - ft - SourceSerifVariable, FONT_BASE_PATH "SourceSerifVariable-Roman.ttf", true, FREETYPE, GLYPH_SHAPE);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf - ot - Comfortaa, FONT_BASE_PATH "Comfortaa-Regular-new.ttf", false, HARFBUZZ, GLYPH_SHAPE);
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf - ft - Comfortaa, FONT_BASE_PATH "Comfortaa-Regular-new.ttf", false, FREETYPE, GLYPH_SHAPE);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf/vf - ot - Comfortaa, FONT_BASE_PATH "Comfortaa-Regular-new.ttf", true, HARFBUZZ, GLYPH_SHAPE);
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf/vf - ft - Comfortaa, FONT_BASE_PATH "Comfortaa-Regular-new.ttf", true, FREETYPE, GLYPH_SHAPE);
-
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf - ot - Roboto, FONT_BASE_PATH "Roboto-Regular.ttf", false, HARFBUZZ, GLYPH_SHAPE);
-BENCHMARK_CAPTURE (BM_test, GLYPH_SHAPE/glyf - ft - Roboto, FONT_BASE_PATH "Roboto-Regular.ttf", false, FREETYPE, GLYPH_SHAPE);
-
-BENCHMARK_MAIN ();
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
+}
