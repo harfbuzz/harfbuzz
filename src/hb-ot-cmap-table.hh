@@ -44,7 +44,7 @@ struct CmapSubtableFormat0
   bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     hb_codepoint_t gid = codepoint < 256 ? glyphIdArray[codepoint] : 0;
-    if (!gid)
+    if (unlikely (!gid))
       return false;
     *glyph = gid;
     return true;
@@ -414,7 +414,7 @@ struct CmapSubtableFormat4
 					  2,
 					  _hb_cmp_method<hb_codepoint_t, CustomRange, unsigned>,
 					  this->segCount + 1);
-      if (!found)
+      if (unlikely (!found))
 	return false;
       unsigned int i = found - endCount;
 
@@ -434,7 +434,7 @@ struct CmapSubtableFormat4
 	gid += this->idDelta[i];
       }
       gid &= 0xFFFFu;
-      if (!gid)
+      if (unlikely (!gid))
 	return false;
       *glyph = gid;
       return true;
@@ -637,7 +637,7 @@ struct CmapSubtableTrimmed
   {
     /* Rely on our implicit array bound-checking. */
     hb_codepoint_t gid = glyphIdArray[codepoint - startCharCode];
-    if (!gid)
+    if (unlikely (!gid))
       return false;
     *glyph = gid;
     return true;
@@ -701,7 +701,7 @@ struct CmapSubtableLongSegmented
   bool get_glyph (hb_codepoint_t codepoint, hb_codepoint_t *glyph) const
   {
     hb_codepoint_t gid = T::group_get_glyph (groups.bsearch (codepoint), codepoint);
-    if (!gid)
+    if (unlikely (!gid))
       return false;
     *glyph = gid;
     return true;
