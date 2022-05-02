@@ -1,8 +1,15 @@
 #include "benchmark/benchmark.h"
+#include <cstring>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "hb.h"
 #include "hb-ot.h"
+#ifdef HAVE_FREETYPE
 #include "hb-ft.h"
+#endif
 
 
 #define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
@@ -88,7 +95,9 @@ static void BM_Font (benchmark::State &state,
       break;
 
     case FREETYPE:
+#ifdef HAVE_FREETYPE
       hb_ft_font_set_funcs (font);
+#endif
       break;
   }
 
@@ -160,7 +169,9 @@ static void test_operation (operation_t op,
   for (auto& test_input : tests)
   {
     test_backend (HARFBUZZ, "hb", op, op_name, time_unit, test_input);
+#ifdef HAVE_FREETYPE
     test_backend (FREETYPE, "ft", op, op_name, time_unit, test_input);
+#endif
   }
 }
 
