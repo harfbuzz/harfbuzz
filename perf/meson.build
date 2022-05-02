@@ -1,7 +1,7 @@
 google_benchmark = subproject('google-benchmark')
 google_benchmark_dep = google_benchmark.get_variable('google_benchmark_dep')
 
-benchmark('perf', executable('perf', 'perf.cc',
+benchmark('benchmark-font', executable('benchmark-font', 'benchmark-font.cc',
   dependencies: [
     google_benchmark_dep, freetype_dep,
   ],
@@ -11,8 +11,7 @@ benchmark('perf', executable('perf', 'perf.cc',
   install: false,
 ), workdir: meson.current_source_dir() / '..', timeout: 100)
 
-
-benchmark('benchmark-shape', executable('benchmark-shape', 'benchmark-shape.cc',
+benchmark('benchmark-map', executable('benchmark-map', 'benchmark-map.cc',
   dependencies: [
     google_benchmark_dep,
   ],
@@ -32,7 +31,7 @@ benchmark('benchmark-set', executable('benchmark-set', 'benchmark-set.cc',
   install: false,
 ), workdir: meson.current_source_dir() / '..', timeout: 100)
 
-benchmark('benchmark-map', executable('benchmark-map', 'benchmark-map.cc',
+benchmark('benchmark-shape', executable('benchmark-shape', 'benchmark-shape.cc',
   dependencies: [
     google_benchmark_dep,
   ],
