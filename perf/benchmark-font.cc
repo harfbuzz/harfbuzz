@@ -33,7 +33,8 @@ enum backend_t { HARFBUZZ, FREETYPE };
 
 enum operation_t
 {
-  nominal_glyph,
+  nominal_glyphs,
+  glyph_h_advances,
   glyph_extents,
   glyph_shape,
 };
@@ -102,7 +103,7 @@ static void BM_Font (benchmark::State &state,
 
   switch (operation)
   {
-    case nominal_glyph:
+    case nominal_glyphs:
     {
       hb_set_t *set = hb_set_create ();
       hb_face_collect_unicodes (hb_font_get_face (font), set);
@@ -125,6 +126,24 @@ static void BM_Font (benchmark::State &state,
       free (glyphs);
       free (unicodes);
       hb_set_destroy (set);
+      break;
+    }
+    case glyph_h_advances:
+    {
+      hb_codepoint_t *glyphs = (hb_codepoint_t *) calloc (num_glyphs, sizeof (hb_codepoint_t));
+      hb_position_t *advances = (hb_position_t *) calloc (num_glyphs, sizeof (hb_codepoint_t));
+
+      for (unsigned g = 0; g < num_glyphs; g++)
+        glyphs[g] = g;
+
+      for (auto _ : state)
+	hb_font_get_glyph_h_advances (font,
+				      num_glyphs,
+				      glyphs, sizeof (*glyphs),
+				      advances, sizeof (*advances));
+
+      free (advances);
+      free (glyphs);
       break;
     }
     case glyph_extents:
@@ -191,7 +210,8 @@ int main(int argc, char** argv)
 {
 #define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
 
-  TEST_OPERATION (nominal_glyph, benchmark::kMicrosecond);
+  TEST_OPERATION (nominal_glyphs, benchmark::kMicrosecond);
+  TEST_OPERATION (glyph_h_advances, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_extents, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_shape, benchmark::kMicrosecond);
 
