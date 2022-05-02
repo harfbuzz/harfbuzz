@@ -19,11 +19,13 @@ struct test_input_t
   const char *font_path;
 } tests[] =
 {
+  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
   {SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
   {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
   {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
   {SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
-  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
+  {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf"},
+  {SUBSET_FONT_BASE_PATH "NotoSerifMyanmar-Regular.otf"},
 };
 
 
