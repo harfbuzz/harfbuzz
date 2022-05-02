@@ -108,6 +108,12 @@ static void BM_Font (benchmark::State &state,
       hb_codepoint_t *unicodes = (hb_codepoint_t *) calloc (pop, sizeof (hb_codepoint_t));
       hb_codepoint_t *glyphs = (hb_codepoint_t *) calloc (pop, sizeof (hb_codepoint_t));
 
+      hb_codepoint_t *p = unicodes;
+      for (hb_codepoint_t u = HB_SET_VALUE_INVALID;
+	   hb_set_next (set, &u);)
+        *p++ = u;
+      assert (p == unicodes + pop);
+
       for (auto _ : state)
 	hb_font_get_nominal_glyphs (font,
 				    pop,
@@ -183,7 +189,7 @@ int main(int argc, char** argv)
 {
 #define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
 
-  TEST_OPERATION (nominal_glyph, benchmark::kNanosecond);
+  TEST_OPERATION (nominal_glyph, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_extents, benchmark::kMicrosecond);
   TEST_OPERATION (glyph_shape, benchmark::kMicrosecond);
 
