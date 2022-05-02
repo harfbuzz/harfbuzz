@@ -150,10 +150,26 @@ struct BEInt<Type, 4>
 			        uint8_t ((V >> 16) & 0xFF),
 			        uint8_t ((V >>  8) & 0xFF),
 			        uint8_t ((V      ) & 0xFF)} {}
-  constexpr operator Type () const { return (v[0] << 24)
-					  + (v[1] << 16)
-					  + (v[2] <<  8)
-					  + (v[3]      ); }
+
+  struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
+  constexpr operator Type () const {
+#if ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
+    defined(__BYTE_ORDER) && \
+    (__BYTE_ORDER == __LITTLE_ENDIAN || __BYTE_ORDER == __BIG_ENDIAN)
+    /* Spoon-feed the compiler a big-endian integer with alignment 1.
+     * https://github.com/harfbuzz/harfbuzz/pull/1398 */
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+    return __builtin_bswap32 (((packed_uint32_t *) this)->v);
+#else /* __BYTE_ORDER == __BIG_ENDIAN */
+    return ((packed_uint32_t *) this)->v;
+#endif
+#else
+    return (v[0] << 24)
+	 + (v[1] << 16)
+	 + (v[2] <<  8)
+	 + (v[3]      );
+#endif
+  }
   private: uint8_t v[4];
 };
 
