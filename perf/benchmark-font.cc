@@ -21,10 +21,7 @@ struct test_input_t
 {
   {SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
   {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
-  {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
   {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
-  {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
-  {SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
   {SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
   {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
 };
@@ -147,6 +144,7 @@ static void BM_Font (benchmark::State &state,
 
 static void test_backend (backend_t backend,
 			  const char *backend_name,
+			  bool variable,
 			  operation_t op,
 			  const char *op_name,
 			  benchmark::TimeUnit time_unit,
@@ -154,11 +152,12 @@ static void test_backend (backend_t backend,
 {
   char name[1024] = "BM_Font/";
   strcat (name, op_name);
+  strcat (name, strrchr (test_input.font_path, '/'));
   strcat (name, "/");
   strcat (name, backend_name);
-  strcat (name, strrchr (test_input.font_path, '/'));
+  strcat (name, variable ? "/var" : "");
 
-  benchmark::RegisterBenchmark (name, BM_Font, false, backend, op, test_input)
+  benchmark::RegisterBenchmark (name, BM_Font, variable, backend, op, test_input)
    ->Unit(time_unit);
 }
 
@@ -168,10 +167,15 @@ static void test_operation (operation_t op,
 {
   for (auto& test_input : tests)
   {
-    test_backend (HARFBUZZ, "hb", op, op_name, time_unit, test_input);
+    for (int variable = 0; variable < 2; variable++)
+    {
+      bool is_var = (bool) variable;
+
+      test_backend (HARFBUZZ, "hb", is_var, op, op_name, time_unit, test_input);
 #ifdef HAVE_FREETYPE
-    test_backend (FREETYPE, "ft", op, op_name, time_unit, test_input);
+      test_backend (FREETYPE, "ft", is_var, op, op_name, time_unit, test_input);
 #endif
+    }
   }
 }
 
