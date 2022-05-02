@@ -352,8 +352,12 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
   }
 
-  + plan->codepoint_to_glyph->keys ()   | hb_sink (plan->unicodes);
-  + plan->codepoint_to_glyph->values () | hb_sink (plan->_glyphset_gsub);
+  for (unsigned i = 0; i < plan->unicode_to_new_gid_list->length; i++)
+  {
+    hb_pair_t<hb_codepoint_t, hb_codepoint_t> pair = plan->unicode_to_new_gid_list->arrayZ[i];
+    plan->unicodes->add(pair.first);
+    plan->_glyphset_gsub->add(pair.second);
+  }
 }
 
 static void
