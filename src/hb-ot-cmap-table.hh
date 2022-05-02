@@ -691,7 +691,7 @@ struct CmapSubtableTrimmed
 };
 
 struct CmapSubtableFormat6  : CmapSubtableTrimmed<HBUINT16> {};
-struct CmapSubtableFormat10 : CmapSubtableTrimmed<HBUINT32 > {};
+struct CmapSubtableFormat10 : CmapSubtableTrimmed<HBUINT32> {};
 
 template <typename T>
 struct CmapSubtableLongSegmented

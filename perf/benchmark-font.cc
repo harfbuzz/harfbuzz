@@ -159,9 +159,9 @@ static void test_backend (backend_t backend,
   char name[1024] = "BM_Font/";
   strcat (name, op_name);
   strcat (name, strrchr (test_input.font_path, '/'));
+  strcat (name, variable ? "/var" : "");
   strcat (name, "/");
   strcat (name, backend_name);
-  strcat (name, variable ? "/var" : "");
 
   benchmark::RegisterBenchmark (name, BM_Font, variable, backend, op, test_input)
    ->Unit(time_unit);
