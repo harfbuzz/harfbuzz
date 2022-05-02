@@ -27,6 +27,7 @@ enum backend_t { HARFBUZZ, FREETYPE };
 
 enum operation_t
 {
+  nominal_glyph,
   glyph_extents,
   glyph_shape,
 };
@@ -93,6 +94,25 @@ static void BM_Font (benchmark::State &state,
 
   switch (operation)
   {
+    case nominal_glyph:
+    {
+      hb_set_t *set = hb_set_create ();
+      hb_face_collect_unicodes (hb_font_get_face (font), set);
+      unsigned pop = hb_set_get_population (set);
+      hb_codepoint_t *unicodes = (hb_codepoint_t *) calloc (pop, sizeof (hb_codepoint_t));
+      hb_codepoint_t *glyphs = (hb_codepoint_t *) calloc (pop, sizeof (hb_codepoint_t));
+
+      for (auto _ : state)
+	hb_font_get_nominal_glyphs (font,
+				    pop,
+				    unicodes, sizeof (*unicodes),
+				    glyphs, sizeof (*glyphs));
+
+      free (glyphs);
+      free (unicodes);
+      hb_set_destroy (set);
+      break;
+    }
     case glyph_extents:
     {
       hb_glyph_extents_t extents;
@@ -120,6 +140,7 @@ static void test_backend (backend_t backend,
 			  const char *backend_name,
 			  operation_t op,
 			  const char *op_name,
+			  benchmark::TimeUnit time_unit,
 			  const test_input_t &test_input)
 {
   char name[1024] = "BM_Font/";
@@ -129,25 +150,27 @@ static void test_backend (backend_t backend,
   strcat (name, strrchr (test_input.font_path, '/'));
 
   benchmark::RegisterBenchmark (name, BM_Font, false, backend, op, test_input)
-   ->Unit(benchmark::kMicrosecond);
+   ->Unit(time_unit);
 }
 
 static void test_operation (operation_t op,
-			    const char *op_name)
+			    const char *op_name,
+			    benchmark::TimeUnit time_unit)
 {
   for (auto& test_input : tests)
   {
-    test_backend (HARFBUZZ, "hb", op, op_name, test_input);
-    test_backend (FREETYPE, "ft", op, op_name, test_input);
+    test_backend (HARFBUZZ, "hb", op, op_name, time_unit, test_input);
+    test_backend (FREETYPE, "ft", op, op_name, time_unit, test_input);
   }
 }
 
 int main(int argc, char** argv)
 {
-#define TEST_OPERATION(op) test_operation (op, #op)
+#define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
 
-  TEST_OPERATION (glyph_extents);
-  TEST_OPERATION (glyph_shape);
+  TEST_OPERATION (nominal_glyph, benchmark::kNanosecond);
+  TEST_OPERATION (glyph_extents, benchmark::kMicrosecond);
+  TEST_OPERATION (glyph_shape, benchmark::kMicrosecond);
 
 #undef TEST_OPERATION
 
