@@ -2,8 +2,6 @@
 
 #include "hb.h"
 #include "hb-ot.h"
-#include "hb-ft.h"
-#include FT_OUTLINE_H
 
 #ifdef HAVE_TTFPARSER
 #include "ttfparser.h"
@@ -25,20 +23,6 @@ _hb_cubic_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, float,
 
 static void
 _hb_close_path (hb_draw_funcs_t *, void *, hb_draw_state_t *, void *) {}
-
-static void
-_ft_move_to (const FT_Vector* to HB_UNUSED, void* user HB_UNUSED) {}
-
-static void
-_ft_line_to (const FT_Vector* to HB_UNUSED, void* user HB_UNUSED) {}
-
-static void
-_ft_conic_to (const FT_Vector* control HB_UNUSED, const FT_Vector* to HB_UNUSED,
-	      void* user HB_UNUSED) {}
-
-static void
-_ft_cubic_to (const FT_Vector* control1 HB_UNUSED, const FT_Vector* control2 HB_UNUSED,
-	      const FT_Vector* to HB_UNUSED, void* user HB_UNUSED) {}
 
 #ifdef HAVE_TTFPARSER
 static void _tp_move_to (float x HB_UNUSED, float y HB_UNUSED, void *data HB_UNUSED) {}
@@ -62,7 +46,7 @@ static void draw (benchmark::State &state, const char *font_path, bool is_var, b
     hb_face_destroy (face);
   }
 
-  if (backend == HARFBUZZ)
+  if (backend == HARFBUZZ || backend == FREETYPE)
   {
     if (is_var)
     {
@@ -76,37 +60,17 @@ static void draw (benchmark::State &state, const char *font_path, bool is_var, b
     hb_draw_funcs_set_cubic_to_func (draw_funcs, _hb_cubic_to, nullptr, nullptr);
     hb_draw_funcs_set_close_path_func (draw_funcs, _hb_close_path, nullptr, nullptr);
 
+    if (backend == FREETYPE)
+    {
+      hb_ft_font_set_funcs (font);
+      hb_ft_font_set_load_flags (font, FT_LOAD_NO_HINTING | FT_LOAD_NO_SCALE);
+    }
+
     for (auto _ : state)
       for (unsigned gid = 0; gid < num_glyphs; ++gid)
 	hb_font_get_glyph_shape (font, gid, draw_funcs, nullptr);
 
     hb_draw_funcs_destroy (draw_funcs);
-  }
-  else if (backend == FREETYPE)
-  {
-    if (is_var)
-    {
-      hb_variation_t wght = {HB_TAG ('w','g','h','t'), 500};
-      hb_font_set_variations (font, &wght, 1);
-    }
-    hb_ft_font_set_funcs (font);
-    FT_Face ft_face = hb_ft_font_get_face (font);
-    hb_ft_font_set_load_flags (font, FT_LOAD_NO_HINTING | FT_LOAD_NO_SCALE);
-
-    FT_Outline_Funcs draw_funcs;
-    draw_funcs.move_to = (FT_Outline_MoveToFunc) _ft_move_to;
-    draw_funcs.line_to = (FT_Outline_LineToFunc) _ft_line_to;
-    draw_funcs.conic_to = (FT_Outline_ConicToFunc) _ft_conic_to;
-    draw_funcs.cubic_to = (FT_Outline_CubicToFunc) _ft_cubic_to;
-    draw_funcs.shift = 0;
-    draw_funcs.delta = 0;
-
-    for (auto _ : state)
-      for (unsigned gid = 0; gid < num_glyphs; ++gid)
-      {
-	FT_Load_Glyph (ft_face, gid, FT_LOAD_NO_HINTING | FT_LOAD_NO_SCALE);
-	FT_Outline_Decompose (&ft_face->glyph->outline, &draw_funcs, nullptr);
-      }
   }
   else if (backend == TTF_PARSER)
   {
