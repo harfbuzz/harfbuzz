@@ -5,7 +5,7 @@
 #endif
 
 #ifdef HAVE_FREETYPE
-enum backend_t { HARFBUZZ, FREETYPE, TTF_PARSER };
+enum backend_t { HARFBUZZ, FREETYPE };
 #include "perf-extents.hh"
 #include "perf-draw.hh"
 #endif
