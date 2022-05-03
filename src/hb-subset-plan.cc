@@ -302,12 +302,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 {
   OT::cmap::accelerator_t cmap (plan->source);
 
-  constexpr static const int size_threshold = 4096;
-
-  if (glyphs->is_empty () && unicodes->get_population () < size_threshold)
+  if (glyphs->is_empty ())
   {
-    /* This is the fast path if it's anticipated that size of unicodes
-     * is << than the number of codepoints in the font. */
+    // This is approach to collection is faster, but can only be used  if glyphs
+    // are not being explicitly added to the subset.
     plan->unicode_to_new_gid_list.alloc (unicodes->get_population ());
     for (hb_codepoint_t cp : *unicodes)
     {
@@ -324,6 +322,8 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   }
   else
   {
+    // This approach is slower, but can handle adding in glyphs to the subset and will match
+    // them with cmap entries.
     hb_map_t unicode_glyphid_map;
     cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
     plan->unicode_to_new_gid_list.alloc (unicode_glyphid_map.get_population ());
