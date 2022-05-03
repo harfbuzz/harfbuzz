@@ -308,7 +308,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   {
     /* This is the fast path if it's anticipated that size of unicodes
      * is << than the number of codepoints in the font. */
-    plan->unicode_to_new_gid_list->alloc (unicodes->get_population ());
+    plan->unicode_to_new_gid_list.alloc (unicodes->get_population ());
     for (hb_codepoint_t cp : *unicodes)
     {
       hb_codepoint_t gid;
@@ -319,14 +319,14 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
       }
 
       plan->codepoint_to_glyph->set (cp, gid);
-      plan->unicode_to_new_gid_list->push (hb_pair (cp, gid));
+      plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
     }
   }
   else
   {
     hb_map_t unicode_glyphid_map;
     cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
-    plan->unicode_to_new_gid_list->alloc (unicode_glyphid_map.get_population ());
+    plan->unicode_to_new_gid_list.alloc (unicode_glyphid_map.get_population ());
 
     for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
 	 + unicode_glyphid_map.iter ())
@@ -335,10 +335,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 	continue;
 
       plan->codepoint_to_glyph->set (cp_gid.first, cp_gid.second);
-      plan->unicode_to_new_gid_list->push (hb_pair (cp_gid.first, cp_gid.second));
+      plan->unicode_to_new_gid_list.push (hb_pair (cp_gid.first, cp_gid.second));
     }
 
-    plan->unicode_to_new_gid_list->qsort (_compare_cp_gid_pair);
+    plan->unicode_to_new_gid_list.qsort (_compare_cp_gid_pair);
 
     /* Add gids which where requested, but not mapped in cmap */
     // TODO(garretrieger):
@@ -352,9 +352,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
   }
 
-  for (unsigned i = 0; i < plan->unicode_to_new_gid_list->length; i++)
+  for (unsigned i = 0; i < plan->unicode_to_new_gid_list.length; i++)
   {
-    hb_pair_t<hb_codepoint_t, hb_codepoint_t> pair = plan->unicode_to_new_gid_list->arrayZ[i];
+    // Use raw array access for performance.
+    hb_pair_t<hb_codepoint_t, hb_codepoint_t> pair = plan->unicode_to_new_gid_list.arrayZ[i];
     plan->unicodes->add(pair.first);
     plan->_glyphset_gsub->add(pair.second);
   }
@@ -503,10 +504,9 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->successful = true;
   plan->flags = input->flags;
   plan->unicodes = hb_set_create ();
-  plan->unicode_to_new_gid_list =
-      (hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>>*)
-      hb_calloc (1, sizeof(hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>>));
-  plan->unicode_to_new_gid_list->init ();
+
+  plan->unicode_to_new_gid_list.init ();
+
   plan->name_ids = hb_set_copy (input->sets.name_ids);
   _nameid_closure (face, plan->name_ids);
   plan->name_languages = hb_set_copy (input->sets.name_languages);
@@ -559,10 +559,11 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 				  &plan->_num_output_glyphs);
 
   // Now that we have old to new gid map update the unicode to new gid list.
-  for (unsigned i = 0; i < plan->unicode_to_new_gid_list->length; i++)
+  for (unsigned i = 0; i < plan->unicode_to_new_gid_list.length; i++)
   {
-    plan->unicode_to_new_gid_list->arrayZ[i].second =
-        plan->glyph_map->get(plan->unicode_to_new_gid_list->arrayZ[i].second);
+    // Use raw array access for performance.
+    plan->unicode_to_new_gid_list.arrayZ[i].second =
+        plan->glyph_map->get(plan->unicode_to_new_gid_list.arrayZ[i].second);
   }
 
   if (unlikely (plan->in_error ())) {
@@ -587,11 +588,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   if (!hb_object_destroy (plan)) return;
 
   hb_set_destroy (plan->unicodes);
-  if (plan->unicode_to_new_gid_list)
-  {
-    plan->unicode_to_new_gid_list->fini ();
-    hb_free (plan->unicode_to_new_gid_list);
-  }
+  plan->unicode_to_new_gid_list.fini ();
   hb_set_destroy (plan->name_ids);
   hb_set_destroy (plan->name_languages);
   hb_set_destroy (plan->layout_features);
