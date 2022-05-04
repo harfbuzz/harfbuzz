@@ -5,6 +5,12 @@
 // TODO(garretrieger): TrueType CJK font.
 // TODO(garretrieger): Amiri + Devanagari
 
+enum operation_t
+{
+  subset_codepoints,
+  subset_glyphs
+};
+
 void AddCodepoints(const hb_set_t* codepoints_in_font,
                    unsigned subset_size,
                    hb_subset_input_t* input)
@@ -28,8 +34,9 @@ void AddGlyphs(unsigned num_glyphs_in_font,
 }
 
 /* benchmark for subsetting a font */
-static void BM_subset_codepoints (benchmark::State &state,
-                                  const char *font_path)
+static void BM_subset (benchmark::State &state,
+                       operation_t operation,
+                       const char *font_path)
 {
   unsigned subset_size = state.range(0);
 
@@ -46,10 +53,16 @@ static void BM_subset_codepoints (benchmark::State &state,
 
   {
     hb_set_t* all_codepoints = hb_set_create ();
-    hb_face_collect_unicodes (face, all_codepoints);
-
-    AddCodepoints(all_codepoints, subset_size, input);
-
+    switch (operation) {
+      case subset_codepoints:
+        hb_face_collect_unicodes (face, all_codepoints);
+        AddCodepoints(all_codepoints, subset_size, input);
+        break;
+      case subset_glyphs:
+        unsigned num_glyphs = hb_face_get_glyph_count (face);
+        AddGlyphs(num_glyphs, subset_size, input);
+        break;
+    }
     hb_set_destroy (all_codepoints);
   }
 
@@ -64,99 +77,76 @@ static void BM_subset_codepoints (benchmark::State &state,
   hb_face_destroy (face);
 }
 
-BENCHMARK_CAPTURE (BM_subset_codepoints, subset_roboto,
+BENCHMARK_CAPTURE (BM_subset, subset_codepoints_roboto,
+                   subset_codepoints,
                    "perf/fonts/Roboto-Regular.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 4000);
 
-BENCHMARK_CAPTURE (BM_subset_codepoints, subset_amiri,
+BENCHMARK_CAPTURE (BM_subset, subset_glyphs_roboto,
+                   subset_glyphs,
+                   "perf/fonts/Roboto-Regular.ttf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 4000);
+
+BENCHMARK_CAPTURE (BM_subset, subset_codepoints_amiri,
+                   subset_codepoints,
                    "perf/fonts/Amiri-Regular.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 4000);
 
-BENCHMARK_CAPTURE (BM_subset_codepoints, subset_noto_nastaliq_urdu,
+BENCHMARK_CAPTURE (BM_subset, subset_glyphs_amiri,
+                   subset_glyphs,
+                   "perf/fonts/Amiri-Regular.ttf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 4000);
+
+BENCHMARK_CAPTURE (BM_subset, subset_codepoints_noto_nastaliq_urdu,
+                   subset_codepoints,
                    "perf/fonts/NotoNastaliqUrdu-Regular.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 1000);
 
-BENCHMARK_CAPTURE (BM_subset_codepoints, subset_noto_devangari,
+BENCHMARK_CAPTURE (BM_subset, subset_glyphs_noto_nastaliq_urdu,
+                   subset_glyphs,
+                   "perf/fonts/NotoNastaliqUrdu-Regular.ttf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 1000);
+
+BENCHMARK_CAPTURE (BM_subset, subset_codepoints_noto_devangari,
+                   subset_codepoints,
                    "perf/fonts/NotoSansDevanagari-Regular.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 1000);
 
-BENCHMARK_CAPTURE (BM_subset_codepoints, subset_mplus1p,
+BENCHMARK_CAPTURE (BM_subset, subset_glyphs_noto_devangari,
+                   subset_glyphs,
+                   "perf/fonts/NotoSansDevanagari-Regular.ttf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 1000);
+
+BENCHMARK_CAPTURE (BM_subset, subset_codepoints_mplus1p,
+                   subset_codepoints,
                    "test/subset/data/fonts/Mplus1p-Regular.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 10000);
 
+BENCHMARK_CAPTURE (BM_subset, subset_glyphs_mplus1p,
+                   subset_glyphs,
+                   "test/subset/data/fonts/Mplus1p-Regular.ttf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 10000);
+
+
 #if 0
-BENCHMARK_CAPTURE (BM_subset_codepoints, subset_notocjk,
+BENCHMARK_CAPTURE (BM_subset, subset_codepoints_notocjk,
+                   subset_codepoints,
                    "perf/fonts/NotoSansCJKsc-VF.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 100000);
-#endif
 
-
-static void BM_subset_glyphs (benchmark::State &state,
-                              const char *font_path)
-{
-  unsigned subset_size = state.range(0);
-
-  hb_face_t *face;
-  {
-    hb_blob_t *blob = hb_blob_create_from_file_or_fail (font_path);
-    assert (blob);
-    face = hb_face_create (blob, 0);
-    hb_blob_destroy (blob);
-  }
-
-  hb_subset_input_t* input = hb_subset_input_create_or_fail ();
-  assert (input);
-
-  {
-    unsigned num_glyphs = hb_face_get_glyph_count (face);
-
-    AddGlyphs(num_glyphs, subset_size, input);
-  }
-
-  for (auto _ : state)
-  {
-    hb_face_t* subset = hb_subset_or_fail (face, input);
-    assert (subset);
-    hb_face_destroy (subset);
-  }
-
-  hb_subset_input_destroy (input);
-  hb_face_destroy (face);
-}
-
-BENCHMARK_CAPTURE (BM_subset_glyphs, subset_roboto,
-                   "perf/fonts/Roboto-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 4000);
-
-BENCHMARK_CAPTURE (BM_subset_glyphs, subset_amiri,
-                   "perf/fonts/Amiri-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 4000);
-
-BENCHMARK_CAPTURE (BM_subset_glyphs, subset_noto_nastaliq_urdu,
-                   "perf/fonts/NotoNastaliqUrdu-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 1000);
-
-BENCHMARK_CAPTURE (BM_subset_glyphs, subset_noto_devangari,
-                   "perf/fonts/NotoSansDevanagari-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 1000);
-
-BENCHMARK_CAPTURE (BM_subset_glyphs, subset_mplus1p,
-                   "test/subset/data/fonts/Mplus1p-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 10000);
-
-#if 0
-BENCHMARK_CAPTURE (BM_subset_glyphs, subset_notocjk,
+BENCHMARK_CAPTURE (BM_subset, subset_glyphs_notocjk,
+                   subset_glyphs,
                    "perf/fonts/NotoSansCJKsc-VF.ttf")
     ->Unit(benchmark::kMillisecond)
     ->Range(10, 100000);
