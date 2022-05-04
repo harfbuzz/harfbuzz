@@ -302,10 +302,12 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 {
   OT::cmap::accelerator_t cmap (plan->source);
 
-  if (glyphs->is_empty ())
+  unsigned size_threshold = plan->source->get_num_glyphs ();
+  if (glyphs->is_empty () && unicodes->get_population () < size_threshold)
   {
     // This is approach to collection is faster, but can only be used  if glyphs
-    // are not being explicitly added to the subset.
+    // are not being explicitly added to the subset and the input unicodes set is
+    // not excessively large (eg. an inverted set).
     plan->unicode_to_new_gid_list.alloc (unicodes->get_population ());
     for (hb_codepoint_t cp : *unicodes)
     {
@@ -326,8 +328,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     // them with cmap entries.
     hb_map_t unicode_glyphid_map;
     cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
-    plan->unicode_to_new_gid_list.alloc (unicodes->get_population ()
-                                         + glyphs->get_population ());
+    plan->unicode_to_new_gid_list.alloc (hb_min(unicodes->get_population ()
+                                                + glyphs->get_population (),
+                                                unicode_glyphid_map.get_population ()));
+
 
     for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
 	 + unicode_glyphid_map.iter ())
