@@ -287,6 +287,14 @@ _remove_invalid_gids (hb_set_t *glyphs,
   }
 }
 
+static inline int
+_compare_cp_gid_pair (const void* a,
+                      const void* b)
+{
+  return ((hb_pair_t<hb_codepoint_t, hb_codepoint_t>*)a)->first -
+      ((hb_pair_t<hb_codepoint_t, hb_codepoint_t>*)b)->first;
+}
+
 static void
 _populate_unicodes_to_retain (const hb_set_t *unicodes,
                               const hb_set_t *glyphs,
@@ -294,12 +302,13 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 {
   OT::cmap::accelerator_t cmap (plan->source);
 
-  constexpr static const int size_threshold = 4096;
-
+  unsigned size_threshold = plan->source->get_num_glyphs ();
   if (glyphs->is_empty () && unicodes->get_population () < size_threshold)
   {
-    /* This is the fast path if it's anticipated that size of unicodes
-     * is << than the number of codepoints in the font. */
+    // This is approach to collection is faster, but can only be used  if glyphs
+    // are not being explicitly added to the subset and the input unicodes set is
+    // not excessively large (eg. an inverted set).
+    plan->unicode_to_new_gid_list.alloc (unicodes->get_population ());
     for (hb_codepoint_t cp : *unicodes)
     {
       hb_codepoint_t gid;
@@ -310,12 +319,19 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
       }
 
       plan->codepoint_to_glyph->set (cp, gid);
+      plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
     }
   }
   else
   {
+    // This approach is slower, but can handle adding in glyphs to the subset and will match
+    // them with cmap entries.
     hb_map_t unicode_glyphid_map;
     cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
+    plan->unicode_to_new_gid_list.alloc (hb_min(unicodes->get_population ()
+                                                + glyphs->get_population (),
+                                                unicode_glyphid_map.get_population ()));
+
 
     for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
 	 + unicode_glyphid_map.iter ())
@@ -324,7 +340,10 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
 	continue;
 
       plan->codepoint_to_glyph->set (cp_gid.first, cp_gid.second);
+      plan->unicode_to_new_gid_list.push (hb_pair (cp_gid.first, cp_gid.second));
     }
+
+    plan->unicode_to_new_gid_list.qsort (_compare_cp_gid_pair);
 
     /* Add gids which where requested, but not mapped in cmap */
     // TODO(garretrieger):
@@ -338,8 +357,13 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
   }
 
-  + plan->codepoint_to_glyph->keys ()   | hb_sink (plan->unicodes);
-  + plan->codepoint_to_glyph->values () | hb_sink (plan->_glyphset_gsub);
+  for (unsigned i = 0; i < plan->unicode_to_new_gid_list.length; i++)
+  {
+    // Use raw array access for performance.
+    hb_pair_t<hb_codepoint_t, hb_codepoint_t> pair = plan->unicode_to_new_gid_list.arrayZ[i];
+    plan->unicodes->add(pair.first);
+    plan->_glyphset_gsub->add(pair.second);
+  }
 }
 
 static void
@@ -485,6 +509,9 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->successful = true;
   plan->flags = input->flags;
   plan->unicodes = hb_set_create ();
+
+  plan->unicode_to_new_gid_list.init ();
+
   plan->name_ids = hb_set_copy (input->sets.name_ids);
   _nameid_closure (face, plan->name_ids);
   plan->name_languages = hb_set_copy (input->sets.name_languages);
@@ -536,6 +563,14 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 				  plan->reverse_glyph_map,
 				  &plan->_num_output_glyphs);
 
+  // Now that we have old to new gid map update the unicode to new gid list.
+  for (unsigned i = 0; i < plan->unicode_to_new_gid_list.length; i++)
+  {
+    // Use raw array access for performance.
+    plan->unicode_to_new_gid_list.arrayZ[i].second =
+        plan->glyph_map->get(plan->unicode_to_new_gid_list.arrayZ[i].second);
+  }
+
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
     return nullptr;
@@ -558,6 +593,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   if (!hb_object_destroy (plan)) return;
 
   hb_set_destroy (plan->unicodes);
+  plan->unicode_to_new_gid_list.fini ();
   hb_set_destroy (plan->name_ids);
   hb_set_destroy (plan->name_languages);
   hb_set_destroy (plan->layout_features);
