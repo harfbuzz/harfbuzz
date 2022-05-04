@@ -287,14 +287,6 @@ _remove_invalid_gids (hb_set_t *glyphs,
   }
 }
 
-static inline int
-_compare_cp_gid_pair (const void* a,
-                      const void* b)
-{
-  return ((hb_pair_t<hb_codepoint_t, hb_codepoint_t>*)a)->first -
-      ((hb_pair_t<hb_codepoint_t, hb_codepoint_t>*)b)->first;
-}
-
 static void
 _populate_unicodes_to_retain (const hb_set_t *unicodes,
                               const hb_set_t *glyphs,
@@ -327,29 +319,27 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     // This approach is slower, but can handle adding in glyphs to the subset and will match
     // them with cmap entries.
     hb_map_t unicode_glyphid_map;
-    cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
+    hb_set_t cmap_unicodes;
+    cmap.collect_mapping (&cmap_unicodes, &unicode_glyphid_map);
     plan->unicode_to_new_gid_list.alloc (hb_min(unicodes->get_population ()
                                                 + glyphs->get_population (),
-                                                unicode_glyphid_map.get_population ()));
+                                                cmap_unicodes.get_population ()));
 
-
-    for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
-	 + unicode_glyphid_map.iter ())
+    for (hb_codepoint_t cp : cmap_unicodes)
     {
-      if (!unicodes->has (cp_gid.first) && !glyphs->has (cp_gid.second))
-	continue;
+      hb_codepoint_t gid = unicode_glyphid_map[cp];
+      if (!unicodes->has (cp) && !glyphs->has (gid))
+        continue;
 
-      plan->codepoint_to_glyph->set (cp_gid.first, cp_gid.second);
-      plan->unicode_to_new_gid_list.push (hb_pair (cp_gid.first, cp_gid.second));
+      plan->codepoint_to_glyph->set (cp, gid);
+      plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
     }
-
-    plan->unicode_to_new_gid_list.qsort (_compare_cp_gid_pair);
 
     /* Add gids which where requested, but not mapped in cmap */
     // TODO(garretrieger):
     // Once https://github.com/harfbuzz/harfbuzz/issues/3169
     // is implemented, this can be done with union and del_range
-    for (hb_codepoint_t gid : glyphs->iter ())
+    for (hb_codepoint_t gid : *glyphs)
     {
       if (gid >= plan->source->get_num_glyphs ())
 	break;
