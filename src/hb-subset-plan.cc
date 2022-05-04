@@ -336,9 +336,6 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
 
     /* Add gids which where requested, but not mapped in cmap */
-    // TODO(garretrieger):
-    // Once https://github.com/harfbuzz/harfbuzz/issues/3169
-    // is implemented, this can be done with union and del_range
     for (hb_codepoint_t gid : *glyphs)
     {
       if (gid >= plan->source->get_num_glyphs ())
