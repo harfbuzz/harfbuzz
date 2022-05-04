@@ -326,7 +326,8 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     // them with cmap entries.
     hb_map_t unicode_glyphid_map;
     cmap.collect_mapping (hb_set_get_empty (), &unicode_glyphid_map);
-    plan->unicode_to_new_gid_list.alloc (unicode_glyphid_map.get_population ());
+    plan->unicode_to_new_gid_list.alloc (unicodes->get_population ()
+                                         + glyphs->get_population ());
 
     for (hb_pair_t<hb_codepoint_t, hb_codepoint_t> cp_gid :
 	 + unicode_glyphid_map.iter ())
