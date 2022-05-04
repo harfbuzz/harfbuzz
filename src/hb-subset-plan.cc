@@ -344,12 +344,11 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
     }
   }
 
-  for (unsigned i = 0; i < plan->unicode_to_new_gid_list.length; i++)
+  auto &arr = plan->unicode_to_new_gid_list;
+  if (arr.length)
   {
-    // Use raw array access for performance.
-    hb_pair_t<hb_codepoint_t, hb_codepoint_t> pair = plan->unicode_to_new_gid_list.arrayZ[i];
-    plan->unicodes->add(pair.first);
-    plan->_glyphset_gsub->add(pair.second);
+    plan->unicodes->add_sorted_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
+    plan->_glyphset_gsub->add_array (&arr.arrayZ->second, arr.length, sizeof (*arr.arrayZ));
   }
 }
 
