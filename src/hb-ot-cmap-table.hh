@@ -798,12 +798,12 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
     unsigned table_initpos = c->length ();
     if (unlikely (!c->extend_min (this))) return;
 
-    hb_codepoint_t startCharCode = 0xFFFF, endCharCode = 0xFFFF;
+    hb_codepoint_t startCharCode = (hb_codepoint_t) -1, endCharCode = (hb_codepoint_t) -1;
     hb_codepoint_t glyphID = 0;
 
     for (const auto& _ : +it)
     {
-      if (startCharCode == 0xFFFF)
+      if (startCharCode == (hb_codepoint_t) -1)
       {
 	startCharCode = _.first;
 	endCharCode = _.first;
