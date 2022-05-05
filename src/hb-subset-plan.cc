@@ -279,12 +279,7 @@ static inline void
 _remove_invalid_gids (hb_set_t *glyphs,
 		      unsigned int num_glyphs)
 {
-  hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-  while (glyphs->next (&gid))
-  {
-    if (gid >= num_glyphs)
-      glyphs->del (gid);
-  }
+  glyphs->del_range (num_glyphs, HB_SET_VALUE_INVALID);
 }
 
 static void
@@ -400,7 +395,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   hb_set_set (plan->_glyphset_colred, &cur_glyphset);
   // Populate a full set of glyphs to retain by adding all referenced
   // composite glyphs.
-  for (hb_codepoint_t gid : cur_glyphset.iter ())
+  for (hb_codepoint_t gid : cur_glyphset)
   {
     glyf.add_gid_and_children (gid, plan->_glyphset);
 #ifndef HB_NO_SUBSET_CFF
