@@ -393,16 +393,19 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
 
   hb_set_set (plan->_glyphset_colred, &cur_glyphset);
-  // Populate a full set of glyphs to retain by adding all referenced
-  // composite glyphs.
-  for (hb_codepoint_t gid : cur_glyphset)
-  {
-    glyf.add_gid_and_children (gid, plan->_glyphset);
+
+  /* Populate a full set of glyphs to retain by adding all referenced
+   * composite glyphs. */
+  if (glyf.has_data ())
+    for (hb_codepoint_t gid : cur_glyphset)
+      glyf.add_gid_and_children (gid, plan->_glyphset);
+  else
+    plan->_glyphset->union_ (cur_glyphset);
 #ifndef HB_NO_SUBSET_CFF
-    if (cff.is_valid ())
+  if (cff.is_valid ())
+    for (hb_codepoint_t gid : cur_glyphset)
       _add_cff_seac_components (cff, gid, plan->_glyphset);
 #endif
-  }
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
 
