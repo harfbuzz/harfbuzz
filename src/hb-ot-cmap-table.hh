@@ -794,7 +794,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
   void serialize (hb_serialize_context_t *c,
 		  Iterator it)
   {
-    if (it.len () == 0) return;
+    if (!it) return;
     unsigned table_initpos = c->length ();
     if (unlikely (!c->extend_min (this))) return;
 
@@ -834,7 +834,7 @@ struct CmapSubtableFormat12 : CmapSubtableLongSegmented<CmapSubtableFormat12>
     this->format = 12;
     this->reserved = 0;
     this->length = c->length () - table_initpos;
-    this->groups.len = (this->length - min_size)/CmapSubtableLongGroup::static_size;
+    this->groups.len = (this->length - min_size) / CmapSubtableLongGroup::static_size;
   }
 
   static size_t get_sub_table_size (const hb_sorted_vector_t<CmapSubtableLongGroup> &groups_data)
