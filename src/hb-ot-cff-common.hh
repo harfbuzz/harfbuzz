@@ -172,7 +172,7 @@ struct CFFIndex
 		  Iterator it)
   {
     TRACE_SERIALIZE (this);
-    if (it.len () == 0)
+    if (!it)
     {
       COUNT *dest = c->allocate_min<COUNT> ();
       if (unlikely (!dest)) return_trace (false);
@@ -217,7 +217,7 @@ struct CFFIndex
     if (!this->count) return_trace (true);
     if (unlikely (!c->extend (this->offSize))) return_trace (false);
     this->offSize = off_size;
-    if (unlikely (!c->allocate_size<HBUINT8> (off_size * (it.len () + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (off_size * (this->count + 1))))
       return_trace (false);
 
     /* serialize indices */
