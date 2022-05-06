@@ -479,7 +479,9 @@ struct gvar
   const hb_bytes_t get_glyph_var_data_bytes (hb_blob_t *blob, hb_codepoint_t glyph) const
   {
     unsigned start_offset = get_offset (glyph);
-    unsigned length = get_offset (glyph+1) - start_offset;
+    unsigned end_offset = get_offset (glyph+1);
+    if (unlikely (end_offset < start_offset)) return hb_bytes_t ();
+    unsigned length = end_offset - start_offset;
     hb_bytes_t var_data = blob->as_bytes ().sub_array (((unsigned) dataZ) + start_offset, length);
     return likely (var_data.length >= GlyphVariationData::min_size) ? var_data : hb_bytes_t ();
   }
