@@ -490,7 +490,10 @@ struct gvar
   bool is_long_offset () const { return flags & 1; }
 
   unsigned get_offset (unsigned i) const
-  { return is_long_offset () ? get_long_offset_array ()[i] : get_short_offset_array ()[i] * 2; }
+  {
+    if (unlikely (i > glyphCount)) return 0;
+    return is_long_offset () ? get_long_offset_array ()[i] : get_short_offset_array ()[i] * 2;
+  }
 
   const HBUINT32 * get_long_offset_array () const { return (const HBUINT32 *) &offsetZ; }
   const HBUINT16 *get_short_offset_array () const { return (const HBUINT16 *) &offsetZ; }
