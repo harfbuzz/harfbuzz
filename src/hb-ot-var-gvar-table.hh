@@ -390,7 +390,6 @@ struct gvar
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && (version.major == 1) &&
-		  (glyphCount == c->get_num_glyphs ()) &&
 		  sharedTuples.sanitize (c, this, axisCount * sharedTupleCount) &&
 		  (is_long_offset () ?
 		     c->check_array (get_long_offset_array (), glyphCount+1) :
