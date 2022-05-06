@@ -214,6 +214,8 @@ struct CFFIndex
     /* serialize CFFIndex header */
     if (unlikely (!c->extend_min (this))) return_trace (false);
     this->count = it.len ();
+    if (!this->count) return_trace (true);
+    if (unlikely (!c->extend (this->offSize))) return_trace (false);
     this->offSize = off_size;
     if (unlikely (!c->allocate_size<HBUINT8> (off_size * (it.len () + 1))))
       return_trace (false);
@@ -263,7 +265,7 @@ struct CFFIndex
   }
 
   const unsigned char *data_base () const
-  { return (const unsigned char *) this + min_size + offset_array_size (); }
+  { return (const unsigned char *) this + min_size + offSize.static_size + offset_array_size (); }
 
   unsigned int data_size () const { return HBINT8::static_size; }
 
@@ -276,18 +278,19 @@ struct CFFIndex
   unsigned int get_size () const
   {
     if (this == &Null (CFFIndex)) return 0;
-    if (count > 0)
-      return min_size + offset_array_size () + (offset_at (count) - 1);
-    return count.static_size;  /* empty CFFIndex contains count only */
+    if (count)
+      return min_size + offSize.static_size + offset_array_size () + (offset_at (count) - 1);
+    return min_size;  /* empty CFFIndex contains count only */
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely ((c->check_struct (&count) && count == 0) || /* empty INDEX */
-			  (c->check_struct (this) && offSize >= 1 && offSize <= 4 &&
-			   c->check_array (offsets, offSize, count + 1) &&
-			   c->check_array ((const HBUINT8*) data_base (), 1, max_offset () - 1))));
+    return_trace (likely (c->check_struct (this) &&
+			  (count == 0 || /* empty INDEX */
+			   (c->check_struct (&offSize) && offSize >= 1 && offSize <= 4 &&
+			    c->check_array (offsets, offSize, count + 1) &&
+			    c->check_array ((const HBUINT8*) data_base (), 1, max_offset () - 1)))));
   }
 
   protected:
@@ -309,7 +312,7 @@ struct CFFIndex
 				/* The array of (count + 1) offsets into objects array (1-base). */
   /* HBUINT8 data[HB_VAR_ARRAY];	Object data */
   public:
-  DEFINE_SIZE_ARRAY (COUNT::static_size + HBUINT8::static_size, offsets);
+  DEFINE_SIZE_MIN (COUNT::static_size);
 };
 
 template <typename COUNT, typename TYPE>
