@@ -393,9 +393,7 @@ struct gvar
 		  sharedTuples.sanitize (c, this, axisCount * sharedTupleCount) &&
 		  (is_long_offset () ?
 		     c->check_array (get_long_offset_array (), glyphCount+1) :
-		     c->check_array (get_short_offset_array (), glyphCount+1)) &&
-		  c->check_array (((const HBUINT8*)&(this+dataZ)) + get_offset (0),
-				  get_offset (glyphCount) - get_offset (0)));
+		     c->check_array (get_short_offset_array (), glyphCount+1)));
   }
 
   /* GlyphVariationData not sanitized here; must be checked while accessing each glyph variation data */
