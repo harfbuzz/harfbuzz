@@ -279,21 +279,10 @@ struct CFFIndex
     TRACE_SANITIZE (this);
     return_trace (likely (c->check_struct (this) &&
 			  (count == 0 || /* empty INDEX */
-			   (c->check_struct (&offSize) && offSize >= 1 && offSize <= 4 &&
-			    c->check_array (offsets, offSize, count + 1) &&
-			    c->check_array ((const HBUINT8*) data_base (), 1, max_offset () - 1)))));
-  }
-
-  protected:
-  unsigned int max_offset () const
-  {
-    unsigned int max = 0;
-    for (unsigned int i = 0; i < count + 1u; i++)
-    {
-      unsigned int off = offset_at (i);
-      if (off > max) max = off;
-    }
-    return max;
+			   (count < count + 1u &&
+			    c->check_struct (&offSize) && offSize >= 1 && offSize <= 4 &&
+			    c->check_array (offsets, offSize, count + 1u) &&
+			    c->check_array ((const HBUINT8*) data_base (), 1, offset_at (count) - 1)))));
   }
 
   public:
