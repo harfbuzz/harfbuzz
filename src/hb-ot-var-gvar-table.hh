@@ -698,7 +698,7 @@ no_more_gaps:
 		offsetZ;	/* Offsets from the start of the GlyphVariationData array
 				 * to each GlyphVariationData table. */
   public:
-  DEFINE_SIZE_MIN (20);
+  DEFINE_SIZE_ARRAY (20, offsetZ);
 };
 
 struct gvar_accelerator_t : gvar::accelerator_t {
