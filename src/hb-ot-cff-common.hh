@@ -172,18 +172,9 @@ struct CFFIndex
 		  Iterator it)
   {
     TRACE_SERIALIZE (this);
-    if (!it)
-    {
-      COUNT *dest = c->allocate_min<COUNT> ();
-      if (unlikely (!dest)) return_trace (false);
-      *dest = 0;
-    }
-    else
-    {
-      serialize_header(c, + it | hb_map ([] (const byte_str_t &_) { return _.length; }));
-      for (const auto &_ : +it)
-	_.copy (c);
-    }
+    serialize_header(c, + it | hb_map ([] (const byte_str_t &_) { return _.length; }));
+    for (const auto &_ : +it)
+      _.copy (c);
     return_trace (true);
   }
 
