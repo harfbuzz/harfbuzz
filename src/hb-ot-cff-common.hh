@@ -265,7 +265,6 @@ struct CFFIndex
 
   unsigned int get_size () const
   {
-    if (this == &Null (CFFIndex)) return 0;
     if (count)
       return min_size + offSize.static_size + offset_array_size () + (offset_at (count) - 1);
     return min_size;  /* empty CFFIndex contains count only */
