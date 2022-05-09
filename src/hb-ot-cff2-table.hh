@@ -415,7 +415,7 @@ struct cff2
         goto fail;
 
       { /* parse top dict */
-	byte_str_t topDictStr (cff2 + cff2->topDict, cff2->topDictSize);
+	byte_str_t topDictStr = (cff2 + cff2->topDict).as_ubytes (cff2->topDictSize);
 	if (unlikely (!topDictStr.sanitize (&sc))) goto fail;
 	cff2_top_dict_interpreter_t top_interp;
 	top_interp.env.init (topDictStr);
@@ -457,7 +457,7 @@ struct cff2
 	font->init ();
 	if (unlikely (!font_interp.interpret (*font))) goto fail;
 
-	const byte_str_t privDictStr (StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset), font->privateDictInfo.size);
+	const byte_str_t privDictStr = StructAtOffsetOrNull<UnsizedByteStr> (cff2, font->privateDictInfo.offset).as_ubytes (font->privateDictInfo.size);
 	if (unlikely (!privDictStr.sanitize (&sc))) goto fail;
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL, cff2_priv_dict_interp_env_t>  priv_interp;
 	priv_interp.env.init(privDictStr);

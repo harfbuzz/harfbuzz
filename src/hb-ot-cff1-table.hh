@@ -1108,7 +1108,7 @@ struct cff1
 	  font->init ();
 	  if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 	  PRIVDICTVAL *priv = &privateDicts[i];
-	  const byte_str_t privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
+	  const byte_str_t privDictStr = StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset).as_ubytes (font->privateDictInfo.size);
 	  if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	  dict_interpreter_t<PRIVOPSET, PRIVDICTVAL> priv_interp;
 	  priv_interp.env.init (privDictStr);
@@ -1126,7 +1126,7 @@ struct cff1
 	cff1_top_dict_values_t *font = &topDict;
 	PRIVDICTVAL *priv = &privateDicts[0];
 
-	const byte_str_t privDictStr (StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset), font->privateDictInfo.size);
+	const byte_str_t privDictStr = StructAtOffset<UnsizedByteStr> (cff, font->privateDictInfo.offset).as_ubytes (font->privateDictInfo.size);
 	if (unlikely (!privDictStr.sanitize (&sc))) { fini (); return; }
 	dict_interpreter_t<PRIVOPSET, PRIVDICTVAL> priv_interp;
 	priv_interp.env.init (privDictStr);

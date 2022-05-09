@@ -248,6 +248,9 @@ struct number_t
 /* byte string */
 struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 {
+  hb_ubytes_t as_ubytes (unsigned l) const
+  { return hb_ubytes_t ((const unsigned char *) this, l); }
+
   // encode 2-byte int (Dict/CharString) or 4-byte int (Dict)
   template <typename T, typename V>
   static bool serialize_int (hb_serialize_context_t *c, op_code_t intOp, V value)
@@ -281,25 +284,7 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
   DEFINE_SIZE_MIN(0);
 };
 
-/* Holder of a section of byte string within a CFFIndex entry */
-struct byte_str_t : hb_ubytes_t
-{
-  byte_str_t ()
-    : hb_ubytes_t () {}
-  byte_str_t (const UnsizedByteStr& s, unsigned int l)
-    : hb_ubytes_t ((const unsigned char*)&s, l) {}
-  byte_str_t (const unsigned char *s, unsigned int l)
-    : hb_ubytes_t (s, l) {}
-  byte_str_t (const hb_ubytes_t &ub)	/* conversion from hb_ubytes_t */
-    : hb_ubytes_t (ub) {}
-
-  /* sub-string */
-  byte_str_t sub_str (unsigned int offset, unsigned int len_) const
-  { return byte_str_t (hb_ubytes_t::sub_array (offset, len_)); }
-
-  bool check_limit (unsigned int offset, unsigned int count) const
-  { return (offset + count <= length); }
-};
+using byte_str_t = hb_ubytes_t;
 
 /* A byte string associated with the current offset and an error condition */
 struct byte_str_ref_t
@@ -335,13 +320,13 @@ struct byte_str_ref_t
   }
 
   /* Conversion to byte_str_t */
-  operator byte_str_t () const { return str.sub_str (offset, str.length - offset); }
+  operator byte_str_t () const { return str.sub_array (offset, str.length - offset); }
 
-  byte_str_t sub_str (unsigned int offset_, unsigned int len_) const
-  { return str.sub_str (offset_, len_); }
+  byte_str_t sub_array (unsigned int offset_, unsigned int len_) const
+  { return str.sub_array (offset_, len_); }
 
   bool avail (unsigned int count=1) const
-  { return (!in_error () && str.check_limit (offset, count)); }
+  { return (!in_error () && offset + count <= str.length); }
   void inc (unsigned int count=1)
   {
     if (likely (!in_error () && (offset <= str.length) && (offset + count <= str.length)))
@@ -551,7 +536,7 @@ struct parsed_values_t
   {
     VAL *val = values.push ();
     val->op = op;
-    val->str = str_ref.str.sub_str (opStart, str_ref.offset - opStart);
+    val->str = str_ref.str.sub_array (opStart, str_ref.offset - opStart);
     opStart = str_ref.offset;
   }
 
@@ -559,7 +544,7 @@ struct parsed_values_t
   {
     VAL *val = values.push (v);
     val->op = op;
-    val->str = str_ref.sub_str ( opStart, str_ref.offset - opStart);
+    val->str = str_ref.sub_array ( opStart, str_ref.offset - opStart);
     opStart = str_ref.offset;
   }
 
