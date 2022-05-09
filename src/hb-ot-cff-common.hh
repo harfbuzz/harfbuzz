@@ -53,16 +53,7 @@ struct code_pair_t
 };
 
 typedef hb_vector_t<unsigned char> str_buff_t;
-struct str_buff_vec_t : hb_vector_t<str_buff_t>
-{
-  unsigned int total_size () const
-  {
-    return + this->iter ()
-	   | hb_map (&str_buff_t::length)
-	   | hb_reduce (hb_add, 0)
-	   ;
-  }
-};
+struct str_buff_vec_t : hb_vector_t<str_buff_t> {};
 
 /* CFF INDEX */
 template <typename COUNT>
