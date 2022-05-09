@@ -58,8 +58,8 @@ struct str_buff_vec_t : hb_vector_t<str_buff_t>
   unsigned int total_size () const
   {
     unsigned int size = 0;
-    for (unsigned int i = 0; i < length; i++)
-      size += (*this)[i].length;
+    for (const auto& v : *this )
+      size += v.length;
     return size;
   }
 
