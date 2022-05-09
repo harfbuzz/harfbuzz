@@ -52,8 +52,8 @@ struct code_pair_t
   hb_codepoint_t glyph;
 };
 
-typedef hb_vector_t<unsigned char> str_buff_t;
-struct str_buff_vec_t : hb_vector_t<str_buff_t> {};
+using str_buff_t = hb_vector_t<unsigned char>;
+using str_buff_vec_t = hb_vector_t<str_buff_t>;
 
 /* CFF INDEX */
 template <typename COUNT>
