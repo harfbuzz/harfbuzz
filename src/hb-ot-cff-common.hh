@@ -259,7 +259,7 @@ struct CFFIndex
 
   byte_str_t operator [] (unsigned int index) const
   {
-    if (unlikely (index >= count)) return Null (byte_str_t);
+    if (unlikely (index >= count)) return byte_str_t ();
     return byte_str_t (data_base () + offset_at (index) - 1, length_at (index));
   }
 
