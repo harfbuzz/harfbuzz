@@ -396,7 +396,7 @@ bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, boun
 
   unsigned int fd = cff->fdSelect->get_fd (glyph);
   cff1_cs_interpreter_t<cff1_cs_opset_extents_t, cff1_extents_param_t> interp;
-  const byte_str_t str = (*cff->charStrings)[glyph];
+  const hb_ubytes_t str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
   cff1_extents_param_t  param;
@@ -542,7 +542,7 @@ bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoin
 
   unsigned int fd = cff->fdSelect->get_fd (glyph);
   cff1_cs_interpreter_t<cff1_cs_opset_path_t, cff1_path_param_t> interp;
-  const byte_str_t str = (*cff->charStrings)[glyph];
+  const hb_ubytes_t str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
   cff1_path_param_t param (cff, font, draw_session, delta);
@@ -599,7 +599,7 @@ bool OT::cff1::accelerator_t::get_seac_components (hb_codepoint_t glyph, hb_code
 
   unsigned int fd = fdSelect->get_fd (glyph);
   cff1_cs_interpreter_t<cff1_cs_opset_seac_t, get_seac_param_t> interp;
-  const byte_str_t str = (*charStrings)[glyph];
+  const hb_ubytes_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd);
   get_seac_param_t  param;
   param.init (this);

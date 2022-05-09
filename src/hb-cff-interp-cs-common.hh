@@ -79,10 +79,10 @@ struct biased_subrs_t
   unsigned int get_count () const { return subrs ? subrs->count : 0; }
   unsigned int get_bias () const  { return bias; }
 
-  byte_str_t operator [] (unsigned int index) const
+  hb_ubytes_t operator [] (unsigned int index) const
   {
     if (unlikely (!subrs || index >= subrs->count))
-      return Null (byte_str_t);
+      return Null (hb_ubytes_t);
     else
       return (*subrs)[index];
   }
@@ -112,7 +112,7 @@ struct point_t
 template <typename ARG, typename SUBRS>
 struct cs_interp_env_t : interp_env_t<ARG>
 {
-  void init (const byte_str_t &str, const SUBRS *globalSubrs_, const SUBRS *localSubrs_)
+  void init (const hb_ubytes_t &str, const SUBRS *globalSubrs_, const SUBRS *localSubrs_)
   {
     interp_env_t<ARG>::init (str);
 

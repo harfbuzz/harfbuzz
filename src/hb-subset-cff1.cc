@@ -169,7 +169,7 @@ struct cff1_top_dict_op_serializer_t : cff_top_dict_op_serializer_t<cff1_top_dic
 	  supp_op.op = op;
 	  if ( unlikely (!(opstr.str.length >= opstr.last_arg_offset + 3)))
 	    return_trace (false);
-	  supp_op.str = byte_str_t (&opstr.str + opstr.last_arg_offset, opstr.str.length - opstr.last_arg_offset);
+	  supp_op.str = hb_ubytes_t (&opstr.str + opstr.last_arg_offset, opstr.str.length - opstr.last_arg_offset);
 	  return_trace (UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[name_dict_values_t::registry]) &&
 			UnsizedByteStr::serialize_int2 (c, mod.nameSIDs[name_dict_values_t::ordering]) &&
 			copy_opstr (c, supp_op));
