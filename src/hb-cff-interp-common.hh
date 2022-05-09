@@ -355,10 +355,8 @@ struct cff_stack_t
   {
     error = false;
     count = 0;
-    elements.init ();
-    elements.resize (kSizeLimit);
   }
-  void fini () { elements.fini (); }
+  void fini () {}
 
   ELEM& operator [] (unsigned int i)
   {
@@ -368,14 +366,14 @@ struct cff_stack_t
 
   void push (const ELEM &v)
   {
-    if (likely (count < elements.length))
+    if (likely (count < LIMIT))
       elements[count++] = v;
     else
       set_error ();
   }
   ELEM &push ()
   {
-    if (likely (count < elements.length))
+    if (likely (count < LIMIT))
       return elements[count++];
     else
     {
@@ -414,7 +412,7 @@ struct cff_stack_t
 
   void unpop ()
   {
-    if (likely (count < elements.length))
+    if (likely (count < LIMIT))
       count++;
     else
       set_error ();
@@ -422,18 +420,16 @@ struct cff_stack_t
 
   void clear () { count = 0; }
 
-  bool in_error () const { return (error || elements.in_error ()); }
+  bool in_error () const { return (error); }
   void set_error ()      { error = true; }
 
   unsigned int get_count () const { return count; }
   bool is_empty () const          { return !count; }
 
-  static constexpr unsigned kSizeLimit = LIMIT;
-
   protected:
   bool error;
   unsigned int count;
-  hb_vector_t<ELEM> elements;
+  ELEM elements[LIMIT];
 };
 
 /* argument stack */
@@ -489,7 +485,7 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
   }
 
   hb_array_t<const ARG> get_subarray (unsigned int start) const
-  { return S::elements.sub_array (start); }
+  { return hb_array_t<const ARG> (S::elements).sub_array (start); }
 
   private:
   typedef cff_stack_t<ARG, 513> S;
