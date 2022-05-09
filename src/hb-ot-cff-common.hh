@@ -223,6 +223,7 @@ struct CFFIndex
 
   void set_offset_at (unsigned int index, unsigned int offset)
   {
+    assert (index <= count);
     HBUINT8 *p = offsets + offSize * index + offSize;
     unsigned int size = offSize;
     for (; size; size--)
