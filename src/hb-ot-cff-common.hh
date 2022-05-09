@@ -46,19 +46,6 @@ template<typename Type>
 static inline const Type& StructAtOffsetOrNull (const void *P, unsigned int offset)
 { return offset ? StructAtOffset<Type> (P, offset) : Null (Type); }
 
-inline unsigned int calcOffSize (unsigned int dataSize)
-{
-  unsigned int size = 1;
-  unsigned int offset = dataSize + 1;
-  while (offset & ~0xFF)
-  {
-    size++;
-    offset >>= 8;
-  }
-  /* format does not support size > 4; caller should handle it as an error */
-  return size;
-}
-
 struct code_pair_t
 {
   hb_codepoint_t code;
@@ -197,7 +184,7 @@ struct CFFIndex
     TRACE_SERIALIZE (this);
 
     unsigned total = + it | hb_reduce (hb_add, 0);
-    unsigned off_size = calcOffSize (total);
+    unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
 
     /* serialize CFFIndex header */
     if (unlikely (!c->extend_min (this))) return_trace (false);
