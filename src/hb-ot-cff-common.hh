@@ -260,8 +260,6 @@ struct CFFIndex
   { return (const unsigned char *) this + min_size + offSize.static_size + offset_array_size (); }
   public:
 
-  unsigned int data_size () const { return HBINT8::static_size; }
-
   byte_str_t operator [] (unsigned int index) const
   {
     if (unlikely (index >= count)) return Null (byte_str_t);
