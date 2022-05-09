@@ -236,6 +236,7 @@ struct CFFIndex
     }
   }
 
+  private:
   unsigned int offset_at (unsigned int index) const
   {
     assert (index <= count);
@@ -257,6 +258,7 @@ struct CFFIndex
 
   const unsigned char *data_base () const
   { return (const unsigned char *) this + min_size + offSize.static_size + offset_array_size (); }
+  public:
 
   unsigned int data_size () const { return HBINT8::static_size; }
 
