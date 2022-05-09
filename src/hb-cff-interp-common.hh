@@ -345,7 +345,7 @@ struct byte_str_ref_t
   bool	  error;
 };
 
-typedef hb_vector_t<hb_ubytes_t> byte_str_array_t;
+using byte_str_array_t = hb_vector_t<hb_ubytes_t>;
 
 /* stack */
 template <typename ELEM, int LIMIT>
