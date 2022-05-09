@@ -107,7 +107,7 @@ struct str_encoder_t
       encode_byte (op);
   }
 
-  void copy_str (const byte_str_t &str)
+  void copy_str (const hb_ubytes_t &str)
   {
     unsigned int  offset = buff.length;
     if (unlikely (!buff.resize (offset + str.length)))
@@ -253,7 +253,7 @@ struct subr_flattener_t
 	if (endchar_op != OpCode_Invalid) flat_charstrings[i].push (endchar_op);
 	continue;
       }
-      const byte_str_t str = (*acc.charStrings)[glyph];
+      const hb_ubytes_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
@@ -561,7 +561,7 @@ struct subr_subsetter_t
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
 	continue;
-      const byte_str_t str = (*acc.charStrings)[glyph];
+      const hb_ubytes_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;

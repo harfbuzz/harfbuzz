@@ -277,14 +277,9 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
   /* Defining null_size allows a Null object may be created. Should be safe because:
    * A descendent struct Dict uses a Null pointer to indicate a missing table,
    * checked before access.
-   * byte_str_t, a wrapper struct pairing a byte pointer along with its length, always
-   * checks the length before access. A Null pointer is used as the initial pointer
-   * along with zero length by the default ctor.
    */
   DEFINE_SIZE_MIN(0);
 };
-
-using byte_str_t = hb_ubytes_t;
 
 /* A byte string associated with the current offset and an error condition */
 struct byte_str_ref_t
@@ -293,17 +288,17 @@ struct byte_str_ref_t
 
   void init ()
   {
-    str = byte_str_t ();
+    str = hb_ubytes_t ();
     offset = 0;
     error = false;
   }
 
   void fini () {}
 
-  byte_str_ref_t (const byte_str_t &str_, unsigned int offset_ = 0)
+  byte_str_ref_t (const hb_ubytes_t &str_, unsigned int offset_ = 0)
     : str (str_), offset (offset_), error (false) {}
 
-  void reset (const byte_str_t &str_, unsigned int offset_ = 0)
+  void reset (const hb_ubytes_t &str_, unsigned int offset_ = 0)
   {
     str = str_;
     offset = offset_;
@@ -319,10 +314,10 @@ struct byte_str_ref_t
     return str[offset + i];
   }
 
-  /* Conversion to byte_str_t */
-  operator byte_str_t () const { return str.sub_array (offset, str.length - offset); }
+  /* Conversion to hb_ubytes_t */
+  operator hb_ubytes_t () const { return str.sub_array (offset, str.length - offset); }
 
-  byte_str_t sub_array (unsigned int offset_, unsigned int len_) const
+  hb_ubytes_t sub_array (unsigned int offset_, unsigned int len_) const
   { return str.sub_array (offset_, len_); }
 
   bool avail (unsigned int count=1) const
@@ -343,14 +338,14 @@ struct byte_str_ref_t
   void set_error ()      { error = true; }
   bool in_error () const { return error; }
 
-  byte_str_t       str;
+  hb_ubytes_t       str;
   unsigned int  offset; /* beginning of the sub-string within str */
 
   protected:
   bool	  error;
 };
 
-typedef hb_vector_t<byte_str_t> byte_str_array_t;
+typedef hb_vector_t<hb_ubytes_t> byte_str_array_t;
 
 /* stack */
 template <typename ELEM, int LIMIT>
@@ -504,7 +499,7 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
 struct op_str_t
 {
   op_code_t  op;
-  byte_str_t str;
+  hb_ubytes_t str;
 };
 
 /* base of OP_SERIALIZER */
@@ -566,7 +561,7 @@ struct parsed_values_t
 template <typename ARG=number_t>
 struct interp_env_t
 {
-  void init (const byte_str_t &str_)
+  void init (const hb_ubytes_t &str_)
   {
     str_ref.reset (str_);
     argStack.init ();

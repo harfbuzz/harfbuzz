@@ -115,7 +115,7 @@ struct CFFIndex
     /* serialize data */
     for (unsigned int i = 0; i < byteArray.length; i++)
     {
-      const byte_str_t &bs = byteArray[i];
+      const hb_ubytes_t &bs = byteArray[i];
       unsigned char *dest = c->allocate_size<unsigned char> (bs.length);
       if (unlikely (!dest)) return_trace (false);
       memcpy (dest, &bs[0], bs.length);
@@ -132,7 +132,7 @@ struct CFFIndex
     byteArray.init ();
     byteArray.resize (buffArray.length);
     for (unsigned int i = 0; i < byteArray.length; i++)
-      byteArray[i] = byte_str_t (buffArray[i].arrayZ, buffArray[i].length);
+      byteArray[i] = hb_ubytes_t (buffArray[i].arrayZ, buffArray[i].length);
     bool result = this->serialize (c, offSize_, byteArray);
     byteArray.fini ();
     return result;
@@ -144,7 +144,7 @@ struct CFFIndex
 		  Iterator it)
   {
     TRACE_SERIALIZE (this);
-    serialize_header(c, + it | hb_map ([] (const byte_str_t &_) { return _.length; }));
+    serialize_header(c, + it | hb_map ([] (const hb_ubytes_t &_) { return _.length; }));
     for (const auto &_ : +it)
       _.copy (c);
     return_trace (true);
@@ -159,7 +159,7 @@ struct CFFIndex
   {
     auto it =
     + hb_iter (buffArray)
-    | hb_map ([] (const str_buff_t &_) { return byte_str_t (_.arrayZ, _.length); })
+    | hb_map ([] (const str_buff_t &_) { return hb_ubytes_t (_.arrayZ, _.length); })
     ;
     return serialize (c, it);
   }
@@ -233,10 +233,10 @@ struct CFFIndex
   { return (const unsigned char *) this + min_size + offSize.static_size + offset_array_size (); }
   public:
 
-  byte_str_t operator [] (unsigned int index) const
+  hb_ubytes_t operator [] (unsigned int index) const
   {
-    if (unlikely (index >= count)) return byte_str_t ();
-    return byte_str_t (data_base () + offset_at (index) - 1, length_at (index));
+    if (unlikely (index >= count)) return hb_ubytes_t ();
+    return hb_ubytes_t (data_base () + offset_at (index) - 1, length_at (index));
   }
 
   unsigned int get_size () const

@@ -67,7 +67,7 @@ typedef biased_subrs_t<CFF2Subrs>   cff2_biased_subrs_t;
 struct cff2_cs_interp_env_t : cs_interp_env_t<blend_arg_t, CFF2Subrs>
 {
   template <typename ACC>
-  void init (const byte_str_t &str, ACC &acc, unsigned int fd,
+  void init (const hb_ubytes_t &str, ACC &acc, unsigned int fd,
 	     const int *coords_=nullptr, unsigned int num_coords_=0)
   {
     SUPER::init (str, acc.globalSubrs, acc.privateDicts[fd].localSubrs);
