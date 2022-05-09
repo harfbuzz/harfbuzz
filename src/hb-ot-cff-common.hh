@@ -86,40 +86,41 @@ struct CFFIndex
 		  const byte_str_array_t &byteArray)
   {
     TRACE_SERIALIZE (this);
+
     if (byteArray.length == 0)
     {
       COUNT *dest = c->allocate_min<COUNT> ();
       if (unlikely (!dest)) return_trace (false);
       *dest = 0;
+      return_trace (true);
     }
-    else
+
+    /* serialize CFFIndex header */
+    if (unlikely (!c->extend_min (this))) return_trace (false);
+    this->count = byteArray.length;
+    this->offSize = offSize_;
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
+      return_trace (false);
+
+    /* serialize indices */
+    unsigned int  offset = 1;
+    unsigned int  i = 0;
+    for (; i < byteArray.length; i++)
     {
-      /* serialize CFFIndex header */
-      if (unlikely (!c->extend_min (this))) return_trace (false);
-      this->count = byteArray.length;
-      this->offSize = offSize_;
-      if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
-	return_trace (false);
-
-      /* serialize indices */
-      unsigned int  offset = 1;
-      unsigned int  i = 0;
-      for (; i < byteArray.length; i++)
-      {
-	set_offset_at (i, offset);
-	offset += byteArray[i].get_size ();
-      }
       set_offset_at (i, offset);
-
-      /* serialize data */
-      for (unsigned int i = 0; i < byteArray.length; i++)
-      {
-	const byte_str_t &bs = byteArray[i];
-	unsigned char *dest = c->allocate_size<unsigned char> (bs.length);
-	if (unlikely (!dest)) return_trace (false);
-	memcpy (dest, &bs[0], bs.length);
-      }
+      offset += byteArray[i].get_size ();
     }
+    set_offset_at (i, offset);
+
+    /* serialize data */
+    for (unsigned int i = 0; i < byteArray.length; i++)
+    {
+      const byte_str_t &bs = byteArray[i];
+      unsigned char *dest = c->allocate_size<unsigned char> (bs.length);
+      if (unlikely (!dest)) return_trace (false);
+      memcpy (dest, &bs[0], bs.length);
+    }
+
     return_trace (true);
   }
 
