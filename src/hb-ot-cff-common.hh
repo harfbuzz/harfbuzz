@@ -81,16 +81,6 @@ struct CFFIndex
     return_trace (out);
   }
 
-  bool serialize (hb_serialize_context_t *c, const CFFIndex &src)
-  {
-    TRACE_SERIALIZE (this);
-    unsigned int size = src.get_size ();
-    CFFIndex *dest = c->allocate_size<CFFIndex> (size);
-    if (unlikely (!dest)) return_trace (false);
-    memcpy (dest, &src, size);
-    return_trace (true);
-  }
-
   bool serialize (hb_serialize_context_t *c,
 		  unsigned int offSize_,
 		  const byte_str_array_t &byteArray)
