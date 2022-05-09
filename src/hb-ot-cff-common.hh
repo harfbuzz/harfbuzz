@@ -84,11 +84,8 @@ struct str_buff_vec_t : hb_vector_t<str_buff_t>
 template <typename COUNT>
 struct CFFIndex
 {
-  static unsigned int calculate_offset_array_size (unsigned int offSize, unsigned int count)
-  { return offSize * (count + 1); }
-
   unsigned int offset_array_size () const
-  { return calculate_offset_array_size (offSize, count); }
+  { return offSize * (count + 1); }
 
   CFFIndex *copy (hb_serialize_context_t *c) const
   {
