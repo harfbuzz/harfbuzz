@@ -299,13 +299,6 @@ struct CFFIndex
 template <typename COUNT, typename TYPE>
 struct CFFIndexOf : CFFIndex<COUNT>
 {
-  const byte_str_t operator [] (unsigned int index) const
-  {
-    if (likely (index < CFFIndex<COUNT>::count))
-      return byte_str_t (CFFIndex<COUNT>::data_base () + CFFIndex<COUNT>::offset_at (index) - 1, CFFIndex<COUNT>::length_at (index));
-    return Null (byte_str_t);
-  }
-
   template <typename DATA, typename PARAM1, typename PARAM2>
   bool serialize (hb_serialize_context_t *c,
 		  unsigned int offSize_,
