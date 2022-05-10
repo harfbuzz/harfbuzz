@@ -888,7 +888,7 @@ struct cs_interpreter_t : interpreter_t<ENV>
       OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
       if (unlikely (SUPER::env.in_error ()))
 	return false;
-      if (unlikely (SUPER::env.is_endchar ()))
+      if (SUPER::env.is_endchar ())
 	break;
     }
 
