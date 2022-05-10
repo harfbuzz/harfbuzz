@@ -406,7 +406,7 @@ struct cff_stack_t
 
   const ELEM& peek ()
   {
-    if (unlikely (count < 0))
+    if (unlikely (count == 0))
     {
       set_error ();
       return Null (ELEM);
