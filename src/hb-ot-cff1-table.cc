@@ -311,10 +311,8 @@ struct bounds_t
 
 struct cff1_extents_param_t
 {
-  void init (const OT::cff1::accelerator_t *_cff)
+  cff1_extents_param_t (const OT::cff1::accelerator_t *_cff) : cff (_cff)
   {
-    path_open = false;
-    cff = _cff;
     bounds.init ();
   }
 
@@ -322,7 +320,7 @@ struct cff1_extents_param_t
   void end_path     ()       { path_open = false; }
   bool is_path_open () const { return path_open; }
 
-  bool path_open;
+  bool path_open = false;
   bounds_t bounds;
 
   const OT::cff1::accelerator_t *cff;
@@ -399,8 +397,7 @@ bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, boun
   const hb_ubytes_t str = (*cff->charStrings)[glyph];
   interp.env.init (str, *cff, fd);
   interp.env.set_in_seac (in_seac);
-  cff1_extents_param_t  param;
-  param.init (cff);
+  cff1_extents_param_t param (cff);
   if (unlikely (!interp.interpret (param))) return false;
   bounds = param.bounds;
   return true;
