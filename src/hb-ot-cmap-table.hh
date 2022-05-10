@@ -738,11 +738,19 @@ struct CmapSubtableLongSegmented
 			hb_map_t *mapping, /* OUT */
 			unsigned num_glyphs) const
   {
+    hb_codepoint_t last_end = 0;
     for (unsigned i = 0; i < this->groups.len; i++)
     {
       hb_codepoint_t start = this->groups[i].startCharCode;
       hb_codepoint_t end = hb_min ((hb_codepoint_t) this->groups[i].endCharCode,
 				   (hb_codepoint_t) HB_UNICODE_MAX);
+      if (unlikely (start > end || start < last_end)) {
+        // Range is not in order and is invalid, skip it.
+        continue;
+      }
+      last_end = end;
+
+
       hb_codepoint_t gid = this->groups[i].glyphID;
       if (!gid)
       {
