@@ -430,8 +430,8 @@ struct cff_stack_t
   unsigned int get_count () const { return count; }
   bool is_empty () const          { return !count; }
 
-  hb_array_t<const ELEM> get_subarray (unsigned int start) const
-  { return hb_array_t<const ELEM> (elements).sub_array (start); }
+  hb_array_t<const ELEM> sub_array (unsigned start, unsigned length) const
+  { return hb_array_t<const ELEM> (elements).sub_array (start, length); }
 
   private:
   bool error;
