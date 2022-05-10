@@ -393,10 +393,10 @@ bool _get_bounds (const OT::cff1::accelerator_t *cff, hb_codepoint_t glyph, boun
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
 
   unsigned int fd = cff->fdSelect->get_fd (glyph);
-  cff1_cs_interpreter_t<cff1_cs_opset_extents_t, cff1_extents_param_t> interp;
   const hb_ubytes_t str = (*cff->charStrings)[glyph];
-  interp.env.init (str, *cff, fd);
-  interp.env.set_in_seac (in_seac);
+  cff1_cs_interp_env_t env (str, *cff, fd);
+  env.set_in_seac (in_seac);
+  cff1_cs_interpreter_t<cff1_cs_opset_extents_t, cff1_extents_param_t> interp (env);
   cff1_extents_param_t param (cff);
   if (unlikely (!interp.interpret (param))) return false;
   bounds = param.bounds;
@@ -538,10 +538,10 @@ bool _get_path (const OT::cff1::accelerator_t *cff, hb_font_t *font, hb_codepoin
   if (unlikely (!cff->is_valid () || (glyph >= cff->num_glyphs))) return false;
 
   unsigned int fd = cff->fdSelect->get_fd (glyph);
-  cff1_cs_interpreter_t<cff1_cs_opset_path_t, cff1_path_param_t> interp;
   const hb_ubytes_t str = (*cff->charStrings)[glyph];
-  interp.env.init (str, *cff, fd);
-  interp.env.set_in_seac (in_seac);
+  cff1_cs_interp_env_t env (str, *cff, fd);
+  env.set_in_seac (in_seac);
+  cff1_cs_interpreter_t<cff1_cs_opset_path_t, cff1_path_param_t> interp (env);
   cff1_path_param_t param (cff, font, draw_session, delta);
   if (unlikely (!interp.interpret (param))) return false;
 
@@ -590,9 +590,9 @@ bool OT::cff1::accelerator_t::get_seac_components (hb_codepoint_t glyph, hb_code
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 
   unsigned int fd = fdSelect->get_fd (glyph);
-  cff1_cs_interpreter_t<cff1_cs_opset_seac_t, get_seac_param_t> interp;
   const hb_ubytes_t str = (*charStrings)[glyph];
-  interp.env.init (str, *this, fd);
+  cff1_cs_interp_env_t env (str, *this, fd);
+  cff1_cs_interpreter_t<cff1_cs_opset_seac_t, get_seac_param_t> interp (env);
   get_seac_param_t  param (this);
   if (unlikely (!interp.interpret (param))) return false;
 

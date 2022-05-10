@@ -351,13 +351,6 @@ using byte_str_array_t = hb_vector_t<hb_ubytes_t>;
 template <typename ELEM, int LIMIT>
 struct cff_stack_t
 {
-  void init ()
-  {
-    error = false;
-    count = 0;
-  }
-  void fini () {}
-
   ELEM& operator [] (unsigned int i)
   {
     if (unlikely (i >= count))
@@ -434,8 +427,8 @@ struct cff_stack_t
   { return hb_array_t<const ELEM> (elements).sub_array (start, length); }
 
   private:
-  bool error;
-  unsigned int count;
+  bool error = false;
+  unsigned int count = 0;
   ELEM elements[LIMIT];
 };
 
@@ -561,14 +554,11 @@ struct parsed_values_t
 template <typename ARG=number_t>
 struct interp_env_t
 {
-  void init (const hb_ubytes_t &str_)
+  interp_env_t () {}
+  interp_env_t (const hb_ubytes_t &str_)
   {
     str_ref.reset (str_);
-    argStack.init ();
-    error = false;
   }
-  void fini () { argStack.fini (); }
-
   bool in_error () const
   { return error || str_ref.in_error () || argStack.in_error (); }
 
@@ -602,10 +592,10 @@ struct interp_env_t
   arg_stack_t<ARG>
 		argStack;
   protected:
-  bool		error;
+  bool		error = false;
 };
 
-typedef interp_env_t<> num_interp_env_t;
+using num_interp_env_t =  interp_env_t<>;
 
 template <typename ARG=number_t>
 struct opset_t
@@ -648,11 +638,8 @@ struct opset_t
 template <typename ENV>
 struct interpreter_t
 {
-  ~interpreter_t() { fini (); }
-
-  void fini () { env.fini (); }
-
-  ENV env;
+  interpreter_t (ENV& env_) : env (env_) {}
+  ENV& env;
 };
 
 } /* namespace CFF */

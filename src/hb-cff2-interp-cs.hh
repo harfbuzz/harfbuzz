@@ -68,11 +68,10 @@ template <typename ELEM>
 struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
 {
   template <typename ACC>
-  void init (const hb_ubytes_t &str, ACC &acc, unsigned int fd,
-	     const int *coords_=nullptr, unsigned int num_coords_=0)
+  cff2_cs_interp_env_t (const hb_ubytes_t &str, ACC &acc, unsigned int fd,
+			const int *coords_=nullptr, unsigned int num_coords_=0)
+    : SUPER (str, acc.globalSubrs, acc.privateDicts[fd].localSubrs)
   {
-    SUPER::init (str, acc.globalSubrs, acc.privateDicts[fd].localSubrs);
-
     coords = coords_;
     num_coords = num_coords_;
     varStore = acc.varStore;
@@ -269,7 +268,7 @@ struct cff2_cs_opset_t : cs_opset_t<ELEM, OPSET, cff2_cs_interp_env_t<ELEM>, PAR
 };
 
 template <typename OPSET, typename PARAM, typename ELEM>
-struct cff2_cs_interpreter_t : cs_interpreter_t<cff2_cs_interp_env_t<ELEM>, OPSET, PARAM> {};
+using cff2_cs_interpreter_t = cs_interpreter_t<cff2_cs_interp_env_t<ELEM>, OPSET, PARAM>;
 
 } /* namespace CFF */
 
