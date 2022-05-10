@@ -36,9 +36,8 @@ using namespace CFF;
 
 struct cff2_extents_param_t
 {
-  void init ()
+  cff2_extents_param_t ()
   {
-    path_open = false;
     min_x.set_int (INT_MAX);
     min_y.set_int (INT_MAX);
     max_x.set_int (INT_MIN);
@@ -57,7 +56,7 @@ struct cff2_extents_param_t
     if (pt.y > max_y) max_y = pt.y;
   }
 
-  bool  path_open;
+  bool  path_open = false;
   number_t min_x;
   number_t min_y;
   number_t max_x;
@@ -116,7 +115,6 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
   const hb_ubytes_t str = (*charStrings)[glyph];
   interp.env.init (str, *this, fd, font->coords, font->num_coords);
   cff2_extents_param_t  param;
-  param.init ();
   if (unlikely (!interp.interpret (param))) return false;
 
   if (param.min_x >= param.max_x)
