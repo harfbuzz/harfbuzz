@@ -355,27 +355,29 @@ struct cff_stack_t
   {
     error = false;
     count = 0;
-    elements.init ();
-    elements.resize (kSizeLimit);
   }
-  void fini () { elements.fini (); }
+  void fini () {}
 
   ELEM& operator [] (unsigned int i)
   {
-    if (unlikely (i >= count)) set_error ();
+    if (unlikely (i >= count))
+    {
+      set_error ();
+      return Crap (ELEM);
+    }
     return elements[i];
   }
 
   void push (const ELEM &v)
   {
-    if (likely (count < elements.length))
+    if (likely (count < LIMIT))
       elements[count++] = v;
     else
       set_error ();
   }
   ELEM &push ()
   {
-    if (likely (count < elements.length))
+    if (likely (count < LIMIT))
       return elements[count++];
     else
     {
@@ -404,7 +406,7 @@ struct cff_stack_t
 
   const ELEM& peek ()
   {
-    if (unlikely (count < 0))
+    if (unlikely (count == 0))
     {
       set_error ();
       return Null (ELEM);
@@ -414,7 +416,7 @@ struct cff_stack_t
 
   void unpop ()
   {
-    if (likely (count < elements.length))
+    if (likely (count < LIMIT))
       count++;
     else
       set_error ();
@@ -422,18 +424,19 @@ struct cff_stack_t
 
   void clear () { count = 0; }
 
-  bool in_error () const { return (error || elements.in_error ()); }
+  bool in_error () const { return (error); }
   void set_error ()      { error = true; }
 
   unsigned int get_count () const { return count; }
   bool is_empty () const          { return !count; }
 
-  static constexpr unsigned kSizeLimit = LIMIT;
+  hb_array_t<const ELEM> get_subarray (unsigned int start) const
+  { return hb_array_t<const ELEM> (elements).sub_array (start); }
 
-  protected:
+  private:
   bool error;
   unsigned int count;
-  hb_vector_t<ELEM> elements;
+  ELEM elements[LIMIT];
 };
 
 /* argument stack */
@@ -487,9 +490,6 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
     str_ref.inc (4);
     return true;
   }
-
-  hb_array_t<const ARG> get_subarray (unsigned int start) const
-  { return S::elements.sub_array (start); }
 
   private:
   typedef cff_stack_t<ARG, 513> S;
