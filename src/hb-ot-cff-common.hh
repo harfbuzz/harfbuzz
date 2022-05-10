@@ -214,10 +214,11 @@ struct CFFIndex
 
   unsigned int length_at (unsigned int index) const
   {
-    if (unlikely ((offset_at (index + 1) < offset_at (index)) ||
-		  (offset_at (index + 1) > offset_at (count))))
+    unsigned offset0 = offset_at (index);
+    unsigned offset1 = offset_at (index + 1);
+    if (unlikely (offset1 < offset0 || offset1 > offset_at (count)))
       return 0;
-    return offset_at (index + 1) - offset_at (index);
+    return offset1 - offset0;
   }
 
   const unsigned char *data_base () const
