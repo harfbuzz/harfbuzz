@@ -257,8 +257,8 @@ struct subr_flattener_t
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
-      cs_interpreter_t<ENV, OPSET, flatten_param_t> interp;
-      interp.env.init (str, acc, fd);
+      ENV env (str, acc, fd);
+      cs_interpreter_t<ENV, OPSET, flatten_param_t> interp (env);
       flatten_param_t  param = {
         flat_charstrings[i],
         (bool) (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
@@ -566,8 +566,8 @@ struct subr_subsetter_t
       if (unlikely (fd >= acc.fdCount))
 	return false;
 
-      cs_interpreter_t<ENV, OPSET, subr_subset_param_t> interp;
-      interp.env.init (str, acc, fd);
+      ENV env (str, acc, fd);
+      cs_interpreter_t<ENV, OPSET, subr_subset_param_t> interp (env);
 
       subr_subset_param_t  param (&parsed_charstrings[i],
 				  &parsed_global_subrs,

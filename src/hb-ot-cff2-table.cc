@@ -111,9 +111,9 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 
   unsigned int fd = fdSelect->get_fd (glyph);
-  cff2_cs_interpreter_t<cff2_cs_opset_extents_t, cff2_extents_param_t, number_t> interp;
   const hb_ubytes_t str = (*charStrings)[glyph];
-  interp.env.init (str, *this, fd, font->coords, font->num_coords);
+  cff2_cs_interp_env_t<number_t> env (str, *this, fd, font->coords, font->num_coords);
+  cff2_cs_interpreter_t<cff2_cs_opset_extents_t, cff2_extents_param_t, number_t> interp (env);
   cff2_extents_param_t  param;
   if (unlikely (!interp.interpret (param))) return false;
 
@@ -200,9 +200,9 @@ bool OT::cff2::accelerator_t::get_path (hb_font_t *font, hb_codepoint_t glyph, h
   if (unlikely (!is_valid () || (glyph >= num_glyphs))) return false;
 
   unsigned int fd = fdSelect->get_fd (glyph);
-  cff2_cs_interpreter_t<cff2_cs_opset_path_t, cff2_path_param_t, number_t> interp;
   const hb_ubytes_t str = (*charStrings)[glyph];
-  interp.env.init (str, *this, fd, font->coords, font->num_coords);
+  cff2_cs_interp_env_t<number_t> env (str, *this, fd, font->coords, font->num_coords);
+  cff2_cs_interpreter_t<cff2_cs_opset_path_t, cff2_path_param_t, number_t> interp (env);
   cff2_path_param_t param (font, draw_session);
   if (unlikely (!interp.interpret (param))) return false;
   return true;
