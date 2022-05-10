@@ -138,6 +138,33 @@ BENCHMARK_CAPTURE (BM_subset, subset_glyphs_mplus1p,
     ->Range(10, 10000);
 
 
+
+BENCHMARK_CAPTURE (BM_subset, subset_codepoints_sourcehansans,
+                   subset_codepoints,
+                   "test/subset/data/fonts/SourceHanSans-Regular_subset.otf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 10000);
+
+BENCHMARK_CAPTURE (BM_subset, subset_glyphs_sourcehansans,
+                   subset_glyphs,
+                   "test/subset/data/fonts/SourceHanSans-Regular_subset.otf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 10000);
+
+BENCHMARK_CAPTURE (BM_subset, subset_codepoints_sourcesanspro,
+                   subset_codepoints,
+                   "test/subset/data/fonts/SourceSansPro-Regular.otf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 2048);
+
+BENCHMARK_CAPTURE (BM_subset, subset_glyphs_sourcesanspro,
+                   subset_glyphs,
+                   "test/subset/data/fonts/SourceSansPro-Regular.otf")
+    ->Unit(benchmark::kMillisecond)
+    ->Range(10, 2048);
+
+
+
 #if 0
 BENCHMARK_CAPTURE (BM_subset, subset_codepoints_notocjk,
                    subset_codepoints,
