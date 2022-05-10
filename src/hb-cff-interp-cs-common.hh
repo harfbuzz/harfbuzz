@@ -82,7 +82,7 @@ struct biased_subrs_t
   hb_ubytes_t operator [] (unsigned int index) const
   {
     if (unlikely (!subrs || index >= subrs->count))
-      return Null (hb_ubytes_t);
+      return hb_ubytes_t ();
     else
       return (*subrs)[index];
   }
