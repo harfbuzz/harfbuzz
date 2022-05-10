@@ -360,7 +360,11 @@ struct cff_stack_t
 
   ELEM& operator [] (unsigned int i)
   {
-    if (unlikely (i >= count)) set_error ();
+    if (unlikely (i >= count))
+    {
+      set_error ();
+      return Crap (ELEM);
+    }
     return elements[i];
   }
 
@@ -426,7 +430,10 @@ struct cff_stack_t
   unsigned int get_count () const { return count; }
   bool is_empty () const          { return !count; }
 
-  protected:
+  hb_array_t<const ELEM> get_subarray (unsigned int start) const
+  { return hb_array_t<const ELEM> (elements).sub_array (start); }
+
+  private:
   bool error;
   unsigned int count;
   ELEM elements[LIMIT];
@@ -483,9 +490,6 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
     str_ref.inc (4);
     return true;
   }
-
-  hb_array_t<const ARG> get_subarray (unsigned int start) const
-  { return hb_array_t<const ARG> (S::elements).sub_array (start); }
 
   private:
   typedef cff_stack_t<ARG, 513> S;
