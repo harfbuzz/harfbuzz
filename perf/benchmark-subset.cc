@@ -1,14 +1,33 @@
 #include "benchmark/benchmark.h"
+#include <cstring>
 
 #include "hb-subset.h"
 
-// TODO(garretrieger): TrueType CJK font.
-// TODO(garretrieger): Amiri + Devanagari
 
 enum operation_t
 {
   subset_codepoints,
   subset_glyphs
+};
+
+#define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
+
+struct test_input_t
+{
+  const char *font_path;
+  const unsigned max_subset_size;
+} tests[] =
+{
+  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf", 4000},
+  {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 4000},
+  {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf", 1000},
+  {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf", 1000},
+  {SUBSET_FONT_BASE_PATH "Mplus1p-Regular.ttf", 10000},
+  {SUBSET_FONT_BASE_PATH "SourceHanSans-Regular_subset.otf", 10000},
+  {SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf", 2000},
+#if 0
+  {"perf/fonts/NotoSansCJKsc-VF.ttf", 100000},
+#endif
 };
 
 void AddCodepoints(const hb_set_t* codepoints_in_font,
@@ -77,108 +96,40 @@ static void BM_subset (benchmark::State &state,
   hb_face_destroy (face);
 }
 
-BENCHMARK_CAPTURE (BM_subset, subset_codepoints_roboto,
-                   subset_codepoints,
-                   "perf/fonts/Roboto-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 4000);
+static void test_subset (operation_t op,
+                         const char *op_name,
+                         benchmark::TimeUnit time_unit,
+                         const test_input_t &test_input)
+{
+  char name[1024] = "BM_subset/";
+  strcat (name, op_name);
+  strcat (name, strrchr (test_input.font_path, '/'));
 
-BENCHMARK_CAPTURE (BM_subset, subset_glyphs_roboto,
-                   subset_glyphs,
-                   "perf/fonts/Roboto-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 4000);
+  benchmark::RegisterBenchmark (name, BM_subset, op, test_input.font_path)
+      ->Range(10, test_input.max_subset_size)
+      ->Unit(time_unit);
+}
 
-BENCHMARK_CAPTURE (BM_subset, subset_codepoints_amiri,
-                   subset_codepoints,
-                   "perf/fonts/Amiri-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 4000);
+static void test_operation (operation_t op,
+                            const char *op_name,
+                            benchmark::TimeUnit time_unit)
+{
+  for (auto& test_input : tests)
+  {
+      test_subset (op, op_name, time_unit, test_input);
+  }
+}
 
-BENCHMARK_CAPTURE (BM_subset, subset_glyphs_amiri,
-                   subset_glyphs,
-                   "perf/fonts/Amiri-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 4000);
+int main(int argc, char** argv)
+{
+#define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
 
-BENCHMARK_CAPTURE (BM_subset, subset_codepoints_noto_nastaliq_urdu,
-                   subset_codepoints,
-                   "perf/fonts/NotoNastaliqUrdu-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 1000);
+  TEST_OPERATION (subset_glyphs, benchmark::kMillisecond);
+  TEST_OPERATION (subset_codepoints, benchmark::kMillisecond);
 
-BENCHMARK_CAPTURE (BM_subset, subset_glyphs_noto_nastaliq_urdu,
-                   subset_glyphs,
-                   "perf/fonts/NotoNastaliqUrdu-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 1000);
+#undef TEST_OPERATION
 
-BENCHMARK_CAPTURE (BM_subset, subset_codepoints_noto_devangari,
-                   subset_codepoints,
-                   "perf/fonts/NotoSansDevanagari-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 1000);
-
-BENCHMARK_CAPTURE (BM_subset, subset_glyphs_noto_devangari,
-                   subset_glyphs,
-                   "perf/fonts/NotoSansDevanagari-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 1000);
-
-BENCHMARK_CAPTURE (BM_subset, subset_codepoints_mplus1p,
-                   subset_codepoints,
-                   "test/subset/data/fonts/Mplus1p-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 10000);
-
-BENCHMARK_CAPTURE (BM_subset, subset_glyphs_mplus1p,
-                   subset_glyphs,
-                   "test/subset/data/fonts/Mplus1p-Regular.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 10000);
-
-
-
-BENCHMARK_CAPTURE (BM_subset, subset_codepoints_sourcehansans,
-                   subset_codepoints,
-                   "test/subset/data/fonts/SourceHanSans-Regular_subset.otf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 10000);
-
-BENCHMARK_CAPTURE (BM_subset, subset_glyphs_sourcehansans,
-                   subset_glyphs,
-                   "test/subset/data/fonts/SourceHanSans-Regular_subset.otf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 10000);
-
-BENCHMARK_CAPTURE (BM_subset, subset_codepoints_sourcesanspro,
-                   subset_codepoints,
-                   "test/subset/data/fonts/SourceSansPro-Regular.otf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 2048);
-
-BENCHMARK_CAPTURE (BM_subset, subset_glyphs_sourcesanspro,
-                   subset_glyphs,
-                   "test/subset/data/fonts/SourceSansPro-Regular.otf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 2048);
-
-
-
-#if 0
-BENCHMARK_CAPTURE (BM_subset, subset_codepoints_notocjk,
-                   subset_codepoints,
-                   "perf/fonts/NotoSansCJKsc-VF.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 100000);
-
-BENCHMARK_CAPTURE (BM_subset, subset_glyphs_notocjk,
-                   subset_glyphs,
-                   "perf/fonts/NotoSansCJKsc-VF.ttf")
-    ->Unit(benchmark::kMillisecond)
-    ->Range(10, 100000);
-#endif
-
-
-
-BENCHMARK_MAIN();
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
+}
