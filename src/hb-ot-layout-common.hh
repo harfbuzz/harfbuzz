@@ -2057,8 +2057,9 @@ struct ClassDefFormat1
     unsigned count = classValue.len;
     if (klass == 0)
     {
+      unsigned start_glyph = startGlyph;
       for (unsigned g = HB_SET_VALUE_INVALID;
-	   hb_set_next (glyphs, &g) && g < startGlyph;)
+	   hb_set_next (glyphs, &g) && g < start_glyph;)
 	intersect_glyphs->add (g);
 
       for (unsigned g = startGlyph + count - 1;
@@ -2070,7 +2071,19 @@ struct ClassDefFormat1
 
     for (unsigned i = 0; i < count; i++)
       if (classValue[i] == klass && glyphs->has (startGlyph + i))
-        intersect_glyphs->add (startGlyph + i);
+	intersect_glyphs->add (startGlyph + i);
+    return;
+
+#if 0
+    /* The following implementation is faster asymptotically, but slower
+     * in practice. */
+    unsigned start_glyph = startGlyph;
+    unsigned end_glyph = start_glyph + count;
+    for (unsigned g = startGlyph - 1;
+	 hb_set_next (glyphs, &g) && g < end_glyph;)
+      if (classValue.arrayZ[g - start_glyph] == klass)
+        intersect_glyphs->add (g);
+#endif
   }
 
   void intersected_classes (const hb_set_t *glyphs, hb_set_t *intersect_classes) const
@@ -2297,28 +2310,14 @@ struct ClassDefFormat2
       return;
     }
 
-    hb_codepoint_t g = HB_SET_VALUE_INVALID;
     for (unsigned int i = 0; i < count; i++)
     {
       if (rangeRecord[i].value != klass) continue;
 
-      if (g != HB_SET_VALUE_INVALID)
-      {
-        if (g >= rangeRecord[i].first &&
-            g <= rangeRecord[i].last)
-          intersect_glyphs->add (g);
-        if (g > rangeRecord[i].last)
-          continue;
-      }
-
-      g = rangeRecord[i].first - 1;
-      while (hb_set_next (glyphs, &g))
-      {
-        if (g >= rangeRecord[i].first && g <= rangeRecord[i].last)
-          intersect_glyphs->add (g);
-        else if (g > rangeRecord[i].last)
-          break;
-      }
+      unsigned end = rangeRecord[i].last + 1;
+      for (hb_codepoint_t g = rangeRecord[i].first - 1;
+	   hb_set_next (glyphs, &g) && g < end;)
+	intersect_glyphs->add (g);
     }
   }
 
