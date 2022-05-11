@@ -2295,17 +2295,19 @@ struct ClassDefFormat2
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
       for (unsigned int i = 0; i < count; i++)
       {
-        if (!hb_set_next (glyphs, &g))
-          break;
-        while (g != HB_SET_VALUE_INVALID && g < rangeRecord[i].first)
-        {
-          intersect_glyphs->add (g);
-          hb_set_next (glyphs, &g);
+	if (!hb_set_next (glyphs, &g))
+	  goto done;
+	while (g < rangeRecord[i].first)
+	{
+	  intersect_glyphs->add (g);
+	  if (!hb_set_next (glyphs, &g))
+	    goto done;
         }
         g = rangeRecord[i].last;
       }
-      while (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
-        intersect_glyphs->add (g);
+      while (hb_set_next (glyphs, &g))
+	intersect_glyphs->add (g);
+      done:
 
       return;
     }
