@@ -136,7 +136,7 @@ _try_subset (const TableType *table,
     return needed;
   }
 
-  buf_size += (buf_size >> 1) + 32;
+  buf_size = buf_size * 2 + 16;
   DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c ran out of room; reallocating to %u bytes.",
              HB_UNTAG (c->table_tag), buf_size);
 
@@ -153,7 +153,7 @@ _try_subset (const TableType *table,
 
 template<typename TableType>
 static bool
-_subset (hb_subset_plan_t *plan)
+_subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
 {
   hb_blob_t *source_blob = hb_sanitize_context_t ().reference_table<TableType> (plan->source);
   const TableType *table = source_blob->as<TableType> ();
@@ -167,7 +167,6 @@ _subset (hb_subset_plan_t *plan)
     return false;
   }
 
-  hb_vector_t<char> buf;
   /* TODO Not all tables are glyph-related.  'name' table size for example should not be
    * affected by number of glyphs.  Accommodate that. */
   unsigned buf_size = _plan_estimate_subset_table_size (plan, source_blob->length);
@@ -274,7 +273,9 @@ _passthrough (hb_subset_plan_t *plan, hb_tag_t tag)
 }
 
 static bool
-_subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
+_subset_table (hb_subset_plan_t *plan,
+	       hb_vector_t<char> &buf,
+	       hb_tag_t tag)
 {
   if (plan->no_subset_tables->has (tag)) {
     return _passthrough (plan, tag);
@@ -283,42 +284,42 @@ _subset_table (hb_subset_plan_t *plan, hb_tag_t tag)
   DEBUG_MSG (SUBSET, nullptr, "subset %c%c%c%c", HB_UNTAG (tag));
   switch (tag)
   {
-  case HB_OT_TAG_glyf: return _subset<const OT::glyf> (plan);
-  case HB_OT_TAG_hdmx: return _subset<const OT::hdmx> (plan);
-  case HB_OT_TAG_name: return _subset<const OT::name> (plan);
+  case HB_OT_TAG_glyf: return _subset<const OT::glyf> (plan, buf);
+  case HB_OT_TAG_hdmx: return _subset<const OT::hdmx> (plan, buf);
+  case HB_OT_TAG_name: return _subset<const OT::name> (plan, buf);
   case HB_OT_TAG_head:
     if (_is_table_present (plan->source, HB_OT_TAG_glyf) && !_should_drop_table (plan, HB_OT_TAG_glyf))
       return true; /* skip head, handled by glyf */
-    return _subset<const OT::head> (plan);
+    return _subset<const OT::head> (plan, buf);
   case HB_OT_TAG_hhea: return true; /* skip hhea, handled by hmtx */
-  case HB_OT_TAG_hmtx: return _subset<const OT::hmtx> (plan);
+  case HB_OT_TAG_hmtx: return _subset<const OT::hmtx> (plan, buf);
   case HB_OT_TAG_vhea: return true; /* skip vhea, handled by vmtx */
-  case HB_OT_TAG_vmtx: return _subset<const OT::vmtx> (plan);
-  case HB_OT_TAG_maxp: return _subset<const OT::maxp> (plan);
-  case HB_OT_TAG_sbix: return _subset<const OT::sbix> (plan);
+  case HB_OT_TAG_vmtx: return _subset<const OT::vmtx> (plan, buf);
+  case HB_OT_TAG_maxp: return _subset<const OT::maxp> (plan, buf);
+  case HB_OT_TAG_sbix: return _subset<const OT::sbix> (plan, buf);
   case HB_OT_TAG_loca: return true; /* skip loca, handled by glyf */
-  case HB_OT_TAG_cmap: return _subset<const OT::cmap> (plan);
-  case HB_OT_TAG_OS2 : return _subset<const OT::OS2 > (plan);
-  case HB_OT_TAG_post: return _subset<const OT::post> (plan);
-  case HB_OT_TAG_COLR: return _subset<const OT::COLR> (plan);
-  case HB_OT_TAG_CPAL: return _subset<const OT::CPAL> (plan);
-  case HB_OT_TAG_CBLC: return _subset<const OT::CBLC> (plan);
+  case HB_OT_TAG_cmap: return _subset<const OT::cmap> (plan, buf);
+  case HB_OT_TAG_OS2 : return _subset<const OT::OS2 > (plan, buf);
+  case HB_OT_TAG_post: return _subset<const OT::post> (plan, buf);
+  case HB_OT_TAG_COLR: return _subset<const OT::COLR> (plan, buf);
+  case HB_OT_TAG_CPAL: return _subset<const OT::CPAL> (plan, buf);
+  case HB_OT_TAG_CBLC: return _subset<const OT::CBLC> (plan, buf);
   case HB_OT_TAG_CBDT: return true; /* skip CBDT, handled by CBLC */
-  case HB_OT_TAG_MATH: return _subset<const OT::MATH> (plan);
+  case HB_OT_TAG_MATH: return _subset<const OT::MATH> (plan, buf);
 
 #ifndef HB_NO_SUBSET_CFF
-  case HB_OT_TAG_cff1: return _subset<const OT::cff1> (plan);
-  case HB_OT_TAG_cff2: return _subset<const OT::cff2> (plan);
-  case HB_OT_TAG_VORG: return _subset<const OT::VORG> (plan);
+  case HB_OT_TAG_cff1: return _subset<const OT::cff1> (plan, buf);
+  case HB_OT_TAG_cff2: return _subset<const OT::cff2> (plan, buf);
+  case HB_OT_TAG_VORG: return _subset<const OT::VORG> (plan, buf);
 #endif
 
 #ifndef HB_NO_SUBSET_LAYOUT
-  case HB_OT_TAG_GDEF: return _subset<const OT::GDEF> (plan);
-  case HB_OT_TAG_GSUB: return _subset<const GSUB> (plan);
-  case HB_OT_TAG_GPOS: return _subset<const OT::GPOS> (plan);
-  case HB_OT_TAG_gvar: return _subset<const OT::gvar> (plan);
-  case HB_OT_TAG_HVAR: return _subset<const OT::HVAR> (plan);
-  case HB_OT_TAG_VVAR: return _subset<const OT::VVAR> (plan);
+  case HB_OT_TAG_GDEF: return _subset<const OT::GDEF> (plan, buf);
+  case HB_OT_TAG_GSUB: return _subset<const GSUB> (plan, buf);
+  case HB_OT_TAG_GPOS: return _subset<const OT::GPOS> (plan, buf);
+  case HB_OT_TAG_gvar: return _subset<const OT::gvar> (plan, buf);
+  case HB_OT_TAG_HVAR: return _subset<const OT::HVAR> (plan, buf);
+  case HB_OT_TAG_VVAR: return _subset<const OT::VVAR> (plan, buf);
 #endif
 
   default:
@@ -379,6 +380,8 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
   bool success = true;
   hb_tag_t table_tags[32];
   unsigned offset = 0, num_tables = ARRAY_LENGTH (table_tags);
+  hb_vector_t<char> buf;
+  buf.alloc (4096 - 16);
   while ((hb_face_get_table_tags (plan->source, offset, &num_tables, table_tags), num_tables))
   {
     for (unsigned i = 0; i < num_tables; ++i)
@@ -386,7 +389,7 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
       hb_tag_t tag = table_tags[i];
       if (_should_drop_table (plan, tag) && !tags_set.has (tag)) continue;
       tags_set.add (tag);
-      success = _subset_table (plan, tag);
+      success = _subset_table (plan, buf, tag);
       if (unlikely (!success)) goto end;
     }
     offset += num_tables;
