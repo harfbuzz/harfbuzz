@@ -79,12 +79,14 @@ using OT::Layout::GSUB::GSUB;
  */
 
 static unsigned
-_plan_estimate_subset_table_size (hb_subset_plan_t *plan, unsigned table_len)
+_plan_estimate_subset_table_size (hb_subset_plan_t *plan,
+				  unsigned table_len,
+				  bool same_size)
 {
   unsigned src_glyphs = plan->source->get_num_glyphs ();
   unsigned dst_glyphs = plan->glyphset ()->get_population ();
 
-  if (unlikely (!src_glyphs))
+  if (unlikely (!src_glyphs) || same_size)
     return 512 + table_len;
 
   return 512 + (unsigned) (table_len * sqrt ((double) dst_glyphs / src_glyphs));
@@ -167,9 +169,13 @@ _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
     return false;
   }
 
-  /* TODO Not all tables are glyph-related.  'name' table size for example should not be
-   * affected by number of glyphs.  Accommodate that. */
-  unsigned buf_size = _plan_estimate_subset_table_size (plan, source_blob->length);
+  /* Tables that we want to allocate same space as the source table. For GSUB/GPOS it's
+   * because those are expensive to subset, so giving them more room is fine. */
+  bool same_size_table = TableType::tableTag == HB_OT_TAG_GSUB ||
+			 TableType::tableTag == HB_OT_TAG_GPOS ||
+			 TableType::tableTag == HB_OT_TAG_name;
+
+  unsigned buf_size = _plan_estimate_subset_table_size (plan, source_blob->length, same_size_table);
   DEBUG_MSG (SUBSET, nullptr,
              "OT::%c%c%c%c initial estimated table size: %u bytes.", HB_UNTAG (tag), buf_size);
   if (unlikely (!buf.alloc (buf_size)))
