@@ -2057,10 +2057,13 @@ struct ClassDefFormat1
     unsigned count = classValue.len;
     if (klass == 0)
     {
-      hb_codepoint_t endGlyph = startGlyph + count -1;
-      for (hb_codepoint_t g : glyphs->iter ())
-        if (g < startGlyph || g > endGlyph)
-          intersect_glyphs->add (g);
+      for (unsigned g = HB_SET_VALUE_INVALID;
+	   hb_set_next (glyphs, &g) && g < startGlyph;)
+	intersect_glyphs->add (g);
+
+      for (unsigned g = startGlyph + count - 1;
+	   hb_set_next (glyphs, &g);)
+	intersect_glyphs->add (g);
 
       return;
     }
