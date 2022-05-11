@@ -123,7 +123,6 @@ static
 bool
 _try_subset (const TableType *table,
              hb_vector_t<char>* buf,
-             unsigned buf_size,
              hb_subset_context_t* c /* OUT */)
 {
   c->serializer->start_serialize<TableType> ();
@@ -136,6 +135,7 @@ _try_subset (const TableType *table,
     return needed;
   }
 
+  unsigned buf_size = buf->allocated;
   buf_size = buf_size * 2 + 16;
   DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c ran out of room; reallocating to %u bytes.",
              HB_UNTAG (c->table_tag), buf_size);
@@ -147,8 +147,8 @@ _try_subset (const TableType *table,
     return needed;
   }
 
-  c->serializer->reset (buf->arrayZ, buf_size);
-  return _try_subset (table, buf, buf_size, c);
+  c->serializer->reset (buf->arrayZ, buf->allocated);
+  return _try_subset (table, buf, c);
 }
 
 template<typename TableType>
@@ -180,10 +180,10 @@ _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
   }
 
   bool needed = false;
-  hb_serialize_context_t serializer (buf.arrayZ, buf_size);
+  hb_serialize_context_t serializer (buf.arrayZ, buf.allocated);
   {
     hb_subset_context_t c (source_blob, plan, &serializer, tag);
-    needed = _try_subset (table, &buf, buf_size, &c);
+    needed = _try_subset (table, &buf, &c);
   }
   hb_blob_destroy (source_blob);
 
