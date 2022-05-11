@@ -520,6 +520,11 @@ struct parsed_values_t
   }
   void fini () { values.fini (); }
 
+  void alloc (unsigned n)
+  {
+    values.alloc (n);
+  }
+
   void add_op (op_code_t op, const byte_str_ref_t& str_ref = byte_str_ref_t ())
   {
     VAL *val = values.push ();

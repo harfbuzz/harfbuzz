@@ -34,11 +34,12 @@ void AddCodepoints(const hb_set_t* codepoints_in_font,
                    unsigned subset_size,
                    hb_subset_input_t* input)
 {
+  auto *unicodes = hb_subset_input_unicode_set (input);
   hb_codepoint_t cp = HB_SET_VALUE_INVALID;
   for (unsigned i = 0; i < subset_size; i++) {
     // TODO(garretrieger): pick randomly.
     if (!hb_set_next (codepoints_in_font, &cp)) return;
-    hb_set_add (hb_subset_input_unicode_set (input), cp);
+    hb_set_add (unicodes, cp);
   }
 }
 
@@ -46,9 +47,10 @@ void AddGlyphs(unsigned num_glyphs_in_font,
                unsigned subset_size,
                hb_subset_input_t* input)
 {
+  auto *glyphs = hb_subset_input_glyph_set (input);
   for (unsigned i = 0; i < subset_size && i < num_glyphs_in_font; i++) {
     // TODO(garretrieger): pick randomly.
-    hb_set_add (hb_subset_input_glyph_set (input), i);
+    hb_set_add (glyphs, i);
   }
 }
 
@@ -70,19 +72,23 @@ static void BM_subset (benchmark::State &state,
   hb_subset_input_t* input = hb_subset_input_create_or_fail ();
   assert (input);
 
+  switch (operation)
   {
-    hb_set_t* all_codepoints = hb_set_create ();
-    switch (operation) {
-      case subset_codepoints:
-        hb_face_collect_unicodes (face, all_codepoints);
-        AddCodepoints(all_codepoints, subset_size, input);
-        break;
-      case subset_glyphs:
-        unsigned num_glyphs = hb_face_get_glyph_count (face);
-        AddGlyphs(num_glyphs, subset_size, input);
-        break;
+    case subset_codepoints:
+    {
+      hb_set_t* all_codepoints = hb_set_create ();
+      hb_face_collect_unicodes (face, all_codepoints);
+      AddCodepoints(all_codepoints, subset_size, input);
+      hb_set_destroy (all_codepoints);
     }
-    hb_set_destroy (all_codepoints);
+    break;
+
+    case subset_glyphs:
+    {
+      unsigned num_glyphs = hb_face_get_glyph_count (face);
+      AddGlyphs(num_glyphs, subset_size, input);
+    }
+    break;
   }
 
   for (auto _ : state)

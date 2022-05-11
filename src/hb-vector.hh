@@ -70,9 +70,8 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   }
   ~hb_vector_t () { fini (); }
 
-  private:
-  int allocated = 0; /* == -1 means allocation failed. */
   public:
+  int allocated = 0; /* == -1 means allocation failed. */
   unsigned int length = 0;
   public:
   Type *arrayZ = nullptr;
