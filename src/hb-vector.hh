@@ -340,7 +340,7 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   Type pop ()
   {
     if (!length) return Null (Type);
-    Type v = std::move (arrayZ[length - 1]);
+    Type v = arrayZ[length - 1];
     arrayZ[length - 1].~Type ();
     length--;
     return v;
