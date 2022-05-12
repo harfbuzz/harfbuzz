@@ -50,7 +50,9 @@ main (int argc, char **argv)
 
   /* Test move constructor. */
   {
-    hb_set_t v (hb_set_t {1, 2});
+    hb_set_t s {1, 2};
+    hb_set_t v (std::move (s));
+    assert (s.get_population () == 0);
     assert (v.get_population () == 2);
   }
 

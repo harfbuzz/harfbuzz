@@ -389,9 +389,10 @@ struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
 			       HB_MAP_VALUE_INVALID,
 			       HB_MAP_VALUE_INVALID>;
 
-  hb_map_t () = default;
   ~hb_map_t () = default;
-  hb_map_t (hb_map_t&) = default;
+  hb_map_t () : hashmap () {}
+  hb_map_t (const hb_map_t &o) : hashmap ((hashmap &) o) {}
+  hb_map_t (hb_map_t &&o) : hashmap (std::move ((hashmap &) o)) {}
   hb_map_t& operator= (const hb_map_t&) = default;
   hb_map_t& operator= (hb_map_t&&) = default;
   hb_map_t (std::initializer_list<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> lst) : hashmap (lst) {}

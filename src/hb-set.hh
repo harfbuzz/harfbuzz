@@ -168,8 +168,7 @@ struct hb_set_t : hb_sparseset_t<hb_bit_set_invertible_t>
   hb_set_t& operator= (hb_set_t&&) = default;
   hb_set_t (std::initializer_list<hb_codepoint_t> lst) : sparseset (lst) {}
   template <typename Iterable,
-	    hb_requires (hb_is_iterable (Iterable) &&
-			 !hb_is_same (hb_decay<Iterable>, hb_set_t))>
+	    hb_requires (hb_is_iterable (Iterable))>
   hb_set_t (const Iterable &o) : sparseset (o) {}
 };
 

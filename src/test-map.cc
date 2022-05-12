@@ -57,13 +57,21 @@ main (int argc, char **argv)
 
   /* Test move constructor. */
   {
-    hb_map_t v {hb_map_t {}};
+    hb_map_t s {};
+    s.set (1, 2);
+    hb_map_t v (std::move (s));
+    assert (s.get_population () == 0);
+    assert (v.get_population () == 1);
   }
 
   /* Test move assignment. */
   {
+    hb_map_t s {};
+    s.set (1, 2);
     hb_map_t v;
-    v = hb_map_t {};
+    v = std::move (s);
+    assert (s.get_population () == 0);
+    assert (v.get_population () == 1);
   }
 
   /* Test initializing from iterable. */
@@ -73,9 +81,15 @@ main (int argc, char **argv)
     s.set (1, 2);
     s.set (3, 4);
 
-    hb_map_t v (s);
+    hb_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> v (s);
+    hb_map_t v0 (v);
+    hb_map_t v1 (s);
+    hb_map_t v2 (std::move (s));
 
-    assert (v.get_population () == 2);
+    assert (s.get_population () == 0);
+    assert (v0.get_population () == 2);
+    assert (v1.get_population () == 2);
+    assert (v2.get_population () == 2);
   }
 
   /* Test call fini() twice. */
