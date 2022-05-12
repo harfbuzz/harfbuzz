@@ -44,7 +44,7 @@ struct hb_sparseset_t
   hb_sparseset_t (const hb_sparseset_t& other) : hb_sparseset_t () { set (other); }
   hb_sparseset_t (hb_sparseset_t&& other) : hb_sparseset_t () { s = std::move (other.s); }
   hb_sparseset_t& operator= (const hb_sparseset_t& other) { set (other); return *this; }
-  hb_sparseset_t& operator= (hb_sparseset_t&& other) { hb_swap (*this, other); return *this; }
+  hb_sparseset_t& operator= (hb_sparseset_t&& other) { s =  std::move (other.s); return *this; }
   friend void swap (hb_sparseset_t& a, hb_sparseset_t& b) { hb_swap (a.s, b.s); }
 
   hb_sparseset_t (std::initializer_list<hb_codepoint_t> lst) : hb_sparseset_t ()
@@ -53,7 +53,7 @@ struct hb_sparseset_t
       add (item);
   }
   template <typename Iterable,
-	    hb_requires (hb_is_iterable (Iterable))>
+           hb_requires (hb_is_iterable (Iterable))>
   hb_sparseset_t (const Iterable &o) : hb_sparseset_t ()
   {
     hb_copy (o, *this);
