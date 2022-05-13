@@ -1306,7 +1306,7 @@ struct cff1
     bool get_glyph_name (hb_codepoint_t glyph,
 			 char *buf, unsigned int buf_len) const
     {
-      if (!buf) return true;
+      if (!buf_len) return true;
       if (unlikely (!is_valid ())) return false;
       if (is_CID()) return false;
       hb_codepoint_t sid = glyph_to_sid (glyph);
