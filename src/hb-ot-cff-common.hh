@@ -228,7 +228,9 @@ struct CFFIndex
   hb_ubytes_t operator [] (unsigned int index) const
   {
     if (unlikely (index >= count)) return hb_ubytes_t ();
-    return hb_ubytes_t (data_base () + offset_at (index) - 1, length_at (index));
+    unsigned length = length_at (index);
+    if (unlikely (!length)) return hb_ubytes_t ();
+    return hb_ubytes_t (data_base () + offset_at (index) - 1, length);
   }
 
   unsigned int get_size () const
