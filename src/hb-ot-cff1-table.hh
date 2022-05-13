@@ -1360,7 +1360,7 @@ struct cff1
       {
 	const gname_t *a = (const gname_t *)a_;
 	const gname_t *b = (const gname_t *)b_;
-	int minlen = hb_min (a->name.length, b->name.length);
+	unsigned minlen = hb_min (a->name.length, b->name.length);
 	int ret = strncmp (a->name.arrayZ, b->name.arrayZ, minlen);
 	if (ret) return ret;
 	return a->name.length - b->name.length;

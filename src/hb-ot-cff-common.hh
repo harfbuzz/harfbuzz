@@ -204,8 +204,9 @@ struct CFFIndex
   unsigned int offset_at (unsigned int index) const
   {
     assert (index <= count);
-    const HBUINT8 *p = offsets + offSize * index;
+
     unsigned int size = offSize;
+    const HBUINT8 *p = offsets + size * index;
     unsigned int offset = 0;
     for (; size; size--)
       offset = (offset << 8) + *p++;
