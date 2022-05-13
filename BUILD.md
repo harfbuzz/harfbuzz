@@ -5,7 +5,7 @@ Cairo, and GLib. For example, on Ubuntu / Debian, you would do:
 
 whereas on Fedora, RHEL, CentOS, and other Red Hat based systems you would do:
 
-    sudo dnf install meson pkgconfig gtk-doc gcc gcc-c++ freetype-devel glib2-devel cairo-dev
+    sudo dnf install meson pkgconfig gtk-doc gcc gcc-c++ freetype-devel glib2-devel cairo-devel
 
 and on ArchLinux and Manjaro:
 
