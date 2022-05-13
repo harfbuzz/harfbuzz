@@ -543,8 +543,8 @@ struct parsed_values_t
 
   bool has_op (op_code_t op) const
   {
-    for (unsigned int i = 0; i < get_count (); i++)
-      if (get_value (i).op == op) return true;
+    for (const auto& v : values)
+      if (v.op == op) return true;
     return false;
   }
 
