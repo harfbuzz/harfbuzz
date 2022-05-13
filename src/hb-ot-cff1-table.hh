@@ -1291,7 +1291,7 @@ struct cff1
 	  hb_ubytes_t	ustr = (*stringIndex)[sid - cff1_std_strings_length];
 	  gname.name = hb_bytes_t ((const char*)ustr.arrayZ, ustr.length);
 	}
-	if (unlikely (!gname.name.arrayZ)) { fini (); return; }
+	if (unlikely (!gname.name.length)) { fini (); return; }
 	glyph_names.push (gname);
       }
       glyph_names.qsort ();
