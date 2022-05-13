@@ -4,7 +4,7 @@ NULL =
 EXTRA_DIST =
 SUBDIRS =
 
-EXTRA_DIST +=
+EXTRA_DIST += \
 	meson.build \
 	benchmark-font.cc \
 	benchmark-map.cc \
