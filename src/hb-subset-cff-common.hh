@@ -317,9 +317,9 @@ struct parsed_cs_op_t : op_str_t
   unsigned int  subr_num;
 
   protected:
-  bool	  drop_flag : 1;
-  bool	  keep_flag : 1;
-  bool	  skip_flag : 1;
+  bool	  drop_flag;
+  bool	  keep_flag;
+  bool	  skip_flag;
 };
 
 struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
