@@ -270,13 +270,13 @@ struct range_list_t : hb_vector_t<code_pair_t>
   /* replace the first glyph ID in the "glyph" field each range with a nLeft value */
   bool complete (unsigned int last_glyph)
   {
-    bool  two_byte = false;
-    for (unsigned int i = (*this).length; i > 0; i--)
+    bool two_byte = false;
+    unsigned count = this->length;
+    for (unsigned int i = count; i; i--)
     {
-      code_pair_t &pair = (*this)[i - 1];
-      unsigned int  nLeft = last_glyph - pair.glyph - 1;
-      if (nLeft >= 0x100)
-	two_byte = true;
+      code_pair_t &pair = arrayZ[i - 1];
+      unsigned int nLeft = last_glyph - pair.glyph - 1;
+      two_byte |= nLeft >= 0x100;
       last_glyph = pair.glyph;
       pair.glyph = nLeft;
     }
