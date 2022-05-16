@@ -16,16 +16,17 @@
 
 struct test_input_t
 {
+  bool is_variable;
   const char *font_path;
 } tests[] =
 {
-  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
-  {SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
-  {SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
-  {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
-  {SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
-  {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf"},
-  {SUBSET_FONT_BASE_PATH "NotoSerifMyanmar-Regular.otf"},
+  {false, SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
+  {false, SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
+  {true , SUBSET_FONT_BASE_PATH "AdobeVFPrototype.otf"},
+  {true , SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf"},
+  {false, SUBSET_FONT_BASE_PATH "Comfortaa-Regular-new.ttf"},
+  {false, SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf"},
+  {false, SUBSET_FONT_BASE_PATH "NotoSerifMyanmar-Regular.otf"},
 };
 
 
@@ -194,7 +195,7 @@ static void test_operation (operation_t op,
 {
   for (auto& test_input : tests)
   {
-    for (int variable = 0; variable < 2; variable++)
+    for (int variable = 0; variable < int (test_input.is_variable) + 1; variable++)
     {
       bool is_var = (bool) variable;
 
