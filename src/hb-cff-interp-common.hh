@@ -491,8 +491,8 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
 /* an operator prefixed by its operands in a byte string */
 struct op_str_t
 {
-  op_code_t  op;
   hb_ubytes_t str;
+  op_code_t  op;
 };
 
 /* base of OP_SERIALIZER */
