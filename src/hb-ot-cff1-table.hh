@@ -1275,30 +1275,20 @@ struct cff1
     {
       SUPER::init (face);
 
+      glyph_names.set_relaxed (nullptr);
+
       if (!is_valid ()) return;
       if (is_CID ()) return;
 
-      /* fill glyph_names */
-      for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
-      {
-	hb_codepoint_t	sid = glyph_to_sid (gid);
-	gname_t	gname;
-	gname.sid = sid;
-	if (sid < cff1_std_strings_length)
-	  gname.name = cff1_std_strings (sid);
-	else
-	{
-	  hb_ubytes_t	ustr = (*stringIndex)[sid - cff1_std_strings_length];
-	  gname.name = hb_bytes_t ((const char*)ustr.arrayZ, ustr.length);
-	}
-	if (unlikely (!gname.name.length)) { fini (); return; }
-	glyph_names.push (gname);
-      }
-      glyph_names.qsort ();
     }
     ~accelerator_t ()
     {
-      glyph_names.fini ();
+      hb_sorted_vector_t<gname_t> *names = glyph_names.get_relaxed ();
+      if (names)
+      {
+	names->fini ();
+	free (names);
+      }
 
       SUPER::fini ();
     }
@@ -1306,9 +1296,9 @@ struct cff1
     bool get_glyph_name (hb_codepoint_t glyph,
 			 char *buf, unsigned int buf_len) const
     {
-      if (!buf_len) return true;
       if (unlikely (!is_valid ())) return false;
       if (is_CID()) return false;
+      if (unlikely (!buf_len)) return true;
       hb_codepoint_t sid = glyph_to_sid (glyph);
       const char *str;
       size_t str_len;
@@ -1334,11 +1324,53 @@ struct cff1
     bool get_glyph_from_name (const char *name, int len,
 			      hb_codepoint_t *glyph) const
     {
+      if (unlikely (!is_valid ())) return false;
+      if (is_CID()) return false;
       if (len < 0) len = strlen (name);
       if (unlikely (!len)) return false;
 
+    retry:
+      hb_sorted_vector_t<gname_t> *names = glyph_names.get ();
+      if (unlikely (!names))
+      {
+	names = (hb_sorted_vector_t<gname_t> *) calloc (sizeof (hb_sorted_vector_t<gname_t>), 1);
+	if (likely (names))
+	{
+	  names->init ();
+	  /* TODO */
+
+	  /* fill glyph names */
+	  for (hb_codepoint_t gid = 0; gid < num_glyphs; gid++)
+	  {
+	    hb_codepoint_t	sid = glyph_to_sid (gid);
+	    gname_t	gname;
+	    gname.sid = sid;
+	    if (sid < cff1_std_strings_length)
+	      gname.name = cff1_std_strings (sid);
+	    else
+	    {
+	      hb_ubytes_t	ustr = (*stringIndex)[sid - cff1_std_strings_length];
+	      gname.name = hb_bytes_t ((const char*) ustr.arrayZ, ustr.length);
+	    }
+	    if (unlikely (!gname.name.arrayZ))
+	      gname.name = hb_bytes_t ("", 0); /* To avoid nullptr. */
+	    names->push (gname);
+	  }
+	  names->qsort ();
+	}
+	if (unlikely (!glyph_names.cmpexch (nullptr, names)))
+	{
+	  if (names)
+	  {
+	    names->fini ();
+	    free (names);
+	  }
+	  goto retry;
+	}
+       }
+
       gname_t key = { hb_bytes_t (name, len), 0 };
-      const gname_t *gname = glyph_names.bsearch (key);
+      const gname_t *gname = glyph_names->bsearch (key);
       if (!gname) return false;
       hb_codepoint_t gid = sid_to_glyph (gname->sid);
       if (!gid && gname->sid) return false;
@@ -1369,7 +1401,7 @@ struct cff1
       int cmp (const gname_t &a) const { return cmp (&a, this); }
     };
 
-    hb_sorted_vector_t<gname_t>	glyph_names;
+    mutable hb_atomic_ptr_t<hb_sorted_vector_t<gname_t>> glyph_names;
 
     typedef accelerator_templ_t<cff1_private_dict_opset_t, cff1_private_dict_values_t> SUPER;
   };
