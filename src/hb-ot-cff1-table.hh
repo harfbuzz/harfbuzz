@@ -318,8 +318,9 @@ struct Charset0 {
     return_trace (c->check_struct (this) && sids[num_glyphs - 1].sanitize (c));
   }
 
-  hb_codepoint_t get_sid (hb_codepoint_t glyph) const
+  hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned num_glyphs) const
   {
+    if (unlikely (glyph >= num_glyphs)) return 0;
     if (glyph == 0)
       return 0;
     else
@@ -381,8 +382,9 @@ struct Charset1_2 {
     return_trace (true);
   }
 
-  hb_codepoint_t get_sid (hb_codepoint_t glyph) const
+  hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned num_glyphs) const
   {
+    if (unlikely (glyph >= num_glyphs)) return 0;
     if (glyph == 0) return 0;
     glyph--;
     for (unsigned int i = 0;; i++)
@@ -521,12 +523,11 @@ struct Charset
 
   hb_codepoint_t get_sid (hb_codepoint_t glyph, unsigned int num_glyphs) const
   {
-    if (unlikely (glyph >= num_glyphs)) return 0;
     switch (format)
     {
-    case 0: return u.format0.get_sid (glyph);
-    case 1: return u.format1.get_sid (glyph);
-    case 2: return u.format2.get_sid (glyph);
+    case 0: return u.format0.get_sid (glyph, num_glyphs);
+    case 1: return u.format1.get_sid (glyph, num_glyphs);
+    case 2: return u.format2.get_sid (glyph, num_glyphs);
     default:return 0;
     }
   }
