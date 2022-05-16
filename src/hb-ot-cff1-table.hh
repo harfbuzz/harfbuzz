@@ -327,6 +327,12 @@ struct Charset0 {
       return sids[glyph - 1];
   }
 
+  void collect_glyph_to_sid_map (hb_map_t *mapping, unsigned int num_glyphs) const
+  {
+    for (hb_codepoint_t gid = 1; gid < num_glyphs; gid++)
+      mapping->set (gid, sids[gid - 1]);
+  }
+
   hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
   {
     if (sid == 0)
@@ -390,11 +396,26 @@ struct Charset1_2 {
     for (unsigned int i = 0;; i++)
     {
       if (glyph <= ranges[i].nLeft)
-	return (hb_codepoint_t)ranges[i].first + glyph;
+	return (hb_codepoint_t) ranges[i].first + glyph;
       glyph -= (ranges[i].nLeft + 1);
     }
 
     return 0;
+  }
+
+  void collect_glyph_to_sid_map (hb_map_t *mapping, unsigned int num_glyphs) const
+  {
+    hb_codepoint_t gid = 1;
+    for (unsigned i = 0;; i++)
+    {
+      hb_codepoint_t sid = ranges[i].first;
+      unsigned count = ranges[i].nLeft + 1;
+      for (unsigned j = 0; j < count; j++)
+	mapping->set (gid++, sid++);
+
+      if (gid >= num_glyphs)
+        break;
+    }
   }
 
   hb_codepoint_t get_glyph (hb_codepoint_t sid, unsigned int num_glyphs) const
@@ -529,6 +550,17 @@ struct Charset
     case 1: return u.format1.get_sid (glyph, num_glyphs);
     case 2: return u.format2.get_sid (glyph, num_glyphs);
     default:return 0;
+    }
+  }
+
+  void collect_glyph_to_sid_map (hb_map_t *mapping, unsigned int num_glyphs) const
+  {
+    switch (format)
+    {
+    case 0: u.format0.collect_glyph_to_sid_map (mapping, num_glyphs); return;
+    case 1: u.format1.collect_glyph_to_sid_map (mapping, num_glyphs); return;
+    case 2: u.format2.collect_glyph_to_sid_map (mapping, num_glyphs); return;
+    default:return;
     }
   }
 
@@ -1194,6 +1226,19 @@ struct cff1
 	}
 	return code;
       }
+    }
+
+    hb_map_t *create_glyph_to_sid_map () const
+    {
+      if (charset != &Null (Charset))
+      {
+	hb_map_t *mapping = hb_map_create ();
+	mapping->set (0, 0);
+	charset->collect_glyph_to_sid_map (mapping, num_glyphs);
+	return mapping;
+      }
+      else
+	return nullptr;
     }
 
     hb_codepoint_t glyph_to_sid (hb_codepoint_t glyph) const

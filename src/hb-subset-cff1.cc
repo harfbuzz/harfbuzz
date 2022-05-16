@@ -442,6 +442,9 @@ struct cff_subset_plan {
       return;
     }
 
+    bool use_glyph_to_sid_map = plan->num_output_glyphs () > plan->source->get_num_glyphs () / 8.;
+    hb_map_t *glyph_to_sid_map = use_glyph_to_sid_map ? acc.create_glyph_to_sid_map () : nullptr;
+
     unsigned int glyph;
     for (glyph = 1; glyph < plan->num_output_glyphs (); glyph++)
     {
@@ -451,7 +454,7 @@ struct cff_subset_plan {
 	/* Retain the SID for the old missing glyph ID */
 	old_glyph = glyph;
       }
-      sid = acc.glyph_to_sid (old_glyph);
+      sid = glyph_to_sid_map ? glyph_to_sid_map->get (old_glyph) : acc.glyph_to_sid (old_glyph);
 
       if (!acc.is_CID ())
 	sid = sidmap.add (sid);
@@ -463,6 +466,9 @@ struct cff_subset_plan {
       }
       last_sid = sid;
     }
+
+    if (glyph_to_sid_map)
+      hb_map_destroy (glyph_to_sid_map);
 
     bool two_byte = subset_charset_ranges.complete (glyph);
 
