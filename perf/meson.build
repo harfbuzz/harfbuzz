@@ -21,6 +21,16 @@ benchmark('benchmark-map', executable('benchmark-map', 'benchmark-map.cc',
   install: false,
 ), workdir: meson.current_source_dir() / '..', timeout: 100)
 
+benchmark('benchmark-ot', executable('benchmark-ot', 'benchmark-ot.cc',
+  dependencies: [
+    google_benchmark_dep,
+  ],
+  cpp_args: [],
+  include_directories: [incconfig, incsrc],
+  link_with: [libharfbuzz],
+  install: false,
+), workdir: meson.current_source_dir() / '..', timeout: 100)
+
 benchmark('benchmark-set', executable('benchmark-set', 'benchmark-set.cc',
   dependencies: [
     google_benchmark_dep,

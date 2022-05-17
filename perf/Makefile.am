@@ -8,6 +8,7 @@ EXTRA_DIST += \
 	meson.build \
 	benchmark-font.cc \
 	benchmark-map.cc \
+	benchmark-ot.cc \
 	benchmark-set.cc \
 	benchmark-shape.cc \
 	benchmark-subset.cc \
