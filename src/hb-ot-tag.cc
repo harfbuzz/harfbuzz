@@ -192,10 +192,9 @@ hb_ot_tag_to_script (hb_tag_t tag)
 static inline bool
 subtag_matches (const char *lang_str,
 		const char *limit,
-		const char *subtag)
+		const char *subtag,
+		unsigned subtag_len)
 {
-  unsigned subtag_len = strlen (subtag);
-
   if (likely ((unsigned) (limit - lang_str) < subtag_len))
     return false;
 

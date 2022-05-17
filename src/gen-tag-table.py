@@ -999,7 +999,7 @@ def print_subtag_matches (subtag, new_line):
 		if new_line:
 			print ()
 			print ('\t&& ', end='')
-		print ('subtag_matches (lang_str, limit, "-%s")' % subtag, end='')
+		print ('subtag_matches (lang_str, limit, "-%s", %i)' % (subtag, 1 + len (subtag)), end='')
 
 complex_tags = collections.defaultdict (list)
 for initial, group in itertools.groupby ((lt_tags for lt_tags in [
