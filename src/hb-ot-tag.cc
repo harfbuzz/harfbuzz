@@ -204,13 +204,14 @@ subtag_matches (const char *lang_str,
   } while (true);
 }
 
-static hb_bool_t
-lang_matches (const char *lang_str, const char *spec)
+static bool
+lang_matches (const char *lang_str, const char *limit, const char *spec, unsigned spec_len)
 {
-  unsigned int len = strlen (spec);
+  if (likely (limit - lang_str < spec_len))
+    return false;
 
-  return strncmp (lang_str, spec, len) == 0 &&
-	 (lang_str[len] == '\0' || lang_str[len] == '-');
+  return strncmp (lang_str, spec, spec_len) == 0 &&
+	 (lang_str[spec_len] == '\0' || lang_str[spec_len] == '-');
 }
 
 struct LangTag

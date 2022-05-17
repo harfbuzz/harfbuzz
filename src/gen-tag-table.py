@@ -1087,7 +1087,7 @@ for initial, items in sorted (complex_tags.items ()):
 			if string_literal[-1] == '-':
 				print ('0 == strncmp (&lang_str[1], "%s", %i)' % (string_literal, len (string_literal)), end='')
 			else:
-				print ('lang_matches (&lang_str[1], "%s")' % string_literal, end='')
+				print ('lang_matches (&lang_str[1], limit, "%s", %i)' % (string_literal, len (string_literal)), end='')
 		print_subtag_matches (script, True)
 		print_subtag_matches (region, True)
 		print_subtag_matches (lt.variant, True)
