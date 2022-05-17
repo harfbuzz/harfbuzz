@@ -11,13 +11,14 @@ static void BM_hb_ot_tags_from_script_and_language (benchmark::State& state,
 
   hb_language_t language = hb_language_from_string (language_str, -1);
 
-  hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
-  unsigned script_count = HB_OT_MAX_TAGS_PER_SCRIPT;
+  for (auto _ : state)
+  {
+    hb_tag_t script_tags[HB_OT_MAX_TAGS_PER_SCRIPT];
+    unsigned script_count = HB_OT_MAX_TAGS_PER_SCRIPT;
 
-  hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
-  unsigned language_count = HB_OT_MAX_TAGS_PER_LANGUAGE;
+    hb_tag_t language_tags[HB_OT_MAX_TAGS_PER_LANGUAGE];
+    unsigned language_count = HB_OT_MAX_TAGS_PER_LANGUAGE;
 
-  for (auto _ : state) {
     hb_ot_tags_from_script_and_language (script,
 					 language,
 					 &script_count /* IN/OUT */,
