@@ -221,8 +221,7 @@ struct LangTag
 
   int cmp (const char *a, unsigned len) const
   {
-    const char *b = this->language;
-    return strncmp (a, b, len);
+    return strncmp (a, this->language, len);
   }
   int cmp (const LangTag *that) const
   { return cmp (that->language, strlen (that->language)); }
