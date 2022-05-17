@@ -283,7 +283,21 @@ hb_ot_tags_from_language (const char   *lang_str,
 	  ISALPHA (s[1]))
 	lang_str = s + 1;
     }
-    if (hb_sorted_array (ot_languages).bfind (lang_str, &tag_idx))
+    const LangTag *ot_languages = nullptr;
+    unsigned ot_languages_len = 0;
+    const char *dash = strchr (lang_str, '-');
+    unsigned first_len = dash ? dash - lang_str : limit - lang_str;
+    if (first_len == 2)
+    {
+      ot_languages = ot_languages2;
+      ot_languages_len = ARRAY_LENGTH (ot_languages2);
+    }
+    else if (first_len == 3)
+    {
+      ot_languages = ot_languages3;
+      ot_languages_len = ARRAY_LENGTH (ot_languages3);
+    }
+    if (hb_sorted_array (ot_languages, ot_languages_len).bfind (lang_str, &tag_idx))
     {
       unsigned int i;
       while (tag_idx != 0 &&
@@ -291,7 +305,7 @@ hb_ot_tags_from_language (const char   *lang_str,
 	tag_idx--;
       for (i = 0;
 	   i < *count &&
-	   tag_idx + i < ARRAY_LENGTH (ot_languages) &&
+	   tag_idx + i < ot_languages_len &&
 	   ot_languages[tag_idx + i].tag != HB_TAG_NONE &&
 	   0 == strcmp (ot_languages[tag_idx + i].language, ot_languages[tag_idx].language);
 	   i++)
@@ -459,9 +473,12 @@ hb_ot_tag_to_language (hb_tag_t tag)
       return disambiguated_tag;
   }
 
-  for (i = 0; i < ARRAY_LENGTH (ot_languages); i++)
-    if (ot_languages[i].tag == tag)
-      return hb_language_from_string (ot_languages[i].language, -1);
+  for (i = 0; i < ARRAY_LENGTH (ot_languages2); i++)
+    if (ot_languages2[i].tag == tag)
+      return hb_language_from_string (ot_languages2[i].language, -1);
+  for (i = 0; i < ARRAY_LENGTH (ot_languages3); i++)
+    if (ot_languages3[i].tag == tag)
+      return hb_language_from_string (ot_languages3[i].language, -1);
 
   /* Return a custom language in the form of "x-hbot-AABBCCDD".
    * If it's three letters long, also guess it's ISO 639-3 and lower-case and
@@ -557,13 +574,23 @@ hb_ot_tags_to_script_and_language (hb_tag_t       script_tag,
 static inline void
 test_langs_sorted ()
 {
-  for (unsigned int i = 1; i < ARRAY_LENGTH (ot_languages); i++)
+  for (unsigned int i = 1; i < ARRAY_LENGTH (ot_languages2); i++)
   {
-    int c = ot_languages[i].cmp (&ot_languages[i - 1]);
+    int c = ot_languages2[i].cmp (&ot_languages2[i - 1]);
     if (c > 0)
     {
-      fprintf (stderr, "ot_languages not sorted at index %d: %s %d %s\n",
-	       i, ot_languages[i-1].language, c, ot_languages[i].language);
+      fprintf (stderr, "ot_languages2 not sorted at index %d: %s %d %s\n",
+	       i, ot_languages2[i-1].language, c, ot_languages2[i].language);
+      abort();
+    }
+  }
+  for (unsigned int i = 1; i < ARRAY_LENGTH (ot_languages3); i++)
+  {
+    int c = ot_languages3[i].cmp (&ot_languages3[i - 1]);
+    if (c > 0)
+    {
+      fprintf (stderr, "ot_languages3 not sorted at index %d: %s %d %s\n",
+	       i, ot_languages3[i-1].language, c, ot_languages3[i].language);
       abort();
     }
   }

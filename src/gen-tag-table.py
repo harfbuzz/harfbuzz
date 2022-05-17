@@ -894,7 +894,6 @@ print ()
 print ('#ifndef HB_OT_TAG_TABLE_HH')
 print ('#define HB_OT_TAG_TABLE_HH')
 print ()
-print ('static const LangTag ot_languages[] = {')
 
 def hb_tag (tag):
 	"""Convert a tag to ``HB_TAG`` form.
@@ -944,33 +943,35 @@ def get_matching_language_name (intersection, candidates):
 def same_tag (bcp_47_tag, ot_tags):
 	return len (bcp_47_tag) == 3 and len (ot_tags) == 1 and bcp_47_tag == ot_tags[0].lower ()
 
-for language, tags in sorted (ot.from_bcp_47.items ()):
-	if language == '' or '-' in language:
-		continue
-	commented_out = same_tag (language, tags)
-	for i, tag in enumerate (tags, start=1):
-		print ('%s{\"%s\",\t%s},' % ('/*' if commented_out else '  ', language, hb_tag (tag)), end='')
-		if commented_out:
-			print ('*/', end='')
-		print ('\t/* ', end='')
-		bcp_47_name = bcp_47.names.get (language, '')
-		bcp_47_name_candidates = bcp_47_name.split ('\n')
-		ot_name = ot.names[tag]
-		scope = bcp_47.scopes.get (language, '')
-		if tag == DEFAULT_LANGUAGE_SYSTEM:
-			write (f'{bcp_47_name_candidates[0]}{scope} != {ot.names[language.upper ()]}')
-		else:
-			intersection = language_name_intersection (bcp_47_name, ot_name)
-			if not intersection:
-				write ('%s%s -> %s' % (bcp_47_name_candidates[0], scope, ot_name))
+for language_len in (2, 3):
+	print ('static const LangTag ot_languages%d[] = {' % language_len)
+	for language, tags in sorted (ot.from_bcp_47.items ()):
+		if language == '' or '-' in language:
+			continue
+		if len(language) != language_len: continue
+		commented_out = same_tag (language, tags)
+		for i, tag in enumerate (tags, start=1):
+			print ('%s{\"%s\",\t%s},' % ('/*' if commented_out else '  ', language, hb_tag (tag)), end='')
+			if commented_out:
+				print ('*/', end='')
+			print ('\t/* ', end='')
+			bcp_47_name = bcp_47.names.get (language, '')
+			bcp_47_name_candidates = bcp_47_name.split ('\n')
+			ot_name = ot.names[tag]
+			scope = bcp_47.scopes.get (language, '')
+			if tag == DEFAULT_LANGUAGE_SYSTEM:
+				write (f'{bcp_47_name_candidates[0]}{scope} != {ot.names[language.upper ()]}')
 			else:
-				name = get_matching_language_name (intersection, bcp_47_name_candidates)
-				bcp_47.names[language] = name
-				write ('%s%s' % (name if len (name) > len (ot_name) else ot_name, scope))
-		print (' */')
-
-print ('};')
-print ()
+				intersection = language_name_intersection (bcp_47_name, ot_name)
+				if not intersection:
+					write ('%s%s -> %s' % (bcp_47_name_candidates[0], scope, ot_name))
+				else:
+					name = get_matching_language_name (intersection, bcp_47_name_candidates)
+					bcp_47.names[language] = name
+					write ('%s%s' % (name if len (name) > len (ot_name) else ot_name, scope))
+			print (' */')
+	print ('};')
+	print ()
 
 print ('/**')
 print (' * hb_ot_tags_from_complex_language:')
