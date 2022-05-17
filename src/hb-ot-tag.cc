@@ -219,22 +219,13 @@ struct LangTag
   char language[4];
   hb_tag_t tag;
 
-  int cmp (const char *a) const
+  int cmp (const char *a, unsigned len) const
   {
     const char *b = this->language;
-    unsigned int da, db;
-    const char *p;
-
-    p = strchr (a, '-');
-    da = p ? (unsigned int) (p - a) : strlen (a);
-
-    p = strchr (b, '-');
-    db = p ? (unsigned int) (p - b) : strlen (b);
-
-    return strncmp (a, b, hb_max (da, db));
+    return strncmp (a, b, len);
   }
   int cmp (const LangTag *that) const
-  { return cmp (that->language); }
+  { return cmp (that->language, strlen (that->language)); }
 };
 
 #include "hb-ot-tag-table.hh"
@@ -298,7 +289,9 @@ hb_ot_tags_from_language (const char   *lang_str,
       ot_languages = ot_languages3;
       ot_languages_len = ARRAY_LENGTH (ot_languages3);
     }
-    if (hb_sorted_array (ot_languages, ot_languages_len).bfind (lang_str, &tag_idx))
+    if (hb_sorted_array (ot_languages, ot_languages_len).bfind (lang_str, &tag_idx,
+								HB_NOT_FOUND_DONT_STORE, (unsigned) -1,
+								first_len))
     {
       unsigned int i;
       while (tag_idx != 0 &&
