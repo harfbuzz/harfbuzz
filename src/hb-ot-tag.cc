@@ -216,15 +216,15 @@ lang_matches (const char *lang_str, const char *limit, const char *spec, unsigne
 
 struct LangTag
 {
-  char language[4];
+  hb_tag_t language;
   hb_tag_t tag;
 
-  int cmp (const char *a, unsigned len) const
+  int cmp (hb_tag_t a) const
   {
-    return strncmp (a, this->language, len);
+    return a < this->language ? -1 : a > this->language ? +1 : 0;
   }
   int cmp (const LangTag *that) const
-  { return cmp (that->language, strlen (that->language)); }
+  { return cmp (that->language); }
 };
 
 #include "hb-ot-tag-table.hh"
@@ -288,17 +288,17 @@ hb_ot_tags_from_language (const char   *lang_str,
       ot_languages = ot_languages3;
       ot_languages_len = ARRAY_LENGTH (ot_languages3);
     }
-    if (hb_sorted_array (ot_languages, ot_languages_len).bsearch_impl (lang_str, &tag_idx, first_len))
+    if (hb_sorted_array (ot_languages, ot_languages_len).bfind (hb_tag_from_string (lang_str, first_len), &tag_idx))
     {
       unsigned int i;
       while (tag_idx != 0 &&
-	     0 == strcmp (ot_languages[tag_idx].language, ot_languages[tag_idx - 1].language))
+	     ot_languages[tag_idx].language == ot_languages[tag_idx - 1].language)
 	tag_idx--;
       for (i = 0;
 	   i < *count &&
 	   tag_idx + i < ot_languages_len &&
 	   ot_languages[tag_idx + i].tag != HB_TAG_NONE &&
-	   0 == strcmp (ot_languages[tag_idx + i].language, ot_languages[tag_idx].language);
+	   ot_languages[tag_idx + i].language == ot_languages[tag_idx].language;
 	   i++)
 	tags[i] = ot_languages[tag_idx + i].tag;
       *count = i;
@@ -464,12 +464,19 @@ hb_ot_tag_to_language (hb_tag_t tag)
       return disambiguated_tag;
   }
 
+  char buf[4];
   for (i = 0; i < ARRAY_LENGTH (ot_languages2); i++)
     if (ot_languages2[i].tag == tag)
-      return hb_language_from_string (ot_languages2[i].language, -1);
+    {
+      hb_tag_to_string (ot_languages2[i].language, buf);
+      return hb_language_from_string (buf, 2);
+    }
   for (i = 0; i < ARRAY_LENGTH (ot_languages3); i++)
     if (ot_languages3[i].tag == tag)
-      return hb_language_from_string (ot_languages3[i].language, -1);
+    {
+      hb_tag_to_string (ot_languages3[i].language, buf);
+      return hb_language_from_string (buf, 3);
+    }
 
   /* Return a custom language in the form of "x-hbot-AABBCCDD".
    * If it's three letters long, also guess it's ISO 639-3 and lower-case and
@@ -570,7 +577,7 @@ test_langs_sorted ()
     int c = ot_languages2[i].cmp (&ot_languages2[i - 1]);
     if (c > 0)
     {
-      fprintf (stderr, "ot_languages2 not sorted at index %d: %s %d %s\n",
+      fprintf (stderr, "ot_languages2 not sorted at index %d: %08x %d %08x\n",
 	       i, ot_languages2[i-1].language, c, ot_languages2[i].language);
       abort();
     }
@@ -580,7 +587,7 @@ test_langs_sorted ()
     int c = ot_languages3[i].cmp (&ot_languages3[i - 1]);
     if (c > 0)
     {
-      fprintf (stderr, "ot_languages3 not sorted at index %d: %s %d %s\n",
+      fprintf (stderr, "ot_languages3 not sorted at index %d: %08x %d %08x\n",
 	       i, ot_languages3[i-1].language, c, ot_languages3[i].language);
       abort();
     }

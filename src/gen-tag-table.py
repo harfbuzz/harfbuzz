@@ -951,7 +951,7 @@ for language_len in (2, 3):
 		if len(language) != language_len: continue
 		commented_out = same_tag (language, tags)
 		for i, tag in enumerate (tags, start=1):
-			print ('%s{\"%s\",\t%s},' % ('/*' if commented_out else '  ', language, hb_tag (tag)), end='')
+			print ('%s{%s,\t%s},' % ('/*' if commented_out else '  ', hb_tag (language), hb_tag (tag)), end='')
 			if commented_out:
 				print ('*/', end='')
 			print ('\t/* ', end='')
