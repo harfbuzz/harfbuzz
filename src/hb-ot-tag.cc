@@ -193,7 +193,7 @@ static inline bool
 subtag_matches (const char *lang_str,
 		const char *limit,
 		const char *subtag,
-		unsigned subtag_len)
+		unsigned    subtag_len)
 {
   if (likely ((unsigned) (limit - lang_str) < subtag_len))
     return false;
@@ -209,7 +209,10 @@ subtag_matches (const char *lang_str,
 }
 
 static bool
-lang_matches (const char *lang_str, const char *limit, const char *spec, unsigned spec_len)
+lang_matches (const char *lang_str,
+	      const char *limit,
+	      const char *spec,
+	      unsigned    spec_len)
 {
   if (likely ((unsigned) (limit - lang_str) < spec_len))
     return false;
