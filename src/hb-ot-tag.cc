@@ -293,7 +293,7 @@ hb_ot_tags_from_language (const char   *lang_str,
     static unsigned last_tag_idx; /* Poor man's cache. */
     unsigned tag_idx = last_tag_idx;
 
-    if ((tag_idx < ot_languages_len && ot_languages[tag_idx].language == lang_tag) ||
+    if (likely (tag_idx < ot_languages_len && ot_languages[tag_idx].language == lang_tag) ||
 	hb_sorted_array (ot_languages, ot_languages_len).bfind (lang_tag, &tag_idx))
     {
       last_tag_idx = tag_idx;
