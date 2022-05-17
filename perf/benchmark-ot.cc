@@ -28,6 +28,8 @@ static void BM_hb_ot_tags_from_script_and_language (benchmark::State& state,
   }
 }
 BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON abcd_XY, HB_SCRIPT_COMMON, "abcd_XY");
+BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON cxy_CN, HB_SCRIPT_COMMON, "cxy_CN");
+BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON exy_CN, HB_SCRIPT_COMMON, "exy_CN");
 BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON zh_CN, HB_SCRIPT_COMMON, "zh_CN");
 BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON en_US, HB_SCRIPT_COMMON, "en_US");
 BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, LATIN en_US, HB_SCRIPT_LATIN, "en_US");
