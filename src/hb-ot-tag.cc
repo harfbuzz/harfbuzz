@@ -207,7 +207,7 @@ subtag_matches (const char *lang_str,
 static bool
 lang_matches (const char *lang_str, const char *limit, const char *spec, unsigned spec_len)
 {
-  if (likely (limit - lang_str < spec_len))
+  if (likely ((unsigned) (limit - lang_str) < spec_len))
     return false;
 
   return strncmp (lang_str, spec, spec_len) == 0 &&
