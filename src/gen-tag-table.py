@@ -1009,6 +1009,24 @@ for initial, group in itertools.groupby ((lt_tags for lt_tags in [
 		key=lambda lt_tags: lt_tags[0].get_group ()):
 	complex_tags[initial] += group
 
+# Calculate the min length of the subtags outside the switch
+min_subtag_len = 100
+for initial, items in sorted (complex_tags.items ()):
+	if initial != 'und':
+		continue
+	for lt, tags in items:
+		if not tags:
+			continue
+		subtag_len = 0
+		subtag_len += len(lt.script) if lt.script is not None else 0
+		subtag_len += len(lt.region) if lt.region is not None else 0
+		subtag_len += len(lt.variant) if lt.variant is not None else 0
+		min_subtag_len = min(subtag_len, min_subtag_len)
+min_subtag_len += 1 # For initial '-'
+
+print ('  if (limit - lang_str > %d ||' % min_subtag_len)
+print ("      (limit - lang_str == %d && *lang_str == '-'))" % min_subtag_len)
+print ('  {')
 for initial, items in sorted (complex_tags.items ()):
 	if initial != 'und':
 		continue
@@ -1018,29 +1036,30 @@ for initial, items in sorted (complex_tags.items ()):
 		if lt.variant in bcp_47.prefixes:
 			expect (next (iter (bcp_47.prefixes[lt.variant])) == lt.language,
 					'%s is not a valid prefix of %s' % (lt.language, lt.variant))
-		print ('  if (', end='')
+		print ('    if (', end='')
 		print_subtag_matches (lt.script, False)
 		print_subtag_matches (lt.region, False)
 		print_subtag_matches (lt.variant, False)
 		print (')')
-		print ('  {')
-		write ('    /* %s */' % bcp_47.get_name (lt))
+		print ('    {')
+		write ('      /* %s */' % bcp_47.get_name (lt))
 		print ()
 		if len (tags) == 1:
-			write ('    tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), ot.names[tags[0]]))
+			write ('      tags[0] = %s;  /* %s */' % (hb_tag (tags[0]), ot.names[tags[0]]))
 			print ()
-			print ('    *count = 1;')
+			print ('      *count = 1;')
 		else:
 			print ('    hb_tag_t possible_tags[] = {')
 			for tag in tags:
 				write ('      %s,  /* %s */' % (hb_tag (tag), ot.names[tag]))
 				print ()
-			print ('    };')
-			print ('    for (i = 0; i < %s && i < *count; i++)' % len (tags))
-			print ('      tags[i] = possible_tags[i];')
-			print ('    *count = i;')
-		print ('    return true;')
-		print ('  }')
+			print ('      };')
+			print ('      for (i = 0; i < %s && i < *count; i++)' % len (tags))
+			print ('        tags[i] = possible_tags[i];')
+			print ('      *count = i;')
+		print ('      return true;')
+		print ('    }')
+print ('  }')
 
 print ('  switch (lang_str[0])')
 print ('  {')

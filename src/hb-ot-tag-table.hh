@@ -1639,68 +1639,72 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
 				  unsigned int *count /* IN/OUT */,
 				  hb_tag_t     *tags /* OUT */)
 {
-  if (subtag_matches (lang_str, limit, "-fonnapa"))
+  if (limit - lang_str > 5 ||
+      (limit - lang_str == 5 && *lang_str == '-'))
   {
-    /* Undetermined; North American Phonetic Alphabet */
-    tags[0] = HB_TAG('A','P','P','H');  /* Phonetic transcription—Americanist conventions */
-    *count = 1;
-    return true;
-  }
-  if (subtag_matches (lang_str, limit, "-polyton"))
-  {
-    /* Modern Greek (1453-); Polytonic Greek */
-    tags[0] = HB_TAG('P','G','R',' ');  /* Polytonic Greek */
-    *count = 1;
-    return true;
-  }
-  if (subtag_matches (lang_str, limit, "-arevmda"))
-  {
-    /* Armenian; Western Armenian (retired code) */
-    tags[0] = HB_TAG('H','Y','E',' ');  /* Armenian */
-    *count = 1;
-    return true;
-  }
-  if (subtag_matches (lang_str, limit, "-provenc"))
-  {
-    /* Occitan (post 1500); Provençal */
-    tags[0] = HB_TAG('P','R','O',' ');  /* Provençal / Old Provençal */
-    *count = 1;
-    return true;
-  }
-  if (subtag_matches (lang_str, limit, "-fonipa"))
-  {
-    /* Undetermined; International Phonetic Alphabet */
-    tags[0] = HB_TAG('I','P','P','H');  /* Phonetic transcription—IPA conventions */
-    *count = 1;
-    return true;
-  }
-  if (subtag_matches (lang_str, limit, "-geok"))
-  {
-    /* Undetermined; Khutsuri (Asomtavruli and Nuskhuri) */
-    tags[0] = HB_TAG('K','G','E',' ');  /* Khutsuri Georgian */
-    *count = 1;
-    return true;
-  }
-  if (subtag_matches (lang_str, limit, "-syre"))
-  {
-    /* Undetermined; Syriac (Estrangelo variant) */
-    tags[0] = HB_TAG('S','Y','R','E');  /* Syriac, Estrangela script-variant (equivalent to ISO 15924 'Syre') */
-    *count = 1;
-    return true;
-  }
-  if (subtag_matches (lang_str, limit, "-syrj"))
-  {
-    /* Undetermined; Syriac (Western variant) */
-    tags[0] = HB_TAG('S','Y','R','J');  /* Syriac, Western script-variant (equivalent to ISO 15924 'Syrj') */
-    *count = 1;
-    return true;
-  }
-  if (subtag_matches (lang_str, limit, "-syrn"))
-  {
-    /* Undetermined; Syriac (Eastern variant) */
-    tags[0] = HB_TAG('S','Y','R','N');  /* Syriac, Eastern script-variant (equivalent to ISO 15924 'Syrn') */
-    *count = 1;
-    return true;
+    if (subtag_matches (lang_str, limit, "-fonnapa"))
+    {
+      /* Undetermined; North American Phonetic Alphabet */
+      tags[0] = HB_TAG('A','P','P','H');  /* Phonetic transcription—Americanist conventions */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (lang_str, limit, "-polyton"))
+    {
+      /* Modern Greek (1453-); Polytonic Greek */
+      tags[0] = HB_TAG('P','G','R',' ');  /* Polytonic Greek */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (lang_str, limit, "-arevmda"))
+    {
+      /* Armenian; Western Armenian (retired code) */
+      tags[0] = HB_TAG('H','Y','E',' ');  /* Armenian */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (lang_str, limit, "-provenc"))
+    {
+      /* Occitan (post 1500); Provençal */
+      tags[0] = HB_TAG('P','R','O',' ');  /* Provençal / Old Provençal */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (lang_str, limit, "-fonipa"))
+    {
+      /* Undetermined; International Phonetic Alphabet */
+      tags[0] = HB_TAG('I','P','P','H');  /* Phonetic transcription—IPA conventions */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (lang_str, limit, "-geok"))
+    {
+      /* Undetermined; Khutsuri (Asomtavruli and Nuskhuri) */
+      tags[0] = HB_TAG('K','G','E',' ');  /* Khutsuri Georgian */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (lang_str, limit, "-syre"))
+    {
+      /* Undetermined; Syriac (Estrangelo variant) */
+      tags[0] = HB_TAG('S','Y','R','E');  /* Syriac, Estrangela script-variant (equivalent to ISO 15924 'Syre') */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (lang_str, limit, "-syrj"))
+    {
+      /* Undetermined; Syriac (Western variant) */
+      tags[0] = HB_TAG('S','Y','R','J');  /* Syriac, Western script-variant (equivalent to ISO 15924 'Syrj') */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (lang_str, limit, "-syrn"))
+    {
+      /* Undetermined; Syriac (Eastern variant) */
+      tags[0] = HB_TAG('S','Y','R','N');  /* Syriac, Eastern script-variant (equivalent to ISO 15924 'Syrn') */
+      *count = 1;
+      return true;
+    }
   }
   switch (lang_str[0])
   {
