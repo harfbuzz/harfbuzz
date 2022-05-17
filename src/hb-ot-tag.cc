@@ -217,6 +217,8 @@ lang_matches (const char *lang_str, const char *limit, const char *spec, unsigne
 struct LangTag
 {
   hb_tag_t language;
+  unsigned int idx_for_same_tag;
+  unsigned int total_for_same_tag;
   hb_tag_t tag;
 
   int cmp (hb_tag_t a) const
@@ -291,15 +293,9 @@ hb_ot_tags_from_language (const char   *lang_str,
     if (hb_sorted_array (ot_languages, ot_languages_len).bfind (hb_tag_from_string (lang_str, first_len), &tag_idx))
     {
       unsigned int i;
-      while (tag_idx != 0 &&
-	     ot_languages[tag_idx].language == ot_languages[tag_idx - 1].language)
-	tag_idx--;
-      for (i = 0;
-	   i < *count &&
-	   tag_idx + i < ot_languages_len &&
-	   ot_languages[tag_idx + i].tag != HB_TAG_NONE &&
-	   ot_languages[tag_idx + i].language == ot_languages[tag_idx].language;
-	   i++)
+      unsigned int total = ot_languages[tag_idx].total_for_same_tag;
+      tag_idx -= ot_languages[tag_idx].idx_for_same_tag;
+      for (i = 0; i < total && i < *count; i++)
 	tags[i] = ot_languages[tag_idx + i].tag;
       *count = i;
       return;

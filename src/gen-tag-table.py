@@ -46,6 +46,7 @@ def write (s):
 	sys.stdout.buffer.write (s.encode ('utf-8'))
 
 DEFAULT_LANGUAGE_SYSTEM = ''
+HB_TAG_NONE = 'HB_TAG_NONE\t\t '
 
 # from https://www-01.sil.org/iso639-3/iso-639-3.tab
 ISO_639_3_TO_1 = {
@@ -905,7 +906,7 @@ def hb_tag (tag):
 		A snippet of C++ representing ``tag``.
 	"""
 	if tag == DEFAULT_LANGUAGE_SYSTEM:
-		return 'HB_TAG_NONE\t       '
+		return HB_TAG_NONE
 	return "HB_TAG('%s','%s','%s','%s')" % tuple (('%-4s' % tag)[:4])
 
 def get_variant_set (name):
@@ -950,8 +951,16 @@ for language_len in (2, 3):
 			continue
 		if len(language) != language_len: continue
 		commented_out = same_tag (language, tags)
-		for i, tag in enumerate (tags, start=1):
-			print ('%s{%s,\t%s},' % ('/*' if commented_out else '  ', hb_tag (language), hb_tag (tag)), end='')
+		for i, tag in enumerate (tags):
+			hb_tag_string = hb_tag (tag)
+			print ('%s{%s, %du, %du, %s},' % (
+					'/*' if commented_out else '  ',
+					hb_tag (language),
+					i,
+					len (tags) if hb_tag_string != HB_TAG_NONE else 0,
+					hb_tag_string,
+				),
+				end='')
 			if commented_out:
 				print ('*/', end='')
 			print ('\t/* ', end='')
