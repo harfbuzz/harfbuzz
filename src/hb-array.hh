@@ -346,21 +346,20 @@ struct hb_sorted_array_t :
     unsigned int i;
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
-  template <typename T>
+  template <typename T, typename ...Ts>
   const Type *bsearch (const T &x, const Type *not_found = nullptr) const
   {
     unsigned int i;
     return bfind (x, &i) ? &this->arrayZ[i] : not_found;
   }
-  template <typename T, typename ...Ts>
+  template <typename T>
   bool bfind (const T &x, unsigned int *i = nullptr,
 	      hb_not_found_t not_found = HB_NOT_FOUND_DONT_STORE,
-	      unsigned int to_store = (unsigned int) -1,
-	      Ts... ds) const
+	      unsigned int to_store = (unsigned int) -1) const
   {
     unsigned pos;
 
-    if (bsearch_impl (x, &pos, ds...))
+    if (bsearch_impl (x, &pos))
     {
       if (i)
 	*i = pos;

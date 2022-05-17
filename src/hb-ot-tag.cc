@@ -289,9 +289,7 @@ hb_ot_tags_from_language (const char   *lang_str,
       ot_languages = ot_languages3;
       ot_languages_len = ARRAY_LENGTH (ot_languages3);
     }
-    if (hb_sorted_array (ot_languages, ot_languages_len).bfind (lang_str, &tag_idx,
-								HB_NOT_FOUND_DONT_STORE, (unsigned) -1,
-								first_len))
+    if (hb_sorted_array (ot_languages, ot_languages_len).bsearch_impl (lang_str, &tag_idx, first_len))
     {
       unsigned int i;
       while (tag_idx != 0 &&
