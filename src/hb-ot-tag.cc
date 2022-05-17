@@ -257,7 +257,6 @@ hb_ot_tags_from_language (const char   *lang_str,
 			  hb_tag_t     *tags)
 {
   const char *s;
-  unsigned int tag_idx;
 
   /* Check for matches of multiple subtags. */
   if (hb_ot_tags_from_complex_language (lang_str, limit, count, tags))
@@ -288,8 +287,16 @@ hb_ot_tags_from_language (const char   *lang_str,
       ot_languages = ot_languages3;
       ot_languages_len = ARRAY_LENGTH (ot_languages3);
     }
-    if (hb_sorted_array (ot_languages, ot_languages_len).bfind (hb_tag_from_string (lang_str, first_len), &tag_idx))
+
+    hb_tag_t lang_tag = hb_tag_from_string (lang_str, first_len);
+
+    static unsigned last_tag_idx; /* Poor man's cache. */
+    unsigned tag_idx = last_tag_idx;
+
+    if ((tag_idx < ot_languages_len && ot_languages[tag_idx].language == lang_tag) ||
+	hb_sorted_array (ot_languages, ot_languages_len).bfind (lang_tag, &tag_idx))
     {
+      last_tag_idx = tag_idx;
       unsigned int i;
       while (tag_idx != 0 &&
 	     ot_languages[tag_idx].language == ot_languages[tag_idx - 1].language)
