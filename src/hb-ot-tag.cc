@@ -189,18 +189,19 @@ hb_ot_tag_to_script (hb_tag_t tag)
 
 /* hb_language_t */
 
-static bool
+static inline bool
 subtag_matches (const char *lang_str,
 		const char *limit,
 		const char *subtag)
 {
+  unsigned subtag_len = strlen (subtag);
   do {
     const char *s = strstr (lang_str, subtag);
     if (!s || s >= limit)
       return false;
-    if (!ISALNUM (s[strlen (subtag)]))
+    if (!ISALNUM (s[subtag_len]))
       return true;
-    lang_str = s + strlen (subtag);
+    lang_str = s + subtag_len;
   } while (true);
 }
 
