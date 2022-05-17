@@ -195,6 +195,10 @@ subtag_matches (const char *lang_str,
 		const char *subtag)
 {
   unsigned subtag_len = strlen (subtag);
+
+  if (likely ((unsigned) (limit - lang_str) < subtag_len))
+    return false;
+
   do {
     const char *s = strstr (lang_str, subtag);
     if (!s || s >= limit)
