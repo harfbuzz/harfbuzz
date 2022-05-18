@@ -466,6 +466,7 @@ struct subr_remap_t : hb_inc_bimap_t
      * no optimization based on usage counts. fonttools doesn't appear doing that either.
      */
 
+    resize (closure->get_population ());
     hb_codepoint_t old_num = HB_SET_VALUE_INVALID;
     while (hb_set_next (closure, &old_num))
       add (old_num);
