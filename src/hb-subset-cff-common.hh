@@ -110,12 +110,10 @@ struct str_encoder_t
   void copy_str (const hb_ubytes_t &str)
   {
     unsigned int  offset = buff.length;
-    if (unlikely (!buff.resize (offset + str.length)))
-    {
-      set_error ();
-      return;
-    }
-    if (unlikely (buff.length < offset + str.length))
+    /* Manually resize buffer since faster. */
+    if ((signed) (buff.length + str.length) <= buff.allocated)
+      buff.length += str.length;
+    else if (unlikely (!buff.resize (offset + str.length)))
     {
       set_error ();
       return;
