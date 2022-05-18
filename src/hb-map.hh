@@ -44,9 +44,9 @@ struct hb_hashmap_t
   hb_hashmap_t ()  { init (); }
   ~hb_hashmap_t () { fini (); }
 
-  hb_hashmap_t (const hb_hashmap_t& o) : hb_hashmap_t () { hb_copy (o, *this); }
+  hb_hashmap_t (const hb_hashmap_t& o) : hb_hashmap_t () { resize (population); hb_copy (o, *this); }
   hb_hashmap_t (hb_hashmap_t&& o) : hb_hashmap_t () { hb_swap (*this, o); }
-  hb_hashmap_t& operator= (const hb_hashmap_t& o)  { hb_copy (o, *this); return *this; }
+  hb_hashmap_t& operator= (const hb_hashmap_t& o)  { resize (population); hb_copy (o, *this); return *this; }
   hb_hashmap_t& operator= (hb_hashmap_t&& o)  { hb_swap (*this, o); return *this; }
 
   hb_hashmap_t (std::initializer_list<hb_pair_t<K, V>> lst) : hb_hashmap_t ()
@@ -58,7 +58,10 @@ struct hb_hashmap_t
 	    hb_requires (hb_is_iterable (Iterable))>
   hb_hashmap_t (const Iterable &o) : hb_hashmap_t ()
   {
-    hb_copy (o, *this);
+    auto iter = hb_iter (o);
+    if (iter.is_random_access_iterator)
+      resize (hb_len (iter));
+    hb_copy (iter, *this);
   }
 
   struct item_t
@@ -154,11 +157,11 @@ struct hb_hashmap_t
 
   bool in_error () const { return !successful; }
 
-  bool resize ()
+  bool resize (unsigned new_population = 0)
   {
     if (unlikely (!successful)) return false;
 
-    unsigned int power = hb_bit_storage (population * 2 + 8);
+    unsigned int power = hb_bit_storage (hb_max (population, new_population) * 2 + 8);
     unsigned int new_size = 1u << power;
     item_t *new_items = (item_t *) hb_malloc ((size_t) new_size * sizeof (item_t));
     if (unlikely (!new_items))

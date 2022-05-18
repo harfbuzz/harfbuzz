@@ -294,14 +294,14 @@ struct CmapSubtableFormat4
 					 HBINT16 *idDelta,
 					 unsigned segcount)
   {
-    hb_hashmap_t<hb_codepoint_t, hb_codepoint_t> cp_to_gid { it };
+    hb_map_t cp_to_gid { it };
 
     HBUINT16 *idRangeOffset = c->allocate_size<HBUINT16> (HBUINT16::static_size * segcount);
     if (unlikely (!c->check_success (idRangeOffset))) return nullptr;
     if (unlikely ((char *)idRangeOffset - (char *)idDelta != (int) segcount * (int) HBINT16::static_size)) return nullptr;
 
     for (unsigned i : + hb_range (segcount)
-             | hb_filter ([&] (const unsigned _) { return idDelta[_] == 0; }))
+		      | hb_filter ([&] (const unsigned _) { return idDelta[_] == 0; }))
     {
       idRangeOffset[i] = 2 * (c->start_embed<HBUINT16> () - idRangeOffset - i);
       for (hb_codepoint_t cp = startCode[i]; cp <= endCode[i]; cp++)
