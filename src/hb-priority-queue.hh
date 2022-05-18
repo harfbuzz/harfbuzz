@@ -38,18 +38,11 @@
  */
 struct hb_priority_queue_t
 {
-  HB_DELETE_COPY_ASSIGN (hb_priority_queue_t);
-  hb_priority_queue_t ()  { init (); }
-  ~hb_priority_queue_t () { fini (); }
-
  private:
   typedef hb_pair_t<int64_t, unsigned> item_t;
   hb_vector_t<item_t> heap;
 
  public:
-  void init () { heap.init (); }
-
-  void fini () { heap.fini (); }
 
   void reset () { heap.resize (0); }
 
