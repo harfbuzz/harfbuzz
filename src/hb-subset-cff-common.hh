@@ -118,7 +118,7 @@ struct str_encoder_t
       set_error ();
       return;
     }
-    memcpy (&buff.arrayZ + offset, &str[0], str.length);
+    memcpy (buff.arrayZ + offset, &str[0], str.length);
   }
 
   bool is_error () const { return error; }
