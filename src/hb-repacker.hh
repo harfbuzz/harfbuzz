@@ -148,6 +148,8 @@ struct graph_t
   {
     num_roots_for_space_.push (1);
     bool removed_nil = false;
+    vertices_.alloc (objects.length);
+    vertices_scratch_.alloc (objects.length);
     for (unsigned i = 0; i < objects.length; i++)
     {
       // TODO(grieger): check all links point to valid objects.
