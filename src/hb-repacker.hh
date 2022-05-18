@@ -261,7 +261,6 @@ struct graph_t
 
     hb_vector_t<unsigned> queue;
     hb_vector_t<vertex_t> &sorted_graph = vertices_scratch_;
-    sorted_graph.reset ();
     if (unlikely (!check_success (sorted_graph.resize (vertices_.length)))) return;
     hb_vector_t<unsigned> id_map;
     if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
@@ -316,7 +315,6 @@ struct graph_t
 
     hb_priority_queue_t queue;
     hb_vector_t<vertex_t> &sorted_graph = vertices_scratch_;
-    sorted_graph.reset ();
     if (unlikely (!check_success (sorted_graph.resize (vertices_.length)))) return;
     hb_vector_t<unsigned> id_map;
     if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
