@@ -1547,16 +1547,12 @@ struct CoverageFormat2
 
   bool intersects (const hb_set_t *glyphs) const
   {
-    /* TODO Speed up, using hb_set_next() and bsearch()? */
-    /* TODO(iter) Rewrite as dagger. */
-    for (const auto& range : rangeRecord.as_array ())
-      if (range.intersects (glyphs))
-	return true;
-    return false;
+    return hb_any (+ hb_iter (rangeRecord.as_array ())
+		   | hb_map ([glyphs] (const RangeRecord &range) { return range.intersects (glyphs); }));
   }
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
-    /* TODO(iter) Rewrite as dagger. */
+    /* TODO Use bsearch? */
     for (const auto& range : rangeRecord.as_array ())
     {
       if (range.value <= index &&
