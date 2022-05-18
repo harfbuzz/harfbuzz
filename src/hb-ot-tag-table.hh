@@ -1645,6 +1645,8 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
   if (limit - lang_str > 5 ||
       (limit - lang_str == 5 && *lang_str == '-'))
   {
+    const char *p = strchr (lang_str, '-');
+    if (!p || p >= limit || limit - p < 5) goto out;
     if (subtag_matches (lang_str, limit, "-fonnapa", 8))
     {
       /* Undetermined; North American Phonetic Alphabet */
@@ -1709,6 +1711,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
       return true;
     }
   }
+out:
   switch (lang_str[0])
   {
   case 'a':

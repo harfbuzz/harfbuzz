@@ -1028,6 +1028,8 @@ min_subtag_len += 1 # For initial '-'
 print ('  if (limit - lang_str > %d ||' % min_subtag_len)
 print ("      (limit - lang_str == %d && *lang_str == '-'))" % min_subtag_len)
 print ('  {')
+print ("    const char *p = strchr (lang_str, '-');")
+print ("    if (!p || p >= limit || limit - p < %i) goto out;" % min_subtag_len)
 for initial, items in sorted (complex_tags.items ()):
 	if initial != 'und':
 		continue
@@ -1061,6 +1063,7 @@ for initial, items in sorted (complex_tags.items ()):
 		print ('      return true;')
 		print ('    }')
 print ('  }')
+print ('out:')
 
 print ('  switch (lang_str[0])')
 print ('  {')
