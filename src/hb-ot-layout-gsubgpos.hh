@@ -1328,7 +1328,7 @@ static void context_closure_recurse_lookups (hb_closure_context_t *c,
     bool has_pos_glyphs = false;
     hb_set_t pos_glyphs;
 
-    if (hb_set_is_empty (covered_seq_indicies) || !hb_set_has (covered_seq_indicies, seqIndex))
+    if (!hb_set_has (covered_seq_indicies, seqIndex))
     {
       has_pos_glyphs = true;
       if (seqIndex == 0)
