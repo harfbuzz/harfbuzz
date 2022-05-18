@@ -1506,12 +1506,6 @@ struct CoverageFormat2
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
 
-    if (unlikely (!glyphs))
-    {
-      rangeRecord.len = 0;
-      return_trace (true);
-    }
-
     /* TODO(iter) Write more efficiently? */
 
     unsigned num_ranges = 0;
@@ -1524,6 +1518,7 @@ struct CoverageFormat2
     }
 
     if (unlikely (!rangeRecord.serialize (c, num_ranges))) return_trace (false);
+    if (!num_ranges) return_trace (true);
 
     unsigned count = 0;
     unsigned range = (unsigned) -1;
