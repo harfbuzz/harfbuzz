@@ -1574,8 +1574,10 @@ struct CoverageFormat2
     for (const auto& range : rangeRecord.as_array ())
     {
       if (!range.intersects (glyphs)) continue;
-      for (hb_codepoint_t g = range.first; g <= range.last; g++)
-        if (glyphs->has (g)) intersect_glyphs->add (g);
+      unsigned last = range.last;
+      for (hb_codepoint_t g = range.first - 1;
+	   glyphs->next (&g) && g <= last;)
+        intersect_glyphs->add (g);
     }
   }
 
