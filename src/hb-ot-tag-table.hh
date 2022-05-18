@@ -1642,8 +1642,7 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
 				  unsigned int *count /* IN/OUT */,
 				  hb_tag_t     *tags /* OUT */)
 {
-  if (limit - lang_str > 5 ||
-      (limit - lang_str == 5 && *lang_str == '-'))
+  if (limit - lang_str >= 7)
   {
     const char *p = strchr (lang_str, '-');
     if (!p || p >= limit || limit - p < 5) goto out;
