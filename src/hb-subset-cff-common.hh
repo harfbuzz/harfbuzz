@@ -853,6 +853,7 @@ struct subr_subsetter_t
   {
     str_encoder_t  encoder (buff);
     encoder.reset ();
+    buff.alloc (str.get_count () * 3);
     /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
      * re-insert it at the beginning of charstreing */
     if (str.has_prefix () && str.is_hint_dropped ())
