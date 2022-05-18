@@ -2093,7 +2093,6 @@ struct ClassDefFormat1
     for (unsigned i = 0; i < count; i++)
       if (classValue[i] == klass && glyphs->has (startGlyph + i))
 	intersect_glyphs->add (startGlyph + i);
-    return;
 
 #if 0
     /* The following implementation is faster asymptotically, but slower
@@ -2331,6 +2330,19 @@ struct ClassDefFormat2
 
       return;
     }
+
+#if 0
+    /* The following implementation is faster asymptotically, but slower
+     * in practice. */
+    if ((count >> 3) > glyphs->get_population ())
+    {
+      for (hb_codepoint_t g = HB_SET_VALUE_INVALID;
+	   hb_set_next (glyphs, &g);)
+        if (rangeRecord.as_array ().bfind (g))
+	  intersect_glyphs->add (g);
+      return;
+    }
+#endif
 
     for (unsigned int i = 0; i < count; i++)
     {
