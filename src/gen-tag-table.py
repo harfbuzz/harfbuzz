@@ -1019,14 +1019,12 @@ for initial, items in sorted (complex_tags.items ()):
 		if not tags:
 			continue
 		subtag_len = 0
-		subtag_len += len(lt.script) if lt.script is not None else 0
-		subtag_len += len(lt.region) if lt.region is not None else 0
-		subtag_len += len(lt.variant) if lt.variant is not None else 0
+		subtag_len += 1 + len (lt.script) if lt.script is not None else 0
+		subtag_len += 1 + len (lt.region) if lt.region is not None else 0
+		subtag_len += 1 + len (lt.variant) if lt.variant is not None else 0
 		min_subtag_len = min(subtag_len, min_subtag_len)
-min_subtag_len += 1 # For initial '-'
 
-print ('  if (limit - lang_str > %d ||' % min_subtag_len)
-print ("      (limit - lang_str == %d && *lang_str == '-'))" % min_subtag_len)
+print ('  if (limit - lang_str >= %d)' % (min_subtag_len + 2))
 print ('  {')
 print ("    const char *p = strchr (lang_str, '-');")
 print ("    if (!p || p >= limit || limit - p < %i) goto out;" % min_subtag_len)
@@ -1058,7 +1056,7 @@ for initial, items in sorted (complex_tags.items ()):
 				print ()
 			print ('      };')
 			print ('      for (i = 0; i < %s && i < *count; i++)' % len (tags))
-			print ('        tags[i] = possible_tags[i];')
+			print ('\ttags[i] = possible_tags[i];')
 			print ('      *count = i;')
 		print ('      return true;')
 		print ('    }')
