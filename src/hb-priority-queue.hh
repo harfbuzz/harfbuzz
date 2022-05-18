@@ -142,9 +142,9 @@ struct hb_priority_queue_t
 
   void swap (unsigned a, unsigned b)
   {
-    item_t temp = heap[a];
-    heap[a] = heap[b];
-    heap[b] = temp;
+    assert (a <= heap.length);
+    assert (b <= heap.length);
+    hb_swap (heap.arrayZ[a], heap.arrayZ[b]);
   }
 };
 
