@@ -1978,22 +1978,22 @@ struct ClassDefFormat1
     hb_codepoint_t start = startGlyph;
     hb_codepoint_t end   = start + classValue.len;
 
-    for (const hb_codepoint_t gid : + hb_range (start, end)
-                                    | hb_filter (glyph_map))
+    for (const hb_codepoint_t gid : + hb_range (start, end))
     {
+      hb_codepoint_t new_gid = glyph_map[gid];
+      if (new_gid == HB_MAP_VALUE_INVALID) continue;
       if (glyph_filter && !glyph_filter->has(gid)) continue;
 
       unsigned klass = classValue[gid - start];
       if (!klass) continue;
 
-      hb_codepoint_t new_gid = glyph_map[gid];
       glyphs.push (new_gid);
       gid_org_klass_map.set (new_gid, klass);
       orig_klasses.add (klass);
     }
 
     unsigned glyph_count = glyph_filter
-                           ? hb_len (hb_iter (glyph_map.keys ()) | hb_filter (glyph_filter))
+                           ? hb_len (hb_iter (glyph_map.keys()) | hb_filter (glyph_filter))
                            : glyph_map.get_population ();
     use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
     ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
@@ -2217,18 +2217,19 @@ struct ClassDefFormat2
       hb_codepoint_t end   = rangeRecord[i].last + 1;
       for (hb_codepoint_t g = start; g < end; g++)
       {
-	if (!glyph_map.has (g)) continue;
+        hb_codepoint_t new_gid = glyph_map[g];
+	if (new_gid == HB_MAP_VALUE_INVALID) continue;
         if (glyph_filter && !glyph_filter->has (g)) continue;
 
-        unsigned new_gid = glyph_map[g];
 	glyphs.push (new_gid);
 	gid_org_klass_map.set (new_gid, klass);
 	orig_klasses.add (klass);
       }
     }
 
+    const hb_set_t& glyphset = *c->plan->glyphset_gsub ();
     unsigned glyph_count = glyph_filter
-                           ? hb_len (hb_iter (glyph_map.keys ()) | hb_filter (glyph_filter))
+                           ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
                            : glyph_map.get_population ();
     use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
     ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
