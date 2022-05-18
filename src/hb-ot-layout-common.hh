@@ -1552,16 +1552,21 @@ struct CoverageFormat2
   }
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
-    /* TODO Use bsearch? */
-    for (const auto& range : rangeRecord.as_array ())
+    auto cmp = [] (const void *pk, const void *pr) -> int
     {
-      if (range.value <= index &&
-	  index < (unsigned int) range.value + (range.last - range.first) &&
-	  range.intersects (glyphs))
-	return true;
-      else if (index < range.value)
-	return false;
-    }
+      unsigned index = * (const unsigned *) pk;
+      const RangeRecord &range = * (const RangeRecord *) pr;
+      if (index < range.value) return -1;
+      if (index > (unsigned int) range.value + (range.last - range.first)) return +1;
+      return 0;
+    };
+
+    auto arr = rangeRecord.as_array ();
+    unsigned idx;
+    if (hb_bsearch_impl (&idx, index,
+			 arr.arrayZ, arr.length, sizeof (arr[0]),
+			 (int (*)(const void *_key, const void *_item)) cmp))
+      return arr.arrayZ[idx].intersects (glyphs);
     return false;
   }
 
