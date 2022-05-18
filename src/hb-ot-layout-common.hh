@@ -1969,8 +1969,7 @@ struct ClassDefFormat1
                const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
-    const hb_map_t &glyph_map = *c->plan->glyph_map;
+    const hb_map_t &glyph_map = *c->plan->glyph_map_gsub;
 
     hb_sorted_vector_t<HBGlyphID16> glyphs;
     hb_set_t orig_klasses;
@@ -1980,21 +1979,22 @@ struct ClassDefFormat1
     hb_codepoint_t end   = start + classValue.len;
 
     for (const hb_codepoint_t gid : + hb_range (start, end)
-                                    | hb_filter (glyphset))
+                                    | hb_filter (glyph_map))
     {
       if (glyph_filter && !glyph_filter->has(gid)) continue;
 
       unsigned klass = classValue[gid - start];
       if (!klass) continue;
 
-      glyphs.push (glyph_map[gid]);
-      gid_org_klass_map.set (glyph_map[gid], klass);
+      hb_codepoint_t new_gid = glyph_map[gid];
+      glyphs.push (new_gid);
+      gid_org_klass_map.set (new_gid, klass);
       orig_klasses.add (klass);
     }
 
     unsigned glyph_count = glyph_filter
-                           ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
-                           : glyphset.get_population ();
+                           ? hb_len (hb_iter (glyph_map.keys ()) | hb_filter (glyph_filter))
+                           : glyph_map.get_population ();
     use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
     ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
 				  glyphs, orig_klasses, use_class_zero, klass_map);
@@ -2201,8 +2201,7 @@ struct ClassDefFormat2
                const Coverage* glyph_filter = nullptr) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
-    const hb_map_t &glyph_map = *c->plan->glyph_map;
+    const hb_map_t &glyph_map = *c->plan->glyph_map_gsub;
 
     hb_sorted_vector_t<HBGlyphID16> glyphs;
     hb_set_t orig_klasses;
@@ -2217,17 +2216,19 @@ struct ClassDefFormat2
       hb_codepoint_t end   = rangeRecord[i].last + 1;
       for (hb_codepoint_t g = start; g < end; g++)
       {
-	if (!glyphset.has (g)) continue;
+	if (!glyph_map.has (g)) continue;
         if (glyph_filter && !glyph_filter->has (g)) continue;
-	glyphs.push (glyph_map[g]);
-	gid_org_klass_map.set (glyph_map[g], klass);
+
+        unsigned new_gid = glyph_map[g];
+	glyphs.push (new_gid);
+	gid_org_klass_map.set (new_gid, klass);
 	orig_klasses.add (klass);
       }
     }
 
     unsigned glyph_count = glyph_filter
-                           ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
-                           : glyphset.get_population ();
+                           ? hb_len (hb_iter (glyph_map.keys ()) | hb_filter (glyph_filter))
+                           : glyph_map.get_population ();
     use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
     ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
 				  glyphs, orig_klasses, use_class_zero, klass_map);
