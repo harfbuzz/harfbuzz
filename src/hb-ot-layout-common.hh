@@ -1709,9 +1709,12 @@ struct Coverage
     | hb_filter (glyphset)
     | hb_map_retains_sorting (glyph_map)
     ;
+    // Cache the iterator result as it will be iterated multiple times
+    // by the serialize code below.
+    hb_sorted_vector_t<hb_codepoint_t> glyphs (it);
 
-    bool ret = bool (it);
-    Coverage_serialize (c->serializer, it);
+    bool ret = bool (glyphs);
+    Coverage_serialize (c->serializer, glyphs.iter ());
     return_trace (ret);
   }
 
