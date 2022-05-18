@@ -853,7 +853,7 @@ struct subr_subsetter_t
 
   bool encode_str (const parsed_cs_str_t &str, const unsigned int fd, str_buff_t &buff) const
   {
-    buff.init ();
+    buff.reset ();
     str_encoder_t  encoder (buff);
     encoder.reset ();
     /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
