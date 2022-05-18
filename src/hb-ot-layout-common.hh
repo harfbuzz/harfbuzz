@@ -1717,14 +1717,12 @@ struct Coverage
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
-    const hb_map_t &glyph_map = *c->plan->glyph_map;
-
     auto it =
     + iter ()
-    | hb_filter (glyphset)
-    | hb_map_retains_sorting (glyph_map)
+    | hb_filter (c->plan->glyph_map_gsub)
+    | hb_map_retains_sorting (c->plan->glyph_map_gsub)
     ;
+
     // Cache the iterator result as it will be iterated multiple times
     // by the serialize code below.
     hb_sorted_vector_t<hb_codepoint_t> glyphs (it);

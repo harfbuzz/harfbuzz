@@ -421,6 +421,20 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 }
 
 static void
+_create_glyph_map_gsub (const hb_set_t* glyph_set_gsub,
+                        const hb_map_t* glyph_map,
+                        hb_map_t* out)
+{
+  + hb_iter (glyph_set_gsub)
+  | hb_map ([&] (hb_codepoint_t gid) {
+    return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (gid,
+                                                      glyph_map->get (gid));
+  })
+  | hb_sink (out)
+  ;
+}
+
+static void
 _create_old_gid_to_new_gid_map (const hb_face_t *face,
 				bool		 retain_gids,
 				const hb_set_t	*all_gids_to_retain,
@@ -518,6 +532,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->codepoint_to_glyph = hb_map_create ();
   plan->glyph_map = hb_map_create ();
   plan->reverse_glyph_map = hb_map_create ();
+  plan->glyph_map_gsub = hb_map_create ();
   plan->gsub_lookups = hb_map_create ();
   plan->gpos_lookups = hb_map_create ();
 
@@ -551,6 +566,11 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 				  plan->glyph_map,
 				  plan->reverse_glyph_map,
 				  &plan->_num_output_glyphs);
+
+  _create_glyph_map_gsub (
+      plan->_glyphset_gsub,
+      plan->glyph_map,
+      plan->glyph_map_gsub);
 
   // Now that we have old to new gid map update the unicode to new gid list.
   for (unsigned i = 0; i < plan->unicode_to_new_gid_list.length; i++)
@@ -594,6 +614,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_map_destroy (plan->codepoint_to_glyph);
   hb_map_destroy (plan->glyph_map);
   hb_map_destroy (plan->reverse_glyph_map);
+  hb_map_destroy (plan->glyph_map_gsub);
   hb_set_destroy (plan->_glyphset);
   hb_set_destroy (plan->_glyphset_gsub);
   hb_set_destroy (plan->_glyphset_mathed);
