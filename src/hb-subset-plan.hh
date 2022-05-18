@@ -70,6 +70,7 @@ struct hb_subset_plan_t
   // Old -> New glyph id mapping
   hb_map_t *glyph_map;
   hb_map_t *reverse_glyph_map;
+  hb_map_t *glyph_map_gsub;
 
   // Plan is only good for a specific source/dest so keep them with it
   hb_face_t *source;
