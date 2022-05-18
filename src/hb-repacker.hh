@@ -260,7 +260,8 @@ struct graph_t
     }
 
     hb_vector_t<unsigned> queue;
-    hb_vector_t<vertex_t> sorted_graph;
+    hb_vector_t<vertex_t> &sorted_graph = vertices_scratch_;
+    sorted_graph.reset ();
     if (unlikely (!check_success (sorted_graph.resize (vertices_.length)))) return;
     hb_vector_t<unsigned> id_map;
     if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
@@ -314,7 +315,8 @@ struct graph_t
     update_distances ();
 
     hb_priority_queue_t queue;
-    hb_vector_t<vertex_t> sorted_graph;
+    hb_vector_t<vertex_t> &sorted_graph = vertices_scratch_;
+    sorted_graph.reset ();
     if (unlikely (!check_success (sorted_graph.resize (vertices_.length)))) return;
     hb_vector_t<unsigned> id_map;
     if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
@@ -1088,6 +1090,7 @@ struct graph_t
  public:
   // TODO(garretrieger): make private, will need to move most of offset overflow code into graph.
   hb_vector_t<vertex_t> vertices_;
+  hb_vector_t<vertex_t> vertices_scratch_;
  private:
   bool parents_invalid;
   bool distance_invalid;
