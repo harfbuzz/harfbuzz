@@ -1471,6 +1471,7 @@ struct CoverageFormat1
     hb_codepoint_t get_glyph () const { return c->glyphArray[i]; }
     bool operator != (const iter_t& o) const
     { return i != o.i || c != o.c; }
+    iter_t __end__ () const { iter_t it; it.init (*c); it.i = c->glyphArray.len; return it; }
 
     private:
     const struct CoverageFormat1 *c;
@@ -1630,6 +1631,8 @@ struct CoverageFormat2
 	   return;
 	  }
 	}
+	else
+	  j = 0;
 	return;
       }
       coverage++;
@@ -1638,6 +1641,14 @@ struct CoverageFormat2
     hb_codepoint_t get_glyph () const { return j; }
     bool operator != (const iter_t& o) const
     { return i != o.i || j != o.j || c != o.c; }
+    iter_t __end__ () const
+    {
+      iter_t it;
+      it.init (*c);
+      it.i = c->rangeRecord.len;
+      it.j = 0;
+      return it;
+    }
 
     private:
     const struct CoverageFormat2 *c;
@@ -1827,6 +1838,18 @@ struct Coverage
       case 2: return u.format2 != o.u.format2;
       default:return false;
       }
+    }
+    iter_t __end__ () const
+    {
+      iter_t it = {};
+      it.format = format;
+      switch (format)
+      {
+      case 1: it.u.format1 = u.format1.__end__ (); break;
+      case 2: it.u.format2 = u.format2.__end__ (); break;
+      default: break;
+      }
+      return it;
     }
 
     private:
