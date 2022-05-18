@@ -2037,10 +2037,9 @@ struct ClassDefFormat1
     }
     /* TODO Speed up, using set overlap first? */
     /* TODO(iter) Rewrite as dagger. */
-    HBUINT16 k {klass};
     const HBUINT16 *arr = classValue.arrayZ;
     for (unsigned int i = 0; i < count; i++)
-      if (arr[i] == k && glyphs->has (startGlyph + i))
+      if (arr[i] == klass && glyphs->has (startGlyph + i))
 	return true;
     return false;
   }
@@ -2272,10 +2271,9 @@ struct ClassDefFormat2
     }
     /* TODO Speed up, using set overlap first? */
     /* TODO(iter) Rewrite as dagger. */
-    HBUINT16 k {klass};
     const RangeRecord *arr = rangeRecord.arrayZ;
     for (unsigned int i = 0; i < count; i++)
-      if (arr[i].value == k && arr[i].intersects (glyphs))
+      if (arr[i].value == klass && arr[i].intersects (glyphs))
 	return true;
     return false;
   }
