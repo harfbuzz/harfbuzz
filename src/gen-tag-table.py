@@ -994,12 +994,12 @@ print ('\t\t\t\t  unsigned int *count /* IN/OUT */,')
 print ('\t\t\t\t  hb_tag_t     *tags /* OUT */)')
 print ('{')
 
-def print_subtag_matches (subtag, new_line):
+def print_subtag_matches (subtag, string, new_line):
 	if subtag:
 		if new_line:
 			print ()
 			print ('\t&& ', end='')
-		print ('subtag_matches (lang_str, limit, "-%s", %i)' % (subtag, 1 + len (subtag)), end='')
+		print ('subtag_matches (%s, limit, "-%s", %i)' % (string, subtag, 1 + len (subtag)), end='')
 
 complex_tags = collections.defaultdict (list)
 for initial, group in itertools.groupby ((lt_tags for lt_tags in [
@@ -1040,9 +1040,9 @@ for initial, items in sorted (complex_tags.items ()):
 			expect (next (iter (bcp_47.prefixes[lt.variant])) == lt.language,
 					'%s is not a valid prefix of %s' % (lt.language, lt.variant))
 		print ('    if (', end='')
-		print_subtag_matches (lt.script, False)
-		print_subtag_matches (lt.region, False)
-		print_subtag_matches (lt.variant, False)
+		print_subtag_matches (lt.script, 'p', False)
+		print_subtag_matches (lt.region, 'p', False)
+		print_subtag_matches (lt.variant, 'p', False)
 		print (')')
 		print ('    {')
 		write ('      /* %s */' % bcp_47.get_name (lt))
@@ -1091,9 +1091,9 @@ for initial, items in sorted (complex_tags.items ()):
 				print ('0 == strncmp (&lang_str[1], "%s", %i)' % (string_literal, len (string_literal)), end='')
 			else:
 				print ('lang_matches (&lang_str[1], limit, "%s", %i)' % (string_literal, len (string_literal)), end='')
-		print_subtag_matches (script, True)
-		print_subtag_matches (region, True)
-		print_subtag_matches (lt.variant, True)
+		print_subtag_matches (script, 'lang_str', True)
+		print_subtag_matches (region, 'lang_str', True)
+		print_subtag_matches (lt.variant, 'lang_str', True)
 		print (')')
 		print ('    {')
 		write ('      /* %s */' % bcp_47.get_name (lt))
