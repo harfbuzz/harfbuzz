@@ -428,13 +428,19 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 				hb_map_t	*reverse_glyph_map, /* OUT */
 				unsigned int	*num_glyphs /* OUT */)
 {
+  unsigned pop = all_gids_to_retain->get_population ();
+  reverse_glyph_map->resize (pop);
+  glyph_map->resize (pop);
+
   if (!retain_gids)
   {
     + hb_enumerate (hb_iter (all_gids_to_retain), (hb_codepoint_t) 0)
     | hb_sink (reverse_glyph_map)
     ;
     *num_glyphs = reverse_glyph_map->get_population ();
-  } else {
+  }
+  else
+  {
     + hb_iter (all_gids_to_retain)
     | hb_map ([] (hb_codepoint_t _) {
 		return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (_, _);
