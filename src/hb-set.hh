@@ -77,6 +77,7 @@ struct hb_sparseset_t
   void err () { s.err (); }
   bool in_error () const { return s.in_error (); }
 
+  void alloc (unsigned sz) { s.alloc (sz); }
   void reset () { s.reset (); }
   void clear () { s.clear (); }
   void invert () { s.invert (); }

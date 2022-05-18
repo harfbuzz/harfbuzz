@@ -56,6 +56,7 @@ struct hb_bit_set_invertible_t
   bool in_error () const { return s.in_error (); }
   explicit operator bool () const { return !is_empty (); }
 
+  void alloc (unsigned sz) { s.alloc (sz); }
   void reset ()
   {
     s.reset ();

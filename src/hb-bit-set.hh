@@ -97,6 +97,13 @@ struct hb_bit_set_t
     return true;
   }
 
+  void alloc (unsigned sz)
+  {
+    sz >>= (page_t::PAGE_BITS_LOG_2 - 1);
+    pages.alloc (sz);
+    page_map.alloc (sz);
+  }
+
   void reset ()
   {
     successful = true;
