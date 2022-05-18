@@ -28,6 +28,7 @@ static void BM_hb_ot_tags_from_script_and_language (benchmark::State& state,
   }
 }
 BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON zh_abcd, HB_SCRIPT_COMMON, "zh_abcd");
+BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON zh_hans, HB_SCRIPT_COMMON, "zh_hans");
 BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON ab_abcd, HB_SCRIPT_COMMON, "ab_abcd");
 BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON ab_abc, HB_SCRIPT_COMMON, "ab_abc");
 BENCHMARK_CAPTURE (BM_hb_ot_tags_from_script_and_language, COMMON abcdef_XY, HB_SCRIPT_COMMON, "abcdef_XY");
