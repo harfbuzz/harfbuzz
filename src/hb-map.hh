@@ -243,7 +243,7 @@ struct hb_hashmap_t
   {
     uint32_t h = 0;
     for (auto pair : iter ())
-      h ^= hb_hash (pair.first) ^ hb_hash (pair.second);
+      h ^= (hb_hash (pair.first) * 31) ^ hb_hash (pair.second);
     return h;
   }
 
