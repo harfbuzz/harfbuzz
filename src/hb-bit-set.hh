@@ -373,9 +373,8 @@ struct hb_bit_set_t
     population = other.population;
     hash_ = other.hash_;
 
-    /* TODO switch to vector operator =. */
-    hb_memcpy ((void *) pages, (const void *) other.pages, count * pages.item_size);
-    hb_memcpy ((void *) page_map, (const void *) other.page_map, count * page_map.item_size);
+    page_map = other.page_map;
+    pages = other.pages;
   }
 
   bool is_equal (const hb_bit_set_t &other) const
