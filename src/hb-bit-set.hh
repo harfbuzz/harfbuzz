@@ -47,7 +47,6 @@ struct hb_bit_set_t
     if (likely (!a.successful || !b.successful))
       return;
     hb_swap (a.population, b.population);
-    hb_swap (a.hash_, b.hash_);
     hb_swap (a.last_page_lookup, b.last_page_lookup);
     hb_swap (a.page_map, b.page_map);
     hb_swap (a.pages, b.pages);
@@ -57,7 +56,6 @@ struct hb_bit_set_t
   {
     successful = true;
     population = 0;
-    hash_ = 0;
     last_page_lookup = 0;
     page_map.init ();
     pages.init ();
@@ -80,7 +78,6 @@ struct hb_bit_set_t
 
   bool successful = true; /* Allocations successful */
   mutable unsigned int population = 0;
-  mutable uint32_t hash_ = 0;
   mutable unsigned int last_page_lookup = 0;
   hb_sorted_vector_t<page_map_t> page_map;
   hb_vector_t<page_t> pages;
@@ -117,10 +114,7 @@ struct hb_bit_set_t
   {
     resize (0);
     if (likely (successful))
-    {
       population = 0;
-      hash_ = 0;
-    }
   }
   bool is_empty () const
   {
@@ -132,26 +126,16 @@ struct hb_bit_set_t
   }
   explicit operator bool () const { return !is_empty (); }
 
-  bool has_hash () const { return hash_ != UINT_MAX; }
   uint32_t hash () const
   {
-    if (has_hash ()) return hash_;
-
     uint32_t h = 0;
     for (auto &map : page_map)
       h = h * 31 + hb_hash (map.major) + hb_hash (pages[map.index]);
-
-    hash_ = h;
-
     return h;
   }
 
   private:
-  void dirty ()
-  {
-    population = UINT_MAX;
-    hash_ = UINT_MAX;
-  }
+  void dirty () { population = UINT_MAX; }
   public:
 
   void add (hb_codepoint_t g)
@@ -371,7 +355,6 @@ struct hb_bit_set_t
     if (unlikely (!resize (count)))
       return;
     population = other.population;
-    hash_ = other.hash_;
 
     page_map = other.page_map;
     pages = other.pages;
@@ -381,9 +364,6 @@ struct hb_bit_set_t
   {
     if (has_population () && other.has_population () &&
 	population != other.population)
-      return false;
-    if (has_hash () && other.has_hash () &&
-	hash_ != other.hash_)
       return false;
 
     unsigned int na = pages.length;
