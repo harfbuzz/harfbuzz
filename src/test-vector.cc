@@ -146,7 +146,6 @@ main (int argc, char **argv)
     assert (v2[2] == 3);
   }
 
-#if 0
   {
     hb_vector_t<std::string> v;
 
@@ -156,8 +155,11 @@ main (int argc, char **argv)
       s += "x";
       v.push (s);
     }
+
+    hb_vector_t<std::string> v2;
+
+    v2 = v;
   }
-#endif
 
   return 0;
 }
