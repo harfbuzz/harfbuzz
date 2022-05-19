@@ -71,6 +71,7 @@ struct hb_bit_set_t
   {
     int cmp (const page_map_t &o) const { return cmp (o.major); }
     int cmp (uint32_t o_major) const { return (int) o_major - (int) major; }
+    unsigned hash () const { return major ^ index; }
 
     uint32_t major;
     uint32_t index;
@@ -125,6 +126,11 @@ struct hb_bit_set_t
     return true;
   }
   explicit operator bool () const { return !is_empty (); }
+
+  unsigned hash () const
+  {
+    return page_map.hash () ^ pages.hash ();
+  }
 
   private:
   void dirty () { population = UINT_MAX; }

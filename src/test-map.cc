@@ -25,9 +25,11 @@
 
 #include "hb.hh"
 #include "hb-map.hh"
+#include "hb-set.hh"
 #include <string>
 
 static const std::string invalid{"invalid"};
+static const hb_set_t invalid_set{};
 
 int
 main (int argc, char **argv)
@@ -147,6 +149,27 @@ main (int argc, char **argv)
       m2.set (i, s);
       m3.set (s, s);
     }
+  }
+
+  {
+    hb_hashmap_t<hb_set_t, hb_set_t, const hb_set_t *, const hb_set_t *, &invalid_set, &invalid_set> m1;
+    hb_hashmap_t<hb_set_t, hb_set_t, std::nullptr_t, std::nullptr_t, nullptr, nullptr> m2;
+
+    m1.set (hb_set_t (), hb_set_t ());
+    m2.set (hb_set_t (), hb_set_t ());
+
+    m1.set (hb_set_t (), hb_set_t {1});
+    m2.set (hb_set_t (), hb_set_t {1});
+
+    m1.set (hb_set_t {1}, hb_set_t {2});
+    m2.set (hb_set_t {1}, hb_set_t {2});
+
+    /* Cannot override empty set. */
+    assert (m1.get (hb_set_t ()) == hb_set_t ());
+    assert (m2.get (hb_set_t ()) == hb_set_t ());
+
+    assert (m1.get (hb_set_t {1}) == hb_set_t {2});
+    assert (m2.get (hb_set_t {1}) == hb_set_t {2});
   }
 
   return 0;

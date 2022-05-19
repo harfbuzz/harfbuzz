@@ -82,6 +82,7 @@ struct hb_sparseset_t
   void clear () { s.clear (); }
   void invert () { s.invert (); }
   bool is_empty () const { return s.is_empty (); }
+  unsigned hash () const { return s.hash (); }
 
   void add (hb_codepoint_t g) { s.add (g); }
   bool add_range (hb_codepoint_t a, hb_codepoint_t b) { return s.add_range (a, b); }
@@ -126,6 +127,8 @@ struct hb_sparseset_t
   void set (const hb_sparseset_t &other) { s.set (other.s); }
 
   bool is_equal (const hb_sparseset_t &other) const { return s.is_equal (other.s); }
+  bool operator == (const hb_set_t &other) const { return is_equal (other); }
+  bool operator != (const hb_set_t &other) const { return !is_equal (other); }
 
   bool is_subset (const hb_sparseset_t &larger_set) const { return s.is_subset (larger_set.s); }
 
@@ -163,6 +166,7 @@ struct hb_set_t : hb_sparseset_t<hb_bit_set_invertible_t>
 
   ~hb_set_t () = default;
   hb_set_t () : sparseset () {};
+  hb_set_t (std::nullptr_t) : hb_set_t () {};
   hb_set_t (const hb_set_t &o) : sparseset ((sparseset &) o) {};
   hb_set_t (hb_set_t&& o) : sparseset (std::move ((sparseset &) o)) {}
   hb_set_t& operator= (const hb_set_t&) = default;

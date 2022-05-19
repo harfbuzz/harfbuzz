@@ -45,6 +45,13 @@ struct hb_bit_page_t
 	return false;
     return true;
   }
+  unsigned hash () const
+  {
+    unsigned h = 0;
+    for (unsigned int i = 0; i < len (); i++)
+      h ^= hb_hash (v[i] ^ i);
+    return h;
+  }
 
   void add (hb_codepoint_t g) { elt (g) |= mask (g); }
   void del (hb_codepoint_t g) { elt (g) &= ~mask (g); }
