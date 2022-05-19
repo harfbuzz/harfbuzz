@@ -249,58 +249,6 @@ struct graph_t
   }
 
   /*
-   * Generates a new topological sorting of graph using Kahn's
-   * algorithm: https://en.wikipedia.org/wiki/Topological_sorting#Algorithms
-   */
-  void sort_kahn ()
-  {
-    positions_invalid = true;
-
-    if (vertices_.length <= 1) {
-      // Graph of 1 or less doesn't need sorting.
-      return;
-    }
-
-    hb_vector_t<unsigned> queue;
-    hb_vector_t<vertex_t> &sorted_graph = vertices_scratch_;
-    if (unlikely (!check_success (sorted_graph.resize (vertices_.length)))) return;
-    hb_vector_t<unsigned> id_map;
-    if (unlikely (!check_success (id_map.resize (vertices_.length)))) return;
-
-    hb_vector_t<unsigned> removed_edges;
-    if (unlikely (!check_success (removed_edges.resize (vertices_.length)))) return;
-    update_parents ();
-
-    queue.push (root_idx ());
-    int new_id = vertices_.length - 1;
-
-    while (!queue.in_error () && queue.length)
-    {
-      unsigned next_id = queue[0];
-      queue.remove (0);
-
-      vertex_t& next = vertices_[next_id];
-      sorted_graph[new_id] = next;
-      id_map[next_id] = new_id--;
-
-      for (const auto& link : next.obj.all_links ()) {
-        removed_edges[link.objidx]++;
-        if (!(vertices_[link.objidx].incoming_edges () - removed_edges[link.objidx]))
-          queue.push (link.objidx);
-      }
-    }
-
-    check_success (!queue.in_error ());
-    check_success (!sorted_graph.in_error ());
-    if (!check_success (new_id == -1))
-      print_orphaned_nodes ();
-
-    remap_all_obj_indices (id_map, &sorted_graph);
-
-    hb_swap (vertices_, sorted_graph);
-  }
-
-  /*
    * Generates a new topological sorting of graph ordered by the shortest
    * distance to each node.
    */
@@ -1218,7 +1166,6 @@ hb_resolve_overflows (const T& packed,
   // Kahn sort is ~twice as fast as shortest distance sort and works for many fonts
   // so try it first to save time.
   graph_t sorted_graph (packed);
-  sorted_graph.sort_kahn ();
   if (!sorted_graph.will_overflow ())
   {
     return sorted_graph.serialize ();
