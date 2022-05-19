@@ -1088,9 +1088,9 @@ static void
 test_set_next_many (void)
 {
   hb_set_t *set = hb_set_create ();
-  for (int i=0; i<600; i++)
+  for (unsigned i=0; i<600; i++)
     hb_set_add (set, i);
-  for (int i=6000; i<6100; i++)
+  for (unsigned i=6000; i<6100; i++)
     hb_set_add (set, i);
   g_assert (hb_set_get_population (set) == 700);
   hb_codepoint_t array[700];
@@ -1098,13 +1098,13 @@ test_set_next_many (void)
   unsigned int n = hb_set_next_many (set, HB_SET_VALUE_INVALID, array, 700);
 
   g_assert_cmpint(n, ==, 700);
-  for (int i=0; i<600; i++)
+  for (unsigned i=0; i<600; i++)
     g_assert_cmpint (array[i], ==, i);
-  for (int i=0; i<100; i++)
-    g_assert (array[600 + i] == 6000 + i);
+  for (unsigned i=0; i<100; i++)
+    g_assert (array[600 + i] == 6000u + i);
 
   // Try skipping initial values.
-  for (int i = 0; i < 700; i++)
+  for (unsigned i = 0; i < 700; i++)
     array[i] = 0;
 
   n = hb_set_next_many (set, 42, array, 700);
