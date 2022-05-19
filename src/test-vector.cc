@@ -159,6 +159,8 @@ main (int argc, char **argv)
     hb_vector_t<std::string> v2;
 
     v2 = v;
+
+    v2.remove (50);
   }
 
   return 0;
