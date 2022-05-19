@@ -192,11 +192,15 @@ template <> struct hb_int_max<unsigned long long>	: hb_integral_constant<unsigne
 #define hb_is_trivially_copyable(T) __has_trivial_copy(T)
 #define hb_is_trivially_copy_assignable(T) (__has_trivial_copy(T) && __has_trivial_assign(T))
 #define hb_is_trivially_constructible(T) __has_trivial_constructor(T)
+#define hb_is_copy_constructible(T) __has_copy_constructor(T)
+#define hb_is_trivially_copy_constructible(T) __has_trivial_copy_constructor(T)
 #define hb_is_trivially_destructible(T) __has_trivial_destructor(T)
 #else
 #define hb_is_trivially_copyable(T) std::is_trivially_copyable<T>::value
 #define hb_is_trivially_copy_assignable(T) std::is_trivially_copy_assignable<T>::value
 #define hb_is_trivially_constructible(T) std::is_trivially_constructible<T>::value
+#define hb_is_copy_constructible(T) std::is_copy_constructible<T>::value
+#define hb_is_trivially_copy_constructible(T) std::is_trivially_copy_constructible<T>::value
 #define hb_is_trivially_destructible(T) std::is_trivially_destructible<T>::value
 #endif
 
