@@ -49,7 +49,7 @@ struct hb_bit_page_t
   {
     unsigned h = 0;
     for (unsigned int i = 0; i < len (); i++)
-      h ^= hb_hash (v[i] ^ i);
+      h = h * 31 + hb_hash (v[i]);
     return h;
   }
 
