@@ -49,6 +49,17 @@ struct graph_t
     unsigned end = 0;
     unsigned priority = 0;
 
+    friend void swap (vertex_t& a, vertex_t& b)
+    {
+      hb_swap (a.obj, b.obj);
+      hb_swap (a.distance, b.distance);
+      hb_swap (a.space, b.space);
+      hb_swap (a.parents, b.parents);
+      hb_swap (a.start, b.start);
+      hb_swap (a.end, b.end);
+      hb_swap (a.priority, b.priority);
+    }
+
     bool is_shared () const
     {
       return parents.length > 1;
@@ -280,8 +291,9 @@ struct graph_t
     {
       unsigned next_id = queue.pop_minimum().second;
 
-      vertex_t& next = vertices_[next_id];
-      sorted_graph[new_id] = next;
+      hb_swap (sorted_graph[new_id], vertices_[next_id]);
+      const vertex_t& next = sorted_graph[new_id];
+
       id_map[next_id] = new_id--;
 
       for (const auto& link : next.obj.all_links ()) {
@@ -516,12 +528,10 @@ struct graph_t
     // The last object is the root of the graph, so swap back the root to the end.
     // The root's obj idx does change, however since it's root nothing else refers to it.
     // all other obj idx's will be unaffected.
-    vertex_t root = vertices_[vertices_.length - 2];
-    vertices_[clone_idx] = *clone;
-    vertices_[vertices_.length - 1] = root;
+    hb_swap (vertices_[vertices_.length - 2], *clone);
 
     // Since the root moved, update the parents arrays of all children on the root.
-    for (const auto& l : root.obj.all_links ())
+    for (const auto& l : root ().obj.all_links ())
       vertices_[l.objidx].remap_parent (root_idx () - 1, root_idx ());
 
     return clone_idx;
