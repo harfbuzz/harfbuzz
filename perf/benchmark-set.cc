@@ -120,4 +120,27 @@ BENCHMARK(BM_SetIteration)
         {{1 << 10, 1 << 16}, // Set Size
          {2, 512}});          // Density
 
+/* Set copy. */
+static void BM_SetCopy(benchmark::State& state) {
+  unsigned set_size = state.range(0);
+  unsigned max_value = state.range(0) * state.range(1);
+
+  hb_set_t* original = hb_set_create ();
+  RandomSet(set_size, max_value, original);
+  assert(hb_set_get_population(original) == set_size);
+
+  for (auto _ : state) {
+    hb_set_t *s = hb_set_create ();
+    hb_set_set (s, original);
+    hb_set_destroy (s);
+  }
+
+  hb_set_destroy(original);
+}
+BENCHMARK(BM_SetCopy)
+    ->Unit(benchmark::kMicrosecond)
+    ->Ranges(
+        {{1 << 10, 1 << 16}, // Set Size
+         {2, 512}});          // Density
+
 BENCHMARK_MAIN();
