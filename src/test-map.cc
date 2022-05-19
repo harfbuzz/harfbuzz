@@ -29,6 +29,7 @@
 #include <string>
 
 static const std::string invalid{"invalid"};
+static const hb_map_t invalid_map{};
 static const hb_set_t invalid_set{};
 static const hb_vector_t<unsigned> invalid_vector{};
 
@@ -152,29 +153,29 @@ main (int argc, char **argv)
     }
   }
 
-#if 0
   /* Test hashing maps. */
   {
+    using pair = hb_pair_t<hb_codepoint_t, hb_codepoint_t>;
+
     hb_hashmap_t<hb_map_t, hb_map_t, const hb_map_t *, const hb_map_t *, &invalid_map, &invalid_map> m1;
     hb_hashmap_t<hb_map_t, hb_map_t, std::nullptr_t, std::nullptr_t, nullptr, nullptr> m2;
 
-    m1.map (hb_map_t (), hb_map_t ());
-    m2.map (hb_map_t (), hb_map_t ());
+    m1.set (hb_map_t (), hb_map_t {});
+    m2.set (hb_map_t (), hb_map_t {});
 
- //   m1.map (hb_map_t (), hb_map_t {1});
- //   m2.map (hb_map_t (), hb_map_t {1});
+    m1.set (hb_map_t (), hb_map_t {pair (1u, 2u)});
+    m2.set (hb_map_t (), hb_map_t {pair (1u, 2u)});
 
- //   m1.map (hb_map_t {1}, hb_map_t {2});
- //   m2.map (hb_map_t {1}, hb_map_t {2});
+    m1.set (hb_map_t {pair (1u, 2u)}, hb_map_t {pair (2u, 3u)});
+    m2.set (hb_map_t {pair (1u, 2u)}, hb_map_t {pair (2u, 3u)});
 
     /* Cannot override empty map. */
     assert (m1.get (hb_map_t ()) == hb_map_t ());
     assert (m2.get (hb_map_t ()) == hb_map_t ());
 
- //   assert (m1.get (hb_map_t {1}) == hb_map_t {2});
- //   assert (m2.get (hb_map_t {1}) == hb_map_t {2});
+   assert (m1.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
+   assert (m2.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
   }
-#endif
 
   /* Test hashing sets. */
   {
