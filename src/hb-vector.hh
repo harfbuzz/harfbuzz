@@ -392,8 +392,8 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   {
     if (unlikely (i >= length))
       return;
-    arrayZ[i].~Type ();
     shift_down_vector (i + 1);
+    arrayZ[length - 1].~Type ();
     length--;
   }
 
