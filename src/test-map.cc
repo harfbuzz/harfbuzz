@@ -30,6 +30,7 @@
 
 static const std::string invalid{"invalid"};
 static const hb_set_t invalid_set{};
+static const hb_vector_t<unsigned> invalid_vector{};
 
 int
 main (int argc, char **argv)
@@ -151,6 +152,7 @@ main (int argc, char **argv)
     }
   }
 
+  /* Test hashing sets. */
   {
     hb_hashmap_t<hb_set_t, hb_set_t, const hb_set_t *, const hb_set_t *, &invalid_set, &invalid_set> m1;
     hb_hashmap_t<hb_set_t, hb_set_t, std::nullptr_t, std::nullptr_t, nullptr, nullptr> m2;
@@ -170,6 +172,30 @@ main (int argc, char **argv)
 
     assert (m1.get (hb_set_t {1}) == hb_set_t {2});
     assert (m2.get (hb_set_t {1}) == hb_set_t {2});
+  }
+
+  /* Test hashing vectors. */
+  {
+    using vector_t = hb_vector_t<unsigned>;
+
+    hb_hashmap_t<vector_t, vector_t, const vector_t *, const vector_t *, &invalid_vector, &invalid_vector> m1;
+    hb_hashmap_t<vector_t, vector_t, std::nullptr_t, std::nullptr_t, nullptr, nullptr> m2;
+
+    m1.set (vector_t (), vector_t ());
+    m2.set (vector_t (), vector_t ());
+
+    m1.set (vector_t (), vector_t {1});
+    m2.set (vector_t (), vector_t {1});
+
+    m1.set (vector_t {1}, vector_t {2});
+    m2.set (vector_t {1}, vector_t {2});
+
+    /* Cannot override empty vector. */
+    assert (m1.get (vector_t ()) == vector_t ());
+    assert (m2.get (vector_t ()) == vector_t ());
+
+    assert (m1.get (vector_t {1}) == vector_t {2});
+    assert (m2.get (vector_t {1}) == vector_t {2});
   }
 
   return 0;
