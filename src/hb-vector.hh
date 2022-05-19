@@ -231,8 +231,7 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   }
 
   template <typename T = Type,
-	    hb_enable_if (hb_is_trivially_constructible(T) ||
-			  !std::is_default_constructible<T>::value)>
+	    hb_enable_if (hb_is_trivially_constructible(T))>
   void
   grow_vector (unsigned size)
   {
@@ -240,8 +239,7 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
     length = size;
   }
   template <typename T = Type,
-	    hb_enable_if (!hb_is_trivially_constructible(T) &&
-			   std::is_default_constructible<T>::value)>
+	    hb_enable_if (!hb_is_trivially_constructible(T))>
   void
   grow_vector (unsigned size)
   {
