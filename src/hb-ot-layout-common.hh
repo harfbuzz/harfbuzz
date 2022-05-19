@@ -91,12 +91,12 @@ template<typename Iterator>
 static inline void ClassDef_serialize (hb_serialize_context_t *c,
 				       Iterator it);
 
-static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
-					  const hb_map_t &gid_klass_map,
-					  hb_sorted_vector_t<HBGlyphID16> &glyphs,
-					  const hb_set_t &klasses,
-					  bool use_class_zero,
-					  hb_map_t *klass_map /*INOUT*/);
+static void ClassDef_remap_and_serialize (
+    hb_serialize_context_t *c,
+    const hb_set_t &klasses,
+    bool use_class_zero,
+    hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &glyph_and_klass, /* IN/OUT */
+    hb_map_t *klass_map /*IN/OUT*/);
 
 
 struct hb_prune_langsys_context_t
@@ -1877,16 +1877,14 @@ Coverage_serialize (hb_serialize_context_t *c,
 { c->start_embed<Coverage> ()->serialize (c, it); }
 
 static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
-					  const hb_map_t &gid_klass_map,
-					  hb_sorted_vector_t<HBGlyphID16> &glyphs,
 					  const hb_set_t &klasses,
                                           bool use_class_zero,
-					  hb_map_t *klass_map /*INOUT*/)
+                                          hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &glyph_and_klass, /* IN/OUT */
+					  hb_map_t *klass_map /*IN/OUT*/)
 {
   if (!klass_map)
   {
-    ClassDef_serialize (c, hb_zip (glyphs.iter (), + glyphs.iter ()
-						   | hb_map (gid_klass_map)));
+    ClassDef_serialize (c, glyph_and_klass.iter ());
     return;
   }
 
@@ -1903,17 +1901,15 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
     idx++;
   }
 
-  auto it =
-  + glyphs.iter ()
-  | hb_map_retains_sorting ([&] (const HBGlyphID16& gid) -> hb_pair_t<hb_codepoint_t, unsigned>
-			    {
-			      unsigned new_klass = klass_map->get (gid_klass_map[gid]);
-			      return hb_pair ((hb_codepoint_t)gid, new_klass);
-			    })
-  ;
 
-  c->propagate_error (glyphs, klasses);
-  ClassDef_serialize (c, it);
+  for (unsigned i = 0; i < glyph_and_klass.length; i++)
+  {
+    hb_codepoint_t klass = glyph_and_klass[i].second;
+    glyph_and_klass[i].second = klass_map->get (klass);
+  }
+
+  c->propagate_error (glyph_and_klass, klasses);
+  ClassDef_serialize (c, glyph_and_klass.iter ());
 }
 
 /*
@@ -1971,9 +1967,8 @@ struct ClassDefFormat1
     TRACE_SUBSET (this);
     const hb_map_t &glyph_map = *c->plan->glyph_map_gsub;
 
-    hb_sorted_vector_t<HBGlyphID16> glyphs;
+    hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> glyph_and_klass;
     hb_set_t orig_klasses;
-    hb_map_t gid_org_klass_map;
 
     hb_codepoint_t start = startGlyph;
     hb_codepoint_t end   = start + classValue.len;
@@ -1987,18 +1982,20 @@ struct ClassDefFormat1
       unsigned klass = classValue[gid - start];
       if (!klass) continue;
 
-      glyphs.push (new_gid);
-      gid_org_klass_map.set (new_gid, klass);
+      glyph_and_klass.push (hb_pair (new_gid, klass));
       orig_klasses.add (klass);
     }
 
     unsigned glyph_count = glyph_filter
                            ? hb_len (hb_iter (glyph_map.keys()) | hb_filter (glyph_filter))
                            : glyph_map.get_population ();
-    use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
-    ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
-				  glyphs, orig_klasses, use_class_zero, klass_map);
-    return_trace (keep_empty_table || (bool) glyphs);
+    use_class_zero = use_class_zero && glyph_count <= glyph_and_klass.length;
+    ClassDef_remap_and_serialize (c->serializer,
+                                  orig_klasses,
+                                  use_class_zero,
+                                  glyph_and_klass,
+                                  klass_map);
+    return_trace (keep_empty_table || (bool) glyph_and_klass);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -2203,9 +2200,8 @@ struct ClassDefFormat2
     TRACE_SUBSET (this);
     const hb_map_t &glyph_map = *c->plan->glyph_map_gsub;
 
-    hb_sorted_vector_t<HBGlyphID16> glyphs;
+    hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> glyph_and_klass;
     hb_set_t orig_klasses;
-    hb_map_t gid_org_klass_map;
 
     unsigned count = rangeRecord.len;
     for (unsigned i = 0; i < count; i++)
@@ -2220,8 +2216,7 @@ struct ClassDefFormat2
 	if (new_gid == HB_MAP_VALUE_INVALID) continue;
         if (glyph_filter && !glyph_filter->has (g)) continue;
 
-	glyphs.push (new_gid);
-	gid_org_klass_map.set (new_gid, klass);
+	glyph_and_klass.push (hb_pair (new_gid, klass));
 	orig_klasses.add (klass);
       }
     }
@@ -2230,10 +2225,13 @@ struct ClassDefFormat2
     unsigned glyph_count = glyph_filter
                            ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
                            : glyph_map.get_population ();
-    use_class_zero = use_class_zero && glyph_count <= gid_org_klass_map.get_population ();
-    ClassDef_remap_and_serialize (c->serializer, gid_org_klass_map,
-				  glyphs, orig_klasses, use_class_zero, klass_map);
-    return_trace (keep_empty_table || (bool) glyphs);
+    use_class_zero = use_class_zero && glyph_count <= glyph_and_klass.length;
+    ClassDef_remap_and_serialize (c->serializer,
+                                  orig_klasses,
+                                  use_class_zero,
+                                  glyph_and_klass,
+                                  klass_map);
+    return_trace (keep_empty_table || (bool) glyph_and_klass);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
