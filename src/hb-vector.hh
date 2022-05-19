@@ -61,7 +61,8 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   hb_vector_t (const hb_vector_t &o) : hb_vector_t ()
   {
     alloc (o.length);
-    hb_copy (o, *this);
+    if (unlikely (in_error ())) return;
+    copy_vector (o);
   }
   hb_vector_t (hb_vector_t &&o)
   {
@@ -109,7 +110,10 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   {
     reset ();
     alloc (o.length);
-    hb_copy (o, *this);
+    if (unlikely (in_error ())) return *this;
+
+    copy_vector (o);
+
     return *this;
   }
   hb_vector_t& operator = (hb_vector_t &&o)
@@ -247,6 +251,28 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
     {
       length++;
       new (std::addressof (arrayZ[length - 1])) Type ();
+    }
+  }
+
+  template <typename T = Type,
+	    hb_enable_if (hb_is_trivially_copyable (T))>
+  void
+  copy_vector (const hb_vector_t &other)
+  {
+    length = other.length;
+    hb_memcpy ((void *) arrayZ, (const void *) other.arrayZ, length * item_size);
+  }
+  template <typename T = Type,
+	    hb_enable_if (!hb_is_trivially_copyable (T) &&
+			   hb_is_copy_constructible (T))>
+  void
+  copy_vector (const hb_vector_t &other)
+  {
+    length = 0;
+    while (length < other.length)
+    {
+      length++;
+      new (std::addressof (arrayZ[length - 1])) Type (other.arrayZ[length - 1]);
     }
   }
 
