@@ -275,6 +275,22 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
       new (std::addressof (arrayZ[length - 1])) Type (other.arrayZ[length - 1]);
     }
   }
+  template <typename T = Type,
+	    hb_enable_if (!hb_is_trivially_copyable (T) &&
+			  !std::is_copy_constructible<T>::value &&
+			  std::is_default_constructible<T>::value &&
+			  std::is_copy_assignable<T>::value)>
+  void
+  copy_vector (const hb_vector_t &other)
+  {
+    length = 0;
+    while (length < other.length)
+    {
+      length++;
+      new (std::addressof (arrayZ[length - 1])) Type ();
+      arrayZ[length - 1] = other.arrayZ[length - 1];
+    }
+  }
 
   template <typename T = Type,
 	    hb_enable_if (hb_is_trivially_destructible(T))>
