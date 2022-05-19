@@ -188,15 +188,15 @@ main (int argc, char **argv)
     m1.set (hb_set_t (), hb_set_t {1});
     m2.set (hb_set_t (), hb_set_t {1});
 
-    m1.set (hb_set_t {1}, hb_set_t {2});
-    m2.set (hb_set_t {1}, hb_set_t {2});
+    m1.set (hb_set_t {1, 1000}, hb_set_t {2});
+    m2.set (hb_set_t {1, 1000}, hb_set_t {2});
 
     /* Cannot override empty set. */
     assert (m1.get (hb_set_t ()) == hb_set_t ());
     assert (m2.get (hb_set_t ()) == hb_set_t ());
 
-    assert (m1.get (hb_set_t {1}) == hb_set_t {2});
-    assert (m2.get (hb_set_t {1}) == hb_set_t {2});
+    assert (m1.get (hb_set_t {1000, 1}) == hb_set_t {2});
+    assert (m2.get (hb_set_t {1000, 1}) == hb_set_t {2});
   }
 
   /* Test hashing vectors. */
