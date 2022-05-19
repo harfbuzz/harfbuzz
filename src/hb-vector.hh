@@ -189,12 +189,14 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   {
     if (unlikely (!resize (length + 1)))
       return &Crap (Type);
-    return &arrayZ[length - 1];
+    return std::addressof (arrayZ[length - 1]);
   }
-  template <typename T>
+  template <typename T,
+	    typename T2 = Type,
+	    hb_enable_if (!std::is_copy_constructible<T2>::value &&
+			  std::is_copy_assignable<T>::value)>
   Type *push (T&& v)
   {
-    /* TODO Emplace? */
     Type *p = push ();
     if (p == &Crap (Type))
       // If push failed to allocate then don't copy v, since this may cause
@@ -203,6 +205,22 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
       return p;
     *p = std::forward<T> (v);
     return p;
+  }
+  template <typename T,
+	    typename T2 = Type,
+	    hb_enable_if (std::is_copy_constructible<T2>::value)>
+  Type *push (T&& v)
+  {
+    if (unlikely (!alloc (length + 1)))
+      // If push failed to allocate then don't copy v, since this may cause
+      // the created copy to leak memory since we won't have stored a
+      // reference to it.
+      return &Crap (Type);
+
+    /* Emplace. */
+    length++;
+    Type *p = std::addressof (arrayZ[length - 1]);
+    return new (p) Type (std::forward<T> (v));
   }
 
   bool in_error () const { return allocated < 0; }
