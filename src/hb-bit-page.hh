@@ -40,15 +40,15 @@ struct hb_bit_page_t
 
   bool is_empty () const
   {
-    for (unsigned int i = 0; i < len (); i++)
+    for (unsigned i = 0; i < len (); i++)
       if (v[i])
 	return false;
     return true;
   }
-  unsigned hash () const
+  uint32_t hash () const
   {
-    unsigned h = 0;
-    for (unsigned int i = 0; i < len (); i++)
+    uint32_t h = 0;
+    for (unsigned i = 0; i < len (); i++)
       h = h * 31 + hb_hash (v[i]);
     return h;
   }

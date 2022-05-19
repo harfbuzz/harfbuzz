@@ -80,7 +80,7 @@ struct hb_bit_set_t
 
   bool successful = true; /* Allocations successful */
   mutable unsigned int population = 0;
-  mutable unsigned int hash_ = 0;
+  mutable uint32_t hash_ = 0;
   mutable unsigned int last_page_lookup = 0;
   hb_sorted_vector_t<page_map_t> page_map;
   hb_vector_t<page_t> pages;
@@ -133,11 +133,11 @@ struct hb_bit_set_t
   explicit operator bool () const { return !is_empty (); }
 
   bool has_hash () const { return hash_ != UINT_MAX; }
-  unsigned hash () const
+  uint32_t hash () const
   {
     if (has_hash ()) return hash_;
 
-    unsigned h = 0;
+    uint32_t h = 0;
     for (auto &map : page_map)
       h = h * 31 + hb_hash (map.major) + hb_hash (pages[map.index]);
 

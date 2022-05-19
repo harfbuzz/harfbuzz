@@ -82,7 +82,7 @@ struct hb_sparseset_t
   void clear () { s.clear (); }
   void invert () { s.invert (); }
   bool is_empty () const { return s.is_empty (); }
-  unsigned hash () const { return s.hash (); }
+  uint32_t hash () const { return s.hash (); }
 
   void add (hb_codepoint_t g) { s.add (g); }
   bool add_range (hb_codepoint_t a, hb_codepoint_t b) { return s.add_range (a, b); }

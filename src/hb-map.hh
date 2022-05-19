@@ -239,9 +239,9 @@ struct hb_hashmap_t
   bool is_empty () const { return population == 0; }
   explicit operator bool () const { return !is_empty (); }
 
-  unsigned hash () const
+  uint32_t hash () const
   {
-    unsigned h = 0;
+    uint32_t h = 0;
     for (auto pair : iter ())
       h ^= hb_hash (pair.first) ^ hb_hash (pair.second);
     return h;
