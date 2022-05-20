@@ -146,7 +146,7 @@ struct ValueFormat : HBUINT16
     if (!use_x_device && !use_y_device) return ret;
 
     const VariationStore &store = c->var_store;
-    auto *cache = &c->regions_cache;
+    auto *cache = c->var_store_cache;
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
@@ -466,9 +466,9 @@ struct AnchorFormat3
     *y = font->em_fscale_y (yCoordinate);
 
     if (font->x_ppem || font->num_coords)
-      *x += (this+xDeviceTable).get_x_delta (font, c->var_store, &c->regions_cache);
+      *x += (this+xDeviceTable).get_x_delta (font, c->var_store, c->var_store_cache);
     if (font->y_ppem || font->num_coords)
-      *y += (this+yDeviceTable).get_y_delta (font, c->var_store, &c->regions_cache);
+      *y += (this+yDeviceTable).get_y_delta (font, c->var_store, c->var_store_cache);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
