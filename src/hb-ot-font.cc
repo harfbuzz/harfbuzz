@@ -110,12 +110,18 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   const hb_ot_face_t *ot_face = (const hb_ot_face_t *) font_data;
   const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx;
 
+  const OT::HVARVVAR &HVAR = *hmtx.var_table;
+  const OT::VariationStore &varStore = &HVAR + HVAR.varStore;
+  OT::VariationStore::cache_t *cache = font->num_coords ? varStore.create_cache () : nullptr;
+
   for (unsigned int i = 0; i < count; i++)
   {
-    *first_advance = font->em_scale_x (hmtx.get_advance (*first_glyph, font));
+    *first_advance = font->em_scale_x (hmtx.get_advance (*first_glyph, font, cache));
     first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
     first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
+
+  OT::VariationStore::destroy_cache (cache);
 }
 
 #ifndef HB_NO_VERTICAL
