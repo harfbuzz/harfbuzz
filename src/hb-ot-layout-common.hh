@@ -3010,7 +3010,9 @@ struct VariationStore
 
   protected:
   HBUINT16				format;
+  public:
   Offset32To<VarRegionList>		regions;
+  protected:
   Array16OfOffset32To<VarData>		dataSets;
   public:
   DEFINE_SIZE_ARRAY_SIZED (8, dataSets);

@@ -627,6 +627,7 @@ struct hb_ot_apply_context_t :
   recurse_func_t recurse_func;
   const GDEF &gdef;
   const VariationStore &var_store;
+  hb_vector_t<float> regions_cache;
 
   hb_direction_t direction;
   hb_mask_t lookup_mask;
@@ -669,7 +670,16 @@ struct hb_ot_apply_context_t :
 			auto_zwj (true),
 			per_syllable (false),
 			random (false),
-			random_state (1) { init_iters (); }
+			random_state (1)
+  {
+    init_iters ();
+    if (table_index == 1 && font->num_coords) /* GPOS */
+    {
+      regions_cache.resize ((&var_store+var_store.regions).regionCount);
+      for (auto &f : regions_cache.writer ())
+        f = NAN;
+    }
+  }
 
   void init_iters ()
   {
