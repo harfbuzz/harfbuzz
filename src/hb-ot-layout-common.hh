@@ -2601,6 +2601,8 @@ struct VarRegionAxis
   DEFINE_SIZE_STATIC (6);
 };
 
+#define REGION_CACHE_ITEM_CACHE_INVALID 2.f
+
 struct VarRegionList
 {
   using cache_t = float;
@@ -2616,7 +2618,7 @@ struct VarRegionList
     if (cache)
     {
       cached = &(cache[region_index]);
-      if (!std::isnan (*cached))
+      if (*cached != REGION_CACHE_ITEM_CACHE_INVALID)
 	return *cached;
     }
 
@@ -2875,8 +2877,10 @@ struct VariationStore
     float *cache = (float *) hb_malloc (sizeof (float) * count);
     if (unlikely (!cache)) return nullptr;
 
+
     for (unsigned i = 0; i < count; i++)
-      cache[i] = NAN;
+      cache[i] = REGION_CACHE_ITEM_CACHE_INVALID;
+
 
     return cache;
   }
@@ -3034,6 +3038,8 @@ struct VariationStore
   public:
   DEFINE_SIZE_ARRAY_SIZED (8, dataSets);
 };
+
+#undef REGION_CACHE_ITEM_CACHE_INVALID
 
 /*
  * Feature Variations
