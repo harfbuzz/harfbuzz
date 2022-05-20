@@ -81,8 +81,8 @@ hb_segment_properties_equal (const hb_segment_properties_t *a,
 unsigned int
 hb_segment_properties_hash (const hb_segment_properties_t *p)
 {
-  return (unsigned int) p->direction ^
-	 (unsigned int) p->script ^
+  return ((unsigned int) p->direction * 31 +
+	  (unsigned int) p->script) * 31 +
 	 (intptr_t) (p->language);
 }
 
