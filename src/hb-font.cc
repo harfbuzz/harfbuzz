@@ -1855,10 +1855,8 @@ hb_font_set_user_data (hb_font_t          *font,
 		       hb_destroy_func_t   destroy /* May be NULL. */,
 		       hb_bool_t           replace)
 {
-  if (hb_object_is_immutable (font))
-    return false;
-
-  font->serial++;
+  if (!hb_object_is_immutable (font))
+    font->serial++;
 
   return hb_object_set_user_data (font, key, data, destroy, replace);
 }
