@@ -2618,7 +2618,7 @@ struct VarRegionList
     if (cache)
     {
       cached = &(cache[region_index]);
-      if (*cached != REGION_CACHE_ITEM_CACHE_INVALID)
+      if (likely (*cached != REGION_CACHE_ITEM_CACHE_INVALID))
 	return *cached;
     }
 
@@ -2632,14 +2632,14 @@ struct VarRegionList
       float factor = axes[i].evaluate (coord);
       if (factor == 0.f)
       {
-        if (cached)
+        if (cache)
 	  *cached = 0.;
 	return 0.;
       }
       v *= factor;
     }
 
-    if (cached)
+    if (cache)
       *cached = v;
     return v;
   }
@@ -2877,10 +2877,8 @@ struct VariationStore
     float *cache = (float *) hb_malloc (sizeof (float) * count);
     if (unlikely (!cache)) return nullptr;
 
-
     for (unsigned i = 0; i < count; i++)
       cache[i] = REGION_CACHE_ITEM_CACHE_INVALID;
-
 
     return cache;
   }
