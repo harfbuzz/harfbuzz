@@ -86,7 +86,7 @@ struct hb_ft_font_t
 
   mutable hb_mutex_t lock;
   FT_Face ft_face;
-  mutable int cached_x_scale;
+  mutable unsigned long cached_serial;
   mutable hb_advance_cache_t advance_cache;
 };
 
@@ -103,7 +103,7 @@ _hb_ft_font_create (FT_Face ft_face, bool symbol, bool unref)
 
   ft_font->load_flags = FT_LOAD_DEFAULT | FT_LOAD_NO_HINTING;
 
-  ft_font->cached_x_scale = 0;
+  ft_font->cached_serial = (unsigned long) -1;
   ft_font->advance_cache.init ();
 
   return ft_font;
@@ -337,10 +337,10 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
   int load_flags = ft_font->load_flags;
   int mult = font->x_scale < 0 ? -1 : +1;
 
-  if (font->x_scale != ft_font->cached_x_scale)
+  if (font->serial != ft_font->cached_serial)
   {
     ft_font->advance_cache.clear ();
-    ft_font->cached_x_scale = font->x_scale;
+    ft_font->cached_serial = font->serial;
   }
 
   for (unsigned int i = 0; i < count; i++)
