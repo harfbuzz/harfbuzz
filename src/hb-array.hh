@@ -404,7 +404,7 @@ hb_sorted_array (T (&array_)[length_])
 { return hb_sorted_array_t<T> (array_); }
 
 template <typename T>
-bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
+inline bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
 {
   if (o.length != this->length) return false;
   for (unsigned int i = 0; i < this->length; i++) {
@@ -412,8 +412,18 @@ bool hb_array_t<T>::operator == (const hb_array_t<T> &o) const
   }
   return true;
 }
-
-/* TODO Specialize operator== for hb_bytes_t and hb_ubytes_t. */
+template <>
+inline bool hb_array_t<const char>::operator == (const hb_array_t<const char> &o) const
+{
+  if (o.length != this->length) return false;
+  return 0 == memcmp (arrayZ, o.arrayZ, length);
+}
+template <>
+inline bool hb_array_t<const unsigned char>::operator == (const hb_array_t<const unsigned char> &o) const
+{
+  if (o.length != this->length) return false;
+  return 0 == memcmp (arrayZ, o.arrayZ, length);
+}
 
 template <>
 inline uint32_t hb_array_t<const char>::hash () const {
@@ -422,7 +432,6 @@ inline uint32_t hb_array_t<const char>::hash () const {
     current = current * 31 + (uint32_t) (this->arrayZ[i] * 2654435761u);
   return current;
 }
-
 template <>
 inline uint32_t hb_array_t<const unsigned char>::hash () const {
   uint32_t current = 0;
