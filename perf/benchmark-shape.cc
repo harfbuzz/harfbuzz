@@ -4,33 +4,52 @@
 #include "hb.h"
 
 
+#define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
+
 struct test_input_t
 {
   const char *text_path;
   const char *font_path;
+  bool is_variable;
 } tests[] =
 {
   {"perf/texts/fa-thelittleprince.txt",
-   "perf/fonts/Amiri-Regular.ttf"},
+   "perf/fonts/Amiri-Regular.ttf",
+   false},
 
   {"perf/texts/fa-thelittleprince.txt",
-   "perf/fonts/NotoNastaliqUrdu-Regular.ttf"},
+   "perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+   false},
 
   {"perf/texts/fa-monologue.txt",
-   "perf/fonts/Amiri-Regular.ttf"},
+   "perf/fonts/Amiri-Regular.ttf",
+   false},
 
   {"perf/texts/fa-monologue.txt",
-   "perf/fonts/NotoNastaliqUrdu-Regular.ttf"},
+   "perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+   false},
 
   {"perf/texts/en-thelittleprince.txt",
-   "perf/fonts/Roboto-Regular.ttf"},
+   "perf/fonts/Roboto-Regular.ttf",
+   false},
+
+  {"perf/texts/en-thelittleprince.txt",
+   SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
+   true},
 
   {"perf/texts/en-words.txt",
-   "perf/fonts/Roboto-Regular.ttf"},
+   "perf/fonts/Roboto-Regular.ttf",
+   false},
+
+  {"perf/texts/en-words.txt",
+   SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
+   true},
 };
 
 
-static void BM_Shape (benchmark::State &state, const test_input_t &input)
+static void BM_Shape (benchmark::State &state,
+		      bool is_var,
+		      const test_input_t &input)
 {
   hb_font_t *font;
   {
@@ -40,6 +59,12 @@ static void BM_Shape (benchmark::State &state, const test_input_t &input)
     hb_blob_destroy (blob);
     font = hb_font_create (face);
     hb_face_destroy (face);
+  }
+
+  if (is_var)
+  {
+    hb_variation_t wght = {HB_TAG ('w','g','h','t'), 500};
+    hb_font_set_variations (font, &wght, 1);
   }
 
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
@@ -76,12 +101,16 @@ int main(int argc, char** argv)
 {
   for (auto& test_input : tests)
   {
-    char name[1024] = "BM_Shape";
-    strcat (name, strrchr (test_input.text_path, '/'));
-    strcat (name, strrchr (test_input.font_path, '/'));
+    for (int variable = 0; variable < int (test_input.is_variable) + 1; variable++)
+    {
+      char name[1024] = "BM_Shape";
+      strcat (name, strrchr (test_input.text_path, '/'));
+      strcat (name, strrchr (test_input.font_path, '/'));
+      strcat (name, variable ? "/var" : "");
 
-    benchmark::RegisterBenchmark (name, BM_Shape, test_input)
-     ->Unit(benchmark::kMillisecond);
+      benchmark::RegisterBenchmark (name, BM_Shape, variable, test_input)
+       ->Unit(benchmark::kMillisecond);
+    }
   }
 
   benchmark::Initialize(&argc, argv);
