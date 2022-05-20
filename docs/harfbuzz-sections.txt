@@ -373,6 +373,8 @@ hb_font_glyph_from_string
 hb_font_glyph_to_string
 hb_font_is_immutable
 hb_font_make_immutable
+hb_font_get_serial
+hb_font_changed
 hb_font_reference
 hb_font_set_face
 hb_font_set_funcs
