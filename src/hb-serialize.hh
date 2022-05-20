@@ -111,10 +111,10 @@ struct hb_serialize_context_t
     struct link_t
     {
       unsigned width: 3;
-      bool is_signed: 1;
+      unsigned is_signed: 1;
       unsigned whence: 2;
-      unsigned position: 28;
-      unsigned bias;
+      unsigned bias : 26;
+      unsigned position;
       objidx_t objidx;
 
       link_t () = default;
