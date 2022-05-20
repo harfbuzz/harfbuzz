@@ -130,6 +130,56 @@ _hb_ft_font_destroy (void *data)
   hb_free (ft_font);
 }
 
+
+/* hb_font changed, update FT_Face. */
+static void _hb_ft_changed (hb_font_t *font, FT_Face ft_face)
+{
+  FT_Set_Char_Size (ft_face,
+		    abs (font->x_scale), abs (font->y_scale),
+		    0, 0);
+#if 0
+		    font->x_ppem * 72 * 64 / font->x_scale,
+		    font->y_ppem * 72 * 64 / font->y_scale);
+#endif
+  if (font->x_scale < 0 || font->y_scale < 0)
+  {
+    FT_Matrix matrix = { font->x_scale < 0 ? -1 : +1, 0,
+			  0, font->y_scale < 0 ? -1 : +1};
+    FT_Set_Transform (ft_face, &matrix, nullptr);
+  }
+
+#if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
+  unsigned int num_coords;
+  const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
+  if (num_coords)
+  {
+    FT_Fixed *ft_coords = (FT_Fixed *) hb_calloc (num_coords, sizeof (FT_Fixed));
+    if (ft_coords)
+    {
+      for (unsigned int i = 0; i < num_coords; i++)
+	ft_coords[i] = coords[i] * 4;
+      FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
+      hb_free (ft_coords);
+    }
+  }
+#endif
+}
+
+/* Check if hb_font changed, update FT_Face. */
+static inline bool
+_hb_ft_check_changed (hb_font_t *font,
+		      const hb_ft_font_t *ft_font)
+{
+  if (font->serial != ft_font->cached_serial)
+  {
+    _hb_ft_changed (font, ft_font->ft_face);
+    ft_font->cached_serial = font->serial;
+    return true;
+  }
+  return false;
+}
+
+
 /**
  * hb_ft_font_set_load_flags:
  * @font: #hb_font_t to work upon
@@ -337,11 +387,8 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
   int load_flags = ft_font->load_flags;
   int mult = font->x_scale < 0 ? -1 : +1;
 
-  if (font->serial != ft_font->cached_serial)
-  {
+  if (_hb_ft_check_changed (font, ft_font))
     ft_font->advance_cache.clear ();
-    ft_font->cached_serial = font->serial;
-  }
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -374,6 +421,8 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
   hb_lock_t lock (ft_font->lock);
   FT_Fixed v;
 
+  _hb_ft_check_changed (font, ft_font);
+
   if (unlikely (FT_Get_Advance (ft_font->ft_face, glyph, ft_font->load_flags | FT_LOAD_VERTICAL_LAYOUT, &v)))
     return 0;
 
@@ -399,6 +448,8 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+
+  _hb_ft_check_changed (font, ft_font);
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
     return false;
@@ -429,6 +480,8 @@ hb_ft_get_glyph_h_kerning (hb_font_t *font,
   hb_lock_t lock (ft_font->lock);
   FT_Vector kerningv;
 
+  _hb_ft_check_changed (font, ft_font);
+
   FT_Kerning_Mode mode = font->x_ppem ? FT_KERNING_DEFAULT : FT_KERNING_UNFITTED;
   if (FT_Get_Kerning (ft_font->ft_face, left_glyph, right_glyph, mode, &kerningv))
     return 0;
@@ -447,6 +500,8 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+
+  _hb_ft_check_changed (font, ft_font);
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
     return false;
@@ -480,6 +535,8 @@ hb_ft_get_glyph_contour_point (hb_font_t *font HB_UNUSED,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+
+  _hb_ft_check_changed (font, ft_font);
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
       return false;
@@ -557,6 +614,9 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+
+  _hb_ft_check_changed (font, ft_font);
+
   metrics->ascender = FT_MulFix(ft_face->ascender, ft_face->size->metrics.y_scale);
   metrics->descender = FT_MulFix(ft_face->descender, ft_face->size->metrics.y_scale);
   metrics->line_gap = FT_MulFix( ft_face->height, ft_face->size->metrics.y_scale ) - (metrics->ascender - metrics->descender);
@@ -619,6 +679,8 @@ hb_ft_get_glyph_shape (hb_font_t *font HB_UNUSED,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+
+  _hb_ft_check_changed (font, ft_font);
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph,
 			       FT_LOAD_NO_BITMAP | ft_font->load_flags)))
@@ -1082,35 +1144,7 @@ hb_ft_font_set_funcs (hb_font_t *font)
   if (FT_Select_Charmap (ft_face, FT_ENCODING_MS_SYMBOL))
     FT_Select_Charmap (ft_face, FT_ENCODING_UNICODE);
 
-  FT_Set_Char_Size (ft_face,
-		    abs (font->x_scale), abs (font->y_scale),
-		    0, 0);
-#if 0
-		    font->x_ppem * 72 * 64 / font->x_scale,
-		    font->y_ppem * 72 * 64 / font->y_scale);
-#endif
-  if (font->x_scale < 0 || font->y_scale < 0)
-  {
-    FT_Matrix matrix = { font->x_scale < 0 ? -1 : +1, 0,
-			  0, font->y_scale < 0 ? -1 : +1};
-    FT_Set_Transform (ft_face, &matrix, nullptr);
-  }
-
-#if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
-  unsigned int num_coords;
-  const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
-  if (num_coords)
-  {
-    FT_Fixed *ft_coords = (FT_Fixed *) hb_calloc (num_coords, sizeof (FT_Fixed));
-    if (ft_coords)
-    {
-      for (unsigned int i = 0; i < num_coords; i++)
-	ft_coords[i] = coords[i] * 4;
-      FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
-      hb_free (ft_coords);
-    }
-  }
-#endif
+  _hb_ft_changed (font, ft_face);
 
   ft_face->generic.data = blob;
   ft_face->generic.finalizer = (FT_Generic_Finalizer) _release_blob;
