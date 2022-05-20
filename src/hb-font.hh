@@ -104,7 +104,8 @@ DECLARE_NULL_INSTANCE (hb_font_funcs_t);
 struct hb_font_t
 {
   hb_object_header_t header;
-  unsigned long serial;
+  unsigned int serial;
+  unsigned int serial_coords;
 
   hb_font_t *parent;
   hb_face_t *face;

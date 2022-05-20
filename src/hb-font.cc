@@ -1624,6 +1624,7 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   HB_OBJECT_HEADER_STATIC,
 
   0, /* serial */
+  0, /* serial_coords */
 
   nullptr, /* parent */
   const_cast<hb_face_t *> (&_hb_Null_hb_face_t),
@@ -1929,7 +1930,7 @@ hb_font_is_immutable (hb_font_t *font)
  *
  * Since: REPLACEME.
  **/
-unsigned long
+unsigned int
 hb_font_get_serial (hb_font_t *font)
 {
   return font->serial;
@@ -2343,7 +2344,7 @@ hb_font_set_variations (hb_font_t            *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial++;
+  font->serial_coords = ++font->serial;
 
   if (!variations_length)
   {
@@ -2404,7 +2405,7 @@ hb_font_set_var_coords_design (hb_font_t    *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial++;
+  font->serial_coords = ++font->serial;
 
   int *normalized = coords_length ? (int *) hb_calloc (coords_length, sizeof (int)) : nullptr;
   float *design_coords = coords_length ? (float *) hb_calloc (coords_length, sizeof (float)) : nullptr;
@@ -2439,7 +2440,7 @@ hb_font_set_var_named_instance (hb_font_t *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial++;
+  font->serial_coords = ++font->serial;
 
   unsigned int coords_length = hb_ot_var_named_instance_get_design_coords (font->face, instance_index, nullptr, nullptr);
 
@@ -2477,7 +2478,7 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
   if (hb_object_is_immutable (font))
     return;
 
-  font->serial++;
+  font->serial_coords = ++font->serial;
 
   int *copy = coords_length ? (int *) hb_calloc (coords_length, sizeof (coords[0])) : nullptr;
   int *unmapped = coords_length ? (int *) hb_calloc (coords_length, sizeof (coords[0])) : nullptr;
