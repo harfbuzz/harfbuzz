@@ -300,7 +300,7 @@ hb_map_get_population (const hb_map_t *map)
  *
  * Return value: %true if the two maps are equal, %false otherwise.
  *
- * Since: REPLACEME
+ * Since: 4.3.0
  **/
 hb_bool_t
 hb_map_is_equal (const hb_map_t *map,

@@ -1,3 +1,20 @@
+Overview of changes leading to 4.3.0
+Friday, May 20, 2022
+====================================
+- Major speed up in loading and subsetting fonts, especially in
+  handling CFF table. Subsetting some fonts is now 3 times faster.
+  (Behdad Esfahbod, Garret Rieger)
+- Speed up blending CFF2 table. (Behdad Esfahbod)
+- Speed up hb_ot_tags_from_language(). (Behdad Esfahbod, David Corbett)
+- Fix USE classification of U+10A38 to fix multiple marks on single Kharoshthi
+  base. (David Corbett)
+- Fix parsing of empty CFF Index. (Behdad Esfahbod)
+- Fix subsetting CPAL table with partial palette overlaps. (Garret Rieger)
+
+- New API
++hb_map_is_equal() (Behdad Esfahbod)
+
+
 Overview of changes leading to 4.2.1
 Sunday, April 24, 2022
 ====================================
