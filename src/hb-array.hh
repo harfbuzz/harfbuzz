@@ -416,13 +416,13 @@ template <>
 inline bool hb_array_t<const char>::operator == (const hb_array_t<const char> &o) const
 {
   if (o.length != this->length) return false;
-  return 0 == memcmp (arrayZ, o.arrayZ, length);
+  return 0 == hb_memcmp (arrayZ, o.arrayZ, length);
 }
 template <>
 inline bool hb_array_t<const unsigned char>::operator == (const hb_array_t<const unsigned char> &o) const
 {
   if (o.length != this->length) return false;
-  return 0 == memcmp (arrayZ, o.arrayZ, length);
+  return 0 == hb_memcmp (arrayZ, o.arrayZ, length);
 }
 
 template <>
