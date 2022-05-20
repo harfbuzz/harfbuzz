@@ -309,3 +309,20 @@ hb_map_is_equal (const hb_map_t *map,
   return map->is_equal (*other);
 }
 
+/**
+ * hb_map_hash:
+ * @map: A map
+ *
+ * Creates a hash representing @map.
+ *
+ * Return value:
+ * A hash of @map.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN unsigned int
+hb_map_hash (const hb_map_t *map)
+{
+  return map->hash ();
+}
+

@@ -359,6 +359,23 @@ hb_set_is_equal (const hb_set_t *set,
 }
 
 /**
+ * hb_set_hash:
+ * @set: A set
+ *
+ * Creates a hash representing @set.
+ *
+ * Return value:
+ * A hash of @set.
+ *
+ * Since: REPLACEME
+ **/
+HB_EXTERN unsigned int
+hb_set_hash (const hb_set_t *set)
+{
+  return set->hash ();
+}
+
+/**
  * hb_set_is_subset:
  * @set: A set
  * @larger_set: Another set

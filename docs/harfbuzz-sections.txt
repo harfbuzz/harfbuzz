@@ -462,6 +462,7 @@ hb_map_get_population
 hb_map_is_equal
 hb_map_get_user_data
 hb_map_has
+hb_map_hash
 hb_map_is_empty
 hb_map_reference
 hb_map_set
@@ -652,6 +653,7 @@ hb_set_get_min
 hb_set_get_population
 hb_set_get_user_data
 hb_set_has
+hb_set_hash
 hb_set_intersect
 hb_set_invert
 hb_set_is_empty
