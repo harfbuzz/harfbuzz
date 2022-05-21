@@ -138,12 +138,20 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
 
   if (vmtx.has_data ())
+  {
+    const OT::HVARVVAR &VVAR = *vmtx.var_table;
+    const OT::VariationStore &varStore = &VVAR + VVAR.varStore;
+    OT::VariationStore::cache_t *cache = font->num_coords ? varStore.create_cache () : nullptr;
+
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->em_scale_y (-(int) vmtx.get_advance (*first_glyph, font));
+      *first_advance = font->em_scale_y (-(int) vmtx.get_advance (*first_glyph, font, cache));
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
+
+    OT::VariationStore::destroy_cache (cache);
+  }
   else
   {
     hb_font_extents_t font_extents;
