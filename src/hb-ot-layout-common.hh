@@ -3508,12 +3508,12 @@ struct VariationDevice
 
   hb_position_t get_x_delta (hb_font_t *font,
 			     const VariationStore &store,
-			     void *store_cache = nullptr) const
+			     VariationStore::cache_t *store_cache = nullptr) const
   { return font->em_scalef_x (get_delta (font, store, store_cache)); }
 
   hb_position_t get_y_delta (hb_font_t *font,
 			     const VariationStore &store,
-			     void *store_cache = nullptr) const
+			     VariationStore::cache_t *store_cache = nullptr) const
   { return font->em_scalef_y (get_delta (font, store, store_cache)); }
 
   VariationDevice* copy (hb_serialize_context_t *c, const hb_map_t *layout_variation_idx_map) const
@@ -3550,7 +3550,7 @@ struct VariationDevice
 
   float get_delta (hb_font_t *font,
 		   const VariationStore &store,
-		   void *store_cache = nullptr) const
+		   VariationStore::cache_t *store_cache = nullptr) const
   {
     return store.get_delta (varIdx, font->coords, font->num_coords, (VariationStore::cache_t *) store_cache);
   }
@@ -3577,7 +3577,7 @@ struct Device
 {
   hb_position_t get_x_delta (hb_font_t *font,
 			     const VariationStore &store=Null (VariationStore),
-			     void *store_cache = nullptr) const
+			     VariationStore::cache_t *store_cache = nullptr) const
   {
     switch (u.b.format)
     {
@@ -3595,7 +3595,7 @@ struct Device
   }
   hb_position_t get_y_delta (hb_font_t *font,
 			     const VariationStore &store=Null (VariationStore),
-			     void *store_cache = nullptr) const
+			     VariationStore::cache_t *store_cache = nullptr) const
   {
     switch (u.b.format)
     {
