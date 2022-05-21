@@ -105,12 +105,14 @@ int main(int argc, char** argv)
 
   if (argc > 2)
   {
-    num_tests = 1;
+    num_tests = (argc - 1) / 2;
     tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
-
-    tests[0].is_variable = true;
-    tests[0].text_path = argv[1];
-    tests[0].font_path = argv[2];
+    for (unsigned i = 0; i < num_tests; i++)
+    {
+      tests[i].is_variable = true;
+      tests[i].text_path = argv[1 + i * 2];
+      tests[i].font_path = argv[2 + i * 2];
+    }
   }
 
   for (unsigned i = 0; i < num_tests; i++)
