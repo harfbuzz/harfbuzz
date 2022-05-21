@@ -660,7 +660,13 @@ struct hb_ot_apply_context_t :
 #endif
 			     ),
 			var_store (gdef.get_var_store ()),
-			var_store_cache (table_index == 1 && font->num_coords ? var_store.create_cache () : nullptr),
+			var_store_cache (
+#ifndef HB_NO_VAR
+					 table_index == 1 && font->num_coords ? var_store.create_cache () : nullptr
+#else
+					 nullptr
+#endif
+					),
 			direction (buffer_->props.direction),
 			lookup_mask (1),
 			lookup_index ((unsigned int) -1),
@@ -674,7 +680,12 @@ struct hb_ot_apply_context_t :
 			random_state (1)
   { init_iters (); }
 
-  ~hb_ot_apply_context_t () { VariationStore::destroy_cache (var_store_cache); }
+  ~hb_ot_apply_context_t ()
+  {
+#ifndef HB_NO_VAR
+    VariationStore::destroy_cache (var_store_cache);
+#endif
+  }
 
   void init_iters ()
   {
