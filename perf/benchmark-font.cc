@@ -182,8 +182,9 @@ static void test_backend (backend_t backend,
 {
   char name[1024] = "BM_Font/";
   strcat (name, op_name);
+  strcat (name, "/");
   const char *p = strrchr (test_input.font_path, '/');
-  strcat (name, p ? p : test_input.font_path);
+  strcat (name, p ? p + 1 : test_input.font_path);
   strcat (name, variable ? "/var" : "");
   strcat (name, "/");
   strcat (name, backend_name);
@@ -238,4 +239,6 @@ int main(int argc, char** argv)
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
 
+  if (tests != default_tests)
+    free (tests);
 }

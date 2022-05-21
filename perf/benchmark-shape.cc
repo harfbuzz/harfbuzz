@@ -11,7 +11,7 @@ struct test_input_t
   const char *text_path;
   const char *font_path;
   bool is_variable;
-} tests[] =
+} default_tests[] =
 {
   {"perf/texts/fa-thelittleprince.txt",
    "perf/fonts/Amiri-Regular.ttf",
@@ -46,6 +46,8 @@ struct test_input_t
    true},
 };
 
+test_input_t *tests = default_tests;
+unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
 static void BM_Shape (benchmark::State &state,
 		      bool is_var,
@@ -99,13 +101,31 @@ static void BM_Shape (benchmark::State &state,
 
 int main(int argc, char** argv)
 {
-  for (auto& test_input : tests)
+  benchmark::Initialize(&argc, argv);
+
+  if (argc > 2)
   {
+    num_tests = 1;
+    tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
+
+    tests[0].is_variable = true;
+    tests[0].text_path = argv[1];
+    tests[0].font_path = argv[2];
+  }
+
+  for (unsigned i = 0; i < num_tests; i++)
+  {
+    auto& test_input = tests[i];
     for (int variable = 0; variable < int (test_input.is_variable) + 1; variable++)
     {
       char name[1024] = "BM_Shape";
-      strcat (name, strrchr (test_input.text_path, '/'));
-      strcat (name, strrchr (test_input.font_path, '/'));
+      const char *p;
+      strcat (name, "/");
+      p = strrchr (test_input.text_path, '/');
+      strcat (name, p ? p + 1 : test_input.text_path);
+      strcat (name, "/");
+      p = strrchr (test_input.font_path, '/');
+      strcat (name, p ? p + 1 : test_input.font_path);
       strcat (name, variable ? "/var" : "");
 
       benchmark::RegisterBenchmark (name, BM_Shape, variable, test_input)
@@ -113,7 +133,9 @@ int main(int argc, char** argv)
     }
   }
 
-  benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
+
+  if (tests != default_tests)
+    free (tests);
 }
