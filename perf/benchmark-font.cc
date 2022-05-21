@@ -18,7 +18,7 @@ struct test_input_t
 {
   bool is_variable;
   const char *font_path;
-} tests[] =
+} default_tests[] =
 {
   {true , SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf"},
   {false, SUBSET_FONT_BASE_PATH "SourceSansPro-Regular.otf"},
@@ -29,6 +29,8 @@ struct test_input_t
   {false, SUBSET_FONT_BASE_PATH "NotoSerifMyanmar-Regular.otf"},
 };
 
+test_input_t *tests = default_tests;
+unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
 enum backend_t { HARFBUZZ, FREETYPE };
 
@@ -180,7 +182,8 @@ static void test_backend (backend_t backend,
 {
   char name[1024] = "BM_Font/";
   strcat (name, op_name);
-  strcat (name, strrchr (test_input.font_path, '/'));
+  const char *p = strrchr (test_input.font_path, '/');
+  strcat (name, p ? p : test_input.font_path);
   strcat (name, variable ? "/var" : "");
   strcat (name, "/");
   strcat (name, backend_name);
@@ -193,8 +196,9 @@ static void test_operation (operation_t op,
 			    const char *op_name,
 			    benchmark::TimeUnit time_unit)
 {
-  for (auto& test_input : tests)
+  for (unsigned i = 0; i < num_tests; i++)
   {
+    auto& test_input = tests[i];
     for (int variable = 0; variable < int (test_input.is_variable) + 1; variable++)
     {
       bool is_var = (bool) variable;
@@ -209,6 +213,19 @@ static void test_operation (operation_t op,
 
 int main(int argc, char** argv)
 {
+  benchmark::Initialize(&argc, argv);
+
+  if (argc > 1)
+  {
+    num_tests = argc - 1;
+    tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
+    for (unsigned i = 0; i < num_tests; i++)
+    {
+      tests[i].is_variable = true;
+      tests[i].font_path = argv[i + 1];
+    }
+  }
+
 #define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
 
   TEST_OPERATION (nominal_glyphs, benchmark::kMicrosecond);
@@ -218,7 +235,7 @@ int main(int argc, char** argv)
 
 #undef TEST_OPERATION
 
-  benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
+
 }
