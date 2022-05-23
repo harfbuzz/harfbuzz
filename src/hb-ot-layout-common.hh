@@ -2689,7 +2689,7 @@ struct VarData
   { return regionIndices.len; }
 
   unsigned int get_row_size () const
-  { return shortCount + regionIndices.len; }
+  { return wordCount + regionIndices.len; }
 
   unsigned int get_size () const
   { return min_size
@@ -2706,7 +2706,7 @@ struct VarData
       return 0.;
 
    unsigned int count = regionIndices.len;
-   unsigned int scount = shortCount;
+   unsigned int scount = wordCount;
 
    const HBUINT8 *bytes = get_delta_bytes ();
    const HBUINT8 *row = bytes + inner * (scount + count);
@@ -2747,7 +2747,7 @@ struct VarData
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  regionIndices.sanitize (c) &&
-		  shortCount <= regionIndices.len &&
+		  wordCount <= regionIndices.len &&
 		  c->check_range (get_delta_bytes (),
 				  itemCount,
 				  get_row_size ()));
@@ -2798,7 +2798,7 @@ struct VarData
 	new_ri_count++;
       }
 
-    shortCount = new_short_count;
+    wordCount = new_short_count;
     regionIndices.len = new_ri_count;
 
     if (unlikely (!c->extend (this))) return_trace (false);
@@ -2842,24 +2842,24 @@ struct VarData
   {
     if ( item >= itemCount || unlikely (region >= regionIndices.len)) return 0;
     const HBINT8 *p = (const HBINT8 *)get_delta_bytes () + item * get_row_size ();
-    if (region < shortCount)
+    if (region < wordCount)
       return ((const HBINT16 *)p)[region];
     else
-      return (p + HBINT16::static_size * shortCount)[region - shortCount];
+      return (p + HBINT16::static_size * wordCount)[region - wordCount];
   }
 
   void set_item_delta (unsigned int item, unsigned int region, int16_t delta)
   {
     HBINT8 *p = (HBINT8 *)get_delta_bytes () + item * get_row_size ();
-    if (region < shortCount)
+    if (region < wordCount)
       ((HBINT16 *)p)[region] = delta;
     else
-      (p + HBINT16::static_size * shortCount)[region - shortCount] = delta;
+      (p + HBINT16::static_size * wordCount)[region - wordCount] = delta;
   }
 
   protected:
   HBUINT16		itemCount;
-  HBUINT16		shortCount;
+  HBUINT16		wordCount;
   Array16Of<HBUINT16>	regionIndices;
 /*UnsizedArrayOf<HBUINT8>bytesX;*/
   public:
