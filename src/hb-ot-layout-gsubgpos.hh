@@ -621,16 +621,17 @@ struct hb_ot_apply_context_t :
 
   skipping_iterator_t iter_input, iter_context;
 
+  unsigned int table_index; /* GSUB/GPOS */
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t *buffer;
   recurse_func_t recurse_func;
   const GDEF &gdef;
   const VariationStore &var_store;
+  VariationStore::cache_t *var_store_cache;
 
   hb_direction_t direction;
   hb_mask_t lookup_mask;
-  unsigned int table_index; /* GSUB/GPOS */
   unsigned int lookup_index;
   unsigned int lookup_props;
   unsigned int nesting_level_left;
@@ -648,6 +649,7 @@ struct hb_ot_apply_context_t :
 			 hb_font_t *font_,
 			 hb_buffer_t *buffer_) :
 			iter_input (), iter_context (),
+			table_index (table_index_),
 			font (font_), face (font->face), buffer (buffer_),
 			recurse_func (nullptr),
 			gdef (
@@ -658,9 +660,15 @@ struct hb_ot_apply_context_t :
 #endif
 			     ),
 			var_store (gdef.get_var_store ()),
+			var_store_cache (
+#ifndef HB_NO_VAR
+					 table_index == 1 && font->num_coords ? var_store.create_cache () : nullptr
+#else
+					 nullptr
+#endif
+					),
 			direction (buffer_->props.direction),
 			lookup_mask (1),
-			table_index (table_index_),
 			lookup_index ((unsigned int) -1),
 			lookup_props (0),
 			nesting_level_left (HB_MAX_NESTING_LEVEL),
@@ -669,7 +677,15 @@ struct hb_ot_apply_context_t :
 			auto_zwj (true),
 			per_syllable (false),
 			random (false),
-			random_state (1) { init_iters (); }
+			random_state (1)
+  { init_iters (); }
+
+  ~hb_ot_apply_context_t ()
+  {
+#ifndef HB_NO_VAR
+    VariationStore::destroy_cache (var_store_cache);
+#endif
+  }
 
   void init_iters ()
   {

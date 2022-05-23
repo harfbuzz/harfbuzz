@@ -146,23 +146,24 @@ struct ValueFormat : HBUINT16
     if (!use_x_device && !use_y_device) return ret;
 
     const VariationStore &store = c->var_store;
+    auto *cache = c->var_store_cache;
 
     /* pixel -> fractional pixel */
     if (format & xPlaDevice) {
-      if (use_x_device) glyph_pos.x_offset  += (base + get_device (values, &ret)).get_x_delta (font, store);
+      if (use_x_device) glyph_pos.x_offset  += (base + get_device (values, &ret)).get_x_delta (font, store, cache);
       values++;
     }
     if (format & yPlaDevice) {
-      if (use_y_device) glyph_pos.y_offset  += (base + get_device (values, &ret)).get_y_delta (font, store);
+      if (use_y_device) glyph_pos.y_offset  += (base + get_device (values, &ret)).get_y_delta (font, store, cache);
       values++;
     }
     if (format & xAdvDevice) {
-      if (horizontal && use_x_device) glyph_pos.x_advance += (base + get_device (values, &ret)).get_x_delta (font, store);
+      if (horizontal && use_x_device) glyph_pos.x_advance += (base + get_device (values, &ret)).get_x_delta (font, store, cache);
       values++;
     }
     if (format & yAdvDevice) {
       /* y_advance values grow downward but font-space grows upward, hence negation */
-      if (!horizontal && use_y_device) glyph_pos.y_advance -= (base + get_device (values, &ret)).get_y_delta (font, store);
+      if (!horizontal && use_y_device) glyph_pos.y_advance -= (base + get_device (values, &ret)).get_y_delta (font, store, cache);
       values++;
     }
     return ret;
@@ -465,9 +466,9 @@ struct AnchorFormat3
     *y = font->em_fscale_y (yCoordinate);
 
     if (font->x_ppem || font->num_coords)
-      *x += (this+xDeviceTable).get_x_delta (font, c->var_store);
+      *x += (this+xDeviceTable).get_x_delta (font, c->var_store, c->var_store_cache);
     if (font->y_ppem || font->num_coords)
-      *y += (this+yDeviceTable).get_y_delta (font, c->var_store);
+      *y += (this+yDeviceTable).get_y_delta (font, c->var_store, c->var_store_cache);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
