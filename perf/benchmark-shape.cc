@@ -1,8 +1,15 @@
 #include "benchmark/benchmark.h"
 #include <cstring>
 
-#include "hb.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
+#include "hb.h"
+#include "hb-ot.h"
+#ifdef HAVE_FREETYPE
+#include "hb-ft.h"
+#endif
 
 #define SUBSET_FONT_BASE_PATH "test/subset/data/fonts/"
 
@@ -49,8 +56,11 @@ struct test_input_t
 test_input_t *tests = default_tests;
 unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
+enum backend_t { HARFBUZZ, FREETYPE };
+
 static void BM_Shape (benchmark::State &state,
 		      bool is_var,
+		      backend_t backend,
 		      const test_input_t &input)
 {
   hb_font_t *font;
@@ -67,6 +77,19 @@ static void BM_Shape (benchmark::State &state,
   {
     hb_variation_t wght = {HB_TAG ('w','g','h','t'), 500};
     hb_font_set_variations (font, &wght, 1);
+  }
+
+  switch (backend)
+  {
+    case HARFBUZZ:
+      hb_ot_font_set_funcs (font);
+      break;
+
+    case FREETYPE:
+#ifdef HAVE_FREETYPE
+      hb_ft_font_set_funcs (font);
+#endif
+      break;
   }
 
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
@@ -99,6 +122,27 @@ static void BM_Shape (benchmark::State &state,
   hb_font_destroy (font);
 }
 
+static void test_backend (backend_t backend,
+			  const char *backend_name,
+			  bool variable,
+			  const test_input_t &test_input)
+{
+  char name[1024] = "BM_Shape";
+  const char *p;
+  strcat (name, "/");
+  p = strrchr (test_input.text_path, '/');
+  strcat (name, p ? p + 1 : test_input.text_path);
+  strcat (name, "/");
+  p = strrchr (test_input.font_path, '/');
+  strcat (name, p ? p + 1 : test_input.font_path);
+  strcat (name, variable ? "/var" : "");
+  strcat (name, "/");
+  strcat (name, backend_name);
+
+  benchmark::RegisterBenchmark (name, BM_Shape, variable, backend, test_input)
+   ->Unit(benchmark::kMillisecond);
+}
+
 int main(int argc, char** argv)
 {
   benchmark::Initialize(&argc, argv);
@@ -120,18 +164,12 @@ int main(int argc, char** argv)
     auto& test_input = tests[i];
     for (int variable = 0; variable < int (test_input.is_variable) + 1; variable++)
     {
-      char name[1024] = "BM_Shape";
-      const char *p;
-      strcat (name, "/");
-      p = strrchr (test_input.text_path, '/');
-      strcat (name, p ? p + 1 : test_input.text_path);
-      strcat (name, "/");
-      p = strrchr (test_input.font_path, '/');
-      strcat (name, p ? p + 1 : test_input.font_path);
-      strcat (name, variable ? "/var" : "");
+      bool is_var = (bool) variable;
 
-      benchmark::RegisterBenchmark (name, BM_Shape, variable, test_input)
-       ->Unit(benchmark::kMillisecond);
+      test_backend (HARFBUZZ, "hb", is_var, test_input);
+#ifdef HAVE_FREETYPE
+      test_backend (FREETYPE, "ft", is_var, test_input);
+#endif
     }
   }
 

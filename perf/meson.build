@@ -43,7 +43,7 @@ benchmark('benchmark-set', executable('benchmark-set', 'benchmark-set.cc',
 
 benchmark('benchmark-shape', executable('benchmark-shape', 'benchmark-shape.cc',
   dependencies: [
-    google_benchmark_dep,
+    google_benchmark_dep, freetype_dep,
   ],
   cpp_args: [],
   include_directories: [incconfig, incsrc],
