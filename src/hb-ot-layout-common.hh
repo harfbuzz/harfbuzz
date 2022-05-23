@@ -2689,7 +2689,7 @@ struct VarData
   { return regionIndices.len; }
 
   unsigned int get_row_size () const
-  { return wordCount + regionIndices.len; }
+  { return (wordCount () + regionIndices.len) * (longWords () ? 2 : 1); }
 
   unsigned int get_size () const
   { return min_size
@@ -2706,7 +2706,10 @@ struct VarData
       return 0.;
 
    unsigned int count = regionIndices.len;
-   unsigned int scount = wordCount;
+   bool is_long = longWords ();
+   unsigned word_count = wordCount ();
+   unsigned int scount = is_long ? count - word_count : word_count;
+   unsigned int lcount = is_long ? word_count : 0;
 
    const HBUINT8 *bytes = get_delta_bytes ();
    const HBUINT8 *row = bytes + inner * (scount + count);
@@ -2714,7 +2717,13 @@ struct VarData
    float delta = 0.;
    unsigned int i = 0;
 
-   const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (row);
+   const HBINT16 *lcursor = reinterpret_cast<const HBINT16 *> (row);
+   for (; i < lcount; i++)
+   {
+     float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
+     delta += scalar * *lcursor++;
+   }
+   const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (lcursor);
    for (; i < scount; i++)
    {
      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
@@ -2747,7 +2756,7 @@ struct VarData
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  regionIndices.sanitize (c) &&
-		  wordCount <= regionIndices.len &&
+		  wordCount () <= regionIndices.len &&
 		  c->check_range (get_delta_bytes (),
 				  itemCount,
 				  get_row_size ()));
@@ -2798,7 +2807,9 @@ struct VarData
 	new_ri_count++;
       }
 
-    wordCount = new_short_count;
+    /* XXX TODO Support serializing 32bit VarStore. */
+    wordSizeCount = new_short_count;
+
     regionIndices.len = new_ri_count;
 
     if (unlikely (!c->extend (this))) return_trace (false);
@@ -2838,28 +2849,55 @@ struct VarData
   HBUINT8 *get_delta_bytes ()
   { return &StructAfter<HBUINT8> (regionIndices); }
 
-  int16_t get_item_delta (unsigned int item, unsigned int region) const
+  int32_t get_item_delta (unsigned int item, unsigned int region) const
   {
     if ( item >= itemCount || unlikely (region >= regionIndices.len)) return 0;
-    const HBINT8 *p = (const HBINT8 *)get_delta_bytes () + item * get_row_size ();
-    if (region < wordCount)
-      return ((const HBINT16 *)p)[region];
+    const HBINT8 *p = (const HBINT8 *) get_delta_bytes () + item * get_row_size ();
+    unsigned word_count = wordCount ();
+    bool is_long = longWords ();
+    if (is_long)
+    {
+      if (region < word_count)
+	return ((const HBINT32 *) p)[region];
+      else
+	return ((const HBINT16 *)(p + HBINT32::static_size * word_count))[region - word_count];
+    }
     else
-      return (p + HBINT16::static_size * wordCount)[region - wordCount];
+    {
+      if (region < word_count)
+	return ((const HBINT16 *) p)[region];
+      else
+	return (p + HBINT16::static_size * word_count)[region - word_count];
+    }
   }
 
-  void set_item_delta (unsigned int item, unsigned int region, int16_t delta)
+  void set_item_delta (unsigned int item, unsigned int region, int32_t delta)
   {
     HBINT8 *p = (HBINT8 *)get_delta_bytes () + item * get_row_size ();
-    if (region < wordCount)
-      ((HBINT16 *)p)[region] = delta;
+    unsigned word_count = wordCount ();
+    bool is_long = longWords ();
+    if (is_long)
+    {
+      if (region < word_count)
+	((HBINT32 *) p)[region] = delta;
+      else
+	((HBINT16 *)(p + HBINT32::static_size * word_count))[region - word_count] = delta;
+    }
     else
-      (p + HBINT16::static_size * wordCount)[region - wordCount] = delta;
+    {
+      if (region < word_count)
+	((HBINT16 *) p)[region] = delta;
+      else
+	(p + HBINT16::static_size * word_count)[region - word_count] = delta;
+    }
   }
+
+  bool longWords () const { return wordSizeCount & 0x8000u /* LONG_WORDS */; }
+  unsigned wordCount () const { return wordSizeCount & 0x7FFFu /* WORD_DELTA_COUNT_MASK */; }
 
   protected:
   HBUINT16		itemCount;
-  HBUINT16		wordCount;
+  HBUINT16		wordSizeCount;
   Array16Of<HBUINT16>	regionIndices;
 /*UnsizedArrayOf<HBUINT8>bytesX;*/
   public:
