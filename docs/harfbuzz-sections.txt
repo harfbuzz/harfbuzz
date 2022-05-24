@@ -453,6 +453,7 @@ hb_icu_script_to_script
 HB_MAP_VALUE_INVALID
 hb_map_allocation_successful
 hb_map_clear
+hb_map_copy
 hb_map_create
 hb_map_del
 hb_map_destroy

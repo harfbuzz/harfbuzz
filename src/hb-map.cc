@@ -172,6 +172,25 @@ hb_map_allocation_successful (const hb_map_t  *map)
   return map->successful;
 }
 
+/**
+ * hb_map_copy:
+ * @map: A map
+ *
+ * Allocate a copy of @map.
+ *
+ * Return value: Newly-allocated map.
+ *
+ * Since: REPLACEME
+ **/
+hb_map_t *
+hb_map_copy (const hb_map_t *map)
+{
+  hb_map_t *copy = hb_map_create ();
+  if (unlikely (!copy)) return nullptr;
+  copy->resize (map->population);
+  hb_copy (*map, *copy);
+  return copy;
+}
 
 /**
  * hb_map_set:
