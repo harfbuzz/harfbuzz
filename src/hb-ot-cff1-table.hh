@@ -1333,7 +1333,7 @@ struct cff1
       if (names)
       {
 	names->fini ();
-	free (names);
+	hb_free (names);
       }
 
       SUPER::fini ();
@@ -1379,7 +1379,7 @@ struct cff1
       hb_sorted_vector_t<gname_t> *names = glyph_names.get ();
       if (unlikely (!names))
       {
-	names = (hb_sorted_vector_t<gname_t> *) calloc (sizeof (hb_sorted_vector_t<gname_t>), 1);
+	names = (hb_sorted_vector_t<gname_t> *) hb_calloc (sizeof (hb_sorted_vector_t<gname_t>), 1);
 	if (likely (names))
 	{
 	  names->init ();
@@ -1409,7 +1409,7 @@ struct cff1
 	  if (names)
 	  {
 	    names->fini ();
-	    free (names);
+	    hb_free (names);
 	  }
 	  goto retry;
 	}

@@ -64,9 +64,8 @@ struct hb_ot_font_t
   const hb_ot_face_t *ot_face;
 
   /* h_advance caching */
-  mutable hb_mutex_t lock;
   mutable unsigned cached_coords_serial;
-  mutable hb_advance_cache_t *advance_cache;
+  mutable hb_atomic_ptr_t<hb_advance_cache_t> advance_cache;
 };
 
 static hb_ot_font_t *
@@ -77,7 +76,6 @@ _hb_ot_font_create (hb_font_t *font)
     return nullptr;
 
   ot_font->ot_face = &font->face->table;
-  ot_font->lock.init ();
 
   return ot_font;
 }
@@ -87,12 +85,11 @@ _hb_ot_font_destroy (void *font_data)
 {
   hb_ot_font_t *ot_font = (hb_ot_font_t *) font_data;
 
-  ot_font->lock.fini ();
-
-  if (ot_font->advance_cache)
+  auto *cache = ot_font->advance_cache.get_relaxed ();
+  if (cache)
   {
-    ot_font->advance_cache->fini ();
-    hb_free (ot_font->advance_cache);
+    cache->fini ();
+    hb_free (cache);
   }
 
   hb_free (ot_font);
@@ -164,21 +161,30 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   bool use_cache = false;
 #endif
 
-  if (use_cache && !ot_font->advance_cache)
+  hb_advance_cache_t *cache = nullptr;
+  if (use_cache)
   {
-    ot_font->lock.lock ();
-    ot_font->advance_cache = (hb_advance_cache_t *) hb_malloc (sizeof (*ot_font->advance_cache));
-    if (unlikely (!ot_font->advance_cache))
+  retry:
+    cache = ot_font->advance_cache.get ();
+    if (unlikely (!cache))
     {
-      ot_font->lock.unlock ();
-      use_cache = false;
-    }
-    else
-    {
-      ot_font->advance_cache->init ();
+      cache = (hb_advance_cache_t *) hb_malloc (sizeof (hb_advance_cache_t));
+      if (unlikely (!cache))
+      {
+	use_cache = false;
+	goto out;
+      }
+
+      cache->init ();
+      if (unlikely (!ot_font->advance_cache.cmpexch (nullptr, cache)))
+      {
+	hb_free (cache);
+	goto retry;
+      }
       ot_font->cached_coords_serial = font->serial_coords;
     }
   }
+  out:
 
   if (!use_cache)
   {
@@ -190,7 +196,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
     }
   }
   else
-  { /* Use cache; lock already held and cache initialized. */
+  { /* Use cache. */
     if (ot_font->cached_coords_serial != font->serial_coords)
     {
       ot_font->advance_cache->init ();
@@ -212,8 +218,6 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
-
-    ot_font->lock.unlock ();
   }
 
 #ifndef HB_NO_VAR
