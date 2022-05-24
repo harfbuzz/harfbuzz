@@ -121,20 +121,20 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 #ifndef HB_NO_VAR
   const OT::HVARVVAR &HVAR = *hmtx.var_table;
   const OT::VariationStore &varStore = &HVAR + HVAR.varStore;
-  OT::VariationStore::cache_t *cache = font->num_coords ? varStore.create_cache () : nullptr;
+  OT::VariationStore::cache_t *varStore_cache = font->num_coords ? varStore.create_cache () : nullptr;
 #else
-  OT::VariationStore::cache_t *cache = nullptr;
+  OT::VariationStore::cache_t *varStore_cache = nullptr;
 #endif
 
   for (unsigned int i = 0; i < count; i++)
   {
-    *first_advance = font->em_scale_x (hmtx.get_advance (*first_glyph, font, cache));
+    *first_advance = font->em_scale_x (hmtx.get_advance (*first_glyph, font, varStore_cache));
     first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
     first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
 
 #ifndef HB_NO_VAR
-  OT::VariationStore::destroy_cache (cache);
+  OT::VariationStore::destroy_cache (varStore_cache);
 #endif
 }
 
@@ -157,20 +157,20 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
 #ifndef HB_NO_VAR
     const OT::HVARVVAR &VVAR = *vmtx.var_table;
     const OT::VariationStore &varStore = &VVAR + VVAR.varStore;
-    OT::VariationStore::cache_t *cache = font->num_coords ? varStore.create_cache () : nullptr;
+    OT::VariationStore::cache_t *varStore_cache = font->num_coords ? varStore.create_cache () : nullptr;
 #else
-    OT::VariationStore::cache_t *cache = nullptr;
+    OT::VariationStore::cache_t *varStore_cache = nullptr;
 #endif
 
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->em_scale_y (-(int) vmtx.get_advance (*first_glyph, font, cache));
+      *first_advance = font->em_scale_y (-(int) vmtx.get_advance (*first_glyph, font, varStore_cache));
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
 
 #ifndef HB_NO_VAR
-    OT::VariationStore::destroy_cache (cache);
+    OT::VariationStore::destroy_cache (varStore_cache);
 #endif
   }
   else
@@ -405,7 +405,7 @@ _hb_ot_get_font_funcs ()
 void
 hb_ot_font_set_funcs (hb_font_t *font)
 {
-  hb_ot_font_t *ot_font = (hb_ot_font_t *) calloc (1, sizeof (hb_ot_font_t));
+  hb_ot_font_t *ot_font = (hb_ot_font_t *) hb_calloc (1, sizeof (hb_ot_font_t));
   if (unlikely (!ot_font))
     return;
 
@@ -414,7 +414,7 @@ hb_ot_font_set_funcs (hb_font_t *font)
   hb_font_set_funcs (font,
 		     _hb_ot_get_font_funcs (),
 		     ot_font,
-		     nullptr);
+		     hb_free);
 }
 
 #ifndef HB_NO_VAR
