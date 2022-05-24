@@ -35,7 +35,7 @@ static void BM_SetInsert_1000(benchmark::State& state) {
   for (auto _ : state) {
     hb_set_t* data = hb_set_copy(original);
     for (int i = 0; i < 1000; i++) {
-      hb_set_add(data, rand() % max_value);
+      hb_set_add(data, i * 2654435761u % max_value);
     }
     hb_set_destroy(data);
   }
