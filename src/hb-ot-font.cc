@@ -30,6 +30,7 @@
 
 #include "hb-ot.h"
 
+#include "hb-cache.hh"
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 #include "hb-ot-face.hh"
@@ -61,7 +62,41 @@
 struct hb_ot_font_t
 {
   const hb_ot_face_t *ot_face;
+
+  /* h_advance caching */
+  mutable hb_mutex_t lock;
+  mutable unsigned cached_coords_serial;
+  mutable hb_advance_cache_t *advance_cache;
 };
+
+static hb_ot_font_t *
+_hb_ot_font_create (hb_font_t *font)
+{
+  hb_ot_font_t *ot_font = (hb_ot_font_t *) hb_calloc (1, sizeof (hb_ot_font_t));
+  if (unlikely (!ot_font))
+    return nullptr;
+
+  ot_font->ot_face = &font->face->table;
+  ot_font->lock.init ();
+
+  return ot_font;
+}
+
+static void
+_hb_ot_font_destroy (void *font_data)
+{
+  hb_ot_font_t *ot_font = (hb_ot_font_t *) font_data;
+
+  ot_font->lock.fini ();
+
+  if (ot_font->advance_cache)
+  {
+    ot_font->advance_cache->fini ();
+    hb_free (ot_font->advance_cache);
+  }
+
+  hb_free (ot_font);
+}
 
 static hb_bool_t
 hb_ot_get_nominal_glyph (hb_font_t *font HB_UNUSED,
@@ -122,15 +157,63 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   const OT::HVARVVAR &HVAR = *hmtx.var_table;
   const OT::VariationStore &varStore = &HVAR + HVAR.varStore;
   OT::VariationStore::cache_t *varStore_cache = font->num_coords ? varStore.create_cache () : nullptr;
+
+  bool use_cache = font->num_coords;
 #else
   OT::VariationStore::cache_t *varStore_cache = nullptr;
+  bool use_cache = false;
 #endif
 
-  for (unsigned int i = 0; i < count; i++)
+  if (use_cache && !ot_font->advance_cache)
   {
-    *first_advance = font->em_scale_x (hmtx.get_advance (*first_glyph, font, varStore_cache));
-    first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
-    first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    ot_font->lock.lock ();
+    ot_font->advance_cache = (hb_advance_cache_t *) hb_malloc (sizeof (*ot_font->advance_cache));
+    if (unlikely (!ot_font->advance_cache))
+    {
+      ot_font->lock.unlock ();
+      use_cache = false;
+    }
+    else
+    {
+      ot_font->advance_cache->init ();
+      ot_font->cached_coords_serial = font->serial_coords;
+    }
+  }
+
+  if (!use_cache)
+  {
+    for (unsigned int i = 0; i < count; i++)
+    {
+      *first_advance = font->em_scale_x (hmtx.get_advance (*first_glyph, font, varStore_cache));
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+  }
+  else
+  { /* Use cache; lock already held and cache initialized. */
+    if (ot_font->cached_coords_serial != font->serial_coords)
+    {
+      ot_font->advance_cache->init ();
+      ot_font->cached_coords_serial = font->serial_coords;
+    }
+
+    for (unsigned int i = 0; i < count; i++)
+    {
+      hb_position_t v;
+      unsigned cv;
+      if (ot_font->advance_cache->get (*first_glyph, &cv))
+	v = cv;
+      else
+      {
+        v = hmtx.get_advance (*first_glyph, font, varStore_cache);
+	ot_font->advance_cache->set (*first_glyph, v);
+      }
+      *first_advance = font->em_scale_x (v);
+      first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
+      first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
+    }
+
+    ot_font->lock.unlock ();
   }
 
 #ifndef HB_NO_VAR
@@ -405,16 +488,14 @@ _hb_ot_get_font_funcs ()
 void
 hb_ot_font_set_funcs (hb_font_t *font)
 {
-  hb_ot_font_t *ot_font = (hb_ot_font_t *) hb_calloc (1, sizeof (hb_ot_font_t));
+  hb_ot_font_t *ot_font = _hb_ot_font_create (font);
   if (unlikely (!ot_font))
     return;
-
-  ot_font->ot_face = &font->face->table;
 
   hb_font_set_funcs (font,
 		     _hb_ot_get_font_funcs (),
 		     ot_font,
-		     hb_free);
+		     _hb_ot_font_destroy);
 }
 
 #ifndef HB_NO_VAR
