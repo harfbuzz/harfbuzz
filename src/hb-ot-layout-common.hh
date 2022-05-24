@@ -2614,12 +2614,12 @@ struct VarRegionList
     if (unlikely (region_index >= regionCount))
       return 0.;
 
-    float *cached = nullptr;
+    float *cached_value = nullptr;
     if (cache)
     {
-      cached = &(cache[region_index]);
-      if (likely (*cached != REGION_CACHE_ITEM_CACHE_INVALID))
-	return *cached;
+      cached_value = &(cache[region_index]);
+      if (likely (*cached_value != REGION_CACHE_ITEM_CACHE_INVALID))
+	return *cached_value;
     }
 
     const VarRegionAxis *axes = axesZ.arrayZ + (region_index * axisCount);
@@ -2633,14 +2633,14 @@ struct VarRegionList
       if (factor == 0.f)
       {
         if (cache)
-	  *cached = 0.;
+	  *cached_value = 0.;
 	return 0.;
       }
       v *= factor;
     }
 
     if (cache)
-      *cached = v;
+      *cached_value = v;
     return v;
   }
 
