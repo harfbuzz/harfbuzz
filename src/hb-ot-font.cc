@@ -64,7 +64,7 @@ struct hb_ot_font_t
   const hb_ot_face_t *ot_face;
 
   /* h_advance caching */
-  mutable unsigned cached_coords_serial;
+  mutable hb_atomic_int_t cached_coords_serial;
   mutable hb_atomic_ptr_t<hb_advance_cache_t> advance_cache;
 };
 
@@ -181,7 +181,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 	hb_free (cache);
 	goto retry;
       }
-      ot_font->cached_coords_serial = font->serial_coords;
+      ot_font->cached_coords_serial.set_relaxed (font->serial_coords);
     }
   }
   out:
@@ -197,10 +197,10 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   }
   else
   { /* Use cache. */
-    if (ot_font->cached_coords_serial != font->serial_coords)
+    if (ot_font->cached_coords_serial.get_relaxed () != (int) font->serial_coords)
     {
       ot_font->advance_cache->init ();
-      ot_font->cached_coords_serial = font->serial_coords;
+      ot_font->cached_coords_serial.set_relaxed (font->serial_coords);
     }
 
     for (unsigned int i = 0; i < count; i++)
