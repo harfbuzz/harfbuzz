@@ -33,7 +33,9 @@ static void BM_SetInsert_1000(benchmark::State& state) {
   assert(hb_set_get_population(original) == set_size);
 
   for (auto _ : state) {
+    state.PauseTiming ();
     hb_set_t* data = hb_set_copy(original);
+    state.ResumeTiming ();
     for (int i = 0; i < 1000; i++) {
       hb_set_add(data, i * 2654435761u % max_value);
     }
