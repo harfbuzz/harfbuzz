@@ -153,7 +153,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 #ifndef HB_NO_VAR
   const OT::HVARVVAR &HVAR = *hmtx.var_table;
   const OT::VariationStore &varStore = &HVAR + HVAR.varStore;
-  OT::VariationStore::cache_t *varStore_cache = font->num_coords ? varStore.create_cache () : nullptr;
+  OT::VariationStore::cache_t *varStore_cache = font->num_coords * count >= 128 ? varStore.create_cache () : nullptr;
 
   bool use_cache = font->num_coords;
 #else
