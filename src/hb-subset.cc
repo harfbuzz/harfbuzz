@@ -93,37 +93,60 @@ _get_table_tags (const hb_subset_plan_t* plan,
                  hb_tag_t     *table_tags /* OUT */)
 {
   /*
-   * The list of tables that the subsetter can perform subsetting for.
+   * The list of tables in the open type spec. Used to check for tables that may need handling
+   * if we are unable to list the tables in a face.
    */
-  static hb_set_t handled_tables {
+  static hb_set_t known_tables {
+    HB_TAG ('a', 'v', 'a', 'r'),
+    HB_OT_TAG_BASE,
+    HB_OT_TAG_CBDT,
+    HB_OT_TAG_CBLC,
+    HB_OT_TAG_cff1,
+    HB_OT_TAG_cff2,
+    HB_OT_TAG_cmap,
+    HB_OT_TAG_COLR,
+    HB_OT_TAG_CPAL,
+    HB_TAG ('c', 'v', 'a', 'r'),
+    HB_TAG ('c', 'v', 't', ' '),
+    HB_TAG ('D', 'S', 'I', 'G'),
+    HB_TAG ('E', 'B', 'D', 'T'),
+    HB_TAG ('E', 'B', 'L', 'C'),
+    HB_TAG ('E', 'B', 'S', 'C'),
+    HB_TAG ('f', 'p', 'g', 'm'),
+    HB_TAG ('f', 'v', 'a', 'r'),
+    HB_TAG ('g', 'a', 's', 'p'),
+    HB_OT_TAG_GDEF,
     HB_OT_TAG_glyf,
+    HB_OT_TAG_GPOS,
+    HB_OT_TAG_GSUB,
+    HB_OT_TAG_gvar,
     HB_OT_TAG_hdmx,
-    HB_OT_TAG_name,
     HB_OT_TAG_head,
     HB_OT_TAG_hhea,
     HB_OT_TAG_hmtx,
+    HB_OT_TAG_HVAR,
+    HB_OT_TAG_JSTF,
+    HB_TAG ('k', 'e', 'r', 'n'),
+    HB_OT_TAG_loca,
+    HB_TAG ('L', 'T', 'S', 'H'),
+    HB_OT_TAG_MATH,
+    HB_OT_TAG_maxp,
+    HB_TAG ('M', 'E', 'R', 'G'),
+    HB_TAG ('m', 'e', 't', 'a'),
+    HB_TAG ('M', 'V', 'A', 'R'),
+    HB_TAG ('P', 'C', 'L', 'T'),
+    HB_OT_TAG_post,
+    HB_TAG ('p', 'r', 'e', 'p'),
+    HB_OT_TAG_sbix,
+    HB_TAG ('S', 'T', 'A', 'T'),
+    HB_TAG ('S', 'V', 'G', ' '),
+    HB_TAG ('V', 'D', 'M', 'X'),
     HB_OT_TAG_vhea,
     HB_OT_TAG_vmtx,
-    HB_OT_TAG_maxp,
-    HB_OT_TAG_sbix,
-    HB_OT_TAG_loca,
-    HB_OT_TAG_cmap,
-    HB_OT_TAG_OS2,
-    HB_OT_TAG_post,
-    HB_OT_TAG_COLR,
-    HB_OT_TAG_CPAL,
-    HB_OT_TAG_CBLC,
-    HB_OT_TAG_CBDT,
-    HB_OT_TAG_MATH,
-    HB_OT_TAG_cff1,
-    HB_OT_TAG_cff2,
     HB_OT_TAG_VORG,
-    HB_OT_TAG_GDEF,
-    HB_OT_TAG_GSUB,
-    HB_OT_TAG_GPOS,
-    HB_OT_TAG_gvar,
-    HB_OT_TAG_HVAR,
-    HB_OT_TAG_VVAR
+    HB_OT_TAG_VVAR,
+    HB_OT_TAG_name,
+    HB_OT_TAG_OS2,
   };
 
   unsigned num_tables = hb_face_get_table_tags (plan->source, 0, nullptr, nullptr);
@@ -135,7 +158,7 @@ _get_table_tags (const hb_subset_plan_t* plan,
   // checking each table type we can handle for existence instead.
   auto it =
       hb_concat (
-          + handled_tables.iter ()
+          + known_tables.iter ()
           | hb_filter ([&] (hb_tag_t tag) {
             return !_table_is_empty (plan->source, tag) && !plan->no_subset_tables->has (tag);
           }),
