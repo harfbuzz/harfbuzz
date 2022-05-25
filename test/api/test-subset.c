@@ -220,6 +220,7 @@ test_subset_create_for_tables_face (void)
 
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('l','o','c', 'a'));
   hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','l','y','f'));
+  hb_subset_test_check (face_ac, face_abc_subset, HB_TAG ('g','a','s','p'));
 
   hb_subset_input_destroy (input);
   hb_face_destroy (face_abc_subset);
