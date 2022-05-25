@@ -153,7 +153,7 @@ _get_table_tags (const hb_subset_plan_t* plan,
   if (num_tables)
     return hb_face_get_table_tags (plan->source, start_offset, table_count, table_tags);
 
-  // If face has 0 tables associated with it, assume that it has built from
+  // If face has 0 tables associated with it, assume that it was built from
   // hb_face_create_tables and thus is unable to list its tables. Fallback to
   // checking each table type we can handle for existence instead.
   auto it =
@@ -324,11 +324,19 @@ _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
 }
 
 static bool
-_is_table_present (hb_subset_plan_t *plan, hb_tag_t tag)
+_is_table_present (hb_face_t *source, hb_tag_t tag)
 {
+
+  if (!hb_face_get_table_tags (source, 0, nullptr, nullptr)) {
+    // If face has 0 tables associated with it, assume that it was built from
+    // hb_face_create_tables and thus is unable to list its tables. Fallback to
+    // checking if the blob associated with tag is empty.
+    return !_table_is_empty (source, tag);
+  }
+
   hb_tag_t table_tags[32];
   unsigned offset = 0, num_tables = ARRAY_LENGTH (table_tags);
-  while ((_get_table_tags (plan, offset, &num_tables, table_tags), num_tables))
+  while ((hb_face_get_table_tags (source, offset, &num_tables, table_tags), num_tables))
   {
     for (unsigned i = 0; i < num_tables; ++i)
       if (table_tags[i] == tag)
@@ -396,7 +404,7 @@ _subset_table (hb_subset_plan_t *plan,
   case HB_OT_TAG_hdmx: return _subset<const OT::hdmx> (plan, buf);
   case HB_OT_TAG_name: return _subset<const OT::name> (plan, buf);
   case HB_OT_TAG_head:
-    if (_is_table_present (plan, HB_OT_TAG_glyf) && !_should_drop_table (plan, HB_OT_TAG_glyf))
+    if (_is_table_present (plan->source, HB_OT_TAG_glyf) && !_should_drop_table (plan, HB_OT_TAG_glyf))
       return true; /* skip head, handled by glyf */
     return _subset<const OT::head> (plan, buf);
   case HB_OT_TAG_hhea: return true; /* skip hhea, handled by hmtx */
