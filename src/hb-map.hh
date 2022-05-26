@@ -68,8 +68,8 @@ struct hb_hashmap_t
   struct item_t
   {
     K key;
-    V value;
     uint32_t hash;
+    V value;
 
     void clear ()
     {
