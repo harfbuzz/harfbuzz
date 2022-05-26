@@ -173,8 +173,8 @@ main (int argc, char **argv)
     assert (m1.get (hb_map_t ()) == hb_map_t ());
     assert (m2.get (hb_map_t ()) == hb_map_t ());
 
-   assert (m1.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
-   assert (m2.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
+    assert (m1.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
+    assert (m2.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
   }
 
   /* Test hashing sets. */
