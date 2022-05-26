@@ -242,6 +242,7 @@ struct hb_hashmap_t
   uint32_t hash () const
   {
     uint32_t h = 0;
+    /* TODO: Speed-up since we have the hash of the key already in the item. */
     for (auto pair : iter ())
       h ^= (hb_hash (pair.first) * 31) + hb_hash (pair.second);
     return h;
