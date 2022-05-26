@@ -389,7 +389,7 @@ struct graph_t
   bool isolate_subgraph (hb_set_t& roots)
   {
     update_parents ();
-    hb_hashmap_t<unsigned, unsigned> subgraph;
+    hb_map_t subgraph;
 
     // incoming edges to root_idx should be all 32 bit in length so we don't need to de-dup these
     // set the subgraph incoming edge count to match all of root_idx's incoming edges
@@ -401,7 +401,7 @@ struct graph_t
     }
 
     unsigned original_root_idx = root_idx ();
-    hb_hashmap_t<unsigned, unsigned> index_map;
+    hb_map_t index_map;
     bool made_changes = false;
     for (auto entry : subgraph.iter ())
     {
@@ -454,7 +454,7 @@ struct graph_t
     return true;
   }
 
-  void find_subgraph (unsigned node_idx, hb_hashmap_t<unsigned, unsigned>& subgraph)
+  void find_subgraph (unsigned node_idx, hb_map_t& subgraph)
   {
     for (const auto& link : vertices_[node_idx].obj.all_links ())
     {
@@ -482,7 +482,7 @@ struct graph_t
    * links. index_map is updated with mappings from old id to new id. If a duplication has already
    * been performed for a given index, then it will be skipped.
    */
-  void duplicate_subgraph (unsigned node_idx, hb_hashmap_t<unsigned, unsigned>& index_map)
+  void duplicate_subgraph (unsigned node_idx, hb_map_t& index_map)
   {
     if (index_map.has (node_idx))
       return;
@@ -934,7 +934,7 @@ struct graph_t
    * Updates all objidx's in all links using the provided mapping. Corrects incoming edge counts.
    */
   template<typename Iterator, hb_requires (hb_is_iterator (Iterator))>
-  void remap_obj_indices (const hb_hashmap_t<unsigned, unsigned>& id_map,
+  void remap_obj_indices (const hb_map_t& id_map,
                           Iterator subgraph,
                           bool only_wide = false)
   {
