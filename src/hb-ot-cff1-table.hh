@@ -1413,10 +1413,10 @@ struct cff1
 	  }
 	  goto retry;
 	}
-       }
+      }
 
       gname_t key = { hb_bytes_t (name, len), 0 };
-      const gname_t *gname = glyph_names->bsearch (key);
+      const gname_t *gname = names ? names->bsearch (key) : nullptr;
       if (!gname) return false;
       hb_codepoint_t gid = sid_to_glyph (gname->sid);
       if (!gid && gname->sid) return false;
