@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstring>
 #include <thread>
 #include <condition_variable>

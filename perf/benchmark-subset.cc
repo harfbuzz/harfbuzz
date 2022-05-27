@@ -1,4 +1,5 @@
 #include "benchmark/benchmark.h"
+#include <cassert>
 #include <cstring>
 
 #include "hb-subset.h"

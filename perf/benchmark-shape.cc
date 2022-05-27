@@ -5,6 +5,8 @@
 #include "config.h"
 #endif
 
+#include <cassert>
+
 #include "hb.h"
 #include "hb-ot.h"
 #ifdef HAVE_FREETYPE
