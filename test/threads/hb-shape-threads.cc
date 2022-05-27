@@ -66,7 +66,7 @@ std::mutex cv_m;
 static bool ready = false;
 
 static unsigned num_repetitions = 1;
-static unsigned num_threads = 4;
+static unsigned num_threads = 3;
 
 static void shape (bool is_var,
 		   backend_t backend,
@@ -169,18 +169,24 @@ static void test_backend (backend_t backend,
 
 int main(int argc, char** argv)
 {
+  if (argc > 1)
+    num_threads = atoi (argv[1]);
   if (argc > 2)
+    num_repetitions = atoi (argv[2]);
+
+  if (argc > 4)
   {
-    num_tests = (argc - 1) / 2;
+    num_tests = (argc - 3) / 2;
     tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
     for (unsigned i = 0; i < num_tests; i++)
     {
       tests[i].is_variable = true;
-      tests[i].text_path = argv[1 + i * 2];
-      tests[i].font_path = argv[2 + i * 2];
+      tests[i].text_path = argv[3 + i * 2];
+      tests[i].font_path = argv[4 + i * 2];
     }
   }
 
+  printf ("Num threads %u; num repetitions %u\n", num_threads, num_repetitions);
   for (unsigned i = 0; i < num_tests; i++)
   {
     auto& test_input = tests[i];
