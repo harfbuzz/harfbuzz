@@ -2,10 +2,11 @@
 
 NULL =
 EXTRA_DIST =
-SUBDIRS = api shape subset fuzzing threads
+SUBDIRS =
 
 EXTRA_DIST += \
 	meson.build \
+	hb-shape-threads.cc \
 	$(NULL)
 
 # Convenience targets:
