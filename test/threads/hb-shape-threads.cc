@@ -161,7 +161,10 @@ static void test_backend (backend_t backend,
   for (unsigned i = 0; i < num_threads; i++)
     threads.push_back (std::thread (shape, variable, backend, test_input));
 
-  ready = true;
+  {
+    std::unique_lock<std::mutex> lk (cv_m);
+    ready = true;
+  }
   cv.notify_all();
 
   for (unsigned i = 0; i < num_threads; i++)
