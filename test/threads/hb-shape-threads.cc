@@ -1,5 +1,6 @@
 #include <cstring>
 #include <thread>
+#include <condition_variable>
 #include <vector>
 
 #ifdef HAVE_CONFIG_H
@@ -59,6 +60,11 @@ unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
 enum backend_t { HARFBUZZ, FREETYPE };
 
+// https://en.cppreference.com/w/cpp/thread/condition_variable/wait
+std::condition_variable cv;
+std::mutex cv_m;
+static bool ready = false;
+
 static unsigned num_repetitions = 4;
 static unsigned num_threads = 4;
 
@@ -66,6 +72,12 @@ static void shape (bool is_var,
 		   backend_t backend,
 		   const test_input_t &input)
 {
+  // Wait till all threads are ready.
+  {
+    std::unique_lock<std::mutex> lk (cv_m);
+    cv.wait(lk, [] {return ready;});
+  }
+
   hb_font_t *font;
   {
     hb_blob_t *blob = hb_blob_create_from_file_or_fail (input.font_path);
@@ -147,6 +159,9 @@ static void test_backend (backend_t backend,
   std::vector<std::thread> threads;
   for (unsigned i = 0; i < num_threads; i++)
     threads.push_back (std::thread (shape, variable, backend, test_input));
+
+  ready = true;
+  cv.notify_all();
 
   for (unsigned i = 0; i < num_threads; i++)
     threads[i].join ();
