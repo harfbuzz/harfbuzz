@@ -1,6 +1,6 @@
 test('hb-shape-threads', executable('hb-shape-threads', 'hb-shape-threads.cc',
   dependencies: [
-    freetype_dep,
+    freetype_dep, thread_dep
   ],
   cpp_args: [],
   include_directories: [incconfig, incsrc],
