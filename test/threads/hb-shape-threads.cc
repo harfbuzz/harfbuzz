@@ -65,7 +65,7 @@ std::condition_variable cv;
 std::mutex cv_m;
 static bool ready = false;
 
-static unsigned num_repetitions = 4;
+static unsigned num_repetitions = 1;
 static unsigned num_threads = 4;
 
 static void shape (bool is_var,
