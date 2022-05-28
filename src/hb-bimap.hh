@@ -54,10 +54,10 @@ struct hb_bimap_t
     if (unlikely (rhs == HB_MAP_VALUE_INVALID)) { del (lhs); return; }
 
     forw_map.set (lhs, rhs);
-    if (in_error ()) return;
+    if (unlikely (in_error ())) return;
 
     back_map.set (rhs, lhs);
-    if (in_error ()) forw_map.del (lhs);
+    if (unlikely (in_error ())) forw_map.del (lhs);
   }
 
   hb_codepoint_t get (hb_codepoint_t lhs) const { return forw_map.get (lhs); }
@@ -78,7 +78,7 @@ struct hb_bimap_t
     back_map.clear ();
   }
 
-  bool is_empty () const { return get_population () == 0; }
+  bool is_empty () const { return forw_map.is_empty (); }
 
   unsigned int get_population () const { return forw_map.get_population (); }
 
