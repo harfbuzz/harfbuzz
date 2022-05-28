@@ -217,7 +217,7 @@ struct hb_hashmap_t
   value_t operator [] (K k) const { return get (k); }
   bool has (K k, V *vp = nullptr) const
   {
-    V v = (*this)[k];
+    const V &v = (*this)[k];
     if (vp) *vp = v;
     const V vinv = hb_coerce<V> (vINVALID);
     return v != vinv;
