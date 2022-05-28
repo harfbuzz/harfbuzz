@@ -30,8 +30,8 @@ struct test_input_t
   {false, SUBSET_FONT_BASE_PATH "NotoSerifMyanmar-Regular.otf"},
 };
 
-test_input_t *tests = default_tests;
-unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
+static test_input_t *tests = default_tests;
+static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
 enum backend_t { HARFBUZZ, FREETYPE };
 

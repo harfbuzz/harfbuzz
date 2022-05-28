@@ -56,14 +56,14 @@ struct test_input_t
    true},
 };
 
-test_input_t *tests = default_tests;
-unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
+static test_input_t *tests = default_tests;
+static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
 
 enum backend_t { HARFBUZZ, FREETYPE };
 
 // https://en.cppreference.com/w/cpp/thread/condition_variable/wait
-std::condition_variable cv;
-std::mutex cv_m;
+static std::condition_variable cv;
+static std::mutex cv_m;
 static bool ready = false;
 
 static unsigned num_repetitions = 1;
