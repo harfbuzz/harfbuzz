@@ -430,7 +430,8 @@ struct graph_t
     auto new_subgraph =
         + subgraph.keys ()
         | hb_map([&] (unsigned node_idx) {
-          if (index_map.has (node_idx)) return index_map[node_idx];
+	  unsigned v;
+          if (index_map.has (node_idx, &v)) return v;
           return node_idx;
         })
         ;
@@ -442,10 +443,11 @@ struct graph_t
     unsigned next = HB_SET_VALUE_INVALID;
     while (roots.next (&next))
     {
-      if (index_map.has (next))
+      unsigned v;
+      if (index_map.has (next, &v))
       {
         roots.del (next);
-        roots.add (index_map[next]);
+        roots.add (v);
       }
     }
 
@@ -456,9 +458,10 @@ struct graph_t
   {
     for (const auto& link : vertices_[node_idx].obj.all_links ())
     {
-      if (subgraph.has (link.objidx))
+      unsigned v;
+      if (subgraph.has (link.objidx, &v))
       {
-        subgraph.set (link.objidx, subgraph[link.objidx] + 1);
+        subgraph.set (link.objidx, v + 1);
         continue;
       }
       subgraph.set (link.objidx, 1);
@@ -940,10 +943,11 @@ struct graph_t
     {
       for (auto& link : vertices_[i].obj.all_links_writer ())
       {
-        if (!id_map.has (link.objidx)) continue;
+	unsigned v;
+        if (!id_map.has (link.objidx, &v)) continue;
         if (only_wide && !(link.width == 4 && !link.is_signed)) continue;
 
-        reassign_link (link, i, id_map[link.objidx]);
+        reassign_link (link, i, v);
       }
     }
   }

@@ -86,8 +86,7 @@ HB_INTERNAL bool postV2Tail::subset (hb_subset_context_t *c) const
 
     unsigned new_index;
     if (old_index <= 257) new_index = old_index;
-    else if (old_new_index_map.has (old_index)) new_index = old_new_index_map.get (old_index);
-    else
+    else if (!old_new_index_map.has (old_index, &new_index))
     {
       hb_bytes_t s = _post.find_glyph_name (old_gid);
       new_index = glyph_name_to_new_index.get (s);
