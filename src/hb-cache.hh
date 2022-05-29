@@ -75,6 +75,7 @@ struct hb_cache_t
 
 typedef hb_cache_t<21, 16, 8> hb_cmap_cache_t;
 typedef hb_cache_t<16, 24, 8> hb_advance_cache_t;
+typedef hb_cache_t<16, 16, 8> hb_coverage_cache_t;
 
 
 #endif /* HB_CACHE_HH */

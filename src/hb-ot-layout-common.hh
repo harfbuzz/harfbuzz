@@ -34,6 +34,7 @@
 #include "hb-open-type.hh"
 #include "hb-set.hh"
 #include "hb-bimap.hh"
+#include "hb-cache.hh"
 
 
 #ifndef HB_MAX_NESTING_LEVEL
@@ -1413,10 +1414,13 @@ struct CoverageFormat1
   friend struct Coverage;
 
   private:
-  unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  unsigned int get_coverage (hb_codepoint_t glyph_id,
+			     hb_coverage_cache_t *cache = nullptr) const
   {
     unsigned int i;
+    if (cache && cache->get (glyph_id, &i)) return i;
     glyphArray.bfind (glyph_id, &i, HB_NOT_FOUND_STORE, NOT_COVERED);
+    if (cache) cache->set (glyph_id, i);
     return i;
   }
 
@@ -1489,12 +1493,17 @@ struct CoverageFormat2
   friend struct Coverage;
 
   private:
-  unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  unsigned int get_coverage (hb_codepoint_t glyph_id,
+			     hb_coverage_cache_t *cache = nullptr) const
   {
+    unsigned int i;
+    if (cache && cache->get (glyph_id, &i)) return i;
     const RangeRecord &range = rangeRecord.bsearch (glyph_id);
-    return likely (range.first <= range.last)
-	 ? (unsigned int) range.value + (glyph_id - range.first)
-	 : NOT_COVERED;
+    i = likely (range.first <= range.last)
+	? (unsigned int) range.value + (glyph_id - range.first)
+	: NOT_COVERED;
+    if (cache) cache->set (glyph_id, i);
+    return i;
   }
 
   template <typename Iterator,
@@ -1675,11 +1684,12 @@ struct Coverage
   bool operator () (hb_codepoint_t k) const { return has (k); }
 
   unsigned int get (hb_codepoint_t k) const { return get_coverage (k); }
-  unsigned int get_coverage (hb_codepoint_t glyph_id) const
+  unsigned int get_coverage (hb_codepoint_t glyph_id,
+			     hb_coverage_cache_t *cache = nullptr) const
   {
     switch (u.format) {
-    case 1: return u.format1.get_coverage (glyph_id);
-    case 2: return u.format2.get_coverage (glyph_id);
+    case 1: return u.format1.get_coverage (glyph_id, cache);
+    case 2: return u.format2.get_coverage (glyph_id, cache);
     default:return NOT_COVERED;
     }
   }
