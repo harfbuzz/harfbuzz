@@ -794,7 +794,7 @@ struct SinglePosFormat1
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, c->coverage_cache);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
     valueFormat.apply_value (c, this, values, buffer->cur_pos());
@@ -910,7 +910,7 @@ struct SinglePosFormat2
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, c->coverage_cache);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
     if (likely (index >= valueCount)) return_trace (false);
@@ -1359,7 +1359,7 @@ struct PairPosFormat1
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, c->coverage_cache);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
@@ -1557,7 +1557,7 @@ struct PairPosFormat2
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
+    unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint, c->coverage_cache);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
@@ -1882,7 +1882,7 @@ struct CursivePosFormat1
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
 
-    const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint)];
+    const EntryExitRecord &this_record = entryExitRecord[(this+coverage).get_coverage  (buffer->cur().codepoint, c->coverage_cache)];
     if (!this_record.entryAnchor) return_trace (false);
 
     hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
@@ -1894,7 +1894,7 @@ struct CursivePosFormat1
       return_trace (false);
     }
 
-    const EntryExitRecord &prev_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint)];
+    const EntryExitRecord &prev_record = entryExitRecord[(this+coverage).get_coverage  (buffer->info[skippy_iter.idx].codepoint, c->coverage_cache)];
     if (!prev_record.exitAnchor)
     {
       buffer->unsafe_to_concat_from_outbuffer (skippy_iter.idx, buffer->idx + 1);
@@ -2155,7 +2155,7 @@ struct MarkBasePosFormat1
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint);
+    unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint, c->coverage_cache);
     if (likely (mark_index == NOT_COVERED)) return_trace (false);
 
     /* Now we search backwards for a non-mark glyph */
@@ -2420,7 +2420,7 @@ struct MarkLigPosFormat1
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint);
+    unsigned int mark_index = (this+markCoverage).get_coverage  (buffer->cur().codepoint, c->coverage_cache);
     if (likely (mark_index == NOT_COVERED)) return_trace (false);
 
     /* Now we search backwards for a non-mark glyph */
@@ -2630,7 +2630,7 @@ struct MarkMarkPosFormat1
   {
     TRACE_APPLY (this);
     hb_buffer_t *buffer = c->buffer;
-    unsigned int mark1_index = (this+mark1Coverage).get_coverage  (buffer->cur().codepoint);
+    unsigned int mark1_index = (this+mark1Coverage).get_coverage  (buffer->cur().codepoint, c->coverage_cache);
     if (likely (mark1_index == NOT_COVERED)) return_trace (false);
 
     /* now we search backwards for a suitable mark glyph until a non-mark glyph */

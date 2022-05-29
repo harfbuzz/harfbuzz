@@ -1891,12 +1891,23 @@ apply_string (OT::hb_ot_apply_context_t *c,
     /* in/out forward substitution/positioning */
     if (!Proxy::always_inplace)
       buffer->clear_output ();
+    else
+    if (lookup.get_subtable_count () == 1 && buffer->len >= 32)
+    {
+      c->coverage_cache = &c->coverage_cache_static;
+      c->coverage_cache->clear ();
+    }
 
     buffer->idx = 0;
     apply_forward (c, accel);
 
     if (!Proxy::always_inplace)
       buffer->sync ();
+    else
+    if (lookup.get_subtable_count () == 1)
+    {
+      c->coverage_cache = nullptr;
+    }
   }
   else
   {
