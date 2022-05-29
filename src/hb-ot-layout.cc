@@ -46,7 +46,7 @@
 #include "hb-ot-layout-gdef-table.hh"
 #include "hb-ot-layout-gsub-table.hh"
 #include "hb-ot-layout-gpos-table.hh"
-#include "hb-ot-layout-base-table.hh" // Just so we compile it; unused otherwise.
+#include "hb-ot-layout-base-table.hh"
 #include "hb-ot-layout-jstf-table.hh" // Just so we compile it; unused otherwise.
 #include "hb-ot-name-table.hh"
 #include "hb-ot-os2-table.hh"
