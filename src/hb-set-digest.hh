@@ -102,7 +102,7 @@ struct hb_set_digest_lowest_bits_t
   bool add_sorted_array (const hb_sorted_array_t<const T>& arr) { return add_sorted_array (&arr, arr.len ()); }
 
   bool may_have (hb_codepoint_t g) const
-  { return !!(mask & mask_for (g)); }
+  { return mask & mask_for (g); }
 
   private:
 
