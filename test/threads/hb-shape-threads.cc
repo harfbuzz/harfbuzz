@@ -118,6 +118,7 @@ static void shape (bool is_var,
   const char *orig_text = hb_blob_get_data (text_blob, &orig_text_length);
 
   hb_buffer_t *buf = hb_buffer_create ();
+  hb_buffer_set_flags (buf, HB_BUFFER_FLAG_VERIFY);
   for (unsigned i = 0; i < num_repetitions; i++)
   {
     unsigned text_length = orig_text_length;

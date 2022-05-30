@@ -8,6 +8,6 @@ test('hb-shape-threads', executable('hb-shape-threads', 'hb-shape-threads.cc',
   install: false,
   ),
   workdir: meson.current_source_dir() / '..' / '..',
-  timeout: 100,
+  timeout: 300,
   suite: ['threads', 'slow'],
 )
