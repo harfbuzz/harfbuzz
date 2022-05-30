@@ -324,7 +324,9 @@ if not has_ragel and get_option('ragel_subproject')
     has_ragel = true
 endif
 if not has_ragel
-  warning('You have to install ragel if you are going to develop HarfBuzz itself')
+  if not meson.is_subproject()
+    warning('You have to install ragel if you are going to develop HarfBuzz itself')
+  endif
 else
   ragel_helper = find_program('gen-ragel-artifacts.py')
   foreach rl : hb_base_ragel_sources
