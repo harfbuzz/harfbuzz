@@ -165,7 +165,7 @@ struct hb_closure_context_t :
   hb_set_t *glyphs;
   hb_set_t output[1];
   hb_vector_t<hb_set_t> active_glyphs_stack;
-  recurse_func_t recurse_func;
+  recurse_func_t recurse_func = nullptr;
   unsigned int nesting_level_left;
 
   hb_closure_context_t (hb_face_t *face_,
@@ -175,11 +175,9 @@ struct hb_closure_context_t :
 			unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
-			  recurse_func (nullptr),
 			  nesting_level_left (nesting_level_left_),
 			  done_lookups_glyph_count (done_lookups_glyph_count_),
-			  done_lookups_glyph_set (done_lookups_glyph_set_),
-			  lookup_count (0)
+			  done_lookups_glyph_set (done_lookups_glyph_set_)
   {}
 
   ~hb_closure_context_t () { flush (); }
@@ -198,7 +196,7 @@ struct hb_closure_context_t :
   private:
   hb_map_t *done_lookups_glyph_count;
   hb_hashmap_t<unsigned, hb_set_t *> *done_lookups_glyph_set;
-  unsigned int lookup_count;
+  unsigned int lookup_count = 0;
 };
 
 
@@ -625,7 +623,7 @@ struct hb_ot_apply_context_t :
   hb_font_t *font;
   hb_face_t *face;
   hb_buffer_t *buffer;
-  recurse_func_t recurse_func;
+  recurse_func_t recurse_func = nullptr;
   const GDEF &gdef;
   const VariationStore &var_store;
   VariationStore::cache_t *var_store_cache;
