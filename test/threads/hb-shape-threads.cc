@@ -184,6 +184,10 @@ int main(int argc, char** argv)
   if (argc > 2)
     num_repetitions = atoi (argv[2]);
 
+  /* Dummy call to alleviate _guess_segment_properties thread safety-ness
+   * https://github.com/harfbuzz/harfbuzz/issues/1191 */
+  hb_language_get_default ();
+
   if (argc > 4)
   {
     num_tests = (argc - 3) / 2;
