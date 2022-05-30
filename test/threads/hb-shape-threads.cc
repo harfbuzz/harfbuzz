@@ -69,43 +69,13 @@ static bool ready = false;
 static unsigned num_repetitions = 1;
 static unsigned num_threads = 3;
 
-static void shape (bool is_var,
-		   backend_t backend,
-		   const test_input_t &input)
+static void shape (const test_input_t &input,
+		   hb_font_t *font)
 {
   // Wait till all threads are ready.
   {
     std::unique_lock<std::mutex> lk (cv_m);
     cv.wait(lk, [] {return ready;});
-  }
-
-  hb_font_t *font;
-  {
-    hb_blob_t *blob = hb_blob_create_from_file_or_fail (input.font_path);
-    assert (blob);
-    hb_face_t *face = hb_face_create (blob, 0);
-    hb_blob_destroy (blob);
-    font = hb_font_create (face);
-    hb_face_destroy (face);
-  }
-
-  if (is_var)
-  {
-    hb_variation_t wght = {HB_TAG ('w','g','h','t'), 500};
-    hb_font_set_variations (font, &wght, 1);
-  }
-
-  switch (backend)
-  {
-    case HARFBUZZ:
-      hb_ot_font_set_funcs (font);
-      break;
-
-    case FREETYPE:
-#ifdef HAVE_FREETYPE
-      hb_ft_font_set_funcs (font);
-#endif
-      break;
   }
 
   const char *lang_str = strrchr (input.text_path, '/');
@@ -141,7 +111,6 @@ static void shape (bool is_var,
   hb_buffer_destroy (buf);
 
   hb_blob_destroy (text_blob);
-  hb_font_destroy (font);
 }
 
 static void test_backend (backend_t backend,
@@ -149,7 +118,7 @@ static void test_backend (backend_t backend,
 			  bool variable,
 			  const test_input_t &test_input)
 {
-  char name[1024] = "BM_Shape";
+  char name[1024] = "shape";
   const char *p;
   strcat (name, "/");
   p = strrchr (test_input.text_path, '/');
@@ -163,9 +132,38 @@ static void test_backend (backend_t backend,
 
   printf ("Testing %s\n", name);
 
+  hb_font_t *font;
+  {
+    hb_blob_t *blob = hb_blob_create_from_file_or_fail (test_input.font_path);
+    assert (blob);
+    hb_face_t *face = hb_face_create (blob, 0);
+    hb_blob_destroy (blob);
+    font = hb_font_create (face);
+    hb_face_destroy (face);
+  }
+
+  if (variable)
+  {
+    hb_variation_t wght = {HB_TAG ('w','g','h','t'), 500};
+    hb_font_set_variations (font, &wght, 1);
+  }
+
+  switch (backend)
+  {
+    case HARFBUZZ:
+      hb_ot_font_set_funcs (font);
+      break;
+
+    case FREETYPE:
+#ifdef HAVE_FREETYPE
+      hb_ft_font_set_funcs (font);
+#endif
+      break;
+  }
+
   std::vector<std::thread> threads;
   for (unsigned i = 0; i < num_threads; i++)
-    threads.push_back (std::thread (shape, variable, backend, test_input));
+    threads.push_back (std::thread (shape, test_input, font));
 
   {
     std::unique_lock<std::mutex> lk (cv_m);
@@ -175,6 +173,8 @@ static void test_backend (backend_t backend,
 
   for (unsigned i = 0; i < num_threads; i++)
     threads[i].join ();
+
+  hb_font_destroy (font);
 }
 
 int main(int argc, char** argv)
