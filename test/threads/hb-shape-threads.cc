@@ -108,6 +108,10 @@ static void shape (bool is_var,
       break;
   }
 
+  const char *lang_str = strrchr (input.text_path, '/');
+  lang_str = lang_str ? lang_str + 1 : input.text_path;
+  hb_language_t language = hb_language_from_string (lang_str, -1);
+
   hb_blob_t *text_blob = hb_blob_create_from_file_or_fail (input.text_path);
   assert (text_blob);
   unsigned orig_text_length;
@@ -125,6 +129,7 @@ static void shape (bool is_var,
       hb_buffer_clear_contents (buf);
       hb_buffer_add_utf8 (buf, text, text_length, 0, end - text);
       hb_buffer_guess_segment_properties (buf);
+      hb_buffer_set_language (buf, language);
       hb_shape (font, buf, nullptr, 0);
 
       unsigned skip = end - text + 1;
