@@ -674,7 +674,7 @@ if have_gobject
       nsversion: '0.0',
       identifier_prefix: 'hb_',
       symbol_prefix: ['hb', 'hb_gobject'],
-      includes: ['GObject-2.0'],
+      includes: ['GObject-2.0', 'freetype2-2.0'],
       export_packages: ['harfbuzz-gobject'],
       header: 'hb-gobject.h',
       install: true,

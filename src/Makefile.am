@@ -465,7 +465,7 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 INTROSPECTION_SCANNER_ENV = CC="$(CC)"
 
 HarfBuzz-0.0.gir: libharfbuzz.la libharfbuzz-gobject.la
-HarfBuzz_0_0_gir_INCLUDES = GObject-2.0
+HarfBuzz_0_0_gir_INCLUDES = GObject-2.0 freetype2-2.0
 HarfBuzz_0_0_gir_CFLAGS = \
 	$(INCLUDES) \
 	$(HBCFLAGS) \
