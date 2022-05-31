@@ -85,6 +85,7 @@ for filename in args:
 		extra_options = ["--shaper=ot"]
 		if glyphs_expected != '*':
 			extra_options.append("--verify")
+			extra_options.append("--unsafe-to-concat")
 
 		if comment:
 			print ('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
