@@ -609,7 +609,10 @@ struct hb_ot_apply_context_t :
   return_t recurse (unsigned int sub_lookup_index)
   {
     if (unlikely (nesting_level_left == 0 || !recurse_func || buffer->max_ops-- <= 0))
+    {
+      buffer->shaping_failed = true;
       return default_return_value ();
+    }
 
     nesting_level_left--;
     bool ret = recurse_func (this, sub_lookup_index);

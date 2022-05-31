@@ -137,12 +137,14 @@ hb_shape_full (hb_font_t          *font,
 							      features, num_features,
 							      font->coords, font->num_coords,
 							      shaper_list);
+  buffer->shaping_failed = false;
   hb_bool_t res = hb_shape_plan_execute (shape_plan, font, buffer, features, num_features);
   hb_shape_plan_destroy (shape_plan);
 
   if (text_buffer)
   {
-    if (res && !buffer->verify (text_buffer,
+    if (res && buffer->successful && !buffer->shaping_failed &&
+	       !buffer->verify (text_buffer,
 				font,
 				features,
 				num_features,

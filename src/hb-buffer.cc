@@ -289,6 +289,7 @@ hb_buffer_t::clear ()
   props = default_props;
 
   successful = true;
+  shaping_failed = false;
   have_output = false;
   have_positions = false;
 
@@ -623,6 +624,7 @@ DEFINE_NULL_INSTANCE (hb_buffer_t) =
   HB_SEGMENT_PROPERTIES_DEFAULT,
 
   false, /* successful */
+  true, /* shaping_failed */
   false, /* have_output */
   true  /* have_positions */
 
