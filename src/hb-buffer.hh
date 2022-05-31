@@ -57,6 +57,7 @@
 static_assert ((sizeof (hb_glyph_info_t) == 20), "");
 static_assert ((sizeof (hb_glyph_info_t) == sizeof (hb_glyph_position_t)), "");
 
+HB_MARK_AS_FLAG_T (hb_glyph_flags_t);
 HB_MARK_AS_FLAG_T (hb_buffer_flags_t);
 HB_MARK_AS_FLAG_T (hb_buffer_serialize_flags_t);
 HB_MARK_AS_FLAG_T (hb_buffer_diff_flags_t);
