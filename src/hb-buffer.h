@@ -373,6 +373,7 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  *                      flag indicating that the @HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
  *                      glyph-flag should be produced by the shaper. By default
  *                      it will not be produced since it incurs a cost. Since: 4.0.0
+ * @HB_BUFFER_FLAG_DEFINED: All currently defined flags: Since: REPLACEME
  *
  * Flags for #hb_buffer_t.
  *
@@ -386,7 +387,9 @@ typedef enum { /*< flags >*/
   HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES	= 0x00000008u,
   HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE	= 0x00000010u,
   HB_BUFFER_FLAG_VERIFY				= 0x00000020u,
-  HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT	= 0x00000040u
+  HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT	= 0x00000040u,
+
+  HB_BUFFER_FLAG_DEFINED			= 0x0000007Fu
 } hb_buffer_flags_t;
 
 HB_EXTERN void
@@ -583,6 +586,7 @@ hb_buffer_normalize_glyphs (hb_buffer_t *buffer);
  * @HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS: serialize glyph flags. Since: 1.5.0
  * @HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES: do not serialize glyph advances,
  *  glyph offsets will reflect absolute glyph positions. Since: 1.8.0
+ * @HB_BUFFER_SERIALIZE_FLAG_DEFINED: All currently defined flags. Since: REPLACEME
  *
  * Flags that control what glyph information are serialized in hb_buffer_serialize_glyphs().
  *
@@ -595,7 +599,9 @@ typedef enum { /*< flags >*/
   HB_BUFFER_SERIALIZE_FLAG_NO_GLYPH_NAMES	= 0x00000004u,
   HB_BUFFER_SERIALIZE_FLAG_GLYPH_EXTENTS	= 0x00000008u,
   HB_BUFFER_SERIALIZE_FLAG_GLYPH_FLAGS		= 0x00000010u,
-  HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES		= 0x00000020u
+  HB_BUFFER_SERIALIZE_FLAG_NO_ADVANCES		= 0x00000020u,
+
+  HB_BUFFER_SERIALIZE_FLAG_DEFINED		= 0x0000003Fu
 } hb_buffer_serialize_flags_t;
 
 /**
