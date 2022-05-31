@@ -543,7 +543,8 @@ hb_buffer_t::delete_glyph ()
   /* The logic here is duplicated in hb_ot_hide_default_ignorables(). */
 
   unsigned int cluster = info[idx].cluster;
-  if (idx + 1 < len && cluster == info[idx + 1].cluster)
+  if ((idx + 1 < len && cluster == info[idx + 1].cluster) ||
+      (out_len && cluster == out_info[out_len - 1].cluster))
   {
     /* Cluster survives; do nothing. */
     goto done;
