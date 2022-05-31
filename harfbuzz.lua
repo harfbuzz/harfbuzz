@@ -56,7 +56,8 @@ files {
     "./src/hb-common.cc",
     "./src/hb-ucd.cc",
     "./src/hb-unicode.cc",
-    "./src/hb-blob.cc"
+    "./src/hb-blob.cc",
+    "./src/hb-static.cc"
 }
 
 if (_PLATFORM_ANDROID) then 
