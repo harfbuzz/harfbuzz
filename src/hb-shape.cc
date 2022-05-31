@@ -146,8 +146,9 @@ hb_shape_full (hb_font_t          *font,
 
   if (text_buffer)
   {
-    if (res && buffer->successful && !buffer->shaping_failed &&
-	       !buffer->verify (text_buffer,
+    if (res && buffer->successful && !buffer->shaping_failed
+	    && text_buffer->successful
+	    && !buffer->verify (text_buffer,
 				font,
 				features,
 				num_features,
