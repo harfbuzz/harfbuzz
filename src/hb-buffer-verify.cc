@@ -169,6 +169,12 @@ buffer_verify_unsafe_to_break (hb_buffer_t  *buffer,
       hb_buffer_destroy (fragment);
       return false;
     }
+    else if (!fragment->successful || fragment->shaping_failed)
+    {
+      hb_buffer_destroy (reconstruction);
+      hb_buffer_destroy (fragment);
+      return true;
+    }
     hb_buffer_append (reconstruction, fragment, 0, -1);
 
     start = end;
@@ -317,10 +323,20 @@ buffer_verify_unsafe_to_concat (hb_buffer_t        *buffer,
     ret = false;
     goto out;
   }
+  else if (!fragments[0]->successful || fragments[0]->shaping_failed)
+  {
+    ret = true;
+    goto out;
+  }
   if (!hb_shape_full (font, fragments[1], features, num_features, shapers))
   {
     buffer_verify_error (buffer, font, BUFFER_VERIFY_ERROR "shaping failed while shaping fragment.");
     ret = false;
+    goto out;
+  }
+  else if (!fragments[1]->successful || fragments[1]->shaping_failed)
+  {
+    ret = true;
     goto out;
   }
 
