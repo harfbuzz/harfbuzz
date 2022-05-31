@@ -59,7 +59,7 @@
 	  static inline constexpr T operator | (T l, T r) { return T ((unsigned) l | (unsigned) r); } \
 	  static inline constexpr T operator & (T l, T r) { return T ((unsigned) l & (unsigned) r); } \
 	  static inline constexpr T operator ^ (T l, T r) { return T ((unsigned) l ^ (unsigned) r); } \
-	  static inline constexpr T operator ~ (T r) { return T (~(unsigned int) r); } \
+	  static inline constexpr unsigned operator ~ (T r) { return (~(unsigned) r); } \
 	  static inline T& operator |= (T &l, T r) { l = l | r; return l; } \
 	  static inline T& operator &= (T& l, T r) { l = l & r; return l; } \
 	  static inline T& operator ^= (T& l, T r) { l = l ^ r; return l; } \

@@ -102,9 +102,9 @@ buffer_verify_unsafe_to_break (hb_buffer_t  *buffer,
   /* Check that breaking up shaping at safe-to-break is indeed safe. */
 
   hb_buffer_t *fragment = hb_buffer_create_similar (buffer);
-  hb_buffer_set_flags (fragment, hb_buffer_get_flags (fragment) & ~HB_BUFFER_FLAG_VERIFY);
+  hb_buffer_set_flags (fragment, (hb_buffer_flags_t (hb_buffer_get_flags (fragment) & ~HB_BUFFER_FLAG_VERIFY)));
   hb_buffer_t *reconstruction = hb_buffer_create_similar (buffer);
-  hb_buffer_set_flags (reconstruction, hb_buffer_get_flags (reconstruction) & ~HB_BUFFER_FLAG_VERIFY);
+  hb_buffer_set_flags (reconstruction, (hb_buffer_flags_t (hb_buffer_get_flags (reconstruction) & ~HB_BUFFER_FLAG_VERIFY)));
 
   unsigned int num_glyphs;
   hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &num_glyphs);
@@ -238,10 +238,10 @@ buffer_verify_unsafe_to_concat (hb_buffer_t        *buffer,
 
   hb_buffer_t *fragments[2] {hb_buffer_create_similar (buffer),
 			     hb_buffer_create_similar (buffer)};
-  hb_buffer_set_flags (fragments[0], hb_buffer_get_flags (fragments[0]) & ~HB_BUFFER_FLAG_VERIFY);
-  hb_buffer_set_flags (fragments[1], hb_buffer_get_flags (fragments[1]) & ~HB_BUFFER_FLAG_VERIFY);
+  hb_buffer_set_flags (fragments[0], (hb_buffer_flags_t (hb_buffer_get_flags (fragments[0]) & ~HB_BUFFER_FLAG_VERIFY)));
+  hb_buffer_set_flags (fragments[1], (hb_buffer_flags_t (hb_buffer_get_flags (fragments[1]) & ~HB_BUFFER_FLAG_VERIFY)));
   hb_buffer_t *reconstruction = hb_buffer_create_similar (buffer);
-  hb_buffer_set_flags (reconstruction, hb_buffer_get_flags (reconstruction) & ~HB_BUFFER_FLAG_VERIFY);
+  hb_buffer_set_flags (reconstruction, (hb_buffer_flags_t (hb_buffer_get_flags (reconstruction) & ~HB_BUFFER_FLAG_VERIFY)));
   hb_segment_properties_t props;
   hb_buffer_get_segment_properties (buffer, &props);
   hb_buffer_set_segment_properties (fragments[0], &props);
