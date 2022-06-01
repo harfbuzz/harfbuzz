@@ -311,6 +311,7 @@ hb_buffer_t::enter ()
 {
   deallocate_var_all ();
   serial = 0;
+  shaping_failed = false;
   scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
   if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_LEN_FACTOR)))
   {
@@ -330,6 +331,7 @@ hb_buffer_t::leave ()
   max_ops = HB_BUFFER_MAX_OPS_DEFAULT;
   deallocate_var_all ();
   serial = 0;
+  // Intentionally not reseting shaping_failed, such that it can be inspected.
 }
 
 
