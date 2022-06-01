@@ -832,6 +832,14 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
 {                                                                        \
   if (hb_object_is_immutable (ffuncs))                                   \
     goto fail;                                                           \
+                                                                         \
+  if (!func)                                                             \
+  {                                                                      \
+    if (destroy)                                                         \
+      destroy (user_data);                                               \
+    destroy = nullptr;                                                   \
+    user_data = nullptr;                                                 \
+  }                                                                      \
 									 \
   if (ffuncs->destroy && ffuncs->destroy->name)                          \
     ffuncs->destroy->name (!ffuncs->user_data ? nullptr : ffuncs->user_data->name); \
