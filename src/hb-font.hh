@@ -631,8 +631,10 @@ struct hb_font_t
   void mults_changed ()
   {
     signed upem = face->get_upem ();
-    x_mult = ((int64_t) x_scale << 16) / upem;
-    y_mult = ((int64_t) y_scale << 16) / upem;
+    bool x_neg = x_scale < 0;
+    x_mult = (x_neg ? -((int64_t) -x_scale << 16) : ((int64_t) x_scale << 16)) / upem;
+    bool y_neg = y_scale < 0;
+    y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
   }
 
