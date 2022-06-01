@@ -1159,8 +1159,6 @@ hb_propagate_flags (hb_buffer_t *buffer)
 static void
 hb_ot_shape_internal (hb_ot_shape_context_t *c)
 {
-  c->buffer->enter ();
-
   /* Save the original direction, we use it later. */
   c->target_direction = c->buffer->props.direction;
 
