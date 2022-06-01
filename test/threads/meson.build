@@ -1,4 +1,4 @@
-test('hb-shape-threads', executable('hb-shape-threads', 'hb-shape-threads.cc',
+test('shape_threads', executable('hb-shape-threads', 'hb-shape-threads.cc',
   dependencies: [
     freetype_dep, thread_dep
   ],
