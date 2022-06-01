@@ -227,6 +227,7 @@ hb_base_headers = files(
   'hb-blob.h',
   'hb-buffer.h',
   'hb-common.h',
+  'hb-cplusplus.hh',
   'hb-deprecated.h',
   'hb-draw.h',
   'hb-face.h',
