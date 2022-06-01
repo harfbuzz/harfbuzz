@@ -469,6 +469,7 @@ static_assert ((sizeof (hb_var_int_t) == 4), "");
 /* Headers we include for everyone.  Keep topologically sorted by dependency.
  * They express dependency amongst themselves, but no other file should include
  * them directly.*/
+#include "hb-cplusplus.hh"
 #include "hb-meta.hh"
 #include "hb-mutex.hh"
 #include "hb-number.hh"
