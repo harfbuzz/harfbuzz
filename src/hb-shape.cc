@@ -126,6 +126,9 @@ hb_shape_full (hb_font_t          *font,
 	       unsigned int        num_features,
 	       const char * const *shaper_list)
 {
+  if (unlikely (!buffer->len))
+    return true;
+
   hb_buffer_t *text_buffer = nullptr;
   if (buffer->flags & HB_BUFFER_FLAG_VERIFY)
   {
