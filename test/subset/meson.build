@@ -49,6 +49,7 @@ tests = [
   'variable',
   'glyph_names',
   'post',
+  '32bit_var_store',
 ]
 
 repack_tests = [
