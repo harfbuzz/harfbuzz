@@ -7,6 +7,7 @@ SUBDIRS =
 EXTRA_DIST += \
 	meson.build \
 	hb-shape-threads.cc \
+	hb-subset-threads.cc \
 	$(NULL)
 
 # Convenience targets:
