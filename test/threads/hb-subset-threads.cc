@@ -159,7 +159,7 @@ int main(int argc, char** argv)
 
   if (argc > 4)
   {
-    num_tests = (argc - 3) / 2;
+    num_tests = argc - 3;
     tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
     for (unsigned i = 0; i < num_tests; i++)
     {
