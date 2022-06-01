@@ -1138,7 +1138,8 @@ struct cff1
 	  cff1_top_dict_interp_env_t env (fontDictStr);
 	  cff1_font_dict_interpreter_t font_interp (env);
 	  font = fontDicts.push ();
-	  if (unlikely (font == &Crap (cff1_font_dict_values_t))) { fini (); return; }
+	  if (unlikely (fontDicts.in_error ())) { fini (); return; }
+
 	  font->init ();
 	  if (unlikely (!font_interp.interpret (*font))) { fini (); return; }
 	  PRIVDICTVAL *priv = &privateDicts[i];
