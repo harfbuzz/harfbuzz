@@ -51,6 +51,7 @@ struct shared_ptr
 {
   using v = vtable<T>;
 
+  shared_ptr (std::nullptr_t) : p (nullptr) {}
   explicit shared_ptr (T *p = nullptr) : p (p) {}
   shared_ptr (const shared_ptr &o) : p (v::reference (o.p)) {}
   shared_ptr (shared_ptr &&o) : p (o.p) { o.p = nullptr; }
