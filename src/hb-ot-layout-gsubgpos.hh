@@ -109,7 +109,7 @@ struct hb_closure_context_t :
     {
       done_lookups_glyph_count->set (lookup_index, glyphs->get_population ());
 
-      if (!done_lookups_glyph_set->get (lookup_index))
+      if (!done_lookups_glyph_set->has (lookup_index))
       {
 	hb::shared_ptr<hb_set_t> empty_set {hb_set_create ()};
 	if (unlikely (!done_lookups_glyph_set->set (lookup_index, empty_set)))
