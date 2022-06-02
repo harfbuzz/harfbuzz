@@ -245,7 +245,7 @@ struct
   template <typename T> constexpr uint32_t
   impl (const hb::shared_ptr<T>& v, hb_priority<1>) const
   {
-    return (uint32_t) (intptr_t) v.get ()->hash ();
+    return v.get () ? v.get ()->hash () : 0;
   }
 
   template <typename T> constexpr auto
