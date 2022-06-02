@@ -127,19 +127,19 @@ main (int argc, char **argv)
 
   /* Test class key / value types. */
   {
-    hb_hashmap_t<hb_bytes_t, int, std::nullptr_t, int, nullptr, 0> m1;
-    hb_hashmap_t<int, hb_bytes_t, int, std::nullptr_t, 0, nullptr> m2;
-    hb_hashmap_t<hb_bytes_t, hb_bytes_t, std::nullptr_t, std::nullptr_t, nullptr, nullptr> m3;
+    hb_hashmap_t<hb_bytes_t, int, int, 0> m1;
+    hb_hashmap_t<int, hb_bytes_t, std::nullptr_t, nullptr> m2;
+    hb_hashmap_t<hb_bytes_t, hb_bytes_t, std::nullptr_t, nullptr> m3;
     assert (m1.get_population () == 0);
     assert (m2.get_population () == 0);
     assert (m3.get_population () == 0);
   }
 
   {
-    hb_hashmap_t<int, int, int, int, 0, 0> m0;
-    hb_hashmap_t<std::string, int, const std::string*, int, &invalid, 0> m1;
-    hb_hashmap_t<int, std::string, int, const std::string*, 0, &invalid> m2;
-    hb_hashmap_t<std::string, std::string, const std::string*, const std::string*, &invalid, &invalid> m3;
+    hb_hashmap_t<int, int, int, 0> m0;
+    hb_hashmap_t<std::string, int, int, 0> m1;
+    hb_hashmap_t<int, std::string, const std::string*, &invalid> m2;
+    hb_hashmap_t<std::string, std::string, const std::string*, &invalid> m3;
 
     std::string s;
     for (unsigned i = 1; i < 1000; i++)
@@ -156,8 +156,8 @@ main (int argc, char **argv)
   {
     using pair = hb_pair_t<hb_codepoint_t, hb_codepoint_t>;
 
-    hb_hashmap_t<hb_map_t, hb_map_t, const hb_map_t *, const hb_map_t *, &invalid_map, &invalid_map> m1;
-    hb_hashmap_t<hb_map_t, hb_map_t, std::nullptr_t, std::nullptr_t, nullptr, nullptr> m2;
+    hb_hashmap_t<hb_map_t, hb_map_t, const hb_map_t *, &invalid_map> m1;
+    hb_hashmap_t<hb_map_t, hb_map_t, std::nullptr_t, nullptr> m2;
 
     m1.set (hb_map_t (), hb_map_t {});
     m2.set (hb_map_t (), hb_map_t {});
@@ -177,8 +177,8 @@ main (int argc, char **argv)
 
   /* Test hashing sets. */
   {
-    hb_hashmap_t<hb_set_t, hb_set_t, const hb_set_t *, const hb_set_t *, &invalid_set, &invalid_set> m1;
-    hb_hashmap_t<hb_set_t, hb_set_t, std::nullptr_t, std::nullptr_t, nullptr, nullptr> m2;
+    hb_hashmap_t<hb_set_t, hb_set_t, const hb_set_t *, &invalid_set> m1;
+    hb_hashmap_t<hb_set_t, hb_set_t, std::nullptr_t, nullptr> m2;
 
     m1.set (hb_set_t (), hb_set_t ());
     m2.set (hb_set_t (), hb_set_t ());
@@ -200,8 +200,8 @@ main (int argc, char **argv)
   {
     using vector_t = hb_vector_t<unsigned>;
 
-    hb_hashmap_t<vector_t, vector_t, const vector_t *, const vector_t *, &invalid_vector, &invalid_vector> m1;
-    hb_hashmap_t<vector_t, vector_t, std::nullptr_t, std::nullptr_t, nullptr, nullptr> m2;
+    hb_hashmap_t<vector_t, vector_t, const vector_t *, &invalid_vector> m1;
+    hb_hashmap_t<vector_t, vector_t, std::nullptr_t, nullptr> m2;
 
     m1.set (vector_t (), vector_t ());
     m2.set (vector_t (), vector_t ());

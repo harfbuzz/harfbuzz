@@ -35,9 +35,7 @@
  */
 
 template <typename K, typename V,
-	  typename k_invalid_t = K,
 	  typename v_invalid_t = V,
-	  k_invalid_t kINVALID = std::is_pointer<K>::value ? 0 : std::is_signed<K>::value ? hb_int_min (K) : (K) -1,
 	  v_invalid_t vINVALID = std::is_pointer<V>::value ? 0 : std::is_signed<V>::value ? hb_int_min (V) : (V) -1>
 struct hb_hashmap_t
 {
@@ -401,15 +399,11 @@ struct hb_hashmap_t
 struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
 			       hb_codepoint_t,
 			       hb_codepoint_t,
-			       hb_codepoint_t,
-			       HB_MAP_VALUE_INVALID,
 			       HB_MAP_VALUE_INVALID>
 {
   using hashmap = hb_hashmap_t<hb_codepoint_t,
 			       hb_codepoint_t,
 			       hb_codepoint_t,
-			       hb_codepoint_t,
-			       HB_MAP_VALUE_INVALID,
 			       HB_MAP_VALUE_INVALID>;
 
   ~hb_map_t () = default;

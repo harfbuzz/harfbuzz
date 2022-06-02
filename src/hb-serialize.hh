@@ -720,8 +720,7 @@ struct hb_serialize_context_t
 
   /* Map view of packed objects. */
   hb_hashmap_t<const object_t *, objidx_t,
-	       const object_t *, objidx_t,
-	       nullptr, 0> packed_map;
+	       objidx_t, 0> packed_map;
 };
 
 #endif /* HB_SERIALIZE_HH */
