@@ -106,5 +106,7 @@ main ()
   pb.set_user_data (&key, b, nullptr, true);
   (void) pb.get_user_data (&key);
 
+  hb::unique_ptr<hb_buffer_t> pb5 {pb3.reference ()};
+
   return pb == pb.get_empty () || pb == pb2;
 }

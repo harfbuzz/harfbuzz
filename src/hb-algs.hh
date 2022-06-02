@@ -247,6 +247,11 @@ struct
   {
     return v.get () ? v.get ()->hash () : 0;
   }
+  template <typename T> constexpr uint32_t
+  impl (const hb::unique_ptr<T>& v, hb_priority<1>) const
+  {
+    return v.get () ? v.get ()->hash () : 0;
+  }
 
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<0>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))
