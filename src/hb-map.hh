@@ -213,11 +213,24 @@ struct hb_hashmap_t
   /* Has interface. */
   typedef V value_t;
   value_t operator [] (K k) const { return get (k); }
-  bool has (K k, V *vp = nullptr) const
+  bool has (K key, V *vp = nullptr) const
   {
-    const V &v = (*this)[k];
-    if (vp) *vp = v;
-    return v != item_t::default_value (); // TODO
+    if (unlikely (!items))
+    {
+      if (vp) *vp = item_t::default_value ();
+      return false;
+    }
+    unsigned int i = bucket_for (key);
+    if (items[i].is_real () && items[i] == key)
+    {
+      if (vp) *vp = items[i].value;
+      return true;
+    }
+    else
+    {
+      if (vp) *vp = item_t::default_value ();
+      return false;
+    }
   }
   /* Projection. */
   V operator () (K k) const { return get (k); }
