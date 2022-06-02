@@ -88,8 +88,6 @@ struct shared_ptr
 template<typename T> struct is_shared_ptr : std::false_type {};
 template<typename T> struct is_shared_ptr<shared_ptr<T>> : std::true_type {};
 
-// TODO Implement hash<> and atomic<>
-
 template <typename T,
 	  T * (*_get_empty) (void),
 	  T * (*_reference) (T *),
@@ -134,6 +132,19 @@ HB_DEFINE_VTABLE (unicode_funcs);
 
 
 } // namespace hb
+
+template<typename T>
+struct std::hash<hb::shared_ptr<T>>
+{
+    std::size_t operator()(const hb::shared_ptr<T>& v) const noexcept
+    {
+        std::size_t h = std::hash<decltype (v.get ())>{}(v.get ());
+        return h;
+    }
+};
+
+// TODO Implement atomic<>
+
 
 #endif /* __cplusplus */
 
