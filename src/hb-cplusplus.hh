@@ -59,7 +59,7 @@ struct shared_ptr
   shared_ptr (shared_ptr &&o) : p (o.p) { o.p = nullptr; }
   shared_ptr& operator = (const shared_ptr &o) { if (p != o.p) { destroy (); p = o.p; reference (); } return *this; }
   shared_ptr& operator = (shared_ptr &&o) { destroy (); p = o.p; o.p = nullptr; return *this; }
-  ~shared_ptr () { v::destroy (p); }
+  ~shared_ptr () { v::destroy (p); p = nullptr; }
 
   T* get() const { return p; }
 
