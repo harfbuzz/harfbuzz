@@ -32,6 +32,7 @@ HB_END_DECLS
 
 #ifdef __cplusplus
 
+#include <functional>
 #include <utility>
 
 #if 0
@@ -142,8 +143,6 @@ struct std::hash<hb::shared_ptr<T>>
         return h;
     }
 };
-
-// TODO Implement atomic<>
 
 
 #endif /* __cplusplus */
