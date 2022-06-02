@@ -49,9 +49,10 @@ struct vtable;
 template <typename T>
 struct shared_ptr
 {
+  using element_type = T;
+
   using v = vtable<T>;
 
-  shared_ptr (std::nullptr_t) : p (nullptr) {}
   explicit shared_ptr (T *p = nullptr) : p (p) {}
   shared_ptr (const shared_ptr &o) : p (v::reference (o.p)) {}
   shared_ptr (shared_ptr &&o) : p (o.p) { o.p = nullptr; }
@@ -83,6 +84,11 @@ struct shared_ptr
   private:
   T *p;
 };
+
+template<typename T> struct is_shared_ptr : std::false_type {};
+template<typename T> struct is_shared_ptr<shared_ptr<T>> : std::true_type {};
+
+// TODO Implement hash<> and atomic<>
 
 template <typename T,
 	  T * (*_get_empty) (void),
