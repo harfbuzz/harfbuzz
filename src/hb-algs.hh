@@ -240,16 +240,16 @@ struct
   private:
 
   template <typename T> constexpr auto
-  impl (const T& v, hb_priority<2>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
-
-  template <typename T> constexpr auto
-  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))
+  impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, hb_deref (v).hash ())
 
   template <typename T> constexpr uint32_t
-  impl (const hb::shared_ptr<T>& v, hb_priority<0>) const
+  impl (const hb::shared_ptr<T>& v, hb_priority<1>) const
   {
-    return (uint32_t) (intptr_t) v.get () * 2654435761u;
+    return (uint32_t) (intptr_t) v.get ()->hash ();
   }
+
+  template <typename T> constexpr auto
+  impl (const T& v, hb_priority<0>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))
 
   public:
 
