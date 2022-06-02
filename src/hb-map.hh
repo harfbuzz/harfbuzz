@@ -86,7 +86,6 @@ struct hb_hashmap_t
     {
       new (std::addressof (key)) K ();
       new (std::addressof (value)) V ();
-      value = default_value ();
       hash = 0;
       is_used_ = false;
       is_tombstone_ = false;
