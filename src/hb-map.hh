@@ -39,7 +39,6 @@ template <typename K, typename V,
 struct hb_hashmap_t
 {
   hb_hashmap_t ()  { init (); }
-  hb_hashmap_t (std::nullptr_t) : hb_hashmap_t () {}
   ~hb_hashmap_t () { fini (); }
 
   hb_hashmap_t (const hb_hashmap_t& o) : hb_hashmap_t () { resize (population); hb_copy (o, *this); }
@@ -409,7 +408,6 @@ struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
 
   ~hb_map_t () = default;
   hb_map_t () : hashmap () {}
-  hb_map_t (std::nullptr_t) : hb_map_t () {}
   hb_map_t (const hb_map_t &o) : hashmap ((hashmap &) o) {}
   hb_map_t (hb_map_t &&o) : hashmap (std::move ((hashmap &) o)) {}
   hb_map_t& operator= (const hb_map_t&) = default;
