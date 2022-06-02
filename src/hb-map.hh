@@ -68,11 +68,11 @@ struct hb_hashmap_t
   struct item_t
   {
     K key;
-    uint32_t hash;
+    uint32_t hash : 30;
+    uint32_t is_used_ : 1;
+    uint32_t is_tombstone_ : 1;
     V value;
 
-    bool is_used_;
-    bool is_tombstone_;
 
 
     bool is_used () const { return is_used_; }
@@ -330,6 +330,7 @@ struct hb_hashmap_t
 
   unsigned int bucket_for_hash (K key, uint32_t hash) const
   {
+    hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
     unsigned int step = 0;
     unsigned int tombstone = (unsigned) -1;
