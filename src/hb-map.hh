@@ -35,8 +35,7 @@
  */
 
 template <typename K, typename V,
-	  typename v_invalid_t = V,
-	  v_invalid_t vINVALID = std::is_pointer<V>::value ? 0 : std::is_signed<V>::value ? hb_int_min (V) : (V) -1>
+	  bool minus_one = false>
 struct hb_hashmap_t
 {
   hb_hashmap_t ()  { init (); }
@@ -71,19 +70,24 @@ struct hb_hashmap_t
     uint32_t is_tombstone_ : 1;
     V value;
 
-
-
     bool is_used () const { return is_used_; }
     void set_used (bool is_used) { is_used_ = is_used; }
     bool is_tombstone () const { return is_tombstone_; }
     void set_tombstone (bool is_tombstone) { is_tombstone_ = is_tombstone; }
     bool is_real () const { return is_used_ && !is_tombstone_; }
 
+    template <bool v = minus_one,
+	      hb_enable_if (v == false)>
+    static V default_value () { return V(); };
+    template <bool v = minus_one,
+	      hb_enable_if (v == true)>
+    static V default_value () { return V(-1); };
+
     void clear ()
     {
       new (std::addressof (key)) K ();
       new (std::addressof (value)) V ();
-      value = hb_coerce<V> (vINVALID);
+      value = default_value ();
       hash = 0;
       is_used_ = false;
       is_tombstone_ = false;
@@ -200,12 +204,12 @@ struct hb_hashmap_t
 
   V get (K key) const
   {
-    if (unlikely (!items)) return hb_coerce<V> (vINVALID);
+    if (unlikely (!items)) return item_t::default_value ();
     unsigned int i = bucket_for (key);
-    return items[i].is_real () && items[i] == key ? items[i].value : hb_coerce<V> (vINVALID);
+    return items[i].is_real () && items[i] == key ? items[i].value : item_t::default_value ();
   }
 
-  void del (K key) { set_with_hash (key, hb_hash (key), hb_coerce<V> (vINVALID), true); }
+  void del (K key) { set_with_hash (key, hb_hash (key), item_t::default_value (), true); }
 
   /* Has interface. */
   typedef V value_t;
@@ -214,8 +218,7 @@ struct hb_hashmap_t
   {
     const V &v = (*this)[k];
     if (vp) *vp = v;
-    const V vinv = hb_coerce<V> (vINVALID);
-    return v != vinv;
+    return v != item_t::default_value (); // TODO
   }
   /* Projection. */
   V operator () (K k) const { return get (k); }
@@ -398,13 +401,11 @@ struct hb_hashmap_t
 
 struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
 			       hb_codepoint_t,
-			       hb_codepoint_t,
-			       HB_MAP_VALUE_INVALID>
+			       true>
 {
   using hashmap = hb_hashmap_t<hb_codepoint_t,
 			       hb_codepoint_t,
-			       hb_codepoint_t,
-			       HB_MAP_VALUE_INVALID>;
+			       true>;
 
   ~hb_map_t () = default;
   hb_map_t () : hashmap () {}
