@@ -198,7 +198,7 @@ struct hb_hashmap_t
     return true;
   }
 
-  bool set (K key, const V& value) { return set_with_hash (key, hb_hash (key), value); }
+  bool set (K key, const V &value) { return set_with_hash (key, hb_hash (key), value); }
   bool set (K key, V&& value) { return set_with_hash (key, hb_hash (key), std::move (value)); }
 
   V get (K key) const
