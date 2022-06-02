@@ -154,13 +154,10 @@ main (int argc, char **argv)
     hb_hashmap_t<hb_map_t, hb_map_t> m1;
 
     m1.set (hb_map_t (), hb_map_t {});
-
     m1.set (hb_map_t (), hb_map_t {pair (1u, 2u)});
-
     m1.set (hb_map_t {pair (1u, 2u)}, hb_map_t {pair (2u, 3u)});
 
     assert (m1.get (hb_map_t ()) == hb_map_t {pair (1u, 2u)});
-
     assert (m1.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
   }
 
@@ -169,13 +166,10 @@ main (int argc, char **argv)
     hb_hashmap_t<hb_set_t, hb_set_t> m1;
 
     m1.set (hb_set_t (), hb_set_t ());
-
     m1.set (hb_set_t (), hb_set_t {1});
-
     m1.set (hb_set_t {1, 1000}, hb_set_t {2});
 
     assert (m1.get (hb_set_t ()) == hb_set_t {1});
-
     assert (m1.get (hb_set_t {1000, 1}) == hb_set_t {2});
   }
 
@@ -186,13 +180,10 @@ main (int argc, char **argv)
     hb_hashmap_t<vector_t, vector_t> m1;
 
     m1.set (vector_t (), vector_t ());
-
     m1.set (vector_t (), vector_t {1});
-
     m1.set (vector_t {1}, vector_t {2});
 
     assert (m1.get (vector_t ()) == vector_t {1});
-
     assert (m1.get (vector_t {1}) == vector_t {2});
   }
 
