@@ -74,7 +74,7 @@ struct shared_ptr
   bool operator != (const shared_ptr &o) { return p != o.p; }
 
   static T* get_empty() { return v::get_empty (); }
-  void reference() { v::reference (p); }
+  T* reference() { return v::reference (p); }
   void destroy() { v::destroy (p); }
   void set_user_data (hb_user_data_key_t *key,
 		      void *value,
