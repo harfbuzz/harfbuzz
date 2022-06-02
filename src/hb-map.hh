@@ -84,7 +84,6 @@ struct hb_hashmap_t
     void clear ()
     {
       new (std::addressof (key)) K ();
-      key = hb_coerce<K> (kINVALID);
       new (std::addressof (value)) V ();
       value = hb_coerce<V> (vINVALID);
       hash = 0;
@@ -295,8 +294,6 @@ struct hb_hashmap_t
   bool set_with_hash (K key, uint32_t hash, VV&& value, bool is_delete=false)
   {
     if (unlikely (!successful)) return false;
-    const K kinv = hb_coerce<K> (kINVALID);
-    if (unlikely (key == kinv)) return true;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
     unsigned int i = bucket_for_hash (key, hash);
 

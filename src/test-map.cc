@@ -168,9 +168,8 @@ main (int argc, char **argv)
     m1.set (hb_map_t {pair (1u, 2u)}, hb_map_t {pair (2u, 3u)});
     m2.set (hb_map_t {pair (1u, 2u)}, hb_map_t {pair (2u, 3u)});
 
-    /* Cannot override empty map. */
-    assert (m1.get (hb_map_t ()) == hb_map_t ());
-    assert (m2.get (hb_map_t ()) == hb_map_t ());
+    assert (m1.get (hb_map_t ()) == hb_map_t {pair (1u, 2u)});
+    assert (m2.get (hb_map_t ()) == hb_map_t {pair (1u, 2u)});
 
     assert (m1.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
     assert (m2.get (hb_map_t {pair (1u, 2u)}) == hb_map_t {pair (2u, 3u)});
@@ -190,9 +189,8 @@ main (int argc, char **argv)
     m1.set (hb_set_t {1, 1000}, hb_set_t {2});
     m2.set (hb_set_t {1, 1000}, hb_set_t {2});
 
-    /* Cannot override empty set. */
-    assert (m1.get (hb_set_t ()) == hb_set_t ());
-    assert (m2.get (hb_set_t ()) == hb_set_t ());
+    assert (m1.get (hb_set_t ()) == hb_set_t {1});
+    assert (m2.get (hb_set_t ()) == hb_set_t {1});
 
     assert (m1.get (hb_set_t {1000, 1}) == hb_set_t {2});
     assert (m2.get (hb_set_t {1000, 1}) == hb_set_t {2});
@@ -214,9 +212,8 @@ main (int argc, char **argv)
     m1.set (vector_t {1}, vector_t {2});
     m2.set (vector_t {1}, vector_t {2});
 
-    /* Cannot override empty vector. */
-    assert (m1.get (vector_t ()) == vector_t ());
-    assert (m2.get (vector_t ()) == vector_t ());
+    assert (m1.get (vector_t ()) == vector_t {1});
+    assert (m2.get (vector_t ()) == vector_t {1});
 
     assert (m1.get (vector_t {1}) == vector_t {2});
     assert (m2.get (vector_t {1}) == vector_t {2});
