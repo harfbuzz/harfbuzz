@@ -245,14 +245,6 @@ struct
   template <typename T> constexpr auto
   impl (const T& v, hb_priority<1>) const HB_RETURN (uint32_t, std::hash<hb_decay<decltype (hb_deref (v))>>{} (hb_deref (v)))
 
-  template <typename T,
-	    hb_enable_if (std::is_integral<T>::value)> constexpr uint32_t
-  impl (const T& v, hb_priority<0>) const
-  {
-    /* Knuth's multiplicative method: */
-    return (uint32_t) v * 2654435761u;
-  }
-
   template <typename T> constexpr uint32_t
   impl (const hb::shared_ptr<T>& v, hb_priority<0>) const
   {
