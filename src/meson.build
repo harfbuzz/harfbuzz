@@ -718,6 +718,7 @@ if get_option('tests').enabled()
 
   env = environment()
   env.set('srcdir', meson.current_source_dir())
+  env.set('base_srcdir', meson.source_root())
   env.set('builddir', meson.current_build_dir())
   env.set('libs', meson.current_build_dir()) # TODO: Merge this with builddir after autotools removal
   HBSOURCES = []
