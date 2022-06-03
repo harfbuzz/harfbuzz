@@ -25,7 +25,6 @@ EXTRA_DIST += \
 	hb-unicode-prettyname \
 	record-test.sh \
 	run-tests.py \
-	texts/in-house \
 	$(NULL)
 
 # TODO Figure out Python stuff
