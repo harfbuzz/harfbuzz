@@ -371,7 +371,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
     do_thai_pua_shaping (plan, buffer, font);
 }
 
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_thai =
+const hb_ot_shaper_t _hb_ot_shaper_thai =
 {
   nullptr, /* collect_features */
   nullptr, /* override_features */

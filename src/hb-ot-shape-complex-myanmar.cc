@@ -274,7 +274,7 @@ reorder_myanmar (const hb_ot_shape_plan_t *plan,
 }
 
 
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar =
+const hb_ot_shaper_t _hb_ot_shaper_myanmar =
 {
   collect_features_myanmar,
   nullptr, /* override_features */
@@ -296,7 +296,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar =
 /* Ugly Zawgyi encoding.
  * Disable all auto processing.
  * https://github.com/harfbuzz/harfbuzz/issues/1162 */
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_myanmar_zawgyi =
+const hb_ot_shaper_t _hb_ot_shaper_myanmar_zawgyi =
 {
   nullptr, /* collect_features */
   nullptr, /* override_features */

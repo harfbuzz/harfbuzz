@@ -1548,7 +1548,7 @@ compose_indic (const hb_ot_shape_normalize_context_t *c,
 }
 
 
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_indic =
+const hb_ot_shaper_t _hb_ot_shaper_indic =
 {
   collect_features_indic,
   override_features_indic,
