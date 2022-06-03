@@ -174,7 +174,7 @@ HB_OT_SHAPERS_IMPLEMENT_SHAPERS
 
 
 static inline const hb_ot_shaper_t *
-hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
+hb_ot_shaper_categorize (const hb_ot_shape_planner_t *planner)
 {
   switch ((hb_tag_t) planner->props.script)
   {
