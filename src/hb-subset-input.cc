@@ -140,6 +140,15 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('r', 't', 'l', 'a'),
     HB_TAG ('r', 't', 'l', 'm'),
 
+    //random
+    HB_TAG ('r', 'a', 'n', 'd'),
+
+    //private
+    HB_TAG ('H', 'a', 'r', 'f'),
+    HB_TAG ('H', 'A', 'R', 'F'),
+    HB_TAG ('B', 'u', 'z', 'z'),
+    HB_TAG ('B', 'U', 'Z', 'Z'),
+
     //Complex shapers
     //arabic
     HB_TAG ('i', 'n', 'i', 't'),
@@ -152,6 +161,7 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('c', 's', 'w', 'h'),
     HB_TAG ('m', 's', 'e', 't'),
     HB_TAG ('s', 't', 'c', 'h'),
+    HB_TAG ('j', 'a', 'l', 't'), // HarfBuzz doesn't use; others might
 
     //hangul
     HB_TAG ('l', 'j', 'm', 'o'),
