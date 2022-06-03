@@ -86,7 +86,7 @@ hb_ot_shape_planner_t::hb_ot_shape_planner_t (hb_face_t                     *fac
 						, apply_morx (_hb_apply_morx (face, props))
 #endif
 {
-  shaper = hb_ot_shape_complex_categorize (this);
+  shaper = hb_ot_shaper_categorize (this);
 
   script_zero_marks = shaper->zero_width_marks != HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE;
   script_fallback_mark_positioning = shaper->fallback_position;
