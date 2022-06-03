@@ -23,6 +23,7 @@ TESTS = \
 	tests/fallback-positioning.tests \
 	tests/glyph-props-no-gdef.tests \
 	tests/hangul-jamo.tests \
+	tests/hebrew-diacritics.tests \
 	tests/hyphens.tests \
 	tests/indic-consonant-with-stacker.tests \
 	tests/indic-decompose.tests \
