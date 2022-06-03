@@ -1,6 +1,5 @@
 /*
- * Copyright © 2015  Mozilla Foundation.
- * Copyright © 2015  Google, Inc.
+ * Copyright © 2021  Behdad Esfahbod.
  *
  *  This is part of HarfBuzz, a text shaping library.
  *
@@ -21,30 +20,23 @@
  * FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS
  * ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
- *
- * Mozilla Author(s): Jonathan Kew
- * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPER_ARABIC_HH
-#define HB_OT_SHAPER_ARABIC_HH
+#ifndef HB_OT_SHAPER_SYLLABIC_HH
+#define HB_OT_SHAPER_SYLLABIC_HH
 
 #include "hb.hh"
 
-#include "hb-ot-shape-complex.hh"
+#include "hb-ot-shaper.hh"
 
-
-struct arabic_shape_plan_t;
-
-HB_INTERNAL void *
-data_create_arabic (const hb_ot_shape_plan_t *plan);
 
 HB_INTERNAL void
-data_destroy_arabic (void *data);
+hb_syllabic_insert_dotted_circles (hb_font_t *font,
+				   hb_buffer_t *buffer,
+				   unsigned int broken_syllable_type,
+				   unsigned int dottedcircle_category,
+				   int repha_category = -1,
+				   int dottedcircle_position = -1);
 
-HB_INTERNAL void
-setup_masks_arabic_plan (const arabic_shape_plan_t *arabic_plan,
-			 hb_buffer_t               *buffer,
-			 hb_script_t                script);
 
-#endif /* HB_OT_SHAPER_ARABIC_HH */
+#endif /* HB_OT_SHAPER_SYLLABIC_HH */

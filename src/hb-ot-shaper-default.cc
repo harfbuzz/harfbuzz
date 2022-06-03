@@ -28,7 +28,7 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex.hh"
+#include "hb-ot-shaper.hh"
 
 
 const hb_ot_shaper_t _hb_ot_shaper_default =

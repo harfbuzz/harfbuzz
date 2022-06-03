@@ -37,7 +37,7 @@
 #include "hb-shaper-impl.hh"
 
 #include "hb-ot-shape.hh"
-#include "hb-ot-shape-complex.hh"
+#include "hb-ot-shaper.hh"
 #include "hb-ot-shape-fallback.hh"
 #include "hb-ot-shape-normalize.hh"
 

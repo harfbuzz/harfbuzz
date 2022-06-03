@@ -28,8 +28,8 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex-myanmar.hh"
-#include "hb-ot-shape-complex-myanmar-machine.hh"
+#include "hb-ot-shaper-myanmar.hh"
+#include "hb-ot-shaper-myanmar-machine.hh"
 
 
 /*

@@ -28,8 +28,8 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex-khmer.hh"
-#include "hb-ot-shape-complex-khmer-machine.hh"
+#include "hb-ot-shaper-khmer.hh"
+#include "hb-ot-shaper-khmer-machine.hh"
 #include "hb-ot-layout.hh"
 
 

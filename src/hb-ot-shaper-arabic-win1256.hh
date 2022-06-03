@@ -342,7 +342,7 @@ OT_TABLE_END
 #include "hb.hh" /* Make check-includes.sh happy. */
 #endif
 #ifdef OT_MEASURE
-#include "hb-ot-shape-complex-arabic-win1256.hh"
+#include "hb-ot-shaper-arabic-win1256.hh"
 #endif
 
 #define HB_OT_SHAPER_ARABIC_WIN1256_HH

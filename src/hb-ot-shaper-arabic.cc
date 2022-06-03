@@ -28,7 +28,7 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex-arabic.hh"
+#include "hb-ot-shaper-arabic.hh"
 #include "hb-ot-shape.hh"
 
 
@@ -81,7 +81,7 @@ enum hb_arabic_joining_type_t {
   JOINING_TYPE_X = 8  /* means: use general-category to choose between U or T. */
 };
 
-#include "hb-ot-shape-complex-arabic-table.hh"
+#include "hb-ot-shaper-arabic-table.hh"
 
 static unsigned int get_joining_type (hb_codepoint_t u, hb_unicode_general_category_t gen_cat)
 {
@@ -240,7 +240,7 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   map->enable_feature (HB_TAG('m','s','e','t'));
 }
 
-#include "hb-ot-shape-complex-arabic-fallback.hh"
+#include "hb-ot-shaper-arabic-fallback.hh"
 
 struct arabic_shape_plan_t
 {

@@ -417,7 +417,7 @@ print ("#define HB_OT_SHAPER_USE_TABLE_HH")
 print ()
 print ('#include "hb.hh"')
 print ()
-print ('#include "hb-ot-shape-complex-use-machine.hh"')
+print ('#include "hb-ot-shaper-use-machine.hh"')
 print ()
 
 total = 0

@@ -1,5 +1,5 @@
 
-#line 1 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 1 "hb-ot-shaper-myanmar-machine.rl"
 /*
  * Copyright © 2011,2012  Google, Inc.
  *
@@ -39,7 +39,7 @@ enum myanmar_syllable_type_t {
 };
 
 
-#line 43 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 43 "hb-ot-shaper-myanmar-machine.hh"
 #define myanmar_syllable_machine_ex_A 10u
 #define myanmar_syllable_machine_ex_As 18u
 #define myanmar_syllable_machine_ex_C 1u
@@ -68,7 +68,7 @@ enum myanmar_syllable_type_t {
 #define myanmar_syllable_machine_ex_ZWNJ 5u
 
 
-#line 72 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 72 "hb-ot-shaper-myanmar-machine.hh"
 static const unsigned char _myanmar_syllable_machine_trans_keys[] = {
 	1u, 33u, 3u, 33u, 5u, 29u, 5u, 8u, 5u, 29u, 3u, 25u, 5u, 25u, 5u, 25u, 
 	3u, 33u, 3u, 29u, 3u, 29u, 3u, 29u, 3u, 33u, 1u, 16u, 3u, 33u, 3u, 33u, 
@@ -355,11 +355,11 @@ static const int myanmar_syllable_machine_error = -1;
 static const int myanmar_syllable_machine_en_main = 0;
 
 
-#line 44 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 44 "hb-ot-shaper-myanmar-machine.rl"
 
 
 
-#line 102 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 102 "hb-ot-shaper-myanmar-machine.rl"
 
 
 #define found_syllable(syllable_type) \
@@ -378,7 +378,7 @@ find_syllables_myanmar (hb_buffer_t *buffer)
   int cs;
   hb_glyph_info_t *info = buffer->info;
   
-#line 382 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 382 "hb-ot-shaper-myanmar-machine.hh"
 	{
 	cs = myanmar_syllable_machine_start;
 	ts = 0;
@@ -386,7 +386,7 @@ find_syllables_myanmar (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 122 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 122 "hb-ot-shaper-myanmar-machine.rl"
 
 
   p = 0;
@@ -394,7 +394,7 @@ find_syllables_myanmar (hb_buffer_t *buffer)
 
   unsigned int syllable_serial = 1;
   
-#line 398 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 398 "hb-ot-shaper-myanmar-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -408,7 +408,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 412 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 412 "hb-ot-shaper-myanmar-machine.hh"
 	}
 
 	_keys = _myanmar_syllable_machine_trans_keys + (cs<<1);
@@ -427,38 +427,38 @@ _eof_trans:
 
 	switch ( _myanmar_syllable_machine_trans_actions[_trans] ) {
 	case 6:
-#line 94 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 94 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_consonant_syllable); }}
 	break;
 	case 4:
-#line 95 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 95 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_non_myanmar_cluster); }}
 	break;
 	case 10:
-#line 96 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 96 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_punctuation_cluster); }}
 	break;
 	case 8:
-#line 97 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 97 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_broken_cluster); }}
 	break;
 	case 3:
-#line 98 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 98 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_non_myanmar_cluster); }}
 	break;
 	case 5:
-#line 94 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 94 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p;p--;{ found_syllable (myanmar_consonant_syllable); }}
 	break;
 	case 7:
-#line 97 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 97 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p;p--;{ found_syllable (myanmar_broken_cluster); }}
 	break;
 	case 9:
-#line 98 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 98 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p;p--;{ found_syllable (myanmar_non_myanmar_cluster); }}
 	break;
-#line 462 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 462 "hb-ot-shaper-myanmar-machine.hh"
 	}
 
 _again:
@@ -467,7 +467,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 471 "hb-ot-shape-complex-myanmar-machine.hh"
+#line 471 "hb-ot-shaper-myanmar-machine.hh"
 	}
 
 	if ( ++p != pe )
@@ -483,7 +483,7 @@ _again:
 
 	}
 
-#line 130 "hb-ot-shape-complex-myanmar-machine.rl"
+#line 130 "hb-ot-shaper-myanmar-machine.rl"
 
 }
 

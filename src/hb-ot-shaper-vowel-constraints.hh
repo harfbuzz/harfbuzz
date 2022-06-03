@@ -29,7 +29,7 @@
 
 #include "hb.hh"
 
-#include "hb-ot-shape-complex.hh"
+#include "hb-ot-shaper.hh"
 
 HB_INTERNAL void
 _hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan,
