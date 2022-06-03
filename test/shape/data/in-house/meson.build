@@ -66,6 +66,7 @@ in_house_tests = [
   'uniscribe.tests',
   'unsafe-to-concat.tests',
   'use-indic3.tests',
+  'use-javanese.tests',
   'use-marchen.tests',
   'use-syllable.tests',
   'use-vowel-letter-spoofing.tests',
