@@ -35,7 +35,7 @@
 /* buffer var allocations */
 #define arabic_shaping_action() ot_shaper_var_u8_auxiliary() /* arabic shaping action */
 
-#define HB_BUFFER_SCRATCH_FLAG_ARABIC_HAS_STCH HB_BUFFER_SCRATCH_FLAG_COMPLEX0
+#define HB_BUFFER_SCRATCH_FLAG_ARABIC_HAS_STCH HB_BUFFER_SCRATCH_FLAG_SHAPER0
 
 /* See:
  * https://github.com/harfbuzz/harfbuzz/commit/6e6f82b6f3dde0fc6c3c7d991d9ec6cfff57823d#commitcomment-14248516 */
