@@ -659,8 +659,8 @@ struct LangSys
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    unsigned v;
-    out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? v : 0xFFFFu;
+    const unsigned *v;
+    out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? *v : 0xFFFFu;
 
     if (!l->visitFeatureIndex (featureIndex.len))
       return_trace (false);

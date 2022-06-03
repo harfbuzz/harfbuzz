@@ -111,8 +111,7 @@ struct hb_closure_context_t :
 
       if (!done_lookups_glyph_set->has (lookup_index))
       {
-	hb::shared_ptr<hb_set_t> empty_set {hb_set_create ()};
-	if (unlikely (!done_lookups_glyph_set->set (lookup_index, empty_set)))
+	if (unlikely (!done_lookups_glyph_set->set (lookup_index, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
 	  return true;
       }
 
@@ -168,7 +167,7 @@ struct hb_closure_context_t :
   hb_closure_context_t (hb_face_t *face_,
 			hb_set_t *glyphs_,
 			hb_map_t *done_lookups_glyph_count_,
-			hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *done_lookups_glyph_set_,
+			hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *done_lookups_glyph_set_,
 			unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
@@ -192,7 +191,7 @@ struct hb_closure_context_t :
 
   private:
   hb_map_t *done_lookups_glyph_count;
-  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *done_lookups_glyph_set;
+  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *done_lookups_glyph_set;
   unsigned int lookup_count = 0;
 };
 

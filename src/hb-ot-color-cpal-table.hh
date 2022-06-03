@@ -97,10 +97,10 @@ struct CPALV1Tail
       c->push ();
       for (const auto _ : colorLabels)
       {
-	hb_codepoint_t v;
+	const hb_codepoint_t *v;
         if (!color_index_map->has (_, &v)) continue;
         NameID new_color_idx;
-	new_color_idx = v;
+	new_color_idx = *v;
         if (!c->copy<NameID> (new_color_idx))
         {
           c->pop_discard ();

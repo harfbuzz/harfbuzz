@@ -195,6 +195,14 @@ main (int argc, char **argv)
     m.get (hb::shared_ptr<hb_set_t> ());
     m.get (hb::shared_ptr<hb_set_t> (hb_set_get_empty ()));
   }
+  /* Test hb::unique_ptr. */
+  hb_hash (hb::unique_ptr<hb_set_t> ());
+  {
+    hb_hashmap_t<hb::unique_ptr<hb_set_t>, hb::unique_ptr<hb_set_t>> m;
+
+    m.get (hb::unique_ptr<hb_set_t> ());
+    m.get (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
+  }
 
   return 0;
 }
