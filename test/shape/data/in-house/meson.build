@@ -7,6 +7,7 @@ in_house_tests = [
   'arabic-mark-attach.tests',
   'arabic-mark-order.tests',
   'arabic-normalization.tests',
+  'arabic-phags-pa.tests',
   'arabic-stch.tests',
   'automatic-fractions.tests',
   'cluster.tests',
