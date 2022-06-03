@@ -94,7 +94,7 @@ subgraph {
 
 	BUZZ;
 
-subgraph complexshapers {
+subgraph shapers {
 	subgraph cluster_arabic {
 		bgcolor="lightyellow"
 		label="Arabic, Syriac";
