@@ -61,9 +61,9 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
 
   hb_glyph_info_t dottedcircle = {0};
   dottedcircle.codepoint = 0x25CCu;
-  dottedcircle.complex_var_u8_category() = dottedcircle_category;
+  dottedcircle.ot_shaper_var_u8_category() = dottedcircle_category;
   if (dottedcircle_position != -1)
-    dottedcircle.complex_var_u8_auxiliary() = dottedcircle_position;
+    dottedcircle.ot_shaper_var_u8_auxiliary() = dottedcircle_position;
   dottedcircle.codepoint = dottedcircle_glyph;
 
   buffer->clear_output ();
@@ -87,7 +87,7 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
       {
 	while (buffer->idx < buffer->len && buffer->successful &&
 	       last_syllable == buffer->cur().syllable() &&
-	       buffer->cur().complex_var_u8_category() == (unsigned) repha_category)
+	       buffer->cur().ot_shaper_var_u8_category() == (unsigned) repha_category)
 	  (void) buffer->next_glyph ();
       }
 

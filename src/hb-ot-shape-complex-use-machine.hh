@@ -36,7 +36,7 @@
 #include "hb-ot-shape-complex-syllabic.hh"
 
 /* buffer var allocations */
-#define use_category() complex_var_u8_category()
+#define use_category() ot_shaper_var_u8_category()
 
 #define USE(Cat) use_syllable_machine_ex_##Cat
 
