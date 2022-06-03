@@ -3787,7 +3787,7 @@ struct GSUBGPOS
                                 hb_map_t *duplicate_feature_map /* OUT */) const
   {
     if (feature_indices->is_empty ()) return;
-    hb_hashmap_t<hb_tag_t, hb_set_t *> unique_features;
+    hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_set_t>> unique_features;
     //find out duplicate features after subset
     for (unsigned i : feature_indices->iter ())
     {
@@ -3795,16 +3795,9 @@ struct GSUBGPOS
       if (t == HB_MAP_VALUE_INVALID) continue;
       if (!unique_features.has (t))
       {
-        hb_set_t* indices = hb_set_create ();
-        if (unlikely (indices == hb_set_get_empty () ||
-                      !unique_features.set (t, indices)))
-        {
-          hb_set_destroy (indices);
-          for (auto _ : unique_features.iter ())
-            hb_set_destroy (_.second);
+        if (unlikely (!unique_features.set (t, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
           return;
-        }
-        if (unique_features.get (t))
+        if (unique_features.has (t))
           unique_features.get (t)->add (i);
         duplicate_feature_map->set (i, i);
         continue;
@@ -3849,9 +3842,6 @@ struct GSUBGPOS
         duplicate_feature_map->set (i, i);
       }
     }
-
-    for (auto _ : unique_features.iter ())
-      hb_set_destroy (_.second);
   }
 
   void prune_features (const hb_map_t *lookup_indices, /* IN */
