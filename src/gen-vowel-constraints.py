@@ -188,7 +188,7 @@ print ('_hb_preprocess_text_vowel_constraints (const hb_ot_shape_plan_t *plan HB
 print ('\t\t\t\t       hb_buffer_t              *buffer,')
 print ('\t\t\t\t       hb_font_t                *font HB_UNUSED)')
 print ('{')
-print ('#ifdef HB_NO_OT_SHAPE_COMPLEX_VOWEL_CONSTRAINTS')
+print ('#ifdef HB_NO_OT_SHAPER_VOWEL_CONSTRAINTS')
 print ('  return;')
 print ('#endif')
 print ('  if (buffer->flags & HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE)')

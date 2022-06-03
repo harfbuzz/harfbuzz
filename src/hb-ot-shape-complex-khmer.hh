@@ -24,8 +24,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_KHMER_HH
-#define HB_OT_SHAPE_COMPLEX_KHMER_HH
+#ifndef HB_OT_SHAPER_KHMER_HH
+#define HB_OT_SHAPER_KHMER_HH
 
 #include "hb.hh"
 
@@ -112,4 +112,4 @@ set_khmer_properties (hb_glyph_info_t &info)
 }
 
 
-#endif /* HB_OT_SHAPE_COMPLEX_KHMER_HH */
+#endif /* HB_OT_SHAPER_KHMER_HH */

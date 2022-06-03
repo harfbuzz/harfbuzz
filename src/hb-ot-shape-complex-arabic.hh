@@ -26,8 +26,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_HH
-#define HB_OT_SHAPE_COMPLEX_ARABIC_HH
+#ifndef HB_OT_SHAPER_ARABIC_HH
+#define HB_OT_SHAPER_ARABIC_HH
 
 #include "hb.hh"
 
@@ -47,4 +47,4 @@ setup_masks_arabic_plan (const arabic_shape_plan_t *arabic_plan,
 			 hb_buffer_t               *buffer,
 			 hb_script_t                script);
 
-#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_HH */
+#endif /* HB_OT_SHAPER_ARABIC_HH */

@@ -24,8 +24,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_FALLBACK_HH
-#define HB_OT_SHAPE_COMPLEX_ARABIC_FALLBACK_HH
+#ifndef HB_OT_SHAPER_ARABIC_FALLBACK_HH
+#define HB_OT_SHAPER_ARABIC_FALLBACK_HH
 
 #include "hb.hh"
 
@@ -345,4 +345,4 @@ arabic_fallback_plan_shape (arabic_fallback_plan_t *fallback_plan,
 }
 
 
-#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_FALLBACK_HH */
+#endif /* HB_OT_SHAPER_ARABIC_FALLBACK_HH */

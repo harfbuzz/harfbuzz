@@ -22,8 +22,8 @@
  * PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_SYLLABIC_HH
-#define HB_OT_SHAPE_COMPLEX_SYLLABIC_HH
+#ifndef HB_OT_SHAPER_SYLLABIC_HH
+#define HB_OT_SHAPER_SYLLABIC_HH
 
 #include "hb.hh"
 
@@ -39,4 +39,4 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
 				   int dottedcircle_position = -1);
 
 
-#endif /* HB_OT_SHAPE_COMPLEX_SYLLABIC_HH */
+#endif /* HB_OT_SHAPER_SYLLABIC_HH */

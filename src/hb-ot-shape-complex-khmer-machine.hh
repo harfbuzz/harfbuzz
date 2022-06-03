@@ -26,8 +26,8 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_KHMER_MACHINE_HH
-#define HB_OT_SHAPE_COMPLEX_KHMER_MACHINE_HH
+#ifndef HB_OT_SHAPER_KHMER_MACHINE_HH
+#define HB_OT_SHAPER_KHMER_MACHINE_HH
 
 #include "hb.hh"
 
@@ -393,4 +393,4 @@ _again:
 
 #undef found_syllable
 
-#endif /* HB_OT_SHAPE_COMPLEX_KHMER_MACHINE_HH */
+#endif /* HB_OT_SHAPER_KHMER_MACHINE_HH */
