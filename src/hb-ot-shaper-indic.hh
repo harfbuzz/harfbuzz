@@ -29,7 +29,7 @@
 
 #include "hb.hh"
 
-#include "hb-ot-shape-complex-syllabic.hh"
+#include "hb-ot-shaper-syllabic.hh"
 
 
 /* buffer var allocations */

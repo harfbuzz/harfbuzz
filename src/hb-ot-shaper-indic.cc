@@ -28,9 +28,9 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex-indic.hh"
-#include "hb-ot-shape-complex-indic-machine.hh"
-#include "hb-ot-shape-complex-vowel-constraints.hh"
+#include "hb-ot-shaper-indic.hh"
+#include "hb-ot-shaper-indic-machine.hh"
+#include "hb-ot-shaper-vowel-constraints.hh"
 #include "hb-ot-layout.hh"
 
 

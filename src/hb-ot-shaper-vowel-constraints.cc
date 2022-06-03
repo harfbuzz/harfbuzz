@@ -18,7 +18,7 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex-vowel-constraints.hh"
+#include "hb-ot-shaper-vowel-constraints.hh"
 
 static void
 _output_dotted_circle (hb_buffer_t *buffer)

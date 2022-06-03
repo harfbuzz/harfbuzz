@@ -31,7 +31,7 @@
 
 #include "hb.hh"
 
-#include "hb-ot-shape-complex-syllabic.hh"
+#include "hb-ot-shaper-syllabic.hh"
 
 /* buffer var allocations */
 #define use_category() ot_shaper_var_u8_category()

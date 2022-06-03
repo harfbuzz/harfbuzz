@@ -201,7 +201,7 @@ struct arabic_fallback_plan_t
 #endif
 
 #ifdef HB_WITH_WIN1256
-#include "hb-ot-shape-complex-arabic-win1256.hh"
+#include "hb-ot-shaper-arabic-win1256.hh"
 #endif
 
 struct ManifestLookup

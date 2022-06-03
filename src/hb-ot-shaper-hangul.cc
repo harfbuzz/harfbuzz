@@ -28,7 +28,7 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex.hh"
+#include "hb-ot-shaper.hh"
 
 
 /* Hangul shaper */

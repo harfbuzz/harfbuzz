@@ -26,7 +26,7 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shape-complex-syllabic.hh"
+#include "hb-ot-shaper-syllabic.hh"
 
 
 void
