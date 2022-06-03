@@ -1482,12 +1482,20 @@ struct SubtableUnicodesCache {
   SubtableUnicodesCache(const void* cmap_base)
       : base(cmap_base), cached_unicodes() {}
 
-  hb_set_t* set_for(const EncodingRecord* record)
+  hb_set_t* set_for (const EncodingRecord* record)
   {
-    if (!cached_unicodes.has ((intptr_t) record)) {
-      if (unlikely (!cached_unicodes.set ((intptr_t) record, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
+    if (!cached_unicodes.has ((intptr_t) record))
+    {
+      hb_set_t *s = hb_set_create ();
+      if (unlikely (s->in_error ()))
+	return hb_set_get_empty ();
+	
+      (base+record->subtable).collect_unicodes (s);
+
+      if (unlikely (!cached_unicodes.set ((intptr_t) record, hb::unique_ptr<hb_set_t> {s})))
         return hb_set_get_empty ();
-      (base+record->subtable).collect_unicodes (cached_unicodes.get ((intptr_t) record));
+
+      return s;
     }
     return cached_unicodes.get ((intptr_t) record);
   }
