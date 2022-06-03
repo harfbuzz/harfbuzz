@@ -31,6 +31,7 @@ in_house_tests = [
   'indic-init.tests',
   'indic-joiner-candrabindu.tests',
   'indic-joiners.tests',
+  'indic-malayalam-dot-reph.tests',
   'indic-old-spec.tests',
   'indic-pref-blocking.tests',
   'indic-script-extensions.tests',
