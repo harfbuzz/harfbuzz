@@ -109,14 +109,10 @@ struct hb_closure_context_t :
     {
       done_lookups_glyph_count->set (lookup_index, glyphs->get_population ());
 
-      if (!done_lookups_glyph_set->get (lookup_index))
+      if (!done_lookups_glyph_set->has (lookup_index))
       {
-	hb_set_t* empty_set = hb_set_create ();
-	if (unlikely (!done_lookups_glyph_set->set (lookup_index, empty_set)))
-	{
-	  hb_set_destroy (empty_set);
+	if (unlikely (!done_lookups_glyph_set->set (lookup_index, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
 	  return true;
-	}
       }
 
       hb_set_clear (done_lookups_glyph_set->get (lookup_index));
@@ -171,7 +167,7 @@ struct hb_closure_context_t :
   hb_closure_context_t (hb_face_t *face_,
 			hb_set_t *glyphs_,
 			hb_map_t *done_lookups_glyph_count_,
-			hb_hashmap_t<unsigned, hb_set_t *> *done_lookups_glyph_set_,
+			hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *done_lookups_glyph_set_,
 			unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
 			  face (face_),
 			  glyphs (glyphs_),
@@ -195,7 +191,7 @@ struct hb_closure_context_t :
 
   private:
   hb_map_t *done_lookups_glyph_count;
-  hb_hashmap_t<unsigned, hb_set_t *> *done_lookups_glyph_set;
+  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *done_lookups_glyph_set;
   unsigned int lookup_count = 0;
 };
 
@@ -3733,7 +3729,7 @@ struct GSUBGPOS
   }
 
   void prune_langsys (const hb_map_t *duplicate_feature_map,
-                      hb_hashmap_t<unsigned, hb_set_t *> *script_langsys_map,
+                      hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map,
                       hb_set_t       *new_feature_indexes /* OUT */) const
   {
     hb_prune_langsys_context_t c (this, script_langsys_map, duplicate_feature_map, new_feature_indexes);
@@ -3791,7 +3787,7 @@ struct GSUBGPOS
                                 hb_map_t *duplicate_feature_map /* OUT */) const
   {
     if (feature_indices->is_empty ()) return;
-    hb_hashmap_t<hb_tag_t, hb_set_t *> unique_features;
+    hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_set_t>> unique_features;
     //find out duplicate features after subset
     for (unsigned i : feature_indices->iter ())
     {
@@ -3799,16 +3795,9 @@ struct GSUBGPOS
       if (t == HB_MAP_VALUE_INVALID) continue;
       if (!unique_features.has (t))
       {
-        hb_set_t* indices = hb_set_create ();
-        if (unlikely (indices == hb_set_get_empty () ||
-                      !unique_features.set (t, indices)))
-        {
-          hb_set_destroy (indices);
-          for (auto _ : unique_features.iter ())
-            hb_set_destroy (_.second);
+        if (unlikely (!unique_features.set (t, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
           return;
-        }
-        if (unique_features.get (t))
+        if (unique_features.has (t))
           unique_features.get (t)->add (i);
         duplicate_feature_map->set (i, i);
         continue;
@@ -3853,9 +3842,6 @@ struct GSUBGPOS
         duplicate_feature_map->set (i, i);
       }
     }
-
-    for (auto _ : unique_features.iter ())
-      hb_set_destroy (_.second);
   }
 
   void prune_features (const hb_map_t *lookup_indices, /* IN */

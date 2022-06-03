@@ -43,7 +43,7 @@
 using OT::Layout::GSUB::GSUB;
 
 
-typedef hb_hashmap_t<unsigned, hb_set_t *> script_langsys_map;
+typedef hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> script_langsys_map;
 #ifndef HB_NO_SUBSET_CFF
 static inline void
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
@@ -630,9 +630,6 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 
   if (plan->gsub_langsys)
   {
-    for (auto _ : plan->gsub_langsys->iter ())
-      hb_set_destroy (_.second);
-
     hb_object_destroy (plan->gsub_langsys);
     plan->gsub_langsys->fini_shallow ();
     hb_free (plan->gsub_langsys);
@@ -640,9 +637,6 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
 
   if (plan->gpos_langsys)
   {
-    for (auto _ : plan->gpos_langsys->iter ())
-      hb_set_destroy (_.second);
-
     hb_object_destroy (plan->gpos_langsys);
     plan->gpos_langsys->fini_shallow ();
     hb_free (plan->gpos_langsys);

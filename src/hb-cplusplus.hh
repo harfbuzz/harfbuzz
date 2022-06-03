@@ -58,8 +58,8 @@ struct shared_ptr
   shared_ptr (const shared_ptr &o) : p (v::reference (o.p)) {}
   shared_ptr (shared_ptr &&o) : p (o.p) { o.p = nullptr; }
   shared_ptr& operator = (const shared_ptr &o) { if (p != o.p) { destroy (); p = o.p; reference (); } return *this; }
-  shared_ptr& operator = (shared_ptr &&o) { destroy (); p = o.p; o.p = nullptr; return *this; }
-  ~shared_ptr () { v::destroy (p); }
+  shared_ptr& operator = (shared_ptr &&o) { v::destroy (p); p = o.p; o.p = nullptr; return *this; }
+  ~shared_ptr () { v::destroy (p); p = nullptr; }
 
   T* get() const { return p; }
 
@@ -88,6 +88,38 @@ struct shared_ptr
 
 template<typename T> struct is_shared_ptr : std::false_type {};
 template<typename T> struct is_shared_ptr<shared_ptr<T>> : std::true_type {};
+
+template <typename T>
+struct unique_ptr
+{
+  using element_type = T;
+
+  using v = vtable<T>;
+
+  explicit unique_ptr (T *p = nullptr) : p (p) {}
+  unique_ptr (const unique_ptr &o) = delete;
+  unique_ptr (unique_ptr &&o) : p (o.p) { o.p = nullptr; }
+  unique_ptr& operator = (const unique_ptr &o) = delete;
+  unique_ptr& operator = (unique_ptr &&o) { v::destroy (p); p = o.p; o.p = nullptr; return *this; }
+  ~unique_ptr () { v::destroy (p); p = nullptr; }
+
+  T* get() const { return p; }
+  T* release () { T* v = p; p = nullptr; return v; }
+
+  void swap (unique_ptr &o) { std::swap (p, o.p); }
+  friend void swap (unique_ptr &a, unique_ptr &b) { std::swap (a.p, b.p); }
+
+  operator T * () const { return p; }
+  T& operator * () const { return *get (); }
+  T* operator -> () const { return get (); }
+  operator bool () { return p; }
+
+  private:
+  T *p;
+};
+
+template<typename T> struct is_unique_ptr : std::false_type {};
+template<typename T> struct is_unique_ptr<unique_ptr<T>> : std::true_type {};
 
 template <typename T,
 	  T * (*_get_empty) (void),
@@ -138,6 +170,16 @@ template<typename T>
 struct std::hash<hb::shared_ptr<T>>
 {
     std::size_t operator()(const hb::shared_ptr<T>& v) const noexcept
+    {
+        std::size_t h = std::hash<decltype (v.get ())>{}(v.get ());
+        return h;
+    }
+};
+
+template<typename T>
+struct std::hash<hb::unique_ptr<T>>
+{
+    std::size_t operator()(const hb::unique_ptr<T>& v) const noexcept
     {
         std::size_t h = std::hash<decltype (v.get ())>{}(v.get ());
         return h;

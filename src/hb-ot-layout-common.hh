@@ -102,7 +102,7 @@ static void ClassDef_remap_and_serialize (
 struct hb_prune_langsys_context_t
 {
   hb_prune_langsys_context_t (const void         *table_,
-                              hb_hashmap_t<unsigned, hb_set_t *> *script_langsys_map_,
+                              hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map_,
                               const hb_map_t     *duplicate_feature_map_,
                               hb_set_t           *new_collected_feature_indexes_)
       :table (table_),
@@ -122,7 +122,7 @@ struct hb_prune_langsys_context_t
 
   public:
   const void *table;
-  hb_hashmap_t<unsigned, hb_set_t *> *script_langsys_map;
+  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map;
   const hb_map_t     *duplicate_feature_map;
   hb_set_t           *new_feature_indexes;
 
@@ -162,14 +162,14 @@ struct hb_subset_layout_context_t :
   hb_subset_context_t *subset_context;
   const hb_tag_t table_tag;
   const hb_map_t *lookup_index_map;
-  const hb_hashmap_t<unsigned, hb_set_t *> *script_langsys_map;
+  const hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map;
   const hb_map_t *feature_index_map;
   unsigned cur_script_index;
 
   hb_subset_layout_context_t (hb_subset_context_t *c_,
 			      hb_tag_t tag_,
 			      hb_map_t *lookup_map_,
-			      hb_hashmap_t<unsigned, hb_set_t *> *script_langsys_map_,
+			      hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map_,
 			      hb_map_t *feature_index_map_) :
 				subset_context (c_),
 				table_tag (tag_),
@@ -659,8 +659,8 @@ struct LangSys
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    unsigned v;
-    out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? v : 0xFFFFu;
+    const unsigned *v;
+    out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? *v : 0xFFFFu;
 
     if (!l->visitFeatureIndex (featureIndex.len))
       return_trace (false);
@@ -723,12 +723,8 @@ struct Script
 
     if (!c->script_langsys_map->has (script_index))
     {
-      hb_set_t* empty_set = hb_set_create ();
-      if (unlikely (!c->script_langsys_map->set (script_index, empty_set)))
-      {
-	hb_set_destroy (empty_set);
+      if (unlikely (!c->script_langsys_map->set (script_index, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
 	return;
-      }
     }
 
     unsigned langsys_count = get_lang_sys_count ();

@@ -1476,27 +1476,26 @@ struct SubtableUnicodesCache {
 
  private:
   const void* base;
-  hb_hashmap_t<intptr_t, hb_set_t*> cached_unicodes;
+  hb_hashmap_t<intptr_t, hb::unique_ptr<hb_set_t>> cached_unicodes;
 
  public:
   SubtableUnicodesCache(const void* cmap_base)
       : base(cmap_base), cached_unicodes() {}
-  ~SubtableUnicodesCache()
-  {
-    for (hb_set_t* s : cached_unicodes.values()) {
-      hb_set_destroy (s);
-    }
-  }
 
-  hb_set_t* set_for(const EncodingRecord* record)
+  hb_set_t* set_for (const EncodingRecord* record)
   {
-    if (!cached_unicodes.has ((intptr_t) record)) {
-      hb_set_t* new_set = hb_set_create ();
-      if (!cached_unicodes.set ((intptr_t) record, new_set)) {
-        hb_set_destroy (new_set);
+    if (!cached_unicodes.has ((intptr_t) record))
+    {
+      hb_set_t *s = hb_set_create ();
+      if (unlikely (s->in_error ()))
+	return hb_set_get_empty ();
+	
+      (base+record->subtable).collect_unicodes (s);
+
+      if (unlikely (!cached_unicodes.set ((intptr_t) record, hb::unique_ptr<hb_set_t> {s})))
         return hb_set_get_empty ();
-      }
-      (base+record->subtable).collect_unicodes (cached_unicodes.get ((intptr_t) record));
+
+      return s;
     }
     return cached_unicodes.get ((intptr_t) record);
   }
