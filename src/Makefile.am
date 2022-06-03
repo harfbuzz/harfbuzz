@@ -437,6 +437,7 @@ endif
 
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
+	base_srcdir="$(srcdir)" \
 	builddir="$(builddir)" \
 	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \
 	HBSOURCES="$(HBSOURCES)" \
