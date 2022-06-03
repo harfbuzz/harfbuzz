@@ -19,6 +19,8 @@ if test "x$1" == 'x-o'; then
 	out=$1
 	shift
 fi
+hb_subset=$1
+shift
 hb_shape=$1
 shift
 fontfile=$1
@@ -27,6 +29,10 @@ if test "x${fontfile:0:1}" == 'x-'; then
 	exit 1
 fi
 shift
+if ! echo "$hb_subset" | grep -q 'subset'; then
+	echo "Specify hb-subset (or \"fonttools subset\"): got "$hb_subset"." >&2
+	exit 1
+fi
 if ! echo "$hb_shape" | grep -q 'hb-shape'; then
 	echo "Specify hb-shape (not hb-view, etc): got "$hb_shape"." >&2
 	exit 1
@@ -61,7 +67,7 @@ fi
 glyph_ids=`echo "$text" | $hb_shape $options --no-glyph-names --no-clusters --no-positions "$fontfile" | sed 's/[][]//g; s/|/,/g'`
 
 cp "$fontfile" "$dir/font.ttf"
-echo fonttools subset \
+echo $hb_subset \
 	--glyph-names \
 	--no-hinting \
 	--layout-features='*' \
@@ -69,7 +75,7 @@ echo fonttools subset \
 	--text="$text" \
 	--output-file="$dir/font.subset.ttf" \
 	"$dir/font.ttf"
-fonttools subset \
+$hb_subset \
 	--glyph-names \
 	--no-hinting \
 	--layout-features='*' \
