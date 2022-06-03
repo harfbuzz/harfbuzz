@@ -66,6 +66,7 @@ TESTS = \
 	tests/uniscribe.tests \
 	tests/unsafe-to-concat.tests \
 	tests/use-indic3.tests \
+	tests/use-javanese.tests \
 	tests/use-marchen.tests \
 	tests/use-syllable.tests \
 	tests/use-vowel-letter-spoofing.tests \
