@@ -62,6 +62,7 @@
 #include "hb-cplusplus.hh"
 
 #include <cassert>
+#include <functional>
 #include <utility>
 
 int
@@ -107,6 +108,17 @@ main ()
   (void) pb.get_user_data (&key);
 
   hb::unique_ptr<hb_buffer_t> pb5 {pb3.reference ()};
+
+
+  /* Test that shared_ptr / unique_ptr are std::hash'able, and that they
+   * return the same hash (which is the underlying pointer's hash. */
+  std::hash<hb_buffer_t *> hash {};
+  std::hash<hb::shared_ptr<hb_buffer_t>> hash2 {};
+  std::hash<hb::unique_ptr<hb_buffer_t>> hash3 {};
+
+  assert (hash (b) == hash2 (pb4));
+  assert (hash2 (pb4) == hash2 (pb2));
+  assert (hash (b) == hash3 (pb5));
 
   return pb == pb.get_empty () || pb == pb2;
 }
