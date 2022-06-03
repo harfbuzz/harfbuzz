@@ -34,9 +34,9 @@
 #include "hb-ot-shape-normalize.hh"
 
 
-/* buffer var allocations, used by complex shapers */
-#define complex_var_u8_category()	var2.u8[2]
-#define complex_var_u8_auxiliary()	var2.u8[3]
+/* buffer var allocations, used by all OT shapers */
+#define ot_shaper_var_u8_category()	var2.u8[2]
+#define ot_shaper_var_u8_auxiliary()	var2.u8[3]
 
 
 #define HB_OT_SHAPE_MAX_COMBINING_MARKS 32
