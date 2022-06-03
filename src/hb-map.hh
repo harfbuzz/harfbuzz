@@ -94,6 +94,7 @@ struct hb_hashmap_t
     bool operator == (const K &o) { return hb_deref (key) == hb_deref (o); }
     bool operator == (const item_t &o) { return *this == o.key; }
     hb_pair_t<K, V> get_pair() const { return hb_pair_t<K, V> (key, value); }
+    hb_pair_t<const K &, const V &> get_pair_ref() const { return hb_pair_t<const K, const V &> (key, value); }
 
     uint32_t total_hash () const
     { return (hash * 31) + hb_hash (value); }
@@ -276,6 +277,12 @@ struct hb_hashmap_t
    * Iterator
    */
   auto iter () const HB_AUTO_RETURN
+  (
+    + hb_array (items, mask ? mask + 1 : 0)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::get_pair)
+  )
+  auto iter_ref () const HB_AUTO_RETURN
   (
     + hb_array (items, mask ? mask + 1 : 0)
     | hb_filter (&item_t::is_real)
