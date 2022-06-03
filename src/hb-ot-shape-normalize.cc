@@ -395,7 +395,7 @@ _hb_ot_shape_normalize (const hb_ot_shape_plan_t *plan,
 	  break;
 
       /* We are going to do a O(n^2).  Only do this if the sequence is short. */
-      if (end - i > HB_OT_SHAPE_COMPLEX_MAX_COMBINING_MARKS) {
+      if (end - i > HB_OT_SHAPE_MAX_COMBINING_MARKS) {
 	i = end;
 	continue;
       }
