@@ -39,7 +39,7 @@
 #define complex_var_u8_auxiliary()	var2.u8[3]
 
 
-#define HB_OT_SHAPE_COMPLEX_MAX_COMBINING_MARKS 32
+#define HB_OT_SHAPE_MAX_COMBINING_MARKS 32
 
 enum hb_ot_shape_zero_width_marks_type_t {
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
