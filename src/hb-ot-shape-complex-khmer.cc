@@ -349,7 +349,7 @@ compose_khmer (const hb_ot_shape_normalize_context_t *c,
 }
 
 
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_khmer =
+const hb_ot_shaper_t _hb_ot_shaper_khmer =
 {
   collect_features_khmer,
   override_features_khmer,

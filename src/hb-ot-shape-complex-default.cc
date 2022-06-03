@@ -31,7 +31,7 @@
 #include "hb-ot-shape-complex.hh"
 
 
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
+const hb_ot_shaper_t _hb_ot_shaper_default =
 {
   nullptr, /* collect_features */
   nullptr, /* override_features */
@@ -51,7 +51,7 @@ const hb_ot_complex_shaper_t _hb_ot_complex_shaper_default =
 
 /* Same as default but no mark advance zeroing / fallback positioning.
  * Dumbest shaper ever, basically. */
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_dumber =
+const hb_ot_shaper_t _hb_ot_shaper_dumber =
 {
   nullptr, /* collect_features */
   nullptr, /* override_features */

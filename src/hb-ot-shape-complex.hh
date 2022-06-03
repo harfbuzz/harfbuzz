@@ -64,7 +64,7 @@ enum hb_ot_shape_zero_width_marks_type_t {
   /* ^--- Add new shapers here; keep sorted. */
 
 
-struct hb_ot_complex_shaper_t
+struct hb_ot_shaper_t
 {
   /* collect_features()
    * Called during shape_plan().
@@ -168,18 +168,18 @@ struct hb_ot_complex_shaper_t
   bool fallback_position;
 };
 
-#define HB_OT_SHAPER_IMPLEMENT(name) extern HB_INTERNAL const hb_ot_complex_shaper_t _hb_ot_complex_shaper_##name;
+#define HB_OT_SHAPER_IMPLEMENT(name) extern HB_INTERNAL const hb_ot_shaper_t _hb_ot_shaper_##name;
 HB_OT_SHAPERS_IMPLEMENT_SHAPERS
 #undef HB_OT_SHAPER_IMPLEMENT
 
 
-static inline const hb_ot_complex_shaper_t *
+static inline const hb_ot_shaper_t *
 hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
 {
   switch ((hb_tag_t) planner->props.script)
   {
     default:
-      return &_hb_ot_complex_shaper_default;
+      return &_hb_ot_shaper_default;
 
 
     /* Unicode-1.1 additions */
@@ -195,28 +195,28 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
       if ((planner->map.chosen_script[0] != HB_OT_TAG_DEFAULT_SCRIPT ||
 	   planner->props.script == HB_SCRIPT_ARABIC) &&
 	  HB_DIRECTION_IS_HORIZONTAL(planner->props.direction))
-	return &_hb_ot_complex_shaper_arabic;
+	return &_hb_ot_shaper_arabic;
       else
-	return &_hb_ot_complex_shaper_default;
+	return &_hb_ot_shaper_default;
 
 
     /* Unicode-1.1 additions */
     case HB_SCRIPT_THAI:
     case HB_SCRIPT_LAO:
 
-      return &_hb_ot_complex_shaper_thai;
+      return &_hb_ot_shaper_thai;
 
 
     /* Unicode-1.1 additions */
     case HB_SCRIPT_HANGUL:
 
-      return &_hb_ot_complex_shaper_hangul;
+      return &_hb_ot_shaper_hangul;
 
 
     /* Unicode-1.1 additions */
     case HB_SCRIPT_HEBREW:
 
-      return &_hb_ot_complex_shaper_hebrew;
+      return &_hb_ot_shaper_hebrew;
 
 
     /* Unicode-1.1 additions */
@@ -240,14 +240,14 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
        * If it's indy3 tag, send to USE. */
       if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T') ||
 	  planner->map.chosen_script[0] == HB_TAG ('l','a','t','n'))
-	return &_hb_ot_complex_shaper_default;
+	return &_hb_ot_shaper_default;
       else if ((planner->map.chosen_script[0] & 0x000000FF) == '3')
-	return &_hb_ot_complex_shaper_use;
+	return &_hb_ot_shaper_use;
       else
-	return &_hb_ot_complex_shaper_indic;
+	return &_hb_ot_shaper_indic;
 
     case HB_SCRIPT_KHMER:
-	return &_hb_ot_complex_shaper_khmer;
+	return &_hb_ot_shaper_khmer;
 
     case HB_SCRIPT_MYANMAR:
       /* If the designer designed the font for the 'DFLT' script,
@@ -260,16 +260,16 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
       if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T') ||
 	  planner->map.chosen_script[0] == HB_TAG ('l','a','t','n') ||
 	  planner->map.chosen_script[0] == HB_TAG ('m','y','m','r'))
-	return &_hb_ot_complex_shaper_default;
+	return &_hb_ot_shaper_default;
       else
-	return &_hb_ot_complex_shaper_myanmar;
+	return &_hb_ot_shaper_myanmar;
 
 
 #define HB_SCRIPT_MYANMAR_ZAWGYI	((hb_script_t) HB_TAG ('Q','a','a','g'))
     case HB_SCRIPT_MYANMAR_ZAWGYI:
     /* https://github.com/harfbuzz/harfbuzz/issues/1162 */
 
-      return &_hb_ot_complex_shaper_myanmar_zawgyi;
+      return &_hb_ot_shaper_myanmar_zawgyi;
 
 
     /* Unicode-2.0 additions */
@@ -390,9 +390,9 @@ hb_ot_shape_complex_categorize (const hb_ot_shape_planner_t *planner)
        * GSUB/GPOS needed, so there may be no scripts found! */
       if (planner->map.chosen_script[0] == HB_TAG ('D','F','L','T') ||
 	  planner->map.chosen_script[0] == HB_TAG ('l','a','t','n'))
-	return &_hb_ot_complex_shaper_default;
+	return &_hb_ot_shaper_default;
       else
-	return &_hb_ot_complex_shaper_use;
+	return &_hb_ot_shaper_use;
   }
 }
 

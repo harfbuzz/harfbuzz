@@ -720,7 +720,7 @@ reorder_marks_arabic (const hb_ot_shape_plan_t *plan HB_UNUSED,
   }
 }
 
-const hb_ot_complex_shaper_t _hb_ot_complex_shaper_arabic =
+const hb_ot_shaper_t _hb_ot_shaper_arabic =
 {
   collect_features_arabic,
   nullptr, /* override_features */
