@@ -49,18 +49,18 @@ enum hb_ot_shape_zero_width_marks_type_t {
 
 
 /* Master OT shaper list */
-#define HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS \
-  HB_COMPLEX_SHAPER_IMPLEMENT (arabic) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (default) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (dumber) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (hangul) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (hebrew) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (indic) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (khmer) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (myanmar) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (myanmar_zawgyi) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (thai) \
-  HB_COMPLEX_SHAPER_IMPLEMENT (use) \
+#define HB_OT_SHAPERS_IMPLEMENT_SHAPERS \
+  HB_OT_SHAPER_IMPLEMENT (arabic) \
+  HB_OT_SHAPER_IMPLEMENT (default) \
+  HB_OT_SHAPER_IMPLEMENT (dumber) \
+  HB_OT_SHAPER_IMPLEMENT (hangul) \
+  HB_OT_SHAPER_IMPLEMENT (hebrew) \
+  HB_OT_SHAPER_IMPLEMENT (indic) \
+  HB_OT_SHAPER_IMPLEMENT (khmer) \
+  HB_OT_SHAPER_IMPLEMENT (myanmar) \
+  HB_OT_SHAPER_IMPLEMENT (myanmar_zawgyi) \
+  HB_OT_SHAPER_IMPLEMENT (thai) \
+  HB_OT_SHAPER_IMPLEMENT (use) \
   /* ^--- Add new shapers here; keep sorted. */
 
 
@@ -168,9 +168,9 @@ struct hb_ot_complex_shaper_t
   bool fallback_position;
 };
 
-#define HB_COMPLEX_SHAPER_IMPLEMENT(name) extern HB_INTERNAL const hb_ot_complex_shaper_t _hb_ot_complex_shaper_##name;
-HB_COMPLEX_SHAPERS_IMPLEMENT_SHAPERS
-#undef HB_COMPLEX_SHAPER_IMPLEMENT
+#define HB_OT_SHAPER_IMPLEMENT(name) extern HB_INTERNAL const hb_ot_complex_shaper_t _hb_ot_complex_shaper_##name;
+HB_OT_SHAPERS_IMPLEMENT_SHAPERS
+#undef HB_OT_SHAPER_IMPLEMENT
 
 
 static inline const hb_ot_complex_shaper_t *
