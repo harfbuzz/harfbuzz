@@ -31,6 +31,7 @@ TESTS = \
 	tests/indic-init.tests \
 	tests/indic-joiner-candrabindu.tests \
 	tests/indic-joiners.tests \
+	tests/indic-malayalam-dot-reph.tests \
 	tests/indic-old-spec.tests \
 	tests/indic-pref-blocking.tests \
 	tests/indic-script-extensions.tests \
