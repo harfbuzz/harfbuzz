@@ -257,8 +257,8 @@ for h in headers:
 		print (" * %s" % (l.strip()))
 print (" */")
 print ()
-print ("#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH")
-print ("#define HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH")
+print ("#ifndef HB_OT_SHAPER_ARABIC_TABLE_HH")
+print ("#define HB_OT_SHAPER_ARABIC_TABLE_HH")
 print ()
 
 read_blocks (files[2])
@@ -266,6 +266,6 @@ print_joining_table (files[0])
 print_shaping_table (files[1])
 
 print ()
-print ("#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH */")
+print ("#endif /* HB_OT_SHAPER_ARABIC_TABLE_HH */")
 print ()
 print ("/* == End of generated table == */")

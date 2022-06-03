@@ -405,7 +405,7 @@ arabic_fallback_shape (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer)
 {
-#ifdef HB_NO_OT_SHAPE_COMPLEX_ARABIC_FALLBACK
+#ifdef HB_NO_OT_SHAPER_ARABIC_FALLBACK
   return;
 #endif
 

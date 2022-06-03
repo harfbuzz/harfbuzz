@@ -13,8 +13,8 @@
  * UnicodeData.txt does not have a header.
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH
-#define HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH
+#ifndef HB_OT_SHAPER_ARABIC_TABLE_HH
+#define HB_OT_SHAPER_ARABIC_TABLE_HH
 
 
 #define A	JOINING_GROUP_ALAPH
@@ -436,6 +436,6 @@ static const struct ligature_set_t {
 };
 
 
-#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_TABLE_HH */
+#endif /* HB_OT_SHAPER_ARABIC_TABLE_HH */
 
 /* == End of generated table == */

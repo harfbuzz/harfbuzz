@@ -37,8 +37,8 @@
  * UnicodeData.txt does not have a header.
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_USE_TABLE_HH
-#define HB_OT_SHAPE_COMPLEX_USE_TABLE_HH
+#ifndef HB_OT_SHAPER_USE_TABLE_HH
+#define HB_OT_SHAPER_USE_TABLE_HH
 
 #include "hb.hh"
 
@@ -1566,5 +1566,5 @@ hb_use_get_category (hb_glyph_info_t info)
 #undef VMPre
 
 
-#endif /* HB_OT_SHAPE_COMPLEX_USE_TABLE_HH */
+#endif /* HB_OT_SHAPER_USE_TABLE_HH */
 /* == End of generated table == */

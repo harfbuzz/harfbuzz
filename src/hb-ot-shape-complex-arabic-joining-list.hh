@@ -12,8 +12,8 @@
  * # Date: 2021-07-10, 00:35:31 GMT
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_JOINING_LIST_HH
-#define HB_OT_SHAPE_COMPLEX_ARABIC_JOINING_LIST_HH
+#ifndef HB_OT_SHAPER_ARABIC_JOINING_LIST_HH
+#define HB_OT_SHAPER_ARABIC_JOINING_LIST_HH
 
 static bool
 has_arabic_joining (hb_script_t script)
@@ -42,6 +42,6 @@ has_arabic_joining (hb_script_t script)
 }
 
 
-#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_JOINING_LIST_HH */
+#endif /* HB_OT_SHAPER_ARABIC_JOINING_LIST_HH */
 
 /* == End of generated function == */

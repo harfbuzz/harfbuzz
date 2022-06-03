@@ -24,7 +24,7 @@
  * Google Author(s): Behdad Esfahbod
  */
 
-#ifndef HB_OT_SHAPE_COMPLEX_ARABIC_WIN1256_HH
+#ifndef HB_OT_SHAPER_ARABIC_WIN1256_HH
 
 
 /*
@@ -345,5 +345,5 @@ OT_TABLE_END
 #include "hb-ot-shape-complex-arabic-win1256.hh"
 #endif
 
-#define HB_OT_SHAPE_COMPLEX_ARABIC_WIN1256_HH
-#endif /* HB_OT_SHAPE_COMPLEX_ARABIC_WIN1256_HH */
+#define HB_OT_SHAPER_ARABIC_WIN1256_HH
+#endif /* HB_OT_SHAPER_ARABIC_WIN1256_HH */
