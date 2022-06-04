@@ -260,7 +260,6 @@ _hb_ot_layout_set_glyph_props (hb_font_t *font,
   {
     _hb_glyph_info_set_glyph_props (&buffer->info[i], gdef.get_glyph_props (buffer->info[i].codepoint));
     _hb_glyph_info_clear_lig_props (&buffer->info[i]);
-    buffer->info[i].syllable() = 0;
   }
 }
 

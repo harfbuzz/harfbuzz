@@ -99,5 +99,13 @@ hb_syllabic_insert_dotted_circles (hb_font_t *font,
   buffer->sync ();
 }
 
+HB_INTERNAL void
+hb_syllabic_clear_var (const hb_ot_shape_plan_t *plan,
+		       hb_font_t *font,
+		       hb_buffer_t *buffer)
+{
+  HB_BUFFER_DEALLOCATE_VAR (buffer, syllable);
+}
+
 
 #endif
