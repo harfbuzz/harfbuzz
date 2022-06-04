@@ -44,14 +44,14 @@ enum myanmar_syllable_type_t {
 #define myanmar_syllable_machine_ex_As 18u
 #define myanmar_syllable_machine_ex_C 1u
 #define myanmar_syllable_machine_ex_CS 19u
-#define myanmar_syllable_machine_ex_D 32u
+#define myanmar_syllable_machine_ex_D 11u
 #define myanmar_syllable_machine_ex_D0 20u
 #define myanmar_syllable_machine_ex_DB 3u
 #define myanmar_syllable_machine_ex_GB 11u
 #define myanmar_syllable_machine_ex_H 4u
 #define myanmar_syllable_machine_ex_IV 2u
 #define myanmar_syllable_machine_ex_MH 21u
-#define myanmar_syllable_machine_ex_ML 33u
+#define myanmar_syllable_machine_ex_ML 32u
 #define myanmar_syllable_machine_ex_MR 22u
 #define myanmar_syllable_machine_ex_MW 23u
 #define myanmar_syllable_machine_ex_MY 24u

@@ -48,14 +48,14 @@ enum myanmar_syllable_type_t {
 export A    = 10;
 export As   = 18;
 export C    = 1;
-export D    = 32;
+export D    = 11;
 export D0   = 20;
 export DB   = 3;
 export GB   = 11;
 export H    = 4;
 export IV   = 2;
 export MH   = 21;
-export ML   = 33;
+export ML   = 32;
 export MR   = 22;
 export MW   = 23;
 export MY   = 24;

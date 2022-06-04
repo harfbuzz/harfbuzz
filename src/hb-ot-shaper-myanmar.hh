@@ -55,8 +55,8 @@ enum myanmar_category_t {
   //OT_VPst = 29,
   OT_VS   = 30, /* Variation selectors */
   OT_P    = 31, /* Punctuation */
-  OT_D    = 32, /* Digits except zero */
-  OT_ML   = 33, /* Various consonant medial types */
+  OT_D    = OT_GB, /* Digits except zero */
+  OT_ML   = 32, /* Various consonant medial types */
 };
 
 using myanmar_position_t = indic_position_t;
