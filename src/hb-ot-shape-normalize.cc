@@ -69,7 +69,7 @@
  *   - When a font does not support a character but supports its canonical
  *     decomposition, well, use the decomposition.
  *
- *   - The complex shapers can customize the compose and decompose functions to
+ *   - The shapers can customize the compose and decompose functions to
  *     offload some of their requirements to the normalizer.  For example, the
  *     Indic shaper may want to disallow recomposing of two matras.
  */

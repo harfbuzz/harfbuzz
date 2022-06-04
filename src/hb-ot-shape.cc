@@ -927,7 +927,7 @@ hb_ot_substitute_default (const hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_substitute_complex (const hb_ot_shape_context_t *c)
+hb_ot_substitute_plan (const hb_ot_shape_context_t *c)
 {
   hb_buffer_t *buffer = c->buffer;
 
@@ -946,7 +946,7 @@ hb_ot_substitute_pre (const hb_ot_shape_context_t *c)
 
   _hb_buffer_allocate_gsubgpos_vars (c->buffer);
 
-  hb_ot_substitute_complex (c);
+  hb_ot_substitute_plan (c);
 
 #ifndef HB_NO_AAT_SHAPE
   if (c->plan->apply_morx && c->plan->apply_gpos)
@@ -1039,7 +1039,7 @@ hb_ot_position_default (const hb_ot_shape_context_t *c)
 }
 
 static inline void
-hb_ot_position_complex (const hb_ot_shape_context_t *c)
+hb_ot_position_plan (const hb_ot_shape_context_t *c)
 {
   unsigned int count = c->buffer->len;
   hb_glyph_info_t *info = c->buffer->info;
@@ -1124,7 +1124,7 @@ hb_ot_position (const hb_ot_shape_context_t *c)
 
   hb_ot_position_default (c);
 
-  hb_ot_position_complex (c);
+  hb_ot_position_plan (c);
 
   if (HB_DIRECTION_IS_BACKWARD (c->buffer->props.direction))
     hb_buffer_reverse (c->buffer);

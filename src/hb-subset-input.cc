@@ -152,7 +152,8 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('B', 'u', 'z', 'z'),
     HB_TAG ('B', 'U', 'Z', 'Z'),
 
-    //Complex shapers
+    //shapers
+
     //arabic
     HB_TAG ('i', 'n', 'i', 't'),
     HB_TAG ('m', 'e', 'd', 'i'),
