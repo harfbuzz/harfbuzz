@@ -172,6 +172,14 @@ record_stch (const hb_ot_shape_plan_t *plan,
 	     hb_buffer_t *buffer);
 
 static void
+deallocate_buffer_var (const hb_ot_shape_plan_t *plan,
+		       hb_font_t *font,
+		       hb_buffer_t *buffer)
+{
+  HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
+}
+
+static void
 collect_features_arabic (hb_ot_shape_planner_t *plan)
 {
   hb_ot_map_builder_t *map = &plan->map;
@@ -213,6 +221,7 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
     map->add_feature (arabic_features[i], has_fallback ? F_HAS_FALLBACK : F_NONE);
     map->add_gsub_pause (nullptr);
   }
+   map->add_gsub_pause (deallocate_buffer_var);
 
   /* Normally, Unicode says a ZWNJ means "don't ligate".  In Arabic script
    * however, it says a ZWJ should also mean "don't ligate".  So we run
@@ -619,8 +628,6 @@ postprocess_glyphs_arabic (const hb_ot_shape_plan_t *plan,
 			   hb_font_t                *font)
 {
   apply_stch (plan, buffer, font);
-
-  HB_BUFFER_DEALLOCATE_VAR (buffer, arabic_shaping_action);
 }
 
 /* https://www.unicode.org/reports/tr53/ */
