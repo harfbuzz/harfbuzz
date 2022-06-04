@@ -52,8 +52,9 @@ enum indic_category_t {
   OT_ZWJ = 6,
   OT_M = 7,
   OT_SM = 8,
-  /* OT_VD = 9, UNUSED; we use OT_A instead. */
+  // 9 unused as of now
   OT_A = 10,
+  OT_VD = OT_A,
   OT_PLACEHOLDER = 11,
   OT_DOTTEDCIRCLE = 12,
   OT_RS = 13, /* Register Shifter, used in Khmer OT spec. */
@@ -388,7 +389,7 @@ set_indic_properties (hb_glyph_info_t &info)
   {
     pos = matra_position_indic (u, pos);
   }
-  else if ((FLAG_UNSAFE (cat) & (FLAG (OT_SM) /* | FLAG (OT_VD) */ | FLAG (OT_A) | FLAG (OT_Symbol))))
+  else if ((FLAG_UNSAFE (cat) & (FLAG (OT_SM) | FLAG (OT_VD) | FLAG (OT_A) | FLAG (OT_Symbol))))
   {
     pos = POS_SMVD;
   }
