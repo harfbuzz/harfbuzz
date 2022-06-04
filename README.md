@@ -44,7 +44,7 @@ For build information, see [BUILD.md](BUILD.md).
 
 For custom configurations, see [CONFIG.md](CONFIG.md).
 
-For test execution, see [TESTING.md](TESTING.md).
+For testing and profiling, see [TESTING.md](TESTING.md).
 
 To get a better idea of where HarfBuzz stands in the text rendering stack you
 may want to read [State of Text Rendering][6], though, that document is many
