@@ -790,8 +790,8 @@ struct hb_ot_apply_context_t :
 };
 
 
-struct hb_get_subtables_context_t :
-       hb_dispatch_context_t<hb_get_subtables_context_t>
+struct hb_accelerate_subtables_context_t :
+       hb_dispatch_context_t<hb_accelerate_subtables_context_t>
 {
   template <typename Type>
   static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
@@ -836,8 +836,8 @@ struct hb_get_subtables_context_t :
   }
   static return_t default_return_value () { return hb_empty_t (); }
 
-  hb_get_subtables_context_t (array_t &array_) :
-			      array (array_) {}
+  hb_accelerate_subtables_context_t (array_t &array_) :
+				     array (array_) {}
 
   array_t &array;
 };
@@ -3623,8 +3623,8 @@ struct hb_ot_layout_lookup_accelerator_t
     lookup.collect_coverage (&digest);
 
     subtables.init ();
-    OT::hb_get_subtables_context_t c_get_subtables (subtables);
-    lookup.dispatch (&c_get_subtables);
+    OT::hb_accelerate_subtables_context_t c_accelerate_subtables (subtables);
+    lookup.dispatch (&c_accelerate_subtables);
   }
   void fini () { subtables.fini (); }
 
@@ -3641,7 +3641,7 @@ struct hb_ot_layout_lookup_accelerator_t
 
   private:
   hb_set_digest_t digest;
-  hb_get_subtables_context_t::array_t subtables;
+  hb_accelerate_subtables_context_t::array_t subtables;
 };
 
 struct GSUBGPOS
