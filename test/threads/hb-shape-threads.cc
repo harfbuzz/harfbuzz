@@ -185,8 +185,8 @@ int main(int argc, char** argv)
     for (unsigned i = 0; i < num_tests; i++)
     {
       tests[i].is_variable = true;
-      tests[i].text_path = argv[3 + i * 2];
-      tests[i].font_path = argv[4 + i * 2];
+      tests[i].font_path = argv[3 + i * 2];
+      tests[i].text_path = argv[4 + i * 2];
     }
   }
 
