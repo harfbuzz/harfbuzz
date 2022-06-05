@@ -31,14 +31,6 @@ struct test_input_t
    "perf/fonts/NotoNastaliqUrdu-Regular.ttf",
    false},
 
-  {"perf/texts/fa-monologue.txt",
-   "perf/fonts/Amiri-Regular.ttf",
-   false},
-
-  {"perf/texts/fa-monologue.txt",
-   "perf/fonts/NotoNastaliqUrdu-Regular.ttf",
-   false},
-
   {"perf/texts/en-thelittleprince.txt",
    "perf/fonts/Roboto-Regular.ttf",
    false},
