@@ -107,7 +107,7 @@ HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_DRAW_FUNC_IMPLEMENT
 
 /**
- * hb_draw_funcs_create: (Xconstructor)
+ * hb_draw_funcs_create:
  *
  * Creates a new draw callbacks object.
  *

@@ -190,7 +190,7 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
 }
 
 /**
- * hb_face_create: (Xconstructor)
+ * hb_face_create:
  * @blob: #hb_blob_t to work upon
  * @index: The index of the face within @blob
  *

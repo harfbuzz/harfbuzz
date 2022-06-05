@@ -40,7 +40,7 @@
 
 
 /**
- * hb_map_create: (Xconstructor)
+ * hb_map_create:
  *
  * Creates a new, initially empty map.
  *

@@ -663,7 +663,7 @@ static const hb_font_funcs_t _hb_font_funcs_default = {
 
 
 /**
- * hb_font_funcs_create: (Xconstructor)
+ * hb_font_funcs_create:
  *
  * Creates a new #hb_font_funcs_t structure of font functions.
  *
@@ -1688,7 +1688,7 @@ _hb_font_create (hb_face_t *face)
 }
 
 /**
- * hb_font_create: (Xconstructor)
+ * hb_font_create:
  * @face: a face.
  *
  * Constructs a new font object from the specified face.

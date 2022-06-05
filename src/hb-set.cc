@@ -40,7 +40,7 @@
 
 
 /**
- * hb_set_create: (Xconstructor)
+ * hb_set_create:
  *
  * Creates a new, initially empty set.
  *
