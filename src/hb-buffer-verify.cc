@@ -418,6 +418,7 @@ hb_buffer_t::verify (hb_buffer_t        *text_buffer,
     ret = false;
   if (!ret)
   {
+#ifndef HB_NO_BUFFER_SERIALIZE
     unsigned len = text_buffer->len;
     hb_vector_t<char> bytes;
     if (likely (bytes.resize (len * 10 + 16)))
@@ -430,6 +431,7 @@ hb_buffer_t::verify (hb_buffer_t        *text_buffer,
 				   HB_BUFFER_SERIALIZE_FLAG_NO_CLUSTERS);
       buffer_verify_error (this, font, BUFFER_VERIFY_ERROR "text was: %s.", bytes.arrayZ);
     }
+#endif
   }
   return ret;
 }
