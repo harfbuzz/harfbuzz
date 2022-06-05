@@ -29,6 +29,16 @@
 
 #include "hb.hh"
 
+#include "hb-ot-layout.hh"
+#include "hb-ot-shaper-indic.hh"
+
+/* buffer var allocations */
+#define khmer_category() indic_category() /* khmer_category_t */
+
+using khmer_category_t = unsigned;
+
+#define K_Cat(Cat) khmer_syllable_machine_ex_##Cat
+
 enum khmer_syllable_type_t {
   khmer_consonant_syllable,
   khmer_broken_cluster,

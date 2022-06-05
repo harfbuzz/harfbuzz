@@ -148,7 +148,6 @@ hb_base_sources = files(
   'hb-ot-shaper-indic.cc',
   'hb-ot-shaper-indic.hh',
   'hb-ot-shaper-khmer.cc',
-  'hb-ot-shaper-khmer.hh',
   'hb-ot-shaper-myanmar.cc',
   'hb-ot-shaper-myanmar.hh',
   'hb-ot-shaper-syllabic.cc',
