@@ -2001,6 +2001,8 @@ struct ClassDefFormat1
     return_trace (c->check_struct (this) && classValue.sanitize (c));
   }
 
+  unsigned cost () const { return 1; }
+
   template <typename set_t>
   bool collect_coverage (set_t *glyphs) const
   {
@@ -2236,6 +2238,8 @@ struct ClassDefFormat2
     TRACE_SANITIZE (this);
     return_trace (rangeRecord.sanitize (c));
   }
+
+  unsigned cost () const { return hb_bit_storage ((unsigned) rangeRecord.len); /* bsearch cost */ }
 
   template <typename set_t>
   bool collect_coverage (set_t *glyphs) const
@@ -2474,6 +2478,15 @@ struct ClassDef
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
     default:return_trace (true);
+    }
+  }
+
+  unsigned cost () const
+  {
+    switch (u.format) {
+    case 1: return u.format1.cost ();
+    case 2: return u.format2.cost ();
+    default:return 0u;
     }
   }
 
