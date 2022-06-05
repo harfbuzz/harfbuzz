@@ -29,6 +29,18 @@
 
 #include "hb.hh"
 
+#include "hb-ot-layout.hh"
+#include "hb-ot-shaper-indic.hh"
+
+/* buffer var allocations */
+#define myanmar_category() indic_category() /* myanmar_category_t */
+#define myanmar_position() indic_position() /* myanmar_position_t */
+
+using myanmar_category_t = unsigned;
+using myanmar_position_t = indic_position_t;
+
+#define M_Cat(Cat) myanmar_syllable_machine_ex_##Cat
+
 enum myanmar_syllable_type_t {
   myanmar_consonant_syllable,
   myanmar_punctuation_cluster,
@@ -46,30 +58,30 @@ enum myanmar_syllable_type_t {
 %%{
 
 export A    = 9;
-export As   = 18;
+export As   = 18;	# Asat
 export C    = 1;
-export D    = 10;
-export D0   = 20;
-export DB   = 3;
-export GB   = 10;
+export D    = 10;	# Digits except zero = GB
+export D0   = 20;	# Digit zero
+export DB   = 3;	# Dot below	= OT_N
+export GB   = 10;	# 		= OT_PLACEHOLDER
 export H    = 4;
 export IV   = 2;
-export MH   = 21;
-export ML   = 32;
-export MR   = 22;
-export MW   = 23;
-export MY   = 24;
-export PT   = 25;
-export V    = 8;
+export MH   = 21;	# Medial
+export MR   = 22;	# Medial
+export MW   = 23;	# Medial
+export MY   = 24;	# Medial
+export ML   = 32;	# Consonant medials
+export PT   = 25;	# Pwo and other tones
+export V    = 8;	# Visarga and Shan tones
 export VAbv = 26;
 export VBlw = 27;
 export VPre = 28;
 export VPst = 29;
-export VS   = 30;
+export VS   = 30;	# Variation selectors
 export ZWJ  = 6;
 export ZWNJ = 5;
 export Ra   = 15;
-export P    = 31;
+export P    = 31;	# Punctuation
 export CS   = 19;
 
 j = ZWJ|ZWNJ;			# Joiners
