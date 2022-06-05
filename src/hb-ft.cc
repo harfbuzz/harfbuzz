@@ -233,7 +233,7 @@ hb_ft_font_get_load_flags (hb_font_t *font)
 }
 
 /**
- * hb_ft_font_get_face:
+ * hb_ft_font_get_face: (skip)
  * @font: #hb_font_t to work upon
  *
  * Fetches the FT_Face associated with the specified #hb_font_t
@@ -255,7 +255,7 @@ hb_ft_font_get_face (hb_font_t *font)
 }
 
 /**
- * hb_ft_font_lock_face:
+ * hb_ft_font_lock_face: (skip)
  * @font: #hb_font_t to work upon
  *
  * Gets the FT_Face associated with @font, This face will be kept around until
