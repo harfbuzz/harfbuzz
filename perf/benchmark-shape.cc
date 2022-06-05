@@ -17,41 +17,42 @@
 
 struct test_input_t
 {
-  const char *text_path;
   const char *font_path;
+  const char *text_path;
   bool is_variable;
 } default_tests[] =
 {
-  {"perf/texts/fa-thelittleprince.txt",
-   "perf/fonts/Amiri-Regular.ttf",
+
+  {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+   "perf/texts/fa-thelittleprince.txt",
    false},
 
-  {"perf/texts/fa-thelittleprince.txt",
-   "perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+  {"perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+   "perf/texts/fa-monologue.txt",
    false},
 
-  {"perf/texts/fa-monologue.txt",
-   "perf/fonts/Amiri-Regular.ttf",
+  {"perf/fonts/Amiri-Regular.ttf",
+   "perf/texts/fa-thelittleprince.txt",
    false},
 
-  {"perf/texts/fa-monologue.txt",
-   "perf/fonts/NotoNastaliqUrdu-Regular.ttf",
+  {"perf/fonts/Amiri-Regular.ttf",
+   "perf/texts/fa-monologue.txt",
    false},
 
-  {"perf/texts/en-thelittleprince.txt",
-   "perf/fonts/Roboto-Regular.ttf",
+  {"perf/fonts/Roboto-Regular.ttf",
+   "perf/texts/en-thelittleprince.txt",
    false},
 
-  {"perf/texts/en-thelittleprince.txt",
-   SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
+  {"perf/fonts/Roboto-Regular.ttf",
+   "perf/texts/en-words.txt",
+   false},
+
+  {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
+   "perf/texts/en-thelittleprince.txt",
    true},
 
-  {"perf/texts/en-words.txt",
-   "perf/fonts/Roboto-Regular.ttf",
-   false},
-
-  {"perf/texts/en-words.txt",
-   SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
+  {SUBSET_FONT_BASE_PATH "SourceSerifVariable-Roman.ttf",
+   "perf/texts/en-words.txt",
    true},
 };
 
@@ -132,11 +133,11 @@ static void test_backend (backend_t backend,
   char name[1024] = "BM_Shape";
   const char *p;
   strcat (name, "/");
-  p = strrchr (test_input.text_path, '/');
-  strcat (name, p ? p + 1 : test_input.text_path);
-  strcat (name, "/");
   p = strrchr (test_input.font_path, '/');
   strcat (name, p ? p + 1 : test_input.font_path);
+  strcat (name, "/");
+  p = strrchr (test_input.text_path, '/');
+  strcat (name, p ? p + 1 : test_input.text_path);
   strcat (name, variable ? "/var" : "");
   strcat (name, "/");
   strcat (name, backend_name);
