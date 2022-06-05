@@ -186,7 +186,7 @@ struct hb_buffer_t
 #ifndef HB_NDEBUG
     unsigned int end = start + count;
     assert (end <= 8);
-    unsigned int bits = (1u<<end) - (1u<<start);
+    HB_UNUSED unsigned int bits = (1u<<end) - (1u<<start);
     assert (bits == (allocated_var_bits & bits));
 #endif
   }
