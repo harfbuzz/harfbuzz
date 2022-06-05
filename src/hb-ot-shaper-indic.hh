@@ -52,18 +52,17 @@ enum indic_category_t {
   OT_ZWJ = 6,
   OT_M = 7,
   OT_SM = 8,
-  // 9 unused as of now
-  OT_A = 10,
+  OT_A = 9,
   OT_VD = OT_A,
-  OT_PLACEHOLDER = 11,
-  OT_DOTTEDCIRCLE = 12,
-  OT_RS = 13, /* Register Shifter, used in Khmer OT spec. */
-  OT_Coeng = 14, /* Khmer-style Virama. */
-  OT_Repha = 15, /* Atomically-encoded logical or visual repha. */
-  OT_Ra = 16,
-  OT_CM = 17,  /* Consonant-Medial. */
-  OT_Symbol = 18, /* Avagraha, etc that take marks (SM,A,VD). */
-  OT_CS = 19,
+  OT_PLACEHOLDER = 10,
+  OT_DOTTEDCIRCLE = 11,
+  OT_RS = 12, /* Register Shifter, used in Khmer OT spec. */
+  OT_Coeng = 13, /* Khmer-style Virama. */
+  OT_Repha = 14, /* Atomically-encoded logical or visual repha. */
+  OT_Ra = 15,
+  OT_CM = 16,  /* Consonant-Medial. */
+  OT_Symbol = 17, /* Avagraha, etc that take marks (SM,A,VD). */
+  OT_CS = 18,
 
   /* The following are used by Khmer & Myanmar shapers.  Defined
    * here for them to share. */
