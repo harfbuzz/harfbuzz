@@ -3296,7 +3296,7 @@ struct ChainContextFormat2
 
   unsigned cache_cost () const
   {
-    unsigned c = (this+inputClassDef).cost () * ruleSet.len;
+    unsigned c = (this+lookaheadClassDef).cost () * ruleSet.len;
     return c >= 4 ? c : 0;
   }
   bool cache_func (hb_ot_apply_context_t *c, bool enter) const
