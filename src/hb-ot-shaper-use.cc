@@ -133,6 +133,7 @@ collect_features_use (hb_ot_shape_planner_t *plan)
     map->enable_feature (use_basic_features[i], F_MANUAL_ZWJ | F_PER_SYLLABLE);
 
   map->add_gsub_pause (reorder_use);
+  map->add_gsub_pause (hb_syllabic_clear_var); // Don't need syllables anymore, use stop to free buffer var
 
   /* "Topographical features" */
   for (unsigned int i = 0; i < ARRAY_LENGTH (use_topographical_features); i++)
@@ -297,6 +298,7 @@ setup_syllables_use (const hb_ot_shape_plan_t *plan,
 		     hb_font_t *font HB_UNUSED,
 		     hb_buffer_t *buffer)
 {
+  HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
   find_syllables_use (buffer);
   foreach_syllable (buffer, start, end)
     buffer->unsafe_to_break (start, end);

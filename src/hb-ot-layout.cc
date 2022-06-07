@@ -260,7 +260,6 @@ _hb_ot_layout_set_glyph_props (hb_font_t *font,
   {
     _hb_glyph_info_set_glyph_props (&buffer->info[i], gdef.get_glyph_props (buffer->info[i].codepoint));
     _hb_glyph_info_clear_lig_props (&buffer->info[i]);
-    buffer->info[i].syllable() = 0;
   }
 }
 
@@ -1827,6 +1826,8 @@ static inline bool
 apply_forward (OT::hb_ot_apply_context_t *c,
 	       const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
+  bool use_cache = accel.cache_enter (c);
+
   bool ret = false;
   hb_buffer_t *buffer = c->buffer;
   while (buffer->idx < buffer->len && buffer->successful)
@@ -1836,7 +1837,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
 	(buffer->cur().mask & c->lookup_mask) &&
 	c->check_glyph_property (&buffer->cur(), c->lookup_props))
      {
-       applied = accel.apply (c);
+       applied = accel.apply (c, use_cache);
      }
 
     if (applied)
@@ -1844,6 +1845,10 @@ apply_forward (OT::hb_ot_apply_context_t *c,
     else
       (void) buffer->next_glyph ();
   }
+
+  if (use_cache)
+    accel.cache_leave (c);
+
   return ret;
 }
 
@@ -1858,7 +1863,7 @@ apply_backward (OT::hb_ot_apply_context_t *c,
     if (accel.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
 	c->check_glyph_property (&buffer->cur(), c->lookup_props))
-     ret |= accel.apply (c);
+     ret |= accel.apply (c, false);
 
     /* The reverse lookup doesn't "advance" cursor (for good reason). */
     buffer->idx--;

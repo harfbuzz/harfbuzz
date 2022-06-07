@@ -115,7 +115,7 @@ collect_features_khmer (hb_ot_shape_planner_t *plan)
     map->add_feature (khmer_features[i]);
 
   /* https://github.com/harfbuzz/harfbuzz/issues/3531 */
-  map->add_gsub_pause (nullptr);
+  map->add_gsub_pause (hb_syllabic_clear_var); // Don't need syllables anymore, use stop to free buffer var
 
   for (; i < KHMER_NUM_FEATURES; i++)
     map->add_feature (khmer_features[i]);
@@ -187,6 +187,7 @@ setup_syllables_khmer (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		       hb_font_t *font HB_UNUSED,
 		       hb_buffer_t *buffer)
 {
+  HB_BUFFER_ALLOCATE_VAR (buffer, syllable);
   find_syllables_khmer (buffer);
   foreach_syllable (buffer, start, end)
     buffer->unsafe_to_break (start, end);
