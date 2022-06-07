@@ -815,30 +815,18 @@ struct hb_accelerate_subtables_context_t :
   }
 
   template <typename T>
-  static inline auto cache_enter_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->cache_enter (c) )
+  static inline auto cache_func_ (const T *obj, OT::hb_ot_apply_context_t *c, bool enter, hb_priority<1>) HB_RETURN (bool, obj->cache_func (c, enter) )
   template <typename T>
-  static inline bool cache_enter_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<0>) { return false; }
+  static inline bool cache_func_ (const T *obj, OT::hb_ot_apply_context_t *c, bool enter, hb_priority<0>) { return false; }
   template <typename Type>
-  static inline bool cache_enter_to (const void *obj, OT::hb_ot_apply_context_t *c)
+  static inline bool cache_func_to (const void *obj, OT::hb_ot_apply_context_t *c, bool enter)
   {
     const Type *typed_obj = (const Type *) obj;
-    return cache_enter_ (typed_obj, c, hb_prioritize);
-  }
-
-  template <typename T>
-  static inline auto cache_leave_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (void, obj->cache_leave (c) )
-  template <typename T>
-  static inline void cache_leave_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<0>) {}
-  template <typename Type>
-  static inline void cache_leave_to (const void *obj, OT::hb_ot_apply_context_t *c)
-  {
-    const Type *typed_obj = (const Type *) obj;
-    return cache_leave_ (typed_obj, c, hb_prioritize);
+    return cache_func_ (typed_obj, c, enter, hb_prioritize);
   }
 
   typedef bool (*hb_apply_func_t) (const void *obj, OT::hb_ot_apply_context_t *c);
-  typedef bool (*hb_cache_enter_func_t) (const void *obj, OT::hb_ot_apply_context_t *c);
-  typedef void (*hb_cache_leave_func_t) (const void *obj, OT::hb_ot_apply_context_t *c);
+  typedef bool (*hb_cache_func_t) (const void *obj, OT::hb_ot_apply_context_t *c, bool enter);
 
   struct hb_applicable_t
   {
@@ -849,14 +837,12 @@ struct hb_accelerate_subtables_context_t :
     void init (const T &obj_,
 	       hb_apply_func_t apply_func_,
 	       hb_apply_func_t apply_cached_func_,
-	       hb_cache_enter_func_t cache_enter_func_,
-	       hb_cache_leave_func_t cache_leave_func_)
+	       hb_cache_func_t cache_func_)
     {
       obj = &obj_;
       apply_func = apply_func_;
       apply_cached_func = apply_cached_func_;
-      cache_enter_func = cache_enter_func_;
-      cache_leave_func = cache_leave_func_;
+      cache_func = cache_func_;
       digest.init ();
       obj_.get_coverage ().collect_coverage (&digest);
     }
@@ -872,19 +858,18 @@ struct hb_accelerate_subtables_context_t :
 
     bool cache_enter (OT::hb_ot_apply_context_t *c) const
     {
-      return cache_enter_func (obj, c);
+      return cache_func (obj, c, true);
     }
     void cache_leave (OT::hb_ot_apply_context_t *c) const
     {
-      cache_leave_func (obj, c);
+      cache_func (obj, c, false);
     }
 
     private:
     const void *obj;
     hb_apply_func_t apply_func;
     hb_apply_func_t apply_cached_func;
-    hb_cache_enter_func_t cache_enter_func;
-    hb_cache_leave_func_t cache_leave_func;
+    hb_cache_func_t cache_func;
     hb_set_digest_t digest;
   };
 
@@ -905,8 +890,7 @@ struct hb_accelerate_subtables_context_t :
     entry.init (obj,
 		apply_to<T>,
 		apply_cached_to<T>,
-		cache_enter_to<T>,
-		cache_leave_to<T>);
+		cache_func_to<T>);
 
     array.push (entry);
 
@@ -2235,21 +2219,25 @@ struct ContextFormat2
     unsigned c = (this+classDef).cost () * ruleSet.len;
     return c >= 4 ? c : 0;
   }
-  bool cache_enter (hb_ot_apply_context_t *c) const
+  bool cache_func (hb_ot_apply_context_t *c, bool enter) const
   {
-    if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
-      return false;
-    auto &info = c->buffer->info;
-    unsigned count = c->buffer->len;
-    for (unsigned i = 0; i < count; i++)
-      info[i].syllable() = 255;
-    c->new_syllables = 255;
-    return true;
-  }
-  void cache_leave (hb_ot_apply_context_t *c) const
-  {
-    c->new_syllables = (unsigned) -1;
-    HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
+    if (enter)
+    {
+      if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
+	return false;
+      auto &info = c->buffer->info;
+      unsigned count = c->buffer->len;
+      for (unsigned i = 0; i < count; i++)
+	info[i].syllable() = 255;
+      c->new_syllables = 255;
+      return true;
+    }
+    else
+    {
+      c->new_syllables = (unsigned) -1;
+      HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
+      return true;
+    }
   }
 
   bool apply (hb_ot_apply_context_t *c, bool cached = false) const
@@ -3285,21 +3273,25 @@ struct ChainContextFormat2
     unsigned c = (this+inputClassDef).cost () * ruleSet.len;
     return c >= 4 ? c : 0;
   }
-  bool cache_enter (hb_ot_apply_context_t *c) const
+  bool cache_func (hb_ot_apply_context_t *c, bool enter) const
   {
-    if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
-      return false;
-    auto &info = c->buffer->info;
-    unsigned count = c->buffer->len;
-    for (unsigned i = 0; i < count; i++)
-      info[i].syllable() = 255;
-    c->new_syllables = 255;
-    return true;
-  }
-  void cache_leave (hb_ot_apply_context_t *c) const
-  {
-    c->new_syllables = (unsigned) -1;
-    HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
+    if (enter)
+    {
+      if (!HB_BUFFER_TRY_ALLOCATE_VAR (c->buffer, syllable))
+	return false;
+      auto &info = c->buffer->info;
+      unsigned count = c->buffer->len;
+      for (unsigned i = 0; i < count; i++)
+	info[i].syllable() = 255;
+      c->new_syllables = 255;
+      return true;
+    }
+    else
+    {
+      c->new_syllables = (unsigned) -1;
+      HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
+      return true;
+    }
   }
 
   bool apply (hb_ot_apply_context_t *c, bool cached = false) const
