@@ -894,7 +894,14 @@ struct hb_accelerate_subtables_context_t :
 
     array.push (entry);
 
-    // Cache handling
+    /* Cache handling
+     *
+     * We allow one subtable from each lookup to use a cache. The assumption
+     * being that multiple subtables of the same lookup cannot use a cache
+     * because the resources they would use will collide.  As such, we ask
+     * each subtable to tell us how much it costs (which a cache would avoid),
+     * and we allocate the cache opportunity to the costliest subtable.
+     */
     unsigned cost = cache_cost (obj, hb_prioritize);
     if (cost > cache_user_cost && !array.in_error ())
     {
