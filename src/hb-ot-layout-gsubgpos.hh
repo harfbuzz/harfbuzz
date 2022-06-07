@@ -3330,23 +3330,26 @@ struct ChainContextFormat2
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
+    /* For ChainContextFormat2 we cache the LookaheadClassDef instead of InputClassDef.
+     * The reason is that most heavy fonts want to identify a glyph in context and apply
+     * a lookup to it. In this scenario, the length of the input sequence is one, whereas
+     * the lookahead / backtrack are typically longer.  The one glyph in input sequence is
+     * looked-up below and no input glyph is looked up in individual rules, whereas the
+     * lookahead and backtrack glyphs are tried.  Since we match lookahead before backtrack,
+     * we should cache lookahead.  This decisions showed a 20% improvement in shaping of
+     * the Gulzar font.
+     */
+
     struct ChainContextApplyLookupContext lookup_context = {
       {{cached && &backtrack_class_def == &input_class_def ? match_class_cached : match_class,
-        cached ? match_class_cached : match_class,
-        cached && &lookahead_class_def == &input_class_def ? match_class_cached : match_class}},
+        cached && &input_class_def == &lookahead_class_def ? match_class_cached : match_class,
+        cached ? match_class_cached : match_class}},
       {&backtrack_class_def,
        &input_class_def,
        &lookahead_class_def}
     };
 
-    if (cached && c->buffer->cur().syllable() < 255)
-      index = c->buffer->cur().syllable ();
-    else
-    {
-      index = input_class_def.get_class (c->buffer->cur().codepoint);
-      if (cached && index < 255)
-	c->buffer->cur().syllable() = index;
-    }
+    index = input_class_def.get_class (c->buffer->cur().codepoint);
     const ChainRuleSet &rule_set = this+ruleSet[index];
     return_trace (rule_set.apply (c, lookup_context));
   }
