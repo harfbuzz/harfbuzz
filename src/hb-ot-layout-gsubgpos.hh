@@ -804,7 +804,7 @@ struct hb_accelerate_subtables_context_t :
   }
 
   template <typename T>
-  static inline auto apply_cached_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply_cached (c) )
+  static inline auto apply_cached_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply (c, true) )
   template <typename T>
   static inline auto apply_cached_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
   template <typename Type>
@@ -2251,7 +2251,6 @@ struct ContextFormat2
     c->new_syllables = (unsigned) -1;
     HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
   }
-  bool apply_cached (hb_ot_apply_context_t *c) const { return apply (c, true); }
 
   bool apply (hb_ot_apply_context_t *c, bool cached = false) const
   {
@@ -3302,7 +3301,6 @@ struct ChainContextFormat2
     c->new_syllables = (unsigned) -1;
     HB_BUFFER_DEALLOCATE_VAR (c->buffer, syllable);
   }
-  bool apply_cached (hb_ot_apply_context_t *c) const { return apply (c, true); }
 
   bool apply (hb_ot_apply_context_t *c, bool cached = false) const
   {
