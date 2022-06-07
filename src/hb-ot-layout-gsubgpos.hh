@@ -803,6 +803,7 @@ struct hb_accelerate_subtables_context_t :
     return typed_obj->apply (c);
   }
 
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
   static inline auto apply_cached_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply (c, true) )
   template <typename T>
@@ -824,6 +825,7 @@ struct hb_accelerate_subtables_context_t :
     const Type *typed_obj = (const Type *) obj;
     return cache_func_ (typed_obj, c, enter, hb_prioritize);
   }
+#endif
 
   typedef bool (*hb_apply_func_t) (const void *obj, OT::hb_ot_apply_context_t *c);
   typedef bool (*hb_cache_func_t) (const void *obj, OT::hb_ot_apply_context_t *c, bool enter);
@@ -835,14 +837,19 @@ struct hb_accelerate_subtables_context_t :
 
     template <typename T>
     void init (const T &obj_,
-	       hb_apply_func_t apply_func_,
-	       hb_apply_func_t apply_cached_func_,
-	       hb_cache_func_t cache_func_)
+	       hb_apply_func_t apply_func_
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+	       , hb_apply_func_t apply_cached_func_
+	       , hb_cache_func_t cache_func_
+#endif
+		)
     {
       obj = &obj_;
       apply_func = apply_func_;
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
       apply_cached_func = apply_cached_func_;
       cache_func = cache_func_;
+#endif
       digest.init ();
       obj_.get_coverage ().collect_coverage (&digest);
     }
@@ -851,11 +858,11 @@ struct hb_accelerate_subtables_context_t :
     {
       return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c);
     }
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     bool apply_cached (OT::hb_ot_apply_context_t *c) const
     {
       return digest.may_have (c->buffer->cur().codepoint) &&  apply_cached_func (obj, c);
     }
-
     bool cache_enter (OT::hb_ot_apply_context_t *c) const
     {
       return cache_func (obj, c, true);
@@ -864,22 +871,26 @@ struct hb_accelerate_subtables_context_t :
     {
       cache_func (obj, c, false);
     }
+#endif
 
     private:
     const void *obj;
     hb_apply_func_t apply_func;
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     hb_apply_func_t apply_cached_func;
     hb_cache_func_t cache_func;
+#endif
     hb_set_digest_t digest;
   };
 
   typedef hb_vector_t<hb_applicable_t> array_t;
 
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
   auto cache_cost (const T &obj, hb_priority<1>) HB_AUTO_RETURN ( obj.cache_cost () )
-
   template <typename T>
   auto cache_cost (const T &obj, hb_priority<0>) HB_AUTO_RETURN ( 0u )
+#endif
 
   /* Dispatch interface. */
   template <typename T>
@@ -888,12 +899,16 @@ struct hb_accelerate_subtables_context_t :
     hb_applicable_t entry;
 
     entry.init (obj,
-		apply_to<T>,
-		apply_cached_to<T>,
-		cache_func_to<T>);
+		apply_to<T>
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
+		, apply_cached_to<T>
+		, cache_func_to<T>
+#endif
+		);
 
     array.push (entry);
 
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     /* Cache handling
      *
      * We allow one subtable from each lookup to use a cache. The assumption
@@ -908,6 +923,7 @@ struct hb_accelerate_subtables_context_t :
       cache_user_idx = array.length - 1;
       cache_user_cost = cost;
     }
+#endif
 
     return hb_empty_t ();
   }
@@ -917,8 +933,11 @@ struct hb_accelerate_subtables_context_t :
 				     array (array_) {}
 
   array_t &array;
+
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   unsigned cache_user_idx = (unsigned) -1;
   unsigned cache_user_cost = 0;
+#endif
 };
 
 
@@ -3792,10 +3811,13 @@ struct hb_ot_layout_lookup_accelerator_t
     subtables.init ();
     OT::hb_accelerate_subtables_context_t c_accelerate_subtables (subtables);
     lookup.dispatch (&c_accelerate_subtables);
+
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     cache_user_idx = c_accelerate_subtables.cache_user_idx;
     for (unsigned i = 0; i < subtables.length; i++)
       if (i != cache_user_idx)
 	subtables[i].apply_cached_func = subtables[i].apply_func;
+#endif
   }
   void fini () { subtables.fini (); }
 
@@ -3804,6 +3826,7 @@ struct hb_ot_layout_lookup_accelerator_t
 
   bool apply (hb_ot_apply_context_t *c, bool use_cache) const
   {
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
       for (unsigned int i = 0; i < subtables.length; i++)
@@ -3811,6 +3834,7 @@ struct hb_ot_layout_lookup_accelerator_t
 	  return true;
     }
     else
+#endif
     {
       for (unsigned int i = 0; i < subtables.length; i++)
         if (subtables[i].apply (c))
@@ -3821,19 +3845,27 @@ struct hb_ot_layout_lookup_accelerator_t
 
   bool cache_enter (OT::hb_ot_apply_context_t *c) const
   {
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     return cache_user_idx != (unsigned) -1 &&
 	   subtables[cache_user_idx].cache_enter (c);
+#else
+    return false;
+#endif
   }
   void cache_leave (OT::hb_ot_apply_context_t *c) const
   {
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     subtables[cache_user_idx].cache_leave (c);
+#endif
   }
 
 
   private:
   hb_set_digest_t digest;
   hb_accelerate_subtables_context_t::array_t subtables;
+#ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   unsigned cache_user_idx = (unsigned) -1;
+#endif
 };
 
 struct GSUBGPOS

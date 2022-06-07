@@ -163,5 +163,9 @@
 #endif
 #endif
 
+#ifdef HB_OPTIMIZE_SIZE
+#define HB_NO_OT_LAYOUT_LOOKUP_CACHE
+#endif
+
 
 #endif /* HB_CONFIG_HH */
