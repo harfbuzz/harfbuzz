@@ -2882,7 +2882,7 @@ struct PosLookupSubTable
 
 struct PosLookup : Lookup
 {
-  typedef struct PosLookupSubTable SubTable;
+  using SubTable = PosLookupSubTable;
 
   const SubTable& get_subtable (unsigned int i) const
   { return Lookup::get_subtable<SubTable> (i); }
@@ -2952,6 +2952,8 @@ struct PosLookup : Lookup
 struct GPOS : GSUBGPOS
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_GPOS;
+
+  using Lookup = PosLookup;
 
   const PosLookup& get_lookup (unsigned int i) const
   { return static_cast<const PosLookup &> (GSUBGPOS::get_lookup (i)); }

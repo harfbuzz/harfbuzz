@@ -10,7 +10,7 @@ namespace GSUB {
 
 struct SubstLookup : Lookup
 {
-  typedef SubstLookupSubTable SubTable;
+  using SubTable = SubstLookupSubTable;
 
   bool sanitize (hb_sanitize_context_t *c) const
   { return Lookup::sanitize<SubTable> (c); }
