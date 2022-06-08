@@ -65,8 +65,6 @@ struct hb_is_inplace_context_t :
   template <typename T>
   inline auto _dispatch (const T &obj, hb_priority<1>) HB_RETURN (return_t, obj.is_inplace () )
   template <typename T>
-  inline auto _dispatch (const T &obj, hb_priority<0>) HB_RETURN (return_t, false )
-  template <typename T>
   inline return_t dispatch (const T &obj) { return _dispatch (obj, hb_prioritize); }
 
   static return_t default_return_value (void) { return true; }

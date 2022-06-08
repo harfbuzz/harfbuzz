@@ -3127,6 +3127,12 @@ template <typename context_t>
   return l.dispatch (c);
 }
 
+template <>
+inline bool PosLookup::dispatch_recurse_func<hb_is_inplace_context_t> (hb_is_inplace_context_t *c, unsigned int lookup_index)
+{
+  return true;
+}
+
 /*static*/ inline hb_closure_lookups_context_t::return_t PosLookup::dispatch_closure_lookups_recurse_func (hb_closure_lookups_context_t *c, unsigned this_index)
 {
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (this_index);
