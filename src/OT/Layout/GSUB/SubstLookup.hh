@@ -73,8 +73,6 @@ struct SubstLookup : Lookup
       return hb_closure_lookups_context_t::default_return_value ();
     }
 
-    c->set_recurse_func (dispatch_closure_lookups_recurse_func);
-
     hb_closure_lookups_context_t::return_t ret = dispatch (c);
     return ret;
   }
@@ -203,8 +201,6 @@ struct SubstLookup : Lookup
 
     return ret;
   }
-
-  HB_INTERNAL static hb_closure_lookups_context_t::return_t dispatch_closure_lookups_recurse_func (hb_closure_lookups_context_t *c, unsigned lookup_index);
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const

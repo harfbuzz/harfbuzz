@@ -59,7 +59,9 @@ template <typename context_t>
   return l.dispatch (c);
 }
 
-/*static*/ inline hb_closure_lookups_context_t::return_t SubstLookup::dispatch_closure_lookups_recurse_func (hb_closure_lookups_context_t *c, unsigned this_index)
+template <>
+inline hb_closure_lookups_context_t::return_t
+SubstLookup::dispatch_recurse_func<hb_closure_lookups_context_t> (hb_closure_lookups_context_t *c, unsigned this_index)
 {
   const SubstLookup &l = c->face->table.GSUB.get_relaxed ()->table->get_lookup (this_index);
   return l.closure_lookups (c, this_index);
