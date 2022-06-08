@@ -30,7 +30,7 @@
 #include "hb.hh"
 
 /*
- * The set digests here implement various "filters" that support
+ * The set-digests here implement various "filters" that support
  * "approximate member query".  Conceptually these are like Bloom
  * Filter and Quotient Filter, however, much smaller, faster, and
  * designed to fit the requirements of our uses for glyph coverage
@@ -40,9 +40,21 @@
  * set of glyphs, but fully flooded and ineffective if coverage is
  * all over the place.
  *
- * The frozen-set can be used instead of a digest, to trade more
- * memory for 100% accuracy, but in practice, that doesn't look like
- * an attractive trade-off.
+ * The way these are used is that the filter is first populated by
+ * a lookup's or subtable's Coverage table(s), and then when we
+ * want to apply the lookup or subtable to a glyph, before trying
+ * to apply, we ask the filter if the glyph may be covered. If it's
+ * not, we return early.
+ *
+ * We use these filters both at the lookup-level, and then again,
+ * at the subtable-level. Both have performance win.
+ *
+ * The main filter we use is a combination of three lowest-bits
+ * filters. A lowest-bits filter checks a number of bits (5 or 6)
+ * of the input number (glyph-id in this case) and checks whether
+ * its pattern is amongs the patterns of any of the accepted values.
+ * The accepted values are represented as a "long" integer. The
+ * check is done using four bitwise operations only.
  */
 
 template <typename mask_t, unsigned int shift>
