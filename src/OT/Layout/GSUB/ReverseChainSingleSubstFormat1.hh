@@ -40,6 +40,8 @@ struct ReverseChainSingleSubstFormat1
     return_trace (substitute.sanitize (c));
   }
 
+  inline bool is_inplace () const { return true; }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     if (!(this+coverage).intersects (glyphs))

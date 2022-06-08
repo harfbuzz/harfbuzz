@@ -27,6 +27,17 @@ struct MultipleSubstFormat1
     return_trace (coverage.sanitize (c, this) && sequence.sanitize (c, this));
   }
 
+  inline bool is_inplace () const
+  {
+    /* Some tools generate MultipleSubst with each substitute having length 1!
+     * So, check them. */
+    unsigned int count = sequence.len;
+    for (unsigned int i = 0; i < count; i++)
+       if (!(this+sequence[i]).is_inplace ())
+	 return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 

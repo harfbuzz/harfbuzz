@@ -2892,6 +2892,11 @@ struct PosLookup : Lookup
     return false;
   }
 
+  bool is_inplace (hb_face_t *face) const
+  {
+    return true;
+  }
+
   bool apply (hb_ot_apply_context_t *c) const
   {
     TRACE_APPLY (this);

@@ -29,6 +29,13 @@ struct SubstLookup : Lookup
     return lookup_type_is_reverse (type);
   }
 
+  bool is_inplace (hb_face_t *face) const
+  {
+    hb_is_inplace_context_t c (face);
+    c.set_recurse_func (dispatch_recurse_func<hb_is_inplace_context_t>);
+    return dispatch (&c);
+  }
+
   bool may_have_non_1to1 () const
   {
     hb_have_non_1to1_context_t c;

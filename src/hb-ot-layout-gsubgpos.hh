@@ -55,6 +55,49 @@ struct hb_intersects_context_t :
                             glyphs (glyphs_) {}
 };
 
+struct hb_is_inplace_context_t :
+       hb_dispatch_context_t<hb_is_inplace_context_t, bool>
+{
+  typedef return_t (*recurse_func_t) (hb_is_inplace_context_t *c, unsigned lookup_index);
+
+  template <typename T>
+  inline auto _dispatch (const T &obj, hb_priority<2>) HB_RETURN (return_t, obj.is_inplace (this) )
+  template <typename T>
+  inline auto _dispatch (const T &obj, hb_priority<1>) HB_RETURN (return_t, obj.is_inplace () )
+  template <typename T>
+  inline auto _dispatch (const T &obj, hb_priority<0>) HB_RETURN (return_t, false )
+  template <typename T>
+  inline return_t dispatch (const T &obj) { return _dispatch (obj, hb_prioritize); }
+
+  static return_t default_return_value (void) { return true; }
+  bool stop_sublookup_iteration (return_t r) const { return !r; }
+  void set_recurse_func (recurse_func_t func) { recurse_func = func; }
+
+  return_t recurse (unsigned int lookup_index)
+  {
+    if (memoize.has (lookup_index))
+      return memoize.get (lookup_index);
+    if (unlikely (nesting_level_left == 0) || !recurse_func)
+      return false;
+
+    nesting_level_left--;
+    bool ret = recurse_func (this, lookup_index);
+    memoize.set (lookup_index, ret);
+    nesting_level_left++;
+    return ret;
+  }
+
+  hb_face_t *face;
+  unsigned int nesting_level_left;
+  recurse_func_t recurse_func = nullptr;
+  hb_map_t memoize;
+
+  hb_is_inplace_context_t (hb_face_t *face_,
+                          unsigned int nesting_level_left_ = HB_MAX_NESTING_LEVEL) :
+                          face (face_),
+                          nesting_level_left (nesting_level_left_) {}
+};
+
 struct hb_have_non_1to1_context_t :
        hb_dispatch_context_t<hb_have_non_1to1_context_t, bool>
 {
@@ -1730,6 +1773,16 @@ static inline bool context_apply_lookup (hb_ot_apply_context_t *c,
 
 struct Rule
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (inputZ, inputZ[0].static_size * (inputCount ? inputCount - 1 : 0));
+    unsigned int count = lookupCount;
+    for (unsigned int i = 0; i < count; i++)
+      if (!c->recurse (lookupRecord[i].lookupListIndex))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs, ContextClosureLookupContext &lookup_context) const
   {
     return context_intersects (glyphs,
@@ -1856,6 +1909,15 @@ struct Rule
 
 struct RuleSet
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    unsigned int num_rules = rule.len;
+    for (unsigned int i = 0; i < num_rules; i++)
+      if (!(this+rule[i]).is_inplace (c))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs,
 		   ContextClosureLookupContext &lookup_context) const
   {
@@ -1970,6 +2032,15 @@ struct RuleSet
 
 struct ContextFormat1
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    unsigned int count = ruleSet.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!(this+ruleSet[i]).is_inplace (c))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     struct ContextClosureLookupContext lookup_context = {
@@ -2119,6 +2190,15 @@ struct ContextFormat1
 
 struct ContextFormat2
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    unsigned int count = ruleSet.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!(this+ruleSet[i]).is_inplace (c))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     if (!(this+coverage).intersects (glyphs))
@@ -2367,6 +2447,16 @@ struct ContextFormat2
 
 struct ContextFormat3
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    const LookupRecord *lookupRecord = &StructAtOffset<LookupRecord> (coverageZ, coverageZ[0].static_size * glyphCount);
+    unsigned int count = lookupCount;
+    for (unsigned int i = 0; i < count; i++)
+      if (!c->recurse (lookupRecord[i].lookupListIndex))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     if (!(this+coverageZ[0]).intersects (glyphs))
@@ -2699,6 +2789,18 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 
 struct ChainRule
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16>> (backtrack);
+    const Array16Of<HBUINT16> &lookahead = StructAfter<Array16Of<HBUINT16>> (input);
+    const Array16Of<LookupRecord> &lookup = StructAfter<Array16Of<LookupRecord>> (lookahead);
+    unsigned int count = lookup.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!c->recurse (lookup[i].lookupListIndex))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs, ChainContextClosureLookupContext &lookup_context) const
   {
     const HeadlessArrayOf<HBUINT16> &input = StructAfter<HeadlessArrayOf<HBUINT16>> (backtrack);
@@ -2889,6 +2991,15 @@ struct ChainRule
 
 struct ChainRuleSet
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    unsigned int num_rules = rule.len;
+    for (unsigned int i = 0; i < num_rules; i++)
+      if (!(this+rule[i]).is_inplace (c))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs, ChainContextClosureLookupContext &lookup_context) const
   {
     return
@@ -3003,6 +3114,15 @@ struct ChainRuleSet
 
 struct ChainContextFormat1
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    unsigned int count = ruleSet.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!(this+ruleSet[i]).is_inplace (c))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     struct ChainContextClosureLookupContext lookup_context = {
@@ -3150,6 +3270,15 @@ struct ChainContextFormat1
 
 struct ChainContextFormat2
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    unsigned int count = ruleSet.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!(this+ruleSet[i]).is_inplace (c))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     if (!(this+coverage).intersects (glyphs))
@@ -3457,6 +3586,18 @@ struct ChainContextFormat2
 
 struct ChainContextFormat3
 {
+  inline bool is_inplace (hb_is_inplace_context_t *c) const
+  {
+    const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);
+    const Array16OfOffset16To<Coverage> &lookahead = StructAfter<Array16OfOffset16To<Coverage>> (input);
+    const Array16Of<LookupRecord> &lookup = StructAfter<Array16Of<LookupRecord>> (lookahead);
+    unsigned int count = lookup.len;
+    for (unsigned int i = 0; i < count; i++)
+      if (!c->recurse (lookup[i].lookupListIndex))
+	return false;
+    return true;
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     const Array16OfOffset16To<Coverage> &input = StructAfter<Array16OfOffset16To<Coverage>> (backtrack);

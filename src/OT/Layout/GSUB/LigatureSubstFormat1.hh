@@ -27,6 +27,8 @@ struct LigatureSubstFormat1
     return_trace (coverage.sanitize (c, this) && ligatureSet.sanitize (c, this));
   }
 
+  inline bool is_inplace () const { return false; }
+
   bool intersects (const hb_set_t *glyphs) const
   {
     return

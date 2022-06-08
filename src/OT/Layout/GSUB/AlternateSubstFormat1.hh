@@ -27,6 +27,8 @@ struct AlternateSubstFormat1
     return_trace (coverage.sanitize (c, this) && alternateSet.sanitize (c, this));
   }
 
+  inline bool is_inplace () const { return true; }
+
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 

@@ -21,6 +21,8 @@ struct Sequence
     return_trace (substitute.sanitize (c));
   }
 
+  inline bool is_inplace () const { return substitute.len == 1; }
+
   bool intersects (const hb_set_t *glyphs) const
   { return hb_all (substitute, glyphs); }
 
