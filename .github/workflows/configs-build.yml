@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-18.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: install dependencies
       run: sudo apt-get install gcc
     - name: HB_DISABLE_DEPRECATED
