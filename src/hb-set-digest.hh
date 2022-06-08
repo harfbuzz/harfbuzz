@@ -50,7 +50,7 @@
  * at the subtable-level. Both have performance win.
  *
  * The main filter we use is a combination of three bits-pattern
- * filters. A lowest-bits filter checks a number of bits (5 or 6)
+ * filters. A bits-pattern filter checks a number of bits (5 or 6)
  * of the input number (glyph-id in this case) and checks whether
  * its pattern is amongs the patterns of any of the accepted values.
  * The accepted values are represented as a "long" integer. The
