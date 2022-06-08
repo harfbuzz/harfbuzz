@@ -1796,7 +1796,7 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 struct GSUBProxy
 {
   static constexpr unsigned table_index = 0u;
-  static constexpr bool inplace = false;
+  static constexpr bool always_inplace = false;
   typedef OT::SubstLookup Lookup;
 
   GSUBProxy (hb_face_t *face) :
@@ -1810,7 +1810,7 @@ struct GSUBProxy
 struct GPOSProxy
 {
   static constexpr unsigned table_index = 1u;
-  static constexpr bool inplace = true;
+  static constexpr bool always_inplace = true;
   typedef OT::PosLookup Lookup;
 
   GPOSProxy (hb_face_t *face) :
@@ -1889,13 +1889,13 @@ apply_string (OT::hb_ot_apply_context_t *c,
   if (likely (!lookup.is_reverse ()))
   {
     /* in/out forward substitution/positioning */
-    if (!Proxy::inplace)
+    if (!Proxy::always_inplace)
       buffer->clear_output ();
 
     buffer->idx = 0;
     apply_forward (c, accel);
 
-    if (!Proxy::inplace)
+    if (!Proxy::always_inplace)
       buffer->sync ();
   }
   else
