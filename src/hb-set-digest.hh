@@ -52,8 +52,8 @@
  * The main filter we use is a combination of three bits-pattern
  * filters. A bits-pattern filter checks a number of bits (5 or 6)
  * of the input number (glyph-id in this case) and checks whether
- * its pattern is amongs the patterns of any of the accepted values.
- * The accepted values are represented as a "long" integer. The
+ * its pattern is amongst the patterns of any of the accepted values.
+ * The accepted patterns are represented as a "long" integer. The
  * check is done using four bitwise operations only.
  */
 
