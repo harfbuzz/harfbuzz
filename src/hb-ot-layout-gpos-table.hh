@@ -2918,7 +2918,6 @@ struct PosLookup : Lookup
       c->set_lookup_inactive (this_index);
       return hb_closure_lookups_context_t::default_return_value ();
     }
-    c->set_recurse_func (dispatch_closure_lookups_recurse_func);
 
     hb_closure_lookups_context_t::return_t ret = dispatch (c);
     return ret;
@@ -2933,8 +2932,6 @@ struct PosLookup : Lookup
 
   template <typename context_t>
   static typename context_t::return_t dispatch_recurse_func (context_t *c, unsigned int lookup_index);
-
-  HB_INTERNAL static hb_closure_lookups_context_t::return_t dispatch_closure_lookups_recurse_func (hb_closure_lookups_context_t *c, unsigned this_index);
 
   template <typename context_t, typename ...Ts>
   typename context_t::return_t dispatch (context_t *c, Ts&&... ds) const
@@ -3120,7 +3117,9 @@ template <typename context_t>
   return l.dispatch (c);
 }
 
-/*static*/ inline hb_closure_lookups_context_t::return_t PosLookup::dispatch_closure_lookups_recurse_func (hb_closure_lookups_context_t *c, unsigned this_index)
+template <>
+inline hb_closure_lookups_context_t::return_t
+PosLookup::dispatch_recurse_func<hb_closure_lookups_context_t> (hb_closure_lookups_context_t *c, unsigned this_index)
 {
   const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (this_index);
   return l.closure_lookups (c, this_index);
