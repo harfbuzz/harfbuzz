@@ -100,8 +100,6 @@ struct SubstLookup : Lookup
       return dispatch (c);
   }
 
-  static inline bool apply_recurse_func (hb_ot_apply_context_t *c, unsigned int lookup_index);
-
   bool serialize_single (hb_serialize_context_t *c,
                          uint32_t lookup_props,
                          hb_sorted_array_t<const HBGlyphID16> glyphs,
