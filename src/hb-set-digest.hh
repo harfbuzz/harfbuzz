@@ -49,7 +49,7 @@
  * We use these filters both at the lookup-level, and then again,
  * at the subtable-level. Both have performance win.
  *
- * The main filter we use is a combination of three lowest-bits
+ * The main filter we use is a combination of three bits-pattern
  * filters. A lowest-bits filter checks a number of bits (5 or 6)
  * of the input number (glyph-id in this case) and checks whether
  * its pattern is amongs the patterns of any of the accepted values.
@@ -58,7 +58,7 @@
  */
 
 template <typename mask_t, unsigned int shift>
-struct hb_set_digest_lowest_bits_t
+struct hb_set_digest_bits_pattern_t
 {
   static constexpr unsigned mask_bytes = sizeof (mask_t);
   static constexpr unsigned mask_bits = sizeof (mask_t) * 8;
@@ -183,11 +183,11 @@ struct hb_set_digest_combiner_t
 using hb_set_digest_t =
   hb_set_digest_combiner_t
   <
-    hb_set_digest_lowest_bits_t<unsigned long, 4>,
+    hb_set_digest_bits_pattern_t<unsigned long, 4>,
     hb_set_digest_combiner_t
     <
-      hb_set_digest_lowest_bits_t<unsigned long, 0>,
-      hb_set_digest_lowest_bits_t<unsigned long, 9>
+      hb_set_digest_bits_pattern_t<unsigned long, 0>,
+      hb_set_digest_bits_pattern_t<unsigned long, 9>
     >
   >
 ;
