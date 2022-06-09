@@ -466,23 +466,10 @@ static_assert ((sizeof (hb_mask_t) == 4), "");
 static_assert ((sizeof (hb_var_int_t) == 4), "");
 
 
-#include "hb-cplusplus.hh"
-
-namespace hb {
-
-// Allow using hb::unique_ptr with hb_free() internally.
-template <typename T>
-struct vtable
-{
-  static constexpr auto destroy = hb_free;
-};
-
-}
-
-
 /* Headers we include for everyone.  Keep topologically sorted by dependency.
  * They express dependency amongst themselves, but no other file should include
  * them directly.*/
+#include "hb-cplusplus.hh"
 #include "hb-meta.hh"
 #include "hb-mutex.hh"
 #include "hb-number.hh"
