@@ -29,6 +29,14 @@
 
 #include "hb.hh"
 
+#include "hb-ot-layout.hh"
+#include "hb-ot-shaper-indic.hh"
+
+using indic_category_t = ot_category_t;
+using indic_position_t = ot_position_t;
+
+#define I_Cat(Cat) indic_syllable_machine_ex_##Cat
+
 enum indic_syllable_type_t {
   indic_consonant_syllable,
   indic_vowel_syllable,

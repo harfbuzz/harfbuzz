@@ -42,7 +42,7 @@
  */
 /* Note: This enum is duplicated in the -machine.rl source file.
  * Not sure how to avoid duplication. */
-enum indic_category_t {
+enum ot_category_t {
   OT_X = 0,
   OT_C = 1,
   OT_V = 2,
@@ -103,7 +103,7 @@ enum indic_category_t {
 
 
 /* Visual positions in a syllable from left to right. */
-enum indic_position_t {
+enum ot_position_t {
   POS_START = 0,
 
   POS_RA_TO_BECOME_REPH = 1,
@@ -161,56 +161,6 @@ is_halant (const hb_glyph_info_t &info)
 {
   return is_one_of (info, FLAG (OT_H));
 }
-
-#define IN_HALF_BLOCK(u, Base) (((u) & ~0x7Fu) == (Base))
-
-#define IS_DEVA(u) (IN_HALF_BLOCK (u, 0x0900u))
-#define IS_BENG(u) (IN_HALF_BLOCK (u, 0x0980u))
-#define IS_GURU(u) (IN_HALF_BLOCK (u, 0x0A00u))
-#define IS_GUJR(u) (IN_HALF_BLOCK (u, 0x0A80u))
-#define IS_ORYA(u) (IN_HALF_BLOCK (u, 0x0B00u))
-#define IS_TAML(u) (IN_HALF_BLOCK (u, 0x0B80u))
-#define IS_TELU(u) (IN_HALF_BLOCK (u, 0x0C00u))
-#define IS_KNDA(u) (IN_HALF_BLOCK (u, 0x0C80u))
-#define IS_MLYM(u) (IN_HALF_BLOCK (u, 0x0D00u))
-#define IS_SINH(u) (IN_HALF_BLOCK (u, 0x0D80u))
-
-
-static inline void
-set_indic_properties (hb_glyph_info_t &info)
-{
-  hb_codepoint_t u = info.codepoint;
-  unsigned int type = hb_indic_get_categories (u);
-
-  info.indic_category() = (indic_category_t) (type & 0xFFu);
-  info.indic_position() = (indic_position_t) (type >> 8);
-}
-
-struct hb_indic_would_substitute_feature_t
-{
-  void init (const hb_ot_map_t *map, hb_tag_t feature_tag, bool zero_context_)
-  {
-    zero_context = zero_context_;
-    map->get_stage_lookups (0/*GSUB*/,
-			    map->get_feature_stage (0/*GSUB*/, feature_tag),
-			    &lookups, &count);
-  }
-
-  bool would_substitute (const hb_codepoint_t *glyphs,
-			 unsigned int          glyphs_count,
-			 hb_face_t            *face) const
-  {
-    for (unsigned int i = 0; i < count; i++)
-      if (hb_ot_layout_lookup_would_substitute (face, lookups[i].index, glyphs, glyphs_count, zero_context))
-	return true;
-    return false;
-  }
-
-  private:
-  const hb_ot_map_t::lookup_map_t *lookups;
-  unsigned int count;
-  bool zero_context;
-};
 
 
 #endif /* HB_OT_SHAPER_INDIC_HH */

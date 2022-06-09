@@ -38,8 +38,8 @@
 #define myanmar_category() indic_category() /* myanmar_category_t */
 #define myanmar_position() indic_position() /* myanmar_position_t */
 
-using myanmar_category_t = unsigned;
-using myanmar_position_t = indic_position_t;
+using myanmar_category_t = ot_category_t;
+using myanmar_position_t = ot_position_t;
 
 #define M_Cat(Cat) myanmar_syllable_machine_ex_##Cat
 
