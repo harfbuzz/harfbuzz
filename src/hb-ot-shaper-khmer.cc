@@ -84,44 +84,8 @@ set_khmer_properties (hb_glyph_info_t &info)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = hb_indic_get_categories (u);
-  khmer_category_t cat = (khmer_category_t) (type & 0xFFu);
 
-  /*
-   * Re-assign category
-   *
-   * These categories are experimentally extracted from what Uniscribe allows.
-   */
-  switch (u)
-  {
-    case 0x179Au:
-      cat = (khmer_category_t) K_Cat(Ra);
-      break;
-
-    case 0x17CCu:
-    case 0x17C9u:
-    case 0x17CAu:
-      cat = K_Cat(Robatic);
-      break;
-
-    case 0x17C6u:
-    case 0x17CBu:
-    case 0x17CDu:
-    case 0x17CEu:
-    case 0x17CFu:
-    case 0x17D0u:
-    case 0x17D1u:
-      cat = K_Cat(Xgroup);
-      break;
-
-    case 0x17C7u:
-    case 0x17C8u:
-    case 0x17DDu:
-    case 0x17D3u: /* Just guessing. Uniscribe doesn't categorize it. */
-      cat = K_Cat(Ygroup);
-      break;
-  }
-
-  info.khmer_category() = cat;
+  info.khmer_category() = (khmer_category_t) (type & 0xFFu);
 }
 
 static void

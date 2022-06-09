@@ -180,11 +180,9 @@ set_indic_properties (hb_glyph_info_t &info)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = hb_indic_get_categories (u);
-  indic_category_t cat = (indic_category_t) (type & 0xFFu);
-  indic_position_t pos = (indic_position_t) (type >> 8);
 
-  info.indic_category() = cat;
-  info.indic_position() = pos;
+  info.indic_category() = (indic_category_t) (type & 0xFFu);
+  info.indic_position() = (indic_position_t) (type >> 8);
 }
 
 struct hb_indic_would_substitute_feature_t

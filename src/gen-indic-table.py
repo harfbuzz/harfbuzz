@@ -146,6 +146,8 @@ position_map = {
 
 category_overrides = {
 
+  # Indic
+
   0x0930: 'Ra', # Devanagari
   0x09B0: 'Ra', # Bengali
   0x09F0: 'Ra', # Bengali
@@ -221,6 +223,28 @@ category_overrides = {
   0x2011: 'PLACEHOLDER',
 
   0x25CC: 'DOTTEDCIRCLE',
+
+
+  # Khmer
+
+  0x179A: 'Ra',
+
+  0x17CC: 'Robatic',
+  0x17C9: 'Robatic',
+  0x17CA: 'Robatic',
+
+  0x17C6: 'Xgroup',
+  0x17CB: 'Xgroup',
+  0x17CD: 'Xgroup',
+  0x17CE: 'Xgroup',
+  0x17CF: 'Xgroup',
+  0x17D0: 'Xgroup',
+  0x17D1: 'Xgroup',
+
+  0x17C7: 'Ygroup',
+  0x17C8: 'Ygroup',
+  0x17DD: 'Ygroup',
+  0x17D3: 'Ygroup', # Just guessing. Uniscribe doesn't categorize it.
 }
 position_overrides = {
 
@@ -364,6 +388,9 @@ short = [{
 	"DOTTEDCIRCLE":		'DC',
 	"VPst":			'VR',
 	"VPre":			'VL',
+	"Robatic":		'Rt',
+	"Xgroup":		'Xg',
+	"Ygroup":		'Yg',
 },{
 	"END":			'X',
 	"BASE_C":		'C',

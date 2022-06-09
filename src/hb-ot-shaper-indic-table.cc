@@ -24,8 +24,8 @@
 #pragma GCC diagnostic ignored "-Wunused-macros"
 
 #define ISC_A    OT_A            /*  51 chars; A */
-#define ISC_C    OT_C            /* 521 chars; C */
-#define ISC_CM   OT_CM           /*  10 chars; CM */
+#define ISC_C    OT_C            /* 520 chars; C */
+#define ISC_CM   OT_CM           /*   9 chars; CM */
 #define ISC_CS   OT_CS           /*   2 chars; CS */
 #define ISC_Co   OT_Coeng        /*   2 chars; Coeng */
 #define ISC_DC   OT_DOTTEDCIRCLE /*   1 chars; DOTTEDCIRCLE */
@@ -33,32 +33,34 @@
 #define ISC_M    OT_M            /* 160 chars; M */
 #define ISC_N    OT_N            /*  35 chars; N */
 #define ISC_GB   OT_PLACEHOLDER  /* 168 chars; PLACEHOLDER */
-#define ISC_RS   OT_RS           /*   2 chars; RS */
-#define ISC_R    OT_Ra           /*  11 chars; Ra */
+#define ISC_R    OT_Ra           /*  12 chars; Ra */
 #define ISC_Rf   OT_Repha        /*   1 chars; Repha */
-#define ISC_SM   OT_SM           /*  56 chars; SM */
+#define ISC_Rt   OT_Robatic      /*   3 chars; Robatic */
+#define ISC_SM   OT_SM           /*  48 chars; SM */
 #define ISC_S    OT_Symbol       /*  22 chars; Symbol */
 #define ISC_V    OT_V            /* 190 chars; V */
-#define ISC_VA   OT_VAbv         /*  22 chars; VAbv */
+#define ISC_VA   OT_VAbv         /*  20 chars; VAbv */
 #define ISC_VB   OT_VBlw         /*   7 chars; VBlw */
 #define ISC_VL   OT_VPre         /*   5 chars; VPre */
-#define ISC_VR   OT_VPst         /*  15 chars; VPst */
+#define ISC_VR   OT_VPst         /*  14 chars; VPst */
 #define ISC_X    OT_X            /*   2 chars; X */
+#define ISC_Xg   OT_Xgroup       /*   7 chars; Xgroup */
+#define ISC_Yg   OT_Ygroup       /*   4 chars; Ygroup */
 #define ISC_ZWJ  OT_ZWJ          /*   1 chars; ZWJ */
 #define ISC_ZWNJ OT_ZWNJ         /*   1 chars; ZWNJ */
 
-#define IMC_T    POS_ABOVE_C     /*  29 chars; ABOVE_C */
+#define IMC_T    POS_ABOVE_C     /*  25 chars; ABOVE_C */
 #define IMC_A    POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
 #define IMC_AP   POS_AFTER_POST  /*  50 chars; AFTER_POST */
 #define IMC_AS   POS_AFTER_SUB   /*  60 chars; AFTER_SUB */
-#define IMC_C    POS_BASE_C      /* 903 chars; BASE_C */
+#define IMC_C    POS_BASE_C      /* 902 chars; BASE_C */
 #define IMC_BS   POS_BEFORE_SUB  /*  31 chars; BEFORE_SUB */
 #define IMC_B    POS_BELOW_C     /*  13 chars; BELOW_C */
-#define IMC_X    POS_END         /*  42 chars; END */
-#define IMC_R    POS_POST_C      /*  15 chars; POST_C */
+#define IMC_X    POS_END         /*  56 chars; END */
+#define IMC_R    POS_POST_C      /*  14 chars; POST_C */
 #define IMC_L    POS_PRE_C       /*   5 chars; PRE_C */
 #define IMC_LM   POS_PRE_M       /*  16 chars; PRE_M */
-#define IMC_SM   POS_SMVD        /* 128 chars; SMVD */
+#define IMC_SM   POS_SMVD        /* 120 chars; SMVD */
 
 #pragma GCC diagnostic pop
 
@@ -314,15 +316,15 @@ static const uint16_t indic_table[] = {
   /* 1780 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 1788 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 1790 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
-  /* 1798 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1798 */  _(C,C),  _(C,C),  _(R,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 17A0 */  _(C,C),  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
   /* 17A8 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
   /* 17B0 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(X,X), _(VR,R), _(VA,T),
   /* 17B8 */ _(VA,T), _(VA,T), _(VA,T), _(VB,B), _(VB,B), _(VB,B), _(VA,T), _(VR,R),
-  /* 17C0 */ _(VR,R), _(VL,L), _(VL,L), _(VL,L), _(VR,R), _(VR,R),_(SM,SM),_(SM,SM),
-  /* 17C8 */ _(VR,R), _(RS,T), _(RS,T),_(SM,SM), _(CM,C), _(VA,T),_(SM,SM),_(SM,SM),
-  /* 17D0 */_(SM,SM), _(VA,T), _(Co,X),_(SM,SM),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 17D8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(S,SM),_(SM,SM),  _(X,X),  _(X,X),
+  /* 17C0 */ _(VR,R), _(VL,L), _(VL,L), _(VL,L), _(VR,R), _(VR,R), _(Xg,X), _(Yg,X),
+  /* 17C8 */ _(Yg,X), _(Rt,X), _(Rt,X), _(Xg,X), _(Rt,X), _(Xg,X), _(Xg,X), _(Xg,X),
+  /* 17D0 */ _(Xg,X), _(Xg,X), _(Co,X), _(Yg,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 17D8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(S,SM), _(Yg,X),  _(X,X),  _(X,X),
   /* 17E0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 17E8 */ _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
@@ -459,9 +461,9 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef ISC_M
 #undef ISC_N
 #undef ISC_GB
-#undef ISC_RS
 #undef ISC_R
 #undef ISC_Rf
+#undef ISC_Rt
 #undef ISC_SM
 #undef ISC_S
 #undef ISC_V
@@ -470,6 +472,8 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef ISC_VL
 #undef ISC_VR
 #undef ISC_X
+#undef ISC_Xg
+#undef ISC_Yg
 #undef ISC_ZWJ
 #undef ISC_ZWNJ
 
