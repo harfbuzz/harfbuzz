@@ -245,6 +245,114 @@ category_overrides = {
   0x17C8: 'Ygroup',
   0x17DD: 'Ygroup',
   0x17D3: 'Ygroup', # Just guessing. Uniscribe doesn't categorize it.
+
+
+  # Myanmar
+
+  # https://docs.microsoft.com/en-us/typography/script-development/myanmar#analyze
+
+  0xFE00: 'VS',
+  0xFE01: 'VS',
+  0xFE02: 'VS',
+  0xFE03: 'VS',
+  0xFE04: 'VS',
+  0xFE05: 'VS',
+  0xFE06: 'VS',
+  0xFE07: 'VS',
+  0xFE08: 'VS',
+  0xFE09: 'VS',
+  0xFE0A: 'VS',
+  0xFE0B: 'VS',
+  0xFE0C: 'VS',
+  0xFE0D: 'VS',
+  0xFE0E: 'VS',
+  0xFE0F: 'VS',
+
+  0x104E: 'C', # The spec says C, IndicSyllableCategory doesn't have.
+
+  0x002D: 'PLACEHOLDER',
+  0x00A0: 'PLACEHOLDER',
+  0x00D7: 'PLACEHOLDER',
+  0x2012: 'PLACEHOLDER',
+  0x2013: 'PLACEHOLDER',
+  0x2014: 'PLACEHOLDER',
+  0x2015: 'PLACEHOLDER',
+  0x2022: 'PLACEHOLDER',
+  0x25FB: 'PLACEHOLDER',
+  0x25FC: 'PLACEHOLDER',
+  0x25FD: 'PLACEHOLDER',
+  0x25FE: 'PLACEHOLDER',
+
+  0x1004: 'Ra',
+  0x101B: 'Ra',
+  0x105A: 'Ra',
+
+  0x1032: 'A',
+  0x1036: 'A',
+
+  0x1039: 'H',
+
+  0x103A: 'As',
+
+  0x1040: 'D', # XXX The spec says D0, but Uniscribe doesn't seem to do.
+  0x1041: 'D',
+  0x1042: 'D',
+  0x1043: 'D',
+  0x1044: 'D',
+  0x1045: 'D',
+  0x1046: 'D',
+  0x1047: 'D',
+  0x1048: 'D',
+  0x1049: 'D',
+  0x1090: 'D',
+  0x1091: 'D',
+  0x1092: 'D',
+  0x1093: 'D',
+  0x1094: 'D',
+  0x1095: 'D',
+  0x1096: 'D',
+  0x1097: 'D',
+  0x1098: 'D',
+  0x1099: 'D',
+
+  0x103E: 'MH',
+  0x1060: 'ML',
+  0x103C: 'MR',
+  0x103D: 'MW',
+  0x1082: 'MW',
+  0x103B: 'MY',
+  0x105E: 'MY',
+  0x105F: 'MY',
+
+  0x1063: 'PT',
+  0x1064: 'PT',
+  0x1069: 'PT',
+  0x106A: 'PT',
+  0x106B: 'PT',
+  0x106C: 'PT',
+  0x106D: 'PT',
+  0xAA7B: 'PT',
+
+  0x1038: 'SM',
+  0x1087: 'SM',
+  0x1088: 'SM',
+  0x1089: 'SM',
+  0x108A: 'SM',
+  0x108B: 'SM',
+  0x108C: 'SM',
+  0x108D: 'SM',
+  0x108F: 'SM',
+  0x109A: 'SM',
+  0x109B: 'SM',
+  0x109C: 'SM',
+
+  0x104A: 'P',
+  0x104B: 'P',
+
+  # https://github.com/harfbuzz/harfbuzz/issues/218
+  0xAA74: 'C',
+  0xAA75: 'C',
+  0xAA76: 'C',
 }
 position_overrides = {
 
@@ -302,6 +410,7 @@ def position_to_category(pos):
   if pos == 'ABOVE_C':	return 'VAbv'
   if pos == 'BELOW_C':	return 'VBlw'
   if pos == 'POST_C':	return 'VPst'
+  assert(False)
 
 
 defaults = (category_map[defaults[0]], position_map[defaults[1]], defaults[2])
@@ -391,6 +500,7 @@ short = [{
 	"Robatic":		'Rt',
 	"Xgroup":		'Xg',
 	"Ygroup":		'Yg',
+	"As":			'As',
 },{
 	"END":			'X',
 	"BASE_C":		'C',

@@ -63,9 +63,9 @@ export DB   = 3;	# Dot below	     = OT_N
 export H    = 4;
 export ZWNJ = 5;
 export ZWJ  = 6;
-export V    = 8;	# Visarga and Shan tones
+export SM    = 8;	# Visarga and Shan tones
 export GB   = 10;	# 		     = OT_PLACEHOLDER
-export D    = 10;	# Digits except zero = GB
+export DOTTEDCIRCLE = 11;
 export A    = 9;
 export Ra   = 15;
 export CS   = 18;
@@ -76,15 +76,16 @@ export VPre = 22;
 export VPst = 23;
 
 export As   = 32;	# Asat
-export D0   = 33;	# Digit zero
-export MH   = 34;	# Medial
-export MR   = 35;	# Medial
-export MW   = 36;	# Medial
-export MY   = 37;	# Medial
-export PT   = 38;	# Pwo and other tones
-export VS   = 39;	# Variation selectors
-export P    = 40;	# Punctuation
-export ML   = 41;	# Consonant medials
+export D    = 33;	# Digits except zero
+export D0   = 34;	# Digit zero
+export MH   = 35;	# Medial
+export MR   = 36;	# Medial
+export MW   = 37;	# Medial
+export MY   = 38;	# Medial
+export PT   = 39;	# Pwo and other tones
+export VS   = 40;	# Variation selectors
+export P    = 41;	# Punctuation
+export ML   = 42;	# Consonant medials
 
 
 j = ZWJ|ZWNJ;			# Joiners
@@ -97,11 +98,11 @@ main_vowel_group = (VPre.VS?)* VAbv* VBlw* A* (DB As?)?;
 post_vowel_group = VPst MH? ML? As* VAbv* A* (DB As?)?;
 pwo_tone_group = PT A* DB? As?;
 
-complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_tone_group* V* j?;
+complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_tone_group* SM* j?;
 syllable_tail = (H (c|IV).VS?)* (H | complex_syllable_tail);
 
-consonant_syllable =	(k|CS)? (c|IV|D|GB).VS? syllable_tail;
-punctuation_cluster =	P V;
+consonant_syllable =	(k|CS)? (c|IV|D|GB|DOTTEDCIRCLE).VS? syllable_tail;
+punctuation_cluster =	P SM;
 broken_cluster =	k? VS? syllable_tail;
 other =			any;
 

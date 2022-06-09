@@ -77,15 +77,16 @@ enum indic_category_t {
 
   /* Myanmar */
   OT_As      = 32,	// Asat
-  OT_D0      = 33,	// Digit zero
-  OT_MH      = 34,	// Medial
-  OT_MR      = 35,	// Medial
-  OT_MW      = 36,	// Medial
-  OT_MY      = 37,	// Medial
-  OT_PT      = 38,	// Pwo and other tones
-  OT_VS      = 39,	// Variation selectors
-  OT_P       = 40,	// Punctuation
-  OT_ML      = 41,	// Consonant medials
+  OT_D       = 33,	// Digits except zero
+  OT_D0      = 34,	// Digit zero
+  OT_MH      = 35,	// Medial
+  OT_MR      = 36,	// Medial
+  OT_MW      = 37,	// Medial
+  OT_MY      = 38,	// Medial
+  OT_PT      = 39,	// Pwo and other tones
+  OT_VS      = 40,	// Variation selectors
+  OT_P       = 41,	// Punctuation
+  OT_ML      = 42,	// Consonant medials
 };
 
 #define MEDIAL_FLAGS (FLAG (OT_CM))

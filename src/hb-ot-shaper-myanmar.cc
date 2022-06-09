@@ -68,98 +68,8 @@ set_myanmar_properties (hb_glyph_info_t &info)
 {
   hb_codepoint_t u = info.codepoint;
   unsigned int type = hb_indic_get_categories (u);
-  unsigned int cat = type & 0xFFu;
 
-  /* Myanmar
-   * https://docs.microsoft.com/en-us/typography/script-development/myanmar#analyze
-   */
-  if (unlikely (hb_in_range<hb_codepoint_t> (u, 0xFE00u, 0xFE0Fu)))
-    cat = M_Cat(VS);
-
-  switch (u)
-  {
-    case 0x104Eu:
-      cat = M_Cat(C); /* The spec says C, IndicSyllableCategory doesn't have. */
-      break;
-
-    case 0x002Du: case 0x00A0u: case 0x00D7u: case 0x2012u:
-    case 0x2013u: case 0x2014u: case 0x2015u: case 0x2022u:
-    case 0x25CCu: case 0x25FBu: case 0x25FCu: case 0x25FDu:
-    case 0x25FEu:
-      cat = M_Cat(GB);
-      break;
-
-    case 0x1004u: case 0x101Bu: case 0x105Au:
-      cat = M_Cat(Ra);
-      break;
-
-    case 0x1032u: case 0x1036u:
-      cat = M_Cat(A);
-      break;
-
-    case 0x1039u:
-      cat = M_Cat(H);
-      break;
-
-    case 0x103Au:
-      cat = M_Cat(As);
-      break;
-
-    case 0x1041u: case 0x1042u: case 0x1043u: case 0x1044u:
-    case 0x1045u: case 0x1046u: case 0x1047u: case 0x1048u:
-    case 0x1049u: case 0x1090u: case 0x1091u: case 0x1092u:
-    case 0x1093u: case 0x1094u: case 0x1095u: case 0x1096u:
-    case 0x1097u: case 0x1098u: case 0x1099u:
-      cat = M_Cat(D);
-      break;
-
-    case 0x1040u:
-      cat = M_Cat(D); /* XXX The spec says D0, but Uniscribe doesn't seem to do. */
-      break;
-
-    case 0x103Eu:
-      cat = M_Cat(MH);
-      break;
-
-    case 0x1060u:
-      cat = M_Cat(ML);
-      break;
-
-    case 0x103Cu:
-      cat = M_Cat(MR);
-      break;
-
-    case 0x103Du: case 0x1082u:
-      cat = M_Cat(MW);
-      break;
-
-    case 0x103Bu: case 0x105Eu: case 0x105Fu:
-      cat = M_Cat(MY);
-      break;
-
-    case 0x1063u: case 0x1064u: case 0x1069u: case 0x106Au:
-    case 0x106Bu: case 0x106Cu: case 0x106Du: case 0xAA7Bu:
-      cat = M_Cat(PT);
-      break;
-
-    case 0x1038u: case 0x1087u: case 0x1088u: case 0x1089u:
-    case 0x108Au: case 0x108Bu: case 0x108Cu: case 0x108Du:
-    case 0x108Fu: case 0x109Au: case 0x109Bu: case 0x109Cu:
-      cat = M_Cat(V);
-      break;
-
-    case 0x104Au: case 0x104Bu:
-      cat = M_Cat(P);
-      break;
-
-    case 0xAA74u: case 0xAA75u: case 0xAA76u:
-      /* https://github.com/harfbuzz/harfbuzz/issues/218 */
-      cat = M_Cat(C);
-      break;
-  }
-
-  info.myanmar_category() = cat;
-  info.myanmar_position() = 0; /* Doesn't use the existing position info. */
+  info.myanmar_category() = (myanmar_category_t) (type & 0xFFu);
 }
 
 static void
@@ -365,7 +275,7 @@ reorder_myanmar (const hb_ot_shape_plan_t *plan,
   {
     hb_syllabic_insert_dotted_circles (font, buffer,
 				       myanmar_broken_cluster,
-				       M_Cat(GB));
+				       M_Cat(DOTTEDCIRCLE));
 
     foreach_syllable (buffer, start, end)
       reorder_syllable_myanmar (plan, font->face, buffer, start, end);
