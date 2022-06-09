@@ -233,7 +233,7 @@ for key, (cat, pos, block) in data.items():
 data = new_data
 
 for k,new_cat in category_overrides.items():
-  (cat, pos, block) in data.get(k, defaults)
+  (cat, pos, block) = data.get(k, defaults)
   data[k] = (new_cat, pos, block)
 
 values = [{_: 1} for _ in defaults]
