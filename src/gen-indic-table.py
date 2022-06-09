@@ -42,7 +42,6 @@ files = [open (x, encoding='utf-8') for x in sys.argv[1:]]
 headers = [[f.readline () for i in range (2)] for f in files]
 
 data = [{} for _ in files]
-values = [{} for _ in files]
 for i, f in enumerate (files):
 	for line in f:
 
@@ -65,12 +64,9 @@ for i, f in enumerate (files):
 
 		for u in range (start, end + 1):
 			data[i][u] = t
-		values[i][t] = values[i].get (t, 0) + end - start + 1
 
 # Merge data into one dict:
 defaults = ('Other', 'Not_Applicable', 'No_Block')
-for i,v in enumerate (defaults):
-	values[i][v] = values[i].get (v, 0) + 1
 combined = {}
 for i,d in enumerate (data):
 	for u,v in d.items ():
@@ -84,7 +80,7 @@ data = combined
 del combined
 
 
-# Convert data
+# Convert categories & positions types
 
 category_map = {
   'Other'			: 'X',
@@ -123,33 +119,94 @@ category_map = {
   'Vowel'			: 'V',
   'Vowel_Dependent'		: 'M',
   'Vowel_Independent'		: 'V',
+  'Dotted_Circle'		: 'DOTTEDCIRCLE', # Ours, not Unicode's
+}
+
+category_overrides = {
+
+  # The following act more like the Bindus.
+  0x0953: 'SM',
+  0x0954: 'SM',
+
+  # The following act like consonants.
+  0x0A72: 'C',
+  0x0A73: 'C',
+  0x1CF5: 'C',
+  0x1CF6: 'C',
+
+  # TODO: The following should only be allowed after a Visarga.
+  # For now, just treat them like regular tone marks.
+  0x1CE2: 'A',
+  0x1CE3: 'A',
+  0x1CE4: 'A',
+  0x1CE5: 'A',
+  0x1CE6: 'A',
+  0x1CE7: 'A',
+  0x1CE8: 'A',
+
+  # TODO: The following should only be allowed after some of
+  # the nasalization marks, maybe only for U+1CE9..U+1CF1.
+  # For now, just treat them like tone marks.
+  0x1CED: 'A',
+
+  # The following take marks in standalone clusters, similar to Avagraha.
+  0xA8F2: 'Symbol',
+  0xA8F3: 'Symbol',
+  0xA8F4: 'Symbol',
+  0xA8F5: 'Symbol',
+  0xA8F6: 'Symbol',
+  0xA8F7: 'Symbol',
+  0x1CE9: 'Symbol',
+  0x1CEA: 'Symbol',
+  0x1CEB: 'Symbol',
+  0x1CEC: 'Symbol',
+  0x1CEE: 'Symbol',
+  0x1CEF: 'Symbol',
+  0x1CF0: 'Symbol',
+  0x1CF1: 'Symbol',
+
+  0x0A51: 'M', # https://github.com/harfbuzz/harfbuzz/issues/524
+
+  # According to ScriptExtensions.txt, these Grantha marks may also be used in Tamil,
+  # so the Indic shaper needs to know their categories.
+  0x11301: 'SM',
+  0x11302: 'SM',
+  0x11303: 'SM',
+  0x1133B: 'N',
+  0x1133C: 'N',
+
+  0x0AFB: 'N', # https://github.com/harfbuzz/harfbuzz/issues/552
+  0x0B55: 'N', # https://github.com/harfbuzz/harfbuzz/issues/2849
+
+  0x0980: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/issues/538
+  0x09FC: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/pull/1613
+  0x0C80: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/pull/623
+  0x0D04: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/pull/3511
+
+  0x2010: 'PLACEHOLDER',
+  0x2011: 'PLACEHOLDER',
+
+  0x25CC: 'DOTTEDCIRCLE',
 }
 
 
-new_values0 = {}
-for k,v in values[0].items():
-  new_values0[category_map[k]] = new_values0.get(category_map[k], 0) + v
-values[0] = new_values0
 defaults = (category_map[defaults[0]], defaults[1], defaults[2])
 
 new_data = {}
 for key, (cat, pos, block) in data.items():
 
   cat = category_map[cat]
-
-
-
   new_data[key] = (cat, pos, block)
 data = new_data
 
+for k,new_cat in category_overrides.items():
+  (cat, pos, block) in data.get(k, defaults)
+  data[k] = (new_cat, pos, block)
 
-
-
-
-
-
-
-
+values = [{_: 1} for _ in defaults]
+for vv in data.values():
+  for i,v in enumerate(vv):
+    values[i][v] = values[i].get (v, 0) + 1
 
 
 
@@ -184,6 +241,7 @@ print ()
 short = [{
 	"Coeng":		'Co',
 	"PLACEHOLDER":		'GB',
+	"DOTTEDCIRCLE":		'DC',
 },{
 	"Not_Applicable":	'x',
 }]

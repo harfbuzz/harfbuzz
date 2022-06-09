@@ -23,40 +23,37 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-macros"
 
-#define ISC_A    OT_A                                          /*   59 chars; A */
-#define ISC_C    OT_C                                          /* 2226 chars; C */
-#define ISC_CM   OT_CM                                         /*  196 chars; CM */
-#define ISC_CS   OT_CS                                         /*    8 chars; CS */
-#define ISC_Co   OT_Coeng                                      /*   12 chars; Coeng */
-#define ISC_H    OT_H                                          /*   27 chars; H */
-#define ISC_M    OT_M                                          /*  713 chars; M */
-#define ISC_N    OT_N                                          /*   74 chars; N */
-#define ISC_GB   OT_PLACEHOLDER                                /*  534 chars; PLACEHOLDER */
-#define ISC_RS   OT_RS                                         /*    2 chars; RS */
-#define ISC_R    OT_Repha                                      /*    3 chars; Repha */
-#define ISC_SM   OT_SM                                         /*  154 chars; SM */
-#define ISC_S    OT_Symbol                                     /*   17 chars; Symbol */
-#define ISC_V    OT_V                                          /*  516 chars; V */
-#define ISC_X    OT_X                                          /*   19 chars; X */
-#define ISC_ZWJ  OT_ZWJ                                        /*    1 chars; ZWJ */
-#define ISC_ZWNJ OT_ZWNJ                                       /*    1 chars; ZWNJ */
+#define ISC_A    OT_A                                         /*  51 chars; A */
+#define ISC_C    OT_C                                         /* 532 chars; C */
+#define ISC_CM   OT_CM                                        /*  10 chars; CM */
+#define ISC_CS   OT_CS                                        /*   2 chars; CS */
+#define ISC_Co   OT_Coeng                                     /*   2 chars; Coeng */
+#define ISC_DC   OT_DOTTEDCIRCLE                              /*   1 chars; DOTTEDCIRCLE */
+#define ISC_H    OT_H                                         /*  10 chars; H */
+#define ISC_M    OT_M                                         /* 209 chars; M */
+#define ISC_N    OT_N                                         /*  35 chars; N */
+#define ISC_GB   OT_PLACEHOLDER                               /* 168 chars; PLACEHOLDER */
+#define ISC_RS   OT_RS                                        /*   2 chars; RS */
+#define ISC_R    OT_Repha                                     /*   1 chars; Repha */
+#define ISC_SM   OT_SM                                        /*  56 chars; SM */
+#define ISC_S    OT_Symbol                                    /*  22 chars; Symbol */
+#define ISC_V    OT_V                                         /* 190 chars; V */
+#define ISC_X    OT_X                                         /*   2 chars; X */
+#define ISC_ZWJ  OT_ZWJ                                       /*   1 chars; ZWJ */
+#define ISC_ZWNJ OT_ZWNJ                                      /*   1 chars; ZWNJ */
 
-#define IMC_B    INDIC_MATRA_CATEGORY_BOTTOM                   /*  352 chars; Bottom */
-#define IMC_BL   INDIC_MATRA_CATEGORY_BOTTOM_AND_LEFT          /*    1 chars; Bottom_And_Left */
-#define IMC_BR   INDIC_MATRA_CATEGORY_BOTTOM_AND_RIGHT         /*    4 chars; Bottom_And_Right */
-#define IMC_L    INDIC_MATRA_CATEGORY_LEFT                     /*   64 chars; Left */
-#define IMC_LR   INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT           /*   22 chars; Left_And_Right */
-#define IMC_x    INDIC_MATRA_CATEGORY_NOT_APPLICABLE           /*    1 chars; Not_Applicable */
-#define IMC_O    INDIC_MATRA_CATEGORY_OVERSTRUCK               /*   10 chars; Overstruck */
-#define IMC_R    INDIC_MATRA_CATEGORY_RIGHT                    /*  290 chars; Right */
-#define IMC_T    INDIC_MATRA_CATEGORY_TOP                      /*  418 chars; Top */
-#define IMC_TB   INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM           /*   10 chars; Top_And_Bottom */
-#define IMC_TBL  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_LEFT  /*    2 chars; Top_And_Bottom_And_Left */
-#define IMC_TBR  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_RIGHT /*    1 chars; Top_And_Bottom_And_Right */
-#define IMC_TL   INDIC_MATRA_CATEGORY_TOP_AND_LEFT             /*    6 chars; Top_And_Left */
-#define IMC_TLR  INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT   /*    4 chars; Top_And_Left_And_Right */
-#define IMC_TR   INDIC_MATRA_CATEGORY_TOP_AND_RIGHT            /*   13 chars; Top_And_Right */
-#define IMC_VOL  INDIC_MATRA_CATEGORY_VISUAL_ORDER_LEFT        /*   19 chars; Visual_Order_Left */
+#define IMC_B    INDIC_MATRA_CATEGORY_BOTTOM                  /*  77 chars; Bottom */
+#define IMC_L    INDIC_MATRA_CATEGORY_LEFT                    /*  21 chars; Left */
+#define IMC_LR   INDIC_MATRA_CATEGORY_LEFT_AND_RIGHT          /*  14 chars; Left_And_Right */
+#define IMC_x    INDIC_MATRA_CATEGORY_NOT_APPLICABLE          /* 904 chars; Not_Applicable */
+#define IMC_O    INDIC_MATRA_CATEGORY_OVERSTRUCK              /*  44 chars; Overstruck */
+#define IMC_R    INDIC_MATRA_CATEGORY_RIGHT                   /*  98 chars; Right */
+#define IMC_T    INDIC_MATRA_CATEGORY_TOP                     /* 122 chars; Top */
+#define IMC_TB   INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM          /*   1 chars; Top_And_Bottom */
+#define IMC_TBL  INDIC_MATRA_CATEGORY_TOP_AND_BOTTOM_AND_LEFT /*   1 chars; Top_And_Bottom_And_Left */
+#define IMC_TL   INDIC_MATRA_CATEGORY_TOP_AND_LEFT            /*   3 chars; Top_And_Left */
+#define IMC_TLR  INDIC_MATRA_CATEGORY_TOP_AND_LEFT_AND_RIGHT  /*   3 chars; Top_And_Left_And_Right */
+#define IMC_TR   INDIC_MATRA_CATEGORY_TOP_AND_RIGHT           /*   7 chars; Top_And_Right */
 
 #pragma GCC diagnostic pop
 
@@ -101,16 +98,19 @@ static const uint16_t indic_table[] = {
   /* 0938 */  _(C,x),  _(C,x),  _(M,T),  _(M,R),  _(N,B),  _(S,x),  _(M,R),  _(M,L),
   /* 0940 */  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,T),
   /* 0948 */  _(M,T),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(H,B),  _(M,L),  _(M,R),
-  /* 0950 */  _(X,x),  _(A,T),  _(A,B),  _(X,T),  _(X,T),  _(M,T),  _(M,B),  _(M,B),
+  /* 0950 */  _(X,x),  _(A,T),  _(A,B), _(SM,O), _(SM,O),  _(M,T),  _(M,B),  _(M,B),
   /* 0958 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0960 */  _(V,x),  _(V,x),  _(M,B),  _(M,B),  _(X,x),  _(X,x), _(GB,x), _(GB,x),
   /* 0968 */ _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x),
   /* 0970 */  _(X,x),  _(X,x),  _(V,x),  _(V,x),  _(V,x),  _(V,x),  _(V,x),  _(V,x),
   /* 0978 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
 
+  /* Vedic Extensions */
+
+  /* 0980 */ _(GB,O), _(SM,T), _(SM,R), _(SM,R),  _(X,x),  _(V,x),  _(V,x),  _(V,x),
+
   /* Bengali */
 
-  /* 0980 */ _(GB,x), _(SM,T), _(SM,R), _(SM,R),  _(X,x),  _(V,x),  _(V,x),  _(V,x),
   /* 0988 */  _(V,x),  _(V,x),  _(V,x),  _(V,x),  _(V,x),  _(X,x),  _(X,x),  _(V,x),
   /* 0990 */  _(V,x),  _(X,x),  _(X,x),  _(V,x),  _(V,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0998 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
@@ -125,7 +125,10 @@ static const uint16_t indic_table[] = {
   /* 09E0 */  _(V,x),  _(V,x),  _(M,B),  _(M,B),  _(X,x),  _(X,x), _(GB,x), _(GB,x),
   /* 09E8 */ _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x),
   /* 09F0 */  _(C,x),  _(C,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
-  /* 09F8 */  _(X,x),  _(X,x),  _(X,x),  _(X,x), _(SM,x),  _(X,x), _(SM,T),  _(X,x),
+
+  /* Vedic Extensions */
+
+  /* 09F8 */  _(X,x),  _(X,x),  _(X,x),  _(X,x), _(GB,O),  _(X,x), _(SM,T),  _(X,x),
 
   /* Gurmukhi */
 
@@ -139,11 +142,17 @@ static const uint16_t indic_table[] = {
   /* 0A38 */  _(C,x),  _(C,x),  _(X,x),  _(X,x),  _(N,B),  _(X,x),  _(M,R),  _(M,L),
   /* 0A40 */  _(M,R),  _(M,B),  _(M,B),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(M,T),
   /* 0A48 */  _(M,T),  _(X,x),  _(X,x),  _(M,T),  _(M,T),  _(H,B),  _(X,x),  _(X,x),
-  /* 0A50 */  _(X,x),  _(A,B),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+
+  /* Vedic Extensions */
+
+  /* 0A50 */  _(X,x),  _(M,O),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+
+  /* Gurmukhi */
+
   /* 0A58 */  _(X,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(X,x),  _(C,x),  _(X,x),
   /* 0A60 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x), _(GB,x), _(GB,x),
   /* 0A68 */ _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x),
-  /* 0A70 */ _(SM,T), _(SM,T), _(GB,x), _(GB,x),  _(X,x), _(CM,B),  _(X,x),  _(X,x),
+  /* 0A70 */ _(SM,T), _(SM,T),  _(C,O),  _(C,O),  _(X,x), _(CM,B),  _(X,x),  _(X,x),
   /* 0A78 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
 
   /* Gujarati */
@@ -163,7 +172,7 @@ static const uint16_t indic_table[] = {
   /* 0AE0 */  _(V,x),  _(V,x),  _(M,B),  _(M,B),  _(X,x),  _(X,x), _(GB,x), _(GB,x),
   /* 0AE8 */ _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x),
   /* 0AF0 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
-  /* 0AF8 */  _(X,x),  _(C,x),  _(A,T),  _(A,T),  _(A,T),  _(N,T),  _(N,T),  _(N,T),
+  /* 0AF8 */  _(X,x),  _(C,x),  _(A,T),  _(N,O),  _(A,T),  _(N,T),  _(N,T),  _(N,T),
 
   /* Oriya */
 
@@ -177,7 +186,13 @@ static const uint16_t indic_table[] = {
   /* 0B38 */  _(C,x),  _(C,x),  _(X,x),  _(X,x),  _(N,B),  _(S,x),  _(M,R),  _(M,T),
   /* 0B40 */  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(X,x),  _(X,x),  _(M,L),
   /* 0B48 */ _(M,TL),  _(X,x),  _(X,x), _(M,LR),_(M,TLR),  _(H,B),  _(X,x),  _(X,x),
-  /* 0B50 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(M,T),  _(M,T), _(M,TR),
+
+  /* Vedic Extensions */
+
+  /* 0B50 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(N,O),  _(M,T), _(M,TR),
+
+  /* Oriya */
+
   /* 0B58 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(C,x),  _(C,x),  _(X,x),  _(C,x),
   /* 0B60 */  _(V,x),  _(V,x),  _(M,B),  _(M,B),  _(X,x),  _(X,x), _(GB,x), _(GB,x),
   /* 0B68 */ _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x),
@@ -222,9 +237,12 @@ static const uint16_t indic_table[] = {
   /* 0C70 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
   /* 0C78 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
 
+  /* Vedic Extensions */
+
+  /* 0C80 */ _(GB,O), _(SM,T), _(SM,R), _(SM,R),  _(X,x),  _(V,x),  _(V,x),  _(V,x),
+
   /* Kannada */
 
-  /* 0C80 */ _(SM,x), _(SM,T), _(SM,R), _(SM,R),  _(X,x),  _(V,x),  _(V,x),  _(V,x),
   /* 0C88 */  _(V,x),  _(V,x),  _(V,x),  _(V,x),  _(V,x),  _(X,x),  _(V,x),  _(V,x),
   /* 0C90 */  _(V,x),  _(X,x),  _(V,x),  _(V,x),  _(V,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0C98 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
@@ -243,7 +261,7 @@ static const uint16_t indic_table[] = {
 
   /* Malayalam */
 
-  /* 0D00 */ _(SM,T), _(SM,T), _(SM,R), _(SM,R), _(SM,x),  _(V,x),  _(V,x),  _(V,x),
+  /* 0D00 */ _(SM,T), _(SM,T), _(SM,R), _(SM,R), _(GB,O),  _(V,x),  _(V,x),  _(V,x),
   /* 0D08 */  _(V,x),  _(V,x),  _(V,x),  _(V,x),  _(V,x),  _(X,x),  _(V,x),  _(V,x),
   /* 0D10 */  _(V,x),  _(X,x),  _(V,x),  _(V,x),  _(V,x),  _(C,x),  _(C,x),  _(C,x),
   /* 0D18 */  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),  _(C,x),
@@ -331,9 +349,9 @@ static const uint16_t indic_table[] = {
 
   /* 1CD0 */  _(A,T),  _(A,T),  _(A,T),  _(X,x),  _(A,O),  _(A,B),  _(A,B),  _(A,B),
   /* 1CD8 */  _(A,B),  _(A,B),  _(A,T),  _(A,T),  _(A,B),  _(A,B),  _(A,B),  _(A,B),
-  /* 1CE0 */  _(A,T),  _(A,R),  _(X,O),  _(X,O),  _(X,O),  _(X,O),  _(X,O),  _(X,O),
-  /* 1CE8 */  _(X,O),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,B),  _(X,x),  _(X,x),
-  /* 1CF0 */  _(X,x),  _(X,x),  _(C,x),  _(C,x),  _(A,T), _(CS,x), _(CS,x),  _(A,R),
+  /* 1CE0 */  _(A,T),  _(A,R),  _(A,O),  _(A,O),  _(A,O),  _(A,O),  _(A,O),  _(A,O),
+  /* 1CE8 */  _(A,O),  _(S,O),  _(S,O),  _(S,O),  _(S,O),  _(A,O),  _(S,O),  _(S,O),
+  /* 1CF0 */  _(S,O),  _(S,O),  _(C,x),  _(C,x),  _(A,T),  _(C,O),  _(C,O),  _(A,R),
   /* 1CF8 */  _(A,x),  _(A,x), _(GB,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
 
 #define indic_offset_0x2008u 1656
@@ -342,7 +360,10 @@ static const uint16_t indic_table[] = {
   /* General Punctuation */
 
   /* 2008 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),_(ZWNJ,x),_(ZWJ,x),  _(X,x),  _(X,x),
-  /* 2010 */ _(GB,x), _(GB,x), _(GB,x), _(GB,x), _(GB,x),  _(X,x),  _(X,x),  _(X,x),
+
+  /* Vedic Extensions */
+
+  /* 2010 */ _(GB,O), _(GB,O), _(GB,x), _(GB,x), _(GB,x),  _(X,x),  _(X,x),  _(X,x),
 
 #define indic_offset_0x2070u 1672
 
@@ -360,7 +381,7 @@ static const uint16_t indic_table[] = {
 
   /* A8E0 */  _(A,T),  _(A,T),  _(A,T),  _(A,T),  _(A,T),  _(A,T),  _(A,T),  _(A,T),
   /* A8E8 */  _(A,T),  _(A,T),  _(A,T),  _(A,T),  _(A,T),  _(A,T),  _(A,T),  _(A,T),
-  /* A8F0 */  _(A,T),  _(A,T), _(SM,x), _(SM,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+  /* A8F0 */  _(A,T),  _(A,T),  _(S,O),  _(S,O),  _(S,O),  _(S,O),  _(S,O),  _(S,O),
   /* A8F8 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(V,x),  _(M,T),
 
 #define indic_offset_0xa9e0u 1728
@@ -383,7 +404,21 @@ static const uint16_t indic_table[] = {
   /* AA70 */  _(X,x),  _(C,x),  _(C,x),  _(C,x), _(GB,x), _(GB,x), _(GB,x),  _(X,x),
   /* AA78 */  _(X,x),  _(X,x),  _(C,x),  _(N,R),  _(N,T),  _(N,R),  _(C,x),  _(C,x),
 
-}; /* Table items: 1792; occupancy: 71% */
+#define indic_offset_0x11300u 1792
+
+
+  /* Vedic Extensions */
+
+  /* 11300 */  _(X,x), _(SM,O), _(SM,O), _(SM,O),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+  /* 11308 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+  /* 11310 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+  /* 11318 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+  /* 11320 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+  /* 11328 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+  /* 11330 */  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),  _(X,x),
+  /* 11338 */  _(X,x),  _(X,x),  _(X,x),  _(N,O),  _(N,O),  _(X,x),  _(X,x),  _(X,x),
+
+}; /* Table items: 1856; occupancy: 69% */
 
 uint16_t
 hb_indic_get_categories (hb_codepoint_t u)
@@ -404,7 +439,7 @@ hb_indic_get_categories (hb_codepoint_t u)
       break;
 
     case 0x2u:
-      if (unlikely (u == 0x25CCu)) return _(GB,x);
+      if (unlikely (u == 0x25CCu)) return _(DC,O);
       if (hb_in_range<hb_codepoint_t> (u, 0x2008u, 0x2017u)) return indic_table[u - 0x2008u + indic_offset_0x2008u];
       if (hb_in_range<hb_codepoint_t> (u, 0x2070u, 0x2087u)) return indic_table[u - 0x2070u + indic_offset_0x2070u];
       break;
@@ -413,6 +448,10 @@ hb_indic_get_categories (hb_codepoint_t u)
       if (hb_in_range<hb_codepoint_t> (u, 0xA8E0u, 0xA8FFu)) return indic_table[u - 0xA8E0u + indic_offset_0xa8e0u];
       if (hb_in_range<hb_codepoint_t> (u, 0xA9E0u, 0xA9FFu)) return indic_table[u - 0xA9E0u + indic_offset_0xa9e0u];
       if (hb_in_range<hb_codepoint_t> (u, 0xAA60u, 0xAA7Fu)) return indic_table[u - 0xAA60u + indic_offset_0xaa60u];
+      break;
+
+    case 0x11u:
+      if (hb_in_range<hb_codepoint_t> (u, 0x11300u, 0x1133Fu)) return indic_table[u - 0x11300u + indic_offset_0x11300u];
       break;
 
     default:
@@ -428,6 +467,7 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef ISC_CM
 #undef ISC_CS
 #undef ISC_Co
+#undef ISC_DC
 #undef ISC_H
 #undef ISC_M
 #undef ISC_N
@@ -442,8 +482,6 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef ISC_ZWNJ
 
 #undef IMC_B
-#undef IMC_BL
-#undef IMC_BR
 #undef IMC_L
 #undef IMC_LR
 #undef IMC_x
@@ -452,11 +490,9 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef IMC_T
 #undef IMC_TB
 #undef IMC_TBL
-#undef IMC_TBR
 #undef IMC_TL
 #undef IMC_TLR
 #undef IMC_TR
-#undef IMC_VOL
 
 #endif
 
