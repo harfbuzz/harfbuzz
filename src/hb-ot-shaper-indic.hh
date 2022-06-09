@@ -209,31 +209,6 @@ matra_position_indic (hb_codepoint_t u, indic_position_t side)
   return side;
 }
 
-/* XXX
- * This is a hack for now.  We should move this data into the main Indic table.
- * Or completely remove it and just check in the tables.
- */
-static const hb_codepoint_t ra_chars[] = {
-  0x0930u, /* Devanagari */
-  0x09B0u, /* Bengali */
-  0x09F0u, /* Bengali */
-  0x0A30u, /* Gurmukhi */	/* No Reph */
-  0x0AB0u, /* Gujarati */
-  0x0B30u, /* Oriya */
-  0x0BB0u, /* Tamil */		/* No Reph */
-  0x0C30u, /* Telugu */		/* Reph formed only with ZWJ */
-  0x0CB0u, /* Kannada */
-  0x0D30u, /* Malayalam */	/* No Reph, Logical Repha */
-
-  0x0DBBu, /* Sinhala */	/* Reph formed only with ZWJ */
-};
-
-static inline bool
-is_ra (hb_codepoint_t u)
-{
-  return hb_array (ra_chars).lfind (u);
-}
-
 static inline void
 set_indic_properties (hb_glyph_info_t &info)
 {
@@ -253,11 +228,8 @@ set_indic_properties (hb_glyph_info_t &info)
   }
 
   if ((FLAG_UNSAFE (cat) & CONSONANT_FLAGS))
-  {
     pos = POS_BASE_C;
-    if (is_ra (u))
-      cat = OT_Ra;
-  }
+
   else if (cat == OT_M)
   {
     pos = matra_position_indic (u, pos);

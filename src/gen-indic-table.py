@@ -120,6 +120,7 @@ category_map = {
   'Vowel_Dependent'		: 'M',
   'Vowel_Independent'		: 'V',
   'Dotted_Circle'		: 'DOTTEDCIRCLE', # Ours, not Unicode's
+  'Ra'				: 'Ra', # Ours, not Unicode's
 }
 position_map = {
   'Not_Applicable'		: 'END',
@@ -144,6 +145,18 @@ position_map = {
 }
 
 category_overrides = {
+
+  0x0930: 'Ra', # Devanagari
+  0x09B0: 'Ra', # Bengali
+  0x09F0: 'Ra', # Bengali
+  0x0A30: 'Ra', # Gurmukhi 	No Reph
+  0x0AB0: 'Ra', # Gujarati
+  0x0B30: 'Ra', # Oriya
+  0x0BB0: 'Ra', # Tamil 	No Reph
+  0x0C30: 'Ra', # Telugu 	Reph formed only with ZWJ
+  0x0CB0: 'Ra', # Kannada
+  0x0D30: 'Ra', # Malayalam 	No Reph, Logical Repha
+  0x0DBB: 'Ra', # Sinhala 	Reph formed only with ZWJ
 
   # The following act more like the Bindus.
   0x0953: 'SM',
@@ -265,6 +278,7 @@ print ()
 
 # Shorten values
 short = [{
+	"Repha":		'Rf',
 	"Coeng":		'Co',
 	"PLACEHOLDER":		'GB',
 	"DOTTEDCIRCLE":		'DC',
