@@ -43,11 +43,12 @@
 #define ISC_ZWJ  OT_ZWJ          /*   1 chars; ZWJ */
 #define ISC_ZWNJ OT_ZWNJ         /*   1 chars; ZWNJ */
 
-#define IMC_T    POS_ABOVE_C     /* 125 chars; ABOVE_C */
-#define IMC_A    POS_AFTER_MAIN  /*  55 chars; AFTER_MAIN */
-#define IMC_B    POS_BELOW_C     /*  79 chars; BELOW_C */
-#define IMC_X    POS_END         /* 893 chars; END */
-#define IMC_R    POS_POST_C      /* 122 chars; POST_C */
+#define IMC_T    POS_ABOVE_C     /*  92 chars; ABOVE_C */
+#define IMC_C    POS_BASE_C      /* 903 chars; BASE_C */
+#define IMC_BS   POS_BEFORE_SUB  /*   1 chars; BEFORE_SUB */
+#define IMC_B    POS_BELOW_C     /*  53 chars; BELOW_C */
+#define IMC_X    POS_END         /* 124 chars; END */
+#define IMC_R    POS_POST_C      /* 101 chars; POST_C */
 #define IMC_L    POS_PRE_C       /*  21 chars; PRE_C */
 
 #pragma GCC diagnostic pop
@@ -63,9 +64,9 @@ static const uint16_t indic_table[] = {
 
   /* Basic Latin */
 
-  /* 0028 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,X),  _(X,X),  _(X,X),
-  /* 0030 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* 0038 */ _(GB,X), _(GB,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 0028 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,C),  _(X,X),  _(X,X),
+  /* 0030 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 0038 */ _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
 #define indic_offset_0x00b0u 24
 
@@ -76,273 +77,198 @@ static const uint16_t indic_table[] = {
   /* 00B8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 00C0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 00C8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 00D0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,X),
+  /* 00D0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,C),
 
 #define indic_offset_0x0900u 64
 
 
   /* Devanagari */
 
-  /* 0900 */ _(SM,T), _(SM,T), _(SM,T), _(SM,R),  _(V,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0908 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0910 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0918 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0920 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0928 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0930 */  _(R,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Devanagari */
-
-  /* 0938 */  _(C,X),  _(C,X),  _(M,T),  _(M,R),  _(N,X),  _(S,X),  _(M,R),  _(M,L),
+  /* 0900 */ _(SM,T), _(SM,T), _(SM,T), _(SM,R),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
+  /* 0908 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
+  /* 0910 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0918 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0920 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0928 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0930 */  _(R,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0938 */  _(C,C),  _(C,C),  _(M,T),  _(M,R),  _(N,X),  _(S,X),  _(M,R),  _(M,L),
   /* 0940 */  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(M,T),  _(M,T),  _(M,T),
   /* 0948 */  _(M,T),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(H,B),  _(M,L),  _(M,R),
-  /* 0950 */  _(X,X),  _(A,X),  _(A,X), _(SM,A), _(SM,A),  _(M,T),  _(M,B),  _(M,B),
-  /* 0958 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0960 */  _(V,X),  _(V,X),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0968 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* 0970 */  _(X,X),  _(X,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0978 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0980 */ _(GB,X), _(SM,T), _(SM,R), _(SM,R),  _(X,X),  _(V,X),  _(V,X),  _(V,X),
+  /* 0950 */  _(X,X),  _(A,X),  _(A,X), _(SM,T), _(SM,T),  _(M,T),  _(M,B),  _(M,B),
+  /* 0958 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0960 */  _(V,C),  _(V,C),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0968 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 0970 */  _(X,X),  _(X,X),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
+  /* 0978 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
 
   /* Bengali */
 
-  /* 0988 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(X,X),  _(V,X),
-  /* 0990 */  _(V,X),  _(X,X),  _(X,X),  _(V,X),  _(V,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0998 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 09A0 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 09A8 */  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 09B0 */  _(R,X),  _(X,X),  _(C,X),  _(X,X),  _(X,X),  _(X,X),  _(C,X),  _(C,X),
-
-  /* Bengali */
-
-  /* 09B8 */  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,R),  _(M,L),
+  /* 0980 */ _(GB,C), _(SM,T), _(SM,R), _(SM,R),  _(X,X),  _(V,C),  _(V,C),  _(V,C),
+  /* 0988 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(X,X),  _(V,C),
+  /* 0990 */  _(V,C),  _(X,X),  _(X,X),  _(V,C),  _(V,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0998 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 09A0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 09A8 */  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 09B0 */  _(R,C),  _(X,X),  _(C,C),  _(X,X),  _(X,X),  _(X,X),  _(C,C),  _(C,C),
+  /* 09B8 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,R),  _(M,L),
   /* 09C0 */  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(X,X),  _(X,X),  _(M,L),
-  /* 09C8 */  _(M,L),  _(X,X),  _(X,X),  _(M,R),  _(M,R),  _(H,B),  _(C,X),  _(X,X),
+  /* 09C8 */  _(M,L),  _(X,X),  _(X,X),  _(M,R),  _(M,R),  _(H,B),  _(C,C),  _(X,X),
   /* 09D0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(M,R),
-  /* 09D8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,X),  _(C,X),  _(X,X),  _(C,X),
-  /* 09E0 */  _(V,X),  _(V,X),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 09E8 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-
-  /* Vedic Extensions */
-
-  /* 09F0 */  _(R,X),  _(C,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 09F8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,X),  _(X,X), _(SM,T),  _(X,X),
+  /* 09D8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(X,X),  _(C,C),
+  /* 09E0 */  _(V,C),  _(V,C),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 09E8 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 09F0 */  _(R,C),  _(C,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 09F8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,C),  _(X,X), _(SM,T),  _(X,X),
 
   /* Gurmukhi */
 
-  /* 0A00 */  _(X,X), _(SM,T), _(SM,T), _(SM,R),  _(X,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0A08 */  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(V,X),
-  /* 0A10 */  _(V,X),  _(X,X),  _(X,X),  _(V,X),  _(V,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0A18 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0A20 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0A28 */  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0A30 */  _(R,X),  _(X,X),  _(C,X),  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(X,X),
-
-  /* Gurmukhi */
-
-  /* 0A38 */  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(N,X),  _(X,X),  _(M,R),  _(M,L),
+  /* 0A00 */  _(X,X), _(SM,T), _(SM,T), _(SM,R),  _(X,X),  _(V,C),  _(V,C),  _(V,C),
+  /* 0A08 */  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(V,C),
+  /* 0A10 */  _(V,C),  _(X,X),  _(X,X),  _(V,C),  _(V,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0A18 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0A20 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0A28 */  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0A30 */  _(R,C),  _(X,X),  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(X,X),
+  /* 0A38 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(N,X),  _(X,X),  _(M,R),  _(M,L),
   /* 0A40 */  _(M,R),  _(M,B),  _(M,B),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(M,T),
   /* 0A48 */  _(M,T),  _(X,X),  _(X,X),  _(M,T),  _(M,T),  _(H,B),  _(X,X),  _(X,X),
-
-  /* Vedic Extensions */
-
-  /* 0A50 */  _(X,X),  _(M,A),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-
-  /* Gurmukhi */
-
-  /* 0A58 */  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(X,X),  _(C,X),  _(X,X),
-  /* 0A60 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0A68 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* 0A70 */ _(SM,T), _(SM,T),  _(C,X),  _(C,X),  _(X,X), _(CM,B),  _(X,X),  _(X,X),
+  /* 0A50 */  _(X,X),  _(M,B),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 0A58 */  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(X,X),
+  /* 0A60 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0A68 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 0A70 */ _(SM,T), _(SM,T),  _(C,C),  _(C,C),  _(X,X), _(CM,C),  _(X,X),  _(X,X),
   /* 0A78 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
   /* Gujarati */
 
-  /* 0A80 */  _(X,X), _(SM,T), _(SM,T), _(SM,R),  _(X,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0A88 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(V,X),
-  /* 0A90 */  _(V,X),  _(V,X),  _(X,X),  _(V,X),  _(V,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0A98 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0AA0 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0AA8 */  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0AB0 */  _(R,X),  _(X,X),  _(C,X),  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Gujarati */
-
-  /* 0AB8 */  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,R),  _(M,L),
+  /* 0A80 */  _(X,X), _(SM,T), _(SM,T), _(SM,R),  _(X,X),  _(V,C),  _(V,C),  _(V,C),
+  /* 0A88 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(V,C),
+  /* 0A90 */  _(V,C),  _(V,C),  _(X,X),  _(V,C),  _(V,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0A98 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0AA0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0AA8 */  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0AB0 */  _(R,C),  _(X,X),  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),
+  /* 0AB8 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,R),  _(M,L),
   /* 0AC0 */  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(M,T),  _(X,X),  _(M,T),
   /* 0AC8 */  _(M,T),  _(M,R),  _(X,X),  _(M,R),  _(M,R),  _(H,B),  _(X,X),  _(X,X),
   /* 0AD0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 0AD8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 0AE0 */  _(V,X),  _(V,X),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0AE8 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
+  /* 0AE0 */  _(V,C),  _(V,C),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0AE8 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 0AF0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 0AF8 */  _(X,X),  _(C,X),  _(A,X),  _(N,X),  _(A,X),  _(N,X),  _(N,X),  _(N,X),
+  /* 0AF8 */  _(X,X),  _(C,C),  _(A,X),  _(N,X),  _(A,X),  _(N,X),  _(N,X),  _(N,X),
 
   /* Oriya */
 
-  /* 0B00 */  _(X,X), _(SM,T), _(SM,R), _(SM,R),  _(X,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0B08 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(X,X),  _(V,X),
-  /* 0B10 */  _(V,X),  _(X,X),  _(X,X),  _(V,X),  _(V,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0B18 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0B20 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0B28 */  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0B30 */  _(R,X),  _(X,X),  _(C,X),  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Oriya */
-
-  /* 0B38 */  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,R),  _(M,T),
+  /* 0B00 */  _(X,X),_(SM,BS), _(SM,R), _(SM,R),  _(X,X),  _(V,C),  _(V,C),  _(V,C),
+  /* 0B08 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(X,X),  _(V,C),
+  /* 0B10 */  _(V,C),  _(X,X),  _(X,X),  _(V,C),  _(V,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0B18 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0B20 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0B28 */  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0B30 */  _(R,C),  _(X,X),  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),
+  /* 0B38 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,R),  _(M,T),
   /* 0B40 */  _(M,R),  _(M,B),  _(M,B),  _(M,B),  _(M,B),  _(X,X),  _(X,X),  _(M,L),
   /* 0B48 */  _(M,T),  _(X,X),  _(X,X),  _(M,R),  _(M,R),  _(H,B),  _(X,X),  _(X,X),
-
-  /* Vedic Extensions */
-
   /* 0B50 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(N,X),  _(M,T),  _(M,R),
-
-  /* Oriya */
-
-  /* 0B58 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,X),  _(C,X),  _(X,X),  _(C,X),
-  /* 0B60 */  _(V,X),  _(V,X),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0B68 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* 0B70 */  _(X,X),  _(C,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 0B58 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(X,X),  _(C,C),
+  /* 0B60 */  _(V,C),  _(V,C),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0B68 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 0B70 */  _(X,X),  _(C,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 0B78 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
   /* Tamil */
 
-  /* 0B80 */  _(X,X),  _(X,X), _(SM,T),  _(X,X),  _(X,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0B88 */  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(X,X),  _(X,X),  _(V,X),  _(V,X),
-  /* 0B90 */  _(V,X),  _(X,X),  _(V,X),  _(V,X),  _(V,X),  _(C,X),  _(X,X),  _(X,X),
-  /* 0B98 */  _(X,X),  _(C,X),  _(C,X),  _(X,X),  _(C,X),  _(X,X),  _(C,X),  _(C,X),
-  /* 0BA0 */  _(X,X),  _(X,X),  _(X,X),  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 0BA8 */  _(C,X),  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(X,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0BB0 */  _(R,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Tamil */
-
-  /* 0BB8 */  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(M,R),  _(M,R),
+  /* 0B80 */  _(X,X),  _(X,X), _(SM,T),  _(X,X),  _(X,X),  _(V,C),  _(V,C),  _(V,C),
+  /* 0B88 */  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(X,X),  _(X,X),  _(V,C),  _(V,C),
+  /* 0B90 */  _(V,C),  _(X,X),  _(V,C),  _(V,C),  _(V,C),  _(C,C),  _(X,X),  _(X,X),
+  /* 0B98 */  _(X,X),  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(X,X),  _(C,C),  _(C,C),
+  /* 0BA0 */  _(X,X),  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(X,X),
+  /* 0BA8 */  _(C,C),  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(X,X),  _(C,C),  _(C,C),
+  /* 0BB0 */  _(R,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0BB8 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(M,R),  _(M,R),
   /* 0BC0 */  _(M,T),  _(M,R),  _(M,R),  _(X,X),  _(X,X),  _(X,X),  _(M,L),  _(M,L),
   /* 0BC8 */  _(M,L),  _(X,X),  _(M,R),  _(M,R),  _(M,R),  _(H,T),  _(X,X),  _(X,X),
   /* 0BD0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(M,R),
   /* 0BD8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 0BE0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0BE8 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
+  /* 0BE0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0BE8 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 0BF0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 0BF8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
   /* Telugu */
 
-  /* 0C00 */ _(SM,T), _(SM,R), _(SM,R), _(SM,R), _(SM,T),  _(V,X),  _(V,X),  _(V,X),
-  /* 0C08 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(V,X),  _(V,X),
-  /* 0C10 */  _(V,X),  _(X,X),  _(V,X),  _(V,X),  _(V,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0C18 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0C20 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0C28 */  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0C30 */  _(R,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Telugu */
-
-  /* 0C38 */  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,T),  _(M,T),
+  /* 0C00 */ _(SM,T), _(SM,R), _(SM,R), _(SM,R), _(SM,T),  _(V,C),  _(V,C),  _(V,C),
+  /* 0C08 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(V,C),  _(V,C),
+  /* 0C10 */  _(V,C),  _(X,X),  _(V,C),  _(V,C),  _(V,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0C18 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0C20 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0C28 */  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0C30 */  _(R,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0C38 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,T),  _(M,T),
   /* 0C40 */  _(M,T),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(X,X),  _(M,T),  _(M,T),
   /* 0C48 */  _(M,B),  _(X,X),  _(M,T),  _(M,T),  _(M,T),  _(H,T),  _(X,X),  _(X,X),
   /* 0C50 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(M,T),  _(M,B),  _(X,X),
-  /* 0C58 */  _(C,X),  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(C,X),  _(X,X),  _(X,X),
-  /* 0C60 */  _(V,X),  _(V,X),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0C68 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
+  /* 0C58 */  _(C,C),  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(C,C),  _(X,X),  _(X,X),
+  /* 0C60 */  _(V,C),  _(V,C),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0C68 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 0C70 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 0C78 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
-  /* Vedic Extensions */
-
-  /* 0C80 */ _(GB,X), _(SM,T), _(SM,R), _(SM,R),  _(X,X),  _(V,X),  _(V,X),  _(V,X),
-
   /* Kannada */
 
-  /* 0C88 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(V,X),  _(V,X),
-  /* 0C90 */  _(V,X),  _(X,X),  _(V,X),  _(V,X),  _(V,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0C98 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0CA0 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0CA8 */  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0CB0 */  _(R,X),  _(C,X),  _(C,X),  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Kannada */
-
-  /* 0CB8 */  _(C,X),  _(C,X),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,R),  _(M,T),
+  /* 0C80 */ _(GB,C), _(SM,T), _(SM,R), _(SM,R),  _(X,X),  _(V,C),  _(V,C),  _(V,C),
+  /* 0C88 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(V,C),  _(V,C),
+  /* 0C90 */  _(V,C),  _(X,X),  _(V,C),  _(V,C),  _(V,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0C98 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0CA0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0CA8 */  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0CB0 */  _(R,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),
+  /* 0CB8 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(N,X),  _(S,X),  _(M,R),  _(M,T),
   /* 0CC0 */  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(M,R),  _(X,X),  _(M,T),  _(M,R),
   /* 0CC8 */  _(M,R),  _(X,X),  _(M,R),  _(M,R),  _(M,T),  _(H,T),  _(X,X),  _(X,X),
   /* 0CD0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(M,R),  _(M,R),  _(X,X),
-  /* 0CD8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,X),  _(C,X),  _(X,X),
-  /* 0CE0 */  _(V,X),  _(V,X),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0CE8 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* 0CF0 */  _(X,X), _(CS,X), _(CS,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 0CD8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(X,X),
+  /* 0CE0 */  _(V,C),  _(V,C),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0CE8 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 0CF0 */  _(X,X), _(CS,C), _(CS,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 0CF8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
   /* Malayalam */
 
-  /* 0D00 */ _(SM,T), _(SM,T), _(SM,R), _(SM,R), _(GB,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0D08 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(V,X),  _(V,X),
-  /* 0D10 */  _(V,X),  _(X,X),  _(V,X),  _(V,X),  _(V,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0D18 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0D20 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0D28 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Vedic Extensions */
-
-  /* 0D30 */  _(R,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-
-  /* Malayalam */
-
-  /* 0D38 */  _(C,X),  _(C,X),  _(C,X),  _(M,T),  _(M,T),  _(S,X),  _(M,R),  _(M,R),
+  /* 0D00 */ _(SM,T), _(SM,T), _(SM,R), _(SM,R), _(GB,C),  _(V,C),  _(V,C),  _(V,C),
+  /* 0D08 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(V,C),  _(V,C),
+  /* 0D10 */  _(V,C),  _(X,X),  _(V,C),  _(V,C),  _(V,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0D18 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0D20 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0D28 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0D30 */  _(R,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0D38 */  _(C,C),  _(C,C),  _(C,C),  _(M,T),  _(M,T),  _(S,X),  _(M,R),  _(M,R),
   /* 0D40 */  _(M,R),  _(M,R),  _(M,R),  _(M,B),  _(M,B),  _(X,X),  _(M,L),  _(M,L),
   /* 0D48 */  _(M,L),  _(X,X),  _(M,R),  _(M,R),  _(M,R),  _(H,T), _(Rf,X),  _(X,X),
-  /* 0D50 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(M,R),
-  /* 0D58 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(V,X),
-  /* 0D60 */  _(V,X),  _(V,X),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0D68 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
+  /* 0D50 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(M,R),
+  /* 0D58 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(V,C),
+  /* 0D60 */  _(V,C),  _(V,C),  _(M,B),  _(M,B),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0D68 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 0D70 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 0D78 */  _(X,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
+  /* 0D78 */  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
 
   /* Sinhala */
 
-  /* 0D80 */  _(X,X), _(SM,T), _(SM,R), _(SM,R),  _(X,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0D88 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 0D90 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(X,X),
-  /* 0D98 */  _(X,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0DA0 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0DA8 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0DB0 */  _(C,X),  _(C,X),  _(X,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 0DB8 */  _(C,X),  _(C,X),  _(C,X),  _(R,X),  _(X,X),  _(C,X),  _(X,X),  _(X,X),
-  /* 0DC0 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(X,X),
+  /* 0D80 */  _(X,X), _(SM,T), _(SM,R), _(SM,R),  _(X,X),  _(V,C),  _(V,C),  _(V,C),
+  /* 0D88 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
+  /* 0D90 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),
+  /* 0D98 */  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0DA0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0DA8 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0DB0 */  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 0DB8 */  _(C,C),  _(C,C),  _(C,C),  _(R,C),  _(X,X),  _(C,C),  _(X,X),  _(X,X),
+  /* 0DC0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),
   /* 0DC8 */  _(X,X),  _(X,X),  _(H,T),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(M,R),
   /* 0DD0 */  _(M,R),  _(M,R),  _(M,T),  _(M,T),  _(M,B),  _(X,X),  _(M,B),  _(X,X),
   /* 0DD8 */  _(M,R),  _(M,L),  _(M,T),  _(M,L),  _(M,R),  _(M,R),  _(M,R),  _(M,R),
-  /* 0DE0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,X), _(GB,X),
-  /* 0DE8 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
+  /* 0DE0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
+  /* 0DE8 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 0DF0 */  _(X,X),  _(X,X),  _(M,R),  _(M,R),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
 #define indic_offset_0x1000u 1336
@@ -350,46 +276,46 @@ static const uint16_t indic_table[] = {
 
   /* Myanmar */
 
-  /* 1000 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 1008 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 1010 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 1018 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 1020 */  _(C,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 1028 */  _(V,X),  _(V,X),  _(V,X),  _(M,R),  _(M,R),  _(M,T),  _(M,T),  _(M,B),
+  /* 1000 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1008 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1010 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1018 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1020 */  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
+  /* 1028 */  _(V,C),  _(V,C),  _(V,C),  _(M,R),  _(M,R),  _(M,T),  _(M,T),  _(M,B),
   /* 1030 */  _(M,B),  _(M,L),  _(M,T),  _(M,T),  _(M,T),  _(M,T), _(SM,T),  _(N,X),
-  /* 1038 */ _(SM,R), _(Co,X),  _(M,T), _(CM,R), _(CM,B), _(CM,B), _(CM,B),  _(C,X),
-  /* 1040 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* 1048 */ _(GB,X), _(GB,X),  _(X,X), _(GB,X),  _(X,X),  _(X,X), _(GB,X),  _(X,X),
-  /* 1050 */  _(C,X),  _(C,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(M,R),  _(M,R),
-  /* 1058 */  _(M,B),  _(M,B),  _(C,X),  _(C,X),  _(C,X),  _(C,X), _(CM,B), _(CM,B),
-  /* 1060 */ _(CM,B),  _(C,X),  _(M,R),  _(N,X),  _(N,X),  _(C,X),  _(C,X),  _(M,R),
-  /* 1068 */  _(M,R),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(C,X),  _(C,X),
-  /* 1070 */  _(C,X),  _(M,T),  _(M,T),  _(M,T),  _(M,T),  _(C,X),  _(C,X),  _(C,X),
-  /* 1078 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 1080 */  _(C,X),  _(C,X), _(CM,B),  _(M,R),  _(M,L),  _(M,T),  _(M,T),  _(N,X),
-  /* 1088 */  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(C,X),  _(N,X),
-  /* 1090 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* 1098 */ _(GB,X), _(GB,X),  _(N,X),  _(N,X),  _(M,R),  _(M,T),  _(X,X),  _(X,X),
+  /* 1038 */ _(SM,R), _(Co,X),  _(M,T), _(CM,C), _(CM,C), _(CM,C), _(CM,C),  _(C,C),
+  /* 1040 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 1048 */ _(GB,C), _(GB,C),  _(X,X), _(GB,C),  _(X,X),  _(X,X), _(GB,C),  _(X,X),
+  /* 1050 */  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(M,R),  _(M,R),
+  /* 1058 */  _(M,B),  _(M,B),  _(C,C),  _(C,C),  _(C,C),  _(C,C), _(CM,C), _(CM,C),
+  /* 1060 */ _(CM,C),  _(C,C),  _(M,R),  _(N,X),  _(N,X),  _(C,C),  _(C,C),  _(M,R),
+  /* 1068 */  _(M,R),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(C,C),  _(C,C),
+  /* 1070 */  _(C,C),  _(M,T),  _(M,T),  _(M,T),  _(M,T),  _(C,C),  _(C,C),  _(C,C),
+  /* 1078 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1080 */  _(C,C),  _(C,C), _(CM,C),  _(M,R),  _(M,L),  _(M,T),  _(M,T),  _(N,X),
+  /* 1088 */  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(C,C),  _(N,X),
+  /* 1090 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 1098 */ _(GB,C), _(GB,C),  _(N,X),  _(N,X),  _(M,R),  _(M,T),  _(X,X),  _(X,X),
 
 #define indic_offset_0x1780u 1496
 
 
   /* Khmer */
 
-  /* 1780 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 1788 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 1790 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 1798 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* 17A0 */  _(C,X),  _(C,X),  _(C,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 17A8 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(V,X),
-  /* 17B0 */  _(V,X),  _(V,X),  _(V,X),  _(V,X),  _(X,X),  _(X,X),  _(M,R),  _(M,T),
+  /* 1780 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1788 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1790 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 1798 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* 17A0 */  _(C,C),  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
+  /* 17A8 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
+  /* 17B0 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(X,X),  _(M,R),  _(M,T),
   /* 17B8 */  _(M,T),  _(M,T),  _(M,T),  _(M,B),  _(M,B),  _(M,B),  _(M,T),  _(M,R),
   /* 17C0 */  _(M,R),  _(M,L),  _(M,L),  _(M,L),  _(M,R),  _(M,R), _(SM,T), _(SM,R),
-  /* 17C8 */  _(M,R), _(RS,T), _(RS,T), _(SM,T), _(CM,T),  _(M,T), _(SM,T), _(SM,T),
+  /* 17C8 */  _(M,R), _(RS,T), _(RS,T), _(SM,T), _(CM,C),  _(M,T), _(SM,T), _(SM,T),
   /* 17D0 */ _(SM,T),  _(M,T), _(Co,X), _(SM,T),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 17D8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(S,X), _(SM,T),  _(X,X),  _(X,X),
-  /* 17E0 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* 17E8 */ _(GB,X), _(GB,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 17E0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 17E8 */ _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
 #define indic_offset_0x1cd0u 1608
 
@@ -400,8 +326,14 @@ static const uint16_t indic_table[] = {
   /* 1CD8 */  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),
   /* 1CE0 */  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),
   /* 1CE8 */  _(A,X),  _(S,X),  _(S,X),  _(S,X),  _(S,X),  _(A,X),  _(S,X),  _(S,X),
-  /* 1CF0 */  _(S,X),  _(S,X),  _(C,X),  _(C,X),  _(A,X),  _(C,X),  _(C,X),  _(A,X),
-  /* 1CF8 */  _(A,X),  _(A,X), _(GB,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+
+  /* No_Block */
+
+  /* 1CF0 */  _(S,X),  _(S,X),  _(C,C),  _(C,C),  _(A,X),  _(C,C),  _(C,C),  _(A,X),
+
+  /* Vedic Extensions */
+
+  /* 1CF8 */  _(A,X),  _(A,X), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
 #define indic_offset_0x2008u 1656
 
@@ -409,10 +341,7 @@ static const uint16_t indic_table[] = {
   /* General Punctuation */
 
   /* 2008 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),_(ZWNJ,X),_(ZWJ,X),  _(X,X),  _(X,X),
-
-  /* Vedic Extensions */
-
-  /* 2010 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 2010 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),
 
 #define indic_offset_0x2070u 1672
 
@@ -431,34 +360,34 @@ static const uint16_t indic_table[] = {
   /* A8E0 */  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),
   /* A8E8 */  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),  _(A,X),
   /* A8F0 */  _(A,X),  _(A,X),  _(S,X),  _(S,X),  _(S,X),  _(S,X),  _(S,X),  _(S,X),
-  /* A8F8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(V,X),  _(M,T),
+  /* A8F8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(V,C),  _(M,T),
 
 #define indic_offset_0xa9e0u 1728
 
 
   /* Myanmar Extended-B */
 
-  /* A9E0 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(M,T),  _(X,X),  _(C,X),
-  /* A9E8 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* A9F0 */ _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X), _(GB,X),
-  /* A9F8 */ _(GB,X), _(GB,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(X,X),
+  /* A9E0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(M,T),  _(X,X),  _(C,C),
+  /* A9E8 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* A9F0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* A9F8 */ _(GB,C), _(GB,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),
 
 #define indic_offset_0xaa60u 1760
 
 
   /* Myanmar Extended-A */
 
-  /* AA60 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* AA68 */  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),  _(C,X),
-  /* AA70 */  _(X,X),  _(C,X),  _(C,X),  _(C,X), _(GB,X), _(GB,X), _(GB,X),  _(X,X),
-  /* AA78 */  _(X,X),  _(X,X),  _(C,X),  _(N,X),  _(N,X),  _(N,X),  _(C,X),  _(C,X),
+  /* AA60 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* AA68 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
+  /* AA70 */  _(X,X),  _(C,C),  _(C,C),  _(C,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),
+  /* AA78 */  _(X,X),  _(X,X),  _(C,C),  _(N,X),  _(N,X),  _(N,X),  _(C,C),  _(C,C),
 
 #define indic_offset_0x11300u 1792
 
 
-  /* Vedic Extensions */
+  /* No_Block */
 
-  /* 11300 */  _(X,X), _(SM,A), _(SM,A), _(SM,A),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 11300 */  _(X,X), _(SM,X), _(SM,X), _(SM,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 11308 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 11310 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 11318 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
@@ -475,7 +404,7 @@ hb_indic_get_categories (hb_codepoint_t u)
   switch (u >> 12)
   {
     case 0x0u:
-      if (unlikely (u == 0x00A0u)) return _(GB,X);
+      if (unlikely (u == 0x00A0u)) return _(GB,C);
       if (hb_in_range<hb_codepoint_t> (u, 0x0028u, 0x003Fu)) return indic_table[u - 0x0028u + indic_offset_0x0028u];
       if (hb_in_range<hb_codepoint_t> (u, 0x00B0u, 0x00D7u)) return indic_table[u - 0x00B0u + indic_offset_0x00b0u];
       if (hb_in_range<hb_codepoint_t> (u, 0x0900u, 0x0DF7u)) return indic_table[u - 0x0900u + indic_offset_0x0900u];
@@ -488,7 +417,7 @@ hb_indic_get_categories (hb_codepoint_t u)
       break;
 
     case 0x2u:
-      if (unlikely (u == 0x25CCu)) return _(DC,X);
+      if (unlikely (u == 0x25CCu)) return _(DC,C);
       if (hb_in_range<hb_codepoint_t> (u, 0x2008u, 0x2017u)) return indic_table[u - 0x2008u + indic_offset_0x2008u];
       if (hb_in_range<hb_codepoint_t> (u, 0x2070u, 0x2087u)) return indic_table[u - 0x2070u + indic_offset_0x2070u];
       break;
@@ -532,7 +461,8 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef ISC_ZWNJ
 
 #undef IMC_T
-#undef IMC_A
+#undef IMC_C
+#undef IMC_BS
 #undef IMC_B
 #undef IMC_X
 #undef IMC_R

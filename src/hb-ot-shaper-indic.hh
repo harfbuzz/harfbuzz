@@ -221,16 +221,7 @@ set_indic_properties (hb_glyph_info_t &info)
    * Re-assign position.
    */
 
-  if (unlikely (u == 0x0A51u))
-  {
-    /* https://github.com/harfbuzz/harfbuzz/issues/524 */
-    pos = POS_BELOW_C;
-  }
-
-  if ((FLAG_UNSAFE (cat) & CONSONANT_FLAGS))
-    pos = POS_BASE_C;
-
-  else if (cat == OT_M)
+  if (cat == OT_M)
   {
     pos = matra_position_indic (u, pos);
   }
@@ -238,9 +229,6 @@ set_indic_properties (hb_glyph_info_t &info)
   {
     pos = POS_SMVD;
   }
-
-  if (unlikely (u == 0x0B01u)) pos = POS_BEFORE_SUB; /* Oriya Bindu is BeforeSub in the spec. */
-
 
   info.indic_category() = cat;
   info.indic_position() = pos;

@@ -222,31 +222,48 @@ category_overrides = {
 
   0x25CC: 'DOTTEDCIRCLE',
 }
+position_overrides = {
+
+  0x0A51: 'BELOW_C', # https://github.com/harfbuzz/harfbuzz/issues/524
+
+  0x0B01: 'BEFORE_SUB', # Oriya Bindu is BeforeSub in the spec.
+}
 
 defaults = (category_map[defaults[0]], position_map[defaults[1]], defaults[2])
 
 new_data = {}
-for key, (cat, pos, block) in data.items():
+for k, (cat, pos, block) in data.items():
   cat = category_map[cat]
   pos = position_map[pos]
-  new_data[key] = (cat, pos, block)
+  new_data[k] = (cat, pos, block)
 data = new_data
 
 for k,new_cat in category_overrides.items():
   (cat, pos, block) = data.get(k, defaults)
   data[k] = (new_cat, pos, block)
 
+# We only expect position for certain types
+for k, (cat, pos, block) in data.items():
+  if cat not in ('CM', 'SM', 'RS', 'H', 'M'):
+    pos = 'END'
+    data[k] = (cat, pos, block)
+
+# Position overrides are more complicated
+
+for k, (cat, pos, block) in data.items():
+  if cat in ('C', 'CS', 'Ra','CM', 'V', 'PLACEHOLDER', 'DOTTEDCIRCLE'):
+    pos = 'BASE_C'
+    data[k] = (cat, pos, block)
+
+for k,new_pos in position_overrides.items():
+  (cat, pos, block) = data.get(k, defaults)
+  data[k] = (cat, new_pos, block)
+
 values = [{_: 1} for _ in defaults]
 for vv in data.values():
   for i,v in enumerate(vv):
     values[i][v] = values[i].get (v, 0) + 1
 
-
-# We only expect position for certain types
-for key, (cat, pos, block) in data.items():
-  if cat not in ('CM', 'SM', 'RS', 'H', 'M'):
-    pos = 'END'
-    data[key] = (cat, pos, block)
 
 
 
@@ -284,11 +301,13 @@ short = [{
 	"DOTTEDCIRCLE":		'DC',
 },{
 	"END":			'X',
+	"BASE_C":		'C',
 	"ABOVE_C":		'T',
 	"BELOW_C":		'B',
 	"POST_C":		'R',
 	"PRE_C":		'L',
 	"AFTER_MAIN":		'A',
+	"BEFORE_SUB":		'BS',
 }]
 all_shorts = [{},{}]
 
