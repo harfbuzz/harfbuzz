@@ -253,14 +253,18 @@ for k, (cat, pos, block) in data.items():
 
 # Keep in sync with CONSONANT_FLAGS in the shaper
 consonant_categories = ('C', 'CS', 'Ra','CM', 'V', 'PLACEHOLDER', 'DOTTEDCIRCLE')
+smvd_categories = ('SM', 'VD', 'A', 'Symbol')
 for k, (cat, pos, block) in data.items():
   if cat in consonant_categories:
     pos = 'BASE_C'
-    data[k] = (cat, pos, block)
+  elif cat in smvd_categories:
+    pos = 'SMVD';
+  data[k] = (cat, pos, block)
 
 for k,new_pos in position_overrides.items():
   (cat, pos, block) = data.get(k, defaults)
   data[k] = (cat, new_pos, block)
+
 
 values = [{_: 1} for _ in defaults]
 for vv in data.values():
