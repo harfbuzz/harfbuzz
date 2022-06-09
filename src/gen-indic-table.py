@@ -229,6 +229,52 @@ position_overrides = {
   0x0B01: 'BEFORE_SUB', # Oriya Bindu is BeforeSub in the spec.
 }
 
+def matra_pos_left(u, block):
+  return "PRE_M"
+def matra_pos_right(u, block):
+  if block == 'Devanagari':	return  'AFTER_SUB'
+  if block == 'Bengali':	return  'AFTER_POST'
+  if block == 'Gurmukhi':	return  'AFTER_POST'
+  if block == 'Gujarati':	return  'AFTER_POST'
+  if block == 'Oriya':		return  'AFTER_POST'
+  if block == 'Tamil':		return  'AFTER_POST'
+  if block == 'Telugu':		return  'BEFORE_SUB' if u <= 0x0C42 else 'AFTER_SUB'
+  if block == 'Kannada':	return  'BEFORE_SUB' if u < 0x0CC3 or u > 0x0CD6 else 'AFTER_SUB'
+  if block == 'Malayalam':	return  'AFTER_POST'
+  if block == 'Sinhala':	return  'AFTER_SUB'
+  return 'AFTER_SUB'
+def matra_pos_top(u, block):
+  # BENG and MLYM don't have top matras.
+  if block == 'Devanagari':	return  'AFTER_SUB'
+  if block == 'Gurmukhi':	return  'AFTER_POST' # Deviate from spec
+  if block == 'Gujarati':	return  'AFTER_SUB'
+  if block == 'Oriya':		return  'AFTER_MAIN'
+  if block == 'Tamil':		return  'AFTER_SUB'
+  if block == 'Telugu':		return  'BEFORE_SUB'
+  if block == 'Kannada':	return  'BEFORE_SUB'
+  if block == 'Sinhala':	return  'AFTER_SUB'
+  return 'AFTER_SUB'
+def matra_pos_bottom(u, block):
+  if block == 'Devanagari':	return  'AFTER_SUB'
+  if block == 'Bengali':	return  'AFTER_SUB'
+  if block == 'Gurmukhi':	return  'AFTER_POST'
+  if block == 'Gujarati':	return  'AFTER_POST'
+  if block == 'Oriya':		return  'AFTER_SUB'
+  if block == 'Tamil':		return  'AFTER_POST'
+  if block == 'Telugu':		return  'BEFORE_SUB'
+  if block == 'Kannada':	return  'BEFORE_SUB'
+  if block == 'Malayalam':	return  'AFTER_POST'
+  if block == 'Sinhala':	return  'AFTER_SUB'
+  return "AFTER_SUB"
+def matra_position(u, pos, block): # Reposition matra
+  if block.startswith('Khmer') or block.startswith('Myanmar'): return pos
+  if pos == 'PRE_C':	return matra_pos_left(u, block)
+  if pos == 'POST_C':	return matra_pos_right(u, block)
+  if pos == 'ABOVE_C':	return matra_pos_top(u, block)
+  if pos == 'BELOW_C':	return matra_pos_bottom(u, block)
+  assert (False)
+
+
 defaults = (category_map[defaults[0]], position_map[defaults[1]], defaults[2])
 
 new_data = {}
@@ -257,6 +303,8 @@ smvd_categories = ('SM', 'VD', 'A', 'Symbol')
 for k, (cat, pos, block) in data.items():
   if cat in consonant_categories:
     pos = 'BASE_C'
+  elif cat == 'M':
+    pos = matra_position (u, pos, block)
   elif cat in smvd_categories:
     pos = 'SMVD';
   data[k] = (cat, pos, block)
@@ -313,8 +361,12 @@ short = [{
 	"BELOW_C":		'B',
 	"POST_C":		'R',
 	"PRE_C":		'L',
+	"PRE_M":		'LM',
 	"AFTER_MAIN":		'A',
+	"AFTER_SUB":		'AS',
 	"BEFORE_SUB":		'BS',
+	"AFTER_POST":		'AP',
+	"SMVD":			'SM',
 }]
 all_shorts = [{},{}]
 

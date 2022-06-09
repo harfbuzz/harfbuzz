@@ -133,7 +133,6 @@ set_khmer_properties (hb_glyph_info_t &info)
       case POS_BELOW_C:	cat = (khmer_category_t) K_Cat(VBlw); break;
       case POS_ABOVE_C:	cat = (khmer_category_t) K_Cat(VAbv); break;
       case POS_POST_C:	cat = (khmer_category_t) K_Cat(VPst); break;
-      default: assert (0);
     }
 
   info.khmer_category() = cat;

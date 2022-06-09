@@ -159,58 +159,6 @@ is_halant (const hb_glyph_info_t &info)
 #define IS_SINH(u) (IN_HALF_BLOCK (u, 0x0D80u))
 
 
-#define MATRA_POS_LEFT(u)	POS_PRE_M
-#define MATRA_POS_RIGHT(u)	( \
-				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_BENG(u) ? POS_AFTER_POST : \
-				  IS_GURU(u) ? POS_AFTER_POST : \
-				  IS_GUJR(u) ? POS_AFTER_POST : \
-				  IS_ORYA(u) ? POS_AFTER_POST : \
-				  IS_TAML(u) ? POS_AFTER_POST : \
-				  IS_TELU(u) ? (u <= 0x0C42u ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
-				  IS_KNDA(u) ? (u < 0x0CC3u || u > 0xCD6u ? POS_BEFORE_SUB : POS_AFTER_SUB) : \
-				  IS_MLYM(u) ? POS_AFTER_POST : \
-				  IS_SINH(u) ? POS_AFTER_SUB  : \
-				  /*default*/  POS_AFTER_SUB    \
-				)
-#define MATRA_POS_TOP(u)	( /* BENG and MLYM don't have top matras. */ \
-				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_GURU(u) ? POS_AFTER_POST : /* Deviate from spec */ \
-				  IS_GUJR(u) ? POS_AFTER_SUB  : \
-				  IS_ORYA(u) ? POS_AFTER_MAIN : \
-				  IS_TAML(u) ? POS_AFTER_SUB  : \
-				  IS_TELU(u) ? POS_BEFORE_SUB : \
-				  IS_KNDA(u) ? POS_BEFORE_SUB : \
-				  IS_SINH(u) ? POS_AFTER_SUB  : \
-				  /*default*/  POS_AFTER_SUB    \
-				)
-#define MATRA_POS_BOTTOM(u)	( \
-				  IS_DEVA(u) ? POS_AFTER_SUB  : \
-				  IS_BENG(u) ? POS_AFTER_SUB  : \
-				  IS_GURU(u) ? POS_AFTER_POST : \
-				  IS_GUJR(u) ? POS_AFTER_POST : \
-				  IS_ORYA(u) ? POS_AFTER_SUB  : \
-				  IS_TAML(u) ? POS_AFTER_POST : \
-				  IS_TELU(u) ? POS_BEFORE_SUB : \
-				  IS_KNDA(u) ? POS_BEFORE_SUB : \
-				  IS_MLYM(u) ? POS_AFTER_POST : \
-				  IS_SINH(u) ? POS_AFTER_SUB  : \
-				  /*default*/  POS_AFTER_SUB    \
-				)
-
-static inline indic_position_t
-matra_position_indic (hb_codepoint_t u, indic_position_t side)
-{
-  switch ((int) side)
-  {
-    case POS_PRE_C:	return MATRA_POS_LEFT (u);
-    case POS_POST_C:	return MATRA_POS_RIGHT (u);
-    case POS_ABOVE_C:	return MATRA_POS_TOP (u);
-    case POS_BELOW_C:	return MATRA_POS_BOTTOM (u);
-  }
-  return side;
-}
-
 static inline void
 set_indic_properties (hb_glyph_info_t &info)
 {
@@ -218,15 +166,6 @@ set_indic_properties (hb_glyph_info_t &info)
   unsigned int type = hb_indic_get_categories (u);
   indic_category_t cat = (indic_category_t) (type & 0xFFu);
   indic_position_t pos = (indic_position_t) (type >> 8);
-
-  /*
-   * Re-assign position.
-   */
-
-  if (cat == OT_M)
-  {
-    pos = matra_position_indic (u, pos);
-  }
 
   info.indic_category() = cat;
   info.indic_position() = pos;
