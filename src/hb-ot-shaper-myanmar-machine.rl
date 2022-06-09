@@ -57,6 +57,7 @@ enum myanmar_syllable_type_t {
 
 %%{
 
+# These values are replicated from indic.hh; keep in sync.
 export C    = 1;
 export IV   = 2;
 export DB   = 3;	# Dot below	     = OT_N

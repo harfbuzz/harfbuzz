@@ -55,6 +55,7 @@ enum indic_syllable_type_t {
 
 %%{
 
+# These values are replicated from indic.hh; keep in sync.
 export C    = 1;
 export V    = 2;
 export N    = 3;
