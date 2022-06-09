@@ -121,6 +121,27 @@ category_map = {
   'Vowel_Independent'		: 'V',
   'Dotted_Circle'		: 'DOTTEDCIRCLE', # Ours, not Unicode's
 }
+position_map = {
+  'Not_Applicable'		: 'END',
+
+  'Left'			: 'PRE_C',
+  'Top'				: 'ABOVE_C',
+  'Bottom'			: 'BELOW_C',
+  'Right'			: 'POST_C',
+
+  # These should resolve to the position of the last part of the split sequence.
+  'Bottom_And_Right'		: 'POST_C',
+  'Left_And_Right'		: 'POST_C',
+  'Top_And_Bottom'		: 'BELOW_C',
+  'Top_And_Bottom_And_Left'	: 'BELOW_C',
+  'Top_And_Bottom_And_Right'	: 'POST_C',
+  'Top_And_Left'		: 'ABOVE_C',
+  'Top_And_Left_And_Right'	: 'POST_C',
+  'Top_And_Right'		: 'POST_C',
+
+  'Overstruck'			: 'AFTER_MAIN',
+  'Visual_order_left'		: 'PRE_M',
+}
 
 category_overrides = {
 
@@ -189,13 +210,12 @@ category_overrides = {
   0x25CC: 'DOTTEDCIRCLE',
 }
 
-
-defaults = (category_map[defaults[0]], defaults[1], defaults[2])
+defaults = (category_map[defaults[0]], position_map[defaults[1]], defaults[2])
 
 new_data = {}
 for key, (cat, pos, block) in data.items():
-
   cat = category_map[cat]
+  pos = position_map[pos]
   new_data[key] = (cat, pos, block)
 data = new_data
 
@@ -207,7 +227,6 @@ values = [{_: 1} for _ in defaults]
 for vv in data.values():
   for i,v in enumerate(vv):
     values[i][v] = values[i].get (v, 0) + 1
-
 
 
 
@@ -243,7 +262,12 @@ short = [{
 	"PLACEHOLDER":		'GB',
 	"DOTTEDCIRCLE":		'DC',
 },{
-	"Not_Applicable":	'x',
+	"END":			'X',
+	"ABOVE_C":		'T',
+	"BELOW_C":		'B',
+	"POST_C":		'R',
+	"PRE_C":		'L',
+	"AFTER_MAIN":		'A',
 }]
 all_shorts = [{},{}]
 
@@ -253,7 +277,7 @@ for i in range (2):
 	for v,s in short[i].items ():
 		all_shorts[i][s] = v
 
-what = ["OT", "INDIC_MATRA_CATEGORY"]
+what = ["OT", "POS"]
 what_short = ["ISC", "IMC"]
 print ('#pragma GCC diagnostic push')
 print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
@@ -374,7 +398,7 @@ for p in sorted(pages):
 print ("    default:")
 print ("      break;")
 print ("  }")
-print ("  return _(X,x);")
+print ("  return _(X,X);")
 print ("}")
 print ()
 print ("#undef _")
