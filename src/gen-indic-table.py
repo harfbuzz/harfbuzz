@@ -243,15 +243,18 @@ for k,new_cat in category_overrides.items():
   data[k] = (new_cat, pos, block)
 
 # We only expect position for certain types
+positioned_categories = ('CM', 'SM', 'RS', 'H', 'M')
 for k, (cat, pos, block) in data.items():
-  if cat not in ('CM', 'SM', 'RS', 'H', 'M'):
+  if cat not in positioned_categories:
     pos = 'END'
     data[k] = (cat, pos, block)
 
 # Position overrides are more complicated
 
+# Keep in sync with CONSONANT_FLAGS in the shaper
+consonant_categories = ('C', 'CS', 'Ra','CM', 'V', 'PLACEHOLDER', 'DOTTEDCIRCLE')
 for k, (cat, pos, block) in data.items():
-  if cat in ('C', 'CS', 'Ra','CM', 'V', 'PLACEHOLDER', 'DOTTEDCIRCLE'):
+  if cat in consonant_categories:
     pos = 'BASE_C'
     data[k] = (cat, pos, block)
 
