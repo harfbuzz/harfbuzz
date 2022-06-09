@@ -163,16 +163,15 @@ set_myanmar_properties (hb_glyph_info_t &info)
   {
     switch ((int) pos)
     {
-      case POS_PRE_C:	cat = (myanmar_category_t) M_Cat(VPre);
-			pos = POS_PRE_M; break;
-      case POS_ABOVE_C:	cat = (myanmar_category_t) M_Cat(VAbv);   break;
-      case POS_BELOW_C:	cat = (myanmar_category_t) M_Cat(VBlw);   break;
-      case POS_POST_C:	cat = (myanmar_category_t) M_Cat(VPst);   break;
+      case POS_PRE_C:	cat = (myanmar_category_t) M_Cat(VPre); break;
+      case POS_ABOVE_C:	cat = (myanmar_category_t) M_Cat(VAbv); break;
+      case POS_BELOW_C:	cat = (myanmar_category_t) M_Cat(VBlw); break;
+      case POS_POST_C:	cat = (myanmar_category_t) M_Cat(VPst); break;
     }
   }
 
   info.myanmar_category() = cat;
-  info.myanmar_position() = pos;
+  info.myanmar_position() = 0; /* Doesn't use the existing position info. */
 }
 
 static void
@@ -307,8 +306,9 @@ initial_reordering_consonant_syllable (hb_buffer_t *buffer,
 	info[i].myanmar_position() = POS_PRE_C;
 	continue;
       }
-      if (info[i].myanmar_position() < POS_BASE_C) /* Left matra */
+      if (info[i].myanmar_category() == M_Cat(VPre)) /* Left matra */
       {
+	info[i].myanmar_position() = POS_PRE_M;
 	continue;
       }
       if (info[i].myanmar_category() == M_Cat(VS))
