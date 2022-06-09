@@ -229,6 +229,13 @@ for vv in data.values():
     values[i][v] = values[i].get (v, 0) + 1
 
 
+# We only expect position for certain types
+for key, (cat, pos, block) in data.items():
+  if cat not in ('CM', 'SM', 'RS', 'H', 'M'):
+    pos = 'END'
+    data[key] = (cat, pos, block)
+
+
 
 # Move the outliers NO-BREAK SPACE and DOTTED CIRCLE out
 singles = {}
