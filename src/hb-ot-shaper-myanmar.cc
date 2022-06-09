@@ -69,7 +69,6 @@ set_myanmar_properties (hb_glyph_info_t &info)
   hb_codepoint_t u = info.codepoint;
   unsigned int type = hb_indic_get_categories (u);
   unsigned int cat = type & 0xFFu;
-  myanmar_position_t pos = (myanmar_position_t) (type >> 8);
 
   /* Myanmar
    * https://docs.microsoft.com/en-us/typography/script-development/myanmar#analyze
@@ -157,17 +156,6 @@ set_myanmar_properties (hb_glyph_info_t &info)
       /* https://github.com/harfbuzz/harfbuzz/issues/218 */
       cat = M_Cat(C);
       break;
-  }
-
-  if (cat == OT_M)
-  {
-    switch ((int) pos)
-    {
-      case POS_PRE_C:	cat = (myanmar_category_t) M_Cat(VPre); break;
-      case POS_ABOVE_C:	cat = (myanmar_category_t) M_Cat(VAbv); break;
-      case POS_BELOW_C:	cat = (myanmar_category_t) M_Cat(VBlw); break;
-      case POS_POST_C:	cat = (myanmar_category_t) M_Cat(VPst); break;
-    }
   }
 
   info.myanmar_category() = cat;

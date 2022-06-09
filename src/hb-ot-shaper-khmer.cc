@@ -85,8 +85,6 @@ set_khmer_properties (hb_glyph_info_t &info)
   hb_codepoint_t u = info.codepoint;
   unsigned int type = hb_indic_get_categories (u);
   khmer_category_t cat = (khmer_category_t) (type & 0xFFu);
-  indic_position_t pos = (indic_position_t) (type >> 8);
-
 
   /*
    * Re-assign category
@@ -122,18 +120,6 @@ set_khmer_properties (hb_glyph_info_t &info)
       cat = K_Cat(Ygroup);
       break;
   }
-
-  /*
-   * Re-assign position.
-   */
-  if (cat == (khmer_category_t) OT_M /* Indic M */)
-    switch ((int) pos)
-    {
-      case POS_PRE_C:	cat = (khmer_category_t) K_Cat(VPre); break;
-      case POS_BELOW_C:	cat = (khmer_category_t) K_Cat(VBlw); break;
-      case POS_ABOVE_C:	cat = (khmer_category_t) K_Cat(VAbv); break;
-      case POS_POST_C:	cat = (khmer_category_t) K_Cat(VPst); break;
-    }
 
   info.khmer_category() = cat;
 }

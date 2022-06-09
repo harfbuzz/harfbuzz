@@ -30,7 +30,7 @@
 #define ISC_Co   OT_Coeng        /*   2 chars; Coeng */
 #define ISC_DC   OT_DOTTEDCIRCLE /*   1 chars; DOTTEDCIRCLE */
 #define ISC_H    OT_H            /*  10 chars; H */
-#define ISC_M    OT_M            /* 209 chars; M */
+#define ISC_M    OT_M            /* 160 chars; M */
 #define ISC_N    OT_N            /*  35 chars; N */
 #define ISC_GB   OT_PLACEHOLDER  /* 168 chars; PLACEHOLDER */
 #define ISC_RS   OT_RS           /*   2 chars; RS */
@@ -39,6 +39,10 @@
 #define ISC_SM   OT_SM           /*  56 chars; SM */
 #define ISC_S    OT_Symbol       /*  22 chars; Symbol */
 #define ISC_V    OT_V            /* 190 chars; V */
+#define ISC_VA   OT_VAbv         /*  22 chars; VAbv */
+#define ISC_VB   OT_VBlw         /*   7 chars; VBlw */
+#define ISC_VL   OT_VPre         /*   5 chars; VPre */
+#define ISC_VR   OT_VPst         /*  15 chars; VPst */
 #define ISC_X    OT_X            /*   2 chars; X */
 #define ISC_ZWJ  OT_ZWJ          /*   1 chars; ZWJ */
 #define ISC_ZWNJ OT_ZWNJ         /*   1 chars; ZWNJ */
@@ -286,21 +290,21 @@ static const uint16_t indic_table[] = {
   /* 1010 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 1018 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 1020 */  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
-  /* 1028 */  _(V,C),  _(V,C),  _(V,C),  _(M,R),  _(M,R),  _(M,T),  _(M,T),  _(M,B),
-  /* 1030 */  _(M,B),  _(M,L),  _(M,T),  _(M,T),  _(M,T),  _(M,T),_(SM,SM),  _(N,X),
-  /* 1038 */_(SM,SM), _(Co,X),  _(M,T), _(CM,C), _(CM,C), _(CM,C), _(CM,C),  _(C,C),
+  /* 1028 */  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R), _(VA,T), _(VA,T), _(VB,B),
+  /* 1030 */ _(VB,B), _(VL,L), _(VA,T), _(VA,T), _(VA,T), _(VA,T),_(SM,SM),  _(N,X),
+  /* 1038 */_(SM,SM), _(Co,X), _(VA,T), _(CM,C), _(CM,C), _(CM,C), _(CM,C),  _(C,C),
   /* 1040 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 1048 */ _(GB,C), _(GB,C),  _(X,X), _(GB,C),  _(X,X),  _(X,X), _(GB,C),  _(X,X),
-  /* 1050 */  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(M,R),  _(M,R),
-  /* 1058 */  _(M,B),  _(M,B),  _(C,C),  _(C,C),  _(C,C),  _(C,C), _(CM,C), _(CM,C),
-  /* 1060 */ _(CM,C),  _(C,C),  _(M,R),  _(N,X),  _(N,X),  _(C,C),  _(C,C),  _(M,R),
-  /* 1068 */  _(M,R),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(C,C),  _(C,C),
-  /* 1070 */  _(C,C),  _(M,T),  _(M,T),  _(M,T),  _(M,T),  _(C,C),  _(C,C),  _(C,C),
+  /* 1050 */  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R),
+  /* 1058 */ _(VB,B), _(VB,B),  _(C,C),  _(C,C),  _(C,C),  _(C,C), _(CM,C), _(CM,C),
+  /* 1060 */ _(CM,C),  _(C,C), _(VR,R),  _(N,X),  _(N,X),  _(C,C),  _(C,C), _(VR,R),
+  /* 1068 */ _(VR,R),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(C,C),  _(C,C),
+  /* 1070 */  _(C,C), _(VA,T), _(VA,T), _(VA,T), _(VA,T),  _(C,C),  _(C,C),  _(C,C),
   /* 1078 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
-  /* 1080 */  _(C,C),  _(C,C), _(CM,C),  _(M,R),  _(M,L),  _(M,T),  _(M,T),  _(N,X),
+  /* 1080 */  _(C,C),  _(C,C), _(CM,C), _(VR,R), _(VL,L), _(VA,T), _(VA,T),  _(N,X),
   /* 1088 */  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(N,X),  _(C,C),  _(N,X),
   /* 1090 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
-  /* 1098 */ _(GB,C), _(GB,C),  _(N,X),  _(N,X),  _(M,R),  _(M,T),  _(X,X),  _(X,X),
+  /* 1098 */ _(GB,C), _(GB,C),  _(N,X),  _(N,X), _(VR,R), _(VA,T),  _(X,X),  _(X,X),
 
 #define indic_offset_0x1780u 1496
 
@@ -313,11 +317,11 @@ static const uint16_t indic_table[] = {
   /* 1798 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 17A0 */  _(C,C),  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
   /* 17A8 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
-  /* 17B0 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(X,X),  _(M,R),  _(M,T),
-  /* 17B8 */  _(M,T),  _(M,T),  _(M,T),  _(M,B),  _(M,B),  _(M,B),  _(M,T),  _(M,R),
-  /* 17C0 */  _(M,R),  _(M,L),  _(M,L),  _(M,L),  _(M,R),  _(M,R),_(SM,SM),_(SM,SM),
-  /* 17C8 */  _(M,R), _(RS,T), _(RS,T),_(SM,SM), _(CM,C),  _(M,T),_(SM,SM),_(SM,SM),
-  /* 17D0 */_(SM,SM),  _(M,T), _(Co,X),_(SM,SM),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 17B0 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),  _(X,X), _(VR,R), _(VA,T),
+  /* 17B8 */ _(VA,T), _(VA,T), _(VA,T), _(VB,B), _(VB,B), _(VB,B), _(VA,T), _(VR,R),
+  /* 17C0 */ _(VR,R), _(VL,L), _(VL,L), _(VL,L), _(VR,R), _(VR,R),_(SM,SM),_(SM,SM),
+  /* 17C8 */ _(VR,R), _(RS,T), _(RS,T),_(SM,SM), _(CM,C), _(VA,T),_(SM,SM),_(SM,SM),
+  /* 17D0 */_(SM,SM), _(VA,T), _(Co,X),_(SM,SM),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 17D8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(S,SM),_(SM,SM),  _(X,X),  _(X,X),
   /* 17E0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 17E8 */ _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
@@ -372,7 +376,7 @@ static const uint16_t indic_table[] = {
 
   /* Myanmar Extended-B */
 
-  /* A9E0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(M,T),  _(X,X),  _(C,C),
+  /* A9E0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C), _(VA,T),  _(X,X),  _(C,C),
   /* A9E8 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* A9F0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* A9F8 */ _(GB,C), _(GB,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),
@@ -461,6 +465,10 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef ISC_SM
 #undef ISC_S
 #undef ISC_V
+#undef ISC_VA
+#undef ISC_VB
+#undef ISC_VL
+#undef ISC_VR
 #undef ISC_X
 #undef ISC_ZWJ
 #undef ISC_ZWNJ

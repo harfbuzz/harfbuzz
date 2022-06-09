@@ -266,13 +266,18 @@ def matra_pos_bottom(u, block):
   if block == 'Malayalam':	return  'AFTER_POST'
   if block == 'Sinhala':	return  'AFTER_SUB'
   return "AFTER_SUB"
-def matra_position(u, pos, block): # Reposition matra
-  if block.startswith('Khmer') or block.startswith('Myanmar'): return pos
+def indic_matra_position(u, pos, block): # Reposition matra
   if pos == 'PRE_C':	return matra_pos_left(u, block)
   if pos == 'POST_C':	return matra_pos_right(u, block)
   if pos == 'ABOVE_C':	return matra_pos_top(u, block)
   if pos == 'BELOW_C':	return matra_pos_bottom(u, block)
   assert (False)
+
+def position_to_category(pos):
+  if pos == 'PRE_C':	return 'VPre'
+  if pos == 'ABOVE_C':	return 'VAbv'
+  if pos == 'BELOW_C':	return 'VBlw'
+  if pos == 'POST_C':	return 'VPst'
 
 
 defaults = (category_map[defaults[0]], position_map[defaults[1]], defaults[2])
@@ -304,7 +309,10 @@ for k, (cat, pos, block) in data.items():
   if cat in consonant_categories:
     pos = 'BASE_C'
   elif cat == 'M':
-    pos = matra_position (u, pos, block)
+    if block.startswith('Khmer') or block.startswith('Myanmar'):
+      cat = position_to_category(pos)
+    else:
+      pos = indic_matra_position(u, pos, block)
   elif cat in smvd_categories:
     pos = 'SMVD';
   data[k] = (cat, pos, block)
@@ -354,6 +362,8 @@ short = [{
 	"Coeng":		'Co',
 	"PLACEHOLDER":		'GB',
 	"DOTTEDCIRCLE":		'DC',
+	"VPst":			'VR',
+	"VPre":			'VL',
 },{
 	"END":			'X',
 	"BASE_C":		'C',
