@@ -83,6 +83,77 @@ combined = {k:v for k,v in combined.items() if k in ALLOWED_SINGLES or v[2] in A
 data = combined
 del combined
 
+
+# Convert data
+
+category_map = {
+  'Other'			: 'X',
+  'Avagraha'			: 'Symbol',
+  'Bindu'			: 'SM',
+  'Brahmi_Joining_Number'	: 'PLACEHOLDER', # Don't care.
+  'Cantillation_Mark'		: 'A',
+  'Consonant'			: 'C',
+  'Consonant_Dead'		: 'C',
+  'Consonant_Final'		: 'CM',
+  'Consonant_Head_Letter'	: 'C',
+  'Consonant_Initial_Postfixed'	: 'C', # TODO
+  'Consonant_Killer'		: 'M', # U+17CD only.
+  'Consonant_Medial'		: 'CM',
+  'Consonant_Placeholder'	: 'PLACEHOLDER',
+  'Consonant_Preceding_Repha'	: 'Repha',
+  'Consonant_Prefixed'		: 'X', # Don't care.
+  'Consonant_Subjoined'		: 'CM',
+  'Consonant_Succeeding_Repha'	: 'CM',
+  'Consonant_With_Stacker'	: 'CS',
+  'Gemination_Mark'		: 'SM', # https://github.com/harfbuzz/harfbuzz/issues/552
+  'Invisible_Stacker'		: 'Coeng',
+  'Joiner'			: 'ZWJ',
+  'Modifying_Letter'		: 'X',
+  'Non_Joiner'			: 'ZWNJ',
+  'Nukta'			: 'N',
+  'Number'			: 'PLACEHOLDER',
+  'Number_Joiner'		: 'PLACEHOLDER', # Don't care.
+  'Pure_Killer'			: 'M', # Is like a vowel matra.
+  'Register_Shifter'		: 'RS',
+  'Syllable_Modifier'		: 'SM',
+  'Tone_Letter'			: 'X',
+  'Tone_Mark'			: 'N',
+  'Virama'			: 'H',
+  'Visarga'			: 'SM',
+  'Vowel'			: 'V',
+  'Vowel_Dependent'		: 'M',
+  'Vowel_Independent'		: 'V',
+}
+
+
+new_values0 = {}
+for k,v in values[0].items():
+  new_values0[category_map[k]] = new_values0.get(category_map[k], 0) + v
+values[0] = new_values0
+defaults = (category_map[defaults[0]], defaults[1], defaults[2])
+
+new_data = {}
+for key, (cat, pos, block) in data.items():
+
+  cat = category_map[cat]
+
+
+
+  new_data[key] = (cat, pos, block)
+data = new_data
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Move the outliers NO-BREAK SPACE and DOTTED CIRCLE out
 singles = {}
 for u in ALLOWED_SINGLES:
@@ -111,16 +182,8 @@ print ()
 
 # Shorten values
 short = [{
-	"Bindu":		'Bi',
-	"Cantillation_Mark":	'Ca',
-	"Joiner":		'ZWJ',
-	"Non_Joiner":		'ZWNJ',
-	"Number":		'Nd',
-	"Visarga":		'Vs',
-	"Vowel":		'Vo',
-	"Vowel_Dependent":	'M',
-	"Consonant_Prefixed":	'CPrf',
-	"Other":		'x',
+	"Coeng":		'Co',
+	"PLACEHOLDER":		'GB',
 },{
 	"Not_Applicable":	'x',
 }]
@@ -128,12 +191,11 @@ all_shorts = [{},{}]
 
 # Add some of the values, to make them more readable, and to avoid duplicates
 
-
 for i in range (2):
 	for v,s in short[i].items ():
 		all_shorts[i][s] = v
 
-what = ["INDIC_SYLLABIC_CATEGORY", "INDIC_MATRA_CATEGORY"]
+what = ["OT", "INDIC_MATRA_CATEGORY"]
 what_short = ["ISC", "IMC"]
 print ('#pragma GCC diagnostic push')
 print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
@@ -150,7 +212,7 @@ for i in range (2):
 				raise Exception ("Duplicate short value alias", v, all_shorts[i][s])
 			all_shorts[i][s] = v
 			short[i][v] = s
-		cat_defs.append ((what_short[i] + '_' + s, what[i] + '_' + v.upper (), str (values[i][v]), v))
+		cat_defs.append ((what_short[i] + '_' + s, what[i] + '_' + (v.upper () if i else v), str (values[i][v]), v))
 
 maxlen_s = max ([len (c[0]) for c in cat_defs])
 maxlen_l = max ([len (c[1]) for c in cat_defs])
@@ -254,7 +316,7 @@ for p in sorted(pages):
 print ("    default:")
 print ("      break;")
 print ("  }")
-print ("  return _(x,x);")
+print ("  return _(X,x);")
 print ("}")
 print ()
 print ("#undef _")
