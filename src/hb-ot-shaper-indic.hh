@@ -57,19 +57,35 @@ enum indic_category_t {
   OT_PLACEHOLDER = 10,
   OT_DOTTEDCIRCLE = 11,
   OT_RS = 12, /* Register Shifter, used in Khmer OT spec. */
-  OT_Coeng = 13, /* Khmer-style Virama. */
   OT_Repha = 14, /* Atomically-encoded logical or visual repha. */
   OT_Ra = 15,
   OT_CM = 16,  /* Consonant-Medial. */
   OT_Symbol = 17, /* Avagraha, etc that take marks (SM,A,VD). */
   OT_CS = 18,
 
-  /* The following are used by Khmer & Myanmar shapers.  Defined
-   * here for them to share. */
-  OT_VAbv    = 26,
-  OT_VBlw    = 27,
-  OT_VPre    = 28,
-  OT_VPst    = 29,
+  /* Khmer & Myanmar shapers. */
+  OT_VAbv    = 20,
+  OT_VBlw    = 21,
+  OT_VPre    = 22,
+  OT_VPst    = 23,
+
+  /* Khmer. */
+  OT_Coeng   = 24,
+  OT_Robatic = 25,
+  OT_Xgroup  = 26,
+  OT_Ygroup  = 27,
+
+  /* Myanmar */
+  OT_As      = 32,	// Asat
+  OT_D0      = 33,	// Digit zero
+  OT_MH      = 34,	// Medial
+  OT_MR      = 35,	// Medial
+  OT_MW      = 36,	// Medial
+  OT_MY      = 37,	// Medial
+  OT_PT      = 38,	// Pwo and other tones
+  OT_VS      = 39,	// Variation selectors
+  OT_P       = 40,	// Punctuation
+  OT_ML      = 41,	// Consonant medials
 };
 
 #define MEDIAL_FLAGS (FLAG (OT_CM))

@@ -60,15 +60,17 @@ export ZWNJ = 5;
 export ZWJ  = 6;
 export PLACEHOLDER = 10;
 export DOTTEDCIRCLE = 11;
-export Coeng= 13;
 export Ra   = 15;
-export Robatic = 20;
-export Xgroup  = 21;
-export Ygroup  = 22;
-export VAbv = 26;
-export VBlw = 27;
-export VPre = 28;
-export VPst = 29;
+
+export VAbv = 20;
+export VBlw = 21;
+export VPre = 22;
+export VPst = 23;
+
+export Coeng   = 24;
+export Robatic = 25;
+export Xgroup  = 26;
+export Ygroup  = 27;
 
 c = (C | Ra | V);
 cn = c.((ZWJ|ZWNJ)?.Robatic)?;

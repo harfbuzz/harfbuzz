@@ -57,32 +57,35 @@ enum myanmar_syllable_type_t {
 
 %%{
 
-export A    = 9;
-export As   = 18;	# Asat
 export C    = 1;
-export D    = 10;	# Digits except zero = GB
-export D0   = 20;	# Digit zero
-export DB   = 3;	# Dot below	= OT_N
-export GB   = 10;	# 		= OT_PLACEHOLDER
-export H    = 4;
 export IV   = 2;
-export MH   = 21;	# Medial
-export MR   = 22;	# Medial
-export MW   = 23;	# Medial
-export MY   = 24;	# Medial
-export ML   = 32;	# Consonant medials
-export PT   = 25;	# Pwo and other tones
-export V    = 8;	# Visarga and Shan tones
-export VAbv = 26;
-export VBlw = 27;
-export VPre = 28;
-export VPst = 29;
-export VS   = 30;	# Variation selectors
-export ZWJ  = 6;
+export DB   = 3;	# Dot below	     = OT_N
+export H    = 4;
 export ZWNJ = 5;
+export ZWJ  = 6;
+export V    = 8;	# Visarga and Shan tones
+export GB   = 10;	# 		     = OT_PLACEHOLDER
+export D    = 10;	# Digits except zero = GB
+export A    = 9;
 export Ra   = 15;
-export P    = 31;	# Punctuation
-export CS   = 19;
+export CS   = 18;
+
+export VAbv = 20;
+export VBlw = 21;
+export VPre = 22;
+export VPst = 23;
+
+export As   = 32;	# Asat
+export D0   = 33;	# Digit zero
+export MH   = 34;	# Medial
+export MR   = 35;	# Medial
+export MW   = 36;	# Medial
+export MY   = 37;	# Medial
+export PT   = 38;	# Pwo and other tones
+export VS   = 39;	# Variation selectors
+export P    = 40;	# Punctuation
+export ML   = 41;	# Consonant medials
+
 
 j = ZWJ|ZWNJ;			# Joiners
 k = (Ra As H);			# Kinzi
