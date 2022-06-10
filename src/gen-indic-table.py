@@ -146,6 +146,34 @@ position_map = {
 
 category_overrides = {
 
+  # These are the variation-selectors. They only appear in the Myanmar grammar
+  # but are not Myanmar-specific
+  0xFE00: 'VS',
+  0xFE01: 'VS',
+  0xFE02: 'VS',
+  0xFE03: 'VS',
+  0xFE04: 'VS',
+  0xFE05: 'VS',
+  0xFE06: 'VS',
+  0xFE07: 'VS',
+  0xFE08: 'VS',
+  0xFE09: 'VS',
+  0xFE0A: 'VS',
+  0xFE0B: 'VS',
+  0xFE0C: 'VS',
+  0xFE0D: 'VS',
+  0xFE0E: 'VS',
+  0xFE0F: 'VS',
+
+  # These appear in the OT Myanmar spec, but are not Myanmar-specific
+  0x2015: 'PLACEHOLDER',
+  0x2022: 'PLACEHOLDER',
+  0x25FB: 'PLACEHOLDER',
+  0x25FC: 'PLACEHOLDER',
+  0x25FD: 'PLACEHOLDER',
+  0x25FE: 'PLACEHOLDER',
+
+
   # Indic
 
   0x0930: 'Ra', # Devanagari
@@ -247,37 +275,7 @@ category_overrides = {
 
   # https://docs.microsoft.com/en-us/typography/script-development/myanmar#analyze
 
-  0xFE00: 'VS',
-  0xFE01: 'VS',
-  0xFE02: 'VS',
-  0xFE03: 'VS',
-  0xFE04: 'VS',
-  0xFE05: 'VS',
-  0xFE06: 'VS',
-  0xFE07: 'VS',
-  0xFE08: 'VS',
-  0xFE09: 'VS',
-  0xFE0A: 'VS',
-  0xFE0B: 'VS',
-  0xFE0C: 'VS',
-  0xFE0D: 'VS',
-  0xFE0E: 'VS',
-  0xFE0F: 'VS',
-
   0x104E: 'C', # The spec says C, IndicSyllableCategory says Consonant_Placeholder
-
-  0x002D: 'PLACEHOLDER',
-  0x00A0: 'PLACEHOLDER',
-  0x00D7: 'PLACEHOLDER',
-  0x2012: 'PLACEHOLDER',
-  0x2013: 'PLACEHOLDER',
-  0x2014: 'PLACEHOLDER',
-  0x2015: 'PLACEHOLDER',
-  0x2022: 'PLACEHOLDER',
-  0x25FB: 'PLACEHOLDER',
-  0x25FC: 'PLACEHOLDER',
-  0x25FD: 'PLACEHOLDER',
-  0x25FE: 'PLACEHOLDER',
 
   0x1004: 'Ra',
   0x101B: 'Ra',
