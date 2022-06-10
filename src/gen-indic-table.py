@@ -268,7 +268,7 @@ category_overrides = {
   0xFE0E: 'VS',
   0xFE0F: 'VS',
 
-  0x104E: 'C', # The spec says C, IndicSyllableCategory doesn't have.
+  0x104E: 'C', # The spec says C, IndicSyllableCategory says Consonant_Placeholder
 
   0x002D: 'PLACEHOLDER',
   0x00A0: 'PLACEHOLDER',
