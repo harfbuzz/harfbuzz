@@ -695,7 +695,7 @@ struct hb_serialize_context_t
     check_assign (off, offset, HB_SERIALIZE_ERROR_OFFSET_OVERFLOW);
   }
 
-  public: /* TODO Make private. */
+  public:
   char *start, *head, *tail, *end;
   unsigned int debug_depth;
   hb_serialize_error_t errors;
