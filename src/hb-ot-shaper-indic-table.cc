@@ -25,7 +25,7 @@
 
 #define _OT_A    OT_A            /*  53 chars; A */
 #define _OT_As   OT_As           /*   1 chars; As */
-#define _OT_C    OT_C            /* 521 chars; C */
+#define _OT_C    OT_C            /* 518 chars; C */
 #define _OT_CM   OT_CM           /*   1 chars; CM */
 #define _OT_CS   OT_CS           /*   2 chars; CS */
 #define _OT_Co   OT_Coeng        /*   1 chars; Coeng */
@@ -40,7 +40,7 @@
 #define _OT_MY   OT_MY           /*   3 chars; MY */
 #define _OT_N    OT_N            /*  17 chars; N */
 #define _OT_P    OT_P            /*   2 chars; P */
-#define _OT_GB   OT_PLACEHOLDER  /* 149 chars; PLACEHOLDER */
+#define _OT_GB   OT_PLACEHOLDER  /* 152 chars; PLACEHOLDER */
 #define _OT_PT   OT_PT           /*   8 chars; PT */
 #define _OT_R    OT_Ra           /*  15 chars; Ra */
 #define _OT_Rf   OT_Repha        /*   1 chars; Repha */
@@ -414,7 +414,7 @@ static const uint16_t indic_table[] = {
 
   /* AA60 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* AA68 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
-  /* AA70 */  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),
+  /* AA70 */  _(X,X),  _(C,C),  _(C,C),  _(C,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),
   /* AA78 */  _(X,X),  _(X,X),  _(C,C), _(PT,X),  _(N,X),  _(N,X),  _(C,C),  _(C,C),
 
 #define indic_offset_0xfe00u 1816

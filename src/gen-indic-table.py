@@ -342,11 +342,6 @@ category_overrides = {
 
   0x104A: 'P',
   0x104B: 'P',
-
-  # https://github.com/harfbuzz/harfbuzz/issues/218
-  0xAA74: 'C',
-  0xAA75: 'C',
-  0xAA76: 'C',
 }
 position_overrides = {
 
