@@ -133,8 +133,6 @@ enum ot_position_t {
 };
 
 
-#define INDIC_COMBINE_CATEGORIES(S,M) ((S) | ((M) << 8))
-
 HB_INTERNAL uint16_t
 hb_indic_get_categories (hb_codepoint_t u);
 

@@ -74,6 +74,8 @@
 
 #pragma GCC diagnostic pop
 
+#define INDIC_COMBINE_CATEGORIES(S,M) ((S) | ((M) << 8))
+
 #define _(S,M) INDIC_COMBINE_CATEGORIES (_OT_##S, _POS_##M)
 
 
@@ -482,6 +484,7 @@ hb_indic_get_categories (hb_codepoint_t u)
 }
 
 #undef _
+#undef INDIC_COMBINE_CATEGORIES
 
 #undef _OT_A
 #undef _OT_As
