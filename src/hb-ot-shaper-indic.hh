@@ -40,8 +40,14 @@
 /* Cateories used in the OpenType spec:
  * https://docs.microsoft.com/en-us/typography/script-development/devanagari
  */
-/* Note: This enum is duplicated in the -machine.rl source file.
- * Not sure how to avoid duplication. */
+/* Note: This enum is duplicated the machine machine.rl files.
+ * We can avoid that by defining this enum in terms of those in the
+ * indic-table.cc file, but I like this enum duplicated here, because
+ * this gives us a unified view of all the numbers.
+ *
+ * The equality of these and the duplicated numbers is checked by way
+ * of static_assert's in the respective .cc shaper files. Keep those
+ * in sync as well. */
 enum ot_category_t {
   OT_X = 0,
   OT_C = 1,
