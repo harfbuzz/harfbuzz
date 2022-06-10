@@ -223,7 +223,7 @@ handle_variation_selector_cluster (const hb_ot_shape_normalize_context_t *c,
 				   unsigned int end,
 				   bool short_circuit HB_UNUSED)
 {
-  /* TODO Currently if there's a variation-selector we give-up, it's just too hard. */
+  /* Currently if there's a variation-selector we give-up on normalization, it's just too hard. */
   hb_buffer_t * const buffer = c->buffer;
   hb_font_t * const font = c->font;
   for (; buffer->idx < end - 1 && buffer->successful;) {
