@@ -88,10 +88,10 @@ enum ot_category_t {
   OT_D0      = 34,	// Digit zero
   OT_DB      = OT_N,	// Dot below
   OT_GB	     = OT_PLACEHOLDER,
-  OT_MH      = 35,	// Medial
-  OT_MR      = 36,	// Medial
-  OT_MW      = 37,	// Medial
-  OT_MY      = 38,	// Medial
+  OT_MH      = 35,	// Medial Ha, Mon La
+  OT_MR      = 36,	// Medial Ra
+  OT_MW      = 37,	// Medial Wa, Shan Wa
+  OT_MY      = 38,	// Medial Ya, Mon Na, Mon Ma
   OT_PT      = 39,	// Pwo and other tones
   OT_VS      = 40,	// Variation selectors
   OT_P       = 41,	// Punctuation
