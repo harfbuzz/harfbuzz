@@ -55,7 +55,9 @@ enum indic_syllable_type_t {
 
 %%{
 
-# These values are replicated from indic.hh; keep in sync.
+
+# These values are replicated from indic.hh, and relisted in indic.cc; keep in sync.
+
 export C    = 1;
 export V    = 2;
 export N    = 3;
@@ -74,6 +76,7 @@ export Ra    = 15;
 export CM    = 16;
 export Symbol= 17;
 export CS    = 18;
+
 
 c = (C | Ra);			# is_consonant
 n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier

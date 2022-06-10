@@ -54,7 +54,9 @@ enum khmer_syllable_type_t {
 
 %%{
 
-# These values are replicated from indic.hh; keep in sync.
+
+# These values are replicated from indic.hh, and relisted in khmer.cc; keep in sync.
+
 export C    = 1;
 export V    = 2;
 export ZWNJ = 5;
@@ -72,6 +74,7 @@ export Coeng   = 24;
 export Robatic = 25;
 export Xgroup  = 26;
 export Ygroup  = 27;
+
 
 c = (C | Ra | V);
 cn = c.((ZWJ|ZWNJ)?.Robatic)?;

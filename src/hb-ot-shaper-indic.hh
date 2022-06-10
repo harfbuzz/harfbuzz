@@ -76,9 +76,12 @@ enum ot_category_t {
   OT_Ygroup  = 27,
 
   /* Myanmar */
+  OT_IV      = OT_V,
   OT_As      = 32,	// Asat
   OT_D       = 33,	// Digits except zero
   OT_D0      = 34,	// Digit zero
+  OT_DB      = OT_N,	// Dot below
+  OT_GB	     = OT_PLACEHOLDER,
   OT_MH      = 35,	// Medial
   OT_MR      = 36,	// Medial
   OT_MW      = 37,	// Medial
