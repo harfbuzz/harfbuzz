@@ -23,58 +23,58 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-macros"
 
-#define ISC_A    OT_A            /*  53 chars; A */
-#define ISC_As   OT_As           /*   1 chars; As */
-#define ISC_C    OT_C            /* 521 chars; C */
-#define ISC_CM   OT_CM           /*   1 chars; CM */
-#define ISC_CS   OT_CS           /*   2 chars; CS */
-#define ISC_Co   OT_Coeng        /*   1 chars; Coeng */
-#define ISC_D    OT_D            /*  20 chars; D */
-#define ISC_DC   OT_DOTTEDCIRCLE /*   1 chars; DOTTEDCIRCLE */
-#define ISC_H    OT_H            /*  11 chars; H */
-#define ISC_M    OT_M            /* 160 chars; M */
-#define ISC_MH   OT_MH           /*   1 chars; MH */
-#define ISC_ML   OT_ML           /*   1 chars; ML */
-#define ISC_MR   OT_MR           /*   1 chars; MR */
-#define ISC_MW   OT_MW           /*   2 chars; MW */
-#define ISC_MY   OT_MY           /*   3 chars; MY */
-#define ISC_N    OT_N            /*  17 chars; N */
-#define ISC_P    OT_P            /*   2 chars; P */
-#define ISC_GB   OT_PLACEHOLDER  /* 149 chars; PLACEHOLDER */
-#define ISC_PT   OT_PT           /*   8 chars; PT */
-#define ISC_R    OT_Ra           /*  15 chars; Ra */
-#define ISC_Rf   OT_Repha        /*   1 chars; Repha */
-#define ISC_Rt   OT_Robatic      /*   3 chars; Robatic */
-#define ISC_SM   OT_SM           /*  58 chars; SM */
-#define ISC_S    OT_Symbol       /*  22 chars; Symbol */
-#define ISC_V    OT_V            /* 190 chars; V */
-#define ISC_VA   OT_VAbv         /*  18 chars; VAbv */
-#define ISC_VB   OT_VBlw         /*   7 chars; VBlw */
-#define ISC_VL   OT_VPre         /*   5 chars; VPre */
-#define ISC_VR   OT_VPst         /*  13 chars; VPst */
-#define ISC_VS   OT_VS           /*  16 chars; VS */
-#define ISC_X    OT_X            /*   2 chars; X */
-#define ISC_Xg   OT_Xgroup       /*   7 chars; Xgroup */
-#define ISC_Yg   OT_Ygroup       /*   4 chars; Ygroup */
-#define ISC_ZWJ  OT_ZWJ          /*   1 chars; ZWJ */
-#define ISC_ZWNJ OT_ZWNJ         /*   1 chars; ZWNJ */
+#define _OT_A    OT_A            /*  53 chars; A */
+#define _OT_As   OT_As           /*   1 chars; As */
+#define _OT_C    OT_C            /* 521 chars; C */
+#define _OT_CM   OT_CM           /*   1 chars; CM */
+#define _OT_CS   OT_CS           /*   2 chars; CS */
+#define _OT_Co   OT_Coeng        /*   1 chars; Coeng */
+#define _OT_D    OT_D            /*  20 chars; D */
+#define _OT_DC   OT_DOTTEDCIRCLE /*   1 chars; DOTTEDCIRCLE */
+#define _OT_H    OT_H            /*  11 chars; H */
+#define _OT_M    OT_M            /* 160 chars; M */
+#define _OT_MH   OT_MH           /*   1 chars; MH */
+#define _OT_ML   OT_ML           /*   1 chars; ML */
+#define _OT_MR   OT_MR           /*   1 chars; MR */
+#define _OT_MW   OT_MW           /*   2 chars; MW */
+#define _OT_MY   OT_MY           /*   3 chars; MY */
+#define _OT_N    OT_N            /*  17 chars; N */
+#define _OT_P    OT_P            /*   2 chars; P */
+#define _OT_GB   OT_PLACEHOLDER  /* 149 chars; PLACEHOLDER */
+#define _OT_PT   OT_PT           /*   8 chars; PT */
+#define _OT_R    OT_Ra           /*  15 chars; Ra */
+#define _OT_Rf   OT_Repha        /*   1 chars; Repha */
+#define _OT_Rt   OT_Robatic      /*   3 chars; Robatic */
+#define _OT_SM   OT_SM           /*  58 chars; SM */
+#define _OT_S    OT_Symbol       /*  22 chars; Symbol */
+#define _OT_V    OT_V            /* 190 chars; V */
+#define _OT_VA   OT_VAbv         /*  18 chars; VAbv */
+#define _OT_VB   OT_VBlw         /*   7 chars; VBlw */
+#define _OT_VL   OT_VPre         /*   5 chars; VPre */
+#define _OT_VR   OT_VPst         /*  13 chars; VPst */
+#define _OT_VS   OT_VS           /*  16 chars; VS */
+#define _OT_X    OT_X            /*   2 chars; X */
+#define _OT_Xg   OT_Xgroup       /*   7 chars; Xgroup */
+#define _OT_Yg   OT_Ygroup       /*   4 chars; Ygroup */
+#define _OT_ZWJ  OT_ZWJ          /*   1 chars; ZWJ */
+#define _OT_ZWNJ OT_ZWNJ         /*   1 chars; ZWNJ */
 
-#define IMC_T    POS_ABOVE_C     /*  23 chars; ABOVE_C */
-#define IMC_A    POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
-#define IMC_AP   POS_AFTER_POST  /*  50 chars; AFTER_POST */
-#define IMC_AS   POS_AFTER_SUB   /*  60 chars; AFTER_SUB */
-#define IMC_C    POS_BASE_C      /* 879 chars; BASE_C */
-#define IMC_BS   POS_BEFORE_SUB  /*  31 chars; BEFORE_SUB */
-#define IMC_B    POS_BELOW_C     /*  13 chars; BELOW_C */
-#define IMC_X    POS_END         /*  93 chars; END */
-#define IMC_R    POS_POST_C      /*  13 chars; POST_C */
-#define IMC_L    POS_PRE_C       /*   5 chars; PRE_C */
-#define IMC_LM   POS_PRE_M       /*  16 chars; PRE_M */
-#define IMC_SM   POS_SMVD        /* 132 chars; SMVD */
+#define _POS_T   POS_ABOVE_C     /*  23 chars; ABOVE_C */
+#define _POS_A   POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
+#define _POS_AP  POS_AFTER_POST  /*  50 chars; AFTER_POST */
+#define _POS_AS  POS_AFTER_SUB   /*  60 chars; AFTER_SUB */
+#define _POS_C   POS_BASE_C      /* 879 chars; BASE_C */
+#define _POS_BS  POS_BEFORE_SUB  /*  31 chars; BEFORE_SUB */
+#define _POS_B   POS_BELOW_C     /*  13 chars; BELOW_C */
+#define _POS_X   POS_END         /*  93 chars; END */
+#define _POS_R   POS_POST_C      /*  13 chars; POST_C */
+#define _POS_L   POS_PRE_C       /*   5 chars; PRE_C */
+#define _POS_LM  POS_PRE_M       /*  16 chars; PRE_M */
+#define _POS_SM  POS_SMVD        /* 132 chars; SMVD */
 
 #pragma GCC diagnostic pop
 
-#define _(S,M) INDIC_COMBINE_CATEGORIES (ISC_##S, IMC_##M)
+#define _(S,M) INDIC_COMBINE_CATEGORIES (_OT_##S, _POS_##M)
 
 
 static const uint16_t indic_table[] = {
@@ -483,54 +483,54 @@ hb_indic_get_categories (hb_codepoint_t u)
 
 #undef _
 
-#undef ISC_A
-#undef ISC_As
-#undef ISC_C
-#undef ISC_CM
-#undef ISC_CS
-#undef ISC_Co
-#undef ISC_D
-#undef ISC_DC
-#undef ISC_H
-#undef ISC_M
-#undef ISC_MH
-#undef ISC_ML
-#undef ISC_MR
-#undef ISC_MW
-#undef ISC_MY
-#undef ISC_N
-#undef ISC_P
-#undef ISC_GB
-#undef ISC_PT
-#undef ISC_R
-#undef ISC_Rf
-#undef ISC_Rt
-#undef ISC_SM
-#undef ISC_S
-#undef ISC_V
-#undef ISC_VA
-#undef ISC_VB
-#undef ISC_VL
-#undef ISC_VR
-#undef ISC_VS
-#undef ISC_X
-#undef ISC_Xg
-#undef ISC_Yg
-#undef ISC_ZWJ
-#undef ISC_ZWNJ
+#undef _OT_A
+#undef _OT_As
+#undef _OT_C
+#undef _OT_CM
+#undef _OT_CS
+#undef _OT_Co
+#undef _OT_D
+#undef _OT_DC
+#undef _OT_H
+#undef _OT_M
+#undef _OT_MH
+#undef _OT_ML
+#undef _OT_MR
+#undef _OT_MW
+#undef _OT_MY
+#undef _OT_N
+#undef _OT_P
+#undef _OT_GB
+#undef _OT_PT
+#undef _OT_R
+#undef _OT_Rf
+#undef _OT_Rt
+#undef _OT_SM
+#undef _OT_S
+#undef _OT_V
+#undef _OT_VA
+#undef _OT_VB
+#undef _OT_VL
+#undef _OT_VR
+#undef _OT_VS
+#undef _OT_X
+#undef _OT_Xg
+#undef _OT_Yg
+#undef _OT_ZWJ
+#undef _OT_ZWNJ
 
-#undef IMC_T
-#undef IMC_A
-#undef IMC_AP
-#undef IMC_AS
-#undef IMC_C
-#undef IMC_BS
-#undef IMC_B
-#undef IMC_X
-#undef IMC_R
-#undef IMC_L
-#undef IMC_LM
-#undef IMC_SM
+#undef _POS_T
+#undef _POS_A
+#undef _POS_AP
+#undef _POS_AS
+#undef _POS_C
+#undef _POS_BS
+#undef _POS_B
+#undef _POS_X
+#undef _POS_R
+#undef _POS_L
+#undef _POS_LM
+#undef _POS_SM
 
 #endif
 

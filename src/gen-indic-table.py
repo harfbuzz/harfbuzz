@@ -524,7 +524,7 @@ for i in range (2):
 		all_shorts[i][s] = v
 
 what = ["OT", "POS"]
-what_short = ["ISC", "IMC"]
+what_short = ["_OT", "_POS"]
 print ('#pragma GCC diagnostic push')
 print ('#pragma GCC diagnostic ignored "-Wunused-macros"')
 cat_defs = []
@@ -553,7 +553,7 @@ for s in what_short:
 print ()
 print ('#pragma GCC diagnostic pop')
 print ()
-print ("#define _(S,M) INDIC_COMBINE_CATEGORIES (ISC_##S, IMC_##M)")
+print ("#define _(S,M) INDIC_COMBINE_CATEGORIES (%s_##S, %s_##M)" % tuple(what_short))
 print ()
 print ()
 
