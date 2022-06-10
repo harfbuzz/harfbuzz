@@ -168,7 +168,6 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 					 hb_array (component_count_list, num_ligatures),
 					 hb_array (component_list, num_ligatures));
   c.end_serialize ();
-  /* TODO sanitize the results? */
 
   return ret && !c.in_error () ? c.copy<OT::SubstLookup> () : nullptr;
 }
@@ -232,7 +231,6 @@ arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan HB_UNUS
   const Manifest &manifest = reinterpret_cast<const Manifest&> (arabic_win1256_gsub_lookups.manifest);
   static_assert (sizeof (arabic_win1256_gsub_lookups.manifestData) ==
 		 ARABIC_FALLBACK_MAX_LOOKUPS * sizeof (ManifestLookup), "");
-  /* TODO sanitize the table? */
 
   unsigned j = 0;
   unsigned int count = manifest.len;
