@@ -214,7 +214,6 @@ category_overrides = {
   0x0AFB: 'N', # https://github.com/harfbuzz/harfbuzz/issues/552
   0x0B55: 'N', # https://github.com/harfbuzz/harfbuzz/issues/2849
 
-  0x0980: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/issues/538
   0x09FC: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/pull/1613
   0x0C80: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/pull/623
   0x0D04: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/pull/3511
