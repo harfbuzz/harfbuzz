@@ -72,6 +72,20 @@ set_indic_properties (hb_glyph_info_t &info)
   info.indic_position() = (indic_position_t) (type >> 8);
 }
 
+#define JOINER_FLAGS (FLAG (I_Cat(ZWJ)) | FLAG (I_Cat(ZWNJ)))
+
+static inline bool
+is_joiner (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, JOINER_FLAGS);
+}
+
+static inline bool
+is_halant (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, FLAG (I_Cat(H)));
+}
+
 struct hb_indic_would_substitute_feature_t
 {
   void init (const hb_ot_map_t *map, hb_tag_t feature_tag, bool zero_context_)

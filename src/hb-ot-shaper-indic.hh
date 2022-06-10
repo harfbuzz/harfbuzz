@@ -102,7 +102,6 @@ enum ot_category_t {
  *
  * Keep in sync with consonant_categories in the generator. */
 #define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CS) | FLAG (OT_Ra) | MEDIAL_FLAGS | FLAG (OT_V) | FLAG (OT_PLACEHOLDER) | FLAG (OT_DOTTEDCIRCLE))
-#define JOINER_FLAGS (FLAG (OT_ZWJ) | FLAG (OT_ZWNJ))
 
 
 /* Visual positions in a syllable from left to right. */
@@ -146,22 +145,9 @@ is_one_of (const hb_glyph_info_t &info, unsigned int flags)
 }
 
 static inline bool
-is_joiner (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, JOINER_FLAGS);
-}
-
-static inline bool
 is_consonant (const hb_glyph_info_t &info)
 {
   return is_one_of (info, CONSONANT_FLAGS);
 }
-
-static inline bool
-is_halant (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, FLAG (OT_H));
-}
-
 
 #endif /* HB_OT_SHAPER_INDIC_HH */
