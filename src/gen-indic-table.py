@@ -218,9 +218,6 @@ category_overrides = {
   0x0C80: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/pull/623
   0x0D04: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/pull/3511
 
-  0x2010: 'PLACEHOLDER',
-  0x2011: 'PLACEHOLDER',
-
   0x25CC: 'DOTTEDCIRCLE',
 
 
