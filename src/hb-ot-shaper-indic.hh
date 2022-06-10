@@ -76,7 +76,7 @@ enum ot_category_t {
   OT_VPst    = 23,
 
   /* Khmer. */
-  OT_Coeng   = 24,
+  OT_Coeng   = OT_H,
   OT_Robatic = 25,
   OT_Xgroup  = 26,
   OT_Ygroup  = 27,

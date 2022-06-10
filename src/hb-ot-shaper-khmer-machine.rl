@@ -70,7 +70,7 @@ export VBlw = 21;
 export VPre = 22;
 export VPst = 23;
 
-export Coeng   = 24;
+export Coeng   = 4;
 export Robatic = 25;
 export Xgroup  = 26;
 export Ygroup  = 27;
