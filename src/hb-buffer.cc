@@ -552,8 +552,6 @@ hb_buffer_t::delete_glyph ()
     goto done;
   }
 
-  /* TODO We need to just merge one direction, with whichever is smaller but larger than our cluster. */
-
   if (out_len)
   {
     /* Merge cluster backward. */
