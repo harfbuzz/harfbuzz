@@ -29,7 +29,6 @@
 #define _OT_CM   OT_CM           /*   1 chars; CM */
 #define _OT_CS   OT_CS           /*   2 chars; CS */
 #define _OT_Co   OT_Coeng        /*   2 chars; Coeng */
-#define _OT_D    OT_D            /*  20 chars; D */
 #define _OT_DC   OT_DOTTEDCIRCLE /*   1 chars; DOTTEDCIRCLE */
 #define _OT_H    OT_H            /*  10 chars; H */
 #define _OT_M    OT_M            /* 160 chars; M */
@@ -40,7 +39,7 @@
 #define _OT_MY   OT_MY           /*   3 chars; MY */
 #define _OT_N    OT_N            /*  17 chars; N */
 #define _OT_P    OT_P            /*   2 chars; P */
-#define _OT_GB   OT_PLACEHOLDER  /* 152 chars; PLACEHOLDER */
+#define _OT_GB   OT_PLACEHOLDER  /* 172 chars; PLACEHOLDER */
 #define _OT_PT   OT_PT           /*   8 chars; PT */
 #define _OT_R    OT_Ra           /*  15 chars; Ra */
 #define _OT_Rf   OT_Repha        /*   1 chars; Repha */
@@ -63,10 +62,10 @@
 #define _POS_A   POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
 #define _POS_AP  POS_AFTER_POST  /*  50 chars; AFTER_POST */
 #define _POS_AS  POS_AFTER_SUB   /*  60 chars; AFTER_SUB */
-#define _POS_C   POS_BASE_C      /* 879 chars; BASE_C */
+#define _POS_C   POS_BASE_C      /* 899 chars; BASE_C */
 #define _POS_BS  POS_BEFORE_SUB  /*  31 chars; BEFORE_SUB */
 #define _POS_B   POS_BELOW_C     /*  13 chars; BELOW_C */
-#define _POS_X   POS_END         /*  93 chars; END */
+#define _POS_X   POS_END         /*  73 chars; END */
 #define _POS_R   POS_POST_C      /*  13 chars; POST_C */
 #define _POS_L   POS_PRE_C       /*   5 chars; PRE_C */
 #define _POS_LM  POS_PRE_M       /*  16 chars; PRE_M */
@@ -307,8 +306,8 @@ static const uint16_t indic_table[] = {
   /* 1028 */  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R), _(VA,T), _(VA,T), _(VB,B),
   /* 1030 */ _(VB,B), _(VL,L), _(A,SM), _(VA,T), _(VA,T), _(VA,T), _(A,SM),  _(N,X),
   /* 1038 */_(SM,SM), _(Co,X), _(As,X), _(MY,X), _(MR,X), _(MW,X), _(MH,X),  _(C,C),
-  /* 1040 */  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),
-  /* 1048 */  _(D,X),  _(D,X),  _(P,X),  _(P,X),  _(X,X),  _(X,X),  _(C,C),  _(X,X),
+  /* 1040 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 1048 */ _(GB,C), _(GB,C),  _(P,X),  _(P,X),  _(X,X),  _(X,X),  _(C,C),  _(X,X),
   /* 1050 */  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R),
   /* 1058 */ _(VB,B), _(VB,B),  _(R,C),  _(C,C),  _(C,C),  _(C,C), _(MY,X), _(MY,X),
   /* 1060 */ _(ML,X),  _(C,C), _(VR,R), _(PT,X), _(PT,X),  _(C,C),  _(C,C), _(VR,R),
@@ -317,8 +316,8 @@ static const uint16_t indic_table[] = {
   /* 1078 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 1080 */  _(C,C),  _(C,C), _(MW,X), _(VR,R), _(VL,L), _(VA,T), _(VA,T),_(SM,SM),
   /* 1088 */_(SM,SM),_(SM,SM),_(SM,SM),_(SM,SM),_(SM,SM),_(SM,SM),  _(C,C),_(SM,SM),
-  /* 1090 */  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),
-  /* 1098 */  _(D,X),  _(D,X),_(SM,SM),_(SM,SM),_(SM,SM), _(VA,T),  _(X,X),  _(X,X),
+  /* 1090 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
+  /* 1098 */ _(GB,C), _(GB,C),_(SM,SM),_(SM,SM),_(SM,SM), _(VA,T),  _(X,X),  _(X,X),
 
 #define indic_offset_0x1780u 1496
 
@@ -492,7 +491,6 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef _OT_CM
 #undef _OT_CS
 #undef _OT_Co
-#undef _OT_D
 #undef _OT_DC
 #undef _OT_H
 #undef _OT_M
