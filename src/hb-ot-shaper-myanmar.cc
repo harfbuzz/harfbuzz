@@ -108,6 +108,31 @@ set_myanmar_properties (hb_glyph_info_t &info)
   info.myanmar_category() = (myanmar_category_t) (type & 0xFFu);
 }
 
+
+static inline bool
+is_one_of_myanmar (const hb_glyph_info_t &info, unsigned int flags)
+{
+  /* If it ligated, all bets are off. */
+  if (_hb_glyph_info_ligated (&info)) return false;
+  return !!(FLAG_UNSAFE (info.indic_category()) & flags);
+}
+
+/* Note:
+ *
+ * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
+ * cannot happen in a consonant syllable.  The plus side however is, we can call the
+ * consonant syllable logic from the vowel syllable function and get it all right!
+ *
+ * Keep in sync with consonant_categories in the generator. */
+#define CONSONANT_FLAGS_MYANMAR (FLAG (M_Cat(C)) | FLAG (M_Cat(CS)) | FLAG (M_Cat(Ra)) | /* FLAG (M_Cat(CM)) | */ FLAG (M_Cat(IV)) | FLAG (M_Cat(GB)) | FLAG (M_Cat(DOTTEDCIRCLE)))
+
+static inline bool
+is_consonant_myanmar (const hb_glyph_info_t &info)
+{
+  return is_one_of_myanmar (info, CONSONANT_FLAGS_MYANMAR);
+}
+
+
 static void
 setup_syllables_myanmar (const hb_ot_shape_plan_t *plan,
 			 hb_font_t *font,
@@ -210,7 +235,7 @@ initial_reordering_consonant_syllable (hb_buffer_t *buffer,
 	base = limit;
 
       for (unsigned int i = limit; i < end; i++)
-	if (is_consonant (info[i]))
+	if (is_consonant_myanmar (info[i]))
 	{
 	  base = i;
 	  break;

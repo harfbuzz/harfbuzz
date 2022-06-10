@@ -92,16 +92,6 @@ enum ot_category_t {
   OT_ML      = 42,	// Consonant medials
 };
 
-/* Note:
- *
- * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
- * cannot happen in a consonant syllable.  The plus side however is, we can call the
- * consonant syllable logic from the vowel syllable function and get it all right!
- *
- * Keep in sync with consonant_categories in the generator. */
-#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CS) | FLAG (OT_Ra) | FLAG (OT_CM) | FLAG (OT_V) | FLAG (OT_PLACEHOLDER) | FLAG (OT_DOTTEDCIRCLE))
-
-
 /* Visual positions in a syllable from left to right. */
 enum ot_position_t {
   POS_START = 0,
@@ -133,19 +123,5 @@ enum ot_position_t {
 HB_INTERNAL uint16_t
 hb_indic_get_categories (hb_codepoint_t u);
 
-
-static inline bool
-is_one_of (const hb_glyph_info_t &info, unsigned int flags)
-{
-  /* If it ligated, all bets are off. */
-  if (_hb_glyph_info_ligated (&info)) return false;
-  return !!(FLAG_UNSAFE (info.indic_category()) & flags);
-}
-
-static inline bool
-is_consonant (const hb_glyph_info_t &info)
-{
-  return is_one_of (info, CONSONANT_FLAGS);
-}
 
 #endif /* HB_OT_SHAPER_INDIC_HH */

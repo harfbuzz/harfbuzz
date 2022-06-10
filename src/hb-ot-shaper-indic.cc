@@ -72,6 +72,30 @@ set_indic_properties (hb_glyph_info_t &info)
   info.indic_position() = (indic_position_t) (type >> 8);
 }
 
+
+static inline bool
+is_one_of (const hb_glyph_info_t &info, unsigned int flags)
+{
+  /* If it ligated, all bets are off. */
+  if (_hb_glyph_info_ligated (&info)) return false;
+  return !!(FLAG_UNSAFE (info.indic_category()) & flags);
+}
+
+/* Note:
+ *
+ * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
+ * cannot happen in a consonant syllable.  The plus side however is, we can call the
+ * consonant syllable logic from the vowel syllable function and get it all right!
+ *
+ * Keep in sync with consonant_categories in the generator. */
+#define CONSONANT_FLAGS_INDIC (FLAG (I_Cat(C)) | FLAG (I_Cat(CS)) | FLAG (I_Cat(Ra)) | FLAG (I_Cat(CM)) | FLAG (I_Cat(V)) | FLAG (I_Cat(PLACEHOLDER)) | FLAG (I_Cat(DOTTEDCIRCLE)))
+
+static inline bool
+is_consonant (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, CONSONANT_FLAGS_INDIC);
+}
+
 #define JOINER_FLAGS (FLAG (I_Cat(ZWJ)) | FLAG (I_Cat(ZWNJ)))
 
 static inline bool
