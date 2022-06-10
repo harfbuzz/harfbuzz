@@ -435,7 +435,7 @@ _eof_trans:
 	break;
 	case 8:
 #line 97 "hb-ot-shaper-myanmar-machine.rl"
-	{te = p+1;{ found_syllable (myanmar_broken_cluster); }}
+	{te = p+1;{ found_syllable (myanmar_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 3:
 #line 98 "hb-ot-shaper-myanmar-machine.rl"
@@ -447,7 +447,7 @@ _eof_trans:
 	break;
 	case 7:
 #line 97 "hb-ot-shaper-myanmar-machine.rl"
-	{te = p;p--;{ found_syllable (myanmar_broken_cluster); }}
+	{te = p;p--;{ found_syllable (myanmar_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 9:
 #line 98 "hb-ot-shaper-myanmar-machine.rl"

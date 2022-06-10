@@ -78,7 +78,7 @@ other =			any;
 
 main := |*
 	consonant_syllable	=> { found_syllable (khmer_consonant_syllable); };
-	broken_cluster		=> { found_syllable (khmer_broken_cluster); };
+	broken_cluster		=> { found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
 	other			=> { found_syllable (khmer_non_khmer_cluster); };
 *|;
 

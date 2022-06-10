@@ -95,7 +95,7 @@ main := |*
 	vowel_syllable		=> { found_syllable (indic_vowel_syllable); };
 	standalone_cluster	=> { found_syllable (indic_standalone_cluster); };
 	symbol_cluster		=> { found_syllable (indic_symbol_cluster); };
-	broken_cluster		=> { found_syllable (indic_broken_cluster); };
+	broken_cluster		=> { found_syllable (indic_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
 	other			=> { found_syllable (indic_non_indic_cluster); };
 *|;
 

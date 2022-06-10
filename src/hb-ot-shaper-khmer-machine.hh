@@ -324,7 +324,7 @@ _eof_trans:
 	break;
 	case 12:
 #line 81 "hb-ot-shaper-khmer-machine.rl"
-	{te = p;p--;{ found_syllable (khmer_broken_cluster); }}
+	{te = p;p--;{ found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 11:
 #line 82 "hb-ot-shaper-khmer-machine.rl"
@@ -336,13 +336,13 @@ _eof_trans:
 	break;
 	case 5:
 #line 81 "hb-ot-shaper-khmer-machine.rl"
-	{{p = ((te))-1;}{ found_syllable (khmer_broken_cluster); }}
+	{{p = ((te))-1;}{ found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 3:
 #line 1 "NONE"
 	{	switch( act ) {
 	case 2:
-	{{p = ((te))-1;} found_syllable (khmer_broken_cluster); }
+	{{p = ((te))-1;} found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }
 	break;
 	case 3:
 	{{p = ((te))-1;} found_syllable (khmer_non_khmer_cluster); }

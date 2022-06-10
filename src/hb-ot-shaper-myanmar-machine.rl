@@ -94,7 +94,7 @@ main := |*
 	consonant_syllable	=> { found_syllable (myanmar_consonant_syllable); };
 	j			=> { found_syllable (myanmar_non_myanmar_cluster); };
 	punctuation_cluster	=> { found_syllable (myanmar_punctuation_cluster); };
-	broken_cluster		=> { found_syllable (myanmar_broken_cluster); };
+	broken_cluster		=> { found_syllable (myanmar_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
 	other			=> { found_syllable (myanmar_non_myanmar_cluster); };
 *|;
 
