@@ -284,8 +284,6 @@ category_overrides = {
   0x1032: 'A',
   0x1036: 'A',
 
-  0x1039: 'H',
-
   0x103A: 'As',
 
   0x1040: 'D', # XXX The spec says D0, but Uniscribe doesn't seem to do.

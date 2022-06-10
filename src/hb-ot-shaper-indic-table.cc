@@ -28,10 +28,10 @@
 #define _OT_C    OT_C            /* 518 chars; C */
 #define _OT_CM   OT_CM           /*   1 chars; CM */
 #define _OT_CS   OT_CS           /*   2 chars; CS */
-#define _OT_Co   OT_Coeng        /*   1 chars; Coeng */
+#define _OT_Co   OT_Coeng        /*   2 chars; Coeng */
 #define _OT_D    OT_D            /*  20 chars; D */
 #define _OT_DC   OT_DOTTEDCIRCLE /*   1 chars; DOTTEDCIRCLE */
-#define _OT_H    OT_H            /*  11 chars; H */
+#define _OT_H    OT_H            /*  10 chars; H */
 #define _OT_M    OT_M            /* 160 chars; M */
 #define _OT_MH   OT_MH           /*   1 chars; MH */
 #define _OT_ML   OT_ML           /*   1 chars; ML */
@@ -306,7 +306,7 @@ static const uint16_t indic_table[] = {
   /* 1020 */  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
   /* 1028 */  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R), _(VA,T), _(VA,T), _(VB,B),
   /* 1030 */ _(VB,B), _(VL,L), _(A,SM), _(VA,T), _(VA,T), _(VA,T), _(A,SM),  _(N,X),
-  /* 1038 */_(SM,SM),  _(H,X), _(As,X), _(MY,X), _(MR,X), _(MW,X), _(MH,X),  _(C,C),
+  /* 1038 */_(SM,SM), _(Co,X), _(As,X), _(MY,X), _(MR,X), _(MW,X), _(MH,X),  _(C,C),
   /* 1040 */  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),  _(D,X),
   /* 1048 */  _(D,X),  _(D,X),  _(P,X),  _(P,X),  _(X,X),  _(X,X),  _(C,C),  _(X,X),
   /* 1050 */  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R),
