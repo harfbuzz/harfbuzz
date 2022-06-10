@@ -173,7 +173,7 @@ main := |*
 	numeral_cluster				=> { found_syllable (use_numeral_cluster); };
 	symbol_cluster				=> { found_syllable (use_symbol_cluster); };
 	hieroglyph_cluster			=> { found_syllable (use_hieroglyph_cluster); };
-	broken_cluster				=> { found_syllable (use_broken_cluster); };
+	broken_cluster				=> { found_syllable (use_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
 	other					=> { found_syllable (use_non_cluster); };
 *|;
 

@@ -446,7 +446,6 @@ struct hb_font_t
   {
     *x = get_glyph_h_advance (glyph) / 2;
 
-    /* TODO cache this somehow?! */
     hb_font_extents_t extents;
     get_h_extents_with_fallback (&extents);
     *y = extents.ascender;

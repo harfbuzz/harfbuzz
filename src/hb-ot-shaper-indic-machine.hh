@@ -506,7 +506,7 @@ _eof_trans:
 	break;
 	case 15:
 #line 110 "hb-ot-shaper-indic-machine.rl"
-	{te = p;p--;{ found_syllable (indic_broken_cluster); }}
+	{te = p;p--;{ found_syllable (indic_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 16:
 #line 111 "hb-ot-shaper-indic-machine.rl"
@@ -530,7 +530,7 @@ _eof_trans:
 	break;
 	case 4:
 #line 110 "hb-ot-shaper-indic-machine.rl"
-	{{p = ((te))-1;}{ found_syllable (indic_broken_cluster); }}
+	{{p = ((te))-1;}{ found_syllable (indic_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 6:
 #line 1 "NONE"
@@ -539,7 +539,7 @@ _eof_trans:
 	{{p = ((te))-1;} found_syllable (indic_consonant_syllable); }
 	break;
 	case 5:
-	{{p = ((te))-1;} found_syllable (indic_broken_cluster); }
+	{{p = ((te))-1;} found_syllable (indic_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }
 	break;
 	case 6:
 	{{p = ((te))-1;} found_syllable (indic_non_indic_cluster); }

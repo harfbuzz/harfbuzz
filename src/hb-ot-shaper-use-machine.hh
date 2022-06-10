@@ -753,7 +753,7 @@ _eof_trans:
 	break;
 	case 4:
 #line 176 "hb-ot-shaper-use-machine.rl"
-	{te = p+1;{ found_syllable (use_broken_cluster); }}
+	{te = p+1;{ found_syllable (use_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 3:
 #line 177 "hb-ot-shaper-use-machine.rl"
@@ -785,7 +785,7 @@ _eof_trans:
 	break;
 	case 15:
 #line 176 "hb-ot-shaper-use-machine.rl"
-	{te = p;p--;{ found_syllable (use_broken_cluster); }}
+	{te = p;p--;{ found_syllable (use_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 16:
 #line 177 "hb-ot-shaper-use-machine.rl"
