@@ -92,8 +92,6 @@ enum ot_category_t {
   OT_ML      = 42,	// Consonant medials
 };
 
-#define MEDIAL_FLAGS (FLAG (OT_CM))
-
 /* Note:
  *
  * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
@@ -101,7 +99,7 @@ enum ot_category_t {
  * consonant syllable logic from the vowel syllable function and get it all right!
  *
  * Keep in sync with consonant_categories in the generator. */
-#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CS) | FLAG (OT_Ra) | MEDIAL_FLAGS | FLAG (OT_V) | FLAG (OT_PLACEHOLDER) | FLAG (OT_DOTTEDCIRCLE))
+#define CONSONANT_FLAGS (FLAG (OT_C) | FLAG (OT_CS) | FLAG (OT_Ra) | FLAG (OT_CM) | FLAG (OT_V) | FLAG (OT_PLACEHOLDER) | FLAG (OT_DOTTEDCIRCLE))
 
 
 /* Visual positions in a syllable from left to right. */
