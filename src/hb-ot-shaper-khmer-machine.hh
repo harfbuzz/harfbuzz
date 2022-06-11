@@ -50,8 +50,8 @@ enum khmer_syllable_type_t {
 
 #line 52 "hb-ot-shaper-khmer-machine.hh"
 #define khmer_syllable_machine_ex_C 1u
-#define khmer_syllable_machine_ex_Coeng 4u
 #define khmer_syllable_machine_ex_DOTTEDCIRCLE 11u
+#define khmer_syllable_machine_ex_H 4u
 #define khmer_syllable_machine_ex_PLACEHOLDER 10u
 #define khmer_syllable_machine_ex_Ra 15u
 #define khmer_syllable_machine_ex_Robatic 25u

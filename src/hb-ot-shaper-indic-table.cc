@@ -52,7 +52,6 @@
 #define OT_VBlw K_Cat(VBlw)
 #define OT_VPre K_Cat(VPre)
 #define OT_VPst K_Cat(VPst)
-#define OT_Coeng K_Cat(Coeng)
 #define OT_Robatic K_Cat(Robatic)
 #define OT_Xgroup K_Cat(Xgroup)
 #define OT_Ygroup K_Cat(Ygroup)
@@ -82,9 +81,8 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _OT_C    OT_C            /* 518 chars; C */
 #define _OT_CM   OT_CM           /*   1 chars; CM */
 #define _OT_CS   OT_CS           /*   2 chars; CS */
-#define _OT_Co   OT_Coeng        /*   2 chars; Coeng */
 #define _OT_DC   OT_DOTTEDCIRCLE /*   1 chars; DOTTEDCIRCLE */
-#define _OT_H    OT_H            /*  10 chars; H */
+#define _OT_H    OT_H            /*  12 chars; H */
 #define _OT_M    OT_M            /* 160 chars; M */
 #define _OT_MH   OT_MH           /*   1 chars; MH */
 #define _OT_ML   OT_ML           /*   1 chars; ML */
@@ -359,7 +357,7 @@ static const uint16_t indic_table[] = {
   /* 1020 */  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
   /* 1028 */  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R), _(VA,T), _(VA,T), _(VB,B),
   /* 1030 */ _(VB,B), _(VL,L), _(A,SM), _(VA,T), _(VA,T), _(VA,T), _(A,SM),  _(N,X),
-  /* 1038 */_(SM,SM), _(Co,X), _(As,X), _(MY,X), _(MR,X), _(MW,X), _(MH,X),  _(C,C),
+  /* 1038 */_(SM,SM),  _(H,X), _(As,X), _(MY,X), _(MR,X), _(MW,X), _(MH,X),  _(C,C),
   /* 1040 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 1048 */ _(GB,C), _(GB,C),  _(P,X),  _(P,X),  _(X,X),  _(X,X),  _(C,C),  _(X,X),
   /* 1050 */  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R),
@@ -388,7 +386,7 @@ static const uint16_t indic_table[] = {
   /* 17B8 */ _(VA,T), _(VA,T), _(VA,T), _(VB,B), _(VB,B), _(VB,B), _(VA,T), _(VR,R),
   /* 17C0 */ _(VR,R), _(VL,L), _(VL,L), _(VL,L), _(VR,R), _(VR,R), _(Xg,X), _(Yg,X),
   /* 17C8 */ _(Yg,X), _(Rt,X), _(Rt,X), _(Xg,X), _(Rt,X), _(Xg,X), _(Xg,X), _(Xg,X),
-  /* 17D0 */ _(Xg,X), _(Xg,X), _(Co,X), _(Yg,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+  /* 17D0 */ _(Xg,X), _(Xg,X),  _(H,X), _(Yg,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 17D8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(S,SM), _(Yg,X),  _(X,X),  _(X,X),
   /* 17E0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 17E8 */ _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
@@ -544,7 +542,6 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef _OT_C
 #undef _OT_CM
 #undef _OT_CS
-#undef _OT_Co
 #undef _OT_DC
 #undef _OT_H
 #undef _OT_M

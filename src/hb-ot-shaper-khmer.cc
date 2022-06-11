@@ -241,7 +241,7 @@ reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
      * the 'pref' OpenType feature applied to them.
      * """
      */
-    if (info[i].khmer_category() == K_Cat(Coeng) && num_coengs <= 2 && i + 1 < end)
+    if (info[i].khmer_category() == K_Cat(H) && num_coengs <= 2 && i + 1 < end)
     {
       num_coengs++;
 
