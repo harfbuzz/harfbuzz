@@ -447,7 +447,7 @@ static const int myanmar_syllable_machine_en_main = 0;
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
 
-static void
+inline void
 find_syllables_myanmar (hb_buffer_t *buffer)
 {
   unsigned int p, pe, eof, ts, te, act HB_UNUSED;

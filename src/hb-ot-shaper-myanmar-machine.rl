@@ -58,8 +58,6 @@ enum myanmar_syllable_type_t {
 %%{
 
 
-# These values are replicated from indic.hh, and relisted in myanmar.cc; keep in sync.
-
 export C    = 1;
 export IV   = 2;
 export DB   = 3;	# Dot below	     = OT_N
@@ -78,6 +76,7 @@ export VBlw = 21;
 export VPre = 22;
 export VPst = 23;
 
+# 32+ are for Myanmar-specific values
 export As   = 32;	# Asat
 export D    = 33;	# Digits except zero
 export D0   = 34;	# Digit zero
@@ -129,7 +128,7 @@ main := |*
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
 
-static void
+inline void
 find_syllables_myanmar (hb_buffer_t *buffer)
 {
   unsigned int p, pe, eof, ts, te, act HB_UNUSED;

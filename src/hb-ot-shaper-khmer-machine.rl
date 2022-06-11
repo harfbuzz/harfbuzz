@@ -55,8 +55,6 @@ enum khmer_syllable_type_t {
 %%{
 
 
-# These values are replicated from indic.hh, and relisted in khmer.cc; keep in sync.
-
 export C    = 1;
 export V    = 2;
 export ZWNJ = 5;
@@ -110,7 +108,7 @@ main := |*
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
 
-static void
+inline void
 find_syllables_khmer (hb_buffer_t *buffer)
 {
   unsigned int p, pe, eof, ts, te, act HB_UNUSED;

@@ -39,29 +39,6 @@
  */
 
 
-#define I_Check(C) static_assert (OT_##C == I_Cat(C), "")
-
-I_Check (C);
-I_Check (V);
-I_Check (N);
-I_Check (H);
-I_Check (ZWNJ);
-I_Check (ZWJ);
-I_Check (M);
-I_Check (SM);
-I_Check (A);
-I_Check (VD);
-I_Check (PLACEHOLDER);
-I_Check (DOTTEDCIRCLE);
-I_Check (RS);
-I_Check (Repha);
-I_Check (Ra);
-I_Check (CM);
-I_Check (Symbol);
-I_Check (CS);
-
-#undef I_Check
-
 static inline void
 set_indic_properties (hb_glyph_info_t &info)
 {

@@ -70,11 +70,12 @@ enum indic_syllable_type_t {
 #define indic_syllable_machine_ex_Symbol 17u
 #define indic_syllable_machine_ex_V 2u
 #define indic_syllable_machine_ex_VD 9u
+#define indic_syllable_machine_ex_X 0u
 #define indic_syllable_machine_ex_ZWJ 6u
 #define indic_syllable_machine_ex_ZWNJ 5u
 
 
-#line 78 "hb-ot-shaper-indic-machine.hh"
+#line 79 "hb-ot-shaper-indic-machine.hh"
 static const unsigned char _indic_syllable_machine_trans_keys[] = {
 	8u, 8u, 4u, 8u, 5u, 7u, 5u, 8u, 4u, 8u, 6u, 6u, 15u, 15u, 4u, 8u, 
 	4u, 12u, 4u, 8u, 8u, 8u, 5u, 7u, 5u, 8u, 4u, 8u, 6u, 6u, 15u, 15u, 
@@ -417,7 +418,7 @@ static const int indic_syllable_machine_en_main = 39;
 
 
 
-#line 119 "hb-ot-shaper-indic-machine.rl"
+#line 120 "hb-ot-shaper-indic-machine.rl"
 
 
 #define found_syllable(syllable_type) \
@@ -429,14 +430,14 @@ static const int indic_syllable_machine_en_main = 39;
     if (unlikely (syllable_serial == 16)) syllable_serial = 1; \
   } HB_STMT_END
 
-static void
+inline void
 find_syllables_indic (hb_buffer_t *buffer)
 {
   unsigned int p, pe, eof, ts, te, act;
   int cs;
   hb_glyph_info_t *info = buffer->info;
   
-#line 440 "hb-ot-shaper-indic-machine.hh"
+#line 441 "hb-ot-shaper-indic-machine.hh"
 	{
 	cs = indic_syllable_machine_start;
 	ts = 0;
@@ -444,7 +445,7 @@ find_syllables_indic (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 139 "hb-ot-shaper-indic-machine.rl"
+#line 140 "hb-ot-shaper-indic-machine.rl"
 
 
   p = 0;
@@ -452,7 +453,7 @@ find_syllables_indic (hb_buffer_t *buffer)
 
   unsigned int syllable_serial = 1;
   
-#line 456 "hb-ot-shaper-indic-machine.hh"
+#line 457 "hb-ot-shaper-indic-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -466,7 +467,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 470 "hb-ot-shaper-indic-machine.hh"
+#line 471 "hb-ot-shaper-indic-machine.hh"
 	}
 
 	_keys = _indic_syllable_machine_trans_keys + (cs<<1);
@@ -489,51 +490,51 @@ _eof_trans:
 	{te = p+1;}
 	break;
 	case 11:
-#line 115 "hb-ot-shaper-indic-machine.rl"
+#line 116 "hb-ot-shaper-indic-machine.rl"
 	{te = p+1;{ found_syllable (indic_non_indic_cluster); }}
 	break;
 	case 13:
-#line 110 "hb-ot-shaper-indic-machine.rl"
+#line 111 "hb-ot-shaper-indic-machine.rl"
 	{te = p;p--;{ found_syllable (indic_consonant_syllable); }}
 	break;
 	case 14:
-#line 111 "hb-ot-shaper-indic-machine.rl"
+#line 112 "hb-ot-shaper-indic-machine.rl"
 	{te = p;p--;{ found_syllable (indic_vowel_syllable); }}
 	break;
 	case 17:
-#line 112 "hb-ot-shaper-indic-machine.rl"
+#line 113 "hb-ot-shaper-indic-machine.rl"
 	{te = p;p--;{ found_syllable (indic_standalone_cluster); }}
 	break;
 	case 19:
-#line 113 "hb-ot-shaper-indic-machine.rl"
+#line 114 "hb-ot-shaper-indic-machine.rl"
 	{te = p;p--;{ found_syllable (indic_symbol_cluster); }}
 	break;
 	case 15:
-#line 114 "hb-ot-shaper-indic-machine.rl"
+#line 115 "hb-ot-shaper-indic-machine.rl"
 	{te = p;p--;{ found_syllable (indic_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 16:
-#line 115 "hb-ot-shaper-indic-machine.rl"
+#line 116 "hb-ot-shaper-indic-machine.rl"
 	{te = p;p--;{ found_syllable (indic_non_indic_cluster); }}
 	break;
 	case 1:
-#line 110 "hb-ot-shaper-indic-machine.rl"
+#line 111 "hb-ot-shaper-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (indic_consonant_syllable); }}
 	break;
 	case 3:
-#line 111 "hb-ot-shaper-indic-machine.rl"
+#line 112 "hb-ot-shaper-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (indic_vowel_syllable); }}
 	break;
 	case 7:
-#line 112 "hb-ot-shaper-indic-machine.rl"
+#line 113 "hb-ot-shaper-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (indic_standalone_cluster); }}
 	break;
 	case 8:
-#line 113 "hb-ot-shaper-indic-machine.rl"
+#line 114 "hb-ot-shaper-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (indic_symbol_cluster); }}
 	break;
 	case 4:
-#line 114 "hb-ot-shaper-indic-machine.rl"
+#line 115 "hb-ot-shaper-indic-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (indic_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 6:
@@ -554,22 +555,22 @@ _eof_trans:
 	case 18:
 #line 1 "NONE"
 	{te = p+1;}
-#line 110 "hb-ot-shaper-indic-machine.rl"
+#line 111 "hb-ot-shaper-indic-machine.rl"
 	{act = 1;}
 	break;
 	case 5:
 #line 1 "NONE"
 	{te = p+1;}
-#line 114 "hb-ot-shaper-indic-machine.rl"
+#line 115 "hb-ot-shaper-indic-machine.rl"
 	{act = 5;}
 	break;
 	case 12:
 #line 1 "NONE"
 	{te = p+1;}
-#line 115 "hb-ot-shaper-indic-machine.rl"
+#line 116 "hb-ot-shaper-indic-machine.rl"
 	{act = 6;}
 	break;
-#line 573 "hb-ot-shaper-indic-machine.hh"
+#line 574 "hb-ot-shaper-indic-machine.hh"
 	}
 
 _again:
@@ -578,7 +579,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 582 "hb-ot-shaper-indic-machine.hh"
+#line 583 "hb-ot-shaper-indic-machine.hh"
 	}
 
 	if ( ++p != pe )
@@ -594,7 +595,7 @@ _again:
 
 	}
 
-#line 147 "hb-ot-shaper-indic-machine.rl"
+#line 148 "hb-ot-shaper-indic-machine.rl"
 
 }
 
