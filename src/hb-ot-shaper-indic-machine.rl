@@ -32,6 +32,10 @@
 #include "hb-ot-layout.hh"
 #include "hb-ot-shaper-indic.hh"
 
+/* buffer var allocations */
+#define indic_category() ot_shaper_var_u8_category() /* indic_category_t */
+#define indic_position() ot_shaper_var_u8_auxiliary() /* indic_position_t */
+
 using indic_category_t = ot_category_t;
 using indic_position_t = ot_position_t;
 

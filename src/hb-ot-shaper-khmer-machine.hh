@@ -35,7 +35,7 @@
 #include "hb-ot-shaper-indic.hh"
 
 /* buffer var allocations */
-#define khmer_category() indic_category() /* khmer_category_t */
+#define khmer_category() ot_shaper_var_u8_category() /* khmer_category_t */
 
 using khmer_category_t = ot_category_t;
 

@@ -32,11 +32,6 @@
 #include "hb-ot-shaper-syllabic.hh"
 
 
-/* buffer var allocations */
-#define indic_category() ot_shaper_var_u8_category() /* indic_category_t */
-#define indic_position() ot_shaper_var_u8_auxiliary() /* indic_position_t */
-
-
 /* Cateories used in the OpenType spec:
  * https://docs.microsoft.com/en-us/typography/script-development/devanagari
  */
