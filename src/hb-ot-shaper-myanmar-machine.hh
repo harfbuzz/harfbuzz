@@ -435,7 +435,7 @@ static const int myanmar_syllable_machine_en_main = 0;
 
 
 
-#line 121 "hb-ot-shaper-myanmar-machine.rl"
+#line 120 "hb-ot-shaper-myanmar-machine.rl"
 
 
 #define found_syllable(syllable_type) \
@@ -462,7 +462,7 @@ find_syllables_myanmar (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 141 "hb-ot-shaper-myanmar-machine.rl"
+#line 140 "hb-ot-shaper-myanmar-machine.rl"
 
 
   p = 0;
@@ -503,35 +503,35 @@ _eof_trans:
 
 	switch ( _myanmar_syllable_machine_trans_actions[_trans] ) {
 	case 6:
-#line 113 "hb-ot-shaper-myanmar-machine.rl"
+#line 112 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_consonant_syllable); }}
 	break;
 	case 4:
-#line 114 "hb-ot-shaper-myanmar-machine.rl"
+#line 113 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_non_myanmar_cluster); }}
 	break;
 	case 10:
-#line 115 "hb-ot-shaper-myanmar-machine.rl"
+#line 114 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_punctuation_cluster); }}
 	break;
 	case 8:
-#line 116 "hb-ot-shaper-myanmar-machine.rl"
+#line 115 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 3:
-#line 117 "hb-ot-shaper-myanmar-machine.rl"
+#line 116 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p+1;{ found_syllable (myanmar_non_myanmar_cluster); }}
 	break;
 	case 5:
-#line 113 "hb-ot-shaper-myanmar-machine.rl"
+#line 112 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p;p--;{ found_syllable (myanmar_consonant_syllable); }}
 	break;
 	case 7:
-#line 116 "hb-ot-shaper-myanmar-machine.rl"
+#line 115 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p;p--;{ found_syllable (myanmar_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
 	case 9:
-#line 117 "hb-ot-shaper-myanmar-machine.rl"
+#line 116 "hb-ot-shaper-myanmar-machine.rl"
 	{te = p;p--;{ found_syllable (myanmar_non_myanmar_cluster); }}
 	break;
 #line 538 "hb-ot-shaper-myanmar-machine.hh"
@@ -559,7 +559,7 @@ _again:
 
 	}
 
-#line 149 "hb-ot-shaper-myanmar-machine.rl"
+#line 148 "hb-ot-shaper-myanmar-machine.rl"
 
 }
 
