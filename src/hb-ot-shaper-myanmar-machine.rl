@@ -58,6 +58,8 @@ enum myanmar_syllable_type_t {
 %%{
 
 
+# Spec category D is folded into GB; D0 is not implemented by Uniscribe and as such folded into D
+
 export C    = 1;
 export IV   = 2;
 export DB   = 3;	# Dot below	     = OT_N
@@ -78,8 +80,6 @@ export VPst = 23;
 
 # 32+ are for Myanmar-specific values
 export As   = 32;	# Asat
-export D    = 33;	# Digits except zero
-export D0   = 34;	# Digit zero
 export MH   = 35;	# Medial Ha
 export MR   = 36;	# Medial Ra
 export MW   = 37;	# Medial Wa, Shan Wa
@@ -103,7 +103,7 @@ pwo_tone_group = PT A* DB? As?;
 complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_tone_group* SM* j?;
 syllable_tail = (H (c|IV).VS?)* (H | complex_syllable_tail);
 
-consonant_syllable =	(k|CS)? (c|IV|D|GB|DOTTEDCIRCLE).VS? syllable_tail;
+consonant_syllable =	(k|CS)? (c|IV|GB|DOTTEDCIRCLE).VS? syllable_tail;
 punctuation_cluster =	P SM;
 broken_cluster =	k? VS? syllable_tail;
 other =			any;

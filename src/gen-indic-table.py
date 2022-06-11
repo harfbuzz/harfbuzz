@@ -122,8 +122,6 @@ categories = {
 
     'IV',
     'As',
-    'D',
-    'D0',
     'DB',
     'GB	',
     'MH',
