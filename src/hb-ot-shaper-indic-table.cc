@@ -23,6 +23,60 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-macros"
 
+#include "hb-ot-shaper-indic-machine.hh"
+#include "hb-ot-shaper-khmer-machine.hh"
+#include "hb-ot-shaper-myanmar-machine.hh"
+
+/* indic */
+#define OT_X I_Cat(X)
+#define OT_C I_Cat(C)
+#define OT_V I_Cat(V)
+#define OT_N I_Cat(N)
+#define OT_H I_Cat(H)
+#define OT_ZWNJ I_Cat(ZWNJ)
+#define OT_ZWJ I_Cat(ZWJ)
+#define OT_M I_Cat(M)
+#define OT_SM I_Cat(SM)
+#define OT_A I_Cat(A)
+#define OT_VD I_Cat(VD)
+#define OT_PLACEHOLDER I_Cat(PLACEHOLDER)
+#define OT_DOTTEDCIRCLE I_Cat(DOTTEDCIRCLE)
+#define OT_RS I_Cat(RS)
+#define OT_Repha I_Cat(Repha)
+#define OT_Ra I_Cat(Ra)
+#define OT_CM I_Cat(CM)
+#define OT_Symbol I_Cat(Symbol)
+#define OT_CS I_Cat(CS)
+/* khmer */
+#define OT_VAbv K_Cat(VAbv)
+#define OT_VBlw K_Cat(VBlw)
+#define OT_VPre K_Cat(VPre)
+#define OT_VPst K_Cat(VPst)
+#define OT_Coeng K_Cat(Coeng)
+#define OT_Robatic K_Cat(Robatic)
+#define OT_Xgroup K_Cat(Xgroup)
+#define OT_Ygroup K_Cat(Ygroup)
+/* myanmar */
+static_assert (OT_VAbv == M_Cat(VAbv), "");
+static_assert (OT_VBlw == M_Cat(VBlw), "");
+static_assert (OT_VPre == M_Cat(VPre), "");
+static_assert (OT_VPst == M_Cat(VPst), "");
+#define OT_IV M_Cat(IV)
+#define OT_As M_Cat(As)
+#define OT_D M_Cat(D)
+#define OT_D0 M_Cat(D0)
+#define OT_DB M_Cat(DB)
+#define OT_GB	 M_Cat(GB	)
+#define OT_MH M_Cat(MH)
+#define OT_MR M_Cat(MR)
+#define OT_MW M_Cat(MW)
+#define OT_MY M_Cat(MY)
+#define OT_PT M_Cat(PT)
+#define OT_VS M_Cat(VS)
+#define OT_P M_Cat(P)
+#define OT_ML M_Cat(ML)
+
+
 #define _OT_A    OT_A            /*  53 chars; A */
 #define _OT_As   OT_As           /*   1 chars; As */
 #define _OT_C    OT_C            /* 518 chars; C */

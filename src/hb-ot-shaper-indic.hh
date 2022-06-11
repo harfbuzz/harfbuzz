@@ -32,67 +32,6 @@
 #include "hb-ot-shaper-syllabic.hh"
 
 
-/* Cateories used in the OpenType spec:
- * https://docs.microsoft.com/en-us/typography/script-development/devanagari
- */
-/* Note: This enum is duplicated the machine machine.rl files.
- * We can avoid that by defining this enum in terms of those in the
- * indic-table.cc file, but I like this enum duplicated here, because
- * this gives us a unified view of all the numbers.
- *
- * The equality of these and the duplicated numbers is checked by way
- * of static_assert's in the respective .cc shaper files. Keep those
- * in sync as well. */
-enum ot_category_t {
-  OT_X = 0,
-  OT_C = 1,
-  OT_V = 2,
-  OT_N = 3,
-  OT_H = 4,
-  OT_ZWNJ = 5,
-  OT_ZWJ = 6,
-  OT_M = 7,
-  OT_SM = 8,
-  OT_A = 9,
-  OT_VD = OT_A,
-  OT_PLACEHOLDER = 10,
-  OT_DOTTEDCIRCLE = 11,
-  OT_RS = 12, /* Register Shifter, used in Khmer OT spec. */
-  OT_Repha = 14, /* Atomically-encoded logical or visual repha. */
-  OT_Ra = 15,
-  OT_CM = 16,  /* Consonant-Medial. */
-  OT_Symbol = 17, /* Avagraha, etc that take marks (SM,A,VD). */
-  OT_CS = 18,
-
-  /* Khmer & Myanmar shapers. */
-  OT_VAbv    = 20,
-  OT_VBlw    = 21,
-  OT_VPre    = 22,
-  OT_VPst    = 23,
-
-  /* Khmer. */
-  OT_Coeng   = OT_H,
-  OT_Robatic = 25,
-  OT_Xgroup  = 26,
-  OT_Ygroup  = 27,
-
-  /* Myanmar */
-  OT_IV      = OT_V,
-  OT_As      = 32,	// Asat
-  OT_D       = 33,	// Digits except zero
-  OT_D0      = 34,	// Digit zero
-  OT_DB      = OT_N,	// Dot below
-  OT_GB	     = OT_PLACEHOLDER,
-  OT_MH      = 35,	// Medial Ha
-  OT_MR      = 36,	// Medial Ra
-  OT_MW      = 37,	// Medial Wa, Shan Wa
-  OT_MY      = 38,	// Medial Ya, Mon Na, Mon Ma
-  OT_PT      = 39,	// Pwo and other tones
-  OT_VS      = 40,	// Variation selectors
-  OT_P       = 41,	// Punctuation
-  OT_ML      = 42,	// Medial Mon La
-};
-
 /* Visual positions in a syllable from left to right. */
 enum ot_position_t {
   POS_START = 0,
