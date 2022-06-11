@@ -61,7 +61,8 @@ HB_INTERNAL bool postV2Tail::serialize (hb_serialize_context_t *c,
     HBUINT8 *o = c->allocate_size<HBUINT8> (HBUINT8::static_size * (s.length + 1));
     if (unlikely (!o)) return_trace (false);
     if (!c->check_assign (o[0], s.length, HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
-    memcpy (o+1, s.arrayZ, HBUINT8::static_size * s.length);
+    if (s.length)
+      memcpy (o+1, s.arrayZ, HBUINT8::static_size * s.length);
   }
 
   return_trace (true);
