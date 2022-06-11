@@ -62,8 +62,6 @@ static_assert (OT_VPre == M_Cat(VPre), "");
 static_assert (OT_VPst == M_Cat(VPst), "");
 #define OT_IV M_Cat(IV)
 #define OT_As M_Cat(As)
-#define OT_D M_Cat(D)
-#define OT_D0 M_Cat(D0)
 #define OT_DB M_Cat(DB)
 #define OT_GB	 M_Cat(GB	)
 #define OT_MH M_Cat(MH)
@@ -72,7 +70,6 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define OT_MY M_Cat(MY)
 #define OT_PT M_Cat(PT)
 #define OT_VS M_Cat(VS)
-#define OT_P M_Cat(P)
 #define OT_ML M_Cat(ML)
 
 
@@ -90,8 +87,7 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _OT_MW   OT_MW           /*   2 chars; MW */
 #define _OT_MY   OT_MY           /*   3 chars; MY */
 #define _OT_N    OT_N            /*  17 chars; N */
-#define _OT_P    OT_P            /*   2 chars; P */
-#define _OT_GB   OT_PLACEHOLDER  /* 172 chars; PLACEHOLDER */
+#define _OT_GB   OT_PLACEHOLDER  /* 174 chars; PLACEHOLDER */
 #define _OT_PT   OT_PT           /*   8 chars; PT */
 #define _OT_R    OT_Ra           /*  15 chars; Ra */
 #define _OT_Rf   OT_Repha        /*   1 chars; Repha */
@@ -114,10 +110,10 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _POS_A   POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
 #define _POS_AP  POS_AFTER_POST  /*  50 chars; AFTER_POST */
 #define _POS_AS  POS_AFTER_SUB   /*  60 chars; AFTER_SUB */
-#define _POS_C   POS_BASE_C      /* 899 chars; BASE_C */
+#define _POS_C   POS_BASE_C      /* 901 chars; BASE_C */
 #define _POS_BS  POS_BEFORE_SUB  /*  31 chars; BEFORE_SUB */
 #define _POS_B   POS_BELOW_C     /*  13 chars; BELOW_C */
-#define _POS_X   POS_END         /*  73 chars; END */
+#define _POS_X   POS_END         /*  71 chars; END */
 #define _POS_R   POS_POST_C      /*  13 chars; POST_C */
 #define _POS_L   POS_PRE_C       /*   5 chars; PRE_C */
 #define _POS_LM  POS_PRE_M       /*  16 chars; PRE_M */
@@ -359,7 +355,7 @@ static const uint16_t indic_table[] = {
   /* 1030 */ _(VB,B), _(VL,L), _(A,SM), _(VA,T), _(VA,T), _(VA,T), _(A,SM),  _(N,X),
   /* 1038 */_(SM,SM),  _(H,X), _(As,X), _(MY,X), _(MR,X), _(MW,X), _(MH,X),  _(C,C),
   /* 1040 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
-  /* 1048 */ _(GB,C), _(GB,C),  _(P,X),  _(P,X),  _(X,X),  _(X,X),  _(C,C),  _(X,X),
+  /* 1048 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(C,C),  _(X,X),
   /* 1050 */  _(C,C),  _(C,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C), _(VR,R), _(VR,R),
   /* 1058 */ _(VB,B), _(VB,B),  _(R,C),  _(C,C),  _(C,C),  _(C,C), _(MY,X), _(MY,X),
   /* 1060 */ _(ML,X),  _(C,C), _(VR,R), _(PT,X), _(PT,X),  _(C,C),  _(C,C), _(VR,R),
@@ -551,7 +547,6 @@ hb_indic_get_categories (hb_codepoint_t u)
 #undef _OT_MW
 #undef _OT_MY
 #undef _OT_N
-#undef _OT_P
 #undef _OT_GB
 #undef _OT_PT
 #undef _OT_R

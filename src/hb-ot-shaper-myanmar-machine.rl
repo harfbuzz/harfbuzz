@@ -43,7 +43,6 @@ using myanmar_position_t = ot_position_t;
 
 enum myanmar_syllable_type_t {
   myanmar_consonant_syllable,
-  myanmar_punctuation_cluster,
   myanmar_broken_cluster,
   myanmar_non_myanmar_cluster,
 };
@@ -59,6 +58,7 @@ enum myanmar_syllable_type_t {
 
 
 # Spec category D is folded into GB; D0 is not implemented by Uniscribe and as such folded into D
+# Spec category P is folded into GB
 
 export C    = 1;
 export IV   = 2;
@@ -86,8 +86,7 @@ export MW   = 37;	# Medial Wa, Shan Wa
 export MY   = 38;	# Medial Ya, Mon Na, Mon Ma
 export PT   = 39;	# Pwo and other tones
 export VS   = 40;	# Variation selectors
-export P    = 41;	# Punctuation
-export ML   = 42;	# Medial Mon La
+export ML   = 41;	# Medial Mon La
 
 
 j = ZWJ|ZWNJ;			# Joiners
@@ -104,14 +103,12 @@ complex_syllable_tail = As* medial_group main_vowel_group post_vowel_group* pwo_
 syllable_tail = (H (c|IV).VS?)* (H | complex_syllable_tail);
 
 consonant_syllable =	(k|CS)? (c|IV|GB|DOTTEDCIRCLE).VS? syllable_tail;
-punctuation_cluster =	P SM;
 broken_cluster =	k? VS? syllable_tail;
 other =			any;
 
 main := |*
 	consonant_syllable	=> { found_syllable (myanmar_consonant_syllable); };
 	j			=> { found_syllable (myanmar_non_myanmar_cluster); };
-	punctuation_cluster	=> { found_syllable (myanmar_punctuation_cluster); };
 	broken_cluster		=> { found_syllable (myanmar_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; };
 	other			=> { found_syllable (myanmar_non_myanmar_cluster); };
 *|;
