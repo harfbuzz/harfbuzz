@@ -35,8 +35,8 @@
 #include "hb-ot-shaper-indic.hh"
 
 /* buffer var allocations */
-#define myanmar_category() indic_category() /* myanmar_category_t */
-#define myanmar_position() indic_position() /* myanmar_position_t */
+#define myanmar_category() ot_shaper_var_u8_category() /* myanmar_category_t */
+#define myanmar_position() ot_shaper_var_u8_auxiliary() /* myanmar_position_t */
 
 using myanmar_category_t = ot_category_t;
 using myanmar_position_t = ot_position_t;
