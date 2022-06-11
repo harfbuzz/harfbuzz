@@ -400,9 +400,9 @@ _hb_buffer_serialize_unicode_text (hb_buffer_t *buffer,
  * @buf: (out) (array length=buf_size) (element-type uint8_t): output string to
  *       write serialized buffer into.
  * @buf_size: the size of @buf.
- * @buf_consumed: (out) (optional): if not %NULL, will be set to the number of byes written into @buf.
+ * @buf_consumed: (out) (optional): if not %NULL, will be set to the number of bytes written into @buf.
  * @font: (nullable): the #hb_font_t used to shape this buffer, needed to
- *        read glyph names and extents. If %NULL, and empty font will be used.
+ *        read glyph names and extents. If %NULL, an empty font will be used.
  * @format: the #hb_buffer_serialize_format_t to use for formatting the output.
  * @flags: the #hb_buffer_serialize_flags_t that control what glyph properties
  *         to serialize.
@@ -514,7 +514,7 @@ hb_buffer_serialize_glyphs (hb_buffer_t *buffer,
  * @buf: (out) (array length=buf_size) (element-type uint8_t): output string to
  *       write serialized buffer into.
  * @buf_size: the size of @buf.
- * @buf_consumed: (out) (optional): if not %NULL, will be set to the number of byes written into @buf.
+ * @buf_consumed: (out) (optional): if not %NULL, will be set to the number of bytes written into @buf.
  * @format: the #hb_buffer_serialize_format_t to use for formatting the output.
  * @flags: the #hb_buffer_serialize_flags_t that control what glyph properties
  *         to serialize.
@@ -637,9 +637,9 @@ _hb_buffer_serialize_invalid (hb_buffer_t *buffer,
  * @buf: (out) (array length=buf_size) (element-type uint8_t): output string to
  *       write serialized buffer into.
  * @buf_size: the size of @buf.
- * @buf_consumed: (out) (optional): if not %NULL, will be set to the number of byes written into @buf.
+ * @buf_consumed: (out) (optional): if not %NULL, will be set to the number of bytes written into @buf.
  * @font: (nullable): the #hb_font_t used to shape this buffer, needed to
- *        read glyph names and extents. If %NULL, and empty font will be used.
+ *        read glyph names and extents. If %NULL, an empty font will be used.
  * @format: the #hb_buffer_serialize_format_t to use for formatting the output.
  * @flags: the #hb_buffer_serialize_flags_t that control what glyph properties
  *         to serialize.
