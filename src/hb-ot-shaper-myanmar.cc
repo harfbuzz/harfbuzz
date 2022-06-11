@@ -286,7 +286,6 @@ reorder_syllable_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
       initial_reordering_consonant_syllable  (buffer, start, end);
       break;
 
-    case myanmar_punctuation_cluster:
     case myanmar_non_myanmar_cluster:
       break;
   }
