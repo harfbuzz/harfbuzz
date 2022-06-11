@@ -29,6 +29,16 @@
 
 #include "hb.hh"
 
+#include "hb-ot-layout.hh"
+#include "hb-ot-shaper-indic.hh"
+
+/* buffer var allocations */
+#define khmer_category() indic_category() /* khmer_category_t */
+
+using khmer_category_t = ot_category_t;
+
+#define K_Cat(Cat) khmer_syllable_machine_ex_##Cat
+
 enum khmer_syllable_type_t {
   khmer_consonant_syllable,
   khmer_broken_cluster,
@@ -44,21 +54,27 @@ enum khmer_syllable_type_t {
 
 %%{
 
+
+# These values are replicated from indic.hh, and relisted in khmer.cc; keep in sync.
+
 export C    = 1;
 export V    = 2;
 export ZWNJ = 5;
 export ZWJ  = 6;
 export PLACEHOLDER = 10;
 export DOTTEDCIRCLE = 11;
-export Coeng= 13;
 export Ra   = 15;
-export Robatic = 20;
-export Xgroup  = 21;
-export Ygroup  = 22;
-export VAbv = 26;
-export VBlw = 27;
-export VPre = 28;
-export VPst = 29;
+
+export VAbv = 20;
+export VBlw = 21;
+export VPre = 22;
+export VPst = 23;
+
+export Coeng   = 4;
+export Robatic = 25;
+export Xgroup  = 26;
+export Ygroup  = 27;
+
 
 c = (C | Ra | V);
 cn = c.((ZWJ|ZWNJ)?.Robatic)?;

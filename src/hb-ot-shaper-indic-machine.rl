@@ -29,6 +29,14 @@
 
 #include "hb.hh"
 
+#include "hb-ot-layout.hh"
+#include "hb-ot-shaper-indic.hh"
+
+using indic_category_t = ot_category_t;
+using indic_position_t = ot_position_t;
+
+#define I_Cat(Cat) indic_syllable_machine_ex_##Cat
+
 enum indic_syllable_type_t {
   indic_consonant_syllable,
   indic_vowel_syllable,
@@ -46,6 +54,9 @@ enum indic_syllable_type_t {
 }%%
 
 %%{
+
+
+# These values are replicated from indic.hh, and relisted in indic.cc; keep in sync.
 
 export C    = 1;
 export V    = 2;
@@ -65,6 +76,7 @@ export Ra    = 15;
 export CM    = 16;
 export Symbol= 17;
 export CS    = 18;
+
 
 c = (C | Ra);			# is_consonant
 n = ((ZWNJ?.RS)? (N.N?)?);	# is_consonant_modifier

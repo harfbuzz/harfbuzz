@@ -31,6 +31,16 @@
 
 #include "hb.hh"
 
+#include "hb-ot-layout.hh"
+#include "hb-ot-shaper-indic.hh"
+
+/* buffer var allocations */
+#define khmer_category() indic_category() /* khmer_category_t */
+
+using khmer_category_t = ot_category_t;
+
+#define K_Cat(Cat) khmer_syllable_machine_ex_##Cat
+
 enum khmer_syllable_type_t {
   khmer_consonant_syllable,
   khmer_broken_cluster,
@@ -38,174 +48,180 @@ enum khmer_syllable_type_t {
 };
 
 
-#line 42 "hb-ot-shaper-khmer-machine.hh"
+#line 52 "hb-ot-shaper-khmer-machine.hh"
 #define khmer_syllable_machine_ex_C 1u
-#define khmer_syllable_machine_ex_Coeng 13u
+#define khmer_syllable_machine_ex_Coeng 4u
 #define khmer_syllable_machine_ex_DOTTEDCIRCLE 11u
 #define khmer_syllable_machine_ex_PLACEHOLDER 10u
 #define khmer_syllable_machine_ex_Ra 15u
-#define khmer_syllable_machine_ex_Robatic 20u
+#define khmer_syllable_machine_ex_Robatic 25u
 #define khmer_syllable_machine_ex_V 2u
-#define khmer_syllable_machine_ex_VAbv 26u
-#define khmer_syllable_machine_ex_VBlw 27u
-#define khmer_syllable_machine_ex_VPre 28u
-#define khmer_syllable_machine_ex_VPst 29u
-#define khmer_syllable_machine_ex_Xgroup 21u
-#define khmer_syllable_machine_ex_Ygroup 22u
+#define khmer_syllable_machine_ex_VAbv 20u
+#define khmer_syllable_machine_ex_VBlw 21u
+#define khmer_syllable_machine_ex_VPre 22u
+#define khmer_syllable_machine_ex_VPst 23u
+#define khmer_syllable_machine_ex_Xgroup 26u
+#define khmer_syllable_machine_ex_Ygroup 27u
 #define khmer_syllable_machine_ex_ZWJ 6u
 #define khmer_syllable_machine_ex_ZWNJ 5u
 
 
-#line 60 "hb-ot-shaper-khmer-machine.hh"
+#line 70 "hb-ot-shaper-khmer-machine.hh"
 static const unsigned char _khmer_syllable_machine_trans_keys[] = {
-	5u, 26u, 5u, 21u, 5u, 26u, 5u, 21u, 1u, 15u, 5u, 21u, 5u, 26u, 5u, 21u, 
-	5u, 26u, 5u, 21u, 5u, 21u, 5u, 26u, 5u, 21u, 1u, 15u, 5u, 21u, 5u, 26u, 
-	5u, 21u, 5u, 26u, 5u, 21u, 5u, 26u, 1u, 29u, 5u, 29u, 5u, 29u, 5u, 29u, 
-	22u, 22u, 5u, 22u, 5u, 29u, 5u, 29u, 5u, 29u, 1u, 15u, 5u, 26u, 5u, 29u, 
-	5u, 29u, 22u, 22u, 5u, 22u, 5u, 29u, 5u, 29u, 1u, 15u, 5u, 29u, 5u, 29u, 
+	5u, 26u, 5u, 26u, 1u, 15u, 5u, 26u, 5u, 26u, 5u, 26u, 5u, 26u, 5u, 26u, 
+	5u, 26u, 5u, 26u, 5u, 26u, 5u, 26u, 1u, 15u, 5u, 26u, 5u, 26u, 5u, 26u, 
+	5u, 26u, 5u, 26u, 5u, 26u, 5u, 26u, 1u, 27u, 4u, 27u, 1u, 15u, 4u, 27u, 
+	27u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 1u, 15u, 4u, 27u, 
+	4u, 27u, 27u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 4u, 27u, 5u, 26u, 
 	0
 };
 
 static const char _khmer_syllable_machine_key_spans[] = {
-	22, 17, 22, 17, 15, 17, 22, 17, 
-	22, 17, 17, 22, 17, 15, 17, 22, 
-	17, 22, 17, 22, 29, 25, 25, 25, 
-	1, 18, 25, 25, 25, 15, 22, 25, 
-	25, 1, 18, 25, 25, 15, 25, 25
+	22, 22, 15, 22, 22, 22, 22, 22, 
+	22, 22, 22, 22, 15, 22, 22, 22, 
+	22, 22, 22, 22, 27, 24, 15, 24, 
+	1, 24, 24, 24, 24, 24, 15, 24, 
+	24, 1, 24, 24, 24, 24, 24, 22
 };
 
 static const short _khmer_syllable_machine_index_offsets[] = {
-	0, 23, 41, 64, 82, 98, 116, 139, 
-	157, 180, 198, 216, 239, 257, 273, 291, 
-	314, 332, 355, 373, 396, 426, 452, 478, 
-	504, 506, 525, 551, 577, 603, 619, 642, 
-	668, 694, 696, 715, 741, 767, 783, 809
+	0, 23, 46, 62, 85, 108, 131, 154, 
+	177, 200, 223, 246, 269, 285, 308, 331, 
+	354, 377, 400, 423, 446, 474, 499, 515, 
+	540, 542, 567, 592, 617, 642, 667, 683, 
+	708, 733, 735, 760, 785, 810, 835, 860
 };
 
 static const char _khmer_syllable_machine_indicies[] = {
 	1, 1, 0, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 2, 
-	3, 0, 0, 0, 0, 4, 0, 1, 
+	0, 0, 0, 0, 3, 4, 0, 1, 
 	1, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 0, 0, 3, 
-	0, 1, 1, 0, 0, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 3, 0, 0, 0, 0, 4, 0, 
-	5, 5, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 4, 0, 5, 5, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	4, 0, 6, 6, 0, 0, 0, 0, 
+	0, 0, 0, 0, 5, 0, 1, 1, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	6, 0, 7, 7, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 2, 0, 0, 
+	0, 0, 0, 4, 0, 6, 6, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 8, 0, 9, 9, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 10, 0, 0, 0, 
-	0, 4, 0, 9, 9, 0, 0, 0, 
+	0, 0, 2, 0, 7, 7, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 10, 0, 11, 11, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 0, 12, 0, 0, 
-	0, 0, 4, 0, 11, 11, 0, 0, 
+	0, 8, 0, 9, 9, 0, 0, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 12, 0, 14, 14, 
-	13, 13, 13, 13, 13, 13, 13, 13, 
+	0, 0, 2, 0, 0, 0, 0, 0, 
+	10, 0, 9, 9, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 0, 0, 10, 
+	0, 11, 11, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 0, 0, 0, 
+	2, 0, 0, 0, 0, 0, 12, 0, 
+	11, 11, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 0, 0, 0, 
+	0, 0, 0, 0, 0, 12, 0, 14, 
+	14, 13, 13, 13, 13, 13, 13, 13, 
 	13, 13, 13, 13, 13, 13, 15, 13, 
-	14, 14, 16, 16, 16, 16, 16, 16, 
-	16, 16, 16, 16, 16, 16, 16, 16, 
-	15, 16, 16, 16, 16, 17, 16, 18, 
-	18, 16, 16, 16, 16, 16, 16, 16, 
-	16, 16, 16, 16, 16, 16, 16, 17, 
-	16, 19, 19, 16, 16, 16, 16, 16, 
-	16, 16, 16, 16, 16, 16, 16, 19, 
-	16, 20, 20, 16, 16, 16, 16, 16, 
-	16, 16, 16, 16, 16, 16, 16, 16, 
-	16, 21, 16, 22, 22, 16, 16, 16, 
-	16, 16, 16, 16, 16, 16, 16, 16, 
-	16, 16, 16, 23, 16, 16, 16, 16, 
-	17, 16, 22, 22, 16, 16, 16, 16, 
-	16, 16, 16, 16, 16, 16, 16, 16, 
-	16, 16, 23, 16, 24, 24, 16, 16, 
-	16, 16, 16, 16, 16, 16, 16, 16, 
-	16, 16, 16, 16, 25, 16, 16, 16, 
-	16, 17, 16, 24, 24, 16, 16, 16, 
-	16, 16, 16, 16, 16, 16, 16, 16, 
-	16, 16, 16, 25, 16, 14, 14, 16, 
-	16, 16, 16, 16, 16, 16, 16, 16, 
-	16, 16, 16, 16, 26, 15, 16, 16, 
-	16, 16, 17, 16, 28, 28, 27, 27, 
-	29, 29, 27, 27, 27, 2, 2, 27, 
-	30, 27, 28, 27, 27, 27, 27, 27, 
-	15, 19, 27, 27, 27, 17, 23, 25, 
-	21, 27, 32, 32, 31, 31, 31, 31, 
-	31, 31, 33, 31, 31, 31, 31, 31, 
-	31, 2, 3, 6, 31, 31, 31, 4, 
-	10, 12, 8, 31, 34, 34, 31, 31, 
-	31, 31, 31, 31, 35, 31, 31, 31, 
-	31, 31, 31, 31, 3, 6, 31, 31, 
-	31, 4, 10, 12, 8, 31, 5, 5, 
-	31, 31, 31, 31, 31, 31, 35, 31, 
-	31, 31, 31, 31, 31, 31, 4, 6, 
-	31, 31, 31, 31, 31, 31, 8, 31, 
-	6, 31, 7, 7, 31, 31, 31, 31, 
-	31, 31, 35, 31, 31, 31, 31, 31, 
-	31, 31, 8, 6, 31, 36, 36, 31, 
-	31, 31, 31, 31, 31, 35, 31, 31, 
-	31, 31, 31, 31, 31, 10, 6, 31, 
-	31, 31, 4, 31, 31, 8, 31, 37, 
-	37, 31, 31, 31, 31, 31, 31, 35, 
-	31, 31, 31, 31, 31, 31, 31, 12, 
-	6, 31, 31, 31, 4, 10, 31, 8, 
-	31, 34, 34, 31, 31, 31, 31, 31, 
-	31, 33, 31, 31, 31, 31, 31, 31, 
-	31, 3, 6, 31, 31, 31, 4, 10, 
-	12, 8, 31, 28, 28, 31, 31, 31, 
+	13, 13, 13, 16, 17, 13, 14, 14, 
+	18, 18, 18, 18, 18, 18, 18, 18, 
+	18, 18, 18, 18, 18, 18, 18, 18, 
+	18, 18, 18, 17, 18, 19, 19, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 13, 13, 19, 13, 14, 14, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 13, 13, 13, 15, 13, 13, 13, 
+	13, 13, 17, 13, 20, 20, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 15, 13, 21, 21, 13, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	22, 13, 23, 23, 13, 13, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 15, 13, 13, 13, 13, 13, 24, 
+	13, 23, 23, 13, 13, 13, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 13, 13, 13, 13, 13, 24, 13, 
+	25, 25, 13, 13, 13, 13, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 15, 
+	13, 13, 13, 13, 13, 26, 13, 25, 
+	25, 13, 13, 13, 13, 13, 13, 13, 
+	13, 13, 13, 13, 13, 13, 13, 13, 
+	13, 13, 13, 13, 26, 13, 28, 28, 
+	27, 29, 30, 30, 27, 27, 27, 3, 
+	3, 27, 27, 27, 28, 27, 27, 27, 
+	27, 15, 24, 26, 22, 27, 27, 17, 
+	19, 27, 32, 33, 33, 31, 31, 31, 
 	31, 31, 31, 31, 31, 31, 31, 31, 
-	31, 28, 31, 14, 14, 38, 38, 38, 
+	31, 31, 2, 10, 12, 8, 31, 3, 
+	4, 5, 31, 28, 28, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 28, 31, 34, 35, 35, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 2, 10, 12, 8, 31, 
+	31, 4, 5, 31, 5, 31, 34, 6, 
+	6, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 8, 31, 31, 2, 5, 31, 34, 
+	7, 7, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 8, 5, 31, 
+	34, 36, 36, 31, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	2, 31, 31, 8, 31, 31, 10, 5, 
+	31, 34, 37, 37, 31, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 2, 10, 31, 8, 31, 31, 12, 
+	5, 31, 32, 35, 35, 31, 31, 31, 
+	31, 31, 31, 31, 31, 31, 31, 31, 
+	31, 31, 2, 10, 12, 8, 31, 31, 
+	4, 5, 31, 39, 39, 38, 38, 38, 
 	38, 38, 38, 38, 38, 38, 38, 38, 
-	38, 38, 38, 15, 38, 38, 38, 38, 
-	17, 38, 40, 40, 39, 39, 39, 39, 
-	39, 39, 41, 39, 39, 39, 39, 39, 
-	39, 39, 15, 19, 39, 39, 39, 17, 
-	23, 25, 21, 39, 18, 18, 39, 39, 
-	39, 39, 39, 39, 41, 39, 39, 39, 
-	39, 39, 39, 39, 17, 19, 39, 39, 
-	39, 39, 39, 39, 21, 39, 19, 39, 
-	20, 20, 39, 39, 39, 39, 39, 39, 
-	41, 39, 39, 39, 39, 39, 39, 39, 
-	21, 19, 39, 42, 42, 39, 39, 39, 
-	39, 39, 39, 41, 39, 39, 39, 39, 
-	39, 39, 39, 23, 19, 39, 39, 39, 
-	17, 39, 39, 21, 39, 43, 43, 39, 
-	39, 39, 39, 39, 39, 41, 39, 39, 
-	39, 39, 39, 39, 39, 25, 19, 39, 
-	39, 39, 17, 23, 39, 21, 39, 44, 
-	44, 39, 39, 39, 39, 39, 39, 39, 
-	39, 39, 39, 39, 39, 44, 39, 45, 
-	45, 39, 39, 39, 39, 39, 39, 30, 
-	39, 39, 39, 39, 39, 39, 26, 15, 
-	19, 39, 39, 39, 17, 23, 25, 21, 
-	39, 40, 40, 39, 39, 39, 39, 39, 
-	39, 30, 39, 39, 39, 39, 39, 39, 
-	39, 15, 19, 39, 39, 39, 17, 23, 
-	25, 21, 39, 0
+	38, 39, 38, 29, 40, 40, 38, 38, 
+	38, 38, 38, 38, 38, 38, 38, 38, 
+	38, 38, 38, 15, 24, 26, 22, 38, 
+	16, 17, 19, 38, 41, 42, 42, 38, 
+	38, 38, 38, 38, 38, 38, 38, 38, 
+	38, 38, 38, 38, 15, 24, 26, 22, 
+	38, 38, 17, 19, 38, 19, 38, 41, 
+	20, 20, 38, 38, 38, 38, 38, 38, 
+	38, 38, 38, 38, 38, 38, 38, 38, 
+	38, 38, 22, 38, 38, 15, 19, 38, 
+	41, 21, 21, 38, 38, 38, 38, 38, 
+	38, 38, 38, 38, 38, 38, 38, 38, 
+	38, 38, 38, 38, 38, 38, 22, 19, 
+	38, 41, 43, 43, 38, 38, 38, 38, 
+	38, 38, 38, 38, 38, 38, 38, 38, 
+	38, 15, 38, 38, 22, 38, 38, 24, 
+	19, 38, 41, 44, 44, 38, 38, 38, 
+	38, 38, 38, 38, 38, 38, 38, 38, 
+	38, 38, 15, 24, 38, 22, 38, 38, 
+	26, 19, 38, 29, 42, 42, 38, 38, 
+	38, 38, 38, 38, 38, 38, 38, 38, 
+	38, 38, 38, 15, 24, 26, 22, 38, 
+	38, 17, 19, 38, 14, 14, 45, 45, 
+	45, 45, 45, 45, 45, 45, 45, 45, 
+	45, 45, 45, 15, 45, 45, 45, 45, 
+	45, 17, 45, 0
 };
 
 static const char _khmer_syllable_machine_trans_targs[] = {
-	20, 1, 28, 22, 23, 3, 24, 5, 
-	25, 7, 26, 9, 27, 20, 10, 31, 
-	20, 32, 12, 33, 14, 34, 16, 35, 
-	18, 36, 39, 20, 21, 30, 37, 20, 
-	0, 29, 2, 4, 6, 8, 20, 20, 
-	11, 13, 15, 17, 38, 19
+	20, 1, 25, 29, 23, 24, 4, 5, 
+	26, 7, 27, 9, 28, 20, 11, 34, 
+	38, 32, 20, 33, 14, 15, 35, 17, 
+	36, 19, 37, 20, 21, 30, 39, 20, 
+	22, 0, 2, 3, 6, 8, 20, 31, 
+	10, 12, 13, 16, 18, 20
 };
 
 static const char _khmer_syllable_machine_trans_actions[] = {
 	1, 0, 2, 2, 2, 0, 0, 0, 
-	2, 0, 2, 0, 2, 3, 0, 4, 
-	5, 2, 0, 0, 0, 2, 0, 2, 
-	0, 2, 4, 8, 2, 9, 0, 10, 
-	0, 0, 0, 0, 0, 0, 11, 12, 
-	0, 0, 0, 0, 4, 0
+	2, 0, 2, 0, 2, 3, 0, 2, 
+	4, 4, 5, 0, 0, 0, 2, 0, 
+	2, 0, 2, 8, 2, 0, 9, 10, 
+	0, 0, 0, 0, 0, 0, 11, 4, 
+	0, 0, 0, 0, 0, 12
 };
 
 static const char _khmer_syllable_machine_to_state_actions[] = {
@@ -226,10 +242,10 @@ static const char _khmer_syllable_machine_from_state_actions[] = {
 
 static const unsigned char _khmer_syllable_machine_eof_trans[] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 14, 17, 17, 17, 17, 17, 
-	17, 17, 17, 17, 0, 32, 32, 32, 
-	32, 32, 32, 32, 32, 32, 39, 40, 
-	40, 40, 40, 40, 40, 40, 40, 40
+	1, 1, 14, 19, 14, 14, 14, 14, 
+	14, 14, 14, 14, 0, 32, 32, 32, 
+	32, 32, 32, 32, 32, 32, 39, 39, 
+	39, 39, 39, 39, 39, 39, 39, 46
 };
 
 static const int khmer_syllable_machine_start = 20;
@@ -239,11 +255,11 @@ static const int khmer_syllable_machine_error = -1;
 static const int khmer_syllable_machine_en_main = 20;
 
 
-#line 43 "hb-ot-shaper-khmer-machine.rl"
+#line 53 "hb-ot-shaper-khmer-machine.rl"
 
 
 
-#line 86 "hb-ot-shaper-khmer-machine.rl"
+#line 102 "hb-ot-shaper-khmer-machine.rl"
 
 
 #define found_syllable(syllable_type) \
@@ -262,7 +278,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
   int cs;
   hb_glyph_info_t *info = buffer->info;
   
-#line 266 "hb-ot-shaper-khmer-machine.hh"
+#line 282 "hb-ot-shaper-khmer-machine.hh"
 	{
 	cs = khmer_syllable_machine_start;
 	ts = 0;
@@ -270,7 +286,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
 	act = 0;
 	}
 
-#line 106 "hb-ot-shaper-khmer-machine.rl"
+#line 122 "hb-ot-shaper-khmer-machine.rl"
 
 
   p = 0;
@@ -278,7 +294,7 @@ find_syllables_khmer (hb_buffer_t *buffer)
 
   unsigned int syllable_serial = 1;
   
-#line 282 "hb-ot-shaper-khmer-machine.hh"
+#line 298 "hb-ot-shaper-khmer-machine.hh"
 	{
 	int _slen;
 	int _trans;
@@ -292,7 +308,7 @@ _resume:
 #line 1 "NONE"
 	{ts = p;}
 	break;
-#line 296 "hb-ot-shaper-khmer-machine.hh"
+#line 312 "hb-ot-shaper-khmer-machine.hh"
 	}
 
 	_keys = _khmer_syllable_machine_trans_keys + (cs<<1);
@@ -315,30 +331,30 @@ _eof_trans:
 	{te = p+1;}
 	break;
 	case 8:
-#line 82 "hb-ot-shaper-khmer-machine.rl"
+#line 98 "hb-ot-shaper-khmer-machine.rl"
 	{te = p+1;{ found_syllable (khmer_non_khmer_cluster); }}
 	break;
 	case 10:
-#line 80 "hb-ot-shaper-khmer-machine.rl"
+#line 96 "hb-ot-shaper-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (khmer_consonant_syllable); }}
 	break;
-	case 12:
-#line 81 "hb-ot-shaper-khmer-machine.rl"
+	case 11:
+#line 97 "hb-ot-shaper-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
-	case 11:
-#line 82 "hb-ot-shaper-khmer-machine.rl"
+	case 12:
+#line 98 "hb-ot-shaper-khmer-machine.rl"
 	{te = p;p--;{ found_syllable (khmer_non_khmer_cluster); }}
 	break;
 	case 1:
-#line 80 "hb-ot-shaper-khmer-machine.rl"
+#line 96 "hb-ot-shaper-khmer-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (khmer_consonant_syllable); }}
 	break;
-	case 5:
-#line 81 "hb-ot-shaper-khmer-machine.rl"
+	case 3:
+#line 97 "hb-ot-shaper-khmer-machine.rl"
 	{{p = ((te))-1;}{ found_syllable (khmer_broken_cluster); buffer->scratch_flags |= HB_BUFFER_SCRATCH_FLAG_HAS_BROKEN_SYLLABLE; }}
 	break;
-	case 3:
+	case 5:
 #line 1 "NONE"
 	{	switch( act ) {
 	case 2:
@@ -353,16 +369,16 @@ _eof_trans:
 	case 4:
 #line 1 "NONE"
 	{te = p+1;}
-#line 81 "hb-ot-shaper-khmer-machine.rl"
+#line 97 "hb-ot-shaper-khmer-machine.rl"
 	{act = 2;}
 	break;
 	case 9:
 #line 1 "NONE"
 	{te = p+1;}
-#line 82 "hb-ot-shaper-khmer-machine.rl"
+#line 98 "hb-ot-shaper-khmer-machine.rl"
 	{act = 3;}
 	break;
-#line 366 "hb-ot-shaper-khmer-machine.hh"
+#line 382 "hb-ot-shaper-khmer-machine.hh"
 	}
 
 _again:
@@ -371,7 +387,7 @@ _again:
 #line 1 "NONE"
 	{ts = 0;}
 	break;
-#line 375 "hb-ot-shaper-khmer-machine.hh"
+#line 391 "hb-ot-shaper-khmer-machine.hh"
 	}
 
 	if ( ++p != pe )
@@ -387,7 +403,7 @@ _again:
 
 	}
 
-#line 114 "hb-ot-shaper-khmer-machine.rl"
+#line 130 "hb-ot-shaper-khmer-machine.rl"
 
 }
 

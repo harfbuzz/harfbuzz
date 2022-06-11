@@ -28,14 +28,38 @@
 
 #ifndef HB_NO_OT_SHAPE
 
-#include "hb-ot-shaper-khmer.hh"
 #include "hb-ot-shaper-khmer-machine.hh"
+#include "hb-ot-shaper-indic.hh"
 #include "hb-ot-layout.hh"
 
 
 /*
  * Khmer shaper.
  */
+
+
+#define K_Check(C) static_assert (OT_##C == K_Cat(C), "")
+
+K_Check (C);
+K_Check (V);
+K_Check (ZWNJ);
+K_Check (ZWJ);
+K_Check (PLACEHOLDER);
+K_Check (DOTTEDCIRCLE);
+K_Check (Ra);
+
+K_Check (VAbv);
+K_Check (VBlw);
+K_Check (VPre);
+K_Check (VPst);
+
+K_Check (Coeng);
+K_Check (Robatic);
+K_Check (Xgroup);
+K_Check (Ygroup);
+
+#undef K_Check
+
 
 static const hb_ot_map_feature_t
 khmer_features[] =
@@ -78,6 +102,15 @@ enum {
   KHMER_NUM_FEATURES,
   KHMER_BASIC_FEATURES = _KHMER_PRES, /* Don't forget to update this! */
 };
+
+static inline void
+set_khmer_properties (hb_glyph_info_t &info)
+{
+  hb_codepoint_t u = info.codepoint;
+  unsigned int type = hb_indic_get_categories (u);
+
+  info.khmer_category() = (khmer_category_t) (type & 0xFFu);
+}
 
 static void
 setup_syllables_khmer (const hb_ot_shape_plan_t *plan,
@@ -231,11 +264,11 @@ reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
      * the 'pref' OpenType feature applied to them.
      * """
      */
-    if (info[i].khmer_category() == OT_Coeng && num_coengs <= 2 && i + 1 < end)
+    if (info[i].khmer_category() == K_Cat(Coeng) && num_coengs <= 2 && i + 1 < end)
     {
       num_coengs++;
 
-      if (info[i + 1].khmer_category() == OT_Ra)
+      if (info[i + 1].khmer_category() == K_Cat(Ra))
       {
 	for (unsigned int j = 0; j < 2; j++)
 	  info[i + j].mask |= khmer_plan->mask_array[KHMER_PREF];
@@ -263,7 +296,7 @@ reorder_consonant_syllable (const hb_ot_shape_plan_t *plan,
     }
 
     /* Reorder left matra piece. */
-    else if (info[i].khmer_category() == OT_VPre)
+    else if (info[i].khmer_category() == K_Cat(VPre))
     {
       /* Move to the start. */
       buffer->merge_clusters (start, i + 1);
@@ -302,8 +335,8 @@ reorder_khmer (const hb_ot_shape_plan_t *plan,
   {
     hb_syllabic_insert_dotted_circles (font, buffer,
 				       khmer_broken_cluster,
-				       OT_DOTTEDCIRCLE,
-				       OT_Repha);
+				       K_Cat(DOTTEDCIRCLE),
+				       (unsigned) -1);
 
     foreach_syllable (buffer, start, end)
       reorder_syllable_khmer (plan, font->face, buffer, start, end);

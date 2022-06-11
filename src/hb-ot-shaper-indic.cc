@@ -39,6 +39,104 @@
  */
 
 
+#define I_Check(C) static_assert (OT_##C == I_Cat(C), "")
+
+I_Check (C);
+I_Check (V);
+I_Check (N);
+I_Check (H);
+I_Check (ZWNJ);
+I_Check (ZWJ);
+I_Check (M);
+I_Check (SM);
+I_Check (A);
+I_Check (VD);
+I_Check (PLACEHOLDER);
+I_Check (DOTTEDCIRCLE);
+I_Check (RS);
+I_Check (Repha);
+I_Check (Ra);
+I_Check (CM);
+I_Check (Symbol);
+I_Check (CS);
+
+#undef I_Check
+
+static inline void
+set_indic_properties (hb_glyph_info_t &info)
+{
+  hb_codepoint_t u = info.codepoint;
+  unsigned int type = hb_indic_get_categories (u);
+
+  info.indic_category() = (indic_category_t) (type & 0xFFu);
+  info.indic_position() = (indic_position_t) (type >> 8);
+}
+
+
+static inline bool
+is_one_of (const hb_glyph_info_t &info, unsigned int flags)
+{
+  /* If it ligated, all bets are off. */
+  if (_hb_glyph_info_ligated (&info)) return false;
+  return !!(FLAG_UNSAFE (info.indic_category()) & flags);
+}
+
+/* Note:
+ *
+ * We treat Vowels and placeholders as if they were consonants.  This is safe because Vowels
+ * cannot happen in a consonant syllable.  The plus side however is, we can call the
+ * consonant syllable logic from the vowel syllable function and get it all right!
+ *
+ * Keep in sync with consonant_categories in the generator. */
+#define CONSONANT_FLAGS_INDIC (FLAG (I_Cat(C)) | FLAG (I_Cat(CS)) | FLAG (I_Cat(Ra)) | FLAG (I_Cat(CM)) | FLAG (I_Cat(V)) | FLAG (I_Cat(PLACEHOLDER)) | FLAG (I_Cat(DOTTEDCIRCLE)))
+
+static inline bool
+is_consonant (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, CONSONANT_FLAGS_INDIC);
+}
+
+#define JOINER_FLAGS (FLAG (I_Cat(ZWJ)) | FLAG (I_Cat(ZWNJ)))
+
+static inline bool
+is_joiner (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, JOINER_FLAGS);
+}
+
+static inline bool
+is_halant (const hb_glyph_info_t &info)
+{
+  return is_one_of (info, FLAG (I_Cat(H)));
+}
+
+struct hb_indic_would_substitute_feature_t
+{
+  void init (const hb_ot_map_t *map, hb_tag_t feature_tag, bool zero_context_)
+  {
+    zero_context = zero_context_;
+    map->get_stage_lookups (0/*GSUB*/,
+			    map->get_feature_stage (0/*GSUB*/, feature_tag),
+			    &lookups, &count);
+  }
+
+  bool would_substitute (const hb_codepoint_t *glyphs,
+			 unsigned int          glyphs_count,
+			 hb_face_t            *face) const
+  {
+    for (unsigned int i = 0; i < count; i++)
+      if (hb_ot_layout_lookup_would_substitute (face, lookups[i].index, glyphs, glyphs_count, zero_context))
+	return true;
+    return false;
+  }
+
+  private:
+  const hb_ot_map_t::lookup_map_t *lookups;
+  unsigned int count;
+  bool zero_context;
+};
+
+
 /*
  * Indic configurations.  Note that we do not want to keep every single script-specific
  * behavior in these tables necessarily.  This should mainly be used for per-script
@@ -95,11 +193,6 @@ static const indic_config_t indic_configs[] =
 						     REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST},
 };
 
-
-
-/*
- * Indic shaper.
- */
 
 static const hb_ot_map_feature_t
 indic_features[] =
@@ -368,7 +461,7 @@ compare_indic_order (const hb_glyph_info_t *pa, const hb_glyph_info_t *pb)
   int a = pa->indic_position();
   int b = pb->indic_position();
 
-  return a < b ? -1 : a == b ? 0 : +1;
+  return (int) a - (int) b;
 }
 
 
@@ -417,9 +510,9 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
    */
   if (buffer->props.script == HB_SCRIPT_KANNADA &&
       start + 3 <= end &&
-      is_one_of (info[start  ], FLAG (OT_Ra)) &&
-      is_one_of (info[start+1], FLAG (OT_H)) &&
-      is_one_of (info[start+2], FLAG (OT_ZWJ)))
+      is_one_of (info[start  ], FLAG (I_Cat(Ra))) &&
+      is_one_of (info[start+1], FLAG (I_Cat(H))) &&
+      is_one_of (info[start+2], FLAG (I_Cat(ZWJ))))
   {
     buffer->merge_clusters (start+1, start+3);
     hb_glyph_info_t tmp = info[start+1];
@@ -453,7 +546,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	start + 3 <= end &&
 	(
 	 (indic_plan->config->reph_mode == REPH_MODE_IMPLICIT && !is_joiner (info[start + 2])) ||
-	 (indic_plan->config->reph_mode == REPH_MODE_EXPLICIT && info[start + 2].indic_category() == OT_ZWJ)
+	 (indic_plan->config->reph_mode == REPH_MODE_EXPLICIT && info[start + 2].indic_category() == I_Cat(ZWJ))
 	))
     {
       /* See if it matches the 'rphf' feature. */
@@ -471,7 +564,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	base = start;
 	has_reph = true;
       }
-    } else if (indic_plan->config->reph_mode == REPH_MODE_LOG_REPHA && info[start].indic_category() == OT_Repha)
+    } else if (indic_plan->config->reph_mode == REPH_MODE_LOG_REPHA && info[start].indic_category() == I_Cat(Repha))
     {
 	limit += 1;
 	while (limit < end && is_joiner (info[limit]))
@@ -523,8 +616,8 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	     * search continues.  This is particularly important for Bengali
 	     * sequence Ra,H,Ya that should form Ya-Phalaa by subjoining Ya. */
 	    if (start < i &&
-		info[i].indic_category() == OT_ZWJ &&
-		info[i - 1].indic_category() == OT_H)
+		info[i].indic_category() == I_Cat(ZWJ) &&
+		info[i - 1].indic_category() == I_Cat(H))
 	      break;
 	  }
 	} while (i > limit);
@@ -546,7 +639,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	for (unsigned int i = limit; i < end; i++)
 	  if (is_consonant (info[i]))
 	  {
-	    if (limit < i && info[i - 1].indic_category() == OT_ZWJ)
+	    if (limit < i && info[i - 1].indic_category() == I_Cat(ZWJ))
 	      break;
 	    else
 	      base = i;
@@ -615,7 +708,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   /* Mark final consonants.  A final consonant is one appearing after a matra.
    * Happens in Sinhala. */
   for (unsigned int i = base + 1; i < end; i++)
-    if (info[i].indic_category() == OT_M) {
+    if (info[i].indic_category() == I_Cat(M)) {
       for (unsigned int j = i + 1; j < end; j++)
 	if (is_consonant (info[j])) {
 	 info[j].indic_position() = POS_FINAL_C;
@@ -660,14 +753,14 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   {
     bool disallow_double_halants = buffer->props.script == HB_SCRIPT_KANNADA;
     for (unsigned int i = base + 1; i < end; i++)
-      if (info[i].indic_category() == OT_H)
+      if (info[i].indic_category() == I_Cat(H))
       {
 	unsigned int j;
 	for (j = end - 1; j > i; j--)
 	  if (is_consonant (info[j]) ||
-	      (disallow_double_halants && info[j].indic_category() == OT_H))
+	      (disallow_double_halants && info[j].indic_category() == I_Cat(H)))
 	    break;
-	if (info[j].indic_category() != OT_H && j > i) {
+	if (info[j].indic_category() != I_Cat(H) && j > i) {
 	  /* Move Halant to after last consonant. */
 	  hb_glyph_info_t t = info[i];
 	  memmove (&info[i], &info[i + 1], (j - i) * sizeof (info[0]));
@@ -682,10 +775,10 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
     indic_position_t last_pos = POS_START;
     for (unsigned int i = start; i < end; i++)
     {
-      if ((FLAG_UNSAFE (info[i].indic_category()) & (JOINER_FLAGS | FLAG (OT_N) | FLAG (OT_RS) | MEDIAL_FLAGS | FLAG (OT_H))))
+      if ((FLAG_UNSAFE (info[i].indic_category()) & (JOINER_FLAGS | FLAG (I_Cat(N)) | FLAG (I_Cat(RS)) | FLAG (I_Cat(CM)) | FLAG (I_Cat(H)))))
       {
 	info[i].indic_position() = last_pos;
-	if (unlikely (info[i].indic_category() == OT_H &&
+	if (unlikely (info[i].indic_category() == I_Cat(H) &&
 		      info[i].indic_position() == POS_PRE_M))
 	{
 	  /*
@@ -719,7 +812,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	  if (info[j].indic_position() < POS_SMVD)
 	    info[j].indic_position() = info[i].indic_position();
 	last = i;
-      } else if (info[i].indic_category() == OT_M)
+      } else if (info[i].indic_category() == I_Cat(M))
 	last = i;
   }
 
@@ -850,10 +943,10 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
      * Test case: U+0924,U+094D,U+0930,U+094d,U+200D,U+0915
      */
     for (unsigned int i = start; i + 1 < base; i++)
-      if (info[i  ].indic_category() == OT_Ra &&
-	  info[i+1].indic_category() == OT_H  &&
+      if (info[i  ].indic_category() == I_Cat(Ra) &&
+	  info[i+1].indic_category() == I_Cat(H)  &&
 	  (i + 2 == base ||
-	   info[i+2].indic_category() != OT_ZWJ))
+	   info[i+2].indic_category() != I_Cat(ZWJ)))
       {
 	info[i  ].mask |= indic_plan->mask_array[INDIC_BLWF];
 	info[i+1].mask |= indic_plan->mask_array[INDIC_BLWF];
@@ -880,7 +973,7 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
   /* Apply ZWJ/ZWNJ effects */
   for (unsigned int i = start + 1; i < end; i++)
     if (is_joiner (info[i])) {
-      bool non_joiner = info[i].indic_category() == OT_ZWNJ;
+      bool non_joiner = info[i].indic_category() == I_Cat(ZWNJ);
       unsigned int j = i;
 
       do {
@@ -913,7 +1006,7 @@ initial_reordering_standalone_cluster (const hb_ot_shape_plan_t *plan,
     /* For dotted-circle, this is what Uniscribe does:
      * If dotted-circle is the last glyph, it just does nothing.
      * Ie. It doesn't form Reph. */
-    if (buffer->info[end - 1].indic_category() == OT_DOTTEDCIRCLE)
+    if (buffer->info[end - 1].indic_category() == I_Cat(DOTTEDCIRCLE))
       return;
   }
 
@@ -956,8 +1049,8 @@ initial_reordering_indic (const hb_ot_shape_plan_t *plan,
   update_consonant_positions_indic (plan, font, buffer);
   hb_syllabic_insert_dotted_circles (font, buffer,
 				     indic_broken_cluster,
-				     OT_DOTTEDCIRCLE,
-				     OT_Repha,
+				     I_Cat(DOTTEDCIRCLE),
+				     I_Cat(Repha),
 				     POS_END);
 
   foreach_syllable (buffer, start, end)
@@ -979,7 +1072,7 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
    * and possibly multiple substitutions happened prior to this
    * phase, and that might have messed up our properties.  Recover
    * from a particular case of that where we're fairly sure that a
-   * class of OT_H is desired but has been lost. */
+   * class of I_Cat(H) is desired but has been lost. */
   /* We don't call load_virama_glyph(), since we know it's already
    * loaded. */
   hb_codepoint_t virama_glyph = indic_plan->virama_glyph.get_relaxed ();
@@ -991,7 +1084,7 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
 	  _hb_glyph_info_multiplied (&info[i]))
       {
 	/* This will make sure that this glyph passes is_halant() test. */
-	info[i].indic_category() = OT_H;
+	info[i].indic_category() = I_Cat(H);
 	_hb_glyph_info_clear_ligated_and_multiplied (&info[i]);
       }
   }
@@ -1057,11 +1150,11 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
       break;
     }
   if (base == end && start < base &&
-      is_one_of (info[base - 1], FLAG (OT_ZWJ)))
+      is_one_of (info[base - 1], FLAG (I_Cat(ZWJ))))
     base--;
   if (base < end)
     while (start < base &&
-	   is_one_of (info[base], (FLAG (OT_N) | FLAG (OT_H))))
+	   is_one_of (info[base], (FLAG (I_Cat(N)) | FLAG (I_Cat(H)))))
       base--;
 
 
@@ -1106,7 +1199,7 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
     {
     search:
       while (new_pos > start &&
-	     !(is_one_of (info[new_pos], (FLAG (OT_M) | FLAG (OT_H)))))
+	     !(is_one_of (info[new_pos], (FLAG (I_Cat(M)) | FLAG (I_Cat(H))))))
 	new_pos--;
 
       /* If we found no Halant we are done.
@@ -1123,7 +1216,7 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
 	if (new_pos + 1 < end)
 	{
 	  /* -> If ZWJ follows this halant, matra is NOT repositioned after this halant. */
-	  if (info[new_pos + 1].indic_category() == OT_ZWJ)
+	  if (info[new_pos + 1].indic_category() == I_Cat(ZWJ))
 	  {
 	    /* Keep searching. */
 	    if (new_pos > start)
@@ -1196,7 +1289,7 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
    */
   if (start + 1 < end &&
       info[start].indic_position() == POS_RA_TO_BECOME_REPH &&
-      ((info[start].indic_category() == OT_Repha) ^
+      ((info[start].indic_category() == I_Cat(Repha)) ^
        _hb_glyph_info_ligated_and_didnt_multiply (&info[start])))
   {
     unsigned int new_reph_pos;
@@ -1306,7 +1399,7 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
 	  unlikely (is_halant (info[new_reph_pos])))
       {
 	for (unsigned int i = base + 1; i < new_reph_pos; i++)
-	  if (info[i].indic_category() == OT_M) {
+	  if (info[i].indic_category() == I_Cat(M)) {
 	    /* Ok, got it. */
 	    new_reph_pos--;
 	  }
@@ -1366,7 +1459,7 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
 	  if (buffer->props.script != HB_SCRIPT_MALAYALAM && buffer->props.script != HB_SCRIPT_TAMIL)
 	  {
 	    while (new_pos > start &&
-		   !(is_one_of (info[new_pos - 1], FLAG(OT_M) | FLAG (OT_H))))
+		   !(is_one_of (info[new_pos - 1], FLAG(I_Cat(M)) | FLAG (I_Cat(H)))))
 	      new_pos--;
 	  }
 
