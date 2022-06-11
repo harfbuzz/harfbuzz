@@ -37,7 +37,7 @@
 /* buffer var allocations */
 #define khmer_category() ot_shaper_var_u8_category() /* khmer_category_t */
 
-using khmer_category_t = ot_category_t;
+using khmer_category_t = unsigned;
 
 #define K_Cat(Cat) khmer_syllable_machine_ex_##Cat
 
