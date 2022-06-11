@@ -36,7 +36,7 @@
 #define indic_category() ot_shaper_var_u8_category() /* indic_category_t */
 #define indic_position() ot_shaper_var_u8_auxiliary() /* indic_position_t */
 
-using indic_category_t = ot_category_t;
+using indic_category_t = unsigned;
 using indic_position_t = ot_position_t;
 
 #define I_Cat(Cat) indic_syllable_machine_ex_##Cat
