@@ -63,7 +63,7 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define OT_IV M_Cat(IV)
 #define OT_As M_Cat(As)
 #define OT_DB M_Cat(DB)
-#define OT_GB	 M_Cat(GB	)
+#define OT_GB	 M_Cat(GB)
 #define OT_MH M_Cat(MH)
 #define OT_MR M_Cat(MR)
 #define OT_MW M_Cat(MW)
