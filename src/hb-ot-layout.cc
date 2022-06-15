@@ -30,6 +30,8 @@
 
 #include "hb.hh"
 
+#include <arm_neon.h>
+
 #ifndef HB_NO_OT_LAYOUT
 
 #ifdef HB_NO_OT_TAG
@@ -1821,6 +1823,12 @@ struct GPOSProxy
   const OT::hb_ot_layout_lookup_accelerator_t *accels;
 };
 
+inline bool uint32x4_is_not_zero(uint32x4_t v)
+{
+  // https://stackoverflow.com/questions/15389539/fastest-way-to-test-a-128-bit-neon-register-for-a-value-of-0-using-intrinsics
+  uint32x2_t tmp = vorr_u32(vget_low_u32(v), vget_high_u32(v));
+  return vget_lane_u32(vpmax_u32(tmp, tmp), 0);
+}
 
 static inline bool
 apply_forward (OT::hb_ot_apply_context_t *c,
@@ -1832,6 +1840,25 @@ apply_forward (OT::hb_ot_apply_context_t *c,
   hb_buffer_t *buffer = c->buffer;
   while (buffer->idx < buffer->len && buffer->successful)
   {
+    uint32x4_t lookup_masksv = vdupq_n_u32 (c->lookup_mask);
+    const auto *in = buffer->info;
+    unsigned i = buffer->idx;
+    while (i + 4 < buffer->len)
+    {
+      const uint32_t codepoints[4] = {in[i+0].codepoint, in[i+1].codepoint, in[i+2].codepoint, in[i+3].codepoint};
+      uint32x4_t codepointsv = vld1q_u32 (codepoints);
+
+      const uint32_t masks[4] = {in[i+0].mask, in[i+1].mask, in[i+2].mask, in[i+3].mask};
+      uint32x4_t masksv = vld1q_u32 (masks);
+
+      if (accel.may_have (codepointsv) &&
+          uint32x4_is_not_zero (vandq_u32 (lookup_masksv, masksv)))
+	break;
+
+      i += 4;
+    }
+    (void) buffer->next_glyphs (i - buffer->idx);
+
     bool applied = false;
     if (accel.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
