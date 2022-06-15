@@ -714,8 +714,11 @@ struct glyf
 
       void set_overlaps_flag ()
       {
-        const_cast<CompositeGlyphChain &> (StructAfter<CompositeGlyphChain, GlyphHeader> (header))
-                .set_overlaps_flag ();
+        CompositeGlyphChain& glyph_chain = const_cast<CompositeGlyphChain &> (
+            StructAfter<CompositeGlyphChain, GlyphHeader> (header));
+        if (!bytes.check_range(&glyph_chain, CompositeGlyphChain::min_size))
+          return;
+        glyph_chain.set_overlaps_flag ();
       }
     };
 
