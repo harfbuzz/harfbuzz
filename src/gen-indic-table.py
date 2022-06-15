@@ -123,7 +123,7 @@ categories = {
     'IV',
     'As',
     'DB',
-    'GB	',
+    'GB',
     'MH',
     'MR',
     'MW',
