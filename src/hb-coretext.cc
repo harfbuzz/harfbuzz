@@ -1151,7 +1151,7 @@ resize_and_retry:
 	pos->x_offset = info->var1.i32;
 	pos->y_offset = info->var2.i32;
 
-	info++, pos++;
+	info++; pos++;
       }
     else
       for (unsigned int i = 0; i < count; i++)
@@ -1160,7 +1160,7 @@ resize_and_retry:
 	pos->x_offset = info->var1.i32;
 	pos->y_offset = info->var2.i32;
 
-	info++, pos++;
+	info++; pos++;
       }
 
     /* Fix up clusters so that we never return out-of-order indices;
