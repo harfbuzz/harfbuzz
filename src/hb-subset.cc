@@ -336,7 +336,7 @@ _is_table_present (hb_face_t *source, hb_tag_t tag)
 
   hb_tag_t table_tags[32];
   unsigned offset = 0, num_tables = ARRAY_LENGTH (table_tags);
-  while ((hb_face_get_table_tags (source, offset, &num_tables, table_tags), num_tables))
+  while (((void) hb_face_get_table_tags (source, offset, &num_tables, table_tags), num_tables))
   {
     for (unsigned i = 0; i < num_tables; ++i)
       if (table_tags[i] == tag)
@@ -499,7 +499,7 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
   hb_vector_t<char> buf;
   buf.alloc (4096 - 16);
 
-  while ((_get_table_tags (plan, offset, &num_tables, table_tags), num_tables))
+  while (((void) _get_table_tags (plan, offset, &num_tables, table_tags), num_tables))
   {
     for (unsigned i = 0; i < num_tables; ++i)
     {

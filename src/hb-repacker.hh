@@ -760,7 +760,7 @@ struct graph_t
   }
 
   bool check_success (bool success)
-  { return this->successful && (success || (err_other_error (), false)); }
+  { return this->successful && (success || ((void) err_other_error (), false)); }
 
   /*
    * Creates a map from objid to # of incoming edges.
