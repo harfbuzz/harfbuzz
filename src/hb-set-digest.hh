@@ -29,7 +29,9 @@
 
 #include "hb.hh"
 
-#include <arm_neon.h>
+#pragma GCC target("avx2")
+
+#include <x86intrin.h>
 
 /*
  * The set-digests here implement various "filters" that support
@@ -118,15 +120,13 @@ struct hb_set_digest_bits_pattern_t
   bool may_have (hb_codepoint_t g) const
   { return mask & mask_for (g); }
 
-  static inline bool uint32x4_is_not_zero(uint32x4_t v)
+  static inline bool m256_is_not_zero(__m256i v)
   {
-    // https://stackoverflow.com/questions/15389539/fastest-way-to-test-a-128-bit-neon-register-for-a-value-of-0-using-intrinsics
-    uint32x2_t tmp = vorr_u32(vget_low_u32(v), vget_high_u32(v));
-    return vget_lane_u32(vpmax_u32(tmp, tmp), 0);
+    return !_mm256_testz_si256 (v, v);
   }
 
-  bool may_have (const uint32x4_t &g) const
-  { return uint32x4_is_not_zero (vandq_u32 (vdupq_n_u32 (mask), mask_for (g))); }
+  bool may_have (const __m256i &g) const
+  { return m256_is_not_zero (_mm256_and_si256 (_mm256_set1_epi32 (mask), mask_for (g))); }
 
   private:
 
@@ -135,15 +135,15 @@ struct hb_set_digest_bits_pattern_t
 
   template <int u = shift,
 	    hb_enable_if (u == 0)>
-  static uint32x4_t shifted (uint32x4_t v) { return v; }
+  static __m256i shifted (__m256i v) { return v; }
   template <int u = shift,
 	    hb_enable_if (u != 0)>
-  static uint32x4_t shifted (uint32x4_t v) { return vshrq_n_u32 (v, shift); }
+  static __m256i shifted (__m256i v) { return _mm256_srli_epi32 (v, shift); }
 
-  static uint32x4_t mask_for (const uint32x4_t &g)
+  static __m256i mask_for (const __m256i &g)
   {
-    uint32x4_t a = vandq_u32 (shifted (g), vdupq_n_u32 (mask_bits - 1));
-    return vshlq_u32 (vdupq_n_u32 (1), a);
+    __m256i a = _mm256_and_si256 (shifted (g), _mm256_set1_epi32 (mask_bits - 1));
+    return _mm256_sllv_epi32 (_mm256_set1_epi32 (1), a);
   }
 
   mask_t mask;
