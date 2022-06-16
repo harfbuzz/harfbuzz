@@ -137,6 +137,7 @@ hb_base_sources = files(
   'hb-ot-post-table.hh',
   'hb-ot-shaper-arabic-fallback.hh',
   'hb-ot-shaper-arabic-joining-list.hh',
+  'hb-ot-shaper-arabic-pua.hh',
   'hb-ot-shaper-arabic-table.hh',
   'hb-ot-shaper-arabic-win1256.hh',
   'hb-ot-shaper-arabic.cc',

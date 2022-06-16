@@ -153,6 +153,16 @@ def print_joining_table(f):
 		print ("#undef %s" % (short))
 	print ()
 
+LIGATURES = (
+	0xF2EE, 0xFC08, 0xFC0E, 0xFC12, 0xFC32, 0xFC3F, 0xFC40, 0xFC41, 0xFC42,
+	0xFC44, 0xFC4E, 0xFC5E, 0xFC60, 0xFC61, 0xFC62, 0xFC6A, 0xFC6D, 0xFC6F,
+	0xFC70, 0xFC73, 0xFC75, 0xFC86, 0xFC8F, 0xFC91, 0xFC94, 0xFC9C, 0xFC9D,
+	0xFC9E, 0xFC9F, 0xFCA1, 0xFCA2, 0xFCA3, 0xFCA4, 0xFCA8, 0xFCAA, 0xFCAC,
+	0xFCB0, 0xFCC9, 0xFCCA, 0xFCCB, 0xFCCC, 0xFCCD, 0xFCCE, 0xFCCF, 0xFCD0,
+	0xFCD1, 0xFCD2, 0xFCD3, 0xFCD5, 0xFCDA, 0xFCDB, 0xFCDC, 0xFCDD, 0xFD30,
+	0xFD88, 0xFEF5, 0xFEF6, 0xFEF7, 0xFEF8, 0xFEF9, 0xFEFA, 0xFEFB, 0xFEFC,
+)
+
 def print_shaping_table(f):
 
 	shapes = {}
@@ -166,14 +176,19 @@ def print_shaping_table(f):
 
 		items = fields[5].split (' ')
 		shape, items = items[0][1:-1], tuple (int (x, 16) for x in items[1:])
+		c = int (fields[0], 16)
 
 		if not shape in ['initial', 'medial', 'isolated', 'final']:
 			continue
 
-		c = int (fields[0], 16)
 		if len (items) != 1:
-			# We only care about lam-alef ligatures
-			if len (items) != 2 or items[0] != 0x0644 or items[1] not in [0x0622, 0x0623, 0x0625, 0x0627]:
+			# Mark ligatures start with space and are in visual order, so we
+			# remove the space and reverse the items.
+			if items[0] == 0x0020:
+				items = items[:0:-1]
+				shape = None
+			# We only care about a subset of ligatures
+			if c not in LIGATURES or len (items) != 2:
 				continue
 
 			# Save ligature
@@ -213,10 +228,14 @@ def print_shaping_table(f):
 	for pair in ligatures.keys ():
 		for shape in ligatures[pair]:
 			c = ligatures[pair][shape]
-			if shape == 'isolated':
+			if shape is None:
+				liga = pair
+			elif shape == 'isolated':
 				liga = (shapes[pair[0]]['initial'], shapes[pair[1]]['final'])
 			elif shape == 'final':
 				liga = (shapes[pair[0]]['medial'], shapes[pair[1]]['final'])
+			elif shape == 'initial':
+				liga = (shapes[pair[0]]['initial'], shapes[pair[1]]['medial'])
 			else:
 				raise Exception ("Unexpected shape", shape)
 			if liga[0] not in ligas:
