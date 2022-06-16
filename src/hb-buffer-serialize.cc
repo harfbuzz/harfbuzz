@@ -31,7 +31,7 @@
 #include "hb-buffer.hh"
 
 
-static const char *serialize_formats[] = {
+static const char *_hb_buffer_serialize_formats[] = {
   "text",
   "json",
   nullptr
@@ -50,7 +50,7 @@ static const char *serialize_formats[] = {
 const char **
 hb_buffer_serialize_list_formats ()
 {
-  return serialize_formats;
+  return _hb_buffer_serialize_formats;
 }
 
 /**
@@ -91,8 +91,8 @@ hb_buffer_serialize_format_to_string (hb_buffer_serialize_format_t format)
 {
   switch ((unsigned) format)
   {
-    case HB_BUFFER_SERIALIZE_FORMAT_TEXT: return serialize_formats[0];
-    case HB_BUFFER_SERIALIZE_FORMAT_JSON: return serialize_formats[1];
+    case HB_BUFFER_SERIALIZE_FORMAT_TEXT: return _hb_buffer_serialize_formats[0];
+    case HB_BUFFER_SERIALIZE_FORMAT_JSON: return _hb_buffer_serialize_formats[1];
     default:
     case HB_BUFFER_SERIALIZE_FORMAT_INVALID:  return nullptr;
   }
