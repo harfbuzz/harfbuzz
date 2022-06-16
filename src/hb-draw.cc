@@ -89,18 +89,39 @@ hb_draw_funcs_set_##name##_func (hb_draw_funcs_t	 *dfuncs,		\
   if (hb_object_is_immutable (dfuncs))						\
     return;									\
 										\
-  if (dfuncs->destroy.name)							\
-    dfuncs->destroy.name (dfuncs->user_data.name);				\
-										\
-  if (func) {									\
-    dfuncs->func.name = func;							\
-    dfuncs->user_data.name = user_data;						\
-    dfuncs->destroy.name = destroy;						\
-  } else {									\
-    dfuncs->func.name = hb_draw_##name##_nil;					\
-    dfuncs->user_data.name = nullptr;						\
-    dfuncs->destroy.name = nullptr;						\
-  }										\
+  if (dfuncs->destroy && dfuncs->destroy->name)					\
+    dfuncs->destroy->name (!dfuncs->user_data ? nullptr : dfuncs->user_data->name); \
+									 \
+  if (user_data && !dfuncs->user_data)                                   \
+  {                                                                      \
+    dfuncs->user_data = (decltype (dfuncs->user_data)) hb_calloc (1, sizeof (*dfuncs->user_data)); \
+    if (unlikely (!dfuncs->user_data))                                   \
+      goto fail;                                                         \
+  }                                                                      \
+  if (destroy && !dfuncs->destroy)                                       \
+  {                                                                      \
+    dfuncs->destroy = (decltype (dfuncs->destroy)) hb_calloc (1, sizeof (*dfuncs->destroy)); \
+    if (unlikely (!dfuncs->destroy))                                     \
+      goto fail;                                                         \
+  }                                                                      \
+									\
+  if (func) {								\
+    dfuncs->func.name = func;						\
+    if (dfuncs->user_data)						\
+      dfuncs->user_data->name = user_data;				\
+    if (dfuncs->destroy)						\
+      dfuncs->destroy->name = destroy;					\
+  } else {								\
+    dfuncs->func.name = hb_draw_##name##_nil;				\
+    if (dfuncs->user_data)						\
+      dfuncs->user_data->name = nullptr;				\
+    if (dfuncs->destroy)						\
+      dfuncs->destroy->name = nullptr;					\
+  }									\
+                                                                         \
+fail:                                                                    \
+  if (destroy)                                                           \
+    destroy (user_data);                                                 \
 }
 
 HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
@@ -177,11 +198,13 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
 {
   if (!hb_object_destroy (dfuncs)) return;
 
+  if (dfuncs->destroy)
+  {
 #define HB_DRAW_FUNC_IMPLEMENT(name) \
-  if (dfuncs->destroy.name) dfuncs->destroy.name (dfuncs->user_data.name);
-    HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
+    if (dfuncs->destroy->name) dfuncs->destroy->name (!dfuncs->user_data ? nullptr : dfuncs->user_data->name);
+      HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_DRAW_FUNC_IMPLEMENT
-
+  }
 
   hb_free (dfuncs);
 }
