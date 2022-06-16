@@ -183,7 +183,7 @@
 #include <cassert>
 #include <cfloat>
 #include <climits>
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(_USE_MATH_DEFINES)
 # define _USE_MATH_DEFINES
 #endif
 #include <cmath>
