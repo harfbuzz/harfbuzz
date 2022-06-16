@@ -1177,15 +1177,13 @@ inline hb_blob_t*
 hb_resolve_overflows (const T& packed,
                       hb_tag_t table_tag,
                       unsigned max_rounds = 20) {
-  // Kahn sort is ~twice as fast as shortest distance sort and works for many fonts
-  // so try it first to save time.
   graph_t sorted_graph (packed);
+  sorted_graph.sort_shortest_distance ();
+
   if (!sorted_graph.will_overflow ())
   {
     return sorted_graph.serialize ();
   }
-
-  sorted_graph.sort_shortest_distance ();
 
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
