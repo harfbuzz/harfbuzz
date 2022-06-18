@@ -421,13 +421,6 @@ static const struct ligature_set_t {
  } ligatures[14];
 } ligature_table[] =
 {
-  { 0x0651u, {
-    { 0x064Cu, 0xFC5Eu }, /* ARABIC LIGATURE SHADDA WITH DAMMATAN ISOLATED FORM */
-    { 0x064Eu, 0xFC60u }, /* ARABIC LIGATURE SHADDA WITH FATHA ISOLATED FORM */
-    { 0x064Fu, 0xFC61u }, /* ARABIC LIGATURE SHADDA WITH DAMMA ISOLATED FORM */
-    { 0x0650u, 0xFC62u }, /* ARABIC LIGATURE SHADDA WITH KASRA ISOLATED FORM */
-    { 0x064Bu, 0xF2EEu }, /* PUA ARABIC LIGATURE SHADDA WITH FATHATAN ISOLATED FORM */
-  }},
   { 0xFE91u, {
     { 0xFEE2u, 0xFC08u }, /* ARABIC LIGATURE BEH WITH MEEM ISOLATED FORM */
     { 0xFEE4u, 0xFC9Fu }, /* ARABIC LIGATURE BEH WITH MEEM INITIAL FORM */
@@ -520,6 +513,41 @@ static const struct ligature_set_t {
   { 0xFEF4u, {
     { 0xFEAEu, 0xFC91u }, /* ARABIC LIGATURE YEH WITH REH FINAL FORM */
     { 0xFEE6u, 0xFC94u }, /* ARABIC LIGATURE YEH WITH NOON FINAL FORM */
+  }},
+};
+
+
+static const struct ligature_mark_set_t {
+ uint16_t first;
+ struct ligature_pairs_t {
+   uint16_t second;
+   uint16_t ligature;
+ } ligatures[5];
+} ligature_mark_table[] =
+{
+  { 0x0651u, {
+    { 0x064Cu, 0xFC5Eu }, /* ARABIC LIGATURE SHADDA WITH DAMMATAN ISOLATED FORM */
+    { 0x064Eu, 0xFC60u }, /* ARABIC LIGATURE SHADDA WITH FATHA ISOLATED FORM */
+    { 0x064Fu, 0xFC61u }, /* ARABIC LIGATURE SHADDA WITH DAMMA ISOLATED FORM */
+    { 0x0650u, 0xFC62u }, /* ARABIC LIGATURE SHADDA WITH KASRA ISOLATED FORM */
+    { 0x064Bu, 0xF2EEu }, /* PUA ARABIC LIGATURE SHADDA WITH FATHATAN ISOLATED FORM */
+  }},
+};
+
+
+static const struct ligature_3_set_t {
+ uint16_t first;
+ struct ligature_triplets_t {
+   uint16_t second;
+   uint16_t third;
+   uint16_t ligature;
+ } ligatures[3];
+} ligature_3_table[] =
+{
+  { 0xFEDFu, {
+    { 0xFEE4u, 0xFEA4u, 0xFD88u}, /* ARABIC LIGATURE LAM WITH MEEM WITH HAH INITIAL FORM */
+    { 0xFEE0u, 0xFEEAu, 0xF201u}, /* PUA ARABIC LIGATURE LELLAH ISOLATED FORM */
+    { 0xFEE4u, 0xFEA0u, 0xF211u}, /* PUA ARABIC LIGATURE LAM WITH MEEM WITH JEEM INITIAL FORM */
   }},
 };
 

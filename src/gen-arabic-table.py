@@ -195,7 +195,7 @@ def print_shaping_table(f):
 				items = items[:0:-1]
 				shape = None
 			# We only care about a subset of ligatures
-			if c not in LIGATURES or len (items) != 2:
+			if c not in LIGATURES:
 				continue
 
 			# Save ligature
@@ -231,24 +231,45 @@ def print_shaping_table(f):
 	print ("#define SHAPING_TABLE_LAST	0x%04Xu" % max_u)
 	print ()
 
-	ligas = {}
-	for pair in ligatures.keys ():
-		for shape in ligatures[pair]:
-			c = ligatures[pair][shape]
-			if shape is None:
-				liga = pair
-			elif shape == 'isolated':
-				liga = (shapes[pair[0]]['initial'], shapes[pair[1]]['final'])
-			elif shape == 'final':
-				liga = (shapes[pair[0]]['medial'], shapes[pair[1]]['final'])
-			elif shape == 'initial':
-				liga = (shapes[pair[0]]['initial'], shapes[pair[1]]['medial'])
+	ligas_2 = {}
+	ligas_3 = {}
+	ligas_mark_2 = {}
+	for key in ligatures.keys ():
+		for shape in ligatures[key]:
+			c = ligatures[key][shape]
+			if len(key) == 3:
+				if shape == 'isolated':
+					liga = (shapes[key[0]]['initial'], shapes[key[1]]['medial'], shapes[key[2]]['final'])
+				elif shape == 'final':
+					liga = (shapes[key[0]]['medial'], shapes[key[1]]['medial'], shapes[key[2]]['final'])
+				elif shape == 'initial':
+					liga = (shapes[key[0]]['initial'], shapes[key[1]]['medial'], shapes[key[2]]['medial'])
+				else:
+					raise Exception ("Unexpected shape", shape)
+				if liga[0] not in ligas_3:
+					ligas_3[liga[0]] = []
+				ligas_3[liga[0]].append ((liga[1], liga[2], c))
+			elif len(key) == 2:
+				if shape is None:
+					liga = key
+					if liga[0] not in ligas_mark_2:
+						ligas_mark_2[liga[0]] = []
+					ligas_mark_2[liga[0]].append ((liga[1], c))
+					continue
+				elif shape == 'isolated':
+					liga = (shapes[key[0]]['initial'], shapes[key[1]]['final'])
+				elif shape == 'final':
+					liga = (shapes[key[0]]['medial'], shapes[key[1]]['final'])
+				elif shape == 'initial':
+					liga = (shapes[key[0]]['initial'], shapes[key[1]]['medial'])
+				else:
+					raise Exception ("Unexpected shape", shape)
+				if liga[0] not in ligas_2:
+					ligas_2[liga[0]] = []
+				ligas_2[liga[0]].append ((liga[1], c))
 			else:
-				raise Exception ("Unexpected shape", shape)
-			if liga[0] not in ligas:
-				ligas[liga[0]] = []
-			ligas[liga[0]].append ((liga[1], c))
-	max_i = max (len (ligas[l]) for l in ligas)
+				raise Exception ("Unexpected number of ligature components", key)
+	max_i = max (len (ligas_2[l]) for l in ligas_2)
 	print ()
 	print ("static const struct ligature_set_t {")
 	print (" uint16_t first;")
@@ -258,11 +279,52 @@ def print_shaping_table(f):
 	print (" } ligatures[%d];" % max_i)
 	print ("} ligature_table[] =")
 	print ("{")
-	for first in sorted (ligas.keys ()):
+	for first in sorted (ligas_2.keys ()):
 
 		print ("  { 0x%04Xu, {" % (first))
-		for liga in ligas[first]:
+		for liga in ligas_2[first]:
 			print ("    { 0x%04Xu, 0x%04Xu }, /* %s */" % (liga[0], liga[1], names[liga[1]]))
+		print ("  }},")
+
+	print ("};")
+	print ()
+
+	max_i = max (len (ligas_mark_2[l]) for l in ligas_mark_2)
+	print ()
+	print ("static const struct ligature_mark_set_t {")
+	print (" uint16_t first;")
+	print (" struct ligature_pairs_t {")
+	print ("   uint16_t second;")
+	print ("   uint16_t ligature;")
+	print (" } ligatures[%d];" % max_i)
+	print ("} ligature_mark_table[] =")
+	print ("{")
+	for first in sorted (ligas_mark_2.keys ()):
+
+		print ("  { 0x%04Xu, {" % (first))
+		for liga in ligas_mark_2[first]:
+			print ("    { 0x%04Xu, 0x%04Xu }, /* %s */" % (liga[0], liga[1], names[liga[1]]))
+		print ("  }},")
+
+	print ("};")
+	print ()
+
+	max_i = max (len (ligas_3[l]) for l in ligas_3)
+	print ()
+	print ("static const struct ligature_3_set_t {")
+	print (" uint16_t first;")
+	print (" struct ligature_triplets_t {")
+	print ("   uint16_t second;")
+	print ("   uint16_t third;")
+	print ("   uint16_t ligature;")
+	print (" } ligatures[%d];" % max_i)
+	print ("} ligature_3_table[] =")
+	print ("{")
+	for first in sorted (ligas_3.keys ()):
+
+		print ("  { 0x%04Xu, {" % (first))
+		for liga in ligas_3[first]:
+			print ("    { 0x%04Xu, 0x%04Xu, 0x%04Xu}, /* %s */" % (liga[0], liga[1], liga[2], names[liga[2]]))
 		print ("  }},")
 
 	print ("};")
