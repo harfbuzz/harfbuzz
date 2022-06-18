@@ -144,19 +144,24 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 
     for (unsigned int ligature_idx = 0; ligature_idx < ARRAY_LENGTH (ligature_table[0].ligatures); ligature_idx++)
     {
-      hb_codepoint_t second_u   = ligature_table[first_glyph_idx].ligatures[ligature_idx].components[0];
       hb_codepoint_t ligature_u = ligature_table[first_glyph_idx].ligatures[ligature_idx].ligature;
-      hb_codepoint_t second_glyph, ligature_glyph;
-      if (!second_u ||
-	  !hb_font_get_glyph (font, second_u,   0, &second_glyph) ||
-	  !hb_font_get_glyph (font, ligature_u, 0, &ligature_glyph))
+      hb_codepoint_t ligature_glyph;
+      if (!hb_font_get_glyph (font, ligature_u, 0, &ligature_glyph))
 	continue;
+
+      hb_codepoint_t second_u   = ligature_table[first_glyph_idx].ligatures[ligature_idx].components[0];
+      hb_codepoint_t second_glyph;
+      if (!second_u ||
+	  !hb_font_get_glyph (font, second_u,   0, &second_glyph))
+	continue;
+
+      component_list[num_ligatures] = second_glyph;
+      component_count_list[num_ligatures] = 2;
+
+      ligature_list[num_ligatures] = ligature_glyph;
 
       ligature_per_first_glyph_count_list[i]++;
 
-      ligature_list[num_ligatures] = ligature_glyph;
-      component_count_list[num_ligatures] = 2;
-      component_list[num_ligatures] = second_glyph;
       num_ligatures++;
     }
   }
