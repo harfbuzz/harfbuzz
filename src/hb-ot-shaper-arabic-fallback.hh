@@ -143,7 +143,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 
     for (unsigned int second_glyph_idx = 0; second_glyph_idx < ARRAY_LENGTH (ligature_table[0].ligatures); second_glyph_idx++)
     {
-      hb_codepoint_t second_u   = ligature_table[first_glyph_idx].ligatures[second_glyph_idx].second;
+      hb_codepoint_t second_u   = ligature_table[first_glyph_idx].ligatures[second_glyph_idx].components[0];
       hb_codepoint_t ligature_u = ligature_table[first_glyph_idx].ligatures[second_glyph_idx].ligature;
       hb_codepoint_t second_glyph, ligature_glyph;
       if (!second_u ||

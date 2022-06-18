@@ -274,7 +274,7 @@ def print_shaping_table(f):
 	print ("static const struct ligature_set_t {")
 	print (" uint16_t first;")
 	print (" struct ligature_pairs_t {")
-	print ("   uint16_t second;")
+	print ("   uint16_t components[1];")
 	print ("   uint16_t ligature;")
 	print (" } ligatures[%d];" % max_i)
 	print ("} ligature_table[] =")
@@ -283,7 +283,7 @@ def print_shaping_table(f):
 
 		print ("  { 0x%04Xu, {" % (first))
 		for liga in ligas_2[first]:
-			print ("    { 0x%04Xu, 0x%04Xu }, /* %s */" % (liga[0], liga[1], names[liga[1]]))
+			print ("    { {0x%04Xu}, 0x%04Xu }, /* %s */" % (liga[0], liga[1], names[liga[1]]))
 		print ("  }},")
 
 	print ("};")
@@ -294,7 +294,7 @@ def print_shaping_table(f):
 	print ("static const struct ligature_mark_set_t {")
 	print (" uint16_t first;")
 	print (" struct ligature_pairs_t {")
-	print ("   uint16_t second;")
+	print ("   uint16_t components[1];")
 	print ("   uint16_t ligature;")
 	print (" } ligatures[%d];" % max_i)
 	print ("} ligature_mark_table[] =")
@@ -303,7 +303,7 @@ def print_shaping_table(f):
 
 		print ("  { 0x%04Xu, {" % (first))
 		for liga in ligas_mark_2[first]:
-			print ("    { 0x%04Xu, 0x%04Xu }, /* %s */" % (liga[0], liga[1], names[liga[1]]))
+			print ("    { {0x%04Xu}, 0x%04Xu }, /* %s */" % (liga[0], liga[1], names[liga[1]]))
 		print ("  }},")
 
 	print ("};")
@@ -314,8 +314,7 @@ def print_shaping_table(f):
 	print ("static const struct ligature_3_set_t {")
 	print (" uint16_t first;")
 	print (" struct ligature_triplets_t {")
-	print ("   uint16_t second;")
-	print ("   uint16_t third;")
+	print ("   uint16_t components[2];")
 	print ("   uint16_t ligature;")
 	print (" } ligatures[%d];" % max_i)
 	print ("} ligature_3_table[] =")
@@ -324,7 +323,7 @@ def print_shaping_table(f):
 
 		print ("  { 0x%04Xu, {" % (first))
 		for liga in ligas_3[first]:
-			print ("    { 0x%04Xu, 0x%04Xu, 0x%04Xu}, /* %s */" % (liga[0], liga[1], liga[2], names[liga[2]]))
+			print ("    { {0x%04Xu, 0x%04Xu}, 0x%04Xu}, /* %s */" % (liga[0], liga[1], liga[2], names[liga[2]]))
 		print ("  }},")
 
 	print ("};")
