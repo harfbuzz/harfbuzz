@@ -45,7 +45,8 @@ static const hb_tag_t arabic_fallback_features[] =
   HB_TAG('m','e','d','i'),
   HB_TAG('f','i','n','a'),
   HB_TAG('i','s','o','l'),
-  HB_TAG('r','l','i','g'), // Main ligatures
+  HB_TAG('r','l','i','g'), // 3-letter ligatures
+  HB_TAG('r','l','i','g'), // 2-letter ligatures
   HB_TAG('r','l','i','g'), // Mark ligatures
 };
 
@@ -187,7 +188,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
 					 hb_array (ligature_per_first_glyph_count_list, num_first_glyphs),
 					 hb_array (ligature_list, num_ligatures),
 					 hb_array (component_count_list, num_ligatures),
-					 hb_array (component_list, num_ligatures));
+					 hb_array (component_list, num_components));
   c.end_serialize ();
 
   return ret && !c.in_error () ? c.copy<OT::SubstLookup> () : nullptr;
@@ -203,8 +204,9 @@ arabic_fallback_synthesize_lookup (const hb_ot_shape_plan_t *plan,
   else
   {
     switch (feature_index) {
-      case 4: return arabic_fallback_synthesize_lookup_ligature (plan, font, ligature_table, OT::LookupFlag::IgnoreMarks);
-      case 5: return arabic_fallback_synthesize_lookup_ligature (plan, font, ligature_mark_table, 0);
+      case 4: return arabic_fallback_synthesize_lookup_ligature (plan, font, ligature_3_table, OT::LookupFlag::IgnoreMarks);
+      case 5: return arabic_fallback_synthesize_lookup_ligature (plan, font, ligature_table, OT::LookupFlag::IgnoreMarks);
+      case 6: return arabic_fallback_synthesize_lookup_ligature (plan, font, ligature_mark_table, 0);
     }
   }
   assert (false);
