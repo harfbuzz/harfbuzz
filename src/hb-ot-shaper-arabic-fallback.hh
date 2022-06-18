@@ -112,10 +112,11 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   unsigned int ligature_per_first_glyph_count_list[ARRAY_LENGTH_CONST (first_glyphs)];
   unsigned int num_first_glyphs = 0;
 
-  /* We know that all our ligatures are 2-component */
+  /* We know that all our ligatures have the same number of components. */
   OT::HBGlyphID16 ligature_list[ARRAY_LENGTH_CONST (first_glyphs) * ARRAY_LENGTH_CONST(ligature_table[0].ligatures)];
   unsigned int component_count_list[ARRAY_LENGTH_CONST (ligature_list)];
-  OT::HBGlyphID16 component_list[ARRAY_LENGTH_CONST (ligature_list) * 1/* One extra component per ligature */];
+  OT::HBGlyphID16 component_list[ARRAY_LENGTH_CONST (ligature_list) *
+				 ARRAY_LENGTH_CONST (ligature_table[0].ligatures[0].components)];
   unsigned int num_ligatures = 0;
 
   /* Populate arrays */
@@ -141,10 +142,10 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   {
     unsigned int first_glyph_idx = first_glyphs_indirection[i];
 
-    for (unsigned int second_glyph_idx = 0; second_glyph_idx < ARRAY_LENGTH (ligature_table[0].ligatures); second_glyph_idx++)
+    for (unsigned int ligature_idx = 0; ligature_idx < ARRAY_LENGTH (ligature_table[0].ligatures); ligature_idx++)
     {
-      hb_codepoint_t second_u   = ligature_table[first_glyph_idx].ligatures[second_glyph_idx].components[0];
-      hb_codepoint_t ligature_u = ligature_table[first_glyph_idx].ligatures[second_glyph_idx].ligature;
+      hb_codepoint_t second_u   = ligature_table[first_glyph_idx].ligatures[ligature_idx].components[0];
+      hb_codepoint_t ligature_u = ligature_table[first_glyph_idx].ligatures[ligature_idx].ligature;
       hb_codepoint_t second_glyph, ligature_glyph;
       if (!second_u ||
 	  !hb_font_get_glyph (font, second_u,   0, &second_glyph) ||
