@@ -34,14 +34,19 @@
 
 
 /* Features ordered the same as the entries in shaping_table rows,
- * followed by rlig.  Don't change. */
+ * followed by rlig.  Don't change.
+ *
+ * We currently support one subtable per lookup, and one lookup
+ * per feature.  But we allow duplicate features, so we use that!
+ */
 static const hb_tag_t arabic_fallback_features[] =
 {
   HB_TAG('i','n','i','t'),
   HB_TAG('m','e','d','i'),
   HB_TAG('f','i','n','a'),
   HB_TAG('i','s','o','l'),
-  HB_TAG('r','l','i','g'),
+  HB_TAG('r','l','i','g'), // Main ligatures
+  HB_TAG('r','l','i','g'), // Mark ligatures
 };
 
 static OT::SubstLookup *
@@ -95,9 +100,12 @@ arabic_fallback_synthesize_lookup_single (const hb_ot_shape_plan_t *plan HB_UNUS
   return ret && !c.in_error () ? c.copy<OT::SubstLookup> () : nullptr;
 }
 
+template <typename T>
 static OT::SubstLookup *
 arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UNUSED,
-					    hb_font_t *font)
+					    hb_font_t *font,
+					    const T &ligature_table,
+					    unsigned lookup_flags)
 {
   OT::HBGlyphID16 first_glyphs[ARRAY_LENGTH_CONST (ligature_table)];
   unsigned int first_glyphs_indirection[ARRAY_LENGTH_CONST (ligature_table)];
@@ -161,7 +169,7 @@ arabic_fallback_synthesize_lookup_ligature (const hb_ot_shape_plan_t *plan HB_UN
   hb_serialize_context_t c (buf, sizeof (buf));
   OT::SubstLookup *lookup = c.start_serialize<OT::SubstLookup> ();
   bool ret = lookup->serialize_ligature (&c,
-					 OT::LookupFlag::IgnoreMarks,
+					 lookup_flags,
 					 hb_sorted_array (first_glyphs, num_first_glyphs),
 					 hb_array (ligature_per_first_glyph_count_list, num_first_glyphs),
 					 hb_array (ligature_list, num_ligatures),
@@ -180,10 +188,16 @@ arabic_fallback_synthesize_lookup (const hb_ot_shape_plan_t *plan,
   if (feature_index < 4)
     return arabic_fallback_synthesize_lookup_single (plan, font, feature_index);
   else
-    return arabic_fallback_synthesize_lookup_ligature (plan, font);
+  {
+    switch (feature_index) {
+      case 4: return arabic_fallback_synthesize_lookup_ligature (plan, font, ligature_table, OT::LookupFlag::IgnoreMarks);
+      case 5: return arabic_fallback_synthesize_lookup_ligature (plan, font, ligature_mark_table, 0);
+    }
+  }
+  assert (false);
 }
 
-#define ARABIC_FALLBACK_MAX_LOOKUPS 5
+#define ARABIC_FALLBACK_MAX_LOOKUPS ARRAY_LENGTH_CONST (arabic_fallback_features)
 
 struct arabic_fallback_plan_t
 {
@@ -262,7 +276,7 @@ arabic_fallback_plan_init_unicode (arabic_fallback_plan_t *fallback_plan,
 				   const hb_ot_shape_plan_t *plan,
 				   hb_font_t *font)
 {
-  static_assert ((ARRAY_LENGTH_CONST(arabic_fallback_features) <= ARABIC_FALLBACK_MAX_LOOKUPS), "");
+  static_assert ((ARRAY_LENGTH_CONST (arabic_fallback_features) <= ARABIC_FALLBACK_MAX_LOOKUPS), "");
   unsigned int j = 0;
   for (unsigned int i = 0; i < ARRAY_LENGTH(arabic_fallback_features) ; i++)
   {
