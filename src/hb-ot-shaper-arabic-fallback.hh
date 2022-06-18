@@ -45,9 +45,9 @@ static const hb_tag_t arabic_fallback_features[] =
   HB_TAG('m','e','d','i'),
   HB_TAG('f','i','n','a'),
   HB_TAG('i','s','o','l'),
-  HB_TAG('r','l','i','g'), // 3-letter ligatures
-  HB_TAG('r','l','i','g'), // 2-letter ligatures
-  HB_TAG('r','l','i','g'), // Mark ligatures
+  HB_TAG('r','l','i','g'),
+  HB_TAG('r','l','i','g'),
+  HB_TAG('r','l','i','g'),
 };
 
 static OT::SubstLookup *
@@ -258,7 +258,7 @@ arabic_fallback_plan_init_win1256 (arabic_fallback_plan_t *fallback_plan HB_UNUS
     return false;
 
   const Manifest &manifest = reinterpret_cast<const Manifest&> (arabic_win1256_gsub_lookups.manifest);
-  static_assert (sizeof (arabic_win1256_gsub_lookups.manifestData) ==
+  static_assert (sizeof (arabic_win1256_gsub_lookups.manifestData) <=
 		 ARABIC_FALLBACK_MAX_LOOKUPS * sizeof (ManifestLookup), "");
 
   unsigned j = 0;
