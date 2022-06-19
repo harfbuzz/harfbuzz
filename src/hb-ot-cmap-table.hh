@@ -1747,12 +1747,14 @@ struct cmap
 	case OS2::font_page_t::FONT_PAGE_NONE:
 	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_remap_symbol_pua>;
 	  break;
+#ifndef HB_NO_OT_SHAPER_ARABIC_FALLBACK
 	case OS2::font_page_t::FONT_PAGE_SIMP_ARABIC:
 	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_remap_arabic_pua1>;
 	  break;
 	case OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
 	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_remap_arabic_pua2>;
 	  break;
+#endif
 	default:
 	  this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;
 	  break;

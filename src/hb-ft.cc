@@ -324,12 +324,14 @@ hb_ft_get_nominal_glyph (hb_font_t *font,
 	   * under "Non-Standard (Symbol) Fonts". */
 	  g = FT_Get_Char_Index (ft_font->ft_face, 0xF000u + unicode);
 	break;
+#ifndef HB_NO_OT_SHAPER_ARABIC_FALLBACK
       case OT::OS2::font_page_t::FONT_PAGE_SIMP_ARABIC:
 	g = FT_Get_Char_Index (ft_font->ft_face, _hb_remap_arabic_pua1 (unicode));
 	break;
       case OT::OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
 	g = FT_Get_Char_Index (ft_font->ft_face, _hb_remap_arabic_pua2 (unicode));
 	break;
+#endif
       default:
 	break;
       }
