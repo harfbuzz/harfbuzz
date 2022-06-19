@@ -315,7 +315,7 @@ hb_ft_get_nominal_glyph (hb_font_t *font,
     if (unlikely (ft_font->symbol))
     {
       switch ((unsigned) font->face->table.OS2->get_font_page ()) {
-      default:
+      case OT::OS2::font_page_t::FONT_PAGE_NONE:
 	if (unicode <= 0x00FFu)
 	  /* For symbol-encoded OpenType fonts, we duplicate the
 	   * U+F000..F0FF range at U+0000..U+00FF.  That's what
@@ -329,6 +329,8 @@ hb_ft_get_nominal_glyph (hb_font_t *font,
 	break;
       case OT::OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
 	g = FT_Get_Char_Index (ft_font->ft_face, _hb_remap_arabic_pua2 (unicode));
+	break;
+      default:
 	break;
       }
       if (!g)

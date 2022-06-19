@@ -1744,7 +1744,7 @@ struct cmap
       if (unlikely (symbol))
       {
 	switch ((unsigned) face->table.OS2->get_font_page ()) {
-	default:
+	case OS2::font_page_t::FONT_PAGE_NONE:
 	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_remap_symbol_pua>;
 	  break;
 	case OS2::font_page_t::FONT_PAGE_SIMP_ARABIC:
@@ -1752,6 +1752,9 @@ struct cmap
 	  break;
 	case OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
 	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_remap_arabic_pua2>;
+	  break;
+	default:
+	  this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;
 	  break;
 	}
       }
