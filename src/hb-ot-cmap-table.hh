@@ -1505,7 +1505,7 @@ struct SubtableUnicodesCache {
 };
 
 static inline hb_codepoint_t
-_hb_remap_symbol_pua (hb_codepoint_t codepoint)
+_hb_symbol_pua_map (hb_codepoint_t codepoint)
 {
   if (codepoint <= 0x00FFu)
   {
@@ -1745,14 +1745,14 @@ struct cmap
       {
 	switch ((unsigned) face->table.OS2->get_font_page ()) {
 	case OS2::font_page_t::FONT_PAGE_NONE:
-	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_remap_symbol_pua>;
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_symbol_pua_map>;
 	  break;
 #ifndef HB_NO_OT_SHAPER_ARABIC_FALLBACK
 	case OS2::font_page_t::FONT_PAGE_SIMP_ARABIC:
-	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_remap_arabic_pua1>;
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_simp_map>;
 	  break;
 	case OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
-	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_remap_arabic_pua2>;
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_trad_map>;
 	  break;
 #endif
 	default:

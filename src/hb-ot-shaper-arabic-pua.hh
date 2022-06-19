@@ -2,7 +2,7 @@
 #ifndef HB_OT_SHAPER_ARABIC_PUA_HH
 #define HB_OT_SHAPER_ARABIC_PUA_HH
 
-static const uint16_t _arabic_table_pua1[][128] = {
+static const uint16_t _arabic_table_pua_simp[][128] = {
   { /* 0x0000u..0x007Fu */
     0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u,
     0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u,
@@ -96,17 +96,17 @@ static const uint16_t _arabic_table_pua1[][128] = {
 };
 
 static inline hb_codepoint_t
-_hb_remap_arabic_pua1(hb_codepoint_t codepoint)
+_hb_arabic_pua_simp_map (hb_codepoint_t codepoint)
 {
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0000u, 0x007Fu)) return _arabic_table_pua1[0][codepoint];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0080u, 0x00FFu)) return _arabic_table_pua1[1][codepoint - 0x0080u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0600u, 0x067Fu)) return _arabic_table_pua1[2][codepoint - 0x0600u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0x2000u, 0x207Fu)) return _arabic_table_pua1[3][codepoint - 0x2000u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFE80u, 0xFEFFu)) return _arabic_table_pua1[4][codepoint - 0xFE80u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0000u, 0x007Fu)) return _arabic_table_pua_simp[0][codepoint];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0080u, 0x00FFu)) return _arabic_table_pua_simp[1][codepoint - 0x0080u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0600u, 0x067Fu)) return _arabic_table_pua_simp[2][codepoint - 0x0600u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0x2000u, 0x207Fu)) return _arabic_table_pua_simp[3][codepoint - 0x2000u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFE80u, 0xFEFFu)) return _arabic_table_pua_simp[4][codepoint - 0xFE80u];
   return 0;
 }
 
-static const uint16_t _arabic_table_pua2[][128] = {
+static const uint16_t _arabic_table_pua_trad[][128] = {
   { /* 0x0000u..0x007Fu */
     0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u,
     0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u, 0x0000u,
@@ -272,17 +272,17 @@ static const uint16_t _arabic_table_pua2[][128] = {
 };
 
 static inline hb_codepoint_t
-_hb_remap_arabic_pua2(hb_codepoint_t codepoint)
+_hb_arabic_pua_trad_map (hb_codepoint_t codepoint)
 {
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0000u, 0x007Fu)) return _arabic_table_pua2[0][codepoint];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0080u, 0x00FFu)) return _arabic_table_pua2[1][codepoint - 0x0080u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0600u, 0x067Fu)) return _arabic_table_pua2[2][codepoint - 0x0600u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0x2000u, 0x207Fu)) return _arabic_table_pua2[3][codepoint - 0x2000u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFBD0u, 0xFC4Fu)) return _arabic_table_pua2[4][codepoint - 0xFBD0u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFC50u, 0xFCCFu)) return _arabic_table_pua2[5][codepoint - 0xFC50u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFCD0u, 0xFD4Fu)) return _arabic_table_pua2[6][codepoint - 0xFCD0u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFD50u, 0xFDCFu)) return _arabic_table_pua2[7][codepoint - 0xFD50u];
-  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFE80u, 0xFEFFu)) return _arabic_table_pua2[8][codepoint - 0xFE80u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0000u, 0x007Fu)) return _arabic_table_pua_trad[0][codepoint];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0080u, 0x00FFu)) return _arabic_table_pua_trad[1][codepoint - 0x0080u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0x0600u, 0x067Fu)) return _arabic_table_pua_trad[2][codepoint - 0x0600u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0x2000u, 0x207Fu)) return _arabic_table_pua_trad[3][codepoint - 0x2000u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFBD0u, 0xFC4Fu)) return _arabic_table_pua_trad[4][codepoint - 0xFBD0u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFC50u, 0xFCCFu)) return _arabic_table_pua_trad[5][codepoint - 0xFC50u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFCD0u, 0xFD4Fu)) return _arabic_table_pua_trad[6][codepoint - 0xFCD0u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFD50u, 0xFDCFu)) return _arabic_table_pua_trad[7][codepoint - 0xFD50u];
+  if (hb_in_range<hb_codepoint_t> (codepoint, 0xFE80u, 0xFEFFu)) return _arabic_table_pua_trad[8][codepoint - 0xFE80u];
   return 0;
 }
 
