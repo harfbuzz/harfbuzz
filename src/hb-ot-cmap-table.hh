@@ -1504,8 +1504,8 @@ struct SubtableUnicodesCache {
 
 };
 
-static inline hb_codepoint_t
-_hb_symbol_pua_map (hb_codepoint_t codepoint)
+static inline uint_fast16_t
+_hb_symbol_pua_map (unsigned codepoint)
 {
   if (codepoint <= 0x00FFu)
   {
@@ -1841,7 +1841,7 @@ struct cmap
     typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					      hb_codepoint_t codepoint,
 					      hb_codepoint_t *glyph);
-    typedef hb_codepoint_t (*hb_pua_remap_func_t) (hb_codepoint_t);
+    typedef uint_fast16_t (*hb_pua_remap_func_t) (unsigned);
 
     template <typename Type>
     HB_INTERNAL static bool get_glyph_from (const void *obj,
