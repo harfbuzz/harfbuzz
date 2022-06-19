@@ -27,6 +27,8 @@
 #ifndef HB_OT_CMAP_TABLE_HH
 #define HB_OT_CMAP_TABLE_HH
 
+#include "hb-ot-os2-table.hh"
+#include "hb-ot-shaper-arabic-pua.hh"
 #include "hb-open-type.hh"
 #include "hb-set.hh"
 
@@ -1502,6 +1504,21 @@ struct SubtableUnicodesCache {
 
 };
 
+static inline hb_codepoint_t
+_hb_symbol_pua_map (hb_codepoint_t codepoint)
+{
+  if (codepoint <= 0x00FFu)
+  {
+    /* For symbol-encoded OpenType fonts, we duplicate the
+     * U+F000..F0FF range at U+0000..U+00FF.  That's what
+     * Windows seems to do, and that's hinted about at:
+     * https://docs.microsoft.com/en-us/typography/opentype/spec/recom
+     * under "Non-Standard (Symbol) Fonts". */
+    return 0xF000u + codepoint;
+  }
+  return 0;
+}
+
 struct cmap
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_cmap;
@@ -1725,7 +1742,24 @@ struct cmap
 
       this->get_glyph_data = subtable;
       if (unlikely (symbol))
-	this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable>;
+      {
+	switch ((unsigned) face->table.OS2->get_font_page ()) {
+	case OS2::font_page_t::FONT_PAGE_NONE:
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_symbol_pua_map>;
+	  break;
+#ifndef HB_NO_OT_SHAPER_ARABIC_FALLBACK
+	case OS2::font_page_t::FONT_PAGE_SIMP_ARABIC:
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_simp_map>;
+	  break;
+	case OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
+	  this->get_glyph_funcZ = get_glyph_from_symbol<CmapSubtable, _hb_arabic_pua_trad_map>;
+	  break;
+#endif
+	default:
+	  this->get_glyph_funcZ = get_glyph_from<CmapSubtable>;
+	  break;
+	}
+      }
       else
       {
 	switch (subtable->u.format) {
@@ -1807,6 +1841,7 @@ struct cmap
     typedef bool (*hb_cmap_get_glyph_func_t) (const void *obj,
 					      hb_codepoint_t codepoint,
 					      hb_codepoint_t *glyph);
+    typedef hb_codepoint_t (*hb_pua_remap_func_t) (hb_codepoint_t);
 
     template <typename Type>
     HB_INTERNAL static bool get_glyph_from (const void *obj,
@@ -1817,7 +1852,7 @@ struct cmap
       return typed_obj->get_glyph (codepoint, glyph);
     }
 
-    template <typename Type>
+    template <typename Type, hb_pua_remap_func_t remap>
     HB_INTERNAL static bool get_glyph_from_symbol (const void *obj,
 						   hb_codepoint_t codepoint,
 						   hb_codepoint_t *glyph)
@@ -1826,15 +1861,8 @@ struct cmap
       if (likely (typed_obj->get_glyph (codepoint, glyph)))
 	return true;
 
-      if (codepoint <= 0x00FFu)
-      {
-	/* For symbol-encoded OpenType fonts, we duplicate the
-	 * U+F000..F0FF range at U+0000..U+00FF.  That's what
-	 * Windows seems to do, and that's hinted about at:
-	 * https://docs.microsoft.com/en-us/typography/opentype/spec/recom
-	 * under "Non-Standard (Symbol) Fonts". */
-	return typed_obj->get_glyph (0xF000u + codepoint, glyph);
-      }
+      if (hb_codepoint_t c = remap (codepoint))
+	return typed_obj->get_glyph (c, glyph);
 
       return false;
     }

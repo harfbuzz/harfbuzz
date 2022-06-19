@@ -37,6 +37,8 @@
 #include "hb-font.hh"
 #include "hb-machinery.hh"
 #include "hb-cache.hh"
+#include "hb-ot-os2-table.hh"
+#include "hb-ot-shaper-arabic-pua.hh"
 
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
@@ -298,7 +300,7 @@ hb_ft_font_unlock_face (hb_font_t *font)
 
 
 static hb_bool_t
-hb_ft_get_nominal_glyph (hb_font_t *font HB_UNUSED,
+hb_ft_get_nominal_glyph (hb_font_t *font,
 			 void *font_data,
 			 hb_codepoint_t unicode,
 			 hb_codepoint_t *glyph,
@@ -310,14 +312,29 @@ hb_ft_get_nominal_glyph (hb_font_t *font HB_UNUSED,
 
   if (unlikely (!g))
   {
-    if (unlikely (ft_font->symbol) && unicode <= 0x00FFu)
+    if (unlikely (ft_font->symbol))
     {
-      /* For symbol-encoded OpenType fonts, we duplicate the
-       * U+F000..F0FF range at U+0000..U+00FF.  That's what
-       * Windows seems to do, and that's hinted about at:
-       * https://docs.microsoft.com/en-us/typography/opentype/spec/recom
-       * under "Non-Standard (Symbol) Fonts". */
-      g = FT_Get_Char_Index (ft_font->ft_face, 0xF000u + unicode);
+      switch ((unsigned) font->face->table.OS2->get_font_page ()) {
+      case OT::OS2::font_page_t::FONT_PAGE_NONE:
+	if (unicode <= 0x00FFu)
+	  /* For symbol-encoded OpenType fonts, we duplicate the
+	   * U+F000..F0FF range at U+0000..U+00FF.  That's what
+	   * Windows seems to do, and that's hinted about at:
+	   * https://docs.microsoft.com/en-us/typography/opentype/spec/recom
+	   * under "Non-Standard (Symbol) Fonts". */
+	  g = FT_Get_Char_Index (ft_font->ft_face, 0xF000u + unicode);
+	break;
+#ifndef HB_NO_OT_SHAPER_ARABIC_FALLBACK
+      case OT::OS2::font_page_t::FONT_PAGE_SIMP_ARABIC:
+	g = FT_Get_Char_Index (ft_font->ft_face, _hb_arabic_pua_simp_map (unicode));
+	break;
+      case OT::OS2::font_page_t::FONT_PAGE_TRAD_ARABIC:
+	g = FT_Get_Char_Index (ft_font->ft_face, _hb_arabic_pua_trad_map (unicode));
+	break;
+#endif
+      default:
+	break;
+      }
       if (!g)
 	return false;
     }
