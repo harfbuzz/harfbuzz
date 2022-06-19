@@ -210,6 +210,7 @@ arabic_fallback_synthesize_lookup (const hb_ot_shape_plan_t *plan,
     }
   }
   assert (false);
+  return nullptr;
 }
 
 #define ARABIC_FALLBACK_MAX_LOOKUPS ARRAY_LENGTH_CONST (arabic_fallback_features)
