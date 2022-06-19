@@ -143,8 +143,7 @@ decompose (const hb_ot_shape_normalize_context_t *c, bool shortest, hb_codepoint
     return 1;
   }
 
-  unsigned int ret;
-  if ((ret = decompose (c, shortest, a))) {
+  if (unsigned ret = decompose (c, shortest, a)) {
     if (b) {
       output_char (buffer, b, b_glyph);
       return ret + 1;
