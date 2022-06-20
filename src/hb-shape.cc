@@ -50,7 +50,7 @@
 
 static inline void free_static_shaper_list ();
 
-static const char *nil_shaper_list[] = {nullptr};
+static const char * const nil_shaper_list[] = {nullptr};
 
 static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
 							      hb_shaper_list_lazy_loader_t>
@@ -74,7 +74,7 @@ static struct hb_shaper_list_lazy_loader_t : hb_lazy_loader_t<const char *,
   static void destroy (const char **l)
   { hb_free (l); }
   static const char ** get_null ()
-  { return nil_shaper_list; }
+  { return (const char **) nil_shaper_list; }
 } static_shaper_list;
 
 static inline
