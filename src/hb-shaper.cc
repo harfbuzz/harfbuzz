@@ -40,7 +40,7 @@ static_assert (0 != ARRAY_LENGTH_CONST (_hb_all_shapers), "No shaper enabled.");
 
 static inline void free_static_shapers ();
 
-static struct hb_shapers_lazy_loader_t : hb_lazy_loader_t<const hb_shaper_entry_t,
+static struct hb_shapers_lazy_loader_t : hb_lazy_loader_t<hb_shaper_entry_t,
 							  hb_shapers_lazy_loader_t>
 {
   static hb_shaper_entry_t *create ()
@@ -85,7 +85,7 @@ static struct hb_shapers_lazy_loader_t : hb_lazy_loader_t<const hb_shaper_entry_
 
     return shapers;
   }
-  static void destroy (const hb_shaper_entry_t *p) { hb_free ((void *) p); }
+  static void destroy (hb_shaper_entry_t *p) { hb_free (p); }
   static const hb_shaper_entry_t *get_null ()      { return _hb_all_shapers; }
 } static_shapers;
 
