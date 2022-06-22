@@ -359,10 +359,10 @@ block_best (const biimage_t &bi, bool *inverse)
 	case 8:  c = "▗"; inv = false; break;
 	case 9:  c = "▚"; inv = false; break;
 	case 6:  c = "▞"; inv = false; break;
-	case 7:  c = "▜"; inv = true;  break;
-	case 11: c = "▜"; inv = true;  break;
-	case 13: c = "▙"; inv = true;  break;
-	case 14: c = "▟"; inv = true;  break;
+	case 7:  c = "▛"; inv = false;  break;
+	case 11: c = "▜"; inv = false;  break;
+	case 13: c = "▙"; inv = false;  break;
+	case 14: c = "▟"; inv = false;  break;
       }
       if (c) {
 	score = qs;
