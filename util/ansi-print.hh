@@ -175,9 +175,9 @@ struct biimage_t
     for (unsigned int i = 1; i < 8; i++)
       if (freq[bg] < freq[i])
 	bg = i;
-    fg = 0;
-    for (unsigned int i = 1; i < 8; i++)
-      if (i != bg && freq[fg] < freq[i])
+    fg = 8;
+    for (unsigned int i = 0; i < 8; i++)
+      if (i != bg && (fg == 8 || freq[fg] < freq[i]))
 	fg = i;
     if (fg == bg || freq[fg] == 0) {
       fg = bg;
