@@ -106,6 +106,14 @@ struct avar
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_avar;
 
+  bool has_data () const { return version.to_int (); }
+
+  const SegmentMaps* get_segment_maps () const
+  { return &firstAxisSegmentMaps; }
+
+  unsigned get_axis_count () const
+  { return axisCount; }
+
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);

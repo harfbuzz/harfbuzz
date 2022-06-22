@@ -107,6 +107,9 @@ struct hb_subset_plan_t
   hb_map_t *layout_variation_idx_map;
 
   hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>>* sanitized_table_cache;
+  //normalized axes location map
+  hb_hashmap_t<hb_tag_t, int> *axes_location;
+  bool all_axes_pinned;
 
  public:
 

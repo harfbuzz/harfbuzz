@@ -154,6 +154,21 @@ HB_EXTERN void
 hb_subset_input_set_flags (hb_subset_input_t *input,
 			   unsigned value);
 
+#ifdef HB_EXPERIMENTAL_API
+#ifndef HB_NO_VAR
+HB_EXTERN hb_bool_t
+hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
+				     hb_face_t          *face,
+				     hb_tag_t            axis_tag);
+
+HB_EXTERN hb_bool_t
+hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
+				   hb_face_t          *face,
+				   hb_tag_t            axis_tag,
+				   float               axis_value);
+#endif
+#endif
+
 HB_EXTERN hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
 

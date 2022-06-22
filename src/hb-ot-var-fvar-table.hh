@@ -96,6 +96,8 @@ struct AxisRecord
     info->reserved = 0;
   }
 
+  hb_tag_t get_axis_tag () const { return axisTag; }
+
   int normalize_axis_value (float v) const
   {
     float min_value, default_value, max_value;
