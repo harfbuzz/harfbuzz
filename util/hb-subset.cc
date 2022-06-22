@@ -648,6 +648,73 @@ parse_drop_tables (const char *name,
   return true;
 }
 
+#ifdef HB_EXPERIMENTAL_API
+#ifndef HB_NO_VAR
+static gboolean
+parse_instance (const char *name,
+		const char *arg,
+		gpointer    data,
+		GError    **error)
+{
+  subset_main_t *subset_main = (subset_main_t *) data;
+  
+  char *s = strtok((char *) arg, "=");
+  while (s)
+  {
+    unsigned len = strlen (s);
+    if (len > 4)  //Axis tags are 4 bytes.
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Failed parsing axis tag at: '%s'", s);
+      return false;
+    }
+
+    hb_tag_t axis_tag = hb_tag_from_string (s, len);
+
+    s = strtok(nullptr, ", ");
+    if (!s)
+    {
+      g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+		   "Value not specified for axis: %c%c%c%c", HB_UNTAG (axis_tag));
+      return false;
+    }
+
+    if (strcmp (s, "drop") == 0)
+    {
+      if (!hb_subset_input_pin_axis_to_default (subset_main->input, subset_main->face, axis_tag))
+      {
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
+        return false;
+      }
+    }
+    else
+    {
+      errno = 0;
+      char *p;
+      float axis_value = strtof (s, &p);
+      if (errno || s == p)
+      {
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Failed parsing axis value at: '%s'", s);
+        return false;
+      }
+
+      if (!hb_subset_input_pin_axis_location (subset_main->input, subset_main->face, axis_tag, axis_value))
+      {
+        g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+                     "Cannot pin axis: '%c%c%c%c', not present in fvar", HB_UNTAG (axis_tag));
+        return false;
+      }
+    }
+    s = strtok(nullptr, "=");
+  }
+
+  return true;
+}
+#endif
+#endif
+
 template <GOptionArgFunc line_parser, bool allow_comments=true>
 static gboolean
 parse_file_for (const char *name,
@@ -818,7 +885,18 @@ subset_main_t::add_options ()
     {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables. Use --drop-tables-=... to subtract from the current set.", "list of string table tags or *"},
     {"drop-tables+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
     {"drop-tables-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
+#ifdef HB_EXPERIMENTAL_API
+#ifndef HB_NO_VAR
+    {"instance",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_instance,
+     "(Partially|Fully) Instantiate a variable font. A location consists of the tag of a variation axis, followed by '=', followed by a\n"
+     "number or the literal string 'drop'\n"
+     "                                                       "
+     "For example: --instance=\"wdth=100 wght=200\" or --instance=\"wdth=drop\"\n"
+     "Note: currently only fully instancing to the default location is supported\n",
+     "list of comma separated axis-locations"},
     {nullptr}
+#endif
+#endif
   };
   add_group (other_entries,
 	     "subset-other",

@@ -361,6 +361,8 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
   switch (tag)
   {
   case HB_TAG ('c','v','a','r'): /* hint table, fallthrough */
+    return plan->all_axes_pinned || (plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
+
   case HB_TAG ('c','v','t',' '): /* hint table, fallthrough */
   case HB_TAG ('f','p','g','m'): /* hint table, fallthrough */
   case HB_TAG ('p','r','e','p'): /* hint table, fallthrough */
@@ -379,6 +381,14 @@ _should_drop_table (hb_subset_plan_t *plan, hb_tag_t tag)
   case HB_TAG ('k','e','r','n'):
     return true;
 #endif
+
+  case HB_TAG ('a','v','a','r'):
+  case HB_TAG ('f','v','a','r'):
+  case HB_TAG ('g','v','a','r'):
+  case HB_OT_TAG_HVAR:
+  case HB_OT_TAG_VVAR:
+  case HB_TAG ('M','V','A','R'):
+    return plan->all_axes_pinned;
 
   default:
     return false;

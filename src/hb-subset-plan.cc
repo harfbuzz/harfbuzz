@@ -37,6 +37,7 @@
 #include "hb-ot-color-colr-table.hh"
 #include "hb-ot-color-colrv1-closure.hh"
 #include "hb-ot-var-fvar-table.hh"
+#include "hb-ot-var-avar-table.hh"
 #include "hb-ot-stat-table.hh"
 #include "hb-ot-math-table.hh"
 
@@ -585,6 +586,48 @@ _nameid_closure (hb_face_t *face,
 #endif
 }
 
+
+static void
+_normalize_axes_location (hb_face_t *face,
+			  const hb_hashmap_t<hb_tag_t, float> *user_axes_location,
+			  hb_hashmap_t<hb_tag_t, int> *normalized_axes_location, /* OUT */
+			  bool &all_axes_pinned)
+{
+  if (user_axes_location->is_empty ())
+    return;
+
+  hb_array_t<const OT::AxisRecord> axes = face->table.fvar->get_axes ();
+
+  bool has_avar = face->table.avar->has_data ();
+  const OT::SegmentMaps *seg_maps = nullptr;
+  if (has_avar)
+    seg_maps = face->table.avar->get_segment_maps ();
+
+  bool axis_not_pinned = false;
+  unsigned axis_count = 0;
+  for (const auto& axis : axes)
+  {
+    hb_tag_t axis_tag = axis.get_axis_tag ();
+    if (!user_axes_location->has (axis_tag))
+    {
+      axis_not_pinned = true;
+    }
+    else
+    {
+      int normalized_v = axis.normalize_axis_value (user_axes_location->get (axis_tag));
+      if (has_avar && axis_count < face->table.avar->get_axis_count ())
+      {
+        normalized_v = seg_maps->map (normalized_v);
+      }
+      normalized_axes_location->set (axis_tag, normalized_v);
+    }
+    if (has_avar)
+      seg_maps = &StructAfter<OT::SegmentMaps> (*seg_maps);
+    
+    axis_count++;
+  }
+  all_axes_pinned = !axis_not_pinned;
+}
 /**
  * hb_subset_plan_create_or_fail:
  * @face: font face to create the plan for.
@@ -636,10 +679,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->gsub_lookups = hb_map_create ();
   plan->gpos_lookups = hb_map_create ();
 
-  if (plan->check_success (plan->gsub_langsys = hb_object_create<script_langsys_map> ()))
-    plan->gsub_langsys->init_shallow ();
-  if (plan->check_success (plan->gpos_langsys = hb_object_create<script_langsys_map> ()))
-    plan->gpos_langsys->init_shallow ();
+  plan->check_success (plan->gsub_langsys = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
+  plan->check_success (plan->gpos_langsys = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
 
   plan->gsub_features = hb_map_create ();
   plan->gpos_features = hb_map_create ();
@@ -648,10 +689,9 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->layout_variation_indices = hb_set_create ();
   plan->layout_variation_idx_map = hb_map_create ();
 
-
-  if ((plan->sanitized_table_cache = hb_object_create<hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>>> ())) {
-    plan->sanitized_table_cache->init_shallow ();
-  }
+  plan->check_success (plan->sanitized_table_cache = hb_hashmap_create<hb_tag_t, hb::unique_ptr<hb_blob_t>> ());
+  plan->check_success (plan->axes_location = hb_hashmap_create<hb_tag_t, int> ());
+  plan->all_axes_pinned = false;
 
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
@@ -684,6 +724,11 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
     plan->unicode_to_new_gid_list.arrayZ[i].second =
         plan->glyph_map->get(plan->unicode_to_new_gid_list.arrayZ[i].second);
   }
+
+  _normalize_axes_location (face,
+                            input->axes_location,
+                            plan->axes_location,
+                            plan->all_axes_pinned);
 
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
@@ -734,25 +779,10 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_set_destroy (plan->layout_variation_indices);
   hb_map_destroy (plan->layout_variation_idx_map);
 
-  if (plan->gsub_langsys)
-  {
-    hb_object_destroy (plan->gsub_langsys);
-    plan->gsub_langsys->fini_shallow ();
-    hb_free (plan->gsub_langsys);
-  }
-
-  if (plan->gpos_langsys)
-  {
-    hb_object_destroy (plan->gpos_langsys);
-    plan->gpos_langsys->fini_shallow ();
-    hb_free (plan->gpos_langsys);
-  }
-
-  if (plan->sanitized_table_cache) {
-    hb_object_destroy (plan->sanitized_table_cache);
-    plan->sanitized_table_cache->fini ();
-    hb_free (plan->sanitized_table_cache);
-  }
+  hb_hashmap_destroy (plan->gsub_langsys);
+  hb_hashmap_destroy (plan->gpos_langsys);
+  hb_hashmap_destroy (plan->axes_location);
+  hb_hashmap_destroy (plan->sanitized_table_cache);
 
   hb_free (plan);
 }

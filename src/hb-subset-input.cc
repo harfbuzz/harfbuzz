@@ -48,7 +48,10 @@ hb_subset_input_create_or_fail (void)
   for (auto& set : input->sets_iter ())
     set = hb_set_create ();
 
-  if (input->in_error ())
+  if ((input->axes_location = hb_object_create<hb_hashmap_t<hb_tag_t, float>> ()))
+    input->axes_location->init_shallow ();
+  
+  if (!input->axes_location || input->in_error ())
   {
     hb_subset_input_destroy (input);
     return nullptr;
@@ -246,6 +249,13 @@ hb_subset_input_destroy (hb_subset_input_t *input)
   for (hb_set_t* set : input->sets_iter ())
     hb_set_destroy (set);
 
+  if (input->axes_location)
+  {
+    hb_object_destroy (input->axes_location);
+    input->axes_location->fini_shallow ();
+    hb_free (input->axes_location);
+  }
+
   hb_free (input);
 }
 
@@ -376,3 +386,56 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
 {
   return hb_object_get_user_data (input, key);
 }
+
+#ifdef HB_EXPERIMENTAL_API
+#ifndef HB_NO_VAR
+/**
+ * hb_subset_input_pin_axis_to_default: (skip)
+ * @input: a #hb_subset_input_t object.
+ * @axis_tag: Tag of the axis to be pinned
+ *
+ * Pin an axis to its default location in the given subset input object.
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
+                                     hb_face_t          *face,
+                                     hb_tag_t            axis_tag)
+{
+  hb_ot_var_axis_info_t axis_info;
+  if (!hb_ot_var_find_axis_info (face, axis_tag, &axis_info))
+    return false;
+
+  return input->axes_location->set (axis_tag, axis_info.default_value);
+}
+
+/**
+ * hb_subset_input_pin_axis_location: (skip)
+ * @input: a #hb_subset_input_t object.
+ * @axis_tag: Tag of the axis to be pinned
+ * @axis_value: Location on the axis to be pinned at
+ *
+ * Pin an axis to a fixed location in the given subset input object.
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
+                                   hb_face_t          *face,
+                                   hb_tag_t            axis_tag,
+                                   float               axis_value)
+{
+  hb_ot_var_axis_info_t axis_info;
+  if (!hb_ot_var_find_axis_info (face, axis_tag, &axis_info))
+    return false;
+
+  float val = hb_clamp(axis_value, axis_info.min_value, axis_info.max_value);
+  return input->axes_location->set (axis_tag, val);
+}
+#endif
+#endif
