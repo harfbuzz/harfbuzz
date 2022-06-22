@@ -196,11 +196,11 @@ struct biimage_t
     color_t bgc = color_t::from_ansi (bg);
     color_t fgc = color_t::from_ansi (fg);
     color_diff_t diff = fgc.diff (bgc);
-    int dd = sqrt (diff.dot (diff));
+    double dd = sqrt (diff.dot (diff));
     for (unsigned int y = 0; y < height; y++)
       for (unsigned int x = 0; x < width; x++) {
-	int d = sqrt (diff.dot (image (x, y).diff (bgc)));
-	(*this)(x, y) = d < 0 ? 0 : d > dd ? 255 : lround (d * 255. / dd);
+	double d = sqrt (diff.dot (image (x, y).diff (bgc)));
+	(*this)(x, y) = d <= 0 ? 0 : d >= dd ? 255 : lround (d / dd * 255.);
       }
   }
 
