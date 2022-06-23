@@ -179,7 +179,7 @@ struct biimage_t
     for (unsigned int i = 0; i < 8; i++)
       if (i != bg && (fg == 8 || freq[fg] < freq[i]))
 	fg = i;
-    if (fg == bg || freq[fg] == 0) {
+    if (freq[fg] == 0) {
       fg = bg;
       unicolor = true;
     }
