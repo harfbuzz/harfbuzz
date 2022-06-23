@@ -1524,7 +1524,9 @@ preprocess_text_indic (const hb_ot_shape_plan_t *plan,
 		       hb_buffer_t              *buffer,
 		       hb_font_t                *font)
 {
-  _hb_preprocess_text_vowel_constraints (plan, buffer, font);
+  const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
+  if (!indic_plan->uniscribe_bug_compatible)
+    _hb_preprocess_text_vowel_constraints (plan, buffer, font);
 }
 
 static bool
