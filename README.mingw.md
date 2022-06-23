@@ -45,3 +45,8 @@ but if you like to shape with the Microsoft Uniscribe:
 5. `WINEDLLOVERRIDES="usp10=n" wine hb-shape.exe fontname.ttf -u 0061,0062,0063 --shaper=uniscribe`
 
 (`0061,0062,0063` means `abc`, use test/shaping/hb-unicode-decode to generate ones you need)
+
+When you have built that, you can test HarfBuzz's native shaper against Uniscribe
+following these instructions:
+
+  https://github.com/harfbuzz/harfbuzz/issues/3671
