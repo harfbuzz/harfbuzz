@@ -43,7 +43,7 @@ using graph::graph_t;
  */
 
 static inline
-bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record_t>& overflows,
+bool _try_isolating_subgraphs (const hb_vector_t<graph::overflow_record_t>& overflows,
                                graph_t& sorted_graph)
 {
   unsigned space = 0;
@@ -51,7 +51,7 @@ bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record_t>& ov
 
   for (int i = overflows.length - 1; i >= 0; i--)
   {
-    const graph_t::overflow_record_t& r = overflows[i];
+    const graph::overflow_record_t& r = overflows[i];
 
     unsigned root;
     unsigned overflow_space = sorted_graph.space_for (r.parent, &root);
@@ -93,7 +93,7 @@ bool _try_isolating_subgraphs (const hb_vector_t<graph_t::overflow_record_t>& ov
 }
 
 static inline
-bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& overflows,
+bool _process_overflows (const hb_vector_t<graph::overflow_record_t>& overflows,
                          hb_set_t& priority_bumped_parents,
                          graph_t& sorted_graph)
 {
@@ -102,7 +102,7 @@ bool _process_overflows (const hb_vector_t<graph_t::overflow_record_t>& overflow
   // Try resolving the furthest overflows first.
   for (int i = overflows.length - 1; i >= 0; i--)
   {
-    const graph_t::overflow_record_t& r = overflows[i];
+    const graph::overflow_record_t& r = overflows[i];
     const auto& child = sorted_graph.vertices_[r.child];
     if (child.is_shared ())
     {
@@ -161,14 +161,15 @@ hb_resolve_overflows (const T& packed,
   graph_t sorted_graph (packed);
   sorted_graph.sort_shortest_distance ();
 
-  if (!sorted_graph.will_overflow ())
+  bool will_overflow = graph::will_overflow (sorted_graph);
+  if (!will_overflow)
   {
     return graph::serialize (sorted_graph);
   }
 
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
-      && sorted_graph.will_overflow ())
+      && will_overflow)
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
     if (sorted_graph.assign_32bit_spaces ())
@@ -176,13 +177,13 @@ hb_resolve_overflows (const T& packed,
   }
 
   unsigned round = 0;
-  hb_vector_t<graph_t::overflow_record_t> overflows;
+  hb_vector_t<graph::overflow_record_t> overflows;
   // TODO(garretrieger): select a good limit for max rounds.
   while (!sorted_graph.in_error ()
-         && sorted_graph.will_overflow (&overflows)
+         && graph::will_overflow (sorted_graph, &overflows)
          && round++ < max_rounds) {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "=== Overflow resolution round %d ===", round);
-    sorted_graph.print_overflows (overflows);
+    print_overflows (sorted_graph, overflows);
 
     hb_set_t priority_bumped_parents;
 
@@ -204,7 +205,7 @@ hb_resolve_overflows (const T& packed,
     return nullptr;
   }
 
-  if (sorted_graph.will_overflow ())
+  if (graph::will_overflow (sorted_graph))
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Offset overflow resolution failed.");
     return nullptr;
