@@ -277,6 +277,7 @@ static void
 override_features_indic (hb_ot_shape_planner_t *plan)
 {
   plan->map.disable_feature (HB_TAG('l','i','g','a'));
+  plan->map.add_gsub_pause (hb_syllabic_clear_var); // Don't need syllables anymore, use stop to free buffer var
 }
 
 
