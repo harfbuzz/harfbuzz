@@ -29,6 +29,10 @@
 
 namespace graph {
 
+/**
+ * Represents a serialized table in the form of a graph.
+ * Provides methods for modifying and reordering the graph.
+ */
 struct graph_t
 {
   struct vertex_t
