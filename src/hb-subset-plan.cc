@@ -41,7 +41,7 @@
 #include "hb-ot-math-table.hh"
 
 using OT::Layout::GSUB::GSUB;
-
+using OT::Layout::GPOS::GPOS;
 
 typedef hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> script_langsys_map;
 #ifndef HB_NO_SUBSET_CFF
@@ -204,7 +204,7 @@ static inline void
 				     hb_map_t  *layout_variation_idx_map)
 {
   hb_blob_ptr_t<OT::GDEF> gdef = hb_sanitize_context_t ().reference_table<OT::GDEF> (face);
-  hb_blob_ptr_t<OT::GPOS> gpos = hb_sanitize_context_t ().reference_table<OT::GPOS> (face);
+  hb_blob_ptr_t<GPOS> gpos = hb_sanitize_context_t ().reference_table<GPOS> (face);
 
   if (!gdef->has_data ())
   {
@@ -403,7 +403,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         plan->gsub_langsys);
 
   if (close_over_gpos)
-    _closure_glyphs_lookups_features<OT::GPOS> (
+    _closure_glyphs_lookups_features<GPOS> (
         plan->source,
         plan->_glyphset_gsub,
         plan->layout_features,

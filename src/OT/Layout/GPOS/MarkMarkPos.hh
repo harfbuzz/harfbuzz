@@ -1,18 +1,18 @@
-#ifndef OT_LAYOUT_GPOS_MARKLIGPOS_HH
-#define OT_LAYOUT_GPOS_MARKLIGPOS_HH
+#ifndef OT_LAYOUT_GPOS_MARKMARKPOS_HH
+#define OT_LAYOUT_GPOS_MARKMARKPOS_HH
 
-#include "MarkLigPosFormat1.hh"
+#include "MarkMarkPosFormat1.hh"
 
 namespace OT {
 namespace Layout {
 namespace GPOS {
 
-struct MarkLigPos
+struct MarkMarkPos
 {
   protected:
   union {
   HBUINT16              format;         /* Format identifier */
-  MarkLigPosFormat1     format1;
+  MarkMarkPosFormat1    format1;
   } u;
 
   public:
@@ -28,8 +28,9 @@ struct MarkLigPos
   }
 };
 
+
 }
 }
 }
 
-#endif /* OT_LAYOUT_GPOS_MARKLIGPOS_HH */
+#endif /* OT_LAYOUT_GPOS_MARKMARKPOS_HH */
