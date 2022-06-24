@@ -129,12 +129,6 @@ struct graph_t
     }
   };
 
-  struct overflow_record_t
-  {
-    unsigned parent;
-    unsigned child;
-  };
-
   /*
    * A topological sorting of an object graph. Ordered
    * in reverse serialization order (first object in the
@@ -548,36 +542,6 @@ struct graph_t
     return made_change;
   }
 
-  /*
-   * Will any offsets overflow on graph when it's serialized?
-   */
-  bool will_overflow (hb_vector_t<overflow_record_t>* overflows = nullptr)
-  {
-    if (overflows) overflows->resize (0);
-    update_positions ();
-
-    for (int parent_idx = vertices_.length - 1; parent_idx >= 0; parent_idx--)
-    {
-      // Don't need to check virtual links for overflow
-      for (const auto& link : vertices_[parent_idx].obj.real_links)
-      {
-        int64_t offset = compute_offset (parent_idx, link);
-        if (is_valid_offset (offset, link))
-          continue;
-
-        if (!overflows) return true;
-
-        overflow_record_t r;
-        r.parent = parent_idx;
-        r.child = link.objidx;
-        overflows->push (r);
-      }
-    }
-
-    if (!overflows) return false;
-    return overflows->length;
-  }
-
   void print_orphaned_nodes ()
   {
     if (!DEBUG_ENABLED(SUBSET_REPACK)) return;
@@ -591,35 +555,6 @@ struct graph_t
       const auto& v = vertices_[i];
       if (!v.parents)
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Node %u is orphaned.", i);
-    }
-  }
-
-  void print_overflows (const hb_vector_t<overflow_record_t>& overflows)
-  {
-    if (!DEBUG_ENABLED(SUBSET_REPACK)) return;
-
-    update_parents ();
-    int limit = 10;
-    for (const auto& o : overflows)
-    {
-      if (!limit--) break;
-      const auto& parent = vertices_[o.parent];
-      const auto& child = vertices_[o.child];
-      DEBUG_MSG (SUBSET_REPACK, nullptr,
-                 "  overflow from "
-                 "%4d (%4d in, %4d out, space %2d) => "
-                 "%4d (%4d in, %4d out, space %2d)",
-                 o.parent,
-                 parent.incoming_edges (),
-                 parent.obj.real_links.length + parent.obj.virtual_links.length,
-                 space_for (o.parent),
-                 o.child,
-                 child.incoming_edges (),
-                 child.obj.real_links.length + child.obj.virtual_links.length,
-                 space_for (o.child));
-    }
-    if (overflows.length > 10) {
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "  ... plus %d more overflows.", overflows.length - 10);
     }
   }
 
@@ -710,6 +645,7 @@ struct graph_t
   bool check_success (bool success)
   { return this->successful && (success || ((void) err_other_error (), false)); }
 
+ public:
   /*
    * Creates a map from objid to # of incoming edges.
    */
@@ -818,52 +754,7 @@ struct graph_t
     distance_invalid = false;
   }
 
-  int64_t compute_offset (
-      unsigned parent_idx,
-      const hb_serialize_context_t::object_t::link_t& link) const
-  {
-    const auto& parent = vertices_[parent_idx];
-    const auto& child = vertices_[link.objidx];
-    int64_t offset = 0;
-    switch ((hb_serialize_context_t::whence_t) link.whence) {
-      case hb_serialize_context_t::whence_t::Head:
-        offset = child.start - parent.start; break;
-      case hb_serialize_context_t::whence_t::Tail:
-        offset = child.start - parent.end; break;
-      case hb_serialize_context_t::whence_t::Absolute:
-        offset = child.start; break;
-    }
-
-    assert (offset >= link.bias);
-    offset -= link.bias;
-    return offset;
-  }
-
-  bool is_valid_offset (int64_t offset,
-                        const hb_serialize_context_t::object_t::link_t& link) const
-  {
-    if (unlikely (!link.width))
-      // Virtual links can't overflow.
-      return link.is_signed || offset >= 0;
-
-    if (link.is_signed)
-    {
-      if (link.width == 4)
-        return offset >= -((int64_t) 1 << 31) && offset < ((int64_t) 1 << 31);
-      else
-        return offset >= -(1 << 15) && offset < (1 << 15);
-    }
-    else
-    {
-      if (link.width == 4)
-        return offset >= 0 && offset < ((int64_t) 1 << 32);
-      else if (link.width == 3)
-        return offset >= 0 && offset < ((int32_t) 1 << 24);
-      else
-        return offset >= 0 && offset < (1 << 16);
-    }
-  }
-
+ private:
   /*
    * Updates a link in the graph to point to a different object. Corrects the
    * parents vector on the previous and new child nodes.
