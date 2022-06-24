@@ -6,6 +6,10 @@
 #include "CursivePos.hh"
 #include "MarkBasePos.hh"
 #include "MarkLigPos.hh"
+#include "MarkMarkPos.hh"
+#include "ContextPos.hh"
+#include "ChainContextPos.hh"
+#include "ExtensionPos.hh"
 
 namespace OT {
 namespace Layout {
@@ -13,7 +17,7 @@ namespace GPOS {
 
 struct PosLookupSubTable
 {
-  friend struct Lookup;
+  friend struct ::OT::Lookup;
   friend struct PosLookup;
 
   enum Type {

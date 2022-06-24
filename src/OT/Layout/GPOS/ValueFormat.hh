@@ -1,6 +1,8 @@
 #ifndef OT_LAYOUT_GPOS_VALUEFORMAT_HH
 #define OT_LAYOUT_GPOS_VALUEFORMAT_HH
 
+#include "../../../hb-ot-layout-gsubgpos.hh"
+
 namespace OT {
 namespace Layout {
 namespace GPOS {

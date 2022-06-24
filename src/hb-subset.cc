@@ -56,6 +56,7 @@
 #include "hb-repacker.hh"
 
 using OT::Layout::GSUB::GSUB;
+using OT::Layout::GPOS::GPOS;
 
 /**
  * SECTION:hb-subset
@@ -432,7 +433,7 @@ _subset_table (hb_subset_plan_t *plan,
 #ifndef HB_NO_SUBSET_LAYOUT
   case HB_OT_TAG_GDEF: return _subset<const OT::GDEF> (plan, buf);
   case HB_OT_TAG_GSUB: return _subset<const GSUB> (plan, buf);
-  case HB_OT_TAG_GPOS: return _subset<const OT::GPOS> (plan, buf);
+  case HB_OT_TAG_GPOS: return _subset<const GPOS> (plan, buf);
   case HB_OT_TAG_gvar: return _subset<const OT::gvar> (plan, buf);
   case HB_OT_TAG_HVAR: return _subset<const OT::HVAR> (plan, buf);
   case HB_OT_TAG_VVAR: return _subset<const OT::VVAR> (plan, buf);

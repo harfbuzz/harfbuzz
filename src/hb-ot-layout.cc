@@ -55,6 +55,7 @@
 #include "hb-aat-layout-opbd-table.hh" // Just so we compile it; unused otherwise.
 
 using OT::Layout::GSUB::GSUB;
+using OT::Layout::GPOS::GPOS;
 
 /**
  * SECTION:hb-ot-layout
@@ -400,7 +401,7 @@ GSUB::is_blocklisted (hb_blob_t *blob HB_UNUSED,
 }
 
 bool
-OT::GPOS::is_blocklisted (hb_blob_t *blob HB_UNUSED,
+GPOS::is_blocklisted (hb_blob_t *blob HB_UNUSED,
 			  hb_face_t *face HB_UNUSED) const
 {
 #ifdef HB_NO_OT_LAYOUT_BLOCKLIST
@@ -1550,7 +1551,7 @@ hb_ot_layout_lookups_substitute_closure (hb_face_t      *face,
 }
 
 /*
- * OT::GPOS
+ * GPOS
  */
 
 
@@ -1581,7 +1582,7 @@ hb_ot_layout_has_positioning (hb_face_t *face)
 void
 hb_ot_layout_position_start (hb_font_t *font, hb_buffer_t *buffer)
 {
-  OT::GPOS::position_start (font, buffer);
+  GPOS::position_start (font, buffer);
 }
 
 
@@ -1596,7 +1597,7 @@ hb_ot_layout_position_start (hb_font_t *font, hb_buffer_t *buffer)
 void
 hb_ot_layout_position_finish_advances (hb_font_t *font, hb_buffer_t *buffer)
 {
-  OT::GPOS::position_finish_advances (font, buffer);
+  GPOS::position_finish_advances (font, buffer);
 }
 
 /**
@@ -1610,7 +1611,7 @@ hb_ot_layout_position_finish_advances (hb_font_t *font, hb_buffer_t *buffer)
 void
 hb_ot_layout_position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
 {
-  OT::GPOS::position_finish_offsets (font, buffer);
+  GPOS::position_finish_offsets (font, buffer);
 }
 
 
@@ -1645,7 +1646,7 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
 			      unsigned int    *range_start,       /* OUT.  May be NULL */
 			      unsigned int    *range_end          /* OUT.  May be NULL */)
 {
-  const OT::GPOS &gpos = *face->table.GPOS->table;
+  const GPOS &gpos = *face->table.GPOS->table;
   const hb_tag_t tag = HB_TAG ('s','i','z','e');
 
   unsigned int num_features = gpos.get_feature_count ();
@@ -1817,7 +1818,7 @@ struct GPOSProxy
     table (*face->table.GPOS->table),
     accels (face->table.GPOS->accels) {}
 
-  const OT::GPOS &table;
+  const GPOS &table;
   const OT::hb_ot_layout_lookup_accelerator_t *accels;
 };
 

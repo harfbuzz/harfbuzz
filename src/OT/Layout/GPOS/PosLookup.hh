@@ -72,7 +72,6 @@ struct PosLookup : Lookup
   { return Lookup::sanitize<SubTable> (c); }
 };
 
-
 }
 }
 }

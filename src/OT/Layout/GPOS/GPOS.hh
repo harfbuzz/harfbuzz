@@ -1,14 +1,21 @@
 #ifndef OT_LAYOUT_GPOS_GPOS_HH
 #define OT_LAYOUT_GPOS_GPOS_HH
 
-// TODO(garretrieger): move to new layout.
 #include "../../../hb-ot-layout-common.hh"
 #include "../../../hb-ot-layout-gsubgpos.hh"
+#include "Common.hh"
 #include "PosLookup.hh"
 
 namespace OT {
 namespace Layout {
 namespace GPOS {
+
+static void
+propagate_attachment_offsets (hb_glyph_position_t *pos,
+                              unsigned int len,
+                              unsigned int i,
+                              hb_direction_t direction,
+                              unsigned nesting_level = HB_MAX_NESTING_LEVEL);
 
 /*
  * GPOS -- Glyph Positioning
@@ -58,12 +65,104 @@ struct GPOS : GSUBGPOS
   typedef GSUBGPOS::accelerator_t<GPOS> accelerator_t;
 };
 
+
+static void
+propagate_attachment_offsets (hb_glyph_position_t *pos,
+                              unsigned int len,
+                              unsigned int i,
+                              hb_direction_t direction)
+{
+  /* Adjusts offsets of attached glyphs (both cursive and mark) to accumulate
+   * offset of glyph they are attached to. */
+  int chain = pos[i].attach_chain(), type = pos[i].attach_type();
+  if (likely (!chain))
+    return;
+
+  pos[i].attach_chain() = 0;
+
+  unsigned int j = (int) i + chain;
+
+  if (unlikely (j >= len))
+    return;
+
+  if (unlikely (!nesting_level))
+    return;
+
+  propagate_attachment_offsets (pos, len, j, direction, nesting_level - 1);
+
+  assert (!!(type & ATTACH_TYPE_MARK) ^ !!(type & ATTACH_TYPE_CURSIVE));
+
+  if (type & ATTACH_TYPE_CURSIVE)
+  {
+    if (HB_DIRECTION_IS_HORIZONTAL (direction))
+      pos[i].y_offset += pos[j].y_offset;
+    else
+      pos[i].x_offset += pos[j].x_offset;
+  }
+  else /*if (type & ATTACH_TYPE_MARK)*/
+  {
+    pos[i].x_offset += pos[j].x_offset;
+    pos[i].y_offset += pos[j].y_offset;
+
+    assert (j < i);
+    if (HB_DIRECTION_IS_FORWARD (direction))
+      for (unsigned int k = j; k < i; k++) {
+        pos[i].x_offset -= pos[k].x_advance;
+        pos[i].y_offset -= pos[k].y_advance;
+      }
+    else
+      for (unsigned int k = j + 1; k < i + 1; k++) {
+        pos[i].x_offset += pos[k].x_advance;
+        pos[i].y_offset += pos[k].y_advance;
+      }
+  }
+}
+
+void
+GPOS::position_start (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer)
+{
+  unsigned int count = buffer->len;
+  for (unsigned int i = 0; i < count; i++)
+    buffer->pos[i].attach_chain() = buffer->pos[i].attach_type() = 0;
+}
+
+void
+GPOS::position_finish_advances (hb_font_t *font HB_UNUSED, hb_buffer_t *buffer HB_UNUSED)
+{
+  //_hb_buffer_assert_gsubgpos_vars (buffer);
+}
+
+void
+GPOS::position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
+{
+  _hb_buffer_assert_gsubgpos_vars (buffer);
+
+  unsigned int len;
+  hb_glyph_position_t *pos = hb_buffer_get_glyph_positions (buffer, &len);
+  hb_direction_t direction = buffer->props.direction;
+
+  /* Handle attachments */
+  if (buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GPOS_ATTACHMENT)
+    for (unsigned i = 0; i < len; i++)
+      propagate_attachment_offsets (pos, len, i, direction);
+
+  if (unlikely (font->slant))
+  {
+    for (unsigned i = 0; i < len; i++)
+      if (unlikely (pos[i].y_offset))
+        pos[i].x_offset += _hb_roundf (font->slant_xy * pos[i].y_offset);
+  }
+}
+
 }
 }
 
 struct GPOS_accelerator_t : Layout::GPOS::GPOS::accelerator_t {
   GPOS_accelerator_t (hb_face_t *face) : Layout::GPOS::GPOS::accelerator_t (face) {}
 };
+
 }
+
+
 
 #endif  /* OT_LAYOUT_GSUB_GSUB_HH */
