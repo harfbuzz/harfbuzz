@@ -4,6 +4,8 @@
 #include "SinglePos.hh"
 #include "PairPos.hh"
 #include "CursivePos.hh"
+#include "MarkBasePos.hh"
+#include "MarkLigPos.hh"
 
 namespace OT {
 namespace Layout {
