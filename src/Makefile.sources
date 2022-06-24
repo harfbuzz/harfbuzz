@@ -301,6 +301,8 @@ HB_SUBSET_sources = \
 	hb-subset.cc \
 	hb-subset.hh \
 	hb-repacker.hh \
+	graph/graph.hh \
+	graph/serialize.hh \
 	$(NULL)
 
 HB_SUBSET_headers = \
