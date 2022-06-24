@@ -1,6 +1,8 @@
 #ifndef OT_LAYOUT_GPOS_CURSIVEPOSFORMAT1_HH
 #define OT_LAYOUT_GPOS_CURSIVEPOSFORMAT1_HH
 
+#include "Anchor.hh"
+
 namespace OT {
 namespace Layout {
 namespace GPOS {
