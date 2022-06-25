@@ -26,7 +26,6 @@ ALLOWED_BLOCKS = [
 	'Telugu',
 	'Kannada',
 	'Malayalam',
-	'Sinhala',
 	'Myanmar',
 	'Khmer',
 	'Vedic Extensions',
@@ -236,7 +235,6 @@ category_overrides = {
   0x0C30: 'Ra', # Telugu 	Reph formed only with ZWJ
   0x0CB0: 'Ra', # Kannada
   0x0D30: 'Ra', # Malayalam 	No Reph, Logical Repha
-  0x0DBB: 'Ra', # Sinhala 	Reph formed only with ZWJ
 
   # The following act more like the Bindus.
   0x0953: 'SM',
@@ -392,7 +390,6 @@ def matra_pos_right(u, block):
   if block == 'Telugu':		return  'BEFORE_SUB' if u <= 0x0C42 else 'AFTER_SUB'
   if block == 'Kannada':	return  'BEFORE_SUB' if u < 0x0CC3 or u > 0x0CD6 else 'AFTER_SUB'
   if block == 'Malayalam':	return  'AFTER_POST'
-  if block == 'Sinhala':	return  'AFTER_SUB'
   return 'AFTER_SUB'
 def matra_pos_top(u, block):
   # BENG and MLYM don't have top matras.
@@ -403,7 +400,6 @@ def matra_pos_top(u, block):
   if block == 'Tamil':		return  'AFTER_SUB'
   if block == 'Telugu':		return  'BEFORE_SUB'
   if block == 'Kannada':	return  'BEFORE_SUB'
-  if block == 'Sinhala':	return  'AFTER_SUB'
   return 'AFTER_SUB'
 def matra_pos_bottom(u, block):
   if block == 'Devanagari':	return  'AFTER_SUB'
@@ -415,7 +411,6 @@ def matra_pos_bottom(u, block):
   if block == 'Telugu':		return  'BEFORE_SUB'
   if block == 'Kannada':	return  'BEFORE_SUB'
   if block == 'Malayalam':	return  'AFTER_POST'
-  if block == 'Sinhala':	return  'AFTER_SUB'
   return "AFTER_SUB"
 def indic_matra_position(u, pos, block): # Reposition matra
   if pos == 'PRE_C':	return matra_pos_left(u, block)
