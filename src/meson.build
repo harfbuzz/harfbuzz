@@ -92,6 +92,7 @@ hb_base_sources = files(
   'hb-ot-layout-gdef-table.hh',
   'hb-ot-layout-gpos-table.hh',
   'hb-ot-layout-gsub-table.hh',
+  'OT/glyf/glyf.hh',
   'OT/Layout/GSUB/Common.hh',
   'OT/Layout/GSUB/Sequence.hh',
   'OT/Layout/GSUB/SingleSubstFormat1.hh',

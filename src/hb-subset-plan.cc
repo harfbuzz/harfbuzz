@@ -353,7 +353,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 			  bool close_over_gpos,
 			  bool close_over_gdef)
 {
-  OT::glyf::accelerator_t glyf (plan->source);
+  OT::glyf_accelerator_t glyf (plan->source);
 #ifndef HB_NO_SUBSET_CFF
   OT::cff1::accelerator_t cff (plan->source);
 #endif
