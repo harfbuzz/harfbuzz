@@ -8,41 +8,15 @@
 #include "hb-ot-var-gvar-table.hh"
 #include "hb-draw.hh"
 
+#include "OT/glyf/loca.hh"
+
 
 namespace OT {
 
 
-/*
- * loca -- Index to Location
- * https://docs.microsoft.com/en-us/typography/opentype/spec/loca
- */
-#define HB_OT_TAG_loca HB_TAG('l','o','c','a')
-
 #ifndef HB_MAX_COMPOSITE_OPERATIONS
 #define HB_MAX_COMPOSITE_OPERATIONS 100000
 #endif
-
-
-struct loca
-{
-  friend struct glyf;
-
-  static constexpr hb_tag_t tableTag = HB_OT_TAG_loca;
-
-  bool sanitize (hb_sanitize_context_t *c HB_UNUSED) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (true);
-  }
-
-  protected:
-  UnsizedArrayOf<HBUINT8>
-		dataZ;	/* Location data. */
-  public:
-  DEFINE_SIZE_MIN (0);	/* In reality, this is UNBOUNDED() type; but since we always
-			 * check the size externally, allow Null() object of it by
-			 * defining it _MIN instead. */
-};
 
 
 /*
