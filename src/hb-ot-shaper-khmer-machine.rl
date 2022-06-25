@@ -88,7 +88,7 @@ matra_group = VPre? xgroup VBlw? xgroup (joiner?.VAbv)? xgroup VPst?;
 syllable_tail = xgroup matra_group xgroup (H.c)? ygroup;
 
 
-broken_cluster =	(H.cn)* (H | syllable_tail);
+broken_cluster =	Robatic? (H.cn)* (H | syllable_tail);
 consonant_syllable =	(cn|PLACEHOLDER|DOTTEDCIRCLE) broken_cluster;
 other =			any;
 
