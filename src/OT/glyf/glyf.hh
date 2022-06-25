@@ -15,11 +15,6 @@
 namespace OT {
 
 
-#ifndef HB_MAX_COMPOSITE_OPERATIONS
-#define HB_MAX_COMPOSITE_OPERATIONS 100000
-#endif
-
-
 /*
  * glyf -- TrueType Glyph Data
  * https://docs.microsoft.com/en-us/typography/opentype/spec/glyf
@@ -451,26 +446,6 @@ struct glyf_accelerator_t
     Glyph glyph (hb_bytes_t ((const char *) this->glyf_table + start_offset,
 			     end_offset - start_offset), gid);
     return needs_padding_removal ? glyph.trim_padding () : glyph;
-  }
-
-  unsigned
-  add_gid_and_children (hb_codepoint_t gid,
-			hb_set_t *gids_to_retain,
-			unsigned depth = 0,
-			unsigned operation_count = 0) const
-  {
-    if (unlikely (depth++ > HB_MAX_NESTING_LEVEL)) return operation_count;
-    if (unlikely (operation_count++ > HB_MAX_COMPOSITE_OPERATIONS)) return operation_count;
-    /* Check if is already visited */
-    if (gids_to_retain->has (gid)) return operation_count;
-
-    gids_to_retain->add (gid);
-
-    for (auto item : glyph_for_gid (gid).get_composite_iterator ())
-      operation_count =
-	add_gid_and_children (item.get_glyph_index (), gids_to_retain, depth, operation_count);
-
-    return operation_count;
   }
 
   struct path_builder_t
