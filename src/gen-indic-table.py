@@ -41,7 +41,7 @@ files = [open (x, encoding='utf-8') for x in sys.argv[1:]]
 
 headers = [[f.readline () for i in range (2)] for f in files]
 
-data = [{} for _ in files]
+unicode_data = [{} for _ in files]
 for i, f in enumerate (files):
 	for line in f:
 
@@ -63,12 +63,12 @@ for i, f in enumerate (files):
 		t = fields[1]
 
 		for u in range (start, end + 1):
-			data[i][u] = t
+			unicode_data[i][u] = t
 
 # Merge data into one dict:
 defaults = ('Other', 'Not_Applicable', 'No_Block')
 combined = {}
-for i,d in enumerate (data):
+for i,d in enumerate (unicode_data):
 	for u,v in d.items ():
 		if i == 2 and not u in combined:
 			continue
@@ -76,8 +76,6 @@ for i,d in enumerate (data):
 			combined[u] = list (defaults)
 		combined[u][i] = v
 combined = {k:v for k,v in combined.items() if k in ALLOWED_SINGLES or v[2] in ALLOWED_BLOCKS}
-data = combined
-del combined
 
 
 # Convert categories & positions types
@@ -434,30 +432,29 @@ def position_to_category(pos):
 
 defaults = (category_map[defaults[0]], position_map[defaults[1]], defaults[2])
 
-new_data = {}
-for k, (cat, pos, block) in data.items():
+indic_data = {}
+for k, (cat, pos, block) in combined.items():
   cat = category_map[cat]
   pos = position_map[pos]
-  new_data[k] = (cat, pos, block)
-data = new_data
+  indic_data[k] = (cat, pos, block)
 
 for k,new_cat in category_overrides.items():
-  (cat, pos, block) = data.get(k, defaults)
-  data[k] = (new_cat, pos, block)
+  (cat, pos, _) = indic_data.get(k, defaults)
+  indic_data[k] = (new_cat, pos, unicode_data[2][k])
 
 # We only expect position for certain types
 positioned_categories = ('CM', 'SM', 'RS', 'H', 'M')
-for k, (cat, pos, block) in data.items():
+for k, (cat, pos, block) in indic_data.items():
   if cat not in positioned_categories:
     pos = 'END'
-    data[k] = (cat, pos, block)
+    indic_data[k] = (cat, pos, block)
 
 # Position overrides are more complicated
 
 # Keep in sync with CONSONANT_FLAGS in the shaper
 consonant_categories = ('C', 'CS', 'Ra','CM', 'V', 'PLACEHOLDER', 'DOTTEDCIRCLE')
 smvd_categories = ('SM', 'VD', 'A', 'Symbol')
-for k, (cat, pos, block) in data.items():
+for k, (cat, pos, block) in indic_data.items():
   if cat in consonant_categories:
     pos = 'BASE_C'
   elif cat == 'M':
@@ -467,15 +464,15 @@ for k, (cat, pos, block) in data.items():
       pos = indic_matra_position(u, pos, block)
   elif cat in smvd_categories:
     pos = 'SMVD';
-  data[k] = (cat, pos, block)
+  indic_data[k] = (cat, pos, block)
 
 for k,new_pos in position_overrides.items():
-  (cat, pos, block) = data.get(k, defaults)
-  data[k] = (cat, new_pos, block)
+  (cat, pos, _) = indic_data.get(k, defaults)
+  indic_data[k] = (cat, new_pos, unicode_data[2][k])
 
 
 values = [{_: 1} for _ in defaults]
-for vv in data.values():
+for vv in indic_data.values():
   for i,v in enumerate(vv):
     values[i][v] = values[i].get (v, 0) + 1
 
@@ -485,8 +482,8 @@ for vv in data.values():
 # Move the outliers NO-BREAK SPACE and DOTTED CIRCLE out
 singles = {}
 for u in ALLOWED_SINGLES:
-	singles[u] = data[u]
-	del data[u]
+	singles[u] = indic_data[u]
+	del indic_data[u]
 
 print ("/* == Start of generated table == */")
 print ("/*")
@@ -620,7 +617,7 @@ def print_block (block, start, end, data):
 	if block:
 		last_block = block
 
-uu = sorted (data.keys ())
+uu = sorted (indic_data)
 
 last = -100000
 num = 0
@@ -631,17 +628,17 @@ print ("static const uint16_t indic_table[] = {")
 for u in uu:
 	if u <= last:
 		continue
-	block = data[u][2]
+	block = indic_data[u][2]
 
 	start = u//8*8
 	end = start+1
-	while end in uu and block == data[end][2]:
+	while end in uu and block == indic_data[end][2]:
 		end += 1
 	end = (end-1)//8*8 + 7
 
 	if start != last + 1:
 		if start - last <= 1+16*3:
-			print_block (None, last+1, start-1, data)
+			print_block (None, last+1, start-1, indic_data)
 		else:
 			if last >= 0:
 				ends.append (last + 1)
@@ -651,7 +648,7 @@ for u in uu:
 			print ("#define indic_offset_0x%04xu %d" % (start, offset))
 			starts.append (start)
 
-	print_block (block, start, end, data)
+	print_block (block, start, end, indic_data)
 	last = end
 ends.append (last + 1)
 offset += ends[-1] - starts[-1]
