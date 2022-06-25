@@ -95,6 +95,7 @@ hb_base_sources = files(
   'OT/glyf/glyf.hh',
   'OT/glyf/loca.hh',
   'OT/glyf/Glyph.hh',
+  'OT/glyf/GlyphHeader.hh',
   'OT/glyf/SubsetGlyph.hh',
   'OT/Layout/GSUB/Common.hh',
   'OT/Layout/GSUB/Sequence.hh',
