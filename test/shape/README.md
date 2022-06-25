@@ -14,7 +14,7 @@ FontTools from <https://github.com/behdad/fonttools>.
 
 To use `record-test.sh`, just put it right before the `hb-shape` invocation:
 ```sh
-$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh ../../util/hb-shape font.ttf
+$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh ../../util/hb-subset ../../util/hb-shape font.ttf
 ```
 what this does is:
   * Subset the font for the sequence of Unicode characters requested,
@@ -28,7 +28,7 @@ what this does is:
     to an existing or new test file in `data/in-house/tests` using `-o`,
     e.g.:
 ```sh
-$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh -o data/in-house/tests/test-name.test ../../util/hb-shape font.ttf
+$ ./hb-unicode-encode 41 42 43 627 | ./record-test.sh -o data/in-house/tests/test-name.test ../../util/hb-subset ../../util/hb-shape font.ttf
 ```
 
 If you created a new test file, add it to `data/in-house/Makefile.sources`
