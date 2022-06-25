@@ -320,6 +320,8 @@ category_overrides = {
   0x17DD: 'Ygroup',
   0x17D3: 'Ygroup', # Just guessing. Uniscribe doesn't categorize it.
 
+  0x17D9: 'PLACEHOLDER', # https://github.com/harfbuzz/harfbuzz/issues/2384
+
 
   # Myanmar
 

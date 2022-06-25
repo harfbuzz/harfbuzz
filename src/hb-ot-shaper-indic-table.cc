@@ -87,7 +87,7 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _OT_MW   OT_MW           /*   2 chars; MW */
 #define _OT_MY   OT_MY           /*   3 chars; MY */
 #define _OT_N    OT_N            /*  17 chars; N */
-#define _OT_GB   OT_PLACEHOLDER  /* 174 chars; PLACEHOLDER */
+#define _OT_GB   OT_PLACEHOLDER  /* 175 chars; PLACEHOLDER */
 #define _OT_PT   OT_PT           /*   8 chars; PT */
 #define _OT_R    OT_Ra           /*  15 chars; Ra */
 #define _OT_Rf   OT_Repha        /*   1 chars; Repha */
@@ -110,7 +110,7 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _POS_A   POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
 #define _POS_AP  POS_AFTER_POST  /*  50 chars; AFTER_POST */
 #define _POS_AS  POS_AFTER_SUB   /*  60 chars; AFTER_SUB */
-#define _POS_C   POS_BASE_C      /* 901 chars; BASE_C */
+#define _POS_C   POS_BASE_C      /* 902 chars; BASE_C */
 #define _POS_BS  POS_BEFORE_SUB  /*  31 chars; BEFORE_SUB */
 #define _POS_B   POS_BELOW_C     /*  13 chars; BELOW_C */
 #define _POS_X   POS_END         /*  71 chars; END */
@@ -383,7 +383,7 @@ static const uint16_t indic_table[] = {
   /* 17C0 */ _(VR,R), _(VL,L), _(VL,L), _(VL,L), _(VR,R), _(VR,R), _(Xg,X), _(Yg,X),
   /* 17C8 */ _(Yg,X), _(Rt,X), _(Rt,X), _(Xg,X), _(Rt,X), _(Xg,X), _(Xg,X), _(Xg,X),
   /* 17D0 */ _(Xg,X), _(Xg,X),  _(H,X), _(Yg,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 17D8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(S,SM), _(Yg,X),  _(X,X),  _(X,X),
+  /* 17D8 */  _(X,X), _(GB,C),  _(X,X),  _(X,X), _(S,SM), _(Yg,X),  _(X,X),  _(X,X),
   /* 17E0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 17E8 */ _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
