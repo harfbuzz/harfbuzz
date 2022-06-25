@@ -52,9 +52,9 @@ struct glyf
 	       entry_size, num_offsets, entry_size * num_offsets);
 
     if (use_short_loca)
-      _write_loca (padded_offsets, 1, hb_array ((HBUINT16 *) loca_prime_data, num_offsets));
+      _write_loca (padded_offsets, true, hb_array ((HBUINT16 *) loca_prime_data, num_offsets));
     else
-      _write_loca (padded_offsets, 0, hb_array ((HBUINT32 *) loca_prime_data, num_offsets));
+      _write_loca (padded_offsets, false, hb_array ((HBUINT32 *) loca_prime_data, num_offsets));
 
     hb_blob_t *loca_blob = hb_blob_create (loca_prime_data,
 					   entry_size * num_offsets,
@@ -73,8 +73,9 @@ struct glyf
 	   hb_requires (hb_is_source_of (IteratorIn, unsigned int)),
 	   hb_requires (hb_is_sink_of (IteratorOut, unsigned))>
   static void
-  _write_loca (IteratorIn it, unsigned right_shift, IteratorOut dest)
+  _write_loca (IteratorIn it, bool short_offsets, IteratorOut dest)
   {
+    unsigned right_shift = short_offsets ? 1 : 0;
     unsigned int offset = 0;
     dest << 0;
     + it
