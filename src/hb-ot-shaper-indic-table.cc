@@ -63,7 +63,7 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define OT_IV M_Cat(IV)
 #define OT_As M_Cat(As)
 #define OT_DB M_Cat(DB)
-#define OT_GB	 M_Cat(GB)
+#define OT_GB M_Cat(GB)
 #define OT_MH M_Cat(MH)
 #define OT_MR M_Cat(MR)
 #define OT_MW M_Cat(MW)
@@ -396,13 +396,7 @@ static const uint16_t indic_table[] = {
   /* 1CD8 */ _(A,SM), _(A,SM), _(A,SM), _(A,SM), _(A,SM), _(A,SM), _(A,SM), _(A,SM),
   /* 1CE0 */ _(A,SM), _(A,SM), _(A,SM), _(A,SM), _(A,SM), _(A,SM), _(A,SM), _(A,SM),
   /* 1CE8 */ _(A,SM), _(S,SM), _(S,SM), _(S,SM), _(S,SM), _(A,SM), _(S,SM), _(S,SM),
-
-  /* No_Block */
-
   /* 1CF0 */ _(S,SM), _(S,SM),  _(C,C),  _(C,C), _(A,SM),  _(C,C),  _(C,C), _(A,SM),
-
-  /* Vedic Extensions */
-
   /* 1CF8 */ _(A,SM), _(A,SM), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
 #define indic_offset_0x2008u 1656
@@ -413,9 +407,6 @@ static const uint16_t indic_table[] = {
   /* 2008 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),_(ZWNJ,X),_(ZWJ,X),  _(X,X),  _(X,X),
   /* 2010 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),  _(X,X),
   /* 2018 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-
-  /* No_Block */
-
   /* 2020 */  _(X,X),  _(X,X), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
 #define indic_offset_0x2070u 1688
@@ -430,7 +421,7 @@ static const uint16_t indic_table[] = {
 #define indic_offset_0x25f8u 1712
 
 
-  /* No_Block */
+  /* Geometric Shapes */
 
   /* 25F8 */  _(X,X),  _(X,X),  _(X,X), _(GB,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),
 
@@ -467,12 +458,15 @@ static const uint16_t indic_table[] = {
 #define indic_offset_0xfe00u 1816
 
 
-  /* No_Block */
+  /* Variation Selectors */
 
   /* FE00 */ _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X),
   /* FE08 */ _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X),
 
 #define indic_offset_0x11300u 1832
+
+
+  /* Grantha */
 
   /* 11300 */  _(X,X),_(SM,SM),_(SM,SM),_(SM,SM),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 11308 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
