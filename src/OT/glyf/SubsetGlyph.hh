@@ -6,6 +6,7 @@
 
 
 namespace OT {
+namespace glyf_impl {
 
 
 struct SubsetGlyph
@@ -64,6 +65,7 @@ struct SubsetGlyph
 };
 
 
+} /* namespace glyf_impl */
 } /* namespace OT */
 
 

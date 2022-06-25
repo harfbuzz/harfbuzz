@@ -122,12 +122,12 @@ struct glyf
     glyf *glyf_prime = c->serializer->start_embed <glyf> ();
     if (unlikely (!c->serializer->check_success (glyf_prime))) return_trace (false);
 
-    hb_vector_t<SubsetGlyph> glyphs;
+    hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
     _populate_subset_glyphs (c->plan, &glyphs);
 
     auto padded_offsets =
     + hb_iter (glyphs)
-    | hb_map (&SubsetGlyph::padded_size)
+    | hb_map (&glyf_impl::SubsetGlyph::padded_size)
     ;
 
     unsigned max_offset = + padded_offsets | hb_reduce (hb_add, 0);
@@ -138,7 +138,7 @@ struct glyf
     if (!use_short_loca) {
       padded_offsets =
           + hb_iter (glyphs)
-          | hb_map (&SubsetGlyph::length)
+          | hb_map (&glyf_impl::SubsetGlyph::length)
           ;
     }
 
@@ -169,7 +169,7 @@ struct glyf
 
   void
   _populate_subset_glyphs (const hb_subset_plan_t   *plan,
-			   hb_vector_t<SubsetGlyph> *glyphs /* OUT */) const;
+			   hb_vector_t<glyf_impl::SubsetGlyph> *glyphs /* OUT */) const;
 
   protected:
   UnsizedArrayOf<HBUINT8>
@@ -247,8 +247,8 @@ struct glyf_accelerator_t
     /* Where to write phantoms, nullptr if not requested */
     contour_point_t *phantoms = consumer.get_phantoms_sink ();
     if (phantoms)
-      for (unsigned i = 0; i < PHANTOM_COUNT; ++i)
-	phantoms[i] = all_points[all_points.length - PHANTOM_COUNT + i];
+      for (unsigned i = 0; i < glyf_impl::PHANTOM_COUNT; ++i)
+	phantoms[i] = all_points[all_points.length - glyf_impl::PHANTOM_COUNT + i];
 
     return true;
   }
@@ -317,7 +317,7 @@ struct glyf_accelerator_t
 
     bool success = false;
 
-    contour_point_t phantoms[PHANTOM_COUNT];
+    contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
     if (likely (font->num_coords == gvar->get_axis_count ()))
       success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms));
 
@@ -329,8 +329,8 @@ struct glyf_accelerator_t
 	hmtx->get_advance (gid);
 
     float result = is_vertical
-		 ? phantoms[PHANTOM_TOP].y - phantoms[PHANTOM_BOTTOM].y
-		 : phantoms[PHANTOM_RIGHT].x - phantoms[PHANTOM_LEFT].x;
+		 ? phantoms[glyf_impl::PHANTOM_TOP].y - phantoms[glyf_impl::PHANTOM_BOTTOM].y
+		 : phantoms[glyf_impl::PHANTOM_RIGHT].x - phantoms[glyf_impl::PHANTOM_LEFT].x;
     return hb_clamp (roundf (result), 0.f, (float) UINT_MAX / 2);
   }
 
@@ -340,7 +340,7 @@ struct glyf_accelerator_t
 
     hb_glyph_extents_t extents;
 
-    contour_point_t phantoms[PHANTOM_COUNT];
+    contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
     if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms))))
       return
 #ifndef HB_NO_VERTICAL
@@ -349,8 +349,8 @@ struct glyf_accelerator_t
 	hmtx->get_side_bearing (gid);
 
     return is_vertical
-	 ? ceilf (phantoms[PHANTOM_TOP].y) - extents.y_bearing
-	 : floorf (phantoms[PHANTOM_LEFT].x);
+	 ? ceilf (phantoms[glyf_impl::PHANTOM_TOP].y) - extents.y_bearing
+	 : floorf (phantoms[glyf_impl::PHANTOM_LEFT].x);
   }
 #endif
 
@@ -366,10 +366,10 @@ struct glyf_accelerator_t
     return glyph_for_gid (gid).get_extents (font, *this, extents);
   }
 
-  const Glyph
+  const glyf_impl::Glyph
   glyph_for_gid (hb_codepoint_t gid, bool needs_padding_removal = false) const
   {
-    if (unlikely (gid >= num_glyphs)) return Glyph ();
+    if (unlikely (gid >= num_glyphs)) return glyf_impl::Glyph ();
 
     unsigned int start_offset, end_offset;
 
@@ -387,11 +387,11 @@ struct glyf_accelerator_t
     }
 
     if (unlikely (start_offset > end_offset || end_offset > glyf_table.get_length ()))
-      return Glyph ();
+      return glyf_impl::Glyph ();
 
-    Glyph glyph (hb_bytes_t ((const char *) this->glyf_table + start_offset,
+    glyf_impl::Glyph glyph (hb_bytes_t ((const char *) this->glyf_table + start_offset,
 			     end_offset - start_offset), gid);
-    return needs_padding_removal ? Glyph (glyph.trim_padding ()) : glyph;
+    return needs_padding_removal ? glyf_impl::Glyph (glyph.trim_padding ()) : glyph;
   }
 
   struct path_builder_t
@@ -425,7 +425,7 @@ struct glyf_accelerator_t
        * https://stackoverflow.com/a/20772557 */
     void consume_point (const contour_point_t &point)
     {
-      bool is_on_curve = point.flag & SimpleGlyph::FLAG_ON_CURVE;
+      bool is_on_curve = point.flag & glyf_impl::SimpleGlyph::FLAG_ON_CURVE;
       optional_point_t p (point.x, point.y);
       if (!first_oncurve.has_data)
       {
@@ -533,14 +533,14 @@ struct glyf_accelerator_t
 
 inline void
 glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
-			       hb_vector_t<SubsetGlyph> *glyphs /* OUT */) const
+			       hb_vector_t<glyf_impl::SubsetGlyph> *glyphs /* OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
 
   + hb_range (plan->num_output_glyphs ())
   | hb_map ([&] (hb_codepoint_t new_gid)
 	{
-	  SubsetGlyph subset_glyph = {0};
+	  glyf_impl::SubsetGlyph subset_glyph = {0};
 	  subset_glyph.new_gid = new_gid;
 
 	  /* should never fail: all old gids should be mapped */
@@ -549,7 +549,7 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 
 	  if (new_gid == 0 &&
 	      !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
-	    subset_glyph.source_glyph = Glyph ();
+	    subset_glyph.source_glyph = glyf_impl::Glyph ();
 	  else
 	    subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, true);
 	  if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)

@@ -9,6 +9,9 @@ namespace OT {
 
 struct glyf_accelerator_t;
 
+namespace glyf_impl {
+
+
 struct CompositeGlyphChain
 {
   protected:
@@ -676,6 +679,7 @@ struct Glyph
 };
 
 
+} /* namespace glyf_impl */
 } /* namespace OT */
 
 
