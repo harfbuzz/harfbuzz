@@ -237,7 +237,7 @@
 	<para>
 	  The <emphasis>Indic</emphasis> shaping model handles the Indic
 	  scripts Bengali, Devanagari, Gujarati, Gurmukhi, Kannada,
-	  Malayalam, Oriya, Tamil, Telugu, and Sinhala.
+	  Malayalam, Oriya, Tamil, and Telugu.
 	</para>
 	<para>
 	  The Indic shaping model was revised significantly in

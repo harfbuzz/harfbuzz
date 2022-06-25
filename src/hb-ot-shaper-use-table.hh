@@ -53,6 +53,7 @@
 #define GB	USE(GB)	/* BASE_OTHER */
 #define H	USE(H)	/* HALANT */
 #define HN	USE(HN)	/* HALANT_NUM */
+#define HVM	USE(HVM)	/* HALANT_OR_VOWEL_MODIFIER */
 #define IS	USE(IS)	/* INVISIBLE_STACKER */
 #define J	USE(J)	/* HIEROGLYPH_JOINER */
 #define N	USE(N)	/* BASE_NUM */
@@ -246,7 +247,7 @@ static const uint8_t use_table[] = {
   /* 0D90 */     B,     B,     B,     B,     B,     B,     B,    WJ,    WJ,    WJ,     B,     B,     B,     B,     B,     B,
   /* 0DA0 */     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0DB0 */     B,     B,    WJ,     B,     B,     B,     B,     B,     B,     B,     B,     B,    WJ,     B,    WJ,    WJ,
-  /* 0DC0 */     B,     B,     B,     B,     B,     B,     B,    WJ,    WJ,    WJ,     H,    WJ,    WJ,    WJ,    WJ,  VPst,
+  /* 0DC0 */     B,     B,     B,     B,     B,     B,     B,    WJ,    WJ,    WJ,   HVM,    WJ,    WJ,    WJ,    WJ,  VPst,
   /* 0DD0 */  VPst,  VPst,  VAbv,  VAbv,  VBlw,    WJ,  VBlw,    WJ,  VPst,  VPre,  VPre,  VPre,  VPre,  VPre,  VPre,  VPst,
   /* 0DE0 */    WJ,    WJ,    WJ,    WJ,    WJ,    WJ,     B,     B,     B,     B,     B,     B,     B,     B,     B,     B,
   /* 0DF0 */    WJ,    WJ,  VPst,  VPst,     O,    WJ,    WJ,    WJ,
@@ -1531,6 +1532,7 @@ hb_use_get_category (hb_glyph_info_t info)
 #undef GB
 #undef H
 #undef HN
+#undef HVM
 #undef IS
 #undef J
 #undef N

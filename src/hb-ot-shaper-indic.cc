@@ -122,10 +122,6 @@ struct hb_indic_would_substitute_feature_t
  * instead of adding a new flag in these structs.
  */
 
-enum base_position_t {
-  BASE_POS_LAST_SINHALA,
-  BASE_POS_LAST
-};
 enum reph_position_t {
   REPH_POS_AFTER_MAIN  = POS_AFTER_MAIN,
   REPH_POS_BEFORE_SUB  = POS_BEFORE_SUB,
@@ -147,7 +143,6 @@ struct indic_config_t
   hb_script_t     script;
   bool            has_old_spec;
   hb_codepoint_t  virama;
-  base_position_t base_pos;
   reph_position_t reph_pos;
   reph_mode_t     reph_mode;
   blwf_mode_t     blwf_mode;
@@ -156,18 +151,16 @@ struct indic_config_t
 static const indic_config_t indic_configs[] =
 {
   /* Default.  Should be first. */
-  {HB_SCRIPT_INVALID,	false,      0,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_DEVANAGARI,true, 0x094Du,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_BENGALI,	true, 0x09CDu,BASE_POS_LAST, REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_GURMUKHI,	true, 0x0A4Du,BASE_POS_LAST, REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_GUJARATI,	true, 0x0ACDu,BASE_POS_LAST, REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_ORIYA,	true, 0x0B4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_TAMIL,	true, 0x0BCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_TELUGU,	true, 0x0C4Du,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY},
-  {HB_SCRIPT_KANNADA,	true, 0x0CCDu,BASE_POS_LAST, REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY},
-  {HB_SCRIPT_MALAYALAM,	true, 0x0D4Du,BASE_POS_LAST, REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST},
-  {HB_SCRIPT_SINHALA,	false,0x0DCAu,BASE_POS_LAST_SINHALA,
-						     REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_INVALID,	false,      0,REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_DEVANAGARI,true, 0x094Du,REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_BENGALI,	true, 0x09CDu,REPH_POS_AFTER_SUB,  REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_GURMUKHI,	true, 0x0A4Du,REPH_POS_BEFORE_SUB, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_GUJARATI,	true, 0x0ACDu,REPH_POS_BEFORE_POST,REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_ORIYA,	true, 0x0B4Du,REPH_POS_AFTER_MAIN, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_TAMIL,	true, 0x0BCDu,REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_PRE_AND_POST},
+  {HB_SCRIPT_TELUGU,	true, 0x0C4Du,REPH_POS_AFTER_POST, REPH_MODE_EXPLICIT, BLWF_MODE_POST_ONLY},
+  {HB_SCRIPT_KANNADA,	true, 0x0CCDu,REPH_POS_AFTER_POST, REPH_MODE_IMPLICIT, BLWF_MODE_POST_ONLY},
+  {HB_SCRIPT_MALAYALAM,	true, 0x0D4Du,REPH_POS_AFTER_MAIN, REPH_MODE_LOG_REPHA,BLWF_MODE_PRE_AND_POST},
 };
 
 
@@ -451,9 +444,6 @@ update_consonant_positions_indic (const hb_ot_shape_plan_t *plan,
 {
   const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) plan->data;
 
-  if (indic_plan->config->base_pos != BASE_POS_LAST)
-    return;
-
   hb_codepoint_t virama;
   if (indic_plan->load_virama_glyph (font, &virama))
   {
@@ -551,84 +541,51 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	has_reph = true;
     }
 
-    switch (indic_plan->config->base_pos)
     {
-      case BASE_POS_LAST:
-      {
-	/* -> starting from the end of the syllable, move backwards */
-	unsigned int i = end;
-	bool seen_below = false;
-	do {
-	  i--;
-	  /* -> until a consonant is found */
-	  if (is_consonant (info[i]))
+      /* -> starting from the end of the syllable, move backwards */
+      unsigned int i = end;
+      bool seen_below = false;
+      do {
+	i--;
+	/* -> until a consonant is found */
+	if (is_consonant (info[i]))
+	{
+	  /* -> that does not have a below-base or post-base form
+	   * (post-base forms have to follow below-base forms), */
+	  if (info[i].indic_position() != POS_BELOW_C &&
+	      (info[i].indic_position() != POS_POST_C || seen_below))
 	  {
-	    /* -> that does not have a below-base or post-base form
-	     * (post-base forms have to follow below-base forms), */
-	    if (info[i].indic_position() != POS_BELOW_C &&
-		(info[i].indic_position() != POS_POST_C || seen_below))
-	    {
-	      base = i;
-	      break;
-	    }
-	    if (info[i].indic_position() == POS_BELOW_C)
-	      seen_below = true;
-
-	    /* -> or that is not a pre-base-reordering Ra,
-	     *
-	     * IMPLEMENTATION NOTES:
-	     *
-	     * Our pre-base-reordering Ra's are marked POS_POST_C, so will be skipped
-	     * by the logic above already.
-	     */
-
-	    /* -> or arrive at the first consonant. The consonant stopped at will
-	     * be the base. */
 	    base = i;
+	    break;
 	  }
-	  else
-	  {
-	    /* A ZWJ after a Halant stops the base search, and requests an explicit
-	     * half form.
-	     * A ZWJ before a Halant, requests a subjoined form instead, and hence
-	     * search continues.  This is particularly important for Bengali
-	     * sequence Ra,H,Ya that should form Ya-Phalaa by subjoining Ya. */
-	    if (start < i &&
-		info[i].indic_category() == I_Cat(ZWJ) &&
-		info[i - 1].indic_category() == I_Cat(H))
-	      break;
-	  }
-	} while (i > limit);
-      }
-      break;
+	  if (info[i].indic_position() == POS_BELOW_C)
+	    seen_below = true;
 
-      case BASE_POS_LAST_SINHALA:
-      {
-	/* Sinhala base positioning is slightly different from main Indic, in that:
-	 * 1. Its ZWJ behavior is different,
-	 * 2. We don't need to look into the font for consonant positions.
-	 */
+	  /* -> or that is not a pre-base-reordering Ra,
+	   *
+	   * IMPLEMENTATION NOTES:
+	   *
+	   * Our pre-base-reordering Ra's are marked POS_POST_C, so will be skipped
+	   * by the logic above already.
+	   */
 
-	if (!has_reph)
-	  base = limit;
-
-	/* Find the last base consonant that is not blocked by ZWJ.  If there is
-	 * a ZWJ right before a base consonant, that would request a subjoined form. */
-	for (unsigned int i = limit; i < end; i++)
-	  if (is_consonant (info[i]))
-	  {
-	    if (limit < i && info[i - 1].indic_category() == I_Cat(ZWJ))
-	      break;
-	    else
-	      base = i;
-	  }
-
-	/* Mark all subsequent consonants as below. */
-	for (unsigned int i = base + 1; i < end; i++)
-	  if (is_consonant (info[i]))
-	    info[i].indic_position() = POS_BELOW_C;
-      }
-      break;
+	  /* -> or arrive at the first consonant. The consonant stopped at will
+	   * be the base. */
+	  base = i;
+	}
+	else
+	{
+	  /* A ZWJ after a Halant stops the base search, and requests an explicit
+	   * half form.
+	   * A ZWJ before a Halant, requests a subjoined form instead, and hence
+	   * search continues.  This is particularly important for Bengali
+	   * sequence Ra,H,Ya that should form Ya-Phalaa by subjoining Ya. */
+	  if (start < i &&
+	      info[i].indic_category() == I_Cat(ZWJ) &&
+	      info[i - 1].indic_category() == I_Cat(H))
+	    break;
+	}
+      } while (i > limit);
     }
 
     /* -> If the syllable starts with Ra + Halant (in a script that has Reph)
@@ -682,18 +639,6 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
   if (base < end)
     info[base].indic_position() = POS_BASE_C;
-
-  /* Mark final consonants.  A final consonant is one appearing after a matra.
-   * Happens in Sinhala. */
-  for (unsigned int i = base + 1; i < end; i++)
-    if (info[i].indic_category() == I_Cat(M)) {
-      for (unsigned int j = i + 1; j < end; j++)
-	if (is_consonant (info[j])) {
-	 info[j].indic_position() = POS_FINAL_C;
-	 break;
-       }
-      break;
-    }
 
   /* Handle beginning Ra */
   if (has_reph)
@@ -761,12 +706,8 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 	{
 	  /*
 	   * Uniscribe doesn't move the Halant with Left Matra.
-	   * TEST: U+092B,U+093F,U+094DE
-	   * We follow.  This is important for the Sinhala
-	   * U+0DDA split matra since it decomposes to U+0DD9,U+0DCA
-	   * where U+0DD9 is a left matra and U+0DCA is the virama.
-	   * We don't want to move the virama with the left matra.
-	   * TEST: U+0D9A,U+0DDA
+	   * TEST: U+092B,U+093F,U+094D
+	   * We follow.
 	   */
 	  for (unsigned int j = i; j > start; j--)
 	    if (info[j - 1].indic_position() != POS_PRE_M) {
@@ -1486,11 +1427,10 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
     switch ((hb_tag_t) plan->props.script)
     {
       case HB_SCRIPT_TAMIL:
-      case HB_SCRIPT_SINHALA:
 	break;
 
       default:
-	/* Uniscribe merges the entire syllable into a single cluster... Except for Tamil & Sinhala.
+	/* Uniscribe merges the entire syllable into a single cluster... Except for Tamil.
 	 * This means, half forms are submerged into the main consonant's cluster.
 	 * This is unnecessary, and makes cursor positioning harder, but that's what
 	 * Uniscribe does. */
@@ -1558,48 +1498,6 @@ decompose_indic (const hb_ot_shape_normalize_context_t *c,
     /* Oriya */
     case 0x0B57u  : *a = no decomp, -> RIGHT; return true;
 #endif
-  }
-
-  if ((ab == 0x0DDAu || hb_in_range<hb_codepoint_t> (ab, 0x0DDCu, 0x0DDEu)))
-  {
-    /*
-     * Sinhala split matras...  Let the fun begin.
-     *
-     * These four characters have Unicode decompositions.  However, Uniscribe
-     * decomposes them "Khmer-style", that is, it uses the character itself to
-     * get the second half.  The first half of all four decompositions is always
-     * U+0DD9.
-     *
-     * Now, there are buggy fonts, namely, the widely used lklug.ttf, that are
-     * broken with Uniscribe.  But we need to support them.  As such, we only
-     * do the Uniscribe-style decomposition if the character is transformed into
-     * its "sec.half" form by the 'pstf' feature.  Otherwise, we fall back to
-     * Unicode decomposition.
-     *
-     * Note that we can't unconditionally use Unicode decomposition.  That would
-     * break some other fonts, that are designed to work with Uniscribe, and
-     * don't have positioning features for the Unicode-style decomposition.
-     *
-     * Argh...
-     *
-     * The Uniscribe behavior is now documented in the newly published Sinhala
-     * spec in 2012:
-     *
-     *   https://docs.microsoft.com/en-us/typography/script-development/sinhala#shaping
-     */
-
-
-    const indic_shape_plan_t *indic_plan = (const indic_shape_plan_t *) c->plan->data;
-    hb_codepoint_t glyph;
-    if (indic_plan->uniscribe_bug_compatible ||
-	(c->font->get_nominal_glyph (ab, &glyph) &&
-	 indic_plan->pstf.would_substitute (&glyph, 1, c->font->face)))
-    {
-      /* Ok, safe to use Uniscribe-style decomposition. */
-      *a = 0x0DD9u;
-      *b = ab;
-      return true;
-    }
   }
 
   return (bool) c->unicode->decompose (ab, a, b);

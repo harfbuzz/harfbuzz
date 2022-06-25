@@ -221,7 +221,10 @@ def is_CONS_SUB(U, UISC, UDI, UGC, AJT):
 def is_CONS_WITH_STACKER(U, UISC, UDI, UGC, AJT):
 	return UISC == Consonant_With_Stacker
 def is_HALANT(U, UISC, UDI, UGC, AJT):
-	return UISC == Virama
+	return UISC == Virama and not is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UDI, UGC, AJT)
+def is_HALANT_OR_VOWEL_MODIFIER(U, UISC, UDI, UGC, AJT):
+	# Split off of HALANT
+	return U == 0x0DCA
 def is_HALANT_NUM(U, UISC, UDI, UGC, AJT):
 	return UISC == Number_Joiner
 def is_HIEROGLYPH(U, UISC, UDI, UGC, AJT):
@@ -280,6 +283,7 @@ use_mapping = {
 	'SUB':	is_CONS_SUB,
 	'CS':	is_CONS_WITH_STACKER,
 	'H':	is_HALANT,
+	'HVM':	is_HALANT_OR_VOWEL_MODIFIER,
 	'HN':	is_HALANT_NUM,
 	'IS':	is_INVISIBLE_STACKER,
 	'G':	is_HIEROGLYPH,
@@ -329,6 +333,7 @@ use_positions = {
 		'Blw': [Bottom],
 	},
 	'H': None,
+	'HVM': None,
 	'IS': None,
 	'B': None,
 	'FM': {

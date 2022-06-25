@@ -75,26 +75,26 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 
 #define _OT_A    OT_A            /*  53 chars; A */
 #define _OT_As   OT_As           /*   1 chars; As */
-#define _OT_C    OT_C            /* 518 chars; C */
+#define _OT_C    OT_C            /* 478 chars; C */
 #define _OT_CM   OT_CM           /*   1 chars; CM */
 #define _OT_CS   OT_CS           /*   2 chars; CS */
 #define _OT_DC   OT_DOTTEDCIRCLE /*   1 chars; DOTTEDCIRCLE */
-#define _OT_H    OT_H            /*  12 chars; H */
-#define _OT_M    OT_M            /* 160 chars; M */
+#define _OT_H    OT_H            /*  11 chars; H */
+#define _OT_M    OT_M            /* 143 chars; M */
 #define _OT_MH   OT_MH           /*   1 chars; MH */
 #define _OT_ML   OT_ML           /*   1 chars; ML */
 #define _OT_MR   OT_MR           /*   1 chars; MR */
 #define _OT_MW   OT_MW           /*   2 chars; MW */
 #define _OT_MY   OT_MY           /*   3 chars; MY */
 #define _OT_N    OT_N            /*  17 chars; N */
-#define _OT_GB   OT_PLACEHOLDER  /* 175 chars; PLACEHOLDER */
+#define _OT_GB   OT_PLACEHOLDER  /* 165 chars; PLACEHOLDER */
 #define _OT_PT   OT_PT           /*   8 chars; PT */
-#define _OT_R    OT_Ra           /*  15 chars; Ra */
+#define _OT_R    OT_Ra           /*  14 chars; Ra */
 #define _OT_Rf   OT_Repha        /*   1 chars; Repha */
 #define _OT_Rt   OT_Robatic      /*   3 chars; Robatic */
-#define _OT_SM   OT_SM           /*  58 chars; SM */
+#define _OT_SM   OT_SM           /*  55 chars; SM */
 #define _OT_S    OT_Symbol       /*  22 chars; Symbol */
-#define _OT_V    OT_V            /* 190 chars; V */
+#define _OT_V    OT_V            /* 172 chars; V */
 #define _OT_VA   OT_VAbv         /*  18 chars; VAbv */
 #define _OT_VB   OT_VBlw         /*   7 chars; VBlw */
 #define _OT_VL   OT_VPre         /*   5 chars; VPre */
@@ -106,18 +106,18 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _OT_ZWJ  OT_ZWJ          /*   1 chars; ZWJ */
 #define _OT_ZWNJ OT_ZWNJ         /*   1 chars; ZWNJ */
 
-#define _POS_T   POS_ABOVE_C     /*  23 chars; ABOVE_C */
+#define _POS_T   POS_ABOVE_C     /*  22 chars; ABOVE_C */
 #define _POS_A   POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
 #define _POS_AP  POS_AFTER_POST  /*  50 chars; AFTER_POST */
-#define _POS_AS  POS_AFTER_SUB   /*  60 chars; AFTER_SUB */
-#define _POS_C   POS_BASE_C      /* 902 chars; BASE_C */
+#define _POS_AS  POS_AFTER_SUB   /*  45 chars; AFTER_SUB */
+#define _POS_C   POS_BASE_C      /* 833 chars; BASE_C */
 #define _POS_BS  POS_BEFORE_SUB  /*  31 chars; BEFORE_SUB */
 #define _POS_B   POS_BELOW_C     /*  13 chars; BELOW_C */
 #define _POS_X   POS_END         /*  71 chars; END */
 #define _POS_R   POS_POST_C      /*  13 chars; POST_C */
 #define _POS_L   POS_PRE_C       /*   5 chars; PRE_C */
-#define _POS_LM  POS_PRE_M       /*  16 chars; PRE_M */
-#define _POS_SM  POS_SMVD        /* 132 chars; SMVD */
+#define _POS_LM  POS_PRE_M       /*  14 chars; PRE_M */
+#define _POS_SM  POS_SMVD        /* 129 chars; SMVD */
 
 #pragma GCC diagnostic pop
 
@@ -323,25 +323,7 @@ static const uint16_t indic_table[] = {
   /* 0D70 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 0D78 */  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
 
-  /* Sinhala */
-
-  /* 0D80 */  _(X,X),_(SM,SM),_(SM,SM),_(SM,SM),  _(X,X),  _(V,C),  _(V,C),  _(V,C),
-  /* 0D88 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),
-  /* 0D90 */  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(V,C),  _(X,X),
-  /* 0D98 */  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
-  /* 0DA0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
-  /* 0DA8 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
-  /* 0DB0 */  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
-  /* 0DB8 */  _(C,C),  _(C,C),  _(C,C),  _(R,C),  _(X,X),  _(C,C),  _(X,X),  _(X,X),
-  /* 0DC0 */  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),
-  /* 0DC8 */  _(X,X),  _(X,X),  _(H,T),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(M,AS),
-  /* 0DD0 */ _(M,AS), _(M,AS), _(M,AS), _(M,AS), _(M,AS),  _(X,X), _(M,AS),  _(X,X),
-  /* 0DD8 */ _(M,AS), _(M,LM), _(M,AS), _(M,LM), _(M,AS), _(M,AS), _(M,AS), _(M,AS),
-  /* 0DE0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
-  /* 0DE8 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
-  /* 0DF0 */  _(X,X),  _(X,X), _(M,AS), _(M,AS),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-
-#define indic_offset_0x1000u 1336
+#define indic_offset_0x1000u 1216
 
 
   /* Myanmar */
@@ -367,7 +349,7 @@ static const uint16_t indic_table[] = {
   /* 1090 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 1098 */ _(GB,C), _(GB,C),_(SM,SM),_(SM,SM),_(SM,SM), _(VA,T),  _(X,X),  _(X,X),
 
-#define indic_offset_0x1780u 1496
+#define indic_offset_0x1780u 1376
 
 
   /* Khmer */
@@ -387,7 +369,7 @@ static const uint16_t indic_table[] = {
   /* 17E0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* 17E8 */ _(GB,C), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
-#define indic_offset_0x1cd0u 1608
+#define indic_offset_0x1cd0u 1488
 
 
   /* Vedic Extensions */
@@ -399,7 +381,7 @@ static const uint16_t indic_table[] = {
   /* 1CF0 */ _(S,SM), _(S,SM),  _(C,C),  _(C,C), _(A,SM),  _(C,C),  _(C,C), _(A,SM),
   /* 1CF8 */ _(A,SM), _(A,SM), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
-#define indic_offset_0x2008u 1656
+#define indic_offset_0x2008u 1536
 
 
   /* General Punctuation */
@@ -409,7 +391,7 @@ static const uint16_t indic_table[] = {
   /* 2018 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 2020 */  _(X,X),  _(X,X), _(GB,C),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
 
-#define indic_offset_0x2070u 1688
+#define indic_offset_0x2070u 1568
 
 
   /* Superscripts and Subscripts */
@@ -418,14 +400,14 @@ static const uint16_t indic_table[] = {
   /* 2078 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 2080 */  _(X,X),  _(X,X),_(SM,SM),_(SM,SM),_(SM,SM),  _(X,X),  _(X,X),  _(X,X),
 
-#define indic_offset_0x25f8u 1712
+#define indic_offset_0x25f8u 1592
 
 
   /* Geometric Shapes */
 
   /* 25F8 */  _(X,X),  _(X,X),  _(X,X), _(GB,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),
 
-#define indic_offset_0xa8e0u 1720
+#define indic_offset_0xa8e0u 1600
 
 
   /* Devanagari Extended */
@@ -435,7 +417,7 @@ static const uint16_t indic_table[] = {
   /* A8F0 */ _(A,SM), _(A,SM), _(S,SM), _(S,SM), _(S,SM), _(S,SM), _(S,SM), _(S,SM),
   /* A8F8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(V,C), _(M,AS),
 
-#define indic_offset_0xa9e0u 1752
+#define indic_offset_0xa9e0u 1632
 
 
   /* Myanmar Extended-B */
@@ -445,7 +427,7 @@ static const uint16_t indic_table[] = {
   /* A9F0 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
   /* A9F8 */ _(GB,C), _(GB,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),
 
-#define indic_offset_0xaa60u 1784
+#define indic_offset_0xaa60u 1664
 
 
   /* Myanmar Extended-A */
@@ -455,7 +437,7 @@ static const uint16_t indic_table[] = {
   /* AA70 */  _(X,X),  _(C,C),  _(C,C),  _(C,C), _(GB,C), _(GB,C), _(GB,C),  _(X,X),
   /* AA78 */  _(X,X),  _(X,X),  _(C,C), _(PT,X),  _(N,X),  _(N,X),  _(C,C),  _(C,C),
 
-#define indic_offset_0xfe00u 1816
+#define indic_offset_0xfe00u 1696
 
 
   /* Variation Selectors */
@@ -463,7 +445,7 @@ static const uint16_t indic_table[] = {
   /* FE00 */ _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X),
   /* FE08 */ _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X), _(VS,X),
 
-#define indic_offset_0x11300u 1832
+#define indic_offset_0x11300u 1712
 
 
   /* Grantha */
@@ -477,7 +459,7 @@ static const uint16_t indic_table[] = {
   /* 11330 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
   /* 11338 */  _(X,X),  _(X,X),  _(X,X),  _(N,X),  _(N,X),  _(X,X),  _(X,X),  _(X,X),
 
-}; /* Table items: 1896; occupancy: 69% */
+}; /* Table items: 1776; occupancy: 69% */
 
 uint16_t
 hb_indic_get_categories (hb_codepoint_t u)
@@ -488,7 +470,7 @@ hb_indic_get_categories (hb_codepoint_t u)
       if (unlikely (u == 0x00A0u)) return _(GB,C);
       if (hb_in_range<hb_codepoint_t> (u, 0x0028u, 0x003Fu)) return indic_table[u - 0x0028u + indic_offset_0x0028u];
       if (hb_in_range<hb_codepoint_t> (u, 0x00B0u, 0x00D7u)) return indic_table[u - 0x00B0u + indic_offset_0x00b0u];
-      if (hb_in_range<hb_codepoint_t> (u, 0x0900u, 0x0DF7u)) return indic_table[u - 0x0900u + indic_offset_0x0900u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x0900u, 0x0D7Fu)) return indic_table[u - 0x0900u + indic_offset_0x0900u];
       break;
 
     case 0x1u:

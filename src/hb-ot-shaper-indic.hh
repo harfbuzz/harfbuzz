@@ -53,10 +53,9 @@ enum ot_position_t {
   POS_POST_C = 11,
   POS_AFTER_POST = 12,
 
-  POS_FINAL_C = 13,
-  POS_SMVD = 14,
+  POS_SMVD = 13,
 
-  POS_END = 15
+  POS_END = 14
 };
 
 

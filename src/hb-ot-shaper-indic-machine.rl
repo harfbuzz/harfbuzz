@@ -87,9 +87,8 @@ z = ZWJ|ZWNJ;			# is_joiner
 reph = (Ra H | Repha);		# possible reph
 
 cn = c.ZWJ?.n?;
-forced_rakar = ZWJ H ZWJ Ra;
 symbol = Symbol.N?;
-matra_group = z*.M.N?.(H | forced_rakar)?;
+matra_group = z*.M.N?.H?;
 syllable_tail = (z?.SM.SM?.ZWNJ?)? (A | VD)*;
 halant_group = (z?.H.(ZWJ.N?)?);
 final_halant_group = halant_group | H.ZWNJ;
