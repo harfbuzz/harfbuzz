@@ -2,14 +2,14 @@
 #define OT_GLYF_GLYF_HH
 
 
-#include "hb-open-type.hh"
-#include "hb-ot-head-table.hh"
-#include "hb-ot-hmtx-table.hh"
-#include "hb-ot-var-gvar-table.hh"
-#include "hb-draw.hh"
+#include "../../hb-open-type.hh"
+#include "../../hb-ot-head-table.hh"
+#include "../../hb-ot-hmtx-table.hh"
+#include "../../hb-ot-var-gvar-table.hh"
+#include "../../hb-draw.hh"
 
-#include "OT/glyf/Glyph.hh"
-#include "OT/glyf/loca.hh"
+#include "Glyph.hh"
+#include "loca.hh"
 
 
 namespace OT {

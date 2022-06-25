@@ -2,7 +2,7 @@
 #define OT_GLYF_GLYPH_HH
 
 
-#include "hb-open-type.hh"
+#include "../../hb-open-type.hh"
 
 
 namespace OT {
