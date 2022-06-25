@@ -82,6 +82,7 @@ export G	= 49; # HIEROGLYPH
 export J	= 50; # HIEROGLYPH_JOINER
 export SB	= 51; # HIEROGLYPH_SEGMENT_BEGIN
 export SE	= 52; # HIEROGLYPH_SEGMENT_END
+export HVM	= 53; # HALANT_OR_VOWEL_MODIFIER
 
 export FAbv	= 24; # CONS_FINAL_ABOVE
 export FBlw	= 25; # CONS_FINAL_BELOW
@@ -107,12 +108,12 @@ export FMBlw	= 46; # CONS_FINAL_MOD	UIPC = Bottom
 export FMPst	= 47; # CONS_FINAL_MOD	UIPC = Not_Applicable
 
 
-h = H | IS | Sk;
+h = H | HVM | IS | Sk;
 
 consonant_modifiers = CMAbv* CMBlw* ((h B | SUB) CMAbv? CMBlw*)*;
 medial_consonants = MPre? MAbv? MBlw? MPst?;
 dependent_vowels = VPre* VAbv* VBlw* VPst* | H;
-vowel_modifiers = VMPre* VMAbv* VMBlw* VMPst*;
+vowel_modifiers = HVM? VMPre* VMAbv* VMBlw* VMPst*;
 final_consonants = FAbv* FBlw* FPst*;
 final_modifiers = FMAbv* FMBlw* | FMPst?;
 
