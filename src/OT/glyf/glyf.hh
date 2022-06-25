@@ -466,13 +466,9 @@ struct glyf_accelerator_t
 
     gids_to_retain->add (gid);
 
-    auto it = glyph_for_gid (gid).get_composite_iterator ();
-    while (it)
-    {
-      auto item = *(it++);
+    for (auto item : glyph_for_gid (gid).get_composite_iterator ())
       operation_count =
-	  add_gid_and_children (item.get_glyph_index (), gids_to_retain, depth, operation_count);
-    }
+	add_gid_and_children (item.get_glyph_index (), gids_to_retain, depth, operation_count);
 
     return operation_count;
   }
