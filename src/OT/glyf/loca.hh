@@ -17,6 +17,7 @@ namespace OT {
 struct loca
 {
   friend struct glyf;
+  friend struct glyf_accelerator_t;
 
   static constexpr hb_tag_t tableTag = HB_OT_TAG_loca;
 
