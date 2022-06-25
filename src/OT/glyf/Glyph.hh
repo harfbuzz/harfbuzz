@@ -173,8 +173,9 @@ struct composite_iter_t : hb_iter_with_fallback_t<composite_iter_t, const Compos
 
     set_next (&StructAtOffset<CompositeGlyphChain> (current, current_size));
   }
+  composite_iter_t __end__ () const { return composite_iter_t (); }
   bool operator != (const composite_iter_t& o) const
-  { return glyph != o.glyph || current != o.current; }
+  { return current != o.current; }
 
 
   void set_next (const CompositeGlyphChain *composite)
