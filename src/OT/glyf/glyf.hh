@@ -391,7 +391,7 @@ struct glyf_accelerator_t
 
     Glyph glyph (hb_bytes_t ((const char *) this->glyf_table + start_offset,
 			     end_offset - start_offset), gid);
-    return needs_padding_removal ? glyph.trim_padding () : glyph;
+    return needs_padding_removal ? Glyph (glyph.trim_padding ()) : glyph;
   }
 
   struct path_builder_t
@@ -425,7 +425,7 @@ struct glyf_accelerator_t
        * https://stackoverflow.com/a/20772557 */
     void consume_point (const contour_point_t &point)
     {
-      bool is_on_curve = point.flag & Glyph::FLAG_ON_CURVE;
+      bool is_on_curve = point.flag & SimpleGlyph::FLAG_ON_CURVE;
       optional_point_t p (point.x, point.y);
       if (!first_oncurve.has_data)
       {
