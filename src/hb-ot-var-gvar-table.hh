@@ -45,9 +45,10 @@ struct contour_point_t
 
   void translate (const contour_point_t &p) { x += p.x; y += p.y; }
 
-  uint8_t flag;
-  float x, y;
-  bool is_end_point;
+  uint8_t flag = 0;
+  float x = 0.f;
+  float y = 0.f;
+  bool is_end_point = false;
 };
 
 struct contour_point_vector_t : hb_vector_t<contour_point_t>
