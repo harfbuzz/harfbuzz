@@ -56,12 +56,14 @@ hb_draw_quadratic_to_nil (hb_draw_funcs_t *dfuncs, void *draw_data,
 			  float to_x, float to_y,
 			  void *user_data HB_UNUSED)
 {
+#define HB_ONE_THIRD 0.33333333f
   dfuncs->emit_cubic_to (draw_data, *st,
-			 (st->current_x + 2.f * control_x) / 3.f,
-			 (st->current_y + 2.f * control_y) / 3.f,
-			 (to_x + 2.f * control_x) / 3.f,
-			 (to_y + 2.f * control_y) / 3.f,
+			 (st->current_x + 2.f * control_x) * HB_ONE_THIRD,
+			 (st->current_y + 2.f * control_y) * HB_ONE_THIRD,
+			 (to_x + 2.f * control_x) * HB_ONE_THIRD,
+			 (to_y + 2.f * control_y) * HB_ONE_THIRD,
 			 to_x, to_y);
+#undef HB_ONE_THIRD
 }
 
 static void
