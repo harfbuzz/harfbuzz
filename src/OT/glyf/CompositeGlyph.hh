@@ -47,9 +47,6 @@ struct CompositeGlyphRecord
     return size;
   }
 
-  void set_glyph_index (hb_codepoint_t new_gid) { glyphIndex = new_gid; }
-  hb_codepoint_t get_glyph_index ()       const { return glyphIndex; }
-
   void drop_instructions_flag ()  { flags = (uint16_t) flags & ~WE_HAVE_INSTRUCTIONS; }
   void set_overlaps_flag ()
   {
@@ -147,7 +144,7 @@ struct CompositeGlyphRecord
     return tx || ty;
   }
 
-  protected:
+  public:
   HBUINT16	flags;
   HBGlyphID16	glyphIndex;
   public:
