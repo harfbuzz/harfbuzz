@@ -24,5 +24,7 @@ exec "$(dirname "$0")"/configure \
 	PKG_CONFIG_PATH=$HOME/.local/$target/share/pkgconfig:/usr/$target/sys-root/mingw/share/pkgconfig/ \
 	PATH=$HOME/.local/$target/bin:/usr/$target/sys-root/mingw/bin:/usr/$target/bin:$PATH \
 	--without-icu \
+	--with-gdi \
 	--with-uniscribe \
+	--with-directwrite=auto \
 	"$@"
