@@ -170,17 +170,18 @@ struct SimpleGlyph
 						 endPtsOfContours[num_contours]);
 
     /* Read flags */
-    for (unsigned int i = 0; i < num_points; i++)
+    for (unsigned int i = 0; i < num_points;)
     {
       if (unlikely (!bytes.check_range (p))) return false;
       uint8_t flag = *p++;
-      points_[i].flag = flag;
+      points_[i++].flag = flag;
       if (flag & FLAG_REPEAT)
       {
 	if (unlikely (!bytes.check_range (p))) return false;
 	unsigned int repeat_count = *p++;
-	while ((repeat_count-- > 0) && (++i < num_points))
-	  points_[i].flag = flag;
+	unsigned stop = hb_min (i + repeat_count, num_points);
+	for (; i < stop;)
+	  points_.arrayZ[i++].flag = flag;
       }
     }
 
