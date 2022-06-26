@@ -18,6 +18,7 @@ struct path_builder_t
   {
     optional_point_t () {}
     optional_point_t (float x_, float y_) : has_data (true), x (x_), y (y_) {}
+    operator bool () const { return has_data; }
 
     bool has_data = false;
     float x = 0.;
@@ -42,7 +43,7 @@ struct path_builder_t
   {
     bool is_on_curve = point.flag & glyf_impl::SimpleGlyph::FLAG_ON_CURVE;
     optional_point_t p (point.x, point.y);
-    if (!first_oncurve.has_data)
+    if (!first_oncurve)
     {
       if (is_on_curve)
       {
@@ -51,7 +52,7 @@ struct path_builder_t
       }
       else
       {
-	if (first_offcurve.has_data)
+	if (first_offcurve)
 	{
 	  optional_point_t mid = first_offcurve.lerp (p, .5f);
 	  first_oncurve = mid;
@@ -64,7 +65,7 @@ struct path_builder_t
     }
     else
     {
-      if (last_offcurve.has_data)
+      if (last_offcurve)
       {
 	if (is_on_curve)
 	{
@@ -91,7 +92,7 @@ struct path_builder_t
 
     if (point.is_end_point)
     {
-      if (first_offcurve.has_data && last_offcurve.has_data)
+      if (first_offcurve && last_offcurve)
       {
 	optional_point_t mid = last_offcurve.lerp (first_offcurve, .5f);
 	draw_session->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
@@ -100,15 +101,15 @@ struct path_builder_t
 	/* now check the rest */
       }
 
-      if (first_offcurve.has_data && first_oncurve.has_data)
+      if (first_offcurve && first_oncurve)
 	draw_session->quadratic_to (font->em_fscalef_x (first_offcurve.x), font->em_fscalef_y (first_offcurve.y),
 				   font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
-      else if (last_offcurve.has_data && first_oncurve.has_data)
+      else if (last_offcurve && first_oncurve)
 	draw_session->quadratic_to (font->em_fscalef_x (last_offcurve.x), font->em_fscalef_y (last_offcurve.y),
 				   font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
-      else if (first_oncurve.has_data)
+      else if (first_oncurve)
 	draw_session->line_to (font->em_fscalef_x (first_oncurve.x), font->em_fscalef_y (first_oncurve.y));
-      else if (first_offcurve.has_data)
+      else if (first_offcurve)
       {
 	float x = font->em_fscalef_x (first_offcurve.x), y = font->em_fscalef_x (first_offcurve.y);
 	draw_session->move_to (x, y);
