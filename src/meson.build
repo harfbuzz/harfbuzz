@@ -94,6 +94,7 @@ hb_base_sources = files(
   'hb-ot-layout-gsub-table.hh',
   'OT/glyf/glyf.hh',
   'OT/glyf/loca.hh',
+  'OT/glyf/path-builder.hh',
   'OT/glyf/Glyph.hh',
   'OT/glyf/GlyphHeader.hh',
   'OT/glyf/SimpleGlyph.hh',
