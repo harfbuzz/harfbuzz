@@ -142,7 +142,7 @@ struct Glyph
       for (auto &item : get_composite_iterator ())
       {
 	contour_point_vector_t comp_points;
-	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_glyph_index ())
+	if (unlikely (!glyf_accelerator.glyph_for_gid (item.glyphIndex)
 				       .get_points (font, glyf_accelerator, comp_points,
 						    phantom_only, depth + 1)
 		      || comp_points.length < PHANTOM_COUNT))
