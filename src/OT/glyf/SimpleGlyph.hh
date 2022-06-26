@@ -120,7 +120,7 @@ struct SimpleGlyph
   static bool read_points (const HBUINT8 *&p /* IN/OUT */,
 			   contour_point_vector_t &points_ /* IN/OUT */,
 			   const hb_bytes_t &bytes,
-			   void (* setter) (contour_point_t &_, float v),
+			   float contour_point_t::*m,
 			   const simple_glyph_flag_t short_flag,
 			   const simple_glyph_flag_t same_flag)
   {
@@ -145,7 +145,7 @@ struct SimpleGlyph
 	  p += HBINT16::static_size;
 	}
       }
-      setter (points_[i], v);
+      points_[i].*m = v;
     }
     return true;
   }
@@ -184,9 +184,9 @@ struct SimpleGlyph
     }
 
     /* Read x & y coordinates */
-    return read_points (p, points_, bytes, [] (contour_point_t &p, float v) { p.x = v; },
+    return read_points (p, points_, bytes, &contour_point_t::x,
 			FLAG_X_SHORT, FLAG_X_SAME)
-	&& read_points (p, points_, bytes, [] (contour_point_t &p, float v) { p.y = v; },
+	&& read_points (p, points_, bytes, &contour_point_t::y,
 			FLAG_Y_SHORT, FLAG_Y_SAME);
   }
 };
