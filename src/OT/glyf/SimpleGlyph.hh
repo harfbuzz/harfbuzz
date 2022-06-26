@@ -125,13 +125,16 @@ struct SimpleGlyph
 			   const simple_glyph_flag_t same_flag)
   {
     float v = 0;
+
+    const HBUINT8 *end = (const HBUINT8 *) (bytes.arrayZ + bytes.length);
+
     unsigned count = points_.length;
     for (unsigned i = 0; i < count; i++)
     {
       uint8_t flag = points_[i].flag;
       if (flag & short_flag)
       {
-	if (unlikely (!bytes.check_range (p))) return false;
+	if (unlikely (p + 1 > end)) return false;
 	if (flag & same_flag)
 	  v += *p++;
 	else
@@ -141,7 +144,7 @@ struct SimpleGlyph
       {
 	if (!(flag & same_flag))
 	{
-	  if (unlikely (!bytes.check_range ((const HBUINT16 *) p))) return false;
+	  if (unlikely (p + HBINT16::static_size > end)) return false;
 	  v += *(const HBINT16 *) p;
 	  p += HBINT16::static_size;
 	}
