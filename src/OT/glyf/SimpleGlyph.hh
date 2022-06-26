@@ -173,15 +173,17 @@ struct SimpleGlyph
     const HBUINT8 *p = &StructAtOffset<HBUINT8> (&endPtsOfContours[num_contours + 1],
 						 endPtsOfContours[num_contours]);
 
+    const HBUINT8 *end = (const HBUINT8 *) (bytes.arrayZ + bytes.length);
+
     /* Read flags */
     for (unsigned int i = 0; i < num_points;)
     {
-      if (unlikely (!bytes.check_range (p))) return false;
+      if (unlikely (p + 1 > end)) return false;
       uint8_t flag = *p++;
       points_[i++].flag = flag;
       if (flag & FLAG_REPEAT)
       {
-	if (unlikely (!bytes.check_range (p))) return false;
+	if (unlikely (p + 1 > end)) return false;
 	unsigned int repeat_count = *p++;
 	unsigned stop = hb_min (i + repeat_count, num_points);
 	for (; i < stop;)
