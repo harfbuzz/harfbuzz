@@ -92,8 +92,6 @@ struct Glyph
       /* pseudo component points for each component in composite glyph */
       unsigned num_points = hb_len (CompositeGlyph (*header, bytes).iter ());
       if (unlikely (!points.resize (num_points))) return false;
-      for (unsigned i = 0; i < points.length; i++)
-	points[i].init ();
       break;
     }
     case SIMPLE:
@@ -107,7 +105,6 @@ struct Glyph
     if (unlikely (!points.resize (points.length + PHANTOM_COUNT))) return false;
     hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
     {
-      for (unsigned i = 0; i < PHANTOM_COUNT; ++i) phantoms[i].init ();
       int h_delta = (int) header->xMin -
 		    glyf_accelerator.hmtx->get_side_bearing (gid);
       int v_orig  = (int) header->yMax +
