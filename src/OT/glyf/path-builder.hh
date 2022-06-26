@@ -1,5 +1,5 @@
-#ifndef OT_GLYF_PATHBUILDER_HH
-#define OT_GLYF_PATHBUILDER_HH
+#ifndef OT_GLYF_PATH_BUILDER_HH
+#define OT_GLYF_PATH_BUILDER_HH
 
 
 #include "../../hb.hh"
@@ -131,4 +131,4 @@ struct path_builder_t
 } /* namespace OT */
 
 
-#endif /* OT_GLYF_PATHBUILDER_HH */
+#endif /* OT_GLYF_PATH_BUILDER_HH */
