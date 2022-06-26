@@ -160,41 +160,41 @@ struct composite_iter_t : hb_iter_with_fallback_t<composite_iter_t, const Compos
   composite_iter_t (hb_bytes_t glyph_, __item_t__ current_) :
       glyph (glyph_), current (nullptr), current_size (0)
   {
-    set_next (current_);
+    set_current (current_);
   }
 
   composite_iter_t () : glyph (hb_bytes_t ()), current (nullptr), current_size (0) {}
 
-  const CompositeGlyphChain &__item__ () const { return *current; }
+  item_t __item__ () const { return *current; }
   bool __more__ () const { return current; }
   void __next__ ()
   {
     if (!current->has_more ()) { current = nullptr; return; }
 
-    set_next (&StructAtOffset<CompositeGlyphChain> (current, current_size));
+    set_current (&StructAtOffset<CompositeGlyphChain> (current, current_size));
   }
   composite_iter_t __end__ () const { return composite_iter_t (); }
   bool operator != (const composite_iter_t& o) const
   { return current != o.current; }
 
 
-  void set_next (const CompositeGlyphChain *composite)
+  void set_current (__item_t__ current_)
   {
-    if (!glyph.check_range (composite, CompositeGlyphChain::min_size))
+    if (!glyph.check_range (current_, CompositeGlyphChain::min_size))
     {
       current = nullptr;
       current_size = 0;
       return;
     }
-    unsigned size = composite->get_size ();
-    if (!glyph.check_range (composite, size))
+    unsigned size = current_->get_size ();
+    if (!glyph.check_range (current_, size))
     {
       current = nullptr;
       current_size = 0;
       return;
     }
 
-    current = composite;
+    current = current_;
     current_size = size;
   }
 
