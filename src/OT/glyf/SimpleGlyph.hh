@@ -125,7 +125,8 @@ struct SimpleGlyph
 			   const simple_glyph_flag_t same_flag)
   {
     float v = 0;
-    for (unsigned i = 0; i < points_.length; i++)
+    unsigned count = points_.length;
+    for (unsigned i = 0; i < count; i++)
     {
       uint8_t flag = points_[i].flag;
       if (flag & short_flag)
@@ -145,7 +146,7 @@ struct SimpleGlyph
 	  p += HBINT16::static_size;
 	}
       }
-      points_[i].*m = v;
+      points_.arrayZ[i].*m = v;
     }
     return true;
   }
