@@ -43,7 +43,7 @@ struct SubsetGlyph
     {
       hb_codepoint_t new_gid;
       if (plan->new_gid_for_old_gid (_.get_glyph_index (), &new_gid))
-	const_cast<CompositeGlyphChain &> (_).set_glyph_index (new_gid);
+	const_cast<CompositeGlyphRecord &> (_).set_glyph_index (new_gid);
     }
 
     if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)

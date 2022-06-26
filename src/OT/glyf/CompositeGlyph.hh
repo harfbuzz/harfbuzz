@@ -9,7 +9,7 @@ namespace OT {
 namespace glyf_impl {
 
 
-struct CompositeGlyphChain
+struct CompositeGlyphRecord
 {
   protected:
   enum composite_glyph_flag_t
@@ -154,9 +154,9 @@ struct CompositeGlyphChain
   DEFINE_SIZE_MIN (4);
 };
 
-struct composite_iter_t : hb_iter_with_fallback_t<composite_iter_t, const CompositeGlyphChain &>
+struct composite_iter_t : hb_iter_with_fallback_t<composite_iter_t, const CompositeGlyphRecord &>
 {
-  typedef const CompositeGlyphChain *__item_t__;
+  typedef const CompositeGlyphRecord *__item_t__;
   composite_iter_t (hb_bytes_t glyph_, __item_t__ current_) :
       glyph (glyph_), current (nullptr), current_size (0)
   {
@@ -171,7 +171,7 @@ struct composite_iter_t : hb_iter_with_fallback_t<composite_iter_t, const Compos
   {
     if (!current->has_more ()) { current = nullptr; return; }
 
-    set_current (&StructAtOffset<CompositeGlyphChain> (current, current_size));
+    set_current (&StructAtOffset<CompositeGlyphRecord> (current, current_size));
   }
   composite_iter_t __end__ () const { return composite_iter_t (); }
   bool operator != (const composite_iter_t& o) const
@@ -180,7 +180,7 @@ struct composite_iter_t : hb_iter_with_fallback_t<composite_iter_t, const Compos
 
   void set_current (__item_t__ current_)
   {
-    if (!glyph.check_range (current_, CompositeGlyphChain::min_size))
+    if (!glyph.check_range (current_, CompositeGlyphRecord::min_size))
     {
       current = nullptr;
       current_size = 0;
@@ -212,13 +212,13 @@ struct CompositeGlyph
     header (header_), bytes (bytes_) {}
 
   composite_iter_t iter () const
-  { return composite_iter_t (bytes, &StructAfter<CompositeGlyphChain, GlyphHeader> (header)); }
+  { return composite_iter_t (bytes, &StructAfter<CompositeGlyphRecord, GlyphHeader> (header)); }
 
   unsigned int instructions_length (hb_bytes_t bytes) const
   {
     unsigned int start = bytes.length;
     unsigned int end = bytes.length;
-    const CompositeGlyphChain *last = nullptr;
+    const CompositeGlyphRecord *last = nullptr;
     for (auto &item : iter ())
       last = &item;
     if (unlikely (!last)) return 0;
@@ -236,7 +236,7 @@ struct CompositeGlyph
   void drop_hints ()
   {
     for (const auto &_ : iter ())
-      const_cast<CompositeGlyphChain &> (_).drop_instructions_flag ();
+      const_cast<CompositeGlyphRecord &> (_).drop_instructions_flag ();
   }
 
   /* Chop instructions off the end */
@@ -245,9 +245,9 @@ struct CompositeGlyph
 
   void set_overlaps_flag ()
   {
-    CompositeGlyphChain& glyph_chain = const_cast<CompositeGlyphChain &> (
-	StructAfter<CompositeGlyphChain, GlyphHeader> (header));
-    if (!bytes.check_range(&glyph_chain, CompositeGlyphChain::min_size))
+    CompositeGlyphRecord& glyph_chain = const_cast<CompositeGlyphRecord &> (
+	StructAfter<CompositeGlyphRecord, GlyphHeader> (header));
+    if (!bytes.check_range(&glyph_chain, CompositeGlyphRecord::min_size))
       return;
     glyph_chain.set_overlaps_flag ();
   }
