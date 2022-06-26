@@ -3022,7 +3022,8 @@ static void
 propagate_attachment_offsets (hb_glyph_position_t *pos,
 			      unsigned int len,
 			      unsigned int i,
-			      hb_direction_t direction)
+			      hb_direction_t direction,
+			      unsigned nesting_level = HB_MAX_NESTING_LEVEL)
 {
   /* Adjusts offsets of attached glyphs (both cursive and mark) to accumulate
    * offset of glyph they are attached to. */
@@ -3037,7 +3038,10 @@ propagate_attachment_offsets (hb_glyph_position_t *pos,
   if (unlikely (j >= len))
     return;
 
-  propagate_attachment_offsets (pos, len, j, direction);
+  if (unlikely (!nesting_level))
+    return;
+
+  propagate_attachment_offsets (pos, len, j, direction, nesting_level - 1);
 
   assert (!!(type & ATTACH_TYPE_MARK) ^ !!(type & ATTACH_TYPE_CURSIVE));
 
