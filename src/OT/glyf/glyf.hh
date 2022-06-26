@@ -171,7 +171,10 @@ struct glyf_accelerator_t
 
     if (consumer.is_consuming_contour_points ())
     {
-      for (unsigned point_index = 0; point_index + 4 < all_points.length; ++point_index)
+      unsigned count = all_points.length;
+      assert (count >= glyf_impl::PHANTOM_COUNT);
+      count -= glyf_impl::PHANTOM_COUNT;
+      for (unsigned point_index = 0; point_index < count; point_index++)
 	consumer.consume_point (all_points[point_index]);
       consumer.points_end ();
     }
