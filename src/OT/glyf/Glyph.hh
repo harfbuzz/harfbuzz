@@ -33,7 +33,7 @@ struct Glyph
   composite_iter_t get_composite_iterator () const
   {
     if (type != COMPOSITE) return composite_iter_t ();
-    return CompositeGlyph (*header, bytes).get_iterator ();
+    return CompositeGlyph (*header, bytes).iter ();
   }
 
   const hb_bytes_t trim_padding () const
@@ -88,7 +88,7 @@ struct Glyph
     case COMPOSITE:
     {
       /* pseudo component points for each component in composite glyph */
-      unsigned num_points = hb_len (CompositeGlyph (*header, bytes).get_iterator ());
+      unsigned num_points = hb_len (CompositeGlyph (*header, bytes).iter ());
       if (unlikely (!points.resize (num_points))) return false;
       for (unsigned i = 0; i < points.length; i++)
 	points[i].init ();

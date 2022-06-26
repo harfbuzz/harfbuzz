@@ -25,7 +25,7 @@ struct CompositeGlyphChain
     USE_MY_METRICS		= 0x0200,
     OVERLAP_COMPOUND		= 0x0400,
     SCALED_COMPONENT_OFFSET	= 0x0800,
-    UNSCALED_COMPONENT_OFFSET = 0x1000
+    UNSCALED_COMPONENT_OFFSET	= 0x1000
   };
 
   public:
@@ -211,7 +211,7 @@ struct CompositeGlyph
   CompositeGlyph (const GlyphHeader &header_, hb_bytes_t bytes_) :
     header (header_), bytes (bytes_) {}
 
-  composite_iter_t get_iterator () const
+  composite_iter_t iter () const
   { return composite_iter_t (bytes, &StructAfter<CompositeGlyphChain, GlyphHeader> (header)); }
 
   unsigned int instructions_length (hb_bytes_t bytes) const
@@ -219,7 +219,7 @@ struct CompositeGlyph
     unsigned int start = bytes.length;
     unsigned int end = bytes.length;
     const CompositeGlyphChain *last = nullptr;
-    for (auto &item : get_iterator ())
+    for (auto &item : iter ())
       last = &item;
     if (unlikely (!last)) return 0;
 
@@ -235,7 +235,7 @@ struct CompositeGlyph
 
   void drop_hints ()
   {
-    for (const auto &_ : get_iterator ())
+    for (const auto &_ : iter ())
       const_cast<CompositeGlyphChain &> (_).drop_instructions_flag ();
   }
 
