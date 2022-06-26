@@ -82,7 +82,9 @@ struct Glyph
 		   unsigned int depth = 0) const
   {
     if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
-    contour_point_vector_t points;
+    contour_point_vector_t stack_points;
+    bool inplace = type == SIMPLE && all_points.length == 0;
+    contour_point_vector_t &points = inplace ? all_points : stack_points;
 
     switch (type) {
     case COMPOSITE:
@@ -96,7 +98,7 @@ struct Glyph
     }
     case SIMPLE:
       /* Load into all_points if it's empty, as an optimization. */
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points.length == 0 ? all_points : points, phantom_only)))
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
 	return false;
       break;
     }
@@ -135,7 +137,8 @@ struct Glyph
 
     switch (type) {
     case SIMPLE:
-      all_points.extend (points.as_array ());
+      if (!inplace)
+	all_points.extend (points.as_array ());
       break;
     case COMPOSITE:
     {
