@@ -114,6 +114,8 @@ struct hb_font_t
   int32_t y_scale;
   float slant;
   float slant_xy;
+  unsigned upem;
+  float upem_inv;
   int64_t x_mult;
   int64_t y_mult;
 
@@ -629,11 +631,12 @@ struct hb_font_t
 
   void mults_changed ()
   {
-    signed upem = face->get_upem ();
+    upem = face->get_upem ();
+    upem_inv = 1.f / upem;
     bool x_neg = x_scale < 0;
-    x_mult = (x_neg ? -((int64_t) -x_scale << 16) : ((int64_t) x_scale << 16)) / upem;
+    x_mult = (x_neg ? -((int64_t) -x_scale << 16) : ((int64_t) x_scale << 16)) * upem_inv;
     bool y_neg = y_scale < 0;
-    y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
+    y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) * upem_inv;
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
   }
 
@@ -642,9 +645,9 @@ struct hb_font_t
   hb_position_t em_scalef (float v, int scale)
   { return (hb_position_t) roundf (em_fscalef (v, scale)); }
   float em_fscalef (float v, int scale)
-  { return v * scale / face->get_upem (); }
+  { return v * scale * upem_inv; }
   float em_fscale (int16_t v, int scale)
-  { return (float) v * scale / face->get_upem (); }
+  { return (float) v * scale * upem_inv; }
 };
 DECLARE_NULL_INSTANCE (hb_font_t);
 

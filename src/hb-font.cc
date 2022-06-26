@@ -1649,6 +1649,8 @@ DEFINE_NULL_INSTANCE (hb_font_t) =
   1000, /* y_scale */
   0., /* slant */
   0., /* slant_xy; */
+  1000, /* upem */
+  0.001f, /* upem_inv */
   1<<16, /* x_mult */
   1<<16, /* y_mult */
 
@@ -1682,6 +1684,8 @@ _hb_font_create (hb_face_t *face)
   font->klass = hb_font_funcs_get_empty ();
   font->data.init0 (font);
   font->x_scale = font->y_scale = hb_face_get_upem (face);
+  font->upem = face->get_upem ();
+  font->upem_inv = 1.f / font->upem;
   font->x_mult = font->y_mult = 1 << 16;
 
   return font;
