@@ -16,12 +16,12 @@ struct path_builder_t
 
   struct optional_point_t
   {
-    optional_point_t () { has_data = false; }
-    optional_point_t (float x_, float y_) { x = x_; y = y_; has_data = true; }
+    optional_point_t () {}
+    optional_point_t (float x_, float y_) : has_data (true), x (x_), y (y_) {}
 
-    bool has_data;
-    float x;
-    float y;
+    bool has_data = false;
+    float x = 0.;
+    float y = 0.;
 
     optional_point_t lerp (optional_point_t p, float t)
     { return optional_point_t (x + t * (p.x - x), y + t * (p.y - y)); }
