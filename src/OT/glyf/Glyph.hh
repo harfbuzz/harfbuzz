@@ -95,7 +95,8 @@ struct Glyph
       break;
     }
     case SIMPLE:
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
+      /* Load into all_points if it's empty, as an optimization. */
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (all_points.length == 0 ? all_points : points, phantom_only)))
 	return false;
       break;
     }
