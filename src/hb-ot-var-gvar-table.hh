@@ -69,9 +69,11 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
     if (matrix[0] == 1.f && matrix[1] == 0.f &&
 	matrix[2] == 0.f && matrix[3] == 1.f)
       return;
-    for (unsigned int i = 0; i < length; i++)
+    auto arrayZ = this->arrayZ;
+    unsigned count = length;
+    for (unsigned i = 0; i < count; i++)
     {
-      contour_point_t &p = (*this)[i];
+      contour_point_t &p = arrayZ[i];
       float x_ = p.x * matrix[0] + p.y * matrix[2];
 	   p.y = p.x * matrix[1] + p.y * matrix[3];
       p.x = x_;
