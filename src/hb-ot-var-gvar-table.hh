@@ -536,7 +536,7 @@ struct gvar
 
       /* linear interpolation */
       float r = (target_val - prev_val) / (next_val - prev_val);
-      return (1.f - r) * prev_delta + r * next_delta;
+      return prev_delta + r * (next_delta - prev_delta);
     }
 
     static unsigned int next_index (unsigned int i, unsigned int start, unsigned int end)
