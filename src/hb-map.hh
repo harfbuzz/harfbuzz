@@ -34,6 +34,8 @@
  * hb_hashmap_t
  */
 
+extern HB_INTERNAL const hb_codepoint_t minus_1;
+
 template <typename K, typename V,
 	  bool minus_one = false>
 struct hb_hashmap_t
@@ -80,7 +82,11 @@ struct hb_hashmap_t
     static inline const V& default_value () { return Null(V); };
     template <bool v = minus_one,
 	      hb_enable_if (v == true)>
-    static inline const V& default_value () { static const V minus_1 = -1; return minus_1; };
+    static inline const V& default_value ()
+    {
+      static_assert (hb_is_same (V, hb_codepoint_t), "");
+      return minus_1;
+    };
 
     void clear ()
     {
