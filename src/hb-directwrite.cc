@@ -854,6 +854,9 @@ hb_directwrite_face_create (IDWriteFontFace *font_face)
 IDWriteFontFace *
 hb_directwrite_face_get_font_face (hb_face_t *face)
 {
+  if (face->destroy == _hb_directwrite_font_release)
+    return (IDWriteFontFace *) face->user_data;
+
   return face->data.directwrite->fontFace;
 }
 
