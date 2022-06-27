@@ -195,7 +195,7 @@ struct Glyph
       if (delta.x) all_points.translate (delta);
     }
 
-    return true;
+    return !all_points.in_error ();
   }
 
   bool get_extents (hb_font_t *font, const glyf_accelerator_t &glyf_accelerator,
