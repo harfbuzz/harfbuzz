@@ -180,7 +180,7 @@ struct SimpleGlyph
     {
       if (unlikely (p + 1 > end)) return false;
       uint8_t flag = *p++;
-      points_[i++].flag = flag;
+      points_.arrayZ[i++].flag = flag;
       if (flag & FLAG_REPEAT)
       {
 	if (unlikely (p + 1 > end)) return false;
