@@ -173,6 +173,7 @@ struct SimpleGlyph
 
     if (unlikely ((const char *) p < bytes.arrayZ)) return false; /* Unlikely overflow */
     const HBUINT8 *end = (const HBUINT8 *) (bytes.arrayZ + bytes.length);
+    if (unlikely (p >= end)) return false;
 
     /* Read flags */
     for (unsigned int i = 0; i < num_points;)
