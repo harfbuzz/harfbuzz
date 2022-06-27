@@ -552,7 +552,7 @@ struct hb_buffer_t
 #ifdef HB_NO_BUFFER_MESSAGE
    return true;
 #else
-    if (!messaging ())
+    if (likely (!messaging ()))
       return true;
 
     message_depth++;
