@@ -77,10 +77,10 @@ struct hb_hashmap_t
 
     template <bool v = minus_one,
 	      hb_enable_if (v == false)>
-    static const V& default_value () { return Null(V); };
+    static inline const V& default_value () { return Null(V); };
     template <bool v = minus_one,
 	      hb_enable_if (v == true)>
-    static const V& default_value () { static const V minus_1 = -1; return minus_1; };
+    static inline const V& default_value () { static const V minus_1 = -1; return minus_1; };
 
     void clear ()
     {
