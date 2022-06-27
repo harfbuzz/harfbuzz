@@ -221,7 +221,7 @@ struct GlyphVariationData
       {
 	const HBUINT8 *base = &(var_data+var_data->data);
 	const HBUINT8 *p = base;
-	if (!unpack_points (p, shared_indices, var_data_bytes)) return false;
+	if (!unpack_points (p, shared_indices, (const HBUINT8 *) (var_data_bytes.arrayZ + var_data_bytes.length))) return false;
 	data_offset = p - base;
       }
       return true;
@@ -271,7 +271,7 @@ struct GlyphVariationData
 
   static bool unpack_points (const HBUINT8 *&p /* IN/OUT */,
 			     hb_vector_t<unsigned int> &points /* OUT */,
-			     const hb_bytes_t &bytes)
+			     const HBUINT8 *end)
   {
     enum packed_point_flag_t
     {
@@ -279,12 +279,12 @@ struct GlyphVariationData
       POINT_RUN_COUNT_MASK = 0x7F
     };
 
-    if (unlikely (!bytes.check_range (p))) return false;
+    if (unlikely (p + 1 > end)) return false;
 
     uint16_t count = *p++;
     if (count & POINTS_ARE_WORDS)
     {
-      if (unlikely (!bytes.check_range (p))) return false;
+      if (unlikely (p + 1 > end)) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
     }
     points.resize (count);
@@ -293,7 +293,7 @@ struct GlyphVariationData
     uint16_t i = 0;
     while (i < count)
     {
-      if (unlikely (!bytes.check_range (p))) return false;
+      if (unlikely (p + 1 > end)) return false;
       uint16_t j;
       uint8_t control = *p++;
       uint16_t run_count = (control & POINT_RUN_COUNT_MASK) + 1;
@@ -301,8 +301,7 @@ struct GlyphVariationData
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!bytes.check_range ((const HBUINT16 *) p)))
-	    return false;
+	  if (unlikely (p + HBUINT16::static_size > end)) return false;
 	  n += *(const HBUINT16 *)p;
 	  points[i] = n;
 	  p += HBUINT16::static_size;
@@ -312,7 +311,7 @@ struct GlyphVariationData
       {
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!bytes.check_range (p))) return false;
+	  if (unlikely (p + 1 > end)) return false;
 	  n += *p++;
 	  points[i] = n;
 	}
@@ -324,7 +323,7 @@ struct GlyphVariationData
 
   static bool unpack_deltas (const HBUINT8 *&p /* IN/OUT */,
 			     hb_vector_t<int> &deltas /* IN/OUT */,
-			     const hb_bytes_t &bytes)
+			     const HBUINT8 *end)
   {
     enum packed_delta_flag_t
     {
@@ -337,7 +336,7 @@ struct GlyphVariationData
     unsigned int count = deltas.length;
     while (i < count)
     {
-      if (unlikely (!bytes.check_range (p))) return false;
+      if (unlikely (p + 1 > end)) return false;
       uint8_t control = *p++;
       unsigned int run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
       unsigned int j;
@@ -347,16 +346,14 @@ struct GlyphVariationData
       else if (control & DELTAS_ARE_WORDS)
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!bytes.check_range ((const HBUINT16 *) p)))
-	    return false;
+	  if (unlikely (p + HBUINT16::static_size > end)) return false;
 	  deltas[i] = *(const HBINT16 *) p;
 	  p += HBUINT16::static_size;
 	}
       else
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (!bytes.check_range (p)))
-	    return false;
+	  if (unlikely (p + 1 > end)) return false;
 	  deltas[i] = *(const HBINT8 *) p++;
 	}
       if (j < run_count)
@@ -589,11 +586,12 @@ struct gvar
 	if (unlikely (!iterator.var_data_bytes.check_range (p, length)))
 	  return false;
 
-	hb_bytes_t bytes ((const char *) p, length);
+	const HBUINT8 *end = p + length;
+
 	hb_vector_t<unsigned int> private_indices;
 	bool has_private_points = iterator.current_tuple->has_private_points ();
 	if (has_private_points &&
-	    !GlyphVariationData::unpack_points (p, private_indices, bytes))
+	    !GlyphVariationData::unpack_points (p, private_indices, end))
 	  return false;
 	const hb_array_t<unsigned int> &indices = has_private_points ? private_indices : shared_indices;
 
@@ -601,11 +599,11 @@ struct gvar
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
 	hb_vector_t<int> x_deltas;
 	x_deltas.resize (num_deltas);
-	if (!GlyphVariationData::unpack_deltas (p, x_deltas, bytes))
+	if (!GlyphVariationData::unpack_deltas (p, x_deltas, end))
 	  return false;
 	hb_vector_t<int> y_deltas;
 	y_deltas.resize (num_deltas);
-	if (!GlyphVariationData::unpack_deltas (p, y_deltas, bytes))
+	if (!GlyphVariationData::unpack_deltas (p, y_deltas, end))
 	  return false;
 
 	for (unsigned int i = 0; i < deltas.length; i++)
