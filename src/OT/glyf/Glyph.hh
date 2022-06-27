@@ -139,10 +139,11 @@ struct Glyph
       break;
     case COMPOSITE:
     {
+      contour_point_vector_t comp_points;
       unsigned int comp_index = 0;
       for (auto &item : get_composite_iterator ())
       {
-	contour_point_vector_t comp_points;
+        comp_points.reset ();
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.glyphIndex)
 				       .get_points (font, glyf_accelerator, comp_points,
 						    phantom_only, depth + 1)))
