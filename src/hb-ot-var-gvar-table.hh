@@ -608,9 +608,10 @@ struct gvar
 	for (unsigned int i = 0; i < num_deltas; i++)
 	{
 	  unsigned int pt_index = apply_to_all ? i : indices[i];
-	  deltas[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
-	  deltas[pt_index].x += x_deltas.arrayZ[i] * scalar;
-	  deltas[pt_index].y += y_deltas.arrayZ[i] * scalar;
+	  if (unlikely (pt_index >= deltas.length)) continue;
+	  deltas.arrayZ[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	  deltas.arrayZ[pt_index].x += x_deltas.arrayZ[i] * scalar;
+	  deltas.arrayZ[pt_index].y += y_deltas.arrayZ[i] * scalar;
 	}
 
 	/* infer deltas for unreferenced points */
