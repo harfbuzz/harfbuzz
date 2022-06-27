@@ -145,8 +145,7 @@ struct Glyph
 	contour_point_vector_t comp_points;
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.glyphIndex)
 				       .get_points (font, glyf_accelerator, comp_points,
-						    phantom_only, depth + 1)
-		      || comp_points.length < PHANTOM_COUNT))
+						    phantom_only, depth + 1)))
 	  return false;
 
 	/* Copy phantom points from component if USE_MY_METRICS flag set */
