@@ -102,7 +102,7 @@ struct TupleVariationHeader
   const TupleVariationHeader &get_next (unsigned axis_count) const
   { return StructAtOffset<TupleVariationHeader> (this, get_size (axis_count)); }
 
-  float calculate_scalar (const int *coords, unsigned int coord_count,
+  float calculate_scalar (hb_array_t<int> coords, unsigned int coord_count,
 			  const hb_array_t<const F2DOT14> shared_tuples) const
   {
     hb_array_t<const F2DOT14> peak_tuple;
@@ -551,8 +551,7 @@ struct gvar
     bool apply_deltas_to_points (hb_codepoint_t glyph, hb_font_t *font,
 				 const hb_array_t<contour_point_t> points) const
     {
-      /* num_coords should exactly match gvar's axisCount due to how GlyphVariationData tuples are aligned */
-      if (!font->num_coords || font->num_coords != table->axisCount) return true;
+      if (!font->num_coords) return true;
 
       if (unlikely (glyph >= table->glyphCount)) return true;
 
@@ -578,8 +577,8 @@ struct gvar
 	if (points[i].is_end_point)
 	  end_points.push (i);
 
-      int *coords = font->coords;
-      unsigned num_coords = font->num_coords;
+      auto coords = hb_array (font->coords, font->num_coords);
+      unsigned num_coords = table->axisCount;
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
       do
       {
