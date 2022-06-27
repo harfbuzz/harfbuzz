@@ -332,7 +332,7 @@ _hb_coretext_shaper_font_data_create (hb_font_t *font)
     return nullptr;
   }
 
-  if (font->coords)
+  if (font->num_coords)
   {
     CFMutableDictionaryRef variations =
       CFDictionaryCreateMutable (kCFAllocatorDefault,
