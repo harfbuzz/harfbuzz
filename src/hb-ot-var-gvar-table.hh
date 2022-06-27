@@ -287,7 +287,7 @@ struct GlyphVariationData
       if (unlikely (p + 1 > end)) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
     }
-    points.resize (count);
+    if (unlikely (!points.resize (count))) return false;
 
     unsigned int n = 0;
     uint16_t i = 0;
@@ -560,12 +560,12 @@ struct gvar
 
       /* Save original points for inferred delta calculation */
       contour_point_vector_t orig_points;
-      orig_points.resize (points.length);
+      if (unlikely (!orig_points.resize (points.length))) return false;
       for (unsigned int i = 0; i < orig_points.length; i++)
-	orig_points[i] = points[i];
+	orig_points.arrayZ[i] = points.arrayZ[i];
 
       contour_point_vector_t deltas; /* flag is used to indicate referenced point */
-      deltas.resize (points.length);
+      if (unlikely (!deltas.resize (points.length))) return false;
 
       hb_vector_t<unsigned> end_points;
       for (unsigned i = 0; i < points.length; ++i)
