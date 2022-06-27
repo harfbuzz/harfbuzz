@@ -326,7 +326,7 @@ struct glyf_accelerator_t
 
     glyf_impl::Glyph glyph (hb_bytes_t ((const char *) this->glyf_table + start_offset,
 			     end_offset - start_offset), gid);
-    return needs_padding_removal ? glyf_impl::Glyph (glyph.trim_padding ()) : glyph;
+    return needs_padding_removal ? glyf_impl::Glyph (glyph.trim_padding (), gid) : glyph;
   }
 
   bool
