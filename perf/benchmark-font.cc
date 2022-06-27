@@ -49,8 +49,8 @@ _hb_move_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, void *)
 static void
 _hb_line_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, void *) {}
 
-static void
-_hb_quadratic_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, float, float, void *) {}
+//static void
+//_hb_quadratic_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, float, float, void *) {}
 
 static void
 _hb_cubic_to (hb_draw_funcs_t *, void *, hb_draw_state_t *, float, float, float, float, float, float, void *) {}
@@ -64,7 +64,7 @@ _draw_funcs_create (void)
   hb_draw_funcs_t *draw_funcs = hb_draw_funcs_create ();
   hb_draw_funcs_set_move_to_func (draw_funcs, _hb_move_to, nullptr, nullptr);
   hb_draw_funcs_set_line_to_func (draw_funcs, _hb_line_to, nullptr, nullptr);
-  hb_draw_funcs_set_quadratic_to_func (draw_funcs, _hb_quadratic_to, nullptr, nullptr);
+  //hb_draw_funcs_set_quadratic_to_func (draw_funcs, _hb_quadratic_to, nullptr, nullptr);
   hb_draw_funcs_set_cubic_to_func (draw_funcs, _hb_cubic_to, nullptr, nullptr);
   hb_draw_funcs_set_close_path_func (draw_funcs, _hb_close_path, nullptr, nullptr);
   return draw_funcs;
