@@ -515,19 +515,17 @@ struct gvar
     ~accelerator_t () { table.destroy (); }
 
     private:
-    struct x_getter { static float get (const contour_point_t &p) { return p.x; } };
-    struct y_getter { static float get (const contour_point_t &p) { return p.y; } };
 
-    template <typename T>
     static float infer_delta (const hb_array_t<contour_point_t> points,
 			      const hb_array_t<contour_point_t> deltas,
-			      unsigned int target, unsigned int prev, unsigned int next)
+			      unsigned int target, unsigned int prev, unsigned int next,
+			      float contour_point_t::*m)
     {
-      float target_val = T::get (points[target]);
-      float prev_val = T::get (points[prev]);
-      float next_val = T::get (points[next]);
-      float prev_delta = T::get (deltas[prev]);
-      float next_delta = T::get (deltas[next]);
+      float target_val = points[target].*m;
+      float prev_val = points[prev].*m;
+      float next_val = points[next].*m;
+      float prev_delta =  deltas[prev].*m;
+      float next_delta =  deltas[next].*m;
 
       if (prev_val == next_val)
 	return (prev_delta == next_delta) ? prev_delta : 0.f;
@@ -655,8 +653,8 @@ struct gvar
 	    {
 	      i = next_index (i, start_point, end_point);
 	      if (i == next) break;
-	      deltas[i].x = infer_delta<x_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
-	      deltas[i].y = infer_delta<y_getter> (orig_points.as_array (), deltas.as_array (), i, prev, next);
+	      deltas[i].x = infer_delta (orig_points.as_array (), deltas.as_array (), i, prev, next, &contour_point_t::x);
+	      deltas[i].y = infer_delta (orig_points.as_array (), deltas.as_array (), i, prev, next, &contour_point_t::y);
 	      if (--unref_count == 0) goto no_more_gaps;
 	    }
 	  }
