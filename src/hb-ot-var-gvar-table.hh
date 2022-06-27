@@ -575,6 +575,10 @@ struct gvar
       auto coords = hb_array (font->coords, font->num_coords);
       unsigned num_coords = table->axisCount;
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
+
+      hb_vector_t<unsigned int> private_indices;
+      hb_vector_t<int> x_deltas;
+      hb_vector_t<int> y_deltas;
       do
       {
 	float scalar = iterator.current_tuple->calculate_scalar (coords, num_coords, shared_tuples);
@@ -586,7 +590,6 @@ struct gvar
 
 	const HBUINT8 *end = p + length;
 
-	hb_vector_t<unsigned int> private_indices;
 	bool has_private_points = iterator.current_tuple->has_private_points ();
 	if (has_private_points &&
 	    !GlyphVariationData::unpack_points (p, private_indices, end))
@@ -595,10 +598,8 @@ struct gvar
 
 	bool apply_to_all = (indices.length == 0);
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
-	hb_vector_t<int> x_deltas;
 	if (unlikely (!x_deltas.resize (num_deltas))) return false;
 	if (unlikely (!GlyphVariationData::unpack_deltas (p, x_deltas, end))) return false;
-	hb_vector_t<int> y_deltas;
 	if (unlikely (!y_deltas.resize (num_deltas))) return false;
 	if (unlikely (!GlyphVariationData::unpack_deltas (p, y_deltas, end))) return false;
 
