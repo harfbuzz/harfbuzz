@@ -56,9 +56,12 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
   void extend (const hb_array_t<contour_point_t> &a)
   {
     unsigned int old_len = length;
-    resize (old_len + a.length);
-    for (unsigned int i = 0; i < a.length; i++)
-      (*this)[old_len + i] = a[i];
+    if (unlikely (!resize (old_len + a.length)))
+      return;
+    auto arrayZ = this->arrayZ + old_len;
+    unsigned count = a.length;
+    for (unsigned int i = 0; i < count; i++)
+      arrayZ[i] = a.arrayZ[i];
   }
 
   void transform (const float (&matrix)[4])
