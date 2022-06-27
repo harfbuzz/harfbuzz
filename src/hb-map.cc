@@ -180,7 +180,7 @@ hb_map_allocation_successful (const hb_map_t  *map)
  *
  * Return value: Newly-allocated map.
  *
- * Since: REPLACEME
+ * Since: 4.4.0
  **/
 hb_map_t *
 hb_map_copy (const hb_map_t *map)
@@ -337,7 +337,7 @@ hb_map_is_equal (const hb_map_t *map,
  * Return value:
  * A hash of @map.
  *
- * Since: REPLACEME
+ * Since: 4.4.0
  **/
 HB_EXTERN unsigned int
 hb_map_hash (const hb_map_t *map)

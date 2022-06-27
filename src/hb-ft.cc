@@ -1042,7 +1042,7 @@ hb_ft_font_changed (hb_font_t *font)
  *
  * Return value: true if changed, false otherwise
  *
- * Since: REPLACEME
+ * Since: 4.4.0
  **/
 hb_bool_t
 hb_ft_hb_font_changed (hb_font_t *font)

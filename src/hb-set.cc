@@ -368,7 +368,7 @@ hb_set_is_equal (const hb_set_t *set,
  * Return value:
  * A hash of @set.
  *
- * Since: REPLACEME
+ * Since: 4.4.0
  **/
 HB_EXTERN unsigned int
 hb_set_hash (const hb_set_t *set)
