@@ -660,7 +660,7 @@ struct gvar
 	      if (--unref_count == 0) goto no_more_gaps;
 	    }
 	  }
-no_more_gaps:
+	no_more_gaps:
 	  start_point = end_point + 1;
 	}
 
