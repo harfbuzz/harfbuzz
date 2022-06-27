@@ -279,7 +279,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
    * to be what Uniscribe and other engines implement.  According to Eric Muller:
    *
    * When you have a SARA AM, decompose it in NIKHAHIT + SARA AA, *and* move the
-   * NIKHAHIT backwards over any above-base marks (0E31, 0E34-0E37, 0E47-0E4E).
+   * NIKHAHIT backwards over any above-base marks.
    *
    * <0E14, 0E4B, 0E33> -> <0E14, 0E4D, 0E4B, 0E32>
    *
@@ -308,8 +308,8 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
    * Nikhahit:		U+0E4D	U+0ECD
    *
    * Testing shows that Uniscribe reorder the following marks:
-   * Thai:	<0E31,0E34..0E37,0E47..0E4E>
-   * Lao:	<0EB1,0EB4..0EB7,0EC7..0ECE>
+   * Thai:	<0E31,0E34..0E37,     0E47..0E4E>
+   * Lao:	<0EB1,0EB4..0EB7,0EBB,0EC8..0ECD>
    *
    * Note how the Lao versions are the same as Thai + 0x80.
    */
@@ -319,7 +319,7 @@ preprocess_text_thai (const hb_ot_shape_plan_t *plan,
 #define IS_SARA_AM(x) (((x) & ~0x0080u) == 0x0E33u)
 #define NIKHAHIT_FROM_SARA_AM(x) ((x) - 0x0E33u + 0x0E4Du)
 #define SARA_AA_FROM_SARA_AM(x) ((x) - 1)
-#define IS_ABOVE_BASE_MARK(x) (hb_in_ranges<hb_codepoint_t> ((x) & ~0x0080u, 0x0E34u, 0x0E37u, 0x0E47u, 0x0E4Eu, 0x0E31u, 0x0E31u))
+#define IS_ABOVE_BASE_MARK(x) (hb_in_ranges<hb_codepoint_t> ((x) & ~0x0080u, 0x0E34u, 0x0E37u, 0x0E47u, 0x0E4Eu, 0x0E31u, 0x0E31u, 0x0E3Bu, 0x0E3Bu))
 
   buffer->clear_output ();
   unsigned int count = buffer->len;
