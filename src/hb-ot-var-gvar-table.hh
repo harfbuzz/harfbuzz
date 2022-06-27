@@ -84,8 +84,10 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
   {
     if (delta.x == 0.f && delta.y == 0.f)
       return;
-    for (unsigned int i = 0; i < length; i++)
-      (*this)[i].translate (delta);
+    auto arrayZ = this->arrayZ;
+    unsigned count = length;
+    for (unsigned i = 0; i < count; i++)
+      arrayZ[i].translate (delta);
   }
 };
 
