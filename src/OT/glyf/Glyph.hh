@@ -84,6 +84,7 @@ struct Glyph
     if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
     contour_point_vector_t stack_points;
     bool inplace = type == SIMPLE && all_points.length == 0;
+    /* Load into all_points if it's empty, as an optimization. */
     contour_point_vector_t &points = inplace ? all_points : stack_points;
 
     switch (type) {
@@ -95,7 +96,6 @@ struct Glyph
       break;
     }
     case SIMPLE:
-      /* Load into all_points if it's empty, as an optimization. */
       if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
 	return false;
       break;
