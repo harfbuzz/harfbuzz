@@ -157,6 +157,7 @@ struct SimpleGlyph
   {
     const HBUINT16 *endPtsOfContours = &StructAfter<HBUINT16> (header);
     int num_contours = header.numberOfContours;
+    assert (num_contours);
     if (unlikely (!bytes.check_range (&endPtsOfContours[num_contours - 1]))) return false;
     unsigned int num_points = endPtsOfContours[num_contours - 1] + 1;
 
