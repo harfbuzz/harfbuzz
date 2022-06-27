@@ -667,8 +667,8 @@ no_more_gaps:
 	/* apply specified / inferred deltas to points */
 	for (unsigned int i = 0; i < points.length; i++)
 	{
-	  points[i].x += deltas[i].x;
-	  points[i].y += deltas[i].y;
+	  points.arrayZ[i].x += deltas.arrayZ[i].x;
+	  points.arrayZ[i].y += deltas.arrayZ[i].y;
 	}
       } while (iterator.move_to_next ());
 
