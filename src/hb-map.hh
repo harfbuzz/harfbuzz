@@ -211,7 +211,7 @@ struct hb_hashmap_t
   void del (K key) { set_with_hash (key, hb_hash (key), item_t::default_value (), true); }
 
   /* Has interface. */
-  typedef V value_t;
+  typedef const V& value_t;
   value_t operator [] (K k) const { return get (k); }
   bool has (K key, const V **vp = nullptr) const
   {
