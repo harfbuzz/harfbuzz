@@ -598,13 +598,11 @@ struct gvar
 	bool apply_to_all = (indices.length == 0);
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
 	hb_vector_t<int> x_deltas;
-	x_deltas.resize (num_deltas);
-	if (!GlyphVariationData::unpack_deltas (p, x_deltas, end))
-	  return false;
+	if (unlikely (!x_deltas.resize (num_deltas))) return false;
+	if (unlikely (!GlyphVariationData::unpack_deltas (p, x_deltas, end))) return false;
 	hb_vector_t<int> y_deltas;
-	y_deltas.resize (num_deltas);
-	if (!GlyphVariationData::unpack_deltas (p, y_deltas, end))
-	  return false;
+	if (unlikely (!y_deltas.resize (num_deltas))) return false;
+	if (unlikely (!GlyphVariationData::unpack_deltas (p, y_deltas, end))) return false;
 
 	for (unsigned int i = 0; i < deltas.length; i++)
 	  deltas[i].init ();
