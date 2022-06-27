@@ -124,7 +124,7 @@ struct SimpleGlyph
 			   const simple_glyph_flag_t short_flag,
 			   const simple_glyph_flag_t same_flag)
   {
-    float v = 0;
+    int v = 0;
 
     unsigned count = points_.length;
     for (unsigned i = 0; i < count; i++)
