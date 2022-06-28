@@ -50,7 +50,30 @@ struct EntryExitRecord
 };
 
 static void
-reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction, unsigned int new_parent);
+reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction, unsigned int new_parent) {
+  int chain = pos[i].attach_chain(), type = pos[i].attach_type();
+  if (likely (!chain || 0 == (type & OT::Layout::GPOS::ATTACH_TYPE_CURSIVE)))
+    return;
+
+  pos[i].attach_chain() = 0;
+
+  unsigned int j = (int) i + chain;
+
+  /* Stop if we see new parent in the chain. */
+  if (j == new_parent)
+    return;
+
+  reverse_cursive_minor_offset (pos, j, direction, new_parent);
+
+  if (HB_DIRECTION_IS_HORIZONTAL (direction))
+    pos[j].y_offset = -pos[i].y_offset;
+  else
+    pos[j].x_offset = -pos[i].x_offset;
+
+  pos[j].attach_chain() = -chain;
+  pos[j].attach_type() = type;
+}
+
 
 struct CursivePosFormat1
 {
