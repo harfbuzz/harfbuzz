@@ -1075,7 +1075,8 @@ resize_and_retry:
 	      advance = positions[j + 1].x - positions[j].x;
 	    else /* last glyph */
 	      advance = run_advance - (positions[j].x - positions[0].x);
-	    info->mask = round (advance * x_mult);
+	    /* int cast necessary to pass through negative values. */
+	    info->mask = (int) round (advance * x_mult);
 	    info->var1.i32 = x_offset;
 	    info->var2.i32 = round (positions[j].y * y_mult);
 	    info++;
@@ -1091,7 +1092,8 @@ resize_and_retry:
 	      advance = positions[j + 1].y - positions[j].y;
 	    else /* last glyph */
 	      advance = run_advance - (positions[j].y - positions[0].y);
-	    info->mask = round (advance * y_mult);
+	    /* int cast necessary to pass through negative values. */
+	    info->mask = (int) round (advance * y_mult);
 	    info->var1.i32 = round (positions[j].x * x_mult);
 	    info->var2.i32 = y_offset;
 	    info++;
@@ -1166,6 +1168,10 @@ resize_and_retry:
       }
     }
   }
+
+  /* TODO: Sometimes the above positioning code generates negative
+   * advance values. Fix them up. Example, with NotoNastaliqUrdu
+   * font and sequence ابهد. */
 
   buffer->clear_glyph_flags ();
   buffer->unsafe_to_break ();
