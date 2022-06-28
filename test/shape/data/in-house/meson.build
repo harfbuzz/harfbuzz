@@ -58,6 +58,7 @@ in_house_tests = [
   'rand.tests',
   'reverse-sub.tests',
   'rotation.tests',
+  'sara-am.tests',
   'simple.tests',
   'sinhala.tests',
   'spaces.tests',
