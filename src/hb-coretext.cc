@@ -1142,7 +1142,8 @@ resize_and_retry:
      * This does *not* mean we'll form the same clusters as Uniscribe
      * or the native OT backend, only that the cluster indices will be
      * monotonic in the output buffer. */
-    if (count > 1 && (status_or & kCTRunStatusNonMonotonic))
+    if (count > 1 && (status_or & kCTRunStatusNonMonotonic) &&
+	buffer->cluster_level != HB_BUFFER_CLUSTER_LEVEL_CHARACTERS)
     {
       hb_glyph_info_t *info = buffer->info;
       if (HB_DIRECTION_IS_FORWARD (buffer->props.direction))
