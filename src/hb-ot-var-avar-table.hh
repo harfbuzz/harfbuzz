@@ -156,7 +156,7 @@ struct avar
 
     if (version.major == 2)
     {
-      auto *v2 = (const avarV2Tail *) map;
+      const auto *v2 = (const avarV2Tail *) map;
       if (unlikely (!v2->sanitize (c, this)))
 	return_trace (false);
     }
@@ -174,6 +174,32 @@ struct avar
       coords[i] = map->map (coords[i]);
       map = &StructAfter<SegmentMaps> (*map);
     }
+
+    if (version.major < 2)
+      return;
+
+    /* TODO Use cache. */
+
+    /* XXX Out coords might have different size; in varIdxMap. */
+
+    const auto *v2 = (const avarV2Tail *) map;
+
+    const auto &varidx_map = this+v2->varIdxMap;
+    const auto &var_store = this+v2->varStore;
+
+    hb_vector_t<int> out;
+    for (unsigned i = 0; i < coords_length; i++)
+    {
+      int v = coords[i];
+      uint32_t varidx = varidx_map.map (i);
+      float delta = var_store.get_delta (varidx, coords, coords_length);
+      v += round (delta);
+      /* TODO Clamp v? */
+      out.push (v);
+    }
+
+    for (unsigned i = 0; i < coords_length; i++)
+      coords[i] = out[i];
   }
 
   void unmap_coords (int *coords, unsigned int coords_length) const
