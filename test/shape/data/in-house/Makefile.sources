@@ -58,6 +58,7 @@ TESTS = \
 	tests/rand.tests \
 	tests/reverse-sub.tests \
 	tests/rotation.tests \
+	tests/sara-am.tests \
 	tests/simple.tests \
 	tests/sinhala.tests \
 	tests/spaces.tests \
