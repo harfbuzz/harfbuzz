@@ -639,6 +639,8 @@ struct hb_font_t
     bool y_neg = y_scale < 0;
     y_mult = (y_neg ? -((int64_t) -y_scale << 16) : ((int64_t) y_scale << 16)) / upem;
     slant_xy = y_scale ? slant * x_scale / y_scale : 0.f;
+
+    data.fini ();
   }
 
   hb_position_t em_mult (int16_t v, int64_t mult)
