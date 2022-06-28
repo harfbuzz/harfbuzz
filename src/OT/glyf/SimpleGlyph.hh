@@ -117,6 +117,28 @@ struct SimpleGlyph
     first_flag = (uint8_t) first_flag | FLAG_OVERLAP_SIMPLE;
   }
 
+  static bool read_flags (const HBUINT8 *&p /* IN/OUT */,
+			  contour_point_vector_t &points_ /* IN/OUT */,
+			  const HBUINT8 *end)
+  {
+    unsigned count = points_.length;
+    for (unsigned int i = 0; i < count;)
+    {
+      if (unlikely (p + 1 > end)) return false;
+      uint8_t flag = *p++;
+      points_.arrayZ[i++].flag = flag;
+      if (flag & FLAG_REPEAT)
+      {
+	if (unlikely (p + 1 > end)) return false;
+	unsigned int repeat_count = *p++;
+	unsigned stop = hb_min (i + repeat_count, count);
+	for (; i < stop;)
+	  points_.arrayZ[i++].flag = flag;
+      }
+    }
+    return true;
+  }
+
   static bool read_points (const HBUINT8 *&p /* IN/OUT */,
 			   contour_point_vector_t &points_ /* IN/OUT */,
 			   const HBUINT8 *end,
@@ -176,24 +198,9 @@ struct SimpleGlyph
     const HBUINT8 *end = (const HBUINT8 *) (bytes.arrayZ + bytes.length);
     if (unlikely (p >= end)) return false;
 
-    /* Read flags */
-    for (unsigned int i = 0; i < num_points;)
-    {
-      if (unlikely (p + 1 > end)) return false;
-      uint8_t flag = *p++;
-      points_.arrayZ[i++].flag = flag;
-      if (flag & FLAG_REPEAT)
-      {
-	if (unlikely (p + 1 > end)) return false;
-	unsigned int repeat_count = *p++;
-	unsigned stop = hb_min (i + repeat_count, num_points);
-	for (; i < stop;)
-	  points_.arrayZ[i++].flag = flag;
-      }
-    }
-
     /* Read x & y coordinates */
-    return read_points (p, points_, end, &contour_point_t::x,
+    return read_flags (p, points_, end)
+        && read_points (p, points_, end, &contour_point_t::x,
 			FLAG_X_SHORT, FLAG_X_SAME)
 	&& read_points (p, points_, end, &contour_point_t::y,
 			FLAG_Y_SHORT, FLAG_Y_SAME);
