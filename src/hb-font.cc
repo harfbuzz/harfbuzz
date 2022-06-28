@@ -1737,6 +1737,8 @@ _hb_font_adopt_var_coords (hb_font_t *font,
   font->coords = coords;
   font->design_coords = design_coords;
   font->num_coords = coords_length;
+
+  font->mults_changed (); // Easiest to call this to drop cached data
 }
 
 /**
@@ -1766,7 +1768,6 @@ hb_font_create_sub_font (hb_font_t *parent)
   font->x_scale = parent->x_scale;
   font->y_scale = parent->y_scale;
   font->slant = parent->slant;
-  font->mults_changed ();
   font->x_ppem = parent->x_ppem;
   font->y_ppem = parent->y_ppem;
   font->ptem = parent->ptem;
@@ -1788,6 +1789,8 @@ hb_font_create_sub_font (hb_font_t *parent)
       hb_free (design_coords);
     }
   }
+
+  font->mults_changed ();
 
   return font;
 }
