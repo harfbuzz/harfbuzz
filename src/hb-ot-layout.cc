@@ -55,7 +55,7 @@
 #include "hb-aat-layout-opbd-table.hh" // Just so we compile it; unused otherwise.
 
 using OT::Layout::GSUB::GSUB;
-using OT::Layout::GPOS_impl::GPOS;
+using OT::Layout::GPOS;
 
 /**
  * SECTION:hb-ot-layout
