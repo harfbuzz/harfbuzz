@@ -28,6 +28,8 @@
 #define HB_OT_VAR_AVAR_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-ot-var-common.hh"
+
 
 /*
  * avar -- Axis Variations
@@ -38,6 +40,27 @@
 
 
 namespace OT {
+
+
+struct avarV2Tail
+{
+  friend struct avar;
+
+  bool sanitize (hb_sanitize_context_t *c,
+		 const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (varIdxMap.sanitize (c, base) &&
+		  varStore.sanitize (c, base));
+  }
+
+  protected:
+  Offset32To<DeltaSetIndexMap>	varIdxMap;	/* Offset from the beginning of 'avar' table. */
+  Offset32To<VariationStore>	varStore;	/* Offset from the beginning of 'avar' table. */
+
+  public:
+  DEFINE_SIZE_STATIC (8);
+};
 
 
 struct AxisValueMap
@@ -118,7 +141,7 @@ struct avar
   {
     TRACE_SANITIZE (this);
     if (unlikely (!(version.sanitize (c) &&
-		    version.major == 1 &&
+		    (version.major == 1 || version.major == 2) &&
 		    c->check_struct (this))))
       return_trace (false);
 
@@ -129,6 +152,13 @@ struct avar
       if (unlikely (!map->sanitize (c)))
 	return_trace (false);
       map = &StructAfter<SegmentMaps> (*map);
+    }
+
+    if (version.major == 2)
+    {
+      auto *v2 = (const avarV2Tail *) map;
+      if (unlikely (!v2->sanitize (c, this)))
+	return_trace (false);
     }
 
     return_trace (true);
