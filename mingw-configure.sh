@@ -17,7 +17,7 @@ exec "$(dirname "$0")"/configure \
 	CPP= \
 	LD= \
 	CFLAGS="-static-libgcc" \
-	CXXFLAGS="-static-libgcc -static-libstdc++" \
+	CXXFLAGS="-O2 -static-libgcc -static-libstdc++" \
 	CPPFLAGS="-I$HOME/.local/$target/include" \
 	LDFLAGS=-L$HOME/.local/$target/lib \
 	PKG_CONFIG_LIBDIR=$HOME/.local/$target/lib/pkgconfig:/usr/$target/sys-root/mingw/lib/pkgconfig/ \
