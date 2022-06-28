@@ -458,7 +458,7 @@ for k, (cat, pos, block) in indic_data.items():
     if block.startswith('Khmer') or block.startswith('Myanmar'):
       cat = position_to_category(pos)
     else:
-      pos = indic_matra_position(u, pos, block)
+      pos = indic_matra_position(k, pos, block)
   elif cat in smvd_categories:
     pos = 'SMVD';
   indic_data[k] = (cat, pos, block)

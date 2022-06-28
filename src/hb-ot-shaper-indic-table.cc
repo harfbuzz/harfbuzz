@@ -109,9 +109,9 @@ static_assert (OT_VPst == M_Cat(VPst), "");
 #define _POS_T   POS_ABOVE_C     /*  22 chars; ABOVE_C */
 #define _POS_A   POS_AFTER_MAIN  /*   3 chars; AFTER_MAIN */
 #define _POS_AP  POS_AFTER_POST  /*  50 chars; AFTER_POST */
-#define _POS_AS  POS_AFTER_SUB   /*  45 chars; AFTER_SUB */
+#define _POS_AS  POS_AFTER_SUB   /*  51 chars; AFTER_SUB */
 #define _POS_C   POS_BASE_C      /* 833 chars; BASE_C */
-#define _POS_BS  POS_BEFORE_SUB  /*  31 chars; BEFORE_SUB */
+#define _POS_BS  POS_BEFORE_SUB  /*  25 chars; BEFORE_SUB */
 #define _POS_B   POS_BELOW_C     /*  13 chars; BELOW_C */
 #define _POS_X   POS_END         /*  71 chars; END */
 #define _POS_R   POS_POST_C      /*  13 chars; POST_C */
@@ -276,7 +276,7 @@ static const uint16_t indic_table[] = {
   /* 0C28 */  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 0C30 */  _(R,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 0C38 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(N,X), _(S,SM), _(M,BS), _(M,BS),
-  /* 0C40 */ _(M,BS), _(M,AS), _(M,AS), _(M,AS), _(M,AS),  _(X,X), _(M,BS), _(M,BS),
+  /* 0C40 */ _(M,BS), _(M,BS), _(M,BS), _(M,AS), _(M,AS),  _(X,X), _(M,BS), _(M,BS),
   /* 0C48 */ _(M,BS),  _(X,X), _(M,BS), _(M,BS), _(M,BS),  _(H,T),  _(X,X),  _(X,X),
   /* 0C50 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(M,BS), _(M,BS),  _(X,X),
   /* 0C58 */  _(C,C),  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(C,C),  _(X,X),  _(X,X),
@@ -295,9 +295,9 @@ static const uint16_t indic_table[] = {
   /* 0CA8 */  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),  _(C,C),
   /* 0CB0 */  _(R,C),  _(C,C),  _(C,C),  _(C,C),  _(X,X),  _(C,C),  _(C,C),  _(C,C),
   /* 0CB8 */  _(C,C),  _(C,C),  _(X,X),  _(X,X),  _(N,X), _(S,SM), _(M,BS), _(M,BS),
-  /* 0CC0 */ _(M,BS), _(M,BS), _(M,BS), _(M,BS), _(M,BS),  _(X,X), _(M,BS), _(M,BS),
-  /* 0CC8 */ _(M,BS),  _(X,X), _(M,BS), _(M,BS), _(M,BS),  _(H,T),  _(X,X),  _(X,X),
-  /* 0CD0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(M,BS), _(M,BS),  _(X,X),
+  /* 0CC0 */ _(M,BS), _(M,BS), _(M,BS), _(M,AS), _(M,AS),  _(X,X), _(M,BS), _(M,AS),
+  /* 0CC8 */ _(M,AS),  _(X,X), _(M,AS), _(M,AS), _(M,BS),  _(H,T),  _(X,X),  _(X,X),
+  /* 0CD0 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X), _(M,AS), _(M,AS),  _(X,X),
   /* 0CD8 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(C,C),  _(C,C),  _(X,X),
   /* 0CE0 */  _(V,C),  _(V,C), _(M,BS), _(M,BS),  _(X,X),  _(X,X), _(GB,C), _(GB,C),
   /* 0CE8 */ _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C), _(GB,C),
