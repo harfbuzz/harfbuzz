@@ -3,7 +3,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GPOS {
+namespace GPOS_impl {
 
 typedef AnchorMatrix LigatureAttach;    /* component-major--
                                          * in order of writing direction--,

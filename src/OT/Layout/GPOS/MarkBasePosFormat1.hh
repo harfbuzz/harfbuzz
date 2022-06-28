@@ -5,7 +5,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GPOS {
+namespace GPOS_impl {
 
 typedef AnchorMatrix BaseArray;         /* base-major--
                                          * in order of BaseCoverage Index--,

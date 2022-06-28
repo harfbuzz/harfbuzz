@@ -33,33 +33,33 @@
 
 namespace OT {
 
-using Layout::GPOS::ATTACH_TYPE_MARK;
-using Layout::GPOS::ATTACH_TYPE_NONE;
-using Layout::GPOS::ATTACH_TYPE_CURSIVE;
-using Layout::GPOS::PosLookup;
+using Layout::GPOS_impl::ATTACH_TYPE_MARK;
+using Layout::GPOS_impl::ATTACH_TYPE_NONE;
+using Layout::GPOS_impl::ATTACH_TYPE_CURSIVE;
+using Layout::GPOS_impl::PosLookup;
 
 // TODO(garretrieger): Move into new layout directory.
 /* Out-of-class implementation for methods recursing */
 #ifndef HB_NO_OT_LAYOUT
 template <typename context_t>
-/*static*/ typename context_t::return_t Layout::GPOS::PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
+/*static*/ typename context_t::return_t PosLookup::dispatch_recurse_func (context_t *c, unsigned int lookup_index)
 {
-  const Layout::GPOS::PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
+  const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
   return l.dispatch (c);
 }
 
 template <>
 inline hb_closure_lookups_context_t::return_t
-Layout::GPOS::PosLookup::dispatch_recurse_func<hb_closure_lookups_context_t> (hb_closure_lookups_context_t *c, unsigned this_index)
+PosLookup::dispatch_recurse_func<hb_closure_lookups_context_t> (hb_closure_lookups_context_t *c, unsigned this_index)
 {
-  const Layout::GPOS::PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (this_index);
+  const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (this_index);
   return l.closure_lookups (c, this_index);
 }
 
 template <>
-inline bool Layout::GPOS::PosLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_apply_context_t *c, unsigned int lookup_index)
+inline bool PosLookup::dispatch_recurse_func<hb_ot_apply_context_t> (hb_ot_apply_context_t *c, unsigned int lookup_index)
 {
-  const Layout::GPOS::PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
+  const PosLookup &l = c->face->table.GPOS.get_relaxed ()->table->get_lookup (lookup_index);
   unsigned int saved_lookup_props = c->lookup_props;
   unsigned int saved_lookup_index = c->lookup_index;
   c->set_lookup_index (lookup_index);

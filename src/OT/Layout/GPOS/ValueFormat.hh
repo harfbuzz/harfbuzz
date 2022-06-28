@@ -5,7 +5,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GPOS {
+namespace GPOS_impl {
 
 typedef HBUINT16 Value;
 
