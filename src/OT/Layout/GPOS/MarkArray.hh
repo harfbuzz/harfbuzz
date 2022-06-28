@@ -6,7 +6,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GPOS {
+namespace GPOS_impl {
 
 struct MarkArray : Array16Of<MarkRecord>        /* Array of MarkRecords--in Coverage order */
 {

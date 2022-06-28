@@ -3,7 +3,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GPOS {
+namespace GPOS_impl {
 
 enum attach_type_t {
   ATTACH_TYPE_NONE      = 0X00,

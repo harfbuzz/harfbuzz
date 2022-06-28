@@ -5,7 +5,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GPOS {
+namespace GPOS_impl {
 
 typedef AnchorMatrix Mark2Array;        /* mark2-major--
                                          * in order of Mark2Coverage Index--,

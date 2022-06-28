@@ -41,7 +41,7 @@
 #include "hb-ot-math-table.hh"
 
 using OT::Layout::GSUB::GSUB;
-using OT::Layout::GPOS::GPOS;
+using OT::Layout::GPOS_impl::GPOS;
 
 typedef hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> script_langsys_map;
 #ifndef HB_NO_SUBSET_CFF

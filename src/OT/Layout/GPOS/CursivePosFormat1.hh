@@ -5,7 +5,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GPOS {
+namespace GPOS_impl {
 
 struct EntryExitRecord
 {
@@ -52,7 +52,7 @@ struct EntryExitRecord
 static void
 reverse_cursive_minor_offset (hb_glyph_position_t *pos, unsigned int i, hb_direction_t direction, unsigned int new_parent) {
   int chain = pos[i].attach_chain(), type = pos[i].attach_type();
-  if (likely (!chain || 0 == (type & OT::Layout::GPOS::ATTACH_TYPE_CURSIVE)))
+  if (likely (!chain || 0 == (type & ATTACH_TYPE_CURSIVE)))
     return;
 
   pos[i].attach_chain() = 0;

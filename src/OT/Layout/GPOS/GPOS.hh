@@ -8,7 +8,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GPOS {
+namespace GPOS_impl {
 
 static void
 propagate_attachment_offsets (hb_glyph_position_t *pos,
@@ -157,8 +157,8 @@ GPOS::position_finish_offsets (hb_font_t *font, hb_buffer_t *buffer)
 }
 }
 
-struct GPOS_accelerator_t : Layout::GPOS::GPOS::accelerator_t {
-  GPOS_accelerator_t (hb_face_t *face) : Layout::GPOS::GPOS::accelerator_t (face) {}
+struct GPOS_accelerator_t : Layout::GPOS_impl::GPOS::accelerator_t {
+  GPOS_accelerator_t (hb_face_t *face) : Layout::GPOS_impl::GPOS::accelerator_t (face) {}
 };
 
 }

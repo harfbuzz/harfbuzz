@@ -56,7 +56,7 @@
 #include "hb-repacker.hh"
 
 using OT::Layout::GSUB::GSUB;
-using OT::Layout::GPOS::GPOS;
+using OT::Layout::GPOS_impl::GPOS;
 
 /**
  * SECTION:hb-subset
