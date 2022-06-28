@@ -76,4 +76,4 @@ struct PosLookup : Lookup
 }
 }
 
-#endif  /* OT_LAYOUT_GPOS_SUBSTLOOKUP_HH */
+#endif  /* OT_LAYOUT_GPOS_POSLOOKUP_HH */
