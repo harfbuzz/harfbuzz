@@ -62,7 +62,10 @@ tests = [
 ]
 
 if conf.get('HAVE_FREETYPE', 0) == 1
-  tests += 'test-ot-math.c'
+  tests += [
+    'test-ot-math.c',
+    'test-ft.c',
+  ]
 endif
 
 if conf.get('HAVE_FREETYPE', 0) == 1 and conf.get('HAVE_PTHREAD', 0) == 1
