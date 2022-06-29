@@ -33,9 +33,6 @@
 
 namespace OT {
 
-using Layout::GPOS_impl::ATTACH_TYPE_MARK;
-using Layout::GPOS_impl::ATTACH_TYPE_NONE;
-using Layout::GPOS_impl::ATTACH_TYPE_CURSIVE;
 using Layout::GPOS_impl::PosLookup;
 
 // TODO(garretrieger): Move into new layout directory.
