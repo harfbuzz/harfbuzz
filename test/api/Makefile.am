@@ -145,9 +145,13 @@ test_paint_LDADD += $(FREETYPE_LIBS)
 
 TEST_PROGS += \
 	test-ot-math \
+	test-ft \
 	$(NULL)
 test_ot_math_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ot_math_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
+
+test_ft_LDADD = $(LDADD) $(FREETYPE_LIBS)
+test_ft_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 endif # HAVE_FREETYPE
 
 # Tests for header compilation
