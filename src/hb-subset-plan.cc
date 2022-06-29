@@ -40,7 +40,7 @@
 #include "hb-ot-stat-table.hh"
 #include "hb-ot-math-table.hh"
 
-using OT::Layout::GSUB::GSUB;
+using OT::Layout::GSUB;
 using OT::Layout::GPOS;
 
 typedef hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> script_langsys_map;

@@ -29,12 +29,12 @@
 #ifndef HB_OT_LAYOUT_GSUB_TABLE_HH
 #define HB_OT_LAYOUT_GSUB_TABLE_HH
 
-#include "OT/Layout/GSUB/GSUB.hh"
+#include "OT/Layout/GSUB.hh"
 
 namespace OT {
 
-using Layout::GSUB::SubstLookup;
-using Layout::GSUB::ExtensionSubst;
+using Layout::GSUB_impl::SubstLookup;
+using Layout::GSUB_impl::ExtensionSubst;
 
 // TODO(garretrieger): Move into the new layout directory.
 /* Out-of-class implementation for methods recursing */

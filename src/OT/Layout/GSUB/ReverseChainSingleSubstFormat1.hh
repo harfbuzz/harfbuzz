@@ -5,7 +5,7 @@
 
 namespace OT {
 namespace Layout {
-namespace GSUB {
+namespace GSUB_impl {
 
 struct ReverseChainSingleSubstFormat1
 {

@@ -55,7 +55,7 @@
 #include "hb-ot-math-table.hh"
 #include "hb-repacker.hh"
 
-using OT::Layout::GSUB::GSUB;
+using OT::Layout::GSUB;
 using OT::Layout::GPOS;
 
 /**
