@@ -188,6 +188,7 @@ struct avar
     const auto &var_store = this+v2->varStore;
 
     hb_vector_t<int> out;
+    out.alloc (coords_length);
     for (unsigned i = 0; i < coords_length; i++)
     {
       int v = coords[i];
