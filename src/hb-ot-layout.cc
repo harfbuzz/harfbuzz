@@ -54,7 +54,7 @@
 #include "hb-aat-layout-morx-table.hh"
 #include "hb-aat-layout-opbd-table.hh" // Just so we compile it; unused otherwise.
 
-using OT::Layout::GSUB::GSUB;
+using OT::Layout::GSUB;
 using OT::Layout::GPOS;
 
 /**
