@@ -1948,7 +1948,7 @@ hb_font_is_immutable (hb_font_t *font)
  *
  * Return value: serial number
  *
- * Since: 4.4.0.
+ * Since: 4.4.0
  **/
 unsigned int
 hb_font_get_serial (hb_font_t *font)
@@ -1964,7 +1964,7 @@ hb_font_get_serial (hb_font_t *font)
  * This has the effect of increasing the serial as returned
  * by hb_font_get_serial(), which invalidates internal caches.
  *
- * Since: 4.4.0.
+ * Since: 4.4.0
  **/
 void
 hb_font_changed (hb_font_t *font)
