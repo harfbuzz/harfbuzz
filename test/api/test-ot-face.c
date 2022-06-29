@@ -127,20 +127,19 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
 
   hb_ot_math_has_data (face);
   for (unsigned constant = HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN; constant <= HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT; constant++) {
-    hb_ot_math_get_constant (font, constant);
+    hb_ot_math_get_constant (font, (hb_ot_math_constant_t)constant);
   }
-  hb_ot_math_get_constant (font, -1);
 
   hb_ot_math_get_glyph_italics_correction (font, cp);
   hb_ot_math_get_glyph_top_accent_attachment (font, cp);
   hb_ot_math_is_glyph_extended_shape (face, cp);
 
-  for (unsigned kern = HB_OT_MATH_KERN_TOP_RIGHT; kern <= HB_OT_MATH_KERN_BOTTOM_LEFT; kern++) {
-    hb_ot_math_get_glyph_kerning (font, cp, kern, 0);
-    hb_ot_math_get_glyph_kernings (font, cp, kern, 0, NULL, NULL);
+  {
+    hb_ot_math_get_glyph_kerning (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0);
+    hb_ot_math_get_glyph_kernings (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0, NULL, NULL);
     hb_ot_math_kern_entry_t entries[5];
     unsigned count = sizeof (entries) / sizeof (entries[0]);
-    hb_ot_math_get_glyph_kernings (font, cp, kern, 0, &count, entries);
+    hb_ot_math_get_glyph_kernings (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0, &count, entries);
   }
 
   {
