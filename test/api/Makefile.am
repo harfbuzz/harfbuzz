@@ -154,6 +154,12 @@ test_ft_LDADD = $(LDADD) $(FREETYPE_LIBS)
 test_ft_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE_CFLAGS)
 endif # HAVE_FREETYPE
 
+if HAVE_CORETEXT
+TEST_PROGS += \
+	test-coretext \
+	$(NULL)
+endif # HAVE_CORETEXT
+
 # Tests for header compilation
 test_cplusplus_SOURCES = test-cplusplus.cc
 test_c_CPPFLAGS = $(AM_CPPFLAGS)
