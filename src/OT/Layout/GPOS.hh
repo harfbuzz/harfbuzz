@@ -69,7 +69,8 @@ static void
 propagate_attachment_offsets (hb_glyph_position_t *pos,
                               unsigned int len,
                               unsigned int i,
-                              hb_direction_t direction)
+                              hb_direction_t direction,
+                              unsigned nesting_level)
 {
   /* Adjusts offsets of attached glyphs (both cursive and mark) to accumulate
    * offset of glyph they are attached to. */
