@@ -5,10 +5,11 @@ import os
 # A single test in a subset test suite. Identifies a font
 # a subsetting profile, and a subset to be cut.
 class Test:
-	def __init__(self, font_path, profile_path, subset):
+	def __init__(self, font_path, profile_path, subset, instance):
 		self.font_path = font_path
 		self.profile_path = profile_path
 		self.subset = subset
+		self.instance = instance
 
 	def unicodes(self):
 		import re
@@ -20,9 +21,22 @@ class Test:
 		else:
 			return ",".join("%X" % ord(c) for (i, c) in enumerate(self.subset))
 
+	def instance_name(self):
+		if not self.instance:
+			return self.instance
+		else:
+			s = "." + self.instance.replace(':', '-')
+			return s
+
 	def get_profile_flags(self):
 		with open (self.profile_path, mode="r", encoding="utf-8") as f:
 		    return f.read().splitlines()
+
+	def get_instance_flags(self):
+		if not self.instance:
+			return []
+		else:
+			return self.instance.split(',')
 
 	def get_font_name(self):
 		font_base_name = os.path.basename(self.font_path)
@@ -30,13 +44,15 @@ class Test:
 		profile_name = os.path.splitext(os.path.basename(self.profile_path))[0]
 
 		if self.unicodes() == "*":
-			return "%s.%s.retain-all-codepoint%s" % (font_base_name_parts[0],
+			return "%s.%s.retain-all-codepoint%s%s" % (font_base_name_parts[0],
 				       profile_name,
+				       self.instance_name(),
 				       font_base_name_parts[1])
 		else:
-			return "%s.%s.%s%s" % (font_base_name_parts[0],
+			return "%s.%s.%s%s%s" % (font_base_name_parts[0],
 				       profile_name,
 				       self.unicodes(),
+				       self.instance_name(),
 				       font_base_name_parts[1])
 
 	def get_font_extension(self):
@@ -53,6 +69,7 @@ class SubsetTestSuite:
 		self.fonts = []
 		self.profiles = []
 		self.subsets = []
+		self.instances = []
 		self._parse(definition)
 
 	def get_output_directory(self):
@@ -73,7 +90,11 @@ class SubsetTestSuite:
 			for profile in self.profiles:
 				profile = os.path.join(self._base_path(), "profiles", profile)
 				for subset in self.subsets:
-					yield Test(font, profile, subset)
+					if self.instances: 
+						for instance in self.instances:
+							yield Test(font, profile, subset, instance)
+					else:
+						yield Test(font, profile, subset, "")
 
 	def _base_path(self):
 		return os.path.dirname(os.path.dirname(self.test_path))
@@ -82,7 +103,8 @@ class SubsetTestSuite:
 		destinations = {
 				"FONTS:": self.fonts,
 				"PROFILES:": self.profiles,
-				"SUBSETS:": self.subsets
+				"SUBSETS:": self.subsets,
+				"INSTANCES:": self.instances
 		}
 
 		current_destination = None
