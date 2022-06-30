@@ -576,13 +576,16 @@ _create_old_gid_to_new_gid_map (const hb_face_t *face,
 
 static void
 _nameid_closure (hb_face_t *face,
-		 hb_set_t  *nameids)
+		 hb_set_t  *nameids,
+		 bool all_axes_pinned,
+		 hb_hashmap_t<hb_tag_t, float> *user_axes_location)
 {
 #ifndef HB_NO_STYLE
-  face->table.STAT->collect_name_ids (nameids);
+  face->table.STAT->collect_name_ids (user_axes_location, nameids);
 #endif
 #ifndef HB_NO_VAR
-  face->table.fvar->collect_name_ids (nameids);
+  if (!all_axes_pinned)
+    face->table.fvar->collect_name_ids (user_axes_location, nameids);
 #endif
 }
 
@@ -658,7 +661,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->unicode_to_new_gid_list.init ();
 
   plan->name_ids = hb_set_copy (input->sets.name_ids);
-  _nameid_closure (face, plan->name_ids);
   plan->name_languages = hb_set_copy (input->sets.name_languages);
   plan->layout_features = hb_set_copy (input->sets.layout_features);
   plan->layout_scripts = hb_set_copy (input->sets.layout_scripts);
@@ -733,6 +735,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
                             plan->axes_location,
                             plan->all_axes_pinned);
 
+  _nameid_closure (face, plan->name_ids, plan->all_axes_pinned, plan->user_axes_location);
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
     return nullptr;

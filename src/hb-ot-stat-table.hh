@@ -401,6 +401,18 @@ struct AxisValue
     }
   }
 
+  bool keep_axis_value (const hb_array_t<const StatAxisRecord> axis_records,
+                        hb_hashmap_t<hb_tag_t, float> *user_axes_location) const
+  {
+    switch (u.format)
+    {
+    case 1: return u.format1.keep_axis_value (axis_records, user_axes_location);
+    case 2: return u.format2.keep_axis_value (axis_records, user_axes_location);
+    case 3: return u.format3.keep_axis_value (axis_records, user_axes_location);
+    case 4: return u.format4.keep_axis_value (axis_records, user_axes_location);
+    default:return false;
+    }
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -505,7 +517,8 @@ struct STAT
     return axis_value.get_value_name_id ();
   }
 
-  void collect_name_ids (hb_set_t *nameids_to_retain) const
+  void collect_name_ids (hb_hashmap_t<hb_tag_t, float> *user_axes_location,
+                         hb_set_t *nameids_to_retain /* OUT */) const
   {
     if (!has_data ()) return;
 
@@ -514,8 +527,12 @@ struct STAT
     | hb_sink (nameids_to_retain)
     ;
 
+    auto designAxes = get_design_axes ();
+
     + get_axis_value_offsets ()
     | hb_map (hb_add (&(this + offsetToAxisValueOffsets)))
+    | hb_filter ([&] (const AxisValue& _)
+                 { return _.keep_axis_value (designAxes, user_axes_location); })
     | hb_map (&AxisValue::get_value_name_id)
     | hb_sink (nameids_to_retain)
     ;
