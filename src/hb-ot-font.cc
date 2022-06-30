@@ -151,7 +151,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   const OT::hmtx_accelerator_t &hmtx = *ot_face->hmtx;
 
 #ifndef HB_NO_VAR
-  const OT::HVARVVAR &HVAR = *hmtx.var_table;
+  const OT::HVAR &HVAR = *hmtx.var_table;
   const OT::VariationStore &varStore = &HVAR + HVAR.varStore;
   OT::VariationStore::cache_t *varStore_cache = font->num_coords * count >= 128 ? varStore.create_cache () : nullptr;
 
@@ -242,7 +242,7 @@ hb_ot_get_glyph_v_advances (hb_font_t* font, void* font_data,
   if (vmtx.has_data ())
   {
 #ifndef HB_NO_VAR
-    const OT::HVARVVAR &VVAR = *vmtx.var_table;
+    const OT::VVAR &VVAR = *vmtx.var_table;
     const OT::VariationStore &varStore = &VVAR + VVAR.varStore;
     OT::VariationStore::cache_t *varStore_cache = font->num_coords ? varStore.create_cache () : nullptr;
 #else
