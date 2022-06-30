@@ -124,28 +124,25 @@ static bool _filter_tag_list(hb_vector_t<hb_tag_t>* tags, /* IN/OUT */
 }
 
 template <typename T>
-static void _collect_layout_indices (hb_face_t		  *face,
+static void _collect_layout_indices (hb_subset_plan_t     *plan,
                                      const T&              table,
-                                     const hb_set_t	  *layout_features_to_retain,
                                      layout_collect_func_t layout_collect_func,
                                      hb_set_t		  *indices /* OUT */)
 {
   unsigned num_features = table.get_feature_count () + 1;
   hb_vector_t<hb_tag_t> features;
-  // TODO(garretrieger): propagate error to plan
-  if (!features.resize (num_features)) return;
+  if (!plan->check_success (features.resize (num_features))) return;
   table.get_feature_tags (0, &num_features, features.arrayZ);
   features.resize (num_features);
-  bool retain_all_features = !_filter_tag_list (&features, layout_features_to_retain);
+  bool retain_all_features = !_filter_tag_list (&features, plan->layout_features);
 
-  // TODO(garretrieger): propagate error to plan
-  if (features.in_error () || !features)
+  if (!plan->check_success (!features.in_error ()) || !features)
     return;
 
   if (retain_all_features)
   {
     // Looking for all features, trigger the faster collection method.
-    layout_collect_func (face,
+    layout_collect_func (plan->source,
                          T::tableTag,
                          nullptr,
                          nullptr,
@@ -156,7 +153,7 @@ static void _collect_layout_indices (hb_face_t		  *face,
 
   // The collect function needs a null element to signal end of the array.
   features.push (0);
-  layout_collect_func (face,
+  layout_collect_func (plan->source,
                        T::tableTag,
 		       nullptr,
 		       nullptr,
@@ -166,36 +163,33 @@ static void _collect_layout_indices (hb_face_t		  *face,
 
 template <typename T>
 static inline void
-_closure_glyphs_lookups_features (hb_face_t	     *face,
+_closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 				  hb_set_t	     *gids_to_retain,
-				  const hb_set_t     *layout_features_to_retain,
 				  hb_map_t	     *lookups,
 				  hb_map_t	     *features,
 				  script_langsys_map *langsys_map)
 {
-  hb_blob_ptr_t<T> table = hb_sanitize_context_t ().reference_table<T> (face);
+  hb_blob_ptr_t<T> table = hb_sanitize_context_t ().reference_table<T> (plan->source);
   hb_tag_t table_tag = table->tableTag;
   hb_set_t lookup_indices;
-  _collect_layout_indices<T> (face,
+  _collect_layout_indices<T> (plan,
                               *table,
-                              layout_features_to_retain,
                               hb_ot_layout_collect_lookups,
                               &lookup_indices);
 
   if (table_tag == HB_OT_TAG_GSUB)
-    hb_ot_layout_lookups_substitute_closure (face,
-					    &lookup_indices,
+    hb_ot_layout_lookups_substitute_closure (plan->source,
+                                             &lookup_indices,
 					     gids_to_retain);
-  table->closure_lookups (face,
+  table->closure_lookups (plan->source,
 			  gids_to_retain,
-			 &lookup_indices);
+                          &lookup_indices);
   _remap_indexes (&lookup_indices, lookups);
 
   // Collect and prune features
   hb_set_t feature_indices;
-  _collect_layout_indices<T> (face,
+  _collect_layout_indices<T> (plan,
                               *table,
-                              layout_features_to_retain,
                               hb_ot_layout_collect_features,
                               &feature_indices);
 
@@ -412,18 +406,16 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   if (close_over_gsub)
     // closure all glyphs/lookups/features needed for GSUB substitutions.
     _closure_glyphs_lookups_features<GSUB> (
-        plan->source,
+        plan,
         plan->_glyphset_gsub,
-        plan->layout_features,
         plan->gsub_lookups,
         plan->gsub_features,
         plan->gsub_langsys);
 
   if (close_over_gpos)
     _closure_glyphs_lookups_features<GPOS> (
-        plan->source,
+        plan,
         plan->_glyphset_gsub,
-        plan->layout_features,
         plan->gpos_lookups,
         plan->gpos_features,
         plan->gpos_langsys);
