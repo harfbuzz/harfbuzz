@@ -5,6 +5,10 @@ SourceSerifVariable-Roman.ttf
 PROFILES:
 default.txt
 drop-hints.txt
+no-scripts.txt
+filter-scripts.txt
+filter-scripts-features.txt
+filter-scripts-features.2.txt
 
 SUBSETS:
 abc
