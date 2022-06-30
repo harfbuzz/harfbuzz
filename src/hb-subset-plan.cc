@@ -136,28 +136,25 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
   features.resize (num_features);
   bool retain_all_features = !_filter_tag_list (&features, plan->layout_features);
 
-  if (!plan->check_success (!features.in_error ()) || !features)
-    return;
+  unsigned num_scripts = table.get_script_count () + 1;
+  hb_vector_t<hb_tag_t> scripts;
+  if (!plan->check_success (scripts.resize (num_scripts))) return;
+  table.get_script_tags (0, &num_scripts, scripts.arrayZ);
+  scripts.resize (num_scripts);
+  bool retain_all_scripts = !_filter_tag_list (&scripts, plan->layout_scripts);
 
-  if (retain_all_features)
-  {
-    // Looking for all features, trigger the faster collection method.
-    layout_collect_func (plan->source,
-                         T::tableTag,
-                         nullptr,
-                         nullptr,
-                         nullptr,
-                         indices);
+  if (!plan->check_success (!features.in_error ()) || !features
+      || !plan->check_success (!scripts.in_error ()) || !scripts)
     return;
-  }
 
   // The collect function needs a null element to signal end of the array.
   features.push (0);
+  scripts.push (0);
   layout_collect_func (plan->source,
                        T::tableTag,
+                       retain_all_scripts ? nullptr : scripts.arrayZ,
 		       nullptr,
-		       nullptr,
-		       features.arrayZ,
+		       retain_all_features ? nullptr : features.arrayZ,
 		       indices);
 }
 
