@@ -1,10 +1,10 @@
-#ifndef OT_LAYOUT_GPOS_HH
-#define OT_LAYOUT_GPOS_HH
+#ifndef OT_LAYOUT_GPOS_GPOS_HH
+#define OT_LAYOUT_GPOS_GPOS_HH
 
-#include "../../hb-ot-layout-common.hh"
-#include "../../hb-ot-layout-gsubgpos.hh"
-#include "GPOS/Common.hh"
-#include "GPOS/PosLookup.hh"
+#include "../../../hb-ot-layout-common.hh"
+#include "../../../hb-ot-layout-gsubgpos.hh"
+#include "Common.hh"
+#include "PosLookup.hh"
 
 namespace OT {
 namespace Layout {
@@ -162,4 +162,4 @@ struct GPOS_accelerator_t : Layout::GPOS::accelerator_t {
 
 }
 
-#endif  /* OT_LAYOUT_GPOS_HH */
+#endif  /* OT_LAYOUT_GPOS_GPOS_HH */

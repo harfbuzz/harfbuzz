@@ -1,9 +1,9 @@
-#ifndef OT_LAYOUT_GSUB_HH
-#define OT_LAYOUT_GSUB_HH
+#ifndef OT_LAYOUT_GSUB_GSUB_HH
+#define OT_LAYOUT_GSUB_GSUB_HH
 
-#include "../../hb-ot-layout-gsubgpos.hh"
-#include "GSUB/Common.hh"
-#include "GSUB/SubstLookup.hh"
+#include "../../../hb-ot-layout-gsubgpos.hh"
+#include "Common.hh"
+#include "SubstLookup.hh"
 
 using OT::Layout::GSUB_impl::SubstLookup;
 
@@ -54,4 +54,4 @@ struct GSUB_accelerator_t : Layout::GSUB::accelerator_t {
 
 }
 
-#endif  /* OT_LAYOUT_GSUB_HH */
+#endif  /* OT_LAYOUT_GSUB_GSUB_HH */
