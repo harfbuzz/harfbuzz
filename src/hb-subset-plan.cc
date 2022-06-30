@@ -691,6 +691,9 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   plan->check_success (plan->sanitized_table_cache = hb_hashmap_create<hb_tag_t, hb::unique_ptr<hb_blob_t>> ());
   plan->check_success (plan->axes_location = hb_hashmap_create<hb_tag_t, int> ());
+  plan->check_success (plan->user_axes_location = hb_hashmap_create<hb_tag_t, float> ());
+  if (plan->user_axes_location && input->axes_location)
+      *plan->user_axes_location = *input->axes_location;
   plan->all_axes_pinned = false;
 
   if (unlikely (plan->in_error ())) {
@@ -783,6 +786,13 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_hashmap_destroy (plan->gpos_langsys);
   hb_hashmap_destroy (plan->axes_location);
   hb_hashmap_destroy (plan->sanitized_table_cache);
+
+  if (plan->user_axes_location)
+  {
+    hb_object_destroy (plan->user_axes_location);
+    plan->user_axes_location->fini_shallow ();
+    hb_free (plan->user_axes_location);
+  }
 
   hb_free (plan);
 }

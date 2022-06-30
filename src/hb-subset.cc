@@ -53,6 +53,7 @@
 #include "hb-ot-var-gvar-table.hh"
 #include "hb-ot-var-hvar-table.hh"
 #include "hb-ot-math-table.hh"
+#include "hb-ot-stat-table.hh"
 #include "hb-repacker.hh"
 
 using OT::Layout::GSUB;
@@ -453,6 +454,11 @@ _subset_table (hb_subset_plan_t *plan,
   case HB_OT_TAG_HVAR: return _subset<const OT::HVAR> (plan, buf);
   case HB_OT_TAG_VVAR: return _subset<const OT::VVAR> (plan, buf);
 #endif
+  case HB_OT_TAG_STAT:
+    /*TODO(qxliu): change the condition as we support more complex
+     * instancing operation*/
+    if (plan->all_axes_pinned) return _subset<const OT::STAT> (plan, buf);
+    else return _passthrough (plan, tag);
 
   default:
     if (plan->flags & HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED)

@@ -48,8 +48,7 @@ hb_subset_input_create_or_fail (void)
   for (auto& set : input->sets_iter ())
     set = hb_set_create ();
 
-  if ((input->axes_location = hb_object_create<hb_hashmap_t<hb_tag_t, float>> ()))
-    input->axes_location->init_shallow ();
+  input->axes_location = hb_hashmap_create<hb_tag_t, float> ();
   
   if (!input->axes_location || input->in_error ())
   {
@@ -99,7 +98,6 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('D', 'S', 'I', 'G'),
     HB_TAG ('M', 'V', 'A', 'R'),
     HB_TAG ('c', 'v', 'a', 'r'),
-    HB_TAG ('S', 'T', 'A', 'T'),
   };
   input->sets.no_subset_tables->add_array (default_no_subset_tables,
                                          ARRAY_LENGTH (default_no_subset_tables));
@@ -249,12 +247,7 @@ hb_subset_input_destroy (hb_subset_input_t *input)
   for (hb_set_t* set : input->sets_iter ())
     hb_set_destroy (set);
 
-  if (input->axes_location)
-  {
-    hb_object_destroy (input->axes_location);
-    input->axes_location->fini_shallow ();
-    hb_free (input->axes_location);
-  }
+  hb_hashmap_destroy (input->axes_location);
 
   hb_free (input);
 }
