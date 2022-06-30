@@ -532,30 +532,31 @@ set_flag (const char *name,
 }
 
 static gboolean
-parse_layout_features (const char *name,
-		       const char *arg,
-		       gpointer    data,
-		       GError    **error G_GNUC_UNUSED)
+parse_layout_tag_list (hb_subset_sets_t set_type,
+                       const char *name,
+                       const char *arg,
+                       gpointer    data,
+                       GError    **error G_GNUC_UNUSED)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
   hb_bool_t is_remove = (name[strlen (name) - 1] == '-');
   hb_bool_t is_add = (name[strlen (name) - 1] == '+');
-  hb_set_t *layout_features = hb_subset_input_set (subset_main->input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+  hb_set_t *layout_tags = hb_subset_input_set (subset_main->input, set_type);
 
-  if (!is_remove && !is_add) hb_set_clear (layout_features);
+  if (!is_remove && !is_add) hb_set_clear (layout_tags);
 
   if (0 == strcmp (arg, "*"))
   {
-    hb_set_clear (layout_features);
+    hb_set_clear (layout_tags);
     if (!is_remove)
-      hb_set_invert (layout_features);
+      hb_set_invert (layout_tags);
     return true;
   }
 
   char *s = strtok((char *) arg, ", ");
   while (s)
   {
-    if (strlen (s) > 4) // table tags are at most 4 bytes
+    if (strlen (s) > 4) // tags are at most 4 bytes
     {
       g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
                    "Failed parsing table tag at: '%s'", s);
@@ -565,14 +566,42 @@ parse_layout_features (const char *name,
     hb_tag_t tag = hb_tag_from_string (s, strlen (s));
 
     if (!is_remove)
-      hb_set_add (layout_features, tag);
+      hb_set_add (layout_tags, tag);
     else
-      hb_set_del (layout_features, tag);
+      hb_set_del (layout_tags, tag);
 
     s = strtok(nullptr, ", ");
   }
 
   return true;
+}
+
+static gboolean
+parse_layout_features (const char *name,
+		       const char *arg,
+		       gpointer    data,
+		       GError    **error)
+
+{
+  return parse_layout_tag_list (HB_SUBSET_SETS_LAYOUT_FEATURE_TAG,
+                                name,
+                                arg,
+                                data,
+                                error);
+}
+
+static gboolean
+parse_layout_scripts (const char *name,
+		       const char *arg,
+		       gpointer    data,
+		       GError    **error)
+
+{
+  return parse_layout_tag_list (HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG,
+                                name,
+                                arg,
+                                data,
+                                error);
 }
 
 static gboolean
@@ -777,9 +806,15 @@ subset_main_t::add_options ()
     {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs. Use --name-languages-=... to substract from the current set.", "list of int numbers or *"},
     {"name-languages-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers or *"},
     {"name-languages+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers or *"},
+
     {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved. Use --layout-features-=... to substract from the current set.", "list of string table tags or *"},
-    {"layout-features+",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags or *"},
-    {"layout-features-",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string table tags or *"},
+    {"layout-features+",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string tags or *"},
+    {"layout-features-",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string tags or *"},
+
+    {"layout-scripts",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_scripts,	"Specify set of layout script tags that will be preserved. Use --layout-scripts-=... to substract from the current set.", "list of string table tags or *"},
+    {"layout-scripts+",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_scripts,	"Specify set of layout script tags that will be preserved", "list of string tags or *"},
+    {"layout-scripts-",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_scripts,	"Specify set of layout script tags that will be preserved", "list of string tags or *"},
+
     {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables. Use --drop-tables-=... to substract from the current set.", "list of string table tags or *"},
     {"drop-tables+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
     {"drop-tables-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
