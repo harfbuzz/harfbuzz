@@ -122,7 +122,7 @@ hb_map_destroy (hb_map_t *map)
  *
  * Attaches a user-data key/data pair to the specified map.
  *
- * Return value: %true if success, %false otherwise
+ * Return value: `true` if success, `false` otherwise
  *
  * Since: 1.7.7
  **/
@@ -162,7 +162,7 @@ hb_map_get_user_data (hb_map_t           *map,
  *
  * Tests whether memory allocation for a set was successful.
  *
- * Return value: %true if allocation succeeded, %false otherwise
+ * Return value: `true` if allocation succeeded, `false` otherwise
  *
  * Since: 1.7.7
  **/
@@ -251,7 +251,7 @@ hb_map_del (hb_map_t       *map,
  *
  * Tests whether @key is an element of @map.
  *
- * Return value: %true if @key is found in @map, %false otherwise
+ * Return value: `true` if @key is found in @map, `false` otherwise
  *
  * Since: 1.7.7
  **/
@@ -283,7 +283,7 @@ hb_map_clear (hb_map_t *map)
  *
  * Tests whether @map is empty (contains no elements).
  *
- * Return value: %true if @map is empty
+ * Return value: `true` if @map is empty
  *
  * Since: 1.7.7
  **/
@@ -317,7 +317,7 @@ hb_map_get_population (const hb_map_t *map)
  * Tests whether @map and @other are equal (contain the same
  * elements).
  *
- * Return value: %true if the two maps are equal, %false otherwise.
+ * Return value: `true` if the two maps are equal, `false` otherwise.
  *
  * Since: 4.3.0
  **/

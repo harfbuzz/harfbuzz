@@ -335,7 +335,7 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
  *
  * Attaches a user-data key/data pair to the given shaping plan. 
  *
- * Return value: %true if success, %false otherwise.
+ * Return value: `true` if success, `false` otherwise.
  *
  * Since: 0.9.7
  **/
@@ -440,7 +440,7 @@ _hb_shape_plan_execute_internal (hb_shape_plan_t    *shape_plan,
  * Executes the given shaping plan on the specified buffer, using
  * the given @font and @features.
  *
- * Return value: %true if success, %false otherwise.
+ * Return value: `true` if success, `false` otherwise.
  *
  * Since: 0.9.7
  **/

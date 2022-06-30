@@ -755,7 +755,7 @@ hb_subset_plan_reference (hb_subset_plan_t *plan)
  *
  * Attaches a user-data key/data pair to the given subset plan object.
  *
- * Return value: %true if success, %false otherwise
+ * Return value: `true` if success, `false` otherwise
  *
  * Since: 4.0.0
  **/

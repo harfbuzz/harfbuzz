@@ -241,7 +241,7 @@ hb_ft_font_get_load_flags (hb_font_t *font)
  * Fetches the FT_Face associated with the specified #hb_font_t
  * font object.
  *
- * Return value: (nullable): the FT_Face found or %NULL
+ * Return value: (nullable): the FT_Face found or `NULL`
  *
  * Since: 0.9.2
  **/
@@ -263,7 +263,7 @@ hb_ft_font_get_face (hb_font_t *font)
  * Gets the FT_Face associated with @font, This face will be kept around until
  * you call hb_ft_font_unlock_face().
  *
- * Return value: (nullable): the FT_Face associated with @font or %NULL
+ * Return value: (nullable): the FT_Face associated with @font or `NULL`
  * Since: 2.6.5
  **/
 FT_Face

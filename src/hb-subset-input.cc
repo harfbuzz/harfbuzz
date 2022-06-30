@@ -32,7 +32,7 @@
  *
  * Creates a new subset input object.
  *
- * Return value: (transfer full): New subset input, or %NULL if failed. Destroy
+ * Return value: (transfer full): New subset input, or `NULL` if failed. Destroy
  * with hb_subset_input_destroy().
  *
  * Since: 1.8.0
@@ -342,7 +342,7 @@ hb_subset_input_set_flags (hb_subset_input_t *input,
  *
  * Attaches a user-data key/data pair to the given subset input object.
  *
- * Return value: %true if success, %false otherwise
+ * Return value: `true` if success, `false` otherwise
  *
  * Since: 2.9.0
  **/
