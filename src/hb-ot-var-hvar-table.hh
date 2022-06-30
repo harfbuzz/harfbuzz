@@ -320,13 +320,12 @@ struct HVARVVAR
   }
 
   float get_advance_var (hb_codepoint_t  glyph,
-			 hb_font_t      *font,
+			 const int *coords, unsigned int coord_count,
 			 VariationStore::cache_t *store_cache = nullptr) const
   {
     uint32_t varidx = (this+advMap).map (glyph);
     return (this+varStore).get_delta (varidx,
-				      font->coords,
-				      font->num_coords,
+				      coords, coord_count,
 				      store_cache);
   }
 

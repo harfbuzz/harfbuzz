@@ -283,9 +283,9 @@ struct hmtxvmtx
       return advances[hb_min (glyph - num_bearings, num_advances - num_bearings - 1)];
     }
 
-    unsigned int get_advance (hb_codepoint_t  glyph,
-			      hb_font_t      *font,
-			      VariationStore::cache_t *store_cache = nullptr) const
+    unsigned get_advance (hb_codepoint_t  glyph,
+			  hb_font_t      *font,
+			  VariationStore::cache_t *store_cache = nullptr) const
     {
       unsigned int advance = get_advance (glyph);
 
@@ -294,7 +294,9 @@ struct hmtxvmtx
 	return advance;
 
       if (var_table.get_length ())
-	return advance + roundf (var_table->get_advance_var (glyph, font, store_cache)); // TODO Optimize?!
+	return advance + roundf (var_table->get_advance_var (glyph,
+							     font->coords, font->num_coords,
+							     store_cache)); // TODO Optimize?!
 
       return _glyf_get_advance_var (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 #else
