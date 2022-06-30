@@ -555,8 +555,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   _nameid_closure (face, plan->name_ids);
   plan->name_languages = hb_set_copy (input->sets.name_languages);
   plan->layout_features = hb_set_copy (input->sets.layout_features);
-  plan->layout_scripts = hb_set_create ();
-  hb_set_invert (plan->layout_scripts);
+  plan->layout_scripts = hb_set_copy (input->sets.layout_scripts);
   plan->glyphs_requested = hb_set_copy (input->sets.glyphs);
   plan->drop_tables = hb_set_copy (input->sets.drop_tables);
   plan->no_subset_tables = hb_set_copy (input->sets.no_subset_tables);
