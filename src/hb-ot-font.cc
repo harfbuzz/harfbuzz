@@ -293,9 +293,20 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
   const OT::VORG &VORG = *ot_face->VORG;
   if (VORG.has_data ())
   {
-    *y = font->em_scale_y (VORG.get_y_origin (glyph));
+    float delta = 0;
+
+    const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
+    const OT::VVAR &VVAR = *vmtx.var_table;
+    if (font->num_coords &&
+	!VVAR.get_vorg_var (glyph,
+			    font->coords, font->num_coords,
+			    &delta))
+      goto out;
+
+    *y = font->em_scale_y (VORG.get_y_origin (glyph) + delta);
     return true;
   }
+out:
 
   hb_glyph_extents_t extents = {0};
   if (ot_face->glyf->get_extents (font, glyph, &extents))

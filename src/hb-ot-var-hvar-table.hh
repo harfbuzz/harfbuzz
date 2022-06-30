@@ -392,6 +392,16 @@ struct VVAR : HVARVVAR {
 
   bool subset (hb_subset_context_t *c) const { return HVARVVAR::_subset<VVAR> (c); }
 
+  bool get_vorg_var (hb_codepoint_t glyph,
+		     const int *coords, unsigned int coord_count,
+		     float *delta) const
+  {
+    if (!vorgMap) return false;
+    uint32_t varidx = (this+vorgMap).map (glyph);
+    *delta = (this+varStore).get_delta (varidx, coords, coord_count);
+    return true;
+  }
+
   protected:
   Offset32To<DeltaSetIndexMap>
 		vorgMap;	/* Offset to vertical-origin var-idx mapping. */
