@@ -764,6 +764,8 @@ struct Script
   {
     TRACE_SUBSET (this);
     if (!l->visitScript ()) return_trace (false);
+    if (tag && !c->plan->layout_scripts->has (*tag))
+      return false;
 
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
