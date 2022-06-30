@@ -91,6 +91,38 @@ _remap_indexes (const hb_set_t *indexes,
 typedef void (*layout_collect_func_t) (hb_face_t *face, hb_tag_t table_tag, const hb_tag_t *scripts, const hb_tag_t *languages, const hb_tag_t *features, hb_set_t *lookup_indexes /* OUT */);
 
 
+/**
+ * Removes all tags from 'tags' that are not in filter. Additionally eliminates any duplicates.
+ * Returns true if anything was removed (not including duplicates).
+ */
+static bool _filter_tag_list(hb_vector_t<hb_tag_t>* tags, /* IN/OUT */
+                             const hb_set_t* filter)
+{
+  hb_vector_t<hb_tag_t> out;
+  out.alloc (tags->get_size());
+
+  bool removed = false;
+  hb_set_t visited;
+
+  for (hb_tag_t tag : *tags)
+  {
+    if (!tag) continue;
+    if (visited.has (tag)) continue;
+
+    if (!filter->has (tag))
+    {
+      removed = true;
+      continue;
+    }
+
+    visited.add (tag);
+    out.push (tag);
+  }
+
+  hb_swap (out, *tags);
+  return removed;
+}
+
 template <typename T>
 static void _collect_layout_indices (hb_face_t		  *face,
                                      const T&              table,
@@ -98,34 +130,17 @@ static void _collect_layout_indices (hb_face_t		  *face,
                                      layout_collect_func_t layout_collect_func,
                                      hb_set_t		  *indices /* OUT */)
 {
+  unsigned num_features = table.get_feature_count () + 1;
   hb_vector_t<hb_tag_t> features;
-  if (!features.alloc (table.get_feature_count () + 1))
+  // TODO(garretrieger): propagate error to plan
+  if (!features.resize (num_features)) return;
+  table.get_feature_tags (0, &num_features, features.arrayZ);
+  features.resize (num_features);
+  bool retain_all_features = !_filter_tag_list (&features, layout_features_to_retain);
+
+  // TODO(garretrieger): propagate error to plan
+  if (features.in_error () || !features)
     return;
-
-  hb_set_t visited_features;
-  bool retain_all_features = true;
-  for (unsigned i = 0; i < table.get_feature_count (); i++)
-  {
-    hb_tag_t tag = table.get_feature_tag (i);
-    if (!tag) continue;
-    if (!layout_features_to_retain->has (tag))
-    {
-      retain_all_features = false;
-      continue;
-    }
-
-    if (visited_features.has (tag))
-      continue;
-
-    features.push (tag);
-    visited_features.add (tag);
-  }
-
-  if (!features)
-    return;
-
-  // The collect function needs a null element to signal end of the array.
-  features.push (0);
 
   if (retain_all_features)
   {
@@ -139,6 +154,8 @@ static void _collect_layout_indices (hb_face_t		  *face,
     return;
   }
 
+  // The collect function needs a null element to signal end of the array.
+  features.push (0);
   layout_collect_func (face,
                        T::tableTag,
 		       nullptr,
@@ -549,6 +566,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   _nameid_closure (face, plan->name_ids);
   plan->name_languages = hb_set_copy (input->sets.name_languages);
   plan->layout_features = hb_set_copy (input->sets.layout_features);
+  plan->layout_scripts = hb_set_create ();
+  hb_set_invert (plan->layout_scripts);
   plan->glyphs_requested = hb_set_copy (input->sets.glyphs);
   plan->drop_tables = hb_set_copy (input->sets.drop_tables);
   plan->no_subset_tables = hb_set_copy (input->sets.no_subset_tables);
@@ -636,6 +655,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_set_destroy (plan->name_ids);
   hb_set_destroy (plan->name_languages);
   hb_set_destroy (plan->layout_features);
+  hb_set_destroy (plan->layout_scripts);
   hb_set_destroy (plan->glyphs_requested);
   hb_set_destroy (plan->drop_tables);
   hb_set_destroy (plan->no_subset_tables);
