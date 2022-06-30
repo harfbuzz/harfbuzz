@@ -29,7 +29,7 @@
 #ifndef HB_OT_LAYOUT_GSUB_TABLE_HH
 #define HB_OT_LAYOUT_GSUB_TABLE_HH
 
-#include "OT/Layout/GSUB.hh"
+#include "OT/Layout/GSUB/GSUB.hh"
 
 namespace OT {
 

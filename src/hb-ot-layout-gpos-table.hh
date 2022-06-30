@@ -29,7 +29,7 @@
 #ifndef HB_OT_LAYOUT_GPOS_TABLE_HH
 #define HB_OT_LAYOUT_GPOS_TABLE_HH
 
-#include "OT/Layout/GPOS.hh"
+#include "OT/Layout/GPOS/GPOS.hh"
 
 namespace OT {
 
