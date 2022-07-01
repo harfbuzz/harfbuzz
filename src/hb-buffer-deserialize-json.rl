@@ -63,12 +63,13 @@ action parse_glyph_name {
 	  return false;
 }
 
-action parse_codepoint { if (!parse_uint (tok, p, &info.codepoint)) return false; }
-action parse_cluster   { if (!parse_uint (tok, p, &info.cluster )) return false; }
-action parse_x_offset  { if (!parse_int  (tok, p, &pos.x_offset )) return false; }
-action parse_y_offset  { if (!parse_int  (tok, p, &pos.y_offset )) return false; }
-action parse_x_advance { if (!parse_int  (tok, p, &pos.x_advance)) return false; }
-action parse_y_advance { if (!parse_int  (tok, p, &pos.y_advance)) return false; }
+action parse_codepoint	{ if (!parse_uint (tok, p, &info.codepoint)) return false; }
+action parse_cluster	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
+action parse_x_offset	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
+action parse_y_offset	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
+action parse_x_advance	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
+action parse_y_advance	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
+action parse_glyph_flags{ if (!parse_uint (tok, p, &info.mask    )) return false; }
 
 unum	= '0' | [1-9] digit*;
 num	= '-'? unum;
@@ -82,13 +83,14 @@ glyph_name = '"' ([^\\"] | '\\' [\\"])* '"';
 parse_glyph_name   = (glyph_name >tok %parse_glyph_name);
 parse_codepoint = (codepoint >tok %parse_codepoint);
 
-glyph	= "\"g\""  colon (parse_glyph_name | parse_codepoint);
-unicode	= "\"u\""  colon parse_codepoint;
-cluster	= "\"cl\"" colon (unum >tok %parse_cluster);
-xoffset	= "\"dx\"" colon (num >tok %parse_x_offset);
-yoffset	= "\"dy\"" colon (num >tok %parse_y_offset);
-xadvance= "\"ax\"" colon (num >tok %parse_x_advance);
-yadvance= "\"ay\"" colon (num >tok %parse_y_advance);
+glyph	=  "\"g\""  colon (parse_glyph_name | parse_codepoint);
+unicode	=  "\"u\""  colon parse_codepoint;
+cluster	=  "\"cl\"" colon (unum >tok %parse_cluster);
+xoffset	=  "\"dx\"" colon (num  >tok %parse_x_offset);
+yoffset	=  "\"dy\"" colon (num  >tok %parse_y_offset);
+xadvance=  "\"ax\"" colon (num  >tok %parse_x_advance);
+yadvance=  "\"ay\"" colon (num  >tok %parse_y_advance);
+glyphflags="\"fl\"" colon (unum >tok %parse_glyph_flags);
 
 element = glyph @ensure_glyphs
 	| unicode @ensure_unicode
@@ -96,7 +98,8 @@ element = glyph @ensure_glyphs
 	| xoffset
 	| yoffset
 	| xadvance
-	| yadvance;
+	| yadvance
+	| glyphflags;
 item	=
 	( '{' space* element (comma element)* space* '}')
 	>clear_item
