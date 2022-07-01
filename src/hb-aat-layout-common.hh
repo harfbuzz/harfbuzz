@@ -685,7 +685,7 @@ struct ObsoleteTypes
     /* If offset is less than base, return an offset that would
      * result in an address half a 32bit address-space away,
      * to make sure sanitize fails even on 32bit builds. */
-    if (offset < unsigned ((const char *) array - (const char *) base))
+    if (unlikely (offset < unsigned ((const char *) array - (const char *) base)))
       return INT_MAX / T::static_size;
 
     /* https://github.com/harfbuzz/harfbuzz/issues/2816 */
