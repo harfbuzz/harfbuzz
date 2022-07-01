@@ -45,7 +45,7 @@ trySubset (hb_face_t *face,
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
-  alloc_state = size; /* see src/failing-alloc.c */
+  alloc_state = _fuzzing_alloc_state (data, size);
 
   hb_blob_t *blob = hb_blob_create ((const char *) data, size,
 				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
