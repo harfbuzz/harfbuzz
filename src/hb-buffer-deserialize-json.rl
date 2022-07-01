@@ -58,7 +58,7 @@ action ensure_unicode { if (unlikely (!buffer->ensure_unicode ())) return false;
 action parse_glyph_name {
 	/* TODO Unescape \" and \\ if found. */
 	if (!hb_font_glyph_from_string (font,
-					tok, p - tok,
+					tok+1, p - tok - 2, /* Skip "" */
 					&info.codepoint))
 	  return false;
 }
