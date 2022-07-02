@@ -241,8 +241,9 @@ struct hmtxvmtx
       if (unlikely (glyph >= num_bearings) || !font->num_coords)
 	return side_bearing;
 
-      if (var_table.get_length ())
-	return side_bearing + var_table->get_side_bearing_var (glyph, font->coords, font->num_coords);
+      float lsb;
+      if (var_table->get_side_bearing_var (glyph, font->coords, font->num_coords, &lsb))
+	return side_bearing + lsb;
 
       return _glyf_get_side_bearing_var (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 #else
