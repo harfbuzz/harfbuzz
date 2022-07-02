@@ -194,6 +194,7 @@ struct glyf_accelerator_t
     hb_font_t *font;
     hb_glyph_extents_t *extents;
     contour_point_t *phantoms;
+    bool unscaled;
 
     struct contour_bounds_t
     {
@@ -209,7 +210,7 @@ struct glyf_accelerator_t
 
       bool empty () const { return (min_x >= max_x) || (min_y >= max_y); }
 
-      void get_extents (hb_font_t *font, hb_glyph_extents_t *extents)
+      void get_extents (hb_font_t *font, hb_glyph_extents_t *extents, bool unscaled = false)
       {
 	if (unlikely (empty ()))
 	{
@@ -219,26 +220,37 @@ struct glyf_accelerator_t
 	  extents->y_bearing = 0;
 	  return;
 	}
-	extents->x_bearing = font->em_scalef_x (min_x);
-	extents->width = font->em_scalef_x (max_x) - extents->x_bearing;
-	extents->y_bearing = font->em_scalef_y (max_y);
-	extents->height = font->em_scalef_y (min_y) - extents->y_bearing;
+	if (unscaled)
+	{
+	  extents->x_bearing = roundf (min_x);
+	  extents->width = roundf (max_x - extents->x_bearing);
+	  extents->y_bearing = roundf (max_y);
+	  extents->height = roundf (min_y - extents->y_bearing);
+	}
+	else
+	{
+	  extents->x_bearing = font->em_scalef_x (min_x);
+	  extents->width = font->em_scalef_x (max_x) - extents->x_bearing;
+	  extents->y_bearing = font->em_scalef_y (max_y);
+	  extents->height = font->em_scalef_y (min_y) - extents->y_bearing;
+	}
       }
 
       protected:
       float min_x, min_y, max_x, max_y;
     } bounds;
 
-    points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_)
+    points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_, bool unscaled_ = false)
     {
       font = font_;
       extents = extents_;
       phantoms = phantoms_;
+      unscaled = unscaled_;
       if (extents) bounds = contour_bounds_t ();
     }
 
     void consume_point (const contour_point_t &point) { bounds.add (point); }
-    void points_end () { bounds.get_extents (font, extents); }
+    void points_end () { bounds.get_extents (font, extents, unscaled); }
 
     bool is_consuming_contour_points () { return extents; }
     contour_point_t *get_phantoms_sink () { return phantoms; }
@@ -276,7 +288,7 @@ struct glyf_accelerator_t
     hb_glyph_extents_t extents;
 
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
-    if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms))))
+    if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms, true))))
       return
 #ifndef HB_NO_VERTICAL
 	is_vertical ? vmtx->get_side_bearing (gid) :
