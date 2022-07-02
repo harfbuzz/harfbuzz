@@ -284,8 +284,8 @@ struct glyf_accelerator_t
 	hmtx->get_side_bearing (gid);
 
     return is_vertical
-	 ? ceilf (phantoms[glyf_impl::PHANTOM_TOP].y) - extents.y_bearing
-	 : floorf (phantoms[glyf_impl::PHANTOM_LEFT].x);
+	 ? roundf (phantoms[glyf_impl::PHANTOM_TOP].y) - extents.y_bearing
+	 : roundf (phantoms[glyf_impl::PHANTOM_LEFT].x);
   }
 #endif
 
