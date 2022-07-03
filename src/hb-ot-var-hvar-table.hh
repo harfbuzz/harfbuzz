@@ -319,9 +319,9 @@ struct HVARVVAR
 						hvar_plan.index_map_plans.as_array ()));
   }
 
-  float get_advance_var (hb_codepoint_t  glyph,
-			 const int *coords, unsigned int coord_count,
-			 VariationStore::cache_t *store_cache = nullptr) const
+  float get_advance_delta_unscaled (hb_codepoint_t  glyph,
+				    const int *coords, unsigned int coord_count,
+				    VariationStore::cache_t *store_cache = nullptr) const
   {
     uint32_t varidx = (this+advMap).map (glyph);
     return (this+varStore).get_delta (varidx,
