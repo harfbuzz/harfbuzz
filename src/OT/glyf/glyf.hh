@@ -265,7 +265,7 @@ struct glyf_accelerator_t
     bool success = false;
 
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
-    if (likely (font->num_coords == gvar->get_axis_count ()))
+    if (font->num_coords)
       success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, false));
 
     if (unlikely (!success))
