@@ -329,9 +329,9 @@ struct HVARVVAR
 				      store_cache);
   }
 
-  bool get_side_bearing_var (hb_codepoint_t glyph,
-			     const int *coords, unsigned int coord_count,
-			     float *lsb) const
+  bool get_lsb_delta_unscaled (hb_codepoint_t glyph,
+			       const int *coords, unsigned int coord_count,
+			       float *lsb) const
   {
     if (!lsbMap) return false;
     uint32_t varidx = (this+lsbMap).map (glyph);

@@ -242,8 +242,8 @@ struct hmtxvmtx
 	return side_bearing;
 
       float lsb;
-      if (var_table->get_side_bearing_var (glyph, font->coords, font->num_coords, &lsb))
-	return side_bearing + lsb;
+      if (var_table->get_lsb_delta_unscaled (glyph, font->coords, font->num_coords, &lsb))
+	return side_bearing + roundf (lsb);
 
       return _glyf_get_side_bearing_var (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 #else
