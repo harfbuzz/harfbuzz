@@ -521,9 +521,9 @@ _glyf_get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_verti
 }
 
 unsigned
-_glyf_get_advance_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
+_glyf_get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
-  return font->face->table.glyf->get_advance_var (font, glyph, is_vertical);
+  return font->face->table.glyf->get_advance_with_var_unscaled (font, glyph, is_vertical);
 }
 #endif
 

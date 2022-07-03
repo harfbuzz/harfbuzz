@@ -47,7 +47,7 @@ HB_INTERNAL int
 _glyf_get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 
 HB_INTERNAL unsigned
-_glyf_get_advance_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
+_glyf_get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 
 
 namespace OT {
@@ -299,7 +299,7 @@ struct hmtxvmtx
 							     font->coords, font->num_coords,
 							     store_cache)); // TODO Optimize?!
 
-      return _glyf_get_advance_var (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+      return _glyf_get_advance_with_var_unscaled (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 #else
       return advance;
 #endif

@@ -258,7 +258,7 @@ struct glyf_accelerator_t
 
   public:
   unsigned
-  get_advance_var (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
+  get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
   {
     if (unlikely (gid >= num_glyphs)) return 0;
 
