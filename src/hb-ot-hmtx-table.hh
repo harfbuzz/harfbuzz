@@ -43,8 +43,8 @@
 #define HB_OT_TAG_vmtx HB_TAG('v','m','t','x')
 
 
-HB_INTERNAL int
-_glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
+HB_INTERNAL bool
+_glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical, int *lsb);
 
 HB_INTERNAL unsigned
 _glyf_get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
@@ -150,7 +150,9 @@ struct hmtxvmtx
 		hb_codepoint_t old_gid;
 		if (!c->plan->old_gid_for_new_gid (_, &old_gid))
 		  return hb_pair (0u, 0);
-		return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), _mtx.get_leading_bearing_without_var_unscaled (old_gid));
+		int lsb = 0;
+		(void) _mtx.get_leading_bearing_without_var_unscaled (old_gid, &lsb);
+		return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), +lsb);
 	      })
     ;
 
@@ -221,33 +223,42 @@ struct hmtxvmtx
 
     bool has_data () const { return (bool) num_bearings; }
 
-    int get_leading_bearing_without_var_unscaled (hb_codepoint_t glyph) const
+    bool get_leading_bearing_without_var_unscaled (hb_codepoint_t glyph,
+						   int *lsb) const
     {
       if (glyph < num_long_metrics)
-	return table->longMetricZ[glyph].sb;
+      {
+	*lsb = table->longMetricZ[glyph].sb;
+	return true;
+      }
 
       if (unlikely (glyph >= num_bearings))
-	return 0;
+	return false;
 
       const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_long_metrics];
-      return bearings[glyph - num_long_metrics];
+      *lsb = bearings[glyph - num_long_metrics];
+      return true;
     }
 
-    int get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph) const
+    bool get_leading_bearing_with_var_unscaled (hb_font_t *font,
+						hb_codepoint_t glyph,
+						int *lsb) const
     {
-      int side_bearing = get_leading_bearing_without_var_unscaled (glyph);
+      if (!font->num_coords)
+	return get_leading_bearing_without_var_unscaled (glyph, lsb);
 
 #ifndef HB_NO_VAR
-      if (unlikely (glyph >= num_bearings) || !font->num_coords)
-	return side_bearing;
+      float delta;
+      if (var_table->get_lsb_delta_unscaled (glyph, font->coords, font->num_coords, &delta) &&
+	  get_leading_bearing_without_var_unscaled (glyph, lsb))
+      {
+	*lsb += roundf (delta);
+	return true;
+      }
 
-      float lsb;
-      if (var_table->get_lsb_delta_unscaled (glyph, font->coords, font->num_coords, &lsb))
-	return side_bearing + roundf (lsb);
-
-      return _glyf_get_leading_bearing_with_var_unscaled (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+      return _glyf_get_leading_bearing_with_var_unscaled (font, glyph, T::tableTag == HB_OT_TAG_vmtx, lsb);
 #else
-      return side_bearing;
+      return false;
 #endif
     }
 

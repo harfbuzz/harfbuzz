@@ -281,23 +281,20 @@ struct glyf_accelerator_t
     return hb_clamp (roundf (result), 0.f, (float) UINT_MAX / 2);
   }
 
-  int get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
+  bool get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t gid, bool is_vertical, int *lsb) const
   {
-    if (unlikely (gid >= num_glyphs)) return 0;
+    if (unlikely (gid >= num_glyphs)) return false;
 
     hb_glyph_extents_t extents;
 
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
     if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms, false))))
-      return
-#ifndef HB_NO_VERTICAL
-	is_vertical ? vmtx->get_leading_bearing_without_var_unscaled (gid) :
-#endif
-	hmtx->get_leading_bearing_without_var_unscaled (gid);
+      return false;
 
-    return is_vertical
+    *lsb = is_vertical
 	 ? roundf (phantoms[glyf_impl::PHANTOM_TOP].y) - extents.y_bearing
 	 : roundf (phantoms[glyf_impl::PHANTOM_LEFT].x);
+    return true;
   }
 #endif
 

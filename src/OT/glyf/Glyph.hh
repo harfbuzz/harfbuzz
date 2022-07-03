@@ -105,11 +105,13 @@ struct Glyph
     if (unlikely (!points.resize (points.length + PHANTOM_COUNT))) return false;
     hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
     {
-      int h_delta = (int) header->xMin -
-		    glyf_accelerator.hmtx->get_leading_bearing_without_var_unscaled (gid);
+      int lsb = 0;
+      int h_delta = glyf_accelerator.hmtx->get_leading_bearing_without_var_unscaled (gid, &lsb) ?
+		    (int) header->xMin - lsb : 0;
+      int tsb = 0;
       int v_orig  = (int) header->yMax +
 #ifndef HB_NO_VERTICAL
-		    glyf_accelerator.vmtx->get_leading_bearing_without_var_unscaled (gid)
+		    ((void) glyf_accelerator.vmtx->get_leading_bearing_without_var_unscaled (gid, &tsb), tsb)
 #else
 		    0
 #endif
