@@ -210,7 +210,7 @@ struct glyf_accelerator_t
 
       bool empty () const { return (min_x >= max_x) || (min_y >= max_y); }
 
-      void get_extents (hb_font_t *font, hb_glyph_extents_t *extents, bool scaled = true)
+      void get_extents (hb_font_t *font, hb_glyph_extents_t *extents, bool scaled)
       {
 	if (unlikely (empty ()))
 	{
@@ -240,7 +240,7 @@ struct glyf_accelerator_t
       float min_x, min_y, max_x, max_y;
     } bounds;
 
-    points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_, bool scaled_ = true)
+    points_aggregator_t (hb_font_t *font_, hb_glyph_extents_t *extents_, contour_point_t *phantoms_, bool scaled_)
     {
       font = font_;
       extents = extents_;
@@ -266,7 +266,7 @@ struct glyf_accelerator_t
 
     contour_point_t phantoms[glyf_impl::PHANTOM_COUNT];
     if (likely (font->num_coords == gvar->get_axis_count ()))
-      success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms));
+      success = get_points (font, gid, points_aggregator_t (font, nullptr, phantoms, true));
 
     if (unlikely (!success))
       return
@@ -308,7 +308,7 @@ struct glyf_accelerator_t
 
 #ifndef HB_NO_VAR
     if (font->num_coords)
-      return get_points (font, gid, points_aggregator_t (font, extents, nullptr));
+      return get_points (font, gid, points_aggregator_t (font, extents, nullptr, true));
 #endif
     return glyph_for_gid (gid).get_extents (font, *this, extents);
   }
