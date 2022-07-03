@@ -299,9 +299,9 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
     const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
     const OT::VVAR &VVAR = *vmtx.var_table;
     if (font->num_coords)
-      VVAR.get_vorg_var (glyph,
-			 font->coords, font->num_coords,
-			 &delta);
+      VVAR.get_vorg_delta_unscaled (glyph,
+				    font->coords, font->num_coords,
+				    &delta);
 #endif
 
     *y = font->em_scalef_y (VORG.get_y_origin (glyph) + delta);
