@@ -198,11 +198,11 @@ struct Glyph
     return !all_points.in_error ();
   }
 
-  bool get_extents (hb_font_t *font, const glyf_accelerator_t &glyf_accelerator,
-		    hb_glyph_extents_t *extents) const
+  bool get_extents_without_var_scaled (hb_font_t *font, const glyf_accelerator_t &glyf_accelerator,
+				       hb_glyph_extents_t *extents) const
   {
     if (type == EMPTY) return true; /* Empty glyph; zero extents. */
-    return header->get_extents (font, glyf_accelerator, gid, extents);
+    return header->get_extents_without_var_scaled (font, glyf_accelerator, gid, extents);
   }
 
   hb_bytes_t get_bytes () const { return bytes; }

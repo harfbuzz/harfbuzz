@@ -14,8 +14,8 @@ struct GlyphHeader
   bool has_data () const { return numberOfContours; }
 
   template <typename accelerator_t>
-  bool get_extents (hb_font_t *font, const accelerator_t &glyf_accelerator,
-		    hb_codepoint_t gid, hb_glyph_extents_t *extents) const
+  bool get_extents_without_var_scaled (hb_font_t *font, const accelerator_t &glyf_accelerator,
+				       hb_codepoint_t gid, hb_glyph_extents_t *extents) const
   {
     /* Undocumented rasterizer behavior: shift glyph to the left by (lsb - xMin), i.e., xMin = lsb */
     /* extents->x_bearing = hb_min (glyph_header.xMin, glyph_header.xMax); */

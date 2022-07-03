@@ -310,7 +310,7 @@ struct glyf_accelerator_t
     if (font->num_coords)
       return get_points (font, gid, points_aggregator_t (font, extents, nullptr, true));
 #endif
-    return glyph_for_gid (gid).get_extents (font, *this, extents);
+    return glyph_for_gid (gid).get_extents_without_var_scaled (font, *this, extents);
   }
 
   const glyf_impl::Glyph
