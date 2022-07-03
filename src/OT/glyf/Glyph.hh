@@ -114,10 +114,10 @@ struct Glyph
 		    0
 #endif
 		    ;
-      unsigned h_adv = glyf_accelerator.hmtx->get_advance (gid);
+      unsigned h_adv = glyf_accelerator.hmtx->get_advance_without_var_unscaled (gid);
       unsigned v_adv =
 #ifndef HB_NO_VERTICAL
-		       glyf_accelerator.vmtx->get_advance (gid)
+		       glyf_accelerator.vmtx->get_advance_without_var_unscaled (gid)
 #else
 		       - font->face->get_upem ()
 #endif

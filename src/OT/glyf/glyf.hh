@@ -271,9 +271,9 @@ struct glyf_accelerator_t
     if (unlikely (!success))
       return
 #ifndef HB_NO_VERTICAL
-	is_vertical ? vmtx->get_advance (gid) :
+	is_vertical ? vmtx->get_advance_without_var_unscaled (gid) :
 #endif
-	hmtx->get_advance (gid);
+	hmtx->get_advance_without_var_unscaled (gid);
 
     float result = is_vertical
 		 ? phantoms[glyf_impl::PHANTOM_TOP].y - phantoms[glyf_impl::PHANTOM_BOTTOM].y

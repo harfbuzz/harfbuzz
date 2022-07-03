@@ -135,9 +135,9 @@ struct hmtxvmtx
       auto& plan = c->plan;
       num_long_metrics = plan->num_output_glyphs ();
       hb_codepoint_t old_gid = 0;
-      unsigned int last_advance = plan->old_gid_for_new_gid (num_long_metrics - 1, &old_gid) ? _mtx.get_advance (old_gid) : 0;
+      unsigned int last_advance = plan->old_gid_for_new_gid (num_long_metrics - 1, &old_gid) ? _mtx.get_advance_without_var_unscaled (old_gid) : 0;
       while (num_long_metrics > 1 &&
-	     last_advance == (plan->old_gid_for_new_gid (num_long_metrics - 2, &old_gid) ? _mtx.get_advance (old_gid) : 0))
+	     last_advance == (plan->old_gid_for_new_gid (num_long_metrics - 2, &old_gid) ? _mtx.get_advance_without_var_unscaled (old_gid) : 0))
       {
 	num_long_metrics--;
       }
@@ -150,7 +150,7 @@ struct hmtxvmtx
 		hb_codepoint_t old_gid;
 		if (!c->plan->old_gid_for_new_gid (_, &old_gid))
 		  return hb_pair (0u, 0);
-		return hb_pair (_mtx.get_advance (old_gid), _mtx.get_side_bearing (old_gid));
+		return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), _mtx.get_side_bearing (old_gid));
 	      })
     ;
 
@@ -251,7 +251,7 @@ struct hmtxvmtx
 #endif
     }
 
-    unsigned int get_advance (hb_codepoint_t glyph) const
+    unsigned int get_advance_without_var_unscaled (hb_codepoint_t glyph) const
     {
       /* OpenType case. */
       if (glyph < num_bearings)
@@ -276,7 +276,7 @@ struct hmtxvmtx
       /* TODO Optimize */
 
       if (num_bearings == num_advances)
-        return get_advance (num_bearings - 1);
+        return get_advance_without_var_unscaled (num_bearings - 1);
 
       const FWORD *bearings = (const FWORD *) &table->longMetricZ[num_long_metrics];
       const UFWORD *advances = (const UFWORD *) &bearings[num_bearings - num_long_metrics];
@@ -284,11 +284,11 @@ struct hmtxvmtx
       return advances[hb_min (glyph - num_bearings, num_advances - num_bearings - 1)];
     }
 
-    unsigned get_advance (hb_codepoint_t  glyph,
-			  hb_font_t      *font,
-			  VariationStore::cache_t *store_cache = nullptr) const
+    unsigned get_advance_with_var_unscaled (hb_codepoint_t  glyph,
+					    hb_font_t      *font,
+					    VariationStore::cache_t *store_cache = nullptr) const
     {
-      unsigned int advance = get_advance (glyph);
+      unsigned int advance = get_advance_without_var_unscaled (glyph);
 
 #ifndef HB_NO_VAR
       if (unlikely (glyph >= num_bearings) || !font->num_coords)
