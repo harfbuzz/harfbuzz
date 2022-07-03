@@ -314,7 +314,7 @@ hb_ot_get_glyph_v_origin (hb_font_t *font,
     if (ot_face->vmtx->has_data ())
     {
       const OT::vmtx_accelerator_t &vmtx = *ot_face->vmtx;
-      hb_position_t tsb = vmtx.get_side_bearing (font, glyph);
+      hb_position_t tsb = vmtx.get_leading_bearing_with_var_unscaled (font, glyph);
       *y = extents.y_bearing + font->em_scale_y (tsb);
       return true;
     }
@@ -515,9 +515,9 @@ hb_ot_font_set_funcs (hb_font_t *font)
 
 #ifndef HB_NO_VAR
 int
-_glyf_get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
+_glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical)
 {
-  return font->face->table.glyf->get_side_bearing_var (font, glyph, is_vertical);
+  return font->face->table.glyf->get_leading_bearing_with_var_unscaled (font, glyph, is_vertical);
 }
 
 unsigned

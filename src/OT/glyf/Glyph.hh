@@ -106,10 +106,10 @@ struct Glyph
     hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
     {
       int h_delta = (int) header->xMin -
-		    glyf_accelerator.hmtx->get_side_bearing (gid);
+		    glyf_accelerator.hmtx->get_leading_bearing_without_var_unscaled (gid);
       int v_orig  = (int) header->yMax +
 #ifndef HB_NO_VERTICAL
-		    glyf_accelerator.vmtx->get_side_bearing (gid)
+		    glyf_accelerator.vmtx->get_leading_bearing_without_var_unscaled (gid)
 #else
 		    0
 #endif

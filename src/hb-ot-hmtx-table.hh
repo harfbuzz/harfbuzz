@@ -44,7 +44,7 @@
 
 
 HB_INTERNAL int
-_glyf_get_side_bearing_var (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
+_glyf_get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
 
 HB_INTERNAL unsigned
 _glyf_get_advance_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph, bool is_vertical);
@@ -150,7 +150,7 @@ struct hmtxvmtx
 		hb_codepoint_t old_gid;
 		if (!c->plan->old_gid_for_new_gid (_, &old_gid))
 		  return hb_pair (0u, 0);
-		return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), _mtx.get_side_bearing (old_gid));
+		return hb_pair (_mtx.get_advance_without_var_unscaled (old_gid), _mtx.get_leading_bearing_without_var_unscaled (old_gid));
 	      })
     ;
 
@@ -221,7 +221,7 @@ struct hmtxvmtx
 
     bool has_data () const { return (bool) num_bearings; }
 
-    int get_side_bearing (hb_codepoint_t glyph) const
+    int get_leading_bearing_without_var_unscaled (hb_codepoint_t glyph) const
     {
       if (glyph < num_long_metrics)
 	return table->longMetricZ[glyph].sb;
@@ -233,9 +233,9 @@ struct hmtxvmtx
       return bearings[glyph - num_long_metrics];
     }
 
-    int get_side_bearing (hb_font_t *font, hb_codepoint_t glyph) const
+    int get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t glyph) const
     {
-      int side_bearing = get_side_bearing (glyph);
+      int side_bearing = get_leading_bearing_without_var_unscaled (glyph);
 
 #ifndef HB_NO_VAR
       if (unlikely (glyph >= num_bearings) || !font->num_coords)
@@ -245,7 +245,7 @@ struct hmtxvmtx
       if (var_table->get_lsb_delta_unscaled (glyph, font->coords, font->num_coords, &lsb))
 	return side_bearing + roundf (lsb);
 
-      return _glyf_get_side_bearing_var (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
+      return _glyf_get_leading_bearing_with_var_unscaled (font, glyph, T::tableTag == HB_OT_TAG_vmtx);
 #else
       return side_bearing;
 #endif

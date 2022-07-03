@@ -281,7 +281,7 @@ struct glyf_accelerator_t
     return hb_clamp (roundf (result), 0.f, (float) UINT_MAX / 2);
   }
 
-  int get_side_bearing_var (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
+  int get_leading_bearing_with_var_unscaled (hb_font_t *font, hb_codepoint_t gid, bool is_vertical) const
   {
     if (unlikely (gid >= num_glyphs)) return 0;
 
@@ -291,9 +291,9 @@ struct glyf_accelerator_t
     if (unlikely (!get_points (font, gid, points_aggregator_t (font, &extents, phantoms, false))))
       return
 #ifndef HB_NO_VERTICAL
-	is_vertical ? vmtx->get_side_bearing (gid) :
+	is_vertical ? vmtx->get_leading_bearing_without_var_unscaled (gid) :
 #endif
-	hmtx->get_side_bearing (gid);
+	hmtx->get_leading_bearing_without_var_unscaled (gid);
 
     return is_vertical
 	 ? roundf (phantoms[glyf_impl::PHANTOM_TOP].y) - extents.y_bearing
