@@ -729,6 +729,7 @@ struct ArrayOf
   DEFINE_SIZE_ARRAY (sizeof (LenType), arrayZ);
 };
 template <typename Type> using Array16Of = ArrayOf<Type, HBUINT16>;
+template <typename Type> using Array24Of = ArrayOf<Type, HBUINT24>;
 template <typename Type> using Array32Of = ArrayOf<Type, HBUINT32>;
 using PString = ArrayOf<HBUINT8, HBUINT8>;
 
@@ -961,6 +962,7 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
 };
 
 template <typename Type> using SortedArray16Of = SortedArrayOf<Type, HBUINT16>;
+template <typename Type> using SortedArray24Of = SortedArrayOf<Type, HBUINT24>;
 template <typename Type> using SortedArray32Of = SortedArrayOf<Type, HBUINT32>;
 
 /*
