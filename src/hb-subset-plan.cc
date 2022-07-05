@@ -119,6 +119,9 @@ static bool _filter_tag_list(hb_vector_t<hb_tag_t>* tags, /* IN/OUT */
     out.push (tag);
   }
 
+  // The collect function needs a null element to signal end of the array.
+  out.push (HB_TAG_NONE);
+
   hb_swap (out, *tags);
   return removed;
 }
@@ -145,9 +148,6 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
       || !plan->check_success (!scripts.in_error ()) || !scripts)
     return;
 
-  // The collect function needs a null element to signal end of the array.
-  features.push (0);
-  scripts.push (0);
   layout_collect_func (plan->source,
                        T::tableTag,
                        retain_all_scripts ? nullptr : scripts.arrayZ,
