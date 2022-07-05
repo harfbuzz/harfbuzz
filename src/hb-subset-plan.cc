@@ -99,7 +99,7 @@ static bool _filter_tag_list(hb_vector_t<hb_tag_t>* tags, /* IN/OUT */
                              const hb_set_t* filter)
 {
   hb_vector_t<hb_tag_t> out;
-  out.alloc (tags->get_size());
+  out.alloc (tags->get_size() + 1); // +1 is to allocate room for the null terminator.
 
   bool removed = false;
   hb_set_t visited;
@@ -129,18 +129,16 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
                                      layout_collect_func_t layout_collect_func,
                                      hb_set_t		  *indices /* OUT */)
 {
-  unsigned num_features = table.get_feature_count () + 1;
+  unsigned num_features = table.get_feature_count ();
   hb_vector_t<hb_tag_t> features;
   if (!plan->check_success (features.resize (num_features))) return;
   table.get_feature_tags (0, &num_features, features.arrayZ);
-  features.resize (num_features);
   bool retain_all_features = !_filter_tag_list (&features, plan->layout_features);
 
-  unsigned num_scripts = table.get_script_count () + 1;
+  unsigned num_scripts = table.get_script_count ();
   hb_vector_t<hb_tag_t> scripts;
   if (!plan->check_success (scripts.resize (num_scripts))) return;
   table.get_script_tags (0, &num_scripts, scripts.arrayZ);
-  scripts.resize (num_scripts);
   bool retain_all_scripts = !_filter_tag_list (&scripts, plan->layout_scripts);
 
   if (!plan->check_success (!features.in_error ()) || !features
