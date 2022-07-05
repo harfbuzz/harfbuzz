@@ -80,8 +80,34 @@
 namespace OT {
 
 
-#define NOT_COVERED		((unsigned int) -1)
+struct SmallTypes {
+  static constexpr unsigned size = 2;
+  using HBUINT = HBUINT16;
+  using HBGlyphID = HBGlyphID16;
+  using Offset = Offset16;
+  template <typename Type, bool has_null=true>
+  using OffsetTo = OT::Offset16To<Type, has_null>;
+  template <typename Type>
+  using ArrayOf = OT::Array16Of<Type>;
+  template <typename Type>
+  using SortedArrayOf = OT::SortedArray16Of<Type>;
+};
 
+struct MediumTypes {
+  static constexpr unsigned size = 3;
+  using HBUINT = HBUINT24;
+  using HBGlyphID = HBGlyphID24;
+  using Offset = Offset24;
+  template <typename Type, bool has_null=true>
+  using OffsetTo = OT::Offset24To<Type, has_null>;
+  template <typename Type>
+  using ArrayOf = OT::Array24Of<Type>;
+  template <typename Type>
+  using SortedArrayOf = OT::SortedArray24Of<Type>;
+};
+
+
+#define NOT_COVERED		((unsigned int) -1)
 
 template<typename Iterator>
 static inline void Coverage_serialize (hb_serialize_context_t *c,
