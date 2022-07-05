@@ -55,6 +55,9 @@ struct hb_subset_plan_t
   //layout features which will be preserved
   hb_set_t *layout_features;
 
+  // layout scripts which will be preserved.
+  hb_set_t *layout_scripts;
+
   //glyph ids requested to retain
   hb_set_t *glyphs_requested;
 

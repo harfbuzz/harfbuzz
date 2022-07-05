@@ -50,6 +50,7 @@ struct hb_subset_input_t
     hb_set_t *name_ids;
     hb_set_t *name_languages;
     hb_set_t *layout_features;
+    hb_set_t *layout_scripts;
   };
 
   union {

@@ -203,6 +203,8 @@ hb_subset_input_create_or_fail (void)
 
   input->sets.layout_features->add_array (default_layout_features, ARRAY_LENGTH (default_layout_features));
 
+  input->sets.layout_scripts->invert (); // Default to all scripts.
+
   if (input->in_error ())
   {
     hb_subset_input_destroy (input);

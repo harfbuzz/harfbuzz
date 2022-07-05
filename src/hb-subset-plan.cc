@@ -91,94 +91,100 @@ _remap_indexes (const hb_set_t *indexes,
 typedef void (*layout_collect_func_t) (hb_face_t *face, hb_tag_t table_tag, const hb_tag_t *scripts, const hb_tag_t *languages, const hb_tag_t *features, hb_set_t *lookup_indexes /* OUT */);
 
 
-template <typename T>
-static void _collect_layout_indices (hb_face_t		  *face,
-                                     const T&              table,
-                                     const hb_set_t	  *layout_features_to_retain,
-                                     layout_collect_func_t layout_collect_func,
-                                     hb_set_t		  *indices /* OUT */)
+/*
+ * Removes all tags from 'tags' that are not in filter. Additionally eliminates any duplicates.
+ * Returns true if anything was removed (not including duplicates).
+ */
+static bool _filter_tag_list(hb_vector_t<hb_tag_t>* tags, /* IN/OUT */
+                             const hb_set_t* filter)
 {
-  hb_vector_t<hb_tag_t> features;
-  if (!features.alloc (table.get_feature_count () + 1))
-    return;
+  hb_vector_t<hb_tag_t> out;
+  out.alloc (tags->get_size() + 1); // +1 is to allocate room for the null terminator.
 
-  hb_set_t visited_features;
-  bool retain_all_features = true;
-  for (unsigned i = 0; i < table.get_feature_count (); i++)
+  bool removed = false;
+  hb_set_t visited;
+
+  for (hb_tag_t tag : *tags)
   {
-    hb_tag_t tag = table.get_feature_tag (i);
     if (!tag) continue;
-    if (!layout_features_to_retain->has (tag))
+    if (visited.has (tag)) continue;
+
+    if (!filter->has (tag))
     {
-      retain_all_features = false;
+      removed = true;
       continue;
     }
 
-    if (visited_features.has (tag))
-      continue;
-
-    features.push (tag);
-    visited_features.add (tag);
+    visited.add (tag);
+    out.push (tag);
   }
-
-  if (!features)
-    return;
 
   // The collect function needs a null element to signal end of the array.
-  features.push (0);
+  out.push (HB_TAG_NONE);
 
-  if (retain_all_features)
-  {
-    // Looking for all features, trigger the faster collection method.
-    layout_collect_func (face,
-                         T::tableTag,
-                         nullptr,
-                         nullptr,
-                         nullptr,
-                         indices);
+  hb_swap (out, *tags);
+  return removed;
+}
+
+template <typename T>
+static void _collect_layout_indices (hb_subset_plan_t     *plan,
+                                     const T&              table,
+                                     layout_collect_func_t layout_collect_func,
+                                     hb_set_t		  *indices /* OUT */)
+{
+  unsigned num_features = table.get_feature_count ();
+  hb_vector_t<hb_tag_t> features;
+  if (!plan->check_success (features.resize (num_features))) return;
+  table.get_feature_tags (0, &num_features, features.arrayZ);
+  bool retain_all_features = !_filter_tag_list (&features, plan->layout_features);
+
+  unsigned num_scripts = table.get_script_count ();
+  hb_vector_t<hb_tag_t> scripts;
+  if (!plan->check_success (scripts.resize (num_scripts))) return;
+  table.get_script_tags (0, &num_scripts, scripts.arrayZ);
+  bool retain_all_scripts = !_filter_tag_list (&scripts, plan->layout_scripts);
+
+  if (!plan->check_success (!features.in_error ()) || !features
+      || !plan->check_success (!scripts.in_error ()) || !scripts)
     return;
-  }
 
-  layout_collect_func (face,
+  layout_collect_func (plan->source,
                        T::tableTag,
+                       retain_all_scripts ? nullptr : scripts.arrayZ,
 		       nullptr,
-		       nullptr,
-		       features.arrayZ,
+		       retain_all_features ? nullptr : features.arrayZ,
 		       indices);
 }
 
 template <typename T>
 static inline void
-_closure_glyphs_lookups_features (hb_face_t	     *face,
+_closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 				  hb_set_t	     *gids_to_retain,
-				  const hb_set_t     *layout_features_to_retain,
 				  hb_map_t	     *lookups,
 				  hb_map_t	     *features,
 				  script_langsys_map *langsys_map)
 {
-  hb_blob_ptr_t<T> table = hb_sanitize_context_t ().reference_table<T> (face);
+  hb_blob_ptr_t<T> table = hb_sanitize_context_t ().reference_table<T> (plan->source);
   hb_tag_t table_tag = table->tableTag;
   hb_set_t lookup_indices;
-  _collect_layout_indices<T> (face,
+  _collect_layout_indices<T> (plan,
                               *table,
-                              layout_features_to_retain,
                               hb_ot_layout_collect_lookups,
                               &lookup_indices);
 
   if (table_tag == HB_OT_TAG_GSUB)
-    hb_ot_layout_lookups_substitute_closure (face,
-					    &lookup_indices,
+    hb_ot_layout_lookups_substitute_closure (plan->source,
+                                             &lookup_indices,
 					     gids_to_retain);
-  table->closure_lookups (face,
+  table->closure_lookups (plan->source,
 			  gids_to_retain,
-			 &lookup_indices);
+                          &lookup_indices);
   _remap_indexes (&lookup_indices, lookups);
 
   // Collect and prune features
   hb_set_t feature_indices;
-  _collect_layout_indices<T> (face,
+  _collect_layout_indices<T> (plan,
                               *table,
-                              layout_features_to_retain,
                               hb_ot_layout_collect_features,
                               &feature_indices);
 
@@ -395,18 +401,16 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   if (close_over_gsub)
     // closure all glyphs/lookups/features needed for GSUB substitutions.
     _closure_glyphs_lookups_features<GSUB> (
-        plan->source,
+        plan,
         plan->_glyphset_gsub,
-        plan->layout_features,
         plan->gsub_lookups,
         plan->gsub_features,
         plan->gsub_langsys);
 
   if (close_over_gpos)
     _closure_glyphs_lookups_features<GPOS> (
-        plan->source,
+        plan,
         plan->_glyphset_gsub,
-        plan->layout_features,
         plan->gpos_lookups,
         plan->gpos_features,
         plan->gpos_langsys);
@@ -549,6 +553,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   _nameid_closure (face, plan->name_ids);
   plan->name_languages = hb_set_copy (input->sets.name_languages);
   plan->layout_features = hb_set_copy (input->sets.layout_features);
+  plan->layout_scripts = hb_set_copy (input->sets.layout_scripts);
   plan->glyphs_requested = hb_set_copy (input->sets.glyphs);
   plan->drop_tables = hb_set_copy (input->sets.drop_tables);
   plan->no_subset_tables = hb_set_copy (input->sets.no_subset_tables);
@@ -636,6 +641,7 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   hb_set_destroy (plan->name_ids);
   hb_set_destroy (plan->name_languages);
   hb_set_destroy (plan->layout_features);
+  hb_set_destroy (plan->layout_scripts);
   hb_set_destroy (plan->glyphs_requested);
   hb_set_destroy (plan->drop_tables);
   hb_set_destroy (plan->no_subset_tables);

@@ -645,21 +645,25 @@ struct GDEF
     bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
     bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
 
-    bool subset_markglyphsetsdef = true;
+    bool subset_markglyphsetsdef = false;
     if (version.to_int () >= 0x00010002u)
     {
       subset_markglyphsetsdef = out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this);
-      if (!subset_markglyphsetsdef &&
-	  version.to_int () == 0x00010002u)
-	out->version.minor = 0;
     }
 
-    bool subset_varstore = true;
+    bool subset_varstore = false;
     if (version.to_int () >= 0x00010003u)
     {
       subset_varstore = out->varStore.serialize_subset (c, varStore, this);
-      if (!subset_varstore && version.to_int () == 0x00010003u)
-	out->version.minor = 2;
+    }
+
+    if (subset_varstore)
+    {
+      out->version.minor = 3;
+    } else if (subset_markglyphsetsdef) {
+      out->version.minor = 2;
+    } else  {
+      out->version.minor = 0;
     }
 
     return_trace (subset_glyphclassdef || subset_attachlist ||
