@@ -415,18 +415,7 @@ struct Lookup
   public:
   DEFINE_SIZE_UNION (2, format);
 };
-/* Lookup 0 has unbounded size (dependant on num_glyphs).  So we need to defined
- * special NULL objects for Lookup<> objects, but since it's template our macros
- * don't work.  So we have to hand-code them here.  UGLY. */
-} /* Close namespace. */
-/* Ugly hand-coded null objects for template Lookup<> :(. */
-extern HB_INTERNAL const unsigned char _hb_Null_AAT_Lookup[2];
-template <typename T>
-struct Null<AAT::Lookup<T>> {
-  static AAT::Lookup<T> const & get_null ()
-  { return *reinterpret_cast<const AAT::Lookup<T> *> (_hb_Null_AAT_Lookup); }
-};
-namespace AAT {
+DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (AAT, Lookup, 2);
 
 enum { DELETED_GLYPH = 0xFFFF };
 

@@ -117,8 +117,19 @@ struct NullHelper
 	}; \
 	namespace Namespace { \
 	static_assert (true, "") /* Require semicolon after. */
+#define DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1(Namespace, Type, Size) \
+	} /* Close namespace. */ \
+	extern HB_INTERNAL const unsigned char _hb_Null_##Namespace##_##Type[Size]; \
+	template <typename Spec> \
+	struct Null<Namespace::Type<Spec>> { \
+	  static Namespace::Type<Spec> const & get_null () { \
+	    return *reinterpret_cast<const Namespace::Type<Spec> *> (_hb_Null_##Namespace##_##Type); \
+	  } \
+	}; \
+	namespace Namespace { \
+	static_assert (true, "") /* Require semicolon after. */
 #define DEFINE_NULL_NAMESPACE_BYTES(Namespace, Type) \
-	const unsigned char _hb_Null_##Namespace##_##Type[hb_null_size (Namespace::Type)]
+	const unsigned char _hb_Null_##Namespace##_##Type[sizeof (_hb_Null_##Namespace##_##Type)]
 
 /* Specializations for arbitrary-content Null objects expressed as struct initializer. */
 #define DECLARE_NULL_INSTANCE(Type) \
