@@ -428,14 +428,14 @@ struct hb_ot_apply_context_t :
     };
 
     may_match_t may_match (hb_glyph_info_t &info,
-			   const HBUINT16        *glyph_data) const
+			   hb_codepoint_t glyph_data) const
     {
       if (!(info.mask & mask) ||
 	  (syllable && syllable != info.syllable ()))
 	return MATCH_NO;
 
       if (match_func)
-	return match_func (info, *glyph_data, match_data) ? MATCH_YES : MATCH_NO;
+	return match_func (info, glyph_data, match_data) ? MATCH_YES : MATCH_NO;
 
       return MATCH_MAYBE;
     }
@@ -531,7 +531,7 @@ struct hb_ot_apply_context_t :
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
 
-	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data);
+	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data ? *match_glyph_data : 0);
 	if (match == matcher_t::MATCH_YES ||
 	    (match == matcher_t::MATCH_MAYBE &&
 	     skip == matcher_t::SKIP_NO))
@@ -564,7 +564,7 @@ struct hb_ot_apply_context_t :
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
 
-	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data);
+	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data ? *match_glyph_data : 0);
 	if (match == matcher_t::MATCH_YES ||
 	    (match == matcher_t::MATCH_MAYBE &&
 	     skip == matcher_t::SKIP_NO))
