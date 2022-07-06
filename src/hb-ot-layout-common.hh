@@ -1926,7 +1926,7 @@ struct ClassDefFormat1
   }
 
   template<typename Iterator,
-	   hb_requires (hb_is_sorted_iterator (Iterator))>
+	   hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator it)
   {
@@ -2138,7 +2138,7 @@ struct ClassDefFormat2
   }
 
   template<typename Iterator,
-	   hb_requires (hb_is_sorted_iterator (Iterator))>
+	   hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator it)
   {
@@ -2411,7 +2411,7 @@ struct ClassDef
   }
 
   template<typename Iterator,
-	   hb_requires (hb_is_sorted_iterator (Iterator))>
+	   hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator it_with_class_zero)
   {
     TRACE_SERIALIZE (this);
