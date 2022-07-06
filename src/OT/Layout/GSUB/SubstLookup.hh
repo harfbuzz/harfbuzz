@@ -98,10 +98,15 @@ struct SubstLookup : Lookup
       return dispatch (c);
   }
 
+  template<typename Glyphs, typename Substitutes,
+	   hb_requires (hb_is_sorted_source_of (Glyphs,
+						const hb_codepoint_t) &&
+			hb_is_source_of (Substitutes,
+					 const hb_codepoint_t))>
   bool serialize_single (hb_serialize_context_t *c,
                          uint32_t lookup_props,
-                         hb_sorted_array_t<const HBGlyphID16> glyphs,
-                         hb_array_t<const HBGlyphID16> substitutes)
+                         Glyphs glyphs,
+                         Substitutes substitutes)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Single, lookup_props, 1))) return_trace (false);
