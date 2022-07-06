@@ -12,8 +12,8 @@ struct MultipleSubst
 {
   protected:
   union {
-  HBUINT16              format;         /* Format identifier */
-  MultipleSubstFormat1  format1;
+  HBUINT16				format;         /* Format identifier */
+  MultipleSubstFormat1_2<SmallTypes>	format1;
   } u;
 
   public:
