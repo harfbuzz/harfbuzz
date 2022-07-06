@@ -409,7 +409,7 @@ struct hb_ot_apply_context_t :
 	     match_func (nullptr),
 	     match_data (nullptr) {}
 
-    typedef bool (*match_func_t) (hb_glyph_info_t &info, const HBUINT16 &value, const void *data);
+    typedef bool (*match_func_t) (hb_glyph_info_t &info, unsigned value, const void *data);
 
     void set_ignore_zwnj (bool ignore_zwnj_) { ignore_zwnj = ignore_zwnj_; }
     void set_ignore_zwj (bool ignore_zwj_) { ignore_zwj = ignore_zwj_; }
@@ -943,10 +943,10 @@ struct hb_accelerate_subtables_context_t :
 };
 
 
-typedef bool (*intersects_func_t) (const hb_set_t *glyphs, const HBUINT16 &value, const void *data);
+typedef bool (*intersects_func_t) (const hb_set_t *glyphs, unsigned value, const void *data);
 typedef void (*intersected_glyphs_func_t) (const hb_set_t *glyphs, const void *data, unsigned value, hb_set_t *intersected_glyphs);
-typedef void (*collect_glyphs_func_t) (hb_set_t *glyphs, const HBUINT16 &value, const void *data);
-typedef bool (*match_func_t) (hb_glyph_info_t &info, const HBUINT16 &value, const void *data);
+typedef void (*collect_glyphs_func_t) (hb_set_t *glyphs, unsigned value, const void *data);
+typedef bool (*match_func_t) (hb_glyph_info_t &info, unsigned value, const void *data);
 
 struct ContextClosureFuncs
 {
@@ -967,18 +967,19 @@ struct ChainContextApplyFuncs
 };
 
 
-static inline bool intersects_glyph (const hb_set_t *glyphs, const HBUINT16 &value, const void *data HB_UNUSED)
+static inline bool intersects_glyph (const hb_set_t *glyphs, unsigned value, const void *data HB_UNUSED)
 {
   return glyphs->has (value);
 }
-static inline bool intersects_class (const hb_set_t *glyphs, const HBUINT16 &value, const void *data)
+static inline bool intersects_class (const hb_set_t *glyphs, unsigned value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   return class_def.intersects_class (glyphs, value);
 }
-static inline bool intersects_coverage (const hb_set_t *glyphs, const HBUINT16 &value, const void *data)
+static inline bool intersects_coverage (const hb_set_t *glyphs, unsigned value, const void *data)
 {
-  const Offset16To<Coverage> &coverage = (const Offset16To<Coverage>&)value;
+  Offset16To<Coverage> coverage;
+  coverage = value;
   return (data+coverage).intersects (glyphs);
 }
 
@@ -1013,18 +1014,19 @@ static inline bool array_is_subset_of (const hb_set_t *glyphs,
 }
 
 
-static inline void collect_glyph (hb_set_t *glyphs, const HBUINT16 &value, const void *data HB_UNUSED)
+static inline void collect_glyph (hb_set_t *glyphs, unsigned value, const void *data HB_UNUSED)
 {
   glyphs->add (value);
 }
-static inline void collect_class (hb_set_t *glyphs, const HBUINT16 &value, const void *data)
+static inline void collect_class (hb_set_t *glyphs, unsigned value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   class_def.collect_class (glyphs, value);
 }
-static inline void collect_coverage (hb_set_t *glyphs, const HBUINT16 &value, const void *data)
+static inline void collect_coverage (hb_set_t *glyphs, unsigned value, const void *data)
 {
-  const Offset16To<Coverage> &coverage = (const Offset16To<Coverage>&)value;
+  Offset16To<Coverage> coverage;
+  coverage = value;
   (data+coverage).collect_coverage (glyphs);
 }
 static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
@@ -1041,16 +1043,16 @@ static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
 }
 
 
-static inline bool match_glyph (hb_glyph_info_t &info, const HBUINT16 &value, const void *data HB_UNUSED)
+static inline bool match_glyph (hb_glyph_info_t &info, unsigned value, const void *data HB_UNUSED)
 {
   return info.codepoint == value;
 }
-static inline bool match_class (hb_glyph_info_t &info, const HBUINT16 &value, const void *data)
+static inline bool match_class (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   return class_def.get_class (info.codepoint) == value;
 }
-static inline bool match_class_cached (hb_glyph_info_t &info, const HBUINT16 &value, const void *data)
+static inline bool match_class_cached (hb_glyph_info_t &info, unsigned value, const void *data)
 {
   unsigned klass = info.syllable();
   if (klass < 255)
@@ -1061,9 +1063,10 @@ static inline bool match_class_cached (hb_glyph_info_t &info, const HBUINT16 &va
     info.syllable() = klass;
   return klass == value;
 }
-static inline bool match_coverage (hb_glyph_info_t &info, const HBUINT16 &value, const void *data)
+static inline bool match_coverage (hb_glyph_info_t &info, unsigned value, const void *data)
 {
-  const Offset16To<Coverage> &coverage = (const Offset16To<Coverage>&)value;
+  Offset16To<Coverage> coverage;
+  coverage = value;
   return (data+coverage).get_coverage (info.codepoint) != NOT_COVERED;
 }
 
