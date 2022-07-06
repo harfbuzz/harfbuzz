@@ -373,10 +373,6 @@ if test "x$with_directwrite" = "xyes" -a "x$have_directwrite" != "xtrue"; then
 	AC_MSG_ERROR([directwrite support requested but not found])
 fi
 if $have_directwrite; then
-	DIRECTWRITE_CXXFLAGS=
-	DIRECTWRITE_LIBS=-ldwrite
-	AC_SUBST(DIRECTWRITE_CXXFLAGS)
-	AC_SUBST(DIRECTWRITE_LIBS)
 	AC_DEFINE(HAVE_DIRECTWRITE, 1, [Have DirectWrite library])
 fi
 AM_CONDITIONAL(HAVE_DIRECTWRITE, $have_directwrite)

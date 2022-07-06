@@ -308,9 +308,12 @@ if (WIN32 AND HB_HAVE_UNISCRIBE)
 endif ()
 
 if (WIN32 AND HB_HAVE_DIRECTWRITE)
+  check_include_file_cxx(dwrite_1.h, HAVE_DWRITE_1_H)
+  if (NOT ${HAVE_DWRITE_1_H})
+    message(FATAL_ERROR "DirectWrite was enabled explicitly, but required header is missing")
+  endif()
   add_definitions(-DHAVE_DIRECTWRITE)
   list(APPEND project_headers ${PROJECT_SOURCE_DIR}/src/hb-directwrite.h)
-  list(APPEND THIRD_PARTY_LIBS dwrite rpcrt4)
 endif ()
 
 if (HB_HAVE_GOBJECT)
