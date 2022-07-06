@@ -491,10 +491,12 @@ struct hb_ot_apply_context_t :
       matcher.set_lookup_props (lookup_props);
     }
     void set_match_func (matcher_t::match_func_t match_func_,
-			 const void *match_data_,
-			 const HBUINT16 glyph_data[])
+			 const void *match_data_)
     {
       matcher.set_match_func (match_func_, match_data_);
+    }
+    void set_glyph_data (const HBUINT16 glyph_data[])
+    {
       match_glyph_data = glyph_data;
     }
 
@@ -1101,7 +1103,8 @@ static inline bool match_input (hb_ot_apply_context_t *c,
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_input;
   skippy_iter.reset (buffer->idx, count - 1);
-  skippy_iter.set_match_func (match_func, match_data, input);
+  skippy_iter.set_match_func (match_func, match_data);
+  skippy_iter.set_glyph_data (input);
 
   /*
    * This is perhaps the trickiest part of OpenType...  Remarks:
@@ -1333,7 +1336,8 @@ static inline bool match_backtrack (hb_ot_apply_context_t *c,
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
   skippy_iter.reset (c->buffer->backtrack_len (), count);
-  skippy_iter.set_match_func (match_func, match_data, backtrack);
+  skippy_iter.set_match_func (match_func, match_data);
+  skippy_iter.set_glyph_data (backtrack);
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -1361,7 +1365,8 @@ static inline bool match_lookahead (hb_ot_apply_context_t *c,
 
   hb_ot_apply_context_t::skipping_iterator_t &skippy_iter = c->iter_context;
   skippy_iter.reset (start_index - 1, count);
-  skippy_iter.set_match_func (match_func, match_data, lookahead);
+  skippy_iter.set_match_func (match_func, match_data);
+  skippy_iter.set_glyph_data (lookahead);
 
   for (unsigned int i = 0; i < count; i++)
   {
