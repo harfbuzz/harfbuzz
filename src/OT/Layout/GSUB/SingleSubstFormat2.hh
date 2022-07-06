@@ -104,7 +104,7 @@ struct SingleSubstFormat2_4
     + hb_zip (this+coverage, substitute)
     | hb_filter (glyphset, hb_first)
     | hb_filter (glyphset, hb_second)
-    | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const HBGlyphID16 &> p) -> hb_codepoint_pair_t
+    | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, const typename Types::HBGlyphID &> p) -> hb_codepoint_pair_t
                               { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
     ;
 
