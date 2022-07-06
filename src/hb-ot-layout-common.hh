@@ -536,6 +536,7 @@ struct RecordListOfScript : RecordListOf<Script>
   }
 };
 
+template <typename Types>
 struct RangeRecord
 {
   int cmp (hb_codepoint_t g) const
@@ -554,13 +555,13 @@ struct RangeRecord
   bool collect_coverage (set_t *glyphs) const
   { return glyphs->add_range (first, last); }
 
-  HBGlyphID16	first;		/* First GlyphID in the range */
-  HBGlyphID16	last;		/* Last GlyphID in the range */
-  HBUINT16	value;		/* Value */
+  typename Types::HBGlyphID	first;		/* First GlyphID in the range */
+  typename Types::HBGlyphID	last;		/* Last GlyphID in the range */
+  typename Types::HBUINT	value;		/* Value */
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_STATIC (3 * Types::size);
 };
-DECLARE_NULL_NAMESPACE_BYTES (OT, RangeRecord);
+DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (OT, RangeRecord, 9);
 
 
 struct IndexArray : Array16Of<Index>
@@ -1436,7 +1437,8 @@ struct LookupOffsetList : List16OfOffset16To<TLookup>
  * Coverage Table
  */
 
-struct CoverageFormat1
+template <typename Types>
+struct CoverageFormat1_3
 {
   friend struct Coverage;
 
@@ -1489,7 +1491,7 @@ struct CoverageFormat1
   /* Older compilers need this to be public. */
   struct iter_t
   {
-    void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; }
+    void init (const struct CoverageFormat1_3 &c_) { c = &c_; i = 0; }
     void fini () {}
     bool more () const { return i < c->glyphArray.len; }
     void next () { i++; }
@@ -1499,27 +1501,28 @@ struct CoverageFormat1
     iter_t __end__ () const { iter_t it; it.init (*c); it.i = c->glyphArray.len; return it; }
 
     private:
-    const struct CoverageFormat1 *c;
+    const struct CoverageFormat1_3 *c;
     unsigned int i;
   };
   private:
 
   protected:
   HBUINT16	coverageFormat;	/* Format identifier--format = 1 */
-  SortedArray16Of<HBGlyphID16>
+  SortedArray16Of<typename Types::HBGlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
   public:
   DEFINE_SIZE_ARRAY (4, glyphArray);
 };
 
-struct CoverageFormat2
+template <typename Types>
+struct CoverageFormat2_4
 {
   friend struct Coverage;
 
   private:
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    const RangeRecord &range = rangeRecord.bsearch (glyph_id);
+    const RangeRecord<Types> &range = rangeRecord.bsearch (glyph_id);
     return likely (range.first <= range.last)
 	 ? (unsigned int) range.value + (glyph_id - range.first)
 	 : NOT_COVERED;
@@ -1574,14 +1577,14 @@ struct CoverageFormat2
   bool intersects (const hb_set_t *glyphs) const
   {
     return hb_any (+ hb_iter (rangeRecord.as_array ())
-		   | hb_map ([glyphs] (const RangeRecord &range) { return range.intersects (glyphs); }));
+		   | hb_map ([glyphs] (const RangeRecord<Types> &range) { return range.intersects (glyphs); }));
   }
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
     auto cmp = [] (const void *pk, const void *pr) -> int
     {
       unsigned index = * (const unsigned *) pk;
-      const RangeRecord &range = * (const RangeRecord *) pr;
+      const RangeRecord<Types> &range = * (const RangeRecord<Types> *) pr;
       if (index < range.value) return -1;
       if (index > (unsigned int) range.value + (range.last - range.first)) return +1;
       return 0;
@@ -1622,7 +1625,7 @@ struct CoverageFormat2
   /* Older compilers need this to be public. */
   struct iter_t
   {
-    void init (const CoverageFormat2 &c_)
+    void init (const CoverageFormat2_4 &c_)
     {
       c = &c_;
       coverage = 0;
@@ -1676,7 +1679,7 @@ struct CoverageFormat2
     }
 
     private:
-    const struct CoverageFormat2 *c;
+    const struct CoverageFormat2_4 *c;
     unsigned int i, coverage;
     hb_codepoint_t j;
   };
@@ -1684,7 +1687,7 @@ struct CoverageFormat2
 
   protected:
   HBUINT16	coverageFormat;	/* Format identifier--format = 2 */
-  SortedArray16Of<RangeRecord>
+  SortedArray16Of<RangeRecord<Types>>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID. rangeCount entries
 				 * long */
@@ -1879,17 +1882,17 @@ struct Coverage
     private:
     unsigned int format;
     union {
-    CoverageFormat2::iter_t	format2; /* Put this one first since it's larger; helps shut up compiler. */
-    CoverageFormat1::iter_t	format1;
+    CoverageFormat2_4<SmallTypes>::iter_t	format2; /* Put this one first since it's larger; helps shut up compiler. */
+    CoverageFormat1_3<SmallTypes>::iter_t	format1;
     } u;
   };
   iter_t iter () const { return iter_t (*this); }
 
   protected:
   union {
-  HBUINT16		format;		/* Format identifier */
-  CoverageFormat1	format1;
-  CoverageFormat2	format2;
+  HBUINT16			format;		/* Format identifier */
+  CoverageFormat1_3<SmallTypes>	format1;
+  CoverageFormat2_4<SmallTypes>	format2;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
@@ -1941,7 +1944,8 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
  * Class Definition Table
  */
 
-struct ClassDefFormat1
+template <typename Types>
+struct ClassDefFormat1_3
 {
   friend struct ClassDef;
 
@@ -2146,14 +2150,16 @@ struct ClassDefFormat1
 
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 1 */
-  HBGlyphID16	startGlyph;	/* First GlyphID of the classValueArray */
-  Array16Of<HBUINT16>
+  typename Types::HBGlyphID
+		 startGlyph;	/* First GlyphID of the classValueArray */
+  typename Types::template ArrayOf<typename Types::HBUINT>
 		classValue;	/* Array of Class Values--one per GlyphID */
   public:
-  DEFINE_SIZE_ARRAY (6, classValue);
+  DEFINE_SIZE_ARRAY (2 + 2 * Types::size, classValue);
 };
 
-struct ClassDefFormat2
+template <typename Types>
+struct ClassDefFormat2_4
 {
   friend struct ClassDef;
 
@@ -2182,12 +2188,12 @@ struct ClassDefFormat2
     hb_codepoint_t prev_gid = (*it).first;
     unsigned prev_klass = (*it).second;
 
-    RangeRecord range_rec;
+    RangeRecord<Types> range_rec;
     range_rec.first = prev_gid;
     range_rec.last = prev_gid;
     range_rec.value = prev_klass;
 
-    RangeRecord *record = c->copy (range_rec);
+    auto *record = c->copy (range_rec);
     if (unlikely (!record)) return_trace (false);
 
     for (const auto gid_klass_pair : + (++it))
@@ -2326,7 +2332,7 @@ struct ClassDefFormat2
     }
     /* TODO Speed up, using set overlap first? */
     /* TODO(iter) Rewrite as dagger. */
-    const RangeRecord *arr = rangeRecord.arrayZ;
+    const auto *arr = rangeRecord.arrayZ;
     for (unsigned int i = 0; i < count; i++)
       if (arr[i].value == klass && arr[i].intersects (glyphs))
 	return true;
@@ -2402,18 +2408,18 @@ struct ClassDefFormat2
     if (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
       intersect_classes->add (0);
 
-    for (const RangeRecord& record : rangeRecord.iter ())
+    for (const auto& record : rangeRecord.iter ())
       if (record.intersects (glyphs))
         intersect_classes->add (record.value);
   }
 
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 2 */
-  SortedArray16Of<RangeRecord>
+  typename Types::template SortedArrayOf<RangeRecord<Types>>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID */
   public:
-  DEFINE_SIZE_ARRAY (4, rangeRecord);
+  DEFINE_SIZE_ARRAY (2 + Types::size, rangeRecord);
 };
 
 struct ClassDef
@@ -2580,9 +2586,9 @@ struct ClassDef
 
   protected:
   union {
-  HBUINT16		format;		/* Format identifier */
-  ClassDefFormat1	format1;
-  ClassDefFormat2	format2;
+  HBUINT16			format;		/* Format identifier */
+  ClassDefFormat1_3<SmallTypes>	format1;
+  ClassDefFormat2_4<SmallTypes>	format2;
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
