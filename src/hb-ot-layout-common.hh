@@ -1711,6 +1711,10 @@ struct Coverage
     switch (u.format) {
     case 1: return u.format1.get_coverage (glyph_id);
     case 2: return u.format2.get_coverage (glyph_id);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.get_coverage (glyph_id);
+    case 4: return u.format4.get_coverage (glyph_id);
+#endif
     default:return NOT_COVERED;
     }
   }
@@ -1734,10 +1738,19 @@ struct Coverage
     }
     u.format = count <= num_ranges * 3 ? 1 : 2;
 
+#ifndef HB_NO_BORING_EXPANSION
+    if (count && last > 0xFFFFu)
+      u.format += 2;
+#endif
+
     switch (u.format)
     {
     case 1: return_trace (u.format1.serialize (c, glyphs));
     case 2: return_trace (u.format2.serialize (c, glyphs));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.serialize (c, glyphs));
+    case 4: return_trace (u.format4.serialize (c, glyphs));
+#endif
     default:return_trace (false);
     }
   }
@@ -1766,6 +1779,10 @@ struct Coverage
     {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.sanitize (c));
+    case 4: return_trace (u.format4.sanitize (c));
+#endif
     default:return_trace (true);
     }
   }
@@ -1776,6 +1793,10 @@ struct Coverage
     {
     case 1: return u.format1.intersects (glyphs);
     case 2: return u.format2.intersects (glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersects (glyphs);
+    case 4: return u.format4.intersects (glyphs);
+#endif
     default:return false;
     }
   }
@@ -1785,6 +1806,10 @@ struct Coverage
     {
     case 1: return u.format1.intersects_coverage (glyphs, index);
     case 2: return u.format2.intersects_coverage (glyphs, index);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersects_coverage (glyphs, index);
+    case 4: return u.format4.intersects_coverage (glyphs, index);
+#endif
     default:return false;
     }
   }
@@ -1798,6 +1823,10 @@ struct Coverage
     {
     case 1: return u.format1.collect_coverage (glyphs);
     case 2: return u.format2.collect_coverage (glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.collect_coverage (glyphs);
+    case 4: return u.format4.collect_coverage (glyphs);
+#endif
     default:return false;
     }
   }
@@ -1808,6 +1837,10 @@ struct Coverage
     {
     case 1: return u.format1.intersected_coverage_glyphs (glyphs, intersect_glyphs);
     case 2: return u.format2.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+    case 4: return u.format4.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+#endif
     default:return ;
     }
   }
@@ -1823,6 +1856,10 @@ struct Coverage
       {
       case 1: u.format1.init (c_.u.format1); return;
       case 2: u.format2.init (c_.u.format2); return;
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: u.format3.init (c_.u.format3); return;
+      case 4: u.format4.init (c_.u.format4); return;
+#endif
       default:				     return;
       }
     }
@@ -1832,6 +1869,10 @@ struct Coverage
       {
       case 1: return u.format1.more ();
       case 2: return u.format2.more ();
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: return u.format3.more ();
+      case 4: return u.format4.more ();
+#endif
       default:return false;
       }
     }
@@ -1841,6 +1882,10 @@ struct Coverage
       {
       case 1: u.format1.next (); break;
       case 2: u.format2.next (); break;
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: u.format3.next (); break;
+      case 4: u.format4.next (); break;
+#endif
       default:			 break;
       }
     }
@@ -1853,6 +1898,10 @@ struct Coverage
       {
       case 1: return u.format1.get_glyph ();
       case 2: return u.format2.get_glyph ();
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: return u.format3.get_glyph ();
+      case 4: return u.format4.get_glyph ();
+#endif
       default:return 0;
       }
     }
@@ -1863,6 +1912,10 @@ struct Coverage
       {
       case 1: return u.format1 != o.u.format1;
       case 2: return u.format2 != o.u.format2;
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: return u.format3 != o.u.format3;
+      case 4: return u.format4 != o.u.format4;
+#endif
       default:return false;
       }
     }
@@ -1874,6 +1927,10 @@ struct Coverage
       {
       case 1: it.u.format1 = u.format1.__end__ (); break;
       case 2: it.u.format2 = u.format2.__end__ (); break;
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: it.u.format3 = u.format3.__end__ (); break;
+      case 4: it.u.format4 = u.format4.__end__ (); break;
+#endif
       default: break;
       }
       return it;
@@ -1882,6 +1939,10 @@ struct Coverage
     private:
     unsigned int format;
     union {
+#ifndef HB_NO_BORING_EXPANSION
+    CoverageFormat2_4<MediumTypes>::iter_t	format4; /* Put this one first since it's larger; helps shut up compiler. */
+    CoverageFormat1_3<MediumTypes>::iter_t	format3;
+#endif
     CoverageFormat2_4<SmallTypes>::iter_t	format2; /* Put this one first since it's larger; helps shut up compiler. */
     CoverageFormat1_3<SmallTypes>::iter_t	format1;
     } u;
@@ -1893,6 +1954,10 @@ struct Coverage
   HBUINT16			format;		/* Format identifier */
   CoverageFormat1_3<SmallTypes>	format1;
   CoverageFormat2_4<SmallTypes>	format2;
+#ifndef HB_NO_BORING_EXPANSION
+  CoverageFormat1_3<MediumTypes>format3;
+  CoverageFormat2_4<MediumTypes>format4;
+#endif
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
