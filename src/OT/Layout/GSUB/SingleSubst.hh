@@ -13,9 +13,9 @@ struct SingleSubst
 {
   protected:
   union {
-  HBUINT16              format;         /* Format identifier */
-  SingleSubstFormat1    format1;
-  SingleSubstFormat2    format2;
+  HBUINT16				format;         /* Format identifier */
+  SingleSubstFormat1_3<SmallTypes>	format1;
+  SingleSubstFormat2_4<SmallTypes>	format2;
   } u;
 
   public:
