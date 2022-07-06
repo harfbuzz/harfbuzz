@@ -476,7 +476,10 @@ struct hb_ot_apply_context_t :
     void init (hb_ot_apply_context_t *c_, bool context_match = false)
     {
       c = c_;
-      match_glyph_data = nullptr;
+      match_glyph_data16 = nullptr;
+#ifndef HB_NO_BORING_EXPANSION
+      match_glyph_data24 = nullptr;
+#endif
       matcher.set_match_func (nullptr, nullptr);
       matcher.set_lookup_props (c->lookup_props);
       /* Ignore ZWNJ if we are matching GPOS, or matching GSUB context and asked to. */
@@ -497,8 +500,18 @@ struct hb_ot_apply_context_t :
     }
     void set_glyph_data (const HBUINT16 glyph_data[])
     {
-      match_glyph_data = glyph_data;
+      match_glyph_data16 = glyph_data;
+#ifndef HB_NO_BORING_EXPANSION
+      match_glyph_data24 = nullptr;
+#endif
     }
+#ifndef HB_NO_BORING_EXPANSION
+    void set_glyph_data (const HBUINT24 glyph_data[])
+    {
+      match_glyph_data16 = nullptr;
+      match_glyph_data24 = glyph_data;
+    }
+#endif
 
     void reset (unsigned int start_index_,
 		unsigned int num_items_)
@@ -512,7 +525,7 @@ struct hb_ot_apply_context_t :
     void reject ()
     {
       num_items++;
-      if (match_glyph_data) match_glyph_data--;
+      backup_glyph_data ();
     }
 
     matcher_t::may_skip_t
@@ -531,13 +544,13 @@ struct hb_ot_apply_context_t :
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
 
-	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data ? *match_glyph_data : 0);
+	matcher_t::may_match_t match = matcher.may_match (info, get_glyph_data ());
 	if (match == matcher_t::MATCH_YES ||
 	    (match == matcher_t::MATCH_MAYBE &&
 	     skip == matcher_t::SKIP_NO))
 	{
 	  num_items--;
-	  if (match_glyph_data) match_glyph_data++;
+	  advance_glyph_data ();
 	  return true;
 	}
 
@@ -564,13 +577,13 @@ struct hb_ot_apply_context_t :
 	if (unlikely (skip == matcher_t::SKIP_YES))
 	  continue;
 
-	matcher_t::may_match_t match = matcher.may_match (info, match_glyph_data ? *match_glyph_data : 0);
+	matcher_t::may_match_t match = matcher.may_match (info, get_glyph_data ());
 	if (match == matcher_t::MATCH_YES ||
 	    (match == matcher_t::MATCH_MAYBE &&
 	     skip == matcher_t::SKIP_NO))
 	{
 	  num_items--;
-	  if (match_glyph_data) match_glyph_data++;
+	  advance_glyph_data ();
 	  return true;
 	}
 
@@ -586,11 +599,43 @@ struct hb_ot_apply_context_t :
       return false;
     }
 
+    hb_codepoint_t
+    get_glyph_data ()
+    {
+      if (match_glyph_data16) return *match_glyph_data16;
+#ifndef HB_NO_BORING_EXPANSION
+      else
+      if (match_glyph_data24) return *match_glyph_data24;
+#endif
+      return 0;
+    }
+    void
+    advance_glyph_data ()
+    {
+      if (match_glyph_data16) match_glyph_data16++;
+#ifndef HB_NO_BORING_EXPANSION
+      else
+      if (match_glyph_data24) match_glyph_data24++;
+#endif
+    }
+    void
+    backup_glyph_data ()
+    {
+      if (match_glyph_data16) match_glyph_data16--;
+#ifndef HB_NO_BORING_EXPANSION
+      else
+      if (match_glyph_data24) match_glyph_data24--;
+#endif
+    }
+
     unsigned int idx;
     protected:
     hb_ot_apply_context_t *c;
     matcher_t matcher;
-    const HBUINT16 *match_glyph_data;
+    const HBUINT16 *match_glyph_data16;
+#ifndef HB_NO_BORING_EXPANSION
+    const HBUINT24 *match_glyph_data24;
+#endif
 
     unsigned int num_items;
     unsigned int end;
