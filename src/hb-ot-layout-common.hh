@@ -2152,7 +2152,7 @@ struct ClassDefFormat1_3
   HBUINT16	classFormat;	/* Format identifier--format = 1 */
   typename Types::HBGlyphID
 		 startGlyph;	/* First GlyphID of the classValueArray */
-  typename Types::template ArrayOf<typename Types::HBUINT>
+  typename Types::template ArrayOf<HBUINT16>
 		classValue;	/* Array of Class Values--one per GlyphID */
   public:
   DEFINE_SIZE_ARRAY (2 + 2 * Types::size, classValue);
@@ -2438,6 +2438,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.get_class (glyph_id);
     case 2: return u.format2.get_class (glyph_id);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.get_class (glyph_id);
+    case 4: return u.format4.get_class (glyph_id);
+#endif
     default:return 0;
     }
   }
@@ -2452,10 +2456,11 @@ struct ClassDef
     auto it = + it_with_class_zero | hb_filter (hb_second);
 
     unsigned format = 2;
+    hb_codepoint_t glyph_max = 0;
     if (likely (it))
     {
       hb_codepoint_t glyph_min = (*it).first;
-      hb_codepoint_t glyph_max = glyph_min;
+      glyph_max = glyph_min;
 
       unsigned num_glyphs = 0;
       unsigned num_ranges = 1;
@@ -2480,12 +2485,22 @@ struct ClassDef
       if (num_glyphs && 1 + (glyph_max - glyph_min + 1) <= num_ranges * 3)
 	format = 1;
     }
+
+#ifndef HB_NO_BORING_EXPANSION
+    if (glyph_max > 0xFFFFu)
+      format += 2;
+#endif
+
     u.format = format;
 
     switch (u.format)
     {
     case 1: return_trace (u.format1.serialize (c, it));
     case 2: return_trace (u.format2.serialize (c, it));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.serialize (c, it));
+    case 4: return_trace (u.format4.serialize (c, it));
+#endif
     default:return_trace (false);
     }
   }
@@ -2500,6 +2515,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return_trace (u.format1.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
     case 2: return_trace (u.format2.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+    case 4: return_trace (u.format4.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+#endif
     default:return_trace (false);
     }
   }
@@ -2511,6 +2530,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.sanitize (c));
+    case 4: return_trace (u.format4.sanitize (c));
+#endif
     default:return_trace (true);
     }
   }
@@ -2520,6 +2543,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.cost ();
     case 2: return u.format2.cost ();
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.cost ();
+    case 4: return u.format4.cost ();
+#endif
     default:return 0u;
     }
   }
@@ -2532,6 +2559,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.collect_coverage (glyphs);
     case 2: return u.format2.collect_coverage (glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.collect_coverage (glyphs);
+    case 4: return u.format4.collect_coverage (glyphs);
+#endif
     default:return false;
     }
   }
@@ -2544,6 +2575,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.collect_class (glyphs, klass);
     case 2: return u.format2.collect_class (glyphs, klass);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.collect_class (glyphs, klass);
+    case 4: return u.format4.collect_class (glyphs, klass);
+#endif
     default:return false;
     }
   }
@@ -2553,6 +2588,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersects (glyphs);
     case 2: return u.format2.intersects (glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersects (glyphs);
+    case 4: return u.format4.intersects (glyphs);
+#endif
     default:return false;
     }
   }
@@ -2561,6 +2600,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersects_class (glyphs, klass);
     case 2: return u.format2.intersects_class (glyphs, klass);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersects_class (glyphs, klass);
+    case 4: return u.format4.intersects_class (glyphs, klass);
+#endif
     default:return false;
     }
   }
@@ -2570,6 +2613,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
     case 2: return u.format2.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 4: return u.format4.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+#endif
     default:return;
     }
   }
@@ -2579,6 +2626,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersected_classes (glyphs, intersect_classes);
     case 2: return u.format2.intersected_classes (glyphs, intersect_classes);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersected_classes (glyphs, intersect_classes);
+    case 4: return u.format4.intersected_classes (glyphs, intersect_classes);
+#endif
     default:return;
     }
   }
@@ -2589,6 +2640,10 @@ struct ClassDef
   HBUINT16			format;		/* Format identifier */
   ClassDefFormat1_3<SmallTypes>	format1;
   ClassDefFormat2_4<SmallTypes>	format2;
+#ifndef HB_NO_BORING_EXPANSION
+  ClassDefFormat1_3<MediumTypes>format3;
+  ClassDefFormat2_4<MediumTypes>format4;
+#endif
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
