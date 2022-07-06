@@ -264,6 +264,11 @@ struct graph_t
     hb_swap (vertices_, sorted_graph);
   }
 
+  /*
+   * Finds the set of nodes (placed into roots) that should be assigned unique spaces.
+   * More specifically this looks for the top most 24 bit or 32 bit links in the graph.
+   * Some special casing is done that is specific to the layout of GSUB/GPOS tables.
+   */
   void find_space_roots (hb_set_t& visited, hb_set_t& roots)
   {
     int root_index = (int) root_idx ();
@@ -285,7 +290,9 @@ struct graph_t
         if (l.width == 3)
         {
           // A 24bit offset forms a root, unless there is 32bit offsets somewhere
-          // in it's subgraph, then those become the roots instead.
+          // in it's subgraph, then those become the roots instead. This is to make sure
+          // that extension subtables beneath a 24bit lookup become the spaces instead
+          // of the offset to the lookup.
           hb_set_t sub_roots;
           find_32bit_roots (l.objidx, sub_roots);
           if (sub_roots) {
@@ -451,6 +458,10 @@ struct graph_t
       find_subgraph (link.objidx, subgraph);
   }
 
+  /*
+   * Finds the topmost children of 32bit offsets in the subgraph starting
+   * at node_idx. Found indices are placed into 'found'.
+   */
   void find_32bit_roots (unsigned node_idx, hb_set_t& found)
   {
     for (const auto& link : vertices_[node_idx].obj.all_links ())
