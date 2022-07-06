@@ -12,8 +12,8 @@ struct AlternateSubst
 {
   protected:
   union {
-  HBUINT16              format;         /* Format identifier */
-  AlternateSubstFormat1 format1;
+  HBUINT16				format;         /* Format identifier */
+  AlternateSubstFormat1_2<SmallTypes>	format1;
   } u;
   public:
 
