@@ -196,6 +196,10 @@ struct HBGlyphID16 : HBUINT16
 {
   HBGlyphID16& operator = (uint16_t i) { HBUINT16::operator= (i); return *this; }
 };
+struct HBGlyphID24 : HBUINT24
+{
+  HBGlyphID24& operator = (uint32_t i) { HBUINT24::operator= (i); return *this; }
+};
 
 /* Script/language-system/feature index */
 struct Index : HBUINT16 {
