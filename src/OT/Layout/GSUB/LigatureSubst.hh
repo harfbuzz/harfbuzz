@@ -12,8 +12,8 @@ struct LigatureSubst
 {
   protected:
   union {
-  HBUINT16              format;         /* Format identifier */
-  LigatureSubstFormat1  format1;
+  HBUINT16				format;         /* Format identifier */
+  LigatureSubstFormat1_2<SmallTypes>	format1;
   } u;
 
   public:
