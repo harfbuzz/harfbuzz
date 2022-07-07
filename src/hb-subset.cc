@@ -260,15 +260,15 @@ template<typename TableType>
 static bool
 _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
 {
-  hb_blob_t *source_blob = hb_sanitize_context_t ().reference_table<TableType> (plan->source);
-  const TableType *table = source_blob->as<TableType> ();
+  hb_blob_ptr_t<TableType> source_blob = plan->source_table<TableType> ();
+  const TableType *table = source_blob.get ();
 
   hb_tag_t tag = TableType::tableTag;
-  if (!source_blob->data)
+  if (!source_blob.get_blob()->data)
   {
     DEBUG_MSG (SUBSET, nullptr,
                "OT::%c%c%c%c::subset sanitize failed on source table.", HB_UNTAG (tag));
-    hb_blob_destroy (source_blob);
+    source_blob.destroy ();
     return false;
   }
 
@@ -278,23 +278,23 @@ _subset (hb_subset_plan_t *plan, hb_vector_t<char> &buf)
 			 TableType::tableTag == HB_OT_TAG_GPOS ||
 			 TableType::tableTag == HB_OT_TAG_name;
 
-  unsigned buf_size = _plan_estimate_subset_table_size (plan, source_blob->length, same_size_table);
+  unsigned buf_size = _plan_estimate_subset_table_size (plan, source_blob.get_length (), same_size_table);
   DEBUG_MSG (SUBSET, nullptr,
              "OT::%c%c%c%c initial estimated table size: %u bytes.", HB_UNTAG (tag), buf_size);
   if (unlikely (!buf.alloc (buf_size)))
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c failed to allocate %u bytes.", HB_UNTAG (tag), buf_size);
-    hb_blob_destroy (source_blob);
+    source_blob.destroy ();
     return false;
   }
 
   bool needed = false;
   hb_serialize_context_t serializer (buf.arrayZ, buf.allocated);
   {
-    hb_subset_context_t c (source_blob, plan, &serializer, tag);
+    hb_subset_context_t c (source_blob.get_blob (), plan, &serializer, tag);
     needed = _try_subset (table, &buf, &c);
   }
-  hb_blob_destroy (source_blob);
+  source_blob.destroy ();
 
   if (serializer.in_error () && !serializer.only_offset_overflow ())
   {

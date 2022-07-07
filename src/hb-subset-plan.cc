@@ -164,7 +164,7 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 				  hb_map_t	     *features,
 				  script_langsys_map *langsys_map)
 {
-  hb_blob_ptr_t<T> table = hb_sanitize_context_t ().reference_table<T> (plan->source);
+  hb_blob_ptr_t<T> table = plan->source_table<T> ();
   hb_tag_t table_tag = table->tableTag;
   hb_set_t lookup_indices;
   _collect_layout_indices<T> (plan,
@@ -203,14 +203,14 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 
 #ifndef HB_NO_VAR
 static inline void
-  _collect_layout_variation_indices (hb_face_t *face,
-				     const hb_set_t *glyphset,
-				     const hb_map_t *gpos_lookups,
-				     hb_set_t  *layout_variation_indices,
-				     hb_map_t  *layout_variation_idx_map)
+_collect_layout_variation_indices (hb_subset_plan_t* plan,
+				   const hb_set_t *glyphset,
+				   const hb_map_t *gpos_lookups,
+				   hb_set_t  *layout_variation_indices,
+				   hb_map_t  *layout_variation_idx_map)
 {
-  hb_blob_ptr_t<OT::GDEF> gdef = hb_sanitize_context_t ().reference_table<OT::GDEF> (face);
-  hb_blob_ptr_t<GPOS> gpos = hb_sanitize_context_t ().reference_table<GPOS> (face);
+  hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
+  hb_blob_ptr_t<GPOS> gpos = plan->source_table<GPOS> ();
 
   if (!gdef->has_data ())
   {
@@ -221,7 +221,7 @@ static inline void
   OT::hb_collect_variation_indices_context_t c (layout_variation_indices, glyphset, gpos_lookups);
   gdef->collect_variation_indices (&c);
 
-  if (hb_ot_layout_has_positioning (face))
+  if (hb_ot_layout_has_positioning (plan->source))
     gpos->collect_variation_indices (&c);
 
   gdef->remap_layout_variation_indices (layout_variation_indices, layout_variation_idx_map);
@@ -271,10 +271,10 @@ static void _colr_closure (hb_face_t *face,
 }
 
 static inline void
-_math_closure (hb_face_t           *face,
-               hb_set_t            *glyphset)
+_math_closure (hb_subset_plan_t *plan,
+               hb_set_t         *glyphset)
 {
-  hb_blob_ptr_t<OT::MATH> math = hb_sanitize_context_t ().reference_table<OT::MATH> (face);
+  hb_blob_ptr_t<OT::MATH> math = plan->source_table<OT::MATH> ();
   if (math->has_data ())
     math->closure_glyphs (glyphset);
   math.destroy ();
@@ -418,7 +418,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   _remove_invalid_gids (plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
   hb_set_set (plan->_glyphset_mathed, plan->_glyphset_gsub);
-  _math_closure (plan->source, plan->_glyphset_mathed);
+  _math_closure (plan, plan->_glyphset_mathed);
   _remove_invalid_gids (plan->_glyphset_mathed, plan->source->get_num_glyphs ());
 
   hb_set_t cur_glyphset = *plan->_glyphset_mathed;
@@ -446,7 +446,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
 #ifndef HB_NO_VAR
   if (close_over_gdef)
-    _collect_layout_variation_indices (plan->source,
+    _collect_layout_variation_indices (plan,
 				       plan->_glyphset_gsub,
 				       plan->gpos_lookups,
 				       plan->layout_variation_indices,
@@ -583,6 +583,11 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->layout_variation_indices = hb_set_create ();
   plan->layout_variation_idx_map = hb_map_create ();
 
+
+  if ((plan->sanitized_table_cache = hb_object_create<hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>>> ())) {
+    plan->sanitized_table_cache->init_shallow ();
+  }
+
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
     return nullptr;
@@ -676,6 +681,12 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
     hb_object_destroy (plan->gpos_langsys);
     plan->gpos_langsys->fini_shallow ();
     hb_free (plan->gpos_langsys);
+  }
+
+  if (plan->sanitized_table_cache) {
+    hb_object_destroy (plan->sanitized_table_cache);
+    plan->sanitized_table_cache->fini ();
+    hb_free (plan->sanitized_table_cache);
   }
 
   hb_free (plan);
