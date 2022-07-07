@@ -434,7 +434,7 @@ target_include_directories(harfbuzz PUBLIC
                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
                            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/harfbuzz>")
 if (HB_HAVE_FREETYPE AND TARGET freetype)
-  target_link_libraries(harfbuzz PUBLIC freetype)
+  target_link_libraries(harfbuzz freetype)
 endif ()
 
 
