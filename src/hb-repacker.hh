@@ -172,7 +172,7 @@ hb_resolve_overflows (const T& packed,
       && will_overflow)
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
-    if (sorted_graph.assign_32bit_spaces ())
+    if (sorted_graph.assign_spaces ())
       sorted_graph.sort_shortest_distance ();
   }
 
