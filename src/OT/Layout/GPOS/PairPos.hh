@@ -13,7 +13,7 @@ struct PairPos
   protected:
   union {
   HBUINT16			format;         /* Format identifier */
-  PairPosFormat1		format1;
+  PairPosFormat1_3<SmallTypes>	format1;
   PairPosFormat2_4<SmallTypes>	format2;
 #ifndef HB_NO_BORING_EXPANSION
   PairPosFormat2_4<MediumTypes>	format4;

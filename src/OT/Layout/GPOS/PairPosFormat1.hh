@@ -8,8 +8,12 @@ namespace Layout {
 namespace GPOS_impl {
 
 
-struct PairPosFormat1
+template <typename Types>
+struct PairPosFormat1_3
 {
+  using PairSet = GPOS_impl::PairSet<Types>;
+  using PairValueRecord = GPOS_impl::PairValueRecord<Types>;
+
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
   Offset16To<Coverage>
@@ -35,7 +39,7 @@ struct PairPosFormat1
 
     unsigned int len1 = valueFormat[0].get_len ();
     unsigned int len2 = valueFormat[1].get_len ();
-    PairSet::sanitize_closure_t closure =
+    typename PairSet::sanitize_closure_t closure =
     {
       valueFormat,
       len1,
