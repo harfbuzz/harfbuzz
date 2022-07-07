@@ -16,7 +16,7 @@ struct PairPosFormat1_3
 
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  Offset16To<Coverage>
+  typename Types::template OffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of subtable */
   ValueFormat   valueFormat[2];         /* [0] Defines the types of data in
@@ -25,11 +25,11 @@ struct PairPosFormat1_3
                                         /* [1] Defines the types of data in
                                          * ValueRecord2--for the second glyph
                                          * in the pair--may be zero (0) */
-  Array16OfOffset16To<PairSet>
+  Array16Of<typename Types::template OffsetTo<PairSet>>
                 pairSet;                /* Array of PairSet tables
                                          * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_ARRAY (10, pairSet);
+  DEFINE_SIZE_ARRAY (8 + Types::size, pairSet);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -55,7 +55,7 @@ struct PairPosFormat1_3
     + hb_zip (this+coverage, pairSet)
     | hb_filter (*glyphs, hb_first)
     | hb_map (hb_second)
-    | hb_map ([glyphs, this] (const Offset16To<PairSet> &_)
+    | hb_map ([glyphs, this] (const typename Types::template OffsetTo<PairSet> &_)
               { return (this+_).intersects (glyphs, valueFormat); })
     | hb_any
     ;
@@ -131,7 +131,7 @@ struct PairPosFormat1_3
 
     + hb_zip (this+coverage, pairSet)
     | hb_filter (glyphset, hb_first)
-    | hb_filter ([this, c, out] (const Offset16To<PairSet>& _)
+    | hb_filter ([this, c, out] (const typename Types::template OffsetTo<PairSet>& _)
                  {
                    auto snap = c->serializer->snapshot ();
                    auto *o = out->pairSet.serialize_append (c->serializer);
@@ -164,7 +164,7 @@ struct PairPosFormat1_3
 
     unsigned format1 = 0;
     unsigned format2 = 0;
-    for (const Offset16To<PairSet>& _ :
+    for (const auto & _ :
              + hb_zip (this+coverage, pairSet) | hb_filter (glyphset, hb_first) | hb_map (hb_second))
     {
       const PairSet& set = (this + _);
