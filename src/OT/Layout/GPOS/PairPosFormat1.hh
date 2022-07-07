@@ -45,7 +45,6 @@ struct PairPosFormat1
     return_trace (coverage.sanitize (c, this) && pairSet.sanitize (c, this, &closure));
   }
 
-
   bool intersects (const hb_set_t *glyphs) const
   {
     return

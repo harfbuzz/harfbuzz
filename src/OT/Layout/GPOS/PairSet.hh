@@ -12,6 +12,36 @@ struct PairSet
 {
   friend struct PairPosFormat1;
 
+  protected:
+  HBUINT16              len;    /* Number of PairValueRecords */
+  PairValueRecord       firstPairValueRecord;
+                                /* Array of PairValueRecords--ordered
+                                 * by GlyphID of the second glyph */
+  public:
+  DEFINE_SIZE_MIN (2);
+
+  struct sanitize_closure_t
+  {
+    const ValueFormat *valueFormats;
+    unsigned int len1; /* valueFormats[0].get_len() */
+    unsigned int stride; /* 1 + len1 + len2 */
+  };
+
+  bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) const
+  {
+    TRACE_SANITIZE (this);
+    if (!(c->check_struct (this)
+       && c->check_range (&firstPairValueRecord,
+                          len,
+                          HBUINT16::static_size,
+                          closure->stride))) return_trace (false);
+
+    unsigned int count = len;
+    const PairValueRecord *record = &firstPairValueRecord;
+    return_trace (closure->valueFormats[0].sanitize_values_stride_unsafe (c, this, &record->values[0], count, closure->stride) &&
+                  closure->valueFormats[1].sanitize_values_stride_unsafe (c, this, &record->values[closure->len1], count, closure->stride));
+  }
+
   bool intersects (const hb_set_t *glyphs,
                    const ValueFormat *valueFormats) const
   {
@@ -129,36 +159,6 @@ struct PairSet
     if (!num) c->serializer->revert (snap);
     return_trace (num);
   }
-
-  struct sanitize_closure_t
-  {
-    const ValueFormat *valueFormats;
-    unsigned int len1; /* valueFormats[0].get_len() */
-    unsigned int stride; /* 1 + len1 + len2 */
-  };
-
-  bool sanitize (hb_sanitize_context_t *c, const sanitize_closure_t *closure) const
-  {
-    TRACE_SANITIZE (this);
-    if (!(c->check_struct (this)
-       && c->check_range (&firstPairValueRecord,
-                          len,
-                          HBUINT16::static_size,
-                          closure->stride))) return_trace (false);
-
-    unsigned int count = len;
-    const PairValueRecord *record = &firstPairValueRecord;
-    return_trace (closure->valueFormats[0].sanitize_values_stride_unsafe (c, this, &record->values[0], count, closure->stride) &&
-                  closure->valueFormats[1].sanitize_values_stride_unsafe (c, this, &record->values[closure->len1], count, closure->stride));
-  }
-
-  protected:
-  HBUINT16              len;    /* Number of PairValueRecords */
-  PairValueRecord       firstPairValueRecord;
-                                /* Array of PairValueRecords--ordered
-                                 * by GlyphID of the second glyph */
-  public:
-  DEFINE_SIZE_MIN (2);
 };
 
 
