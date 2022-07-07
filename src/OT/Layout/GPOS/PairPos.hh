@@ -12,9 +12,12 @@ struct PairPos
 {
   protected:
   union {
-  HBUINT16              format;         /* Format identifier */
-  PairPosFormat1        format1;
-  PairPosFormat2        format2;
+  HBUINT16			format;         /* Format identifier */
+  PairPosFormat1		format1;
+  PairPosFormat2_4<SmallTypes>	format2;
+#ifndef HB_NO_BORING_EXPANSION
+  PairPosFormat2_4<MediumTypes>	format4;
+#endif
   } u;
 
   public:
@@ -26,6 +29,9 @@ struct PairPos
     switch (u.format) {
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+#ifndef HB_NO_BORING_EXPANSION
+    case 4: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
+#endif
     default:return_trace (c->default_return_value ());
     }
   }
