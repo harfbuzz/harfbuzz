@@ -166,4 +166,4 @@ struct PairSet
 }
 }
 
-#endif  // OT_LAYOUT_GPOS_SET_HH
+#endif  // OT_LAYOUT_GPOS_PAIRSET_HH
