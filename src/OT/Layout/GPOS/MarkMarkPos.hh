@@ -11,8 +11,8 @@ struct MarkMarkPos
 {
   protected:
   union {
-  HBUINT16              format;         /* Format identifier */
-  MarkMarkPosFormat1    format1;
+  HBUINT16				format;         /* Format identifier */
+  MarkMarkPosFormat1_2<SmallTypes>	format1;
   } u;
 
   public:

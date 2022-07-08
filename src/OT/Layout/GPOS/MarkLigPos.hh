@@ -11,8 +11,8 @@ struct MarkLigPos
 {
   protected:
   union {
-  HBUINT16              format;         /* Format identifier */
-  MarkLigPosFormat1     format1;
+  HBUINT16				format;         /* Format identifier */
+  MarkLigPosFormat1_2<SmallTypes>	format1;
   } u;
 
   public:
