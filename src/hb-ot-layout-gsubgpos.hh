@@ -2181,7 +2181,8 @@ struct ContextFormat1
 };
 
 
-struct ContextFormat2
+template <typename Types>
+struct ContextFormat2_5
 {
   bool intersects (const hb_set_t *glyphs) const
   {
@@ -2239,7 +2240,7 @@ struct ContextFormat2
     | hb_filter ([&] (unsigned _)
     { return class_def.intersects_class (&c->parent_active_glyphs (), _); },
 		 hb_first)
-    | hb_apply ([&] (const hb_pair_t<unsigned, const Offset16To<RuleSet>&> _)
+    | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<RuleSet>&> _)
                 {
                   const RuleSet& rule_set = this+_.second;
                   rule_set.closure (c, _.first, lookup_context);
@@ -2415,17 +2416,17 @@ struct ContextFormat2
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  Offset16To<Coverage>
+  typename Types::template OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  Offset16To<ClassDef>
+  typename Types::template OffsetTo<ClassDef>
 		classDef;		/* Offset to glyph ClassDef table--from
 					 * beginning of table */
-  Array16OfOffset16To<RuleSet>
+  Array16Of<typename Types::template OffsetTo<RuleSet>>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_ARRAY (8, ruleSet);
+  DEFINE_SIZE_ARRAY (4 + 2 * Types::size, ruleSet);
 };
 
 
@@ -2600,10 +2601,10 @@ struct Context
 
   protected:
   union {
-  HBUINT16		format;		/* Format identifier */
-  ContextFormat1	format1;
-  ContextFormat2	format2;
-  ContextFormat3	format3;
+  HBUINT16			format;		/* Format identifier */
+  ContextFormat1		format1;
+  ContextFormat2_5<SmallTypes>	format2;
+  ContextFormat3		format3;
   } u;
 };
 
@@ -3217,7 +3218,8 @@ struct ChainContextFormat1
   DEFINE_SIZE_ARRAY (6, ruleSet);
 };
 
-struct ChainContextFormat2
+template <typename Types>
+struct ChainContextFormat2_5
 {
   bool intersects (const hb_set_t *glyphs) const
   {
@@ -3283,7 +3285,7 @@ struct ChainContextFormat2
     | hb_filter ([&] (unsigned _)
     { return input_class_def.intersects_class (&c->parent_active_glyphs (), _); },
 		 hb_first)
-    | hb_apply ([&] (const hb_pair_t<unsigned, const Offset16To<ChainRuleSet>&> _)
+    | hb_apply ([&] (const hb_pair_t<unsigned, const typename Types::template OffsetTo<ChainRuleSet>&> _)
                 {
                   const ChainRuleSet& chainrule_set = this+_.second;
                   chainrule_set.closure (c, _.first, lookup_context);
@@ -3399,7 +3401,7 @@ struct ChainContextFormat2
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
-    /* For ChainContextFormat2 we cache the LookaheadClassDef instead of InputClassDef.
+    /* For ChainContextFormat2_5 we cache the LookaheadClassDef instead of InputClassDef.
      * The reason is that most heavy fonts want to identify a glyph in context and apply
      * a lookup to it. In this scenario, the length of the input sequence is one, whereas
      * the lookahead / backtrack are typically longer.  The one glyph in input sequence is
@@ -3502,26 +3504,26 @@ struct ChainContextFormat2
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 2 */
-  Offset16To<Coverage>
+  typename Types::template OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  Offset16To<ClassDef>
+  typename Types::template OffsetTo<ClassDef>
 		backtrackClassDef;	/* Offset to glyph ClassDef table
 					 * containing backtrack sequence
 					 * data--from beginning of table */
-  Offset16To<ClassDef>
+  typename Types::template OffsetTo<ClassDef>
 		inputClassDef;		/* Offset to glyph ClassDef
 					 * table containing input sequence
 					 * data--from beginning of table */
-  Offset16To<ClassDef>
+  typename Types::template OffsetTo<ClassDef>
 		lookaheadClassDef;	/* Offset to glyph ClassDef table
 					 * containing lookahead sequence
 					 * data--from beginning of table */
-  Array16OfOffset16To<ChainRuleSet>
+  Array16Of<typename Types::template OffsetTo<ChainRuleSet>>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by class */
   public:
-  DEFINE_SIZE_ARRAY (12, ruleSet);
+  DEFINE_SIZE_ARRAY (4 + 4 * Types::size, ruleSet);
 };
 
 struct ChainContextFormat3
@@ -3754,10 +3756,10 @@ struct ChainContext
 
   protected:
   union {
-  HBUINT16		format;	/* Format identifier */
-  ChainContextFormat1	format1;
-  ChainContextFormat2	format2;
-  ChainContextFormat3	format3;
+  HBUINT16				format;	/* Format identifier */
+  ChainContextFormat1			format1;
+  ChainContextFormat2_5<SmallTypes>	format2;
+  ChainContextFormat3			format3;
   } u;
 };
 
