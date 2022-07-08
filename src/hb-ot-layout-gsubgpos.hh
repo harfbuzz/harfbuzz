@@ -2609,6 +2609,7 @@ struct Context
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
 #ifndef HB_NO_BORING_EXPANSION
+    case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
     case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
 #endif
     default:return_trace (c->default_return_value ());
@@ -2622,6 +2623,7 @@ struct Context
   ContextFormat2_5<SmallTypes>	format2;
   ContextFormat3		format3;
 #ifndef HB_NO_BORING_EXPANSION
+  ContextFormat1_4<MediumTypes>	format4;
   ContextFormat2_5<MediumTypes>	format5;
 #endif
   } u;
@@ -3781,6 +3783,7 @@ struct ChainContext
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
 #ifndef HB_NO_BORING_EXPANSION
+    case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
     case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
 #endif
     default:return_trace (c->default_return_value ());
@@ -3794,6 +3797,7 @@ struct ChainContext
   ChainContextFormat2_5<SmallTypes>	format2;
   ChainContextFormat3			format3;
 #ifndef HB_NO_BORING_EXPANSION
+  ChainContextFormat1_4<MediumTypes>	format4;
   ChainContextFormat2_5<MediumTypes>	format5;
 #endif
   } u;
