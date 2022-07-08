@@ -113,6 +113,7 @@ hb_base_sources = files(
   'OT/Layout/GPOS/CursivePos.hh',
   'OT/Layout/GPOS/ExtensionPos.hh',
   'OT/Layout/GPOS/GPOS.hh',
+  'OT/Layout/GPOS/LigatureArray.hh',
   'OT/Layout/GPOS/MarkArray.hh',
   'OT/Layout/GPOS/MarkBasePosFormat1.hh',
   'OT/Layout/GPOS/MarkBasePos.hh',
