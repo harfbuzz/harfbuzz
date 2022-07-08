@@ -1047,13 +1047,14 @@ static inline void intersected_coverage_glyphs (const hb_set_t *glyphs, const vo
 }
 
 
+template <typename HBUINT>
 static inline bool array_is_subset_of (const hb_set_t *glyphs,
 				       unsigned int count,
-				       const HBUINT16 values[],
+				       const HBUINT values[],
 				       intersects_func_t intersects_func,
 				       const void *intersects_data)
 {
-  for (const HBUINT16 &_ : + hb_iter (values, count))
+  for (const auto &_ : + hb_iter (values, count))
     if (!intersects_func (glyphs, _, intersects_data)) return false;
   return true;
 }
@@ -1074,16 +1075,17 @@ static inline void collect_coverage (hb_set_t *glyphs, unsigned value, const voi
   coverage = value;
   (data+coverage).collect_coverage (glyphs);
 }
+template <typename HBUINT>
 static inline void collect_array (hb_collect_glyphs_context_t *c HB_UNUSED,
 				  hb_set_t *glyphs,
 				  unsigned int count,
-				  const HBUINT16 values[],
+				  const HBUINT values[],
 				  collect_glyphs_func_t collect_func,
 				  const void *collect_data)
 {
   return
   + hb_iter (values, count)
-  | hb_apply ([&] (const HBUINT16 &_) { collect_func (glyphs, _, collect_data); })
+  | hb_apply ([&] (const HBUINT &_) { collect_func (glyphs, _, collect_data); })
   ;
 }
 
@@ -1792,6 +1794,7 @@ static inline bool context_apply_lookup (hb_ot_apply_context_t *c,
   }
 }
 
+template <typename Types>
 struct Rule
 {
   bool intersects (const hb_set_t *glyphs, ContextClosureLookupContext &lookup_context) const
@@ -1864,7 +1867,7 @@ struct Rule
     if (unlikely (!c->extend_min (out))) return_trace (false);
 
     out->inputCount = inputCount;
-    const hb_array_t<const HBUINT16> input = inputZ.as_array (inputCount - 1);
+    const auto input = inputZ.as_array (inputCount - 1);
     for (const auto org : input)
     {
       HBUINT16 d;
@@ -1885,7 +1888,7 @@ struct Rule
   {
     TRACE_SUBSET (this);
     if (unlikely (!inputCount)) return_trace (false);
-    const hb_array_t<const HBUINT16> input = inputZ.as_array (inputCount - 1);
+    const auto input = inputZ.as_array (inputCount - 1);
 
     const hb_map_t *mapping = klass_map == nullptr ? c->plan->glyph_map : klass_map;
     if (!hb_all (input, mapping)) return_trace (false);
@@ -1908,7 +1911,7 @@ struct Rule
 					 * glyph sequence--includes the first
 					 * glyph */
   HBUINT16	lookupCount;		/* Number of LookupRecords */
-  UnsizedArrayOf<HBUINT16>
+  UnsizedArrayOf<typename Types::HBUINT>
 		inputZ;			/* Array of match inputs--start with
 					 * second glyph */
 /*UnsizedArrayOf<LookupRecord>
@@ -1918,8 +1921,11 @@ struct Rule
   DEFINE_SIZE_ARRAY (4, inputZ);
 };
 
+template <typename Types>
 struct RuleSet
 {
+  using Rule = OT::Rule<Types>;
+
   bool intersects (const hb_set_t *glyphs,
 		   ContextClosureLookupContext &lookup_context) const
   {
@@ -2032,8 +2038,11 @@ struct RuleSet
 };
 
 
-struct ContextFormat1
+template <typename Types>
+struct ContextFormat1_4
 {
+  using RuleSet = OT::RuleSet<Types>;
+
   bool intersects (const hb_set_t *glyphs) const
   {
     struct ContextClosureLookupContext lookup_context = {
@@ -2170,20 +2179,22 @@ struct ContextFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  Offset16To<Coverage>
+  typename Types::template OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  Array16OfOffset16To<RuleSet>
+  Array16Of<typename Types::template OffsetTo<RuleSet>>
 		ruleSet;		/* Array of RuleSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_ARRAY (6, ruleSet);
+  DEFINE_SIZE_ARRAY (2 + 2 * Types::size, ruleSet);
 };
 
 
 template <typename Types>
 struct ContextFormat2_5
 {
+  using RuleSet = OT::RuleSet<SmallTypes>;
+
   bool intersects (const hb_set_t *glyphs) const
   {
     if (!(this+coverage).intersects (glyphs))
@@ -2432,6 +2443,8 @@ struct ContextFormat2_5
 
 struct ContextFormat3
 {
+  using RuleSet = OT::RuleSet<SmallTypes>;
+
   bool intersects (const hb_set_t *glyphs) const
   {
     if (!(this+coverageZ[0]).intersects (glyphs))
@@ -2605,7 +2618,7 @@ struct Context
   protected:
   union {
   HBUINT16			format;		/* Format identifier */
-  ContextFormat1		format1;
+  ContextFormat1_4<SmallTypes>	format1;
   ContextFormat2_5<SmallTypes>	format2;
   ContextFormat3		format3;
 #ifndef HB_NO_BORING_EXPANSION
@@ -2773,6 +2786,7 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
   return true;
 }
 
+template <typename Types>
 struct ChainRule
 {
   bool intersects (const hb_set_t *glyphs, ChainContextClosureLookupContext &lookup_context) const
@@ -2946,14 +2960,14 @@ struct ChainRule
   }
 
   protected:
-  Array16Of<HBUINT16>
+  Array16Of<typename Types::HBUINT>
 		backtrack;		/* Array of backtracking values
 					 * (to be matched before the input
 					 * sequence) */
-  HeadlessArrayOf<HBUINT16>
+  HeadlessArrayOf<typename Types::HBUINT>
 		inputX;			/* Array of input values (start with
 					 * second glyph) */
-  Array16Of<HBUINT16>
+  Array16Of<typename Types::HBUINT>
 		lookaheadX;		/* Array of lookahead values's (to be
 					 * matched after the input sequence) */
   Array16Of<LookupRecord>
@@ -2963,8 +2977,11 @@ struct ChainRule
   DEFINE_SIZE_MIN (8);
 };
 
+template <typename Types>
 struct ChainRuleSet
 {
+  using ChainRule = OT::ChainRule<Types>;
+
   bool intersects (const hb_set_t *glyphs, ChainContextClosureLookupContext &lookup_context) const
   {
     return
@@ -3077,8 +3094,11 @@ struct ChainRuleSet
   DEFINE_SIZE_ARRAY (2, rule);
 };
 
-struct ChainContextFormat1
+template <typename Types>
+struct ChainContextFormat1_4
 {
+  using ChainRuleSet = OT::ChainRuleSet<Types>;
+
   bool intersects (const hb_set_t *glyphs) const
   {
     struct ChainContextClosureLookupContext lookup_context = {
@@ -3214,19 +3234,21 @@ struct ChainContextFormat1
 
   protected:
   HBUINT16	format;			/* Format identifier--format = 1 */
-  Offset16To<Coverage>
+  typename Types::template OffsetTo<Coverage>
 		coverage;		/* Offset to Coverage table--from
 					 * beginning of table */
-  Array16OfOffset16To<ChainRuleSet>
+  Array16Of<typename Types::template OffsetTo<ChainRuleSet>>
 		ruleSet;		/* Array of ChainRuleSet tables
 					 * ordered by Coverage Index */
   public:
-  DEFINE_SIZE_ARRAY (6, ruleSet);
+  DEFINE_SIZE_ARRAY (2 + 2 * Types::size, ruleSet);
 };
 
 template <typename Types>
 struct ChainContextFormat2_5
 {
+  using ChainRuleSet = OT::ChainRuleSet<SmallTypes>;
+
   bool intersects (const hb_set_t *glyphs) const
   {
     if (!(this+coverage).intersects (glyphs))
@@ -3534,6 +3556,8 @@ struct ChainContextFormat2_5
 
 struct ChainContextFormat3
 {
+  using RuleSet = OT::RuleSet<SmallTypes>;
+
   bool intersects (const hb_set_t *glyphs) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -3766,7 +3790,7 @@ struct ChainContext
   protected:
   union {
   HBUINT16				format;	/* Format identifier */
-  ChainContextFormat1			format1;
+  ChainContextFormat1_4<SmallTypes>	format1;
   ChainContextFormat2_5<SmallTypes>	format2;
   ChainContextFormat3			format3;
 #ifndef HB_NO_BORING_EXPANSION
