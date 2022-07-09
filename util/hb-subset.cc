@@ -800,22 +800,22 @@ subset_main_t::add_options ()
 
   GOptionEntry other_entries[] =
   {
-    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids. Use --name-IDs-=... to substract from the current set.", "list of int numbers or *"},
+    {"name-IDs",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids. Use --name-IDs-=... to subtract from the current set.", "list of int numbers or *"},
     {"name-IDs-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers or *"},
     {"name-IDs+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_nameids,		"Subset specified nameids", "list of int numbers or *"},
-    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs. Use --name-languages-=... to substract from the current set.", "list of int numbers or *"},
+    {"name-languages",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs. Use --name-languages-=... to subtract from the current set.", "list of int numbers or *"},
     {"name-languages-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers or *"},
     {"name-languages+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_name_languages,	"Subset nameRecords with specified language IDs", "list of int numbers or *"},
 
-    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved. Use --layout-features-=... to substract from the current set.", "list of string table tags or *"},
+    {"layout-features",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved. Use --layout-features-=... to subtract from the current set.", "list of string table tags or *"},
     {"layout-features+",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string tags or *"},
     {"layout-features-",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_features,	"Specify set of layout feature tags that will be preserved", "list of string tags or *"},
 
-    {"layout-scripts",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_scripts,	"Specify set of layout script tags that will be preserved. Use --layout-scripts-=... to substract from the current set.", "list of string table tags or *"},
+    {"layout-scripts",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_scripts,	"Specify set of layout script tags that will be preserved. Use --layout-scripts-=... to subtract from the current set.", "list of string table tags or *"},
     {"layout-scripts+",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_scripts,	"Specify set of layout script tags that will be preserved", "list of string tags or *"},
     {"layout-scripts-",0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_layout_scripts,	"Specify set of layout script tags that will be preserved", "list of string tags or *"},
 
-    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables. Use --drop-tables-=... to substract from the current set.", "list of string table tags or *"},
+    {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables. Use --drop-tables-=... to subtract from the current set.", "list of string table tags or *"},
     {"drop-tables+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
     {"drop-tables-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
     {nullptr}
