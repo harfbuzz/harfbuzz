@@ -4123,68 +4123,6 @@ struct GSUBGPOS
     return_trace (true);
   }
 
-  void find_duplicate_features (const hb_map_t *lookup_indices,
-                                const hb_set_t *feature_indices,
-                                hb_map_t *duplicate_feature_map /* OUT */) const
-  {
-    if (feature_indices->is_empty ()) return;
-    hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_set_t>> unique_features;
-    //find out duplicate features after subset
-    for (unsigned i : feature_indices->iter ())
-    {
-      hb_tag_t t = get_feature_tag (i);
-      if (t == HB_MAP_VALUE_INVALID) continue;
-      if (!unique_features.has (t))
-      {
-        if (unlikely (!unique_features.set (t, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
-          return;
-        if (unique_features.has (t))
-          unique_features.get (t)->add (i);
-        duplicate_feature_map->set (i, i);
-        continue;
-      }
-
-      bool found = false;
-
-      hb_set_t* same_tag_features = unique_features.get (t);
-      for (unsigned other_f_index : same_tag_features->iter ())
-      {
-        const Feature& f = get_feature (i);
-        const Feature& other_f = get_feature (other_f_index);
-
-        auto f_iter =
-        + hb_iter (f.lookupIndex)
-        | hb_filter (lookup_indices)
-        ;
-
-        auto other_f_iter =
-        + hb_iter (other_f.lookupIndex)
-        | hb_filter (lookup_indices)
-        ;
-
-        bool is_equal = true;
-        for (; f_iter && other_f_iter; f_iter++, other_f_iter++)
-        {
-          unsigned a = *f_iter;
-          unsigned b = *other_f_iter;
-          if (a != b) { is_equal = false; break; }
-        }
-
-        if (is_equal == false || f_iter || other_f_iter) continue;
-
-        found = true;
-        duplicate_feature_map->set (i, other_f_index);
-        break;
-      }
-
-      if (found == false)
-      {
-        same_tag_features->add (i);
-        duplicate_feature_map->set (i, i);
-      }
-    }
-  }
-
   void prune_features (const hb_map_t *lookup_indices, /* IN */
 		       hb_set_t       *feature_indices /* IN/OUT */) const
   {
