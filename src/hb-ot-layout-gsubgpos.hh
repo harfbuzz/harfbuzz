@@ -4015,10 +4015,8 @@ struct GSUBGPOSVersion1_2
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    typedef List16OfOffset16To<TLookup> TLookupList;
-    if (unlikely (!(version.sanitize (c) &&
-		    likely (version.major == 1) &&
-		    scriptList.sanitize (c, this) &&
+    typedef List16OfOffsetTo<TLookup, typename Types::HBUINT> TLookupList;
+    if (unlikely (!(scriptList.sanitize (c, this) &&
 		    featureList.sanitize (c, this) &&
 		    reinterpret_cast<const typename Types::template OffsetTo<TLookupList> &> (lookupList).sanitize (c, this))))
       return_trace (false);
@@ -4060,7 +4058,7 @@ struct GSUBGPOSVersion1_2
     if (version.to_int () >= 0x00010001u)
     {
       bool ret = out->featureVars.serialize_subset (c->subset_context, featureVars, this, c);
-      if (!ret)
+      if (!ret && version.major == 1)
       {
 	out->version.major = 1;
 	out->version.minor = 0;
@@ -4079,6 +4077,9 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return u.version1.get_size ();
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return u.version2.get_size ();
+#endif
     default: return u.version.static_size;
     }
   }
@@ -4090,6 +4091,9 @@ struct GSUBGPOS
     if (unlikely (!u.version.sanitize (c))) return_trace (false);
     switch (u.version.major) {
     case 1: return_trace (u.version1.sanitize<TLookup> (c));
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return_trace (u.version2.sanitize<TLookup> (c));
+#endif
     default: return_trace (true);
     }
   }
@@ -4099,6 +4103,9 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return u.version1.subset<TLookup> (c);
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return u.version2.subset<TLookup> (c);
+#endif
     default: return false;
     }
   }
@@ -4107,6 +4114,9 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return this+u.version1.scriptList;
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return this+u.version2.scriptList;
+#endif
     default: return Null (ScriptList);
     }
   }
@@ -4114,6 +4124,9 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return this+u.version1.featureList;
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return this+u.version2.featureList;
+#endif
     default: return Null (FeatureList);
     }
   }
@@ -4121,6 +4134,9 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return (this+u.version1.lookupList).len;
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return (this+u.version2.lookupList).len;
+#endif
     default: return 0;
     }
   }
@@ -4128,6 +4144,9 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return (this+u.version1.lookupList)[i];
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return (this+u.version2.lookupList)[i];
+#endif
     default: return Null (Lookup);
     }
   }
@@ -4135,6 +4154,9 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return (u.version.to_int () >= 0x00010001u ? this+u.version1.featureVars : Null (FeatureVariations));
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return this+u.version2.featureVars;
+#endif
     default: return Null (FeatureVariations);
     }
   }
@@ -4313,6 +4335,9 @@ struct GSUBGPOS
   union {
   FixedVersion<>			version;	/* Version identifier */
   GSUBGPOSVersion1_2<SmallTypes>	version1;
+#ifndef HB_NO_BORING_EXPANSION
+  GSUBGPOSVersion1_2<MediumTypes>	version2;
+#endif
   } u;
   public:
   DEFINE_SIZE_MIN (4);
