@@ -44,7 +44,10 @@ struct GPOS : GSUBGPOS
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
-  { return GSUBGPOS::sanitize<PosLookup> (c); }
+  {
+    TRACE_SANITIZE (this);
+    return_trace (GSUBGPOS::sanitize<PosLookup> (c));
+  }
 
   HB_INTERNAL bool is_blocklisted (hb_blob_t *blob,
                                    hb_face_t *face) const;
