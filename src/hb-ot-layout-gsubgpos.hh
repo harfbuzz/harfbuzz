@@ -3983,18 +3983,19 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
 };
 
-struct GSUBGPOSVersion1
+template <typename Types>
+struct GSUBGPOSVersion1_2
 {
   friend struct GSUBGPOS;
 
   protected:
   FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
 				 * to 0x00010000u */
-  Offset16To<ScriptList>
+  typename Types:: template OffsetTo<ScriptList>
 		scriptList;	/* ScriptList table */
-  Offset16To<FeatureList>
+  typename Types::template OffsetTo<FeatureList>
 		featureList;	/* FeatureList table */
-  Offset16To<LookupList>
+  typename Types::template OffsetTo<LookupList<Types>>
 		lookupList;	/* LookupList table */
   Offset32To<FeatureVariations>
 		featureVars;	/* Offset to Feature Variations
@@ -4002,7 +4003,7 @@ struct GSUBGPOSVersion1
 				 * (may be NULL).  Introduced
 				 * in version 0x00010001. */
   public:
-  DEFINE_SIZE_MIN (10);
+  DEFINE_SIZE_MIN (4 + 3 * Types::size);
 
   unsigned int get_size () const
   {
@@ -4310,8 +4311,8 @@ struct GSUBGPOS
 
   protected:
   union {
-  FixedVersion<>	version;	/* Version identifier */
-  GSUBGPOSVersion1	version1;
+  FixedVersion<>			version;	/* Version identifier */
+  GSUBGPOSVersion1_2<SmallTypes>	version1;
   } u;
   public:
   DEFINE_SIZE_MIN (4);

@@ -1404,7 +1404,8 @@ struct Lookup
   DEFINE_SIZE_ARRAY (6, subTable);
 };
 
-typedef List16OfOffset16To<Lookup> LookupList;
+template <typename Types>
+using LookupList = List16OfOffsetTo<Lookup, typename Types::HBUINT>;
 
 template <typename TLookup>
 struct LookupOffsetList : List16OfOffset16To<TLookup>
