@@ -557,9 +557,9 @@ struct RangeRecord
 
   typename Types::HBGlyphID	first;		/* First GlyphID in the range */
   typename Types::HBGlyphID	last;		/* Last GlyphID in the range */
-  typename Types::HBUINT	value;		/* Value */
+  HBUINT16			value;		/* Value */
   public:
-  DEFINE_SIZE_STATIC (3 * Types::size);
+  DEFINE_SIZE_STATIC (2 + 2 * Types::size);
 };
 DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (OT, RangeRecord, 9);
 
