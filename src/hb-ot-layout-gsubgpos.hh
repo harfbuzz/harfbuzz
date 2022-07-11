@@ -3983,104 +3983,51 @@ struct hb_ot_layout_lookup_accelerator_t
 #endif
 };
 
-struct GSUBGPOS
+struct GSUBGPOSVersion1
 {
-  bool has_data () const { return version.to_int (); }
-  unsigned int get_script_count () const
-  { return (this+scriptList).len; }
-  const Tag& get_script_tag (unsigned int i) const
-  { return (this+scriptList).get_tag (i); }
-  unsigned int get_script_tags (unsigned int start_offset,
-				unsigned int *script_count /* IN/OUT */,
-				hb_tag_t     *script_tags /* OUT */) const
-  { return (this+scriptList).get_tags (start_offset, script_count, script_tags); }
-  const Script& get_script (unsigned int i) const
-  { return (this+scriptList)[i]; }
-  bool find_script_index (hb_tag_t tag, unsigned int *index) const
-  { return (this+scriptList).find_index (tag, index); }
+  friend struct GSUBGPOS;
 
-  unsigned int get_feature_count () const
-  { return (this+featureList).len; }
-  hb_tag_t get_feature_tag (unsigned int i) const
-  { return i == Index::NOT_FOUND_INDEX ? HB_TAG_NONE : (this+featureList).get_tag (i); }
-  unsigned int get_feature_tags (unsigned int start_offset,
-				 unsigned int *feature_count /* IN/OUT */,
-				 hb_tag_t     *feature_tags /* OUT */) const
-  { return (this+featureList).get_tags (start_offset, feature_count, feature_tags); }
-  const Feature& get_feature (unsigned int i) const
-  { return (this+featureList)[i]; }
-  bool find_feature_index (hb_tag_t tag, unsigned int *index) const
-  { return (this+featureList).find_index (tag, index); }
+  protected:
+  FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
+				 * to 0x00010000u */
+  Offset16To<ScriptList>
+		scriptList;	/* ScriptList table */
+  Offset16To<FeatureList>
+		featureList;	/* FeatureList table */
+  Offset16To<LookupList>
+		lookupList;	/* LookupList table */
+  Offset32To<FeatureVariations>
+		featureVars;	/* Offset to Feature Variations
+				   table--from beginning of table
+				 * (may be NULL).  Introduced
+				 * in version 0x00010001. */
+  public:
+  DEFINE_SIZE_MIN (10);
 
-  unsigned int get_lookup_count () const
-  { return (this+lookupList).len; }
-  const Lookup& get_lookup (unsigned int i) const
-  { return (this+lookupList)[i]; }
-
-  bool find_variations_index (const int *coords, unsigned int num_coords,
-			      unsigned int *index) const
+  unsigned int get_size () const
   {
-#ifdef HB_NO_VAR
-    *index = FeatureVariations::NOT_FOUND_INDEX;
-    return false;
-#endif
-    return (version.to_int () >= 0x00010001u ? this+featureVars : Null (FeatureVariations))
-	    .find_index (coords, num_coords, index);
-  }
-  const Feature& get_feature_variation (unsigned int feature_index,
-					unsigned int variations_index) const
-  {
-#ifndef HB_NO_VAR
-    if (FeatureVariations::NOT_FOUND_INDEX != variations_index &&
-	version.to_int () >= 0x00010001u)
-    {
-      const Feature *feature = (this+featureVars).find_substitute (variations_index,
-								   feature_index);
-      if (feature)
-	return *feature;
-    }
-#endif
-    return get_feature (feature_index);
-  }
-
-  void feature_variation_collect_lookups (const hb_set_t *feature_indexes,
-					  hb_set_t       *lookup_indexes /* OUT */) const
-  {
-#ifndef HB_NO_VAR
-    if (version.to_int () >= 0x00010001u)
-      (this+featureVars).collect_lookups (feature_indexes, lookup_indexes);
-#endif
+    return min_size +
+	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0);
   }
 
   template <typename TLookup>
-  void closure_lookups (hb_face_t      *face,
-			const hb_set_t *glyphs,
-			hb_set_t       *lookup_indexes /* IN/OUT */) const
+  bool sanitize (hb_sanitize_context_t *c) const
   {
-    hb_set_t visited_lookups, inactive_lookups;
-    OT::hb_closure_lookups_context_t c (face, glyphs, &visited_lookups, &inactive_lookups);
+    TRACE_SANITIZE (this);
+    typedef List16OfOffset16To<TLookup> TLookupList;
+    if (unlikely (!(version.sanitize (c) &&
+		    likely (version.major == 1) &&
+		    scriptList.sanitize (c, this) &&
+		    featureList.sanitize (c, this) &&
+		    reinterpret_cast<const Offset16To<TLookupList> &> (lookupList).sanitize (c, this))))
+      return_trace (false);
 
-    c.set_recurse_func (TLookup::template dispatch_recurse_func<hb_closure_lookups_context_t>);
+#ifndef HB_NO_VAR
+    if (unlikely (!(version.to_int () < 0x00010001u || featureVars.sanitize (c, this))))
+      return_trace (false);
+#endif
 
-    for (unsigned lookup_index : + hb_iter (lookup_indexes))
-      reinterpret_cast<const TLookup &> (get_lookup (lookup_index)).closure_lookups (&c, lookup_index);
-
-    hb_set_union (lookup_indexes, &visited_lookups);
-    hb_set_subtract (lookup_indexes, &inactive_lookups);
-  }
-
-  void prune_langsys (const hb_map_t *duplicate_feature_map,
-                      hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map,
-                      hb_set_t       *new_feature_indexes /* OUT */) const
-  {
-    hb_prune_langsys_context_t c (this, script_langsys_map, duplicate_feature_map, new_feature_indexes);
-
-    unsigned count = get_script_count ();
-    for (unsigned script_index = 0; script_index < count; script_index++)
-    {
-      const Script& s = get_script (script_index);
-      s.prune_langsys (&c, script_index);
-    }
+    return_trace (true);
   }
 
   template <typename TLookup>
@@ -4123,6 +4070,165 @@ struct GSUBGPOS
     return_trace (true);
   }
 
+};
+
+struct GSUBGPOS
+{
+  unsigned int get_size () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version1.get_size ();
+    default: return u.version.static_size;
+    }
+  }
+
+  template <typename TLookup>
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!u.version.sanitize (c))) return_trace (false);
+    switch (u.version.major) {
+    case 1: return_trace (u.version1.sanitize<TLookup> (c));
+    default: return_trace (true);
+    }
+  }
+
+  template <typename TLookup>
+  bool subset (hb_subset_layout_context_t *c) const
+  {
+    switch (u.version.major) {
+    case 1: return u.version1.subset<TLookup> (c);
+    default: return false;
+    }
+  }
+
+  const ScriptList &get_script_list () const
+  {
+    switch (u.version.major) {
+    case 1: return this+u.version1.scriptList;
+    default: return Null (ScriptList);
+    }
+  }
+  const FeatureList &get_feature_list () const
+  {
+    switch (u.version.major) {
+    case 1: return this+u.version1.featureList;
+    default: return Null (FeatureList);
+    }
+  }
+  unsigned int get_lookup_count () const
+  {
+    switch (u.version.major) {
+    case 1: return (this+u.version1.lookupList).len;
+    default: return 0;
+    }
+  }
+  const Lookup& get_lookup (unsigned int i) const
+  {
+    switch (u.version.major) {
+    case 1: return (this+u.version1.lookupList)[i];
+    default: return Null (Lookup);
+    }
+  }
+  const FeatureVariations &get_feature_variations () const
+  {
+    switch (u.version.major) {
+    case 1: return (u.version.to_int () >= 0x00010001u ? this+u.version1.featureVars : Null (FeatureVariations));
+    default: return Null (FeatureVariations);
+    }
+  }
+
+  bool has_data () const { return u.version.to_int (); }
+  unsigned int get_script_count () const
+  { return get_script_list ().len; }
+  const Tag& get_script_tag (unsigned int i) const
+  { return get_script_list ().get_tag (i); }
+  unsigned int get_script_tags (unsigned int start_offset,
+				unsigned int *script_count /* IN/OUT */,
+				hb_tag_t     *script_tags /* OUT */) const
+  { return get_script_list ().get_tags (start_offset, script_count, script_tags); }
+  const Script& get_script (unsigned int i) const
+  { return get_script_list ()[i]; }
+  bool find_script_index (hb_tag_t tag, unsigned int *index) const
+  { return get_script_list ().find_index (tag, index); }
+
+  unsigned int get_feature_count () const
+  { return get_feature_list ().len; }
+  hb_tag_t get_feature_tag (unsigned int i) const
+  { return i == Index::NOT_FOUND_INDEX ? HB_TAG_NONE : get_feature_list ().get_tag (i); }
+  unsigned int get_feature_tags (unsigned int start_offset,
+				 unsigned int *feature_count /* IN/OUT */,
+				 hb_tag_t     *feature_tags /* OUT */) const
+  { return get_feature_list ().get_tags (start_offset, feature_count, feature_tags); }
+  const Feature& get_feature (unsigned int i) const
+  { return get_feature_list ()[i]; }
+  bool find_feature_index (hb_tag_t tag, unsigned int *index) const
+  { return get_feature_list ().find_index (tag, index); }
+
+  bool find_variations_index (const int *coords, unsigned int num_coords,
+			      unsigned int *index) const
+  {
+#ifdef HB_NO_VAR
+    *index = FeatureVariations::NOT_FOUND_INDEX;
+    return false;
+#endif
+    return get_feature_variations ().find_index (coords, num_coords, index);
+  }
+  const Feature& get_feature_variation (unsigned int feature_index,
+					unsigned int variations_index) const
+  {
+#ifndef HB_NO_VAR
+    if (FeatureVariations::NOT_FOUND_INDEX != variations_index &&
+	u.version.to_int () >= 0x00010001u)
+    {
+      const Feature *feature = get_feature_variations ().find_substitute (variations_index,
+									  feature_index);
+      if (feature)
+	return *feature;
+    }
+#endif
+    return get_feature (feature_index);
+  }
+
+  void feature_variation_collect_lookups (const hb_set_t *feature_indexes,
+					  hb_set_t       *lookup_indexes /* OUT */) const
+  {
+#ifndef HB_NO_VAR
+    get_feature_variations ().collect_lookups (feature_indexes, lookup_indexes);
+#endif
+  }
+
+  template <typename TLookup>
+  void closure_lookups (hb_face_t      *face,
+			const hb_set_t *glyphs,
+			hb_set_t       *lookup_indexes /* IN/OUT */) const
+  {
+    hb_set_t visited_lookups, inactive_lookups;
+    OT::hb_closure_lookups_context_t c (face, glyphs, &visited_lookups, &inactive_lookups);
+
+    c.set_recurse_func (TLookup::template dispatch_recurse_func<hb_closure_lookups_context_t>);
+
+    for (unsigned lookup_index : + hb_iter (lookup_indexes))
+      reinterpret_cast<const TLookup &> (get_lookup (lookup_index)).closure_lookups (&c, lookup_index);
+
+    hb_set_union (lookup_indexes, &visited_lookups);
+    hb_set_subtract (lookup_indexes, &inactive_lookups);
+  }
+
+  void prune_langsys (const hb_map_t *duplicate_feature_map,
+                      hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map,
+                      hb_set_t       *new_feature_indexes /* OUT */) const
+  {
+    hb_prune_langsys_context_t c (this, script_langsys_map, duplicate_feature_map, new_feature_indexes);
+
+    unsigned count = get_script_count ();
+    for (unsigned script_index = 0; script_index < count; script_index++)
+    {
+      const Script& s = get_script (script_index);
+      s.prune_langsys (&c, script_index);
+    }
+  }
+
   void prune_features (const hb_map_t *lookup_indices, /* IN */
 		       hb_set_t       *feature_indices /* IN/OUT */) const
   {
@@ -4131,8 +4237,7 @@ struct GSUBGPOS
     // if the FeatureVariation's table and the alternate version(s) intersect the
     // set of lookup indices.
     hb_set_t alternate_feature_indices;
-    if (version.to_int () >= 0x00010001u)
-      (this+featureVars).closure_features (lookup_indices, &alternate_feature_indices);
+    get_feature_variations ().closure_features (lookup_indices, &alternate_feature_indices);
     if (unlikely (alternate_feature_indices.in_error()))
     {
       feature_indices->err ();
@@ -4163,32 +4268,6 @@ struct GSUBGPOS
 	  )
 	feature_indices->del (i);
     }
-  }
-
-  unsigned int get_size () const
-  {
-    return min_size +
-	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0);
-  }
-
-  template <typename TLookup>
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    typedef List16OfOffset16To<TLookup> TLookupList;
-    if (unlikely (!(version.sanitize (c) &&
-		    likely (version.major == 1) &&
-		    scriptList.sanitize (c, this) &&
-		    featureList.sanitize (c, this) &&
-		    reinterpret_cast<const Offset16To<TLookupList> &> (lookupList).sanitize (c, this))))
-      return_trace (false);
-
-#ifndef HB_NO_VAR
-    if (unlikely (!(version.to_int () < 0x00010001u || featureVars.sanitize (c, this))))
-      return_trace (false);
-#endif
-
-    return_trace (true);
   }
 
   template <typename T>
@@ -4230,21 +4309,12 @@ struct GSUBGPOS
   };
 
   protected:
-  FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
-				 * to 0x00010000u */
-  Offset16To<ScriptList>
-		scriptList;	/* ScriptList table */
-  Offset16To<FeatureList>
-		featureList;	/* FeatureList table */
-  Offset16To<LookupList>
-		lookupList;	/* LookupList table */
-  Offset32To<FeatureVariations>
-		featureVars;	/* Offset to Feature Variations
-				   table--from beginning of table
-				 * (may be NULL).  Introduced
-				 * in version 0x00010001. */
+  union {
+  FixedVersion<>	version;	/* Version identifier */
+  GSUBGPOSVersion1	version1;
+  } u;
   public:
-  DEFINE_SIZE_MIN (10);
+  DEFINE_SIZE_MIN (4);
 };
 
 
