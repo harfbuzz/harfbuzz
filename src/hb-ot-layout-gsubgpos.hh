@@ -4020,7 +4020,7 @@ struct GSUBGPOSVersion1_2
 		    likely (version.major == 1) &&
 		    scriptList.sanitize (c, this) &&
 		    featureList.sanitize (c, this) &&
-		    reinterpret_cast<const Offset16To<TLookupList> &> (lookupList).sanitize (c, this))))
+		    reinterpret_cast<const typename Types::template OffsetTo<TLookupList> &> (lookupList).sanitize (c, this))))
       return_trace (false);
 
 #ifndef HB_NO_VAR
@@ -4038,16 +4038,16 @@ struct GSUBGPOSVersion1_2
     auto *out = c->subset_context->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
 
-    typedef LookupOffsetList<TLookup> TLookupList;
-    reinterpret_cast<Offset16To<TLookupList> &> (out->lookupList)
+    typedef LookupOffsetList<TLookup, typename Types::HBUINT> TLookupList;
+    reinterpret_cast<typename Types::template OffsetTo<TLookupList> &> (out->lookupList)
 	.serialize_subset (c->subset_context,
-			   reinterpret_cast<const Offset16To<TLookupList> &> (lookupList),
+			   reinterpret_cast<const typename Types::template OffsetTo<TLookupList> &> (lookupList),
 			   this,
 			   c);
 
-    reinterpret_cast<Offset16To<RecordListOfFeature> &> (out->featureList)
+    reinterpret_cast<typename Types::template OffsetTo<RecordListOfFeature> &> (out->featureList)
 	.serialize_subset (c->subset_context,
-			   reinterpret_cast<const Offset16To<RecordListOfFeature> &> (featureList),
+			   reinterpret_cast<const typename Types::template OffsetTo<RecordListOfFeature> &> (featureList),
 			   this,
 			   c);
 

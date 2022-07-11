@@ -1407,8 +1407,8 @@ struct Lookup
 template <typename Types>
 using LookupList = List16OfOffsetTo<Lookup, typename Types::HBUINT>;
 
-template <typename TLookup>
-struct LookupOffsetList : List16OfOffset16To<TLookup>
+template <typename TLookup, typename OffsetType>
+struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>
 {
   bool subset (hb_subset_context_t        *c,
 	       hb_subset_layout_context_t *l) const

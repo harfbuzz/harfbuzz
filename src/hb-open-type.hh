@@ -774,7 +774,7 @@ struct List16OfOffsetTo : ArrayOf<OffsetTo<Type, OffsetType>, HBUINT16>
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
-    return_trace (Array16OfOffset16To<Type>::sanitize (c, this, std::forward<Ts> (ds)...));
+    return_trace ((Array16Of<OffsetTo<Type, OffsetType>>::sanitize (c, this, std::forward<Ts> (ds)...)));
   }
 };
 
