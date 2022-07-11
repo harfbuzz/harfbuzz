@@ -67,7 +67,7 @@ struct AxisValueFormat1
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
@@ -95,7 +95,7 @@ struct AxisValueFormat2
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
@@ -127,7 +127,7 @@ struct AxisValueFormat3
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
@@ -155,7 +155,7 @@ struct AxisValueRecord
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
@@ -177,7 +177,7 @@ struct AxisValueFormat4
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
@@ -272,7 +272,7 @@ struct StatAxisRecord
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
