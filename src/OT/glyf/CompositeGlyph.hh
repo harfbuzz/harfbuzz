@@ -145,6 +145,10 @@ struct CompositeGlyphRecord
   }
 
   public:
+  hb_codepoint_t get_gid () const { return glyphIndex; }
+  void set_gid (hb_codepoint_t gid) { glyphIndex = gid; }
+
+  protected:
   HBUINT16	flags;
   HBGlyphID16	glyphIndex;
   public:

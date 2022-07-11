@@ -439,7 +439,7 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
   for (auto item : glyf.glyph_for_gid (gid).get_composite_iterator ())
     operation_count =
       _glyf_add_gid_and_children (glyf,
-				  item.glyphIndex,
+				  item.get_gid (),
 				  gids_to_retain,
 				  operation_count,
 				  depth);

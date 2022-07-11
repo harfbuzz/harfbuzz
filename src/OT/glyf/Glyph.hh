@@ -146,7 +146,7 @@ struct Glyph
       for (auto &item : get_composite_iterator ())
       {
         comp_points.reset ();
-	if (unlikely (!glyf_accelerator.glyph_for_gid (item.glyphIndex)
+	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font, glyf_accelerator, comp_points,
 						    phantom_only, depth + 1)))
 	  return false;
