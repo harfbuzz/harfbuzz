@@ -120,6 +120,7 @@ hb_draw_funcs_set_##name##_func (hb_draw_funcs_t	 *dfuncs,		\
     if (dfuncs->destroy)						\
       dfuncs->destroy->name = nullptr;					\
   }									\
+  return;                                                                \
                                                                          \
 fail:                                                                    \
   if (destroy)                                                           \
