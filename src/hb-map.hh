@@ -301,12 +301,24 @@ struct hb_hashmap_t
     | hb_map (&item_t::key)
     | hb_map (hb_ridentity)
   )
+  auto keys_ref () const HB_AUTO_RETURN
+  (
+    + hb_array (items, mask ? mask + 1 : 0)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::key)
+  )
   auto values () const HB_AUTO_RETURN
   (
     + hb_array (items, mask ? mask + 1 : 0)
     | hb_filter (&item_t::is_real)
     | hb_map (&item_t::value)
     | hb_map (hb_ridentity)
+  )
+  auto values_ref () const HB_AUTO_RETURN
+  (
+    + hb_array (items, mask ? mask + 1 : 0)
+    | hb_filter (&item_t::is_real)
+    | hb_map (&item_t::value)
   )
 
   /* Sink interface. */
