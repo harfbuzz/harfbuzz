@@ -209,6 +209,9 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
 #undef HB_DRAW_FUNC_IMPLEMENT
   }
 
+  hb_free (dfuncs->destroy);
+  hb_free (dfuncs->user_data);
+
   hb_free (dfuncs);
 }
 
