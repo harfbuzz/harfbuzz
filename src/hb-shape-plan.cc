@@ -117,7 +117,7 @@ hb_shape_plan_key_t::init (bool                           copy,
   }
   else
   {
-    const hb_shaper_entry_t *shapers = _hb_shapers_get ();
+    const HB_UNUSED hb_shaper_entry_t *shapers = _hb_shapers_get ();
     for (unsigned int i = 0; i < HB_SHAPERS_COUNT; i++)
       if (false)
 	;
