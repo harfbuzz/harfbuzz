@@ -1528,12 +1528,12 @@ const hb_ot_shaper_t _hb_ot_shaper_indic =
   data_destroy_indic,
   preprocess_text_indic,
   nullptr, /* postprocess_glyphs */
-  HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
   decompose_indic,
   compose_indic,
   setup_masks_indic,
-  HB_TAG_NONE, /* gpos_tag */
   nullptr, /* reorder_marks */
+  HB_TAG_NONE, /* gpos_tag */
+  HB_OT_SHAPE_NORMALIZATION_MODE_COMPOSED_DIACRITICS_NO_SHORT_CIRCUIT,
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_NONE,
   false, /* fallback_position */
 };

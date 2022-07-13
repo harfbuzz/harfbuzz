@@ -171,12 +171,12 @@ const hb_ot_shaper_t _hb_ot_shaper_hebrew =
   nullptr, /* data_destroy */
   nullptr, /* preprocess_text */
   nullptr, /* postprocess_glyphs */
-  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT,
   nullptr, /* decompose */
   compose_hebrew,
   nullptr, /* setup_masks */
-  HB_TAG ('h','e','b','r'), /* gpos_tag. https://github.com/harfbuzz/harfbuzz/issues/347#issuecomment-267838368 */
   nullptr, /* reorder_marks */
+  HB_TAG ('h','e','b','r'), /* gpos_tag. https://github.com/harfbuzz/harfbuzz/issues/347#issuecomment-267838368 */
+  HB_OT_SHAPE_NORMALIZATION_MODE_DEFAULT,
   HB_OT_SHAPE_ZERO_WIDTH_MARKS_BY_GDEF_LATE,
   true, /* fallback_position */
 };
