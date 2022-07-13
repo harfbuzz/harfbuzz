@@ -206,7 +206,7 @@ setup_masks_use (const hb_ot_shape_plan_t *plan,
   unsigned int count = buffer->len;
   hb_glyph_info_t *info = buffer->info;
   for (unsigned int i = 0; i < count; i++)
-    info[i].use_category() = hb_use_get_category (info[i]);
+    info[i].use_category() = hb_use_get_category (info[i].codepoint);
 }
 
 static void
