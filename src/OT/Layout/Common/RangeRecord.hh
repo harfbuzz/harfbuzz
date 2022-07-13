@@ -63,6 +63,10 @@ struct RangeRecord
 }
 }
 
+// TODO(garretrieger): This was previously implemented using
+//    DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (OT, RangeRecord, 9);
+//    but that only works when there is only a single namespace level.
+//    The macro should probably be fixed so it can work in this situation.
 extern HB_INTERNAL const unsigned char _hb_Null_OT_RangeRecord[9];
 template <typename Spec>
 struct Null<OT::Layout::Common::RangeRecord<Spec>> {
