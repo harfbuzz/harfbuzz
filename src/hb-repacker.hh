@@ -157,7 +157,7 @@ template<typename T>
 inline hb_blob_t*
 hb_resolve_overflows (const T& packed,
                       hb_tag_t table_tag,
-                      unsigned max_rounds = 20) {
+                      unsigned max_rounds = 40) {
   graph_t sorted_graph (packed);
   sorted_graph.sort_shortest_distance ();
 
