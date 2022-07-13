@@ -8,9 +8,13 @@ namespace Layout {
 namespace GPOS_impl {
 
 
+template <typename Types>
 struct PairSet
 {
-  friend struct PairPosFormat1;
+  template <typename Types2>
+  friend struct PairPosFormat1_3;
+
+  using PairValueRecord = GPOS_impl::PairValueRecord<Types>;
 
   protected:
   HBUINT16              len;    /* Number of PairValueRecords */
@@ -136,7 +140,7 @@ struct PairSet
     unsigned len2 = valueFormats[1].get_len ();
     unsigned record_size = HBUINT16::static_size + Value::static_size * (len1 + len2);
 
-    PairValueRecord::context_t context =
+    typename PairValueRecord::context_t context =
     {
       this,
       valueFormats,

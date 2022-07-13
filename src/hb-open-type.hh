@@ -743,8 +743,8 @@ template <typename Type> using Array16OfOffset32To = ArrayOf<OffsetTo<Type, HBUI
 template <typename Type> using Array32OfOffset32To = ArrayOf<OffsetTo<Type, HBUINT32>, HBUINT32>;
 
 /* Array of offsets relative to the beginning of the array itself. */
-template <typename Type>
-struct List16OfOffset16To : Array16OfOffset16To<Type>
+template <typename Type, typename OffsetType>
+struct List16OfOffsetTo : ArrayOf<OffsetTo<Type, OffsetType>, HBUINT16>
 {
   const Type& operator [] (int i_) const
   {
@@ -762,7 +762,7 @@ struct List16OfOffset16To : Array16OfOffset16To<Type>
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
-    struct List16OfOffset16To<Type> *out = c->serializer->embed (*this);
+    struct List16OfOffsetTo *out = c->serializer->embed (*this);
     if (unlikely (!out)) return_trace (false);
     unsigned int count = this->len;
     for (unsigned int i = 0; i < count; i++)
@@ -774,9 +774,12 @@ struct List16OfOffset16To : Array16OfOffset16To<Type>
   bool sanitize (hb_sanitize_context_t *c, Ts&&... ds) const
   {
     TRACE_SANITIZE (this);
-    return_trace (Array16OfOffset16To<Type>::sanitize (c, this, std::forward<Ts> (ds)...));
+    return_trace ((Array16Of<OffsetTo<Type, OffsetType>>::sanitize (c, this, std::forward<Ts> (ds)...)));
   }
 };
+
+template <typename Type>
+using List16OfOffset16To = List16OfOffsetTo<Type, HBUINT16>;
 
 /* An array starting at second element. */
 template <typename Type, typename LenType=HBUINT16>

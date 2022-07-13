@@ -6,18 +6,21 @@ namespace Layout {
 namespace GPOS_impl {
 
 
+template <typename Types>
 struct PairValueRecord
 {
+  template <typename Types2>
   friend struct PairSet;
 
   protected:
-  HBGlyphID16   secondGlyph;            /* GlyphID of second glyph in the
+  typename Types::HBGlyphID
+	        secondGlyph;            /* GlyphID of second glyph in the
                                          * pair--first glyph is listed in the
                                          * Coverage table */
   ValueRecord   values;                 /* Positioning data for the first glyph
                                          * followed by for second glyph */
   public:
-  DEFINE_SIZE_ARRAY (2, values);
+  DEFINE_SIZE_ARRAY (Types::size, values);
 
   int cmp (hb_codepoint_t k) const
   { return secondGlyph.cmp (k); }

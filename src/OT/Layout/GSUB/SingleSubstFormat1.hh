@@ -7,18 +7,20 @@ namespace OT {
 namespace Layout {
 namespace GSUB_impl {
 
-struct SingleSubstFormat1
+template <typename Types>
+struct SingleSubstFormat1_3
 {
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  Offset16To<Coverage>
+  typename Types::template OffsetTo<Coverage>
                 coverage;               /* Offset to Coverage table--from
                                          * beginning of Substitution table */
-  HBUINT16      deltaGlyphID;           /* Add to original GlyphID to get
+  typename Types::HBUINT
+                deltaGlyphID;           /* Add to original GlyphID to get
                                          * substitute GlyphID, modulo 0x10000 */
 
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_STATIC (2 + 2 * Types::size);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

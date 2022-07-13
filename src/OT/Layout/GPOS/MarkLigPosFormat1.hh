@@ -8,26 +8,27 @@ namespace Layout {
 namespace GPOS_impl {
 
 
-struct MarkLigPosFormat1
+template <typename Types>
+struct MarkLigPosFormat1_2
 {
   protected:
   HBUINT16      format;                 /* Format identifier--format = 1 */
-  Offset16To<Coverage>
+  typename Types::template OffsetTo<Coverage>
                 markCoverage;           /* Offset to Mark Coverage table--from
                                          * beginning of MarkLigPos subtable */
-  Offset16To<Coverage>
+  typename Types::template OffsetTo<Coverage>
                 ligatureCoverage;       /* Offset to Ligature Coverage
                                          * table--from beginning of MarkLigPos
                                          * subtable */
   HBUINT16      classCount;             /* Number of defined mark classes */
-  Offset16To<MarkArray>
+  typename Types::template OffsetTo<MarkArray>
                 markArray;              /* Offset to MarkArray table--from
                                          * beginning of MarkLigPos subtable */
-  Offset16To<LigatureArray>
+  typename Types::template OffsetTo<LigatureArray>
                 ligatureArray;          /* Offset to LigatureArray table--from
                                          * beginning of MarkLigPos subtable */
   public:
-  DEFINE_SIZE_STATIC (12);
+  DEFINE_SIZE_STATIC (4 + 4 * Types::size);
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

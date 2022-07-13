@@ -7,10 +7,11 @@ namespace OT {
 namespace Layout {
 namespace GSUB_impl {
 
+template <typename Types>
 struct AlternateSet
 {
   protected:
-  Array16Of<HBGlyphID16>
+  Array16Of<typename Types::HBGlyphID>
                 alternates;             /* Array of alternate GlyphIDs--in
                                          * arbitrary order */
   public:

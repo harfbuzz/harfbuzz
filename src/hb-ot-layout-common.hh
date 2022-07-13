@@ -80,8 +80,34 @@
 namespace OT {
 
 
-#define NOT_COVERED		((unsigned int) -1)
+struct SmallTypes {
+  static constexpr unsigned size = 2;
+  using HBUINT = HBUINT16;
+  using HBGlyphID = HBGlyphID16;
+  using Offset = Offset16;
+  template <typename Type, bool has_null=true>
+  using OffsetTo = OT::Offset16To<Type, has_null>;
+  template <typename Type>
+  using ArrayOf = OT::Array16Of<Type>;
+  template <typename Type>
+  using SortedArrayOf = OT::SortedArray16Of<Type>;
+};
 
+struct MediumTypes {
+  static constexpr unsigned size = 3;
+  using HBUINT = HBUINT24;
+  using HBGlyphID = HBGlyphID24;
+  using Offset = Offset24;
+  template <typename Type, bool has_null=true>
+  using OffsetTo = OT::Offset24To<Type, has_null>;
+  template <typename Type>
+  using ArrayOf = OT::Array24Of<Type>;
+  template <typename Type>
+  using SortedArrayOf = OT::SortedArray24Of<Type>;
+};
+
+
+#define NOT_COVERED		((unsigned int) -1)
 
 template<typename Iterator>
 static inline void Coverage_serialize (hb_serialize_context_t *c,
@@ -510,6 +536,7 @@ struct RecordListOfScript : RecordListOf<Script>
   }
 };
 
+template <typename Types>
 struct RangeRecord
 {
   int cmp (hb_codepoint_t g) const
@@ -528,13 +555,13 @@ struct RangeRecord
   bool collect_coverage (set_t *glyphs) const
   { return glyphs->add_range (first, last); }
 
-  HBGlyphID16	first;		/* First GlyphID in the range */
-  HBGlyphID16	last;		/* Last GlyphID in the range */
-  HBUINT16	value;		/* Value */
+  typename Types::HBGlyphID	first;		/* First GlyphID in the range */
+  typename Types::HBGlyphID	last;		/* Last GlyphID in the range */
+  HBUINT16			value;		/* Value */
   public:
-  DEFINE_SIZE_STATIC (6);
+  DEFINE_SIZE_STATIC (2 + 2 * Types::size);
 };
-DECLARE_NULL_NAMESPACE_BYTES (OT, RangeRecord);
+DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (OT, RangeRecord, 9);
 
 
 struct IndexArray : Array16Of<Index>
@@ -1377,10 +1404,11 @@ struct Lookup
   DEFINE_SIZE_ARRAY (6, subTable);
 };
 
-typedef List16OfOffset16To<Lookup> LookupList;
+template <typename Types>
+using LookupList = List16OfOffsetTo<Lookup, typename Types::HBUINT>;
 
-template <typename TLookup>
-struct LookupOffsetList : List16OfOffset16To<TLookup>
+template <typename TLookup, typename OffsetType>
+struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>
 {
   bool subset (hb_subset_context_t        *c,
 	       hb_subset_layout_context_t *l) const
@@ -1410,7 +1438,8 @@ struct LookupOffsetList : List16OfOffset16To<TLookup>
  * Coverage Table
  */
 
-struct CoverageFormat1
+template <typename Types>
+struct CoverageFormat1_3
 {
   friend struct Coverage;
 
@@ -1463,7 +1492,7 @@ struct CoverageFormat1
   /* Older compilers need this to be public. */
   struct iter_t
   {
-    void init (const struct CoverageFormat1 &c_) { c = &c_; i = 0; }
+    void init (const struct CoverageFormat1_3 &c_) { c = &c_; i = 0; }
     void fini () {}
     bool more () const { return i < c->glyphArray.len; }
     void next () { i++; }
@@ -1473,27 +1502,28 @@ struct CoverageFormat1
     iter_t __end__ () const { iter_t it; it.init (*c); it.i = c->glyphArray.len; return it; }
 
     private:
-    const struct CoverageFormat1 *c;
+    const struct CoverageFormat1_3 *c;
     unsigned int i;
   };
   private:
 
   protected:
   HBUINT16	coverageFormat;	/* Format identifier--format = 1 */
-  SortedArray16Of<HBGlyphID16>
+  SortedArray16Of<typename Types::HBGlyphID>
 		glyphArray;	/* Array of GlyphIDs--in numerical order */
   public:
   DEFINE_SIZE_ARRAY (4, glyphArray);
 };
 
-struct CoverageFormat2
+template <typename Types>
+struct CoverageFormat2_4
 {
   friend struct Coverage;
 
   private:
   unsigned int get_coverage (hb_codepoint_t glyph_id) const
   {
-    const RangeRecord &range = rangeRecord.bsearch (glyph_id);
+    const RangeRecord<Types> &range = rangeRecord.bsearch (glyph_id);
     return likely (range.first <= range.last)
 	 ? (unsigned int) range.value + (glyph_id - range.first)
 	 : NOT_COVERED;
@@ -1548,14 +1578,14 @@ struct CoverageFormat2
   bool intersects (const hb_set_t *glyphs) const
   {
     return hb_any (+ hb_iter (rangeRecord.as_array ())
-		   | hb_map ([glyphs] (const RangeRecord &range) { return range.intersects (glyphs); }));
+		   | hb_map ([glyphs] (const RangeRecord<Types> &range) { return range.intersects (glyphs); }));
   }
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   {
     auto cmp = [] (const void *pk, const void *pr) -> int
     {
       unsigned index = * (const unsigned *) pk;
-      const RangeRecord &range = * (const RangeRecord *) pr;
+      const RangeRecord<Types> &range = * (const RangeRecord<Types> *) pr;
       if (index < range.value) return -1;
       if (index > (unsigned int) range.value + (range.last - range.first)) return +1;
       return 0;
@@ -1596,7 +1626,7 @@ struct CoverageFormat2
   /* Older compilers need this to be public. */
   struct iter_t
   {
-    void init (const CoverageFormat2 &c_)
+    void init (const CoverageFormat2_4 &c_)
     {
       c = &c_;
       coverage = 0;
@@ -1650,7 +1680,7 @@ struct CoverageFormat2
     }
 
     private:
-    const struct CoverageFormat2 *c;
+    const struct CoverageFormat2_4 *c;
     unsigned int i, coverage;
     hb_codepoint_t j;
   };
@@ -1658,7 +1688,7 @@ struct CoverageFormat2
 
   protected:
   HBUINT16	coverageFormat;	/* Format identifier--format = 2 */
-  SortedArray16Of<RangeRecord>
+  SortedArray16Of<RangeRecord<Types>>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID. rangeCount entries
 				 * long */
@@ -1682,6 +1712,10 @@ struct Coverage
     switch (u.format) {
     case 1: return u.format1.get_coverage (glyph_id);
     case 2: return u.format2.get_coverage (glyph_id);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.get_coverage (glyph_id);
+    case 4: return u.format4.get_coverage (glyph_id);
+#endif
     default:return NOT_COVERED;
     }
   }
@@ -1705,10 +1739,19 @@ struct Coverage
     }
     u.format = count <= num_ranges * 3 ? 1 : 2;
 
+#ifndef HB_NO_BORING_EXPANSION
+    if (count && last > 0xFFFFu)
+      u.format += 2;
+#endif
+
     switch (u.format)
     {
     case 1: return_trace (u.format1.serialize (c, glyphs));
     case 2: return_trace (u.format2.serialize (c, glyphs));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.serialize (c, glyphs));
+    case 4: return_trace (u.format4.serialize (c, glyphs));
+#endif
     default:return_trace (false);
     }
   }
@@ -1737,6 +1780,10 @@ struct Coverage
     {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.sanitize (c));
+    case 4: return_trace (u.format4.sanitize (c));
+#endif
     default:return_trace (true);
     }
   }
@@ -1747,6 +1794,10 @@ struct Coverage
     {
     case 1: return u.format1.intersects (glyphs);
     case 2: return u.format2.intersects (glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersects (glyphs);
+    case 4: return u.format4.intersects (glyphs);
+#endif
     default:return false;
     }
   }
@@ -1756,6 +1807,10 @@ struct Coverage
     {
     case 1: return u.format1.intersects_coverage (glyphs, index);
     case 2: return u.format2.intersects_coverage (glyphs, index);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersects_coverage (glyphs, index);
+    case 4: return u.format4.intersects_coverage (glyphs, index);
+#endif
     default:return false;
     }
   }
@@ -1769,6 +1824,10 @@ struct Coverage
     {
     case 1: return u.format1.collect_coverage (glyphs);
     case 2: return u.format2.collect_coverage (glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.collect_coverage (glyphs);
+    case 4: return u.format4.collect_coverage (glyphs);
+#endif
     default:return false;
     }
   }
@@ -1779,6 +1838,10 @@ struct Coverage
     {
     case 1: return u.format1.intersected_coverage_glyphs (glyphs, intersect_glyphs);
     case 2: return u.format2.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+    case 4: return u.format4.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+#endif
     default:return ;
     }
   }
@@ -1794,6 +1857,10 @@ struct Coverage
       {
       case 1: u.format1.init (c_.u.format1); return;
       case 2: u.format2.init (c_.u.format2); return;
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: u.format3.init (c_.u.format3); return;
+      case 4: u.format4.init (c_.u.format4); return;
+#endif
       default:				     return;
       }
     }
@@ -1803,6 +1870,10 @@ struct Coverage
       {
       case 1: return u.format1.more ();
       case 2: return u.format2.more ();
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: return u.format3.more ();
+      case 4: return u.format4.more ();
+#endif
       default:return false;
       }
     }
@@ -1812,6 +1883,10 @@ struct Coverage
       {
       case 1: u.format1.next (); break;
       case 2: u.format2.next (); break;
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: u.format3.next (); break;
+      case 4: u.format4.next (); break;
+#endif
       default:			 break;
       }
     }
@@ -1824,6 +1899,10 @@ struct Coverage
       {
       case 1: return u.format1.get_glyph ();
       case 2: return u.format2.get_glyph ();
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: return u.format3.get_glyph ();
+      case 4: return u.format4.get_glyph ();
+#endif
       default:return 0;
       }
     }
@@ -1834,6 +1913,10 @@ struct Coverage
       {
       case 1: return u.format1 != o.u.format1;
       case 2: return u.format2 != o.u.format2;
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: return u.format3 != o.u.format3;
+      case 4: return u.format4 != o.u.format4;
+#endif
       default:return false;
       }
     }
@@ -1845,6 +1928,10 @@ struct Coverage
       {
       case 1: it.u.format1 = u.format1.__end__ (); break;
       case 2: it.u.format2 = u.format2.__end__ (); break;
+#ifndef HB_NO_BORING_EXPANSION
+      case 3: it.u.format3 = u.format3.__end__ (); break;
+      case 4: it.u.format4 = u.format4.__end__ (); break;
+#endif
       default: break;
       }
       return it;
@@ -1853,17 +1940,25 @@ struct Coverage
     private:
     unsigned int format;
     union {
-    CoverageFormat2::iter_t	format2; /* Put this one first since it's larger; helps shut up compiler. */
-    CoverageFormat1::iter_t	format1;
+#ifndef HB_NO_BORING_EXPANSION
+    CoverageFormat2_4<MediumTypes>::iter_t	format4; /* Put this one first since it's larger; helps shut up compiler. */
+    CoverageFormat1_3<MediumTypes>::iter_t	format3;
+#endif
+    CoverageFormat2_4<SmallTypes>::iter_t	format2; /* Put this one first since it's larger; helps shut up compiler. */
+    CoverageFormat1_3<SmallTypes>::iter_t	format1;
     } u;
   };
   iter_t iter () const { return iter_t (*this); }
 
   protected:
   union {
-  HBUINT16		format;		/* Format identifier */
-  CoverageFormat1	format1;
-  CoverageFormat2	format2;
+  HBUINT16			format;		/* Format identifier */
+  CoverageFormat1_3<SmallTypes>	format1;
+  CoverageFormat2_4<SmallTypes>	format2;
+#ifndef HB_NO_BORING_EXPANSION
+  CoverageFormat1_3<MediumTypes>format3;
+  CoverageFormat2_4<MediumTypes>format4;
+#endif
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);
@@ -1915,7 +2010,8 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
  * Class Definition Table
  */
 
-struct ClassDefFormat1
+template <typename Types>
+struct ClassDefFormat1_3
 {
   friend struct ClassDef;
 
@@ -2120,14 +2216,16 @@ struct ClassDefFormat1
 
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 1 */
-  HBGlyphID16	startGlyph;	/* First GlyphID of the classValueArray */
-  Array16Of<HBUINT16>
+  typename Types::HBGlyphID
+		 startGlyph;	/* First GlyphID of the classValueArray */
+  typename Types::template ArrayOf<HBUINT16>
 		classValue;	/* Array of Class Values--one per GlyphID */
   public:
-  DEFINE_SIZE_ARRAY (6, classValue);
+  DEFINE_SIZE_ARRAY (2 + 2 * Types::size, classValue);
 };
 
-struct ClassDefFormat2
+template <typename Types>
+struct ClassDefFormat2_4
 {
   friend struct ClassDef;
 
@@ -2156,12 +2254,12 @@ struct ClassDefFormat2
     hb_codepoint_t prev_gid = (*it).first;
     unsigned prev_klass = (*it).second;
 
-    RangeRecord range_rec;
+    RangeRecord<Types> range_rec;
     range_rec.first = prev_gid;
     range_rec.last = prev_gid;
     range_rec.value = prev_klass;
 
-    RangeRecord *record = c->copy (range_rec);
+    auto *record = c->copy (range_rec);
     if (unlikely (!record)) return_trace (false);
 
     for (const auto gid_klass_pair : + (++it))
@@ -2300,7 +2398,7 @@ struct ClassDefFormat2
     }
     /* TODO Speed up, using set overlap first? */
     /* TODO(iter) Rewrite as dagger. */
-    const RangeRecord *arr = rangeRecord.arrayZ;
+    const auto *arr = rangeRecord.arrayZ;
     for (unsigned int i = 0; i < count; i++)
       if (arr[i].value == klass && arr[i].intersects (glyphs))
 	return true;
@@ -2376,18 +2474,18 @@ struct ClassDefFormat2
     if (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
       intersect_classes->add (0);
 
-    for (const RangeRecord& record : rangeRecord.iter ())
+    for (const auto& record : rangeRecord.iter ())
       if (record.intersects (glyphs))
         intersect_classes->add (record.value);
   }
 
   protected:
   HBUINT16	classFormat;	/* Format identifier--format = 2 */
-  SortedArray16Of<RangeRecord>
+  typename Types::template SortedArrayOf<RangeRecord<Types>>
 		rangeRecord;	/* Array of glyph ranges--ordered by
 				 * Start GlyphID */
   public:
-  DEFINE_SIZE_ARRAY (4, rangeRecord);
+  DEFINE_SIZE_ARRAY (2 + Types::size, rangeRecord);
 };
 
 struct ClassDef
@@ -2406,6 +2504,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.get_class (glyph_id);
     case 2: return u.format2.get_class (glyph_id);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.get_class (glyph_id);
+    case 4: return u.format4.get_class (glyph_id);
+#endif
     default:return 0;
     }
   }
@@ -2420,10 +2522,11 @@ struct ClassDef
     auto it = + it_with_class_zero | hb_filter (hb_second);
 
     unsigned format = 2;
+    hb_codepoint_t glyph_max = 0;
     if (likely (it))
     {
       hb_codepoint_t glyph_min = (*it).first;
-      hb_codepoint_t glyph_max = glyph_min;
+      glyph_max = glyph_min;
 
       unsigned num_glyphs = 0;
       unsigned num_ranges = 1;
@@ -2448,12 +2551,22 @@ struct ClassDef
       if (num_glyphs && 1 + (glyph_max - glyph_min + 1) <= num_ranges * 3)
 	format = 1;
     }
+
+#ifndef HB_NO_BORING_EXPANSION
+    if (glyph_max > 0xFFFFu)
+      format += 2;
+#endif
+
     u.format = format;
 
     switch (u.format)
     {
     case 1: return_trace (u.format1.serialize (c, it));
     case 2: return_trace (u.format2.serialize (c, it));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.serialize (c, it));
+    case 4: return_trace (u.format4.serialize (c, it));
+#endif
     default:return_trace (false);
     }
   }
@@ -2468,6 +2581,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return_trace (u.format1.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
     case 2: return_trace (u.format2.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+    case 4: return_trace (u.format4.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
+#endif
     default:return_trace (false);
     }
   }
@@ -2479,6 +2596,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return_trace (u.format3.sanitize (c));
+    case 4: return_trace (u.format4.sanitize (c));
+#endif
     default:return_trace (true);
     }
   }
@@ -2488,6 +2609,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.cost ();
     case 2: return u.format2.cost ();
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.cost ();
+    case 4: return u.format4.cost ();
+#endif
     default:return 0u;
     }
   }
@@ -2500,6 +2625,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.collect_coverage (glyphs);
     case 2: return u.format2.collect_coverage (glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.collect_coverage (glyphs);
+    case 4: return u.format4.collect_coverage (glyphs);
+#endif
     default:return false;
     }
   }
@@ -2512,6 +2641,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.collect_class (glyphs, klass);
     case 2: return u.format2.collect_class (glyphs, klass);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.collect_class (glyphs, klass);
+    case 4: return u.format4.collect_class (glyphs, klass);
+#endif
     default:return false;
     }
   }
@@ -2521,6 +2654,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersects (glyphs);
     case 2: return u.format2.intersects (glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersects (glyphs);
+    case 4: return u.format4.intersects (glyphs);
+#endif
     default:return false;
     }
   }
@@ -2529,6 +2666,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersects_class (glyphs, klass);
     case 2: return u.format2.intersects_class (glyphs, klass);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersects_class (glyphs, klass);
+    case 4: return u.format4.intersects_class (glyphs, klass);
+#endif
     default:return false;
     }
   }
@@ -2538,6 +2679,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
     case 2: return u.format2.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+    case 4: return u.format4.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
+#endif
     default:return;
     }
   }
@@ -2547,6 +2692,10 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersected_classes (glyphs, intersect_classes);
     case 2: return u.format2.intersected_classes (glyphs, intersect_classes);
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.intersected_classes (glyphs, intersect_classes);
+    case 4: return u.format4.intersected_classes (glyphs, intersect_classes);
+#endif
     default:return;
     }
   }
@@ -2554,9 +2703,13 @@ struct ClassDef
 
   protected:
   union {
-  HBUINT16		format;		/* Format identifier */
-  ClassDefFormat1	format1;
-  ClassDefFormat2	format2;
+  HBUINT16			format;		/* Format identifier */
+  ClassDefFormat1_3<SmallTypes>	format1;
+  ClassDefFormat2_4<SmallTypes>	format2;
+#ifndef HB_NO_BORING_EXPANSION
+  ClassDefFormat1_3<MediumTypes>format3;
+  ClassDefFormat2_4<MediumTypes>format4;
+#endif
   } u;
   public:
   DEFINE_SIZE_UNION (2, format);

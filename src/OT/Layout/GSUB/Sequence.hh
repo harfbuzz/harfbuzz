@@ -7,10 +7,11 @@ namespace OT {
 namespace Layout {
 namespace GSUB_impl {
 
+template <typename Types>
 struct Sequence
 {
   protected:
-  Array16Of<HBGlyphID16>
+  Array16Of<typename Types::HBGlyphID>
                 substitute;             /* String of GlyphIDs to substitute */
   public:
   DEFINE_SIZE_ARRAY (2, substitute);

@@ -156,6 +156,71 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
 		       indices);
 }
 
+
+static inline void
+_GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
+				   const hb_map_t *lookup_indices,
+				   const hb_set_t *feature_indices,
+				   hb_map_t *duplicate_feature_map /* OUT */)
+{
+  if (feature_indices->is_empty ()) return;
+  hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_set_t>> unique_features;
+  //find out duplicate features after subset
+  for (unsigned i : feature_indices->iter ())
+  {
+    hb_tag_t t = g.get_feature_tag (i);
+    if (t == HB_MAP_VALUE_INVALID) continue;
+    if (!unique_features.has (t))
+    {
+      if (unlikely (!unique_features.set (t, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
+	return;
+      if (unique_features.has (t))
+	unique_features.get (t)->add (i);
+      duplicate_feature_map->set (i, i);
+      continue;
+    }
+
+    bool found = false;
+
+    hb_set_t* same_tag_features = unique_features.get (t);
+    for (unsigned other_f_index : same_tag_features->iter ())
+    {
+      const OT::Feature& f = g.get_feature (i);
+      const OT::Feature& other_f = g.get_feature (other_f_index);
+
+      auto f_iter =
+      + hb_iter (f.lookupIndex)
+      | hb_filter (lookup_indices)
+      ;
+
+      auto other_f_iter =
+      + hb_iter (other_f.lookupIndex)
+      | hb_filter (lookup_indices)
+      ;
+
+      bool is_equal = true;
+      for (; f_iter && other_f_iter; f_iter++, other_f_iter++)
+      {
+	unsigned a = *f_iter;
+	unsigned b = *other_f_iter;
+	if (a != b) { is_equal = false; break; }
+      }
+
+      if (is_equal == false || f_iter || other_f_iter) continue;
+
+      found = true;
+      duplicate_feature_map->set (i, other_f_index);
+      break;
+    }
+
+    if (found == false)
+    {
+      same_tag_features->add (i);
+      duplicate_feature_map->set (i, i);
+    }
+  }
+}
+
 template <typename T>
 static inline void
 _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
@@ -190,7 +255,7 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 
   table->prune_features (lookups, &feature_indices);
   hb_map_t duplicate_feature_map;
-  table->find_duplicate_features (lookups, &feature_indices, &duplicate_feature_map);
+  _GSUBGPOS_find_duplicate_features (*table, lookups, &feature_indices, &duplicate_feature_map);
 
   feature_indices.clear ();
   table->prune_langsys (&duplicate_feature_map, langsys_map, &feature_indices);
@@ -374,7 +439,7 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
   for (auto item : glyf.glyph_for_gid (gid).get_composite_iterator ())
     operation_count =
       _glyf_add_gid_and_children (glyf,
-				  item.glyphIndex,
+				  item.get_gid (),
 				  gids_to_retain,
 				  operation_count,
 				  depth);
