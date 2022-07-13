@@ -242,10 +242,15 @@ _try_subset (const TableType *table,
 
   unsigned buf_size = buf->allocated;
   buf_size = buf_size * 2 + 16;
+
+
+
+
   DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c ran out of room; reallocating to %u bytes.",
              HB_UNTAG (c->table_tag), buf_size);
 
-  if (unlikely (!buf->alloc (buf_size)))
+  if (unlikely (buf_size > c->source_blob->length * 16 ||
+		!buf->alloc (buf_size)))
   {
     DEBUG_MSG (SUBSET, nullptr, "OT::%c%c%c%c failed to reallocate %u bytes.",
                HB_UNTAG (c->table_tag), buf_size);
