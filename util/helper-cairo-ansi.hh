@@ -89,7 +89,7 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride)
   config = chafa_canvas_config_new ();
   chafa_canvas_config_set_canvas_mode (config, mode);
   chafa_canvas_config_set_pixel_mode (config, pixel_mode);
-  chafa_canvas_config_set_cell_geometry (config, 10, 20);
+  chafa_canvas_config_set_cell_geometry (config, CELL_W, CELL_H);
   chafa_canvas_config_set_geometry (config, cols, rows);
   chafa_canvas_config_set_symbol_map (config, symbol_map);
   chafa_canvas_config_set_color_extractor (config, CHAFA_COLOR_EXTRACTOR_MEDIAN);
