@@ -195,7 +195,11 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
   if (width && height)
   {
 #ifdef HAVE_CHAFA
-    if (true)
+    const char *env = getenv ("HB_CHAFA");
+    bool chafa = true;
+    if (env)
+      chafa = atoi (env);
+    if (chafa)
       chafa_print_image_rgb24 (data, width, height, stride);
     else
 #endif
