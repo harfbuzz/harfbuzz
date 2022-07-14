@@ -164,6 +164,7 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
   uint32_t bg_color = data ? * (uint32_t *) data : 0;
 
   /* Drop first row while empty */
+  auto orig_data = data;
   while (height)
   {
     unsigned int i;
@@ -175,9 +176,14 @@ helper_cairo_surface_write_to_ansi_stream (cairo_surface_t	*surface,
     data += stride / 4;
     height--;
   }
+  if (orig_data < data)
+  {
+    data -= stride / 4;
+    height++; /* Add one first blank row for padding. */
+  }
 
   /* Drop last row while empty */
-  unsigned int orig_height = height;
+  auto orig_height = height;
   while (height)
   {
     const uint32_t *row = data + (height - 1) * stride / 4;
