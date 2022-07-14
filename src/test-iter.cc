@@ -225,6 +225,7 @@ main (int argc, char **argv)
   test_iterable<hb_sorted_array_t<const int>> ();
   test_iterable<hb_vector_t<float>> ();
   test_iterable<hb_set_t> ();
+  test_iterable<OT::Array16Of<OT::HBUINT16>> ();
 
   test_iterator (hb_zip (st, v));
   test_iterator_non_default_constructable (hb_enumerate (st));
