@@ -212,6 +212,8 @@ struct hb_ot_map_builder_t
 				hb_ot_map_feature_flags_t flags=F_NONE,
 				unsigned int value=1);
 
+  HB_INTERNAL bool has_feature (hb_tag_t tag);
+
   void add_feature (const hb_ot_map_feature_t &feat)
   { add_feature (feat.tag, feat.flags); }
 
