@@ -29,6 +29,12 @@ for reference.
      - 32bit: `../mingw-configure.sh i686`
      - 64bit: `../mingw-configure.sh x86_64`
 
+   c) Build as usual:
+     - make
+
+   d) Configure your wine to find system mingw libraries. See:
+      https://fedoraproject.org/wiki/MinGW/Configure_wine
+
 Now you can use `hb-shape` by `(cd win32build/util && wine hb-shape.exe)`
 but if you like to shape with the Microsoft Uniscribe:
 
