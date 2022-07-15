@@ -146,8 +146,8 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
 #endif
   if (font->x_scale < 0 || font->y_scale < 0)
   {
-    FT_Matrix matrix = { font->x_scale < 0 ? -1 : +1, 0,
-			  0, font->y_scale < 0 ? -1 : +1};
+    FT_Matrix matrix = { font->x_scale < 0 ? -(1<<16) : +(1<<16), 0,
+			  0, font->y_scale < 0 ? -(1<<16) : +(1<<16)};
     FT_Set_Transform (ft_face, &matrix, nullptr);
   }
 
