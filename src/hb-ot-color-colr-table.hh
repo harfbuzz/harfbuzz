@@ -524,6 +524,7 @@ struct PaintSweepGradient
 };
 
 struct Paint;
+
 // Paint a non-COLR glyph, filled as indicated by paint.
 struct PaintGlyph
 {
@@ -1152,6 +1153,8 @@ struct Paint
   Variable<PaintSkewAroundCenter>		paintformat31;
   PaintComposite				paintformat32;
   } u;
+  public:
+  DEFINE_SIZE_MIN (2);
 };
 
 struct BaseGlyphPaintRecord
