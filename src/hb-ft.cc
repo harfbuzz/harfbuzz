@@ -667,9 +667,20 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
   float y_mult = font->y_scale < 0 ? -1 : +1;
 #endif
 
-  metrics->ascender = FT_MulFix(ft_face->ascender, ft_face->size->metrics.y_scale);
-  metrics->descender = FT_MulFix(ft_face->descender, ft_face->size->metrics.y_scale);
-  metrics->line_gap = FT_MulFix( ft_face->height, ft_face->size->metrics.y_scale ) - (metrics->ascender - metrics->descender);
+  if (ft_face->units_per_EM != 0)
+  {
+    metrics->ascender = FT_MulFix(ft_face->ascender, ft_face->size->metrics.y_scale);
+    metrics->descender = FT_MulFix(ft_face->descender, ft_face->size->metrics.y_scale);
+    metrics->line_gap = FT_MulFix( ft_face->height, ft_face->size->metrics.y_scale ) - (metrics->ascender - metrics->descender);
+  }
+  else
+  {
+    /* Bitmap-only font, eg. color bitmap font. */
+    metrics->ascender = ft_face->size->metrics.ascender;
+    metrics->descender = ft_face->size->metrics.descender;
+    metrics->line_gap = ft_face->size->metrics.height - (metrics->ascender - metrics->descender);
+  }
+
   metrics->ascender  = (hb_position_t) (y_mult * metrics->ascender);
   metrics->descender = (hb_position_t) (y_mult * metrics->descender);
   metrics->line_gap  = (hb_position_t) (y_mult * metrics->line_gap);
