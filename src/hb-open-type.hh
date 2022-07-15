@@ -304,6 +304,10 @@ struct _hb_has_null<Type, true>
 template <typename Type, typename OffsetType, bool has_null=true>
 struct OffsetTo : Offset<OffsetType, has_null>
 {
+  // Make sure Type is not unbounded; works only for types that are fully defined at OffsetTo time.
+  static_assert (has_null == false ||
+		 (hb_has_null_size (Type) || !hb_has_min_size (Type)), "");
+
   HB_DELETE_COPY_ASSIGN (OffsetTo);
   OffsetTo () = default;
 
