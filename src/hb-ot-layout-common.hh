@@ -377,6 +377,51 @@ HB_FUNCOBJ (serialize_math_record_array);
  * Script, ScriptList, LangSys, Feature, FeatureList, Lookup, LookupList
  */
 
+struct IndexArray : Array16Of<Index>
+{
+  bool intersects (const hb_map_t *indexes) const
+  { return hb_any (*this, indexes); }
+
+  template <typename Iterator,
+	    hb_requires (hb_is_iterator (Iterator))>
+  void serialize (hb_serialize_context_t *c,
+		  hb_subset_layout_context_t *l,
+		  Iterator it)
+  {
+    if (!it) return;
+    if (unlikely (!c->extend_min ((*this)))) return;
+
+    for (const auto _ : it)
+    {
+      if (!l->visitLookupIndex()) break;
+
+      Index i;
+      i = _;
+      c->copy (i);
+      this->len++;
+    }
+  }
+
+  unsigned int get_indexes (unsigned int start_offset,
+			    unsigned int *_count /* IN/OUT */,
+			    unsigned int *_indexes /* OUT */) const
+  {
+    if (_count)
+    {
+      + this->sub_array (start_offset, _count)
+      | hb_sink (hb_array (_indexes, *_count))
+      ;
+    }
+    return this->len;
+  }
+
+  void add_indexes_to (hb_set_t* output /* OUT */) const
+  {
+    output->add_array (as_array ());
+  }
+};
+
+
 struct Record_sanitize_closure_t {
   hb_tag_t tag;
   const void *list_base;
@@ -464,338 +509,6 @@ struct RecordListOf : RecordArrayOf<Type>
     return_trace (RecordArrayOf<Type>::sanitize (c, this));
   }
 };
-
-struct Feature;
-
-struct RecordListOfFeature : RecordListOf<Feature>
-{
-  bool subset (hb_subset_context_t *c,
-	       hb_subset_layout_context_t *l) const
-  {
-    TRACE_SUBSET (this);
-    auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
-
-    unsigned count = this->len;
-    + hb_zip (*this, hb_range (count))
-    | hb_filter (l->feature_index_map, hb_second)
-    | hb_map (hb_first)
-    | hb_apply (subset_record_array (l, out, this))
-    ;
-    return_trace (true);
-  }
-};
-
-struct Script;
-struct RecordListOfScript : RecordListOf<Script>
-{
-  bool subset (hb_subset_context_t *c,
-               hb_subset_layout_context_t *l) const
-  {
-    TRACE_SUBSET (this);
-    auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
-
-    unsigned count = this->len;
-    for (auto _ : + hb_zip (*this, hb_range (count)))
-    {
-      auto snap = c->serializer->snapshot ();
-      l->cur_script_index = _.second;
-      bool ret = _.first.subset (l, this);
-      if (!ret) c->serializer->revert (snap);
-      else out->len++;
-    }
-
-    return_trace (true);
-  }
-};
-
-struct IndexArray : Array16Of<Index>
-{
-  bool intersects (const hb_map_t *indexes) const
-  { return hb_any (*this, indexes); }
-
-  template <typename Iterator,
-	    hb_requires (hb_is_iterator (Iterator))>
-  void serialize (hb_serialize_context_t *c,
-		  hb_subset_layout_context_t *l,
-		  Iterator it)
-  {
-    if (!it) return;
-    if (unlikely (!c->extend_min ((*this)))) return;
-
-    for (const auto _ : it)
-    {
-      if (!l->visitLookupIndex()) break;
-
-      Index i;
-      i = _;
-      c->copy (i);
-      this->len++;
-    }
-  }
-
-  unsigned int get_indexes (unsigned int start_offset,
-			    unsigned int *_count /* IN/OUT */,
-			    unsigned int *_indexes /* OUT */) const
-  {
-    if (_count)
-    {
-      + this->sub_array (start_offset, _count)
-      | hb_sink (hb_array (_indexes, *_count))
-      ;
-    }
-    return this->len;
-  }
-
-  void add_indexes_to (hb_set_t* output /* OUT */) const
-  {
-    output->add_array (as_array ());
-  }
-};
-
-
-struct LangSys
-{
-  unsigned int get_feature_count () const
-  { return featureIndex.len; }
-  hb_tag_t get_feature_index (unsigned int i) const
-  { return featureIndex[i]; }
-  unsigned int get_feature_indexes (unsigned int start_offset,
-				    unsigned int *feature_count /* IN/OUT */,
-				    unsigned int *feature_indexes /* OUT */) const
-  { return featureIndex.get_indexes (start_offset, feature_count, feature_indexes); }
-  void add_feature_indexes_to (hb_set_t *feature_indexes) const
-  { featureIndex.add_indexes_to (feature_indexes); }
-
-  bool has_required_feature () const { return reqFeatureIndex != 0xFFFFu; }
-  unsigned int get_required_feature_index () const
-  {
-    if (reqFeatureIndex == 0xFFFFu)
-      return Index::NOT_FOUND_INDEX;
-   return reqFeatureIndex;
-  }
-
-  LangSys* copy (hb_serialize_context_t *c) const
-  {
-    TRACE_SERIALIZE (this);
-    return_trace (c->embed (*this));
-  }
-
-  bool compare (const LangSys& o, const hb_map_t *feature_index_map) const
-  {
-    if (reqFeatureIndex != o.reqFeatureIndex)
-      return false;
-
-    auto iter =
-    + hb_iter (featureIndex)
-    | hb_filter (feature_index_map)
-    | hb_map (feature_index_map)
-    ;
-
-    auto o_iter =
-    + hb_iter (o.featureIndex)
-    | hb_filter (feature_index_map)
-    | hb_map (feature_index_map)
-    ;
-
-    for (; iter && o_iter; iter++, o_iter++)
-    {
-      unsigned a = *iter;
-      unsigned b = *o_iter;
-      if (a != b) return false;
-    }
-
-    if (iter || o_iter) return false;
-
-    return true;
-  }
-
-  void collect_features (hb_prune_langsys_context_t *c) const
-  {
-    if (!has_required_feature () && !get_feature_count ()) return;
-    if (has_required_feature () &&
-        c->duplicate_feature_map->has (reqFeatureIndex))
-      c->new_feature_indexes->add (get_required_feature_index ());
-
-    + hb_iter (featureIndex)
-    | hb_filter (c->duplicate_feature_map)
-    | hb_sink (c->new_feature_indexes)
-    ;
-  }
-
-  bool subset (hb_subset_context_t        *c,
-	       hb_subset_layout_context_t *l,
-	       const Tag                  *tag = nullptr) const
-  {
-    TRACE_SUBSET (this);
-    auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
-
-    const unsigned *v;
-    out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? *v : 0xFFFFu;
-
-    if (!l->visitFeatureIndex (featureIndex.len))
-      return_trace (false);
-
-    auto it =
-    + hb_iter (featureIndex)
-    | hb_filter (l->feature_index_map)
-    | hb_map (l->feature_index_map)
-    ;
-
-    bool ret = bool (it);
-    out->featureIndex.serialize (c->serializer, l, it);
-    return_trace (ret);
-  }
-
-  bool sanitize (hb_sanitize_context_t *c,
-		 const Record_sanitize_closure_t * = nullptr) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) && featureIndex.sanitize (c));
-  }
-
-  Offset16	lookupOrderZ;	/* = Null (reserved for an offset to a
-				 * reordering table) */
-  HBUINT16	reqFeatureIndex;/* Index of a feature required for this
-				 * language system--if no required features
-				 * = 0xFFFFu */
-  IndexArray	featureIndex;	/* Array of indices into the FeatureList */
-  public:
-  DEFINE_SIZE_ARRAY_SIZED (6, featureIndex);
-};
-DECLARE_NULL_NAMESPACE_BYTES (OT, LangSys);
-
-struct Script
-{
-  unsigned int get_lang_sys_count () const
-  { return langSys.len; }
-  const Tag& get_lang_sys_tag (unsigned int i) const
-  { return langSys.get_tag (i); }
-  unsigned int get_lang_sys_tags (unsigned int start_offset,
-				  unsigned int *lang_sys_count /* IN/OUT */,
-				  hb_tag_t     *lang_sys_tags /* OUT */) const
-  { return langSys.get_tags (start_offset, lang_sys_count, lang_sys_tags); }
-  const LangSys& get_lang_sys (unsigned int i) const
-  {
-    if (i == Index::NOT_FOUND_INDEX) return get_default_lang_sys ();
-    return this+langSys[i].offset;
-  }
-  bool find_lang_sys_index (hb_tag_t tag, unsigned int *index) const
-  { return langSys.find_index (tag, index); }
-
-  bool has_default_lang_sys () const           { return defaultLangSys != 0; }
-  const LangSys& get_default_lang_sys () const { return this+defaultLangSys; }
-
-  void prune_langsys (hb_prune_langsys_context_t *c,
-                      unsigned script_index) const
-  {
-    if (!has_default_lang_sys () && !get_lang_sys_count ()) return;
-    if (!c->visitScript ()) return;
-
-    if (!c->script_langsys_map->has (script_index))
-    {
-      if (unlikely (!c->script_langsys_map->set (script_index, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
-	return;
-    }
-
-    unsigned langsys_count = get_lang_sys_count ();
-    if (has_default_lang_sys ())
-    {
-      //only collect features from non-redundant langsys
-      const LangSys& d = get_default_lang_sys ();
-      if (c->visitLangsys (d.get_feature_count ())) {
-        d.collect_features (c);
-      }
-
-      for (auto _ : + hb_zip (langSys, hb_range (langsys_count)))
-      {
-        const LangSys& l = this+_.first.offset;
-        if (!c->visitLangsys (l.get_feature_count ())) continue;
-        if (l.compare (d, c->duplicate_feature_map)) continue;
-
-        l.collect_features (c);
-        c->script_langsys_map->get (script_index)->add (_.second);
-      }
-    }
-    else
-    {
-      for (auto _ : + hb_zip (langSys, hb_range (langsys_count)))
-      {
-        const LangSys& l = this+_.first.offset;
-        if (!c->visitLangsys (l.get_feature_count ())) continue;
-        l.collect_features (c);
-        c->script_langsys_map->get (script_index)->add (_.second);
-      }
-    }
-  }
-
-  bool subset (hb_subset_context_t         *c,
-	       hb_subset_layout_context_t  *l,
-	       const Tag                   *tag) const
-  {
-    TRACE_SUBSET (this);
-    if (!l->visitScript ()) return_trace (false);
-    if (tag && !c->plan->layout_scripts->has (*tag))
-      return false;
-
-    auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
-
-    bool defaultLang = false;
-    if (has_default_lang_sys ())
-    {
-      c->serializer->push ();
-      const LangSys& ls = this+defaultLangSys;
-      bool ret = ls.subset (c, l);
-      if (!ret && tag && *tag != HB_TAG ('D', 'F', 'L', 'T'))
-      {
-	c->serializer->pop_discard ();
-	out->defaultLangSys = 0;
-      }
-      else
-      {
-	c->serializer->add_link (out->defaultLangSys, c->serializer->pop_pack ());
-	defaultLang = true;
-      }
-    }
-
-    const hb_set_t *active_langsys = l->script_langsys_map->get (l->cur_script_index);
-    if (active_langsys)
-    {
-      unsigned count = langSys.len;
-      + hb_zip (langSys, hb_range (count))
-      | hb_filter (active_langsys, hb_second)
-      | hb_map (hb_first)
-      | hb_filter ([=] (const Record<LangSys>& record) {return l->visitLangSys (); })
-      | hb_apply (subset_record_array (l, &(out->langSys), this))
-      ;
-    }
-
-    return_trace (bool (out->langSys.len) || defaultLang || l->table_tag == HB_OT_TAG_GSUB);
-  }
-
-  bool sanitize (hb_sanitize_context_t *c,
-		 const Record_sanitize_closure_t * = nullptr) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
-  }
-
-  protected:
-  Offset16To<LangSys>
-		defaultLangSys;	/* Offset to DefaultLangSys table--from
-				 * beginning of Script table--may be Null */
-  RecordArrayOf<LangSys>
-		langSys;	/* Array of LangSysRecords--listed
-				 * alphabetically by LangSysTag */
-  public:
-  DEFINE_SIZE_ARRAY_SIZED (4, langSys);
-};
-
-typedef RecordListOfScript ScriptList;
-
 
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#size */
 struct FeatureParamsSize
@@ -1079,6 +792,7 @@ struct FeatureParams
   DEFINE_SIZE_MIN (0);
 };
 
+
 struct Feature
 {
   unsigned int get_lookup_count () const
@@ -1174,7 +888,292 @@ struct Feature
   DEFINE_SIZE_ARRAY_SIZED (4, lookupIndex);
 };
 
+struct RecordListOfFeature : RecordListOf<Feature>
+{
+  bool subset (hb_subset_context_t *c,
+	       hb_subset_layout_context_t *l) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+
+    unsigned count = this->len;
+    + hb_zip (*this, hb_range (count))
+    | hb_filter (l->feature_index_map, hb_second)
+    | hb_map (hb_first)
+    | hb_apply (subset_record_array (l, out, this))
+    ;
+    return_trace (true);
+  }
+};
+
 typedef RecordListOf<Feature> FeatureList;
+
+
+struct LangSys
+{
+  unsigned int get_feature_count () const
+  { return featureIndex.len; }
+  hb_tag_t get_feature_index (unsigned int i) const
+  { return featureIndex[i]; }
+  unsigned int get_feature_indexes (unsigned int start_offset,
+				    unsigned int *feature_count /* IN/OUT */,
+				    unsigned int *feature_indexes /* OUT */) const
+  { return featureIndex.get_indexes (start_offset, feature_count, feature_indexes); }
+  void add_feature_indexes_to (hb_set_t *feature_indexes) const
+  { featureIndex.add_indexes_to (feature_indexes); }
+
+  bool has_required_feature () const { return reqFeatureIndex != 0xFFFFu; }
+  unsigned int get_required_feature_index () const
+  {
+    if (reqFeatureIndex == 0xFFFFu)
+      return Index::NOT_FOUND_INDEX;
+   return reqFeatureIndex;
+  }
+
+  LangSys* copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    return_trace (c->embed (*this));
+  }
+
+  bool compare (const LangSys& o, const hb_map_t *feature_index_map) const
+  {
+    if (reqFeatureIndex != o.reqFeatureIndex)
+      return false;
+
+    auto iter =
+    + hb_iter (featureIndex)
+    | hb_filter (feature_index_map)
+    | hb_map (feature_index_map)
+    ;
+
+    auto o_iter =
+    + hb_iter (o.featureIndex)
+    | hb_filter (feature_index_map)
+    | hb_map (feature_index_map)
+    ;
+
+    for (; iter && o_iter; iter++, o_iter++)
+    {
+      unsigned a = *iter;
+      unsigned b = *o_iter;
+      if (a != b) return false;
+    }
+
+    if (iter || o_iter) return false;
+
+    return true;
+  }
+
+  void collect_features (hb_prune_langsys_context_t *c) const
+  {
+    if (!has_required_feature () && !get_feature_count ()) return;
+    if (has_required_feature () &&
+        c->duplicate_feature_map->has (reqFeatureIndex))
+      c->new_feature_indexes->add (get_required_feature_index ());
+
+    + hb_iter (featureIndex)
+    | hb_filter (c->duplicate_feature_map)
+    | hb_sink (c->new_feature_indexes)
+    ;
+  }
+
+  bool subset (hb_subset_context_t        *c,
+	       hb_subset_layout_context_t *l,
+	       const Tag                  *tag = nullptr) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+
+    const unsigned *v;
+    out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? *v : 0xFFFFu;
+
+    if (!l->visitFeatureIndex (featureIndex.len))
+      return_trace (false);
+
+    auto it =
+    + hb_iter (featureIndex)
+    | hb_filter (l->feature_index_map)
+    | hb_map (l->feature_index_map)
+    ;
+
+    bool ret = bool (it);
+    out->featureIndex.serialize (c->serializer, l, it);
+    return_trace (ret);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c,
+		 const Record_sanitize_closure_t * = nullptr) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (c->check_struct (this) && featureIndex.sanitize (c));
+  }
+
+  Offset16	lookupOrderZ;	/* = Null (reserved for an offset to a
+				 * reordering table) */
+  HBUINT16	reqFeatureIndex;/* Index of a feature required for this
+				 * language system--if no required features
+				 * = 0xFFFFu */
+  IndexArray	featureIndex;	/* Array of indices into the FeatureList */
+  public:
+  DEFINE_SIZE_ARRAY_SIZED (6, featureIndex);
+};
+DECLARE_NULL_NAMESPACE_BYTES (OT, LangSys);
+
+struct Script
+{
+  unsigned int get_lang_sys_count () const
+  { return langSys.len; }
+  const Tag& get_lang_sys_tag (unsigned int i) const
+  { return langSys.get_tag (i); }
+  unsigned int get_lang_sys_tags (unsigned int start_offset,
+				  unsigned int *lang_sys_count /* IN/OUT */,
+				  hb_tag_t     *lang_sys_tags /* OUT */) const
+  { return langSys.get_tags (start_offset, lang_sys_count, lang_sys_tags); }
+  const LangSys& get_lang_sys (unsigned int i) const
+  {
+    if (i == Index::NOT_FOUND_INDEX) return get_default_lang_sys ();
+    return this+langSys[i].offset;
+  }
+  bool find_lang_sys_index (hb_tag_t tag, unsigned int *index) const
+  { return langSys.find_index (tag, index); }
+
+  bool has_default_lang_sys () const           { return defaultLangSys != 0; }
+  const LangSys& get_default_lang_sys () const { return this+defaultLangSys; }
+
+  void prune_langsys (hb_prune_langsys_context_t *c,
+                      unsigned script_index) const
+  {
+    if (!has_default_lang_sys () && !get_lang_sys_count ()) return;
+    if (!c->visitScript ()) return;
+
+    if (!c->script_langsys_map->has (script_index))
+    {
+      if (unlikely (!c->script_langsys_map->set (script_index, hb::unique_ptr<hb_set_t> {hb_set_create ()})))
+	return;
+    }
+
+    unsigned langsys_count = get_lang_sys_count ();
+    if (has_default_lang_sys ())
+    {
+      //only collect features from non-redundant langsys
+      const LangSys& d = get_default_lang_sys ();
+      if (c->visitLangsys (d.get_feature_count ())) {
+        d.collect_features (c);
+      }
+
+      for (auto _ : + hb_zip (langSys, hb_range (langsys_count)))
+      {
+        const LangSys& l = this+_.first.offset;
+        if (!c->visitLangsys (l.get_feature_count ())) continue;
+        if (l.compare (d, c->duplicate_feature_map)) continue;
+
+        l.collect_features (c);
+        c->script_langsys_map->get (script_index)->add (_.second);
+      }
+    }
+    else
+    {
+      for (auto _ : + hb_zip (langSys, hb_range (langsys_count)))
+      {
+        const LangSys& l = this+_.first.offset;
+        if (!c->visitLangsys (l.get_feature_count ())) continue;
+        l.collect_features (c);
+        c->script_langsys_map->get (script_index)->add (_.second);
+      }
+    }
+  }
+
+  bool subset (hb_subset_context_t         *c,
+	       hb_subset_layout_context_t  *l,
+	       const Tag                   *tag) const
+  {
+    TRACE_SUBSET (this);
+    if (!l->visitScript ()) return_trace (false);
+    if (tag && !c->plan->layout_scripts->has (*tag))
+      return false;
+
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+
+    bool defaultLang = false;
+    if (has_default_lang_sys ())
+    {
+      c->serializer->push ();
+      const LangSys& ls = this+defaultLangSys;
+      bool ret = ls.subset (c, l);
+      if (!ret && tag && *tag != HB_TAG ('D', 'F', 'L', 'T'))
+      {
+	c->serializer->pop_discard ();
+	out->defaultLangSys = 0;
+      }
+      else
+      {
+	c->serializer->add_link (out->defaultLangSys, c->serializer->pop_pack ());
+	defaultLang = true;
+      }
+    }
+
+    const hb_set_t *active_langsys = l->script_langsys_map->get (l->cur_script_index);
+    if (active_langsys)
+    {
+      unsigned count = langSys.len;
+      + hb_zip (langSys, hb_range (count))
+      | hb_filter (active_langsys, hb_second)
+      | hb_map (hb_first)
+      | hb_filter ([=] (const Record<LangSys>& record) {return l->visitLangSys (); })
+      | hb_apply (subset_record_array (l, &(out->langSys), this))
+      ;
+    }
+
+    return_trace (bool (out->langSys.len) || defaultLang || l->table_tag == HB_OT_TAG_GSUB);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c,
+		 const Record_sanitize_closure_t * = nullptr) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (defaultLangSys.sanitize (c, this) && langSys.sanitize (c, this));
+  }
+
+  protected:
+  Offset16To<LangSys>
+		defaultLangSys;	/* Offset to DefaultLangSys table--from
+				 * beginning of Script table--may be Null */
+  RecordArrayOf<LangSys>
+		langSys;	/* Array of LangSysRecords--listed
+				 * alphabetically by LangSysTag */
+  public:
+  DEFINE_SIZE_ARRAY_SIZED (4, langSys);
+};
+
+struct RecordListOfScript : RecordListOf<Script>
+{
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
+
+    unsigned count = this->len;
+    for (auto _ : + hb_zip (*this, hb_range (count)))
+    {
+      auto snap = c->serializer->snapshot ();
+      l->cur_script_index = _.second;
+      bool ret = _.first.subset (l, this);
+      if (!ret) c->serializer->revert (snap);
+      else out->len++;
+    }
+
+    return_trace (true);
+  }
+};
+
+typedef RecordListOfScript ScriptList;
+
 
 
 struct LookupFlag : HBUINT16
