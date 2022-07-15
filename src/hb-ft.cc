@@ -146,6 +146,7 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
 #endif
      ) && ft_face->num_fixed_sizes)
   {
+#ifdef HAVE_FT_GET_TRANSFORM
     /* Bitmap font, eg. bitmap color emoji. */
     /* TODO Pick largest size? */
     int x_scale  = ft_face->available_sizes[0].x_ppem;
@@ -155,6 +156,7 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
 		      0, 0);
     x_mult = (float) font->x_scale / x_scale;
     y_mult = (float) font->y_scale / y_scale;
+#endif
   }
   else
   { /* Shrug */ }
