@@ -198,6 +198,7 @@ if freetype_dep.found()
     ['FT_Get_Var_Blend_Coordinates', {'deps': freetype_dep}],
     ['FT_Set_Var_Blend_Coordinates', {'deps': freetype_dep}],
     ['FT_Done_MM_Var', {'deps': freetype_dep}],
+    ['FT_Get_Transform', {'deps': freetype_dep}],
   ]
 
   if freetype_dep.type_name() == 'internal'

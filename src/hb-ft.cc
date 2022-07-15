@@ -422,9 +422,13 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   int load_flags = ft_font->load_flags;
+#ifdef HAVE_FT_GET_TRANSFORM
   FT_Matrix matrix;
   FT_Get_Transform (ft_face, &matrix, nullptr);
   float mult = matrix.xx / 65536.f;
+#else
+  float mult = font->x_scale < 0 ? -1 : +1;
+#endif
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -456,9 +460,13 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Fixed v;
+#ifdef HAVE_FT_GET_TRANSFORM
   FT_Matrix matrix;
   FT_Get_Transform (ft_font->ft_face, &matrix, nullptr);
   float y_mult = matrix.yy / 65536.f;
+#else
+  float y_mult = font->y_scale < 0 ? -1 : +1;
+#endif
 
   if (unlikely (FT_Get_Advance (ft_font->ft_face, glyph, ft_font->load_flags | FT_LOAD_VERTICAL_LAYOUT, &v)))
     return 0;
@@ -484,10 +492,15 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+#ifdef HAVE_FT_GET_TRANSFORM
   FT_Matrix matrix;
   FT_Get_Transform (ft_face, &matrix, nullptr);
   float x_mult = matrix.xx / 65536.f;
   float y_mult = matrix.yy / 65536.f;
+#else
+  float x_mult = font->x_scale < 0 ? -1 : +1;
+  float y_mult = font->y_scale < 0 ? -1 : +1;
+#endif
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
     return false;
@@ -534,10 +547,15 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+#ifdef HAVE_FT_GET_TRANSFORM
   FT_Matrix matrix;
   FT_Get_Transform (ft_face, &matrix, nullptr);
   float x_mult = matrix.xx / 65536.f;
   float y_mult = matrix.yy / 65536.f;
+#else
+  float x_mult = font->x_scale < 0 ? -1 : +1;
+  float y_mult = font->y_scale < 0 ? -1 : +1;
+#endif
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
     return false;
@@ -639,9 +657,13 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+#ifdef HAVE_FT_GET_TRANSFORM
   FT_Matrix matrix;
   FT_Get_Transform (ft_face, &matrix, nullptr);
   float y_mult = matrix.yy / 65536.f;
+#else
+  float y_mult = font->y_scale < 0 ? -1 : +1;
+#endif
 
   metrics->ascender = FT_MulFix(ft_face->ascender, ft_face->size->metrics.y_scale);
   metrics->descender = FT_MulFix(ft_face->descender, ft_face->size->metrics.y_scale);
