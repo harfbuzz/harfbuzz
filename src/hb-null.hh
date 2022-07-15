@@ -39,6 +39,24 @@
 
 #define HB_NULL_POOL_SIZE 448
 
+template <typename T, typename>
+struct _hb_has_min_size : hb_false_type {};
+template <typename T>
+struct _hb_has_min_size<T, hb_void_t<decltype (T::min_size)>>
+	: hb_true_type {};
+template <typename T>
+using hb_has_min_size = _hb_has_min_size<T, void>;
+#define hb_has_min_size(T) hb_has_min_size<T>::value
+
+template <typename T, typename>
+struct _hb_has_null_size : hb_false_type {};
+template <typename T>
+struct _hb_has_null_size<T, hb_void_t<decltype (T::null_size)>>
+	: hb_true_type {};
+template <typename T>
+using hb_has_null_size = _hb_has_null_size<T, void>;
+#define hb_has_null_size(T) hb_has_null_size<T>::value
+
 /* Use SFINAE to sniff whether T has min_size; in which case return the larger
  * of sizeof(T) and T::null_size, otherwise return sizeof(T).
  *
