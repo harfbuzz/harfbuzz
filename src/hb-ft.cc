@@ -137,6 +137,10 @@ _hb_ft_font_destroy (void *data)
 static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
 {
   float x_mult = 1.f, y_mult = 1.f;
+
+  if (font->x_scale < 0) x_mult = -x_mult;
+  if (font->y_scale < 0) y_mult = -y_mult;
+
   if (FT_Set_Char_Size (ft_face,
 			abs (font->x_scale), abs (font->y_scale),
 			0, 0
@@ -154,6 +158,8 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
     FT_Set_Char_Size (ft_face,
 		      x_scale, y_scale,
 		      0, 0);
+
+    /* This contains the sign that was previously in x_mult/y_mult. */
     x_mult = (float) font->x_scale / x_scale;
     y_mult = (float) font->y_scale / y_scale;
 #endif
@@ -161,8 +167,6 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
   else
   { /* Shrug */ }
 
-  if (font->x_scale < 0) x_mult = -x_mult;
-  if (font->y_scale < 0) y_mult = -y_mult;
 
   if (x_mult != 1.f || y_mult != 1.f)
   {
