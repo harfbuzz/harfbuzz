@@ -136,18 +136,36 @@ _hb_ft_font_destroy (void *data)
 /* hb_font changed, update FT_Face. */
 static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
 {
-
-  FT_Set_Char_Size (ft_face,
-		    abs (font->x_scale), abs (font->y_scale),
-		    0, 0);
+  float x_mult = 1.f, y_mult = 1.f;
+  if (FT_Set_Char_Size (ft_face,
+			abs (font->x_scale), abs (font->y_scale),
+			0, 0
 #if 0
 		    font->x_ppem * 72 * 64 / font->x_scale,
-		    font->y_ppem * 72 * 64 / font->y_scale);
+		    font->y_ppem * 72 * 64 / font->y_scale
 #endif
-  if (font->x_scale < 0 || font->y_scale < 0)
+     ) && ft_face->num_fixed_sizes)
   {
-    FT_Matrix matrix = { font->x_scale < 0 ? -(1<<16) : +(1<<16), 0,
-			  0, font->y_scale < 0 ? -(1<<16) : +(1<<16)};
+    /* Bitmap font, eg. bitmap color emoji. */
+    /* TODO Pick largest size? */
+    int x_scale  = ft_face->available_sizes[0].x_ppem;
+    int y_scale = ft_face->available_sizes[0].y_ppem;
+    FT_Set_Char_Size (ft_face,
+		      x_scale, y_scale,
+		      0, 0);
+    x_mult = (float) font->x_scale / x_scale;
+    y_mult = (float) font->y_scale / y_scale;
+  }
+  else
+  { /* Shrug */ }
+
+  if (font->x_scale < 0) x_mult = -x_mult;
+  if (font->y_scale < 0) y_mult = -y_mult;
+
+  if (x_mult != 1.f || y_mult != 1.f)
+  {
+    FT_Matrix matrix = { (int) roundf (x_mult * (1<<16)), 0,
+			  0, (int) roundf (y_mult * (1<<16))};
     FT_Set_Transform (ft_face, &matrix, nullptr);
   }
 
@@ -404,7 +422,9 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
   int load_flags = ft_font->load_flags;
-  int mult = font->x_scale < 0 ? -1 : +1;
+  FT_Matrix matrix;
+  FT_Get_Transform (ft_face, &matrix, nullptr);
+  float mult = matrix.xx / 65536.f;
 
   for (unsigned int i = 0; i < count; i++)
   {
@@ -420,7 +440,7 @@ hb_ft_get_glyph_h_advances (hb_font_t* font, void* font_data,
       ft_font->advance_cache.set (glyph, v);
     }
 
-    *first_advance = (v * mult + (1<<9)) >> 10;
+    *first_advance = (int) (v * mult + (1<<9)) >> 10;
     first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
     first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
   }
@@ -436,12 +456,14 @@ hb_ft_get_glyph_v_advance (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Fixed v;
+  FT_Matrix matrix;
+  FT_Get_Transform (ft_font->ft_face, &matrix, nullptr);
+  float y_mult = matrix.yy / 65536.f;
 
   if (unlikely (FT_Get_Advance (ft_font->ft_face, glyph, ft_font->load_flags | FT_LOAD_VERTICAL_LAYOUT, &v)))
     return 0;
 
-  if (font->y_scale < 0)
-    v = -v;
+  v = (int) (y_mult * v);
 
   /* Note: FreeType's vertical metrics grows downward while other FreeType coordinates
    * have a Y growing upward.  Hence the extra negation. */
@@ -462,6 +484,10 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+  FT_Matrix matrix;
+  FT_Get_Transform (ft_face, &matrix, nullptr);
+  float x_mult = matrix.xx / 65536.f;
+  float y_mult = matrix.yy / 65536.f;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
     return false;
@@ -471,10 +497,8 @@ hb_ft_get_glyph_v_origin (hb_font_t *font,
   *x = ft_face->glyph->metrics.horiBearingX -   ft_face->glyph->metrics.vertBearingX;
   *y = ft_face->glyph->metrics.horiBearingY - (-ft_face->glyph->metrics.vertBearingY);
 
-  if (font->x_scale < 0)
-    *x = -*x;
-  if (font->y_scale < 0)
-    *y = -*y;
+  *x = (hb_position_t) (x_mult * *x);
+  *y = (hb_position_t) (y_mult * *y);
 
   return true;
 }
@@ -510,24 +534,19 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+  FT_Matrix matrix;
+  FT_Get_Transform (ft_face, &matrix, nullptr);
+  float x_mult = matrix.xx / 65536.f;
+  float y_mult = matrix.yy / 65536.f;
 
   if (unlikely (FT_Load_Glyph (ft_face, glyph, ft_font->load_flags)))
     return false;
 
-  extents->x_bearing = ft_face->glyph->metrics.horiBearingX;
-  extents->y_bearing = ft_face->glyph->metrics.horiBearingY;
-  extents->width = ft_face->glyph->metrics.width;
-  extents->height = -ft_face->glyph->metrics.height;
-  if (font->x_scale < 0)
-  {
-    extents->x_bearing = -extents->x_bearing;
-    extents->width = -extents->width;
-  }
-  if (font->y_scale < 0)
-  {
-    extents->y_bearing = -extents->y_bearing;
-    extents->height = -extents->height;
-  }
+  extents->x_bearing = (hb_position_t) (x_mult * ft_face->glyph->metrics.horiBearingX);
+  extents->y_bearing = (hb_position_t) (y_mult * ft_face->glyph->metrics.horiBearingY);
+  extents->width  = (hb_position_t) (x_mult *  ft_face->glyph->metrics.width);
+  extents->height = (hb_position_t) (y_mult * -ft_face->glyph->metrics.height);
+
   return true;
 }
 
@@ -620,16 +639,17 @@ hb_ft_get_font_h_extents (hb_font_t *font HB_UNUSED,
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
+  FT_Matrix matrix;
+  FT_Get_Transform (ft_face, &matrix, nullptr);
+  float y_mult = matrix.yy / 65536.f;
 
   metrics->ascender = FT_MulFix(ft_face->ascender, ft_face->size->metrics.y_scale);
   metrics->descender = FT_MulFix(ft_face->descender, ft_face->size->metrics.y_scale);
   metrics->line_gap = FT_MulFix( ft_face->height, ft_face->size->metrics.y_scale ) - (metrics->ascender - metrics->descender);
-  if (font->y_scale < 0)
-  {
-    metrics->ascender = -metrics->ascender;
-    metrics->descender = -metrics->descender;
-    metrics->line_gap = -metrics->line_gap;
-  }
+  metrics->ascender  = (hb_position_t) (y_mult * metrics->ascender);
+  metrics->descender = (hb_position_t) (y_mult * metrics->descender);
+  metrics->line_gap  = (hb_position_t) (y_mult * metrics->line_gap);
+
   return true;
 }
 
