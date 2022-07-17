@@ -111,6 +111,13 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 #endif
 
 
+/* This we always use std::atomic for; and should never be disabled. */
+#include <atomic>
+#ifndef _hb_compiler_memory_r_barrier
+#define _hb_compiler_memory_r_barrier() std::atomic_signal_fence (std::memory_order_acquire)
+#endif
+
+
 #ifndef _hb_memory_r_barrier
 #define _hb_memory_r_barrier()			_hb_memory_barrier ()
 #endif
