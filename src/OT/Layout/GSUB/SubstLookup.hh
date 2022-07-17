@@ -25,7 +25,7 @@ struct SubstLookup : Lookup
   {
     unsigned int type = get_type ();
     if (unlikely (type == SubTable::Extension))
-      return reinterpret_cast<const ExtensionSubst &> (get_subtable (0)).is_reverse ();
+      return get_subtable (0).u.extension.is_reverse ();
     return lookup_type_is_reverse (type);
   }
 
