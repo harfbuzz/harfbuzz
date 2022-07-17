@@ -109,15 +109,16 @@ struct BEInt<Type, 2>
   struct __attribute__((packed)) packed_uint16_t { uint16_t v; };
   constexpr operator Type () const
   {
-#if ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
+#if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
+    ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
     defined(__BYTE_ORDER) && \
     (__BYTE_ORDER == __LITTLE_ENDIAN || __BYTE_ORDER == __BIG_ENDIAN)
     /* Spoon-feed the compiler a big-endian integer with alignment 1.
      * https://github.com/harfbuzz/harfbuzz/pull/1398 */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-    return __builtin_bswap16 (((packed_uint16_t *) this)->v);
+    return __builtin_bswap16 (((packed_uint16_t *) v)->v);
 #else /* __BYTE_ORDER == __BIG_ENDIAN */
-    return ((packed_uint16_t *) this)->v;
+    return ((packed_uint16_t *) v)->v;
 #endif
 #else
     return (v[0] <<  8)
@@ -153,15 +154,16 @@ struct BEInt<Type, 4>
 
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
   constexpr operator Type () const {
-#if ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
+#if defined(__OPTIMIZE__) && !defined(HB_NO_PACKED) && \
+    ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__)) && \
     defined(__BYTE_ORDER) && \
     (__BYTE_ORDER == __LITTLE_ENDIAN || __BYTE_ORDER == __BIG_ENDIAN)
     /* Spoon-feed the compiler a big-endian integer with alignment 1.
      * https://github.com/harfbuzz/harfbuzz/pull/1398 */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-    return __builtin_bswap32 (((packed_uint32_t *) this)->v);
+    return __builtin_bswap32 (((packed_uint32_t *) v)->v);
 #else /* __BYTE_ORDER == __BIG_ENDIAN */
-    return ((packed_uint32_t *) this)->v;
+    return ((packed_uint32_t *) v)->v;
 #endif
 #else
     return (v[0] << 24)
