@@ -459,6 +459,7 @@ struct UnsizedArrayOf
     unsigned int i = (unsigned int) i_;
     const Type *p = &arrayZ[i];
     if (unlikely (p < arrayZ)) return Null (Type); /* Overflowed. */
+    _hb_memory_r_barrier ();
     return *p;
   }
   Type& operator [] (int i_)
@@ -466,6 +467,7 @@ struct UnsizedArrayOf
     unsigned int i = (unsigned int) i_;
     Type *p = &arrayZ[i];
     if (unlikely (p < arrayZ)) return Crap (Type); /* Overflowed. */
+    _hb_memory_r_barrier ();
     return *p;
   }
 
@@ -559,6 +561,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_
     unsigned int i = (unsigned int) i_;
     const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
     if (unlikely (p < this->arrayZ)) return Null (Type); /* Overflowed. */
+    _hb_memory_r_barrier ();
     return this+*p;
   }
   Type& operator [] (int i_)
@@ -566,6 +569,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_
     unsigned int i = (unsigned int) i_;
     const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
     if (unlikely (p < this->arrayZ)) return Crap (Type); /* Overflowed. */
+    _hb_memory_r_barrier ();
     return this+*p;
   }
 
@@ -616,12 +620,14 @@ struct ArrayOf
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len)) return Null (Type);
+    _hb_memory_r_barrier ();
     return arrayZ[i];
   }
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= len)) return Crap (Type);
+    _hb_memory_r_barrier ();
     return arrayZ[i];
   }
 
@@ -754,12 +760,14 @@ struct List16OfOffsetTo : ArrayOf<OffsetTo<Type, OffsetType>, HBUINT16>
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= this->len)) return Null (Type);
+    _hb_memory_r_barrier ();
     return this+this->arrayZ[i];
   }
   const Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= this->len)) return Crap (Type);
+    _hb_memory_r_barrier ();
     return this+this->arrayZ[i];
   }
 
@@ -797,12 +805,14 @@ struct HeadlessArrayOf
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= lenP1 || !i)) return Null (Type);
+    _hb_memory_r_barrier ();
     return arrayZ[i-1];
   }
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= lenP1 || !i)) return Crap (Type);
+    _hb_memory_r_barrier ();
     return arrayZ[i-1];
   }
   unsigned int get_size () const
@@ -881,12 +891,14 @@ struct ArrayOfM1
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i > lenM1)) return Null (Type);
+    _hb_memory_r_barrier ();
     return arrayZ[i];
   }
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i > lenM1)) return Crap (Type);
+    _hb_memory_r_barrier ();
     return arrayZ[i];
   }
   unsigned int get_size () const
@@ -1066,12 +1078,14 @@ struct VarSizedBinSearchArrayOf
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= get_length ())) return Null (Type);
+    _hb_memory_r_barrier ();
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
   Type& operator [] (int i_)
   {
     unsigned int i = (unsigned int) i_;
     if (unlikely (i >= get_length ())) return Crap (Type);
+    _hb_memory_r_barrier ();
     return StructAtOffset<Type> (&bytesZ, i * header.unitSize);
   }
   unsigned int get_length () const
