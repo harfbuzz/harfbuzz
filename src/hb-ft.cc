@@ -287,7 +287,7 @@ hb_ft_font_get_face (hb_font_t *font)
  * Gets the FT_Face associated with @font, This face will be kept around until
  * you call hb_ft_font_unlock_face().
  *
- * Return value: (nullable): the FT_Face associated with @font or `NULL`
+ * Return value: (nullable) (transfer none): the FT_Face associated with @font or `NULL`
  * Since: 2.6.5
  **/
 FT_Face
@@ -304,7 +304,7 @@ hb_ft_font_lock_face (hb_font_t *font)
 }
 
 /**
- * hb_ft_font_unlock_face:
+ * hb_ft_font_unlock_face: (skip)
  * @font: #hb_font_t to work upon
  *
  * Releases an FT_Face previously obtained with hb_ft_font_lock_face().
