@@ -166,6 +166,7 @@ struct CoverageFormat2_4
       {
         /* Broken table. Skip. */
         i = c->rangeRecord.len;
+        j = 0;
       }
     }
     void fini () {}
