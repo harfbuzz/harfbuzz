@@ -82,9 +82,11 @@ chafa_print_image_rgb24 (const void *data, int width, int height, int stride)
   /* Create the configuration */
 
   symbol_map = chafa_symbol_map_new ();
-  chafa_symbol_map_add_by_tags (symbol_map, CHAFA_SYMBOL_TAG_ALL
-                                /*(ChafaSymbolTags) (CHAFA_SYMBOL_TAG_BLOCK
-                                                   | CHAFA_SYMBOL_TAG_SPACE)*/);
+  chafa_symbol_map_add_by_tags (symbol_map,
+                                (ChafaSymbolTags) (CHAFA_SYMBOL_TAG_BLOCK
+                                                   | CHAFA_SYMBOL_TAG_SPACE
+						   //| CHAFA_SYMBOL_TAG_WEDGE
+				));
 
   config = chafa_canvas_config_new ();
   chafa_canvas_config_set_canvas_mode (config, mode);
