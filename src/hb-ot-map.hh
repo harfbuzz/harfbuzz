@@ -204,7 +204,7 @@ struct hb_ot_map_builder_t
   public:
 
   HB_INTERNAL hb_ot_map_builder_t (hb_face_t *face_,
-				   const hb_segment_properties_t *props_);
+				   const hb_segment_properties_t &props_);
 
   HB_INTERNAL ~hb_ot_map_builder_t ();
 

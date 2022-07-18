@@ -52,9 +52,9 @@ struct hb_aat_map_builder_t
   public:
 
   HB_INTERNAL hb_aat_map_builder_t (hb_face_t *face_,
-				    const hb_segment_properties_t *props_) :
+				    const hb_segment_properties_t props_) :
 				      face (face_),
-				      props (*props_) {}
+				      props (props_) {}
 
   HB_INTERNAL void add_feature (hb_tag_t tag, unsigned int value=1);
 
