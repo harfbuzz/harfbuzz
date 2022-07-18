@@ -218,7 +218,7 @@ parse_features (const char *name G_GNUC_UNUSED,
   p = s;
   do {
     shape_opts->num_features++;
-    p = strchr (p, ',');
+    p = strpbrk (p, ", ");
     if (p)
       p++;
   } while (p);
@@ -231,7 +231,7 @@ parse_features (const char *name G_GNUC_UNUSED,
   p = s;
   shape_opts->num_features = 0;
   while (p && *p) {
-    char *end = strchr (p, ',');
+    char *end = strpbrk (p, ", ");
     if (hb_feature_from_string (p, end ? end - p : -1, &shape_opts->features[shape_opts->num_features]))
       shape_opts->num_features++;
     p = end ? end + 1 : nullptr;

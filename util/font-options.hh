@@ -173,7 +173,7 @@ parse_variations (const char *name G_GNUC_UNUSED,
   p = s;
   do {
     font_opts->num_variations++;
-    p = strchr (p, ',');
+    p = strpbrk (p, ", ");
     if (p)
       p++;
   } while (p);
@@ -186,7 +186,7 @@ parse_variations (const char *name G_GNUC_UNUSED,
   p = s;
   font_opts->num_variations = 0;
   while (p && *p) {
-    char *end = strchr (p, ',');
+    char *end = strpbrk (p, ", ");
     if (hb_variation_from_string (p, end ? end - p : -1, &font_opts->variations[font_opts->num_variations]))
       font_opts->num_variations++;
     p = end ? end + 1 : nullptr;
