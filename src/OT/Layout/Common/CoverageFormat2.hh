@@ -187,6 +187,7 @@ struct CoverageFormat2_4
              * consecutive and monotonically increasing,
              * ie. iota(). */
            i = c->rangeRecord.len;
+           j = 0;
            return;
           }
         }
