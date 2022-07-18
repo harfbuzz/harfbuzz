@@ -36,7 +36,7 @@
 const unsigned DEFAULT_FONT_SIZE = FONT_SIZE_UPEM;
 const unsigned SUBPIXEL_BITS = 0;
 
-struct output_buffer_t : output_options_t<>
+struct shape_output_t : output_options_t<>
 {
   void add_options (option_parser_t *parser)
   {
@@ -129,7 +129,7 @@ struct output_buffer_t : output_options_t<>
 		const char *message,
 		void *user_data)
   {
-    output_buffer_t *that = (output_buffer_t *) user_data;
+    shape_output_t *that = (shape_output_t *) user_data;
     that->trace (buffer, font, message);
     return true;
   }
@@ -162,6 +162,6 @@ struct output_buffer_t : output_options_t<>
 int
 main (int argc, char **argv)
 {
-  using main_t = main_font_text_t<shape_consumer_t<output_buffer_t>, font_options_t, shape_text_options_t>;
+  using main_t = main_font_text_t<shape_consumer_t<shape_output_t>, font_options_t, shape_text_options_t>;
   return batch_main<main_t> (argc, argv);
 }
