@@ -207,15 +207,15 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
   map->enable_feature (HB_TAG('s','t','c','h'));
   map->add_gsub_pause (record_stch);
 
-  map->enable_feature (HB_TAG('c','c','m','p'));
-  map->enable_feature (HB_TAG('l','o','c','l'));
+  map->enable_feature (HB_TAG('c','c','m','p'), F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('l','o','c','l'), F_MANUAL_ZWJ);
 
   map->add_gsub_pause (nullptr);
 
   for (unsigned int i = 0; i < ARABIC_NUM_FEATURES; i++)
   {
     bool has_fallback = plan->props.script == HB_SCRIPT_ARABIC && !FEATURE_IS_SYRIAC (arabic_features[i]);
-    map->add_feature (arabic_features[i], has_fallback ? F_HAS_FALLBACK : F_NONE);
+    map->add_feature (arabic_features[i], F_MANUAL_ZWJ | (has_fallback ? F_HAS_FALLBACK : F_NONE));
     map->add_gsub_pause (nullptr);
   }
    map->add_gsub_pause (deallocate_buffer_var);
@@ -237,6 +237,9 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
      map->enable_feature (HB_TAG('r','c','l','t'), F_MANUAL_ZWJ);
    }
 
+   map->enable_feature (HB_TAG('l','i','g','a'), F_MANUAL_ZWJ);
+   map->enable_feature (HB_TAG('c','l','i','g'), F_MANUAL_ZWJ);
+
   /* The spec includes 'cswh'.  Earlier versions of Windows
    * used to enable this by default, but testing suggests
    * that Windows 8 and later do not enable it by default,
@@ -245,8 +248,8 @@ collect_features_arabic (hb_ot_shape_planner_t *plan)
    * Note that IranNastaliq uses this feature extensively
    * to fixup broken glyph sequences.  Oh well...
    * Test case: U+0643,U+0640,U+0631. */
-  //map->enable_feature (HB_TAG('c','s','w','h'));
-  map->enable_feature (HB_TAG('m','s','e','t'));
+  //map->enable_feature (HB_TAG('c','s','w','h'), F_MANUAL_ZWJ);
+  map->enable_feature (HB_TAG('m','s','e','t'), F_MANUAL_ZWJ);
 }
 
 #include "hb-ot-shaper-arabic-fallback.hh"
