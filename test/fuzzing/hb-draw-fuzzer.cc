@@ -14,6 +14,7 @@ struct _draw_data_t
   float path_last_y;
 };
 
+#include <cstdio>
 static void
 _move_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
 	  hb_draw_state_t *st,

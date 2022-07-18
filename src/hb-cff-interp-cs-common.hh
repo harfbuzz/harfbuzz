@@ -57,6 +57,7 @@ struct call_context_t
 
 /* call stack */
 const unsigned int kMaxCallLimit = 10;
+const unsigned int kMaxOps = 10000;
 struct call_stack_t : cff_stack_t<call_context_t, kMaxCallLimit> {};
 
 template <typename SUBRS>
@@ -882,6 +883,11 @@ struct cs_interpreter_t : interpreter_t<ENV>
     SUPER::env.set_endchar (false);
 
     for (;;) {
+      if (unlikely (!--max_ops))
+      {
+	SUPER::env.set_error ();
+	break;
+      }
       OPSET::process_op (SUPER::env.fetch_op (), SUPER::env, param);
       if (unlikely (SUPER::env.in_error ()))
 	return false;
@@ -894,6 +900,7 @@ struct cs_interpreter_t : interpreter_t<ENV>
 
   private:
   typedef interpreter_t<ENV> SUPER;
+  unsigned max_ops = kMaxOps;
 };
 
 } /* namespace CFF */
