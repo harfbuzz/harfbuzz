@@ -882,6 +882,7 @@ struct cs_interpreter_t : interpreter_t<ENV>
   {
     SUPER::env.set_endchar (false);
 
+    unsigned max_ops = kMaxOps;
     for (;;) {
       if (unlikely (!--max_ops))
       {
@@ -900,7 +901,6 @@ struct cs_interpreter_t : interpreter_t<ENV>
 
   private:
   typedef interpreter_t<ENV> SUPER;
-  unsigned max_ops = kMaxOps;
 };
 
 } /* namespace CFF */
