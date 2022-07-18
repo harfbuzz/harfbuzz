@@ -135,6 +135,7 @@ hb_script_get_horizontal_direction
 hb_language_from_string
 hb_language_to_string
 hb_language_get_default
+hb_language_matches
 hb_feature_from_string
 hb_feature_to_string
 hb_variation_from_string

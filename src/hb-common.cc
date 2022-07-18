@@ -441,6 +441,38 @@ hb_language_get_default ()
   return language;
 }
 
+/**
+ * hb_language_matches:
+ * @language: The #hb_language_t to work on
+ * @specific: Another #hb_language_t
+ *
+ * Check whether a second language tag is the same or a more
+ * specific version of the provided language tag.  For example,
+ * "fa_IR.utf8" is a more specific tag for "fa" or for "fa_IR".
+ *
+ * Return value: `true` if languages match, `false` otherwise.
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_language_matches (hb_language_t language,
+		     hb_language_t specific)
+{
+  if (language == specific) return true;
+  if (!language || !specific) return false;
+
+  const char *l = language->s;
+  const char *s = specific->s;
+  unsigned ll = strlen (l);
+  unsigned sl = strlen (s);
+
+  if (ll > sl)
+    return false;
+
+  return strncmp (l, s, ll) == 0 &&
+	 (s[ll] == '\0' || s[ll] == '-');
+}
+
 
 /* hb_script_t */
 
