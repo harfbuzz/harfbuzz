@@ -3,7 +3,10 @@
 set -x
 set -o errexit -o nounset
 
-TAG="$(git describe --exact-match --match "[0-9]*" HEAD 2>/dev/null || true)"
+if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+	echo "Skipping docs deployment on a non-tagged build";
+	exit 0;
+fi
 
 DOCSDIR=build-docs
 REVISION=$(git rev-parse --short HEAD)
@@ -17,8 +20,8 @@ cp ../build/docs/html/* .
 
 git init
 git branch -m main
-git config user.name "Travis CI"
-git config user.email "travis@harfbuzz.org"
+git config user.name "CI"
+git config user.email "harfbuzz-admin@googlegroups.com"
 set +x
 echo "git remote add upstream \"https://\$GH_TOKEN@github.com/harfbuzz/harfbuzz.github.io.git\""
 git remote add upstream "https://$GH_TOKEN@github.com/harfbuzz/harfbuzz.github.io.git"
