@@ -33,6 +33,7 @@
 #include "hb-serialize.hh"
 #include "hb-vector.hh"
 #include "graph/graph.hh"
+#include "graph/gsubgpos-graph.hh"
 #include "graph/serialize.hh"
 
 using graph::graph_t;
@@ -41,6 +42,19 @@ using graph::graph_t;
  * For a detailed writeup on the overflow resolution algorithm see:
  * docs/repacker.md
  */
+
+static inline
+void _make_extensions (graph_t& sorted_graph)
+{
+  // TODO: Move this into graph or gsubgpos graph?
+  hb_hashmap_t<unsigned, graph::Lookup*> lookups;
+  find_lookups (sorted_graph, lookups);
+
+  for (auto p : lookups.iter ())
+  {
+    p.second->make_extension (sorted_graph, p.first);
+  }
+}
 
 static inline
 bool _try_isolating_subgraphs (const hb_vector_t<graph::overflow_record_t>& overflows,
@@ -158,6 +172,7 @@ inline hb_blob_t*
 hb_resolve_overflows (const T& packed,
                       hb_tag_t table_tag,
                       unsigned max_rounds = 20) {
+  printf("Resolving overflows!\n");
   graph_t sorted_graph (packed);
   sorted_graph.sort_shortest_distance ();
 
@@ -172,6 +187,7 @@ hb_resolve_overflows (const T& packed,
       && will_overflow)
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
+    _make_extensions (sorted_graph);
     if (sorted_graph.assign_spaces ())
       sorted_graph.sort_shortest_distance ();
   }

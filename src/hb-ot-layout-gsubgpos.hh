@@ -4006,7 +4006,7 @@ struct GSUBGPOSVersion1_2
 {
   friend struct GSUBGPOS;
 
-  protected:
+  public: // TODO
   FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
 				 * to 0x00010000u */
   typename Types:: template OffsetTo<ScriptList>
