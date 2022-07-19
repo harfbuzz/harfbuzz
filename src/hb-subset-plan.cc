@@ -589,7 +589,7 @@ _nameid_closure (hb_face_t *face,
 #endif
 }
 
-
+#ifndef HB_NO_VAR
 static void
 _normalize_axes_location (hb_face_t *face,
 			  const hb_hashmap_t<hb_tag_t, float> *user_axes_location,
@@ -631,6 +631,7 @@ _normalize_axes_location (hb_face_t *face,
   }
   all_axes_pinned = !axis_not_pinned;
 }
+#endif
 /**
  * hb_subset_plan_create_or_fail:
  * @face: font face to create the plan for.
@@ -730,10 +731,12 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
         plan->glyph_map->get(plan->unicode_to_new_gid_list.arrayZ[i].second);
   }
 
+#ifndef HB_NO_VAR
   _normalize_axes_location (face,
                             input->axes_location,
                             plan->axes_location,
                             plan->all_axes_pinned);
+#endif
 
   _nameid_closure (face, plan->name_ids, plan->all_axes_pinned, plan->user_axes_location);
   if (unlikely (plan->in_error ())) {
