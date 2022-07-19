@@ -80,7 +80,7 @@ helper_cairo_create_ft_font_face (const font_options_t *font_opts)
   }
   else
   {
-#ifdef HAVE_FT_SET_VAR_BLEND_COORDINATES
+#if !defined(HB_NO_VAR) && defined(HAVE_FT_SET_VAR_BLEND_COORDINATES)
     unsigned int num_coords;
     const int *coords = hb_font_get_var_coords_normalized (font_opts->font, &num_coords);
     if (num_coords)
