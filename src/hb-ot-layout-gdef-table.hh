@@ -510,30 +510,31 @@ struct MarkGlyphSets
  */
 
 
-struct GDEFVersion1
+template <typename Types>
+struct GDEFVersion1_2
 {
   friend struct GDEF;
 
   protected:
   FixedVersion<>version;		/* Version of the GDEF table--currently
 					 * 0x00010003u */
-  Offset16To<ClassDef>
+  typename Types::template OffsetTo<ClassDef>
 		glyphClassDef;		/* Offset to class definition table
 					 * for glyph type--from beginning of
 					 * GDEF header (may be Null) */
-  Offset16To<AttachList>
+  typename Types::template OffsetTo<AttachList>
 		attachList;		/* Offset to list of glyphs with
 					 * attachment points--from beginning
 					 * of GDEF header (may be Null) */
-  Offset16To<LigCaretList>
+  typename Types::template OffsetTo<LigCaretList>
 		ligCaretList;		/* Offset to list of positioning points
 					 * for ligature carets--from beginning
 					 * of GDEF header (may be Null) */
-  Offset16To<ClassDef>
+  typename Types::template OffsetTo<ClassDef>
 		markAttachClassDef;	/* Offset to class definition table for
 					 * mark attachment type--from beginning
 					 * of GDEF header (may be Null) */
-  Offset16To<MarkGlyphSets>
+  typename Types::template OffsetTo<MarkGlyphSets>
 		markGlyphSetsDef;	/* Offset to the table of mark set
 					 * definitions--from beginning of GDEF
 					 * header (may be NULL).  Introduced
@@ -544,7 +545,7 @@ struct GDEFVersion1
 					 * header (may be NULL).  Introduced
 					 * in version 0x00010003. */
   public:
-  DEFINE_SIZE_MIN (12);
+  DEFINE_SIZE_MIN (4 + 4 * Types::size);
 
   unsigned int get_size () const
   {
@@ -557,7 +558,6 @@ struct GDEFVersion1
   {
     TRACE_SANITIZE (this);
     return_trace (version.sanitize (c) &&
-		  likely (version.major == 1) &&
 		  glyphClassDef.sanitize (c, this) &&
 		  attachList.sanitize (c, this) &&
 		  ligCaretList.sanitize (c, this) &&
@@ -827,8 +827,8 @@ struct GDEF
 
   protected:
   union {
-  FixedVersion<>	version;	/* Version identifier */
-  GDEFVersion1		version1;
+  FixedVersion<>		version;	/* Version identifier */
+  GDEFVersion1_2<SmallTypes>	version1;
   } u;
   public:
   DEFINE_SIZE_MIN (4);
