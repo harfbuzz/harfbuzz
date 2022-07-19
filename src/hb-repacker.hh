@@ -44,7 +44,7 @@ using graph::graph_t;
  */
 
 static inline
-void _make_extensions (graph_t& sorted_graph)
+void _make_extensions (hb_tag_t table_tag, graph_t& sorted_graph, hb_vector_t<char>& buffer)
 {
   // TODO: Move this into graph or gsubgpos graph?
   hb_hashmap_t<unsigned, graph::Lookup*> lookups;
@@ -52,7 +52,7 @@ void _make_extensions (graph_t& sorted_graph)
 
   for (auto p : lookups.iter ())
   {
-    p.second->make_extension (sorted_graph, p.first);
+    p.second->make_extension (table_tag, sorted_graph, p.first, buffer);
   }
 }
 
@@ -182,12 +182,13 @@ hb_resolve_overflows (const T& packed,
     return graph::serialize (sorted_graph);
   }
 
+  hb_vector_t<char> extension_buffer;
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)
   {
+    _make_extensions (table_tag, sorted_graph, extension_buffer);
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
-    _make_extensions (sorted_graph);
     if (sorted_graph.assign_spaces ())
       sorted_graph.sort_shortest_distance ();
   }
