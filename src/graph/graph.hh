@@ -199,7 +199,7 @@ struct graph_t
     return vertices_.length - 1;
   }
 
-  const hb_serialize_context_t::object_t& object(unsigned i) const
+  const hb_serialize_context_t::object_t& object (unsigned i) const
   {
     return vertices_[i].obj;
   }
@@ -368,6 +368,8 @@ struct graph_t
    */
   bool assign_spaces ()
   {
+    update_parents ();
+
     hb_set_t visited;
     hb_set_t roots;
     find_space_roots (visited, roots);
@@ -630,6 +632,40 @@ struct graph_t
     }
 
     return true;
+  }
+
+
+  /*
+   * Adds a new node to the graph, not connected to anything.
+   */
+  unsigned new_node (char* head, char* tail)
+  {
+    positions_invalid = true;
+    distance_invalid = true;
+    parents_invalid = true; // TODO: remove
+
+    auto* clone = vertices_.push ();
+    if (vertices_.in_error ()) {
+      return -1;
+    }
+
+    clone->obj.head = head;
+    clone->obj.tail = tail;
+    clone->distance = 0;
+    clone->space = 0;
+
+    unsigned clone_idx = vertices_.length - 2;
+
+    // The last object is the root of the graph, so swap back the root to the end.
+    // The root's obj idx does change, however since it's root nothing else refers to it.
+    // all other obj idx's will be unaffected.
+    hb_swap (vertices_[vertices_.length - 2], *clone);
+
+    // Since the root moved, update the parents arrays of all children on the root.
+    for (const auto& l : root ().obj.all_links ())
+      vertices_[l.objidx].remap_parent (root_idx () - 1, root_idx ());
+
+    return clone_idx;
   }
 
   /*

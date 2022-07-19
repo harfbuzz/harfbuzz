@@ -3868,7 +3868,7 @@ struct ExtensionFormat1
     return_trace (dest_offset.serialize_subset (c, src_offset, this, get_type ()));
   }
 
-  protected:
+  public: // TODO
   HBUINT16	format;			/* Format identifier. Set to 1. */
   HBUINT16	extensionLookupType;	/* Lookup type of subtable referenced
 					 * by ExtensionOffset (i.e. the
