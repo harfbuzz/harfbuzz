@@ -458,7 +458,7 @@ struct UnsizedArrayOf
   {
     unsigned int i = (unsigned int) i_;
     const Type *p = &arrayZ[i];
-    if (unlikely (p < arrayZ)) return Null (Type); /* Overflowed. */
+    if (unlikely ((const void *) p < (const void *) arrayZ)) return Null (Type); /* Overflowed. */
     _hb_compiler_memory_r_barrier ();
     return *p;
   }
@@ -466,7 +466,7 @@ struct UnsizedArrayOf
   {
     unsigned int i = (unsigned int) i_;
     Type *p = &arrayZ[i];
-    if (unlikely (p < arrayZ)) return Crap (Type); /* Overflowed. */
+    if (unlikely ((const void *) p < (const void *) arrayZ)) return Crap (Type); /* Overflowed. */
     _hb_compiler_memory_r_barrier ();
     return *p;
   }
@@ -560,7 +560,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_
   {
     unsigned int i = (unsigned int) i_;
     const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
-    if (unlikely (p < this->arrayZ)) return Null (Type); /* Overflowed. */
+    if (unlikely ((const void *) p < (const void *) this->arrayZ)) return Null (Type); /* Overflowed. */
     _hb_compiler_memory_r_barrier ();
     return this+*p;
   }
@@ -568,7 +568,7 @@ struct UnsizedListOfOffset16To : UnsizedArray16OfOffsetTo<Type, OffsetType, has_
   {
     unsigned int i = (unsigned int) i_;
     const OffsetTo<Type, OffsetType, has_null> *p = &this->arrayZ[i];
-    if (unlikely (p < this->arrayZ)) return Crap (Type); /* Overflowed. */
+    if (unlikely ((const void *) p < (const void *) this->arrayZ)) return Crap (Type); /* Overflowed. */
     _hb_compiler_memory_r_barrier ();
     return this+*p;
   }
