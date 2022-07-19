@@ -102,7 +102,7 @@ struct AxisValueFormat1
     float axis_value = get_value ();
 
     if (!user_axes_location->has (axis_tag) ||
-        fabs(axis_value - user_axes_location->get (axis_tag)) < 0.001)
+        fabsf(axis_value - user_axes_location->get (axis_tag)) < 0.001f)
       return true;
 
     return false;
@@ -161,7 +161,7 @@ struct AxisValueFormat2
     float axis_value = get_value ();
 
     if (!user_axes_location->has (axis_tag) ||
-        fabs(axis_value - user_axes_location->get (axis_tag)) < 0.001)
+        fabsf(axis_value - user_axes_location->get (axis_tag)) < 0.001f)
       return true;
 
     return false;
@@ -224,7 +224,7 @@ struct AxisValueFormat3
     float axis_value = get_value ();
 
     if (!user_axes_location->has (axis_tag) ||
-        fabs(axis_value - user_axes_location->get (axis_tag)) < 0.001)
+        fabsf(axis_value - user_axes_location->get (axis_tag)) < 0.001f)
       return true;
 
     return false;
@@ -302,7 +302,7 @@ struct AxisValueFormat4
       hb_tag_t axis_tag = axis_records[axis_idx].get_axis_tag ();
 
       if (user_axes_location->has (axis_tag) &&
-          fabs(axis_value - user_axes_location->get (axis_tag)) > 0.001)
+          fabsf(axis_value - user_axes_location->get (axis_tag)) > 0.001f)
         return false;
     }
 
