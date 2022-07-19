@@ -522,42 +522,47 @@ struct GDEF
     ComponentGlyph	= 4
   };
 
-  bool has_data () const { return version.to_int (); }
   bool has_glyph_classes () const { return glyphClassDef != 0; }
-  unsigned int get_glyph_class (hb_codepoint_t glyph) const
-  { return (this+glyphClassDef).get_class (glyph); }
-  void get_glyphs_in_class (unsigned int klass, hb_set_t *glyphs) const
-  { (this+glyphClassDef).collect_class (glyphs, klass); }
-
+  const ClassDef &get_glyph_class_def () const { return this+glyphClassDef; }
+  bool has_attach_list () const { return attachList != 0; }
+  const AttachList &get_attach_list () const { return this+attachList; }
+  bool has_lig_carets () const { return ligCaretList != 0; }
+  const LigCaretList &get_lig_caret_list () const { return this+ligCaretList; }
   bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
-  unsigned int get_mark_attachment_type (hb_codepoint_t glyph) const
-  { return (this+markAttachClassDef).get_class (glyph); }
+  const ClassDef &get_mark_attach_class_def () const { return this+markAttachClassDef; }
+  bool has_mark_glyph_sets () const { return version.to_int () >= 0x00010002u && markGlyphSetsDef != 0; }
+  const MarkGlyphSets &get_mark_glyph_sets () const { return version.to_int () >= 0x00010002u ? this+markGlyphSetsDef : Null(MarkGlyphSets); }
+  bool has_var_store () const { return version.to_int () >= 0x00010003u && varStore != 0; }
+  const VariationStore &get_var_store () const
+  { return version.to_int () >= 0x00010003u ? this+varStore : Null (VariationStore); }
 
-  bool has_attach_points () const { return attachList != 0; }
+  bool has_data () const { return version.to_int (); }
+  unsigned int get_glyph_class (hb_codepoint_t glyph) const
+  { return get_glyph_class_def ().get_class (glyph); }
+  void get_glyphs_in_class (unsigned int klass, hb_set_t *glyphs) const
+  { get_glyph_class_def ().collect_class (glyphs, klass); }
+
+  unsigned int get_mark_attachment_type (hb_codepoint_t glyph) const
+  { return get_mark_attach_class_def ().get_class (glyph); }
+
   unsigned int get_attach_points (hb_codepoint_t glyph_id,
 				  unsigned int start_offset,
 				  unsigned int *point_count /* IN/OUT */,
 				  unsigned int *point_array /* OUT */) const
-  { return (this+attachList).get_attach_points (glyph_id, start_offset, point_count, point_array); }
+  { return get_attach_list ().get_attach_points (glyph_id, start_offset, point_count, point_array); }
 
-  bool has_lig_carets () const { return ligCaretList != 0; }
   unsigned int get_lig_carets (hb_font_t *font,
 			       hb_direction_t direction,
 			       hb_codepoint_t glyph_id,
 			       unsigned int start_offset,
 			       unsigned int *caret_count /* IN/OUT */,
 			       hb_position_t *caret_array /* OUT */) const
-  { return (this+ligCaretList).get_lig_carets (font,
-					       direction, glyph_id, get_var_store(),
-					       start_offset, caret_count, caret_array); }
+  { return get_lig_caret_list ().get_lig_carets (font,
+						 direction, glyph_id, get_var_store(),
+						 start_offset, caret_count, caret_array); }
 
-  bool has_mark_sets () const { return version.to_int () >= 0x00010002u && markGlyphSetsDef != 0; }
   bool mark_set_covers (unsigned int set_index, hb_codepoint_t glyph_id) const
-  { return version.to_int () >= 0x00010002u && (this+markGlyphSetsDef).covers (set_index, glyph_id); }
-
-  bool has_var_store () const { return version.to_int () >= 0x00010003u && varStore != 0; }
-  const VariationStore &get_var_store () const
-  { return version.to_int () >= 0x00010003u ? this+varStore : Null (VariationStore); }
+  { return get_mark_glyph_sets ().covers (set_index, glyph_id); }
 
   /* glyph_props is a 16-bit integer where the lower 8-bit have bits representing
    * glyph class and other bits, and high 8-bit the mark attachment type (if any).
@@ -607,7 +612,7 @@ struct GDEF
   }
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
-  { (this+ligCaretList).collect_variation_indices (c); }
+  { get_lig_caret_list ().collect_variation_indices (c); }
 
   void remap_layout_variation_indices (const hb_set_t *layout_variation_indices,
 				       hb_map_t *layout_variation_idx_map /* OUT */) const
