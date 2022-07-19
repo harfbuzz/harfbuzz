@@ -223,7 +223,13 @@ struct CursivePosFormat1
      * https://github.com/harfbuzz/harfbuzz/issues/2469
      */
     if (unlikely (pos[parent].attach_chain() == -pos[child].attach_chain()))
+    {
       pos[parent].attach_chain() = 0;
+      if (likely (HB_DIRECTION_IS_HORIZONTAL (c->direction)))
+	pos[parent].y_offset = 0;
+      else
+	pos[parent].x_offset = 0;
+    }
 
     buffer->idx++;
     return_trace (true);
