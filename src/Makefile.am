@@ -12,7 +12,7 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 TESTS =
 check_PROGRAMS =
 
-EXTRA_DIST += harfbuzz.cc
+EXTRA_DIST += harfbuzz.cc harfbuzz-subset.cc
 EXTRA_DIST += meson.build
 EXTRA_DIST += fix_get_types.py
 
@@ -160,6 +160,17 @@ pkginclude_HEADERS += $(HB_SUBSET_headers)
 pkgconfig_DATA += harfbuzz-subset.pc
 EXTRA_DIST += harfbuzz-subset.pc.in
 
+harfbuzz-subset.cc: Makefile.sources
+	$(AM_V_GEN) \
+	for f in \
+		$(HB_BASE_sources) \
+		$(HB_SUBSET_sources) \
+		; do echo '#include "'$$f'"'; done | \
+	sort -u | \
+	grep '[.]cc"' > $(srcdir)/harfbuzz-subset.cc \
+	|| ($(RM) $(srcdir)/harfbuzz-subset.cc; false)
+BUILT_SOURCES += harfbuzz-subset.cc
+
 if HAVE_ICU
 if HAVE_ICU_BUILTIN
 HBCFLAGS += $(ICU_CFLAGS)
@@ -294,6 +305,7 @@ harfbuzz.cc: Makefile.sources
 		$(HB_DIRECTWRITE_sources) \
 		$(HB_CORETEXT_sources) \
 		; do echo '#include "'$$f'"'; done | \
+	sort -u | \
 	grep '[.]cc"' > $(srcdir)/harfbuzz.cc \
 	|| ($(RM) $(srcdir)/harfbuzz.cc; false)
 BUILT_SOURCES += harfbuzz.cc
