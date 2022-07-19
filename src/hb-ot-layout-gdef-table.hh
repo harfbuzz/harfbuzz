@@ -767,8 +767,8 @@ struct GDEF
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010003u ? this+u.version1.varStore : Null(VariationStore);
 #ifndef HB_NO_BORING_EXPANSION
-#endif
     case 2: return this+u.version2.varStore;
+#endif
     default: return Null(VariationStore);
     }
   }
