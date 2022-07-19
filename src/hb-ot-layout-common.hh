@@ -1337,7 +1337,7 @@ struct Lookup
     return_trace (true);
   }
 
-  private:
+  protected:
   HBUINT16	lookupType;		/* Different enumerations for GSUB and GPOS */
   HBUINT16	lookupFlag;		/* Lookup qualifiers */
   Array16Of<Offset16>
