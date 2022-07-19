@@ -894,9 +894,9 @@ subset_main_t::add_options ()
      "For example: --instance=\"wdth=100 wght=200\" or --instance=\"wdth=drop\"\n"
      "Note: currently only fully instancing to the default location is supported\n",
      "list of comma separated axis-locations"},
+#endif
+#endif
     {nullptr}
-#endif
-#endif
   };
   add_group (other_entries,
 	     "subset-other",
