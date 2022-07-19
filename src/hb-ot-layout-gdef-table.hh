@@ -510,6 +510,101 @@ struct MarkGlyphSets
  */
 
 
+struct GDEFVersion1
+{
+  friend struct GDEF;
+
+  protected:
+  FixedVersion<>version;		/* Version of the GDEF table--currently
+					 * 0x00010003u */
+  Offset16To<ClassDef>
+		glyphClassDef;		/* Offset to class definition table
+					 * for glyph type--from beginning of
+					 * GDEF header (may be Null) */
+  Offset16To<AttachList>
+		attachList;		/* Offset to list of glyphs with
+					 * attachment points--from beginning
+					 * of GDEF header (may be Null) */
+  Offset16To<LigCaretList>
+		ligCaretList;		/* Offset to list of positioning points
+					 * for ligature carets--from beginning
+					 * of GDEF header (may be Null) */
+  Offset16To<ClassDef>
+		markAttachClassDef;	/* Offset to class definition table for
+					 * mark attachment type--from beginning
+					 * of GDEF header (may be Null) */
+  Offset16To<MarkGlyphSets>
+		markGlyphSetsDef;	/* Offset to the table of mark set
+					 * definitions--from beginning of GDEF
+					 * header (may be NULL).  Introduced
+					 * in version 0x00010002. */
+  Offset32To<VariationStore>
+		varStore;		/* Offset to the table of Item Variation
+					 * Store--from beginning of GDEF
+					 * header (may be NULL).  Introduced
+					 * in version 0x00010003. */
+  public:
+  DEFINE_SIZE_MIN (12);
+
+  unsigned int get_size () const
+  {
+    return min_size +
+	   (version.to_int () >= 0x00010002u ? markGlyphSetsDef.static_size : 0) +
+	   (version.to_int () >= 0x00010003u ? varStore.static_size : 0);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (version.sanitize (c) &&
+		  likely (version.major == 1) &&
+		  glyphClassDef.sanitize (c, this) &&
+		  attachList.sanitize (c, this) &&
+		  ligCaretList.sanitize (c, this) &&
+		  markAttachClassDef.sanitize (c, this) &&
+		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
+		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->embed (*this);
+    if (unlikely (!out)) return_trace (false);
+
+    bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this, nullptr, false, true);
+    bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
+    bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
+    bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
+
+    bool subset_markglyphsetsdef = false;
+    if (version.to_int () >= 0x00010002u)
+    {
+      subset_markglyphsetsdef = out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this);
+    }
+
+    bool subset_varstore = false;
+    if (version.to_int () >= 0x00010003u)
+    {
+      subset_varstore = out->varStore.serialize_subset (c, varStore, this);
+    }
+
+    if (subset_varstore)
+    {
+      out->version.minor = 3;
+    } else if (subset_markglyphsetsdef) {
+      out->version.minor = 2;
+    } else  {
+      out->version.minor = 0;
+    }
+
+    return_trace (subset_glyphclassdef || subset_attachlist ||
+		  subset_ligcaretlist || subset_markattachclassdef ||
+		  (out->version.to_int () >= 0x00010002u && subset_markglyphsetsdef) ||
+		  (out->version.to_int () >= 0x00010003u && subset_varstore));
+  }
+};
+
 struct GDEF
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_GDEF;
@@ -522,21 +617,119 @@ struct GDEF
     ComponentGlyph	= 4
   };
 
-  bool has_glyph_classes () const { return glyphClassDef != 0; }
-  const ClassDef &get_glyph_class_def () const { return this+glyphClassDef; }
-  bool has_attach_list () const { return attachList != 0; }
-  const AttachList &get_attach_list () const { return this+attachList; }
-  bool has_lig_carets () const { return ligCaretList != 0; }
-  const LigCaretList &get_lig_caret_list () const { return this+ligCaretList; }
-  bool has_mark_attachment_types () const { return markAttachClassDef != 0; }
-  const ClassDef &get_mark_attach_class_def () const { return this+markAttachClassDef; }
-  bool has_mark_glyph_sets () const { return version.to_int () >= 0x00010002u && markGlyphSetsDef != 0; }
-  const MarkGlyphSets &get_mark_glyph_sets () const { return version.to_int () >= 0x00010002u ? this+markGlyphSetsDef : Null(MarkGlyphSets); }
-  bool has_var_store () const { return version.to_int () >= 0x00010003u && varStore != 0; }
-  const VariationStore &get_var_store () const
-  { return version.to_int () >= 0x00010003u ? this+varStore : Null (VariationStore); }
+  unsigned int get_size () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version1.get_size ();
+    default: return u.version.static_size;
+    }
+  }
 
-  bool has_data () const { return version.to_int (); }
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    if (unlikely (!u.version.sanitize (c))) return_trace (false);
+    switch (u.version.major) {
+    case 1: return_trace (u.version1.sanitize (c));
+    default: return_trace (true);
+    }
+  }
+
+  bool subset (hb_subset_context_t *c) const
+  {
+    switch (u.version.major) {
+    case 1: return u.version1.subset (c);
+    default: return false;
+    }
+  }
+
+  bool has_glyph_classes () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version1.glyphClassDef != 0;
+    default: return false;
+    }
+  }
+  const ClassDef &get_glyph_class_def () const
+  {
+    switch (u.version.major) {
+    case 1: return this+u.version1.glyphClassDef;
+    default: return Null(ClassDef);
+    }
+  }
+  bool has_attach_list () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version1.attachList != 0;
+    default: return false;
+    }
+  }
+  const AttachList &get_attach_list () const
+  {
+    switch (u.version.major) {
+    case 1: return this+u.version1.attachList;
+    default: return Null(AttachList);
+    }
+  }
+  bool has_lig_carets () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version1.ligCaretList != 0;
+    default: return false;
+    }
+  }
+  const LigCaretList &get_lig_caret_list () const
+  {
+    switch (u.version.major) {
+    case 1: return this+u.version1.ligCaretList;
+    default: return Null(LigCaretList);
+    }
+  }
+  bool has_mark_attachment_types () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version1.markAttachClassDef != 0;
+    default: return false;
+    }
+  }
+  const ClassDef &get_mark_attach_class_def () const
+  {
+    switch (u.version.major) {
+    case 1: return this+u.version1.markAttachClassDef;
+    default: return Null(ClassDef);
+    }
+  }
+  bool has_mark_glyph_sets () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version.to_int () >= 0x00010002u && u.version1.markGlyphSetsDef != 0;
+    default: return false;
+    }
+  }
+  const MarkGlyphSets &get_mark_glyph_sets () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version.to_int () >= 0x00010002u ? this+u.version1.markGlyphSetsDef : Null(MarkGlyphSets);
+    default: return Null(MarkGlyphSets);
+    }
+  }
+  bool has_var_store () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version.to_int () >= 0x00010003u && u.version1.varStore != 0;
+    default: return false;
+    }
+  }
+  const VariationStore &get_var_store () const
+  {
+    switch (u.version.major) {
+    case 1: return u.version.to_int () >= 0x00010003u ? this+u.version1.varStore : Null(VariationStore);
+    default: return Null(VariationStore);
+    }
+  }
+
+
+  bool has_data () const { return u.version.to_int (); }
   unsigned int get_glyph_class (hb_codepoint_t glyph) const
   { return get_glyph_class_def ().get_class (glyph); }
   void get_glyphs_in_class (unsigned int klass, hb_set_t *glyphs) const
@@ -604,20 +797,13 @@ struct GDEF
     hb_blob_ptr_t<GDEF> table;
   };
 
-  unsigned int get_size () const
-  {
-    return min_size +
-	   (version.to_int () >= 0x00010002u ? markGlyphSetsDef.static_size : 0) +
-	   (version.to_int () >= 0x00010003u ? varStore.static_size : 0);
-  }
-
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   { get_lig_caret_list ().collect_variation_indices (c); }
 
   void remap_layout_variation_indices (const hb_set_t *layout_variation_indices,
 				       hb_map_t *layout_variation_idx_map /* OUT */) const
   {
-    if (version.to_int () < 0x00010003u || !varStore) return;
+    if (!has_var_store ()) return;
     if (layout_variation_indices->is_empty ()) return;
 
     unsigned new_major = 0, new_minor = 0;
@@ -625,7 +811,7 @@ struct GDEF
     for (unsigned idx : layout_variation_indices->iter ())
     {
       uint16_t major = idx >> 16;
-      if (major >= (this+varStore).get_sub_table_count ()) break;
+      if (major >= get_var_store ().get_sub_table_count ()) break;
       if (major != last_major)
       {
 	new_minor = 0;
@@ -639,88 +825,13 @@ struct GDEF
     }
   }
 
-  bool subset (hb_subset_context_t *c) const
-  {
-    TRACE_SUBSET (this);
-    auto *out = c->serializer->embed (*this);
-    if (unlikely (!out)) return_trace (false);
-
-    bool subset_glyphclassdef = out->glyphClassDef.serialize_subset (c, glyphClassDef, this, nullptr, false, true);
-    bool subset_attachlist = out->attachList.serialize_subset (c, attachList, this);
-    bool subset_ligcaretlist = out->ligCaretList.serialize_subset (c, ligCaretList, this);
-    bool subset_markattachclassdef = out->markAttachClassDef.serialize_subset (c, markAttachClassDef, this, nullptr, false, true);
-
-    bool subset_markglyphsetsdef = false;
-    if (version.to_int () >= 0x00010002u)
-    {
-      subset_markglyphsetsdef = out->markGlyphSetsDef.serialize_subset (c, markGlyphSetsDef, this);
-    }
-
-    bool subset_varstore = false;
-    if (version.to_int () >= 0x00010003u)
-    {
-      subset_varstore = out->varStore.serialize_subset (c, varStore, this);
-    }
-
-    if (subset_varstore)
-    {
-      out->version.minor = 3;
-    } else if (subset_markglyphsetsdef) {
-      out->version.minor = 2;
-    } else  {
-      out->version.minor = 0;
-    }
-
-    return_trace (subset_glyphclassdef || subset_attachlist ||
-		  subset_ligcaretlist || subset_markattachclassdef ||
-		  (out->version.to_int () >= 0x00010002u && subset_markglyphsetsdef) ||
-		  (out->version.to_int () >= 0x00010003u && subset_varstore));
-  }
-
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (version.sanitize (c) &&
-		  likely (version.major == 1) &&
-		  glyphClassDef.sanitize (c, this) &&
-		  attachList.sanitize (c, this) &&
-		  ligCaretList.sanitize (c, this) &&
-		  markAttachClassDef.sanitize (c, this) &&
-		  (version.to_int () < 0x00010002u || markGlyphSetsDef.sanitize (c, this)) &&
-		  (version.to_int () < 0x00010003u || varStore.sanitize (c, this)));
-  }
-
   protected:
-  FixedVersion<>version;		/* Version of the GDEF table--currently
-					 * 0x00010003u */
-  Offset16To<ClassDef>
-		glyphClassDef;		/* Offset to class definition table
-					 * for glyph type--from beginning of
-					 * GDEF header (may be Null) */
-  Offset16To<AttachList>
-		attachList;		/* Offset to list of glyphs with
-					 * attachment points--from beginning
-					 * of GDEF header (may be Null) */
-  Offset16To<LigCaretList>
-		ligCaretList;		/* Offset to list of positioning points
-					 * for ligature carets--from beginning
-					 * of GDEF header (may be Null) */
-  Offset16To<ClassDef>
-		markAttachClassDef;	/* Offset to class definition table for
-					 * mark attachment type--from beginning
-					 * of GDEF header (may be Null) */
-  Offset16To<MarkGlyphSets>
-		markGlyphSetsDef;	/* Offset to the table of mark set
-					 * definitions--from beginning of GDEF
-					 * header (may be NULL).  Introduced
-					 * in version 0x00010002. */
-  Offset32To<VariationStore>
-		varStore;		/* Offset to the table of Item Variation
-					 * Store--from beginning of GDEF
-					 * header (may be NULL).  Introduced
-					 * in version 0x00010003. */
+  union {
+  FixedVersion<>	version;	/* Version identifier */
+  GDEFVersion1		version1;
+  } u;
   public:
-  DEFINE_SIZE_MIN (12);
+  DEFINE_SIZE_MIN (4);
 };
 
 struct GDEF_accelerator_t : GDEF::accelerator_t {

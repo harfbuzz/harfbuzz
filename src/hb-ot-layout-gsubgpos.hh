@@ -4068,7 +4068,6 @@ struct GSUBGPOSVersion1_2
 
     return_trace (true);
   }
-
 };
 
 struct GSUBGPOS
