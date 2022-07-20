@@ -54,10 +54,10 @@ using OT::Layout::MediumTypes;
 /*
  * The maximum number of times a lookup can be applied during shaping.
  * Used to limit the number of iterations of the closure algorithm.
- * This must be larger than the number of times add_pause() is
+ * This must be larger than the number of times add_gsub_pause() is
  * called in a collect_features call of any shaper.
  */
-#define HB_CLOSURE_MAX_STAGES	32
+#define HB_CLOSURE_MAX_STAGES	12
 #endif
 
 #ifndef HB_MAX_SCRIPTS
