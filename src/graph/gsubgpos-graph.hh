@@ -104,8 +104,9 @@ struct Lookup : public OT::Lookup
     unsigned type = lookupType;
     unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
     unsigned start = buffer.length;
-    unsigned end = start + extension_size;
+    unsigned end = start + extension_size - 1;
     if (!buffer.resize (buffer.length + extension_size))
+      // TODO: resizing potentially invalidates existing head/tail pointers.
       return false;
 
     OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
