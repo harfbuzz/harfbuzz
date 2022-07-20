@@ -124,21 +124,20 @@ struct hb_hashmap_t
     hb_swap (a.prime, b.prime);
     hb_swap (a.items, b.items);
   }
-  void init_shallow ()
+  void init ()
   {
+    hb_object_init (this);
+
     successful = true;
     population = occupancy = 0;
     mask = 0;
     prime = 0;
     items = nullptr;
   }
-  void init ()
+  void fini ()
   {
-    hb_object_init (this);
-    init_shallow ();
-  }
-  void fini_shallow ()
-  {
+    hb_object_fini (this);
+
     if (likely (items)) {
       unsigned size = mask + 1;
       for (unsigned i = 0; i < size; i++)
@@ -147,11 +146,6 @@ struct hb_hashmap_t
       items = nullptr;
     }
     population = occupancy = 0;
-  }
-  void fini ()
-  {
-    hb_object_fini (this);
-    fini_shallow ();
   }
 
   void reset ()
