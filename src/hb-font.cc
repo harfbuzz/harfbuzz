@@ -1675,6 +1675,7 @@ _hb_font_create (hb_face_t *face)
 
   if (unlikely (!face))
     face = hb_face_get_empty ();
+
   if (!(font = hb_object_create<hb_font_t> ()))
     return hb_font_get_empty ();
 

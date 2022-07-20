@@ -56,8 +56,6 @@ hb_set_create ()
   if (!(set = hb_object_create<hb_set_t> ()))
     return hb_set_get_empty ();
 
-  set->init_shallow ();
-
   return set;
 }
 

@@ -222,8 +222,11 @@ static inline Type *hb_object_create ()
   if (unlikely (!obj))
     return obj;
 
+  new (obj) Type;
+
   hb_object_init (obj);
   hb_object_trace (obj, HB_FUNC);
+
   return obj;
 }
 template <typename Type>

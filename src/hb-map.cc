@@ -56,8 +56,6 @@ hb_map_create ()
   if (!(map = hb_object_create<hb_map_t> ()))
     return hb_map_get_empty ();
 
-  map->init_shallow ();
-
   return map;
 }
 

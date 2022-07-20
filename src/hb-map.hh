@@ -459,8 +459,6 @@ hb_hashmap_t<K, V>* hb_hashmap_create ()
   if (!(map = hb_object_create<hashmap> ()))
     return nullptr;
 
-  map->init_shallow ();
-
   return map;
 }
 
