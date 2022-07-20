@@ -104,7 +104,7 @@ struct Lookup : public OT::Lookup
     unsigned type = lookupType;
     unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
     unsigned start = buffer.length;
-    unsigned end = start + extension_size - 1;
+    unsigned end = start + extension_size;
     if (!buffer.resize (buffer.length + extension_size))
       // TODO: resizing potentially invalidates existing head/tail pointers.
       return false;
@@ -115,7 +115,11 @@ struct Lookup : public OT::Lookup
     extension->extensionLookupType = type;
     extension->extensionOffset = 0;
 
-    unsigned ext_index = graph.new_node (&buffer[start], &buffer[end]);
+    unsigned type_prime = extension->extensionLookupType;
+    printf("Assigned type %d to extension\n", type_prime);
+
+    unsigned ext_index = graph.new_node (&buffer.arrayZ[start],
+                                         &buffer.arrayZ[end]);
     if (ext_index == (unsigned) -1) return false;
 
     auto& lookup_vertex = graph.vertices_[lookup_index];
@@ -142,6 +146,7 @@ struct Lookup : public OT::Lookup
     l->position = 4;
     l->bias = 0;
 
+    ext_vertex.parents.push (lookup_index);
     subtable_vertex.remap_parent (lookup_index, ext_index);
 
     return true;
