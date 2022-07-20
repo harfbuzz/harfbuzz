@@ -6,11 +6,11 @@
 
 # These are different from what Uniscribe does.
 # https://github.com/harfbuzz/harfbuzz/issues/2469
-../../../../../data/in-house/fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;;;[period=0+100|u1BC36=1+313|u1BC36=2+313|u1BC36=3+313|u1BC36=4+313]
-../../../../../data/in-house/fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1;;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
-../../../../../data/in-house/fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=rtl1;;[period=0+100|u1BC36=1@0,432+218|u1BC36=2@-82,288+136|u1BC36=3@-82,144+136|u1BC36=4@-82,0+231]
-../../../../../data/in-house/fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1,rtl1;;[period=0+100|u1BC36=1@0,432+218|u1BC36=2@-82,288+136|u1BC36=3@-82,144+136|u1BC36=4@-82,0+231]
-../../../../../data/in-house/fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr2;;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
-../../../../../data/in-house/fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1,ltr2;;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
-../../../../../data/in-house/fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=rtl1,ltr2;;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
-../../../../../data/in-house/fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1,rtl1,ltr2;;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
+../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+313|u1BC36=2+313|u1BC36=3+313|u1BC36=4+313]
+../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
+../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=rtl1;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1@0,432+218|u1BC36=2@-82,288+136|u1BC36=3@-82,144+136|u1BC36=4@-82,0+231]
+../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1,rtl1;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1@0,432+218|u1BC36=2@-82,288+136|u1BC36=3@-82,144+136|u1BC36=4@-82,0+231]
+../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr2;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
+../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1,ltr2;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
+../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=rtl1,ltr2;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
+../fonts/be10ea33f28a139f3305db2302af6220f2f9a583.ttf;--features=ltr1,rtl1,ltr2;U+002E,U+1BC36,U+1BC36,U+1BC36,U+1BC36;[period=0+100|u1BC36=1+218|u1BC36=2@-82,-144+136|u1BC36=3@-82,-288+136|u1BC36=4@-82,-432+231]
