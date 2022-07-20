@@ -314,22 +314,16 @@ static void _colr_closure (hb_face_t *face,
   OT::COLR::accelerator_t colr (face);
   if (!colr.is_valid ()) return;
 
-  unsigned iteration_count = 0;
   hb_set_t palette_indices, layer_indices;
-  unsigned glyphs_num;
-  {
-    glyphs_num = glyphs_colred->get_population ();
-    // Collect all glyphs referenced by COLRv0
-    hb_set_t glyphset_colrv0;
-    for (hb_codepoint_t gid : glyphs_colred->iter ())
-      colr.closure_glyphs (gid, &glyphset_colrv0);
+  // Collect all glyphs referenced by COLRv0
+  hb_set_t glyphset_colrv0;
+  for (hb_codepoint_t gid : *glyphs_colred)
+    colr.closure_glyphs (gid, &glyphset_colrv0);
 
-    glyphs_colred->union_ (glyphset_colrv0);
+  glyphs_colred->union_ (glyphset_colrv0);
 
-    //closure for COLRv1
-    colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices);
-  } while (iteration_count++ <= HB_CLOSURE_MAX_STAGES &&
-           glyphs_num != glyphs_colred->get_population ());
+  //closure for COLRv1
+  colr.closure_forV1 (glyphs_colred, &layer_indices, &palette_indices);
 
   colr.closure_V0palette_indices (glyphs_colred, &palette_indices);
   _remap_indexes (&layer_indices, layers_map);
