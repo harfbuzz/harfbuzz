@@ -318,10 +318,6 @@ hb_shape_plan_destroy (hb_shape_plan_t *shape_plan)
 {
   if (!hb_object_destroy (shape_plan)) return;
 
-#ifndef HB_NO_OT_SHAPE
-  shape_plan->ot.fini ();
-#endif
-  shape_plan->key.fini ();
   hb_free (shape_plan);
 }
 

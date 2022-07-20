@@ -761,7 +761,6 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   if (!hb_object_destroy (plan)) return;
 
   hb_set_destroy (plan->unicodes);
-  plan->unicode_to_new_gid_list.fini ();
   hb_set_destroy (plan->name_ids);
   hb_set_destroy (plan->name_languages);
   hb_set_destroy (plan->layout_features);
@@ -796,7 +795,6 @@ hb_subset_plan_destroy (hb_subset_plan_t *plan)
   if (plan->user_axes_location)
   {
     hb_object_destroy (plan->user_axes_location);
-    plan->user_axes_location->fini_shallow ();
     hb_free (plan->user_axes_location);
   }
 

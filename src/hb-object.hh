@@ -272,6 +272,9 @@ static inline bool hb_object_destroy (Type *obj)
     return false;
 
   hb_object_fini (obj);
+
+  obj->~Type ();
+
   return true;
 }
 template <typename Type>
@@ -283,7 +286,7 @@ static inline void hb_object_fini (Type *obj)
   {
     user_data->fini ();
     hb_free (user_data);
-    user_data = nullptr;
+    obj->header.user_data.set_relaxed (nullptr);
   }
 }
 template <typename Type>

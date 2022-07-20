@@ -468,7 +468,7 @@ void hb_hashmap_destroy (hb_hashmap_t<K, V>* map)
 {
   if (!hb_object_destroy (map))
     return;
-  map->fini_shallow ();
+
   hb_free (map);
 }
 
