@@ -28,6 +28,9 @@ struct SingleSubstFormat1_3
     return_trace (coverage.sanitize (c, this) && deltaGlyphID.sanitize (c));
   }
 
+  hb_codepoint_t get_mask () const
+  { return (1 << (8 * Types::size)) - 1; }
+
   bool intersects (const hb_set_t *glyphs) const
   { return (this+coverage).intersects (glyphs); }
 
@@ -36,14 +39,14 @@ struct SingleSubstFormat1_3
 
   void closure (hb_closure_context_t *c) const
   {
-    unsigned d = deltaGlyphID;
+    hb_codepoint_t d = deltaGlyphID;
+    hb_codepoint_t mask = get_mask ();
 
     + hb_iter (this+coverage)
     | hb_filter (c->parent_active_glyphs ())
-    | hb_map ([d] (hb_codepoint_t g) { return (g + d) & 0xFFFFu; })
+    | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
     | hb_sink (c->output)
     ;
-
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
@@ -51,9 +54,11 @@ struct SingleSubstFormat1_3
   void collect_glyphs (hb_collect_glyphs_context_t *c) const
   {
     if (unlikely (!(this+coverage).collect_coverage (c->input))) return;
-    unsigned d = deltaGlyphID;
+    hb_codepoint_t d = deltaGlyphID;
+    hb_codepoint_t mask = get_mask ();
+
     + hb_iter (this+coverage)
-    | hb_map ([d] (hb_codepoint_t g) { return (g + d) & 0xFFFFu; })
+    | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
     | hb_sink (c->output)
     ;
   }
@@ -70,9 +75,11 @@ struct SingleSubstFormat1_3
     unsigned int index = (this+coverage).get_coverage (glyph_id);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
-    /* According to the Adobe Annotated OpenType Suite, result is always
-     * limited to 16bit. */
-    glyph_id = (glyph_id + deltaGlyphID) & 0xFFFFu;
+    hb_codepoint_t d = deltaGlyphID;
+    hb_codepoint_t mask = get_mask ();
+
+    glyph_id = (glyph_id + d) & mask;
+
     c->replace_glyph (glyph_id);
 
     return_trace (true);
@@ -97,14 +104,15 @@ struct SingleSubstFormat1_3
     const hb_set_t &glyphset = *c->plan->glyphset_gsub ();
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
-    hb_codepoint_t delta = deltaGlyphID;
+    hb_codepoint_t d = deltaGlyphID;
+    hb_codepoint_t mask = get_mask ();
 
     auto it =
     + hb_iter (this+coverage)
     | hb_filter (glyphset)
-    | hb_map_retains_sorting ([&] (hb_codepoint_t g) {
+    | hb_map_retains_sorting ([d, mask] (hb_codepoint_t g) {
                                 return hb_codepoint_pair_t (g,
-                                                            (g + delta) & 0xFFFF); })
+                                                            (g + d) & mask); })
     | hb_filter (glyphset, hb_second)
     | hb_map_retains_sorting ([&] (hb_codepoint_pair_t p) -> hb_codepoint_pair_t
                               { return hb_pair (glyph_map[p.first], glyph_map[p.second]); })
