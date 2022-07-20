@@ -140,7 +140,7 @@ struct CursivePosFormat1
     unsigned int i = skippy_iter.idx;
     unsigned int j = buffer->idx;
 
-    buffer->unsafe_to_break (i, j);
+    buffer->unsafe_to_break (i, j + 1);
     float entry_x, entry_y, exit_x, exit_y;
     (this+prev_record.exitAnchor).get_anchor (c, buffer->info[i].codepoint, &exit_x, &exit_y);
     (this+this_record.entryAnchor).get_anchor (c, buffer->info[j].codepoint, &entry_x, &entry_y);
