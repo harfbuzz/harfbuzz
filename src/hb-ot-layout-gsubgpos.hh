@@ -150,7 +150,7 @@ struct hb_closure_context_t :
 
   bool pop_cur_done_glyphs ()
   {
-    if (active_glyphs_stack.length < 1)
+    if (!active_glyphs_stack)
       return false;
 
     active_glyphs_stack.pop ();
