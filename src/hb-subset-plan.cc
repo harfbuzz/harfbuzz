@@ -224,11 +224,11 @@ static bool _features_to_lookup_indices (
       hb_ot_tag_to_language (lang)
     };
 
-    hb_shape_plan_t* plan = hb_shape_plan_create (source,
-                                                  &p,
-                                                  features.arrayZ,
-                                                  features.length,
-                                                  nullptr);
+    hb::shared_ptr<hb_shape_plan_t> plan (hb_shape_plan_create (source,
+								&p,
+								features.arrayZ,
+								features.length,
+								nullptr));
 
     hb_ot_shape_plan_collect_lookups (plan,
                                       table_tag,
