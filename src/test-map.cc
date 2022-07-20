@@ -212,6 +212,12 @@ main (int argc, char **argv)
     m.keys_ref ();
     m.values_ref ();
   }
+  /* Test more complex unique_ptr's. */
+  {
+    hb_hashmap_t<int, hb::unique_ptr<hb_hashmap_t<int, int>>> m;
+
+    m.get (0);
+  }
 
   return 0;
 }

@@ -479,4 +479,15 @@ void hb_hashmap_destroy (hb_hashmap_t<K, V>* map)
   hb_free (map);
 }
 
+namespace hb {
+
+template <typename K, typename V>
+struct vtable<hb_hashmap_t<K, V>>
+{
+  static constexpr auto destroy = hb_hashmap_destroy<K,V>;
+};
+
+}
+
+
 #endif /* HB_MAP_HH */
