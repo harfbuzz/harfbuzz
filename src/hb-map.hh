@@ -219,7 +219,8 @@ struct hb_hashmap_t
   /* Has interface. */
   typedef const V& value_t;
   value_t operator [] (K k) const { return get (k); }
-  bool has (K key, const V **vp = nullptr) const
+  template <typename VV=V>
+  bool has (K key, VV **vp = nullptr) const
   {
     if (unlikely (!items))
       return false;

@@ -217,6 +217,10 @@ main (int argc, char **argv)
     hb_hashmap_t<int, hb::unique_ptr<hb_hashmap_t<int, int>>> m;
 
     m.get (0);
+    const hb::unique_ptr<hb_hashmap_t<int, int>> *v1;
+    m.has (0, &v1);
+    hb::unique_ptr<hb_hashmap_t<int, int>> *v2;
+    m.has (0, &v2);
   }
 
   return 0;
