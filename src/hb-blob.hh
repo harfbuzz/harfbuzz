@@ -38,7 +38,7 @@
 
 struct hb_blob_t
 {
-  void fini_shallow () { destroy_user_data (); }
+  ~hb_blob_t () { destroy_user_data (); }
 
   void destroy_user_data ()
   {

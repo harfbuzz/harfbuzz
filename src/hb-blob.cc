@@ -263,8 +263,6 @@ hb_blob_destroy (hb_blob_t *blob)
 {
   if (!hb_object_destroy (blob)) return;
 
-  blob->fini_shallow ();
-
   hb_free (blob);
 }
 
