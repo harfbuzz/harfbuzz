@@ -92,24 +92,22 @@ struct hb_indic_would_substitute_feature_t
   void init (const hb_ot_map_t *map, hb_tag_t feature_tag, bool zero_context_)
   {
     zero_context = zero_context_;
-    map->get_stage_lookups (0/*GSUB*/,
-			    map->get_feature_stage (0/*GSUB*/, feature_tag),
-			    &lookups, &count);
+    lookups = map->get_stage_lookups (0/*GSUB*/,
+				      map->get_feature_stage (0/*GSUB*/, feature_tag));
   }
 
   bool would_substitute (const hb_codepoint_t *glyphs,
 			 unsigned int          glyphs_count,
 			 hb_face_t            *face) const
   {
-    for (unsigned int i = 0; i < count; i++)
-      if (hb_ot_layout_lookup_would_substitute (face, lookups[i].index, glyphs, glyphs_count, zero_context))
+    for (const auto &lookup : lookups)
+      if (hb_ot_layout_lookup_would_substitute (face, lookup.index, glyphs, glyphs_count, zero_context))
 	return true;
     return false;
   }
 
   private:
-  const hb_ot_map_t::lookup_map_t *lookups;
-  unsigned int count;
+  hb_array_t<const hb_ot_map_t::lookup_map_t> lookups;
   bool zero_context;
 };
 
