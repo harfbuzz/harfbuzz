@@ -100,7 +100,7 @@ typedef hb_hashmap_t<hb_pair_t<hb_tag_t, hb_tag_t>,
     hb::unique_ptr<hb_map_t>>
     script_and_lang_to_feature_t;
 
-HB_INTERNAL void
+void
 hb_ot_layout_collect_features_by_script (
     hb_face_t      *face,
     hb_tag_t        table_tag,

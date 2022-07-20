@@ -127,37 +127,6 @@ static bool _filter_tag_list(hb_vector_t<hb_tag_t>* tags, /* IN/OUT */
   return removed;
 }
 
-template <typename T>
-static void _collect_layout_indices (hb_subset_plan_t     *plan,
-                                     const T&              table,
-                                     layout_collect_func_t layout_collect_func,
-                                     hb_set_t		  *indices /* OUT */)
-{
-  unsigned num_features = table.get_feature_count ();
-  hb_vector_t<hb_tag_t> features;
-  if (!plan->check_success (features.resize (num_features))) return;
-  table.get_feature_tags (0, &num_features, features.arrayZ);
-  bool retain_all_features = !_filter_tag_list (&features, plan->layout_features);
-
-  unsigned num_scripts = table.get_script_count ();
-  hb_vector_t<hb_tag_t> scripts;
-  if (!plan->check_success (scripts.resize (num_scripts))) return;
-  table.get_script_tags (0, &num_scripts, scripts.arrayZ);
-  bool retain_all_scripts = !_filter_tag_list (&scripts, plan->layout_scripts);
-
-  if (!plan->check_success (!features.in_error ()) || !features
-      || !plan->check_success (!scripts.in_error ()) || !scripts)
-    return;
-
-  layout_collect_func (plan->source,
-                       T::tableTag,
-                       retain_all_scripts ? nullptr : scripts.arrayZ,
-		       nullptr,
-		       retain_all_features ? nullptr : features.arrayZ,
-		       indices);
-}
-
-
 static inline void
 _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
 				   const hb_map_t *lookup_indices,
@@ -222,45 +191,126 @@ _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
   }
 }
 
+static bool _features_to_lookup_indices (
+    hb_face_t* source,
+    hb_tag_t table_tag,
+    const script_and_lang_to_feature_t& features_by_script_and_lang,
+    hb_set_t& lookup_indices /* OUT */)
+{
+  for (auto k : features_by_script_and_lang.keys ())
+  {
+    hb_tag_t script = k.first;
+    hb_tag_t lang = k.second;
+    const hb_map_t* feature_set = features_by_script_and_lang.get (k).get ();
+
+    hb_vector_t<hb_feature_t> features;
+    if (!features.alloc (feature_set->get_population ()))
+      return false;
+
+    for (hb_tag_t tag : feature_set->keys ()) {
+      hb_feature_t f {
+        tag,
+        1,
+        HB_FEATURE_GLOBAL_START,
+        HB_FEATURE_GLOBAL_END
+      };
+      features.push (f);
+    }
+
+    hb_segment_properties_t p {
+      HB_DIRECTION_LTR,
+      hb_ot_tag_to_script (script),
+      hb_ot_tag_to_language (lang)
+    };
+
+    hb_shape_plan_t* plan = hb_shape_plan_create (source,
+                                                  &p,
+                                                  features.arrayZ,
+                                                  features.length,
+                                                  nullptr);
+
+    hb_ot_shape_plan_collect_lookups (plan,
+                                      table_tag,
+                                      &lookup_indices);
+  }
+
+  return true;
+}
+
+
+
 template <typename T>
 static inline void
 _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 				  hb_set_t	     *gids_to_retain,
 				  hb_map_t	     *lookups,
-				  hb_map_t	     *features,
+				  hb_map_t	     *features_map,
 				  script_langsys_map *langsys_map)
 {
   hb_blob_ptr_t<T> table = plan->source_table<T> ();
   hb_tag_t table_tag = table->tableTag;
-  hb_set_t lookup_indices;
-  _collect_layout_indices<T> (plan,
-                              *table,
-                              hb_ot_layout_collect_lookups,
-                              &lookup_indices);
 
-  if (table_tag == HB_OT_TAG_GSUB)
+  unsigned num_features = table->get_feature_count ();
+  hb_vector_t<hb_tag_t> features;
+  if (!plan->check_success (features.resize (num_features))) return;
+  table->get_feature_tags (0, &num_features, features.arrayZ);
+  bool retain_all_features = !_filter_tag_list (&features, plan->layout_features);
+
+  unsigned num_scripts = table->get_script_count ();
+  hb_vector_t<hb_tag_t> scripts;
+  if (!plan->check_success (scripts.resize (num_scripts))) return;
+  table->get_script_tags (0, &num_scripts, scripts.arrayZ);
+  bool retain_all_scripts = !_filter_tag_list (&scripts, plan->layout_scripts);
+
+  if (!plan->check_success (!features.in_error ()) || !features
+      || !plan->check_success (!scripts.in_error ()) || !scripts)
+    return;
+
+  hb_set_t feature_indices;
+  script_and_lang_to_feature_t features_by_script_and_lang;
+  hb_ot_layout_collect_features_by_script (plan->source,
+                       table_tag,
+                       retain_all_scripts ? nullptr : scripts.arrayZ,
+		       nullptr,
+		       retain_all_features ? nullptr : features.arrayZ,
+		       &feature_indices,
+                       table_tag == HB_OT_TAG_GSUB ?
+                                           &features_by_script_and_lang :
+                                           nullptr);
+
+  hb_set_t lookup_indices;
+  hb_ot_layout_collect_lookups (plan->source,
+                       table_tag,
+                       retain_all_scripts ? nullptr : scripts.arrayZ,
+		       nullptr,
+		       retain_all_features ? nullptr : features.arrayZ,
+                       &lookup_indices);
+
+  if (table_tag == HB_OT_TAG_GSUB) {
+    hb_set_t closure_lookup_indices;
+    if (!_features_to_lookup_indices (plan->source,
+                                      table_tag,
+                                      features_by_script_and_lang,
+                                      closure_lookup_indices))
+      return;
     hb_ot_layout_lookups_substitute_closure (plan->source,
-                                             &lookup_indices,
+                                             &closure_lookup_indices,
 					     gids_to_retain);
+  }
+
   table->closure_lookups (plan->source,
 			  gids_to_retain,
                           &lookup_indices);
   _remap_indexes (&lookup_indices, lookups);
 
-  // Collect and prune features
-  hb_set_t feature_indices;
-  _collect_layout_indices<T> (plan,
-                              *table,
-                              hb_ot_layout_collect_features,
-                              &feature_indices);
-
+  // Prune features
   table->prune_features (lookups, &feature_indices);
   hb_map_t duplicate_feature_map;
   _GSUBGPOS_find_duplicate_features (*table, lookups, &feature_indices, &duplicate_feature_map);
 
   feature_indices.clear ();
   table->prune_langsys (&duplicate_feature_map, langsys_map, &feature_indices);
-  _remap_indexes (&feature_indices, features);
+  _remap_indexes (&feature_indices, features_map);
 
   table.destroy ();
 }
@@ -620,7 +670,7 @@ _normalize_axes_location (hb_face_t *face,
     }
     if (has_avar)
       seg_maps = &StructAfter<OT::SegmentMaps> (*seg_maps);
-    
+
     axis_count++;
   }
   all_axes_pinned = !axis_not_pinned;
