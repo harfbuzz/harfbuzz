@@ -310,41 +310,6 @@ struct graph_t
     }
   }
 
-
-  /*
-  void promote_extension_lookups (const hb_set_t& subtable_indices)
-  {
-    const OT::GSUBGPOS* gstar = (OT::GSUBGPOS*) root ().obj.head;
-
-    unsigned lookup_list_idx = index_for_offset (root_idx (), &(gstar->lookupList));
-    const OT::LookupList<SmallTypes>* lookupList =
-        (OT::LookupList<SmallTypes>*) object (lookup_list_idx).head;
-
-
-    for (unsigned i = 0; i < lookupList->len; i++)
-    {
-      unsigned lookup_idx = index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i]));
-      const OT::Lookup* lookup = (OT::Lookup*) object (lookup_idx).head;
-
-      // TODO(grieger): use the correct type for GSUB vs GPOS
-      if (lookup->get_type () == 9) continue; // skip extensions
-
-      for (unsigned j = 0; j < lookup->subTable.len; j++)
-      {
-        unsigned subtable_idx = index_for_offset (lookup_idx, &(lookup->subTable.arrayZ[j]));
-        if (subtable_indices.has (subtable_idx))
-          promote_to_extension (lookup_idx);
-      }
-    }
-  }
-
-  void promote_to_extension (unsigned lookup_idx)
-  {
-    DEBUG_MSG (SUBSET_REPACK, nullptr, "Promoting %d to extension lookup.", lookup_idx);
-    // TODO(garretrieger): implement me.
-  }
-  */
-
   unsigned index_for_offset(unsigned node_idx, const void* offset) const
   {
     const auto& node = object (node_idx);
@@ -642,7 +607,6 @@ struct graph_t
   {
     positions_invalid = true;
     distance_invalid = true;
-    parents_invalid = true; // TODO: remove
 
     auto* clone = vertices_.push ();
     if (vertices_.in_error ()) {
