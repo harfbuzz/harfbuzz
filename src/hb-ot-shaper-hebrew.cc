@@ -89,7 +89,7 @@ compose_hebrew (const hb_ot_shape_normalize_context_t *c,
 	      found = true;
 	  }
 	  break;
-      case 0x05B7u: /* patah */
+      case 0x05B7u: /* PATAH */
 	  if (a == 0x05F2u) { /* YIDDISH YOD YOD */
 	      *ab = 0xFB1Fu;
 	      found = true;
