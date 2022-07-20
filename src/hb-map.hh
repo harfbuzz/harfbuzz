@@ -222,10 +222,7 @@ struct hb_hashmap_t
   bool has (K key, const V **vp = nullptr) const
   {
     if (unlikely (!items))
-    {
-      if (vp) *vp = &item_t::default_value ();
       return false;
-    }
     unsigned int i = bucket_for (key);
     if (items[i].is_real () && items[i] == key)
     {
@@ -233,10 +230,7 @@ struct hb_hashmap_t
       return true;
     }
     else
-    {
-      if (vp) *vp = &item_t::default_value ();
       return false;
-    }
   }
   /* Projection. */
   V operator () (K k) const { return get (k); }
