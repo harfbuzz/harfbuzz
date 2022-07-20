@@ -199,7 +199,7 @@ static bool _features_to_lookup_indices (
 {
   for (auto k : features_by_script_and_lang.keys ())
   {
-    hb_tag_t script = k.first;
+    hb_tag_t script_tag = k.first;
     hb_tag_t lang = k.second;
     const hb_map_t* feature_set = features_by_script_and_lang.get (k).get ();
 
@@ -217,9 +217,10 @@ static bool _features_to_lookup_indices (
       features.push (f);
     }
 
+    hb_script_t script = hb_ot_tag_to_script (script_tag);
     hb_segment_properties_t p {
-      HB_DIRECTION_LTR,
-      hb_ot_tag_to_script (script),
+      hb_script_get_horizontal_direction (script),
+      script,
       hb_ot_tag_to_language (lang)
     };
 
