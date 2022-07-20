@@ -197,17 +197,143 @@ static bool _features_to_lookup_indices (
     const script_and_lang_to_feature_t& features_by_script_and_lang,
     hb_set_t& lookup_indices /* OUT */)
 {
+  // TODO(grieger): share with subset input.
+  //copied from _layout_features_groups in fonttools
+  hb_vector_t<hb_tag_t> default_layout_features = {
+    // default shaper
+    // common
+    HB_TAG ('r', 'v', 'r', 'n'),
+    HB_TAG ('c', 'c', 'm', 'p'),
+    HB_TAG ('l', 'i', 'g', 'a'),
+    HB_TAG ('l', 'o', 'c', 'l'),
+    HB_TAG ('m', 'a', 'r', 'k'),
+    HB_TAG ('m', 'k', 'm', 'k'),
+    HB_TAG ('r', 'l', 'i', 'g'),
+
+    //fractions
+    HB_TAG ('f', 'r', 'a', 'c'),
+    HB_TAG ('n', 'u', 'm', 'r'),
+    HB_TAG ('d', 'n', 'o', 'm'),
+
+    //horizontal
+    HB_TAG ('c', 'a', 'l', 't'),
+    HB_TAG ('c', 'l', 'i', 'g'),
+    HB_TAG ('c', 'u', 'r', 's'),
+    HB_TAG ('k', 'e', 'r', 'n'),
+    HB_TAG ('r', 'c', 'l', 't'),
+
+    //vertical
+    HB_TAG ('v', 'a', 'l', 't'),
+    HB_TAG ('v', 'e', 'r', 't'),
+    HB_TAG ('v', 'k', 'r', 'n'),
+    HB_TAG ('v', 'p', 'a', 'l'),
+    HB_TAG ('v', 'r', 't', '2'),
+
+    //ltr
+    HB_TAG ('l', 't', 'r', 'a'),
+    HB_TAG ('l', 't', 'r', 'm'),
+
+    //rtl
+    HB_TAG ('r', 't', 'l', 'a'),
+    HB_TAG ('r', 't', 'l', 'm'),
+
+    //random
+    HB_TAG ('r', 'a', 'n', 'd'),
+
+    //justify
+    HB_TAG ('j', 'a', 'l', 't'), // HarfBuzz doesn't use; others might
+
+    //private
+    HB_TAG ('H', 'a', 'r', 'f'),
+    HB_TAG ('H', 'A', 'R', 'F'),
+    HB_TAG ('B', 'u', 'z', 'z'),
+    HB_TAG ('B', 'U', 'Z', 'Z'),
+
+    //shapers
+
+    //arabic
+    HB_TAG ('i', 'n', 'i', 't'),
+    HB_TAG ('m', 'e', 'd', 'i'),
+    HB_TAG ('f', 'i', 'n', 'a'),
+    HB_TAG ('i', 's', 'o', 'l'),
+    HB_TAG ('m', 'e', 'd', '2'),
+    HB_TAG ('f', 'i', 'n', '2'),
+    HB_TAG ('f', 'i', 'n', '3'),
+    HB_TAG ('c', 's', 'w', 'h'),
+    HB_TAG ('m', 's', 'e', 't'),
+    HB_TAG ('s', 't', 'c', 'h'),
+
+    //hangul
+    HB_TAG ('l', 'j', 'm', 'o'),
+    HB_TAG ('v', 'j', 'm', 'o'),
+    HB_TAG ('t', 'j', 'm', 'o'),
+
+    //tibetan
+    HB_TAG ('a', 'b', 'v', 's'),
+    HB_TAG ('b', 'l', 'w', 's'),
+    HB_TAG ('a', 'b', 'v', 'm'),
+    HB_TAG ('b', 'l', 'w', 'm'),
+
+    //indic
+    HB_TAG ('n', 'u', 'k', 't'),
+    HB_TAG ('a', 'k', 'h', 'n'),
+    HB_TAG ('r', 'p', 'h', 'f'),
+    HB_TAG ('r', 'k', 'r', 'f'),
+    HB_TAG ('p', 'r', 'e', 'f'),
+    HB_TAG ('b', 'l', 'w', 'f'),
+    HB_TAG ('h', 'a', 'l', 'f'),
+    HB_TAG ('a', 'b', 'v', 'f'),
+    HB_TAG ('p', 's', 't', 'f'),
+    HB_TAG ('c', 'f', 'a', 'r'),
+    HB_TAG ('v', 'a', 't', 'u'),
+    HB_TAG ('c', 'j', 'c', 't'),
+    HB_TAG ('i', 'n', 'i', 't'),
+    HB_TAG ('p', 'r', 'e', 's'),
+    HB_TAG ('a', 'b', 'v', 's'),
+    HB_TAG ('b', 'l', 'w', 's'),
+    HB_TAG ('p', 's', 't', 's'),
+    HB_TAG ('h', 'a', 'l', 'n'),
+    HB_TAG ('d', 'i', 's', 't'),
+    HB_TAG ('a', 'b', 'v', 'm'),
+    HB_TAG ('b', 'l', 'w', 'm'),
+  };
+
+
+  hb_vector_t<hb_feature_t> features;
+  for (hb_tag_t tag : default_layout_features) {
+    hb_feature_t f {
+        tag,
+        0,
+        HB_FEATURE_GLOBAL_START,
+        HB_FEATURE_GLOBAL_END
+    };
+    features.push (f);
+  }
+
   for (auto k : features_by_script_and_lang.keys ())
   {
     hb_tag_t script_tag = k.first;
     hb_tag_t lang = k.second;
+    printf("%c%c%c%c - %c%c%c%c\n",
+           HB_UNTAG(script_tag),
+           HB_UNTAG(lang));
     const hb_map_t* feature_set = features_by_script_and_lang.get (k).get ();
 
-    hb_vector_t<hb_feature_t> features;
-    if (!features.alloc (feature_set->get_population ()))
+    if (!features.resize (default_layout_features.length)) {
       return false;
+    }
 
-    for (hb_tag_t tag : feature_set->keys ()) {
+    for (hb_codepoint_t index : feature_set->keys ()) {
+
+      unsigned count = 1;
+      hb_tag_t tag;
+      hb_ot_layout_table_get_feature_tags (source,
+                                           table_tag,
+                                           index,
+                                           &count,
+                                           &tag);
+
+      printf(" feature: %c%c%c%c\n", HB_UNTAG(tag));
       hb_feature_t f {
         tag,
         1,
@@ -218,10 +344,16 @@ static bool _features_to_lookup_indices (
     }
 
     hb_script_t script = hb_ot_tag_to_script (script_tag);
+
+
+    char lang_str[32];
+    snprintf (lang_str, sizeof(lang_str), "x-hbsc-%08x-hbot-%08x", script_tag, lang);
+    printf("%s\n", lang_str);
+
     hb_segment_properties_t p {
       hb_script_get_horizontal_direction (script),
       script,
-      hb_ot_tag_to_language (lang)
+      hb_language_from_string (lang_str, -1), //hb_ot_tag_to_language (lang)
     };
 
     hb::shared_ptr<hb_shape_plan_t> plan (hb_shape_plan_create (source,
@@ -229,6 +361,15 @@ static bool _features_to_lookup_indices (
 								features.arrayZ,
 								features.length,
 								nullptr));
+
+    hb_set_t new_lookups;
+    hb_ot_shape_plan_collect_lookups (plan,
+                                      table_tag,
+                                      &new_lookups);
+
+    for (hb_codepoint_t lookup : new_lookups)
+      printf("  added lookup %d\n", lookup);
+
 
     hb_ot_shape_plan_collect_lookups (plan,
                                       table_tag,
@@ -289,14 +430,37 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 
   if (table_tag == HB_OT_TAG_GSUB) {
     hb_set_t closure_lookup_indices;
+
+
     if (!_features_to_lookup_indices (plan->source,
                                       table_tag,
                                       features_by_script_and_lang,
                                       closure_lookup_indices))
       return;
+    // TODO remove
+
+    hb_set_t diff {closure_lookup_indices};
+    diff.symmetric_difference (lookup_indices);
+    for (hb_tag_t lookup : diff) {
+      if (closure_lookup_indices.has (lookup)) {
+        printf("%u not in lookup indices.\n",
+               lookup);
+      }
+    }
+    for (hb_tag_t lookup : diff) {
+      if (lookup_indices.has (lookup)) {
+        printf("%u not in closure lookup indices.\n",
+               lookup);
+      }
+    }
+
+
+
     hb_ot_layout_lookups_substitute_closure (plan->source,
                                              &closure_lookup_indices,
 					     gids_to_retain);
+
+    lookup_indices = closure_lookup_indices;
   }
 
   table->closure_lookups (plan->source,
