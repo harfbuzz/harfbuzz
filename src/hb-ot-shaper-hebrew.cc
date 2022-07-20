@@ -182,6 +182,7 @@ reorder_marks_hebrew (const hb_ot_shape_plan_t *plan HB_UNUSED,
     {
       buffer->merge_clusters (i - 1, i + 1);
       hb_swap (info[i - 1], info[i]);
+      break;
     }
   }
 
