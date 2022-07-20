@@ -60,6 +60,8 @@ struct hb_shape_plan_key_t;
 
 struct hb_ot_shape_plan_t
 {
+  ~hb_ot_shape_plan_t () { fini (); }
+
   hb_segment_properties_t props;
   const struct hb_ot_shaper_t *shaper;
   hb_ot_map_t map;
