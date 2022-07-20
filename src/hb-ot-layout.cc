@@ -1002,16 +1002,22 @@ hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
   return get_gsubgpos_table (face, table_tag).get_lookup_count ();
 }
 
+typedef hb_hashmap_t<hb_pair_t<hb_tag_t, hb_tag_t>,
+    hb::unique_ptr<hb_map_t>>
+    script_and_lang_to_feature_t;
 
 struct hb_collect_features_context_t
 {
-  hb_collect_features_context_t (hb_face_t *face,
-				 hb_tag_t   table_tag,
-				 hb_set_t  *feature_indices_,
-				 const hb_tag_t *features)
+  hb_collect_features_context_t (
+      hb_face_t *face,
+      hb_tag_t   table_tag,
+      hb_set_t  *feature_indices_,
+      script_and_lang_to_feature_t *features_by_script_and_lang_,
+      const hb_tag_t *features)
 
     : g (get_gsubgpos_table (face, table_tag)),
       feature_indices (feature_indices_),
+      features_by_script_and_lang (features_by_script_and_lang_),
       has_feature_filter (false),
       script_count (0),langsys_count (0), feature_index_count (0)
   {
@@ -1072,6 +1078,32 @@ struct hb_collect_features_context_t
     return feature_index_count > HB_MAX_FEATURE_INDICES;
   }
 
+  void add (hb_tag_t script, hb_tag_t lang, hb_tag_t feature)
+  {
+    if (!features_by_script_and_lang) return;
+
+    /*
+      TODO
+    hb_feature_t f {
+      feature,
+      1,
+      HB_FEATURE_GLOBAL_START,
+      HB_FEATURE_GLOBAL_END
+    };
+    */
+
+    hb_pair_t<hb_tag_t, hb_tag_t> key = hb_pair (script, lang);
+    const hb::unique_ptr<hb_map_t>* features;
+    if (features_by_script_and_lang->has (key, &features))
+    {
+      (*features)->set (feature, 1);
+    } else {
+      hb::unique_ptr<hb_map_t> features { hb_map_create () };
+      features->set (feature, 1);
+      features_by_script_and_lang->set (key, std::move (features));
+    }
+  }
+
   private:
   template <typename T>
   bool visited (const T &p, hb_set_t &visited_set)
@@ -1087,6 +1119,7 @@ struct hb_collect_features_context_t
   public:
   const OT::GSUBGPOS &g;
   hb_set_t *feature_indices;
+  script_and_lang_to_feature_t *features_by_script_and_lang;
   hb_set_t  feature_indices_filter;
   bool has_feature_filter;
 
@@ -1100,6 +1133,8 @@ struct hb_collect_features_context_t
 
 static void
 langsys_collect_features (hb_collect_features_context_t *c,
+                          hb_tag_t script_tag,
+                          hb_tag_t lang_tag,
 			  const OT::LangSys  &l)
 {
   if (c->visited (l)) return;
@@ -1108,11 +1143,18 @@ langsys_collect_features (hb_collect_features_context_t *c,
   {
     /* All features. */
     if (l.has_required_feature () && !c->visited_feature_indices (1))
+    {
       c->feature_indices->add (l.get_required_feature_index ());
+      c->add (script_tag, lang_tag, l.get_required_feature_index ());
+    }
 
     // TODO(garretrieger): filter out indices >= feature count?
     if (!c->visited_feature_indices (l.featureIndex.len))
+    {
       l.add_feature_indexes_to (c->feature_indices);
+      for (auto f : l.featureIndex)
+        c->add (script_tag, lang_tag, f);
+    }
   }
   else
   {
@@ -1124,6 +1166,7 @@ langsys_collect_features (hb_collect_features_context_t *c,
       if (!c->feature_indices_filter.has (feature_index)) continue;
 
       c->feature_indices->add (feature_index);
+      c->add (script_tag, lang_tag, feature_index);
       c->feature_indices_filter.del (feature_index);
     }
   }
@@ -1131,6 +1174,7 @@ langsys_collect_features (hb_collect_features_context_t *c,
 
 static void
 script_collect_features (hb_collect_features_context_t *c,
+                         hb_tag_t script_tag,
 			 const OT::Script   &s,
 			 const hb_tag_t *languages)
 {
@@ -1141,12 +1185,16 @@ script_collect_features (hb_collect_features_context_t *c,
     /* All languages. */
     if (s.has_default_lang_sys ())
       langsys_collect_features (c,
+                                script_tag,
+                                HB_OT_TAG_DEFAULT_LANGUAGE,
 				s.get_default_lang_sys ());
 
 
     unsigned int count = s.get_lang_sys_count ();
     for (unsigned int language_index = 0; language_index < count; language_index++)
       langsys_collect_features (c,
+                                script_tag,
+                                s.get_lang_sys_tag (language_index),
 				s.get_lang_sys (language_index));
   }
   else
@@ -1156,6 +1204,8 @@ script_collect_features (hb_collect_features_context_t *c,
       unsigned int language_index;
       if (s.find_lang_sys_index (*languages, &language_index))
 	langsys_collect_features (c,
+                                  script_tag,
+                                  s.get_lang_sys_tag (language_index),
 				  s.get_lang_sys (language_index));
 
     }
@@ -1188,13 +1238,18 @@ hb_ot_layout_collect_features (hb_face_t      *face,
 			       const hb_tag_t *features,
 			       hb_set_t       *feature_indexes /* OUT */)
 {
-  hb_collect_features_context_t c (face, table_tag, feature_indexes, features);
+  hb_collect_features_context_t c (face,
+                                   table_tag,
+                                   feature_indexes,
+                                   nullptr,
+                                   features);
   if (!scripts)
   {
     /* All scripts. */
     unsigned int count = c.g.get_script_count ();
     for (unsigned int script_index = 0; script_index < count; script_index++)
       script_collect_features (&c,
+                               c.g.get_script_tag (script_index),
 			       c.g.get_script (script_index),
 			       languages);
   }
@@ -1205,6 +1260,7 @@ hb_ot_layout_collect_features (hb_face_t      *face,
       unsigned int script_index;
       if (c.g.find_script_index (*scripts, &script_index))
 	script_collect_features (&c,
+                                 c.g.get_script_tag (script_index),
 				 c.g.get_script (script_index),
 				 languages);
     }

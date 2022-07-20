@@ -257,7 +257,6 @@ struct
 }
 HB_FUNCOBJ (hb_hash);
 
-
 struct
 {
   private:
@@ -523,6 +522,11 @@ struct hb_pair_t
   bool operator >= (const pair_t& o) const { return !(*this < o); }
   bool operator > (const pair_t& o) const { return first > o.first || (first == o.first && second > o.second); }
   bool operator <= (const pair_t& o) const { return !(*this > o); }
+
+  uint32_t hash () const
+  {
+    return (hb_hash (first) * 31) + hb_hash (second);
+  }
 
   T1 first;
   T2 second;
