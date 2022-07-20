@@ -1002,10 +1002,6 @@ hb_ot_layout_table_get_lookup_count (hb_face_t    *face,
   return get_gsubgpos_table (face, table_tag).get_lookup_count ();
 }
 
-typedef hb_hashmap_t<hb_pair_t<hb_tag_t, hb_tag_t>,
-    hb::unique_ptr<hb_map_t>>
-    script_and_lang_to_feature_t;
-
 struct hb_collect_features_context_t
 {
   hb_collect_features_context_t (
@@ -1212,7 +1208,6 @@ script_collect_features (hb_collect_features_context_t *c,
   }
 }
 
-
 /**
  * hb_ot_layout_collect_features:
  * @face: #hb_face_t to work upon
@@ -1238,10 +1233,30 @@ hb_ot_layout_collect_features (hb_face_t      *face,
 			       const hb_tag_t *features,
 			       hb_set_t       *feature_indexes /* OUT */)
 {
+  hb_ot_layout_collect_features_by_script (face,
+                                           table_tag,
+                                           scripts,
+                                           languages,
+                                           features,
+                                           feature_indexes,
+                                           nullptr);
+}
+
+
+void
+hb_ot_layout_collect_features_by_script (
+    hb_face_t      *face,
+    hb_tag_t        table_tag,
+    const hb_tag_t *scripts,
+    const hb_tag_t *languages,
+    const hb_tag_t *features,
+    hb_set_t       *feature_indexes /* OUT */,
+    script_and_lang_to_feature_t *features_by_script)
+{
   hb_collect_features_context_t c (face,
                                    table_tag,
                                    feature_indexes,
-                                   nullptr,
+                                   features_by_script,
                                    features);
   if (!scripts)
   {
@@ -1266,7 +1281,6 @@ hb_ot_layout_collect_features (hb_face_t      *face,
     }
   }
 }
-
 
 /**
  * hb_ot_layout_collect_lookups:

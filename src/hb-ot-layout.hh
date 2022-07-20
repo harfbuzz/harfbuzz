@@ -96,6 +96,19 @@ HB_MARK_AS_FLAG_T (hb_ot_layout_glyph_props_flags_t);
  * GSUB/GPOS
  */
 
+typedef hb_hashmap_t<hb_pair_t<hb_tag_t, hb_tag_t>,
+    hb::unique_ptr<hb_map_t>>
+    script_and_lang_to_feature_t;
+
+HB_INTERNAL void
+hb_ot_layout_collect_features_by_script (
+    hb_face_t      *face,
+    hb_tag_t        table_tag,
+    const hb_tag_t *scripts,
+    const hb_tag_t *languages,
+    const hb_tag_t *features,
+    hb_set_t       *feature_indexes /* OUT */,
+    script_and_lang_to_feature_t *features_by_script);
 
 /* Should be called before all the substitute_lookup's are done. */
 HB_INTERNAL void
