@@ -6,10 +6,9 @@
 #include "SubstLookup.hh"
 
 namespace OT {
-
-using Layout::GSUB_impl::SubstLookup;
-
 namespace Layout {
+
+using GSUB_impl::SubstLookup;
 
 /*
  * GSUB -- Glyph Substitution
@@ -18,8 +17,6 @@ namespace Layout {
 
 struct GSUB : GSUBGPOS
 {
-  using Lookup = SubstLookup;
-
   static constexpr hb_tag_t tableTag = HB_OT_TAG_GSUB;
 
   const SubstLookup& get_lookup (unsigned int i) const

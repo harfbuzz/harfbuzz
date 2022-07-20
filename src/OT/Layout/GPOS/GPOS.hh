@@ -7,10 +7,9 @@
 #include "PosLookup.hh"
 
 namespace OT {
-
-using Layout::GPOS_impl::PosLookup;
-
 namespace Layout {
+
+using GPOS_impl::PosLookup;
 
 static void
 propagate_attachment_offsets (hb_glyph_position_t *pos,
@@ -27,8 +26,6 @@ propagate_attachment_offsets (hb_glyph_position_t *pos,
 struct GPOS : GSUBGPOS
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_GPOS;
-
-  using Lookup = PosLookup;
 
   const PosLookup& get_lookup (unsigned int i) const
   { return static_cast<const PosLookup &> (GSUBGPOS::get_lookup (i)); }
