@@ -44,7 +44,7 @@ using graph::graph_t;
  */
 
 static inline
-void _make_extensions (hb_tag_t table_tag, graph_t& sorted_graph, hb_vector_t<char>& buffer)
+bool _make_extensions (hb_tag_t table_tag, graph_t& sorted_graph, hb_vector_t<char>& buffer)
 {
   // TODO: Move this into graph or gsubgpos graph?
   hb_hashmap_t<unsigned, graph::Lookup*> lookups;
@@ -52,8 +52,10 @@ void _make_extensions (hb_tag_t table_tag, graph_t& sorted_graph, hb_vector_t<ch
 
   for (auto p : lookups.iter ())
   {
-    p.second->make_extension (table_tag, sorted_graph, p.first, buffer);
+    if (!p.second->make_extension (table_tag, sorted_graph, p.first, buffer))
+      return false;
   }
+  return true;
 }
 
 static inline
@@ -175,6 +177,8 @@ hb_resolve_overflows (const T& packed,
   printf("Resolving overflows!\n");
   graph_t sorted_graph (packed);
   sorted_graph.sort_shortest_distance ();
+  printf("Initial graph size: %lu.\n",
+         sorted_graph.total_size_in_bytes ());
 
   bool will_overflow = graph::will_overflow (sorted_graph);
   if (!will_overflow)
@@ -183,11 +187,17 @@ hb_resolve_overflows (const T& packed,
   }
 
   hb_vector_t<char> extension_buffer;
+  if (!extension_buffer.alloc(100000)) // TODO: cleanup
+    return nullptr;
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)
   {
-    _make_extensions (table_tag, sorted_graph, extension_buffer);
+    if (!_make_extensions (table_tag, sorted_graph, extension_buffer)) {
+      printf("make extensions failed.\n");
+      return nullptr;
+    }
+
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
     if (sorted_graph.assign_spaces ())
       sorted_graph.sort_shortest_distance ();
