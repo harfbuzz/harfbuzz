@@ -193,7 +193,8 @@ struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty
   template <typename T,
 	    typename T2 = Type,
 	    hb_enable_if (!std::is_copy_constructible<T2>::value &&
-			  std::is_copy_assignable<T>::value)>
+			  (std::is_copy_assignable<T>::value ||
+			   std::is_move_assignable<T>::value))>
   Type *push (T&& v)
   {
     Type *p = push ();
