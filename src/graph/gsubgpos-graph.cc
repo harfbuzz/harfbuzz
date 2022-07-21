@@ -28,6 +28,22 @@
 
 namespace graph {
 
+make_extension_context_t::make_extension_context_t (hb_tag_t table_tag_,
+                                                    graph_t& graph_,
+                                                    hb_vector_t<char>& buffer_)
+    : table_tag (table_tag_),
+      graph (graph_),
+      buffer (buffer_),
+      lookups ()
+{
+  GSTAR* gstar = graph::GSTAR::graph_to_gstar (graph_);
+  if (gstar)
+    gstar->find_lookups (graph, lookups);
+
+  unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
+  buffer.alloc (num_non_ext_subtables () * extension_size);
+}
+
 unsigned make_extension_context_t::num_non_ext_subtables ()  {
   unsigned count = 0;
   for (auto l : lookups.values ())

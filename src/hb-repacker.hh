@@ -41,8 +41,12 @@ using graph::graph_t;
  * docs/repacker.md
  */
 
+/*
+ * Analyze the lookups in a GSUB/GPOS table and decide if any should be promoted
+ * to extension lookups.
+ */
 static inline
-bool _make_extensions (graph::make_extension_context_t& ext_context)
+bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context)
 {
   // TODO: Move this into graph or gsubgpos graph?
   for (auto p : ext_context.lookups.iter ())
@@ -50,6 +54,7 @@ bool _make_extensions (graph::make_extension_context_t& ext_context)
     if (!p.second->make_extension (ext_context, p.first))
       return false;
   }
+
   return true;
 }
 
@@ -169,11 +174,8 @@ inline hb_blob_t*
 hb_resolve_overflows (const T& packed,
                       hb_tag_t table_tag,
                       unsigned max_rounds = 20) {
-  printf("Resolving overflows!\n");
   graph_t sorted_graph (packed);
   sorted_graph.sort_shortest_distance ();
-  printf("Initial graph size: %lu.\n",
-         sorted_graph.total_size_in_bytes ());
 
   bool will_overflow = graph::will_overflow (sorted_graph);
   if (!will_overflow)
@@ -181,16 +183,18 @@ hb_resolve_overflows (const T& packed,
     return graph::serialize (sorted_graph);
   }
 
-  graph::make_extension_context_t ext_context (table_tag, sorted_graph);
-  if (ext_context.in_error ())
-    return nullptr;
+  hb_vector_t<char> extension_buffer; // Needs to live until serialization is done.
 
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)
   {
-    if (!_make_extensions (ext_context)) {
-      printf("make extensions failed.\n");
+    graph::make_extension_context_t ext_context (table_tag, sorted_graph, extension_buffer);
+    if (ext_context.in_error ())
+      return nullptr;
+
+    if (1 && !_promote_extensions_if_needed (ext_context)) {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Extensions promotion failed.");
       return nullptr;
     }
 

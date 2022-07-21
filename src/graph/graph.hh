@@ -621,7 +621,6 @@ struct graph_t
     clone->obj.tail = tail;
     clone->distance = 0;
     clone->space = 0;
-    printf("Creating new node from %p to %p\n", head, tail);
 
     unsigned clone_idx = vertices_.length - 2;
 
