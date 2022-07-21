@@ -163,7 +163,7 @@ struct hb_ot_map_t
 
   private:
 
-  hb_mask_t global_mask;
+  hb_mask_t global_mask = 0;
 
   hb_sorted_vector_t<feature_map_t> features;
   hb_vector_t<lookup_map_t> lookups[2]; /* GSUB/GPOS */
