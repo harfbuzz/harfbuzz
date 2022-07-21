@@ -480,6 +480,18 @@ struct graph_t
       find_subgraph (link.objidx, subgraph);
   }
 
+  size_t find_subgraph_size (unsigned node_idx, hb_set_t& subgraph)
+  {
+    if (subgraph.has (node_idx)) return 0;
+    subgraph.add (node_idx);
+
+    const auto& o = vertices_[node_idx].obj;
+    size_t size = o.tail - o.head;
+    for (const auto& link : o.all_links ())
+      size += find_subgraph_size (link.objidx, subgraph);
+    return size;
+  }
+
   /*
    * Finds the topmost children of 32bit offsets in the subgraph starting
    * at node_idx. Found indices are placed into 'found'.

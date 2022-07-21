@@ -41,6 +41,13 @@ using graph::graph_t;
  * docs/repacker.md
  */
 
+inline int compare_sizes (const void* a, const void* b)
+{
+  hb_pair_t<unsigned, size_t>* size_a = (hb_pair_t<unsigned, size_t>*) a;
+  hb_pair_t<unsigned, size_t>* size_b = (hb_pair_t<unsigned, size_t>*) b;
+  return size_a->second - size_b->second;
+}
+
 /*
  * Analyze the lookups in a GSUB/GPOS table and decide if any should be promoted
  * to extension lookups.
@@ -48,10 +55,44 @@ using graph::graph_t;
 static inline
 bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context)
 {
-  // TODO: Move this into graph or gsubgpos graph?
-  for (auto p : ext_context.lookups.iter ())
+  // Simple Algorithm (v1, current):
+  // 1. Calculate how many bytes each non-extension lookup consumes.
+  // 2. Select up to 64k of those to remain as non-extension (greedy, smallest first).
+  // 3. Promote the rest.
+  //
+  // Advanced Algorithm (v2, not implemented):
+  // 1. Perform connected component analysis using lookups as roots.
+  // 2. Compute size of each connected component.
+  // 3. Select up to 64k worth of connected components to remain as non-extensions.
+  //    (greedy, smallest first)
+  // 4. Promote the rest.
+
+  // TODO(garretrieger): support extension demotion, then consider all lookups. Requires advanced algo.
+
+  hb_vector_t<hb_pair_t<unsigned, size_t>> lookup_sizes;
+  lookup_sizes.alloc (ext_context.lookups.get_population ());
+
+  for (unsigned lookup_index : ext_context.lookups.keys ())
   {
-    if (!p.second->make_extension (ext_context, p.first))
+    hb_set_t visited;
+    lookup_sizes.push (hb_pair_t<unsigned, size_t> {
+        lookup_index,
+        ext_context.graph.find_subgraph_size (lookup_index, visited)
+      });
+  }
+
+  lookup_sizes.qsort (compare_sizes);
+
+  size_t accumlated_bytes = 0;
+  for (auto p : lookup_sizes)
+  {
+    unsigned lookup_index = p.first;
+    size_t size = p.second;
+    accumlated_bytes += size;
+
+    if (accumlated_bytes < (1 << 16)) continue; // this lookup fits with 64k, which won't overflow.
+
+    if (!ext_context.lookups.get(lookup_index)->make_extension (ext_context, lookup_index))
       return false;
   }
 
@@ -173,7 +214,8 @@ template<typename T>
 inline hb_blob_t*
 hb_resolve_overflows (const T& packed,
                       hb_tag_t table_tag,
-                      unsigned max_rounds = 20) {
+                      unsigned max_rounds = 20,
+                      bool recalculate_extensions = false) {
   graph_t sorted_graph (packed);
   sorted_graph.sort_shortest_distance ();
 
@@ -189,13 +231,16 @@ hb_resolve_overflows (const T& packed,
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)
   {
-    graph::make_extension_context_t ext_context (table_tag, sorted_graph, extension_buffer);
-    if (ext_context.in_error ())
-      return nullptr;
+    if (recalculate_extensions)
+    {
+      graph::make_extension_context_t ext_context (table_tag, sorted_graph, extension_buffer);
+      if (ext_context.in_error ())
+        return nullptr;
 
-    if (0 && !_promote_extensions_if_needed (ext_context)) {
-      DEBUG_MSG (SUBSET_REPACK, nullptr, "Extensions promotion failed.");
-      return nullptr;
+      if (!_promote_extensions_if_needed (ext_context)) {
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Extensions promotion failed.");
+        return nullptr;
+      }
     }
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
