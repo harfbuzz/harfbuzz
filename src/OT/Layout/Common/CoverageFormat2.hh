@@ -144,7 +144,6 @@ struct CoverageFormat2_4
   {
     for (const auto& range : rangeRecord.as_array ())
     {
-      if (!range.intersects (glyphs)) continue;
       unsigned last = range.last;
       for (hb_codepoint_t g = range.first - 1;
            glyphs.next (&g) && g <= last;)
