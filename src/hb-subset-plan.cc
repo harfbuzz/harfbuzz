@@ -367,6 +367,8 @@ static hb_vector_t<unsigned> _features_to_lookup_indices (
       script_plans.push (std::move (plan));
     }
 
+    unsigned num_lookups = hb_ot_layout_table_get_lookup_count (source, HB_OT_TAG_GSUB);
+
     unsigned max_stages = 0;
     for (auto &plan : script_plans)
       max_stages = hb_max (max_stages, plan->ot.map.stages[0].length);
@@ -381,6 +383,7 @@ static hb_vector_t<unsigned> _features_to_lookup_indices (
 	for (unsigned i = start; i < end; i++)
 	  stage_lookups.add (map.lookups[0][i].index);
       }
+      stage_lookups.del_range (num_lookups, HB_SET_VALUE_INVALID);
       for (unsigned lookup_index = HB_SET_VALUE_INVALID;
 	   stage_lookups.next (&lookup_index);)
 	lookups.push (lookup_index);
@@ -439,6 +442,9 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 		       retain_all_features ? nullptr : features.arrayZ,
                        &lookup_indices);
 
+  unsigned num_lookups = hb_ot_layout_table_get_lookup_count (plan->source, table_tag);
+  lookup_indices.del_range (num_lookups, HB_SET_VALUE_INVALID);
+
   if (table_tag == HB_OT_TAG_GSUB)
   {
     hb_vector_t<unsigned> closure_lookup_indices =
@@ -447,23 +453,27 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 				    features_by_script_and_lang);
 
     hb_set_t visited_lookups {closure_lookup_indices};
-    /* Append any other lookups.  Should not happen but oh well.
-     * Maybe remove one day? */
-    for (unsigned i = HB_SET_VALUE_INVALID;
-	 lookup_indices.next (&i);)
-      closure_lookup_indices.push (i);
-    lookup_indices.union_ (visited_lookups);
+    if (1)
+    {
+      /* Append any other lookups.  Should not happen but oh well.
+       * Maybe remove one day? */
+      for (unsigned i = HB_SET_VALUE_INVALID;
+	   lookup_indices.next (&i);)
+	closure_lookup_indices.push (i);
+      lookup_indices.union_ (visited_lookups);
+    }
+    else
+      lookup_indices = visited_lookups;
 
-#if 1
-    for (unsigned i : closure_lookup_indices)
-      hb_ot_layout_lookup_substitute_closure (plan->source,
-					      i,
-					      gids_to_retain);
-#else
-    hb_ot_layout_lookups_substitute_closure (plan->source,
-					     &lookup_indices,
-					     gids_to_retain);
-#endif
+    if (1)
+      for (unsigned i : closure_lookup_indices)
+	hb_ot_layout_lookup_substitute_closure (plan->source,
+						i,
+						gids_to_retain);
+    else
+      hb_ot_layout_lookups_substitute_closure (plan->source,
+					       &lookup_indices,
+					       gids_to_retain);
   }
 
   table->closure_lookups (plan->source,
