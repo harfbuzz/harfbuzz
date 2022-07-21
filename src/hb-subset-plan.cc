@@ -192,11 +192,10 @@ _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
   }
 }
 
-static bool _features_to_lookup_indices (
+static hb_vector_t<unsigned> _features_to_lookup_indices (
     hb_face_t* source,
     hb_tag_t table_tag,
-    const script_and_lang_to_feature_t& features_by_script_and_lang,
-    hb_set_t& lookup_indices /* OUT */)
+    const script_and_lang_to_feature_t& features_by_script_and_lang)
 {
   // TODO(grieger): share with subset input.
   //copied from _layout_features_groups in fonttools
@@ -325,8 +324,7 @@ static bool _features_to_lookup_indices (
       hb_tag_t lang = lang_v.first;
       auto feature_vec = lang_v.second;
 
-      if (!features.resize (default_layout_features.length))
-	return false;
+      features.resize (default_layout_features.length);
 
       for (hb_codepoint_t index : feature_vec)
       {
@@ -386,12 +384,10 @@ static bool _features_to_lookup_indices (
       for (unsigned lookup_index = HB_SET_VALUE_INVALID;
 	   stage_lookups.next (&lookup_index);)
 	lookups.push (lookup_index);
-
-      lookup_indices.union_ (stage_lookups);
     }
   }
 
-  return true;
+  return lookups;
 }
 
 
@@ -443,21 +439,31 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 		       retain_all_features ? nullptr : features.arrayZ,
                        &lookup_indices);
 
-  if (table_tag == HB_OT_TAG_GSUB) {
-    hb_set_t closure_lookup_indices;
+  if (table_tag == HB_OT_TAG_GSUB)
+  {
+    hb_vector_t<unsigned> closure_lookup_indices =
+       _features_to_lookup_indices (plan->source,
+				    table_tag,
+				    features_by_script_and_lang);
 
+    hb_set_t visited_lookups {closure_lookup_indices};
+    /* Append any other lookups.  Should not happen but oh well.
+     * Maybe remove one day? */
+    for (unsigned i = HB_SET_VALUE_INVALID;
+	 lookup_indices.next (&i);)
+      closure_lookup_indices.push (i);
+    lookup_indices.union_ (visited_lookups);
 
-    if (!_features_to_lookup_indices (plan->source,
-                                      table_tag,
-                                      features_by_script_and_lang,
-                                      closure_lookup_indices))
-      return;
-
+#if 1
+    for (unsigned i : closure_lookup_indices)
+      hb_ot_layout_lookup_substitute_closure (plan->source,
+					      i,
+					      gids_to_retain);
+#else
     hb_ot_layout_lookups_substitute_closure (plan->source,
-                                             &closure_lookup_indices,
+					     &lookup_indices,
 					     gids_to_retain);
-
-    lookup_indices = closure_lookup_indices;
+#endif
   }
 
   table->closure_lookups (plan->source,
