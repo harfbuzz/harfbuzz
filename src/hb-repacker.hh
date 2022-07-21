@@ -193,7 +193,7 @@ hb_resolve_overflows (const T& packed,
     if (ext_context.in_error ())
       return nullptr;
 
-    if (1 && !_promote_extensions_if_needed (ext_context)) {
+    if (0 && !_promote_extensions_if_needed (ext_context)) {
       DEBUG_MSG (SUBSET_REPACK, nullptr, "Extensions promotion failed.");
       return nullptr;
     }

@@ -77,7 +77,6 @@ struct Lookup : public OT::Lookup
   bool make_extension (make_extension_context_t& c,
                        unsigned this_index)
   {
-    // TODO: use a context_t?
     unsigned type = lookupType;
     unsigned ext_type = extension_type (c.table_tag);
     if (!ext_type || is_extension (c.table_tag))
@@ -113,7 +112,6 @@ struct Lookup : public OT::Lookup
     unsigned start = c.buffer.length;
     unsigned end = start + extension_size;
     if (!c.buffer.resize (c.buffer.length + extension_size))
-      // TODO: resizing potentially invalidates existing head/tail pointers.
       return false;
 
     OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
@@ -209,12 +207,23 @@ struct GSTAR : public OT::GSUBGPOS
   void find_lookups (graph_t& graph,
                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
   {
-    // TODO: template on types, based on gstar version.
+    switch (u.version.major) {
+      case 1: find_lookups<SmallTypes> (graph, lookups); break;
+#ifndef HB_NO_BORING_EXPANSION
+      case 2: find_lookups<MediumTypes> (graph, lookups); break;
+#endif
+    }
+  }
+
+  template<typename Types>
+  void find_lookups (graph_t& graph,
+                     hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
+  {
     unsigned lookup_list_idx = graph.index_for_offset (graph.root_idx (),
                                                        get_lookup_list_field_offset());
 
-    const LookupList<SmallTypes>* lookupList =
-        (const LookupList<SmallTypes>*) graph.object (lookup_list_idx).head;
+    const LookupList<Types>* lookupList =
+        (const LookupList<Types>*) graph.object (lookup_list_idx).head;
     if (!lookupList->sanitize (graph.vertices_[lookup_list_idx]))
       return;
 
