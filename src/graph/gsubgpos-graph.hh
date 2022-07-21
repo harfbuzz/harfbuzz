@@ -24,12 +24,12 @@
  * Google Author(s): Garret Rieger
  */
 
-#ifndef GRAPH_GSUBGPOS_GRAPH_HH
-#define GRAPH_GSUBGPOS_GRAPH_HH
-
 #include "graph.hh"
 #include "hb-ot-layout-gsubgpos.hh"
 #include "OT/Layout/GSUB/ExtensionSubst.hh"
+
+#ifndef GRAPH_GSUBGPOS_GRAPH_HH
+#define GRAPH_GSUBGPOS_GRAPH_HH
 
 namespace graph {
 
@@ -69,10 +69,37 @@ struct GSTAR : public OT::GSUBGPOS
       Lookup* lookup = (Lookup*) graph.object (lookup_idx).head;
       lookups.set (lookup_idx, lookup);
     }
-}
+  }
+};
 
+struct make_extension_context_t
+{
+  hb_tag_t table_tag;
+  graph_t& graph;
+  hb_vector_t<char> buffer;
+  GSTAR* gstar;
+  hb_hashmap_t<unsigned, graph::Lookup*> lookups;
 
+  make_extension_context_t (hb_tag_t table_tag_,
+                            graph_t& graph_)
+      : table_tag (table_tag_),
+        graph (graph_),
+        buffer (),
+        gstar (graph::GSTAR::graph_to_gstar (graph_)),
+        lookups ()
+  {
+    gstar->find_lookups (graph, lookups);
+    unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
+    buffer.alloc (num_non_ext_subtables () * extension_size);
+  }
 
+  bool in_error () const
+  {
+    return buffer.in_error ();
+  }
+
+ private:
+  unsigned num_non_ext_subtables ();
 };
 
 struct Lookup : public OT::Lookup
@@ -87,15 +114,13 @@ struct Lookup : public OT::Lookup
     return lookupType == extension_type (table_tag);
   }
 
-  bool make_extension (hb_tag_t table_tag,
-                       graph_t& graph,
-                       unsigned this_index,
-                       hb_vector_t<char>& buffer)
+  bool make_extension (make_extension_context_t& c,
+                       unsigned this_index)
   {
     // TODO: use a context_t?
     unsigned type = lookupType;
-    unsigned ext_type = extension_type (table_tag);
-    if (!ext_type || is_extension (table_tag))
+    unsigned ext_type = extension_type (c.table_tag);
+    if (!ext_type || is_extension (c.table_tag))
     {
       // NOOP
       printf("Already extension (obj %u).\n", this_index);
@@ -109,11 +134,10 @@ struct Lookup : public OT::Lookup
 
     for (unsigned i = 0; i < subTable.len; i++)
     {
-      unsigned subtable_index = graph.index_for_offset (this_index, &subTable[i]);
-      if (!make_subtable_extension (graph,
+      unsigned subtable_index = c.graph.index_for_offset (this_index, &subTable[i]);
+      if (!make_subtable_extension (c,
                                     this_index,
-                                    subtable_index,
-                                    buffer))
+                                    subtable_index))
         return false;
     }
 
@@ -121,23 +145,22 @@ struct Lookup : public OT::Lookup
     return true;
   }
 
-  bool make_subtable_extension (graph_t& graph,
+  bool make_subtable_extension (make_extension_context_t& c,
                                 unsigned lookup_index,
-                                unsigned subtable_index,
-                                hb_vector_t<char>& buffer)
+                                unsigned subtable_index)
   {
     printf("  Promoting subtable %u in lookup %u to extension.\n", subtable_index, lookup_index);
 
     unsigned type = lookupType;
     unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
-    unsigned start = buffer.length;
+    unsigned start = c.buffer.length;
     unsigned end = start + extension_size;
-    if (!buffer.resize (buffer.length + extension_size))
+    if (!c.buffer.resize (c.buffer.length + extension_size))
       // TODO: resizing potentially invalidates existing head/tail pointers.
       return false;
 
     OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
-        (OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*) &buffer[start];
+        (OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*) &c.buffer[start];
     extension->format = 1;
     extension->extensionLookupType = type;
     extension->extensionOffset = 0;
@@ -145,11 +168,11 @@ struct Lookup : public OT::Lookup
     unsigned type_prime = extension->extensionLookupType;
     printf("Assigned type %d to extension\n", type_prime);
 
-    unsigned ext_index = graph.new_node (&buffer.arrayZ[start],
-                                         &buffer.arrayZ[end]);
+    unsigned ext_index = c.graph.new_node (&c.buffer.arrayZ[start],
+                                           &c.buffer.arrayZ[end]);
     if (ext_index == (unsigned) -1) return false;
 
-    auto& lookup_vertex = graph.vertices_[lookup_index];
+    auto& lookup_vertex = c.graph.vertices_[lookup_index];
     for (auto& l : lookup_vertex.obj.real_links.writer ())
     {
       if (l.objidx == subtable_index)
@@ -161,9 +184,8 @@ struct Lookup : public OT::Lookup
     }
 
     // Make extension point at the subtable.
-    // TODO: update extension parents array.
-    auto& ext_vertex = graph.vertices_[ext_index];
-    auto& subtable_vertex = graph.vertices_[subtable_index];
+    auto& ext_vertex = c.graph.vertices_[ext_index];
+    auto& subtable_vertex = c.graph.vertices_[subtable_index];
     auto* l = ext_vertex.obj.real_links.push ();
 
     l->width = 4;

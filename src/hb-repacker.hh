@@ -29,8 +29,6 @@
 
 #include "hb-open-type.hh"
 #include "hb-map.hh"
-#include "hb-priority-queue.hh"
-#include "hb-serialize.hh"
 #include "hb-vector.hh"
 #include "graph/graph.hh"
 #include "graph/gsubgpos-graph.hh"
@@ -44,35 +42,12 @@ using graph::graph_t;
  */
 
 static inline
-unsigned _num_non_ext_subtables (hb_tag_t table_tag,
-                                 const hb_hashmap_t<unsigned, graph::Lookup*>& lookups)
-{
-  unsigned count = 0;
-  for (auto l : lookups.values ())
-  {
-    if (l->is_extension (table_tag)) continue;
-    count += l->number_of_subtables ();
-  }
-  return count;
-}
-
-
-static inline
-bool _make_extensions (hb_tag_t table_tag, graph_t& sorted_graph, hb_vector_t<char>& buffer)
+bool _make_extensions (graph::make_extension_context_t& ext_context)
 {
   // TODO: Move this into graph or gsubgpos graph?
-  graph::GSTAR* gstar = graph::GSTAR::graph_to_gstar (sorted_graph);
-  hb_hashmap_t<unsigned, graph::Lookup*> lookups;
-  gstar->find_lookups (sorted_graph, lookups);
-
-  unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
-  if (!buffer.alloc (_num_non_ext_subtables (table_tag, lookups) * extension_size))
-    return false;
-
-
-  for (auto p : lookups.iter ())
+  for (auto p : ext_context.lookups.iter ())
   {
-    if (!p.second->make_extension (table_tag, sorted_graph, p.first, buffer))
+    if (!p.second->make_extension (ext_context, p.first))
       return false;
   }
   return true;
@@ -206,12 +181,15 @@ hb_resolve_overflows (const T& packed,
     return graph::serialize (sorted_graph);
   }
 
-  hb_vector_t<char> extension_buffer;
+  graph::make_extension_context_t ext_context (table_tag, sorted_graph);
+  if (ext_context.in_error ())
+    return nullptr;
+
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)
   {
-    if (!_make_extensions (table_tag, sorted_graph, extension_buffer)) {
+    if (!_make_extensions (ext_context)) {
       printf("make extensions failed.\n");
       return nullptr;
     }
