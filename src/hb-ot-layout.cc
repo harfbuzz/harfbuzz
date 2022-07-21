@@ -1078,16 +1078,6 @@ struct hb_collect_features_context_t
   {
     if (!features_by_script_and_lang) return;
 
-    /*
-      TODO
-    hb_feature_t f {
-      feature,
-      1,
-      HB_FEATURE_GLOBAL_START,
-      HB_FEATURE_GLOBAL_END
-    };
-    */
-
     hb_pair_t<hb_tag_t, hb_tag_t> key = hb_pair (script, lang);
     const hb::unique_ptr<hb_map_t>* features;
     if (features_by_script_and_lang->has (key, &features))
