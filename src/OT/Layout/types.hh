@@ -34,6 +34,7 @@ namespace Layout {
 
 struct SmallTypes {
   static constexpr unsigned size = 2;
+  using large_int = uint32_t;
   using HBUINT = HBUINT16;
   using HBGlyphID = HBGlyphID16;
   using Offset = Offset16;
@@ -47,6 +48,7 @@ struct SmallTypes {
 
 struct MediumTypes {
   static constexpr unsigned size = 3;
+  using large_int = uint64_t;
   using HBUINT = HBUINT24;
   using HBGlyphID = HBGlyphID24;
   using Offset = Offset24;

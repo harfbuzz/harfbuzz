@@ -67,10 +67,10 @@ struct CoverageFormat2_4
 
   unsigned get_population () const
   {
-    unsigned ret = 0;
+    typename Types::large_int ret = 0;
     for (const auto &r : rangeRecord)
-      ret += r.get_population (); // TODO Overflow
-    return ret;
+      ret += r.get_population ();
+    return ret > UINT_MAX ? UINT_MAX : (unsigned) ret;
   }
 
   template <typename Iterator,
