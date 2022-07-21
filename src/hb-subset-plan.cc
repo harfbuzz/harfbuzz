@@ -39,6 +39,7 @@
 #include "hb-ot-var-fvar-table.hh"
 #include "hb-ot-var-avar-table.hh"
 #include "hb-ot-stat-table.hh"
+#include "hb-ot-map.hh"
 #include "hb-ot-math-table.hh"
 
 using OT::Layout::GSUB;
@@ -311,6 +312,7 @@ static bool _features_to_lookup_indices (
     features.push (f);
   }
 
+  hb_vector_t<unsigned> lookups;
   for (auto script_v : features_by_script_and_lang)
   {
     hb_tag_t script_tag = script_v.first;
@@ -367,11 +369,26 @@ static bool _features_to_lookup_indices (
       script_plans.push (std::move (plan));
     }
 
+    unsigned max_stages = 0;
     for (auto &plan : script_plans)
-      hb_ot_shape_plan_collect_lookups (plan,
-					table_tag,
-					&lookup_indices);
+      max_stages = hb_max (max_stages, plan->ot.map.stages[0].length);
+    for (unsigned stage = 0; stage < max_stages; stage++)
+    {
+      hb_set_t stage_lookups;
+      for (auto &plan : script_plans)
+      {
+        const auto &map = plan->ot.map;
+	unsigned start = map.stages[0][stage - 1].last_lookup;
+	unsigned end   = map.stages[0][stage    ].last_lookup;
+	for (unsigned i = start; i < end; i++)
+	  stage_lookups.add (map.lookups[0][i].index);
+      }
+      for (unsigned lookup_index = HB_SET_VALUE_INVALID;
+	   stage_lookups.next (&lookup_index);)
+	lookups.push (lookup_index);
 
+      lookup_indices.union_ (stage_lookups);
+    }
   }
 
   return true;

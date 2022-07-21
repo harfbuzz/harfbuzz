@@ -161,7 +161,7 @@ struct hb_ot_map_t
   hb_tag_t chosen_script[2];
   bool found_script[2];
 
-  private:
+  public:
 
   hb_mask_t global_mask = 0;
 
