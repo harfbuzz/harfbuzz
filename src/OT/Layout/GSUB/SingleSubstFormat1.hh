@@ -151,7 +151,7 @@ struct SingleSubstFormat1_3
 	hb_codepoint_t sv = *s_iter;
 	if (cv == sv)
 	{
-	  intersection.push ((cv + d) & mask);
+	  intersection.push (cv);
 	  c_iter++;
 	  s_iter++;
 	}
