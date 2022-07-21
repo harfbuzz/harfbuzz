@@ -42,7 +42,6 @@ struct AlternateSubstFormat1_2
     | hb_map (hb_add (this))
     | hb_apply ([c] (const AlternateSet<Types> &_) { _.closure (c); })
     ;
-
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
