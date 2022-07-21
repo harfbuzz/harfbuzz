@@ -459,7 +459,8 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
        * Maybe remove one day? */
       for (unsigned i = HB_SET_VALUE_INVALID;
 	   lookup_indices.next (&i);)
-	closure_lookup_indices.push (i);
+	if (!visited_lookups.has (i))
+	  closure_lookup_indices.push (i);
       lookup_indices.union_ (visited_lookups);
     }
     else
