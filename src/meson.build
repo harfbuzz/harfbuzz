@@ -345,6 +345,7 @@ hb_subset_sources = files(
   'hb-subset-plan.cc',
   'hb-subset-plan.hh',
   'hb-subset-repacker.cc',
+  'graph/gsubgpos-graph.cc',
   'hb-subset.cc',
   'hb-subset.hh',
 )
@@ -565,7 +566,7 @@ if get_option('tests').enabled()
     'test-number': ['test-number.cc', 'hb-number.cc'],
     'test-ot-tag': ['hb-ot-tag.cc'],
     'test-priority-queue': ['test-priority-queue.cc', 'hb-static.cc'],
-    'test-repacker': ['test-repacker.cc', 'hb-static.cc'],
+    'test-repacker': ['test-repacker.cc', 'hb-static.cc', 'graph/gsubgpos-graph.cc'],
     'test-set': ['test-set.cc', 'hb-static.cc'],
     'test-serialize': ['test-serialize.cc', 'hb-static.cc'],
     'test-unicode-ranges': ['test-unicode-ranges.cc'],

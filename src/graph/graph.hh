@@ -24,6 +24,10 @@
  * Google Author(s): Garret Rieger
  */
 
+#include "hb-set.hh"
+#include "hb-priority-queue.hh"
+#include "hb-serialize.hh"
+
 #ifndef GRAPH_GRAPH_HH
 #define GRAPH_GRAPH_HH
 
