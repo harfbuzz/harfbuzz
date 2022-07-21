@@ -300,7 +300,8 @@ static bool _features_to_lookup_indices (
 
 
   hb_vector_t<hb_feature_t> features;
-  for (hb_tag_t tag : default_layout_features) {
+  for (hb_tag_t tag : default_layout_features)
+  {
     hb_feature_t f {
         tag,
         0,
@@ -316,11 +317,11 @@ static bool _features_to_lookup_indices (
     hb_tag_t lang = k.second;
     const hb_map_t* feature_set = features_by_script_and_lang.get (k).get ();
 
-    if (!features.resize (default_layout_features.length)) {
+    if (!features.resize (default_layout_features.length))
       return false;
-    }
 
-    for (hb_codepoint_t index : feature_set->keys ()) {
+    for (hb_codepoint_t index : feature_set->keys ())
+    {
 
       unsigned count = 1;
       hb_tag_t tag;
