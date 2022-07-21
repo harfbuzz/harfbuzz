@@ -96,8 +96,7 @@ HB_MARK_AS_FLAG_T (hb_ot_layout_glyph_props_flags_t);
  * GSUB/GPOS
  */
 
-typedef hb_hashmap_t<hb_pair_t<hb_tag_t, hb_tag_t>,
-    hb::unique_ptr<hb_map_t>>
+typedef hb_hashmap_t<hb_tag_t, hb_hashmap_t<hb_tag_t, hb_vector_t<unsigned>>>
     script_and_lang_to_feature_t;
 
 void

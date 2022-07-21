@@ -1078,16 +1078,25 @@ struct hb_collect_features_context_t
   {
     if (!features_by_script_and_lang) return;
 
-    hb_pair_t<hb_tag_t, hb_tag_t> key = hb_pair (script, lang);
-    const hb::unique_ptr<hb_map_t>* features;
-    if (features_by_script_and_lang->has (key, &features))
+    using per_script_t = hb_hashmap_t<hb_tag_t, hb_vector_t<unsigned>>;
+    per_script_t *per_script = nullptr;
+    if (!features_by_script_and_lang->has (script, &per_script))
     {
-      (*features)->set (feature, 1);
-    } else {
-      hb::unique_ptr<hb_map_t> features { hb_map_create () };
-      features->set (feature, 1);
-      features_by_script_and_lang->set (key, std::move (features));
+      features_by_script_and_lang->set (script, per_script_t{});
+      bool ret = features_by_script_and_lang->has (script, &per_script);
+      if (unlikely (!ret)) return;
     }
+
+    using per_language_t = hb_vector_t<unsigned>;
+    per_language_t *per_language = nullptr;
+    if (!per_script->has (lang, &per_language))
+    {
+      per_script->set (lang, per_language_t{});
+      bool ret = per_script->has (lang, &per_language);
+      if (unlikely (!ret)) return;
+    }
+
+    per_language->push (feature);
   }
 
   private:

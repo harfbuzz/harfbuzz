@@ -311,61 +311,66 @@ static bool _features_to_lookup_indices (
     features.push (f);
   }
 
-  for (auto k : features_by_script_and_lang.keys ())
+  for (auto script_v : features_by_script_and_lang)
   {
-    hb_tag_t script_tag = k.first;
-    hb_tag_t lang = k.second;
-    const hb_map_t* feature_set = features_by_script_and_lang.get (k).get ();
+    hb_tag_t script_tag = script_v.first;
+    auto per_script = script_v.second;
 
-    if (!features.resize (default_layout_features.length))
-      return false;
-
-    for (hb_codepoint_t index : feature_set->keys ())
+    for (auto lang_v : per_script)
     {
+      hb_tag_t lang = lang_v.first;
+      auto feature_vec = lang_v.second;
 
-      unsigned count = 1;
-      hb_tag_t tag;
-      hb_ot_layout_table_get_feature_tags (source,
-                                           table_tag,
-                                           index,
-                                           &count,
-                                           &tag);
+      if (!features.resize (default_layout_features.length))
+	return false;
 
-      hb_feature_t f {
-        tag,
-        1,
-        HB_FEATURE_GLOBAL_START,
-        HB_FEATURE_GLOBAL_END
+      for (hb_codepoint_t index : feature_vec)
+      {
+
+	unsigned count = 1;
+	hb_tag_t tag;
+	hb_ot_layout_table_get_feature_tags (source,
+					     table_tag,
+					     index,
+					     &count,
+					     &tag);
+
+	hb_feature_t f {
+	  tag,
+	  1,
+	  HB_FEATURE_GLOBAL_START,
+	  HB_FEATURE_GLOBAL_END
+	};
+	features.push (f);
+      }
+
+      hb_script_t script = hb_ot_tag_to_script (script_tag);
+
+
+      char lang_str[32];
+      snprintf (lang_str, sizeof(lang_str), "x-hbsc-%08x-hbot-%08x", script_tag, lang);
+
+      hb_segment_properties_t p {
+	hb_script_get_horizontal_direction (script),
+	script,
+	hb_language_from_string (lang_str, -1), //hb_ot_tag_to_language (lang)
       };
-      features.push (f);
+
+      hb::shared_ptr<hb_shape_plan_t> plan (hb_shape_plan_create (source,
+								  &p,
+								  features.arrayZ,
+								  features.length,
+								  nullptr));
+
+      hb_set_t new_lookups;
+      hb_ot_shape_plan_collect_lookups (plan,
+					table_tag,
+					&new_lookups);
+
+      hb_ot_shape_plan_collect_lookups (plan,
+					table_tag,
+					&lookup_indices);
     }
-
-    hb_script_t script = hb_ot_tag_to_script (script_tag);
-
-
-    char lang_str[32];
-    snprintf (lang_str, sizeof(lang_str), "x-hbsc-%08x-hbot-%08x", script_tag, lang);
-
-    hb_segment_properties_t p {
-      hb_script_get_horizontal_direction (script),
-      script,
-      hb_language_from_string (lang_str, -1), //hb_ot_tag_to_language (lang)
-    };
-
-    hb::shared_ptr<hb_shape_plan_t> plan (hb_shape_plan_create (source,
-								&p,
-								features.arrayZ,
-								features.length,
-								nullptr));
-
-    hb_set_t new_lookups;
-    hb_ot_shape_plan_collect_lookups (plan,
-                                      table_tag,
-                                      &new_lookups);
-
-    hb_ot_shape_plan_collect_lookups (plan,
-                                      table_tag,
-                                      &lookup_indices);
   }
 
   return true;
