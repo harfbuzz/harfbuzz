@@ -51,6 +51,12 @@ struct RangeRecord
   int cmp (hb_codepoint_t g) const
   { return g < first ? -1 : g <= last ? 0 : +1; }
 
+  unsigned get_population () const
+  {
+    if (unlikely (last < first)) return 0;
+    return (last - first + 1);
+  }
+
   bool intersects (const hb_set_t *glyphs) const
   { return glyphs->intersects (first, last); }
 

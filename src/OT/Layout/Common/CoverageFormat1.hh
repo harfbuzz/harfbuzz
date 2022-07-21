@@ -62,6 +62,11 @@ struct CoverageFormat1_3
     return i;
   }
 
+  unsigned get_population () const
+  {
+    return glyphArray.len;
+  }
+
   template <typename Iterator,
       hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)

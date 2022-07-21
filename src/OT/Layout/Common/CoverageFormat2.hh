@@ -65,6 +65,14 @@ struct CoverageFormat2_4
          : NOT_COVERED;
   }
 
+  unsigned get_population () const
+  {
+    unsigned ret = 0;
+    for (const auto &r : rangeRecord)
+      ret += r.get_population (); // TODO Overflow
+    return ret;
+  }
+
   template <typename Iterator,
       hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)

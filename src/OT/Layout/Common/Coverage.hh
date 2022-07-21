@@ -95,6 +95,19 @@ struct Coverage
     }
   }
 
+  unsigned get_population () const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_population ();
+    case 2: return u.format2.get_population ();
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: return u.format3.get_population ();
+    case 4: return u.format4.get_population ();
+#endif
+    default:return NOT_COVERED;
+    }
+  }
+
   template <typename Iterator,
       hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c, Iterator glyphs)
