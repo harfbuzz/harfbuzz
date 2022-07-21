@@ -316,6 +316,8 @@ static bool _features_to_lookup_indices (
     hb_tag_t script_tag = script_v.first;
     auto per_script = script_v.second;
 
+    hb_vector_t<hb::unique_ptr<hb_shape_plan_t>> script_plans;
+
     for (auto lang_v : per_script)
     {
       hb_tag_t lang = lang_v.first;
@@ -356,16 +358,20 @@ static bool _features_to_lookup_indices (
 	hb_language_from_string (lang_str, -1), //hb_ot_tag_to_language (lang)
       };
 
-      hb::shared_ptr<hb_shape_plan_t> plan (hb_shape_plan_create (source,
+      hb::unique_ptr<hb_shape_plan_t> plan (hb_shape_plan_create (source,
 								  &p,
 								  features.arrayZ,
 								  features.length,
 								  nullptr));
 
+      script_plans.push (std::move (plan));
+    }
+
+    for (auto &plan : script_plans)
       hb_ot_shape_plan_collect_lookups (plan,
 					table_tag,
 					&lookup_indices);
-    }
+
   }
 
   return true;
