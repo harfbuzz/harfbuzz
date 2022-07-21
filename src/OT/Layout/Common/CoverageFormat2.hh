@@ -115,7 +115,7 @@ struct CoverageFormat2_4
 
   bool intersects (const hb_set_t *glyphs) const
   {
-    return hb_any (+ hb_iter (rangeRecord.as_array ())
+    return hb_any (+ hb_iter (rangeRecord)
                    | hb_map ([glyphs] (const RangeRecord<Types> &range) { return range.intersects (*glyphs); }));
   }
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
@@ -142,7 +142,7 @@ struct CoverageFormat2_4
 	    hb_requires (hb_is_sink_of (IteratorOut, hb_codepoint_t))>
   void intersect_set (const hb_set_t &glyphs, IteratorOut &intersect_glyphs) const
   {
-    for (const auto& range : rangeRecord.as_array ())
+    for (const auto& range : rangeRecord)
     {
       unsigned last = range.last;
       for (hb_codepoint_t g = range.first - 1;
