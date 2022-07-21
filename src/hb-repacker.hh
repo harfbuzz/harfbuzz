@@ -68,6 +68,8 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
   // 4. Promote the rest.
 
   // TODO(garretrieger): support extension demotion, then consider all lookups. Requires advanced algo.
+  // TODO(garretrieger): also support extension promotion during iterative resolution phase, then
+  //                     we can use a less conservative threshold here.
 
   hb_vector_t<hb_pair_t<unsigned, size_t>> lookup_sizes;
   lookup_sizes.alloc (ext_context.lookups.get_population ());
