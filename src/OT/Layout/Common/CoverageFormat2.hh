@@ -138,9 +138,9 @@ struct CoverageFormat2_4
     return false;
   }
 
-  template <typename IteratorOut,
-	    hb_requires (hb_is_sink_of (IteratorOut, hb_codepoint_t))>
-  void intersect_set (const hb_set_t &glyphs, IteratorOut &intersect_glyphs) const
+  template <typename IterableOut,
+	    hb_requires (hb_is_sink_of (IterableOut, hb_codepoint_t))>
+  void intersect_set (const hb_set_t &glyphs, IterableOut &intersect_glyphs) const
   {
     for (const auto& range : rangeRecord)
     {
