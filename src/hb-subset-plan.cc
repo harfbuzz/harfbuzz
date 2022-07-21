@@ -362,11 +362,6 @@ static bool _features_to_lookup_indices (
 								  features.length,
 								  nullptr));
 
-      hb_set_t new_lookups;
-      hb_ot_shape_plan_collect_lookups (plan,
-					table_tag,
-					&new_lookups);
-
       hb_ot_shape_plan_collect_lookups (plan,
 					table_tag,
 					&lookup_indices);
