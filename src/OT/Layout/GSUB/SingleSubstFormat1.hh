@@ -42,11 +42,39 @@ struct SingleSubstFormat1_3
     hb_codepoint_t d = deltaGlyphID;
     hb_codepoint_t mask = get_mask ();
 
-    + hb_iter (this+coverage)
-    | hb_filter (c->parent_active_glyphs ())
-    | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
-    | hb_sink (c->output)
-    ;
+    if (1)
+    {
+      /* Walk the coverage and set together, to bail out when the
+       * coverage iterator runs over the end of glyphset. Otherwise,
+       * the coverage may cover many glyphs and we spend a lot of
+       * time here.  Other subtables don't have this problem because
+       * they zip coverage iterator with some array... */
+      auto c_iter = hb_iter (this+coverage);
+      auto s_iter = hb_iter (c->parent_active_glyphs ());
+      while (c_iter && s_iter)
+      {
+	hb_codepoint_t cv = *c_iter;
+	hb_codepoint_t sv = *s_iter;
+	if (cv == sv)
+	{
+	  c->output->add ((cv + d) & mask);
+	  c_iter++;
+	  s_iter++;
+	}
+	else if (cv < sv)
+	  c_iter++;
+	else
+	  s_iter++;
+      }
+    }
+    else
+    {
+      + hb_iter (this+coverage)
+      | hb_filter (c->parent_active_glyphs ())
+      | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
+      | hb_sink (c->output)
+      ;
+    }
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
