@@ -154,9 +154,8 @@ struct CoverageFormat2_4
   template <typename set_t>
   bool collect_coverage (set_t *glyphs) const
   {
-    unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (unlikely (!rangeRecord[i].collect_coverage (glyphs)))
+    for (const auto& range: rangeRecord)
+      if (unlikely (!range.collect_coverage (glyphs)))
         return false;
     return true;
   }
