@@ -39,7 +39,7 @@ struct make_extension_context_t
 {
   hb_tag_t table_tag;
   graph_t& graph;
-  hb_vector_t<char> buffer;
+  hb_vector_t<char>& buffer;
   hb_hashmap_t<unsigned, graph::Lookup*> lookups;
 
   HB_INTERNAL make_extension_context_t (hb_tag_t table_tag_,
