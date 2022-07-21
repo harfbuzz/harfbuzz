@@ -42,18 +42,35 @@ struct SingleSubstFormat1_3
     hb_codepoint_t d = deltaGlyphID;
     hb_codepoint_t mask = get_mask ();
 
-    if ((this+coverage).get_population () < c->parent_active_glyphs ().get_population ())
+    if (1)
     {
-      + hb_iter (this+coverage)
-      | hb_filter (c->parent_active_glyphs ())
-      | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
-      | hb_sink (c->output)
-      ;
+      /* Walk the coverage and set together, to bail out when the
+       * coverage iterator runs over the end of glyphset. Otherwise,
+       * the coverage may cover many glyphs and we spend a lot of
+       * time here.  Other subtables don't have this problem because
+       * they zip coverage iterator with some array... */
+      auto c_iter = hb_iter (this+coverage);
+      auto s_iter = hb_iter (c->parent_active_glyphs ());
+      while (c_iter && s_iter)
+      {
+	hb_codepoint_t cv = *c_iter;
+	hb_codepoint_t sv = *s_iter;
+	if (cv == sv)
+	{
+	  c->output->add ((cv + d) & mask);
+	  c_iter++;
+	  s_iter++;
+	}
+	else if (cv < sv)
+	  c_iter++;
+	else
+	  s_iter++;
+      }
     }
     else
     {
-      + hb_iter (c->parent_active_glyphs ())
-      | hb_filter (this+coverage)
+      + hb_iter (this+coverage)
+      | hb_filter (c->parent_active_glyphs ())
       | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
       | hb_sink (c->output)
       ;
@@ -119,16 +136,35 @@ struct SingleSubstFormat1_3
     hb_codepoint_t mask = get_mask ();
 
     hb_sorted_vector_t<hb_codepoint_t> intersection;
-    if ((this+coverage).get_population () < glyphset.get_population ())
+    if (1)
     {
-      + hb_iter (this+coverage)
-      | hb_filter (glyphset)
-      | hb_sink (intersection);
+      /* Walk the coverage and set together, to bail out when the
+       * coverage iterator runs over the end of glyphset. Otherwise,
+       * the coverage may cover many glyphs and we spend a lot of
+       * time here.  Other subtables don't have this problem because
+       * they zip coverage iterator with some array... */
+      auto c_iter = hb_iter (this+coverage);
+      auto s_iter = hb_iter (glyphset);
+      while (c_iter && s_iter)
+      {
+	hb_codepoint_t cv = *c_iter;
+	hb_codepoint_t sv = *s_iter;
+	if (cv == sv)
+	{
+	  intersection.push (cv);
+	  c_iter++;
+	  s_iter++;
+	}
+	else if (cv < sv)
+	  c_iter++;
+	else
+	  s_iter++;
+      }
     }
     else
     {
-      + hb_iter (glyphset)
-      | hb_filter (this+coverage)
+      + hb_iter (this+coverage)
+      | hb_filter (glyphset)
       | hb_sink (intersection);
     }
 
