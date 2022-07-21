@@ -242,11 +242,11 @@ struct Coverage
     {
       switch (format)
       {
-      case 1: return u.format1.more ();
-      case 2: return u.format2.more ();
+      case 1: return u.format1.__more__ ();
+      case 2: return u.format2.__more__ ();
 #ifndef HB_NO_BORING_EXPANSION
-      case 3: return u.format3.more ();
-      case 4: return u.format4.more ();
+      case 3: return u.format3.__more__ ();
+      case 4: return u.format4.__more__ ();
 #endif
       default:return false;
       }
@@ -255,11 +255,11 @@ struct Coverage
     {
       switch (format)
       {
-      case 1: u.format1.next (); break;
-      case 2: u.format2.next (); break;
+      case 1: u.format1.__next__ (); break;
+      case 2: u.format2.__next__ (); break;
 #ifndef HB_NO_BORING_EXPANSION
-      case 3: u.format3.next (); break;
-      case 4: u.format4.next (); break;
+      case 3: u.format3.__next__ (); break;
+      case 4: u.format4.__next__ (); break;
 #endif
       default:                   break;
       }

@@ -177,14 +177,13 @@ struct CoverageFormat2_4
         j = 0;
       }
     }
-    void fini () {}
-    bool more () const { return i < c->rangeRecord.len; }
-    void next ()
+    bool __more__ () const { return i < c->rangeRecord.len; }
+    void __next__ ()
     {
       if (j >= c->rangeRecord[i].last)
       {
         i++;
-        if (more ())
+        if (__more__ ())
         {
           unsigned int old = coverage;
           j = c->rangeRecord[i].first;

@@ -105,9 +105,8 @@ struct CoverageFormat1_3
   struct iter_t
   {
     void init (const struct CoverageFormat1_3 &c_) { c = &c_; i = 0; }
-    void fini () {}
-    bool more () const { return i < c->glyphArray.len; }
-    void next () { i++; }
+    bool __more__ () const { return i < c->glyphArray.len; }
+    void __next__ () { i++; }
     hb_codepoint_t get_glyph () const { return c->glyphArray[i]; }
     bool operator != (const iter_t& o) const
     { return i != o.i; }
