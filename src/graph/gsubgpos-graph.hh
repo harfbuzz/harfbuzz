@@ -35,63 +35,16 @@ namespace graph {
 
 struct Lookup;
 
-struct GSTAR : public OT::GSUBGPOS
-{
-  static GSTAR* graph_to_gstar (graph_t& graph)
-  {
-    return (GSTAR*) graph.root ().obj.head;
-  }
-
-  const void* get_lookup_list_field_offset () const
-  {
-    switch (u.version.major) {
-    case 1: return &(u.version1.lookupList);
-#ifndef HB_NO_BORING_EXPANSION
-    case 2: return &(u.version2.lookupList);
-#endif
-    default: return 0;
-    }
-  }
-
-  void find_lookups (graph_t& graph,
-                     hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
-  {
-    // TODO: template on types, based on gstar version.
-    unsigned lookup_list_idx = graph.index_for_offset (graph.root_idx (),
-                                                       get_lookup_list_field_offset());
-
-    const OT::LookupList<SmallTypes>* lookupList =
-        (const OT::LookupList<SmallTypes>*) graph.object (lookup_list_idx).head;
-
-    for (unsigned i = 0; i < lookupList->len; i++)
-    {
-      unsigned lookup_idx = graph.index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i]));
-      Lookup* lookup = (Lookup*) graph.object (lookup_idx).head;
-      lookups.set (lookup_idx, lookup);
-    }
-  }
-};
-
 struct make_extension_context_t
 {
   hb_tag_t table_tag;
   graph_t& graph;
   hb_vector_t<char> buffer;
-  GSTAR* gstar;
   hb_hashmap_t<unsigned, graph::Lookup*> lookups;
 
-  make_extension_context_t (hb_tag_t table_tag_,
-                            graph_t& graph_)
-      : table_tag (table_tag_),
-        graph (graph_),
-        buffer (),
-        gstar (graph::GSTAR::graph_to_gstar (graph_)),
-        lookups ()
-  {
-    gstar->find_lookups (graph, lookups);
-    unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
-    buffer.alloc (num_non_ext_subtables () * extension_size);
-  }
+  HB_INTERNAL make_extension_context_t (hb_tag_t table_tag_,
+                                        graph_t& graph_,
+                                        hb_vector_t<char>& buffer_);
 
   bool in_error () const
   {
@@ -99,7 +52,7 @@ struct make_extension_context_t
   }
 
  private:
-  unsigned num_non_ext_subtables ();
+  HB_INTERNAL unsigned num_non_ext_subtables ();
 };
 
 struct Lookup : public OT::Lookup
@@ -107,6 +60,13 @@ struct Lookup : public OT::Lookup
   unsigned number_of_subtables () const
   {
     return subTable.len;
+  }
+
+  bool sanitize (graph_t::vertex_t& vertex) const
+  {
+    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    if (vertex_len < OT::Lookup::min_size) return false;
+    return vertex_len >= this->get_size ();
   }
 
   bool is_extension (hb_tag_t table_tag) const
@@ -123,14 +83,13 @@ struct Lookup : public OT::Lookup
     if (!ext_type || is_extension (c.table_tag))
     {
       // NOOP
-      printf("Already extension (obj %u).\n", this_index);
       return true;
     }
 
-    printf("Promoting lookup type %u (obj %u) to extension.\n",
-           type,
-           this_index);
-
+    DEBUG_MSG (SUBSET_REPACK, nullptr,
+               "Promoting lookup type %u (obj %u) to extension.\n",
+               type,
+               this_index);
 
     for (unsigned i = 0; i < subTable.len; i++)
     {
@@ -149,8 +108,6 @@ struct Lookup : public OT::Lookup
                                 unsigned lookup_index,
                                 unsigned subtable_index)
   {
-    printf("  Promoting subtable %u in lookup %u to extension.\n", subtable_index, lookup_index);
-
     unsigned type = lookupType;
     unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
     unsigned start = c.buffer.length;
@@ -165,9 +122,6 @@ struct Lookup : public OT::Lookup
     extension->extensionLookupType = type;
     extension->extensionOffset = 0;
 
-    unsigned type_prime = extension->extensionLookupType;
-    printf("Assigned type %d to extension\n", type_prime);
-
     unsigned ext_index = c.graph.new_node (&c.buffer.arrayZ[start],
                                            &c.buffer.arrayZ[end]);
     if (ext_index == (unsigned) -1) return false;
@@ -176,11 +130,8 @@ struct Lookup : public OT::Lookup
     for (auto& l : lookup_vertex.obj.real_links.writer ())
     {
       if (l.objidx == subtable_index)
-      {
         // Change lookup to point at the extension.
-        printf("  Changing %d to %d\n", l.objidx, ext_index);
         l.objidx = ext_index;
-      }
     }
 
     // Make extension point at the subtable.
@@ -212,6 +163,73 @@ struct Lookup : public OT::Lookup
     }
   }
 };
+
+template <typename T>
+struct LookupList : public OT::LookupList<T>
+{
+  bool sanitize (const graph_t::vertex_t& vertex) const
+  {
+    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    if (vertex_len < OT::LookupList<T>::min_size) return false;
+    return vertex_len >= OT::LookupList<T>::item_size * this->len;
+  }
+};
+
+struct GSTAR : public OT::GSUBGPOS
+{
+  static GSTAR* graph_to_gstar (graph_t& graph)
+  {
+    const auto& r = graph.root ();
+
+    GSTAR* gstar = (GSTAR*) r.obj.head;
+    if (!gstar->sanitize (r))
+      return nullptr;
+
+    return gstar;
+  }
+
+  const void* get_lookup_list_field_offset () const
+  {
+    switch (u.version.major) {
+    case 1: return &(u.version1.lookupList);
+#ifndef HB_NO_BORING_EXPANSION
+    case 2: return &(u.version2.lookupList);
+#endif
+    default: return 0;
+    }
+  }
+
+  bool sanitize (const graph_t::vertex_t& vertex)
+  {
+    int64_t len = vertex.obj.tail - vertex.obj.head;
+    // Only need access to fields in min_size
+    return len >= OT::GSUBGPOS::min_size;
+  }
+
+  void find_lookups (graph_t& graph,
+                     hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
+  {
+    // TODO: template on types, based on gstar version.
+    unsigned lookup_list_idx = graph.index_for_offset (graph.root_idx (),
+                                                       get_lookup_list_field_offset());
+
+    const LookupList<SmallTypes>* lookupList =
+        (const LookupList<SmallTypes>*) graph.object (lookup_list_idx).head;
+    if (!lookupList->sanitize (graph.vertices_[lookup_list_idx]))
+      return;
+
+    for (unsigned i = 0; i < lookupList->len; i++)
+    {
+      unsigned lookup_idx = graph.index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i]));
+      Lookup* lookup = (Lookup*) graph.object (lookup_idx).head;
+      if (!lookup->sanitize (graph.vertices_[lookup_idx])) continue;
+      lookups.set (lookup_idx, lookup);
+    }
+  }
+};
+
+
+
 
 }
 
