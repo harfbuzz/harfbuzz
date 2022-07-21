@@ -1786,7 +1786,7 @@ struct ClassDefFormat2_4
     for (unsigned int i = 0; i < count; i++)
     {
       const auto& range = rangeRecord[i];
-      if (range.intersects (glyphs) && range.value)
+      if (range.intersects (*glyphs) && range.value)
 	return true;
     }
     return false;
@@ -1814,7 +1814,7 @@ struct ClassDefFormat2_4
     /* TODO(iter) Rewrite as dagger. */
     const auto *arr = rangeRecord.arrayZ;
     for (unsigned int i = 0; i < count; i++)
-      if (arr[i].value == klass && arr[i].intersects (glyphs))
+      if (arr[i].value == klass && arr[i].intersects (*glyphs))
 	return true;
     return false;
   }
@@ -1889,7 +1889,7 @@ struct ClassDefFormat2_4
       intersect_classes->add (0);
 
     for (const auto& record : rangeRecord.iter ())
-      if (record.intersects (glyphs))
+      if (record.intersects (*glyphs))
         intersect_classes->add (record.value);
   }
 

@@ -86,12 +86,14 @@ struct CoverageFormat1_3
   bool intersects_coverage (const hb_set_t *glyphs, unsigned int index) const
   { return glyphs->has (glyphArray[index]); }
 
-  void intersected_coverage_glyphs (const hb_set_t *glyphs, hb_set_t *intersect_glyphs) const
+  template <typename IteratorOut,
+	    hb_requires (hb_is_sink_of (IteratorOut, hb_codepoint_t))>
+  void intersect_set (const hb_set_t &glyphs, IteratorOut &intersect_glyphs) const
   {
     unsigned count = glyphArray.len;
     for (unsigned i = 0; i < count; i++)
-      if (glyphs->has (glyphArray[i]))
-        intersect_glyphs->add (glyphArray[i]);
+      if (glyphs.has (glyphArray[i]))
+        intersect_glyphs << glyphArray[i];
   }
 
   template <typename set_t>

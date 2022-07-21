@@ -105,7 +105,7 @@ struct SinglePosFormat1
     const hb_map_t &glyph_map = *c->plan->glyph_map;
 
     hb_set_t intersection;
-    (this+coverage).intersected_coverage_glyphs (&glyphset, &intersection);
+    (this+coverage).intersect_set (glyphset, intersection);
 
     auto it =
     + hb_iter (intersection)

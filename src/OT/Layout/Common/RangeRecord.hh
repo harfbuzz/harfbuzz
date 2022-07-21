@@ -57,8 +57,8 @@ struct RangeRecord
     return (last - first + 1);
   }
 
-  bool intersects (const hb_set_t *glyphs) const
-  { return glyphs->intersects (first, last); }
+  bool intersects (const hb_set_t &glyphs) const
+  { return glyphs.intersects (first, last); }
 
   template <typename set_t>
   bool collect_coverage (set_t *glyphs) const

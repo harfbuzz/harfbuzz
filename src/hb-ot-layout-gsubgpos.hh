@@ -1043,7 +1043,7 @@ static inline void intersected_coverage_glyphs (const hb_set_t *glyphs, const vo
 {
   Offset16To<Coverage> coverage;
   coverage = value;
-  (data+coverage).intersected_coverage_glyphs (glyphs, intersected_glyphs);
+  (data+coverage).intersect_set (*glyphs, *intersected_glyphs);
 }
 
 
@@ -2066,9 +2066,8 @@ struct ContextFormat1_4
 
   void closure (hb_closure_context_t *c) const
   {
-    hb_set_t* cur_active_glyphs = &c->push_cur_active_glyphs ();
-    get_coverage ().intersected_coverage_glyphs (&c->previous_parent_active_glyphs (),
-                                                 cur_active_glyphs);
+    hb_set_t& cur_active_glyphs = c->push_cur_active_glyphs ();
+    get_coverage ().intersect_set (c->previous_parent_active_glyphs (), cur_active_glyphs);
 
     struct ContextClosureLookupContext lookup_context = {
       {intersects_glyph, intersected_glyph},
@@ -2209,7 +2208,7 @@ struct ContextFormat2_5
     };
 
     hb_set_t retained_coverage_glyphs;
-    (this+coverage).intersected_coverage_glyphs (glyphs, &retained_coverage_glyphs);
+    (this+coverage).intersect_set (*glyphs, retained_coverage_glyphs);
 
     hb_set_t coverage_glyph_classes;
     class_def.intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
@@ -2235,8 +2234,8 @@ struct ContextFormat2_5
     if (!(this+coverage).intersects (c->glyphs))
       return;
 
-    hb_set_t* cur_active_glyphs = &c->push_cur_active_glyphs ();
-    get_coverage ().intersected_coverage_glyphs (&c->previous_parent_active_glyphs (),
+    hb_set_t& cur_active_glyphs = c->push_cur_active_glyphs ();
+    get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
                                                  cur_active_glyphs);
 
     const ClassDef &class_def = this+classDef;
@@ -2381,7 +2380,7 @@ struct ContextFormat2_5
 
     const hb_set_t* glyphset = c->plan->glyphset_gsub ();
     hb_set_t retained_coverage_glyphs;
-    (this+coverage).intersected_coverage_glyphs (glyphset, &retained_coverage_glyphs);
+    (this+coverage).intersect_set (*glyphset, retained_coverage_glyphs);
 
     hb_set_t coverage_glyph_classes;
     (this+classDef).intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
@@ -2468,8 +2467,8 @@ struct ContextFormat3
     if (!(this+coverageZ[0]).intersects (c->glyphs))
       return;
 
-    hb_set_t* cur_active_glyphs = &c->push_cur_active_glyphs ();
-    get_coverage ().intersected_coverage_glyphs (&c->previous_parent_active_glyphs (),
+    hb_set_t& cur_active_glyphs = c->push_cur_active_glyphs ();
+    get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
                                                  cur_active_glyphs);
 
 
@@ -3124,8 +3123,8 @@ struct ChainContextFormat1_4
 
   void closure (hb_closure_context_t *c) const
   {
-    hb_set_t* cur_active_glyphs = &c->push_cur_active_glyphs ();
-    get_coverage ().intersected_coverage_glyphs (&c->previous_parent_active_glyphs (),
+    hb_set_t& cur_active_glyphs = c->push_cur_active_glyphs ();
+    get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
                                                  cur_active_glyphs);
 
     struct ChainContextClosureLookupContext lookup_context = {
@@ -3269,7 +3268,7 @@ struct ChainContextFormat2_5
     };
 
     hb_set_t retained_coverage_glyphs;
-    (this+coverage).intersected_coverage_glyphs (glyphs, &retained_coverage_glyphs);
+    (this+coverage).intersect_set (*glyphs, retained_coverage_glyphs);
 
     hb_set_t coverage_glyph_classes;
     input_class_def.intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
@@ -3294,8 +3293,8 @@ struct ChainContextFormat2_5
     if (!(this+coverage).intersects (c->glyphs))
       return;
 
-    hb_set_t* cur_active_glyphs = &c->push_cur_active_glyphs ();
-    get_coverage ().intersected_coverage_glyphs (&c->previous_parent_active_glyphs (),
+    hb_set_t& cur_active_glyphs = c->push_cur_active_glyphs ();
+    get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
                                                  cur_active_glyphs);
 
 
@@ -3479,7 +3478,7 @@ struct ChainContextFormat2_5
 
     const hb_set_t* glyphset = c->plan->glyphset_gsub ();
     hb_set_t retained_coverage_glyphs;
-    (this+coverage).intersected_coverage_glyphs (glyphset, &retained_coverage_glyphs);
+    (this+coverage).intersect_set (*glyphset, retained_coverage_glyphs);
 
     hb_set_t coverage_glyph_classes;
     (this+inputClassDef).intersected_classes (&retained_coverage_glyphs, &coverage_glyph_classes);
@@ -3590,8 +3589,8 @@ struct ChainContextFormat3
     if (!(this+input[0]).intersects (c->glyphs))
       return;
 
-    hb_set_t* cur_active_glyphs = &c->push_cur_active_glyphs ();
-    get_coverage ().intersected_coverage_glyphs (&c->previous_parent_active_glyphs (),
+    hb_set_t& cur_active_glyphs = c->push_cur_active_glyphs ();
+    get_coverage ().intersect_set (c->previous_parent_active_glyphs (),
                                                  cur_active_glyphs);
 
 

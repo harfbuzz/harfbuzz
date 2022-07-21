@@ -204,15 +204,17 @@ struct Coverage
     }
   }
 
-  void intersected_coverage_glyphs (const hb_set_t *glyphs, hb_set_t *intersect_glyphs) const
+  template <typename IteratorOut,
+	    hb_requires (hb_is_sink_of (IteratorOut, hb_codepoint_t))>
+  void intersect_set (const hb_set_t &glyphs, IteratorOut &intersect_glyphs) const
   {
     switch (u.format)
     {
-    case 1: return u.format1.intersected_coverage_glyphs (glyphs, intersect_glyphs);
-    case 2: return u.format2.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+    case 1: return u.format1.intersect_set (glyphs, intersect_glyphs);
+    case 2: return u.format2.intersect_set (glyphs, intersect_glyphs);
 #ifndef HB_NO_BORING_EXPANSION
-    case 3: return u.format3.intersected_coverage_glyphs (glyphs, intersect_glyphs);
-    case 4: return u.format4.intersected_coverage_glyphs (glyphs, intersect_glyphs);
+    case 3: return u.format3.intersect_set (glyphs, intersect_glyphs);
+    case 4: return u.format4.intersect_set (glyphs, intersect_glyphs);
 #endif
     default:return ;
     }
