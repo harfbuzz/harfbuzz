@@ -142,12 +142,37 @@ struct CoverageFormat2_4
 	    hb_requires (hb_is_sink_of (IterableOut, hb_codepoint_t))>
   void intersect_set (const hb_set_t &glyphs, IterableOut &intersect_glyphs) const
   {
-    for (const auto& range : rangeRecord)
+    /* Why the second branch is >2x faster I have no idea, but it seems to be. */
+    if (0)
     {
-      hb_codepoint_t last = range.last;
-      for (hb_codepoint_t g = range.first - 1;
-           glyphs.next (&g) && g <= last;)
-        intersect_glyphs << g;
+      for (const auto& range : rangeRecord)
+      {
+	hb_codepoint_t last = range.last;
+	for (hb_codepoint_t g = range.first - 1;
+	     glyphs.next (&g) && g <= last;)
+	  intersect_glyphs << g;
+      }
+    }
+    else
+    {
+      iter_t c_iter;
+      c_iter.init (*this);
+      auto s_iter = hb_iter (glyphs);
+      while (c_iter.__more__ () && s_iter)
+      {
+	hb_codepoint_t cv = c_iter.get_glyph ();
+	hb_codepoint_t sv = *s_iter;
+	if (cv == sv)
+	{
+	  intersect_glyphs << cv;
+	  c_iter.__next__ ();
+	  s_iter++;
+	}
+	else if (cv < sv)
+	  c_iter.__next__ ();
+	else
+	  s_iter++;
+      }
     }
   }
 

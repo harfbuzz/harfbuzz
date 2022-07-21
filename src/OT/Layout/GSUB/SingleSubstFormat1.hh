@@ -42,37 +42,13 @@ struct SingleSubstFormat1_3
     hb_codepoint_t d = deltaGlyphID;
     hb_codepoint_t mask = get_mask ();
 
-    if (1)
-    {
-      /* Somehow this branch is much faster. Can't understand why. */
-      auto c_iter = hb_iter (this+coverage);
-      auto s_iter = hb_iter (c->parent_active_glyphs ());
-      while (c_iter && s_iter)
-      {
-	hb_codepoint_t cv = *c_iter;
-	hb_codepoint_t sv = *s_iter;
-	if (cv == sv)
-	{
-	  c->output->add ((cv + d) & mask);
-	  c_iter++;
-	  s_iter++;
-	}
-	else if (cv < sv)
-	  c_iter++;
-	else
-	  s_iter++;
-      }
-    }
-    else
-    {
-      hb_set_t intersection;
-      (this+coverage).intersect_set (c->parent_active_glyphs (), intersection);
+    hb_set_t intersection;
+    (this+coverage).intersect_set (c->parent_active_glyphs (), intersection);
 
-      + hb_iter (intersection)
-      | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
-      | hb_sink (c->output)
-      ;
-    }
+    + hb_iter (intersection)
+    | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
+    | hb_sink (c->output)
+    ;
   }
 
   void closure_lookups (hb_closure_lookups_context_t *c) const {}
