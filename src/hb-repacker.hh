@@ -44,11 +44,31 @@ using graph::graph_t;
  */
 
 static inline
+unsigned _num_non_ext_subtables (hb_tag_t table_tag,
+                                 const hb_hashmap_t<unsigned, graph::Lookup*>& lookups)
+{
+  unsigned count = 0;
+  for (auto l : lookups.values ())
+  {
+    if (l->is_extension (table_tag)) continue;
+    count += l->number_of_subtables ();
+  }
+  return count;
+}
+
+
+static inline
 bool _make_extensions (hb_tag_t table_tag, graph_t& sorted_graph, hb_vector_t<char>& buffer)
 {
   // TODO: Move this into graph or gsubgpos graph?
+  graph::GSTAR* gstar = graph::GSTAR::graph_to_gstar (sorted_graph);
   hb_hashmap_t<unsigned, graph::Lookup*> lookups;
-  find_lookups (sorted_graph, lookups);
+  gstar->find_lookups (sorted_graph, lookups);
+
+  unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
+  if (!buffer.alloc (_num_non_ext_subtables (table_tag, lookups) * extension_size))
+    return false;
+
 
   for (auto p : lookups.iter ())
   {
@@ -187,8 +207,6 @@ hb_resolve_overflows (const T& packed,
   }
 
   hb_vector_t<char> extension_buffer;
-  if (!extension_buffer.alloc(100000)) // TODO: cleanup
-    return nullptr;
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)

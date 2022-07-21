@@ -33,8 +33,15 @@
 
 namespace graph {
 
+struct Lookup;
+
 struct GSTAR : public OT::GSUBGPOS
 {
+  static GSTAR* graph_to_gstar (graph_t& graph)
+  {
+    return (GSTAR*) graph.root ().obj.head;
+  }
+
   const void* get_lookup_list_field_offset () const
   {
     switch (u.version.major) {
@@ -46,18 +53,38 @@ struct GSTAR : public OT::GSUBGPOS
     }
   }
 
+  void find_lookups (graph_t& graph,
+                     hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
+  {
+    // TODO: template on types, based on gstar version.
+    unsigned lookup_list_idx = graph.index_for_offset (graph.root_idx (),
+                                                       get_lookup_list_field_offset());
+
+    const OT::LookupList<SmallTypes>* lookupList =
+        (const OT::LookupList<SmallTypes>*) graph.object (lookup_list_idx).head;
+
+    for (unsigned i = 0; i < lookupList->len; i++)
+    {
+      unsigned lookup_idx = graph.index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i]));
+      Lookup* lookup = (Lookup*) graph.object (lookup_idx).head;
+      lookups.set (lookup_idx, lookup);
+    }
+}
+
+
+
 };
 
 struct Lookup : public OT::Lookup
 {
-  unsigned extension_type (hb_tag_t table_tag)
+  unsigned number_of_subtables () const
   {
-    switch (table_tag)
-    {
-    case HB_OT_TAG_GPOS: return 9;
-    case HB_OT_TAG_GSUB: return 7;
-    default: return 0;
-    }
+    return subTable.len;
+  }
+
+  bool is_extension (hb_tag_t table_tag) const
+  {
+    return lookupType == extension_type (table_tag);
   }
 
   bool make_extension (hb_tag_t table_tag,
@@ -66,9 +93,9 @@ struct Lookup : public OT::Lookup
                        hb_vector_t<char>& buffer)
   {
     // TODO: use a context_t?
-    unsigned ext_type = extension_type (table_tag);
     unsigned type = lookupType;
-    if (!ext_type || type == ext_type)
+    unsigned ext_type = extension_type (table_tag);
+    if (!ext_type || is_extension (table_tag))
     {
       // NOOP
       printf("Already extension (obj %u).\n", this_index);
@@ -151,29 +178,18 @@ struct Lookup : public OT::Lookup
 
     return true;
   }
-};
 
-static inline void
-find_lookups (graph_t& graph,
-              hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
-{
-  // TODO: move this into GSTAR?
-  // TODO: template on types, based on gstar version.
-  const GSTAR* gstar = (const GSTAR*) graph.root ().obj.head;
-
-  unsigned lookup_list_idx = graph.index_for_offset (graph.root_idx (),
-                                                     gstar->get_lookup_list_field_offset());
-
-  const OT::LookupList<SmallTypes>* lookupList =
-      (const OT::LookupList<SmallTypes>*) graph.object (lookup_list_idx).head;
-
-  for (unsigned i = 0; i < lookupList->len; i++)
+ private:
+  unsigned extension_type (hb_tag_t table_tag) const
   {
-    unsigned lookup_idx = graph.index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i]));
-    Lookup* lookup = (Lookup*) graph.object (lookup_idx).head;
-    lookups.set (lookup_idx, lookup);
+    switch (table_tag)
+    {
+    case HB_OT_TAG_GPOS: return 9;
+    case HB_OT_TAG_GSUB: return 7;
+    default: return 0;
+    }
   }
-}
+};
 
 }
 
