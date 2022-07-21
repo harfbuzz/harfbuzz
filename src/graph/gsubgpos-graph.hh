@@ -200,8 +200,8 @@ struct GSTAR : public OT::GSUBGPOS
   bool sanitize (const graph_t::vertex_t& vertex)
   {
     int64_t len = vertex.obj.tail - vertex.obj.head;
-    // Only need access to fields in min_size
-    return len >= OT::GSUBGPOS::min_size;
+    if (len < OT::GSUBGPOS::min_size) return false;
+    return len >= get_size ();
   }
 
   void find_lookups (graph_t& graph,
