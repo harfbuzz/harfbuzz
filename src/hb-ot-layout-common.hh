@@ -1810,11 +1810,8 @@ struct ClassDefFormat2_4
 	return true;
       /* Fall through. */
     }
-    /* TODO Speed up, using set overlap first? */
-    /* TODO(iter) Rewrite as dagger. */
-    const auto *arr = rangeRecord.arrayZ;
-    for (unsigned int i = 0; i < count; i++)
-      if (arr[i].value == klass && arr[i].intersects (*glyphs))
+    for (const auto &range : rangeRecord)
+      if (range.value == klass && range.intersects (*glyphs))
 	return true;
     return false;
   }
