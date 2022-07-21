@@ -135,9 +135,41 @@ struct SingleSubstFormat1_3
     hb_codepoint_t d = deltaGlyphID;
     hb_codepoint_t mask = get_mask ();
 
+    hb_sorted_vector_t<hb_codepoint_t> intersection;
+    if (1)
+    {
+      /* Walk the coverage and set together, to bail out when the
+       * coverage iterator runs over the end of glyphset. Otherwise,
+       * the coverage may cover many glyphs and we spend a lot of
+       * time here.  Other subtables don't have this problem because
+       * they zip coverage iterator with some array... */
+      auto c_iter = hb_iter (this+coverage);
+      auto s_iter = hb_iter (glyphset);
+      while (c_iter && s_iter)
+      {
+	hb_codepoint_t cv = *c_iter;
+	hb_codepoint_t sv = *s_iter;
+	if (cv == sv)
+	{
+	  intersection.push ((cv + d) & mask);
+	  c_iter++;
+	  s_iter++;
+	}
+	else if (cv < sv)
+	  c_iter++;
+	else
+	  s_iter++;
+      }
+    }
+    else
+    {
+      + hb_iter (this+coverage)
+      | hb_filter (glyphset)
+      | hb_sink (intersection);
+    }
+
     auto it =
-    + hb_iter (this+coverage)
-    | hb_filter (glyphset)
+    + hb_iter (intersection)
     | hb_map_retains_sorting ([d, mask] (hb_codepoint_t g) {
                                 return hb_codepoint_pair_t (g,
                                                             (g + d) & mask); })
