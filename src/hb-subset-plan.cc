@@ -314,9 +314,6 @@ static bool _features_to_lookup_indices (
   {
     hb_tag_t script_tag = k.first;
     hb_tag_t lang = k.second;
-    printf("%c%c%c%c - %c%c%c%c\n",
-           HB_UNTAG(script_tag),
-           HB_UNTAG(lang));
     const hb_map_t* feature_set = features_by_script_and_lang.get (k).get ();
 
     if (!features.resize (default_layout_features.length)) {
@@ -333,7 +330,6 @@ static bool _features_to_lookup_indices (
                                            &count,
                                            &tag);
 
-      printf(" feature: %c%c%c%c\n", HB_UNTAG(tag));
       hb_feature_t f {
         tag,
         1,
@@ -348,7 +344,6 @@ static bool _features_to_lookup_indices (
 
     char lang_str[32];
     snprintf (lang_str, sizeof(lang_str), "x-hbsc-%08x-hbot-%08x", script_tag, lang);
-    printf("%s\n", lang_str);
 
     hb_segment_properties_t p {
       hb_script_get_horizontal_direction (script),
@@ -366,10 +361,6 @@ static bool _features_to_lookup_indices (
     hb_ot_shape_plan_collect_lookups (plan,
                                       table_tag,
                                       &new_lookups);
-
-    for (hb_codepoint_t lookup : new_lookups)
-      printf("  added lookup %d\n", lookup);
-
 
     hb_ot_shape_plan_collect_lookups (plan,
                                       table_tag,
@@ -437,24 +428,6 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
                                       features_by_script_and_lang,
                                       closure_lookup_indices))
       return;
-    // TODO remove
-
-    hb_set_t diff {closure_lookup_indices};
-    diff.symmetric_difference (lookup_indices);
-    for (hb_tag_t lookup : diff) {
-      if (closure_lookup_indices.has (lookup)) {
-        printf("%u not in lookup indices.\n",
-               lookup);
-      }
-    }
-    for (hb_tag_t lookup : diff) {
-      if (lookup_indices.has (lookup)) {
-        printf("%u not in closure lookup indices.\n",
-               lookup);
-      }
-    }
-
-
 
     hb_ot_layout_lookups_substitute_closure (plan->source,
                                              &closure_lookup_indices,
