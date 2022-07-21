@@ -44,11 +44,7 @@ struct SingleSubstFormat1_3
 
     if (1)
     {
-      /* Walk the coverage and set together, to bail out when the
-       * coverage iterator runs over the end of glyphset. Otherwise,
-       * the coverage may cover many glyphs and we spend a lot of
-       * time here.  Other subtables don't have this problem because
-       * they zip coverage iterator with some array... */
+      /* Somehow this branch is much faster. Can't understand why. */
       auto c_iter = hb_iter (this+coverage);
       auto s_iter = hb_iter (c->parent_active_glyphs ());
       while (c_iter && s_iter)
@@ -69,8 +65,10 @@ struct SingleSubstFormat1_3
     }
     else
     {
-      + hb_iter (this+coverage)
-      | hb_filter (c->parent_active_glyphs ())
+      hb_set_t intersection;
+      (this+coverage).intersect_set (c->parent_active_glyphs (), intersection);
+
+      + hb_iter (intersection)
       | hb_map ([d, mask] (hb_codepoint_t g) { return (g + d) & mask; })
       | hb_sink (c->output)
       ;
