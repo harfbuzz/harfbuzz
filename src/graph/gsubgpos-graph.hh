@@ -86,7 +86,7 @@ struct Lookup : public OT::Lookup
     }
 
     DEBUG_MSG (SUBSET_REPACK, nullptr,
-               "Promoting lookup type %u (obj %u) to extension.\n",
+               "Promoting lookup type %u (obj %u) to extension.",
                type,
                this_index);
 
