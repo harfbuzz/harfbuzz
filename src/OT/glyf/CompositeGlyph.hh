@@ -105,6 +105,29 @@ struct CompositeGlyphRecord
     }
   }
 
+  void apply_delta_to_offsets (const contour_point_t &p_delta)
+  {
+    HBINT8 *p = &StructAfter<HBINT8> (flags);
+#ifndef HB_NO_BEYOND_64K
+    if (flags & GID_IS_24BIT)
+      p += HBGlyphID24::static_size;
+    else
+#endif
+      p += HBGlyphID16::static_size;
+
+    if (flags & ARG_1_AND_2_ARE_WORDS)
+    {
+      HBINT16 *px = reinterpret_cast<HBINT16 *> (p);
+      px[0] += roundf (p_delta.x);
+      px[1] += roundf (p_delta.y);
+    }
+    else
+    {
+      p[0] += roundf (p_delta.x);
+      p[1] += roundf (p_delta.y);
+    }
+  }
+
   protected:
   bool scaled_offsets () const
   { return (flags & (SCALED_COMPONENT_OFFSET | UNSCALED_COMPONENT_OFFSET)) == SCALED_COMPONENT_OFFSET; }
@@ -287,6 +310,39 @@ struct CompositeGlyph
     if (!bytes.check_range(&glyph_chain, CompositeGlyphRecord::min_size))
       return;
     glyph_chain.set_overlaps_flag ();
+  }
+
+  bool compile_bytes_with_deltas (const hb_bytes_t &source_bytes,
+                                  const contour_point_vector_t &deltas,
+                                  hb_bytes_t &dest_bytes /* OUT */)
+  {
+    int len = source_bytes.length - GlyphHeader::static_size;
+    if (len <= 0 || header.numberOfContours != -1)
+    {
+      dest_bytes = hb_bytes_t ();
+      return true;
+    }
+
+    char *p = (char *) hb_calloc (len, sizeof (char));
+    if (unlikely (!p)) return false;
+
+    memcpy (p, source_bytes.arrayZ + GlyphHeader::static_size, len);
+    dest_bytes = hb_bytes_t (p, len);
+
+    auto it = composite_iter_t (dest_bytes, (CompositeGlyphRecord *)p);
+
+    unsigned i = 0;
+    for (auto &component : it)
+    {
+      if (!component.is_anchored ())
+      {
+        /* last 4 points in deltas are phantom points and should not be included*/
+        if (i >= deltas.length - 4) return false;
+        const_cast<CompositeGlyphRecord &> (component).apply_delta_to_offsets (deltas[i]);
+      }
+      i++;
+    }
+    return true;
   }
 };
 
