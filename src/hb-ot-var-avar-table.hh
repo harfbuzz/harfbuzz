@@ -42,6 +42,7 @@
 namespace OT {
 
 
+/* "Spec": https://github.com/be-fonts/boring-expansion-spec/issues/14 */
 struct avarV2Tail
 {
   friend struct avar;
