@@ -180,8 +180,6 @@ struct avar
 
     /* TODO Use cache. */
 
-    /* XXX Out coords might have different size; in varIdxMap. */
-
     const auto *v2 = (const avarV2Tail *) map;
 
     const auto &varidx_map = this+v2->varIdxMap;
