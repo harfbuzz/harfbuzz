@@ -1085,6 +1085,8 @@ hb_ft_font_changed (hb_font_t *font)
 #endif
   }
 #endif
+
+  _hb_ft_hb_font_check_changed (font, ft_font);
 }
 
 /**
