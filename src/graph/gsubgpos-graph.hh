@@ -55,6 +55,17 @@ struct make_extension_context_t
   HB_INTERNAL unsigned num_non_ext_subtables ();
 };
 
+template<typename T>
+struct ExtensionFormat1 : public OT::ExtensionFormat1<T>
+{
+  void reset(unsigned type)
+  {
+    this->format = 1;
+    this->extensionLookupType = type;
+    this->extensionOffset = 0;
+  }
+};
+
 struct Lookup : public OT::Lookup
 {
   unsigned number_of_subtables () const
@@ -114,11 +125,9 @@ struct Lookup : public OT::Lookup
     if (!c.buffer.resize (c.buffer.length + extension_size))
       return false;
 
-    OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
-        (OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*) &c.buffer[start];
-    extension->format = 1;
-    extension->extensionLookupType = type;
-    extension->extensionOffset = 0;
+    ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
+        (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*) &c.buffer[start];
+    extension->reset (type);
 
     unsigned ext_index = c.graph.new_node (&c.buffer.arrayZ[start],
                                            &c.buffer.arrayZ[end]);
@@ -189,9 +198,9 @@ struct GSTAR : public OT::GSUBGPOS
   const void* get_lookup_list_field_offset () const
   {
     switch (u.version.major) {
-    case 1: return &(u.version1.lookupList);
+    case 1: return u.version1.get_lookup_list_offset ();
 #ifndef HB_NO_BORING_EXPANSION
-    case 2: return &(u.version2.lookupList);
+    case 2: return u.version2.get_lookup_list_offset ();
 #endif
     default: return 0;
     }

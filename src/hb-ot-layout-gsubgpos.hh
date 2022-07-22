@@ -3868,7 +3868,7 @@ struct ExtensionFormat1
     return_trace (dest_offset.serialize_subset (c, src_offset, this, get_type ()));
   }
 
-  public: // TODO
+  protected:
   HBUINT16	format;			/* Format identifier. Set to 1. */
   HBUINT16	extensionLookupType;	/* Lookup type of subtable referenced
 					 * by ExtensionOffset (i.e. the
@@ -4006,7 +4006,7 @@ struct GSUBGPOSVersion1_2
 {
   friend struct GSUBGPOS;
 
-  public: // TODO
+  protected:
   FixedVersion<>version;	/* Version of the GSUB/GPOS table--initially set
 				 * to 0x00010000u */
   typename Types:: template OffsetTo<ScriptList>
@@ -4027,6 +4027,11 @@ struct GSUBGPOSVersion1_2
   {
     return min_size +
 	   (version.to_int () >= 0x00010001u ? featureVars.static_size : 0);
+  }
+
+  const typename Types::template OffsetTo<LookupList<Types>>* get_lookup_list_offset () const
+  {
+    return &lookupList;
   }
 
   template <typename TLookup>
