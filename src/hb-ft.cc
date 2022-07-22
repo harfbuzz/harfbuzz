@@ -743,8 +743,6 @@ hb_ft_get_glyph_shape (hb_font_t *font HB_UNUSED,
   hb_lock_t lock (ft_font->lock);
   FT_Face ft_face = ft_font->ft_face;
 
-  _hb_ft_hb_font_check_changed (font, ft_font);
-
   if (unlikely (FT_Load_Glyph (ft_face, glyph,
 			       FT_LOAD_NO_BITMAP | ft_font->load_flags)))
     return;
