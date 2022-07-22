@@ -45,6 +45,9 @@ inline int compare_sizes (const void* a, const void* b)
 {
   hb_pair_t<unsigned, size_t>* size_a = (hb_pair_t<unsigned, size_t>*) a;
   hb_pair_t<unsigned, size_t>* size_b = (hb_pair_t<unsigned, size_t>*) b;
+  if (size_a->second == size_b->second) {
+    return size_b->first - size_a->first;
+  }
   return size_a->second - size_b->second;
 }
 
