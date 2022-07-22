@@ -16,7 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: install dependencies
-      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config freetype glib cairo icu4c graphite2 gobject-introspection gtk-doc ninja
+      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config freetype glib glib-utils cairo icu4c graphite2 gobject-introspection gtk-doc ninja
     - run: pip3 install fonttools meson==0.56.0 gcovr==5.0
     - name: run
       run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Db_coverage=true -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled -Dchafa=disabled -Doptimization=2
