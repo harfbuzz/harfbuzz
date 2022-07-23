@@ -2506,6 +2506,9 @@ struct VariationStore
 
   cache_t *create_cache () const
   {
+#ifdef HB_NO_VAR
+    return nullptr;
+#endif
     auto &r = this+regions;
     unsigned count = r.regionCount;
 
@@ -2566,6 +2569,10 @@ struct VariationStore
 		  const hb_array_t <hb_inc_bimap_t> &inner_maps)
   {
     TRACE_SERIALIZE (this);
+#ifdef HB_NO_VAR
+    return_trace (false);
+#endif
+
     if (unlikely (!c->extend_min (this))) return_trace (false);
 
     unsigned int set_count = 0;
@@ -2617,6 +2624,9 @@ struct VariationStore
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
+#ifdef HB_NO_VAR
+    return_trace (false);
+#endif
 
     VariationStore *varstore_prime = c->serializer->start_embed<VariationStore> ();
     if (unlikely (!varstore_prime)) return_trace (false);
@@ -2644,7 +2654,12 @@ struct VariationStore
   }
 
   unsigned int get_region_index_count (unsigned int major) const
-  { return (this+dataSets[major]).get_region_index_count (); }
+  {
+#ifdef HB_NO_VAR
+    return 0;
+#endif
+    return (this+dataSets[major]).get_region_index_count ();
+  }
 
   void get_region_scalars (unsigned int major,
 			   const int *coords, unsigned int coord_count,
@@ -2662,7 +2677,13 @@ struct VariationStore
 					       &scalars[0], num_scalars);
   }
 
-  unsigned int get_sub_table_count () const { return dataSets.len; }
+  unsigned int get_sub_table_count () const
+   {
+#ifdef HB_NO_VAR
+     return 0;
+#endif
+     return dataSets.len;
+   }
 
   protected:
   HBUINT16				format;
