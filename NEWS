@@ -1,3 +1,9 @@
+Overview of changes leading to 5.0.1
+Saturday, July 23, 2022
+====================================
+- Fix version 2 “avar” table with hb-ft. (Behdad Esfahbod)
+
+
 Overview of changes leading to 5.0.0
 Saturday, July 23, 2022
 ====================================
