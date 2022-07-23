@@ -141,9 +141,13 @@ struct avar
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    if (unlikely (!(version.sanitize (c) &&
-		    (version.major == 1 || version.major == 2) &&
-		    c->check_struct (this))))
+    if (!(version.sanitize (c) &&
+	  (version.major == 1
+#ifndef HB_NO_VARIATIONS2
+	   || version.major == 2
+#endif
+	   ) &&
+	  c->check_struct (this)))
       return_trace (false);
 
     const SegmentMaps *map = &firstAxisSegmentMaps;
@@ -155,12 +159,14 @@ struct avar
       map = &StructAfter<SegmentMaps> (*map);
     }
 
+#ifndef HB_NO_VARIATIONS2
     if (version.major == 2)
     {
       const auto *v2 = (const avarV2Tail *) map;
       if (unlikely (!v2->sanitize (c, this)))
 	return_trace (false);
     }
+#endif
 
     return_trace (true);
   }
@@ -176,6 +182,7 @@ struct avar
       map = &StructAfter<SegmentMaps> (*map);
     }
 
+#ifndef HB_NO_VARIATIONS2
     if (version.major < 2)
       return;
 
@@ -201,6 +208,7 @@ struct avar
 
     for (unsigned i = 0; i < coords_length; i++)
       coords[i] = out[i];
+#endif
   }
 
   void unmap_coords (int *coords, unsigned int coords_length) const
