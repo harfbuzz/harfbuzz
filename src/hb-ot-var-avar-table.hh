@@ -160,12 +160,12 @@ struct avar
     }
 
 #ifndef HB_NO_VARIATIONS2
-    if (version.major == 2)
-    {
-      const auto *v2 = (const avarV2Tail *) map;
-      if (unlikely (!v2->sanitize (c, this)))
-	return_trace (false);
-    }
+    if (version.major < 2)
+      return_trace (true);
+
+    const auto &v2 = * (const avarV2Tail *) map;
+    if (unlikely (!v2.sanitize (c, this)))
+      return_trace (false);
 #endif
 
     return_trace (true);
@@ -186,10 +186,10 @@ struct avar
     if (version.major < 2)
       return;
 
-    const auto *v2 = (const avarV2Tail *) map;
+    const auto &v2 = * (const avarV2Tail *) map;
 
-    const auto &varidx_map = this+v2->varIdxMap;
-    const auto &var_store = this+v2->varStore;
+    const auto &varidx_map = this+v2.varIdxMap;
+    const auto &var_store = this+v2.varStore;
     auto *var_store_cache = var_store.create_cache ();
 
     hb_vector_t<int> out;
