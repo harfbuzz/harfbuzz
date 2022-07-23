@@ -1716,13 +1716,14 @@ struct ClassDefFormat2_4
     hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> glyph_and_klass;
     hb_set_t orig_klasses;
 
+    unsigned num_source_glyphs = c->plan->source->get_num_glyphs ();
     unsigned count = rangeRecord.len;
     for (unsigned i = 0; i < count; i++)
     {
       unsigned klass = rangeRecord[i].value;
       if (!klass) continue;
       hb_codepoint_t start = rangeRecord[i].first;
-      hb_codepoint_t end   = rangeRecord[i].last + 1;
+      hb_codepoint_t end   = hb_min (rangeRecord[i].last + 1, num_source_glyphs);
       for (hb_codepoint_t g = start; g < end; g++)
       {
         hb_codepoint_t new_gid = glyph_map[g];
