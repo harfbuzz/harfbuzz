@@ -177,15 +177,15 @@ static void _hb_ft_hb_font_changed (hb_font_t *font, FT_Face ft_face)
 
 #if defined(HAVE_FT_GET_VAR_BLEND_COORDINATES) && !defined(HB_NO_VAR)
   unsigned int num_coords;
-  const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
+  const float *coords = hb_font_get_var_coords_design (font, &num_coords);
   if (num_coords)
   {
     FT_Fixed *ft_coords = (FT_Fixed *) hb_calloc (num_coords, sizeof (FT_Fixed));
     if (ft_coords)
     {
       for (unsigned int i = 0; i < num_coords; i++)
-	ft_coords[i] = coords[i] * 4;
-      FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
+	  ft_coords[i] = coords[i] * 65536.f;
+      FT_Set_Var_Design_Coordinates (ft_face, num_coords, ft_coords);
       hb_free (ft_coords);
     }
   }
