@@ -135,13 +135,17 @@ struct AxisRecord
     return_trace (c->check_struct (this));
   }
 
-  protected:
   void get_coordinates (float &min, float &default_, float &max) const
   {
     default_ = defaultValue / 65536.f;
     /* Ensure order, to simplify client math. */
     min = hb_min (default_, minValue / 65536.f);
     max = hb_max (default_, maxValue / 65536.f);
+  }
+
+  float get_default () const
+  {
+    return defaultValue / 65536.f;
   }
 
   public:

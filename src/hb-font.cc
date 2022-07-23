@@ -2387,6 +2387,10 @@ hb_font_set_variations (hb_font_t            *font,
     return;
   }
 
+  /* Initialize design coords to default from fvar. */
+  for (unsigned int i = 0; i < coords_length; i++)
+    design_coords[i] = axes[i].get_default ();
+
   for (unsigned int i = 0; i < variations_length; i++)
   {
     const auto tag = variations[i].tag;
