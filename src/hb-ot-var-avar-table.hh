@@ -186,6 +186,9 @@ struct avar
     if (version.major < 2)
       return;
 
+    for (; count < axisCount; count++)
+      map = &StructAfter<SegmentMaps> (*map);
+
     const auto &v2 = * (const avarV2Tail *) map;
 
     const auto &varidx_map = this+v2.varIdxMap;
