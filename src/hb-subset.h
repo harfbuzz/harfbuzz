@@ -101,7 +101,7 @@ typedef enum { /*< flags >*/
  * @HB_SUBSET_SETS_LAYOUT_FEATURE_TAG: the set of layout feature tags that will be retained
  * in the subset.
  * @HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG: the set of layout script tags that will be retained
- * in the subset. Defaults to all tags. Since: REPLACEME
+ * in the subset. Defaults to all tags. Since: 5.0.0
  *
  * List of sets that can be configured on the subset input.
  *

@@ -452,7 +452,7 @@ hb_language_get_default ()
  *
  * Return value: `true` if languages match, `false` otherwise.
  *
- * Since: REPLACEME
+ * Since: 5.0.0
  **/
 hb_bool_t
 hb_language_matches (hb_language_t language,
