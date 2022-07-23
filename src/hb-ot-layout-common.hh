@@ -1915,7 +1915,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.get_class (glyph_id);
     case 2: return u.format2.get_class (glyph_id);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return u.format3.get_class (glyph_id);
     case 4: return u.format4.get_class (glyph_id);
 #endif
@@ -1963,7 +1963,7 @@ struct ClassDef
 	format = 1;
     }
 
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     if (glyph_max > 0xFFFFu)
       format += 2;
 #endif
@@ -1974,7 +1974,7 @@ struct ClassDef
     {
     case 1: return_trace (u.format1.serialize (c, it));
     case 2: return_trace (u.format2.serialize (c, it));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return_trace (u.format3.serialize (c, it));
     case 4: return_trace (u.format4.serialize (c, it));
 #endif
@@ -1992,7 +1992,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return_trace (u.format1.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
     case 2: return_trace (u.format2.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return_trace (u.format3.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
     case 4: return_trace (u.format4.subset (c, klass_map, keep_empty_table, use_class_zero, glyph_filter));
 #endif
@@ -2007,7 +2007,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return_trace (u.format1.sanitize (c));
     case 2: return_trace (u.format2.sanitize (c));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return_trace (u.format3.sanitize (c));
     case 4: return_trace (u.format4.sanitize (c));
 #endif
@@ -2020,7 +2020,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.cost ();
     case 2: return u.format2.cost ();
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return u.format3.cost ();
     case 4: return u.format4.cost ();
 #endif
@@ -2036,7 +2036,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.collect_coverage (glyphs);
     case 2: return u.format2.collect_coverage (glyphs);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return u.format3.collect_coverage (glyphs);
     case 4: return u.format4.collect_coverage (glyphs);
 #endif
@@ -2052,7 +2052,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.collect_class (glyphs, klass);
     case 2: return u.format2.collect_class (glyphs, klass);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return u.format3.collect_class (glyphs, klass);
     case 4: return u.format4.collect_class (glyphs, klass);
 #endif
@@ -2065,7 +2065,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersects (glyphs);
     case 2: return u.format2.intersects (glyphs);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return u.format3.intersects (glyphs);
     case 4: return u.format4.intersects (glyphs);
 #endif
@@ -2077,7 +2077,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersects_class (glyphs, klass);
     case 2: return u.format2.intersects_class (glyphs, klass);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return u.format3.intersects_class (glyphs, klass);
     case 4: return u.format4.intersects_class (glyphs, klass);
 #endif
@@ -2090,7 +2090,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
     case 2: return u.format2.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return u.format3.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
     case 4: return u.format4.intersected_class_glyphs (glyphs, klass, intersect_glyphs);
 #endif
@@ -2103,7 +2103,7 @@ struct ClassDef
     switch (u.format) {
     case 1: return u.format1.intersected_classes (glyphs, intersect_classes);
     case 2: return u.format2.intersected_classes (glyphs, intersect_classes);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 3: return u.format3.intersected_classes (glyphs, intersect_classes);
     case 4: return u.format4.intersected_classes (glyphs, intersect_classes);
 #endif
@@ -2117,7 +2117,7 @@ struct ClassDef
   HBUINT16			format;		/* Format identifier */
   ClassDefFormat1_3<SmallTypes>	format1;
   ClassDefFormat2_4<SmallTypes>	format2;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
   ClassDefFormat1_3<MediumTypes>format3;
   ClassDefFormat2_4<MediumTypes>format4;
 #endif

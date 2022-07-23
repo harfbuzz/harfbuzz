@@ -621,7 +621,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version1.get_size ();
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.get_size ();
 #endif
     default: return u.version.static_size;
@@ -634,7 +634,7 @@ struct GDEF
     if (unlikely (!u.version.sanitize (c))) return_trace (false);
     switch (u.version.major) {
     case 1: return_trace (u.version1.sanitize (c));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return_trace (u.version2.sanitize (c));
 #endif
     default: return_trace (true);
@@ -645,7 +645,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version1.subset (c);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.subset (c);
 #endif
     default: return false;
@@ -656,7 +656,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version1.glyphClassDef != 0;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.glyphClassDef != 0;
 #endif
     default: return false;
@@ -666,7 +666,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return this+u.version1.glyphClassDef;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.glyphClassDef;
 #endif
     default: return Null(ClassDef);
@@ -676,7 +676,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version1.attachList != 0;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.attachList != 0;
 #endif
     default: return false;
@@ -686,7 +686,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return this+u.version1.attachList;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.attachList;
 #endif
     default: return Null(AttachList);
@@ -696,7 +696,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version1.ligCaretList != 0;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.ligCaretList != 0;
 #endif
     default: return false;
@@ -706,7 +706,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return this+u.version1.ligCaretList;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.ligCaretList;
 #endif
     default: return Null(LigCaretList);
@@ -716,7 +716,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version1.markAttachClassDef != 0;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.markAttachClassDef != 0;
 #endif
     default: return false;
@@ -726,7 +726,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return this+u.version1.markAttachClassDef;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.markAttachClassDef;
 #endif
     default: return Null(ClassDef);
@@ -736,7 +736,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010002u && u.version1.markGlyphSetsDef != 0;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.markGlyphSetsDef != 0;
 #endif
     default: return false;
@@ -746,7 +746,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010002u ? this+u.version1.markGlyphSetsDef : Null(MarkGlyphSets);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.markGlyphSetsDef;
 #endif
     default: return Null(MarkGlyphSets);
@@ -756,7 +756,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010003u && u.version1.varStore != 0;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.varStore != 0;
 #endif
     default: return false;
@@ -766,7 +766,7 @@ struct GDEF
   {
     switch (u.version.major) {
     case 1: return u.version.to_int () >= 0x00010003u ? this+u.version1.varStore : Null(VariationStore);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.varStore;
 #endif
     default: return Null(VariationStore);
@@ -874,7 +874,7 @@ struct GDEF
   union {
   FixedVersion<>		version;	/* Version identifier */
   GDEFVersion1_2<SmallTypes>	version1;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
   GDEFVersion1_2<MediumTypes>	version2;
 #endif
   } u;

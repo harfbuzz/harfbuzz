@@ -477,7 +477,7 @@ struct hb_ot_apply_context_t :
     {
       c = c_;
       match_glyph_data16 = nullptr;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
       match_glyph_data24 = nullptr;
 #endif
       matcher.set_match_func (nullptr, nullptr);
@@ -501,11 +501,11 @@ struct hb_ot_apply_context_t :
     void set_glyph_data (const HBUINT16 glyph_data[])
     {
       match_glyph_data16 = glyph_data;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
       match_glyph_data24 = nullptr;
 #endif
     }
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     void set_glyph_data (const HBUINT24 glyph_data[])
     {
       match_glyph_data16 = nullptr;
@@ -603,7 +603,7 @@ struct hb_ot_apply_context_t :
     get_glyph_data ()
     {
       if (match_glyph_data16) return *match_glyph_data16;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
       else
       if (match_glyph_data24) return *match_glyph_data24;
 #endif
@@ -613,7 +613,7 @@ struct hb_ot_apply_context_t :
     advance_glyph_data ()
     {
       if (match_glyph_data16) match_glyph_data16++;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
       else
       if (match_glyph_data24) match_glyph_data24++;
 #endif
@@ -622,7 +622,7 @@ struct hb_ot_apply_context_t :
     backup_glyph_data ()
     {
       if (match_glyph_data16) match_glyph_data16--;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
       else
       if (match_glyph_data24) match_glyph_data24--;
 #endif
@@ -633,7 +633,7 @@ struct hb_ot_apply_context_t :
     hb_ot_apply_context_t *c;
     matcher_t matcher;
     const HBUINT16 *match_glyph_data16;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     const HBUINT24 *match_glyph_data24;
 #endif
 
@@ -2607,7 +2607,7 @@ struct Context
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
     case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
 #endif
@@ -2621,7 +2621,7 @@ struct Context
   ContextFormat1_4<SmallTypes>	format1;
   ContextFormat2_5<SmallTypes>	format2;
   ContextFormat3		format3;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
   ContextFormat1_4<MediumTypes>	format4;
   ContextFormat2_5<MediumTypes>	format5;
 #endif
@@ -3781,7 +3781,7 @@ struct ChainContext
     case 1: return_trace (c->dispatch (u.format1, std::forward<Ts> (ds)...));
     case 2: return_trace (c->dispatch (u.format2, std::forward<Ts> (ds)...));
     case 3: return_trace (c->dispatch (u.format3, std::forward<Ts> (ds)...));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 4: return_trace (c->dispatch (u.format4, std::forward<Ts> (ds)...));
     case 5: return_trace (c->dispatch (u.format5, std::forward<Ts> (ds)...));
 #endif
@@ -3795,7 +3795,7 @@ struct ChainContext
   ChainContextFormat1_4<SmallTypes>	format1;
   ChainContextFormat2_5<SmallTypes>	format2;
   ChainContextFormat3			format3;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
   ChainContextFormat1_4<MediumTypes>	format4;
   ChainContextFormat2_5<MediumTypes>	format5;
 #endif
@@ -4075,7 +4075,7 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return u.version1.get_size ();
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.get_size ();
 #endif
     default: return u.version.static_size;
@@ -4089,7 +4089,7 @@ struct GSUBGPOS
     if (unlikely (!u.version.sanitize (c))) return_trace (false);
     switch (u.version.major) {
     case 1: return_trace (u.version1.sanitize<TLookup> (c));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return_trace (u.version2.sanitize<TLookup> (c));
 #endif
     default: return_trace (true);
@@ -4101,7 +4101,7 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return u.version1.subset<TLookup> (c);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return u.version2.subset<TLookup> (c);
 #endif
     default: return false;
@@ -4112,7 +4112,7 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return this+u.version1.scriptList;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.scriptList;
 #endif
     default: return Null (ScriptList);
@@ -4122,7 +4122,7 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return this+u.version1.featureList;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.featureList;
 #endif
     default: return Null (FeatureList);
@@ -4132,7 +4132,7 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return (this+u.version1.lookupList).len;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return (this+u.version2.lookupList).len;
 #endif
     default: return 0;
@@ -4142,7 +4142,7 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return (this+u.version1.lookupList)[i];
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return (this+u.version2.lookupList)[i];
 #endif
     default: return Null (Lookup);
@@ -4152,7 +4152,7 @@ struct GSUBGPOS
   {
     switch (u.version.major) {
     case 1: return (u.version.to_int () >= 0x00010001u ? this+u.version1.featureVars : Null (FeatureVariations));
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: return this+u.version2.featureVars;
 #endif
     default: return Null (FeatureVariations);
@@ -4333,7 +4333,7 @@ struct GSUBGPOS
   union {
   FixedVersion<>			version;	/* Version identifier */
   GSUBGPOSVersion1_2<SmallTypes>	version1;
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
   GSUBGPOSVersion1_2<MediumTypes>	version2;
 #endif
   } u;

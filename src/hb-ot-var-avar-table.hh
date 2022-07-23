@@ -192,7 +192,7 @@ struct avar
       int v = coords[i];
       uint32_t varidx = varidx_map.map (i);
       float delta = var_store.get_delta (varidx, coords, coords_length, var_store_cache);
-      v += round (delta);
+      v += roundf (delta);
       v = hb_clamp (v, -(1<<14), +(1<<14));
       out.push (v);
     }

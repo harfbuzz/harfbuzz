@@ -274,7 +274,7 @@ struct hmtxvmtx
       if (unlikely (!num_advances))
 	return default_advance;
 
-#ifdef HB_NO_BORING_EXPANSION
+#ifdef HB_NO_BEYOND_64K
       return 0;
 #endif
 
