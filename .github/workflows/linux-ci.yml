@@ -3,6 +3,7 @@ name: linux-ci
 on:
   push:
     branches: [ main ]
+    tags: ["*.*.*"]
   pull_request:
     branches: [ main ]
 
@@ -26,7 +27,7 @@ jobs:
     - name: generate documentations
       run: ninja -Cbuild harfbuzz-doc
     - name: deploy documentations
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.ref_type == 'tag'
       run: .ci/deploy-docs.sh
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}

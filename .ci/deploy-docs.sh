@@ -3,11 +3,6 @@
 set -x
 set -o errexit -o nounset
 
-if [ "$GITHUB_REF_TYPE" != "tag" ]; then
-	echo "Skipping docs deployment on a non-tagged build";
-	exit 0;
-fi
-
 DOCSDIR=build-docs
 REVISION=$(git rev-parse --short HEAD)
 
