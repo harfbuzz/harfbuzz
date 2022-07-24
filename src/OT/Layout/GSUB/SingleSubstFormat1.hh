@@ -82,7 +82,22 @@ struct SingleSubstFormat1_3
 
     glyph_id = (glyph_id + d) & mask;
 
+    if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
+    {
+      c->buffer->sync_so_far ();
+      c->buffer->message (c->font,
+			  "replacing glyph at %d (single substitution)",
+			  c->buffer->idx);
+    }
+
     c->replace_glyph (glyph_id);
+
+    if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
+    {
+      c->buffer->message (c->font,
+			  "replaced glyph at %d (single substitution)",
+			  c->buffer->idx - 1);
+    }
 
     return_trace (true);
   }

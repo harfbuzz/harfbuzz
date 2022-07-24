@@ -62,7 +62,21 @@ struct SinglePosFormat1
     unsigned int index = (this+coverage).get_coverage  (buffer->cur().codepoint);
     if (likely (index == NOT_COVERED)) return_trace (false);
 
+    if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
+    {
+      c->buffer->message (c->font,
+			  "positioning glyph at %d",
+			  c->buffer->idx);
+    }
+
     valueFormat.apply_value (c, this, values, buffer->cur_pos());
+
+    if (HB_BUFFER_MESSAGE_MORE && c->buffer->messaging ())
+    {
+      c->buffer->message (c->font,
+			  "positioned glyph at %d",
+			  c->buffer->idx);
+    }
 
     buffer->idx++;
     return_trace (true);
