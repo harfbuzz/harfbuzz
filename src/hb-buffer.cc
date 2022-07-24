@@ -416,12 +416,13 @@ reset:
   return ret;
 }
 
-void
+int
 hb_buffer_t::sync_so_far ()
 {
   bool had_output = have_output;
   unsigned out_i = out_len;
   unsigned i = idx;
+  unsigned old_idx = idx;
 
   if (sync ())
     idx = out_i;
@@ -435,6 +436,8 @@ hb_buffer_t::sync_so_far ()
   }
 
   assert (idx <= len);
+
+  return idx - old_idx;
 }
 
 bool
