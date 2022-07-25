@@ -348,6 +348,8 @@ HB_SUBSET_sources = \
 	hb-subset.hh \
 	hb-repacker.hh \
 	graph/graph.hh \
+	graph/gsubgpos-graph.hh \
+	graph/gsubgpos-graph.cc \
 	graph/serialize.hh \
 	$(NULL)
 

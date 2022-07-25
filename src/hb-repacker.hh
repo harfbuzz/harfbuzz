@@ -41,14 +41,29 @@ using graph::graph_t;
  * docs/repacker.md
  */
 
+struct lookup_size_t
+{
+  unsigned lookup_index;
+  size_t size;
+  unsigned num_subtables;
+};
+
 inline int compare_sizes (const void* a, const void* b)
 {
-  hb_pair_t<unsigned, size_t>* size_a = (hb_pair_t<unsigned, size_t>*) a;
-  hb_pair_t<unsigned, size_t>* size_b = (hb_pair_t<unsigned, size_t>*) b;
-  if (size_a->second == size_b->second) {
-    return size_b->first - size_a->first;
+  lookup_size_t* size_a = (lookup_size_t*) a;
+  lookup_size_t* size_b = (lookup_size_t*) b;
+
+  double subtables_per_byte_a = (double) size_a->num_subtables / (double) size_a->size;
+  double subtables_per_byte_b = (double) size_b->num_subtables / (double) size_b->size;
+
+  if (subtables_per_byte_a == subtables_per_byte_b) {
+    return size_b->lookup_index - size_b->lookup_index;
+
   }
-  return size_a->second - size_b->second;
+  double cmp = subtables_per_byte_b - subtables_per_byte_a;
+  if (cmp < 0) return -1;
+  if (cmp > 0) return 1;
+  return 0;
 }
 
 /*
@@ -80,15 +95,17 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
   //                solution.
   if (!ext_context.lookups) return true;
 
-  hb_vector_t<hb_pair_t<unsigned, size_t>> lookup_sizes;
+  hb_vector_t<lookup_size_t> lookup_sizes;
   lookup_sizes.alloc (ext_context.lookups.get_population ());
 
   for (unsigned lookup_index : ext_context.lookups.keys ())
   {
+    const graph::Lookup* lookup = ext_context.lookups.get(lookup_index);
     hb_set_t visited;
-    lookup_sizes.push (hb_pair_t<unsigned, size_t> {
+    lookup_sizes.push (lookup_size_t {
         lookup_index,
-        ext_context.graph.find_subgraph_size (lookup_index, visited)
+        ext_context.graph.find_subgraph_size (lookup_index, visited),
+        lookup->number_of_subtables (),
       });
   }
 
@@ -103,8 +120,7 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
   // if it's decided to not make a lookup extension.
   for (auto p : lookup_sizes)
   {
-    unsigned lookup_index = p.first;
-    unsigned subtables_size = ext_context.lookups.get(lookup_index)->number_of_subtables () * 8;
+    unsigned subtables_size = p.num_subtables * 8;
     l3_l4_size += subtables_size;
     l4_plus_size += subtables_size;
   }
@@ -112,22 +128,21 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
   bool layers_full = false;
   for (auto p : lookup_sizes)
   {
-    unsigned lookup_index = p.first;
-    const graph::Lookup* lookup = ext_context.lookups.get(lookup_index);
+    const graph::Lookup* lookup = ext_context.lookups.get(p.lookup_index);
     if (lookup->is_extension (ext_context.table_tag))
       // already an extension so size is counted by the loop above.
       continue;
 
     if (!layers_full)
     {
-      size_t lookup_size = ext_context.graph.vertices_[lookup_index].table_size ();
+      size_t lookup_size = ext_context.graph.vertices_[p.lookup_index].table_size ();
       hb_set_t visited;
-      size_t subtables_size = ext_context.graph.find_subgraph_size (lookup_index, visited, 1) - lookup_size;
-      size_t remaining_size = p.second - subtables_size - lookup_size;
+      size_t subtables_size = ext_context.graph.find_subgraph_size (p.lookup_index, visited, 1) - lookup_size;
+      size_t remaining_size = p.size - subtables_size - lookup_size;
 
       l2_l3_size   += lookup_size;
       l3_l4_size   += lookup_size + subtables_size;
-      l3_l4_size   -= lookup->number_of_subtables () * 8;
+      l3_l4_size   -= p.num_subtables * 8;
       l4_plus_size += subtables_size + remaining_size;
 
       if (l2_l3_size < (1 << 16)
@@ -137,7 +152,7 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
       layers_full = true;
     }
 
-    if (!ext_context.lookups.get(lookup_index)->make_extension (ext_context, lookup_index))
+    if (!ext_context.lookups.get(p.lookup_index)->make_extension (ext_context, p.lookup_index))
       return false;
   }
 
