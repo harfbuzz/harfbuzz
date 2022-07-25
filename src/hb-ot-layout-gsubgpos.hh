@@ -1620,9 +1620,8 @@ static inline void apply_lookup (hb_ot_apply_context_t *c,
       if (buffer->have_output)
         c->buffer->sync_so_far ();
       c->buffer->message (c->font,
-			  "recursed to lookup %u at %d",
-			  (unsigned) lookupRecord[i].lookupListIndex,
-			  buffer->idx);
+			  "recursed to lookup %u",
+			  (unsigned) lookupRecord[i].lookupListIndex);
     }
 
     unsigned int new_len = buffer->backtrack_len () + buffer->lookahead_len ();
