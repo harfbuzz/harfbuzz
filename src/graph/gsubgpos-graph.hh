@@ -40,6 +40,7 @@ struct make_extension_context_t
   hb_tag_t table_tag;
   graph_t& graph;
   hb_vector_t<char>& buffer;
+  unsigned lookup_list_index;
   hb_hashmap_t<unsigned, graph::Lookup*> lookups;
 
   HB_INTERNAL make_extension_context_t (hb_tag_t table_tag_,
@@ -224,12 +225,17 @@ struct GSTAR : public OT::GSUBGPOS
     }
   }
 
+  unsigned get_lookup_list_index (graph_t& graph)
+  {
+    return graph.index_for_offset (graph.root_idx (),
+                                   get_lookup_list_field_offset());
+  }
+
   template<typename Types>
   void find_lookups (graph_t& graph,
                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
   {
-    unsigned lookup_list_idx = graph.index_for_offset (graph.root_idx (),
-                                                       get_lookup_list_field_offset());
+    unsigned lookup_list_idx = get_lookup_list_index (graph);
 
     const LookupList<Types>* lookupList =
         (const LookupList<Types>*) graph.object (lookup_list_idx).head;
