@@ -57,7 +57,7 @@ inline int compare_sizes (const void* a, const void* b)
   double subtables_per_byte_b = (double) size_b->num_subtables / (double) size_b->size;
 
   if (subtables_per_byte_a == subtables_per_byte_b) {
-    return size_b->lookup_index - size_b->lookup_index;
+    return size_b->lookup_index - size_a->lookup_index;
 
   }
   double cmp = subtables_per_byte_b - subtables_per_byte_a;
