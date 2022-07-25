@@ -484,15 +484,18 @@ struct graph_t
       find_subgraph (link.objidx, subgraph);
   }
 
-  size_t find_subgraph_size (unsigned node_idx, hb_set_t& subgraph)
+  size_t find_subgraph_size (unsigned node_idx, hb_set_t& subgraph, unsigned max_depth = -1)
   {
     if (subgraph.has (node_idx)) return 0;
     subgraph.add (node_idx);
 
     const auto& o = vertices_[node_idx].obj;
     size_t size = o.tail - o.head;
+    if (max_depth == 0)
+      return size;
+
     for (const auto& link : o.all_links ())
-      size += find_subgraph_size (link.objidx, subgraph);
+      size += find_subgraph_size (link.objidx, subgraph, max_depth - 1);
     return size;
   }
 

@@ -73,7 +73,11 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
   // TODO(garretrieger): support extension demotion, then consider all lookups. Requires advanced algo.
   // TODO(garretrieger): also support extension promotion during iterative resolution phase, then
   //                     we can use a less conservative threshold here.
-
+  // TODO(grieger): skip this for the 24 bit case.
+  // TODO(grieger): sort by # subtables / size instead (high to low). Goal is to get as many subtables
+  //                as possible into  space 0 to minimize the number of extension subtables added.
+  //                A fully optimal solution will require a backpack problem dynamic programming type
+  //                solution.
   if (!ext_context.lookups) return true;
 
   hb_vector_t<hb_pair_t<unsigned, size_t>> lookup_sizes;
@@ -90,31 +94,48 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
 
   lookup_sizes.qsort (compare_sizes);
 
-  size_t accumlated_bytes =
-      ext_context.graph.vertices_[ext_context.lookup_list_index].table_size ();
+  size_t lookup_list_size = ext_context.graph.vertices_[ext_context.lookup_list_index].table_size ();
+  size_t l2_l3_size = lookup_list_size; // Lookup List + Lookups
+  size_t l3_l4_size = 0; // Lookups + SubTables
+  size_t l4_plus_size = 0; // SubTables + their descendants
 
-  // For the size of 16bit space, first add the size of all ext lookup subtables (as if all lookups
-  // were extensions).
+  // Start by assuming all lookups are using extension subtables, this size will be removed later
+  // if it's decided to not make a lookup extension.
   for (auto p : lookup_sizes)
   {
     unsigned lookup_index = p.first;
-    accumlated_bytes += ext_context.lookups.get(lookup_index)->number_of_subtables () * 8;
+    unsigned subtables_size = ext_context.lookups.get(lookup_index)->number_of_subtables () * 8;
+    l3_l4_size += subtables_size;
+    l4_plus_size += subtables_size;
   }
 
+  bool layers_full = false;
   for (auto p : lookup_sizes)
   {
     unsigned lookup_index = p.first;
     const graph::Lookup* lookup = ext_context.lookups.get(lookup_index);
     if (lookup->is_extension (ext_context.table_tag))
-      // already extension, size is counted by the loop above.
+      // already an extension so size is counted by the loop above.
       continue;
 
-    size_t size = p.second;
-    accumlated_bytes += size;
-    // will not be an extension lookup so subtract size counted in the above loop.
-    accumlated_bytes -= lookup->number_of_subtables () * 8;
+    if (!layers_full)
+    {
+      size_t lookup_size = ext_context.graph.vertices_[lookup_index].table_size ();
+      hb_set_t visited;
+      size_t subtables_size = ext_context.graph.find_subgraph_size (lookup_index, visited, 1) - lookup_size;
+      size_t remaining_size = p.second - subtables_size - lookup_size;
 
-    if (accumlated_bytes < (1 << 16)) continue; // this lookup fits with 64k, which won't overflow.
+      l2_l3_size   += lookup_size;
+      l3_l4_size   += lookup_size + subtables_size;
+      l3_l4_size   -= lookup->number_of_subtables () * 8;
+      l4_plus_size += subtables_size + remaining_size;
+
+      if (l2_l3_size < (1 << 16)
+          && l3_l4_size < (1 << 16)
+          && l4_plus_size < (1 << 16)) continue; // this lookup fits within all layers groups
+
+      layers_full = true;
+    }
 
     if (!ext_context.lookups.get(lookup_index)->make_extension (ext_context, lookup_index))
       return false;
