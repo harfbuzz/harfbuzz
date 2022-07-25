@@ -33,6 +33,7 @@
 #endif
 
 #include <hb.h>
+#include <hb-subset.h>
 #include <hb-ot.h>
 #include <hb-aat.h>
 

@@ -831,7 +831,7 @@ hb_buffer_set_user_data (hb_buffer_t        *buffer,
  * Since: 0.9.2
  **/
 void *
-hb_buffer_get_user_data (hb_buffer_t        *buffer,
+hb_buffer_get_user_data (const hb_buffer_t  *buffer,
 			 hb_user_data_key_t *key)
 {
   return hb_object_get_user_data (buffer, key);
