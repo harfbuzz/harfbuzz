@@ -111,6 +111,10 @@ struct graph_t
       return priority >= 3;
     }
 
+    size_t table_size () const {
+      return obj.tail - obj.head;
+    }
+
     int64_t modified_distance (unsigned order) const
     {
       // TODO(garretrieger): once priority is high enough, should try

@@ -34,11 +34,14 @@ make_extension_context_t::make_extension_context_t (hb_tag_t table_tag_,
     : table_tag (table_tag_),
       graph (graph_),
       buffer (buffer_),
+      lookup_list_index (0),
       lookups ()
 {
   GSTAR* gstar = graph::GSTAR::graph_to_gstar (graph_);
-  if (gstar)
+  if (gstar) {
     gstar->find_lookups (graph, lookups);
+    lookup_list_index = gstar->get_lookup_list_index (graph_);
+  }
 
   unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
   buffer.alloc (num_non_ext_subtables () * extension_size);

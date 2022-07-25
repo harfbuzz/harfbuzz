@@ -74,6 +74,8 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
   // TODO(garretrieger): also support extension promotion during iterative resolution phase, then
   //                     we can use a less conservative threshold here.
 
+  if (!ext_context.lookups) return true;
+
   hb_vector_t<hb_pair_t<unsigned, size_t>> lookup_sizes;
   lookup_sizes.alloc (ext_context.lookups.get_population ());
 
@@ -88,7 +90,9 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
 
   lookup_sizes.qsort (compare_sizes);
 
-  size_t accumlated_bytes = 0;
+  size_t accumlated_bytes =
+      ext_context.graph.vertices_[ext_context.lookup_list_index].table_size ();
+
   for (auto p : lookup_sizes)
   {
     unsigned lookup_index = p.first;
