@@ -1485,4 +1485,5 @@ main (int argc, char **argv)
   test_resolve_with_extension_promotion ();
   // TODO(grieger): test with extensions already mixed in as well.
   // TODO(grieger): test two layer ext promotion setup.
+  // TODO(grieger): test sorting by subtables per byte in ext. promotion.
 }
