@@ -93,11 +93,26 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
   size_t accumlated_bytes =
       ext_context.graph.vertices_[ext_context.lookup_list_index].table_size ();
 
+  // For the size of 16bit space, first add the size of all ext lookup subtables (as if all lookups
+  // were extensions).
   for (auto p : lookup_sizes)
   {
     unsigned lookup_index = p.first;
+    accumlated_bytes += ext_context.lookups.get(lookup_index)->number_of_subtables () * 8;
+  }
+
+  for (auto p : lookup_sizes)
+  {
+    unsigned lookup_index = p.first;
+    const graph::Lookup* lookup = ext_context.lookups.get(lookup_index);
+    if (lookup->is_extension (ext_context.table_tag))
+      // already extension, size is counted by the loop above.
+      continue;
+
     size_t size = p.second;
     accumlated_bytes += size;
+    // will not be an extension lookup so subtract size counted in the above loop.
+    accumlated_bytes -= lookup->number_of_subtables () * 8;
 
     if (accumlated_bytes < (1 << 16)) continue; // this lookup fits with 64k, which won't overflow.
 
