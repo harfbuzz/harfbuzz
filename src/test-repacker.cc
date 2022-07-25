@@ -1483,4 +1483,6 @@ main (int argc, char **argv)
   test_virtual_link ();
   test_shared_node_with_virtual_links ();
   test_resolve_with_extension_promotion ();
+  // TODO(grieger): test with extensions already mixed in as well.
+  // TODO(grieger): test two layer ext promotion setup.
 }
