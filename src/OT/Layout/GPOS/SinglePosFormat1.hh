@@ -39,12 +39,10 @@ struct SinglePosFormat1
   {
     if (!valueFormat.has_device ()) return;
 
-    auto it =
-    + hb_iter (this+coverage)
-    | hb_filter (c->glyph_set)
-    ;
+    hb_set_t intersection;
+    (this+coverage).intersect_set (*c->glyph_set, intersection);
+    if (!intersection) return;
 
-    if (!it) return;
     valueFormat.collect_variation_indices (c, this, values.as_array (valueFormat.get_len ()));
   }
 
