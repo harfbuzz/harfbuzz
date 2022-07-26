@@ -25,8 +25,8 @@
  */
 
 #include "graph.hh"
-#include "hb-ot-layout-gsubgpos.hh"
-#include "OT/Layout/GSUB/ExtensionSubst.hh"
+#include "../hb-ot-layout-gsubgpos.hh"
+#include "../OT/Layout/GSUB/ExtensionSubst.hh"
 
 #ifndef GRAPH_GSUBGPOS_GRAPH_HH
 #define GRAPH_GSUBGPOS_GRAPH_HH
