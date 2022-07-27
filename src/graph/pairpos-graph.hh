@@ -104,8 +104,31 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
                         unsigned start, unsigned end) const
   {
     printf("  cloning range [%u, %u).\n", start, end);
-    // TODO
-    return -1;
+
+    unsigned num_pair_sets = end - start;
+    unsigned prime_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size
+                          + num_pair_sets * SmallTypes::size;
+
+    unsigned pair_pos_prime_id = c.create_node (prime_size);
+    if (pair_pos_prime_id == (unsigned) -1) return -1;
+
+    PairPosFormat1* pair_pos_prime = (PairPosFormat1*) c.graph.object (pair_pos_prime_id).head;
+    pair_pos_prime->format = this->format;
+    pair_pos_prime->valueFormat[0] = this->valueFormat[0];
+    pair_pos_prime->valueFormat[1] = this->valueFormat[1];
+    pair_pos_prime->pairSet.len = num_pair_sets;
+
+    for (unsigned i = start; i < end; i++)
+    {
+      c.graph.move_child<> (this_index,
+                            &pairSet[i],
+                            pair_pos_prime_id,
+                            &pair_pos_prime->pairSet[i - start]);
+    }
+
+
+    // TODO: serialize a new coverage table.
+    return pair_pos_prime_id;
   }
 
   unsigned pair_set_graph_index (gsubgpos_graph_context_t& c, unsigned this_index, unsigned i) const

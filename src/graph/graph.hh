@@ -80,6 +80,16 @@ struct graph_t
       }
     }
 
+    void remove_real_link (unsigned child_index)
+    {
+      for (unsigned i = 0; i < obj.real_links.length; i++)
+      {
+        if (obj.real_links[i].objidx != child_index) continue;
+        obj.real_links.remove (i);
+        break;
+      }
+    }
+
     void remap_parents (const hb_vector_t<unsigned>& id_map)
     {
       for (unsigned i = 0; i < parents.length; i++)
@@ -513,6 +523,37 @@ struct graph_t
       }
       find_32bit_roots (link.objidx, found);
     }
+  }
+
+  /*
+   * Moves the child of old_parent_idx pointed to by old_offset to a new
+   * vertex at the new_offset.
+   */
+  template<typename O>
+  void move_child (unsigned old_parent_idx,
+                   const O* old_offset,
+                   unsigned new_parent_idx,
+                   const O* new_offset)
+  {
+    auto& old_v = vertices_[old_parent_idx];
+    auto& new_v = vertices_[new_parent_idx];
+
+    unsigned child_id = index_for_offset (old_parent_idx,
+                                          old_offset);
+
+    auto* new_link = new_v.obj.real_links.push ();
+    new_link->width = O::static_size;
+    new_link->objidx = child_id;
+    new_link->is_signed = 0;
+    new_link->whence = 0;
+    new_link->position = (const char*) old_offset - (const char*) new_v.obj.head;
+    new_link->bias = 0;
+
+    auto& child = vertices_[child_id];
+    child.parents.push (new_parent_idx);
+
+    old_v.remove_real_link (child_id);
+    child.remove_parent (old_parent_idx);
   }
 
   /*
