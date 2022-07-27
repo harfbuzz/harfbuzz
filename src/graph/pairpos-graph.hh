@@ -34,40 +34,80 @@ namespace graph {
 
 struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>
 {
-  unsigned get_size () const
-  {
-    return OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size
-        + pairSet.get_size () - SmallTypes::size;
-  }
-
   bool split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
     printf("Checking if pair pos %u needs splits...\n", this_index);
     hb_set_t visited;
-    const unsigned base_size = get_size ();
+    const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
     printf("  base_size = %u\n", base_size);
     unsigned accumulated = base_size;
     // TODO: include coverage size
     unsigned num_pair_sets = pairSet.len;
     printf("  num_pair_sets = %u\n", num_pair_sets);
+    hb_vector_t<unsigned> split_points;
     for (unsigned i = 0; i < pairSet.len; i++)
     {
       unsigned pair_set_index = pair_set_graph_index (c, this_index, i);
       accumulated += c.graph.find_subgraph_size (pair_set_index, visited);
+      accumulated += SmallTypes::size; // for PairSet offset.
 
-      if (accumulated > (1 << 16))
+      if (accumulated > (1 << 15)) // TODO (1 << 16)
       {
-        // TODO: do the split
-
         printf("  PairPos split needed %u/%u\n", i, num_pair_sets);
+        split_points.push (i);
         accumulated = base_size;
       }
     }
+
+    // TODO: do the split
+    do_split (c, this_index, split_points);
 
     return true;
   }
 
  private:
+
+  // Split this PairPos into two or more PairPos's. split_points defines
+  // the indices (first index to include in the new table) to split at.
+  // Returns the object id's of the newly created PairPos subtables.
+  hb_vector_t<unsigned> do_split (gsubgpos_graph_context_t& c,
+                                  unsigned this_index,
+                                  const hb_vector_t<unsigned> split_points)
+  {
+    hb_vector_t<unsigned> new_objects;
+    if (!split_points)
+      return new_objects;
+
+    for (unsigned i = 0; i < split_points.length; i++)
+    {
+      unsigned start = split_points[i];
+      unsigned end = (i < split_points.length - 1) ? split_points[i + 1] : pairSet.len;
+      new_objects.push (clone_range (c, this_index, start, end));
+      // TODO error checking.
+    }
+
+    shrink (split_points[0]);
+
+    return new_objects;
+  }
+
+  void shrink (unsigned size)
+  {
+    printf("  shrink to [0, %u).\n", size);
+    // TODO
+  }
+
+  // Create a new PairPos including PairSet's from start (inclusive) to end (exclusive).
+  // Returns object id of the new object.
+  unsigned clone_range (gsubgpos_graph_context_t& c,
+                        unsigned this_index,
+                        unsigned start, unsigned end) const
+  {
+    printf("  cloning range [%u, %u).\n", start, end);
+    // TODO
+    return -1;
+  }
+
   unsigned pair_set_graph_index (gsubgpos_graph_context_t& c, unsigned this_index, unsigned i) const
   {
     return c.graph.index_for_offset (this_index, &pairSet[i]);
