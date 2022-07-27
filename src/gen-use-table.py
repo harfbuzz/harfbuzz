@@ -497,6 +497,26 @@ for k,v in sorted(use_positions.items()):
 		tag = k + suf
 		print ("#undef %s" % tag)
 print ()
+print ("""
+#ifdef HB_USE_TABLE_MAIN
+int main (int argc, char **argv)
+{
+  if (argc != 2)
+  {
+    printf ("usage: %s hex-char\n", argv[0]);
+    return 1;
+  }
+
+  hb_codepoint_t u;
+  sscanf (argv[1], "%x", &u);
+
+  printf ("%d\n", hb_use_get_category (u));
+
+  return 0;
+}
+
+#endif
+""")
 print ()
 print ("#endif /* HB_OT_SHAPER_USE_TABLE_HH */")
 print ("/* == End of generated table == */")

@@ -393,5 +393,27 @@ hb_use_get_category (unsigned u)
 #undef VMPre
 
 
+#ifdef HB_USE_TABLE_MAIN
+int main (int argc, char **argv)
+{
+  if (argc != 2)
+  {
+    printf ("usage: %s hex-char
+", argv[0]);
+    return 1;
+  }
+
+  hb_codepoint_t u;
+  sscanf (argv[1], "%x", &u);
+
+  printf ("%d
+", hb_use_get_category (u));
+
+  return 0;
+}
+
+#endif
+
+
 #endif /* HB_OT_SHAPER_USE_TABLE_HH */
 /* == End of generated table == */
