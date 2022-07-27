@@ -86,14 +86,24 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       // TODO error checking.
     }
 
-    shrink (split_points[0]);
+    shrink (c, this_index, split_points[0]);
 
     return new_objects;
   }
 
-  void shrink (unsigned size)
+  void shrink (gsubgpos_graph_context_t& c,
+               unsigned this_index,
+               unsigned count)
   {
-    printf("  shrink to [0, %u).\n", size);
+    printf("  shrink to [0, %u).\n", count);
+    unsigned old_count = pairSet.len;
+    if (count >= old_count)
+      return;
+
+    pairSet.len = count;
+    c.graph.vertices_[this_index].obj.tail -= (count - old_count) * SmallTypes::size;
+
+
     // TODO
   }
 
@@ -141,8 +151,8 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
         ;
 
     unsigned coverage_prime_id = c.create_node (coverage_size);
-    auto& coverage_prime_obj = c.graph.vertices_[coverage_prime_id].obj;
-    hb_serialize_context_t serializer = hb_serialize_context_t (coverage_prime_obj.head,
+    auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
+    hb_serialize_context_t serializer = hb_serialize_context_t (coverage_prime_vertex.obj.head,
                                                                 coverage_size);
     Coverage_serialize (&serializer, new_coverage);
     serializer.end_serialize ();
@@ -150,11 +160,16 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       return -1;
 
     hb_blob_ptr_t<char*> coverage_copy = serializer.copy_blob ();
-    memcpy (coverage_prime_obj.head,
+    memcpy (coverage_prime_vertex.obj.head,
             coverage_copy.get (),
             coverage_copy.get_length ());
-    coverage_prime_obj.tail = coverage_prime_obj.head + coverage_copy.get_length ();
-    // TODO: add coverage as a child
+    coverage_prime_vertex.obj.tail = coverage_prime_vertex.obj.head + coverage_copy.get_length ();
+
+    auto* coverage_link = c.graph.vertices_[pair_pos_prime_id].obj.real_links.push ();
+    coverage_link->width = SmallTypes::size;
+    coverage_link->objidx = coverage_prime_id;
+    coverage_link->position = 2;
+    coverage_prime_vertex.parents.push (pair_pos_prime_id);
 
     return pair_pos_prime_id;
   }
