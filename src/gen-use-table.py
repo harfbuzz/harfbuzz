@@ -497,7 +497,7 @@ for k,v in sorted(use_positions.items()):
 		tag = k + suf
 		print ("#undef %s" % tag)
 print ()
-print ("""
+print (r"""
 #ifdef HB_USE_TABLE_MAIN
 int main (int argc, char **argv)
 {
