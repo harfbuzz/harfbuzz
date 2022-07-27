@@ -552,7 +552,7 @@ struct graph_t
     auto& child = vertices_[child_id];
     child.parents.push (new_parent_idx);
 
-    old_v.remove_real_link (child_id);
+    old_v.remove_real_link (child_id); // TODO: needs to include offset to ensure correct one removed
     child.remove_parent (old_parent_idx);
   }
 

@@ -127,7 +127,35 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     }
 
 
-    // TODO: serialize a new coverage table.
+    unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
+    OT::Layout::Common::Coverage* coverage_table =
+        (OT::Layout::Common::Coverage*) c.graph.object (coverage_id).head;
+
+    auto new_coverage =
+        + hb_zip (coverage_table->iter (), hb_range ())
+        | hb_filter ([&] (hb_pair_t<unsigned, unsigned> p) {
+          return p.second >= start && p.second < end;
+        })
+        | hb_map_retains_sorting (hb_first)
+        ;
+
+    unsigned coverage_prime_id = c.create_node (coverage_size);
+    auto& coverage_prime_obj = c.graph.vertices_[coverage_prime_id].obj;
+    hb_serialize_context_t serializer = hb_serialize_context_t (coverage_prime_obj.head,
+                                                                coverage_size);
+    Coverage_serialize (&serializer, new_coverage);
+    serializer.end_serialize ();
+    if (serializer.in_error ())
+      return -1;
+
+    hb_blob_ptr_t<char*> coverage_copy = serializer.copy_blob ();
+    memcpy (coverage_prime_obj.head,
+            coverage_copy.get (),
+            coverage_copy.get_length ());
+    coverage_prime_obj.tail = coverage_prime_obj.head + coverage_copy.get_length ();
+    // TODO: add coverage as a child
+
     return pair_pos_prime_id;
   }
 
