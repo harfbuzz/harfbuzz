@@ -38,18 +38,20 @@ struct gsubgpos_graph_context_t
 {
   hb_tag_t table_tag;
   graph_t& graph;
-  hb_vector_t<char>& buffer;
   unsigned lookup_list_index;
   hb_hashmap_t<unsigned, graph::Lookup*> lookups;
+  hb_vector_t<char*> buffers;
 
   HB_INTERNAL gsubgpos_graph_context_t (hb_tag_t table_tag_,
-                                        graph_t& graph_,
-                                        hb_vector_t<char>& buffer_);
+                                        graph_t& graph_);
 
-  bool in_error () const
+  ~gsubgpos_graph_context_t ()
   {
-    return buffer.in_error ();
+    for (char* b : buffers)
+      hb_free (b);
   }
+
+  HB_INTERNAL unsigned create_node (unsigned size);
 
  private:
   HB_INTERNAL unsigned num_non_ext_subtables ();

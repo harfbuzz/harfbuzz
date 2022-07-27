@@ -148,17 +148,16 @@ struct Lookup : public OT::Lookup
   {
     unsigned type = lookupType;
     unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
-    unsigned start = c.buffer.length;
-    unsigned end = start + extension_size;
-    if (!c.buffer.resize (c.buffer.length + extension_size))
+
+
+    unsigned ext_index = c.create_node (extension_size);
+    if (ext_index == (unsigned) -1)
       return false;
 
     ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
-        (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*) &c.buffer[start];
+        (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*) c.graph.object (ext_index).head;
     extension->reset (type);
 
-    unsigned ext_index = c.graph.new_node (&c.buffer.arrayZ[start],
-                                           &c.buffer.arrayZ[end]);
     if (ext_index == (unsigned) -1) return false;
 
     auto& lookup_vertex = c.graph.vertices_[lookup_index];

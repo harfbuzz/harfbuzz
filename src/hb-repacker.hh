@@ -307,18 +307,13 @@ hb_resolve_overflows (const T& packed,
     return graph::serialize (sorted_graph);
   }
 
-  hb_vector_t<char> extension_buffer; // Needs to live until serialization is done.
-
+  graph::gsubgpos_graph_context_t ext_context (table_tag, sorted_graph);
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)
   {
     if (recalculate_extensions)
     {
-      graph::gsubgpos_graph_context_t ext_context (table_tag, sorted_graph, extension_buffer);
-      if (ext_context.in_error ())
-        return nullptr;
-
       if (!_presplit_subtables_if_needed (ext_context)) {
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Subtable splitting failed.");
         return nullptr;
