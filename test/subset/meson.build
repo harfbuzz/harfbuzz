@@ -50,6 +50,9 @@ tests = [
   'glyph_names',
   'post',
   '32bit_var_store',
+# instacing tests, enable when --instance is not experimental
+# 'pin_all_at_default',
+# 'instantiate_glyf',
 ]
 
 repack_tests = [
