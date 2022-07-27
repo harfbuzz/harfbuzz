@@ -28,7 +28,7 @@
 
 namespace graph {
 
-make_extension_context_t::make_extension_context_t (hb_tag_t table_tag_,
+gsubgpos_graph_context_t::gsubgpos_graph_context_t (hb_tag_t table_tag_,
                                                     graph_t& graph_,
                                                     hb_vector_t<char>& buffer_)
     : table_tag (table_tag_),
@@ -47,7 +47,7 @@ make_extension_context_t::make_extension_context_t (hb_tag_t table_tag_,
   buffer.alloc (num_non_ext_subtables () * extension_size);
 }
 
-unsigned make_extension_context_t::num_non_ext_subtables ()  {
+unsigned gsubgpos_graph_context_t::num_non_ext_subtables ()  {
   unsigned count = 0;
   for (auto l : lookups.values ())
   {

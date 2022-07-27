@@ -27,6 +27,8 @@
 #include "graph.hh"
 #include "../hb-ot-layout-gsubgpos.hh"
 #include "../OT/Layout/GSUB/ExtensionSubst.hh"
+#include "gsubgpos-context.hh"
+#include "pairpos-graph.hh"
 
 #ifndef GRAPH_GSUBGPOS_GRAPH_HH
 #define GRAPH_GSUBGPOS_GRAPH_HH
@@ -34,27 +36,6 @@
 namespace graph {
 
 struct Lookup;
-
-struct make_extension_context_t
-{
-  hb_tag_t table_tag;
-  graph_t& graph;
-  hb_vector_t<char>& buffer;
-  unsigned lookup_list_index;
-  hb_hashmap_t<unsigned, graph::Lookup*> lookups;
-
-  HB_INTERNAL make_extension_context_t (hb_tag_t table_tag_,
-                                        graph_t& graph_,
-                                        hb_vector_t<char>& buffer_);
-
-  bool in_error () const
-  {
-    return buffer.in_error ();
-  }
-
- private:
-  HB_INTERNAL unsigned num_non_ext_subtables ();
-};
 
 template<typename T>
 struct ExtensionFormat1 : public OT::ExtensionFormat1<T>
@@ -64,6 +45,16 @@ struct ExtensionFormat1 : public OT::ExtensionFormat1<T>
     this->format = 1;
     this->extensionLookupType = type;
     this->extensionOffset = 0;
+  }
+
+  unsigned get_lookup_type () const
+  {
+    return this->extensionLookupType;
+  }
+
+  unsigned get_subtable_index (graph_t& graph, unsigned this_index) const
+  {
+    return graph.index_for_offset (this_index, &this->extensionOffset);
   }
 };
 
@@ -86,7 +77,7 @@ struct Lookup : public OT::Lookup
     return lookupType == extension_type (table_tag);
   }
 
-  bool make_extension (make_extension_context_t& c,
+  bool make_extension (gsubgpos_graph_context_t& c,
                        unsigned this_index)
   {
     unsigned type = lookupType;
@@ -115,7 +106,43 @@ struct Lookup : public OT::Lookup
     return true;
   }
 
-  bool make_subtable_extension (make_extension_context_t& c,
+  bool split_subtables_if_needed (gsubgpos_graph_context_t& c,
+                                  unsigned this_index)
+  {
+    unsigned type = lookupType;
+    bool is_ext = is_extension (c.table_tag);
+
+    if (c.table_tag != HB_OT_TAG_GPOS)
+      return true;
+
+    if (!is_ext && type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair)
+      return true;
+
+    // TODO check subtable type.
+    for (unsigned i = 0; i < subTable.len; i++)
+    {
+      unsigned subtable_index = c.graph.index_for_offset (this_index, &subTable[i]);
+      if (is_ext) {
+        unsigned ext_subtable_index = subtable_index;
+        ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
+            (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*)
+            c.graph.object (ext_subtable_index).head;
+
+        subtable_index = extension->get_subtable_index (c.graph, ext_subtable_index);
+        type = extension->get_lookup_type ();
+        if (type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair)
+          continue;
+      }
+
+      PairPos* pairPos = (PairPos*) c.graph.object (subtable_index).head;
+      // TODO sanitize
+      pairPos->split_subtables (c, subtable_index);
+    }
+
+    return true;
+  }
+
+  bool make_subtable_extension (gsubgpos_graph_context_t& c,
                                 unsigned lookup_index,
                                 unsigned subtable_index)
   {
@@ -213,6 +240,9 @@ struct GSTAR : public OT::GSUBGPOS
     if (len < OT::GSUBGPOS::min_size) return false;
     return len >= get_size ();
   }
+
+  // TODO(garretrieger): add find subtable's method, could be templated locate a specific
+  //                     subtable type, maybe take the lookup map as a starting point?
 
   void find_lookups (graph_t& graph,
                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)

@@ -66,12 +66,34 @@ inline int compare_sizes (const void* a, const void* b)
   return 0;
 }
 
+static inline
+bool _presplit_subtables_if_needed (graph::gsubgpos_graph_context_t& ext_context)
+{
+  // Algorithm:
+  // 1. Scan all sub-tables and compute their sizes.
+  // 2. For any PairPos subtables that are >64kb:
+  //    a. split into two more pieces that are <64kb
+  //    b. De-dup subgraphs (optional) (can this be done during serialization?)
+
+  // TODO: Add a split subtables method at the lookup level, it could scan it's subtables and split as
+  // needed.
+  // TODO: rename gsubgpos_graph_context_t to be more general.
+
+  for (unsigned lookup_index : ext_context.lookups.keys ())
+  {
+    graph::Lookup* lookup = ext_context.lookups.get(lookup_index);
+    lookup->split_subtables_if_needed (ext_context, lookup_index);
+  }
+
+  return true;
+}
+
 /*
  * Analyze the lookups in a GSUB/GPOS table and decide if any should be promoted
  * to extension lookups.
  */
 static inline
-bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context)
+bool _promote_extensions_if_needed (graph::gsubgpos_graph_context_t& ext_context)
 {
   // Simple Algorithm (v1, current):
   // 1. Calculate how many bytes each non-extension lookup consumes.
@@ -293,9 +315,14 @@ hb_resolve_overflows (const T& packed,
   {
     if (recalculate_extensions)
     {
-      graph::make_extension_context_t ext_context (table_tag, sorted_graph, extension_buffer);
+      graph::gsubgpos_graph_context_t ext_context (table_tag, sorted_graph, extension_buffer);
       if (ext_context.in_error ())
         return nullptr;
+
+      if (!_presplit_subtables_if_needed (ext_context)) {
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Subtable splitting failed.");
+        return nullptr;
+      }
 
       if (!_promote_extensions_if_needed (ext_context)) {
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Extensions promotion failed.");
