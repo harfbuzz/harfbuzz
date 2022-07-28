@@ -34,7 +34,7 @@ namespace graph {
 
 struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>
 {
-  bool split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
+  hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
     printf("Checking if pair pos %u needs splits...\n", this_index);
     hb_set_t visited;
@@ -59,10 +59,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       }
     }
 
-    // TODO: do the split
-    do_split (c, this_index, split_points);
-
-    return true;
+    return do_split (c, this_index, split_points);
   }
 
  private:
@@ -82,29 +79,53 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     {
       unsigned start = split_points[i];
       unsigned end = (i < split_points.length - 1) ? split_points[i + 1] : pairSet.len;
-      new_objects.push (clone_range (c, this_index, start, end));
-      // TODO error checking.
+      unsigned id = clone_range (c, this_index, start, end);
+
+      if (id == (unsigned) -1)
+      {
+        new_objects.reset ();
+        new_objects.allocated = -1; // mark error
+        return new_objects;
+      }
+      new_objects.push (id);
     }
 
-    shrink (c, this_index, split_points[0]);
+    if (!shrink (c, this_index, split_points[0]))
+    {
+      new_objects.reset ();
+      new_objects.allocated = -1; // mark error
+    }
 
     return new_objects;
   }
 
-  void shrink (gsubgpos_graph_context_t& c,
+  bool shrink (gsubgpos_graph_context_t& c,
                unsigned this_index,
                unsigned count)
   {
     printf("  shrink to [0, %u).\n", count);
     unsigned old_count = pairSet.len;
     if (count >= old_count)
-      return;
+      return true;
 
     pairSet.len = count;
     c.graph.vertices_[this_index].obj.tail -= (count - old_count) * SmallTypes::size;
 
 
-    // TODO
+    unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
+    OT::Layout::Common::Coverage* coverage_table =
+        (OT::Layout::Common::Coverage*) c.graph.object (coverage_id).head;
+
+    auto new_coverage =
+        + hb_zip (coverage_table->iter (), hb_range ())
+        | hb_filter ([&] (hb_pair_t<unsigned, unsigned> p) {
+          return p.second < count;
+        })
+        | hb_map_retains_sorting (hb_first)
+        ;
+
+    return make_coverage (c, new_coverage, coverage_id, coverage_size);
   }
 
   // Create a new PairPos including PairSet's from start (inclusive) to end (exclusive).
@@ -136,7 +157,6 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
                             &pair_pos_prime->pairSet[i - start]);
     }
 
-
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
     unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
     OT::Layout::Common::Coverage* coverage_table =
@@ -150,20 +170,10 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
         | hb_map_retains_sorting (hb_first)
         ;
 
-    unsigned coverage_prime_id = c.create_node (coverage_size);
+    unsigned coverage_prime_id = c.graph.new_node (nullptr, nullptr);
     auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
-    hb_serialize_context_t serializer = hb_serialize_context_t (coverage_prime_vertex.obj.head,
-                                                                coverage_size);
-    Coverage_serialize (&serializer, new_coverage);
-    serializer.end_serialize ();
-    if (serializer.in_error ())
+    if (!make_coverage (c, new_coverage, coverage_prime_id, coverage_size))
       return -1;
-
-    hb_blob_ptr_t<char*> coverage_copy = serializer.copy_blob ();
-    memcpy (coverage_prime_vertex.obj.head,
-            coverage_copy.get (),
-            coverage_copy.get_length ());
-    coverage_prime_vertex.obj.tail = coverage_prime_vertex.obj.head + coverage_copy.get_length ();
 
     auto* coverage_link = c.graph.vertices_[pair_pos_prime_id].obj.real_links.push ();
     coverage_link->width = SmallTypes::size;
@@ -174,6 +184,34 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     return pair_pos_prime_id;
   }
 
+  template<typename It>
+  bool make_coverage (gsubgpos_graph_context_t& c,
+                      It glyphs,
+                      unsigned dest_obj,
+                      unsigned max_size) const
+  {
+    char* buffer = (char*) hb_calloc (1, max_size);
+    hb_serialize_context_t serializer = hb_serialize_context_t (buffer,
+                                                                max_size);
+    Coverage_serialize (&serializer, glyphs);
+    serializer.end_serialize ();
+    if (serializer.in_error ())
+    {
+      hb_free (buffer);
+      return false;
+    }
+
+    hb_bytes_t coverage_copy = serializer.copy_bytes ();
+    c.add_buffer ((char *) coverage_copy.arrayZ); // Give ownership to the context, it will cleanup the buffer.
+
+    auto& obj = c.graph.vertices_[dest_obj].obj;
+    obj.head = (char *) coverage_copy.arrayZ;
+    obj.tail = obj.head + coverage_copy.length;
+
+    hb_free (buffer);
+    return true;
+  }
+
   unsigned pair_set_graph_index (gsubgpos_graph_context_t& c, unsigned this_index, unsigned i) const
   {
     return c.graph.index_for_offset (this_index, &pairSet[i]);
@@ -182,16 +220,16 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
 
 struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>
 {
-  bool split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
+  hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
     // TODO
-    return true;
+    return hb_vector_t<unsigned> ();
   }
 };
 
 struct PairPos : public OT::Layout::GPOS_impl::PairPos
 {
-  bool split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
+  hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
     unsigned format = u.format;
     printf("PairPos::format = %u\n", format);
@@ -206,7 +244,7 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
       // Don't split 24bit PairPos's.
 #endif
     default:
-      return true;
+      return hb_vector_t<unsigned> ();
     }
   }
 };

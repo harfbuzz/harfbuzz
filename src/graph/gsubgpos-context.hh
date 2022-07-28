@@ -53,6 +53,11 @@ struct gsubgpos_graph_context_t
 
   HB_INTERNAL unsigned create_node (unsigned size);
 
+  void add_buffer (char* buffer)
+  {
+    buffers.push (buffer);
+  }
+
  private:
   HB_INTERNAL unsigned num_non_ext_subtables ();
 };
