@@ -36,14 +36,10 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
 {
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
-    printf("Checking if pair pos %u needs splits...\n", this_index);
     hb_set_t visited;
     const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
-    printf("  base_size = %u\n", base_size);
     unsigned accumulated = base_size;
     // TODO: include coverage size
-    unsigned num_pair_sets = pairSet.len;
-    printf("  num_pair_sets = %u\n", num_pair_sets);
     hb_vector_t<unsigned> split_points;
     for (unsigned i = 0; i < pairSet.len; i++)
     {
@@ -51,9 +47,8 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       accumulated += c.graph.find_subgraph_size (pair_set_index, visited);
       accumulated += SmallTypes::size; // for PairSet offset.
 
-      if (accumulated > (1 << 13)) // TODO (1 << 16)
+      if (accumulated > (1 << 16))
       {
-        printf("  PairPos split needed %u/%u\n", i, num_pair_sets);
         split_points.push (i);
         accumulated = base_size;
       }
@@ -103,7 +98,10 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
                unsigned this_index,
                unsigned count)
   {
-    printf("  shrink to [0, %u).\n", count);
+    DEBUG_MSG (SUBSET_REPACK, nullptr,
+               "  Shrinking PairPosFormat1 (%u) to [0, %u).",
+               this_index,
+               count);
     unsigned old_count = pairSet.len;
     if (count >= old_count)
       return true;
@@ -133,7 +131,8 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
                         unsigned this_index,
                         unsigned start, unsigned end) const
   {
-    printf("  cloning range [%u, %u).\n", start, end);
+    DEBUG_MSG (SUBSET_REPACK, nullptr,
+               "  Cloning PairPosFormat1 (%u) range [%u, %u).", this_index, start, end);
 
     unsigned num_pair_sets = end - start;
     unsigned prime_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size
@@ -230,8 +229,6 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
 {
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
-    unsigned format = u.format;
-    printf("PairPos::format = %u\n", format);
     switch (u.format) {
     case 1:
       return ((PairPosFormat1*)(&u.format1))->split_subtables (c, this_index);
