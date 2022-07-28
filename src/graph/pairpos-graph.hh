@@ -51,7 +51,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       accumulated += c.graph.find_subgraph_size (pair_set_index, visited);
       accumulated += SmallTypes::size; // for PairSet offset.
 
-      if (accumulated > (1 << 15)) // TODO (1 << 16)
+      if (accumulated > (1 << 13)) // TODO (1 << 16)
       {
         printf("  PairPos split needed %u/%u\n", i, num_pair_sets);
         split_points.push (i);
@@ -109,8 +109,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       return true;
 
     pairSet.len = count;
-    c.graph.vertices_[this_index].obj.tail -= (count - old_count) * SmallTypes::size;
-
+    c.graph.vertices_[this_index].obj.tail -= (old_count - count) * SmallTypes::size;
 
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
     unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
