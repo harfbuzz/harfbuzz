@@ -159,14 +159,14 @@ struct Lookup : public OT::Lookup
                       + subtable_indices.length * OT::Offset16::static_size;
     char* buffer = (char*) hb_calloc (1, new_size);
     c.add_buffer (buffer);
+    memcpy (buffer, v.obj.head, v.table_size());
+
     v.obj.head = buffer;
     v.obj.tail = buffer + new_size;
 
-    memcpy (buffer, v.obj.head, v.table_size());
-
     Lookup* new_lookup = (Lookup*) buffer;
-    new_lookup->subTable.len = subTable.len + subtable_indices.length;
 
+    new_lookup->subTable.len = subTable.len + subtable_indices.length;
     unsigned offset_index = subTable.len;
     for (unsigned subtable_id : subtable_indices)
     {
@@ -181,7 +181,7 @@ struct Lookup : public OT::Lookup
       link->width = 2;
       link->objidx = subtable_id;
       link->position = (char*) &new_lookup->subTable[offset_index++] -
-                       (char*) &new_lookup->subTable[0];
+                       (char*) new_lookup;
       c.graph.vertices_[subtable_id].parents.push (this_index);
     }
   }

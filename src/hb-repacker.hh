@@ -314,11 +314,13 @@ hb_resolve_overflows (const T& packed,
   {
     if (recalculate_extensions)
     {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Splitting subtables if needed.");
       if (!_presplit_subtables_if_needed (ext_context)) {
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Subtable splitting failed.");
         return nullptr;
       }
 
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Promoting lookups to extensions if needed.");
       if (!_promote_extensions_if_needed (ext_context)) {
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Extensions promotion failed.");
         return nullptr;
@@ -328,6 +330,8 @@ hb_resolve_overflows (const T& packed,
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
     if (sorted_graph.assign_spaces ())
       sorted_graph.sort_shortest_distance ();
+    else
+      sorted_graph.sort_shortest_distance_if_needed ();
   }
 
   unsigned round = 0;

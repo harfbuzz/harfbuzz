@@ -230,6 +230,17 @@ struct graph_t
 
   /*
    * Generates a new topological sorting of graph ordered by the shortest
+   * distance to each node if positions are marked as invalid.
+   */
+  void sort_shortest_distance_if_needed ()
+  {
+    if (!positions_invalid) return;
+    sort_shortest_distance ();
+  }
+
+
+  /*
+   * Generates a new topological sorting of graph ordered by the shortest
    * distance to each node.
    */
   void sort_shortest_distance ()
@@ -541,6 +552,9 @@ struct graph_t
                    unsigned new_parent_idx,
                    const O* new_offset)
   {
+    distance_invalid = true;
+    positions_invalid = true;
+
     auto& old_v = vertices_[old_parent_idx];
     auto& new_v = vertices_[new_parent_idx];
 
