@@ -398,8 +398,9 @@ int main (int argc, char **argv)
 {
   if (argc != 2)
   {
-    printf ("usage: %s hex-char\n", argv[0]);
-    return 1;
+    for (unsigned u = 0; u < 0x10FFFFu; u++)
+      printf ("U+%04X %d\n", u, hb_use_get_category (u));
+    return 0;
   }
 
   hb_codepoint_t u;
