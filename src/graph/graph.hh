@@ -80,13 +80,19 @@ struct graph_t
       }
     }
 
-    void remove_real_link (unsigned child_index)
+    void remove_real_link (unsigned child_index, const void* offset)
     {
       for (unsigned i = 0; i < obj.real_links.length; i++)
       {
-        if (obj.real_links[i].objidx != child_index) continue;
+        auto& link = obj.real_links[i];
+        if (link.objidx != child_index)
+          continue;
+
+        if ((obj.head + link.position) != offset)
+          continue;
+
         obj.real_links.remove (i);
-        break;
+        return;
       }
     }
 
@@ -544,15 +550,12 @@ struct graph_t
     auto* new_link = new_v.obj.real_links.push ();
     new_link->width = O::static_size;
     new_link->objidx = child_id;
-    new_link->is_signed = 0;
-    new_link->whence = 0;
-    new_link->position = (const char*) old_offset - (const char*) new_v.obj.head;
-    new_link->bias = 0;
+    new_link->position = (const char*) new_offset - (const char*) new_v.obj.head;
 
     auto& child = vertices_[child_id];
     child.parents.push (new_parent_idx);
 
-    old_v.remove_real_link (child_id); // TODO: needs to include offset to ensure correct one removed
+    old_v.remove_real_link (child_id, old_offset); // TODO: needs to include offset to ensure correct one removed
     child.remove_parent (old_parent_idx);
   }
 
