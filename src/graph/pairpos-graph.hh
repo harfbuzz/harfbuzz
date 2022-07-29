@@ -27,6 +27,7 @@
 #ifndef GRAPH_PAIRPOS_GRAPH_HH
 #define GRAPH_PAIRPOS_GRAPH_HH
 
+#include "coverage-graph.hh"
 #include "../OT/Layout/GPOS/PairPos.hh"
 #include "../OT/Layout/GPOS/PosLookupSubTable.hh"
 
@@ -47,9 +48,13 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
     hb_set_t visited;
-    const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
+
+    const unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    const unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
+    const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size
+                               + coverage_size;
+
     unsigned accumulated = base_size;
-    // TODO: include coverage size
     hb_vector_t<unsigned> split_points;
     for (unsigned i = 0; i < pairSet.len; i++)
     {
@@ -121,8 +126,10 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
 
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
     unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
-    OT::Layout::Common::Coverage* coverage_table =
-        (OT::Layout::Common::Coverage*) c.graph.object (coverage_id).head;
+    auto& coverage_v = c.graph.vertices_[coverage_id];
+    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
+    if (!coverage_table->sanitize (coverage_v))
+      return false;
 
     auto new_coverage =
         + hb_zip (coverage_table->iter (), hb_range ())
@@ -167,8 +174,10 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
 
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
     unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
-    OT::Layout::Common::Coverage* coverage_table =
-        (OT::Layout::Common::Coverage*) c.graph.object (coverage_id).head;
+    auto& coverage_v = c.graph.vertices_[coverage_id];
+    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
+    if (!coverage_table->sanitize (coverage_v))
+      return false;
 
     auto new_coverage =
         + hb_zip (coverage_table->iter (), hb_range ())

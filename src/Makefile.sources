@@ -352,6 +352,8 @@ HB_SUBSET_sources = \
 	graph/gsubgpos-context.hh \
 	graph/gsubgpos-context.cc \
 	graph/pairpos-graph.hh \
+	graph/coverage-graph.hh \
+	graph/pairpos-graph.hh \
 	graph/serialize.hh \
 	$(NULL)
 

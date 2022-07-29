@@ -346,6 +346,10 @@ hb_subset_sources = files(
   'hb-subset-plan.hh',
   'hb-subset-repacker.cc',
   'graph/gsubgpos-context.cc',
+  'graph/gsubgpos-context.hh',
+  'graph/gsubgpos-graph.hh',
+  'graph/pairpos-graph.hh',
+  'graph/coverage-graph.hh',
   'hb-subset.cc',
   'hb-subset.hh',
 )
