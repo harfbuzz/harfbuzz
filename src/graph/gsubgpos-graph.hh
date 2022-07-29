@@ -305,9 +305,6 @@ struct GSTAR : public OT::GSUBGPOS
     return len >= get_size ();
   }
 
-  // TODO(garretrieger): add find subtable's method, could be templated locate a specific
-  //                     subtable type, maybe take the lookup map as a starting point?
-
   void find_lookups (graph_t& graph,
                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
   {

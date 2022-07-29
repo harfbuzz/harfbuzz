@@ -230,13 +230,13 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 {
   bool sanitize (graph_t::vertex_t& vertex) const
   {
-    // TODO
+    // TODO(garretrieger): implement me!
     return true;
   }
 
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
-    // TODO
+    // TODO(garretrieger): implement me!
     return hb_vector_t<unsigned> ();
   }
 };
