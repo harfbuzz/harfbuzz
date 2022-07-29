@@ -25,18 +25,24 @@
 #include "hb-repacker.hh"
 
 #ifdef HB_EXPERIMENTAL_API
+
 /**
  * hb_subset_repack_or_fail:
+ * @table_tag: tag of the table being packed, needed to allow table specific optimizations.
  * @hb_objects: raw array of struct hb_object_t, which provides
  * object graph info
  * @num_hb_objs: number of hb_object_t in the hb_objects array.
  *
  * Given the input object graph info, repack a table to eliminate
  * offset overflows. A nullptr is returned if the repacking attempt fails.
+ * Table specific optimizations (eg. extension promotion in GSUB/GPOS) may be performed.
+ * Passing HB_TAG_NONE will disable table specific optimizations.
  *
  * Since: EXPERIMENTAL
  **/
-hb_blob_t* hb_subset_repack_or_fail (hb_object_t* hb_objects, unsigned num_hb_objs)
+hb_blob_t* hb_subset_repack_or_fail (hb_tag_t table_tag,
+                                     hb_object_t* hb_objects,
+                                     unsigned num_hb_objs)
 {
   hb_vector_t<const hb_object_t *> packed;
   packed.alloc (num_hb_objs + 1);
@@ -45,7 +51,7 @@ hb_blob_t* hb_subset_repack_or_fail (hb_object_t* hb_objects, unsigned num_hb_ob
     packed.push (&(hb_objects[i]));
 
   return hb_resolve_overflows (packed,
-                               HB_OT_TAG_GSUB,
+                               table_tag,
                                20,
                                true);
 }
