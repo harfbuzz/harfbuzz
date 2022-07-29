@@ -146,15 +146,25 @@ static unsigned add_extension (unsigned child,
 static unsigned add_coverage (char start, char end,
                               hb_serialize_context_t* c)
 {
-  char header[] = {
+  if (end - start == 1)
+  {
+    char coverage[] = {
+      0, 1, // format
+      0, 2, // count
+      0, start, // glyph[0]
+      0, end,   // glyph[1]
+    };
+    return add_object (coverage, 8, c);
+  }
+
+  char coverage[] = {
     0, 2, // format
     0, 1, // range count
     0, start, // start
     0, end,   // end
     0, 0,
   };
-
-  return add_object (header, 10, c);
+  return add_object (coverage, 10, c);
 }
 
 static unsigned add_pair_pos_1 (unsigned* pair_sets,
@@ -207,6 +217,12 @@ static void run_resolve_overflow_test (const char* name,
   assert (!expected.offset_overflow ());
   hb_bytes_t expected_result = expected.copy_bytes ();
 
+  if (result.length != expected_result.length)
+  {
+    printf("result.length (%u) != expected.length (%u).\n",
+           result.length,
+           expected_result.length);
+  }
   assert (result.length == expected_result.length);
 
   bool equal = true;
@@ -1040,26 +1056,48 @@ populate_serializer_with_extension_promotion (hb_serialize_context_t* c,
   c->end_serialize();
 }
 
+template<int num_pair_pos_1, int num_pair_set>
 static void
-populate_serializer_with_large_pair_pos_1 (hb_serialize_context_t* c)
+populate_serializer_with_large_pair_pos_1 (hb_serialize_context_t* c,
+                                           bool as_extension = false)
 {
   std::string large_string(60000, 'a');
   c->start_serialize<char> ();
 
-  unsigned pair_set[4];
-  for (int i = 3; i >= 0; i--)
-    pair_set[i] = add_object (large_string.c_str (), 30000, c);
+  constexpr int total_pair_set = num_pair_pos_1 * num_pair_set;
+  unsigned pair_set[total_pair_set];
+  unsigned coverage[num_pair_pos_1];
+  unsigned pair_pos_1[num_pair_pos_1];
 
-  unsigned coverage = add_coverage (0, 3, c);
+  for (int i = num_pair_pos_1 - 1; i >= 0; i--)
+  {
+    for (int j = (i + 1) * num_pair_set - 1; j >= i * num_pair_set; j--)
+      pair_set[j] = add_object (large_string.c_str (), 30000 + j, c);
+
+    coverage[i] = add_coverage (i * num_pair_set,
+                                (i + 1) * num_pair_set - 1, c);
+
+    pair_pos_1[i] = add_pair_pos_1 (&pair_set[i * num_pair_set],
+                                    num_pair_set,
+                                    coverage[i],
+                                    c);
+  }
 
   unsigned pair_pos_2 = add_object (large_string.c_str(), 200, c);
 
-  unsigned pair_pos_1 = add_pair_pos_1 (pair_set, 4, coverage, c);
+  if (as_extension) {
 
-  start_lookup (2, 2, c);
+    for (int i = num_pair_pos_1 - 1; i >= 0; i--)
+      pair_pos_1[i] = add_extension (pair_pos_1[i], 2, c);
+    pair_pos_2 = add_extension (pair_pos_2, 2, c);
+  }
 
-  add_offset (pair_pos_1, c);
+  start_lookup (as_extension ? 9 : 2, 1 + num_pair_pos_1, c);
+
   add_offset (pair_pos_2, c);
+  for (int i = 0; i < num_pair_pos_1; i++)
+    add_offset (pair_pos_1[i], c);
+
 
   unsigned lookup = finish_lookup (c);
 
@@ -1445,12 +1483,12 @@ static void test_resolve_with_basic_pair_pos_1_split ()
   void* buffer = malloc (buffer_size);
   assert (buffer);
   hb_serialize_context_t c (buffer, buffer_size);
-  populate_serializer_with_large_pair_pos_1 (&c);
+  populate_serializer_with_large_pair_pos_1 <1, 4>(&c);
 
   void* expected_buffer = malloc (buffer_size);
   assert (expected_buffer);
   hb_serialize_context_t e (expected_buffer, buffer_size);
-  populate_serializer_with_large_pair_pos_1 (&e);
+  populate_serializer_with_large_pair_pos_1 <2, 2>(&e, true);
 
   run_resolve_overflow_test ("test_resolve_with_basic_pair_pos_1_split",
                              c,
@@ -1588,7 +1626,6 @@ test_shared_node_with_virtual_links ()
 int
 main (int argc, char **argv)
 {
-  if (1) {
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
@@ -1611,12 +1648,9 @@ main (int argc, char **argv)
   test_virtual_link ();
   test_shared_node_with_virtual_links ();
   test_resolve_with_extension_promotion ();
-  }
-
   test_resolve_with_basic_pair_pos_1_split ();
 
   // TODO:
-  // - basic splitting case.
   // - splitting with extensions.
 
   // TODO(grieger): test with extensions already mixed in as well.
