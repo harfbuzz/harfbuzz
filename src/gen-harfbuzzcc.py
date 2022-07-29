@@ -17,7 +17,7 @@ CURRENT_SOURCE_DIR = Path (sys.argv[2])
 sources = [Path(x) for x in sorted(set(sys.argv[3:]))]
 
 with open (OUTPUT, "wb") as f:
-	f.write ("".join (f'#include "{p.resolve ().relative_to (CURRENT_SOURCE_DIR)}"\n' for p in sources if p.suffix == ".cc").encode ())
+	f.write ("".join ('#include "{}"\n'.format (p.resolve ().relative_to (CURRENT_SOURCE_DIR)) for p in sources if p.suffix == ".cc").encode ())
 
 # copy it also to the source tree, but only if it has changed
 baseline = CURRENT_SOURCE_DIR / OUTPUT.name
