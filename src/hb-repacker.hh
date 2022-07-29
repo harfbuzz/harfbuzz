@@ -82,7 +82,8 @@ bool _presplit_subtables_if_needed (graph::gsubgpos_graph_context_t& ext_context
   for (unsigned lookup_index : ext_context.lookups.keys ())
   {
     graph::Lookup* lookup = ext_context.lookups.get(lookup_index);
-    lookup->split_subtables_if_needed (ext_context, lookup_index);
+    if (!lookup->split_subtables_if_needed (ext_context, lookup_index))
+      return false;
   }
 
   return true;

@@ -291,12 +291,12 @@ struct graph_t
 
     check_success (!queue.in_error ());
     check_success (!sorted_graph.in_error ());
-    if (!check_success (new_id == -1))
-      print_orphaned_nodes ();
 
     remap_all_obj_indices (id_map, &sorted_graph);
-
     hb_swap (vertices_, sorted_graph);
+
+    if (!check_success (new_id == -1))
+      print_orphaned_nodes ();
   }
 
   /*

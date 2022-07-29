@@ -142,7 +142,8 @@ struct Lookup : public OT::Lookup
       + new_sub_tables.iter() | hb_sink (all_new_subtables);
     }
 
-    add_sub_tables (c, this_index, type, all_new_subtables);
+    if (all_new_subtables)
+      add_sub_tables (c, this_index, type, all_new_subtables);
 
     return true;
   }
@@ -150,7 +151,7 @@ struct Lookup : public OT::Lookup
   void add_sub_tables (gsubgpos_graph_context_t& c,
                        unsigned this_index,
                        unsigned type,
-                       hb_vector_t<unsigned> subtable_indices)
+                       hb_vector_t<unsigned>& subtable_indices)
   {
     bool is_ext = is_extension (c.table_tag);
     auto& v = c.graph.vertices_[this_index];
@@ -184,6 +185,10 @@ struct Lookup : public OT::Lookup
                        (char*) new_lookup;
       c.graph.vertices_[subtable_id].parents.push (this_index);
     }
+
+    // The head location of the lookup has changed, invalidating the lookups map entry
+    // in the context. Update the map.
+    c.lookups.set (this_index, new_lookup);
   }
 
   unsigned create_extension_subtable (gsubgpos_graph_context_t& c,
