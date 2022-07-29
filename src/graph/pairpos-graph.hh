@@ -34,6 +34,16 @@ namespace graph {
 
 struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>
 {
+  bool sanitize (graph_t::vertex_t& vertex) const
+  {
+    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    unsigned min_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
+    if (vertex_len < min_size) return false;
+
+    return vertex_len >=
+        min_size + pairSet.get_size () - pairSet.len.get_size();
+  }
+
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
     hb_set_t visited;
@@ -218,6 +228,12 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
 
 struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>
 {
+  bool sanitize (graph_t::vertex_t& vertex) const
+  {
+    // TODO
+    return true;
+  }
+
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
     // TODO
@@ -241,6 +257,24 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
 #endif
     default:
       return hb_vector_t<unsigned> ();
+    }
+  }
+
+  bool sanitize (graph_t::vertex_t& vertex) const
+  {
+    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    if (vertex_len < u.format.get_size ()) return false;
+
+    switch (u.format) {
+    case 1:
+      return ((PairPosFormat1*)(&u.format1))->sanitize (vertex);
+    case 2:
+      return ((PairPosFormat2*)(&u.format2))->sanitize (vertex);
+    case 3:
+    case 4:
+    default:
+      // We don't handle format 3 and 4 here.
+      return false;
     }
   }
 };

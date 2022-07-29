@@ -47,6 +47,12 @@ struct ExtensionFormat1 : public OT::ExtensionFormat1<T>
     this->extensionOffset = 0;
   }
 
+  bool sanitize (graph_t::vertex_t& vertex) const
+  {
+    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    return vertex_len >= OT::ExtensionFormat1<T>::static_size;
+  }
+
   unsigned get_lookup_type () const
   {
     return this->extensionLookupType;
@@ -118,7 +124,6 @@ struct Lookup : public OT::Lookup
     if (!is_ext && type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair)
       return true;
 
-    // TODO check subtable type.
     hb_vector_t<unsigned> all_new_subtables;
     for (unsigned i = 0; i < subTable.len; i++)
     {
@@ -128,6 +133,8 @@ struct Lookup : public OT::Lookup
         ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
             (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*)
             c.graph.object (ext_subtable_index).head;
+        if (!extension->sanitize (c.graph.vertices_[ext_subtable_index]))
+          continue;
 
         subtable_index = extension->get_subtable_index (c.graph, ext_subtable_index);
         type = extension->get_lookup_type ();
@@ -136,7 +143,8 @@ struct Lookup : public OT::Lookup
       }
 
       PairPos* pairPos = (PairPos*) c.graph.object (subtable_index).head;
-      // TODO sanitize
+      if (!pairPos->sanitize (c.graph.vertices_[subtable_index])) continue;
+
       hb_vector_t<unsigned> new_sub_tables = pairPos->split_subtables (c, subtable_index);
       if (new_sub_tables.in_error ()) return false;
       + new_sub_tables.iter() | hb_sink (all_new_subtables);
