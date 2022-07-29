@@ -1500,6 +1500,29 @@ static void test_resolve_with_basic_pair_pos_1_split ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_extension_pair_pos_1_split ()
+{
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_large_pair_pos_1 <1, 4>(&c, true);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_large_pair_pos_1 <2, 2>(&e, true);
+
+  run_resolve_overflow_test ("test_resolve_with_extension_pair_pos_1_split",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'P', 'O', 'S'));
+  free (buffer);
+  free (expected_buffer);
+}
+
 
 static void test_resolve_overflows_via_splitting_spaces ()
 {
@@ -1649,9 +1672,7 @@ main (int argc, char **argv)
   test_shared_node_with_virtual_links ();
   test_resolve_with_extension_promotion ();
   test_resolve_with_basic_pair_pos_1_split ();
-
-  // TODO:
-  // - splitting with extensions.
+  test_resolve_with_extension_pair_pos_1_split ();
 
   // TODO(grieger): test with extensions already mixed in as well.
   // TODO(grieger): test two layer ext promotion setup.
