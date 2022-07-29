@@ -184,12 +184,12 @@ test_hb_repack_with_cy_struct (void)
   hb_objs[14].real_links[2].objidx = 14;
   hb_objs[14].virtual_links = NULL;
 
-  hb_blob_t *result = hb_subset_repack_or_fail (hb_objs, 15);
-  
+  hb_blob_t *result = hb_subset_repack_or_fail (HB_TAG_NONE, hb_objs, 15);
+
   hb_face_t *face_expected = hb_test_open_font_file ("fonts/repacker_expected.otf");
   hb_blob_t *expected_blob = hb_face_reference_table (face_expected, HB_TAG ('G','S','U','B'));
   fprintf(stderr, "expected %d bytes, actual %d bytes\n", hb_blob_get_length(expected_blob), hb_blob_get_length (result));
-  
+
   if (hb_blob_get_length (expected_blob) != 0 ||
       hb_blob_get_length (result) != 0)
     hb_test_assert_blobs_equal (expected_blob, result);
