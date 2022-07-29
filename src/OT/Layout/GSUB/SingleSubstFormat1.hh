@@ -51,7 +51,7 @@ struct SingleSubstFormat1_3
     hb_codepoint_t min_before = intersection.get_min ();
     hb_codepoint_t max_before = intersection.get_max ();
     hb_codepoint_t min_after = (min_before + d) & mask;
-    hb_codepoint_t max_after = (min_before + d) & mask;
+    hb_codepoint_t max_after = (max_before + d) & mask;
     if ((this+coverage).get_population () >= max_before - min_before &&
 	((min_before <= min_after && min_after <= max_before) ||
 	 (min_before <= max_after && max_after <= max_before)))
