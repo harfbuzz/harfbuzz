@@ -62,6 +62,10 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       accumulated += c.graph.find_subgraph_size (pair_set_index, visited);
       accumulated += SmallTypes::size; // for PairSet offset.
 
+      // TODO(garretrieger): don't count the size of the largest pairset against the limit, since
+      //                     it will be packed last in the order and does not contribute to
+      //                     the 64kb limit.
+
       if (accumulated > (1 << 16))
       {
         split_points.push (i);
