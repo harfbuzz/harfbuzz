@@ -66,6 +66,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       {
         split_points.push (i);
         accumulated = base_size;
+        visited.clear (); // Pretend node sharing isn't allowed between splits.
       }
     }
 
