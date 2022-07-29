@@ -265,8 +265,8 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
     case 2:
       return ((PairPosFormat2*)(&u.format2))->split_subtables (c, this_index);
 #ifndef HB_NO_BORING_EXPANSION
-    case 3:
-    case 4:
+    case 3: HB_FALLTHROUGH;
+    case 4: HB_FALLTHROUGH;
       // Don't split 24bit PairPos's.
 #endif
     default:
@@ -284,8 +284,10 @@ struct PairPos : public OT::Layout::GPOS_impl::PairPos
       return ((PairPosFormat1*)(&u.format1))->sanitize (vertex);
     case 2:
       return ((PairPosFormat2*)(&u.format2))->sanitize (vertex);
-    case 3:
-    case 4:
+#ifndef HB_NO_BORING_EXPANSION
+    case 3: HB_FALLTHROUGH;
+    case 4: HB_FALLTHROUGH;
+#endif
     default:
       // We don't handle format 3 and 4 here.
       return false;
