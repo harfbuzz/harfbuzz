@@ -149,10 +149,11 @@ typedef struct hb_glyph_info_t {
  * Since: 1.5.0
  */
 typedef enum { /*< flags >*/
-  HB_GLYPH_FLAG_UNSAFE_TO_BREAK		= 0x00000001,
-  HB_GLYPH_FLAG_UNSAFE_TO_CONCAT	= 0x00000002,
+  HB_GLYPH_FLAG_UNSAFE_TO_BREAK			= 0x00000001,
+  HB_GLYPH_FLAG_UNSAFE_TO_CONCAT		= 0x00000002,
+  HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA		= 0x00000004,
 
-  HB_GLYPH_FLAG_DEFINED			= 0x00000003 /* OR of all defined flags */
+  HB_GLYPH_FLAG_DEFINED				= 0x00000007 /* OR of all defined flags */
 } hb_glyph_flags_t;
 
 HB_EXTERN hb_glyph_flags_t

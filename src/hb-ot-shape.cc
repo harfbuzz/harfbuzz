@@ -1148,9 +1148,15 @@ hb_propagate_flags (hb_buffer_t *buffer)
     unsigned int mask = 0;
     for (unsigned int i = start; i < end; i++)
       mask |= info[i].mask & HB_GLYPH_FLAG_DEFINED;
+
+    if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
+      mask &= ~HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA;
+    if (mask & HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA)
+      mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+
     if (mask)
       for (unsigned int i = start; i < end; i++)
-	info[i].mask |= mask;
+	info[i].mask = mask;
   }
 }
 
