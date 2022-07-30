@@ -1151,6 +1151,8 @@ hb_propagate_flags (hb_buffer_t *buffer)
    */
   bool flip_tatweel = buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL;
 
+  bool clear_concat = (buffer->flags & HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT) == 0;
+
   hb_glyph_info_t *info = buffer->info;
 
   foreach_cluster (buffer, start, end)
@@ -1167,9 +1169,11 @@ hb_propagate_flags (hb_buffer_t *buffer)
 	mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
     }
 
-    if (mask)
-      for (unsigned int i = start; i < end; i++)
-	info[i].mask = mask;
+    if (clear_concat)
+	mask &= ~HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+
+    for (unsigned int i = start; i < end; i++)
+      info[i].mask = mask;
   }
 }
 
