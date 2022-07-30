@@ -70,7 +70,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       {
         split_points.push (i);
         accumulated = base_size;
-        visited.clear (); // Pretend node sharing isn't allowed between splits.
+        visited.clear (); // node sharing isn't allowed between splits.
       }
     }
 
@@ -249,8 +249,93 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
-    // TODO(garretrieger): implement me!
+    // TODO(garretrieger): sanitization.
+    hb_set_t visited;
+
+    const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size
+        + size_of (c, this_index, &coverage)
+        + size_of (c, this_index, &classDef1)
+        + size_of (c, this_index, &classDef2);
+
+    const unsigned class1_count = class1Count;
+    const unsigned class2_count = class2Count;
+    const unsigned class1_record_size =
+        class2_count * (valueFormat1.get_size () + valueFormat2.get_size ());
+    const unsigned value_1_len = valueFormat1.get_len ();
+    const unsigned value_2_len = valueFormat2.get_len ();
+    const unsigned total_value_len = value_1_len + value_2_len;
+
+    bool has_offsets = valueFormat1.has_offsets () || valueFormat2.has_offsets ();
+
+    unsigned accumulated = base_size;
+    hb_vector_t<unsigned> split_points;
+    for (unsigned i = 0; i < class1_count; i++)
+    {
+      accumulated += class1_record_size;
+      if (has_offsets) {
+        for (unsigned j = 0; j < class2_count; j++)
+        {
+          unsigned value1_index = total_value_len * (class2_count * i + j);
+          unsigned value2_index = value1_index + value_1_len;
+
+          accumulated += size_of_value_record_children (c,
+                                                        this_index,
+                                                        valueFormat1,
+                                                        value1_index,
+                                                        visited);
+          accumulated += size_of_value_record_children (c,
+                                                        this_index,
+                                                        valueFormat2,
+                                                        value2_index,
+                                                        visited);
+        }
+      }
+
+      // TODO(garretrieger): don't count the size of the largest pairset against the limit, since
+      //                     it will be packed last in the order and does not contribute to
+      //                     the 64kb limit.
+
+      if (accumulated > (1 << 16))
+      {
+        split_points.push (i);
+        accumulated = base_size;
+        visited.clear (); // node sharing isn't allowed between splits.
+      }
+    }
+
+    return do_split (c, this_index, split_points);
+  }
+ private:
+
+  hb_vector_t<unsigned> do_split (gsubgpos_graph_context_t& c,
+                                  unsigned this_index,
+                                  hb_vector_t<unsigned> split_points)
+  {
+    // TODO(garretrieger): implement me.
     return hb_vector_t<unsigned> ();
+  }
+
+  unsigned size_of_value_record_children (gsubgpos_graph_context_t& c,
+                                          unsigned this_index,
+                                          unsigned format,
+                                          unsigned value_record_index,
+                                          hb_set_t& visited)
+  {
+    // TODO(garretrieger): implement me, walk through flags and recurse for each offset
+    //                     found.
+    // Actually may be better to just walk the offsets on the vertex directly. ie. prescan
+    // all of the links and exclude those for coverage, classDef1/2 and then sort by position.
+    // then we know how many offsets each valueFormat1 and valueFormat2 consume, then we can just
+    // grab that many offsets and recurse on each iteration.
+    return 0;
+  }
+
+  unsigned size_of (gsubgpos_graph_context_t& c,
+                    unsigned this_index,
+                    const void* offset) const
+  {
+    const unsigned id = c.graph.index_for_offset (this_index, offset);
+    return c.graph.vertices_[id].table_size ();
   }
 };
 

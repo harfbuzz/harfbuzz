@@ -59,6 +59,15 @@ struct ValueFormat : HBUINT16
   unsigned int get_len () const  { return hb_popcount ((unsigned int) *this); }
   unsigned int get_size () const { return get_len () * Value::static_size; }
 
+  bool has_offsets () const {
+    unsigned format = *this;
+    return format & (
+            xPlaDevice |
+            yPlaDevice |
+            xAdvDevice |
+            yAdvDevice );
+  }
+
   bool apply_value (hb_ot_apply_context_t *c,
                     const void            *base,
                     const Value           *values,
