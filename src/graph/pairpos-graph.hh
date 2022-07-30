@@ -213,8 +213,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
                       unsigned max_size) const
   {
     char* buffer = (char*) hb_calloc (1, max_size);
-    hb_serialize_context_t serializer = hb_serialize_context_t (buffer,
-                                                                max_size);
+    hb_serialize_context_t serializer (buffer, max_size);
     Coverage_serialize (&serializer, glyphs);
     serializer.end_serialize ();
     if (serializer.in_error ())
