@@ -91,8 +91,8 @@ with open(sys.argv[2]) as f:
             continue
         sequences.append(line)
 
-with open("../test/shaping/data/in-house/tests/emoji-clusters.tests", "w") as f:
+with open("../test/shape/data/in-house/tests/emoji-clusters.tests", "w") as f:
     for sequence in sequences:
-        f.write("../fonts/AdobeBlank2.ttf:--no-glyph-names --no-positions --font-funcs=ot")
-        f.write(":" + ",".join(sequence))
-        f.write(":[" + "|".join("1=0" for c in sequence) + "]\n")
+        f.write("../fonts/AdobeBlank2.ttf;--no-glyph-names --no-positions --font-funcs=ot")
+        f.write(";" + ",".join(sequence))
+        f.write(";[" + "|".join("1=0" for c in sequence) + "]\n")
