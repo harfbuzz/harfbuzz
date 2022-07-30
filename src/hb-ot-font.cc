@@ -188,10 +188,9 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
 
   if (!use_cache)
   {
-    assert (!varStore_cache);
     for (unsigned int i = 0; i < count; i++)
     {
-      *first_advance = font->em_scale_x (hmtx.get_advance_with_var_unscaled (*first_glyph, font, nullptr));
+      *first_advance = font->em_scale_x (hmtx.get_advance_with_var_unscaled (*first_glyph, font, varStore_cache));
       first_glyph = &StructAtOffsetUnaligned<hb_codepoint_t> (first_glyph, glyph_stride);
       first_advance = &StructAtOffsetUnaligned<hb_position_t> (first_advance, advance_stride);
     }
