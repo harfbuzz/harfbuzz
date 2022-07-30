@@ -464,6 +464,11 @@ struct hb_buffer_t
   }
   void safe_to_insert_kashida (unsigned int start = 0, unsigned int end = -1)
   {
+    if ((flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_KASHIDA) == 0)
+    {
+      unsafe_to_break (start, end);
+      return;
+    }
     _set_glyph_flags (HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA,
 		      start, end,
 		      true);

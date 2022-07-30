@@ -1141,6 +1141,16 @@ hb_propagate_flags (hb_buffer_t *buffer)
   if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS))
     return;
 
+  /* If we are producing SAFE_TO_INSERT_KASHIDA, then do two things:
+   *
+   * - If the places that the Arabic shaper marked as SAFE_TO_INSERT_KASHIDA,
+   *   are UNSAFE_TO_BREAK, then clear the SAFE_TO_INSERT_KASHIDA,
+   * - Any place that is SAFE_TO_INSERT_KASHIDA, is also now UNSAFE_TO_BREAK.
+   *
+   * We couldn't make this interaction earlier. It has to be done here.
+   */
+  bool flip_kashida = buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_KASHIDA;
+
   hb_glyph_info_t *info = buffer->info;
 
   foreach_cluster (buffer, start, end)
@@ -1149,10 +1159,13 @@ hb_propagate_flags (hb_buffer_t *buffer)
     for (unsigned int i = start; i < end; i++)
       mask |= info[i].mask & HB_GLYPH_FLAG_DEFINED;
 
-    if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
-      mask &= ~HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA;
-    if (mask & HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA)
-      mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+    if (flip_kashida)
+    {
+      if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
+	mask &= ~HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA;
+      if (mask & HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA)
+	mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
+    }
 
     if (mask)
       for (unsigned int i = start; i < end; i++)
