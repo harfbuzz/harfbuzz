@@ -462,14 +462,14 @@ struct hb_buffer_t
 		      start, end,
 		      true);
   }
-  void safe_to_insert_kashida (unsigned int start = 0, unsigned int end = -1)
+  void safe_to_insert_tatweel (unsigned int start = 0, unsigned int end = -1)
   {
-    if ((flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_KASHIDA) == 0)
+    if ((flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL) == 0)
     {
       unsafe_to_break (start, end);
       return;
     }
-    _set_glyph_flags (HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA,
+    _set_glyph_flags (HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL,
 		      start, end,
 		      true);
   }

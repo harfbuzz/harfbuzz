@@ -142,7 +142,7 @@ typedef struct hb_glyph_info_t {
  *				   shaping, otherwise the buffer flag will not be
  *				   reliably produced.
  * 				   Since: 4.0.0
- * @HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA: In scripts that use elongation (Arabic,
+ * @HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL: In scripts that use elongation (Arabic,
 				   Mongolian, Syriac, etc.), this flag signifies
 				   that it is safe to insert a U+0640 TATWEEL
 				   character *before* this cluster for elongation.
@@ -156,7 +156,7 @@ typedef struct hb_glyph_info_t {
 typedef enum { /*< flags >*/
   HB_GLYPH_FLAG_UNSAFE_TO_BREAK			= 0x00000001,
   HB_GLYPH_FLAG_UNSAFE_TO_CONCAT		= 0x00000002,
-  HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA		= 0x00000004,
+  HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL		= 0x00000004,
 
   HB_GLYPH_FLAG_DEFINED				= 0x00000007 /* OR of all defined flags */
 } hb_glyph_flags_t;
@@ -379,8 +379,8 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  *                      flag indicating that the @HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
  *                      glyph-flag should be produced by the shaper. By default
  *                      it will not be produced since it incurs a cost. Since: 4.0.0
- * @HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_KASHIDA:
- *                      flag indicating that the @HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA
+ * @HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL:
+ *                      flag indicating that the @HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL
  *                      glyph-flag should be produced by the shaper. By default
  *                      it will not be produced. Since: REPLACEME
  * @HB_BUFFER_FLAG_DEFINED: All currently defined flags: Since: 4.4.0
@@ -398,7 +398,7 @@ typedef enum { /*< flags >*/
   HB_BUFFER_FLAG_DO_NOT_INSERT_DOTTED_CIRCLE	= 0x00000010u,
   HB_BUFFER_FLAG_VERIFY				= 0x00000020u,
   HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT	= 0x00000040u,
-  HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_KASHIDA	= 0x00000070u,
+  HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL	= 0x00000070u,
 
   HB_BUFFER_FLAG_DEFINED			= 0x000000FFu
 } hb_buffer_flags_t;

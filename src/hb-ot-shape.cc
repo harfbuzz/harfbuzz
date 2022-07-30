@@ -1141,15 +1141,15 @@ hb_propagate_flags (hb_buffer_t *buffer)
   if (!(buffer->scratch_flags & HB_BUFFER_SCRATCH_FLAG_HAS_GLYPH_FLAGS))
     return;
 
-  /* If we are producing SAFE_TO_INSERT_KASHIDA, then do two things:
+  /* If we are producing SAFE_TO_INSERT_TATWEEL, then do two things:
    *
-   * - If the places that the Arabic shaper marked as SAFE_TO_INSERT_KASHIDA,
-   *   are UNSAFE_TO_BREAK, then clear the SAFE_TO_INSERT_KASHIDA,
-   * - Any place that is SAFE_TO_INSERT_KASHIDA, is also now UNSAFE_TO_BREAK.
+   * - If the places that the Arabic shaper marked as SAFE_TO_INSERT_TATWEEL,
+   *   are UNSAFE_TO_BREAK, then clear the SAFE_TO_INSERT_TATWEEL,
+   * - Any place that is SAFE_TO_INSERT_TATWEEL, is also now UNSAFE_TO_BREAK.
    *
    * We couldn't make this interaction earlier. It has to be done here.
    */
-  bool flip_kashida = buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_KASHIDA;
+  bool flip_tatweel = buffer->flags & HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL;
 
   hb_glyph_info_t *info = buffer->info;
 
@@ -1159,11 +1159,11 @@ hb_propagate_flags (hb_buffer_t *buffer)
     for (unsigned int i = start; i < end; i++)
       mask |= info[i].mask & HB_GLYPH_FLAG_DEFINED;
 
-    if (flip_kashida)
+    if (flip_tatweel)
     {
       if (mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK)
-	mask &= ~HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA;
-      if (mask & HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA)
+	mask &= ~HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL;
+      if (mask & HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL)
 	mask |= HB_GLYPH_FLAG_UNSAFE_TO_BREAK | HB_GLYPH_FLAG_UNSAFE_TO_CONCAT;
     }
 
