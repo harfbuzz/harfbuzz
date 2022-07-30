@@ -349,7 +349,11 @@ HB_SUBSET_sources = \
 	hb-repacker.hh \
 	graph/graph.hh \
 	graph/gsubgpos-graph.hh \
-	graph/gsubgpos-graph.cc \
+	graph/gsubgpos-context.hh \
+	graph/gsubgpos-context.cc \
+	graph/pairpos-graph.hh \
+	graph/coverage-graph.hh \
+	graph/pairpos-graph.hh \
 	graph/serialize.hh \
 	$(NULL)
 

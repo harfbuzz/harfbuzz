@@ -46,24 +46,47 @@ struct lookup_size_t
   unsigned lookup_index;
   size_t size;
   unsigned num_subtables;
+
+  static int cmp (const void* a, const void* b)
+  {
+    return cmp ((const lookup_size_t*) a,
+                (const lookup_size_t*) b);
+  }
+
+  static int cmp (const lookup_size_t* a, const lookup_size_t* b)
+  {
+    double subtables_per_byte_a = (double) a->num_subtables / (double) a->size;
+    double subtables_per_byte_b = (double) b->num_subtables / (double) b->size;
+    if (subtables_per_byte_a == subtables_per_byte_b) {
+      return b->lookup_index - a->lookup_index;
+    }
+
+    double cmp = subtables_per_byte_b - subtables_per_byte_a;
+    if (cmp < 0) return -1;
+    if (cmp > 0) return 1;
+    return 0;
+  }
 };
 
-inline int compare_sizes (const void* a, const void* b)
+static inline
+bool _presplit_subtables_if_needed (graph::gsubgpos_graph_context_t& ext_context)
 {
-  lookup_size_t* size_a = (lookup_size_t*) a;
-  lookup_size_t* size_b = (lookup_size_t*) b;
-
-  double subtables_per_byte_a = (double) size_a->num_subtables / (double) size_a->size;
-  double subtables_per_byte_b = (double) size_b->num_subtables / (double) size_b->size;
-
-  if (subtables_per_byte_a == subtables_per_byte_b) {
-    return size_b->lookup_index - size_a->lookup_index;
-
+  // For each lookup this will check the size of subtables and split them as needed
+  // so that no subtable is at risk of overflowing. (where we support splitting for
+  // that subtable type).
+  //
+  // TODO(grieger): de-dup newly added nodes as necessary. Probably just want a full de-dup
+  //                pass after this processing is done. Not super necessary as splits are
+  //                only done where overflow is likely, so de-dup probably will get undone
+  //                later anyways.
+  for (unsigned lookup_index : ext_context.lookups.keys ())
+  {
+    graph::Lookup* lookup = ext_context.lookups.get(lookup_index);
+    if (!lookup->split_subtables_if_needed (ext_context, lookup_index))
+      return false;
   }
-  double cmp = subtables_per_byte_b - subtables_per_byte_a;
-  if (cmp < 0) return -1;
-  if (cmp > 0) return 1;
-  return 0;
+
+  return true;
 }
 
 /*
@@ -71,28 +94,24 @@ inline int compare_sizes (const void* a, const void* b)
  * to extension lookups.
  */
 static inline
-bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context)
+bool _promote_extensions_if_needed (graph::gsubgpos_graph_context_t& ext_context)
 {
   // Simple Algorithm (v1, current):
   // 1. Calculate how many bytes each non-extension lookup consumes.
-  // 2. Select up to 64k of those to remain as non-extension (greedy, smallest first).
+  // 2. Select up to 64k of those to remain as non-extension (greedy, highest subtables per byte first)
   // 3. Promote the rest.
   //
   // Advanced Algorithm (v2, not implemented):
   // 1. Perform connected component analysis using lookups as roots.
   // 2. Compute size of each connected component.
   // 3. Select up to 64k worth of connected components to remain as non-extensions.
-  //    (greedy, smallest first)
+  //    (greedy, highest subtables per byte first)
   // 4. Promote the rest.
 
   // TODO(garretrieger): support extension demotion, then consider all lookups. Requires advanced algo.
   // TODO(garretrieger): also support extension promotion during iterative resolution phase, then
   //                     we can use a less conservative threshold here.
   // TODO(grieger): skip this for the 24 bit case.
-  // TODO(grieger): sort by # subtables / size instead (high to low). Goal is to get as many subtables
-  //                as possible into  space 0 to minimize the number of extension subtables added.
-  //                A fully optimal solution will require a backpack problem dynamic programming type
-  //                solution.
   if (!ext_context.lookups) return true;
 
   hb_vector_t<lookup_size_t> lookup_sizes;
@@ -109,7 +128,7 @@ bool _promote_extensions_if_needed (graph::make_extension_context_t& ext_context
       });
   }
 
-  lookup_sizes.qsort (compare_sizes);
+  lookup_sizes.qsort ();
 
   size_t lookup_list_size = ext_context.graph.vertices_[ext_context.lookup_list_index].table_size ();
   size_t l2_l3_size = lookup_list_size; // Lookup List + Lookups
@@ -285,18 +304,20 @@ hb_resolve_overflows (const T& packed,
     return graph::serialize (sorted_graph);
   }
 
-  hb_vector_t<char> extension_buffer; // Needs to live until serialization is done.
-
+  graph::gsubgpos_graph_context_t ext_context (table_tag, sorted_graph);
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)
   {
     if (recalculate_extensions)
     {
-      graph::make_extension_context_t ext_context (table_tag, sorted_graph, extension_buffer);
-      if (ext_context.in_error ())
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Splitting subtables if needed.");
+      if (!_presplit_subtables_if_needed (ext_context)) {
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Subtable splitting failed.");
         return nullptr;
+      }
 
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Promoting lookups to extensions if needed.");
       if (!_promote_extensions_if_needed (ext_context)) {
         DEBUG_MSG (SUBSET_REPACK, nullptr, "Extensions promotion failed.");
         return nullptr;
@@ -306,6 +327,8 @@ hb_resolve_overflows (const T& packed,
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Assigning spaces to 32 bit subgraphs.");
     if (sorted_graph.assign_spaces ())
       sorted_graph.sort_shortest_distance ();
+    else
+      sorted_graph.sort_shortest_distance_if_needed ();
   }
 
   unsigned round = 0;

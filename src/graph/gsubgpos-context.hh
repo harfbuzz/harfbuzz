@@ -24,37 +24,44 @@
  * Google Author(s): Garret Rieger
  */
 
-#include "gsubgpos-graph.hh"
+#include "graph.hh"
+#include "../hb-ot-layout-gsubgpos.hh"
+
+#ifndef GRAPH_GSUBGPOS_CONTEXT_HH
+#define GRAPH_GSUBGPOS_CONTEXT_HH
 
 namespace graph {
 
-make_extension_context_t::make_extension_context_t (hb_tag_t table_tag_,
-                                                    graph_t& graph_,
-                                                    hb_vector_t<char>& buffer_)
-    : table_tag (table_tag_),
-      graph (graph_),
-      buffer (buffer_),
-      lookup_list_index (0),
-      lookups ()
+struct Lookup;
+
+struct gsubgpos_graph_context_t
 {
-  GSTAR* gstar = graph::GSTAR::graph_to_gstar (graph_);
-  if (gstar) {
-    gstar->find_lookups (graph, lookups);
-    lookup_list_index = gstar->get_lookup_list_index (graph_);
-  }
+  hb_tag_t table_tag;
+  graph_t& graph;
+  unsigned lookup_list_index;
+  hb_hashmap_t<unsigned, graph::Lookup*> lookups;
+  hb_vector_t<char*> buffers;
 
-  unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
-  buffer.alloc (num_non_ext_subtables () * extension_size);
-}
+  HB_INTERNAL gsubgpos_graph_context_t (hb_tag_t table_tag_,
+                                        graph_t& graph_);
 
-unsigned make_extension_context_t::num_non_ext_subtables ()  {
-  unsigned count = 0;
-  for (auto l : lookups.values ())
+  ~gsubgpos_graph_context_t ()
   {
-    if (l->is_extension (table_tag)) continue;
-    count += l->number_of_subtables ();
+    for (char* b : buffers)
+      hb_free (b);
   }
-  return count;
-}
+
+  HB_INTERNAL unsigned create_node (unsigned size);
+
+  void add_buffer (char* buffer)
+  {
+    buffers.push (buffer);
+  }
+
+ private:
+  HB_INTERNAL unsigned num_non_ext_subtables ();
+};
 
 }
+
+#endif  // GRAPH_GSUBGPOS_CONTEXT

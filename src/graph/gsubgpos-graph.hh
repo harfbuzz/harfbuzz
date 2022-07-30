@@ -27,6 +27,8 @@
 #include "graph.hh"
 #include "../hb-ot-layout-gsubgpos.hh"
 #include "../OT/Layout/GSUB/ExtensionSubst.hh"
+#include "gsubgpos-context.hh"
+#include "pairpos-graph.hh"
 
 #ifndef GRAPH_GSUBGPOS_GRAPH_HH
 #define GRAPH_GSUBGPOS_GRAPH_HH
@@ -34,27 +36,6 @@
 namespace graph {
 
 struct Lookup;
-
-struct make_extension_context_t
-{
-  hb_tag_t table_tag;
-  graph_t& graph;
-  hb_vector_t<char>& buffer;
-  unsigned lookup_list_index;
-  hb_hashmap_t<unsigned, graph::Lookup*> lookups;
-
-  HB_INTERNAL make_extension_context_t (hb_tag_t table_tag_,
-                                        graph_t& graph_,
-                                        hb_vector_t<char>& buffer_);
-
-  bool in_error () const
-  {
-    return buffer.in_error ();
-  }
-
- private:
-  HB_INTERNAL unsigned num_non_ext_subtables ();
-};
 
 template<typename T>
 struct ExtensionFormat1 : public OT::ExtensionFormat1<T>
@@ -64,6 +45,22 @@ struct ExtensionFormat1 : public OT::ExtensionFormat1<T>
     this->format = 1;
     this->extensionLookupType = type;
     this->extensionOffset = 0;
+  }
+
+  bool sanitize (graph_t::vertex_t& vertex) const
+  {
+    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    return vertex_len >= OT::ExtensionFormat1<T>::static_size;
+  }
+
+  unsigned get_lookup_type () const
+  {
+    return this->extensionLookupType;
+  }
+
+  unsigned get_subtable_index (graph_t& graph, unsigned this_index) const
+  {
+    return graph.index_for_offset (this_index, &this->extensionOffset);
   }
 };
 
@@ -86,7 +83,7 @@ struct Lookup : public OT::Lookup
     return lookupType == extension_type (table_tag);
   }
 
-  bool make_extension (make_extension_context_t& c,
+  bool make_extension (gsubgpos_graph_context_t& c,
                        unsigned this_index)
   {
     unsigned type = lookupType;
@@ -115,24 +112,127 @@ struct Lookup : public OT::Lookup
     return true;
   }
 
-  bool make_subtable_extension (make_extension_context_t& c,
+  bool split_subtables_if_needed (gsubgpos_graph_context_t& c,
+                                  unsigned this_index)
+  {
+    unsigned type = lookupType;
+    bool is_ext = is_extension (c.table_tag);
+
+    if (c.table_tag != HB_OT_TAG_GPOS)
+      return true;
+
+    if (!is_ext && type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair)
+      return true;
+
+    hb_vector_t<unsigned> all_new_subtables;
+    for (unsigned i = 0; i < subTable.len; i++)
+    {
+      unsigned subtable_index = c.graph.index_for_offset (this_index, &subTable[i]);
+      if (is_ext) {
+        unsigned ext_subtable_index = subtable_index;
+        ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
+            (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*)
+            c.graph.object (ext_subtable_index).head;
+        if (!extension->sanitize (c.graph.vertices_[ext_subtable_index]))
+          continue;
+
+        subtable_index = extension->get_subtable_index (c.graph, ext_subtable_index);
+        type = extension->get_lookup_type ();
+        if (type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair)
+          continue;
+      }
+
+      PairPos* pairPos = (PairPos*) c.graph.object (subtable_index).head;
+      if (!pairPos->sanitize (c.graph.vertices_[subtable_index])) continue;
+
+      hb_vector_t<unsigned> new_sub_tables = pairPos->split_subtables (c, subtable_index);
+      if (new_sub_tables.in_error ()) return false;
+      + new_sub_tables.iter() | hb_sink (all_new_subtables);
+    }
+
+    if (all_new_subtables)
+      add_sub_tables (c, this_index, type, all_new_subtables);
+
+    return true;
+  }
+
+  void add_sub_tables (gsubgpos_graph_context_t& c,
+                       unsigned this_index,
+                       unsigned type,
+                       hb_vector_t<unsigned>& subtable_indices)
+  {
+    bool is_ext = is_extension (c.table_tag);
+    auto& v = c.graph.vertices_[this_index];
+
+    size_t new_size = v.table_size ()
+                      + subtable_indices.length * OT::Offset16::static_size;
+    char* buffer = (char*) hb_calloc (1, new_size);
+    c.add_buffer (buffer);
+    memcpy (buffer, v.obj.head, v.table_size());
+
+    v.obj.head = buffer;
+    v.obj.tail = buffer + new_size;
+
+    Lookup* new_lookup = (Lookup*) buffer;
+
+    new_lookup->subTable.len = subTable.len + subtable_indices.length;
+    unsigned offset_index = subTable.len;
+    for (unsigned subtable_id : subtable_indices)
+    {
+      if (is_ext)
+      {
+        unsigned ext_id = create_extension_subtable (c, subtable_id, type);
+        c.graph.vertices_[subtable_id].parents.push (ext_id);
+        subtable_id = ext_id;
+      }
+
+      auto* link = v.obj.real_links.push ();
+      link->width = 2;
+      link->objidx = subtable_id;
+      link->position = (char*) &new_lookup->subTable[offset_index++] -
+                       (char*) new_lookup;
+      c.graph.vertices_[subtable_id].parents.push (this_index);
+    }
+
+    // The head location of the lookup has changed, invalidating the lookups map entry
+    // in the context. Update the map.
+    c.lookups.set (this_index, new_lookup);
+  }
+
+  unsigned create_extension_subtable (gsubgpos_graph_context_t& c,
+                                      unsigned subtable_index,
+                                      unsigned type)
+  {
+    unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
+
+    unsigned ext_index = c.create_node (extension_size);
+    if (ext_index == (unsigned) -1)
+      return -1;
+
+    auto& ext_vertex = c.graph.vertices_[ext_index];
+    ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
+        (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*) ext_vertex.obj.head;
+    extension->reset (type);
+
+    // Make extension point at the subtable.
+    auto* l = ext_vertex.obj.real_links.push ();
+
+    l->width = 4;
+    l->objidx = subtable_index;
+    l->position = 4;
+
+    return ext_index;
+  }
+
+  bool make_subtable_extension (gsubgpos_graph_context_t& c,
                                 unsigned lookup_index,
                                 unsigned subtable_index)
   {
     unsigned type = lookupType;
-    unsigned extension_size = OT::ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>::static_size;
-    unsigned start = c.buffer.length;
-    unsigned end = start + extension_size;
-    if (!c.buffer.resize (c.buffer.length + extension_size))
+
+    unsigned ext_index = create_extension_subtable(c, subtable_index, type);
+    if (ext_index == (unsigned) -1)
       return false;
-
-    ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
-        (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*) &c.buffer[start];
-    extension->reset (type);
-
-    unsigned ext_index = c.graph.new_node (&c.buffer.arrayZ[start],
-                                           &c.buffer.arrayZ[end]);
-    if (ext_index == (unsigned) -1) return false;
 
     auto& lookup_vertex = c.graph.vertices_[lookup_index];
     for (auto& l : lookup_vertex.obj.real_links.writer ())
@@ -145,15 +245,6 @@ struct Lookup : public OT::Lookup
     // Make extension point at the subtable.
     auto& ext_vertex = c.graph.vertices_[ext_index];
     auto& subtable_vertex = c.graph.vertices_[subtable_index];
-    auto* l = ext_vertex.obj.real_links.push ();
-
-    l->width = 4;
-    l->objidx = subtable_index;
-    l->is_signed = 0;
-    l->whence = 0;
-    l->position = 4;
-    l->bias = 0;
-
     ext_vertex.parents.push (lookup_index);
     subtable_vertex.remap_parent (lookup_index, ext_index);
 

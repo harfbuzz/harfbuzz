@@ -80,6 +80,22 @@ struct graph_t
       }
     }
 
+    void remove_real_link (unsigned child_index, const void* offset)
+    {
+      for (unsigned i = 0; i < obj.real_links.length; i++)
+      {
+        auto& link = obj.real_links[i];
+        if (link.objidx != child_index)
+          continue;
+
+        if ((obj.head + link.position) != offset)
+          continue;
+
+        obj.real_links.remove (i);
+        return;
+      }
+    }
+
     void remap_parents (const hb_vector_t<unsigned>& id_map)
     {
       for (unsigned i = 0; i < parents.length; i++)
@@ -214,6 +230,17 @@ struct graph_t
 
   /*
    * Generates a new topological sorting of graph ordered by the shortest
+   * distance to each node if positions are marked as invalid.
+   */
+  void sort_shortest_distance_if_needed ()
+  {
+    if (!positions_invalid) return;
+    sort_shortest_distance ();
+  }
+
+
+  /*
+   * Generates a new topological sorting of graph ordered by the shortest
    * distance to each node.
    */
   void sort_shortest_distance ()
@@ -264,12 +291,12 @@ struct graph_t
 
     check_success (!queue.in_error ());
     check_success (!sorted_graph.in_error ());
-    if (!check_success (new_id == -1))
-      print_orphaned_nodes ();
 
     remap_all_obj_indices (id_map, &sorted_graph);
-
     hb_swap (vertices_, sorted_graph);
+
+    if (!check_success (new_id == -1))
+      print_orphaned_nodes ();
   }
 
   /*
@@ -513,6 +540,37 @@ struct graph_t
       }
       find_32bit_roots (link.objidx, found);
     }
+  }
+
+  /*
+   * Moves the child of old_parent_idx pointed to by old_offset to a new
+   * vertex at the new_offset.
+   */
+  template<typename O>
+  void move_child (unsigned old_parent_idx,
+                   const O* old_offset,
+                   unsigned new_parent_idx,
+                   const O* new_offset)
+  {
+    distance_invalid = true;
+    positions_invalid = true;
+
+    auto& old_v = vertices_[old_parent_idx];
+    auto& new_v = vertices_[new_parent_idx];
+
+    unsigned child_id = index_for_offset (old_parent_idx,
+                                          old_offset);
+
+    auto* new_link = new_v.obj.real_links.push ();
+    new_link->width = O::static_size;
+    new_link->objidx = child_id;
+    new_link->position = (const char*) new_offset - (const char*) new_v.obj.head;
+
+    auto& child = vertices_[child_id];
+    child.parents.push (new_parent_idx);
+
+    old_v.remove_real_link (child_id, old_offset);
+    child.remove_parent (old_parent_idx);
   }
 
   /*
