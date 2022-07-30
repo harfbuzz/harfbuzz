@@ -142,6 +142,11 @@ typedef struct hb_glyph_info_t {
  *				   shaping, otherwise the buffer flag will not be
  *				   reliably produced.
  * 				   Since: 4.0.0
+ * @HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA: In scripts that use elongation (Arabic,
+				   Mongolian, Syriac, etc.), this flag signifies
+				   that it is safe to insert a U+0640 TATWEEL
+				   character *before* this cluster for elongation.
+				   Since: REPLACEME
  * @HB_GLYPH_FLAG_DEFINED: All the currently defined flags.
  *
  * Flags for #hb_glyph_info_t.
@@ -374,6 +379,10 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  *                      flag indicating that the @HB_GLYPH_FLAG_UNSAFE_TO_CONCAT
  *                      glyph-flag should be produced by the shaper. By default
  *                      it will not be produced since it incurs a cost. Since: 4.0.0
+ * @HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_KASHIDA:
+ *                      flag indicating that the @HB_GLYPH_FLAG_SAFE_TO_INSERT_KASHIDA
+ *                      glyph-flag should be produced by the shaper. By default
+ *                      it will not be produced. Since: REPLACEME
  * @HB_BUFFER_FLAG_DEFINED: All currently defined flags: Since: 4.4.0
  *
  * Flags for #hb_buffer_t.
