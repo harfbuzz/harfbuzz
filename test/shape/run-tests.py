@@ -121,6 +121,7 @@ for filename in args:
 				passes += 1
 
 		if glyphs1.strip() != glyphs_expected and glyphs_expected != '*':
+			print ("hb-shape", fontfile, "--unicodes", unicodes, file=sys.stderr)
 			print ("Actual:   " + glyphs1, file=sys.stderr)
 			print ("Expected: " + glyphs_expected, file=sys.stderr)
 			fails += 1
