@@ -162,6 +162,7 @@ EXTRA_DIST += harfbuzz-subset.pc.in
 
 harfbuzz-subset.cc: Makefile.sources
 	$(AM_V_GEN) \
+	LANG=C; \
 	for f in \
 		$(HB_BASE_sources) \
 		$(HB_SUBSET_sources) \
@@ -295,6 +296,7 @@ $(srcdir)/%.hh: $(srcdir)/%.rl
 
 harfbuzz.cc: Makefile.sources
 	$(AM_V_GEN) \
+	LANG=C; \
 	for f in \
 		$(HB_BASE_sources) \
 		$(HB_GLIB_sources) \
