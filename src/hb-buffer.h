@@ -146,7 +146,11 @@ typedef struct hb_glyph_info_t {
 				   Mongolian, Syriac, etc.), this flag signifies
 				   that it is safe to insert a U+0640 TATWEEL
 				   character *before* this cluster for elongation.
-				   Since: REPLACEME
+				   This flag does not determine the
+				   script-specific elongation places, but only
+				   when it is safe to do the elongation without
+				   interrupting text shaping.
+				   Since: 5.1.0
  * @HB_GLYPH_FLAG_DEFINED: All the currently defined flags.
  *
  * Flags for #hb_glyph_info_t.
@@ -382,7 +386,7 @@ hb_buffer_guess_segment_properties (hb_buffer_t *buffer);
  * @HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL:
  *                      flag indicating that the @HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL
  *                      glyph-flag should be produced by the shaper. By default
- *                      it will not be produced. Since: REPLACEME
+ *                      it will not be produced. Since: 5.1.0
  * @HB_BUFFER_FLAG_DEFINED: All currently defined flags: Since: 4.4.0
  *
  * Flags for #hb_buffer_t.

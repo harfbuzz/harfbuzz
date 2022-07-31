@@ -1,3 +1,19 @@
+Overview of changes leading to 5.1.0
+Sunday, July 31, 2022
+====================================
+- More extensive buffer tracing messages. (Behdad Esfahbod)
+- Fix hb-ft regression in bitmap fonts rendering. (Behdad Esfahbod)
+- Support extension promotion of lookups in hb-subset-repacker. (Garret Rieger)
+- A new HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL for scripts that use elongation
+  (e.g. Arabic) to signify where it is safe to insert tatweel glyph without
+  interrupting shaping. (Behdad Esfahbod)
+- Add “--safe-to-insert-tatweel” to “hb-shape” tool. (Behdad Esfahbod)
+
+- New API
++HB_GLYPH_FLAG_SAFE_TO_INSERT_TATWEEL
++HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL
+
+
 Overview of changes leading to 5.0.1
 Saturday, July 23, 2022
 ====================================
