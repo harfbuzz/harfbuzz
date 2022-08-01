@@ -112,9 +112,9 @@ static void start_lookup (int8_t type,
                           hb_serialize_context_t* c)
 {
   char lookup[] = {
-    0, type, // type
+    0, (char)type, // type
     0, 0, // flag
-    0, num_subtables, // num subtables
+    0, (char)num_subtables, // num subtables
   };
 
   start_object (lookup, 6, c);
