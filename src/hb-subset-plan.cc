@@ -269,11 +269,26 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 
 #ifndef HB_NO_VAR
 static inline void
-_collect_layout_variation_indices (hb_subset_plan_t* plan,
-				   const hb_set_t *glyphset,
-				   const hb_map_t *gpos_lookups,
-				   hb_set_t  *layout_variation_indices,
-				   hb_map_t  *layout_variation_idx_map)
+_generate_varstore_inner_maps (const hb_set_t& varidx_set,
+                               unsigned subtable_count,
+                               hb_vector_t<hb_inc_bimap_t> &inner_maps /* OUT */)
+{
+  if (varidx_set.is_empty () || subtable_count == 0) return;
+
+  inner_maps.resize (subtable_count);
+  for (unsigned idx : varidx_set)
+  {
+    uint16_t major = idx >> 16;
+    uint16_t minor = idx & 0xFFFF;
+
+    if (major >= subtable_count)
+      continue;
+    inner_maps[major].add (minor);
+  }
+}
+
+static inline void
+_collect_layout_variation_indices (hb_subset_plan_t* plan)
 {
   hb_blob_ptr_t<OT::GDEF> gdef = plan->source_table<OT::GDEF> ();
   hb_blob_ptr_t<GPOS> gpos = plan->source_table<GPOS> ();
@@ -284,13 +299,18 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan,
     gpos.destroy ();
     return;
   }
-  OT::hb_collect_variation_indices_context_t c (layout_variation_indices, glyphset, gpos_lookups);
+
+  hb_set_t varidx_set;
+  OT::hb_collect_variation_indices_context_t c (&varidx_set, plan->_glyphset_gsub, plan->gpos_lookups);
   gdef->collect_variation_indices (&c);
 
   if (hb_ot_layout_has_positioning (plan->source))
     gpos->collect_variation_indices (&c);
 
-  gdef->remap_layout_variation_indices (layout_variation_indices, layout_variation_idx_map);
+  gdef->remap_layout_variation_indices (&varidx_set, plan->layout_variation_idx_delta_map);
+
+  unsigned subtable_count = gdef->has_var_store () ? gdef->get_var_store ().get_sub_table_count () : 0;
+  _generate_varstore_inner_maps (varidx_set, subtable_count, plan->gdef_varstore_inner_maps);
 
   gdef.destroy ();
   gpos.destroy ();
@@ -506,11 +526,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
 #ifndef HB_NO_VAR
   if (close_over_gdef)
-    _collect_layout_variation_indices (plan,
-				       plan->_glyphset_gsub,
-				       plan->gpos_lookups,
-				       plan->layout_variation_indices,
-				       plan->layout_variation_idx_map);
+    _collect_layout_variation_indices (plan);
 #endif
 }
 
@@ -682,8 +698,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->gpos_features = hb_map_create ();
   plan->colrv1_layers = hb_map_create ();
   plan->colr_palettes = hb_map_create ();
-  plan->layout_variation_indices = hb_set_create ();
-  plan->layout_variation_idx_map = hb_map_create ();
+  plan->check_success (plan->layout_variation_idx_delta_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
+  plan->gdef_varstore_inner_maps.init ();
 
   plan->check_success (plan->sanitized_table_cache = hb_hashmap_create<hb_tag_t, hb::unique_ptr<hb_blob_t>> ());
   plan->check_success (plan->axes_location = hb_hashmap_create<hb_tag_t, int> ());

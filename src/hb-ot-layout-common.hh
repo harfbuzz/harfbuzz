@@ -2562,7 +2562,7 @@ struct VariationStore
 
   bool serialize (hb_serialize_context_t *c,
 		  const VariationStore *src,
-		  const hb_array_t <hb_inc_bimap_t> &inner_maps)
+		  const hb_array_t <const hb_inc_bimap_t> &inner_maps)
   {
     TRACE_SERIALIZE (this);
 #ifdef HB_NO_VAR
@@ -2617,7 +2617,7 @@ struct VariationStore
     return_trace (true);
   }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c, const hb_array_t<const hb_inc_bimap_t> &inner_maps) const
   {
     TRACE_SUBSET (this);
 #ifdef HB_NO_VAR
@@ -2627,22 +2627,7 @@ struct VariationStore
     VariationStore *varstore_prime = c->serializer->start_embed<VariationStore> ();
     if (unlikely (!varstore_prime)) return_trace (false);
 
-    const hb_set_t *variation_indices = c->plan->layout_variation_indices;
-    if (variation_indices->is_empty ()) return_trace (false);
-
-    hb_vector_t<hb_inc_bimap_t> inner_maps;
-    inner_maps.resize ((unsigned) dataSets.len);
-
-    for (unsigned idx : c->plan->layout_variation_indices->iter ())
-    {
-      uint16_t major = idx >> 16;
-      uint16_t minor = idx & 0xFFFF;
-
-      if (major >= inner_maps.length)
-	return_trace (false);
-      inner_maps[major].add (minor);
-    }
-    varstore_prime->serialize (c->serializer, this, inner_maps.as_array ());
+    varstore_prime->serialize (c->serializer, this, inner_maps);
 
     return_trace (
         !c->serializer->in_error()

@@ -586,7 +586,7 @@ struct GDEFVersion1_2
     bool subset_varstore = false;
     if (version.to_int () >= 0x00010003u)
     {
-      subset_varstore = out->varStore.serialize_subset (c, varStore, this);
+      subset_varstore = out->varStore.serialize_subset (c, varStore, this, c->plan->gdef_varstore_inner_maps.as_array ());
     }
 
     if (subset_varstore)
