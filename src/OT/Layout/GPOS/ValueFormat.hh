@@ -201,27 +201,27 @@ struct ValueFormat : HBUINT16
     if (format & yAdvance) i++;
     if (format & xPlaDevice)
     {
-      (base + get_device (&(values[i]))).collect_variation_indices (c->layout_variation_indices);
+      (base + get_device (&(values[i]))).collect_variation_indices (c);
       i++;
     }
 
     if (format & ValueFormat::yPlaDevice)
     {
-      (base + get_device (&(values[i]))).collect_variation_indices (c->layout_variation_indices);
+      (base + get_device (&(values[i]))).collect_variation_indices (c);
       i++;
     }
 
     if (format & ValueFormat::xAdvDevice)
     {
 
-      (base + get_device (&(values[i]))).collect_variation_indices (c->layout_variation_indices);
+      (base + get_device (&(values[i]))).collect_variation_indices (c);
       i++;
     }
 
     if (format & ValueFormat::yAdvDevice)
     {
 
-      (base + get_device (&(values[i]))).collect_variation_indices (c->layout_variation_indices);
+      (base + get_device (&(values[i]))).collect_variation_indices (c);
       i++;
     }
   }

@@ -186,6 +186,7 @@ struct hb_subset_layout_context_t :
   unsigned lookup_index_count;
 };
 
+struct VariationStore;
 struct hb_collect_variation_indices_context_t :
        hb_dispatch_context_t<hb_collect_variation_indices_context_t>
 {
@@ -194,15 +195,27 @@ struct hb_collect_variation_indices_context_t :
   static return_t default_return_value () { return hb_empty_t (); }
 
   hb_set_t *layout_variation_indices;
+  hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map;
+  hb_font_t *font;
+  const VariationStore *var_store;
   const hb_set_t *glyph_set;
   const hb_map_t *gpos_lookups;
+  float *store_cache;
 
   hb_collect_variation_indices_context_t (hb_set_t *layout_variation_indices_,
+					  hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *varidx_delta_map_,
+					  hb_font_t *font_,
+					  const VariationStore *var_store_,
 					  const hb_set_t *glyph_set_,
-					  const hb_map_t *gpos_lookups_) :
+					  const hb_map_t *gpos_lookups_,
+					  float *store_cache_) :
 					layout_variation_indices (layout_variation_indices_),
+					varidx_delta_map (varidx_delta_map_),
+					font (font_),
+					var_store (var_store_),
 					glyph_set (glyph_set_),
-					gpos_lookups (gpos_lookups_) {}
+					gpos_lookups (gpos_lookups_),
+					store_cache (store_cache_) {}
 };
 
 template<typename OutputArray>
@@ -3172,9 +3185,16 @@ struct VariationDevice
     return_trace (out);
   }
 
-  void record_variation_index (hb_set_t *layout_variation_indices) const
+  void collect_variation_index (hb_collect_variation_indices_context_t *c) const
   {
-    layout_variation_indices->add (varIdx);
+    c->layout_variation_indices->add (varIdx);
+    int delta = 0;
+    if (c->font && c->var_store)
+      delta = roundf (get_delta (c->font, *c->var_store, c->store_cache));
+
+    /* set new varidx to HB_OT_LAYOUT_NO_VARIATIONS_INDEX here, will remap
+     * varidx later*/
+    c->varidx_delta_map->set (varIdx, hb_pair_t<unsigned, int> (HB_OT_LAYOUT_NO_VARIATIONS_INDEX, delta));
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -3286,7 +3306,7 @@ struct Device
     }
   }
 
-  void collect_variation_indices (hb_set_t *layout_variation_indices) const
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     switch (u.b.format) {
 #ifndef HB_NO_HINTING
@@ -3297,7 +3317,7 @@ struct Device
 #endif
 #ifndef HB_NO_VAR
     case 0x8000:
-      u.variation.record_variation_index (layout_variation_indices);
+      u.variation.collect_variation_index (c);
       return;
 #endif
     default:

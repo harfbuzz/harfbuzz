@@ -207,8 +207,8 @@ struct CaretValueFormat3
 						   hb_serialize_context_t::Head, c->plan->layout_variation_idx_map));
   }
 
-  void collect_variation_indices (hb_set_t *layout_variation_indices) const
-  { (this+deviceTable).collect_variation_indices (layout_variation_indices); }
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
+  { (this+deviceTable).collect_variation_indices (c); }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {
@@ -255,14 +255,14 @@ struct CaretValue
     }
   }
 
-  void collect_variation_indices (hb_set_t *layout_variation_indices) const
+  void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     switch (u.format) {
     case 1:
     case 2:
       return;
     case 3:
-      u.format3.collect_variation_indices (layout_variation_indices);
+      u.format3.collect_variation_indices (c);
       return;
     default: return;
     }
@@ -329,7 +329,7 @@ struct LigGlyph
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
     for (const Offset16To<CaretValue>& offset : carets.iter ())
-      (this+offset).collect_variation_indices (c->layout_variation_indices);
+      (this+offset).collect_variation_indices (c);
   }
 
   bool sanitize (hb_sanitize_context_t *c) const
@@ -846,7 +846,7 @@ struct GDEF
   { get_lig_caret_list ().collect_variation_indices (c); }
 
   void remap_layout_variation_indices (const hb_set_t *layout_variation_indices,
-				       hb_map_t *layout_variation_idx_map /* OUT */) const
+				       hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *layout_variation_idx_delta_map /* OUT */) const
   {
     if (!has_var_store ()) return;
     if (layout_variation_indices->is_empty ()) return;
@@ -864,7 +864,11 @@ struct GDEF
       }
 
       unsigned new_idx = (new_major << 16) + new_minor;
-      layout_variation_idx_map->set (idx, new_idx);
+      if (!layout_variation_idx_delta_map->has (idx))
+        continue;
+      int delta = hb_second (layout_variation_idx_delta_map->get (idx));
+
+      layout_variation_idx_delta_map->set (idx, hb_pair_t<unsigned, int> (new_idx, delta));
       ++new_minor;
       last_major = major;
     }

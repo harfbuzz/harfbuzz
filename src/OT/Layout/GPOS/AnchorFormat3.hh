@@ -57,8 +57,8 @@ struct AnchorFormat3
 
   void collect_variation_indices (hb_collect_variation_indices_context_t *c) const
   {
-    (this+xDeviceTable).collect_variation_indices (c->layout_variation_indices);
-    (this+yDeviceTable).collect_variation_indices (c->layout_variation_indices);
+    (this+xDeviceTable).collect_variation_indices (c);
+    (this+yDeviceTable).collect_variation_indices (c);
   }
 };
 

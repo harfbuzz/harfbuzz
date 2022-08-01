@@ -287,6 +287,26 @@ _generate_varstore_inner_maps (const hb_set_t& varidx_set,
   }
 }
 
+static inline hb_font_t*
+_get_hb_font_with_variations (const hb_subset_plan_t *plan)
+{
+  hb_font_t *font = hb_font_create (plan->source);
+
+  hb_vector_t<hb_variation_t> vars;
+  vars.alloc (plan->user_axes_location->get_population ());
+
+  for (auto _ : *plan->user_axes_location)
+  {
+    hb_variation_t var;
+    var.tag = _.first;
+    var.value = _.second;
+    vars.push (var);
+  }
+
+  hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location->get_population ());
+  return font;
+}
+
 static inline void
 _collect_layout_variation_indices (hb_subset_plan_t* plan)
 {
@@ -300,12 +320,34 @@ _collect_layout_variation_indices (hb_subset_plan_t* plan)
     return;
   }
 
+  const OT::VariationStore *var_store = nullptr;
   hb_set_t varidx_set;
-  OT::hb_collect_variation_indices_context_t c (&varidx_set, plan->_glyphset_gsub, plan->gpos_lookups);
+  hb_font_t *font = nullptr;
+  float *store_cache = nullptr;
+  bool collect_delta = plan->pinned_at_default ? false : true;
+  if (collect_delta)
+  {
+    font = _get_hb_font_with_variations (plan);
+    if (gdef->has_var_store ())
+    {
+      var_store = &(gdef->get_var_store ());
+      store_cache = var_store->create_cache ();
+    }
+  }
+
+  OT::hb_collect_variation_indices_context_t c (&varidx_set,
+                                                plan->layout_variation_idx_delta_map,
+                                                font, var_store,
+                                                plan->_glyphset_gsub,
+                                                plan->gpos_lookups,
+                                                store_cache);
   gdef->collect_variation_indices (&c);
 
   if (hb_ot_layout_has_positioning (plan->source))
     gpos->collect_variation_indices (&c);
+
+  hb_font_destroy (font);
+  var_store->destroy_cache (store_cache);
 
   gdef->remap_layout_variation_indices (&varidx_set, plan->layout_variation_idx_delta_map);
 
