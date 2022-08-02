@@ -250,8 +250,6 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
     // TODO(garretrieger): sanitization.
-    hb_set_t visited;
-
     const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size
         + size_of (c, this_index, &coverage)
         + size_of (c, this_index, &classDef1)
@@ -261,31 +259,36 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     const unsigned class2_count = class2Count;
     const unsigned class1_record_size =
         class2_count * (valueFormat1.get_size () + valueFormat2.get_size ());
+
     const unsigned value_1_len = valueFormat1.get_len ();
     const unsigned value_2_len = valueFormat2.get_len ();
     const unsigned total_value_len = value_1_len + value_2_len;
 
-    bool has_offsets = valueFormat1.has_offsets () || valueFormat2.has_offsets ();
-
     unsigned accumulated = base_size;
     hb_vector_t<unsigned> split_points;
+
+    hb_hashmap_t<void*, unsigned> device_tables = get_all_device_tables (c, this_index);
+    hb_vector_t<unsigned> format1_device_table_indices = valueFormat1.get_device_table_indices ();
+    hb_vector_t<unsigned> format2_device_table_indices = valueFormat2.get_device_table_indices ();
+    bool has_device_tables = bool(format1_device_table_indices) || bool(format2_device_table_indices);
+
+    hb_set_t visited;
     for (unsigned i = 0; i < class1_count; i++)
     {
       accumulated += class1_record_size;
-      if (has_offsets) {
+      if (has_device_tables) {
         for (unsigned j = 0; j < class2_count; j++)
         {
           unsigned value1_index = total_value_len * (class2_count * i + j);
           unsigned value2_index = value1_index + value_1_len;
-
           accumulated += size_of_value_record_children (c,
-                                                        this_index,
-                                                        valueFormat1,
+                                                        device_tables,
+                                                        format1_device_table_indices,
                                                         value1_index,
                                                         visited);
           accumulated += size_of_value_record_children (c,
-                                                        this_index,
-                                                        valueFormat2,
+                                                        device_tables,
+                                                        format2_device_table_indices,
                                                         value2_index,
                                                         visited);
         }
@@ -315,19 +318,35 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     return hb_vector_t<unsigned> ();
   }
 
+  hb_hashmap_t<void*, unsigned>
+  get_all_device_tables (gsubgpos_graph_context_t& c,
+                         unsigned this_index) const
+  {
+    hb_hashmap_t<void*, unsigned> result;
+
+    const auto& o = c.graph.object (this_index);
+    for (const auto& l : o.real_links) {
+      result.set ((void*) (((uint8_t*)this) + l.position), l.objidx);
+    }
+
+    return result;
+  }
+
   unsigned size_of_value_record_children (gsubgpos_graph_context_t& c,
-                                          unsigned this_index,
-                                          unsigned format,
+                                          const hb_hashmap_t<void*, unsigned>& device_tables,
+                                          const hb_vector_t<unsigned> device_table_indices,
                                           unsigned value_record_index,
                                           hb_set_t& visited)
   {
-    // TODO(garretrieger): implement me, walk through flags and recurse for each offset
-    //                     found.
-    // Actually may be better to just walk the offsets on the vertex directly. ie. prescan
-    // all of the links and exclude those for coverage, classDef1/2 and then sort by position.
-    // then we know how many offsets each valueFormat1 and valueFormat2 consume, then we can just
-    // grab that many offsets and recurse on each iteration.
-    return 0;
+    unsigned size = 0;
+    for (unsigned i : device_table_indices)
+    {
+      OT::Layout::GPOS_impl::Value* record = &values[value_record_index + i];
+      unsigned* obj_idx;
+      if (!device_tables.has ((void*) record, &obj_idx)) continue;
+      size += c.graph.find_subgraph_size (*obj_idx, visited);
+    }
+    return size;
   }
 
   unsigned size_of (gsubgpos_graph_context_t& c,
