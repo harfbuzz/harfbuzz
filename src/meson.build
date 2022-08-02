@@ -558,6 +558,7 @@ if get_option('tests').enabled()
       'test-ot-glyphname': 'test-ot-glyphname.cc',
       'test-ot-gpos-size-params': 'test-gpos-size-params.cc',
       'test-ot-gsub-would-substitute': 'test-gsub-would-substitute.cc',
+      'test-use-table': 'test-use-table.cc',
     }
     foreach name, source : noinst_programs
       executable(name, source,
