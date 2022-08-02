@@ -56,6 +56,68 @@ struct CoverageFormat2 : public OT::Layout::Common::CoverageFormat2_4<SmallTypes
 
 struct Coverage : public OT::Layout::Common::Coverage
 {
+  static bool clone_coverage (gsubgpos_graph_context_t& c,
+                              unsigned coverage_id,
+                              unsigned new_parent_id,
+                              unsigned link_position,
+                              unsigned start, unsigned end)
+
+  {
+    unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
+    auto& coverage_v = c.graph.vertices_[coverage_id];
+    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
+    if (!coverage_table->sanitize (coverage_v))
+      return false;
+
+    auto new_coverage =
+        + hb_zip (coverage_table->iter (), hb_range ())
+        | hb_filter ([&] (hb_pair_t<unsigned, unsigned> p) {
+          return p.second >= start && p.second < end;
+        })
+        | hb_map_retains_sorting (hb_first)
+        ;
+
+    unsigned coverage_prime_id = c.graph.new_node (nullptr, nullptr);
+    auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
+    if (!make_coverage (c, new_coverage, coverage_prime_id, coverage_size))
+      return false;
+
+    auto* coverage_link = c.graph.vertices_[new_parent_id].obj.real_links.push ();
+    coverage_link->width = SmallTypes::size;
+    coverage_link->objidx = coverage_prime_id;
+    coverage_link->position = 2;
+    coverage_prime_vertex.parents.push (new_parent_id);
+
+    return true;
+  }
+
+  template<typename It>
+  static bool make_coverage (gsubgpos_graph_context_t& c,
+                             It glyphs,
+                             unsigned dest_obj,
+                             unsigned max_size)
+  {
+    char* buffer = (char*) hb_calloc (1, max_size);
+    hb_serialize_context_t serializer (buffer, max_size);
+    Coverage_serialize (&serializer, glyphs);
+    serializer.end_serialize ();
+    if (serializer.in_error ())
+    {
+      hb_free (buffer);
+      return false;
+    }
+
+    hb_bytes_t coverage_copy = serializer.copy_bytes ();
+    c.add_buffer ((char *) coverage_copy.arrayZ); // Give ownership to the context, it will cleanup the buffer.
+
+    auto& obj = c.graph.vertices_[dest_obj].obj;
+    obj.head = (char *) coverage_copy.arrayZ;
+    obj.tail = obj.head + coverage_copy.length;
+
+    hb_free (buffer);
+    return true;
+  }
+
   bool sanitize (graph_t::vertex_t& vertex) const
   {
     int64_t vertex_len = vertex.obj.tail - vertex.obj.head;

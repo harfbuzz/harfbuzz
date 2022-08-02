@@ -144,7 +144,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
         | hb_map_retains_sorting (hb_first)
         ;
 
-    return make_coverage (c, new_coverage, coverage_id, coverage_size);
+    return Coverage::make_coverage (c, new_coverage, coverage_id, coverage_size);
   }
 
   // Create a new PairPos including PairSet's from start (inclusive) to end (exclusive).
@@ -178,60 +178,17 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     }
 
     unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
-    unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
-    auto& coverage_v = c.graph.vertices_[coverage_id];
-    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
-    if (!coverage_table->sanitize (coverage_v))
-      return false;
-
-    auto new_coverage =
-        + hb_zip (coverage_table->iter (), hb_range ())
-        | hb_filter ([&] (hb_pair_t<unsigned, unsigned> p) {
-          return p.second >= start && p.second < end;
-        })
-        | hb_map_retains_sorting (hb_first)
-        ;
-
-    unsigned coverage_prime_id = c.graph.new_node (nullptr, nullptr);
-    auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
-    if (!make_coverage (c, new_coverage, coverage_prime_id, coverage_size))
+    if (!Coverage::clone_coverage (c,
+                                   coverage_id,
+                                   pair_pos_prime_id,
+                                   2,
+                                   start, end))
       return -1;
-
-    auto* coverage_link = c.graph.vertices_[pair_pos_prime_id].obj.real_links.push ();
-    coverage_link->width = SmallTypes::size;
-    coverage_link->objidx = coverage_prime_id;
-    coverage_link->position = 2;
-    coverage_prime_vertex.parents.push (pair_pos_prime_id);
 
     return pair_pos_prime_id;
   }
 
-  template<typename It>
-  bool make_coverage (gsubgpos_graph_context_t& c,
-                      It glyphs,
-                      unsigned dest_obj,
-                      unsigned max_size) const
-  {
-    char* buffer = (char*) hb_calloc (1, max_size);
-    hb_serialize_context_t serializer (buffer, max_size);
-    Coverage_serialize (&serializer, glyphs);
-    serializer.end_serialize ();
-    if (serializer.in_error ())
-    {
-      hb_free (buffer);
-      return false;
-    }
 
-    hb_bytes_t coverage_copy = serializer.copy_bytes ();
-    c.add_buffer ((char *) coverage_copy.arrayZ); // Give ownership to the context, it will cleanup the buffer.
-
-    auto& obj = c.graph.vertices_[dest_obj].obj;
-    obj.head = (char *) coverage_copy.arrayZ;
-    obj.tail = obj.head + coverage_copy.length;
-
-    hb_free (buffer);
-    return true;
-  }
 
   unsigned pair_set_graph_index (gsubgpos_graph_context_t& c, unsigned this_index, unsigned i) const
   {
@@ -310,6 +267,17 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
   }
  private:
 
+  struct split_context
+  {
+    gsubgpos_graph_context_t& c;
+    unsigned this_index;
+    unsigned class1_record_size;
+
+    const hb_hashmap_t<void*, unsigned>& device_tables;
+    const hb_vector_t<unsigned>& format1_device_table_indices;
+    const hb_vector_t<unsigned>& format2_device_table_indices;
+  };
+
   hb_vector_t<unsigned> do_split (gsubgpos_graph_context_t& c,
                                   unsigned this_index,
                                   hb_vector_t<unsigned> split_points)
@@ -317,6 +285,50 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     // TODO(garretrieger): implement me.
     return hb_vector_t<unsigned> ();
   }
+
+  unsigned clone_range (split_context& split_context,
+                        unsigned start, unsigned end) const
+  {
+    DEBUG_MSG (SUBSET_REPACK, nullptr,
+               "  Cloning PairPosFormat2 (%u) range [%u, %u).", split_context.this_index, start, end);
+
+    unsigned num_records = end - start;
+    unsigned prime_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size
+                          + num_records * split_context.class1_record_size;
+
+    unsigned pair_pos_prime_id = split_context.c.create_node (prime_size);
+    if (pair_pos_prime_id == (unsigned) -1) return -1;
+
+    PairPosFormat2* pair_pos_prime =
+        (PairPosFormat2*) split_context.c.graph.object (pair_pos_prime_id).head;
+    pair_pos_prime->format = this->format;
+    pair_pos_prime->valueFormat1 = this->valueFormat1;
+    pair_pos_prime->valueFormat2 = this->valueFormat2;
+    pair_pos_prime->class1Count = this->class1Count;
+    pair_pos_prime->class2Count = this->class2Count;
+    clone_class1_records (split_context, pair_pos_prime, start, end);
+
+
+
+    // TODO
+    return -1;
+  }
+
+  void clone_class1_records (split_context& split_context,
+                             PairPosFormat2* pair_pos_prime,
+                             unsigned start, unsigned end) const
+  {
+    // TODO: implement, in addition to copying the records, also move device tables as needed.
+  }
+
+  bool shrink (gsubgpos_graph_context_t& c,
+               unsigned this_index,
+               unsigned count)
+  {
+    // TODO
+    return false;
+  }
+
 
   hb_hashmap_t<void*, unsigned>
   get_all_device_tables (gsubgpos_graph_context_t& c,
