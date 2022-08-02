@@ -28,6 +28,7 @@
 #define GRAPH_PAIRPOS_GRAPH_HH
 
 #include "coverage-graph.hh"
+#include "classdef-graph.hh"
 #include "../OT/Layout/GPOS/PairPos.hh"
 #include "../OT/Layout/GPOS/PosLookupSubTable.hh"
 
@@ -308,10 +309,19 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     pair_pos_prime->class2Count = this->class2Count;
     clone_class1_records (split_context, pair_pos_prime, start, end);
 
+    unsigned coverage_id =
+        split_context.c.graph.index_for_offset (split_context.this_index, &coverage);
+    if (!Coverage::clone_coverage (split_context.c,
+                                   coverage_id,
+                                   pair_pos_prime_id,
+                                   2,
+                                   start, end))
+      return -1;
 
+    // TODO: class def 1 (clone_classdef (start, end))
+    // TODO: class def 2 (just link to existing)
 
-    // TODO
-    return -1;
+    return -1; // TODO
   }
 
   void clone_class1_records (split_context& split_context,

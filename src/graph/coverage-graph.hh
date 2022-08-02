@@ -85,7 +85,7 @@ struct Coverage : public OT::Layout::Common::Coverage
     auto* coverage_link = c.graph.vertices_[new_parent_id].obj.real_links.push ();
     coverage_link->width = SmallTypes::size;
     coverage_link->objidx = coverage_prime_id;
-    coverage_link->position = 2;
+    coverage_link->position = link_position;
     coverage_prime_vertex.parents.push (new_parent_id);
 
     return true;
