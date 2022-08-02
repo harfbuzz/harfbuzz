@@ -56,18 +56,18 @@ struct CoverageFormat2 : public OT::Layout::Common::CoverageFormat2_4<SmallTypes
 
 struct Coverage : public OT::Layout::Common::Coverage
 {
-  static bool clone_coverage (gsubgpos_graph_context_t& c,
-                              unsigned coverage_id,
-                              unsigned new_parent_id,
-                              unsigned link_position,
-                              unsigned start, unsigned end)
+  static Coverage* clone_coverage (gsubgpos_graph_context_t& c,
+                                   unsigned coverage_id,
+                                   unsigned new_parent_id,
+                                   unsigned link_position,
+                                   unsigned start, unsigned end)
 
   {
     unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
     auto& coverage_v = c.graph.vertices_[coverage_id];
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
     if (!coverage_table->sanitize (coverage_v))
-      return false;
+      return nullptr;
 
     auto new_coverage =
         + hb_zip (coverage_table->iter (), hb_range ())
@@ -80,7 +80,7 @@ struct Coverage : public OT::Layout::Common::Coverage
     unsigned coverage_prime_id = c.graph.new_node (nullptr, nullptr);
     auto& coverage_prime_vertex = c.graph.vertices_[coverage_prime_id];
     if (!make_coverage (c, new_coverage, coverage_prime_id, coverage_size))
-      return false;
+      return nullptr;
 
     auto* coverage_link = c.graph.vertices_[new_parent_id].obj.real_links.push ();
     coverage_link->width = SmallTypes::size;
@@ -88,7 +88,7 @@ struct Coverage : public OT::Layout::Common::Coverage
     coverage_link->position = link_position;
     coverage_prime_vertex.parents.push (new_parent_id);
 
-    return true;
+    return (Coverage*) coverage_prime_vertex.obj.head;
   }
 
   template<typename It>

@@ -311,14 +311,25 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
     unsigned coverage_id =
         split_context.c.graph.index_for_offset (split_context.this_index, &coverage);
-    if (!Coverage::clone_coverage (split_context.c,
-                                   coverage_id,
-                                   pair_pos_prime_id,
-                                   2,
-                                   start, end))
+
+    Coverage* new_coverage =  Coverage::clone_coverage (split_context.c,
+                                                        coverage_id,
+                                                        pair_pos_prime_id,
+                                                        2,
+                                                        start, end);
+    if (!new_coverage)
       return -1;
 
-    // TODO: class def 1 (clone_classdef (start, end))
+    // classDef1
+    unsigned class_def_1_id =
+        split_context.c.graph.index_for_offset (split_context.this_index, &classDef1);
+    if (!ClassDef::clone_class_def (split_context.c,
+                                    class_def_1_id,
+                                    pair_pos_prime_id,
+                                    8,
+                                    new_coverage->iter ()))
+      return -1;
+
     // TODO: class def 2 (just link to existing)
 
     return -1; // TODO

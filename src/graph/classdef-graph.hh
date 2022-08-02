@@ -72,7 +72,7 @@ struct ClassDef : public OT::ClassDef
     auto new_class_def =
         + glyphs
         | hb_map_retains_sorting ([&] (hb_codepoint_t gid) {
-          return hb_pair (gid, class_def_table[gid]);
+          return hb_pair (gid, class_def_table->get_class (gid));
         })
         ;
 
@@ -98,7 +98,7 @@ struct ClassDef : public OT::ClassDef
   {
     char* buffer = (char*) hb_calloc (1, max_size);
     hb_serialize_context_t serializer (buffer, max_size);
-    ClassDef_serialize (&serializer, glyph_and_class);
+    OT::ClassDef_serialize (&serializer, glyph_and_class);
     serializer.end_serialize ();
     if (serializer.in_error ())
     {
