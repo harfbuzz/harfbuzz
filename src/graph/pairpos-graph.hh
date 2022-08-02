@@ -414,14 +414,60 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     }
   }
 
-  bool shrink (gsubgpos_graph_context_t& c,
-               unsigned this_index,
+  bool shrink (split_context& split_context,
                unsigned count)
   {
-    // TODO
-    return false;
-  }
+    DEBUG_MSG (SUBSET_REPACK, nullptr,
+               "  Shrinking PairPosFormat2 (%u) to [0, %u).",
+               split_context.this_index,
+               count);
+    unsigned old_count = class1Count;
+    if (count >= old_count)
+      return true;
 
+    class1Count = count;
+    split_context.c.graph.vertices_[split_context.this_index].obj.tail -=
+        (old_count - count) * split_context.class1_record_size;
+
+    unsigned coverage_id =
+        split_context.c.graph.index_for_offset (split_context.this_index, &coverage);
+    auto& coverage_v = split_context.c.graph.vertices_[coverage_id];
+    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
+    if (!coverage_table->sanitize (coverage_v))
+      return false;
+
+    auto new_coverage =
+        + hb_zip (coverage_table->iter (), hb_range ())
+        | hb_filter ([&] (hb_pair_t<unsigned, unsigned> p) {
+          return p.second < count;
+        })
+        | hb_map_retains_sorting (hb_first)
+        ;
+
+    if (!Coverage::make_coverage (split_context.c, new_coverage, coverage_id, coverage_v.table_size ()))
+      return false;
+
+    // classDef1
+    coverage_table = (Coverage*) coverage_v.obj.head; // get the new table
+    unsigned class_def_id = split_context.c.graph.index_for_offset (split_context.this_index,
+                                                                    &classDef1);
+    auto& class_def_v = split_context.c.graph.vertices_[class_def_id];
+    ClassDef* class_def_table = (ClassDef*) class_def_v.obj.head;
+    if (!class_def_table->sanitize (class_def_v))
+      return false;
+
+    auto new_class_def =
+        + coverage_table->iter ()
+        | hb_map_retains_sorting ([&] (hb_codepoint_t gid) {
+          return hb_pair (gid, class_def_table->get_class (gid));
+        })
+        ;
+
+    return ClassDef::make_class_def (split_context.c,
+                                     new_class_def,
+                                     class_def_id,
+                                     class_def_v.table_size ());
+  }
 
   hb_hashmap_t<void*, unsigned>
   get_all_device_tables (gsubgpos_graph_context_t& c,
