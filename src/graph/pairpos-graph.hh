@@ -273,6 +273,9 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     gsubgpos_graph_context_t& c;
     unsigned this_index;
     unsigned class1_record_size;
+    unsigned value_record_len;
+    unsigned value1_record_len;
+    unsigned value2_record_len;
 
     const hb_hashmap_t<void*, unsigned>& device_tables;
     const hb_vector_t<unsigned>& format1_device_table_indices;
@@ -307,7 +310,10 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     pair_pos_prime->valueFormat2 = this->valueFormat2;
     pair_pos_prime->class1Count = this->class1Count;
     pair_pos_prime->class2Count = this->class2Count;
-    clone_class1_records (split_context, pair_pos_prime, start, end);
+    clone_class1_records (split_context,
+                          pair_pos_prime_id,
+                          start,
+                          end);
 
     unsigned coverage_id =
         split_context.c.graph.index_for_offset (split_context.this_index, &coverage);
@@ -330,16 +336,82 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                     new_coverage->iter ()))
       return -1;
 
-    // TODO: class def 2 (just link to existing)
+    // classDef2
+    unsigned class_def_2_id =
+        split_context.c.graph.index_for_offset (split_context.this_index, &classDef2);
+    auto* class_def_link = split_context.c.graph.vertices_[pair_pos_prime_id].obj.real_links.push ();
+    class_def_link->width = SmallTypes::size;
+    class_def_link->objidx = class_def_2_id;
+    class_def_link->position = 10;
+    split_context.c.graph.vertices_[class_def_2_id].parents.push (pair_pos_prime_id);
 
-    return -1; // TODO
+    return pair_pos_prime_id;
   }
 
   void clone_class1_records (split_context& split_context,
-                             PairPosFormat2* pair_pos_prime,
+                             unsigned pair_pos_prime_id,
                              unsigned start, unsigned end) const
   {
-    // TODO: implement, in addition to copying the records, also move device tables as needed.
+    PairPosFormat2* pair_pos_prime =
+        (PairPosFormat2*) split_context.c.graph.object (pair_pos_prime_id).head;
+
+    char* start_addr = ((char*)&values[0]) + start * split_context.class1_record_size;
+    unsigned num_records = end - start;
+    memcpy (&pair_pos_prime->values[0],
+            start_addr,
+            num_records * split_context.class1_record_size);
+
+    if (!split_context.format1_device_table_indices
+        && !split_context.format2_device_table_indices)
+      // No device tables to move over.
+      return;
+
+    unsigned class2_count = class2Count;
+    for (unsigned i = start; i < end; i++)
+    {
+      for (unsigned j = 0; j < class2_count; j++)
+      {
+        unsigned value1_index = split_context.value_record_len * (class2_count * i + j);
+        unsigned value2_index = value1_index + split_context.value1_record_len;
+
+        unsigned new_value1_index = split_context.value_record_len * (class2_count * (i - start) + j);
+        unsigned new_value2_index = new_value1_index + split_context.value1_record_len;
+
+        transfer_device_tables (split_context,
+                                pair_pos_prime_id,
+                                split_context.format1_device_table_indices,
+                                value1_index,
+                                new_value1_index);
+
+        transfer_device_tables (split_context,
+                                pair_pos_prime_id,
+                                split_context.format2_device_table_indices,
+                                value2_index,
+                                new_value2_index);
+      }
+    }
+  }
+
+  void transfer_device_tables (split_context& split_context,
+                               unsigned pair_pos_prime_id,
+                               const hb_vector_t<unsigned>& device_table_indices,
+                               unsigned old_value_record_index,
+                               unsigned new_value_record_index) const
+  {
+    PairPosFormat2* pair_pos_prime =
+        (PairPosFormat2*) split_context.c.graph.object (pair_pos_prime_id).head;
+
+    for (unsigned i : device_table_indices)
+    {
+      OT::Offset16* record = (OT::Offset16*) &values[old_value_record_index + i];
+      if (!split_context.device_tables.has ((void*) record)) continue;
+
+      split_context.c.graph.move_child (
+          split_context.this_index,
+          record,
+          pair_pos_prime_id,
+          (OT::Offset16*) &pair_pos_prime->values[new_value_record_index + i]);
+    }
   }
 
   bool shrink (gsubgpos_graph_context_t& c,
