@@ -478,7 +478,7 @@ defs_list = [harfbuzz_def]
 version = '0.@0@.0'.format(hb_version_int)
 
 extra_hb_cpp_args = []
-if cpp.get_id() == 'msvc'
+if cpp.get_argument_syntax() == 'msvc'
   if get_option('default_library') != 'static'
     extra_hb_cpp_args += '-DHB_DLL_EXPORT'
   endif
@@ -548,7 +548,7 @@ libharfbuzz_subset_dep = declare_dependency(
 if get_option('tests').enabled()
   # TODO: MSVC gives the following,
   # error LNK2019: unresolved external symbol "unsigned __int64 const * const _hb_NullPool"
-  if cpp.get_id() != 'msvc'
+  if cpp.get_argument_syntax() != 'msvc'
     noinst_programs = {
       'main': 'main.cc',
       'test-basics': 'test.cc',
@@ -587,7 +587,7 @@ if get_option('tests').enabled()
     'test-bimap': ['test-bimap.cc', 'hb-static.cc'],
   }
   foreach name, source : compiled_tests
-    if cpp.get_id() == 'msvc' and source.contains('hb-static.cc')
+    if cpp.get_argument_syntax() == 'msvc' and source.contains('hb-static.cc')
       # TODO: MSVC doesn't like tests having hb-static.cc, fix them
       continue
     endif
@@ -790,7 +790,7 @@ if get_option('tests').enabled()
   endforeach
   env.set('HBHEADERS', ' '.join(HBHEADERS))
 
-  if cpp.get_id() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
+  if cpp.get_argument_syntax() != 'msvc' and not meson.is_cross_build() # ensure the local tools are usable
     dist_check_script += ['check-libstdc++', 'check-static-inits', 'check-symbols']
   endif
 

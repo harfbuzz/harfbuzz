@@ -21,7 +21,7 @@ pkgmod = import('pkgconfig')
 cpp = meson.get_compiler('cpp')
 null_dep = dependency('', required: false)
 
-if cpp.get_id() == 'msvc'
+if cpp.get_argument_syntax() == 'msvc'
   # Ignore several spurious warnings for things HarfBuzz does very commonly.
   # If a warning is completely useless and spammy, use '/wdXXXX' to suppress it
   # If a warning is harmless but hard to fix, use '/woXXXX' so it's shown once
@@ -118,7 +118,7 @@ if not get_option('cairo').disabled()
   cairo_ft_dep = dependency('cairo-ft', required: false)
 
   if (not cairo_dep.found() and
-      cpp.get_id() == 'msvc' and
+      cpp.get_argument_syntax() == 'msvc' and
       cpp.has_header('cairo.h'))
     cairo_dep = cpp.find_library('cairo', required: false)
     if cairo_dep.found() and cpp.has_function('cairo_ft_font_face_create_for_ft_face',
