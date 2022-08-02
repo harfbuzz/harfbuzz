@@ -264,7 +264,19 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
       }
     }
 
-    return do_split (c, this_index, split_points);
+    split_context split_context {
+      c,
+      this_index,
+      class1_record_size,
+      total_value_len,
+      value_1_len,
+      value_2_len,
+      device_tables,
+      format1_device_table_indices,
+      format2_device_table_indices
+    };
+
+    return do_split (split_context, split_points);
   }
  private:
 
@@ -282,12 +294,35 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     const hb_vector_t<unsigned>& format2_device_table_indices;
   };
 
-  hb_vector_t<unsigned> do_split (gsubgpos_graph_context_t& c,
-                                  unsigned this_index,
+  hb_vector_t<unsigned> do_split (split_context& split_context,
                                   hb_vector_t<unsigned> split_points)
   {
-    // TODO(garretrieger): implement me.
-    return hb_vector_t<unsigned> ();
+    hb_vector_t<unsigned> new_objects;
+    if (!split_points)
+      return new_objects;
+
+    for (unsigned i = 0; i < split_points.length; i++)
+    {
+      unsigned start = split_points[i];
+      unsigned end = (i < split_points.length - 1) ? split_points[i + 1] : class1Count;
+      unsigned id = clone_range (split_context, start, end);
+
+      if (id == (unsigned) -1)
+      {
+        new_objects.reset ();
+        new_objects.allocated = -1; // mark error
+        return new_objects;
+      }
+      new_objects.push (id);
+    }
+
+    if (!shrink (split_context, split_points[0]))
+    {
+      new_objects.reset ();
+      new_objects.allocated = -1; // mark error
+    }
+
+    return new_objects;
   }
 
   unsigned clone_range (split_context& split_context,
