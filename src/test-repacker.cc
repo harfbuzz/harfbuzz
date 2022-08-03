@@ -1211,7 +1211,7 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
                                 5 + num_class_1 - 1,
                                 c);
 
-    pair_pos_2[i] = add_pair_pos_2 (i * num_class_1,
+    pair_pos_2[i] = add_pair_pos_2 (1 + i * num_class_1,
                                     coverage[i],
                                     class_def_1[i], num_class_1,
                                     class_def_2[i], num_class_2,
