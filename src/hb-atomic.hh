@@ -160,9 +160,9 @@ struct hb_atomic_int_t
   constexpr hb_atomic_int_t (int v) : v (v) {}
 
   void set_relaxed (int v_) { hb_atomic_int_impl_set_relaxed (&v, v_); }
-  void set (int v_) { hb_atomic_int_impl_set (&v, v_); }
+  void set_release (int v_) { hb_atomic_int_impl_set (&v, v_); }
   int get_relaxed () const { return hb_atomic_int_impl_get_relaxed (&v); }
-  int get () const { return hb_atomic_int_impl_get (&v); }
+  int get_acquire () const { return hb_atomic_int_impl_get (&v); }
   int inc () { return hb_atomic_int_impl_add (&v,  1); }
   int dec () { return hb_atomic_int_impl_add (&v, -1); }
 
