@@ -345,7 +345,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     pair_pos_prime->format = this->format;
     pair_pos_prime->valueFormat1 = this->valueFormat1;
     pair_pos_prime->valueFormat2 = this->valueFormat2;
-    pair_pos_prime->class1Count = this->class1Count;
+    pair_pos_prime->class1Count = num_records;
     pair_pos_prime->class2Count = this->class2Count;
     clone_class1_records (split_context,
                           pair_pos_prime_id,

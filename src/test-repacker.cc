@@ -167,12 +167,13 @@ static unsigned add_coverage (char start, char end,
   return add_object (coverage, 10, c);
 }
 
-static unsigned add_class_def (uint16_t class_count,
+static unsigned add_class_def (uint8_t start_glyph,
+                               uint16_t class_count,
                                hb_serialize_context_t* c)
 {
   uint8_t header[] = {
     0, 1, // format
-    0, 5, // startGlyphID
+    0, start_glyph, // startGlyphID
     (uint8_t) ((class_count >> 8) & 0xFF),
     (uint8_t) (class_count & 0xFF), // count
   };
@@ -180,9 +181,10 @@ static unsigned add_class_def (uint16_t class_count,
   start_object ((char*) header, 6, c);
   for (uint16_t i = 1; i <= class_count; i++)
   {
+    unsigned klass = start_glyph + 10 + i;
     uint8_t class_value[] = {
-      (uint8_t) ((i >> 8) & 0xFF),
-      (uint8_t) (i & 0xFF), // count
+      (uint8_t) ((klass >> 8) & 0xFF),
+      (uint8_t) (klass & 0xFF), // count
     };
     extend ((char*) class_value, 2, c);
   }
@@ -1187,7 +1189,7 @@ static void
 populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
                                            bool as_extension = false)
 {
-  std::string large_string(60000, 'a');
+  std::string large_string(100000, 'a');
   c->start_serialize<char> ();
 
   unsigned coverage[num_pair_pos_2];
@@ -1199,16 +1201,15 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
   {
     if (num_class_2 >= num_class_1)
     {
-      class_def_2[i] = add_class_def (num_class_2, c);
-      class_def_1[i] = add_class_def (num_class_1, c);
+      class_def_2[i] = add_class_def (10, num_class_2, c);
+      class_def_1[i] = add_class_def (5 + i * num_class_1, num_class_1, c);
     } else {
-      class_def_1[i] = add_class_def (num_class_1, c);
-      class_def_2[i] = add_class_def (num_class_2, c);
+      class_def_1[i] = add_class_def (5 + i * num_class_1, num_class_1, c);
+      class_def_2[i] = add_class_def (10, num_class_2, c);
     }
 
-
-    coverage[i] = add_coverage (5,
-                                5 + num_class_1 - 1,
+    coverage[i] = add_coverage (5 + i * num_class_1,
+                                5 + (i + 1) * num_class_1 - 1,
                                 c);
 
     pair_pos_2[i] = add_pair_pos_2 (1 + i * num_class_1,
@@ -1218,10 +1219,10 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
                                     c);
   }
 
-  unsigned pair_pos_1 = add_object (large_string.c_str(), 200, c);
+  unsigned pair_pos_1 = add_object (large_string.c_str(), 100000, c);
+
 
   if (as_extension) {
-
     for (int i = num_pair_pos_2 - 1; i >= 0; i--)
       pair_pos_2[i] = add_extension (pair_pos_2[i], 2, c);
     pair_pos_1 = add_extension (pair_pos_1, 2, c);
@@ -1660,7 +1661,7 @@ static void test_resolve_with_extension_pair_pos_1_split ()
 
 static void test_resolve_with_basic_pair_pos_2_split ()
 {
-  size_t buffer_size = 200000;
+  size_t buffer_size = 300000;
   void* buffer = malloc (buffer_size);
   assert (buffer);
   hb_serialize_context_t c (buffer, buffer_size);
