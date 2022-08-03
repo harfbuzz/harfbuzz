@@ -167,6 +167,29 @@ static unsigned add_coverage (char start, char end,
   return add_object (coverage, 10, c);
 }
 
+static unsigned add_class_def (uint16_t class_count,
+                               hb_serialize_context_t* c)
+{
+  uint8_t header[] = {
+    0, 1, // format
+    0, 5, // startGlyphID
+    (uint8_t) ((class_count >> 8) & 0xFF),
+    (uint8_t) (class_count & 0xFF), // count
+  };
+
+  start_object ((char*) header, 6, c);
+  for (uint16_t i = 1; i <= class_count; i++)
+  {
+    uint8_t class_value[] = {
+      (uint8_t) ((i >> 8) & 0xFF),
+      (uint8_t) (i & 0xFF), // count
+    };
+    extend ((char*) class_value, 2, c);
+  }
+
+  return c->pop_pack (false);
+}
+
 static unsigned add_pair_pos_1 (unsigned* pair_sets,
                                 char count,
                                 unsigned coverage,
@@ -191,6 +214,57 @@ static unsigned add_pair_pos_1 (unsigned* pair_sets,
 
   return c->pop_pack (false);
 }
+
+static unsigned add_pair_pos_2 (unsigned starting_class,
+                                unsigned coverage,
+                                unsigned class_def_1, uint16_t class_def_1_count,
+                                unsigned class_def_2, uint16_t class_def_2_count,
+                                hb_serialize_context_t* c)
+{
+  uint8_t format[] = {
+    0, 2
+  };
+
+  start_object ((char*) format, 2, c);
+  add_offset (coverage, c);
+
+  constexpr unsigned num_values = 4;
+  uint8_t format1 = 0x01 | 0x02 | 0x08;
+  uint8_t format2 = 0x04;
+  uint8_t value_format[] = {
+    0, format1,
+    0, format2,
+  };
+  extend ((char*) value_format, 4, c);
+
+  add_offset (class_def_1, c);
+  add_offset (class_def_2, c);
+
+  uint8_t class_counts[] = {
+    (uint8_t) ((class_def_1_count >> 8) & 0xFF),
+    (uint8_t) (class_def_1_count & 0xFF),
+    (uint8_t) ((class_def_2_count >> 8) & 0xFF),
+    (uint8_t) (class_def_2_count & 0xFF),
+  };
+  extend ((char*) class_counts, 4, c);
+
+  unsigned num_bytes_per_record = class_def_2_count * num_values * 2;
+  uint8_t* record = (uint8_t*) calloc (1, num_bytes_per_record);
+  for (uint16_t i = 0; i < class_def_1_count; i++)
+  {
+
+    for (unsigned j = 0; j < num_bytes_per_record; j++)
+    {
+      record[j] = (uint8_t) (i + starting_class);
+    }
+
+    extend((char*) record, num_bytes_per_record, c);
+  }
+  free (record);
+
+  return c->pop_pack (false);
+}
+
 
 static void run_resolve_overflow_test (const char* name,
                                        hb_serialize_context_t& overflowing,
@@ -1108,6 +1182,67 @@ populate_serializer_with_large_pair_pos_1 (hb_serialize_context_t* c,
   c->end_serialize();
 }
 
+template<int num_pair_pos_2, int num_class_1, int num_class_2>
+static void
+populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
+                                           bool as_extension = false)
+{
+  std::string large_string(60000, 'a');
+  c->start_serialize<char> ();
+
+  unsigned coverage[num_pair_pos_2];
+  unsigned class_def_1[num_pair_pos_2];
+  unsigned class_def_2[num_pair_pos_2];
+  unsigned pair_pos_2[num_pair_pos_2];
+
+  for (int i = num_pair_pos_2 - 1; i >= 0; i--)
+  {
+    if (num_class_2 >= num_class_1)
+    {
+      class_def_2[i] = add_class_def (num_class_2, c);
+      class_def_1[i] = add_class_def (num_class_1, c);
+    } else {
+      class_def_1[i] = add_class_def (num_class_1, c);
+      class_def_2[i] = add_class_def (num_class_2, c);
+    }
+
+
+    coverage[i] = add_coverage (5,
+                                5 + num_class_1 - 1,
+                                c);
+
+    pair_pos_2[i] = add_pair_pos_2 (i * num_class_1,
+                                    coverage[i],
+                                    class_def_1[i], num_class_1,
+                                    class_def_2[i], num_class_2,
+                                    c);
+  }
+
+  unsigned pair_pos_1 = add_object (large_string.c_str(), 200, c);
+
+  if (as_extension) {
+
+    for (int i = num_pair_pos_2 - 1; i >= 0; i--)
+      pair_pos_2[i] = add_extension (pair_pos_2[i], 2, c);
+    pair_pos_1 = add_extension (pair_pos_1, 2, c);
+  }
+
+  start_lookup (as_extension ? 9 : 2, 1 + num_pair_pos_2, c);
+
+  add_offset (pair_pos_1, c);
+  for (int i = 0; i < num_pair_pos_2; i++)
+    add_offset (pair_pos_2[i], c);
+
+
+  unsigned lookup = finish_lookup (c);
+
+  unsigned lookup_list = add_lookup_list (&lookup, 1, c);
+
+  add_gsubgpos_header (lookup_list, c);
+
+  c->end_serialize();
+}
+
 static void test_sort_shortest ()
 {
   size_t buffer_size = 100;
@@ -1523,6 +1658,28 @@ static void test_resolve_with_extension_pair_pos_1_split ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_basic_pair_pos_2_split ()
+{
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_large_pair_pos_2 <1, 4, 3000>(&c);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_large_pair_pos_2 <2, 2, 3000>(&e, true);
+
+  run_resolve_overflow_test ("test_resolve_with_basic_pair_pos_2_split",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'P', 'O', 'S'));
+  free (buffer);
+  free (expected_buffer);
+}
 
 static void test_resolve_overflows_via_splitting_spaces ()
 {
@@ -1649,6 +1806,7 @@ test_shared_node_with_virtual_links ()
 int
 main (int argc, char **argv)
 {
+  if (0) {
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
@@ -1673,6 +1831,9 @@ main (int argc, char **argv)
   test_resolve_with_extension_promotion ();
   test_resolve_with_basic_pair_pos_1_split ();
   test_resolve_with_extension_pair_pos_1_split ();
+  }
+
+  test_resolve_with_basic_pair_pos_2_split ();
 
   // TODO(grieger): test with extensions already mixed in as well.
   // TODO(grieger): test two layer ext promotion setup.

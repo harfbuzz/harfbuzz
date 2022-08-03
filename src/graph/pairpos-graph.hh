@@ -295,8 +295,10 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
   };
 
   hb_vector_t<unsigned> do_split (split_context& split_context,
-                                  hb_vector_t<unsigned> split_points)
+                                  const hb_vector_t<unsigned>& split_points)
   {
+    // TODO(garretrieger): refactor into a common method shared between subtables.
+    //                     template on context which could provide the clone and shrink methods.
     hb_vector_t<unsigned> new_objects;
     if (!split_points)
       return new_objects;
