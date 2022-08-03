@@ -221,6 +221,7 @@ static unsigned add_pair_pos_2 (unsigned starting_class,
                                 unsigned coverage,
                                 unsigned class_def_1, uint16_t class_def_1_count,
                                 unsigned class_def_2, uint16_t class_def_2_count,
+                                unsigned* device_tables,
                                 hb_serialize_context_t* c)
 {
   uint8_t format[] = {
@@ -230,13 +231,18 @@ static unsigned add_pair_pos_2 (unsigned starting_class,
   start_object ((char*) format, 2, c);
   add_offset (coverage, c);
 
-  constexpr unsigned num_values = 4;
+  unsigned num_values = 4;
   uint8_t format1 = 0x01 | 0x02 | 0x08;
   uint8_t format2 = 0x04;
+  if (device_tables) {
+    format2 |= 0x20;
+    num_values += 1;
+  }
   uint8_t value_format[] = {
     0, format1,
     0, format2,
   };
+
   extend ((char*) value_format, 4, c);
 
   add_offset (class_def_1, c);
@@ -252,15 +258,24 @@ static unsigned add_pair_pos_2 (unsigned starting_class,
 
   unsigned num_bytes_per_record = class_def_2_count * num_values * 2;
   uint8_t* record = (uint8_t*) calloc (1, num_bytes_per_record);
+  int device_index = 0;
   for (uint16_t i = 0; i < class_def_1_count; i++)
   {
 
-    for (unsigned j = 0; j < num_bytes_per_record; j++)
+    for (uint16_t j = 0; j < class_def_2_count; j++)
     {
-      record[j] = (uint8_t) (i + starting_class);
-    }
+      for (int k = 0; k < 4; k++) {
+        uint8_t value[] = {
+          (uint8_t) (i + starting_class),
+          (uint8_t) (i + starting_class),
+        };
+        extend ((char*) value, 2, c);
+      }
 
-    extend((char*) record, num_bytes_per_record, c);
+      if (device_tables) {
+        add_offset (device_tables[device_index++], c);
+      }
+    }
   }
   free (record);
 
@@ -1187,7 +1202,8 @@ populate_serializer_with_large_pair_pos_1 (hb_serialize_context_t* c,
 template<int num_pair_pos_2, int num_class_1, int num_class_2>
 static void
 populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
-                                           bool as_extension = false)
+                                           bool as_extension = false,
+                                           bool with_device_tables = false)
 {
   std::string large_string(100000, 'a');
   c->start_serialize<char> ();
@@ -1196,6 +1212,9 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
   unsigned class_def_1[num_pair_pos_2];
   unsigned class_def_2[num_pair_pos_2];
   unsigned pair_pos_2[num_pair_pos_2];
+
+  unsigned* device_tables = (unsigned*) calloc (num_pair_pos_2 * num_class_1 * num_class_2,
+                                                sizeof(unsigned));
 
   for (int i = num_pair_pos_2 - 1; i >= 0; i--)
   {
@@ -1212,10 +1231,27 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
                                 5 + (i + 1) * num_class_1 - 1,
                                 c);
 
+    if (with_device_tables)
+    {
+      for(int j = (i + 1) * num_class_1 * num_class_2 - 1;
+          j >= i * num_class_1 * num_class_2;
+          j--)
+      {
+        uint8_t table[] = {
+          (uint8_t) ((j >> 8) & 0xFF),
+          (uint8_t) (j & 0xFF),
+        };
+        device_tables[j] = add_object ((char*) table, 2, c);
+      }
+    }
+
     pair_pos_2[i] = add_pair_pos_2 (1 + i * num_class_1,
                                     coverage[i],
                                     class_def_1[i], num_class_1,
                                     class_def_2[i], num_class_2,
+                                    with_device_tables
+                                    ? &device_tables[i * num_class_1 * num_class_2]
+                                    : nullptr,
                                     c);
   }
 
@@ -1242,6 +1278,8 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
   add_gsubgpos_header (lookup_list, c);
 
   c->end_serialize();
+
+  free (device_tables);
 }
 
 static void test_sort_shortest ()
@@ -1682,6 +1720,29 @@ static void test_resolve_with_basic_pair_pos_2_split ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_pair_pos_2_split_with_device_tables ()
+{
+  size_t buffer_size = 300000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_large_pair_pos_2 <1, 4, 2000>(&c, false, true);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_large_pair_pos_2 <2, 2, 2000>(&e, true, true);
+
+  run_resolve_overflow_test ("test_resolve_with_pair_pos_2_split_with_device_tables",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'P', 'O', 'S'));
+  free (buffer);
+  free (expected_buffer);
+}
+
 static void test_resolve_overflows_via_splitting_spaces ()
 {
   size_t buffer_size = 160000;
@@ -1807,7 +1868,6 @@ test_shared_node_with_virtual_links ()
 int
 main (int argc, char **argv)
 {
-  if (0) {
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
@@ -1832,9 +1892,8 @@ main (int argc, char **argv)
   test_resolve_with_extension_promotion ();
   test_resolve_with_basic_pair_pos_1_split ();
   test_resolve_with_extension_pair_pos_1_split ();
-  }
-
   test_resolve_with_basic_pair_pos_2_split ();
+  test_resolve_with_pair_pos_2_split_with_device_tables ();
 
   // TODO(grieger): test with extensions already mixed in as well.
   // TODO(grieger): test two layer ext promotion setup.
