@@ -38,11 +38,15 @@ template <unsigned int key_bits=16,
 	 bool thread_safe=true>
 struct hb_cache_t
 {
-  using item_t = typename std::conditional<thread_safe, hb_atomic_int_t, int>::type;
+  using item_t = typename std::conditional<thread_safe,
+					   hb_atomic_int_t,
+					   typename std::conditional<key_bits + value_bits - cache_bits <= 16,
+								     short,
+								     int>::type
+					  >::type;
 
   static_assert ((key_bits >= cache_bits), "");
   static_assert ((key_bits + value_bits - cache_bits <= 8 * sizeof (item_t)), "");
-  static_assert (sizeof (item_t) == sizeof (unsigned int), "");
 
   void init () { clear (); }
   void fini () {}
@@ -77,7 +81,6 @@ struct hb_cache_t
   private:
   item_t values[1u<<cache_bits];
 };
-
 
 template <bool thread_safe = true>
 using hb_cmap_cache_t = hb_cache_t<21, 16, 8, thread_safe>;
