@@ -165,7 +165,7 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   if (use_cache)
   {
   retry:
-    cache = ot_font->advance_cache.get ();
+    cache = ot_font->advance_cache.get_acquire ();
     if (unlikely (!cache))
     {
       cache = (hb_advance_cache_t *) hb_malloc (sizeof (hb_advance_cache_t));

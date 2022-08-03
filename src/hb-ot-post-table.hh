@@ -133,7 +133,7 @@ struct post
     }
     ~accelerator_t ()
     {
-      hb_free (gids_sorted_by_name.get ());
+      hb_free (gids_sorted_by_name.get_acquire ());
       table.destroy ();
     }
 
@@ -160,7 +160,7 @@ struct post
       if (unlikely (!len)) return false;
 
     retry:
-      uint16_t *gids = gids_sorted_by_name.get ();
+      uint16_t *gids = gids_sorted_by_name.get_acquire ();
 
       if (unlikely (!gids))
       {

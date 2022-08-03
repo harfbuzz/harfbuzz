@@ -281,7 +281,7 @@ template <typename Type>
 static inline void hb_object_fini (Type *obj)
 {
   obj->header.ref_count.fini (); /* Do this before user_data */
-  hb_user_data_array_t *user_data = obj->header.user_data.get ();
+  hb_user_data_array_t *user_data = obj->header.user_data.get_acquire ();
   if (user_data)
   {
     user_data->fini ();
@@ -301,7 +301,7 @@ static inline bool hb_object_set_user_data (Type               *obj,
   assert (hb_object_is_valid (obj));
 
 retry:
-  hb_user_data_array_t *user_data = obj->header.user_data.get ();
+  hb_user_data_array_t *user_data = obj->header.user_data.get_acquire ();
   if (unlikely (!user_data))
   {
     user_data = (hb_user_data_array_t *) hb_calloc (sizeof (hb_user_data_array_t), 1);
@@ -326,7 +326,7 @@ static inline void *hb_object_get_user_data (Type               *obj,
   if (unlikely (!obj || obj->header.is_inert ()))
     return nullptr;
   assert (hb_object_is_valid (obj));
-  hb_user_data_array_t *user_data = obj->header.user_data.get ();
+  hb_user_data_array_t *user_data = obj->header.user_data.get_acquire ();
   if (!user_data)
     return nullptr;
   return user_data->get (key);
