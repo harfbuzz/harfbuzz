@@ -144,14 +144,14 @@ struct hb_reference_count_t
 {
   mutable hb_atomic_int_t ref_count;
 
-  void init (int v = 1) { ref_count.set_relaxed (v); }
-  int get_relaxed () const { return ref_count.get_relaxed (); }
+  void init (int v = 1) { ref_count = v; }
+  int get_relaxed () const { return ref_count; }
   int inc () const { return ref_count.inc (); }
   int dec () const { return ref_count.dec (); }
-  void fini () { ref_count.set_relaxed (-0x0000DEAD); }
+  void fini () { ref_count = -0x0000DEAD; }
 
-  bool is_inert () const { return !ref_count.get_relaxed (); }
-  bool is_valid () const { return ref_count.get_relaxed () > 0; }
+  bool is_inert () const { return !ref_count; }
+  bool is_valid () const { return ref_count > 0; }
 };
 
 
@@ -233,7 +233,7 @@ template <typename Type>
 static inline void hb_object_init (Type *obj)
 {
   obj->header.ref_count.init ();
-  obj->header.writable.set_relaxed (true);
+  obj->header.writable = true;
   obj->header.user_data.init ();
 }
 template <typename Type>
@@ -244,12 +244,12 @@ static inline bool hb_object_is_valid (const Type *obj)
 template <typename Type>
 static inline bool hb_object_is_immutable (const Type *obj)
 {
-  return !obj->header.writable.get_relaxed ();
+  return !obj->header.writable;
 }
 template <typename Type>
 static inline void hb_object_make_immutable (const Type *obj)
 {
-  obj->header.writable.set_relaxed (false);
+  obj->header.writable = false;
 }
 template <typename Type>
 static inline Type *hb_object_reference (Type *obj)

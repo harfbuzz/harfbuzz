@@ -45,13 +45,13 @@ struct hb_cache_t
   void clear ()
   {
     for (unsigned i = 0; i < ARRAY_LENGTH (values); i++)
-      values[i].set_relaxed (-1);
+      values[i] = -1;
   }
 
   bool get (unsigned int key, unsigned int *value) const
   {
     unsigned int k = key & ((1u<<cache_bits)-1);
-    unsigned int v = values[k].get_relaxed ();
+    unsigned int v = values[k];
     if ((key_bits + value_bits - cache_bits == 8 * sizeof (hb_atomic_int_t) && v == (unsigned int) -1) ||
 	(v >> value_bits) != (key >> cache_bits))
       return false;
@@ -65,7 +65,7 @@ struct hb_cache_t
       return false; /* Overflows */
     unsigned int k = key & ((1u<<cache_bits)-1);
     unsigned int v = ((key>>cache_bits)<<value_bits) | value;
-    values[k].set_relaxed (v);
+    values[k] = v;
     return true;
   }
 
