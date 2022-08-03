@@ -80,6 +80,8 @@
  */
 
 
+using hb_ft_advance_cache_t = hb_cache_t<16, 24, 8, false>;
+
 struct hb_ft_font_t
 {
   int load_flags;
@@ -89,7 +91,7 @@ struct hb_ft_font_t
   mutable hb_mutex_t lock;
   FT_Face ft_face;
   mutable unsigned cached_serial;
-  mutable hb_advance_cache_t<false> advance_cache;
+  mutable hb_ft_advance_cache_t advance_cache;
 };
 
 static hb_ft_font_t *

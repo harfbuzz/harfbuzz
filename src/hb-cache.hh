@@ -82,11 +82,5 @@ struct hb_cache_t
   item_t values[1u<<cache_bits];
 };
 
-template <bool thread_safe = true>
-using hb_cmap_cache_t = hb_cache_t<21, 16, 8, thread_safe>;
-
-template <bool thread_safe = true>
-using hb_advance_cache_t = hb_cache_t<16, 24, 8, thread_safe>;
-
 
 #endif /* HB_CACHE_HH */
