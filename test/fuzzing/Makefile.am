@@ -16,7 +16,7 @@ $(top_builddir)/src/libharfbuzz.la: lib
 $(top_builddir)/src/libharfbuzz-subset.la: libs
 
 EXTRA_DIST += \
-	README \
+	README.md \
 	run-shape-fuzzer-tests.py \
 	run-subset-fuzzer-tests.py \
 	run-draw-fuzzer-tests.py \
