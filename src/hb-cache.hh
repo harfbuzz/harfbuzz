@@ -32,12 +32,17 @@
 
 /* Implements a lockfree cache for int->int functions. */
 
-template <unsigned int key_bits=16, unsigned int value_bits=8 + 32 - key_bits, unsigned int cache_bits=8>
+template <unsigned int key_bits=16,
+	 unsigned int value_bits=8 + 32 - key_bits,
+	 unsigned int cache_bits=8,
+	 bool thread_safe=true>
 struct hb_cache_t
 {
   static_assert ((key_bits >= cache_bits), "");
   static_assert ((key_bits + value_bits - cache_bits <= 8 * sizeof (hb_atomic_int_t)), "");
   static_assert (sizeof (hb_atomic_int_t) == sizeof (unsigned int), "");
+
+  using item_t = typename std::conditional<thread_safe, hb_atomic_int_t, int>::type;
 
   void init () { clear (); }
   void fini () {}
@@ -70,11 +75,15 @@ struct hb_cache_t
   }
 
   private:
-  hb_atomic_int_t values[1u<<cache_bits];
+  item_t values[1u<<cache_bits];
 };
 
-typedef hb_cache_t<21, 16, 8> hb_cmap_cache_t;
-typedef hb_cache_t<16, 24, 8> hb_advance_cache_t;
+
+template <bool thread_safe = true>
+using hb_cmap_cache_t = hb_cache_t<21, 16, 8, thread_safe>;
+
+template <bool thread_safe = true>
+using hb_advance_cache_t = hb_cache_t<16, 24, 8, thread_safe>;
 
 
 #endif /* HB_CACHE_HH */

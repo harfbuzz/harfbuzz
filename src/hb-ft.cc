@@ -89,7 +89,7 @@ struct hb_ft_font_t
   mutable hb_mutex_t lock;
   FT_Face ft_face;
   mutable unsigned cached_serial;
-  mutable hb_advance_cache_t advance_cache;
+  mutable hb_advance_cache_t<false> advance_cache;
 };
 
 static hb_ft_font_t *

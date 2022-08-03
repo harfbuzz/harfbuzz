@@ -65,7 +65,7 @@ struct hb_ot_font_t
 
   /* h_advance caching */
   mutable hb_atomic_int_t cached_coords_serial;
-  mutable hb_atomic_ptr_t<hb_advance_cache_t> advance_cache;
+  mutable hb_atomic_ptr_t<hb_advance_cache_t<>> advance_cache;
 };
 
 static hb_ot_font_t *
@@ -161,14 +161,14 @@ hb_ot_get_glyph_h_advances (hb_font_t* font, void* font_data,
   bool use_cache = false;
 #endif
 
-  hb_advance_cache_t *cache = nullptr;
+  hb_advance_cache_t<> *cache = nullptr;
   if (use_cache)
   {
   retry:
     cache = ot_font->advance_cache.get_acquire ();
     if (unlikely (!cache))
     {
-      cache = (hb_advance_cache_t *) hb_malloc (sizeof (hb_advance_cache_t));
+      cache = (hb_advance_cache_t<> *) hb_malloc (sizeof (hb_advance_cache_t<>));
       if (unlikely (!cache))
       {
 	use_cache = false;
