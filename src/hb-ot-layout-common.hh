@@ -2280,7 +2280,7 @@ struct VarData
    unsigned int count = regionIndices.len;
    bool is_long = longWords ();
    unsigned word_count = wordCount ();
-   unsigned int scount = is_long ? count - word_count : word_count;
+   unsigned int scount = is_long ? count : word_count;
    unsigned int lcount = is_long ? word_count : 0;
 
    const HBUINT8 *bytes = get_delta_bytes ();
@@ -2296,7 +2296,7 @@ struct VarData
      delta += scalar * *lcursor++;
    }
    const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (lcursor);
-   for (; i < lcount + scount; i++)
+   for (; i < scount; i++)
    {
      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
      delta += scalar * *scursor++;
