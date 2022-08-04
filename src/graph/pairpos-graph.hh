@@ -201,13 +201,17 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 {
   bool sanitize (graph_t::vertex_t& vertex) const
   {
-    // TODO(garretrieger): implement me!
-    return true;
+    size_t vertex_len = vertex.table_size ();
+    unsigned min_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size;
+    if (vertex_len < min_size) return false;
+
+    const unsigned class1_count = class1Count;
+    return vertex_len >=
+        min_size + class1_count * get_class1_record_size ();
   }
 
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
-    // TODO(garretrieger): sanitization.
     const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size
         + size_of (c, this_index, &coverage)
         + size_of (c, this_index, &classDef1)
@@ -215,8 +219,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
     const unsigned class1_count = class1Count;
     const unsigned class2_count = class2Count;
-    const unsigned class1_record_size =
-        class2_count * (valueFormat1.get_size () + valueFormat2.get_size ());
+    const unsigned class1_record_size = get_class1_record_size ();
 
     const unsigned value_1_len = valueFormat1.get_len ();
     const unsigned value_2_len = valueFormat2.get_len ();
@@ -293,6 +296,13 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     const hb_vector_t<unsigned>& format1_device_table_indices;
     const hb_vector_t<unsigned>& format2_device_table_indices;
   };
+
+  size_t get_class1_record_size () const
+  {
+    const size_t class2_count = class2Count;
+    return
+        class2_count * (valueFormat1.get_size () + valueFormat2.get_size ());
+  }
 
   hb_vector_t<unsigned> do_split (split_context& split_context,
                                   const hb_vector_t<unsigned>& split_points)
