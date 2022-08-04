@@ -2284,19 +2284,19 @@ struct VarData
    unsigned int lcount = is_long ? word_count : 0;
 
    const HBUINT8 *bytes = get_delta_bytes ();
-   const HBUINT8 *row = bytes + inner * (scount + count);
+   const HBUINT8 *row = bytes + inner * get_row_size ();
 
    float delta = 0.;
    unsigned int i = 0;
 
-   const HBINT16 *lcursor = reinterpret_cast<const HBINT16 *> (row);
+   const HBINT32 *lcursor = reinterpret_cast<const HBINT32 *> (row);
    for (; i < lcount; i++)
    {
      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
      delta += scalar * *lcursor++;
    }
    const HBINT16 *scursor = reinterpret_cast<const HBINT16 *> (lcursor);
-   for (; i < scount; i++)
+   for (; i < lcount + scount; i++)
    {
      float scalar = regions.evaluate (regionIndices.arrayZ[i], coords, coord_count, cache);
      delta += scalar * *scursor++;
