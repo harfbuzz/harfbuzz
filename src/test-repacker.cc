@@ -143,6 +143,7 @@ static unsigned add_extension (unsigned child,
 
 }
 
+// Adds coverage table fro [start, end]
 static unsigned add_coverage (char start, char end,
                               hb_serialize_context_t* c)
 {
@@ -167,24 +168,29 @@ static unsigned add_coverage (char start, char end,
   return add_object (coverage, 10, c);
 }
 
-static unsigned add_class_def (uint8_t start_glyph,
-                               uint16_t class_count,
+// Adds a class that maps glyphs from [start_glyph, end_glyph)
+// to classes 1...n
+static unsigned add_class_def (uint16_t start_glyph,
+                               uint16_t end_glyph,
                                hb_serialize_context_t* c)
 {
+  unsigned count = end_glyph - start_glyph;
   uint8_t header[] = {
     0, 1, // format
-    0, start_glyph, // startGlyphID
-    (uint8_t) ((class_count >> 8) & 0xFF),
-    (uint8_t) (class_count & 0xFF), // count
+
+    (uint8_t) ((start_glyph >> 8) & 0xFF),
+    (uint8_t) (start_glyph & 0xFF), // start_glyph
+
+    (uint8_t) ((count >> 8) & 0xFF),
+    (uint8_t) (count & 0xFF), // count
   };
 
   start_object ((char*) header, 6, c);
-  for (uint16_t i = 1; i <= class_count; i++)
+  for (uint16_t i = 1; i <= count; i++)
   {
-    unsigned klass = start_glyph + 10 + i;
     uint8_t class_value[] = {
-      (uint8_t) ((klass >> 8) & 0xFF),
-      (uint8_t) (klass & 0xFF), // count
+      (uint8_t) ((i >> 8) & 0xFF),
+      (uint8_t) (i & 0xFF), // count
     };
     extend ((char*) class_value, 2, c);
   }
@@ -1216,19 +1222,27 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
   unsigned* device_tables = (unsigned*) calloc (num_pair_pos_2 * num_class_1 * num_class_2,
                                                 sizeof(unsigned));
 
+  // Total glyphs = num_class_1 * num_pair_pos_2
   for (int i = num_pair_pos_2 - 1; i >= 0; i--)
   {
+    unsigned start_glyph = 5 + i * num_class_1;
     if (num_class_2 >= num_class_1)
     {
-      class_def_2[i] = add_class_def (10, num_class_2, c);
-      class_def_1[i] = add_class_def (5 + i * num_class_1, num_class_1, c);
+      class_def_2[i] = add_class_def (11,
+                                      10 + num_class_2, c);
+      class_def_1[i] = add_class_def (start_glyph + 1,
+                                      start_glyph + num_class_1,
+                                      c);
     } else {
-      class_def_1[i] = add_class_def (5 + i * num_class_1, num_class_1, c);
-      class_def_2[i] = add_class_def (10, num_class_2, c);
+      class_def_1[i] = add_class_def (start_glyph + 1,
+                                      start_glyph + num_class_1,
+                                      c);
+      class_def_2[i] = add_class_def (11,
+                                      10 + num_class_2, c);
     }
 
-    coverage[i] = add_coverage (5 + i * num_class_1,
-                                5 + (i + 1) * num_class_1 - 1,
+    coverage[i] = add_coverage (start_glyph,
+                                start_glyph + num_class_1 - 1,
                                 c);
 
     if (with_device_tables)

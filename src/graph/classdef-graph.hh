@@ -57,35 +57,22 @@ struct ClassDefFormat2 : public OT::ClassDefFormat2_4<SmallTypes>
 struct ClassDef : public OT::ClassDef
 {
   template<typename It>
-  static bool clone_class_def (gsubgpos_graph_context_t& c,
-                               unsigned class_def_id,
-                               unsigned new_parent_id,
-                               unsigned link_position,
-                               It glyphs)
+  static bool add_class_def (gsubgpos_graph_context_t& c,
+                             unsigned parent_id,
+                             unsigned link_position,
+                             It glyph_and_class,
+                             unsigned max_size)
   {
-    unsigned class_def_size = c.graph.vertices_[class_def_id].table_size ();
-    auto& class_def_v = c.graph.vertices_[class_def_id];
-    ClassDef* class_def_table = (ClassDef*) class_def_v.obj.head;
-    if (!class_def_table->sanitize (class_def_v))
-      return false;
-
-    auto new_class_def =
-        + glyphs
-        | hb_map_retains_sorting ([&] (hb_codepoint_t gid) {
-          return hb_pair (gid, class_def_table->get_class (gid));
-        })
-        ;
-
     unsigned class_def_prime_id = c.graph.new_node (nullptr, nullptr);
     auto& class_def_prime_vertex = c.graph.vertices_[class_def_prime_id];
-    if (!make_class_def (c, new_class_def, class_def_prime_id, class_def_size))
+    if (!make_class_def (c, glyph_and_class, class_def_prime_id, max_size))
       return false;
 
-    auto* class_def_link = c.graph.vertices_[new_parent_id].obj.real_links.push ();
+    auto* class_def_link = c.graph.vertices_[parent_id].obj.real_links.push ();
     class_def_link->width = SmallTypes::size;
     class_def_link->objidx = class_def_prime_id;
     class_def_link->position = link_position;
-    class_def_prime_vertex.parents.push (new_parent_id);
+    class_def_prime_vertex.parents.push (parent_id);
 
     return true;
   }

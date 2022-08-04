@@ -320,6 +320,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     DEBUG_MSG (SUBSET_REPACK, nullptr,
                "  Cloning PairPosFormat2 (%u) range [%u, %u).", split_context.this_index, start, end);
 
+    graph_t& graph = split_context.c.graph;
+
     unsigned num_records = end - start;
     unsigned prime_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size
                           + num_records * split_context.class1_record_size;
@@ -328,7 +330,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     if (pair_pos_prime_id == (unsigned) -1) return -1;
 
     PairPosFormat2* pair_pos_prime =
-        (PairPosFormat2*) split_context.c.graph.object (pair_pos_prime_id).head;
+        (PairPosFormat2*) graph.object (pair_pos_prime_id).head;
     pair_pos_prime->format = this->format;
     pair_pos_prime->valueFormat1 = this->valueFormat1;
     pair_pos_prime->valueFormat2 = this->valueFormat2;
@@ -340,35 +342,55 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                           end);
 
     unsigned coverage_id =
-        split_context.c.graph.index_for_offset (split_context.this_index, &coverage);
+        graph.index_for_offset (split_context.this_index, &coverage);
+    unsigned class_def_1_id =
+        graph.index_for_offset (split_context.this_index, &classDef1);
+    auto& coverage_v = graph.vertices_[coverage_id];
+    auto& class_def_1_v = graph.vertices_[class_def_1_id];
+    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
+    ClassDef* class_def_1_table = (ClassDef*) class_def_1_v.obj.head;
+    if (!coverage_table->sanitize (coverage_v)
+        || !class_def_1_table->sanitize (class_def_1_v))
+      return false;
 
-    Coverage* new_coverage =  Coverage::clone_coverage (split_context.c,
-                                                        coverage_id,
-                                                        pair_pos_prime_id,
-                                                        2,
-                                                        start, end);
-    if (!new_coverage)
+    auto klass_map =
+    + coverage_table->iter ()
+    | hb_map_retains_sorting ([&] (hb_codepoint_t gid) {
+      return hb_pair (gid, class_def_1_table->get_class (gid));
+    })
+    | hb_filter ([&] (hb_codepoint_t klass) {
+      return klass >= start && klass < end;
+    }, hb_second)
+    | hb_map_retains_sorting ([&] (hb_pair_t<hb_codepoint_t, hb_codepoint_t> gid_and_class) {
+      // Classes must be from 0...N so subtract start
+      return hb_pair (gid_and_class.first, gid_and_class.second - start);
+    })
+    ;
+
+    if (!Coverage::add_coverage (split_context.c,
+                                 pair_pos_prime_id,
+                                 2,
+                                 + klass_map | hb_map_retains_sorting (hb_first),
+                                 coverage_v.table_size ()))
       return -1;
 
     // classDef1
-    unsigned class_def_1_id =
-        split_context.c.graph.index_for_offset (split_context.this_index, &classDef1);
-    if (!ClassDef::clone_class_def (split_context.c,
-                                    class_def_1_id,
-                                    pair_pos_prime_id,
-                                    8,
-                                    new_coverage->iter ()))
+    if (!ClassDef::add_class_def (split_context.c,
+                                  pair_pos_prime_id,
+                                  8,
+                                  + klass_map,
+                                  class_def_1_v.table_size ()))
       return -1;
 
     // classDef2
     unsigned class_def_2_id =
-        split_context.c.graph.index_for_offset (split_context.this_index, &classDef2);
-    auto* class_def_link = split_context.c.graph.vertices_[pair_pos_prime_id].obj.real_links.push ();
+        graph.index_for_offset (split_context.this_index, &classDef2);
+    auto* class_def_link = graph.vertices_[pair_pos_prime_id].obj.real_links.push ();
     class_def_link->width = SmallTypes::size;
     class_def_link->objidx = class_def_2_id;
     class_def_link->position = 10;
-    split_context.c.graph.vertices_[class_def_2_id].parents.push (pair_pos_prime_id);
-    split_context.c.graph.duplicate (pair_pos_prime_id, class_def_2_id);
+    graph.vertices_[class_def_2_id].parents.push (pair_pos_prime_id);
+    graph.duplicate (pair_pos_prime_id, class_def_2_id);
 
     return pair_pos_prime_id;
   }
@@ -450,48 +472,43 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     if (count >= old_count)
       return true;
 
+    graph_t& graph = split_context.c.graph;
     class1Count = count;
-    split_context.c.graph.vertices_[split_context.this_index].obj.tail -=
+    graph.vertices_[split_context.this_index].obj.tail -=
         (old_count - count) * split_context.class1_record_size;
 
     unsigned coverage_id =
-        split_context.c.graph.index_for_offset (split_context.this_index, &coverage);
-    auto& coverage_v = split_context.c.graph.vertices_[coverage_id];
+        graph.index_for_offset (split_context.this_index, &coverage);
+    unsigned class_def_1_id =
+        graph.index_for_offset (split_context.this_index, &classDef1);
+    auto& coverage_v = graph.vertices_[coverage_id];
+    auto& class_def_1_v = graph.vertices_[class_def_1_id];
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
-    if (!coverage_table->sanitize (coverage_v))
+    ClassDef* class_def_1_table = (ClassDef*) class_def_1_v.obj.head;
+    if (!coverage_table->sanitize (coverage_v)
+        || !class_def_1_table->sanitize (class_def_1_v))
       return false;
 
-    auto new_coverage =
-        + hb_zip (coverage_table->iter (), hb_range ())
-        | hb_filter ([&] (hb_pair_t<unsigned, unsigned> p) {
-          return p.second < count;
-        })
-        | hb_map_retains_sorting (hb_first)
-        ;
+    auto klass_map =
+    + coverage_table->iter ()
+    | hb_map_retains_sorting ([&] (hb_codepoint_t gid) {
+      return hb_pair (gid, class_def_1_table->get_class (gid));
+    })
+    | hb_filter ([&] (hb_codepoint_t klass) {
+      return klass < count;
+    }, hb_second)
+    ;
 
-    if (!Coverage::make_coverage (split_context.c, new_coverage, coverage_id, coverage_v.table_size ()))
+    if (!Coverage::make_coverage (split_context.c,
+                                  + klass_map | hb_map_retains_sorting (hb_first),
+                                  coverage_id,
+                                  coverage_v.table_size ()))
       return false;
-
-    // classDef1
-    coverage_table = (Coverage*) coverage_v.obj.head; // get the new table
-    unsigned class_def_id = split_context.c.graph.index_for_offset (split_context.this_index,
-                                                                    &classDef1);
-    auto& class_def_v = split_context.c.graph.vertices_[class_def_id];
-    ClassDef* class_def_table = (ClassDef*) class_def_v.obj.head;
-    if (!class_def_table->sanitize (class_def_v))
-      return false;
-
-    auto new_class_def =
-        + coverage_table->iter ()
-        | hb_map_retains_sorting ([&] (hb_codepoint_t gid) {
-          return hb_pair (gid, class_def_table->get_class (gid));
-        })
-        ;
 
     return ClassDef::make_class_def (split_context.c,
-                                     new_class_def,
-                                     class_def_id,
-                                     class_def_v.table_size ());
+                                     + klass_map,
+                                     class_def_1_id,
+                                     class_def_1_v.table_size ());
   }
 
   hb_hashmap_t<void*, unsigned>
