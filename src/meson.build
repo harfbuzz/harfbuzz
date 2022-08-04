@@ -351,6 +351,7 @@ hb_subset_sources = files(
   'graph/pairpos-graph.hh',
   'graph/coverage-graph.hh',
   'graph/classdef-graph.hh',
+  'graph/split-helpers.hh',
   'hb-subset.cc',
   'hb-subset.hh',
 )

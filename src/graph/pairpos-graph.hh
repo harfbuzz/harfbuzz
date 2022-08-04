@@ -27,6 +27,7 @@
 #ifndef GRAPH_PAIRPOS_GRAPH_HH
 #define GRAPH_PAIRPOS_GRAPH_HH
 
+#include "split-helpers.hh"
 #include "coverage-graph.hh"
 #include "classdef-graph.hh"
 #include "../OT/Layout/GPOS/PairPos.hh"
@@ -75,45 +76,37 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
       }
     }
 
-    return do_split (c, this_index, split_points);
+    split_context_t split_context {
+      c,
+      this,
+      this_index,
+    };
+
+    return actuate_subtable_split<split_context_t> (split_context, split_points);
   }
 
  private:
 
-  // Split this PairPos into two or more PairPos's. split_points defines
-  // the indices (first index to include in the new table) to split at.
-  // Returns the object id's of the newly created PairPos subtables.
-  hb_vector_t<unsigned> do_split (gsubgpos_graph_context_t& c,
-                                  unsigned this_index,
-                                  const hb_vector_t<unsigned> split_points)
-  {
-    hb_vector_t<unsigned> new_objects;
-    if (!split_points)
-      return new_objects;
+  struct split_context_t {
+    gsubgpos_graph_context_t& c;
+    PairPosFormat1* thiz;
+    unsigned this_index;
 
-    for (unsigned i = 0; i < split_points.length; i++)
+    unsigned original_count ()
     {
-      unsigned start = split_points[i];
-      unsigned end = (i < split_points.length - 1) ? split_points[i + 1] : pairSet.len;
-      unsigned id = clone_range (c, this_index, start, end);
-
-      if (id == (unsigned) -1)
-      {
-        new_objects.reset ();
-        new_objects.allocated = -1; // mark error
-        return new_objects;
-      }
-      new_objects.push (id);
+      return thiz->pairSet.len;
     }
 
-    if (!shrink (c, this_index, split_points[0]))
+    unsigned clone_range (unsigned start, unsigned end)
     {
-      new_objects.reset ();
-      new_objects.allocated = -1; // mark error
+      return thiz->clone_range (this->c, this->this_index, start, end);
     }
 
-    return new_objects;
-  }
+    bool shrink (unsigned count)
+    {
+      return thiz->shrink (this->c, this->this_index, count);
+    }
+  };
 
   bool shrink (gsubgpos_graph_context_t& c,
                unsigned this_index,
@@ -267,8 +260,9 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
       }
     }
 
-    split_context split_context {
+    split_context_t split_context {
       c,
+      this,
       this_index,
       class1_record_size,
       total_value_len,
@@ -279,13 +273,14 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
       format2_device_table_indices
     };
 
-    return do_split (split_context, split_points);
+    return actuate_subtable_split<split_context_t> (split_context, split_points);
   }
  private:
 
-  struct split_context
+  struct split_context_t
   {
     gsubgpos_graph_context_t& c;
+    PairPosFormat2* thiz;
     unsigned this_index;
     unsigned class1_record_size;
     unsigned value_record_len;
@@ -295,6 +290,21 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     const hb_hashmap_t<void*, unsigned>& device_tables;
     const hb_vector_t<unsigned>& format1_device_table_indices;
     const hb_vector_t<unsigned>& format2_device_table_indices;
+
+    unsigned original_count ()
+    {
+      return thiz->class1Count;
+    }
+
+    unsigned clone_range (unsigned start, unsigned end)
+    {
+      return thiz->clone_range (*this, start, end);
+    }
+
+    bool shrink (unsigned count)
+    {
+      return thiz->shrink (*this, count);
+    }
   };
 
   size_t get_class1_record_size () const
@@ -304,40 +314,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         class2_count * (valueFormat1.get_size () + valueFormat2.get_size ());
   }
 
-  hb_vector_t<unsigned> do_split (split_context& split_context,
-                                  const hb_vector_t<unsigned>& split_points)
-  {
-    // TODO(garretrieger): refactor into a common method shared between subtables.
-    //                     template on context which could provide the clone and shrink methods.
-    hb_vector_t<unsigned> new_objects;
-    if (!split_points)
-      return new_objects;
-
-    for (unsigned i = 0; i < split_points.length; i++)
-    {
-      unsigned start = split_points[i];
-      unsigned end = (i < split_points.length - 1) ? split_points[i + 1] : class1Count;
-      unsigned id = clone_range (split_context, start, end);
-
-      if (id == (unsigned) -1)
-      {
-        new_objects.reset ();
-        new_objects.allocated = -1; // mark error
-        return new_objects;
-      }
-      new_objects.push (id);
-    }
-
-    if (!shrink (split_context, split_points[0]))
-    {
-      new_objects.reset ();
-      new_objects.allocated = -1; // mark error
-    }
-
-    return new_objects;
-  }
-
-  unsigned clone_range (split_context& split_context,
+  unsigned clone_range (split_context_t& split_context,
                         unsigned start, unsigned end) const
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr,
@@ -396,7 +373,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     return pair_pos_prime_id;
   }
 
-  void clone_class1_records (split_context& split_context,
+  void clone_class1_records (split_context_t& split_context,
                              unsigned pair_pos_prime_id,
                              unsigned start, unsigned end) const
   {
@@ -440,7 +417,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     }
   }
 
-  void transfer_device_tables (split_context& split_context,
+  void transfer_device_tables (split_context_t& split_context,
                                unsigned pair_pos_prime_id,
                                const hb_vector_t<unsigned>& device_table_indices,
                                unsigned old_value_record_index,
@@ -462,7 +439,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     }
   }
 
-  bool shrink (split_context& split_context,
+  bool shrink (split_context_t& split_context,
                unsigned count)
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr,
