@@ -53,25 +53,27 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
 
     const unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
     const unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
-    const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size
-                               + coverage_size;
+    const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size;
 
+    unsigned partial_coverage_size = 4;
     unsigned accumulated = base_size;
     hb_vector_t<unsigned> split_points;
     for (unsigned i = 0; i < pairSet.len; i++)
     {
       unsigned pair_set_index = pair_set_graph_index (c, this_index, i);
-      accumulated += c.graph.find_subgraph_size (pair_set_index, visited);
-      accumulated += SmallTypes::size; // for PairSet offset.
+      unsigned accumulated_delta =
+          c.graph.find_subgraph_size (pair_set_index, visited) +
+          SmallTypes::size; // for PairSet offset.
+      partial_coverage_size += OT::HBUINT16::static_size;
 
-      // TODO(garretrieger): don't count the size of the largest pairset against the limit, since
-      //                     it will be packed last in the order and does not contribute to
-      //                     the 64kb limit.
+      accumulated += accumulated_delta;
+      unsigned total = accumulated + hb_min (partial_coverage_size, coverage_size);
 
-      if (accumulated > (1 << 16))
+      if (total >= (1 << 16))
       {
         split_points.push (i);
-        accumulated = base_size;
+        accumulated = base_size + accumulated_delta;
+        partial_coverage_size = 6;
         visited.clear (); // node sharing isn't allowed between splits.
       }
     }
@@ -267,7 +269,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                        + coverage_size + class_def_1_size + class_def_2_size
                        // The largest object will pack last and can exceed the size limit.
                        - hb_max (hb_max (coverage_size, class_def_1_size), class_def_2_size);
-      if (total > (1 << 16))
+      if (total >= (1 << 16))
       {
         split_points.push (i);
         // split does not include i, so add the size for i when we reset the size counters.
