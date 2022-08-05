@@ -130,7 +130,7 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     auto& coverage_v = c.graph.vertices_[coverage_id];
 
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
-    if (!coverage_table->sanitize (coverage_v))
+    if (!coverage_table || !coverage_table->sanitize (coverage_v))
       return false;
 
     auto new_coverage =
@@ -377,7 +377,9 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     auto& class_def_1_v = graph.vertices_[class_def_1_id];
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
     ClassDef* class_def_1_table = (ClassDef*) class_def_1_v.obj.head;
-    if (!coverage_table->sanitize (coverage_v)
+    if (!coverage_table
+        || !coverage_table->sanitize (coverage_v)
+        || !class_def_1_table
         || !class_def_1_table->sanitize (class_def_1_v))
       return -1;
 
@@ -513,7 +515,9 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     auto& class_def_1_v = graph.vertices_[class_def_1_id];
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
     ClassDef* class_def_1_table = (ClassDef*) class_def_1_v.obj.head;
-    if (!coverage_table->sanitize (coverage_v)
+    if (!coverage_table
+        || !coverage_table->sanitize (coverage_v)
+        || !class_def_1_table
         || !class_def_1_table->sanitize (class_def_1_v))
       return false;
 
@@ -560,7 +564,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     auto& coverage_v = c.graph.vertices_[coverage_id];
 
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
-    if (!coverage_table->sanitize (coverage_v))
+    if (!coverage_table || !coverage_table->sanitize (coverage_v))
       return &Null(Coverage);
     return coverage_table;
   }
@@ -572,7 +576,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     auto& class_def_1_v = c.graph.vertices_[class_def_1_id];
 
     ClassDef* class_def_1_table = (ClassDef*) class_def_1_v.obj.head;
-    if (!class_def_1_table->sanitize (class_def_1_v))
+    if (!class_def_1_table || !class_def_1_table->sanitize (class_def_1_v))
       return &Null(ClassDef);
     return class_def_1_table;
   }

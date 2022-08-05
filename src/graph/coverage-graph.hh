@@ -66,7 +66,7 @@ struct Coverage : public OT::Layout::Common::Coverage
     unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
     auto& coverage_v = c.graph.vertices_[coverage_id];
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
-    if (!coverage_table->sanitize (coverage_v))
+    if (!coverage_table || !coverage_table->sanitize (coverage_v))
       return nullptr;
 
     auto new_coverage =

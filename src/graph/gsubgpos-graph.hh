@@ -133,7 +133,7 @@ struct Lookup : public OT::Lookup
         ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
             (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*)
             c.graph.object (ext_subtable_index).head;
-        if (!extension->sanitize (c.graph.vertices_[ext_subtable_index]))
+        if (!extension || !extension->sanitize (c.graph.vertices_[ext_subtable_index]))
           continue;
 
         subtable_index = extension->get_subtable_index (c.graph, ext_subtable_index);
@@ -143,7 +143,7 @@ struct Lookup : public OT::Lookup
       }
 
       PairPos* pairPos = (PairPos*) c.graph.object (subtable_index).head;
-      if (!pairPos->sanitize (c.graph.vertices_[subtable_index])) continue;
+      if (!pairPos || !pairPos->sanitize (c.graph.vertices_[subtable_index])) continue;
 
       hb_vector_t<unsigned> new_sub_tables = pairPos->split_subtables (c, subtable_index);
       if (new_sub_tables.in_error ()) return false;
@@ -320,7 +320,7 @@ struct GSTAR : public OT::GSUBGPOS
     const auto& r = graph.root ();
 
     GSTAR* gstar = (GSTAR*) r.obj.head;
-    if (!gstar->sanitize (r))
+    if (!gstar || !gstar->sanitize (r))
       return nullptr;
 
     return gstar;
@@ -366,17 +366,16 @@ struct GSTAR : public OT::GSUBGPOS
                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
   {
     unsigned lookup_list_idx = get_lookup_list_index (graph);
-
     const LookupList<Types>* lookupList =
         (const LookupList<Types>*) graph.object (lookup_list_idx).head;
-    if (!lookupList->sanitize (graph.vertices_[lookup_list_idx]))
+    if (!lookupList || !lookupList->sanitize (graph.vertices_[lookup_list_idx]))
       return;
 
     for (unsigned i = 0; i < lookupList->len; i++)
     {
       unsigned lookup_idx = graph.index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i]));
       Lookup* lookup = (Lookup*) graph.object (lookup_idx).head;
-      if (!lookup->sanitize (graph.vertices_[lookup_idx])) continue;
+      if (!lookup || !lookup->sanitize (graph.vertices_[lookup_idx])) continue;
       lookups.set (lookup_idx, lookup);
     }
   }
