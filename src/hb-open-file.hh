@@ -122,7 +122,7 @@ typedef struct OpenTypeOffsetTable
 	    hb_requires ((hb_is_source_of<Iterator, hb_pair_t<hb_tag_t, hb_blob_t *>>::value))>
   bool serialize (hb_serialize_context_t *c,
 		  hb_tag_t sfnt_tag,
-		  Iterator&& it)
+		  Iterator it)
   {
     TRACE_SERIALIZE (this);
     /* Alloc 12 for the OTHeader. */
@@ -496,7 +496,7 @@ struct OpenTypeFontFile
 	    hb_requires ((hb_is_source_of<Iterator, hb_pair_t<hb_tag_t, hb_blob_t *>>::value))>
   bool serialize_single (hb_serialize_context_t *c,
 			 hb_tag_t sfnt_tag,
-			 Iterator&& items)
+			 Iterator items)
   {
     TRACE_SERIALIZE (this);
     assert (sfnt_tag != TTCTag);

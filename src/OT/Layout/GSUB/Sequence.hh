@@ -132,7 +132,7 @@ struct Sequence
   template <typename Iterator,
             hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
-                  Iterator&& subst)
+                  Iterator subst)
   {
     TRACE_SERIALIZE (this);
     return_trace (substitute.serialize (c, subst));

@@ -149,7 +149,7 @@ struct Ligature
             hb_requires (hb_is_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
                   hb_codepoint_t ligature,
-                  Iterator&& components /* Starting from second */)
+                  Iterator components /* Starting from second */)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);

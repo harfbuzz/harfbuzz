@@ -53,7 +53,7 @@ _add_head_and_set_loca_version (hb_subset_plan_t *plan, bool use_short_loca)
 template<typename Iterator,
 	 hb_requires (hb_is_source_of (Iterator, unsigned int))>
 static bool
-_add_loca_and_head (hb_subset_plan_t * plan, Iterator&& padded_offsets, bool use_short_loca)
+_add_loca_and_head (hb_subset_plan_t * plan, Iterator padded_offsets, bool use_short_loca)
 {
   unsigned num_offsets = padded_offsets.len () + 1;
   unsigned entry_size = use_short_loca ? 2 : 4;

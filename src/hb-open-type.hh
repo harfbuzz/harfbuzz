@@ -504,7 +504,7 @@ struct UnsizedArrayOf
   }
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, Type))>
-  bool serialize (hb_serialize_context_t *c, Iterator&& items)
+  bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     unsigned count = items.len ();
@@ -683,7 +683,7 @@ struct ArrayOf
   }
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, Type))>
-  HB_NODISCARD bool serialize (hb_serialize_context_t *c, Iterator&& items)
+  HB_NODISCARD bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     unsigned count = items.len ();
@@ -841,7 +841,7 @@ struct HeadlessArrayOf
   }
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, Type))>
-  bool serialize (hb_serialize_context_t *c, Iterator&& items)
+  bool serialize (hb_serialize_context_t *c, Iterator items)
   {
     TRACE_SERIALIZE (this);
     unsigned count = items.len ();
