@@ -315,7 +315,7 @@ struct hb_serialize_context_t
   {
     object_t *obj = current;
     if (unlikely (!obj)) return;
-    if (unlikely (in_error())) return;
+    if (unlikely (in_error() && !only_overflow ())) return;
 
     current = current->next;
     revert (obj->head, obj->tail);

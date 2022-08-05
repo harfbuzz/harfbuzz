@@ -84,10 +84,10 @@ using OT::Layout::MediumTypes;
 namespace OT {
 
 template<typename Iterator>
-static inline void ClassDef_serialize (hb_serialize_context_t *c,
+static inline bool ClassDef_serialize (hb_serialize_context_t *c,
 				       Iterator it);
 
-static void ClassDef_remap_and_serialize (
+static bool ClassDef_remap_and_serialize (
     hb_serialize_context_t *c,
     const hb_set_t &klasses,
     bool use_class_zero,
@@ -1380,17 +1380,14 @@ struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>
  */
 
 
-static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
+static bool ClassDef_remap_and_serialize (hb_serialize_context_t *c,
 					  const hb_set_t &klasses,
                                           bool use_class_zero,
                                           hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &glyph_and_klass, /* IN/OUT */
 					  hb_map_t *klass_map /*IN/OUT*/)
 {
   if (!klass_map)
-  {
-    ClassDef_serialize (c, glyph_and_klass.iter ());
-    return;
-  }
+    return ClassDef_serialize (c, glyph_and_klass.iter ());
 
   /* any glyph not assigned a class value falls into Class zero (0),
    * if any glyph assigned to class 0, remapping must start with 0->0*/
@@ -1413,7 +1410,7 @@ static void ClassDef_remap_and_serialize (hb_serialize_context_t *c,
   }
 
   c->propagate_error (glyph_and_klass, klasses);
-  ClassDef_serialize (c, glyph_and_klass.iter ());
+  return ClassDef_serialize (c, glyph_and_klass.iter ());
 }
 
 /*
@@ -1495,11 +1492,12 @@ struct ClassDefFormat1_3
                            ? hb_len (hb_iter (glyph_map.keys()) | hb_filter (glyph_filter))
                            : glyph_map.get_population ();
     use_class_zero = use_class_zero && glyph_count <= glyph_and_klass.length;
-    ClassDef_remap_and_serialize (c->serializer,
-                                  orig_klasses,
-                                  use_class_zero,
-                                  glyph_and_klass,
-                                  klass_map);
+    if (!ClassDef_remap_and_serialize (c->serializer,
+                                       orig_klasses,
+                                       use_class_zero,
+                                       glyph_and_klass,
+                                       klass_map))
+      return_trace (false);
     return_trace (keep_empty_table || (bool) glyph_and_klass);
   }
 
@@ -1736,11 +1734,12 @@ struct ClassDefFormat2_4
                            ? hb_len (hb_iter (glyphset) | hb_filter (glyph_filter))
                            : glyph_map.get_population ();
     use_class_zero = use_class_zero && glyph_count <= glyph_and_klass.length;
-    ClassDef_remap_and_serialize (c->serializer,
-                                  orig_klasses,
-                                  use_class_zero,
-                                  glyph_and_klass,
-                                  klass_map);
+    if (!ClassDef_remap_and_serialize (c->serializer,
+                                       orig_klasses,
+                                       use_class_zero,
+                                       glyph_and_klass,
+                                       klass_map))
+      return_trace (false);
     return_trace (keep_empty_table || (bool) glyph_and_klass);
   }
 
@@ -2124,9 +2123,9 @@ struct ClassDef
 };
 
 template<typename Iterator>
-static inline void ClassDef_serialize (hb_serialize_context_t *c,
+static inline bool ClassDef_serialize (hb_serialize_context_t *c,
 				       Iterator it)
-{ c->start_embed<ClassDef> ()->serialize (c, it); }
+{ return (c->start_embed<ClassDef> ()->serialize (c, it)); }
 
 
 /*
