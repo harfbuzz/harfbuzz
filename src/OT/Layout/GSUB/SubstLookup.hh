@@ -106,7 +106,7 @@ struct SubstLookup : Lookup
   bool serialize_single (hb_serialize_context_t *c,
                          uint32_t lookup_props,
                          Glyphs glyphs,
-                         Substitutes substitutes)
+                         Substitutes&& substitutes)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Single, lookup_props, 1))) return_trace (false);

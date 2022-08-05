@@ -215,7 +215,7 @@ struct name
   template <typename Iterator,
 	    hb_requires (hb_is_source_of (Iterator, const NameRecord &))>
   bool serialize (hb_serialize_context_t *c,
-		  Iterator it,
+		  Iterator&& it,
 		  const void *src_string_pool)
   {
     TRACE_SERIALIZE (this);
