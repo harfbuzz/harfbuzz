@@ -240,7 +240,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     hb_set_t visited;
     for (unsigned i = 0; i < class1_count; i++)
     {
-      accumulated += class1_record_size;
+      unsigned accumulated_delta = class1_record_size;
       coverage_size += estimator.incremental_coverage_size (i);
       class_def_1_size += estimator.incremental_class_def_size (i);
 
@@ -249,12 +249,12 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         {
           unsigned value1_index = total_value_len * (class2_count * i + j);
           unsigned value2_index = value1_index + value_1_len;
-          accumulated += size_of_value_record_children (c,
+          accumulated_delta += size_of_value_record_children (c,
                                                         device_tables,
                                                         format1_device_table_indices,
                                                         value1_index,
                                                         visited);
-          accumulated += size_of_value_record_children (c,
+          accumulated_delta += size_of_value_record_children (c,
                                                         device_tables,
                                                         format2_device_table_indices,
                                                         value2_index,
@@ -262,6 +262,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         }
       }
 
+      accumulated += accumulated_delta;
       unsigned total = accumulated
                        + coverage_size + class_def_1_size + class_def_2_size
                        // The largest object will pack last and can exceed the size limit.
@@ -269,9 +270,10 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
       if (total > (1 << 16))
       {
         split_points.push (i);
-        accumulated = base_size;
-        coverage_size = 4;
-        class_def_1_size = 4;
+        // split does not include i, so add the size for i when we reset the size counters.
+        accumulated = base_size + accumulated_delta;
+        coverage_size = 4 + estimator.incremental_coverage_size (i);
+        class_def_1_size = 4 + estimator.incremental_class_def_size (i);
         visited.clear (); // node sharing isn't allowed between splits.
       }
     }
