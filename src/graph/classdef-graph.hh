@@ -123,6 +123,88 @@ struct ClassDef : public OT::ClassDef
 };
 
 
+struct class_def_size_estimator_t
+{
+  template<typename It>
+  class_def_size_estimator_t (It glyph_and_class)
+      : gids_consecutive (true), num_ranges_per_class (), glyphs_per_class ()
+  {
+    unsigned last_gid = (unsigned) -1;
+    for (auto p : + glyph_and_class)
+    {
+      unsigned gid = p.first;
+      unsigned klass = p.second;
+
+      if (last_gid != (unsigned) -1 && gid != last_gid + 1)
+        gids_consecutive = false;
+      last_gid = gid;
+
+      hb_set_t* glyphs;
+      if (glyphs_per_class.has (klass, &glyphs) && glyphs) {
+        glyphs->add (gid);
+        continue;
+      }
+
+      hb_set_t new_glyphs;
+      new_glyphs.add (gid);
+      glyphs_per_class.set (klass, std::move (new_glyphs));
+    }
+
+    if (in_error ()) return;
+
+    for (unsigned klass : glyphs_per_class.keys ())
+    {
+      if (!klass) continue; // class 0 doesn't get encoded.
+
+      const hb_set_t& glyphs = glyphs_per_class.get (klass);
+      hb_codepoint_t start = HB_SET_VALUE_INVALID;
+      hb_codepoint_t end = HB_SET_VALUE_INVALID;
+
+      unsigned count = 0;
+      while (glyphs.next_range (&start, &end))
+        count++;
+
+      num_ranges_per_class.set (klass, count);
+    }
+  }
+
+  // Incremental increase in the Coverage and ClassDef table size
+  // (worst case) if all glyphs associated with 'klass' were added.
+  unsigned incremental_size_for_class (unsigned klass) const
+  {
+    // Coverage takes 2 bytes per glyph worst case,
+    unsigned cov_size = 2 * glyphs_per_class.get (klass).get_population ();
+    // ClassDef takes 6 bytes per range
+    unsigned class_def_2_size = 6 * num_ranges_per_class.get (klass);
+    if (gids_consecutive)
+    {
+      // ClassDef1 takes 2 bytes per glyph, but only can be used
+      // when gids are consecutive.
+      return cov_size + hb_min (cov_size, class_def_2_size);
+    }
+
+    return cov_size + class_def_2_size;
+  }
+
+  bool in_error ()
+  {
+    if (num_ranges_per_class.in_error ()) return true;
+    if (glyphs_per_class.in_error ()) return true;
+
+    for (const hb_set_t& s : glyphs_per_class.values ())
+    {
+      if (s.in_error ()) return true;
+    }
+    return false;
+  }
+
+ private:
+  bool gids_consecutive;
+  hb_hashmap_t<unsigned, unsigned> num_ranges_per_class;
+  hb_hashmap_t<unsigned, hb_set_t> glyphs_per_class;
+};
+
+
 }
 
 #endif  // GRAPH_CLASSDEF_GRAPH_HH
