@@ -231,6 +231,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     unsigned accumulated = base_size;
     unsigned coverage_size = 4;
     unsigned class_def_1_size = 4;
+    unsigned max_coverage_size = coverage_size;
+    unsigned max_class_def_1_size = class_def_1_size;
 
     hb_vector_t<unsigned> split_points;
 
@@ -245,6 +247,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
       unsigned accumulated_delta = class1_record_size;
       coverage_size += estimator.incremental_coverage_size (i);
       class_def_1_size += estimator.incremental_class_def_size (i);
+      max_coverage_size = hb_max (max_coverage_size, coverage_size);
+      max_class_def_1_size = hb_max (max_class_def_1_size, class_def_1_size);
 
       if (has_device_tables) {
         for (unsigned j = 0; j < class2_count; j++)
@@ -288,6 +292,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
       total_value_len,
       value_1_len,
       value_2_len,
+      max_coverage_size,
+      max_class_def_1_size,
       device_tables,
       format1_device_table_indices,
       format2_device_table_indices
@@ -306,6 +312,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     unsigned value_record_len;
     unsigned value1_record_len;
     unsigned value2_record_len;
+    unsigned max_coverage_size;
+    unsigned max_class_def_size;
 
     const hb_hashmap_t<void*, unsigned>& device_tables;
     const hb_vector_t<unsigned>& format1_device_table_indices;
@@ -391,7 +399,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                  pair_pos_prime_id,
                                  2,
                                  + klass_map | hb_map_retains_sorting (hb_first),
-                                 coverage_v.table_size ()))
+                                 split_context.max_coverage_size))
       return -1;
 
     // classDef1
@@ -399,7 +407,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                   pair_pos_prime_id,
                                   8,
                                   + klass_map,
-                                  class_def_1_v.table_size ()))
+                                  split_context.max_class_def_size))
       return -1;
 
     // classDef2
