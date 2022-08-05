@@ -35,19 +35,19 @@ struct MultipleSubst
     }
   }
 
-  /* TODO This function is unused and not updated to 24bit GIDs. Should be done by using
-   * iterators. While at it perhaps using iterator of arrays of hb_codepoint_t instead. */
+  template<typename GlyphIterator, typename SequenceIterator,
+           hb_requires (hb_is_sorted_source_of (GlyphIterator, hb_codepoint_t)),
+           hb_requires (hb_is_source_of (typename SequenceIterator::item_t, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
-                  hb_sorted_array_t<const HBGlyphID16> glyphs,
-                  hb_array_t<const unsigned int> substitute_len_list,
-                  hb_array_t<const HBGlyphID16> substitute_glyphs_list)
+		  GlyphIterator glyphs,
+		  SequenceIterator sequences)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
     unsigned int format = 1;
     u.format = format;
     switch (u.format) {
-    case 1: return_trace (u.format1.serialize (c, glyphs, substitute_len_list, substitute_glyphs_list));
+    case 1: return_trace (u.format1.serialize (c, glyphs, sequences));
     default:return_trace (false);
     }
   }

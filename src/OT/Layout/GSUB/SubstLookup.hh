@@ -119,19 +119,20 @@ struct SubstLookup : Lookup
     return_trace (false);
   }
 
-  bool serialize_multiple (hb_serialize_context_t *c,
-                           uint32_t lookup_props,
-                           hb_sorted_array_t<const HBGlyphID16> glyphs,
-                           hb_array_t<const unsigned int> substitute_len_list,
-                           hb_array_t<const HBGlyphID16> substitute_glyphs_list)
+  template<typename GlyphIterator, typename SequenceIterator,
+           hb_requires (hb_is_sorted_source_of (GlyphIterator, hb_codepoint_t)),
+           hb_requires (hb_is_source_of (typename SequenceIterator::item_t, hb_codepoint_t))>
+  bool serialize (hb_serialize_context_t *c,
+		  uint32_t lookup_props,
+		  GlyphIterator glyphs,
+		  SequenceIterator sequences)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!Lookup::serialize (c, SubTable::Multiple, lookup_props, 1))) return_trace (false);
     if (c->push<SubTable> ()->u.multiple.
         serialize (c,
-                   glyphs,
-                   substitute_len_list,
-                   substitute_glyphs_list))
+		   glyphs,
+		   sequences))
     {
       c->add_link (get_subtables<SubTable> ()[0], c->pop_pack ());
       return_trace (true);
