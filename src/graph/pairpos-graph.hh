@@ -123,9 +123,10 @@ struct PairPosFormat1 : public OT::Layout::GPOS_impl::PairPosFormat1_3<SmallType
     pairSet.len = count;
     c.graph.vertices_[this_index].obj.tail -= (old_count - count) * SmallTypes::size;
 
-    unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    unsigned coverage_id = c.graph.mutable_index_for_offset (this_index, &coverage);
     unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
     auto& coverage_v = c.graph.vertices_[coverage_id];
+
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
     if (!coverage_table->sanitize (coverage_v))
       return false;
@@ -478,9 +479,9 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         (old_count - count) * split_context.class1_record_size;
 
     unsigned coverage_id =
-        graph.index_for_offset (split_context.this_index, &coverage);
+        graph.mutable_index_for_offset (split_context.this_index, &coverage);
     unsigned class_def_1_id =
-        graph.index_for_offset (split_context.this_index, &classDef1);
+        graph.mutable_index_for_offset (split_context.this_index, &classDef1);
     auto& coverage_v = graph.vertices_[coverage_id];
     auto& class_def_1_v = graph.vertices_[class_def_1_id];
     Coverage* coverage_table = (Coverage*) coverage_v.obj.head;

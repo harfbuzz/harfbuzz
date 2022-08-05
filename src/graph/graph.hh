@@ -345,7 +345,9 @@ struct graph_t
     }
   }
 
-  unsigned index_for_offset(unsigned node_idx, const void* offset) const
+  // Finds the object id of the object pointed to by the offset at 'offset'
+  // within object[node_idx].
+  unsigned index_for_offset (unsigned node_idx, const void* offset) const
   {
     const auto& node = object (node_idx);
     if (offset < node.head || offset >= node.tail) return -1;
@@ -358,6 +360,24 @@ struct graph_t
     }
 
     return -1;
+  }
+
+  // Finds the object id of the object pointed to by the offset at 'offset'
+  // within object[node_idx]. Ensures that the returned object is safe to mutate.
+  // That is, if the original child object is shared by parents other than node_idx
+  // it will be duplicated and the duplicate will be returned instead.
+  unsigned mutable_index_for_offset (unsigned node_idx, const void* offset)
+  {
+    unsigned child_idx = index_for_offset (node_idx, offset);
+    auto& child = vertices_[child_idx];
+    for (unsigned p : child.parents)
+    {
+      if (p != node_idx) {
+        return duplicate (node_idx, child_idx);
+      }
+    }
+
+    return child_idx;
   }
 
 
