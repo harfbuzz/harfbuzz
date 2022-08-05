@@ -183,10 +183,13 @@ struct Lookup : public OT::Lookup
 
     Lookup* new_lookup = (Lookup*) buffer;
 
+    unsigned shift = 0;
     new_lookup->subTable.len = subTable.len + new_subtable_count;
     for (const auto& p : subtable_ids)
     {
-      unsigned offset_index = p.first + 1;
+      unsigned offset_index = p.first + shift + 1;
+      shift += p.second.length;
+
       for (unsigned subtable_id : p.second)
       {
         if (is_ext)
@@ -220,11 +223,13 @@ struct Lookup : public OT::Lookup
     auto& v = c.graph.vertices_[this_index];
     Lookup* lookup = (Lookup*) v.obj.head;
 
+    unsigned shift = 0;
     for (const auto& p : subtable_ids)
     {
-      unsigned insert_index = p.first;
+      unsigned insert_index = p.first + shift;
       unsigned pos_offset = p.second.length * OT::Offset16::static_size;
       unsigned insert_offset = (char*) &lookup->subTable[insert_index] - (char*) lookup;
+      shift += p.second.length;
 
       for (auto& l : v.obj.all_links_writer ())
       {

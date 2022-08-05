@@ -1907,6 +1907,9 @@ main (int argc, char **argv)
   test_resolve_with_basic_pair_pos_2_split ();
   test_resolve_with_pair_pos_2_split_with_device_tables ();
 
+  // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
+  // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.
+  // TODO(grieger): split test where coverage table in subtable that is being split is shared.
   // TODO(grieger): test with extensions already mixed in as well.
   // TODO(grieger): test two layer ext promotion setup.
   // TODO(grieger): test sorting by subtables per byte in ext. promotion.
