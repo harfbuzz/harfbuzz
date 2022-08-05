@@ -35,19 +35,17 @@ struct MultipleSubst
     }
   }
 
-  template<typename GlyphIterator, typename SequenceIterator,
-           hb_requires (hb_is_sorted_source_of (GlyphIterator, hb_codepoint_t)),
-           hb_requires (hb_is_source_of (typename SequenceIterator::item_t, hb_codepoint_t))>
+  template<typename Iterator,
+           hb_requires (hb_is_sorted_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
-		  GlyphIterator glyphs,
-		  SequenceIterator sequences)
+		  Iterator it)
   {
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (u.format))) return_trace (false);
     unsigned int format = 1;
     u.format = format;
     switch (u.format) {
-    case 1: return_trace (u.format1.serialize (c, glyphs, sequences));
+    case 1: return_trace (u.format1.serialize (c, it));
     default:return_trace (false);
     }
   }

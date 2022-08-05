@@ -71,16 +71,23 @@ struct MultipleSubstFormat1_2
     return_trace ((this+sequence[index]).apply (c));
   }
 
-  template<typename GlyphIterator, typename SequenceIterator,
-           hb_requires (hb_is_sorted_source_of (GlyphIterator, hb_codepoint_t)),
-           hb_requires (hb_is_source_of (typename SequenceIterator::item_t, hb_codepoint_t))>
+  template<typename Iterator,
+           hb_requires (hb_is_sorted_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
-		  GlyphIterator glyphs,
-		  SequenceIterator sequences)
+		  Iterator it)
   {
     TRACE_SERIALIZE (this);
+    auto sequences =
+      + it
+      | hb_map (hb_second)
+      ;
+    auto glyphs =
+      + it
+      | hb_map_retains_sorting (hb_first)
+      ;
     if (unlikely (!c->extend_min (this))) return_trace (false);
-    if (unlikely (!sequence.serialize (c, glyphs.length))) return_trace (false);
+
+    if (unlikely (!sequence.serialize (c, sequences.length))) return_trace (false);
 
     for (auto& pair : hb_zip (sequences, sequence))
     {
