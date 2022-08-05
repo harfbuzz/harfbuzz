@@ -144,28 +144,37 @@ static unsigned add_extension (unsigned child,
 }
 
 // Adds coverage table fro [start, end]
-static unsigned add_coverage (char start, char end,
+static unsigned add_coverage (unsigned start, unsigned end,
                               hb_serialize_context_t* c)
 {
   if (end - start == 1)
   {
-    char coverage[] = {
+    uint8_t coverage[] = {
       0, 1, // format
       0, 2, // count
-      0, start, // glyph[0]
-      0, end,   // glyph[1]
+
+      (uint8_t) ((start >> 8) & 0xFF),
+      (uint8_t) (start & 0xFF), // glyph[0]
+
+      (uint8_t) ((end >> 8) & 0xFF),
+      (uint8_t) (end & 0xFF), // glyph[1]
     };
-    return add_object (coverage, 8, c);
+    return add_object ((char*) coverage, 8, c);
   }
 
-  char coverage[] = {
+  uint8_t coverage[] = {
     0, 2, // format
     0, 1, // range count
-    0, start, // start
-    0, end,   // end
+
+    (uint8_t) ((start >> 8) & 0xFF),
+    (uint8_t) (start & 0xFF), // start
+
+    (uint8_t) ((end >> 8) & 0xFF),
+    (uint8_t) (end & 0xFF), // end
+
     0, 0,
   };
-  return add_object (coverage, 10, c);
+  return add_object ((char*) coverage, 10, c);
 }
 
 // Adds a class that maps glyphs from [start_glyph, end_glyph)
@@ -1207,7 +1216,8 @@ template<int num_pair_pos_2, int num_class_1, int num_class_2>
 static void
 populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
                                            bool as_extension = false,
-                                           bool with_device_tables = false)
+                                           bool with_device_tables = false,
+                                           bool extra_table = true)
 {
   std::string large_string(100000, 'a');
   c->start_serialize<char> ();
@@ -1267,21 +1277,25 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
                                     c);
   }
 
-  unsigned pair_pos_1 = add_object (large_string.c_str(), 100000, c);
 
+  unsigned pair_pos_1 = 0;
+  if (extra_table) pair_pos_1 = add_object (large_string.c_str(), 100000, c);
 
   if (as_extension) {
     for (int i = num_pair_pos_2 - 1; i >= 0; i--)
       pair_pos_2[i] = add_extension (pair_pos_2[i], 2, c);
-    pair_pos_1 = add_extension (pair_pos_1, 2, c);
+
+    if (extra_table)
+      pair_pos_1 = add_extension (pair_pos_1, 2, c);
   }
 
   start_lookup (as_extension ? 9 : 2, 1 + num_pair_pos_2, c);
 
-  add_offset (pair_pos_1, c);
+  if (extra_table)
+    add_offset (pair_pos_1, c);
+
   for (int i = 0; i < num_pair_pos_2; i++)
     add_offset (pair_pos_2[i], c);
-
 
   unsigned lookup = finish_lookup (c);
 
@@ -1732,6 +1746,29 @@ static void test_resolve_with_basic_pair_pos_2_split ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_close_to_limit_pair_pos_2_split ()
+{
+  size_t buffer_size = 300000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_large_pair_pos_2 <1, 1596, 10>(&c, true, false, false);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_large_pair_pos_2 <2, 798, 10>(&e, true, false, false);
+
+  run_resolve_overflow_test ("test_resolve_with_close_to_limit_pair_pos_2_split",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'P', 'O', 'S'));
+  free (buffer);
+  free (expected_buffer);
+}
+
 static void test_resolve_with_pair_pos_2_split_with_device_tables ()
 {
   size_t buffer_size = 300000;
@@ -1906,6 +1943,7 @@ main (int argc, char **argv)
   test_resolve_with_extension_pair_pos_1_split ();
   test_resolve_with_basic_pair_pos_2_split ();
   test_resolve_with_pair_pos_2_split_with_device_tables ();
+  test_resolve_with_close_to_limit_pair_pos_2_split ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.

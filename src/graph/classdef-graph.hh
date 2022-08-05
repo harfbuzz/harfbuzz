@@ -170,20 +170,26 @@ struct class_def_size_estimator_t
 
   // Incremental increase in the Coverage and ClassDef table size
   // (worst case) if all glyphs associated with 'klass' were added.
-  unsigned incremental_size_for_class (unsigned klass) const
+  unsigned incremental_coverage_size (unsigned klass) const
   {
     // Coverage takes 2 bytes per glyph worst case,
-    unsigned cov_size = 2 * glyphs_per_class.get (klass).get_population ();
+    return 2 * glyphs_per_class.get (klass).get_population ();
+  }
+
+  // Incremental increase in the Coverage and ClassDef table size
+  // (worst case) if all glyphs associated with 'klass' were added.
+  unsigned incremental_class_def_size (unsigned klass) const
+  {
     // ClassDef takes 6 bytes per range
     unsigned class_def_2_size = 6 * num_ranges_per_class.get (klass);
     if (gids_consecutive)
     {
       // ClassDef1 takes 2 bytes per glyph, but only can be used
       // when gids are consecutive.
-      return cov_size + hb_min (cov_size, class_def_2_size);
+      return hb_min (2 * glyphs_per_class.get (klass).get_population (), class_def_2_size);
     }
 
-    return cov_size + class_def_2_size;
+    return class_def_2_size;
   }
 
   bool in_error ()

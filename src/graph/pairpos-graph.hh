@@ -206,10 +206,17 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
   {
-    const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size
-        + size_of (c, this_index, &coverage)
-        + size_of (c, this_index, &classDef1)
-        + size_of (c, this_index, &classDef2);
+    const unsigned base_size = OT::Layout::GPOS_impl::PairPosFormat2_4<SmallTypes>::min_size;
+    const unsigned class_def_2_size = size_of (c, this_index, &classDef2);
+    const Coverage* coverage = get_coverage (c, this_index);
+    const ClassDef* class_def_1 = get_class_def_1 (c, this_index);
+    auto gid_and_class =
+        + coverage->iter ()
+        | hb_map_retains_sorting ([&] (hb_codepoint_t gid) {
+          return hb_pair_t<hb_codepoint_t, hb_codepoint_t> (gid, class_def_1->get_class (gid));
+        })
+        ;
+    class_def_size_estimator_t estimator (gid_and_class);
 
     const unsigned class1_count = class1Count;
     const unsigned class2_count = class2Count;
@@ -220,6 +227,9 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     const unsigned total_value_len = value_1_len + value_2_len;
 
     unsigned accumulated = base_size;
+    unsigned coverage_size = 4;
+    unsigned class_def_1_size = 4;
+
     hb_vector_t<unsigned> split_points;
 
     hb_hashmap_t<void*, unsigned> device_tables = get_all_device_tables (c, this_index);
@@ -231,6 +241,9 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     for (unsigned i = 0; i < class1_count; i++)
     {
       accumulated += class1_record_size;
+      coverage_size += estimator.incremental_coverage_size (i);
+      class_def_1_size += estimator.incremental_class_def_size (i);
+
       if (has_device_tables) {
         for (unsigned j = 0; j < class2_count; j++)
         {
@@ -249,14 +262,16 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
         }
       }
 
-      // TODO(garretrieger): don't count the size of the largest pairset against the limit, since
-      //                     it will be packed last in the order and does not contribute to
-      //                     the 64kb limit.
-
-      if (accumulated > (1 << 16))
+      unsigned total = accumulated
+                       + coverage_size + class_def_1_size + class_def_2_size
+                       // The largest object will pack last and can exceed the size limit.
+                       - hb_max (hb_max (coverage_size, class_def_1_size), class_def_2_size);
+      if (total > (1 << 16))
       {
         split_points.push (i);
         accumulated = base_size;
+        coverage_size = 4;
+        class_def_1_size = 4;
         visited.clear (); // node sharing isn't allowed between splits.
       }
     }
@@ -524,6 +539,30 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     }
 
     return result;
+  }
+
+  const Coverage* get_coverage (gsubgpos_graph_context_t& c,
+                          unsigned this_index) const
+  {
+    unsigned coverage_id = c.graph.index_for_offset (this_index, &coverage);
+    auto& coverage_v = c.graph.vertices_[coverage_id];
+
+    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
+    if (!coverage_table->sanitize (coverage_v))
+      return &Null(Coverage);
+    return coverage_table;
+  }
+
+  const ClassDef* get_class_def_1 (gsubgpos_graph_context_t& c,
+                                   unsigned this_index) const
+  {
+    unsigned class_def_1_id = c.graph.index_for_offset (this_index, &classDef1);
+    auto& class_def_1_v = c.graph.vertices_[class_def_1_id];
+
+    ClassDef* class_def_1_table = (ClassDef*) class_def_1_v.obj.head;
+    if (!class_def_1_table->sanitize (class_def_1_v))
+      return &Null(ClassDef);
+    return class_def_1_table;
   }
 
   unsigned size_of_value_record_children (gsubgpos_graph_context_t& c,

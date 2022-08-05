@@ -31,13 +31,22 @@ typedef hb_pair_t<hb_codepoint_t, hb_codepoint_t> gid_and_class_t;
 typedef hb_vector_t<gid_and_class_t> gid_and_class_list_t;
 
 
-static bool incremental_size_is (const gid_and_class_list_t& list, unsigned klass, unsigned expected)
+static bool incremental_size_is (const gid_and_class_list_t& list, unsigned klass,
+                                 unsigned cov_expected, unsigned class_def_expected)
 {
   graph::class_def_size_estimator_t estimator (list.iter ());
-  unsigned result = estimator.incremental_size_for_class (klass);
-  if (result != expected)
+
+  unsigned result = estimator.incremental_coverage_size (klass);
+  if (result != cov_expected)
   {
-    printf ("FAIL: expected size %u but was %u\n", expected, result);
+    printf ("FAIL: coverage expected size %u but was %u\n", cov_expected, result);
+    return false;
+  }
+
+  result = estimator.incremental_class_def_size (klass);
+  if (result != class_def_expected)
+  {
+    printf ("FAIL: class def expected size %u but was %u\n", class_def_expected, result);
     return false;
   }
 
@@ -48,13 +57,13 @@ static void test_class_and_coverage_size_estimates ()
 {
   gid_and_class_list_t empty = {
   };
-  assert (incremental_size_is (empty, 0, 0));
-  assert (incremental_size_is (empty, 1, 0));
+  assert (incremental_size_is (empty, 0, 0, 0));
+  assert (incremental_size_is (empty, 1, 0, 0));
 
   gid_and_class_list_t class_zero = {
     {5, 0},
   };
-  assert (incremental_size_is (class_zero, 0, 2));
+  assert (incremental_size_is (class_zero, 0, 2, 0));
 
   gid_and_class_list_t consecutive = {
     {4, 0},
@@ -66,9 +75,9 @@ static void test_class_and_coverage_size_estimates ()
     {10, 2},
     {11, 2},
   };
-  assert (incremental_size_is (consecutive, 0, 4));
-  assert (incremental_size_is (consecutive, 1, 4 + 4));
-  assert (incremental_size_is (consecutive, 2, 8 + 6));
+  assert (incremental_size_is (consecutive, 0, 4, 0));
+  assert (incremental_size_is (consecutive, 1, 4, 4));
+  assert (incremental_size_is (consecutive, 2, 8, 6));
 
   gid_and_class_list_t non_consecutive = {
     {4, 0},
@@ -82,9 +91,9 @@ static void test_class_and_coverage_size_estimates ()
     {11, 2},
     {12, 2},
   };
-  assert (incremental_size_is (non_consecutive, 0, 4));
-  assert (incremental_size_is (non_consecutive, 1, 4 + 6));
-  assert (incremental_size_is (non_consecutive, 2, 8 + 6));
+  assert (incremental_size_is (non_consecutive, 0, 4, 0));
+  assert (incremental_size_is (non_consecutive, 1, 4, 6));
+  assert (incremental_size_is (non_consecutive, 2, 8, 6));
 
   gid_and_class_list_t multiple_ranges = {
     {4, 0},
@@ -99,8 +108,8 @@ static void test_class_and_coverage_size_estimates ()
     {12, 1},
     {13, 1},
   };
-  assert (incremental_size_is (multiple_ranges, 0, 4));
-  assert (incremental_size_is (multiple_ranges, 1, 2 * 6 + 3 * 6));
+  assert (incremental_size_is (multiple_ranges, 0, 4, 0));
+  assert (incremental_size_is (multiple_ranges, 1, 2 * 6, 3 * 6));
 }
 
 int
