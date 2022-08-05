@@ -1183,18 +1183,16 @@ populate_serializer_with_large_pair_pos_1 (hb_serialize_context_t* c,
   unsigned pair_pos_2 = add_object (large_string.c_str(), 200, c);
 
   if (as_extension) {
-
+    pair_pos_2 = add_extension (pair_pos_2, 2, c);
     for (int i = num_pair_pos_1 - 1; i >= 0; i--)
       pair_pos_1[i] = add_extension (pair_pos_1[i], 2, c);
-    pair_pos_2 = add_extension (pair_pos_2, 2, c);
   }
 
   start_lookup (as_extension ? 9 : 2, 1 + num_pair_pos_1, c);
 
-  add_offset (pair_pos_2, c);
   for (int i = 0; i < num_pair_pos_1; i++)
     add_offset (pair_pos_1[i], c);
-
+  add_offset (pair_pos_2, c);
 
   unsigned lookup = finish_lookup (c);
 

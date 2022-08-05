@@ -139,6 +139,11 @@ struct hb_serialize_context_t
         objidx = o.objidx;
       }
 #endif
+
+      HB_INTERNAL static int cmp (const void* a, const void* b)
+      {
+        return ((const link_t*)a)->position - ((const link_t*)b)->position;
+      }
     };
 
     char *head;
