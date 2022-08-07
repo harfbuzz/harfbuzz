@@ -7,7 +7,7 @@
  * on files with these headers:
  *
  * <meta name="updated_at" content="2022-01-28 10:00 PM" />
- * File-Date: 2022-03-02
+ * File-Date: 2022-06-28
  */
 
 #ifndef HB_OT_TAG_TABLE_HH
@@ -1655,6 +1655,20 @@ hb_ot_tags_from_complex_language (const char   *lang_str,
       *count = 1;
       return true;
     }
+    if (subtag_matches (p, limit, "-tongyong", 9))
+    {
+      /* Chinese [macrolanguage]; Tongyong Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (subtag_matches (p, limit, "-wadegile", 9))
+    {
+      /* Chinese [macrolanguage]; Wade-Giles romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
     if (subtag_matches (p, limit, "-polyton", 8))
     {
       /* Modern Greek (1453-); Polytonic Greek */
@@ -1883,6 +1897,70 @@ out:
       for (i = 0; i < 2 && i < *count; i++)
 	tags[i] = possible_tags[i];
       *count = i;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "do-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Min Dong Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "jy-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Jinyu Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "mn-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Mandarin Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "np-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Northern Ping Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "px-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Pu-Xian Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "sp-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Southern Ping Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "zh-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Huizhou Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "zo-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Min Zhong Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], limit, "do-hans", 7))
@@ -2259,6 +2337,14 @@ out:
       *count = i;
       return true;
     }
+    if (0 == strncmp (&lang_str[1], "an-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Gan Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
     if (lang_matches (&lang_str[1], limit, "an-hans", 7))
     {
       /* Gan Chinese; Han (Simplified variant) */
@@ -2350,6 +2436,22 @@ out:
       for (i = 0; i < 2 && i < *count; i++)
 	tags[i] = possible_tags[i];
       *count = i;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "ak-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Hakka Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "sn-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Xiang Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], limit, "ak-hans", 7))
@@ -2500,6 +2602,14 @@ out:
       *count = i;
       return true;
     }
+    if (0 == strncmp (&lang_str[1], "np-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Min Bei Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
     if (lang_matches (&lang_str[1], limit, "np-hans", 7))
     {
       /* Min Bei Chinese; Han (Simplified variant) */
@@ -2572,6 +2682,14 @@ out:
       for (i = 0; i < 2 && i < *count; i++)
 	tags[i] = possible_tags[i];
       *count = i;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "an-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Min Nan Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
       return true;
     }
     if (lang_matches (&lang_str[1], limit, "an-hans", 7))
@@ -2670,6 +2788,14 @@ out:
       *count = i;
       return true;
     }
+    if (0 == strncmp (&lang_str[1], "uu-", 3)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Wu Chinese; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
+      *count = 1;
+      return true;
+    }
     if (lang_matches (&lang_str[1], limit, "uu-hans", 7))
     {
       /* Wu Chinese; Han (Simplified variant) */
@@ -2749,6 +2875,14 @@ out:
     {
       /* Minnan, Hokkien, Amoy, Taiwanese, Southern Min, Southern Fujian, Hoklo, Southern Fukien, Ho-lo (retired code) */
       tags[0] = HB_TAG('Z','H','S',' ');  /* Chinese, Simplified */
+      *count = 1;
+      return true;
+    }
+    if (0 == strncmp (&lang_str[1], "h-", 2)
+	&& subtag_matches (lang_str, limit, "-pinyin", 7))
+    {
+      /* Chinese [macrolanguage]; Pinyin romanization */
+      tags[0] = HB_TAG('Z','H','P',' ');  /* Chinese, Phonetic */
       *count = 1;
       return true;
     }
@@ -2975,6 +3109,8 @@ hb_ot_ambiguous_tag_to_language (hb_tag_t tag)
     return hb_language_from_string ("xwo", -1);  /* Written Oirat */
   case HB_TAG('Z','H','H',' '):  /* Chinese, Traditional, Hong Kong SAR */
     return hb_language_from_string ("zh-HK", -1);  /* Chinese [macrolanguage]; Hong Kong */
+  case HB_TAG('Z','H','P',' '):  /* Chinese, Phonetic */
+    return hb_language_from_string ("zh-Latn-pinyin", -1);  /* Chinese [macrolanguage]; Latin; Pinyin romanization */
   case HB_TAG('Z','H','S',' '):  /* Chinese, Simplified */
     return hb_language_from_string ("zh-Hans", -1);  /* Chinese [macrolanguage]; Han (Simplified variant) */
   case HB_TAG('Z','H','T',' '):  /* Chinese, Traditional */

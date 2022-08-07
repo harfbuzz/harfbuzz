@@ -267,12 +267,45 @@ class LanguageTag (object):
 			self.script = self._find_first (lambda s: len (s) == 4 and s[0] > '9', self.subtags)
 			self.region = self._find_first (lambda s: len (s) == 2 and s[0] > '9' or len (s) == 3 and s[0] <= '9', self.subtags[1:])
 			self.variant = self._find_first (lambda s: len (s) > 4 or len (s) == 4 and s[0] <= '9', self.subtags)
+			if self.script:
+				self.script = self.script.capitalize ()
+			if self.region:
+				self.region = self.region.upper ()
+			self._recalculate_subtags ()
 
 	def __str__(self):
 		return '-'.join(self.subtags)
 
 	def __repr__ (self):
 		return 'LanguageTag(%r)' % str(self)
+
+	def with_language (self, language):
+		lt = LanguageTag (str (self))
+		lt.language = ''
+		lt._recalculate_subtags()
+		return lt
+
+	def with_script (self, script):
+		lt = LanguageTag (str (self))
+		lt.script = ''
+		lt._recalculate_subtags()
+		return lt
+
+	def with_region (self, region):
+		lt = LanguageTag (str (self))
+		lt.region = ''
+		lt._recalculate_subtags()
+		return lt
+
+	def with_variant (self, variant):
+		lt = LanguageTag (str (self))
+		lt.variant = ''
+		lt._recalculate_subtags()
+		return lt
+
+	def _recalculate_subtags (self):
+		if not self.grandfathered:
+			self.subtags = list (filter (None, [self.language, self.script, self.region, self.variant]))
 
 	@staticmethod
 	def _find_first (function, sequence):
@@ -790,7 +823,6 @@ bcp_47.macrolanguages['xst'] = {'stv', 'wle'}
 ot.add_language ('xwo', 'TOD')
 
 ot.remove_language_ot ('ZHH')
-ot.remove_language_ot ('ZHP')
 ot.remove_language_ot ('ZHT')
 ot.remove_language_ot ('ZHTM')
 bcp_47.macrolanguages['zh'].remove ('lzh')
@@ -808,6 +840,11 @@ ot.add_language ('lzh', 'ZHT')
 ot.add_language ('lzh-Hans', 'ZHS')
 ot.add_language ('yue', 'ZHH')
 ot.add_language ('yue-Hans', 'ZHS')
+
+ot.remove_language_ot ('ZHP')
+ot.add_language ('zh-pinyin', 'ZHP')
+ot.add_language ('zh-tongyong', 'ZHP')
+ot.add_language ('zh-wadegile', 'ZHP')
 
 bcp_47.macrolanguages['zom'] = {'yos'}
 
@@ -862,6 +899,7 @@ disambiguation = {
 	'SRB': 'sr',
 	'SXT': 'xnj',
 	'ZHH': 'zh-HK',
+	'ZHP': 'zh-Latn-pinyin',
 	'ZHS': 'zh-Hans',
 	'ZHT': 'zh-Hant',
 	'ZHTM': 'zh-MO',
@@ -1003,7 +1041,7 @@ def print_subtag_matches (subtag, string, new_line):
 		if new_line:
 			print ()
 			print ('\t&& ', end='')
-		print ('subtag_matches (%s, limit, "-%s", %i)' % (string, subtag, 1 + len (subtag)), end='')
+		print ('subtag_matches (%s, limit, "-%s", %i)' % (string, subtag.lower (), 1 + len (subtag)), end='')
 
 complex_tags = collections.defaultdict (list)
 for initial, group in itertools.groupby ((lt_tags for lt_tags in [
@@ -1039,7 +1077,10 @@ for initial, items in sorted (complex_tags.items ()):
 		if not tags:
 			continue
 		if lt.variant in bcp_47.prefixes:
-			expect (next (iter (bcp_47.prefixes[lt.variant])) == lt.language,
+			variant_prefix = str (LanguageTag (next (iter (bcp_47.prefixes[lt.variant]))).with_script (''))
+			if lt.language in bcp_47.macrolanguages[variant_prefix]:
+				continue
+			expect (lt.language == variant_prefix,
 					'%s is not a valid prefix of %s' % (lt.language, lt.variant))
 		print ('    if (', end='')
 		print_subtag_matches (lt.script, 'p', False)
@@ -1089,6 +1130,7 @@ for initial, items in sorted (complex_tags.items ()):
 				if region:
 					string_literal += '-' + region
 					region = None
+			string_literal = string_literal.lower ()
 			if string_literal[-1] == '-':
 				print ('0 == strncmp (&lang_str[1], "%s", %i)' % (string_literal, len (string_literal)), end='')
 			else:
@@ -1187,7 +1229,8 @@ def verify_disambiguation_dict ():
 				macrolanguages = list (t for t in primary_tags if 'retired code' not in bcp_47.scopes.get (t, ''))
 			if len (macrolanguages) != 1:
 				expect (ot_tag in disambiguation, 'ambiguous OT tag: %s %s' % (ot_tag, str (macrolanguages)))
-				expect (disambiguation[ot_tag] in bcp_47_tags,
+				expect (disambiguation[ot_tag] in bcp_47_tags
+						or str (LanguageTag (disambiguation[ot_tag]).with_script ('')) in bcp_47_tags,
 						'%s is not a valid disambiguation for %s' % (disambiguation[ot_tag], ot_tag))
 			elif ot_tag not in disambiguation:
 				disambiguation[ot_tag] = macrolanguages[0]
