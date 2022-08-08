@@ -236,7 +236,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
     hb_vector_t<unsigned> split_points;
 
-    hb_hashmap_t<void*, unsigned> device_tables = get_all_device_tables (c, this_index);
+    hb_hashmap_t<unsigned, unsigned> device_tables = get_all_device_tables (c, this_index);
     hb_vector_t<unsigned> format1_device_table_indices = valueFormat1.get_device_table_indices ();
     hb_vector_t<unsigned> format2_device_table_indices = valueFormat2.get_device_table_indices ();
     bool has_device_tables = bool(format1_device_table_indices) || bool(format2_device_table_indices);
@@ -315,7 +315,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     unsigned max_coverage_size;
     unsigned max_class_def_size;
 
-    const hb_hashmap_t<void*, unsigned>& device_tables;
+    const hb_hashmap_t<unsigned, unsigned>& device_tables;
     const hb_vector_t<unsigned>& format1_device_table_indices;
     const hb_vector_t<unsigned>& format2_device_table_indices;
 
@@ -481,7 +481,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     for (unsigned i : device_table_indices)
     {
       OT::Offset16* record = (OT::Offset16*) &values[old_value_record_index + i];
-      if (!split_context.device_tables.has ((void*) record)) continue;
+      unsigned record_position = ((char*) record) - ((char*) this);
+      if (!split_context.device_tables.has (record_position)) continue;
 
       split_context.c.graph.move_child (
           split_context.this_index,
@@ -543,15 +544,15 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
                                      class_def_1_v.table_size ());
   }
 
-  hb_hashmap_t<void*, unsigned>
+  hb_hashmap_t<unsigned, unsigned>
   get_all_device_tables (gsubgpos_graph_context_t& c,
                          unsigned this_index) const
   {
-    hb_hashmap_t<void*, unsigned> result;
+    hb_hashmap_t<unsigned, unsigned> result;
 
     const auto& o = c.graph.object (this_index);
     for (const auto& l : o.real_links) {
-      result.set ((void*) (((uint8_t*)this) + l.position), l.objidx);
+      result.set (l.position, l.objidx);
     }
 
     return result;
@@ -582,7 +583,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
   }
 
   unsigned size_of_value_record_children (gsubgpos_graph_context_t& c,
-                                          const hb_hashmap_t<void*, unsigned>& device_tables,
+                                          const hb_hashmap_t<unsigned, unsigned>& device_tables,
                                           const hb_vector_t<unsigned> device_table_indices,
                                           unsigned value_record_index,
                                           hb_set_t& visited)
@@ -591,8 +592,9 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
     for (unsigned i : device_table_indices)
     {
       OT::Layout::GPOS_impl::Value* record = &values[value_record_index + i];
+      unsigned record_position = ((char*) record) - ((char*) this);
       unsigned* obj_idx;
-      if (!device_tables.has ((void*) record, &obj_idx)) continue;
+      if (!device_tables.has (record_position, &obj_idx)) continue;
       size += c.graph.find_subgraph_size (*obj_idx, visited);
     }
     return size;
