@@ -67,6 +67,8 @@ struct hb_subset_plan_t
     hb_map_destroy (gpos_features);
     hb_map_destroy (colrv1_layers);
     hb_map_destroy (colr_palettes);
+    hb_map_destroy (axes_index_map);
+    hb_map_destroy (axes_old_index_tag_map);
 
     hb_hashmap_destroy (gsub_langsys);
     hb_hashmap_destroy (gpos_langsys);
@@ -158,6 +160,10 @@ struct hb_subset_plan_t
   hb_hashmap_t<hb_tag_t, int> *axes_location;
   //user specified axes location map
   hb_hashmap_t<hb_tag_t, float> *user_axes_location;
+  //retained old axis index -> new axis index mapping in fvar axis array
+  hb_map_t *axes_index_map;
+  //axis_index->axis_tag mapping in fvar axis array
+  hb_map_t *axes_old_index_tag_map;
   bool all_axes_pinned;
   bool pinned_at_default;
 
