@@ -663,18 +663,22 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     seg_maps = face->table.avar->get_segment_maps ();
 
   bool axis_not_pinned = false;
-  unsigned axis_count = 0;
+  unsigned old_axis_idx = 0, new_axis_idx = 0;
   for (const auto& axis : axes)
   {
     hb_tag_t axis_tag = axis.get_axis_tag ();
+    plan->axes_old_index_tag_map->set (old_axis_idx, axis_tag);
+
     if (!plan->user_axes_location->has (axis_tag))
     {
       axis_not_pinned = true;
+      plan->axes_index_map->set (old_axis_idx, new_axis_idx);
+      new_axis_idx++;
     }
     else
     {
       int normalized_v = axis.normalize_axis_value (plan->user_axes_location->get (axis_tag));
-      if (has_avar && axis_count < face->table.avar->get_axis_count ())
+      if (has_avar && old_axis_idx < face->table.avar->get_axis_count ())
       {
         normalized_v = seg_maps->map (normalized_v);
       }
@@ -684,8 +688,8 @@ _normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
     }
     if (has_avar)
       seg_maps = &StructAfter<OT::SegmentMaps> (*seg_maps);
-
-    axis_count++;
+    
+    old_axis_idx++;
   }
   plan->all_axes_pinned = !axis_not_pinned;
 }
@@ -755,6 +759,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->check_success (plan->user_axes_location = hb_hashmap_create<hb_tag_t, float> ());
   if (plan->user_axes_location && input->axes_location)
       *plan->user_axes_location = *input->axes_location;
+  plan->check_success (plan->axes_index_map = hb_map_create ());
+  plan->check_success (plan->axes_old_index_tag_map = hb_map_create ());
   plan->all_axes_pinned = false;
   plan->pinned_at_default = true;
 
