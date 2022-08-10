@@ -350,6 +350,8 @@ hb_subset_sources = files(
   'graph/gsubgpos-graph.hh',
   'graph/pairpos-graph.hh',
   'graph/coverage-graph.hh',
+  'graph/classdef-graph.hh',
+  'graph/split-helpers.hh',
   'hb-subset.cc',
   'hb-subset.hh',
 )
@@ -580,6 +582,7 @@ if get_option('tests').enabled()
     'test-ot-tag': ['hb-ot-tag.cc'],
     'test-priority-queue': ['test-priority-queue.cc', 'hb-static.cc'],
     'test-repacker': ['test-repacker.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc'],
+    'test-classdef-graph': ['graph/test-classdef-graph.cc', 'hb-static.cc', 'graph/gsubgpos-context.cc'],
     'test-set': ['test-set.cc', 'hb-static.cc'],
     'test-serialize': ['test-serialize.cc', 'hb-static.cc'],
     'test-unicode-ranges': ['test-unicode-ranges.cc'],

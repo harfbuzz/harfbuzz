@@ -59,6 +59,24 @@ struct ValueFormat : HBUINT16
   unsigned int get_len () const  { return hb_popcount ((unsigned int) *this); }
   unsigned int get_size () const { return get_len () * Value::static_size; }
 
+  hb_vector_t<unsigned> get_device_table_indices () const {
+    unsigned i = 0;
+    hb_vector_t<unsigned> result;
+    unsigned format = *this;
+
+    if (format & xPlacement) i++;
+    if (format & yPlacement) i++;
+    if (format & xAdvance)   i++;
+    if (format & yAdvance)   i++;
+
+    if (format & xPlaDevice) result.push (i++);
+    if (format & yPlaDevice) result.push (i++);
+    if (format & xAdvDevice) result.push (i++);
+    if (format & yAdvDevice) result.push (i++);
+
+    return result;
+  }
+
   bool apply_value (hb_ot_apply_context_t *c,
                     const void            *base,
                     const Value           *values,

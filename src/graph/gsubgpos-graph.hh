@@ -124,7 +124,7 @@ struct Lookup : public OT::Lookup
     if (!is_ext && type != OT::Layout::GPOS_impl::PosLookupSubTable::Type::Pair)
       return true;
 
-    hb_vector_t<unsigned> all_new_subtables;
+    hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>> all_new_subtables;
     for (unsigned i = 0; i < subTable.len; i++)
     {
       unsigned subtable_index = c.graph.index_for_offset (this_index, &subTable[i]);
@@ -133,7 +133,7 @@ struct Lookup : public OT::Lookup
         ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>* extension =
             (ExtensionFormat1<OT::Layout::GSUB_impl::ExtensionSubst>*)
             c.graph.object (ext_subtable_index).head;
-        if (!extension->sanitize (c.graph.vertices_[ext_subtable_index]))
+        if (!extension || !extension->sanitize (c.graph.vertices_[ext_subtable_index]))
           continue;
 
         subtable_index = extension->get_subtable_index (c.graph, ext_subtable_index);
@@ -143,15 +143,18 @@ struct Lookup : public OT::Lookup
       }
 
       PairPos* pairPos = (PairPos*) c.graph.object (subtable_index).head;
-      if (!pairPos->sanitize (c.graph.vertices_[subtable_index])) continue;
+      if (!pairPos || !pairPos->sanitize (c.graph.vertices_[subtable_index])) continue;
 
       hb_vector_t<unsigned> new_sub_tables = pairPos->split_subtables (c, subtable_index);
       if (new_sub_tables.in_error ()) return false;
-      + new_sub_tables.iter() | hb_sink (all_new_subtables);
+      hb_pair_t<unsigned, hb_vector_t<unsigned>>* entry = all_new_subtables.push ();
+      entry->first = i;
+      entry->second = std::move (new_sub_tables);
     }
 
-    if (all_new_subtables)
+    if (all_new_subtables) {
       add_sub_tables (c, this_index, type, all_new_subtables);
+    }
 
     return true;
   }
@@ -159,13 +162,18 @@ struct Lookup : public OT::Lookup
   void add_sub_tables (gsubgpos_graph_context_t& c,
                        unsigned this_index,
                        unsigned type,
-                       hb_vector_t<unsigned>& subtable_indices)
+                       hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>>& subtable_ids)
   {
     bool is_ext = is_extension (c.table_tag);
     auto& v = c.graph.vertices_[this_index];
+    fix_existing_subtable_links (c, this_index, subtable_ids);
+
+    unsigned new_subtable_count = 0;
+    for (const auto& p : subtable_ids)
+      new_subtable_count += p.second.length;
 
     size_t new_size = v.table_size ()
-                      + subtable_indices.length * OT::Offset16::static_size;
+                      + new_subtable_count * OT::Offset16::static_size;
     char* buffer = (char*) hb_calloc (1, new_size);
     c.add_buffer (buffer);
     memcpy (buffer, v.obj.head, v.table_size());
@@ -175,28 +183,59 @@ struct Lookup : public OT::Lookup
 
     Lookup* new_lookup = (Lookup*) buffer;
 
-    new_lookup->subTable.len = subTable.len + subtable_indices.length;
-    unsigned offset_index = subTable.len;
-    for (unsigned subtable_id : subtable_indices)
+    unsigned shift = 0;
+    new_lookup->subTable.len = subTable.len + new_subtable_count;
+    for (const auto& p : subtable_ids)
     {
-      if (is_ext)
-      {
-        unsigned ext_id = create_extension_subtable (c, subtable_id, type);
-        c.graph.vertices_[subtable_id].parents.push (ext_id);
-        subtable_id = ext_id;
-      }
+      unsigned offset_index = p.first + shift + 1;
+      shift += p.second.length;
 
-      auto* link = v.obj.real_links.push ();
-      link->width = 2;
-      link->objidx = subtable_id;
-      link->position = (char*) &new_lookup->subTable[offset_index++] -
-                       (char*) new_lookup;
-      c.graph.vertices_[subtable_id].parents.push (this_index);
+      for (unsigned subtable_id : p.second)
+      {
+        if (is_ext)
+        {
+          unsigned ext_id = create_extension_subtable (c, subtable_id, type);
+          c.graph.vertices_[subtable_id].parents.push (ext_id);
+          subtable_id = ext_id;
+        }
+
+        auto* link = v.obj.real_links.push ();
+        link->width = 2;
+        link->objidx = subtable_id;
+        link->position = (char*) &new_lookup->subTable[offset_index++] -
+                         (char*) new_lookup;
+        c.graph.vertices_[subtable_id].parents.push (this_index);
+      }
     }
+
+    // Repacker sort order depends on link order, which we've messed up so resort it.
+    v.obj.real_links.qsort ();
 
     // The head location of the lookup has changed, invalidating the lookups map entry
     // in the context. Update the map.
     c.lookups.set (this_index, new_lookup);
+  }
+
+  void fix_existing_subtable_links (gsubgpos_graph_context_t& c,
+                                    unsigned this_index,
+                                    hb_vector_t<hb_pair_t<unsigned, hb_vector_t<unsigned>>>& subtable_ids)
+  {
+    auto& v = c.graph.vertices_[this_index];
+    Lookup* lookup = (Lookup*) v.obj.head;
+
+    unsigned shift = 0;
+    for (const auto& p : subtable_ids)
+    {
+      unsigned insert_index = p.first + shift;
+      unsigned pos_offset = p.second.length * OT::Offset16::static_size;
+      unsigned insert_offset = (char*) &lookup->subTable[insert_index] - (char*) lookup;
+      shift += p.second.length;
+
+      for (auto& l : v.obj.all_links_writer ())
+      {
+        if (l.position > insert_offset) l.position += pos_offset;
+      }
+    }
   }
 
   unsigned create_extension_subtable (gsubgpos_graph_context_t& c,
@@ -281,7 +320,7 @@ struct GSTAR : public OT::GSUBGPOS
     const auto& r = graph.root ();
 
     GSTAR* gstar = (GSTAR*) r.obj.head;
-    if (!gstar->sanitize (r))
+    if (!gstar || !gstar->sanitize (r))
       return nullptr;
 
     return gstar;
@@ -327,17 +366,16 @@ struct GSTAR : public OT::GSUBGPOS
                      hb_hashmap_t<unsigned, Lookup*>& lookups /* OUT */)
   {
     unsigned lookup_list_idx = get_lookup_list_index (graph);
-
     const LookupList<Types>* lookupList =
         (const LookupList<Types>*) graph.object (lookup_list_idx).head;
-    if (!lookupList->sanitize (graph.vertices_[lookup_list_idx]))
+    if (!lookupList || !lookupList->sanitize (graph.vertices_[lookup_list_idx]))
       return;
 
     for (unsigned i = 0; i < lookupList->len; i++)
     {
       unsigned lookup_idx = graph.index_for_offset (lookup_list_idx, &(lookupList->arrayZ[i]));
       Lookup* lookup = (Lookup*) graph.object (lookup_idx).head;
-      if (!lookup->sanitize (graph.vertices_[lookup_idx])) continue;
+      if (!lookup || !lookup->sanitize (graph.vertices_[lookup_idx])) continue;
       lookups.set (lookup_idx, lookup);
     }
   }

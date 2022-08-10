@@ -376,6 +376,7 @@ COMPILED_TESTS = \
 	test-unicode-ranges \
 	test-vector \
 	test-repacker \
+	test-classdef-graph \
 	$(NULL)
 COMPILED_TESTS_CPPFLAGS = $(HBCFLAGS) -DMAIN -UNDEBUG
 COMPILED_TESTS_LDADD = libharfbuzz.la $(HBLIBS)
@@ -421,6 +422,10 @@ test_priority_queue_LDADD = libharfbuzz.la $(HBLIBS)
 test_repacker_SOURCES = test-repacker.cc hb-static.cc graph/gsubgpos-context.cc
 test_repacker_CPPFLAGS = $(HBCFLAGS)
 test_repacker_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
+
+test_classdef_graph_SOURCES = graph/test-classdef-graph.cc hb-static.cc graph/gsubgpos-context.cc
+test_classdef_graph_CPPFLAGS = $(HBCFLAGS)
+test_classdef_graph_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
 
 test_set_SOURCES = test-set.cc hb-static.cc
 test_set_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
