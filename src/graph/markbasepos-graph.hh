@@ -204,6 +204,18 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     hb_hashmap_t<unsigned, unsigned> mark_array_links;
     hb_hashmap_t<unsigned, unsigned> base_array_links;
 
+    hb_set_t marks_for (unsigned start, unsigned end)
+    {
+      hb_set_t marks;
+      for (unsigned klass = start; klass < end; klass++)
+      {
+        + class_to_info[klass].marks.iter ()
+        | hb_sink (marks)
+        ;
+      }
+      return marks;
+    }
+
     unsigned original_count ()
     {
       return thiz->classCount;
@@ -259,37 +271,38 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     return class_to_info;
   }
 
-  bool shrink (split_context_t& c,
+  bool shrink (split_context_t& sc,
                unsigned this_index,
                unsigned count)
   {
-    /*
     DEBUG_MSG (SUBSET_REPACK, nullptr,
-               "  Shrinking PairPosFormat1 (%u) to [0, %u).",
+               "  Shrinking MarkBasePosFormat1 (%u) to [0, %u).",
                this_index,
                count);
-    unsigned old_count = pairSet.len;
+
+    unsigned old_count = classCount;
     if (count >= old_count)
       return true;
 
-    pairSet.len = count;
-    c.graph.vertices_[this_index].obj.tail -= (old_count - count) * SmallTypes::size;
+    classCount = count;
 
-    unsigned coverage_id = c.graph.mutable_index_for_offset (this_index, &coverage);
-    unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
-    auto& coverage_v = c.graph.vertices_[coverage_id];
-
-    Coverage* coverage_table = (Coverage*) coverage_v.obj.head;
-    if (!coverage_table || !coverage_table->sanitize (coverage_v))
+    auto mark_coverage = sc.c.graph.as_table<Coverage> (this_index,
+                                                        &markCoverage);
+    if (!mark_coverage) return false;
+    hb_set_t marks = sc.marks_for (0, count);
+    auto new_coverage =
+        + hb_zip (hb_range (), mark_coverage.table->iter ())
+        | hb_filter (marks, hb_first)
+        | hb_map_retains_sorting (hb_second)
+        ;
+    if (!Coverage::make_coverage (sc.c, + new_coverage,
+                                  mark_coverage.index,
+                                  4 + 2 * marks.get_population ()))
       return false;
 
-    auto new_coverage =
-        + hb_zip (coverage_table->iter (), hb_range ())
-        | hb_filter ([&] (hb_pair_t<unsigned, unsigned> p) {
-          return p.second < count;
-        })
-        | hb_map_retains_sorting (hb_first)
-        ;
+    // TODO: markArray, baseArray
+    /*
+
 
     return Coverage::make_coverage (c, new_coverage, coverage_id, coverage_size);
     */
@@ -304,8 +317,6 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
   {
     DEBUG_MSG (SUBSET_REPACK, nullptr,
                "  Cloning MarkBasePosFormat1 (%u) range [%u, %u).", this_index, start, end);
-
-    // TODO
 
     graph_t& graph = sc.c.graph;
     unsigned prime_size = OT::Layout::GPOS_impl::MarkBasePosFormat1_2<SmallTypes>::static_size;
@@ -322,18 +333,19 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     graph.add_link (&(prime->baseCoverage), prime_id, base_coverage_id);
     graph.duplicate (prime_id, base_coverage_id);
 
-    hb_set_t marks;
-    for (unsigned klass = start; klass < end; klass++)
-    {
-      + sc.class_to_info[klass].marks.iter ()
-      | hb_sink (marks)
-      ;
-    }
-
+    auto mark_coverage = sc.c.graph.as_table<Coverage> (this_index,
+                                                        &markCoverage);
+    if (!mark_coverage) return false;
+    hb_set_t marks = sc.marks_for (start, end);
+    auto new_coverage =
+        + hb_zip (hb_range (), mark_coverage.table->iter ())
+        | hb_filter (marks, hb_first)
+        | hb_map_retains_sorting (hb_second)
+        ;
     if (!Coverage::add_coverage (sc.c,
                                  prime_id,
                                  2,
-                                 + marks.iter (),
+                                 + new_coverage,
                                  marks.get_population () * 2 + 4))
       return -1;
 
