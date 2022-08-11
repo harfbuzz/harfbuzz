@@ -42,6 +42,36 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
     return false;
   }
 
+  bool shrink (gsubgpos_graph_context_t& c,
+               unsigned this_index,
+               unsigned old_class_count,
+               unsigned new_class_count)
+  {
+    if (new_class_count >= old_class_count) return false;
+    auto& o = c.graph.vertices_[this_index].obj;
+    unsigned base_count = rows;
+    o.tail = o.head +
+             AnchorMatrix::min_size +
+             OT::Offset16::static_size * base_count * new_class_count;
+
+    // Reposition links into the new indexing scheme.
+    for (auto& link : o.real_links.writer ())
+    {
+      unsigned index = (link.position - 2) / 2;
+      unsigned base = index / old_class_count;
+      unsigned klass = index % old_class_count;
+      if (klass >= new_class_count)
+        // should have already been removed
+        return false;
+
+      unsigned new_index = base * new_class_count + klass;
+
+      link.position = (char*) &(this->matrixZ[new_index]) - (char*) this;
+    }
+
+    return true;
+  }
+
   unsigned clone (gsubgpos_graph_context_t& c,
                   unsigned this_index,
                   const hb_hashmap_t<unsigned, unsigned>& pos_to_index,
@@ -300,7 +330,16 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                   4 + 2 * marks.get_population ()))
       return false;
 
-    // TODO: markArray, baseArray
+
+    auto base_array = sc.c.graph.as_table<AnchorMatrix> (this_index,
+                                                         &baseArray);
+    if (!base_array || !base_array.table->shrink (sc.c,
+                                                  base_array.index,
+                                                  old_count,
+                                                  count))
+      return false;
+
+    // TODO: markArray
     /*
 
 
