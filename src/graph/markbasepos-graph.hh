@@ -68,9 +68,6 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
   {
     hb_set_t visited;
 
-    const unsigned coverage_id = c.graph.index_for_offset (this_index, &markCoverage);
-    const unsigned coverage_size = c.graph.vertices_[coverage_id].table_size ();
-
     const unsigned base_coverage_id = c.graph.index_for_offset (this_index, &baseCoverage);
     const unsigned base_size =
         OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size +
@@ -87,6 +84,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
       class_info_t& info = class_to_info[klass];
       partial_coverage_size += OT::HBUINT16::static_size * info.num_marks;
       unsigned accumulated_delta = OT::Layout::GPOS_impl::MarkRecord::static_size * info.num_marks;
+      // TODO this doesn't count up null offsets.
       accumulated_delta += OT::Offset16::static_size * info.child_indices.length;
       for (unsigned objidx : info.child_indices)
         accumulated_delta += c.graph.find_subgraph_size (objidx, visited);
@@ -121,7 +119,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
     unsigned original_count ()
     {
-      return thiz->pairSet.len;
+      return thiz->classCount;
     }
 
     unsigned clone_range (unsigned start, unsigned end)
@@ -146,41 +144,38 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     hb_vector_t<class_info_t> class_to_info;
 
     unsigned class_count= classCount;
-    class_to_size.resize (class_count);
+    class_to_info.resize (class_count);
 
     unsigned mark_array_id =
         c.graph.index_for_offset (this_index, &markArray);
-    auto& mark_array_v = graph.vertices_[coverage_id];
-    MarkArray* mark_array = (MarkArray*) mark_array_v.head;
+    auto& mark_array_v = c.graph.vertices_[mark_array_id];
+    MarkArray* mark_array = (MarkArray*) mark_array_v.obj.head;
     // TODO sanitize
 
-    unsigned mark_count = mark_array->length;
+    unsigned mark_count = mark_array->len;
     for (unsigned mark = 0; mark < mark_count; mark++)
     {
-      unsigned klass = (*mark_array)[mark].klass;
-      class_to_size[klass].num_marks++;
+      unsigned klass = (*mark_array)[mark].get_class ();
+      class_to_info[klass].num_marks++;
     }
 
-    for (const auto* link : mark_array_v.obj.real_links)
+    for (const auto& link : mark_array_v.obj.real_links)
     {
-      unsiged mark = (link->position - 2) /
-                     OT::Layout::GPOS_impl::MarkReecord::static_size;
-      unsigned klass = (*mark_array)[mark].klass;
+      unsigned mark = (link.position - 2) /
+                     OT::Layout::GPOS_impl::MarkRecord::static_size;
+      unsigned klass = (*mark_array)[mark].get_class ();
       class_to_info[klass].child_indices.push (link.objidx);
     }
 
     unsigned base_array_id =
         c.graph.index_for_offset (this_index, &baseArray);
-    auto& base_array_v = graph.vertices_[coverage_id];
-    AnchorMatrix* base_array = (AnchorMatrix*) base_array_v.head;
-    // TODO sanitize
+    auto& base_array_v = c.graph.vertices_[base_array_id];
 
-    unsigned base_count = base_array->rows;
-    for (const auto* link : base_array_v.obj.real_links)
+    for (const auto& link : base_array_v.obj.real_links)
     {
-      unsigned index = (link->position - 2) / OT::Offset16::static_size;
+      unsigned index = (link.position - 2) / OT::Offset16::static_size;
       unsigned klass = index % class_count;
-      class_to_info[klass].child_indices.push (link->objidx);
+      class_to_info[klass].child_indices.push (link.objidx);
     }
 
     return class_to_info;

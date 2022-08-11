@@ -29,6 +29,7 @@
 #include "../OT/Layout/GSUB/ExtensionSubst.hh"
 #include "gsubgpos-context.hh"
 #include "pairpos-graph.hh"
+#include "markbasepos-graph.hh"
 
 #ifndef GRAPH_GSUBGPOS_GRAPH_HH
 #define GRAPH_GSUBGPOS_GRAPH_HH
@@ -142,11 +143,18 @@ struct Lookup : public OT::Lookup
           continue;
       }
 
-      PairPos* pairPos = (PairPos*) c.graph.object (subtable_index).head;
-      if (!pairPos || !pairPos->sanitize (c.graph.vertices_[subtable_index])) continue;
-
-      hb_vector_t<unsigned> new_sub_tables = pairPos->split_subtables (c, subtable_index);
+      hb_vector_t<unsigned> new_sub_tables;
+      switch (type)
+      {
+      case 2:
+        new_sub_tables = split_subtable<PairPos> (c, subtable_index); break;
+      case 4:
+        new_sub_tables = split_subtable<MarkBasePos> (c, subtable_index); break;
+      default:
+        break;
+      }
       if (new_sub_tables.in_error ()) return false;
+      if (!new_sub_tables) continue;
       hb_pair_t<unsigned, hb_vector_t<unsigned>>* entry = all_new_subtables.push ();
       entry->first = i;
       entry->second = std::move (new_sub_tables);
@@ -157,6 +165,17 @@ struct Lookup : public OT::Lookup
     }
 
     return true;
+  }
+
+  template<typename T>
+  hb_vector_t<unsigned> split_subtable (gsubgpos_graph_context_t& c,
+                                        unsigned objidx)
+  {
+    T* sub_table = (T*) c.graph.object (objidx).head;
+    if (!sub_table || !sub_table->sanitize (c.graph.vertices_[objidx]))
+      return hb_vector_t<unsigned> ();
+
+    return sub_table->split_subtables (c, objidx);
   }
 
   void add_sub_tables (gsubgpos_graph_context_t& c,
