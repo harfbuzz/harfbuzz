@@ -271,11 +271,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
     unsigned base_coverage_id =
         graph.index_for_offset (sc.this_index, &baseCoverage);
-    auto* base_coverage_link = graph.vertices_[prime_id].obj.real_links.push ();
-    base_coverage_link->width = SmallTypes::size;
-    base_coverage_link->objidx = base_coverage_id;
-    base_coverage_link->position = 4;
-    graph.vertices_[base_coverage_id].parents.push (prime_id);
+    graph.add_link (&(prime->baseCoverage), prime_id, base_coverage_id);
     graph.duplicate (prime_id, base_coverage_id);
 
     hb_set_t marks;
@@ -302,12 +298,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                                  mark_array_id,
                                                  sc.mark_array_links,
                                                  marks);
-
-    auto* mark_array_link = graph.vertices_[prime_id].obj.real_links.push ();
-    mark_array_link->width = SmallTypes::size;
-    mark_array_link->objidx = new_mark_array;
-    mark_array_link->position = 8;
-    graph.vertices_[new_mark_array].parents.push (prime_id);
+    graph.add_link (&(prime->markArray), prime_id, new_mark_array);
 
     unsigned base_array_id =
         graph.index_for_offset (sc.this_index, &baseArray);
@@ -318,11 +309,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                                  mark_array_id,
                                                  sc.base_array_links,
                                                  start, end);
-    auto* base_array_link = graph.vertices_[prime_id].obj.real_links.push ();
-    base_array_link->width = SmallTypes::size;
-    base_array_link->objidx = new_base_array;
-    base_array_link->position = 10;
-    graph.vertices_[new_base_array].parents.push (prime_id);
+    graph.add_link (&(prime->baseArray), prime_id, new_base_array);
 
     return prime_id;
   }

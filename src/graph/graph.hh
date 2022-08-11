@@ -241,6 +241,22 @@ struct graph_t
   }
 
   /*
+   * Adds a 16 bit link from parent_id to child_id
+   */
+  template<typename T>
+  void add_link (T* offset,
+                 unsigned parent_id,
+                 unsigned child_id)
+  {
+    auto& v = vertices_[parent_id];
+    auto* link = v.obj.real_links.push ();
+    link->width = 2;
+    link->objidx = child_id;
+    link->position = (char*) offset - (char*) v.obj.head;
+    vertices_[child_id].parents.push (parent_id);
+  }
+
+  /*
    * Generates a new topological sorting of graph ordered by the shortest
    * distance to each node if positions are marked as invalid.
    */
