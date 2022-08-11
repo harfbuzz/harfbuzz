@@ -169,6 +169,21 @@ struct graph_t
     }
   };
 
+  template <typename T>
+  struct vertex_and_table_t
+  {
+    vertex_and_table_t () : index (0), vertex (nullptr), table (nullptr)
+    {}
+
+    unsigned index;
+    vertex_t* vertex;
+    T* table;
+
+    operator bool () {
+       return table && vertex;
+    }
+  };
+
   /*
    * A topological sorting of an object graph. Ordered
    * in reverse serialization order (first object in the
@@ -371,6 +386,31 @@ struct graph_t
         find_subgraph (l.objidx, visited);
       }
     }
+  }
+
+  template <typename T>
+  vertex_and_table_t<T> as_table (unsigned parent, const void* offset)
+  {
+    return as_table<T> (index_for_offset (parent, offset));
+  }
+
+  template <typename T>
+  vertex_and_table_t<T> as_table (unsigned index)
+  {
+    if (index >= vertices_.length)
+      return vertex_and_table_t<T> ();
+
+    vertex_and_table_t<T> r;
+    r.vertex = &vertices_[index];
+    r.table = (T*) r.vertex->obj.head;
+    r.index = index;
+    if (!r.table)
+      return vertex_and_table_t<T> ();
+
+    if (!r.table->sanitize (*(r.vertex)))
+      return vertex_and_table_t<T> ();
+
+    return r;
   }
 
   // Finds the object id of the object pointed to by the offset at 'offset'

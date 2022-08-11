@@ -176,24 +176,20 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     unsigned class_count= classCount;
     class_to_info.resize (class_count);
 
-    unsigned mark_array_id =
-        c.graph.index_for_offset (this_index, &markArray);
-    auto& mark_array_v = c.graph.vertices_[mark_array_id];
-    MarkArray* mark_array = (MarkArray*) mark_array_v.obj.head;
-    // TODO sanitize
-
-    unsigned mark_count = mark_array->len;
+    auto mark_array = c.graph.as_table<MarkArray> (this_index, &markArray);
+    if (!mark_array) return hb_vector_t<class_info_t> ();
+    unsigned mark_count = mark_array.table->len;
     for (unsigned mark = 0; mark < mark_count; mark++)
     {
-      unsigned klass = (*mark_array)[mark].get_class ();
+      unsigned klass = (*mark_array.table)[mark].get_class ();
       class_to_info[klass].marks.add (mark);
     }
 
-    for (const auto& link : mark_array_v.obj.real_links)
+    for (const auto& link : mark_array.vertex->obj.real_links)
     {
       unsigned mark = (link.position - 2) /
                      OT::Layout::GPOS_impl::MarkRecord::static_size;
-      unsigned klass = (*mark_array)[mark].get_class ();
+      unsigned klass = (*mark_array.table)[mark].get_class ();
       class_to_info[klass].child_indices.push (link.objidx);
     }
 
@@ -289,26 +285,24 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                  marks.get_population () * 2 + 4))
       return -1;
 
-    unsigned mark_array_id =
-        graph.index_for_offset (sc.this_index, &markArray);
-    auto& mark_array_v = graph.vertices_[mark_array_id];
-    MarkArray* mark_array = (MarkArray*) mark_array_v.obj.head;
-    // TODO sanitize
-    unsigned new_mark_array = mark_array->clone (sc.c,
-                                                 mark_array_id,
-                                                 sc.mark_array_links,
-                                                 marks);
+    auto mark_array =
+        graph.as_table <MarkArray> (sc.this_index, &markArray);
+    if (!mark_array) return -1;
+    unsigned new_mark_array =
+        mark_array.table->clone (sc.c,
+                                 mark_array.index,
+                                 sc.mark_array_links,
+                                 marks);
     graph.add_link (&(prime->markArray), prime_id, new_mark_array);
 
-    unsigned base_array_id =
-        graph.index_for_offset (sc.this_index, &baseArray);
-    auto& base_array_v = graph.vertices_[base_array_id];
-    AnchorMatrix* base_array = (AnchorMatrix*) base_array_v.obj.head;
-    // TODO sanitize
-    unsigned new_base_array = base_array->clone (sc.c,
-                                                 mark_array_id,
-                                                 sc.base_array_links,
-                                                 start, end);
+    auto base_array =
+        graph.as_table<AnchorMatrix> (sc.this_index, &baseArray);
+    if (!base_array) return -1;
+    unsigned new_base_array =
+        base_array.table->clone (sc.c,
+                                 mark_array.index,
+                                 sc.base_array_links,
+                                 start, end);
     graph.add_link (&(prime->baseArray), prime_id, new_base_array);
 
     return prime_id;
