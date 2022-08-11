@@ -60,6 +60,18 @@ struct graph_t
       hb_swap (a.priority, b.priority);
     }
 
+    hb_hashmap_t<unsigned, unsigned>
+    position_to_index_map () const
+    {
+      hb_hashmap_t<unsigned, unsigned> result;
+
+      for (const auto& l : obj.real_links) {
+        result.set (l.position, l.objidx);
+      }
+
+      return result;
+    }
+
     bool is_shared () const
     {
       return parents.length > 1;
