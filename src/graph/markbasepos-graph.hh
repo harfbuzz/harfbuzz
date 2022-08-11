@@ -46,10 +46,39 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
                   unsigned this_index,
                   const hb_hashmap_t<unsigned, unsigned>& pos_to_index,
                   unsigned start,
-                  unsigned end)
+                  unsigned end,
+                  unsigned class_count)
   {
-    // TODO
-    return -1;
+    unsigned base_count = rows;
+    unsigned new_class_count = end - start;
+    unsigned size = AnchorMatrix::min_size +
+                    OT::Offset16::static_size * new_class_count * rows;
+    unsigned prime_id = c.create_node (size);
+    if (prime_id == (unsigned) -1) return -1;
+    AnchorMatrix* prime = (AnchorMatrix*) c.graph.object (prime_id).head;
+    prime->rows = base_count;
+
+    for (unsigned base = 0; base < base_count; base++)
+    {
+      for (unsigned klass = start; klass < end; klass++)
+      {
+        unsigned new_klass = klass - start;
+
+        unsigned old_index = base * class_count + klass;
+        unsigned new_index = base * new_class_count + new_klass;
+
+        unsigned offset_pos = (char*) &(this->matrixZ[old_index]) -
+                              (char*) this;
+        unsigned* objidx;
+        if (pos_to_index.has (offset_pos, &objidx))
+          c.graph.move_child (this_index,
+                              &(this->matrixZ[old_index]),
+                              prime_id,
+                              &(prime->matrixZ[new_index]));
+      }
+    }
+
+    return prime_id;
   }
 };
 
@@ -325,7 +354,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
         base_array.table->clone (sc.c,
                                  mark_array.index,
                                  sc.base_array_links,
-                                 start, end);
+                                 start, end, this->classCount);
     graph.add_link (&(prime->baseArray), prime_id, new_base_array);
 
     return prime_id;
