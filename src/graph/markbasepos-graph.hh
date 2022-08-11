@@ -66,8 +66,31 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
                   const hb_hashmap_t<unsigned, unsigned>& pos_to_index,
                   hb_set_t& marks)
   {
-    // TODO
-    return -1;
+    unsigned size = MarkArray::min_size +
+                    OT::Layout::GPOS_impl::MarkRecord::static_size *
+                    marks.get_population ();
+    unsigned prime_id = c.create_node (size);
+    if (prime_id == (unsigned) -1) return -1;
+    MarkArray* prime = (MarkArray*) c.graph.object (prime_id).head;
+    prime->len = marks.get_population ();
+
+
+    unsigned i = 0;
+    for (hb_codepoint_t mark : marks)
+    {
+      (*prime)[i].klass = (*this)[mark].klass;
+      unsigned offset_pos = (char*) &((*this)[mark].markAnchor) - (char*) this;
+      unsigned* anchor_index;
+      if (pos_to_index.has (offset_pos, &anchor_index))
+        c.graph.move_child (this_index,
+                            &((*this)[mark].markAnchor),
+                            prime_id,
+                            &((*prime)[i].markAnchor));
+
+      i++;
+    }
+
+    return prime_id;
   }
 };
 
