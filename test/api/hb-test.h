@@ -27,9 +27,7 @@
 #ifndef HB_TEST_H
 #define HB_TEST_H
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <hb-config.hh>
 
 #include <hb-glib.h>
 
