@@ -49,17 +49,27 @@ struct graph_t
     unsigned end = 0;
     unsigned priority = 0;
 
-    bool equals (vertex_t& other, graph_t& graph)
+    void normalize ()
     {
-      if (as_bytes () != other.as_bytes ())
+      obj.real_links.qsort ();
+      for (auto& l : obj.real_links)
+      {
+        for (unsigned i = 0; i < l.width; i++)
+        {
+          obj.head[l.position + i] = 0;
+        }
+      }
+    }
+
+    bool equals (const vertex_t& other, const graph_t& graph) const
+    {
+      if (!(as_bytes () == other.as_bytes ()))
         return false;
 
-      obj.real_links.qsort ();
-      other.obj.real_links.qsort ();
       return links_equal (graph, obj.real_links, other.obj.real_links);
     }
 
-    hb_bytes_t as_bytes ()
+    hb_bytes_t as_bytes () const
     {
       return hb_bytes_t (obj.head, table_size ());
     }
@@ -184,7 +194,7 @@ struct graph_t
     }
 
    private:
-    bool links_equal (graph_t& graph,
+    bool links_equal (const graph_t& graph,
                       const hb_vector_t<hb_serialize_context_t::object_t::link_t>& this_links,
                       const hb_vector_t<hb_serialize_context_t::object_t::link_t>& other_links) const
     {
@@ -281,9 +291,16 @@ struct graph_t
       hb_free (b);
   }
 
-  bool operator== (graph_t& other)
+  bool operator== (const graph_t& other) const
   {
-    return vertices_[root_idx ()].equals (other.vertices_[other.root_idx ()], *this);
+    return root ().equals (other.root (), *this);
+  }
+
+  // Sorts links of all objects in a consistent manner and zeroes all offsets.
+  void normalize ()
+  {
+    for (auto& v : vertices_.writer ())
+      v.normalize ();
   }
 
   bool in_error () const

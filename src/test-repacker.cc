@@ -309,44 +309,28 @@ static void run_resolve_overflow_test (const char* name,
           name);
 
   graph_t graph (overflowing.object_graph ());
+  graph_t expected_graph (expected.object_graph ());
 
 
+  // Check that overflow resolution succeeds
   assert (overflowing.offset_overflow ());
-  hb_blob_t* out = hb_resolve_overflows (overflowing.object_graph (),
-                                         tag,
-                                         num_iterations,
-                                         recalculate_extensions);
+  assert (hb_resolve_graph_overflows (tag,
+                                      num_iterations,
+                                      recalculate_extensions,
+                                      graph));
+
+  // Check the graphs can be serialized.
+  hb_blob_t* out = graph::serialize (graph);
   assert (out);
-
-  hb_bytes_t result = out->as_bytes ();
-
-  assert (!expected.offset_overflow ());
-  hb_bytes_t expected_result = expected.copy_bytes ();
-
-  if (result.length != expected_result.length)
-  {
-    printf("result.length (%u) != expected.length (%u).\n",
-           result.length,
-           expected_result.length);
-  }
-  assert (result.length == expected_result.length);
-
-  bool equal = true;
-  for (unsigned i = 0; i < expected_result.length; i++)
-  {
-    if (result[i] != expected_result[i])
-    {
-      equal = false;
-      uint8_t a = result[i];
-      uint8_t b = expected_result[i];
-      printf("%08u: %x != %x\n", i, a, b);
-    }
-  }
-
-  assert (equal);
-
-  expected_result.fini ();
   hb_blob_destroy (out);
+  out = graph::serialize (expected_graph);
+  assert (out);
+  hb_blob_destroy (out);
+
+  // Check the graphs are equivalent
+  graph.normalize ();
+  expected_graph.normalize ();
+  assert (graph == expected_graph);
 }
 
 static void add_virtual_offset (unsigned id,
