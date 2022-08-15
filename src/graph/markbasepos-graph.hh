@@ -120,6 +120,38 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
     return false;
   }
 
+  bool shrink (gsubgpos_graph_context_t& c,
+               const hb_hashmap_t<unsigned, unsigned>& mark_array_links,
+               unsigned this_index,
+               unsigned new_class_count)
+  {
+    auto& o = c.graph.vertices_[this_index].obj;
+    o.real_links.reset ();
+
+    unsigned new_index = 0;
+    for (const auto& record : this->iter ())
+    {
+      unsigned klass = record.klass;
+      if (klass >= new_class_count) continue;
+
+      (*this)[new_index].klass = klass;
+      unsigned position = (char*) &record.markAnchor - (char*) this;
+      unsigned* objidx;
+      if (!mark_array_links.has (position, &objidx))
+      {
+        new_index++;
+        continue;
+      }
+
+      c.graph.add_link (&(*this)[new_index].markAnchor, this_index, *objidx);
+      new_index++;
+    }
+
+    this->len = new_index;
+    o.tail = o.head + MarkArray::min_size + OT::Offset16::static_size * new_index;
+    return true;
+  }
+
   unsigned clone (gsubgpos_graph_context_t& c,
                   unsigned this_index,
                   const hb_hashmap_t<unsigned, unsigned>& pos_to_index,
@@ -339,13 +371,15 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                                   count))
       return false;
 
-    // TODO: markArray
-    /*
+    auto mark_array = sc.c.graph.as_table<MarkArray> (this_index,
+                                                      &markArray);
+    if (!mark_array || !mark_array.table->shrink (sc.c,
+                                                  sc.mark_array_links,
+                                                  mark_array.index,
+                                                  count))
+      return false;
 
-
-    return Coverage::make_coverage (c, new_coverage, coverage_id, coverage_size);
-    */
-    return -1; // TODO
+    return true;
   }
 
   // Create a new PairPos including PairSet's from start (inclusive) to end (exclusive).
