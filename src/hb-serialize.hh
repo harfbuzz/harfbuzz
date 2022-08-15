@@ -142,7 +142,10 @@ struct hb_serialize_context_t
 
       HB_INTERNAL static int cmp (const void* a, const void* b)
       {
-        return ((const link_t*)a)->position - ((const link_t*)b)->position;
+        int cmp = ((const link_t*)a)->position - ((const link_t*)b)->position;
+        if (cmp) return cmp;
+
+        return ((const link_t*)a)->objidx - ((const link_t*)b)->objidx;
       }
     };
 

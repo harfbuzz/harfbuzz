@@ -49,6 +49,21 @@ struct graph_t
     unsigned end = 0;
     unsigned priority = 0;
 
+    bool equals (vertex_t& other, graph_t& graph)
+    {
+      if (as_bytes () != other.as_bytes ())
+        return false;
+
+      obj.real_links.qsort ();
+      other.obj.real_links.qsort ();
+      return links_equal (graph, obj.real_links, other.obj.real_links);
+    }
+
+    hb_bytes_t as_bytes ()
+    {
+      return hb_bytes_t (obj.head, table_size ());
+    }
+
     friend void swap (vertex_t& a, vertex_t& b)
     {
       hb_swap (a.obj, b.obj);
@@ -167,6 +182,39 @@ struct graph_t
 
       return -table_size;
     }
+
+   private:
+    bool links_equal (graph_t& graph,
+                      const hb_vector_t<hb_serialize_context_t::object_t::link_t>& this_links,
+                      const hb_vector_t<hb_serialize_context_t::object_t::link_t>& other_links) const
+    {
+      auto a = this_links.iter ();
+      auto b = other_links.iter ();
+
+      while (a && b)
+      {
+        const auto& link_a = *a;
+        const auto& link_b = *b;
+
+        if (link_a.width != link_b.width ||
+            link_a.is_signed != link_b.is_signed ||
+            link_a.whence != link_b.whence ||
+            link_a.position != link_b.position ||
+            link_a.bias != link_b.bias)
+          return false;
+
+        if (!graph.vertices_[link_a.objidx].equals (graph.vertices_[link_b.objidx], graph))
+          return false;
+
+        a++;
+        b++;
+      }
+
+      if (bool (a) != bool (b))
+        return false;
+
+      return true;
+    }
   };
 
   template <typename T>
@@ -231,6 +279,11 @@ struct graph_t
     vertices_.fini ();
     for (char* b : buffers)
       hb_free (b);
+  }
+
+  bool operator== (graph_t& other)
+  {
+    return vertices_[root_idx ()].equals (other.vertices_[other.root_idx ()], *this);
   }
 
   bool in_error () const
