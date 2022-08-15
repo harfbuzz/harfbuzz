@@ -196,7 +196,8 @@ struct graph_t
       : parents_invalid (true),
         distance_invalid (true),
         positions_invalid (true),
-        successful (true)
+        successful (true),
+        buffers ()
   {
     num_roots_for_space_.push (1);
     bool removed_nil = false;
@@ -228,6 +229,8 @@ struct graph_t
   ~graph_t ()
   {
     vertices_.fini ();
+    for (char* b : buffers)
+      hb_free (b);
   }
 
   bool in_error () const
@@ -253,6 +256,11 @@ struct graph_t
   const hb_serialize_context_t::object_t& object (unsigned i) const
   {
     return vertices_[i].obj;
+  }
+
+  void add_buffer (char* buffer)
+  {
+    buffers.push (buffer);
   }
 
   /*
@@ -1127,6 +1135,7 @@ struct graph_t
   bool positions_invalid;
   bool successful;
   hb_vector_t<unsigned> num_roots_for_space_;
+  hb_vector_t<char*> buffers;
 };
 
 }
