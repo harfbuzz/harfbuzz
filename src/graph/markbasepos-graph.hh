@@ -150,7 +150,8 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
     }
 
     this->len = new_index;
-    o.tail = o.head + MarkArray::min_size + OT::Offset16::static_size * new_index;
+    o.tail = o.head + MarkArray::min_size +
+             OT::Layout::GPOS_impl::MarkRecord::static_size * new_index;
     return true;
   }
 
