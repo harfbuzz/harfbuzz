@@ -39,7 +39,7 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
   bool sanitize (graph_t::vertex_t& vertex) const
   {
     // TODO
-    return false;
+    return true;
   }
 
   bool shrink (gsubgpos_graph_context_t& c,
@@ -117,7 +117,7 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
   bool sanitize (graph_t::vertex_t& vertex) const
   {
     // TODO
-    return false;
+    return true;
   }
 
   bool shrink (gsubgpos_graph_context_t& c,
@@ -399,7 +399,8 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
     MarkBasePosFormat1* prime = (MarkBasePosFormat1*) graph.object (prime_id).head;
     prime->format = this->format;
-    prime->classCount = this->classCount;
+    unsigned new_class_count = end - start;
+    prime->classCount = new_class_count;
 
     unsigned base_coverage_id =
         graph.index_for_offset (sc.this_index, &baseCoverage);
@@ -437,7 +438,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     if (!base_array) return -1;
     unsigned new_base_array =
         base_array.table->clone (sc.c,
-                                 mark_array.index,
+                                 base_array.index,
                                  sc.base_array_links,
                                  start, end, this->classCount);
     graph.add_link (&(prime->baseArray), prime_id, new_base_array);
@@ -471,7 +472,7 @@ struct MarkBasePos : public OT::Layout::GPOS_impl::MarkBasePos
 
     switch (u.format) {
     case 1:
-      return ((PairPosFormat1*)(&u.format1))->sanitize (vertex);
+      return ((MarkBasePosFormat1*)(&u.format1))->sanitize (vertex);
 #ifndef HB_NO_BORING_EXPANSION
     case 2: HB_FALLTHROUGH;
 #endif

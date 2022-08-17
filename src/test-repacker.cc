@@ -297,6 +297,123 @@ static unsigned add_pair_pos_2 (unsigned starting_class,
   return c->pop_pack (false);
 }
 
+static unsigned add_mark_base_pos_1 (unsigned mark_coverage,
+                                     unsigned base_coverage,
+                                     unsigned mark_array,
+                                     unsigned base_array,
+                                     unsigned class_count,
+                                     hb_serialize_context_t* c)
+{
+  uint8_t format[] = {
+    0, 1
+  };
+
+  start_object ((char*) format, 2, c);
+  add_offset (mark_coverage, c);
+  add_offset (base_coverage, c);
+
+  uint8_t count[] = {
+    (uint8_t) ((class_count >> 8) & 0xFF),
+    (uint8_t) (class_count & 0xFF),
+  };
+  extend ((char*) count, 2, c);
+
+  add_offset (mark_array, c);
+  add_offset (base_array, c);
+
+  return c->pop_pack (false);
+}
+
+template<int mark_count,
+    int class_count,
+    int base_count,
+    int table_count>
+struct MarkBasePosBuffers
+{
+  unsigned base_anchors[class_count * base_count];
+  unsigned mark_anchors[mark_count];
+  uint32_t anchors_buffer[class_count * base_count];
+  uint8_t class_buffer[class_count * 2];
+
+  MarkBasePosBuffers(hb_serialize_context_t* c)
+  {
+    for (unsigned i = 0; i < class_count * base_count; i++)
+    {
+      anchors_buffer[i] = i;
+      base_anchors[i] = add_object ((char*) &anchors_buffer[i], 4, c);
+      if (i < class_count) {
+        class_buffer[i*2] = (uint8_t) ((i >> 8) & 0xFF);
+        class_buffer[i*2 + 1] = (uint8_t) (i & 0xFF);
+      }
+    }
+
+    for (unsigned i = 0; i < mark_count; i++)
+    {
+      mark_anchors[i] = add_object ((char*) &anchors_buffer[i], 4, c);
+    }
+  }
+
+  unsigned create_mark_base_pos_1 (unsigned table_index, hb_serialize_context_t* c)
+  {
+    unsigned class_per_table = class_count / table_count;
+    unsigned mark_per_class = mark_count / class_count;
+    unsigned start_class = class_per_table * table_index;
+    unsigned end_class = class_per_table * (table_index + 1) - 1;
+
+    // baseArray
+    uint8_t base_count_buffer[] = {
+      (uint8_t) ((base_count >> 8) & 0xFF),
+      (uint8_t) (base_count & 0xFF),
+
+    };
+    start_object ((char*) base_count_buffer, 2, c);
+    for (unsigned base = 0; base < base_count; base++)
+    {
+      for (unsigned klass = start_class; klass <= end_class; klass++)
+      {
+        unsigned i = base * class_count + klass;
+        add_offset (base_anchors[i], c);
+      }
+    }
+    unsigned base_array = c->pop_pack (false);
+
+    // markArray
+    unsigned num_marks = class_per_table * mark_per_class;
+    uint8_t mark_count_buffer[] = {
+      (uint8_t) ((num_marks >> 8) & 0xFF),
+      (uint8_t) (num_marks & 0xFF),
+    };
+    start_object ((char*) mark_count_buffer, 2, c);
+    for (unsigned i = 0; i < num_marks; i++)
+    {
+      unsigned klass = i % class_per_table;
+      extend ((char*) &class_buffer[2 * klass], 2, c);
+
+      unsigned mark = table_index * num_marks + i;
+      add_offset (mark_anchors[mark], c);
+    }
+    unsigned mark_array = c->pop_pack (false);
+
+    // markCoverage
+    unsigned mark_coverage = add_coverage (num_marks * table_index,
+                                           num_marks * (table_index + 1) - 1,
+                                           c);
+
+    // baseCoverage
+    unsigned base_coverage = add_coverage (10, 10 + base_count - 1, c);
+
+    return add_mark_base_pos_1 (mark_coverage,
+                                base_coverage,
+                                mark_array,
+                                base_array,
+                                class_count,
+                                c);
+  }
+};
+
+
+
+
 
 static void run_resolve_overflow_test (const char* name,
                                        hb_serialize_context_t& overflowing,
@@ -1292,6 +1409,38 @@ populate_serializer_with_large_pair_pos_2 (hb_serialize_context_t* c,
   free (device_tables);
 }
 
+template<int mark_count,
+    int class_count,
+    int base_count,
+    int table_count>
+static void
+populate_serializer_with_large_mark_base_pos_1 (hb_serialize_context_t* c)
+{
+  c->start_serialize<char> ();
+
+  MarkBasePosBuffers<mark_count, class_count, base_count, table_count> buffers (c);
+
+  unsigned mark_base_pos[table_count];
+  for (unsigned i = 0; i < table_count; i++)
+    mark_base_pos[i] = buffers.create_mark_base_pos_1 (i, c);
+
+  for (int i = 0; i < table_count; i++)
+    mark_base_pos[i] = add_extension (mark_base_pos[i], 4, c);
+
+  start_lookup (9, table_count, c);
+
+  for (int i = 0; i < table_count; i++)
+    add_offset (mark_base_pos[i], c);
+
+  unsigned lookup = finish_lookup (c);
+
+  unsigned lookup_list = add_lookup_list (&lookup, 1, c);
+
+  add_gsubgpos_header (lookup_list, c);
+
+  c->end_serialize();
+}
+
 static void test_sort_shortest ()
 {
   size_t buffer_size = 100;
@@ -1776,6 +1925,29 @@ static void test_resolve_with_pair_pos_2_split_with_device_tables ()
   free (expected_buffer);
 }
 
+static void test_resolve_with_basic_mark_base_pos_1_split ()
+{
+  size_t buffer_size = 200000;
+  void* buffer = malloc (buffer_size);
+  assert (buffer);
+  hb_serialize_context_t c (buffer, buffer_size);
+  populate_serializer_with_large_mark_base_pos_1 <40, 10, 1200, 1>(&c);
+
+  void* expected_buffer = malloc (buffer_size);
+  assert (expected_buffer);
+  hb_serialize_context_t e (expected_buffer, buffer_size);
+  populate_serializer_with_large_mark_base_pos_1 <40, 10, 1050, 2>(&e);
+
+  run_resolve_overflow_test ("test_resolve_with_basic_mark_base_pos_1_split",
+                             c,
+                             e,
+                             20,
+                             true,
+                             HB_TAG('G', 'P', 'O', 'S'));
+  free (buffer);
+  free (expected_buffer);
+}
+
 static void test_resolve_overflows_via_splitting_spaces ()
 {
   size_t buffer_size = 160000;
@@ -1901,6 +2073,8 @@ test_shared_node_with_virtual_links ()
 int
 main (int argc, char **argv)
 {
+  if (0)
+  {
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
@@ -1928,6 +2102,9 @@ main (int argc, char **argv)
   test_resolve_with_basic_pair_pos_2_split ();
   test_resolve_with_pair_pos_2_split_with_device_tables ();
   test_resolve_with_close_to_limit_pair_pos_2_split ();
+  }
+
+  test_resolve_with_basic_mark_base_pos_1_split ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
   // TODO(grieger): split test where multiple subtables in one lookup are split to test link ordering.
