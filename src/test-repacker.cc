@@ -427,7 +427,11 @@ static void run_resolve_overflow_test (const char* name,
 
   graph_t graph (overflowing.object_graph ());
   graph_t expected_graph (expected.object_graph ());
-
+  if (graph::will_overflow (expected_graph))
+  {
+    expected_graph.assign_spaces ();
+    expected_graph.sort_shortest_distance ();
+  }
 
   // Check that overflow resolution succeeds
   assert (overflowing.offset_overflow ());
@@ -1931,12 +1935,12 @@ static void test_resolve_with_basic_mark_base_pos_1_split ()
   void* buffer = malloc (buffer_size);
   assert (buffer);
   hb_serialize_context_t c (buffer, buffer_size);
-  populate_serializer_with_large_mark_base_pos_1 <40, 10, 1200, 1>(&c);
+  populate_serializer_with_large_mark_base_pos_1 <40, 10, 2000, 1>(&c);
 
   void* expected_buffer = malloc (buffer_size);
   assert (expected_buffer);
   hb_serialize_context_t e (expected_buffer, buffer_size);
-  populate_serializer_with_large_mark_base_pos_1 <40, 10, 1050, 2>(&e);
+  populate_serializer_with_large_mark_base_pos_1 <40, 10, 2000, 2>(&e);
 
   run_resolve_overflow_test ("test_resolve_with_basic_mark_base_pos_1_split",
                              c,
@@ -2073,8 +2077,6 @@ test_shared_node_with_virtual_links ()
 int
 main (int argc, char **argv)
 {
-  if (0)
-  {
   test_serialize ();
   test_sort_shortest ();
   test_will_overflow_1 ();
@@ -2102,8 +2104,6 @@ main (int argc, char **argv)
   test_resolve_with_basic_pair_pos_2_split ();
   test_resolve_with_pair_pos_2_split_with_device_tables ();
   test_resolve_with_close_to_limit_pair_pos_2_split ();
-  }
-
   test_resolve_with_basic_mark_base_pos_1_split ();
 
   // TODO(grieger): have run overflow tests compare graph equality not final packed binary.
