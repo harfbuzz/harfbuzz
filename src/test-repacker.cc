@@ -177,6 +177,16 @@ static unsigned add_coverage (unsigned start, unsigned end,
   return add_object ((char*) coverage, 10, c);
 }
 
+
+template<typename It>
+static unsigned add_coverage (It it,
+                              hb_serialize_context_t* c)
+{
+  c->push ();
+  OT::Layout::Common::Coverage_serialize (c, it);
+  return c->pop_pack (false);
+}
+
 // Adds a class that maps glyphs from [start_glyph, end_glyph)
 // to classes 1...n
 static unsigned add_class_def (uint16_t start_glyph,
@@ -384,20 +394,27 @@ struct MarkBasePosBuffers
       (uint8_t) (num_marks & 0xFF),
     };
     start_object ((char*) mark_count_buffer, 2, c);
-    for (unsigned i = 0; i < num_marks; i++)
+    for (unsigned mark = 0; mark < mark_count; mark++)
     {
-      unsigned klass = i % class_per_table;
-      extend ((char*) &class_buffer[2 * klass], 2, c);
+      unsigned klass = mark % class_count;
+      if (klass < start_class || klass > end_class) continue;
+      klass -= start_class;
 
-      unsigned mark = table_index * num_marks + i;
+      extend ((char*) &class_buffer[2 * klass], 2, c);
       add_offset (mark_anchors[mark], c);
     }
     unsigned mark_array = c->pop_pack (false);
 
     // markCoverage
-    unsigned mark_coverage = add_coverage (num_marks * table_index,
-                                           num_marks * (table_index + 1) - 1,
-                                           c);
+    auto it =
+        + hb_range ((hb_codepoint_t) mark_count)
+        | hb_filter ([&] (hb_codepoint_t mark) {
+          unsigned klass = mark % class_count;
+          return klass >= class_per_table * table_index &&
+              klass < class_per_table * (table_index + 1);
+        })
+        ;
+    unsigned mark_coverage = add_coverage (it, c);
 
     // baseCoverage
     unsigned base_coverage = add_coverage (10, 10 + base_count - 1, c);
@@ -406,7 +423,7 @@ struct MarkBasePosBuffers
                                 base_coverage,
                                 mark_array,
                                 base_array,
-                                class_count,
+                                class_per_table,
                                 c);
   }
 };

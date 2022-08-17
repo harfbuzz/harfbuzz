@@ -61,12 +61,32 @@ struct graph_t
       }
     }
 
-    bool equals (const vertex_t& other, const graph_t& graph) const
+    bool equals (const vertex_t& other,
+                 const graph_t& graph,
+                 const graph_t& other_graph,
+                 unsigned depth) const
     {
       if (!(as_bytes () == other.as_bytes ()))
-        return false;
+      {
+        DEBUG_MSG (SUBSET_REPACK, nullptr,
+                   "vertex [%lu] bytes != [%lu] bytes, depth = %u",
+                   table_size (),
+                   other.table_size (),
+                   depth);
 
-      return links_equal (graph, obj.real_links, other.obj.real_links);
+        auto a = as_bytes ();
+        auto b = other.as_bytes ();
+        while (a || b)
+        {
+          DEBUG_MSG (SUBSET_REPACK, nullptr,
+                     "  0x%x %s 0x%x", *a, (*a == *b) ? "==" : "!=", *b);
+          a++;
+          b++;
+        }
+        return false;
+      }
+
+      return links_equal (obj.real_links, other.obj.real_links, graph, other_graph, depth);
     }
 
     hb_bytes_t as_bytes () const
@@ -194,9 +214,11 @@ struct graph_t
     }
 
    private:
-    bool links_equal (const graph_t& graph,
-                      const hb_vector_t<hb_serialize_context_t::object_t::link_t>& this_links,
-                      const hb_vector_t<hb_serialize_context_t::object_t::link_t>& other_links) const
+    bool links_equal (const hb_vector_t<hb_serialize_context_t::object_t::link_t>& this_links,
+                      const hb_vector_t<hb_serialize_context_t::object_t::link_t>& other_links,
+                      const graph_t& graph,
+                      const graph_t& other_graph,
+                      unsigned depth) const
     {
       auto a = this_links.iter ();
       auto b = other_links.iter ();
@@ -213,7 +235,8 @@ struct graph_t
             link_a.bias != link_b.bias)
           return false;
 
-        if (!graph.vertices_[link_a.objidx].equals (graph.vertices_[link_b.objidx], graph))
+        if (!graph.vertices_[link_a.objidx].equals (
+                other_graph.vertices_[link_b.objidx], graph, other_graph, depth + 1))
           return false;
 
         a++;
@@ -293,7 +316,7 @@ struct graph_t
 
   bool operator== (const graph_t& other) const
   {
-    return root ().equals (other.root (), *this);
+    return root ().equals (other.root (), *this, other, 0);
   }
 
   // Sorts links of all objects in a consistent manner and zeroes all offsets.

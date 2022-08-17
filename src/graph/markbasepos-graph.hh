@@ -158,7 +158,8 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
   unsigned clone (gsubgpos_graph_context_t& c,
                   unsigned this_index,
                   const hb_hashmap_t<unsigned, unsigned>& pos_to_index,
-                  hb_set_t& marks)
+                  hb_set_t& marks,
+                  unsigned start_class)
   {
     unsigned size = MarkArray::min_size +
                     OT::Layout::GPOS_impl::MarkRecord::static_size *
@@ -172,7 +173,7 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
     unsigned i = 0;
     for (hb_codepoint_t mark : marks)
     {
-      (*prime)[i].klass = (*this)[mark].klass;
+      (*prime)[i].klass = (*this)[mark].klass - start_class;
       unsigned offset_pos = (char*) &((*this)[mark].markAnchor) - (char*) this;
       unsigned* anchor_index;
       if (pos_to_index.has (offset_pos, &anchor_index))
@@ -433,7 +434,8 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
         mark_array.table->clone (sc.c,
                                  mark_array.index,
                                  sc.mark_array_links,
-                                 marks);
+                                 marks,
+                                 start);
     graph.add_link (&(prime->markArray), prime_id, new_mark_array);
 
     auto base_array =
