@@ -126,6 +126,8 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
                unsigned new_class_count)
   {
     auto& o = c.graph.vertices_[this_index].obj;
+    for (const auto& link : o.real_links)
+      c.graph.vertices_[link.objidx].remove_parent (this_index);
     o.real_links.reset ();
 
     unsigned new_index = 0;
