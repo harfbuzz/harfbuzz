@@ -389,7 +389,7 @@ struct hb_sorted_array_t :
 			    this->length,
 			    sizeof (Type),
 			    _hb_cmp_method<T, Type, Ts...>,
-			    ds...);
+			    std::forward<Ts> (ds)...);
   }
 };
 template <typename T> inline hb_sorted_array_t<T>
