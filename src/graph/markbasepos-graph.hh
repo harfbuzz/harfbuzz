@@ -258,9 +258,6 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
 
     const unsigned mark_array_id = c.graph.index_for_offset (this_index, &markArray);
-    const unsigned base_array_id = c.graph.index_for_offset (this_index, &baseArray);
-
-
     split_context_t split_context {
       c,
       this,
