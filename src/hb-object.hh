@@ -214,15 +214,15 @@ static inline void hb_object_trace (const Type *obj, const char *function)
 	     obj ? obj->header.ref_count.get_relaxed () : 0);
 }
 
-template <typename Type>
-static inline Type *hb_object_create ()
+template <typename Type, typename ...Ts>
+static inline Type *hb_object_create (Ts... ds)
 {
   Type *obj = (Type *) hb_calloc (1, sizeof (Type));
 
   if (unlikely (!obj))
     return obj;
 
-  new (obj) Type;
+  new (obj) Type (std::forward<Ts> (ds)...);
 
   hb_object_init (obj);
   hb_object_trace (obj, HB_FUNC);
