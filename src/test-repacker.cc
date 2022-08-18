@@ -349,7 +349,7 @@ struct MarkBasePosBuffers
   {
     for (unsigned i = 0; i < sizeof(anchor_buffers) / 2; i++)
     {
-      uint16_t* value = (uint16_t*) (&anchor_buffers[2*i]);
+      OT::HBUINT16* value = (OT::HBUINT16*) (&anchor_buffers[2*i]);
       *value = i;
     }
 
