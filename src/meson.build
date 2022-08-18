@@ -349,6 +349,7 @@ hb_subset_sources = files(
   'graph/gsubgpos-context.hh',
   'graph/gsubgpos-graph.hh',
   'graph/pairpos-graph.hh',
+  'graph/markbasepos-graph.hh',
   'graph/coverage-graph.hh',
   'graph/classdef-graph.hh',
   'graph/split-helpers.hh',

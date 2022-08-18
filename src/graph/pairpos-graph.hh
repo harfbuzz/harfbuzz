@@ -548,14 +548,8 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
   get_all_device_tables (gsubgpos_graph_context_t& c,
                          unsigned this_index) const
   {
-    hb_hashmap_t<unsigned, unsigned> result;
-
-    const auto& o = c.graph.object (this_index);
-    for (const auto& l : o.real_links) {
-      result.set (l.position, l.objidx);
-    }
-
-    return result;
+    const auto& v = c.graph.vertices_[this_index];
+    return v.position_to_index_map ();
   }
 
   const Coverage* get_coverage (gsubgpos_graph_context_t& c,

@@ -109,7 +109,7 @@ struct Coverage : public OT::Layout::Common::Coverage
   {
     char* buffer = (char*) hb_calloc (1, max_size);
     hb_serialize_context_t serializer (buffer, max_size);
-    Coverage_serialize (&serializer, glyphs);
+    OT::Layout::Common::Coverage_serialize (&serializer, glyphs);
     serializer.end_serialize ();
     if (serializer.in_error ())
     {
