@@ -77,7 +77,6 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
 
   unsigned clone (gsubgpos_graph_context_t& c,
                   unsigned this_index,
-                  const hb_hashmap_t<unsigned, unsigned>& pos_to_index,
                   unsigned start,
                   unsigned end,
                   unsigned class_count)
@@ -268,7 +267,6 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
       this_index,
       std::move (class_to_info),
       c.graph.vertices_[mark_array_id].position_to_index_map (),
-      c.graph.vertices_[base_array_id].position_to_index_map ()
     };
 
     return actuate_subtable_split<split_context_t> (split_context, split_points);
@@ -287,7 +285,6 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     unsigned this_index;
     hb_vector_t<class_info_t> class_to_info;
     hb_hashmap_t<unsigned, unsigned> mark_array_links;
-    hb_hashmap_t<unsigned, unsigned> base_array_links;
 
     hb_set_t marks_for (unsigned start, unsigned end)
     {
@@ -465,7 +462,6 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     unsigned new_base_array =
         base_array.table->clone (sc.c,
                                  base_array.index,
-                                 sc.base_array_links,
                                  start, end, this->classCount);
     graph.add_link (&(prime->baseArray), prime_id, new_base_array);
 
