@@ -37,6 +37,50 @@
 
 struct hb_subset_plan_t
 {
+  hb_subset_plan_t ()
+  {}
+
+  ~hb_subset_plan_t()
+  {
+    hb_set_destroy (unicodes);
+    hb_set_destroy (name_ids);
+    hb_set_destroy (name_languages);
+    hb_set_destroy (layout_features);
+    hb_set_destroy (layout_scripts);
+    hb_set_destroy (glyphs_requested);
+    hb_set_destroy (drop_tables);
+    hb_set_destroy (no_subset_tables);
+    hb_face_destroy (source);
+    hb_face_destroy (dest);
+    hb_map_destroy (codepoint_to_glyph);
+    hb_map_destroy (glyph_map);
+    hb_map_destroy (reverse_glyph_map);
+    hb_map_destroy (glyph_map_gsub);
+    hb_set_destroy (_glyphset);
+    hb_set_destroy (_glyphset_gsub);
+    hb_set_destroy (_glyphset_mathed);
+    hb_set_destroy (_glyphset_colred);
+    hb_map_destroy (gsub_lookups);
+    hb_map_destroy (gpos_lookups);
+    hb_map_destroy (gsub_features);
+    hb_map_destroy (gpos_features);
+    hb_map_destroy (colrv1_layers);
+    hb_map_destroy (colr_palettes);
+    hb_set_destroy (layout_variation_indices);
+    hb_map_destroy (layout_variation_idx_map);
+
+    hb_hashmap_destroy (gsub_langsys);
+    hb_hashmap_destroy (gpos_langsys);
+    hb_hashmap_destroy (axes_location);
+    hb_hashmap_destroy (sanitized_table_cache);
+
+    if (user_axes_location)
+    {
+      hb_object_destroy (user_axes_location);
+      hb_free (user_axes_location);
+    }
+  }
+
   hb_object_header_t header;
 
   bool successful;
