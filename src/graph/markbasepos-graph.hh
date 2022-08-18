@@ -36,10 +36,13 @@ namespace graph {
 
 struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
 {
-  bool sanitize (graph_t::vertex_t& vertex) const
+  bool sanitize (graph_t::vertex_t& vertex, unsigned class_count) const
   {
-    // TODO
-    return true;
+    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    if (vertex_len < AnchorMatrix::min_size) return false;
+
+    return vertex_len >= AnchorMatrix::min_size +
+        OT::Offset16::static_size * class_count * this->rows;
   }
 
   bool shrink (gsubgpos_graph_context_t& c,
@@ -116,8 +119,11 @@ struct MarkArray : public OT::Layout::GPOS_impl::MarkArray
 {
   bool sanitize (graph_t::vertex_t& vertex) const
   {
-    // TODO
-    return true;
+    int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
+    unsigned min_size = MarkArray::min_size;
+    if (vertex_len < min_size) return false;
+
+    return vertex_len >= get_size ();
   }
 
   bool shrink (gsubgpos_graph_context_t& c,
@@ -194,11 +200,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
   bool sanitize (graph_t::vertex_t& vertex) const
   {
     int64_t vertex_len = vertex.obj.tail - vertex.obj.head;
-    unsigned min_size = OT::Layout::GPOS_impl::MarkBasePosFormat1_2<SmallTypes>::min_size;
-    if (vertex_len < min_size) return false;
-
-    // TODO
-    return true;
+    return vertex_len >= MarkBasePosFormat1::static_size;
   }
 
   hb_vector_t<unsigned> split_subtables (gsubgpos_graph_context_t& c, unsigned this_index)
@@ -368,7 +370,8 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
 
 
     auto base_array = sc.c.graph.as_table<AnchorMatrix> (this_index,
-                                                         &baseArray);
+                                                         &baseArray,
+                                                         old_count);
     if (!base_array || !base_array.table->shrink (sc.c,
                                                   base_array.index,
                                                   old_count,
@@ -438,8 +441,9 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
                                  start);
     graph.add_link (&(prime->markArray), prime_id, new_mark_array);
 
+    unsigned class_count = classCount;
     auto base_array =
-        graph.as_table<AnchorMatrix> (sc.this_index, &baseArray);
+        graph.as_table<AnchorMatrix> (sc.this_index, &baseArray, class_count);
     if (!base_array) return -1;
     unsigned new_base_array =
         base_array.table->clone (sc.c,

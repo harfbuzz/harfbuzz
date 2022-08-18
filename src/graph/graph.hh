@@ -489,14 +489,14 @@ struct graph_t
     }
   }
 
-  template <typename T>
-  vertex_and_table_t<T> as_table (unsigned parent, const void* offset)
+  template <typename T, typename ...Ts>
+  vertex_and_table_t<T> as_table (unsigned parent, const void* offset, Ts... ds)
   {
-    return as_table<T> (index_for_offset (parent, offset));
+    return as_table_from_index<T> (index_for_offset (parent, offset), std::forward<Ts>(ds)...);
   }
 
-  template <typename T>
-  vertex_and_table_t<T> as_table (unsigned index)
+  template <typename T, typename ...Ts>
+  vertex_and_table_t<T> as_table_from_index (unsigned index, Ts... ds)
   {
     if (index >= vertices_.length)
       return vertex_and_table_t<T> ();
@@ -508,7 +508,7 @@ struct graph_t
     if (!r.table)
       return vertex_and_table_t<T> ();
 
-    if (!r.table->sanitize (*(r.vertex)))
+    if (!r.table->sanitize (*(r.vertex), std::forward<Ts>(ds)...))
       return vertex_and_table_t<T> ();
 
     return r;
