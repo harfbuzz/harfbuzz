@@ -620,7 +620,7 @@ _normalize_axes_location (hb_face_t *face,
     }
     if (has_avar)
       seg_maps = &StructAfter<OT::SegmentMaps> (*seg_maps);
-    
+
     axis_count++;
   }
   all_axes_pinned = !axis_not_pinned;
@@ -753,44 +753,6 @@ void
 hb_subset_plan_destroy (hb_subset_plan_t *plan)
 {
   if (!hb_object_destroy (plan)) return;
-
-  hb_set_destroy (plan->unicodes);
-  hb_set_destroy (plan->name_ids);
-  hb_set_destroy (plan->name_languages);
-  hb_set_destroy (plan->layout_features);
-  hb_set_destroy (plan->layout_scripts);
-  hb_set_destroy (plan->glyphs_requested);
-  hb_set_destroy (plan->drop_tables);
-  hb_set_destroy (plan->no_subset_tables);
-  hb_face_destroy (plan->source);
-  hb_face_destroy (plan->dest);
-  hb_map_destroy (plan->codepoint_to_glyph);
-  hb_map_destroy (plan->glyph_map);
-  hb_map_destroy (plan->reverse_glyph_map);
-  hb_map_destroy (plan->glyph_map_gsub);
-  hb_set_destroy (plan->_glyphset);
-  hb_set_destroy (plan->_glyphset_gsub);
-  hb_set_destroy (plan->_glyphset_mathed);
-  hb_set_destroy (plan->_glyphset_colred);
-  hb_map_destroy (plan->gsub_lookups);
-  hb_map_destroy (plan->gpos_lookups);
-  hb_map_destroy (plan->gsub_features);
-  hb_map_destroy (plan->gpos_features);
-  hb_map_destroy (plan->colrv1_layers);
-  hb_map_destroy (plan->colr_palettes);
-  hb_set_destroy (plan->layout_variation_indices);
-  hb_map_destroy (plan->layout_variation_idx_map);
-
-  hb_hashmap_destroy (plan->gsub_langsys);
-  hb_hashmap_destroy (plan->gpos_langsys);
-  hb_hashmap_destroy (plan->axes_location);
-  hb_hashmap_destroy (plan->sanitized_table_cache);
-
-  if (plan->user_axes_location)
-  {
-    hb_object_destroy (plan->user_axes_location);
-    hb_free (plan->user_axes_location);
-  }
 
   hb_free (plan);
 }
