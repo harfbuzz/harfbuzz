@@ -521,8 +521,11 @@ struct graph_t
     const auto& node = object (node_idx);
     if (offset < node.head || offset >= node.tail) return -1;
 
-    for (const auto& link : node.real_links)
+    unsigned length = node.real_links.length;
+    for (unsigned i = 0; i < length; i++)
     {
+      // Use direct access for increased performance, this is a hot method.
+      const auto& link = node.real_links.arrayZ[i];
       if (offset != node.head + link.position)
         continue;
       return link.objidx;
