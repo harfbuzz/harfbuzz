@@ -342,7 +342,7 @@ struct MarkBasePosBuffers
 {
   unsigned base_anchors[class_count * base_count];
   unsigned mark_anchors[mark_count];
-  uint32_t anchors_buffer[class_count * base_count];
+  uint64_t anchors_buffer[class_count * base_count];
   uint8_t class_buffer[class_count * 2];
 
   MarkBasePosBuffers(hb_serialize_context_t* c)
@@ -350,7 +350,7 @@ struct MarkBasePosBuffers
     for (unsigned i = 0; i < class_count * base_count; i++)
     {
       anchors_buffer[i] = i;
-      base_anchors[i] = add_object ((char*) &anchors_buffer[i], 4, c);
+      base_anchors[i] = add_object ((char*) &anchors_buffer[i], 8, c);
       if (i < class_count) {
         class_buffer[i*2] = (uint8_t) ((i >> 8) & 0xFF);
         class_buffer[i*2 + 1] = (uint8_t) (i & 0xFF);
@@ -1952,12 +1952,12 @@ static void test_resolve_with_basic_mark_base_pos_1_split ()
   void* buffer = malloc (buffer_size);
   assert (buffer);
   hb_serialize_context_t c (buffer, buffer_size);
-  populate_serializer_with_large_mark_base_pos_1 <40, 10, 2000, 1>(&c);
+  populate_serializer_with_large_mark_base_pos_1 <40, 10, 1100, 1>(&c);
 
   void* expected_buffer = malloc (buffer_size);
   assert (expected_buffer);
   hb_serialize_context_t e (expected_buffer, buffer_size);
-  populate_serializer_with_large_mark_base_pos_1 <40, 10, 2000, 2>(&e);
+  populate_serializer_with_large_mark_base_pos_1 <40, 10, 1100, 2>(&e);
 
   run_resolve_overflow_test ("test_resolve_with_basic_mark_base_pos_1_split",
                              c,
