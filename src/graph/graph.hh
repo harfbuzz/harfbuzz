@@ -141,7 +141,7 @@ struct graph_t
     {
       for (unsigned i = 0; i < obj.real_links.length; i++)
       {
-        auto& link = obj.real_links[i];
+        auto& link = obj.real_links.arrayZ[i];
         if (link.objidx != child_index)
           continue;
 
