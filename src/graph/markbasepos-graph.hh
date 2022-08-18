@@ -400,8 +400,7 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     return true;
   }
 
-  // Create a new PairPos including PairSet's from start (inclusive) to end (exclusive).
-  // Returns object id of the new object.
+  // Create a new MarkBasePos that has all of the data for classes from [start, end).
   unsigned clone_range (split_context_t& sc,
                         unsigned this_index,
                         unsigned start, unsigned end) const

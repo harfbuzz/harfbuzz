@@ -288,8 +288,7 @@ hb_resolve_graph_overflows (hb_tag_t table_tag,
   if (!will_overflow)
     return true;
 
-  // TODO attach to graph? or just move buffers to the graph?
-  graph::gsubgpos_graph_context_t ext_context (table_tag, sorted_graph); // TODO lifetime
+  graph::gsubgpos_graph_context_t ext_context (table_tag, sorted_graph);
   if ((table_tag == HB_OT_TAG_GPOS
        ||  table_tag == HB_OT_TAG_GSUB)
       && will_overflow)
