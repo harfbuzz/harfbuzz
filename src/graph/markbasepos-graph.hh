@@ -104,6 +104,8 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
                               (char*) this;
         unsigned* objidx;
         if (pos_to_index.has (offset_pos, &objidx))
+          // TODO(garretrieger): move_child is O(n) (n is number of children), can use the pos_to_index
+          //                     map to speed it up.
           c.graph.move_child (this_index,
                               &(this->matrixZ[old_index]),
                               prime_id,
@@ -210,21 +212,31 @@ struct MarkBasePosFormat1 : public OT::Layout::GPOS_impl::MarkBasePosFormat1_2<S
     const unsigned base_coverage_id = c.graph.index_for_offset (this_index, &baseCoverage);
     const unsigned base_size =
         OT::Layout::GPOS_impl::PairPosFormat1_3<SmallTypes>::min_size +
+        MarkArray::min_size +
+        AnchorMatrix::min_size +
         c.graph.vertices_[base_coverage_id].table_size ();
 
     hb_vector_t<class_info_t> class_to_info = get_class_info (c, this_index);
 
+    unsigned class_count = classCount;
+    auto base_array = c.graph.as_table<AnchorMatrix> (this_index,
+                                                      &baseArray,
+                                                      class_count);
+    if (!base_array) return hb_vector_t<unsigned> ();
+    unsigned base_count = base_array.table->rows;
+
     unsigned partial_coverage_size = 4;
     unsigned accumulated = base_size;
     hb_vector_t<unsigned> split_points;
-    unsigned class_count = classCount;
+
     for (unsigned klass = 0; klass < class_count; klass++)
     {
       class_info_t& info = class_to_info[klass];
       partial_coverage_size += OT::HBUINT16::static_size * info.marks.get_population ();
-      unsigned accumulated_delta = OT::Layout::GPOS_impl::MarkRecord::static_size * info.marks.get_population ();
-      // TODO this doesn't count up null offsets.
-      accumulated_delta += OT::Offset16::static_size * info.child_indices.length;
+      unsigned accumulated_delta =
+          OT::Layout::GPOS_impl::MarkRecord::static_size * info.marks.get_population () +
+          OT::Offset16::static_size * base_count;
+
       for (unsigned objidx : info.child_indices)
         accumulated_delta += c.graph.find_subgraph_size (objidx, visited);
 
