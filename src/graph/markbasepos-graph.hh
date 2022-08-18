@@ -91,26 +91,31 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
     AnchorMatrix* prime = (AnchorMatrix*) c.graph.object (prime_id).head;
     prime->rows = base_count;
 
-    for (unsigned base = 0; base < base_count; base++)
+    auto& o = c.graph.vertices_[this_index].obj;
+    int num_links = o.real_links.length;
+    for (int i = 0; i < num_links; i++)
     {
-      for (unsigned klass = start; klass < end; klass++)
-      {
-        unsigned new_klass = klass - start;
+      const auto& link = o.real_links[i];
+      unsigned old_index = (link.position - 2) / OT::Offset16::static_size;
+      unsigned klass = old_index % class_count;
+      if (klass < start || klass >= end) continue;
 
-        unsigned old_index = base * class_count + klass;
-        unsigned new_index = base * new_class_count + new_klass;
+      unsigned base = old_index / class_count;
+      unsigned new_klass = klass - start;
+      unsigned new_index = base * new_class_count + new_klass;
 
-        unsigned offset_pos = (char*) &(this->matrixZ[old_index]) -
-                              (char*) this;
-        unsigned* objidx;
-        if (pos_to_index.has (offset_pos, &objidx))
-          // TODO(garretrieger): move_child is O(n) (n is number of children), can use the pos_to_index
-          //                     map to speed it up.
-          c.graph.move_child (this_index,
-                              &(this->matrixZ[old_index]),
-                              prime_id,
-                              &(prime->matrixZ[new_index]));
-      }
+
+      unsigned child_idx = link.objidx;
+      c.graph.add_link (&(prime->matrixZ[new_index]),
+                        prime_id,
+                        child_idx);
+
+      auto& child = c.graph.vertices_[child_idx];
+      child.remove_parent (this_index);
+
+      o.real_links.remove (i);
+      num_links--;
+      i--;
     }
 
     return prime_id;
