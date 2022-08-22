@@ -15,6 +15,34 @@ struct glyf_accelerator_t;
 
 namespace glyf_impl {
 
+struct CoordSetter
+{
+  CoordSetter (hb_font_t *font) :
+    font (font),
+    old_coords (font->coords, font->num_coords),
+    new_coords (old_coords)
+  {
+    font->coords = new_coords.arrayZ;
+    font->num_coords = new_coords.length;
+  }
+
+  ~CoordSetter ()
+  {
+    font->coords = old_coords.arrayZ;
+    font->num_coords = old_coords.length;
+  }
+
+  int& operator [] (unsigned idx)
+  {
+    if (new_coords.length < idx + 1)
+      new_coords.resize (idx + 1);
+    return new_coords[idx];
+  }
+
+  hb_font_t *font;
+  hb_array_t<int> old_coords;
+  hb_vector_t<int> new_coords;
+};
 
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 10000
@@ -32,7 +60,7 @@ enum phantom_point_index_t
 
 struct Glyph
 {
-  enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE };
+  enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE, VAR_COMPOSITE };
 
   public:
   composite_iter_t get_composite_iterator () const
@@ -288,6 +316,7 @@ struct Glyph
       for (auto &item : get_composite_iterator ())
       {
         comp_points.reset ();
+
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font, glyf_accelerator, comp_points,
 						    deltas, shift_points_hori, use_my_metrics, phantom_only, depth + 1)))
@@ -368,6 +397,7 @@ struct Glyph
     int num_contours = header->numberOfContours;
     if (unlikely (num_contours == 0)) type = EMPTY;
     else if (num_contours > 0) type = SIMPLE;
+    else if (num_contours == -2) type = VAR_COMPOSITE;
     else type = COMPOSITE; /* negative numbers */
   }
 
