@@ -604,6 +604,8 @@ hb_ot_layout_table_select_script (hb_face_t      *face,
  *
  * Return value: Total number of feature tags.
  *
+ * Since: 0.6.0
+ *
  **/
 unsigned int
 hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
@@ -629,6 +631,9 @@ hb_ot_layout_table_get_feature_tags (hb_face_t    *face,
  * or GPOS table.
  *
  * Return value: `true` if the feature is found, `false` otherwise
+ *
+ * Since: 0.6.0
+ *
  **/
 bool
 hb_ot_layout_table_find_feature (hb_face_t    *face,
@@ -667,6 +672,8 @@ hb_ot_layout_table_find_feature (hb_face_t    *face,
  * the specified script index. The list returned will begin at the offset provided.
  *
  * Return value: Total number of language tags.
+ *
+ * Since: 0.6.0
  *
  **/
 unsigned int
@@ -778,6 +785,8 @@ hb_ot_layout_script_select_language (hb_face_t      *face,
  *
  * Return value: `true` if the feature is found, `false` otherwise
  *
+ * Since: 0.6.0
+ *
  **/
 hb_bool_t
 hb_ot_layout_language_get_required_feature_index (hb_face_t    *face,
@@ -846,6 +855,9 @@ hb_ot_layout_language_get_required_feature (hb_face_t    *face,
  * returned will begin at the offset provided.
  *
  * Return value: Total number of features.
+ *
+ * Since: 0.6.0
+ *
  **/
 unsigned int
 hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
@@ -879,6 +891,9 @@ hb_ot_layout_language_get_feature_indexes (hb_face_t    *face,
  * returned will begin at the offset provided.
  *
  * Return value: Total number of feature tags.
+ *
+ * Since: 0.6.0
+ *
  **/
 unsigned int
 hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
@@ -918,6 +933,8 @@ hb_ot_layout_language_get_feature_tags (hb_face_t    *face,
  * or GPOS table, underneath the specified script and language.
  *
  * Return value: `true` if the feature is found, `false` otherwise
+ *
+ * Since: 0.6.0
  *
  **/
 hb_bool_t
@@ -1316,6 +1333,8 @@ hb_ot_layout_lookup_collect_glyphs (hb_face_t    *face,
  *
  * Return value: `true` if feature variations were found, `false` otherwise.
  *
+ * Since: 1.4.0
+ *
  **/
 hb_bool_t
 hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
@@ -1346,6 +1365,8 @@ hb_ot_layout_table_find_feature_variations (hb_face_t    *face,
  * variations index. The list returned will begin at the offset provided.
  *
  * Return value: Total number of lookups.
+ *
+ * Since: 1.4.0
  *
  **/
 unsigned int
@@ -1378,6 +1399,8 @@ hb_ot_layout_feature_with_variations_get_lookups (hb_face_t    *face,
  * Tests whether the specified face includes any GSUB substitutions.
  *
  * Return value: `true` if data found, `false` otherwise
+ *
+ * Since: 0.6.0
  *
  **/
 hb_bool_t
