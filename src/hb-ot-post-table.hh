@@ -102,6 +102,14 @@ struct post
     if (!serialize (c->serializer, glyph_names))
       return_trace (false);
 
+    if (c->plan->user_axes_location->has (HB_TAG ('s','l','n','t')) &&
+        !c->plan->pinned_at_default)
+    {
+      float italic_angle = c->plan->user_axes_location->get (HB_TAG ('s','l','n','t'));
+      italic_angle = hb_max (-90.f, hb_min (italic_angle, 90.f));
+      post_prime->italicAngle.set_float (italic_angle);
+    }
+
     if (glyph_names && version.major == 2)
       return_trace (v2X.subset (c));
 

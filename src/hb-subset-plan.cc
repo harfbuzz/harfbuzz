@@ -585,12 +585,9 @@ _nameid_closure (hb_face_t *face,
 
 #ifndef HB_NO_VAR
 static void
-_normalize_axes_location (hb_face_t *face,
-			  const hb_hashmap_t<hb_tag_t, float> *user_axes_location,
-			  hb_hashmap_t<hb_tag_t, int> *normalized_axes_location, /* OUT */
-			  bool &all_axes_pinned)
+_normalize_axes_location (hb_face_t *face, hb_subset_plan_t *plan)
 {
-  if (user_axes_location->is_empty ())
+  if (plan->user_axes_location->is_empty ())
     return;
 
   hb_array_t<const OT::AxisRecord> axes = face->table.fvar->get_axes ();
@@ -605,25 +602,27 @@ _normalize_axes_location (hb_face_t *face,
   for (const auto& axis : axes)
   {
     hb_tag_t axis_tag = axis.get_axis_tag ();
-    if (!user_axes_location->has (axis_tag))
+    if (!plan->user_axes_location->has (axis_tag))
     {
       axis_not_pinned = true;
     }
     else
     {
-      int normalized_v = axis.normalize_axis_value (user_axes_location->get (axis_tag));
+      int normalized_v = axis.normalize_axis_value (plan->user_axes_location->get (axis_tag));
       if (has_avar && axis_count < face->table.avar->get_axis_count ())
       {
         normalized_v = seg_maps->map (normalized_v);
       }
-      normalized_axes_location->set (axis_tag, normalized_v);
+      plan->axes_location->set (axis_tag, normalized_v);
+      if (normalized_v != 0)
+        plan->pinned_at_default = false;
     }
     if (has_avar)
       seg_maps = &StructAfter<OT::SegmentMaps> (*seg_maps);
 
     axis_count++;
   }
-  all_axes_pinned = !axis_not_pinned;
+  plan->all_axes_pinned = !axis_not_pinned;
 }
 #endif
 /**
@@ -692,6 +691,10 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   if (plan->user_axes_location && input->axes_location)
       *plan->user_axes_location = *input->axes_location;
   plan->all_axes_pinned = false;
+  plan->pinned_at_default = true;
+
+  plan->check_success (plan->vmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
+  plan->check_success (plan->hmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
 
   if (unlikely (plan->in_error ())) {
     hb_subset_plan_destroy (plan);
@@ -726,10 +729,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   }
 
 #ifndef HB_NO_VAR
-  _normalize_axes_location (face,
-                            input->axes_location,
-                            plan->axes_location,
-                            plan->all_axes_pinned);
+  _normalize_axes_location (face, plan);
 #endif
 
   _nameid_closure (face, plan->name_ids, plan->all_axes_pinned, plan->user_axes_location);

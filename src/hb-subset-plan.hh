@@ -73,6 +73,8 @@ struct hb_subset_plan_t
     hb_hashmap_destroy (gpos_langsys);
     hb_hashmap_destroy (axes_location);
     hb_hashmap_destroy (sanitized_table_cache);
+    hb_hashmap_destroy (hmtx_map);
+    hb_hashmap_destroy (vmtx_map);
 
     if (user_axes_location)
     {
@@ -156,6 +158,12 @@ struct hb_subset_plan_t
   //user specified axes location map
   hb_hashmap_t<hb_tag_t, float> *user_axes_location;
   bool all_axes_pinned;
+  bool pinned_at_default;
+
+  //hmtx metrics map: new gid->(advance, lsb)
+  hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *hmtx_map;
+  //vmtx metrics map: new gid->(advance, lsb)
+  hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *vmtx_map;
 
  public:
 
