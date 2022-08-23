@@ -285,7 +285,7 @@ struct SimpleGlyph
     x_coords.alloc (2*num_points);
     y_coords.alloc (2*num_points);
 
-    uint8_t lastflag, repeat = 0;
+    uint8_t lastflag = 0, repeat = 0;
 
     for (unsigned i = 0; i < num_points; i++)
     {
