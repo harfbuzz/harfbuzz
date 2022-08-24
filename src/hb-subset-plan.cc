@@ -759,6 +759,10 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
     return nullptr;
   }
 
+#ifndef HB_NO_VAR
+  _normalize_axes_location (face, plan);
+#endif
+
   _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, plan);
 
   _populate_gids_to_retain (plan,
@@ -785,10 +789,6 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
     plan->unicode_to_new_gid_list.arrayZ[i].second =
         plan->glyph_map->get(plan->unicode_to_new_gid_list.arrayZ[i].second);
   }
-
-#ifndef HB_NO_VAR
-  _normalize_axes_location (face, plan);
-#endif
 
   _nameid_closure (face, plan->name_ids, plan->all_axes_pinned, plan->user_axes_location);
   if (unlikely (plan->in_error ())) {
