@@ -101,14 +101,12 @@ struct Glyph
                              const contour_point_vector_t &all_points,
                              hb_bytes_t &dest_bytes /* OUT */) const
   {
-    if (all_points.length == 4) //Empty glyph
+    GlyphHeader *glyph_header = nullptr;
+    if (all_points.length > 4)
     {
-      dest_bytes = hb_bytes_t ();
-      return true;
+      glyph_header = (GlyphHeader *) hb_calloc (1, GlyphHeader::static_size);
+      if (unlikely (!glyph_header)) return false;
     }
-
-    GlyphHeader *glyph_header = (GlyphHeader *) hb_calloc (1, GlyphHeader::static_size);
-    if (unlikely (!glyph_header)) return false;
 
     int xMin, xMax;
     xMin = xMax = roundf (all_points[0].x);
@@ -127,6 +125,11 @@ struct Glyph
     }
 
     update_mtx (plan, xMin, yMax, all_points);
+
+    /*for empty glyphs: all_points only include phantom points.
+     *just update metrics and then return */
+    if (all_points.length == 4)
+      return true;
 
     glyph_header->numberOfContours = header->numberOfContours;
     glyph_header->xMin = xMin;
@@ -161,8 +164,11 @@ struct Glyph
         return false;
       break;
     default:
-      //no need to compile empty glyph (.notdef)
-      return true;
+      /* set empty bytes for empty glyph
+       * do not use source glyph's pointers */
+      dest_start = hb_bytes_t ();
+      dest_end = hb_bytes_t ();
+      break;
     }
 
     return compile_header_bytes (plan, all_points, dest_start);
