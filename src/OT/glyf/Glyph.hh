@@ -148,7 +148,7 @@ struct Glyph
                                   hb_bytes_t &dest_end /* OUT */) const
   {
     contour_point_vector_t all_points, deltas;
-    get_points (font, glyf, all_points, &deltas);
+    get_points (font, glyf, all_points, &deltas, false);
 
     switch (type) {
     case COMPOSITE:
@@ -182,6 +182,7 @@ struct Glyph
   bool get_points (hb_font_t *font, const accelerator_t &glyf_accelerator,
 		   contour_point_vector_t &all_points /* OUT */,
 		   contour_point_vector_t *deltas = nullptr, /* OUT */
+		   bool use_my_metrics = true,
 		   bool phantom_only = false,
 		   unsigned int depth = 0) const
   {
@@ -270,11 +271,11 @@ struct Glyph
         comp_points.reset ();
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font, glyf_accelerator, comp_points,
-						    deltas, phantom_only, depth + 1)))
+						    deltas, use_my_metrics, phantom_only, depth + 1)))
 	  return false;
 
 	/* Copy phantom points from component if USE_MY_METRICS flag set */
-	if (item.is_use_my_metrics ())
+	if (use_my_metrics && item.is_use_my_metrics ())
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
