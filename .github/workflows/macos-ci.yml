@@ -6,15 +6,18 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
-    runs-on: macos-10.15
+    runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: install dependencies
-      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config freetype glib cairo icu4c graphite2 gobject-introspection gtk-doc ninja gcovr
-    - run: pip3 install meson fonttools --upgrade
+      run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config freetype glib glib-utils cairo icu4c graphite2 gobject-introspection gtk-doc ninja
+    - run: pip3 install fonttools meson==0.56.0 gcovr==5.0
     - name: run
       run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Db_coverage=true -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled -Dchafa=disabled -Doptimization=2
     - name: ci
@@ -22,6 +25,6 @@ jobs:
 
     - name: cov
       run: ninja -Cbuild coverage-xml
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v3
       with:
         file: build/meson-logs/coverage.xml

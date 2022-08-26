@@ -1,6 +1,6 @@
 project('harfbuzz', 'c', 'cpp',
   meson_version: '>= 0.55.0',
-  version: '3.3.2',
+  version: '5.1.0',
   default_options: [
     'cpp_rtti=false',       # Just to support msvc, we are passing -fno-exceptions also anyway
     'cpp_std=c++11',
@@ -83,55 +83,30 @@ check_funcs = [
 
 m_dep = cpp.find_library('m', required: false)
 
-freetype_dep = null_dep
-if not get_option('freetype').disabled()
-  freetype_dep = dependency('freetype2', required: false)
-
-  if (not freetype_dep.found() and
-      cpp.get_id() == 'msvc' and
-      cpp.has_header('ft2build.h'))
-    freetype_dep = cpp.find_library('freetype', required: false)
-  endif
-
-  if not freetype_dep.found()
-    # https://github.com/harfbuzz/harfbuzz/pull/2498
-    freetype_dep = dependency('freetype2', required: get_option('freetype'),
-                              default_options: ['harfbuzz=disabled'])
-  endif
-endif
+# https://github.com/harfbuzz/harfbuzz/pull/2498
+freetype_dep = dependency(cpp.get_argument_syntax() == 'msvc' ? 'freetype' : 'freetype2',
+                          required: get_option('freetype'),
+                          default_options: ['harfbuzz=disabled'])
 
 glib_dep = dependency('glib-2.0', required: get_option('glib'))
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'))
 graphite2_dep = dependency('graphite2', required: get_option('graphite2'))
 graphite_dep = dependency('graphite2', required: get_option('graphite'))
 
-icu_dep = null_dep
-if not get_option('icu').disabled()
-  icu_dep = dependency('icu-uc', required: false)
-
-  if (not icu_dep.found() and
-      cpp.get_id() == 'msvc' and
-      cpp.has_header('unicode/uchar.h') and
-      cpp.has_header('unicode/unorm2.h') and
-      cpp.has_header('unicode/ustring.h') and
-      cpp.has_header('unicode/utf16.h') and
-      cpp.has_header('unicode/uversion.h') and
-      cpp.has_header('unicode/uscript.h'))
-    if get_option('buildtype') == 'debug'
-      icu_dep = cpp.find_library('icuucd', required: false)
-    else
-      icu_dep = cpp.find_library('icuuc', required: false)
-    endif
-  endif
-
-  if not icu_dep.found()
-    icu_dep = dependency('icu-uc', required: get_option('icu'))
-  endif
+if cpp.get_argument_syntax() == 'msvc'
+  icu_dep = dependency('ICU',
+                       required: get_option('icu'),
+                       components: 'uc',
+                       method: 'cmake')
+else
+  icu_dep = dependency('icu-uc',
+                       required: get_option('icu'),
+                       method: 'pkg-config')
 endif
 
-if icu_dep.found()
-  icu_defs = icu_dep.get_variable(pkgconfig: 'DEFS', default_value: '')
-  if icu_defs != ''
+if icu_dep.found() and icu_dep.type_name() == 'pkgconfig'
+  icu_defs = icu_dep.get_variable(pkgconfig: 'DEFS', default_value: '').split()
+  if icu_defs.length() > 0
     add_project_arguments(icu_defs, language: ['c', 'cpp'])
   endif
 endif
@@ -186,6 +161,11 @@ endif
 
 if cairo_dep.found()
   conf.set('HAVE_CAIRO', 1)
+  if cairo_dep.type_name() == 'internal'
+    conf.set('HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC', 1)
+  else
+    check_funcs += [['cairo_user_font_face_set_render_color_glyph_func', {'deps': cairo_dep}]]
+  endif
 endif
 
 if cairo_ft_dep.found()
@@ -218,6 +198,7 @@ if freetype_dep.found()
     ['FT_Get_Var_Blend_Coordinates', {'deps': freetype_dep}],
     ['FT_Set_Var_Blend_Coordinates', {'deps': freetype_dep}],
     ['FT_Done_MM_Var', {'deps': freetype_dep}],
+    ['FT_Get_Transform', {'deps': freetype_dep}],
   ]
 
   if freetype_dep.type_name() == 'internal'
@@ -252,17 +233,12 @@ if host_machine.system() == 'windows' and not get_option('gdi').disabled()
 endif
 
 # DirectWrite (Windows)
-directwrite_dep = null_dep
 if host_machine.system() == 'windows' and not get_option('directwrite').disabled()
   if get_option('directwrite').enabled() and not cpp.has_header('dwrite_1.h')
     error('DirectWrite was enabled explicitly, but required header is missing.')
   endif
 
-  directwrite_dep = cpp.find_library('dwrite', required: get_option('directwrite'))
-
-  if directwrite_dep.found()
-    conf.set('HAVE_DIRECTWRITE', 1)
-  endif
+  conf.set('HAVE_DIRECTWRITE', 1)
 endif
 
 # CoreText (macOS)

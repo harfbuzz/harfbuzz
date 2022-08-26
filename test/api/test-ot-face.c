@@ -126,14 +126,39 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   }
 
   hb_ot_math_has_data (face);
-  hb_ot_math_get_constant (font, HB_OT_MATH_CONSTANT_MATH_LEADING);
+  for (unsigned constant = HB_OT_MATH_CONSTANT_SCRIPT_PERCENT_SCALE_DOWN; constant <= HB_OT_MATH_CONSTANT_RADICAL_DEGREE_BOTTOM_RAISE_PERCENT; constant++) {
+    hb_ot_math_get_constant (font, (hb_ot_math_constant_t)constant);
+  }
+
   hb_ot_math_get_glyph_italics_correction (font, cp);
   hb_ot_math_get_glyph_top_accent_attachment (font, cp);
   hb_ot_math_is_glyph_extended_shape (face, cp);
-  hb_ot_math_get_glyph_kerning (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0);
-  hb_ot_math_get_glyph_variants (font, cp, HB_DIRECTION_TTB, 0, NULL, NULL);
-  hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_RTL);
-  hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_BTT, 0, NULL, NULL, NULL);
+
+  {
+    hb_ot_math_get_glyph_kerning (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0);
+    hb_ot_math_get_glyph_kernings (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0, NULL, NULL);
+    hb_ot_math_kern_entry_t entries[5];
+    unsigned count = sizeof (entries) / sizeof (entries[0]);
+    hb_ot_math_get_glyph_kernings (font, cp, HB_OT_MATH_KERN_BOTTOM_RIGHT, 0, &count, entries);
+  }
+
+  {
+    hb_ot_math_get_glyph_variants (font, cp, HB_DIRECTION_LTR, 0, NULL, NULL);
+    hb_ot_math_get_glyph_variants (font, cp, HB_DIRECTION_TTB, 0, NULL, NULL);
+    hb_ot_math_glyph_variant_t entries[5];
+    unsigned count = sizeof (entries) / sizeof (entries[0]);
+    hb_ot_math_get_glyph_variants (font, cp, HB_DIRECTION_LTR, 0, &count, entries);
+  }
+
+  {
+    hb_ot_math_get_min_connector_overlap (font, HB_DIRECTION_LTR);
+    hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_LTR, 0, NULL, NULL, NULL);
+    hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_TTB, 0, NULL, NULL, NULL);
+    hb_ot_math_glyph_part_t entries[5];
+    unsigned count = sizeof (entries) / sizeof (entries[0]);
+    hb_position_t corr;
+    hb_ot_math_get_glyph_assembly (font, cp, HB_DIRECTION_LTR, 0, &count, entries, &corr);
+  }
 
   hb_ot_meta_get_entry_tags (face, 0, NULL, NULL);
   hb_blob_destroy (hb_ot_meta_reference_entry (face, HB_OT_META_TAG_DESIGN_LANGUAGES));
@@ -162,11 +187,9 @@ test_font (hb_font_t *font, hb_codepoint_t cp)
   hb_ot_var_normalize_variations (face, NULL, 0, NULL, 0);
   hb_ot_var_normalize_coords (face, 0, NULL, NULL);
 
-#ifdef HB_EXPERIMENTAL_API
   hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
-  hb_font_draw_glyph (font, cp, funcs, NULL);
+  hb_font_get_glyph_shape (font, cp, funcs, NULL);
   hb_draw_funcs_destroy (funcs);
-#endif
 
   hb_set_destroy (set);
 

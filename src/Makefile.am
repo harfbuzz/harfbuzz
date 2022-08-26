@@ -12,7 +12,7 @@ DISTCHECK_CONFIGURE_FLAGS = --enable-introspection
 TESTS =
 check_PROGRAMS =
 
-EXTRA_DIST += harfbuzz.cc
+EXTRA_DIST += harfbuzz.cc harfbuzz-subset.cc
 EXTRA_DIST += meson.build
 EXTRA_DIST += fix_get_types.py
 
@@ -160,6 +160,18 @@ pkginclude_HEADERS += $(HB_SUBSET_headers)
 pkgconfig_DATA += harfbuzz-subset.pc
 EXTRA_DIST += harfbuzz-subset.pc.in
 
+harfbuzz-subset.cc: Makefile.sources
+	$(AM_V_GEN) \
+	LANG=C; \
+	for f in \
+		$(HB_BASE_sources) \
+		$(HB_SUBSET_sources) \
+		; do echo '#include "'$$f'"'; done | \
+	sort -u | \
+	grep '[.]cc"' > $(srcdir)/harfbuzz-subset.cc \
+	|| ($(RM) $(srcdir)/harfbuzz-subset.cc; false)
+BUILT_SOURCES += harfbuzz-subset.cc
+
 if HAVE_ICU
 if HAVE_ICU_BUILTIN
 HBCFLAGS += $(ICU_CFLAGS)
@@ -284,6 +296,7 @@ $(srcdir)/%.hh: $(srcdir)/%.rl
 
 harfbuzz.cc: Makefile.sources
 	$(AM_V_GEN) \
+	LANG=C; \
 	for f in \
 		$(HB_BASE_sources) \
 		$(HB_GLIB_sources) \
@@ -294,6 +307,7 @@ harfbuzz.cc: Makefile.sources
 		$(HB_DIRECTWRITE_sources) \
 		$(HB_CORETEXT_sources) \
 		; do echo '#include "'$$f'"'; done | \
+	sort -u | \
 	grep '[.]cc"' > $(srcdir)/harfbuzz.cc \
 	|| ($(RM) $(srcdir)/harfbuzz.cc; false)
 BUILT_SOURCES += harfbuzz.cc
@@ -345,7 +359,9 @@ test_gsub_would_substitute_LDADD = libharfbuzz.la $(HBLIBS) $(FREETYPE_LIBS)
 COMPILED_TESTS = \
 	test-algs \
 	test-array \
+	test-bimap \
 	test-iter \
+	test-machinery \
 	test-map \
 	test-number \
 	test-ot-tag \
@@ -354,7 +370,6 @@ COMPILED_TESTS = \
 	test-serialize \
 	test-unicode-ranges \
 	test-vector \
-	test-bimap \
 	test-repacker \
 	$(NULL)
 COMPILED_TESTS_CPPFLAGS = $(HBCFLAGS) -DMAIN -UNDEBUG
@@ -370,17 +385,17 @@ test_array_SOURCES = test-array.cc
 test_array_CPPFLAGS = $(HBCFLAGS)
 test_array_LDADD = libharfbuzz.la $(HBLIBS)
 
-test_priority_queue_SOURCES = test-priority-queue.cc hb-static.cc
-test_priority_queue_CPPFLAGS = $(HBCFLAGS)
-test_priority_queue_LDADD = libharfbuzz.la $(HBLIBS)
-
-test_repacker_SOURCES = test-repacker.cc hb-static.cc
-test_repacker_CPPFLAGS = $(HBCFLAGS)
-test_repacker_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
+test_bimap_SOURCES = test-bimap.cc hb-static.cc
+test_bimap_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_bimap_LDADD = $(COMPILED_TESTS_LDADD)
 
 test_iter_SOURCES = test-iter.cc hb-static.cc
 test_iter_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_iter_LDADD = $(COMPILED_TESTS_LDADD)
+
+test_machinery_SOURCES = test-machinery.cc hb-static.cc
+test_machinery_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_machinery_LDADD = $(COMPILED_TESTS_LDADD)
 
 test_map_SOURCES = test-map.cc hb-static.cc
 test_map_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
@@ -393,6 +408,14 @@ test_number_LDADD = $(COMPILED_TESTS_LDADD)
 test_ot_tag_SOURCES = hb-ot-tag.cc
 test_ot_tag_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_ot_tag_LDADD = $(COMPILED_TESTS_LDADD)
+
+test_priority_queue_SOURCES = test-priority-queue.cc hb-static.cc
+test_priority_queue_CPPFLAGS = $(HBCFLAGS)
+test_priority_queue_LDADD = libharfbuzz.la $(HBLIBS)
+
+test_repacker_SOURCES = test-repacker.cc hb-static.cc graph/gsubgpos-context.cc
+test_repacker_CPPFLAGS = $(HBCFLAGS)
+test_repacker_LDADD = libharfbuzz.la libharfbuzz-subset.la $(HBLIBS)
 
 test_set_SOURCES = test-set.cc hb-static.cc
 test_set_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
@@ -409,10 +432,6 @@ test_unicode_ranges_LDADD = $(COMPILED_TESTS_LDADD)
 test_vector_SOURCES = test-vector.cc hb-static.cc
 test_vector_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_vector_LDADD = $(COMPILED_TESTS_LDADD)
-
-test_bimap_SOURCES = test-bimap.cc hb-static.cc
-test_bimap_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
-test_bimap_LDADD = $(COMPILED_TESTS_LDADD)
 
 dist_check_SCRIPTS = \
 	check-c-linkage-decls.py \
@@ -432,6 +451,7 @@ endif
 
 TESTS_ENVIRONMENT = \
 	srcdir="$(srcdir)" \
+	base_srcdir="$(srcdir)" \
 	builddir="$(builddir)" \
 	MAKE="$(MAKE) $(AM_MAKEFLAGS)" \
 	HBSOURCES="$(HBSOURCES)" \
@@ -460,7 +480,7 @@ INTROSPECTION_COMPILER_ARGS = --includedir=$(srcdir)
 INTROSPECTION_SCANNER_ENV = CC="$(CC)"
 
 HarfBuzz-0.0.gir: libharfbuzz.la libharfbuzz-gobject.la
-HarfBuzz_0_0_gir_INCLUDES = GObject-2.0
+HarfBuzz_0_0_gir_INCLUDES = GObject-2.0 freetype2-2.0
 HarfBuzz_0_0_gir_CFLAGS = \
 	$(INCLUDES) \
 	$(HBCFLAGS) \

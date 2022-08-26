@@ -6,6 +6,8 @@ endif
 tests = [
   'test-aat-layout.c',
   'test-baseline.c',
+  'test-be-glyph-advance.c',
+  'test-be-num-glyphs.c',
   'test-blob.c',
   'test-buffer.c',
   'test-c.c',
@@ -30,6 +32,7 @@ tests = [
   'test-ot-tag.c',
   'test-ot-extents-cff.c',
   'test-ot-metrics-tt-var.c',
+  'test-subset-repacker.c',
   'test-set.c',
   'test-shape.c',
   'test-style.c',

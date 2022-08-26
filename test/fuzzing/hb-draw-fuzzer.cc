@@ -5,77 +5,81 @@
 
 #include "hb-fuzzer.hh"
 
-#ifdef HB_EXPERIMENTAL_API
-struct _user_data_t
+struct _draw_data_t
 {
-  bool is_open;
   unsigned path_len;
-  hb_position_t path_start_x;
-  hb_position_t path_start_y;
-  hb_position_t path_last_x;
-  hb_position_t path_last_y;
+  float path_start_x;
+  float path_start_y;
+  float path_last_x;
+  float path_last_y;
 };
 
+#include <cstdio>
 static void
-_move_to (hb_position_t to_x, hb_position_t to_y, void *user_data_)
+_move_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	  hb_draw_state_t *st,
+	  float to_x, float to_y,
+	  void *user_data)
 {
-  _user_data_t *user_data = (_user_data_t *) user_data_;
-  assert (!user_data->is_open);
-  user_data->is_open = true;
-  user_data->path_start_x = user_data->path_last_x = to_x;
-  user_data->path_start_y = user_data->path_last_y = to_y;
+  _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
+  assert (!st->path_open);
+  draw_data->path_start_x = draw_data->path_last_x = to_x;
+  draw_data->path_start_y = draw_data->path_last_y = to_y;
 }
 
 static void
-_line_to (hb_position_t to_x, hb_position_t to_y, void *user_data_)
+_line_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	  hb_draw_state_t *st,
+	  float to_x, float to_y,
+	  void *user_data)
 {
-  _user_data_t *user_data = (_user_data_t *) user_data_;
-  assert (user_data->is_open);
-  assert (user_data->path_last_x != to_x || user_data->path_last_y != to_y);
-  ++user_data->path_len;
-  user_data->path_last_x = to_x;
-  user_data->path_last_y = to_y;
+  _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
+  assert (st->path_open);
+  ++draw_data->path_len;
+  draw_data->path_last_x = to_x;
+  draw_data->path_last_y = to_y;
 }
 
 static void
-_quadratic_to (hb_position_t control_x, hb_position_t control_y,
-	       hb_position_t to_x, hb_position_t to_y, void *user_data_)
+_quadratic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	       hb_draw_state_t *st,
+	       float control_x, float control_y,
+	       float to_x, float to_y,
+	       void *user_data)
 {
-  _user_data_t *user_data = (_user_data_t *) user_data_;
-  assert (user_data->is_open);
-  assert (user_data->path_last_x != control_x || user_data->path_last_y != control_y ||
-	  user_data->path_last_x != to_x || user_data->path_last_y != to_y);
-  ++user_data->path_len;
-  user_data->path_last_x = to_x;
-  user_data->path_last_y = to_y;
+  _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
+  assert (st->path_open);
+  ++draw_data->path_len;
+  draw_data->path_last_x = to_x;
+  draw_data->path_last_y = to_y;
 }
 
 static void
-_cubic_to (hb_position_t control1_x, hb_position_t control1_y,
-	   hb_position_t control2_x, hb_position_t control2_y,
-	   hb_position_t to_x, hb_position_t to_y, void *user_data_)
+_cubic_to (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	   hb_draw_state_t *st,
+	   float control1_x, float control1_y,
+	   float control2_x, float control2_y,
+	   float to_x, float to_y,
+	   void *user_data)
 {
-  _user_data_t *user_data = (_user_data_t *) user_data_;
-  assert (user_data->is_open);
-  assert (user_data->path_last_x != control1_x || user_data->path_last_y != control1_y ||
-	  user_data->path_last_x != control2_x || user_data->path_last_y != control2_y ||
-	  user_data->path_last_x != to_x || user_data->path_last_y != to_y);
-  ++user_data->path_len;
-  user_data->path_last_x = to_x;
-  user_data->path_last_y = to_y;
+  _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
+  assert (st->path_open);
+  ++draw_data->path_len;
+  draw_data->path_last_x = to_x;
+  draw_data->path_last_y = to_y;
 }
 
 static void
-_close_path (void *user_data_)
+_close_path (hb_draw_funcs_t *dfuncs, void *draw_data_,
+	     hb_draw_state_t *st,
+	     void *user_data)
 {
-  _user_data_t *user_data = (_user_data_t *) user_data_;
-  assert (user_data->is_open && user_data->path_len != 0);
-  user_data->path_len = 0;
-  user_data->is_open = false;
-  assert (user_data->path_start_x == user_data->path_last_x &&
-	  user_data->path_start_y == user_data->path_last_y);
+  _draw_data_t *draw_data = (_draw_data_t *) draw_data_;
+  assert (st->path_open && draw_data->path_len != 0);
+  draw_data->path_len = 0;
+  assert (draw_data->path_start_x == draw_data->path_last_x &&
+	  draw_data->path_start_y == draw_data->path_last_y);
 }
-#endif
 
 /* Similar to test-ot-face.c's #test_font() */
 static void misc_calls_for_gid (hb_face_t *face, hb_font_t *font, hb_set_t *set, hb_codepoint_t cp)
@@ -115,7 +119,7 @@ static void misc_calls_for_gid (hb_face_t *face, hb_font_t *font, hb_set_t *set,
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
-  alloc_state = size; /* see src/failing-alloc.c */
+  alloc_state = _fuzzing_alloc_state (data, size);
 
   hb_blob_t *blob = hb_blob_create ((const char *) data, size,
 				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
@@ -135,24 +139,19 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   unsigned glyph_count = hb_face_get_glyph_count (face);
   glyph_count = glyph_count > 16 ? 16 : glyph_count;
 
-#ifdef HB_EXPERIMENTAL_API
-  _user_data_t user_data = {false, 0, 0, 0, 0, 0};
+  _draw_data_t draw_data = {0, 0, 0, 0, 0};
 
   hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
-  hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) _move_to);
-  hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) _line_to);
-  hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) _quadratic_to);
-  hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) _cubic_to);
-  hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) _close_path);
-#endif
+  hb_draw_funcs_set_move_to_func (funcs, (hb_draw_move_to_func_t) _move_to, nullptr, nullptr);
+  hb_draw_funcs_set_line_to_func (funcs, (hb_draw_line_to_func_t) _line_to, nullptr, nullptr);
+  hb_draw_funcs_set_quadratic_to_func (funcs, (hb_draw_quadratic_to_func_t) _quadratic_to, nullptr, nullptr);
+  hb_draw_funcs_set_cubic_to_func (funcs, (hb_draw_cubic_to_func_t) _cubic_to, nullptr, nullptr);
+  hb_draw_funcs_set_close_path_func (funcs, (hb_draw_close_path_func_t) _close_path, nullptr, nullptr);
   volatile unsigned counter = !glyph_count;
   hb_set_t *set = hb_set_create ();
   for (unsigned gid = 0; gid < glyph_count; ++gid)
   {
-#ifdef HB_EXPERIMENTAL_API
-    hb_font_draw_glyph (font, gid, funcs, &user_data);
-    assert (!user_data.is_open);
-#endif
+    hb_font_get_glyph_shape (font, gid, funcs, &draw_data);
 
     /* Glyph extents also may practices the similar path, call it now that is related */
     hb_glyph_extents_t extents;
@@ -166,9 +165,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   }
   hb_set_destroy (set);
   assert (counter);
-#ifdef HB_EXPERIMENTAL_API
   hb_draw_funcs_destroy (funcs);
-#endif
 
   hb_font_destroy (font);
   hb_face_destroy (face);

@@ -2,7 +2,7 @@
 
 NULL =
 EXTRA_DIST =
-SUBDIRS = api shape subset fuzzing
+SUBDIRS = api shape subset fuzzing threads
 
 EXTRA_DIST += \
 	meson.build \

@@ -33,7 +33,7 @@ Here Obj N, is the object currently being written.
 ## Complex Tables
 
 Complex tables are made up of graphs of objects, where offset's are used
-to form the edges of the graphs. Each object is a continous slice of bytes
+to form the edges of the graphs. Each object is a continuous slice of bytes
 that contains zero or more offsets pointing to more objects.
 
 In this case the serialization buffer has a different layout:

@@ -2,17 +2,24 @@
 
 "This tool is intended to be used from meson"
 
-import os, sys, shutil
+import shutil
+import sys
+
+from pathlib import Path
 
 if len (sys.argv) < 3:
 	sys.exit (__doc__)
 
-OUTPUT = sys.argv[1]
-CURRENT_SOURCE_DIR = sys.argv[2]
-sources = sys.argv[3:]
+OUTPUT = Path (sys.argv[1])
+CURRENT_SOURCE_DIR = Path (sys.argv[2])
+
+# make sure input files are unique
+sources = [Path(x) for x in sorted(set(sys.argv[3:]))]
 
 with open (OUTPUT, "wb") as f:
-	f.write ("".join ('#include "{}"\n'.format (os.path.basename (x)) for x in sources if x.endswith (".cc")).encode ())
+	f.write ("".join ('#include "{}"\n'.format (p.resolve ().relative_to (CURRENT_SOURCE_DIR)) for p in sources if p.suffix == ".cc").encode ())
 
-# copy it also to src/
-shutil.copyfile (OUTPUT, os.path.join (CURRENT_SOURCE_DIR, os.path.basename (OUTPUT)))
+# copy it also to the source tree, but only if it has changed
+baseline = CURRENT_SOURCE_DIR / OUTPUT.name
+if baseline.read_bytes() != OUTPUT.read_bytes():
+	shutil.copyfile (OUTPUT, baseline)

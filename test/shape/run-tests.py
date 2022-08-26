@@ -11,7 +11,10 @@ def shape_cmd(command):
 
 args = sys.argv[1:]
 
-have_freetype = bool(int(os.getenv ('HAVE_FREETYPE', '1')))
+have_freetype = int(os.getenv ('HAVE_FREETYPE', 1))
+have_coretext = int(os.getenv ('HAVE_CORETEXT', 0))
+have_directwrite = int(os.getenv ('HAVE_DIRECTWRITE', 0))
+have_uniscribe = int(os.getenv ('HAVE_UNISCRIBE', 0))
 
 if not args or args[0].find('hb-shape') == -1 or not os.path.exists (args[0]):
 	sys.exit ("""First argument does not seem to point to usable hb-shape.""")
@@ -82,12 +85,25 @@ for filename in args:
 		extra_options = ["--shaper=ot"]
 		if glyphs_expected != '*':
 			extra_options.append("--verify")
+			extra_options.append("--unsafe-to-concat")
 
 		if comment:
 			print ('# %s "%s" --unicodes %s' % (hb_shape, fontfile, unicodes))
 			continue
 
 		if "--font-funcs=ft" in options and not have_freetype:
+			skips += 1
+			continue
+
+		if "--shaper=coretext" in options and not have_coretext:
+			skips += 1
+			continue
+
+		if "--shaper=directwrite" in options and not have_directwrite:
+			skips += 1
+			continue
+
+		if "--shaper=uniscribe" in options and not have_uniscribe:
 			skips += 1
 			continue
 
@@ -105,6 +121,7 @@ for filename in args:
 				passes += 1
 
 		if glyphs1.strip() != glyphs_expected and glyphs_expected != '*':
+			print ("hb-shape", fontfile, "--unicodes", unicodes, file=sys.stderr)
 			print ("Actual:   " + glyphs1, file=sys.stderr)
 			print ("Expected: " + glyphs_expected, file=sys.stderr)
 			fails += 1

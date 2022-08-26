@@ -11,7 +11,7 @@
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
-  alloc_state = size; /* see src/failing-alloc.c */
+  alloc_state = _fuzzing_alloc_state (data, size);
 
   hb_blob_t *blob = hb_blob_create ((const char *)data, size,
 				    HB_MEMORY_MODE_READONLY, nullptr, nullptr);
@@ -33,6 +33,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   {
     const char text[] = "ABCDEXYZ123@_%&)*$!";
     hb_buffer_t *buffer = hb_buffer_create ();
+    hb_buffer_set_flags (buffer, (hb_buffer_flags_t) (HB_BUFFER_FLAG_VERIFY /* | HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT */));
     hb_buffer_add_utf8 (buffer, text, -1, 0, -1);
     hb_buffer_guess_segment_properties (buffer);
     hb_shape (font, buffer, nullptr, 0);
@@ -50,6 +51,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   text32[10] = test_font (font, text32[15]) % 256;
 
   hb_buffer_t *buffer = hb_buffer_create ();
+ // hb_buffer_set_flags (buffer, (hb_buffer_flags_t) (HB_BUFFER_FLAG_VERIFY | HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT));
   hb_buffer_add_utf32 (buffer, text32, sizeof (text32) / sizeof (text32[0]), 0, -1);
   hb_buffer_guess_segment_properties (buffer);
   hb_shape (font, buffer, nullptr, 0);

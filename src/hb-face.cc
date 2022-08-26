@@ -190,7 +190,7 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
 }
 
 /**
- * hb_face_create: (Xconstructor)
+ * hb_face_create:
  * @blob: #hb_blob_t to work upon
  * @index: The index of the face within @blob
  *
@@ -315,7 +315,7 @@ hb_face_destroy (hb_face_t *face)
  *
  * Attaches a user-data key/data pair to the given face object.
  *
- * Return value: %true if success, %false otherwise
+ * Return value: `true` if success, `false` otherwise
  *
  * Since: 0.9.2
  **/
@@ -371,7 +371,7 @@ hb_face_make_immutable (hb_face_t *face)
  *
  * Tests whether the given face object is immutable.
  *
- * Return value: %true is @face is immutable, %false otherwise
+ * Return value: `true` is @face is immutable, `false` otherwise
  *
  * Since: 0.9.2
  **/
