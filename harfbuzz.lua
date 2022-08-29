@@ -40,6 +40,8 @@ files {
     "./src/hb-ot-shaper-indic-table.cc",
     "./src/hb-ot-shaper-khmer.cc",
     "./src/hb-buffer.cc",
+    "./src/hb-buffer-verify.cc",
+    "./src/hb-buffer-serialize.cc",
     "./src/hb-ot-shaper-myanmar.cc",
     "./src/hb-ot-shaper-syllabic.cc",
     "./src/hb-ot-shaper-thai.cc",
