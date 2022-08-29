@@ -601,6 +601,8 @@ hb_ot_layout_table_select_script (hb_face_t      *face,
  * @feature_tags: (out) (array length=feature_count): Array of feature tags found in the table
  *
  * Fetches a list of all feature tags in the given face's GSUB or GPOS table.
+ * Note that there might be duplicate feature tags, belonging to different
+ * script/language-system pairs of the table.
  *
  * Return value: Total number of feature tags.
  *
