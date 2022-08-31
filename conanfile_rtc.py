@@ -2,7 +2,7 @@ from conans import ConanFile
 
 class HarfbuzzConan(ConanFile):
     name = "harfbuzz"
-    version = "3.3.2"
+    version = "5.1.0"
     url = "https://github.com/Esri/harfbuzz/tree/runtimecore"
     license = "https://github.com/Esri/harfbuzz/blob/master/COPYING"
     description = "HarfBuzz is a text shaping engine."

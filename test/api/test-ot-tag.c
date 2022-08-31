@@ -140,6 +140,8 @@ test_ot_tag_script_simple (void)
   test_simple_tags ("kana", HB_SCRIPT_KATAKANA);
   test_simple_tags ("latn", HB_SCRIPT_LATIN);
 
+  test_simple_tags ("math", HB_SCRIPT_MATH);
+
   /* These are trickier since their OT script tags have space. */
   test_simple_tags ("lao ", HB_SCRIPT_LAO);
   test_simple_tags ("yi  ", HB_SCRIPT_YI);

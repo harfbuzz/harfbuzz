@@ -93,10 +93,17 @@ test_ot_name (void)
   name_id = entries[3].name_id;
   g_assert_cmpuint (3, ==, name_id);
   lang = entries[3].language;
+
   g_assert_cmpstr (hb_language_to_string (lang), ==, "en");
   g_assert_cmpuint (27, ==, hb_ot_name_get_utf8 (face, name_id, lang, &text_size, text));
   g_assert_cmpuint (9, ==, text_size);
   g_assert_cmpstr (text, ==, "FontForge");
+
+  g_assert_cmpuint (27, ==, hb_ot_name_get_utf8 (face, name_id, hb_language_from_string ("en_US", -1), &text_size, text));
+  g_assert_cmpuint (8, ==, text_size);
+  g_assert_cmpstr (text, ==, "FontForg");
+
+  g_assert_cmpuint (0, ==, hb_ot_name_get_utf8 (face, name_id, hb_language_from_string ("fa_IR", -1), &text_size, text));
 }
 
 int

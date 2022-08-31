@@ -80,7 +80,7 @@ test_advance_tt_var_nohvar (void)
   hb_font_get_glyph_advance_for_direction(font, 2, HB_DIRECTION_TTB, &x, &y);
 
   g_assert_cmpint (x, ==, 0);
-  g_assert_cmpint (y, ==, -1000);
+  g_assert_cmpint (y, ==, -1257);
 
   float coords[1] = { 500.0f };
   hb_font_set_var_coords_design (font, coords, 1);
@@ -92,7 +92,7 @@ test_advance_tt_var_nohvar (void)
   hb_font_get_glyph_advance_for_direction(font, 2, HB_DIRECTION_TTB, &x, &y);
 
   g_assert_cmpint (x, ==, 0);
-  g_assert_cmpint (y, ==, -1000);
+  g_assert_cmpint (y, ==, -1257);
 
   hb_font_destroy (font);
 }

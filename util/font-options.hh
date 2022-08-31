@@ -44,7 +44,9 @@ struct font_options_t : face_options_t
 {
   ~font_options_t ()
   {
+#ifndef HB_NO_VAR
     free (variations);
+#endif
     g_free (font_funcs);
     hb_font_destroy (font);
   }
@@ -53,11 +55,15 @@ struct font_options_t : face_options_t
 
   void post_parse (GError **error);
 
+  hb_bool_t sub_font = false;
+#ifndef HB_NO_VAR
   hb_variation_t *variations = nullptr;
   unsigned int num_variations = 0;
+#endif
   int x_ppem = 0;
   int y_ppem = 0;
   double ptem = 0.;
+  double slant = 0.;
   unsigned int subpixel_bits = SUBPIXEL_BITS;
   mutable double font_size_x = DEFAULT_FONT_SIZE;
   mutable double font_size_y = DEFAULT_FONT_SIZE;
@@ -73,10 +79,10 @@ static struct supported_font_funcs_t {
 	void (*func) (hb_font_t *);
 } supported_font_funcs[] =
 {
+  {"ot",	hb_ot_font_set_funcs},
 #ifdef HAVE_FREETYPE
   {"ft",	hb_ft_font_set_funcs},
 #endif
-  {"ot",	hb_ot_font_set_funcs},
 };
 
 
@@ -94,11 +100,15 @@ font_options_t::post_parse (GError **error)
   hb_font_set_ppem (font, x_ppem, y_ppem);
   hb_font_set_ptem (font, ptem);
 
+  hb_font_set_synthetic_slant (font, slant);
+
   int scale_x = (int) scalbnf (font_size_x, subpixel_bits);
   int scale_y = (int) scalbnf (font_size_y, subpixel_bits);
   hb_font_set_scale (font, scale_x, scale_y);
 
+#ifndef HB_NO_VAR
   hb_font_set_variations (font, variations, num_variations);
+#endif
 
   void (*set_font_funcs) (hb_font_t *) = nullptr;
   if (!font_funcs)
@@ -137,9 +147,18 @@ font_options_t::post_parse (GError **error)
 #ifdef HAVE_FREETYPE
   hb_ft_font_set_load_flags (font, ft_load_flags);
 #endif
+
+  if (sub_font)
+  {
+    hb_font_t *old_font = font;
+    font = hb_font_create_sub_font (old_font);
+    hb_font_set_scale (old_font, scale_x * 2, scale_y * 2);
+    hb_font_destroy (old_font);
+  }
 }
 
 
+#ifndef HB_NO_VAR
 static gboolean
 parse_variations (const char *name G_GNUC_UNUSED,
 		  const char *arg,
@@ -161,7 +180,7 @@ parse_variations (const char *name G_GNUC_UNUSED,
   p = s;
   do {
     font_opts->num_variations++;
-    p = strchr (p, ',');
+    p = strpbrk (p, ", ");
     if (p)
       p++;
   } while (p);
@@ -174,7 +193,7 @@ parse_variations (const char *name G_GNUC_UNUSED,
   p = s;
   font_opts->num_variations = 0;
   while (p && *p) {
-    char *end = strchr (p, ',');
+    char *end = strpbrk (p, ", ");
     if (hb_variation_from_string (p, end ? end - p : -1, &font_opts->variations[font_opts->num_variations]))
       font_opts->num_variations++;
     p = end ? end + 1 : nullptr;
@@ -182,6 +201,7 @@ parse_variations (const char *name G_GNUC_UNUSED,
 
   return true;
 }
+#endif
 
 static gboolean
 parse_font_size (const char *name G_GNUC_UNUSED,
@@ -265,7 +285,11 @@ font_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_font_ppem,	"Set x,y pixels per EM (default: 0; disabled)",	"1/2 integers"},
     {"font-ptem",	0, 0,
 			      G_OPTION_ARG_DOUBLE,	&this->ptem,			"Set font point-size (default: 0; disabled)",	"point-size"},
+    {"font-slant",	0, 0,
+			      G_OPTION_ARG_DOUBLE,	&this->slant,			"Set synthetic slant (default: 0)",		 "slant ratio; eg. 0.2"},
     {"font-funcs",	0, 0, G_OPTION_ARG_STRING,	&this->font_funcs,		text,						"impl"},
+    {"sub-font",	0, G_OPTION_FLAG_HIDDEN,
+			      G_OPTION_ARG_NONE,	&this->sub_font,		"Create a sub-font (default: false)",		"boolean"},
     {"ft-load-flags",	0, 0, G_OPTION_ARG_INT,		&this->ft_load_flags,		"Set FreeType load-flags (default: 2)",		"integer"},
     {nullptr}
   };
@@ -276,6 +300,7 @@ font_options_t::add_options (option_parser_t *parser)
 		     this,
 		     false /* We add below. */);
 
+#ifndef HB_NO_VAR
   const gchar *variations_help = "Comma-separated list of font variations\n"
     "\n"
     "    Variations are set globally. The format for specifying variation settings\n"
@@ -298,6 +323,7 @@ font_options_t::add_options (option_parser_t *parser)
 		     "Variations options:",
 		     "Options for font variations used",
 		     this);
+#endif
 }
 
 #endif

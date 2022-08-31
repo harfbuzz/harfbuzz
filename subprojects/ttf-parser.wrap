@@ -1,5 +1,0 @@
-[wrap-git]
-directory=ttf-parser
-url=https://github.com/RazrFalcon/ttf-parser.git
-depth=1
-revision=master

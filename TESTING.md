@@ -47,9 +47,5 @@ fuzzbuild/test/fuzzing/hb-subset-fuzzer test/fuzzing/fonts
 
 ## Profiling
 
-```
-meson build --reconfigure
-meson compile -C build
-build/perf/perf
-```
+For profiling, see `perf/README.md`.
 

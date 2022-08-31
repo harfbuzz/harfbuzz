@@ -30,6 +30,8 @@ noinst_PROGRAMS = $(TEST_PROGS)
 TEST_PROGS = \
 	test-aat-layout \
 	test-baseline \
+	test-be-glyph-advance \
+	test-be-num-glyphs \
 	test-blob \
 	test-buffer \
 	test-c \
@@ -76,10 +78,14 @@ TEST_PROGS = \
 	test-subset-gpos \
 	test-subset-colr \
 	test-subset-cbdt \
+	test-subset-repacker \
 	test-unicode \
 	test-var-coords \
 	test-version \
 	$(NULL)
+
+test_draw_CPPFLAGS = $(AM_CPPFLAGS)
+test_draw_LDADD = $(LDADD)
 
 test_subset_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_cmap_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
@@ -100,6 +106,7 @@ test_subset_cbdt_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_nameids_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_gpos_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 test_subset_colr_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
+test_subset_repacker_LDADD = $(LDADD) $(top_builddir)/src/libharfbuzz-subset.la
 
 test_unicode_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
@@ -123,6 +130,9 @@ endif
 endif
 
 if HAVE_FREETYPE
+test_draw_CPPFLAGS += $(FREETYPE_CFLAGS)
+test_draw_LDADD += $(FREETYPE_LIBS)
+
 TEST_PROGS += \
 	test-ot-math \
 	$(NULL)

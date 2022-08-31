@@ -56,7 +56,7 @@ action ensure_glyphs { if (unlikely (!buffer->ensure_glyphs ())) return false; }
 action ensure_unicode { if (unlikely (!buffer->ensure_unicode ())) return false; }
 
 action parse_glyph {
-	/* TODO Unescape delimeters. */
+	/* TODO Unescape delimiters. */
 	if (!hb_font_glyph_from_string (font,
 					tok, p - tok,
 					&info.codepoint))
@@ -65,11 +65,12 @@ action parse_glyph {
 
 action parse_hexdigits  {if (!parse_hex (tok, p, &info.codepoint )) return false; }
 
-action parse_cluster   { if (!parse_uint (tok, p, &info.cluster )) return false; }
-action parse_x_offset  { if (!parse_int  (tok, p, &pos.x_offset )) return false; }
-action parse_y_offset  { if (!parse_int  (tok, p, &pos.y_offset )) return false; }
-action parse_x_advance { if (!parse_int  (tok, p, &pos.x_advance)) return false; }
-action parse_y_advance { if (!parse_int  (tok, p, &pos.y_advance)) return false; }
+action parse_cluster	{ if (!parse_uint (tok, p, &info.cluster )) return false; }
+action parse_x_offset	{ if (!parse_int  (tok, p, &pos.x_offset )) return false; }
+action parse_y_offset	{ if (!parse_int  (tok, p, &pos.y_offset )) return false; }
+action parse_x_advance	{ if (!parse_int  (tok, p, &pos.x_advance)) return false; }
+action parse_y_advance	{ if (!parse_int  (tok, p, &pos.y_advance)) return false; }
+action parse_glyph_flags{ if (!parse_uint (tok, p, &info.mask    )) return false; }
 
 unum  = '0' | [1-9] digit*;
 num	= '-'? unum;
@@ -81,6 +82,7 @@ glyph	= (glyph_id | glyph_name) >tok %parse_glyph;
 cluster	= '=' (unum >tok %parse_cluster);
 offsets	= '@' (num >tok %parse_x_offset)   ',' (num >tok %parse_y_offset );
 advances= '+' (num >tok %parse_x_advance) (',' (num >tok %parse_y_advance))?;
+glyphflags= '#' (unum >tok %parse_glyph_flags);
 
 glyph_item	=
 	(
@@ -88,6 +90,7 @@ glyph_item	=
 		cluster?
 		offsets?
 		advances?
+		glyphflags?
 	)
 	>clear_item
 	@ensure_glyphs

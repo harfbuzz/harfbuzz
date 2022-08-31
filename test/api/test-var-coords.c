@@ -31,7 +31,6 @@
 static void
 test_get_var_coords (void)
 {
-#ifdef HB_EXPERIMENTAL_API
 #ifndef G_APPROX_VALUE
 #define G_APPROX_VALUE(a, b, epsilon) \
   (((a) > (b) ? (a) - (b) : (b) - (a)) < (epsilon))
@@ -66,7 +65,6 @@ test_get_var_coords (void)
 
   hb_font_destroy (font);
   hb_face_destroy (face);
-#endif
 }
 
 static void

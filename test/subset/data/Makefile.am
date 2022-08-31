@@ -7,6 +7,7 @@ SUBDIRS = repack_tests
 
 EXTRA_DIST += \
 	$(TESTS) \
+	expected/32bit_var_store \
 	expected/basics \
 	expected/full-font \
 	expected/glyf_bug_3131 \

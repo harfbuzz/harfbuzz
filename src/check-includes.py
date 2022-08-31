@@ -2,12 +2,24 @@
 
 import sys, os, re
 
-os.chdir (os.getenv ('srcdir', os.path.dirname (__file__)))
+srcdir = os.getenv ('srcdir', os.path.dirname (__file__))
+base_srcdir = os.getenv ('base_srcdir', srcdir)
+
+os.chdir (srcdir)
+
+def removeprefix(s):
+	abs_path = os.path.join(base_srcdir, s)
+	return os.path.relpath(abs_path, srcdir)
 
 HBHEADERS = [os.path.basename (x) for x in os.getenv ('HBHEADERS', '').split ()] or \
 	[x for x in os.listdir ('.') if x.startswith ('hb') and x.endswith ('.h')]
-HBSOURCES = [os.path.basename (x) for x in os.getenv ('HBSOURCES', '').split ()] or \
-	[x for x in os.listdir ('.') if x.startswith ('hb') and x.endswith (('.cc', '.hh'))]
+
+HBSOURCES = [
+    removeprefix(x) for x in os.getenv ('HBSOURCES', '').split ()
+] or [
+    x for x in os.listdir ('.') if x.startswith ('hb') and x.endswith (('.cc', '.hh'))
+]
+
 
 stat = 0
 
@@ -25,7 +37,7 @@ for x in HBSOURCES:
 	with open (x, 'r', encoding='utf-8') as f: content = f.read ()
 	includes = re.findall (r'#.*include.*', content)
 	if includes:
-		if not len (re.findall (r'"hb.*\.hh"', includes[0])):
+		if not len (re.findall (r'".*\.hh"', includes[0])):
 			print ('failure on %s' % x)
 			stat = 1
 

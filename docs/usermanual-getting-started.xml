@@ -117,7 +117,7 @@
 	      implements separate shapers for Indic, Arabic, Thai and
 	      Lao, Khmer, Myanmar, Tibetan, Hangul, Hebrew, the
 	      Universal Shaping Engine (USE), and a default shaper for
-	      non-complex scripts. 
+	      scripts with no script-specific shaping model.
 	    </para>
 	  </listitem>
 	</varlistentry>

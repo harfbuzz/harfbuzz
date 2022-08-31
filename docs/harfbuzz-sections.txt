@@ -135,6 +135,7 @@ hb_script_get_horizontal_direction
 hb_language_from_string
 hb_language_to_string
 hb_language_get_default
+hb_language_matches
 hb_feature_from_string
 hb_feature_to_string
 hb_variation_from_string
@@ -169,6 +170,7 @@ HB_FEATURE_GLOBAL_START
 HB_BEGIN_DECLS
 HB_END_DECLS
 hb_var_int_t
+hb_var_num_t
 int16_t
 int32_t
 int64_t
@@ -184,6 +186,33 @@ HB_DEPRECATED_FOR
 </SECTION>
 
 <SECTION>
+<FILE>hb-draw</FILE>
+hb_draw_funcs_t
+hb_draw_funcs_create
+hb_draw_funcs_destroy
+hb_draw_funcs_reference
+hb_draw_funcs_is_immutable
+hb_draw_funcs_make_immutable
+hb_draw_move_to_func_t
+hb_draw_funcs_set_move_to_func
+hb_draw_line_to_func_t
+hb_draw_funcs_set_line_to_func
+hb_draw_quadratic_to_func_t
+hb_draw_funcs_set_quadratic_to_func
+hb_draw_cubic_to_func_t
+hb_draw_funcs_set_cubic_to_func
+hb_draw_close_path_func_t
+hb_draw_funcs_set_close_path_func
+hb_draw_state_t
+HB_DRAW_STATE_DEFAULT
+hb_draw_move_to
+hb_draw_line_to
+hb_draw_quadratic_to
+hb_draw_cubic_to
+hb_draw_close_path
+</SECTION>
+
+<SECTION>
 <FILE>hb-deprecated</FILE>
 HB_BUFFER_FLAGS_DEFAULT
 HB_BUFFER_SERIALIZE_FLAGS_DEFAULT
@@ -191,6 +220,7 @@ HB_SCRIPT_CANADIAN_ABORIGINAL
 hb_font_funcs_set_glyph_func
 hb_font_get_glyph_func_t
 HB_MATH_GLYPH_PART_FLAG_EXTENDER
+HB_OT_MATH_SCRIPT
 hb_ot_layout_table_choose_script
 hb_ot_layout_table_find_script
 hb_ot_tag_from_language
@@ -226,8 +256,6 @@ hb_coretext_font_get_ct_font
 <FILE>hb-directwrite</FILE>
 hb_directwrite_face_create
 hb_directwrite_face_get_font_face
-<SUBSECTION Private>
-hb_directwrite_shape_experimental_width
 </SECTION>
 
 <SECTION>
@@ -280,6 +308,7 @@ hb_font_funcs_set_glyph_h_advances_func
 hb_font_funcs_set_glyph_h_kerning_func
 hb_font_funcs_set_glyph_h_origin_func
 hb_font_funcs_set_glyph_name_func
+hb_font_funcs_set_glyph_shape_func
 hb_font_funcs_set_glyph_v_advance_func
 hb_font_funcs_set_glyph_v_advances_func
 hb_font_funcs_set_glyph_v_origin_func
@@ -317,6 +346,8 @@ hb_font_get_glyph_name
 hb_font_get_glyph_name_func_t
 hb_font_get_glyph_origin_for_direction
 hb_font_get_glyph_origin_func_t
+hb_font_get_glyph_shape
+hb_font_get_glyph_shape_func_t
 hb_font_get_glyph_v_advance
 hb_font_get_glyph_v_advance_func_t
 hb_font_get_glyph_v_advances
@@ -341,6 +372,8 @@ hb_font_glyph_from_string
 hb_font_glyph_to_string
 hb_font_is_immutable
 hb_font_make_immutable
+hb_font_get_serial
+hb_font_changed
 hb_font_reference
 hb_font_set_face
 hb_font_set_funcs
@@ -368,9 +401,6 @@ hb_font_get_h_extents
 hb_font_get_v_extents
 hb_font_extents_t
 hb_glyph_extents_t
-<SUBSECTION Private>
-hb_font_get_var_coords_design
-hb_font_draw_glyph
 </SECTION>
 
 <SECTION>
@@ -387,6 +417,7 @@ hb_ft_font_unlock_face
 hb_ft_font_set_load_flags
 hb_ft_font_get_load_flags
 hb_ft_font_set_funcs
+hb_ft_hb_font_changed
 </SECTION>
 
 <SECTION>
@@ -421,14 +452,17 @@ hb_icu_script_to_script
 HB_MAP_VALUE_INVALID
 hb_map_allocation_successful
 hb_map_clear
+hb_map_copy
 hb_map_create
 hb_map_del
 hb_map_destroy
 hb_map_get
 hb_map_get_empty
 hb_map_get_population
+hb_map_is_equal
 hb_map_get_user_data
 hb_map_has
+hb_map_hash
 hb_map_is_empty
 hb_map_reference
 hb_map_set
@@ -503,7 +537,9 @@ hb_ot_layout_feature_get_lookups
 hb_ot_layout_feature_get_name_ids
 hb_ot_layout_feature_with_variations_get_lookups
 hb_ot_layout_get_attach_points
+hb_ot_layout_get_horizontal_baseline_tag_for_script
 hb_ot_layout_get_baseline
+hb_ot_layout_get_baseline_with_fallback
 hb_ot_layout_get_glyph_class
 hb_ot_layout_get_glyphs_in_class
 hb_ot_layout_get_ligature_carets
@@ -531,20 +567,15 @@ hb_ot_layout_table_get_lookup_count
 hb_ot_layout_table_select_script
 hb_ot_shape_plan_collect_lookups
 hb_ot_layout_language_get_required_feature_index
-<SUBSECTION Private>
-Xhb_ot_layout_lookup_enumerate_sequences
-Xhb_ot_layout_lookup_position
-Xhb_ot_layout_lookup_substitute
-hb_ot_layout_glyph_sequence_t
-hb_ot_layout_glyph_sequence_func_t
 </SECTION>
 
 <SECTION>
 <FILE>hb-ot-math</FILE>
 HB_OT_TAG_MATH
-HB_OT_MATH_SCRIPT
+HB_OT_TAG_MATH_SCRIPT
 hb_ot_math_constant_t
 hb_ot_math_kern_t
+hb_ot_math_kern_entry_t
 hb_ot_math_glyph_variant_t
 hb_ot_math_glyph_part_flags_t
 hb_ot_math_glyph_part_t
@@ -553,6 +584,7 @@ hb_ot_math_get_constant
 hb_ot_math_get_glyph_italics_correction
 hb_ot_math_get_glyph_top_accent_attachment
 hb_ot_math_get_glyph_kerning
+hb_ot_math_get_glyph_kernings
 hb_ot_math_is_glyph_extended_shape
 hb_ot_math_get_glyph_variants
 hb_ot_math_get_min_connector_overlap
@@ -570,6 +602,7 @@ hb_ot_meta_reference_entry
 <FILE>hb-ot-metrics</FILE>
 hb_ot_metrics_tag_t
 hb_ot_metrics_get_position
+hb_ot_metrics_get_position_with_fallback
 hb_ot_metrics_get_variation
 hb_ot_metrics_get_x_variation
 hb_ot_metrics_get_y_variation
@@ -606,6 +639,7 @@ hb_ot_var_normalize_coords
 HB_SET_VALUE_INVALID
 hb_set_add
 hb_set_add_range
+hb_set_add_sorted_array
 hb_set_allocation_successful
 hb_set_copy
 hb_set_clear
@@ -619,6 +653,7 @@ hb_set_get_min
 hb_set_get_population
 hb_set_get_user_data
 hb_set_has
+hb_set_hash
 hb_set_intersect
 hb_set_invert
 hb_set_is_empty
@@ -626,6 +661,7 @@ hb_set_is_equal
 hb_set_is_subset
 hb_set_next
 hb_set_next_range
+hb_set_next_many
 hb_set_previous
 hb_set_previous_range
 hb_set_reference
@@ -725,6 +761,7 @@ hb_style_get_value
 hb_subset_flags_t
 hb_subset_input_t
 hb_subset_sets_t
+hb_subset_plan_t
 hb_subset_input_create_or_fail
 hb_subset_input_reference
 hb_subset_input_destroy
@@ -736,4 +773,17 @@ hb_subset_input_unicode_set
 hb_subset_input_glyph_set
 hb_subset_input_set
 hb_subset_or_fail
+hb_subset_plan_create_or_fail
+hb_subset_plan_reference
+hb_subset_plan_destroy
+hb_subset_plan_set_user_data
+hb_subset_plan_get_user_data
+hb_subset_plan_execute_or_fail
+hb_subset_plan_unicode_to_old_glyph_mapping
+hb_subset_plan_new_to_old_glyph_mapping
+hb_subset_plan_old_to_new_glyph_mapping
+<SUBSECTION Private>
+hb_link_t
+hb_object_t
+hb_subset_repack_or_fail
 </SECTION>

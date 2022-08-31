@@ -4,6 +4,8 @@ HB_VIEW_sources = \
 	font-options.hh \
 	hb-view.cc \
 	helper-cairo-ansi.hh \
+	helper-cairo-ft.hh \
+	helper-cairo-user.hh \
 	helper-cairo.hh \
 	main-font-text.hh \
 	options.hh \
@@ -26,6 +28,7 @@ HB_SHAPE_sources = \
 	shape-consumer.hh \
 	shape-format.hh \
 	shape-options.hh \
+	shape-output.hh \
 	text-options.hh \
 	$(NULL)
 
