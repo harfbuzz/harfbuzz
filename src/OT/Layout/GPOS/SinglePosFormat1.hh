@@ -80,6 +80,17 @@ struct SinglePosFormat1
     return_trace (true);
   }
 
+  bool
+  position_single (hb_ot_apply_context_t *c,
+		   hb_codepoint_t         gid,
+		   hb_glyph_position_t   &pos) const
+  {
+    unsigned int index = (this+coverage).get_coverage  (gid);
+    if (likely (index == NOT_COVERED)) return false;
+    valueFormat.apply_value (c, this, values, pos);
+    return true;
+  }
+
   template<typename Iterator,
       typename SrcLookup,
       hb_requires (hb_is_iterator (Iterator))>

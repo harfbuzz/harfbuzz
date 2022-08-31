@@ -403,6 +403,12 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
 			      unsigned int    *range_start,       /* OUT.  May be NULL */
 			      unsigned int    *range_end          /* OUT.  May be NULL */);
 
+HB_EXTERN hb_position_t
+hb_ot_layout_get_optical_bound (hb_font_t      *font,
+				unsigned        lookup_index,
+				hb_direction_t  direction,
+				hb_codepoint_t  glyph);
+
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_feature_get_name_ids (hb_face_t       *face,

@@ -1709,6 +1709,63 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
 
   return false;
 }
+
+struct hb_position_single_dispatch_t :
+       hb_dispatch_context_t<hb_position_single_dispatch_t, bool>
+{
+  static return_t default_return_value () { return false; }
+  bool stop_sublookup_iteration (return_t r) const { return r; }
+
+  private:
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<1>, Ts&&... ds) HB_AUTO_RETURN
+  ( obj.position_single (std::forward<Ts> (ds)...) )
+  template <typename T, typename ...Ts> auto
+  _dispatch (const T &obj, hb_priority<0>, Ts&&... ds) HB_AUTO_RETURN
+  ( default_return_value () )
+  public:
+  template <typename T, typename ...Ts> auto
+  dispatch (const T &obj, Ts&&... ds) HB_AUTO_RETURN
+  ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
+};
+
+hb_position_t
+hb_ot_layout_get_optical_bound (hb_font_t      *font,
+				unsigned        lookup_index,
+				hb_direction_t  direction,
+				hb_codepoint_t  glyph)
+{
+  /* This is ugly... */
+  hb_buffer_t buffer;
+  buffer.props.direction = direction;
+  OT::hb_ot_apply_context_t c_apply (1, font, &buffer);
+  const OT::PosLookup &lookup = font->face->table.GPOS->table->get_lookup (lookup_index);
+  hb_glyph_position_t pos = {0};
+  hb_position_single_dispatch_t c;
+  lookup.dispatch (&c, &c_apply, glyph, pos);
+  hb_position_t ret = 0;
+  switch (direction)
+  {
+    case HB_DIRECTION_LTR:
+      ret = pos.x_offset;
+      break;
+    case HB_DIRECTION_RTL:
+      ret = pos.x_advance - pos.x_offset;
+      break;
+    case HB_DIRECTION_TTB:
+      ret = pos.y_offset;
+      break;
+    case HB_DIRECTION_BTT:
+      ret = pos.y_advance - pos.y_offset;
+      break;
+    case HB_DIRECTION_INVALID:
+    default:
+      break;
+  }
+  return ret;
+}
+
+
 /**
  * hb_ot_layout_feature_get_name_ids:
  * @face: #hb_face_t to work upon
