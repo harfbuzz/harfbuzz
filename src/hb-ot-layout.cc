@@ -1735,14 +1735,10 @@ hb_ot_layout_get_optical_bound (hb_font_t      *font,
 				hb_direction_t  direction,
 				hb_codepoint_t  glyph)
 {
-  /* This is ugly... */
-  hb_buffer_t buffer;
-  buffer.props.direction = direction;
-  OT::hb_ot_apply_context_t c_apply (1, font, &buffer);
   const OT::PosLookup &lookup = font->face->table.GPOS->table->get_lookup (lookup_index);
   hb_glyph_position_t pos = {0};
   hb_position_single_dispatch_t c;
-  lookup.dispatch (&c, &c_apply, glyph, pos);
+  lookup.dispatch (&c, font, direction, glyph, pos);
   hb_position_t ret = 0;
   switch (direction)
   {
