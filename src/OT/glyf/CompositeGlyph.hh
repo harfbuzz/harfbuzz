@@ -105,9 +105,10 @@ struct CompositeGlyphRecord
     }
   }
 
-  void apply_delta_to_offsets (const contour_point_t &p_delta)
+  unsigned compile_with_deltas (const contour_point_t &p_delta,
+                                char *out) const
   {
-    HBINT8 *p = &StructAfter<HBINT8> (flags);
+    const HBINT8 *p = &StructAfter<const HBINT8> (flags);
 #ifndef HB_NO_BEYOND_64K
     if (flags & GID_IS_24BIT)
       p += HBGlyphID24::static_size;
@@ -115,17 +116,54 @@ struct CompositeGlyphRecord
 #endif
       p += HBGlyphID16::static_size;
 
+    unsigned len = get_size ();
+    unsigned len_before_val = (const char *)p - (const char *)this;
     if (flags & ARG_1_AND_2_ARE_WORDS)
     {
-      HBINT16 *px = reinterpret_cast<HBINT16 *> (p);
-      px[0] += roundf (p_delta.x);
-      px[1] += roundf (p_delta.y);
+      // no overflow, copy and update value with deltas
+      memcpy (out, this, len);
+
+      const HBINT16 *px = reinterpret_cast<const HBINT16 *> (p);
+      HBINT16 *o = reinterpret_cast<HBINT16 *> (out + len_before_val);
+      o[0] = px[0] + roundf (p_delta.x);
+      o[1] = px[1] + roundf (p_delta.y);
     }
     else
     {
-      p[0] += roundf (p_delta.x);
-      p[1] += roundf (p_delta.y);
+      int new_x = p[0] + roundf (p_delta.x);
+      int new_y = p[1] + roundf (p_delta.y);
+      if (new_x <= 127 && new_x >= -128 &&
+          new_y <= 127 && new_y >= -128)
+      {
+        memcpy (out, this, len);
+        HBINT8 *o = reinterpret_cast<HBINT8 *> (out + len_before_val);
+        o[0] = new_x;
+        o[1] = new_y;
+      }
+      else
+      {
+        // int8 overflows after deltas applied
+        memcpy (out, this, len_before_val);
+        
+        //update flags
+        CompositeGlyphRecord *o = reinterpret_cast<CompositeGlyphRecord *> (out);
+        o->flags = flags | ARG_1_AND_2_ARE_WORDS;
+        out += len_before_val;
+
+        HBINT16 new_value;
+        new_value = new_x;
+        memcpy (out, &new_value, HBINT16::static_size);
+        out += HBINT16::static_size;
+
+        new_value = new_y;
+        memcpy (out, &new_value, HBINT16::static_size);
+        out += HBINT16::static_size;
+
+        memcpy (out, p+2, len - len_before_val - 2);
+        len += 2;
+      }
     }
+    return len;
   }
 
   protected:
@@ -316,32 +354,56 @@ struct CompositeGlyph
                                   const contour_point_vector_t &deltas,
                                   hb_bytes_t &dest_bytes /* OUT */)
   {
-    int len = source_bytes.length - GlyphHeader::static_size;
-    if (len <= 0 || header.numberOfContours != -1)
+    if (source_bytes.length <= GlyphHeader::static_size ||
+        header.numberOfContours != -1)
     {
       dest_bytes = hb_bytes_t ();
       return true;
     }
 
-    char *p = (char *) hb_calloc (len, sizeof (char));
-    if (unlikely (!p)) return false;
+    unsigned source_len = source_bytes.length - GlyphHeader::static_size;
 
-    memcpy (p, source_bytes.arrayZ + GlyphHeader::static_size, len);
-    dest_bytes = hb_bytes_t (p, len);
+    /* try to allocate more memories than source glyph bytes
+     * in case that there might be an overflow for int8 value
+     * and we would need to use int16 instead */
+    char *o = (char *) hb_calloc (source_len + source_len/2, sizeof (char));
+    if (unlikely (!o)) return false;
 
-    auto it = composite_iter_t (dest_bytes, (CompositeGlyphRecord *)p);
+    const CompositeGlyphRecord *c = reinterpret_cast<const CompositeGlyphRecord *> (source_bytes.arrayZ + GlyphHeader::static_size);
+    auto it = composite_iter_t (hb_bytes_t ((const char *)c, source_len), c);
 
-    unsigned i = 0;
-    for (auto &component : it)
+    char *p = o;
+    unsigned i = 0, source_comp_len = 0;
+    for (const auto &component : it)
     {
-      if (!component.is_anchored ())
+      /* last 4 points in deltas are phantom points and should not be included */
+      if (i >= deltas.length - 4) return false;
+
+      unsigned comp_len = component.get_size ();
+      if (component.is_anchored ())
       {
-        /* last 4 points in deltas are phantom points and should not be included*/
-        if (i >= deltas.length - 4) return false;
-        const_cast<CompositeGlyphRecord &> (component).apply_delta_to_offsets (deltas[i]);
+        memcpy (p, &component, comp_len);
+        p += comp_len;
+      }
+      else
+      {
+        unsigned new_len = component.compile_with_deltas (deltas[i], p);
+        p += new_len;
       }
       i++;
+      source_comp_len += comp_len;
     }
+
+    //copy instructions if any
+    if (source_len > source_comp_len)
+    {
+      unsigned instr_len = source_len - source_comp_len;
+      memcpy (p, (const char *)c + source_comp_len, instr_len);
+      p += instr_len;
+    }
+
+    unsigned len = p - o;
+    dest_bytes = hb_bytes_t (o, len);
     return true;
   }
 };

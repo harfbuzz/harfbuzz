@@ -175,10 +175,36 @@ struct OS2
     int a = (int) floorf (ratio);
     int b = (int) ceilf (ratio);
 
+    /* follow this maping:
+     * https://docs.microsoft.com/en-us/typography/opentype/spec/os2#uswidthclass
+     */
+    if (b <= 6) // 50-125
+    {
+      if (a == b) return a + 1.0f;
+    }
+    else if (b == 7) // no mapping for 137.5
+    {
+      a = 6;
+      b = 8;
+    }
+    else if (b == 8)
+    {
+      if (a == b) return 8.0f; // 150
+      a = 6;
+    }
+    else
+    {
+      if (a == b && a == 12) return 9.0f; //200
+      b = 12;
+      a = 8;
+    }
+
     float va = 50 + a * 12.5f;
     float vb = 50 + b * 12.5f;
 
-    return a + 1.0f + (float) (b - a) * (width - va) / (vb - va);
+    float ret =  a + (width - va) / (vb - va);
+    if (a <= 6) ret += 1.0f;
+    return ret;
   }
 
   bool subset (hb_subset_context_t *c) const

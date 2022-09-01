@@ -53,6 +53,7 @@ tests = [
 # instacing tests, enable when --instance is not experimental
 # 'pin_all_at_default',
 # 'instantiate_glyf',
+# 'full_instance',
 ]
 
 repack_tests = [

@@ -34,9 +34,6 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 		     "--drop-tables-=sbix",
 		     "--unicodes=%s" % unicodes,
 		     "--output-file=%s" % fonttools_path])
-        #TODO: remove the drop later as instancing support is added to GPOS/GDEF.
-	if instance_flags:
-		args.extend(["--drop-tables+=GPOS,GDEF"])
 	args.extend(profile_flags)
 	check_call(args)
 
@@ -66,10 +63,8 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 		"--drop-tables+=DSIG",
 		"--drop-tables-=sbix"]
 	args.extend(profile_flags)
-        #TODO: remove the drop later as instancing support is added to GPOS/GDEF.
 	if instance_flags:
-		args.extend(["--drop-tables+=GDEF,GPOS",
-			     "--instance=%s" % ','.join(instance_flags)])
+		args.extend(["--instance=%s" % ','.join(instance_flags)])
 	check_call(args)
 
 	with io.StringIO () as fp:

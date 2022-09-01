@@ -1,0 +1,12 @@
+FONTS:
+Roboto-Variable.ttf
+
+PROFILES:
+default.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=150,wdth=80
+wght=300,wdth=90

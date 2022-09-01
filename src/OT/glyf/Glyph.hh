@@ -101,14 +101,12 @@ struct Glyph
                              const contour_point_vector_t &all_points,
                              hb_bytes_t &dest_bytes /* OUT */) const
   {
-    if (all_points.length == 4) //Empty glyph
+    GlyphHeader *glyph_header = nullptr;
+    if (all_points.length > 4)
     {
-      dest_bytes = hb_bytes_t ();
-      return true;
+      glyph_header = (GlyphHeader *) hb_calloc (1, GlyphHeader::static_size);
+      if (unlikely (!glyph_header)) return false;
     }
-
-    GlyphHeader *glyph_header = (GlyphHeader *) hb_calloc (1, GlyphHeader::static_size);
-    if (unlikely (!glyph_header)) return false;
 
     int xMin, xMax;
     xMin = xMax = roundf (all_points[0].x);
@@ -128,6 +126,11 @@ struct Glyph
 
     update_mtx (plan, xMin, yMax, all_points);
 
+    /*for empty glyphs: all_points only include phantom points.
+     *just update metrics and then return */
+    if (all_points.length == 4)
+      return true;
+
     glyph_header->numberOfContours = header->numberOfContours;
     glyph_header->xMin = xMin;
     glyph_header->yMin = yMin;
@@ -145,7 +148,7 @@ struct Glyph
                                   hb_bytes_t &dest_end /* OUT */) const
   {
     contour_point_vector_t all_points, deltas;
-    get_points (font, glyf, all_points, &deltas);
+    get_points (font, glyf, all_points, &deltas, false);
 
     switch (type) {
     case COMPOSITE:
@@ -161,8 +164,11 @@ struct Glyph
         return false;
       break;
     default:
-      //no need to compile empty glyph (.notdef)
-      return true;
+      /* set empty bytes for empty glyph
+       * do not use source glyph's pointers */
+      dest_start = hb_bytes_t ();
+      dest_end = hb_bytes_t ();
+      break;
     }
 
     return compile_header_bytes (plan, all_points, dest_start);
@@ -176,6 +182,7 @@ struct Glyph
   bool get_points (hb_font_t *font, const accelerator_t &glyf_accelerator,
 		   contour_point_vector_t &all_points /* OUT */,
 		   contour_point_vector_t *deltas = nullptr, /* OUT */
+		   bool use_my_metrics = true,
 		   bool phantom_only = false,
 		   unsigned int depth = 0) const
   {
@@ -264,11 +271,11 @@ struct Glyph
         comp_points.reset ();
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font, glyf_accelerator, comp_points,
-						    deltas, phantom_only, depth + 1)))
+						    deltas, use_my_metrics, phantom_only, depth + 1)))
 	  return false;
 
 	/* Copy phantom points from component if USE_MY_METRICS flag set */
-	if (item.is_use_my_metrics ())
+	if (use_my_metrics && item.is_use_my_metrics ())
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
