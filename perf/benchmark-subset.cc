@@ -132,8 +132,9 @@ static void BM_subset (benchmark::State &state,
       AddGlyphs(num_glyphs, subset_size, input);
     }
     break;
-    
+
     case instance:
+#ifdef HB_EXPERIMENTAL_API
     {
       hb_set_t* all_codepoints = hb_set_create ();
       hb_face_collect_unicodes (face, all_codepoints);
@@ -145,6 +146,7 @@ static void BM_subset (benchmark::State &state,
                                            test_input.instance_opts[i].axis_tag,
                                            test_input.instance_opts[i].axis_value);
     }
+#endif
     break;
   }
 
