@@ -2396,6 +2396,20 @@ struct hb_position_single_dispatch_t :
   ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
 };
 
+/**
+ * hb_ot_layout_lookup_get_optical_bound:
+ * @face: a font.
+ * @lookup_index: index of the feature lookup to query.
+ * @direction: edge of the glyph to query.
+ * @glyph: a glyph id.
+ *
+ * Fetches the optical bound of a glyph positioned at the margin of text.
+ * The direction identifies which edge of the glyph to query.
+ *
+ * Return value: Adjustment value. Negative values mean the glyph will stick out of the margin.
+ *
+ * Since: REPLACEME
+ **/
 hb_position_t
 hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
 				       unsigned        lookup_index,
