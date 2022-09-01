@@ -2343,7 +2343,7 @@ struct hb_get_glyph_alternates_dispatch_t :
   ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
 };
 
-#ifndef HB_NO_LAYOUT_RARELY_UNUSED
+#ifndef HB_NO_LAYOUT_RARELY_USED
 /**
  * hb_ot_layout_lookup_get_glyph_alternates:
  * @face: a face.
@@ -2397,10 +2397,10 @@ struct hb_position_single_dispatch_t :
 };
 
 hb_position_t
-hb_ot_layout_get_optical_bound (hb_font_t      *font,
-				unsigned        lookup_index,
-				hb_direction_t  direction,
-				hb_codepoint_t  glyph)
+hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
+				       unsigned        lookup_index,
+				       hb_direction_t  direction,
+				       hb_codepoint_t  glyph)
 {
   const OT::PosLookup &lookup = font->face->table.GPOS->table->get_lookup (lookup_index);
   hb_glyph_position_t pos = {0};

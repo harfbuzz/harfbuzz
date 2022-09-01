@@ -404,11 +404,15 @@ hb_ot_layout_get_size_params (hb_face_t       *face,
 			      unsigned int    *range_end          /* OUT.  May be NULL */);
 
 HB_EXTERN hb_position_t
-hb_ot_layout_get_optical_bound (hb_font_t      *font,
-				unsigned        lookup_index,
-				hb_direction_t  direction,
-				hb_codepoint_t  glyph);
+hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
+				       unsigned        lookup_index,
+				       hb_direction_t  direction,
+				       hb_codepoint_t  glyph);
 
+
+/*
+ * GSUB/GPOS
+ */
 
 HB_EXTERN hb_bool_t
 hb_ot_layout_feature_get_name_ids (hb_face_t       *face,
@@ -428,6 +432,7 @@ hb_ot_layout_feature_get_characters (hb_face_t      *face,
 				     unsigned int    start_offset,
 				     unsigned int   *char_count    /* IN/OUT.  May be NULL */,
 				     hb_codepoint_t *characters    /* OUT.     May be NULL */);
+
 
 /*
  * BASE
