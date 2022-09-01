@@ -1186,11 +1186,11 @@ script_collect_features (hb_collect_features_context_t *c,
  * hb_ot_layout_collect_features:
  * @face: #hb_face_t to work upon
  * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
- * @scripts: (nullable): The array of scripts to collect features for,
+ * @scripts: (nullable) (array zero-terminated=1): The array of scripts to collect features for,
  *   terminated by %HB_TAG_NONE
- * @languages: (nullable): The array of languages to collect features for,
+ * @languages: (nullable) (array zero-terminated=1): The array of languages to collect features for,
  *   terminated by %HB_TAG_NONE
- * @features: (nullable): The array of features to collect,
+ * @features: (nullable) (array zero-terminated=1): The array of features to collect,
  *   terminated by %HB_TAG_NONE
  * @feature_indexes: (out): The array of feature indexes found for the query
  *
@@ -1238,11 +1238,11 @@ hb_ot_layout_collect_features (hb_face_t      *face,
  * hb_ot_layout_collect_lookups:
  * @face: #hb_face_t to work upon
  * @table_tag: #HB_OT_TAG_GSUB or #HB_OT_TAG_GPOS
- * @scripts: (nullable): The array of scripts to collect lookups for,
+ * @scripts: (nullable) (array zero-terminated=1): The array of scripts to collect lookups for,
  *   terminated by %HB_TAG_NONE
- * @languages: (nullable): The array of languages to collect lookups for,
+ * @languages: (nullable) (array zero-terminated=1): The array of languages to collect lookups for,
  *   terminated by %HB_TAG_NONE
- * @features: (nullable): The array of features to collect lookups for,
+ * @features: (nullable) (array zero-terminated=1): The array of features to collect lookups for,
  *   terminated by %HB_TAG_NONE
  * @lookup_indexes: (out): The array of lookup indexes found for the query
  *
