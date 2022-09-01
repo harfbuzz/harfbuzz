@@ -2343,6 +2343,7 @@ struct hb_get_glyph_alternates_dispatch_t :
   ( _dispatch (obj, hb_prioritize, std::forward<Ts> (ds)...) )
 };
 
+#ifndef HB_NO_LAYOUT_RARELY_UNUSED
 /**
  * hb_ot_layout_lookup_get_glyph_alternates:
  * @face: a face.
@@ -2426,6 +2427,7 @@ hb_ot_layout_get_optical_bound (hb_font_t      *font,
   }
   return ret;
 }
+#endif
 
 
 #endif
