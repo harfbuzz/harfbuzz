@@ -89,8 +89,6 @@ _remap_indexes (const hb_set_t *indexes,
 }
 
 #ifndef HB_NO_SUBSET_LAYOUT
-typedef void (*layout_collect_func_t) (hb_face_t *face, hb_tag_t table_tag, const hb_tag_t *scripts, const hb_tag_t *languages, const hb_tag_t *features, hb_set_t *lookup_indexes /* OUT */);
-
 
 /*
  * Removes all tags from 'tags' that are not in filter. Additionally eliminates any duplicates.
@@ -130,8 +128,8 @@ static bool _filter_tag_list(hb_vector_t<hb_tag_t>* tags, /* IN/OUT */
 template <typename T>
 static void _collect_layout_indices (hb_subset_plan_t     *plan,
                                      const T&              table,
-                                     layout_collect_func_t layout_collect_func,
-                                     hb_set_t		  *indices /* OUT */)
+                                     hb_set_t		  *lookup_indices, /* OUT */
+                                     hb_set_t		  *feature_indices /* OUT */)
 {
   unsigned num_features = table.get_feature_count ();
   hb_vector_t<hb_tag_t> features;
@@ -149,12 +147,23 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
       || !plan->check_success (!scripts.in_error ()) || !scripts)
     return;
 
-  layout_collect_func (plan->source,
-                       T::tableTag,
-                       retain_all_scripts ? nullptr : scripts.arrayZ,
-		       nullptr,
-		       retain_all_features ? nullptr : features.arrayZ,
-		       indices);
+  hb_ot_layout_collect_features (plan->source,
+                                 T::tableTag,
+                                 retain_all_scripts ? nullptr : scripts.arrayZ,
+                                 nullptr,
+                                 retain_all_features ? nullptr : features.arrayZ,
+                                 feature_indices);
+
+  for (unsigned feature_index : *feature_indices)
+  {
+    //TODO: replace HB_OT_LAYOUT_NO_VARIATIONS_INDEX with variation_index for
+    //instancing
+    const OT::Feature &f = table.get_feature_variation (feature_index, HB_OT_LAYOUT_NO_VARIATIONS_INDEX);
+    f.add_lookup_indexes_to (lookup_indices);
+  }
+
+  //TODO: update for instancing: only collect lookups from feature_indexes that have no variations
+  table.feature_variation_collect_lookups (feature_indices, lookup_indices);
 }
 
 
@@ -232,11 +241,11 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 {
   hb_blob_ptr_t<T> table = plan->source_table<T> ();
   hb_tag_t table_tag = table->tableTag;
-  hb_set_t lookup_indices;
+  hb_set_t lookup_indices, feature_indices;
   _collect_layout_indices<T> (plan,
                               *table,
-                              hb_ot_layout_collect_lookups,
-                              &lookup_indices);
+                              &lookup_indices,
+                              &feature_indices);
 
   if (table_tag == HB_OT_TAG_GSUB)
     hb_ot_layout_lookups_substitute_closure (plan->source,
@@ -247,13 +256,7 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
                           &lookup_indices);
   _remap_indexes (&lookup_indices, lookups);
 
-  // Collect and prune features
-  hb_set_t feature_indices;
-  _collect_layout_indices<T> (plan,
-                              *table,
-                              hb_ot_layout_collect_features,
-                              &feature_indices);
-
+  // prune features
   table->prune_features (lookups, &feature_indices);
   hb_map_t duplicate_feature_map;
   _GSUBGPOS_find_duplicate_features (*table, lookups, &feature_indices, &duplicate_feature_map);
