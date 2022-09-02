@@ -259,7 +259,7 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
   _GSUBGPOS_find_duplicate_features (*table, lookups, &feature_indices, &duplicate_feature_map);
 
   feature_indices.clear ();
-  table->prune_langsys (&duplicate_feature_map, langsys_map, &feature_indices);
+  table->prune_langsys (&duplicate_feature_map, plan->layout_scripts, langsys_map, &feature_indices);
   _remap_indexes (&feature_indices, features);
 
   table.destroy ();
