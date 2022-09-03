@@ -410,7 +410,7 @@ helper_cairo_create_context (double w, double h,
 	extension = "png";
 	protocol = image_protocol_t::ITERM2;
       }
-      if ((name = getenv ("TERM_PROGRAM")) != nullptr &&
+      else if ((name = getenv ("TERM_PROGRAM")) != nullptr &&
 	  0 == g_ascii_strcasecmp (name, "WezTerm"))
       {
 	extension = "png";
