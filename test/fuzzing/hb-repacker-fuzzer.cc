@@ -10,7 +10,7 @@
 typedef struct
 {
   uint16_t parent;
-  uint16_t delta;
+  uint16_t child;
   uint16_t position;
   uint8_t width;
 } link_t;
@@ -56,7 +56,7 @@ void add_links_to_objects (hb_object_t* objects, uint16_t num_objects,
   for (uint32_t i = 0; i < num_links; i++)
   {
     uint16_t parent_idx = links[i].parent;
-    uint16_t child_idx = links[i].parent + links[i].delta + 1;
+    uint16_t child_idx = links[i].child;
     hb_link_t* link = &(objects[parent_idx].real_links[link_count[parent_idx] - 1]);
 
     link->width = links[i].width;
@@ -65,11 +65,6 @@ void add_links_to_objects (hb_object_t* objects, uint16_t num_objects,
     link_count[parent_idx]--;
   }
 
-  bool* reachable = (bool*) calloc (num_objects, sizeof (bool));
-
-
-
-  free (reachable);
   free (link_count);
 }
 
@@ -107,9 +102,8 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   {
     if (!read<link_t> (&data, &size, &links[i])) goto end;
 
-    uint32_t child_idx = ((uint32_t) links[i].parent) + ((uint32_t) links[i].delta) + 1;
     if (links[i].parent >= num_objects
-        || child_idx >= num_objects)
+        || links[i].child >= links[i].parent) // Enforces DAG graph
       goto end;
 
     if (links[i].width < 2 || links[i].width > 4) goto end;
