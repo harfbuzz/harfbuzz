@@ -83,25 +83,39 @@ check_funcs = [
 
 m_dep = cpp.find_library('m', required: false)
 
-# https://github.com/harfbuzz/harfbuzz/pull/2498
-freetype_dep = dependency(cpp.get_argument_syntax() == 'msvc' ? 'freetype' : 'freetype2',
-                          required: get_option('freetype'),
-                          default_options: ['harfbuzz=disabled'])
+
+# Try pkgconfig name
+freetype_dep = dependency('freetype2', required: false)
+if not freetype_dep.found()
+  # Try cmake name
+  freetype_dep = dependency('freetype', required: false)
+endif
+if not freetype_dep.found()
+  # Subproject fallback, `allow_fallback: true` means the fallback will be
+  # tried even if the freetype option is set to `auto`.
+  freetype_dep = dependency('freetype2',
+                            required: get_option('freetype'),
+                            default_options: ['harfbuzz=disabled'],
+                            allow_fallback: true)
+endif
 
 glib_dep = dependency('glib-2.0', required: get_option('glib'))
 gobject_dep = dependency('gobject-2.0', required: get_option('gobject'))
 graphite2_dep = dependency('graphite2', required: get_option('graphite2'))
 graphite_dep = dependency('graphite2', required: get_option('graphite'))
 
-if cpp.get_argument_syntax() == 'msvc'
+# Try pkgconfig name
+icu_dep = dependency('icu-uc', required: false)
+if not icu_dep.found()
+  # Try cmake name
   icu_dep = dependency('ICU',
-                       required: get_option('icu'),
+                       required: false,
                        components: 'uc',
                        method: 'cmake')
-else
-  icu_dep = dependency('icu-uc',
-                       required: get_option('icu'),
-                       method: 'pkg-config')
+endif
+if not icu_dep.found()
+  # Subproject fallback if icu option is enabled
+  icu_dep = dependency('icu-uc', required: get_option('icu'))
 endif
 
 if icu_dep.found() and icu_dep.type_name() == 'pkgconfig'
