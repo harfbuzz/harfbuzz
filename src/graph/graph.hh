@@ -941,6 +941,18 @@ struct graph_t
     return made_change;
   }
 
+  bool is_fully_connected ()
+  {
+    update_parents();
+
+    for (unsigned i = 0; i < root_idx (); i++)
+    {
+      if (!vertices_[i].parents)
+        return false;
+    }
+    return true;
+  }
+
   void print_orphaned_nodes ()
   {
     if (!DEBUG_ENABLED(SUBSET_REPACK)) return;

@@ -1,6 +1,7 @@
 tests = [
   'hb-shape-fuzzer.cc',
   'hb-subset-fuzzer.cc',
+  'hb-repacker-fuzzer.cc',
   'hb-set-fuzzer.cc',
   'hb-draw-fuzzer.cc',
 ]
@@ -19,6 +20,8 @@ foreach file_name : tests
     extra_cpp_args += '-DHB_IS_IN_FUZZER'
   endif
 
+  # TODO tie this to the experimental api setting.
+  extra_cpp_args += '-DHB_EXPERIMENTAL_API'
   exe = executable(test_name, sources,
     cpp_args: cpp_args + extra_cpp_args,
     include_directories: [incconfig, incsrc],
