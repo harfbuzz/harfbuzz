@@ -111,8 +111,6 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     if (links[i].parent >= num_objects
         || links[i].child > links[i].parent) // Enforces DAG graph
       goto end;
-
-    if (links[i].width < 2 || links[i].width > 4) goto end;
   }
 
   add_links_to_objects (objects, num_objects,

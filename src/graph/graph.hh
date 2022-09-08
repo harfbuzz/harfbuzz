@@ -58,6 +58,13 @@ struct graph_t
         unsigned start = l.position;
         unsigned end = start + l.width - 1;
 
+        if (unlikely (l.width < 2 || l.width > 4))
+        {
+          DEBUG_MSG (SUBSET_REPACK, nullptr,
+                     "Invalid graph. Invalid link width.");
+          return false;
+        }
+
         if (unlikely (end >= table_size ()))
         {
           DEBUG_MSG (SUBSET_REPACK, nullptr,
