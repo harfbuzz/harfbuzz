@@ -376,6 +376,12 @@ hb_resolve_overflows (const T& packed,
                       unsigned max_rounds = 20,
                       bool recalculate_extensions = false) {
   graph_t sorted_graph (packed);
+  if (sorted_graph.in_error ())
+  {
+    // Invalid graph definition.
+    return nullptr;
+  }
+
   if (!sorted_graph.is_fully_connected ())
   {
     sorted_graph.print_orphaned_nodes ();

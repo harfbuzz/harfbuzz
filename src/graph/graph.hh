@@ -49,6 +49,34 @@ struct graph_t
     unsigned end = 0;
     unsigned priority = 0;
 
+
+    bool link_positions_valid (unsigned parent_index)
+    {
+      hb_set_t assigned_bytes;
+      for (const auto& l : obj.real_links)
+      {
+        unsigned start = l.position;
+        unsigned end = start + l.width - 1;
+
+        if (unlikely (end >= table_size ()))
+        {
+          DEBUG_MSG (SUBSET_REPACK, nullptr,
+                     "Invalid graph. Link position is out of bounds.");
+          return false;
+        }
+
+        if (unlikely (assigned_bytes.intersects (start, end)))
+        {
+          DEBUG_MSG (SUBSET_REPACK, nullptr,
+                     "Invalid graph. Found offsets whose positions overlap.");
+          return false;
+        }
+
+        assigned_bytes.add_range (start, end);
+      }
+      return true;
+    }
+
     void normalize ()
     {
       obj.real_links.qsort ();
@@ -299,6 +327,8 @@ struct graph_t
       vertex_t* v = vertices_.push ();
       if (check_success (!vertices_.in_error ()))
         v->obj = *objects[i];
+
+      check_success (v->link_positions_valid (i));
       if (!removed_nil) continue;
       // Fix indices to account for removed nil object.
       for (auto& l : v->obj.all_links_writer ()) {

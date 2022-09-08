@@ -73,6 +73,7 @@ void add_links_to_objects (hb_object_t* objects, uint16_t num_objects,
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
+  // TODO(garretrieger): move graph validity checks into repacker graph creation.
   alloc_state = _fuzzing_alloc_state (data, size);
 
   uint16_t num_objects = 0;
