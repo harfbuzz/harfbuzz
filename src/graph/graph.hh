@@ -953,6 +953,56 @@ struct graph_t
     return true;
   }
 
+#if 0
+  /*
+   * Saves the current graph to a packed binary format which the repacker fuzzer takes
+   * as a seed.
+   */
+  void save_fuzzer_seed (hb_tag_t tag) const
+  {
+    FILE* f = fopen ("./repacker_fuzzer_seed", "w");
+    fwrite ((void*) &tag, sizeof (tag), 1, f);
+
+    uint16_t num_objects = vertices_.length;
+    fwrite ((void*) &num_objects, sizeof (num_objects), 1, f);
+
+    for (const auto& v : vertices_)
+    {
+      uint16_t blob_size = v.table_size ();
+      fwrite ((void*) &blob_size, sizeof (blob_size), 1, f);
+      fwrite ((const void*) v.obj.head, blob_size, 1, f);
+    }
+
+    uint16_t link_count = 0;
+    for (const auto& v : vertices_)
+      link_count += v.obj.real_links.length;
+
+    fwrite ((void*) &link_count, sizeof (link_count), 1, f);
+
+    typedef struct
+    {
+      uint16_t parent;
+      uint16_t child;
+      uint16_t position;
+      uint8_t width;
+    } link_t;
+
+    for (unsigned i = 0; i < vertices_.length; i++)
+    {
+      for (const auto& l : vertices_[i].obj.real_links)
+      {
+        link_t link {
+          (uint16_t) i, (uint16_t) l.objidx,
+          (uint16_t) l.position, (uint8_t) l.width
+        };
+        fwrite ((void*) &link, sizeof (link), 1, f);
+      }
+    }
+
+    fclose (f);
+  }
+#endif
+
   void print_orphaned_nodes ()
   {
     if (!DEBUG_ENABLED(SUBSET_REPACK)) return;

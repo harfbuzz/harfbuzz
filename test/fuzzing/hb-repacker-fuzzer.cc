@@ -31,7 +31,10 @@ bool read(const uint8_t** data, size_t* size, T* out)
 void cleanup (hb_object_t* objects, uint16_t num_objects)
 {
   for (uint32_t i = 0; i < num_objects; i++)
+  {
+    free (objects[i].head);
     free (objects[i].real_links);
+  }
 }
 
 void add_links_to_objects (hb_object_t* objects, uint16_t num_objects,
@@ -56,7 +59,7 @@ void add_links_to_objects (hb_object_t* objects, uint16_t num_objects,
   for (uint32_t i = 0; i < num_links; i++)
   {
     uint16_t parent_idx = links[i].parent;
-    uint16_t child_idx = links[i].child;
+    uint16_t child_idx = links[i].child + 1; // All indices are shifted by 1 by the null object.
     hb_link_t* link = &(objects[parent_idx].real_links[link_count[parent_idx] - 1]);
 
     link->width = links[i].width;
@@ -89,8 +92,10 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     if (!read<uint16_t> (&data, &size, &blob_size)) goto end;
     if (size < blob_size) goto end;
 
-    objects[i].head = (char*) data;
-    objects[i].tail = (char*) (data + blob_size);
+    char* copy = (char*) calloc (1, blob_size);
+    memcpy (copy, data, blob_size);
+    objects[i].head = (char*) copy;
+    objects[i].tail = (char*) (copy + blob_size);
 
     size -= blob_size;
     data += blob_size;
@@ -103,7 +108,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
     if (!read<link_t> (&data, &size, &links[i])) goto end;
 
     if (links[i].parent >= num_objects
-        || links[i].child >= links[i].parent) // Enforces DAG graph
+        || links[i].child > links[i].parent) // Enforces DAG graph
       goto end;
 
     if (links[i].width < 2 || links[i].width > 4) goto end;

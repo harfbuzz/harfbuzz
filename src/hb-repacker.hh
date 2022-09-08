@@ -378,7 +378,7 @@ hb_resolve_overflows (const T& packed,
   graph_t sorted_graph (packed);
   if (!sorted_graph.is_fully_connected ())
   {
-    DEBUG_MSG (SUBSET_REPACK, nullptr, "Input graph is not fully connected.");
+    sorted_graph.print_orphaned_nodes ();
     return nullptr;
   }
 
