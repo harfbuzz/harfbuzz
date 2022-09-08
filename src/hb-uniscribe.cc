@@ -239,9 +239,7 @@ struct hb_uniscribe_shaper_funcs_t
   }
 };
 
-#if HB_USE_ATEXIT
-static void free_static_uniscribe_shaper_funcs ();
-#endif
+static inline void free_static_uniscribe_shaper_funcs ();
 
 static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_uniscribe_shaper_funcs_t,
 									 hb_uniscribe_shaper_funcs_lazy_loader_t>
@@ -254,9 +252,7 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
 
     funcs->init ();
 
-#if HB_USE_ATEXIT
-    atexit (free_static_uniscribe_shaper_funcs);
-#endif
+    hb_atexit (free_static_uniscribe_shaper_funcs);
 
     return funcs;
   }
@@ -270,13 +266,11 @@ static struct hb_uniscribe_shaper_funcs_lazy_loader_t : hb_lazy_loader_t<hb_unis
   }
 } static_uniscribe_shaper_funcs;
 
-#if HB_USE_ATEXIT
-static
+static inline
 void free_static_uniscribe_shaper_funcs ()
 {
   static_uniscribe_shaper_funcs.free_instance ();
 }
-#endif
 
 static hb_uniscribe_shaper_funcs_t *
 hb_uniscribe_shaper_get_funcs ()
@@ -884,7 +878,8 @@ retry:
   if (backward)
     hb_buffer_reverse (buffer);
 
-  buffer->unsafe_to_break_all ();
+  buffer->clear_glyph_flags ();
+  buffer->unsafe_to_break ();
 
   /* Wow, done! */
   return true;

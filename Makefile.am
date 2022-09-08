@@ -4,7 +4,7 @@ NULL =
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src util test docs
+SUBDIRS = src util test perf docs
 
 EXTRA_DIST = \
 	autogen.sh \
@@ -23,20 +23,8 @@ EXTRA_DIST = \
 	subprojects/freetype2.wrap \
 	subprojects/glib.wrap \
 	subprojects/google-benchmark.wrap \
-	subprojects/ttf-parser.wrap \
-	perf/meson.build \
-	perf/perf-draw.hh \
-	perf/perf-extents.hh \
-	perf/perf-shaping.hh \
-	perf/perf.cc \
-	perf/fonts/Amiri-Regular.ttf \
-	perf/fonts/NotoNastaliqUrdu-Regular.ttf \
-	perf/fonts/NotoSansDevanagari-Regular.ttf \
-	perf/fonts/Roboto-Regular.ttf \
-	perf/texts/en-thelittleprince.txt \
-	perf/texts/en-words.txt \
-	perf/texts/fa-monologue.txt \
-	perf/texts/fa-thelittleprince.txt \
+	subprojects/ragel.wrap \
+	subprojects/packagefiles/ragel/meson.build \
 	mingw-configure.sh \
 	$(NULL)
 

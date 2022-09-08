@@ -93,7 +93,7 @@ HB_BEGIN_DECLS
  * This method should retrieve the glyph ID for a specified Unicode code point
  * font, with an optional variation selector.
  *
- * Return value: %true if data found, %false otherwise
+ * Return value: `true` if data found, `false` otherwise
  * Deprecated: 1.2.3
  *
  **/
@@ -106,9 +106,6 @@ HB_EXTERN HB_DEPRECATED_FOR(hb_font_funcs_set_nominal_glyph_func and hb_font_fun
 hb_font_funcs_set_glyph_func (hb_font_funcs_t *ffuncs,
 			      hb_font_get_glyph_func_t func,
 			      void *user_data, hb_destroy_func_t destroy);
-
-HB_EXTERN HB_DEPRECATED void
-hb_set_invert (hb_set_t *set);
 
 /**
  * hb_unicode_eastasian_width_func_t:

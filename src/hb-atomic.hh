@@ -102,21 +102,26 @@ _hb_atomic_ptr_impl_cmplexch (const void **P, const void *O_, const void *N)
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	_hb_atomic_ptr_impl_cmplexch ((const void **) (P), (O), (N))
 
 
-#elif defined(HB_NO_MT)
+#else /* defined(HB_NO_MT) */
 
 #define hb_atomic_int_impl_add(AI, V)		((*(AI) += (V)) - (V))
-
 #define _hb_memory_barrier()			do {} while (0)
-
 #define hb_atomic_ptr_impl_cmpexch(P,O,N)	(* (void **) (P) == (void *) (O) ? (* (void **) (P) = (void *) (N), true) : false)
 
-
-#else
-
-#error "Could not find any system to define atomic_int macros."
-#error "Check hb-atomic.hh for possible resolutions."
-
 #endif
+
+
+#ifndef _hb_compiler_memory_r_barrier
+/* This we always use std::atomic for; and should never be disabled...
+ * except that MSVC gives me an internal compiler error on it. */
+#if !defined(_MSC_VER)
+#include <atomic>
+#define _hb_compiler_memory_r_barrier() std::atomic_signal_fence (std::memory_order_acquire)
+#else
+#define _hb_compiler_memory_r_barrier() do {} while (0)
+#endif
+#endif
+
 
 
 #ifndef _hb_memory_r_barrier
@@ -154,10 +159,13 @@ struct hb_atomic_int_t
   hb_atomic_int_t () = default;
   constexpr hb_atomic_int_t (int v) : v (v) {}
 
+  hb_atomic_int_t& operator = (int v_) { set_relaxed (v_); return *this; }
+  operator int () const { return get_relaxed (); }
+
   void set_relaxed (int v_) { hb_atomic_int_impl_set_relaxed (&v, v_); }
-  void set (int v_) { hb_atomic_int_impl_set (&v, v_); }
+  void set_release (int v_) { hb_atomic_int_impl_set (&v, v_); }
   int get_relaxed () const { return hb_atomic_int_impl_get_relaxed (&v); }
-  int get () const { return hb_atomic_int_impl_get (&v); }
+  int get_acquire () const { return hb_atomic_int_impl_get (&v); }
   int inc () { return hb_atomic_int_impl_add (&v,  1); }
   int dec () { return hb_atomic_int_impl_add (&v, -1); }
 
@@ -175,11 +183,11 @@ struct hb_atomic_ptr_t
   void init (T* v_ = nullptr) { set_relaxed (v_); }
   void set_relaxed (T* v_) { hb_atomic_ptr_impl_set_relaxed (&v, v_); }
   T *get_relaxed () const { return (T *) hb_atomic_ptr_impl_get_relaxed (&v); }
-  T *get () const { return (T *) hb_atomic_ptr_impl_get ((void **) &v); }
+  T *get_acquire () const { return (T *) hb_atomic_ptr_impl_get ((void **) &v); }
   bool cmpexch (const T *old, T *new_) const { return hb_atomic_ptr_impl_cmpexch ((void **) &v, (void *) old, (void *) new_); }
 
-  T * operator -> () const                    { return get (); }
-  template <typename C> operator C * () const { return get (); }
+  T * operator -> () const                    { return get_acquire (); }
+  template <typename C> operator C * () const { return get_acquire (); }
 
   T *v = nullptr;
 };

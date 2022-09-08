@@ -162,9 +162,9 @@ test_subset_glyf_with_gsub (void)
 
   input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
-  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'S', 'U', 'B'));
-  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'P', 'O', 'S'));
-  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'D', 'E', 'F'));
+  hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'S', 'U', 'B'));
+  hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'P', 'O', 'S'));
+  hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'D', 'E', 'F'));
 
   face_subset = hb_subset_test_create_subset (face_fil, input);
 
@@ -191,9 +191,9 @@ test_subset_glyf_without_gsub (void)
 
   input = hb_subset_test_create_input (codepoints);
   hb_set_destroy (codepoints);
-  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'S', 'U', 'B'));
-  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'P', 'O', 'S'));
-  hb_set_add (hb_subset_input_drop_tables_set (input), HB_TAG('G', 'D', 'E', 'F'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'S', 'U', 'B'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'P', 'O', 'S'));
+  hb_set_add (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG), HB_TAG('G', 'D', 'E', 'F'));
 
   face_subset = hb_subset_test_create_subset (face_fil, input);
 

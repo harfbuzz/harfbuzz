@@ -29,10 +29,11 @@
 
 #include "view-options.hh"
 #include "output-options.hh"
+#include "helper-cairo-ft.hh"
+#include "helper-cairo-user.hh"
 
-#include <cairo-ft.h>
-#include <hb-ft.h>
-#include FT_MULTIPLE_MASTERS_H
+#include <cairo.h>
+#include <hb.h>
 
 #include "helper-cairo-ansi.hh"
 #ifdef CAIRO_HAS_SVG_SURFACE
@@ -65,74 +66,27 @@ _cairo_eps_surface_create_for_stream (cairo_write_func_t  write_func,
 #  endif
 #endif
 
-
-static FT_Library ft_library;
-
-#ifdef HAVE_ATEXIT
-static inline
-void free_ft_library ()
+static inline bool
+helper_cairo_use_hb_draw (const font_options_t *font_opts)
 {
-  FT_Done_FreeType (ft_library);
+  const char *env = getenv ("HB_DRAW");
+  if (!env)
+    return cairo_version () >= CAIRO_VERSION_ENCODE (1, 17, 5);
+  return atoi (env);
 }
-#endif
 
 static inline cairo_scaled_font_t *
 helper_cairo_create_scaled_font (const font_options_t *font_opts)
 {
+  bool use_hb_draw = helper_cairo_use_hb_draw (font_opts);
   hb_font_t *font = hb_font_reference (font_opts->font);
 
   cairo_font_face_t *cairo_face;
-  /* We cannot use the FT_Face from hb_font_t, as doing so will confuse hb_font_t because
-   * cairo will reset the face size.  As such, create new face...
-   * TODO Perhaps add API to hb-ft to encapsulate this code. */
-  FT_Face ft_face = nullptr;//hb_ft_font_get_face (font);
-  if (!ft_face)
-  {
-    if (!ft_library)
-    {
-      FT_Init_FreeType (&ft_library);
-#ifdef HAVE_ATEXIT
-      atexit (free_ft_library);
-#endif
-    }
-
-    unsigned int blob_length;
-    const char *blob_data = hb_blob_get_data (font_opts->blob, &blob_length);
-
-    if (FT_New_Memory_Face (ft_library,
-			    (const FT_Byte *) blob_data,
-			    blob_length,
-			    font_opts->face_index,
-			    &ft_face))
-      fail (false, "FT_New_Memory_Face fail");
-  }
-  if (!ft_face)
-  {
-    /* This allows us to get some boxes at least... */
-    cairo_face = cairo_toy_font_face_create ("@cairo:sans",
-					     CAIRO_FONT_SLANT_NORMAL,
-					     CAIRO_FONT_WEIGHT_NORMAL);
-  }
+  if (use_hb_draw)
+    cairo_face = helper_cairo_create_user_font_face (font_opts);
   else
-  {
-#ifdef HAVE_FT_SET_VAR_BLEND_COORDINATES
-    unsigned int num_coords;
-    const int *coords = hb_font_get_var_coords_normalized (font, &num_coords);
-    if (num_coords)
-    {
-      FT_Fixed *ft_coords = (FT_Fixed *) calloc (num_coords, sizeof (FT_Fixed));
-      if (ft_coords)
-      {
-	for (unsigned int i = 0; i < num_coords; i++)
-	  ft_coords[i] = coords[i] << 2;
-	FT_Set_Var_Blend_Coordinates (ft_face, num_coords, ft_coords);
-	free (ft_coords);
-      }
-    }
-#endif
+    cairo_face = helper_cairo_create_ft_font_face (font_opts);
 
-    cairo_face = cairo_ft_font_face_create_for_ft_face (ft_face, font_opts->ft_load_flags);
-  }
   cairo_matrix_t ctm, font_matrix;
   cairo_font_options_t *font_options;
 
@@ -140,6 +94,9 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   cairo_matrix_init_scale (&font_matrix,
 			   font_opts->font_size_x,
 			   font_opts->font_size_y);
+  if (use_hb_draw)
+    font_matrix.xy = -font_opts->slant * font_opts->font_size_x;
+
   font_options = cairo_font_options_create ();
   cairo_font_options_set_hint_style (font_options, CAIRO_HINT_STYLE_NONE);
   cairo_font_options_set_hint_metrics (font_options, CAIRO_HINT_METRICS_OFF);
@@ -165,17 +122,10 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
 static inline bool
 helper_cairo_scaled_font_has_color (cairo_scaled_font_t *scaled_font)
 {
-  bool ret = false;
-#ifdef FT_HAS_COLOR
-  FT_Face ft_face = cairo_ft_scaled_font_lock_face (scaled_font);
-  if (ft_face)
-  {
-    if (FT_HAS_COLOR (ft_face))
-      ret = true;
-    cairo_ft_scaled_font_unlock_face (scaled_font);
-  }
-#endif
-  return ret;
+  if (helper_cairo_user_font_face_has_data (cairo_scaled_font_get_font_face (scaled_font)))
+    return helper_cairo_user_scaled_font_has_color (scaled_font);
+  else
+    return helper_cairo_ft_scaled_font_has_color (scaled_font);
 }
 
 
@@ -427,11 +377,11 @@ static const char *helper_cairo_supported_formats[] =
 };
 
 template <typename view_options_t,
-	 typename output_options_t>
+	 typename output_options_type>
 static inline cairo_t *
 helper_cairo_create_context (double w, double h,
 			     view_options_t *view_opts,
-			     output_options_t *out_opts,
+			     output_options_type *out_opts,
 			     cairo_content_t content)
 {
   cairo_surface_t *(*constructor) (cairo_write_func_t write_func,
@@ -456,6 +406,12 @@ helper_cairo_create_context (double w, double h,
       /* https://gitlab.com/gnachman/iterm2/-/issues/7154 */
       if ((name = getenv ("LC_TERMINAL")) != nullptr &&
 	  0 == g_ascii_strcasecmp (name, "iTerm2"))
+      {
+	extension = "png";
+	protocol = image_protocol_t::ITERM2;
+      }
+      else if ((name = getenv ("TERM_PROGRAM")) != nullptr &&
+	  0 == g_ascii_strcasecmp (name, "WezTerm"))
       {
 	extension = "png";
 	protocol = image_protocol_t::ITERM2;

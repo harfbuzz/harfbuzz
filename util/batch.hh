@@ -66,7 +66,10 @@ batch_main (int argc, char **argv)
     return ret;
   }
 
-  return main_t () (argc, argv);
+  int ret = main_t () (argc, argv);
+  if (report_status && ret != 0)
+    fprintf (stdout, "error: Operation failed. Probably a bug. File github issue.\n");
+  return ret;
 }
 
 #endif

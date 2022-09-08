@@ -8,7 +8,7 @@
 #include "hb.h"
 
 // Only allow ~5,000 set values between the two input sets.
-// Arbitarily long input sets do not trigger any meaningful
+// Arbitrarily long input sets do not trigger any meaningful
 // differences in behaviour so there's no benefit from allowing
 // the fuzzer to create super large sets.
 #define MAX_INPUT_SIZE 20000
@@ -38,7 +38,7 @@ static hb_set_t *create_set (const uint32_t *value_array, int count)
 
 extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
 {
-  alloc_state = size; /* see src/failing-alloc.c */
+  alloc_state = _fuzzing_alloc_state (data, size);
 
   if (size < sizeof (instructions_t))
     return 0;

@@ -29,10 +29,31 @@
 #include "hb.hh"
 #include "hb-machinery.hh"
 
-#include <locale.h>
+#if !defined(HB_NO_SETLOCALE) && (!defined(HAVE_NEWLOCALE) || !defined(HAVE_USELOCALE))
+#define HB_NO_SETLOCALE 1
+#endif
 
-#ifdef HB_NO_SETLOCALE
-#define setlocale(Category, Locale) "C"
+#ifndef HB_NO_SETLOCALE
+
+#include <locale.h>
+#ifdef HAVE_XLOCALE_H
+#include <xlocale.h> // Needed on BSD/OS X for uselocale
+#endif
+
+#ifdef WIN32
+#define hb_locale_t _locale_t
+#else
+#define hb_locale_t locale_t
+#endif
+#define hb_setlocale setlocale
+#define hb_uselocale uselocale
+
+#else
+
+#define hb_locale_t void *
+#define hb_setlocale(Category, Locale) "C"
+#define hb_uselocale(Locale) ((hb_locale_t) 0)
+
 #endif
 
 /**
@@ -78,7 +99,7 @@ _hb_options_init ()
   }
 
   /* This is idempotent and threadsafe. */
-  _hb_options.set_relaxed (u.i);
+  _hb_options = u.i;
 }
 
 
@@ -87,7 +108,7 @@ _hb_options_init ()
 /**
  * hb_tag_from_string:
  * @str: (array length=len) (element-type uint8_t): String to convert
- * @len: Length of @str, or -1 if it is %NULL-terminated
+ * @len: Length of @str, or -1 if it is `NULL`-terminated
  *
  * Converts a string into an #hb_tag_t. Valid tags
  * are four characters. Shorter input strings will be
@@ -122,7 +143,7 @@ hb_tag_from_string (const char *str, int len)
  * @tag: #hb_tag_t to convert
  * @buf: (out caller-allocates) (array fixed-size=4) (element-type uint8_t): Converted string
  *
- * Converts an #hb_tag_t to a string and returns it in @buf. 
+ * Converts an #hb_tag_t to a string and returns it in @buf.
  * Strings will be four characters long.
  *
  * Since: 0.9.5
@@ -139,7 +160,7 @@ hb_tag_to_string (hb_tag_t tag, char *buf)
 
 /* hb_direction_t */
 
-const char direction_strings[][4] = {
+static const char direction_strings[][4] = {
   "ltr",
   "rtl",
   "ttb",
@@ -149,15 +170,15 @@ const char direction_strings[][4] = {
 /**
  * hb_direction_from_string:
  * @str: (array length=len) (element-type uint8_t): String to convert
- * @len: Length of @str, or -1 if it is %NULL-terminated
+ * @len: Length of @str, or -1 if it is `NULL`-terminated
  *
- * Converts a string to an #hb_direction_t. 
+ * Converts a string to an #hb_direction_t.
  *
  * Matching is loose and applies only to the first letter. For
  * examples, "LTR" and "left-to-right" will both return #HB_DIRECTION_LTR.
  *
  * Unmatched strings will return #HB_DIRECTION_INVALID.
- * 
+ *
  * Return value: The #hb_direction_t matching @str
  *
  * Since: 0.9.2
@@ -280,8 +301,7 @@ struct hb_language_item_t {
 
 static hb_atomic_ptr_t <hb_language_item_t> langs;
 
-#if HB_USE_ATEXIT
-static void
+static inline void
 free_langs ()
 {
 retry:
@@ -296,7 +316,6 @@ retry:
     first_lang = next;
   }
 }
-#endif
 
 static hb_language_item_t *
 lang_find_or_insert (const char *key)
@@ -327,10 +346,8 @@ retry:
     goto retry;
   }
 
-#if HB_USE_ATEXIT
   if (!first_lang)
-    atexit (free_langs); /* First person registers atexit() callback. */
-#endif
+    hb_atexit (free_langs); /* First person registers atexit() callback. */
 
   return lang;
 }
@@ -340,7 +357,7 @@ retry:
  * hb_language_from_string:
  * @str: (array length=len) (element-type uint8_t): a string representing
  *       a BCP 47 language tag
- * @len: length of the @str, or -1 if it is %NULL-terminated.
+ * @len: length of the @str, or -1 if it is `NULL`-terminated.
  *
  * Converts @str representing a BCP 47 language tag to the corresponding
  * #hb_language_t.
@@ -379,7 +396,7 @@ hb_language_from_string (const char *str, int len)
  * Converts an #hb_language_t to a string.
  *
  * Return value: (transfer none):
- * A %NULL-terminated string representing the @language. Must not be freed by
+ * A `NULL`-terminated string representing the @language. Must not be freed by
  * the caller.
  *
  * Since: 0.9.2
@@ -417,11 +434,43 @@ hb_language_get_default ()
   hb_language_t language = default_language;
   if (unlikely (language == HB_LANGUAGE_INVALID))
   {
-    language = hb_language_from_string (setlocale (LC_CTYPE, nullptr), -1);
+    language = hb_language_from_string (hb_setlocale (LC_CTYPE, nullptr), -1);
     (void) default_language.cmpexch (HB_LANGUAGE_INVALID, language);
   }
 
   return language;
+}
+
+/**
+ * hb_language_matches:
+ * @language: The #hb_language_t to work on
+ * @specific: Another #hb_language_t
+ *
+ * Check whether a second language tag is the same or a more
+ * specific version of the provided language tag.  For example,
+ * "fa_IR.utf8" is a more specific tag for "fa" or for "fa_IR".
+ *
+ * Return value: `true` if languages match, `false` otherwise.
+ *
+ * Since: 5.0.0
+ **/
+hb_bool_t
+hb_language_matches (hb_language_t language,
+		     hb_language_t specific)
+{
+  if (language == specific) return true;
+  if (!language || !specific) return false;
+
+  const char *l = language->s;
+  const char *s = specific->s;
+  unsigned ll = strlen (l);
+  unsigned sl = strlen (s);
+
+  if (ll > sl)
+    return false;
+
+  return strncmp (l, s, ll) == 0 &&
+	 (s[ll] == '\0' || s[ll] == '-');
 }
 
 
@@ -481,7 +530,7 @@ hb_script_from_iso15924_tag (hb_tag_t tag)
  * hb_script_from_string:
  * @str: (array length=len) (element-type uint8_t): a string representing an
  *       ISO 15924 tag.
- * @len: length of the @str, or -1 if it is %NULL-terminated.
+ * @len: length of the @str, or -1 if it is `NULL`-terminated.
  *
  * Converts a string @str representing an ISO 15924 script tag to a
  * corresponding #hb_script_t. Shorthand for hb_tag_from_string() then
@@ -599,6 +648,9 @@ hb_script_get_horizontal_direction (hb_script_t script)
     case HB_SCRIPT_CHORASMIAN:
     case HB_SCRIPT_YEZIDI:
 
+    /* Unicode-14.0 additions */
+    case HB_SCRIPT_OLD_UYGHUR:
+
       return HB_DIRECTION_RTL;
 
 
@@ -673,8 +725,8 @@ hb_version_string ()
  * Tests the library version against a minimum value,
  * as three integer components.
  *
- * Return value: %true if the library is equal to or greater than
- * the test value, %false otherwise
+ * Return value: `true` if the library is equal to or greater than
+ * the test value, `false` otherwise
  *
  * Since: 0.9.30
  **/
@@ -861,7 +913,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
 /**
  * hb_feature_from_string:
  * @str: (array length=len) (element-type uint8_t): a string to parse
- * @len: length of @str, or -1 if string is %NULL terminated
+ * @len: length of @str, or -1 if string is `NULL` terminated
  * @feature: (out): the #hb_feature_t to initialize with the parsed values
  *
  * Parses a string into a #hb_feature_t.
@@ -903,7 +955,7 @@ parse_one_feature (const char **pp, const char *end, hb_feature_t *feature)
  * </informaltable>
  *
  * Return value:
- * %true if @str is successfully parsed, %false otherwise
+ * `true` if @str is successfully parsed, `false` otherwise
  *
  * Since: 0.9.5
  **/
@@ -934,7 +986,7 @@ hb_feature_from_string (const char *str, int len,
  * @buf: (array length=size) (out): output string
  * @size: the allocated size of @buf
  *
- * Converts a #hb_feature_t into a %NULL-terminated string in the format
+ * Converts a #hb_feature_t into a `NULL`-terminated string in the format
  * understood by hb_feature_from_string(). The client in responsible for
  * allocating big enough size for @buf, 128 bytes is more than enough.
  *
@@ -1002,7 +1054,7 @@ parse_one_variation (const char **pp, const char *end, hb_variation_t *variation
 /**
  * hb_variation_from_string:
  * @str: (array length=len) (element-type uint8_t): a string to parse
- * @len: length of @str, or -1 if string is %NULL terminated
+ * @len: length of @str, or -1 if string is `NULL` terminated
  * @variation: (out): the #hb_variation_t to initialize with the parsed values
  *
  * Parses a string into a #hb_variation_t.
@@ -1015,7 +1067,7 @@ parse_one_variation (const char **pp, const char *end, hb_variation_t *variation
  * number. For example `wght=500`, or `slnt=-7.5`.
  *
  * Return value:
- * %true if @str is successfully parsed, %false otherwise
+ * `true` if @str is successfully parsed, `false` otherwise
  *
  * Since: 1.4.2
  */
@@ -1040,13 +1092,54 @@ hb_variation_from_string (const char *str, int len,
   return false;
 }
 
+#ifndef HB_NO_SETLOCALE
+
+static inline void free_static_C_locale ();
+
+static struct hb_C_locale_lazy_loader_t : hb_lazy_loader_t<hb_remove_pointer<hb_locale_t>,
+							   hb_C_locale_lazy_loader_t>
+{
+  static hb_locale_t create ()
+  {
+    hb_locale_t l = newlocale (LC_ALL_MASK, "C", NULL);
+    if (!l)
+      return l;
+
+    hb_atexit (free_static_C_locale);
+
+    return l;
+  }
+  static void destroy (hb_locale_t l)
+  {
+    freelocale (l);
+  }
+  static hb_locale_t get_null ()
+  {
+    return (hb_locale_t) 0;
+  }
+} static_C_locale;
+
+static inline
+void free_static_C_locale ()
+{
+  static_C_locale.free_instance ();
+}
+
+static hb_locale_t
+get_C_locale ()
+{
+  return static_C_locale.get_unconst ();
+}
+
+#endif
+
 /**
  * hb_variation_to_string:
  * @variation: an #hb_variation_t to convert
  * @buf: (array length=size) (out): output string
  * @size: the allocated size of @buf
  *
- * Converts an #hb_variation_t into a %NULL-terminated string in the format
+ * Converts an #hb_variation_t into a `NULL`-terminated string in the format
  * understood by hb_variation_from_string(). The client in responsible for
  * allocating big enough size for @buf, 128 bytes is more than enough.
  *
@@ -1065,7 +1158,11 @@ hb_variation_to_string (hb_variation_t *variation,
   while (len && s[len - 1] == ' ')
     len--;
   s[len++] = '=';
+
+  hb_locale_t oldlocale HB_UNUSED;
+  oldlocale = hb_uselocale (get_C_locale ());
   len += hb_max (0, snprintf (s + len, ARRAY_LENGTH (s) - len, "%g", (double) variation->value));
+  (void) hb_uselocale (oldlocale);
 
   assert (len < ARRAY_LENGTH (s));
   len = hb_min (len, size - 1);

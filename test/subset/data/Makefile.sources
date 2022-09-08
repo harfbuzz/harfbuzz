@@ -1,4 +1,5 @@
 TESTS = \
+	tests/32bit_var_store.tests \
 	tests/basics.tests \
 	tests/cbdt.tests \
 	tests/cff-full-font.tests \
@@ -7,14 +8,18 @@ TESTS = \
 	tests/cmap.tests \
 	tests/cmap14.tests \
 	tests/colr.tests \
+	tests/colr_glyphs.tests \
+	tests/colrv1.tests \
 	tests/colr_with_components.tests \
 	tests/full-font.tests \
 	tests/glyf_bug_3131.tests \
 	tests/japanese.tests \
 	tests/layout.context.tests \
+	tests/layout.context_format2.tests \
 	tests/layout.gdef-attachlist.tests \
 	tests/layout.gdef-varstore.tests \
 	tests/layout.gdef.tests \
+	tests/layout.gdef.glyphset.tests \
 	tests/layout.gpos.tests \
 	tests/layout.gpos2.tests \
 	tests/layout.gpos3.tests \
@@ -26,13 +31,23 @@ TESTS = \
 	tests/layout.gpos9.tests \
 	tests/layout.gsub3.tests \
 	tests/layout.gsub5.tests \
+	tests/layout.gsub5_format2.tests \
 	tests/layout.gsub6.tests \
 	tests/layout.gsub8.tests \
 	tests/layout.khmer.tests \
 	tests/layout.notonastaliqurdu.tests \
 	tests/layout.tests \
-	tests/sbix.tests \
+	tests/layout.tinos.tests \
+	tests/layout.default_features.tests \
+	tests/layout.duplicate_features.tests \
+	tests/layout.unsorted_featurelist.tests \
+	tests/layout.drop_feature.tests \
+        tests/sbix.tests \
 	tests/variable.tests \
+	tests/glyph_names.tests \
+	tests/math.tests \
+	tests/math_coverage_offset.tests \
+	tests/post.tests \
 	$(NULL)
 
 # TODO: re-enable once colrv1 subsetting is stabilized.

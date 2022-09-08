@@ -96,8 +96,8 @@ struct LookupSegmentSingle
     return_trace (c->check_struct (this) && value.sanitize (c, base));
   }
 
-  HBGlyphID	last;		/* Last GlyphID in this segment */
-  HBGlyphID	first;		/* First GlyphID in this segment */
+  HBGlyphID16	last;		/* Last GlyphID in this segment */
+  HBGlyphID16	first;		/* First GlyphID in this segment */
   T		value;		/* The lookup value (only one) */
   public:
   DEFINE_SIZE_STATIC (4 + T::static_size);
@@ -162,11 +162,11 @@ struct LookupSegmentArray
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) &&
 		  first <= last &&
-		  valuesZ.sanitize (c, base, last - first + 1, hb_forward<Ts> (ds)...));
+		  valuesZ.sanitize (c, base, last - first + 1, std::forward<Ts> (ds)...));
   }
 
-  HBGlyphID	last;		/* Last GlyphID in this segment */
-  HBGlyphID	first;		/* First GlyphID in this segment */
+  HBGlyphID16	last;		/* Last GlyphID in this segment */
+  HBGlyphID16	first;		/* First GlyphID in this segment */
   NNOffset16To<UnsizedArrayOf<T>>
 		valuesZ;	/* A 16-bit offset from the start of
 				 * the table to the data. */
@@ -225,7 +225,7 @@ struct LookupSingle
     return_trace (c->check_struct (this) && value.sanitize (c, base));
   }
 
-  HBGlyphID	glyph;		/* Last GlyphID */
+  HBGlyphID16	glyph;		/* Last GlyphID */
   T		value;		/* The lookup value (only one) */
   public:
   DEFINE_SIZE_STATIC (2 + T::static_size);
@@ -287,7 +287,7 @@ struct LookupFormat8
 
   protected:
   HBUINT16	format;		/* Format identifier--format = 8 */
-  HBGlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
+  HBGlyphID16	firstGlyph;	/* First glyph index included in the trimmed array. */
   HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
 				 * glyph minus the value of firstGlyph plus 1). */
   UnsizedArrayOf<T>
@@ -329,7 +329,7 @@ struct LookupFormat10
   protected:
   HBUINT16	format;		/* Format identifier--format = 8 */
   HBUINT16	valueSize;	/* Byte size of each value. */
-  HBGlyphID	firstGlyph;	/* First glyph index included in the trimmed array. */
+  HBGlyphID16	firstGlyph;	/* First glyph index included in the trimmed array. */
   HBUINT16	glyphCount;	/* Total number of glyphs (equivalent to the last
 				 * glyph minus the value of firstGlyph plus 1). */
   UnsizedArrayOf<HBUINT8>
@@ -415,18 +415,7 @@ struct Lookup
   public:
   DEFINE_SIZE_UNION (2, format);
 };
-/* Lookup 0 has unbounded size (dependant on num_glyphs).  So we need to defined
- * special NULL objects for Lookup<> objects, but since it's template our macros
- * don't work.  So we have to hand-code them here.  UGLY. */
-} /* Close namespace. */
-/* Ugly hand-coded null objects for template Lookup<> :(. */
-extern HB_INTERNAL const unsigned char _hb_Null_AAT_Lookup[2];
-template <typename T>
-struct Null<AAT::Lookup<T>> {
-  static AAT::Lookup<T> const & get_null ()
-  { return *reinterpret_cast<const AAT::Lookup<T> *> (_hb_Null_AAT_Lookup); }
-};
-namespace AAT {
+DECLARE_NULL_NAMESPACE_BYTES_TEMPLATE1 (AAT, Lookup, 2);
 
 enum { DELETED_GLYPH = 0xFFFF };
 
@@ -661,7 +650,7 @@ struct ClassTable
     return_trace (c->check_struct (this) && classArray.sanitize (c));
   }
   protected:
-  HBGlyphID		firstGlyph;	/* First glyph index included in the trimmed array. */
+  HBGlyphID16		firstGlyph;	/* First glyph index included in the trimmed array. */
   Array16Of<HBUCHAR>	classArray;	/* The class codes (indexed by glyph index minus
 					 * firstGlyph). */
   public:
@@ -681,6 +670,13 @@ struct ObsoleteTypes
 				     const void *base,
 				     const T *array)
   {
+    /* https://github.com/harfbuzz/harfbuzz/issues/3483 */
+    /* If offset is less than base, return an offset that would
+     * result in an address half a 32bit address-space away,
+     * to make sure sanitize fails even on 32bit builds. */
+    if (unlikely (offset < unsigned ((const char *) array - (const char *) base)))
+      return INT_MAX / T::static_size;
+
     /* https://github.com/harfbuzz/harfbuzz/issues/2816 */
     return (offset - unsigned ((const char *) array - (const char *) base)) / T::static_size;
   }
@@ -839,7 +835,7 @@ struct StateTableDriver
     }
 
     if (!c->in_place)
-      buffer->swap_buffers ();
+      buffer->sync ();
   }
 
   public:

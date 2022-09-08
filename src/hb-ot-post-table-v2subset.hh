@@ -52,16 +52,16 @@ HB_INTERNAL bool postV2Tail::serialize (hb_serialize_context_t *c,
   {
     unsigned glyph_id = _.first;
     unsigned new_index = _.second;
-    
+
     if (new_index < 258) continue;
     if (copied_indices.has (new_index)) continue;
     copied_indices.add (new_index);
-    
+
     hb_bytes_t s = reinterpret_cast<const post::accelerator_t*> (_post)->find_glyph_name (glyph_id);
     HBUINT8 *o = c->allocate_size<HBUINT8> (HBUINT8::static_size * (s.length + 1));
     if (unlikely (!o)) return_trace (false);
     if (!c->check_assign (o[0], s.length, HB_SERIALIZE_ERROR_INT_OVERFLOW)) return_trace (false);
-    memcpy (o+1, s.arrayZ, HBUINT8::static_size * s.length);
+    hb_memcpy (o+1, s.arrayZ, HBUINT8::static_size * s.length);
   }
 
   return_trace (true);
@@ -76,19 +76,45 @@ HB_INTERNAL bool postV2Tail::subset (hb_subset_context_t *c) const
   hb_map_t old_new_index_map, old_gid_new_index_map;
   unsigned i = 0;
 
+  post::accelerator_t _post (c->plan->source);
+
+  hb_hashmap_t<hb_bytes_t, unsigned, true> glyph_name_to_new_index;
   for (hb_codepoint_t new_gid = 0; new_gid < num_glyphs; new_gid++)
   {
     hb_codepoint_t old_gid = reverse_glyph_map.get (new_gid);
     unsigned old_index = glyphNameIndex[old_gid];
 
     unsigned new_index;
+    const unsigned *new_index2;
     if (old_index <= 257) new_index = old_index;
-    else if (old_new_index_map.has (old_index)) new_index = old_new_index_map.get (old_index);
-    else
+    else if (old_new_index_map.has (old_index, &new_index2))
     {
-      new_index = 258 + i;
+      new_index = *new_index2;
+    } else {
+      hb_bytes_t s = _post.find_glyph_name (old_gid);
+      new_index = glyph_name_to_new_index.get (s);
+      if (new_index == (unsigned)-1)
+      {
+        int standard_glyph_index = -1;
+        for (unsigned i = 0; i < format1_names_length; i++)
+        {
+          if (s == format1_names (i))
+          {
+            standard_glyph_index = i;
+            break;
+          }
+        }
+
+        if (standard_glyph_index == -1)
+        {
+          new_index = 258 + i;
+          i++;
+        }
+        else
+        { new_index = standard_glyph_index; }
+        glyph_name_to_new_index.set (s, new_index);
+      }
       old_new_index_map.set (old_index, new_index);
-      i++;
     }
     old_gid_new_index_map.set (old_gid, new_index);
   }
@@ -103,11 +129,7 @@ HB_INTERNAL bool postV2Tail::subset (hb_subset_context_t *c) const
                             })
   ;
 
-  post::accelerator_t _post;
-  _post.init (c->plan->source);
-  bool ret = serialize (c->serializer, index_iter, &_post);
-  _post.fini ();
-  return_trace (ret);
+  return_trace (serialize (c->serializer, index_iter, &_post));
 }
 
 } /* namespace OT */

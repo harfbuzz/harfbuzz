@@ -1,3 +1,16 @@
+# https://github.com/harfbuzz/harfbuzz/issues/1373
+/System/Library/Fonts/Supplemental/BigCaslon.ttf;;U+0107;[cacute=0+432]
+/System/Library/Fonts/Supplemental/BigCaslon.ttf;--language=pl;U+0107;[cacute.polish=0+432]
+
+# https://github.com/harfbuzz/harfbuzz/issues/3314
+/System/Library/Fonts/Apple\ Color\ Emoji.ttc;--script=hebrew --direction ltr;U+1F1FA,U+1F1F8,U+1F1EE,U+1F1F1;[u1F1FA_u1F1F8=0+800|u1F1EE_u1F1F1=2+800]
+
+# https://github.com/harfbuzz/harfbuzz/issues/3528
+/System/Library/Fonts/Supplemental/Bangla MN.ttc;;U+09AC,U+09BF;[bn_ikaar=0+474|bn_ba=0+998]
+
+# https://github.com/harfbuzz/harfbuzz/issues/3535
+/System/Library/Fonts/LucidaGrande.ttc;;U+20DD,U+1F174,U+1F175;[circlecmb=0+0|.notdef=1+1536|.notdef=2+1536]
+
 # https;//github.com/harfbuzz/harfbuzz/issues/3008
 /System/Library/Fonts/ヒラギノ丸ゴ\ ProN\ W4.ttc;--features=palt;U+FF11;[gid781=0@-78,0+842]
 
@@ -138,3 +151,6 @@
 
 # 11.1
 /System/Library/Fonts/Apple Color Emoji.ttc@6b0fa4926a1c8a32267e93e18c5eff21558de83a;--font-funcs ot;U+1F469,U+1F3FD,U+200D,U+1F91D,U+200D,U+1F468,U+1F3FE;[u1F469.3.L=0+0|space=0+0|space=0+0|u1F468.4.RA=0+800]
+
+# 12.3
+/System/Library/Fonts/Apple Color Emoji.ttc@8fa6ac4564651899da0b37d310d980db4de967d6;--font-funcs ot;1FAF1,1F3FF,200D,1FAF2,1F3FC;[u1FAF1.5.L=0+800|u1FAF2.2.R=0@-800,0+0]

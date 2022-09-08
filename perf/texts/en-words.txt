@@ -4782,7 +4782,7 @@ hb
 HB
 HBASELINE
 HBFixed
-HBGlyphID
+HBGlyphID16
 HBINT
 hbot
 hbotABCD

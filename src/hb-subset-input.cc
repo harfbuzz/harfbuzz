@@ -32,7 +32,7 @@
  *
  * Creates a new subset input object.
  *
- * Return value: (transfer full): New subset input, or %NULL if failed. Destroy
+ * Return value: (transfer full): New subset input, or `NULL` if failed. Destroy
  * with hb_subset_input_destroy().
  *
  * Since: 1.8.0
@@ -45,17 +45,21 @@ hb_subset_input_create_or_fail (void)
   if (unlikely (!input))
     return nullptr;
 
-  input->unicodes = hb_set_create ();
-  input->glyphs = hb_set_create ();
-  input->name_ids = hb_set_create ();
-  hb_set_add_range (input->name_ids, 0, 6);
-  input->name_languages = hb_set_create ();
-  hb_set_add (input->name_languages, 0x0409);
-  input->layout_features = hb_set_create ();
-  input->drop_tables = hb_set_create ();
-  input->no_subset_tables = hb_set_create ();
+  for (auto& set : input->sets_iter ())
+    set = hb_set_create ();
+
+  input->axes_location = hb_hashmap_create<hb_tag_t, float> ();
+  
+  if (!input->axes_location || input->in_error ())
+  {
+    hb_subset_input_destroy (input);
+    return nullptr;
+  }
 
   input->flags = HB_SUBSET_FLAGS_DEFAULT;
+
+  hb_set_add_range (input->sets.name_ids, 0, 6);
+  hb_set_add (input->sets.name_languages, 0x0409);
 
   hb_tag_t default_drop_tables[] = {
     // Layout disabled by default
@@ -81,7 +85,7 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('S', 'i', 'l', 'f'),
     HB_TAG ('S', 'i', 'l', 'l'),
   };
-  input->drop_tables->add_array (default_drop_tables, ARRAY_LENGTH (default_drop_tables));
+  input->sets.drop_tables->add_array (default_drop_tables, ARRAY_LENGTH (default_drop_tables));
 
   hb_tag_t default_no_subset_tables[] = {
     HB_TAG ('a', 'v', 'a', 'r'),
@@ -94,10 +98,9 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('D', 'S', 'I', 'G'),
     HB_TAG ('M', 'V', 'A', 'R'),
     HB_TAG ('c', 'v', 'a', 'r'),
-    HB_TAG ('S', 'T', 'A', 'T'),
   };
-  input->no_subset_tables->add_array (default_no_subset_tables,
-				      ARRAY_LENGTH (default_no_subset_tables));
+  input->sets.no_subset_tables->add_array (default_no_subset_tables,
+                                         ARRAY_LENGTH (default_no_subset_tables));
 
   //copied from _layout_features_groups in fonttools
   hb_tag_t default_layout_features[] = {
@@ -138,7 +141,20 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('r', 't', 'l', 'a'),
     HB_TAG ('r', 't', 'l', 'm'),
 
-    //Complex shapers
+    //random
+    HB_TAG ('r', 'a', 'n', 'd'),
+
+    //justify
+    HB_TAG ('j', 'a', 'l', 't'), // HarfBuzz doesn't use; others might
+
+    //private
+    HB_TAG ('H', 'a', 'r', 'f'),
+    HB_TAG ('H', 'A', 'R', 'F'),
+    HB_TAG ('B', 'u', 'z', 'z'),
+    HB_TAG ('B', 'U', 'Z', 'Z'),
+
+    //shapers
+
     //arabic
     HB_TAG ('i', 'n', 'i', 't'),
     HB_TAG ('m', 'e', 'd', 'i'),
@@ -186,7 +202,15 @@ hb_subset_input_create_or_fail (void)
     HB_TAG ('b', 'l', 'w', 'm'),
   };
 
-  input->layout_features->add_array (default_layout_features, ARRAY_LENGTH (default_layout_features));
+  input->sets.layout_features->add_array (default_layout_features, ARRAY_LENGTH (default_layout_features));
+
+  input->sets.layout_scripts->invert (); // Default to all scripts.
+
+  if (input->in_error ())
+  {
+    hb_subset_input_destroy (input);
+    return nullptr;
+  }
   return input;
 }
 
@@ -220,13 +244,10 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 {
   if (!hb_object_destroy (input)) return;
 
-  hb_set_destroy (input->unicodes);
-  hb_set_destroy (input->glyphs);
-  hb_set_destroy (input->name_ids);
-  hb_set_destroy (input->name_languages);
-  hb_set_destroy (input->drop_tables);
-  hb_set_destroy (input->layout_features);
-  hb_set_destroy (input->no_subset_tables);
+  for (hb_set_t* set : input->sets_iter ())
+    hb_set_destroy (set);
+
+  hb_hashmap_destroy (input->axes_location);
 
   hb_free (input);
 }
@@ -246,7 +267,7 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_unicode_set (hb_subset_input_t *input)
 {
-  return input->unicodes;
+  return input->sets.unicodes;
 }
 
 /**
@@ -263,103 +284,35 @@ hb_subset_input_unicode_set (hb_subset_input_t *input)
 HB_EXTERN hb_set_t *
 hb_subset_input_glyph_set (hb_subset_input_t *input)
 {
-  return input->glyphs;
+  return input->sets.glyphs;
 }
 
 /**
- * hb_subset_input_nameid_set:
+ * hb_subset_input_set:
  * @input: a #hb_subset_input_t object.
+ * @set_type: a #hb_subset_sets_t set type.
  *
- * Gets the set of name table name IDs to retain, the caller should modify the
- * set as needed.
+ * Gets the set of the specified type.
  *
- * Return value: (transfer none): pointer to the #hb_set_t of name IDs.
+ * Return value: (transfer none): pointer to the #hb_set_t of the specified type.
  *
- * Since: REPLACE
+ * Since: 2.9.1
  **/
 HB_EXTERN hb_set_t *
-hb_subset_input_nameid_set (hb_subset_input_t *input)
+hb_subset_input_set (hb_subset_input_t *input, hb_subset_sets_t set_type)
 {
-  return input->name_ids;
+  return input->sets_iter () [set_type];
 }
-
-/**
- * hb_subset_input_namelangid_set:
- * @input: a #hb_subset_input_t object.
- *
- * Gets the set of name table language IDs to retain, the caller should modify
- * the set as needed.
- *
- * Return value: (transfer none): pointer to the #hb_set_t of language IDs.
- *
- * Since: REPLACE
- **/
-HB_EXTERN hb_set_t *
-hb_subset_input_namelangid_set (hb_subset_input_t *input)
-{
-  return input->name_languages;
-}
-
-
-/**
- * hb_subset_input_layout_features_set:
- * @input: a #hb_subset_input_t object.
- *
- * Gets the set of layout feature tags to retain, the caller should modify the
- * set as needed.
- *
- * Return value: (transfer none): pointer to the #hb_set_t of feature tags.
- *
- * Since: REPLACE
- **/
-HB_EXTERN hb_set_t *
-hb_subset_input_layout_features_set (hb_subset_input_t *input)
-{
-  return input->layout_features;
-}
-
-/**
- * hb_subset_input_drop_tables_set:
- * @input: a #hb_subset_input_t object.
- *
- * Gets the set of table tags to drop, the caller should modify the set as
- * needed.
- *
- * Return value: (transfer none): pointer to the #hb_set_t of table tags.
- *
- * Since: REPLACE
- **/
-HB_EXTERN hb_set_t *
-hb_subset_input_drop_tables_set (hb_subset_input_t *input)
-{
-  return input->drop_tables;
-}
-
-/**
- * hb_subset_input_no_subset_tables_set:
- * @input: a #hb_subset_input_t object.
- *
- * Gets the set of table tags which specifies tables that should not be
- * subsetted, the caller should modify the set as needed.
- *
- * Return value: (transfer none): pointer to the #hb_set_t of table tags.
- *
- * Since: REPLACE
- **/
-HB_EXTERN hb_set_t *
-hb_subset_input_no_subset_tables_set (hb_subset_input_t *input)
-{
-  return input->no_subset_tables;
-}
-
 
 /**
  * hb_subset_input_get_flags:
  * @input: a #hb_subset_input_t object.
  *
+ * Gets all of the subsetting flags in the input object.
+ *
  * Return value: the subsetting flags bit field.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN hb_subset_flags_t
 hb_subset_input_get_flags (hb_subset_input_t *input)
@@ -372,10 +325,10 @@ hb_subset_input_get_flags (hb_subset_input_t *input)
  * @input: a #hb_subset_input_t object.
  * @value: bit field of flags
  *
- * Set all of the flags in the input object to the values
- * specified by the bit field.
+ * Sets all of the flags in the input object to the values specified by the bit
+ * field.
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 HB_EXTERN void
 hb_subset_input_set_flags (hb_subset_input_t *input,
@@ -394,9 +347,9 @@ hb_subset_input_set_flags (hb_subset_input_t *input,
  *
  * Attaches a user-data key/data pair to the given subset input object.
  *
- * Return value: %true if success, %false otherwise
+ * Return value: `true` if success, `false` otherwise
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 hb_bool_t
 hb_subset_input_set_user_data (hb_subset_input_t  *input,
@@ -418,7 +371,7 @@ hb_subset_input_set_user_data (hb_subset_input_t  *input,
  *
  * Return value: (transfer none): A pointer to the user data
  *
- * Since: REPLACE
+ * Since: 2.9.0
  **/
 void *
 hb_subset_input_get_user_data (const hb_subset_input_t *input,
@@ -427,132 +380,55 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
   return hb_object_get_user_data (input, key);
 }
 
-
-static void set_flag_value (hb_subset_input_t *input, hb_subset_flags_t flag, hb_bool_t value)
-{
-  hb_subset_input_set_flags (input,
-                             value
-                             ? hb_subset_input_get_flags (input) | flag
-                             : hb_subset_input_get_flags (input) & ~flag);
-}
-
-void
-hb_subset_input_set_retain_all_features (hb_subset_input_t *subset_input,
-                                         hb_bool_t value)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES,
-                         value);
-}
-
+#ifdef HB_EXPERIMENTAL_API
+#ifndef HB_NO_VAR
+/**
+ * hb_subset_input_pin_axis_to_default: (skip)
+ * @input: a #hb_subset_input_t object.
+ * @axis_tag: Tag of the axis to be pinned
+ *
+ * Pin an axis to its default location in the given subset input object.
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
 hb_bool_t
-hb_subset_input_get_retain_all_features (hb_subset_input_t *subset_input)
+hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
+                                     hb_face_t          *face,
+                                     hb_tag_t            axis_tag)
 {
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_ALL_FEATURES);
+  hb_ot_var_axis_info_t axis_info;
+  if (!hb_ot_var_find_axis_info (face, axis_tag, &axis_info))
+    return false;
+
+  return input->axes_location->set (axis_tag, axis_info.default_value);
 }
 
-void
-hb_subset_input_set_drop_hints (hb_subset_input_t *subset_input,
-				hb_bool_t drop_hints)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_NO_HINTING,
-                         drop_hints);
-}
-
+/**
+ * hb_subset_input_pin_axis_location: (skip)
+ * @input: a #hb_subset_input_t object.
+ * @axis_tag: Tag of the axis to be pinned
+ * @axis_value: Location on the axis to be pinned at
+ *
+ * Pin an axis to a fixed location in the given subset input object.
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
 hb_bool_t
-hb_subset_input_get_drop_hints (hb_subset_input_t *subset_input)
+hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
+                                   hb_face_t          *face,
+                                   hb_tag_t            axis_tag,
+                                   float               axis_value)
 {
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NO_HINTING);
-}
+  hb_ot_var_axis_info_t axis_info;
+  if (!hb_ot_var_find_axis_info (face, axis_tag, &axis_info))
+    return false;
 
-void
-hb_subset_input_set_desubroutinize (hb_subset_input_t *subset_input,
-				    hb_bool_t desubroutinize)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_DESUBROUTINIZE,
-                         desubroutinize);
+  float val = hb_clamp(axis_value, axis_info.min_value, axis_info.max_value);
+  return input->axes_location->set (axis_tag, val);
 }
-
-hb_bool_t
-hb_subset_input_get_desubroutinize (hb_subset_input_t *subset_input)
-{
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_DESUBROUTINIZE);
-}
-
-void
-hb_subset_input_set_retain_gids (hb_subset_input_t *subset_input,
-				 hb_bool_t retain_gids)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_RETAIN_GIDS,
-                         retain_gids);
-}
-
-hb_bool_t
-hb_subset_input_get_retain_gids (hb_subset_input_t *subset_input)
-{
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_RETAIN_GIDS);
-}
-
-void
-hb_subset_input_set_name_legacy (hb_subset_input_t *subset_input,
-				 hb_bool_t name_legacy)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_NAME_LEGACY,
-                         name_legacy);
-}
-
-hb_bool_t
-hb_subset_input_get_name_legacy (hb_subset_input_t *subset_input)
-{
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NAME_LEGACY);
-}
-
-void
-hb_subset_input_set_overlaps_flag (hb_subset_input_t *subset_input,
-                                   hb_bool_t overlaps_flag)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG,
-                         overlaps_flag);
-}
-
-hb_bool_t
-hb_subset_input_get_overlaps_flag (hb_subset_input_t *subset_input)
-{
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG);
-}
-
-void
-hb_subset_input_set_notdef_outline (hb_subset_input_t *subset_input,
-                                    hb_bool_t notdef_outline)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_NOTDEF_OUTLINE,
-                         notdef_outline);
-}
-
-hb_bool_t
-hb_subset_input_get_notdef_outline (hb_subset_input_t *subset_input)
-{
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NOTDEF_OUTLINE);
-}
-
-void
-hb_subset_input_set_no_prune_unicode_ranges (hb_subset_input_t *subset_input,
-                                             hb_bool_t no_prune_unicode_ranges)
-{
-  return set_flag_value (subset_input,
-                         HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES,
-                         no_prune_unicode_ranges);
-}
-
-
-hb_bool_t
-hb_subset_input_get_no_prune_unicode_ranges (hb_subset_input_t *subset_input)
-{
-  return (bool) (hb_subset_input_get_flags (subset_input) & HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES);
-}
+#endif
+#endif

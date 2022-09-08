@@ -48,7 +48,7 @@ struct ActionSubrecordHeader
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   HBUINT16	actionClass;	/* The JustClass value associated with this
@@ -65,7 +65,7 @@ struct DecompositionAction
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   ActionSubrecordHeader
@@ -100,7 +100,7 @@ struct UnconditionalAddGlyphAction
   protected:
   ActionSubrecordHeader
 		header;
-  HBGlyphID	addGlyph;	/* Glyph that should be added if the distance factor
+  HBGlyphID16	addGlyph;	/* Glyph that should be added if the distance factor
 				 * is growing. */
 
   public:
@@ -112,7 +112,7 @@ struct ConditionalAddGlyphAction
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
@@ -121,11 +121,11 @@ struct ConditionalAddGlyphAction
   HBFixed	substThreshold; /* Distance growth factor (in ems) at which
 				 * this glyph is replaced and the growth factor
 				 * recalculated. */
-  HBGlyphID	addGlyph;	/* Glyph to be added as kashida. If this value is
+  HBGlyphID16	addGlyph;	/* Glyph to be added as kashida. If this value is
 				 * 0xFFFF, no extra glyph will be added. Note that
 				 * generally when a glyph is added, justification
 				 * will need to be redone. */
-  HBGlyphID	substGlyph;	/* Glyph to be substituted for this glyph if the
+  HBGlyphID16	substGlyph;	/* Glyph to be substituted for this glyph if the
 				 * growth factor equals or exceeds the value of
 				 * substThreshold. */
   public:
@@ -137,7 +137,7 @@ struct DuctileGlyphAction
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
@@ -146,7 +146,7 @@ struct DuctileGlyphAction
   HBUINT32	variationAxis;	/* The 4-byte tag identifying the ductile axis.
 				 * This would normally be 0x64756374 ('duct'),
 				 * but you may use any axis the font contains. */
-  HBFixed	minimumLimit;	/* The lowest value for the ductility axis tha
+  HBFixed	minimumLimit;	/* The lowest value for the ductility axis that
 				 * still yields an acceptable appearance. Normally
 				 * this will be 1.0. */
   HBFixed	noStretchValue; /* This is the default value that corresponds to
@@ -163,14 +163,14 @@ struct RepeatedAddGlyphAction
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:
   ActionSubrecordHeader
 		header;
   HBUINT16	flags;		/* Currently unused; set to 0. */
-  HBGlyphID	glyph;		/* Glyph that should be added if the distance factor
+  HBGlyphID16	glyph;		/* Glyph that should be added if the distance factor
 				 * is growing. */
   public:
   DEFINE_SIZE_STATIC (10);
@@ -294,7 +294,7 @@ struct WidthDeltaPair
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
-    return_trace (likely (c->check_struct (this)));
+    return_trace (c->check_struct (this));
   }
 
   protected:

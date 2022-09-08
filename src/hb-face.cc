@@ -132,7 +132,7 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
   face->user_data = user_data;
   face->destroy = destroy;
 
-  face->num_glyphs.set_relaxed (-1);
+  face->num_glyphs = -1;
 
   face->data.init0 (face);
   face->table.init0 (face);
@@ -143,7 +143,7 @@ hb_face_create_for_tables (hb_reference_table_func_t  reference_table_func,
 
 typedef struct hb_face_for_data_closure_t {
   hb_blob_t *blob;
-  unsigned int  index;
+  uint16_t  index;
 } hb_face_for_data_closure_t;
 
 static hb_face_for_data_closure_t *
@@ -156,7 +156,7 @@ _hb_face_for_data_closure_create (hb_blob_t *blob, unsigned int index)
     return nullptr;
 
   closure->blob = blob;
-  closure->index = index;
+  closure->index = (uint16_t) (index & 0xFFFFu);
 
   return closure;
 }
@@ -190,14 +190,24 @@ _hb_face_for_data_reference_table (hb_face_t *face HB_UNUSED, hb_tag_t tag, void
 }
 
 /**
- * hb_face_create: (Xconstructor)
+ * hb_face_create:
  * @blob: #hb_blob_t to work upon
  * @index: The index of the face within @blob
  *
  * Constructs a new face object from the specified blob and
- * a face index into that blob. This is used for blobs of
- * file formats such as Dfont and TTC that can contain more
- * than one face.
+ * a face index into that blob.
+ *
+ * The face index is used for blobs of file formats such as TTC and
+ * and DFont that can contain more than one face.  Face indices within
+ * such collections are zero-based.
+ *
+ * <note>Note: If the blob font format is not a collection, @index
+ * is ignored.  Otherwise, only the lower 16-bits of @index are used.
+ * The unmodified @index can be accessed via hb_face_get_index().</note>
+ *
+ * <note>Note: The high 16-bits of @index, if non-zero, are used by
+ * hb_font_create() to load named-instances in variable fonts.  See
+ * hb_font_create() for details.</note>
  *
  * Return value: (transfer full): The new face object
  *
@@ -305,7 +315,7 @@ hb_face_destroy (hb_face_t *face)
  *
  * Attaches a user-data key/data pair to the given face object.
  *
- * Return value: %true if success, %false otherwise
+ * Return value: `true` if success, `false` otherwise
  *
  * Since: 0.9.2
  **/
@@ -361,7 +371,7 @@ hb_face_make_immutable (hb_face_t *face)
  *
  * Tests whether the given face object is immutable.
  *
- * Return value: %true is @face is immutable, %false otherwise
+ * Return value: `true` is @face is immutable, `false` otherwise
  *
  * Since: 0.9.2
  **/
@@ -420,7 +430,8 @@ hb_face_reference_blob (hb_face_t *face)
  * Assigns the specified face-index to @face. Fails if the
  * face is immutable.
  *
- * <note>Note: face indices within a collection are zero-based.</note>
+ * <note>Note: changing the index has no effect on the face itself
+ * This only changes the value returned by hb_face_get_index().</note>
  *
  * Since: 0.9.2
  **/
@@ -468,7 +479,7 @@ hb_face_set_upem (hb_face_t    *face,
   if (hb_object_is_immutable (face))
     return;
 
-  face->upem.set_relaxed (upem);
+  face->upem = upem;
 }
 
 /**
@@ -503,7 +514,7 @@ hb_face_set_glyph_count (hb_face_t    *face,
   if (hb_object_is_immutable (face))
     return;
 
-  face->num_glyphs.set_relaxed (glyph_count);
+  face->num_glyphs = glyph_count;
 }
 
 /**

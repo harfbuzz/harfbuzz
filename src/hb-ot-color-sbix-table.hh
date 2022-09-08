@@ -202,12 +202,12 @@ struct sbix
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    accelerator_t (hb_face_t *face)
     {
       table = hb_sanitize_context_t ().reference_table<sbix> (face);
       num_glyphs = face->get_num_glyphs ();
     }
-    void fini () { table.destroy (); }
+    ~accelerator_t () { table.destroy (); }
 
     bool has_data () const { return table->has_data (); }
 
@@ -297,6 +297,12 @@ struct sbix
       hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset, &strike_ppem);
 
       const PNGHeader &png = *blob->as<PNGHeader>();
+
+      if (png.IHDR.height >= 65536 || png.IHDR.width >= 65536)
+      {
+	hb_blob_destroy (blob);
+	return false;
+      }
 
       extents->x_bearing = x_offset;
       extents->y_bearing = png.IHDR.height + y_offset;
@@ -407,7 +413,10 @@ struct sbix
   DEFINE_SIZE_ARRAY (8, strikes);
 };
 
-struct sbix_accelerator_t : sbix::accelerator_t {};
+struct sbix_accelerator_t : sbix::accelerator_t {
+  sbix_accelerator_t (hb_face_t *face) : sbix::accelerator_t (face) {}
+};
+
 
 } /* namespace OT */
 

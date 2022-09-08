@@ -51,21 +51,16 @@ struct shape_options_t
 				 (HB_BUFFER_FLAG_DEFAULT |
 				  (bot ? HB_BUFFER_FLAG_BOT : 0) |
 				  (eot ? HB_BUFFER_FLAG_EOT : 0) |
+				  (verify ? HB_BUFFER_FLAG_VERIFY : 0) |
+				  (unsafe_to_concat ? HB_BUFFER_FLAG_PRODUCE_UNSAFE_TO_CONCAT : 0) |
+				  (safe_to_insert_tatweel ? HB_BUFFER_FLAG_PRODUCE_SAFE_TO_INSERT_TATWEEL : 0) |
 				  (preserve_default_ignorables ? HB_BUFFER_FLAG_PRESERVE_DEFAULT_IGNORABLES : 0) |
 				  (remove_default_ignorables ? HB_BUFFER_FLAG_REMOVE_DEFAULT_IGNORABLES : 0) |
 				  0));
     hb_buffer_set_invisible_glyph (buffer, invisible_glyph);
+    hb_buffer_set_not_found_glyph (buffer, not_found_glyph);
     hb_buffer_set_cluster_level (buffer, cluster_level);
     hb_buffer_guess_segment_properties (buffer);
-  }
-
-  static void copy_buffer_properties (hb_buffer_t *dst, hb_buffer_t *src)
-  {
-    hb_segment_properties_t props;
-    hb_buffer_get_segment_properties (src, &props);
-    hb_buffer_set_segment_properties (dst, &props);
-    hb_buffer_set_flags (dst, hb_buffer_get_flags (src));
-    hb_buffer_set_cluster_level (dst, hb_buffer_get_cluster_level (src));
   }
 
   void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len,
@@ -98,186 +93,20 @@ struct shape_options_t
 
   hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer, const char **error=nullptr)
   {
-    hb_buffer_t *text_buffer = nullptr;
-    if (verify)
-    {
-      text_buffer = hb_buffer_create ();
-      hb_buffer_append (text_buffer, buffer, 0, -1);
-    }
-
     if (!hb_shape_full (font, buffer, features, num_features, shapers))
     {
       if (error)
-	*error = "all shapers failed.";
+	*error = "Shaping failed.";
       goto fail;
     }
 
     if (normalize_glyphs)
       hb_buffer_normalize_glyphs (buffer);
 
-    if (verify && !verify_buffer (buffer, text_buffer, font, error))
-      goto fail;
-
-    if (text_buffer)
-      hb_buffer_destroy (text_buffer);
-
     return true;
 
   fail:
-    if (text_buffer)
-      hb_buffer_destroy (text_buffer);
-
     return false;
-  }
-
-  bool verify_buffer (hb_buffer_t  *buffer,
-		      hb_buffer_t  *text_buffer,
-		      hb_font_t    *font,
-		      const char  **error=nullptr)
-  {
-    if (!verify_buffer_monotone (buffer, error))
-      return false;
-    if (!verify_buffer_safe_to_break (buffer, text_buffer, font, error))
-      return false;
-    return true;
-  }
-
-  bool verify_buffer_monotone (hb_buffer_t *buffer, const char **error=nullptr)
-  {
-    /* Check that clusters are monotone. */
-    if (cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES ||
-	cluster_level == HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
-    {
-      bool is_forward = HB_DIRECTION_IS_FORWARD (hb_buffer_get_direction (buffer));
-
-      unsigned int num_glyphs;
-      hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &num_glyphs);
-
-      for (unsigned int i = 1; i < num_glyphs; i++)
-	if (info[i-1].cluster != info[i].cluster &&
-	    (info[i-1].cluster < info[i].cluster) != is_forward)
-	{
-	  if (error)
-	    *error = "clusters are not monotone.";
-	  return false;
-	}
-    }
-
-    return true;
-  }
-
-  bool verify_buffer_safe_to_break (hb_buffer_t  *buffer,
-				    hb_buffer_t  *text_buffer,
-				    hb_font_t    *font,
-				    const char  **error=nullptr)
-  {
-    if (cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_GRAPHEMES &&
-	cluster_level != HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS)
-    {
-      /* Cannot perform this check without monotone clusters.
-       * Then again, unsafe-to-break flag is much harder to use without
-       * monotone clusters. */
-      return true;
-    }
-
-    /* Check that breaking up shaping at safe-to-break is indeed safe. */
-
-    hb_buffer_t *fragment = hb_buffer_create ();
-    hb_buffer_t *reconstruction = hb_buffer_create ();
-    copy_buffer_properties (reconstruction, buffer);
-
-    unsigned int num_glyphs;
-    hb_glyph_info_t *info = hb_buffer_get_glyph_infos (buffer, &num_glyphs);
-
-    unsigned int num_chars;
-    hb_glyph_info_t *text = hb_buffer_get_glyph_infos (text_buffer, &num_chars);
-
-    /* Chop text and shape fragments. */
-    bool forward = HB_DIRECTION_IS_FORWARD (hb_buffer_get_direction (buffer));
-    unsigned int start = 0;
-    unsigned int text_start = forward ? 0 : num_chars;
-    unsigned int text_end = text_start;
-    for (unsigned int end = 1; end < num_glyphs + 1; end++)
-    {
-      if (end < num_glyphs &&
-	  (info[end].cluster == info[end-1].cluster ||
-	   info[end-(forward?0:1)].mask & HB_GLYPH_FLAG_UNSAFE_TO_BREAK))
-	  continue;
-
-      /* Shape segment corresponding to glyphs start..end. */
-      if (end == num_glyphs)
-      {
-	if (forward)
-	  text_end = num_chars;
-	else
-	  text_start = 0;
-      }
-      else
-      {
-	if (forward)
-	{
-	  unsigned int cluster = info[end].cluster;
-	  while (text_end < num_chars && text[text_end].cluster < cluster)
-	    text_end++;
-	}
-	else
-	{
-	  unsigned int cluster = info[end - 1].cluster;
-	  while (text_start && text[text_start - 1].cluster >= cluster)
-	    text_start--;
-	}
-      }
-      assert (text_start < text_end);
-
-      if (0)
-	printf("start %d end %d text start %d end %d\n", start, end, text_start, text_end);
-
-      hb_buffer_clear_contents (fragment);
-      copy_buffer_properties (fragment, buffer);
-
-      /* TODO: Add pre/post context text. */
-      hb_buffer_flags_t flags = hb_buffer_get_flags (fragment);
-      if (0 < text_start)
-	flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_BOT);
-      if (text_end < num_chars)
-	flags = (hb_buffer_flags_t) (flags & ~HB_BUFFER_FLAG_EOT);
-      hb_buffer_set_flags (fragment, flags);
-
-      hb_buffer_append (fragment, text_buffer, text_start, text_end);
-      if (!hb_shape_full (font, fragment, features, num_features, shapers))
-      {
-	if (error)
-	  *error = "all shapers failed while shaping fragment.";
-	hb_buffer_destroy (reconstruction);
-	hb_buffer_destroy (fragment);
-	return false;
-      }
-      hb_buffer_append (reconstruction, fragment, 0, -1);
-
-      start = end;
-      if (forward)
-	text_start = text_end;
-      else
-	text_end = text_start;
-    }
-
-    bool ret = true;
-    hb_buffer_diff_flags_t diff = hb_buffer_diff (reconstruction, buffer, (hb_codepoint_t) -1, 0);
-    if (diff)
-    {
-      if (error)
-	*error = "Safe-to-break test failed.";
-      ret = false;
-
-      /* Return the reconstructed result instead so it can be inspected. */
-      hb_buffer_set_length (buffer, 0);
-      hb_buffer_append (buffer, reconstruction, 0, -1);
-    }
-
-    hb_buffer_destroy (reconstruction);
-    hb_buffer_destroy (fragment);
-
-    return ret;
   }
 
   void shape_closure (const char *text, int text_len,
@@ -306,9 +135,12 @@ struct shape_options_t
   char **shapers = nullptr;
   hb_bool_t utf8_clusters = false;
   hb_codepoint_t invisible_glyph = 0;
+  hb_codepoint_t not_found_glyph = 0;
   hb_buffer_cluster_level_t cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
   hb_bool_t normalize_glyphs = false;
   hb_bool_t verify = false;
+  hb_bool_t unsafe_to_concat = false;
+  hb_bool_t safe_to_insert_tatweel = false;
   unsigned int num_iterations = 1;
 };
 
@@ -388,7 +220,7 @@ parse_features (const char *name G_GNUC_UNUSED,
   p = s;
   do {
     shape_opts->num_features++;
-    p = strchr (p, ',');
+    p = strpbrk (p, ", ");
     if (p)
       p++;
   } while (p);
@@ -401,7 +233,7 @@ parse_features (const char *name G_GNUC_UNUSED,
   p = s;
   shape_opts->num_features = 0;
   while (p && *p) {
-    char *end = strchr (p, ',');
+    char *end = strpbrk (p, ", ");
     if (hb_feature_from_string (p, end ? end - p : -1, &shape_opts->features[shape_opts->num_features]))
       shape_opts->num_features++;
     p = end ? end + 1 : nullptr;
@@ -421,16 +253,19 @@ shape_options_t::add_options (option_parser_t *parser)
 			      G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Hidden duplicate of --shapers",	nullptr},
     {"shapers",		0, 0, G_OPTION_ARG_CALLBACK,	(gpointer) &parse_shapers,	"Set comma-separated list of shapers to try","list"},
     {"direction",	0, 0, G_OPTION_ARG_STRING,	&this->direction,		"Set text direction (default: auto)",	"ltr/rtl/ttb/btt"},
-    {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"langstr"},
+    {"language",	0, 0, G_OPTION_ARG_STRING,	&this->language,		"Set text language (default: $LANG)",	"BCP 47 tag"},
     {"script",		0, 0, G_OPTION_ARG_STRING,	&this->script,			"Set text script (default: auto)",	"ISO-15924 tag"},
     {"bot",		0, 0, G_OPTION_ARG_NONE,	&this->bot,			"Treat text as beginning-of-paragraph",	nullptr},
     {"eot",		0, 0, G_OPTION_ARG_NONE,	&this->eot,			"Treat text as end-of-paragraph",	nullptr},
     {"preserve-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->preserve_default_ignorables,	"Preserve Default-Ignorable characters",	nullptr},
     {"remove-default-ignorables",0, 0, G_OPTION_ARG_NONE,	&this->remove_default_ignorables,	"Remove Default-Ignorable characters",	nullptr},
     {"invisible-glyph",	0, 0, G_OPTION_ARG_INT,		&this->invisible_glyph,		"Glyph value to replace Default-Ignorables with",	nullptr},
+    {"not-found-glyph",	0, 0, G_OPTION_ARG_INT,		&this->not_found_glyph,		"Glyph value to replace not-found characters with",	nullptr},
     {"utf8-clusters",	0, 0, G_OPTION_ARG_NONE,	&this->utf8_clusters,		"Use UTF8 byte indices, not char indices",	nullptr},
     {"cluster-level",	0, 0, G_OPTION_ARG_INT,		&this->cluster_level,		"Cluster merging level (default: 0)",	"0/1/2"},
     {"normalize-glyphs",0, 0, G_OPTION_ARG_NONE,	&this->normalize_glyphs,	"Rearrange glyph clusters in nominal order",	nullptr},
+    {"unsafe-to-concat",0, 0, G_OPTION_ARG_NONE,	&this->unsafe_to_concat,	"Produce unsafe-to-concat glyph flag",	nullptr},
+    {"safe-to-insert-tatweel",0, 0, G_OPTION_ARG_NONE,	&this->safe_to_insert_tatweel,	"Produce safe-to-insert-tatweel glyph flag",	nullptr},
     {"verify",		0, 0, G_OPTION_ARG_NONE,	&this->verify,			"Perform sanity checks on shaping results",	nullptr},
     {"num-iterations", 'n', G_OPTION_FLAG_IN_MAIN,
 			      G_OPTION_ARG_INT,		&this->num_iterations,		"Run shaper N times (default: 1)",	"N"},

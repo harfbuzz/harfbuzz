@@ -156,7 +156,7 @@ struct NameRecord
 };
 
 static int
-_hb_ot_name_entry_cmp_key (const void *pa, const void *pb)
+_hb_ot_name_entry_cmp_key (const void *pa, const void *pb, bool exact)
 {
   const hb_ot_name_entry_t *a = (const hb_ot_name_entry_t *) pa;
   const hb_ot_name_entry_t *b = (const hb_ot_name_entry_t *) pb;
@@ -169,8 +169,19 @@ _hb_ot_name_entry_cmp_key (const void *pa, const void *pb)
   if (a->language == b->language) return 0;
   if (!a->language) return -1;
   if (!b->language) return +1;
-  return strcmp (hb_language_to_string (a->language),
-		 hb_language_to_string (b->language));
+
+  const char *astr = hb_language_to_string (a->language);
+  const char *bstr = hb_language_to_string (b->language);
+
+  signed c = strcmp (astr, bstr);
+
+  // 'a' is the user request, and 'b' is string in the font.
+  // If eg. user asks for "en-us" and font has "en", approve.
+  if (!exact && c &&
+      hb_language_matches (b->language, a->language))
+    return 0;
+
+  return c;
 }
 
 static int
@@ -178,7 +189,7 @@ _hb_ot_name_entry_cmp (const void *pa, const void *pb)
 {
   /* Compare by name_id, then language, then score, then index. */
 
-  int v = _hb_ot_name_entry_cmp_key (pa, pb);
+  int v = _hb_ot_name_entry_cmp_key (pa, pb, true);
   if (v)
     return v;
 
@@ -256,7 +267,7 @@ struct name
     })
     ;
 
-    name_prime->serialize (c->serializer, it, hb_addressof (this + stringOffset));
+    name_prime->serialize (c->serializer, it, std::addressof (this + stringOffset));
     return_trace (name_prime->count);
   }
 
@@ -279,7 +290,7 @@ struct name
 
   struct accelerator_t
   {
-    void init (hb_face_t *face)
+    accelerator_t (hb_face_t *face)
     {
       this->table = hb_sanitize_context_t ().reference_table<name> (face);
       assert (this->table.get_length () >= this->table->stringOffset);
@@ -288,7 +299,6 @@ struct name
       const hb_array_t<const NameRecord> all_names (this->table->nameRecordZ.arrayZ,
 						    this->table->count);
 
-      this->names.init ();
       this->names.alloc (all_names.length);
 
       for (unsigned int i = 0; i < all_names.length; i++)
@@ -318,10 +328,8 @@ struct name
       }
       this->names.resize (j);
     }
-
-    void fini ()
+    ~accelerator_t ()
     {
-      this->names.fini ();
       this->table.destroy ();
     }
 
@@ -333,7 +341,18 @@ struct name
       const hb_ot_name_entry_t *entry = hb_bsearch (key, (const hb_ot_name_entry_t *) this->names,
 						    this->names.length,
 						    sizeof (hb_ot_name_entry_t),
-						    _hb_ot_name_entry_cmp_key);
+						    _hb_ot_name_entry_cmp_key,
+						    true);
+
+      if (!entry)
+      {
+	entry = hb_bsearch (key, (const hb_ot_name_entry_t *) this->names,
+			    this->names.length,
+			    sizeof (hb_ot_name_entry_t),
+			    _hb_ot_name_entry_cmp_key,
+			    false);
+      }
+
       if (!entry)
 	return -1;
 
@@ -373,7 +392,9 @@ struct name
 #undef entry_index
 #undef entry_score
 
-struct name_accelerator_t : name::accelerator_t {};
+struct name_accelerator_t : name::accelerator_t {
+  name_accelerator_t (hb_face_t *face) : name::accelerator_t (face) {}
+};
 
 } /* namespace OT */
 

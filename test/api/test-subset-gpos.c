@@ -42,7 +42,8 @@ test_subset_gpos_lookup_subtable (void)
 
   hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
 
-  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'P', 'O', 'S'));
+  hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG),
+              HB_TAG ('G', 'P', 'O', 'S'));
 
   face_pwa_subset = hb_subset_test_create_subset (face_pwa, input);
   hb_set_destroy (codepoints);
@@ -67,7 +68,8 @@ test_subset_gpos_pairpos1_vf (void)
 
   hb_subset_input_t *input = hb_subset_test_create_input (codepoints);
 
-  hb_set_del (hb_subset_input_drop_tables_set (input), HB_TAG ('G', 'P', 'O', 'S'));
+  hb_set_del (hb_subset_input_set (input, HB_SUBSET_SETS_DROP_TABLE_TAG),
+              HB_TAG ('G', 'P', 'O', 'S'));
 
   face_wav_subset = hb_subset_test_create_subset (face_wav, input);
   hb_set_destroy (codepoints);

@@ -28,96 +28,10 @@
 #define HB_OT_VAR_HVAR_TABLE_HH
 
 #include "hb-ot-layout-common.hh"
-
+#include "hb-ot-var-common.hh"
 
 namespace OT {
 
-
-struct DeltaSetIndexMap
-{
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (c->check_struct (this) &&
-		  c->check_range (mapDataZ.arrayZ,
-				  mapCount,
-				  get_width ()));
-  }
-
-  template <typename T>
-  bool serialize (hb_serialize_context_t *c, const T &plan)
-  {
-    unsigned int width = plan.get_width ();
-    unsigned int inner_bit_count = plan.get_inner_bit_count ();
-    const hb_array_t<const uint32_t> output_map = plan.get_output_map ();
-
-    TRACE_SERIALIZE (this);
-    if (unlikely (output_map.length && ((((inner_bit_count-1)&~0xF)!=0) || (((width-1)&~0x3)!=0))))
-      return_trace (false);
-    if (unlikely (!c->extend_min (this))) return_trace (false);
-
-    format = ((width-1)<<4)|(inner_bit_count-1);
-    mapCount = output_map.length;
-    HBUINT8 *p = c->allocate_size<HBUINT8> (width * output_map.length);
-    if (unlikely (!p)) return_trace (false);
-    for (unsigned int i = 0; i < output_map.length; i++)
-    {
-      unsigned int v = output_map[i];
-      unsigned int outer = v >> 16;
-      unsigned int inner = v & 0xFFFF;
-      unsigned int u = (outer << inner_bit_count) | inner;
-      for (unsigned int w = width; w > 0;)
-      {
-	p[--w] = u;
-	u >>= 8;
-      }
-      p += width;
-    }
-    return_trace (true);
-  }
-
-  uint32_t map (unsigned int v) const /* Returns 16.16 outer.inner. */
-  {
-    /* If count is zero, pass value unchanged.  This takes
-     * care of direct mapping for advance map. */
-    if (!mapCount)
-      return v;
-
-    if (v >= mapCount)
-      v = mapCount - 1;
-
-    unsigned int u = 0;
-    { /* Fetch it. */
-      unsigned int w = get_width ();
-      const HBUINT8 *p = mapDataZ.arrayZ + w * v;
-      for (; w; w--)
-	u = (u << 8) + *p++;
-    }
-
-    { /* Repack it. */
-      unsigned int n = get_inner_bit_count ();
-      unsigned int outer = u >> n;
-      unsigned int inner = u & ((1 << n) - 1);
-      u = (outer<<16) | inner;
-    }
-
-    return u;
-  }
-
-  unsigned int get_map_count () const	    { return mapCount; }
-  unsigned int get_width () const           { return ((format >> 4) & 3) + 1; }
-  unsigned int get_inner_bit_count () const { return (format & 0xF) + 1; }
-
-  protected:
-  HBUINT16	format;		/* A packed field that describes the compressed
-				 * representation of delta-set indices. */
-  HBUINT16	mapCount;	/* The number of mapping entries. */
-  UnsizedArrayOf<HBUINT8>
-		mapDataZ;	/* The delta-set index mapping data. */
-
-  public:
-  DEFINE_SIZE_ARRAY (4, mapDataZ);
-};
 
 struct index_map_subset_plan_t
 {
@@ -263,9 +177,6 @@ struct hvarvvar_subset_plan_t
 
     inner_maps.resize (var_store->get_sub_table_count ());
 
-    for (unsigned int i = 0; i < inner_maps.length; i++)
-      inner_maps[i].init ();
-
     if (unlikely (!index_map_plans.length || !inner_sets.length || !inner_maps.length)) return;
 
     bool retain_adv_map = false;
@@ -315,8 +226,8 @@ struct hvarvvar_subset_plan_t
     for (unsigned int i = 0; i < inner_sets.length; i++)
       hb_set_destroy (inner_sets[i]);
     hb_set_destroy (adv_set);
-    inner_maps.fini_deep ();
-    index_map_plans.fini_deep ();
+    inner_maps.fini ();
+    index_map_plans.fini ();
   }
 
   hb_inc_bimap_t outer_map;
@@ -408,23 +319,27 @@ struct HVARVVAR
 						hvar_plan.index_map_plans.as_array ()));
   }
 
-  float get_advance_var (hb_codepoint_t glyph, hb_font_t *font) const
+  float get_advance_delta_unscaled (hb_codepoint_t  glyph,
+				    const int *coords, unsigned int coord_count,
+				    VariationStore::cache_t *store_cache = nullptr) const
   {
     uint32_t varidx = (this+advMap).map (glyph);
-    return (this+varStore).get_delta (varidx, font->coords, font->num_coords);
+    return (this+varStore).get_delta (varidx,
+				      coords, coord_count,
+				      store_cache);
   }
 
-  float get_side_bearing_var (hb_codepoint_t glyph,
-			      const int *coords, unsigned int coord_count) const
+  bool get_lsb_delta_unscaled (hb_codepoint_t glyph,
+			       const int *coords, unsigned int coord_count,
+			       float *lsb) const
   {
-    if (!has_side_bearing_deltas ()) return 0.f;
+    if (!lsbMap) return false;
     uint32_t varidx = (this+lsbMap).map (glyph);
-    return (this+varStore).get_delta (varidx, coords, coord_count);
+    *lsb = (this+varStore).get_delta (varidx, coords, coord_count);
+    return true;
   }
 
-  bool has_side_bearing_deltas () const { return lsbMap && rsbMap; }
-
-  protected:
+  public:
   FixedVersion<>version;	/* Version of the metrics variation table
 				 * initially set to 0x00010000u */
   Offset32To<VariationStore>
@@ -475,6 +390,16 @@ struct VVAR : HVARVVAR {
   }
 
   bool subset (hb_subset_context_t *c) const { return HVARVVAR::_subset<VVAR> (c); }
+
+  bool get_vorg_delta_unscaled (hb_codepoint_t glyph,
+				const int *coords, unsigned int coord_count,
+				float *delta) const
+  {
+    if (!vorgMap) return false;
+    uint32_t varidx = (this+vorgMap).map (glyph);
+    *delta = (this+varStore).get_delta (varidx, coords, coord_count);
+    return true;
+  }
 
   protected:
   Offset32To<DeltaSetIndexMap>
