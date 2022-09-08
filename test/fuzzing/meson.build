@@ -58,6 +58,18 @@ test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
   suite: ['fuzzing', 'slow'],
 )
 
+test('repacker_fuzzer', find_program('run-repacker-fuzzer-tests.py'),
+  args: [
+    hb_repacker_fuzzer_exe,
+  ],
+  # as the tests are ran concurrently let's raise acceptable time here
+  # ideally better to break and let meson handles them in parallel
+  timeout: 300,
+  workdir: meson.current_build_dir() / '..' / '..',
+  env: env,
+  suite: ['fuzzing', 'slow'],
+)
+
 test('draw_fuzzer', find_program('run-draw-fuzzer-tests.py'),
   args: [
     hb_draw_fuzzer_exe,
