@@ -237,7 +237,9 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 				  hb_set_t	     *gids_to_retain,
 				  hb_map_t	     *lookups,
 				  hb_map_t	     *features,
-				  script_langsys_map *langsys_map)
+				  script_langsys_map *langsys_map,
+				  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *feature_record_cond_idx_map,
+				  hb_hashmap_t<unsigned, const OT::Feature*> *feature_substitutes_map)
 {
   hb_blob_ptr_t<T> table = plan->source_table<T> ();
   hb_tag_t table_tag = table->tableTag;
@@ -528,7 +530,9 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         plan->_glyphset_gsub,
         plan->gsub_lookups,
         plan->gsub_features,
-        plan->gsub_langsys);
+        plan->gsub_langsys,
+        plan->gsub_feature_record_cond_idx_map,
+        plan->gsub_feature_substitutes_map);
 
   if (!drop_tables->has (HB_OT_TAG_GPOS))
     _closure_glyphs_lookups_features<GPOS> (
@@ -536,7 +540,9 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         plan->_glyphset_gsub,
         plan->gpos_lookups,
         plan->gpos_features,
-        plan->gpos_langsys);
+        plan->gpos_langsys,
+        plan->gpos_feature_record_cond_idx_map,
+        plan->gpos_feature_substitutes_map);
 #endif
   _remove_invalid_gids (plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
@@ -749,6 +755,13 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   plan->gsub_features = hb_map_create ();
   plan->gpos_features = hb_map_create ();
+
+  plan->check_success (plan->gsub_feature_record_cond_idx_map = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
+  plan->check_success (plan->gpos_feature_record_cond_idx_map = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
+
+  plan->check_success (plan->gsub_feature_substitutes_map = hb_hashmap_create<unsigned, const OT::Feature*> ());
+  plan->check_success (plan->gpos_feature_substitutes_map = hb_hashmap_create<unsigned, const OT::Feature*> ());
+
   plan->colrv1_layers = hb_map_create ();
   plan->colr_palettes = hb_map_create ();
   plan->check_success (plan->layout_variation_idx_delta_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());

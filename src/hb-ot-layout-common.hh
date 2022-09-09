@@ -94,6 +94,19 @@ static bool ClassDef_remap_and_serialize (
     hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> &glyph_and_klass, /* IN/OUT */
     hb_map_t *klass_map /*IN/OUT*/);
 
+struct hb_collect_feature_substitutes_with_var_context_t
+{
+  const hb_map_t *axes_index_tag_map;
+  const hb_hashmap_t<hb_tag_t, int> *axes_location;
+  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *record_cond_idx_map;
+  hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map;
+
+  // not stored in subset_plan
+  hb_set_t *feature_indices;
+  bool apply;
+  unsigned cur_record_idx;
+  hb_hashmap_t<hb::shared_ptr<hb_map_t>, unsigned> *conditionset_map;
+};
 
 struct hb_prune_langsys_context_t
 {
@@ -2692,6 +2705,13 @@ struct VariationStore
 /*
  * Feature Variations
  */
+enum Cond_with_Var_flag_t
+{
+  KEEP_COND_WITH_VAR = 0,
+  DROP_COND_WITH_VAR = 1,
+  DROP_RECORD_WITH_VAR = 2,
+  MEM_ERR_WITH_VAR = 3,
+};
 
 struct ConditionFormat1
 {
@@ -2706,6 +2726,40 @@ struct ConditionFormat1
   }
 
   private:
+  Cond_with_Var_flag_t keep_with_variations (hb_collect_feature_substitutes_with_var_context_t *c,
+                                             hb_map_t *condition_map /* OUT */) const
+  {
+    //invalid axis index, drop the entire record
+    if (!c->axes_index_tag_map->has (axisIndex))
+      return DROP_RECORD_WITH_VAR;
+
+    hb_tag_t axis_tag = c->axes_index_tag_map->get (axisIndex);
+
+    //axis not pinned, keep the condition
+    if (!c->axes_location->has (axis_tag))
+    {
+      // add axisIndex->value into the hashmap so we can check if the record is
+      // unique with variations
+      int16_t min_val = filterRangeMinValue;
+      int16_t max_val = filterRangeMaxValue;
+      hb_codepoint_t val = (max_val << 16) + min_val;
+
+      condition_map->set (axisIndex, val);
+      return KEEP_COND_WITH_VAR;
+    }
+
+    //axis pinned, check if condition is met
+    //TODO: add check for axis Ranges
+    int v = c->axes_location->get (axis_tag);
+
+    //condition not met, drop the entire record
+    if (v < filterRangeMinValue || v > filterRangeMaxValue)
+      return DROP_RECORD_WITH_VAR;
+
+    //axis pinned and condition met, drop the condition
+    return DROP_COND_WITH_VAR;
+  }
+
   bool evaluate (const int *coords, unsigned int coord_len) const
   {
     int coord = axisIndex < coord_len ? coords[axisIndex] : 0;
@@ -2734,6 +2788,15 @@ struct Condition
     switch (u.format) {
     case 1: return u.format1.evaluate (coords, coord_len);
     default:return false;
+    }
+  }
+
+  Cond_with_Var_flag_t keep_with_variations (hb_collect_feature_substitutes_with_var_context_t *c,
+                                             hb_map_t *condition_map /* OUT */) const
+  {
+    switch (u.format) {
+    case 1: return u.format1.keep_with_variations (c, condition_map);
+    default:return KEEP_COND_WITH_VAR;
     }
   }
 
@@ -2778,6 +2841,47 @@ struct ConditionSet
     return true;
   }
 
+  Cond_with_Var_flag_t keep_with_variations (hb_collect_feature_substitutes_with_var_context_t *c) const
+  {
+    hb_map_t *condition_map = hb_map_create ();
+    if (unlikely (!condition_map)) return MEM_ERR_WITH_VAR;
+    hb::shared_ptr<hb_map_t> p {condition_map};
+
+    hb_set_t *cond_set = hb_set_create ();
+    if (unlikely (!cond_set)) return MEM_ERR_WITH_VAR;
+    hb::shared_ptr<hb_set_t> s {cond_set};
+
+    unsigned num_kept_cond = 0, cond_idx = 0;
+    for (const auto& offset : conditions)
+    {
+      Cond_with_Var_flag_t ret = (this+offset).keep_with_variations (c, condition_map);
+      // one condition is not met, drop the entire record
+      if (ret == DROP_RECORD_WITH_VAR)
+        return DROP_RECORD_WITH_VAR;
+
+      // axis not pinned, keep this condition
+      if (ret == KEEP_COND_WITH_VAR)
+      {
+        cond_set->add (cond_idx);
+        num_kept_cond++;
+      }
+      cond_idx++;
+    }
+
+    // all conditions met
+    if (num_kept_cond == 0) return DROP_COND_WITH_VAR;
+ 
+    //check if condition_set is unique with variations
+    if (c->conditionset_map->has (p))
+      //duplicate found, drop the entire record
+      return DROP_RECORD_WITH_VAR;
+
+    c->conditionset_map->set (p, 1);
+    c->record_cond_idx_map->set (c->cur_record_idx, s);
+
+    return KEEP_COND_WITH_VAR;
+  }
+
   bool subset (hb_subset_context_t *c) const
   {
     TRACE_SUBSET (this);
@@ -2818,6 +2922,14 @@ struct FeatureTableSubstitutionRecord
   {
     if ((base+feature).intersects_lookup_indexes (lookup_indexes))
       feature_indexes->add (featureIndex);
+  }
+
+  void collect_feature_substitutes_with_variations (hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map,
+                                                    const hb_set_t *feature_indices,
+                                                    const void *base) const
+  {
+    if (feature_indices->has (featureIndex))
+      feature_substitutes_map->set (featureIndex, &(base+feature));
   }
 
   bool subset (hb_subset_layout_context_t *c, const void *base) const
@@ -2890,6 +3002,12 @@ struct FeatureTableSubstitution
     return false;
   }
 
+  void collect_feature_substitutes_with_variations (hb_collect_feature_substitutes_with_var_context_t *c) const
+  {
+    for (const FeatureTableSubstitutionRecord& record : substitutions)
+      record.collect_feature_substitutes_with_variations (c->feature_substitutes_map, c->feature_indices, this);
+  }
+
   bool subset (hb_subset_context_t        *c,
 	       hb_subset_layout_context_t *l) const
   {
@@ -2946,6 +3064,18 @@ struct FeatureVariationRecord
     return (base+substitutions).intersects_features (feature_index_map);
   }
 
+  void collect_feature_substitutes_with_variations (hb_collect_feature_substitutes_with_var_context_t *c,
+                                                    const void *base) const
+  {
+    // ret == 1, all conditions met
+    if ((base+conditions).keep_with_variations (c) == DROP_COND_WITH_VAR &&
+        c->apply)
+    {
+      (base+substitutions).collect_feature_substitutes_with_variations (c);
+      c->apply = false; // set variations only once
+    }
+  }
+
   bool subset (hb_subset_layout_context_t *c, const void *base) const
   {
     TRACE_SUBSET (this);
@@ -3000,6 +3130,16 @@ struct FeatureVariations
   {
     const FeatureVariationRecord &record = varRecords[variations_index];
     return (this+record.substitutions).find_substitute (feature_index);
+  }
+
+  void collect_feature_substitutes_with_variations (hb_collect_feature_substitutes_with_var_context_t *c) const
+  {
+    unsigned int count = varRecords.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      c->cur_record_idx = i;
+      varRecords[i].collect_feature_substitutes_with_variations (c, this);
+    }
   }
 
   FeatureVariations* copy (hb_serialize_context_t *c) const
