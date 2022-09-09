@@ -4243,6 +4243,11 @@ struct GSUBGPOS
 #endif
   }
 
+#ifndef HB_NO_VAR
+  void collect_feature_substitutes_with_variations (hb_collect_feature_substitutes_with_var_context_t *c) const
+  { get_feature_variations ().collect_feature_substitutes_with_variations (c); }
+#endif
+
   template <typename TLookup>
   void closure_lookups (hb_face_t      *face,
 			const hb_set_t *glyphs,
