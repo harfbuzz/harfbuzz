@@ -173,24 +173,40 @@ struct hb_subset_layout_context_t :
   const hb_map_t *lookup_index_map;
   const hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map;
   const hb_map_t *feature_index_map;
+  const hb_hashmap_t<unsigned, const Feature*> *feature_substitutes_map;
+  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map;
+
   unsigned cur_script_index;
+  unsigned cur_feature_var_record_idx;
 
   hb_subset_layout_context_t (hb_subset_context_t *c_,
-			      hb_tag_t tag_,
-			      hb_map_t *lookup_map_,
-			      hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *script_langsys_map_,
-			      hb_map_t *feature_index_map_) :
+			      hb_tag_t tag_) :
 				subset_context (c_),
 				table_tag (tag_),
-				lookup_index_map (lookup_map_),
-				script_langsys_map (script_langsys_map_),
-				feature_index_map (feature_index_map_),
 				cur_script_index (0xFFFFu),
+				cur_feature_var_record_idx (0u),
 				script_count (0),
 				langsys_count (0),
 				feature_index_count (0),
 				lookup_index_count (0)
-  {}
+  {
+    if (tag_ == HB_OT_TAG_GSUB)
+    {
+      lookup_index_map = c_->plan->gsub_lookups;
+      script_langsys_map = c_->plan->gsub_langsys;
+      feature_index_map = c_->plan->gsub_features;
+      feature_substitutes_map = c_->plan->gsub_feature_substitutes_map;
+      feature_record_cond_idx_map = c_->plan->user_axes_location->is_empty () ? nullptr : c_->plan->gsub_feature_record_cond_idx_map;
+    }
+    else
+    {
+      lookup_index_map = c_->plan->gpos_lookups;
+      script_langsys_map = c_->plan->gpos_langsys;
+      feature_index_map = c_->plan->gpos_features;
+      feature_substitutes_map = c_->plan->gpos_feature_substitutes_map;
+      feature_record_cond_idx_map = c_->plan->user_axes_location->is_empty () ? nullptr : c_->plan->gpos_feature_record_cond_idx_map;
+    }
+  }
 
   private:
   unsigned script_count;
@@ -2722,7 +2738,15 @@ struct ConditionFormat1
     TRACE_SUBSET (this);
     auto *out = c->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
-    return_trace (true);
+
+    const hb_map_t *index_map = c->plan->axes_index_map;
+    if (index_map->is_empty ()) return_trace (true);
+
+    if (!index_map->has (axisIndex))
+      return_trace (false);
+
+    return_trace (c->serializer->check_assign (out->axisIndex, index_map->get (axisIndex),
+                                               HB_SERIALIZE_ERROR_INT_OVERFLOW));
   }
 
   private:
@@ -2882,15 +2906,24 @@ struct ConditionSet
     return KEEP_COND_WITH_VAR;
   }
 
-  bool subset (hb_subset_context_t *c) const
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l) const
   {
     TRACE_SUBSET (this);
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    + conditions.iter ()
-    | hb_apply (subset_offset_array (c, out->conditions, this))
-    ;
+    hb_set_t *retained_cond_set = nullptr;
+    if (l->feature_record_cond_idx_map != nullptr)
+      retained_cond_set = l->feature_record_cond_idx_map->get (l->cur_feature_var_record_idx);
+
+    unsigned int count = conditions.len;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (retained_cond_set != nullptr && !retained_cond_set->has (i))
+        continue;
+      subset_offset_array (c, out->conditions, this) (conditions[i]);
+    }
 
     return_trace (bool (out->conditions));
   }
@@ -2935,7 +2968,8 @@ struct FeatureTableSubstitutionRecord
   bool subset (hb_subset_layout_context_t *c, const void *base) const
   {
     TRACE_SUBSET (this);
-    if (!c->feature_index_map->has (featureIndex)) {
+    if (!c->feature_index_map->has (featureIndex) ||
+        c->feature_substitutes_map->has (featureIndex)) {
       // Feature that is being substituted is not being retained, so we don't
       // need this.
       return_trace (false);
@@ -3089,7 +3123,7 @@ struct FeatureVariationRecord
     auto *out = c->subset_context->serializer->embed (this);
     if (unlikely (!out)) return_trace (false);
 
-    out->conditions.serialize_subset (c->subset_context, conditions, base);
+    out->conditions.serialize_subset (c->subset_context, conditions, base, c);
     out->substitutions.serialize_subset (c->subset_context, substitutions, base, c);
 
     return_trace (true);
@@ -3196,7 +3230,13 @@ struct FeatureVariations
     }
 
     unsigned count = (unsigned) (keep_up_to + 1);
-    for (unsigned i = 0; i < count; i++) {
+    for (unsigned i = 0; i < count; i++)
+    {
+      if (l->feature_record_cond_idx_map != nullptr &&
+          !l->feature_record_cond_idx_map->has (i))
+        continue;
+
+      l->cur_feature_var_record_idx = i;
       subset_record_array (l, &(out->varRecords), this) (varRecords[i]);
     }
     return_trace (bool (out->varRecords));
