@@ -154,8 +154,8 @@ struct hb_subset_plan_t
   hb_map_t *gpos_features;
 
   //active feature variation records/condition index with variations
-  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *gsub_feature_record_cond_idx_map;
-  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *gpos_feature_record_cond_idx_map;
+  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *gsub_feature_record_cond_idx_map;
+  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *gpos_feature_record_cond_idx_map;
 
   //feature index-> address of substituation feature table mapping with
   //variations

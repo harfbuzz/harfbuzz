@@ -129,7 +129,9 @@ template <typename T>
 static void _collect_layout_indices (hb_subset_plan_t     *plan,
                                      const T&              table,
                                      hb_set_t		  *lookup_indices, /* OUT */
-                                     hb_set_t		  *feature_indices /* OUT */)
+                                     hb_set_t		  *feature_indices, /* OUT */
+                                     hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map, /* OUT */
+                                     hb_hashmap_t<unsigned, const OT::Feature*> *feature_substitutes_map /* OUT */)
 {
   unsigned num_features = table.get_feature_count ();
   hb_vector_t<hb_tag_t> features;
@@ -154,16 +156,37 @@ static void _collect_layout_indices (hb_subset_plan_t     *plan,
                                  retain_all_features ? nullptr : features.arrayZ,
                                  feature_indices);
 
+#ifndef HB_NO_VAR
+  // collect feature substitutes with variations
+  if (!plan->user_axes_location->is_empty ())
+  {
+    hb_hashmap_t<hb::shared_ptr<hb_map_t>, unsigned> conditionset_map;
+    OT::hb_collect_feature_substitutes_with_var_context_t c =
+    {
+      plan->axes_old_index_tag_map,
+      plan->axes_location,
+      feature_record_cond_idx_map,
+      feature_substitutes_map,
+      feature_indices,
+      true,
+      0,
+      &conditionset_map
+    };
+    table.collect_feature_substitutes_with_variations (&c);
+  }
+#endif
+
   for (unsigned feature_index : *feature_indices)
   {
-    //TODO: replace HB_OT_LAYOUT_NO_VARIATIONS_INDEX with variation_index for
-    //instancing
-    const OT::Feature &f = table.get_feature_variation (feature_index, HB_OT_LAYOUT_NO_VARIATIONS_INDEX);
-    f.add_lookup_indexes_to (lookup_indices);
+    const OT::Feature* f = &(table.get_feature (feature_index));
+    const OT::Feature **p = nullptr;
+    if (feature_substitutes_map->has (feature_index, &p))
+      f = *p;
+
+    f->add_lookup_indexes_to (lookup_indices);
   }
 
-  //TODO: update for instancing: only collect lookups from feature_indexes that have no variations
-  table.feature_variation_collect_lookups (feature_indices, lookup_indices);
+  table.feature_variation_collect_lookups (feature_indices, feature_substitutes_map, lookup_indices);
 }
 
 
@@ -171,6 +194,7 @@ static inline void
 _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
 				   const hb_map_t *lookup_indices,
 				   const hb_set_t *feature_indices,
+				   const hb_hashmap_t<unsigned, const OT::Feature*> *feature_substitutes_map,
 				   hb_map_t *duplicate_feature_map /* OUT */)
 {
   if (feature_indices->is_empty ()) return;
@@ -195,16 +219,22 @@ _GSUBGPOS_find_duplicate_features (const OT::GSUBGPOS &g,
     hb_set_t* same_tag_features = unique_features.get (t);
     for (unsigned other_f_index : same_tag_features->iter ())
     {
-      const OT::Feature& f = g.get_feature (i);
-      const OT::Feature& other_f = g.get_feature (other_f_index);
+      const OT::Feature* f = &(g.get_feature (i));
+      const OT::Feature **p = nullptr;
+      if (feature_substitutes_map->has (i, &p))
+        f = *p;
+
+      const OT::Feature* other_f = &(g.get_feature (other_f_index));
+      if (feature_substitutes_map->has (other_f_index, &p))
+        f = *p;
 
       auto f_iter =
-      + hb_iter (f.lookupIndex)
+      + hb_iter (f->lookupIndex)
       | hb_filter (lookup_indices)
       ;
 
       auto other_f_iter =
-      + hb_iter (other_f.lookupIndex)
+      + hb_iter (other_f->lookupIndex)
       | hb_filter (lookup_indices)
       ;
 
@@ -238,7 +268,7 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
 				  hb_map_t	     *lookups,
 				  hb_map_t	     *features,
 				  script_langsys_map *langsys_map,
-				  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> *feature_record_cond_idx_map,
+				  hb_hashmap_t<unsigned, hb::shared_ptr<hb_set_t>> *feature_record_cond_idx_map,
 				  hb_hashmap_t<unsigned, const OT::Feature*> *feature_substitutes_map)
 {
   hb_blob_ptr_t<T> table = plan->source_table<T> ();
@@ -247,7 +277,9 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
   _collect_layout_indices<T> (plan,
                               *table,
                               &lookup_indices,
-                              &feature_indices);
+                              &feature_indices,
+                              feature_record_cond_idx_map,
+                              feature_substitutes_map);
 
   if (table_tag == HB_OT_TAG_GSUB)
     hb_ot_layout_lookups_substitute_closure (plan->source,
@@ -259,9 +291,12 @@ _closure_glyphs_lookups_features (hb_subset_plan_t   *plan,
   _remap_indexes (&lookup_indices, lookups);
 
   // prune features
-  table->prune_features (lookups, &feature_indices);
+  table->prune_features (lookups,
+                         plan->user_axes_location->is_empty () ? nullptr : feature_record_cond_idx_map,
+                         feature_substitutes_map,
+                         &feature_indices);
   hb_map_t duplicate_feature_map;
-  _GSUBGPOS_find_duplicate_features (*table, lookups, &feature_indices, &duplicate_feature_map);
+  _GSUBGPOS_find_duplicate_features (*table, lookups, &feature_indices, feature_substitutes_map, &duplicate_feature_map);
 
   feature_indices.clear ();
   table->prune_langsys (&duplicate_feature_map, plan->layout_scripts, langsys_map, &feature_indices);
@@ -756,8 +791,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->gsub_features = hb_map_create ();
   plan->gpos_features = hb_map_create ();
 
-  plan->check_success (plan->gsub_feature_record_cond_idx_map = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
-  plan->check_success (plan->gpos_feature_record_cond_idx_map = hb_hashmap_create<unsigned, hb::unique_ptr<hb_set_t>> ());
+  plan->check_success (plan->gsub_feature_record_cond_idx_map = hb_hashmap_create<unsigned, hb::shared_ptr<hb_set_t>> ());
+  plan->check_success (plan->gpos_feature_record_cond_idx_map = hb_hashmap_create<unsigned, hb::shared_ptr<hb_set_t>> ());
 
   plan->check_success (plan->gsub_feature_substitutes_map = hb_hashmap_create<unsigned, const OT::Feature*> ());
   plan->check_success (plan->gpos_feature_substitutes_map = hb_hashmap_create<unsigned, const OT::Feature*> ());

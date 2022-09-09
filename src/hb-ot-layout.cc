@@ -1271,7 +1271,7 @@ hb_ot_layout_collect_lookups (hb_face_t      *face,
        hb_set_next (&feature_indexes, &feature_index);)
     g.get_feature (feature_index).add_lookup_indexes_to (lookup_indexes);
 
-  g.feature_variation_collect_lookups (&feature_indexes, lookup_indexes);
+  g.feature_variation_collect_lookups (&feature_indexes, nullptr, lookup_indexes);
 }
 
 
