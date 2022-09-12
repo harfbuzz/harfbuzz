@@ -353,6 +353,31 @@ struct subset_record_array_t
   const void *base;
 };
 
+template<typename OutputArray, typename Arg>
+struct subset_record_array_arg_t
+{
+  subset_record_array_arg_t (hb_subset_layout_context_t *c_, OutputArray* out_,
+			     const void *base_,
+			     Arg &&arg_) : subset_layout_context (c_),
+					   out (out_), base (base_), arg (arg_) {}
+
+  template <typename T>
+  void
+  operator () (T&& record)
+  {
+    auto snap = subset_layout_context->subset_context->serializer->snapshot ();
+    bool ret = record.subset (subset_layout_context, base, arg);
+    if (!ret) subset_layout_context->subset_context->serializer->revert (snap);
+    else out->len++;
+  }
+
+  private:
+  hb_subset_layout_context_t *subset_layout_context;
+  OutputArray *out;
+  const void *base;
+  Arg &&arg;
+};
+
 /*
  * Helper to subset a RecordList/record array. Subsets each Record in the array and
  * discards the record if the subset operation returns false.
@@ -364,6 +389,13 @@ struct
   operator () (hb_subset_layout_context_t *c, OutputArray* out,
 	       const void *base) const
   { return subset_record_array_t<OutputArray> (c, out, base); }
+
+  /* Variant with one extra argument passed to subset */
+  template<typename OutputArray, typename Arg>
+  subset_record_array_arg_t<OutputArray, Arg>
+  operator () (hb_subset_layout_context_t *c, OutputArray* out,
+               const void *base, Arg &&arg) const
+  { return subset_record_array_arg_t<OutputArray, Arg> (c, out, base, arg); }
 }
 HB_FUNCOBJ (subset_record_array);
 
@@ -459,94 +491,6 @@ struct IndexArray : Array16Of<Index>
   }
 };
 
-
-struct Record_sanitize_closure_t {
-  hb_tag_t tag;
-  const void *list_base;
-};
-
-template <typename Type>
-struct Record
-{
-  int cmp (hb_tag_t a) const { return tag.cmp (a); }
-
-  bool subset (hb_subset_layout_context_t *c, const void *base) const
-  {
-    TRACE_SUBSET (this);
-    auto *out = c->subset_context->serializer->embed (this);
-    if (unlikely (!out)) return_trace (false);
-    bool ret = out->offset.serialize_subset (c->subset_context, offset, base, c, &tag);
-    return_trace (ret);
-  }
-
-  bool sanitize (hb_sanitize_context_t *c, const void *base) const
-  {
-    TRACE_SANITIZE (this);
-    const Record_sanitize_closure_t closure = {tag, base};
-    return_trace (c->check_struct (this) && offset.sanitize (c, base, &closure));
-  }
-
-  Tag		tag;		/* 4-byte Tag identifier */
-  Offset16To<Type>
-		offset;		/* Offset from beginning of object holding
-				 * the Record */
-  public:
-  DEFINE_SIZE_STATIC (6);
-};
-
-template <typename Type>
-struct RecordArrayOf : SortedArray16Of<Record<Type>>
-{
-  const Offset16To<Type>& get_offset (unsigned int i) const
-  { return (*this)[i].offset; }
-  Offset16To<Type>& get_offset (unsigned int i)
-  { return (*this)[i].offset; }
-  const Tag& get_tag (unsigned int i) const
-  { return (*this)[i].tag; }
-  unsigned int get_tags (unsigned int start_offset,
-			 unsigned int *record_count /* IN/OUT */,
-			 hb_tag_t     *record_tags /* OUT */) const
-  {
-    if (record_count)
-    {
-      + this->sub_array (start_offset, record_count)
-      | hb_map (&Record<Type>::tag)
-      | hb_sink (hb_array (record_tags, *record_count))
-      ;
-    }
-    return this->len;
-  }
-  bool find_index (hb_tag_t tag, unsigned int *index) const
-  {
-    return this->bfind (tag, index, HB_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
-  }
-};
-
-template <typename Type>
-struct RecordListOf : RecordArrayOf<Type>
-{
-  const Type& operator [] (unsigned int i) const
-  { return this+this->get_offset (i); }
-
-  bool subset (hb_subset_context_t *c,
-	       hb_subset_layout_context_t *l) const
-  {
-    TRACE_SUBSET (this);
-    auto *out = c->serializer->start_embed (*this);
-    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
-
-    + this->iter ()
-    | hb_apply (subset_record_array (l, out, this))
-    ;
-    return_trace (true);
-  }
-
-  bool sanitize (hb_sanitize_context_t *c) const
-  {
-    TRACE_SANITIZE (this);
-    return_trace (RecordArrayOf<Type>::sanitize (c, this));
-  }
-};
 
 /* https://docs.microsoft.com/en-us/typography/opentype/spec/features_pt#size */
 struct FeatureParamsSize
@@ -830,6 +774,10 @@ struct FeatureParams
   DEFINE_SIZE_MIN (0);
 };
 
+struct Record_sanitize_closure_t {
+  hb_tag_t tag;
+  const void *list_base;
+};
 
 struct Feature
 {
@@ -926,6 +874,103 @@ struct Feature
   DEFINE_SIZE_ARRAY_SIZED (4, lookupIndex);
 };
 
+template <typename Type>
+struct Record
+{
+  int cmp (hb_tag_t a) const { return tag.cmp (a); }
+
+  bool subset (hb_subset_layout_context_t *c, const void *base, const void *f_sub = nullptr) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->subset_context->serializer->embed (this);
+    if (unlikely (!out)) return_trace (false);
+
+    if (!f_sub)
+      return_trace (out->offset.serialize_subset (c->subset_context, offset, base, c, &tag));
+
+    const Feature& f = *reinterpret_cast<const Feature *> (f_sub);
+    auto *s = c->subset_context->serializer;
+    s->push ();
+
+    out->offset = 0;
+    bool ret = f.subset (c->subset_context, c, &tag);
+    if (ret)
+      s->add_link (out->offset, s->pop_pack ());
+    else
+      s->pop_discard ();
+
+    return_trace (ret);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c, const void *base) const
+  {
+    TRACE_SANITIZE (this);
+    const Record_sanitize_closure_t closure = {tag, base};
+    return_trace (c->check_struct (this) && offset.sanitize (c, base, &closure));
+  }
+
+  Tag           tag;            /* 4-byte Tag identifier */
+  Offset16To<Type>
+                offset;         /* Offset from beginning of object holding
+                                 * the Record */
+  public:
+  DEFINE_SIZE_STATIC (6);
+};
+
+template <typename Type>
+struct RecordArrayOf : SortedArray16Of<Record<Type>>
+{
+  const Offset16To<Type>& get_offset (unsigned int i) const
+  { return (*this)[i].offset; }
+  Offset16To<Type>& get_offset (unsigned int i)
+  { return (*this)[i].offset; }
+  const Tag& get_tag (unsigned int i) const
+  { return (*this)[i].tag; }
+  unsigned int get_tags (unsigned int start_offset,
+                         unsigned int *record_count /* IN/OUT */,
+                         hb_tag_t     *record_tags /* OUT */) const
+  {
+    if (record_count)
+    {
+      + this->sub_array (start_offset, record_count)
+      | hb_map (&Record<Type>::tag)
+      | hb_sink (hb_array (record_tags, *record_count))
+      ;
+    }
+    return this->len;
+  }
+  bool find_index (hb_tag_t tag, unsigned int *index) const
+  {
+    return this->bfind (tag, index, HB_NOT_FOUND_STORE, Index::NOT_FOUND_INDEX);
+  }
+};
+
+template <typename Type>
+struct RecordListOf : RecordArrayOf<Type>
+{
+  const Type& operator [] (unsigned int i) const
+  { return this+this->get_offset (i); }
+
+  bool subset (hb_subset_context_t *c,
+               hb_subset_layout_context_t *l) const
+  {
+    TRACE_SUBSET (this);
+    auto *out = c->serializer->start_embed (*this);
+    if (unlikely (!c->serializer->extend_min (out))) return_trace (false);
+
+    + this->iter ()
+    | hb_apply (subset_record_array (l, out, this))
+    ;
+    return_trace (true);
+  }
+
+  bool sanitize (hb_sanitize_context_t *c) const
+  {
+    TRACE_SANITIZE (this);
+    return_trace (RecordArrayOf<Type>::sanitize (c, this));
+  }
+};
+
 struct RecordListOfFeature : RecordListOf<Feature>
 {
   bool subset (hb_subset_context_t *c,
@@ -936,11 +981,20 @@ struct RecordListOfFeature : RecordListOf<Feature>
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
     unsigned count = this->len;
+
     + hb_zip (*this, hb_range (count))
     | hb_filter (l->feature_index_map, hb_second)
-    | hb_map (hb_first)
-    | hb_apply (subset_record_array (l, out, this))
+    | hb_apply ([l, out, this] (const hb_pair_t<const Record<Feature>&, unsigned>& _)
+                {
+                  const Feature *f_sub = nullptr;
+                  const Feature **f = nullptr;
+                  if (l->feature_substitutes_map->has (_.second, &f))
+                    f_sub = *f;
+
+                  subset_record_array (l, out, this, f_sub) (_.first);
+                })
     ;
+
     return_trace (true);
   }
 };
