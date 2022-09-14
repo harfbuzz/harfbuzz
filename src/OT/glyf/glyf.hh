@@ -180,7 +180,7 @@ struct glyf_accelerator_t
     contour_point_vector_t all_points;
 
     bool phantom_only = !consumer.is_consuming_contour_points ();
-    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, nullptr, true, phantom_only)))
+    if (unlikely (!glyph_for_gid (gid).get_points (font, *this, all_points, nullptr, true, true, phantom_only)))
       return false;
 
     if (consumer.is_consuming_contour_points ())
@@ -389,7 +389,8 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
 	    return subset_glyph;
 
 	  if (new_gid == 0 &&
-	      !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE))
+	      !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE) &&
+	      plan->pinned_at_default)
 	    subset_glyph.source_glyph = glyf_impl::Glyph ();
 	  else
 	    subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, true);
