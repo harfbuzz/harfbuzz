@@ -1,0 +1,12 @@
+FONTS:
+MPLUS1-Variable.ttf
+
+PROFILES:
+default.txt
+notdef-outline.txt
+
+SUBSETS:
+*
+
+INSTANCES:
+wght=400
