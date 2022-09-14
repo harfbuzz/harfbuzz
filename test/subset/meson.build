@@ -54,6 +54,7 @@ tests = [
 # 'pin_all_at_default',
 # 'instantiate_glyf',
 # 'full_instance',
+# 'instance_feature_variations',
 ]
 
 repack_tests = [

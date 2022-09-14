@@ -28,15 +28,7 @@ def strip_check_sum (ttx_string):
 
 
 def generate_expected_output(input_file, unicodes, profile_flags, instance_flags, output_directory, font_name):
-	fonttools_path = os.path.join(tempfile.mkdtemp (), font_name)
-	args = ["fonttools", "subset", input_file]
-	args.extend(["--drop-tables+=DSIG",
-		     "--drop-tables-=sbix",
-		     "--unicodes=%s" % unicodes,
-		     "--output-file=%s" % fonttools_path])
-	args.extend(profile_flags)
-	check_call(args)
-
+	input_path = input_file
 	if instance_flags:
 		instance_path = os.path.join(tempfile.mkdtemp (), font_name)
 		args = ["fonttools", "varLib.instancer",
@@ -44,10 +36,19 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 			"--no-recalc-bounds",
 			"--no-recalc-timestamp",
 			"--output=%s" % instance_path,
-			fonttools_path]
+			input_file]
 		args.extend(instance_flags)
 		check_call(args)
-		fonttools_path = instance_path
+		input_path = instance_path
+
+	fonttools_path = os.path.join(tempfile.mkdtemp (), font_name)
+	args = ["fonttools", "subset", input_path]
+	args.extend(["--drop-tables+=DSIG",
+		     "--drop-tables-=sbix",
+		     "--unicodes=%s" % unicodes,
+		     "--output-file=%s" % fonttools_path])
+	args.extend(profile_flags)
+	check_call(args)
 
 	with io.StringIO () as fp:
 		with TTFont (fonttools_path) as font:
