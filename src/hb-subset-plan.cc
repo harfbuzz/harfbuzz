@@ -509,9 +509,7 @@ _glyf_add_gid_and_children (const OT::glyf_accelerator_t &glyf,
 
 static void
 _populate_gids_to_retain (hb_subset_plan_t* plan,
-			  bool close_over_gsub,
-			  bool close_over_gpos,
-			  bool close_over_gdef)
+		          hb_set_t* drop_tables)
 {
   OT::glyf_accelerator_t glyf (plan->source);
 #ifndef HB_NO_SUBSET_CFF
@@ -523,7 +521,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   _cmap_closure (plan->source, plan->unicodes, plan->_glyphset_gsub);
 
 #ifndef HB_NO_SUBSET_LAYOUT
-  if (close_over_gsub)
+  if (!drop_tables->has (HB_OT_TAG_GSUB))
     // closure all glyphs/lookups/features needed for GSUB substitutions.
     _closure_glyphs_lookups_features<GSUB> (
         plan,
@@ -532,7 +530,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
         plan->gsub_features,
         plan->gsub_langsys);
 
-  if (close_over_gpos)
+  if (!drop_tables->has (HB_OT_TAG_GPOS))
     _closure_glyphs_lookups_features<GPOS> (
         plan,
         plan->_glyphset_gsub,
@@ -543,12 +541,18 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   _remove_invalid_gids (plan->_glyphset_gsub, plan->source->get_num_glyphs ());
 
   hb_set_set (plan->_glyphset_mathed, plan->_glyphset_gsub);
-  _math_closure (plan, plan->_glyphset_mathed);
-  _remove_invalid_gids (plan->_glyphset_mathed, plan->source->get_num_glyphs ());
+  if (!drop_tables->has (HB_OT_TAG_MATH))
+  {
+    _math_closure (plan, plan->_glyphset_mathed);
+    _remove_invalid_gids (plan->_glyphset_mathed, plan->source->get_num_glyphs ());
+  }
 
   hb_set_t cur_glyphset = *plan->_glyphset_mathed;
-  _colr_closure (plan->source, plan->colrv1_layers, plan->colr_palettes, &cur_glyphset);
-  _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
+  if (!drop_tables->has (HB_OT_TAG_COLR))
+  {
+    _colr_closure (plan->source, plan->colrv1_layers, plan->colr_palettes, &cur_glyphset);
+    _remove_invalid_gids (&cur_glyphset, plan->source->get_num_glyphs ());
+  }
 
   hb_set_set (plan->_glyphset_colred, &cur_glyphset);
 
@@ -570,7 +574,7 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
 
 
 #ifndef HB_NO_VAR
-  if (close_over_gdef)
+  if (!drop_tables->has (HB_OT_TAG_GDEF))
     _collect_layout_variation_indices (plan);
 #endif
 }
@@ -768,10 +772,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   _populate_unicodes_to_retain (input->sets.unicodes, input->sets.glyphs, plan);
 
-  _populate_gids_to_retain (plan,
-			    !input->sets.drop_tables->has (HB_OT_TAG_GSUB),
-			    !input->sets.drop_tables->has (HB_OT_TAG_GPOS),
-			    !input->sets.drop_tables->has (HB_OT_TAG_GDEF));
+  _populate_gids_to_retain (plan, input->sets.drop_tables);
 
   _create_old_gid_to_new_gid_map (face,
                                   input->flags & HB_SUBSET_FLAGS_RETAIN_GIDS,
