@@ -150,7 +150,8 @@ struct Glyph
                                   hb_bytes_t &dest_end /* OUT */)
   {
     contour_point_vector_t all_points, deltas;
-    get_points (font, glyf, all_points, &deltas, false, false);
+    if (!get_points (font, glyf, all_points, &deltas, false, false))
+      return false;
 
     // .notdef, set type to empty so we only update metrics and don't compile bytes for
     // it
@@ -179,7 +180,12 @@ struct Glyph
       break;
     }
 
-    return compile_header_bytes (plan, all_points, dest_start);
+    if (!compile_header_bytes (plan, all_points, dest_start))
+    {
+      dest_end.fini ();
+      return false;
+    }
+    return true;
   }
 
 
@@ -247,8 +253,7 @@ struct Glyph
     if (deltas != nullptr && depth == 0 && type == COMPOSITE)
     {
       if (unlikely (!deltas->resize (points.length))) return false;
-      for (unsigned i = 0 ; i < points.length; i++)
-        deltas->arrayZ[i] = points.arrayZ[i];
+      deltas->copy_vector (points);
     }
 
 #ifndef HB_NO_VAR
