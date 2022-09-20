@@ -70,8 +70,8 @@ struct graph_t
       {
         DEBUG_MSG (SUBSET_REPACK, nullptr,
                    "vertex [%lu] bytes != [%lu] bytes, depth = %u",
-                   table_size (),
-                   other.table_size (),
+                   (unsigned long) table_size (),
+                   (unsigned long) other.table_size (),
                    depth);
 
         auto a = as_bytes ();
