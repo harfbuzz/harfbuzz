@@ -285,6 +285,7 @@ hb_face_collect_variation_selectors
 hb_face_collect_variation_unicodes
 hb_face_builder_create
 hb_face_builder_add_table
+hb_face_builder_sort_tables
 </SECTION>
 
 <SECTION>
