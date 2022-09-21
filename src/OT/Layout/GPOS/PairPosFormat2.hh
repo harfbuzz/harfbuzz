@@ -243,8 +243,6 @@ struct PairPosFormat2_4
 
 
     buffer->idx = skippy_iter.idx;
-    if (len2)
-      buffer->idx++;
 
     return_trace (true);
   }

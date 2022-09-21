@@ -128,8 +128,6 @@ struct PairSet
 
       if (applied_first || applied_second)
         buffer->unsafe_to_break (buffer->idx, pos + 1);
-      if (len2)
-        pos++;
 
       buffer->idx = pos;
       return_trace (true);
