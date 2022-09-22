@@ -2398,7 +2398,7 @@ struct hb_position_single_dispatch_t :
 
 /**
  * hb_ot_layout_lookup_get_optical_bound:
- * @face: a font.
+ * @font: a font.
  * @lookup_index: index of the feature lookup to query.
  * @direction: edge of the glyph to query.
  * @glyph: a glyph id.
