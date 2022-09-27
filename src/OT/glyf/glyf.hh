@@ -72,7 +72,7 @@ struct glyf
     if (unlikely (!c->serializer->check_success (glyf_prime))) return_trace (false);
 
     hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
-    _populate_subset_glyphs (c->plan, &glyphs);
+    _populate_subset_glyphs (c->plan, glyphs);
 
     if (!c->plan->pinned_at_default)
     {
@@ -108,8 +108,8 @@ struct glyf
 
   void
   _populate_subset_glyphs (const hb_subset_plan_t   *plan,
-			   hb_vector_t<glyf_impl::SubsetGlyph> *glyphs /* OUT */) const;
-  
+			   hb_vector_t<glyf_impl::SubsetGlyph> &glyphs /* OUT */) const;
+
   bool
   _compile_subset_glyphs_with_deltas (const hb_subset_plan_t *plan,
                                       hb_vector_t<glyf_impl::SubsetGlyph> *glyphs /* OUT */) const;
@@ -377,34 +377,30 @@ struct glyf_accelerator_t
 
 inline void
 glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
-			       hb_vector_t<glyf_impl::SubsetGlyph> *glyphs /* OUT */) const
+			       hb_vector_t<glyf_impl::SubsetGlyph>& glyphs /* OUT */) const
 {
   OT::glyf_accelerator_t glyf (plan->source);
+  unsigned num_glyphs = plan->num_output_glyphs ();
+  if (!glyphs.resize (num_glyphs)) return;
 
-  + hb_range (plan->num_output_glyphs ())
-  | hb_map ([&] (hb_codepoint_t new_gid)
-	{
-	  glyf_impl::SubsetGlyph subset_glyph = {0};
-	  subset_glyph.new_gid = new_gid;
+  for (auto p : plan->glyph_map->iter ())
+  {
+    unsigned new_gid = p.second;
+    glyf_impl::SubsetGlyph& subset_glyph = glyphs.arrayZ[new_gid];
+    subset_glyph.old_gid = p.first;
 
-	  /* should never fail: all old gids should be mapped */
-	  if (!plan->old_gid_for_new_gid (new_gid, &subset_glyph.old_gid))
-	    return subset_glyph;
+    if (unlikely (new_gid == 0 &&
+                  !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE)) &&
+                  plan->pinned_at_default)
+      subset_glyph.source_glyph = glyf_impl::Glyph ();
+    else
+      subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, true);
 
-	  if (new_gid == 0 &&
-	      !(plan->flags & HB_SUBSET_FLAGS_NOTDEF_OUTLINE) &&
-	      plan->pinned_at_default)
-	    subset_glyph.source_glyph = glyf_impl::Glyph ();
-	  else
-	    subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, true);
-	  if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
-	    subset_glyph.drop_hints_bytes ();
-	  else
-	    subset_glyph.dest_start = subset_glyph.source_glyph.get_bytes ();
-	  return subset_glyph;
-	})
-  | hb_sink (glyphs)
-  ;
+    if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
+      subset_glyph.drop_hints_bytes ();
+    else
+      subset_glyph.dest_start = subset_glyph.source_glyph.get_bytes ();
+  }
 }
 
 inline bool
