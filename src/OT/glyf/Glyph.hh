@@ -346,10 +346,16 @@ struct Glyph
 
   hb_bytes_t get_bytes () const { return bytes; }
 
-  Glyph (hb_bytes_t bytes_ = hb_bytes_t (),
-	 hb_codepoint_t gid_ = (hb_codepoint_t) -1) : bytes (bytes_),
-						      header (bytes.as<GlyphHeader> ()),
-						      gid (gid_)
+  Glyph () : bytes (),
+             header (bytes.as<GlyphHeader> ()),
+             gid (-1),
+             type(EMPTY)
+  {}
+
+  Glyph (hb_bytes_t bytes_,
+	 hb_codepoint_t gid_ = (unsigned) -1) : bytes (bytes_),
+                                                header (bytes.as<GlyphHeader> ()),
+                                                gid (gid_)
   {
     int num_contours = header->numberOfContours;
     if (unlikely (num_contours == 0)) type = EMPTY;
