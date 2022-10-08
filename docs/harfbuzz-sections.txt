@@ -555,6 +555,7 @@ hb_ot_layout_language_get_feature_tags
 hb_ot_layout_language_get_required_feature
 hb_ot_layout_lookup_collect_glyphs
 hb_ot_layout_lookup_get_glyph_alternates
+hb_ot_layout_lookup_get_optical_bound
 hb_ot_layout_lookup_substitute_closure
 hb_ot_layout_lookups_substitute_closure
 hb_ot_layout_lookup_would_substitute
@@ -787,4 +788,6 @@ hb_subset_plan_old_to_new_glyph_mapping
 hb_link_t
 hb_object_t
 hb_subset_repack_or_fail
+hb_subset_input_pin_axis_location
+hb_subset_input_pin_axis_to_default
 </SECTION>
