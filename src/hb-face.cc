@@ -813,7 +813,7 @@ hb_face_builder_add_table (hb_face_t *face, hb_tag_t tag, hb_blob_t *blob)
  * specified in the tags list will be ordered after the tables in
  * tags, ordered by the default sort ordering.
  *
- * Since: REPLACEME
+ * Since: 5.3.0
  **/
 void
 hb_face_builder_sort_tables (hb_face_t *face,

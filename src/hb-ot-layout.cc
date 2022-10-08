@@ -2408,7 +2408,7 @@ struct hb_position_single_dispatch_t :
  *
  * Return value: Adjustment value. Negative values mean the glyph will stick out of the margin.
  *
- * Since: REPLACEME
+ * Since: 5.3.0
  **/
 hb_position_t
 hb_ot_layout_lookup_get_optical_bound (hb_font_t      *font,
