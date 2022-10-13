@@ -29,6 +29,9 @@ struct VarCompositeGlyphRecord
   };
 
   public:
+
+  static constexpr unsigned NUM_TRANSFORM_POINTS = 9;
+
   unsigned int get_size () const
   {
     unsigned int size = min_size;
@@ -50,6 +53,21 @@ struct VarCompositeGlyphRecord
   }
 
   bool is_use_my_metrics () const { return   flags & USE_MY_METRICS; }
+
+  hb_codepoint_t get_gid () const
+  {
+    return gid;
+  }
+
+  unsigned get_num_axes () const
+  {
+    return num_axes;
+  }
+
+  unsigned get_num_points () const
+  {
+    return num_axes + NUM_TRANSFORM_POINTS;
+  }
 
   void transform_points (contour_point_vector_t &points) const
   {
@@ -161,12 +179,6 @@ struct VarCompositeGlyphRecord
     scale (matrix, trans, scaleX, scaleY);
     skew (matrix, trans, -skewX, skewY);
     translate (matrix, trans, -tCenterX, -tCenterY);
-  }
-
-  public:
-  hb_codepoint_t get_gid () const
-  {
-    return gid;
   }
 
   protected:
