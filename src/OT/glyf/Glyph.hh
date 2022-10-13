@@ -7,6 +7,7 @@
 #include "GlyphHeader.hh"
 #include "SimpleGlyph.hh"
 #include "CompositeGlyph.hh"
+#include "VarCompositeGlyph.hh"
 
 
 namespace OT {
