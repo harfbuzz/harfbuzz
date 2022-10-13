@@ -98,8 +98,8 @@ typedef enum { /*< flags >*/
   HB_SUBSET_FLAGS_GLYPH_NAMES =		     0x00000080u,
   HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES =  0x00000100u,
   HB_SUBSET_FLAGS_ADD_ACCELERATOR_DATA =     0x00000200u,
-  HB_SUBSET_FLAGS_PATCH_MODE =               0x00000400u,
-  HB_SUBSET_FLAGS_OMIT_GLYF =                0x00000800u,
+  // Not supported yet: HB_SUBSET_FLAGS_PATCH_MODE = 0x00000400u,
+  // Not supported yet: HB_SUBSET_FLAGS_OMIT_GLYF =  0x00000800u,
 } hb_subset_flags_t;
 
 /**
