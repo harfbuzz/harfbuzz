@@ -122,6 +122,9 @@ static hb_face_t* preprocess_face(hb_face_t* face)
                                      HB_SUBSET_SETS_NAME_ID));
 
   hb_subset_input_set_flags(input,
+                            HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
+                            HB_SUBSET_FLAGS_GLYPH_NAMES |
+                            HB_SUBSET_FLAGS_RETAIN_GIDS |
                             HB_SUBSET_FLAGS_ADD_ACCELERATOR_DATA);
 
   hb_face_t* subset = hb_subset_or_fail (face, input);
