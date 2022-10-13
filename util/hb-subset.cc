@@ -34,36 +34,11 @@
 
 static hb_face_t* preprocess_face(hb_face_t* face)
 {
-  hb_subset_input_t* input = hb_subset_input_create_or_fail ();
-
-  hb_set_clear (hb_subset_input_set(input, HB_SUBSET_SETS_UNICODE));
-  hb_set_invert (hb_subset_input_set(input, HB_SUBSET_SETS_UNICODE));
-
-  hb_set_clear (hb_subset_input_set(input,
-                                    HB_SUBSET_SETS_LAYOUT_FEATURE_TAG));
-  hb_set_invert (hb_subset_input_set(input,
-                                     HB_SUBSET_SETS_LAYOUT_FEATURE_TAG));
-
-  hb_set_clear (hb_subset_input_set(input,
-                                    HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG));
-  hb_set_invert (hb_subset_input_set(input,
-                                     HB_SUBSET_SETS_LAYOUT_SCRIPT_TAG));
-
-  hb_set_clear (hb_subset_input_set(input,
-                                    HB_SUBSET_SETS_NAME_ID));
-  hb_set_invert (hb_subset_input_set(input,
-                                     HB_SUBSET_SETS_NAME_ID));
-
-  hb_subset_input_set_flags(input,
-                            HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
-                            HB_SUBSET_FLAGS_GLYPH_NAMES |
-                            HB_SUBSET_FLAGS_RETAIN_GIDS |
-                            HB_SUBSET_FLAGS_ADD_ACCELERATOR_DATA);
-
-  hb_face_t* subset = hb_subset_or_fail (face, input);
-  hb_subset_input_destroy (input);
-
-  return subset;
+  #ifdef HB_EXPERIMENTAL_API
+  return hb_subset_preprocess (face);
+  #else
+  return hb_face_reference(face);
+  #endif
 }
 
 /*

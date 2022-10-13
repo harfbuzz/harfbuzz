@@ -598,7 +598,7 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
     offset += num_tables;
   }
 
-  if (success && plan->flags & HB_SUBSET_FLAGS_ADD_ACCELERATOR_DATA) {
+  if (success && plan->attach_accelerator_data) {
     _attach_accelerator_data (plan, plan->dest);
   }
 

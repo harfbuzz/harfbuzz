@@ -98,6 +98,7 @@ struct hb_subset_plan_t
 
   bool successful;
   unsigned flags;
+  bool attach_accelerator_data = false;
 
   // For each cp that we'd like to retain maps to the corresponding gid.
   hb_set_t *unicodes;

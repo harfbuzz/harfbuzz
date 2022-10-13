@@ -849,6 +849,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->check_success (plan->hmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
 
   void* accel = hb_face_get_user_data(face, hb_subset_accelerator_t::user_data_key());
+
+  plan->attach_accelerator_data = input->attach_accelerator_data;
   if (accel)
     plan->accelerator = (hb_subset_accelerator_t*) accel;
 
