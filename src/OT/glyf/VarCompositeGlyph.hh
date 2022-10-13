@@ -49,6 +49,8 @@ struct VarCompositeGlyphRecord
     return size;
   }
 
+  bool is_use_my_metrics () const { return   flags & USE_MY_METRICS; }
+
   void transform_points (contour_point_vector_t &points) const
   {
     float matrix[4];
