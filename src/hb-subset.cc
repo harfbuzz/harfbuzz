@@ -510,7 +510,7 @@ static void _attach_accelerator_data (const hb_subset_plan_t* plan,
 
   if (!hb_face_set_user_data(face,
                              hb_subset_accelerator_t::user_data_key(),
-                             &accel,
+                             accel,
                              hb_subset_accelerator_t::destroy,
                              true))
     hb_subset_accelerator_t::destroy (accel);

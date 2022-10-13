@@ -61,9 +61,10 @@ struct hb_subset_accelerator_t
                           const hb_set_t& unicodes_)
       : unicode_to_gid(unicode_to_gid_), unicodes(unicodes_) {}
 
-  hb_map_t unicode_to_gid;
-  hb_set_t unicodes;
+  const hb_map_t unicode_to_gid;
+  const hb_set_t unicodes;
   // TODO(garretrieger): cumulative glyf checksum map
+  // TODO(garretrieger): sanitized table cache.
 
   bool in_error () const
   {
