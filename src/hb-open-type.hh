@@ -153,9 +153,9 @@ struct F2DOT14 : HBINT16
 };
 
 /* 32-bit signed fixed-point number (16.16). */
-struct HBFixed : HBINT32
+struct F16DOT16 : HBINT32
 {
-  HBFixed& operator = (uint32_t i) { HBINT32::operator= (i); return *this; }
+  F16DOT16& operator = (uint32_t i) { HBINT32::operator= (i); return *this; }
   // 65536 means 1<<16
   float to_float () const  { return ((int32_t) v) / 65536.f; }
   void set_float (float f) { v = roundf (f * 65536.f); }
