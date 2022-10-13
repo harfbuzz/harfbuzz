@@ -14,42 +14,37 @@ struct VarCompositeGlyphRecord
   protected:
   enum var_composite_glyph_flag_t
   {
-    ARG_1_AND_2_ARE_WORDS	= 0x0001,
-    ARGS_ARE_XY_VALUES		= 0x0002,
-    ROUND_XY_TO_GRID		= 0x0004,
-    WE_HAVE_A_SCALE		= 0x0008,
-    MORE_COMPONENTS		= 0x0020,
-    WE_HAVE_AN_X_AND_Y_SCALE	= 0x0040,
-    WE_HAVE_A_TWO_BY_TWO	= 0x0080,
-    WE_HAVE_INSTRUCTIONS	= 0x0100,
-    USE_MY_METRICS		= 0x0200,
-    OVERLAP_COMPOUND		= 0x0400,
-    SCALED_COMPONENT_OFFSET	= 0x0800,
-    UNSCALED_COMPONENT_OFFSET	= 0x1000,
-#ifndef HB_NO_BEYOND_64K
-    GID_IS_24BIT		= 0x2000
-#endif
+    USE_MY_METRICS		= 0x0001,
+    AXIS_INDICES_ARE_SHORT	= 0x0002,
+    UNIFORM_SCALE		= 0x0004,
+    HAVE_TRANSLATE_X		= 0x0008,
+    HAVE_TRANSLATE_Y		= 0x0010,
+    HAVE_ROTATION		= 0x0020,
+    HAVE_SCALE_X		= 0x0040,
+    HAVE_SCALE_Y		= 0x0080,
+    HAVE_SKEW_X			= 0x0100,
+    HAVE_SKEW_Y			= 0x0200,
+    HAVE_TCENTER_X		= 0x0400,
+    HAVE_TCENTER_Y		= 0x0800,
   };
 
   public:
   unsigned int get_size () const
   {
     unsigned int size = min_size;
-    /* glyphIndex is 24bit instead of 16bit */
-#ifndef HB_NO_BEYOND_64K
-    if (flags & GID_IS_24BIT) size += HBGlyphID24::static_size - HBGlyphID16::static_size;
-#endif
-    /* arg1 and 2 are int16 */
-    if (flags & ARG_1_AND_2_ARE_WORDS) size += 4;
-    /* arg1 and 2 are int8 */
-    else size += 2;
 
-    /* One x 16 bit (scale) */
-    if (flags & WE_HAVE_A_SCALE) size += 2;
-    /* Two x 16 bit (xscale, yscale) */
-    else if (flags & WE_HAVE_AN_X_AND_Y_SCALE) size += 4;
-    /* Four x 16 bit (xscale, scale01, scale10, yscale) */
-    else if (flags & WE_HAVE_A_TWO_BY_TWO) size += 8;
+    unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 4 : 3;
+    size += num_axes * axis_width;
+
+    if (flags & HAVE_TRANSLATE_X)	size += 2;
+    if (flags & HAVE_TRANSLATE_Y)	size += 2;
+    if (flags & HAVE_ROTATION)		size += 2;
+    if (flags & HAVE_SCALE_X)		size += 2;
+    if (flags & HAVE_SCALE_Y)		size += 2;
+    if (flags & HAVE_SKEW_X)		size += 2;
+    if (flags & HAVE_SKEW_Y)		size += 2;
+    if (flags & HAVE_TCENTER_X)		size += 2;
+    if (flags & HAVE_TCENTER_Y)		size += 2;
 
     return size;
   }
@@ -58,81 +53,126 @@ struct VarCompositeGlyphRecord
   {
     float matrix[4];
     contour_point_t trans;
-    if (get_transformation (matrix, trans))
-    {
-      points.transform (matrix);
-      points.translate (trans);
-    }
+
+    points.transform (matrix);
+    points.translate (trans);
   }
 
-  bool get_transformation (float (&matrix)[4], contour_point_t &trans) const
+  static inline void transform (float (&matrix)[4], contour_point_t &trans,
+				float (other)[6])
   {
+    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L268
+    float xx1 = other[0];
+    float xy1 = other[1];
+    float yx1 = other[2];
+    float yy1 = other[3];
+    float dx1 = other[4];
+    float dy1 = other[5];
+    float xx2 = matrix[0];
+    float xy2 = matrix[1];
+    float yx2 = matrix[2];
+    float yy2 = matrix[3];
+    float dx2 = trans.x;
+    float dy2 = trans.y;
+
+    matrix[0] = xx1*xx2 + xy1*yx2;
+    matrix[1] = xx1*xy2 + xy1*yy2;
+    matrix[2] = yx1*xx2 + yy1*yx2;
+    matrix[3] = yx1*xy2 + yy1*yy2;
+    trans.x = xx2*dx1 + yx2*dy1 + dx2;
+    trans.y = xy2*dx1 + yy2*dy1 + dy2;
+  }
+
+  static void translate (float (&matrix)[4], contour_point_t &trans,
+			 float translateX, float translateY)
+  {
+    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L213
+    float other[6] = {1.f, 0.f, 0.f, 1.f, translateX, translateY};
+    transform (matrix, trans, other);
+  }
+
+  static void scale (float (&matrix)[4], contour_point_t &trans,
+		     float scaleX, float scaleY)
+  {
+    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L224
+    float other[6] = {scaleX, 0.f, 0.f, scaleY, 0.f, 0.f};
+    transform (matrix, trans, other);
+  }
+
+  static void rotate (float (&matrix)[4], contour_point_t &trans,
+		      float rotation)
+  {
+    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L240
+    rotation = rotation * float (M_PI);
+    float c = cosf (rotation);
+    float s = sinf (rotation);
+    float other[6] = {c, s, -s, c, 0.f, 0.f};
+    transform (matrix, trans, other);
+  }
+
+  static void skew (float (&matrix)[4], contour_point_t &trans,
+		    float skewX, float skewY)
+  {
+    // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L255
+    skewX = skewX * float (M_PI);
+    skewY = skewY * float (M_PI);
+    float other[6] = {1.f, tanf (skewY), tanf (skewX), 0.f, 0.f};
+    transform (matrix, trans, other);
+  }
+
+  void get_transformation (float (&matrix)[4], contour_point_t &trans) const
+  {
+    float translateX = 0.f;
+    float translateY = 0.f;
+    float rotation = 0.f;
+    float scaleX = 1.f;
+    float scaleY = 1.f;
+    float skewX = 0.f;
+    float skewY = 0.f;
+    float tCenterX = 0.f;
+    float tCenterY = 0.f;
+
+    unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 4 : 3;
+    unsigned axes_size = num_axes * axis_width;
+    const HBUINT16 *p = (const HBUINT16 *) (axes_size +
+					    &StructAfter<const HBUINT8> (num_axes));
+
+    if (flags & HAVE_TRANSLATE_X)	translateX = * (const FWORD *) p++;
+    if (flags & HAVE_TRANSLATE_Y)	translateY = * (const FWORD *) p++;
+    if (flags & HAVE_ROTATION)		rotation = (* (const F2DOT14 *) p++).to_float ();
+    if (flags & HAVE_SCALE_X)		scaleX = * (const F4DOT12 *) p++;
+    if (flags & HAVE_SCALE_Y)		scaleY = * (const F4DOT12 *) p++;
+    if (flags & HAVE_SKEW_X)		skewX = (* (const F2DOT14 *) p++).to_float ();
+    if (flags & HAVE_SKEW_Y)		skewY = (* (const F2DOT14 *) p++).to_float ();
+    if (flags & HAVE_TCENTER_X)		tCenterX = * (const FWORD *) p++;
+    if (flags & HAVE_TCENTER_Y)		tCenterY = * (const FWORD *) p++;
+
+    if ((flags & UNIFORM_SCALE) && !(flags & HAVE_SCALE_Y))
+      scaleY = scaleX;
+
     matrix[0] = matrix[3] = 1.f;
     matrix[1] = matrix[2] = 0.f;
+    trans.init (0.f, 0.f);
 
-    const auto *p = &StructAfter<const HBINT8> (flags);
-#ifndef HB_NO_BEYOND_64K
-    if (flags & GID_IS_24BIT)
-      p += HBGlyphID24::static_size;
-    else
-#endif
-      p += HBGlyphID16::static_size;
-    int tx, ty;
-    if (flags & ARG_1_AND_2_ARE_WORDS)
-    {
-      tx = *(const HBINT16 *) p;
-      p += HBINT16::static_size;
-      ty = *(const HBINT16 *) p;
-      p += HBINT16::static_size;
-    }
-    else
-    {
-      tx = *p++;
-      ty = *p++;
-    }
-    trans.init ((float) tx, (float) ty);
-
-    {
-      const F2DOT14 *points = (const F2DOT14 *) p;
-      if (flags & WE_HAVE_A_SCALE)
-      {
-	matrix[0] = matrix[3] = points[0].to_float ();
-	return true;
-      }
-      else if (flags & WE_HAVE_AN_X_AND_Y_SCALE)
-      {
-	matrix[0] = points[0].to_float ();
-	matrix[3] = points[1].to_float ();
-	return true;
-      }
-      else if (flags & WE_HAVE_A_TWO_BY_TWO)
-      {
-	matrix[0] = points[0].to_float ();
-	matrix[1] = points[1].to_float ();
-	matrix[2] = points[2].to_float ();
-	matrix[3] = points[3].to_float ();
-	return true;
-      }
-    }
-    return tx || ty;
+    translate (matrix, trans, translateX + tCenterX, translateY + tCenterY);
+    rotate (matrix, trans, rotation);
+    scale (matrix, trans, scaleX, scaleY);
+    skew (matrix, trans, -skewX, skewY);
+    translate (matrix, trans, -tCenterX, -tCenterY);
   }
 
   public:
   hb_codepoint_t get_gid () const
   {
-#ifndef HB_NO_BEYOND_64K
-    if (flags & GID_IS_24BIT)
-      return StructAfter<const HBGlyphID24> (flags);
-    else
-#endif
-      return StructAfter<const HBGlyphID16> (flags);
+    return gid;
   }
 
   protected:
   HBUINT16	flags;
-  HBUINT24	pad;
+  HBGlyphID16	gid;
+  HBUINT8	num_axes;
   public:
-  DEFINE_SIZE_MIN (4);
+  DEFINE_SIZE_MIN (5);
 };
 
 using var_composite_iter_t = composite_iter_tmpl<VarCompositeGlyphRecord>;
