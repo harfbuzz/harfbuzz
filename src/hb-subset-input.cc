@@ -442,7 +442,7 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
  * Since: EXPERIMENTAL
  **/
 
-hb_face_t *
+HB_EXTERN hb_face_t *
 hb_subset_preprocess (hb_face_t *source)
 {
   hb_subset_input_t* input = hb_subset_input_create_or_fail ();
