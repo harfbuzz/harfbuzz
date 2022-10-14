@@ -392,7 +392,7 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
  *
  * Since: EXPERIMENTAL
  **/
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
                                      hb_face_t          *face,
                                      hb_tag_t            axis_tag)
@@ -416,7 +416,7 @@ hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
  *
  * Since: EXPERIMENTAL
  **/
-hb_bool_t
+HB_EXTERN hb_bool_t
 hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
                                    hb_face_t          *face,
                                    hb_tag_t            axis_tag,
@@ -430,7 +430,9 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
   return input->axes_location->set (axis_tag, val);
 }
 #endif
+#endif
 
+#ifdef HB_EXPERIMENTAL_API
 /**
  * hb_subset_preprocess
  * @input: a #hb_face_t object.
@@ -476,6 +478,4 @@ hb_subset_preprocess (hb_face_t *source)
 
   return new_source;
 }
-
-
 #endif

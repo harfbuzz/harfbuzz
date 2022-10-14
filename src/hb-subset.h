@@ -177,6 +177,9 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
 				   hb_tag_t            axis_tag,
 				   float               axis_value);
 #endif
+#endif
+
+#ifdef HB_EXPERIMENTAL_API
 
 HB_EXTERN hb_face_t *
 hb_subset_preprocess (hb_face_t *source);
