@@ -32,6 +32,15 @@
 
 #include <hb-subset.h>
 
+static hb_face_t* preprocess_face(hb_face_t* face)
+{
+  #ifdef HB_EXPERIMENTAL_API
+  return hb_subset_preprocess (face);
+  #else
+  return hb_face_reference(face);
+  #endif
+}
+
 /*
  * Command line interface to the harfbuzz font subsetter.
  */
@@ -103,6 +112,10 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   {
     parse (argc, argv);
 
+    hb_face_t* orig_face = face;
+    if (preprocess)
+      orig_face = preprocess_face (face);
+
     hb_face_t *new_face = nullptr;
     for (unsigned i = 0; i < num_iterations; i++)
     {
@@ -119,6 +132,8 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     }
 
     hb_face_destroy (new_face);
+    if (preprocess)
+      hb_face_destroy (orig_face);
 
     return success ? 0 : 1;
   }
@@ -160,6 +175,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
   public:
 
   unsigned num_iterations = 1;
+  gboolean preprocess;
   hb_subset_input_t *input = nullptr;
 };
 
@@ -657,7 +673,7 @@ parse_instance (const char *name,
 		GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
-  
+
   char *s = strtok((char *) arg, "=");
   while (s)
   {
@@ -915,6 +931,8 @@ subset_main_t::add_options ()
     {"no-prune-unicode-ranges",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES>,	"Don't change the 'OS/2 ulUnicodeRange*' bits.", nullptr},
     {"glyph-names",		0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_GLYPH_NAMES>,		"Keep PS glyph names in TT-flavored fonts. ", nullptr},
     {"passthrough-tables",	0, G_OPTION_FLAG_NO_ARG, G_OPTION_ARG_CALLBACK, (gpointer) &set_flag<HB_SUBSET_FLAGS_PASSTHROUGH_UNRECOGNIZED>,	"Do not drop tables that the tool does not know how to subset.", nullptr},
+    {"preprocess-face",		0, 0, G_OPTION_ARG_NONE, &this->preprocess,
+     "If set preprocesses the face with the add accelerator option before actually subsetting.", nullptr},
     {nullptr}
   };
   add_group (flag_entries,

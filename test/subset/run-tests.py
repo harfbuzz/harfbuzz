@@ -52,6 +52,7 @@ def run_test (test, should_check_ots):
 	cli_args = ["--font-file=" + test.font_path,
 		    "--output-file=" + out_file,
 		    "--unicodes=%s" % test.unicodes (),
+		    "--preprocess-face",
 		    "--drop-tables+=DSIG",
 		    "--drop-tables-=sbix"]
 	cli_args.extend (test.get_profile_flags ())
