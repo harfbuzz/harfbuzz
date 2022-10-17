@@ -71,12 +71,13 @@ struct VarCompositeGlyphRecord
     return num_axes + NUM_TRANSFORM_POINTS;
   }
 
-  void transform_points (contour_point_vector_t &points) const
+  void transform_points (hb_array_t<contour_point_t> transformation_points,
+			 contour_point_vector_t &points) const
   {
     float matrix[4];
     contour_point_t trans;
 
-    get_transformation (matrix, trans);
+    get_transformation_from_points (transformation_points, matrix, trans);
 
     points.transform (matrix);
     points.translate (trans);
@@ -144,7 +145,7 @@ struct VarCompositeGlyphRecord
     transform (matrix, trans, other);
   }
 
-  void get_transformation (float (&matrix)[4], contour_point_t &trans) const
+  bool get_points (contour_point_vector_t &points) const
   {
     float translateX = 0.f;
     float translateY = 0.f;
@@ -156,27 +157,66 @@ struct VarCompositeGlyphRecord
     float tCenterX = 0.f;
     float tCenterY = 0.f;
 
-    unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 4 : 3;
+    if (unlikely (!points.resize (points.length + get_num_points ()))) return false;
+
+    unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
     unsigned axes_size = num_axes * axis_width;
-    const HBUINT16 *p = (const HBUINT16 *) (axes_size +
-					    &StructAfter<const HBUINT8> (num_axes));
+
+    const F2DOT14 *q = (const F2DOT14 *) (axes_size +
+					  &StructAfter<const HBUINT8> (num_axes));
+
+    hb_array_t<contour_point_t> axis_points = points.sub_array (points.length - get_num_points ());
+    unsigned count = num_axes;
+    for (unsigned i = 0; i < count; i++)
+      axis_points[i].x = *q++;
+
+    const HBUINT16 *p = (const HBUINT16 *) q;
 
     if (flags & HAVE_TRANSLATE_X)	translateX = * (const FWORD *) p++;
     if (flags & HAVE_TRANSLATE_Y)	translateY = * (const FWORD *) p++;
-    if (flags & HAVE_ROTATION)		rotation = (* (const F2DOT14 *) p++).to_float ();
+    if (flags & HAVE_ROTATION)		rotation = * (const F2DOT14 *) p++;
     if (flags & HAVE_SCALE_X)		scaleX = * (const F4DOT12 *) p++;
     if (flags & HAVE_SCALE_Y)		scaleY = * (const F4DOT12 *) p++;
-    if (flags & HAVE_SKEW_X)		skewX = (* (const F2DOT14 *) p++).to_float ();
-    if (flags & HAVE_SKEW_Y)		skewY = (* (const F2DOT14 *) p++).to_float ();
+    if (flags & HAVE_SKEW_X)		skewX = * (const F2DOT14 *) p++;
+    if (flags & HAVE_SKEW_Y)		skewY = * (const F2DOT14 *) p++;
     if (flags & HAVE_TCENTER_X)		tCenterX = * (const FWORD *) p++;
     if (flags & HAVE_TCENTER_Y)		tCenterY = * (const FWORD *) p++;
 
     if ((flags & UNIFORM_SCALE) && !(flags & HAVE_SCALE_Y))
       scaleY = scaleX;
 
+    hb_array_t<contour_point_t> t = points.sub_array (points.length - NUM_TRANSFORM_POINTS);
+    t[0].x = translateX;
+    t[0].y = translateY;
+    t[1].x = rotation;
+    t[2].x = scaleX;
+    t[2].y = scaleY;
+    t[3].x = skewX;
+    t[3].y = skewY;
+    t[4].x = tCenterX;
+    t[4].y = tCenterY;
+
+    return true;
+  }
+
+  void get_transformation_from_points (hb_array_t<contour_point_t> points,
+				       float (&matrix)[4], contour_point_t &trans) const
+  {
     matrix[0] = matrix[3] = 1.f;
     matrix[1] = matrix[2] = 0.f;
     trans.init (0.f, 0.f);
+
+    hb_array_t<contour_point_t> t = points.sub_array (points.length - NUM_TRANSFORM_POINTS);
+
+    float translateX = t[0].x;
+    float translateY = t[0].y;
+    float rotation = t[1].x / (1 << 14);
+    float scaleX = t[2].x / (1 << 12);
+    float scaleY = t[2].y / (1 << 12);
+    float skewX = t[3].x / (1 << 14);
+    float skewY = t[3].y / (1 << 14);
+    float tCenterX = t[4].x;
+    float tCenterY = t[4].y;
 
     translate (matrix, trans, translateX + tCenterX, translateY + tCenterY);
     rotate (matrix, trans, rotation);

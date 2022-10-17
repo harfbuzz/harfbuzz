@@ -261,9 +261,9 @@ struct Glyph
     case VAR_COMPOSITE:
     {
       points.resize (0);
-      //for (auto &item : get_var_composite_iterator ())
+      for (auto &item : get_var_composite_iterator ())
       {
-        /* XXX */
+        if (unlikely (!item.get_points (points))) return false;
       }
     }
     default:
@@ -376,20 +376,22 @@ struct Glyph
     case VAR_COMPOSITE:
     {
       contour_point_vector_t comp_points;
+      hb_array_t<contour_point_t> points_left = points.as_array ();
       for (auto &item : get_var_composite_iterator ())
       {
+	hb_array_t<contour_point_t> record_points = points_left.sub_array (0, item.get_num_points ());
+
         comp_points.reset ();
+
+	/* XXX Apply variations. */
 
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font, glyf_accelerator, comp_points,
 						    deltas, shift_points_hori, use_my_metrics, phantom_only, depth + 1)))
 	  return false;
 
-	/* Apply component transformation & translation */
-	item.transform_points (comp_points);
-
-	/* Apply translation from gvar */
-	//comp_points.translate (points[comp_index]);
+	/* Apply component transformation */
+	item.transform_points (record_points, comp_points);
 
 	/* Copy phantom points from component if USE_MY_METRICS flag set */
 	if (use_my_metrics && item.is_use_my_metrics ())
@@ -397,6 +399,8 @@ struct Glyph
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
 	all_points.extend (comp_points.sub_array (0, comp_points.length - PHANTOM_COUNT));
+
+	points_left += item.get_num_points ();
       }
       all_points.extend (phantoms);
     } break;
