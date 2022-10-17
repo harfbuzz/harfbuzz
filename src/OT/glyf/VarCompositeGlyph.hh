@@ -3,6 +3,7 @@
 
 
 #include "../../hb-open-type.hh"
+#include "coord-setter.hh"
 
 
 namespace OT {

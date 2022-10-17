@@ -8,6 +8,7 @@
 #include "SimpleGlyph.hh"
 #include "CompositeGlyph.hh"
 #include "VarCompositeGlyph.hh"
+#include "coord-setter.hh"
 
 
 namespace OT {
@@ -16,34 +17,6 @@ struct glyf_accelerator_t;
 
 namespace glyf_impl {
 
-struct CoordSetter
-{
-  CoordSetter (hb_font_t *font) :
-    font (font),
-    old_coords (font->coords, font->num_coords),
-    new_coords (old_coords)
-  {
-    font->coords = new_coords.arrayZ;
-    font->num_coords = new_coords.length;
-  }
-
-  ~CoordSetter ()
-  {
-    font->coords = old_coords.arrayZ;
-    font->num_coords = old_coords.length;
-  }
-
-  int& operator [] (unsigned idx)
-  {
-    if (new_coords.length < idx + 1)
-      new_coords.resize (idx + 1);
-    return new_coords[idx];
-  }
-
-  hb_font_t *font;
-  hb_array_t<int> old_coords;
-  hb_vector_t<int> new_coords;
-};
 
 #ifndef HB_GLYF_MAX_POINTS
 #define HB_GLYF_MAX_POINTS 10000
