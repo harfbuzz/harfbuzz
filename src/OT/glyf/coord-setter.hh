@@ -29,7 +29,11 @@ struct coord_setter_t
   int& operator [] (unsigned idx)
   {
     if (new_coords.length < idx + 1)
+    {
       new_coords.resize (idx + 1);
+      font->coords = new_coords.arrayZ;
+      font->num_coords = new_coords.length;
+    }
     return new_coords[idx];
   }
 
