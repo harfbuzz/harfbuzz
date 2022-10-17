@@ -101,9 +101,13 @@ void AddGlyphs(unsigned num_glyphs_in_font,
 // the subsetting operations.
 static hb_face_t* preprocess_face(hb_face_t* face)
 {
+  #ifdef HB_EXPERIMENTAL_API
   hb_face_t* new_face = hb_subset_preprocess(face);
   hb_face_destroy(face);
   return new_face;
+  #else
+  return face;
+  #endif
 }
 
 /* benchmark for subsetting a font */
