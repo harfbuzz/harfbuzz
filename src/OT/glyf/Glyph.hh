@@ -356,7 +356,8 @@ struct Glyph
 
         comp_points.reset ();
 
-	/* XXX Apply variations. */
+	coord_setter_t coord_setter (font);
+	item.set_coordinates (coord_setter, record_points);
 
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
 				       .get_points (font, glyf_accelerator, comp_points,

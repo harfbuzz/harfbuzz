@@ -226,6 +226,22 @@ struct VarCompositeGlyphRecord
     translate (matrix, trans, -tCenterX, -tCenterY);
   }
 
+  void set_coordinates (coord_setter_t &setter,
+			hb_array_t<contour_point_t> axis_points) const
+  {
+    unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
+
+    const HBUINT8  *p = &StructAfter<const HBUINT8>  (num_axes);
+    const HBUINT16 *q = &StructAfter<const HBUINT16> (num_axes);
+
+    unsigned count = num_axes;
+    for (unsigned i = 0; i < count; i++)
+    {
+      unsigned axis_index = axis_width == 1 ? *p++ : *q++;
+      setter[axis_index] = axis_points[i].x;
+    }
+  }
+
   protected:
   HBUINT16	flags;
   HBGlyphID16	gid;
