@@ -33,7 +33,6 @@ tests = [
   'layout.duplicate_features',
   'layout.unsorted_featurelist',
   'layout.drop_feature',
-  'layout.default_features',
   'cmap',
   'cmap14',
   'sbix',
