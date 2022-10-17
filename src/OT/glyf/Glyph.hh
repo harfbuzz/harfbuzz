@@ -69,6 +69,11 @@ struct Glyph
     if (type != COMPOSITE) return composite_iter_t ();
     return CompositeGlyph (*header, bytes).iter ();
   }
+  var_composite_iter_t get_var_composite_iterator () const
+  {
+    if (type != VAR_COMPOSITE) return var_composite_iter_t ();
+    return VarCompositeGlyph (*header, bytes).iter ();
+  }
 
   const hb_bytes_t trim_padding () const
   {
@@ -242,6 +247,10 @@ struct Glyph
     contour_point_vector_t &points = inplace ? all_points : stack_points;
 
     switch (type) {
+    case SIMPLE:
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
+	return false;
+      break;
     case COMPOSITE:
     {
       /* pseudo component points for each component in composite glyph */
@@ -249,9 +258,15 @@ struct Glyph
       if (unlikely (!points.resize (num_points))) return false;
       break;
     }
-    case SIMPLE:
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
-	return false;
+    case VAR_COMPOSITE:
+    {
+      points.resize (0);
+      //for (auto &item : get_var_composite_iterator ())
+      {
+        /* XXX */
+      }
+    }
+    default:
       break;
     }
 
@@ -358,8 +373,36 @@ struct Glyph
 
       all_points.extend (phantoms);
     } break;
+    case VAR_COMPOSITE:
+    {
+      contour_point_vector_t comp_points;
+      for (auto &item : get_var_composite_iterator ())
+      {
+        comp_points.reset ();
+
+	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
+				       .get_points (font, glyf_accelerator, comp_points,
+						    deltas, shift_points_hori, use_my_metrics, phantom_only, depth + 1)))
+	  return false;
+
+	/* Apply component transformation & translation */
+	item.transform_points (comp_points);
+
+	/* Apply translation from gvar */
+	//comp_points.translate (points[comp_index]);
+
+	/* Copy phantom points from component if USE_MY_METRICS flag set */
+	if (use_my_metrics && item.is_use_my_metrics ())
+	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
+	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
+
+	all_points.extend (comp_points.sub_array (0, comp_points.length - PHANTOM_COUNT));
+      }
+      all_points.extend (phantoms);
+    } break;
     default:
       all_points.extend (phantoms);
+      break;
     }
 
     if (depth == 0 && shift_points_hori) /* Apply at top level */

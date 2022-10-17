@@ -30,7 +30,7 @@ struct VarCompositeGlyphRecord
 
   public:
 
-  static constexpr unsigned NUM_TRANSFORM_POINTS = 9;
+  static constexpr unsigned NUM_TRANSFORM_POINTS = 5;
 
   unsigned int get_size () const
   {
@@ -52,7 +52,9 @@ struct VarCompositeGlyphRecord
     return size;
   }
 
-  bool is_use_my_metrics () const { return   flags & USE_MY_METRICS; }
+  bool has_more () const { return true; }
+
+  bool is_use_my_metrics () const { return flags & USE_MY_METRICS; }
 
   hb_codepoint_t get_gid () const
   {
@@ -73,6 +75,8 @@ struct VarCompositeGlyphRecord
   {
     float matrix[4];
     contour_point_t trans;
+
+    get_transformation (matrix, trans);
 
     points.transform (matrix);
     points.translate (trans);
