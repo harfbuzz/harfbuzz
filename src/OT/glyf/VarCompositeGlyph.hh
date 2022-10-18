@@ -142,7 +142,7 @@ struct VarCompositeGlyphRecord
     // https://github.com/fonttools/fonttools/blob/f66ee05f71c8b57b5f519ee975e95edcd1466e14/Lib/fontTools/misc/transform.py#L255
     skewX = skewX * float (M_PI);
     skewY = skewY * float (M_PI);
-    float other[6] = {1.f, tanf (skewY), tanf (skewX), 0.f, 0.f};
+    float other[6] = {1.f, tanf (skewY), tanf (skewX), 1.f, 0.f, 0.f};
     transform (matrix, trans, other);
   }
 
@@ -151,8 +151,8 @@ struct VarCompositeGlyphRecord
     float translateX = 0.f;
     float translateY = 0.f;
     float rotation = 0.f;
-    float scaleX = 1.f;
-    float scaleY = 1.f;
+    float scaleX = 1.f * (1 << 12);
+    float scaleY = 1.f * (1 << 12);
     float skewX = 0.f;
     float skewY = 0.f;
     float tCenterX = 0.f;
