@@ -414,33 +414,40 @@ harfbuzz_deps = [thread_dep, m_dep] + harfbuzz_extra_deps
 
 libharfbuzz_link_language = 'c'
 
+hb_features = configuration_data()
+
 if conf.get('HAVE_FREETYPE', 0) == 1
   hb_sources += hb_ft_sources
   hb_headers += hb_ft_headers
   harfbuzz_deps += [freetype_dep]
+  hb_features.set('HB_HAS_FREETYPE', 1)
 endif
 
 if conf.get('HAVE_GDI', 0) == 1
   hb_sources += hb_gdi_sources
   hb_headers += hb_gdi_headers
   harfbuzz_deps += gdi_uniscribe_deps
+  hb_features.set('HB_HAS_GDI', 1)
 endif
 
 if conf.get('HAVE_GRAPHITE2', 0) == 1
   hb_sources += hb_graphite2_sources
   hb_headers += hb_graphite2_headers
   harfbuzz_deps += [graphite2_dep, graphite_dep]
+  hb_features.set('HB_HAS_GRAPHITE', 1)
 endif
 
 if conf.get('HAVE_GLIB', 0) == 1
   hb_sources += hb_glib_sources
   hb_headers += hb_glib_headers
   harfbuzz_deps += [glib_dep]
+  hb_features.set('HB_HAS_GLIB', 1)
 endif
 
 if conf.get('HAVE_UNISCRIBE', 0) == 1
   hb_sources += hb_uniscribe_sources
   hb_headers += hb_uniscribe_headers
+  hb_features.set('HB_HAS_UNISCRIBE', 1)
 endif
 
 if conf.get('HAVE_DIRECTWRITE', 0) == 1
@@ -448,12 +455,14 @@ if conf.get('HAVE_DIRECTWRITE', 0) == 1
   hb_headers += hb_directwrite_headers
   # hb-directwrite needs a C++ linker
   libharfbuzz_link_language = 'cpp'
+  hb_features.set('HB_HAS_DIRECTWRITE', 1)
 endif
 
 if conf.get('HAVE_CORETEXT', 0) == 1
   hb_sources += hb_coretext_sources
   hb_headers += hb_coretext_headers
   harfbuzz_deps += coretext_deps
+  hb_features.set('HB_HAS_CORETEXT', 1)
 endif
 
 have_icu = conf.get('HAVE_ICU', 0) == 1
@@ -463,7 +472,16 @@ if have_icu and have_icu_builtin
   hb_sources += hb_icu_sources
   hb_headers += hb_icu_headers
   harfbuzz_deps += [icu_dep]
+  hb_features.set('HB_HAS_ICU', 1)
 endif
+
+hb_features_h = configure_file(input: 'hb-features.h.in',
+                               output: 'hb-features.h',
+                               configuration: hb_features,
+                               install: true,
+                               install_dir: get_option('includedir') / meson.project_name())
+
+# Base and default-included sources and headers
 
 # harfbuzz
 gen_def = find_program('gen-def.py')
