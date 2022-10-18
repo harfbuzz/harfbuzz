@@ -238,7 +238,9 @@ struct VarCompositeGlyphRecord
     for (unsigned i = 0; i < count; i++)
     {
       unsigned axis_index = axis_width == 1 ? *p++ : *q++;
-      setter[axis_index] = axis_points[i].x;
+      signed v = axis_points[i].x;
+      v = hb_clamp (v, -(1<<14), (1<<14));
+      setter[axis_index] = v;
     }
   }
 
