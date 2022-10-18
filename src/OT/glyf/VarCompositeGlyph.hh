@@ -226,8 +226,8 @@ struct VarCompositeGlyphRecord
     translate (matrix, trans, -tCenterX, -tCenterY);
   }
 
-  void set_coordinates (coord_setter_t &setter,
-			hb_array_t<contour_point_t> axis_points) const
+  void set_variations (coord_setter_t &setter,
+		       hb_array_t<contour_point_t> axis_points) const
   {
     unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
 
