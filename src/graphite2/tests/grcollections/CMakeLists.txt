@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2010, SIL International, All rights reserved.
 project(grlisttest)
 
 include_directories(${graphite2_core_SOURCE_DIR})

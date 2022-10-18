@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2013 SIL International
 import graphite2
 import itertools
 import math

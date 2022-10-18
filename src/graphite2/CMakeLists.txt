@@ -1,4 +1,6 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0 FATAL_ERROR)
+# SPDX-License-Identifier: MIT
+# Copyright 2010, SIL International, All rights reserved.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
 cmake_policy(SET CMP0012 NEW)
 include(TestBigEndian)
 find_package(PythonInterp 3.6)

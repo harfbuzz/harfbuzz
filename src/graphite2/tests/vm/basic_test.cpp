@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2010 SIL International
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -173,17 +175,3 @@ std::vector<byte> random_sequence(size_t n)
 
     return seq;
 }
-
-/*
-std::vector<byte> fuzzer(int n)
-{
-    std::vector<byte>   code(256);
-    std::vector<bool>   covered(256);
-
-    // Track stack depth to ensure we don't create programs that
-    //  overflow or underflow the stack.
-    size_t stack_depth = 0;
-
-    return code;
-}
-*/

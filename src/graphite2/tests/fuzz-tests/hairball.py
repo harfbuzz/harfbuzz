@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-
+# SPDX-License-Identifier: MIT
+# Copyright 2012, SIL International, All rights reserved.
 import argparse
 import pathlib
 import struct

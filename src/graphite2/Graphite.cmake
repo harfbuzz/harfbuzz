@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2011, SIL International, All rights reserved.
 include(GetPrerequisites)
 
 function(nolib_test LIBNAME OBJECTFILE)

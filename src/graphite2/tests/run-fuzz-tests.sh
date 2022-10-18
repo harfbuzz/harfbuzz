@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: MIT
+# Copyright 2012, SIL International, All rights reserved.
 
 TESTSDIR=$(dirname $0)
 for FONT in $(ls $TESTSDIR/fuzz-tests)

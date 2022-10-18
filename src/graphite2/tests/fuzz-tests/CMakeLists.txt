@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright 2012, SIL International, All rights reserved.
 project(fuzztesting)
 
 function(trimtail VAR RESULT)

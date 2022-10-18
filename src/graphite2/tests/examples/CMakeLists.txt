@@ -1,4 +1,5 @@
-
+# SPDX-License-Identifier: MIT
+# Copyright 2011, SIL International, All rights reserved.
 project(testexamples)
 
 include_directories(../../src)

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright 2015, SIL International, All rights reserved.
 '''
 Tool to read callgrind output and return the net cost of the first call
 to a given function

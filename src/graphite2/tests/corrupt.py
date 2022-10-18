@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright 2011, SIL International, All rights reserved.
+
 import argparse
 import functools
 import os

@@ -1,4 +1,6 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0 FATAL_ERROR)
+# SPDX-License-Identifier: MIT
+# Copyright 2011, SIL International, All rights reserved.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.12 FATAL_ERROR)
 project(utftest)
 include(Graphite)
 include_directories(${graphite2_core_SOURCE_DIR})

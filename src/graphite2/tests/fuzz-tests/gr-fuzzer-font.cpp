@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+// Copyright 2018, SIL International, All rights reserved.
 #include <graphite2/Font.h>
 
 #include "graphite-fuzzer.hpp"

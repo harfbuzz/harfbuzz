@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# SPDX-License-Identifier: MIT
+# Copyright 2016, SIL International, All rights reserved.
+
 
 from fontTools import ttLib
 from fontTools.pens.basePen import BasePen

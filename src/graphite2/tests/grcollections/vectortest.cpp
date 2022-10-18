@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+// Copyright 2010, SIL International, All rights reserved.
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>

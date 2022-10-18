@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+// Copyright 2011, SIL International, All rights reserved.
 #include <graphite2/Segment.h>
 #include <stdio.h>
 
