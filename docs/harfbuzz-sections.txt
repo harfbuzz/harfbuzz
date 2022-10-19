@@ -788,6 +788,7 @@ hb_subset_plan_old_to_new_glyph_mapping
 hb_link_t
 hb_object_t
 hb_subset_repack_or_fail
+hb_subset_preprocess
 hb_subset_input_pin_axis_location
 hb_subset_input_pin_axis_to_default
 </SECTION>
