@@ -33,12 +33,13 @@
 #include "hb-map.hh"
 #include "hb-set.hh"
 
+extern HB_INTERNAL hb_user_data_key_t _hb_subset_accelerator_user_data_key;
+
 struct hb_subset_accelerator_t
 {
   static hb_user_data_key_t* user_data_key()
   {
-    static hb_user_data_key_t key;
-    return &key;
+    return &_hb_subset_accelerator_user_data_key;
   }
 
   static hb_subset_accelerator_t* create(const hb_map_t& unicode_to_gid_,

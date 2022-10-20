@@ -82,6 +82,10 @@ using OT::Layout::GPOS;
  * retain glyph ids option and configure the subset to pass through the layout tables untouched.
  */
 
+
+hb_user_data_key_t _hb_subset_accelerator_user_data_key = {};
+
+
 /*
  * The list of tables in the open type spec. Used to check for tables that may need handling
  * if we are unable to list the tables in a face.
