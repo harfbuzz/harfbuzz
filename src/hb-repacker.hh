@@ -209,7 +209,7 @@ bool _try_isolating_subgraphs (const hb_vector_t<graph::overflow_record_t>& over
     // Only move at most half of the roots in a space at a time.
     unsigned extra = roots_to_isolate.get_population () - maximum_to_move;
     while (extra--) {
-      unsigned root = HB_SET_VALUE_INVALID;
+      uint32_t root = HB_SET_VALUE_INVALID;
       roots_to_isolate.previous (&root);
       roots_to_isolate.del (root);
     }
