@@ -580,7 +580,7 @@ struct graph_t
 
     while (roots)
     {
-      unsigned next = HB_SET_VALUE_INVALID;
+      uint32_t next = HB_SET_VALUE_INVALID;
       if (unlikely (!check_success (!roots.in_error ()))) break;
       if (!roots.next (&next)) break;
 
@@ -661,8 +661,8 @@ struct graph_t
 
     auto new_subgraph =
         + subgraph.keys ()
-        | hb_map([&] (unsigned node_idx) {
-          const unsigned *v;
+        | hb_map([&] (uint32_t node_idx) {
+          const uint32_t *v;
           if (index_map.has (node_idx, &v)) return *v;
           return node_idx;
         })
@@ -672,10 +672,10 @@ struct graph_t
     remap_obj_indices (index_map, parents.iter (), true);
 
     // Update roots set with new indices as needed.
-    unsigned next = HB_SET_VALUE_INVALID;
+    uint32_t next = HB_SET_VALUE_INVALID;
     while (roots.next (&next))
     {
-      const unsigned *v;
+      const uint32_t *v;
       if (index_map.has (next, &v))
       {
         roots.del (next);
@@ -690,7 +690,7 @@ struct graph_t
   {
     for (const auto& link : vertices_[node_idx].obj.all_links ())
     {
-      const unsigned *v;
+      const uint32_t *v;
       if (subgraph.has (link.objidx, &v))
       {
         subgraph.set (link.objidx, *v + 1);
@@ -1183,7 +1183,7 @@ struct graph_t
     {
       for (auto& link : vertices_[i].obj.all_links_writer ())
       {
-        const unsigned *v;
+        const uint32_t *v;
         if (!id_map.has (link.objidx, &v)) continue;
         if (only_wide && !(link.width == 4 && !link.is_signed)) continue;
 

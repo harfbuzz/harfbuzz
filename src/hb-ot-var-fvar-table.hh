@@ -59,7 +59,7 @@ struct InstanceRecord
     const hb_hashmap_t<hb_tag_t, float> *axes_location = c->plan->user_axes_location;
     for (unsigned i = 0 ; i < axis_count; i++)
     {
-      unsigned *axis_tag;
+      uint32_t *axis_tag;
       // only keep instances whose coordinates == pinned axis location
       if (!c->plan->axes_old_index_tag_map->has (i, &axis_tag)) continue;
 

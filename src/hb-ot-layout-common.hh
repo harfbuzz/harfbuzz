@@ -1079,7 +1079,7 @@ struct LangSys
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    const unsigned *v;
+    const uint32_t *v;
     out->reqFeatureIndex = l->feature_index_map->has (reqFeatureIndex, &v) ? *v : 0xFFFFu;
 
     if (!l->visitFeatureIndex (featureIndex.len))
@@ -1548,7 +1548,7 @@ struct ClassDefFormat1_3
 
     startGlyph = glyph_min;
     if (unlikely (!classValue.serialize (c, glyph_count))) return_trace (false);
-    for (const hb_pair_t<hb_codepoint_t, unsigned> gid_klass_pair : + it)
+    for (const hb_pair_t<hb_codepoint_t, uint32_t> gid_klass_pair : + it)
     {
       unsigned idx = gid_klass_pair.first - glyph_min;
       classValue[idx] = gid_klass_pair.second;
@@ -1675,11 +1675,11 @@ struct ClassDefFormat1_3
     if (klass == 0)
     {
       unsigned start_glyph = startGlyph;
-      for (unsigned g = HB_SET_VALUE_INVALID;
+      for (uint32_t g = HB_SET_VALUE_INVALID;
 	   hb_set_next (glyphs, &g) && g < start_glyph;)
 	intersect_glyphs->add (g);
 
-      for (unsigned g = startGlyph + count - 1;
+      for (uint32_t g = startGlyph + count - 1;
 	   hb_set_next (glyphs, &g);)
 	intersect_glyphs->add (g);
 
