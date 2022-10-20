@@ -22,4 +22,4 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=${DEVKITPRO}/cmake/3DS.cmake
       - name: Build
         run: make CXXFLAGS="-w -DHB_NO_MT"
-        working-directory: /src/build
+        working-directory: build
