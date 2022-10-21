@@ -1388,6 +1388,12 @@ struct Lookup
       outMarkFilteringSet = markFilteringSet;
     }
 
+    // Always keep the lookup even if it's empty. The rest of layout subsetting depends on lookup
+    // indices being consistent with those computed during planning. So if an empty lookup is
+    // discarded during the subset phase it will invalidate all subsequent lookup indices.
+    // Generally we shouldn't end up with an empty lookup as we pre-prune them during the planning
+    // phase, but it can happen in rare cases such as when during closure subtable is considered
+    // degenerate (see: https://github.com/harfbuzz/harfbuzz/issues/3853)
     return true;
   }
 
