@@ -1388,7 +1388,7 @@ struct Lookup
       outMarkFilteringSet = markFilteringSet;
     }
 
-    return_trace (out->subTable.len);
+    return true;
   }
 
   template <typename TSubTable>
@@ -2948,7 +2948,7 @@ struct ConditionSet
 
     // all conditions met
     if (num_kept_cond == 0) return DROP_COND_WITH_VAR;
- 
+
     //check if condition_set is unique with variations
     if (c->conditionset_map->has (p))
       //duplicate found, drop the entire record
