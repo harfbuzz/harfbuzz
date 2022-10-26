@@ -16,6 +16,11 @@ struct glyf_accelerator_t;
 namespace glyf_impl {
 
 
+#ifndef HB_GLYF_MAX_POINTS
+#define HB_GLYF_MAX_POINTS 10000
+#endif
+
+
 enum phantom_point_index_t
 {
   PHANTOM_LEFT   = 0,
@@ -312,6 +317,9 @@ struct Glyph
 	if (use_my_metrics && item.is_use_my_metrics ())
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
+
+	if (all_points.length > HB_GLYF_MAX_POINTS)
+	  return false;
 
 	all_points.extend (comp_points.sub_array (0, comp_points.length - PHANTOM_COUNT));
 
