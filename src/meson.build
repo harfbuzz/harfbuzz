@@ -657,8 +657,8 @@ endif
 have_gobject = conf.get('HAVE_GOBJECT', 0) == 1
 
 cmake_config = configuration_data()
-cmake_config.set('libdir', '${prefix}/@0@'.format(get_option('libdir')))
-cmake_config.set('includedir', '${prefix}/@0@'.format(get_option('includedir')))
+cmake_config.set('libdir', get_option('prefix') / get_option('libdir'))
+cmake_config.set('includedir', get_option('prefix') / get_option('includedir'))
 cmake_config.set('HB_LIBTOOL_VERSION_INFO', hb_libtool_version_info)
 cmake_config.set('have_gobject', '@0@'.format(have_gobject))
 configure_file(input: 'harfbuzz-config.cmake.in',
