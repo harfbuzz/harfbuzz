@@ -495,8 +495,8 @@ hb_language_matches (hb_language_t language,
  * @HB_SCRIPT_TOTO: `Toto`, Since: 3.0.0
  * @HB_SCRIPT_VITHKUQI: `Vith`, Since: 3.0.0
  * @HB_SCRIPT_MATH: `Zmth`, Since: 3.4.0
- * @HB_SCRIPT_KAWI: `Kawi`, Since: REPLACEME
- * @HB_SCRIPT_NAG_MUNDARI: `Nagm`, Since: REPLACEME
+ * @HB_SCRIPT_KAWI: `Kawi`, Since: 5.2.0
+ * @HB_SCRIPT_NAG_MUNDARI: `Nagm`, Since: 5.2.0
  * @HB_SCRIPT_INVALID: No script set
  *
  * Data type for scripts. Each #hb_script_t's value is an #hb_tag_t corresponding
@@ -719,7 +719,7 @@ typedef enum
   HB_SCRIPT_MATH			= HB_TAG ('Z','m','t','h'),
 
   /*
-   * Since REPLACEME
+   * Since 5.2.0
    */
   HB_SCRIPT_KAWI			= HB_TAG ('K','a','w','i'), /*15.0*/
   HB_SCRIPT_NAG_MUNDARI			= HB_TAG ('N','a','g','m'), /*15.0*/

@@ -70,8 +70,8 @@ struct graph_t
       {
         DEBUG_MSG (SUBSET_REPACK, nullptr,
                    "vertex [%lu] bytes != [%lu] bytes, depth = %u",
-                   table_size (),
-                   other.table_size (),
+                   (unsigned long) table_size (),
+                   (unsigned long) other.table_size (),
                    depth);
 
         auto a = as_bytes ();
@@ -496,6 +496,12 @@ struct graph_t
   }
 
   template <typename T, typename ...Ts>
+  vertex_and_table_t<T> as_mutable_table (unsigned parent, const void* offset, Ts... ds)
+  {
+    return as_table_from_index<T> (mutable_index_for_offset (parent, offset), std::forward<Ts>(ds)...);
+  }
+
+  template <typename T, typename ...Ts>
   vertex_and_table_t<T> as_table_from_index (unsigned index, Ts... ds)
   {
     if (index >= vertices_.length)
@@ -574,7 +580,7 @@ struct graph_t
 
     while (roots)
     {
-      unsigned next = HB_SET_VALUE_INVALID;
+      uint32_t next = HB_SET_VALUE_INVALID;
       if (unlikely (!check_success (!roots.in_error ()))) break;
       if (!roots.next (&next)) break;
 
@@ -655,8 +661,8 @@ struct graph_t
 
     auto new_subgraph =
         + subgraph.keys ()
-        | hb_map([&] (unsigned node_idx) {
-          const unsigned *v;
+        | hb_map([&] (uint32_t node_idx) {
+          const uint32_t *v;
           if (index_map.has (node_idx, &v)) return *v;
           return node_idx;
         })
@@ -666,10 +672,10 @@ struct graph_t
     remap_obj_indices (index_map, parents.iter (), true);
 
     // Update roots set with new indices as needed.
-    unsigned next = HB_SET_VALUE_INVALID;
+    uint32_t next = HB_SET_VALUE_INVALID;
     while (roots.next (&next))
     {
-      const unsigned *v;
+      const uint32_t *v;
       if (index_map.has (next, &v))
       {
         roots.del (next);
@@ -684,7 +690,7 @@ struct graph_t
   {
     for (const auto& link : vertices_[node_idx].obj.all_links ())
     {
-      const unsigned *v;
+      const uint32_t *v;
       if (subgraph.has (link.objidx, &v))
       {
         subgraph.set (link.objidx, *v + 1);
@@ -833,7 +839,20 @@ struct graph_t
    * parent to the clone. The copy is a shallow copy, objects
    * linked from child are not duplicated.
    */
-  bool duplicate (unsigned parent_idx, unsigned child_idx)
+  unsigned duplicate_if_shared (unsigned parent_idx, unsigned child_idx)
+  {
+    unsigned new_idx = duplicate (parent_idx, child_idx);
+    if (new_idx == (unsigned) -1) return child_idx;
+    return new_idx;
+  }
+
+
+  /*
+   * Creates a copy of child and re-assigns the link from
+   * parent to the clone. The copy is a shallow copy, objects
+   * linked from child are not duplicated.
+   */
+  unsigned duplicate (unsigned parent_idx, unsigned child_idx)
   {
     update_parents ();
 
@@ -849,7 +868,7 @@ struct graph_t
       // to child are from parent.
       DEBUG_MSG (SUBSET_REPACK, nullptr, "  Not duplicating %d => %d",
                  parent_idx, child_idx);
-      return false;
+      return -1;
     }
 
     DEBUG_MSG (SUBSET_REPACK, nullptr, "  Duplicating %d => %d",
@@ -869,7 +888,7 @@ struct graph_t
       reassign_link (l, parent_idx, clone_idx);
     }
 
-    return true;
+    return clone_idx;
   }
 
 
@@ -1164,7 +1183,7 @@ struct graph_t
     {
       for (auto& link : vertices_[i].obj.all_links_writer ())
       {
-        const unsigned *v;
+        const uint32_t *v;
         if (!id_map.has (link.objidx, &v)) continue;
         if (only_wide && !(link.width == 4 && !link.is_signed)) continue;
 

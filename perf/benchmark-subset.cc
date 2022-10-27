@@ -97,6 +97,19 @@ void AddGlyphs(unsigned num_glyphs_in_font,
   }
 }
 
+// Preprocess face and populate the subset accelerator on it to speed up
+// the subsetting operations.
+static hb_face_t* preprocess_face(hb_face_t* face)
+{
+  #ifdef HB_EXPERIMENTAL_API
+  hb_face_t* new_face = hb_subset_preprocess(face);
+  hb_face_destroy(face);
+  return new_face;
+  #else
+  return face;
+  #endif
+}
+
 /* benchmark for subsetting a font */
 static void BM_subset (benchmark::State &state,
                        operation_t operation,
@@ -110,6 +123,8 @@ static void BM_subset (benchmark::State &state,
     assert (blob);
     face = hb_face_create (blob, 0);
     hb_blob_destroy (blob);
+
+    face = preprocess_face (face);
   }
 
   hb_subset_input_t* input = hb_subset_input_create_or_fail ();

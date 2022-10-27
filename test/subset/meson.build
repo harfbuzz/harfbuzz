@@ -33,7 +33,6 @@ tests = [
   'layout.duplicate_features',
   'layout.unsorted_featurelist',
   'layout.drop_feature',
-  'layout.default_features',
   'cmap',
   'cmap14',
   'sbix',
@@ -54,6 +53,7 @@ tests = [
 # 'pin_all_at_default',
 # 'instantiate_glyf',
 # 'full_instance',
+# 'instance_feature_variations',
 ]
 
 repack_tests = [
