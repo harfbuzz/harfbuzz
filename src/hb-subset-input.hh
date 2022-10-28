@@ -61,6 +61,7 @@ struct hb_subset_input_t
   unsigned flags;
   bool attach_accelerator_data = false;
   hb_hashmap_t<hb_tag_t, float> *axes_location;
+  hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides;
 
   inline unsigned num_sets () const
   {
@@ -80,7 +81,7 @@ struct hb_subset_input_t
         return true;
     }
 
-    return axes_location->in_error ();
+    return axes_location->in_error () || name_table_overrides->in_error ();
   }
 };
 

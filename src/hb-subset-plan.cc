@@ -848,6 +848,29 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->check_success (plan->vmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
   plan->check_success (plan->hmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
 
+  plan->check_success (plan->name_table_overrides = hb_hashmap_create<unsigned, hb_bytes_t> ());
+  if (plan->name_table_overrides && input->name_table_overrides)
+  {
+    for (auto _ : *input->name_table_overrides)
+    {
+      unsigned name_id = _.first;
+      hb_bytes_t name_bytes = _.second;
+      unsigned len = name_bytes.length;
+
+      char *name_str = (char *) hb_malloc (len);
+      if (unlikely (!plan->check_success (name_str)))
+      {
+        for (auto bytes : plan->name_table_overrides->values ())
+          bytes.fini ();
+        break;
+      }
+
+      strncpy (name_str, name_bytes.arrayZ, len);
+      plan->name_table_overrides->set (name_id, hb_bytes_t (name_str, len));
+    }
+  }
+
+
   void* accel = hb_face_get_user_data(face, hb_subset_accelerator_t::user_data_key());
 
   plan->attach_accelerator_data = input->attach_accelerator_data;

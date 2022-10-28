@@ -23,6 +23,7 @@ if '--experimental-api' not in sys.argv:
 hb_subset_input_pin_axis_location
 hb_subset_input_pin_axis_to_default
 hb_subset_preprocess
+hb_subset_input_override_name_table
 """.splitlines ()
 	symbols = [x for x in symbols if x not in experimental_symbols]
 symbols = "\n".join (symbols)
