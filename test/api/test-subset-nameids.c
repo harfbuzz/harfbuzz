@@ -67,6 +67,38 @@ test_subset_nameids_with_dup_strs (void)
   hb_face_destroy (face_expected);
 }
 
+#ifdef HB_EXPERIMENTAL_API
+static void
+test_subset_name_overrides (void)
+{
+  hb_face_t *face_origin = hb_test_open_font_file ("fonts/nameID.origin.ttf");
+  hb_face_t *face_expected = hb_test_open_font_file ("fonts/nameID.override.expected.ttf");
+
+  char str1[] = "Roboto Test";
+  char str2[] = "Bold";
+  char str6[] = "Roboto-Bold";
+ 
+  hb_set_t *name_ids = hb_set_create();
+  hb_face_t *face_subset;
+  hb_set_add_range (name_ids, 0, 15);
+
+  hb_subset_input_t *subset_input = hb_subset_test_create_input_from_nameids (name_ids);
+  hb_subset_input_override_name_table (subset_input, 1, str1, -1);
+  hb_subset_input_override_name_table (subset_input, 2, str2, 4);
+  hb_subset_input_override_name_table (subset_input, 6, str6, -1);
+  hb_subset_input_override_name_table (subset_input, 14, NULL, -1);
+
+  face_subset = hb_subset_test_create_subset (face_origin, subset_input);
+  hb_set_destroy (name_ids);
+
+  hb_subset_test_check (face_expected, face_subset, HB_TAG ('n','a','m','e'));
+
+  hb_face_destroy (face_subset);
+  hb_face_destroy (face_origin);
+  hb_face_destroy (face_expected);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -74,6 +106,9 @@ main (int argc, char **argv)
 
   hb_test_add (test_subset_nameids);
   hb_test_add (test_subset_nameids_with_dup_strs);
+#ifdef HB_EXPERIMENTAL_API
+  hb_test_add (test_subset_name_overrides);
+#endif
 
   return hb_test_run();
 }

@@ -87,6 +87,13 @@ struct hb_subset_plan_t
     hb_hashmap_destroy (vmtx_map);
     hb_hashmap_destroy (layout_variation_idx_delta_map);
 
+    if (name_table_overrides)
+    {
+      for (auto _ : name_table_overrides->values ())
+        _.fini ();
+    }
+    hb_hashmap_destroy (name_table_overrides);
+
     if (user_axes_location)
     {
       hb_object_destroy (user_axes_location);
@@ -190,6 +197,10 @@ struct hb_subset_plan_t
   hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *hmtx_map;
   //vmtx metrics map: new gid->(advance, lsb)
   hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *vmtx_map;
+
+  // name table overrides map: name_id->name string new value or None
+  // to indicate should remove
+  hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides;
 
   const hb_subset_accelerator_t* accelerator;
 

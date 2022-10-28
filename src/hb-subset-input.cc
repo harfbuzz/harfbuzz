@@ -49,8 +49,9 @@ hb_subset_input_create_or_fail (void)
     set = hb_set_create ();
 
   input->axes_location = hb_hashmap_create<hb_tag_t, float> ();
+  input->name_table_overrides = hb_hashmap_create<unsigned, hb_bytes_t> ();
 
-  if (!input->axes_location || input->in_error ())
+  if (!input->axes_location || !input->name_table_overrides || input->in_error ())
   {
     hb_subset_input_destroy (input);
     return nullptr;
@@ -247,6 +248,14 @@ hb_subset_input_destroy (hb_subset_input_t *input)
     hb_set_destroy (set);
 
   hb_hashmap_destroy (input->axes_location);
+
+  if (input->name_table_overrides)
+  {
+    for (auto _ : input->name_table_overrides->values ())
+      _.fini ();
+  }
+
+  hb_hashmap_destroy (input->name_table_overrides);
 
   hb_free (input);
 }
@@ -478,4 +487,43 @@ hb_subset_preprocess (hb_face_t *source)
 
   return new_source;
 }
+
+/**
+ * hb_subset_input_override_name_table:
+ * @input: a #hb_subset_input_t object.
+ * @name_id: name_id of a nameRecord
+ * @name_str: pointer to name string new value or null to indicate should remove
+ * @str_len: the size of @name_str, or -1 if it is `NULL`-terminated
+ *
+ * Override the name string of a nameRecord with specified name_id
+ * Since: EXPERIMENTAL
+ **/
+HB_EXTERN void
+hb_subset_input_override_name_table (hb_subset_input_t  *input,
+                                     hb_ot_name_id_t     name_id,
+                                     const char         *name_str,
+                                     int                 str_len /* -1 means nul-terminated */)
+{
+  if (!name_str)
+  {
+    hb_set_del (hb_subset_input_set(input, HB_SUBSET_SETS_NAME_ID), name_id);
+    return;
+  }
+
+  if (str_len == -1)
+    str_len = strlen (name_str);
+
+  if (!str_len)
+  {
+    hb_set_del (hb_subset_input_set(input, HB_SUBSET_SETS_NAME_ID), name_id);
+    return;
+  }
+
+  char *override_name = (char *) hb_malloc (str_len);
+  if (unlikely (!override_name)) return;
+
+  strncpy (override_name, name_str, str_len);
+  input->name_table_overrides->set (name_id, hb_bytes_t (override_name, str_len));
+}
+
 #endif
