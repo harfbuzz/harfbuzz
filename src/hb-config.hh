@@ -39,10 +39,6 @@
 #define HB_NO_BEYOND_64K
 #endif
 
-#ifndef HB_BORING_EXPANSION
-#define HB_NO_BORING_EXPANSION
-#endif
-
 #ifdef HB_TINY
 #define HB_LEAN
 #define HB_MINI
