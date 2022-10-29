@@ -104,7 +104,7 @@
 
 #ifdef HB_NO_BORING_EXPANSION
 #define HB_NO_BEYOND_64K
-#define HB_NO_VARIATIONS2
+#define HB_NO_AVAR2
 #endif
 
 #ifdef HB_DISABLE_DEPRECATED
