@@ -82,7 +82,7 @@ hb_ot_name_convert_utf (hb_bytes_t                       bytes,
 
   if (text_size && *text_size)
   {
-    (*text_size)--; /* Same room for NUL-termination. */
+    (*text_size)--; /* Save room for NUL-termination. */
     const typename out_utf_t::codepoint_t *dst_end = text + *text_size;
 
     while (src < src_end && dst < dst_end)
