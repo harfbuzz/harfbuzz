@@ -7,6 +7,7 @@ SUBDIRS = repack_tests
 
 EXTRA_DIST += \
 	$(TESTS) \
+	$(DISABLED_TESTS) \
 	expected/32bit_var_store \
 	expected/basics \
 	expected/full-font \
@@ -55,6 +56,10 @@ EXTRA_DIST += \
 	expected/math \
 	expected/math_coverage_offset \
 	expected/post \
+	expected/full_instance \
+	expected/instance_feature_variations \
+	expected/instantiate_glyf \
+	expected/pin_all_at_default \
 	fonts \
 	profiles \
 	$(NULL)
