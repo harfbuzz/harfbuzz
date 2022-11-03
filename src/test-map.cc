@@ -240,5 +240,15 @@ main (int argc, char **argv)
     m1->set (2,4);
     assert (!m.has (p2));
   }
+  /* Test value type with hb_bytes_t. */
+  {
+    hb_hashmap_t<int, hb_bytes_t> m;
+    char c_str[] = "Test";
+    hb_bytes_t bytes (c_str, 4);
+
+    m.set (1, bytes);
+    assert (m.has (1));
+  }
+
   return 0;
 }
