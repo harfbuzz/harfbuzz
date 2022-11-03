@@ -221,7 +221,7 @@ struct hb_hashmap_t
     unsigned int i = bucket_for (key);
     if (items[i].is_real () && items[i] == key)
     {
-      if (vp) *vp = &items[i].value;
+      if (vp) *vp = std::addressof (items[i].value);
       return true;
     }
     else
