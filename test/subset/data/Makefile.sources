@@ -57,5 +57,10 @@ TESTS = \
 XFAIL_TESTS = \
 	$(NULL)
 
+# Disabled because instancing is only available w/ experimental API on.
 DISABLED_TESTS = \
+	tests/full_instance.tests \
+	tests/instance_feature_variations.tests \
+	tests/instantiate_glyf.tests \
+	tests/pin_all_at_default.tests \
 	$(NULL)
