@@ -270,6 +270,33 @@ initial_reordering_consonant_syllable (hb_buffer_t *buffer,
 
   /* Sit tight, rock 'n roll! */
   buffer->sort (start, end, compare_myanmar_order);
+
+  /* Flip left-matra sequence. */
+  unsigned first_left_matra = end;
+  unsigned last_left_matra = end;
+  for (unsigned int i = start; i < end; i++)
+  {
+    if (info[i].myanmar_position() == POS_PRE_M)
+    {
+      if (first_left_matra == end)
+	first_left_matra = i;
+      last_left_matra = i;
+    }
+  }
+  /* https://github.com/harfbuzz/harfbuzz/issues/3863 */
+  if (first_left_matra < last_left_matra)
+  {
+    /* No need to merge clusters, done already? */
+    buffer->reverse_range (first_left_matra, last_left_matra + 1);
+    /* Reverse back VS, etc. */
+    unsigned i = first_left_matra;
+    for (unsigned j = i; j <= last_left_matra; j++)
+      if (info[j].myanmar_category() == M_Cat(VPre))
+      {
+	buffer->reverse_range (i, j + 1);
+	i = j + 1;
+      }
+  }
 }
 
 static void
