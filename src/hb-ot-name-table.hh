@@ -151,15 +151,19 @@ struct NameRecord
     if (unlikely (!out)) return_trace (nullptr);
     if (name_table_overrides->has (nameID)) {
       hb_bytes_t name_bytes = name_table_overrides->get (nameID);
-      char *name_str_utf16_be = (char *) hb_calloc ((name_bytes.length + 1) * 4, 1);
-      unsigned text_size = hb_ot_name_convert_utf<hb_utf8_t, hb_utf16_be_t> (name_bytes, nullptr,
-                                                                             (hb_utf16_be_t::codepoint_t *) name_str_utf16_be);
+      unsigned text_size = hb_ot_name_convert_utf<hb_utf8_t, hb_utf16_be_t> (name_bytes, nullptr, nullptr);
 
       text_size++; // needs to consider NULL terminator for use in hb_ot_name_convert_utf()
+      unsigned encoded_byte_len = text_size * hb_utf16_be_t::codepoint_t::static_size;
+      char *name_str_utf16_be = (char *) hb_calloc (encoded_byte_len, 1);
+      if (!name_str_utf16_be)
+      {
+        c->revert (snap);
+        return_trace (nullptr);
+      }
       hb_ot_name_convert_utf<hb_utf8_t, hb_utf16_be_t> (name_bytes, &text_size,
                                                         (hb_utf16_be_t::codepoint_t *) name_str_utf16_be);
 
-      unsigned encoded_byte_len = text_size * hb_utf16_be_t::codepoint_t::static_size;
       if (!encoded_byte_len || !c->check_assign (out->length, encoded_byte_len, HB_SERIALIZE_ERROR_INT_OVERFLOW)) {
         c->revert (snap);
         hb_free (name_str_utf16_be);
