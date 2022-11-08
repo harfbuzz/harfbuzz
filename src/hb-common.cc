@@ -1136,7 +1136,7 @@ get_C_locale ()
 /**
  * hb_variation_to_string:
  * @variation: an #hb_variation_t to convert
- * @buf: (array length=size) (out): output string
+ * @buf: (array length=size) (out caller-allocates): output string
  * @size: the allocated size of @buf
  *
  * Converts an #hb_variation_t into a `NULL`-terminated string in the format

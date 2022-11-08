@@ -477,7 +477,7 @@ struct MarkBasePos : public OT::Layout::GPOS_impl::MarkBasePos
     switch (u.format) {
     case 1:
       return ((MarkBasePosFormat1*)(&u.format1))->split_subtables (c, parent_index, this_index);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: HB_FALLTHROUGH;
       // Don't split 24bit PairPos's.
 #endif
@@ -494,7 +494,7 @@ struct MarkBasePos : public OT::Layout::GPOS_impl::MarkBasePos
     switch (u.format) {
     case 1:
       return ((MarkBasePosFormat1*)(&u.format1))->sanitize (vertex);
-#ifndef HB_NO_BORING_EXPANSION
+#ifndef HB_NO_BEYOND_64K
     case 2: HB_FALLTHROUGH;
 #endif
     default:

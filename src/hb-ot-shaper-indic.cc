@@ -742,14 +742,40 @@ initial_reordering_consonant_syllable (const hb_ot_shape_plan_t *plan,
 
     /* Sit tight, rock 'n roll! */
     hb_stable_sort (info + start, end - start, compare_indic_order);
-    /* Find base again */
+
+    /* Find base again; also flip left-matra sequence. */
+    unsigned first_left_matra = end;
+    unsigned last_left_matra = end;
     base = end;
     for (unsigned int i = start; i < end; i++)
+    {
       if (info[i].indic_position() == POS_BASE_C)
       {
 	base = i;
 	break;
       }
+      else if (info[i].indic_position() == POS_PRE_M)
+      {
+        if (first_left_matra == end)
+	  first_left_matra = i;
+	last_left_matra = i;
+      }
+    }
+    /* https://github.com/harfbuzz/harfbuzz/issues/3863 */
+    if (first_left_matra < last_left_matra)
+    {
+      /* No need to merge clusters, handled later. */
+      buffer->reverse_range (first_left_matra, last_left_matra + 1);
+      /* Reverse back nuktas, etc. */
+      unsigned i = first_left_matra;
+      for (unsigned j = i; j <= last_left_matra; j++)
+        if (info[j].indic_category() == I_Cat(M))
+	{
+	  buffer->reverse_range (i, j + 1);
+	  i = j + 1;
+	}
+    }
+
     /* Things are out-of-control for post base positions, they may shuffle
      * around like crazy.  In old-spec mode, we move halants around, so in
      * that case merge all clusters after base.  Otherwise, check the sort
