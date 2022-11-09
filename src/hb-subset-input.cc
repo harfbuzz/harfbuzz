@@ -522,7 +522,7 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
   char *override_name = (char *) hb_malloc (str_len);
   if (unlikely (!override_name)) return;
 
-  strncpy (override_name, name_str, str_len);
+  hb_memcpy (override_name, name_str, str_len);
   input->name_table_overrides->set (name_id, hb_bytes_t (override_name, str_len));
 }
 
