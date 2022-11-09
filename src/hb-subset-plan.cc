@@ -865,7 +865,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
         break;
       }
 
-      strncpy (name_str, name_bytes.arrayZ, len);
+      hb_memcpy (name_str, name_bytes.arrayZ, len);
       plan->name_table_overrides->set (name_id, hb_bytes_t (name_str, len));
     }
   }
