@@ -36,6 +36,48 @@
 
 #include "hb-font.hh"
 
+struct hb_ot_name_record_ids_t
+{
+  hb_ot_name_record_ids_t () = default;
+  hb_ot_name_record_ids_t (unsigned platform_id_,
+                           unsigned encoding_id_,
+                           unsigned language_id_,
+                           unsigned name_id_)
+      :platform_id (platform_id_),
+      encoding_id (encoding_id_),
+      language_id (language_id_),
+      name_id (name_id_) {}
+
+  bool operator != (const hb_ot_name_record_ids_t o) const
+  { return !(*this == o); }
+
+  inline bool operator == (const hb_ot_name_record_ids_t& o) const
+  {
+    return platform_id == o.platform_id &&
+           encoding_id == o.encoding_id &&
+           language_id == o.language_id &&
+           name_id == o.name_id;
+  }
+
+  inline uint32_t hash () const
+  {
+    uint32_t current = 0;
+    current = current * 31 + hb_hash (platform_id);
+    current = current * 31 + hb_hash (encoding_id);
+    current = current * 31 + hb_hash (language_id);
+    current = current * 31 + hb_hash (name_id);
+    return current;
+  }
+
+  unsigned platform_id;
+  unsigned encoding_id;
+  unsigned language_id;
+  unsigned name_id;
+};
+
+typedef struct hb_ot_name_record_ids_t hb_ot_name_record_ids_t;
+
+
 HB_MARK_AS_FLAG_T (hb_subset_flags_t);
 
 struct hb_subset_input_t
@@ -66,7 +108,7 @@ struct hb_subset_input_t
 
   hb_hashmap_t<hb_tag_t, float> *axes_location;
 #ifdef HB_EXPERIMENTAL_API
-  hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides;
+  hb_hashmap_t<hb_ot_name_record_ids_t, hb_bytes_t> *name_table_overrides;
 #endif
 
   inline unsigned num_sets () const

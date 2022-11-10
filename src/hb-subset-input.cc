@@ -26,7 +26,7 @@
 
 #include "hb-subset.hh"
 #include "hb-set.hh"
-
+#include "hb-utf.hh"
 /**
  * hb_subset_input_create_or_fail:
  *
@@ -50,7 +50,7 @@ hb_subset_input_create_or_fail (void)
 
   input->axes_location = hb_hashmap_create<hb_tag_t, float> ();
 #ifdef HB_EXPERIMENTAL_API
-  input->name_table_overrides = hb_hashmap_create<unsigned, hb_bytes_t> ();
+  input->name_table_overrides = hb_hashmap_create<hb_ot_name_record_ids_t, hb_bytes_t> ();
 #endif
 
   if (!input->axes_location ||
@@ -258,8 +258,8 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 #ifdef HB_EXPERIMENTAL_API
   if (input->name_table_overrides)
   {
-    for (auto _ : input->name_table_overrides->values ())
-      _.fini ();
+    for (auto _ : *input->name_table_overrides)
+      _.second.fini ();
   }
   hb_hashmap_destroy (input->name_table_overrides);
 #endif
@@ -514,38 +514,67 @@ hb_subset_preprocess (hb_face_t *source)
  * hb_subset_input_override_name_table:
  * @input: a #hb_subset_input_t object.
  * @name_id: name_id of a nameRecord
+ * @platform_id: platform ID of a nameRecord
+ * @encoding_id: encoding ID of a nameRecord
+ * @language_id: language ID of a nameRecord
  * @name_str: pointer to name string new value or null to indicate should remove
  * @str_len: the size of @name_str, or -1 if it is `NULL`-terminated
  *
- * Override the name string of a nameRecord with specified name_id
+ * Override the name string of the NameRecord identified by name_id,
+ * platform_id, encoding_id and language_id. If a record with that name_id
+ * doesn't exist, create it and insert to the name table.
+ *
+ * Note: for mac platform, we only support name_str with all ascii characters,
+ * name_str with non-ascii characters will be ignored.
+ *
  * Since: EXPERIMENTAL
  **/
-HB_EXTERN void
+HB_EXTERN hb_bool_t
 hb_subset_input_override_name_table (hb_subset_input_t  *input,
                                      hb_ot_name_id_t     name_id,
+                                     unsigned            platform_id,
+                                     unsigned            encoding_id,
+                                     unsigned            language_id,
                                      const char         *name_str,
                                      int                 str_len /* -1 means nul-terminated */)
 {
   if (!name_str)
   {
-    hb_set_del (hb_subset_input_set(input, HB_SUBSET_SETS_NAME_ID), name_id);
-    return;
+    str_len = 0;
   }
-
-  if (str_len == -1)
-    str_len = strlen (name_str);
-
-  if (!str_len)
+  else if (str_len == -1)
   {
-    hb_set_del (hb_subset_input_set(input, HB_SUBSET_SETS_NAME_ID), name_id);
-    return;
+      str_len = strlen (name_str);
   }
 
-  char *override_name = (char *) hb_malloc (str_len);
-  if (unlikely (!override_name)) return;
+  hb_bytes_t name_bytes (nullptr, 0);
+  if (str_len)
+  {
+    if (platform_id == 1)
+    {
+      const uint8_t *src = reinterpret_cast<const uint8_t*> (name_str);
+      const uint8_t *src_end = src + str_len;
 
-  hb_memcpy (override_name, name_str, str_len);
-  input->name_table_overrides->set (name_id, hb_bytes_t (override_name, str_len));
+      hb_codepoint_t unicode;
+      const hb_codepoint_t replacement = HB_BUFFER_REPLACEMENT_CODEPOINT_DEFAULT;
+      while (src < src_end)
+      {
+        src = hb_utf8_t::next (src, src_end, &unicode, replacement);
+        if (unicode >= 0x0080u)
+        {
+          printf ("Non-ascii character detected, ignored...This API supports acsii characters only for mac platform\n");
+          return false;
+        }
+      }
+    }
+    char *override_name = (char *) hb_malloc (str_len);
+    if (unlikely (!override_name)) return false;
+
+    hb_memcpy (override_name, name_str, str_len);
+    name_bytes = hb_bytes_t (override_name, str_len);
+  }
+  input->name_table_overrides->set (hb_ot_name_record_ids_t (platform_id, encoding_id, language_id, name_id), name_bytes);
+  return true;
 }
 
 #endif

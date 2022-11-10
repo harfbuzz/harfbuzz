@@ -90,8 +90,8 @@ struct hb_subset_plan_t
 #ifdef HB_EXPERIMENTAL_API
     if (name_table_overrides)
     {
-      for (auto _ : name_table_overrides->values ())
-        _.fini ();
+      for (auto _ : *name_table_overrides)
+        _.second.fini ();
     }
     hb_hashmap_destroy (name_table_overrides);
 #endif
@@ -206,9 +206,9 @@ struct hb_subset_plan_t
   hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *vmtx_map;
 
 #ifdef HB_EXPERIMENTAL_API
-  // name table overrides map: name_id->name string new value or None
-  // to indicate should remove
-  hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides;
+  // name table overrides map: hb_ot_name_record_ids_t-> name string new value or
+  // None to indicate should remove
+  hb_hashmap_t<hb_ot_name_record_ids_t, hb_bytes_t> *name_table_overrides;
 #endif
 
   const hb_subset_accelerator_t* accelerator;
