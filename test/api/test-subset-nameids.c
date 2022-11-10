@@ -77,16 +77,18 @@ test_subset_name_overrides (void)
   char str1[] = "Roboto Test";
   char str2[] = "Bold";
   char str6[] = "Roboto-Bold";
+  char str16[] = "Roboto-test-inserting";
  
   hb_set_t *name_ids = hb_set_create();
   hb_face_t *face_subset;
   hb_set_add_range (name_ids, 0, 15);
 
   hb_subset_input_t *subset_input = hb_subset_test_create_input_from_nameids (name_ids);
-  hb_subset_input_override_name_table (subset_input, 1, str1, -1);
-  hb_subset_input_override_name_table (subset_input, 2, str2, 4);
-  hb_subset_input_override_name_table (subset_input, 6, str6, -1);
-  hb_subset_input_override_name_table (subset_input, 14, NULL, -1);
+  hb_subset_input_override_name_table (subset_input, 1, 1, 0, 0, str1, -1);
+  hb_subset_input_override_name_table (subset_input, 2, 1, 0, 0, str2, 4);
+  hb_subset_input_override_name_table (subset_input, 6, 1, 0, 0, str6, -1);
+  hb_subset_input_override_name_table (subset_input, 14, 1, 0, 0, NULL, -1);
+  hb_subset_input_override_name_table (subset_input, 16, 1, 0, 0, str16, -1);
 
   face_subset = hb_subset_test_create_subset (face_origin, subset_input);
   hb_set_destroy (name_ids);

@@ -143,14 +143,14 @@ struct NameRecord
   }
 
   NameRecord* copy (hb_serialize_context_t *c, const void *base,
-                    const hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides) const
+                    const hb_hashmap_t<unsigned, hb_pair_t<hb_vector_t<unsigned>, hb_bytes_t>> *name_table_overrides) const
   {
     TRACE_SERIALIZE (this);
     auto snap = c->snapshot ();
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
     if (name_table_overrides->has (nameID)) {
-      hb_bytes_t name_bytes = name_table_overrides->get (nameID);
+      hb_bytes_t name_bytes = (name_table_overrides->get (nameID)).second;
       unsigned text_size = hb_ot_name_convert_utf<hb_utf8_t, hb_utf16_be_t> (name_bytes, nullptr, nullptr);
 
       text_size++; // needs to consider NULL terminator for use in hb_ot_name_convert_utf()
@@ -293,23 +293,48 @@ struct name
 	    hb_requires (hb_is_source_of (Iterator, const NameRecord &))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator it,
+		  const hb_vector_t<unsigned>& insert_name_ids,
 		  const void *src_string_pool,
-		  const hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides)
+		  const hb_hashmap_t<unsigned, hb_pair_t<hb_vector_t<unsigned>, hb_bytes_t>> *name_table_overrides)
   {
     TRACE_SERIALIZE (this);
 
     if (unlikely (!c->extend_min ((*this))))  return_trace (false);
 
+    unsigned total_count = it.len () + insert_name_ids.length;
     this->format = 0;
-    this->count = it.len ();
+    if (!c->check_assign (this->count, total_count, HB_SERIALIZE_ERROR_INT_OVERFLOW))
+      return false;
 
-    NameRecord *name_records = (NameRecord *) hb_calloc (it.len (), NameRecord::static_size);
+    NameRecord *name_records = (NameRecord *) hb_calloc (total_count, NameRecord::static_size);
     if (unlikely (!name_records)) return_trace (false);
 
-    hb_array_t<NameRecord> records (name_records, it.len ());
+    hb_array_t<NameRecord> records (name_records, total_count);
 
     for (const NameRecord& record : it)
     {
+      memcpy (name_records, &record, NameRecord::static_size);
+      hb_pair_t<hb_vector_t<unsigned>, hb_bytes_t> *p;
+      if (name_table_overrides->has (record.nameID, &p))
+      {
+        const hb_vector_t<unsigned>& record_ids = (*p).first;
+        name_records[0].platformID = record_ids[0];
+        name_records[0].encodingID = record_ids[1];
+        name_records[0].languageID = record_ids[1];
+      }
+      name_records++;
+    }
+
+    for (unsigned name_id : insert_name_ids)
+    {
+      NameRecord record;
+      const hb_vector_t<unsigned>& record_ids = (name_table_overrides->get (name_id)).first;
+      record.platformID = record_ids[0];
+      record.encodingID = record_ids[1];
+      record.languageID = record_ids[1];
+      record.nameID = name_id;
+      record.length = 0; // handled in NameRecord copy()
+      record.offset = 0;
       memcpy (name_records, &record, NameRecord::static_size);
       name_records++;
     }
@@ -337,16 +362,38 @@ struct name
     auto it =
     + nameRecordZ.as_array (count)
     | hb_filter (c->plan->name_ids, &NameRecord::nameID)
-    | hb_filter (c->plan->name_languages, &NameRecord::languageID)
     | hb_filter ([&] (const NameRecord& namerecord) {
-      return
-          (c->plan->flags & HB_SUBSET_FLAGS_NAME_LEGACY)
-          || namerecord.isUnicode ();
+      if (!c->plan->name_table_overrides->has (namerecord.nameID))
+        return c->plan->name_languages->has (namerecord.languageID);
+      unsigned language_id = (c->plan->name_table_overrides->get (namerecord.nameID).first)[2];
+      return c->plan->name_languages->has (language_id);
+    })
+    | hb_filter ([&] (const NameRecord& namerecord) {
+      if (c->plan->flags & HB_SUBSET_FLAGS_NAME_LEGACY)
+        return true;
+      if (!c->plan->name_table_overrides->has (namerecord.nameID))
+        return namerecord.isUnicode ();
+
+      const hb_vector_t<unsigned>& record_ids = c->plan->name_table_overrides->get (namerecord.nameID).first;
+      NameRecord override_record;
+      override_record.platformID = record_ids[0];
+      override_record.encodingID = record_ids[1];
+      return override_record.isUnicode ();
     })
     ;
 
-    name_prime->serialize (c->serializer, it, std::addressof (this + stringOffset), c->plan->name_table_overrides);
-    return_trace (name_prime->count);
+    hb_vector_t<unsigned> insert_name_ids;
+    insert_name_ids.alloc (c->plan->name_table_overrides->get_population ());
+    for (unsigned name_id : c->plan->name_table_overrides->keys ())
+    {
+      if (has_nameid (name_id))
+        continue;
+      insert_name_ids.push (name_id);
+    }
+
+    return (name_prime->serialize (c->serializer, it, insert_name_ids,
+                                   std::addressof (this + stringOffset),
+                                   c->plan->name_table_overrides));
   }
 
   bool sanitize_records (hb_sanitize_context_t *c) const
@@ -456,6 +503,22 @@ struct name
     hb_vector_t<hb_ot_name_entry_t> names;
   };
 
+  private:
+  bool has_nameid (unsigned name_id) const
+  {
+    const NameRecord *record = (NameRecord *) hb_bsearch (name_id, nameRecordZ.arrayZ, (unsigned)count, NameRecord::static_size, nameid_compare);
+    return (record != nullptr);
+  }
+
+  static int nameid_compare (const void *pa, const void *pb)
+  {
+    const unsigned *a = reinterpret_cast<const unsigned *> (pa);
+    const NameRecord *b = reinterpret_cast<const NameRecord *> (pb);
+    unsigned name_id = b->nameID;
+    return (int)(*a) - (int)name_id;
+  }
+
+  public:
   /* We only implement format 0 for now. */
   HBUINT16	format;		/* Format selector (=0/1). */
   HBUINT16	count;		/* Number of name records. */

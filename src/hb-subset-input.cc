@@ -49,7 +49,7 @@ hb_subset_input_create_or_fail (void)
     set = hb_set_create ();
 
   input->axes_location = hb_hashmap_create<hb_tag_t, float> ();
-  input->name_table_overrides = hb_hashmap_create<unsigned, hb_bytes_t> ();
+  input->name_table_overrides = hb_hashmap_create<unsigned, hb_pair_t<hb_vector_t<unsigned>, hb_bytes_t>> ();
 
   if (!input->axes_location || !input->name_table_overrides || input->in_error ())
   {
@@ -252,7 +252,7 @@ hb_subset_input_destroy (hb_subset_input_t *input)
   if (input->name_table_overrides)
   {
     for (auto _ : input->name_table_overrides->values ())
-      _.fini ();
+      _.second.fini ();
   }
 
   hb_hashmap_destroy (input->name_table_overrides);
@@ -492,15 +492,24 @@ hb_subset_preprocess (hb_face_t *source)
  * hb_subset_input_override_name_table:
  * @input: a #hb_subset_input_t object.
  * @name_id: name_id of a nameRecord
+ * @platform_id: platform ID new value of a nameRecord
+ * @encoding_id: encoding ID new value of a nameRecord
+ * @language_id: language ID new value of a nameRecord
  * @name_str: pointer to name string new value or null to indicate should remove
  * @str_len: the size of @name_str, or -1 if it is `NULL`-terminated
  *
- * Override the name string of a nameRecord with specified name_id
+ * Override the name string, platform_id, encoding_id and language_id
+ * of the nameRecord identified by name_id. If a record with that name_id
+ * doesn't exist, create it and insert to the name table.
+ *
  * Since: EXPERIMENTAL
  **/
 HB_EXTERN void
 hb_subset_input_override_name_table (hb_subset_input_t  *input,
                                      hb_ot_name_id_t     name_id,
+                                     unsigned            platform_id,
+                                     unsigned            encoding_id,
+                                     unsigned            language_id,
                                      const char         *name_str,
                                      int                 str_len /* -1 means nul-terminated */)
 {
@@ -523,7 +532,13 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
   if (unlikely (!override_name)) return;
 
   hb_memcpy (override_name, name_str, str_len);
-  input->name_table_overrides->set (name_id, hb_bytes_t (override_name, str_len));
+  hb_vector_t<unsigned> record_ids;
+  if (unlikely (!record_ids.alloc (3))) return;
+
+  record_ids.push (platform_id);
+  record_ids.push (encoding_id);
+  record_ids.push (language_id);
+  input->name_table_overrides->set (name_id, hb_pair (record_ids, hb_bytes_t (override_name, str_len)));
 }
 
 #endif

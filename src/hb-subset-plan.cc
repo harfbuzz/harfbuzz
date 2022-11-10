@@ -848,25 +848,26 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->check_success (plan->vmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
   plan->check_success (plan->hmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
 
-  plan->check_success (plan->name_table_overrides = hb_hashmap_create<unsigned, hb_bytes_t> ());
+  plan->check_success (plan->name_table_overrides = hb_hashmap_create<unsigned, hb_pair_t<hb_vector_t<unsigned>, hb_bytes_t>> ());
   if (plan->name_table_overrides && input->name_table_overrides)
   {
     for (auto _ : *input->name_table_overrides)
     {
       unsigned name_id = _.first;
-      hb_bytes_t name_bytes = _.second;
-      unsigned len = name_bytes.length;
 
+      hb_vector_t<unsigned> record_ids;
+      if (unlikely (!plan->check_success (record_ids.alloc (3))))
+          break;
+      record_ids.copy_vector (_.second.first);
+
+      hb_bytes_t name_bytes = _.second.second;
+      unsigned len = name_bytes.length;
       char *name_str = (char *) hb_malloc (len);
       if (unlikely (!plan->check_success (name_str)))
-      {
-        for (auto bytes : plan->name_table_overrides->values ())
-          bytes.fini ();
         break;
-      }
 
       hb_memcpy (name_str, name_bytes.arrayZ, len);
-      plan->name_table_overrides->set (name_id, hb_bytes_t (name_str, len));
+      plan->name_table_overrides->set (name_id, hb_pair (record_ids, hb_bytes_t (name_str, len)));
     }
   }
 

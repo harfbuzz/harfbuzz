@@ -90,7 +90,7 @@ struct hb_subset_plan_t
     if (name_table_overrides)
     {
       for (auto _ : name_table_overrides->values ())
-        _.fini ();
+        _.second.fini ();
     }
     hb_hashmap_destroy (name_table_overrides);
 
@@ -198,9 +198,9 @@ struct hb_subset_plan_t
   //vmtx metrics map: new gid->(advance, lsb)
   hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *vmtx_map;
 
-  // name table overrides map: name_id->name string new value or None
-  // to indicate should remove
-  hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides;
+  // name table overrides map: name_id->(vector of ids, name string new value)
+  // name string None to indicate should remove
+  hb_hashmap_t<unsigned, hb_pair_t<hb_vector_t<unsigned>, hb_bytes_t>> *name_table_overrides;
 
   const hb_subset_accelerator_t* accelerator;
 
