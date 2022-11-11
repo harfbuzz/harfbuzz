@@ -128,8 +128,13 @@ struct PairSet
 
       if (applied_first || applied_second)
         buffer->unsafe_to_break (buffer->idx, pos + 1);
+
       if (len2)
-        pos++;
+      {
+	pos++;
+	// https://github.com/harfbuzz/harfbuzz/issues/3824
+	buffer->unsafe_to_break (pos - 1, pos + 1);
+      }
 
       buffer->idx = pos;
       return_trace (true);
