@@ -244,7 +244,11 @@ struct PairPosFormat2_4
 
     buffer->idx = skippy_iter.idx;
     if (len2)
+    {
       buffer->idx++;
+      // https://github.com/harfbuzz/harfbuzz/issues/3824
+      buffer->unsafe_to_break (buffer->idx - 1, buffer->idx + 1);
+    }
 
     return_trace (true);
   }
