@@ -849,6 +849,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   plan->check_success (plan->hmtx_map = hb_hashmap_create<unsigned, hb_pair_t<unsigned, int>> ());
 
   plan->check_success (plan->name_table_overrides = hb_hashmap_create<unsigned, hb_bytes_t> ());
+#ifdef HB_EXPERIMENTAL_API
   if (plan->name_table_overrides && input->name_table_overrides)
   {
     for (auto _ : *input->name_table_overrides)
@@ -860,8 +861,8 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
       char *name_str = (char *) hb_malloc (len);
       if (unlikely (!plan->check_success (name_str)))
       {
-        for (auto bytes : plan->name_table_overrides->values ())
-          bytes.fini ();
+        for (auto pair : *plan->name_table_overrides)
+          pair.second.fini ();
         break;
       }
 
@@ -869,7 +870,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
       plan->name_table_overrides->set (name_id, hb_bytes_t (name_str, len));
     }
   }
-
+#endif
 
   void* accel = hb_face_get_user_data(face, hb_subset_accelerator_t::user_data_key());
 

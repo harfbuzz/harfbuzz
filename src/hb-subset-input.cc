@@ -249,12 +249,13 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 
   hb_hashmap_destroy (input->axes_location);
 
+#ifdef HB_EXPERIMENTAL_API
   if (input->name_table_overrides)
   {
-    for (auto _ : input->name_table_overrides->values ())
-      _.fini ();
+    for (auto _ : *input->name_table_overrides)
+      _.second.fini ();
   }
-
+#endif
   hb_hashmap_destroy (input->name_table_overrides);
 
   hb_free (input);
