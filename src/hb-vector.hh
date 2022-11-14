@@ -35,7 +35,7 @@
 
 template <typename Type,
 	  bool sorted=false>
-struct hb_vector_t : std::conditional<sorted, hb_vector_t<Type, false>, hb_empty_t>::type
+struct hb_vector_t
 {
   typedef Type item_t;
   static constexpr unsigned item_size = hb_static_size (Type);
