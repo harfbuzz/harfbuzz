@@ -243,7 +243,7 @@ struct PairPosFormat2_4
 
 
     buffer->idx = skippy_iter.idx;
-    if (len2)
+    if (applied_second)
     {
       buffer->idx++;
       // https://github.com/harfbuzz/harfbuzz/issues/3824
