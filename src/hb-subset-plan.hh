@@ -87,13 +87,11 @@ struct hb_subset_plan_t
     hb_hashmap_destroy (vmtx_map);
     hb_hashmap_destroy (layout_variation_idx_delta_map);
 
-#ifdef HB_EXPERIMENTAL_API
     if (name_table_overrides)
     {
-      for (auto _ : *name_table_overrides)
-        _.second.fini ();
+      for (auto _ : name_table_overrides->values ())
+        _.fini ();
     }
-#endif
     hb_hashmap_destroy (name_table_overrides);
 
     if (user_axes_location)
