@@ -49,9 +49,15 @@ hb_subset_input_create_or_fail (void)
     set = hb_set_create ();
 
   input->axes_location = hb_hashmap_create<hb_tag_t, float> ();
+#ifdef HB_EXPERIMENTAL_API
   input->name_table_overrides = hb_hashmap_create<unsigned, hb_bytes_t> ();
+#endif
 
-  if (!input->axes_location || !input->name_table_overrides || input->in_error ())
+  if (!input->axes_location ||
+#ifdef HB_EXPERIMENTAL_API
+      !input->name_table_overrides ||
+#endif
+      input->in_error ())
   {
     hb_subset_input_destroy (input);
     return nullptr;
@@ -249,13 +255,14 @@ hb_subset_input_destroy (hb_subset_input_t *input)
 
   hb_hashmap_destroy (input->axes_location);
 
+#ifdef HB_EXPERIMENTAL_API
   if (input->name_table_overrides)
   {
     for (auto _ : input->name_table_overrides->values ())
       _.fini ();
   }
-
   hb_hashmap_destroy (input->name_table_overrides);
+#endif
 
   hb_free (input);
 }
@@ -487,7 +494,9 @@ hb_subset_preprocess (hb_face_t *source)
 
   return new_source;
 }
+#endif
 
+#ifdef HB_EXPERIMENTAL_API
 /**
  * hb_subset_input_override_name_table:
  * @input: a #hb_subset_input_t object.

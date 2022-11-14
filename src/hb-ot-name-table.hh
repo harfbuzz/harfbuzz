@@ -142,14 +142,19 @@ struct NameRecord
     return UNSUPPORTED;
   }
 
-  NameRecord* copy (hb_serialize_context_t *c, const void *base,
-                    const hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides) const
+  NameRecord* copy (hb_serialize_context_t *c, const void *base
+#ifdef HB_EXPERIMENTAL_API
+                    , const hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides
+#endif
+		    ) const
   {
     TRACE_SERIALIZE (this);
-    auto snap = c->snapshot ();
+    HB_UNUSED auto snap = c->snapshot ();
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
-    if (name_table_overrides->has (nameID)) {
+#ifdef HB_EXPERIMENTAL_API
+    if (name_table_overrides->has (nameID))
+    {
       hb_bytes_t name_bytes = name_table_overrides->get (nameID);
       unsigned text_size = hb_ot_name_convert_utf<hb_utf8_t, hb_utf16_be_t> (name_bytes, nullptr, nullptr);
 
@@ -177,7 +182,10 @@ struct NameRecord
       utf16_be_bytes.copy (c);
       c->add_link (out->offset, c->pop_pack (), hb_serialize_context_t::Tail, 0);
       hb_free (name_str_utf16_be);
-    } else {
+    }
+    else
+#endif
+    {
       out->offset.serialize_copy (c, offset, base, 0, hb_serialize_context_t::Tail, length);
     }
     return_trace (out);
@@ -293,8 +301,11 @@ struct name
 	    hb_requires (hb_is_source_of (Iterator, const NameRecord &))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator it,
-		  const void *src_string_pool,
-		  const hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides)
+		  const void *src_string_pool
+#ifdef HB_EXPERIMENTAL_API
+		  , const hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides
+#endif
+		  )
   {
     TRACE_SERIALIZE (this);
 
@@ -316,7 +327,12 @@ struct name
 
     records.qsort ();
 
-    c->copy_all (records, src_string_pool, name_table_overrides);
+    c->copy_all (records,
+		 src_string_pool
+#ifdef HB_EXPERIMENTAL_API
+		 , name_table_overrides
+#endif
+		 );
     hb_free (records.arrayZ);
 
 
@@ -345,7 +361,12 @@ struct name
     })
     ;
 
-    name_prime->serialize (c->serializer, it, std::addressof (this + stringOffset), c->plan->name_table_overrides);
+    name_prime->serialize (c->serializer,
+			   it, std::addressof (this + stringOffset)
+#ifdef HB_EXPERIMENTAL_API
+			   , c->plan->name_table_overrides
+#endif
+			   );
     return_trace (name_prime->count);
   }
 
