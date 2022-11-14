@@ -70,8 +70,7 @@ test_reverse_invalid ()
 int
 main (int argc, char **argv)
 {
-  /* The following fails on MSVC. */
-  // assert (sizeof (hb_array_t<int>) == sizeof (hb_sorted_array_t<int>));
+  assert (sizeof (hb_array_t<int>) == sizeof (hb_sorted_array_t<int>));
 
   test_reverse ();
   test_reverse_range ();

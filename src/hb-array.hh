@@ -295,8 +295,8 @@ hb_array (T (&array_)[length_])
 
 template <typename Type>
 struct hb_sorted_array_t :
-	hb_iter_t<hb_sorted_array_t<Type>, Type&>,
-	hb_array_t<Type>
+	hb_array_t<Type>,
+	hb_iter_t<hb_sorted_array_t<Type>, Type&>
 {
   typedef hb_iter_t<hb_sorted_array_t, Type&> iter_base_t;
   HB_ITER_USING (iter_base_t);
@@ -316,8 +316,8 @@ struct hb_sorted_array_t :
   template <typename U,
 	    hb_enable_if (hb_is_cr_convertible(U, Type))>
   constexpr hb_sorted_array_t (const hb_array_t<U> &o) :
-    hb_iter_t<hb_sorted_array_t, Type&> (),
-    hb_array_t<Type> (o) {}
+    hb_array_t<Type> (o),
+    hb_iter_t<hb_sorted_array_t, Type&> () {}
   template <typename U,
 	    hb_enable_if (hb_is_cr_convertible(U, Type))>
   hb_sorted_array_t& operator = (const hb_array_t<U> &o)
