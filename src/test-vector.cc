@@ -32,6 +32,7 @@
 int
 main (int argc, char **argv)
 {
+  assert (sizeof (hb_vector_t<int>) == sizeof (hb_sorted_vector_t<int>));
 
   /* Test copy constructor. */
   {
