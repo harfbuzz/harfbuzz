@@ -76,7 +76,7 @@ unum  = '0' | [1-9] digit*;
 num	= '-'? unum;
 
 glyph_id = unum;
-glyph_name = ([^\\\]=@+,|] | '\\' [\\\]=@+,|]) *;
+glyph_name = ([^\\\]=@+,#|] | '\\' [\\\]=@+,|]) *;
 
 glyph	= (glyph_id | glyph_name) >tok %parse_glyph;
 cluster	= '=' (unum >tok %parse_cluster);
