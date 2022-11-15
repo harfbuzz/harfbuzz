@@ -320,6 +320,28 @@ main (int argc, char **argv)
   /* The result should be something like 0->10, 1->11, ..., 9->19 */
   assert (hb_map_get (result, 9) == 19);
 
+  /* Like above, but passing hb_set_t instead of hb_set_t * */
+  temp1 = 10;
+  temp2 = 0;
+  result =
+  + hb_iter (src)
+  | hb_map ([&] (int i) -> hb_set_t
+	    {
+	      hb_set_t set;
+	      for (unsigned int i = 0; i < temp1; ++i)
+		hb_set_add (&set, i);
+	      temp1++;
+	      return set;
+	    })
+  | hb_reduce ([&] (hb_map_t *acc, hb_set_t value) -> hb_map_t *
+	       {
+		 hb_map_set (acc, temp2++, hb_set_get_population (&value));
+		 return acc;
+	       }, hb_map_create ())
+  ;
+  /* The result should be something like 0->10, 1->11, ..., 9->19 */
+  assert (hb_map_get (result, 9) == 19);
+
   unsigned int temp3 = 0;
   + hb_iter(src)
   | hb_map([&] (int i) { return ++temp3; })
