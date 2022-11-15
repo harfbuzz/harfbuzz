@@ -244,7 +244,7 @@ main (int argc, char **argv)
   {
     hb_hashmap_t<int, hb_bytes_t> m;
     char c_str[] = "Test";
-    hb_bytes_t bytes (c_str, 4);
+    hb_bytes_t bytes (c_str);
 
     m.set (1, bytes);
     assert (m.has (1));
