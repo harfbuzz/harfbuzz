@@ -128,7 +128,7 @@ struct hb_priority_queue_t
 
   void bubble_up (unsigned index)
   {
-    assert (index <= heap.length);
+    assert (index < heap.length);
 
     if (index == 0) return;
 
@@ -142,8 +142,8 @@ struct hb_priority_queue_t
 
   void swap (unsigned a, unsigned b)
   {
-    assert (a <= heap.length);
-    assert (b <= heap.length);
+    assert (a < heap.length);
+    assert (b < heap.length);
     hb_swap (heap.arrayZ[a], heap.arrayZ[b]);
   }
 };
