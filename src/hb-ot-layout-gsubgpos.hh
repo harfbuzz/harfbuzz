@@ -3994,8 +3994,8 @@ struct hb_ot_layout_lookup_accelerator_t
   }
 
 
-  private:
   hb_set_digest_t digest;
+  private:
   hb_accelerate_subtables_context_t::array_t subtables;
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   unsigned cache_user_idx = (unsigned) -1;

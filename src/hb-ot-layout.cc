@@ -1867,7 +1867,7 @@ apply_forward (OT::hb_ot_apply_context_t *c,
   while (buffer->idx < buffer->len && buffer->successful)
   {
     bool applied = false;
-    if (accel.may_have (buffer->cur().codepoint) &&
+    if (accel.digest.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
 	c->check_glyph_property (&buffer->cur(), c->lookup_props))
      {
@@ -1894,7 +1894,7 @@ apply_backward (OT::hb_ot_apply_context_t *c,
   hb_buffer_t *buffer = c->buffer;
   do
   {
-    if (accel.may_have (buffer->cur().codepoint) &&
+    if (accel.digest.may_have (buffer->cur().codepoint) &&
 	(buffer->cur().mask & c->lookup_mask) &&
 	c->check_glyph_property (&buffer->cur(), c->lookup_props))
      ret |= accel.apply (c, false);
@@ -1952,6 +1952,13 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
   OT::hb_ot_apply_context_t c (table_index, font, buffer);
   c.set_recurse_func (Proxy::Lookup::template dispatch_recurse_func<OT::hb_ot_apply_context_t>);
 
+  hb_set_digest_t digest;
+  digest.init ();
+  if (proxy.table_index == 1) /* GPOS */
+    digest.add_array (&buffer->info[0].codepoint,
+		      buffer->len,
+		      sizeof (buffer->info[0]));
+
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
   {
     const stage_map_t *stage = &stages[table_index][stage_index];
@@ -1959,16 +1966,22 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
     {
       unsigned int lookup_index = lookups[table_index][i].index;
       if (!buffer->message (font, "start lookup %d", lookup_index)) continue;
-      c.set_lookup_index (lookup_index);
-      c.set_lookup_mask (lookups[table_index][i].mask);
-      c.set_auto_zwj (lookups[table_index][i].auto_zwj);
-      c.set_auto_zwnj (lookups[table_index][i].auto_zwnj);
-      c.set_random (lookups[table_index][i].random);
-      c.set_per_syllable (lookups[table_index][i].per_syllable);
 
-      apply_string<Proxy> (&c,
-			   proxy.table.get_lookup (lookup_index),
-			   proxy.accels[lookup_index]);
+      if (table_index != 1 ||
+	  proxy.accels[lookup_index].digest.may_have (digest))
+      {
+	c.set_lookup_index (lookup_index);
+	c.set_lookup_mask (lookups[table_index][i].mask);
+	c.set_auto_zwj (lookups[table_index][i].auto_zwj);
+	c.set_auto_zwnj (lookups[table_index][i].auto_zwnj);
+	c.set_random (lookups[table_index][i].random);
+	c.set_per_syllable (lookups[table_index][i].per_syllable);
+
+	apply_string<Proxy> (&c,
+			     proxy.table.get_lookup (lookup_index),
+			     proxy.accels[lookup_index]);
+      }
+
       (void) buffer->message (font, "end lookup %d", lookup_index);
     }
 

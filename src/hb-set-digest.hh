@@ -111,6 +111,9 @@ struct hb_set_digest_bits_pattern_t
   template <typename T>
   bool add_sorted_array (const hb_sorted_array_t<const T>& arr) { return add_sorted_array (&arr, arr.len ()); }
 
+  bool may_have (const hb_set_digest_bits_pattern_t &o) const
+  { return mask & o.mask; }
+
   bool may_have (hb_codepoint_t g) const
   { return mask & mask_for (g); }
 
@@ -163,6 +166,11 @@ struct hb_set_digest_combiner_t
   }
   template <typename T>
   bool add_sorted_array (const hb_sorted_array_t<const T>& arr) { return add_sorted_array (&arr, arr.len ()); }
+
+  bool may_have (const hb_set_digest_combiner_t &o) const
+  {
+    return head.may_have (o.head) && tail.may_have (o.tail);
+  }
 
   bool may_have (hb_codepoint_t g) const
   {
