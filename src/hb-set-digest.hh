@@ -75,6 +75,8 @@ struct hb_set_digest_bits_pattern_t
 
   void init () { mask = 0; }
 
+  void add (const hb_set_digest_bits_pattern_t &o) { mask |= o.mask; }
+
   void add (hb_codepoint_t g) { mask |= mask_for (g); }
 
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
@@ -126,6 +128,12 @@ struct hb_set_digest_combiner_t
   {
     head.init ();
     tail.init ();
+  }
+
+  void add (const hb_set_digest_combiner_t &o)
+  {
+    head.add (o.head);
+    tail.add (o.tail);
   }
 
   void add (hb_codepoint_t g)

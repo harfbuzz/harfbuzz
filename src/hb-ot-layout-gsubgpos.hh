@@ -3938,12 +3938,13 @@ struct hb_ot_layout_lookup_accelerator_t
   template <typename TLookup>
   void init (const TLookup &lookup)
   {
-    digest.init ();
-    lookup.collect_coverage (&digest);
-
     subtables.init ();
     OT::hb_accelerate_subtables_context_t c_accelerate_subtables (subtables);
     lookup.dispatch (&c_accelerate_subtables);
+
+    digest.init ();
+    for (auto& subtable : hb_iter (subtables))
+      digest.add (subtable.digest);
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     cache_user_idx = c_accelerate_subtables.cache_user_idx;
