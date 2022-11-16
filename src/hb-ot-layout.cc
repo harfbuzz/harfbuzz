@@ -1908,15 +1908,16 @@ apply_backward (OT::hb_ot_apply_context_t *c,
 }
 
 template <typename Proxy>
-static inline void
+static inline bool
 apply_string (OT::hb_ot_apply_context_t *c,
 	      const typename Proxy::Lookup &lookup,
 	      const OT::hb_ot_layout_lookup_accelerator_t &accel)
 {
+  bool ret = false;
   hb_buffer_t *buffer = c->buffer;
 
   if (unlikely (!buffer->len || !c->lookup_mask))
-    return;
+    return ret;
 
   c->set_lookup_props (lookup.get_props ());
 
@@ -1927,7 +1928,7 @@ apply_string (OT::hb_ot_apply_context_t *c,
       buffer->clear_output ();
 
     buffer->idx = 0;
-    apply_forward (c, accel);
+    ret = apply_forward (c, accel);
 
     if (!Proxy::always_inplace)
       buffer->sync ();
@@ -1937,8 +1938,10 @@ apply_string (OT::hb_ot_apply_context_t *c,
     /* in-place backward substitution/positioning */
     assert (!buffer->have_output);
     buffer->idx = buffer->len - 1;
-    apply_backward (c, accel);
+    ret = apply_backward (c, accel);
   }
+
+  return ret;
 }
 
 template <typename Proxy>
@@ -1954,10 +1957,9 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 
   hb_set_digest_t digest;
   digest.init ();
-  if (proxy.table_index == 1) /* GPOS */
-    digest.add_array (&buffer->info[0].codepoint,
-		      buffer->len,
-		      sizeof (buffer->info[0]));
+  digest.add_array (&buffer->info[0].codepoint,
+		    buffer->len,
+		    sizeof (buffer->info[0]));
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
   {
@@ -1967,8 +1969,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       unsigned int lookup_index = lookups[table_index][i].index;
       if (!buffer->message (font, "start lookup %d", lookup_index)) continue;
 
-      if (table_index != 1 ||
-	  proxy.accels[lookup_index].digest.may_have (digest))
+      if (proxy.accels[lookup_index].digest.may_have (digest))
       {
 	c.set_lookup_index (lookup_index);
 	c.set_lookup_mask (lookups[table_index][i].mask);
@@ -1977,9 +1978,16 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 	c.set_random (lookups[table_index][i].random);
 	c.set_per_syllable (lookups[table_index][i].per_syllable);
 
-	apply_string<Proxy> (&c,
-			     proxy.table.get_lookup (lookup_index),
-			     proxy.accels[lookup_index]);
+	if (apply_string<Proxy> (&c,
+				 proxy.table.get_lookup (lookup_index),
+				 proxy.accels[lookup_index]) &&
+	    table_index == 0)
+	{
+	  digest.init ();
+	  digest.add_array (&buffer->info[0].codepoint,
+			    buffer->len,
+			    sizeof (buffer->info[0]));
+	}
       }
 
       (void) buffer->message (font, "end lookup %d", lookup_index);
