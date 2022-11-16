@@ -1962,17 +1962,19 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
     const stage_map_t *stage = &stages[table_index][stage_index];
     for (; i < stage->last_lookup; i++)
     {
-      unsigned int lookup_index = lookups[table_index][i].index;
+      auto &lookup = lookups[table_index][i];
+
+      unsigned int lookup_index = lookup.index;
       if (!buffer->message (font, "start lookup %d", lookup_index)) continue;
 
       if (proxy.accels[lookup_index].digest.may_have (digest))
       {
 	c.set_lookup_index (lookup_index);
-	c.set_lookup_mask (lookups[table_index][i].mask);
-	c.set_auto_zwj (lookups[table_index][i].auto_zwj);
-	c.set_auto_zwnj (lookups[table_index][i].auto_zwnj);
-	c.set_random (lookups[table_index][i].random);
-	c.set_per_syllable (lookups[table_index][i].per_syllable);
+	c.set_lookup_mask (lookup.mask);
+	c.set_auto_zwj (lookup.auto_zwj);
+	c.set_auto_zwnj (lookup.auto_zwnj);
+	c.set_random (lookup.random);
+	c.set_per_syllable (lookup.per_syllable);
 
 	if (apply_string<Proxy> (&c,
 				 proxy.table.get_lookup (lookup_index),
