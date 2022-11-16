@@ -136,9 +136,8 @@ struct hb_set_digest_combiner_t
 
   bool add_range (hb_codepoint_t a, hb_codepoint_t b)
   {
-    head.add_range (a, b);
-    tail.add_range (a, b);
-    return true;
+    return head.add_range (a, b) &&
+	   tail.add_range (a, b);
   }
   template <typename T>
   void add_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
@@ -151,9 +150,8 @@ struct hb_set_digest_combiner_t
   template <typename T>
   bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
-    head.add_sorted_array (array, count, stride);
-    tail.add_sorted_array (array, count, stride);
-    return true;
+    return head.add_sorted_array (array, count, stride) &&
+	   tail.add_sorted_array (array, count, stride);
   }
   template <typename T>
   bool add_sorted_array (const hb_sorted_array_t<const T>& arr) { return add_sorted_array (&arr, arr.len ()); }
