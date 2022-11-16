@@ -28,6 +28,7 @@
 #define HB_SET_DIGEST_HH
 
 #include "hb.hh"
+#include "hb-machinery.hh"
 
 /*
  * The set-digests here implement various "filters" that support
@@ -97,7 +98,7 @@ struct hb_set_digest_bits_pattern_t
     for (unsigned int i = 0; i < count; i++)
     {
       add (*array);
-      array = (const T *) (stride + (const char *) array);
+      array = &StructAtOffsetUnaligned<T> ((const void *) array, stride);
     }
   }
   template <typename T>
