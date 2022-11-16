@@ -89,7 +89,7 @@ struct hb_ft_font_t
   bool unref; /* Whether to destroy ft_face when done. */
   bool transform; /* Whether to apply FT_Face's transform. */
 
-  mutable hb_mutex_t lock;
+  mutable hb_mutex_t lock; /* Protects members below. */
   FT_Face ft_face;
   mutable unsigned cached_serial;
   mutable hb_ft_advance_cache_t advance_cache;
