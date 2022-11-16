@@ -1955,8 +1955,6 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
   OT::hb_ot_apply_context_t c (table_index, font, buffer);
   c.set_recurse_func (Proxy::Lookup::template dispatch_recurse_func<OT::hb_ot_apply_context_t>);
 
-  hb_set_digest_t digest = buffer->digest ();
-
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
   {
     const stage_map_t *stage = &stages[table_index][stage_index];
@@ -1967,7 +1965,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       unsigned int lookup_index = lookup.index;
       if (!buffer->message (font, "start lookup %d", lookup_index)) continue;
 
-      if (proxy.accels[lookup_index].digest.may_have (digest))
+      if (proxy.accels[lookup_index].digest.may_have (c.digest))
       {
 	c.set_lookup_index (lookup_index);
 	c.set_lookup_mask (lookup.mask);
@@ -1976,13 +1974,9 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 	c.set_random (lookup.random);
 	c.set_per_syllable (lookup.per_syllable);
 
-	if (apply_string<Proxy> (&c,
-				 proxy.table.get_lookup (lookup_index),
-				 proxy.accels[lookup_index]) &&
-	    table_index == 0)
-	{
-	  digest = buffer->digest ();
-	}
+	apply_string<Proxy> (&c,
+			     proxy.table.get_lookup (lookup_index),
+			     proxy.accels[lookup_index]);
       }
       else
 	(void) buffer->message (font, "skipped lookup %d because no glyph matches", lookup_index);
@@ -1991,7 +1985,12 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
     }
 
     if (stage->pause_func)
+    {
       stage->pause_func (plan, font, buffer);
+      /* Refresh working buffer digest since buffer content
+       * might have changed. */
+      c.digest = buffer->digest ();
+    }
   }
 }
 

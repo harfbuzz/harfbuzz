@@ -686,6 +686,7 @@ struct hb_ot_apply_context_t :
   bool random = false;
   uint32_t random_state = 1;
   unsigned new_syllables = (unsigned) -1;
+  hb_set_digest_t digest;
 
   hb_ot_apply_context_t (unsigned int table_index_,
 			 hb_font_t *font_,
@@ -708,7 +709,8 @@ struct hb_ot_apply_context_t :
 #endif
 					),
 			direction (buffer_->props.direction),
-			has_glyph_classes (gdef.has_glyph_classes ())
+			has_glyph_classes (gdef.has_glyph_classes ()),
+			digest (buffer_->digest ())
   { init_iters (); }
 
   ~hb_ot_apply_context_t ()
@@ -781,8 +783,10 @@ struct hb_ot_apply_context_t :
   void _set_glyph_class (hb_codepoint_t glyph_index,
 			  unsigned int class_guess = 0,
 			  bool ligature = false,
-			  bool component = false) const
+			  bool component = false)
   {
+    digest.add (glyph_index);
+
     if (new_syllables != (unsigned) -1)
       buffer->cur().syllable() = new_syllables;
 
@@ -815,24 +819,24 @@ struct hb_ot_apply_context_t :
       _hb_glyph_info_set_glyph_props (&buffer->cur(), props);
   }
 
-  void replace_glyph (hb_codepoint_t glyph_index) const
+  void replace_glyph (hb_codepoint_t glyph_index)
   {
     _set_glyph_class (glyph_index);
     (void) buffer->replace_glyph (glyph_index);
   }
-  void replace_glyph_inplace (hb_codepoint_t glyph_index) const
+  void replace_glyph_inplace (hb_codepoint_t glyph_index)
   {
     _set_glyph_class (glyph_index);
     buffer->cur().codepoint = glyph_index;
   }
   void replace_glyph_with_ligature (hb_codepoint_t glyph_index,
-				    unsigned int class_guess) const
+				    unsigned int class_guess)
   {
     _set_glyph_class (glyph_index, class_guess, true);
     (void) buffer->replace_glyph (glyph_index);
   }
   void output_glyph_for_component (hb_codepoint_t glyph_index,
-				   unsigned int class_guess) const
+				   unsigned int class_guess)
   {
     _set_glyph_class (glyph_index, class_guess, false, true);
     (void) buffer->output_glyph (glyph_index);
