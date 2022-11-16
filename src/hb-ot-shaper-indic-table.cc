@@ -451,15 +451,12 @@ static const uint16_t indic_table[] = {
   /* Grantha */
 
   /* 11300 */  _(X,X),_(SM,SM),_(SM,SM),_(SM,SM),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 11308 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 11310 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 11318 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 11320 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 11328 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
-  /* 11330 */  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),  _(X,X),
+
+#define indic_offset_0x11338u 1720
+
   /* 11338 */  _(X,X),  _(X,X),  _(X,X),  _(N,X),  _(N,X),  _(X,X),  _(X,X),  _(X,X),
 
-}; /* Table items: 1776; occupancy: 69% */
+}; /* Table items: 1728; occupancy: 71% */
 
 uint16_t
 hb_indic_get_categories (hb_codepoint_t u)
@@ -497,7 +494,8 @@ hb_indic_get_categories (hb_codepoint_t u)
       break;
 
     case 0x11u:
-      if (hb_in_range<hb_codepoint_t> (u, 0x11300u, 0x1133Fu)) return indic_table[u - 0x11300u + indic_offset_0x11300u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x11300u, 0x11307u)) return indic_table[u - 0x11300u + indic_offset_0x11300u];
+      if (hb_in_range<hb_codepoint_t> (u, 0x11338u, 0x1133Fu)) return indic_table[u - 0x11338u + indic_offset_0x11338u];
       break;
 
     default:
