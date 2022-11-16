@@ -103,11 +103,7 @@ struct hb_set_digest_bits_pattern_t
   template <typename T>
   bool add_sorted_array (const T *array, unsigned int count, unsigned int stride=sizeof(T))
   {
-    for (unsigned int i = 0; i < count; i++)
-    {
-      add (*array);
-      array = (const T *) (stride + (const char *) array);
-    }
+    add_array (array, count, stride);
     return true;
   }
   template <typename T>
