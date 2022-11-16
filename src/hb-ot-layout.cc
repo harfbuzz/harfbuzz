@@ -1982,6 +1982,8 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 	  digest = buffer->digest ();
 	}
       }
+      else
+	(void) buffer->message (font, "skipped lookup %d because no glyph matches", lookup_index);
 
       (void) buffer->message (font, "end lookup %d", lookup_index);
     }
