@@ -194,7 +194,6 @@ struct hb_serialize_context_t
       current = current->next;
       _->fini ();
     }
-    object_pool.fini ();
   }
 
   bool in_error () const { return bool (errors); }
