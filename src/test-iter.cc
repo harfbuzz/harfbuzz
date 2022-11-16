@@ -319,6 +319,7 @@ main (int argc, char **argv)
   ;
   /* The result should be something like 0->10, 1->11, ..., 9->19 */
   assert (hb_map_get (result, 9) == 19);
+  hb_map_destroy (result);
 
   /* Like above, but passing hb_set_t instead of hb_set_t * */
   temp1 = 10;
@@ -341,13 +342,13 @@ main (int argc, char **argv)
   ;
   /* The result should be something like 0->10, 1->11, ..., 9->19 */
   assert (hb_map_get (result, 9) == 19);
+  hb_map_destroy (result);
 
   unsigned int temp3 = 0;
   + hb_iter(src)
   | hb_map([&] (int i) { return ++temp3; })
   | hb_reduce([&] (float acc, int value) { return acc + value; }, 0)
   ;
-  hb_map_destroy (result);
 
   + hb_iter (src)
   | hb_drain
