@@ -1955,11 +1955,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
   OT::hb_ot_apply_context_t c (table_index, font, buffer);
   c.set_recurse_func (Proxy::Lookup::template dispatch_recurse_func<OT::hb_ot_apply_context_t>);
 
-  hb_set_digest_t digest;
-  digest.init ();
-  digest.add_array (&buffer->info[0].codepoint,
-		    buffer->len,
-		    sizeof (buffer->info[0]));
+  hb_set_digest_t digest = buffer->digest ();
 
   for (unsigned int stage_index = 0; stage_index < stages[table_index].length; stage_index++)
   {
@@ -1983,10 +1979,7 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 				 proxy.accels[lookup_index]) &&
 	    table_index == 0)
 	{
-	  digest.init ();
-	  digest.add_array (&buffer->info[0].codepoint,
-			    buffer->len,
-			    sizeof (buffer->info[0]));
+	  digest = buffer->digest ();
 	}
       }
 
