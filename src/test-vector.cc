@@ -172,7 +172,7 @@ main (int argc, char **argv)
   }
 
   {
-    hb_vector_t<hb_set_t> v;
+    hb_vector_t<hb_map_t> v;
     hb_map_t m;
     v.push (m);
   }
