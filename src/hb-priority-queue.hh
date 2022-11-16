@@ -63,7 +63,9 @@ struct hb_priority_queue_t
 
     heap.arrayZ[0] = heap.arrayZ[heap.length - 1];
     heap.shrink (heap.length - 1);
-    bubble_down (0);
+
+    if (!is_empty ())
+      bubble_down (0);
 
     return result;
   }
@@ -100,7 +102,7 @@ struct hb_priority_queue_t
 
   void bubble_down (unsigned index)
   {
-    assert (index <= heap.length);
+    assert (index < heap.length);
 
     unsigned left = left_child (index);
     unsigned right = right_child (index);
