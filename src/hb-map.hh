@@ -96,6 +96,12 @@ struct hb_hashmap_t
       is_used_ = false;
       is_tombstone_ = false;
     }
+    void reconstruct ()
+    {
+      key.~K ();
+      value.~V ();
+      construct ();
+    }
 
     bool operator == (const K &o) { return hb_deref (key) == hb_deref (o); }
     bool operator == (const item_t &o) { return *this == o.key; }
@@ -237,7 +243,7 @@ struct hb_hashmap_t
     if (unlikely (!successful)) return;
 
     for (auto &_ : hb_iter (items, mask ? mask + 1 : 0))
-      _.construct ();
+      _.reconstruct ();
 
     population = occupancy = 0;
   }
