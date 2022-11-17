@@ -356,7 +356,6 @@ hb_ot_get_glyph_extents (hb_font_t *font,
   if (ot_face->cff2->get_extents (font, glyph, extents)) return true;
 #endif
 
-  // TODO Hook up side-bearings variations.
   return false;
 }
 
