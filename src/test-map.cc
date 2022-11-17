@@ -188,11 +188,9 @@ main (int argc, char **argv)
   }
 
   /* Test hb::shared_ptr. */
-  hb_hash (hb::shared_ptr<hb_set_t> ());
   {
     hb_hashmap_t<hb::shared_ptr<hb_set_t>, hb::shared_ptr<hb_set_t>> m;
 
-    m.get (hb::shared_ptr<hb_set_t> ());
     m.get (hb::shared_ptr<hb_set_t> (hb_set_get_empty ()));
     m.iter ();
     m.keys ();
@@ -202,11 +200,9 @@ main (int argc, char **argv)
     m.values_ref ();
   }
   /* Test hb::unique_ptr. */
-  hb_hash (hb::unique_ptr<hb_set_t> ());
   {
     hb_hashmap_t<hb::unique_ptr<hb_set_t>, hb::unique_ptr<hb_set_t>> m;
 
-    m.get (hb::unique_ptr<hb_set_t> ());
     m.get (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
     m.iter_ref ();
     m.keys_ref ();
