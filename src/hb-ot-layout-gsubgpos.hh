@@ -1781,7 +1781,7 @@ static inline bool context_would_apply_lookup (hb_would_apply_context_t *c,
 					       const HBUINT input[], /* Array of input values--start with second glyph */
 					       unsigned int lookupCount HB_UNUSED,
 					       const LookupRecord lookupRecord[] HB_UNUSED,
-					       ContextApplyLookupContext &lookup_context)
+					       const ContextApplyLookupContext &lookup_context)
 {
   return would_match_input (c,
 			    inputCount, input,
@@ -1794,7 +1794,7 @@ static inline bool context_apply_lookup (hb_ot_apply_context_t *c,
 					 const HBUINT input[], /* Array of input values--start with second glyph */
 					 unsigned int lookupCount,
 					 const LookupRecord lookupRecord[],
-					 ContextApplyLookupContext &lookup_context)
+					 const ContextApplyLookupContext &lookup_context)
 {
   unsigned match_end = 0;
   unsigned match_positions[HB_MAX_CONTEXT_LENGTH];
@@ -1862,7 +1862,7 @@ struct Rule
   }
 
   bool would_apply (hb_would_apply_context_t *c,
-		    ContextApplyLookupContext &lookup_context) const
+		    const ContextApplyLookupContext &lookup_context) const
   {
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
 					   (inputZ.as_array (inputCount ? inputCount - 1 : 0));
@@ -1873,7 +1873,7 @@ struct Rule
   }
 
   bool apply (hb_ot_apply_context_t *c,
-	      ContextApplyLookupContext &lookup_context) const
+	      const ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     const auto &lookupRecord = StructAfter<UnsizedArrayOf<LookupRecord>>
@@ -1993,7 +1993,7 @@ struct RuleSet
   }
 
   bool would_apply (hb_would_apply_context_t *c,
-		    ContextApplyLookupContext &lookup_context) const
+		    const ContextApplyLookupContext &lookup_context) const
   {
     return
     + hb_iter (rule)
@@ -2004,7 +2004,7 @@ struct RuleSet
   }
 
   bool apply (hb_ot_apply_context_t *c,
-	      ContextApplyLookupContext &lookup_context) const
+	      const ContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     return_trace (
@@ -2756,7 +2756,7 @@ static inline bool chain_context_would_apply_lookup (hb_would_apply_context_t *c
 						     const HBUINT lookahead[] HB_UNUSED,
 						     unsigned int lookupCount HB_UNUSED,
 						     const LookupRecord lookupRecord[] HB_UNUSED,
-						     ChainContextApplyLookupContext &lookup_context)
+						     const ChainContextApplyLookupContext &lookup_context)
 {
   return (c->zero_context ? !backtrackCount && !lookaheadCount : true)
       && would_match_input (c,
@@ -2774,7 +2774,7 @@ static inline bool chain_context_apply_lookup (hb_ot_apply_context_t *c,
 					       const HBUINT lookahead[],
 					       unsigned int lookupCount,
 					       const LookupRecord lookupRecord[],
-					       ChainContextApplyLookupContext &lookup_context)
+					       const ChainContextApplyLookupContext &lookup_context)
 {
   unsigned end_index = c->buffer->idx;
   unsigned match_end = 0;
@@ -2868,7 +2868,7 @@ struct ChainRule
   }
 
   bool would_apply (hb_would_apply_context_t *c,
-		    ChainContextApplyLookupContext &lookup_context) const
+		    const ChainContextApplyLookupContext &lookup_context) const
   {
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
@@ -2880,7 +2880,8 @@ struct ChainRule
 					     lookup.arrayZ, lookup_context);
   }
 
-  bool apply (hb_ot_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
+  bool apply (hb_ot_apply_context_t *c,
+	      const ChainContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     const auto &input = StructAfter<decltype (inputX)> (backtrack);
@@ -3046,7 +3047,8 @@ struct ChainRuleSet
     ;
   }
 
-  bool would_apply (hb_would_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
+  bool would_apply (hb_would_apply_context_t *c,
+		    const ChainContextApplyLookupContext &lookup_context) const
   {
     return
     + hb_iter (rule)
@@ -3056,7 +3058,8 @@ struct ChainRuleSet
     ;
   }
 
-  bool apply (hb_ot_apply_context_t *c, ChainContextApplyLookupContext &lookup_context) const
+  bool apply (hb_ot_apply_context_t *c,
+	      const ChainContextApplyLookupContext &lookup_context) const
   {
     TRACE_APPLY (this);
     return_trace (
