@@ -95,9 +95,13 @@ struct hb_hashmap_t
       is_used_ = false;
       is_tombstone_ = false;
     }
-    void reconstruct ()
+    void destruct ()
     {
       this->~item_t ();
+    }
+    void reconstruct ()
+    {
+      destruct ();
       construct ();
     }
 
@@ -145,7 +149,7 @@ struct hb_hashmap_t
     if (likely (items)) {
       unsigned size = mask + 1;
       for (unsigned i = 0; i < size; i++)
-        items[i].~item_t ();
+        items[i].destruct ();
       hb_free (items);
       items = nullptr;
     }
