@@ -88,7 +88,7 @@ struct hb_hashmap_t
       return minus_1;
     };
 
-    void clear ()
+    void construct ()
     {
       new (std::addressof (key)) K ();
       new (std::addressof (value)) V ();
@@ -171,7 +171,7 @@ struct hb_hashmap_t
       return false;
     }
     for (auto &_ : hb_iter (new_items, new_size))
-      _.clear ();
+      _.construct ();
 
     unsigned int old_size = mask + 1;
     item_t *old_items = items;
@@ -237,7 +237,7 @@ struct hb_hashmap_t
     if (unlikely (!successful)) return;
 
     for (auto &_ : hb_iter (items, mask ? mask + 1 : 0))
-      _.clear ();
+      _.construct ();
 
     population = occupancy = 0;
   }
