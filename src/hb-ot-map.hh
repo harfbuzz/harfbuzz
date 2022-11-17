@@ -78,6 +78,7 @@ struct hb_ot_map_t
     }
   };
 
+  /* Pause functions return true if buffer (codepoint) content was changed. */
   typedef bool (*pause_func_t) (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer);
 
   struct stage_map_t {
