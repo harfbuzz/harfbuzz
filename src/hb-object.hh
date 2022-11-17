@@ -80,7 +80,7 @@ struct hb_lockable_set_t
     if (item)
     {
       item_t old = *item;
-      *item = items[items.length - 1];
+      *item = std::move (items[items.length - 1]);
       items.pop ();
       l.unlock ();
       old.fini ();
