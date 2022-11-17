@@ -343,7 +343,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
       /* Sort lookups and merge duplicates */
       if (last_num_lookups < m.lookups[table_index].length)
       {
-	m.lookups[table_index].sub_array (last_num_lookups, m.lookups[table_index].length - last_num_lookups).qsort ();
+	m.lookups[table_index].as_array ().sub_array (last_num_lookups, m.lookups[table_index].length - last_num_lookups).qsort ();
 
 	unsigned int j = last_num_lookups;
 	for (unsigned int i = j + 1; i < m.lookups[table_index].length; i++)

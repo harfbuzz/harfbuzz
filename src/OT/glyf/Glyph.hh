@@ -228,7 +228,7 @@ struct Glyph
 
     /* Init phantom points */
     if (unlikely (!points.resize (points.length + PHANTOM_COUNT))) return false;
-    hb_array_t<contour_point_t> phantoms = points.sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
+    hb_array_t<contour_point_t> phantoms = points.as_array ().sub_array (points.length - PHANTOM_COUNT, PHANTOM_COUNT);
     {
       int lsb = 0;
       int h_delta = glyf_accelerator.hmtx->get_leading_bearing_without_var_unscaled (gid, &lsb) ?
@@ -321,7 +321,7 @@ struct Glyph
 	if (all_points.length > HB_GLYF_MAX_POINTS)
 	  return false;
 
-	all_points.extend (comp_points.sub_array (0, comp_points.length - PHANTOM_COUNT));
+	all_points.extend (comp_points.as_array ().sub_array (0, comp_points.length - PHANTOM_COUNT));
 
 	comp_index++;
       }

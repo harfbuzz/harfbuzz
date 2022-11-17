@@ -164,15 +164,6 @@ struct hb_vector_t
   operator   iter_t () const { return   iter (); }
   operator writer_t ()       { return writer (); }
 
-  c_array_t sub_array (unsigned int start_offset, unsigned int count) const
-  { return as_array ().sub_array (start_offset, count); }
-  c_array_t sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */) const
-  { return as_array ().sub_array (start_offset, count); }
-  array_t sub_array (unsigned int start_offset, unsigned int count)
-  { return as_array ().sub_array (start_offset, count); }
-  array_t sub_array (unsigned int start_offset, unsigned int *count = nullptr /* IN/OUT */)
-  { return as_array ().sub_array (start_offset, count); }
-
   hb_sorted_array_t<Type> as_sorted_array ()
   { return hb_sorted_array (arrayZ, length); }
   hb_sorted_array_t<const Type> as_sorted_array () const
