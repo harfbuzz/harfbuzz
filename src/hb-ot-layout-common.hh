@@ -478,7 +478,7 @@ struct IndexArray : Array16Of<Index>
   {
     if (_count)
     {
-      + this->sub_array (start_offset, _count)
+      + this->as_array ().sub_array (start_offset, _count)
       | hb_sink (hb_array (_indexes, *_count))
       ;
     }
@@ -658,7 +658,7 @@ struct FeatureParamsCharacterVariants
   {
     if (char_count)
     {
-      + characters.sub_array (start_offset, char_count)
+      + characters.as_array ().sub_array (start_offset, char_count)
       | hb_sink (hb_array (chars, *char_count))
       ;
     }
@@ -932,7 +932,7 @@ struct RecordArrayOf : SortedArray16Of<Record<Type>>
   {
     if (record_count)
     {
-      + this->sub_array (start_offset, record_count)
+      + this->as_array ().sub_array (start_offset, record_count)
       | hb_map (&Record<Type>::tag)
       | hb_sink (hb_array (record_tags, *record_count))
       ;

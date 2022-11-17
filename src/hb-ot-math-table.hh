@@ -786,7 +786,7 @@ struct MathGlyphAssembly
     if (parts_count)
     {
       int64_t mult = font->dir_mult (direction);
-      for (auto _ : hb_zip (partRecords.sub_array (start_offset, parts_count),
+      for (auto _ : hb_zip (partRecords.as_array ().sub_array (start_offset, parts_count),
 			    hb_array (parts, *parts_count)))
 	_.first.extract (_.second, mult, font);
     }
@@ -855,7 +855,7 @@ struct MathGlyphConstruction
     if (variants_count)
     {
       int64_t mult = font->dir_mult (direction);
-      for (auto _ : hb_zip (mathGlyphVariantRecord.sub_array (start_offset, variants_count),
+      for (auto _ : hb_zip (mathGlyphVariantRecord.as_array ().sub_array (start_offset, variants_count),
 			    hb_array (variants, *variants_count)))
 	_.second = {_.first.variantGlyph, font->em_mult (_.first.advanceMeasurement, mult)};
     }
