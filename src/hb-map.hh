@@ -71,6 +71,13 @@ struct hb_hashmap_t
     uint32_t is_tombstone_ : 1;
     V value;
 
+    item_t ()
+    {
+      hash = 0;
+      is_used_ = false;
+      is_tombstone_ = false;
+    }
+
     bool is_used () const { return is_used_; }
     void set_used (bool is_used) { is_used_ = is_used; }
     bool is_tombstone () const { return is_tombstone_; }
@@ -87,23 +94,6 @@ struct hb_hashmap_t
       static_assert (hb_is_same (V, hb_codepoint_t), "");
       return minus_1;
     };
-
-    void construct ()
-    {
-      new (this) item_t ();
-      hash = 0;
-      is_used_ = false;
-      is_tombstone_ = false;
-    }
-    void destruct ()
-    {
-      this->~item_t ();
-    }
-    void reconstruct ()
-    {
-      destruct ();
-      construct ();
-    }
 
     bool operator == (const K &o) { return hb_deref (key) == hb_deref (o); }
     bool operator == (const item_t &o) { return *this == o.key; }
@@ -149,7 +139,7 @@ struct hb_hashmap_t
     if (likely (items)) {
       unsigned size = mask + 1;
       for (unsigned i = 0; i < size; i++)
-        items[i].destruct ();
+        items[i].~item_t ();
       hb_free (items);
       items = nullptr;
     }
@@ -179,7 +169,7 @@ struct hb_hashmap_t
       return false;
     }
     for (auto &_ : hb_iter (new_items, new_size))
-      _.construct ();
+      new (&_) item_t ();
 
     unsigned int old_size = mask + 1;
     item_t *old_items = items;
@@ -245,7 +235,11 @@ struct hb_hashmap_t
     if (unlikely (!successful)) return;
 
     for (auto &_ : hb_iter (items, mask ? mask + 1 : 0))
-      _.reconstruct ();
+    {
+      /* Reconstruct items. */
+      _.~item_t ();
+      new (&_) item_t ();
+    }
 
     population = occupancy = 0;
   }
