@@ -258,7 +258,7 @@ struct hb_hashmap_t
     if (population != other.population) return false;
 
     for (auto pair : iter ())
-      if (get (pair.first) != pair.second)
+      if (other.get (pair.first) != pair.second)
         return false;
 
     return true;

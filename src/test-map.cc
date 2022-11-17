@@ -234,7 +234,7 @@ main (int argc, char **argv)
     hb::shared_ptr<hb_map_t> p1 {m1};
     hb::shared_ptr<hb_map_t> p2 {m2};
     m.set (p1,1);
-    
+
     assert (m.has (p2));
 
     m1->set (2,4);
@@ -248,6 +248,16 @@ main (int argc, char **argv)
 
     m.set (1, bytes);
     assert (m.has (1));
+  }
+  /* Test equality. */
+  {
+    hb_map_t m1, m2, m3;
+    m1.set (1, 2);
+    m2.set (1, 2);
+    m3.set (1, 3);
+    assert (m1 == m2);
+    assert (m1 != m3);
+    assert (!(m2 == m3));
   }
 
   return 0;
