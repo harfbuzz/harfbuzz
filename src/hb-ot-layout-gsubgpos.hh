@@ -4267,7 +4267,7 @@ struct GSUBGPOS
 
     c.set_recurse_func (TLookup::template dispatch_recurse_func<hb_closure_lookups_context_t>);
 
-    for (unsigned lookup_index : + hb_iter (lookup_indexes))
+    for (unsigned lookup_index : *lookup_indexes)
       reinterpret_cast<const TLookup &> (get_lookup (lookup_index)).closure_lookups (&c, lookup_index);
 
     hb_set_union (lookup_indexes, &visited_lookups);
