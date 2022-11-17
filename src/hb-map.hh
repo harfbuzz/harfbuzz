@@ -71,12 +71,10 @@ struct hb_hashmap_t
     uint32_t is_tombstone_ : 1;
     V value;
 
-    item_t ()
-    {
-      hash = 0;
-      is_used_ = false;
-      is_tombstone_ = false;
-    }
+    item_t () : key (),
+		hash (0),
+		is_used_ (false), is_tombstone_ (false),
+		value () {}
 
     bool is_used () const { return is_used_; }
     void set_used (bool is_used) { is_used_ = is_used; }
