@@ -1965,6 +1965,10 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
       unsigned int lookup_index = lookup.index;
       if (!buffer->message (font, "start lookup %d", lookup_index)) continue;
 
+      /* c.digest is a digest of all the current glyphs in the buffer
+       * (plus some past glyphs).
+       *
+       * Only try applying the lookup if there is any overlap. */
       if (proxy.accels[lookup_index].digest.may_have (c.digest))
       {
 	c.set_lookup_index (lookup_index);
