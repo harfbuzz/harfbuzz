@@ -103,8 +103,8 @@ struct hb_hashmap_t
   };
 
   hb_object_header_t header;
-  bool successful; /* Allocations successful */
-  unsigned int population; /* Not including tombstones. */
+  unsigned int successful : 1; /* Allocations successful */
+  unsigned int population : 31; /* Not including tombstones. */
   unsigned int occupancy; /* Including tombstones. */
   unsigned int mask;
   unsigned int prime;
@@ -114,7 +114,10 @@ struct hb_hashmap_t
   {
     if (unlikely (!a.successful || !b.successful))
       return;
-    hb_swap (a.population, b.population);
+    unsigned tmp = a.population;
+    a.population = b.population;
+    b.population = tmp;
+    //hb_swap (a.population, b.population);
     hb_swap (a.occupancy, b.occupancy);
     hb_swap (a.mask, b.mask);
     hb_swap (a.prime, b.prime);
@@ -158,7 +161,7 @@ struct hb_hashmap_t
 
     if (new_population != 0 && new_population <= population) return true;
 
-    unsigned int power = hb_bit_storage (hb_max (population, new_population) * 2 + 8);
+    unsigned int power = hb_bit_storage (hb_max ((unsigned) population, new_population) * 2 + 8);
     unsigned int new_size = 1u << power;
     item_t *new_items = (item_t *) hb_malloc ((size_t) new_size * sizeof (item_t));
     if (unlikely (!new_items))
