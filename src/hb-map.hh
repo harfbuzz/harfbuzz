@@ -234,9 +234,8 @@ struct hb_hashmap_t
   {
     if (unlikely (!successful)) return;
 
-    if (items)
-      for (auto &_ : hb_iter (items, mask + 1))
-	_.clear ();
+    for (auto &_ : hb_iter (items, mask ? mask + 1 : 0))
+      _.clear ();
 
     population = occupancy = 0;
   }
@@ -273,7 +272,7 @@ struct hb_hashmap_t
 
   auto iter_items () const HB_AUTO_RETURN
   (
-    + hb_array (items, mask ? mask + 1 : 0)
+    + hb_iter (items, mask ? mask + 1 : 0)
     | hb_filter (&item_t::is_real)
   )
   auto iter_ref () const HB_AUTO_RETURN
