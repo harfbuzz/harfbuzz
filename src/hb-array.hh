@@ -194,13 +194,6 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
       hb_qsort (arrayZ, length, this->get_item_size (), Type::cmp);
     return hb_sorted_array_t<Type> (*this);
   }
-  void qsort (unsigned int start, unsigned int end)
-  {
-    end = hb_min (end, length);
-    assert (start <= end);
-    if (likely (start < end))
-      hb_qsort (arrayZ + start, end - start, this->get_item_size (), Type::cmp);
-  }
 
   /*
    * Other methods.

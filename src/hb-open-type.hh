@@ -667,8 +667,8 @@ struct ArrayOf
 	      unsigned int to_store = (unsigned int) -1) const
   { return as_array ().lfind (x, i, not_found, to_store); }
 
-  void qsort (unsigned int start = 0, unsigned int end = (unsigned int) -1)
-  { as_array ().qsort (start, end); }
+  void qsort ()
+  { as_array ().qsort (); }
 
   HB_NODISCARD bool serialize (hb_serialize_context_t *c, unsigned items_len)
   {
