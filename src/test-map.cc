@@ -266,6 +266,12 @@ main (int argc, char **argv)
 
     assert (m3.has (3));
   }
+  /* Test reset. */
+  {
+    hb_hashmap_t<int, hb_set_t> m;
+    m.set (1, hb_set_t {1, 2, 3});
+    m.reset ();
+  }
 
   return 0;
 }
