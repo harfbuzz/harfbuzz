@@ -249,15 +249,26 @@ main (int argc, char **argv)
     m.set (1, bytes);
     assert (m.has (1));
   }
-  /* Test equality. */
+  /* Test operators. */
   {
     hb_map_t m1, m2, m3;
     m1.set (1, 2);
+    m1.set (2, 4);
     m2.set (1, 2);
+    m2.set (2, 4);
     m3.set (1, 3);
+    m3.set (3, 5);
+
     assert (m1 == m2);
     assert (m1 != m3);
     assert (!(m2 == m3));
+
+    m2 = m3;
+    assert (m2.has (1));
+    assert (!m2.has (2));
+    assert (m2.has (3));
+
+    assert (m3.has (3));
   }
 
   return 0;
