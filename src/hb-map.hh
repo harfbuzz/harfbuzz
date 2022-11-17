@@ -90,16 +90,14 @@ struct hb_hashmap_t
 
     void construct ()
     {
-      new (std::addressof (key)) K ();
-      new (std::addressof (value)) V ();
+      new (this) item_t ();
       hash = 0;
       is_used_ = false;
       is_tombstone_ = false;
     }
     void reconstruct ()
     {
-      key.~K ();
-      value.~V ();
+      this->~item_t ();
       construct ();
     }
 
