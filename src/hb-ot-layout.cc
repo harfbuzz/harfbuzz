@@ -1986,10 +1986,11 @@ inline void hb_ot_map_t::apply (const Proxy &proxy,
 
     if (stage->pause_func)
     {
-      stage->pause_func (plan, font, buffer);
-      /* Refresh working buffer digest since buffer content
-       * might have changed. */
-      c.digest = buffer->digest ();
+      if (stage->pause_func (plan, font, buffer))
+      {
+	/* Refresh working buffer digest since buffer changed. */
+	c.digest = buffer->digest ();
+      }
     }
   }
 }

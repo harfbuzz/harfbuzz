@@ -223,15 +223,15 @@ enum {
   INDIC_BASIC_FEATURES = INDIC_INIT, /* Don't forget to update this! */
 };
 
-static void
+static bool
 setup_syllables_indic (const hb_ot_shape_plan_t *plan,
 		       hb_font_t *font,
 		       hb_buffer_t *buffer);
-static void
+static bool
 initial_reordering_indic (const hb_ot_shape_plan_t *plan,
 			  hb_font_t *font,
 			  hb_buffer_t *buffer);
-static void
+static bool
 final_reordering_indic (const hb_ot_shape_plan_t *plan,
 			hb_font_t *font,
 			hb_buffer_t *buffer);
@@ -413,7 +413,7 @@ setup_masks_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
     set_indic_properties (info[i]);
 }
 
-static void
+static bool
 setup_syllables_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
 		       hb_font_t *font HB_UNUSED,
 		       hb_buffer_t *buffer)
@@ -422,6 +422,7 @@ setup_syllables_indic (const hb_ot_shape_plan_t *plan HB_UNUSED,
   find_syllables_indic (buffer);
   foreach_syllable (buffer, start, end)
     buffer->unsafe_to_break (start, end);
+  return false;
 }
 
 static int
@@ -981,25 +982,29 @@ initial_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
   }
 }
 
-static void
+static bool
 initial_reordering_indic (const hb_ot_shape_plan_t *plan,
 			  hb_font_t *font,
 			  hb_buffer_t *buffer)
 {
+  bool ret = false;
   if (!buffer->message (font, "start reordering indic initial"))
-    return;
+    return ret;
 
   update_consonant_positions_indic (plan, font, buffer);
-  hb_syllabic_insert_dotted_circles (font, buffer,
-				     indic_broken_cluster,
-				     I_Cat(DOTTEDCIRCLE),
-				     I_Cat(Repha),
-				     POS_END);
+  if (hb_syllabic_insert_dotted_circles (font, buffer,
+					 indic_broken_cluster,
+					 I_Cat(DOTTEDCIRCLE),
+					 I_Cat(Repha),
+					 POS_END))
+    ret = true;
 
   foreach_syllable (buffer, start, end)
     initial_reordering_syllable_indic (plan, font->face, buffer, start, end);
 
   (void) buffer->message (font, "end reordering indic initial");
+
+  return ret;
 }
 
 static void
@@ -1465,13 +1470,13 @@ final_reordering_syllable_indic (const hb_ot_shape_plan_t *plan,
 }
 
 
-static void
+static bool
 final_reordering_indic (const hb_ot_shape_plan_t *plan,
 			hb_font_t *font HB_UNUSED,
 			hb_buffer_t *buffer)
 {
   unsigned int count = buffer->len;
-  if (unlikely (!count)) return;
+  if (unlikely (!count)) return false;
 
   if (buffer->message (font, "start reordering indic final")) {
     foreach_syllable (buffer, start, end)
@@ -1481,6 +1486,8 @@ final_reordering_indic (const hb_ot_shape_plan_t *plan,
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, indic_position);
+
+  return false;
 }
 
 

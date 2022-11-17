@@ -98,11 +98,11 @@ is_consonant_myanmar (const hb_glyph_info_t &info)
 }
 
 
-static void
+static bool
 setup_syllables_myanmar (const hb_ot_shape_plan_t *plan,
 			 hb_font_t *font,
 			 hb_buffer_t *buffer);
-static void
+static bool
 reorder_myanmar (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font,
 		 hb_buffer_t *buffer);
@@ -150,7 +150,7 @@ setup_masks_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
     set_myanmar_properties (info[i]);
 }
 
-static void
+static bool
 setup_syllables_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
 			 hb_font_t *font HB_UNUSED,
 			 hb_buffer_t *buffer)
@@ -159,6 +159,7 @@ setup_syllables_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
   find_syllables_myanmar (buffer);
   foreach_syllable (buffer, start, end)
     buffer->unsafe_to_break (start, end);
+  return false;
 }
 
 static int
@@ -318,16 +319,18 @@ reorder_syllable_myanmar (const hb_ot_shape_plan_t *plan HB_UNUSED,
   }
 }
 
-static void
+static bool
 reorder_myanmar (const hb_ot_shape_plan_t *plan,
 		 hb_font_t *font,
 		 hb_buffer_t *buffer)
 {
+  bool ret = false;
   if (buffer->message (font, "start reordering myanmar"))
   {
-    hb_syllabic_insert_dotted_circles (font, buffer,
-				       myanmar_broken_cluster,
-				       M_Cat(DOTTEDCIRCLE));
+    if (hb_syllabic_insert_dotted_circles (font, buffer,
+					   myanmar_broken_cluster,
+					   M_Cat(DOTTEDCIRCLE)))
+      ret = true;
 
     foreach_syllable (buffer, start, end)
       reorder_syllable_myanmar (plan, font->face, buffer, start, end);
@@ -336,6 +339,8 @@ reorder_myanmar (const hb_ot_shape_plan_t *plan,
 
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_category);
   HB_BUFFER_DEALLOCATE_VAR (buffer, myanmar_position);
+
+  return ret;
 }
 
 

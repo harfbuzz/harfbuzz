@@ -78,7 +78,7 @@ struct hb_ot_map_t
     }
   };
 
-  typedef void (*pause_func_t) (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer);
+  typedef bool (*pause_func_t) (const struct hb_ot_shape_plan_t *plan, hb_font_t *font, hb_buffer_t *buffer);
 
   struct stage_map_t {
     unsigned int last_lookup; /* Cumulative */
