@@ -322,23 +322,23 @@ struct hb_hashmap_t
   {
     if (unlikely (!successful)) return false;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
-    unsigned int i = bucket_for_hash (key, hash);
+    item_t &item = item_for_hash (key, hash);
 
-    if (is_delete && items[i].key != key)
+    if (is_delete && item.key != key)
       return true; /* Trying to delete non-existent key. */
 
-    if (items[i].is_used ())
+    if (item.is_used ())
     {
       occupancy--;
-      if (!items[i].is_tombstone ())
+      if (!item.is_tombstone ())
 	population--;
     }
 
-    items[i].key = key;
-    items[i].value = std::forward<VV> (value);
-    items[i].hash = hash;
-    items[i].set_used (true);
-    items[i].set_tombstone (is_delete);
+    item.key = key;
+    item.value = std::forward<VV> (value);
+    item.hash = hash;
+    item.set_used (true);
+    item.set_tombstone (is_delete);
 
     occupancy++;
     if (!is_delete)
@@ -349,10 +349,10 @@ struct hb_hashmap_t
 
   item_t& item_for (const K &key) const
   {
-    return items[bucket_for_hash (key, hb_hash (key))];
+    return item_for_hash (key, hb_hash (key));
   }
 
-  unsigned int bucket_for_hash (const K &key, uint32_t hash) const
+  item_t& item_for_hash (const K &key, uint32_t hash) const
   {
     hash &= 0x3FFFFFFF; // We only store lower 30bit of hash
     unsigned int i = hash % prime;
@@ -361,12 +361,12 @@ struct hb_hashmap_t
     while (items[i].is_used ())
     {
       if (items[i].hash == hash && items[i] == key)
-	return i;
+	return items[i];
       if (tombstone == (unsigned) -1 && items[i].is_tombstone ())
 	tombstone = i;
       i = (i + ++step) & mask;
     }
-    return tombstone == (unsigned) -1 ? i : tombstone;
+    return items[tombstone == (unsigned) -1 ? i : tombstone];
   }
 
   static unsigned int prime_for (unsigned int shift)
