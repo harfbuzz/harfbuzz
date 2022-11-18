@@ -172,7 +172,7 @@ struct hb_hashmap_t
     for (auto &_ : hb_iter (new_items, new_size))
       new (&_) item_t ();
 
-    unsigned int old_size = mask ? mask + 1 : 0;
+    unsigned int old_size = size ();
     item_t *old_items = items;
 
     /* Switch to new, empty, array. */
@@ -230,11 +230,13 @@ struct hb_hashmap_t
   /* Projection. */
   V operator () (K k) const { return get (k); }
 
+  unsigned size () const { return mask ? mask + 1 : 0; }
+
   void clear ()
   {
     if (unlikely (!successful)) return;
 
-    for (auto &_ : hb_iter (items, mask ? mask + 1 : 0))
+    for (auto &_ : hb_iter (items, size ()))
     {
       /* Reconstruct items. */
       _.~item_t ();
@@ -276,7 +278,7 @@ struct hb_hashmap_t
 
   auto iter_items () const HB_AUTO_RETURN
   (
-    + hb_iter (items, mask ? mask + 1 : 0)
+    + hb_iter (items, size ())
     | hb_filter (&item_t::is_real)
   )
   auto iter_ref () const HB_AUTO_RETURN
