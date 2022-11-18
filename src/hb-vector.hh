@@ -232,9 +232,10 @@ struct hb_vector_t
     if (likely (new_array))
     {
       for (unsigned i = 0; i < length; i++)
+      {
 	new (std::addressof (new_array[i])) Type ();
-      for (unsigned i = 0; i < (unsigned) length; i++)
 	new_array[i] = std::move (arrayZ[i]);
+      }
       unsigned old_length = length;
       shrink_vector (0);
       length = old_length;
