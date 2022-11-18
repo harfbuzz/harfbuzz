@@ -250,10 +250,10 @@ struct hb_hashmap_t
 
   uint32_t hash () const
   {
-    uint32_t h = 0;
-    for (auto item : iter_items ())
-      h ^= item.total_hash ();
-    return h;
+    return
+    + iter_items ()
+    | hb_reduce ([] (uint32_t h, const item_t &_) { return h ^ _.total_hash (); }, (uint32_t) 0u)
+    ;
   }
 
   bool is_equal (const hb_hashmap_t &other) const
