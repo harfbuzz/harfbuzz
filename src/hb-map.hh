@@ -93,8 +93,8 @@ struct hb_hashmap_t
       return minus_1;
     };
 
-    bool operator == (const K &o) { return hb_deref (key) == hb_deref (o); }
-    bool operator == (const item_t &o) { return *this == o.key; }
+    bool operator == (const K &o) const { return hb_deref (key) == hb_deref (o); }
+    bool operator == (const item_t &o) const { return *this == o.key; }
     hb_pair_t<K, V> get_pair() const { return hb_pair_t<K, V> (key, value); }
     hb_pair_t<const K &, const V &> get_pair_ref() const { return hb_pair_t<const K &, const V &> (key, value); }
 
@@ -205,8 +205,8 @@ struct hb_hashmap_t
   const V& get (K key) const
   {
     if (unlikely (!items)) return item_t::default_value ();
-    unsigned int i = bucket_for (key);
-    return items[i].is_real () && items[i] == key ? items[i].value : item_t::default_value ();
+    auto &item = item_for (key);
+    return item.is_real () && item == key ? item.value : item_t::default_value ();
   }
 
   void del (K key) { set_with_hash (key, hb_hash (key), item_t::default_value (), true); }
@@ -219,10 +219,10 @@ struct hb_hashmap_t
   {
     if (unlikely (!items))
       return false;
-    unsigned int i = bucket_for (key);
-    if (items[i].is_real () && items[i] == key)
+    auto &item = item_for (key);
+    if (item.is_real () && item == key)
     {
-      if (vp) *vp = std::addressof (items[i].value);
+      if (vp) *vp = std::addressof (item.value);
       return true;
     }
     else
@@ -347,9 +347,9 @@ struct hb_hashmap_t
     return true;
   }
 
-  unsigned int bucket_for (const K &key) const
+  item_t& item_for (const K &key) const
   {
-    return bucket_for_hash (key, hb_hash (key));
+    return items[bucket_for_hash (key, hb_hash (key))];
   }
 
   unsigned int bucket_for_hash (const K &key, uint32_t hash) const
