@@ -172,7 +172,7 @@ struct hb_hashmap_t
     for (auto &_ : hb_iter (new_items, new_size))
       new (&_) item_t ();
 
-    unsigned int old_size = mask + 1;
+    unsigned int old_size = mask ? mask + 1 : 0;
     item_t *old_items = items;
 
     /* Switch to new, empty, array. */
@@ -182,17 +182,16 @@ struct hb_hashmap_t
     items = new_items;
 
     /* Insert back old items. */
-    if (old_items)
-      for (unsigned int i = 0; i < old_size; i++)
+    for (unsigned int i = 0; i < old_size; i++)
+    {
+      if (old_items[i].is_real ())
       {
-	if (old_items[i].is_real ())
-	{
-	  set_with_hash (old_items[i].key,
-			 old_items[i].hash,
-			 std::move (old_items[i].value));
-	}
-	old_items[i].~item_t ();
+	set_with_hash (old_items[i].key,
+		       old_items[i].hash,
+		       std::move (old_items[i].value));
       }
+      old_items[i].~item_t ();
+    }
 
     hb_free (old_items);
 
