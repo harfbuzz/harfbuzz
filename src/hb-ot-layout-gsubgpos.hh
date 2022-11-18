@@ -672,6 +672,7 @@ struct hb_ot_apply_context_t :
   const GDEF &gdef;
   const VariationStore &var_store;
   VariationStore::cache_t *var_store_cache;
+  hb_set_digest_t digest;
 
   hb_direction_t direction;
   hb_mask_t lookup_mask = 1;
@@ -686,7 +687,6 @@ struct hb_ot_apply_context_t :
   bool random = false;
   uint32_t random_state = 1;
   unsigned new_syllables = (unsigned) -1;
-  hb_set_digest_t digest;
 
   hb_ot_apply_context_t (unsigned int table_index_,
 			 hb_font_t *font_,
@@ -708,9 +708,9 @@ struct hb_ot_apply_context_t :
 					 nullptr
 #endif
 					),
+			digest (buffer_->digest ()),
 			direction (buffer_->props.direction),
-			has_glyph_classes (gdef.has_glyph_classes ()),
-			digest (buffer_->digest ())
+			has_glyph_classes (gdef.has_glyph_classes ())
   { init_iters (); }
 
   ~hb_ot_apply_context_t ()
