@@ -848,7 +848,7 @@ struct hb_accelerate_subtables_context_t :
        hb_dispatch_context_t<hb_accelerate_subtables_context_t>
 {
   template <typename Type>
-  static inline bool apply_to (const void *obj, OT::hb_ot_apply_context_t *c)
+  static inline bool apply_to (const void *obj, hb_ot_apply_context_t *c)
   {
     const Type *typed_obj = (const Type *) obj;
     return typed_obj->apply (c);
@@ -856,30 +856,30 @@ struct hb_accelerate_subtables_context_t :
 
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
   template <typename T>
-  static inline auto apply_cached_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply (c, true) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<1>) HB_RETURN (bool, obj->apply (c, true) )
   template <typename T>
-  static inline auto apply_cached_ (const T *obj, OT::hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
+  static inline auto apply_cached_ (const T *obj, hb_ot_apply_context_t *c, hb_priority<0>) HB_RETURN (bool, obj->apply (c) )
   template <typename Type>
-  static inline bool apply_cached_to (const void *obj, OT::hb_ot_apply_context_t *c)
+  static inline bool apply_cached_to (const void *obj, hb_ot_apply_context_t *c)
   {
     const Type *typed_obj = (const Type *) obj;
     return apply_cached_ (typed_obj, c, hb_prioritize);
   }
 
   template <typename T>
-  static inline auto cache_func_ (const T *obj, OT::hb_ot_apply_context_t *c, bool enter, hb_priority<1>) HB_RETURN (bool, obj->cache_func (c, enter) )
+  static inline auto cache_func_ (const T *obj, hb_ot_apply_context_t *c, bool enter, hb_priority<1>) HB_RETURN (bool, obj->cache_func (c, enter) )
   template <typename T>
-  static inline bool cache_func_ (const T *obj, OT::hb_ot_apply_context_t *c, bool enter, hb_priority<0>) { return false; }
+  static inline bool cache_func_ (const T *obj, hb_ot_apply_context_t *c, bool enter, hb_priority<0>) { return false; }
   template <typename Type>
-  static inline bool cache_func_to (const void *obj, OT::hb_ot_apply_context_t *c, bool enter)
+  static inline bool cache_func_to (const void *obj, hb_ot_apply_context_t *c, bool enter)
   {
     const Type *typed_obj = (const Type *) obj;
     return cache_func_ (typed_obj, c, enter, hb_prioritize);
   }
 #endif
 
-  typedef bool (*hb_apply_func_t) (const void *obj, OT::hb_ot_apply_context_t *c);
-  typedef bool (*hb_cache_func_t) (const void *obj, OT::hb_ot_apply_context_t *c, bool enter);
+  typedef bool (*hb_apply_func_t) (const void *obj, hb_ot_apply_context_t *c);
+  typedef bool (*hb_cache_func_t) (const void *obj, hb_ot_apply_context_t *c, bool enter);
 
   struct hb_applicable_t
   {
@@ -905,20 +905,20 @@ struct hb_accelerate_subtables_context_t :
       obj_.get_coverage ().collect_coverage (&digest);
     }
 
-    bool apply (OT::hb_ot_apply_context_t *c) const
+    bool apply (hb_ot_apply_context_t *c) const
     {
       return digest.may_have (c->buffer->cur().codepoint) && apply_func (obj, c);
     }
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
-    bool apply_cached (OT::hb_ot_apply_context_t *c) const
+    bool apply_cached (hb_ot_apply_context_t *c) const
     {
       return digest.may_have (c->buffer->cur().codepoint) &&  apply_cached_func (obj, c);
     }
-    bool cache_enter (OT::hb_ot_apply_context_t *c) const
+    bool cache_enter (hb_ot_apply_context_t *c) const
     {
       return cache_func (obj, c, true);
     }
-    void cache_leave (OT::hb_ot_apply_context_t *c) const
+    void cache_leave (hb_ot_apply_context_t *c) const
     {
       cache_func (obj, c, false);
     }
@@ -3946,7 +3946,7 @@ struct hb_ot_layout_lookup_accelerator_t
   void init (const TLookup &lookup)
   {
     subtables.init ();
-    OT::hb_accelerate_subtables_context_t c_accelerate_subtables (subtables);
+    hb_accelerate_subtables_context_t c_accelerate_subtables (subtables);
     lookup.dispatch (&c_accelerate_subtables);
 
     digest.init ();
@@ -3988,7 +3988,7 @@ struct hb_ot_layout_lookup_accelerator_t
     return false;
   }
 
-  bool cache_enter (OT::hb_ot_apply_context_t *c) const
+  bool cache_enter (hb_ot_apply_context_t *c) const
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     return cache_user_idx != (unsigned) -1 &&
@@ -3997,7 +3997,7 @@ struct hb_ot_layout_lookup_accelerator_t
     return false;
 #endif
   }
-  void cache_leave (OT::hb_ot_apply_context_t *c) const
+  void cache_leave (hb_ot_apply_context_t *c) const
   {
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     subtables[cache_user_idx].cache_leave (c);
@@ -4267,7 +4267,7 @@ struct GSUBGPOS
 			hb_set_t       *lookup_indexes /* IN/OUT */) const
   {
     hb_set_t visited_lookups, inactive_lookups;
-    OT::hb_closure_lookups_context_t c (face, glyphs, &visited_lookups, &inactive_lookups);
+    hb_closure_lookups_context_t c (face, glyphs, &visited_lookups, &inactive_lookups);
 
     c.set_recurse_func (TLookup::template dispatch_recurse_func<hb_closure_lookups_context_t>);
 
