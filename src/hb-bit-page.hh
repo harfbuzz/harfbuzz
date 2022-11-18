@@ -68,6 +68,9 @@ struct hb_vector_size_t
   hb_vector_size_t operator ~ () const
   { return process (hb_bitwise_neg); }
 
+  hb_array_t<const elt_t> iter () const
+  { return hb_array (v); }
+
   private:
   static_assert (0 == byte_size % sizeof (elt_t), "");
   elt_t v[byte_size / sizeof (elt_t)];
@@ -84,10 +87,10 @@ struct hb_bit_page_t
 
   bool is_empty () const
   {
-    for (unsigned i = 0; i < len (); i++)
-      if (v[i])
-	return false;
-    return true;
+    return
+    + hb_iter (v)
+    | hb_none
+    ;
   }
   uint32_t hash () const
   {
