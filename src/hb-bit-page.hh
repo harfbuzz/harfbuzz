@@ -94,10 +94,10 @@ struct hb_bit_page_t
   }
   uint32_t hash () const
   {
-    uint32_t h = 0;
-    for (unsigned i = 0; i < len (); i++)
-      h = h * 31 + hb_hash (v[i]);
-    return h;
+    return
+    + hb_iter (v)
+    | hb_reduce ([] (uint32_t h, const elt_t &_) { return h * 31 + hb_hash (_); }, (uint32_t) 0u)
+    ;
   }
 
   void add (hb_codepoint_t g) { elt (g) |= mask (g); }
@@ -222,7 +222,7 @@ struct hb_bit_page_t
   {
     return
     + hb_iter (v)
-    | hb_reduce ([] (unsigned pop, const elt_t &_) { return pop + hb_popcount (_); }, 0)
+    | hb_reduce ([] (unsigned pop, const elt_t &_) { return pop + hb_popcount (_); }, 0u)
     ;
   }
 
