@@ -3970,16 +3970,20 @@ struct hb_ot_layout_lookup_accelerator_t
 #ifndef HB_NO_OT_LAYOUT_LOOKUP_CACHE
     if (use_cache)
     {
-      for (unsigned int i = 0; i < subtables.length; i++)
-        if (subtables[i].apply_cached (c))
-	  return true;
+      return
+      + hb_iter (subtables)
+      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply_cached (c); })
+      | hb_any
+      ;
     }
     else
 #endif
     {
-      for (unsigned int i = 0; i < subtables.length; i++)
-        if (subtables[i].apply (c))
-	  return true;
+      return
+      + hb_iter (subtables)
+      | hb_map ([&c] (const hb_accelerate_subtables_context_t::hb_applicable_t &_) { return _.apply (c); })
+      | hb_any
+      ;
     }
     return false;
   }
