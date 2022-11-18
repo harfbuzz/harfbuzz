@@ -159,7 +159,7 @@ struct hb_hashmap_t
   {
     if (unlikely (!successful)) return false;
 
-    if (new_population != 0 && new_population <= population) return true;
+    if (new_population != 0 && (new_population + new_population / 2) < mask) return true;
 
     unsigned int power = hb_bit_storage (hb_max ((unsigned) population, new_population) * 2 + 8);
     unsigned int new_size = 1u << power;
