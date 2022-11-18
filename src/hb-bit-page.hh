@@ -220,10 +220,10 @@ struct hb_bit_page_t
 
   unsigned int get_population () const
   {
-    unsigned int pop = 0;
-    for (unsigned int i = 0; i < len (); i++)
-      pop += hb_popcount (v[i]);
-    return pop;
+    return
+    + hb_iter (v)
+    | hb_reduce ([] (unsigned pop, const elt_t &_) { return pop + hb_popcount (_); }, 0)
+    ;
   }
 
   bool next (hb_codepoint_t *codepoint) const
