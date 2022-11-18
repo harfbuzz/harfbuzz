@@ -4313,7 +4313,7 @@ struct GSUBGPOS
     }
 #endif
 
-    for (unsigned i : feature_indices->iter())
+    for (unsigned i : hb_iter (feature_indices))
     {
       hb_tag_t tag =  get_feature_tag (i);
       if (tag == HB_TAG ('p', 'r', 'e', 'f'))
