@@ -242,16 +242,6 @@ struct hb_vector_t
     return new_array;
   }
 
-  template <typename T = Type,
-	    hb_enable_if (hb_is_trivially_constructible(T))>
-  void
-  grow_vector (unsigned size)
-  {
-    memset (arrayZ + length, 0, (size - length) * sizeof (*arrayZ));
-    length = size;
-  }
-  template <typename T = Type,
-	    hb_enable_if (!hb_is_trivially_constructible(T))>
   void
   grow_vector (unsigned size)
   {
