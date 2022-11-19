@@ -224,6 +224,8 @@ main (int argc, char **argv)
   {
     hb_hashmap_t<hb::unique_ptr<hb_set_t>, hb::unique_ptr<hb_set_t>> m;
 
+    m.set (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()),
+	   hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
     m.get (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
     m.iter_ref ();
     m.keys_ref ();
