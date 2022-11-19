@@ -496,7 +496,7 @@ struct hb_pair_t
 	    hb_enable_if (std::is_default_constructible<U1>::value &&
 			  std::is_default_constructible<U2>::value)>
   hb_pair_t () : first (), second () {}
-  hb_pair_t (T1 a, T2 b) : first (a), second (b) {}
+  hb_pair_t (T1 a, T2 b) : first (std::forward<T1> (a)), second (std::forward<T2> (b)) {}
 
   template <typename Q1, typename Q2,
 	    hb_enable_if (hb_is_convertible (T1, Q1) &&

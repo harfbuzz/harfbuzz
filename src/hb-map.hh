@@ -315,6 +315,8 @@ struct hb_hashmap_t
   /* Sink interface. */
   hb_hashmap_t& operator << (const hb_pair_t<K, V>& v)
   { set (v.first, v.second); return *this; }
+  hb_hashmap_t& operator << (const hb_pair_t<K, V&&>& v)
+  { set (v.first, std::move (v.second)); return *this; }
 
   protected:
 

@@ -179,9 +179,17 @@ main (int argc, char **argv)
 
     hb_hashmap_t<vector_t, vector_t> m1;
 
-    m1 << hb_pair_t<vector_t, vector_t> {vector_t (), vector_t ()};
     m1.set (vector_t (), vector_t {1});
     m1.set (vector_t {1}, vector_t {2});
+
+    m1 << hb_pair_t<vector_t, vector_t> {vector_t {2}, vector_t ()};
+
+    vector_t v {3};
+    assert (v.length == 1);
+    m1 << hb_pair_t<vector_t, vector_t> {vector_t {3}, v};
+    assert (v.length == 1);
+    m1 << hb_pair_t<vector_t, vector_t&&> {vector_t {4}, std::move (v)};
+    assert (v.length == 0);
 
     assert (m1.get (vector_t ()) == vector_t {1});
     assert (m1.get (vector_t {1}) == vector_t {2});
