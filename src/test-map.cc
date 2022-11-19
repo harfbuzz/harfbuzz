@@ -228,8 +228,10 @@ main (int argc, char **argv)
   {
     hb_hashmap_t<hb::unique_ptr<hb_set_t>, hb::unique_ptr<hb_set_t>> m;
 
-    m.set (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()),
-	   hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
+    // Doesn't work.
+    // See commit f657ef7e57c889309c2d9d37934368ca255f9d5b and its revert.
+    //m.set (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()),
+    //       hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
     m.get (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
     m.iter_ref ();
     m.keys_ref ();
