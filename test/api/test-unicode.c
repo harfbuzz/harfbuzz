@@ -754,9 +754,9 @@ test_unicode_setters (void)
     /* Since uf is immutable now, the following setter should do nothing. */
     p->func_setter (uf, (get_func_t) a_is_for_arabic_get_script, &data[1], free_up);
 
-    g_assert (data[0].freed && !data[1].freed);
+    g_assert (data[0].freed && data[1].freed);
     hb_unicode_funcs_destroy (uf);
-    g_assert (data[0].freed && !data[1].freed);
+    g_assert (data[0].freed && data[1].freed);
   }
 }
 

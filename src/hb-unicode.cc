@@ -377,7 +377,14 @@ hb_unicode_funcs_set_##name##_func (hb_unicode_funcs_t		   *ufuncs,	\
 				    hb_destroy_func_t		    destroy)	\
 {										\
   if (hb_object_is_immutable (ufuncs))						\
-    return;									\
+    goto fail;									\
+										\
+  if (!func && destroy)								\
+  {										\
+    destroy (user_data);							\
+    destroy = nullptr;								\
+    user_data = nullptr;							\
+  }										\
 										\
   if (ufuncs->destroy.name)							\
     ufuncs->destroy.name (ufuncs->user_data.name);				\
@@ -391,6 +398,11 @@ hb_unicode_funcs_set_##name##_func (hb_unicode_funcs_t		   *ufuncs,	\
     ufuncs->user_data.name = ufuncs->parent->user_data.name;			\
     ufuncs->destroy.name = nullptr;						\
   }										\
+  return;									\
+										\
+fail:										\
+  if (destroy)									\
+    destroy (user_data);							\
 }
 
 HB_UNICODE_FUNCS_IMPLEMENT_CALLBACKS
