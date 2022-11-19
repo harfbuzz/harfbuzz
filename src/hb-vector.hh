@@ -300,17 +300,6 @@ struct hb_vector_t
     }
   }
 
-  template <typename T = Type,
-	    hb_enable_if (hb_is_trivially_copy_assignable(T))>
-  void
-  shift_down_vector (unsigned i)
-  {
-    memmove (static_cast<void *> (&arrayZ[i - 1]),
-	     static_cast<void *> (&arrayZ[i]),
-	     (length - i) * sizeof (Type));
-  }
-  template <typename T = Type,
-	    hb_enable_if (!hb_is_trivially_copy_assignable(T))>
   void
   shift_down_vector (unsigned i)
   {
