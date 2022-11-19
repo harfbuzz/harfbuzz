@@ -823,10 +823,10 @@ hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs)
 
 
 static bool
-set_func_preamble (hb_font_funcs_t *ffuncs,
-		   bool func_is_null,
-		   void **user_data,
-		   hb_destroy_func_t *destroy)
+_hb_font_funcs_set_preamble (hb_font_funcs_t    *ffuncs,
+			     bool                func_is_null,
+			     void              **user_data,
+			     hb_destroy_func_t  *destroy)
 {
   if (hb_object_is_immutable (ffuncs))
   {
@@ -847,9 +847,9 @@ set_func_preamble (hb_font_funcs_t *ffuncs,
 }
 
 static bool
-set_func_middle (hb_font_funcs_t *ffuncs,
-		   void *user_data,
-		   hb_destroy_func_t destroy)
+_hb_font_funcs_set_middle (hb_font_funcs_t   *ffuncs,
+			   void              *user_data,
+			   hb_destroy_func_t  destroy)
 {
   if (user_data && !ffuncs->user_data)
   {
@@ -880,13 +880,13 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
 				 void                        *user_data, \
 				 hb_destroy_func_t            destroy)   \
 {                                                                        \
-  if (!set_func_preamble (ffuncs, !func, &user_data, &destroy))          \
+  if (!_hb_font_funcs_set_preamble (ffuncs, !func, &user_data, &destroy))\
       return;                                                            \
 									 \
   if (ffuncs->destroy && ffuncs->destroy->name)                          \
     ffuncs->destroy->name (!ffuncs->user_data ? nullptr : ffuncs->user_data->name); \
                                                                          \
-  if (!set_func_middle (ffuncs, user_data, destroy))                     \
+  if (!_hb_font_funcs_set_middle (ffuncs, user_data, destroy))           \
       return;                                                            \
 									 \
   if (func) {                                                            \
