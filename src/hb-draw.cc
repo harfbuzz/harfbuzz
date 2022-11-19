@@ -147,20 +147,15 @@ hb_draw_funcs_set_##name##_func (hb_draw_funcs_t	 *dfuncs,		\
   if (!_hb_draw_funcs_set_middle (dfuncs, user_data, destroy))           \
       return;                                                            \
 									\
-  if (func) {								\
+  if (func)								\
     dfuncs->func.name = func;						\
-    if (dfuncs->user_data)						\
-      dfuncs->user_data->name = user_data;				\
-    if (dfuncs->destroy)						\
-      dfuncs->destroy->name = destroy;					\
-  } else {								\
+  else									\
     dfuncs->func.name = hb_draw_##name##_nil;				\
-    if (dfuncs->user_data)						\
-      dfuncs->user_data->name = nullptr;				\
-    if (dfuncs->destroy)						\
-      dfuncs->destroy->name = nullptr;					\
-  }									\
-  return;                                                                \
+									\
+  if (dfuncs->user_data)						\
+    dfuncs->user_data->name = user_data;				\
+  if (dfuncs->destroy)							\
+    dfuncs->destroy->name = destroy;					\
 }
 
 HB_DRAW_FUNCS_IMPLEMENT_CALLBACKS

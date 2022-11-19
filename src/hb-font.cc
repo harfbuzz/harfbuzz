@@ -889,19 +889,15 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
   if (!_hb_font_funcs_set_middle (ffuncs, user_data, destroy))           \
       return;                                                            \
 									 \
-  if (func) {                                                            \
+  if (func)                                                              \
     ffuncs->get.f.name = func;                                           \
-    if (ffuncs->user_data)                                               \
-      ffuncs->user_data->name = user_data;                               \
-    if (ffuncs->destroy)                                                 \
-      ffuncs->destroy->name = destroy;                                   \
-  } else {                                                               \
+  else                                                                   \
     ffuncs->get.f.name = hb_font_get_##name##_default;                   \
-    if (ffuncs->user_data)                                               \
-      ffuncs->user_data->name = nullptr;                                 \
-    if (ffuncs->destroy)						 \
-      ffuncs->destroy->name = nullptr;                                   \
-  }                                                                      \
+									 \
+  if (ffuncs->user_data)                                                 \
+    ffuncs->user_data->name = user_data;                                 \
+  if (ffuncs->destroy)                                                   \
+    ffuncs->destroy->name = destroy;                                     \
 }
 
 HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
