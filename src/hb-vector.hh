@@ -364,7 +364,7 @@ struct hb_vector_t
   Type pop ()
   {
     if (!length) return Null (Type);
-    Type v = arrayZ[length - 1];
+    Type v {std::move (arrayZ[length - 1])};
     arrayZ[length - 1].~Type ();
     length--;
     return v;
