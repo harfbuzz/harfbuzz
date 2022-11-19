@@ -212,6 +212,8 @@ main (int argc, char **argv)
   {
     hb_hashmap_t<hb::shared_ptr<hb_set_t>, hb::shared_ptr<hb_set_t>> m;
 
+    m.set (hb::shared_ptr<hb_set_t> (hb_set_get_empty ()),
+	   hb::shared_ptr<hb_set_t> (hb_set_get_empty ()));
     m.get (hb::shared_ptr<hb_set_t> (hb_set_get_empty ()));
     m.iter ();
     m.keys ();
