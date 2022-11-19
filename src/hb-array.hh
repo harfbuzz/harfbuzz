@@ -112,12 +112,12 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 
   HB_INTERNAL bool operator == (const hb_array_t &o) const;
 
-  uint32_t hash () const {
-    uint32_t current = 0;
-    for (unsigned int i = 0; i < this->length; i++) {
-      current = current * 31 + hb_hash (this->arrayZ[i]);
-    }
-    return current;
+  uint32_t hash () const
+  {
+    return
+    + hb_iter (*this)
+    | hb_reduce ([] (uint32_t h, const Type &_) { return h * 31 + hb_hash (_); }, (uint32_t) 0u)
+    ;
   }
 
   /*
