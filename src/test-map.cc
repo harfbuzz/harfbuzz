@@ -179,7 +179,7 @@ main (int argc, char **argv)
 
     hb_hashmap_t<vector_t, vector_t> m1;
 
-    m1.set (vector_t (), vector_t ());
+    m1 << hb_pair_t<vector_t, vector_t> {vector_t (), vector_t ()};
     m1.set (vector_t (), vector_t {1});
     m1.set (vector_t {1}, vector_t {2});
 
