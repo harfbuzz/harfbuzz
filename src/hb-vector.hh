@@ -235,10 +235,8 @@ struct hb_vector_t
       {
 	new (std::addressof (new_array[i])) Type ();
 	new_array[i] = std::move (arrayZ[i]);
+	arrayZ[i].~Type ();
       }
-      unsigned old_length = length;
-      shrink_vector (0);
-      length = old_length;
       hb_free (arrayZ);
     }
     return new_array;
@@ -302,15 +300,6 @@ struct hb_vector_t
     }
   }
 
-  template <typename T = Type,
-	    hb_enable_if (hb_is_trivially_destructible(T))>
-  void
-  shrink_vector (unsigned size)
-  {
-    length = size;
-  }
-  template <typename T = Type,
-	    hb_enable_if (!hb_is_trivially_destructible(T))>
   void
   shrink_vector (unsigned size)
   {
