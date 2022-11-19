@@ -169,6 +169,7 @@ main (int argc, char **argv)
     hb_vector_t<hb_set_t> v;
     hb_set_t s {1, 5, 7};
     v.push (s);
+    v << s;
   }
 
   {
