@@ -95,7 +95,11 @@ struct hb_vector_t
   void reset ()
   {
     if (unlikely (in_error ()))
-      allocated = length; // Big hack!
+      /* Big Hack! We don't know the true allocated size before
+       * an allocation failure happened. But we know it was at
+       * least as big as length. Restore it to that and continue
+       * as if error did not happen. */
+      allocated = length;
     resize (0);
   }
 
