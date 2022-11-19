@@ -822,6 +822,56 @@ hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs)
 }
 
 
+static bool
+set_func_preamble (hb_font_funcs_t *ffuncs,
+		   bool func_is_null,
+		   void **user_data,
+		   hb_destroy_func_t *destroy)
+{
+  if (hb_object_is_immutable (ffuncs))
+  {
+    if (*destroy)
+      (*destroy) (*user_data);
+    return false;
+  }
+
+  if (func_is_null)
+  {
+    if (*destroy)
+      (*destroy) (*user_data);
+    *destroy = nullptr;
+    *user_data = nullptr;
+  }
+
+  return true;
+}
+
+static bool
+set_func_middle (hb_font_funcs_t *ffuncs,
+		   void *user_data,
+		   hb_destroy_func_t destroy)
+{
+  if (user_data && !ffuncs->user_data)
+  {
+    ffuncs->user_data = (decltype (ffuncs->user_data)) hb_calloc (1, sizeof (*ffuncs->user_data));
+    if (unlikely (!ffuncs->user_data))
+      goto fail;
+  }
+  if (destroy && !ffuncs->destroy)
+  {
+    ffuncs->destroy = (decltype (ffuncs->destroy)) hb_calloc (1, sizeof (*ffuncs->destroy));
+    if (unlikely (!ffuncs->destroy))
+      goto fail;
+  }
+
+  return true;
+
+fail:
+  if (destroy)
+    (destroy) (user_data);
+  return false;
+}
+
 #define HB_FONT_FUNC_IMPLEMENT(name) \
 									 \
 void                                                                     \
@@ -830,32 +880,14 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
 				 void                        *user_data, \
 				 hb_destroy_func_t            destroy)   \
 {                                                                        \
-  if (hb_object_is_immutable (ffuncs))                                   \
-    goto fail;                                                           \
-                                                                         \
-  if (!func)                                                             \
-  {                                                                      \
-    if (destroy)                                                         \
-      destroy (user_data);                                               \
-    destroy = nullptr;                                                   \
-    user_data = nullptr;                                                 \
-  }                                                                      \
+  if (!set_func_preamble (ffuncs, !func, &user_data, &destroy))          \
+      return;                                                            \
 									 \
   if (ffuncs->destroy && ffuncs->destroy->name)                          \
     ffuncs->destroy->name (!ffuncs->user_data ? nullptr : ffuncs->user_data->name); \
                                                                          \
-  if (user_data && !ffuncs->user_data)                                   \
-  {                                                                      \
-    ffuncs->user_data = (decltype (ffuncs->user_data)) hb_calloc (1, sizeof (*ffuncs->user_data)); \
-    if (unlikely (!ffuncs->user_data))                                   \
-      goto fail;                                                         \
-  }                                                                      \
-  if (destroy && !ffuncs->destroy)                                       \
-  {                                                                      \
-    ffuncs->destroy = (decltype (ffuncs->destroy)) hb_calloc (1, sizeof (*ffuncs->destroy)); \
-    if (unlikely (!ffuncs->destroy))                                     \
-      goto fail;                                                         \
-  }                                                                      \
+  if (!set_func_middle (ffuncs, user_data, destroy))                     \
+      return;                                                            \
 									 \
   if (func) {                                                            \
     ffuncs->get.f.name = func;                                           \
@@ -870,11 +902,6 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
     if (ffuncs->destroy)						 \
       ffuncs->destroy->name = nullptr;                                   \
   }                                                                      \
-  return;                                                                \
-                                                                         \
-fail:                                                                    \
-  if (destroy)                                                           \
-    destroy (user_data);                                                 \
 }
 
 HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
