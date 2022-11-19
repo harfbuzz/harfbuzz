@@ -379,9 +379,10 @@ hb_unicode_funcs_set_##name##_func (hb_unicode_funcs_t		   *ufuncs,	\
   if (hb_object_is_immutable (ufuncs))						\
     goto fail;									\
 										\
-  if (!func && destroy)								\
+  if (!func)									\
   {										\
-    destroy (user_data);							\
+    if (destroy)								\
+      destroy (user_data);							\
     destroy = nullptr;								\
     user_data = nullptr;							\
   }										\
