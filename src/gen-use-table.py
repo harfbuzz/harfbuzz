@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # flake8: noqa: F821
 
+import logging
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+
 """usage: ./gen-use-table.py IndicSyllabicCategory.txt IndicPositionalCategory.txt ArabicShaping.txt DerivedCoreProperties.txt UnicodeData.txt Blocks.txt Scripts.txt IndicSyllabicCategory-Additional.txt IndicPositionalCategory-Additional.txt
 
 Input files:
@@ -467,6 +470,7 @@ import packTab
 data = {u:v[0] for u,v in use_data.items()}
 code = packTab.Code('hb_use')
 sol = packTab.pack_table(data, compression=5, default='O')
+logging.info('      FullCost=%d' % (sol.fullCost))
 sol.genCode(code, f'get_category')
 code.print_c(linkage='static inline')
 
