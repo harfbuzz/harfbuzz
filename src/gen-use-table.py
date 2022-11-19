@@ -468,11 +468,29 @@ print ("")
 
 import packTab
 data = {u:v[0] for u,v in use_data.items()}
-code = packTab.Code('hb_use')
-sol = packTab.pack_table(data, compression=5, default='O')
-logging.info('      FullCost=%d' % (sol.fullCost))
-sol.genCode(code, f'get_category')
-code.print_c(linkage='static inline')
+
+DEFAULT = 5
+COMPACT = 9
+for compression in (DEFAULT, COMPACT):
+
+    logging.info('  Compression=%d:' % compression)
+    print()
+    if compression == DEFAULT:
+        print('#ifndef HB_OPTIMIZE_SIZE')
+    elif compression == COMPACT:
+        print('#else')
+    else:
+        assert False
+    print()
+
+    code = packTab.Code('hb_use')
+    sol = packTab.pack_table(data, compression=compression, default='O')
+    logging.info('      FullCost=%d' % (sol.fullCost))
+    sol.genCode(code, f'get_category')
+    code.print_c(linkage='static inline')
+    print ()
+
+print('#endif')
 
 print ()
 for k in sorted(use_mapping.keys()):
