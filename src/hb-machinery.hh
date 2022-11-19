@@ -228,7 +228,8 @@ struct hb_lazy_loader_t : hb_data_wrapper_t<Data, WheresData>
 
   bool cmpexch (Stored *current, Stored *value) const
   {
-    /* This *must* be called when there are no other threads accessing. */
+    /* This function can only be safely called directly if no
+     * other thread is accessing. */
     return this->instance.cmpexch (current, value);
   }
 
