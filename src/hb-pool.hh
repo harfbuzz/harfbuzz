@@ -39,8 +39,9 @@ struct hb_pool_t
   {
     next = nullptr;
 
-    for (chunk_t *_ : chunks)
-      hb_free (_);
+    + hb_iter (chunks)
+    | hb_apply (hb_free)
+    ;
   }
 
   T* alloc ()
