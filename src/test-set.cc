@@ -88,11 +88,14 @@ main (int argc, char **argv)
     hb_set_t s;
 
     s.add (18);
-    s.add (12);
+    s << 12;
+
+    /* Sink a range. */
+    s << hb_pair_t<hb_codepoint_t, hb_codepoint_t> {1, 3};
 
     hb_set_t v (hb_iter (s));
 
-    assert (v.get_population () == 2);
+    assert (v.get_population () == 5);
   }
 
   /* Test initializing from initializer list and swapping. */
