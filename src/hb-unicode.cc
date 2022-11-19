@@ -384,21 +384,18 @@ hb_unicode_funcs_set_##name##_func (hb_unicode_funcs_t		   *ufuncs,	\
     if (destroy)								\
       destroy (user_data);							\
     destroy = nullptr;								\
-    user_data = nullptr;							\
+    user_data = ufuncs->parent->user_data.name;					\
   }										\
 										\
   if (ufuncs->destroy.name)							\
     ufuncs->destroy.name (ufuncs->user_data.name);				\
 										\
-  if (func) {									\
+  if (func)									\
     ufuncs->func.name = func;							\
-    ufuncs->user_data.name = user_data;						\
-    ufuncs->destroy.name = destroy;						\
-  } else {									\
+  else										\
     ufuncs->func.name = ufuncs->parent->func.name;				\
-    ufuncs->user_data.name = ufuncs->parent->user_data.name;			\
-    ufuncs->destroy.name = nullptr;						\
-  }										\
+  ufuncs->user_data.name = user_data;						\
+  ufuncs->destroy.name = destroy;						\
   return;									\
 										\
 fail:										\
