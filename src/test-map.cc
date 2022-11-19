@@ -199,6 +199,8 @@ main (int argc, char **argv)
     assert (v.length == 1);
     m1 << hb_pair_t<vector_t, vector_t&&> {vector_t {4}, std::move (v)};
     assert (v.length == 0);
+    m1 << hb_pair_t<vector_t&&, vector_t> {vector_t {4}, vector_t {5}};
+    m1 << hb_pair_t<vector_t&&, vector_t&&> {vector_t {4}, vector_t {5}};
 
     hb_hashmap_t<vector_t, vector_t> m2;
     vector_t v2 {3};
