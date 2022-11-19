@@ -170,6 +170,9 @@ main (int argc, char **argv)
     hb_set_t s {1, 5, 7};
     v.push (s);
     v << s;
+    assert (s.get_population () == 3);
+    v << std::move (s);
+    assert (s.get_population () == 0);
   }
 
   {
