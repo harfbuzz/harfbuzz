@@ -34,6 +34,7 @@ main (int argc, char **argv)
     hb_set_t v1 {1, 2};
     hb_set_t v2 {v1};
     assert (v1.get_population () == 2);
+    assert (hb_len (hb_iter (v1)) == 2);
     assert (v2.get_population () == 2);
   }
 
@@ -51,6 +52,7 @@ main (int argc, char **argv)
     hb_set_t s {1, 2};
     hb_set_t v (std::move (s));
     assert (s.get_population () == 0);
+    assert (hb_len (hb_iter (s)) == 0);
     assert (v.get_population () == 2);
   }
 
