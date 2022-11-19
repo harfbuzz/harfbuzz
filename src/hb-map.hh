@@ -327,7 +327,7 @@ struct hb_hashmap_t
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
     item_t &item = item_for_hash (key, hash);
 
-    if (is_delete && item.key != key)
+    if (is_delete && !(item == key))
       return true; /* Trying to delete non-existent key. */
 
     if (item.is_used ())
