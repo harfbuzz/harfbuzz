@@ -83,10 +83,15 @@ for line in open(hb_common_h):
     sc_order[i] = tag
     sc_array.append(name)
 
-DEFAULT = 3
-COMPACT = 5
-SLOPPY  = 9
+DEFAULT = 'DEFAULT'
+COMPACT = 'COMPACT'
+SLOPPY  = 'SLOPPY'
 
+compression_level = {
+    DEFAULT: 5,
+    COMPACT: 9,
+    SLOPPY:  9,
+}
 
 logging.info('Generating output...')
 print("/* == Start of generated table == */")
@@ -120,18 +125,21 @@ datasets = [
     ('dm', dm, None, dm_order),
 ]
 
-for compression in (DEFAULT, COMPACT, SLOPPY):
+for step in (DEFAULT, COMPACT, SLOPPY):
+    compression = compression_level[step]
     logging.info('  Compression=%d:' % compression)
     print()
-    if compression == DEFAULT:
+    if step == DEFAULT:
         print('#ifndef HB_OPTIMIZE_SIZE')
-    elif compression == COMPACT:
+    elif step == COMPACT:
         print('#elif !defined(HB_NO_UCD_UNASSIGNED)')
-    else:
+    elif step == SLOPPY:
         print('#else')
+    else:
+        assert False
     print()
 
-    if compression == SLOPPY:
+    if step == SLOPPY:
         for i in range(len(gc)):
             if (i % 128) and gc[i] == 'Cn':
                 gc[i] = gc[i - 1]
