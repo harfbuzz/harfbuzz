@@ -1465,56 +1465,6 @@ hb_ot_layout_substitute_start (hb_font_t    *font,
   _hb_ot_layout_set_glyph_props (font, buffer);
 }
 
-void
-hb_ot_layout_delete_glyphs_inplace (hb_buffer_t *buffer,
-				    bool (*filter) (const hb_glyph_info_t *info))
-{
-  /* Merge clusters and delete filtered glyphs.
-   * NOTE! We can't use out-buffer as we have positioning data. */
-  unsigned int j = 0;
-  unsigned int count = buffer->len;
-  hb_glyph_info_t *info = buffer->info;
-  hb_glyph_position_t *pos = buffer->pos;
-  for (unsigned int i = 0; i < count; i++)
-  {
-    if (filter (&info[i]))
-    {
-      /* Merge clusters.
-       * Same logic as buffer->delete_glyph(), but for in-place removal. */
-
-      unsigned int cluster = info[i].cluster;
-      if (i + 1 < count && cluster == info[i + 1].cluster)
-	continue; /* Cluster survives; do nothing. */
-
-      if (j)
-      {
-	/* Merge cluster backward. */
-	if (cluster < info[j - 1].cluster)
-	{
-	  unsigned int mask = info[i].mask;
-	  unsigned int old_cluster = info[j - 1].cluster;
-	  for (unsigned k = j; k && info[k - 1].cluster == old_cluster; k--)
-	    buffer->set_cluster (info[k - 1], cluster, mask);
-	}
-	continue;
-      }
-
-      if (i + 1 < count)
-	buffer->merge_clusters (i, i + 2); /* Merge cluster forward. */
-
-      continue;
-    }
-
-    if (j != i)
-    {
-      info[j] = info[i];
-      pos[j] = pos[i];
-    }
-    j++;
-  }
-  buffer->len = j;
-}
-
 /**
  * hb_ot_layout_lookup_substitute_closure:
  * @face: #hb_face_t to work upon

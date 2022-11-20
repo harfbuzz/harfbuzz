@@ -864,7 +864,7 @@ hb_ot_hide_default_ignorables (hb_buffer_t *buffer,
     }
   }
   else
-    hb_ot_layout_delete_glyphs_inplace (buffer, _hb_glyph_info_is_default_ignorable);
+    buffer->delete_glyphs_inplace (_hb_glyph_info_is_default_ignorable);
 }
 
 
