@@ -564,13 +564,13 @@ struct interp_env_t
     if (unlikely (!str_ref.avail ()))
       return OpCode_Invalid;
     op = (op_code_t)(unsigned char)str_ref[0];
+    str_ref.inc ();
     if (op == OpCode_escape) {
       if (unlikely (!str_ref.avail ()))
 	return OpCode_Invalid;
-      op = Make_OpCode_ESC(str_ref[1]);
+      op = Make_OpCode_ESC(str_ref[0]);
       str_ref.inc ();
     }
-    str_ref.inc ();
     return op;
   }
 
