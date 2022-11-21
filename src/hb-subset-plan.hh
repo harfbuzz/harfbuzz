@@ -194,6 +194,7 @@ struct hb_subset_plan_t
   hb_map_t *axes_old_index_tag_map;
   bool all_axes_pinned;
   bool pinned_at_default;
+  bool has_seac;
 
   //hmtx metrics map: new gid->(advance, lsb)
   hb_hashmap_t<unsigned, hb_pair_t<unsigned, int>> *hmtx_map;

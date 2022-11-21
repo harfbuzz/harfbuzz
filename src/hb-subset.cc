@@ -504,7 +504,8 @@ static void _attach_accelerator_data (const hb_subset_plan_t* plan,
 {
   hb_subset_accelerator_t* accel =
       hb_subset_accelerator_t::create (*plan->codepoint_to_glyph,
-                                       *plan->unicodes);
+                                       *plan->unicodes,
+				       plan->has_seac);
 
   if (accel->in_error ())
   {

@@ -47,7 +47,7 @@ using OT::Layout::GPOS;
 
 typedef hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> script_langsys_map;
 #ifndef HB_NO_SUBSET_CFF
-static inline void
+static inline bool
 _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
 			  hb_codepoint_t gid,
 			  hb_set_t *gids_to_retain)
@@ -57,7 +57,9 @@ _add_cff_seac_components (const OT::cff1::accelerator_t &cff,
   {
     gids_to_retain->add (base_gid);
     gids_to_retain->add (accent_gid);
+    return true;
   }
+  return false;
 }
 #endif
 
@@ -639,9 +641,15 @@ _populate_gids_to_retain (hb_subset_plan_t* plan,
   else
     plan->_glyphset->union_ (cur_glyphset);
 #ifndef HB_NO_SUBSET_CFF
-  if (cff.is_valid ())
-    for (hb_codepoint_t gid : cur_glyphset)
-      _add_cff_seac_components (cff, gid, plan->_glyphset);
+  if (!plan->accelerator || plan->accelerator->has_seac)
+  {
+    bool has_seac = false;
+    if (cff.is_valid ())
+      for (hb_codepoint_t gid : cur_glyphset)
+	if (_add_cff_seac_components (cff, gid, plan->_glyphset))
+	  has_seac = true;
+    plan->has_seac = has_seac;
+  }
 #endif
 
   _remove_invalid_gids (plan->_glyphset, plan->source->get_num_glyphs ());
