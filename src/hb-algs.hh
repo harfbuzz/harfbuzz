@@ -845,7 +845,7 @@ hb_in_ranges (T u, T lo1, T hi1)
 template <typename T, typename ...Ts> static inline bool
 hb_in_ranges (T u, T lo1, T hi1, Ts... ds)
 {
-  return hb_in_range (u, lo1, hi1) || hb_in_ranges (u, ds...);
+  return hb_in_range<T> (u, lo1, hi1) || hb_in_ranges<T> (u, ds...);
 }
 
 
