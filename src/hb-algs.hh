@@ -1156,6 +1156,9 @@ hb_qsort (void *base, size_t nel, size_t width,
 template <typename T, typename T2, typename T3 = int> static inline void
 hb_stable_sort (T *array, unsigned int len, int(*compar)(const T2 *, const T2 *), T3 *array2 = nullptr)
 {
+  static_assert (hb_is_trivially_copy_assignable (T), "");
+  static_assert (hb_is_trivially_copy_assignable (T3), "");
+
   for (unsigned int i = 1; i < len; i++)
   {
     unsigned int j = i;
