@@ -315,10 +315,8 @@ struct byte_str_ref_t
   { return get_offset () + count <= str.length; }
   void inc (unsigned int count=1)
   {
-    if (get_offset () + count <= str.length)
-      set_offset (get_offset () + count);
-    else
-      set_error ();
+    /* Automatically puts us in error if count is out-of-range. */
+    set_offset (get_offset () + count);
   }
 
   /* We (ab)use ubytes backwards_length as a cursor (called offset),
