@@ -207,10 +207,14 @@ struct CFFIndex
 
     unsigned int size = offSize;
     const HBUINT8 *p = offsets + size * index;
-    unsigned int offset = 0;
-    for (; size; size--)
-      offset = (offset << 8) + *p++;
-    return offset;
+    switch (size)
+    {
+      case 1: return * (HBUINT8  *) p;
+      case 2: return * (HBUINT16 *) p;
+      case 3: return * (HBUINT24 *) p;
+      case 4: return * (HBUINT32 *) p;
+      default: return 0;
+    }
   }
 
   unsigned int length_at (unsigned int index) const
