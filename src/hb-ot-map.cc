@@ -330,15 +330,18 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 		     global_bit_mask);
 
       for (unsigned i = 0; i < m.features.length; i++)
-	if (m.features[i].stage[table_index] == stage)
+      {
+        auto &feature = m.features[i];
+	if (feature.stage[table_index] == stage)
 	  add_lookups (m, table_index,
-		       m.features[i].index[table_index],
+		       feature.index[table_index],
 		       key.variations_index[table_index],
-		       m.features[i].mask,
-		       m.features[i].auto_zwnj,
-		       m.features[i].auto_zwj,
-		       m.features[i].random,
-		       m.features[i].per_syllable);
+		       feature.mask,
+		       feature.auto_zwnj,
+		       feature.auto_zwj,
+		       feature.random,
+		       feature.per_syllable);
+      }
 
       /* Sort lookups and merge duplicates */
       if (last_num_lookups < m.lookups[table_index].length)
