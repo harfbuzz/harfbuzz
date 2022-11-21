@@ -552,9 +552,9 @@ struct interp_env_t
     str_ref.reset (str_);
   }
   bool in_error () const
-  { return error || str_ref.in_error () || argStack.in_error (); }
+  { return str_ref.in_error () || argStack.in_error (); }
 
-  void set_error () { error = true; }
+  void set_error () { str_ref.set_error (); }
 
   op_code_t fetch_op ()
   {
@@ -583,8 +583,6 @@ struct interp_env_t
 		str_ref;
   arg_stack_t<ARG>
 		argStack;
-  protected:
-  bool		error = false;
 };
 
 using num_interp_env_t =  interp_env_t<>;
