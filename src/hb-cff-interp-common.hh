@@ -302,7 +302,7 @@ struct byte_str_ref_t
       set_error ();
       return Null (unsigned char);
     }
-    return str[get_offset () + i];
+    return str.arrayZ[get_offset () + i];
   }
 
   /* Conversion to hb_ubytes_t */
