@@ -284,16 +284,8 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 /* A byte string associated with the current offset and an error condition */
 struct byte_str_ref_t
 {
-  byte_str_ref_t () { init (); }
-
-  void init ()
-  {
-    str = hb_ubytes_t ();
-    offset = 0;
-    error = false;
-  }
-
-  void fini () {}
+  byte_str_ref_t ()
+    : str (), offset (0), error (false) {}
 
   byte_str_ref_t (const hb_ubytes_t &str_, unsigned int offset_ = 0)
     : str (str_), offset (offset_), error (false) {}
