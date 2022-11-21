@@ -327,13 +327,14 @@ struct byte_str_ref_t
     }
   }
 
+  unsigned get_offset () const { return offset; }
+
   void set_error ()      { error = true; }
   bool in_error () const { return error; }
 
+  protected:
   hb_ubytes_t       str;
   unsigned int  offset; /* beginning of the sub-string within str */
-
-  protected:
   bool	  error;
 };
 
@@ -521,16 +522,16 @@ struct parsed_values_t
   {
     VAL *val = values.push ();
     val->op = op;
-    val->str = str_ref.sub_array (opStart, str_ref.offset - opStart);
-    opStart = str_ref.offset;
+    val->str = str_ref.sub_array (opStart, str_ref.get_offset () - opStart);
+    opStart = str_ref.get_offset ();
   }
 
   void add_op (op_code_t op, const byte_str_ref_t& str_ref, const VAL &v)
   {
     VAL *val = values.push (v);
     val->op = op;
-    val->str = str_ref.sub_array ( opStart, str_ref.offset - opStart);
-    opStart = str_ref.offset;
+    val->str = str_ref.sub_array (opStart, str_ref.get_offset () - opStart);
+    opStart = str_ref.get_offset ();
   }
 
   bool has_op (op_code_t op) const
