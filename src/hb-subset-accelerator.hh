@@ -43,10 +43,12 @@ struct hb_subset_accelerator_t
   }
 
   static hb_subset_accelerator_t* create(const hb_map_t& unicode_to_gid_,
-                                         const hb_set_t& unicodes_) {
+                                         const hb_set_t& unicodes_,
+					 bool has_seac_) {
     hb_subset_accelerator_t* accel =
         (hb_subset_accelerator_t*) hb_malloc (sizeof(hb_subset_accelerator_t));
     new (accel) hb_subset_accelerator_t (unicode_to_gid_, unicodes_);
+    accel->has_seac = has_seac_;
     return accel;
   }
 
@@ -64,6 +66,7 @@ struct hb_subset_accelerator_t
 
   const hb_map_t unicode_to_gid;
   const hb_set_t unicodes;
+  bool has_seac;
   // TODO(garretrieger): cumulative glyf checksum map
   // TODO(garretrieger): sanitized table cache.
 
