@@ -521,7 +521,7 @@ struct parsed_values_t
   {
     VAL *val = values.push ();
     val->op = op;
-    val->str = str_ref.str.sub_array (opStart, str_ref.offset - opStart);
+    val->str = str_ref.sub_array (opStart, str_ref.offset - opStart);
     opStart = str_ref.offset;
   }
 
