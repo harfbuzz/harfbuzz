@@ -285,57 +285,53 @@ struct UnsizedByteStr : UnsizedArrayOf <HBUINT8>
 struct byte_str_ref_t
 {
   byte_str_ref_t ()
-    : str (), offset (0), error (false) {}
+    : str () {}
 
   byte_str_ref_t (const hb_ubytes_t &str_, unsigned int offset_ = 0)
-    : str (str_), offset (offset_), error (false) {}
+    : str (str_) { set_offset (offset_); }
 
   void reset (const hb_ubytes_t &str_, unsigned int offset_ = 0)
   {
     str = str_;
-    offset = offset_;
-    error = false;
+    set_offset (offset_);
   }
 
   const unsigned char& operator [] (int i) {
-    if (unlikely ((unsigned int) (offset + i) >= str.length))
+    if (unlikely ((unsigned int) (get_offset () + i) >= str.length))
     {
       set_error ();
       return Null (unsigned char);
     }
-    return str[offset + i];
+    return str[get_offset () + i];
   }
 
   /* Conversion to hb_ubytes_t */
-  operator hb_ubytes_t () const { return str.sub_array (offset, str.length - offset); }
+  operator hb_ubytes_t () const { return str.sub_array (get_offset ()); }
 
   hb_ubytes_t sub_array (unsigned int offset_, unsigned int len_) const
   { return str.sub_array (offset_, len_); }
 
   bool avail (unsigned int count=1) const
-  { return (!in_error () && offset + count <= str.length); }
+  { return get_offset () + count <= str.length; }
   void inc (unsigned int count=1)
   {
-    if (likely (!in_error () && (offset <= str.length) && (offset + count <= str.length)))
-    {
-      offset += count;
-    }
+    if (get_offset () + count <= str.length)
+      set_offset (get_offset () + count);
     else
-    {
-      offset = str.length;
       set_error ();
-    }
   }
 
-  unsigned get_offset () const { return offset; }
+  /* We (ab)use ubytes backwards_length as a cursor (called offset),
+   * as well as to store error condition. */
 
-  void set_error ()      { error = true; }
-  bool in_error () const { return error; }
+  unsigned get_offset () const { return str.backwards_length; }
+  void set_offset (unsigned offset) { str.backwards_length = offset; }
+
+  void set_error ()      { str.backwards_length = str.length + 1; }
+  bool in_error () const { return str.backwards_length > str.length; }
 
   protected:
   hb_ubytes_t       str;
-  unsigned int  offset; /* beginning of the sub-string within str */
-  bool	  error;
 };
 
 using byte_str_array_t = hb_vector_t<hb_ubytes_t>;
