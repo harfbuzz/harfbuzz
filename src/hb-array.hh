@@ -327,6 +327,11 @@ struct hb_sorted_array_t :
   bool operator != (const hb_sorted_array_t& o) const
   { return this->arrayZ != o.arrayZ || this->length != o.length; }
 
+  /* Faster range-based for loop without bounds-check. */
+  Type *begin () const { return this->arrayZ; }
+  Type *end () const { return this->arrayZ + this->length; }
+
+
   hb_sorted_array_t sub_array (unsigned int start_offset, unsigned int *seg_count /* IN/OUT */) const
   { return hb_sorted_array_t (((const hb_array_t<Type> *) (this))->sub_array (start_offset, seg_count)); }
   hb_sorted_array_t sub_array (unsigned int start_offset, unsigned int seg_count) const
