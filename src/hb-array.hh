@@ -104,6 +104,11 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   bool operator != (const hb_array_t& o) const
   { return this->arrayZ != o.arrayZ || this->length != o.length; }
 
+  /* Faster range-based for loop without bounds-check. */
+  Type *begin () const { return arrayZ; }
+  Type *end () const { return arrayZ + length; }
+
+
   /* Extra operators.
    */
   Type * operator & () const { return arrayZ; }

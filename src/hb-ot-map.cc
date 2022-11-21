@@ -329,9 +329,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 		     key.variations_index[table_index],
 		     global_bit_mask);
 
-      for (unsigned i = 0; i < m.features.length; i++)
+      for (auto &feature : m.features)
       {
-        auto &feature = m.features[i];
 	if (feature.stage[table_index] == stage)
 	  add_lookups (m, table_index,
 		       feature.index[table_index],
