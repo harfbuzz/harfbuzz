@@ -1153,8 +1153,8 @@ hb_qsort (void *base, size_t nel, size_t width,
 }
 
 
-template <typename T, typename T2, typename T3> static inline void
-hb_stable_sort (T *array, unsigned int len, int(*compar)(const T2 *, const T2 *), T3 *array2)
+template <typename T, typename T2, typename T3 = int> static inline void
+hb_stable_sort (T *array, unsigned int len, int(*compar)(const T2 *, const T2 *), T3 *array2 = nullptr)
 {
   for (unsigned int i = 1; i < len; i++)
   {
@@ -1176,12 +1176,6 @@ hb_stable_sort (T *array, unsigned int len, int(*compar)(const T2 *, const T2 *)
       array2[j] = t;
     }
   }
-}
-
-template <typename T> static inline void
-hb_stable_sort (T *array, unsigned int len, int(*compar)(const T *, const T *))
-{
-  hb_stable_sort (array, len, compar, (int *) nullptr);
 }
 
 static inline hb_bool_t
