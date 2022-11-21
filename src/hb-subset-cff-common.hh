@@ -856,7 +856,7 @@ struct subr_subsetter_t
     unsigned count = str.get_count ();
     str_encoder_t  encoder (buff);
     encoder.reset ();
-    buff.alloc (count * 3);
+    buff.alloc (count * 2);
     /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
      * re-insert it at the beginning of charstreing */
     if (str.has_prefix () && str.is_hint_dropped ())
