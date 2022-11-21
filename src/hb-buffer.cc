@@ -172,12 +172,13 @@ hb_buffer_t::enlarge (unsigned int size)
   while (size >= new_allocated)
     new_allocated += (new_allocated >> 1) + 32;
 
-  static_assert ((sizeof (info[0]) == sizeof (pos[0])), "");
-  if (unlikely (hb_unsigned_mul_overflows (new_allocated, sizeof (info[0]))))
+  unsigned new_bytes;
+  if (unlikely (hb_unsigned_mul_overflows (new_allocated, sizeof (info[0]), &new_bytes)))
     goto done;
 
-  new_pos = (hb_glyph_position_t *) hb_realloc (pos, new_allocated * sizeof (pos[0]));
-  new_info = (hb_glyph_info_t *) hb_realloc (info, new_allocated * sizeof (info[0]));
+  static_assert (sizeof (info[0]) == sizeof (pos[0]), "");
+  new_pos = (hb_glyph_position_t *) hb_realloc (pos, new_bytes);
+  new_info = (hb_glyph_info_t *) hb_realloc (info, new_bytes);
 
 done:
   if (unlikely (!new_pos || !new_info))
@@ -313,15 +314,14 @@ hb_buffer_t::enter ()
   serial = 0;
   shaping_failed = false;
   scratch_flags = HB_BUFFER_SCRATCH_FLAG_DEFAULT;
-  if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_LEN_FACTOR)))
+  unsigned mul;
+  if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_LEN_FACTOR, &mul)))
   {
-    max_len = hb_max (len * HB_BUFFER_MAX_LEN_FACTOR,
-		      (unsigned) HB_BUFFER_MAX_LEN_MIN);
+    max_len = hb_max (mul, (unsigned) HB_BUFFER_MAX_LEN_MIN);
   }
-  if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_OPS_FACTOR)))
+  if (likely (!hb_unsigned_mul_overflows (len, HB_BUFFER_MAX_OPS_FACTOR, &mul)))
   {
-    max_ops = hb_max (len * HB_BUFFER_MAX_OPS_FACTOR,
-		      (unsigned) HB_BUFFER_MAX_OPS_MIN);
+    max_ops = hb_max (mul, (unsigned) HB_BUFFER_MAX_OPS_MIN);
   }
 }
 void
