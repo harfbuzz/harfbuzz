@@ -269,7 +269,6 @@ struct SimpleGlyph
       dest_bytes = hb_bytes_t ();
       return true;
     }
-    //convert absolute values to relative values
     unsigned num_points = all_points.length - 4;
 
     hb_vector_t<uint8_t> flags, x_coords, y_coords;
@@ -279,7 +278,7 @@ struct SimpleGlyph
 
     uint8_t lastflag = 0, repeat = 0;
     int prev_x = 0.f, prev_y = 0.f;
-    
+
     for (unsigned i = 0; i < num_points; i++)
     {
       uint8_t flag = all_points[i].flag;
