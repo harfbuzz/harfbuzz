@@ -186,7 +186,7 @@ struct hb_hashmap_t
     {
       if (old_items[i].is_real ())
       {
-	set_with_hash (old_items[i].key,
+	set_with_hash (std::move (old_items[i].key),
 		       old_items[i].hash,
 		       std::move (old_items[i].value));
       }
@@ -198,8 +198,8 @@ struct hb_hashmap_t
     return true;
   }
 
-  template <typename VV>
-  bool set_with_hash (const K &key, uint32_t hash, VV&& value, bool is_delete=false)
+  template <typename KK, typename VV>
+  bool set_with_hash (KK&& key, uint32_t hash, VV&& value, bool is_delete=false)
   {
     if (unlikely (!successful)) return false;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
@@ -215,7 +215,7 @@ struct hb_hashmap_t
 	population--;
     }
 
-    item.key = key;
+    item.key = std::forward<KK> (key);
     item.value = std::forward<VV> (value);
     item.hash = hash;
     item.set_used (true);
@@ -230,6 +230,8 @@ struct hb_hashmap_t
 
   template <typename VV>
   bool set (const K &key, VV&& value) { return set_with_hash (key, hb_hash (key), std::forward<VV> (value)); }
+  template <typename VV>
+  bool set (K &&key, VV&& value) { return set_with_hash (std::move (key), hb_hash (key), std::forward<VV> (value)); }
 
   const V& get_with_hash (const K &key, uint32_t hash) const
   {
