@@ -235,7 +235,7 @@ struct SimpleGlyph
 
   static void encode_flag (uint8_t &flag,
                            uint8_t &repeat,
-                           uint8_t &lastflag,
+                           uint8_t lastflag,
                            hb_vector_t<uint8_t> &flags /* OUT */)
   {
     if (flag == lastflag && repeat != 255)
@@ -257,7 +257,6 @@ struct SimpleGlyph
       repeat = 0;
       flags.push (flag);
     }
-    lastflag = flag;
   }
 
   bool compile_bytes_with_deltas (const contour_point_vector_t &all_points,
@@ -276,7 +275,7 @@ struct SimpleGlyph
     if (unlikely (!x_coords.alloc (2*num_points))) return false;
     if (unlikely (!y_coords.alloc (2*num_points))) return false;
 
-    uint8_t lastflag = 0, repeat = 0;
+    uint8_t lastflag = 255, repeat = 0;
     int prev_x = 0.f, prev_y = 0.f;
 
     for (unsigned i = 0; i < num_points; i++)
@@ -288,11 +287,11 @@ struct SimpleGlyph
       float cur_y = roundf (all_points[i].y);
       encode_coord (cur_x - prev_x, flag, FLAG_X_SHORT, FLAG_X_SAME, x_coords);
       encode_coord (cur_y - prev_y, flag, FLAG_Y_SHORT, FLAG_Y_SAME, y_coords);
-      if (i == 0) lastflag = flag + 1; //make lastflag != flag for the first point
       encode_flag (flag, repeat, lastflag, flags);
 
       prev_x = cur_x;
       prev_y = cur_y;
+      lastflag = flag;
     }
 
     unsigned len_before_instrs = 2 * header.numberOfContours + 2;
