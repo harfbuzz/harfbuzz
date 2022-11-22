@@ -119,7 +119,11 @@ struct str_encoder_t
       set_error ();
       return;
     }
-    memcpy (buff.arrayZ + offset, &str[0], str.length);
+    /* Since our strings are one or two bytes typically,
+     * this is faster than memcpy. */
+    for (unsigned i = 0; i < str.length; i++)
+      buff.arrayZ[i + offset] = str.arrayZ[i];
+    // memcpy (buff.arrayZ + offset, &str[0], str.length);
   }
 
   bool is_error () const { return error; }
