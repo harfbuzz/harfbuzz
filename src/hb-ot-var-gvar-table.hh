@@ -526,11 +526,11 @@ struct gvar
 			      unsigned int target, unsigned int prev, unsigned int next,
 			      float contour_point_t::*m)
     {
-      float target_val = points[target].*m;
-      float prev_val = points[prev].*m;
-      float next_val = points[next].*m;
-      float prev_delta =  deltas[prev].*m;
-      float next_delta =  deltas[next].*m;
+      float target_val = points.arrayZ[target].*m;
+      float prev_val = points.arrayZ[prev].*m;
+      float next_val = points.arrayZ[next].*m;
+      float prev_delta =  deltas.arrayZ[prev].*m;
+      float next_delta =  deltas.arrayZ[next].*m;
 
       if (prev_val == next_val)
 	return (prev_delta == next_delta) ? prev_delta : 0.f;
@@ -574,7 +574,7 @@ struct gvar
 
       hb_vector_t<unsigned> end_points;
       for (unsigned i = 0; i < points.length; ++i)
-	if (points[i].is_end_point)
+	if (points.arrayZ[i].is_end_point)
 	  end_points.push (i);
 
       auto coords = hb_array (font->coords, font->num_coords);
@@ -644,14 +644,14 @@ struct gvar
 	    {
 	      i = j;
 	      j = next_index (i, start_point, end_point);
-	      if (deltas[i].flag && !deltas[j].flag) break;
+	      if (deltas.arrayZ[i].flag && !deltas.arrayZ[j].flag) break;
 	    }
 	    prev = j = i;
 	    for (;;)
 	    {
 	      i = j;
 	      j = next_index (i, start_point, end_point);
-	      if (!deltas[i].flag && deltas[j].flag) break;
+	      if (!deltas.arrayZ[i].flag && deltas.arrayZ[j].flag) break;
 	    }
 	    next = j;
 	    /* Infer deltas for all unref points in the gap between prev and next */
@@ -660,8 +660,8 @@ struct gvar
 	    {
 	      i = next_index (i, start_point, end_point);
 	      if (i == next) break;
-	      deltas[i].x = infer_delta (orig_points.as_array (), deltas.as_array (), i, prev, next, &contour_point_t::x);
-	      deltas[i].y = infer_delta (orig_points.as_array (), deltas.as_array (), i, prev, next, &contour_point_t::y);
+	      deltas.arrayZ[i].x = infer_delta (orig_points.as_array (), deltas.as_array (), i, prev, next, &contour_point_t::x);
+	      deltas.arrayZ[i].y = infer_delta (orig_points.as_array (), deltas.as_array (), i, prev, next, &contour_point_t::y);
 	      if (--unref_count == 0) goto no_more_gaps;
 	    }
 	  }
