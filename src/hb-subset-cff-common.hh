@@ -104,20 +104,20 @@ struct str_encoder_t
       encode_byte (op);
   }
 
-  void copy_str (const hb_ubytes_t &str)
+  void copy_str (const unsigned char *str, unsigned length)
   {
     unsigned int  offset = buff.length;
     /* Manually resize buffer since faster. */
-    if (likely ((signed) (buff.length + str.length) <= buff.allocated))
-      buff.length += str.length;
-    else if (unlikely (!buff.resize (offset + str.length)))
+    if (likely ((signed) (buff.length + length) <= buff.allocated))
+      buff.length += length;
+    else if (unlikely (!buff.resize (offset + length)))
       return;
 
     /* Since our strings are one or two bytes typically,
      * this is faster than memcpy. */
-    for (unsigned i = 0; i < str.length; i++)
-      buff.arrayZ[i + offset] = str.arrayZ[i];
-    // memcpy (buff.arrayZ + offset, &str[0], str.length);
+    for (unsigned i = 0; i < length; i++)
+      buff.arrayZ[i + offset] = str[i];
+    // memcpy (buff.arrayZ + offset, str, length);
   }
 
   bool is_error () const { return buff.in_error (); }
@@ -183,9 +183,9 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
     }
     else
     {
-      HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.str.length);
+      HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.length);
       if (unlikely (!d)) return_trace (false);
-      memcpy (d, &opstr.str[0], opstr.str.length);
+      memcpy (d, opstr.ptr, opstr.length);
     }
     return_trace (true);
   }
@@ -883,7 +883,7 @@ struct subr_subsetter_t
 	    break;
 
 	  default:
-	    encoder.copy_str (opstr.str);
+	    encoder.copy_str (opstr.ptr, opstr.length);
 	    break;
 	}
       }
