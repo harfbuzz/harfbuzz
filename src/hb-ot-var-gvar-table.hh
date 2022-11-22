@@ -618,20 +618,22 @@ struct gvar
 	  {
 	    unsigned int pt_index = apply_to_all ? i : indices[i];
 	    if (unlikely (pt_index >= deltas.length)) continue;
-	    ref_points += !deltas.arrayZ[pt_index].flag;
-	    deltas.arrayZ[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
-	    deltas.arrayZ[pt_index].x += x_deltas.arrayZ[i] * scalar;
-	    deltas.arrayZ[pt_index].y += y_deltas.arrayZ[i] * scalar;
+	    auto &delta = deltas.arrayZ[pt_index];
+	    ref_points += !delta.flag;
+	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	    delta.x += x_deltas.arrayZ[i] * scalar;
+	    delta.y += y_deltas.arrayZ[i] * scalar;
 	  }
 	else
 	  for (unsigned int i = 0; i < num_deltas; i++)
 	  {
 	    unsigned int pt_index = apply_to_all ? i : indices[i];
 	    if (unlikely (pt_index >= deltas.length)) continue;
-	    ref_points += !deltas.arrayZ[pt_index].flag;
-	    deltas.arrayZ[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
-	    deltas.arrayZ[pt_index].x += x_deltas.arrayZ[i];
-	    deltas.arrayZ[pt_index].y += y_deltas.arrayZ[i];
+	    auto &delta = deltas.arrayZ[pt_index];
+	    ref_points += !delta.flag;
+	    delta.flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	    delta.x += x_deltas.arrayZ[i];
+	    delta.y += y_deltas.arrayZ[i];
 	  }
 
 	/* infer deltas for unreferenced points */
