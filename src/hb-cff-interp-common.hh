@@ -480,12 +480,15 @@ struct arg_stack_t : cff_stack_t<ARG, 513>
 /* an operator prefixed by its operands in a byte string */
 struct op_str_t
 {
-  /* This used to be a hb_ubytes_t. Using a pointer and length
-   * saves 8 bytes in the struct. */
+  /* This used to have a hb_ubytes_t. Using a pointer and length
+   * in a particular order, saves 8 bytes in this struct and more
+   * in our parsed_cs_op_t subclass. */
+
   const unsigned char *ptr = nullptr;
-  unsigned length = 0;
 
   op_code_t  op;
+
+  uint8_t length = 0;
 };
 
 /* base of OP_SERIALIZER */
