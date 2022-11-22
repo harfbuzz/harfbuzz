@@ -110,6 +110,9 @@ struct glyf
   _populate_subset_glyphs (const hb_subset_plan_t   *plan,
 			   hb_vector_t<glyf_impl::SubsetGlyph> &glyphs /* OUT */) const;
 
+  hb_font_t *
+  _create_font_for_instancing (const hb_subset_plan_t *plan) const;
+
   bool
   _compile_subset_glyphs_with_deltas (const hb_subset_plan_t *plan,
                                       hb_vector_t<glyf_impl::SubsetGlyph> *glyphs /* OUT */) const;
@@ -407,17 +410,15 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
   }
 }
 
-inline bool
-glyf::_compile_subset_glyphs_with_deltas (const hb_subset_plan_t *plan,
-                                          hb_vector_t<glyf_impl::SubsetGlyph> *glyphs /* OUT */) const
+inline hb_font_t *
+glyf::_create_font_for_instancing (const hb_subset_plan_t *plan) const
 {
-  OT::glyf_accelerator_t glyf (plan->source);
   hb_font_t *font = hb_font_create (plan->source);
-  if (unlikely (font == hb_font_get_empty ())) return false;
+  if (unlikely (font == hb_font_get_empty ())) return nullptr;
 
   hb_vector_t<hb_variation_t> vars;
   if (unlikely (!vars.alloc (plan->user_axes_location->get_population ())))
-    return false;
+    return nullptr;
 
   for (auto _ : *plan->user_axes_location)
   {
@@ -428,6 +429,17 @@ glyf::_compile_subset_glyphs_with_deltas (const hb_subset_plan_t *plan,
   }
 
   hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location->get_population ());
+  return font;
+}
+
+inline bool
+glyf::_compile_subset_glyphs_with_deltas (const hb_subset_plan_t *plan,
+                                          hb_vector_t<glyf_impl::SubsetGlyph> *glyphs /* OUT */) const
+{
+  hb_font_t *font = _create_font_for_instancing (plan);
+  if (unlikely (!font)) return false;
+
+  OT::glyf_accelerator_t glyf (plan->source);
   for (auto& subset_glyph : *glyphs)
   {
     if (!const_cast<glyf_impl::SubsetGlyph &> (subset_glyph).compile_bytes_with_deltas (plan, font, glyf))
