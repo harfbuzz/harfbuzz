@@ -360,7 +360,7 @@ struct GlyphVariationData
 	  deltas.arrayZ[i] = * (const HBINT8 *) p++;
 	}
       }
-      if (j < run_count)
+      if (unlikely (j < run_count))
 	return false;
     }
     return true;
