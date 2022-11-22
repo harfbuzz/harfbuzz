@@ -351,16 +351,22 @@ struct hb_vector_t
     return true;
   }
 
-  bool resize (int size_)
+  bool resize (int size_, bool initialize = true)
   {
     unsigned int size = size_ < 0 ? 0u : (unsigned int) size_;
     if (!alloc (size))
       return false;
 
     if (size > length)
-      grow_vector (size);
+    {
+      if (initialize)
+	grow_vector (size);
+    }
     else if (size < length)
-      shrink_vector (size);
+    {
+      if (initialize)
+	shrink_vector (size);
+    }
 
     length = size;
     return true;
