@@ -201,7 +201,7 @@ struct Lookup : public OT::Lookup
                       + new_subtable_count * OT::Offset16::static_size;
     char* buffer = (char*) hb_calloc (1, new_size);
     c.add_buffer (buffer);
-    memcpy (buffer, v.obj.head, v.table_size());
+    hb_memcpy (buffer, v.obj.head, v.table_size());
 
     v.obj.head = buffer;
     v.obj.tail = buffer + new_size;

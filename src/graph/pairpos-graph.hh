@@ -434,7 +434,7 @@ struct PairPosFormat2 : public OT::Layout::GPOS_impl::PairPosFormat2_4<SmallType
 
     char* start_addr = ((char*)&values[0]) + start * split_context.class1_record_size;
     unsigned num_records = end - start;
-    memcpy (&pair_pos_prime->values[0],
+    hb_memcpy (&pair_pos_prime->values[0],
             start_addr,
             num_records * split_context.class1_record_size);
 

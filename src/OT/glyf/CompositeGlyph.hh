@@ -121,7 +121,7 @@ struct CompositeGlyphRecord
     if (flags & ARG_1_AND_2_ARE_WORDS)
     {
       // no overflow, copy and update value with deltas
-      memcpy (out, this, len);
+      hb_memcpy (out, this, len);
 
       const HBINT16 *px = reinterpret_cast<const HBINT16 *> (p);
       HBINT16 *o = reinterpret_cast<HBINT16 *> (out + len_before_val);
@@ -135,7 +135,7 @@ struct CompositeGlyphRecord
       if (new_x <= 127 && new_x >= -128 &&
           new_y <= 127 && new_y >= -128)
       {
-        memcpy (out, this, len);
+        hb_memcpy (out, this, len);
         HBINT8 *o = reinterpret_cast<HBINT8 *> (out + len_before_val);
         o[0] = new_x;
         o[1] = new_y;
@@ -143,7 +143,7 @@ struct CompositeGlyphRecord
       else
       {
         // int8 overflows after deltas applied
-        memcpy (out, this, len_before_val);
+        hb_memcpy (out, this, len_before_val);
         
         //update flags
         CompositeGlyphRecord *o = reinterpret_cast<CompositeGlyphRecord *> (out);
@@ -152,14 +152,14 @@ struct CompositeGlyphRecord
 
         HBINT16 new_value;
         new_value = new_x;
-        memcpy (out, &new_value, HBINT16::static_size);
+        hb_memcpy (out, &new_value, HBINT16::static_size);
         out += HBINT16::static_size;
 
         new_value = new_y;
-        memcpy (out, &new_value, HBINT16::static_size);
+        hb_memcpy (out, &new_value, HBINT16::static_size);
         out += HBINT16::static_size;
 
-        memcpy (out, p+2, len - len_before_val - 2);
+        hb_memcpy (out, p+2, len - len_before_val - 2);
         len += 2;
       }
     }
@@ -382,7 +382,7 @@ struct CompositeGlyph
       unsigned comp_len = component.get_size ();
       if (component.is_anchored ())
       {
-        memcpy (p, &component, comp_len);
+        hb_memcpy (p, &component, comp_len);
         p += comp_len;
       }
       else
@@ -398,7 +398,7 @@ struct CompositeGlyph
     if (source_len > source_comp_len)
     {
       unsigned instr_len = source_len - source_comp_len;
-      memcpy (p, (const char *)c + source_comp_len, instr_len);
+      hb_memcpy (p, (const char *)c + source_comp_len, instr_len);
       p += instr_len;
     }
 

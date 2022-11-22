@@ -244,7 +244,7 @@ inline hb_blob_t* serialize (const graph_t& graph)
       return nullptr;
     }
 
-    memcpy (start, vertices[i].obj.head, size);
+    hb_memcpy (start, vertices[i].obj.head, size);
 
     // Only real links needs to be serialized.
     for (const auto& link : vertices[i].obj.real_links)

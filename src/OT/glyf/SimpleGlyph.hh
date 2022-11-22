@@ -308,24 +308,24 @@ struct SimpleGlyph
 
     const char *src = bytes.arrayZ + GlyphHeader::static_size;
     char *cur = p;
-    memcpy (p, src, len_before_instrs);
+    hb_memcpy (p, src, len_before_instrs);
 
     cur += len_before_instrs;
     src += len_before_instrs;
 
     if (!no_hinting)
     {
-      memcpy (cur, src, len_instrs);
+      hb_memcpy (cur, src, len_instrs);
       cur += len_instrs;
     }
 
-    memcpy (cur, flags.arrayZ, flags.length);
+    hb_memcpy (cur, flags.arrayZ, flags.length);
     cur += flags.length;
 
-    memcpy (cur, x_coords.arrayZ, x_coords.length);
+    hb_memcpy (cur, x_coords.arrayZ, x_coords.length);
     cur += x_coords.length;
 
-    memcpy (cur, y_coords.arrayZ, y_coords.length);
+    hb_memcpy (cur, y_coords.arrayZ, y_coords.length);
 
     dest_bytes = hb_bytes_t (p, total_len);
     return true;
