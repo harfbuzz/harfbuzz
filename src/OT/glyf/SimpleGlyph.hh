@@ -132,8 +132,8 @@ struct SimpleGlyph
 	if (unlikely (p + 1 > end)) return false;
 	unsigned int repeat_count = *p++;
 	unsigned stop = hb_min (i + repeat_count, count);
-	for (; i < stop;)
-	  points_.arrayZ[i++].flag = flag;
+	for (; i < stop; i++)
+	  points_.arrayZ[i].flag = flag;
       }
     }
     return true;
