@@ -179,10 +179,10 @@ struct CFFIndex
     unsigned int i = 0;
     for (unsigned _ : +it)
     {
-      CFFIndex<COUNT>::set_offset_at (i++, offset);
+      set_offset_at (i++, offset);
       offset += _;
     }
-    CFFIndex<COUNT>::set_offset_at (i, offset);
+    set_offset_at (i, offset);
 
     return_trace (true);
   }
@@ -293,10 +293,10 @@ struct CFFIndexOf : CFFIndex<COUNT>
     unsigned int  i = 0;
     for (; i < dataArrayLen; i++)
     {
-      CFFIndex<COUNT>::set_offset_at (i, offset);
+      this->set_offset_at (i, offset);
       offset += dataSizeArray[i];
     }
-    CFFIndex<COUNT>::set_offset_at (i, offset);
+    this->set_offset_at (i, offset);
 
     /* serialize data */
     for (unsigned int i = 0; i < dataArrayLen; i++)
