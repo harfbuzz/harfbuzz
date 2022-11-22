@@ -564,12 +564,14 @@ struct gvar
 	return true; /* so isn't applied at all */
 
       /* Save original points for inferred delta calculation */
-      contour_point_vector_t orig_points;
-      orig_points.extend (points);
-      if (unlikely (orig_points.in_error ())) return false;
+      contour_point_vector_t orig_points_vec;
+      orig_points_vec.extend (points);
+      if (unlikely (orig_points_vec.in_error ())) return false;
+      auto orig_points = orig_points_vec.as_array ();
 
-      contour_point_vector_t deltas; /* flag is used to indicate referenced point */
-      if (unlikely (!deltas.resize (points.length, false))) return false;
+      contour_point_vector_t deltas_vec; /* flag is used to indicate referenced point */
+      if (unlikely (!deltas_vec.resize (points.length, false))) return false;
+      auto deltas = deltas_vec.as_array ();
 
       hb_vector_t<unsigned> end_points;
       for (unsigned i = 0; i < points.length; ++i)
@@ -669,8 +671,8 @@ struct gvar
 	    {
 	      i = next_index (i, start_point, end_point);
 	      if (i == next) break;
-	      deltas.arrayZ[i].x = infer_delta (orig_points.as_array (), deltas.as_array (), i, prev, next, &contour_point_t::x);
-	      deltas.arrayZ[i].y = infer_delta (orig_points.as_array (), deltas.as_array (), i, prev, next, &contour_point_t::y);
+	      deltas.arrayZ[i].x = infer_delta (orig_points, deltas, i, prev, next, &contour_point_t::x);
+	      deltas.arrayZ[i].y = infer_delta (orig_points, deltas, i, prev, next, &contour_point_t::y);
 	      if (--unref_count == 0) goto no_more_gaps;
 	    }
 	  }
