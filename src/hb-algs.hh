@@ -484,6 +484,17 @@ struct
 }
 HB_FUNCOBJ (hb_equal);
 
+struct
+{
+  template <typename T> void
+  operator () (T& a, T& b) const
+  {
+    using std::swap; // allow ADL
+    swap (a, b);
+  }
+}
+HB_FUNCOBJ (hb_swap);
+
 
 template <typename T1, typename T2>
 struct hb_pair_t
@@ -512,6 +523,13 @@ struct hb_pair_t
   bool operator >= (const pair_t& o) const { return !(*this < o); }
   bool operator > (const pair_t& o) const { return first > o.first || (first == o.first && second > o.second); }
   bool operator <= (const pair_t& o) const { return !(*this > o); }
+
+  friend void swap (hb_pair_t& a, hb_pair_t& b)
+  {
+    hb_swap (a.first, b.first);
+    hb_swap (a.second, b.second);
+  }
+
 
   T1 first;
   T2 second;
@@ -558,17 +576,6 @@ struct
   (hb_min (hb_max (std::forward<T> (x), std::forward<T2> (min)), std::forward<T3> (max)))
 }
 HB_FUNCOBJ (hb_clamp);
-
-struct
-{
-  template <typename T> void
-  operator () (T& a, T& b) const
-  {
-    using std::swap; // allow ADL
-    swap (a, b);
-  }
-}
-HB_FUNCOBJ (hb_swap);
 
 /*
  * Bithacks.
