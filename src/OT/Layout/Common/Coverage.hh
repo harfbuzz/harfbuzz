@@ -225,7 +225,7 @@ struct Coverage
     static constexpr bool is_sorted_iterator = true;
     iter_t (const Coverage &c_ = Null (Coverage))
     {
-      memset (this, 0, sizeof (*this));
+      hb_memset (this, 0, sizeof (*this));
       format = c_.u.format;
       switch (format)
       {
