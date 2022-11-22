@@ -119,10 +119,10 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
 
   uint32_t hash () const
   {
-    return
-    + hb_iter (*this)
-    | hb_reduce ([] (uint32_t h, const Type &_) { return h * 31 + hb_hash (_); }, (uint32_t) 0u)
-    ;
+    uint32_t current = 0;
+    for (auto &v : *this)
+      current = current * 31 + hb_hash (v);
+    return current;
   }
 
   /*
