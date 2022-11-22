@@ -277,15 +277,15 @@ struct SimpleGlyph
     if (unlikely (!y_coords.alloc (2*num_points))) return false;
 
     uint8_t lastflag = 255, repeat = 0;
-    int prev_x = 0.f, prev_y = 0.f;
+    int prev_x = 0, prev_y = 0;
 
     for (unsigned i = 0; i < num_points; i++)
     {
       uint8_t flag = all_points[i].flag;
       flag &= FLAG_ON_CURVE + FLAG_OVERLAP_SIMPLE;
 
-      float cur_x = roundf (all_points[i].x);
-      float cur_y = roundf (all_points[i].y);
+      int cur_x = roundf (all_points[i].x);
+      int cur_y = roundf (all_points[i].y);
       encode_coord (cur_x - prev_x, flag, FLAG_X_SHORT, FLAG_X_SAME, x_coords);
       encode_coord (cur_y - prev_y, flag, FLAG_Y_SHORT, FLAG_Y_SAME, y_coords);
       encode_flag (flag, repeat, lastflag, flags);
