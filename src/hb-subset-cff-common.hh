@@ -442,7 +442,11 @@ struct subr_subset_param_t
     if (unlikely (calling && !parsed_str->is_parsed () && (parsed_str->values.length > 0)))
       env.set_error ();
     else
+    {
+      if (!parsed_str->is_parsed ())
+        parsed_str->alloc (env.str_ref.total_size () / 2);
       current_parsed_str = parsed_str;
+    }
   }
 
   parsed_cs_str_t	*current_parsed_str;

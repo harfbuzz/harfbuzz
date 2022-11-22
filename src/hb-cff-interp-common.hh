@@ -328,6 +328,8 @@ struct byte_str_ref_t
   void set_error ()      { str.backwards_length = str.length + 1; }
   bool in_error () const { return str.backwards_length > str.length; }
 
+  unsigned total_size () const { return str.length; }
+
   protected:
   hb_ubytes_t       str;
 };
