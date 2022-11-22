@@ -56,7 +56,7 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
   void extend (const hb_array_t<contour_point_t> &a)
   {
     unsigned int old_len = length;
-    if (unlikely (!resize (old_len + a.length)))
+    if (unlikely (!resize (old_len + a.length, false)))
       return;
     auto arrayZ = this->arrayZ + old_len;
     unsigned count = a.length;
@@ -287,7 +287,7 @@ struct GlyphVariationData
       if (unlikely (p + 1 > end)) return false;
       count = ((count & POINT_RUN_COUNT_MASK) << 8) | *p++;
     }
-    if (unlikely (!points.resize (count))) return false;
+    if (unlikely (!points.resize (count, false))) return false;
 
     unsigned int n = 0;
     uint16_t i = 0;
@@ -565,12 +565,12 @@ struct gvar
 
       /* Save original points for inferred delta calculation */
       contour_point_vector_t orig_points;
-      if (unlikely (!orig_points.resize (points.length))) return false;
+      if (unlikely (!orig_points.resize (points.length, false))) return false;
       for (unsigned int i = 0; i < orig_points.length; i++)
 	orig_points.arrayZ[i] = points.arrayZ[i];
 
       contour_point_vector_t deltas; /* flag is used to indicate referenced point */
-      if (unlikely (!deltas.resize (points.length))) return false;
+      if (unlikely (!deltas.resize (points.length, false))) return false;
 
       hb_vector_t<unsigned> end_points;
       for (unsigned i = 0; i < points.length; ++i)
@@ -603,13 +603,13 @@ struct gvar
 
 	bool apply_to_all = (indices.length == 0);
 	unsigned int num_deltas = apply_to_all ? points.length : indices.length;
-	if (unlikely (!x_deltas.resize (num_deltas))) return false;
+	if (unlikely (!x_deltas.resize (num_deltas, false))) return false;
 	if (unlikely (!GlyphVariationData::unpack_deltas (p, x_deltas, end))) return false;
-	if (unlikely (!y_deltas.resize (num_deltas))) return false;
+	if (unlikely (!y_deltas.resize (num_deltas, false))) return false;
 	if (unlikely (!GlyphVariationData::unpack_deltas (p, y_deltas, end))) return false;
 
 	for (unsigned int i = 0; i < deltas.length; i++)
-	  deltas[i].init ();
+	  deltas.arrayZ[i].init ();
 	for (unsigned int i = 0; i < num_deltas; i++)
 	{
 	  unsigned int pt_index = apply_to_all ? i : indices[i];
