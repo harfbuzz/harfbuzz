@@ -199,7 +199,7 @@ struct hb_hashmap_t
   }
 
   template <typename VV>
-  bool set_with_hash (K key, uint32_t hash, VV&& value, bool is_delete=false)
+  bool set_with_hash (const K &key, uint32_t hash, VV&& value, bool is_delete=false)
   {
     if (unlikely (!successful)) return false;
     if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
@@ -229,21 +229,21 @@ struct hb_hashmap_t
   }
 
   template <typename VV>
-  bool set (K key, VV&& value) { return set_with_hash (key, hb_hash (key), std::forward<VV> (value)); }
+  bool set (const K &key, VV&& value) { return set_with_hash (key, hb_hash (key), std::forward<VV> (value)); }
 
-  const V& get_with_hash (K key, uint32_t hash) const
+  const V& get_with_hash (const K &key, uint32_t hash) const
   {
     if (unlikely (!items)) return item_t::default_value ();
     auto &item = item_for_hash (key, hash);
     return item.is_real () && item == key ? item.value : item_t::default_value ();
   }
-  const V& get (K key) const
+  const V& get (const K &key) const
   {
     if (unlikely (!items)) return item_t::default_value ();
     return get_with_hash (key, hb_hash (key));
   }
 
-  void del (K key) { set_with_hash (key, hb_hash (key), item_t::default_value (), true); }
+  void del (const K &key) { set_with_hash (key, hb_hash (key), item_t::default_value (), true); }
 
   /* Has interface. */
   typedef const V& value_t;
