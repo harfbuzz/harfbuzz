@@ -609,14 +609,24 @@ struct gvar
 
 	hb_memset (deltas.arrayZ, 0, deltas.length * sizeof (deltas.arrayZ[0]));
 
-	for (unsigned int i = 0; i < num_deltas; i++)
-	{
-	  unsigned int pt_index = apply_to_all ? i : indices[i];
-	  if (unlikely (pt_index >= deltas.length)) continue;
-	  deltas.arrayZ[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
-	  deltas.arrayZ[pt_index].x += x_deltas.arrayZ[i] * scalar;
-	  deltas.arrayZ[pt_index].y += y_deltas.arrayZ[i] * scalar;
-	}
+	if (scalar != 1.0f)
+	  for (unsigned int i = 0; i < num_deltas; i++)
+	  {
+	    unsigned int pt_index = apply_to_all ? i : indices[i];
+	    if (unlikely (pt_index >= deltas.length)) continue;
+	    deltas.arrayZ[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	    deltas.arrayZ[pt_index].x += x_deltas.arrayZ[i] * scalar;
+	    deltas.arrayZ[pt_index].y += y_deltas.arrayZ[i] * scalar;
+	  }
+	else
+	  for (unsigned int i = 0; i < num_deltas; i++)
+	  {
+	    unsigned int pt_index = apply_to_all ? i : indices[i];
+	    if (unlikely (pt_index >= deltas.length)) continue;
+	    deltas.arrayZ[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
+	    deltas.arrayZ[pt_index].x += x_deltas.arrayZ[i];
+	    deltas.arrayZ[pt_index].y += y_deltas.arrayZ[i];
+	  }
 
 	/* infer deltas for unreferenced points */
 	unsigned start_point = 0;
