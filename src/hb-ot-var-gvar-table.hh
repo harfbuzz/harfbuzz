@@ -281,7 +281,7 @@ struct GlyphVariationData
 
     if (unlikely (p + 1 > end)) return false;
 
-    uint16_t count = *p++;
+    unsigned count = *p++;
     if (count & POINTS_ARE_WORDS)
     {
       if (unlikely (p + 1 > end)) return false;
@@ -290,13 +290,13 @@ struct GlyphVariationData
     if (unlikely (!points.resize (count, false))) return false;
 
     unsigned int n = 0;
-    uint16_t i = 0;
+    unsigned i = 0;
     while (i < count)
     {
       if (unlikely (p + 1 > end)) return false;
-      uint16_t j;
-      uint8_t control = *p++;
-      uint16_t run_count = (control & POINT_RUN_COUNT_MASK) + 1;
+      unsigned j;
+      unsigned control = *p++;
+      unsigned run_count = (control & POINT_RUN_COUNT_MASK) + 1;
       if (control & POINTS_ARE_WORDS)
       {
 	if (unlikely (p + run_count * HBUINT16::static_size > end)) return false;
@@ -332,14 +332,14 @@ struct GlyphVariationData
       DELTA_RUN_COUNT_MASK = 0x3F
     };
 
-    unsigned int i = 0;
-    unsigned int count = deltas.length;
+    unsigned i = 0;
+    unsigned count = deltas.length;
     while (i < count)
     {
       if (unlikely (p + 1 > end)) return false;
-      uint8_t control = *p++;
-      unsigned int run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
-      unsigned int j;
+      unsigned control = *p++;
+      unsigned run_count = (control & DELTA_RUN_COUNT_MASK) + 1;
+      unsigned j;
       if (control & DELTAS_ARE_ZERO)
 	for (j = 0; j < run_count && i < count; j++, i++)
 	  deltas.arrayZ[i] = 0;
