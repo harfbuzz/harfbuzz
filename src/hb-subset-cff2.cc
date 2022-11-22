@@ -334,7 +334,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
 	if (unlikely (!dest)) return false;
 	c->push ();
 	if (likely (dest->serialize (c, plan.subset_localsubrs[i])))
-	  subrs_link = c->pop_pack ();
+	  subrs_link = c->pop_pack (false);
 	else
 	{
 	  c->pop_discard ();
@@ -365,7 +365,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
     if (unlikely (!cs)) return false;
     c->push ();
     if (likely (cs->serialize (c, plan.subset_charstrings)))
-      plan.info.char_strings_link = c->pop_pack ();
+      plan.info.char_strings_link = c->pop_pack (false);
     else
     {
       c->pop_discard ();
