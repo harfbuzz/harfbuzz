@@ -413,7 +413,7 @@ glyf::_compile_subset_glyphs_with_deltas (const hb_subset_plan_t *plan,
 {
   OT::glyf_accelerator_t glyf (plan->source);
   hb_font_t *font = hb_font_create (plan->source);
-  if (unlikely (!font)) return false;
+  if (unlikely (font == hb_font_get_empty ())) return false;
 
   hb_vector_t<hb_variation_t> vars;
   if (unlikely (!vars.alloc (plan->user_axes_location->get_population ())))
