@@ -302,7 +302,7 @@ struct SimpleGlyph
     if (!no_hinting)
       total_len += len_instrs;
 
-    char *p = (char *) hb_calloc (total_len, sizeof (char));
+    char *p = (char *) hb_malloc (total_len);
     if (unlikely (!p)) return false;
 
     const char *src = bytes.arrayZ + GlyphHeader::static_size;
