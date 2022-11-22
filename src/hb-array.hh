@@ -424,6 +424,21 @@ inline bool hb_array_t<const unsigned char>::operator == (const hb_array_t<const
   return 0 == hb_memcmp (arrayZ, o.arrayZ, length);
 }
 
+template <>
+inline uint32_t hb_array_t<const char>::hash () const {
+  uint32_t current = 0;
+  for (unsigned int i = 0; i < this->length; i++)
+    current = current * 31 + (uint32_t) (this->arrayZ[i] * 2654435761u);
+  return current;
+}
+template <>
+inline uint32_t hb_array_t<const unsigned char>::hash () const {
+  uint32_t current = 0;
+  for (unsigned int i = 0; i < this->length; i++)
+    current = current * 31 + (uint32_t) (this->arrayZ[i] * 2654435761u);
+  return current;
+}
+
 
 typedef hb_array_t<const char> hb_bytes_t;
 typedef hb_array_t<const unsigned char> hb_ubytes_t;
