@@ -223,13 +223,13 @@ struct SimpleGlyph
       if (value > 0) flag |= same_flag;
       else value = -value;
 
-      coords.push ((uint8_t)value);
+      coords.arrayZ[coords.length++] = (uint8_t) value;
     }
     else
     {
       int16_t val = value;
-      coords.push (val >> 8);
-      coords.push (val & 0xff);
+      coords.arrayZ[coords.length++] = val >> 8;
+      coords.arrayZ[coords.length++] = val & 0xff;
     }
   }
 
