@@ -288,7 +288,7 @@ struct GlyphVariationData
     }
     if (unlikely (!points.resize (count, false))) return false;
 
-    unsigned int n = 0;
+    unsigned n = 0;
     unsigned i = 0;
     while (i < count)
     {
