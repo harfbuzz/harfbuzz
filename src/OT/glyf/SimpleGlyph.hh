@@ -240,7 +240,7 @@ struct SimpleGlyph
   {
     if (flag == lastflag && repeat != 255)
     {
-      repeat = repeat + 1;
+      repeat++;
       if (repeat == 1)
       {
         flags.push(flag);
