@@ -342,20 +342,24 @@ struct GlyphVariationData
       unsigned int j;
       if (control & DELTAS_ARE_ZERO)
 	for (j = 0; j < run_count && i < count; j++, i++)
-	  deltas[i] = 0;
+	  deltas.arrayZ[i] = 0;
       else if (control & DELTAS_ARE_WORDS)
+      {
+	if (unlikely (p + run_count * HBUINT16::static_size > end)) return false;
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (p + HBUINT16::static_size > end)) return false;
-	  deltas[i] = *(const HBINT16 *) p;
+	  deltas.arrayZ[i] = * (const HBINT16 *) p;
 	  p += HBUINT16::static_size;
 	}
+      }
       else
+      {
+	if (unlikely (p + run_count > end)) return false;
 	for (j = 0; j < run_count && i < count; j++, i++)
 	{
-	  if (unlikely (p + 1 > end)) return false;
-	  deltas[i] = *(const HBINT8 *) p++;
+	  deltas.arrayZ[i] = * (const HBINT8 *) p++;
 	}
+      }
       if (j < run_count)
 	return false;
     }
