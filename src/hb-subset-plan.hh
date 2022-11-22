@@ -216,15 +216,15 @@ struct hb_subset_plan_t
   {
     if (sanitized_table_cache
         && !sanitized_table_cache->in_error ()
-        && sanitized_table_cache->has (0+T::tableTag)) {
-      return hb_blob_reference (sanitized_table_cache->get (0+T::tableTag).get ());
+        && sanitized_table_cache->has (+T::tableTag)) {
+      return hb_blob_reference (sanitized_table_cache->get (+T::tableTag).get ());
     }
 
     hb::unique_ptr<hb_blob_t> table_blob {hb_sanitize_context_t ().reference_table<T> (source)};
     hb_blob_t* ret = hb_blob_reference (table_blob.get ());
 
     if (likely (sanitized_table_cache))
-      sanitized_table_cache->set (0+T::tableTag,
+      sanitized_table_cache->set (+T::tableTag,
                                   std::move (table_blob));
 
     return ret;
