@@ -394,7 +394,11 @@ glyf::_populate_subset_glyphs (const hb_subset_plan_t   *plan,
                   plan->pinned_at_default)
       subset_glyph.source_glyph = glyf_impl::Glyph ();
     else
-      subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, true);
+    {
+      /* If plan has an accelerator, the preprocessing step already trimmed glyphs.
+       * Don't trim them again! */
+      subset_glyph.source_glyph = glyf.glyph_for_gid (subset_glyph.old_gid, !plan->accelerator);
+    }
 
     if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
       subset_glyph.drop_hints_bytes ();
