@@ -113,11 +113,10 @@ struct str_encoder_t
     else if (unlikely (!buff.resize (offset + length)))
       return;
 
-    /* Since our strings are one or two bytes typically,
-     * this is faster than memcpy. */
+    /* Faster than memcpy for small strings. */
     for (unsigned i = 0; i < length; i++)
       buff.arrayZ[i + offset] = str[i];
-    // memcpy (buff.arrayZ + offset, str, length);
+    //hb_memcpy (buff.arrayZ + offset, str, length);
   }
 
   bool is_error () const { return buff.in_error (); }
@@ -183,9 +182,12 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
     }
     else
     {
-      HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.length);
+      unsigned char *d = c->allocate_size<unsigned char> (opstr.length);
       if (unlikely (!d)) return_trace (false);
-      memcpy (d, opstr.ptr, opstr.length);
+      /* Faster than memcpy for small strings. */
+      for (unsigned i = 0; i < opstr.length; i++)
+	d[i] = opstr.ptr[i];
+      //hb_memcpy (d, opstr.ptr, opstr.length);
     }
     return_trace (true);
   }
