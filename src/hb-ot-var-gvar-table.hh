@@ -607,8 +607,8 @@ struct gvar
 	if (unlikely (!y_deltas.resize (num_deltas, false))) return false;
 	if (unlikely (!GlyphVariationData::unpack_deltas (p, y_deltas, end))) return false;
 
-	for (unsigned int i = 0; i < deltas.length; i++)
-	  deltas.arrayZ[i].init ();
+	hb_memset (deltas.arrayZ, 0, deltas.length * sizeof (deltas.arrayZ[0]));
+
 	for (unsigned int i = 0; i < num_deltas; i++)
 	{
 	  unsigned int pt_index = apply_to_all ? i : indices[i];
