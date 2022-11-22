@@ -612,11 +612,13 @@ struct gvar
 
 	hb_memset (deltas.arrayZ, 0, deltas.length * sizeof (deltas.arrayZ[0]));
 
+	unsigned ref_points = 0;
 	if (scalar != 1.0f)
 	  for (unsigned int i = 0; i < num_deltas; i++)
 	  {
 	    unsigned int pt_index = apply_to_all ? i : indices[i];
 	    if (unlikely (pt_index >= deltas.length)) continue;
+	    ref_points += !deltas.arrayZ[pt_index].flag;
 	    deltas.arrayZ[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 	    deltas.arrayZ[pt_index].x += x_deltas.arrayZ[i] * scalar;
 	    deltas.arrayZ[pt_index].y += y_deltas.arrayZ[i] * scalar;
@@ -626,59 +628,63 @@ struct gvar
 	  {
 	    unsigned int pt_index = apply_to_all ? i : indices[i];
 	    if (unlikely (pt_index >= deltas.length)) continue;
+	    ref_points += !deltas.arrayZ[pt_index].flag;
 	    deltas.arrayZ[pt_index].flag = 1;	/* this point is referenced, i.e., explicit deltas specified */
 	    deltas.arrayZ[pt_index].x += x_deltas.arrayZ[i];
 	    deltas.arrayZ[pt_index].y += y_deltas.arrayZ[i];
 	  }
 
 	/* infer deltas for unreferenced points */
-	unsigned start_point = 0;
-	for (unsigned c = 0; c < end_points.length; c++)
+	if (ref_points < orig_points.length)
 	{
-	  unsigned end_point = end_points.arrayZ[c];
-
-	  /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
-	  unsigned unref_count = 0;
-	  for (unsigned i = start_point; i <= end_point; i++)
-	    if (!deltas.arrayZ[i].flag) unref_count++;
-
-	  unsigned j = start_point;
-	  if (unref_count == 0 || unref_count > end_point - start_point)
-	    goto no_more_gaps;
-
-	  for (;;)
+	  unsigned start_point = 0;
+	  for (unsigned c = 0; c < end_points.length; c++)
 	  {
-	    /* Locate the next gap of unreferenced points between two referenced points prev and next.
-	     * Note that a gap may wrap around at left (start_point) and/or at right (end_point).
-	     */
-	    unsigned int prev, next, i;
+	    unsigned end_point = end_points.arrayZ[c];
+
+	    /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
+	    unsigned unref_count = 0;
+	    for (unsigned i = start_point; i <= end_point; i++)
+	      if (!deltas.arrayZ[i].flag) unref_count++;
+
+	    unsigned j = start_point;
+	    if (unref_count == 0 || unref_count > end_point - start_point)
+	      goto no_more_gaps;
+
 	    for (;;)
 	    {
-	      i = j;
-	      j = next_index (i, start_point, end_point);
-	      if (deltas.arrayZ[i].flag && !deltas.arrayZ[j].flag) break;
+	      /* Locate the next gap of unreferenced points between two referenced points prev and next.
+	       * Note that a gap may wrap around at left (start_point) and/or at right (end_point).
+	       */
+	      unsigned int prev, next, i;
+	      for (;;)
+	      {
+		i = j;
+		j = next_index (i, start_point, end_point);
+		if (deltas.arrayZ[i].flag && !deltas.arrayZ[j].flag) break;
+	      }
+	      prev = j = i;
+	      for (;;)
+	      {
+		i = j;
+		j = next_index (i, start_point, end_point);
+		if (!deltas.arrayZ[i].flag && deltas.arrayZ[j].flag) break;
+	      }
+	      next = j;
+	      /* Infer deltas for all unref points in the gap between prev and next */
+	      i = prev;
+	      for (;;)
+	      {
+		i = next_index (i, start_point, end_point);
+		if (i == next) break;
+		deltas.arrayZ[i].x = infer_delta (orig_points, deltas, i, prev, next, &contour_point_t::x);
+		deltas.arrayZ[i].y = infer_delta (orig_points, deltas, i, prev, next, &contour_point_t::y);
+		if (--unref_count == 0) goto no_more_gaps;
+	      }
 	    }
-	    prev = j = i;
-	    for (;;)
-	    {
-	      i = j;
-	      j = next_index (i, start_point, end_point);
-	      if (!deltas.arrayZ[i].flag && deltas.arrayZ[j].flag) break;
-	    }
-	    next = j;
-	    /* Infer deltas for all unref points in the gap between prev and next */
-	    i = prev;
-	    for (;;)
-	    {
-	      i = next_index (i, start_point, end_point);
-	      if (i == next) break;
-	      deltas.arrayZ[i].x = infer_delta (orig_points, deltas, i, prev, next, &contour_point_t::x);
-	      deltas.arrayZ[i].y = infer_delta (orig_points, deltas, i, prev, next, &contour_point_t::y);
-	      if (--unref_count == 0) goto no_more_gaps;
-	    }
+	  no_more_gaps:
+	    start_point = end_point + 1;
 	  }
-	no_more_gaps:
-	  start_point = end_point + 1;
 	}
 
 	/* apply specified / inferred deltas to points */
