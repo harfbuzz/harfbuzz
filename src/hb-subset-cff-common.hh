@@ -112,7 +112,7 @@ struct str_encoder_t
   {
     unsigned int  offset = buff.length;
     /* Manually resize buffer since faster. */
-    if ((signed) (buff.length + str.length) <= buff.allocated)
+    if (likely ((signed) (buff.length + str.length) <= buff.allocated))
       buff.length += str.length;
     else if (unlikely (!buff.resize (offset + str.length)))
     {
