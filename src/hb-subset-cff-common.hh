@@ -309,6 +309,9 @@ struct parsed_cs_op_t : op_str_t
   bool for_skip () const { return skip_flag; }
   void set_skip ()       { skip_flag = true; }
 
+  /* The layout of this struct is designed to fit within the
+   * padding of op_str_t! */
+
   protected:
   bool	  drop_flag : 1;
   bool	  keep_flag : 1;
