@@ -647,7 +647,7 @@ struct gvar
 	    /* Check the number of unreferenced points in a contour. If no unref points or no ref points, nothing to do. */
 	    unsigned unref_count = 0;
 	    for (unsigned i = start_point; i <= end_point; i++)
-	      if (!deltas.arrayZ[i].flag) unref_count++;
+	      unref_count += !deltas.arrayZ[i].flag;
 
 	    unsigned j = start_point;
 	    if (unref_count == 0 || unref_count > end_point - start_point)
