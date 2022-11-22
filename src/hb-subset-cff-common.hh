@@ -38,16 +38,12 @@ namespace CFF {
 struct str_encoder_t
 {
   str_encoder_t (str_buff_t &buff_)
-    : buff (buff_), error (false) {}
+    : buff (buff_) {}
 
   void reset () { buff.reset (); }
 
   void encode_byte (unsigned char b)
-  {
-    buff.push (b);
-    if (unlikely (buff.in_error ()))
-      set_error ();
-  }
+  { buff.push (b); }
 
   void encode_int (int v)
   {
@@ -115,10 +111,8 @@ struct str_encoder_t
     if (likely ((signed) (buff.length + str.length) <= buff.allocated))
       buff.length += str.length;
     else if (unlikely (!buff.resize (offset + str.length)))
-    {
-      set_error ();
       return;
-    }
+
     /* Since our strings are one or two bytes typically,
      * this is faster than memcpy. */
     for (unsigned i = 0; i < str.length; i++)
@@ -126,13 +120,11 @@ struct str_encoder_t
     // memcpy (buff.arrayZ + offset, &str[0], str.length);
   }
 
-  bool is_error () const { return error; }
+  bool is_error () const { return buff.in_error (); }
 
   protected:
-  void set_error () { error = true; }
 
   str_buff_t &buff;
-  bool    error;
 };
 
 struct cff_sub_table_info_t {
