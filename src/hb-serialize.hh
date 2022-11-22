@@ -596,7 +596,7 @@ struct hb_serialize_context_t
     unsigned int size = obj->get_size ();
     Type *ret = this->allocate_size<Type> (size);
     if (unlikely (!ret)) return nullptr;
-    memcpy (ret, obj, size);
+    hb_memcpy (ret, obj, size);
     return ret;
   }
   template <typename Type>
@@ -617,7 +617,7 @@ struct hb_serialize_context_t
   }
 
   /* Like embed, but active: calls obj.operator=() or obj.copy() to transfer data
-   * instead of memcpy(). */
+   * instead of hb_memcpy(). */
   template <typename Type, typename ...Ts>
   Type *copy (const Type &src, Ts&&... ds)
   { return _copy (src, hb_prioritize, std::forward<Ts> (ds)...); }
@@ -677,8 +677,8 @@ struct hb_serialize_context_t
     char *p = (char *) hb_malloc (len);
     if (unlikely (!p)) return hb_bytes_t ();
 
-    memcpy (p, this->start, this->head - this->start);
-    memcpy (p + (this->head - this->start), this->tail, this->end - this->tail);
+    hb_memcpy (p, this->start, this->head - this->start);
+    hb_memcpy (p + (this->head - this->start), this->tail, this->end - this->tail);
     return hb_bytes_t (p, len);
   }
   template <typename Type>

@@ -113,7 +113,7 @@ struct str_encoder_t
     else if (unlikely (!buff.resize (offset + length)))
       return;
 
-    /* Faster than memcpy for small strings. */
+    /* Faster than hb_memcpy for small strings. */
     for (unsigned i = 0; i < length; i++)
       buff.arrayZ[i + offset] = str[i];
     //hb_memcpy (buff.arrayZ + offset, str, length);
@@ -184,7 +184,7 @@ struct cff_font_dict_op_serializer_t : op_serializer_t
     {
       unsigned char *d = c->allocate_size<unsigned char> (opstr.length);
       if (unlikely (!d)) return_trace (false);
-      /* Faster than memcpy for small strings. */
+      /* Faster than hb_memcpy for small strings. */
       for (unsigned i = 0; i < opstr.length; i++)
 	d[i] = opstr.ptr[i];
       //hb_memcpy (d, opstr.ptr, opstr.length);

@@ -321,7 +321,7 @@ struct name
 
     for (const NameRecord& record : it)
     {
-      memcpy (name_records, &record, NameRecord::static_size);
+      hb_memcpy (name_records, &record, NameRecord::static_size);
       name_records++;
     }
 

@@ -175,7 +175,7 @@ struct Encoding
     unsigned int size = src.get_size ();
     Encoding *dest = c->allocate_size<Encoding> (size);
     if (unlikely (!dest)) return_trace (false);
-    memcpy (dest, &src, size);
+    hb_memcpy (dest, &src, size);
     return_trace (true);
   }
 
@@ -471,7 +471,7 @@ struct Charset
     unsigned int size = src.get_size (num_glyphs);
     Charset *dest = c->allocate_size<Charset> (size);
     if (unlikely (!dest)) return_trace (false);
-    memcpy (dest, &src, size);
+    hb_memcpy (dest, &src, size);
     return_trace (true);
   }
 

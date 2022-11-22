@@ -2338,7 +2338,7 @@ struct VarRegionList
     {
       unsigned int backward = region_map.backward (r);
       if (backward >= region_count) return_trace (false);
-      memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * backward], VarRegionAxis::static_size * axisCount);
+      hb_memcpy (&axesZ[axisCount * r], &src->axesZ[axisCount * backward], VarRegionAxis::static_size * axisCount);
     }
 
     return_trace (true);

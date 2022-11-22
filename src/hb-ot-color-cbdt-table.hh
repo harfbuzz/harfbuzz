@@ -67,7 +67,7 @@ _copy_data_to_cbdt (hb_vector_t<char> *cbdt_prime,
 {
   unsigned int new_len = cbdt_prime->length + length;
   if (unlikely (!cbdt_prime->alloc (new_len))) return false;
-  memcpy (cbdt_prime->arrayZ + cbdt_prime->length, data, length);
+  hb_memcpy (cbdt_prime->arrayZ + cbdt_prime->length, data, length);
   cbdt_prime->length = new_len;
   return true;
 }

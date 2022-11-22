@@ -285,7 +285,7 @@ struct hb_language_item_t {
     lang = (hb_language_t) hb_malloc(len);
     if (likely (lang))
     {
-      memcpy((unsigned char *) lang, s, len);
+      hb_memcpy((unsigned char *) lang, s, len);
       for (unsigned char *p = (unsigned char *) lang; *p; p++)
 	*p = canon_map[*p];
     }
@@ -379,7 +379,7 @@ hb_language_from_string (const char *str, int len)
     /* NUL-terminate it. */
     char strbuf[64];
     len = hb_min (len, (int) sizeof (strbuf) - 1);
-    memcpy (strbuf, str, len);
+    hb_memcpy (strbuf, str, len);
     strbuf[len] = '\0';
     item = lang_find_or_insert (strbuf);
   }
@@ -1025,7 +1025,7 @@ hb_feature_to_string (hb_feature_t *feature,
   }
   assert (len < ARRAY_LENGTH (s));
   len = hb_min (len, size - 1);
-  memcpy (buf, s, len);
+  hb_memcpy (buf, s, len);
   buf[len] = '\0';
 }
 
@@ -1166,7 +1166,7 @@ hb_variation_to_string (hb_variation_t *variation,
 
   assert (len < ARRAY_LENGTH (s));
   len = hb_min (len, size - 1);
-  memcpy (buf, s, len);
+  hb_memcpy (buf, s, len);
   buf[len] = '\0';
 }
 

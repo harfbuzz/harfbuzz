@@ -47,7 +47,7 @@ struct DeltaSetIndexMapFormat01
     HBUINT8 *p = c->allocate_size<HBUINT8> (total_size);
     if (unlikely (!p)) return_trace (nullptr);
 
-    memcpy (p, this, HBUINT8::static_size * total_size);
+    hb_memcpy (p, this, HBUINT8::static_size * total_size);
     return_trace (out);
   }
 

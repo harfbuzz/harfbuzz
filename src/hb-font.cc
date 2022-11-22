@@ -1803,8 +1803,8 @@ hb_font_create_sub_font (hb_font_t *parent)
     float *design_coords = (float *) hb_calloc (num_coords, sizeof (parent->design_coords[0]));
     if (likely (coords && design_coords))
     {
-      memcpy (coords, parent->coords, num_coords * sizeof (parent->coords[0]));
-      memcpy (design_coords, parent->design_coords, num_coords * sizeof (parent->design_coords[0]));
+      hb_memcpy (coords, parent->coords, num_coords * sizeof (parent->coords[0]));
+      hb_memcpy (design_coords, parent->design_coords, num_coords * sizeof (parent->design_coords[0]));
       _hb_font_adopt_var_coords (font, coords, design_coords, num_coords);
     }
     else
@@ -2466,7 +2466,7 @@ hb_font_set_var_coords_design (hb_font_t    *font,
   }
 
   if (coords_length)
-    memcpy (design_coords, coords, coords_length * sizeof (font->design_coords[0]));
+    hb_memcpy (design_coords, coords, coords_length * sizeof (font->design_coords[0]));
 
   hb_ot_var_normalize_coords (font->face, coords_length, coords, normalized);
   _hb_font_adopt_var_coords (font, normalized, design_coords, coords_length);
@@ -2542,8 +2542,8 @@ hb_font_set_var_coords_normalized (hb_font_t    *font,
 
   if (coords_length)
   {
-    memcpy (copy, coords, coords_length * sizeof (coords[0]));
-    memcpy (unmapped, coords, coords_length * sizeof (coords[0]));
+    hb_memcpy (copy, coords, coords_length * sizeof (coords[0]));
+    hb_memcpy (unmapped, coords, coords_length * sizeof (coords[0]));
   }
 
   /* Best effort design coords simulation */

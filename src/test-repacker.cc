@@ -35,7 +35,7 @@ static void extend (const char* value,
                     hb_serialize_context_t* c)
 {
   char* obj = c->allocate_size<char> (len);
-  memcpy (obj, value, len);
+  hb_memcpy (obj, value, len);
 }
 
 static void start_object(const char* tag,

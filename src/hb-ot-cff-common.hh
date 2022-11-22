@@ -68,7 +68,7 @@ struct CFFIndex
     unsigned int size = get_size ();
     CFFIndex *out = c->allocate_size<CFFIndex> (size);
     if (likely (out))
-      memcpy (out, this, size);
+      hb_memcpy (out, this, size);
     return_trace (out);
   }
 
@@ -109,7 +109,7 @@ struct CFFIndex
       const hb_ubytes_t &bs = byteArray[i];
       unsigned char *dest = c->allocate_size<unsigned char> (bs.length);
       if (unlikely (!dest)) return_trace (false);
-      memcpy (dest, &bs[0], bs.length);
+      hb_memcpy (dest, &bs[0], bs.length);
     }
 
     return_trace (true);
@@ -508,7 +508,7 @@ struct FDSelect
     unsigned int size = src.get_size (num_glyphs);
     FDSelect *dest = c->allocate_size<FDSelect> (size);
     if (unlikely (!dest)) return_trace (false);
-    memcpy (dest, &src, size);
+    hb_memcpy (dest, &src, size);
     return_trace (true);
   }
 

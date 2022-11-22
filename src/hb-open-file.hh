@@ -158,7 +158,7 @@ typedef struct OpenTypeOffsetTable
         return_trace (false);
 
       if (likely (len))
-	memcpy (start, blob->data, len);
+	hb_memcpy (start, blob->data, len);
 
       /* 4-byte alignment. */
       c->align (4);

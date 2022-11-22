@@ -209,7 +209,7 @@ hb_buffer_t::make_room_for (unsigned int num_in,
     assert (have_output);
 
     out_info = (hb_glyph_info_t *) pos;
-    memcpy (out_info, info, out_len * sizeof (out_info[0]));
+    hb_memcpy (out_info, info, out_len * sizeof (out_info[0]));
   }
 
   return true;
@@ -1905,9 +1905,9 @@ hb_buffer_append (hb_buffer_t *buffer,
 
   hb_segment_properties_overlay (&buffer->props, &source->props);
 
-  memcpy (buffer->info + orig_len, source->info + start, (end - start) * sizeof (buffer->info[0]));
+  hb_memcpy (buffer->info + orig_len, source->info + start, (end - start) * sizeof (buffer->info[0]));
   if (buffer->have_positions)
-    memcpy (buffer->pos + orig_len, source->pos + start, (end - start) * sizeof (buffer->pos[0]));
+    hb_memcpy (buffer->pos + orig_len, source->pos + start, (end - start) * sizeof (buffer->pos[0]));
 
   if (source->content_type == HB_BUFFER_CONTENT_TYPE_UNICODE)
   {

@@ -501,7 +501,7 @@ struct op_serializer_t
 
     unsigned char *d = c->allocate_size<unsigned char> (opstr.length);
     if (unlikely (!d)) return_trace (false);
-    /* Faster than memcpy for small strings. */
+    /* Faster than hb_memcpy for small strings. */
     for (unsigned i = 0; i < opstr.length; i++)
       d[i] = opstr.ptr[i];
     return_trace (true);

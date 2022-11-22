@@ -454,7 +454,7 @@ struct gvar
       F2DOT14 *tuples = c->serializer->allocate_size<F2DOT14> (shared_tuple_size);
       if (!tuples) return_trace (false);
       out->sharedTuples = (char *) tuples - (char *) out;
-      memcpy (tuples, this+sharedTuples, shared_tuple_size);
+      hb_memcpy (tuples, this+sharedTuples, shared_tuple_size);
     }
 
     char *subset_data = c->serializer->allocate_size<char> (subset_data_size);
@@ -477,7 +477,7 @@ struct gvar
 	((HBUINT16 *) subset_offsets)[gid] = glyph_offset / 2;
 
       if (var_data_bytes.length > 0)
-	memcpy (subset_data, var_data_bytes.arrayZ, var_data_bytes.length);
+	hb_memcpy (subset_data, var_data_bytes.arrayZ, var_data_bytes.length);
       subset_data += var_data_bytes.length;
       glyph_offset += var_data_bytes.length;
     }
