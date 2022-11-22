@@ -636,7 +636,7 @@ struct gvar
 	  }
 
 	/* infer deltas for unreferenced points */
-	if (ref_points < orig_points.length)
+	if (ref_points && ref_points < orig_points.length)
 	{
 	  unsigned start_point = 0;
 	  for (unsigned c = 0; c < end_points.length; c++)
