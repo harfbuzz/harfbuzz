@@ -199,13 +199,48 @@ struct hb_hashmap_t
   }
 
   template <typename VV>
+  bool set_with_hash (K key, uint32_t hash, VV&& value, bool is_delete=false)
+  {
+    if (unlikely (!successful)) return false;
+    if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
+    item_t &item = item_for_hash (key, hash);
+
+    if (is_delete && !(item == key))
+      return true; /* Trying to delete non-existent key. */
+
+    if (item.is_used ())
+    {
+      occupancy--;
+      if (!item.is_tombstone ())
+	population--;
+    }
+
+    item.key = key;
+    item.value = std::forward<VV> (value);
+    item.hash = hash;
+    item.set_used (true);
+    item.set_tombstone (is_delete);
+
+    occupancy++;
+    if (!is_delete)
+      population++;
+
+    return true;
+  }
+
+  template <typename VV>
   bool set (K key, VV&& value) { return set_with_hash (key, hb_hash (key), std::forward<VV> (value)); }
 
+  const V& get_with_hash (K key, uint32_t hash) const
+  {
+    if (unlikely (!items)) return item_t::default_value ();
+    auto &item = item_for_hash (key, hash);
+    return item.is_real () && item == key ? item.value : item_t::default_value ();
+  }
   const V& get (K key) const
   {
     if (unlikely (!items)) return item_t::default_value ();
-    auto &item = item_for (key);
-    return item.is_real () && item == key ? item.value : item_t::default_value ();
+    return get_with_hash (key, hb_hash (key));
   }
 
   void del (K key) { set_with_hash (key, hb_hash (key), item_t::default_value (), true); }
@@ -218,7 +253,7 @@ struct hb_hashmap_t
   {
     if (unlikely (!items))
       return false;
-    auto &item = item_for (key);
+    auto &item = item_for_hash (key, hb_hash (key));
     if (item.is_real () && item == key)
     {
       if (vp) *vp = std::addressof (item.value);
@@ -321,43 +356,6 @@ struct hb_hashmap_t
   { set (std::move (v.first), v.second); return *this; }
   hb_hashmap_t& operator << (const hb_pair_t<K&&, V&&>& v)
   { set (std::move (v.first), std::move (v.second)); return *this; }
-
-  protected:
-
-  template <typename VV>
-  bool set_with_hash (K key, uint32_t hash, VV&& value, bool is_delete=false)
-  {
-    if (unlikely (!successful)) return false;
-    if (unlikely ((occupancy + occupancy / 2) >= mask && !resize ())) return false;
-    item_t &item = item_for_hash (key, hash);
-
-    if (is_delete && !(item == key))
-      return true; /* Trying to delete non-existent key. */
-
-    if (item.is_used ())
-    {
-      occupancy--;
-      if (!item.is_tombstone ())
-	population--;
-    }
-
-    item.key = key;
-    item.value = std::forward<VV> (value);
-    item.hash = hash;
-    item.set_used (true);
-    item.set_tombstone (is_delete);
-
-    occupancy++;
-    if (!is_delete)
-      population++;
-
-    return true;
-  }
-
-  item_t& item_for (const K &key) const
-  {
-    return item_for_hash (key, hb_hash (key));
-  }
 
   item_t& item_for_hash (const K &key, uint32_t hash) const
   {

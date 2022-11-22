@@ -354,9 +354,11 @@ struct hb_serialize_context_t
     }
 
     objidx_t objidx;
+    uint32_t hash;
     if (share)
     {
-      objidx = packed_map.get (obj);
+      hash = hb_hash (obj);
+      objidx = packed_map.get_with_hash (obj, hash);
       if (objidx)
       {
         merge_virtual_links (obj, objidx);
@@ -384,7 +386,7 @@ struct hb_serialize_context_t
 
     objidx = packed.length - 1;
 
-    if (share) packed_map.set (obj, objidx);
+    if (share) packed_map.set_with_hash (obj, hash, objidx);
     propagate_error (packed_map);
 
     return objidx;
