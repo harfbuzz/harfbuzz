@@ -825,6 +825,8 @@ struct subr_subsetter_t
 				  hb_set_t *closure,
 				  const subr_subset_param_t &param)
   {
+    if (closure->has (subr_num))
+      return;
     closure->add (subr_num);
     collect_subr_refs_in_str (subrs[subr_num], param);
   }
