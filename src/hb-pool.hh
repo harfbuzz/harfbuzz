@@ -58,7 +58,7 @@ struct hb_pool_t
     T* obj = next;
     next = * ((T**) next);
 
-    memset (obj, 0, sizeof (T));
+    hb_memset (obj, 0, sizeof (T));
 
     return obj;
   }

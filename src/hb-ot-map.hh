@@ -89,7 +89,7 @@ struct hb_ot_map_t
 
   void init ()
   {
-    memset (this, 0, sizeof (*this));
+    hb_memset (this, 0, sizeof (*this));
 
     features.init ();
     for (unsigned int table_index = 0; table_index < 2; table_index++)

@@ -493,8 +493,8 @@ _resume:
 	case 1:
 #line 38 "hb-buffer-deserialize-text.rl"
 	{
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
+	hb_memset (&info, 0, sizeof (info));
+	hb_memset (&pos , 0, sizeof (pos ));
 }
 	break;
 	case 4:
@@ -548,8 +548,8 @@ _resume:
 	case 15:
 #line 38 "hb-buffer-deserialize-text.rl"
 	{
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
+	hb_memset (&info, 0, sizeof (info));
+	hb_memset (&pos , 0, sizeof (pos ));
 }
 #line 51 "hb-buffer-deserialize-text.rl"
 	{
@@ -665,8 +665,8 @@ _resume:
 	case 12:
 #line 38 "hb-buffer-deserialize-text.rl"
 	{
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
+	hb_memset (&info, 0, sizeof (info));
+	hb_memset (&pos , 0, sizeof (pos ));
 }
 #line 51 "hb-buffer-deserialize-text.rl"
 	{
@@ -678,8 +678,8 @@ _resume:
 	case 14:
 #line 38 "hb-buffer-deserialize-text.rl"
 	{
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
+	hb_memset (&info, 0, sizeof (info));
+	hb_memset (&pos , 0, sizeof (pos ));
 }
 #line 51 "hb-buffer-deserialize-text.rl"
 	{
@@ -717,8 +717,8 @@ _resume:
 	case 11:
 #line 38 "hb-buffer-deserialize-text.rl"
 	{
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
+	hb_memset (&info, 0, sizeof (info));
+	hb_memset (&pos , 0, sizeof (pos ));
 }
 #line 51 "hb-buffer-deserialize-text.rl"
 	{
@@ -744,8 +744,8 @@ _resume:
 	case 13:
 #line 38 "hb-buffer-deserialize-text.rl"
 	{
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
+	hb_memset (&info, 0, sizeof (info));
+	hb_memset (&pos , 0, sizeof (pos ));
 }
 #line 51 "hb-buffer-deserialize-text.rl"
 	{
@@ -875,8 +875,8 @@ _again:
 	case 11:
 #line 38 "hb-buffer-deserialize-text.rl"
 	{
-	memset (&info, 0, sizeof (info));
-	memset (&pos , 0, sizeof (pos ));
+	hb_memset (&info, 0, sizeof (info));
+	hb_memset (&pos , 0, sizeof (pos ));
 }
 #line 51 "hb-buffer-deserialize-text.rl"
 	{

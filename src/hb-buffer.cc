@@ -230,7 +230,7 @@ hb_buffer_t::shift_forward (unsigned int count)
      * Ideally, we should at least set Default_Ignorable bits on
      * these, as well as consistent cluster values.  But the former
      * is layering violation... */
-    memset (info + len, 0, (idx + count - len) * sizeof (info[0]));
+    hb_memset (info + len, 0, (idx + count - len) * sizeof (info[0]));
   }
   len += count;
   idx += count;
@@ -299,8 +299,8 @@ hb_buffer_t::clear ()
   out_len = 0;
   out_info = info;
 
-  memset (context, 0, sizeof context);
-  memset (context_len, 0, sizeof context_len);
+  hb_memset (context, 0, sizeof context);
+  hb_memset (context_len, 0, sizeof context_len);
 
   deallocate_var_all ();
   serial = 0;
@@ -345,7 +345,7 @@ hb_buffer_t::add (hb_codepoint_t  codepoint,
 
   glyph = &info[len];
 
-  memset (glyph, 0, sizeof (*glyph));
+  hb_memset (glyph, 0, sizeof (*glyph));
   glyph->codepoint = codepoint;
   glyph->mask = 0;
   glyph->cluster = cluster;
@@ -1432,9 +1432,9 @@ hb_buffer_set_length (hb_buffer_t  *buffer,
 
   /* Wipe the new space */
   if (length > buffer->len) {
-    memset (buffer->info + buffer->len, 0, sizeof (buffer->info[0]) * (length - buffer->len));
+    hb_memset (buffer->info + buffer->len, 0, sizeof (buffer->info[0]) * (length - buffer->len));
     if (buffer->have_positions)
-      memset (buffer->pos + buffer->len, 0, sizeof (buffer->pos[0]) * (length - buffer->len));
+      hb_memset (buffer->pos + buffer->len, 0, sizeof (buffer->pos[0]) * (length - buffer->len));
   }
 
   buffer->len = length;

@@ -45,7 +45,7 @@ void hb_ot_map_t::collect_lookups (unsigned int table_index, hb_set_t *lookups_o
 hb_ot_map_builder_t::hb_ot_map_builder_t (hb_face_t *face_,
 					  const hb_segment_properties_t &props_)
 {
-  memset (this, 0, sizeof (*this));
+  hb_memset (this, 0, sizeof (*this));
 
   feature_infos.init ();
   for (unsigned int table_index = 0; table_index < 2; table_index++)

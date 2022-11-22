@@ -41,7 +41,7 @@ struct hb_vector_size_t
   elt_t& operator [] (unsigned int i) { return v[i]; }
   const elt_t& operator [] (unsigned int i) const { return v[i]; }
 
-  void clear (unsigned char v = 0) { memset (this, v, sizeof (*this)); }
+  void clear (unsigned char v = 0) { hb_memset (this, v, sizeof (*this)); }
 
   template <typename Op>
   hb_vector_size_t process (const Op& op) const
@@ -116,7 +116,7 @@ struct hb_bit_page_t
       *la |= ~(mask (a) - 1);
       la++;
 
-      memset (la, 0xff, (char *) lb - (char *) la);
+      hb_memset (la, 0xff, (char *) lb - (char *) la);
 
       *lb |= ((mask (b) << 1) - 1);
     }
@@ -132,7 +132,7 @@ struct hb_bit_page_t
       *la &= mask (a) - 1;
       la++;
 
-      memset (la, 0, (char *) lb - (char *) la);
+      hb_memset (la, 0, (char *) lb - (char *) la);
 
       *lb &= ~((mask (b) << 1) - 1);
     }

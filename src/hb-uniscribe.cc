@@ -478,7 +478,7 @@ populate_log_font (LOGFONTW  *lf,
 		   hb_font_t *font,
 		   unsigned int font_size)
 {
-  memset (lf, 0, sizeof (*lf));
+  hb_memset (lf, 0, sizeof (*lf));
   lf->lfHeight = - (int) font_size;
   lf->lfCharSet = DEFAULT_CHARSET;
 

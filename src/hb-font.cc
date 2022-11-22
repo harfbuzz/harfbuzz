@@ -71,7 +71,7 @@ hb_font_get_font_h_extents_nil (hb_font_t         *font HB_UNUSED,
 				hb_font_extents_t *extents,
 				void              *user_data HB_UNUSED)
 {
-  memset (extents, 0, sizeof (*extents));
+  hb_memset (extents, 0, sizeof (*extents));
   return false;
 }
 
@@ -96,7 +96,7 @@ hb_font_get_font_v_extents_nil (hb_font_t         *font HB_UNUSED,
 				hb_font_extents_t *extents,
 				void              *user_data HB_UNUSED)
 {
-  memset (extents, 0, sizeof (*extents));
+  hb_memset (extents, 0, sizeof (*extents));
   return false;
 }
 
@@ -409,7 +409,7 @@ hb_font_get_glyph_extents_nil (hb_font_t          *font HB_UNUSED,
 			       hb_glyph_extents_t *extents,
 			       void               *user_data HB_UNUSED)
 {
-  memset (extents, 0, sizeof (*extents));
+  hb_memset (extents, 0, sizeof (*extents));
   return false;
 }
 
