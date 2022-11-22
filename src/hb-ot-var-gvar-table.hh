@@ -293,13 +293,14 @@ struct GlyphVariationData
     while (i < count)
     {
       if (unlikely (p + 1 > end)) return false;
-      unsigned j;
       unsigned control = *p++;
       unsigned run_count = (control & POINT_RUN_COUNT_MASK) + 1;
+      if (unlikely (i + run_count > count)) return false;
+      unsigned j;
       if (control & POINTS_ARE_WORDS)
       {
 	if (unlikely (p + run_count * HBUINT16::static_size > end)) return false;
-	for (j = 0; j < run_count && i < count; j++, i++)
+	for (j = 0; j < run_count; j++, i++)
 	{
 	  n += *(const HBUINT16 *)p;
 	  points.arrayZ[i] = n;
@@ -309,13 +310,12 @@ struct GlyphVariationData
       else
       {
 	if (unlikely (p + run_count > end)) return false;
-	for (j = 0; j < run_count && i < count; j++, i++)
+	for (j = 0; j < run_count; j++, i++)
 	{
 	  n += *p++;
 	  points.arrayZ[i] = n;
 	}
       }
-      if (j < run_count) return false;
     }
     return true;
   }
