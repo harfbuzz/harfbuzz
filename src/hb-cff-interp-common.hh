@@ -499,9 +499,11 @@ struct op_serializer_t
   {
     TRACE_SERIALIZE (this);
 
-    HBUINT8 *d = c->allocate_size<HBUINT8> (opstr.length);
+    unsigned char *d = c->allocate_size<unsigned char> (opstr.length);
     if (unlikely (!d)) return_trace (false);
-    memcpy (d, opstr.ptr, opstr.length);
+    /* Faster than memcpy for small strings. */
+    for (unsigned i = 0; i < opstr.length; i++)
+      d[i] = opstr.ptr[i];
     return_trace (true);
   }
 };
