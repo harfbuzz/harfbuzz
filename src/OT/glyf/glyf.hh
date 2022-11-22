@@ -439,7 +439,7 @@ glyf::_compile_subset_glyphs_with_deltas (const hb_subset_plan_t *plan,
   hb_font_t *font = _create_font_for_instancing (plan);
   if (unlikely (!font)) return false;
 
-  OT::glyf_accelerator_t glyf (plan->source);
+  const OT::glyf_accelerator_t &glyf = *plan->source->table.glyf;
   for (auto& subset_glyph : *glyphs)
   {
     if (!const_cast<glyf_impl::SubsetGlyph &> (subset_glyph).compile_bytes_with_deltas (plan, font, glyf))
