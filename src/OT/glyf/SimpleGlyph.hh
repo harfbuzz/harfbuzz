@@ -243,13 +243,14 @@ struct SimpleGlyph
       repeat++;
       if (repeat == 1)
       {
-        flags.push(flag);
+        /* We know there's room. */
+        flags.arrayZ[flags.length++] = flag;
       }
       else
       {
         unsigned len = flags.length;
-        flags[len-2] = flag | FLAG_REPEAT;
-        flags[len-1] = repeat;
+        flags.arrayZ[len-2] = flag | FLAG_REPEAT;
+        flags.arrayZ[len-1] = repeat;
       }
     }
     else
