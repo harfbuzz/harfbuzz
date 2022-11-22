@@ -309,7 +309,7 @@ struct parsed_cs_op_t : op_str_t
   bool for_skip () const { return skip_flag; }
   void set_skip ()       { skip_flag = true; }
 
-  uint16_t subr_num;
+  unsigned subr_num;
 
   protected:
   bool	  drop_flag : 1;
