@@ -60,8 +60,7 @@ struct contour_point_vector_t : hb_vector_t<contour_point_t>
       return;
     auto arrayZ = this->arrayZ + old_len;
     unsigned count = a.length;
-    for (unsigned int i = 0; i < count; i++)
-      arrayZ[i] = a.arrayZ[i];
+    hb_memcpy (arrayZ, a.arrayZ, count * sizeof (arrayZ[0]));
   }
 
   void transform (const float (&matrix)[4])
@@ -566,9 +565,8 @@ struct gvar
 
       /* Save original points for inferred delta calculation */
       contour_point_vector_t orig_points;
-      if (unlikely (!orig_points.resize (points.length, false))) return false;
-      for (unsigned int i = 0; i < orig_points.length; i++)
-	orig_points.arrayZ[i] = points.arrayZ[i];
+      orig_points.extend (points);
+      if (unlikely (orig_points.in_error ())) return false;
 
       contour_point_vector_t deltas; /* flag is used to indicate referenced point */
       if (unlikely (!deltas.resize (points.length, false))) return false;
