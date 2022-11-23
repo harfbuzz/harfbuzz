@@ -883,6 +883,7 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
   void* accel = hb_face_get_user_data(face, hb_subset_accelerator_t::user_data_key());
 
   plan->attach_accelerator_data = input->attach_accelerator_data;
+  plan->force_long_loca = input->force_long_loca;
   if (accel)
     plan->accelerator = (hb_subset_accelerator_t*) accel;
 

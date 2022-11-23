@@ -489,6 +489,11 @@ hb_subset_preprocess (hb_face_t *source)
                             HB_SUBSET_FLAGS_RETAIN_GIDS);
   input->attach_accelerator_data = true;
 
+  // Always use long loca in the preprocessed version. This allows
+  // us to store the glyph bytes unpadded which allows the future subset
+  // operation to run faster by skipping the trim padding step.
+  input->force_long_loca = true;
+
   hb_face_t* new_source = hb_subset_or_fail (source, input);
   hb_subset_input_destroy (input);
 

@@ -90,9 +90,12 @@ struct glyf
     | hb_map (&glyf_impl::SubsetGlyph::padded_size)
     ;
 
-    unsigned max_offset = + padded_offsets | hb_reduce (hb_add, 0);
-    bool use_short_loca = max_offset < 0x1FFFF;
-
+    bool use_short_loca = false;
+    if (likely (!c->plan->force_long_loca))
+    {
+      unsigned max_offset = + padded_offsets | hb_reduce (hb_add, 0);
+      use_short_loca = max_offset < 0x1FFFF;
+    }
 
     glyf_prime->serialize (c->serializer, glyphs.writer (), use_short_loca, c->plan, font);
     if (!use_short_loca) {

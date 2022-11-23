@@ -60,6 +60,10 @@ struct hb_subset_input_t
 
   unsigned flags;
   bool attach_accelerator_data = false;
+
+  // If set loca format will always be the long version.
+  bool force_long_loca = false;
+
   hb_hashmap_t<hb_tag_t, float> *axes_location;
 #ifdef HB_EXPERIMENTAL_API
   hb_hashmap_t<unsigned, hb_bytes_t> *name_table_overrides;
