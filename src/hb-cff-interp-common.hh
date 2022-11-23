@@ -305,6 +305,8 @@ struct byte_str_ref_t
     return str.arrayZ[get_offset () + i];
   }
 
+  unsigned char head_unchecked () const { return str.arrayZ[get_offset ()]; }
+
   /* Conversion to hb_ubytes_t */
   operator hb_ubytes_t () const { return str.sub_array (get_offset ()); }
 
@@ -576,12 +578,12 @@ struct interp_env_t
     op_code_t  op = OpCode_Invalid;
     if (unlikely (!str_ref.avail ()))
       return OpCode_Invalid;
-    op = (op_code_t)(unsigned char)str_ref[0];
+    op = (op_code_t) str_ref.head_unchecked ();
     str_ref.inc ();
     if (op == OpCode_escape) {
       if (unlikely (!str_ref.avail ()))
 	return OpCode_Invalid;
-      op = Make_OpCode_ESC(str_ref[0]);
+      op = Make_OpCode_ESC (str_ref.head_unchecked ());
       str_ref.inc ();
     }
     return op;
