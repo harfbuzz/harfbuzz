@@ -468,6 +468,9 @@ hb_subset_preprocess (hb_face_t *source)
   hb_set_clear (hb_subset_input_set(input, HB_SUBSET_SETS_UNICODE));
   hb_set_invert (hb_subset_input_set(input, HB_SUBSET_SETS_UNICODE));
 
+  hb_set_clear (hb_subset_input_set(input, HB_SUBSET_SETS_GLYPH_INDEX));
+  hb_set_invert (hb_subset_input_set(input, HB_SUBSET_SETS_GLYPH_INDEX));
+
   hb_set_clear (hb_subset_input_set(input,
                                     HB_SUBSET_SETS_LAYOUT_FEATURE_TAG));
   hb_set_invert (hb_subset_input_set(input,
