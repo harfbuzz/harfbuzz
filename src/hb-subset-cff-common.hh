@@ -875,7 +875,7 @@ struct subr_subsetter_t
     }
     for (unsigned int i = 0; i < count; i++)
     {
-      const parsed_cs_op_t  &opstr = str.values[i];
+      const parsed_cs_op_t  &opstr = str.values.arrayZ[i];
       if (!opstr.for_drop () && !opstr.for_skip ())
       {
 	switch (opstr.op)
