@@ -43,7 +43,12 @@ struct str_encoder_t
   void reset () { buff.reset (); }
 
   void encode_byte (unsigned char b)
-  { buff.push (b); }
+  {
+    if (likely ((signed) buff.length < buff.allocated))
+      buff.arrayZ[buff.length++] = b;
+    else
+      buff.push (b);
+  }
 
   void encode_int (int v)
   {
