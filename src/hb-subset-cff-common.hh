@@ -604,16 +604,37 @@ struct subr_subsetter_t
     if (unlikely (!closures.valid))
       return false;
 
+    if (plan->accelerator && plan->accelerator->cff_accelerator) {
+      // Parsed subroutine char stsrings already exist in the accelerator. Copy
+      // them in.
+      // TODO(grieger): use reference instead of copy.
+      parsed_global_subrs =
+          plan->accelerator->cff_accelerator->parsed_global_subrs;
+      parsed_local_subrs =
+          plan->accelerator->cff_accelerator->parsed_local_subrs;
+    }
+
     /* phase 1 & 2 */
     for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
     {
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
 	continue;
+
       const hb_ubytes_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
+
+      if (plan->accelerator && plan->accelerator->cff_accelerator)
+      {
+        // parsed string already exists in accelerator, copy it and move
+        // on.
+        // TODO(grieger): use reference instead of copy.
+        parsed_charstrings[i] =
+            plan->accelerator->cff_accelerator->parsed_charstrings[glyph];
+        continue;
+      }
 
       ENV env (str, acc, fd);
       cs_interpreter_t<ENV, OPSET, subr_subset_param_t> interp (env);
@@ -662,22 +683,13 @@ struct subr_subsetter_t
 
       /* after dropping hints recreate closures of actually used subrs */
       closures.reset ();
-      for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
-      {
-	hb_codepoint_t  glyph;
-	if (!plan->old_gid_for_new_gid (i, &glyph))
-	  continue;
-	unsigned int fd = acc.fdSelect->get_fd (glyph);
-	if (unlikely (fd >= acc.fdCount))
-	  return false;
-	subr_subset_param_t  param (&parsed_charstrings[i],
-				    &parsed_global_subrs,
-				    &parsed_local_subrs[fd],
-				    &closures.global_closure,
-				    &closures.local_closures[fd],
-				    plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
-	collect_subr_refs_in_str (parsed_charstrings[i], param);
-      }
+      if (!closure_subroutines()) return false;
+    } else if (plan->accelerator && plan->accelerator->cff_accelerator) {
+      // Since parsed strings were loaded from accelerator, we still need
+      // to compute the subroutine closures which would have normally happened during
+      // parsing.
+      closures.reset ();
+      if (!closure_subroutines()) return false;
     }
 
     remaps.create (closures);
@@ -864,6 +876,29 @@ struct subr_subsetter_t
     }
 
     return seen_hint;
+  }
+
+  bool closure_subroutines ()
+  {
+    closures.reset ();
+    for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
+    {
+      hb_codepoint_t  glyph;
+      if (!plan->old_gid_for_new_gid (i, &glyph))
+        continue;
+      unsigned int fd = acc.fdSelect->get_fd (glyph);
+      if (unlikely (fd >= acc.fdCount))
+        return false;
+      subr_subset_param_t  param (&parsed_charstrings[i],
+                                  &parsed_global_subrs,
+                                  &parsed_local_subrs[fd],
+                                  &closures.global_closure,
+                                  &closures.local_closures[fd],
+                                  plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
+      collect_subr_refs_in_str (parsed_charstrings[i], param);
+    }
+
+    return true;
   }
 
   void collect_subr_refs_in_subr (parsed_cs_str_t &str, unsigned int pos,
