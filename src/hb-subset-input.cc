@@ -483,6 +483,11 @@ hb_subset_preprocess (hb_face_t *source)
   hb_set_invert (hb_subset_input_set(input,
                                      HB_SUBSET_SETS_NAME_ID));
 
+  hb_set_clear (hb_subset_input_set(input,
+                                    HB_SUBSET_SETS_NAME_LANG_ID));
+  hb_set_invert (hb_subset_input_set(input,
+                                     HB_SUBSET_SETS_NAME_LANG_ID));
+
   hb_subset_input_set_flags(input,
                             HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
                             HB_SUBSET_FLAGS_GLYPH_NAMES |

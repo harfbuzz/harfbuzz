@@ -120,7 +120,7 @@ struct subset_main_t : option_parser_t, face_options_t, output_options_t<false>
     for (unsigned i = 0; i < num_iterations; i++)
     {
       hb_face_destroy (new_face);
-      new_face = hb_subset_or_fail (face, input);
+      new_face = hb_subset_or_fail (orig_face, input);
     }
 
     bool success = new_face;
