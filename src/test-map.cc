@@ -231,6 +231,8 @@ main (int argc, char **argv)
     m.set (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()),
            hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
     m.get (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()));
+    hb::unique_ptr<hb_set_t> *v;
+    m.has (hb::unique_ptr<hb_set_t> (hb_set_get_empty ()), &v);
     m.iter_ref ();
     m.keys_ref ();
     m.values_ref ();
