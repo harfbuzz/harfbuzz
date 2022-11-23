@@ -404,10 +404,15 @@ struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
 
 struct cff_subset_accelerator_t
 {
-  static cff_subset_accelerator_t* create() {
+  static cff_subset_accelerator_t* create(
+      const parsed_cs_str_vec_t& parsed_charstrings,
+      const parsed_cs_str_vec_t& parsed_global_subrs,
+      const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs) {
     cff_subset_accelerator_t* accel =
         (cff_subset_accelerator_t*) hb_malloc (sizeof(cff_subset_accelerator_t));
-    new (accel) cff_subset_accelerator_t ();
+    new (accel) cff_subset_accelerator_t (parsed_charstrings,
+                                          parsed_global_subrs,
+                                          parsed_local_subrs);
     return accel;
   }
 
@@ -419,9 +424,20 @@ struct cff_subset_accelerator_t
     hb_free (accel);
   }
 
-  parsed_cs_str_t parsed_charstring;
+  cff_subset_accelerator_t(
+      const parsed_cs_str_vec_t& parsed_charstrings_,
+      const parsed_cs_str_vec_t& parsed_global_subrs_,
+      const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs_)
+  {
+    parsed_charstrings = parsed_charstrings_;
+    parsed_global_subrs = parsed_global_subrs_;
+    parsed_local_subrs = parsed_local_subrs_;
+  }
+
+  parsed_cs_str_vec_t parsed_charstrings;
   parsed_cs_str_vec_t parsed_global_subrs;
-  parsed_cs_str_vec_t parsed_local_subrs;
+  hb_vector_t<parsed_cs_str_vec_t> parsed_local_subrs;
+
 };
 
 struct subr_subset_param_t
@@ -666,6 +682,7 @@ struct subr_subsetter_t
 
     remaps.create (closures);
 
+    populate_subset_accelerator();
     return true;
   }
 
@@ -924,6 +941,17 @@ struct subr_subsetter_t
       }
     }
     return !encoder.is_error ();
+  }
+
+  void populate_subset_accelerator() const
+  {
+    if (!plan->inprogress_accelerator) return;
+
+    plan->inprogress_accelerator->cff_accelerator =
+        cff_subset_accelerator_t::create(parsed_charstrings,
+                                         parsed_global_subrs,
+                                         parsed_local_subrs);
+
   }
 
   protected:
