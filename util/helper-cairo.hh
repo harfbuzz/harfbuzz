@@ -104,7 +104,7 @@ helper_cairo_create_scaled_font (const font_options_t *font_opts)
   cairo_matrix_init_scale (&font_matrix,
 			   font_opts->font_size_x,
 			   font_opts->font_size_y);
-  if (use_hb_draw)
+  if (!use_hb_draw)
     font_matrix.xy = -font_opts->slant * font_opts->font_size_x;
 
   font_options = cairo_font_options_create ();
