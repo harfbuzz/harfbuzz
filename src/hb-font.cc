@@ -628,9 +628,10 @@ hb_font_get_glyph_shape_default (hb_font_t       *font,
   hb_font_get_glyph_shape_default_adaptor_t adaptor = {
     draw_funcs,
     draw_data,
-    (float) font->x_scale / (float) font->parent->x_scale,
-    (float) font->y_scale / (float) font->parent->y_scale,
-    (font->slant - font->parent->slant) * (float) font->x_scale / (float) font->parent->y_scale
+    font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
+    font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f,
+    font->parent->y_scale ? (font->slant - font->parent->slant) *
+			    (float) font->x_scale / (float) font->parent->y_scale : 0.f
   };
 
   font->parent->get_glyph_shape (glyph,
