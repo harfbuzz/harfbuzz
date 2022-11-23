@@ -106,14 +106,15 @@ struct glyf
     }
 
     if (font)
+    {
       _free_compiled_subset_glyphs (&glyphs);
+      hb_font_destroy (font);
+    }
 
     if (unlikely (c->serializer->in_error ())) return_trace (false);
     return_trace (c->serializer->check_success (glyf_impl::_add_loca_and_head (c->plan,
 									       padded_offsets,
 									       use_short_loca)));
-
-    hb_font_destroy (font);
   }
 
   void
