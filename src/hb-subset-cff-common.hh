@@ -402,6 +402,28 @@ struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
   typedef hb_vector_t<parsed_cs_str_t> SUPER;
 };
 
+struct cff_subset_accelerator_t
+{
+  static cff_subset_accelerator_t* create() {
+    cff_subset_accelerator_t* accel =
+        (cff_subset_accelerator_t*) hb_malloc (sizeof(cff_subset_accelerator_t));
+    new (accel) cff_subset_accelerator_t ();
+    return accel;
+  }
+
+  static void destroy(void* value) {
+    if (!value) return;
+
+    cff_subset_accelerator_t* accel = (cff_subset_accelerator_t*) value;
+    accel->~cff_subset_accelerator_t ();
+    hb_free (accel);
+  }
+
+  parsed_cs_str_t parsed_charstring;
+  parsed_cs_str_vec_t parsed_global_subrs;
+  parsed_cs_str_vec_t parsed_local_subrs;
+};
+
 struct subr_subset_param_t
 {
   subr_subset_param_t (parsed_cs_str_t *parsed_charstring_,

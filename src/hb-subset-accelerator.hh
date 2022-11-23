@@ -35,6 +35,10 @@
 
 extern HB_INTERNAL hb_user_data_key_t _hb_subset_accelerator_user_data_key;
 
+namespace CFF {
+struct cff_subset_accelerator_t;
+}
+
 struct hb_subset_accelerator_t
 {
   static hb_user_data_key_t* user_data_key()
@@ -62,11 +66,17 @@ struct hb_subset_accelerator_t
 
   hb_subset_accelerator_t(const hb_map_t& unicode_to_gid_,
                           const hb_set_t& unicodes_)
-      : unicode_to_gid(unicode_to_gid_), unicodes(unicodes_) {}
+      : unicode_to_gid(unicode_to_gid_), unicodes(unicodes_),
+        has_seac(false), cff_accelerator(nullptr) {}
 
+  // Generic
   const hb_map_t unicode_to_gid;
   const hb_set_t unicodes;
+
+  // CFF
   bool has_seac;
+  CFF::cff_subset_accelerator_t* cff_accelerator;
+
   // TODO(garretrieger): cumulative glyf checksum map
   // TODO(garretrieger): sanitized table cache.
 
