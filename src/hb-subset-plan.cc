@@ -926,6 +926,17 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
     hb_subset_plan_destroy (plan);
     return nullptr;
   }
+
+
+  if (plan->attach_accelerator_data)
+  {
+    plan->inprogress_accelerator =
+      hb_subset_accelerator_t::create (*plan->codepoint_to_glyph,
+                                       *plan->unicodes,
+				       plan->has_seac);
+  }
+
+
   return plan;
 }
 

@@ -499,13 +499,14 @@ _subset_table (hb_subset_plan_t *plan,
   }
 }
 
-static void _attach_accelerator_data (const hb_subset_plan_t* plan,
+static void _attach_accelerator_data (hb_subset_plan_t* plan,
                                       hb_face_t* face /* IN/OUT */)
 {
-  hb_subset_accelerator_t* accel =
-      hb_subset_accelerator_t::create (*plan->codepoint_to_glyph,
-                                       *plan->unicodes,
-				       plan->has_seac);
+  if (!plan->inprogress_accelerator) return;
+
+  // Transfer the accelerator from the plan to us.
+  hb_subset_accelerator_t* accel = plan->inprogress_accelerator;
+  plan->inprogress_accelerator = nullptr;
 
   if (accel->in_error ())
   {

@@ -96,6 +96,9 @@ struct hb_subset_plan_t
     hb_hashmap_destroy (name_table_overrides);
 #endif
 
+    if (inprogress_accelerator)
+      hb_subset_accelerator_t::destroy ((void*) inprogress_accelerator);
+
     if (user_axes_location)
     {
       hb_object_destroy (user_axes_location);
@@ -209,6 +212,7 @@ struct hb_subset_plan_t
 #endif
 
   const hb_subset_accelerator_t* accelerator;
+  hb_subset_accelerator_t* inprogress_accelerator;
 
  public:
 
