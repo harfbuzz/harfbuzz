@@ -281,11 +281,11 @@ struct SimpleGlyph
 
     for (unsigned i = 0; i < num_points; i++)
     {
-      uint8_t flag = all_points[i].flag;
+      uint8_t flag = all_points.arrayZ[i].flag;
       flag &= FLAG_ON_CURVE + FLAG_OVERLAP_SIMPLE;
 
-      int cur_x = roundf (all_points[i].x);
-      int cur_y = roundf (all_points[i].y);
+      int cur_x = roundf (all_points.arrayZ[i].x);
+      int cur_y = roundf (all_points.arrayZ[i].y);
       encode_coord (cur_x - prev_x, flag, FLAG_X_SHORT, FLAG_X_SAME, x_coords);
       encode_coord (cur_y - prev_y, flag, FLAG_Y_SHORT, FLAG_Y_SAME, y_coords);
       encode_flag (flag, repeat, lastflag, flags);
