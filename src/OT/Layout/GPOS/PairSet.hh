@@ -132,8 +132,9 @@ struct PairSet
       if (len2)
       {
 	pos++;
-	// https://github.com/harfbuzz/harfbuzz/issues/3824
-	buffer->unsafe_to_break (pos - 1, pos + 1);
+      // https://github.com/harfbuzz/harfbuzz/issues/3824
+      // https://github.com/harfbuzz/harfbuzz/issues/3888#issuecomment-1326781116
+      buffer->unsafe_to_break (buffer->idx, pos + 1);
       }
 
       buffer->idx = pos;

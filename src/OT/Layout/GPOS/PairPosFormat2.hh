@@ -241,14 +241,15 @@ struct PairPosFormat2_4
     boring:
       buffer->unsafe_to_concat (buffer->idx, skippy_iter.idx + 1);
 
-
-    buffer->idx = skippy_iter.idx;
     if (len2)
     {
-      buffer->idx++;
+      skippy_iter.idx++;
       // https://github.com/harfbuzz/harfbuzz/issues/3824
-      buffer->unsafe_to_break (buffer->idx - 1, buffer->idx + 1);
+      // https://github.com/harfbuzz/harfbuzz/issues/3888#issuecomment-1326781116
+      buffer->unsafe_to_break (buffer->idx, skippy_iter.idx + 1);
     }
+
+    buffer->idx = skippy_iter.idx;
 
     return_trace (true);
   }
