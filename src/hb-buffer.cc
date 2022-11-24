@@ -980,7 +980,6 @@ hb_buffer_get_unicode_funcs (const hb_buffer_t *buffer)
 void
 hb_buffer_set_direction (hb_buffer_t    *buffer,
 			 hb_direction_t  direction)
-
 {
   if (unlikely (hb_object_is_immutable (buffer)))
     return;
