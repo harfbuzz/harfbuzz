@@ -540,21 +540,21 @@ struct hb_bit_set_t
     b = nb;
     for (; a && b; )
     {
-      if (page_map[a - 1].major == other.page_map[b - 1].major)
+      if (page_map.arrayZ[a - 1].major == other.page_map.arrayZ[b - 1].major)
       {
 	a--;
 	b--;
 	count--;
-	page_map[count] = page_map[a];
+	page_map.arrayZ[count] = page_map.arrayZ[a];
 	page_at (count).v = op (page_at (a).v, other.page_at (b).v);
       }
-      else if (page_map[a - 1].major > other.page_map[b - 1].major)
+      else if (page_map.arrayZ[a - 1].major > other.page_map.arrayZ[b - 1].major)
       {
 	a--;
 	if (passthru_left)
 	{
 	  count--;
-	  page_map[count] = page_map[a];
+	  page_map.arrayZ[count] = page_map.arrayZ[a];
 	}
       }
       else
@@ -563,8 +563,8 @@ struct hb_bit_set_t
 	if (passthru_right)
 	{
 	  count--;
-	  page_map[count].major = other.page_map[b].major;
-	  page_map[count].index = next_page++;
+	  page_map.arrayZ[count].major = other.page_map.arrayZ[b].major;
+	  page_map.arrayZ[count].index = next_page++;
 	  page_at (count).v = other.page_at (b).v;
 	}
       }
@@ -574,15 +574,15 @@ struct hb_bit_set_t
       {
 	a--;
 	count--;
-	page_map[count] = page_map [a];
+	page_map.arrayZ[count] = page_map.arrayZ[a];
       }
     if (passthru_right)
       while (b)
       {
 	b--;
 	count--;
-	page_map[count].major = other.page_map[b].major;
-	page_map[count].index = next_page++;
+	page_map.arrayZ[count].major = other.page_map.arrayZ[b].major;
+	page_map.arrayZ[count].index = next_page++;
 	page_at (count).v = other.page_at (b).v;
       }
     assert (!count);
