@@ -553,8 +553,7 @@ struct parsed_values_t
   }
 
   unsigned get_count () const { return values.length; }
-  const VAL &get_value (unsigned int i)   const { return values[i]; }
-  const VAL &operator [] (unsigned int i) const { return get_value (i); }
+  const VAL &operator [] (unsigned int i) const { return values[i]; }
 
   unsigned int       opStart;
   hb_vector_t<VAL>   values;
