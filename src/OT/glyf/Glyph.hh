@@ -233,7 +233,7 @@ struct Glyph
       int lsb = 0;
       int h_delta = glyf_accelerator.hmtx->get_leading_bearing_without_var_unscaled (gid, &lsb) ?
 		    (int) header->xMin - lsb : 0;
-      int tsb = 0;
+      HB_UNUSED int tsb = 0;
       int v_orig  = (int) header->yMax +
 #ifndef HB_NO_VERTICAL
 		    ((void) glyf_accelerator.vmtx->get_leading_bearing_without_var_unscaled (gid, &tsb), tsb)
