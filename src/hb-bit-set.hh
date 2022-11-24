@@ -663,21 +663,21 @@ struct hb_bit_set_t
     page_map_t map = {get_major (*codepoint), 0};
     unsigned int i;
     page_map.bfind (map, &i, HB_NOT_FOUND_STORE_CLOSEST);
-    if (i < page_map.length && page_map[i].major == map.major)
+    if (i < page_map.length && page_map.arrayZ[i].major == map.major)
     {
-      if (pages[page_map[i].index].previous (codepoint))
+      if (pages[page_map.arrayZ[i].index].previous (codepoint))
       {
-	*codepoint += page_map[i].major * page_t::PAGE_BITS;
+	*codepoint += page_map.arrayZ[i].major * page_t::PAGE_BITS;
 	return true;
       }
     }
     i--;
     for (; (int) i >= 0; i--)
     {
-      hb_codepoint_t m = pages[page_map[i].index].get_max ();
+      hb_codepoint_t m = pages.arrayZ[page_map.arrayZ[i].index].get_max ();
       if (m != INVALID)
       {
-	*codepoint = page_map[i].major * page_t::PAGE_BITS + m;
+	*codepoint = page_map.arrayZ[i].major * page_t::PAGE_BITS + m;
 	return true;
       }
     }
