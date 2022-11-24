@@ -124,7 +124,7 @@ struct str_encoder_t
     //hb_memcpy (buff.arrayZ + offset, str, length);
   }
 
-  bool is_error () const { return buff.in_error (); }
+  bool in_error () const { return buff.in_error (); }
 
   protected:
 
@@ -901,7 +901,7 @@ struct subr_subsetter_t
 	}
       }
     }
-    return !encoder.is_error ();
+    return !encoder.in_error ();
   }
 
   protected:
