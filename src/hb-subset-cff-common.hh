@@ -517,7 +517,7 @@ struct subr_remaps_t
   {
     global_remap.create (&closures.global_closure);
     for (unsigned int i = 0; i < local_remaps.length; i++)
-      local_remaps[i].create (&closures.local_closures[i]);
+      local_remaps.arrayZ[i].create (&closures.local_closures[i]);
   }
 
   subr_remap_t	       global_remap;
