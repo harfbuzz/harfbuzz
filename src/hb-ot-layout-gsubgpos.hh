@@ -535,7 +535,7 @@ struct hb_ot_apply_context_t :
     bool next (unsigned *unsafe_to = nullptr)
     {
       assert (num_items > 0);
-      while (idx + num_items < end)
+      while (idx + 1/*num_items*/ < end)
       {
 	idx++;
 	hb_glyph_info_t &info = c->buffer->info[idx];
@@ -568,7 +568,7 @@ struct hb_ot_apply_context_t :
     bool prev (unsigned *unsafe_from = nullptr)
     {
       assert (num_items > 0);
-      while (idx > num_items - 1)
+      while (idx > 0/*num_items - 1*/)
       {
 	idx--;
 	hb_glyph_info_t &info = c->buffer->out_info[idx];
