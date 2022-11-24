@@ -949,8 +949,16 @@ struct hb_bit_set_t
     last_page_lookup = i;
     return &pages.arrayZ[page_map[i].index];
   }
-  page_t &page_at (unsigned int i) { return pages[page_map[i].index]; }
-  const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }
+  page_t &page_at (unsigned int i)
+  {
+    assert (i < page_map.length);
+    return pages.arrayZ[page_map.arrayZ[i].index];
+  }
+  const page_t &page_at (unsigned int i) const
+  {
+    assert (i < page_map.length);
+    return pages.arrayZ[page_map.arrayZ[i].index];
+  }
   unsigned int get_major (hb_codepoint_t g) const { return g >> page_t::PAGE_BITS_LOG_2; }
   unsigned int page_remainder (hb_codepoint_t g) const { return g & page_t::PAGE_BITMASK; }
   hb_codepoint_t major_start (unsigned int major) const { return major << page_t::PAGE_BITS_LOG_2; }
