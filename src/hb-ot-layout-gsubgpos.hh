@@ -535,6 +535,8 @@ struct hb_ot_apply_context_t :
     bool next (unsigned *unsafe_to = nullptr)
     {
       assert (num_items > 0);
+      /* The alternate condition below is faster at string boundaries,
+       * but produces subpar "unsafe-to-concat" values. */
       while (idx + 1/*num_items*/ < end)
       {
 	idx++;
@@ -568,6 +570,8 @@ struct hb_ot_apply_context_t :
     bool prev (unsigned *unsafe_from = nullptr)
     {
       assert (num_items > 0);
+      /* The alternate condition below is faster at string boundaries,
+       * but produces subpar "unsafe-to-concat" values. */
       while (idx > 0/*num_items - 1*/)
       {
 	idx--;
