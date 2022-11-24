@@ -939,7 +939,7 @@ struct hb_bit_set_t
     {
       auto &cached_page = page_map.arrayZ[i];
       if (cached_page.major == major)
-	return &pages[cached_page.index];
+	return &pages.arrayZ[cached_page.index];
     }
 
     page_map_t key = {major};
@@ -947,7 +947,7 @@ struct hb_bit_set_t
       return nullptr;
 
     last_page_lookup = i;
-    return &pages[page_map[i].index];
+    return &pages.arrayZ[page_map[i].index];
   }
   page_t &page_at (unsigned int i) { return pages[page_map[i].index]; }
   const page_t &page_at (unsigned int i) const { return pages[page_map[i].index]; }
