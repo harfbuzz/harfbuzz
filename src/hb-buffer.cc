@@ -2150,6 +2150,13 @@ hb_buffer_set_message_func (hb_buffer_t *buffer,
 			    hb_buffer_message_func_t func,
 			    void *user_data, hb_destroy_func_t destroy)
 {
+  if (unlikely (hb_object_is_immutable (buffer)))
+  {
+    if (destroy)
+      destroy (user_data);
+    return;
+  }
+
   if (buffer->message_destroy)
     buffer->message_destroy (buffer->message_data);
 
