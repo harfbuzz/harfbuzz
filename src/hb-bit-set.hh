@@ -605,8 +605,6 @@ struct hb_bit_set_t
 
   bool next (hb_codepoint_t *codepoint) const
   {
-    // TODO: this should be merged with prev() as both implementations
-    //       are very similar.
     if (unlikely (*codepoint == INVALID)) {
       *codepoint = get_min ();
       return *codepoint != INVALID;
