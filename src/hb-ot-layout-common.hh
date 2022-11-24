@@ -1958,7 +1958,7 @@ struct ClassDefFormat2_4
 
       unsigned end = rangeRecord[i].last + 1;
       for (hb_codepoint_t g = rangeRecord[i].first - 1;
-	   hb_set_next (glyphs, &g) && g < end;)
+	   glyphs->next (&g) && g < end;)
 	intersect_glyphs->add (g);
     }
   }
