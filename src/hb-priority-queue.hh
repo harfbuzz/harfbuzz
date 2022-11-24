@@ -114,7 +114,7 @@ struct hb_priority_queue_t
 
     bool has_right = right < heap.length;
     if (heap.arrayZ[index].first <= heap.arrayZ[left].first
-        && (!has_right || heap[index].first <= heap.arrayZ[right].first))
+        && (!has_right || heap.arrayZ[index].first <= heap.arrayZ[right].first))
       return;
 
     if (!has_right || heap.arrayZ[left].first < heap.arrayZ[right].first)
