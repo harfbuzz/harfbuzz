@@ -136,6 +136,13 @@ static inline Type& StructAfter(TObject &X)
 
 /*
  * Lazy loaders.
+ *
+ * The lazy-loaders are thread-safe pointer-like objects that create their
+ * instead on-demand.  They also support access to a "data" object that is
+ * necessary for creating their instance.  The data object, if specified,
+ * is accessed via pointer math, located at a location before the position
+ * of the loader itself.  This avoids having to store a pointer to data
+ * for every lazy-loader.  Multiple lazy-loaders can access the same data.
  */
 
 template <typename Data, unsigned int WheresData>
