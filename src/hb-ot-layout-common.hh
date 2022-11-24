@@ -1645,11 +1645,10 @@ struct ClassDefFormat1_3
 
   bool intersects (const hb_set_t *glyphs) const
   {
-    /* TODO Speed up, using hb_set_next()? */
     hb_codepoint_t start = startGlyph;
     hb_codepoint_t end = startGlyph + classValue.len;
     for (hb_codepoint_t iter = startGlyph - 1;
-	 hb_set_next (glyphs, &iter) && iter < end;)
+	 glyphs->next (&iter) && iter < end;)
       if (classValue[iter - start]) return true;
     return false;
   }
@@ -1660,10 +1659,10 @@ struct ClassDefFormat1_3
     {
       /* Match if there's any glyph that is not listed! */
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
-      if (!hb_set_next (glyphs, &g)) return false;
+      if (!glyphs->next (&g)) return false;
       if (g < startGlyph) return true;
       g = startGlyph + count - 1;
-      if (hb_set_next (glyphs, &g)) return true;
+      if (glyphs->next (&g)) return true;
       /* Fall through. */
     }
     /* TODO Speed up, using set overlap first? */
@@ -1682,11 +1681,11 @@ struct ClassDefFormat1_3
     {
       unsigned start_glyph = startGlyph;
       for (uint32_t g = HB_SET_VALUE_INVALID;
-	   hb_set_next (glyphs, &g) && g < start_glyph;)
+	   glyphs->next (&g) && g < start_glyph;)
 	intersect_glyphs->add (g);
 
       for (uint32_t g = startGlyph + count - 1;
-	   hb_set_next (glyphs, &g);)
+	   glyphs-> next (&g);)
 	intersect_glyphs->add (g);
 
       return;
@@ -1702,7 +1701,7 @@ struct ClassDefFormat1_3
     unsigned start_glyph = startGlyph;
     unsigned end_glyph = start_glyph + count;
     for (unsigned g = startGlyph - 1;
-	 hb_set_next (glyphs, &g) && g < end_glyph;)
+	 glyphs->next (&g) && g < end_glyph;)
       if (classValue.arrayZ[g - start_glyph] == klass)
         intersect_glyphs->add (g);
 #endif
@@ -1898,13 +1897,13 @@ struct ClassDefFormat2_4
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
       for (unsigned int i = 0; i < count; i++)
       {
-	if (!hb_set_next (glyphs, &g))
+	if (!glyphs->next (&g))
 	  break;
 	if (g < rangeRecord[i].first)
 	  return true;
 	g = rangeRecord[i].last;
       }
-      if (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
+      if (g != HB_SET_VALUE_INVALID && glyphs->next (&g))
 	return true;
       /* Fall through. */
     }
@@ -1922,17 +1921,17 @@ struct ClassDefFormat2_4
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
       for (unsigned int i = 0; i < count; i++)
       {
-	if (!hb_set_next (glyphs, &g))
+	if (!glyphs->next (&g))
 	  goto done;
 	while (g < rangeRecord[i].first)
 	{
 	  intersect_glyphs->add (g);
-	  if (!hb_set_next (glyphs, &g))
+	  if (!glyphs->next (&g))
 	    goto done;
         }
         g = rangeRecord[i].last;
       }
-      while (hb_set_next (glyphs, &g))
+      while (glyphs->next (&g))
 	intersect_glyphs->add (g);
       done:
 
@@ -1945,7 +1944,7 @@ struct ClassDefFormat2_4
     if ((count >> 3) > glyphs->get_population ())
     {
       for (hb_codepoint_t g = HB_SET_VALUE_INVALID;
-	   hb_set_next (glyphs, &g);)
+	   glyphs->next (&g);)
         if (rangeRecord.as_array ().bfind (g))
 	  intersect_glyphs->add (g);
       return;
@@ -1971,7 +1970,7 @@ struct ClassDefFormat2_4
     hb_codepoint_t g = HB_SET_VALUE_INVALID;
     for (unsigned int i = 0; i < count; i++)
     {
-      if (!hb_set_next (glyphs, &g))
+      if (!glyphs->next (&g))
         break;
       if (g < rangeRecord[i].first)
       {
@@ -1980,7 +1979,7 @@ struct ClassDefFormat2_4
       }
       g = rangeRecord[i].last;
     }
-    if (g != HB_SET_VALUE_INVALID && hb_set_next (glyphs, &g))
+    if (g != HB_SET_VALUE_INVALID && glyphs->next (&g))
       intersect_classes->add (0);
 
     for (const auto& record : rangeRecord.iter ())
