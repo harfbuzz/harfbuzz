@@ -77,7 +77,9 @@ struct CoverageFormat1_3
 
   bool intersects (const hb_set_t *glyphs) const
   {
-    /* TODO Speed up, using hb_set_next() and bsearch()? */
+    /* TODO Speed up, using hb_set_next() and bsearch()?
+     * Experience with other tables suggest that it would
+     * not speed up though. */
     for (const auto& g : glyphArray.as_array ())
       if (glyphs->has (g))
         return true;
