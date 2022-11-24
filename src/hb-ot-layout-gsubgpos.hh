@@ -537,7 +537,8 @@ struct hb_ot_apply_context_t :
       assert (num_items > 0);
       /* The alternate condition below is faster at string boundaries,
        * but produces subpar "unsafe-to-concat" values. */
-      while (idx + 1/*num_items*/ < end)
+      unsigned stop = end - 1/*num_items*/;
+      while (idx < stop)
       {
 	idx++;
 	hb_glyph_info_t &info = c->buffer->info[idx];
@@ -572,7 +573,8 @@ struct hb_ot_apply_context_t :
       assert (num_items > 0);
       /* The alternate condition below is faster at string boundaries,
        * but produces subpar "unsafe-to-concat" values. */
-      while (idx > 0/*num_items - 1*/)
+      unsigned stop = 1 - 1/*num_items*/;
+      while (idx > stop)
       {
 	idx--;
 	hb_glyph_info_t &info = c->buffer->out_info[idx];
