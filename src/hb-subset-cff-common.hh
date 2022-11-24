@@ -405,12 +405,14 @@ struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
 struct cff_subset_accelerator_t
 {
   static cff_subset_accelerator_t* create(
+      hb_face_t* original_face,
       const parsed_cs_str_vec_t& parsed_charstrings,
       const parsed_cs_str_vec_t& parsed_global_subrs,
       const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs) {
     cff_subset_accelerator_t* accel =
         (cff_subset_accelerator_t*) hb_malloc (sizeof(cff_subset_accelerator_t));
-    new (accel) cff_subset_accelerator_t (parsed_charstrings,
+    new (accel) cff_subset_accelerator_t (original_face,
+                                          parsed_charstrings,
                                           parsed_global_subrs,
                                           parsed_local_subrs);
     return accel;
@@ -425,19 +427,29 @@ struct cff_subset_accelerator_t
   }
 
   cff_subset_accelerator_t(
+      hb_face_t* original_face_,
       const parsed_cs_str_vec_t& parsed_charstrings_,
       const parsed_cs_str_vec_t& parsed_global_subrs_,
       const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs_)
   {
+    // the parsed charstrings point to memory in the original face so we must hold a reference
+    // to it to keep the memory valid.
+    original_face = hb_face_reference (original_face_);
     parsed_charstrings = parsed_charstrings_;
     parsed_global_subrs = parsed_global_subrs_;
     parsed_local_subrs = parsed_local_subrs_;
+  }
+
+  ~cff_subset_accelerator_t() {
+    hb_face_destroy (original_face);
   }
 
   parsed_cs_str_vec_t parsed_charstrings;
   parsed_cs_str_vec_t parsed_global_subrs;
   hb_vector_t<parsed_cs_str_vec_t> parsed_local_subrs;
 
+ private:
+  hb_face_t* original_face;
 };
 
 struct subr_subset_param_t
@@ -983,7 +995,8 @@ struct subr_subsetter_t
     if (!plan->inprogress_accelerator) return;
 
     plan->inprogress_accelerator->cff_accelerator =
-        cff_subset_accelerator_t::create(parsed_charstrings,
+        cff_subset_accelerator_t::create(plan->source,
+                                         parsed_charstrings,
                                          parsed_global_subrs,
                                          parsed_local_subrs);
 
