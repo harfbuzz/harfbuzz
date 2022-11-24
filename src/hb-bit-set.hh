@@ -640,7 +640,7 @@ struct hb_bit_set_t
 
     for (; i < page_map.length; i++)
     {
-      const page_map_t &current = page_map.arrayZ[i];
+      const page_map_t &current = page_map_array[i];
       hb_codepoint_t m = pages_array[current.index].get_min ();
       if (m != INVALID)
       {
