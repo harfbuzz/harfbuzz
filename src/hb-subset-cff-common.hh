@@ -119,8 +119,9 @@ struct str_encoder_t
       return;
 
     /* Faster than hb_memcpy for small strings. */
+    auto &arr = buff.arrayZ;
     for (unsigned i = 0; i < length; i++)
-      buff.arrayZ[i + offset] = str[i];
+      arr[i + offset] = str[i];
     //hb_memcpy (buff.arrayZ + offset, str, length);
   }
 
