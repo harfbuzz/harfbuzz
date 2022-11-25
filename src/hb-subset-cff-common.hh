@@ -583,7 +583,8 @@ template <typename SUBSETTER, typename SUBRS, typename ACC, typename ENV, typena
 struct subr_subsetter_t
 {
   subr_subsetter_t (ACC &acc_, const hb_subset_plan_t *plan_)
-      : acc (acc_), plan (plan_), closures(acc_.fdCount), remaps(acc_.fdCount)
+      : acc (acc_), plan (plan_), closures(acc_.fdCount), cached_charstrings(),
+        remaps(acc_.fdCount)
   {}
 
   /* Subroutine subsetting with --no-desubroutinize runs in phases:
@@ -602,15 +603,6 @@ struct subr_subsetter_t
    */
   bool subset (void)
   {
-    parsed_charstrings.resize (plan->num_output_glyphs ());
-    parsed_global_subrs.resize (acc.globalSubrs->count);
-
-    if (unlikely (remaps.in_error()
-                  || parsed_charstrings.in_error ()
-                  || parsed_global_subrs.in_error ())) {
-      return false;
-    }
-
     unsigned fd_count = acc.fdCount;
     cff_subset_accelerator_t* cff_accelerator = nullptr;
     if (plan->accelerator && plan->accelerator->cff_accelerator) {
@@ -618,6 +610,22 @@ struct subr_subsetter_t
       fd_count = cff_accelerator->parsed_local_subrs.length;
     }
 
+    if (cff_accelerator && !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING)) {
+      // If we are not dropping hinting then charstrings are not modified so we can
+      // just use a reference to the cached copies.
+      cached_charstrings.resize (plan->num_output_glyphs ());
+    } else {
+      parsed_charstrings.resize (plan->num_output_glyphs ());
+    }
+
+    parsed_global_subrs.resize (acc.globalSubrs->count);
+
+    if (unlikely (remaps.in_error()
+                  || cached_charstrings.in_error ()
+                  || parsed_charstrings.in_error ()
+                  || parsed_global_subrs.in_error ())) {
+      return false;
+    }
 
     if (unlikely (!parsed_local_subrs.resize (fd_count))) return false;
 
@@ -638,19 +646,22 @@ struct subr_subsetter_t
     {
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
-	continue;
+        continue;
 
       const hb_ubytes_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
-	return false;
+        return false;
 
       if (cff_accelerator)
       {
         // parsed string already exists in accelerator, copy it and move
         // on.
-        parsed_charstrings[i] =
-            cff_accelerator->parsed_charstrings[glyph];
+        if (cached_charstrings)
+          cached_charstrings[i] = &cff_accelerator->parsed_charstrings[glyph];
+        else
+          parsed_charstrings[i] = cff_accelerator->parsed_charstrings[glyph];
+
         continue;
       }
 
@@ -659,14 +670,14 @@ struct subr_subsetter_t
 
       parsed_charstrings[i].alloc (str.length / 2);
       subr_subset_param_t  param (&parsed_charstrings[i],
-				  &parsed_global_subrs,
-				  &parsed_local_subrs[fd],
-				  &closures.global_closure,
-				  &closures.local_closures[fd],
-				  plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
+                                  &parsed_global_subrs,
+                                  &parsed_local_subrs[fd],
+                                  &closures.global_closure,
+                                  &closures.local_closures[fd],
+                                  plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
 
       if (unlikely (!interp.interpret (param)))
-	return false;
+        return false;
 
       /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
       SUBSETTER::complete_parsed_str (interp.env, param, parsed_charstrings[i]);
@@ -733,7 +744,7 @@ struct subr_subsetter_t
       unsigned int  fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
-      if (unlikely (!encode_str (parsed_charstrings[i], fd, buffArray[i])))
+      if (unlikely (!encode_str (get_parsed_charstring (i), fd, buffArray[i])))
 	return false;
     }
     return true;
@@ -932,13 +943,13 @@ struct subr_subsetter_t
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
         return false;
-      subr_subset_param_t  param (&parsed_charstrings[i],
+      subr_subset_param_t  param (&get_parsed_charstring (i),
                                   &global_subrs,
                                   &local_subrs[fd],
                                   &closures.global_closure,
                                   &closures.local_closures[fd],
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
-      collect_subr_refs_in_str (parsed_charstrings[i], param);
+      collect_subr_refs_in_str (get_parsed_charstring (i), param);
     }
 
     return true;
@@ -1038,12 +1049,25 @@ struct subr_subsetter_t
 
   }
 
+  parsed_cs_str_t& get_parsed_charstring (unsigned i)
+  {
+    if (cached_charstrings) return *(cached_charstrings[i]);
+    return parsed_charstrings[i];
+  }
+
+  const parsed_cs_str_t& get_parsed_charstring (unsigned i) const
+  {
+    if (cached_charstrings) return *(cached_charstrings[i]);
+    return parsed_charstrings[i];
+  }
+
   protected:
   const ACC			&acc;
   const hb_subset_plan_t	*plan;
 
   subr_closures_t		closures;
 
+  hb_vector_t<parsed_cs_str_t*> cached_charstrings;
   parsed_cs_str_vec_t		parsed_charstrings;
   parsed_cs_str_vec_t		parsed_global_subrs;
   hb_vector_t<parsed_cs_str_vec_t>  parsed_local_subrs;
