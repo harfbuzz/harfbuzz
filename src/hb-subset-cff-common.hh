@@ -708,7 +708,7 @@ struct subr_subsetter_t
       }
 
       /* after dropping hints recreate closures of actually used subrs */
-      if (!closure_subroutines(parsed_global_subrs, parsed_local_subrs)) return false;
+      if (!closure_subroutines<true>(parsed_global_subrs, parsed_local_subrs)) return false;
     }
 
     remaps.create (closures);
@@ -900,8 +900,8 @@ struct subr_subsetter_t
   bool closure_and_copy_subroutines (parsed_cs_str_vec_t& global_subrs,
                                      hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
   {
-    if (!closure_subroutines(global_subrs,
-                             local_subrs)) return false;
+    if (!closure_subroutines<false>(global_subrs,
+                                    local_subrs)) return false;
 
 
     for (unsigned s : closures.global_closure) {
@@ -920,6 +920,7 @@ struct subr_subsetter_t
   }
 
 
+  template<bool drop_hints>
   bool closure_subroutines (parsed_cs_str_vec_t& global_subrs,
                             hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
   {
@@ -938,12 +939,13 @@ struct subr_subsetter_t
                                   &closures.global_closure,
                                   &closures.local_closures[fd],
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
-      collect_subr_refs_in_str (parsed_charstrings[i], param);
+      collect_subr_refs_in_str<drop_hints> (parsed_charstrings[i], param);
     }
 
     return true;
   }
 
+  template<bool drop_hints>
   void collect_subr_refs_in_subr (const parsed_cs_str_t &str, unsigned int pos,
 				  unsigned int subr_num, parsed_cs_str_vec_t &subrs,
 				  hb_set_t *closure,
@@ -952,33 +954,31 @@ struct subr_subsetter_t
     if (closure->has (subr_num))
       return;
     closure->add (subr_num);
-    collect_subr_refs_in_str (subrs[subr_num], param);
+    collect_subr_refs_in_str<drop_hints> (subrs[subr_num], param);
   }
 
+  template<bool drop_hints>
   void collect_subr_refs_in_str (const parsed_cs_str_t &str, const subr_subset_param_t &param)
   {
     unsigned count = str.values.length;
     auto &values = str.values.arrayZ;
     for (unsigned int pos = 0; pos < count; pos++)
     {
-      if (!values[pos].for_drop ())
+      const auto& v = values[pos];
+      if (drop_hints && v.for_drop ()) continue;
+      switch (v.op)
       {
-	switch (values[pos].op)
-	{
-	  case OpCode_callsubr:
-	    collect_subr_refs_in_subr (str, pos,
-				       values[pos].subr_num, *param.parsed_local_subrs,
-				       param.local_closure, param);
-	    break;
+        case OpCode_callsubr:
+          collect_subr_refs_in_subr<drop_hints> (str, pos,
+                                                 v.subr_num, *param.parsed_local_subrs,
+                                                 param.local_closure, param);
+          break;
 
-	  case OpCode_callgsubr:
-	    collect_subr_refs_in_subr (str, pos,
-				       values[pos].subr_num, *param.parsed_global_subrs,
-				       param.global_closure, param);
-	    break;
-
-	  default: break;
-	}
+        case OpCode_callgsubr:
+          collect_subr_refs_in_subr<drop_hints> (str, pos,
+                                                 v.subr_num, *param.parsed_global_subrs,
+                                                 param.global_closure, param);
+          break;
       }
     }
   }
