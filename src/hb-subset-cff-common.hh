@@ -403,6 +403,57 @@ struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
   typedef hb_vector_t<parsed_cs_str_t> SUPER;
 };
 
+struct cff_subset_accelerator_t
+{
+  static cff_subset_accelerator_t* create (
+      hb_blob_t* original_blob,
+      const parsed_cs_str_vec_t& parsed_charstrings,
+      const parsed_cs_str_vec_t& parsed_global_subrs,
+      const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs) {
+    cff_subset_accelerator_t* accel =
+        (cff_subset_accelerator_t*) hb_malloc (sizeof(cff_subset_accelerator_t));
+    new (accel) cff_subset_accelerator_t (original_blob,
+                                          parsed_charstrings,
+                                          parsed_global_subrs,
+                                          parsed_local_subrs);
+    return accel;
+  }
+
+  static void destroy (void* value) {
+    if (!value) return;
+
+    cff_subset_accelerator_t* accel = (cff_subset_accelerator_t*) value;
+    accel->~cff_subset_accelerator_t ();
+    hb_free (accel);
+  }
+
+  cff_subset_accelerator_t(
+      hb_blob_t* original_blob_,
+      const parsed_cs_str_vec_t& parsed_charstrings_,
+      const parsed_cs_str_vec_t& parsed_global_subrs_,
+      const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs_)
+  {
+    parsed_charstrings = parsed_charstrings_;
+    parsed_global_subrs = parsed_global_subrs_;
+    parsed_local_subrs = parsed_local_subrs_;
+
+    // the parsed charstrings point to memory in the original CFF table so we must hold a reference
+    // to it to keep the memory valid.
+    original_blob = hb_blob_reference (original_blob_);
+  }
+
+  ~cff_subset_accelerator_t() {
+    hb_blob_destroy (original_blob);
+  }
+
+  parsed_cs_str_vec_t parsed_charstrings;
+  parsed_cs_str_vec_t parsed_global_subrs;
+  hb_vector_t<parsed_cs_str_vec_t> parsed_local_subrs;
+
+ private:
+  hb_blob_t* original_blob;
+};
+
 struct subr_subset_param_t
 {
   subr_subset_param_t (parsed_cs_str_t *parsed_charstring_,
@@ -557,15 +608,27 @@ struct subr_subsetter_t
       return false;
     }
 
-    if (unlikely (!parsed_local_subrs.resize (acc.fdCount))) return false;
+    unsigned fd_count = acc.fdCount;
+    cff_subset_accelerator_t* cff_accelerator = nullptr;
+    if (plan->accelerator && plan->accelerator->cff_accelerator) {
+      cff_accelerator = plan->accelerator->cff_accelerator;
+      fd_count = cff_accelerator->parsed_local_subrs.length;
+    }
+
+
+    if (unlikely (!parsed_local_subrs.resize (fd_count))) return false;
 
     for (unsigned int i = 0; i < acc.fdCount; i++)
     {
-      parsed_local_subrs[i].resize (acc.privateDicts[i].localSubrs->count);
+      unsigned count = cff_accelerator
+                       ? cff_accelerator->parsed_local_subrs[i].length
+                       : acc.privateDicts[i].localSubrs->count;
+      parsed_local_subrs[i].resize (count);
       if (unlikely (parsed_local_subrs[i].in_error ())) return false;
     }
     if (unlikely (!closures.valid))
       return false;
+
 
     /* phase 1 & 2 */
     for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
@@ -573,10 +636,20 @@ struct subr_subsetter_t
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
 	continue;
+
       const hb_ubytes_t str = (*acc.charStrings)[glyph];
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
+
+      if (cff_accelerator)
+      {
+        // parsed string already exists in accelerator, copy it and move
+        // on.
+        parsed_charstrings[i] =
+            cff_accelerator->parsed_charstrings[glyph];
+        continue;
+      }
 
       ENV env (str, acc, fd);
       cs_interpreter_t<ENV, OPSET, subr_subset_param_t> interp (env);
@@ -595,6 +668,14 @@ struct subr_subsetter_t
       /* complete parsed string esp. copy CFF1 width or CFF2 vsindex to the parsed charstring for encoding */
       SUBSETTER::complete_parsed_str (interp.env, param, parsed_charstrings[i]);
     }
+
+    // Since parsed strings were loaded from accelerator, we still need
+    // to compute the subroutine closures which would have normally happened during
+    // parsing.
+    if (cff_accelerator &&
+        !closure_and_copy_subroutines(cff_accelerator->parsed_global_subrs,
+                                      cff_accelerator->parsed_local_subrs))
+      return false;
 
     if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
     {
@@ -624,27 +705,12 @@ struct subr_subsetter_t
       }
 
       /* after dropping hints recreate closures of actually used subrs */
-      closures.reset ();
-      for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
-      {
-	hb_codepoint_t  glyph;
-	if (!plan->old_gid_for_new_gid (i, &glyph))
-	  continue;
-	unsigned int fd = acc.fdSelect->get_fd (glyph);
-	if (unlikely (fd >= acc.fdCount))
-	  return false;
-	subr_subset_param_t  param (&parsed_charstrings[i],
-				    &parsed_global_subrs,
-				    &parsed_local_subrs[fd],
-				    &closures.global_closure,
-				    &closures.local_closures[fd],
-				    plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
-	collect_subr_refs_in_str (parsed_charstrings[i], param);
-      }
+      if (!closure_subroutines(parsed_global_subrs, parsed_local_subrs)) return false;
     }
 
     remaps.create (closures);
 
+    populate_subset_accelerator();
     return true;
   }
 
@@ -828,7 +894,54 @@ struct subr_subsetter_t
     return seen_hint;
   }
 
-  void collect_subr_refs_in_subr (parsed_cs_str_t &str, unsigned int pos,
+  bool closure_and_copy_subroutines (parsed_cs_str_vec_t& global_subrs,
+                                     hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
+  {
+    if (!closure_subroutines(global_subrs,
+                             local_subrs)) return false;
+
+
+    for (unsigned s : closures.global_closure) {
+      parsed_global_subrs[s] = global_subrs[s];
+    }
+
+    unsigned fd = 0;
+    for (const hb_set_t& c : closures.local_closures) {
+      for (unsigned s : c) {
+        parsed_local_subrs[fd][s] = local_subrs[fd][s];
+      }
+      fd++;
+    }
+
+    return true;
+  }
+
+
+  bool closure_subroutines (parsed_cs_str_vec_t& global_subrs,
+                            hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
+  {
+    closures.reset ();
+    for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
+    {
+      hb_codepoint_t  glyph;
+      if (!plan->old_gid_for_new_gid (i, &glyph))
+        continue;
+      unsigned int fd = acc.fdSelect->get_fd (glyph);
+      if (unlikely (fd >= acc.fdCount))
+        return false;
+      subr_subset_param_t  param (&parsed_charstrings[i],
+                                  &global_subrs,
+                                  &local_subrs[fd],
+                                  &closures.global_closure,
+                                  &closures.local_closures[fd],
+                                  plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
+      collect_subr_refs_in_str (parsed_charstrings[i], param);
+    }
+
+    return true;
+  }
+
+  void collect_subr_refs_in_subr (const parsed_cs_str_t &str, unsigned int pos,
 				  unsigned int subr_num, parsed_cs_str_vec_t &subrs,
 				  hb_set_t *closure,
 				  const subr_subset_param_t &param)
@@ -839,7 +952,7 @@ struct subr_subsetter_t
     collect_subr_refs_in_str (subrs[subr_num], param);
   }
 
-  void collect_subr_refs_in_str (parsed_cs_str_t &str, const subr_subset_param_t &param)
+  void collect_subr_refs_in_str (const parsed_cs_str_t &str, const subr_subset_param_t &param)
   {
     unsigned count = str.values.length;
     auto &values = str.values.arrayZ;
@@ -906,6 +1019,20 @@ struct subr_subsetter_t
       }
     }
     return !encoder.in_error ();
+  }
+
+  void populate_subset_accelerator() const
+  {
+    if (!plan->inprogress_accelerator) return;
+
+    plan->inprogress_accelerator->cff_accelerator =
+        cff_subset_accelerator_t::create(acc.blob,
+                                         parsed_charstrings,
+                                         parsed_global_subrs,
+                                         parsed_local_subrs);
+    plan->inprogress_accelerator->destroy_cff_accelerator =
+        cff_subset_accelerator_t::destroy;
+
   }
 
   protected:

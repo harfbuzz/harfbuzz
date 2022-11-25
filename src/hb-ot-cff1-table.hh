@@ -1295,10 +1295,10 @@ struct cff1
     }
 
     protected:
-    hb_blob_t	           *blob = nullptr;
     hb_sanitize_context_t   sc;
 
     public:
+    hb_blob_t               *blob = nullptr;
     const Encoding	    *encoding = nullptr;
     const Charset	    *charset = nullptr;
     const CFF1NameIndex     *nameIndex = nullptr;

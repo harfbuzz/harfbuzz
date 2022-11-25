@@ -486,10 +486,10 @@ struct cff2
     bool is_valid () const { return blob; }
 
     protected:
-    hb_blob_t			*blob = nullptr;
     hb_sanitize_context_t	sc;
 
     public:
+    hb_blob_t			*blob = nullptr;
     cff2_top_dict_values_t	topDict;
     const CFF2Subrs		*globalSubrs = nullptr;
     const CFF2VariationStore	*varStore = nullptr;
