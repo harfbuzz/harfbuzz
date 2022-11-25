@@ -842,19 +842,19 @@ struct subr_subsetter_t
   {
     for (unsigned int pos = 0; pos < str.values.length; pos++)
     {
-      if (!str.values[pos].for_drop ())
+      if (!str.values.arrayZ[pos].for_drop ())
       {
-	switch (str.values[pos].op)
+	switch (str.values.arrayZ[pos].op)
 	{
 	  case OpCode_callsubr:
 	    collect_subr_refs_in_subr (str, pos,
-				       str.values[pos].subr_num, *param.parsed_local_subrs,
+				       str.values.arrayZ[pos].subr_num, *param.parsed_local_subrs,
 				       param.local_closure, param);
 	    break;
 
 	  case OpCode_callgsubr:
 	    collect_subr_refs_in_subr (str, pos,
-				       str.values[pos].subr_num, *param.parsed_global_subrs,
+				       str.values.arrayZ[pos].subr_num, *param.parsed_global_subrs,
 				       param.global_closure, param);
 	    break;
 
