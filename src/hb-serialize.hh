@@ -354,7 +354,7 @@ struct hb_serialize_context_t
     }
 
     objidx_t objidx;
-    uint32_t hash;
+    uint32_t hash = 0;
     if (share)
     {
       hash = hb_hash (obj);
