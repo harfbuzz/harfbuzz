@@ -881,9 +881,10 @@ struct subr_subsetter_t
       if (str.prefix_op () != OpCode_Invalid)
 	encoder.encode_op (str.prefix_op ());
     }
+    auto &arr = str.values.arrayZ;
     for (unsigned int i = 0; i < count; i++)
     {
-      const parsed_cs_op_t  &opstr = str.values.arrayZ[i];
+      const parsed_cs_op_t  &opstr = arr[i];
       if (!opstr.for_drop () && !opstr.for_skip ())
       {
 	switch (opstr.op)
