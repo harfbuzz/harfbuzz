@@ -1841,7 +1841,7 @@ hb_buffer_add_latin1 (hb_buffer_t   *buffer,
  * marks at stat of run.
  *
  * This function does not check the validity of @text, it is up to the caller
- * to ensure it contains a valid Unicode code points.  In contrast,
+ * to ensure it contains a valid Unicode scalar values.  In contrast,
  * hb_buffer_add_utf32() can be used that takes similar input but performs
  * sanity-check on the input.
  *
