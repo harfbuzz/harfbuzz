@@ -405,13 +405,13 @@ struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
 struct cff_subset_accelerator_t
 {
   static cff_subset_accelerator_t* create (
-      hb_face_t* original_face,
+      hb_blob_t* original_blob,
       const parsed_cs_str_vec_t& parsed_charstrings,
       const parsed_cs_str_vec_t& parsed_global_subrs,
       const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs) {
     cff_subset_accelerator_t* accel =
         (cff_subset_accelerator_t*) hb_malloc (sizeof(cff_subset_accelerator_t));
-    new (accel) cff_subset_accelerator_t (original_face,
+    new (accel) cff_subset_accelerator_t (original_blob,
                                           parsed_charstrings,
                                           parsed_global_subrs,
                                           parsed_local_subrs);
@@ -427,21 +427,22 @@ struct cff_subset_accelerator_t
   }
 
   cff_subset_accelerator_t(
-      hb_face_t* original_face_,
+      hb_blob_t* original_blob_,
       const parsed_cs_str_vec_t& parsed_charstrings_,
       const parsed_cs_str_vec_t& parsed_global_subrs_,
       const hb_vector_t<parsed_cs_str_vec_t>& parsed_local_subrs_)
   {
-    // the parsed charstrings point to memory in the original face so we must hold a reference
-    // to it to keep the memory valid.
-    original_face = hb_face_reference (original_face_);
     parsed_charstrings = parsed_charstrings_;
     parsed_global_subrs = parsed_global_subrs_;
     parsed_local_subrs = parsed_local_subrs_;
+
+    // the parsed charstrings point to memory in the original CFF table so we must hold a reference
+    // to it to keep the memory valid.
+    original_blob = hb_blob_reference (original_blob_);
   }
 
   ~cff_subset_accelerator_t() {
-    hb_face_destroy (original_face);
+    hb_blob_destroy (original_blob);
   }
 
   parsed_cs_str_vec_t parsed_charstrings;
@@ -449,7 +450,7 @@ struct cff_subset_accelerator_t
   hb_vector_t<parsed_cs_str_vec_t> parsed_local_subrs;
 
  private:
-  hb_face_t* original_face;
+  hb_blob_t* original_blob;
 };
 
 struct subr_subset_param_t
@@ -1021,7 +1022,7 @@ struct subr_subsetter_t
     if (!plan->inprogress_accelerator) return;
 
     plan->inprogress_accelerator->cff_accelerator =
-        cff_subset_accelerator_t::create(plan->source,
+        cff_subset_accelerator_t::create(acc.blob,
                                          parsed_charstrings,
                                          parsed_global_subrs,
                                          parsed_local_subrs);
