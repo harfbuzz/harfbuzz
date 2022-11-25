@@ -60,6 +60,10 @@ struct hb_subset_accelerator_t
     if (!value) return;
 
     hb_subset_accelerator_t* accel = (hb_subset_accelerator_t*) value;
+
+    if (accel->cff_accelerator && accel->destroy_cff_accelerator)
+      accel->destroy_cff_accelerator ((void*) accel->cff_accelerator);
+
     accel->~hb_subset_accelerator_t ();
     hb_free (accel);
   }
@@ -67,7 +71,7 @@ struct hb_subset_accelerator_t
   hb_subset_accelerator_t(const hb_map_t& unicode_to_gid_,
                           const hb_set_t& unicodes_)
       : unicode_to_gid(unicode_to_gid_), unicodes(unicodes_),
-        has_seac(false), cff_accelerator(nullptr) {}
+        has_seac(false), cff_accelerator(nullptr), destroy_cff_accelerator(nullptr) {}
 
   // Generic
   const hb_map_t unicode_to_gid;
@@ -76,6 +80,7 @@ struct hb_subset_accelerator_t
   // CFF
   bool has_seac;
   CFF::cff_subset_accelerator_t* cff_accelerator;
+  hb_destroy_func_t destroy_cff_accelerator;
 
   // TODO(garretrieger): cumulative glyf checksum map
   // TODO(garretrieger): sanitized table cache.

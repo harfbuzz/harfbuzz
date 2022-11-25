@@ -404,7 +404,7 @@ struct parsed_cs_str_vec_t : hb_vector_t<parsed_cs_str_t>
 
 struct cff_subset_accelerator_t
 {
-  static cff_subset_accelerator_t* create(
+  static cff_subset_accelerator_t* create (
       hb_face_t* original_face,
       const parsed_cs_str_vec_t& parsed_charstrings,
       const parsed_cs_str_vec_t& parsed_global_subrs,
@@ -418,7 +418,7 @@ struct cff_subset_accelerator_t
     return accel;
   }
 
-  static void destroy(void* value) {
+  static void destroy (void* value) {
     if (!value) return;
 
     cff_subset_accelerator_t* accel = (cff_subset_accelerator_t*) value;
@@ -1025,6 +1025,8 @@ struct subr_subsetter_t
                                          parsed_charstrings,
                                          parsed_global_subrs,
                                          parsed_local_subrs);
+    plan->inprogress_accelerator->destroy_cff_accelerator =
+        cff_subset_accelerator_t::destroy;
 
   }
 
