@@ -268,12 +268,13 @@ struct hb_vector_t
   {
     length = other.length;
 #ifndef HB_OPTIMIZE_SIZE
-    /* This runs faster because of alignment. */
-    for (unsigned i = 0; i < length; i++)
-      arrayZ[i] = other.arrayZ[i];
-#else
-     hb_memcpy ((void *) arrayZ, (const void *) other.arrayZ, length * item_size);
+    if (sizeof (T) >= sizeof (long long))
+      /* This runs faster because of alignment. */
+      for (unsigned i = 0; i < length; i++)
+	arrayZ[i] = other.arrayZ[i];
+    else
 #endif
+       hb_memcpy ((void *) arrayZ, (const void *) other.arrayZ, length * item_size);
   }
   template <typename T = Type,
 	    hb_enable_if (!hb_is_trivially_copyable (T) &&

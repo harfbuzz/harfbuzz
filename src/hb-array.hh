@@ -262,7 +262,9 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
   void fini ()
   { hb_free ((void *) arrayZ); arrayZ = nullptr; length = 0; }
 
-  template <typename hb_serialize_context_t>
+  template <typename hb_serialize_context_t,
+	    typename U = Type,
+	    hb_enable_if (!(sizeof (U) < sizeof (long long) && hb_is_trivially_copy_assignable(Type)))>
   hb_array_t copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
@@ -270,6 +272,18 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     if (unlikely (!c->extend_size (out, get_size ()))) return_trace (hb_array_t ());
     for (unsigned i = 0; i < length; i++)
       out[i] = arrayZ[i]; /* TODO: add version that calls c->copy() */
+    return_trace (hb_array_t (out, length));
+  }
+
+  template <typename hb_serialize_context_t,
+	    typename U = Type,
+	    hb_enable_if (sizeof (U) < sizeof (long long) && hb_is_trivially_copy_assignable(Type))>
+  hb_array_t copy (hb_serialize_context_t *c) const
+  {
+    TRACE_SERIALIZE (this);
+    auto* out = c->start_embed (arrayZ);
+    if (unlikely (!c->extend_size (out, get_size ()))) return_trace (hb_array_t ());
+    hb_memcpy (out, arrayZ, length);
     return_trace (hb_array_t (out, length));
   }
 
