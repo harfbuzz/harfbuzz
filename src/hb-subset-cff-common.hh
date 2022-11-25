@@ -840,21 +840,23 @@ struct subr_subsetter_t
 
   void collect_subr_refs_in_str (parsed_cs_str_t &str, const subr_subset_param_t &param)
   {
-    for (unsigned int pos = 0; pos < str.values.length; pos++)
+    unsigned count = str.values.length;
+    auto &values = str.values.arrayZ;
+    for (unsigned int pos = 0; pos < count; pos++)
     {
-      if (!str.values.arrayZ[pos].for_drop ())
+      if (!values[pos].for_drop ())
       {
-	switch (str.values.arrayZ[pos].op)
+	switch (values[pos].op)
 	{
 	  case OpCode_callsubr:
 	    collect_subr_refs_in_subr (str, pos,
-				       str.values.arrayZ[pos].subr_num, *param.parsed_local_subrs,
+				       values[pos].subr_num, *param.parsed_local_subrs,
 				       param.local_closure, param);
 	    break;
 
 	  case OpCode_callgsubr:
 	    collect_subr_refs_in_subr (str, pos,
-				       str.values.arrayZ[pos].subr_num, *param.parsed_global_subrs,
+				       values[pos].subr_num, *param.parsed_global_subrs,
 				       param.global_closure, param);
 	    break;
 
