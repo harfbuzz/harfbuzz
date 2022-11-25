@@ -267,7 +267,10 @@ struct hb_vector_t
   copy_vector (const hb_vector_t &other)
   {
     length = other.length;
-    hb_memcpy ((void *) arrayZ, (const void *) other.arrayZ, length * item_size);
+    /* This runs faster because of alignment. */
+    for (unsigned i = 0; i < length; i++)
+      arrayZ[i] = other.arrayZ[i];
+    //hb_memcpy ((void *) arrayZ, (const void *) other.arrayZ, length * item_size);
   }
   template <typename T = Type,
 	    hb_enable_if (!hb_is_trivially_copyable (T) &&
