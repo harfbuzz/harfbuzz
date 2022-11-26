@@ -40,10 +40,11 @@ struct blend_arg_t : number_t
   void set_real (double v) { reset_blends (); number_t::set_real (v); }
 
   void set_blends (unsigned int numValues_, unsigned int valueIndex_,
-		   unsigned int numBlends, hb_array_t<const blend_arg_t> blends_)
+		   hb_array_t<const blend_arg_t> blends_)
   {
     numValues = numValues_;
     valueIndex = valueIndex_;
+    unsigned numBlends = blends_.length;
     if (unlikely (!deltas.resize (numBlends)))
       return;
     for (unsigned int i = 0; i < numBlends; i++)
@@ -222,7 +223,7 @@ struct cff2_cs_opset_t : cs_opset_t<ELEM, OPSET, cff2_cs_interp_env_t<ELEM>, PAR
 				 const hb_array_t<const ELEM> blends,
 				 unsigned n, unsigned i)
   {
-    arg.set_blends (n, i, blends.length, blends);
+    arg.set_blends (n, i, blends);
   }
   template <typename T = ELEM,
 	    hb_enable_if (!hb_is_same (T, blend_arg_t))>
