@@ -133,7 +133,8 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
 				  bool          auto_zwnj,
 				  bool          auto_zwj,
 				  bool          random,
-				  bool          per_syllable)
+				  bool          per_syllable,
+				  hb_tag_t      feature_tag)
 {
   unsigned int lookup_indices[32];
   unsigned int offset, len;
@@ -162,6 +163,7 @@ hb_ot_map_builder_t::add_lookups (hb_ot_map_t  &m,
       lookup->auto_zwj = auto_zwj;
       lookup->random = random;
       lookup->per_syllable = per_syllable;
+      lookup->feature_tag = feature_tag;
     }
 
     offset += len;
@@ -339,7 +341,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 		       feature.auto_zwnj,
 		       feature.auto_zwj,
 		       feature.random,
-		       feature.per_syllable);
+		       feature.per_syllable,
+		       feature.tag);
       }
 
       /* Sort lookups and merge duplicates */
