@@ -208,7 +208,10 @@ struct hb_bit_page_t
 
   bool is_equal (const hb_bit_page_t &other) const
   {
-    return 0 == hb_memcmp (&v, &other.v, sizeof (v));
+    for (unsigned i = 0; i < len (); i++)
+      if (v[i] != other.v[i])
+	return false;
+    return true;
   }
   bool is_subset (const hb_bit_page_t &larger_page) const
   {
