@@ -391,7 +391,7 @@ struct hb_bit_set_t
   bool is_subset (const hb_bit_set_t &larger_set) const
   {
     if (has_population () && larger_set.has_population () &&
-	population != larger_set.population)
+	population > larger_set.population)
       return false;
 
     uint32_t spi = 0;
