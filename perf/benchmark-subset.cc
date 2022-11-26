@@ -59,9 +59,9 @@ struct test_input_t
   const unsigned num_instance_opts;
 } tests[] =
 {
-  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf", 4000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 4000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf", 1000, nullptr, 0},
+  {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf", 1000, nullptr, 0},
+  {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 7000, nullptr, 0},
+  {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf", 1400, nullptr, 0},
   {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf", 1000, nullptr, 0},
   {SUBSET_FONT_BASE_PATH "Mplus1p-Regular.ttf", 10000, nullptr, 0},
   {SUBSET_FONT_BASE_PATH "SourceHanSans-Regular_subset.otf", 10000, nullptr, 0},
