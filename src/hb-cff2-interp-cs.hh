@@ -154,8 +154,9 @@ struct cff2_cs_interp_env_t : cs_interp_env_t<ELEM, CFF2Subrs>
     {
       if (likely (scalars.length == deltas.length))
       {
-	for (unsigned int i = 0; i < scalars.length; i++)
-	  v += (double) scalars[i] * deltas[i].to_real ();
+        unsigned count = scalars.length;
+	for (unsigned i = 0; i < count; i++)
+	  v += (double) scalars.arrayZ[i] * deltas.arrayZ[i].to_real ();
       }
     }
     return v;
