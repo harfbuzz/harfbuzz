@@ -453,11 +453,11 @@ inline uint32_t hb_array_t<const char>::hash () const
     ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__))
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
   for (; i + 4 <= this->length; i += 4)
-    current = current * 31 + (uint32_t) ((((packed_uint32_t *) &this->arrayZ[i])->v) * 2654435761u);
+    current = current * 31 + hb_hash (((packed_uint32_t *) &this->arrayZ[i])->v);
 #endif
 
   for (; i < this->length; i++)
-    current = current * 31 + (uint32_t) (this->arrayZ[i] * 2654435761u);
+    current = current * 31 + hb_hash (this->arrayZ[i]);
   return current;
 }
 
@@ -471,11 +471,11 @@ inline uint32_t hb_array_t<const unsigned char>::hash () const
     ((defined(__GNUC__) && __GNUC__ >= 5) || defined(__clang__))
   struct __attribute__((packed)) packed_uint32_t { uint32_t v; };
   for (; i + 4 <= this->length; i += 4)
-    current = current * 31 + (uint32_t) ((((packed_uint32_t *) &this->arrayZ[i])->v) * 2654435761u);
+    current = current * 31 + hb_hash (((packed_uint32_t *) &this->arrayZ[i])->v);
 #endif
 
   for (; i < this->length; i++)
-    current = current * 31 + (uint32_t) (this->arrayZ[i] * 2654435761u);
+    current = current * 31 + hb_hash (this->arrayZ[i]);
   return current;
 }
 
