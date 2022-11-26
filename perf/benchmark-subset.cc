@@ -60,7 +60,7 @@ struct test_input_t
 } tests[] =
 {
   {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf", 1000, nullptr, 0},
-  {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 7000, nullptr, 0},
+  {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 4096, nullptr, 0},
   {SUBSET_FONT_BASE_PATH "NotoNastaliqUrdu-Regular.ttf", 1400, nullptr, 0},
   {SUBSET_FONT_BASE_PATH "NotoSansDevanagari-Regular.ttf", 1000, nullptr, 0},
   {SUBSET_FONT_BASE_PATH "Mplus1p-Regular.ttf", 10000, nullptr, 0},
