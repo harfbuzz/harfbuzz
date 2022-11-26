@@ -243,7 +243,7 @@ struct hb_ot_map_builder_t
 				bool          auto_zwj = true,
 				bool          random = false,
 				bool          per_syllable = false,
-				hb_tag_t      feature_tag = HB_TAG_NONE);
+				hb_tag_t      feature_tag = HB_TAG(' ',' ',' ',' '));
 
   struct feature_info_t {
     hb_tag_t tag;
