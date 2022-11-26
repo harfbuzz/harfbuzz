@@ -84,6 +84,9 @@ struct hb_vector_t
     allocated = length = 0;
     arrayZ = nullptr;
   }
+  void init0 ()
+  {
+  }
 
   void fini ()
   {

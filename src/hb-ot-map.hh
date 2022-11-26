@@ -92,11 +92,11 @@ struct hb_ot_map_t
   {
     hb_memset (this, 0, sizeof (*this));
 
-    features.init ();
+    features.init0 ();
     for (unsigned int table_index = 0; table_index < 2; table_index++)
     {
-      lookups[table_index].init ();
-      stages[table_index].init ();
+      lookups[table_index].init0 ();
+      stages[table_index].init0 ();
     }
   }
   void fini ()
