@@ -44,9 +44,10 @@ struct blend_arg_t : number_t
   {
     numValues = numValues_;
     valueIndex = valueIndex_;
-    deltas.resize (numBlends);
+    if (unlikely (!deltas.resize (numBlends)))
+      return;
     for (unsigned int i = 0; i < numBlends; i++)
-      deltas[i] = blends_[i];
+      deltas.arrayZ[i] = blends_.arrayZ[i];
   }
 
   bool blending () const { return deltas.length > 0; }
