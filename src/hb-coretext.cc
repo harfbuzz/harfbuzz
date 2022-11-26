@@ -648,7 +648,7 @@ _hb_coretext_shape (hb_shape_plan_t    *shape_plan,
       } else {
 	active_feature_t *feature = active_features.lsearch (event->feature);
 	if (feature)
-	  active_features.remove (feature - active_features.arrayZ);
+	  active_features.remove_ordered (feature - active_features.arrayZ);
       }
     }
   }
