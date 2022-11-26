@@ -214,24 +214,26 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
   if (feature_infos.length)
   {
     feature_infos.qsort ();
+    auto &f = feature_infos.arrayZ;
     unsigned int j = 0;
-    for (unsigned int i = 1; i < feature_infos.length; i++)
-      if (feature_infos[i].tag != feature_infos[j].tag)
-	feature_infos[++j] = feature_infos[i];
+    unsigned count = feature_infos.length;
+    for (unsigned int i = 1; i < count; i++)
+      if (f[i].tag != f[j].tag)
+	f[++j] = f[i];
       else {
-	if (feature_infos[i].flags & F_GLOBAL) {
-	  feature_infos[j].flags |= F_GLOBAL;
-	  feature_infos[j].max_value = feature_infos[i].max_value;
-	  feature_infos[j].default_value = feature_infos[i].default_value;
+	if (f[i].flags & F_GLOBAL) {
+	  f[j].flags |= F_GLOBAL;
+	  f[j].max_value = f[i].max_value;
+	  f[j].default_value = f[i].default_value;
 	} else {
-	  if (feature_infos[j].flags & F_GLOBAL)
-	    feature_infos[j].flags ^= F_GLOBAL;
-	  feature_infos[j].max_value = hb_max (feature_infos[j].max_value, feature_infos[i].max_value);
+	  if (f[j].flags & F_GLOBAL)
+	    f[j].flags ^= F_GLOBAL;
+	  f[j].max_value = hb_max (f[j].max_value, f[i].max_value);
 	  /* Inherit default_value from j */
 	}
-	feature_infos[j].flags |= (feature_infos[i].flags & F_HAS_FALLBACK);
-	feature_infos[j].stage[0] = hb_min (feature_infos[j].stage[0], feature_infos[i].stage[0]);
-	feature_infos[j].stage[1] = hb_min (feature_infos[j].stage[1], feature_infos[i].stage[1]);
+	f[j].flags |= (f[i].flags & F_HAS_FALLBACK);
+	f[j].stage[0] = hb_min (f[j].stage[0], f[i].stage[0]);
+	f[j].stage[1] = hb_min (f[j].stage[1], f[i].stage[1]);
       }
     feature_infos.shrink (j + 1);
   }
@@ -241,7 +243,8 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
   static_assert ((!(HB_GLYPH_FLAG_DEFINED & (HB_GLYPH_FLAG_DEFINED + 1))), "");
   unsigned int next_bit = hb_popcount (HB_GLYPH_FLAG_DEFINED) + 1;
 
-  for (unsigned int i = 0; i < feature_infos.length; i++)
+  unsigned count = feature_infos.length;
+  for (unsigned int i = 0; i < count; i++)
   {
     const feature_info_t *info = &feature_infos[i];
 
@@ -310,7 +313,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
     map->_1_mask = (1u << map->shift) & map->mask;
     map->needs_fallback = !found;
   }
-  feature_infos.shrink (0); /* Done with these */
+  //feature_infos.shrink (0); /* Done with these */
 
 
   add_gsub_pause (nullptr);
