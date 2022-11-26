@@ -112,7 +112,7 @@ struct AnchorMatrix : public OT::Layout::GPOS_impl::AnchorMatrix
       auto& child = c.graph.vertices_[child_idx];
       child.remove_parent (this_index);
 
-      o.real_links.remove (i);
+      o.real_links.remove_unordered (i);
       num_links--;
       i--;
     }

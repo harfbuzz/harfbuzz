@@ -162,7 +162,8 @@ main (int argc, char **argv)
 
     v2 = v;
 
-    v2.remove (50);
+    v2.remove_ordered (50);
+    v2.remove_unordered (50);
   }
 
   {

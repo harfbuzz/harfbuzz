@@ -391,11 +391,23 @@ struct hb_vector_t
     return v;
   }
 
-  void remove (unsigned int i)
+  void remove_ordered (unsigned int i)
   {
     if (unlikely (i >= length))
       return;
     shift_down_vector (i + 1);
+    arrayZ[length - 1].~Type ();
+    length--;
+  }
+
+  template <bool Sorted = sorted,
+	    hb_enable_if (!Sorted)>
+  void remove_unordered (unsigned int i)
+  {
+    if (unlikely (i >= length))
+      return;
+    if (i != length - 1)
+      arrayZ[i] = std::move (arrayZ[length - 1]);
     arrayZ[length - 1].~Type ();
     length--;
   }

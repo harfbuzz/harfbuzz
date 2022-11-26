@@ -132,7 +132,7 @@ struct graph_t
       for (unsigned i = 0; i < parents.length; i++)
       {
         if (parents[i] != parent_index) continue;
-        parents.remove (i);
+        parents.remove_unordered (i);
         break;
       }
     }
@@ -148,7 +148,7 @@ struct graph_t
         if ((obj.head + link.position) != offset)
           continue;
 
-        obj.real_links.remove (i);
+        obj.real_links.remove_unordered (i);
         return;
       }
     }
