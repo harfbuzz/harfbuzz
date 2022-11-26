@@ -319,6 +319,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
   for (unsigned int table_index = 0; table_index < 2; table_index++)
   {
     /* Collect lookup indices for features */
+    auto &lookups = m.lookups[table_index];
 
     unsigned int stage_index = 0;
     unsigned int last_num_lookups = 0;
@@ -346,24 +347,24 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
       }
 
       /* Sort lookups and merge duplicates */
-      if (last_num_lookups < m.lookups[table_index].length)
+      if (last_num_lookups < lookups.length)
       {
-	m.lookups[table_index].as_array ().sub_array (last_num_lookups, m.lookups[table_index].length - last_num_lookups).qsort ();
+	lookups.as_array ().sub_array (last_num_lookups, lookups.length - last_num_lookups).qsort ();
 
 	unsigned int j = last_num_lookups;
-	for (unsigned int i = j + 1; i < m.lookups[table_index].length; i++)
-	  if (m.lookups[table_index][i].index != m.lookups[table_index][j].index)
-	    m.lookups[table_index][++j] = m.lookups[table_index][i];
+	for (unsigned int i = j + 1; i < lookups.length; i++)
+	  if (lookups[i].index != lookups[j].index)
+	    lookups[++j] = lookups[i];
 	  else
 	  {
-	    m.lookups[table_index][j].mask |= m.lookups[table_index][i].mask;
-	    m.lookups[table_index][j].auto_zwnj &= m.lookups[table_index][i].auto_zwnj;
-	    m.lookups[table_index][j].auto_zwj &= m.lookups[table_index][i].auto_zwj;
+	    lookups[j].mask |= lookups[i].mask;
+	    lookups[j].auto_zwnj &= lookups[i].auto_zwnj;
+	    lookups[j].auto_zwj &= lookups[i].auto_zwj;
 	  }
-	m.lookups[table_index].shrink (j + 1);
+	lookups.shrink (j + 1);
       }
 
-      last_num_lookups = m.lookups[table_index].length;
+      last_num_lookups = lookups.length;
 
       if (stage_index < stages[table_index].length && stages[table_index][stage_index].index == stage) {
 	hb_ot_map_t::stage_map_t *stage_map = m.stages[table_index].push ();
