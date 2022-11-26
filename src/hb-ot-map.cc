@@ -353,13 +353,13 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
 
 	unsigned int j = last_num_lookups;
 	for (unsigned int i = j + 1; i < lookups.length; i++)
-	  if (lookups[i].index != lookups[j].index)
-	    lookups[++j] = lookups[i];
+	  if (lookups.arrayZ[i].index != lookups.arrayZ[j].index)
+	    lookups.arrayZ[++j] = lookups.arrayZ[i];
 	  else
 	  {
-	    lookups[j].mask |= lookups[i].mask;
-	    lookups[j].auto_zwnj &= lookups[i].auto_zwnj;
-	    lookups[j].auto_zwj &= lookups[i].auto_zwj;
+	    lookups.arrayZ[j].mask |= lookups.arrayZ[i].mask;
+	    lookups.arrayZ[j].auto_zwnj &= lookups.arrayZ[i].auto_zwnj;
+	    lookups.arrayZ[j].auto_zwj &= lookups.arrayZ[i].auto_zwj;
 	  }
 	lookups.shrink (j + 1);
       }
