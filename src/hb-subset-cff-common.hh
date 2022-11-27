@@ -353,7 +353,9 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
 	values[parsed_len-1].set_skip ();
 
 	/* Note(behdad): Alternatively, we can pop the subr number completely instead?
-	 * Seems to work. */
+	 * Seems to work. Then we can remove set_skip/is_skip completely. That would
+	 * change the design of this object that the ops won't be contiguous anymore.
+	 * I don't think that's a problem. Maybe switch this one day. */
         //values.pop ();
       }
 
