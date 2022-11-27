@@ -816,20 +816,22 @@ struct subr_subsetter_t
   {
     bool  seen_hint = false;
 
-    for (unsigned int pos = 0; pos < str.values.length; pos++)
+    unsigned count = str.values.length;
+    auto *values = str.values.arrayZ;
+    for (unsigned int pos = 0; pos < count; pos++)
     {
       bool  has_hint = false;
-      switch (str.values[pos].op)
+      switch (values[pos].op)
       {
 	case OpCode_callsubr:
 	  has_hint = drop_hints_in_subr (str, pos,
-					*param.parsed_local_subrs, str.values[pos].subr_num,
+					*param.parsed_local_subrs, values[pos].subr_num,
 					param, drop);
 	  break;
 
 	case OpCode_callgsubr:
 	  has_hint = drop_hints_in_subr (str, pos,
-					*param.parsed_global_subrs, str.values[pos].subr_num,
+					*param.parsed_global_subrs, values[pos].subr_num,
 					param, drop);
 	  break;
 
@@ -843,7 +845,7 @@ struct subr_subsetter_t
 	case OpCode_cntrmask:
 	  if (drop.seen_moveto)
 	  {
-	    str.values[pos].set_drop ();
+	    values[pos].set_drop ();
 	    break;
 	  }
 	  HB_FALLTHROUGH;
@@ -853,13 +855,13 @@ struct subr_subsetter_t
 	case OpCode_hstem:
 	case OpCode_vstem:
 	  has_hint = true;
-	  str.values[pos].set_drop ();
+	  values[pos].set_drop ();
 	  if (str.at_end (pos))
 	    drop.ends_in_hint = true;
 	  break;
 
 	case OpCode_dotsection:
-	  str.values[pos].set_drop ();
+	  values[pos].set_drop ();
 	  break;
 
 	default:
@@ -870,7 +872,7 @@ struct subr_subsetter_t
       {
 	for (int i = pos - 1; i >= 0; i--)
 	{
-	  parsed_cs_op_t  &csop = str.values[(unsigned)i];
+	  parsed_cs_op_t  &csop = values[(unsigned)i];
 	  if (csop.for_drop ())
 	    break;
 	  csop.set_drop ();
@@ -886,9 +888,9 @@ struct subr_subsetter_t
      * only (usually one) hintmask operator, then calls to this subr can be dropped.
      */
     drop.all_dropped = true;
-    for (unsigned int pos = 0; pos < str.values.length; pos++)
+    for (unsigned int pos = 0; pos < count; pos++)
     {
-      parsed_cs_op_t  &csop = str.values[pos];
+      parsed_cs_op_t  &csop = values[pos];
       if (csop.op == OpCode_return)
 	break;
       if (!csop.for_drop ())
