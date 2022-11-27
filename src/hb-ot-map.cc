@@ -214,7 +214,7 @@ hb_ot_map_builder_t::compile (hb_ot_map_t                  &m,
   if (feature_infos.length)
   {
     feature_infos.qsort ();
-    auto &f = feature_infos.arrayZ;
+    auto *f = feature_infos.arrayZ;
     unsigned int j = 0;
     unsigned count = feature_infos.length;
     for (unsigned int i = 1; i < count; i++)

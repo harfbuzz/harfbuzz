@@ -119,7 +119,7 @@ struct str_encoder_t
       return;
 
     /* Faster than hb_memcpy for small strings. */
-    auto arr = buff.arrayZ + offset;
+    auto *arr = buff.arrayZ + offset;
     /* Length is at least one; and mostly just one. */
     arr[0] = str[0];
     for (unsigned i = 1; i < length; i++)
@@ -1008,7 +1008,7 @@ struct subr_subsetter_t
       if (str.prefix_op () != OpCode_Invalid)
 	encoder.encode_op (str.prefix_op ());
     }
-    auto &arr = str.values.arrayZ;
+    auto *arr = str.values.arrayZ;
     for (unsigned int i = 0; i < count; i++)
     {
       const parsed_cs_op_t  &opstr = arr[i];
