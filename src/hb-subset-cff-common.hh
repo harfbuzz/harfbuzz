@@ -313,7 +313,7 @@ struct parsed_cs_op_t : op_str_t
    * padding of op_str_t! */
 
   protected:
-  bool	  drop_flag : 1;
+  bool	  drop_flag;
 
   public:
   uint16_t subr_num;
