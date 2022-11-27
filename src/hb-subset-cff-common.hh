@@ -281,11 +281,9 @@ struct subr_flattener_t
 
 struct subr_closures_t
 {
-  subr_closures_t (unsigned int fd_count) : valid (false), global_closure (), local_closures ()
+  subr_closures_t (unsigned int fd_count) : global_closure (), local_closures ()
   {
-    valid = true;
-    if (!local_closures.resize (fd_count))
-      valid = false;
+    local_closures.resize (fd_count);
   }
 
   void reset ()
@@ -295,8 +293,7 @@ struct subr_closures_t
       local_closures[i].clear();
   }
 
-  bool is_valid () const { return valid; }
-  bool  valid;
+  bool in_error () const { return local_closures.in_error (); }
   hb_set_t  global_closure;
   hb_vector_t<hb_set_t> local_closures;
 };
@@ -643,7 +640,7 @@ struct subr_subsetter_t
       parsed_local_subrs[i].resize (count);
       if (unlikely (parsed_local_subrs[i].in_error ())) return false;
     }
-    if (unlikely (!closures.valid))
+    if (unlikely (closures.in_error ()))
       return false;
 
 
