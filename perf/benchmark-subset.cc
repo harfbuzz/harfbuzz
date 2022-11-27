@@ -114,7 +114,8 @@ static hb_face_t* preprocess_face(hb_face_t* face)
 /* benchmark for subsetting a font */
 static void BM_subset (benchmark::State &state,
                        operation_t operation,
-                       const test_input_t &test_input)
+                       const test_input_t &test_input,
+                       bool hinting)
 {
   unsigned subset_size = state.range(0);
 
@@ -130,6 +131,9 @@ static void BM_subset (benchmark::State &state,
 
   hb_subset_input_t* input = hb_subset_input_create_or_fail ();
   assert (input);
+
+  if (!hinting)
+    hb_subset_input_set_flags (input, HB_SUBSET_FLAGS_NO_HINTING);
 
   switch (operation)
   {
@@ -179,6 +183,7 @@ static void BM_subset (benchmark::State &state,
 
 static void test_subset (operation_t op,
                          const char *op_name,
+                         bool hinting,
                          benchmark::TimeUnit time_unit,
                          const test_input_t &test_input)
 {
@@ -188,8 +193,10 @@ static void test_subset (operation_t op,
   char name[1024] = "BM_subset/";
   strcat (name, op_name);
   strcat (name, strrchr (test_input.font_path, '/'));
+  if (!hinting)
+    strcat (name, "/nohinting");
 
-  benchmark::RegisterBenchmark (name, BM_subset, op, test_input)
+  benchmark::RegisterBenchmark (name, BM_subset, op, test_input, hinting)
       ->Range(10, test_input.max_subset_size)
       ->Unit(time_unit);
 }
@@ -200,7 +207,8 @@ static void test_operation (operation_t op,
 {
   for (auto& test_input : tests)
   {
-      test_subset (op, op_name, time_unit, test_input);
+    test_subset (op, op_name, true, time_unit, test_input);
+    test_subset (op, op_name, false, time_unit, test_input);
   }
 }
 
