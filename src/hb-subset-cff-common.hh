@@ -349,7 +349,13 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
 
       unsigned int parsed_len = get_count ();
       if (likely (parsed_len > 0))
+      {
 	values[parsed_len-1].set_skip ();
+
+	/* Note(behdad): Alternatively, we can pop the subr number completely instead?
+	 * Seems to work. */
+        //values.pop ();
+      }
 
       parsed_cs_op_t val;
       val.init (subr_num);
