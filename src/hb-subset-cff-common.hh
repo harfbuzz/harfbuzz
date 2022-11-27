@@ -955,8 +955,7 @@ struct subr_subsetter_t
     return true;
   }
 
-  void collect_subr_refs_in_subr (const parsed_cs_str_t &str,
-				  unsigned int subr_num, parsed_cs_str_vec_t &subrs,
+  void collect_subr_refs_in_subr (unsigned int subr_num, parsed_cs_str_vec_t &subrs,
 				  hb_set_t *closure,
 				  const subr_subset_param_t &param)
   {
@@ -977,14 +976,12 @@ struct subr_subsetter_t
 	switch (value->op)
 	{
 	  case OpCode_callsubr:
-	    collect_subr_refs_in_subr (str,
-				       value->subr_num, *param.parsed_local_subrs,
+	    collect_subr_refs_in_subr (value->subr_num, *param.parsed_local_subrs,
 				       param.local_closure, param);
 	    break;
 
 	  case OpCode_callgsubr:
-	    collect_subr_refs_in_subr (str,
-				       value->subr_num, *param.parsed_global_subrs,
+	    collect_subr_refs_in_subr (value->subr_num, *param.parsed_global_subrs,
 				       param.global_closure, param);
 	    break;
 
