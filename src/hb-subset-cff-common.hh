@@ -304,21 +304,16 @@ struct parsed_cs_op_t : op_str_t
   {
     subr_num = subr_num_;
     drop_flag = false;
-    skip_flag = false;
   }
 
   bool for_drop () const { return drop_flag; }
   void set_drop ()       { drop_flag = true; }
-
-  bool for_skip () const { return skip_flag; }
-  void set_skip ()       { skip_flag = true; }
 
   /* The layout of this struct is designed to fit within the
    * padding of op_str_t! */
 
   protected:
   bool	  drop_flag : 1;
-  bool	  skip_flag : 1;
 
   public:
   uint16_t subr_num;
@@ -349,15 +344,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
 
       unsigned int parsed_len = get_count ();
       if (likely (parsed_len > 0))
-      {
-	values[parsed_len-1].set_skip ();
-
-	/* Note(behdad): Alternatively, we can pop the subr number completely instead?
-	 * Seems to work. Then we can remove set_skip/is_skip completely. That would
-	 * change the design of this object that the ops won't be contiguous anymore.
-	 * I don't think that's a problem. Maybe switch this one day. */
-        //values.pop ();
-      }
+        values.pop ();
 
       parsed_cs_op_t val;
       val.init (subr_num);
@@ -1018,7 +1005,7 @@ struct subr_subsetter_t
     for (unsigned int i = 0; i < count; i++)
     {
       const parsed_cs_op_t  &opstr = arr[i];
-      if (!opstr.for_drop () && !opstr.for_skip ())
+      if (!opstr.for_drop ())
       {
 	switch (opstr.op)
 	{
