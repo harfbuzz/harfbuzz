@@ -576,7 +576,7 @@ template <typename SUBSETTER, typename SUBRS, typename ACC, typename ENV, typena
 struct subr_subsetter_t
 {
   subr_subsetter_t (ACC &acc_, const hb_subset_plan_t *plan_)
-      : acc (acc_), plan (plan_), closures(acc_.fdCount), cached_charstrings(),
+      : acc (acc_), plan (plan_), closures(acc_.fdCount),
         remaps(acc_.fdCount)
   {}
 
