@@ -963,21 +963,22 @@ struct subr_subsetter_t
     if (!str.has_calls ())
       return;
 
-    auto *value = str.values.arrayZ;
-    auto *end = value + str.values.length;
-    for (; value < end; value++)
+    auto *values = str.values.arrayZ;
+    unsigned count = str.values.length;
+    for (unsigned i = 0; i < count; i++)
     {
-      if (!value->for_drop ())
+      auto &value = values[i];
+      if (!value.for_drop ())
       {
-	switch (value->op)
+	switch (value.op)
 	{
 	  case OpCode_callsubr:
-	    collect_subr_refs_in_subr (value->subr_num, *param.parsed_local_subrs,
+	    collect_subr_refs_in_subr (value.subr_num, *param.parsed_local_subrs,
 				       param.local_closure, param);
 	    break;
 
 	  case OpCode_callgsubr:
-	    collect_subr_refs_in_subr (value->subr_num, *param.parsed_global_subrs,
+	    collect_subr_refs_in_subr (value.subr_num, *param.parsed_global_subrs,
 				       param.global_closure, param);
 	    break;
 
