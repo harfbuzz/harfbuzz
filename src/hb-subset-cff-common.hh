@@ -304,15 +304,11 @@ struct parsed_cs_op_t : op_str_t
   {
     subr_num = subr_num_;
     drop_flag = false;
-    keep_flag = false;
     skip_flag = false;
   }
 
   bool for_drop () const { return drop_flag; }
-  void set_drop ()       { if (!for_keep ()) drop_flag = true; }
-
-  bool for_keep () const { return keep_flag; }
-  void set_keep ()       { keep_flag = true; }
+  void set_drop ()       { drop_flag = true; }
 
   bool for_skip () const { return skip_flag; }
   void set_skip ()       { skip_flag = true; }
@@ -322,7 +318,6 @@ struct parsed_cs_op_t : op_str_t
 
   protected:
   bool	  drop_flag : 1;
-  bool	  keep_flag : 1;
   bool	  skip_flag : 1;
 
   public:
