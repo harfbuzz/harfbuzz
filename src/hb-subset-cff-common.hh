@@ -340,6 +340,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
     parsed = false;
     hint_dropped = false;
     has_prefix_ = false;
+    has_calls_ = false;
   }
 
   void add_op (op_code_t op, const byte_str_ref_t& str_ref)
@@ -352,6 +353,8 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
   {
     if (!is_parsed ())
     {
+      has_calls_ = true;
+
       unsigned int parsed_len = get_count ();
       if (likely (parsed_len > 0))
 	values[parsed_len-1].set_skip ();
@@ -388,11 +391,14 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
   op_code_t prefix_op () const         { return prefix_op_; }
   const number_t &prefix_num () const { return prefix_num_; }
 
+  bool has_calls () const          { return has_calls_; }
+
   protected:
-  bool    parsed;
-  bool    hint_dropped;
-  bool    vsindex_dropped;
-  bool    has_prefix_;
+  bool    parsed : 1;
+  bool    hint_dropped : 1;
+  bool    vsindex_dropped : 1;
+  bool    has_prefix_ : 1;
+  bool    has_calls_ : 1;
   op_code_t	prefix_op_;
   number_t	prefix_num_;
 
@@ -967,6 +973,9 @@ struct subr_subsetter_t
 
   void collect_subr_refs_in_str (const parsed_cs_str_t &str, const subr_subset_param_t &param)
   {
+    if (!str.has_calls ())
+      return;
+
     auto *value = str.values.arrayZ;
     auto *end = value + str.values.length;
     for (; value < end; value++)
