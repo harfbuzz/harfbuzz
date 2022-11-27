@@ -955,7 +955,7 @@ struct subr_subsetter_t
     return true;
   }
 
-  void collect_subr_refs_in_subr (const parsed_cs_str_t &str, unsigned int pos,
+  void collect_subr_refs_in_subr (const parsed_cs_str_t &str,
 				  unsigned int subr_num, parsed_cs_str_vec_t &subrs,
 				  hb_set_t *closure,
 				  const subr_subset_param_t &param)
@@ -968,23 +968,23 @@ struct subr_subsetter_t
 
   void collect_subr_refs_in_str (const parsed_cs_str_t &str, const subr_subset_param_t &param)
   {
-    unsigned count = str.values.length;
-    auto &values = str.values.arrayZ;
-    for (unsigned int pos = 0; pos < count; pos++)
+    auto *value = str.values.arrayZ;
+    auto *end = value + str.values.length;
+    for (; value < end; value++)
     {
-      if (!values[pos].for_drop ())
+      if (!value->for_drop ())
       {
-	switch (values[pos].op)
+	switch (value->op)
 	{
 	  case OpCode_callsubr:
-	    collect_subr_refs_in_subr (str, pos,
-				       values[pos].subr_num, *param.parsed_local_subrs,
+	    collect_subr_refs_in_subr (str,
+				       value->subr_num, *param.parsed_local_subrs,
 				       param.local_closure, param);
 	    break;
 
 	  case OpCode_callgsubr:
-	    collect_subr_refs_in_subr (str, pos,
-				       values[pos].subr_num, *param.parsed_global_subrs,
+	    collect_subr_refs_in_subr (str,
+				       value->subr_num, *param.parsed_global_subrs,
 				       param.global_closure, param);
 	    break;
 
