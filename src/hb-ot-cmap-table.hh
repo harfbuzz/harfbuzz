@@ -1477,16 +1477,16 @@ struct EncodingRecord
 struct SubtableUnicodesCache {
 
  private:
-  const void* base;
-  hb_hashmap_t<intptr_t, hb::unique_ptr<hb_set_t>> cached_unicodes;
+  const char* base;
+  hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> cached_unicodes;
 
  public:
   SubtableUnicodesCache(const void* cmap_base)
-      : base(cmap_base), cached_unicodes() {}
+      : base ((const char *) cmap_base), cached_unicodes () {}
 
   hb_set_t* set_for (const EncodingRecord* record)
   {
-    if (!cached_unicodes.has ((intptr_t) record))
+    if (!cached_unicodes.has ((unsigned) ((const char *) record - base)))
     {
       hb_set_t *s = hb_set_create ();
       if (unlikely (s->in_error ()))
@@ -1494,12 +1494,12 @@ struct SubtableUnicodesCache {
 	
       (base+record->subtable).collect_unicodes (s);
 
-      if (unlikely (!cached_unicodes.set ((intptr_t) record, hb::unique_ptr<hb_set_t> {s})))
+      if (unlikely (!cached_unicodes.set ((unsigned) ((const char *) record - base), hb::unique_ptr<hb_set_t> {s})))
         return hb_set_get_empty ();
 
       return s;
     }
-    return cached_unicodes.get ((intptr_t) record);
+    return cached_unicodes.get ((unsigned) ((const char *) record - base));
   }
 
 };
