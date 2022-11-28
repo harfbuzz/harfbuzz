@@ -317,13 +317,13 @@ struct parsed_cs_op_t : op_str_t
 
 struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
 {
-  void init ()
+  parsed_cs_str_t () :
+    parsed (false),
+    hint_dropped (false),
+    has_prefix_ (false),
+    has_calls_ (false)
   {
     SUPER::init ();
-    parsed = false;
-    hint_dropped = false;
-    has_prefix_ = false;
-    has_calls_ = false;
   }
 
   void add_op (op_code_t op, const byte_str_ref_t& str_ref)
