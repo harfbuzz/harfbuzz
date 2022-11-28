@@ -189,6 +189,9 @@ struct PairPosFormat1_3
         }
         record = &StructAtOffset<const PairValueRecord> (record, record_size);
       }
+
+      if (format1 == valueFormat[0] && format2 == valueFormat[1])
+        break;
     }
 
     return hb_pair (format1, format2);

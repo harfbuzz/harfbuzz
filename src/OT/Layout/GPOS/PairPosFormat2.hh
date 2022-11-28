@@ -322,6 +322,7 @@ struct PairPosFormat2_4
   {
     unsigned len1 = valueFormat1.get_len ();
     unsigned len2 = valueFormat2.get_len ();
+    unsigned record_size = len1 + len2;
 
     unsigned format1 = 0;
     unsigned format2 = 0;
@@ -330,10 +331,13 @@ struct PairPosFormat2_4
     {
       for (unsigned class2_idx : + hb_range ((unsigned) class2Count) | hb_filter (klass2_map))
       {
-        unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * (len1 + len2);
+        unsigned idx = (class1_idx * (unsigned) class2Count + class2_idx) * record_size;
         format1 = format1 | valueFormat1.get_effective_format (&values[idx]);
         format2 = format2 | valueFormat2.get_effective_format (&values[idx + len1]);
       }
+
+      if (format1 == valueFormat1 && format2 == valueFormat2)
+        break;
     }
 
     return hb_pair (format1, format2);
