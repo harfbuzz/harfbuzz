@@ -476,14 +476,20 @@ struct FDSelect3_4
     return_trace (true);
   }
 
+  static int _cmp_range (const void *_key, const void *_item)
+  {
+    hb_codepoint_t glyph = * (hb_codepoint_t *) _key;
+    FDSelect3_4_Range<GID_TYPE, FD_TYPE> *range = (FDSelect3_4_Range<GID_TYPE, FD_TYPE> *) _item;
+
+    if (glyph < range[0].first) return -1;
+    if (glyph < range[1].first) return 0;
+    return +1;
+  }
+
   hb_codepoint_t get_fd (hb_codepoint_t glyph) const
   {
-    unsigned int i;
-    for (i = 1; i < nRanges (); i++)
-      if (glyph < ranges[i].first)
-	break;
-
-    return (hb_codepoint_t) ranges[i - 1].fd;
+    auto *range = hb_bsearch (glyph, &ranges[0], nRanges () - 1, sizeof (ranges[0]), _cmp_range);
+    return range ? range->fd : ranges[nRanges () - 1].fd;
   }
 
   GID_TYPE        &nRanges ()       { return ranges.len; }

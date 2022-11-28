@@ -246,11 +246,10 @@ struct subr_flattener_t
 
   bool flatten (str_buff_vec_t &flat_charstrings)
   {
-    if (!flat_charstrings.resize (plan->num_output_glyphs ()))
+    unsigned count = plan->num_output_glyphs ();
+    if (!flat_charstrings.resize (count))
       return false;
-    for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
-      flat_charstrings[i].init ();
-    for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
+    for (unsigned int i = 0; i < count; i++)
     {
       hb_codepoint_t  glyph;
       if (!plan->old_gid_for_new_gid (i, &glyph))
@@ -266,7 +265,7 @@ struct subr_flattener_t
       ENV env (str, acc, fd);
       cs_interpreter_t<ENV, OPSET, flatten_param_t> interp (env);
       flatten_param_t  param = {
-        flat_charstrings[i],
+        flat_charstrings.arrayZ[i],
         (bool) (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
       };
       if (unlikely (!interp.interpret (param)))
