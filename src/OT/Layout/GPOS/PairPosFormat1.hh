@@ -179,7 +179,8 @@ struct PairPosFormat1_3
       const PairSet& set = (this + _);
       const PairValueRecord *record = &set.firstPairValueRecord;
 
-      for (unsigned i = 0; i < set.len; i++)
+      unsigned count = set.len;
+      for (unsigned i = 0; i < count; i++)
       {
         if (record->intersects (glyphset))
         {
