@@ -171,7 +171,10 @@ struct PairPosFormat1_3
     unsigned format1 = 0;
     unsigned format2 = 0;
     for (const auto & _ :
-             + hb_zip (this+coverage, pairSet) | hb_filter (glyphset, hb_first) | hb_map (hb_second))
+	  + hb_zip (this+coverage, pairSet)
+	  | hb_filter (glyphset, hb_first)
+	  | hb_map (hb_second)
+	)
     {
       const PairSet& set = (this + _);
       const PairValueRecord *record = &set.firstPairValueRecord;
