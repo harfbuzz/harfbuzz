@@ -303,17 +303,17 @@ struct parsed_cs_op_t : op_str_t
   void init (unsigned int subr_num_ = 0)
   {
     subr_num = subr_num_;
-    drop_flag = false;
+    hinting_flag = false;
   }
 
-  bool for_drop () const { return drop_flag; }
-  void set_drop ()       { drop_flag = true; }
+  bool is_hinting () const { return hinting_flag; }
+  void set_hinting ()       { hinting_flag = true; }
 
   /* The layout of this struct is designed to fit within the
    * padding of op_str_t! */
 
   protected:
-  bool	  drop_flag;
+  bool	  hinting_flag;
 
   public:
   uint16_t subr_num;
@@ -801,7 +801,7 @@ struct subr_subsetter_t
      * then this entire subroutine must be a hint. drop its call. */
     if (drop.ends_in_hint)
     {
-      str.values[pos].set_drop ();
+      str.values[pos].set_hinting ();
       /* if this subr call is at the end of the parent subr, propagate the flag
        * otherwise reset the flag */
       if (!str.at_end (pos))
@@ -809,7 +809,7 @@ struct subr_subsetter_t
     }
     else if (drop.all_dropped)
     {
-      str.values[pos].set_drop ();
+      str.values[pos].set_hinting ();
     }
 
     return has_hint;
@@ -849,7 +849,7 @@ struct subr_subsetter_t
 	case OpCode_cntrmask:
 	  if (drop.seen_moveto)
 	  {
-	    values[pos].set_drop ();
+	    values[pos].set_hinting ();
 	    break;
 	  }
 	  HB_FALLTHROUGH;
@@ -859,13 +859,13 @@ struct subr_subsetter_t
 	case OpCode_hstem:
 	case OpCode_vstem:
 	  has_hint = true;
-	  values[pos].set_drop ();
+	  values[pos].set_hinting ();
 	  if (str.at_end (pos))
 	    drop.ends_in_hint = true;
 	  break;
 
 	case OpCode_dotsection:
-	  values[pos].set_drop ();
+	  values[pos].set_hinting ();
 	  break;
 
 	default:
@@ -877,9 +877,9 @@ struct subr_subsetter_t
 	for (int i = pos - 1; i >= 0; i--)
 	{
 	  parsed_cs_op_t  &csop = values[(unsigned)i];
-	  if (csop.for_drop ())
+	  if (csop.is_hinting ())
 	    break;
-	  csop.set_drop ();
+	  csop.set_hinting ();
 	  if (csop.op == OpCode_vsindexcs)
 	    drop.vsindex_dropped = true;
 	}
@@ -897,7 +897,7 @@ struct subr_subsetter_t
       parsed_cs_op_t  &csop = values[pos];
       if (csop.op == OpCode_return)
 	break;
-      if (!csop.for_drop ())
+      if (!csop.is_hinting ())
       {
 	drop.all_dropped = false;
 	break;
@@ -978,7 +978,7 @@ struct subr_subsetter_t
     for (unsigned i = 0; i < count; i++)
     {
       auto &value = values[i];
-      if (hinting || !value.for_drop ())
+      if (hinting || !value.is_hinting ())
       {
 	switch (value.op)
 	{
@@ -1019,7 +1019,7 @@ struct subr_subsetter_t
     for (unsigned int i = 0; i < count; i++)
     {
       const parsed_cs_op_t  &opstr = arr[i];
-      if (hinting || !opstr.for_drop ())
+      if (hinting || !opstr.is_hinting ())
       {
 	switch (opstr.op)
 	{
