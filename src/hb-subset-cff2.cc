@@ -401,7 +401,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
 	      hb_iter (private_dict_infos))
     ;
     if (unlikely (!fda->serialize (c, it, fontSzr))) return false;
-    plan.info.fd_array_link = c->pop_pack ();
+    plan.info.fd_array_link = c->pop_pack (false);
   }
 
   /* variation store */
