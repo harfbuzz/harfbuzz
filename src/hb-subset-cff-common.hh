@@ -603,7 +603,7 @@ struct subr_subsetter_t
       fd_count = cff_accelerator->parsed_local_subrs.length;
     }
 
-    if (cff_accelerator && !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING)) {
+    if (cff_accelerator) {
       // If we are not dropping hinting then charstrings are not modified so we can
       // just use a reference to the cached copies.
       cached_charstrings.resize (plan->num_output_glyphs ());
@@ -680,11 +680,13 @@ struct subr_subsetter_t
     // to compute the subroutine closures which would have normally happened during
     // parsing.
     if (cff_accelerator &&
-        !closure_and_copy_subroutines(cff_accelerator->parsed_global_subrs,
+        !closure_and_copy_subroutines(!(plan->flags & HB_SUBSET_FLAGS_NO_HINTING),
+				      cff_accelerator->parsed_global_subrs,
                                       cff_accelerator->parsed_local_subrs))
       return false;
 
-    if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING)
+    if ((plan->flags & HB_SUBSET_FLAGS_NO_HINTING && !cff_accelerator) ||
+	plan->inprogress_accelerator)
     {
       /* mark hint ops and arguments for drop */
       for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
@@ -712,7 +714,9 @@ struct subr_subsetter_t
       }
 
       /* after dropping hints recreate closures of actually used subrs */
-      if (!closure_subroutines(parsed_global_subrs, parsed_local_subrs)) return false;
+      if (plan->flags & HB_SUBSET_FLAGS_NO_HINTING &&
+	  !cff_accelerator &&
+	  !closure_subroutines(false, parsed_global_subrs, parsed_local_subrs)) return false;
     }
 
     remaps.create (closures);
@@ -903,10 +907,12 @@ struct subr_subsetter_t
     return seen_hint;
   }
 
-  bool closure_and_copy_subroutines (parsed_cs_str_vec_t& global_subrs,
+  bool closure_and_copy_subroutines (bool hinting,
+				     parsed_cs_str_vec_t& global_subrs,
                                      hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
   {
-    if (!closure_subroutines(global_subrs,
+    if (!closure_subroutines(hinting,
+			     global_subrs,
                              local_subrs)) return false;
 
 
@@ -926,7 +932,8 @@ struct subr_subsetter_t
   }
 
 
-  bool closure_subroutines (parsed_cs_str_vec_t& global_subrs,
+  bool closure_subroutines (bool hinting,
+			    parsed_cs_str_vec_t& global_subrs,
                             hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
   {
     closures.reset ();
@@ -944,23 +951,24 @@ struct subr_subsetter_t
                                   &closures.global_closure,
                                   &closures.local_closures[fd],
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
-      collect_subr_refs_in_str (get_parsed_charstring (i), param);
+      collect_subr_refs_in_str (hinting, get_parsed_charstring (i), param);
     }
 
     return true;
   }
 
-  void collect_subr_refs_in_subr (unsigned int subr_num, parsed_cs_str_vec_t &subrs,
+  void collect_subr_refs_in_subr (bool hinting,
+				  unsigned int subr_num, parsed_cs_str_vec_t &subrs,
 				  hb_set_t *closure,
 				  const subr_subset_param_t &param)
   {
     if (closure->has (subr_num))
       return;
     closure->add (subr_num);
-    collect_subr_refs_in_str (subrs[subr_num], param);
+    collect_subr_refs_in_str (hinting, subrs[subr_num], param);
   }
 
-  void collect_subr_refs_in_str (const parsed_cs_str_t &str, const subr_subset_param_t &param)
+  void collect_subr_refs_in_str (bool hinting, const parsed_cs_str_t &str, const subr_subset_param_t &param)
   {
     if (!str.has_calls ())
       return;
@@ -970,17 +978,19 @@ struct subr_subsetter_t
     for (unsigned i = 0; i < count; i++)
     {
       auto &value = values[i];
-      if (!value.for_drop ())
+      if (hinting || !value.for_drop ())
       {
 	switch (value.op)
 	{
 	  case OpCode_callsubr:
-	    collect_subr_refs_in_subr (value.subr_num, *param.parsed_local_subrs,
+	    collect_subr_refs_in_subr (hinting,
+				       value.subr_num, *param.parsed_local_subrs,
 				       param.local_closure, param);
 	    break;
 
 	  case OpCode_callgsubr:
-	    collect_subr_refs_in_subr (value.subr_num, *param.parsed_global_subrs,
+	    collect_subr_refs_in_subr (hinting,
+				       value.subr_num, *param.parsed_global_subrs,
 				       param.global_closure, param);
 	    break;
 
@@ -996,9 +1006,10 @@ struct subr_subsetter_t
     str_encoder_t  encoder (buff);
     encoder.reset ();
     buff.alloc (count * 2);
+    bool hinting = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
     /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
      * re-insert it at the beginning of charstreing */
-    if (str.has_prefix () && str.is_hint_dropped ())
+    if (str.has_prefix () && !hinting && str.is_hint_dropped ())
     {
       encoder.encode_num (str.prefix_num ());
       if (str.prefix_op () != OpCode_Invalid)
@@ -1008,7 +1019,7 @@ struct subr_subsetter_t
     for (unsigned int i = 0; i < count; i++)
     {
       const parsed_cs_op_t  &opstr = arr[i];
-      if (!opstr.for_drop ())
+      if (hinting || !opstr.for_drop ())
       {
 	switch (opstr.op)
 	{
