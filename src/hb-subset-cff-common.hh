@@ -299,11 +299,8 @@ struct subr_closures_t
 
 struct parsed_cs_op_t : op_str_t
 {
-  void init (unsigned int subr_num_ = 0)
-  {
-    subr_num = subr_num_;
-    hinting_flag = false;
-  }
+  parsed_cs_op_t (unsigned int subr_num_ = 0) :
+    subr_num (subr_num_) {}
 
   bool is_hinting () const { return hinting_flag; }
   void set_hinting ()       { hinting_flag = true; }
@@ -312,7 +309,7 @@ struct parsed_cs_op_t : op_str_t
    * padding of op_str_t! */
 
   protected:
-  bool	  hinting_flag;
+  bool	  hinting_flag = false;
 
   public:
   uint16_t subr_num;
@@ -345,9 +342,7 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
       if (likely (parsed_len > 0))
         values.pop ();
 
-      parsed_cs_op_t val;
-      val.init (subr_num);
-      SUPER::add_op (op, str_ref, val);
+      SUPER::add_op (op, str_ref, {subr_num});
     }
   }
 
