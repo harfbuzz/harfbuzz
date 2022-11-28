@@ -410,7 +410,7 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
     c->push ();
     CFF2VariationStore *dest = c->start_embed<CFF2VariationStore> ();
     if (unlikely (!dest || !dest->serialize (c, acc.varStore))) return false;
-    plan.info.var_store_link = c->pop_pack ();
+    plan.info.var_store_link = c->pop_pack (false);
   }
 
   OT::cff2 *cff2 = c->allocate_min<OT::cff2> ();
