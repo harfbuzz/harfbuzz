@@ -338,9 +338,8 @@ struct parsed_cs_str_t : parsed_values_t<parsed_cs_op_t>
     {
       has_calls_ = true;
 
-      unsigned int parsed_len = get_count ();
-      if (likely (parsed_len > 0))
-        values.pop ();
+      /* Pop the subroutine number. */
+      values.pop ();
 
       SUPER::add_op (op, str_ref, {subr_num});
     }
