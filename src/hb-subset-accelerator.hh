@@ -39,6 +39,10 @@ namespace CFF {
 struct cff_subset_accelerator_t;
 }
 
+namespace OT {
+struct SubtableUnicodesCache;
+};
+
 struct hb_subset_accelerator_t
 {
   static hb_user_data_key_t* user_data_key()
@@ -64,6 +68,9 @@ struct hb_subset_accelerator_t
     if (accel->cff_accelerator && accel->destroy_cff_accelerator)
       accel->destroy_cff_accelerator ((void*) accel->cff_accelerator);
 
+    if (accel->cmap_cache && accel->destroy_cmap_cache)
+      accel->destroy_cmap_cache ((void*) accel->cmap_cache);
+
     accel->~hb_subset_accelerator_t ();
     hb_free (accel);
   }
@@ -71,17 +78,23 @@ struct hb_subset_accelerator_t
   hb_subset_accelerator_t(const hb_map_t& unicode_to_gid_,
                           const hb_set_t& unicodes_)
       : unicode_to_gid(unicode_to_gid_), unicodes(unicodes_),
-        has_seac(false), cff_accelerator(nullptr), destroy_cff_accelerator(nullptr) {}
+        cmap_cache(nullptr), destroy_cmap_cache(nullptr),
+        has_seac(false), cff_accelerator(nullptr), destroy_cff_accelerator(nullptr)
+
+  {}
 
   // Generic
   const hb_map_t unicode_to_gid;
   const hb_set_t unicodes;
+  OT::SubtableUnicodesCache* cmap_cache;
+  hb_destroy_func_t destroy_cmap_cache;
 
   // CFF
   bool has_seac;
   CFF::cff_subset_accelerator_t* cff_accelerator;
   hb_destroy_func_t destroy_cff_accelerator;
 
+  // TODO(garretrieger): see if we can make the cff_accelerator and cmap_cache const
   // TODO(garretrieger): cumulative glyf checksum map
   // TODO(garretrieger): sanitized table cache.
 
