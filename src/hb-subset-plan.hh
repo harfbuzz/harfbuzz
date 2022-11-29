@@ -219,18 +219,20 @@ struct hb_subset_plan_t
   template<typename T>
   hb_blob_ptr_t<T> source_table()
   {
-    if (sanitized_table_cache
-        && !sanitized_table_cache->in_error ()
-        && sanitized_table_cache->has (+T::tableTag)) {
-      return hb_blob_reference (sanitized_table_cache->get (+T::tableTag).get ());
+    hb_lock_t (accelerator ? &accelerator->sanitized_table_cache_lock : nullptr);
+
+    auto *cache = accelerator ? &accelerator->sanitized_table_cache : sanitized_table_cache;
+    if (cache
+        && !cache->in_error ()
+        && cache->has (+T::tableTag)) {
+      return hb_blob_reference (cache->get (+T::tableTag).get ());
     }
 
     hb::unique_ptr<hb_blob_t> table_blob {hb_sanitize_context_t ().reference_table<T> (source)};
     hb_blob_t* ret = hb_blob_reference (table_blob.get ());
 
-    if (likely (sanitized_table_cache))
-      sanitized_table_cache->set (+T::tableTag,
-                                  std::move (table_blob));
+    if (likely (cache))
+      cache->set (+T::tableTag, std::move (table_blob));
 
     return ret;
   }
