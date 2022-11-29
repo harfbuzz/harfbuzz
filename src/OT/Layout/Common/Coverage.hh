@@ -74,10 +74,8 @@ struct Coverage
   }
 
   /* Has interface. */
-  static constexpr unsigned SENTINEL = NOT_COVERED;
-  typedef unsigned int value_t;
-  value_t operator [] (hb_codepoint_t k) const { return get (k); }
-  bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+  unsigned operator [] (hb_codepoint_t k) const { return get (k); }
+  bool has (hb_codepoint_t k) const { return (*this)[k] != NOT_COVERED; }
   /* Predicate. */
   bool operator () (hb_codepoint_t k) const { return has (k); }
 

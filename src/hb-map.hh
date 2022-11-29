@@ -248,8 +248,7 @@ struct hb_hashmap_t
   void del (const K &key) { set_with_hash (key, hb_hash (key), item_t::default_value (), true); }
 
   /* Has interface. */
-  typedef const V& value_t;
-  value_t operator [] (K k) const { return get (k); }
+  const V& operator [] (K k) const { return get (k); }
   template <typename VV=V>
   bool has (K key, VV **vp = nullptr) const
   {

@@ -330,10 +330,8 @@ struct hb_bit_set_t
   }
 
   /* Has interface. */
-  static constexpr bool SENTINEL = false;
-  typedef bool value_t;
-  value_t operator [] (hb_codepoint_t k) const { return get (k); }
-  bool has (hb_codepoint_t k) const { return (*this)[k] != SENTINEL; }
+  bool operator [] (hb_codepoint_t k) const { return get (k); }
+  bool has (hb_codepoint_t k) const { return (*this)[k]; }
   /* Predicate. */
   bool operator () (hb_codepoint_t k) const { return has (k); }
 
