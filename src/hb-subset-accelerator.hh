@@ -75,17 +75,25 @@ struct hb_subset_accelerator_t
     hb_free (accel);
   }
 
-  hb_subset_accelerator_t(const hb_map_t& unicode_to_gid_,
+  hb_subset_accelerator_t (const hb_map_t& unicode_to_gid_,
                           const hb_set_t& unicodes_)
       : unicode_to_gid(unicode_to_gid_), unicodes(unicodes_),
         cmap_cache(nullptr), destroy_cmap_cache(nullptr),
         has_seac(false), cff_accelerator(nullptr), destroy_cff_accelerator(nullptr)
+  { sanitized_table_cache_lock.init (); }
 
-  {}
+  ~hb_subset_accelerator_t ()
+  { sanitized_table_cache_lock.fini (); }
 
   // Generic
+
+  mutable hb_mutex_t sanitized_table_cache_lock;
+  mutable hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>> sanitized_table_cache;
+
   const hb_map_t unicode_to_gid;
   const hb_set_t unicodes;
+
+  // cmap
   OT::SubtableUnicodesCache* cmap_cache;
   hb_destroy_func_t destroy_cmap_cache;
 
