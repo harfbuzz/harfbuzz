@@ -1474,15 +1474,54 @@ struct EncodingRecord
   DEFINE_SIZE_STATIC (8);
 };
 
+struct cmap;
+
 struct SubtableUnicodesCache {
 
  private:
+  hb_blob_ptr_t<cmap> base_blob;
   const char* base;
   hb_hashmap_t<unsigned, hb::unique_ptr<hb_set_t>> cached_unicodes;
 
  public:
+
+  static SubtableUnicodesCache* create (hb_blob_ptr_t<cmap> source_table)
+  {
+    SubtableUnicodesCache* cache =
+        (SubtableUnicodesCache*) hb_malloc (sizeof(SubtableUnicodesCache));
+    new (cache) SubtableUnicodesCache (source_table);
+    return cache;
+  }
+
+  static void destroy (void* value) {
+    if (!value) return;
+
+    SubtableUnicodesCache* cache = (SubtableUnicodesCache*) value;
+    cache->~SubtableUnicodesCache ();
+    hb_free (cache);
+  }
+
   SubtableUnicodesCache(const void* cmap_base)
-      : base ((const char *) cmap_base), cached_unicodes () {}
+      : base_blob(),
+        base ((const char*) cmap_base),
+        cached_unicodes ()
+  {}
+
+  SubtableUnicodesCache(hb_blob_ptr_t<cmap> base_blob_)
+      : base_blob(base_blob_),
+        base ((const char *) base_blob.get()),
+        cached_unicodes ()
+  {}
+
+  ~SubtableUnicodesCache()
+  {
+    base_blob.destroy ();
+  }
+
+  bool same_base(const void* other)
+  {
+    return other == (const void*) base;
+  }
 
   hb_set_t* set_for (const EncodingRecord* record)
   {
@@ -1491,7 +1530,7 @@ struct SubtableUnicodesCache {
       hb_set_t *s = hb_set_create ();
       if (unlikely (s->in_error ()))
 	return hb_set_get_empty ();
-	
+
       (base+record->subtable).collect_unicodes (s);
 
       if (unlikely (!cached_unicodes.set ((unsigned) ((const char *) record - base), hb::unique_ptr<hb_set_t> {s})))
@@ -1523,13 +1562,30 @@ struct cmap
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_cmap;
 
+
+  static SubtableUnicodesCache* create_filled_cache(hb_blob_ptr_t<cmap> source_table) {
+    const cmap* cmap = source_table.get();
+    auto it =
+    + hb_iter (cmap->encodingRecord)
+    | hb_filter ([&](const EncodingRecord& _) {
+      return cmap::filter_encoding_records_for_subset (cmap, _);
+    })
+    ;
+
+    SubtableUnicodesCache* cache = SubtableUnicodesCache::create(source_table);
+    for (const EncodingRecord& _ : it)
+      cache->set_for(&_); // populate the cache for this encoding record.
+
+    return cache;
+  }
+
   template<typename Iterator, typename EncodingRecIter,
 	   hb_requires (hb_is_iterator (EncodingRecIter))>
   bool serialize (hb_serialize_context_t *c,
 		  Iterator it,
 		  EncodingRecIter encodingrec_iter,
 		  const void *base,
-		  const hb_subset_plan_t *plan,
+		  hb_subset_plan_t *plan,
                   bool drop_format_4 = false)
   {
     if (unlikely (!c->extend_min ((*this))))  return false;
@@ -1538,7 +1594,14 @@ struct cmap
     unsigned format4objidx = 0, format12objidx = 0, format14objidx = 0;
     auto snap = c->snapshot ();
 
-    SubtableUnicodesCache unicodes_cache (base);
+    SubtableUnicodesCache local_unicodes_cache (base);
+    SubtableUnicodesCache* unicodes_cache = &local_unicodes_cache;
+
+    if (plan->accelerator &&
+        plan->accelerator->cmap_cache &&
+        plan->accelerator->cmap_cache->same_base (base))
+      unicodes_cache = plan->accelerator->cmap_cache;
+
     for (const EncodingRecord& _ : encodingrec_iter)
     {
       if (c->in_error ())
@@ -1547,7 +1610,7 @@ struct cmap
       unsigned format = (base+_.subtable).u.format;
       if (format != 4 && format != 12 && format != 14) continue;
 
-      hb_set_t* unicodes_set = unicodes_cache.set_for (&_);
+      hb_set_t* unicodes_set = unicodes_cache->set_for (&_);
 
       if (!drop_format_4 && format == 4)
       {
@@ -1566,7 +1629,7 @@ struct cmap
 
       else if (format == 12)
       {
-        if (_can_drop (_, *unicodes_set, base, unicodes_cache, + it | hb_map (hb_first), encodingrec_iter)) continue;
+        if (_can_drop (_, *unicodes_set, base, *unicodes_cache, + it | hb_map (hb_first), encodingrec_iter)) continue;
         c->copy (_, + it | hb_filter (*unicodes_set, hb_first), 12u, base, plan, &format12objidx);
       }
       else if (format == 14) c->copy (_, it, 14u, base, plan, &format14objidx);
@@ -1653,17 +1716,9 @@ struct cmap
 
     auto encodingrec_iter =
     + hb_iter (encodingRecord)
-    | hb_filter ([&] (const EncodingRecord& _)
-		{
-		  if ((_.platformID == 0 && _.encodingID == 3) ||
-		      (_.platformID == 0 && _.encodingID == 4) ||
-		      (_.platformID == 3 && _.encodingID == 1) ||
-		      (_.platformID == 3 && _.encodingID == 10) ||
-		      (this + _.subtable).u.format == 14)
-		    return true;
-
-		  return false;
-		})
+    | hb_filter ([&](const EncodingRecord& _) {
+      return cmap::filter_encoding_records_for_subset (this, _);
+    })
     ;
 
     if (unlikely (!encodingrec_iter.len ())) return_trace (false);
@@ -1692,7 +1747,11 @@ struct cmap
 		 { return (_.second != HB_MAP_VALUE_INVALID); })
     ;
 
-    return_trace (cmap_prime->serialize (c->serializer, it, encodingrec_iter, this, c->plan));
+    return_trace (cmap_prime->serialize (c->serializer,
+                                         it,
+                                         encodingrec_iter,
+                                         this,
+                                         c->plan));
   }
 
   const CmapSubtable *find_best_subtable (bool *symbol = nullptr) const
@@ -1926,6 +1985,19 @@ struct cmap
     return_trace (c->check_struct (this) &&
 		  likely (version == 0) &&
 		  encodingRecord.sanitize (c, this));
+  }
+
+ private:
+
+  static bool filter_encoding_records_for_subset(const cmap* cmap,
+                                                 const EncodingRecord& _)
+  {
+    return
+        (_.platformID == 0 && _.encodingID == 3) ||
+        (_.platformID == 0 && _.encodingID == 4) ||
+        (_.platformID == 3 && _.encodingID == 1) ||
+        (_.platformID == 3 && _.encodingID == 10) ||
+        (cmap + _.subtable).u.format == 14;
   }
 
   protected:
