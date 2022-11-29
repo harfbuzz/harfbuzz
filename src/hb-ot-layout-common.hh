@@ -1497,7 +1497,7 @@ static bool ClassDef_remap_and_serialize (hb_serialize_context_t *c,
     klass_map->set (0, 0);
 
   unsigned idx = klass_map->has (0) ? 1 : 0;
-  for (const unsigned k: klasses.iter ())
+  for (const unsigned k: klasses)
   {
     if (klass_map->has (k)) continue;
     klass_map->set (k, idx);
@@ -1982,7 +1982,7 @@ struct ClassDefFormat2_4
     if (g != HB_SET_VALUE_INVALID && glyphs->next (&g))
       intersect_classes->add (0);
 
-    for (const auto& record : rangeRecord.iter ())
+    for (const auto& record : rangeRecord)
       if (record.intersects (*glyphs))
         intersect_classes->add (record.value);
   }
