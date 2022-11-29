@@ -172,7 +172,7 @@ struct hb_vector_t
   operator   iter_t () const { return   iter (); }
   operator writer_t ()       { return writer (); }
 
-  /* Faster range-based for loop without constructing an hb_array_t. */
+  /* Faster range-based for loop. */
   Type *begin () const { return arrayZ; }
   Type *end () const { return arrayZ + length; }
 

@@ -646,6 +646,10 @@ struct ArrayOf
   operator   iter_t () const { return   iter (); }
   operator writer_t ()       { return writer (); }
 
+  /* Faster range-based for loop. */
+  const Type *begin () const { return arrayZ; }
+  const Type *end () const { return arrayZ + len; }
+
   template <typename T>
   Type &lsearch (const T &x, Type &not_found = Crap (Type))
   { return *as_array ().lsearch (x, &not_found); }
@@ -819,6 +823,10 @@ struct HeadlessArrayOf
   operator   iter_t () const { return   iter (); }
   operator writer_t ()       { return writer (); }
 
+  /* Faster range-based for loop. */
+  const Type *begin () const { return arrayZ; }
+  const Type *end () const { return arrayZ + get_length (); }
+
   bool serialize (hb_serialize_context_t *c, unsigned int items_len)
   {
     TRACE_SERIALIZE (this);
@@ -934,6 +942,10 @@ struct SortedArrayOf : ArrayOf<Type, LenType>
   writer_t writer ()       { return as_array (); }
   operator   iter_t () const { return   iter (); }
   operator writer_t ()       { return writer (); }
+
+  /* Faster range-based for loop. */
+  const Type *begin () const { return this->arrayZ; }
+  const Type *end () const { return this->arrayZ + this->len; }
 
   bool serialize (hb_serialize_context_t *c, unsigned int items_len)
   {
