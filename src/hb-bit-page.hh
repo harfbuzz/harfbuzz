@@ -148,13 +148,13 @@ struct hb_bit_page_t
 		      hb_codepoint_t *p,
 		      unsigned int    size) const
   {
-    unsigned int start_v = start_value >> ELT_BITS_LOG_2;
+    unsigned int start_v = start_value / ELT_BITS;
     unsigned int start_bit = start_value & ELT_MASK;
     unsigned int count = 0;
     for (unsigned i = start_v; i < len () && count < size; i++)
     {
       elt_t bits = v[i];
-      uint32_t v_base = base | (i << ELT_BITS_LOG_2);
+      uint32_t v_base = base | (i * ELT_BITS);
       for (unsigned int j = start_bit; j < ELT_BITS && count < size; j++)
       {
 	if ((elt_t(1) << j) & bits) {
@@ -179,13 +179,13 @@ struct hb_bit_page_t
 			       unsigned int    size,
 			       hb_codepoint_t *next_value) const
   {
-    unsigned int start_v = start_value >> ELT_BITS_LOG_2;
+    unsigned int start_v = start_value / ELT_BITS;
     unsigned int start_bit = start_value & ELT_MASK;
     unsigned int count = 0;
     for (unsigned i = start_v; i < len () && count < size; i++)
     {
       elt_t bits = v[i];
-      uint32_t v_offset = i << ELT_BITS_LOG_2;
+      uint32_t v_offset = i * ELT_BITS;
       for (unsigned int j = start_bit; j < ELT_BITS && count < size; j++)
       {
 	if ((elt_t(1) << j) & bits)
@@ -312,8 +312,6 @@ struct hb_bit_page_t
   typedef hb_vector_size_t<elt_t, PAGE_BITS / 8> vector_t;
 
   static constexpr unsigned ELT_BITS = sizeof (elt_t) * 8;
-  static constexpr unsigned ELT_BITS_LOG_2 = 6;
-  static_assert (1 << ELT_BITS_LOG_2 == ELT_BITS, "");
   static constexpr unsigned ELT_MASK = ELT_BITS - 1;
 
   static constexpr unsigned BITS = sizeof (vector_t) * 8;
