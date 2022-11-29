@@ -1815,10 +1815,10 @@ struct ClassDefFormat2_4
     unsigned count = rangeRecord.len;
     for (unsigned i = 0; i < count; i++)
     {
-      unsigned klass = rangeRecord[i].value;
+      unsigned klass = rangeRecord.arrayZ[i].value;
       if (!klass) continue;
-      hb_codepoint_t start = rangeRecord[i].first;
-      hb_codepoint_t end   = hb_min (rangeRecord[i].last + 1, num_source_glyphs);
+      hb_codepoint_t start = rangeRecord.arrayZ[i].first;
+      hb_codepoint_t end   = hb_min (rangeRecord.arrayZ[i].last + 1, num_source_glyphs);
       for (hb_codepoint_t g = start; g < end; g++)
       {
         hb_codepoint_t new_gid = glyph_map[g];
