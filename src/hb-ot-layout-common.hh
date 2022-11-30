@@ -1969,18 +1969,20 @@ struct ClassDefFormat2_4
       return;
     }
 
-#if 0
     /* The following implementation is faster asymptotically, but slower
      * in practice. */
-    if ((count >> 3) > glyphs->get_population ())
+    if (false && count > glyphs->get_population () * hb_bit_storage (count))
     {
       for (hb_codepoint_t g = HB_SET_VALUE_INVALID;
 	   glyphs->next (&g);)
-        if (rangeRecord.as_array ().bfind (g))
+      {
+        unsigned i;
+        if (rangeRecord.as_array ().bfind (g, &i) &&
+	    rangeRecord.arrayZ[i].value == klass)
 	  intersect_glyphs->add (g);
+      }
       return;
     }
-#endif
 
     for (unsigned int i = 0; i < count; i++)
     {
