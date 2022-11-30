@@ -54,10 +54,10 @@ static inline unsigned int ARRAY_LEN (const Type (&)[n]) { return n; }
 struct test_input_t
 {
   const char *font_path;
-  const unsigned max_subset_size;
+  unsigned max_subset_size;
   const axis_location_t *instance_opts;
-  const unsigned num_instance_opts;
-} tests[] =
+  unsigned num_instance_opts;
+} default_tests[] =
 {
   {SUBSET_FONT_BASE_PATH "Roboto-Regular.ttf", 1000, nullptr, 0},
   {SUBSET_FONT_BASE_PATH "Amiri-Regular.ttf", 4096, nullptr, 0},
@@ -73,6 +73,10 @@ struct test_input_t
   {"perf/fonts/NotoSansCJKsc-VF.ttf", 100000},
 #endif
 };
+
+static test_input_t *tests = default_tests;
+static unsigned num_tests = sizeof (default_tests) / sizeof (default_tests[0]);
+
 
 void AddCodepoints(const hb_set_t* codepoints_in_font,
                    unsigned subset_size,
@@ -192,7 +196,9 @@ static void test_subset (operation_t op,
 
   char name[1024] = "BM_subset/";
   strcat (name, op_name);
-  strcat (name, strrchr (test_input.font_path, '/'));
+  strcat (name, "/");
+  const char *p = strrchr (test_input.font_path, '/');
+  strcat (name, p ? p + 1 : test_input.font_path);
   if (!hinting)
     strcat (name, "/nohinting");
 
@@ -203,10 +209,13 @@ static void test_subset (operation_t op,
 
 static void test_operation (operation_t op,
                             const char *op_name,
+                            const test_input_t *tests,
+                            unsigned num_tests,
                             benchmark::TimeUnit time_unit)
 {
-  for (auto& test_input : tests)
+  for (unsigned i = 0; i < num_tests; i++)
   {
+    auto& test_input = tests[i];
     test_subset (op, op_name, true, time_unit, test_input);
     test_subset (op, op_name, false, time_unit, test_input);
   }
@@ -214,7 +223,20 @@ static void test_operation (operation_t op,
 
 int main(int argc, char** argv)
 {
-#define TEST_OPERATION(op, time_unit) test_operation (op, #op, time_unit)
+  benchmark::Initialize(&argc, argv);
+
+  if (argc > 1)
+  {
+    num_tests = (argc - 1) / 2;
+    tests = (test_input_t *) calloc (num_tests, sizeof (test_input_t));
+    for (unsigned i = 0; i < num_tests; i++)
+    {
+      tests[i].font_path = argv[1 + i * 2];
+      tests[i].max_subset_size = atoi (argv[2 + i * 2]);
+    }
+  }
+
+#define TEST_OPERATION(op, time_unit) test_operation (op, #op, tests, num_tests, time_unit)
 
   TEST_OPERATION (subset_glyphs, benchmark::kMillisecond);
   TEST_OPERATION (subset_codepoints, benchmark::kMillisecond);
@@ -224,7 +246,9 @@ int main(int argc, char** argv)
 
 #undef TEST_OPERATION
 
-  benchmark::Initialize(&argc, argv);
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
+
+  if (tests != default_tests)
+    free (tests);
 }
