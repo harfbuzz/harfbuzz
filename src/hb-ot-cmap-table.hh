@@ -1518,12 +1518,21 @@ struct SubtableUnicodesCache {
     base_blob.destroy ();
   }
 
-  bool same_base(const void* other)
+  bool same_base(const void* other) const
   {
     return other == (const void*) base;
   }
 
-  hb_set_t* set_for (const EncodingRecord* record)
+  const hb_set_t* set_for (const EncodingRecord* record,
+                           SubtableUnicodesCache& mutable_cache) const
+  {
+    if (cached_unicodes.has ((unsigned) ((const char *) record - base)))
+      return cached_unicodes.get ((unsigned) ((const char *) record - base));
+
+    return mutable_cache.set_for (record);
+  }
+
+  const hb_set_t* set_for (const EncodingRecord* record)
   {
     if (!cached_unicodes.has ((unsigned) ((const char *) record - base)))
     {
@@ -1595,7 +1604,7 @@ struct cmap
     auto snap = c->snapshot ();
 
     SubtableUnicodesCache local_unicodes_cache (base);
-    SubtableUnicodesCache* unicodes_cache = &local_unicodes_cache;
+    const SubtableUnicodesCache* unicodes_cache = &local_unicodes_cache;
 
     if (plan->accelerator &&
         plan->accelerator->cmap_cache &&
@@ -1610,7 +1619,7 @@ struct cmap
       unsigned format = (base+_.subtable).u.format;
       if (format != 4 && format != 12 && format != 14) continue;
 
-      hb_set_t* unicodes_set = unicodes_cache->set_for (&_);
+      const hb_set_t* unicodes_set = unicodes_cache->set_for (&_, local_unicodes_cache);
 
       if (!drop_format_4 && format == 4)
       {
@@ -1629,7 +1638,13 @@ struct cmap
 
       else if (format == 12)
       {
-        if (_can_drop (_, *unicodes_set, base, *unicodes_cache, + it | hb_map (hb_first), encodingrec_iter)) continue;
+        if (_can_drop (_,
+                       *unicodes_set,
+                       base,
+                       *unicodes_cache,
+                       local_unicodes_cache,
+                       + it | hb_map (hb_first), encodingrec_iter))
+          continue;
         c->copy (_, + it | hb_filter (*unicodes_set, hb_first), 12u, base, plan, &format12objidx);
       }
       else if (format == 14) c->copy (_, it, 14u, base, plan, &format14objidx);
@@ -1648,7 +1663,8 @@ struct cmap
   bool _can_drop (const EncodingRecord& cmap12,
                   const hb_set_t& cmap12_unicodes,
                   const void* base,
-                  SubtableUnicodesCache& unicodes_cache,
+                  const SubtableUnicodesCache& unicodes_cache,
+                  SubtableUnicodesCache& local_unicodes_cache,
                   Iterator subset_unicodes,
                   EncodingRecordIterator encoding_records)
   {
@@ -1679,7 +1695,7 @@ struct cmap
           || (base+_.subtable).get_language() != target_language)
         continue;
 
-      hb_set_t* sibling_unicodes = unicodes_cache.set_for (&_);
+      const hb_set_t* sibling_unicodes = unicodes_cache.set_for (&_, local_unicodes_cache);
 
       auto cmap12 = + subset_unicodes | hb_filter (cmap12_unicodes);
       auto sibling = + subset_unicodes | hb_filter (*sibling_unicodes);
