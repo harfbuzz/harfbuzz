@@ -433,11 +433,13 @@ struct cff_subset_accelerator_t
 
   ~cff_subset_accelerator_t() {
     hb_blob_destroy (original_blob);
+    hb_map_destroy (glyph_to_sid_map.get_relaxed ());
   }
 
   parsed_cs_str_vec_t parsed_charstrings;
   parsed_cs_str_vec_t parsed_global_subrs;
   hb_vector_t<parsed_cs_str_vec_t> parsed_local_subrs;
+  mutable hb_atomic_ptr_t<hb_map_t> glyph_to_sid_map = nullptr;
 
  private:
   hb_blob_t* original_blob;
