@@ -590,7 +590,7 @@ struct subr_subsetter_t
   bool subset (void)
   {
     unsigned fd_count = acc.fdCount;
-    cff_subset_accelerator_t* cff_accelerator = nullptr;
+    const cff_subset_accelerator_t* cff_accelerator = nullptr;
     if (plan->accelerator && plan->accelerator->cff_accelerator) {
       cff_accelerator = plan->accelerator->cff_accelerator;
       fd_count = cff_accelerator->parsed_local_subrs.length;
@@ -901,8 +901,8 @@ struct subr_subsetter_t
   }
 
   bool closure_subroutines (bool hinting,
-			    parsed_cs_str_vec_t& global_subrs,
-                            hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
+			    const parsed_cs_str_vec_t& global_subrs,
+                            const hb_vector_t<parsed_cs_str_vec_t>& local_subrs)
   {
     closures.reset ();
     for (unsigned int i = 0; i < plan->num_output_glyphs (); i++)
@@ -913,9 +913,12 @@ struct subr_subsetter_t
       unsigned int fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
         return false;
-      subr_subset_param_t  param (&get_parsed_charstring (i),
-                                  &global_subrs,
-                                  &local_subrs[fd],
+
+      // Note: const cast is safe here because the collect_subr_refs_in_str only performs a
+      //       closure and does not modify any of the charstrings.
+      subr_subset_param_t  param (const_cast<parsed_cs_str_t*> (&get_parsed_charstring (i)),
+                                  const_cast<parsed_cs_str_vec_t*> (&global_subrs),
+                                  const_cast<parsed_cs_str_vec_t*> (&local_subrs[fd]),
                                   &closures.global_closure,
                                   &closures.local_closures[fd],
                                   plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
@@ -936,7 +939,9 @@ struct subr_subsetter_t
     collect_subr_refs_in_str (hinting, subrs[subr_num], param);
   }
 
-  void collect_subr_refs_in_str (bool hinting, const parsed_cs_str_t &str, const subr_subset_param_t &param)
+  void collect_subr_refs_in_str (bool hinting,
+                                 const parsed_cs_str_t &str,
+                                 const subr_subset_param_t &param)
   {
     if (!str.has_calls ())
       return;
@@ -1024,12 +1029,6 @@ struct subr_subsetter_t
 
   }
 
-  parsed_cs_str_t& get_parsed_charstring (unsigned i)
-  {
-    if (cached_charstrings) return *(cached_charstrings[i]);
-    return parsed_charstrings[i];
-  }
-
   const parsed_cs_str_t& get_parsed_charstring (unsigned i) const
   {
     if (cached_charstrings) return *(cached_charstrings[i]);
@@ -1042,16 +1041,15 @@ struct subr_subsetter_t
 
   subr_closures_t		closures;
 
-  hb_vector_t<parsed_cs_str_t*> cached_charstrings;
-  parsed_cs_str_vec_t		parsed_charstrings;
-
-  parsed_cs_str_vec_t*              parsed_global_subrs;
-  hb_vector_t<parsed_cs_str_vec_t>* parsed_local_subrs;
+  hb_vector_t<const parsed_cs_str_t*>     cached_charstrings;
+  const parsed_cs_str_vec_t*              parsed_global_subrs;
+  const hb_vector_t<parsed_cs_str_vec_t>* parsed_local_subrs;
 
   subr_remaps_t			remaps;
 
   private:
 
+  parsed_cs_str_vec_t		parsed_charstrings;
   parsed_cs_str_vec_t		parsed_global_subrs_storage;
   hb_vector_t<parsed_cs_str_vec_t>  parsed_local_subrs_storage;
   typedef typename SUBRS::count_type subr_count_type;
