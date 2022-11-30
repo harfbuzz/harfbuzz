@@ -1997,18 +1997,17 @@ struct ClassDefFormat2_4
   {
     if (glyphs->is_empty ()) return;
 
-    unsigned count = rangeRecord.len;
     hb_codepoint_t g = HB_SET_VALUE_INVALID;
-    for (unsigned int i = 0; i < count; i++)
+    for (auto &range : rangeRecord)
     {
       if (!glyphs->next (&g))
         break;
-      if (g < rangeRecord[i].first)
+      if (g < range.first)
       {
         intersect_classes->add (0);
         break;
       }
-      g = rangeRecord[i].last;
+      g = range.last;
     }
     if (g != HB_SET_VALUE_INVALID && glyphs->next (&g))
       intersect_classes->add (0);
