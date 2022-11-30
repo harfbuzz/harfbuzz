@@ -1954,13 +1954,13 @@ struct ClassDefFormat2_4
       {
 	if (!glyphs->next (&g))
 	  goto done;
-	while (g < rangeRecord[i].first)
+	while (g < rangeRecord.arrayZ[i].first)
 	{
 	  intersect_glyphs->add (g);
 	  if (!glyphs->next (&g))
 	    goto done;
         }
-        g = rangeRecord[i].last;
+        g = rangeRecord.arrayZ[i].last;
       }
       while (glyphs->next (&g))
 	intersect_glyphs->add (g);
@@ -1969,9 +1969,7 @@ struct ClassDefFormat2_4
       return;
     }
 
-    /* The following implementation is faster asymptotically, but slower
-     * in practice. */
-    if (false && count > glyphs->get_population () * hb_bit_storage (count))
+    if (count > glyphs->get_population () * hb_bit_storage (count) * 8)
     {
       for (hb_codepoint_t g = HB_SET_VALUE_INVALID;
 	   glyphs->next (&g);)
@@ -1986,10 +1984,10 @@ struct ClassDefFormat2_4
 
     for (unsigned int i = 0; i < count; i++)
     {
-      if (rangeRecord[i].value != klass) continue;
+      if (rangeRecord.arrayZ[i].value != klass) continue;
 
-      unsigned end = rangeRecord[i].last + 1;
-      for (hb_codepoint_t g = rangeRecord[i].first - 1;
+      unsigned end = rangeRecord.arrayZ[i].last + 1;
+      for (hb_codepoint_t g = rangeRecord.arrayZ[i].first - 1;
 	   glyphs->next (&g) && g < end;)
 	intersect_glyphs->add (g);
     }
