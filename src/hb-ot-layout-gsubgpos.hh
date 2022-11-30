@@ -1002,7 +1002,7 @@ struct hb_accelerate_subtables_context_t :
 };
 
 
-typedef bool (*intersects_func_t) (const hb_set_t *glyphs, unsigned value, const void *data);
+typedef bool (*intersects_func_t) (const hb_set_t *glyphs, unsigned value, const void *data, const void *cache);
 typedef void (*intersected_glyphs_func_t) (const hb_set_t *glyphs, const void *data, unsigned value, hb_set_t *intersected_glyphs);
 typedef void (*collect_glyphs_func_t) (hb_set_t *glyphs, unsigned value, const void *data);
 typedef bool (*match_func_t) (hb_glyph_info_t &info, unsigned value, const void *data);
@@ -1026,16 +1026,25 @@ struct ChainContextApplyFuncs
 };
 
 
-static inline bool intersects_glyph (const hb_set_t *glyphs, unsigned value, const void *data HB_UNUSED)
+static inline bool intersects_glyph (const hb_set_t *glyphs, unsigned value, const void *data HB_UNUSED, const void *cache HB_UNUSED)
 {
   return glyphs->has (value);
 }
-static inline bool intersects_class (const hb_set_t *glyphs, unsigned value, const void *data)
+static inline bool intersects_class (const hb_set_t *glyphs, unsigned value, const void *data, const void *cache)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
-  return class_def.intersects_class (glyphs, value);
+  hb_map_t *map = (hb_map_t *) cache;
+
+  hb_codepoint_t *cached_v;
+  if (map->has (value, &cached_v))
+    return *cached_v;
+
+  bool v = class_def.intersects_class (glyphs, value);
+  map->set (value, v);
+
+  return v;
 }
-static inline bool intersects_coverage (const hb_set_t *glyphs, unsigned value, const void *data)
+static inline bool intersects_coverage (const hb_set_t *glyphs, unsigned value, const void *data, const void *cache HB_UNUSED)
 {
   Offset16To<Coverage> coverage;
   coverage = value;
@@ -1066,10 +1075,11 @@ static inline bool array_is_subset_of (const hb_set_t *glyphs,
 				       unsigned int count,
 				       const HBUINT values[],
 				       intersects_func_t intersects_func,
-				       const void *intersects_data)
+				       const void *intersects_data,
+				       const void *cache)
 {
   for (const auto &_ : + hb_iter (values, count))
-    if (!intersects_func (glyphs, _, intersects_data)) return false;
+    if (!intersects_func (glyphs, _, intersects_data, cache)) return false;
   return true;
 }
 
@@ -1724,6 +1734,7 @@ struct ContextClosureLookupContext
   ContextClosureFuncs funcs;
   ContextFormat context_format;
   const void *intersects_data;
+  const void *cache;
 };
 
 struct ContextCollectGlyphsLookupContext
@@ -1746,7 +1757,7 @@ static inline bool context_intersects (const hb_set_t *glyphs,
 {
   return array_is_subset_of (glyphs,
 			     inputCount ? inputCount - 1 : 0, input,
-			     lookup_context.funcs.intersects, lookup_context.intersects_data);
+			     lookup_context.funcs.intersects, lookup_context.intersects_data, lookup_context.cache);
 }
 
 template <typename HBUINT>
@@ -2234,10 +2245,12 @@ struct ContextFormat2_5
 
     const ClassDef &class_def = this+classDef;
 
+    hb_map_t cache;
     struct ContextClosureLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
       ContextFormat::ClassBasedContext,
-      &class_def
+      &class_def,
+      &cache
     };
 
     hb_set_t retained_coverage_glyphs;
@@ -2273,10 +2286,12 @@ struct ContextFormat2_5
 
     const ClassDef &class_def = this+classDef;
 
+    hb_map_t cache;
     struct ContextClosureLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
       ContextFormat::ClassBasedContext,
-      &class_def
+      &class_def,
+      &cache
     };
 
     + hb_enumerate (ruleSet)
@@ -2300,10 +2315,12 @@ struct ContextFormat2_5
 
     const ClassDef &class_def = this+classDef;
 
+    hb_map_t cache;
     struct ContextClosureLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
       ContextFormat::ClassBasedContext,
-      &class_def
+      &class_def,
+      &cache
     };
 
     + hb_iter (ruleSet)
@@ -2673,6 +2690,7 @@ struct ChainContextClosureLookupContext
   ContextClosureFuncs funcs;
   ContextFormat context_format;
   const void *intersects_data[3];
+  const void *cache[3];
 };
 
 struct ChainContextCollectGlyphsLookupContext
@@ -2699,13 +2717,13 @@ static inline bool chain_context_intersects (const hb_set_t *glyphs,
 {
   return array_is_subset_of (glyphs,
 			     backtrackCount, backtrack,
-			     lookup_context.funcs.intersects, lookup_context.intersects_data[0])
+			     lookup_context.funcs.intersects, lookup_context.intersects_data[0], lookup_context.cache[0])
       && array_is_subset_of (glyphs,
 			     inputCount ? inputCount - 1 : 0, input,
-			     lookup_context.funcs.intersects, lookup_context.intersects_data[1])
+			     lookup_context.funcs.intersects, lookup_context.intersects_data[1], lookup_context.cache[1])
       && array_is_subset_of (glyphs,
 			     lookaheadCount, lookahead,
-			     lookup_context.funcs.intersects, lookup_context.intersects_data[2]);
+			     lookup_context.funcs.intersects, lookup_context.intersects_data[2], lookup_context.cache[2]);
 }
 
 template <typename HBUINT>
@@ -3299,12 +3317,14 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
+    hb_map_t caches[3] = {};
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
       ContextFormat::ClassBasedContext,
       {&backtrack_class_def,
        &input_class_def,
-       &lookahead_class_def}
+       &lookahead_class_def},
+      {&caches[0], &caches[1], &caches[2]}
     };
 
     hb_set_t retained_coverage_glyphs;
@@ -3342,12 +3362,14 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
+    hb_map_t caches[3] = {};
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
       ContextFormat::ClassBasedContext,
       {&backtrack_class_def,
        &input_class_def,
-       &lookahead_class_def}
+       &lookahead_class_def},
+      {&caches[0], &caches[1], &caches[2]}
     };
 
     + hb_enumerate (ruleSet)
@@ -3373,12 +3395,14 @@ struct ChainContextFormat2_5
     const ClassDef &input_class_def = this+inputClassDef;
     const ClassDef &lookahead_class_def = this+lookaheadClassDef;
 
+    hb_map_t caches[3] = {};
     struct ChainContextClosureLookupContext lookup_context = {
       {intersects_class, intersected_class_glyphs},
       ContextFormat::ClassBasedContext,
       {&backtrack_class_def,
        &input_class_def,
-       &lookahead_class_def}
+       &lookahead_class_def},
+      {&caches[0], &caches[1], &caches[2]}
     };
 
     + hb_iter (ruleSet)
