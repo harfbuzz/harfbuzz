@@ -420,9 +420,8 @@ struct FDSelect0 {
     TRACE_SANITIZE (this);
     if (unlikely (!(c->check_struct (this))))
       return_trace (false);
-    for (unsigned int i = 0; i < c->get_num_glyphs (); i++)
-      if (unlikely (!fds[i].sanitize (c)))
-	return_trace (false);
+    if (unlikely (!c->check_array (fds, c->get_num_glyphs ())))
+      return_trace (false);
 
     return_trace (true);
   }
