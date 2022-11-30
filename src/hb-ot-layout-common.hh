@@ -1530,6 +1530,11 @@ struct ClassDefFormat1_3
     return classValue[(unsigned int) (glyph_id - startGlyph)];
   }
 
+  unsigned get_population () const
+  {
+    return classValue.len;
+  }
+
   template<typename Iterator,
 	   hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
@@ -1744,6 +1749,14 @@ struct ClassDefFormat2_4
     return rangeRecord.bsearch (glyph_id).value;
   }
 
+  unsigned get_population () const
+  {
+    typename Types::large_int ret = 0;
+    for (const auto &r : rangeRecord)
+      ret += r.get_population ();
+    return ret > UINT_MAX ? UINT_MAX : (unsigned) ret;
+  }
+
   template<typename Iterator,
 	   hb_requires (hb_is_sorted_source_of (Iterator, hb_codepoint_t))>
   bool serialize (hb_serialize_context_t *c,
@@ -1807,26 +1820,44 @@ struct ClassDefFormat2_4
   {
     TRACE_SUBSET (this);
     const hb_map_t &glyph_map = *c->plan->glyph_map_gsub;
+    const hb_set_t &glyph_set = *c->plan->glyphset_gsub ();
 
     hb_sorted_vector_t<hb_pair_t<hb_codepoint_t, hb_codepoint_t>> glyph_and_klass;
     hb_set_t orig_klasses;
 
-    unsigned num_source_glyphs = c->plan->source->get_num_glyphs ();
-    unsigned count = rangeRecord.len;
-    for (unsigned i = 0; i < count; i++)
+    if (glyph_set.get_population () * hb_bit_storage ((unsigned) rangeRecord.len) / 2
+	< get_population ())
     {
-      unsigned klass = rangeRecord.arrayZ[i].value;
-      if (!klass) continue;
-      hb_codepoint_t start = rangeRecord.arrayZ[i].first;
-      hb_codepoint_t end   = hb_min (rangeRecord.arrayZ[i].last + 1, num_source_glyphs);
-      for (hb_codepoint_t g = start; g < end; g++)
+      for (hb_codepoint_t g : glyph_set)
       {
-        hb_codepoint_t new_gid = glyph_map[g];
+	unsigned klass = get_class (g);
+	if (!klass) continue;
+	hb_codepoint_t new_gid = glyph_map[g];
 	if (new_gid == HB_MAP_VALUE_INVALID) continue;
-        if (glyph_filter && !glyph_filter->has (g)) continue;
-
+	if (glyph_filter && !glyph_filter->has (g)) continue;
 	glyph_and_klass.push (hb_pair (new_gid, klass));
 	orig_klasses.add (klass);
+      }
+    }
+    else
+    {
+      unsigned num_source_glyphs = c->plan->source->get_num_glyphs ();
+      unsigned count = rangeRecord.len;
+      for (unsigned i = 0; i < count; i++)
+      {
+	unsigned klass = rangeRecord.arrayZ[i].value;
+	if (!klass) continue;
+	hb_codepoint_t start = rangeRecord.arrayZ[i].first;
+	hb_codepoint_t end   = hb_min (rangeRecord.arrayZ[i].last + 1, num_source_glyphs);
+	for (hb_codepoint_t g = start; g < end; g++)
+	{
+	  hb_codepoint_t new_gid = glyph_map[g];
+	  if (new_gid == HB_MAP_VALUE_INVALID) continue;
+	  if (glyph_filter && !glyph_filter->has (g)) continue;
+
+	  glyph_and_klass.push (hb_pair (new_gid, klass));
+	  orig_klasses.add (klass);
+	}
       }
     }
 
@@ -2015,6 +2046,19 @@ struct ClassDef
     case 4: return u.format4.get_class (glyph_id);
 #endif
     default:return 0;
+    }
+  }
+
+  unsigned get_population () const
+  {
+    switch (u.format) {
+    case 1: return u.format1.get_population ();
+    case 2: return u.format2.get_population ();
+#ifndef HB_NO_BEYOND_64K
+    case 3: return u.format3.get_population ();
+    case 4: return u.format4.get_population ();
+#endif
+    default:return NOT_COVERED;
     }
   }
 
