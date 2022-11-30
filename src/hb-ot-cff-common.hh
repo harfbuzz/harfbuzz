@@ -329,8 +329,7 @@ struct Dict : UnsizedByteStr
   template <typename T, typename V>
   static bool serialize_int_op (hb_serialize_context_t *c, op_code_t op, V value, op_code_t intOp)
   {
-    // XXX: not sure why but LLVM fails to compile the following 'unlikely' macro invocation
-    if (/*unlikely*/ (!serialize_int<T, V> (c, intOp, value)))
+    if (unlikely ((!serialize_int<T, V> (c, intOp, value))))
       return false;
 
     TRACE_SERIALIZE (this);
