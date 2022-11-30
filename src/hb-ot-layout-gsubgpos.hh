@@ -100,8 +100,8 @@ struct hb_closure_context_t :
 
   bool is_lookup_done (unsigned int lookup_index)
   {
-    if (done_lookups_glyph_count->in_error () ||
-        done_lookups_glyph_set->in_error ())
+    if (unlikely (done_lookups_glyph_count->in_error () ||
+		  done_lookups_glyph_set->in_error ()))
       return true;
 
     /* Have we visited this lookup with the current set of glyphs? */
