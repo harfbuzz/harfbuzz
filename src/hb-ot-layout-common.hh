@@ -1946,21 +1946,20 @@ struct ClassDefFormat2_4
 
   void intersected_class_glyphs (const hb_set_t *glyphs, unsigned klass, hb_set_t *intersect_glyphs) const
   {
-    unsigned count = rangeRecord.len;
     if (klass == 0)
     {
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
-      for (unsigned int i = 0; i < count; i++)
+      for (auto &range : rangeRecord)
       {
 	if (!glyphs->next (&g))
 	  goto done;
-	while (g < rangeRecord.arrayZ[i].first)
+	while (g < range.first)
 	{
 	  intersect_glyphs->add (g);
 	  if (!glyphs->next (&g))
 	    goto done;
         }
-        g = rangeRecord.arrayZ[i].last;
+        g = range.last;
       }
       while (glyphs->next (&g))
 	intersect_glyphs->add (g);
@@ -1969,6 +1968,7 @@ struct ClassDefFormat2_4
       return;
     }
 
+    unsigned count = rangeRecord.len;
     if (count > glyphs->get_population () * hb_bit_storage (count) * 8)
     {
       for (hb_codepoint_t g = HB_SET_VALUE_INVALID;
@@ -1982,12 +1982,12 @@ struct ClassDefFormat2_4
       return;
     }
 
-    for (unsigned int i = 0; i < count; i++)
+    for (auto &range : rangeRecord)
     {
-      if (rangeRecord.arrayZ[i].value != klass) continue;
+      if (range.value != klass) continue;
 
-      unsigned end = rangeRecord.arrayZ[i].last + 1;
-      for (hb_codepoint_t g = rangeRecord.arrayZ[i].first - 1;
+      unsigned end = range.last + 1;
+      for (hb_codepoint_t g = range.first - 1;
 	   glyphs->next (&g) && g < end;)
 	intersect_glyphs->add (g);
     }
