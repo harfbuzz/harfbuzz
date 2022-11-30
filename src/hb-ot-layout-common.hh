@@ -2012,9 +2012,9 @@ struct ClassDefFormat2_4
     if (g != HB_SET_VALUE_INVALID && glyphs->next (&g))
       intersect_classes->add (0);
 
-    for (const auto& record : rangeRecord)
-      if (record.intersects (*glyphs))
-        intersect_classes->add (record.value);
+    for (const auto& range : rangeRecord)
+      if (range.intersects (*glyphs))
+        intersect_classes->add (range.value);
   }
 
   protected:
