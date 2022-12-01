@@ -1842,13 +1842,12 @@ struct ClassDefFormat2_4
     else
     {
       unsigned num_source_glyphs = c->plan->source->get_num_glyphs ();
-      unsigned count = rangeRecord.len;
-      for (unsigned i = 0; i < count; i++)
+      for (auto &range : rangeRecord)
       {
-	unsigned klass = rangeRecord.arrayZ[i].value;
+	unsigned klass = range.value;
 	if (!klass) continue;
-	hb_codepoint_t start = rangeRecord.arrayZ[i].first;
-	hb_codepoint_t end   = hb_min (rangeRecord.arrayZ[i].last + 1, num_source_glyphs);
+	hb_codepoint_t start = range.first;
+	hb_codepoint_t end   = hb_min (range.last + 1, num_source_glyphs);
 	for (hb_codepoint_t g = start; g < end; g++)
 	{
 	  hb_codepoint_t new_gid = glyph_map[g];
@@ -1886,10 +1885,9 @@ struct ClassDefFormat2_4
   template <typename set_t>
   bool collect_coverage (set_t *glyphs) const
   {
-    unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++)
-      if (rangeRecord[i].value)
-	if (unlikely (!rangeRecord[i].collect_coverage (glyphs)))
+    for (auto &range : rangeRecord)
+      if (range.value)
+	if (unlikely (!range.collect_coverage (glyphs)))
 	  return false;
     return true;
   }
@@ -1897,11 +1895,10 @@ struct ClassDefFormat2_4
   template <typename set_t>
   bool collect_class (set_t *glyphs, unsigned int klass) const
   {
-    unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++)
+    for (auto &range : rangeRecord)
     {
-      if (rangeRecord[i].value == klass)
-	if (unlikely (!rangeRecord[i].collect_coverage (glyphs)))
+      if (range.value == klass)
+	if (unlikely (!range.collect_coverage (glyphs)))
 	  return false;
     }
     return true;
@@ -1910,10 +1907,8 @@ struct ClassDefFormat2_4
   bool intersects (const hb_set_t *glyphs) const
   {
     /* TODO Speed up, using hb_set_next() and bsearch()? */
-    unsigned int count = rangeRecord.len;
-    for (unsigned int i = 0; i < count; i++)
+    for (auto &range : rangeRecord)
     {
-      const auto& range = rangeRecord[i];
       if (range.intersects (*glyphs) && range.value)
 	return true;
     }
@@ -1921,18 +1916,17 @@ struct ClassDefFormat2_4
   }
   bool intersects_class (const hb_set_t *glyphs, uint16_t klass) const
   {
-    unsigned int count = rangeRecord.len;
     if (klass == 0)
     {
       /* Match if there's any glyph that is not listed! */
       hb_codepoint_t g = HB_SET_VALUE_INVALID;
-      for (unsigned int i = 0; i < count; i++)
+      for (auto &range : rangeRecord)
       {
 	if (!glyphs->next (&g))
 	  break;
-	if (g < rangeRecord[i].first)
+	if (g < range.first)
 	  return true;
-	g = rangeRecord[i].last;
+	g = range.last;
       }
       if (g != HB_SET_VALUE_INVALID && glyphs->next (&g))
 	return true;
