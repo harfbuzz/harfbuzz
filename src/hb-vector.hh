@@ -130,7 +130,7 @@ struct hb_vector_t
   }
 
   hb_bytes_t as_bytes () const
-  { return hb_bytes_t ((const char *) arrayZ, length * item_size); }
+  { return hb_bytes_t ((const char *) arrayZ, get_size ()); }
 
   bool operator == (const hb_vector_t &o) const { return as_array () == o.as_array (); }
   bool operator != (const hb_vector_t &o) const { return !(*this == o); }
