@@ -171,7 +171,7 @@ struct CFFIndex
     if (!this->count) return_trace (true);
     if (unlikely (!c->extend (this->offSize))) return_trace (false);
     this->offSize = off_size;
-    if (unlikely (!c->allocate_size<HBUINT8> (off_size * (this->count + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (off_size * (this->count + 1), false)))
       return_trace (false);
 
     /* serialize indices */
