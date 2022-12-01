@@ -117,6 +117,19 @@ struct CFFIndex
     return_trace (true);
   }
 
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
+  static unsigned total_size (const Iterable &iterable)
+  {
+    auto it = + hb_iter (iterable) | hb_map (hb_iter) | hb_map (hb_len);
+    if (!it) return 0;
+
+    unsigned total = + it | hb_reduce (hb_add, 0);
+    unsigned off_size = (hb_bit_storage (total + 1) + 7) / 8;
+
+    return min_size + HBUINT8::static_size + (hb_len (it) + 1) * off_size + total;
+  }
+
   void set_offset_at (unsigned int index, unsigned int offset)
   {
     assert (index <= count);
