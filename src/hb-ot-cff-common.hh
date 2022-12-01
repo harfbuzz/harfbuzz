@@ -72,26 +72,17 @@ struct CFFIndex
     return_trace (out);
   }
 
-  template <typename Iterator,
-	    hb_requires (hb_is_iterator (Iterator))>
+  template <typename Iterable,
+	    hb_requires (hb_is_iterable (Iterable))>
   bool serialize (hb_serialize_context_t *c,
-		  Iterator it)
+		  const Iterable &iterable)
   {
     TRACE_SERIALIZE (this);
-    serialize_header(c, + it | hb_map ([] (const hb_ubytes_t &_) { return _.length; }));
+    auto it = hb_iter (iterable);
+    serialize_header(c, + it | hb_map (hb_iter) | hb_map (hb_len));
     for (const auto &_ : +it)
-      _.copy (c);
+      hb_iter (_).copy (c);
     return_trace (true);
-  }
-
-  bool serialize (hb_serialize_context_t *c,
-		  const str_buff_vec_t &buffArray)
-  {
-    auto it =
-    + hb_iter (buffArray)
-    | hb_map ([] (const str_buff_t &_) { return hb_ubytes_t (_.arrayZ, _.length); })
-    ;
-    return serialize (c, it);
   }
 
   template <typename Iterator,
