@@ -2579,7 +2579,8 @@ struct VarData
 
   int32_t get_item_delta (unsigned int item, unsigned int region) const
   {
-    if ( item >= itemCount || unlikely (region >= regionIndices.len)) return 0;
+    if (unlikely (item >= itemCount || region >= regionIndices.len)) return 0;
+
     const HBINT8 *p = (const HBINT8 *) get_delta_bytes () + item * get_row_size ();
     unsigned word_count = wordCount ();
     bool is_long = longWords ();
