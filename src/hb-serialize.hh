@@ -571,7 +571,7 @@ struct hb_serialize_context_t
   }
 
   template <typename Type>
-  Type *allocate_size (size_t size)
+  Type *allocate_size (size_t size, bool clear = true)
   {
     if (unlikely (in_error ())) return nullptr;
 
@@ -580,7 +580,8 @@ struct hb_serialize_context_t
       err (HB_SERIALIZE_ERROR_OUT_OF_ROOM);
       return nullptr;
     }
-    hb_memset (this->head, 0, size);
+    if (clear)
+      hb_memset (this->head, 0, size);
     char *ret = this->head;
     this->head += size;
     return reinterpret_cast<Type *> (ret);
@@ -635,7 +636,7 @@ struct hb_serialize_context_t
   hb_serialize_context_t& operator << (const Type &obj) & { embed (obj); return *this; }
 
   template <typename Type>
-  Type *extend_size (Type *obj, size_t size)
+  Type *extend_size (Type *obj, size_t size, bool clear = true)
   {
     if (unlikely (in_error ())) return nullptr;
 
@@ -643,12 +644,12 @@ struct hb_serialize_context_t
     assert ((char *) obj <= this->head);
     assert ((size_t) (this->head - (char *) obj) <= size);
     if (unlikely (((char *) obj + size < (char *) obj) ||
-		  !this->allocate_size<Type> (((char *) obj) + size - this->head))) return nullptr;
+		  !this->allocate_size<Type> (((char *) obj) + size - this->head, clear))) return nullptr;
     return reinterpret_cast<Type *> (obj);
   }
   template <typename Type>
-  Type *extend_size (Type &obj, size_t size)
-  { return extend_size (std::addressof (obj), size); }
+  Type *extend_size (Type &obj, size_t size, bool clear = true)
+  { return extend_size (std::addressof (obj), size, clear); }
 
   template <typename Type>
   Type *extend_min (Type *obj) { return extend_size (obj, obj->min_size); }
