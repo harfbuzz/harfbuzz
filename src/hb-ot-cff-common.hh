@@ -66,7 +66,7 @@ struct CFFIndex
   {
     TRACE_SERIALIZE (this);
     unsigned int size = get_size ();
-    CFFIndex *out = c->allocate_size<CFFIndex> (size);
+    CFFIndex *out = c->allocate_size<CFFIndex> (size, false);
     if (likely (out))
       hb_memcpy (out, this, size);
     return_trace (out);
@@ -90,7 +90,7 @@ struct CFFIndex
     if (unlikely (!c->extend_min (this))) return_trace (false);
     this->count = byteArray.length;
     this->offSize = offSize_;
-    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1), false)))
       return_trace (false);
 
     /* serialize indices */
@@ -107,7 +107,7 @@ struct CFFIndex
     for (unsigned int i = 0; i < byteArray.length; i++)
     {
       const hb_ubytes_t &bs = byteArray[i];
-      unsigned char *dest = c->allocate_size<unsigned char> (bs.length);
+      unsigned char *dest = c->allocate_size<unsigned char> (bs.length, false);
       if (unlikely (!dest)) return_trace (false);
       hb_memcpy (dest, &bs[0], bs.length);
     }
@@ -285,7 +285,7 @@ struct CFFIndexOf : CFFIndex<COUNT>
     if (unlikely (!c->extend_min (this))) return_trace (false);
     this->count = dataArrayLen;
     this->offSize = offSize_;
-    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1))))
+    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (dataArrayLen + 1), false)))
       return_trace (false);
 
     /* serialize indices */
@@ -334,7 +334,7 @@ struct Dict : UnsizedByteStr
 
     TRACE_SERIALIZE (this);
     /* serialize the opcode */
-    HBUINT8 *p = c->allocate_size<HBUINT8> (OpCode_Size (op));
+    HBUINT8 *p = c->allocate_size<HBUINT8> (OpCode_Size (op), false);
     if (unlikely (!p)) return_trace (false);
     if (Is_OpCode_ESC (op))
     {
@@ -510,7 +510,7 @@ struct FDSelect
   {
     TRACE_SERIALIZE (this);
     unsigned int size = src.get_size (num_glyphs);
-    FDSelect *dest = c->allocate_size<FDSelect> (size);
+    FDSelect *dest = c->allocate_size<FDSelect> (size, false);
     if (unlikely (!dest)) return_trace (false);
     hb_memcpy (dest, &src, size);
     return_trace (true);
