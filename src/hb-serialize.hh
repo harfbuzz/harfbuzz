@@ -570,6 +570,21 @@ struct hb_serialize_context_t
     return !bool ((errors = (errors | err_type)));
   }
 
+  bool start_zerocopy (size_t size)
+  {
+    if (unlikely (in_error ())) return false;
+
+    if (unlikely (size > INT_MAX || this->tail - this->head < ptrdiff_t (size)))
+    {
+      err (HB_SERIALIZE_ERROR_OUT_OF_ROOM);
+      return false;
+    }
+
+    assert (this->current->head == this->head);
+    this->current->head = this->head = this->tail - size;
+    return true;
+  }
+
   template <typename Type>
   Type *allocate_size (size_t size, bool clear = true)
   {
