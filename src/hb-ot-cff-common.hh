@@ -72,63 +72,6 @@ struct CFFIndex
     return_trace (out);
   }
 
-  bool serialize (hb_serialize_context_t *c,
-		  unsigned int offSize_,
-		  const byte_str_array_t &byteArray)
-  {
-    TRACE_SERIALIZE (this);
-
-    if (byteArray.length == 0)
-    {
-      COUNT *dest = c->allocate_min<COUNT> ();
-      if (unlikely (!dest)) return_trace (false);
-      *dest = 0;
-      return_trace (true);
-    }
-
-    /* serialize CFFIndex header */
-    if (unlikely (!c->extend_min (this))) return_trace (false);
-    this->count = byteArray.length;
-    this->offSize = offSize_;
-    if (unlikely (!c->allocate_size<HBUINT8> (offSize_ * (byteArray.length + 1), false)))
-      return_trace (false);
-
-    /* serialize indices */
-    unsigned int  offset = 1;
-    unsigned int  i = 0;
-    for (; i < byteArray.length; i++)
-    {
-      set_offset_at (i, offset);
-      offset += byteArray[i].get_size ();
-    }
-    set_offset_at (i, offset);
-
-    /* serialize data */
-    for (unsigned int i = 0; i < byteArray.length; i++)
-    {
-      const hb_ubytes_t &bs = byteArray[i];
-      unsigned char *dest = c->allocate_size<unsigned char> (bs.length, false);
-      if (unlikely (!dest)) return_trace (false);
-      hb_memcpy (dest, &bs[0], bs.length);
-    }
-
-    return_trace (true);
-  }
-
-  bool serialize (hb_serialize_context_t *c,
-		  unsigned int offSize_,
-		  const str_buff_vec_t &buffArray)
-  {
-    byte_str_array_t  byteArray;
-    byteArray.init ();
-    byteArray.resize (buffArray.length);
-    for (unsigned int i = 0; i < byteArray.length; i++)
-      byteArray[i] = hb_ubytes_t (buffArray[i].arrayZ, buffArray[i].length);
-    bool result = this->serialize (c, offSize_, byteArray);
-    byteArray.fini ();
-    return result;
-  }
-
   template <typename Iterator,
 	    hb_requires (hb_is_iterator (Iterator))>
   bool serialize (hb_serialize_context_t *c,
@@ -140,10 +83,6 @@ struct CFFIndex
       _.copy (c);
     return_trace (true);
   }
-
-  bool serialize (hb_serialize_context_t *c,
-		  const byte_str_array_t &byteArray)
-  { return serialize (c, + hb_iter (byteArray)); }
 
   bool serialize (hb_serialize_context_t *c,
 		  const str_buff_vec_t &buffArray)
