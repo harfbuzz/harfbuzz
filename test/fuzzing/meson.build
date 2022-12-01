@@ -1,10 +1,13 @@
 tests = [
   'hb-shape-fuzzer.cc',
   'hb-subset-fuzzer.cc',
-  'hb-repacker-fuzzer.cc',
   'hb-set-fuzzer.cc',
   'hb-draw-fuzzer.cc',
 ]
+
+if get_option('experimental_api')
+  tests += 'hb-repacker-fuzzer.cc'
+endif
 
 foreach file_name : tests
   test_name = file_name.split('.')[0]
@@ -20,8 +23,10 @@ foreach file_name : tests
     extra_cpp_args += '-DHB_IS_IN_FUZZER'
   endif
 
-  # TODO tie this to the experimental api setting.
-  extra_cpp_args += '-DHB_EXPERIMENTAL_API'
+  if get_option('experimental_api')
+    extra_cpp_args += '-DHB_EXPERIMENTAL_API'
+  endif
+
   exe = executable(test_name, sources,
     cpp_args: cpp_args + extra_cpp_args,
     include_directories: [incconfig, incsrc],
@@ -58,17 +63,19 @@ test('subset_fuzzer', find_program('run-subset-fuzzer-tests.py'),
   suite: ['fuzzing', 'slow'],
 )
 
-test('repacker_fuzzer', find_program('run-repacker-fuzzer-tests.py'),
-  args: [
-    hb_repacker_fuzzer_exe,
-  ],
-  # as the tests are ran concurrently let's raise acceptable time here
-  # ideally better to break and let meson handles them in parallel
-  timeout: 300,
-  workdir: meson.current_build_dir() / '..' / '..',
-  env: env,
-  suite: ['fuzzing', 'slow'],
-)
+if get_option('experimental_api')
+  test('repacker_fuzzer', find_program('run-repacker-fuzzer-tests.py'),
+    args: [
+      hb_repacker_fuzzer_exe,
+    ],
+    # as the tests are ran concurrently let's raise acceptable time here
+    # ideally better to break and let meson handles them in parallel
+    timeout: 300,
+    workdir: meson.current_build_dir() / '..' / '..',
+    env: env,
+    suite: ['fuzzing', 'slow'],
+  )
+endif
 
 test('draw_fuzzer', find_program('run-draw-fuzzer-tests.py'),
   args: [
