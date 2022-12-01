@@ -595,7 +595,7 @@ struct hb_serialize_context_t
   Type *embed (const Type *obj)
   {
     unsigned int size = obj->get_size ();
-    Type *ret = this->allocate_size<Type> (size);
+    Type *ret = this->allocate_size<Type> (size, false);
     if (unlikely (!ret)) return nullptr;
     hb_memcpy (ret, obj, size);
     return ret;
