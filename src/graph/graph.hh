@@ -50,7 +50,7 @@ struct graph_t
     unsigned priority = 0;
 
 
-    bool link_positions_valid (unsigned parent_index)
+    bool link_positions_valid ()
     {
       hb_set_t assigned_bytes;
       for (const auto& l : obj.real_links)
@@ -321,8 +321,6 @@ struct graph_t
     vertices_scratch_.alloc (objects.length);
     for (unsigned i = 0; i < objects.length; i++)
     {
-      // TODO(grieger): check all links point to valid objects.
-
       // If this graph came from a serialization buffer object 0 is the
       // nil object. We don't need it for our purposes here so drop it.
       if (i == 0 && !objects[i])
@@ -335,7 +333,8 @@ struct graph_t
       if (check_success (!vertices_.in_error ()))
         v->obj = *objects[i];
 
-      check_success (v->link_positions_valid (i));
+      check_success (v->link_positions_valid ());
+
       if (!removed_nil) continue;
       // Fix indices to account for removed nil object.
       for (auto& l : v->obj.all_links_writer ()) {
@@ -454,6 +453,13 @@ struct graph_t
 
       hb_swap (sorted_graph[new_id], vertices_[next_id]);
       const vertex_t& next = sorted_graph[new_id];
+
+      if (unlikely (!check_success(new_id >= 0))) {
+        // We are out of ids. Which means we've visited a node more than once.
+        // This graph contains a cycle which is not allowed.
+        DEBUG_MSG (SUBSET_REPACK, nullptr, "Invalid graph. Contains cycle.");
+        return;
+      }
 
       id_map[next_id] = new_id--;
 

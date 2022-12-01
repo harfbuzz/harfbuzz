@@ -15,6 +15,20 @@ typedef struct
   uint8_t width;
 } link_t;
 
+/* The fuzzer seed contains a serialized representation of a object graph which forms
+ * the input graph to the repacker call. The binary format is:
+ *
+ * table tag: 4 bytes
+ * number of objects: 2 bytes
+ * objects[number of objects]:
+ *   blob size: 2 bytes
+ *   blob: blob size bytes
+ * num of real links: 2 bytes
+ * links[number of real links]: link_t struct
+ *
+ * TODO(garretrieger): add optional virtual links
+ */
+
 template <typename T>
 bool read(const uint8_t** data, size_t* size, T* out)
 {
@@ -108,8 +122,7 @@ extern "C" int LLVMFuzzerTestOneInput (const uint8_t *data, size_t size)
   {
     if (!read<link_t> (&data, &size, &links[i])) goto end;
 
-    if (links[i].parent >= num_objects
-        || links[i].child > links[i].parent) // Enforces DAG graph
+    if (links[i].parent >= num_objects)
       goto end;
   }
 

@@ -283,6 +283,11 @@ hb_resolve_graph_overflows (hb_tag_t table_tag,
                             graph_t& sorted_graph /* IN/OUT */)
 {
   sorted_graph.sort_shortest_distance ();
+  if (sorted_graph.in_error ())
+  {
+    DEBUG_MSG (SUBSET_REPACK, nullptr, "Sorted graph in error state after initial sort.");
+    return false;
+  }
 
   bool will_overflow = graph::will_overflow (sorted_graph);
   if (!will_overflow)

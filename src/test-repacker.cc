@@ -1476,6 +1476,7 @@ static void test_sort_shortest ()
 
   graph_t graph (c.object_graph ());
   graph.sort_shortest_distance ();
+  assert (!graph.in_error ());
 
   assert(strncmp (graph.object (4).head, "abc", 3) == 0);
   assert(graph.object (4).real_links.length == 3);
