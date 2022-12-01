@@ -995,6 +995,10 @@ struct graph_t
   {
     update_parents();
 
+    if (root().parents)
+      // Root cannot have parents.
+      return false;
+
     for (unsigned i = 0; i < root_idx (); i++)
     {
       if (!vertices_[i].parents)
@@ -1060,6 +1064,10 @@ struct graph_t
     DEBUG_MSG (SUBSET_REPACK, nullptr, "Graph is not fully connected.");
     parents_invalid = true;
     update_parents();
+
+    if (root().parents) {
+      DEBUG_MSG (SUBSET_REPACK, nullptr, "Root node has incoming edges.");
+    }
 
     for (unsigned i = 0; i < root_idx (); i++)
     {
