@@ -63,7 +63,6 @@ struct blend_arg_t : number_t
   hb_vector_t<number_t> deltas;
 };
 
-typedef interp_env_t<blend_arg_t> BlendInterpEnv;
 typedef biased_subrs_t<CFF2Subrs>   cff2_biased_subrs_t;
 
 template <typename ELEM>
