@@ -111,14 +111,9 @@ struct str_encoder_t
 
   void copy_str (const unsigned char *str, unsigned length)
   {
-    unsigned int  offset = buff.length;
-    /* Manually resize buffer since faster. */
-    if (likely ((signed) (buff.length + length) <= buff.allocated))
-      buff.length += length;
-    else if (unlikely (!buff.resize (offset + length)))
-      return;
-
-    hb_memcpy (buff.arrayZ + offset, str, length);
+    assert ((signed) (buff.length + length) <= buff.allocated);
+    hb_memcpy (buff.arrayZ + buff.length, str, length);
+    buff.length += length;
   }
 
   bool in_error () const { return buff.in_error (); }
@@ -986,8 +981,13 @@ struct subr_subsetter_t
 
     unsigned size = 0;
     for (unsigned int i = 0; i < count; i++)
+    {
       size += arr[i].length;
-    buff.alloc (size);
+      if (arr[i].op == OpCode_callsubr || arr[i].op == OpCode_callgsubr)
+        size += 3;
+    }
+    if (!buff.alloc (size))
+      return false;
 
     for (unsigned int i = 0; i < count; i++)
     {
