@@ -571,7 +571,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   auto &arr = plan->unicode_to_new_gid_list;
   if (arr.length)
   {
-    plan->unicodes->add_sorted_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
+    plan->unicodes->add_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
     plan->_glyphset_gsub->add_array (&arr.arrayZ->second, arr.length, sizeof (*arr.arrayZ));
   }
 }
