@@ -63,7 +63,7 @@ struct hb_multimap_t
     singulars.set (k, v);
   }
 
-  hb_array_t<hb_codepoint_t> get (hb_codepoint_t k)
+  hb_array_t<const hb_codepoint_t> get (hb_codepoint_t k) const
   {
     hb_codepoint_t *v;
     if (singulars.has (k, &v))
