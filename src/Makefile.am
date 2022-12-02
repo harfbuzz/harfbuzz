@@ -368,6 +368,7 @@ COMPILED_TESTS = \
 	test-iter \
 	test-machinery \
 	test-map \
+	test-multimap \
 	test-number \
 	test-ot-tag \
 	test-priority-queue \
@@ -406,6 +407,10 @@ test_machinery_LDADD = $(COMPILED_TESTS_LDADD)
 test_map_SOURCES = test-map.cc hb-static.cc
 test_map_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
 test_map_LDADD = $(COMPILED_TESTS_LDADD)
+
+test_multimap_SOURCES = test-multimap.cc hb-static.cc
+test_multimap_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
+test_multimap_LDADD = $(COMPILED_TESTS_LDADD)
 
 test_number_SOURCES = test-number.cc hb-number.cc
 test_number_CPPFLAGS = $(COMPILED_TESTS_CPPFLAGS)
