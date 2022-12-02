@@ -45,6 +45,15 @@ main (int argc, char **argv)
   assert (m.get (10)[2] == 13);
 
   assert (m.get (11).length == 0);
+  m.add (11, 14);
+  assert (m.get (10).length == 3);
+  assert (m.get (11).length == 1);
+  assert (m.get (12).length == 0);
+  assert (m.get (10)[0] == 11);
+  assert (m.get (10)[1] == 12);
+  assert (m.get (10)[2] == 13);
+  assert (m.get (11)[0] == 14);
+  assert (m.get (12)[0] == 0); // Array fallback value
 
   return 0;
 }
