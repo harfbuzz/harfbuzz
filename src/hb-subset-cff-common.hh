@@ -998,12 +998,12 @@ struct subr_subsetter_t
 	{
 	  case OpCode_callsubr:
 	    encoder.encode_int (remaps.local_remaps[fd].biased_num (opstr.subr_num));
-	    encoder.encode_op (OpCode_callsubr);
+	    encoder.copy_str (opstr.ptr, opstr.length);
 	    break;
 
 	  case OpCode_callgsubr:
 	    encoder.encode_int (remaps.global_remap.biased_num (opstr.subr_num));
-	    encoder.encode_op (OpCode_callgsubr);
+	    encoder.copy_str (opstr.ptr, opstr.length);
 	    break;
 
 	  default:
