@@ -742,9 +742,15 @@ static bool _serialize_cff1 (hb_serialize_context_t *c,
 
   /* CharStrings */
   {
+    c->push<CFF1CharStrings> ();
+
+    unsigned total_size = CFF1CharStrings::total_size (plan.subset_charstrings);
+    if (unlikely (!c->start_zerocopy (total_size)))
+       return false;
+
     CFF1CharStrings  *cs = c->start_embed<CFF1CharStrings> ();
     if (unlikely (!cs)) return false;
-    c->push ();
+
     if (likely (cs->serialize (c, plan.subset_charstrings)))
       plan.info.char_strings_link = c->pop_pack (false);
     else
