@@ -735,14 +735,13 @@ struct subr_subsetter_t
 
     if (unlikely (!buffArray.resize (count)))
       return false;
-    for (unsigned int old_num = 0; old_num < subrs.length; old_num++)
+    for (unsigned int new_num = 0; new_num < count; new_num++)
     {
-      hb_codepoint_t new_num = remap[old_num];
-      if (new_num != CFF_UNDEF_CODE)
-      {
-	if (unlikely (!encode_str (subrs[old_num], fd, buffArray[new_num])))
-	  return false;
-      }
+      hb_codepoint_t old_num = remap.backward (new_num);
+      assert (old_num != CFF_UNDEF_CODE);
+
+      if (unlikely (!encode_str (subrs[old_num], fd, buffArray[new_num])))
+	return false;
     }
     return true;
   }
