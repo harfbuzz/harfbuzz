@@ -118,14 +118,7 @@ struct str_encoder_t
     else if (unlikely (!buff.resize (offset + length)))
       return;
 
-    /* Faster than hb_memcpy for small strings. */
-    auto *arr = buff.arrayZ + offset;
-    /* Length is at least one; and mostly just one. */
-    arr[0] = str[0];
-    for (unsigned i = 1; i < length; i++)
-      arr[i] = str[i];
-
-    //hb_memcpy (buff.arrayZ + offset, str, length);
+    hb_memcpy (buff.arrayZ + offset, str, length);
   }
 
   bool in_error () const { return buff.in_error (); }
@@ -716,7 +709,7 @@ struct subr_subsetter_t
 
     remaps.create (closures);
 
-    populate_subset_accelerator();
+    populate_subset_accelerator ();
     return true;
   }
 
@@ -1017,9 +1010,51 @@ struct subr_subsetter_t
     return !encoder.in_error ();
   }
 
-  void populate_subset_accelerator() const
+  void compact_parsed_strings () const
+  {
+    for (auto &cs : parsed_charstrings)
+      compact_string (cs);
+    for (auto &cs : parsed_global_subrs_storage)
+      compact_string (cs);
+    for (auto &vec : parsed_local_subrs_storage)
+      for (auto &cs : vec)
+	compact_string (cs);
+  }
+
+  static void compact_string (parsed_cs_str_t &str)
+  {
+    unsigned count = str.values.length;
+    if (unlikely (!count)) return;
+    auto &opstr = str.values.arrayZ;
+    unsigned j = 0;
+    for (unsigned i = 1; i < count; i++)
+    {
+      /* See if we can combine op j and op i. */
+      bool combine =
+        (opstr[j].op != OpCode_callsubr && opstr[j].op != OpCode_callgsubr) &&
+        (opstr[i].op != OpCode_callsubr && opstr[i].op != OpCode_callgsubr) &&
+        (opstr[j].is_hinting () == opstr[i].is_hinting ()) &&
+        (opstr[j].ptr + opstr[j].length == opstr[i].ptr) &&
+        (opstr[j].length + opstr[i].length <= 255);
+
+      if (combine)
+      {
+	opstr[j].length += opstr[i].length;
+	opstr[j].op = OpCode_Invalid;
+      }
+      else
+      {
+	opstr[++j] = opstr[i];
+      }
+    }
+    str.values.shrink (j + 1);
+  }
+
+  void populate_subset_accelerator () const
   {
     if (!plan->inprogress_accelerator) return;
+
+    compact_parsed_strings ();
 
     plan->inprogress_accelerator->cff_accelerator =
         cff_subset_accelerator_t::create(acc.blob,
