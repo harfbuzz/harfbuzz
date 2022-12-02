@@ -383,9 +383,10 @@ static bool _serialize_cff2 (hb_serialize_context_t *c,
   if (acc.fdSelect != &Null (CFF2FDSelect))
   {
     c->push ();
-    if (likely (hb_serialize_cff_fdselect (c, num_glyphs, *(const FDSelect *)acc.fdSelect, 					      plan.orig_fdcount,
-					    plan.subset_fdselect_format, plan.subset_fdselect_size,
-					    plan.subset_fdselect_ranges)))
+    if (likely (hb_serialize_cff_fdselect (c, num_glyphs, *(const FDSelect *)acc.fdSelect,
+					   plan.orig_fdcount,
+					   plan.subset_fdselect_format, plan.subset_fdselect_size,
+					   plan.subset_fdselect_ranges)))
       plan.info.fd_select.link = c->pop_pack ();
     else
     {
