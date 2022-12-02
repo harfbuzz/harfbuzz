@@ -286,7 +286,7 @@ struct hb_array_t : hb_iter_with_fallback_t<hb_array_t<Type>, Type&>
     TRACE_SERIALIZE (this);
     auto* out = c->start_embed (arrayZ);
     if (unlikely (!c->extend_size (out, get_size (), false))) return_trace (hb_array_t ());
-    hb_memcpy (out, arrayZ, length);
+    hb_memcpy (out, arrayZ, get_size ());
     return_trace (hb_array_t (out, length));
   }
 
