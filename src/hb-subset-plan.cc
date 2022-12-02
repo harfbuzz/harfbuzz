@@ -541,10 +541,15 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
       }
       for (hb_codepoint_t cp : *unicodes)
       {
+	/* Don't double-add entry. */
+	if (plan->codepoint_to_glyph->has (cp))
+	  continue;
+
 	hb_codepoint_t gid = (*unicode_glyphid_map)[cp];
 	plan->codepoint_to_glyph->set (cp, gid);
 	plan->unicode_to_new_gid_list.push (hb_pair (cp, gid));
       }
+      plan->unicode_to_new_gid_list.qsort ();
     }
     else
     {
@@ -571,7 +576,7 @@ _populate_unicodes_to_retain (const hb_set_t *unicodes,
   auto &arr = plan->unicode_to_new_gid_list;
   if (arr.length)
   {
-    plan->unicodes->add_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
+    plan->unicodes->add_sorted_array (&arr.arrayZ->first, arr.length, sizeof (*arr.arrayZ));
     plan->_glyphset_gsub->add_array (&arr.arrayZ->second, arr.length, sizeof (*arr.arrayZ));
   }
 }
