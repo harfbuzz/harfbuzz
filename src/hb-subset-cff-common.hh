@@ -936,24 +936,21 @@ struct subr_subsetter_t
     if (!str.has_calls ())
       return;
 
-    auto *values = str.values.arrayZ;
-    unsigned count = str.values.length;
-    for (unsigned i = 0; i < count; i++)
+    for (auto &opstr : str.values)
     {
-      auto &value = values[i];
-      if (hinting || !value.is_hinting ())
+      if (hinting || !opstr.is_hinting ())
       {
-	switch (value.op)
+	switch (opstr.op)
 	{
 	  case OpCode_callsubr:
 	    collect_subr_refs_in_subr (hinting,
-				       value.subr_num, *param.parsed_local_subrs,
+				       opstr.subr_num, *param.parsed_local_subrs,
 				       param.local_closure, param);
 	    break;
 
 	  case OpCode_callgsubr:
 	    collect_subr_refs_in_subr (hinting,
-				       value.subr_num, *param.parsed_global_subrs,
+				       opstr.subr_num, *param.parsed_global_subrs,
 				       param.global_closure, param);
 	    break;
 
@@ -965,7 +962,6 @@ struct subr_subsetter_t
 
   bool encode_str (const parsed_cs_str_t &str, const unsigned int fd, str_buff_t &buff) const
   {
-    unsigned count = str.get_count ();
     str_encoder_t  encoder (buff);
     encoder.reset ();
     bool hinting = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
@@ -977,21 +973,19 @@ struct subr_subsetter_t
       if (str.prefix_op () != OpCode_Invalid)
 	encoder.encode_op (str.prefix_op ());
     }
-    auto *arr = str.values.arrayZ;
 
     unsigned size = 0;
-    for (unsigned int i = 0; i < count; i++)
+    for (auto &opstr : str.values)
     {
-      size += arr[i].length;
-      if (arr[i].op == OpCode_callsubr || arr[i].op == OpCode_callgsubr)
+      size += opstr.length;
+      if (opstr.op == OpCode_callsubr || opstr.op == OpCode_callgsubr)
         size += 3;
     }
     if (!buff.alloc (size))
       return false;
 
-    for (unsigned int i = 0; i < count; i++)
+    for (auto &opstr : str.values)
     {
-      const parsed_cs_op_t  &opstr = arr[i];
       if (hinting || !opstr.is_hinting ())
       {
 	switch (opstr.op)
