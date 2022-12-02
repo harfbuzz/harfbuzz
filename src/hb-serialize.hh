@@ -326,7 +326,8 @@ struct hb_serialize_context_t
     if (unlikely (in_error() && !only_overflow ())) return;
 
     current = current->next;
-    revert (obj->head, obj->tail);
+    revert (zerocopy ? zerocopy : obj->head, obj->tail);
+    zerocopy = nullptr;
     obj->fini ();
     object_pool.release (obj);
   }
