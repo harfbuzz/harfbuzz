@@ -718,13 +718,13 @@ struct subr_subsetter_t
       if (!plan->old_gid_for_new_gid (i, &glyph))
       {
 	/* add an endchar only charstring for a missing glyph if CFF1 */
-	if (endchar_op != OpCode_Invalid) buffArray[i].push (endchar_op);
+	if (endchar_op != OpCode_Invalid) buffArray.arrayZ[i].push (endchar_op);
 	continue;
       }
       unsigned int  fd = acc.fdSelect->get_fd (glyph);
       if (unlikely (fd >= acc.fdCount))
 	return false;
-      if (unlikely (!encode_str (get_parsed_charstring (i), fd, buffArray[i])))
+      if (unlikely (!encode_str (get_parsed_charstring (i), fd, buffArray.arrayZ[i])))
 	return false;
     }
     return true;
