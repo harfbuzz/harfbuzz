@@ -27,6 +27,7 @@
 #include "hb-subset-plan.hh"
 #include "hb-subset-accelerator.hh"
 #include "hb-map.hh"
+#include "hb-multimap.hh"
 #include "hb-set.hh"
 
 #include "hb-ot-cmap-table.hh"
@@ -930,8 +931,19 @@ hb_subset_plan_create_or_fail (hb_face_t	 *face,
 
   if (plan->attach_accelerator_data)
   {
+    hb_multimap_t gid_to_unicodes;
+
+    hb_map_t &unicode_to_gid = *plan->codepoint_to_glyph;
+
+    for (auto unicode : *plan->unicodes)
+    {
+      auto gid = unicode_to_gid[unicode];
+      gid_to_unicodes.add (gid, unicode);
+    }
+
     plan->inprogress_accelerator =
       hb_subset_accelerator_t::create (*plan->codepoint_to_glyph,
+				       gid_to_unicodes,
                                        *plan->unicodes,
 				       plan->has_seac);
   }
