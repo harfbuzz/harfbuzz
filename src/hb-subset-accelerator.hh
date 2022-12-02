@@ -106,7 +106,7 @@ struct hb_subset_accelerator_t
 
   bool in_error () const
   {
-    return unicode_to_gid.in_error() || unicodes.in_error ();
+    return unicode_to_gid.in_error() || unicodes.in_error () || sanitized_table_cache.in_error ();
   }
 };
 
