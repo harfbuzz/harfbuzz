@@ -973,7 +973,6 @@ struct subr_subsetter_t
     unsigned count = str.get_count ();
     str_encoder_t  encoder (buff);
     encoder.reset ();
-    buff.alloc (count * 2);
     bool hinting = !(plan->flags & HB_SUBSET_FLAGS_NO_HINTING);
     /* if a prefix (CFF1 width or CFF2 vsindex) has been removed along with hints,
      * re-insert it at the beginning of charstreing */
@@ -984,6 +983,12 @@ struct subr_subsetter_t
 	encoder.encode_op (str.prefix_op ());
     }
     auto *arr = str.values.arrayZ;
+
+    unsigned size = 0;
+    for (unsigned int i = 0; i < count; i++)
+      size += arr[i].length;
+    buff.alloc (size);
+
     for (unsigned int i = 0; i < count; i++)
     {
       const parsed_cs_op_t  &opstr = arr[i];
