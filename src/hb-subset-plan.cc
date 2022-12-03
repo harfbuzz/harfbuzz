@@ -85,10 +85,8 @@ static void
 _remap_indexes (const hb_set_t *indexes,
 		hb_map_t       *mapping /* OUT */)
 {
-  unsigned count = indexes->get_population ();
-
-  for (auto _ : + hb_zip (indexes->iter (), hb_range (count)))
-    mapping->set (_.first, _.second);
+  for (auto _ : + hb_enumerate (indexes->iter ()))
+    mapping->set (_.second, _.first);
 
 }
 
