@@ -123,7 +123,12 @@ static void BM_subset (benchmark::State &state,
 {
   unsigned subset_size = state.range(0);
 
-  hb_face_t *face;
+  hb_face_t *face = nullptr;
+
+  static hb_face_t *cached_face;
+  static const char *cached_font_path;
+
+  if (!cached_font_path || strcmp (cached_font_path, test_input.font_path))
   {
     hb_blob_t *blob = hb_blob_create_from_file_or_fail (test_input.font_path);
     assert (blob);
@@ -131,7 +136,15 @@ static void BM_subset (benchmark::State &state,
     hb_blob_destroy (blob);
 
     face = preprocess_face (face);
+
+    if (cached_face)
+      hb_face_destroy (cached_face);
+
+    cached_face = hb_face_reference (face);
+    cached_font_path = test_input.font_path;
   }
+  else
+    face = hb_face_reference (cached_face);
 
   hb_subset_input_t* input = hb_subset_input_create_or_fail ();
   assert (input);
