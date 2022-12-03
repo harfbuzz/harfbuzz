@@ -115,6 +115,14 @@ struct CoverageFormat2_4
 
   bool intersects (const hb_set_t *glyphs) const
   {
+    if (rangeRecord.len > glyphs->get_population () * hb_bit_storage ((unsigned) rangeRecord.len) / 2)
+    {
+      for (hb_codepoint_t g = HB_SET_VALUE_INVALID; glyphs->next (&g);)
+        if (get_coverage (g) != NOT_COVERED)
+	  return true;
+      return false;
+    }
+
     return hb_any (+ hb_iter (rangeRecord)
                    | hb_map ([glyphs] (const RangeRecord<Types> &range) { return range.intersects (*glyphs); }));
   }
