@@ -3460,6 +3460,7 @@ struct VariationDevice
     if (!layout_variation_idx_delta_map->has (varIdx, &v))
       return_trace (nullptr);
 
+    c->start_zerocopy (this->static_size);
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
