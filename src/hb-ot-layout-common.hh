@@ -2553,7 +2553,7 @@ struct VarData
   {
     for (unsigned int r = 0; r < regionIndices.len; r++)
     {
-      unsigned int region = regionIndices[r];
+      unsigned int region = regionIndices.arrayZ[r];
       if (region_indices.has (region)) continue;
       for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
 	if (get_item_delta (inner_map.backward (i), r) != 0)
