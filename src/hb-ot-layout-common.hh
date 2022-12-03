@@ -2549,7 +2549,7 @@ struct VarData
 
     regionIndices.len = new_ri_count;
 
-    if (unlikely (!c->extend (this))) return_trace (false);
+    if (unlikely (!c->extend_size (this, get_size (), false))) return_trace (false);
 
     for (r = 0; r < new_ri_count; r++)
       regionIndices[r] = region_map[src->regionIndices[ri_map[r]]];
