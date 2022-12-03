@@ -928,7 +928,7 @@ struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
     hb_codepoint_t lastCode = HB_MAP_VALUE_INVALID;
     int count = -1;
 
-    for (const UnicodeValueRange& _ : as_array ())
+    for (const UnicodeValueRange& _ : *this)
     {
       hb_codepoint_t curEntry = (unsigned) _.startUnicodeValue - 1;
       hb_codepoint_t end = curEntry + _.additionalCount + 2;
