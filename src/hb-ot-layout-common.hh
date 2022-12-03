@@ -3459,13 +3459,13 @@ struct VariationDevice
     auto *out = c->embed (this);
     if (unlikely (!out)) return_trace (nullptr);
 
-    /* TODO Just get() and bail if NO_VARIATION. Needs to setup the map to return that. */
-    if (!layout_variation_idx_delta_map->has (varIdx))
+    hb_pair_t<unsigned, int> *v;
+    if (!layout_variation_idx_delta_map->has (varIdx, &v))
     {
       c->revert (snap);
       return_trace (nullptr);
     }
-    unsigned new_idx = hb_first (layout_variation_idx_delta_map->get (varIdx));
+    unsigned new_idx = hb_first (*v);
     out->varIdx = new_idx;
     return_trace (out);
   }
