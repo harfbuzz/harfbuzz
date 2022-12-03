@@ -925,38 +925,75 @@ struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
     if (unlikely (!c->copy<HBUINT32> (len))) return nullptr;
     unsigned init_len = c->length ();
 
-    hb_codepoint_t lastCode = HB_MAP_VALUE_INVALID;
-    int count = -1;
-
-    for (const UnicodeValueRange& _ : *this)
+    if (this->len > unicodes->get_population () * hb_bit_storage ((unsigned) this->len))
     {
-      hb_codepoint_t curEntry = (hb_codepoint_t) (_.startUnicodeValue - 1);
-      hb_codepoint_t end = curEntry + _.additionalCount + 2;
+      hb_codepoint_t start = HB_SET_VALUE_INVALID;
+      hb_codepoint_t end = HB_SET_VALUE_INVALID;
 
-      for (; unicodes->next (&curEntry) && curEntry < end;)
+      for (hb_codepoint_t u = HB_SET_VALUE_INVALID;
+	   unicodes->next (&u);)
       {
-	count += 1;
-	if (lastCode == HB_MAP_VALUE_INVALID)
-	  lastCode = curEntry;
-	else if (lastCode + count != curEntry)
+        if (!as_array ().bsearch (u))
+	  continue;
+	if (start == HB_SET_VALUE_INVALID)
 	{
+	  start = u;
+	  end = start - 1;
+	}
+	if (end + 1 != u || end - start == 255)
+        {
 	  UnicodeValueRange rec;
-	  rec.startUnicodeValue = lastCode;
-	  rec.additionalCount = count - 1;
+	  rec.startUnicodeValue = start;
+	  rec.additionalCount = end - start;
 	  c->copy<UnicodeValueRange> (rec);
+	  start = u;
+	}
+	end = u;
+      }
+      if (start != HB_SET_VALUE_INVALID)
+      {
+	UnicodeValueRange rec;
+	rec.startUnicodeValue = start;
+	rec.additionalCount = end - start;
+	c->copy<UnicodeValueRange> (rec);
+      }
 
-	  lastCode = curEntry;
-	  count = 0;
+    }
+    else
+    {
+      hb_codepoint_t lastCode = HB_SET_VALUE_INVALID;
+      int count = -1;
+
+      for (const UnicodeValueRange& _ : *this)
+      {
+	hb_codepoint_t curEntry = (hb_codepoint_t) (_.startUnicodeValue - 1);
+	hb_codepoint_t end = curEntry + _.additionalCount + 2;
+
+	for (; unicodes->next (&curEntry) && curEntry < end;)
+	{
+	  count += 1;
+	  if (lastCode == HB_SET_VALUE_INVALID)
+	    lastCode = curEntry;
+	  else if (lastCode + count != curEntry)
+	  {
+	    UnicodeValueRange rec;
+	    rec.startUnicodeValue = lastCode;
+	    rec.additionalCount = count - 1;
+	    c->copy<UnicodeValueRange> (rec);
+
+	    lastCode = curEntry;
+	    count = 0;
+	  }
 	}
       }
-    }
 
-    if (lastCode != HB_MAP_VALUE_INVALID)
-    {
-      UnicodeValueRange rec;
-      rec.startUnicodeValue = lastCode;
-      rec.additionalCount = count;
-      c->copy<UnicodeValueRange> (rec);
+      if (lastCode != HB_MAP_VALUE_INVALID)
+      {
+	UnicodeValueRange rec;
+	rec.startUnicodeValue = lastCode;
+	rec.additionalCount = count;
+	c->copy<UnicodeValueRange> (rec);
+      }
     }
 
     if (c->length () - init_len == 0)
