@@ -2133,7 +2133,7 @@ struct ContextFormat1_4
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
     struct ContextClosureLookupContext lookup_context = {
-      {intersects_glyph, intersected_glyph},
+      {intersects_glyph, nullptr},
       ContextFormat::SimpleContext,
       nullptr
     };
@@ -2247,7 +2247,7 @@ struct ContextFormat2_5
 
     hb_map_t cache;
     struct ContextClosureLookupContext lookup_context = {
-      {intersects_class, intersected_class_glyphs},
+      {intersects_class, nullptr},
       ContextFormat::ClassBasedContext,
       &class_def,
       &cache
@@ -2317,7 +2317,7 @@ struct ContextFormat2_5
 
     hb_map_t cache;
     struct ContextClosureLookupContext lookup_context = {
-      {intersects_class, intersected_class_glyphs},
+      {intersects_class, nullptr},
       ContextFormat::ClassBasedContext,
       &class_def,
       &cache
@@ -2504,7 +2504,7 @@ struct ContextFormat3
       return false;
 
     struct ContextClosureLookupContext lookup_context = {
-      {intersects_coverage, intersected_coverage_glyphs},
+      {intersects_coverage, nullptr},
       ContextFormat::CoverageBasedContext,
       this
     };
@@ -3205,7 +3205,7 @@ struct ChainContextFormat1_4
   void closure_lookups (hb_closure_lookups_context_t *c) const
   {
     struct ChainContextClosureLookupContext lookup_context = {
-      {intersects_glyph, intersected_glyph},
+      {intersects_glyph, nullptr},
       ContextFormat::SimpleContext,
       {nullptr, nullptr, nullptr}
     };
@@ -3319,7 +3319,7 @@ struct ChainContextFormat2_5
 
     hb_map_t caches[3] = {};
     struct ChainContextClosureLookupContext lookup_context = {
-      {intersects_class, intersected_class_glyphs},
+      {intersects_class, nullptr},
       ContextFormat::ClassBasedContext,
       {&backtrack_class_def,
        &input_class_def,
@@ -3397,7 +3397,7 @@ struct ChainContextFormat2_5
 
     hb_map_t caches[3] = {};
     struct ChainContextClosureLookupContext lookup_context = {
-      {intersects_class, intersected_class_glyphs},
+      {intersects_class, nullptr},
       ContextFormat::ClassBasedContext,
       {&backtrack_class_def,
        &input_class_def,
@@ -3632,7 +3632,7 @@ struct ChainContextFormat3
 
     const auto &lookahead = StructAfter<decltype (lookaheadX)> (input);
     struct ChainContextClosureLookupContext lookup_context = {
-      {intersects_coverage, intersected_coverage_glyphs},
+      {intersects_coverage, nullptr},
       ContextFormat::CoverageBasedContext,
       {this, this, this}
     };
