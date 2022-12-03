@@ -3455,16 +3455,14 @@ struct VariationDevice
   {
     TRACE_SERIALIZE (this);
     if (!layout_variation_idx_delta_map) return_trace (nullptr);
-    auto snap = c->snapshot ();
-    auto *out = c->embed (this);
-    if (unlikely (!out)) return_trace (nullptr);
 
     hb_pair_t<unsigned, int> *v;
     if (!layout_variation_idx_delta_map->has (varIdx, &v))
-    {
-      c->revert (snap);
       return_trace (nullptr);
-    }
+
+    auto *out = c->embed (this);
+    if (unlikely (!out)) return_trace (nullptr);
+
     unsigned new_idx = hb_first (*v);
     out->varIdx = new_idx;
     return_trace (out);
