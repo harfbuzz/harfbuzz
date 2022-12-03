@@ -2560,7 +2560,9 @@ struct VarData
     {
       unsigned int old = inner_map.backward (i);
       for (unsigned int r = 0; r < ri_count; r++)
-	if (delta_sz[r]) set_item_delta_fast (i, ri_map[r], src->get_item_delta_fast (old, r, src_delta_bytes, src_row_size),
+	if (delta_sz[r]) set_item_delta_fast (i, ri_map[r],
+					      src->get_item_delta_fast (old, r,
+									src_delta_bytes, src_row_size),
 					      delta_bytes, row_size);
     }
 
