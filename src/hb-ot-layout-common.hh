@@ -2487,11 +2487,13 @@ struct VarData
 
     const HBUINT8 *src_delta_bytes = src->get_delta_bytes ();
     unsigned src_row_size = src->get_row_size ();
+    unsigned src_word_count = src->wordCount ();
+    unsigned src_long_words = src->longWords ();
 
     bool has_long = false;
-    if (src->longWords ())
+    if (src_long_words)
     {
-      for (r = 0; r < ri_count; r++)
+      for (r = 0; r < src_word_count; r++)
       {
 	for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
 	{
@@ -2510,7 +2512,7 @@ struct VarData
     signed max_threshold = has_long ? +65535 : +127;
     for (r = 0; r < ri_count; r++)
     {
-      bool short_circuit = src->longWords () == has_long && src->wordCount () <= r;
+      bool short_circuit = src_long_words == has_long && src_word_count <= r;
 
       delta_sz[r] = kZero;
       for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
