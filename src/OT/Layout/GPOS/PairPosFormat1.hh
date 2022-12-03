@@ -51,8 +51,21 @@ struct PairPosFormat1_3
 
   bool intersects (const hb_set_t *glyphs) const
   {
+    auto &cov = this+coverage;
+
+    if (pairSet.len > glyphs->get_population () * hb_bit_storage ((unsigned) pairSet.len) / 4)
+    {
+      for (hb_codepoint_t g = HB_SET_VALUE_INVALID; glyphs->next (&g);)
+      {
+	unsigned i = cov.get_coverage (g);
+	if ((this+pairSet[i]).intersects (glyphs, valueFormat))
+	  return true;
+      }
+      return false;
+    }
+
     return
-    + hb_zip (this+coverage, pairSet)
+    + hb_zip (cov, pairSet)
     | hb_filter (*glyphs, hb_first)
     | hb_map (hb_second)
     | hb_map ([glyphs, this] (const typename Types::template OffsetTo<PairSet> &_)
