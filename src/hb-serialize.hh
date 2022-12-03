@@ -348,8 +348,8 @@ struct hb_serialize_context_t
     assert (obj->head <= obj->tail);
     unsigned len = obj->tail - obj->head;
     head = zerocopy ? zerocopy : obj->head; /* Rewind head. */
-    if (zerocopy)
-      assert (!share);
+    bool was_zerocopy = zerocopy;
+    zerocopy = nullptr;
 
     if (!len)
     {
@@ -373,11 +373,8 @@ struct hb_serialize_context_t
     }
 
     tail -= len;
-    if (zerocopy)
-    {
-      zerocopy = nullptr;
+    if (was_zerocopy)
       assert (tail == obj->head);
-    }
     else
       memmove (tail, obj->head, len);
 
