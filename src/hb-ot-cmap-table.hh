@@ -930,8 +930,8 @@ struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
 
     for (const UnicodeValueRange& _ : as_array ())
     {
-      unsigned curEntry = (unsigned) _.startUnicodeValue - 1;
-      unsigned end = curEntry + _.additionalCount + 2;
+      hb_codepoint_t curEntry = (unsigned) _.startUnicodeValue - 1;
+      hb_codepoint_t end = curEntry + _.additionalCount + 2;
 
       for (; unicodes->next (&curEntry) && curEntry < end;)
       {
