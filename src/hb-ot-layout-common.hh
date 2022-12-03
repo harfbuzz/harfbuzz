@@ -2542,9 +2542,10 @@ struct VarData
     for (r = 0; r < ri_count; r++)
       if (delta_sz[r]) regionIndices[ri_map[r]] = region_map[src->regionIndices[r]];
 
-    for (unsigned int i = 0; i < itemCount; i++)
+    unsigned count = itemCount;
+    for (unsigned int i = 0; i < count; i++)
     {
-      unsigned int	old = inner_map.backward (i);
+      unsigned int old = inner_map.backward (i);
       for (unsigned int r = 0; r < ri_count; r++)
 	if (delta_sz[r]) set_item_delta (i, ri_map[r], src->get_item_delta (old, r));
     }
