@@ -1002,7 +1002,7 @@ struct hb_accelerate_subtables_context_t :
 };
 
 
-typedef bool (*intersects_func_t) (const hb_set_t *glyphs, unsigned value, const void *data, const void *cache);
+typedef bool (*intersects_func_t) (const hb_set_t *glyphs, unsigned value, const void *data, void *cache);
 typedef void (*intersected_glyphs_func_t) (const hb_set_t *glyphs, const void *data, unsigned value, hb_set_t *intersected_glyphs);
 typedef void (*collect_glyphs_func_t) (hb_set_t *glyphs, unsigned value, const void *data);
 typedef bool (*match_func_t) (hb_glyph_info_t &info, unsigned value, const void *data);
@@ -1026,11 +1026,11 @@ struct ChainContextApplyFuncs
 };
 
 
-static inline bool intersects_glyph (const hb_set_t *glyphs, unsigned value, const void *data HB_UNUSED, const void *cache HB_UNUSED)
+static inline bool intersects_glyph (const hb_set_t *glyphs, unsigned value, const void *data HB_UNUSED, void *cache HB_UNUSED)
 {
   return glyphs->has (value);
 }
-static inline bool intersects_class (const hb_set_t *glyphs, unsigned value, const void *data, const void *cache)
+static inline bool intersects_class (const hb_set_t *glyphs, unsigned value, const void *data, void *cache)
 {
   const ClassDef &class_def = *reinterpret_cast<const ClassDef *>(data);
   hb_map_t *map = (hb_map_t *) cache;
@@ -1044,7 +1044,7 @@ static inline bool intersects_class (const hb_set_t *glyphs, unsigned value, con
 
   return v;
 }
-static inline bool intersects_coverage (const hb_set_t *glyphs, unsigned value, const void *data, const void *cache HB_UNUSED)
+static inline bool intersects_coverage (const hb_set_t *glyphs, unsigned value, const void *data, void *cache HB_UNUSED)
 {
   Offset16To<Coverage> coverage;
   coverage = value;
@@ -1076,7 +1076,7 @@ static inline bool array_is_subset_of (const hb_set_t *glyphs,
 				       const HBUINT values[],
 				       intersects_func_t intersects_func,
 				       const void *intersects_data,
-				       const void *cache)
+				       void *cache)
 {
   for (const auto &_ : + hb_iter (values, count))
     if (!intersects_func (glyphs, _, intersects_data, cache)) return false;
@@ -1734,7 +1734,7 @@ struct ContextClosureLookupContext
   ContextClosureFuncs funcs;
   ContextFormat context_format;
   const void *intersects_data;
-  const void *cache;
+  void *cache;
 };
 
 struct ContextCollectGlyphsLookupContext
@@ -2690,7 +2690,7 @@ struct ChainContextClosureLookupContext
   ContextClosureFuncs funcs;
   ContextFormat context_format;
   const void *intersects_data[3];
-  const void *cache[3];
+  void *cache[3];
 };
 
 struct ChainContextCollectGlyphsLookupContext
