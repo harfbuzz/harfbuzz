@@ -52,6 +52,7 @@ HB_BASE_sources = \
 	hb-map.hh \
 	hb-meta.hh \
 	hb-ms-feature-ranges.hh \
+	hb-multimap.hh \
 	hb-mutex.hh \
 	hb-null.hh \
 	hb-number.cc \

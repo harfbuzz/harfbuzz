@@ -524,6 +524,18 @@ struct hb_pair_t
   bool operator > (const pair_t& o) const { return first > o.first || (first == o.first && second > o.second); }
   bool operator <= (const pair_t& o) const { return !(*this > o); }
 
+  static int cmp (const void *pa, const void *pb)
+  {
+    pair_t *a = (pair_t *) pa;
+    pair_t *b = (pair_t *) pb;
+
+    if (a->first < b->first) return -1;
+    if (a->first > b->first) return +1;
+    if (a->second < b->second) return -1;
+    if (a->second > b->second) return +1;
+    return 0;
+  }
+
   friend void swap (hb_pair_t& a, hb_pair_t& b)
   {
     hb_swap (a.first, b.first);

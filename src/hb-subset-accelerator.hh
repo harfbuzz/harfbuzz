@@ -31,6 +31,7 @@
 #include "hb.hh"
 
 #include "hb-map.hh"
+#include "hb-multimap.hh"
 #include "hb-set.hh"
 
 extern HB_INTERNAL hb_user_data_key_t _hb_subset_accelerator_user_data_key;
@@ -51,11 +52,12 @@ struct hb_subset_accelerator_t
   }
 
   static hb_subset_accelerator_t* create(const hb_map_t& unicode_to_gid_,
-                                         const hb_set_t& unicodes_,
+					 const hb_multimap_t gid_to_unicodes_,
+					 const hb_set_t& unicodes_,
 					 bool has_seac_) {
     hb_subset_accelerator_t* accel =
         (hb_subset_accelerator_t*) hb_malloc (sizeof(hb_subset_accelerator_t));
-    new (accel) hb_subset_accelerator_t (unicode_to_gid_, unicodes_);
+    new (accel) hb_subset_accelerator_t (unicode_to_gid_, gid_to_unicodes_, unicodes_);
     accel->has_seac = has_seac_;
     return accel;
   }
@@ -76,8 +78,9 @@ struct hb_subset_accelerator_t
   }
 
   hb_subset_accelerator_t (const hb_map_t& unicode_to_gid_,
+			   const hb_multimap_t& gid_to_unicodes_,
                           const hb_set_t& unicodes_)
-      : unicode_to_gid(unicode_to_gid_), unicodes(unicodes_),
+      : unicode_to_gid(unicode_to_gid_), gid_to_unicodes (gid_to_unicodes_), unicodes(unicodes_),
         cmap_cache(nullptr), destroy_cmap_cache(nullptr),
         has_seac(false), cff_accelerator(nullptr), destroy_cff_accelerator(nullptr)
   { sanitized_table_cache_lock.init (); }
@@ -91,6 +94,7 @@ struct hb_subset_accelerator_t
   mutable hb_hashmap_t<hb_tag_t, hb::unique_ptr<hb_blob_t>> sanitized_table_cache;
 
   const hb_map_t unicode_to_gid;
+  const hb_multimap_t gid_to_unicodes;
   const hb_set_t unicodes;
 
   // cmap
@@ -106,7 +110,10 @@ struct hb_subset_accelerator_t
 
   bool in_error () const
   {
-    return unicode_to_gid.in_error() || unicodes.in_error () || sanitized_table_cache.in_error ();
+    return unicode_to_gid.in_error () ||
+	   gid_to_unicodes.in_error () ||
+	   unicodes.in_error () ||
+	   sanitized_table_cache.in_error ();
   }
 };
 
