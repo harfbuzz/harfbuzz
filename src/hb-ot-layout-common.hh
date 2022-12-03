@@ -980,18 +980,16 @@ struct RecordListOfFeature : RecordListOf<Feature>
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    unsigned count = this->len;
-
-    + hb_zip (*this, hb_range (count))
-    | hb_filter (l->feature_index_map, hb_second)
-    | hb_apply ([l, out, this] (const hb_pair_t<const Record<Feature>&, unsigned>& _)
+    + hb_enumerate (*this)
+    | hb_filter (l->feature_index_map, hb_first)
+    | hb_apply ([l, out, this] (const hb_pair_t<unsigned, const Record<Feature>&>& _)
                 {
                   const Feature *f_sub = nullptr;
                   const Feature **f = nullptr;
-                  if (l->feature_substitutes_map->has (_.second, &f))
+                  if (l->feature_substitutes_map->has (_.first, &f))
                     f_sub = *f;
 
-                  subset_record_array (l, out, this, f_sub) (_.first);
+                  subset_record_array (l, out, this, f_sub) (_.second);
                 })
     ;
 
@@ -1147,7 +1145,6 @@ struct Script
 	return;
     }
 
-    unsigned langsys_count = get_lang_sys_count ();
     if (has_default_lang_sys ())
     {
       //only collect features from non-redundant langsys
@@ -1156,24 +1153,24 @@ struct Script
         d.collect_features (c);
       }
 
-      for (auto _ : + hb_zip (langSys, hb_range (langsys_count)))
+      for (auto _ : + hb_enumerate (langSys))
       {
-        const LangSys& l = this+_.first.offset;
+        const LangSys& l = this+_.second.offset;
         if (!c->visitLangsys (l.get_feature_count ())) continue;
         if (l.compare (d, c->duplicate_feature_map)) continue;
 
         l.collect_features (c);
-        c->script_langsys_map->get (script_index)->add (_.second);
+        c->script_langsys_map->get (script_index)->add (_.first);
       }
     }
     else
     {
-      for (auto _ : + hb_zip (langSys, hb_range (langsys_count)))
+      for (auto _ : + hb_enumerate (langSys))
       {
-        const LangSys& l = this+_.first.offset;
+        const LangSys& l = this+_.second.offset;
         if (!c->visitLangsys (l.get_feature_count ())) continue;
         l.collect_features (c);
-        c->script_langsys_map->get (script_index)->add (_.second);
+        c->script_langsys_map->get (script_index)->add (_.first);
       }
     }
   }
@@ -1211,10 +1208,9 @@ struct Script
     const hb_set_t *active_langsys = l->script_langsys_map->get (l->cur_script_index);
     if (active_langsys)
     {
-      unsigned count = langSys.len;
-      + hb_zip (langSys, hb_range (count))
-      | hb_filter (active_langsys, hb_second)
-      | hb_map (hb_first)
+      + hb_enumerate (langSys)
+      | hb_filter (active_langsys, hb_first)
+      | hb_map (hb_second)
       | hb_filter ([=] (const Record<LangSys>& record) {return l->visitLangSys (); })
       | hb_apply (subset_record_array (l, &(out->langSys), this))
       ;
@@ -1250,12 +1246,11 @@ struct RecordListOfScript : RecordListOf<Script>
     auto *out = c->serializer->start_embed (*this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    unsigned count = this->len;
-    for (auto _ : + hb_zip (*this, hb_range (count)))
+    for (auto _ : + hb_enumerate (*this))
     {
       auto snap = c->serializer->snapshot ();
-      l->cur_script_index = _.second;
-      bool ret = _.first.subset (l, this);
+      l->cur_script_index = _.first;
+      bool ret = _.second.subset (l, this);
       if (!ret) c->serializer->revert (snap);
       else out->len++;
     }
@@ -1460,10 +1455,9 @@ struct LookupOffsetList : List16OfOffsetTo<TLookup, OffsetType>
     auto *out = c->serializer->start_embed (this);
     if (unlikely (!out || !c->serializer->extend_min (out))) return_trace (false);
 
-    unsigned count = this->len;
-    + hb_zip (*this, hb_range (count))
-    | hb_filter (l->lookup_index_map, hb_second)
-    | hb_map (hb_first)
+    + hb_enumerate (*this)
+    | hb_filter (l->lookup_index_map, hb_first)
+    | hb_map (hb_second)
     | hb_apply (subset_offset_array (c, *out, this))
     ;
     return_trace (true);
