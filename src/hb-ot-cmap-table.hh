@@ -909,7 +909,7 @@ struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
       hb_codepoint_t first = arrayZ[i].startUnicodeValue;
       hb_codepoint_t last = hb_min ((hb_codepoint_t) (first + arrayZ[i].additionalCount),
 				    (hb_codepoint_t) HB_UNICODE_MAX);
-      out->add_range (first, hb_min (last, 0x10FFFFu));
+      out->add_range (first, last);
     }
   }
 
