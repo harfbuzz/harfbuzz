@@ -2479,7 +2479,7 @@ struct VarData
     unsigned ri_count = src->regionIndices.len;
     enum delta_size_t { kZero=0, kNonWord, kWord };
     hb_vector_t<delta_size_t> delta_sz;
-    hb_vector_t<unsigned int> ri_map;	/* maps old index to new index */
+    hb_vector_t<unsigned int> ri_map;	/* maps new index to old index */
     delta_sz.resize (ri_count);
     ri_map.resize (ri_count);
     unsigned int new_word_count = 0;
@@ -2540,7 +2540,8 @@ struct VarData
     for (r = 0; r < ri_count; r++)
       if (delta_sz[r])
       {
-	ri_map[r] = (delta_sz[r] == kWord)? word_index++ : non_word_index++;
+	unsigned new_r = (delta_sz[r] == kWord)? word_index++ : non_word_index++;
+	ri_map[new_r] = r;
 	new_ri_count++;
       }
 
@@ -2550,8 +2551,8 @@ struct VarData
 
     if (unlikely (!c->extend (this))) return_trace (false);
 
-    for (r = 0; r < ri_count; r++)
-      if (delta_sz[r]) regionIndices[ri_map[r]] = region_map[src->regionIndices[r]];
+    for (r = 0; r < new_ri_count; r++)
+      regionIndices[r] = region_map[src->regionIndices[ri_map[r]]];
 
     HBUINT8 *delta_bytes = get_delta_bytes ();
     unsigned row_size = get_row_size ();
@@ -2559,11 +2560,11 @@ struct VarData
     for (unsigned int i = 0; i < count; i++)
     {
       unsigned int old = inner_map.backward (i);
-      for (unsigned int r = 0; r < ri_count; r++)
-	if (delta_sz[r]) set_item_delta_fast (i, ri_map[r],
-					      src->get_item_delta_fast (old, r,
-									src_delta_bytes, src_row_size),
-					      delta_bytes, row_size);
+      for (unsigned int r = 0; r < new_ri_count; r++)
+	set_item_delta_fast (i, r,
+			     src->get_item_delta_fast (old, ri_map[r],
+						       src_delta_bytes, src_row_size),
+			     delta_bytes, row_size);
     }
 
     return_trace (true);
