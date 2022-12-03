@@ -930,10 +930,11 @@ struct DefaultUVS : SortedArray32Of<UnicodeValueRange>
 
     for (const UnicodeValueRange& _ : as_array ())
     {
-      for (const unsigned addcnt : hb_range ((unsigned) _.additionalCount + 1))
+      unsigned curEntry = (unsigned) _.startUnicodeValue - 1;
+      unsigned end = curEntry + _.additionalCount + 2;
+
+      for (; unicodes->next (&curEntry) && curEntry < end;)
       {
-	unsigned curEntry = (unsigned) _.startUnicodeValue + addcnt;
-	if (!unicodes->has (curEntry)) continue;
 	count += 1;
 	if (lastCode == HB_MAP_VALUE_INVALID)
 	  lastCode = curEntry;
