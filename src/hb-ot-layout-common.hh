@@ -2510,6 +2510,8 @@ struct VarData
     signed max_threshold = has_long ? +65535 : +127;
     for (r = 0; r < ri_count; r++)
     {
+      bool short_circuit = src->longWords () == has_long && src->wordCount () <= r;
+
       delta_sz[r] = kZero;
       for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
       {
@@ -2522,7 +2524,11 @@ struct VarData
 	  break;
 	}
 	else if (delta != 0)
+	{
 	  delta_sz[r] = kNonWord;
+	  if (short_circuit)
+	    break;
+	}
       }
     }
 
