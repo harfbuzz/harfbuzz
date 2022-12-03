@@ -2485,6 +2485,9 @@ struct VarData
     unsigned int new_word_count = 0;
     unsigned int r;
 
+    const HBUINT8 *src_delta_bytes = src->get_delta_bytes ();
+    unsigned src_row_size = src->get_row_size ();
+
     bool has_long = false;
     if (src->longWords ())
     {
@@ -2493,7 +2496,7 @@ struct VarData
 	for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
 	{
 	  unsigned int old = inner_map.backward (i);
-	  int32_t delta = src->get_item_delta (old, r);
+	  int32_t delta = src->get_item_delta_fast (old, r, src_delta_bytes, src_row_size);
 	  if (delta < -65536 || 65535 < delta)
 	  {
 	    has_long = true;
@@ -2511,7 +2514,7 @@ struct VarData
       for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
       {
 	unsigned int old = inner_map.backward (i);
-	int32_t delta = src->get_item_delta (old, r);
+	int32_t delta = src->get_item_delta_fast (old, r, src_delta_bytes, src_row_size);
 	if (delta < min_threshold || max_threshold < delta)
 	{
 	  delta_sz[r] = kWord;
@@ -2542,12 +2545,15 @@ struct VarData
     for (r = 0; r < ri_count; r++)
       if (delta_sz[r]) regionIndices[ri_map[r]] = region_map[src->regionIndices[r]];
 
+    HBUINT8 *delta_bytes = get_delta_bytes ();
+    unsigned row_size = get_row_size ();
     unsigned count = itemCount;
     for (unsigned int i = 0; i < count; i++)
     {
       unsigned int old = inner_map.backward (i);
       for (unsigned int r = 0; r < ri_count; r++)
-	if (delta_sz[r]) set_item_delta (i, ri_map[r], src->get_item_delta (old, r));
+	if (delta_sz[r]) set_item_delta_fast (i, ri_map[r], src->get_item_delta_fast (old, r, src_delta_bytes, src_row_size),
+					      delta_bytes, row_size);
     }
 
     return_trace (true);
@@ -2555,12 +2561,15 @@ struct VarData
 
   void collect_region_refs (hb_set_t &region_indices, const hb_inc_bimap_t &inner_map) const
   {
+    const HBUINT8 *delta_bytes = get_delta_bytes ();
+    unsigned row_size = get_row_size ();
+
     for (unsigned int r = 0; r < regionIndices.len; r++)
     {
       unsigned int region = regionIndices.arrayZ[r];
       if (region_indices.has (region)) continue;
       for (unsigned int i = 0; i < inner_map.get_next_value (); i++)
-	if (get_item_delta (inner_map.backward (i), r) != 0)
+	if (get_item_delta_fast (inner_map.backward (i), r, delta_bytes, row_size) != 0)
 	{
 	  region_indices.add (region);
 	  break;
@@ -2575,11 +2584,12 @@ struct VarData
   HBUINT8 *get_delta_bytes ()
   { return &StructAfter<HBUINT8> (regionIndices); }
 
-  int32_t get_item_delta (unsigned int item, unsigned int region) const
+  int32_t get_item_delta_fast (unsigned int item, unsigned int region,
+			       const HBUINT8 *delta_bytes, unsigned row_size) const
   {
     if (unlikely (item >= itemCount || region >= regionIndices.len)) return 0;
 
-    const HBINT8 *p = (const HBINT8 *) get_delta_bytes () + item * get_row_size ();
+    const HBINT8 *p = (const HBINT8 *) delta_bytes + item * row_size;
     unsigned word_count = wordCount ();
     bool is_long = longWords ();
     if (is_long)
@@ -2597,10 +2607,17 @@ struct VarData
 	return (p + HBINT16::static_size * word_count)[region - word_count];
     }
   }
-
-  void set_item_delta (unsigned int item, unsigned int region, int32_t delta)
+  int32_t get_item_delta (unsigned int item, unsigned int region) const
   {
-    HBINT8 *p = (HBINT8 *)get_delta_bytes () + item * get_row_size ();
+     return get_item_delta_fast (item, region,
+				 get_delta_bytes (),
+				 get_row_size ());
+  }
+
+  void set_item_delta_fast (unsigned int item, unsigned int region, int32_t delta,
+			    HBUINT8 *delta_bytes, unsigned row_size)
+  {
+    HBINT8 *p = (HBINT8 *) delta_bytes + item * row_size;
     unsigned word_count = wordCount ();
     bool is_long = longWords ();
     if (is_long)
@@ -2617,6 +2634,12 @@ struct VarData
       else
 	(p + HBINT16::static_size * word_count)[region - word_count] = delta;
     }
+  }
+  void set_item_delta (unsigned int item, unsigned int region, int32_t delta)
+  {
+    set_item_delta_fast (item, region, delta,
+			 get_delta_bytes (),
+			 get_row_size ());
   }
 
   bool longWords () const { return wordSizeCount & 0x8000u /* LONG_WORDS */; }
