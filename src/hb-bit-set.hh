@@ -85,10 +85,10 @@ struct hb_bit_set_t
   void err () { if (successful) successful = false; } /* TODO Remove */
   bool in_error () const { return !successful; }
 
-  bool resize (unsigned int count)
+  bool resize (unsigned int count, bool clear = true)
   {
     if (unlikely (!successful)) return false;
-    if (unlikely (!pages.resize (count) || !page_map.resize (count)))
+    if (unlikely (!pages.resize (count, clear) || !page_map.resize (count, clear)))
     {
       pages.resize (page_map.length);
       successful = false;
@@ -350,7 +350,7 @@ struct hb_bit_set_t
   {
     if (unlikely (!successful)) return;
     unsigned int count = other.pages.length;
-    if (unlikely (!resize (count)))
+    if (unlikely (!resize (count, false)))
       return;
     population = other.population;
 
