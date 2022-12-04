@@ -826,7 +826,7 @@ hb_face_builder_sort_tables (hb_face_t *face,
 
   // Sort all unspecified tables after any specified tables.
   for (auto& info : data->tables.values_ref())
-    info.order = -1;
+    info.order = (unsigned) -1;
 
   signed order = 0;
   for (const hb_tag_t* tag = tags;
