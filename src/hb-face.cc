@@ -288,6 +288,7 @@ hb_face_destroy (hb_face_t *face)
 {
   if (!hb_object_destroy (face)) return;
 
+#ifndef HB_NO_SHAPER
   for (hb_face_t::plan_node_t *node = face->shape_plans; node; )
   {
     hb_face_t::plan_node_t *next = node->next;
@@ -295,6 +296,7 @@ hb_face_destroy (hb_face_t *face)
     hb_free (node);
     node = next;
   }
+#endif
 
   face->data.fini ();
   face->table.fini ();

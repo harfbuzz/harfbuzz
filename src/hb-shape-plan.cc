@@ -31,6 +31,8 @@
 #include "hb-buffer.hh"
 
 
+#ifndef HB_NO_SHAPER
+
 /**
  * SECTION:hb-shape-plan
  * @title: hb-shape-plan
@@ -574,3 +576,6 @@ retry:
 
   return hb_shape_plan_reference (shape_plan);
 }
+
+
+#endif
