@@ -609,7 +609,7 @@ struct gvar
 	if (unlikely (!y_deltas.resize (num_deltas, false))) return false;
 	if (unlikely (!GlyphVariationData::unpack_deltas (p, y_deltas, end))) return false;
 
-	hb_memset (deltas.arrayZ, 0, deltas.length * sizeof (deltas.arrayZ[0]));
+	hb_memset (deltas.arrayZ, 0, deltas.get_size ());
 
 	unsigned ref_points = 0;
 	if (scalar != 1.0f)
