@@ -435,7 +435,9 @@ glyf::_create_font_for_instancing (const hb_subset_plan_t *plan) const
     vars.push (var);
   }
 
+#ifndef HB_NO_VAR
   hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location->get_population ());
+#endif
   return font;
 }
 

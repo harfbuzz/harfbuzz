@@ -345,7 +345,9 @@ _get_hb_font_with_variations (const hb_subset_plan_t *plan)
     vars.push (var);
   }
 
+#ifndef HB_NO_VAR
   hb_font_set_variations (font, vars.arrayZ, plan->user_axes_location->get_population ());
+#endif
   return font;
 }
 
