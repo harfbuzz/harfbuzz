@@ -451,6 +451,8 @@ struct hb_map_t : hb_hashmap_t<hb_codepoint_t,
   hb_map_t (const Iterable &o) : hashmap (o) {}
 };
 
+static inline bool hb_map_filter_invalid (hb_codepoint_t _) { return _ != HB_MAP_VALUE_INVALID; }
+
 template <typename K, typename V>
 static inline
 hb_hashmap_t<K, V>* hb_hashmap_create ()
