@@ -147,8 +147,8 @@ struct Coverage
     TRACE_SUBSET (this);
     auto it =
     + iter ()
+    | hb_filter (c->plan->glyph_map_gsub)
     | hb_map_retains_sorting (c->plan->glyph_map_gsub)
-    | hb_filter (hb_map_filter_invalid)
     ;
 
     // Cache the iterator result as it will be iterated multiple times
