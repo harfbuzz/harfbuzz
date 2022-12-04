@@ -558,7 +558,7 @@ libharfbuzz_subset = library('harfbuzz-subset', hb_subset_sources,
 custom_target('harfbuzz-subset.cc',
   build_by_default: true,
   output: 'harfbuzz-subset.cc',
-  input: hb_base_sources + hb_subset_sources,
+  input: hb_subset_sources,
   command: [find_program('gen-harfbuzzcc.py'),
             '@OUTPUT@', meson.current_source_dir(), '@INPUT@'],
 )
