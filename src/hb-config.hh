@@ -114,6 +114,11 @@
 #define HB_IF_NOT_DEPRECATED(x) x
 #endif
 
+#ifdef HB_NO_SHAPER
+#define HB_NO_OT_SHAPE
+#define HB_NO_AAT_SHAPE
+#endif
+
 #ifdef HB_NO_AAT
 #define HB_NO_OT_NAME_LANGUAGE_AAT
 #define HB_NO_AAT_SHAPE
