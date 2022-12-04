@@ -80,8 +80,6 @@ struct CoverageFormat2_4
     TRACE_SERIALIZE (this);
     if (unlikely (!c->extend_min (this))) return_trace (false);
 
-    /* TODO(iter) Write more efficiently? */
-
     unsigned num_ranges = 0;
     hb_codepoint_t last = (hb_codepoint_t) -2;
     for (auto g: glyphs)
