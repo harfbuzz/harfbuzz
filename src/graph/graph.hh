@@ -89,7 +89,8 @@ struct graph_t
 
         assigned_bytes.add_range (start, end);
       }
-      return true;
+
+      return !assigned_bytes.in_error ();
     }
 
     void normalize ()
