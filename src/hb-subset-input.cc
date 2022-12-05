@@ -448,16 +448,15 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
 #endif
 #endif
 
-#ifdef HB_EXPERIMENTAL_API
 /**
  * hb_subset_preprocess
  * @input: a #hb_face_t object.
  *
  * Preprocesses the face and attaches data that will be needed by the
  * subsetter. Future subsetting operations can then use the precomputed data
- * to speed up the subsetting operation.
+ * to speed up the subsetting operation. Returns a new hb_face_t*.
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 
 HB_EXTERN hb_face_t *
@@ -514,7 +513,6 @@ hb_subset_preprocess (hb_face_t *source)
 
   return new_source;
 }
-#endif
 
 #ifdef HB_EXPERIMENTAL_API
 /**

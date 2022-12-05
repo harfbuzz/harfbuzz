@@ -47,14 +47,16 @@ def fail_test (test, cli_args, message):
 	print ('  expected_file	    %s' % os.path.abspath (expected_file))
 	return 1
 
-def run_test (test, should_check_ots):
+def run_test (test, should_check_ots, preprocess):
 	out_file = os.path.join (tempfile.mkdtemp (), test.get_font_name () + '-subset' + test.get_font_extension ())
 	cli_args = ["--font-file=" + test.font_path,
 		    "--output-file=" + out_file,
 		    "--unicodes=%s" % test.unicodes (),
-		    "--preprocess-face",
 		    "--drop-tables+=DSIG",
 		    "--drop-tables-=sbix"]
+	if preprocess:
+		cli_args.extend(["--preprocess-face",])
+
 	cli_args.extend (test.get_profile_flags ())
 	if test.get_instance_flags ():
 		cli_args.extend (["--instance=%s" % ','.join(test.get_instance_flags ())])
@@ -142,7 +144,10 @@ for path in args:
 		print ("Running tests in " + path)
 		test_suite = SubsetTestSuite (path, f.read ())
 		for test in test_suite.tests ():
-			fails += run_test (test, has_ots)
+			# Tests are run with and without preprocessing, results should be the
+			# same between them.
+			fails += run_test (test, has_ots, False)
+			fails += run_test (test, has_ots, True)
 
 if fails != 0:
 	sys.exit ("%d test(s) failed." % fails)

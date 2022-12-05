@@ -181,10 +181,6 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
 #endif
 
 #ifdef HB_EXPERIMENTAL_API
-
-HB_EXTERN hb_face_t *
-hb_subset_preprocess (hb_face_t *source);
-
 HB_EXTERN hb_bool_t
 hb_subset_input_override_name_table (hb_subset_input_t  *input,
 				     hb_ot_name_id_t     name_id,
@@ -195,6 +191,9 @@ hb_subset_input_override_name_table (hb_subset_input_t  *input,
 				     int                 str_len);
 
 #endif
+
+HB_EXTERN hb_face_t *
+hb_subset_preprocess (hb_face_t *source);
 
 HB_EXTERN hb_face_t *
 hb_subset_or_fail (hb_face_t *source, const hb_subset_input_t *input);
