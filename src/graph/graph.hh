@@ -50,12 +50,13 @@ struct graph_t
     unsigned priority = 0;
 
 
-    bool link_positions_valid (unsigned num_objects)
+    bool link_positions_valid (unsigned num_objects, bool removed_nil)
     {
       hb_set_t assigned_bytes;
       for (const auto& l : obj.real_links)
       {
-        if (l.objidx >= num_objects)
+        if (l.objidx >= num_objects
+            || (removed_nil && !l.objidx))
         {
           DEBUG_MSG (SUBSET_REPACK, nullptr,
                      "Invalid graph. Invalid object index.");
@@ -340,7 +341,7 @@ struct graph_t
       if (check_success (!vertices_.in_error ()))
         v->obj = *objects[i];
 
-      check_success (v->link_positions_valid (objects.length));
+      check_success (v->link_positions_valid (objects.length, removed_nil));
 
       if (!removed_nil) continue;
       // Fix indices to account for removed nil object.
