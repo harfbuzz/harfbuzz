@@ -34,11 +34,7 @@
 
 static hb_face_t* preprocess_face(hb_face_t* face)
 {
-  #ifdef HB_EXPERIMENTAL_API
   return hb_subset_preprocess (face);
-  #else
-  return hb_face_reference(face);
-  #endif
 }
 
 /*
