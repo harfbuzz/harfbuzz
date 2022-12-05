@@ -34,7 +34,7 @@ bool read(const uint8_t** data, size_t* size, T* out)
 {
   if (*size < sizeof (T)) return false;
 
-  *out = * ((T*) *data);
+  memcpy(out, *data, sizeof (T));
 
   *data += sizeof (T);
   *size -= sizeof (T);
