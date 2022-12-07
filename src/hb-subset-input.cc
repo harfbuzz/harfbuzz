@@ -500,7 +500,8 @@ hb_subset_preprocess (hb_face_t *source)
   hb_subset_input_set_flags(input,
                             HB_SUBSET_FLAGS_NOTDEF_OUTLINE |
                             HB_SUBSET_FLAGS_GLYPH_NAMES |
-                            HB_SUBSET_FLAGS_RETAIN_GIDS);
+                            HB_SUBSET_FLAGS_RETAIN_GIDS |
+                            HB_SUBSET_FLAGS_NO_PRUNE_UNICODE_RANGES);
   input->attach_accelerator_data = true;
 
   // Always use long loca in the preprocessed version. This allows
