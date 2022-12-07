@@ -1187,6 +1187,11 @@ struct graph_t
       }
     }
 
+    for (unsigned i = 0; i < vertices_.length; i++)
+      // parents arrays must be accurate or downstream operations like cycle detection
+      // and sorting won't work correctly.
+      check_success (!vertices_[i].parents.in_error ());
+
     parents_invalid = false;
   }
 
