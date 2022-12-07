@@ -393,6 +393,14 @@ hb_resolve_overflows (const T& packed,
     return nullptr;
   }
 
+  if (sorted_graph.in_error ())
+  {
+    // Allocations failed somewhere
+    DEBUG_MSG (SUBSET_REPACK, nullptr,
+               "Graph is in error, likely due to a memory allocation error.");
+    return nullptr;
+  }
+
   if (!hb_resolve_graph_overflows (table_tag, max_rounds, recalculate_extensions, sorted_graph))
     return nullptr;
 
