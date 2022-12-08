@@ -783,6 +783,7 @@ hb_subset_plan_execute_or_fail
 hb_subset_plan_unicode_to_old_glyph_mapping
 hb_subset_plan_new_to_old_glyph_mapping
 hb_subset_plan_old_to_new_glyph_mapping
+hb_subset_preprocess
 hb_subset_flags_t
 hb_subset_input_t
 hb_subset_sets_t
@@ -791,7 +792,6 @@ hb_subset_plan_t
 hb_link_t
 hb_object_t
 hb_subset_repack_or_fail
-hb_subset_preprocess
 hb_subset_input_pin_axis_location
 hb_subset_input_pin_axis_to_default
 hb_subset_input_override_name_table

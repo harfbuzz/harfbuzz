@@ -449,12 +449,12 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
 #endif
 
 /**
- * hb_subset_preprocess
- * @input: a #hb_face_t object.
+ * hb_subset_preprocess:
+ * @source: a #hb_face_t object.
  *
  * Preprocesses the face and attaches data that will be needed by the
  * subsetter. Future subsetting operations can then use the precomputed data
- * to speed up the subsetting operation. Returns a new hb_face_t*.
+ * to speed up the subsetting operation.
  *
  * See docs/subset-preprocessing.md for more information.
  *
@@ -462,6 +462,8 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
  * backing the source hb_face_t*. Therefore in the case that this memory is not
  * owned by the source face you will need to ensure that memory lives
  * as long as the returned hb_face_t*.
+ *
+ * Returns: a new hb_face_t*.
  *
  * Since: REPLACEME
  **/
