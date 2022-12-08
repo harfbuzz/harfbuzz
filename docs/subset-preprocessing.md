@@ -21,7 +21,7 @@ hb_face_t* subset = hb_subset_or_fail (preprocessed, subset_input);
    original face. The preprocessor does not change the functionality of the subsetter, just speeds
    things up.
 
-*  The preprocessing operation may take longer then the time it takes to produce a subset from the
+*  The preprocessing operation may take longer than the time it takes to produce a subset from the
    source font. Thus the main performance gains are made when a preprocessed face is reused for
    multiple subsetting operations.
 
