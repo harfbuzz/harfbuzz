@@ -234,9 +234,7 @@ struct Glyph
     case VAR_COMPOSITE:
     {
       for (auto &item : get_var_composite_iterator ())
-      {
         if (unlikely (!item.get_points (points))) return false;
-      }
     }
     default:
       break;
