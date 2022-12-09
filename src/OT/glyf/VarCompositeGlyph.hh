@@ -166,7 +166,7 @@ struct VarCompositeGlyphRecord
     const F2DOT14 *q = (const F2DOT14 *) (axes_size +
 					  &StructAfter<const HBUINT8> (num_axes));
 
-    hb_array_t<contour_point_t> axis_points = points.sub_array (points.length - get_num_points ());
+    hb_array_t<contour_point_t> axis_points = points.as_array ().sub_array (points.length - get_num_points ());
     unsigned count = num_axes;
     for (unsigned i = 0; i < count; i++)
       axis_points[i].x = *q++;
@@ -186,7 +186,7 @@ struct VarCompositeGlyphRecord
     if ((flags & UNIFORM_SCALE) && !(flags & HAVE_SCALE_Y))
       scaleY = scaleX;
 
-    hb_array_t<contour_point_t> t = points.sub_array (points.length - NUM_TRANSFORM_POINTS);
+    hb_array_t<contour_point_t> t = points.as_array ().sub_array (points.length - NUM_TRANSFORM_POINTS);
     t[0].x = translateX;
     t[0].y = translateY;
     t[1].x = rotation;

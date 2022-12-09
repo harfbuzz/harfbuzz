@@ -369,7 +369,7 @@ struct Glyph
 	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
-	all_points.extend (comp_points.sub_array (0, comp_points.length - PHANTOM_COUNT));
+	all_points.extend (comp_points.as_array ().sub_array (0, comp_points.length - PHANTOM_COUNT));
 
 	points_left += item.get_num_points ();
       }
