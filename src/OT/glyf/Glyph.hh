@@ -211,9 +211,14 @@ struct Glyph
 		   bool shift_points_hori = true,
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
+		   hb_array_t<int> coords = hb_array_t<int> (),
 		   unsigned int depth = 0) const
   {
     if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
+
+    if (!coords)
+      coords = hb_array (font->coords, font->num_coords);
+
     contour_point_vector_t stack_points;
     bool inplace = type == SIMPLE && all_points.length == 0;
     /* Load into all_points if it's empty, as an optimization. */
@@ -277,7 +282,7 @@ struct Glyph
 
 #ifndef HB_NO_VAR
     glyf_accelerator.gvar->apply_deltas_to_points (gid,
-						   hb_array (font->coords, font->num_coords),
+						   coords,
 						   points.as_array ());
 #endif
 
@@ -306,8 +311,15 @@ struct Glyph
         comp_points.reset ();
 
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
-				       .get_points (font, glyf_accelerator, comp_points,
-						    deltas, shift_points_hori, use_my_metrics, phantom_only, depth + 1)))
+				       .get_points (font,
+						    glyf_accelerator,
+						    comp_points,
+						    deltas,
+						    shift_points_hori,
+						    use_my_metrics,
+						    phantom_only,
+						    coords,
+						    depth + 1)))
 	  return false;
 
 	/* Apply component transformation & translation */
@@ -359,8 +371,15 @@ struct Glyph
 	item.set_variations (coord_setter, record_points);
 
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
-				       .get_points (font, glyf_accelerator, comp_points,
-						    deltas, shift_points_hori, use_my_metrics, phantom_only, depth + 1)))
+				       .get_points (font,
+						    glyf_accelerator,
+						    comp_points,
+						    deltas,
+						    shift_points_hori,
+						    use_my_metrics,
+						    phantom_only,
+						    hb_array (font->coords, font->num_coords),
+						    depth + 1)))
 	  return false;
 
 	/* Apply component transformation */
