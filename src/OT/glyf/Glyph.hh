@@ -236,11 +236,13 @@ struct Glyph
       if (unlikely (!points.resize (num_points))) return false;
       break;
     }
+#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE:
     {
       for (auto &item : get_var_composite_iterator ())
         if (unlikely (!item.get_points (points))) return false;
     }
+#endif
     default:
       break;
     }
@@ -357,6 +359,7 @@ struct Glyph
 
       all_points.extend (phantoms);
     } break;
+#ifndef HB_NO_VAR_COMPOSITES
     case VAR_COMPOSITE:
     {
       contour_point_vector_t comp_points;
@@ -396,6 +399,7 @@ struct Glyph
       }
       all_points.extend (phantoms);
     } break;
+#endif
     default:
       all_points.extend (phantoms);
       break;

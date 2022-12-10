@@ -37,6 +37,7 @@
 
 #ifndef HB_EXPERIMENTAL
 #define HB_NO_BEYOND_64K
+#define HB_NO_VAR_COMPOSITES
 #endif
 
 #ifdef HB_TINY
