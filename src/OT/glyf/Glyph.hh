@@ -276,7 +276,9 @@ struct Glyph
     }
 
 #ifndef HB_NO_VAR
-    glyf_accelerator.gvar->apply_deltas_to_points (gid, font, points.as_array ());
+    glyf_accelerator.gvar->apply_deltas_to_points (gid,
+						   hb_array (font->coords, font->num_coords),
+						   points.as_array ());
 #endif
 
     // mainly used by CompositeGlyph calculating new X/Y offset value so no need to extend it
