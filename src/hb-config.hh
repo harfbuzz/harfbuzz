@@ -35,7 +35,7 @@
 #include "config.h"
 #endif
 
-#ifndef HB_EXPERIMENTAL
+#ifndef HB_EXPERIMENTAL_API
 #define HB_NO_BEYOND_64K
 #define HB_NO_VAR_COMPOSITES
 #endif
