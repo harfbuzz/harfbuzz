@@ -367,7 +367,7 @@ struct Glyph
 
         comp_points.reset ();
 
-	coord_setter_t coord_setter (font);
+	coord_setter_t coord_setter (coords);
 	item.set_variations (coord_setter, record_points);
 
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
@@ -378,7 +378,7 @@ struct Glyph
 						    shift_points_hori,
 						    use_my_metrics,
 						    phantom_only,
-						    hb_array (font->coords, font->num_coords),
+						    coord_setter.get_coords (),
 						    depth + 1)))
 	  return false;
 
