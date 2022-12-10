@@ -548,10 +548,11 @@ struct gvar
     { return (i >= end) ? start : (i + 1); }
 
     public:
-    bool apply_deltas_to_points (hb_codepoint_t glyph, hb_font_t *font,
+    bool apply_deltas_to_points (hb_codepoint_t glyph,
+				 hb_array_t<int> coords,
 				 const hb_array_t<contour_point_t> points) const
     {
-      if (!font->num_coords) return true;
+      if (!coords) return true;
 
       if (unlikely (glyph >= table->glyphCount)) return true;
 
@@ -578,7 +579,6 @@ struct gvar
 	if (points.arrayZ[i].is_end_point)
 	  end_points.push (i);
 
-      auto coords = hb_array (font->coords, font->num_coords);
       unsigned num_coords = table->axisCount;
       hb_array_t<const F2DOT14> shared_tuples = (table+table->sharedTuples).as_array (table->sharedTupleCount * table->axisCount);
 

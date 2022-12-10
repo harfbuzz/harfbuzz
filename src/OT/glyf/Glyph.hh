@@ -7,6 +7,8 @@
 #include "GlyphHeader.hh"
 #include "SimpleGlyph.hh"
 #include "CompositeGlyph.hh"
+#include "VarCompositeGlyph.hh"
+#include "coord-setter.hh"
 
 
 namespace OT {
@@ -32,13 +34,18 @@ enum phantom_point_index_t
 
 struct Glyph
 {
-  enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE };
+  enum glyph_type_t { EMPTY, SIMPLE, COMPOSITE, VAR_COMPOSITE };
 
   public:
   composite_iter_t get_composite_iterator () const
   {
     if (type != COMPOSITE) return composite_iter_t ();
     return CompositeGlyph (*header, bytes).iter ();
+  }
+  var_composite_iter_t get_var_composite_iterator () const
+  {
+    if (type != VAR_COMPOSITE) return var_composite_iter_t ();
+    return VarCompositeGlyph (*header, bytes).iter ();
   }
 
   const hb_bytes_t trim_padding () const
@@ -204,15 +211,24 @@ struct Glyph
 		   bool shift_points_hori = true,
 		   bool use_my_metrics = true,
 		   bool phantom_only = false,
+		   hb_array_t<int> coords = hb_array_t<int> (),
 		   unsigned int depth = 0) const
   {
     if (unlikely (depth > HB_MAX_NESTING_LEVEL)) return false;
+
+    if (!coords)
+      coords = hb_array (font->coords, font->num_coords);
+
     contour_point_vector_t stack_points;
     bool inplace = type == SIMPLE && all_points.length == 0;
     /* Load into all_points if it's empty, as an optimization. */
     contour_point_vector_t &points = inplace ? all_points : stack_points;
 
     switch (type) {
+    case SIMPLE:
+      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
+	return false;
+      break;
     case COMPOSITE:
     {
       /* pseudo component points for each component in composite glyph */
@@ -220,9 +236,14 @@ struct Glyph
       if (unlikely (!points.resize (num_points))) return false;
       break;
     }
-    case SIMPLE:
-      if (unlikely (!SimpleGlyph (*header, bytes).get_contour_points (points, phantom_only)))
-	return false;
+#ifndef HB_NO_VAR_COMPOSITES
+    case VAR_COMPOSITE:
+    {
+      for (auto &item : get_var_composite_iterator ())
+        if (unlikely (!item.get_points (points))) return false;
+    }
+#endif
+    default:
       break;
     }
 
@@ -262,7 +283,9 @@ struct Glyph
     }
 
 #ifndef HB_NO_VAR
-    glyf_accelerator.gvar->apply_deltas_to_points (gid, font, points.as_array ());
+    glyf_accelerator.gvar->apply_deltas_to_points (gid,
+						   coords,
+						   points.as_array ());
 #endif
 
     // mainly used by CompositeGlyph calculating new X/Y offset value so no need to extend it
@@ -288,9 +311,17 @@ struct Glyph
       for (auto &item : get_composite_iterator ())
       {
         comp_points.reset ();
+
 	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
-				       .get_points (font, glyf_accelerator, comp_points,
-						    deltas, shift_points_hori, use_my_metrics, phantom_only, depth + 1)))
+				       .get_points (font,
+						    glyf_accelerator,
+						    comp_points,
+						    deltas,
+						    shift_points_hori,
+						    use_my_metrics,
+						    phantom_only,
+						    coords,
+						    depth + 1)))
 	  return false;
 
 	/* Apply component transformation & translation */
@@ -328,8 +359,50 @@ struct Glyph
 
       all_points.extend (phantoms);
     } break;
+#ifndef HB_NO_VAR_COMPOSITES
+    case VAR_COMPOSITE:
+    {
+      contour_point_vector_t comp_points;
+      hb_array_t<contour_point_t> points_left = points.as_array ();
+      for (auto &item : get_var_composite_iterator ())
+      {
+	hb_array_t<contour_point_t> record_points = points_left.sub_array (0, item.get_num_points ());
+
+        comp_points.reset ();
+
+	coord_setter_t coord_setter (coords);
+	item.set_variations (coord_setter, record_points);
+
+	if (unlikely (!glyf_accelerator.glyph_for_gid (item.get_gid ())
+				       .get_points (font,
+						    glyf_accelerator,
+						    comp_points,
+						    deltas,
+						    shift_points_hori,
+						    use_my_metrics,
+						    phantom_only,
+						    coord_setter.get_coords (),
+						    depth + 1)))
+	  return false;
+
+	/* Apply component transformation */
+	item.transform_points (record_points, comp_points);
+
+	/* Copy phantom points from component if USE_MY_METRICS flag set */
+	if (use_my_metrics && item.is_use_my_metrics ())
+	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
+	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
+
+	all_points.extend (comp_points.as_array ().sub_array (0, comp_points.length - PHANTOM_COUNT));
+
+	points_left += item.get_num_points ();
+      }
+      all_points.extend (phantoms);
+    } break;
+#endif
     default:
       all_points.extend (phantoms);
+      break;
     }
 
     if (depth == 0 && shift_points_hori) /* Apply at top level */
@@ -368,6 +441,7 @@ struct Glyph
     int num_contours = header->numberOfContours;
     if (unlikely (num_contours == 0)) type = EMPTY;
     else if (num_contours > 0) type = SIMPLE;
+    else if (num_contours == -2) type = VAR_COMPOSITE;
     else type = COMPOSITE; /* negative numbers */
   }
 
