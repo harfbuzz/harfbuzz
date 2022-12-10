@@ -456,15 +456,15 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
  * subsetter. Future subsetting operations can then use the precomputed data
  * to speed up the subsetting operation.
  *
- * See https://github.com/harfbuzz/harfbuzz/blob/main/docs/subset-preprocessing.md
+ * See [subset-preprocessing](https://github.com/harfbuzz/harfbuzz/blob/main/docs/subset-preprocessing.md)
  * for more information.
  *
  * Note: the preprocessed face may contain sub-blobs that reference the memory
- * backing the source hb_face_t*. Therefore in the case that this memory is not
+ * backing the source #hb_face_t. Therefore in the case that this memory is not
  * owned by the source face you will need to ensure that memory lives
- * as long as the returned hb_face_t*.
+ * as long as the returned #hb_face_t.
  *
- * Returns: a new hb_face_t*.
+ * Returns: a new #hb_face_t.
  *
  * Since: REPLACEME
  **/
