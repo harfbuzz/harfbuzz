@@ -27,6 +27,7 @@ struct VarCompositeGlyphRecord
     HAVE_SKEW_Y			= 0x0200,
     HAVE_TCENTER_X		= 0x0400,
     HAVE_TCENTER_Y		= 0x0800,
+    GID_IS_24			= 0x1000,
   };
 
   public:
@@ -38,7 +39,11 @@ struct VarCompositeGlyphRecord
     unsigned int size = min_size;
 
     unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 4 : 3;
-    size += num_axes * axis_width;
+    size += numAxes * axis_width;
+
+    // gid
+    size += 2;
+    if (flags & GID_IS_24)		size += 1;
 
     if (flags & HAVE_TRANSLATE_X)	size += 2;
     if (flags & HAVE_TRANSLATE_Y)	size += 2;
@@ -59,17 +64,20 @@ struct VarCompositeGlyphRecord
 
   hb_codepoint_t get_gid () const
   {
-    return gid;
+    if (flags & GID_IS_24)
+      return StructAfter<const HBGlyphID24> (numAxes);
+    else
+      return StructAfter<const HBGlyphID16> (numAxes);
   }
 
-  unsigned get_num_axes () const
+  unsigned get_numAxes () const
   {
-    return num_axes;
+    return numAxes;
   }
 
   unsigned get_num_points () const
   {
-    return num_axes + NUM_TRANSFORM_POINTS;
+    return numAxes + NUM_TRANSFORM_POINTS;
   }
 
   void transform_points (hb_array_t<contour_point_t> transformation_points,
@@ -161,13 +169,14 @@ struct VarCompositeGlyphRecord
     if (unlikely (!points.resize (points.length + get_num_points ()))) return false;
 
     unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
-    unsigned axes_size = num_axes * axis_width;
+    unsigned axes_size = numAxes * axis_width;
 
     const F2DOT14 *q = (const F2DOT14 *) (axes_size +
-					  &StructAfter<const HBUINT8> (gid));
+					  (flags & GID_IS_24 ? 3 : 2) +
+					  &StructAfter<const HBUINT8> (numAxes));
 
     hb_array_t<contour_point_t> axis_points = points.as_array ().sub_array (points.length - get_num_points ());
-    unsigned count = num_axes;
+    unsigned count = numAxes;
     for (unsigned i = 0; i < count; i++)
       axis_points[i].x = *q++;
 
@@ -231,10 +240,10 @@ struct VarCompositeGlyphRecord
   {
     unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
 
-    const HBUINT8  *p = &StructAfter<const HBUINT8>  (gid);
-    const HBUINT16 *q = &StructAfter<const HBUINT16> (gid);
+    const HBUINT8  *p = (const HBUINT8 *)  (((HBUINT8 *) &numAxes) + numAxes.static_size + (flags & GID_IS_24 ? 3 : 2));
+    const HBUINT16 *q = (const HBUINT16 *) (((HBUINT8 *) &numAxes) + numAxes.static_size + (flags & GID_IS_24 ? 3 : 2));
 
-    unsigned count = num_axes;
+    unsigned count = numAxes;
     for (unsigned i = 0; i < count; i++)
     {
       unsigned axis_index = axis_width == 1 ? *p++ : *q++;
@@ -246,10 +255,9 @@ struct VarCompositeGlyphRecord
 
   protected:
   HBUINT16	flags;
-  HBUINT8	num_axes;
-  HBGlyphID16	gid;
+  HBUINT8	numAxes;
   public:
-  DEFINE_SIZE_MIN (5);
+  DEFINE_SIZE_MIN (3);
 };
 
 using var_composite_iter_t = composite_iter_tmpl<VarCompositeGlyphRecord>;
