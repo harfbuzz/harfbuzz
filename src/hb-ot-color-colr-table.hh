@@ -1048,6 +1048,7 @@ struct ClipList
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
+    // TODO Make a formatted struct!
     return_trace (c->check_struct (this) && clips.sanitize (c, this));
   }
 
