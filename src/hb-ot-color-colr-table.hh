@@ -953,6 +953,9 @@ struct ClipBox
 
 struct ClipRecord
 {
+  int cmp (hb_codepoint_t g) const
+  { return g < startGlyphID ? -1 : g <= endGlyphID ? 0 : +1; }
+
   ClipRecord* copy (hb_serialize_context_t *c, const void *base) const
   {
     TRACE_SERIALIZE (this);
@@ -980,6 +983,7 @@ struct ClipRecord
   public:
   DEFINE_SIZE_STATIC (7);
 };
+DECLARE_NULL_NAMESPACE_BYTES (OT, ClipRecord);
 
 struct ClipList
 {
@@ -1075,10 +1079,11 @@ struct ClipList
   bool
   get_extents (hb_codepoint_t gid, hb_glyph_extents_t *extents) const
   {
-    for (auto& record : clips)
+    auto *rec = clips.as_array ().bsearch (gid);
+    if (rec)
     {
-      if (record.startGlyphID <= gid && gid <= record.endGlyphID)
-        return record.get_extents (extents, this);
+      rec->get_extents (extents, this);
+      return true;
     }
     return false;
   }
