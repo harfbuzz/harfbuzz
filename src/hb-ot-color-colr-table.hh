@@ -1052,7 +1052,7 @@ struct ClipList
   }
 
   HBUINT8			format;  // Set to 1.
-  Array32Of<ClipRecord>		clips;  // Clip records, sorted by startGlyphID
+  SortedArray32Of<ClipRecord>	clips;  // Clip records, sorted by startGlyphID
   public:
   DEFINE_SIZE_ARRAY_SIZED (5, clips);
 };
