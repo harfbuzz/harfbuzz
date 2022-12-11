@@ -928,6 +928,24 @@ struct ClipBox
     }
   }
 
+  bool get_extents (hb_glyph_extents_t *extents) const
+  {
+    switch (u.format) {
+    case 1:
+      extents->x_bearing = u.format1.xMin;
+      extents->y_bearing = u.format1.yMax;
+      extents->width = u.format1.xMax - u.format1.xMin;
+      extents->height = u.format1.yMin - u.format1.yMax;
+      return true;
+    case 2:
+      // TODO
+      return false;
+    default:
+      // This shouldn't happen
+      return false;
+    }
+  }
+
   protected:
   union {
   HBUINT8		format;         /* Format identifier */
@@ -951,6 +969,11 @@ struct ClipRecord
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && clipBox.sanitize (c, base));
+  }
+
+  bool get_extents (hb_glyph_extents_t *extents, const void *base) const
+  {
+    return (base+clipBox).get_extents (extents);
   }
 
   public:
@@ -1050,6 +1073,17 @@ struct ClipList
     TRACE_SANITIZE (this);
     // TODO Make a formatted struct!
     return_trace (c->check_struct (this) && clips.sanitize (c, this));
+  }
+
+  bool
+  get_extents (hb_codepoint_t gid, hb_glyph_extents_t *extents) const
+  {
+    for (const ClipRecord& record : clips.iter ())
+    {
+      if (record.startGlyphID <= gid && gid <= record.endGlyphID)
+        return record.get_extents (extents, this);
+    }
+    return false;
   }
 
   HBUINT8			format;  // Set to 1.
@@ -1511,6 +1545,21 @@ struct COLR
     colr_prime->varIdxMap.serialize_copy (c->serializer, varIdxMap, this);
     //TODO: subset varStore once it's implemented in fonttools
     return_trace (true);
+  }
+
+  bool
+  get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+  {
+    if ((this+clipList).get_extents (glyph, extents))
+      {
+        extents->x_bearing = font->em_scale_x (extents->x_bearing);
+        extents->y_bearing = font->em_scale_x (extents->y_bearing);
+        extents->width = font->em_scale_x (extents->width);
+        extents->height = font->em_scale_x (extents->height);
+        return true;
+      }
+
+    return false;
   }
 
   protected:
