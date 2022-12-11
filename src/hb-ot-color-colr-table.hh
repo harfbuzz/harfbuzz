@@ -184,6 +184,7 @@ struct Variable
 
   protected:
   T      value;
+  public:
   VarIdx varIdxBase;
   public:
   DEFINE_SIZE_STATIC (4 + T::static_size);
@@ -928,15 +929,27 @@ struct ClipBox
     }
   }
 
-  bool get_extents (hb_glyph_extents_t *extents) const
+  bool get_extents (hb_glyph_extents_t *extents,
+		    const VariationStore &varStore,
+		    hb_array_t<int> coords) const
   {
     switch (u.format) {
     case 1:
-    case 2: // TODO variations
+    case 2:
       extents->x_bearing = u.format1.xMin;
       extents->y_bearing = u.format1.yMax;
       extents->width = u.format1.xMax - u.format1.xMin;
       extents->height = u.format1.yMin - u.format1.yMax;
+
+      if (u.format == 2 && coords)
+      {
+	uint32_t varIdx = u.format2.varIdxBase;
+	extents->x_bearing += _hb_roundf (varStore.get_delta (varIdx  , coords));
+	extents->y_bearing += _hb_roundf (varStore.get_delta (varIdx+1, coords));
+	extents->width     += _hb_roundf (varStore.get_delta (varIdx+2, coords));
+	extents->height    += _hb_roundf (varStore.get_delta (varIdx+3, coords));
+      }
+
       return true;
     default:
       return false;
@@ -971,9 +984,12 @@ struct ClipRecord
     return_trace (c->check_struct (this) && clipBox.sanitize (c, base));
   }
 
-  bool get_extents (hb_glyph_extents_t *extents, const void *base) const
+  bool get_extents (hb_glyph_extents_t *extents,
+		    const void *base,
+		    const VariationStore &varStore,
+		    hb_array_t<int> coords) const
   {
-    return (base+clipBox).get_extents (extents);
+    return (base+clipBox).get_extents (extents, varStore, coords);
   }
 
   public:
@@ -1077,12 +1093,15 @@ struct ClipList
   }
 
   bool
-  get_extents (hb_codepoint_t gid, hb_glyph_extents_t *extents) const
+  get_extents (hb_codepoint_t gid,
+	       hb_glyph_extents_t *extents,
+	       const VariationStore &varStore,
+	       hb_array_t<int> coords) const
   {
     auto *rec = clips.as_array ().bsearch (gid);
     if (rec)
     {
-      rec->get_extents (extents, this);
+      rec->get_extents (extents, this, varStore, coords);
       return true;
     }
     return false;
@@ -1554,7 +1573,10 @@ struct COLR
   {
     if (version != 1)
       return false;
-    if ((this+clipList).get_extents (glyph, extents))
+    if ((this+clipList).get_extents (glyph,
+				     extents,
+				     this+varStore,
+				     hb_array (font->coords, font->num_coords)))
     {
       extents->x_bearing = font->em_scale_x (extents->x_bearing);
       extents->y_bearing = font->em_scale_x (extents->y_bearing);
