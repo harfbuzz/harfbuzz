@@ -324,6 +324,11 @@ struct Glyph
 						    depth + 1)))
 	  return false;
 
+	/* Copy phantom points from component if USE_MY_METRICS flag set */
+	if (use_my_metrics && item.is_use_my_metrics ())
+	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
+	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
+
 	/* Apply component transformation & translation */
 	item.transform_points (comp_points);
 
@@ -344,15 +349,10 @@ struct Glyph
 	  }
 	}
 
-	/* Copy phantom points from component if USE_MY_METRICS flag set */
-	if (use_my_metrics && item.is_use_my_metrics ())
-	  for (unsigned int i = 0; i < PHANTOM_COUNT; i++)
-	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
+	all_points.extend (comp_points.as_array ().sub_array (0, comp_points.length - PHANTOM_COUNT));
 
 	if (all_points.length > HB_GLYF_MAX_POINTS)
 	  return false;
-
-	all_points.extend (comp_points.as_array ().sub_array (0, comp_points.length - PHANTOM_COUNT));
 
 	comp_index++;
       }
@@ -394,6 +394,9 @@ struct Glyph
 	    phantoms[i] = comp_points[comp_points.length - PHANTOM_COUNT + i];
 
 	all_points.extend (comp_points.as_array ().sub_array (0, comp_points.length - PHANTOM_COUNT));
+
+	if (all_points.length > HB_GLYF_MAX_POINTS)
+	  return false;
 
 	points_left += item.get_num_points ();
       }
