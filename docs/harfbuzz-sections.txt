@@ -773,6 +773,8 @@ hb_subset_input_get_flags
 hb_subset_input_unicode_set
 hb_subset_input_glyph_set
 hb_subset_input_set
+hb_subset_input_pin_axis_location
+hb_subset_input_pin_axis_to_default
 hb_subset_or_fail
 hb_subset_plan_create_or_fail
 hb_subset_plan_reference
@@ -792,7 +794,5 @@ hb_subset_plan_t
 hb_link_t
 hb_object_t
 hb_subset_repack_or_fail
-hb_subset_input_pin_axis_location
-hb_subset_input_pin_axis_to_default
 hb_subset_input_override_name_table
 </SECTION>

@@ -395,7 +395,6 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
   return hb_object_get_user_data (input, key);
 }
 
-#ifdef HB_EXPERIMENTAL_API
 #ifndef HB_NO_VAR
 /**
  * hb_subset_input_pin_axis_to_default: (skip)
@@ -406,7 +405,7 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
  *
  * Return value: `true` if success, `false` otherwise
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
@@ -430,7 +429,7 @@ hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
  *
  * Return value: `true` if success, `false` otherwise
  *
- * Since: EXPERIMENTAL
+ * Since: REPLACEME
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
@@ -445,7 +444,6 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
   float val = hb_clamp(axis_value, axis_info.min_value, axis_info.max_value);
   return input->axes_location->set (axis_tag, val);
 }
-#endif
 #endif
 
 /**

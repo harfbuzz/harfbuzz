@@ -167,7 +167,6 @@ static void BM_subset (benchmark::State &state,
     break;
 
     case instance:
-#ifdef HB_EXPERIMENTAL_API
     {
       hb_set_t* all_codepoints = hb_set_create ();
       hb_face_collect_unicodes (face, all_codepoints);
@@ -179,7 +178,6 @@ static void BM_subset (benchmark::State &state,
                                            test_input.instance_opts[i].axis_tag,
                                            test_input.instance_opts[i].axis_value);
     }
-#endif
     break;
   }
 
@@ -249,9 +247,7 @@ int main(int argc, char** argv)
 
   TEST_OPERATION (subset_glyphs, benchmark::kMillisecond);
   TEST_OPERATION (subset_codepoints, benchmark::kMillisecond);
-#ifdef HB_EXPERIMENTAL_API
   TEST_OPERATION (instance, benchmark::kMillisecond);
-#endif
 
 #undef TEST_OPERATION
 
