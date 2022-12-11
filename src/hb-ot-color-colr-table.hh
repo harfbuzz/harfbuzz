@@ -42,10 +42,6 @@
 #define HB_COLRV1_MAX_NESTING_LEVEL	100
 #endif
 
-#ifndef COLRV1_ENABLE_SUBSETTING
-#define COLRV1_ENABLE_SUBSETTING 1
-#endif
-
 namespace OT {
 
 struct COLR;
@@ -1359,7 +1355,7 @@ struct COLR
                   (this+baseGlyphsZ).sanitize (c, numBaseGlyphs) &&
                   (this+layersZ).sanitize (c, numLayers) &&
                   (version == 0 ||
-		   (COLRV1_ENABLE_SUBSETTING && version == 1 &&
+		   (version == 1 &&
 		    baseGlyphList.sanitize (c, this) &&
 		    layerList.sanitize (c, this) &&
 		    clipList.sanitize (c, this) &&
