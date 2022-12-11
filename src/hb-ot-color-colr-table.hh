@@ -932,16 +932,13 @@ struct ClipBox
   {
     switch (u.format) {
     case 1:
+    case 2: // TODO variations
       extents->x_bearing = u.format1.xMin;
       extents->y_bearing = u.format1.yMax;
       extents->width = u.format1.xMax - u.format1.xMin;
       extents->height = u.format1.yMin - u.format1.yMax;
       return true;
-    case 2:
-      // TODO
-      return false;
     default:
-      // This shouldn't happen
       return false;
     }
   }
@@ -1078,7 +1075,7 @@ struct ClipList
   bool
   get_extents (hb_codepoint_t gid, hb_glyph_extents_t *extents) const
   {
-    for (const ClipRecord& record : clips.iter ())
+    for (auto& record : clips)
     {
       if (record.startGlyphID <= gid && gid <= record.endGlyphID)
         return record.get_extents (extents, this);
@@ -1551,13 +1548,13 @@ struct COLR
   get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
   {
     if ((this+clipList).get_extents (glyph, extents))
-      {
-        extents->x_bearing = font->em_scale_x (extents->x_bearing);
-        extents->y_bearing = font->em_scale_x (extents->y_bearing);
-        extents->width = font->em_scale_x (extents->width);
-        extents->height = font->em_scale_x (extents->height);
-        return true;
-      }
+    {
+      extents->x_bearing = font->em_scale_x (extents->x_bearing);
+      extents->y_bearing = font->em_scale_x (extents->y_bearing);
+      extents->width = font->em_scale_x (extents->width);
+      extents->height = font->em_scale_x (extents->height);
+      return true;
+    }
 
     return false;
   }
