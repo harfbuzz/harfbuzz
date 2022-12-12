@@ -219,6 +219,23 @@ struct DeltaSetIndexMap
   DEFINE_SIZE_UNION (1, format);
 };
 
+
+struct VarStoreInstancer
+{
+  VarStoreInstancer (const VariationStore &varStore,
+		     const DeltaSetIndexMap &varIdxMap,
+		     hb_array_t<int> coords) :
+    varStore (varStore), varIdxMap (varIdxMap), coords (coords) {}
+
+  float operator() (uint32_t varIdx) const
+  { return varStore.get_delta (varIdxMap.map (varIdx), coords); }
+
+  const VariationStore &varStore;
+  const DeltaSetIndexMap &varIdxMap;
+  hb_array_t<int> coords;
+};
+
+
 } /* namespace OT */
 
 
