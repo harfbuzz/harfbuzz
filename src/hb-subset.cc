@@ -604,6 +604,12 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
         success = _subset_table (plan, buf, tag);
         if (unlikely (!success)) goto end;
       }
+      if (revisit_set == revisit_temp) {
+        DEBUG_MSG (SUBSET, nullptr, "Table dependencies unable to be satisfied. Subset failed.");
+        success = false;
+        goto end;
+      }
+
       revisit_set = revisit_temp;
     }
     offset += num_tables;
