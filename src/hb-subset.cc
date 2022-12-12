@@ -413,20 +413,14 @@ _passthrough (hb_subset_plan_t *plan, hb_tag_t tag)
 
 static bool
 _dependencies_satisfied (hb_subset_plan_t *plan, hb_tag_t tag,
-                         hb_set_t &visited_set, hb_set_t &revisit_set)
+                         const hb_set_t &subsetted_tags,
+                         const hb_set_t &pending_subset_tags)
 {
   switch (tag)
   {
   case HB_OT_TAG_hmtx:
   case HB_OT_TAG_vmtx:
-    if (!plan->pinned_at_default &&
-        !visited_set.has (HB_OT_TAG_glyf))
-    {
-      revisit_set.add (tag);
-      return false;
-    }
-    return true;
-
+    return plan->pinned_at_default || !pending_subset_tags.has (HB_OT_TAG_glyf);
   default:
     return true;
   }
@@ -572,47 +566,58 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
     return nullptr;
   }
 
-  hb_set_t tags_set, revisit_set;
-  bool success = true;
   hb_tag_t table_tags[32];
   unsigned offset = 0, num_tables = ARRAY_LENGTH (table_tags);
-  hb_vector_t<char> buf;
-  buf.alloc (4096 - 16);
 
+  hb_set_t subsetted_tags, pending_subset_tags;
   while (((void) _get_table_tags (plan, offset, &num_tables, table_tags), num_tables))
   {
     for (unsigned i = 0; i < num_tables; ++i)
     {
       hb_tag_t tag = table_tags[i];
-      if (_should_drop_table (plan, tag) && !tags_set.has (tag)) continue;
-      if (!_dependencies_satisfied (plan, tag, tags_set, revisit_set)) continue;
-      tags_set.add (tag);
+      if (_should_drop_table (plan, tag)) continue;
+      pending_subset_tags.add (tag);
+    }
+
+    offset += num_tables;
+  }
+
+  hb_vector_t<char> buf;
+  buf.alloc (4096 - 16);
+
+
+  bool success = true;
+
+  while (!pending_subset_tags.is_empty ())
+  {
+    bool made_changes = false;
+    for (hb_tag_t tag : pending_subset_tags)
+    {
+
+      if (!_dependencies_satisfied (plan, tag,
+                                    subsetted_tags,
+                                    pending_subset_tags))
+      {
+        // delayed subsetting for some tables since they might have dependency on other tables
+        // in some cases: e.g: during instantiating glyf tables, hmetrics/vmetrics are updated
+        // and saved in subset plan, hmtx/vmtx subsetting need to use these updated metrics values
+        continue;
+      }
+
+      pending_subset_tags.del (tag);
+      subsetted_tags.add (tag);
+      made_changes = true;
+
       success = _subset_table (plan, buf, tag);
       if (unlikely (!success)) goto end;
     }
 
-    /*delayed subsetting for some tables since they might have dependency on other tables in some cases:
-    e.g: during instantiating glyf tables, hmetrics/vmetrics are updated and saved in subset plan,
-    hmtx/vmtx subsetting need to use these updated metrics values*/
-    while (!revisit_set.is_empty ())
+    if (!made_changes)
     {
-      hb_set_t revisit_temp;
-      for (hb_tag_t tag : revisit_set)
-      {
-        if (!_dependencies_satisfied (plan, tag, tags_set, revisit_temp)) continue;
-        tags_set.add (tag);
-        success = _subset_table (plan, buf, tag);
-        if (unlikely (!success)) goto end;
-      }
-      if (revisit_set == revisit_temp) {
-        DEBUG_MSG (SUBSET, nullptr, "Table dependencies unable to be satisfied. Subset failed.");
-        success = false;
-        goto end;
-      }
-
-      revisit_set = revisit_temp;
+      DEBUG_MSG (SUBSET, nullptr, "Table dependencies unable to be satisfied. Subset failed.");
+      success = false;
+      goto end;
     }
-    offset += num_tables;
   }
 
   if (success && plan->attach_accelerator_data) {
