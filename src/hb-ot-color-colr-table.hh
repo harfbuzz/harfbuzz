@@ -941,7 +941,7 @@ struct ClipBox
       extents->width = u.format1.xMax - u.format1.xMin;
       extents->height = u.format1.yMin - u.format1.yMax;
 
-      if (u.format == 2 && coords)
+      if (u.format == 2 && coords && u.format2.varIdxBase != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
       {
 	uint32_t varIdx = u.format2.varIdxBase;
 	extents->x_bearing += _hb_roundf (varStore.get_delta (varIdx  , coords));
