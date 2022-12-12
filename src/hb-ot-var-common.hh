@@ -227,6 +227,8 @@ struct VarStoreInstancer
 		     hb_array_t<int> coords) :
     varStore (varStore), varIdxMap (varIdxMap), coords (coords) {}
 
+  operator bool () const { return bool (coords); }
+
   float operator() (uint32_t varIdx) const
   { return varStore.get_delta (varIdxMap.map (varIdx), coords); }
 

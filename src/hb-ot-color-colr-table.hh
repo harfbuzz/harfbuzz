@@ -930,9 +930,7 @@ struct ClipBox
   }
 
   bool get_extents (hb_glyph_extents_t *extents,
-		    const DeltaSetIndexMap &varIdxMap,
-		    const VariationStore &varStore,
-		    hb_array_t<int> coords) const
+		    const VarStoreInstancer &instancer) const
   {
     switch (u.format) {
     case 1:
@@ -942,13 +940,13 @@ struct ClipBox
       extents->width = u.format1.xMax - u.format1.xMin;
       extents->height = u.format1.yMin - u.format1.yMax;
 
-      if (u.format == 2 && coords && u.format2.varIdxBase != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      if (u.format == 2 && instancer && u.format2.varIdxBase != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
       {
 	uint32_t varIdx = u.format2.varIdxBase;
-	extents->x_bearing += _hb_roundf (varStore.get_delta (varIdxMap.map (varIdx+0), coords));
-	extents->y_bearing += _hb_roundf (varStore.get_delta (varIdxMap.map (varIdx+1), coords));
-	extents->width     += _hb_roundf (varStore.get_delta (varIdxMap.map (varIdx+2), coords));
-	extents->height    += _hb_roundf (varStore.get_delta (varIdxMap.map (varIdx+3), coords));
+	extents->x_bearing += _hb_roundf (instancer (varIdx+0));
+	extents->y_bearing += _hb_roundf (instancer (varIdx+1));
+	extents->width     += _hb_roundf (instancer (varIdx+2));
+	extents->height    += _hb_roundf (instancer (varIdx+3));
       }
 
       return true;
@@ -987,11 +985,9 @@ struct ClipRecord
 
   bool get_extents (hb_glyph_extents_t *extents,
 		    const void *base,
-		    const DeltaSetIndexMap &varIdxMap,
-		    const VariationStore &varStore,
-		    hb_array_t<int> coords) const
+		    const VarStoreInstancer &instancer) const
   {
-    return (base+clipBox).get_extents (extents, varIdxMap, varStore, coords);
+    return (base+clipBox).get_extents (extents, instancer);
   }
 
   public:
@@ -1097,14 +1093,12 @@ struct ClipList
   bool
   get_extents (hb_codepoint_t gid,
 	       hb_glyph_extents_t *extents,
-	       const DeltaSetIndexMap &varIdxMap,
-	       const VariationStore &varStore,
-	       hb_array_t<int> coords) const
+	       const VarStoreInstancer &instancer) const
   {
     auto *rec = clips.as_array ().bsearch (gid);
     if (rec)
     {
-      rec->get_extents (extents, this, varIdxMap, varStore, coords);
+      rec->get_extents (extents, this, instancer);
       return true;
     }
     return false;
@@ -1576,11 +1570,14 @@ struct COLR
   {
     if (version != 1)
       return false;
+
+    VarStoreInstancer instancer (this+varStore,
+				 this+varIdxMap,
+				 hb_array (font->coords, font->num_coords));
+
     if ((this+clipList).get_extents (glyph,
 				     extents,
-				     this+varIdxMap,
-				     this+varStore,
-				     hb_array (font->coords, font->num_coords)))
+				     instancer))
     {
       extents->x_bearing = font->em_scale_x (extents->x_bearing);
       extents->y_bearing = font->em_scale_x (extents->y_bearing);
