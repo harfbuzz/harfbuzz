@@ -28,11 +28,10 @@ struct VarCompositeGlyphRecord
     HAVE_TCENTER_X		= 0x0400,
     HAVE_TCENTER_Y		= 0x0800,
     GID_IS_24			= 0x1000,
+    AXES_HAVE_VARIATION		= 0x2000,
   };
 
   public:
-
-  static constexpr unsigned NUM_TRANSFORM_POINTS = 5;
 
   unsigned int get_size () const
   {
@@ -77,16 +76,23 @@ struct VarCompositeGlyphRecord
 
   unsigned get_num_points () const
   {
-    return numAxes + NUM_TRANSFORM_POINTS;
+    unsigned num = 0;
+    if (flags & AXES_HAVE_VARIATION)			num += numAxes;
+    if (flags & (HAVE_TRANSLATE_X | HAVE_TRANSLATE_Y))	num++;
+    if (flags & HAVE_ROTATION)				num++;
+    if (flags & (HAVE_SCALE_X | HAVE_SCALE_Y))		num++;
+    if (flags & (HAVE_SKEW_X | HAVE_SKEW_Y))		num++;
+    if (flags & (HAVE_TCENTER_X | HAVE_TCENTER_Y))	num++;
+    return num;
   }
 
-  void transform_points (hb_array_t<contour_point_t> transformation_points,
+  void transform_points (hb_array_t<contour_point_t> record_points,
 			 contour_point_vector_t &points) const
   {
     float matrix[4];
     contour_point_t trans;
 
-    get_transformation_from_points (transformation_points, matrix, trans);
+    get_transformation_from_points (record_points, matrix, trans);
 
     points.transform (matrix);
     points.translate (trans);
@@ -175,10 +181,17 @@ struct VarCompositeGlyphRecord
 					  (flags & GID_IS_24 ? 3 : 2) +
 					  &StructAfter<const HBUINT8> (numAxes));
 
-    hb_array_t<contour_point_t> axis_points = points.as_array ().sub_array (points.length - get_num_points ());
+    hb_array_t<contour_point_t> rec_points = points.as_array ().sub_array (points.length - get_num_points ());
+
     unsigned count = numAxes;
-    for (unsigned i = 0; i < count; i++)
-      axis_points[i].x = *q++;
+    if (flags & AXES_HAVE_VARIATION)
+    {
+      for (unsigned i = 0; i < count; i++)
+	rec_points[i].x = *q++;
+      rec_points += count;
+    }
+    else
+      q += count;
 
     const HBUINT16 *p = (const HBUINT16 *) q;
 
@@ -195,38 +208,92 @@ struct VarCompositeGlyphRecord
     if ((flags & UNIFORM_SCALE) && !(flags & HAVE_SCALE_Y))
       scaleY = scaleX;
 
-    hb_array_t<contour_point_t> t = points.as_array ().sub_array (points.length - NUM_TRANSFORM_POINTS);
-    t[0].x = translateX;
-    t[0].y = translateY;
-    t[1].x = rotation;
-    t[2].x = scaleX;
-    t[2].y = scaleY;
-    t[3].x = skewX;
-    t[3].y = skewY;
-    t[4].x = tCenterX;
-    t[4].y = tCenterY;
+    if (flags & (HAVE_TRANSLATE_X | HAVE_TRANSLATE_Y))
+    {
+      rec_points[0].x = translateX;
+      rec_points[0].y = translateY;
+      rec_points++;
+    }
+    if (flags & HAVE_ROTATION)
+    {
+      rec_points[0].x = rotation;
+      rec_points++;
+    }
+    if (flags & (HAVE_SCALE_X | HAVE_SCALE_Y))
+    {
+      rec_points[0].x = scaleX;
+      rec_points[0].y = scaleY;
+      rec_points++;
+    }
+    if (flags & (HAVE_SKEW_X | HAVE_SKEW_Y))
+    {
+      rec_points[0].x = skewX;
+      rec_points[0].y = skewY;
+      rec_points++;
+    }
+    if (flags & (HAVE_TCENTER_X | HAVE_TCENTER_Y))
+    {
+      rec_points[0].x = tCenterX;
+      rec_points[0].y = tCenterY;
+      rec_points++;
+    }
+    assert (!rec_points);
 
     return true;
   }
 
-  void get_transformation_from_points (hb_array_t<contour_point_t> points,
+  void get_transformation_from_points (hb_array_t<contour_point_t> rec_points,
 				       float (&matrix)[4], contour_point_t &trans) const
   {
+    if (flags & AXES_HAVE_VARIATION)
+      rec_points += numAxes;
+
     matrix[0] = matrix[3] = 1.f;
     matrix[1] = matrix[2] = 0.f;
     trans.init (0.f, 0.f);
 
-    hb_array_t<contour_point_t> t = points.sub_array (points.length - NUM_TRANSFORM_POINTS);
+    hb_array_t<contour_point_t> t = rec_points;
 
-    float translateX = t[0].x;
-    float translateY = t[0].y;
-    float rotation = t[1].x / (1 << 14);
-    float scaleX = t[2].x / (1 << 12);
-    float scaleY = t[2].y / (1 << 12);
-    float skewX = t[3].x / (1 << 14);
-    float skewY = t[3].y / (1 << 14);
-    float tCenterX = t[4].x;
-    float tCenterY = t[4].y;
+    float translateX = 0.f;
+    float translateY = 0.f;
+    float rotation = 0.f;
+    float scaleX = 1.f;
+    float scaleY = 1.f;
+    float skewX = 0.f;
+    float skewY = 0.f;
+    float tCenterX = 0.f;
+    float tCenterY = 0.f;
+
+    if (flags & (HAVE_TRANSLATE_X | HAVE_TRANSLATE_Y))
+    {
+      translateX = rec_points[0].x;
+      translateY = rec_points[0].y;
+      rec_points++;
+    }
+    if (flags & HAVE_ROTATION)
+    {
+      rotation = rec_points[0].x / (1 << 14);
+      rec_points++;
+    }
+    if (flags & (HAVE_SCALE_X | HAVE_SCALE_Y))
+    {
+      scaleX = rec_points[0].x / (1 << 12);
+      scaleY = rec_points[0].y / (1 << 12);
+      rec_points++;
+    }
+    if (flags & (HAVE_SKEW_X | HAVE_SKEW_Y))
+    {
+      skewX = rec_points[0].x / (1 << 14);
+      skewY = rec_points[0].y / (1 << 14);
+      rec_points++;
+    }
+    if (flags & (HAVE_TCENTER_X | HAVE_TCENTER_Y))
+    {
+      tCenterX = rec_points[0].x;
+      tCenterY = rec_points[0].y;
+      rec_points++;
+    }
+    assert (!rec_points);
 
     translate (matrix, trans, translateX + tCenterX, translateY + tCenterY);
     rotate (matrix, trans, rotation);
@@ -236,18 +303,23 @@ struct VarCompositeGlyphRecord
   }
 
   void set_variations (coord_setter_t &setter,
-		       hb_array_t<contour_point_t> axis_points) const
+		       hb_array_t<contour_point_t> rec_points) const
   {
+    bool have_variations = flags & AXES_HAVE_VARIATION;
     unsigned axis_width = (flags & AXIS_INDICES_ARE_SHORT) ? 2 : 1;
 
     const HBUINT8  *p = (const HBUINT8 *)  (((HBUINT8 *) &numAxes) + numAxes.static_size + (flags & GID_IS_24 ? 3 : 2));
     const HBUINT16 *q = (const HBUINT16 *) (((HBUINT8 *) &numAxes) + numAxes.static_size + (flags & GID_IS_24 ? 3 : 2));
 
+    const F2DOT14 *a = (const F2DOT14 *) ((HBUINT8 *) (axis_width == 1 ? (p + numAxes) : (HBUINT8 *) (q + numAxes)));
+
     unsigned count = numAxes;
     for (unsigned i = 0; i < count; i++)
     {
       unsigned axis_index = axis_width == 1 ? *p++ : *q++;
-      signed v = axis_points[i].x;
+
+      signed v = have_variations ? rec_points[i].x : *a++;
+
       v += setter[axis_index];
       v = hb_clamp (v, -(1<<14), (1<<14));
       setter[axis_index] = v;
