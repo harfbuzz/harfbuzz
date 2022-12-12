@@ -660,7 +660,6 @@ parse_drop_tables (const char *name,
   return true;
 }
 
-#ifdef HB_EXPERIMENTAL_API
 #ifndef HB_NO_VAR
 static gboolean
 parse_instance (const char *name,
@@ -724,7 +723,6 @@ parse_instance (const char *name,
 
   return true;
 }
-#endif
 #endif
 
 template <GOptionArgFunc line_parser, bool allow_comments=true>
@@ -897,7 +895,6 @@ subset_main_t::add_options ()
     {"drop-tables",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables. Use --drop-tables-=... to subtract from the current set.", "list of string table tags or *"},
     {"drop-tables+",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
     {"drop-tables-",	0, G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_CALLBACK, (gpointer) &parse_drop_tables,	"Drop the specified tables.", "list of string table tags or *"},
-#ifdef HB_EXPERIMENTAL_API
 #ifndef HB_NO_VAR
     {"instance",	0, 0, G_OPTION_ARG_CALLBACK, (gpointer) &parse_instance,
      "(Partially|Fully) Instantiate a variable font. A location consists of the tag of a variation axis, followed by '=', followed by a\n"
@@ -906,7 +903,6 @@ subset_main_t::add_options ()
      "For example: --instance=\"wdth=100 wght=200\" or --instance=\"wdth=drop\"\n"
      "Note: currently only fully instancing to the default location is supported\n",
      "list of comma separated axis-locations"},
-#endif
 #endif
     {nullptr}
   };

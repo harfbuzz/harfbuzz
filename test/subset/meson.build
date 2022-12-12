@@ -49,17 +49,11 @@ tests = [
   'glyph_names',
   'post',
   '32bit_var_store',
+  'pin_all_at_default',
+  'instantiate_glyf',
+  'full_instance',
+  'instance_feature_variations',
 ]
-
-if get_option('experimental_api')
-  # instacing tests, only supported in experimental api
-  tests += [
-    'pin_all_at_default',
-    'instantiate_glyf',
-    'full_instance',
-    'instance_feature_variations',
-  ]
-endif
 
 repack_tests = [
   'basic',
@@ -69,7 +63,6 @@ repack_tests = [
   'advanced_prioritization',
   'space_splitting',
 ]
-
 
 run_test = find_program('run-tests.py')
 

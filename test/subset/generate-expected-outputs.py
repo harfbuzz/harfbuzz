@@ -35,7 +35,6 @@ def generate_expected_output(input_file, unicodes, profile_flags, instance_flags
 			"--no-overlap-flag",
 			"--no-recalc-bounds",
 			"--no-recalc-timestamp",
-			"--no-harfbuzz-repacker", # disable harfbuzz repacker so we aren't comparing to ourself.
 			"--output=%s" % instance_path,
 			input_file]
 		args.extend(instance_flags)

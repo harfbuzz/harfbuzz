@@ -403,6 +403,9 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
  *
  * Pin an axis to its default location in the given subset input object.
  *
+ * Currently only works for fonts with 'glyf' tables. CFF and CFF2 is not
+ * yet supported. Additionally all axes in a font must be pinned.
+ *
  * Return value: `true` if success, `false` otherwise
  *
  * Since: REPLACEME
@@ -426,6 +429,9 @@ hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
  * @axis_value: Location on the axis to be pinned at
  *
  * Pin an axis to a fixed location in the given subset input object.
+ *
+ * Currently only works for fonts with 'glyf' tables. CFF and CFF2 is not
+ * yet supported. Additionally all axes in a font must be pinned.
  *
  * Return value: `true` if success, `false` otherwise
  *
