@@ -252,8 +252,6 @@ struct VarCompositeGlyphRecord
     matrix[1] = matrix[2] = 0.f;
     trans.init (0.f, 0.f);
 
-    hb_array_t<contour_point_t> t = rec_points;
-
     float translateX = 0.f;
     float translateY = 0.f;
     float rotation = 0.f;
