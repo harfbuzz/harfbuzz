@@ -184,6 +184,7 @@ struct Variable
 
   protected:
   T      value;
+  public:
   VarIdx varIdxBase;
   public:
   DEFINE_SIZE_STATIC (4 + T::static_size);
@@ -928,6 +929,32 @@ struct ClipBox
     }
   }
 
+  bool get_extents (hb_glyph_extents_t *extents,
+		    const VarStoreInstancer &instancer) const
+  {
+    switch (u.format) {
+    case 1:
+    case 2:
+      extents->x_bearing = u.format1.xMin;
+      extents->y_bearing = u.format1.yMax;
+      extents->width = u.format1.xMax - u.format1.xMin;
+      extents->height = u.format1.yMin - u.format1.yMax;
+
+      if (u.format == 2 && instancer && u.format2.varIdxBase != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      {
+	uint32_t varIdx = u.format2.varIdxBase;
+	extents->x_bearing += _hb_roundf (instancer (varIdx+0));
+	extents->y_bearing += _hb_roundf (instancer (varIdx+1));
+	extents->width     += _hb_roundf (instancer (varIdx+2));
+	extents->height    += _hb_roundf (instancer (varIdx+3));
+      }
+
+      return true;
+    default:
+      return false;
+    }
+  }
+
   protected:
   union {
   HBUINT8		format;         /* Format identifier */
@@ -938,6 +965,9 @@ struct ClipBox
 
 struct ClipRecord
 {
+  int cmp (hb_codepoint_t g) const
+  { return g < startGlyphID ? -1 : g <= endGlyphID ? 0 : +1; }
+
   ClipRecord* copy (hb_serialize_context_t *c, const void *base) const
   {
     TRACE_SERIALIZE (this);
@@ -953,6 +983,13 @@ struct ClipRecord
     return_trace (c->check_struct (this) && clipBox.sanitize (c, base));
   }
 
+  bool get_extents (hb_glyph_extents_t *extents,
+		    const void *base,
+		    const VarStoreInstancer &instancer) const
+  {
+    return (base+clipBox).get_extents (extents, instancer);
+  }
+
   public:
   HBUINT16		startGlyphID;  // first gid clip applies to
   HBUINT16		endGlyphID;    // last gid clip applies to, inclusive
@@ -960,6 +997,7 @@ struct ClipRecord
   public:
   DEFINE_SIZE_STATIC (7);
 };
+DECLARE_NULL_NAMESPACE_BYTES (OT, ClipRecord);
 
 struct ClipList
 {
@@ -1050,6 +1088,20 @@ struct ClipList
     TRACE_SANITIZE (this);
     // TODO Make a formatted struct!
     return_trace (c->check_struct (this) && clips.sanitize (c, this));
+  }
+
+  bool
+  get_extents (hb_codepoint_t gid,
+	       hb_glyph_extents_t *extents,
+	       const VarStoreInstancer &instancer) const
+  {
+    auto *rec = clips.as_array ().bsearch (gid);
+    if (rec)
+    {
+      rec->get_extents (extents, this, instancer);
+      return true;
+    }
+    return false;
   }
 
   HBUINT8			format;  // Set to 1.
@@ -1511,6 +1563,30 @@ struct COLR
     colr_prime->varIdxMap.serialize_copy (c->serializer, varIdxMap, this);
     //TODO: subset varStore once it's implemented in fonttools
     return_trace (true);
+  }
+
+  bool
+  get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+  {
+    if (version != 1)
+      return false;
+
+    VarStoreInstancer instancer (this+varStore,
+				 this+varIdxMap,
+				 hb_array (font->coords, font->num_coords));
+
+    if ((this+clipList).get_extents (glyph,
+				     extents,
+				     instancer))
+    {
+      extents->x_bearing = font->em_scale_x (extents->x_bearing);
+      extents->y_bearing = font->em_scale_x (extents->y_bearing);
+      extents->width = font->em_scale_x (extents->width);
+      extents->height = font->em_scale_x (extents->height);
+      return true;
+    }
+
+    return false;
   }
 
   protected:

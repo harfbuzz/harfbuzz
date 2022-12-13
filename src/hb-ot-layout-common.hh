@@ -2715,6 +2715,14 @@ struct VariationStore
     unsigned int inner = index & 0xFFFF;
     return get_delta (outer, inner, coords, coord_count, cache);
   }
+  float get_delta (unsigned int index,
+		   hb_array_t<int> coords,
+		   VarRegionList::cache_t *cache = nullptr) const
+  {
+    return get_delta (index,
+		      coords.arrayZ, coords.length,
+		      cache);
+  }
 
   bool sanitize (hb_sanitize_context_t *c) const
   {

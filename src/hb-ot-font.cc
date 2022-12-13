@@ -45,6 +45,7 @@
 #include "hb-ot-vorg-table.hh"
 #include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-color-sbix-table.hh"
+#include "hb-ot-color-colr-table.hh"
 
 
 /**
@@ -349,6 +350,9 @@ hb_ot_get_glyph_extents (hb_font_t *font,
 #if !defined(HB_NO_OT_FONT_BITMAP) && !defined(HB_NO_COLOR)
   if (ot_face->sbix->get_extents (font, glyph, extents)) return true;
   if (ot_face->CBDT->get_extents (font, glyph, extents)) return true;
+#endif
+#if !defined(HB_NO_COLOR)
+  if (ot_face->COLR->get_extents (font, glyph, extents)) return true;
 #endif
   if (ot_face->glyf->get_extents (font, glyph, extents)) return true;
 #ifndef HB_NO_OT_FONT_CFF
