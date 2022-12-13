@@ -590,10 +590,15 @@ hb_subset_plan_execute_or_fail (hb_subset_plan_t *plan)
 
   while (!pending_subset_tags.is_empty ())
   {
+    if (subsetted_tags.in_error ()
+        || pending_subset_tags.in_error ()) {
+      success = false;
+      goto end;
+    }
+
     bool made_changes = false;
     for (hb_tag_t tag : pending_subset_tags)
     {
-
       if (!_dependencies_satisfied (plan, tag,
                                     subsetted_tags,
                                     pending_subset_tags))
