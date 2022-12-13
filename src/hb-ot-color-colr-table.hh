@@ -1579,6 +1579,19 @@ struct COLR
         return true;
       }
     }
+    else
+    {
+      const BaseGlyphRecord &record = (this+baseGlyphsZ).bsearch (numBaseGlyphs, glyph);
+
+      hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
+      hb_array_t<const LayerRecord> glyph_layers = all_layers.sub_array (record.firstLayerIdx,
+                                                                         record.numLayers);
+      for (const LayerRecord layer : glyph_layers)
+      {
+        if (hb_font_get_glyph_extents (font, layer.glyphId, extents))
+          return true;
+      }
+    }
 
     return false;
   }
