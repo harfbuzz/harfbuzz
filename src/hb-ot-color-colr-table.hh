@@ -1562,22 +1562,22 @@ struct COLR
   bool
   get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
   {
-    if (version != 1)
-      return false;
-
-    VarStoreInstancer instancer (this+varStore,
-				 this+varIdxMap,
-				 hb_array (font->coords, font->num_coords));
-
-    if ((this+clipList).get_extents (glyph,
-				     extents,
-				     instancer))
+    if (version == 1)
     {
-      extents->x_bearing = font->em_scale_x (extents->x_bearing);
-      extents->y_bearing = font->em_scale_x (extents->y_bearing);
-      extents->width = font->em_scale_x (extents->width);
-      extents->height = font->em_scale_x (extents->height);
-      return true;
+      VarStoreInstancer instancer (this+varStore,
+				   this+varIdxMap,
+			           hb_array (font->coords, font->num_coords));
+
+      if ((this+clipList).get_extents (glyph,
+				       extents,
+				       instancer))
+      {
+        extents->x_bearing = font->em_scale_x (extents->x_bearing);
+        extents->y_bearing = font->em_scale_x (extents->y_bearing);
+        extents->width = font->em_scale_x (extents->width);
+        extents->height = font->em_scale_x (extents->height);
+        return true;
+      }
     }
 
     return false;
