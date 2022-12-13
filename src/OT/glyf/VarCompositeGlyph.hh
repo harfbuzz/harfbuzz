@@ -314,7 +314,7 @@ struct VarCompositeGlyphRecord
     unsigned count = numAxes;
     for (unsigned i = 0; i < count; i++)
     {
-      unsigned axis_index = axis_width == 1 ? *p++ : *q++;
+      unsigned axis_index = axis_width == 1 ? (unsigned) *p++ : (unsigned) *q++;
 
       signed v = have_variations ? rec_points[i].x : *a++;
 
