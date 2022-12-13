@@ -2488,7 +2488,7 @@ struct VarData
     const HBUINT8 *src_delta_bytes = src->get_delta_bytes ();
     unsigned src_row_size = src->get_row_size ();
     unsigned src_word_count = src->wordCount ();
-    unsigned src_long_words = src->longWords ();
+    bool     src_long_words = src->longWords ();
 
     bool has_long = false;
     if (src_long_words)
