@@ -168,6 +168,11 @@ hb_paint_funcs_set_##name##_func (hb_paint_funcs_t         *funcs,              
 HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_PAINT_FUNC_IMPLEMENT
 
+/**
+ * hb_paint_funcs_create:
+ *
+ * Returns value: (transfer full):
+ */
 hb_paint_funcs_t *
 hb_paint_funcs_create ()
 {

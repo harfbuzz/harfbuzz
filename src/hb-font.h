@@ -531,7 +531,6 @@ typedef void (*hb_font_get_glyph_shape_func_t) (hb_font_t *font, void *font_data
 						hb_draw_funcs_t *draw_funcs, void *draw_data,
 						void *user_data);
 
-
 typedef void (*hb_font_get_glyph_paint_func_t) (hb_font_t *font, void *font_data,
                                                 hb_codepoint_t glyph,
                                                 hb_paint_funcs_t *paint_funcs, void *paint_data,
@@ -811,6 +810,13 @@ hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t *ffuncs,
 				    hb_font_get_glyph_shape_func_t func,
 				    void *user_data, hb_destroy_func_t destroy);
 
+/**
+ * hb_font_funcs_set_glyph_paint_func:
+ * @ffuncs:
+ * @func: (closure user_data) (destroy destroy) (scope notified):
+ * @user_data:
+ * @destroy: (nullable):
+ */
 HB_EXTERN void
 hb_font_funcs_set_glyph_paint_func (hb_font_funcs_t *ffuncs,
                                     hb_font_get_glyph_paint_func_t func,
