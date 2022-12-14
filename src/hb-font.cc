@@ -30,6 +30,7 @@
 
 #include "hb-font.hh"
 #include "hb-draw.hh"
+#include "hb-paint.hh"
 #include "hb-machinery.hh"
 
 #include "hb-ot.h"
@@ -512,6 +513,15 @@ hb_font_get_glyph_shape_nil (hb_font_t       *font HB_UNUSED,
 {
 }
 
+static void
+hb_font_get_glyph_paint_nil (hb_font_t *font HB_UNUSED,
+                             void *font_data HB_UNUSED,
+                             hb_codepoint_t glyph HB_UNUSED,
+                             hb_paint_funcs_t *paint_funcs HB_UNUSED,
+                             void *paint_data HB_UNUSED,
+                             void *user_data HB_UNUSED)
+{
+}
 
 typedef struct hb_font_get_glyph_shape_default_adaptor_t {
   hb_draw_funcs_t *draw_funcs;
@@ -637,6 +647,18 @@ hb_font_get_glyph_shape_default (hb_font_t       *font,
   font->parent->get_glyph_shape (glyph,
 				 const_cast<hb_draw_funcs_t *> (&_hb_draw_funcs_default),
 				 &adaptor);
+}
+
+static void
+hb_font_get_glyph_paint_default (hb_font_t *font,
+                                 void *font_data,
+                                 hb_codepoint_t glyph,
+                                 hb_paint_funcs_t *paint_funcs,
+                                 void *paint_data,
+                                 void *user_data)
+{
+  // FIXME adaptor like for draw funcs
+  font->parent->get_glyph_paint (glyph, paint_funcs, paint_data);
 }
 
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
@@ -1364,6 +1386,14 @@ hb_font_get_glyph_shape (hb_font_t *font,
 			 hb_draw_funcs_t *dfuncs, void *draw_data)
 {
   font->get_glyph_shape (glyph, dfuncs, draw_data);
+}
+
+void
+hb_font_paint_glyph (hb_font_t *font,
+                     hb_codepoint_t glyph,
+                     hb_paint_funcs_t *funcs, void *paint_data)
+{
+  font->get_glyph_paint (glyph, funcs, paint_data);
 }
 
 /* A bit higher-level, and with fallback */

@@ -34,6 +34,7 @@
 #include "hb-common.h"
 #include "hb-face.h"
 #include "hb-draw.h"
+#include "hb-paint.h"
 
 HB_BEGIN_DECLS
 
@@ -531,6 +532,11 @@ typedef void (*hb_font_get_glyph_shape_func_t) (hb_font_t *font, void *font_data
 						void *user_data);
 
 
+typedef void (*hb_font_get_glyph_paint_func_t) (hb_font_t *font, void *font_data,
+                                                hb_codepoint_t glyph,
+                                                hb_paint_funcs_t *paint_funcs, void *paint_data,
+                                                void *user_data);
+
 /* func setters */
 
 /**
@@ -805,6 +811,11 @@ hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t *ffuncs,
 				    hb_font_get_glyph_shape_func_t func,
 				    void *user_data, hb_destroy_func_t destroy);
 
+HB_EXTERN void
+hb_font_funcs_set_glyph_paint_func (hb_font_funcs_t *ffuncs,
+                                    hb_font_get_glyph_paint_func_t func,
+                                    void *user_data, hb_destroy_func_t destroy);
+
 /* func dispatch */
 
 HB_EXTERN hb_bool_t
@@ -889,6 +900,11 @@ HB_EXTERN void
 hb_font_get_glyph_shape (hb_font_t *font,
 			 hb_codepoint_t glyph,
 			 hb_draw_funcs_t *dfuncs, void *draw_data);
+
+HB_EXTERN void
+hb_font_paint_glyph (hb_font_t *font,
+                     hb_codepoint_t glyph,
+                     hb_paint_funcs_t *funcs, void *paint_data);
 
 
 /* high-level funcs, with fallback */

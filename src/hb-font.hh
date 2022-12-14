@@ -58,6 +58,7 @@
   HB_FONT_FUNC_IMPLEMENT (glyph_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_from_name) \
   HB_FONT_FUNC_IMPLEMENT (glyph_shape) \
+  HB_FONT_FUNC_IMPLEMENT (glyph_paint) \
   /* ^--- Add new callbacks here */
 
 struct hb_font_funcs_t
@@ -401,6 +402,14 @@ struct hb_font_t
 			      !klass->user_data ? nullptr : klass->user_data->glyph_shape);
   }
 
+  void get_glyph_paint (hb_codepoint_t glyph,
+                        hb_paint_funcs_t *paint_funcs, void *paint_data)
+  {
+    klass->get.f.glyph_paint (this, user_data,
+                              glyph,
+                              paint_funcs, paint_data,
+                              !klass->user_data ? nullptr : klass->user_data->glyph_paint);
+  }
 
   /* A bit higher-level, and with fallback */
 
