@@ -33,6 +33,7 @@
 #include "hb-common.h"
 #include "hb-deprecated.h"
 #include "hb-draw.h"
+#include "hb-paint.h"
 #include "hb-face.h"
 #include "hb-font.h"
 #include "hb-map.h"

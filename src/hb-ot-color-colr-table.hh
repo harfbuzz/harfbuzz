@@ -979,6 +979,11 @@ struct ClipBox
     return true;
   }
 
+  void paint_glyph (hb_font_t *font, hb_codepoint_t glyph,
+                    hb_paint_funcs_t *funcs, void *paint_data) const
+  {
+  }
+
   protected:
   union {
   HBUINT8		format;         /* Format identifier */
