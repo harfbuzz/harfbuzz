@@ -88,12 +88,13 @@ typedef struct hb_color_line_t hb_color_line_t;
 typedef struct {
   float offset;
   unsigned int color_index;
+  float alpha;
 } hb_color_stop_t;
 
 HB_EXTERN unsigned int
-hb_color_line_get_color_stops (hb_color_line_t color_line,
+hb_color_line_get_color_stops (hb_color_line_t *color_line,
                                unsigned int start,
-                               unsigned int count,
+                               unsigned int *count,
                                hb_color_stop_t *color_stops);
 
 typedef enum {
@@ -313,9 +314,9 @@ hb_paint_funcs_set_pop_group_func (hb_paint_funcs_t          *funcs,
 
 HB_EXTERN void
 hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
-                         float xx, float xy,
-                         float yx, float yy,
-                         float x0, float y0);
+                         float xx, float yx,
+                         float xy, float yy,
+                         float dx, float dy);
 
 HB_EXTERN void
 hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data);

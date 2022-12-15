@@ -64,11 +64,11 @@ struct hb_paint_funcs_t
   } *destroy;
 
   void push_transform (void *paint_data,
-                       float xx, float xy,
-                       float yx, float yy,
-                       float x0, float y0)
+                       float xx, float yx,
+                       float xy, float yy,
+                       float dx, float dy)
   { func.push_transform (this, paint_data,
-                         xx, xy, yx, yy, x0, y0,
+                         xx, yx, xy, yy, dx, dy,
                          !user_data ? nullptr : user_data->push_transform); }
   void pop_transform (void *paint_data)
   { func.pop_transform (this, paint_data,

@@ -30,9 +30,9 @@
 
 static void
 hb_paint_push_transform_nil (hb_paint_funcs_t *funcs, void *paint_data,
-                             float xx, float xy,
-                             float yx, float yy,
-                             float x0, float y0,
+                             float xx, float yx,
+                             float xy, float yy,
+                             float dx, float dy,
                              void *user_data) {}
 
 static void
@@ -241,11 +241,11 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs)
 
 void
 hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
-                         float xx, float xy,
-                         float yx, float yy,
-                         float x0, float y0)
+                         float xx, float yx,
+                         float xy, float yy,
+                         float dx, float dy)
 {
-  funcs->push_transform (paint_data, xx, xy, yx, yy, x0, y0);
+  funcs->push_transform (paint_data, xx, yx, xy, yy, dx, dy);
 }
 
 void
