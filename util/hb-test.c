@@ -28,13 +28,13 @@ print (paint_data_t *data,
 static void
 push_transform (hb_paint_funcs_t *funcs,
                 void *paint_data,
-                float xx, float xy,
-                float yx, float yy,
-                float x0, float y0,
+                float xx, float yx,
+                float xy, float yy,
+                float dx, float dy,
                 void *user_data)
 {
   paint_data_t *data = user_data;
-  print (data, "start transform %f %f %f %f %f %f", xx, xy, yx, yy, x0, y0);
+  print (data, "start transform %f %f %f %f %f %f", xx, yx, xy, yy, dx, dy);
   data->level++;
 }
 
@@ -101,7 +101,23 @@ linear_gradient (hb_paint_funcs_t *funcs,
                  void *user_data)
 {
   paint_data_t *data = user_data;
-  print (data, "linear gradient ");
+  unsigned int len;
+  hb_color_stop_t *stops;
+
+  len = hb_color_line_get_color_stops (color_line, 0, NULL, NULL);
+  stops = alloca (len * sizeof (hb_color_stop_t));
+  hb_color_line_get_color_stops (color_line, 0, &len, stops);
+
+  print (data, "linear gradient");
+  data->level += 1;
+  print (data, "p0 %f %f", x0, y0);
+  print (data, "p1 %f %f", x1, y1);
+  print (data, "p2 %f %f", x2, y2);
+  print (data, "colors");
+  data->level += 1;
+  for (unsigned int i = 0; i < len; i++)
+    print (data, "%f %u %f", stops[i].offset, stops[i].color_index, stops[i].alpha);
+  data->level -= 2;
 }
 
 static void
