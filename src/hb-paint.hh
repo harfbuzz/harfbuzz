@@ -30,7 +30,8 @@
 #define HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS \
   HB_PAINT_FUNC_IMPLEMENT (push_transform) \
   HB_PAINT_FUNC_IMPLEMENT (pop_transform) \
-  HB_PAINT_FUNC_IMPLEMENT (push_clip) \
+  HB_PAINT_FUNC_IMPLEMENT (push_clip_glyph) \
+  HB_PAINT_FUNC_IMPLEMENT (push_clip_rect) \
   HB_PAINT_FUNC_IMPLEMENT (pop_clip) \
   HB_PAINT_FUNC_IMPLEMENT (solid) \
   HB_PAINT_FUNC_IMPLEMENT (linear_gradient) \
@@ -72,39 +73,43 @@ struct hb_paint_funcs_t
   void pop_transform (void *paint_data)
   { func.pop_transform (this, paint_data,
                         !user_data ? nullptr : user_data->pop_transform); }
-  void push_clip (void *paint_data,
-                  hb_codepoint_t glyph)
-  { func.push_clip (this, paint_data,
-                    glyph,
-                    !user_data ? nullptr : user_data->push_clip); }
+  void push_clip_glyph (void *paint_data,
+                        hb_codepoint_t glyph)
+  { func.push_clip_glyph (this, paint_data,
+                          glyph,
+                          !user_data ? nullptr : user_data->push_clip_glyph); }
+  void push_clip_rect (void *paint_data,
+                       float xmin, float ymin, float xmax, float ymax)
+  { func.push_clip_rect (this, paint_data,
+                         xmin, ymin, xmax, ymax,
+                         !user_data ? nullptr : user_data->push_clip_rect); }
   void pop_clip (void *paint_data)
   { func.pop_clip (this, paint_data,
                    !user_data ? nullptr : user_data->pop_clip); }
   void solid (void *paint_data,
-              unsigned int color_index)
+              unsigned int color_index,
+              float alpha)
   { func.solid (this, paint_data,
-                color_index,
+                color_index, alpha,
                 !user_data ? nullptr : user_data->solid); }
   void linear_gradient (void *paint_data,
                         hb_color_line_t *color_line,
-                        hb_position_t x0, hb_position_t y0,
-                        hb_position_t x1, hb_position_t y1,
-                        hb_position_t x2, hb_position_t y2)
+                        float x0, float y0,
+                        float x1, float y1,
+                        float x2, float y2)
   { func.linear_gradient (this, paint_data,
                           color_line, x0, y0, x1, y1, x2, y2,
                           !user_data ? nullptr : user_data->linear_gradient); }
   void radial_gradient (void *paint_data,
                         hb_color_line_t *color_line,
-                        hb_position_t x0, hb_position_t y0,
-                        float r0,
-                        hb_position_t x1, hb_position_t y1,
-                        float r1)
+                        float x0, float y0, float r0,
+                        float x1, float y1, float r1)
   { func.radial_gradient (this, paint_data,
                           color_line, x0, y0, r0, x1, y1, r1,
                           !user_data ? nullptr : user_data->radial_gradient); }
   void sweep_gradient (void *paint_data,
                        hb_color_line_t *color_line,
-                       hb_position_t x0, hb_position_t y0,
+                       float x0, float y0,
                        float start_angle,
                        float end_angle)
   { func.sweep_gradient (this, paint_data,

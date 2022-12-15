@@ -29,63 +29,67 @@
 #include "hb-paint.hh"
 
 static void
-hb_paint_push_transform_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                             float xx HB_UNUSED, float xy HB_UNUSED,
-                             float yx HB_UNUSED, float yy HB_UNUSED,
-                             float x0 HB_UNUSED, float y0 HB_UNUSED,
-                             void *user_data HB_UNUSED) {}
+hb_paint_push_transform_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                             float xx, float xy,
+                             float yx, float yy,
+                             float x0, float y0,
+                             void *user_data) {}
 
 static void
-hb_paint_pop_transform_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                            void *user_data HB_UNUSED) {}
+hb_paint_pop_transform_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                            void *user_data) {}
 
 static void
-hb_paint_push_clip_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                        hb_codepoint_t glyph HB_UNUSED,
-                        void *user_data HB_UNUSED) {}
+hb_paint_push_clip_glyph_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                              hb_codepoint_t glyph,
+                              void *user_data) {}
 
 static void
-hb_paint_pop_clip_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                       void *user_data HB_UNUSED) {}
+hb_paint_push_clip_rect_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                             float xmin, float ymin, float xmax, float ymax,
+                             void *user_data) {}
 
 static void
-hb_paint_solid_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                    unsigned int color_index HB_UNUSED,
-                    void *user_data HB_UNUSED) {}
+hb_paint_pop_clip_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                       void *user_data) {}
 
 static void
-hb_paint_linear_gradient_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                              hb_color_line_t *color_line HB_UNUSED,
-                              hb_position_t x0, hb_position_t y0 HB_UNUSED,
-                              hb_position_t x1, hb_position_t y1 HB_UNUSED,
-                              hb_position_t x2, hb_position_t y2 HB_UNUSED,
-                              void *user_data HB_UNUSED) {}
+hb_paint_solid_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                    unsigned int color_index,
+                    float alpha,
+                    void *user_data) {}
 
 static void
-hb_paint_radial_gradient_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                              hb_color_line_t *color_line HB_UNUSED,
-                              hb_position_t x0, hb_position_t y0 HB_UNUSED,
-                              float r0 HB_UNUSED,
-                              hb_position_t x1 HB_UNUSED, hb_position_t y1 HB_UNUSED,
-                              float r1 HB_UNUSED,
-                              void *user_data HB_UNUSED) {}
+hb_paint_linear_gradient_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                              hb_color_line_t *color_line,
+                              float x0, float y0,
+                              float x1, float y1,
+                              float x2, float y2,
+                              void *user_data) {}
 
 static void
-hb_paint_sweep_gradient_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                             hb_color_line_t *color_line HB_UNUSED,
-                             hb_position_t x0, hb_position_t y0 HB_UNUSED,
-                             float start_angle HB_UNUSED,
-                             float end_angle HB_UNUSED,
-                             void *user_data HB_UNUSED) {}
+hb_paint_radial_gradient_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                              hb_color_line_t *color_line,
+                              float x0, float y0, float r0,
+                              float x1, float y1, float r1,
+                              void *user_data) {}
 
 static void
-hb_paint_push_group_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
-                     void *user_data HB_UNUSED) {}
+hb_paint_sweep_gradient_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                             hb_color_line_t *color_line,
+                             float x0, float y0,
+                             float start_angle,
+                             float end_angle,
+                             void *user_data) {}
 
 static void
-hb_paint_pop_group_and_composite_nil (hb_paint_funcs_t *funcs HB_UNUSED, void *paint_data HB_UNUSED,
+hb_paint_push_group_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                         void *user_data) {}
+
+static void
+hb_paint_pop_group_and_composite_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_paint_composite_mode_t mode,
-                    void *user_data HB_UNUSED) {}
+                    void *user_data) {}
 
 static bool
 _hb_paint_funcs_set_preamble (hb_paint_funcs_t  *funcs,
@@ -251,10 +255,17 @@ hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data)
 }
 
 void
-hb_paint_push_clip (hb_paint_funcs_t *funcs, void *paint_data,
-                    hb_codepoint_t glyph)
+hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
+                          hb_codepoint_t glyph)
 {
-  funcs->push_clip (paint_data, glyph);
+  funcs->push_clip_glyph (paint_data, glyph);
+}
+
+void
+hb_paint_push_clip_rect (hb_paint_funcs_t *funcs, void *paint_data,
+                         float xmin, float ymin, float xmax, float ymax)
+{
+  funcs->push_clip_rect (paint_data, xmin, ymin, xmax, ymax);
 }
 
 void
@@ -265,17 +276,18 @@ hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data)
 
 void
 hb_paint_solid (hb_paint_funcs_t *funcs, void *paint_data,
-                unsigned int color_index)
+                unsigned int color_index,
+                float alpha)
 {
-  funcs->solid (paint_data, color_index);
+  funcs->solid (paint_data, color_index, alpha);
 }
 
 void
 hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_color_line_t *color_line,
-                          hb_position_t x0, hb_position_t y0,
-                          hb_position_t x1, hb_position_t y1,
-                          hb_position_t x2, hb_position_t y2)
+                          float x0, float y0,
+                          float x1, float y1,
+                          float x2, float y2)
 {
   funcs->linear_gradient (paint_data, color_line, x0, y0, x1, y1, x2, y2);
 }
@@ -283,10 +295,8 @@ hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
 void
 hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_color_line_t *color_line,
-                          hb_position_t x0, hb_position_t y0,
-                          float r0,
-                          hb_position_t x1, hb_position_t y1,
-                          float r1)
+                          float x0, float y0, float r0,
+                          float x1, float y1, float r1)
 {
   funcs->radial_gradient (paint_data, color_line, x0, y0, r0, y1, x1, r1);
 }
@@ -294,7 +304,7 @@ hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
 void
 hb_paint_sweep_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                          hb_color_line_t *color_line,
-                         hb_position_t x0, hb_position_t y0,
+                         float x0, float y0,
                          float start_angle, float end_angle)
 {
   funcs->sweep_gradient (paint_data, color_line, x0, y0, start_angle, end_angle);

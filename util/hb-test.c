@@ -49,13 +49,24 @@ pop_transform (hb_paint_funcs_t *funcs,
 }
 
 static void
-push_clip (hb_paint_funcs_t *funcs,
-           void *paint_data,
-           hb_codepoint_t glyph,
-           void *user_data)
+push_clip_glyph (hb_paint_funcs_t *funcs,
+                 void *paint_data,
+                 hb_codepoint_t glyph,
+                 void *user_data)
 {
   paint_data_t *data = user_data;
-  print (data, "start clip %u", glyph);
+  print (data, "start clip glyph %u", glyph);
+  data->level++;
+}
+
+static void
+push_clip_rect (hb_paint_funcs_t *funcs,
+                void *paint_data,
+                float xmin, float ymin, float xmax, float ymax,
+                void *user_data)
+{
+  paint_data_t *data = user_data;
+  print (data, "start clip rect %f %f %f %f", xmin, ymin, xmax, ymax);
   data->level++;
 }
 
@@ -73,33 +84,32 @@ static void
 solid (hb_paint_funcs_t *funcs,
        void *paint_data,
        unsigned int color_index,
+       float alpha,
        void *user_data)
 {
   paint_data_t *data = user_data;
-  print (data, "solid %u", color_index);
+  print (data, "solid %u %f", color_index, alpha);
 }
 
 static void
 linear_gradient (hb_paint_funcs_t *funcs,
                  void *paint_data,
                  hb_color_line_t *color_line,
-                 hb_position_t x0, hb_position_t y0,
-                 hb_position_t x1, hb_position_t y1,
-                 hb_position_t x2, hb_position_t y2,
+                 float x0, float y0,
+                 float x1, float y1,
+                 float x2, float y2,
                  void *user_data)
 {
   paint_data_t *data = user_data;
-  print (data, "linear gradient");
+  print (data, "linear gradient ");
 }
 
 static void
 radial_gradient (hb_paint_funcs_t *funcs,
                  void *paint_data,
                  hb_color_line_t *color_line,
-                 hb_position_t x0, hb_position_t y0,
-                 float r0,
-                 hb_position_t x1, hb_position_t y1,
-                 float r1,
+                 float x0, float y0, float r0,
+                 float x1, float y1, float r1,
                  void *user_data)
 {
   paint_data_t *data = user_data;
@@ -110,7 +120,7 @@ static void
 sweep_gradient (hb_paint_funcs_t *funcs,
                 void *paint_data,
                 hb_color_line_t *color_line,
-                hb_position_t x0, hb_position_t y0,
+                float x0, float y0,
                 float start_angle,
                 float end_angle,
                 void *user_data)
@@ -153,7 +163,8 @@ int main (int argc, char *argv[])
   funcs = hb_paint_funcs_create ();
   hb_paint_funcs_set_push_transform_func (funcs, push_transform, &data, NULL);
   hb_paint_funcs_set_pop_transform_func (funcs, pop_transform, &data, NULL);
-  hb_paint_funcs_set_push_clip_func (funcs, push_clip, &data, NULL);
+  hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph, &data, NULL);
+  hb_paint_funcs_set_push_clip_rect_func (funcs, push_clip_rect, &data, NULL);
   hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, &data, NULL);
   hb_paint_funcs_set_push_group_func (funcs, push_group, &data, NULL);
   hb_paint_funcs_set_pop_group_and_composite_func (funcs, pop_group_and_composite, &data, NULL);

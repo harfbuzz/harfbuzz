@@ -463,7 +463,7 @@ struct PaintSolid
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    c->funcs->solid (c->data, paletteIndex);
+    c->funcs->solid (c->data, paletteIndex, alpha.to_float ());
   }
 
   HBUINT8	format; /* format = 2(noVar) or 3(Var)*/
@@ -614,7 +614,7 @@ struct PaintGlyph
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    c->funcs->push_clip (c->data, gid);
+    c->funcs->push_clip_glyph (c->data, gid);
     paint_dispatch (&(this+paint), c);
     c->funcs->pop_clip (c->data);
   }
