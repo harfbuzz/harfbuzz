@@ -224,6 +224,11 @@ struct Variable
     value.get_color_stop (c);
   }
 
+  hb_paint_extend_t get_extend () const
+  {
+    return value.get_extend ();
+  }
+
   protected:
   T      value;
   public:
@@ -266,6 +271,11 @@ struct NoVariable
   void get_color_stop (hb_color_stop_t *c) const
   {
     value.get_color_stop (c);
+  }
+
+  hb_paint_extend_t get_extend () const
+  {
+    return value.get_extend ();
   }
 
   T      value;
@@ -370,6 +380,11 @@ struct ColorLine
     }
 
     return len;
+  }
+
+  hb_paint_extend_t get_extend () const
+  {
+    return (hb_paint_extend_t) (unsigned int) extend;
   }
 
   Extend	extend;
@@ -550,6 +565,11 @@ struct PaintLinearGradient
     return (this+colorLine).get_color_stops (start, count, stops);
   }
 
+  hb_paint_extend_t get_extend () const
+  {
+    return (this+colorLine).get_extend ();
+  }
+
   HBUINT8			format; /* format = 4(noVar) or 5 (Var) */
   Offset24To<ColorLine<Var>>	colorLine; /* Offset (from beginning of PaintLinearGradient
                                             * table) to ColorLine subtable. */
@@ -598,6 +618,11 @@ struct PaintRadialGradient
     return (this+colorLine).get_color_stops (start, count, stops);
   }
 
+  hb_paint_extend_t get_extend () const
+  {
+    return (this+colorLine).get_extend ();
+  }
+
   HBUINT8			format; /* format = 6(noVar) or 7 (Var) */
   Offset24To<ColorLine<Var>>	colorLine; /* Offset (from beginning of PaintRadialGradient
                                             * table) to ColorLine subtable. */
@@ -644,6 +669,11 @@ struct PaintSweepGradient
                                 hb_color_stop_t *stops) const
   {
     return (this+colorLine).get_color_stops (start, count, stops);
+  }
+
+  hb_paint_extend_t get_extend () const
+  {
+    return (this+colorLine).get_extend ();
   }
 
   HBUINT8			format; /* format = 8(noVar) or 9 (Var) */
