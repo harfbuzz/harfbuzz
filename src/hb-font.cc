@@ -1393,6 +1393,7 @@ hb_font_paint_glyph (hb_font_t *font,
                      hb_codepoint_t glyph,
                      hb_paint_funcs_t *funcs, void *paint_data)
 {
+  // TODO add an adapter for child fonts like get_glyph_shape does
   font->get_glyph_paint (glyph, funcs, paint_data);
 }
 

@@ -1937,6 +1937,8 @@ struct COLR
     const BaseGlyphPaintRecord* record = get_base_glyph_paintrecord (glyph);
     const Paint &paint = &baseglyph_paintrecords+record->paint;
 
+    // TODO handle v0 layers
+    // TODO apply clipbox clip
     paint.paint_glyph (&c);
   }
 
