@@ -555,7 +555,10 @@ struct PaintLinearGradient
   {
     hb_color_line_t cl = { this, format };
 
-    c->funcs->linear_gradient (c->data, &cl, x0, y0, x1, y1, x2, y2);
+    c->funcs->linear_gradient (c->data, &cl,
+                               (float)x0, (float)y0,
+                               (float)x1, (float)y1,
+                               (float)x2, (float)y2);
   }
 
   unsigned int get_color_stops (unsigned int start,
@@ -608,7 +611,9 @@ struct PaintRadialGradient
   {
     hb_color_line_t cl = { this, format };
 
-    c->funcs->radial_gradient (c->data, &cl, x0, y0, radius0, x1, y1, radius1);
+    c->funcs->radial_gradient (c->data, &cl,
+                               (float)x0, (float)y0, (float)radius0,
+                               (float)x1, (float)y1, (float)radius1);
   }
 
   unsigned int get_color_stops (unsigned int start,
@@ -661,7 +666,10 @@ struct PaintSweepGradient
   {
     hb_color_line_t cl = { this, format };
 
-    c->funcs->sweep_gradient (c->data, &cl, centerX, centerY, startAngle, endAngle);
+    c->funcs->sweep_gradient (c->data, &cl,
+                              (float)centerX, (float)centerY,
+                              (startAngle.to_float () + 1) * (float)M_PI,
+                              (endAngle.to_float () + 1) * (float)M_PI);
   }
 
   unsigned int get_color_stops (unsigned int start,
@@ -745,11 +753,7 @@ struct PaintColrGlyph
     return_trace (c->check_struct (this));
   }
 
-  void paint_glyph (hb_paint_context_t *c) const
-  {
-    // FIXME clipbox
-    //paint_glyph (c->data, gid);
-  }
+  void paint_glyph (hb_paint_context_t *c) const;
 
   HBUINT8	format; /* format = 11 */
   HBUINT16	gid;
@@ -814,7 +818,7 @@ struct PaintTranslate
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, dx, dy);
+    c->funcs->push_transform (c->data, 1., 0., 0., 1., (float)dx, (float)dy);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
   }
@@ -848,7 +852,7 @@ struct PaintScale
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    c->funcs->push_transform (c->data, scaleX.to_float (), 0, 0, scaleY.to_float (), 0, 0);
+    c->funcs->push_transform (c->data, scaleX.to_float (), 0., 0., scaleY.to_float (), 0., 0.);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
   }
@@ -882,9 +886,9 @@ struct PaintScaleAroundCenter
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, centerX, centerY);
-    c->funcs->push_transform (c->data, scaleX.to_float (), 0, 0, scaleY.to_float (), 0, 0);
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, - centerX, - centerY);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., (float)centerX, (float)centerY);
+    c->funcs->push_transform (c->data, scaleX.to_float (), 0., 0., scaleY.to_float (), 0., 0.);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., - (float)centerX, - (float)centerY);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -922,7 +926,7 @@ struct PaintScaleUniform
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    c->funcs->push_transform (c->data, scale.to_float (), 0, 0, scale.to_float (), 0, 0);
+    c->funcs->push_transform (c->data, scale.to_float (), 0., 0., scale.to_float (), 0., 0.);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
   }
@@ -955,9 +959,9 @@ struct PaintScaleUniformAroundCenter
 
   void paint_glyph (hb_paint_context_t *c) const
   {
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, centerX, centerY);
-    c->funcs->push_transform (c->data, scale.to_float (), 0, 0, scale.to_float (), 0, 0);
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, - centerX, - centerY);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., (float)centerX, (float)centerY);
+    c->funcs->push_transform (c->data, scale.to_float (), 0., 0., scale.to_float (), 0., 0.);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., - (float)centerX, - (float)centerY);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -996,7 +1000,7 @@ struct PaintRotate
   {
     float cc = cosf (angle.to_float() * (float)M_PI);
     float ss = sinf (angle.to_float() * (float)M_PI);
-    c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0, 0);
+    c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
   }
@@ -1031,9 +1035,9 @@ struct PaintRotateAroundCenter
   {
     float cc = cosf (angle.to_float() * (float)M_PI);
     float ss = sinf (angle.to_float() * (float)M_PI);
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, centerX, centerY);
-    c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0, 0);
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, - centerX, - centerY);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., (float)centerX, (float)centerY);
+    c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., - (float)centerX, - (float)centerY);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -1072,7 +1076,7 @@ struct PaintSkew
   {
     float x = tanf (xSkewAngle.to_float() * (float)M_PI);
     float y = - tanf (ySkewAngle.to_float() * (float)M_PI);
-    c->funcs->push_transform (c->data, 1, y, x, 1, 0, 0);
+    c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
   }
@@ -1108,9 +1112,9 @@ struct PaintSkewAroundCenter
   {
     float x = tanf (xSkewAngle.to_float() * (float)M_PI);
     float y = - tanf (ySkewAngle.to_float() * (float)M_PI);
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, centerX, centerY);
-    c->funcs->push_transform (c->data, 1, y, x, 1, 0, 0);
-    c->funcs->push_transform (c->data, 0, 0, 0, 0, - centerX, - centerY);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., (float)centerX, (float)centerY);
+    c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., - (float)centerX, - (float)centerY);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -1906,6 +1910,14 @@ struct COLR
     colr_prime->varIdxMap.serialize_copy (c->serializer, varIdxMap, this);
     //TODO: subset varStore once it's implemented in fonttools
     return_trace (true);
+  }
+
+  const Paint *get_base_glyph_paint (hb_codepoint_t glyph) const
+  {
+    const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;
+    const BaseGlyphPaintRecord* record = get_base_glyph_paintrecord (glyph);
+    const Paint &paint = &baseglyph_paintrecords+record->paint;
+    return &paint;
   }
 
   bool
