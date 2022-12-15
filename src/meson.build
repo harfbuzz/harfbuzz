@@ -75,6 +75,7 @@ hb_base_sources = files(
   'hb-ot-cmap-table.hh',
   'hb-ot-color-cbdt-table.hh',
   'hb-ot-color-colr-table.hh',
+  'hb-ot-color-colr-table.cc',
   'hb-ot-color-cpal-table.hh',
   'hb-ot-color-sbix-table.hh',
   'hb-ot-color-svg-table.hh',

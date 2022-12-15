@@ -31,6 +31,7 @@
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-var-common.hh"
+#include "hb-paint.hh"
 
 /*
  * COLR -- Color
@@ -45,6 +46,31 @@
 namespace OT {
 
 struct COLR;
+
+struct hb_paint_context_t;
+
+struct Paint;
+
+static void paint_dispatch (const Paint *paint, hb_paint_context_t *c);
+
+struct hb_paint_context_t {
+
+  const COLR* get_colr_table () const
+  { return reinterpret_cast<const COLR *> (base); }
+
+public:
+  const void *base;
+  hb_paint_funcs_t *funcs;
+  void *data;
+
+  hb_paint_context_t (const void *base_, hb_paint_funcs_t *funcs_, void *data_) :
+    base(base_),
+    funcs(funcs_),
+    data(data_)
+  {}
+
+};
+
 struct hb_colrv1_closure_context_t :
        hb_dispatch_context_t<hb_colrv1_closure_context_t>
 {
@@ -182,6 +208,11 @@ struct Variable
     return_trace (c->check_struct (this) && value.sanitize (c));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    value.paint_glyph (c);
+  }
+
   protected:
   T      value;
   public:
@@ -214,6 +245,11 @@ struct NoVariable
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && value.sanitize (c));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    value.paint_glyph (c);
   }
 
   T      value;
@@ -357,6 +393,14 @@ struct Affine2x3
     return_trace (c->check_struct (this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->push_transform (c->data,
+                              xx.to_float (), yx.to_float (),
+                              xy.to_float (), yy.to_float (),
+                              dx.to_float (), dy.to_float ());
+  }
+
   F16DOT16 xx;
   F16DOT16 yx;
   F16DOT16 xy;
@@ -388,6 +432,8 @@ struct PaintColrLayers
     return_trace (c->check_struct (this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const;
+
   HBUINT8	format; /* format = 1 */
   HBUINT8	numLayers;
   HBUINT32	firstLayerIndex;  /* index into COLRv1::layerList */
@@ -413,6 +459,11 @@ struct PaintSolid
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->solid (c->data, paletteIndex);
   }
 
   HBUINT8	format; /* format = 2(noVar) or 3(Var)*/
@@ -441,6 +492,11 @@ struct PaintLinearGradient
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && colorLine.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->linear_gradient (c->data, nullptr, x0, y0, x1, y1, x2, y2);
   }
 
   HBUINT8			format; /* format = 4(noVar) or 5 (Var) */
@@ -477,6 +533,11 @@ struct PaintRadialGradient
     return_trace (c->check_struct (this) && colorLine.sanitize (c, this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->radial_gradient (c->data, nullptr, x0, y0, radius0, x1, y1, radius1);
+  }
+
   HBUINT8			format; /* format = 6(noVar) or 7 (Var) */
   Offset24To<ColorLine<Var>>	colorLine; /* Offset (from beginning of PaintRadialGradient
                                             * table) to ColorLine subtable. */
@@ -511,6 +572,11 @@ struct PaintSweepGradient
     return_trace (c->check_struct (this) && colorLine.sanitize (c, this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->sweep_gradient (c->data, nullptr, centerX, centerY, startAngle, endAngle);
+  }
+
   HBUINT8			format; /* format = 8(noVar) or 9 (Var) */
   Offset24To<ColorLine<Var>>	colorLine; /* Offset (from beginning of PaintSweepGradient
                                             * table) to ColorLine subtable. */
@@ -521,8 +587,6 @@ struct PaintSweepGradient
   public:
   DEFINE_SIZE_STATIC (4 + 2 * FWORD::static_size + 2 * F2DOT14::static_size);
 };
-
-struct Paint;
 
 // Paint a non-COLR glyph, filled as indicated by paint.
 struct PaintGlyph
@@ -546,6 +610,13 @@ struct PaintGlyph
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && paint.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->push_clip (c->data, gid);
+    paint_dispatch (&(this+paint), c);
+    c->funcs->pop_clip (c->data);
   }
 
   HBUINT8		format; /* format = 10 */
@@ -573,6 +644,12 @@ struct PaintColrGlyph
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    // FIXME clipbox
+    //paint_glyph (c->data, gid);
   }
 
   HBUINT8	format; /* format = 11 */
@@ -603,6 +680,13 @@ struct PaintTransform
                   transform.sanitize (c, this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    (this+transform).paint_glyph (c);
+    paint_dispatch (&(this+src), c);
+    c->funcs->pop_transform (c->data);
+  }
+
   HBUINT8			format; /* format = 12(noVar) or 13 (Var) */
   Offset24To<Paint>		src; /* Offset (from beginning of PaintTransform table) to Paint subtable. */
   Offset24To<Var<Affine2x3>>	transform;
@@ -627,6 +711,13 @@ struct PaintTranslate
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && src.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->push_transform (c->data, 0, 0, 0, 0, 0, 0);
+    paint_dispatch (&(this+src), c);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 14(noVar) or 15 (Var) */
@@ -656,6 +747,13 @@ struct PaintScale
     return_trace (c->check_struct (this) && src.sanitize (c, this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->push_transform (c->data, scaleX, 0, 0, scaleY, 0, 0);
+    paint_dispatch (&(this+src), c);
+    c->funcs->pop_transform (c->data);
+  }
+
   HBUINT8		format; /* format = 16 (noVar) or 17(Var) */
   Offset24To<Paint>	src; /* Offset (from beginning of PaintScale table) to Paint subtable. */
   F2DOT14		scaleX;
@@ -681,6 +779,17 @@ struct PaintScaleAroundCenter
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && src.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->push_transform (c->data, 0, 0, 0, 0, centerX, centerY);
+    c->funcs->push_transform (c->data, scaleX, 0, 0, scaleY, 0, 0);
+    c->funcs->push_transform (c->data, 0, 0, 0, 0, - centerX, - centerY);
+    paint_dispatch (&(this+src), c);
+    c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
+    c->funcs->pop_transform (c->data);
   }
 
   HBUINT8		format; /* format = 18 (noVar) or 19(Var) */
@@ -712,6 +821,10 @@ struct PaintScaleUniform
     return_trace (c->check_struct (this) && src.sanitize (c, this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+  }
+
   HBUINT8		format; /* format = 20 (noVar) or 21(Var) */
   Offset24To<Paint>	src; /* Offset (from beginning of PaintScaleUniform table) to Paint subtable. */
   F2DOT14		scale;
@@ -736,6 +849,10 @@ struct PaintScaleUniformAroundCenter
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && src.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
   }
 
   HBUINT8		format; /* format = 22 (noVar) or 23(Var) */
@@ -766,6 +883,10 @@ struct PaintRotate
     return_trace (c->check_struct (this) && src.sanitize (c, this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+  }
+
   HBUINT8		format; /* format = 24 (noVar) or 25(Var) */
   Offset24To<Paint>	src; /* Offset (from beginning of PaintRotate table) to Paint subtable. */
   F2DOT14		angle;
@@ -790,6 +911,10 @@ struct PaintRotateAroundCenter
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && src.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
   }
 
   HBUINT8		format; /* format = 26 (noVar) or 27(Var) */
@@ -820,6 +945,10 @@ struct PaintSkew
     return_trace (c->check_struct (this) && src.sanitize (c, this));
   }
 
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+  }
+
   HBUINT8		format; /* format = 28(noVar) or 29 (Var) */
   Offset24To<Paint>	src; /* Offset (from beginning of PaintSkew table) to Paint subtable. */
   F2DOT14		xSkewAngle;
@@ -845,6 +974,10 @@ struct PaintSkewAroundCenter
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this) && src.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
   }
 
   HBUINT8		format; /* format = 30(noVar) or 31 (Var) */
@@ -877,6 +1010,16 @@ struct PaintComposite
     return_trace (c->check_struct (this) &&
                   src.sanitize (c, this) &&
                   backdrop.sanitize (c, this));
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    c->funcs->push_group (c->data);
+    paint_dispatch (&(this+backdrop), c);
+    c->funcs->push_group (c->data);
+    paint_dispatch (&(this+src), c);
+    c->funcs->pop_group_and_composite (c->data, (hb_paint_composite_mode_t) (int)mode);
+    c->funcs->pop_group_and_composite (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
   }
 
   HBUINT8		format; /* format = 32 */
@@ -977,11 +1120,6 @@ struct ClipBox
     extents->width = clip_box.xMax - clip_box.xMin;
     extents->height = clip_box.yMin - clip_box.yMax;
     return true;
-  }
-
-  void paint_glyph (hb_font_t *font, hb_codepoint_t glyph,
-                    hb_paint_funcs_t *funcs, void *paint_data) const
-  {
   }
 
   protected:
@@ -1192,6 +1330,45 @@ struct Paint
     case 31: return_trace (c->dispatch (u.paintformat31, std::forward<Ts> (ds)...));
     case 32: return_trace (c->dispatch (u.paintformat32, std::forward<Ts> (ds)...));
     default:return_trace (c->default_return_value ());
+    }
+  }
+
+  void paint_glyph (hb_paint_context_t *c) const
+  {
+    switch (u.format) {
+    case  1: u.paintformat1.paint_glyph (c); break;
+    case  2: u.paintformat2.paint_glyph (c); break;
+    case  3: u.paintformat3.paint_glyph (c); break;
+    case  4: u.paintformat4.paint_glyph (c); break;
+    case  5: u.paintformat5.paint_glyph (c); break;
+    case  6: u.paintformat6.paint_glyph (c); break;
+    case  7: u.paintformat7.paint_glyph (c); break;
+    case  8: u.paintformat8.paint_glyph (c); break;
+    case  9: u.paintformat9.paint_glyph (c); break;
+    case 10: u.paintformat10.paint_glyph (c); break;
+    case 11: u.paintformat11.paint_glyph (c); break;
+    case 12: u.paintformat12.paint_glyph (c); break;
+    case 13: u.paintformat13.paint_glyph (c); break;
+    case 14: u.paintformat14.paint_glyph (c); break;
+    case 15: u.paintformat15.paint_glyph (c); break;
+    case 16: u.paintformat16.paint_glyph (c); break;
+    case 17: u.paintformat17.paint_glyph (c); break;
+    case 18: u.paintformat18.paint_glyph (c); break;
+    case 19: u.paintformat19.paint_glyph (c); break;
+    case 20: u.paintformat20.paint_glyph (c); break;
+    case 21: u.paintformat21.paint_glyph (c); break;
+    case 22: u.paintformat22.paint_glyph (c); break;
+    case 23: u.paintformat23.paint_glyph (c); break;
+    case 24: u.paintformat24.paint_glyph (c); break;
+    case 25: u.paintformat25.paint_glyph (c); break;
+    case 26: u.paintformat26.paint_glyph (c); break;
+    case 27: u.paintformat27.paint_glyph (c); break;
+    case 28: u.paintformat28.paint_glyph (c); break;
+    case 29: u.paintformat29.paint_glyph (c); break;
+    case 30: u.paintformat30.paint_glyph (c); break;
+    case 31: u.paintformat31.paint_glyph (c); break;
+    case 32: u.paintformat32.paint_glyph (c); break;
+    default: assert (0);
     }
   }
 
@@ -1618,6 +1795,12 @@ struct COLR
   void
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
   {
+    hb_paint_context_t c (this, funcs, data);
+    const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;
+    const BaseGlyphPaintRecord* record = get_base_glyph_paintrecord (glyph);
+    const Paint &paint = &baseglyph_paintrecords+record->paint;
+
+    paint.paint_glyph (&c);
   }
 
   protected:
@@ -1642,7 +1825,12 @@ struct COLR_accelerator_t : COLR::accelerator_t {
   COLR_accelerator_t (hb_face_t *face) : COLR::accelerator_t (face) {}
 };
 
-} /* namespace OT */
+static void
+paint_dispatch (const Paint *paint, hb_paint_context_t *c)
+{
+  paint->paint_glyph (c);
+}
 
+} /* namespace OT */
 
 #endif /* HB_OT_COLOR_COLR_TABLE_HH */

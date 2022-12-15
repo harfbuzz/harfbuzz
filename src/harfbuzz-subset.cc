@@ -14,6 +14,7 @@
 #include "hb-number.cc"
 #include "hb-ot-cff1-table.cc"
 #include "hb-ot-cff2-table.cc"
+#include "hb-ot-color-colr-table.cc"
 #include "hb-ot-color.cc"
 #include "hb-ot-face.cc"
 #include "hb-ot-font.cc"
