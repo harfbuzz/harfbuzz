@@ -159,14 +159,14 @@ typedef enum {
   HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY,
 } hb_paint_composite_mode_t;
 
-typedef void (*hb_paint_push_group_func_t)      (hb_paint_funcs_t *funcs,
-                                                 void *paint_data,
-                                                 void *user_data);
+typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
+                                            void *paint_data,
+                                            void *user_data);
 
-typedef void (*hb_paint_pop_group_and_composite_func_t) (hb_paint_funcs_t *funcs,
-                                                         void *paint_data,
-                                                         hb_paint_composite_mode_t mode,
-                                                         void *user_data);
+typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
+                                           void *paint_data,
+                                           hb_paint_composite_mode_t mode,
+                                           void *user_data);
 
 /**
  * hb_paint_funcs_set_push_transform_func:
@@ -299,17 +299,17 @@ hb_paint_funcs_set_push_group_func (hb_paint_funcs_t           *funcs,
                                     hb_destroy_func_t           destroy);
 
 /**
- * hb_paint_funcs_set_pop_group_and_composite_func:
+ * hb_paint_funcs_set_pop_group_func:
  * @funcs:
  * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
 HB_EXTERN void
-hb_paint_funcs_set_pop_group_and_composite_func (hb_paint_funcs_t                        *funcs,
-                                                 hb_paint_pop_group_and_composite_func_t  func,
-                                                 void                       *user_data,
-                                                 hb_destroy_func_t           destroy);
+hb_paint_funcs_set_pop_group_func (hb_paint_funcs_t          *funcs,
+                                   hb_paint_pop_group_func_t  func,
+                                   void                       *user_data,
+                                   hb_destroy_func_t           destroy);
 
 HB_EXTERN void
 hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
@@ -359,8 +359,8 @@ HB_EXTERN void
 hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data);
 
 HB_EXTERN void
-hb_paint_pop_group_and_composite (hb_paint_funcs_t *funcs, void *paint_data,
-                                  hb_paint_composite_mode_t mode);
+hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
+                    hb_paint_composite_mode_t mode);
 
 HB_END_DECLS
 

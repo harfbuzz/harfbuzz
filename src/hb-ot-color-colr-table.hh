@@ -1018,8 +1018,8 @@ struct PaintComposite
     paint_dispatch (&(this+backdrop), c);
     c->funcs->push_group (c->data);
     paint_dispatch (&(this+src), c);
-    c->funcs->pop_group_and_composite (c->data, (hb_paint_composite_mode_t) (int)mode);
-    c->funcs->pop_group_and_composite (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+    c->funcs->pop_group (c->data, (hb_paint_composite_mode_t) (int)mode);
+    c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
   }
 
   HBUINT8		format; /* format = 32 */

@@ -140,10 +140,10 @@ push_group (hb_paint_funcs_t *funcs,
 }
 
 static void
-pop_group_and_composite (hb_paint_funcs_t *funcs,
-                         void *paint_data,
-                         hb_paint_composite_mode_t mode,
-                         void *user_data)
+pop_group (hb_paint_funcs_t *funcs,
+           void *paint_data,
+           hb_paint_composite_mode_t mode,
+           void *user_data)
 {
   paint_data_t *data = user_data;
   data->level--;
@@ -167,7 +167,7 @@ int main (int argc, char *argv[])
   hb_paint_funcs_set_push_clip_rect_func (funcs, push_clip_rect, &data, NULL);
   hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, &data, NULL);
   hb_paint_funcs_set_push_group_func (funcs, push_group, &data, NULL);
-  hb_paint_funcs_set_pop_group_and_composite_func (funcs, pop_group_and_composite, &data, NULL);
+  hb_paint_funcs_set_pop_group_func (funcs, pop_group, &data, NULL);
   hb_paint_funcs_set_solid_func (funcs, solid, &data, NULL);
   hb_paint_funcs_set_linear_gradient_func (funcs, linear_gradient, &data, NULL);
   hb_paint_funcs_set_radial_gradient_func (funcs, radial_gradient, &data, NULL);

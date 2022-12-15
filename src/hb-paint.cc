@@ -87,9 +87,9 @@ hb_paint_push_group_nil (hb_paint_funcs_t *funcs, void *paint_data,
                          void *user_data) {}
 
 static void
-hb_paint_pop_group_and_composite_nil (hb_paint_funcs_t *funcs, void *paint_data,
-                    hb_paint_composite_mode_t mode,
-                    void *user_data) {}
+hb_paint_pop_group_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                        hb_paint_composite_mode_t mode,
+                        void *user_data) {}
 
 static bool
 _hb_paint_funcs_set_preamble (hb_paint_funcs_t  *funcs,
@@ -317,10 +317,10 @@ hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data)
 }
 
 void
-hb_paint_pop_group_and_composite (hb_paint_funcs_t *funcs, void *paint_data,
-                                  hb_paint_composite_mode_t mode)
+hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
+                    hb_paint_composite_mode_t mode)
 {
-  funcs->pop_group_and_composite (paint_data, mode);
+  funcs->pop_group (paint_data, mode);
 }
 
 #endif
