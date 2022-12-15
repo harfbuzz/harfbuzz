@@ -166,7 +166,7 @@ typedef void (*hb_paint_pop_group_and_composite_func_t) (hb_paint_funcs_t *funcs
 /**
  * hb_paint_funcs_set_push_transform_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -179,7 +179,7 @@ hb_paint_funcs_set_push_transform_func (hb_paint_funcs_t               *funcs,
 /**
  * hb_paint_funcs_set_pop_transform_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -192,7 +192,7 @@ hb_paint_funcs_set_pop_transform_func (hb_paint_funcs_t              *funcs,
 /**
  * hb_paint_funcs_set_push_clip_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -205,7 +205,7 @@ hb_paint_funcs_set_push_clip_func (hb_paint_funcs_t          *funcs,
 /**
  * hb_paint_funcs_set_pop_clip_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -218,7 +218,7 @@ hb_paint_funcs_set_pop_clip_func (hb_paint_funcs_t         *funcs,
 /**
  * hb_paint_funcs_set_solid_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -231,7 +231,7 @@ hb_paint_funcs_set_solid_func (hb_paint_funcs_t      *funcs,
 /**
  * hb_paint_funcs_set_linear_gradient_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -244,7 +244,7 @@ hb_paint_funcs_set_linear_gradient_func (hb_paint_funcs_t                *funcs,
 /**
  * hb_paint_funcs_set_radial_gradient_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -257,7 +257,7 @@ hb_paint_funcs_set_radial_gradient_func (hb_paint_funcs_t                *funcs,
 /**
  * hb_paint_funcs_set_sweep_gradient_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -270,7 +270,7 @@ hb_paint_funcs_set_sweep_gradient_func (hb_paint_funcs_t               *funcs,
 /**
  * hb_paint_funcs_set_push_group_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
@@ -283,7 +283,7 @@ hb_paint_funcs_set_push_group_func (hb_paint_funcs_t           *funcs,
 /**
  * hb_paint_funcs_set_pop_group_and_composite_func:
  * @funcs:
- * @func: (closure user_data) (destroy destroy) (scop notified):
+ * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable)
  */
