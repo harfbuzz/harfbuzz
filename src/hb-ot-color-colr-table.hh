@@ -497,7 +497,7 @@ struct PaintColrLayers
     return_trace (c->check_struct (this));
   }
 
-  void paint_glyph (hb_paint_context_t *c) const;
+  HB_INTERNAL void paint_glyph (hb_paint_context_t *c) const;
 
   HBUINT8	format; /* format = 1 */
   HBUINT8	numLayers;
@@ -771,7 +771,7 @@ struct PaintColrGlyph
     return_trace (c->check_struct (this));
   }
 
-  void paint_glyph (hb_paint_context_t *c) const;
+  HB_INTERNAL void paint_glyph (hb_paint_context_t *c) const;
 
   HBUINT8	format; /* format = 11 */
   HBUINT16	gid;
