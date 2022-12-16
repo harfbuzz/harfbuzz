@@ -85,16 +85,16 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs);
  * a transform to subsequent paint calls.
  *
  * This transform is applied after the current transform,
- * and remains in effect until a matching call to the
- * #hb_paint_funcs_pop_transform_func_t vfunc.
+ * and remains in effect until a matching call to
+ * the #hb_paint_funcs_pop_transform_func_t vfunc.
  *
  * Since: REPLACEME
  */
 typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
                                                 void *paint_data,
-                                                float xx, float xy,
-                                                float yx, float yy,
-                                                float x0, float y0,
+                                                float xx, float yx,
+                                                float xy, float yy,
+                                                float dx, float dy,
                                                 void *user_data);
 
 /**
@@ -109,9 +109,9 @@ typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
  *
  * Since: REPLACEME
  */
-typedef void (*hb_paint_pop_transform_func_t)  (hb_paint_funcs_t *funcs,
-                                                void *paint_data,
-                                                void *user_data);
+typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
+                                               void *paint_data,
+                                               void *user_data);
 
 /**
  * hb_paint_push_clip_glyph_func_t:
@@ -126,9 +126,14 @@ typedef void (*hb_paint_pop_transform_func_t)  (hb_paint_funcs_t *funcs,
  * The coordinates of the glyph outline are interpreted according
  * to the current transform.
  *
+ * Note that hb_font_paint_glyph() applies the scale and slant of
+ * the font as a transform, so you need to pass an unscaled, unslanted
+ * copy of the font to hb_font_get_glyph_shape() when obtaining outlines,
+ * to avoid double scaling.
+ *
  * This clip is applied in addition to the current clip,
- * and remains in effect until a matching call to the
- * #hb_paint_funcs_pop_clip_func_t vfunc.
+ * and remains in effect until a matching call to
+ * the #hb_paint_funcs_pop_clip_func_t vfunc.
  *
  * Since: REPLACEME
  */
@@ -154,8 +159,8 @@ typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
  * to the current transform.
  *
  * This clip is applied in addition to the current clip,
- * and remains in effect until a matching call to the
- * #hb_paint_funcs_pop_clip_func_t vfunc.
+ * and remains in effect until a matching call to
+ * the #hb_paint_funcs_pop_clip_func_t vfunc.
  *
  * Since: REPLACEME
  */
@@ -177,9 +182,9 @@ typedef void (*hb_paint_push_clip_rect_func_t) (hb_paint_funcs_t *funcs,
  *
  * Since: REPLACEME
  */
-typedef void (*hb_paint_pop_clip_func_t)       (hb_paint_funcs_t *funcs,
-                                                void *paint_data,
-                                                void *user_data);
+typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
+                                          void *paint_data,
+                                          void *user_data);
 
 /**
  * hb_paint_solid_func_t:
@@ -193,7 +198,7 @@ typedef void (*hb_paint_pop_clip_func_t)       (hb_paint_funcs_t *funcs,
  * color everywhere within the current clip.
  *
  * The @color_index can be either an index into one of the fonts
- * color palettes, or the special value #FFFF, which indicates that
+ * color palettes, or the special value 0xFFFF, which indicates that
  * the foreground color should be used.
  *
  * In either case, the @alpha value should be applied in addition
@@ -201,15 +206,35 @@ typedef void (*hb_paint_pop_clip_func_t)       (hb_paint_funcs_t *funcs,
  *
  * Since: REPLACEME
  */
-typedef void (*hb_paint_solid_func_t)          (hb_paint_funcs_t *funcs,
-                                                void *paint_data,
-                                                unsigned int color_index,
-                                                float alpha,
-                                                void *user_data);
+typedef void (*hb_paint_solid_func_t) (hb_paint_funcs_t *funcs,
+                                       void *paint_data,
+                                       unsigned int color_index,
+                                       float alpha,
+                                       void *user_data);
 
 
+/**
+ * hb_color_line_t:
+ *
+ * An opaque struct containing color information for a gradient.
+ *
+ * Since: REPLACEME
+ */
 typedef struct hb_color_line_t hb_color_line_t;
 
+/**
+ * hb_color_stop_t:
+ * @offset: the offset of the color stop
+ * @color_index: either a color palette index or the special value 0xFFFF
+ * @alpha: alpha to apply
+ *
+ * Information about a color stop on a color line.
+ *
+ * Color lines typically have offsets ranging between 0 and 1,
+ * but that is not required.
+ *
+ * Since: REPLACEME
+ */
 typedef struct {
   float offset;
   unsigned int color_index;
@@ -250,9 +275,9 @@ hb_color_line_get_extend (hb_color_line_t *color_line);
  * The coordinates of the points are interpreted according
  * to the current transform.
  *
- * See the OpenType spec COLR section (FIXME link) for details on how the
- * points define the direction of the gradient, and how
- * to interpret the @color_line.
+ * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * for details on how the points define the direction of the
+ * gradient, and how to interpret the @color_line.
  *
  * Since: REPLACEME
  */
@@ -283,9 +308,9 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
  * The coordinates of the points are interpreted according
  * to the current transform.
  *
- * See the OpenType spec COLR section (FIXME link) for details on how the
- * points define the direction of the gradient, and how
- * to interpret the @color_line.
+ * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * for details on how the points define the direction of the
+ * gradient, and how to interpret the @color_line.
  *
  * Since: REPLACEME
  */
@@ -313,9 +338,9 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
  * The coordinates of the points are interpreted according
  * to the current transform.
  *
- * See the OpenType spec COLR section (FIXME link) for details on how the
- * points define the direction of the gradient, and how
- * to interpret the @color_line.
+ * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * for details on how the points define the direction of the
+ * gradient, and how to interpret the @color_line.
  *
  * Since: REPLACEME
  */
@@ -401,10 +426,14 @@ typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
 
 /**
  * hb_paint_funcs_set_push_transform_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The push-transform callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the push-transform callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_transform_func (hb_paint_funcs_t               *funcs,
@@ -414,10 +443,14 @@ hb_paint_funcs_set_push_transform_func (hb_paint_funcs_t               *funcs,
 
 /**
  * hb_paint_funcs_set_pop_transform_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The pop-transform callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the pop-transform callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_pop_transform_func (hb_paint_funcs_t              *funcs,
@@ -427,10 +460,14 @@ hb_paint_funcs_set_pop_transform_func (hb_paint_funcs_t              *funcs,
 
 /**
  * hb_paint_funcs_set_push_clip_glyph_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The push-clip-glyph callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the push-clip-glyph callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_clip_glyph_func (hb_paint_funcs_t                *funcs,
@@ -440,10 +477,14 @@ hb_paint_funcs_set_push_clip_glyph_func (hb_paint_funcs_t                *funcs,
 
 /**
  * hb_paint_funcs_set_push_clip_rect_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The push-clip-rect callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the push-clip-rect callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_clip_rect_func (hb_paint_funcs_t               *funcs,
@@ -453,10 +494,14 @@ hb_paint_funcs_set_push_clip_rect_func (hb_paint_funcs_t               *funcs,
 
 /**
  * hb_paint_funcs_set_pop_clip_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The pop-clip callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the pop-clip callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_pop_clip_func (hb_paint_funcs_t         *funcs,
@@ -466,10 +511,14 @@ hb_paint_funcs_set_pop_clip_func (hb_paint_funcs_t         *funcs,
 
 /**
  * hb_paint_funcs_set_solid_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The paint-solid callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the paint-solid callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_solid_func (hb_paint_funcs_t      *funcs,
@@ -479,10 +528,14 @@ hb_paint_funcs_set_solid_func (hb_paint_funcs_t      *funcs,
 
 /**
  * hb_paint_funcs_set_linear_gradient_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The linear-gradient callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the linear-gradient callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_linear_gradient_func (hb_paint_funcs_t                *funcs,
@@ -492,10 +545,14 @@ hb_paint_funcs_set_linear_gradient_func (hb_paint_funcs_t                *funcs,
 
 /**
  * hb_paint_funcs_set_radial_gradient_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The radial-gradient callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the radial-gradient callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_radial_gradient_func (hb_paint_funcs_t                *funcs,
@@ -505,10 +562,14 @@ hb_paint_funcs_set_radial_gradient_func (hb_paint_funcs_t                *funcs,
 
 /**
  * hb_paint_funcs_set_sweep_gradient_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The sweep-gradient callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the sweep-gradient callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_sweep_gradient_func (hb_paint_funcs_t               *funcs,
@@ -518,10 +579,14 @@ hb_paint_funcs_set_sweep_gradient_func (hb_paint_funcs_t               *funcs,
 
 /**
  * hb_paint_funcs_set_push_group_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The push-group callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the push-group callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_push_group_func (hb_paint_funcs_t           *funcs,
@@ -531,10 +596,14 @@ hb_paint_funcs_set_push_group_func (hb_paint_funcs_t           *funcs,
 
 /**
  * hb_paint_funcs_set_pop_group_func:
- * @funcs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable)
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The pop-group callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the pop-group callback on the paint functions struct.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_paint_funcs_set_pop_group_func (hb_paint_funcs_t          *funcs,
@@ -557,7 +626,8 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
 
 HB_EXTERN void
 hb_paint_push_clip_rect (hb_paint_funcs_t *funcs, void *paint_data,
-                         float xmin, float ymin, float xmax, float ymax);
+                         float xmin, float ymin,
+                         float xmax, float ymax);
 
 HB_EXTERN void
 hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data);
@@ -577,8 +647,10 @@ hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
 HB_EXTERN void
 hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_color_line_t *color_line,
-                          float x0, float y0, float r0,
-                          float x1, float y1, float r1);
+                          float x0, float y0,
+                          float r0,
+                          float x1, float y1,
+                          float r1);
 
 HB_EXTERN void
 hb_paint_sweep_gradient (hb_paint_funcs_t *funcs, void *paint_data,

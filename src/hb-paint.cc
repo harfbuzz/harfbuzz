@@ -184,7 +184,11 @@ HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS
 /**
  * hb_paint_funcs_create:
  *
- * Returns value: (transfer full):
+ * Creates a new #hb_paint_funcs_t structure of paint functions.
+
+ * Returns value: (transfer full): the paint-functions structure
+ *
+ * Since: REPLACEME
  */
 hb_paint_funcs_t *
 hb_paint_funcs_create ()
@@ -209,12 +213,33 @@ DEFINE_NULL_INSTANCE (hb_paint_funcs_t) =
   }
 };
 
+/**
+ * hb_paint_funcs_reference: (skip)
+ * @funcs: The paint-functions structure
+ *
+ * Increases the reference count on a paint-functions structure.
+ *
+ * Return value: The paint-functions structure
+ *
+ * Since: REPLACEME
+ */
 hb_paint_funcs_t *
 hb_paint_funcs_reference (hb_paint_funcs_t *funcs)
 {
   return hb_object_reference (funcs);
 }
 
+/**
+ * hb_paint_funcs_destroy: (skip)
+ * @funcs: The paint-functions structure
+ *
+ * Decreases the reference count on a paint-functions structure.
+ *
+ * When the reference count reaches zero, the structure
+ * is destroyed, freeing all memory.
+ *
+ * Since: REPLACEME
+ */
 void
 hb_paint_funcs_destroy (hb_paint_funcs_t *funcs)
 {
@@ -233,6 +258,17 @@ hb_paint_funcs_destroy (hb_paint_funcs_t *funcs)
   hb_free (funcs);
 }
 
+/**
+ * hb_paint_funcs_make_immutable:
+ * @funcs: The paint-functions structure
+ *
+ * Makes a paint-functions structure immutable.
+ *
+ * After this call, all attempts to set one of the callbacks
+ * on @funcs will fail.
+ *
+ * Since: REPLACEME
+ */
 void
 hb_paint_funcs_make_immutable (hb_paint_funcs_t *funcs)
 {
@@ -242,6 +278,16 @@ hb_paint_funcs_make_immutable (hb_paint_funcs_t *funcs)
   hb_object_make_immutable (funcs);
 }
 
+/**
+ * hb_paint_funcs_is_immutable:
+ * @funcs: The paint-functions structure
+ *
+ * Tests whether a paint-functions structure is immutable.
+ *
+ * Return value: `true` if @funcs is immutable, `false` otherwise
+ *
+ * Since: REPLACEME
+ */
 hb_bool_t
 hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs)
 {
