@@ -47,7 +47,7 @@ jobs:
       - run: meson setup build
       - run: meson compile -Cbuild -j9
       - run: meson test -Cbuild --print-errorlogs
-      - run: meson dist -Cbuild
+      - run: meson dist -Cbuild --no-tests
       - persist_to_workspace:
           root: .
           paths: build/meson-dist/harfbuzz-*.tar.xz
