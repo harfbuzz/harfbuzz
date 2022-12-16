@@ -20,7 +20,7 @@ jobs:
       - checkout
       - run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config ragel freetype glib cairo python3 icu4c graphite2 gobject-introspection gtk-doc ninja
       - run: pip3 install meson --upgrade
-      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson build -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled -Dchafa=disabled
+      - run: PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/usr/local/opt/libffi/lib/pkgconfig" meson setup build -Dcoretext=enabled -Dgraphite=enabled -Dauto_features=enabled -Dchafa=disabled
       - run: meson compile -Cbuild
       - run: meson test -Cbuild --print-errorlogs
       - store_artifacts:
@@ -45,9 +45,9 @@ jobs:
       - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y git ninja-build binutils gcc g++ pkg-config gtk-doc-tools gobject-introspection libfreetype6-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
       - run: pip3 install fonttools meson --upgrade
       - run: meson setup build
-      - run: ninja -j2 -Cbuild
-      - run: ninja -j2 -Cbuild test
-      - run: ninja -j2 -Cbuild dist
+      - run: meson compile -Cbuild -j9
+      - run: meson test -Cbuild --print-errorlogs
+      - run: meson dist -Cbuild
       - persist_to_workspace:
           root: .
           paths: build/meson-dist/harfbuzz-*.tar.xz
@@ -67,8 +67,8 @@ jobs:
     steps:
       - checkout
       - run: dnf install -y pkg-config ragel valgrind gcc gcc-c++ meson git glib2-devel freetype-devel cairo-devel libicu-devel gobject-introspection-devel graphite2-devel redhat-rpm-config python python-pip || true
-      - run: meson build --buildtype=debugoptimized
-      - run: ninja -Cbuild -j9
+      - run: meson setup build --buildtype=debugoptimized
+      - run: meson compile -Cbuild -j9
       # TOOD: increase timeouts and remove --no-suite=slow
       - run: RUN_VALGRIND=1 meson test -Cbuild --no-suite=slow --wrap='valgrind --leak-check=full --error-exitcode=1' --print-errorlogs --num-processes=$(($(nproc)/2 + 1))
 
@@ -79,8 +79,8 @@ jobs:
       - checkout
       - run: apk update && apk add ragel gcc g++ glib-dev freetype-dev cairo-dev git py3-pip ninja
       - run: pip3 install meson==0.56.0
-      - run: meson build --buildtype=minsize
-      - run: ninja -Cbuild -j9
+      - run: meson setup build --buildtype=minsize
+      - run: meson compile -Cbuild -j9
       - run: meson test -Cbuild --print-errorlogs
 
   archlinux:
@@ -91,7 +91,7 @@ jobs:
       - run: pacman --noconfirm -Syu freetype2 meson git clang cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python python-pip base-devel gtk-doc
       - run: pip install flake8 fonttools
       - run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-      - run: meson build -Dgraphite=enabled -Dauto_features=enabled -Dexperimental_api=true
+      - run: meson setup build -Dgraphite=enabled -Dauto_features=enabled -Dexperimental_api=true
       - run: meson compile -Cbuild -j9
       - run: meson test -Cbuild --print-errorlogs
       - run: meson dist -Cbuild
@@ -106,8 +106,9 @@ jobs:
       - run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
       - run: pip3 install meson==0.56.0
-      - run: CC=clang CXX=clang++ meson build --default-library=static -Db_sanitize=address,undefined --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
-      - run: ninja -Cbuild -j8 && meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+      - run: CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=address,undefined --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
+      - run: meson compile -Cbuild -j9
+      - run: meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
 
   tsan:
     docker:
@@ -117,8 +118,9 @@ jobs:
       - run: apt update || true
       - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
       - run: pip3 install meson==0.56.0
-      - run: CC=clang CXX=clang++ meson build --default-library=static -Db_sanitize=thread --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
-      - run: ninja -Cbuild -j8 && meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+      - run: CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=thread --buildtype=debugoptimized --wrap-mode=nodownload -Dexperimental_api=true
+      - run: meson compile -Cbuild -j9
+      - run: meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
 
   msan:
     docker:
@@ -129,8 +131,9 @@ jobs:
       - run: DEBIAN_FRONTEND=noninteractive apt install -y python3 python3-pip ninja-build clang lld git binutils pkg-config ragel libfreetype6-dev libglib2.0-dev libcairo2-dev libicu-dev libgraphite2-dev
       - run: pip3 install meson==0.56.0
       # msan, needs --force-fallback-for=glib,freetype2 also which doesn't work yet but runs fuzzer cases at least
-      - run: CC=clang CXX=clang++ meson build --default-library=static -Db_sanitize=memory --buildtype=debugoptimized --wrap-mode=nodownload -Dauto_features=disabled -Dtests=enabled -Dexperimental_api=true
-      - run: ninja -Cbuild -j8 && meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
+      - run: CC=clang CXX=clang++ meson setup build --default-library=static -Db_sanitize=memory --buildtype=debugoptimized --wrap-mode=nodownload -Dauto_features=disabled -Dtests=enabled -Dexperimental_api=true
+      - run: meson compile -Cbuild -j9
+      - run: meson test -Cbuild --print-errorlogs | asan_symbolize | c++filt
 
   clang-cxx2a:
     docker:
