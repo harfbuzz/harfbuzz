@@ -25,6 +25,7 @@ typedef struct {
   int level;
   cairo_t *cr;
   hb_font_t *font;
+  hb_font_t *unscaled_font;
   hb_color_t *colors;
   unsigned int num_colors;
   hb_color_t foreground_color;
@@ -223,8 +224,10 @@ push_clip_glyph (hb_paint_funcs_t *funcs,
   hb_draw_funcs_set_close_path_func (dfuncs, close_path, data, NULL);
 
   cairo_new_path (data->cr);
-
-  hb_font_get_glyph_shape (data->font, glyph, dfuncs, data);
+  /* Note: we need to use a upem-scaled, unslanted copy of the font here,
+   * since hb has already applied the root transform.
+   */
+  hb_font_get_glyph_shape (data->unscaled_font, glyph, dfuncs, data);
   cairo_close_path (data->cr);
 
   cairo_clip (data->cr);
@@ -929,6 +932,7 @@ int main (int argc, char *argv[])
   hb_blob_t *blob = hb_blob_create_from_file (argv[1]);
   hb_face_t *face = hb_face_create (blob, 0);
   hb_font_t *font = hb_font_create (face);
+  hb_font_t *unscaled_font;
   hb_font_set_scale (font, 20, 20);
   hb_codepoint_t gid = atoi (argv[2]);
   hb_glyph_extents_t extents;
@@ -936,13 +940,17 @@ int main (int argc, char *argv[])
   cairo_pattern_t *pattern;
   cairo_matrix_t m;
   float xmin, ymin, xmax, ymax;
+  unsigned int upem;
 
   float size = 120.;
-  int upem = hb_face_get_upem (hb_font_get_face (font));
 
   hb_font_set_scale (font, size, size);
   hb_font_get_glyph_extents (font, gid, &extents);
-  hb_font_set_scale (font, upem, upem);
+
+  unscaled_font = hb_font_create (face);
+  upem = hb_face_get_upem (face);
+  hb_font_set_scale (unscaled_font, upem, upem);
+  hb_font_set_synthetic_slant (unscaled_font, 0.);
 
   xmin = extents.x_bearing;
   xmax = xmin + extents.width;
@@ -962,6 +970,7 @@ int main (int argc, char *argv[])
   cairo_push_group (data.cr);
 
   data.font = font;
+  data.unscaled_font = unscaled_font;
   data.foreground_color = HB_COLOR (0, 0, 0, 255);
 
   data.num_colors = hb_ot_color_palette_get_colors (hb_font_get_face (font),
@@ -983,12 +992,7 @@ int main (int argc, char *argv[])
   hb_paint_funcs_set_radial_gradient_func (funcs, radial_gradient, &data, NULL);
   hb_paint_funcs_set_sweep_gradient_func (funcs, sweep_gradient, &data, NULL);
 
-  cairo_save (data.cr);
-  cairo_scale (data.cr, size/upem, size/upem); // root transform
-
   hb_font_paint_glyph (font, gid, funcs, NULL);
-
-  cairo_restore (data.cr);
 
   pattern = cairo_pop_group (data.cr);
 

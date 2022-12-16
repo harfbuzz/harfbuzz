@@ -1954,9 +1954,20 @@ struct COLR
 
     if (paint)
     {
-      // TODO root transform
-      // TODO apply clipbox clip
+      int xscale, yscale;
+      unsigned int upem;
+
+      hb_font_get_scale (font, &xscale, &yscale);
+      upem = hb_face_get_upem (hb_font_get_face (font));
+
+      // FIXME handle slant
+      funcs->push_transform (data, xscale/(float)upem, 0,
+                                   0, yscale/(float)upem,
+                                   0, 0);
+
       paint_glyph_dispatch (paint, &c);
+
+      funcs->pop_transform (data);
     }
     else
     {
