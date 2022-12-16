@@ -21,11 +21,11 @@
 
 - [ ] Make sure you have correct date and new version at the top of NEWS file.
 
-- [ ] Bump version in line 3 of meson.build and configure.ac.
+- [ ] Bump version in line 3 of meson.build.
 
 - [ ] Do a `meson test -Cbuild` so it both checks the tests and updates hb-version.h (use `git diff` to see if is really updated).
 
-- [ ] Commit NEWS, meson.build, configure.ac, and src/hb-version.h, as well as any REPLACEME changes you made.
+- [ ] Commit NEWS, meson.build, and src/hb-version.h, as well as any REPLACEME changes you made.
         The commit message is simply the release number, e. g. "1.4.7"
 
 - [ ] Do a `meson dist -Cbuild` that runs the tests against the latest committed changes.

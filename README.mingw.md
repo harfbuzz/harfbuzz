@@ -17,23 +17,7 @@ for reference.
    - Mac: `brew install mingw-w64`
 
 3. If you have drank the `meson` koolaid, look at `.ci/build-win32.sh` to see how to
-   invoke `meson` now, or just run that script.  Otherwise, here's how to use the
-   old trusty autotools instead:
-
-   a) Install dependencies.
-      - Fedora, 32bit: `dnf install mingw32-glib2 mingw32-cairo mingw32-freetype`
-      - Fedora, 64bit: `dnf install mingw64-glib2 mingw64-cairo mingw64-freetype`
-
-   b) Configure:
-     - `NOCONFIGURE=1 ./autogen.sh && mkdir winbuild && cd winbuild`
-     - 32bit: `../mingw-configure.sh i686`
-     - 64bit: `../mingw-configure.sh x86_64`
-
-   c) Build as usual:
-     - make
-
-   d) Configure your wine to find system mingw libraries. See:
-      https://fedoraproject.org/wiki/MinGW/Configure_wine
+   invoke `meson` now, or just run that script.
 
 Now you can use `hb-shape` by `(cd win32build/util && wine hb-shape.exe)`
 but if you like to shape with the Microsoft Uniscribe:
