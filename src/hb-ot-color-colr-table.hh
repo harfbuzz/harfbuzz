@@ -1950,13 +1950,27 @@ struct COLR
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
   {
     hb_paint_context_t c (this, funcs, data);
-    const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;
-    const BaseGlyphPaintRecord* record = get_base_glyph_paintrecord (glyph);
-    const Paint &paint = &baseglyph_paintrecords+record->paint;
+    const Paint *paint = get_base_glyph_paint (glyph);
 
-    // TODO handle v0 layers
-    // TODO apply clipbox clip
-    paint.paint_glyph (&c);
+    if (paint)
+    {
+      // TODO root transform
+      // TODO apply clipbox clip
+      paint_glyph_dispatch (paint, &c);
+    }
+    else
+    {
+      const BaseGlyphRecord &record = (this+baseGlyphsZ).bsearch (numBaseGlyphs, glyph);
+      hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
+      for (unsigned int i = 0; i < record.numLayers; i++)
+      {
+        const LayerRecord *r = &all_layers[record.firstLayerIdx + i];
+
+        c.funcs->push_clip_glyph (c.data, r->glyphId);
+        c.funcs->solid (c.data, r->colorIdx, 1.);
+        c.funcs->pop_clip (c.data);
+      }
+    }
   }
 
   protected:
