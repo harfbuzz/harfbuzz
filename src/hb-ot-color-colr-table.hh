@@ -900,7 +900,7 @@ struct ClipBoxFormat1
     return_trace (c->check_struct (this));
   }
 
-  void get_clip_box (ClipBoxData &clip_box, const VarStoreInstancer &instancer) const
+  void get_clip_box (ClipBoxData &clip_box, const VarStoreInstancer &instancer HB_UNUSED) const
   {
     clip_box.xMin = xMin;
     clip_box.yMin = yMin;
