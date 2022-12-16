@@ -83,21 +83,6 @@ jobs:
       - run: meson compile -Cbuild -j9
       - run: meson test -Cbuild --print-errorlogs
 
-  archlinux:
-    docker:
-      - image: archlinux/base
-    steps:
-      - checkout
-      - run: pacman --noconfirm -Syu freetype2 meson git clang cairo icu gettext gobject-introspection gcc gcc-libs glib2 graphite pkg-config ragel python python-pip base-devel gtk-doc
-      - run: pip install flake8 fonttools
-      - run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics
-      - run: meson setup build -Dgraphite=enabled -Dauto_features=enabled -Dexperimental_api=true
-      - run: meson compile -Cbuild -j9
-      - run: meson test -Cbuild --print-errorlogs
-      - run: meson dist -Cbuild
-      - run: clang -c src/harfbuzz.cc -DHB_NO_MT
-      - run: clang -c src/hb-*.cc -DHB_NO_MT -DHB_TINY -DHB_NO_OT_FONT
-
   asan-ubsan:
     docker:
       - image: ubuntu:20.04
@@ -212,7 +197,6 @@ workflows:
       - autotools
       - fedora-valgrind
       - alpine
-     #- archlinux
       - asan-ubsan
       - tsan
       - msan
