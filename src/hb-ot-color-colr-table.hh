@@ -935,21 +935,25 @@ struct ClipBox
     switch (u.format) {
     case 1:
     case 2:
-      extents->x_bearing = u.format1.xMin;
-      extents->y_bearing = u.format1.yMax;
-      extents->width = u.format1.xMax - u.format1.xMin;
-      extents->height = u.format1.yMin - u.format1.yMax;
-
+    {
+      int xmin = u.format1.xMin;
+      int ymin = u.format1.yMin;
+      int xmax = u.format1.xMax;
+      int ymax = u.format1.yMax;
       if (u.format == 2 && instancer && u.format2.varIdxBase != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
       {
-	uint32_t varIdx = u.format2.varIdxBase;
-	extents->x_bearing += _hb_roundf (instancer (varIdx+0));
-	extents->y_bearing += _hb_roundf (instancer (varIdx+1));
-	extents->width     += _hb_roundf (instancer (varIdx+2));
-	extents->height    += _hb_roundf (instancer (varIdx+3));
+        uint32_t varIdx = u.format2.varIdxBase;
+        xmin += _hb_roundf (instancer (varIdx+0));
+        ymin += _hb_roundf (instancer (varIdx+1));
+        xmax += _hb_roundf (instancer (varIdx+2));
+        ymax += _hb_roundf (instancer (varIdx+3));
       }
-
+      extents->x_bearing = xmin;
+      extents->y_bearing = ymax;
+      extents->width = xmax - xmin;
+      extents->height = ymin - ymax;
       return true;
+    }
     default:
       return false;
     }
