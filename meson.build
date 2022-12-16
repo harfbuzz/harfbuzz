@@ -181,7 +181,8 @@ if not get_option('cairo').disabled()
     # harfbuzz support disabled, so when cairo will lookup freetype2 dependency
     # it will be forced to use that one.
     cairo_dep = dependency('cairo', required: get_option('cairo'))
-    cairo_ft_dep = dependency('cairo-ft', required: get_option('cairo'))
+    cairo_ft_required = get_option('cairo').enabled() and get_option('freetype').enabled()
+    cairo_ft_dep = dependency('cairo-ft', required: cairo_ft_required)
   endif
 endif
 
