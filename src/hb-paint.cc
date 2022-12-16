@@ -28,6 +28,15 @@
 
 #include "hb-paint.hh"
 
+/**
+ * SECTION: hb-paint
+ * @title: hb-paint
+ * @short_description: Glyph painting
+ * @include: hb.h
+ *
+ * Functions for painting (extracting) glyph color layers.
+ **/
+
 static void
 hb_paint_push_transform_nil (hb_paint_funcs_t *funcs, void *paint_data,
                              float xx, float yx,

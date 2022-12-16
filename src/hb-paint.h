@@ -33,6 +33,25 @@
 
 HB_BEGIN_DECLS
 
+/**
+ * hb_paint_funcs_t:
+ *
+ * Glyph paint callbacks.
+ *
+ * All the callbacks are necessary.
+ *
+ * The callbacks assume that the caller maintains a stack
+ * of current transforms, clips and intermediate surfaces,
+ * as evidenced by the pairs of push/pop callbacks. The
+ * push/pop calls will be properly nested, so it is fine
+ * to store the different kinds of object on a single stack.
+ *
+ * The callbacks also assume that the caller uses
+ * hb_ot_color_palette_get_colors() to obtain colors
+ * from one of the fonts color palettes.
+ *
+ * Since: REPLACEME
+ **/
 typedef struct hb_paint_funcs_t hb_paint_funcs_t;
 
 HB_EXTERN hb_paint_funcs_t *
@@ -50,6 +69,27 @@ hb_paint_funcs_make_immutable (hb_paint_funcs_t *funcs);
 HB_EXTERN hb_bool_t
 hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs);
 
+/**
+ * hb_paint_push_transform_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @xx: xx component of the transform matrix
+ * @yx: yx component of the transform matrix
+ * @xy: xy component of the transform matrix
+ * @yy: yy component of the transform matrix
+ * @dx: dx component of the transform matrix
+ * @dy: dy component of the transform matrix
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to apply
+ * a transform to subsequent paint calls.
+ *
+ * This transform is applied after the current transform,
+ * and remains in effect until a matching call to the
+ * #hb_paint_funcs_pop_transform_func_t vfunc.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
                                                 void *paint_data,
                                                 float xx, float xy,
@@ -57,25 +97,110 @@ typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
                                                 float x0, float y0,
                                                 void *user_data);
 
+/**
+ * hb_paint_pop_transform_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to undo
+ * the effect of a prior call to the #hb_paint_funcs_push_transform_func_t
+ * vfunc.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_pop_transform_func_t)  (hb_paint_funcs_t *funcs,
                                                 void *paint_data,
                                                 void *user_data);
 
+/**
+ * hb_paint_push_clip_glyph_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @glyph: the glyph ID
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to clip
+ * subsequent paint calls to the outline of a glyph.
+ *
+ * The coordinates of the glyph outline are interpreted according
+ * to the current transform.
+ *
+ * This clip is applied in addition to the current clip,
+ * and remains in effect until a matching call to the
+ * #hb_paint_funcs_pop_clip_func_t vfunc.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
                                                  hb_codepoint_t glyph,
                                                  void *user_data);
 
+/**
+ * hb_paint_push_clip_rect_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @xmin: min X for the rectangle
+ * @ymin: min Y for the rectangle
+ * @xmax: max X for the rectangle
+ * @ymax: max Y for the rectangle
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to clip
+ * subsequent paint calls to a rectangle.
+ *
+ * The coordinates of the rectangle are interpreted according
+ * to the current transform.
+ *
+ * This clip is applied in addition to the current clip,
+ * and remains in effect until a matching call to the
+ * #hb_paint_funcs_pop_clip_func_t vfunc.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_push_clip_rect_func_t) (hb_paint_funcs_t *funcs,
                                                 void *paint_data,
                                                 float xmin, float ymin,
                                                 float xmax, float ymax,
                                                 void *user_data);
 
+/**
+ * hb_paint_pop_clip_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to undo
+ * the effect of a prior call to the #hb_paint_funcs_push_clip_glyph_func_t
+ * or #hb_paint_funcs_push_clip_rect_func_t vfuncs.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_pop_clip_func_t)       (hb_paint_funcs_t *funcs,
                                                 void *paint_data,
                                                 void *user_data);
 
+/**
+ * hb_paint_solid_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @color_index: Index of a color in the fonts selected color palette
+ * @alpha: alpha to apply in addition
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to paint a solid
+ * color everywhere within the current clip.
+ *
+ * The @color_index can be either an index into one of the fonts
+ * color palettes, or the special value #FFFF, which indicates that
+ * the foreground color should be used.
+ *
+ * In either case, the @alpha value should be applied in addition
+ * (i.e. multiplied with) the alpha value found in the color.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_solid_func_t)          (hb_paint_funcs_t *funcs,
                                                 void *paint_data,
                                                 unsigned int color_index,
@@ -106,6 +231,31 @@ typedef enum {
 HB_EXTERN hb_paint_extend_t
 hb_color_line_get_extend (hb_color_line_t *color_line);
 
+/**
+ * hb_paint_linear_gradient_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @color_line: Color information for the gradient
+ * @x0: X coordinate of the first point
+ * @y0: Y coordinate of the first point
+ * @x1: X coordinate of the second point
+ * @y1: Y coordinate of the second point
+ * @x2: X coordinate of the third point
+ * @y2: Y coordinate of the third point
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to paint a linear
+ * gradient everywhere within the current clip.
+ *
+ * The coordinates of the points are interpreted according
+ * to the current transform.
+ *
+ * See the OpenType spec COLR section (FIXME link) for details on how the
+ * points define the direction of the gradient, and how
+ * to interpret the @color_line.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
                                                  hb_color_line_t *color_line,
@@ -114,6 +264,31 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
                                                  float x2, float y2,
                                                  void *user_data);
 
+/**
+ * hb_paint_radial_gradient_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @color_line: Color information for the gradient
+ * @x0: X coordinate of the first circle's center
+ * @y0: Y coordinate of the first circle's center
+ * @r0: radius of the first circle
+ * @x1: X coordinate of the second circle's center
+ * @y1: Y coordinate of the second circle's center
+ * @r1: radius of the second circle
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to paint a radial
+ * gradient everywhere within the current clip.
+ *
+ * The coordinates of the points are interpreted according
+ * to the current transform.
+ *
+ * See the OpenType spec COLR section (FIXME link) for details on how the
+ * points define the direction of the gradient, and how
+ * to interpret the @color_line.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
                                                  hb_color_line_t *color_line,
@@ -121,6 +296,29 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
                                                  float x1, float y1, float r1,
                                                  void *user_data);
 
+/**
+ * hb_paint_sweep_gradient_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @color_line: Color information for the gradient
+ * @x0: X coordinate of the circle's center
+ * @y0: Y coordinate of the circle's center
+ * @start_angle: the start angle
+ * @end_angle: the end angle
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to paint a sweep
+ * gradient everywhere within the current clip.
+ *
+ * The coordinates of the points are interpreted according
+ * to the current transform.
+ *
+ * See the OpenType spec COLR section (FIXME link) for details on how the
+ * points define the direction of the gradient, and how
+ * to interpret the @color_line.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_sweep_gradient_func_t)  (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
                                                  hb_color_line_t *color_line,
@@ -160,10 +358,42 @@ typedef enum {
   HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY,
 } hb_paint_composite_mode_t;
 
+/**
+ * hb_paint_push_group_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to use
+ * an intermediate surface for subsequent paint calls.
+ *
+ * The drawing will be redirected to an intermediate surface
+ * until a matching call to the #hb_paint_funcs_pop_group_func_t
+ * vfunc.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
                                             void *paint_data,
                                             void *user_data);
 
+/**
+ * hb_paint_pop_group_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @mode: the compositing mode to use
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to undo
+ * the effect of a prior call to the #hb_paint_funcs_push_group_func_t
+ * vfunc.
+ *
+ * This call stops the redirection to the intermediate surface,
+ * and then composites it on the previous surface, using the
+ * compositing mode passed to this call.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
                                            void *paint_data,
                                            hb_paint_composite_mode_t mode,
