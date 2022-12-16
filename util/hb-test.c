@@ -838,7 +838,7 @@ add_sweep_gradient_patches (paint_data_t *data,
                 }
             }
         }
-done:
+done: ;
     }
 }
 
