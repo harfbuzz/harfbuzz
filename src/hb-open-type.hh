@@ -213,6 +213,11 @@ typedef Index NameID;
 struct VarIdx : HBUINT32 {
   static constexpr unsigned NO_VARIATION = 0xFFFFFFFFu;
   static_assert (NO_VARIATION == HB_OT_LAYOUT_NO_VARIATIONS_INDEX, "");
+  static uint32_t add (uint32_t i, unsigned short v)
+  {
+    if (i == NO_VARIATION) return i;
+    return i + v;
+  }
   VarIdx& operator = (uint32_t i) { HBUINT32::operator= (i); return *this; }
 };
 DECLARE_NULL_NAMESPACE_BYTES (OT, VarIdx);

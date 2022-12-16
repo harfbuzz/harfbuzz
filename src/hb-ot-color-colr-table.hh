@@ -940,13 +940,13 @@ struct ClipBox
       int ymin = u.format1.yMin;
       int xmax = u.format1.xMax;
       int ymax = u.format1.yMax;
-      if (u.format == 2 && instancer && u.format2.varIdxBase != VarIdx::NO_VARIATION)
+      if (u.format == 2 && instancer)
       {
         uint32_t varIdx = u.format2.varIdxBase;
-        xmin += _hb_roundf (instancer (varIdx+0));
-        ymin += _hb_roundf (instancer (varIdx+1));
-        xmax += _hb_roundf (instancer (varIdx+2));
-        ymax += _hb_roundf (instancer (varIdx+3));
+        xmin += _hb_roundf (instancer (VarIdx::add (varIdx, 0)));
+        ymin += _hb_roundf (instancer (VarIdx::add (varIdx, 1)));
+        xmax += _hb_roundf (instancer (VarIdx::add (varIdx, 2)));
+        ymax += _hb_roundf (instancer (VarIdx::add (varIdx, 3)));
       }
       extents->x_bearing = xmin;
       extents->y_bearing = ymax;
