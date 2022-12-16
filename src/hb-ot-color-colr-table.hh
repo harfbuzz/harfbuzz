@@ -625,8 +625,12 @@ struct PaintRadialGradient
     hb_color_line_t cl = { this, format };
 
     c->funcs->radial_gradient (c->data, &cl,
-                               (float)x0, (float)y0, (float)radius0,
-                               (float)x1, (float)y1, (float)radius1);
+			       x0 + c->instancer (varIdxBase, 0),
+			       y0 + c->instancer (varIdxBase, 1),
+			       x1 + c->instancer (varIdxBase, 3),
+			       y1 + c->instancer (varIdxBase, 4),
+			       radius0 + c->instancer (varIdxBase, 2),
+			       radius1 + c->instancer (varIdxBase, 5));
   }
 
   unsigned int get_color_stops (unsigned int start,
@@ -680,9 +684,10 @@ struct PaintSweepGradient
     hb_color_line_t cl = { this, format };
 
     c->funcs->sweep_gradient (c->data, &cl,
-                              (float)centerX, (float)centerY,
-                              (startAngle.to_float () + 1) * (float)M_PI,
-                              (endAngle.to_float () + 1) * (float)M_PI);
+			      centerX + c->instancer (varIdxBase, 0),
+			      centerY + c->instancer (varIdxBase, 1),
+                              (startAngle.to_float (c->instancer (varIdxBase, 2)) + 1) * (float) M_PI,
+                              (endAngle.to_float   (c->instancer (varIdxBase, 3)) + 1) * (float) M_PI);
   }
 
   unsigned int get_color_stops (unsigned int start,
@@ -831,7 +836,10 @@ struct PaintTranslate
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->push_transform (c->data, 1., 0., 0., 1., (float)dx, (float)dy);
+    c->funcs->push_transform (c->data,
+			      1., 0., 0., 1.,
+			      dx + c->instancer (varIdxBase, 0),
+			      dy + c->instancer (varIdxBase, 0));
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
   }
@@ -865,7 +873,11 @@ struct PaintScale
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->push_transform (c->data, scaleX.to_float (), 0., 0., scaleY.to_float (), 0., 0.);
+    c->funcs->push_transform (c->data,
+			      scaleX.to_float (c->instancer (varIdxBase, 0)),
+			      0., 0.,
+			      scaleY.to_float (c->instancer (varIdxBase, 1)),
+			      0., 0.);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
   }
@@ -899,9 +911,15 @@ struct PaintScaleAroundCenter
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., (float)centerX, (float)centerY);
-    c->funcs->push_transform (c->data, scaleX.to_float (), 0., 0., scaleY.to_float (), 0., 0.);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., - (float)centerX, - (float)centerY);
+    float tCenterX = centerX + c->instancer (varIdxBase, 2);
+    float tCenterY = centerY + c->instancer (varIdxBase, 3);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
+    c->funcs->push_transform (c->data,
+			      scaleX.to_float (c->instancer (varIdxBase, 0)),
+			      0., 0.,
+			      scaleY.to_float (c->instancer (varIdxBase, 1)),
+			      0., 0.);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -939,7 +957,8 @@ struct PaintScaleUniform
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->push_transform (c->data, scale.to_float (), 0., 0., scale.to_float (), 0., 0.);
+    float s = scale + c->instancer (varIdxBase, 0);
+    c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
   }
@@ -972,9 +991,12 @@ struct PaintScaleUniformAroundCenter
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., (float)centerX, (float)centerY);
-    c->funcs->push_transform (c->data, scale.to_float (), 0., 0., scale.to_float (), 0., 0.);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., - (float)centerX, - (float)centerY);
+    float s = scale + c->instancer (varIdxBase, 0);
+    float tCenterX = centerX + c->instancer (varIdxBase, 1);
+    float tCenterY = centerY + c->instancer (varIdxBase, 2);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
+    c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -1011,8 +1033,9 @@ struct PaintRotate
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    float cc = cosf (angle.to_float() * (float)M_PI);
-    float ss = sinf (angle.to_float() * (float)M_PI);
+    float a = angle.to_float (c->instancer (varIdxBase, 0));
+    float cc = cosf (a * (float) M_PI);
+    float ss = sinf (a * (float) M_PI);
     c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
@@ -1046,11 +1069,14 @@ struct PaintRotateAroundCenter
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    float cc = cosf (angle.to_float() * (float)M_PI);
-    float ss = sinf (angle.to_float() * (float)M_PI);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., (float)centerX, (float)centerY);
+    float a = angle.to_float (c->instancer (varIdxBase, 0));
+    float cc = cosf (a * (float) M_PI);
+    float ss = sinf (a * (float) M_PI);
+    float tCenterX = centerX + c->instancer (varIdxBase, 1);
+    float tCenterY = centerY + c->instancer (varIdxBase, 2);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., - (float)centerX, - (float)centerY);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -1087,8 +1113,8 @@ struct PaintSkew
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    float x = tanf (xSkewAngle.to_float() * (float)M_PI);
-    float y = - tanf (ySkewAngle.to_float() * (float)M_PI);
+    float x = +tanf (xSkewAngle.to_float(c->instancer (varIdxBase, 0)) * (float) M_PI);
+    float y = -tanf (ySkewAngle.to_float(c->instancer (varIdxBase, 1)) * (float) M_PI);
     c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
@@ -1123,11 +1149,13 @@ struct PaintSkewAroundCenter
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    float x = tanf (xSkewAngle.to_float() * (float)M_PI);
-    float y = - tanf (ySkewAngle.to_float() * (float)M_PI);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., (float)centerX, (float)centerY);
+    float x = +tanf (xSkewAngle.to_float(c->instancer (varIdxBase, 0)) * (float) M_PI);
+    float y = -tanf (ySkewAngle.to_float(c->instancer (varIdxBase, 1)) * (float) M_PI);
+    float tCenterX = centerX + c->instancer (varIdxBase, 2);
+    float tCenterY = centerY + c->instancer (varIdxBase, 3);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
-    c->funcs->push_transform (c->data, 0., 0., 0., 0., - (float)centerX, - (float)centerY);
+    c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
     paint_glyph_dispatch (&(this+src), c);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
