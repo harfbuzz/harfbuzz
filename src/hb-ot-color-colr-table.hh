@@ -940,7 +940,7 @@ struct ClipBox
       int ymin = u.format1.yMin;
       int xmax = u.format1.xMax;
       int ymax = u.format1.yMax;
-      if (u.format == 2 && instancer && u.format2.varIdxBase != HB_OT_LAYOUT_NO_VARIATIONS_INDEX)
+      if (u.format == 2 && instancer && u.format2.varIdxBase != VarIdx::NO_VARIATION)
       {
         uint32_t varIdx = u.format2.varIdxBase;
         xmin += _hb_roundf (instancer (varIdx+0));
