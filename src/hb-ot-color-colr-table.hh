@@ -53,11 +53,7 @@ namespace OT {
 
 struct COLR;
 
-struct hb_paint_context_t;
-
 struct Paint;
-
-static void paint_glyph_dispatch (const Paint *paint, hb_paint_context_t *c);
 
 struct hb_paint_context_t :
        hb_dispatch_context_t<hb_paint_context_t>
@@ -85,6 +81,7 @@ public:
     instancer (instancer_)
   {}
 
+  inline void recurse (const Paint &paint);
 };
 
 struct hb_colrv1_closure_context_t :
@@ -745,7 +742,7 @@ struct PaintGlyph
   void paint_glyph (hb_paint_context_t *c) const
   {
     c->funcs->push_clip_glyph (c->data, gid);
-    paint_glyph_dispatch (&(this+paint), c);
+    c->recurse (this+paint);
     c->funcs->pop_clip (c->data);
   }
 
@@ -809,7 +806,7 @@ struct PaintTransform
   void paint_glyph (hb_paint_context_t *c) const
   {
     (this+transform).paint_glyph (c);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
   }
 
@@ -845,7 +842,7 @@ struct PaintTranslate
 			      1., 0., 0., 1.,
 			      dx + c->instancer (varIdxBase, 0),
 			      dy + c->instancer (varIdxBase, 0));
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
   }
 
@@ -883,7 +880,7 @@ struct PaintScale
 			      0., 0.,
 			      scaleY.to_float (c->instancer (varIdxBase, 1)),
 			      0., 0.);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
   }
 
@@ -925,7 +922,7 @@ struct PaintScaleAroundCenter
 			      scaleY.to_float (c->instancer (varIdxBase, 1)),
 			      0., 0.);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -964,7 +961,7 @@ struct PaintScaleUniform
   {
     float s = scale + c->instancer (varIdxBase, 0);
     c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
   }
 
@@ -1002,7 +999,7 @@ struct PaintScaleUniformAroundCenter
     c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -1042,7 +1039,7 @@ struct PaintRotate
     float cc = cosf (a * (float) M_PI);
     float ss = sinf (a * (float) M_PI);
     c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
   }
 
@@ -1082,7 +1079,7 @@ struct PaintRotateAroundCenter
     c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -1121,7 +1118,7 @@ struct PaintSkew
     float x = +tanf (xSkewAngle.to_float(c->instancer (varIdxBase, 0)) * (float) M_PI);
     float y = -tanf (ySkewAngle.to_float(c->instancer (varIdxBase, 1)) * (float) M_PI);
     c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
   }
 
@@ -1161,7 +1158,7 @@ struct PaintSkewAroundCenter
     c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY);
     c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
     c->funcs->pop_transform (c->data);
@@ -1202,9 +1199,9 @@ struct PaintComposite
   void paint_glyph (hb_paint_context_t *c) const
   {
     c->funcs->push_group (c->data);
-    paint_glyph_dispatch (&(this+backdrop), c);
+    c->recurse (this+backdrop);
     c->funcs->push_group (c->data);
-    paint_glyph_dispatch (&(this+src), c);
+    c->recurse (this+src);
     c->funcs->pop_group (c->data, (hb_paint_composite_mode_t) (int) mode);
     c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
   }
@@ -1977,7 +1974,7 @@ struct COLR
                                    0, yscale/(float)upem,
                                    0, 0);
 
-      paint_glyph_dispatch (paint, &c);
+      c.recurse (*paint);
 
       funcs->pop_transform (data);
     }
@@ -2018,10 +2015,10 @@ struct COLR_accelerator_t : COLR::accelerator_t {
   COLR_accelerator_t (hb_face_t *face) : COLR::accelerator_t (face) {}
 };
 
-static void
-paint_glyph_dispatch (const Paint *paint, hb_paint_context_t *c)
+void
+hb_paint_context_t::recurse (const Paint &paint)
 {
-  paint->dispatch (c);
+  paint.dispatch (this);
 }
 
 } /* namespace OT */

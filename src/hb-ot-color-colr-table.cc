@@ -9,7 +9,7 @@ void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
   {
     const Paint &paint = std::addressof (paint_offset_lists) + paint_offset_lists[i];
     c->funcs->push_group (c->data);
-    paint_glyph_dispatch (&paint, c);
+    c->recurse (paint);
     c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
   }
 }
@@ -20,7 +20,7 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
   const Paint *paint = colr_table->get_base_glyph_paint (gid);
 
   if (paint)
-    paint_glyph_dispatch (paint, c);
+    c->recurse (*paint);
 }
 
 }
