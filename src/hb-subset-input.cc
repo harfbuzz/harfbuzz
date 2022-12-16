@@ -408,7 +408,7 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
  *
  * Return value: `true` if success, `false` otherwise
  *
- * Since: REPLACEME
+ * Since: 6.0.0
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
@@ -435,7 +435,7 @@ hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
  *
  * Return value: `true` if success, `false` otherwise
  *
- * Since: REPLACEME
+ * Since: 6.0.0
  **/
 HB_EXTERN hb_bool_t
 hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
@@ -470,7 +470,7 @@ hb_subset_input_pin_axis_location (hb_subset_input_t  *input,
  *
  * Returns: a new #hb_face_t.
  *
- * Since: REPLACEME
+ * Since: 6.0.0
  **/
 
 HB_EXTERN hb_face_t *
