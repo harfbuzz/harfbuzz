@@ -1916,8 +1916,13 @@ struct COLR
   {
     const BaseGlyphList &baseglyph_paintrecords = this+baseGlyphList;
     const BaseGlyphPaintRecord* record = get_base_glyph_paintrecord (glyph);
-    const Paint &paint = &baseglyph_paintrecords+record->paint;
-    return &paint;
+    if (record)
+    {
+      const Paint &paint = &baseglyph_paintrecords+record->paint;
+      return &paint;
+    }
+    else
+      return nullptr;
   }
 
   bool
