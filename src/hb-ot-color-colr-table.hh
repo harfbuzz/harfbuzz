@@ -887,12 +887,25 @@ struct PaintComposite
   DEFINE_SIZE_STATIC (8);
 };
 
+struct ClipBoxData
+{
+  int xMin, yMin, xMax, yMax;
+};
+
 struct ClipBoxFormat1
 {
   bool sanitize (hb_sanitize_context_t *c) const
   {
     TRACE_SANITIZE (this);
     return_trace (c->check_struct (this));
+  }
+
+  void get_clip_box (ClipBoxData &clip_box, const VarStoreInstancer &instancer) const
+  {
+    clip_box.xMin = xMin;
+    clip_box.yMin = yMin;
+    clip_box.xMax = xMax;
+    clip_box.yMax = yMax;
   }
 
   public:
@@ -905,7 +918,20 @@ struct ClipBoxFormat1
   DEFINE_SIZE_STATIC (1 + 4 * FWORD::static_size);
 };
 
-struct ClipBoxFormat2 : Variable<ClipBoxFormat1> {};
+struct ClipBoxFormat2 : Variable<ClipBoxFormat1>
+{
+  void get_clip_box (ClipBoxData &clip_box, const VarStoreInstancer &instancer) const
+  {
+    value.get_clip_box(clip_box, instancer);
+    if (instancer)
+    {
+      clip_box.xMin += _hb_roundf (instancer (varIdxBase, 0));
+      clip_box.yMin += _hb_roundf (instancer (varIdxBase, 1));
+      clip_box.xMax += _hb_roundf (instancer (varIdxBase, 2));
+      clip_box.yMax += _hb_roundf (instancer (varIdxBase, 3));
+    }
+  }
+};
 
 struct ClipBox
 {
@@ -932,33 +958,25 @@ struct ClipBox
   }
 
   bool get_extents (hb_glyph_extents_t *extents,
-		    const VarStoreInstancer &instancer) const
+                    const VarStoreInstancer &instancer) const
   {
+    ClipBoxData clip_box;
     switch (u.format) {
     case 1:
+      u.format1.get_clip_box (clip_box, instancer);
+      break;
     case 2:
-    {
-      int xmin = u.format1.xMin;
-      int ymin = u.format1.yMin;
-      int xmax = u.format1.xMax;
-      int ymax = u.format1.yMax;
-      if (u.format == 2 && instancer)
-      {
-        uint32_t varIdx = u.format2.varIdxBase;
-        xmin += _hb_roundf (instancer (varIdx, 0));
-        ymin += _hb_roundf (instancer (varIdx, 1));
-        xmax += _hb_roundf (instancer (varIdx, 2));
-        ymax += _hb_roundf (instancer (varIdx, 3));
-      }
-      extents->x_bearing = xmin;
-      extents->y_bearing = ymax;
-      extents->width = xmax - xmin;
-      extents->height = ymin - ymax;
-      return true;
-    }
+      u.format2.get_clip_box (clip_box, instancer);
+      break;
     default:
       return false;
     }
+
+    extents->x_bearing = clip_box.xMin;
+    extents->y_bearing = clip_box.yMax;
+    extents->width = clip_box.xMax - clip_box.xMin;
+    extents->height = clip_box.yMin - clip_box.yMax;
+    return true;
   }
 
   protected:
