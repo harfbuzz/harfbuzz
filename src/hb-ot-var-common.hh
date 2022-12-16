@@ -229,8 +229,8 @@ struct VarStoreInstancer
 
   operator bool () const { return bool (coords); }
 
-  float operator() (uint32_t varIdx) const
-  { return varStore.get_delta (varIdxMap.map (varIdx), coords); }
+  float operator() (uint32_t varIdx, unsigned short offset = 0) const
+  { return varStore.get_delta (varIdxMap.map (VarIdx::add (varIdx, offset)), coords); }
 
   const VariationStore &varStore;
   const DeltaSetIndexMap &varIdxMap;
