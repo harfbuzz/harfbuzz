@@ -193,7 +193,7 @@ struct Variable
 template <typename T>
 struct NoVariable
 {
-  uint32_t varIdxBase = VarIdx::NO_VARIATION;
+  static constexpr uint32_t varIdxBase = VarIdx::NO_VARIATION;
 
   NoVariable<T>* copy (hb_serialize_context_t *c) const
   {
