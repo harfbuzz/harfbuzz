@@ -7,7 +7,7 @@ executors:
   win64-executor:
     docker:
       - image: cimg/base:edge-20.04
-  autotools-executor:
+  ubuntu-executor:
     docker:
       - image: cimg/base:edge-20.04
 
@@ -27,29 +27,39 @@ jobs:
           path: build/meson-logs/
 
   # will be dropped with autotools removal
-  distcheck:
-    executor: autotools-executor
+  autotools:
+    executor: ubuntu-executor
     steps:
       - checkout
       - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y git ninja-build binutils libtool autoconf automake make gcc g++ pkg-config ragel gtk-doc-tools gobject-introspection libfreetype6-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
-      - run: pip3 install fonttools meson --upgrade
       - run: ./autogen.sh
       - run: make -j2 distcheck
-      - run: rm harfbuzz-* && make distdir
-      - run: cd harfbuzz-* && meson build && ninja -j2 -Cbuild test
-      - run: make dist
       - persist_to_workspace:
           root: .
           paths: harfbuzz-*.tar.xz
 
+  dist:
+    executor: ubuntu-executor
+    steps:
+      - checkout
+      - run: sudo apt update && DEBIAN_FRONTEND=noninteractive sudo apt install -y git ninja-build binutils gcc g++ pkg-config gtk-doc-tools gobject-introspection libfreetype6-dev libglib2.0-dev libgirepository1.0-dev libcairo2-dev libicu-dev libgraphite2-dev python3 python3-pip
+      - run: pip3 install fonttools meson --upgrade
+      - run: meson setup build
+      - run: ninja -j2 -Cbuild
+      - run: ninja -j2 -Cbuild test
+      - run: ninja -j2 -Cbuild dist
+      - persist_to_workspace:
+          root: .
+          paths: build/meson-dist/harfbuzz-*.tar.xz
+
   publish-dist:
-    executor: autotools-executor
+    executor: ubuntu-executor
     steps:
       - checkout
       - attach_workspace:
           at: .
       - run: |
-          .ci/publish_release_artifact.sh harfbuzz-$CIRCLE_TAG.tar.xz
+          .ci/publish_release_artifact.sh build/meson-dist/harfbuzz-$CIRCLE_TAG.tar.xz
 
   fedora-valgrind:
     docker:
@@ -184,18 +194,19 @@ workflows:
   build:
     jobs:
       - macos-aat-fonts
-      - distcheck:
+      - dist:
           filters: # must have filter or won't work as a dependency
             tags:
               only: /.*/
       - publish-dist:
           requires:
-            - distcheck
+            - dist
           filters:
             tags:
               only: /^\d+\.\d+\.\d+$/
             branches:
               ignore: /.*/
+      - autotools
       - fedora-valgrind
       - alpine
      #- archlinux
