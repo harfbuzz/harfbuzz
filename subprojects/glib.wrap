@@ -1,10 +1,11 @@
-[wrap-git]
-directory=glib
-url=https://gitlab.gnome.org/GNOME/glib.git
-depth=1
-push-url=git@gitlab.gnome.org:GNOME/glib.git
-revision=2.58.1
+[wrap-file]
+directory = glib-2.74.1
+source_url = https://download.gnome.org/sources/glib/2.74/glib-2.74.1.tar.xz
+source_fallback_url = https://ftp.acc.umu.se/pub/gnome/sources/glib/2.74/glib-2.74.1.tar.xz
+source_filename = glib-2.74.1.tar.xz
+source_hash = 0ab981618d1db47845e56417b0d7c123f81a3427b2b9c93f5a46ff5bbb964964
+wrapdb_version = 2.74.1-1
 
 [provide]
-glib-2.0 = libglib_dep
-gobject-2.0 = libgobject_dep
+dependency_names = gthread-2.0, gobject-2.0, gmodule-no-export-2.0, gmodule-export-2.0, gmodule-2.0, glib-2.0, gio-2.0, gio-windows-2.0, gio-unix-2.0
+program_names = glib-genmarshal, glib-mkenums, glib-compile-schemas, glib-compile-resources, gio-querymodules, gdbus-codegen
