@@ -59,7 +59,12 @@ struct Paint;
 
 static void paint_glyph_dispatch (const Paint *paint, hb_paint_context_t *c);
 
-struct hb_paint_context_t {
+struct hb_paint_context_t :
+       hb_dispatch_context_t<hb_paint_context_t>
+{
+  template <typename T>
+  return_t dispatch (const T &obj) { obj.paint_glyph (this); return hb_empty_t (); }
+  static return_t default_return_value () { return hb_empty_t (); }
 
   const COLR* get_colr_table () const
   { return reinterpret_cast<const COLR *> (base); }
@@ -1515,45 +1520,6 @@ struct Paint
     }
   }
 
-  void paint_glyph (hb_paint_context_t *c) const
-  {
-    switch (u.format) {
-    case  1: u.paintformat1.paint_glyph (c); break;
-    case  2: u.paintformat2.paint_glyph (c); break;
-    case  3: u.paintformat3.paint_glyph (c); break;
-    case  4: u.paintformat4.paint_glyph (c); break;
-    case  5: u.paintformat5.paint_glyph (c); break;
-    case  6: u.paintformat6.paint_glyph (c); break;
-    case  7: u.paintformat7.paint_glyph (c); break;
-    case  8: u.paintformat8.paint_glyph (c); break;
-    case  9: u.paintformat9.paint_glyph (c); break;
-    case 10: u.paintformat10.paint_glyph (c); break;
-    case 11: u.paintformat11.paint_glyph (c); break;
-    case 12: u.paintformat12.paint_glyph (c); break;
-    case 13: u.paintformat13.paint_glyph (c); break;
-    case 14: u.paintformat14.paint_glyph (c); break;
-    case 15: u.paintformat15.paint_glyph (c); break;
-    case 16: u.paintformat16.paint_glyph (c); break;
-    case 17: u.paintformat17.paint_glyph (c); break;
-    case 18: u.paintformat18.paint_glyph (c); break;
-    case 19: u.paintformat19.paint_glyph (c); break;
-    case 20: u.paintformat20.paint_glyph (c); break;
-    case 21: u.paintformat21.paint_glyph (c); break;
-    case 22: u.paintformat22.paint_glyph (c); break;
-    case 23: u.paintformat23.paint_glyph (c); break;
-    case 24: u.paintformat24.paint_glyph (c); break;
-    case 25: u.paintformat25.paint_glyph (c); break;
-    case 26: u.paintformat26.paint_glyph (c); break;
-    case 27: u.paintformat27.paint_glyph (c); break;
-    case 28: u.paintformat28.paint_glyph (c); break;
-    case 29: u.paintformat29.paint_glyph (c); break;
-    case 30: u.paintformat30.paint_glyph (c); break;
-    case 31: u.paintformat31.paint_glyph (c); break;
-    case 32: u.paintformat32.paint_glyph (c); break;
-    default: assert (0);
-    }
-  }
-
   protected:
   union {
   HBUINT8					format;
@@ -2055,7 +2021,7 @@ struct COLR_accelerator_t : COLR::accelerator_t {
 static void
 paint_glyph_dispatch (const Paint *paint, hb_paint_context_t *c)
 {
-  paint->paint_glyph (c);
+  paint->dispatch (c);
 }
 
 } /* namespace OT */
