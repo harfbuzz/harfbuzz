@@ -458,9 +458,12 @@ struct Affine2x3
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
     c->funcs->push_transform (c->data,
-                              xx.to_float (), yx.to_float (),
-                              xy.to_float (), yy.to_float (),
-                              dx.to_float (), dy.to_float ());
+			      xx.to_float (c->instancer (varIdxBase, 0)),
+			      yx.to_float (c->instancer (varIdxBase, 1)),
+                              xy.to_float (c->instancer (varIdxBase, 2)),
+			      yy.to_float (c->instancer (varIdxBase, 3)),
+                              dx.to_float (c->instancer (varIdxBase, 4)),
+			      dy.to_float (c->instancer (varIdxBase, 5)));
   }
 
   F16DOT16 xx;
@@ -525,7 +528,9 @@ struct PaintSolid
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->solid (c->data, paletteIndex, alpha.to_float ());
+    c->funcs->solid (c->data,
+		     paletteIndex,
+		     alpha.to_float (c->instancer (varIdxBase, 0)));
   }
 
   HBUINT8	format; /* format = 2(noVar) or 3(Var)*/
@@ -561,9 +566,12 @@ struct PaintLinearGradient
     hb_color_line_t cl = { this, format };
 
     c->funcs->linear_gradient (c->data, &cl,
-                               (float)x0, (float)y0,
-                               (float)x1, (float)y1,
-                               (float)x2, (float)y2);
+			       x0 + c->instancer (varIdxBase, 0),
+			       y0 + c->instancer (varIdxBase, 1),
+			       x1 + c->instancer (varIdxBase, 2),
+			       y1 + c->instancer (varIdxBase, 3),
+			       x2 + c->instancer (varIdxBase, 4),
+			       y2 + c->instancer (varIdxBase, 5));
   }
 
   unsigned int get_color_stops (unsigned int start,
