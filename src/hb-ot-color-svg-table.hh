@@ -26,6 +26,8 @@
 #define HB_OT_COLOR_SVG_TABLE_HH
 
 #include "hb-open-type.hh"
+#include "hb-blob.hh"
+#include "hb-paint.hh"
 
 /*
  * SVG -- SVG (Scalable Vector Graphics)
@@ -91,8 +93,26 @@ struct SVG
 
     bool has_data () const { return table->has_data (); }
 
+    bool paint_glyph (hb_font_t *font HB_UNUSED, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
+    {
+      if (!has_data ())
+        return false;
+
+      hb_blob_t *blob = reference_blob_for_glyph (glyph);
+
+      if (blob == hb_blob_get_empty ())
+        return false;
+
+      funcs->image (data, glyph);
+
+      hb_blob_destroy (blob);
+      return true;
+    }
+
     private:
     hb_blob_ptr_t<SVG> table;
+    public:
+    DEFINE_SIZE_STATIC (sizeof (hb_blob_ptr_t<SVG>));
   };
 
   const SVGDocumentIndexEntry &get_glyph_entry (hb_codepoint_t glyph_id) const
