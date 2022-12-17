@@ -167,6 +167,8 @@ move_to (hb_draw_funcs_t *funcs, void *draw_data,
 {
   paint_data_t *data = user_data;
 
+  print (data, "move to %f %f", x, y);
+
   cairo_move_to (data->cr, x, y);
 }
 
@@ -177,6 +179,8 @@ line_to (hb_draw_funcs_t *funcs, void *draw_data,
          void *user_data)
 {
   paint_data_t *data = user_data;
+
+  print (data, "line to %f %f", x, y);
 
   cairo_line_to (data->cr, x, y);
 }
@@ -191,6 +195,8 @@ cubic_to (hb_draw_funcs_t *funcs, void *draw_data,
 {
   paint_data_t *data = user_data;
 
+  print (data, "curve to %f %f  %f %f  %f %f", c1x, c1y, c2x, c2y, x, y);
+
   cairo_curve_to (data->cr, c1x, c1y, c2x, c2y, x, y);
 }
 
@@ -200,6 +206,8 @@ close_path (hb_draw_funcs_t *funcs, void *draw_data,
             void *user_data)
 {
   paint_data_t *data = user_data;
+
+  print (data, "close path\n");
 
   cairo_close_path (data->cr);
 }
@@ -279,6 +287,9 @@ solid (hb_paint_funcs_t *funcs,
   print (data, "solid %u %f", color_index, alpha);
 
   get_color (data, color_index, alpha, &c);
+  data->level++;
+  print (data, "color %f %f %f %f", c.r, c.g, c.b, c.a);
+  data->level--;
   cairo_set_source_rgba (data->cr, c.r, c.g, c.b, c.a);
   cairo_paint (data->cr);
 }
@@ -952,12 +963,21 @@ int main (int argc, char *argv[])
   hb_font_set_scale (unscaled_font, upem, upem);
   hb_font_set_synthetic_slant (unscaled_font, 0.);
 
+  printf ("size %f upem %u\n", size, upem);
+
   xmin = extents.x_bearing;
   xmax = xmin + extents.width;
   ymin = - extents.y_bearing;
   ymax = - extents.y_bearing - extents.height;
 
   printf ("surface %f %f, offset %f %f\n", ceil (xmax - xmin), ceil (ymax - ymin), - xmin, - ymin);
+
+  if ((int) ceil (xmax - xmin) == 0 ||
+      (int) ceil (ymax - ymin) == 0)
+  {
+    printf ("ERROR: empty surface\n");
+    return 1;
+  }
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                         (int) ceil (xmax - xmin),
