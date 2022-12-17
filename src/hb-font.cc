@@ -1388,6 +1388,21 @@ hb_font_get_glyph_shape (hb_font_t *font,
   font->get_glyph_shape (glyph, dfuncs, draw_data);
 }
 
+/**
+ * hb_font_paint_glyph:
+ * @font: #hb_font_t to work upon
+ * @glyph: The glyph ID
+ * @funcs: #hb_paint_funcs_t to paint with
+ * @paint_data: User data to pass to paint callbacks
+ *
+ * Paints the glyph.
+ *
+ * The painting instructions are returned by way of
+ * calls to the callbacks of the @funcs objects,
+ * with @paint_data passed to them.
+ *
+ * Since: REPLACEME
+ */
 void
 hb_font_paint_glyph (hb_font_t *font,
                      hb_codepoint_t glyph,
