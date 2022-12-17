@@ -571,7 +571,7 @@ struct PaintLinearGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { &(this+colorLine), Var<ColorLine<Var>>::is_variable };
+    hb_color_line_t cl = { &(this+colorLine), Var<HBUINT8>::is_variable };
 
     c->funcs->linear_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
@@ -618,7 +618,7 @@ struct PaintRadialGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { &(this+colorLine), Var<ColorLine<Var>>::is_variable };
+    hb_color_line_t cl = { &(this+colorLine), Var<HBUINT8>::is_variable };
 
     c->funcs->radial_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
@@ -665,7 +665,7 @@ struct PaintSweepGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { &(this+colorLine), Var<ColorLine<Var>>::is_variable };
+    hb_color_line_t cl = { &(this+colorLine), Var<HBUINT8>::is_variable };
 
     c->funcs->sweep_gradient (c->data, &cl,
 			      centerX + c->instancer (varIdxBase, 0),
