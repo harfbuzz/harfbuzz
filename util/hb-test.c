@@ -544,13 +544,6 @@ interpolate (float f0, float f1, float f)
   return f0 + f * (f1 - f0);
 }
 
-static inline void
-interpolate_points (Point *p0, Point *p1, float f, Point *out)
-{
-  out->x = interpolate (p0->x, p1->x, f);
-  out->y = interpolate (p0->y, p1->y, f);
-}
-
 void
 interpolate_colors (color_t *c0, color_t *c1, float k, color_t *c)
 {
