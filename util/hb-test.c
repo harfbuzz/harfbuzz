@@ -333,21 +333,24 @@ paint_image (hb_paint_funcs_t *funcs,
   read_blob_data_t r;
   cairo_surface_t *surface;
   cairo_pattern_t *pattern;
-  cairo_matrix_t m;
 
-  if (format != HB_PAINT_IMAGE_FORMAT_PNG)
+  if (format != HB_PAINT_IMAGE_FORMAT_PNG || !extents)
     return;
 
   r.blob = blob;
   r.offset = 0;
   surface = cairo_image_surface_create_from_png_stream (read_blob, &r);
+  int width = cairo_image_surface_get_width (surface);
+  int height = cairo_image_surface_get_width (surface);
 
   pattern = cairo_pattern_create_for_surface (surface);
-  cairo_matrix_init_scale (&m, 1, -1);
-  cairo_matrix_translate (&m,
-                          extents ? extents->x_bearing : 0,
-                          extents ? - extents->y_bearing : 0);
-  cairo_pattern_set_matrix (pattern, &m);
+  cairo_pattern_set_extend (pattern, CAIRO_EXTEND_PAD);
+
+  cairo_matrix_t matrix = {(double) width, 0, 0, (double) height, 0, 0};
+  cairo_pattern_set_matrix (pattern, &matrix);
+
+  cairo_translate (data->cr, extents->x_bearing, extents->y_bearing);
+  cairo_scale (data->cr, extents->width, extents->height);
   cairo_set_source (data->cr, pattern);
 
   cairo_paint (data->cr);
