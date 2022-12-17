@@ -98,7 +98,7 @@ HB_EXTERN hb_bool_t
 hb_font_funcs_is_immutable (hb_font_funcs_t *ffuncs);
 
 
-/* font and glyph extents */
+/* font extents */
 
 /**
  * hb_font_extents_t:
@@ -126,24 +126,6 @@ typedef struct hb_font_extents_t {
   hb_position_t reserved2;
   hb_position_t reserved1;
 } hb_font_extents_t;
-
-/**
- * hb_glyph_extents_t:
- * @x_bearing: Distance from the x-origin to the left extremum of the glyph.
- * @y_bearing: Distance from the top extremum of the glyph to the y-origin.
- * @width: Distance from the left extremum of the glyph to the right extremum.
- * @height: Distance from the top extremum of the glyph to the bottom extremum.
- *
- * Glyph extent values, measured in font units.
- *
- * Note that @height is negative, in coordinate systems that grow up.
- **/
-typedef struct hb_glyph_extents_t {
-  hb_position_t x_bearing;
-  hb_position_t y_bearing;
-  hb_position_t width;
-  hb_position_t height;
-} hb_glyph_extents_t;
 
 /* func types */
 
