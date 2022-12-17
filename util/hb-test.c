@@ -2,6 +2,7 @@
 #include <hb-ot.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
 #include <cairo.h>
 #include <math.h>
@@ -292,6 +293,63 @@ paint_color (hb_paint_funcs_t *funcs,
   data->level--;
   cairo_set_source_rgba (data->cr, c.r, c.g, c.b, c.a);
   cairo_paint (data->cr);
+}
+
+typedef struct
+{
+  hb_blob_t *blob;
+  unsigned int offset;
+} read_blob_data_t;
+
+cairo_status_t
+read_blob (void *closure,
+           unsigned char *data,
+           unsigned int length)
+{
+  read_blob_data_t *r = closure;
+  const char *d;
+  unsigned int size;
+
+  d = hb_blob_get_data (r->blob, &size);
+
+  if (r->offset + length > size)
+    return CAIRO_STATUS_READ_ERROR;
+
+  memcpy (data, d + r->offset, length);
+  r->offset += length;
+
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static void
+paint_image (hb_paint_funcs_t *funcs,
+             void *paint_data,
+             hb_codepoint_t glyph,
+             void *user_data)
+{
+  paint_data_t *data = user_data;
+  read_blob_data_t r;
+  cairo_surface_t *surface;
+  cairo_pattern_t *pattern;
+  cairo_matrix_t m;
+  hb_glyph_extents_t extents;
+
+  hb_font_get_glyph_extents (data->font, glyph, &extents);
+  r.blob = hb_ot_color_glyph_reference_png (data->font, glyph);
+  r.offset = 0;
+  surface = cairo_image_surface_create_from_png_stream (read_blob, &r);
+  hb_blob_destroy (r.blob);
+
+  pattern = cairo_pattern_create_for_surface (surface);
+  cairo_matrix_init_scale (&m, 1, -1);
+  cairo_matrix_translate (&m, extents.x_bearing, - extents.y_bearing);
+  cairo_pattern_set_matrix (pattern, &m);
+  cairo_set_source (data->cr, pattern);
+
+  cairo_paint (data->cr);
+
+  cairo_pattern_destroy (pattern);
+  cairo_surface_destroy (surface);
 }
 
 static void
@@ -1008,6 +1066,7 @@ int main (int argc, char *argv[])
   hb_paint_funcs_set_push_group_func (funcs, push_group, &data, NULL);
   hb_paint_funcs_set_pop_group_func (funcs, pop_group, &data, NULL);
   hb_paint_funcs_set_color_func (funcs, paint_color, &data, NULL);
+  hb_paint_funcs_set_image_func (funcs, paint_image, &data, NULL);
   hb_paint_funcs_set_linear_gradient_func (funcs, paint_linear_gradient, &data, NULL);
   hb_paint_funcs_set_radial_gradient_func (funcs, paint_radial_gradient, &data, NULL);
   hb_paint_funcs_set_sweep_gradient_func (funcs, paint_sweep_gradient, &data, NULL);
