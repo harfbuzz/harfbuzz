@@ -39,8 +39,6 @@ HB_BEGIN_DECLS
  *
  * Glyph paint callbacks.
  *
- * All the callbacks are necessary.
- *
  * The callbacks assume that the caller maintains a stack
  * of current transforms, clips and intermediate surfaces,
  * as evidenced by the pairs of push/pop callbacks. The
@@ -58,7 +56,7 @@ HB_BEGIN_DECLS
  * gradient and composite callbacks are not needed.
  *
  * The paint-image callback is only needed for glyphs
- * with blobs in the CBDT, sbix or SVG tables.
+ * with image blobs in the CBDT, sbix or SVG tables.
  *
  * Since: REPLACEME
  **/
@@ -285,6 +283,13 @@ typedef struct hb_color_line_t hb_color_line_t;
  * Color lines typically have offsets ranging between 0 and 1,
  * but that is not required.
  *
+ * The @color_index can be either an index into one of the fonts
+ * color palettes, or the special value 0xFFFF, which indicates that
+ * the foreground color should be used.
+ *
+ * in either case, the @alpha value should be applied in addition
+ * (i.e. multiplied with) the alpha value found in the color.
+ *
  * Since: REPLACEME
  */
 typedef struct {
@@ -380,8 +385,8 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
  * @color_line: Color information for the gradient
  * @x0: X coordinate of the circle's center
  * @y0: Y coordinate of the circle's center
- * @start_angle: the start angle
- * @end_angle: the end angle
+ * @start_angle: the start angle, in radians
+ * @end_angle: the end angle, in radians
  * @user_data: user data passed to the hb_font_paint_glyph() call
  *
  * A virtual method for the #hb_paint_funcs_t to paint a sweep
@@ -404,6 +409,16 @@ typedef void (*hb_paint_sweep_gradient_func_t)  (hb_paint_funcs_t *funcs,
                                                  float end_angle,
                                                  void *user_data);
 
+/**
+ * hb_paint_composite_mode_t:
+ *
+ * The values of this enumeration describe the compositing modes
+ * that can be used when combining temporary redirected drawing
+ * with the backdrop.
+ *
+ * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * for details.
+ */
 typedef enum {
   HB_PAINT_COMPOSITE_MODE_CLEAR,
   HB_PAINT_COMPOSITE_MODE_SRC,
