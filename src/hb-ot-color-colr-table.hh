@@ -1991,13 +1991,11 @@ struct COLR
                                    0, yscale/(float)upem,
                                    0, 0);
 
-      hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
-      for (unsigned int i = 0; i < record->numLayers; i++)
+      for (const auto &r : (this+layersZ).as_array (numLayers)
+			   .sub_array (record->firstLayerIdx, record->numLayers))
       {
-        const LayerRecord *r = &all_layers[record->firstLayerIdx + i];
-
-        c.funcs->push_clip_glyph (c.data, r->glyphId);
-        c.funcs->color (c.data, r->colorIdx, 1.);
+        c.funcs->push_clip_glyph (c.data, r.glyphId);
+        c.funcs->color (c.data, r.colorIdx, 1.);
         c.funcs->pop_clip (c.data);
       }
 
