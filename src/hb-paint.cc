@@ -63,7 +63,7 @@ hb_paint_pop_clip_nil (hb_paint_funcs_t *funcs, void *paint_data,
                        void *user_data) {}
 
 static void
-hb_paint_solid_nil (hb_paint_funcs_t *funcs, void *paint_data,
+hb_paint_color_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     unsigned int color_index,
                     float alpha,
                     void *user_data) {}
@@ -330,11 +330,11 @@ hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data)
 }
 
 void
-hb_paint_solid (hb_paint_funcs_t *funcs, void *paint_data,
+hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
                 unsigned int color_index,
                 float alpha)
 {
-  funcs->solid (paint_data, color_index, alpha);
+  funcs->color (paint_data, color_index, alpha);
 }
 
 void

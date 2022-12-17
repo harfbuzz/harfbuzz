@@ -530,7 +530,7 @@ struct PaintSolid
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->solid (c->data,
+    c->funcs->color (c->data,
 		     paletteIndex,
 		     alpha.to_float (c->instancer (varIdxBase, 0)));
   }
@@ -1987,7 +1987,7 @@ struct COLR
         const LayerRecord *r = &all_layers[record.firstLayerIdx + i];
 
         c.funcs->push_clip_glyph (c.data, r->glyphId);
-        c.funcs->solid (c.data, r->colorIdx, 1.);
+        c.funcs->color (c.data, r->colorIdx, 1.);
         c.funcs->pop_clip (c.data);
       }
     }

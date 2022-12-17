@@ -275,11 +275,11 @@ pop_clip (hb_paint_funcs_t *funcs,
 }
 
 static void
-solid (hb_paint_funcs_t *funcs,
-       void *paint_data,
-       unsigned int color_index,
-       float alpha,
-       void *user_data)
+paint_color (hb_paint_funcs_t *funcs,
+             void *paint_data,
+             unsigned int color_index,
+             float alpha,
+             void *user_data)
 {
   paint_data_t *data = user_data;
   color_t c;
@@ -368,13 +368,13 @@ normalize_color_line (hb_color_stop_t *stops,
 }
 
 static void
-linear_gradient (hb_paint_funcs_t *funcs,
-                 void *paint_data,
-                 hb_color_line_t *color_line,
-                 float x0, float y0,
-                 float x1, float y1,
-                 float x2, float y2,
-                 void *user_data)
+paint_linear_gradient (hb_paint_funcs_t *funcs,
+                       void *paint_data,
+                       hb_color_line_t *color_line,
+                       float x0, float y0,
+                       float x1, float y1,
+                       float x2, float y2,
+                       void *user_data)
 {
   paint_data_t *data = user_data;
   unsigned int len;
@@ -423,12 +423,12 @@ linear_gradient (hb_paint_funcs_t *funcs,
 }
 
 static void
-radial_gradient (hb_paint_funcs_t *funcs,
-                 void *paint_data,
-                 hb_color_line_t *color_line,
-                 float x0, float y0, float r0,
-                 float x1, float y1, float r1,
-                 void *user_data)
+paint_radial_gradient (hb_paint_funcs_t *funcs,
+                       void *paint_data,
+                       hb_color_line_t *color_line,
+                       float x0, float y0, float r0,
+                       float x1, float y1, float r1,
+                       void *user_data)
 {
   paint_data_t *data = user_data;
   unsigned int len;
@@ -854,13 +854,13 @@ done: ;
 }
 
 static void
-sweep_gradient (hb_paint_funcs_t *funcs,
-                void *paint_data,
-                hb_color_line_t *color_line,
-                float cx, float cy,
-                float start_angle,
-                float end_angle,
-                void *user_data)
+paint_sweep_gradient (hb_paint_funcs_t *funcs,
+                      void *paint_data,
+                      hb_color_line_t *color_line,
+                      float cx, float cy,
+                      float start_angle,
+                      float end_angle,
+                      void *user_data)
 {
   paint_data_t *data = user_data;
   unsigned int len;
@@ -1007,10 +1007,10 @@ int main (int argc, char *argv[])
   hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, &data, NULL);
   hb_paint_funcs_set_push_group_func (funcs, push_group, &data, NULL);
   hb_paint_funcs_set_pop_group_func (funcs, pop_group, &data, NULL);
-  hb_paint_funcs_set_solid_func (funcs, solid, &data, NULL);
-  hb_paint_funcs_set_linear_gradient_func (funcs, linear_gradient, &data, NULL);
-  hb_paint_funcs_set_radial_gradient_func (funcs, radial_gradient, &data, NULL);
-  hb_paint_funcs_set_sweep_gradient_func (funcs, sweep_gradient, &data, NULL);
+  hb_paint_funcs_set_color_func (funcs, paint_color, &data, NULL);
+  hb_paint_funcs_set_linear_gradient_func (funcs, paint_linear_gradient, &data, NULL);
+  hb_paint_funcs_set_radial_gradient_func (funcs, paint_radial_gradient, &data, NULL);
+  hb_paint_funcs_set_sweep_gradient_func (funcs, paint_sweep_gradient, &data, NULL);
 
   hb_font_paint_glyph (font, gid, funcs, NULL);
 

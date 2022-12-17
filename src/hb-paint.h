@@ -187,14 +187,14 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
                                           void *user_data);
 
 /**
- * hb_paint_solid_func_t:
+ * hb_paint_color_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions
  * @color_index: Index of a color in the fonts selected color palette
  * @alpha: alpha to apply in addition
  * @user_data: user data passed to the hb_font_paint_glyph() call
  *
- * A virtual method for the #hb_paint_funcs_t to paint a solid
+ * A virtual method for the #hb_paint_funcs_t to paint a
  * color everywhere within the current clip.
  *
  * The @color_index can be either an index into one of the fonts
@@ -206,7 +206,7 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
  *
  * Since: REPLACEME
  */
-typedef void (*hb_paint_solid_func_t) (hb_paint_funcs_t *funcs,
+typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
                                        unsigned int color_index,
                                        float alpha,
@@ -510,19 +510,19 @@ hb_paint_funcs_set_pop_clip_func (hb_paint_funcs_t         *funcs,
                                   hb_destroy_func_t         destroy);
 
 /**
- * hb_paint_funcs_set_solid_func:
+ * hb_paint_funcs_set_color_func:
  * @funcs: A paint functions struct
- * @func: (closure user_data) (destroy destroy) (scope notified): The paint-solid callback
+ * @func: (closure user_data) (destroy destroy) (scope notified): The paint-color callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): Function to call when @user_data is no longer needed
  *
- * Sets the paint-solid callback on the paint functions struct.
+ * Sets the paint-color callback on the paint functions struct.
  *
  * Since: REPLACEME
  */
 HB_EXTERN void
-hb_paint_funcs_set_solid_func (hb_paint_funcs_t      *funcs,
-                               hb_paint_solid_func_t  func,
+hb_paint_funcs_set_color_func (hb_paint_funcs_t      *funcs,
+                               hb_paint_color_func_t  func,
                                void                  *user_data,
                                hb_destroy_func_t      destroy);
 
@@ -633,7 +633,7 @@ HB_EXTERN void
 hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data);
 
 HB_EXTERN void
-hb_paint_solid (hb_paint_funcs_t *funcs, void *paint_data,
+hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
                 unsigned int color_index,
                 float alpha);
 
