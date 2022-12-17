@@ -325,7 +325,7 @@ static void
 paint_image (hb_paint_funcs_t *funcs,
              void *paint_data,
              hb_blob_t *blob,
-             const char *mimetype,
+             hb_tag_t format,
              hb_glyph_extents_t *extents,
              void *user_data)
 {
@@ -335,7 +335,7 @@ paint_image (hb_paint_funcs_t *funcs,
   cairo_pattern_t *pattern;
   cairo_matrix_t m;
 
-  if (strcmp (mimetype, "image/png") != 0)
+  if (format != HB_PAINT_IMAGE_FORMAT_PNG)
     return;
 
   r.blob = blob;

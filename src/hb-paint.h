@@ -223,11 +223,25 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
                                        void *user_data);
 
 /**
+ * HB_PAINT_IMAGE_FORMAT_PNG:
+ *
+ * Tag identifying png images in #hb_paint_image_func_t callbacks.
+ */
+#define HB_PAINT_IMAGE_FORMAT_PNG HB_TAG('p','n','g',' ')
+
+/**
+ * HB_PAINT_IMAGE_FORMAT_SVG:
+ *
+ * Tag identifying svg images in #hb_paint_image_func_t callbacks.
+ */
+#define HB_PAINT_IMAGE_FORMAT_SVG HB_TAG('s','v','g',' ')
+
+/**
  * hb_paint_image_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions
  * @image: the image data
- * @mimetype: the mime type for the image data
+ * @format: the image format as a tag
  * @extents: (nullable): glyph extents
  * @user_data: user data passed to the hb_font_paint_glyph() call
  *
@@ -235,17 +249,19 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * glyph image.
  *
  * This method is intended for glyphs with image blobs in the CBDT,
- * sbix or SVG tables. The @mimetype identifies the kind of data
- * that is contained in @image. Possible values include "image/png"
- * and "image/svg+xml". The glyph extents are provided if available,
- * and should be used to position the image.
+ * sbix or SVG tables. The @format identifies the kind of data that
+ * is contained in @image. Possible values include #HB_PAINT_IMAGE_FORMAT_PNG
+ * and HB_PAINT_IMAGE_FORMAT_SVG.
+ *
+ * The glyph extents are provided if available, and should be used
+ * to position the image.
  *
  * Since: REPLACEME
  */
 typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
                                        hb_blob_t *image,
-                                       const char *mimetype,
+                                       hb_tag_t format,
                                        hb_glyph_extents_t *extents,
                                        void *user_data);
 
@@ -693,7 +709,7 @@ hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
 HB_EXTERN void
 hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
                 hb_blob_t *image,
-                const char *mimetype,
+                hb_tag_t format,
                 hb_glyph_extents_t *extents);
 
 HB_EXTERN void
