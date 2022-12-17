@@ -13,6 +13,7 @@
 #include "SubsetGlyph.hh"
 #include "loca.hh"
 #include "path-builder.hh"
+#include "hb-paint.hh"
 
 
 namespace OT {
@@ -330,6 +331,27 @@ struct glyf_accelerator_t
       return get_points (font, gid, points_aggregator_t (font, extents, nullptr, true));
 #endif
     return glyph_for_gid (gid).get_extents_without_var_scaled (font, *this, extents);
+  }
+
+  bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data) const
+  {
+    int xscale, yscale;
+    unsigned int upem;
+
+    hb_font_get_scale (font, &xscale, &yscale);
+    upem = hb_face_get_upem (hb_font_get_face (font));
+
+    funcs->push_transform (data, xscale/(float)upem, 0,
+                                 0, yscale/(float)upem,
+                                 0, 0);
+
+    funcs->push_clip_glyph (data, gid);
+    funcs->color (data, 0xffff, 1.);
+    funcs->pop_clip (data);
+
+    funcs->pop_transform (data);
+
+    return false;
   }
 
   const glyf_impl::Glyph
