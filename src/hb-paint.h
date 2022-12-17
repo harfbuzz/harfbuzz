@@ -64,7 +64,7 @@ HB_BEGIN_DECLS
 typedef struct hb_paint_funcs_t hb_paint_funcs_t;
 
 HB_EXTERN hb_paint_funcs_t *
-hb_paint_funcs_create ();
+hb_paint_funcs_create (void);
 
 HB_EXTERN hb_paint_funcs_t *
 hb_paint_funcs_reference (hb_paint_funcs_t *funcs);
