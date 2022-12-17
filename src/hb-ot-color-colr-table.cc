@@ -32,9 +32,9 @@ hb_color_line_get_color_stops (hb_color_line_t *cl,
                                hb_color_stop_t *color_stops)
 {
   if (cl->is_variable)
-    return reinterpret_cast<const OT::ColorLine<OT::Variable> *>(cl->base)->get_color_stops (start, count, color_stops);
+    return reinterpret_cast<const OT::ColorLine<OT::Variable> *>(cl->base)->get_color_stops (start, count, color_stops, cl->c->instancer);
   else
-    return reinterpret_cast<const OT::ColorLine<OT::NoVariable> *>(cl->base)->get_color_stops (start, count, color_stops);
+    return reinterpret_cast<const OT::ColorLine<OT::NoVariable> *>(cl->base)->get_color_stops (start, count, color_stops, cl->c->instancer);
 }
 
 hb_paint_extend_t

@@ -45,7 +45,12 @@
 #endif
 
 
+namespace OT {
+struct hb_paint_context_t;
+}
+
 struct hb_color_line_t {
+  struct OT::hb_paint_context_t *c;
   const void *base;
   bool is_variable;
 };
@@ -230,9 +235,10 @@ struct Variable
     value.paint_glyph (c, varIdxBase);
   }
 
-  void get_color_stop (hb_color_stop_t *c) const
+  void get_color_stop (hb_color_stop_t *c,
+		       const VarStoreInstancer &instancer) const
   {
-    value.get_color_stop (c);
+    value.get_color_stop (c, varIdxBase, instancer);
   }
 
   hb_paint_extend_t get_extend () const
@@ -281,9 +287,10 @@ struct NoVariable
     value.paint_glyph (c, varIdxBase);
   }
 
-  void get_color_stop (hb_color_stop_t *c) const
+  void get_color_stop (hb_color_stop_t *c,
+		       const VarStoreInstancer &instancer) const
   {
-    value.get_color_stop (c);
+    value.get_color_stop (c, VarIdx::NO_VARIATION, instancer);
   }
 
   hb_paint_extend_t get_extend () const
@@ -318,11 +325,13 @@ struct ColorStop
     return_trace (c->check_struct (this));
   }
 
-  void get_color_stop (hb_color_stop_t *out) const
+  void get_color_stop (hb_color_stop_t *out,
+		       uint32_t varIdx,
+		       const VarStoreInstancer &instancer) const
   {
-    out->offset = stopOffset.to_float();
+    out->offset = stopOffset.to_float(instancer (varIdx, 0));
     out->color_index = paletteIndex;
-    out->alpha = alpha.to_float();
+    out->alpha = alpha.to_float(instancer (varIdx, 1));
   }
 
   F2DOT14	stopOffset;
@@ -379,8 +388,9 @@ struct ColorLine
   /* get up to count stops from start */
   unsigned int
   get_color_stops (unsigned int start,
-                   unsigned int *count,
-                   hb_color_stop_t *color_stops) const
+		   unsigned int *count,
+		   hb_color_stop_t *color_stops,
+		   const VarStoreInstancer &instancer) const
   {
     unsigned int len = stops.len;
 
@@ -388,7 +398,8 @@ struct ColorLine
     {
       unsigned int i;
       for (i = 0; i < *count && start + i < len; i++)
-        stops[start + i].get_color_stop (&color_stops[i]);
+        stops[start + i].get_color_stop (&color_stops[i],
+					 instancer);
       *count = i;
     }
 
@@ -571,7 +582,7 @@ struct PaintLinearGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { &(this+colorLine), Var<HBUINT8>::is_variable };
+    hb_color_line_t cl = { c, &(this+colorLine), Var<HBUINT8>::is_variable };
 
     c->funcs->linear_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
@@ -618,7 +629,7 @@ struct PaintRadialGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { &(this+colorLine), Var<HBUINT8>::is_variable };
+    hb_color_line_t cl = { c, &(this+colorLine), Var<HBUINT8>::is_variable };
 
     c->funcs->radial_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
@@ -665,7 +676,7 @@ struct PaintSweepGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { &(this+colorLine), Var<HBUINT8>::is_variable };
+    hb_color_line_t cl = { c, &(this+colorLine), Var<HBUINT8>::is_variable };
 
     c->funcs->sweep_gradient (c->data, &cl,
 			      centerX + c->instancer (varIdxBase, 0),
