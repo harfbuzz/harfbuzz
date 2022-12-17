@@ -245,14 +245,14 @@ push_clip_glyph (hb_paint_funcs_t *funcs,
 }
 
 static void
-push_clip_rect (hb_paint_funcs_t *funcs,
-                void *paint_data,
-                float xmin, float ymin, float xmax, float ymax,
-                void *user_data)
+push_clip_rectangle (hb_paint_funcs_t *funcs,
+                     void *paint_data,
+                     float xmin, float ymin, float xmax, float ymax,
+                     void *user_data)
 {
   paint_data_t *data = user_data;
 
-  print (data, "start clip rect %f %f %f %f", xmin, ymin, xmax, ymax);
+  print (data, "start clip rectangle %f %f %f %f", xmin, ymin, xmax, ymax);
   data->level++;
 
   cairo_save (data->cr);
@@ -1065,7 +1065,7 @@ int main (int argc, char *argv[])
   hb_paint_funcs_set_push_transform_func (funcs, push_transform, &data, NULL);
   hb_paint_funcs_set_pop_transform_func (funcs, pop_transform, &data, NULL);
   hb_paint_funcs_set_push_clip_glyph_func (funcs, push_clip_glyph, &data, NULL);
-  hb_paint_funcs_set_push_clip_rect_func (funcs, push_clip_rect, &data, NULL);
+  hb_paint_funcs_set_push_clip_rectangle_func (funcs, push_clip_rectangle, &data, NULL);
   hb_paint_funcs_set_pop_clip_func (funcs, pop_clip, &data, NULL);
   hb_paint_funcs_set_push_group_func (funcs, push_group, &data, NULL);
   hb_paint_funcs_set_pop_group_func (funcs, pop_group, &data, NULL);

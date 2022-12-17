@@ -54,9 +54,9 @@ hb_paint_push_clip_glyph_nil (hb_paint_funcs_t *funcs, void *paint_data,
                               void *user_data) {}
 
 static void
-hb_paint_push_clip_rect_nil (hb_paint_funcs_t *funcs, void *paint_data,
-                             float xmin, float ymin, float xmax, float ymax,
-                             void *user_data) {}
+hb_paint_push_clip_rectangle_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                                  float xmin, float ymin, float xmax, float ymax,
+                                  void *user_data) {}
 
 static void
 hb_paint_pop_clip_nil (hb_paint_funcs_t *funcs, void *paint_data,
@@ -324,10 +324,10 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
 }
 
 void
-hb_paint_push_clip_rect (hb_paint_funcs_t *funcs, void *paint_data,
-                         float xmin, float ymin, float xmax, float ymax)
+hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
+                              float xmin, float ymin, float xmax, float ymax)
 {
-  funcs->push_clip_rect (paint_data, xmin, ymin, xmax, ymax);
+  funcs->push_clip_rectangle (paint_data, xmin, ymin, xmax, ymax);
 }
 
 void

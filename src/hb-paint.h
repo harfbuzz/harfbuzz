@@ -153,7 +153,7 @@ typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
                                                  void *user_data);
 
 /**
- * hb_paint_push_clip_rect_func_t:
+ * hb_paint_push_clip_rectangle_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions
  * @xmin: min X for the rectangle
@@ -174,11 +174,11 @@ typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
  *
  * Since: REPLACEME
  */
-typedef void (*hb_paint_push_clip_rect_func_t) (hb_paint_funcs_t *funcs,
-                                                void *paint_data,
-                                                float xmin, float ymin,
-                                                float xmax, float ymax,
-                                                void *user_data);
+typedef void (*hb_paint_push_clip_rectangle_func_t) (hb_paint_funcs_t *funcs,
+                                                     void *paint_data,
+                                                     float xmin, float ymin,
+                                                     float xmax, float ymax,
+                                                     void *user_data);
 
 /**
  * hb_paint_pop_clip_func_t:
@@ -188,7 +188,7 @@ typedef void (*hb_paint_push_clip_rect_func_t) (hb_paint_funcs_t *funcs,
  *
  * A virtual method for the #hb_paint_funcs_t to undo
  * the effect of a prior call to the #hb_paint_funcs_push_clip_glyph_func_t
- * or #hb_paint_funcs_push_clip_rect_func_t vfuncs.
+ * or #hb_paint_funcs_push_clip_rectangle_func_t vfuncs.
  *
  * Since: REPLACEME
  */
@@ -512,9 +512,9 @@ hb_paint_funcs_set_push_clip_glyph_func (hb_paint_funcs_t                *funcs,
                                          hb_destroy_func_t                destroy);
 
 /**
- * hb_paint_funcs_set_push_clip_rect_func:
+ * hb_paint_funcs_set_push_clip_rectangle_func:
  * @funcs: A paint functions struct
- * @func: (closure user_data) (destroy destroy) (scope notified): The push-clip-rect callback
+ * @func: (closure user_data) (destroy destroy) (scope notified): The push-clip-rectangle callback
  * @user_data: Data to pass to @func
  * @destroy: (nullable): Function to call when @user_data is no longer needed
  *
@@ -523,10 +523,10 @@ hb_paint_funcs_set_push_clip_glyph_func (hb_paint_funcs_t                *funcs,
  * Since: REPLACEME
  */
 HB_EXTERN void
-hb_paint_funcs_set_push_clip_rect_func (hb_paint_funcs_t               *funcs,
-                                        hb_paint_push_clip_rect_func_t  func,
-                                        void                           *user_data,
-                                        hb_destroy_func_t               destroy);
+hb_paint_funcs_set_push_clip_rectangle_func (hb_paint_funcs_t                    *funcs,
+                                             hb_paint_push_clip_rectangle_func_t  func,
+                                             void                                *user_data,
+                                             hb_destroy_func_t                    destroy);
 
 /**
  * hb_paint_funcs_set_pop_clip_func:
@@ -678,9 +678,9 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_codepoint_t glyph);
 
 HB_EXTERN void
-hb_paint_push_clip_rect (hb_paint_funcs_t *funcs, void *paint_data,
-                         float xmin, float ymin,
-                         float xmax, float ymax);
+hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
+                              float xmin, float ymin,
+                              float xmax, float ymax);
 
 HB_EXTERN void
 hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data);
