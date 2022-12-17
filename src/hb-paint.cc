@@ -69,6 +69,11 @@ hb_paint_color_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     void *user_data) {}
 
 static void
+hb_paint_image_nil (hb_paint_funcs_t *funcs, void *paint_data,
+                    hb_codepoint_t glyph,
+                    void *user_data) {}
+
+static void
 hb_paint_linear_gradient_nil (hb_paint_funcs_t *funcs, void *paint_data,
                               hb_color_line_t *color_line,
                               float x0, float y0,
@@ -335,6 +340,13 @@ hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
                 float alpha)
 {
   funcs->color (paint_data, color_index, alpha);
+}
+
+void
+hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
+                hb_codepoint_t glyph)
+{
+  funcs->image (paint_data, glyph);
 }
 
 void

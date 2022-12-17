@@ -56,6 +56,9 @@ HB_BEGIN_DECLS
  * For rendering COLRv0 or non-color outline glyphs, the
  * gradient and composite callbacks are not needed.
  *
+ * The paint-image callback is only needed for glyphs
+ * with blobs in the CBDT, sbix or SVG tables.
+ *
  * Since: REPLACEME
  **/
 typedef struct hb_paint_funcs_t hb_paint_funcs_t;
@@ -218,6 +221,25 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
                                        float alpha,
                                        void *user_data);
 
+/**
+ * hb_paint_image_func_t:
+ * @funcs: paint functions object
+ * @paint_data: The data accompanying the paint functions
+ * @glyph: the glyph ID
+ * @user_data: user data passed to the hb_font_paint_glyph() call
+ *
+ * A virtual method for the #hb_paint_funcs_t to paint the
+ * glyph image.
+ *
+ * This method is intended for glyphs with image blobs in the CBDT,
+ * sbix or SVG tables.
+ *
+ * Since: REPLACEME
+ */
+typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
+                                       void *paint_data,
+                                       hb_codepoint_t glyph,
+                                       void *user_data);
 
 /**
  * hb_color_line_t:
@@ -533,6 +555,23 @@ hb_paint_funcs_set_color_func (hb_paint_funcs_t      *funcs,
                                hb_destroy_func_t      destroy);
 
 /**
+ * hb_paint_funcs_set_image_func:
+ * @funcs: A paint functions struct
+ * @func: (closure user_data) (destroy destroy) (scope notified): The paint-image callback
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): Function to call when @user_data is no longer needed
+ *
+ * Sets the paint-image callback on the paint functions struct.
+ *
+ * Since: REPLACEME
+ */
+HB_EXTERN void
+hb_paint_funcs_set_image_func (hb_paint_funcs_t      *funcs,
+                               hb_paint_image_func_t  func,
+                               void                  *user_data,
+                               hb_destroy_func_t      destroy);
+
+/**
  * hb_paint_funcs_set_linear_gradient_func:
  * @funcs: A paint functions struct
  * @func: (closure user_data) (destroy destroy) (scope notified): The linear-gradient callback
@@ -642,6 +681,10 @@ HB_EXTERN void
 hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
                 unsigned int color_index,
                 float alpha);
+
+HB_EXTERN void
+hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
+                hb_codepoint_t glyph);
 
 HB_EXTERN void
 hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,

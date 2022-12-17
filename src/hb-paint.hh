@@ -34,6 +34,7 @@
   HB_PAINT_FUNC_IMPLEMENT (push_clip_rect) \
   HB_PAINT_FUNC_IMPLEMENT (pop_clip) \
   HB_PAINT_FUNC_IMPLEMENT (color) \
+  HB_PAINT_FUNC_IMPLEMENT (image) \
   HB_PAINT_FUNC_IMPLEMENT (linear_gradient) \
   HB_PAINT_FUNC_IMPLEMENT (radial_gradient) \
   HB_PAINT_FUNC_IMPLEMENT (sweep_gradient) \
@@ -92,6 +93,11 @@ struct hb_paint_funcs_t
   { func.color (this, paint_data,
                 color_index, alpha,
                 !user_data ? nullptr : user_data->color); }
+  void image (void *paint_data,
+              hb_codepoint_t glyph)
+  { func.image (this, paint_data,
+                glyph,
+                !user_data ? nullptr : user_data->image); }
   void linear_gradient (void *paint_data,
                         hb_color_line_t *color_line,
                         float x0, float y0,
