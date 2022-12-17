@@ -26,6 +26,8 @@
 #define HB_PAINT_HH
 
 #include "hb.hh"
+#include "hb-face.hh"
+#include "hb-font.hh"
 
 #define HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS \
   HB_PAINT_FUNC_IMPLEMENT (push_transform) \
@@ -135,16 +137,18 @@ struct hb_paint_funcs_t
   void push_root_transform (void *paint_data,
                             hb_font_t *font)
   {
-    int xscale, yscale;
-    float upem, slant;
-    hb_font_get_scale (font, &xscale, &yscale);
-    slant = hb_font_get_synthetic_slant (font);
-    upem = hb_face_get_upem (hb_font_get_face (font));
+    int xscale = font->x_scale, yscale = font->y_scale;
+    float upem = font->face->get_upem ();
+    float slant = font->slant_xy;
+
     func.push_transform (this, paint_data, xscale/upem, 0, slant * yscale/upem, yscale/upem, 0, 0,
-                         !user_data ? nullptr : user_data->push_transform); }
+                         !user_data ? nullptr : user_data->push_transform);
+  }
   void pop_root_transform (void *paint_data)
-  { func.pop_transform (this, paint_data,
-                        !user_data ? nullptr : user_data->pop_transform); }
+  {
+    func.pop_transform (this, paint_data,
+                        !user_data ? nullptr : user_data->pop_transform);
+  }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 
