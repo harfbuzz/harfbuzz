@@ -335,21 +335,13 @@ struct glyf_accelerator_t
 
   bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data) const
   {
-    int xscale, yscale;
-    unsigned int upem;
-
-    hb_font_get_scale (font, &xscale, &yscale);
-    upem = hb_face_get_upem (hb_font_get_face (font));
-
-    funcs->push_transform (data, xscale/(float)upem, 0,
-                                 0, yscale/(float)upem,
-                                 0, 0);
+    funcs->push_root_transform (data, font);
 
     funcs->push_clip_glyph (data, gid);
     funcs->color (data, 0xffff, 1.);
     funcs->pop_clip (data);
 
-    funcs->pop_transform (data);
+    funcs->pop_root_transform (data);
 
     return false;
   }

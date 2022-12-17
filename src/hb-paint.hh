@@ -132,6 +132,18 @@ struct hb_paint_funcs_t
                     mode,
                     !user_data ? nullptr : user_data->pop_group); }
 
+  void push_root_transform (void *paint_data,
+                            hb_font_t *font)
+  {
+    int xscale, yscale;
+    float upem;
+    hb_font_get_scale (font, &xscale, &yscale);
+    upem = hb_face_get_upem (hb_font_get_face (font));
+    func.push_transform (this, paint_data, xscale/upem, 0, 0, yscale/upem, 0, 0,
+                         !user_data ? nullptr : user_data->push_transform); }
+  void pop_root_transform (void *paint_data)
+  { func.pop_transform (this, paint_data,
+                        !user_data ? nullptr : user_data->pop_transform); }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
 

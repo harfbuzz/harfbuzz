@@ -1929,24 +1929,15 @@ struct COLR
 
     hb_paint_context_t c (this, funcs, data, instancer);
 
-    int xscale, yscale;
-    unsigned int upem;
-
-    hb_font_get_scale (font, &xscale, &yscale);
-    upem = hb_face_get_upem (hb_font_get_face (font));
-
     const Paint *paint = get_base_glyph_paint (glyph);
     if (paint)
     {
       // COLRv1 glyph
-      // FIXME handle slant
-      funcs->push_transform (data, xscale/(float)upem, 0,
-                                   0, yscale/(float)upem,
-                                   0, 0);
+      c.funcs->push_root_transform (data, font);
 
       c.recurse (*paint);
 
-      c.funcs->pop_transform (c.data);
+      c.funcs->pop_root_transform (c.data);
 
       return true;
     }
@@ -1955,10 +1946,7 @@ struct COLR
     if (record && ((hb_codepoint_t) record->glyphId == glyph))
     {
       // COLRv0 glyph
-      // FIXME handle slant
-      funcs->push_transform (data, xscale/(float)upem, 0,
-                                   0, yscale/(float)upem,
-                                   0, 0);
+      funcs->push_root_transform (data, font);
 
       for (const auto &r : (this+layersZ).as_array (numLayers)
 			   .sub_array (record->firstLayerIdx, record->numLayers))
@@ -1968,7 +1956,7 @@ struct COLR
         c.funcs->pop_clip (c.data);
       }
 
-      c.funcs->pop_transform (c.data);
+      c.funcs->pop_root_transform (c.data);
 
       return true;
     }
