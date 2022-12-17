@@ -46,6 +46,7 @@
 #include "hb-ot-color-cbdt-table.hh"
 #include "hb-ot-color-sbix-table.hh"
 #include "hb-ot-color-colr-table.hh"
+#include "hb-ot-color-svg-table.hh"
 
 
 /**
@@ -449,6 +450,11 @@ hb_ot_get_glyph_paint (hb_font_t *font,
 {
 #ifndef HB_NO_COLOR
   if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.SVG->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+#ifndef HB_NO_OT_FONT_BITMAP
+  if (font->face->table.CBDT->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.sbix->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+#endif
 #endif
   if (font->face->table.glyf->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
 #ifndef HB_NO_CFF
