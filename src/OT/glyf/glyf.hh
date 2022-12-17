@@ -7,13 +7,13 @@
 #include "../../hb-ot-hmtx-table.hh"
 #include "../../hb-ot-var-gvar-table.hh"
 #include "../../hb-draw.hh"
+#include "../../hb-paint.hh"
 
 #include "glyf-helpers.hh"
 #include "Glyph.hh"
 #include "SubsetGlyph.hh"
 #include "loca.hh"
 #include "path-builder.hh"
-#include "hb-paint.hh"
 
 
 namespace OT {
