@@ -70,6 +70,7 @@ public:
   hb_paint_funcs_t *funcs;
   void *data;
   VarStoreInstancer &instancer;
+  int depth_left = HB_COLRV1_MAX_NESTING_LEVEL;
 
   hb_paint_context_t (const void *base_,
 		      hb_paint_funcs_t *funcs_,
@@ -2033,7 +2034,10 @@ struct COLR_accelerator_t : COLR::accelerator_t {
 void
 hb_paint_context_t::recurse (const Paint &paint)
 {
-  paint.dispatch (this);
+  depth_left--;
+  if (depth_left > 0)
+    paint.dispatch (this);
+  depth_left++;
 }
 
 } /* namespace OT */
