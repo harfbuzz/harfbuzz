@@ -630,9 +630,9 @@ struct PaintRadialGradient
     c->funcs->radial_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
 			       y0 + c->instancer (varIdxBase, 1),
+			       radius0 + c->instancer (varIdxBase, 2),
 			       x1 + c->instancer (varIdxBase, 3),
 			       y1 + c->instancer (varIdxBase, 4),
-			       radius0 + c->instancer (varIdxBase, 2),
 			       radius1 + c->instancer (varIdxBase, 5));
   }
 
