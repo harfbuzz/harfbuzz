@@ -39,7 +39,7 @@
 #define HB_OT_TAG_COLR HB_TAG('C','O','L','R')
 
 #ifndef HB_COLRV1_MAX_NESTING_LEVEL
-#define HB_COLRV1_MAX_NESTING_LEVEL	16
+#define HB_COLRV1_MAX_NESTING_LEVEL	128
 #endif
 
 namespace OT {
