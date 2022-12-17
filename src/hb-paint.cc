@@ -420,7 +420,9 @@ hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
  * hb_paint_image:
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
- * @glyph: the glyph ID
+ * @image: image data
+ * @format: tag describing the image data format
+ * @extents: (nullable): the extents of the glyph
  *
  * Perform a "image" paint operation.
  *
