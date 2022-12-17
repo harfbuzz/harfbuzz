@@ -7,7 +7,7 @@ void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
   const LayerList &paint_offset_lists = c->get_colr_table ()->get_layerList ();
   for (unsigned i = firstLayerIndex; i < firstLayerIndex + numLayers; i++)
   {
-    const Paint &paint = std::addressof (paint_offset_lists) + paint_offset_lists[i];
+    const Paint &paint = paint_offset_lists.get_paint (i);
     c->funcs->push_group (c->data);
     c->recurse (paint);
     c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
