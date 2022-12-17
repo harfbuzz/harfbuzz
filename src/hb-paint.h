@@ -48,7 +48,13 @@ HB_BEGIN_DECLS
  *
  * The callbacks also assume that the caller uses
  * hb_ot_color_palette_get_colors() to obtain colors
- * from one of the fonts color palettes.
+ * from one of the fonts color palettes. If the font does
+ * not have color palettes, the color index will always
+ * be 0xFFFF, indicating the use of the foreground color.
+ *
+ * Not all callbacks are required for all kinds of glyphs.
+ * For rendering COLRv0 or non-color outline glyphs, the
+ * gradient and composite callbacks are not needed.
  *
  * Since: REPLACEME
  **/
