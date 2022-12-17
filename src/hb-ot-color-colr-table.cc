@@ -19,6 +19,7 @@ void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
   const COLR *colr_table = c->get_colr_table ();
   const Paint *paint = colr_table->get_base_glyph_paint (gid);
 
+  // TODO apply clipbox
   if (paint)
     c->recurse (*paint);
 }
