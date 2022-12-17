@@ -1,0 +1,18 @@
+start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+  push group
+    start clip glyph 3
+      solid 4 0.500000
+    end clip
+    push group
+      start transform 0.000000 0.000000 0.000000 0.000000 1000.000000 1000.000000
+        start transform 1.000000 -0.363874 -0.176283 1.000000 0.000000 0.000000
+          start transform 0.000000 0.000000 0.000000 0.000000 -1000.000000 -1000.000000
+            start clip glyph 3
+              solid 1 0.700012
+            end clip
+          end transform
+        end transform
+      end transform
+    pop group mode 4
+  pop group mode 3
+end transform

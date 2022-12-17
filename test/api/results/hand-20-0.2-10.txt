@@ -1,0 +1,79 @@
+start transform 0.019531 0.000000 0.003906 0.019531 0.000000 0.000000
+  push group
+    start clip glyph 13
+      start transform 1.000000 0.000000 0.000000 0.976807 0.000000 0.000000
+        radial gradient
+          p0 280.000000 440.000000 radius 0.000000
+          p1 280.000000 440.000000 radius 467.000000
+          colors
+            0.000000 16 1.000000
+            0.448792 15 1.000000
+            0.808594 14 1.000000
+            1.000000 12 1.000000
+      end transform
+    end clip
+  pop group mode 3
+  push group
+    start clip glyph 14
+      linear gradient
+        p0 231.000000 -27.000000
+        p1 1019.000000 -27.000000
+        p2 231.000000 -815.000000
+        colors
+          0.000000 12 1.000000
+          1.000000 12 1.000000
+    end clip
+  pop group mode 3
+  push group
+    start clip glyph 15
+      solid 9 1.000000
+    end clip
+  pop group mode 3
+  push group
+    start clip glyph 16
+      solid 0 1.000000
+    end clip
+  pop group mode 3
+  push group
+    start clip glyph 21
+      solid 9 1.000000
+    end clip
+  pop group mode 3
+  push group
+    push group
+      start clip glyph 16
+        linear gradient
+          p0 669.000000 776.000000
+          p1 180.000000 -106.000000
+          p2 -212.000000 1265.000000
+          colors
+            0.000000 5 1.000000
+            1.000000 1 1.000000
+      end clip
+    pop group mode 3
+    push group
+      start clip glyph 18
+        solid 2 0.200012
+      end clip
+    pop group mode 3
+  pop group mode 3
+  push group
+    start clip glyph 19
+      start transform 1.000000 0.000000 0.000000 0.969116 0.000000 0.000000
+        radial gradient
+          p0 588.000000 198.000000 radius 0.000000
+          p1 588.000000 198.000000 radius 342.000000
+          colors
+            0.000000 16 1.000000
+            0.448792 15 1.000000
+            0.808594 14 1.000000
+            1.000000 12 1.000000
+      end transform
+    end clip
+  pop group mode 3
+  push group
+    start clip glyph 20
+      solid 9 1.000000
+    end clip
+  pop group mode 3
+end transform

@@ -1,0 +1,22 @@
+start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+  push group
+    start transform 1.000000 0.000000 0.000000 1.000000 150.000000 0.000000
+      start clip glyph 174
+        solid 3 1.000000
+      end clip
+    end transform
+  pop group mode 3
+  push group
+    start transform 1.000000 0.000000 0.000000 1.000000 -150.000000 0.000000
+      start clip glyph 174
+        linear gradient
+          p0 500.000000 250.000000
+          p1 500.000000 950.000000
+          p2 600.000000 250.000000
+          colors
+            0.000000 0 1.000000
+            1.000000 4 1.000000
+      end clip
+    end transform
+  pop group mode 3
+end transform
