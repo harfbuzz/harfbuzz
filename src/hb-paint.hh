@@ -136,10 +136,11 @@ struct hb_paint_funcs_t
                             hb_font_t *font)
   {
     int xscale, yscale;
-    float upem;
+    float upem, slant;
     hb_font_get_scale (font, &xscale, &yscale);
+    slant = hb_font_get_synthetic_slant (font);
     upem = hb_face_get_upem (hb_font_get_face (font));
-    func.push_transform (this, paint_data, xscale/upem, 0, 0, yscale/upem, 0, 0,
+    func.push_transform (this, paint_data, xscale/upem, 0, slant * yscale/upem, yscale/upem, 0, 0,
                          !user_data ? nullptr : user_data->push_transform); }
   void pop_root_transform (void *paint_data)
   { func.pop_transform (this, paint_data,
