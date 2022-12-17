@@ -44,9 +44,10 @@
 #define HB_COLRV1_MAX_NESTING_LEVEL	128
 #endif
 
+
 struct hb_color_line_t {
   const void *base;
-  OT::HBUINT8 format;
+  bool is_variable;
 };
 
 namespace OT {
@@ -200,6 +201,8 @@ struct BaseGlyphRecord
 template <typename T>
 struct Variable
 {
+  static constexpr bool is_variable = true;
+
   Variable<T>* copy (hb_serialize_context_t *c) const
   {
     TRACE_SERIALIZE (this);
@@ -248,6 +251,8 @@ struct Variable
 template <typename T>
 struct NoVariable
 {
+  static constexpr bool is_variable = false;
+
   static constexpr uint32_t varIdxBase = VarIdx::NO_VARIATION;
 
   NoVariable<T>* copy (hb_serialize_context_t *c) const
@@ -566,7 +571,7 @@ struct PaintLinearGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { this, format };
+    hb_color_line_t cl = { &(this+colorLine), Var<ColorLine<Var>>::is_variable };
 
     c->funcs->linear_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
@@ -575,18 +580,6 @@ struct PaintLinearGradient
 			       y1 + c->instancer (varIdxBase, 3),
 			       x2 + c->instancer (varIdxBase, 4),
 			       y2 + c->instancer (varIdxBase, 5));
-  }
-
-  unsigned int get_color_stops (unsigned int start,
-                                unsigned int *count,
-                                hb_color_stop_t *stops) const
-  {
-    return (this+colorLine).get_color_stops (start, count, stops);
-  }
-
-  hb_paint_extend_t get_extend () const
-  {
-    return (this+colorLine).get_extend ();
   }
 
   HBUINT8			format; /* format = 4(noVar) or 5 (Var) */
@@ -625,7 +618,7 @@ struct PaintRadialGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { this, format };
+    hb_color_line_t cl = { &(this+colorLine), Var<ColorLine<Var>>::is_variable };
 
     c->funcs->radial_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
@@ -634,18 +627,6 @@ struct PaintRadialGradient
 			       x1 + c->instancer (varIdxBase, 3),
 			       y1 + c->instancer (varIdxBase, 4),
 			       radius1 + c->instancer (varIdxBase, 5));
-  }
-
-  unsigned int get_color_stops (unsigned int start,
-                                unsigned int *count,
-                                hb_color_stop_t *stops) const
-  {
-    return (this+colorLine).get_color_stops (start, count, stops);
-  }
-
-  hb_paint_extend_t get_extend () const
-  {
-    return (this+colorLine).get_extend ();
   }
 
   HBUINT8			format; /* format = 6(noVar) or 7 (Var) */
@@ -684,25 +665,13 @@ struct PaintSweepGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { this, format };
+    hb_color_line_t cl = { &(this+colorLine), Var<ColorLine<Var>>::is_variable };
 
     c->funcs->sweep_gradient (c->data, &cl,
 			      centerX + c->instancer (varIdxBase, 0),
 			      centerY + c->instancer (varIdxBase, 1),
                               (startAngle.to_float (c->instancer (varIdxBase, 2)) + 1) * (float) M_PI,
                               (endAngle.to_float   (c->instancer (varIdxBase, 3)) + 1) * (float) M_PI);
-  }
-
-  unsigned int get_color_stops (unsigned int start,
-                                unsigned int *count,
-                                hb_color_stop_t *stops) const
-  {
-    return (this+colorLine).get_color_stops (start, count, stops);
-  }
-
-  hb_paint_extend_t get_extend () const
-  {
-    return (this+colorLine).get_extend ();
   }
 
   HBUINT8			format; /* format = 8(noVar) or 9 (Var) */
