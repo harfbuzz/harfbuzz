@@ -324,7 +324,9 @@ read_blob (void *closure,
 static void
 paint_image (hb_paint_funcs_t *funcs,
              void *paint_data,
-             hb_codepoint_t glyph,
+             hb_blob_t *blob,
+             const char *mimetype,
+             hb_glyph_extents_t *extents,
              void *user_data)
 {
   paint_data_t *data = user_data;
@@ -332,17 +334,19 @@ paint_image (hb_paint_funcs_t *funcs,
   cairo_surface_t *surface;
   cairo_pattern_t *pattern;
   cairo_matrix_t m;
-  hb_glyph_extents_t extents;
 
-  hb_font_get_glyph_extents (data->font, glyph, &extents);
-  r.blob = hb_ot_color_glyph_reference_png (data->font, glyph);
+  if (strcmp (mimetype, "image/png") != 0)
+    return;
+
+  r.blob = blob;
   r.offset = 0;
   surface = cairo_image_surface_create_from_png_stream (read_blob, &r);
-  hb_blob_destroy (r.blob);
 
   pattern = cairo_pattern_create_for_surface (surface);
   cairo_matrix_init_scale (&m, 1, -1);
-  cairo_matrix_translate (&m, extents.x_bearing, - extents.y_bearing);
+  cairo_matrix_translate (&m,
+                          extents ? extents->x_bearing : 0,
+                          extents ? - extents->y_bearing : 0);
   cairo_pattern_set_matrix (pattern, &m);
   cairo_set_source (data->cr, pattern);
 

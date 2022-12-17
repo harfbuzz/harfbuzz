@@ -30,6 +30,7 @@
 #define HB_PAINT_H
 
 #include "hb.h"
+#include "hb-font.h"
 
 HB_BEGIN_DECLS
 
@@ -225,20 +226,27 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * hb_paint_image_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions
- * @glyph: the glyph ID
+ * @image: the image data
+ * @mimetype: the mime type for the image data
+ * @extents: (nullable): glyph extents
  * @user_data: user data passed to the hb_font_paint_glyph() call
  *
  * A virtual method for the #hb_paint_funcs_t to paint the
  * glyph image.
  *
  * This method is intended for glyphs with image blobs in the CBDT,
- * sbix or SVG tables.
+ * sbix or SVG tables. The @mimetype identifies the kind of data
+ * that is contained in @image. Possible values include "image/png"
+ * and "image/svg+xml". The glyph extents are provided if available,
+ * and should be used to position the image.
  *
  * Since: REPLACEME
  */
 typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
-                                       hb_codepoint_t glyph,
+                                       hb_blob_t *image,
+                                       const char *mimetype,
+                                       hb_glyph_extents_t *extents,
                                        void *user_data);
 
 /**
@@ -684,7 +692,9 @@ hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
 
 HB_EXTERN void
 hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
-                hb_codepoint_t glyph);
+                hb_blob_t *image,
+                const char *mimetype,
+                hb_glyph_extents_t *extents);
 
 HB_EXTERN void
 hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,

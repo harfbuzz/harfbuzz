@@ -70,7 +70,9 @@ hb_paint_color_nil (hb_paint_funcs_t *funcs, void *paint_data,
 
 static void
 hb_paint_image_nil (hb_paint_funcs_t *funcs, void *paint_data,
-                    hb_codepoint_t glyph,
+                    hb_blob_t *image,
+                    const char *mimetype,
+                    hb_glyph_extents_t *extents,
                     void *user_data) {}
 
 static void
@@ -344,9 +346,11 @@ hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
 
 void
 hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
-                hb_codepoint_t glyph)
+                hb_blob_t *image,
+                const char *mimetype,
+                hb_glyph_extents_t *extents)
 {
-  funcs->image (paint_data, glyph);
+  funcs->image (paint_data, image, mimetype, extents);
 }
 
 void

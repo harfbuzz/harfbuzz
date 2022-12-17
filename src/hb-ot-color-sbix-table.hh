@@ -240,11 +240,15 @@ struct sbix
       int x_offset = 0, y_offset = 0;
       unsigned int strike_ppem = 0;
       hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset, &strike_ppem);
+      hb_glyph_extents_t extents;
 
       if (blob == hb_blob_get_empty ())
         return false;
 
-      funcs->image (data, glyph);
+      if (!get_extents (font, glyph, &extents))
+        return false;
+
+      funcs->image (data, blob, "image/png", &extents);
 
       hb_blob_destroy (blob);
       return true;

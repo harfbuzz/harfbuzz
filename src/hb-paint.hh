@@ -94,9 +94,11 @@ struct hb_paint_funcs_t
                 color_index, alpha,
                 !user_data ? nullptr : user_data->color); }
   void image (void *paint_data,
-              hb_codepoint_t glyph)
+              hb_blob_t *image,
+              const char *mimetype,
+              hb_glyph_extents_t *extents)
   { func.image (this, paint_data,
-                glyph,
+                image, mimetype, extents,
                 !user_data ? nullptr : user_data->image); }
   void linear_gradient (void *paint_data,
                         hb_color_line_t *color_line,

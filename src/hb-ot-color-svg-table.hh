@@ -103,7 +103,7 @@ struct SVG
       if (blob == hb_blob_get_empty ())
         return false;
 
-      funcs->image (data, glyph);
+      funcs->image (data, blob, "image/svg+xml", nullptr);
 
       hb_blob_destroy (blob);
       return true;
