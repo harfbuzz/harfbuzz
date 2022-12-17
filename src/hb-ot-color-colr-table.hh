@@ -1950,7 +1950,7 @@ struct COLR
     return false;
   }
 
-  void
+  bool
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
   {
     VarStoreInstancer instancer (this+varStore,
@@ -1959,16 +1959,16 @@ struct COLR
 
     hb_paint_context_t c (this, funcs, data, instancer);
 
-    const Paint *paint = get_base_glyph_paint (glyph);
+    int xscale, yscale;
+    unsigned int upem;
 
+    hb_font_get_scale (font, &xscale, &yscale);
+    upem = hb_face_get_upem (hb_font_get_face (font));
+
+    const Paint *paint = get_base_glyph_paint (glyph);
     if (paint)
     {
-      int xscale, yscale;
-      unsigned int upem;
-
-      hb_font_get_scale (font, &xscale, &yscale);
-      upem = hb_face_get_upem (hb_font_get_face (font));
-
+      // COLRv1 glyph
       // FIXME handle slant
       funcs->push_transform (data, xscale/(float)upem, 0,
                                    0, yscale/(float)upem,
@@ -1976,21 +1976,36 @@ struct COLR
 
       c.recurse (*paint);
 
-      funcs->pop_transform (data);
+      c.funcs->pop_transform (c.data);
+
+      return true;
     }
-    else
+
+    const BaseGlyphRecord *record = get_base_glyph_record (glyph);
+    if (record && ((hb_codepoint_t) record->glyphId == glyph))
     {
-      const BaseGlyphRecord &record = (this+baseGlyphsZ).bsearch (numBaseGlyphs, glyph);
+      // COLRv0 glyph
+      // FIXME handle slant
+      funcs->push_transform (data, xscale/(float)upem, 0,
+                                   0, yscale/(float)upem,
+                                   0, 0);
+
       hb_array_t<const LayerRecord> all_layers = (this+layersZ).as_array (numLayers);
-      for (unsigned int i = 0; i < record.numLayers; i++)
+      for (unsigned int i = 0; i < record->numLayers; i++)
       {
-        const LayerRecord *r = &all_layers[record.firstLayerIdx + i];
+        const LayerRecord *r = &all_layers[record->firstLayerIdx + i];
 
         c.funcs->push_clip_glyph (c.data, r->glyphId);
         c.funcs->color (c.data, r->colorIdx, 1.);
         c.funcs->pop_clip (c.data);
       }
+
+      c.funcs->pop_transform (c.data);
+
+      return true;
     }
+
+    return false;
   }
 
   protected:
