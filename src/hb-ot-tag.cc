@@ -119,6 +119,17 @@ hb_ot_new_tag_to_script (hb_tag_t tag)
 }
 
 #ifndef HB_DISABLE_DEPRECATED
+/**
+ * hb_ot_tags_from_script:
+ * @script: an #hb_script_t to convert.
+ * @script_tag_1: (out): output #hb_tag_t.
+ * @script_tag_2: (out): output #hb_tag_t.
+ *
+ * Converts an #hb_script_t to script tags.
+ *
+ * Since: 0.6.0
+ * Deprecated: 2.0.0: use hb_ot_tags_from_script_and_language() instead
+ **/
 void
 hb_ot_tags_from_script (hb_script_t  script,
 			hb_tag_t    *script_tag_1,
@@ -249,6 +260,15 @@ struct LangTag
 /*{"zh?",	{HB_TAG('Z','H','P',' ')}},*/	/* Chinese Phonetic */
 
 #ifndef HB_DISABLE_DEPRECATED
+/**
+ * hb_ot_tag_from_language:
+ * @language: an #hb_language_t to convert.
+ *
+ * Converts an #hb_language_t to an #hb_tag_t.
+ *
+ * Since: 0.6.0
+ * Deprecated: 2.0.0: use hb_ot_tags_from_script_and_language() instead
+ **/
 hb_tag_t
 hb_ot_tag_from_language (hb_language_t language)
 {
