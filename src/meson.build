@@ -535,6 +535,7 @@ libharfbuzz_dep = declare_dependency(
   link_with: libharfbuzz,
   include_directories: incsrc,
   dependencies: harfbuzz_deps)
+meson.override_dependency('harfbuzz', libharfbuzz_dep)
 
 # harfbuzz-subset
 harfbuzz_subset_def = custom_target('harfbuzz-subset.def',
@@ -567,6 +568,7 @@ libharfbuzz_subset_dep = declare_dependency(
   link_with: libharfbuzz_subset,
   include_directories: incsrc,
   dependencies: [m_dep])
+meson.override_dependency('harfbuzz-subset', libharfbuzz_subset_dep)
 
 if get_option('tests').enabled()
   # TODO: MSVC gives the following,
@@ -663,6 +665,7 @@ if have_icu and not have_icu_builtin
     link_with: libharfbuzz_icu,
     include_directories: incsrc,
     dependencies: icu_dep)
+  meson.override_dependency('harfbuzz-icu', libharfbuzz_icu_dep)
 
   pkgmod.generate(libharfbuzz_icu,
     description: 'HarfBuzz text shaping library ICU integration',
@@ -776,6 +779,7 @@ if have_gobject
     include_directories: incsrc,
     sources: build_gir ? hb_gen_files_gir : hb_gobject_sources,
     dependencies: [glib_dep, gobject_dep])
+  meson.override_dependency('harfbuzz-gobject', libharfbuzz_gobject_dep)
 
   pkgmod.generate(libharfbuzz_gobject,
     description: 'HarfBuzz text shaping library GObject integration',
