@@ -1631,7 +1631,8 @@ struct COLR
 {
   static constexpr hb_tag_t tableTag = HB_OT_TAG_COLR;
 
-  bool has_data () const { return numBaseGlyphs; }
+  bool has_v0_data () const { return numBaseGlyphs; }
+  bool has_v1_data () const { return (this+baseGlyphList).len; }
 
   unsigned int get_glyph_layers (hb_codepoint_t       glyph,
 				 unsigned int         start_offset,
