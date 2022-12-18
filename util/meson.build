@@ -25,6 +25,7 @@ if conf.get('HAVE_GLIB', 0) == 1
       link_with: [libharfbuzz],
       install: true,
     )
+    meson.override_find_program('hb-view', hb_view)
   endif
 
   hb_shape = executable('hb-shape', hb_shape_sources,
@@ -34,6 +35,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     link_with: [libharfbuzz],
     install: true,
   )
+  meson.override_find_program('hb-shape', hb_shape)
 
   hb_subset = executable('hb-subset', hb_subset_cli_sources,
     cpp_args: cpp_args,
@@ -42,6 +44,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     link_with: [libharfbuzz, libharfbuzz_subset],
     install: true,
   )
+  meson.override_find_program('hb-subset', hb_subset)
 
   hb_ot_shape_closure = executable('hb-ot-shape-closure', hb_ot_shape_closure_sources,
     cpp_args: cpp_args,
@@ -50,6 +53,7 @@ if conf.get('HAVE_GLIB', 0) == 1
     link_with: [libharfbuzz],
     install: true,
   )
+  meson.override_find_program('hb-ot-shape-closure', hb_ot_shape_closure)
 else
   # Disable tests that use this
   hb_shape = disabler()
