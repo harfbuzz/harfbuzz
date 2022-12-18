@@ -1,5 +1,6 @@
 hb_view_sources = [
   'hb-view.cc',
+  'hb-cairo-utils.c'
 ]
 
 hb_shape_sources = [
