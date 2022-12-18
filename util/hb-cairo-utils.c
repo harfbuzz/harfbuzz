@@ -123,9 +123,10 @@ read_blob (void *closure,
   return CAIRO_STATUS_SUCCESS;
 }
 
+#include <stdio.h>
 void
-hb_cairo_paint_glyph_image (hb_font_t *font,
-                            cairo_t *cr,
+hb_cairo_paint_glyph_image (cairo_t *cr,
+                            hb_font_t *font,
                             hb_blob_t *blob,
                             hb_tag_t format,
                             hb_glyph_extents_t *extents)
@@ -145,10 +146,6 @@ hb_cairo_paint_glyph_image (hb_font_t *font,
 
   cairo_matrix_t matrix = {(double) width, 0, 0, (double) height, 0, 0};
   cairo_pattern_set_matrix (pattern, &matrix);
-
-  hb_position_t x_scale, y_scale;
-  hb_font_get_scale (font, &x_scale, &y_scale);
-  cairo_scale (cr, +1./x_scale, -1./y_scale);
 
   cairo_translate (cr, extents->x_bearing, extents->y_bearing);
   cairo_scale (cr, extents->width, extents->height);

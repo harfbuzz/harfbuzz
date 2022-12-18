@@ -245,10 +245,14 @@ struct sbix
       if (blob == hb_blob_get_empty ())
         return false;
 
-      if (!get_extents (font, glyph, &extents))
+      if (!hb_font_get_glyph_extents (font, glyph, &extents))
         return false;
 
+      funcs->push_root_transform (data, font);
+
       funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, &extents);
+
+      funcs->pop_root_transform (data);
 
       hb_blob_destroy (blob);
       return true;
