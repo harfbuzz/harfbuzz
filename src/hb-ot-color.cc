@@ -190,7 +190,15 @@ hb_ot_color_palette_get_colors (hb_face_t     *face,
  * hb_ot_color_has_layers:
  * @face: #hb_face_t to work upon
  *
- * Tests whether a face includes any `COLR` color layers.
+ * Tests whether a face includes a `COLR` table.
+ *
+ * Note that the `COLR` table may contain layers
+ * or (for v1) more complicated paint graphs, so
+ * it is not guaranteed that hb_ot_color_get_layers()
+ * will return information for each color glyph,
+ * even if this function returns `true`. See
+ * hb_font_paint_glyph() for an API that will work
+ * in either case.
  *
  * Return value: `true` if data found, `false` otherwise
  *
