@@ -24,6 +24,8 @@
  * Google Author(s): Matthias Clasen
  */
 
+#include "hb-cairo-utils.h"
+
 #include <cairo.h>
 #include <hb-ot.h>
 #include <string.h>

@@ -27,6 +27,7 @@
 #pragma once
 
 #include <hb.h>
+#include <cairo.h>
 
 HB_BEGIN_DECLS
 
