@@ -314,11 +314,13 @@ get_cairo_paint_funcs (void)
 
 #endif
 
+#ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
 static cairo_status_t
 render_color_glyph (cairo_scaled_font_t  *scaled_font,
 		    unsigned long         glyph,
 		    cairo_t              *cr,
 		    cairo_text_extents_t *extents);
+#endif
 
 static cairo_status_t
 render_glyph (cairo_scaled_font_t  *scaled_font,
