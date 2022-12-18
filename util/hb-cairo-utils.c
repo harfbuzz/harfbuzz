@@ -28,6 +28,7 @@
 #include <hb-ot.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 #include <assert.h>
 
@@ -123,7 +124,6 @@ read_blob (void *closure,
   return CAIRO_STATUS_SUCCESS;
 }
 
-#include <stdio.h>
 void
 hb_cairo_paint_glyph_image (cairo_t *cr,
                             hb_font_t *font,
