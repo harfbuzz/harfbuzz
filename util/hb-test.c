@@ -41,7 +41,7 @@ print (paint_data_t *data,
 {
   va_list args;
 
-  printf ("%*s", 2 * data->level, "");
+  printf ("%*s", INDENT * data->level, "");
 
   va_start (args, format);
   vprintf (format, args);
