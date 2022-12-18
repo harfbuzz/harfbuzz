@@ -657,8 +657,18 @@ hb_font_get_glyph_paint_default (hb_font_t *font,
                                  void *paint_data,
                                  void *user_data)
 {
-  // FIXME adaptor like for draw funcs
+  paint_funcs->push_transform (paint_data,
+    font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
+    font->parent->y_scale ? (font->slant - font->parent->slant) *
+			    (float) font->x_scale / (float) font->parent->y_scale : 0.f,
+    0.f,
+    font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f,
+    0.f,
+    0.f);
+
   font->parent->get_glyph_paint (glyph, paint_funcs, paint_data);
+
+  paint_funcs->pop_transform (paint_data);
 }
 
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
