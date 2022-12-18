@@ -741,13 +741,13 @@ test_hb_ot_color_colr_v1 (gconstpointer d)
   file = g_test_build_filename (G_TEST_DIST, test->output, NULL);
   if (!g_file_get_contents (file, &buffer, &len, &error))
   {
-    g_test_fail_printf ("%s", error->message);
+    g_test_fail ();
     return;
   }
 
   if (strcmp (buffer, data.string->str) != 0)
   {
-     g_test_fail_printf ("did not get the expected result");
+     g_test_fail ();
   }
 
   g_free (buffer);
