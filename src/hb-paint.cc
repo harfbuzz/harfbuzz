@@ -287,7 +287,7 @@ hb_paint_funcs_destroy (hb_paint_funcs_t *funcs)
 
 /**
  * hb_paint_funcs_set_user_data: (skip)
- * @pfuncs: The paint-functions structure
+ * @funcs: The paint-functions structure
  * @key: The user-data key
  * @data: A pointer to the user data
  * @destroy: (nullable): A callback to call when @data is not needed anymore
@@ -300,18 +300,18 @@ hb_paint_funcs_destroy (hb_paint_funcs_t *funcs)
  * Since: REPLACEME
  **/
 hb_bool_t
-hb_paint_funcs_set_user_data (hb_paint_funcs_t *pfuncs,
+hb_paint_funcs_set_user_data (hb_paint_funcs_t *funcs,
 			     hb_user_data_key_t *key,
 			     void *              data,
 			     hb_destroy_func_t   destroy,
 			     hb_bool_t           replace)
 {
-  return hb_object_set_user_data (pfuncs, key, data, destroy, replace);
+  return hb_object_set_user_data (funcs, key, data, destroy, replace);
 }
 
 /**
  * hb_paint_funcs_get_user_data: (skip)
- * @pfuncs: The paint-functions structure
+ * @funcs: The paint-functions structure
  * @key: The user-data key to query
  *
  * Fetches the user-data associated with the specified key,
@@ -322,10 +322,10 @@ hb_paint_funcs_set_user_data (hb_paint_funcs_t *pfuncs,
  * Since: REPLACEME
  **/
 void *
-hb_paint_funcs_get_user_data (const hb_paint_funcs_t *pfuncs,
+hb_paint_funcs_get_user_data (const hb_paint_funcs_t *funcs,
 			     hb_user_data_key_t       *key)
 {
-  return hb_object_get_user_data (pfuncs, key);
+  return hb_object_get_user_data (funcs, key);
 }
 
 /**
