@@ -17,7 +17,7 @@ hb_subset_cli_sources = [
 
 util_deps = [freetype_dep, cairo_dep, cairo_ft_dep, glib_dep]
 
-hb_test = executable('hb-test', [ 'hb-test.c' ],
+hb_test = executable('hb-test', [ 'hb-test.c', 'hb-cairo-utils.c' ],
    cpp_args: cpp_args,
       include_directories: [incconfig, incsrc],
       dependencies: [util_deps, chafa_dep],
