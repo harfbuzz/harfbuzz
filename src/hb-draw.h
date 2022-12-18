@@ -280,10 +280,25 @@ HB_EXTERN hb_draw_funcs_t *
 hb_draw_funcs_create (void);
 
 HB_EXTERN hb_draw_funcs_t *
+hb_draw_funcs_get_empty (void);
+
+HB_EXTERN hb_draw_funcs_t *
 hb_draw_funcs_reference (hb_draw_funcs_t *dfuncs);
 
 HB_EXTERN void
 hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs);
+
+HB_EXTERN hb_bool_t
+hb_draw_funcs_set_user_data (hb_draw_funcs_t *dfuncs,
+			     hb_user_data_key_t *key,
+			     void *              data,
+			     hb_destroy_func_t   destroy,
+			     hb_bool_t           replace);
+
+
+HB_EXTERN void *
+hb_draw_funcs_get_user_data (const hb_draw_funcs_t *dfuncs,
+			     hb_user_data_key_t       *key);
 
 HB_EXTERN void
 hb_draw_funcs_make_immutable (hb_draw_funcs_t *dfuncs);

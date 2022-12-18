@@ -191,8 +191,11 @@ HB_DEPRECATED_FOR
 <SECTION>
 <FILE>hb-draw</FILE>
 hb_draw_funcs_create
+hb_draw_funcs_get_empty
 hb_draw_funcs_reference
 hb_draw_funcs_destroy
+hb_draw_funcs_set_user_data
+hb_draw_funcs_get_user_data
 hb_draw_funcs_make_immutable
 hb_draw_funcs_is_immutable
 hb_draw_move_to_func_t

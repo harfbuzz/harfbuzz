@@ -198,6 +198,21 @@ DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
   }
 };
 
+/**
+ * hb_draw_funcs_get_empty:
+ *
+ * Fetches the singleton empty draw-functions structure.
+ *
+ * Return value: (transfer full): The empty draw-functions structure
+ *
+ * Since: REPLACEME
+ **/
+hb_draw_funcs_t *
+hb_draw_funcs_get_empty ()
+{
+  return const_cast<hb_draw_funcs_t *> (&Null (hb_draw_funcs_t));
+}
+
 
 /**
  * hb_draw_funcs_reference: (skip)
@@ -246,6 +261,49 @@ hb_draw_funcs_destroy (hb_draw_funcs_t *dfuncs)
   hb_free (dfuncs->user_data);
 
   hb_free (dfuncs);
+}
+
+/**
+ * hb_draw_funcs_set_user_data: (skip)
+ * @dfuncs: The draw-functions structure
+ * @key: The user-data key
+ * @data: A pointer to the user data
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
+ * @replace: Whether to replace an existing data with the same key
+ *
+ * Attaches a user-data key/data pair to the specified draw-functions structure. 
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_draw_funcs_set_user_data (hb_draw_funcs_t *dfuncs,
+			     hb_user_data_key_t *key,
+			     void *              data,
+			     hb_destroy_func_t   destroy,
+			     hb_bool_t           replace)
+{
+  return hb_object_set_user_data (dfuncs, key, data, destroy, replace);
+}
+
+/**
+ * hb_draw_funcs_get_user_data: (skip)
+ * @dfuncs: The draw-functions structure
+ * @key: The user-data key to query
+ *
+ * Fetches the user-data associated with the specified key,
+ * attached to the specified draw-functions structure.
+ *
+ * Return value: (transfer none): A pointer to the user data
+ *
+ * Since: REPLACEME
+ **/
+void *
+hb_draw_funcs_get_user_data (const hb_draw_funcs_t *dfuncs,
+			     hb_user_data_key_t       *key)
+{
+  return hb_object_get_user_data (dfuncs, key);
 }
 
 /**
