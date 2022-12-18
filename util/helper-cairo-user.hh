@@ -237,9 +237,6 @@ paint_image (hb_paint_funcs_t *funcs,
   cairo_t *cr = data->cr;
   hb_font_t *font = data->font;
 
-  if (format != HB_PAINT_IMAGE_FORMAT_PNG || !extents)
-    return;
-
   hb_cairo_paint_glyph_image (cr, font, blob, format, extents);
 }
 
