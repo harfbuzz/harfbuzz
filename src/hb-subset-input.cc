@@ -399,6 +399,7 @@ hb_subset_input_get_user_data (const hb_subset_input_t *input,
 /**
  * hb_subset_input_pin_axis_to_default: (skip)
  * @input: a #hb_subset_input_t object.
+ * @face: a #hb_face_t object.
  * @axis_tag: Tag of the axis to be pinned
  *
  * Pin an axis to its default location in the given subset input object.
@@ -425,6 +426,7 @@ hb_subset_input_pin_axis_to_default (hb_subset_input_t  *input,
 /**
  * hb_subset_input_pin_axis_location: (skip)
  * @input: a #hb_subset_input_t object.
+ * @face: a #hb_face_t object.
  * @axis_tag: Tag of the axis to be pinned
  * @axis_value: Location on the axis to be pinned at
  *
