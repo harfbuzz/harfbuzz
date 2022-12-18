@@ -213,7 +213,6 @@ hb_draw_funcs_get_empty ()
   return const_cast<hb_draw_funcs_t *> (&Null (hb_draw_funcs_t));
 }
 
-
 /**
  * hb_draw_funcs_reference: (skip)
  * @dfuncs: draw functions

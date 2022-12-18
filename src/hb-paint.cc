@@ -226,6 +226,21 @@ DEFINE_NULL_INSTANCE (hb_paint_funcs_t) =
 };
 
 /**
+ * hb_paint_funcs_get_empty:
+ *
+ * Fetches the singleton empty paint-functions structure.
+ *
+ * Return value: (transfer full): The empty paint-functions structure
+ *
+ * Since: REPLACEME
+ **/
+hb_paint_funcs_t *
+hb_paint_funcs_get_empty ()
+{
+  return const_cast<hb_paint_funcs_t *> (&Null (hb_paint_funcs_t));
+}
+
+/**
  * hb_paint_funcs_reference: (skip)
  * @funcs: The paint-functions structure
  *
@@ -268,6 +283,49 @@ hb_paint_funcs_destroy (hb_paint_funcs_t *funcs)
   hb_free (funcs->destroy);
   hb_free (funcs->user_data);
   hb_free (funcs);
+}
+
+/**
+ * hb_paint_funcs_set_user_data: (skip)
+ * @pfuncs: The paint-functions structure
+ * @key: The user-data key
+ * @data: A pointer to the user data
+ * @destroy: (nullable): A callback to call when @data is not needed anymore
+ * @replace: Whether to replace an existing data with the same key
+ *
+ * Attaches a user-data key/data pair to the specified paint-functions structure. 
+ *
+ * Return value: `true` if success, `false` otherwise
+ *
+ * Since: REPLACEME
+ **/
+hb_bool_t
+hb_paint_funcs_set_user_data (hb_paint_funcs_t *pfuncs,
+			     hb_user_data_key_t *key,
+			     void *              data,
+			     hb_destroy_func_t   destroy,
+			     hb_bool_t           replace)
+{
+  return hb_object_set_user_data (pfuncs, key, data, destroy, replace);
+}
+
+/**
+ * hb_paint_funcs_get_user_data: (skip)
+ * @pfuncs: The paint-functions structure
+ * @key: The user-data key to query
+ *
+ * Fetches the user-data associated with the specified key,
+ * attached to the specified paint-functions structure.
+ *
+ * Return value: (transfer none): A pointer to the user data
+ *
+ * Since: REPLACEME
+ **/
+void *
+hb_paint_funcs_get_user_data (const hb_paint_funcs_t *pfuncs,
+			     hb_user_data_key_t       *key)
+{
+  return hb_object_get_user_data (pfuncs, key);
 }
 
 /**

@@ -66,10 +66,25 @@ HB_EXTERN hb_paint_funcs_t *
 hb_paint_funcs_create (void);
 
 HB_EXTERN hb_paint_funcs_t *
+hb_paint_funcs_get_empty (void);
+
+HB_EXTERN hb_paint_funcs_t *
 hb_paint_funcs_reference (hb_paint_funcs_t *funcs);
 
 HB_EXTERN void
 hb_paint_funcs_destroy (hb_paint_funcs_t *funcs);
+
+HB_EXTERN hb_bool_t
+hb_paint_funcs_set_user_data (hb_paint_funcs_t *funcs,
+			      hb_user_data_key_t *key,
+			      void *              data,
+			      hb_destroy_func_t   destroy,
+			      hb_bool_t           replace);
+
+
+HB_EXTERN void *
+hb_paint_funcs_get_user_data (const hb_paint_funcs_t *funcs,
+			      hb_user_data_key_t       *key);
 
 HB_EXTERN void
 hb_paint_funcs_make_immutable (hb_paint_funcs_t *funcs);
