@@ -726,6 +726,12 @@ test_hb_ot_color_colr_v1 (gconstpointer d)
 
   hb_font_paint_glyph (font, test->glyph, funcs, &data);
 
+  /* Run
+   *
+   * GENERATE_DATA=1 G_TEST_SRCDIR=./test/api ./build/test/api/test-ot-color -p TESTCASE > test/api/results/OUTPUT
+   *
+   * to produce the expected results file.
+   */
   if (getenv ("GENERATE_DATA"))
     {
       g_print ("%s\n", data.string->str);
