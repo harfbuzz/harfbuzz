@@ -366,7 +366,7 @@ render_color_glyph (cairo_scaled_font_t  *scaled_font,
   hb_glyph_extents_t hb_extents;
   hb_font_get_glyph_extents (font, glyph, &hb_extents);
   extents->x_bearing = (double) hb_extents.x_bearing / x_scale;
-  extents->y_bearing = (double) hb_extents.y_bearing / y_scale;
+  extents->y_bearing = (double)-hb_extents.y_bearing / y_scale;
   extents->width     = (double) hb_extents.width     / x_scale;
   extents->height    = (double) hb_extents.height    / y_scale;
 
