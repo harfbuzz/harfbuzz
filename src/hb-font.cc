@@ -1401,6 +1401,9 @@ hb_font_get_glyph_shape (hb_font_t *font,
  * calls to the callbacks of the @funcs objects,
  * with @paint_data passed to them.
  *
+ * Note that this function applies the the scale and synthetic
+ * slant of the font as outermost transform.
+ *
  * Since: REPLACEME
  */
 void
