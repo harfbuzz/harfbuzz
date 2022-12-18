@@ -315,11 +315,23 @@ get_cairo_paint_funcs (void)
 #endif
 
 static cairo_status_t
+render_color_glyph (cairo_scaled_font_t  *scaled_font,
+		    unsigned long         glyph,
+		    cairo_t              *cr,
+		    cairo_text_extents_t *extents);
+
+static cairo_status_t
 render_glyph (cairo_scaled_font_t  *scaled_font,
 	      unsigned long         glyph,
 	      cairo_t              *cr,
 	      cairo_text_extents_t *extents)
 {
+#ifdef HAVE_CAIRO_USER_FONT_FACE_SET_RENDER_COLOR_GLYPH_FUNC
+  static char *p = getenv ("HB_DRAW");
+  if (p && atoi (p) >= 2)
+    return render_color_glyph (scaled_font, glyph, cr, extents);
+#endif
+
   hb_font_t *font = (hb_font_t *) (cairo_font_face_get_user_data (cairo_scaled_font_get_font_face (scaled_font),
 								  &_hb_font_cairo_user_data_key));
 
