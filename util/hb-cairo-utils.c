@@ -146,6 +146,10 @@ hb_cairo_paint_glyph_image (hb_font_t *font,
   cairo_matrix_t matrix = {(double) width, 0, 0, (double) height, 0, 0};
   cairo_pattern_set_matrix (pattern, &matrix);
 
+  hb_position_t x_scale, y_scale;
+  hb_font_get_scale (font, &x_scale, &y_scale);
+  cairo_scale (cr, +1./x_scale, -1./y_scale);
+
   cairo_translate (cr, extents->x_bearing, extents->y_bearing);
   cairo_scale (cr, extents->width, extents->height);
   cairo_set_source (cr, pattern);
@@ -505,7 +509,7 @@ add_sweep_gradient_patches (hb_font_t *font,
       end_angle = start_angle;
       start_angle = angle;
 
-      for (int i = 0; i < n_stops - 1 - i; i++)
+      for (unsigned i = 0; i < n_stops - 1 - i; i++)
         {
           hb_color_stop_t stop = stops[i];
           stops[i] = stops[n_stops - 1 - i];
@@ -516,7 +520,7 @@ add_sweep_gradient_patches (hb_font_t *font,
   angles = alloca (sizeof (float) * n_stops);
   colors = alloca (sizeof (color_t) * n_stops);
 
-  for (int i = 0; i < n_stops; i++)
+  for (unsigned i = 0; i < n_stops; i++)
     {
       angles[i] = start_angle + stops[i].offset * (end_angle - start_angle);
       hb_face_get_color (face, 0, stops[i].color_index, stops[i].alpha, &colors[i].r, &colors[i].g, &colors[i].b, &colors[i].a);
@@ -524,7 +528,7 @@ add_sweep_gradient_patches (hb_font_t *font,
 
   if (extend == CAIRO_EXTEND_PAD)
     {
-      int pos;
+      unsigned pos;
 
       color0 = colors[0];
       for (pos = 0; pos < n_stops; pos++)
@@ -631,9 +635,9 @@ add_sweep_gradient_patches (hb_font_t *font,
 
       //assert (angles[0] + k * span <= 0 && 0 < angles[n_stops - 1] + k * span);
 
-     for (int l = k; 1; l++)
+     for (unsigned l = k; 1; l++)
         {
-          for (int i = 1; i < n_stops; i++)
+          for (unsigned i = 1; i < n_stops; i++)
             {
               float a0, a1;
               color_t *c0, *c1;
