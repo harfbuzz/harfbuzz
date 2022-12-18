@@ -892,7 +892,7 @@ hb_font_get_glyph_shape (hb_font_t *font,
 HB_EXTERN void
 hb_font_paint_glyph (hb_font_t *font,
                      hb_codepoint_t glyph,
-                     hb_paint_funcs_t *funcs, void *paint_data);
+                     hb_paint_funcs_t *pfuncs, void *paint_data);
 
 
 /* high-level funcs, with fallback */
