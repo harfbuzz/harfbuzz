@@ -327,7 +327,7 @@ interpolate (float f0, float f1, float f)
   return f0 + f * (f1 - f0);
 }
 
-void
+static void
 interpolate_colors (color_t *c0, color_t *c1, float k, color_t *c)
 {
   c->r = c0->r + k * (c1->r - c0->r);
