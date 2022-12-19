@@ -197,7 +197,12 @@ HB_PAINT_FUNCS_IMPLEMENT_CALLBACKS
  * hb_paint_funcs_create:
  *
  * Creates a new #hb_paint_funcs_t structure of paint functions.
-
+ *
+ * The initial reference count of 1 should be released with hb_paint_funcs_destroy()
+ * when you are done using the #hb_paint_funcs_t. This function never returns
+ * `NULL`. If memory cannot be allocated, a special singleton #hb_paint_funcs_t
+ * object will be returned.
+ *
  * Returns value: (transfer full): the paint-functions structure
  *
  * Since: REPLACEME
@@ -246,6 +251,9 @@ hb_paint_funcs_get_empty ()
  *
  * Increases the reference count on a paint-functions structure.
  *
+ * This prevents @funcs from being destroyed until a matching
+ * call to hb_paint_funcs_destroy() is made.
+ *
  * Return value: The paint-functions structure
  *
  * Since: REPLACEME
@@ -293,7 +301,7 @@ hb_paint_funcs_destroy (hb_paint_funcs_t *funcs)
  * @destroy: (nullable): A callback to call when @data is not needed anymore
  * @replace: Whether to replace an existing data with the same key
  *
- * Attaches a user-data key/data pair to the specified paint-functions structure. 
+ * Attaches a user-data key/data pair to the specified paint-functions structure.
  *
  * Return value: `true` if success, `false` otherwise
  *
