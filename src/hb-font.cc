@@ -504,12 +504,12 @@ hb_font_get_glyph_from_name_default (hb_font_t      *font,
 }
 
 static void
-hb_font_get_glyph_shape_nil (hb_font_t       *font HB_UNUSED,
-			     void            *font_data HB_UNUSED,
-			     hb_codepoint_t   glyph,
-			     hb_draw_funcs_t *draw_funcs,
-			     void            *draw_data,
-			     void            *user_data HB_UNUSED)
+hb_font_draw_glyph_nil (hb_font_t       *font HB_UNUSED,
+			void            *font_data HB_UNUSED,
+			hb_codepoint_t   glyph,
+			hb_draw_funcs_t *draw_funcs,
+			void            *draw_data,
+			void            *user_data HB_UNUSED)
 {
 }
 
@@ -523,13 +523,13 @@ hb_font_paint_glyph_nil (hb_font_t *font HB_UNUSED,
 {
 }
 
-typedef struct hb_font_get_glyph_shape_default_adaptor_t {
+typedef struct hb_font_draw_glyph_default_adaptor_t {
   hb_draw_funcs_t *draw_funcs;
   void		  *draw_data;
   float		   x_scale;
   float		   y_scale;
   float		   slant;
-} hb_font_get_glyph_shape_default_adaptor_t;
+} hb_font_draw_glyph_default_adaptor_t;
 
 static void
 hb_draw_move_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED,
@@ -538,7 +538,7 @@ hb_draw_move_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED,
 			 float to_x, float to_y,
 			 void *user_data HB_UNUSED)
 {
-  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
   float slant   = adaptor->slant;
@@ -553,7 +553,7 @@ hb_draw_line_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
 			 float to_x, float to_y,
 			 void *user_data HB_UNUSED)
 {
-  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
   float slant   = adaptor->slant;
@@ -572,7 +572,7 @@ hb_draw_quadratic_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data
 			      float to_x, float to_y,
 			      void *user_data HB_UNUSED)
 {
-  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
   float slant   = adaptor->slant;
@@ -593,7 +593,7 @@ hb_draw_cubic_to_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
 			  float to_x, float to_y,
 			  void *user_data HB_UNUSED)
 {
-  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
   float x_scale = adaptor->x_scale;
   float y_scale = adaptor->y_scale;
   float slant   = adaptor->slant;
@@ -612,7 +612,7 @@ hb_draw_close_path_default (hb_draw_funcs_t *dfuncs HB_UNUSED, void *draw_data,
 			    hb_draw_state_t *st,
 			    void *user_data HB_UNUSED)
 {
-  hb_font_get_glyph_shape_default_adaptor_t *adaptor = (hb_font_get_glyph_shape_default_adaptor_t *) draw_data;
+  hb_font_draw_glyph_default_adaptor_t *adaptor = (hb_font_draw_glyph_default_adaptor_t *) draw_data;
 
   adaptor->draw_funcs->emit_close_path (adaptor->draw_data, *st);
 }
@@ -628,14 +628,14 @@ static const hb_draw_funcs_t _hb_draw_funcs_default = {
 };
 
 static void
-hb_font_get_glyph_shape_default (hb_font_t       *font,
+hb_font_draw_glyph_default (hb_font_t       *font,
 				 void            *font_data HB_UNUSED,
 				 hb_codepoint_t   glyph,
 				 hb_draw_funcs_t *draw_funcs,
 				 void            *draw_data,
 				 void            *user_data HB_UNUSED)
 {
-  hb_font_get_glyph_shape_default_adaptor_t adaptor = {
+  hb_font_draw_glyph_default_adaptor_t adaptor = {
     draw_funcs,
     draw_data,
     font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
@@ -644,7 +644,7 @@ hb_font_get_glyph_shape_default (hb_font_t       *font,
 			    (float) font->x_scale / (float) font->parent->y_scale : 0.f
   };
 
-  font->parent->get_glyph_shape (glyph,
+  font->parent->draw_glyph (glyph,
 				 const_cast<hb_draw_funcs_t *> (&_hb_draw_funcs_default),
 				 &adaptor);
 }
@@ -1388,14 +1388,37 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
  * The shape is returned by way of calls to the callbacks of the @dfuncs
  * objects, with @draw_data passed to them.
  *
- * Since: 4.0.0
- **/
+ * Since: REPLACEME
+ *
+ * Deprecated: REPLACEME: Use hb_font_draw_glyph() instead.
+ */
 void
 hb_font_get_glyph_shape (hb_font_t *font,
+		         hb_codepoint_t glyph,
+		         hb_draw_funcs_t *dfuncs, void *draw_data)
+{
+  hb_font_draw_glyph (font, glyph, dfuncs, draw_data);
+}
+
+/**
+ * hb_font_draw_glyph:
+ * @font: #hb_font_t to work upon
+ * @glyph: : The glyph ID
+ * @dfuncs: #hb_draw_funcs_t to draw to
+ * @draw_data: User data to pass to draw callbacks
+ *
+ * Fetches the glyph shape that corresponds to a glyph in the specified @font.
+ * The shape is returned by way of calls to the callbacks of the @dfuncs
+ * objects, with @draw_data passed to them.
+ *
+ * Since: REPLACEME
+ **/
+void
+hb_font_draw_glyph (hb_font_t *font,
 			 hb_codepoint_t glyph,
 			 hb_draw_funcs_t *dfuncs, void *draw_data)
 {
-  font->get_glyph_shape (glyph, dfuncs, draw_data);
+  font->draw_glyph (glyph, dfuncs, draw_data);
 }
 
 /**
@@ -2386,9 +2409,8 @@ hb_font_get_ptem (hb_font_t *font)
  * HarfBuzz needs to know this value to adjust shaping results,
  * metrics, and style values to match the slanted rendering.
  *
- * <note>Note: The glyph shape fetched via the
- * hb_font_get_glyph_shape() is slanted to reflect this value
- * as well.</note>
+ * <note>Note: The glyph shape fetched via the hb_font_draw_glyph()
+ * function is slanted to reflect this value as well.</note>
  *
  * <note>Note: The slant value is a ratio.  For example, a
  * 20% slant would be represented as a 0.2 value.</note>
@@ -2812,3 +2834,13 @@ hb_font_funcs_set_glyph_func (hb_font_funcs_t          *ffuncs,
 					  trampoline_destroy);
 }
 #endif
+
+
+void
+hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t               *ffuncs,
+                                   hb_font_get_glyph_shape_func_t  func,
+                                   void                           *user_data,
+                                   hb_destroy_func_t               destroy /* May be NULL. */)
+{
+  hb_font_funcs_set_draw_glyph_func (ffuncs, func, user_data, destroy);
+}

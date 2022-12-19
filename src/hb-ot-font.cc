@@ -425,11 +425,11 @@ hb_ot_get_font_v_extents (hb_font_t *font,
 
 #ifndef HB_NO_DRAW
 static void
-hb_ot_get_glyph_shape (hb_font_t *font,
-		       void *font_data HB_UNUSED,
-		       hb_codepoint_t glyph,
-		       hb_draw_funcs_t *draw_funcs, void *draw_data,
-		       void *user_data)
+hb_ot_draw_glyph (hb_font_t *font,
+		  void *font_data HB_UNUSED,
+		  hb_codepoint_t glyph,
+		  hb_draw_funcs_t *draw_funcs, void *draw_data,
+		  void *user_data)
 {
   hb_draw_session_t draw_session (draw_funcs, draw_data, font->slant_xy);
   if (font->face->table.glyf->get_path (font, glyph, draw_session)) return;
@@ -487,7 +487,7 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 #endif
 
 #ifndef HB_NO_DRAW
-    hb_font_funcs_set_glyph_shape_func (funcs, hb_ot_get_glyph_shape, nullptr, nullptr);
+    hb_font_funcs_set_draw_glyph_func (funcs, hb_ot_draw_glyph, nullptr, nullptr);
 #endif
 
 #ifndef HB_NO_PAINT

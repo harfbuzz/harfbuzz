@@ -35,6 +35,8 @@
  * @include: hb.h
  *
  * Functions for drawing (extracting) glyph shapes.
+ *
+ * The #hb_draw_funcs_t struct can be used with hb_font_draw_glyph().
  **/
 
 static void
