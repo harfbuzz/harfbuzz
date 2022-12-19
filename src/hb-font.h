@@ -513,6 +513,19 @@ typedef void (*hb_font_get_glyph_shape_func_t) (hb_font_t *font, void *font_data
 						hb_draw_funcs_t *draw_funcs, void *draw_data,
 						void *user_data);
 
+/**
+ * hb_font_paint_glyph_func_t:
+ * @font: #hb_font_t to work upon
+ * @font_data: @font user data pointer
+ * @glyph: The glyph ID to query
+ * @paint_funcs: The paint functions to use
+ * @paint_data: The data accompanying the paint functions
+ * @user_data: User data pointer passed by the caller
+ *
+ * A virtual method for the #hb_font_funcs_t of an #hb_font_t object.
+ *
+ * Since: REPLACEME
+ */
 typedef void (*hb_font_paint_glyph_func_t) (hb_font_t *font, void *font_data,
                                             hb_codepoint_t glyph,
                                             hb_paint_funcs_t *paint_funcs, void *paint_data,
