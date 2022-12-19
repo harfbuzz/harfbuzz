@@ -421,7 +421,7 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
 }
 
 /**
- * hb_paint_push_clip_rect:
+ * hb_paint_push_clip_rectangle:
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
  * @xmin: min X for the rectangle

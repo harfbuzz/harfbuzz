@@ -798,6 +798,10 @@ hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t *ffuncs,
  * @func: (closure user_data) (destroy destroy) (scope notified):
  * @user_data:
  * @destroy: (nullable):
+ *
+ * Sets the implementation function for #hb_font_get_glyph_paint_func_t.
+ *
+ * Since: REPLACEME
  */
 HB_EXTERN void
 hb_font_funcs_set_glyph_paint_func (hb_font_funcs_t *ffuncs,
