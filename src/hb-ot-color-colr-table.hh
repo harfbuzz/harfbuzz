@@ -28,11 +28,11 @@
 #ifndef HB_OT_COLOR_COLR_TABLE_HH
 #define HB_OT_COLOR_COLR_TABLE_HH
 
+#include "hb.hh"
 #include "hb-open-type.hh"
 #include "hb-ot-layout-common.hh"
 #include "hb-ot-var-common.hh"
 #include "hb-paint.hh"
-#include <math.h>
 
 /*
  * COLR -- Color

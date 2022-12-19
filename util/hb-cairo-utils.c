@@ -24,6 +24,8 @@
  * Google Author(s): Matthias Clasen
  */
 
+#include "config.h"
+
 #include "hb-cairo-utils.h"
 
 #include <cairo.h>
@@ -31,6 +33,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <assert.h>
 
@@ -133,6 +136,7 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
                             hb_tag_t format,
                             hb_glyph_extents_t *extents)
 {
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
   if (format != HB_PAINT_IMAGE_FORMAT_PNG || !extents)
     return;
 
@@ -157,6 +161,7 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
 
   cairo_pattern_destroy (pattern);
   cairo_surface_destroy (surface);
+#endif
 }
 
 static void
