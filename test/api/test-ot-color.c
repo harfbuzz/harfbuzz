@@ -755,6 +755,7 @@ test_hb_ot_color_colr_v1 (gconstpointer d)
 
   g_string_free (data.string, TRUE);
 
+  hb_paint_funcs_destroy (funcs);
   hb_font_destroy (font);
   hb_face_destroy (face);
 }
