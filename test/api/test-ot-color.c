@@ -741,6 +741,7 @@ test_hb_ot_color_colr_v1 (gconstpointer d)
   file = g_test_build_filename (G_TEST_DIST, test->output, NULL);
   if (!g_file_get_contents (file, &buffer, &len, &error))
   {
+    g_test_message ("File %s not found.", file);
     g_test_fail ();
     return;
   }
