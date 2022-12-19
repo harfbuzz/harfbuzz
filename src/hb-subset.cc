@@ -208,13 +208,6 @@ _plan_estimate_subset_table_size (hb_subset_plan_t *plan,
 static hb_blob_t*
 _repack (hb_tag_t tag, const hb_serialize_context_t& c)
 {
-  if (tag != HB_OT_TAG_GPOS
-      &&  tag != HB_OT_TAG_GSUB)
-  {
-    // Check for overflow in a non-handled table.
-    return c.successful () ? c.copy_blob () : nullptr;
-  }
-
   if (!c.offset_overflow ())
     return c.copy_blob ();
 
