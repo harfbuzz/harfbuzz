@@ -95,14 +95,14 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs);
 /**
  * hb_paint_push_transform_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @xx: xx component of the transform matrix
  * @yx: yx component of the transform matrix
  * @xy: xy component of the transform matrix
  * @yy: yy component of the transform matrix
  * @dx: dx component of the transform matrix
  * @dy: dy component of the transform matrix
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_push_transform_func()
  *
  * A virtual method for the #hb_paint_funcs_t to apply
  * a transform to subsequent paint calls.
@@ -123,8 +123,8 @@ typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_pop_transform_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
- * @user_data: User data pointer passed by the caller
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
+ * @user_data: User data pointer passed to hb_paint_funcs_set_pop_transform_func()
  *
  * A virtual method for the #hb_paint_funcs_t to undo
  * the effect of a prior call to the #hb_paint_funcs_push_transform_func_t
@@ -139,9 +139,9 @@ typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_push_clip_glyph_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @glyph: the glyph ID
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_push_clip_glyph_func()
  *
  * A virtual method for the #hb_paint_funcs_t to clip
  * subsequent paint calls to the outline of a glyph.
@@ -168,12 +168,12 @@ typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_push_clip_rectangle_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @xmin: min X for the rectangle
  * @ymin: min Y for the rectangle
  * @xmax: max X for the rectangle
  * @ymax: max Y for the rectangle
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_push_clip_rectangle_func()
  *
  * A virtual method for the #hb_paint_funcs_t to clip
  * subsequent paint calls to a rectangle.
@@ -196,8 +196,8 @@ typedef void (*hb_paint_push_clip_rectangle_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_pop_clip_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
- * @user_data: User data pointer passed by the caller
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
+ * @user_data: User data pointer passed to hb_paint_funcs_set_pop_clip_func()
  *
  * A virtual method for the #hb_paint_funcs_t to undo
  * the effect of a prior call to the #hb_paint_funcs_push_clip_glyph_func_t
@@ -212,10 +212,10 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_color_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @color_index: Index of a color in the fonts selected color palette
  * @alpha: alpha to apply in addition
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_color_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a
  * color everywhere within the current clip.
@@ -252,11 +252,11 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_image_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @image: the image data
  * @format: the image format as a tag
  * @extents: (nullable): glyph extents
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_image_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint the
  * glyph image.
@@ -267,7 +267,7 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * and HB_PAINT_IMAGE_FORMAT_SVG.
  *
  * The glyph extents are provided if available, and should be used
- * to position the image.
+ * to size and position the image.
  *
  * Since: REPLACEME
  */
@@ -331,7 +331,7 @@ hb_color_line_get_extend (hb_color_line_t *color_line);
 /**
  * hb_paint_linear_gradient_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @color_line: Color information for the gradient
  * @x0: X coordinate of the first point
  * @y0: Y coordinate of the first point
@@ -339,7 +339,7 @@ hb_color_line_get_extend (hb_color_line_t *color_line);
  * @y1: Y coordinate of the second point
  * @x2: X coordinate of the third point
  * @y2: Y coordinate of the third point
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_linear_gradient_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a linear
  * gradient everywhere within the current clip.
@@ -364,7 +364,7 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_radial_gradient_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @color_line: Color information for the gradient
  * @x0: X coordinate of the first circle's center
  * @y0: Y coordinate of the first circle's center
@@ -372,7 +372,7 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
  * @x1: X coordinate of the second circle's center
  * @y1: Y coordinate of the second circle's center
  * @r1: radius of the second circle
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_radial_gradient_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a radial
  * gradient everywhere within the current clip.
@@ -396,13 +396,13 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_sweep_gradient_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @color_line: Color information for the gradient
  * @x0: X coordinate of the circle's center
  * @y0: Y coordinate of the circle's center
  * @start_angle: the start angle, in radians
  * @end_angle: the end angle, in radians
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_sweep_gradient_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a sweep
  * gradient everywhere within the current clip.
@@ -468,8 +468,8 @@ typedef enum {
 /**
  * hb_paint_push_group_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
- * @user_data: User data pointer passed by the caller
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
+ * @user_data: User data pointer passed to hb_paint_funcs_set_push_group_func()
  *
  * A virtual method for the #hb_paint_funcs_t to use
  * an intermediate surface for subsequent paint calls.
@@ -487,9 +487,9 @@ typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
 /**
  * hb_paint_pop_group_func_t:
  * @funcs: paint functions object
- * @paint_data: The data accompanying the paint functions
+ * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @mode: the compositing mode to use
- * @user_data: User data pointer passed by the caller
+ * @user_data: User data pointer passed to hb_paint_funcs_set_pop_group_func()
  *
  * A virtual method for the #hb_paint_funcs_t to undo
  * the effect of a prior call to the #hb_paint_funcs_push_group_func_t
