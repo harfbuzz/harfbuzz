@@ -745,10 +745,38 @@ test_hb_ot_color_colr_v1 (gconstpointer d)
     return;
   }
 
-  if (strcmp (buffer, data.string->str) != 0)
+  char **lines = g_strsplit (data.string->str, "\n", 0);
+  char **expected;
+  if (strstr (buffer, "\r\n"))
+    expected = g_strsplit (buffer, "\r\n", 0);
+  else
+    expected = g_strsplit (buffer, "\n", 0);
+
+  if (g_strv_length (lines) != g_strv_length (expected))
   {
-     g_test_fail ();
+    g_test_message ("Unexpected number of lines in output (%d instead of %d)", g_strv_length (lines), g_strv_length (expected));
+    g_test_fail ();
   }
+  else
+  {
+    unsigned int length = g_strv_length (lines);
+    for (unsigned int i = 0; i < length; i++)
+    {
+      if (strcmp (lines[i], expected[i]) != 0)
+      {
+        int pos;
+        for (pos = 0; lines[i][pos]; pos++)
+          if (lines[i][pos] != expected[i][pos])
+            break;
+
+        g_test_message ("Unxpected output at %d:%d (%#x instead of %#x):\n%s", i, pos, (unsigned int)lines[i][pos], (unsigned int)expected[i][pos], data.string->str);
+        g_test_fail ();
+      }
+    }
+  }
+
+  g_strfreev (lines);
+  g_strfreev (expected);
 
   g_free (buffer);
   g_free (file);
