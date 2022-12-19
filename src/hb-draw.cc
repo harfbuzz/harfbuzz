@@ -203,8 +203,10 @@ DEFINE_NULL_INSTANCE (hb_draw_funcs_t) =
  * hb_draw_funcs_reference: (skip)
  * @dfuncs: draw functions
  *
- * Increases the reference count on @dfuncs by one. This prevents @buffer from
- * being destroyed until a matching call to hb_draw_funcs_destroy() is made.
+ * Increases the reference count on @dfuncs by one.
+ *
+ * This prevents @dfuncs from being destroyed until a matching
+ * call to hb_draw_funcs_destroy() is made.
  *
  * Return value: (transfer full):
  * The referenced #hb_draw_funcs_t.
