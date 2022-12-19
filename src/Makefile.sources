@@ -89,6 +89,8 @@ HB_BASE_sources = \
 	hb-ot-layout-common.hh \
 	hb-ot-layout-gdef-table.hh \
 	hb-ot-layout-gpos-table.hh \
+	hb-paint.cc \
+	hb-paint.hh \
 	hb-ot-layout-gsub-table.hh \
 	OT/glyf/glyf.hh \
 	OT/glyf/glyf-helpers.hh \
@@ -291,6 +293,7 @@ HB_BASE_headers = \
 	hb-ot-shape.h \
 	hb-ot-var.h \
 	hb-ot.h \
+	hb-paint.h \
 	hb-set.h \
 	hb-shape-plan.h \
 	hb-shape.h \

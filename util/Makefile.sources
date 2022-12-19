@@ -2,6 +2,8 @@ HB_VIEW_sources = \
 	ansi-print.hh \
 	face-options.hh \
 	font-options.hh \
+	hb-cairo-utils.h \
+	hb-cairo-utils.c \
 	hb-view.cc \
 	helper-cairo-ansi.hh \
 	helper-cairo-ft.hh \
