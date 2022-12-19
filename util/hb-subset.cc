@@ -668,6 +668,10 @@ parse_instance (const char *name,
 		GError    **error)
 {
   subset_main_t *subset_main = (subset_main_t *) data;
+  if (!subset_main->face) {
+    // There is no face, which is needed to set up instancing. Skip parsing these options.
+    return true;
+  }
 
   char *s = strtok((char *) arg, "=");
   while (s)
