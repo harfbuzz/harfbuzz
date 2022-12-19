@@ -14,7 +14,10 @@ libs:
 
 EXTRA_DIST += meson.build
 
-EXTRA_DIST += fonts
+EXTRA_DIST += \
+	fonts \
+	results \
+	$(NULL)
 
 LINK = $(CXXLINK)
 
