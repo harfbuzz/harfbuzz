@@ -36,7 +36,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <assert.h>
-#include <malloc.h>
 
 #ifndef MIN
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
