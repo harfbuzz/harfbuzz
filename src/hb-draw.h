@@ -183,7 +183,7 @@ typedef void (*hb_draw_cubic_to_func_t) (hb_draw_funcs_t *dfuncs, void *draw_dat
  * @dfuncs: draw functions object
  * @draw_data: The data accompanying the draw functions in hb_font_get_glyph_shape()
  * @st: current draw state
- * @user_data: User data pointer passed to hb_draw_funcs_Set_close_path_func()
+ * @user_data: User data pointer passed to hb_draw_funcs_set_close_path_func()
  *
  * A virtual method for the #hb_draw_funcs_t to perform a "close-path" draw
  * operation.
