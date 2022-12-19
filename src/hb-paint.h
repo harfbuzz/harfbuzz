@@ -319,6 +319,16 @@ hb_color_line_get_color_stops (hb_color_line_t *color_line,
                                unsigned int *count,
                                hb_color_stop_t *color_stops);
 
+/**
+ * hb_paint_extend_t:
+ *
+ * The values of this enumeration determine how color values
+ * outside the minimum and maximum defined offset on a #hb_color_line_t
+ * are determined.
+ *
+ * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * for details.
+ */
 typedef enum {
   HB_PAINT_EXTEND_PAD,
   HB_PAINT_EXTEND_REPEAT,
