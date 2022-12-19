@@ -326,8 +326,8 @@ hb_color_line_get_color_stops (hb_color_line_t *color_line,
  * outside the minimum and maximum defined offset on a #hb_color_line_t
  * are determined.
  *
- * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
- * for details.
+ * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * section for details.
  */
 typedef enum {
   HB_PAINT_EXTEND_PAD,
@@ -357,9 +357,9 @@ hb_color_line_get_extend (hb_color_line_t *color_line);
  * The coordinates of the points are interpreted according
  * to the current transform.
  *
- * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
- * for details on how the points define the direction of the
- * gradient, and how to interpret the @color_line.
+ * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * section for details on how the points define the direction
+ * of the gradient, and how to interpret the @color_line.
  *
  * Since: REPLACEME
  */
@@ -390,9 +390,9 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
  * The coordinates of the points are interpreted according
  * to the current transform.
  *
- * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
- * for details on how the points define the direction of the
- * gradient, and how to interpret the @color_line.
+ * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * section for details on how the points define the direction
+ * of the gradient, and how to interpret the @color_line.
  *
  * Since: REPLACEME
  */
@@ -420,9 +420,9 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
  * The coordinates of the points are interpreted according
  * to the current transform.
  *
- * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
- * for details on how the points define the direction of the
- * gradient, and how to interpret the @color_line.
+ * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * section for details on how the points define the direction
+ * of the gradient, and how to interpret the @color_line.
  *
  * Since: REPLACEME
  */
@@ -441,8 +441,8 @@ typedef void (*hb_paint_sweep_gradient_func_t)  (hb_paint_funcs_t *funcs,
  * that can be used when combining temporary redirected drawing
  * with the backdrop.
  *
- * See the OpenType spec COLR section (https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
- * for details.
+ * See the OpenType spec [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * section for details.
  */
 typedef enum {
   HB_PAINT_COMPOSITE_MODE_CLEAR,
