@@ -442,11 +442,11 @@ hb_ot_get_glyph_shape (hb_font_t *font,
 
 #ifndef HB_NO_PAINT
 static void
-hb_ot_get_glyph_paint (hb_font_t *font,
-                       void *font_data,
-                       hb_codepoint_t glyph,
-                       hb_paint_funcs_t *paint_funcs, void *paint_data,
-                       void *user_data)
+hb_ot_paint_glyph (hb_font_t *font,
+                   void *font_data,
+                   hb_codepoint_t glyph,
+                   hb_paint_funcs_t *paint_funcs, void *paint_data,
+                   void *user_data)
 {
 #ifndef HB_NO_COLOR
   if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
@@ -491,7 +491,7 @@ static struct hb_ot_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ot
 #endif
 
 #ifndef HB_NO_PAINT
-    hb_font_funcs_set_glyph_paint_func (funcs, hb_ot_get_glyph_paint, nullptr, nullptr);
+    hb_font_funcs_set_paint_glyph_func (funcs, hb_ot_paint_glyph, nullptr, nullptr);
 #endif
 
     hb_font_funcs_set_glyph_extents_func (funcs, hb_ot_get_glyph_extents, nullptr, nullptr);

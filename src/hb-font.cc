@@ -514,12 +514,12 @@ hb_font_get_glyph_shape_nil (hb_font_t       *font HB_UNUSED,
 }
 
 static void
-hb_font_get_glyph_paint_nil (hb_font_t *font HB_UNUSED,
-                             void *font_data HB_UNUSED,
-                             hb_codepoint_t glyph HB_UNUSED,
-                             hb_paint_funcs_t *paint_funcs HB_UNUSED,
-                             void *paint_data HB_UNUSED,
-                             void *user_data HB_UNUSED)
+hb_font_paint_glyph_nil (hb_font_t *font HB_UNUSED,
+                         void *font_data HB_UNUSED,
+                         hb_codepoint_t glyph HB_UNUSED,
+                         hb_paint_funcs_t *paint_funcs HB_UNUSED,
+                         void *paint_data HB_UNUSED,
+                         void *user_data HB_UNUSED)
 {
 }
 
@@ -650,12 +650,12 @@ hb_font_get_glyph_shape_default (hb_font_t       *font,
 }
 
 static void
-hb_font_get_glyph_paint_default (hb_font_t *font,
-                                 void *font_data,
-                                 hb_codepoint_t glyph,
-                                 hb_paint_funcs_t *paint_funcs,
-                                 void *paint_data,
-                                 void *user_data)
+hb_font_paint_glyph_default (hb_font_t *font,
+                             void *font_data,
+                             hb_codepoint_t glyph,
+                             hb_paint_funcs_t *paint_funcs,
+                             void *paint_data,
+                             void *user_data)
 {
   paint_funcs->push_transform (paint_data,
     font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
@@ -666,7 +666,7 @@ hb_font_get_glyph_paint_default (hb_font_t *font,
     0.f,
     0.f);
 
-  font->parent->get_glyph_paint (glyph, paint_funcs, paint_data);
+  font->parent->paint_glyph (glyph, paint_funcs, paint_data);
 
   paint_funcs->pop_transform (paint_data);
 }
@@ -679,7 +679,7 @@ DEFINE_NULL_INSTANCE (hb_font_funcs_t) =
   nullptr,
   {
     {
-#define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_nil,
+#define HB_FONT_FUNC_IMPLEMENT(get_,name) hb_font_##get_##name##_nil,
       HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
     }
@@ -693,7 +693,7 @@ static const hb_font_funcs_t _hb_font_funcs_default = {
   nullptr,
   {
     {
-#define HB_FONT_FUNC_IMPLEMENT(name) hb_font_get_##name##_default,
+#define HB_FONT_FUNC_IMPLEMENT(get_,name) hb_font_##get_##name##_default,
       HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
     }
@@ -771,7 +771,7 @@ hb_font_funcs_destroy (hb_font_funcs_t *ffuncs)
 
   if (ffuncs->destroy)
   {
-#define HB_FONT_FUNC_IMPLEMENT(name) if (ffuncs->destroy->name) \
+#define HB_FONT_FUNC_IMPLEMENT(get_,name) if (ffuncs->destroy->name) \
     ffuncs->destroy->name (!ffuncs->user_data ? nullptr : ffuncs->user_data->name);
     HB_FONT_FUNCS_IMPLEMENT_CALLBACKS
 #undef HB_FONT_FUNC_IMPLEMENT
@@ -911,11 +911,11 @@ fail:
   return false;
 }
 
-#define HB_FONT_FUNC_IMPLEMENT(name) \
+#define HB_FONT_FUNC_IMPLEMENT(get_,name) \
 									 \
 void                                                                     \
 hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
-				 hb_font_get_##name##_func_t  func,      \
+				 hb_font_##get_##name##_func_t func,     \
 				 void                        *user_data, \
 				 hb_destroy_func_t            destroy)   \
 {                                                                        \
@@ -931,7 +931,7 @@ hb_font_funcs_set_##name##_func (hb_font_funcs_t             *ffuncs,    \
   if (func)                                                              \
     ffuncs->get.f.name = func;                                           \
   else                                                                   \
-    ffuncs->get.f.name = hb_font_get_##name##_default;                   \
+    ffuncs->get.f.name = hb_font_##get_##name##_default;                   \
 									 \
   if (ffuncs->user_data)                                                 \
     ffuncs->user_data->name = user_data;                                 \
@@ -1421,7 +1421,7 @@ hb_font_paint_glyph (hb_font_t *font,
                      hb_codepoint_t glyph,
                      hb_paint_funcs_t *pfuncs, void *paint_data)
 {
-  font->get_glyph_paint (glyph, pfuncs, paint_data);
+  font->paint_glyph (glyph, pfuncs, paint_data);
 }
 
 /* A bit higher-level, and with fallback */
