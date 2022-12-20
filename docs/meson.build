@@ -1,3 +1,8 @@
+if build_machine.system() == 'windows'
+  message('Skipping gtk-doc while building on Windows')
+  subdir_done()
+endif
+
 if not find_program('gtkdoc-scan', required: get_option('docs')).found()
   message('Not building documentation as gtk-doc was not found')
   subdir_done()
