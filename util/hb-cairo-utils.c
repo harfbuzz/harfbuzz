@@ -51,13 +51,6 @@ typedef struct {
   float r, g, b, a;
 } color_t;
 
-typedef struct {
-  cairo_t *cr;
-  hb_font_t *font;
-  hb_font_t *unscaled_font;
-} paint_data_t;
-
-
 static inline cairo_extend_t
 cairo_extend (hb_paint_extend_t extend)
 {
