@@ -156,8 +156,7 @@ struct HBFixed : Type
 
 /* 16-bit signed fixed number with the low 14 bits of fraction (2.14). */
 using F2DOT14 = HBFixed<HBINT16, 14>;
-
-/* 16-bit signed fixed number with the low 10 bits of fraction (6.10). */
+using F4DOT12 = HBFixed<HBINT16, 12>;
 using F6DOT10 = HBFixed<HBINT16, 10>;
 
 /* 32-bit signed fixed-point number (16.16). */

@@ -197,11 +197,11 @@ struct VarCompositeGlyphRecord
 
     if (flags & HAVE_TRANSLATE_X)	translateX = * (const FWORD *) p++;
     if (flags & HAVE_TRANSLATE_Y)	translateY = * (const FWORD *) p++;
-    if (flags & HAVE_ROTATION)		rotation = * (const F2DOT14 *) p++;
+    if (flags & HAVE_ROTATION)		rotation = * (const F4DOT12 *) p++;
     if (flags & HAVE_SCALE_X)		scaleX = * (const F6DOT10 *) p++;
     if (flags & HAVE_SCALE_Y)		scaleY = * (const F6DOT10 *) p++;
-    if (flags & HAVE_SKEW_X)		skewX = * (const F2DOT14 *) p++;
-    if (flags & HAVE_SKEW_Y)		skewY = * (const F2DOT14 *) p++;
+    if (flags & HAVE_SKEW_X)		skewX = * (const F4DOT12 *) p++;
+    if (flags & HAVE_SKEW_Y)		skewY = * (const F4DOT12 *) p++;
     if (flags & HAVE_TCENTER_X)		tCenterX = * (const FWORD *) p++;
     if (flags & HAVE_TCENTER_Y)		tCenterY = * (const FWORD *) p++;
 
@@ -270,7 +270,7 @@ struct VarCompositeGlyphRecord
     }
     if (flags & HAVE_ROTATION)
     {
-      rotation = rec_points[0].x / (1 << 14);
+      rotation = rec_points[0].x / (1 << 12);
       rec_points++;
     }
     if (flags & (HAVE_SCALE_X | HAVE_SCALE_Y))
@@ -281,8 +281,8 @@ struct VarCompositeGlyphRecord
     }
     if (flags & (HAVE_SKEW_X | HAVE_SKEW_Y))
     {
-      skewX = rec_points[0].x / (1 << 14);
-      skewY = rec_points[0].y / (1 << 14);
+      skewX = rec_points[0].x / (1 << 12);
+      skewY = rec_points[0].y / (1 << 12);
       rec_points++;
     }
     if (flags & (HAVE_TCENTER_X | HAVE_TCENTER_Y))
