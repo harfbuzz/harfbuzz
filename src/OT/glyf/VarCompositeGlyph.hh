@@ -318,7 +318,6 @@ struct VarCompositeGlyphRecord
 
       signed v = have_variations ? rec_points[i].x : *a++;
 
-      v += setter[axis_index];
       v = hb_clamp (v, -(1<<14), (1<<14));
       setter[axis_index] = v;
     }
