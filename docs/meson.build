@@ -1,3 +1,8 @@
+if not find_program('gtkdoc-scan', required: get_option('docs')).found()
+  message('Not building documentation as gtk-doc was not found')
+  subdir_done()
+endif
+
 conf.set('HAVE_GTK_DOC', 1)
 
 gnome = import('gnome')
