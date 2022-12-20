@@ -165,8 +165,8 @@ struct VarCompositeGlyphRecord
     float translateX = 0.f;
     float translateY = 0.f;
     float rotation = 0.f;
-    float scaleX = 1.f * (1 << 12);
-    float scaleY = 1.f * (1 << 12);
+    float scaleX = 1.f * (1 << 10);
+    float scaleY = 1.f * (1 << 10);
     float skewX = 0.f;
     float skewY = 0.f;
     float tCenterX = 0.f;
@@ -198,8 +198,8 @@ struct VarCompositeGlyphRecord
     if (flags & HAVE_TRANSLATE_X)	translateX = * (const FWORD *) p++;
     if (flags & HAVE_TRANSLATE_Y)	translateY = * (const FWORD *) p++;
     if (flags & HAVE_ROTATION)		rotation = * (const F2DOT14 *) p++;
-    if (flags & HAVE_SCALE_X)		scaleX = * (const F4DOT12 *) p++;
-    if (flags & HAVE_SCALE_Y)		scaleY = * (const F4DOT12 *) p++;
+    if (flags & HAVE_SCALE_X)		scaleX = * (const F6DOT10 *) p++;
+    if (flags & HAVE_SCALE_Y)		scaleY = * (const F6DOT10 *) p++;
     if (flags & HAVE_SKEW_X)		skewX = * (const F2DOT14 *) p++;
     if (flags & HAVE_SKEW_Y)		skewY = * (const F2DOT14 *) p++;
     if (flags & HAVE_TCENTER_X)		tCenterX = * (const FWORD *) p++;
@@ -275,8 +275,8 @@ struct VarCompositeGlyphRecord
     }
     if (flags & (HAVE_SCALE_X | HAVE_SCALE_Y))
     {
-      scaleX = rec_points[0].x / (1 << 12);
-      scaleY = rec_points[0].y / (1 << 12);
+      scaleX = rec_points[0].x / (1 << 10);
+      scaleY = rec_points[0].y / (1 << 10);
       rec_points++;
     }
     if (flags & (HAVE_SKEW_X | HAVE_SKEW_Y))
