@@ -333,15 +333,21 @@ struct glyf_accelerator_t
     return glyph_for_gid (gid).get_extents_without_var_scaled (font, *this, extents);
   }
 
-  bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data) const
+  bool paint_glyph (hb_font_t *font, hb_codepoint_t gid, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const
   {
-    funcs->push_root_transform (data, font);
+    hb_paint_context_t ctx;
 
-    funcs->push_clip_glyph (data, gid, font);
-    funcs->color (data, 0xffff, 1., font);
-    funcs->pop_clip (data, font);
+    ctx.font = font;
+    ctx.palette = 0;
+    ctx.foreground = foreground;
 
-    funcs->pop_root_transform (data, font);
+    funcs->push_root_transform (data, &ctx);
+
+    funcs->push_clip_glyph (data, gid, &ctx);
+    funcs->color (data, 0xffff, 1., &ctx);
+    funcs->pop_clip (data, &ctx);
+
+    funcs->pop_root_transform (data, &ctx);
 
     return false;
   }

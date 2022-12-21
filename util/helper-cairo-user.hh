@@ -111,7 +111,7 @@ push_transform (hb_paint_funcs_t *funcs,
                 float xx, float yx,
                 float xy, float yy,
                 float dx, float dy,
-                hb_font_t *font,
+                const hb_paint_context_t *ctx,
                 void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
@@ -127,7 +127,7 @@ push_transform (hb_paint_funcs_t *funcs,
 static void
 pop_transform (hb_paint_funcs_t *funcs,
                void *paint_data,
-               hb_font_t *font,
+               const hb_paint_context_t *ctx,
                void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
@@ -139,14 +139,14 @@ static void
 push_clip_glyph (hb_paint_funcs_t *funcs,
                  void *paint_data,
                  hb_codepoint_t glyph,
-                 hb_font_t *font,
+                 const hb_paint_context_t *ctx,
                  void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
   cairo_save (cr);
   cairo_new_path (cr);
-  hb_font_draw_glyph (font, glyph, get_cairo_draw_funcs (), cr);
+  hb_font_draw_glyph (ctx->font, glyph, get_cairo_draw_funcs (), cr);
   cairo_close_path (cr);
   cairo_clip (cr);
 }
@@ -155,7 +155,7 @@ static void
 push_clip_rectangle (hb_paint_funcs_t *funcs,
                      void *paint_data,
                      float xmin, float ymin, float xmax, float ymax,
-                     hb_font_t *font,
+                     const hb_paint_context_t *ctx,
                      void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
@@ -170,7 +170,7 @@ push_clip_rectangle (hb_paint_funcs_t *funcs,
 static void
 pop_clip (hb_paint_funcs_t *funcs,
           void *paint_data,
-          hb_font_t *font,
+          const hb_paint_context_t *ctx,
           void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
@@ -181,7 +181,7 @@ pop_clip (hb_paint_funcs_t *funcs,
 static void
 push_group (hb_paint_funcs_t *funcs,
             void *paint_data,
-            hb_font_t *font,
+            const hb_paint_context_t *ctx,
             void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
@@ -194,7 +194,7 @@ static void
 pop_group (hb_paint_funcs_t *funcs,
            void *paint_data,
            hb_paint_composite_mode_t mode,
-           hb_font_t *font,
+           const hb_paint_context_t *ctx,
            void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
@@ -211,13 +211,13 @@ paint_color (hb_paint_funcs_t *funcs,
              void *paint_data,
              unsigned int color_index,
              float alpha,
-             hb_font_t *font,
+             const hb_paint_context_t *ctx,
              void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
   float r, g, b, a;
 
-  hb_cairo_get_font_color (font, 0, color_index, alpha, &r, &g, &b, &a);
+  hb_cairo_get_font_color (ctx, color_index, alpha, &r, &g, &b, &a);
   cairo_set_source_rgba (cr, (double)r, (double)g, (double)b, (double)a);
   cairo_paint (cr);
 }
@@ -228,12 +228,12 @@ paint_image (hb_paint_funcs_t *funcs,
              hb_blob_t *blob,
              hb_tag_t format,
              hb_glyph_extents_t *extents,
-             hb_font_t *font,
+             const hb_paint_context_t *ctx,
              void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
-  hb_cairo_paint_glyph_image (cr, font, blob, format, extents);
+  hb_cairo_paint_glyph_image (cr, ctx, blob, format, extents);
 }
 
 static void
@@ -243,12 +243,12 @@ paint_linear_gradient (hb_paint_funcs_t *funcs,
                        float x0, float y0,
                        float x1, float y1,
                        float x2, float y2,
-                       hb_font_t *font,
+                       const hb_paint_context_t *ctx,
                        void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
-  hb_cairo_paint_linear_gradient (cr, font, color_line, x0, y0, x1, y1, x2, y2);
+  hb_cairo_paint_linear_gradient (cr, ctx, color_line, x0, y0, x1, y1, x2, y2);
 }
 
 static void
@@ -257,12 +257,12 @@ paint_radial_gradient (hb_paint_funcs_t *funcs,
                        hb_color_line_t *color_line,
                        float x0, float y0, float r0,
                        float x1, float y1, float r1,
-                       hb_font_t *font,
+                       const hb_paint_context_t *ctx,
                        void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
-  hb_cairo_paint_radial_gradient (cr, font, color_line, x0, y0, r0, x1, y1, r1);
+  hb_cairo_paint_radial_gradient (cr, ctx, color_line, x0, y0, r0, x1, y1, r1);
 }
 
 static void
@@ -271,12 +271,12 @@ paint_sweep_gradient (hb_paint_funcs_t *funcs,
                       hb_color_line_t *color_line,
                       float x0, float y0,
                       float start_angle, float end_angle,
-                      hb_font_t *font,
+                      const hb_paint_context_t *ctx,
                       void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
-  hb_cairo_paint_sweep_gradient (cr, font, color_line, x0, y0, start_angle, end_angle);
+  hb_cairo_paint_sweep_gradient (cr, ctx, color_line, x0, y0, start_angle, end_angle);
 }
 
 static hb_paint_funcs_t *
@@ -355,7 +355,7 @@ render_color_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
-  hb_font_paint_glyph (font, glyph, get_cairo_paint_funcs (), cr);
+  hb_font_paint_glyph (font, glyph, get_cairo_paint_funcs (), cr, 0, HB_COLOR (0, 0, 0, 255));
 
   hb_glyph_extents_t hb_extents;
   hb_font_get_glyph_extents (font, glyph, &hb_extents);

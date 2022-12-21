@@ -446,20 +446,22 @@ hb_ot_paint_glyph (hb_font_t *font,
                    void *font_data,
                    hb_codepoint_t glyph,
                    hb_paint_funcs_t *paint_funcs, void *paint_data,
+                   unsigned int palette,
+                   hb_color_t foreground,
                    void *user_data)
 {
 #ifndef HB_NO_COLOR
-  if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.COLR->paint_glyph (font, glyph, paint_funcs, paint_data, palette, foreground)) return;
   if (font->face->table.SVG->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
 #ifndef HB_NO_OT_FONT_BITMAP
   if (font->face->table.CBDT->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
   if (font->face->table.sbix->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
 #endif
 #endif
-  if (font->face->table.glyf->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.glyf->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
 #ifndef HB_NO_CFF
-  if (font->face->table.cff1->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
-  if (font->face->table.cff2->paint_glyph (font, glyph, paint_funcs, paint_data)) return;
+  if (font->face->table.cff1->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
+  if (font->face->table.cff2->paint_glyph (font, glyph, paint_funcs, paint_data, foreground)) return;
 #endif
 }
 #endif

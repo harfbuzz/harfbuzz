@@ -939,15 +939,21 @@ struct CBDT
 
     bool paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
     {
+      hb_paint_context_t ctx;
       hb_glyph_extents_t extents;
       hb_blob_t *blob = reference_png (font, glyph);
+
       if (unlikely (blob == hb_blob_get_empty ()))
         return false;
 
       if (unlikely (!hb_font_get_glyph_extents (font, glyph, &extents)))
         return false;
 
-      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, &extents, font);
+      ctx.font = font;
+      ctx.palette = 0;
+      ctx.foreground = HB_COLOR (0, 0, 0, 255);
+
+      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, &extents, &ctx);
 
       hb_blob_destroy (blob);
       return true;

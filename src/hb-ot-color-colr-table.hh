@@ -75,7 +75,7 @@ public:
   const void *base;
   hb_paint_funcs_t *funcs;
   void *data;
-  hb_font_t *font;
+  hb_paint_context_t ctx;
   VarStoreInstancer &instancer;
   int depth_left = HB_COLRV1_MAX_NESTING_LEVEL;
 
@@ -83,13 +83,16 @@ public:
 		      hb_paint_funcs_t *funcs_,
 		      void *data_,
                       hb_font_t *font_,
+                      unsigned int palette,
+                      hb_color_t foreground,
 		      VarStoreInstancer &instancer_) :
     base (base_),
     funcs (funcs_),
     data (data_),
-    font (font_),
     instancer (instancer_)
-  {}
+  { ctx.font = font_;
+    ctx.palette = palette;
+    ctx.foreground = foreground; }
 
   inline void recurse (const Paint &paint);
 };
@@ -486,7 +489,7 @@ struct Affine2x3
 			      yy.to_float (c->instancer (varIdxBase, 3)),
                               dx.to_float (c->instancer (varIdxBase, 4)),
 			      dy.to_float (c->instancer (varIdxBase, 5)),
-                              c->font);
+                              &c->ctx);
   }
 
   F16DOT16 xx;
@@ -554,7 +557,7 @@ struct PaintSolid
     c->funcs->color (c->data,
                      paletteIndex,
                      alpha.to_float (c->instancer (varIdxBase, 0)),
-                     c->font);
+                     &c->ctx);
   }
 
   HBUINT8	format; /* format = 2(noVar) or 3(Var)*/
@@ -596,7 +599,7 @@ struct PaintLinearGradient
 			       y1 + c->instancer (varIdxBase, 3),
 			       x2 + c->instancer (varIdxBase, 4),
 			       y2 + c->instancer (varIdxBase, 5),
-                               c->font);
+                               &c->ctx);
   }
 
   HBUINT8			format; /* format = 4(noVar) or 5 (Var) */
@@ -644,7 +647,7 @@ struct PaintRadialGradient
 			       x1 + c->instancer (varIdxBase, 3),
 			       y1 + c->instancer (varIdxBase, 4),
 			       radius1 + c->instancer (varIdxBase, 5),
-                               c->font);
+                               &c->ctx);
   }
 
   HBUINT8			format; /* format = 6(noVar) or 7 (Var) */
@@ -690,7 +693,7 @@ struct PaintSweepGradient
 			      centerY + c->instancer (varIdxBase, 1),
                               (startAngle.to_float (c->instancer (varIdxBase, 2)) + 1) * (float) M_PI,
                               (endAngle.to_float   (c->instancer (varIdxBase, 3)) + 1) * (float) M_PI,
-                              c->font);
+                              &c->ctx);
   }
 
   HBUINT8			format; /* format = 8(noVar) or 9 (Var) */
@@ -730,11 +733,11 @@ struct PaintGlyph
 
   void paint_glyph (hb_ot_paint_context_t *c) const
   {
-    c->funcs->push_inverse_root_transform (c->data, c->font);
-    c->funcs->push_clip_glyph (c->data, gid, c->font);
+    c->funcs->push_inverse_root_transform (c->data, &c->ctx);
+    c->funcs->push_clip_glyph (c->data, gid, &c->ctx);
     c->recurse (this+paint);
-    c->funcs->pop_clip (c->data, c->font);
-    c->funcs->pop_inverse_root_transform (c->data, c->font);
+    c->funcs->pop_clip (c->data, &c->ctx);
+    c->funcs->pop_inverse_root_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 10 */
@@ -798,7 +801,7 @@ struct PaintTransform
   {
     (this+transform).paint_glyph (c);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8			format; /* format = 12(noVar) or 13 (Var) */
@@ -833,9 +836,9 @@ struct PaintTranslate
 			      1., 0., 0., 1.,
 			      dx + c->instancer (varIdxBase, 0),
 			      dy + c->instancer (varIdxBase, 0),
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 14(noVar) or 15 (Var) */
@@ -872,9 +875,9 @@ struct PaintScale
 			      0., 0.,
 			      scaleY.to_float (c->instancer (varIdxBase, 1)),
 			      0., 0.,
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 16 (noVar) or 17(Var) */
@@ -909,19 +912,19 @@ struct PaintScaleAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY,
-                              c->font);
+                              &c->ctx);
     c->funcs->push_transform (c->data,
 			      scaleX.to_float (c->instancer (varIdxBase, 0)),
 			      0., 0.,
 			      scaleY.to_float (c->instancer (varIdxBase, 1)),
 			      0., 0.,
-                              c->font);
+                              &c->ctx);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY,
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
-    c->funcs->pop_transform (c->data, c->font);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
+    c->funcs->pop_transform (c->data, &c->ctx);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 18 (noVar) or 19(Var) */
@@ -957,9 +960,9 @@ struct PaintScaleUniform
   {
     float s = scale + c->instancer (varIdxBase, 0);
     c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.,
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 20 (noVar) or 21(Var) */
@@ -994,15 +997,15 @@ struct PaintScaleUniformAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY,
-                              c->font);
+                              &c->ctx);
     c->funcs->push_transform (c->data, s, 0., 0., s, 0., 0.,
-                              c->font);
+                              &c->ctx);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY,
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
-    c->funcs->pop_transform (c->data, c->font);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
+    c->funcs->pop_transform (c->data, &c->ctx);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 22 (noVar) or 23(Var) */
@@ -1039,9 +1042,9 @@ struct PaintRotate
     float cc = cosf (a * (float) M_PI);
     float ss = sinf (a * (float) M_PI);
     c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.,
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 24 (noVar) or 25(Var) */
@@ -1078,15 +1081,15 @@ struct PaintRotateAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 1);
     float tCenterY = centerY + c->instancer (varIdxBase, 2);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY,
-                              c->font);
+                              &c->ctx);
     c->funcs->push_transform (c->data, cc, ss, -ss, cc, 0., 0.,
-                              c->font);
+                              &c->ctx);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY,
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
-    c->funcs->pop_transform (c->data, c->font);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
+    c->funcs->pop_transform (c->data, &c->ctx);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 26 (noVar) or 27(Var) */
@@ -1122,9 +1125,9 @@ struct PaintSkew
     float x = +tanf (xSkewAngle.to_float(c->instancer (varIdxBase, 0)) * (float) M_PI);
     float y = -tanf (ySkewAngle.to_float(c->instancer (varIdxBase, 1)) * (float) M_PI);
     c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.,
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 28(noVar) or 29 (Var) */
@@ -1161,15 +1164,15 @@ struct PaintSkewAroundCenter
     float tCenterX = centerX + c->instancer (varIdxBase, 2);
     float tCenterY = centerY + c->instancer (varIdxBase, 3);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., +tCenterX, +tCenterY,
-                              c->font);
+                              &c->ctx);
     c->funcs->push_transform (c->data, 1., y, x, 1., 0., 0.,
-                              c->font);
+                              &c->ctx);
     c->funcs->push_transform (c->data, 0., 0., 0., 0., -tCenterX, -tCenterY,
-                              c->font);
+                              &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_transform (c->data, c->font);
-    c->funcs->pop_transform (c->data, c->font);
-    c->funcs->pop_transform (c->data, c->font);
+    c->funcs->pop_transform (c->data, &c->ctx);
+    c->funcs->pop_transform (c->data, &c->ctx);
+    c->funcs->pop_transform (c->data, &c->ctx);
   }
 
   HBUINT8		format; /* format = 30(noVar) or 31 (Var) */
@@ -1206,12 +1209,12 @@ struct PaintComposite
 
   void paint_glyph (hb_ot_paint_context_t *c) const
   {
-    c->funcs->push_group (c->data, c->font);
+    c->funcs->push_group (c->data, &c->ctx);
     c->recurse (this+backdrop);
-    c->funcs->push_group (c->data, c->font);
+    c->funcs->push_group (c->data, &c->ctx);
     c->recurse (this+src);
-    c->funcs->pop_group (c->data, (hb_paint_composite_mode_t) (int) mode, c->font);
-    c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER, c->font);
+    c->funcs->pop_group (c->data, (hb_paint_composite_mode_t) (int) mode, &c->ctx);
+    c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER, &c->ctx);
   }
 
   HBUINT8		format; /* format = 32 */
@@ -1960,23 +1963,23 @@ struct COLR
   }
 
   bool
-  paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
+  paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette, hb_color_t foreground) const
   {
     VarStoreInstancer instancer (this+varStore,
 				 this+varIdxMap,
 				 hb_array (font->coords, font->num_coords));
 
-    hb_ot_paint_context_t c (this, funcs, data, font, instancer);
+    hb_ot_paint_context_t c (this, funcs, data, font, palette, foreground, instancer);
 
     const Paint *paint = get_base_glyph_paint (glyph);
     if (paint)
     {
       // COLRv1 glyph
-      c.funcs->push_root_transform (c.data, c.font);
+      c.funcs->push_root_transform (c.data, &c.ctx);
 
       c.recurse (*paint);
 
-      c.funcs->pop_root_transform (c.data, c.font);
+      c.funcs->pop_root_transform (c.data, &c.ctx);
 
       return true;
     }
@@ -1988,9 +1991,9 @@ struct COLR
       for (const auto &r : (this+layersZ).as_array (numLayers)
 			   .sub_array (record->firstLayerIdx, record->numLayers))
       {
-        c.funcs->push_clip_glyph (c.data, r.glyphId, c.font);
-        c.funcs->color (c.data, r.colorIdx, 1., c.font);
-        c.funcs->pop_clip (c.data, c.font);
+        c.funcs->push_clip_glyph (c.data, r.glyphId, &c.ctx);
+        c.funcs->color (c.data, r.colorIdx, 1., &c.ctx);
+        c.funcs->pop_clip (c.data, &c.ctx);
       }
 
       return true;
