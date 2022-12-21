@@ -2,19 +2,19 @@
 
 namespace OT {
 
-void PaintColrLayers::paint_glyph (hb_ot_paint_context_t *c) const
+void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
 {
   const LayerList &paint_offset_lists = c->get_colr_table ()->get_layerList ();
   for (unsigned i = firstLayerIndex; i < firstLayerIndex + numLayers; i++)
   {
     const Paint &paint = paint_offset_lists.get_paint (i);
-    c->funcs->push_group (c->data, &c->ctx);
+    c->funcs->push_group (c->data);
     c->recurse (paint);
-    c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER, &c->ctx);
+    c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
   }
 }
 
-void PaintColrGlyph::paint_glyph (hb_ot_paint_context_t *c) const
+void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
 {
   const COLR *colr_table = c->get_colr_table ();
   const Paint *paint = colr_table->get_base_glyph_paint (gid);
@@ -51,9 +51,9 @@ hb_color_line_get_color_stops (hb_color_line_t *color_line,
                                hb_color_stop_t *color_stops)
 {
   if (color_line->is_variable)
-    return reinterpret_cast<const OT::ColorLine<OT::Variable> *>(color_line->base)->get_color_stops (&color_line->c->ctx, start, count, color_stops, color_line->c->instancer);
+    return reinterpret_cast<const OT::ColorLine<OT::Variable> *>(color_line->base)->get_color_stops (color_line->c, start, count, color_stops, color_line->c->instancer);
   else
-    return reinterpret_cast<const OT::ColorLine<OT::NoVariable> *>(color_line->base)->get_color_stops (&color_line->c->ctx, start, count, color_stops, color_line->c->instancer);
+    return reinterpret_cast<const OT::ColorLine<OT::NoVariable> *>(color_line->base)->get_color_stops (color_line->c, start, count, color_stops, color_line->c->instancer);
 }
 
 /**

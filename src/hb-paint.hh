@@ -69,153 +69,107 @@ struct hb_paint_funcs_t
   void push_transform (void *paint_data,
                        float xx, float yx,
                        float xy, float yy,
-                       float dx, float dy,
-                       const hb_paint_context_t *ctx)
+                       float dx, float dy)
   { func.push_transform (this, paint_data,
                          xx, yx, xy, yy, dx, dy,
-                         ctx,
                          !user_data ? nullptr : user_data->push_transform); }
-  void pop_transform (void *paint_data,
-                      const hb_paint_context_t *ctx)
-  { func.pop_transform (this, paint_data, ctx,
+  void pop_transform (void *paint_data)
+  { func.pop_transform (this, paint_data,
                         !user_data ? nullptr : user_data->pop_transform); }
   void push_clip_glyph (void *paint_data,
                         hb_codepoint_t glyph,
-                        const hb_paint_context_t *ctx)
+                        hb_font_t *font)
   { func.push_clip_glyph (this, paint_data,
                           glyph,
-                          ctx,
+                          font,
                           !user_data ? nullptr : user_data->push_clip_glyph); }
   void push_clip_rectangle (void *paint_data,
-                            float xmin, float ymin, float xmax, float ymax,
-                            const hb_paint_context_t *ctx)
+                           float xmin, float ymin, float xmax, float ymax)
   { func.push_clip_rectangle (this, paint_data,
                               xmin, ymin, xmax, ymax,
-                              ctx,
                               !user_data ? nullptr : user_data->push_clip_rectangle); }
-  void pop_clip (void *paint_data,
-                 const hb_paint_context_t *ctx)
-  { func.pop_clip (this, paint_data, ctx,
+  void pop_clip (void *paint_data)
+  { func.pop_clip (this, paint_data,
                    !user_data ? nullptr : user_data->pop_clip); }
   void color (void *paint_data,
-              hb_color_t color,
-              const hb_paint_context_t *ctx)
+              hb_color_t color)
   { func.color (this, paint_data,
                 color,
-                ctx,
                 !user_data ? nullptr : user_data->color); }
   void image (void *paint_data,
               hb_blob_t *image,
               hb_tag_t format,
-              hb_glyph_extents_t *extents,
-              const hb_paint_context_t *ctx)
+              hb_glyph_extents_t *extents)
   { func.image (this, paint_data,
                 image, format, extents,
-                ctx,
                 !user_data ? nullptr : user_data->image); }
   void linear_gradient (void *paint_data,
                         hb_color_line_t *color_line,
                         float x0, float y0,
                         float x1, float y1,
-                        float x2, float y2,
-                        const hb_paint_context_t *ctx)
+                        float x2, float y2)
   { func.linear_gradient (this, paint_data,
                           color_line, x0, y0, x1, y1, x2, y2,
-                          ctx,
                           !user_data ? nullptr : user_data->linear_gradient); }
   void radial_gradient (void *paint_data,
                         hb_color_line_t *color_line,
                         float x0, float y0, float r0,
-                        float x1, float y1, float r1,
-                        const hb_paint_context_t *ctx)
+                        float x1, float y1, float r1)
   { func.radial_gradient (this, paint_data,
                           color_line, x0, y0, r0, x1, y1, r1,
-                          ctx,
                           !user_data ? nullptr : user_data->radial_gradient); }
   void sweep_gradient (void *paint_data,
                        hb_color_line_t *color_line,
                        float x0, float y0,
                        float start_angle,
-                       float end_angle,
-                       const hb_paint_context_t *ctx)
+                       float end_angle)
   { func.sweep_gradient (this, paint_data,
                          color_line, x0, y0, start_angle, end_angle,
-                         ctx,
                          !user_data ? nullptr : user_data->sweep_gradient); }
-  void push_group (void *paint_data,
-                   const hb_paint_context_t *ctx)
-  { func.push_group (this, paint_data, ctx,
+  void push_group (void *paint_data)
+  { func.push_group (this, paint_data,
                      !user_data ? nullptr : user_data->push_group); }
   void pop_group (void *paint_data,
-                  hb_paint_composite_mode_t mode,
-                  const hb_paint_context_t *ctx)
+                  hb_paint_composite_mode_t mode)
   { func.pop_group (this, paint_data,
                     mode,
-                    ctx,
                     !user_data ? nullptr : user_data->pop_group); }
 
   void push_root_transform (void *paint_data,
-                            const hb_paint_context_t *ctx)
+                            const hb_font_t *font)
   {
-    hb_font_t *font = ctx->font;
     int xscale = font->x_scale, yscale = font->y_scale;
     float upem = font->face->get_upem ();
     float slant = font->slant_xy;
 
     func.push_transform (this, paint_data,
                          xscale/upem, 0, slant * yscale/upem, yscale/upem, 0, 0,
-                         ctx,
                          !user_data ? nullptr : user_data->push_transform);
   }
-  void pop_root_transform (void *paint_data,
-                           const hb_paint_context_t *ctx)
+  void pop_root_transform (void *paint_data)
   {
-    func.pop_transform (this, paint_data, ctx,
+    func.pop_transform (this, paint_data,
                         !user_data ? nullptr : user_data->pop_transform);
   }
 
   void push_inverse_root_transform (void *paint_data,
-                                    const hb_paint_context_t *ctx)
+                                    hb_font_t *font)
   {
-    hb_font_t *font = ctx->font;
     int xscale = font->x_scale, yscale = font->y_scale;
     float upem = font->face->get_upem ();
     float slant = font->slant_xy;
 
     func.push_transform (this, paint_data,
                          upem/xscale, 0, -slant * upem/xscale, upem/yscale, 0, 0,
-                         ctx,
                          !user_data ? nullptr : user_data->push_transform);
   }
-  void pop_inverse_root_transform (void *paint_data,
-                                   const hb_paint_context_t *ctx)
+  void pop_inverse_root_transform (void *paint_data)
   {
-    func.pop_transform (this, paint_data, ctx,
+    func.pop_transform (this, paint_data,
                         !user_data ? nullptr : user_data->pop_transform);
   }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
-
-static inline hb_color_t
-hb_paint_get_color (const hb_paint_context_t *ctx,
-                    unsigned int color_index,
-                    float alpha)
-{
-  hb_color_t color = ctx->foreground;
-
-  if (color_index != 0xffff)
-  {
-    unsigned int clen = 1;
-    hb_face_t *face = hb_font_get_face (ctx->font);
-
-    hb_ot_color_palette_get_colors (face, ctx->palette, color_index, &clen, &color);
-  }
-
-  return HB_COLOR (hb_color_get_blue (color),
-                   hb_color_get_green (color),
-                   hb_color_get_red (color),
-                   hb_color_get_alpha (color) * alpha);
-}
 
 
 #endif /* HB_PAINT_HH */

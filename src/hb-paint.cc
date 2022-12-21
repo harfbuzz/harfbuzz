@@ -47,35 +47,30 @@ hb_paint_push_transform_nil (hb_paint_funcs_t *funcs, void *paint_data,
                              float xx, float yx,
                              float xy, float yy,
                              float dx, float dy,
-                             const hb_paint_context_t *ctx,
                              void *user_data) {}
 
 static void
 hb_paint_pop_transform_nil (hb_paint_funcs_t *funcs, void *paint_data,
-                            const hb_paint_context_t *ctx,
                             void *user_data) {}
 
 static void
 hb_paint_push_clip_glyph_nil (hb_paint_funcs_t *funcs, void *paint_data,
                               hb_codepoint_t glyph,
-                              const hb_paint_context_t *ctx,
+                              hb_font_t *font,
                               void *user_data) {}
 
 static void
 hb_paint_push_clip_rectangle_nil (hb_paint_funcs_t *funcs, void *paint_data,
                                   float xmin, float ymin, float xmax, float ymax,
-                                  const hb_paint_context_t *ctx,
                                   void *user_data) {}
 
 static void
 hb_paint_pop_clip_nil (hb_paint_funcs_t *funcs, void *paint_data,
-                       const hb_paint_context_t *ctx,
                        void *user_data) {}
 
 static void
 hb_paint_color_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_color_t color,
-                    const hb_paint_context_t *ctx,
                     void *user_data) {}
 
 static void
@@ -83,7 +78,6 @@ hb_paint_image_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_blob_t *image,
                     hb_tag_t format,
                     hb_glyph_extents_t *extents,
-                    const hb_paint_context_t *ctx,
                     void *user_data) {}
 
 static void
@@ -92,7 +86,6 @@ hb_paint_linear_gradient_nil (hb_paint_funcs_t *funcs, void *paint_data,
                               float x0, float y0,
                               float x1, float y1,
                               float x2, float y2,
-                              const hb_paint_context_t *ctx,
                               void *user_data) {}
 
 static void
@@ -100,7 +93,6 @@ hb_paint_radial_gradient_nil (hb_paint_funcs_t *funcs, void *paint_data,
                               hb_color_line_t *color_line,
                               float x0, float y0, float r0,
                               float x1, float y1, float r1,
-                              const hb_paint_context_t *ctx,
                               void *user_data) {}
 
 static void
@@ -109,18 +101,15 @@ hb_paint_sweep_gradient_nil (hb_paint_funcs_t *funcs, void *paint_data,
                              float x0, float y0,
                              float start_angle,
                              float end_angle,
-                             const hb_paint_context_t *ctx,
                              void *user_data) {}
 
 static void
 hb_paint_push_group_nil (hb_paint_funcs_t *funcs, void *paint_data,
-                         const hb_paint_context_t *ctx,
                          void *user_data) {}
 
 static void
 hb_paint_pop_group_nil (hb_paint_funcs_t *funcs, void *paint_data,
                         hb_paint_composite_mode_t mode,
-                        const hb_paint_context_t *ctx,
                         void *user_data) {}
 
 static bool
@@ -393,7 +382,6 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs)
  * @yy: yy component of the transform matrix
  * @dx: dx component of the transform matrix
  * @dy: dy component of the transform matrix
- * @ctx: the paint context
  *
  * Perform a "push-transform" paint operation.
  *
@@ -403,27 +391,24 @@ void
 hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
                          float xx, float yx,
                          float xy, float yy,
-                         float dx, float dy,
-                         const hb_paint_context_t *ctx)
+                         float dx, float dy)
 {
-  funcs->push_transform (paint_data, xx, yx, xy, yy, dx, dy, ctx);
+  funcs->push_transform (paint_data, xx, yx, xy, yy, dx, dy);
 }
 
 /**
  * hb_paint_pop_transform:
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
- * @ctx: the paint context
  *
  * Perform a "pop-transform" paint operation.
  *
  * Since: REPLACEME
  */
 void
-hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data,
-                        const hb_paint_context_t *ctx)
+hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data)
 {
-  funcs->pop_transform (paint_data, ctx);
+  funcs->pop_transform (paint_data);
 }
 
 /**
@@ -431,7 +416,7 @@ hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data,
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
  * @glyph: the glyph ID
- * @ctx: the paint context
+ * @font: the font
  *
  * Perform a "push-clip-glyph" paint operation.
  *
@@ -440,9 +425,9 @@ hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data,
 void
 hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_codepoint_t glyph,
-                          const hb_paint_context_t *ctx)
+                          hb_font_t *font)
 {
-  funcs->push_clip_glyph (paint_data, glyph, ctx);
+  funcs->push_clip_glyph (paint_data, glyph, font);
 }
 
 /**
@@ -453,7 +438,6 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
  * @ymin: min Y for the rectangle
  * @xmax: max X for the rectangle
  * @ymax: max Y for the rectangle
- * @ctx: the paint context
  *
  * Perform a "push-clip-rect" paint operation.
  *
@@ -461,27 +445,24 @@ hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
  */
 void
 hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
-                              float xmin, float ymin, float xmax, float ymax,
-                              const hb_paint_context_t *ctx)
+                              float xmin, float ymin, float xmax, float ymax)
 {
-  funcs->push_clip_rectangle (paint_data, xmin, ymin, xmax, ymax, ctx);
+  funcs->push_clip_rectangle (paint_data, xmin, ymin, xmax, ymax);
 }
 
 /**
  * hb_paint_pop_clip:
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
- * @ctx: the paint context
  *
  * Perform a "pop-clip" paint operation.
  *
  * Since: REPLACEME
  */
 void
-hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data,
-                   const hb_paint_context_t *ctx)
+hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data)
 {
-  funcs->pop_clip (paint_data, ctx);
+  funcs->pop_clip (paint_data);
 }
 
 /**
@@ -489,7 +470,6 @@ hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data,
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
  * @color: The color to use
- * @ctx: the paint context
  *
  * Perform a "color" paint operation.
  *
@@ -497,10 +477,9 @@ hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data,
  */
 void
 hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
-                hb_color_t color,
-                const hb_paint_context_t *ctx)
+                hb_color_t color)
 {
-  funcs->color (paint_data, color, ctx);
+  funcs->color (paint_data, color);
 }
 
 /**
@@ -510,7 +489,6 @@ hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
  * @image: image data
  * @format: tag describing the image data format
  * @extents: (nullable): the extents of the glyph
- * @ctx: the paint context
  *
  * Perform a "image" paint operation.
  *
@@ -520,10 +498,9 @@ void
 hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
                 hb_blob_t *image,
                 hb_tag_t format,
-                hb_glyph_extents_t *extents,
-                const hb_paint_context_t *ctx)
+                hb_glyph_extents_t *extents)
 {
-  funcs->image (paint_data, image, format, extents, ctx);
+  funcs->image (paint_data, image, format, extents);
 }
 
 /**
@@ -537,7 +514,6 @@ hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
  * @y1: Y coordinate of the second point
  * @x2: X coordinate of the third point
  * @y2: Y coordinate of the third point
- * @ctx: the paint context
  *
  * Perform a "linear-gradient" paint operation.
  *
@@ -548,10 +524,9 @@ hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_color_line_t *color_line,
                           float x0, float y0,
                           float x1, float y1,
-                          float x2, float y2,
-                          const hb_paint_context_t *ctx)
+                          float x2, float y2)
 {
-  funcs->linear_gradient (paint_data, color_line, x0, y0, x1, y1, x2, y2, ctx);
+  funcs->linear_gradient (paint_data, color_line, x0, y0, x1, y1, x2, y2);
 }
 
 /**
@@ -565,7 +540,6 @@ hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
  * @x1: X coordinate of the second circle's center
  * @y1: Y coordinate of the second circle's center
  * @r1: radius of the second circle
- * @ctx: the paint context
  *
  * Perform a "radial-gradient" paint operation.
  *
@@ -575,10 +549,9 @@ void
 hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_color_line_t *color_line,
                           float x0, float y0, float r0,
-                          float x1, float y1, float r1,
-                          const hb_paint_context_t *ctx)
+                          float x1, float y1, float r1)
 {
-  funcs->radial_gradient (paint_data, color_line, x0, y0, r0, y1, x1, r1, ctx);
+  funcs->radial_gradient (paint_data, color_line, x0, y0, r0, y1, x1, r1);
 }
 
 /**
@@ -590,7 +563,6 @@ hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
  * @y0: Y coordinate of the circle's center
  * @start_angle: the start angle
  * @end_angle: the end angle
- * @ctx: the paint context
  *
  * Perform a "sweep-gradient" paint operation.
  *
@@ -600,27 +572,24 @@ void
 hb_paint_sweep_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                          hb_color_line_t *color_line,
                          float x0, float y0,
-                         float start_angle, float end_angle,
-                         const hb_paint_context_t *ctx)
+                         float start_angle, float end_angle)
 {
-  funcs->sweep_gradient (paint_data, color_line, x0, y0, start_angle, end_angle, ctx);
+  funcs->sweep_gradient (paint_data, color_line, x0, y0, start_angle, end_angle);
 }
 
 /**
  * hb_paint_push_group:
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
- * @ctx: the paint context
  *
  * Perform a "push-group" paint operation.
  *
  * Since: REPLACEME
  */
 void
-hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data,
-                     const hb_paint_context_t *ctx)
+hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data)
 {
-  funcs->push_group (paint_data, ctx);
+  funcs->push_group (paint_data);
 }
 
 /**
@@ -628,7 +597,6 @@ hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data,
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
  * @mode: the compositing mode to use
- * @ctx: the paint context
  *
  * Perform a "pop-group" paint operation.
  *
@@ -636,10 +604,9 @@ hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data,
  */
 void
 hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
-                    hb_paint_composite_mode_t mode,
-                    const hb_paint_context_t *ctx)
+                    hb_paint_composite_mode_t mode)
 {
-  funcs->pop_group (paint_data, mode, ctx);
+  funcs->pop_group (paint_data, mode);
 }
 
 #endif

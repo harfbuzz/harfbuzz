@@ -234,7 +234,6 @@ struct sbix
 
     bool paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
     {
-      hb_paint_context_t ctx = { font, 0, HB_COLOR (0, 0, 0, 255) };
       if (!has_data ())
         return false;
 
@@ -249,7 +248,7 @@ struct sbix
       if (!hb_font_get_glyph_extents (font, glyph, &extents))
         return false;
 
-      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, &extents, &ctx);
+      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, &extents);
 
       hb_blob_destroy (blob);
       return true;

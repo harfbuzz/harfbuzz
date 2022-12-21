@@ -70,32 +70,23 @@ hb_paint_composite_mode_to_cairo (hb_paint_composite_mode_t mode)
   return CAIRO_OPERATOR_SOURCE;
 }
 
-void hb_cairo_get_font_color (const hb_paint_context_t *ctx,
-                              unsigned int color_index,
-                              float alpha,
-                              float *r, float *g, float *b, float *a);
-
 void hb_cairo_paint_glyph_image (cairo_t *cr,
-                                 const hb_paint_context_t *ctx,
                                  hb_blob_t *blob,
                                  hb_tag_t format,
                                  hb_glyph_extents_t *extents);
 
 void hb_cairo_paint_linear_gradient (cairo_t *cr,
-                                     const hb_paint_context_t *ctx,
                                      hb_color_line_t *color_line,
                                      float x0, float y0,
                                      float x1, float y1,
                                      float x2, float y2);
 
 void hb_cairo_paint_radial_gradient (cairo_t *cr,
-                                     const hb_paint_context_t *ctx,
                                      hb_color_line_t *color_line,
                                      float x0, float y0, float r0,
                                      float x1, float y1, float r1);
 
 void hb_cairo_paint_sweep_gradient (cairo_t *cr,
-                                    const hb_paint_context_t *ctx,
                                     hb_color_line_t *color_line,
                                     float x0, float y0,
                                     float start_angle, float end_angle);

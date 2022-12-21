@@ -95,8 +95,6 @@ struct SVG
 
     bool paint_glyph (hb_font_t *font HB_UNUSED, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
     {
-      hb_paint_context_t ctx = { font, 0, HB_COLOR (0, 0, 0, 255) };
-
       if (!has_data ())
         return false;
 
@@ -105,7 +103,7 @@ struct SVG
       if (blob == hb_blob_get_empty ())
         return false;
 
-      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_SVG, nullptr, &ctx);
+      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_SVG, nullptr);
 
       hb_blob_destroy (blob);
       return true;

@@ -70,28 +70,6 @@ cairo_extend (hb_paint_extend_t extend)
   return CAIRO_EXTEND_PAD;
 }
 
-void
-hb_cairo_get_font_color (const hb_paint_context_t *ctx,
-                         unsigned int color_index,
-                         float alpha,
-                         float *r, float *g, float *b, float *a)
-{
-  hb_color_t color = ctx->foreground;
-
-  if (color_index != 0xffff)
-  {
-    unsigned int clen = 1;
-    hb_face_t *face = hb_font_get_face (ctx->font);
-
-    hb_ot_color_palette_get_colors (face, ctx->palette, color_index, &clen, &color);
-  }
-
-  *r = hb_color_get_red (color) / 255.f;
-  *g = hb_color_get_green (color) / 255.f;
-  *b = hb_color_get_blue (color) / 255.f;
-  *a = (hb_color_get_alpha (color) / 255.f) * alpha;
-}
-
 typedef struct
 {
   hb_blob_t *blob;
@@ -120,7 +98,6 @@ read_blob (void *closure,
 
 void
 hb_cairo_paint_glyph_image (cairo_t *cr,
-                            const hb_paint_context_t *ctx,
                             hb_blob_t *blob,
                             hb_tag_t format,
                             hb_glyph_extents_t *extents)
@@ -228,7 +205,6 @@ normalize_color_line (hb_color_stop_t *stops,
 
 void
 hb_cairo_paint_linear_gradient (cairo_t *cr,
-                                const hb_paint_context_t *ctx,
                                 hb_color_line_t *color_line,
                                 float x0, float y0,
                                 float x1, float y1,
@@ -278,7 +254,6 @@ hb_cairo_paint_linear_gradient (cairo_t *cr,
 
 void
 hb_cairo_paint_radial_gradient (cairo_t *cr,
-                                const hb_paint_context_t *ctx,
                                 hb_color_line_t *color_line,
                                 float x0, float y0, float r0,
                                 float x1, float y1, float r1)
@@ -469,8 +444,7 @@ add_sweep_gradient_patches1 (float cx, float cy, float radius,
 }
 
 static void
-add_sweep_gradient_patches (const hb_paint_context_t *ctx,
-                            hb_color_stop_t *stops,
+add_sweep_gradient_patches (hb_color_stop_t *stops,
                             unsigned int n_stops,
                             cairo_extend_t extend,
                             float cx, float cy,
@@ -723,7 +697,6 @@ done:
 
 void
 hb_cairo_paint_sweep_gradient (cairo_t *cr,
-                               const hb_paint_context_t *ctx,
                                hb_color_line_t *color_line,
                                float cx, float cy,
                                float start_angle,
@@ -752,7 +725,7 @@ hb_cairo_paint_sweep_gradient (cairo_t *cr,
   extend = cairo_extend (hb_color_line_get_extend (color_line));
   pattern = cairo_pattern_create_mesh ();
 
-  add_sweep_gradient_patches (ctx, stops, len, extend, cx, cy,
+  add_sweep_gradient_patches (stops, len, extend, cx, cy,
                               radius, start_angle, end_angle, pattern);
 
   cairo_set_source (cr, pattern);

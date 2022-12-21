@@ -92,29 +92,6 @@ HB_EXTERN hb_bool_t
 hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs);
 
 /**
- * hb_paint_context_t:
- * @font: the font that is painted with
- * @palette: the palette index
- * @foreground: the foreground color
- *
- * Context information that is passed to paint functions.
- */
-typedef struct hb_paint_context_t {
-  hb_font_t *font;
-  unsigned int palette;
-  hb_color_t foreground;
-
-  /*< private >*/
-  hb_var_num_t   reserved1;
-  hb_var_num_t   reserved2;
-  hb_var_num_t   reserved3;
-  hb_var_num_t   reserved4;
-  hb_var_num_t   reserved5;
-  hb_var_num_t   reserved6;
-  hb_var_num_t   reserved7;
-} hb_paint_context_t;
-
-/**
  * hb_paint_push_transform_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
@@ -124,7 +101,6 @@ typedef struct hb_paint_context_t {
  * @yy: yy component of the transform matrix
  * @dx: dx component of the transform matrix
  * @dy: dy component of the transform matrix
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_push_transform_func()
  *
  * A virtual method for the #hb_paint_funcs_t to apply
@@ -141,14 +117,12 @@ typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
                                                 float xx, float yx,
                                                 float xy, float yy,
                                                 float dx, float dy,
-                                                const hb_paint_context_t *ctx,
                                                 void *user_data);
 
 /**
  * hb_paint_pop_transform_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_pop_transform_func()
  *
  * A virtual method for the #hb_paint_funcs_t to undo
@@ -159,7 +133,6 @@ typedef void (*hb_paint_push_transform_func_t) (hb_paint_funcs_t *funcs,
  */
 typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
                                                void *paint_data,
-                                               const hb_paint_context_t *ctx,
                                                void *user_data);
 
 /**
@@ -167,7 +140,7 @@ typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @glyph: the glyph ID
- * @ctx: the paint context
+ * @font: the font
  * @user_data: User data pointer passed to hb_paint_funcs_set_push_clip_glyph_func()
  *
  * A virtual method for the #hb_paint_funcs_t to clip
@@ -185,7 +158,7 @@ typedef void (*hb_paint_pop_transform_func_t) (hb_paint_funcs_t *funcs,
 typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
                                                  void *paint_data,
                                                  hb_codepoint_t glyph,
-                                                 const hb_paint_context_t *ctx,
+                                                 hb_font_t *font,
                                                  void *user_data);
 
 /**
@@ -196,7 +169,6 @@ typedef void (*hb_paint_push_clip_glyph_func_t) (hb_paint_funcs_t *funcs,
  * @ymin: min Y for the rectangle
  * @xmax: max X for the rectangle
  * @ymax: max Y for the rectangle
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_push_clip_rectangle_func()
  *
  * A virtual method for the #hb_paint_funcs_t to clip
@@ -215,14 +187,12 @@ typedef void (*hb_paint_push_clip_rectangle_func_t) (hb_paint_funcs_t *funcs,
                                                      void *paint_data,
                                                      float xmin, float ymin,
                                                      float xmax, float ymax,
-                                                     const hb_paint_context_t *ctx,
                                                      void *user_data);
 
 /**
  * hb_paint_pop_clip_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_pop_clip_func()
  *
  * A virtual method for the #hb_paint_funcs_t to undo
@@ -233,7 +203,6 @@ typedef void (*hb_paint_push_clip_rectangle_func_t) (hb_paint_funcs_t *funcs,
  */
 typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
                                           void *paint_data,
-                                          const hb_paint_context_t *ctx,
                                           void *user_data);
 
 /**
@@ -241,7 +210,6 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @color: The color to use
- * @ctx: The paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_color_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a
@@ -252,7 +220,6 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
 typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
                                        hb_color_t color,
-                                       const hb_paint_context_t *ctx,
                                        void *user_data);
 
 /**
@@ -276,7 +243,6 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * @image: the image data
  * @format: the image format as a tag
  * @extents: (nullable): glyph extents
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_image_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint the
@@ -297,7 +263,6 @@ typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
                                        hb_blob_t *image,
                                        hb_tag_t format,
                                        hb_glyph_extents_t *extents,
-                                       const hb_paint_context_t *ctx,
                                        void *user_data);
 
 /**
@@ -362,7 +327,6 @@ hb_color_line_get_extend (hb_color_line_t *color_line);
  * @y1: Y coordinate of the second point
  * @x2: X coordinate of the third point
  * @y2: Y coordinate of the third point
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_linear_gradient_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a linear
@@ -383,7 +347,6 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
                                                  float x0, float y0,
                                                  float x1, float y1,
                                                  float x2, float y2,
-                                                 const hb_paint_context_t *ctx,
                                                  void *user_data);
 
 /**
@@ -397,7 +360,6 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
  * @x1: X coordinate of the second circle's center
  * @y1: Y coordinate of the second circle's center
  * @r1: radius of the second circle
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_radial_gradient_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a radial
@@ -417,7 +379,6 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
                                                  hb_color_line_t *color_line,
                                                  float x0, float y0, float r0,
                                                  float x1, float y1, float r1,
-                                                 const hb_paint_context_t *ctx,
                                                  void *user_data);
 
 /**
@@ -429,7 +390,6 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
  * @y0: Y coordinate of the circle's center
  * @start_angle: the start angle, in radians
  * @end_angle: the end angle, in radians
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_sweep_gradient_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a sweep
@@ -450,7 +410,6 @@ typedef void (*hb_paint_sweep_gradient_func_t)  (hb_paint_funcs_t *funcs,
                                                  float x0, float y0,
                                                  float start_angle,
                                                  float end_angle,
-                                                 const hb_paint_context_t *ctx,
                                                  void *user_data);
 
 /**
@@ -498,7 +457,6 @@ typedef enum {
  * hb_paint_push_group_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_push_group_func()
  *
  * A virtual method for the #hb_paint_funcs_t to use
@@ -512,7 +470,6 @@ typedef enum {
  */
 typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
                                             void *paint_data,
-                                            const hb_paint_context_t *ctx,
                                             void *user_data);
 
 /**
@@ -520,7 +477,6 @@ typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @mode: the compositing mode to use
- * @ctx: the paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_pop_group_func()
  *
  * A virtual method for the #hb_paint_funcs_t to undo
@@ -536,7 +492,6 @@ typedef void (*hb_paint_push_group_func_t) (hb_paint_funcs_t *funcs,
 typedef void (*hb_paint_pop_group_func_t) (hb_paint_funcs_t *funcs,
                                            void *paint_data,
                                            hb_paint_composite_mode_t mode,
-                                           const hb_paint_context_t *ctx,
                                            void *user_data);
 
 /**
@@ -747,47 +702,40 @@ HB_EXTERN void
 hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
                          float xx, float yx,
                          float xy, float yy,
-                         float dx, float dy,
-                         const hb_paint_context_t *ctx);
+                         float dx, float dy);
 
 HB_EXTERN void
-hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data,
-                        const hb_paint_context_t *ctx);
+hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data);
 
 HB_EXTERN void
 hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_codepoint_t glyph,
-                          const hb_paint_context_t *ctx);
+                          hb_font_t *font);
 
 HB_EXTERN void
 hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
                               float xmin, float ymin,
-                              float xmax, float ymax,
-                              const hb_paint_context_t *ctx);
+                              float xmax, float ymax);
 
 HB_EXTERN void
-hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data,
-                   const hb_paint_context_t *ctx);
+hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data);
 
 HB_EXTERN void
 hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
-                hb_color_t color,
-                const hb_paint_context_t *ctx);
+                hb_color_t color);
 
 HB_EXTERN void
 hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
                 hb_blob_t *image,
                 hb_tag_t format,
-                hb_glyph_extents_t *extents,
-                const hb_paint_context_t *ctx);
+                hb_glyph_extents_t *extents);
 
 HB_EXTERN void
 hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                           hb_color_line_t *color_line,
                           float x0, float y0,
                           float x1, float y1,
-                          float x2, float y2,
-                          const hb_paint_context_t *ctx);
+                          float x2, float y2);
 
 HB_EXTERN void
 hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
@@ -795,24 +743,20 @@ hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                           float x0, float y0,
                           float r0,
                           float x1, float y1,
-                          float r1,
-                          const hb_paint_context_t *ctx);
+                          float r1);
 
 HB_EXTERN void
 hb_paint_sweep_gradient (hb_paint_funcs_t *funcs, void *paint_data,
                          hb_color_line_t *color_line,
                          float x0, float y0,
-                         float start_angle, float end_angle,
-                         const hb_paint_context_t *ctx);
+                         float start_angle, float end_angle);
 
 HB_EXTERN void
-hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data,
-                     const hb_paint_context_t *ctx);
+hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data);
 
 HB_EXTERN void
 hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
-                    hb_paint_composite_mode_t mode,
-                    const hb_paint_context_t *ctx);
+                    hb_paint_composite_mode_t mode);
 
 HB_END_DECLS
 

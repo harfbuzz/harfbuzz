@@ -661,25 +661,17 @@ hb_font_paint_glyph_default (hb_font_t *font,
                              hb_color_t foreground,
                              void *user_data)
 {
-  hb_paint_context_t ctx;
-
-  ctx.font = font;
-  ctx.palette = palette;
-  ctx.foreground = foreground;
-
   paint_funcs->push_transform (paint_data,
     font->parent->x_scale ? (float) font->x_scale / (float) font->parent->x_scale : 0.f,
     font->parent->y_scale ? (font->slant - font->parent->slant) *
 			    (float) font->x_scale / (float) font->parent->y_scale : 0.f,
     0.f,
     font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f,
-    0.f,
-    0.f,
-    &ctx);
+    0.f, 0.f);
 
   font->parent->paint_glyph (glyph, paint_funcs, paint_data, palette, foreground);
 
-  paint_funcs->pop_transform (paint_data, &ctx);
+  paint_funcs->pop_transform (paint_data);
 }
 
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =

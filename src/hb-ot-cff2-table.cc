@@ -145,19 +145,13 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
 
 bool OT::cff2::accelerator_t::paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, hb_color_t foreground) const
 {
-  hb_paint_context_t ctx;
+  funcs->push_root_transform (data, font);
 
-  ctx.font = font;
-  ctx.palette = 0;
-  ctx.foreground = foreground;
+  funcs->push_clip_glyph (data, glyph, font);
+  funcs->color (data, foreground);
+  funcs->pop_clip (data);
 
-  funcs->push_root_transform (data, &ctx);
-
-  funcs->push_clip_glyph (data, glyph, &ctx);
-  funcs->color (data, hb_paint_get_color (&ctx, 0xffff, 1.), &ctx);
-  funcs->pop_clip (data, &ctx);
-
-  funcs->pop_root_transform (data, &ctx);
+  funcs->pop_root_transform (data);
 
   return false;
 }
