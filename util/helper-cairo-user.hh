@@ -118,7 +118,9 @@ push_transform (hb_paint_funcs_t *funcs,
   cairo_matrix_t m;
 
   cairo_save (cr);
-  cairo_matrix_init (&m, xx, yx, xy, yy, dx, dy);
+  cairo_matrix_init (&m, (double)xx, (double)yx,
+                         (double)xy, (double)yy,
+                         (double)dx, (double)dy);
   cairo_transform (cr, &m);
 }
 
@@ -144,7 +146,7 @@ push_clip_glyph (hb_paint_funcs_t *funcs,
 
   cairo_save (cr);
   cairo_new_path (cr);
-  hb_font_get_glyph_shape (font, glyph, get_cairo_draw_funcs (), cr);
+  hb_font_draw_glyph (font, glyph, get_cairo_draw_funcs (), cr);
   cairo_close_path (cr);
   cairo_clip (cr);
 }
@@ -159,7 +161,9 @@ push_clip_rectangle (hb_paint_funcs_t *funcs,
   cairo_t *cr = (cairo_t *)paint_data;
 
   cairo_save (cr);
-  cairo_rectangle (cr, xmin, ymin, xmax - xmin, ymax - ymin);
+  cairo_rectangle (cr,
+                   (double)xmin, (double)ymin,
+                   (double)(xmax - xmin), (double)(ymax - ymin));
   cairo_clip (cr);
 }
 
@@ -211,11 +215,10 @@ paint_color (hb_paint_funcs_t *funcs,
              void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
-  hb_face_t *face = hb_font_get_face (font);
   float r, g, b, a;
 
-  hb_face_get_color (face, 0, color_index, alpha, &r, &g, &b, &a);
-  cairo_set_source_rgba (cr, r, g, b, a);
+  hb_cairo_get_font_color (font, 0, color_index, alpha, &r, &g, &b, &a);
+  cairo_set_source_rgba (cr, (double)r, (double)g, (double)b, (double)a);
   cairo_paint (cr);
 }
 
@@ -277,7 +280,7 @@ paint_sweep_gradient (hb_paint_funcs_t *funcs,
 }
 
 static hb_paint_funcs_t *
-get_cairo_paint_funcs (void)
+get_cairo_paint_funcs ()
 {
   static hb_paint_funcs_t *funcs;
 
@@ -331,7 +334,7 @@ render_glyph (cairo_scaled_font_t  *scaled_font,
   hb_font_get_scale (font, &x_scale, &y_scale);
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
-  hb_font_get_glyph_shape (font, glyph, get_cairo_draw_funcs (), cr);
+  hb_font_draw_glyph (font, glyph, get_cairo_draw_funcs (), cr);
   cairo_fill (cr);
 
   return CAIRO_STATUS_SUCCESS;

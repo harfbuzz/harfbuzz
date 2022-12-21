@@ -70,11 +70,11 @@ hb_paint_composite_mode_to_cairo (hb_paint_composite_mode_t mode)
   return CAIRO_OPERATOR_SOURCE;
 }
 
-void hb_face_get_color (hb_face_t *face,
-                        unsigned int palette_index,
-                        unsigned int color_index,
-                        float alpha,
-                        float *r, float *g, float *b, float *a);
+hb_bool_t hb_cairo_get_font_color (hb_font_t *font,
+                                   unsigned int palette_index,
+                                   unsigned int color_index,
+                                   float alpha,
+                                   float *r, float *g, float *b, float *a);
 
 void hb_cairo_paint_glyph_image (cairo_t *cr,
                                  hb_font_t *font,
