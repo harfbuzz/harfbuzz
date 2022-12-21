@@ -1388,9 +1388,7 @@ hb_font_get_glyph_from_name (hb_font_t      *font,
  * The shape is returned by way of calls to the callbacks of the @dfuncs
  * objects, with @draw_data passed to them.
  *
- * Since: REPLACEME
- *
- * Deprecated: REPLACEME: Use hb_font_draw_glyph() instead.
+ * Since: 4.0.0
  */
 void
 hb_font_get_glyph_shape (hb_font_t *font,
@@ -1407,8 +1405,9 @@ hb_font_get_glyph_shape (hb_font_t *font,
  * @dfuncs: #hb_draw_funcs_t to draw to
  * @draw_data: User data to pass to draw callbacks
  *
- * Fetches the glyph shape that corresponds to a glyph in the specified @font.
- * The shape is returned by way of calls to the callbacks of the @dfuncs
+ * Draws the outline that corresponds to a glyph in the specified @font.
+ *
+ * The outline is returned by way of calls to the callbacks of the @dfuncs
  * objects, with @draw_data passed to them.
  *
  * Since: REPLACEME
