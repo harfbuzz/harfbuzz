@@ -915,6 +915,14 @@ typedef struct hb_glyph_extents_t {
   hb_position_t height;
 } hb_glyph_extents_t;
 
+/**
+ * hb_font_t:
+ *
+ * Data type for holding fonts.
+ *
+ */
+typedef struct hb_font_t hb_font_t;
+
 HB_END_DECLS
 
 #endif /* HB_COMMON_H */

@@ -29,8 +29,7 @@
 #ifndef HB_PAINT_H
 #define HB_PAINT_H
 
-#include "hb.h"
-#include "hb-font.h"
+#include "hb-common.h"
 
 HB_BEGIN_DECLS
 

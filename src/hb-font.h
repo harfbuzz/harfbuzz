@@ -38,15 +38,6 @@
 
 HB_BEGIN_DECLS
 
-/**
- * hb_font_t:
- *
- * Data type for holding fonts.
- *
- */
-typedef struct hb_font_t hb_font_t;
-
-
 /*
  * hb_font_funcs_t
  */
