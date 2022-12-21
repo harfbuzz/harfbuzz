@@ -8,9 +8,9 @@ void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
   for (unsigned i = firstLayerIndex; i < firstLayerIndex + numLayers; i++)
   {
     const Paint &paint = paint_offset_lists.get_paint (i);
-    c->funcs->push_group (c->data);
+    c->funcs->push_group (c->data, c->font);
     c->recurse (paint);
-    c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+    c->funcs->pop_group (c->data, HB_PAINT_COMPOSITE_MODE_SRC_OVER, c->font);
   }
 }
 

@@ -1,0 +1,14 @@
+start transform 0.020000 0.000000 0.000000 0.020000 0.000000 0.000000
+  start transform 50.000000 0.000000 0.000000 50.000000 0.000000 0.000000
+    start clip glyph 174
+      sweep gradient
+        center 500.000000 600.000000
+        angles 0.000000 6.283185
+        colors
+          0.250000 7 1.000000
+          0.416687 4 1.000000
+          0.583313 0 1.000000
+          0.750000 8 1.000000
+    end clip
+  end transform
+end transform

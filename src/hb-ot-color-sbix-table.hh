@@ -248,7 +248,7 @@ struct sbix
       if (!hb_font_get_glyph_extents (font, glyph, &extents))
         return false;
 
-      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, &extents);
+      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, &extents, font);
 
       hb_blob_destroy (blob);
       return true;

@@ -664,11 +664,12 @@ hb_font_paint_glyph_default (hb_font_t *font,
     0.f,
     font->parent->y_scale ? (float) font->y_scale / (float) font->parent->y_scale : 0.f,
     0.f,
-    0.f);
+    0.f,
+    font);
 
   font->parent->paint_glyph (glyph, paint_funcs, paint_data);
 
-  paint_funcs->pop_transform (paint_data);
+  paint_funcs->pop_transform (paint_data, font);
 }
 
 DEFINE_NULL_INSTANCE (hb_font_funcs_t) =

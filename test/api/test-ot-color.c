@@ -484,6 +484,7 @@ push_transform (hb_paint_funcs_t *funcs,
                 float xx, float yx,
                 float xy, float yy,
                 float dx, float dy,
+                hb_font_t *font,
                 void *user_data)
 {
   paint_data_t *data = user_data;
@@ -495,6 +496,7 @@ push_transform (hb_paint_funcs_t *funcs,
 static void
 pop_transform (hb_paint_funcs_t *funcs,
                void *paint_data,
+               hb_font_t *font,
                void *user_data)
 {
   paint_data_t *data = user_data;
@@ -507,6 +509,7 @@ static void
 push_clip_glyph (hb_paint_funcs_t *funcs,
                  void *paint_data,
                  hb_codepoint_t glyph,
+                 hb_font_t *font,
                  void *user_data)
 {
   paint_data_t *data = user_data;
@@ -519,6 +522,7 @@ static void
 push_clip_rectangle (hb_paint_funcs_t *funcs,
                      void *paint_data,
                      float xmin, float ymin, float xmax, float ymax,
+                     hb_font_t *font,
                      void *user_data)
 {
   paint_data_t *data = user_data;
@@ -530,6 +534,7 @@ push_clip_rectangle (hb_paint_funcs_t *funcs,
 static void
 pop_clip (hb_paint_funcs_t *funcs,
           void *paint_data,
+          hb_font_t *font,
           void *user_data)
 {
   paint_data_t *data = user_data;
@@ -543,6 +548,7 @@ paint_color (hb_paint_funcs_t *funcs,
              void *paint_data,
              unsigned int color_index,
              float alpha,
+             hb_font_t *font,
              void *user_data)
 {
   paint_data_t *data = user_data;
@@ -556,6 +562,7 @@ paint_image (hb_paint_funcs_t *funcs,
              hb_blob_t *blob,
              hb_tag_t format,
              hb_glyph_extents_t *extents,
+             hb_font_t *font,
              void *user_data)
 {
   paint_data_t *data = user_data;
@@ -591,6 +598,7 @@ paint_linear_gradient (hb_paint_funcs_t *funcs,
                        float x0, float y0,
                        float x1, float y1,
                        float x2, float y2,
+                       hb_font_t *font,
                        void *user_data)
 {
   paint_data_t *data = user_data;
@@ -611,6 +619,7 @@ paint_radial_gradient (hb_paint_funcs_t *funcs,
                        hb_color_line_t *color_line,
                        float x0, float y0, float r0,
                        float x1, float y1, float r1,
+                       hb_font_t *font,
                        void *user_data)
 {
   paint_data_t *data = user_data;
@@ -631,6 +640,7 @@ paint_sweep_gradient (hb_paint_funcs_t *funcs,
                       float cx, float cy,
                       float start_angle,
                       float end_angle,
+                      hb_font_t *font,
                       void *user_data)
 {
   paint_data_t *data = user_data;
@@ -647,6 +657,7 @@ paint_sweep_gradient (hb_paint_funcs_t *funcs,
 static void
 push_group (hb_paint_funcs_t *funcs,
             void *paint_data,
+            hb_font_t *font,
             void *user_data)
 {
   paint_data_t *data = user_data;
@@ -658,6 +669,7 @@ static void
 pop_group (hb_paint_funcs_t *funcs,
            void *paint_data,
            hb_paint_composite_mode_t mode,
+           hb_font_t *font,
            void *user_data)
 {
   paint_data_t *data = user_data;
@@ -677,16 +689,16 @@ typedef struct {
 #define TEST_GLYPHS "fonts/test_glyphs-glyf_colr_1.ttf"
 
 static colrv1_test_t colrv1_tests[] = {
-  { NOTO_HAND, 20, 0., 10, "results/hand-20-0-10.txt" },
-  { NOTO_HAND, 20, 0.2, 10, "results/hand-20-0.2-10.txt" },
-  { TEST_GLYPHS, 20, 0, 6, "results/test-20-0-6.txt" },
-  { TEST_GLYPHS, 20, 0, 10, "results/test-20-0-10.txt" },
-  { TEST_GLYPHS, 20, 0, 92, "results/test-20-0-92.txt" },
-  { TEST_GLYPHS, 20, 0, 106, "results/test-20-0-106.txt" },
-  { TEST_GLYPHS, 20, 0, 116, "results/test-20-0-116.txt" },
-  { TEST_GLYPHS, 20, 0, 123, "results/test-20-0-123.txt" },
-  { TEST_GLYPHS, 20, 0, 165, "results/test-20-0-165.txt" },
-  { TEST_GLYPHS, 20, 0, 175, "results/test-20-0-175.txt" },
+  { NOTO_HAND, 20, 0., 10, "hand-20-0-10" },
+  { NOTO_HAND, 20, 0.2, 10, "hand-20-0.2-10" },
+  { TEST_GLYPHS, 20, 0, 6, "test-20-0-6" },
+  { TEST_GLYPHS, 20, 0, 10, "test-20-0-10" },
+  { TEST_GLYPHS, 20, 0, 92, "test-20-0-92" },
+  { TEST_GLYPHS, 20, 0, 106, "test-20-0-106" },
+  { TEST_GLYPHS, 20, 0, 116, "test-20-0-116" },
+  { TEST_GLYPHS, 20, 0, 123, "test-20-0-123" },
+  { TEST_GLYPHS, 20, 0, 165, "test-20-0-165" },
+  { TEST_GLYPHS, 20, 0, 175, "test-20-0-175" },
 };
 
 static void
@@ -738,7 +750,7 @@ test_hb_ot_color_colr_v1 (gconstpointer d)
       exit (0);
     }
 
-  file = g_test_build_filename (G_TEST_DIST, test->output, NULL);
+  file = g_test_build_filename (G_TEST_DIST, "results", test->output, NULL);
   if (!g_file_get_contents (file, &buffer, &len, &error))
   {
     g_test_message ("File %s not found.", file);
@@ -820,11 +832,7 @@ main (int argc, char **argv)
   hb_test_add (test_hb_ot_color_png);
   hb_test_add (test_hb_ot_color_svg);
   for (unsigned int i = 0; i < G_N_ELEMENTS (colrv1_tests); i++)
-    {
-      char buf[10] = { 0, };
-      g_snprintf (buf, 10, "%d", i);
-      hb_test_add_data_flavor (&colrv1_tests[i], buf, test_hb_ot_color_colr_v1);
-    }
+    hb_test_add_data_flavor (&colrv1_tests[i], colrv1_tests[i].output, test_hb_ot_color_colr_v1);
 
   status = hb_test_run();
   hb_face_destroy (cpal_v0);

@@ -337,11 +337,11 @@ struct glyf_accelerator_t
   {
     funcs->push_root_transform (data, font);
 
-    funcs->push_clip_glyph (data, gid);
-    funcs->color (data, 0xffff, 1.);
-    funcs->pop_clip (data);
+    funcs->push_clip_glyph (data, gid, font);
+    funcs->color (data, 0xffff, 1., font);
+    funcs->pop_clip (data, font);
 
-    funcs->pop_root_transform (data);
+    funcs->pop_root_transform (data, font);
 
     return false;
   }

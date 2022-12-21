@@ -557,11 +557,11 @@ bool OT::cff1::accelerator_t::paint_glyph (hb_font_t *font, hb_codepoint_t glyph
 {
     funcs->push_root_transform (data, font);
 
-    funcs->push_clip_glyph (data, glyph);
-    funcs->color (data, 0xffff, 1.);
-    funcs->pop_clip (data);
+    funcs->push_clip_glyph (data, glyph, font);
+    funcs->color (data, 0xffff, 1., font);
+    funcs->pop_clip (data, font);
 
-    funcs->pop_root_transform (data);
+    funcs->pop_root_transform (data, font);
 
     return false;
 }
