@@ -831,7 +831,8 @@ hb_font_funcs_set_glyph_shape_func (hb_font_funcs_t *ffuncs,
  * @user_data: Data to pass to @func
  * @destroy: (nullable): The function to call when @user_data is not needed anymore
  *
- * Sets the implementation function for #hb_font_draw_glyph_func_t.
+ * Sets the implementation function for #hb_font_draw_glyph_func_t,
+ * which is the same as #hb_font_get_glyph_shape_func_t.
  *
  * Since: REPLACEME
  **/
@@ -842,10 +843,10 @@ hb_font_funcs_set_draw_glyph_func (hb_font_funcs_t *ffuncs,
 
 /**
  * hb_font_funcs_set_paint_glyph_func:
- * @ffuncs:
- * @func: (closure user_data) (destroy destroy) (scope notified):
- * @user_data:
- * @destroy: (nullable):
+ * @ffuncs: A font-function structure
+ * @func: (closure user_data) (destroy destroy) (scope notified): The callback function to assign
+ * @user_data: Data to pass to @func
+ * @destroy: (nullable): The function to call when @user_data is no longer needed
  *
  * Sets the implementation function for #hb_font_paint_glyph_func_t.
  *
