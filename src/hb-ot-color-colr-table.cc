@@ -2,7 +2,7 @@
 
 namespace OT {
 
-void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
+void PaintColrLayers::paint_glyph (hb_ot_paint_context_t *c) const
 {
   const LayerList &paint_offset_lists = c->get_colr_table ()->get_layerList ();
   for (unsigned i = firstLayerIndex; i < firstLayerIndex + numLayers; i++)
@@ -14,7 +14,7 @@ void PaintColrLayers::paint_glyph (hb_paint_context_t *c) const
   }
 }
 
-void PaintColrGlyph::paint_glyph (hb_paint_context_t *c) const
+void PaintColrGlyph::paint_glyph (hb_ot_paint_context_t *c) const
 {
   const COLR *colr_table = c->get_colr_table ();
   const Paint *paint = colr_table->get_base_glyph_paint (gid);
