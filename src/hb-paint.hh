@@ -182,7 +182,7 @@ struct hb_paint_funcs_t
     float slant = font->slant_xy;
 
     func.push_transform (this, paint_data,
-                         upem/xscale, 0, slant * upem/xscale, upem/yscale, 0, 0,
+                         upem/xscale, 0, -slant * upem/xscale, upem/yscale, 0, 0,
                          font,
                          !user_data ? nullptr : user_data->push_transform);
   }
