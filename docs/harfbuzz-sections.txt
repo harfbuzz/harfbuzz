@@ -262,19 +262,6 @@ hb_paint_push_group_func_t
 hb_paint_funcs_set_push_group_func
 hb_paint_pop_group_func_t
 hb_paint_funcs_set_pop_group_func
-
-hb_paint_push_transform
-hb_paint_pop_transform
-hb_paint_push_clip_glyph
-hb_paint_push_clip_rectangle
-hb_paint_pop_clip
-hb_paint_color
-hb_paint_image
-hb_paint_linear_gradient
-hb_paint_radial_gradient
-hb_paint_sweep_gradient
-hb_paint_push_group
-hb_paint_pop_group
 </SECTION>
 
 <SECTION>

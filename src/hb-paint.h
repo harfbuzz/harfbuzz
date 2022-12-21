@@ -698,65 +698,6 @@ hb_paint_funcs_set_pop_group_func (hb_paint_funcs_t          *funcs,
                                    void                       *user_data,
                                    hb_destroy_func_t           destroy);
 
-HB_EXTERN void
-hb_paint_push_transform (hb_paint_funcs_t *funcs, void *paint_data,
-                         float xx, float yx,
-                         float xy, float yy,
-                         float dx, float dy);
-
-HB_EXTERN void
-hb_paint_pop_transform (hb_paint_funcs_t *funcs, void *paint_data);
-
-HB_EXTERN void
-hb_paint_push_clip_glyph (hb_paint_funcs_t *funcs, void *paint_data,
-                          hb_codepoint_t glyph,
-                          hb_font_t *font);
-
-HB_EXTERN void
-hb_paint_push_clip_rectangle (hb_paint_funcs_t *funcs, void *paint_data,
-                              float xmin, float ymin,
-                              float xmax, float ymax);
-
-HB_EXTERN void
-hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data);
-
-HB_EXTERN void
-hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
-                hb_color_t color);
-
-HB_EXTERN void
-hb_paint_image (hb_paint_funcs_t *funcs, void *paint_data,
-                hb_blob_t *image,
-                hb_tag_t format,
-                hb_glyph_extents_t *extents);
-
-HB_EXTERN void
-hb_paint_linear_gradient (hb_paint_funcs_t *funcs, void *paint_data,
-                          hb_color_line_t *color_line,
-                          float x0, float y0,
-                          float x1, float y1,
-                          float x2, float y2);
-
-HB_EXTERN void
-hb_paint_radial_gradient (hb_paint_funcs_t *funcs, void *paint_data,
-                          hb_color_line_t *color_line,
-                          float x0, float y0,
-                          float r0,
-                          float x1, float y1,
-                          float r1);
-
-HB_EXTERN void
-hb_paint_sweep_gradient (hb_paint_funcs_t *funcs, void *paint_data,
-                         hb_color_line_t *color_line,
-                         float x0, float y0,
-                         float start_angle, float end_angle);
-
-HB_EXTERN void
-hb_paint_push_group (hb_paint_funcs_t *funcs, void *paint_data);
-
-HB_EXTERN void
-hb_paint_pop_group (hb_paint_funcs_t *funcs, void *paint_data,
-                    hb_paint_composite_mode_t mode);
 
 HB_END_DECLS
 
