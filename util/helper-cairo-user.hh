@@ -209,16 +209,17 @@ pop_group (hb_paint_funcs_t *funcs,
 static void
 paint_color (hb_paint_funcs_t *funcs,
              void *paint_data,
-             unsigned int color_index,
-             float alpha,
+             hb_color_t color,
              const hb_paint_context_t *ctx,
              void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
-  float r, g, b, a;
 
-  hb_cairo_get_font_color (ctx, color_index, alpha, &r, &g, &b, &a);
-  cairo_set_source_rgba (cr, (double)r, (double)g, (double)b, (double)a);
+  cairo_set_source_rgba (cr,
+                         hb_color_get_red (color) / 255.,
+                         hb_color_get_green (color) / 255.,
+                         hb_color_get_blue (color) / 255.,
+                         hb_color_get_alpha (color) / 255.);
   cairo_paint (cr);
 }
 

@@ -546,14 +546,17 @@ pop_clip (hb_paint_funcs_t *funcs,
 static void
 paint_color (hb_paint_funcs_t *funcs,
              void *paint_data,
-             unsigned int color_index,
-             float alpha,
+             hb_color_t color,
              const hb_paint_context_t *ctx,
              void *user_data)
 {
   paint_data_t *data = user_data;
 
-  print (data, "solid %u %f", color_index, alpha);
+  print (data, "solid %d %d %d %d",
+         hb_color_get_red (color),
+         hb_color_get_green (color),
+         hb_color_get_blue (color),
+         hb_color_get_alpha (color));
 }
 
 static void
@@ -587,7 +590,12 @@ print_color_line (paint_data_t *data,
   print (data, "colors");
   data->level += 1;
   for (unsigned int i = 0; i < len; i++)
-    print (data, "%f %u %f", stops[i].offset, stops[i].color_index, stops[i].alpha);
+    print (data, "%f %d %d %d %d",
+           stops[i].offset,
+           hb_color_get_red (stops[i].color),
+           hb_color_get_green (stops[i].color),
+           hb_color_get_blue (stops[i].color),
+           hb_color_get_alpha (stops[i].color));
   data->level -= 1;
 }
 
@@ -746,7 +754,7 @@ test_hb_ot_color_colr_v1 (gconstpointer d)
    */
   if (getenv ("GENERATE_DATA"))
     {
-      g_print ("%s\n", data.string->str);
+      g_print ("%s", data.string->str);
       exit (0);
     }
 

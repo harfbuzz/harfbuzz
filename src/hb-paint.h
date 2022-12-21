@@ -46,7 +46,7 @@ HB_BEGIN_DECLS
  *
  * The callbacks also assume that the caller uses
  * hb_ot_color_palette_get_colors() to obtain colors
- * from one of the fonts color palettes. If the font does
+ * from the color palette that is selected. If the font does
  * not have color palettes, the color index will always
  * be 0xFFFF, indicating the use of the foreground color.
  *
@@ -240,27 +240,18 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
  * hb_paint_color_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
- * @color_index: Index of a color in the fonts selected color palette
- * @alpha: alpha to apply in addition
- * @ctx: the paint context
+ * @color: The color to use
+ * @ctx: The paint context
  * @user_data: User data pointer passed to hb_paint_funcs_set_color_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a
  * color everywhere within the current clip.
  *
- * The @color_index can be either an index into one of the fonts
- * color palettes, or the special value 0xFFFF, which indicates that
- * the foreground color should be used.
- *
- * In either case, the @alpha value should be applied in addition
- * (i.e. multiplied with) the alpha value found in the color.
- *
  * Since: REPLACEME
  */
 typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
-                                       unsigned int color_index,
-                                       float alpha,
+                                       hb_color_t color,
                                        const hb_paint_context_t *ctx,
                                        void *user_data);
 
@@ -321,27 +312,18 @@ typedef struct hb_color_line_t hb_color_line_t;
 /**
  * hb_color_stop_t:
  * @offset: the offset of the color stop
- * @color_index: either a color palette index or the special value 0xFFFF
- * @alpha: alpha to apply
+ * @color: the color
  *
  * Information about a color stop on a color line.
  *
  * Color lines typically have offsets ranging between 0 and 1,
  * but that is not required.
  *
- * The @color_index can be either an index into one of the fonts
- * color palettes, or the special value 0xFFFF, which indicates that
- * the foreground color should be used.
- *
- * in either case, the @alpha value should be applied in addition
- * (i.e. multiplied with) the alpha value found in the color.
- *
  * Since: REPLACEME
  */
 typedef struct {
   float offset;
-  unsigned int color_index;
-  float alpha;
+  hb_color_t color;
 } hb_color_stop_t;
 
 HB_EXTERN unsigned int
@@ -789,8 +771,7 @@ hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data,
 
 HB_EXTERN void
 hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
-                unsigned int color_index,
-                float alpha,
+                hb_color_t color,
                 const hb_paint_context_t *ctx);
 
 HB_EXTERN void

@@ -98,11 +98,10 @@ struct hb_paint_funcs_t
   { func.pop_clip (this, paint_data, ctx,
                    !user_data ? nullptr : user_data->pop_clip); }
   void color (void *paint_data,
-              unsigned int color_index,
-              float alpha,
+              hb_color_t color,
               const hb_paint_context_t *ctx)
   { func.color (this, paint_data,
-                color_index, alpha,
+                color,
                 ctx,
                 !user_data ? nullptr : user_data->color); }
   void image (void *paint_data,
@@ -196,5 +195,27 @@ struct hb_paint_funcs_t
   }
 };
 DECLARE_NULL_INSTANCE (hb_paint_funcs_t);
+
+static inline hb_color_t
+hb_paint_get_color (const hb_paint_context_t *ctx,
+                    unsigned int color_index,
+                    float alpha)
+{
+  hb_color_t color = ctx->foreground;
+
+  if (color_index != 0xffff)
+  {
+    unsigned int clen = 1;
+    hb_face_t *face = hb_font_get_face (ctx->font);
+
+    hb_ot_color_palette_get_colors (face, ctx->palette, color_index, &clen, &color);
+  }
+
+  return HB_COLOR (hb_color_get_blue (color),
+                   hb_color_get_green (color),
+                   hb_color_get_red (color),
+                   hb_color_get_alpha (color) * alpha);
+}
+
 
 #endif /* HB_PAINT_HH */

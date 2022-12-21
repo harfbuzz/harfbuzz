@@ -259,8 +259,11 @@ hb_cairo_paint_linear_gradient (cairo_t *cr,
   cairo_pattern_set_extend (pattern, cairo_extend (hb_color_line_get_extend (color_line)));
   for (unsigned int i = 0; i < len; i++)
     {
-      float r, g, b, a;
-      hb_cairo_get_font_color (ctx, stops[i].color_index, stops[i].alpha, &r, &g, &b, &a);
+      double r, g, b, a;
+      r = hb_color_get_red (stops[i].color) / 255.;
+      g = hb_color_get_green (stops[i].color) / 255.;
+      b = hb_color_get_blue (stops[i].color) / 255.;
+      a = hb_color_get_alpha (stops[i].color) / 255.;
       cairo_pattern_add_color_stop_rgba (pattern, stops[i].offset, r, g, b, a);
     }
 
@@ -307,8 +310,11 @@ hb_cairo_paint_radial_gradient (cairo_t *cr,
 
   for (unsigned int i = 0; i < len; i++)
     {
-      float r, g, b, a;
-      hb_cairo_get_font_color (ctx, stops[i].color_index, stops[i].alpha, &r, &g, &b, &a);
+      double r, g, b, a;
+      r = hb_color_get_red (stops[i].color) / 255.;
+      g = hb_color_get_green (stops[i].color) / 255.;
+      b = hb_color_get_blue (stops[i].color) / 255.;
+      a = hb_color_get_alpha (stops[i].color) / 255.;
       cairo_pattern_add_color_stop_rgba (pattern, stops[i].offset, r, g, b, a);
     }
 
@@ -486,7 +492,10 @@ add_sweep_gradient_patches (const hb_paint_context_t *ctx,
           color_t c;
           if (start_angle > 0)
             {
-              hb_cairo_get_font_color (ctx, stops[0].color_index, stops[0].alpha, &c.r, &c.g, &c.b, &c.a);
+              c.r = hb_color_get_red (stops[0].color) / 255.;
+              c.g = hb_color_get_green (stops[0].color) / 255.;
+              c.b = hb_color_get_blue (stops[0].color) / 255.;
+              c.a = hb_color_get_alpha (stops[0].color) / 255.;
               add_sweep_gradient_patches1 (cx, cy, radius,
                                            0.,          &c,
                                            start_angle, &c,
@@ -494,7 +503,10 @@ add_sweep_gradient_patches (const hb_paint_context_t *ctx,
             }
           if (end_angle < 2 * M_PI)
             {
-              hb_cairo_get_font_color (ctx, stops[n_stops-1].color_index, stops[n_stops-1].alpha, &c.r, &c.g, &c.b, &c.a);
+              c.r = hb_color_get_red (stops[n_stops - 1].color) / 255.;
+              c.g = hb_color_get_green (stops[n_stops - 1].color) / 255.;
+              c.b = hb_color_get_blue (stops[n_stops - 1].color) / 255.;
+              c.a = hb_color_get_alpha (stops[n_stops - 1].color) / 255.;
               add_sweep_gradient_patches1 (cx, cy, radius,
                                            end_angle, &c,
                                            2 * M_PI,  &c,
@@ -530,7 +542,10 @@ add_sweep_gradient_patches (const hb_paint_context_t *ctx,
   for (unsigned i = 0; i < n_stops; i++)
     {
       angles[i] = start_angle + stops[i].offset * (end_angle - start_angle);
-      hb_cairo_get_font_color (ctx, stops[i].color_index, stops[i].alpha, &colors[i].r, &colors[i].g, &colors[i].b, &colors[i].a);
+      colors[i].r = hb_color_get_red (stops[i].color) / 255.;
+      colors[i].g = hb_color_get_green (stops[i].color) / 255.;
+      colors[i].b = hb_color_get_blue (stops[i].color) / 255.;
+      colors[i].a = hb_color_get_alpha (stops[i].color) / 255.;
     }
 
   if (extend == CAIRO_EXTEND_PAD)

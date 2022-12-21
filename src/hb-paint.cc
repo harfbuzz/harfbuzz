@@ -74,8 +74,7 @@ hb_paint_pop_clip_nil (hb_paint_funcs_t *funcs, void *paint_data,
 
 static void
 hb_paint_color_nil (hb_paint_funcs_t *funcs, void *paint_data,
-                    unsigned int color_index,
-                    float alpha,
+                    hb_color_t color,
                     const hb_paint_context_t *ctx,
                     void *user_data) {}
 
@@ -489,8 +488,7 @@ hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data,
  * hb_paint_color:
  * @funcs: paint functions
  * @paint_data: associated data passed by the caller
- * @color_index: Index of a color in the color palette
- * @alpha: Alpha to apply in addition
+ * @color: The color to use
  * @ctx: the paint context
  *
  * Perform a "color" paint operation.
@@ -499,11 +497,10 @@ hb_paint_pop_clip (hb_paint_funcs_t *funcs, void *paint_data,
  */
 void
 hb_paint_color (hb_paint_funcs_t *funcs, void *paint_data,
-                unsigned int color_index,
-                float alpha,
+                hb_color_t color,
                 const hb_paint_context_t *ctx)
 {
-  funcs->color (paint_data, color_index, alpha, ctx);
+  funcs->color (paint_data, color, ctx);
 }
 
 /**

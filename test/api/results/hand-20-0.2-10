@@ -7,10 +7,10 @@ start transform 0.019531 0.000000 0.003906 0.019531 0.000000 0.000000
             p0 280.000000 440.000000 radius 0.000000
             p1 280.000000 440.000000 radius 467.000000
             colors
-              0.000000 16 1.000000
-              0.448792 15 1.000000
-              0.808594 14 1.000000
-              1.000000 12 1.000000
+              0.000000 186 141 104 255
+              0.448792 183 138 103 255
+              0.808594 173 130 100 255
+              1.000000 164 123 98 255
         end transform
       end clip
     end transform
@@ -23,29 +23,29 @@ start transform 0.019531 0.000000 0.003906 0.019531 0.000000 0.000000
           p1 1019.000000 -27.000000
           p2 231.000000 -815.000000
           colors
-            0.000000 12 1.000000
-            1.000000 12 1.000000
+            0.000000 164 123 98 255
+            1.000000 164 123 98 255
       end clip
     end transform
   pop group mode 3
   push group
     start transform 51.200001 0.000000 -10.240000 51.200001 0.000000 0.000000
       start clip glyph 15
-        solid 9 1.000000
+        solid 145 103 77 255
       end clip
     end transform
   pop group mode 3
   push group
     start transform 51.200001 0.000000 -10.240000 51.200001 0.000000 0.000000
       start clip glyph 16
-        solid 0 1.000000
+        solid 30 136 229 255
       end clip
     end transform
   pop group mode 3
   push group
     start transform 51.200001 0.000000 -10.240000 51.200001 0.000000 0.000000
       start clip glyph 21
-        solid 9 1.000000
+        solid 145 103 77 255
       end clip
     end transform
   pop group mode 3
@@ -58,15 +58,15 @@ start transform 0.019531 0.000000 0.003906 0.019531 0.000000 0.000000
             p1 180.000000 -106.000000
             p2 -212.000000 1265.000000
             colors
-              0.000000 5 1.000000
-              1.000000 1 1.000000
+              0.000000 100 181 246 255
+              1.000000 33 150 243 255
         end clip
       end transform
     pop group mode 3
     push group
       start transform 51.200001 0.000000 -10.240000 51.200001 0.000000 0.000000
         start clip glyph 18
-          solid 2 0.200012
+          solid 66 66 66 51
         end clip
       end transform
     pop group mode 3
@@ -79,10 +79,10 @@ start transform 0.019531 0.000000 0.003906 0.019531 0.000000 0.000000
             p0 588.000000 198.000000 radius 0.000000
             p1 588.000000 198.000000 radius 342.000000
             colors
-              0.000000 16 1.000000
-              0.448792 15 1.000000
-              0.808594 14 1.000000
-              1.000000 12 1.000000
+              0.000000 186 141 104 255
+              0.448792 183 138 103 255
+              0.808594 173 130 100 255
+              1.000000 164 123 98 255
         end transform
       end clip
     end transform
@@ -90,7 +90,7 @@ start transform 0.019531 0.000000 0.003906 0.019531 0.000000 0.000000
   push group
     start transform 51.200001 0.000000 -10.240000 51.200001 0.000000 0.000000
       start clip glyph 20
-        solid 9 1.000000
+        solid 145 103 77 255
       end clip
     end transform
   pop group mode 3

@@ -344,7 +344,7 @@ struct glyf_accelerator_t
     funcs->push_root_transform (data, &ctx);
 
     funcs->push_clip_glyph (data, gid, &ctx);
-    funcs->color (data, 0xffff, 1., &ctx);
+    funcs->color (data, hb_paint_get_color (&ctx, 0xffff, 1.), &ctx);
     funcs->pop_clip (data, &ctx);
 
     funcs->pop_root_transform (data, &ctx);
