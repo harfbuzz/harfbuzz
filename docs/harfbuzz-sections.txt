@@ -230,6 +230,7 @@ hb_paint_funcs_get_user_data
 hb_paint_funcs_make_immutable
 hb_paint_funcs_is_immutable
 
+hb_paint_context_t
 hb_paint_push_transform_func_t
 hb_paint_funcs_set_push_transform_func
 hb_paint_pop_transform_func_t
