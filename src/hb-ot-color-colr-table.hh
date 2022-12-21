@@ -97,9 +97,11 @@ public:
     instancer (instancer_)
   { }
 
-  hb_color_t get_color (unsigned int color_index, float alpha)
+  hb_color_t get_color (unsigned int color_index, float alpha, hb_bool_t *is_foreground)
   {
     hb_color_t color = foreground;
+
+    *is_foreground = true;
 
     if (color_index != 0xffff)
     {
@@ -107,6 +109,7 @@ public:
       hb_face_t *face = hb_font_get_face (font);
 
       hb_ot_color_palette_get_colors (face, palette, color_index, &clen, &color);
+      *is_foreground = false;
     }
 
     return HB_COLOR (hb_color_get_blue (color),
@@ -360,7 +363,9 @@ struct ColorStop
 		       const VarStoreInstancer &instancer) const
   {
     out->offset = stopOffset.to_float(instancer (varIdx, 0));
-    out->color = c->get_color (paletteIndex, alpha.to_float (instancer (varIdx, 1)));
+    out->color = c->get_color (paletteIndex,
+                               alpha.to_float (instancer (varIdx, 1)),
+                               &out->is_foreground);
   }
 
   F2DOT14	stopOffset;
@@ -576,9 +581,13 @@ struct PaintSolid
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    c->funcs->color (c->data,
-                     c->get_color (paletteIndex,
-                                   alpha.to_float (c->instancer (varIdxBase, 0))));
+    hb_bool_t is_foreground;
+    hb_color_t color;
+
+    color = c->get_color (paletteIndex,
+                          alpha.to_float (c->instancer (varIdxBase, 0)),
+                          &is_foreground);
+    c->funcs->color (c->data, is_foreground, color);
   }
 
   HBUINT8	format; /* format = 2(noVar) or 3(Var)*/
@@ -1992,8 +2001,10 @@ struct COLR
       for (const auto &r : (this+layersZ).as_array (numLayers)
 			   .sub_array (record->firstLayerIdx, record->numLayers))
       {
+        hb_bool_t is_foreground;
+        hb_color_t color = c.get_color (r.colorIdx, 1., &is_foreground);
         c.funcs->push_clip_glyph (c.data, r.glyphId, c.font);
-        c.funcs->color (c.data, c.get_color (r.colorIdx, 1.));
+        c.funcs->color (c.data, is_foreground, color);
         c.funcs->pop_clip (c.data);
       }
 

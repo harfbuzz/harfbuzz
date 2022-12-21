@@ -542,6 +542,7 @@ pop_clip (hb_paint_funcs_t *funcs,
 static void
 paint_color (hb_paint_funcs_t *funcs,
              void *paint_data,
+             hb_bool_t use_foreground,
              hb_color_t color,
              void *user_data)
 {

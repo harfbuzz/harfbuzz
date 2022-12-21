@@ -92,9 +92,10 @@ struct hb_paint_funcs_t
   { func.pop_clip (this, paint_data,
                    !user_data ? nullptr : user_data->pop_clip); }
   void color (void *paint_data,
+              hb_bool_t is_foreground,
               hb_color_t color)
   { func.color (this, paint_data,
-                color,
+                is_foreground, color,
                 !user_data ? nullptr : user_data->color); }
   void image (void *paint_data,
               hb_blob_t *image,

@@ -209,6 +209,7 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
  * hb_paint_color_func_t:
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
+ * @is_foreground: whether the color is the foreground
  * @color: The color to use
  * @user_data: User data pointer passed to hb_paint_funcs_set_color_func()
  *
@@ -219,6 +220,7 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
  */
 typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
+                                       hb_bool_t is_foreground,
                                        hb_color_t color,
                                        void *user_data);
 
@@ -277,6 +279,7 @@ typedef struct hb_color_line_t hb_color_line_t;
 /**
  * hb_color_stop_t:
  * @offset: the offset of the color stop
+ * @is_foreground: whether the color is the foreground
  * @color: the color
  *
  * Information about a color stop on a color line.
@@ -288,6 +291,7 @@ typedef struct hb_color_line_t hb_color_line_t;
  */
 typedef struct {
   float offset;
+  hb_bool_t is_foreground;
   hb_color_t color;
 } hb_color_stop_t;
 
