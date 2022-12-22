@@ -1603,10 +1603,7 @@ struct COLR
 				     extents,
 				     instancer))
     {
-      extents->x_bearing = font->em_scale_x (extents->x_bearing);
-      extents->y_bearing = font->em_scale_x (extents->y_bearing);
-      extents->width = font->em_scale_x (extents->width);
-      extents->height = font->em_scale_x (extents->height);
+      font->scale_glyph_extents (extents);
       return true;
     }
 

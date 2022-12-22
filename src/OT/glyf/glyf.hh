@@ -247,19 +247,14 @@ struct glyf_accelerator_t
 	  extents->y_bearing = 0;
 	  return;
 	}
-	if (scaled)
-	{
-	  extents->x_bearing = font->em_scalef_x (min_x);
-	  extents->width = font->em_scalef_x (max_x) - extents->x_bearing;
-	  extents->y_bearing = font->em_scalef_y (max_y);
-	  extents->height = font->em_scalef_y (min_y) - extents->y_bearing;
-	}
-	else
 	{
 	  extents->x_bearing = roundf (min_x);
 	  extents->width = roundf (max_x - extents->x_bearing);
 	  extents->y_bearing = roundf (max_y);
 	  extents->height = roundf (min_y - extents->y_bearing);
+
+	  if (scaled)
+	    font->scale_glyph_extents (extents);
 	}
       }
 

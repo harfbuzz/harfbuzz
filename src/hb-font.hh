@@ -179,6 +179,14 @@ struct hb_font_t
     *y = parent_scale_y_position (*y);
   }
 
+  void scale_glyph_extents (hb_glyph_extents_t *extents)
+  {
+    extents->x_bearing = em_scale_x (extents->x_bearing);
+    extents->y_bearing = em_scale_x (extents->y_bearing);
+    extents->width = em_scale_x (extents->width);
+    extents->height = em_scale_x (extents->height);
+  }
+
 
   /* Public getters */
 
