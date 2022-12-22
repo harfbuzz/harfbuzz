@@ -559,7 +559,10 @@ static void
 paint_image (hb_paint_funcs_t *funcs,
              void *paint_data,
              hb_blob_t *blob,
+             unsigned int width,
+             unsigned int height,
              hb_tag_t format,
+             float slant,
              hb_glyph_extents_t *extents,
              void *user_data)
 {
@@ -567,8 +570,9 @@ paint_image (hb_paint_funcs_t *funcs,
   char buf[5] = { 0, };
 
   hb_tag_to_string (format, buf);
-  print (data, "image type %s extents %d %d %d %d\n",
-         buf, extents->x_bearing, extents->y_bearing, extents->width, extents->height);
+  print (data, "image type %s size %u %u slant %f extents %d %d %d %d\n",
+         buf, width, height, slant,
+         extents->x_bearing, extents->y_bearing, extents->width, extents->height);
 }
 
 static void
@@ -680,23 +684,30 @@ typedef struct {
   int scale;
   float slant;
   hb_codepoint_t glyph;
+  unsigned int palette;
   const char *output;
 } colrv1_test_t;
 
 #define NOTO_HAND   "fonts/noto_handwriting-cff2_colr_1.otf"
 #define TEST_GLYPHS "fonts/test_glyphs-glyf_colr_1.ttf"
+#define ROCHER_ABC  "fonts/RocherColorGX.abc.ttf"
 
 static colrv1_test_t colrv1_tests[] = {
-  { NOTO_HAND, 20, 0., 10, "hand-20-0-10" },
-  { NOTO_HAND, 20, 0.2, 10, "hand-20-0.2-10" },
-  { TEST_GLYPHS, 20, 0, 6, "test-20-0-6" },
-  { TEST_GLYPHS, 20, 0, 10, "test-20-0-10" },
-  { TEST_GLYPHS, 20, 0, 92, "test-20-0-92" },
-  { TEST_GLYPHS, 20, 0, 106, "test-20-0-106" },
-  { TEST_GLYPHS, 20, 0, 116, "test-20-0-116" },
-  { TEST_GLYPHS, 20, 0, 123, "test-20-0-123" },
-  { TEST_GLYPHS, 20, 0, 165, "test-20-0-165" },
-  { TEST_GLYPHS, 20, 0, 175, "test-20-0-175" },
+  /* COLRv1 */
+  { NOTO_HAND,   20, 0.,  10,   0, "hand-20-0-10" },
+  { NOTO_HAND,   20, 0.2, 10,   0, "hand-20-0.2-10" },
+  { TEST_GLYPHS, 20, 0,    6,   0, "test-20-0-6" },
+  { TEST_GLYPHS, 20, 0,   10,   0, "test-20-0-10" },
+  { TEST_GLYPHS, 20, 0,   92,   0, "test-20-0-92" },
+  { TEST_GLYPHS, 20, 0,  106,   0, "test-20-0-106" },
+  { TEST_GLYPHS, 20, 0,  116,   0, "test-20-0-116" },
+  { TEST_GLYPHS, 20, 0,  123,   0, "test-20-0-123" },
+  { TEST_GLYPHS, 20, 0,  165,   0, "test-20-0-165" },
+  { TEST_GLYPHS, 20, 0,  175,   0, "test-20-0-175" },
+  /* COLRv0 */
+  { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-20-0.3-1" },
+  { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-20-0-2" },
+  { ROCHER_ABC, 120, 0,    3, 200, "rocher-20-0-3" },
 };
 
 static void
