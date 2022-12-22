@@ -273,6 +273,16 @@ struct hb_subset_plan_t
     }
     return hb_face_builder_add_table (dest, tag, contents);
   }
+
+  inline bool should_omit_glyf_bytes () const
+  {
+    return
+        flags & HB_SUBSET_FLAGS_OMIT_GLYF &&
+        flags & HB_SUBSET_FLAGS_RETAIN_GIDS &&
+        !(flags & HB_SUBSET_FLAGS_NO_HINTING) &&
+        !(flags & HB_SUBSET_FLAGS_SET_OVERLAPS_FLAG) &&
+        pinned_at_default;
+  }
 };
 
 

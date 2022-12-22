@@ -32,26 +32,45 @@ struct SubsetGlyph
       return false;
     }
 
-    dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + end_copy.length);
+    bool do_copy = !plan->should_omit_glyf_bytes ();
+
+    hb_bytes_t dest_glyph;
+    if (do_copy)
+    {
+      dest_glyph = dest_start.copy (c);
+      dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + dest_end.copy (c).length);
+      dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + end_copy.length);
+    } else {
+      // TODO(garretrieger): remove assert.
+      assert(!dest_end); // shouldn't be set if hint dropping isn't on.
+      dest_glyph = dest_start;
+    }
+
     unsigned int pad_length = use_short_loca ? padding () : 0;
     DEBUG_MSG (SUBSET, nullptr, "serialize %u byte glyph, width %u pad %u", dest_glyph.length, dest_glyph.length + pad_length, pad_length);
 
     HBUINT8 pad;
     pad = 0;
-    while (pad_length > 0)
+    if (do_copy)
     {
-      (void) c->embed (pad);
-      pad_length--;
+      while (pad_length > 0)
+      {
+        (void) c->embed (pad);
+        pad_length--;
+      }
     }
 
     if (unlikely (!dest_glyph.length)) return_trace (true);
 
-    /* update components gids. */
-    for (auto &_ : Glyph (dest_glyph).get_composite_iterator ())
+    /* update components gids */
+    if (!(plan->flags & HB_SUBSET_FLAGS_RETAIN_GIDS) && do_copy)
     {
-      hb_codepoint_t new_gid;
-      if (plan->new_gid_for_old_gid (_.get_gid(), &new_gid))
-	const_cast<CompositeGlyphRecord &> (_).set_gid (new_gid);
+      for (auto &_ : Glyph (dest_glyph).get_composite_iterator ())
+       {
+        hb_codepoint_t new_gid;
+        if (plan->new_gid_for_old_gid (_.get_gid(), &new_gid))
+          const_cast<CompositeGlyphRecord &> (_).set_gid (new_gid);
+      }
     }
 #ifndef HB_NO_VAR_COMPOSITES
     for (auto &_ : Glyph (dest_glyph).get_var_composite_iterator ())

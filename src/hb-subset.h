@@ -76,6 +76,14 @@ typedef struct hb_subset_plan_t hb_subset_plan_t;
  * @HB_SUBSET_FLAGS_IFTB_REQUIREMENTS: If set enforce requirements on the output subset
  * to allow it to be used with incremental font transfer IFTB patches. Primarily,
  * this forces all outline data to use long (32 bit) offsets. Since: EXPERIMENTAL
+ * @HB_SUBSET_FLAGS_OMIT_GLYF: If set the subsetter won't actually produce the final
+ * glyf table bytes. The table directory will include and entry as if the table was
+ * there but the actual final font blob will be truncated prior to the glyf data. This
+ * is a useful performance optimization when a font aware binary patching algorithm
+ * is being used to diff two subsets.
+ * @HB_SUBSET_FLAGS_PATCH_MODE: If set the subsetter behaviour will be modified
+ * to produce a subset that is better suited to patching. For example cmap
+ * subtable format will be kept stable.
  *
  * List of boolean properties that can be configured on the subset input.
  *
@@ -96,6 +104,8 @@ typedef enum { /*< flags >*/
 #ifdef HB_EXPERIMENTAL_API
   HB_SUBSET_FLAGS_IFTB_REQUIREMENTS       =  0x00000400u,
 #endif
+  HB_SUBSET_FLAGS_OMIT_GLYF =                0x00000800u,
+  // Not supported yet: HB_SUBSET_FLAGS_PATCH_MODE = 0x00001000u,
 } hb_subset_flags_t;
 
 /**
