@@ -26,19 +26,17 @@ struct SubsetGlyph
   {
     TRACE_SERIALIZE (this);
 
-    hb_bytes_t dest_glyph = dest_start.copy (c);
-    hb_bytes_t end_copy = dest_end.copy (c);
-    if (!end_copy.arrayZ || !dest_glyph.arrayZ) {
-      return false;
-    }
-
     bool do_copy = !plan->should_omit_glyf_bytes ();
-
     hb_bytes_t dest_glyph;
+
     if (do_copy)
     {
-      dest_glyph = dest_start.copy (c);
-      dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + dest_end.copy (c).length);
+      hb_bytes_t dest_glyph = dest_start.copy (c);
+      hb_bytes_t end_copy = dest_end.copy (c);
+      if (!end_copy.arrayZ || !dest_glyph.arrayZ) {
+        return false;
+      }
+
       dest_glyph = hb_bytes_t (&dest_glyph, dest_glyph.length + end_copy.length);
     } else {
       // TODO(garretrieger): remove assert.
@@ -73,6 +71,7 @@ struct SubsetGlyph
       }
     }
 #ifndef HB_NO_VAR_COMPOSITES
+    // TODO(grieger): skip if retain gids or not copying.
     for (auto &_ : Glyph (dest_glyph).get_var_composite_iterator ())
     {
       hb_codepoint_t new_gid;
@@ -82,6 +81,7 @@ struct SubsetGlyph
 #endif
 
 #ifndef HB_NO_BEYOND_64K
+    // TODO(grieger): not allowed in omit glyf mode.
     auto it = Glyph (dest_glyph).get_composite_iterator ();
     if (it)
     {
@@ -161,6 +161,62 @@ struct SubsetGlyph
   /* pad to 2 to ensure 2-byte loca will be ok */
   unsigned int     padding () const { return length () % 2; }
   unsigned int padded_size () const { return length () + padding (); }
+
+  uint32_t checksum (bool use_short_loca,
+                     uint8_t   remainder[4],
+                     unsigned *remainder_length)
+  {
+    // TODO(garretrieger): remove assertion.
+    assert (!dest_end); // we don't handle hint removal.
+    assert (*remainder_length <= 4);
+
+    const uint8_t* input = (const uint8_t*) dest_start.arrayZ;
+    unsigned input_length = dest_start.length;
+    while (*remainder_length < 4 && input_length > 0)
+    {
+      remainder[(*remainder_length)++] = *(input++);
+      input_length--;
+    }
+
+    if (*remainder_length < 4) {
+      // Remainder not yet filled.
+      return 0;
+    }
+
+    // commit remainder.
+    HBUINT32 checksum = *((HBUINT32*) remainder);
+    *remainder_length = 0;
+    *((HBUINT32*) remainder) = 0;
+
+    if (input_length >= 4)
+    {
+      unsigned aligned_length = (input_length / 4) * 4;
+      CheckSum block_checksum;
+      block_checksum.set_for_data (input, aligned_length);
+      checksum += block_checksum;
+      input += aligned_length;
+      input_length -= aligned_length;
+    }
+
+    unsigned pad_length = use_short_loca ? padding() : 0;
+    if (input_length + pad_length >= 4)
+    {
+      unsigned i = 0;
+      while (input_length > 0) {
+        remainder[i++] = *(input++);
+        input_length--;
+      }
+      checksum += *((HBUINT32*) remainder);
+      pad_length -= (4 - i);
+      *((HBUINT32*) remainder) = 0;
+    }
+
+    *remainder_length = input_length + pad_length;
+    for (unsigned i = 0; i < input_length; i++)
+      remainder[i] = input[i];
+
+    return checksum;
+  }
 };
 
 
