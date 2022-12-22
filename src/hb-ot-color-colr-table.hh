@@ -1976,22 +1976,24 @@ struct COLR
   paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette, hb_color_t foreground) const
   {
     VarStoreInstancer instancer (this+varStore,
-				 this+varIdxMap,
-				 hb_array (font->coords, font->num_coords));
-
+	                         this+varIdxMap,
+	                         hb_array (font->coords, font->num_coords));
     hb_paint_context_t c (this, funcs, data, font, palette, foreground, instancer);
 
-    const Paint *paint = get_base_glyph_paint (glyph);
-    if (paint)
+    if (version == 1)
     {
-      // COLRv1 glyph
-      c.funcs->push_root_transform (c.data, font);
+      const Paint *paint = get_base_glyph_paint (glyph);
+      if (paint)
+      {
+        // COLRv1 glyph
+        c.funcs->push_root_transform (c.data, font);
 
-      c.recurse (*paint);
+        c.recurse (*paint);
 
-      c.funcs->pop_root_transform (c.data);
+        c.funcs->pop_root_transform (c.data);
 
-      return true;
+        return true;
+      }
     }
 
     const BaseGlyphRecord *record = get_base_glyph_record (glyph);
