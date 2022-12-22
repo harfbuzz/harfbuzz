@@ -45,6 +45,7 @@
 #include FT_MULTIPLE_MASTERS_H
 #include FT_OUTLINE_H
 #include FT_TRUETYPE_TABLES_H
+#include FT_COLOR_H
 
 
 /**
@@ -818,31 +819,81 @@ hb_ft_paint_glyph (hb_font_t *font,
                    void *font_data,
                    hb_codepoint_t gid,
                    hb_paint_funcs_t *paint_funcs, void *paint_data,
-                   unsigned int palette,
+                   unsigned int palette_index,
                    hb_color_t foreground,
                    void *user_data)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+  hb_lock_t lock (ft_font->lock);
+  FT_Face ft_face = ft_font->ft_face;
 
-  FT_Glyph_Format format;
-  /* Release lock before calling into callbacks, such that
+  /* We release the lock before calling into callbacks, such that
    * eg. draw API can call back into the face.*/
+
+  if (unlikely (FT_Load_Glyph (ft_face, gid, ft_font->load_flags)))
+    return;
+
+  if (ft_face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)
   {
+    /* COLRv0 */
+    {
+      FT_Error error;
+      FT_Color*         palette;
+      FT_LayerIterator  iterator;
 
-    hb_lock_t lock (ft_font->lock);
-    FT_Face ft_face = ft_font->ft_face;
+      FT_Bool  have_layers;
+      FT_UInt  layer_glyph_index;
+      FT_UInt  layer_color_index;
 
-    if (unlikely (FT_Load_Glyph (ft_face, gid, ft_font->load_flags)))
-      return;
+      error = FT_Palette_Select(ft_face, palette_index, &palette);
+      if ( error )
+	palette = NULL;
 
-    format = ft_face->glyph->format;
-  }
+      iterator.p  = NULL;
+      have_layers = FT_Get_Color_Glyph_Layer(ft_face,
+					     gid,
+					     &layer_glyph_index,
+					     &layer_color_index,
+					     &iterator);
 
-  if (format == FT_GLYPH_FORMAT_OUTLINE)
-  {
+      if (palette && have_layers)
+      {
+	do
+	{
+	  hb_bool_t is_foreground = true;
+	  hb_color_t color = foreground;
+
+	  if ( layer_color_index != 0xFFFF )
+	  {
+	    FT_Color layer_color = palette[layer_color_index];
+	    color = HB_COLOR (layer_color.blue,
+			      layer_color.green,
+			      layer_color.red,
+			      layer_color.alpha);
+	    is_foreground = false;
+	  }
+
+	  ft_font->lock.unlock ();
+	  paint_funcs->push_clip_glyph (paint_data, layer_glyph_index, font);
+	  paint_funcs->color (paint_data, is_foreground, color);
+	  paint_funcs->pop_clip (paint_data);
+	  ft_font->lock.lock ();
+
+	} while (FT_Get_Color_Glyph_Layer(ft_face,
+					  gid,
+					  &layer_glyph_index,
+					  &layer_color_index,
+					  &iterator));
+	return;
+      }
+    }
+
+    /* Simple outline. */
+    ft_font->lock.unlock ();
     paint_funcs->push_clip_glyph (paint_data, gid, font);
     paint_funcs->color (paint_data, true, foreground);
     paint_funcs->pop_clip (paint_data);
+    ft_font->lock.lock ();
 
     return;
   }
