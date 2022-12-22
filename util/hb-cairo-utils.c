@@ -70,6 +70,7 @@ cairo_extend (hb_paint_extend_t extend)
   return CAIRO_EXTEND_PAD;
 }
 
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
 typedef struct
 {
   hb_blob_t *blob;
@@ -95,6 +96,7 @@ read_blob (void *closure,
 
   return CAIRO_STATUS_SUCCESS;
 }
+#endif
 
 void
 hb_cairo_paint_glyph_image (cairo_t *cr,
