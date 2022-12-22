@@ -244,6 +244,7 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @image: the image data
  * @format: the image format as a tag
+ * @slant: the synthetic slant of the font
  * @extents: (nullable): glyph extents
  * @user_data: User data pointer passed to hb_paint_funcs_set_image_func()
  *
