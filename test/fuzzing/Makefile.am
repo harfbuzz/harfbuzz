@@ -15,13 +15,20 @@ libs:
 $(top_builddir)/src/libharfbuzz.la: lib
 $(top_builddir)/src/libharfbuzz-subset.la: libs
 
+# seems autotools builds do not support builds with experimental APIs, so
+# EXTRA_DIST hb-repacker-fuzzer.cc
+
 EXTRA_DIST += \
 	README.md \
+	hb-repacker-fuzzer.cc \
 	run-shape-fuzzer-tests.py \
 	run-subset-fuzzer-tests.py \
 	run-draw-fuzzer-tests.py \
+	run-repacker-fuzzer-tests.py \
 	meson.build \
 	fonts \
+	graphs \
+	sets \
 	$(NULL)
 
 check_PROGRAMS = \
