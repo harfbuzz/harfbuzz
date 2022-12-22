@@ -777,11 +777,11 @@ _hb_ft_cubic_to (const FT_Vector *control1,
 }
 
 static void
-hb_ft_get_glyph_shape (hb_font_t *font HB_UNUSED,
-		       void *font_data,
-		       hb_codepoint_t glyph,
-		       hb_draw_funcs_t *draw_funcs, void *draw_data,
-		       void *user_data HB_UNUSED)
+hb_ft_draw_glyph (hb_font_t *font HB_UNUSED,
+		  void *font_data,
+		  hb_codepoint_t glyph,
+		  hb_draw_funcs_t *draw_funcs, void *draw_data,
+		  void *user_data HB_UNUSED)
 {
   const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
   hb_lock_t lock (ft_font->lock);
@@ -844,7 +844,7 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
     hb_font_funcs_set_glyph_from_name_func (funcs, hb_ft_get_glyph_from_name, nullptr, nullptr);
 
 #ifndef HB_NO_DRAW
-    hb_font_funcs_set_glyph_shape_func (funcs, hb_ft_get_glyph_shape, nullptr, nullptr);
+    hb_font_funcs_set_draw_glyph_func (funcs, hb_ft_draw_glyph, nullptr, nullptr);
 #endif
 
     hb_font_funcs_make_immutable (funcs);
