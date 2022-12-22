@@ -33,12 +33,13 @@
 
 #include "hb-ft.h"
 
+#include "hb-cache.hh"
 #include "hb-draw.hh"
 #include "hb-font.hh"
 #include "hb-machinery.hh"
-#include "hb-cache.hh"
 #include "hb-ot-os2-table.hh"
 #include "hb-ot-shaper-arabic-pua.hh"
+#include "hb-paint.hh"
 
 #include FT_ADVANCES_H
 #include FT_MULTIPLE_MASTERS_H
@@ -811,6 +812,45 @@ hb_ft_draw_glyph (hb_font_t *font HB_UNUSED,
 }
 #endif
 
+#ifndef HB_NO_PAINT
+static void
+hb_ft_paint_glyph (hb_font_t *font,
+                   void *font_data,
+                   hb_codepoint_t gid,
+                   hb_paint_funcs_t *paint_funcs, void *paint_data,
+                   unsigned int palette,
+                   hb_color_t foreground,
+                   void *user_data)
+{
+  const hb_ft_font_t *ft_font = (const hb_ft_font_t *) font_data;
+
+  FT_Glyph_Format format;
+  /* Release lock before calling into callbacks, such that
+   * eg. draw API can call back into the face.*/
+  {
+
+    hb_lock_t lock (ft_font->lock);
+    FT_Face ft_face = ft_font->ft_face;
+
+    if (unlikely (FT_Load_Glyph (ft_face, gid, ft_font->load_flags)))
+      return;
+
+    format = ft_face->glyph->format;
+  }
+
+  if (format == FT_GLYPH_FORMAT_OUTLINE)
+  {
+    paint_funcs->push_clip_glyph (paint_data, gid, font);
+    paint_funcs->color (paint_data, true, foreground);
+    paint_funcs->pop_clip (paint_data);
+
+    return;
+  }
+
+  /* TODO Support image, COLRv0/1. */
+}
+#endif
+
 
 static inline void free_static_ft_funcs ();
 
@@ -845,6 +885,10 @@ static struct hb_ft_font_funcs_lazy_loader_t : hb_font_funcs_lazy_loader_t<hb_ft
 
 #ifndef HB_NO_DRAW
     hb_font_funcs_set_draw_glyph_func (funcs, hb_ft_draw_glyph, nullptr, nullptr);
+#endif
+
+#ifndef HB_NO_PAINT
+    hb_font_funcs_set_paint_glyph_func (funcs, hb_ft_paint_glyph, nullptr, nullptr);
 #endif
 
     hb_font_funcs_make_immutable (funcs);
