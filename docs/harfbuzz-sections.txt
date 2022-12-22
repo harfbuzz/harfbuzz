@@ -244,6 +244,7 @@ hb_paint_color_func_t
 hb_paint_funcs_set_color_func
 HB_PAINT_IMAGE_FORMAT_PNG
 HB_PAINT_IMAGE_FORMAT_SVG
+HB_PAINT_IMAGE_FORMAT_BGRA
 hb_paint_image_func_t
 hb_paint_funcs_set_image_func
 hb_color_line_t
@@ -373,6 +374,7 @@ hb_font_get_glyph_v_origin
 hb_font_get_glyph_origin_for_direction
 hb_font_get_glyph_name
 hb_font_get_glyph_shape
+hb_font_draw_glyph
 hb_font_paint_glyph
 hb_font_get_nominal_glyph
 hb_font_get_nominal_glyphs
@@ -436,6 +438,8 @@ hb_font_get_glyph_name_func_t
 hb_font_funcs_set_glyph_name_func
 hb_font_get_glyph_shape_func_t
 hb_font_funcs_set_glyph_shape_func
+hb_font_draw_glyph_func_t
+hb_font_funcs_set_draw_glyph_func
 hb_font_paint_glyph_func_t
 hb_font_funcs_set_paint_glyph_func
 hb_font_get_nominal_glyph_func_t

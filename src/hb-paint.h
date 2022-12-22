@@ -227,16 +227,30 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
 /**
  * HB_PAINT_IMAGE_FORMAT_PNG:
  *
- * Tag identifying png images in #hb_paint_image_func_t callbacks.
+ * Tag identifying PNG images in #hb_paint_image_func_t callbacks.
+ *
+ * Since: REPLACEME
  */
 #define HB_PAINT_IMAGE_FORMAT_PNG HB_TAG('p','n','g',' ')
 
 /**
  * HB_PAINT_IMAGE_FORMAT_SVG:
  *
- * Tag identifying svg images in #hb_paint_image_func_t callbacks.
+ * Tag identifying SVG images in #hb_paint_image_func_t callbacks.
+ *
+ * Since: REPLACEME
  */
 #define HB_PAINT_IMAGE_FORMAT_SVG HB_TAG('s','v','g',' ')
+
+/**
+ * HB_PAINT_IMAGE_FORMAT_BGRA:
+ *
+ * Tag identifying raw pixel-data images in #hb_paint_image_func_t callbacks.
+ * The data is in BGRA pre-multiplied sRGBA color-space format.
+ *
+ * Since: REPLACEME
+ */
+#define HB_PAINT_IMAGE_FORMAT_BGRA HB_TAG('B','G','R','A')
 
 /**
  * hb_paint_image_func_t:

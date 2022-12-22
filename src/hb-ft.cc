@@ -830,7 +830,8 @@ hb_ft_paint_glyph (hb_font_t *font,
   /* We release the lock before calling into callbacks, such that
    * eg. draw API can call back into the face.*/
 
-  if (unlikely (FT_Load_Glyph (ft_face, gid, ft_font->load_flags)))
+  if (unlikely (FT_Load_Glyph (ft_face, gid,
+			       ft_font->load_flags | FT_LOAD_COLOR)))
     return;
 
   if (ft_face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)
@@ -894,6 +895,42 @@ hb_ft_paint_glyph (hb_font_t *font,
     paint_funcs->color (paint_data, true, foreground);
     paint_funcs->pop_clip (paint_data);
     ft_font->lock.lock ();
+
+    return;
+  }
+
+  auto *glyph = ft_face->glyph;
+  if (glyph->format == FT_GLYPH_FORMAT_BITMAP)
+  {
+    auto &bitmap = glyph->bitmap;
+    if (bitmap.pixel_mode == FT_PIXEL_MODE_BGRA)
+    {
+      if (bitmap.pitch != (signed) bitmap.width * 4)
+        return;
+
+      ft_font->lock.unlock ();
+
+      hb_blob_t *blob = hb_blob_create ((const char *) bitmap.buffer,
+					bitmap.pitch * bitmap.rows,
+					HB_MEMORY_MODE_DUPLICATE,
+					nullptr, nullptr);
+
+      hb_glyph_extents_t extents;
+      if (!hb_font_get_glyph_extents (font, gid, &extents))
+	goto out;
+
+      paint_funcs->image (paint_data,
+			  blob,
+			  bitmap.width,
+			  bitmap.rows,
+			  HB_PAINT_IMAGE_FORMAT_BGRA,
+			  font->slant_xy,
+			  &extents);
+
+    out:
+      hb_blob_destroy (blob);
+      ft_font->lock.lock ();
+    }
 
     return;
   }

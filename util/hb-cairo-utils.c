@@ -98,6 +98,14 @@ read_blob (void *closure,
 }
 #endif
 
+static const cairo_user_data_key_t *_hb_cairo_surface_blob_user_data_key = {0};
+
+static void
+_hb_cairo_destroy_blob (void *p)
+{
+  hb_blob_destroy ((hb_blob_t *) p);
+}
+
 void
 hb_cairo_paint_glyph_image (cairo_t *cr,
                             hb_blob_t *blob,
@@ -107,19 +115,68 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
                             float slant,
                             hb_glyph_extents_t *extents)
 {
-#ifdef CAIRO_HAS_PNG_FUNCTIONS
-  if (format != HB_PAINT_IMAGE_FORMAT_PNG || !extents)
+  if (!extents) /* SVG currently. */
     return;
 
-  read_blob_data_t r;
-  r.blob = blob;
-  r.offset = 0;
-  cairo_surface_t *surface = cairo_image_surface_create_from_png_stream (read_blob, &r);
+  cairo_surface_t *surface = NULL;
 
-  /* For PNG, width,height can be unreliable, as is the case for NotoColorEmoji :(.
-   * Just pull them out of the surface. */
-  width = cairo_image_surface_get_width (surface);
-  height = cairo_image_surface_get_width (surface);
+#ifdef CAIRO_HAS_PNG_FUNCTIONS
+  if (format == HB_PAINT_IMAGE_FORMAT_PNG)
+  {
+    read_blob_data_t r;
+    r.blob = blob;
+    r.offset = 0;
+    surface = cairo_image_surface_create_from_png_stream (read_blob, &r);
+
+    /* For PNG, width,height can be unreliable, as is the case for NotoColorEmoji :(.
+     * Just pull them out of the surface. */
+    width = cairo_image_surface_get_width (surface);
+    height = cairo_image_surface_get_width (surface);
+  }
+  else
+#endif
+  if (format == HB_PAINT_IMAGE_FORMAT_BGRA)
+  {
+    /* Byte-endian conversion. */
+    unsigned data_size = hb_blob_get_length (blob);
+    if (data_size < width * height * 4)
+      return;
+
+    unsigned char *data;
+    if (__BYTE_ORDER == __BIG_ENDIAN)
+    {
+      data = (unsigned char *) hb_blob_get_data_writable (blob, NULL);
+      if (!data)
+        return;
+
+      unsigned count = width * height * 4;
+      for (unsigned i = 0; i < count; i += 4)
+      {
+        unsigned char b;
+	b = data[i];
+	data[i] = data[i+3];
+	data[i+3] = b;
+	b = data[i+1];
+	data[i+1] = data[i+2];
+	data[i+2] = b;
+      }
+    }
+    else
+      data = (unsigned char *) hb_blob_get_data (blob, NULL);
+
+    surface = cairo_image_surface_create_for_data (data,
+						   CAIRO_FORMAT_ARGB32,
+						   width, height,
+						   width * 4);
+
+    cairo_surface_set_user_data (surface,
+				 _hb_cairo_surface_blob_user_data_key,
+				 hb_blob_reference (blob),
+				 _hb_cairo_destroy_blob);
+  }
+
+  if (!surface)
+    return;
 
   cairo_pattern_t *pattern = cairo_pattern_create_for_surface (surface);
   cairo_pattern_set_extend (pattern, CAIRO_EXTEND_PAD);
@@ -141,7 +198,6 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
 
   cairo_pattern_destroy (pattern);
   cairo_surface_destroy (surface);
-#endif
 }
 
 static void
