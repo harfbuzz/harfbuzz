@@ -257,8 +257,8 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @image: the image data
- * @width: width of the raster image in pixels
- * @height: height of the raster image in pixels
+ * @width: width of the raster image in pixels, or 0
+ * @height: height of the raster image in pixels, or 0
  * @format: the image format as a tag
  * @slant: the synthetic slant ratio to be applied to the image during rendering
  * @extents: (nullable): glyph extents for desired rendering
@@ -270,10 +270,10 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * This method is intended for glyphs with image blobs in the CBDT,
  * sbix or SVG tables. The @format identifies the kind of data that
  * is contained in @image. Possible values include #HB_PAINT_IMAGE_FORMAT_PNG
- * and HB_PAINT_IMAGE_FORMAT_SVG.
+ * #HB_PAINT_IMAGE_FORMAT_SVG and #HB_PAINT_IMAGE_FORMAT_BGRA.
  *
- * The glyph extents are provided if available, and should be used
- * to size and position the image.
+ * The image dimensions and glyph extents are provided if available,
+ * and should be used to size and position the image.
  *
  * Since: REPLACEME
  */
