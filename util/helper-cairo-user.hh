@@ -221,6 +221,8 @@ static void
 paint_image (hb_paint_funcs_t *funcs,
              void *paint_data,
              hb_blob_t *blob,
+             unsigned width,
+             unsigned height,
              hb_tag_t format,
              float slant,
              hb_glyph_extents_t *extents,
@@ -228,7 +230,7 @@ paint_image (hb_paint_funcs_t *funcs,
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
-  hb_cairo_paint_glyph_image (cr, blob, format, slant, extents);
+  hb_cairo_paint_glyph_image (cr, blob, width, height, format, slant, extents);
 }
 
 static void

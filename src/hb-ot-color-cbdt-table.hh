@@ -81,14 +81,15 @@ struct SmallGlyphMetrics
     return_trace (c->check_struct (this));
   }
 
-  void get_extents (hb_font_t *font, hb_glyph_extents_t *extents) const
+  void get_extents (hb_font_t *font, hb_glyph_extents_t *extents, bool scale) const
   {
     extents->x_bearing = bearingX;
     extents->y_bearing = bearingY;
     extents->width = width;
     extents->height = -static_cast<int> (height);
 
-    font->scale_glyph_extents (extents);
+    if (scale)
+      font->scale_glyph_extents (extents);
   }
 
   HBUINT8	height;
@@ -310,7 +311,7 @@ struct IndexSubtable
     }
   }
 
-  bool get_extents (hb_glyph_extents_t *extents HB_UNUSED) const
+  bool get_extents (hb_glyph_extents_t *extents HB_UNUSED, bool scale HB_UNUSED) const
   {
     switch (u.header.indexFormat)
     {
@@ -507,8 +508,8 @@ struct IndexSubtableRecord
     return num_missing;
   }
 
-  bool get_extents (hb_glyph_extents_t *extents, const void *base) const
-  { return (base+offsetToSubtable).get_extents (extents); }
+  bool get_extents (hb_glyph_extents_t *extents, const void *base, bool scale) const
+  { return (base+offsetToSubtable).get_extents (extents, scale); }
 
   bool get_image_data (unsigned int  gid,
 		       const void   *base,
@@ -836,7 +837,7 @@ struct CBDT
     }
 
     bool
-    get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents) const
+    get_extents (hb_font_t *font, hb_codepoint_t glyph, hb_glyph_extents_t *extents, bool scale = true) const
     {
       const void *base;
       const BitmapSizeTable &strike = this->cblc->choose_strike (font);
@@ -844,7 +845,7 @@ struct CBDT
       if (!subtable_record || !strike.ppemX || !strike.ppemY)
 	return false;
 
-      if (subtable_record->get_extents (extents, base))
+      if (subtable_record->get_extents (extents, base, scale))
 	return true;
 
       unsigned int image_offset = 0, image_length = 0, image_format = 0;
@@ -861,26 +862,29 @@ struct CBDT
 	if (unlikely (image_length < GlyphBitmapDataFormat17::min_size))
 	  return false;
 	auto &glyphFormat17 = StructAtOffset<GlyphBitmapDataFormat17> (this->cbdt, image_offset);
-	glyphFormat17.glyphMetrics.get_extents (font, extents);
+	glyphFormat17.glyphMetrics.get_extents (font, extents, scale);
 	break;
       }
       case 18: {
 	if (unlikely (image_length < GlyphBitmapDataFormat18::min_size))
 	  return false;
 	auto &glyphFormat18 = StructAtOffset<GlyphBitmapDataFormat18> (this->cbdt, image_offset);
-	glyphFormat18.glyphMetrics.get_extents (font, extents);
+	glyphFormat18.glyphMetrics.get_extents (font, extents, scale);
 	break;
       }
       default: return false; /* TODO: Support other image formats. */
       }
 
       /* Convert to font units. */
-      float x_scale = upem / (float) strike.ppemX;
-      float y_scale = upem / (float) strike.ppemY;
-      extents->x_bearing = roundf (extents->x_bearing * x_scale);
-      extents->y_bearing = roundf (extents->y_bearing * y_scale);
-      extents->width = roundf (extents->width * x_scale);
-      extents->height = roundf (extents->height * y_scale);
+      if (scale)
+      {
+	float x_scale = upem / (float) strike.ppemX;
+	float y_scale = upem / (float) strike.ppemY;
+	extents->x_bearing = roundf (extents->x_bearing * x_scale);
+	extents->y_bearing = roundf (extents->y_bearing * y_scale);
+	extents->width = roundf (extents->width * x_scale);
+	extents->height = roundf (extents->height * y_scale);
+      }
 
       return true;
     }
@@ -940,6 +944,7 @@ struct CBDT
     bool paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data) const
     {
       hb_glyph_extents_t extents;
+      hb_glyph_extents_t pixel_extents;
       hb_blob_t *blob = reference_png (font, glyph);
 
       if (unlikely (blob == hb_blob_get_empty ()))
@@ -948,7 +953,15 @@ struct CBDT
       if (unlikely (!hb_font_get_glyph_extents (font, glyph, &extents)))
         return false;
 
-      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, font->slant_xy, &extents);
+      if (unlikely (!get_extents (font, glyph, &pixel_extents, false)))
+        return false;
+
+      funcs->image (data,
+		    blob,
+		    pixel_extents.width, -pixel_extents.height,
+		    HB_PAINT_IMAGE_FORMAT_PNG,
+		    font->slant_xy,
+		    &extents);
 
       hb_blob_destroy (blob);
       return true;

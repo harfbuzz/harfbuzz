@@ -77,6 +77,8 @@ hb_paint_color_nil (hb_paint_funcs_t *funcs, void *paint_data,
 static void
 hb_paint_image_nil (hb_paint_funcs_t *funcs, void *paint_data,
                     hb_blob_t *image,
+                    unsigned int width,
+                    unsigned int height,
                     hb_tag_t format,
                     float slant_xy,
                     hb_glyph_extents_t *extents,

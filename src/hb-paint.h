@@ -243,9 +243,11 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @image: the image data
+ * @width: width of the raster image in pixels
+ * @height: height of the raster image in pixels
  * @format: the image format as a tag
- * @slant: the synthetic slant of the font
- * @extents: (nullable): glyph extents
+ * @slant: the synthetic slant ratio to be applied to the image during rendering
+ * @extents: (nullable): glyph extents for desired rendering
  * @user_data: User data pointer passed to hb_paint_funcs_set_image_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint the
@@ -264,6 +266,8 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
 typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
                                        hb_blob_t *image,
+                                       unsigned int width,
+                                       unsigned int height,
                                        hb_tag_t format,
                                        float slant,
                                        hb_glyph_extents_t *extents,

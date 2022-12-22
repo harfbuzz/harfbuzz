@@ -99,6 +99,8 @@ read_blob (void *closure,
 void
 hb_cairo_paint_glyph_image (cairo_t *cr,
                             hb_blob_t *blob,
+                            unsigned width,
+                            unsigned height,
                             hb_tag_t format,
                             float slant,
                             hb_glyph_extents_t *extents)
@@ -111,8 +113,11 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
   r.blob = blob;
   r.offset = 0;
   cairo_surface_t *surface = cairo_image_surface_create_from_png_stream (read_blob, &r);
-  int width = cairo_image_surface_get_width (surface);
-  int height = cairo_image_surface_get_width (surface);
+
+  /* For PNG, width,height can be unreliable, as is the case for NotoColorEmoji :(.
+   * Just pull them out of the surface. */
+  width = cairo_image_surface_get_width (surface);
+  height = cairo_image_surface_get_width (surface);
 
   cairo_pattern_t *pattern = cairo_pattern_create_for_surface (surface);
   cairo_pattern_set_extend (pattern, CAIRO_EXTEND_PAD);

@@ -214,10 +214,11 @@ struct sbix
 
     bool get_extents (hb_font_t          *font,
 		      hb_codepoint_t      glyph,
-		      hb_glyph_extents_t *extents) const
+		      hb_glyph_extents_t *extents,
+		      bool                scale = true) const
     {
       /* We only support PNG right now, and following function checks type. */
-      return get_png_extents (font, glyph, extents);
+      return get_png_extents (font, glyph, extents, scale);
     }
 
     hb_blob_t *reference_png (hb_font_t      *font,
@@ -241,6 +242,7 @@ struct sbix
       unsigned int strike_ppem = 0;
       hb_blob_t *blob = reference_png (font, glyph, &x_offset, &y_offset, &strike_ppem);
       hb_glyph_extents_t extents;
+      hb_glyph_extents_t pixel_extents;
 
       if (blob == hb_blob_get_empty ())
         return false;
@@ -248,7 +250,15 @@ struct sbix
       if (!hb_font_get_glyph_extents (font, glyph, &extents))
         return false;
 
-      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, font->slant_xy, &extents);
+      if (unlikely (!get_extents (font, glyph, &pixel_extents, false)))
+        return false;
+
+      funcs->image (data,
+		    blob,
+		    pixel_extents.width, -pixel_extents.height,
+		    HB_PAINT_IMAGE_FORMAT_PNG,
+		    font->slant_xy,
+		    &extents);
 
       hb_blob_destroy (blob);
       return true;
@@ -308,7 +318,8 @@ struct sbix
 
     bool get_png_extents (hb_font_t          *font,
 			  hb_codepoint_t      glyph,
-			  hb_glyph_extents_t *extents) const
+			  hb_glyph_extents_t *extents,
+			  bool                scale = true) const
     {
       /* Following code is safe to call even without data.
        * But faster to short-circuit. */
@@ -333,7 +344,7 @@ struct sbix
       extents->height    = -1 * png.IHDR.height;
 
       /* Convert to font units. */
-      if (strike_ppem)
+      if (strike_ppem && scale)
       {
 	float scale = font->face->get_upem () / (float) strike_ppem;
 	extents->x_bearing = roundf (extents->x_bearing * scale);
@@ -341,15 +352,9 @@ struct sbix
 	extents->width = roundf (extents->width * scale);
 	extents->height = roundf (extents->height * scale);
       }
-      else
-      {
-	extents->x_bearing = extents->x_bearing;
-	extents->y_bearing = extents->y_bearing;
-	extents->width = extents->width;
-	extents->height = extents->height;
-      }
 
-      font->scale_glyph_extents (extents);
+      if (scale)
+	font->scale_glyph_extents (extents);
 
       hb_blob_destroy (blob);
 
