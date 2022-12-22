@@ -601,6 +601,10 @@ hb_ft_get_glyph_extents (hb_font_t *font,
   extents->width  = (hb_position_t) (x_mult *  ft_face->glyph->metrics.width);
   extents->height = (hb_position_t) (y_mult * -ft_face->glyph->metrics.height);
 
+  /* Apply slant. */
+  extents->x_bearing += roundf (extents->y_bearing * font->slant_xy);
+  extents->width += roundf (extents->height * font->slant_xy);
+
   return true;
 }
 
