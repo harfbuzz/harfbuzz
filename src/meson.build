@@ -305,7 +305,7 @@ hb_base_headers += hb_version_h
 
 # Optional Sources and Headers with external deps
 
-hb_ft_sources = files('hb-ft.cc')
+hb_ft_sources = files('hb-ft.cc', 'hb-ft-colr.hh')
 hb_ft_headers = files('hb-ft.h')
 
 hb_glib_sources = files('hb-glib.cc')

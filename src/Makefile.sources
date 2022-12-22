@@ -305,7 +305,7 @@ HB_BASE_headers = \
 
 # Optional Sources and Headers with external deps
 
-HB_FT_sources = hb-ft.cc
+HB_FT_sources = hb-ft.cc hb-ft-colr.hh
 HB_FT_headers = hb-ft.h
 
 HB_GLIB_sources = hb-glib.cc

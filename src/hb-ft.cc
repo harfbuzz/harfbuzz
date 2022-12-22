@@ -814,6 +814,9 @@ hb_ft_draw_glyph (hb_font_t *font HB_UNUSED,
 #endif
 
 #ifndef HB_NO_PAINT
+
+#include "hb-ft-colr.hh"
+
 static void
 hb_ft_paint_glyph (hb_font_t *font,
                    void *font_data,
@@ -836,58 +839,11 @@ hb_ft_paint_glyph (hb_font_t *font,
 
   if (ft_face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)
   {
-    /* COLRv0 */
-    {
-      FT_Error error;
-      FT_Color*         palette;
-      FT_LayerIterator  iterator;
-
-      FT_Bool  have_layers;
-      FT_UInt  layer_glyph_index;
-      FT_UInt  layer_color_index;
-
-      error = FT_Palette_Select(ft_face, palette_index, &palette);
-      if ( error )
-	palette = NULL;
-
-      iterator.p  = NULL;
-      have_layers = FT_Get_Color_Glyph_Layer(ft_face,
-					     gid,
-					     &layer_glyph_index,
-					     &layer_color_index,
-					     &iterator);
-
-      if (palette && have_layers)
-      {
-	do
-	{
-	  hb_bool_t is_foreground = true;
-	  hb_color_t color = foreground;
-
-	  if ( layer_color_index != 0xFFFF )
-	  {
-	    FT_Color layer_color = palette[layer_color_index];
-	    color = HB_COLOR (layer_color.blue,
-			      layer_color.green,
-			      layer_color.red,
-			      layer_color.alpha);
-	    is_foreground = false;
-	  }
-
-	  ft_font->lock.unlock ();
-	  paint_funcs->push_clip_glyph (paint_data, layer_glyph_index, font);
-	  paint_funcs->color (paint_data, is_foreground, color);
-	  paint_funcs->pop_clip (paint_data);
-	  ft_font->lock.lock ();
-
-	} while (FT_Get_Color_Glyph_Layer(ft_face,
-					  gid,
-					  &layer_glyph_index,
-					  &layer_color_index,
-					  &iterator));
-	return;
-      }
-    }
+    if (hb_ft_paint_glyph_colr (font, font_data, gid,
+				paint_funcs, paint_data,
+				palette_index, foreground,
+				user_data))
+      return;
 
     /* Simple outline. */
     ft_font->lock.unlock ();
