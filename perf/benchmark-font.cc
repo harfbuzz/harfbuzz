@@ -163,7 +163,7 @@ static void BM_Font (benchmark::State &state,
       hb_draw_funcs_t *draw_funcs = _draw_funcs_create ();
       for (auto _ : state)
 	for (unsigned gid = 0; gid < num_glyphs; ++gid)
-	  hb_font_get_glyph_shape (font, gid, draw_funcs, nullptr);
+	  hb_font_draw_glyph (font, gid, draw_funcs, nullptr);
       break;
       hb_draw_funcs_destroy (draw_funcs);
     }
