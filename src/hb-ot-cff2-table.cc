@@ -124,8 +124,8 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
   }
   else
   {
-    extents->x_bearing = param.min_x.to_int ();
-    extents->width = param.max_x.to_int () - extents->x_bearing;
+    extents->x_bearing = roundf (param.min_x.to_real ());
+    extents->width = roundf (param.max_x.to_real () - extents->x_bearing);
   }
   if (param.min_y >= param.max_y)
   {
@@ -134,8 +134,8 @@ bool OT::cff2::accelerator_t::get_extents (hb_font_t *font,
   }
   else
   {
-    extents->y_bearing = param.max_y.to_int ();
-    extents->height = param.min_y.to_int () - extents->y_bearing;
+    extents->y_bearing = roundf (param.max_y.to_real ());
+    extents->height = roundf (param.min_y.to_real () - extents->y_bearing);
   }
 
   font->scale_glyph_extents (extents);
