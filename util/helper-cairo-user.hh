@@ -222,12 +222,13 @@ paint_image (hb_paint_funcs_t *funcs,
              void *paint_data,
              hb_blob_t *blob,
              hb_tag_t format,
+             float slant,
              hb_glyph_extents_t *extents,
              void *user_data)
 {
   cairo_t *cr = (cairo_t *)paint_data;
 
-  hb_cairo_paint_glyph_image (cr, blob, format, extents);
+  hb_cairo_paint_glyph_image (cr, blob, format, slant, extents);
 }
 
 static void

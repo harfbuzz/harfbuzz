@@ -100,6 +100,7 @@ void
 hb_cairo_paint_glyph_image (cairo_t *cr,
                             hb_blob_t *blob,
                             hb_tag_t format,
+                            float slant,
                             hb_glyph_extents_t *extents)
 {
 #ifdef CAIRO_HAS_PNG_FUNCTIONS
@@ -118,6 +119,12 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
 
   cairo_matrix_t matrix = {(double) width, 0, 0, (double) height, 0, 0};
   cairo_pattern_set_matrix (pattern, &matrix);
+
+  /* Undo slant in the extents and apply it in the context. */
+  extents->width -= extents->height * slant;
+  extents->x_bearing -= extents->y_bearing * slant;
+  cairo_matrix_t cairo_matrix = {1., 0., slant, 1., 0., 0.};
+  cairo_transform (cr, &cairo_matrix);
 
   cairo_translate (cr, extents->x_bearing, extents->y_bearing);
   cairo_scale (cr, extents->width, extents->height);

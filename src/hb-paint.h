@@ -264,6 +264,7 @@ typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
                                        void *paint_data,
                                        hb_blob_t *image,
                                        hb_tag_t format,
+                                       float slant,
                                        hb_glyph_extents_t *extents,
                                        void *user_data);
 

@@ -948,7 +948,7 @@ struct CBDT
       if (unlikely (!hb_font_get_glyph_extents (font, glyph, &extents)))
         return false;
 
-      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, &extents);
+      funcs->image (data, blob, HB_PAINT_IMAGE_FORMAT_PNG, font->slant_xy, &extents);
 
       hb_blob_destroy (blob);
       return true;

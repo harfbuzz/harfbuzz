@@ -100,9 +100,10 @@ struct hb_paint_funcs_t
   void image (void *paint_data,
               hb_blob_t *image,
               hb_tag_t format,
+              float slant,
               hb_glyph_extents_t *extents)
   { func.image (this, paint_data,
-                image, format, extents,
+                image, format, slant, extents,
                 !user_data ? nullptr : user_data->image); }
   void linear_gradient (void *paint_data,
                         hb_color_line_t *color_line,
