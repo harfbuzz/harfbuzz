@@ -69,6 +69,76 @@ _hb_ft_paint_composite_mode (FT_Composite_Mode mode)
   }
 }
 
+typedef struct
+{
+  FT_Face face;
+  FT_Color *palette;
+  hb_color_t foreground;
+} _hb_ft_get_color_stops_data_t;
+
+static unsigned
+_hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
+				   void *color_line_data,
+				   unsigned int start,
+				   unsigned int *count,
+				   hb_color_stop_t *color_stops,
+				   void *user_data)
+{
+  FT_ColorLine *c = (FT_ColorLine *) color_line_data;
+  _hb_ft_get_color_stops_data_t *data = (_hb_ft_get_color_stops_data_t *) user_data;
+
+  if (count)
+  {
+    FT_ColorStop stop;
+    unsigned wrote = 0;
+
+    c->color_stop_iterator.current_color_stop = start;
+
+    while (count && *count &&
+	   FT_Get_Colorline_Stops(data->face,
+				  &stop,
+				  &c->color_stop_iterator))
+    {
+      color_stops->offset = stop.stop_offset / 65536.f;
+      color_stops->is_foreground = stop.color.palette_index == 0xFFFF;
+      if (color_stops->is_foreground)
+	color_stops->color = HB_COLOR (hb_color_get_blue (data->foreground),
+				       hb_color_get_green (data->foreground),
+				       hb_color_get_red (data->foreground),
+				       (hb_color_get_alpha (data->foreground) * stop.color.alpha) >> 14);
+      else
+      {
+	FT_Color ft_color = data->palette[stop.color.palette_index];
+	color_stops->color = HB_COLOR (ft_color.blue,
+				       ft_color.green,
+				       ft_color.red,
+				       ft_color.alpha);
+      }
+
+      color_stops++;
+      wrote++;
+    }
+    *count = wrote;
+  }
+
+  return c->color_stop_iterator.num_color_stops;
+}
+
+static hb_paint_extend_t
+_hb_ft_color_line_get_extend (hb_color_line_t *color_line,
+			      void *color_line_data,
+			      void *user_data)
+{
+  FT_ColorLine *c = (FT_ColorLine *) color_line_data;
+  switch (c->extend)
+  {
+    default:
+    case FT_COLR_PAINT_EXTEND_PAD:     return HB_PAINT_EXTEND_PAD;
+    case FT_COLR_PAINT_EXTEND_REPEAT:  return HB_PAINT_EXTEND_REPEAT;
+    case FT_COLR_PAINT_EXTEND_REFLECT: return HB_PAINT_EXTEND_REFLECT;
+  }
+}
+
 static void
 _hb_ft_paint (FT_OpaquePaint opaque_paint,
 	      const hb_ft_font_t *ft_font,
@@ -120,9 +190,58 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       paint_funcs->color (paint_data, is_foreground, color);
     }
     break;
-    case FT_COLR_PAINTFORMAT_LINEAR_GRADIENT: break;
-    case FT_COLR_PAINTFORMAT_RADIAL_GRADIENT: break;
-    case FT_COLR_PAINTFORMAT_SWEEP_GRADIENT: break;
+    case FT_COLR_PAINTFORMAT_LINEAR_GRADIENT:
+    {
+      _hb_ft_get_color_stops_data_t data = {ft_face, palette, foreground};
+      hb_color_line_t cl = {
+	&paint.u.linear_gradient.colorline,
+	_hb_ft_color_line_get_color_stops, &data,
+	_hb_ft_color_line_get_extend, nullptr
+      };
+
+      paint_funcs->linear_gradient (paint_data, &cl,
+				    paint.u.linear_gradient.p0.x,
+				    paint.u.linear_gradient.p0.y,
+				    paint.u.linear_gradient.p1.x,
+				    paint.u.linear_gradient.p1.y,
+				    paint.u.linear_gradient.p2.x,
+				    paint.u.linear_gradient.p2.y);
+    }
+    break;
+    case FT_COLR_PAINTFORMAT_RADIAL_GRADIENT:
+    {
+      _hb_ft_get_color_stops_data_t data = {ft_face, palette, foreground};
+      hb_color_line_t cl = {
+	&paint.u.linear_gradient.colorline,
+	_hb_ft_color_line_get_color_stops, &data,
+	_hb_ft_color_line_get_extend, nullptr
+      };
+
+      paint_funcs->radial_gradient (paint_data, &cl,
+				    paint.u.radial_gradient.c0.x,
+				    paint.u.radial_gradient.c0.y,
+				    paint.u.radial_gradient.r0,
+				    paint.u.radial_gradient.c1.x,
+				    paint.u.radial_gradient.c1.y,
+				    paint.u.radial_gradient.r1);
+    }
+    break;
+    case FT_COLR_PAINTFORMAT_SWEEP_GRADIENT:
+    {
+      _hb_ft_get_color_stops_data_t data = {ft_face, palette, foreground};
+      hb_color_line_t cl = {
+	&paint.u.linear_gradient.colorline,
+	_hb_ft_color_line_get_color_stops, &data,
+	_hb_ft_color_line_get_extend, nullptr
+      };
+
+      paint_funcs->sweep_gradient (paint_data, &cl,
+				   paint.u.sweep_gradient.center.x,
+				   paint.u.sweep_gradient.center.y,
+				   (paint.u.sweep_gradient.start_angle / 65536.f + 1) * (float) M_PI,
+				   (paint.u.sweep_gradient.end_angle / 65536.f + 1) * (float) M_PI);
+    }
+    break;
     case FT_COLR_PAINTFORMAT_GLYPH:
     {
       //paint_funcs->push_inverse_root_transform (paint_data, font);
