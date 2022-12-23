@@ -132,7 +132,35 @@ struct hb_paint_extents_context_t {
 
   void paint ()
   {
-    /* Union current clip bounds with current bounds. */
+    /* Union current clip bounds with current group bounds. */
+    const hb_bounds_t &clip = clips.tail ();
+    hb_bounds_t &group = groups.tail ();
+
+    if (clip.status == hb_bounds_t::status_t::EMPTY)
+      return; // Shouldn't happen
+
+    if (group.status == hb_bounds_t::status_t::UNBOUNDED)
+      return;
+
+    if (group.status == hb_bounds_t::status_t::EMPTY)
+    {
+      group = clip;
+      return;
+    }
+
+    /* Group is bounded now.  Clip is not empty. */
+
+    if (clip.status == hb_bounds_t::status_t::UNBOUNDED)
+    {
+      group.status = hb_bounds_t::status_t::UNBOUNDED;
+      return;
+    }
+
+    /* Both are bounded. Union. */
+    group.extents.xmin = hb_min (group.extents.xmin, clip.extents.xmin);
+    group.extents.ymin = hb_min (group.extents.ymin, clip.extents.ymin);
+    group.extents.xmax = hb_max (group.extents.xmax, clip.extents.xmax);
+    group.extents.ymax = hb_max (group.extents.ymax, clip.extents.ymax);
   }
 
   hb_vector_t<hb_bounds_t> clips;
