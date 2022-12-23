@@ -848,9 +848,9 @@ hb_ft_paint_glyph (hb_font_t *font,
     /* Simple outline. */
     ft_font->lock.unlock ();
     paint_funcs->push_clip_glyph (paint_data, gid, font);
+    ft_font->lock.lock ();
     paint_funcs->color (paint_data, true, foreground);
     paint_funcs->pop_clip (paint_data);
-    ft_font->lock.lock ();
 
     return;
   }
