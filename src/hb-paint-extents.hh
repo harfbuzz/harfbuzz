@@ -62,14 +62,20 @@ typedef struct hb_transform_t
   float y0 = 0.f;
 } hb_transform_t;
 
+typedef struct hb_extents_t
+{
+  float xmin, ymin, xmax, ymax;
+} hb_extents_t;
+
 typedef struct hb_bounds_t
 {
   hb_bounds_t () {}
-  hb_bounds_t (const hb_glyph_extents_t &extents) :
+  hb_bounds_t (const hb_extents_t &extents) :
     bounded (true), extents (extents) {}
 
   bool bounded = false;
-  hb_glyph_extents_t extents = {0, 0, 0, 0};
+  bool empty = true;
+  hb_extents_t extents = {0, 0, 0, 0};
 } hb_bounds_t;
 
 typedef struct  hb_paint_extents_context_t hb_paint_extents_context_t;
@@ -95,8 +101,11 @@ struct hb_paint_extents_context_t {
     transforms.pop ();
   }
 
-  void push_clip (const hb_glyph_extents_t &extents)
+  void push_clip (hb_extents_t extents)
   {
+    /* Transform extents and push a new clip. */
+    //hb_transform_t &r = transforms.tail ();
+
     hb_bounds_t b {extents};
     clips.push (b);
   }
@@ -116,11 +125,9 @@ struct hb_paint_extents_context_t {
     return bounds.pop ();
   }
 
-  void add_extents (const hb_glyph_extents_t &extents)
+  void paint ()
   {
-    // TODO
-
-    //hb_transform_t &r = transforms.tail ();
+    /* Union current clip bounds with current bounds. */
   }
 
   hb_vector_t<hb_bounds_t> clips;
@@ -158,9 +165,15 @@ hb_paint_extents_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
 				  hb_font_t *font,
 				  void *user_data HB_UNUSED)
 {
-  //hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
+  hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
 
-  // TODO
+  hb_glyph_extents_t glyph_extents;
+  hb_font_get_glyph_extents (font, glyph, &glyph_extents);
+  hb_extents_t extents = {(float) glyph_extents.x_bearing,
+			  (float) glyph_extents.y_bearing + glyph_extents.height,
+			  (float) glyph_extents.x_bearing + glyph_extents.width,
+			  (float) glyph_extents.y_bearing};
+  c->push_clip (extents);
 }
 
 static void
@@ -169,7 +182,10 @@ hb_paint_extents_push_clip_rectangle (hb_paint_funcs_t *funcs HB_UNUSED,
 				      float xmin, float ymin, float xmax, float ymax,
 				      void *user_data)
 {
-  // TODO
+  hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
+
+  hb_extents_t extents = {xmin, ymin, xmax, ymax};
+  c->push_clip (extents);
 }
 
 static void
@@ -213,10 +229,18 @@ hb_paint_extents_paint_image (hb_paint_funcs_t *funcs HB_UNUSED,
 			      unsigned int height HB_UNUSED,
 			      hb_tag_t format HB_UNUSED,
 			      float slant HB_UNUSED,
-			      hb_glyph_extents_t *extents,
+			      hb_glyph_extents_t *glyph_extents,
 			      void *user_data HB_UNUSED)
 {
-  // TODO
+  hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
+
+  hb_extents_t extents = {(float) glyph_extents->x_bearing,
+			  (float) glyph_extents->y_bearing + glyph_extents->height,
+			  (float) glyph_extents->x_bearing + glyph_extents->width,
+			  (float) glyph_extents->y_bearing};
+  c->push_clip (extents);
+  c->paint ();
+  c->pop_clip ();
 }
 
 static void
@@ -226,7 +250,9 @@ hb_paint_extents_paint_color (hb_paint_funcs_t *funcs HB_UNUSED,
 			      hb_color_t color HB_UNUSED,
 			      void *user_data HB_UNUSED)
 {
-  // TODO
+  hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
+
+  c->paint ();
 }
 
 static void
@@ -238,7 +264,9 @@ hb_paint_extents_paint_linear_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
 				        float x2 HB_UNUSED, float y2 HB_UNUSED,
 				        void *user_data HB_UNUSED)
 {
-  // TODO
+  hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
+
+  c->paint ();
 }
 
 static void
@@ -249,7 +277,9 @@ hb_paint_extents_paint_radial_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
 				        float x1 HB_UNUSED, float y1 HB_UNUSED, float r1 HB_UNUSED,
 				        void *user_data HB_UNUSED)
 {
-  // TODO
+  hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
+
+  c->paint ();
 }
 
 static void
@@ -261,7 +291,9 @@ hb_paint_extents_paint_sweep_gradient (hb_paint_funcs_t *funcs HB_UNUSED,
 				       float end_angle HB_UNUSED,
 				       void *user_data HB_UNUSED)
 {
-  // TODO
+  hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
+
+  c->paint ();
 }
 
 static inline hb_paint_funcs_t *
