@@ -249,10 +249,10 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
       c->funcs->radial_gradient (c->data, &cl,
 				    paint.u.radial_gradient.c0.x / 65536.f,
 				    paint.u.radial_gradient.c0.y / 65536.f,
-				    (paint.u.radial_gradient.r0 / 65536.f),
+				    paint.u.radial_gradient.r0 / 65536.f,
 				    paint.u.radial_gradient.c1.x / 65536.f,
 				    paint.u.radial_gradient.c1.y / 65536.f,
-				    (paint.u.radial_gradient.r1 / 65536.f));
+				    paint.u.radial_gradient.r1 / 65536.f);
     }
     break;
     case FT_COLR_PAINTFORMAT_SWEEP_GRADIENT:
