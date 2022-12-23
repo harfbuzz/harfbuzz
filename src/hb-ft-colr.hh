@@ -27,6 +27,8 @@
 
 #include "hb.hh"
 
+#include "hb-paint-extents.hh"
+
 #include FT_COLOR_H
 
 #ifndef HB_NO_PAINT
