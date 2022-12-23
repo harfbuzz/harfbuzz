@@ -89,7 +89,12 @@ struct hb_ft_paint_context_t
     funcs (paint_funcs), data (paint_data),
     palette (palette), foreground (foreground) {}
 
-  void recurse (FT_OpaquePaint paint) { _hb_ft_paint (this, paint);
+  void recurse (FT_OpaquePaint paint)
+  {
+    if (depth_left <= 0) return;
+    depth_left--;
+    _hb_ft_paint (this, paint);
+    depth_left++;
   }
 
   const hb_ft_font_t *ft_font;
@@ -98,6 +103,7 @@ struct hb_ft_paint_context_t
   void *data;
   FT_Color *palette;
   hb_color_t foreground;
+  int depth_left = 128;
 };
 
 static unsigned
@@ -285,7 +291,6 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_COLR_GLYPH:
     {
-      /* TODO Depth counter. */
       FT_OpaquePaint other_paint = {0};
       if (FT_Get_Color_Glyph_Paint (ft_face, paint.u.colr_glyph.glyphID,
 				    FT_COLOR_NO_ROOT_TRANSFORM,
