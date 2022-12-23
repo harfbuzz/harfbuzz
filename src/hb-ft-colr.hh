@@ -465,7 +465,6 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
                                         clip_box.top_right.y);
     else
     {
-      /* XXX Untested. */
       auto *extents_funcs = hb_paint_extents_get_funcs ();
       hb_paint_extents_context_t extents_data;
       hb_ft_paint_context_t c (ft_font, font,
