@@ -69,12 +69,17 @@ typedef struct hb_extents_t
 
 typedef struct hb_bounds_t
 {
-  hb_bounds_t () {}
-  hb_bounds_t (const hb_extents_t &extents) :
-    bounded (true), extents (extents) {}
+  enum status_t {
+    EMPTY,
+    BOUNDED,
+    UNBOUNDED,
+  };
 
-  bool bounded = false;
-  bool empty = true;
+  hb_bounds_t (status_t status) : status (status) {}
+  hb_bounds_t (const hb_extents_t &extents) :
+    status (BOUNDED), extents (extents) {}
+
+  status_t status;
   hb_extents_t extents = {0, 0, 0, 0};
 } hb_bounds_t;
 
@@ -84,8 +89,8 @@ struct hb_paint_extents_context_t {
 
   hb_paint_extents_context_t ()
   {
-    clips.push (hb_bounds_t{});
-    bounds.push (hb_bounds_t{});
+    clips.push (hb_bounds_t{hb_bounds_t::status_t::UNBOUNDED});
+    groups.push (hb_bounds_t{hb_bounds_t::status_t::EMPTY});
     transforms.push (hb_transform_t{});
   }
 
@@ -117,12 +122,12 @@ struct hb_paint_extents_context_t {
 
   void push_group ()
   {
-    bounds.push (hb_bounds_t{});
+    groups.push (hb_bounds_t{hb_bounds_t::status_t::EMPTY});
   }
 
   hb_bounds_t pop_group ()
   {
-    return bounds.pop ();
+    return groups.pop ();
   }
 
   void paint ()
@@ -131,7 +136,7 @@ struct hb_paint_extents_context_t {
   }
 
   hb_vector_t<hb_bounds_t> clips;
-  hb_vector_t<hb_bounds_t> bounds;
+  hb_vector_t<hb_bounds_t> groups;
   hb_vector_t<hb_transform_t> transforms;
 };
 
