@@ -398,7 +398,6 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
     default: HB_FALLTHROUGH;
     case FT_COLR_PAINTFORMAT_UNSUPPORTED: break;
   }
-#undef paint_recurse
 }
 
 static bool
@@ -446,11 +445,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
     paint_funcs->push_root_transform (paint_data, font);
 
-    _hb_ft_paint (paint,
-		  ft_font,
-		  font,
-		  paint_funcs, paint_data,
-	 	  palette, foreground);
+    paint_recurse (paint);
 
     paint_funcs->pop_root_transform (paint_data);
     if (has_clip)
@@ -500,6 +495,8 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
   return false;
 }
+#undef paint_recurse
+
 #endif
 
 
