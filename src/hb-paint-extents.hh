@@ -30,14 +30,6 @@
 #include "hb-draw.h"
 
 
-#ifndef MIN
-#define MIN(x,y) ((x) < (y) ? (x) : (y))
-#endif
-
-#ifndef MAX
-#define MAX(x,y) ((x) > (y) ? (x) : (y))
-#endif
-
 typedef struct hb_extents_t
 {
   float xmin, ymin, xmax, ymax;
@@ -308,10 +300,10 @@ add_point (hb_extents_t *extents,
   }
   else
   {
-    extents->xmin = MIN (extents->xmin, x);
-    extents->ymin = MIN (extents->ymin, y);
-    extents->xmax = MAX (extents->xmax, x);
-    extents->ymax = MAX (extents->ymax, y);
+    extents->xmin = hb_min (extents->xmin, x);
+    extents->ymin = hb_min (extents->ymin, y);
+    extents->xmax = hb_max (extents->xmax, x);
+    extents->ymax = hb_max (extents->ymax, y);
   }
 }
 
