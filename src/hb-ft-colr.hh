@@ -30,6 +30,45 @@
 
 #ifndef HB_NO_PAINT
 
+static hb_paint_composite_mode_t
+_hb_ft_paint_composite_mode (FT_Composite_Mode mode)
+{
+  switch (mode)
+  {
+    case FT_COLR_COMPOSITE_CLEAR:          return HB_PAINT_COMPOSITE_MODE_CLEAR;
+    case FT_COLR_COMPOSITE_SRC:            return HB_PAINT_COMPOSITE_MODE_SRC;
+    case FT_COLR_COMPOSITE_DEST:           return HB_PAINT_COMPOSITE_MODE_DEST;
+    case FT_COLR_COMPOSITE_SRC_OVER:       return HB_PAINT_COMPOSITE_MODE_SRC_OVER;
+    case FT_COLR_COMPOSITE_DEST_OVER:      return HB_PAINT_COMPOSITE_MODE_DEST_OVER;
+    case FT_COLR_COMPOSITE_SRC_IN:         return HB_PAINT_COMPOSITE_MODE_SRC_IN;
+    case FT_COLR_COMPOSITE_DEST_IN:        return HB_PAINT_COMPOSITE_MODE_DEST_IN;
+    case FT_COLR_COMPOSITE_SRC_OUT:        return HB_PAINT_COMPOSITE_MODE_SRC_OUT;
+    case FT_COLR_COMPOSITE_DEST_OUT:       return HB_PAINT_COMPOSITE_MODE_DEST_OUT;
+    case FT_COLR_COMPOSITE_SRC_ATOP:       return HB_PAINT_COMPOSITE_MODE_SRC_ATOP;
+    case FT_COLR_COMPOSITE_DEST_ATOP:      return HB_PAINT_COMPOSITE_MODE_DEST_ATOP;
+    case FT_COLR_COMPOSITE_XOR:            return HB_PAINT_COMPOSITE_MODE_XOR;
+    case FT_COLR_COMPOSITE_PLUS:           return HB_PAINT_COMPOSITE_MODE_PLUS;
+    case FT_COLR_COMPOSITE_SCREEN:         return HB_PAINT_COMPOSITE_MODE_SCREEN;
+    case FT_COLR_COMPOSITE_OVERLAY:        return HB_PAINT_COMPOSITE_MODE_OVERLAY;
+    case FT_COLR_COMPOSITE_DARKEN:         return HB_PAINT_COMPOSITE_MODE_DARKEN;
+    case FT_COLR_COMPOSITE_LIGHTEN:        return HB_PAINT_COMPOSITE_MODE_LIGHTEN;
+    case FT_COLR_COMPOSITE_COLOR_DODGE:    return HB_PAINT_COMPOSITE_MODE_COLOR_DODGE;
+    case FT_COLR_COMPOSITE_COLOR_BURN:     return HB_PAINT_COMPOSITE_MODE_COLOR_BURN;
+    case FT_COLR_COMPOSITE_HARD_LIGHT:     return HB_PAINT_COMPOSITE_MODE_HARD_LIGHT;
+    case FT_COLR_COMPOSITE_SOFT_LIGHT:     return HB_PAINT_COMPOSITE_MODE_SOFT_LIGHT;
+    case FT_COLR_COMPOSITE_DIFFERENCE:     return HB_PAINT_COMPOSITE_MODE_DIFFERENCE;
+    case FT_COLR_COMPOSITE_EXCLUSION:      return HB_PAINT_COMPOSITE_MODE_EXCLUSION;
+    case FT_COLR_COMPOSITE_MULTIPLY:       return HB_PAINT_COMPOSITE_MODE_MULTIPLY;
+    case FT_COLR_COMPOSITE_HSL_HUE:        return HB_PAINT_COMPOSITE_MODE_HSL_HUE;
+    case FT_COLR_COMPOSITE_HSL_SATURATION: return HB_PAINT_COMPOSITE_MODE_HSL_SATURATION;
+    case FT_COLR_COMPOSITE_HSL_COLOR:      return HB_PAINT_COMPOSITE_MODE_HSL_COLOR;
+    case FT_COLR_COMPOSITE_HSL_LUMINOSITY: return HB_PAINT_COMPOSITE_MODE_HSL_LUMINOSITY;
+
+    case FT_COLR_COMPOSITE_MAX:            HB_FALLTHROUGH;
+    default:                               return HB_PAINT_COMPOSITE_MODE_CLEAR;
+  }
+}
+
 static void
 _hb_ft_paint (FT_OpaquePaint opaque_paint,
 	      const hb_ft_font_t *ft_font,
@@ -43,7 +82,7 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
   if (!FT_Get_Paint (ft_face, opaque_paint, &paint))
     return;
 
-#define RECURSE(other_paint) \
+#define paint_recurse(other_paint) \
 	_hb_ft_paint (other_paint, ft_font, font, paint_funcs, paint_data, palette, foreground)
 
   switch (paint.format)
@@ -56,7 +95,7 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
 				  &other_paint))
       {
 	paint_funcs->push_group (paint_data);
-	RECURSE (other_paint);
+	paint_recurse (other_paint);
 	paint_funcs->pop_group (paint_data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
       }
     }
@@ -90,7 +129,7 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       ft_font->lock.unlock ();
       paint_funcs->push_clip_glyph (paint_data, paint.u.glyph.glyphID, font);
       ft_font->lock.lock ();
-      RECURSE (paint.u.glyph.paint);
+      paint_recurse (paint.u.glyph.paint);
       paint_funcs->pop_clip (paint_data);
       //paint_funcs->pop_inverse_root_transform (paint_data);
     }
@@ -102,7 +141,7 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       if (FT_Get_Color_Glyph_Paint (ft_face, paint.u.colr_glyph.glyphID,
 				    FT_COLOR_NO_ROOT_TRANSFORM,
 				    &other_paint))
-	RECURSE (other_paint);
+	paint_recurse (other_paint);
     }
     break;
     case FT_COLR_PAINTFORMAT_TRANSFORM:
@@ -114,7 +153,7 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
 				   paint.u.transform.affine.yy / 65536.f,
 				   paint.u.transform.affine.dx / 65536.f,
 				   paint.u.transform.affine.dy / 65536.f);
-      RECURSE (paint.u.transform.paint);
+      paint_recurse (paint.u.transform.paint);
       paint_funcs->pop_transform (paint_data);
     }
     break;
@@ -124,7 +163,7 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
 				   0.f, 0.f, 0.f, 0.f,
 				   paint.u.translate.dx / 65536.f,
 				   paint.u.translate.dy / 65536.f);
-      RECURSE (paint.u.translate.paint);
+      paint_recurse (paint.u.translate.paint);
       paint_funcs->pop_transform (paint_data);
     }
     break;
@@ -143,7 +182,7 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
 				   1.f, 0.f, 0.f, 1.f,
 				   +paint.u.scale.center_x / 65536.f,
 				   +paint.u.scale.center_y / 65536.f);
-      RECURSE (paint.u.scale.paint);
+      paint_recurse (paint.u.scale.paint);
       paint_funcs->pop_transform (paint_data);
       paint_funcs->pop_transform (paint_data);
       paint_funcs->pop_transform (paint_data);
@@ -151,12 +190,20 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
     break;
     case FT_COLR_PAINTFORMAT_ROTATE: break;
     case FT_COLR_PAINTFORMAT_SKEW: break;
-    case FT_COLR_PAINTFORMAT_COMPOSITE: break;
-
+    case FT_COLR_PAINTFORMAT_COMPOSITE:
+    {
+      paint_funcs->push_group (paint_data);
+      paint_recurse (paint.u.composite.backdrop_paint);
+      paint_funcs->push_group (paint_data);
+      paint_recurse (paint.u.composite.source_paint);
+      paint_funcs->pop_group (paint_data, _hb_ft_paint_composite_mode (paint.u.composite.composite_mode));
+      paint_funcs->pop_group (paint_data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+    }
+    break;
     case FT_COLR_PAINT_FORMAT_MAX: break;
     case FT_COLR_PAINTFORMAT_UNSUPPORTED: break;
   }
-#undef RECURSE
+#undef paint_recurse
 }
 
 static bool
