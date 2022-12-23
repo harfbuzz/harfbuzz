@@ -29,6 +29,127 @@
 
 
 #ifndef HB_NO_PAINT
+
+static void
+_hb_ft_paint (FT_OpaquePaint opaque_paint,
+	      const hb_ft_font_t *ft_font,
+	      hb_font_t *font,
+	      hb_paint_funcs_t *paint_funcs, void *paint_data,
+	      FT_Color *palette,
+	      hb_color_t foreground)
+{
+  FT_Face ft_face = ft_font->ft_face;
+  FT_COLR_Paint paint;
+  if (!FT_Get_Paint (ft_face, opaque_paint, &paint))
+    return;
+
+#define RECURSE(other_paint) \
+	_hb_ft_paint (other_paint, ft_font, font, paint_funcs, paint_data, palette, foreground)
+
+  switch (paint.format)
+  {
+    case FT_COLR_PAINTFORMAT_COLR_LAYERS:
+    {
+      FT_OpaquePaint other_paint = {0};
+      while (FT_Get_Paint_Layers (ft_face,
+				  &paint.u.colr_layers.layer_iterator,
+				  &other_paint))
+      {
+	paint_funcs->push_group (paint_data);
+	RECURSE (other_paint);
+	paint_funcs->pop_group (paint_data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
+      }
+    }
+    break;
+    case FT_COLR_PAINTFORMAT_SOLID:
+    {
+      bool is_foreground = paint.u.solid.color.palette_index ==  0xFFFF;
+      hb_color_t color;
+      if (is_foreground)
+	color = HB_COLOR (hb_color_get_blue (foreground),
+			  hb_color_get_green (foreground),
+			  hb_color_get_red (foreground),
+			  (hb_color_get_alpha (foreground) * paint.u.solid.color.alpha) >> 14);
+      else
+      {
+	FT_Color ft_color = palette[paint.u.solid.color.palette_index];
+	color = HB_COLOR (ft_color.blue,
+			  ft_color.green,
+			  ft_color.red,
+			  ft_color.alpha);
+      }
+      paint_funcs->color (paint_data, is_foreground, color);
+    }
+    break;
+    case FT_COLR_PAINTFORMAT_LINEAR_GRADIENT: break;
+    case FT_COLR_PAINTFORMAT_RADIAL_GRADIENT: break;
+    case FT_COLR_PAINTFORMAT_SWEEP_GRADIENT: break;
+    case FT_COLR_PAINTFORMAT_GLYPH:
+    {
+      //paint_funcs->push_inverse_root_transform (paint_data, font);
+      ft_font->lock.unlock ();
+      paint_funcs->push_clip_glyph (paint_data, paint.u.glyph.glyphID, font);
+      ft_font->lock.lock ();
+      RECURSE (paint.u.glyph.paint);
+      paint_funcs->pop_clip (paint_data);
+      //paint_funcs->pop_inverse_root_transform (paint_data);
+    }
+    break;
+    case FT_COLR_PAINTFORMAT_COLR_GLYPH: break;
+    case FT_COLR_PAINTFORMAT_TRANSFORM:
+    {
+      paint_funcs->push_transform (paint_data,
+				   paint.u.transform.affine.xx / 65536.f,
+				   paint.u.transform.affine.yx / 65536.f,
+				   paint.u.transform.affine.xy / 65536.f,
+				   paint.u.transform.affine.yy / 65536.f,
+				   paint.u.transform.affine.dx / 65536.f,
+				   paint.u.transform.affine.dy / 65536.f);
+      RECURSE (paint.u.transform.paint);
+      paint_funcs->pop_transform (paint_data);
+    }
+    break;
+    case FT_COLR_PAINTFORMAT_TRANSLATE:
+    {
+      paint_funcs->push_transform (paint_data,
+				   0.f, 0.f, 0.f, 0.f,
+				   paint.u.translate.dx / 65536.f,
+				   paint.u.translate.dy / 65536.f);
+      RECURSE (paint.u.translate.paint);
+      paint_funcs->pop_transform (paint_data);
+    }
+    break;
+    case FT_COLR_PAINTFORMAT_SCALE:
+    {
+      paint_funcs->push_transform (paint_data,
+				   1.f, 0.f, 0.f, 1.f,
+				   -paint.u.scale.center_x / 65536.f,
+				   -paint.u.scale.center_y / 65536.f);
+      paint_funcs->push_transform (paint_data,
+				   paint.u.scale.scale_y / 65536.f,
+				   0.f, 0.f,
+				   paint.u.scale.scale_x / 65536.f,
+				   0.f, 0.f);
+      paint_funcs->push_transform (paint_data,
+				   1.f, 0.f, 0.f, 1.f,
+				   +paint.u.scale.center_x / 65536.f,
+				   +paint.u.scale.center_y / 65536.f);
+      RECURSE (paint.u.scale.paint);
+      paint_funcs->pop_transform (paint_data);
+      paint_funcs->pop_transform (paint_data);
+      paint_funcs->pop_transform (paint_data);
+    }
+    break;
+    case FT_COLR_PAINTFORMAT_ROTATE: break;
+    case FT_COLR_PAINTFORMAT_SKEW: break;
+    case FT_COLR_PAINTFORMAT_COMPOSITE: break;
+
+    case FT_COLR_PAINT_FORMAT_MAX: break;
+    case FT_COLR_PAINTFORMAT_UNSUPPORTED: break;
+  }
+#undef RECURSE
+}
+
 static bool
 hb_ft_paint_glyph_colr (hb_font_t *font,
 			void *font_data,
@@ -43,7 +164,6 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
   /* Face is locked. */
 
-  /* COLRv0 */
   FT_Error error;
   FT_Color*         palette;
   FT_LayerIterator  iterator;
@@ -53,9 +173,47 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
   FT_UInt  layer_color_index;
 
   error = FT_Palette_Select(ft_face, palette_index, &palette);
-  if ( error )
+  if (error)
     palette = NULL;
 
+  /* COLRv1 */
+  FT_OpaquePaint paint = {0};
+  if (FT_Get_Color_Glyph_Paint (ft_face, gid,
+			        FT_COLOR_NO_ROOT_TRANSFORM,
+			        &paint))
+  {
+    FT_ClipBox clip_box;
+    bool pop_clip = false;
+    if (FT_Get_Color_Glyph_ClipBox (ft_face, gid,
+				    &clip_box))
+    {
+      /* TODO mult's like hb-ft. */
+      paint_funcs->push_clip_rectangle (paint_data,
+					clip_box.bottom_left.x,
+					clip_box.bottom_left.y,
+					clip_box.top_right.x,
+					clip_box.top_right.y);
+#if 0
+      FT_Vector  bottom_left;
+      FT_Vector  top_left;
+      FT_Vector  top_right;
+      FT_Vector  bottom_right;
+#endif
+    }
+
+    _hb_ft_paint (paint,
+		  ft_font,
+		  font,
+		  paint_funcs, paint_data,
+		  palette, foreground);
+
+    if (pop_clip)
+      paint_funcs->pop_clip (paint_data);
+
+    return true;
+  }
+
+  /* COLRv0 */
   iterator.p  = NULL;
   have_layers = FT_Get_Color_Glyph_Layer(ft_face,
 					 gid,
@@ -82,9 +240,9 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 
       ft_font->lock.unlock ();
       paint_funcs->push_clip_glyph (paint_data, layer_glyph_index, font);
+      ft_font->lock.lock ();
       paint_funcs->color (paint_data, is_foreground, color);
       paint_funcs->pop_clip (paint_data);
-      ft_font->lock.lock ();
 
     } while (FT_Get_Color_Glyph_Layer(ft_face,
 				      gid,
