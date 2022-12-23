@@ -430,9 +430,9 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     has_clip = FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box);
     if (has_clip)
       paint_funcs->push_clip_rectangle (paint_data,
-                                        clip_box.bottom_left.x,
+                                        clip_box.bottom_left.x - font->slant_xy * clip_box.bottom_left.y,
                                         clip_box.bottom_left.y,
-                                        clip_box.top_right.x,
+                                        clip_box.top_right.x - font->slant_xy * clip_box.top_right.y,
                                         clip_box.top_right.y);
 
     paint_funcs->push_root_transform (paint_data, font);
