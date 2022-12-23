@@ -244,13 +244,15 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
     break;
     case FT_COLR_PAINTFORMAT_GLYPH:
     {
-      //paint_funcs->push_inverse_root_transform (paint_data, font);
+      paint_funcs->push_inverse_root_transform (paint_data, font);
       ft_font->lock.unlock ();
       paint_funcs->push_clip_glyph (paint_data, paint.u.glyph.glyphID, font);
       ft_font->lock.lock ();
+      paint_funcs->push_root_transform (paint_data, font);
       paint_recurse (paint.u.glyph.paint);
+      paint_funcs->pop_root_transform (paint_data);
       paint_funcs->pop_clip (paint_data);
-      //paint_funcs->pop_inverse_root_transform (paint_data);
+      paint_funcs->pop_inverse_root_transform (paint_data);
     }
     break;
     case FT_COLR_PAINTFORMAT_COLR_GLYPH:
@@ -416,11 +418,13 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
       pop_clip = true;
     }
 
+    paint_funcs->push_root_transform (paint_data, font);
     _hb_ft_paint (paint,
 		  ft_font,
 		  font,
 		  paint_funcs, paint_data,
 		  palette, foreground);
+    paint_funcs->pop_root_transform (paint_data);
 
     if (pop_clip)
       paint_funcs->pop_clip (paint_data);
