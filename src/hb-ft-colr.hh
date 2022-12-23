@@ -95,7 +95,16 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       //paint_funcs->pop_inverse_root_transform (paint_data);
     }
     break;
-    case FT_COLR_PAINTFORMAT_COLR_GLYPH: break;
+    case FT_COLR_PAINTFORMAT_COLR_GLYPH:
+    {
+      /* TODO Depth counter. */
+      FT_OpaquePaint other_paint = {0};
+      if (FT_Get_Color_Glyph_Paint (ft_face, paint.u.colr_glyph.glyphID,
+				    FT_COLOR_NO_ROOT_TRANSFORM,
+				    &other_paint))
+	RECURSE (other_paint);
+    }
+    break;
     case FT_COLR_PAINTFORMAT_TRANSFORM:
     {
       paint_funcs->push_transform (paint_data,
