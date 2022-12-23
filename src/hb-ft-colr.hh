@@ -407,6 +407,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 					clip_box.bottom_left.y,
 					clip_box.top_right.x,
 					clip_box.top_right.y);
+      pop_clip = true;
     }
 
     _hb_ft_paint (paint,
