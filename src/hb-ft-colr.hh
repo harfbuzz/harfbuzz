@@ -112,7 +112,7 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
 	color_stops->color = HB_COLOR (ft_color.blue,
 				       ft_color.green,
 				       ft_color.red,
-				       ft_color.alpha);
+				       (ft_color.alpha * stop.color.alpha) >> 14);
       }
 
       color_stops++;
@@ -185,7 +185,7 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
 	color = HB_COLOR (ft_color.blue,
 			  ft_color.green,
 			  ft_color.red,
-			  ft_color.alpha);
+			  (ft_color.alpha * paint.u.solid.color.alpha) >> 14);
       }
       paint_funcs->color (paint_data, is_foreground, color);
     }
