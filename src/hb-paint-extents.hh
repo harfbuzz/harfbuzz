@@ -27,7 +27,16 @@
 
 #include "hb.hh"
 #include "hb-paint.hh"
+#include "hb-draw.h"
 
+
+#ifndef MIN
+#define MIN(x,y) ((x) < (y) ? (x) : (y))
+#endif
+
+#ifndef MAX
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
+#endif
 
 typedef struct hb_extents_t
 {
@@ -224,7 +233,7 @@ struct hb_paint_extents_context_t {
 	  }
 	}
 	break;
-    }
+     }
   }
 
   void paint ()
@@ -289,6 +298,80 @@ hb_paint_extents_pop_transform (hb_paint_funcs_t *funcs HB_UNUSED,
 }
 
 static void
+add_point (hb_extents_t *extents,
+           float x, float y)
+{
+  if (extents->xmax < extents->xmin)
+  {
+    extents->xmin = extents->xmax = x;
+    extents->ymin = extents->ymax = y;
+  }
+  else
+  {
+    extents->xmin = MIN (extents->xmin, x);
+    extents->ymin = MIN (extents->ymin, y);
+    extents->xmax = MAX (extents->xmax, x);
+    extents->ymax = MAX (extents->ymax, y);
+  }
+}
+
+static void
+move_to (hb_draw_funcs_t *dfuncs,
+         void *data,
+         hb_draw_state_t *st,
+         float to_x, float to_y,
+         void *)
+{
+  hb_extents_t *extents = (hb_extents_t *)data;
+  add_point (extents, to_x, to_y);
+}
+
+static void
+line_to (hb_draw_funcs_t *dfuncs,
+         void *data,
+         hb_draw_state_t *st,
+         float to_x, float to_y,
+         void *)
+{
+  hb_extents_t *extents = (hb_extents_t *)data;
+  add_point (extents, to_x, to_y);
+}
+
+static void
+cubic_to (hb_draw_funcs_t *dfuncs,
+          void *data,
+          hb_draw_state_t *st,
+          float control1_x, float control1_y,
+          float control2_x, float control2_y,
+          float to_x, float to_y,
+          void *)
+{
+  hb_extents_t *extents = (hb_extents_t *)data;
+  add_point (extents, control1_x, control1_y);
+  add_point (extents, control2_x, control2_y);
+  add_point (extents, to_x, to_y);
+}
+
+static void
+close_path (hb_draw_funcs_t *dfuncs,
+            void *data,
+            hb_draw_state_t *st,
+            void *)
+{
+}
+
+static hb_draw_funcs_t *
+hb_draw_extent_get_funcs ()
+{
+  hb_draw_funcs_t *funcs = hb_draw_funcs_create ();
+  hb_draw_funcs_set_move_to_func (funcs, move_to, nullptr, nullptr);
+  hb_draw_funcs_set_line_to_func (funcs, line_to, nullptr, nullptr);
+  hb_draw_funcs_set_cubic_to_func (funcs, cubic_to, nullptr, nullptr);
+  hb_draw_funcs_set_close_path_func (funcs, close_path, nullptr, nullptr);
+  return funcs;
+}
+
+static void
 hb_paint_extents_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
 				  void *paint_data,
 				  hb_codepoint_t glyph,
@@ -297,12 +380,11 @@ hb_paint_extents_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
 {
   hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
 
-  hb_glyph_extents_t glyph_extents;
-  hb_font_get_glyph_extents (font, glyph, &glyph_extents);
-  hb_extents_t extents = {(float) glyph_extents.x_bearing,
-			  (float) glyph_extents.y_bearing + glyph_extents.height,
-			  (float) glyph_extents.x_bearing + glyph_extents.width,
-			  (float) glyph_extents.y_bearing};
+  hb_extents_t extents = { 0, 0, -1, -1 };
+  hb_draw_funcs_t *draw_extent_funcs = hb_draw_extent_get_funcs ();
+  hb_font_draw_glyph (font, glyph, draw_extent_funcs, &extents);
+  hb_draw_funcs_destroy (draw_extent_funcs);
+
   c->push_clip (extents);
 }
 
