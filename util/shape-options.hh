@@ -71,6 +71,10 @@ struct shape_options_t
 
     if (glyphs)
     {
+      /* Call the setup_buffer first while the buffer is empty,
+       * as guess_segment_properties doesn't like glyphs in the buffer. */
+
+      setup_buffer (buffer);
       hb_buffer_deserialize_glyphs (buffer,
 				    text, text_len,
 				    nullptr,
