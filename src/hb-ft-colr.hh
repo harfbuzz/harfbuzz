@@ -93,7 +93,16 @@ _hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
     unsigned wrote = 0;
     FT_ColorStopIterator iter = c->color_stop_iterator;
 
-    c->color_stop_iterator.current_color_stop = start;
+    if (start >= c->color_stop_iterator.num_color_stops)
+    {
+      *count = 0;
+      return c->color_stop_iterator.num_color_stops;
+    }
+
+    while (c->color_stop_iterator.current_color_stop < start)
+      FT_Get_Colorline_Stops(data->face,
+			     &stop,
+			     &c->color_stop_iterator);
 
     while (count && *count &&
 	   FT_Get_Colorline_Stops(data->face,
