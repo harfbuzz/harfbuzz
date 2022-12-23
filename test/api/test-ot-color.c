@@ -711,9 +711,9 @@ static colrv1_test_t colrv1_tests[] = {
   { TEST_GLYPHS, 20, 0,  165,   0, "test-20-0-165" },
   { TEST_GLYPHS, 20, 0,  175,   0, "test-20-0-175" },
   /* COLRv0 */
-  { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-20-0.3-1" }, // A
-  { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-20-0-2" },   // B
-  { ROCHER_ABC, 120, 0,    3, 200, "rocher-20-0-3" },   // C
+  { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-120-0.3-1" }, // A
+  { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-120-0.3-2" },   // B
+  { ROCHER_ABC, 120, 0,    3, 200, "rocher-120-0-3" },   // C
 };
 
 static void
