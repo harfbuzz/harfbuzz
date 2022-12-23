@@ -692,10 +692,16 @@ typedef struct {
 #define TEST_GLYPHS "fonts/test_glyphs-glyf_colr_1.ttf"
 #define ROCHER_ABC  "fonts/RocherColorGX.abc.ttf"
 
+/* To verify the rendering visually, use
+ *
+ * hb-view --font-size SCALE --font-slant SLANT --font-palette PALETTE FONT TEXT
+ *
+ * where TEXT is as mentioned below.
+ */
 static colrv1_test_t colrv1_tests[] = {
   /* COLRv1 */
-  { NOTO_HAND,   20, 0.,  10,   0, "hand-20-0-10" },
-  { NOTO_HAND,   20, 0.2, 10,   0, "hand-20-0.2-10" },
+  { NOTO_HAND,   20, 0.,  10,   0, "hand-20-0-10" },   // ✍️
+  { NOTO_HAND,   20, 0.2, 10,   0, "hand-20-0.2-10" }, // ✍️
   { TEST_GLYPHS, 20, 0,    6,   0, "test-20-0-6" },
   { TEST_GLYPHS, 20, 0,   10,   0, "test-20-0-10" },
   { TEST_GLYPHS, 20, 0,   92,   0, "test-20-0-92" },
@@ -705,9 +711,9 @@ static colrv1_test_t colrv1_tests[] = {
   { TEST_GLYPHS, 20, 0,  165,   0, "test-20-0-165" },
   { TEST_GLYPHS, 20, 0,  175,   0, "test-20-0-175" },
   /* COLRv0 */
-  { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-20-0.3-1" },
-  { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-20-0-2" },
-  { ROCHER_ABC, 120, 0,    3, 200, "rocher-20-0-3" },
+  { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-20-0.3-1" }, // A
+  { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-20-0-2" },   // B
+  { ROCHER_ABC, 120, 0,    3, 200, "rocher-20-0-3" },   // C
 };
 
 static void
