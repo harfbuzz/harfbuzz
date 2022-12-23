@@ -64,9 +64,21 @@ struct shape_options_t
   }
 
   void populate_buffer (hb_buffer_t *buffer, const char *text, int text_len,
-			const char *text_before, const char *text_after)
+			const char *text_before, const char *text_after,
+			hb_font_t *font)
   {
     hb_buffer_clear_contents (buffer);
+
+    if (glyphs)
+    {
+      hb_buffer_deserialize_glyphs (buffer,
+				    text, text_len,
+				    nullptr,
+				    font,
+				    HB_BUFFER_SERIALIZE_FORMAT_TEXT);
+      return;
+    }
+
     if (text_before) {
       unsigned int len = strlen (text_before);
       hb_buffer_add_utf8 (buffer, text_before, len, len, 0);
@@ -93,11 +105,31 @@ struct shape_options_t
 
   hb_bool_t shape (hb_font_t *font, hb_buffer_t *buffer, const char **error=nullptr)
   {
-    if (!hb_shape_full (font, buffer, features, num_features, shapers))
+    if (glyphs)
     {
-      if (error)
-	*error = "Shaping failed.";
-      goto fail;
+      /* Scale positions. */
+      int x_scale, y_scale;
+      hb_font_get_scale (font, &x_scale, &y_scale);
+      unsigned upem = hb_face_get_upem (hb_font_get_face (font));
+      unsigned count;
+      auto *positions = hb_buffer_get_glyph_positions (buffer, &count);
+      for (unsigned i = 0; i < count; i++)
+      {
+	auto &pos = positions[i];
+	pos.x_offset = pos.x_offset * x_scale / upem;
+	pos.y_offset = pos.y_offset * y_scale / upem;
+	pos.x_advance = pos.x_advance * x_scale / upem;
+	pos.y_advance = pos.y_advance * y_scale / upem;
+      }
+    }
+    else
+    {
+      if (!hb_shape_full (font, buffer, features, num_features, shapers))
+      {
+	if (error)
+	  *error = "Shaping failed.";
+	goto fail;
+      }
     }
 
     if (normalize_glyphs)
@@ -138,6 +170,7 @@ struct shape_options_t
   hb_codepoint_t not_found_glyph = 0;
   hb_buffer_cluster_level_t cluster_level = HB_BUFFER_CLUSTER_LEVEL_DEFAULT;
   hb_bool_t normalize_glyphs = false;
+  hb_bool_t glyphs = false;
   hb_bool_t verify = false;
   hb_bool_t unsafe_to_concat = false;
   hb_bool_t safe_to_insert_tatweel = false;
@@ -266,6 +299,7 @@ shape_options_t::add_options (option_parser_t *parser)
     {"normalize-glyphs",0, 0, G_OPTION_ARG_NONE,	&this->normalize_glyphs,	"Rearrange glyph clusters in nominal order",	nullptr},
     {"unsafe-to-concat",0, 0, G_OPTION_ARG_NONE,	&this->unsafe_to_concat,	"Produce unsafe-to-concat glyph flag",	nullptr},
     {"safe-to-insert-tatweel",0, 0, G_OPTION_ARG_NONE,	&this->safe_to_insert_tatweel,	"Produce safe-to-insert-tatweel glyph flag",	nullptr},
+    {"glyphs",		0, 0, G_OPTION_ARG_NONE,	&this->glyphs,			"Interpret input as glyph string",	nullptr},
     {"verify",		0, 0, G_OPTION_ARG_NONE,	&this->verify,			"Perform sanity checks on shaping results",	nullptr},
     {"num-iterations", 'n', G_OPTION_FLAG_IN_MAIN,
 			      G_OPTION_ARG_INT,		&this->num_iterations,		"Run shaper N times (default: 1)",	"N"},

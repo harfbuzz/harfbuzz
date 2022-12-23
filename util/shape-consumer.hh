@@ -61,7 +61,7 @@ struct shape_consumer_t : shape_options_t
 
     for (unsigned int n = num_iterations; n; n--)
     {
-      populate_buffer (buffer, text, text_len, app.text_before, app.text_after);
+      populate_buffer (buffer, text, text_len, app.text_before, app.text_after, app.font);
       if (n == 1)
 	output.consume_text (buffer, text, text_len, utf8_clusters);
 
