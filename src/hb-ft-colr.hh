@@ -457,15 +457,29 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			        &paint))
   {
     FT_ClipBox clip_box;
-    bool has_clip;
-
-    has_clip = FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box);
-    if (has_clip)
+    if (FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box))
       paint_funcs->push_clip_rectangle (paint_data,
                                         clip_box.bottom_left.x - font->slant_xy * clip_box.bottom_left.y,
                                         clip_box.bottom_left.y,
                                         clip_box.top_right.x - font->slant_xy * clip_box.top_right.y,
                                         clip_box.top_right.y);
+    else
+    {
+      /* XXX Untested. */
+      auto *extents_funcs = hb_paint_extents_get_funcs ();
+      hb_paint_extents_context_t extents_data;
+      hb_ft_paint_context_t c (ft_font, font,
+			       extents_funcs, &extents_data,
+			       palette, foreground);
+      _hb_ft_paint (&c, paint);
+      paint_funcs->push_clip_rectangle (paint_data,
+					extents_data.groups.tail().extents.xmin,
+					extents_data.groups.tail().extents.ymin,
+					extents_data.groups.tail().extents.xmax,
+					extents_data.groups.tail().extents.ymax);
+
+      hb_paint_funcs_destroy (extents_funcs);
+    }
 
     paint_funcs->push_root_transform (paint_data, font);
 
@@ -475,8 +489,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     _hb_ft_paint (&c, paint);
 
     paint_funcs->pop_root_transform (paint_data);
-    if (has_clip)
-      paint_funcs->pop_clip (paint_data);
+    paint_funcs->pop_clip (paint_data);
 
     return true;
   }
