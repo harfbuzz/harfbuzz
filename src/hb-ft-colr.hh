@@ -200,7 +200,9 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       paint_funcs->pop_group (paint_data, HB_PAINT_COMPOSITE_MODE_SRC_OVER);
     }
     break;
+
     case FT_COLR_PAINT_FORMAT_MAX: break;
+    default: HB_FALLTHROUGH;
     case FT_COLR_PAINTFORMAT_UNSUPPORTED: break;
   }
 #undef paint_recurse
