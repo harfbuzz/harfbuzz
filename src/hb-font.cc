@@ -1429,17 +1429,18 @@ hb_font_draw_glyph (hb_font_t *font,
  * @glyph: The glyph ID
  * @pfuncs: #hb_paint_funcs_t to paint with
  * @paint_data: User data to pass to paint callbacks
- * @palette: The palette index to use
- * @foreground: The foreground color
+ * @palette: The index of the font's color palette to use
+ * @foreground: The foreground color, unpremultipled
  *
  * Paints the glyph.
  *
- * The painting instructions are returned by way of
- * calls to the callbacks of the @funcs objects,
- * with @paint_data passed to them.
+ * The painting instructions are returned by way of calls to
+ * the callbacks of the @funcs object, with @paint_data passed
+ * to them.
  *
- * Note that this function applies the the scale and synthetic
- * slant of the font as outermost transform.
+ * If the font has color palettes (see hb_ot_color_has_palettes()),
+ * then @palette selects the palette to use. If the font doesn't
+ * have palettes, passing 0 is fine.
  *
  * Since: REPLACEME
  */
