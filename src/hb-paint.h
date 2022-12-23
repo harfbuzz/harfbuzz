@@ -386,6 +386,9 @@ hb_color_line_get_extend (hb_color_line_t *color_line);
  * A virtual method for the #hb_paint_funcs_t to paint a linear
  * gradient everywhere within the current clip.
  *
+ * The @color_line object contains information about the colors of the gradients.
+ * It is only valid for the duration of the callback, you cannot keep it around.
+ *
  * The coordinates of the points are interpreted according
  * to the current transform.
  *
@@ -419,6 +422,9 @@ typedef void (*hb_paint_linear_gradient_func_t) (hb_paint_funcs_t *funcs,
  * A virtual method for the #hb_paint_funcs_t to paint a radial
  * gradient everywhere within the current clip.
  *
+ * The @color_line object contains information about the colors of the gradients.
+ * It is only valid for the duration of the callback, you cannot keep it around.
+ *
  * The coordinates of the points are interpreted according
  * to the current transform.
  *
@@ -448,6 +454,9 @@ typedef void (*hb_paint_radial_gradient_func_t) (hb_paint_funcs_t *funcs,
  *
  * A virtual method for the #hb_paint_funcs_t to paint a sweep
  * gradient everywhere within the current clip.
+ *
+ * The @color_line object contains information about the colors of the gradients.
+ * It is only valid for the duration of the callback, you cannot keep it around.
  *
  * The coordinates of the points are interpreted according
  * to the current transform.
