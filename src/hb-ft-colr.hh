@@ -293,9 +293,9 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
 				   +paint.u.scale.center_x / 65536.f,
 				   +paint.u.scale.center_y / 65536.f);
       paint_funcs->push_transform (paint_data,
-				   paint.u.scale.scale_y / 65536.f,
-				   0.f, 0.f,
 				   paint.u.scale.scale_x / 65536.f,
+				   0.f, 0.f,
+				   paint.u.scale.scale_y / 65536.f,
 				   0.f, 0.f);
       paint_funcs->push_transform (paint_data,
 				   1.f, 0.f, 0.f, 1.f,
