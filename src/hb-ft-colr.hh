@@ -288,23 +288,29 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
     break;
     case FT_COLR_PAINTFORMAT_SCALE:
     {
-      paint_funcs->push_transform (paint_data,
-				   1.f, 0.f, 0.f, 1.f,
-				   +paint.u.scale.center_x / 65536.f,
-				   +paint.u.scale.center_y / 65536.f);
+      bool has_translate = paint.u.scale.center_x != 0 || paint.u.scale.center_y != 0;
+      if (has_translate)
+        paint_funcs->push_transform (paint_data,
+				     1.f, 0.f, 0.f, 1.f,
+				     +paint.u.scale.center_x / 65536.f,
+				     +paint.u.scale.center_y / 65536.f);
       paint_funcs->push_transform (paint_data,
 				   paint.u.scale.scale_x / 65536.f,
 				   0.f, 0.f,
 				   paint.u.scale.scale_y / 65536.f,
 				   0.f, 0.f);
-      paint_funcs->push_transform (paint_data,
-				   1.f, 0.f, 0.f, 1.f,
-				   -paint.u.scale.center_x / 65536.f,
-				   -paint.u.scale.center_y / 65536.f);
+      if (has_translate)
+        paint_funcs->push_transform (paint_data,
+				     1.f, 0.f, 0.f, 1.f,
+				     -paint.u.scale.center_x / 65536.f,
+				     -paint.u.scale.center_y / 65536.f);
       paint_recurse (paint.u.scale.paint);
       paint_funcs->pop_transform (paint_data);
-      paint_funcs->pop_transform (paint_data);
-      paint_funcs->pop_transform (paint_data);
+      if (has_translate)
+      {
+        paint_funcs->pop_transform (paint_data);
+        paint_funcs->pop_transform (paint_data);
+      }
     }
     break;
     case FT_COLR_PAINTFORMAT_ROTATE:
