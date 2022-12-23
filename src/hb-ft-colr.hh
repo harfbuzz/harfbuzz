@@ -72,90 +72,6 @@ _hb_ft_paint_composite_mode (FT_Composite_Mode mode)
   }
 }
 
-typedef struct
-{
-  FT_Face face;
-  FT_Color *palette;
-  hb_color_t foreground;
-} _hb_ft_get_color_stops_data_t;
-
-static unsigned
-_hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
-				   void *color_line_data,
-				   unsigned int start,
-				   unsigned int *count,
-				   hb_color_stop_t *color_stops,
-				   void *user_data)
-{
-  FT_ColorLine *c = (FT_ColorLine *) color_line_data;
-  _hb_ft_get_color_stops_data_t *data = (_hb_ft_get_color_stops_data_t *) user_data;
-
-  if (count)
-  {
-    FT_ColorStop stop;
-    unsigned wrote = 0;
-    FT_ColorStopIterator iter = c->color_stop_iterator;
-
-    if (start >= c->color_stop_iterator.num_color_stops)
-    {
-      *count = 0;
-      return c->color_stop_iterator.num_color_stops;
-    }
-
-    while (c->color_stop_iterator.current_color_stop < start)
-      FT_Get_Colorline_Stops(data->face,
-			     &stop,
-			     &c->color_stop_iterator);
-
-    while (count && *count &&
-	   FT_Get_Colorline_Stops(data->face,
-				  &stop,
-				  &c->color_stop_iterator))
-    {
-      color_stops->offset = stop.stop_offset / 16384.f;
-      color_stops->is_foreground = stop.color.palette_index == 0xFFFF;
-      if (color_stops->is_foreground)
-	color_stops->color = HB_COLOR (hb_color_get_blue (data->foreground),
-				       hb_color_get_green (data->foreground),
-				       hb_color_get_red (data->foreground),
-				       (hb_color_get_alpha (data->foreground) * stop.color.alpha) >> 14);
-      else
-      {
-	FT_Color ft_color = data->palette[stop.color.palette_index];
-	color_stops->color = HB_COLOR (ft_color.blue,
-				       ft_color.green,
-				       ft_color.red,
-				       (ft_color.alpha * stop.color.alpha) >> 14);
-      }
-
-      color_stops++;
-      wrote++;
-    }
-
-    *count = wrote;
-
-    // reset the iterator for next time
-    c->color_stop_iterator = iter;
-  }
-
-  return c->color_stop_iterator.num_color_stops;
-}
-
-static hb_paint_extend_t
-_hb_ft_color_line_get_extend (hb_color_line_t *color_line,
-			      void *color_line_data,
-			      void *user_data)
-{
-  FT_ColorLine *c = (FT_ColorLine *) color_line_data;
-  switch (c->extend)
-  {
-    default:
-    case FT_COLR_PAINT_EXTEND_PAD:     return HB_PAINT_EXTEND_PAD;
-    case FT_COLR_PAINT_EXTEND_REPEAT:  return HB_PAINT_EXTEND_REPEAT;
-    case FT_COLR_PAINT_EXTEND_REFLECT: return HB_PAINT_EXTEND_REFLECT;
-  }
-}
-
 typedef struct hb_ft_paint_context_t hb_ft_paint_context_t;
 
 static void
@@ -183,6 +99,83 @@ struct hb_ft_paint_context_t
   FT_Color *palette;
   hb_color_t foreground;
 };
+
+static unsigned
+_hb_ft_color_line_get_color_stops (hb_color_line_t *color_line,
+				   void *color_line_data,
+				   unsigned int start,
+				   unsigned int *count,
+				   hb_color_stop_t *color_stops,
+				   void *user_data)
+{
+  FT_ColorLine *cl = (FT_ColorLine *) color_line_data;
+  hb_ft_paint_context_t *c = (hb_ft_paint_context_t *) user_data;
+
+  if (count)
+  {
+    FT_ColorStop stop;
+    unsigned wrote = 0;
+    FT_ColorStopIterator iter = cl->color_stop_iterator;
+
+    if (start >= cl->color_stop_iterator.num_color_stops)
+    {
+      *count = 0;
+      return cl->color_stop_iterator.num_color_stops;
+    }
+
+    while (cl->color_stop_iterator.current_color_stop < start)
+      FT_Get_Colorline_Stops(c->ft_font->ft_face,
+			     &stop,
+			     &cl->color_stop_iterator);
+
+    while (count && *count &&
+	   FT_Get_Colorline_Stops(c->ft_font->ft_face,
+				  &stop,
+				  &cl->color_stop_iterator))
+    {
+      color_stops->offset = stop.stop_offset / 16384.f;
+      color_stops->is_foreground = stop.color.palette_index == 0xFFFF;
+      if (color_stops->is_foreground)
+	color_stops->color = HB_COLOR (hb_color_get_blue (c->foreground),
+				       hb_color_get_green (c->foreground),
+				       hb_color_get_red (c->foreground),
+				       (hb_color_get_alpha (c->foreground) * stop.color.alpha) >> 14);
+      else
+      {
+	FT_Color ft_color = c->palette[stop.color.palette_index];
+	color_stops->color = HB_COLOR (ft_color.blue,
+				       ft_color.green,
+				       ft_color.red,
+				       (ft_color.alpha * stop.color.alpha) >> 14);
+      }
+
+      color_stops++;
+      wrote++;
+    }
+
+    *count = wrote;
+
+    // reset the iterator for next time
+    cl->color_stop_iterator = iter;
+  }
+
+  return cl->color_stop_iterator.num_color_stops;
+}
+
+static hb_paint_extend_t
+_hb_ft_color_line_get_extend (hb_color_line_t *color_line,
+			      void *color_line_data,
+			      void *user_data)
+{
+  FT_ColorLine *c = (FT_ColorLine *) color_line_data;
+  switch (c->extend)
+  {
+    default:
+    case FT_COLR_PAINT_EXTEND_PAD:     return HB_PAINT_EXTEND_PAD;
+    case FT_COLR_PAINT_EXTEND_REPEAT:  return HB_PAINT_EXTEND_REPEAT;
+    case FT_COLR_PAINT_EXTEND_REFLECT: return HB_PAINT_EXTEND_REFLECT;
+  }
+}
 
 void
 _hb_ft_paint (hb_ft_paint_context_t *c,
@@ -230,10 +223,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_LINEAR_GRADIENT:
     {
-      _hb_ft_get_color_stops_data_t data = {ft_face, c->palette, c->foreground};
       hb_color_line_t cl = {
 	&paint.u.linear_gradient.colorline,
-	_hb_ft_color_line_get_color_stops, &data,
+	_hb_ft_color_line_get_color_stops, c,
 	_hb_ft_color_line_get_extend, nullptr
       };
 
@@ -248,10 +240,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_RADIAL_GRADIENT:
     {
-      _hb_ft_get_color_stops_data_t data = {ft_face, c->palette, c->foreground};
       hb_color_line_t cl = {
 	&paint.u.linear_gradient.colorline,
-	_hb_ft_color_line_get_color_stops, &data,
+	_hb_ft_color_line_get_color_stops, c,
 	_hb_ft_color_line_get_extend, nullptr
       };
 
@@ -266,10 +257,9 @@ _hb_ft_paint (hb_ft_paint_context_t *c,
     break;
     case FT_COLR_PAINTFORMAT_SWEEP_GRADIENT:
     {
-      _hb_ft_get_color_stops_data_t data = {ft_face, c->palette, c->foreground};
       hb_color_line_t cl = {
 	&paint.u.linear_gradient.colorline,
-	_hb_ft_color_line_get_color_stops, &data,
+	_hb_ft_color_line_get_color_stops, c,
 	_hb_ft_color_line_get_extend, nullptr
       };
 
