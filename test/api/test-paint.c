@@ -319,7 +319,7 @@ test_hb_paint (gconstpointer d,
     path = g_test_build_filename (G_TEST_DIST, test->font_file, NULL);
     if (FT_New_Face (library, path, 0, &ft_face) != 0)
     {
-      g_test_fail_printf ("Failed to create FT_Face for %s", path);
+      g_test_fail ();//_printf ("Failed to create FT_Face for %s", path);
       g_free (path);
       return;
     }
