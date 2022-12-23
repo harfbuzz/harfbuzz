@@ -382,13 +382,37 @@ interpolate (float f0, float f1, float f)
   return f0 + f * (f1 - f0);
 }
 
+static inline void
+premultiply (color_t *c)
+{
+  c->r *= c->a;
+  c->g *= c->a;
+  c->b *= c->a;
+}
+
+static inline void
+unpremultiply (color_t *c)
+{
+  if (c->a != 0.)
+  {
+     c->r /= c->a;
+     c->g /= c->a;
+     c->b /= c->a;
+  }
+}
+
 static void
 interpolate_colors (color_t *c0, color_t *c1, float k, color_t *c)
 {
+  // According to the COLR specification, gradients
+  // should be interpolated in premultiplied form
+  premultiply (c0);
+  premultiply (c1);
   c->r = c0->r + k * (c1->r - c0->r);
   c->g = c0->g + k * (c1->g - c0->g);
   c->b = c0->b + k * (c1->b - c0->b);
   c->a = c0->a + k * (c1->a - c0->a);
+  unpremultiply (c);
 }
 
 static inline float
