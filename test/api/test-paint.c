@@ -24,7 +24,12 @@
 
 #include "hb-test.h"
 
+#include <hb-features.h>
 #include <hb-ot.h>
+
+#ifdef HB_HAS_FREETYPE
+#include <hb-ft.h>
+#endif
 
 /* Unit tests for hb-paint.h */
 
@@ -289,8 +294,11 @@ static paint_test_t paint_tests[] = {
   { ROCHER_ABC, 120, 0,    3, 200, "rocher-120-0-3" },   // C
 };
 
+static FT_Library library;
+
 static void
-test_hb_paint (gconstpointer d)
+test_hb_paint (gconstpointer d,
+               hb_bool_t     use_ft)
 {
   const paint_test_t *test = d;
   hb_face_t *face;
@@ -302,7 +310,29 @@ test_hb_paint (gconstpointer d)
   gsize len;
   GError *error = NULL;
 
-  face = hb_test_open_font_file (test->font_file);
+#ifdef HB_HAS_FREETYPE
+  if (use_ft)
+  {
+    FT_Face ft_face;
+    char *path;
+
+    path = g_test_build_filename (G_TEST_DIST, test->font_file, NULL);
+    if (FT_New_Face (library, path, 0, &ft_face) != 0)
+    {
+      g_test_fail_printf ("Failed to create FT_Face for %s", path);
+      g_free (path);
+      return;
+    }
+    face = hb_ft_face_create_referenced (ft_face);
+    FT_Done_Face (ft_face);
+    g_free (path);
+  }
+  else
+#endif
+  {
+    face = hb_test_open_font_file (test->font_file);
+  }
+
   font = hb_font_create (face);
   hb_font_set_scale (font, test->scale, test->scale);
   hb_font_set_synthetic_slant (font, test->slant);
@@ -389,12 +419,35 @@ test_hb_paint (gconstpointer d)
   hb_face_destroy (face);
 }
 
+static void
+test_hb_paint_ot (gconstpointer data)
+{
+  test_hb_paint (data, 0);
+}
+
+static void
+test_hb_paint_ft (gconstpointer data)
+{
+#ifdef HB_HAS_FREETYPE
+  test_hb_paint (data, 1);
+#else
+  g_test_skip_printf ("freetype support not present");
+#endif
+}
+
 int
 main (int argc, char **argv)
 {
+#ifdef HB_HAS_FREETYPE
+  FT_Init_FreeType (&library);
+#endif
+
   hb_test_init (&argc, &argv);
   for (unsigned int i = 0; i < G_N_ELEMENTS (paint_tests); i++)
-    hb_test_add_data_flavor (&paint_tests[i], paint_tests[i].output, test_hb_paint);
+  {
+    hb_test_add_data_flavor (&paint_tests[i], paint_tests[i].output, test_hb_paint_ot);
+    hb_test_add_data_flavor (&paint_tests[i], paint_tests[i].output, test_hb_paint_ft);
+  }
 
   return hb_test_run();
 }
