@@ -436,6 +436,112 @@ test_hb_paint_ft (gconstpointer data)
 #endif
 }
 
+static void
+scrutinize_linear_gradient (hb_paint_funcs_t *funcs,
+                            void *paint_data,
+                            hb_color_line_t *color_line,
+                            float x0, float y0,
+                            float x1, float y1,
+                            float x2, float y2,
+                            void *user_data)
+{
+  hb_bool_t *result = paint_data;
+  hb_color_stop_t *stops;
+  unsigned int len;
+  hb_color_stop_t *stops2;
+  unsigned int len2;
+
+  *result = FALSE;
+
+  len = hb_color_line_get_color_stops (color_line, 0, NULL, NULL);
+  if (len == 0)
+    return;
+
+  stops = malloc (len * sizeof (hb_color_stop_t));
+  stops2 = malloc (len * sizeof (hb_color_stop_t));
+
+  hb_color_line_get_color_stops (color_line, 0, &len, stops);
+  hb_color_line_get_color_stops (color_line, 0, &len, stops2);
+
+  // check that we can get stops twice
+  if (memcmp (stops, stops2, len * sizeof (hb_color_stop_t)) != 0)
+  {
+    free (stops);
+    free (stops2);
+    return;
+  }
+
+  // check that we can get a single stop in the middle
+  len2 = 1;
+  hb_color_line_get_color_stops (color_line, len - 1, &len2, stops2);
+  if (memcmp (&stops[len - 1], stops2, sizeof (hb_color_stop_t)) != 0)
+  {
+    free (stops);
+    free (stops2);
+    return;
+  }
+
+  free (stops);
+  free (stops2);
+
+  *result = TRUE;
+}
+
+static void
+test_color_stops (hb_bool_t use_ft)
+{
+  hb_face_t *face;
+  hb_font_t *font;
+  hb_paint_funcs_t *funcs;
+  hb_bool_t result = FALSE;
+
+#ifdef HB_HAS_FREETYPE
+  if (use_ft)
+  {
+    FT_Face ft_face;
+    char *path;
+
+    path = g_test_build_filename (G_TEST_DIST, NOTO_HAND, NULL);
+    if (FT_New_Face (library, path, 0, &ft_face) != 0)
+    {
+      g_test_message ("Failed to create FT_Face for %s", path);
+      g_test_fail ();
+      g_free (path);
+      return;
+    }
+    face = hb_ft_face_create_referenced (ft_face);
+    FT_Done_Face (ft_face);
+    g_free (path);
+  }
+  else
+#endif
+    face = hb_test_open_font_file (NOTO_HAND);
+
+  font = hb_font_create (face);
+
+  funcs = hb_paint_funcs_create ();
+  hb_paint_funcs_set_linear_gradient_func (funcs, scrutinize_linear_gradient, NULL, NULL);
+
+  hb_font_paint_glyph (font, 10, funcs, &result, 0, HB_COLOR (0, 0, 0, 255));
+
+  g_assert_true (result);
+
+  hb_font_destroy (font);
+  hb_face_destroy (face);
+}
+
+static void
+test_color_stops_ot (void)
+{
+  test_color_stops (0);
+}
+
+static void
+test_color_stops_ft (void)
+{
+  test_color_stops (1);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -449,6 +555,8 @@ main (int argc, char **argv)
     hb_test_add_data_flavor (&paint_tests[i], paint_tests[i].output, test_hb_paint_ot);
     hb_test_add_data_flavor (&paint_tests[i], paint_tests[i].output, test_hb_paint_ft);
   }
+  hb_test_add (test_color_stops_ot);
+  hb_test_add (test_color_stops_ft);
 
   return hb_test_run();
 }
