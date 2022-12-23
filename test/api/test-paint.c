@@ -272,26 +272,26 @@ typedef struct {
 
 /* To verify the rendering visually, use
  *
- * hb-view --font-size SCALE --font-slant SLANT --font-palette PALETTE FONT TEXT
+ * hb-view --font-size SCALE --font-slant SLANT --font-palette PALETTE FONT --glyphs [gidGID=0+1000]
  *
- * where TEXT is as mentioned below.
+ * where GID is the glyph value of the test.
  */
 static paint_test_t paint_tests[] = {
   /* COLRv1 */
-  { NOTO_HAND,   20, 0.,  10,   0, "hand-20-0-10" },   // ✍️
-  { NOTO_HAND,   20, 0.2, 10,   0, "hand-20-0.2-10" }, // ✍️
-  { TEST_GLYPHS, 20, 0,    6,   0, "test-20-0-6" },
-  { TEST_GLYPHS, 20, 0,   10,   0, "test-20-0-10" },
-  { TEST_GLYPHS, 20, 0,   92,   0, "test-20-0-92" },
+  { NOTO_HAND,   20, 0.,  10,   0, "hand-20-0-10" },
+  { NOTO_HAND,   20, 0.2, 10,   0, "hand-20-0.2-10" },
+  { TEST_GLYPHS, 20, 0,    6,   0, "test-20-0-6" },   // linear gradient
+  { TEST_GLYPHS, 20, 0,   10,   0, "test-20-0-10" },  // sweep gradient
+  { TEST_GLYPHS, 20, 0,   92,   0, "test-20-0-92" },  // radial gradient
   { TEST_GLYPHS, 20, 0,  106,   0, "test-20-0-106" },
-  { TEST_GLYPHS, 20, 0,  116,   0, "test-20-0-116" },
+  { TEST_GLYPHS, 20, 0,  116,   0, "test-20-0-116" }, // compositing
   { TEST_GLYPHS, 20, 0,  123,   0, "test-20-0-123" },
-  { TEST_GLYPHS, 20, 0,  165,   0, "test-20-0-165" },
-  { TEST_GLYPHS, 20, 0,  175,   0, "test-20-0-175" },
+  { TEST_GLYPHS, 20, 0,  165,   0, "test-20-0-165" }, // linear gradient
+  { TEST_GLYPHS, 20, 0,  175,   0, "test-20-0-175" }, // layers
   /* COLRv0 */
-  { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-120-0.3-1" }, // A
-  { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-120-0.3-2" },   // B
-  { ROCHER_ABC, 120, 0,    3, 200, "rocher-120-0-3" },   // C
+  { ROCHER_ABC, 120, 0.3,  1,   0, "rocher-120-0.3-1" },
+  { ROCHER_ABC, 120, 0.3,  2,   2, "rocher-120-0.3-2" },
+  { ROCHER_ABC, 120, 0,    3, 200, "rocher-120-0-3" },
 };
 
 static FT_Library library;
