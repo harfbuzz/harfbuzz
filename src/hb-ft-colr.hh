@@ -207,7 +207,26 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       paint_funcs->pop_transform (paint_data);
       paint_funcs->pop_transform (paint_data);
     }
-    case FT_COLR_PAINTFORMAT_SKEW: break;
+    break;
+    case FT_COLR_PAINTFORMAT_SKEW:
+    {
+      float x = +tanf (paint.u.skew.x_skew_angle / 65536.f * (float) M_PI);
+      float y = -tanf (paint.u.skew.y_skew_angle / 65536.f * (float) M_PI);
+      paint_funcs->push_transform (paint_data,
+				   1.f, 0.f, 0.f, 1.f,
+				   +paint.u.skew.center_x / 65536.f,
+				   +paint.u.skew.center_y / 65536.f);
+      paint_funcs->push_transform (paint_data, 1., y, x, 1., 0., 0.);
+      paint_funcs->push_transform (paint_data,
+				   1.f, 0.f, 0.f, 1.f,
+				   -paint.u.skew.center_x / 65536.f,
+				   -paint.u.skew.center_y / 65536.f);
+      paint_recurse (paint.u.skew.paint);
+      paint_funcs->pop_transform (paint_data);
+      paint_funcs->pop_transform (paint_data);
+      paint_funcs->pop_transform (paint_data);
+    }
+    break;
     case FT_COLR_PAINTFORMAT_COMPOSITE:
     {
       paint_funcs->push_group (paint_data);
