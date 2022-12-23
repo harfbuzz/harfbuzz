@@ -262,7 +262,22 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       if (FT_Get_Color_Glyph_Paint (ft_face, paint.u.colr_glyph.glyphID,
 				    FT_COLOR_NO_ROOT_TRANSFORM,
 				    &other_paint))
+      {
+        bool has_clip_box;
+        FT_ClipBox clip_box;
+        has_clip_box = FT_Get_Color_Glyph_ClipBox (ft_face, paint.u.colr_glyph.glyphID, &clip_box);
+        has_clip_box = 0;
+
+        if (has_clip_box)
+          paint_funcs->push_clip_rectangle (paint_data,
+					    clip_box.bottom_left.x / 64.f,
+					    clip_box.bottom_left.y / 64.f,
+					    clip_box.top_right.x / 64.f,
+					    clip_box.top_right.y / 64.f);
 	paint_recurse (other_paint);
+        if (has_clip_box)
+          paint_funcs->pop_clip (paint_data);
+      }
     }
     break;
     case FT_COLR_PAINTFORMAT_TRANSFORM:
@@ -405,28 +420,26 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			        &paint))
   {
     FT_ClipBox clip_box;
-    bool pop_clip = false;
-    if (FT_Get_Color_Glyph_ClipBox (ft_face, gid,
-				    &clip_box))
-    {
-      /* TODO mult's like hb-ft. */
+    bool has_clip;
+
+    has_clip = FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box);
+    if (has_clip)
       paint_funcs->push_clip_rectangle (paint_data,
-					clip_box.bottom_left.x,
-					clip_box.bottom_left.y,
-					clip_box.top_right.x,
-					clip_box.top_right.y);
-      pop_clip = true;
-    }
+                                        clip_box.bottom_left.x,
+                                        clip_box.bottom_left.y,
+                                        clip_box.top_right.x,
+                                        clip_box.top_right.y);
 
     paint_funcs->push_root_transform (paint_data, font);
+
     _hb_ft_paint (paint,
 		  ft_font,
 		  font,
 		  paint_funcs, paint_data,
-		  palette, foreground);
-    paint_funcs->pop_root_transform (paint_data);
+	 	  palette, foreground);
 
-    if (pop_clip)
+    paint_funcs->pop_root_transform (paint_data);
+    if (has_clip)
       paint_funcs->pop_clip (paint_data);
 
     return true;
