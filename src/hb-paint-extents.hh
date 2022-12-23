@@ -29,6 +29,11 @@
 #include "hb-paint.hh"
 
 
+typedef struct hb_extents_t
+{
+  float xmin, ymin, xmax, ymax;
+} hb_extents_t;
+
 typedef struct hb_transform_t
 {
   hb_transform_t () {}
@@ -54,6 +59,49 @@ typedef struct hb_transform_t
     *this = r;
   }
 
+  void transform_distance (float &dx, float &dy)
+  {
+    float new_x = xx * dx + xy * dy;
+    float new_y = yx * dx + yy * dy;
+    dx = new_x;
+    dy = new_y;
+  }
+
+  void transform_point (float &x, float &y)
+  {
+    transform_distance (x, y);
+    x += x0;
+    y += y0;
+  }
+
+  void transform_extents (hb_extents_t extents)
+  {
+    float quad_x[4], quad_y[4];
+
+    quad_x[0] = extents.xmin;
+    quad_y[0] = extents.ymin;
+    quad_x[1] = extents.xmin;
+    quad_y[1] = extents.ymax;
+    quad_x[2] = extents.xmax;
+    quad_y[2] = extents.ymin;
+    quad_x[3] = extents.xmax;
+    quad_y[3] = extents.ymax;
+
+    for (unsigned i = 0; i < 4; i++)
+      transform_point (quad_x[i], quad_y[i]);
+
+    extents.xmin = extents.xmax = quad_x[0];
+    extents.ymin = extents.ymax = quad_y[0];
+
+    for (unsigned i = 1; i < 4; i++)
+    {
+      extents.xmin = hb_min (extents.xmin, quad_x[i]);
+      extents.ymin = hb_min (extents.ymin, quad_y[i]);
+      extents.xmax = hb_max (extents.xmax, quad_x[i]);
+      extents.ymax = hb_max (extents.ymax, quad_y[i]);
+    }
+  }
+
   float xx = 1.f;
   float yx = 0.f;
   float xy = 0.f;
@@ -61,11 +109,6 @@ typedef struct hb_transform_t
   float x0 = 0.f;
   float y0 = 0.f;
 } hb_transform_t;
-
-typedef struct hb_extents_t
-{
-  float xmin, ymin, xmax, ymax;
-} hb_extents_t;
 
 typedef struct hb_bounds_t
 {
@@ -109,7 +152,8 @@ struct hb_paint_extents_context_t {
   void push_clip (hb_extents_t extents)
   {
     /* Transform extents and push a new clip. */
-    //hb_transform_t &r = transforms.tail ();
+    hb_transform_t &r = transforms.tail ();
+    r.transform_extents (extents);
 
     hb_bounds_t b {extents};
     clips.push (b);
