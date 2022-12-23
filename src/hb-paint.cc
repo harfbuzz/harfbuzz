@@ -36,10 +36,11 @@
  *
  * Functions for painting glyphs.
  *
- * The main purpose of these functions is to paint
- * (extract) color glyph layers from the COLRv1 table,
- * but the API works for drawing ordinary outlines
- * and images as well.
+ * The main purpose of these functions is to paint (extract) color glyph layers
+ * from the COLRv1 table, but the API works for drawing ordinary outlines and
+ * images as well.
+ *
+ * The #hb_paint_funcs_t struct can be used with hb_font_paint_glyph().
  **/
 
 static void

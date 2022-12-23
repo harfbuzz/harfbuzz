@@ -44,15 +44,11 @@ HB_BEGIN_DECLS
  * push/pop calls will be properly nested, so it is fine
  * to store the different kinds of object on a single stack.
  *
- * The callbacks also assume that the caller uses
- * hb_ot_color_palette_get_colors() to obtain colors
- * from the color palette that is selected. If the font does
- * not have color palettes, the color index will always
- * be 0xFFFF, indicating the use of the foreground color.
- *
  * Not all callbacks are required for all kinds of glyphs.
  * For rendering COLRv0 or non-color outline glyphs, the
- * gradient and composite callbacks are not needed.
+ * gradient callbacks are not needed, and the composite
+ * callback only needs to handle simple alpha compositing
+ * (#HB_PAINT_COMPOSITE_MODE_SRC_OVER).
  *
  * The paint-image callback is only needed for glyphs
  * with image blobs in the CBDT, sbix or SVG tables.
@@ -264,10 +260,9 @@ typedef void (*hb_paint_color_func_t) (hb_paint_funcs_t *funcs,
  * @extents: (nullable): glyph extents for desired rendering
  * @user_data: User data pointer passed to hb_paint_funcs_set_image_func()
  *
- * A virtual method for the #hb_paint_funcs_t to paint the
- * glyph image.
+ * A virtual method for the #hb_paint_funcs_t to paint a glyph image.
  *
- * This method is intended for glyphs with image blobs in the CBDT,
+ * This method is called for glyphs with image blobs in the CBDT,
  * sbix or SVG tables. The @format identifies the kind of data that
  * is contained in @image. Possible values include #HB_PAINT_IMAGE_FORMAT_PNG
  * #HB_PAINT_IMAGE_FORMAT_SVG and #HB_PAINT_IMAGE_FORMAT_BGRA.
