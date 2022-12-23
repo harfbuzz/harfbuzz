@@ -171,8 +171,8 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
     {
       paint_funcs->push_transform (paint_data,
 				   1.f, 0.f, 0.f, 1.f,
-				   -paint.u.scale.center_x / 65536.f,
-				   -paint.u.scale.center_y / 65536.f);
+				   +paint.u.scale.center_x / 65536.f,
+				   +paint.u.scale.center_y / 65536.f);
       paint_funcs->push_transform (paint_data,
 				   paint.u.scale.scale_y / 65536.f,
 				   0.f, 0.f,
@@ -180,8 +180,8 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
 				   0.f, 0.f);
       paint_funcs->push_transform (paint_data,
 				   1.f, 0.f, 0.f, 1.f,
-				   +paint.u.scale.center_x / 65536.f,
-				   +paint.u.scale.center_y / 65536.f);
+				   -paint.u.scale.center_x / 65536.f,
+				   -paint.u.scale.center_y / 65536.f);
       paint_recurse (paint.u.scale.paint);
       paint_funcs->pop_transform (paint_data);
       paint_funcs->pop_transform (paint_data);
@@ -195,13 +195,13 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       float ss = sinf (a * (float) M_PI);
       paint_funcs->push_transform (paint_data,
 				   1.f, 0.f, 0.f, 1.f,
-				   -paint.u.rotate.center_x / 65536.f,
-				   -paint.u.rotate.center_y / 65536.f);
+				   +paint.u.rotate.center_x / 65536.f,
+				   +paint.u.rotate.center_y / 65536.f);
       paint_funcs->push_transform (paint_data, cc, ss, -ss, cc, 0., 0.);
       paint_funcs->push_transform (paint_data,
 				   1.f, 0.f, 0.f, 1.f,
-				   +paint.u.rotate.center_x / 65536.f,
-				   +paint.u.rotate.center_y / 65536.f);
+				   -paint.u.rotate.center_x / 65536.f,
+				   -paint.u.rotate.center_y / 65536.f);
       paint_recurse (paint.u.rotate.paint);
       paint_funcs->pop_transform (paint_data);
       paint_funcs->pop_transform (paint_data);
