@@ -762,7 +762,9 @@ struct PaintGlyph
   {
     c->funcs->push_inverse_root_transform (c->data, c->font);
     c->funcs->push_clip_glyph (c->data, gid, c->font);
+    c->funcs->push_root_transform (c->data, c->font);
     c->recurse (this+paint);
+    c->funcs->pop_root_transform (c->data);
     c->funcs->pop_clip (c->data);
     c->funcs->pop_inverse_root_transform (c->data);
   }
