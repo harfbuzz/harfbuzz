@@ -169,9 +169,62 @@ struct hb_paint_extents_context_t {
     groups.push (hb_bounds_t{hb_bounds_t::status_t::EMPTY});
   }
 
-  hb_bounds_t pop_group ()
+  void pop_group (hb_paint_composite_mode_t mode)
   {
-    return groups.pop ();
+    const hb_bounds_t src_bounds = groups.pop ();
+    hb_bounds_t &backdrop_bounds = groups.tail ();
+
+    switch ((int) mode)
+    {
+      case HB_PAINT_COMPOSITE_MODE_CLEAR:
+	backdrop_bounds.status = hb_bounds_t::status_t::EMPTY;
+	break;
+      case HB_PAINT_COMPOSITE_MODE_SRC:
+      case HB_PAINT_COMPOSITE_MODE_SRC_OUT:
+	backdrop_bounds = src_bounds;
+	break;
+      case HB_PAINT_COMPOSITE_MODE_DEST:
+      case HB_PAINT_COMPOSITE_MODE_DEST_OUT:
+	break;
+      case HB_PAINT_COMPOSITE_MODE_SRC_IN:
+      case HB_PAINT_COMPOSITE_MODE_DEST_IN:
+	// Intersect
+	if (src_bounds.status == hb_bounds_t::status_t::EMPTY)
+	  backdrop_bounds.status = hb_bounds_t::status_t::EMPTY;
+	else if (src_bounds.status == hb_bounds_t::status_t::BOUNDED)
+	{
+	  if (backdrop_bounds.status == hb_bounds_t::status_t::UNBOUNDED)
+	    backdrop_bounds = src_bounds;
+	  else if (backdrop_bounds.status == hb_bounds_t::status_t::BOUNDED)
+	  {
+	    backdrop_bounds.extents.xmin = hb_max (backdrop_bounds.extents.xmin, src_bounds.extents.xmin);
+	    backdrop_bounds.extents.ymin = hb_max (backdrop_bounds.extents.ymin, src_bounds.extents.ymin);
+	    backdrop_bounds.extents.xmax = hb_min (backdrop_bounds.extents.xmax, src_bounds.extents.xmax);
+	    backdrop_bounds.extents.ymax = hb_min (backdrop_bounds.extents.ymax, src_bounds.extents.ymax);
+	    if (backdrop_bounds.extents.xmin >= backdrop_bounds.extents.xmax ||
+	        backdrop_bounds.extents.ymin >= backdrop_bounds.extents.ymax)
+	      backdrop_bounds.status = hb_bounds_t::status_t::EMPTY;
+	  }
+	}
+	break;
+      default:
+	// Union
+	if (src_bounds.status == hb_bounds_t::status_t::UNBOUNDED)
+	  backdrop_bounds.status = hb_bounds_t::status_t::UNBOUNDED;
+	else if (src_bounds.status == hb_bounds_t::status_t::BOUNDED)
+	{
+	  if (backdrop_bounds.status == hb_bounds_t::status_t::EMPTY)
+	    backdrop_bounds = src_bounds;
+	  else if (backdrop_bounds.status == hb_bounds_t::status_t::BOUNDED)
+	  {
+	    backdrop_bounds.extents.xmin = hb_min (backdrop_bounds.extents.xmin, src_bounds.extents.xmin);
+	    backdrop_bounds.extents.ymin = hb_min (backdrop_bounds.extents.ymin, src_bounds.extents.ymin);
+	    backdrop_bounds.extents.xmax = hb_max (backdrop_bounds.extents.xmax, src_bounds.extents.xmax);
+	    backdrop_bounds.extents.ymax = hb_max (backdrop_bounds.extents.ymax, src_bounds.extents.ymax);
+	  }
+	}
+	break;
+    }
   }
 
   void paint ()
@@ -293,9 +346,7 @@ hb_paint_extents_pop_group (hb_paint_funcs_t *funcs HB_UNUSED,
 {
   hb_paint_extents_context_t *c = (hb_paint_extents_context_t *) paint_data;
 
-  hb_bounds_t bounds = c->pop_group ();
-
-  // TODO
+  c->pop_group (mode);
 }
 
 static void
