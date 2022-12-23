@@ -210,7 +210,7 @@ typedef void (*hb_paint_pop_clip_func_t) (hb_paint_funcs_t *funcs,
  * @funcs: paint functions object
  * @paint_data: The data accompanying the paint functions in hb_font_paint_glyph()
  * @is_foreground: whether the color is the foreground
- * @color: The color to use
+ * @color: The color to use, unpremultiplied
  * @user_data: User data pointer passed to hb_paint_funcs_set_color_func()
  *
  * A virtual method for the #hb_paint_funcs_t to paint a
@@ -291,12 +291,17 @@ typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
  * hb_color_stop_t:
  * @offset: the offset of the color stop
  * @is_foreground: whether the color is the foreground
- * @color: the color
+ * @color: the color, unpremultiplied
  *
  * Information about a color stop on a color line.
  *
  * Color lines typically have offsets ranging between 0 and 1,
  * but that is not required.
+ *
+ * Note: despite @color being unpremultiplied here, interpolation in
+ * gradients shall happen in premultiplied space. See the OpenType spec
+ * [COLR](https://learn.microsoft.com/en-us/typography/opentype/spec/colr)
+ * section for details.
  *
  * Since: REPLACEME
  */
