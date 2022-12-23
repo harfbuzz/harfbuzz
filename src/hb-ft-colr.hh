@@ -200,12 +200,12 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       };
 
       paint_funcs->linear_gradient (paint_data, &cl,
-				    paint.u.linear_gradient.p0.x / 65535.f,
-				    paint.u.linear_gradient.p0.y / 65535.f,
-				    paint.u.linear_gradient.p1.x / 65535.f,
-				    paint.u.linear_gradient.p1.y / 65535.f,
-				    paint.u.linear_gradient.p2.x / 65535.f,
-				    paint.u.linear_gradient.p2.y / 65535.f);
+				    paint.u.linear_gradient.p0.x / 65536.f,
+				    paint.u.linear_gradient.p0.y / 65536.f,
+				    paint.u.linear_gradient.p1.x / 65536.f,
+				    paint.u.linear_gradient.p1.y / 65536.f,
+				    paint.u.linear_gradient.p2.x / 65536.f,
+				    paint.u.linear_gradient.p2.y / 65536.f);
     }
     break;
     case FT_COLR_PAINTFORMAT_RADIAL_GRADIENT:
@@ -218,12 +218,12 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       };
 
       paint_funcs->radial_gradient (paint_data, &cl,
-				    paint.u.radial_gradient.c0.x / 65535.f,
-				    paint.u.radial_gradient.c0.y / 65535.f,
-				    (paint.u.radial_gradient.r0 / 65535.f),
-				    paint.u.radial_gradient.c1.x / 65535.f,
-				    paint.u.radial_gradient.c1.y / 65535.f,
-				    (paint.u.radial_gradient.r1 / 65535.f));
+				    paint.u.radial_gradient.c0.x / 65536.f,
+				    paint.u.radial_gradient.c0.y / 65536.f,
+				    (paint.u.radial_gradient.r0 / 65536.f),
+				    paint.u.radial_gradient.c1.x / 65536.f,
+				    paint.u.radial_gradient.c1.y / 65536.f,
+				    (paint.u.radial_gradient.r1 / 65536.f));
     }
     break;
     case FT_COLR_PAINTFORMAT_SWEEP_GRADIENT:
@@ -236,8 +236,8 @@ _hb_ft_paint (FT_OpaquePaint opaque_paint,
       };
 
       paint_funcs->sweep_gradient (paint_data, &cl,
-				   paint.u.sweep_gradient.center.x / 65535.f,
-				   paint.u.sweep_gradient.center.y / 65535.f,
+				   paint.u.sweep_gradient.center.x / 65536.f,
+				   paint.u.sweep_gradient.center.y / 65536.f,
 				   (paint.u.sweep_gradient.start_angle / 65536.f + 1) * (float) M_PI,
 				   (paint.u.sweep_gradient.end_angle / 65536.f + 1) * (float) M_PI);
     }
