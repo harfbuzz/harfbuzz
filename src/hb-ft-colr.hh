@@ -288,12 +288,6 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 					clip_box.bottom_left.y,
 					clip_box.top_right.x,
 					clip_box.top_right.y);
-#if 0
-      FT_Vector  bottom_left;
-      FT_Vector  top_left;
-      FT_Vector  top_right;
-      FT_Vector  bottom_right;
-#endif
     }
 
     _hb_ft_paint (paint,
