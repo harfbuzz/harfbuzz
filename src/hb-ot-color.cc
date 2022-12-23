@@ -167,6 +167,10 @@ hb_ot_color_palette_get_flags (hb_face_t *face,
  * for allocating a buffer of suitable size before calling
  * hb_ot_color_palette_get_colors() a second time.
  *
+ * The RGBA values in the palette are unpremultiplied. See the
+ * OpenType spec [CPAL](https://learn.microsoft.com/en-us/typography/opentype/spec/cpal)
+ * section for details.
+ *
  * Return value: the total number of colors in the palette
  *
  * Since: 2.1.0
