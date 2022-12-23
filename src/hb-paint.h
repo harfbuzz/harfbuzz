@@ -288,15 +288,6 @@ typedef void (*hb_paint_image_func_t) (hb_paint_funcs_t *funcs,
                                        void *user_data);
 
 /**
- * hb_color_line_t:
- *
- * An opaque struct containing color information for a gradient.
- *
- * Since: REPLACEME
- */
-typedef struct hb_color_line_t hb_color_line_t;
-
-/**
  * hb_color_stop_t:
  * @offset: the offset of the color stop
  * @is_foreground: whether the color is the foreground
@@ -315,12 +306,6 @@ typedef struct {
   hb_color_t color;
 } hb_color_stop_t;
 
-HB_EXTERN unsigned int
-hb_color_line_get_color_stops (hb_color_line_t *color_line,
-                               unsigned int start,
-                               unsigned int *count,
-                               hb_color_stop_t *color_stops);
-
 /**
  * hb_paint_extend_t:
  *
@@ -336,6 +321,51 @@ typedef enum {
   HB_PAINT_EXTEND_REPEAT,
   HB_PAINT_EXTEND_REFLECT
 } hb_paint_extend_t;
+
+typedef struct hb_color_line_t hb_color_line_t;
+
+typedef unsigned int (*hb_color_line_get_color_stops_func_t) (hb_color_line_t *color_line,
+							      void *color_line_data,
+							      unsigned int start,
+							      unsigned int *count,
+							      hb_color_stop_t *color_stops,
+							      void *user_data);
+
+typedef hb_paint_extend_t (*hb_color_line_get_extend_func_t) (hb_color_line_t *color_line,
+							      void *color_line_data,
+							      void *user_data);
+
+/**
+ * hb_color_line_t:
+ *
+ * A struct containing color information for a gradient.
+ *
+ * Since: REPLACEME
+ */
+struct hb_color_line_t {
+  void *data;
+
+  hb_color_line_get_color_stops_func_t get_color_stops;
+  void *get_color_stops_user_data;
+
+  hb_color_line_get_extend_func_t get_extend;
+  void *get_extend_user_data;
+
+  void *reserved0;
+  void *reserved1;
+  void *reserved2;
+  void *reserved3;
+  void *reserved5;
+  void *reserved6;
+  void *reserved7;
+  void *reserved8;
+};
+
+HB_EXTERN unsigned int
+hb_color_line_get_color_stops (hb_color_line_t *color_line,
+                               unsigned int start,
+                               unsigned int *count,
+                               hb_color_stop_t *color_stops);
 
 HB_EXTERN hb_paint_extend_t
 hb_color_line_get_extend (hb_color_line_t *color_line);

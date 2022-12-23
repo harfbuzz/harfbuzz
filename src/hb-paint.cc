@@ -376,4 +376,53 @@ hb_paint_funcs_is_immutable (hb_paint_funcs_t *funcs)
   return hb_object_is_immutable (funcs);
 }
 
+
+/**
+ * hb_color_line_get_color_stops:
+ * @color_line: a #hb_color_line_t object
+ * @start: the index of the first color stop to return
+ * @count: (inout) (optional): Input = the maximum number of feature tags to return;
+ *     Output = the actual number of feature tags returned (may be zero)
+ * @color_stops: (out) (array length=count) (optional): Array of #hb_color_stop_t to populate
+ *
+ * Fetches a list of color stops from the given color line object.
+ *
+ * Note that due to variations being applied, the returned color stops
+ * may be out of order. It is the callers responsibility to ensure that
+ * color stops are sorted by their offset before they are used.
+ *
+ * Return value: the total number of color stops in @cl
+ *
+ * Since: REPLACEME
+ */
+unsigned int
+hb_color_line_get_color_stops (hb_color_line_t *color_line,
+                               unsigned int start,
+                               unsigned int *count,
+                               hb_color_stop_t *color_stops)
+{
+  return color_line->get_color_stops (color_line,
+				      color_line->data,
+				      start, count,
+				      color_stops,
+				      color_line->get_color_stops_user_data);
+}
+
+/**
+ * hb_color_line_get_extend:
+ * @color_line: a #hb_color_line_t object
+ *
+ * Fetches the extend mode of the color line object.
+ *
+ * Since: REPLACEME
+ */
+hb_paint_extend_t
+hb_color_line_get_extend (hb_color_line_t *color_line)
+{
+  return color_line->get_extend (color_line,
+				 color_line->data,
+				 color_line->get_extend_user_data);
+}
+
+
 #endif

@@ -49,12 +49,6 @@ namespace OT {
 struct hb_paint_context_t;
 }
 
-struct hb_color_line_t {
-  struct OT::hb_paint_context_t *c;
-  const void *base;
-  bool is_variable;
-};
-
 namespace OT {
 
 struct COLR;
@@ -440,9 +434,29 @@ struct ColorLine
     return len;
   }
 
+  HB_INTERNAL static unsigned int static_get_color_stops (hb_color_line_t *color_line,
+							  void *color_line_data,
+							  unsigned int start,
+							  unsigned int *count,
+							  hb_color_stop_t *color_stops,
+							  void *user_data)
+  {
+    const ColorLine *thiz = (const ColorLine *) color_line_data;
+    hb_paint_context_t *c = (hb_paint_context_t *) user_data;
+    return thiz->get_color_stops (c, start, count, color_stops, c->instancer);
+  }
+
   hb_paint_extend_t get_extend () const
   {
     return (hb_paint_extend_t) (unsigned int) extend;
+  }
+
+  HB_INTERNAL static hb_paint_extend_t static_get_extend (hb_color_line_t *color_line,
+							  void *color_line_data,
+							  void *user_data)
+  {
+    const ColorLine *thiz = (const ColorLine *) color_line_data;
+    return thiz->get_extend ();
   }
 
   Extend	extend;
@@ -620,7 +634,11 @@ struct PaintLinearGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { c, &(this+colorLine), Var<HBUINT8>::is_variable };
+    hb_color_line_t cl = {
+      (void *) &(this+colorLine),
+      (this+colorLine).static_get_color_stops, c,
+      (this+colorLine).static_get_extend, nullptr
+    };
 
     c->funcs->linear_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
@@ -667,7 +685,11 @@ struct PaintRadialGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { c, &(this+colorLine), Var<HBUINT8>::is_variable };
+    hb_color_line_t cl = {
+      (void *) &(this+colorLine),
+      (this+colorLine).static_get_color_stops, c,
+      (this+colorLine).static_get_extend, nullptr
+    };
 
     c->funcs->radial_gradient (c->data, &cl,
 			       x0 + c->instancer (varIdxBase, 0),
@@ -714,7 +736,11 @@ struct PaintSweepGradient
 
   void paint_glyph (hb_paint_context_t *c, uint32_t varIdxBase) const
   {
-    hb_color_line_t cl = { c, &(this+colorLine), Var<HBUINT8>::is_variable };
+    hb_color_line_t cl = {
+      (void *) &(this+colorLine),
+      (this+colorLine).static_get_color_stops, c,
+      (this+colorLine).static_get_extend, nullptr
+    };
 
     c->funcs->sweep_gradient (c->data, &cl,
 			      centerX + c->instancer (varIdxBase, 0),
