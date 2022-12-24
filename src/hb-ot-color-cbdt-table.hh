@@ -956,19 +956,12 @@ struct CBDT
       if (unlikely (!get_extents (font, glyph, &pixel_extents, false)))
         return false;
 
-      funcs->push_clip_rectangle (data,
-                                  extents.x_bearing, extents.y_bearing,
-                                  extents.x_bearing + extents.width,
-                                  extents.y_bearing + extents.height);
-
       bool ret = funcs->image (data,
 			       blob,
 			       pixel_extents.width, -pixel_extents.height,
 			       HB_PAINT_IMAGE_FORMAT_PNG,
 			       font->slant_xy,
 			       &extents);
-
-      funcs->pop_clip (data);
 
       hb_blob_destroy (blob);
       return ret;
