@@ -2014,7 +2014,7 @@ struct COLR
   }
 
   bool
-  paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette, hb_color_t foreground) const
+  paint_glyph (hb_font_t *font, hb_codepoint_t glyph, hb_paint_funcs_t *funcs, void *data, unsigned int palette, hb_color_t foreground, bool clip = true) const
   {
     VarStoreInstancer instancer (this+varStore,
 	                         this+varIdxMap,
@@ -2027,11 +2027,64 @@ struct COLR
       if (paint)
       {
         // COLRv1 glyph
-        c.funcs->push_root_transform (c.data, font);
 
-        c.recurse (*paint);
+	VarStoreInstancer instancer (this+varStore,
+				     this+varIdxMap,
+				     hb_array (font->coords, font->num_coords));
+
+	bool is_bounded = true;
+	bool pop_clip_first = true;
+	if (clip)
+	{
+	  hb_glyph_extents_t extents;
+	  if ((this+clipList).get_extents (glyph,
+					   &extents,
+					   instancer))
+	  {
+	    c.funcs->push_root_transform (c.data, font);
+
+	    c.funcs->push_clip_rectangle (c.data,
+					  extents.x_bearing,
+					  extents.y_bearing + extents.height,
+					  extents.x_bearing + extents.width,
+					  extents.y_bearing);
+	  }
+	  else
+	  {
+	    auto *extents_funcs = hb_paint_extents_get_funcs ();
+	    hb_paint_extents_context_t extents_data;
+
+	    paint_glyph (font, glyph,
+			 extents_funcs, &extents_data,
+			 palette, foreground,
+			 false);
+
+	    hb_extents_t extents = extents_data.get_extents ();
+	    is_bounded = extents_data.is_bounded ();
+	    c.funcs->push_clip_rectangle (c.data,
+					  extents.xmin,
+					  extents.ymin,
+					  extents.xmax,
+					  extents.ymax);
+
+	    hb_paint_funcs_destroy (extents_funcs);
+
+	    c.funcs->push_root_transform (c.data, font);
+
+	    pop_clip_first = false;
+	  }
+	}
+
+	if (is_bounded)
+	  c.recurse (*paint);
+
+	if (clip && pop_clip_first)
+	  c.funcs->pop_clip (c.data);
 
         c.funcs->pop_root_transform (c.data);
+
+	if (clip && !pop_clip_first)
+	  c.funcs->pop_clip (c.data);
 
         return true;
       }
