@@ -1998,22 +1998,18 @@ struct COLR
       return true;
     }
 
-#if 0
-    /* This currently goes into infinite recursion. */
-
     auto *extents_funcs = hb_paint_extents_get_funcs ();
     hb_paint_extents_context_t extents_data;
     paint_glyph (font, glyph, extents_funcs, &extents_data, 0, HB_COLOR(0,0,0,0));
 
-      extents_data.groups.tail().extents.xmin,
-      extents_data.groups.tail().extents.ymin,
-      extents_data.groups.tail().extents.xmax,
-      extents_data.groups.tail().extents.ymax;
+    extents->x_bearing = extents_data.groups.tail().extents.xmin;
+    extents->y_bearing = extents_data.groups.tail().extents.ymax;
+    extents->width = extents_data.groups.tail().extents.xmax - extents_data.groups.tail().extents.xmin,
+    extents->height = extents_data.groups.tail().extents.ymin - extents_data.groups.tail().extents.ymax;
 
     hb_paint_funcs_destroy (extents_funcs);
-#endif
 
-    return false;
+    return true;
   }
 
   bool
