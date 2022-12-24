@@ -61,6 +61,7 @@ jobs:
           meson build \
             --wrap-mode=nodownload \
             --auto-features=enabled \
+            -Ddocs=disabled \
             -Ddirectwrite=enabled \
             -Dgdi=enabled \
             -Dgraphite=enabled \
