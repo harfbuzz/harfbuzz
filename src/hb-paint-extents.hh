@@ -138,6 +138,16 @@ struct hb_paint_extents_context_t {
     transforms.push (hb_transform_t{});
   }
 
+  hb_extents_t get_extents ()
+  {
+    return groups.tail().extents;
+  }
+
+  bool is_bounded ()
+  {
+    return groups.tail().status != hb_bounds_t::status_t::UNBOUNDED;
+  }
+
   void push_transform (const hb_transform_t &trans)
   {
     hb_transform_t r = transforms.tail ();

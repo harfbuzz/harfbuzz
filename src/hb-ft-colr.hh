@@ -456,6 +456,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			        FT_COLOR_NO_ROOT_TRANSFORM,
 			        &paint))
   {
+    bool is_bounded = true;
     FT_ClipBox clip_box;
     if (FT_Get_Color_Glyph_ClipBox (ft_face, gid, &clip_box))
       paint_funcs->push_clip_rectangle (paint_data,
@@ -471,11 +472,13 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			       extents_funcs, &extents_data,
 			       palette, foreground);
       _hb_ft_paint (&c, paint);
+      hb_extents_t extents = extents_data.get_extents ();
+      is_bounded = extents_data.is_bounded ();
       paint_funcs->push_clip_rectangle (paint_data,
-					extents_data.groups.tail().extents.xmin,
-					extents_data.groups.tail().extents.ymin,
-					extents_data.groups.tail().extents.xmax,
-					extents_data.groups.tail().extents.ymax);
+					extents.xmin,
+					extents.ymin,
+					extents.xmax,
+					extents.ymax);
 
       hb_paint_funcs_destroy (extents_funcs);
     }
@@ -485,7 +488,9 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
     hb_ft_paint_context_t c (ft_font, font,
 			     paint_funcs, paint_data,
 			     palette, foreground);
-    _hb_ft_paint (&c, paint);
+
+    if (is_bounded)
+      _hb_ft_paint (&c, paint);
 
     paint_funcs->pop_root_transform (paint_data);
     paint_funcs->pop_clip (paint_data);
