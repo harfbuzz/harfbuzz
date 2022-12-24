@@ -172,8 +172,7 @@ typedef struct hb_bounds_t
       else if (status == BOUNDED)
       {
         extents.intersect (o.extents);
-	if (extents.xmin >= extents.xmax ||
-	    extents.ymin >= extents.ymax)
+	if (extents.is_empty ())
 	  status = EMPTY;
       }
     }
