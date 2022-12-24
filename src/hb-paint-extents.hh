@@ -376,8 +376,8 @@ hb_paint_extents_push_clip_glyph (hb_paint_funcs_t *funcs HB_UNUSED,
   hb_draw_funcs_t *draw_extent_funcs = hb_draw_extent_get_funcs ();
   hb_font_draw_glyph (font, glyph, draw_extent_funcs, &extents);
   hb_draw_funcs_destroy (draw_extent_funcs);
-
-  c->push_clip (extents);
+  if (extents.xmin < extents.xmax)
+    c->push_clip (extents);
 }
 
 static void
