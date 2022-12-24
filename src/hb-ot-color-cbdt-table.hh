@@ -961,17 +961,17 @@ struct CBDT
                                   extents.x_bearing + extents.width,
                                   extents.y_bearing + extents.height);
 
-      funcs->image (data,
-		    blob,
-		    pixel_extents.width, -pixel_extents.height,
-		    HB_PAINT_IMAGE_FORMAT_PNG,
-		    font->slant_xy,
-		    &extents);
+      bool ret = funcs->image (data,
+			       blob,
+			       pixel_extents.width, -pixel_extents.height,
+			       HB_PAINT_IMAGE_FORMAT_PNG,
+			       font->slant_xy,
+			       &extents);
 
       funcs->pop_clip (data);
 
       hb_blob_destroy (blob);
-      return true;
+      return ret;
     }
 
     private:

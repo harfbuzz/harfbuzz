@@ -882,13 +882,16 @@ hb_ft_paint_glyph (hb_font_t *font,
       if (!hb_font_get_glyph_extents (font, gid, &extents))
 	goto out;
 
-      paint_funcs->image (paint_data,
-			  blob,
-			  bitmap.width,
-			  bitmap.rows,
-			  HB_PAINT_IMAGE_FORMAT_BGRA,
-			  font->slant_xy,
-			  &extents);
+      if (!paint_funcs->image (paint_data,
+			       blob,
+			       bitmap.width,
+			       bitmap.rows,
+			       HB_PAINT_IMAGE_FORMAT_BGRA,
+			       font->slant_xy,
+			       &extents))
+      {
+        /* TODO Try a forced outline load and paint? */
+      }
 
     out:
       hb_blob_destroy (blob);

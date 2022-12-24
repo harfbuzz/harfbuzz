@@ -253,15 +253,15 @@ struct sbix
       if (unlikely (!get_extents (font, glyph, &pixel_extents, false)))
         return false;
 
-      funcs->image (data,
-		    blob,
-		    pixel_extents.width, -pixel_extents.height,
-		    HB_PAINT_IMAGE_FORMAT_PNG,
-		    font->slant_xy,
-		    &extents);
+      bool ret = funcs->image (data,
+			       blob,
+			       pixel_extents.width, -pixel_extents.height,
+			       HB_PAINT_IMAGE_FORMAT_PNG,
+			       font->slant_xy,
+			       &extents);
 
       hb_blob_destroy (blob);
-      return true;
+      return ret;
     }
 
     private:
