@@ -180,6 +180,15 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
   if (!surface)
     return;
 
+  cairo_save (cr);
+  /* this clip is here to work around recording surface limitations */
+  cairo_rectangle (cr,
+                   extents->x_bearing,
+                   extents->y_bearing,
+                   extents->width,
+                   extents->height);
+  cairo_clip (cr);
+
   cairo_pattern_t *pattern = cairo_pattern_create_for_surface (surface);
   cairo_pattern_set_extend (pattern, CAIRO_EXTEND_PAD);
 
@@ -200,6 +209,8 @@ hb_cairo_paint_glyph_image (cairo_t *cr,
 
   cairo_pattern_destroy (pattern);
   cairo_surface_destroy (surface);
+
+  cairo_restore (cr);
 }
 
 static void
