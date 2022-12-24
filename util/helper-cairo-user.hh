@@ -40,6 +40,8 @@
 static bool debug = false;
 static int level = 0;
 
+static void print (const char *format, ...) __attribute__((format (printf, 1, 2)));
+
 static void
 print (const char *format,
        ...)
@@ -95,7 +97,7 @@ cubic_to (hb_draw_funcs_t *dfuncs,
 	  float to_x, float to_y,
 	  void *)
 {
-  print ("cubic to %f %f",
+  print ("cubic to %f %f  %f %f  %f %f",
 	 (double) control1_x, (double) control1_y,
 	 (double) control2_x, (double) control2_y,
 	 (double) to_x, (double) to_y);
@@ -296,7 +298,7 @@ paint_image (hb_paint_funcs_t *funcs,
   char buf[5] = { 0, };
 
   hb_tag_to_string (format, buf);
-  print ("image type %s size %u %u slant %f extents %d %d %d %d\n",
+  print ("image type '%s' size %u %u slant %f extents %d %d %d %d",
          buf, width, height, (double) slant,
          extents->x_bearing, extents->y_bearing, extents->width, extents->height);
 
@@ -485,7 +487,10 @@ render_color_glyph (cairo_scaled_font_t  *scaled_font,
   cairo_scale (cr, +1./x_scale, -1./y_scale);
 
   if (getenv ("HB_PAINT_DEBUG"))
+  {
     debug = atoi (getenv ("HB_PAINT_DEBUG"));
+    level = 0;
+  }
 
   hb_font_paint_glyph (font, glyph, get_cairo_paint_funcs (), cr, palette, color);
 
