@@ -471,7 +471,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
       hb_ft_paint_context_t c (ft_font, font,
 			       extents_funcs, &extents_data,
 			       palette, foreground);
-      _hb_ft_paint (&c, paint);
+      c.recurse (paint);
       hb_extents_t extents = extents_data.get_extents ();
       is_bounded = extents_data.is_bounded ();
       paint_funcs->push_clip_rectangle (paint_data,
@@ -488,7 +488,7 @@ hb_ft_paint_glyph_colr (hb_font_t *font,
 			     palette, foreground);
 
     if (is_bounded)
-      _hb_ft_paint (&c, paint);
+      c.recurse (paint);
 
     paint_funcs->pop_root_transform (paint_data);
     paint_funcs->pop_clip (paint_data);
